@@ -126,6 +126,8 @@ public:
       output.setMSLevel(input.getMSLevel());
       output.setName(input.getName());
       output.setType(SpectrumSettings::PEAKS);
+      output.getFloatDataArrays().resize(1);
+      output.getFloatDataArrays()[0].setName("FWHM_ppm");
 
       // don't pick a spectrum with less than 5 data points
       if (input.size() < 5) return;
@@ -300,8 +302,8 @@ public:
             ++k;
           }
 
-          //skip if the minimal number of 3 points for fitting is not reached
-          if (peak_raw_data.size() < 4) continue;
+          // skip if the minimal number of 3 points for fitting is not reached
+          if (peak_raw_data.size() < 3) continue;
 
           CubicSpline2d peak_spline (peak_raw_data);
 
@@ -341,9 +343,93 @@ public:
           }
           while (righthand - lefthand > threshold);
 
+
           // sanity check?
+          /*
+          // evaluate the spline at the raw data points and see how well it fits the data
+          for (std::map<double, double>::const_iterator it =  peak_raw_data.begin() ; it != peak_raw_data.end(); ++it)
+          {
+            PeakType peak;
+            PeakBoundary peak_boundary;
+            peak.setMZ(it->first);
+            peak.setIntensity(peak_spline.eval(it->first));
+            peak_boundary.mz_min = input[left_boundary].getMZ();
+            peak_boundary.mz_max = input[right_boundary].getMZ();
+            output.push_back(peak);
+            boundaries.push_back(peak_boundary);
+          }
+          */
+
           max_peak_mz = (lefthand + righthand) / 2;
           max_peak_int = peak_spline.eval(max_peak_mz);
+
+          // compute FWHM
+          double fwhm_int = max_peak_int / 2.0;
+          threshold = 0.01 * fwhm_int;
+          double mz_mid, int_mid; 
+          // left:
+          double mz_left = peak_raw_data.begin()->first;
+          double mz_center = max_peak_mz;
+          if (peak_spline.eval(mz_left) > fwhm_int)
+          { // the spline ends before half max is reached -- take the leftmost point (probably an underestimation)
+            mz_mid = mz_left;
+          } else
+          {
+            do 
+            {
+              mz_mid = (mz_left + mz_center) / 2;
+              int_mid = peak_spline.eval(mz_mid);
+              if (int_mid < fwhm_int) {
+                mz_left = mz_mid;
+              } else {
+                mz_center = mz_mid;
+              }
+            } while(abs(int_mid - fwhm_int) > threshold);
+          }
+          double fwhm_left_mz = mz_mid;
+
+          /*{
+          PeakType peak;
+          PeakBoundary peak_boundary;
+          peak.setMZ(fwhm_left_mz);
+          peak.setIntensity(int_mid);
+          peak_boundary.mz_min = input[left_boundary].getMZ();
+          peak_boundary.mz_max = input[right_boundary].getMZ();
+          output.push_back(peak);
+          boundaries.push_back(peak_boundary);
+          }*/
+          // right ...
+          double mz_right = peak_raw_data.rbegin()->first;
+          mz_center = max_peak_mz;
+          if (peak_spline.eval(mz_right) > fwhm_int)
+          { // the spline ends before half max is reached -- take the leftmost point (probably an underestimation)
+            mz_mid = mz_right;
+          } else
+            {
+            do 
+            {
+              mz_mid = (mz_right + mz_center) / 2;
+              int_mid = peak_spline.eval(mz_mid);
+              if (int_mid < fwhm_int) {
+                mz_right = mz_mid;
+              } else {
+                mz_center = mz_mid;
+              }
+
+            } while(abs(int_mid - fwhm_int) > threshold);
+          }
+          double fwhm_right_mz = mz_mid;
+          /*{
+            PeakType peak;
+            PeakBoundary peak_boundary;
+            peak.setMZ(fwhm_right_mz);
+            peak.setIntensity(int_mid);
+            peak_boundary.mz_min = input[left_boundary].getMZ();
+            peak_boundary.mz_max = input[right_boundary].getMZ();
+            output.push_back(peak);
+            boundaries.push_back(peak_boundary);
+          }*/
+
 
           // save picked peak into output spectrum
           PeakType peak;
@@ -352,8 +438,12 @@ public:
           peak.setIntensity(max_peak_int);
           peak_boundary.mz_min = input[left_boundary].getMZ();
           peak_boundary.mz_max = input[right_boundary].getMZ();
-          output.push_back(peak);
+          output.push_back(peak);\
+          output.getFloatDataArrays()[0].push_back((fwhm_right_mz - fwhm_left_mz)/max_peak_mz*1e6);
           boundaries.push_back(peak_boundary);
+           
+           //std::cerr << input.getRT() << " " << max_peak_mz << " " << max_peak_int << " " << (peak_boundary.mz_max-peak_boundary.mz_min)/max_peak_mz*1e6 << "\n";
+
 
           // jump over raw data points that have been considered already
           i = i + k - 1;

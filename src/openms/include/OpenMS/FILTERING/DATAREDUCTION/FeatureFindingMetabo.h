@@ -73,7 +73,6 @@ public:
 
 };
 
-
 class OPENMS_DLLAPI FeatureHypothesis
 {
 public:
@@ -98,37 +97,25 @@ public:
 
     String getLabel() const
     {
-        String label;
-
-        if (iso_pattern_.size() > 0)
-        {
-            label = iso_pattern_[0]->getLabel();
-        }
-
-        for (Size i = 1; i < iso_pattern_.size(); ++i)
-        {
-            String tmp_str = "_" + iso_pattern_[i]->getLabel();
-            label += tmp_str;
-        }
-
-        return label;
+      String label = ListUtils::concatenate(getLabels(), "_");
+      return label;
     }
 
     std::vector<String> getLabels() const
     {
-        std::vector<String> tmp_labels;
+      std::vector<String> tmp_labels;
 
-        for (Size i = 0; i < iso_pattern_.size(); ++i)
-        {
-            tmp_labels.push_back(iso_pattern_[i]->getLabel());
-        }
+      for (Size i = 0; i < iso_pattern_.size(); ++i)
+      {
+        tmp_labels.push_back(iso_pattern_[i]->getLabel());
+      }
 
-        return tmp_labels;
+      return tmp_labels;
     }
 
     double getScore() const
     {
-        return feat_score_;
+      return feat_score_;
     }
 
     void setScore(const double & score)
@@ -156,6 +143,18 @@ public:
         }
 
         return tmp;
+    }
+
+    std::vector<double> getMassDeltas() const
+    {
+      std::vector<double> tmp;
+
+      for (Size i = 1; i < iso_pattern_.size(); ++i)
+      {
+        tmp.push_back(iso_pattern_[i]->getCentroidMZ() - iso_pattern_[i-1]->getCentroidMZ());
+      }
+
+      return tmp;
     }
 
     double getCentroidMZ() const
@@ -194,6 +193,8 @@ public:
     Size getNumFeatPoints() const;
     std::vector<ConvexHull2D> getConvexHulls() const;
 
+
+
 private:
     // pointers of MassTraces contained in isotopic pattern
     std::vector<const MassTrace *> iso_pattern_;
@@ -202,7 +203,6 @@ private:
     SignedSize charge_;
 
 };
-
 
 class OPENMS_DLLAPI CmpHypothesesByScore
 {
@@ -214,8 +214,6 @@ public:
     }
 
 };
-
-
 
 class OPENMS_DLLAPI FeatureFindingMetabo :
         public DefaultParamHandler,
@@ -230,46 +228,32 @@ public:
 
 
     /// main method of FeatureFindingMetabo
-    void run(std::vector<MassTrace> &, FeatureMap &);
+    void run(std::vector<MassTrace>& input_mtraces, FeatureMap& output_featmap);
 
 
 protected:
     virtual void updateMembers_();
 
-
 private:
     /// private member functions
-    double computeOLSCoeff_(const std::vector<double> &, const std::vector<double> &);
-    double computeCosineSim_(const std::vector<double> &, const std::vector<double> &);
+    double computeCosineSim_(const std::vector<double> &, const std::vector<double> &) const;
+    bool isLegalIsotopePattern_(const FeatureHypothesis&) const;
+    void loadIsotopeModel_(const String&);
+    double scoreMZ_(const MassTrace &, const MassTrace &, Size, Size) const;
+    double scoreMZ2_(const MassTrace &, const MassTrace &, Size, Size) const;
+    double scoreRT_(const MassTrace &, const MassTrace &) const;
+    double computeAveragineSimScore_(const std::vector<double> &, const double &) const;
+    void findLocalFeatures_(std::vector<MassTrace *> &, double total_intensity, std::vector<FeatureHypothesis> &) const;
 
-    svm_model * isotope_filt_svm_;
+    svm_model* isotope_filt_svm_;
     std::vector<double> svm_feat_centers_;
     std::vector<double> svm_feat_scales_;
-    bool isLegalIsotopePattern_(FeatureHypothesis &);
-    bool isLegalIsotopePattern2_(FeatureHypothesis &);
-
-    //bool isLegalAveraginePattern(FeatureHypothesis&);
-    void loadIsotopeModel_(const String&);
-
-    double total_intensity_;
-
-    double scoreMZ_(const MassTrace &, const MassTrace &, Size, Size);
-    double scoreMZ2_(const MassTrace &, const MassTrace &, Size, Size);
-    double scoreRT_(const MassTrace &, const MassTrace &);
-
-    double computeAveragineSimScore_(const std::vector<double> &, const double &);
-
-    // double scoreTraceSim_(MassTrace, MassTrace);
-    // double scoreIntRatio_(double, double, Size);
-    void findLocalFeatures_(std::vector<MassTrace *> &, std::vector<FeatureHypothesis> &);
-
 
     /// parameter stuff
     double local_rt_range_;
     double local_mz_range_;
     Size charge_lower_bound_;
     Size charge_upper_bound_;
-    //double mass_error_ppm_;
     double chrom_fwhm_;
 
     bool report_summed_ints_;
@@ -281,10 +265,5 @@ private:
 
 };
 
-
 }
-
-
-
-
 #endif // OPENMS_FILTERING_DATAREDUCTION_FEATUREFINDINGMETABO_H

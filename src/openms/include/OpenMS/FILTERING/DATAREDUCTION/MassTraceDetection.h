@@ -83,6 +83,7 @@ public:
 
 protected:
     virtual void updateMembers_();
+    double averageFloatMetaValue_(std::list<PeakType> trace, MSExperiment<> exp);
 
 private:
     // parameter stuff

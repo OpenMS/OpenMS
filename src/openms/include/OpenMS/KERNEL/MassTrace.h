@@ -57,6 +57,7 @@ namespace OpenMS
     @ingroup Kernel
  */
   class OPENMS_DLLAPI MassTrace
+   : public MetaInfoInterface
   {
 public:
 

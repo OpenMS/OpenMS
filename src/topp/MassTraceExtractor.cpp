@@ -292,6 +292,8 @@ protected:
         f.setOverallQuality(1 - (1.0 / m_traces_final[i].getSize()));
         f.getConvexHulls().push_back(m_traces_final[i].getConvexhull());
         f.setMetaValue("SD", m_traces_final[i].getCentroidSD());
+        f.setMetaValue("SD_ppm", m_traces_final[i].getCentroidSD()/f.getMZ()*1e6);
+        f.setMetaValue("avg_peak_FWHM", m_traces_final[i].getMetaValue("avg_peak_FWHM"));
         stats_sd.push_back(m_traces_final[i].getCentroidSD());
         ms_feat_map.push_back(f);
       }

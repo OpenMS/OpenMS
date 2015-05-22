@@ -50,6 +50,7 @@ namespace OpenMS
   }
 
   MassTrace::MassTrace() :
+    MetaInfoInterface(),
     trace_peaks_(),
     centroid_mz_(),
     centroid_sd_(),
@@ -64,6 +65,7 @@ namespace OpenMS
   }
 
   MassTrace::MassTrace(const std::list<PeakType>& trace_peaks) :
+    MetaInfoInterface(),
     trace_peaks_(),
     centroid_mz_(),
     centroid_sd_(),
@@ -80,6 +82,7 @@ namespace OpenMS
   }
 
   MassTrace::MassTrace(const std::vector<PeakType>& trace_peaks) :
+    MetaInfoInterface(),
     trace_peaks_(trace_peaks),
     centroid_mz_(),
     centroid_sd_(),
@@ -98,6 +101,7 @@ namespace OpenMS
   }
 
   MassTrace::MassTrace(const MassTrace& mt) :
+    MetaInfoInterface(mt),
     trace_peaks_(mt.trace_peaks_),
     centroid_mz_(mt.centroid_mz_),
     centroid_sd_(mt.centroid_sd_),
@@ -116,6 +120,7 @@ namespace OpenMS
     if (this == &rhs)
       return *this;
 
+    MetaInfoInterface::operator=(rhs);
     trace_peaks_ = rhs.trace_peaks_;
     centroid_mz_ = rhs.centroid_mz_;
     centroid_rt_ = rhs.centroid_rt_;

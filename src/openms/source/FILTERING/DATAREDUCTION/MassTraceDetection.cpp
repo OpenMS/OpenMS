@@ -189,12 +189,7 @@ void computeWeightedSDEstimate(std::list<PeakType> tmp, const double & mean_t, d
     return;
 }
 
-double computeLoss(const double & x_t, const double & mean_t, const double & sd_t)
-{
-    return ((x_t - mean_t) * (x_t - mean_t)) / (2 * sd_t * sd_t) + 0.5 * std::log(sd_t * sd_t);
-}
-
-void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector<MassTrace> & found_masstraces)
+void MassTraceDetection::run(const MSExperiment<Peak1D>& input_exp, std::vector<MassTrace>& found_masstraces)
 {
     // make sure the output vector is empty
     found_masstraces.clear();
@@ -204,14 +199,10 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
     MSExperiment<Peak1D> work_exp;
     MapIdxSortedByInt chrom_apeces;
 
-    Size peak_count(0);
     std::vector<Size> spec_offsets;
     spec_offsets.push_back(0);
 
-    Size spectra_count(0);
-
-
-    // this->startProgress(0, input_exp.size(), "Detect potential chromatographic apeces...");
+    // filter experiment for MS1 spectra and peak intensity (> 'noise_threshold_int_')
     for (Size scan_idx = 0; scan_idx < input_exp.size(); ++scan_idx)
     {
         // this->setProgress(scan_idx);
@@ -221,38 +212,29 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
         {
             double scan_rt = input_exp[scan_idx].getRT();
             MSSpectrum<Peak1D> tmp_spec;
-            Size spec_peak_idx = 0;
-
             tmp_spec.setRT(scan_rt);
-
             for (Size peak_idx = 0; peak_idx < input_exp[scan_idx].size(); ++peak_idx)
             {
                 double tmp_peak_int(input_exp[scan_idx][peak_idx].getIntensity());
-
                 if (tmp_peak_int > noise_threshold_int_)
                 {
                     tmp_spec.push_back(input_exp[scan_idx][peak_idx]);
 
                     if (tmp_peak_int > chrom_peak_snr_ * noise_threshold_int_)
                     {
-                        chrom_apeces.insert(std::make_pair(tmp_peak_int, std::make_pair(scan_idx, spec_peak_idx)));
+                        chrom_apeces.insert(std::make_pair(tmp_peak_int, std::make_pair(scan_idx, tmp_spec.size()-1)));
                     }
-                    ++peak_count;
-                    ++spec_peak_idx;
                 }
             }
 
-
             work_exp.addSpectrum(tmp_spec);
-            spec_offsets.push_back(spec_offsets[spec_offsets.size() - 1] + tmp_spec.size());
-
-            ++spectra_count;
+            spec_offsets.push_back(spec_offsets.back() + tmp_spec.size());
         }
     }
-
-    if (spectra_count < 3)
+    Size peak_count = spec_offsets.back();
+    if (work_exp.size() < 3)
     {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Input map consists of too few spectra (less than 3!). Aborting...", String(spectra_count));
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Input map consists of too few MS1 spectra (less than 3!). Aborting...", String(work_exp.size()));
     }
 
 
@@ -434,15 +416,8 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
                     double next_up_peak_mz = work_exp[trace_up_idx + 1][next_up_peak_idx].getMZ();
                     double next_up_peak_int = work_exp[trace_up_idx + 1][next_up_peak_idx].getIntensity();
 
-                    double right_bound, left_bound;
-
-                    //                    right_bound = centroid_mz + (centroid_mz/1000000)*mass_error_ppm_;
-                    //                    left_bound = centroid_mz - (centroid_mz/1000000)*mass_error_ppm_;
-
-
-                    right_bound = centroid_mz + 3 * ftl_sd;
-                    left_bound = centroid_mz - 3 * ftl_sd;
-
+                    double right_bound = centroid_mz + 3 * ftl_sd;
+                    double left_bound = centroid_mz - 3 * ftl_sd;
 
                     if ((next_up_peak_mz <= right_bound) && (next_up_peak_mz >= left_bound) && !peak_visited[spec_offsets[trace_up_idx + 1] + next_up_peak_idx])
                     {
@@ -472,7 +447,7 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
                     }
                     else
                     {
-                        ++conseq_missed_peak_up;
+                      ++conseq_missed_peak_up;
                     }
 
                 }
@@ -526,6 +501,7 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
             MassTrace new_trace(current_trace);
             new_trace.updateWeightedMeanRT();
             new_trace.updateWeightedMeanMZ();
+            new_trace.setMetaValue("avg_peak_FWHM", averageFloatMetaValue_(current_trace, input_exp));
 
             //new_trace.setCentroidSD(ftl_sd);
             new_trace.updateWeightedMZsd();
@@ -543,6 +519,46 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
 
     return;
 } // end of MassTraceDetection::run
+
+double MassTraceDetection::averageFloatMetaValue_(std::list<PeakType> trace, MSExperiment<> exp)
+{
+  MSExperiment<>::ConstAreaIterator it;
+  double avg_fwhm(0);
+  int bad(0);
+  for (std::list<PeakType>::const_iterator itl=trace.begin(); itl != trace.end(); ++itl)
+  {
+    // get scan
+    it = exp.areaBeginConst(itl->getRT()-0.01, itl->getMZ()-0.0001, itl->getRT()+0.0001, itl->getMZ()+0.0001);
+    if (it == exp.areaEndConst()) {
+      std::cerr << " WHAAA -- peak not found";
+    }
+    PeakIndex pi = it.getPeakIndex();
+    double drt = 1;
+    double dmz = 1;
+    while (pi.peak != exp[pi.spectrum].size() && (drt !=0 || dmz!=0)) {
+      drt = itl->getRT() - exp[pi.spectrum].getRT();
+      dmz = itl->getMZ() - exp[pi.spectrum][pi.peak].getMZ();
+      ++pi.peak;
+    }
+    if (drt !=0 || dmz!=0) {
+      std::cerr << "missed peak!";
+      exit(1);
+    }
+    --pi.peak;
+    
+    //std::cout << "diff: " << drt << "   mz: " << dmz << "   ";
+
+    if (exp[pi.spectrum].getFloatDataArrays()[0].getName() != "FWHM_ppm") {
+      std::cerr << " WHAAA -- float data empty!";
+    }
+    double f = exp[pi.spectrum].getFloatDataArrays()[0][pi.peak];
+    //std::cout << "f: " << f << "\n";
+    avg_fwhm += f;
+  }
+  //std::cerr << "total bads: " << bad << "\\" << trace.size() << "\n";
+  avg_fwhm /= trace.size();
+  return avg_fwhm;
+}
 
 void MassTraceDetection::updateMembers_()
 {

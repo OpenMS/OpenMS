@@ -154,14 +154,12 @@ namespace OpenMS
   FeatureFindingMetabo::FeatureFindingMetabo() :
     DefaultParamHandler("FeatureFindingMetabo"), ProgressLogger()
   {
-    // defaults_.setValue( "name" , 1 , "description" );
     defaults_.setValue("quant_method", String(MassTrace::names_of_quantmethod[0]), "Method of quantification for mass traces. For LC data 'area' is recommended, 'median' for direct injection data.");
     defaults_.setValidStrings("quant_method", std::vector<String>(MassTrace::names_of_quantmethod, MassTrace::names_of_quantmethod +(int)MassTrace::SIZE_OF_MT_QUANTMETHOD));
     defaults_.setValue("local_rt_range", 10.0, "RT range where to look for coeluting mass traces", ListUtils::create<String>("advanced")); // 5.0
     defaults_.setValue("local_mz_range", 6.5, "MZ range where to look for isotopic mass traces", ListUtils::create<String>("advanced")); // 6.5
     defaults_.setValue("charge_lower_bound", 1, "Lowest charge state to consider"); // 1
     defaults_.setValue("charge_upper_bound", 3, "Highest charge state to consider"); // 3
-    //defaults_.setValue("mass_error_ppm", 20.0, "Allowed mass error deviation in ppm");  // 20.0
     defaults_.setValue("chrom_fwhm", 5.0, "Expected chromatographic peak width (in seconds)."); // 5.0
     defaults_.setValue("report_summed_ints", "false", "Set to true for a feature intensity summed up over all traces rather than using monoisotopic trace intensity alone.", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("report_summed_ints", ListUtils::create<String>("false,true"));
@@ -191,11 +189,8 @@ namespace OpenMS
 
   void FeatureFindingMetabo::updateMembers_()
   {
-    // delta_ = (Size)param_.getValue( "delta" );
-
     local_rt_range_ = (double)param_.getValue("local_rt_range");
     local_mz_range_ = (double)param_.getValue("local_mz_range");
-    // mass_error_ppm_ = (double)param_.getValue("mass_error_ppm");
     chrom_fwhm_ = (double)param_.getValue("chrom_fwhm");
 
     charge_lower_bound_ = (Size)param_.getValue("charge_lower_bound");
@@ -209,7 +204,7 @@ namespace OpenMS
     use_smoothed_intensities_ = param_.getValue("use_smoothed_intensities").toBool();
   }
 
-  double FeatureFindingMetabo::computeAveragineSimScore_(const std::vector<double>& hypo_ints, const double& mol_weight)
+  double FeatureFindingMetabo::computeAveragineSimScore_(const std::vector<double>& hypo_ints, const double& mol_weight) const
   {
     //    if (feat_hypo.getSize() == 1)
     //    {
@@ -222,9 +217,6 @@ namespace OpenMS
     // isodist.renormalize();
 
     std::vector<std::pair<Size, double> > averagine_dist = isodist.getContainer();
-
-    // std::vector<double> hypo_ints = feat_hypo.getAllIntensities();
-
     double max_int(0.0), theo_max_int(0.0);
 
     for (Size i = 0; i < hypo_ints.size(); ++i)
@@ -257,75 +249,8 @@ namespace OpenMS
     return iso_score;
   }
 
-  bool FeatureFindingMetabo::isLegalIsotopePattern_(FeatureHypothesis& feat_hypo)
-  {
-    if (feat_hypo.getSize() == 1)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Cannot compute isotope pattern on a single mass trace!", String(feat_hypo.getSize()));
-    }
-
-    std::vector<double> all_ints = feat_hypo.getAllIntensities(use_smoothed_intensities_);
-
-    //    for (Size i = 0; i < all_ints.size(); ++i)
-    //    {
-    //        std::cout << "i: " << i << " " << all_ints[i] << std::endl;
-    //    }
-
-    double mono_int(all_ints[0]);
-
-    svm_node* nodes;
-
-    nodes = new svm_node[7];
-
-
-    nodes[0].index = 1;
-    nodes[0].value = (feat_hypo.getCentroidMZ() - svm_feat_centers_[0]) / svm_feat_scales_[0];
-
-    Size i = 2;
-
-    Size feat_size(feat_hypo.getSize());
-
-    if (feat_size > 6)
-    {
-      feat_size = 6;
-    }
-
-    for (; i - 1 < feat_size; ++i)
-    {
-      nodes[i - 1].index = static_cast<Int>(i);
-
-      double ratio((all_ints[i - 1] / mono_int));
-
-      // std::cout << i << " " << ratio << " " << std::flush;
-
-      if (ratio > 1.0)
-      {
-        delete[] nodes;
-        return false;
-      }
-
-      double tmp_val((ratio - svm_feat_centers_[i - 1]) / svm_feat_scales_[i - 1]);
-      nodes[i - 1].value = tmp_val;
-    }
-
-
-    for (; i < 7; ++i)
-    {
-      nodes[i - 1].index = static_cast<Int>(i);
-      nodes[i - 1].value = (-svm_feat_centers_[i - 1]) / svm_feat_scales_[i - 1];
-    }
-
-    nodes[6].index = -1;
-    nodes[6].value = 0;
-
-    double predict = svm_predict(isotope_filt_svm_, nodes);
-
-    delete[] nodes;
-
-    return (predict == 2.0) ? true : false;
-  }
-
-  bool FeatureFindingMetabo::isLegalIsotopePattern2_(FeatureHypothesis& feat_hypo)
+  
+  bool FeatureFindingMetabo::isLegalIsotopePattern_(const FeatureHypothesis& feat_hypo) const
   {
     if (feat_hypo.getSize() == 1)
     {
@@ -335,15 +260,11 @@ namespace OpenMS
     std::vector<double> all_ints = feat_hypo.getAllIntensities(use_smoothed_intensities_);
 
     double mono_int(all_ints[0]);
-
-    svm_node* nodes;
 
     const Size FEAT_NUM(4);
+    svm_node* nodes = new svm_node[FEAT_NUM + 1];
 
-    nodes = new svm_node[FEAT_NUM + 1];
-
-    double charge(feat_hypo.getCharge());
-    double act_mass(feat_hypo.getCentroidMZ() * charge);
+    double act_mass(feat_hypo.getCentroidMZ() * feat_hypo.getCharge());
 
     // std::cout << act_mass << std::endl;
 
@@ -360,9 +281,9 @@ namespace OpenMS
 
     Size feat_size(feat_hypo.getSize());
 
-    if (feat_size > 4)
+    if (feat_size > FEAT_NUM)
     {
-      feat_size = 4;
+      feat_size = FEAT_NUM;
     }
 
     for (; i - 1 < feat_size; ++i)
@@ -370,14 +291,6 @@ namespace OpenMS
       nodes[i - 1].index = static_cast<Int>(i);
 
       double ratio((all_ints[i - 1] / mono_int));
-
-      // std::cout << i << " " << ratio << " " << std::endl;
-
-      //        if (ratio > 1.0)
-      //        {
-      //            delete[] nodes;
-      //            return false;
-      //        }
 
       double tmp_val((ratio - svm_feat_centers_[i - 1]) / svm_feat_scales_[i - 1]);
       nodes[i - 1].value = tmp_val;
@@ -454,7 +367,7 @@ namespace OpenMS
     return;
   }
 
-  double FeatureFindingMetabo::scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge)
+  double FeatureFindingMetabo::scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge) const
   {
     double mu((1.000857 * (double)iso_pos + 0.001091) / (double)charge);
     double sd((0.0016633 * (double)iso_pos - 0.0004751) / (double)charge);
@@ -494,7 +407,7 @@ namespace OpenMS
     return mz_score;
   }
 
-  double FeatureFindingMetabo::scoreMZ2_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge)
+  double FeatureFindingMetabo::scoreMZ2_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge) const
   {
     double mu((1.003355 * (double)iso_pos) / (double)charge);
     double sd(0.01 / (double)charge);
@@ -534,77 +447,7 @@ namespace OpenMS
     return mz_score;
   }
 
-//double FeatureFindingMetabo::scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge)
-//{
-//    double sigma_mult(3.0);
-//    double center((1.001156 * (double)iso_pos + 0.001349) / (double)charge);
-
-//    double mz1(tr1.getCentroidMZ());
-//    double mz2(tr2.getCentroidMZ());
-
-//    double centered_mz(std::fabs(mz2 - mz1) - center);
-
-//    // setup gaussian mixture model for valid isotopic m/z distances
-//    //double iso_mz_diff(1.002245);
-
-//    // std::cout << "iso_pos: " << iso_pos << " charge: " << charge << " mz_diff" << centered_mz << std::endl;
-
-//    double mu1(0.000981383);
-//    double sigma1(0.001657985);
-//    double mu2(-0.00559452);
-//    double sigma2(0.00118085);
-
-//    double mt_sigma1(tr1.getCentroidSD());
-//    double mt_sigma2(tr2.getCentroidSD());
-//    // double mt_variances1(mt_sigma1*mt_sigma1 + mt_sigma2*mt_sigma2);
-//    double mt_variances(std::exp(2 * std::log(mt_sigma1)) + std::exp(2 * std::log(mt_sigma2)));
-//    // std::cout << "mt1: " << mt_sigma1 << " mt2: " << mt_sigma2 << " mt_variances: " << mt_variances << " old " << mt_variances1 <<  std::endl;
-
-
-//    double score_sigma1(std::sqrt(sigma1 * sigma1 + mt_variances));
-//    double score_sigma2(std::sqrt(sigma2 * sigma2 + mt_variances));
-
-//    // std::cout << "score_sigma1: " << score_sigma1 << std::endl;
-//    // std::cout << "score_sigma2: " << score_sigma2 << std::endl;
-
-
-//    double mz_score(0.0);
-
-
-//    if (iso_pos == 1)
-//    {
-//        if ((centered_mz < mu1 + sigma_mult * score_sigma1) && (centered_mz > mu1 - sigma_mult * score_sigma1))
-//        {
-//            double tmp_exponent1((centered_mz - mu1) / score_sigma1);
-//            mz_score = std::exp(-0.5 * tmp_exponent1 * tmp_exponent1);
-
-//        }
-//    }
-//    else
-//    {
-//        if ((centered_mz < mu1 + sigma_mult * score_sigma1) && (centered_mz > mu2 - sigma_mult * score_sigma2))
-//        {
-//            double tmp_exponent1((centered_mz - mu1) / score_sigma1);
-//            double tmp_exponent2((centered_mz - mu2) / score_sigma2);
-
-//            double mz_score1(std::exp(-0.5 * tmp_exponent1 * tmp_exponent1));
-//            double mz_score2(std::exp(-0.5 * tmp_exponent2 * tmp_exponent2));
-
-//            mz_score = (mz_score1 > mz_score2) ? mz_score1 : mz_score2;
-
-//        }
-//    }
-//    // std::cout<< tr1.getLabel() << "_" << tr2.getLabel() << " mz score: " << mz_score << std::endl;
-
-//    // double diff_mz(mz2-mz1);
-//    // std::cout << tr1.getLabel() << "_" << tr2.getLabel() << " diffmz: " << diff_mz << " charge " << charge << " isopos: " << iso_pos << " score: " << mz_score << std::endl ;
-
-//    return mz_score;
-//}
-
-
-
-  double FeatureFindingMetabo::scoreRT_(const MassTrace& tr1, const MassTrace& tr2)
+  double FeatureFindingMetabo::scoreRT_(const MassTrace& tr1, const MassTrace& tr2) const
   {
     // return success if this filter is disabled
     if (!enable_RT_filtering_) return 1.0;
@@ -685,7 +528,7 @@ namespace OpenMS
     return computeCosineSim_(x, y);
   }
 
-  double FeatureFindingMetabo::computeCosineSim_(const std::vector<double>& x, const std::vector<double>& y)
+  double FeatureFindingMetabo::computeCosineSim_(const std::vector<double>& x, const std::vector<double>& y) const
   {
     if (x.size() != y.size())
     {
@@ -709,31 +552,12 @@ namespace OpenMS
     return (denom > 0.0) ? mixed_sum / denom : 0.0;
   }
 
-  double FeatureFindingMetabo::computeOLSCoeff_(const std::vector<double>& x, const std::vector<double>& y)
-  {
-    if (x.size() != y.size())
-    {
-      return 0.0;
-    }
-
-    double mixed_sum(0.0);
-    double x_squared_sum(0.0);
-
-    for (Size i = 0; i < x.size(); ++i)
-    {
-      mixed_sum += x[i] * y[i];
-      x_squared_sum += x[i] * x[i];
-    }
-
-    return (x_squared_sum > 0.0) ? mixed_sum / x_squared_sum : 0.0;
-  }
-
-  void FeatureFindingMetabo::findLocalFeatures_(std::vector<MassTrace*>& candidates, std::vector<FeatureHypothesis>& output_hypos)
+  void FeatureFindingMetabo::findLocalFeatures_(std::vector<MassTrace*>& candidates, double total_intensity, std::vector<FeatureHypothesis>& output_hypos) const
   {
     // single Mass trace hypothesis
     FeatureHypothesis tmp_hypo;
     tmp_hypo.addMassTrace(*candidates[0]);
-    tmp_hypo.setScore((candidates[0]->getIntensity(use_smoothed_intensities_)) / total_intensity_);
+    tmp_hypo.setScore((candidates[0]->getIntensity(use_smoothed_intensities_)) / total_intensity);
 
     output_hypos.push_back(tmp_hypo);
 
@@ -743,7 +567,7 @@ namespace OpenMS
 
       FeatureHypothesis fh_tmp;
       fh_tmp.addMassTrace(*candidates[0]);
-      fh_tmp.setScore((candidates[0]->getIntensity(use_smoothed_intensities_)) / total_intensity_);
+      fh_tmp.setScore((candidates[0]->getIntensity(use_smoothed_intensities_)) / total_intensity);
 
       //        double mono_iso_rt(candidates[0]->getCentroidRT());
       //        double mono_iso_mz(candidates[0]->getCentroidMZ());
@@ -806,7 +630,7 @@ namespace OpenMS
         if (best_so_far > 0.0)
         {
           fh_tmp.addMassTrace(*candidates[best_idx]);
-          double weighted_score(((candidates[best_idx]->getIntensity(use_smoothed_intensities_)) * best_so_far) / total_intensity_);
+          double weighted_score(((candidates[best_idx]->getIntensity(use_smoothed_intensities_)) * best_so_far) / total_intensity);
 
           fh_tmp.setScore(fh_tmp.getScore() + weighted_score);
           fh_tmp.setCharge(charge);
@@ -831,6 +655,7 @@ namespace OpenMS
   } // end of findLocalFeatures_(...)
 
   void FeatureFindingMetabo::run(std::vector<MassTrace>& input_mtraces, FeatureMap& output_featmap)
+
   {
     if (input_mtraces.empty()) return;
 
@@ -842,7 +667,7 @@ namespace OpenMS
     this->startProgress(0, input_mtraces.size(), "assembling mass traces to features");
 
     // configure quantification method
-    
+
     MassTrace::MT_QUANTMETHOD method = MassTrace::getQuantMethod((String)param_.getValue("quant_method"));
     for (std::vector<MassTrace>::iterator it = input_mtraces.begin();
       it != input_mtraces.end();
@@ -864,11 +689,11 @@ namespace OpenMS
       loadIsotopeModel_("MetaboliteIsoModelNoised5");
     }
 
-    total_intensity_ = 0.0;
+    double total_intensity(0.0);
 
     for (Size i = 0; i < input_mtraces.size(); ++i)
     {
-      total_intensity_ += input_mtraces[i].getIntensity(use_smoothed_intensities_);
+      total_intensity += input_mtraces[i].getIntensity(use_smoothed_intensities_);
     }
 
     for (Size i = 0; i < input_mtraces.size(); ++i)
@@ -897,7 +722,7 @@ namespace OpenMS
         }
       }
 
-      findLocalFeatures_(local_traces, feat_hypos);
+      findLocalFeatures_(local_traces, total_intensity, feat_hypos);
     }
     this->endProgress();
 
@@ -954,7 +779,7 @@ namespace OpenMS
         {
           if (isotope_model_ == "metabolites")
           {
-            pass_isotope_filter = isLegalIsotopePattern2_(feat_hypos[hypo_idx]);
+            pass_isotope_filter = isLegalIsotopePattern_(feat_hypos[hypo_idx]);
           }
           else if (isotope_model_ == "peptides")
           {
@@ -993,10 +818,10 @@ namespace OpenMS
         f.setMetaValue("masstrace_intensity_" + String(int_idx), all_ints[int_idx]);
       }
 
-
       f.setConvexHulls(feat_hypos[hypo_idx].getConvexHulls());
       f.setOverallQuality(feat_hypos[hypo_idx].getScore());
-
+      f.setMetaValue("mass_deltas", feat_hypos[hypo_idx].getMassDeltas());
+      f.setMetaValue("legal_isotope_pattern", (feat_hypos[hypo_idx].getSize() > 1) ? (int)isLegalIsotopePattern_(feat_hypos[hypo_idx]) : -1 );
       output_featmap.push_back(f);
 
       // add used traces to exclusion map
@@ -1008,5 +833,5 @@ namespace OpenMS
 
     return;
   } // end of FeatureFindingMetabo::run
-
+  
 }
