@@ -550,7 +550,8 @@ protected:
       os << "  non-redundant protein hits: " << proteins.size() << "\n";
       os << "  (only hits that differ in the accession)" << "\n";
       os << "\n";
-      os << "  spectra:                    " << spectrum_count << "\n";
+      os << "  peptide identifications:    " << spectrum_count << "\n";
+      os << "  (number of spectra with peptide sequence information)" << "\n";
       os << "  peptide hits:               " << peptide_hit_count << "\n";
       os << "  modified top-hits:          " << modified_peptide_count << "/" << spectrum_count << (spectrum_count > 0 ? String(" (") + (modified_peptide_count * 100.0 / spectrum_count) + "%)" : "") << "\n";
       os << "  non-redundant peptide hits: " << peptides.size() << "\n";
