@@ -108,11 +108,18 @@ public:
     /// Initialize the cross-correlation vector with the MS1 trace
     void initializeMS1XCorr(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> native_ids, std::string precursor_id);
 
+    /// Initialize the scoring object and building the cross-correlation matrix of identification vs detection chromatograms
+    void initializeXCorrIdMatrix(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> native_ids_identification, std::vector<String> native_ids_detection);
+
     /// calculate the cross-correlation score
     double calcXcorrCoelutionScore();
+    double calcXcorrIdCoelutionScore();
+    double calcMinXcorrIdCoelutionScore();
 
     /// calculate the cross-correlation shape score
     double calcXcorrShape_score();
+    double calcXcorrIdShape_score();
+    double calcMaxXcorrIdShape_score();
 
     /// calculate the weighted cross-correlation shape score
     double calcXcorrShape_score_weighted(const std::vector<double>& normalized_library_intensity);

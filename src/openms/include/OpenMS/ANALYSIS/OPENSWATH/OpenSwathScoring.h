@@ -83,6 +83,8 @@ namespace OpenMS
 
     bool use_ms1_correlation;
     bool use_ms1_fullscan;
+    bool use_uis_scores;
+    bool use_site_scores;
   };
 
   /** @brief A structure to hold the different scores computed by OpenSWATH
@@ -105,10 +107,13 @@ namespace OpenMS
     double isotope_overlap;
     double massdev_score;
     double xcorr_coelution_score;
+    double min_xcorr_coelution_score;
     double xcorr_shape_score;
+    double max_xcorr_shape_score;
     double yseries_score;
     double bseries_score;
     double log_sn_score;
+    int id_num_transitions;
 
     double weighted_coelution_score;
     double weighted_xcorr_shape;
@@ -145,10 +150,13 @@ namespace OpenMS
       isotope_overlap(0),
       massdev_score(0),
       xcorr_coelution_score(0),
+      min_xcorr_coelution_score(0),
       xcorr_shape_score(0),
+      max_xcorr_shape_score(0),
       yseries_score(0),
       bseries_score(0),
       log_sn_score(0),
+      id_num_transitions(0),
       weighted_coelution_score(0),
       weighted_xcorr_shape(0),
       weighted_massdev_score(0),
@@ -451,6 +459,31 @@ var_yseries_score   -0.0327896378737766
           OpenSwath::IMRMFeature* imrmfeature,
           const std::vector<std::string>& native_ids,
           const std::vector<double>& normalized_library_intensity,
+          std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
+          OpenSwath_Scores & scores);
+
+    /** @brief Score identification transitions against detection transitions of a single peakgroup 
+     * in a chromatogram using only chromatographic properties.
+     *
+     * This function only uses the chromatographic properties (coelution,
+     * signal to noise, etc.) of a peakgroup in a chromatogram to compute
+     * scores. The scores are computed by scoring identification against detection
+     * transitions.
+     *
+     * The scores are returned in the OpenSwath_Scores object. Only those
+     * scores specified in the OpenSwath_Scores_Usage object are computed.
+     *
+     * @param imrmfeature The feature to be scored
+     * @param native_ids_identification The list of identification native ids (giving a canonical ordering of the transitions)
+     * @param native_ids_detection The list of detection native ids (giving a canonical ordering of the transitions)
+     * @param signal_noise_estimators The signal-to-noise estimators for each transition
+     * @param scores The object to store the result
+     *
+    */
+    void calculateChromatographicIdScores(
+          OpenSwath::IMRMFeature* imrmfeature,
+          const std::vector<std::string>& native_ids_identification,
+          const std::vector<std::string>& native_ids_detection,
           std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
           OpenSwath_Scores & scores);
 

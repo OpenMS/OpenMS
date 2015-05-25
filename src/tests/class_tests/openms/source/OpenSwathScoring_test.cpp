@@ -88,6 +88,13 @@ START_SECTION((void calculateChromatographicScores( OpenSwath::IMRMFeature* imrm
 }
 END_SECTION
 
+START_SECTION((void calculateChromatographicIdScores( OpenSwath::IMRMFeature* imrmfeature, const std::vector<std::string>& native_ids_identification,, const std::vector<std::string>& native_ids_detection, std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators, OpenSwath_Scores & idscores) ))
+{
+  NOT_TESTABLE // see MRMFeatureFinderScoring_test.cpp
+  // - the OpenSwathScoring is a facade and thus does not need testing on its own
+}
+END_SECTION
+
 START_SECTION((void calculateLibraryScores( OpenSwath::IMRMFeature* imrmfeature, const std::vector<TransitionType> & transitions, const PeptideType& pep, const double normalized_feature_rt, OpenSwath_Scores & scores)))
 {
   NOT_TESTABLE // see MRMFeatureFinderScoring_test.cpp

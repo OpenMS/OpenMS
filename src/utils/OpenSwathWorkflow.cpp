@@ -88,14 +88,18 @@ namespace OpenMS
     String input_filename_;
     bool doWrite_;
     bool use_ms1_traces_;
+    bool enable_uis_scoring_;
+    bool enable_site_scoring_;
 
   public:
 
-    OpenSwathTSVWriter(String output_filename, String input_filename = "inputfile", bool ms1_scores = false) :
+    OpenSwathTSVWriter(String output_filename, String input_filename = "inputfile", bool ms1_scores = false, bool uis_scores = false, bool site_scores = false) :
       ofs(output_filename.c_str()),
       input_filename_(input_filename),
       doWrite_(!output_filename.empty()),
-      use_ms1_traces_(ms1_scores)
+      use_ms1_traces_(ms1_scores),
+      enable_uis_scoring_(uis_scores),
+      enable_site_scoring_(site_scores)
       {}
 
     bool isActive() 
@@ -124,7 +128,18 @@ namespace OpenMS
       {
         ofs << "\taggr_prec_Peak_Area\taggr_prec_Peak_Apex\taggr_prec_Fragment_Annotation";
       }
-      ofs << "\taggr_Peak_Area\taggr_Peak_Apex\taggr_Fragment_Annotation\n";
+      ofs << "\taggr_Peak_Area\taggr_Peak_Apex\taggr_Fragment_Annotation";
+      if (enable_uis_scoring_)
+      {
+        ofs << "\tid_target_num_transitions\tid_target_var_xcorr_coelution\tid_target_var_min_xcorr_coelution\tid_target_var_xcorr_shape\tid_target_var_max_xcorr_shape\tid_target_main_var_log_sn_score\tid_target_var_elution_model_fit_score" <<
+        "\tid_decoy_num_transitions\tid_decoy_var_xcorr_coelution\tid_decoy_var_min_xcorr_coelution\tid_decoy_var_xcorr_shape\tid_decoy_var_max_xcorr_shape\tid_decoy_main_var_log_sn_score\tid_decoy_var_elution_model_fit_score";
+      }
+      if (enable_site_scoring_)
+      {
+        ofs << "\tsid_target_num_transitions\tsid_target_var_xcorr_coelution\tsid_target_var_xcorr_coelution_diag\tsid_target_var_min_xcorr_coelution\tsid_target_var_min_xcorr_coelution_diag\tsid_target_var_xcorr_shape\tsid_target_var_xcorr_shape_diag\tsid_target_var_max_xcorr_shape\tsid_target_var_max_xcorr_shape_diag\tsid_target_var_log_sn\tsid_target_main_var_log_sn_diag\tsid_target_var_elution_model_fit\tsid_target_var_elution_model_fit_diag" <<
+        "\tsid_decoy_num_transitions\tsid_decoy_var_xcorr_coelution\tsid_decoy_var_xcorr_coelution_diag\tsid_decoy_var_min_xcorr_coelution\tsid_decoy_var_min_xcorr_coelution_diag\tsid_decoy_var_xcorr_shape\tsid_decoy_var_xcorr_shape_diag\tsid_decoy_var_max_xcorr_shape\tsid_decoy_var_max_xcorr_shape_diag\tsid_decoy_var_log_sn\tsid_decoy_main_var_log_sn_diag\tsid_decoy_var_elution_model_fit\tsid_decoy_var_elution_model_fit_diag";       
+      }
+      ofs << "\n";
     }
 
     String prepareLine(const OpenSwath::LightPeptide& pep,
@@ -262,8 +277,54 @@ namespace OpenMS
             {
               line += "\t" + aggr_prec_Peak_Area + "\t" + aggr_prec_Peak_Apex + "\t" + aggr_prec_Fragment_Annotation;
             }
-            line += "\t" + aggr_Peak_Area + "\t" + aggr_Peak_Apex + "\t" + aggr_Fragment_Annotation + "\n";
-          result += line;
+            line += "\t" + aggr_Peak_Area + "\t" + aggr_Peak_Apex + "\t" + aggr_Fragment_Annotation;
+            if (enable_uis_scoring_)
+            {
+              line += "\t" + (String)feature_it->getMetaValue("id_target_num_transitions")
+              + "\t" + (String)feature_it->getMetaValue("id_target_xcorr_coelution")
+              + "\t" + (String)feature_it->getMetaValue("id_target_min_xcorr_coelution")
+              + "\t" + (String)feature_it->getMetaValue("id_target_xcorr_shape")
+              + "\t" + (String)feature_it->getMetaValue("id_target_max_xcorr_shape")
+              + "\t" + (String)feature_it->getMetaValue("id_target_log_sn_score")
+              + "\t" + (String)feature_it->getMetaValue("id_target_elution_model_fit_score")
+              + "\t" + (String)feature_it->getMetaValue("id_decoy_num_transitions")
+              + "\t" + (String)feature_it->getMetaValue("id_decoy_xcorr_coelution")
+              + "\t" + (String)feature_it->getMetaValue("id_decoy_min_xcorr_coelution")
+              + "\t" + (String)feature_it->getMetaValue("id_decoy_xcorr_shape")
+              + "\t" + (String)feature_it->getMetaValue("id_decoy_max_xcorr_shape")
+              + "\t" + (String)feature_it->getMetaValue("id_decoy_log_sn_score")
+              + "\t" + (String)feature_it->getMetaValue("id_decoy_elution_model_fit_score");
+            }
+            if (enable_site_scoring_)
+            {
+              line += "\t" + (String)feature_it->getMetaValue("sid_target_num_transitions")
+              + "\t" + (String)feature_it->getMetaValue("sid_target_xcorr_coelution")
+              + "\t" + (String)feature_it->getMetaValue("sid_target_xcorr_coelution_diag")
+              + "\t" + (String)feature_it->getMetaValue("sid_target_min_xcorr_coelution")
+              + "\t" + (String)feature_it->getMetaValue("sid_target_min_xcorr_coelution_diag")
+              + "\t" + (String)feature_it->getMetaValue("sid_target_xcorr_shape")
+              + "\t" + (String)feature_it->getMetaValue("sid_target_xcorr_shape_diag")
+              + "\t" + (String)feature_it->getMetaValue("sid_target_max_xcorr_shape")
+              + "\t" + (String)feature_it->getMetaValue("sid_target_max_xcorr_shape_diag")
+              + "\t" + (String)feature_it->getMetaValue("sid_target_log_sn")
+              + "\t" + (String)feature_it->getMetaValue("sid_target_log_sn_diag")
+              + "\t" + (String)feature_it->getMetaValue("sid_target_elution_model_fit")
+              + "\t" + (String)feature_it->getMetaValue("sid_target_elution_model_fit_diag")
+              + "\t" + (String)feature_it->getMetaValue("sid_decoy_num_transitions")
+              + "\t" + (String)feature_it->getMetaValue("sid_decoy_xcorr_coelution")
+              + "\t" + (String)feature_it->getMetaValue("sid_decoy_xcorr_coelution_diag")
+              + "\t" + (String)feature_it->getMetaValue("sid_decoy_min_xcorr_coelution")
+              + "\t" + (String)feature_it->getMetaValue("sid_decoy_min_xcorr_coelution_diag")
+              + "\t" + (String)feature_it->getMetaValue("sid_decoy_xcorr_shape")
+              + "\t" + (String)feature_it->getMetaValue("sid_decoy_xcorr_shape_diag")
+              + "\t" + (String)feature_it->getMetaValue("sid_decoy_max_xcorr_shape")
+              + "\t" + (String)feature_it->getMetaValue("sid_decoy_max_xcorr_shape_diag")
+              + "\t" + (String)feature_it->getMetaValue("sid_decoy_log_sn")
+              + "\t" + (String)feature_it->getMetaValue("sid_decoy_log_sn_diag")
+              + "\t" + (String)feature_it->getMetaValue("sid_decoy_elution_model_fit")
+              + "\t" + (String)feature_it->getMetaValue("sid_decoy_elution_model_fit_diag");
+            }
+            line += "\n";          result += line;
         } // end of iteration
       return result;
     }
@@ -1198,6 +1259,8 @@ protected:
     registerFlag_("sort_swath_maps", "Sort of input SWATH files when matching to SWATH windows from swath_windows_file", true);
 
     registerFlag_("use_ms1_traces", "Extract the precursor ion trace(s) and use for scoring", true);
+    registerFlag_("enable_uis_scoring", "Enable additional scoring uf UIS identification assays", true);
+    registerFlag_("enable_site_scoring", "Enable additional scoring uf site-specific identification assays", true);
 
     // one of the following two needs to be set
     registerOutputFile_("out_features", "<file>", "", "output file", false);
@@ -1282,6 +1345,7 @@ protected:
       // remove these parameters
       feature_finder_param.remove("add_up_spectra");
       feature_finder_param.remove("spacing_for_spectra_resampling");
+      feature_finder_param.remove("num_uis_transitions");
       feature_finder_param.remove("EMGScoring:statistics:mean");
       feature_finder_param.remove("EMGScoring:statistics:variance");
       return feature_finder_param;
@@ -1424,6 +1488,8 @@ protected:
     bool use_emg_score = getFlag_("use_elution_model_score");
     bool sort_swath_maps = getFlag_("sort_swath_maps");
     bool use_ms1_traces = getFlag_("use_ms1_traces");
+    bool enable_uis_scoring = getFlag_("enable_uis_scoring");
+    bool enable_site_scoring = getFlag_("enable_site_scoring");
     double min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
     double mz_extraction_window = getDoubleOption_("mz_extraction_window");
     double rt_extraction_window = getDoubleOption_("rt_extraction_window");
@@ -1493,6 +1559,14 @@ protected:
     {
       feature_finder_param.setValue("Scores:use_ms1_correlation", "true");
       feature_finder_param.setValue("Scores:use_ms1_fullscan", "true");
+    }
+    if (enable_uis_scoring)
+    {
+      feature_finder_param.setValue("Scores:use_uis_scores", "true");
+    }
+    if (enable_site_scoring)
+    {
+      feature_finder_param.setValue("Scores:use_site_scores", "true");
     }
 
     ///////////////////////////////////
@@ -1564,7 +1638,7 @@ protected:
     ///////////////////////////////////
     FeatureMap out_featureFile;
 
-    OpenSwathTSVWriter tsvwriter(out_tsv, file_list[0], use_ms1_traces);
+    OpenSwathTSVWriter tsvwriter(out_tsv, file_list[0], use_ms1_traces, enable_uis_scoring, enable_site_scoring);
     OpenSwathWorkflow wf(use_ms1_traces);
     wf.setLogType(log_type_);
 

@@ -101,8 +101,11 @@ public:
       Will identify peaks in a set of chromatograms that belong to the same
       peptide. The chromatograms are given in the MRMTransitionGroup container
       which also contains the mapping of the chromatograms to their metadata.
+      Only chromatograms from detecting transitions are used for peak picking.
+      identifying & site-identifying transitions will be processed alongside
+      but do not contribute to the meta-data, e.g. total_xic or peak_apices_sum.
 
-      The resulting features are added added to the MRMTransitionGroup. Each feature contains the following meta-data:
+      The resulting features are added to the MRMTransitionGroup. Each feature contains the following meta-data:
 
       - PeptideRef
       - leftWidth
@@ -123,11 +126,18 @@ public:
       for (Size k = 0; k < transition_group.getChromatograms().size(); k++)
       {
         RichPeakChromatogram& chromatogram = transition_group.getChromatograms()[k];
+        String native_id = chromatogram.getNativeID();
+        if (transition_group.getTransitions().size() > 0 && 
+            transition_group.hasTransition(native_id)  && 
+            !transition_group.getTransition(native_id).isDetectingTransition() )
+        {
+          continue;
+        }
+
         if (!chromatogram.isSorted())
         {
           chromatogram.sortByPosition();
         }
-
         RichPeakChromatogram picked_chrom;
         picker.pickChromatogram(chromatogram, picked_chrom);
         picked_chrom.sortByIntensity(); // we could do without that
@@ -228,16 +238,19 @@ public:
       // empty master_peak_container with the same RT (m/z) values as the reference
       // chromatogram.
       SpectrumT master_peak_container;
-      const SpectrumT& ref_chromatogram = transition_group.getChromatograms()[chr_idx];
+      const SpectrumT& ref_chromatogram = transition_group.getChromatogram(picked_chroms[chr_idx].getNativeID());
       prepareMasterContainer_(ref_chromatogram, master_peak_container, best_left, best_right);
 
       double total_intensity = 0; double total_peak_apices = 0; double total_xic = 0;
-      for (Size k = 0; k < transition_group.getChromatograms().size(); k++)
+      for (Size k = 0; k < transition_group.getTransitions().size(); k++)
       {
-        const SpectrumT& chromatogram = transition_group.getChromatograms()[k];
-        for (typename SpectrumT::const_iterator it = chromatogram.begin(); it != chromatogram.end(); it++)
+        const SpectrumT& chromatogram = transition_group.getChromatogram(transition_group.getTransitions()[k].getNativeID());
+        if (transition_group.getTransitions()[k].isDetectingTransition())
         {
-          total_xic += it->getIntensity();
+          for (typename SpectrumT::const_iterator it = chromatogram.begin(); it != chromatogram.end(); it++)
+          {
+            total_xic += it->getIntensity();
+          }
         }
 
         // resample the current chromatogram
@@ -315,8 +328,11 @@ public:
         //f.setMetaValue("leftWidth", best_left);
         //f.setMetaValue("rightWidth", best_right);
 
-        total_intensity += intensity_sum;
-        total_peak_apices += peak_apex_int;
+        if (transition_group.getTransitions()[k].isDetectingTransition())
+        {
+          total_intensity += intensity_sum;
+          total_peak_apices += peak_apex_int;
+        }
         mrmFeature.addFeature(f, chromatogram.getNativeID()); //map index and feature
       }
 
@@ -472,12 +488,12 @@ protected:
       // side to correctly identify shoulders etc.
       double resample_boundary = 15.0; // sample 15 seconds more on each side
       SpectrumT master_peak_container;
-      const SpectrumT& ref_chromatogram = transition_group.getChromatograms()[chr_idx];
+      const SpectrumT& ref_chromatogram = transition_group.getChromatogram(picked_chroms[chr_idx].getNativeID());
       prepareMasterContainer_(ref_chromatogram, master_peak_container, best_left - resample_boundary, best_right + resample_boundary);
       std::vector<std::vector<double> > all_ints;
-      for (Size k = 0; k < transition_group.getChromatograms().size(); k++)
+      for (Size k = 0; k < picked_chroms.size(); k++)
       {
-        const SpectrumT& chromatogram = transition_group.getChromatograms()[k];
+        const SpectrumT& chromatogram = transition_group.getChromatogram(picked_chroms[k].getNativeID());
         const SpectrumT used_chromatogram = resampleChromatogram_(chromatogram, 
             master_peak_container, best_left - resample_boundary, best_right + resample_boundary);
 
