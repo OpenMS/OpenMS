@@ -40,12 +40,14 @@
 #include <boost/math/special_functions/fpclassify.hpp> // for "isnan"
 
 
-using namespace std;
+
 
 namespace OpenMS
 {
+  using namespace std;
+  
   // initialize static variable:
-  const string PercolatorOutfile::score_type_names[] =
+  const std::string PercolatorOutfile::score_type_names[] =
     {"qvalue", "PEP", "score"};
 
 
@@ -148,7 +150,7 @@ namespace OpenMS
   {
     // 'peptide' includes neighboring amino acids, e.g.: K.AAAR.A
     // but unclear to which protein neighboring AAs belong, so we ignore them:
-    size_t len = peptide.size(), start = 0, count = string::npos;
+    size_t len = peptide.size(), start = 0, count = std::string::npos;
     if (peptide[1] == '.') start = 2;
     if (peptide[len - 2] == '.') count = len - start - 2;
     peptide = peptide.substr(start, count);
@@ -162,7 +164,7 @@ namespace OpenMS
       peptide.substitute(unknown_mod, "");
     }
     boost::regex re("\\[UNIMOD:(\\d+)\\]");
-    string replacement = "(UniMod:$1)";
+    std::string replacement = "(UniMod:$1)";
     peptide = boost::regex_replace(peptide, re, replacement);
     seq = AASequence::fromString(peptide);
   }

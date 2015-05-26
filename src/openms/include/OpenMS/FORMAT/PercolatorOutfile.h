@@ -60,7 +60,7 @@ namespace OpenMS
     enum ScoreType { QVALUE, POSTERRPROB, SCORE, SIZE_OF_SCORETYPE };
 
     /// Names of Percolator scores (to match ScoreType)
-    static const std::string score_type_names[];
+    static const std::string score_type_names[SIZE_OF_SCORETYPE];
 
     /// Return a score type given its name
     static enum ScoreType getScoreType(String score_type_name);
