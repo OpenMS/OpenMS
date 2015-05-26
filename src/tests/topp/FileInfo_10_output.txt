@@ -9,7 +9,7 @@ Number of:
   non-redundant protein hits: 0
   (only hits that differ in the accession)
 
-  spectra:                    0
+  matched spectra:            0
   peptide hits:               0
   modified top-hits:          0/0
   non-redundant peptide hits: 0
