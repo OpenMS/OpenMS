@@ -40,17 +40,9 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/HANDLERS/MzIdentMLDOMHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
-#include <OpenMS/FORMAT/XMLFile.h>
-#include <OpenMS/FORMAT/SequestOutfile.h>
-#include <OpenMS/FORMAT/XTandemXMLFile.h>
-#include <OpenMS/FORMAT/XTandemInfile.h>
-#include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/CsvFile.h>
-#include <OpenMS/METADATA/PeptideHit.h>
 
 #include <QtCore/QFile>
 #include <QtCore/QDir>
@@ -90,7 +82,7 @@ using namespace std;
   </table>
   </center>
 
-  <p>Percolator is search engine sensitive, i.e. it's input has to vary, depending on the search engine.</p>
+  <p>Percolator is search engine sensitive, i.e. it's input features vary, depending on the search engine.</p>
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_TopPerc.cli
@@ -114,9 +106,21 @@ public:
   }
 
 protected:
-  void preparePIN(vector<PeptideIdentification>& peptide_ids, bool is_decoy, TextFile& txt, int minCharge, int maxCharge)
+  void prepareMSGFpin(vector<PeptideIdentification>& peptide_ids, TextFile& txt, int minCharge, int maxCharge, char out_sep='\t')
   {
-    char out_sep = '\t';
+    // Create String of the charges for the header of the tab file
+    stringstream ss;
+    ss << "Charge" << minCharge << ", ";
+    for (int j = minCharge + 1; j < maxCharge + 1; j++)
+    {
+      ss << "Charge" << j << ",";
+    }
+
+    // Create header for the features
+    string featureset = "SpecId, Label,ScanNr, RawScore, DeNovoScore,ScoreRatio, Energy,lnEValue,IsotopeError, lnExplainedIonCurrentRatio,lnNTermIonCurrentRatio,lnCTermIonCurrentRatio,lnMS2IonCurrent,Mass,PepLen,dM,absdM,MeanErrorTop7,sqMeanErrorTop7,StdevErrorTop7," + ss.str() + "enzN,enzC,enzInt,Peptide,Proteins";
+    StringList txt_header0 = ListUtils::create<String>(featureset);
+    txt.addLine(ListUtils::concatenate(txt_header0, out_sep));
+
     for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
     {
       for (vector<PeptideHit>::const_iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
@@ -130,19 +134,20 @@ protected:
             int rank = hit->getRank();
             int charge = hit->getCharge();
 
-            String spec_ref = it->getMetaValue("spectrum_id").toQString().toStdString();           //TODO consider other spectraIDFormats or keep index only in metavalue
+            String spec_ref = it->getMetaValue("spectrum_reference").toString();
             vector<String> scan_id;
             spec_ref.split("scan=", scan_id);
+            String sid = scan_id.back();
 
             int label = 1;
             String SpecId = "target_SII_";
-            if (is_decoy)
+            if ((String(hit->getMetaValue("target_decoy"))).hasSubstring("decoy"))
             {
               SpecId = "decoy_SII_";
               label = -1;
             }
 
-            SpecId += scan_id[1] + "_" + String(rank) + "_" + scan_id[1] + "_" + String(charge) + "_" + String(rank);
+            SpecId += sid + "_" + String(rank) + "_" + sid + "_" + String(charge) + "_" + String(rank);
 
             double rawScore = hit->getMetaValue("MS:1002049").toString().toDouble();
             double denovoScore = hit->getMetaValue("MS:1002050").toString().toDouble();
@@ -166,15 +171,13 @@ protected:
             double lnMS2IonCurrent = log(hit->getMetaValue("MS2IonCurrent").toString().toDouble());
             double expMass = it->getMZ();
             double calcMass = hit->getMetaValue("calcMZ");
-            int pepLen = hit->getSequence().toString().length();
+            int pepLen = hit->getSequence().toUnmodifiedString().length();
             double dM = (expMass - (isotopeError * Constants::NEUTRON_MASS_U / charge) - calcMass) / expMass;
             double absdM = abs(dM);
-
-
             double meanErrorTop7 = hit->getMetaValue("MeanErrorTop7").toString().toDouble();
             int NumMatchedMainIons =  hit->getMetaValue("NumMatchedMainIons").toString().toInt();
-            double stdevErrorTop7 = 0.0;
 
+            double stdevErrorTop7 = 0.0;
             if (hit->getMetaValue("StdevErrorTop7").toString() != "NaN")
             {
               stdevErrorTop7 = hit->getMetaValue("StdevErrorTop7").toString().toDouble();
@@ -236,6 +239,235 @@ protected:
             txt.addLine(lis);
           }
         }
+      }
+    }
+  }
+
+  void prepareXTANDEMpin(vector<PeptideIdentification>& peptide_ids, TextFile& txt, int minCharge, int maxCharge, char out_sep='\t')
+  {
+    // Create String of the charges for the header of the tab file
+    stringstream ss;
+    ss << "Charge" << minCharge << ", ";
+    for (int j = minCharge + 1; j < maxCharge + 1; j++)
+    {
+
+      ss << "Charge" << j << ",";
+    }
+
+    // Find out which ions are in XTandem-File and take only these as features
+    stringstream ss_ion;
+    if (peptide_ids.front().getHits().front().getMetaValue("a_score").toString() != "" &&
+        peptide_ids.front().getHits().front().getMetaValue("a_ions").toString() != "")
+    {
+      ss_ion << "frac_ion_a" << ",";
+    }
+    if (peptide_ids.front().getHits().front().getMetaValue("b_score").toString() != "" &&
+        peptide_ids.front().getHits().front().getMetaValue("b_ions").toString() != "")
+    {
+      ss_ion << "frac_ion_b" << ",";
+    }
+    if (peptide_ids.front().getHits().front().getMetaValue("c_score").toString() != "" &&
+        peptide_ids.front().getHits().front().getMetaValue("c_ions").toString() != "")
+    {
+      ss_ion << "frac_ion_c" << ",";
+    }
+    if (peptide_ids.front().getHits().front().getMetaValue("x_score").toString() != "" &&
+        peptide_ids.front().getHits().front().getMetaValue("x_ions").toString() != "")
+    {
+      ss_ion << "frac_ion_x" << ",";
+    }
+    if (peptide_ids.front().getHits().front().getMetaValue("y_score").toString() != "" &&
+        peptide_ids.front().getHits().front().getMetaValue("y_ions").toString() != "")
+    {
+      ss_ion << "frac_ion_y" << ",";
+    }
+    if (peptide_ids.front().getHits().front().getMetaValue("z_score").toString() != "" &&
+        peptide_ids.front().getHits().front().getMetaValue("z_ions").toString() != "")
+    {
+      ss_ion << "frac_ion_z" << ",";
+    }
+
+    // Create header for the features
+    String featureset = "SpecId,Label,ScanNr,hyperscore,deltascore," + ss_ion.str() +
+      ",Mass,dM,absdM,PepLen," + ss.str() + "enzN,enzC,enzInt,Peptide,Proteins";
+    StringList txt_header0 = ListUtils::create<String>(featureset);
+    // Insert the header with the features names to the file
+    txt.addLine(ListUtils::concatenate(txt_header0, out_sep));
+
+    LOG_INFO << "read in target file" << endl;
+    // get all the features from the target file
+    for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
+    {
+      if (it->isHigherScoreBetter())
+      {
+        String scannumber = String(it->getMetaValue("spectrum_reference"));
+        int charge = it->getHits().front().getCharge();
+        int label = 1;
+        double hyperscore = it->getHits().front().getScore();
+        // deltascore = hyperscore - nextscore
+        double deltascore = hyperscore - it->getHits().front().getMetaValue("nextscore").toString().toDouble();
+        String sequence = it->getHits().front().getSequence().toString();
+        int length = sequence.length();
+
+        // Find out correct ion types and get its Values
+        stringstream ss_ion_2;
+
+        if (it->getHits().front().getMetaValue("a_score").toString() != "" &&
+            it->getHits().front().getMetaValue("a_ions").toString() != "")
+        {
+          ss_ion_2 << double(it->getHits().front().getMetaValue("a_ions")) / length << out_sep;
+        }
+        if (it->getHits().front().getMetaValue("b_score").toString() != "" &&
+            it->getHits().front().getMetaValue("b_ions").toString() != "")
+        {
+          ss_ion_2 << double(it->getHits().front().getMetaValue("b_ions")) / length << out_sep;
+        }
+        if (it->getHits().front().getMetaValue("c_score").toString() != "" &&
+            it->getHits().front().getMetaValue("c_ions").toString() != "")
+        {
+          ss_ion_2 << double(it->getHits().front().getMetaValue("c_ions")) / length << out_sep;
+        }
+        if (it->getHits().front().getMetaValue("x_score").toString() != "" &&
+            it->getHits().front().getMetaValue("x_ions").toString() != "")
+        {
+          ss_ion_2 << double(it->getHits().front().getMetaValue("x_ions")) / length << out_sep;
+        }
+        if (it->getHits().front().getMetaValue("y_score").toString() != "" &&
+            it->getHits().front().getMetaValue("y_ions").toString() != "")
+        {
+          ss_ion_2 << double(it->getHits().front().getMetaValue("y_ions")) / length << out_sep;
+        }
+        if (it->getHits().front().getMetaValue("z_score").toString() != "" &&
+            it->getHits().front().getMetaValue("z_ions").toString() != "")
+        {
+          ss_ion_2 << double(it->getHits().front().getMetaValue("z_ions")) / length << out_sep;
+        }
+        double mass = it->getHits().front().getMetaValue("mass");
+        double dm = it->getHits().front().getMetaValue("delta");
+        double mh = mass + dm;
+        double absdM = abs(dm);
+
+        // write 1 for the correct charge, 0 for other charges
+        // i.e.: charge 3 for charges from 2-5: 0 1 0 0
+        stringstream ss;
+        int i = minCharge;
+        while (i <= maxCharge)
+        {
+          if (charge != i)
+          {
+            ss << "0" << out_sep;
+          }
+          if (charge == i)
+          {
+            ss << "1" << out_sep;
+          }
+          i++;
+        }
+
+        char aaBefore = it->getHits().front().getPeptideEvidences().front().getAABefore();
+        char aaAfter = it->getHits().front().getPeptideEvidences().front().getAAAfter();
+
+        String peptide = aaBefore + string(".") + sequence + string(".") + aaAfter;
+
+        // formula taken from percolator converter isEnz(n, c) for trypsin
+        bool enzN = isEnz(peptide.at(0), peptide.at(2), getStringOption_("enzyme"));
+        bool enzC = isEnz(peptide.at(peptide.size() - 3), peptide.at(peptide.size() - 1), getStringOption_("enzyme"));
+        int enzInt = countEnzymatic(sequence, getStringOption_("enzyme"));
+        String protein = it->getHits().front().getPeptideEvidences().front().getProteinAccession();
+
+        // One PeptideSpectrumHit with all its features
+        String lis = "_tandem_output_file_target_" + scannumber + "_" + String(charge) +
+          "_1" + out_sep + String(label) + out_sep + scannumber + out_sep + String(hyperscore) +
+          out_sep + String(deltascore) + out_sep + ss_ion_2.str() + String(mh) + out_sep +
+          String(dm) + out_sep + String(absdM) + out_sep + String(length) + out_sep + String(ss.str()) +
+          String(enzN) + out_sep + String(enzC) + out_sep + String(enzInt) + out_sep + peptide + out_sep + protein;
+
+        // peptide Spectrum Hit pushed to the output file
+        txt.addLine(lis);
+      }
+    }
+
+    LOG_INFO << "read in decoy file" << endl;
+    // get all the features from the decoy file
+    for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
+    {
+      if (it->isHigherScoreBetter())
+      {
+        String scannumber = String(it->getMetaValue("spectrum_reference"));
+        int charge = it->getHits().front().getCharge();
+        int label = -1;
+        double hyperscore = it->getHits().front().getScore();
+        // deltascore = hyperscore - nextscore
+        double deltascore = hyperscore - it->getHits().front().getMetaValue("nextscore").toString().toDouble();
+        String sequence = it->getHits().front().getSequence().toString();
+        int length = sequence.length();
+
+        // Find out correct ion types and get its Values
+        stringstream ss_ion_2;
+
+        if (it->getHits().front().getMetaValue("a_score").toString() != "" && it->getHits().front().getMetaValue("a_ions").toString() != "")
+        {
+          ss_ion_2 << double(it->getHits().front().getMetaValue("a_ions")) / length << out_sep;
+        }
+        if (it->getHits().front().getMetaValue("b_score").toString() != "" && it->getHits().front().getMetaValue("b_ions").toString() != "")
+        {
+          ss_ion_2 << double(it->getHits().front().getMetaValue("b_ions")) / length << out_sep;
+        }
+        if (it->getHits().front().getMetaValue("c_score").toString() != "" && it->getHits().front().getMetaValue("c_ions").toString() != "")
+        {
+          ss_ion_2 << double(it->getHits().front().getMetaValue("c_ions")) / length << out_sep;
+        }
+        if (it->getHits().front().getMetaValue("x_score").toString() != "" && it->getHits().front().getMetaValue("x_ions").toString() != "")
+        {
+          ss_ion_2 << double(it->getHits().front().getMetaValue("x_ions")) / length << out_sep;
+        }
+        if (it->getHits().front().getMetaValue("y_score").toString() != "" && it->getHits().front().getMetaValue("y_ions").toString() != "")
+        {
+          ss_ion_2 << double(it->getHits().front().getMetaValue("y_ions")) / length << out_sep;
+        }
+        if (it->getHits().front().getMetaValue("z_score").toString() != "" && it->getHits().front().getMetaValue("z_ions").toString() != "")
+        {
+          ss_ion_2 << double(it->getHits().front().getMetaValue("z_ions")) / length;
+        }
+        double mass = it->getHits().front().getMetaValue("mass");
+        double dm = double(it->getHits().front().getMetaValue("delta"));
+        double mh = mass + dm;
+        double absdM = abs(dm);
+
+        // write 1 for the correct charge, 0 for other charges
+        // i.e: charge 3 for charges from 2-5: 0 1 0 0
+        stringstream ss;
+        int i = minCharge;
+        while (i <= maxCharge)
+        {
+          if (charge != i)
+          {
+            ss << "0" << out_sep;
+          }
+          if (charge == i)
+          {
+            ss << "1" << out_sep;
+          }
+          i++;
+        }
+
+        char aaBefore = it->getHits().front().getPeptideEvidences().front().getAABefore();
+        char aaAfter = it->getHits().front().getPeptideEvidences().front().getAAAfter();
+
+        String peptide = aaBefore + string(".") + sequence + string(".") + aaAfter;
+
+        // formula taken from percolator converter isEnz(n, c) for trypsin
+        bool enzN = isEnz(peptide.at(0), peptide.at(2), getStringOption_("enzyme"));
+        bool enzC = isEnz(peptide.at(peptide.size() - 3), peptide.at(peptide.size() - 1), getStringOption_("enzyme"));
+        int enzInt = countEnzymatic(sequence, getStringOption_("enzyme"));
+        String protein = it->getHits().front().getPeptideEvidences().front().getProteinAccession();
+
+        // One PeptideSpectrumHit with all its features
+        String lis = "_tandem_output_file_decoy_" + scannumber + "_" + String(charge) + "_1" + out_sep + String(label) + out_sep + scannumber + out_sep + String(hyperscore) + out_sep + String(deltascore) + out_sep + ss_ion_2.str() + out_sep
+                     + String(mh) + out_sep + String(dm) + out_sep + String(absdM) + out_sep + String(length) + out_sep + ss.str() + out_sep + String(enzN) + out_sep + String(enzC) + out_sep + String(enzInt) + out_sep + peptide + out_sep + protein;
+
+        // peptide Spectrum Hit pushed to the output file
+        txt.addLine(lis);
       }
     }
   }
@@ -329,57 +561,66 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("percolator_executable", "<executable>", "", "Path to the percolator binary", true, false, ListUtils::create<String>("skipexists"));
-    registerInputFile_("in_target", "<file>", "", "Input target file");
-    registerInputFile_("in_decoy", "<file>", "", "Input decoy file");
-    setValidFormats_("in_target", ListUtils::create<String>("mzid"));
+    registerInputFile_("in", "<file>", "", "Input target file", true);
+    setValidFormats_("in", ListUtils::create<String>("mzid"));
+    registerInputFile_("in_decoy", "<file>", "", "Input decoy file", false);
     setValidFormats_("in_decoy", ListUtils::create<String>("mzid"));
-
     registerOutputFile_("out", "<file>", "", "Output file", true);
-    registerStringOption_("enzyme", "<enzyme>", "trypsin", "Type of enzyme: no_enzyme,elastase,pepsin,proteinasek,thermolysin,chymotrypsin,lys-n,lys-c,arg-c,asp-n,glu-c,trypsin", false);
+    registerStringOption_("enzyme", "<enzyme>", "trypsin", "Type of enzyme: no_enzyme,elastase,pepsin,proteinasek,thermolysin,chymotrypsin,lys-n,lys-c,arg-c,asp-n,glu-c,trypsin", false, true);
+    registerInputFile_("percolator_executable", "<executable>",
+        // choose the default value according to the platform where it will be executed
+        #if  defined(__APPLE__)
+                       "percolator",
+        #else
+                       "percolator.exe",
+        #endif
+                       "Percolator executable of the installation e.g. 'percolator.exe'", true, false, ListUtils::create<String>("skipexists")
+    );
 
-//    registerOutputFile_("r", "<file>", "out", "Output tab delimited results to a file instead of stdout", false);
-    registerOutputFile_("X", "<file>", "", "path to file in xml-output format (pout). Default is: pout.tab", false);
-    registerFlag_("e", "read xml-input format (pin) from standard input");
-    registerFlag_("Z", "Include decoys (PSMs, peptides and/or proteins) in the xml-output. Only available if -X is used.");
-    registerDoubleOption_("p", "<value>", 0.0, "Cpos, penalty for mistakes made on positive examples. Set by cross validation if not specified.", false);
-    registerDoubleOption_("n", "<value>", 0.0, "Cneg, penalty for mistakes made on negative examples. Set by cross validation if not specified.", false);
-    registerDoubleOption_("F", "<value>", 0.01, "False discovery rate threshold to define positive examples in training. Set by cross validation if 0. Default is 0.01.", false);
-    registerDoubleOption_("t", "<value>", 0.01, "False discovery rate threshold for evaluating best cross validation result and the reported end result. Default is 0.01.", false);
-    registerIntOption_("i", "<number>", 0, "Maximal number of iterations", false);
-    registerFlag_("x", "Quicker execution by reduced internal cross-validation.");
-    registerDoubleOption_("f", "<value>", 0.6, "Fraction of the negative data set to be used as train set when only providing one negative set, remaining examples will be used as test set. Set to 0.6 by default.", false);
-    registerOutputFile_("J", "<file>", "", "Output the computed features to the given file in tab-delimited format. A file with the features with the given file name will be created", false);
-    registerInputFile_("k", "<file>", "", "Input file given in the deprecated pin-xml format generated by e.g. sqt2pin with the -k option", false);
-    registerOutputFile_("w", "<file>", "", "Output final weights to the given file", false);
-    registerInputFile_("W", "<file>", "", "Read initial weights to the given file", false);
-    registerStringOption_("V", "<featurename>", "", "The most informative feature given as the feature name, can be negated to indicate that a lower value is better.", false);
-    registerIntOption_("v", "<level>", 2, "Set verbosity of output: 0=no processing info, 5=all, default is 2", false);
-    registerFlag_("u", "Use unit normalization [0-1] instead of standard deviation normalization");
-    registerFlag_("R", "Measure performance on test set each iteration");
-    registerFlag_("O", "Override error check and do not fall back on default score vector in case of suspect score vector");
-    registerIntOption_("S", "<value>", 1, "Setting seed of the random number generator. Default value is 1", false);
-    registerFlag_("K", "Retention time features calculated as in Klammer et al.");
-    registerFlag_("D", "Include description of correct features");
-    registerOutputFile_("B", "<file>", "", "Output tab delimited results for decoys into a file", false);
-    registerFlag_("U", "Do not remove redundant peptides, keep all PSMS and exclude peptide level probabilities.");
-    registerFlag_("s", "skip validation of input file against xml schema");
-    registerFlag_("A", "output protein level probabilities");
-    registerDoubleOption_("a", "<value>", 0.0, "Probability with which a present protein emits an associated peptide (to be used jointly with the -A option). Set by grid search if not specified.", false);
-    registerDoubleOption_("b", "<value>", 0.0, "Probability of the creation of a peptide from noise (to be used jointly with the -A option). Set by grid search if not specified", false);
-    registerDoubleOption_("G", "<value>", 0.0, "Prior probability of that a protein is present in the sample ( to be used with the -A option). Set by grid search if not specified", false);
-    registerFlag_("g", "treat ties as if it were one protein (Only valid if option -A is active).");
-    registerFlag_("I", "use pi_0 value when calculating empirical q-values (no effect if option Q is activated) (Only valid if option -A is active).");
-    registerFlag_("q", "output empirical q-values and p-values (from target-decoy analysis) (Only valid if option -A is active).");
-    registerFlag_("N", "disactivates the grouping of proteins with similar connectivity, for example if proteins P1 and P2 have the same peptides matching both of them, P1 and P2 will not be grouped as one protein (Only valid if option -A is active).");
-    registerFlag_("E", "Proteins graph will not be separated in sub-graphs (Only valid if option -A is active).");
-    registerFlag_("C", "it does not prune peptides with a very low score (~0.0) which means that if a peptide with a very low score is matching two proteins, when we prune the peptide,it will be duplicated to generate two new protein groups (Only valid if option -A is active).");
-    registerIntOption_("d", "<value>", 0, "Setting depth 0 or 1 or 2 from low depth to high depth(less computational time) of the grid search for the estimation Alpha,Beta and Gamma parameters for fido(Only valid if option -A is active). Default value is 0", false);
-    registerStringOption_("P", "<value>", "random", "Define the text pattern to identify the decoy proteins and/or PSMs, set this up if the label that identifies the decoys in the database is not the default (by default : random) (Only valid if option -A  is active).", false);
-    registerFlag_("T", "Reduce the tree of proteins (removing low scored proteins) in order to estimate alpha,beta and gamma faster.(Only valid if option -A is active).");
-    registerFlag_("Y", "Use target decoy competition to compute peptide probabilities.(recommended when using -A).");
-    registerFlag_("H", "Q-value threshold that will be used in the computation of the MSE and ROC AUC score in the grid search (recommended 0.05 for normal size datasets and 0.1 for big size datasets).(Only valid if option -A is active).");
-    registerFlag_("fido-truncation", "Proteins with a very low score (< 0.001) will be truncated (assigned 0.0 probability).(Only valid if option -A is active)");
-    registerFlag_("Q", "Uses protein group level inference, each cluster of proteins is either present or not, therefore when grouping proteins discard all possible combinations for each group.(Only valid if option -A is active and -N is inactive).");
+    //Advanced parameters
+//  //registerOutputFile_("r", "<file>", "out", "Output tab delimited results to a file instead of stdout", false, true);
+    registerOutputFile_("X", "<file>", "", "path to file in xml-output format (pout). Default is: pout.tab", false, true);
+    registerFlag_("e", "read xml-input format (pin) from standard input", true);
+    registerFlag_("Z", "Include decoys (PSMs, peptides and/or proteins) in the xml-output. Only available if -X is used.", true);
+    registerDoubleOption_("p", "<value>", 0.0, "Cpos, penalty for mistakes made on positive examples. Set by cross validation if not specified.", false, true);
+    registerDoubleOption_("n", "<value>", 0.0, "Cneg, penalty for mistakes made on negative examples. Set by cross validation if not specified.", false, true);
+    registerDoubleOption_("F", "<value>", 0.01, "False discovery rate threshold to define positive examples in training. Set by cross validation if 0. Default is 0.01.", false, true);
+    registerDoubleOption_("t", "<value>", 0.01, "False discovery rate threshold for evaluating best cross validation result and the reported end result. Default is 0.01.", false, true);
+    registerIntOption_("i", "<number>", 0, "Maximal number of iterations", false, true);
+    registerFlag_("x", "Quicker execution by reduced internal cross-validation.", true);
+    registerDoubleOption_("f", "<value>", 0.6, "Fraction of the negative data set to be used as train set when only providing one negative set, remaining examples will be used as test set. Set to 0.6 by default.", false, true);
+    registerOutputFile_("J", "<file>", "", "Output the computed features to the given file in tab-delimited format. A file with the features with the given file name will be created", false, true);
+    registerInputFile_("k", "<file>", "", "Input file given in the deprecated pin-xml format generated by e.g. sqt2pin with the -k option", false, true);
+    registerOutputFile_("w", "<file>", "", "Output final weights to the given file", false, true);
+    registerInputFile_("W", "<file>", "", "Read initial weights to the given file", false, true);
+    registerStringOption_("V", "<featurename>", "", "The most informative feature given as the feature name, can be negated to indicate that a lower value is better.", false, true);
+    registerIntOption_("v", "<level>", 2, "Set verbosity of output: 0=no processing info, 5=all, default is 2", false, true);
+    registerFlag_("u", "Use unit normalization [0-1] instead of standard deviation normalization", true);
+    registerFlag_("R", "Measure performance on test set each iteration", true);
+    registerFlag_("O", "Override error check and do not fall back on default score vector in case of suspect score vector", true);
+    registerIntOption_("S", "<value>", 1, "Setting seed of the random number generator. Default value is 1", false, true);
+    registerFlag_("K", "Retention time features calculated as in Klammer et al.", true);
+    registerFlag_("D", "Include description of correct features", true);
+    registerOutputFile_("B", "<file>", "", "Output tab delimited results for decoys into a file", false, true);
+    registerFlag_("U", "Do not remove redundant peptides, keep all PSMS and exclude peptide level probabilities.", true);
+    registerFlag_("s", "skip validation of input file against xml schema", true);
+    registerFlag_("A", "output protein level probabilities", true);
+    registerDoubleOption_("a", "<value>", 0.0, "Probability with which a present protein emits an associated peptide (to be used jointly with the -A option). Set by grid search if not specified.", false, true);
+    registerDoubleOption_("b", "<value>", 0.0, "Probability of the creation of a peptide from noise (to be used jointly with the -A option). Set by grid search if not specified", false, true);
+    registerDoubleOption_("G", "<value>", 0.0, "Prior probability of that a protein is present in the sample ( to be used with the -A option). Set by grid search if not specified", false, true);
+    registerFlag_("g", "treat ties as if it were one protein (Only valid if option -A is active).", true);
+    registerFlag_("I", "use pi_0 value when calculating empirical q-values (no effect if option Q is activated) (Only valid if option -A is active).", true);
+    registerFlag_("q", "output empirical q-values and p-values (from target-decoy analysis) (Only valid if option -A is active).", true);
+    registerFlag_("N", "disactivates the grouping of proteins with similar connectivity, for example if proteins P1 and P2 have the same peptides matching both of them, P1 and P2 will not be grouped as one protein (Only valid if option -A is active).", true);
+    registerFlag_("E", "Proteins graph will not be separated in sub-graphs (Only valid if option -A is active).", true);
+    registerFlag_("C", "it does not prune peptides with a very low score (~0.0) which means that if a peptide with a very low score is matching two proteins, when we prune the peptide,it will be duplicated to generate two new protein groups (Only valid if option -A is active).", true);
+    registerIntOption_("d", "<value>", 0, "Setting depth 0 or 1 or 2 from low depth to high depth(less computational time) of the grid search for the estimation Alpha,Beta and Gamma parameters for fido(Only valid if option -A is active). Default value is 0", false, true);
+    registerStringOption_("P", "<value>", "random", "Define the text pattern to identify the decoy proteins and/or PSMs, set this up if the label that identifies the decoys in the database is not the default (by default : random) (Only valid if option -A  is active).", false, true);
+    registerFlag_("T", "Reduce the tree of proteins (removing low scored proteins) in order to estimate alpha,beta and gamma faster.(Only valid if option -A is active).", true);
+    registerFlag_("Y", "Use target decoy competition to compute peptide probabilities.(recommended when using -A).", true);
+    registerFlag_("H", "Q-value threshold that will be used in the computation of the MSE and ROC AUC score in the grid search (recommended 0.05 for normal size datasets and 0.1 for big size datasets).(Only valid if option -A is active).", true);
+    registerFlag_("fido-truncation", "Proteins with a very low score (< 0.001) will be truncated (assigned 0.0 probability).(Only valid if option -A is active)", true);
+    registerFlag_("Q", "Uses protein group level inference, each cluster of proteins is either present or not, therefore when grouping proteins discard all possible combinations for each group.(Only valid if option -A is active and -N is inactive).", true);
   }
 
   ExitCodes main_(int, const char**)
@@ -389,390 +630,140 @@ protected:
     //-------------------------------------------------------------
     vector<PeptideIdentification> peptide_ids;
     vector<ProteinIdentification> protein_ids;
-    vector<PeptideIdentification> peptide_ids_d;
-    vector<ProteinIdentification> protein_ids_d;
 
     //-------------------------------------------------------------
-    // parsing parameters and crashing if mandatory parameters are missing
+    // parsing parameters
     //-------------------------------------------------------------
-    String inputfile_target_name = getStringOption_("in_target").toQString().toStdString();
-    writeDebug_(String("Input file of target: ") + inputfile_target_name, 1);
-    if (inputfile_target_name == "")
+    const String in = getStringOption_("in");
+    const String in_decoy = getStringOption_("in_decoy");
+    writeDebug_(String("Input file of target: ") + in + " " + in_decoy, 2);
+
+    const String percolator_executable(getStringOption_("percolator_executable"));
+    writeDebug_(String("Path to the percolator: ") + percolator_executable, 2);
+    if (percolator_executable.empty()) //TODO     TOPPBase::findExecutable
     {
-      writeLog_("No target input file specified. Aborting!");
+      writeLog_("No percolator executable specified. Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
 
-    String inputfile_decoy_name = getStringOption_("in_decoy").toQString().toStdString();
-    writeDebug_(String("Input file of decoy: ") + inputfile_decoy_name, 1);
-    if (inputfile_decoy_name == "")
+    //-------------------------------------------------------------
+    // read input
+    //-------------------------------------------------------------
+    FileHandler fh;
+    FileTypes::Type in_type = fh.getType(in);
+    if (in_type == FileTypes::IDXML)
     {
-      writeLog_("No decoy input file specified. Aborting!");
+      IdXMLFile().load(in, protein_ids, peptide_ids);
+    }
+    else if (in_type == FileTypes::MZIDENTML)
+    {
+      LOG_WARN << "Converting from mzid: you might experience loss of information depending on the capabilities of the target format." << endl;
+      MzIdentMLFile().load(in, protein_ids, peptide_ids);
+    }
+    //else catched by TOPPBase:registerInput being mandatory mzid or idxml
+
+    if (peptide_ids.empty())
+    {
+      writeLog_("No or empty input file specified. Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
 
-    String percolator_executable(getStringOption_("percolator_executable"));
-    writeDebug_(String("Path to the percolator: ") + percolator_executable, 1);
-    if (percolator_executable == "") //TODO     TOPPBase::findExecutable
+    if (peptide_ids.empty())
     {
-      writeLog_("No path to percolator specified. Aborting!");
+      writeLog_("No or empty input file specified. Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
 
-    // get the file extension of the input files to start the correct converter
-    vector<String> input_target_file;
-    vector<String> input_decoy_file;
-    inputfile_target_name.split('.', input_target_file);
-    String data_target = input_target_file[input_target_file.size() - 1];
-    inputfile_decoy_name.split('.', input_decoy_file);
-    String data_decoy = input_decoy_file[input_decoy_file.size() - 1];
-
-    TextFile txt;
-    char out_sep = '\t';
-
-    //get Information about database search
-    String datab = "";
-
-    // converter for MSGF+ & Mascot Files
-    if (data_target == "mzid" && data_decoy == "mzid")
+    //-------------------------------------------------------------
+    // read more input if necessary
+    //-------------------------------------------------------------
+    //TODO check if this comes from the same search engine!
+    if (!in_decoy.empty())
     {
-      datab = "MSGF+";
-
-      // TODO FOR FUTURE DEVELOPMENT: check out without explicit parameter setting if input file is target or decoy!!!
-      // Both input files are read in
-      MzIdentMLFile().load(inputfile_target_name, protein_ids, peptide_ids);
-      MzIdentMLFile().load(inputfile_decoy_name, protein_ids_d, peptide_ids_d);
-      LOG_INFO << "Using IDs from" << protein_ids.back().getSearchEngine() << endl;
-
-      // Open File and check if the Identifier is MSGF+
-      if (peptide_ids.front().getIdentifier() == "MS-GF+" && peptide_ids_d.front().getIdentifier() == "MS-GF+")
+      vector<PeptideIdentification> decoy_peptide_ids;
+      vector<ProteinIdentification> decoy_protein_ids;
+      FileTypes::Type in_decoy_type = fh.getType(in_decoy);
+      if (in_decoy_type == FileTypes::IDXML)
       {
-
-        // Find out how many possible charges are available
-        int maxCharge = 0;
-        int minCharge = 10;
-        for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
-        {
-          for (vector<PeptideHit>::const_iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
-          {
-            if (hit->getCharge() > maxCharge)
-            {
-              maxCharge = hit->getCharge();
-            }
-            if (hit->getCharge() < minCharge)
-            {
-              minCharge = hit->getCharge();
-            }
-          }
-        }
-
-        // Create String of the charges for the header of the tab file
-        stringstream ss;
-        ss << "Charge" << minCharge << ", ";
-        for (int j = minCharge + 1; j < maxCharge + 1; j++)
-        {
-          ss << "Charge" << j << ",";
-        }
-
-        // Create header for the features
-        string featureset = "SpecId, Label,ScanNr, RawScore, DeNovoScore,ScoreRatio, Energy,lnEValue,IsotopeError, lnExplainedIonCurrentRatio,lnNTermIonCurrentRatio,lnCTermIonCurrentRatio,lnMS2IonCurrent,Mass,PepLen,dM,absdM,MeanErrorTop7,sqMeanErrorTop7,StdevErrorTop7," + ss.str() + "enzN,enzC,enzInt,Peptide,Proteins";
-        StringList txt_header0 = ListUtils::create<String>(featureset);
-        txt.addLine(ListUtils::concatenate(txt_header0, out_sep));
-        LOG_INFO << "consuming target file" << endl;
-        // get all the features from the target file
-        preparePIN(peptide_ids, false, txt, minCharge, maxCharge);
-        LOG_INFO << "consuming decoy file" << endl;
-        // get all the features from the decoy file
-        preparePIN(peptide_ids_d, true, txt, minCharge, maxCharge);
+        IdXMLFile().load(in_decoy, decoy_protein_ids, decoy_peptide_ids);
       }
-      else if (peptide_ids.front().getIdentifier() == "Mascot" && peptide_ids_d.front().getIdentifier() == "Mascot")
+      else if (in_decoy_type == FileTypes::MZIDENTML)
       {
-        // TODO: Mascot Implementation
+        LOG_WARN << "Converting from mzid: you might experience loss of information depending on the capabilities of the target format." << endl;
+        MzIdentMLFile().load(in_decoy, decoy_protein_ids, decoy_peptide_ids);
       }
-    }
-    // converter for XTandem-Files
-    // TODO IN FUTURE DEVELOPMENT: IMPLEMENT MZID READER FOR XTANDEMFILES
-    else if (data_target == "idXML" && data_decoy == "idXML")
-    {
-      datab = "XTANDEM";
-      IdXMLFile file;
-      IdXMLFile decoy_file;
-      file.load(getStringOption_("in_target"), protein_ids, peptide_ids);
-      decoy_file.load(getStringOption_("in_decoy"), protein_ids_d, peptide_ids_d);
-
-      // Find out how many possible charges are available
-      int maxCharge = 0;
-      int minCharge = 10;
-
-      for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
+      for (std::vector<PeptideIdentification>::iterator pit = decoy_peptide_ids.begin(); pit != decoy_peptide_ids.end(); ++pit)
       {
-        for (vector<PeptideHit>::const_iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
+        for (std::vector<PeptideHit>::iterator pht = pit->getHits().begin(); pht != pit->getHits().end(); ++pht)
         {
-          if (hit->getCharge() > maxCharge)
-          {
-            maxCharge = hit->getCharge();
-          }
-          if (hit->getCharge() < minCharge)
-          {
-            minCharge = hit->getCharge();
-          }
+          pht->setMetaValue("target_decoy", "decoy");
+          //TODO what about proteins - internal target decoy handling is shitty - rework
         }
       }
-
-      // Create String of the charges for the header of the tab file
-      stringstream ss;
-      ss << "Charge" << minCharge << ", ";
-      for (int j = minCharge + 1; j < maxCharge + 1; j++)
-      {
-
-        ss << "Charge" << j << ",";
-      }
-
-      // Find out which ions are in XTandem-File and take only these as features
-      stringstream ss_ion;
-      if (peptide_ids.front().getHits().front().getMetaValue("a_score").toString() != "" && 
-          peptide_ids.front().getHits().front().getMetaValue("a_ions").toString() != "")
-      {
-        ss_ion << "frac_ion_a" << ",";
-      }
-      if (peptide_ids.front().getHits().front().getMetaValue("b_score").toString() != "" && 
-          peptide_ids.front().getHits().front().getMetaValue("b_ions").toString() != "")
-      {
-        ss_ion << "frac_ion_b" << ",";
-      }
-      if (peptide_ids.front().getHits().front().getMetaValue("c_score").toString() != "" && 
-          peptide_ids.front().getHits().front().getMetaValue("c_ions").toString() != "")
-      {
-        ss_ion << "frac_ion_c" << ",";
-      }
-      if (peptide_ids.front().getHits().front().getMetaValue("x_score").toString() != "" && 
-          peptide_ids.front().getHits().front().getMetaValue("x_ions").toString() != "")
-      {
-        ss_ion << "frac_ion_x" << ",";
-      }
-      if (peptide_ids.front().getHits().front().getMetaValue("y_score").toString() != "" && 
-          peptide_ids.front().getHits().front().getMetaValue("y_ions").toString() != "")
-      {
-        ss_ion << "frac_ion_y" << ",";
-      }
-      if (peptide_ids.front().getHits().front().getMetaValue("z_score").toString() != "" && 
-          peptide_ids.front().getHits().front().getMetaValue("z_ions").toString() != "")
-      {
-        ss_ion << "frac_ion_z" << ",";
-      }
-
-      // Create header for the features
-      String featureset = "SpecId,Label,ScanNr,hyperscore,deltascore," + ss_ion.str() + 
-        ",Mass,dM,absdM,PepLen," + ss.str() + "enzN,enzC,enzInt,Peptide,Proteins";
-      StringList txt_header0 = ListUtils::create<String>(featureset);
-      // Insert the header with the features names to the file
-      txt.addLine(ListUtils::concatenate(txt_header0, out_sep));
-
-      LOG_INFO << "read in target file" << endl;
-      // get all the features from the target file
-      for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
-      {
-        if (it->isHigherScoreBetter())
-        {
-          //TODO this must be spectrum_reference!!! parse spectrum number from there if necessary!
-          String scannumber = String(it->getMetaValue("spectrum_id"));
-          int charge = it->getHits().front().getCharge();
-          int label = 1;
-          double hyperscore = it->getHits().front().getScore();
-          // deltascore = hyperscore - nextscore
-          double deltascore = hyperscore - it->getHits().front().getMetaValue("nextscore").toString().toDouble();
-          String sequence = it->getHits().front().getSequence().toString();
-          int length = sequence.length();
-
-          // Find out correct ion types and get its Values
-          stringstream ss_ion_2;
-
-          if (it->getHits().front().getMetaValue("a_score").toString() != "" && 
-              it->getHits().front().getMetaValue("a_ions").toString() != "")
-          {
-            ss_ion_2 << double(it->getHits().front().getMetaValue("a_ions")) / length << out_sep;
-          }
-          if (it->getHits().front().getMetaValue("b_score").toString() != "" && 
-              it->getHits().front().getMetaValue("b_ions").toString() != "")
-          {
-            ss_ion_2 << double(it->getHits().front().getMetaValue("b_ions")) / length << out_sep;
-          }
-          if (it->getHits().front().getMetaValue("c_score").toString() != "" && 
-              it->getHits().front().getMetaValue("c_ions").toString() != "")
-          {
-            ss_ion_2 << double(it->getHits().front().getMetaValue("c_ions")) / length << out_sep;
-          }
-          if (it->getHits().front().getMetaValue("x_score").toString() != "" && 
-              it->getHits().front().getMetaValue("x_ions").toString() != "")
-          {
-            ss_ion_2 << double(it->getHits().front().getMetaValue("x_ions")) / length << out_sep;
-          }
-          if (it->getHits().front().getMetaValue("y_score").toString() != "" && 
-              it->getHits().front().getMetaValue("y_ions").toString() != "")
-          {
-            ss_ion_2 << double(it->getHits().front().getMetaValue("y_ions")) / length << out_sep;
-          }
-          if (it->getHits().front().getMetaValue("z_score").toString() != "" && 
-              it->getHits().front().getMetaValue("z_ions").toString() != "")
-          {
-            ss_ion_2 << double(it->getHits().front().getMetaValue("z_ions")) / length << out_sep;
-          }
-          double mass = it->getHits().front().getMetaValue("mass");
-          double dm = it->getHits().front().getMetaValue("delta");
-          double mh = mass + dm;
-          double absdM = abs(dm);
-
-          // write 1 for the correct charge, 0 for other charges
-          // i.e.: charge 3 for charges from 2-5: 0 1 0 0
-          stringstream ss;
-          int i = minCharge;
-          while (i <= maxCharge)
-          {
-            if (charge != i)
-            {
-              ss << "0" << out_sep;
-            }
-            if (charge == i)
-            {
-              ss << "1" << out_sep;
-            }
-            i++;
-          }
-
-          char aaBefore = it->getHits().front().getPeptideEvidences().front().getAABefore();
-          char aaAfter = it->getHits().front().getPeptideEvidences().front().getAAAfter();
-
-          String peptide = aaBefore + string(".") + sequence + string(".") + aaAfter;
-
-          // formula taken from percolator converter isEnz(n, c) for trypsin
-          bool enzN = isEnz(peptide.at(0), peptide.at(2), getStringOption_("enzyme"));
-          bool enzC = isEnz(peptide.at(peptide.size() - 3), peptide.at(peptide.size() - 1), getStringOption_("enzyme"));
-          int enzInt = countEnzymatic(sequence, getStringOption_("enzyme"));
-          String protein = it->getHits().front().getPeptideEvidences().front().getProteinAccession();
-
-          // One PeptideSpectrumHit with all its features
-          String lis = "_tandem_output_file_target_" + scannumber + "_" + String(charge) +
-            "_1" + out_sep + String(label) + out_sep + scannumber + out_sep + String(hyperscore) + 
-            out_sep + String(deltascore) + out_sep + ss_ion_2.str() + String(mh) + out_sep + 
-            String(dm) + out_sep + String(absdM) + out_sep + String(length) + out_sep + String(ss.str()) + 
-            String(enzN) + out_sep + String(enzC) + out_sep + String(enzInt) + out_sep + peptide + out_sep + protein;
-
-          // peptide Spectrum Hit pushed to the output file
-          txt.addLine(lis);
-        }
-      }
-
-      LOG_INFO << "read in decoy file" << endl;
-      // get all the features from the decoy file
-      for (vector<PeptideIdentification>::iterator it = peptide_ids_d.begin(); it != peptide_ids_d.end(); ++it)
-      {
-        if (it->isHigherScoreBetter())
-        {
-          String scannumber = String(it->getMetaValue("spectrum_id"));
-          int charge = it->getHits().front().getCharge();
-          int label = -1;
-          double hyperscore = it->getHits().front().getScore();
-          // deltascore = hyperscore - nextscore
-          double deltascore = hyperscore - it->getHits().front().getMetaValue("nextscore").toString().toDouble();
-          String sequence = it->getHits().front().getSequence().toString();
-          int length = sequence.length();
-
-          // Find out correct ion types and get its Values
-          stringstream ss_ion_2;
-
-          if (it->getHits().front().getMetaValue("a_score").toString() != "" && it->getHits().front().getMetaValue("a_ions").toString() != "")
-          {
-            ss_ion_2 << double(it->getHits().front().getMetaValue("a_ions")) / length << out_sep;
-          }
-          if (it->getHits().front().getMetaValue("b_score").toString() != "" && it->getHits().front().getMetaValue("b_ions").toString() != "")
-          {
-            ss_ion_2 << double(it->getHits().front().getMetaValue("b_ions")) / length << out_sep;
-          }
-          if (it->getHits().front().getMetaValue("c_score").toString() != "" && it->getHits().front().getMetaValue("c_ions").toString() != "")
-          {
-            ss_ion_2 << double(it->getHits().front().getMetaValue("c_ions")) / length << out_sep;
-          }
-          if (it->getHits().front().getMetaValue("x_score").toString() != "" && it->getHits().front().getMetaValue("x_ions").toString() != "")
-          {
-            ss_ion_2 << double(it->getHits().front().getMetaValue("x_ions")) / length << out_sep;
-          }
-          if (it->getHits().front().getMetaValue("y_score").toString() != "" && it->getHits().front().getMetaValue("y_ions").toString() != "")
-          {
-            ss_ion_2 << double(it->getHits().front().getMetaValue("y_ions")) / length << out_sep;
-          }
-          if (it->getHits().front().getMetaValue("z_score").toString() != "" && it->getHits().front().getMetaValue("z_ions").toString() != "")
-          {
-            ss_ion_2 << double(it->getHits().front().getMetaValue("z_ions")) / length;
-          }
-          double mass = it->getHits().front().getMetaValue("mass");
-          double dm = double(it->getHits().front().getMetaValue("delta"));
-          double mh = mass + dm;
-          double absdM = abs(dm);
-
-          // write 1 for the correct charge, 0 for other charges
-          // i.e: charge 3 for charges from 2-5: 0 1 0 0
-          stringstream ss;
-          int i = minCharge;
-          while (i <= maxCharge)
-          {
-            if (charge != i)
-            {
-              ss << "0" << out_sep;
-            }
-            if (charge == i)
-            {
-              ss << "1" << out_sep;
-            }
-            i++;
-          }
-
-          char aaBefore = it->getHits().front().getPeptideEvidences().front().getAABefore();
-          char aaAfter = it->getHits().front().getPeptideEvidences().front().getAAAfter();
-
-          String peptide = aaBefore + string(".") + sequence + string(".") + aaAfter;
-
-          // formula taken from percolator converter isEnz(n, c) for trypsin
-          bool enzN = isEnz(peptide.at(0), peptide.at(2), getStringOption_("enzyme"));
-          bool enzC = isEnz(peptide.at(peptide.size() - 3), peptide.at(peptide.size() - 1), getStringOption_("enzyme"));
-          int enzInt = countEnzymatic(sequence, getStringOption_("enzyme"));
-          String protein = it->getHits().front().getPeptideEvidences().front().getProteinAccession();
-
-          // One PeptideSpectrumHit with all its features
-          String lis = "_tandem_output_file_decoy_" + scannumber + "_" + String(charge) + "_1" + out_sep + String(label) + out_sep + scannumber + out_sep + String(hyperscore) + out_sep + String(deltascore) + out_sep + ss_ion_2.str() + out_sep
-                       + String(mh) + out_sep + String(dm) + out_sep + String(absdM) + out_sep + String(length) + out_sep + ss.str() + out_sep + String(enzN) + out_sep + String(enzC) + out_sep + String(enzInt) + out_sep + peptide + out_sep + protein;
-
-          // peptide Spectrum Hit pushed to the output file
-          txt.addLine(lis);
-        }
-      }
+      //TODO this is going to fail with specrum_reference clashes
+      peptide_ids.insert( peptide_ids.end(), decoy_peptide_ids.begin(), decoy_peptide_ids.end() );
+      protein_ids.insert( protein_ids.end(), decoy_protein_ids.begin(), decoy_protein_ids.end() );
+      writeLog_("Using decoy hits from separate file.");
     }
     else
     {
-      LOG_INFO << "target and decoy files are not of the same type" << endl;
+      writeLog_("Using decoy hits from input id file. You did you use a target decoy search, did you?");
+//        printUsage_();
+//        return ILLEGAL_PARAMETERS;
     }
 
-    LOG_INFO << "Executing percolator" << endl;
+
+    //-------------------------------------------------------------
+    // extract search engine and prepare pin
+    //-------------------------------------------------------------
+    String se = protein_ids.front().getSearchEngine();
+    TextFile txt;
+
+    //TODO introduce min/max charge to parameters for now take available range
+    int maxCharge = 0;
+    int minCharge = 10;
+    for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
+    {
+      for (vector<PeptideHit>::const_iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
+      {
+        if (hit->getCharge() > maxCharge)
+        {
+          maxCharge = hit->getCharge();
+        }
+        if (hit->getCharge() < minCharge)
+        {
+          minCharge = hit->getCharge();
+        }
+      }
+    }
+
+    writeDebug_("Detected search engine: " + se , 2);
+    if (se == "MS-GF+") prepareMSGFpin(peptide_ids, txt, minCharge, maxCharge);
+//    if (se == "Mascot") prepareMASCOTpin(peptide_ids, txt, minCharge, maxCharge);
+    if (se == "XTandem") prepareXTANDEMpin(peptide_ids, txt, minCharge, maxCharge);
+
+    writeLog_( "Executing percolator!");
 
     // create temp directory to store percolator in file pin.tab temporarily
-    QDir qdir_temp(File::getTempDirectory().toQString());
-    String temp_data_directory = File::getUniqueName();
-    qdir_temp.mkdir(temp_data_directory.toQString());
-    qdir_temp.cd(temp_data_directory.toQString());
-    temp_data_directory  = File::getTempDirectory() + "/" + temp_data_directory;
-    String in_file = temp_data_directory + "/" + File::getUniqueName() + ".tab";
-    String out_file = temp_data_directory + "/" + File::getUniqueName() + ".tab";
+    String temp_directory_body = QDir::toNativeSeparators((File::getTempDirectory() + "/" + File::getUniqueName() + "/").toQString()); // body for the tmp files
+    {
+      QDir d;
+      d.mkpath(temp_directory_body.toQString());
+    }
+
+    String txt_designator = File::getUniqueName();
+    String pin_file(temp_directory_body + txt_designator + "_pin.tab");
+    String pout_file(temp_directory_body + txt_designator + "_pout.tab");
 
     // File is stored in temp directory
-    txt.store(in_file);
+    txt.store(pin_file);
 
-    QProcess process;
     QStringList arguments;
-
     // Check all set parameters and get them into arguments StringList
-    arguments << "-r" << out_file.toQString();
+    arguments << "-r" << pout_file.toQString();
     if (getFlag_("e")) arguments << "-e";
     if (getFlag_("Z")) arguments << "-Z";
     if (getDoubleOption_("p") != 0.0) arguments << "-p" << String(getDoubleOption_("p")).toQString();
@@ -815,18 +806,33 @@ protected:
     if (getFlag_("fido-truncation")) arguments << "--fido-truncation";
     if (getFlag_("Q")) arguments << "-Q";
     arguments << "-U";
-    arguments << in_file.toQString();
+    arguments << pin_file.toQString();
 
     // Percolator execution with the executable ant the arguments StringList
-    process.execute(percolator_executable.toQString(), arguments); // does automatic escaping etc...
+    int status = QProcess::execute(percolator_executable.toQString(), arguments); // does automatic escaping etc...
+    if (status != 0)
+    {
+      writeLog_("Percolator problem. Aborting! Calling command was: '" + percolator_executable + " \"" + arguments.join("-").toStdString() + "\".");
+      // clean temporary files
+      if (this->debug_level_ < 2)
+      {
+        File::removeDirRecursively(temp_directory_body);
+        LOG_WARN << "Set debug level to >=2 to keep the temporary files at '" << temp_directory_body << "'" << std::endl;
+      }
+      else
+      {
+        LOG_WARN << "Keeping the temporary files at '" << temp_directory_body << "'. Set debug level to <2 to remove them." << std::endl;
+      }
+      return EXTERNAL_PROGRAM_ERROR;
+    }
 
     // when percolator finished calculation, it stores the results -r option (with or without -U) or -m (which seems to be not working)
-    CsvFile csv_file(out_file, '\t');
+    CsvFile csv_file(pout_file, '\t');
 
     map<String, vector<String> > pep_map;
     StringList row;
 
-    for (UInt i = 1; i < csv_file.rowCount(); ++i)
+    for (size_t i = 1; i < csv_file.rowCount(); ++i)
     {
       csv_file.getRow(i, row);
       vector<String> row_values;
@@ -841,34 +847,46 @@ protected:
 
       vector<String> substr;
       row[0].split('_', substr);
+//      writeDebug_("Mapping input to key: " + substr[2] , 2);
       pep_map[substr[2]] = row_values; // scannr. as written in preparePIN
     }
 
+    // As the percolator output file is not needed anymore, the temporary directory is going to be deleted
+    if (this->debug_level_ < 99)
+    {
+      File::removeDirRecursively(temp_directory_body);
+    }
+    else
+    {
+      LOG_WARN << "Keeping the temporary files at '" << temp_directory_body << "'. Set debug level to <2 to remove them." << std::endl;
+    }
 
     // Add the percolator results to the peptide vector of the original input file
+    size_t c_debug = 0;
     for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
     {
-      String sid = it->getMetaValue("spectrum_id");
+      String sid = it->getMetaValue("spectrum_reference");
       if (pep_map.find(sid) == pep_map.end())
       {
+        //writeDebug_("No suitable PeptideIdentification entry 1st found for " + sid  , 2);
         vector<String> sr;
         sid.split('=', sr);
         sid = sr.back();
         if (pep_map.find(sid) == pep_map.end())
         {
-          //no spectrum found - log?
+          writeDebug_("No suitable PeptideIdentification entry 2nd found for " + sid + " - emulate percolator scores with exisiting scores?", 111);
+          ++c_debug;
           continue;
         }
       }
 
       it->setScoreType("q-value");
       it->setHigherScoreBetter(false);
-      vector<PeptideHit> temp;
-      swap(temp, it->getHits());
-      for (vector<PeptideHit>::iterator hit = temp.begin(); hit != temp.end(); ++hit)
+      AASequence aat;
+      aat.fromString(pep_map[sid][0]);
+
+      for (vector<PeptideHit>::iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
       {
-        AASequence aat;
-        aat.fromString(pep_map[sid][0]);
         if (hit->getSequence() == aat)
         {
           //get aa before/after/charge and metainfo
@@ -877,25 +895,21 @@ protected:
           hit->setMetaValue("MS:1001491", qv);
           hit->setScore(qv);
           hit->setMetaValue("MS:1001493", pep_map[sid][3].toDouble());        //pep
-          hit->setSequence(aat);
-          it->insertHit(*hit);
         }
       }
-      // TODO what with those not in percolator result file -> empty PeptideHit vector?
     }
+    writeDebug_("No suitable PeptideIdentification for " + String(c_debug) + " out of " + String(peptide_ids.size()), 2);
 
     for (vector<ProteinIdentification>::iterator it = protein_ids.begin(); it != protein_ids.end(); ++it)
     {
       it->setSearchEngine("Percolator");
+      //TODO add software percolator and topperc
     }
 
     // Storing the PeptideHits with calculated q-value, pep and svm score
     MzIdentMLFile().store(getStringOption_("out").toQString().toStdString(), protein_ids, peptide_ids);
 
     LOG_INFO << "TopPerc finished successfully!" << endl;
-
-    // As the percolator output file is not needed anymore, the temporary directory is going to be deleted
-//    File::removeDirRecursively(temp_data_directory);
 
     return EXECUTION_OK;
   }
