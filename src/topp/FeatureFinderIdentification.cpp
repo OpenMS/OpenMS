@@ -215,26 +215,15 @@ protected:
     registerOutputFile_("svm:xval_out", "<file>", "", "Output file: SVM cross-validation (parameter optimization) results", false);
     setValidFormats_("svm:xval_out", ListUtils::create<String>("csv"));
 
-    registerSubsection_("model", "Parameters for fitting elution models to features");
-  }
-
-  
-  Param getSubsectionDefaults_(const String& section) const
-  {
+    // parameters for model fitting (via ElutionModelFitter):
+    StringList models = ListUtils::create<String>("none,symmetric,asymmetric");
     Param params;
-    if (section == "model")
-    {
-      Param defaults = ElutionModelFitter().getParameters();
-      // replace flag for (a)symmetric by choice that includes "no model":
-      defaults.remove("asymmetric");
-      StringList models = 
-        ListUtils::create<String>("none,symmetric,asymmetric");
-      params.setValue("type", models[0],
-                      "Type of elution model to fit to features");
-      params.setValidStrings("type", models);
-      params.merge(defaults);
-    }
-    return params;
+    params.setValue("model:type", models[0], "Type of elution model to fit to features");
+    params.setValidStrings("model:type", models);
+    params.setSectionDescription("model", "Parameters for fitting elution models to features");
+    params.insert("model:", ElutionModelFitter().getParameters());
+    params.remove("model:asymmetric");
+    registerFullParam_(params);
   }
 
 

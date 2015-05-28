@@ -49,7 +49,7 @@ ElutionModelFitter::ElutionModelFitter():
   vector<String> truefalse = ListUtils::create<String>("true,false");
   vector<String> advanced(1, "advanced");
 
-  defaults_.setValue("asymmetric", "false", "Fit an asymmetric (exponential-Gaussian hybrid) model? If not, a symmetric (Gaussian) model is used.");
+  defaults_.setValue("asymmetric", "false", "Fit an asymmetric (exponential-Gaussian hybrid) model? By default a symmetric (Gaussian) model is used.");
   defaults_.setValidStrings("asymmetric", truefalse);
 
   defaults_.setValue("add_zeros", 0.2, "Add zero-intensity points outside the feature range to constrain the model fit. This parameter sets the weight given to these points during model fitting; '0' to disable.", advanced);
@@ -70,6 +70,8 @@ ElutionModelFitter::ElutionModelFitter():
 
   defaults_.setValue("check:asymmetry", 10.0, "Upper limit for acceptable asymmetry of elution models (EGH only), expressed in terms of modified (median-based) z-scores; '0' to disable", advanced);
   defaults_.setMinFloat("check:asymmetry", 0.0);
+
+  defaults_.setSectionDescription("check", "Parameters for checking the validity of elution models (and rejecting them if necessary)");
 
   defaultsToParam_();
 }
