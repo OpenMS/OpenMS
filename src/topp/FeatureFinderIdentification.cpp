@@ -35,7 +35,6 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
@@ -47,7 +46,7 @@
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ElutionModelFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
@@ -216,23 +215,28 @@ protected:
     registerOutputFile_("svm:xval_out", "<file>", "", "Output file: SVM cross-validation (parameter optimization) results", false);
     setValidFormats_("svm:xval_out", ListUtils::create<String>("csv"));
 
-    registerTOPPSubsection_("model", "Parameters for fitting elution models to features");
-    StringList models = ListUtils::create<String>("none,symmetric,asymmetric");
-    registerStringOption_("model:type", "<choice>", models[0], "Type of elution model to fit to features", false);
-    setValidStrings_("model:type", models);
-    registerDoubleOption_("model:add_zeros", "<value>", 0.2, "Add zero-intensity points outside the feature range to constrain the model fit. This parameter sets the weight given to these points during model fitting; '0' to disable.", false, true);
-    setMinFloat_("model:add_zeros", 0.0);
-    registerFlag_("model:unweighted_fit", "Suppress weighting of mass traces according to theoretical intensities when fitting elution models", true);
-    registerFlag_("model:no_imputation", "If fitting the elution model fails for a feature, set its intensity to zero instead of imputing a value from the initial intensity estimate", true);
-    registerTOPPSubsection_("model:check", "Parameters for checking the validity of elution models (and rejecting them if necessary)");
-    registerDoubleOption_("model:check:boundaries", "<value>", 0.5, "Time points corresponding to this fraction of the elution model height have to be within the data region used for model fitting", false, true);
-    setMinFloat_("model:check:boundaries", 0.0);
-    setMaxFloat_("model:check:boundaries", 1.0);
-    registerDoubleOption_("model:check:width", "<value>", 10.0, "Upper limit for acceptable widths of elution models (Gaussian or EGH), expressed in terms of modified (median-based) z-scores; '0' to disable", false, true);
-    setMinFloat_("model:check:width", 0.0);
-    registerDoubleOption_("model:check:asymmetry", "<value>", 10.0, "Upper limit for acceptable asymmetry of elution models (EGH only), expressed in terms of modified (median-based) z-scores; '0' to disable", false, true);
-    setMinFloat_("model:check:asymmetry", 0.0);
+    registerSubsection_("model", "Parameters for fitting elution models to features");
   }
+
+  
+  Param getSubsectionDefaults_(const String& section) const
+  {
+    Param params;
+    if (section == "model")
+    {
+      Param defaults = ElutionModelFitter().getParameters();
+      // replace flag for (a)symmetric by choice that includes "no model":
+      defaults.remove("asymmetric");
+      StringList models = 
+        ListUtils::create<String>("none,symmetric,asymmetric");
+      params.setValue("type", models[0],
+                      "Type of elution model to fit to features");
+      params.setValidStrings("type", models);
+      params.merge(defaults);
+    }
+    return params;
+  }
+
 
   typedef MSExperiment<Peak1D> PeakMap;
   typedef FeatureFinderAlgorithmPickedHelperStructs::MassTrace MassTrace;
@@ -289,7 +293,6 @@ protected:
   double mapping_tolerance_; // RT tolerance for mapping IDs to features
   Size n_parts_; // number of partitions for SVM cross-validation
   Size n_samples_; // number of samples for SVM training
-  String elution_model_; // choice of elution model
   ChromatogramExtractor extractor_; // OpenSWATH chromatogram extractor
   MRMFeatureFinderScoring feat_finder_; // OpenSWATH feature finder
   ProgressLogger prog_log_;
@@ -349,382 +352,6 @@ protected:
     peptide.rts.push_back(te_rt);
   }
 
-
-  double calculateFitQuality_(const TraceFitter* fitter, 
-                              const MassTraces& traces)
-  {
-    double mre = 0.0;
-    double total_weights = 0.0;
-    double rt_start = max(fitter->getLowerRTBound(), traces[0].peaks[0].first);
-    double rt_end = min(fitter->getUpperRTBound(), 
-                        traces[0].peaks.back().first);
-
-    for (MassTraces::const_iterator tr_it = traces.begin();
-         tr_it != traces.end(); ++tr_it)
-    {
-      for (vector<pair<double, const Peak1D*> >::const_iterator p_it = 
-             tr_it->peaks.begin(); p_it != tr_it->peaks.end(); ++p_it)
-      {
-        double rt = p_it->first;
-        if ((rt >= rt_start) && (rt <= rt_end))
-        {
-          double model_value = fitter->getValue(rt);
-          double diff = fabs(model_value * tr_it->theoretical_int -
-                             p_it->second->getIntensity());
-          mre += diff / model_value;
-          total_weights += tr_it->theoretical_int;
-        }
-      }
-    }
-    return mre / total_weights;
-  }
-
-
-  // fit models of elution profiles to all features:
-  void fitElutionModels_(FeatureMap& features)
-  {
-    // assumptions:
-    // - all features have subordinates (for the mass traces/transitions)
-    // - all subordinates have one convex hull
-    // - all convex hulls in one feature contain the same number (> 0) of points
-    // - the y coordinates of the hull points store the intensities
-
-    bool asymmetric = (elution_model_ == "asymmetric");
-    double add_zeros = getDoubleOption_("model:add_zeros");
-    bool weighted = !getFlag_("model:unweighted_fit");
-    bool impute = !getFlag_("model:no_imputation");
-    double check_boundaries = getDoubleOption_("model:check:boundaries");
-
-    // prepare look-up of transitions by native ID:
-    map<String, const ReactionMonitoringTransition*> trans_ids;
-    for (vector<ReactionMonitoringTransition>::const_iterator trans_it =
-           library_.getTransitions().begin(); trans_it !=
-           library_.getTransitions().end(); ++trans_it)
-    {
-      trans_ids[trans_it->getNativeID()] = &(*trans_it);
-    }
-
-    TraceFitter* fitter;
-    if (asymmetric)
-    {
-      fitter = new EGHTraceFitter();
-    }
-    else fitter = new GaussTraceFitter();
-    if (weighted)
-    {
-      Param params = fitter->getDefaults();
-      params.setValue("weighted", "true");
-      fitter->setParameters(params);
-    }
-
-    // store model parameters to find outliers later:
-    double width_limit = getDoubleOption_("model:check:width");
-    double asym_limit = (asymmetric ?
-                         getDoubleOption_("model:check:asymmetry") : 0.0);
-    // store values redundantly - once aligned with the features in the map,
-    // once only for successful models:
-    vector<double> widths_all, widths_good, asym_all, asym_good;
-    if (width_limit > 0)
-    {
-      widths_all.resize(features.size(),
-                        numeric_limits<double>::quiet_NaN());
-      widths_good.reserve(features.size());
-    }
-    if (asym_limit > 0)
-    {
-      asym_all.resize(features.size(), numeric_limits<double>::quiet_NaN());
-      asym_good.reserve(features.size());
-    }
-
-    // collect peaks that constitute mass traces:
-    LOG_DEBUG << "Fitting elution models to features:" << endl;
-    Size index = 0;
-    for (FeatureMap::Iterator feat_it = features.begin();
-         feat_it != features.end(); ++feat_it, ++index)
-    {
-      LOG_DEBUG << String(feat_it->getMetaValue("PeptideRef")) << endl;
-      double region_start = double(feat_it->getMetaValue("leftWidth"));
-      double region_end = double(feat_it->getMetaValue("rightWidth"));
-
-      vector<Peak1D> peaks;
-      // reserve space once, to avoid copying and invalidating pointers:
-      const Feature& sub = feat_it->getSubordinates()[0];
-      Size points_per_hull = sub.getConvexHulls()[0].getHullPoints().size();
-      peaks.reserve(feat_it->getSubordinates().size() * points_per_hull +
-                    (add_zeros > 0.0)); // don't forget additional zero point
-      MassTraces traces;
-      traces.max_trace = 0;
-      // need a mass trace for every transition, plus maybe one for add. zeros:
-      traces.reserve(feat_it->getSubordinates().size() + (add_zeros > 0.0));
-      for (vector<Feature>::iterator sub_it =
-             feat_it->getSubordinates().begin(); sub_it !=
-             feat_it->getSubordinates().end(); ++sub_it)
-      {
-        MassTrace trace;
-        trace.peaks.reserve(points_per_hull);
-        String native_id = sub_it->getMetaValue("native_id");
-        trace.theoretical_int = trans_ids[native_id]->getLibraryIntensity();
-        sub_it->setMetaValue("isotope_probability", trace.theoretical_int);
-        const ConvexHull2D& hull = sub_it->getConvexHulls()[0];
-        for (ConvexHull2D::PointArrayTypeConstIterator point_it =
-               hull.getHullPoints().begin(); point_it !=
-               hull.getHullPoints().end(); ++point_it)
-        {
-          double intensity = point_it->getY();
-          if (intensity > 0.0) // only use non-zero intensities for fitting
-          {
-            Peak1D peak;
-            peak.setMZ(sub_it->getMZ());
-            peak.setIntensity(intensity);
-            peaks.push_back(peak);
-            trace.peaks.push_back(make_pair(point_it->getX(), &peaks.back()));
-          }
-        }
-        trace.updateMaximum();
-        if (!trace.peaks.empty()) traces.push_back(trace);
-      }
-
-      // find the trace with maximal intensity:
-      Size max_trace = 0;
-      double max_intensity = 0;
-      for (Size i = 0; i < traces.size(); ++i)
-      {
-        if (traces[i].max_peak->getIntensity() > max_intensity)
-        {
-          max_trace = i;
-          max_intensity = traces[i].max_peak->getIntensity();
-        }
-      }
-      traces.max_trace = max_trace;
-      // ??? (from "FeatureFinderAlgorithmPicked.h"):
-      // traces.updateBaseline();
-      // traces.baseline = 0.75 * traces.baseline;
-      traces.baseline = 0.0;
-
-      if (add_zeros > 0.0)
-      {
-        MassTrace trace;
-        trace.peaks.reserve(2);
-        trace.theoretical_int = add_zeros;
-        Peak1D peak;
-        peak.setMZ(feat_it->getSubordinates()[0].getMZ());
-        peak.setIntensity(0.0);
-        peaks.push_back(peak);
-        double offset = 0.2 * (region_start - region_end);
-        trace.peaks.push_back(make_pair(region_start - offset, &peaks.back()));
-        trace.peaks.push_back(make_pair(region_end + offset, &peaks.back()));
-        traces.push_back(trace);
-      }
-
-      // fit the model:
-      bool fit_success = true;
-      try
-      {
-        fitter->fit(traces);
-      }
-      catch (Exception::UnableToFit& except)
-      {
-        LOG_ERROR << "Error fitting model to feature '"
-                  << feat_it->getUniqueId() << "': " << except.getName()
-                  << " - " << except.getMessage() << endl;
-        fit_success = false;
-      }
-
-      // record model parameters:
-      double center = fitter->getCenter(), height = fitter->getHeight();
-      feat_it->setMetaValue("model_height", height);
-      feat_it->setMetaValue("model_FWHM", fitter->getFWHM());
-      feat_it->setMetaValue("model_center", center);
-      feat_it->setMetaValue("model_lower", fitter->getLowerRTBound());
-      feat_it->setMetaValue("model_upper", fitter->getUpperRTBound());
-      if (asymmetric)
-      {
-        EGHTraceFitter* egh =
-          static_cast<EGHTraceFitter*>(fitter);
-        feat_it->setMetaValue("model_EGH_tau", egh->getTau());
-        feat_it->setMetaValue("model_EGH_sigma", egh->getSigma());
-      }
-      else
-      {
-        GaussTraceFitter* gauss =
-          static_cast<GaussTraceFitter*>(fitter);
-        feat_it->setMetaValue("model_Gauss_sigma", gauss->getSigma());
-      }
-
-      // goodness of fit:
-      double mre = -1.0; // mean relative error
-      if (fit_success)
-      {
-        mre = calculateFitQuality_(fitter, traces);
-      }
-      feat_it->setMetaValue("model_error", mre);
-
-      // check model validity:
-      double area = fitter->getArea();
-      feat_it->setMetaValue("model_area", area);
-      if ((area != area) || (area <= 0.0)) // x != x: test for NaN
-      {
-        feat_it->setMetaValue("model_status", "1 (invalid area)");
-      }
-      else if ((center <= region_start) || (center >= region_end))
-      {
-        feat_it->setMetaValue("model_status", "2 (center out of bounds)");
-      }
-      else if (fitter->getValue(region_start) > check_boundaries * height)
-      {
-        feat_it->setMetaValue("model_status", "3 (left side out of bounds)");
-      }
-      else if (fitter->getValue(region_end) > check_boundaries * height)
-      {
-        feat_it->setMetaValue("model_status", "4 (right side out of bounds)");
-      }
-      else
-      {
-        feat_it->setMetaValue("model_status", "0 (valid)");
-        // store model parameters to find outliers later:
-        if (asymmetric)
-        {
-          double sigma = feat_it->getMetaValue("model_EGH_sigma");
-          double abs_tau = fabs(double(feat_it->
-                                       getMetaValue("model_EGH_tau")));
-          if (width_limit > 0)
-          {
-            // see implementation of "EGHTraceFitter::getArea":
-            double width = sigma * 0.6266571 + abs_tau;
-            widths_all[index] = width;
-            widths_good.push_back(width);
-          }
-          if (asym_limit > 0)
-          {
-            double asymmetry = abs_tau / sigma;
-            asym_all[index] = asymmetry;
-            asym_good.push_back(asymmetry);
-          }
-        }
-        else if (width_limit > 0)
-        {
-          double width = feat_it->getMetaValue("model_Gauss_sigma");
-          widths_all[index] = width;
-          widths_good.push_back(width);
-        }
-      }
-    }
-    delete fitter;
-
-    // find outliers in model parameters:
-    if (width_limit > 0)
-    {
-      double median_width = Math::median(widths_good.begin(),
-                                         widths_good.end());
-      vector<double> abs_diffs(widths_good.size());
-      for (Size i = 0; i < widths_good.size(); ++i)
-      {
-        abs_diffs[i] = fabs(widths_good[i] - median_width);
-      }
-      // median absolute deviation (constant factor to approximate std. dev.):
-      double mad_width = 1.4826 * Math::median(abs_diffs.begin(),
-                                               abs_diffs.end());
-
-      for (Size i = 0; i < features.size(); ++i)
-      {
-        double width = widths_all[i];
-        if (width != width) continue; // NaN (failed model)
-        double z_width = (width - median_width) / mad_width; // mod. z-score
-        if (z_width > width_limit)
-        {
-          features[i].setMetaValue("model_status", "5 (width too large)");
-          if (asym_limit > 0) // skip asymmetry check below
-          {
-            asym_all[i] = numeric_limits<double>::quiet_NaN();
-          }
-        }
-        else if (z_width < -width_limit)
-        {
-          features[i].setMetaValue("model_status", "6 (width too small)");
-          if (asym_limit > 0) // skip asymmetry check below
-          {
-            asym_all[i] = numeric_limits<double>::quiet_NaN();
-          }
-        }
-      }
-    }
-    if (asym_limit > 0)
-    {
-      double median_asym = Math::median(asym_good.begin(), asym_good.end());
-      vector<double> abs_diffs(asym_good.size());
-      for (Size i = 0; i < asym_good.size(); ++i)
-      {
-        abs_diffs[i] = fabs(asym_good[i] - median_asym);
-      }
-      // median absolute deviation (constant factor to approximate std. dev.):
-      double mad_asym = 1.4826 * Math::median(abs_diffs.begin(),
-                                              abs_diffs.end());
-
-      for (Size i = 0; i < features.size(); ++i)
-      {
-        double asym = asym_all[i];
-        if (asym != asym) continue; // NaN (failed model)
-        double z_asym = (asym - median_asym) / mad_asym; // mod. z-score
-        if (z_asym > asym_limit)
-        {
-          features[i].setMetaValue("model_status", "7 (asymmetry too high)");
-        }
-        else if (z_asym < -asym_limit) // probably shouldn't happen in practice
-        {
-          features[i].setMetaValue("model_status", "8 (asymmetry too low)");
-        }
-      }
-    }
-
-    // impute approximate results for failed model fits (basically bring the
-    // OpenSWATH intensity estimates to the same scale as the model-based ones):
-    TransformationModel::DataPoints quant_values;
-    vector<FeatureMap::Iterator> failed_models;
-    Size model_successes = 0, model_failures = 0;
-
-    for (FeatureMap::Iterator feat_it = features.begin();
-         feat_it != features.end(); ++feat_it, ++index)
-    {
-      feat_it->setMetaValue("raw_intensity", feat_it->getIntensity());
-      if (String(feat_it->getMetaValue("model_status"))[0] != '0')
-      {
-        if (impute) failed_models.push_back(feat_it);
-        else feat_it->setIntensity(0.0);
-        model_failures++;
-      }
-      else
-      {
-        double area = feat_it->getMetaValue("model_area");
-        if (impute)
-        { // apply log-transform to weight down high outliers:
-          double raw_intensity = feat_it->getIntensity();
-          LOG_DEBUG << "Successful model: x = " << raw_intensity << ", y = "
-                    << area << "; log(x) = " << log(raw_intensity)
-                    << ", log(y) = " << log(area) << endl;
-          quant_values.push_back(make_pair(log(raw_intensity), log(area)));
-        }
-        feat_it->setIntensity(area);
-        model_successes++;
-      }
-    }
-    LOG_INFO << "Model fitting: " << model_successes << " successes, "
-             << model_failures << " failures" << endl;
-
-    if (impute) // impute results for cases where the model fit failed
-    {
-      TransformationModelLinear lm(quant_values, Param());
-      double slope, intercept;
-      lm.getParameters(slope, intercept);
-      LOG_DEBUG << "LM slope: " << slope << ", intercept: " << intercept
-                << endl;
-      for (vector<FeatureMap::Iterator>::iterator it = failed_models.begin();
-           it != failed_models.end(); ++it)
-      {
-        double area = exp(lm.evaluate(log((*it)->getIntensity())));
-        (*it)->setIntensity(area);
-      }
-    }
-  }
 
 
   void getRTRegions_(const ChargeMap& peptide_data, 
@@ -989,7 +616,7 @@ protected:
                                transitions);
           library.setTransitions(transitions);
 
-          if (keep_library_ || (elution_model_ != "none")) library_ += library;
+          if (keep_library_) library_ += library;
 
           // extract chromatograms:
           double rt_window = reg_it->end - reg_it->start;
@@ -1033,6 +660,16 @@ protected:
             // with a warning when writing output, because of missing protein
             // identification with corresponding identifier):
             feat_it->getPeptideIdentifications().clear();
+            // annotate subordinates with theoretical isotope intensities:
+            for (vector<Feature>::iterator sub_it =
+                   feat_it->getSubordinates().begin(); sub_it !=
+                   feat_it->getSubordinates().end(); ++sub_it)
+            {
+              String native_id = sub_it->getMetaValue("native_id");
+              Size index = native_id.suffix('i').toInt() - 1;
+              sub_it->setMetaValue("isotope_probability",
+                                   iso_dist.getContainer()[index].second);
+            }
           }
           // which features are supported by "internal" IDs?
           annotateFeatures_(current_features, cm_it->second);
@@ -1613,7 +1250,7 @@ protected:
     mapping_tolerance_ = getDoubleOption_("detect:mapping_tolerance");
     n_parts_ = getIntOption_("svm:xval");
     n_samples_ = getIntOption_("svm:samples");
-    elution_model_ = getStringOption_("model:type");
+    String elution_model = getStringOption_("model:type");
     prog_log_.setLogType(log_type_);
 
     if ((n_samples_ > 0) && (n_samples_ < 2 * n_parts_))
@@ -1653,7 +1290,7 @@ protected:
     Param params = feat_finder_.getParameters();
     params.setValue("stop_report_after_feature", -1); // return all features
     params.setValue("Scores:use_rt_score", "false"); // RT may not be reliable
-    if (elution_model_ != "none") params.setValue("write_convex_hull", "true");
+    if (elution_model != "none") params.setValue("write_convex_hull", "true");
     if (min_peak_width < 1.0) min_peak_width *= peak_width;
     params.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width",
                     peak_width);
@@ -1759,9 +1396,15 @@ protected:
     filterFeatures_(features, !id_ext.empty());
     LOG_INFO << features.size() << " features left after filtering." << endl;
     
-    if (elution_model_ != "none")
+    if (elution_model != "none")
     {
-      fitElutionModels_(features);
+      ElutionModelFitter emf;
+      Param emf_params = getParam_().copy("model:", true);
+      emf_params.remove("type");
+      emf_params.setValue("asymmetric",
+                          (elution_model == "asymmetric") ? "true" : "false");
+      emf.setParameters(emf_params);
+      emf.fitElutionModels(features);
     }
 
     //-------------------------------------------------------------
