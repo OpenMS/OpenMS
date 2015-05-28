@@ -179,7 +179,7 @@ namespace OpenMS
         row.original_mz = mz;
         row.accessions = protein_accessions;
         row.RNA = rna_name;
-        row.peptide = sequence.toString();
+        row.peptide = ph.getSequence().toString();
         row.charge = charge;
         row.score = ph.getScore();
         row.peptide_weight = peptide_weight;
