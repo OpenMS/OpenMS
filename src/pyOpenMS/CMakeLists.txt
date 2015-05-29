@@ -29,11 +29,22 @@
 #
 # --------------------------------------------------------------------------
 # $Maintainer: Hannes Röst $
-# $Authors: Hannes Röst, Uwe Schmitt $
+# $Authors: Hannes Röst, Uwe Schmitt, Stephan Aiche $
 # --------------------------------------------------------------------------
 
 project("pyOpenMS")
 cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
+
+#------------------------------------------------------------------------------
+# helper to copy/configure files from source to build
+function(_copy_assets _asset_dir _regex _target_dir)
+  file(GLOB _assets "${_asset_dir}/${_regex}")
+  foreach(_asset_file ${_assets})
+    # make path relative
+    file(RELATIVE_PATH _relative_path ${_asset_dir} ${_asset_file})
+    configure_file(${_asset_file} ${_target_dir}/${_relative_path} COPYONLY)
+  endforeach()
+endfunction()
 
 #------------------------------------------------------------------------------
 # find and handle python
@@ -210,7 +221,7 @@ file(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/libSuperHirn.so")
 file(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/libSuperHirn.dylib")
 
 #------------------------------------------------------------------------------
-# copy files
+# copy/configure files
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS)
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/tests/unittests)
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/tests/memoryleaktests)
@@ -219,26 +230,13 @@ file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/pyTOPP)
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/extra_includes)
 
-file(GLOB _python_files "${PROJECT_SOURCE_DIR}/pyopenms/*.py")
-file(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
-
-file(GLOB _python_files "${PROJECT_SOURCE_DIR}/pyopenms/*.sh")
-file(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
-
-file(GLOB _python_files "${PROJECT_SOURCE_DIR}/pyTOPP/*.py")
-file(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyTOPP)
-
-file(GLOB _python_files "${PROJECT_SOURCE_DIR}/tests/unittests/*")
-file(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/tests/unittests)
-
-file(GLOB _python_files "${PROJECT_SOURCE_DIR}/tests/*.mzXML")
-file(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/tests)
-
-file(GLOB _python_files "${PROJECT_SOURCE_DIR}/tests/memoryleaktests/*")
-file(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/tests/memoryleaktests)
-
-file(GLOB _python_files "${PROJECT_SOURCE_DIR}/tests/integration_tests/*")
-file(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/tests/integration_tests)
+_copy_assets("${PROJECT_SOURCE_DIR}/pyopenms/" "*.py" ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/)
+_copy_assets("${PROJECT_SOURCE_DIR}/pyopenms/" "*.sh" ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/)
+_copy_assets("${PROJECT_SOURCE_DIR}/pyTOPP/" "*.py" ${CMAKE_BINARY_DIR}/pyOpenMS/pyTOPP/)
+_copy_assets("${PROJECT_SOURCE_DIR}/tests/unittests/" "*" ${CMAKE_BINARY_DIR}/pyOpenMS/tests/unittests)
+_copy_assets("${PROJECT_SOURCE_DIR}/tests/" "*.mzXML" ${CMAKE_BINARY_DIR}/pyOpenMS/tests)
+_copy_assets("${PROJECT_SOURCE_DIR}/tests/memoryleaktests/" "*" ${CMAKE_BINARY_DIR}/pyOpenMS/tests/memoryleaktests)
+_copy_assets("${PROJECT_SOURCE_DIR}/tests/integration_tests/" "*" ${CMAKE_BINARY_DIR}/pyOpenMS/tests/integration_tests)
 
 # list of files required for the pyOpenMS build system
 set(_pyopenms_files
@@ -312,7 +310,7 @@ set(PYOPENMS_INCLUDE_DIRS
 )
 
 # TODO: this is a workaround; we need to clarify why exactly pyOpenMS needs
-#       access to the directories and not the library locations itself 
+#       access to the directories and not the library locations itself
 set(CONTRIB_DIR ${CMAKE_PREFIX_PATH})
 set(OPEN_MS_BUILD_TYPE ${CMAKE_BUILD_TYPE})
 set(OPEN_MS_LIB "")

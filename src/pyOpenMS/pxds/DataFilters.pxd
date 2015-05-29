@@ -6,12 +6,12 @@ from ConsensusMap cimport *
 from FeatureMap cimport *
 
 cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>" namespace "OpenMS":
-    
+
     cdef cppclass DataFilters "OpenMS::DataFilters":
         DataFilters() nogil except +
         DataFilters(DataFilters) nogil except + #wrap-ignore
         Size size() nogil except +
-        DataFilter operator[](Size index) nogil except + # wrap-upper-limit:size()
+        DataFilter operator[](size_t) nogil except + # wrap-upper-limit:size()
         void add(DataFilter & filter_) nogil except +
         void remove(Size index) nogil except +
         void replace(Size index, DataFilter & filter_) nogil except +
@@ -23,7 +23,7 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>" namespace "Ope
         bool passes(MSSpectrum[ Peak1D ] & spectrum, Size peak_index) nogil except +
 
 cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>" namespace "OpenMS::DataFilters":
-    
+
     cdef cppclass DataFilter "OpenMS::DataFilters::DataFilter":
         DataFilter() nogil except +
         DataFilter(DataFilter) nogil except + #wrap-ignore

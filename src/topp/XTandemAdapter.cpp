@@ -182,6 +182,7 @@ protected:
 
     registerDoubleOption_("max_valid_expect", "<E-Value>", 0.1, "Maximal E-Value of a hit to be reported (only evaluated if 'output_result' is 'valid' or 'stochastic'", false);
     registerFlag_("refinement", "Enable the refinement. For most applications (especially when using FDR, PEP approaches) it is NOT recommended to set this flag.");
+    registerFlag_("use_noise_suppression", "Enable the use of the noise suppression routines.");
     registerFlag_("semi_cleavage", "If set, both termini must NOT follow the cutting rule. For most applications it is NOT recommended to set this flag.");
   }
 
@@ -354,6 +355,7 @@ protected:
     infile.setCleavageSite(EnzymesDB::getInstance()->getEnzyme(enzyme_name)->getXTANDEMid());
     infile.setNumberOfMissedCleavages(getIntOption_("missed_cleavages"));
     infile.setRefine(getFlag_("refinement"));
+    infile.setNoiseSuppression(getFlag_("use_noise_suppression"));
     infile.setSemiCleavage(getFlag_("semi_cleavage"));
     bool allow_isotope_error = getStringOption_("allow_isotope_error") == "yes" ? true : false;
     infile.setAllowIsotopeError(allow_isotope_error);

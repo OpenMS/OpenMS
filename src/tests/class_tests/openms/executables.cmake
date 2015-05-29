@@ -86,6 +86,7 @@ set(metadata_executables_list
   MassAnalyzer_test
   MetaInfoDescription_test
   MetaInfoInterface_test
+  MetaInfoInterfaceUtils_test
   MetaInfoRegistry_test
   MetaInfo_test
   Modification_test
@@ -206,6 +207,7 @@ set(format_executables_list
   PepNovoOutfile_test
   PepXMLFileMascot_test
   PepXMLFile_test
+  PercolatorOutfile_test
   ProtXMLFile_test
   SVOutStream_test
   SemanticValidator_test

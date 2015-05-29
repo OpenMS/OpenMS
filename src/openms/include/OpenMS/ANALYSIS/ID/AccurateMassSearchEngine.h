@@ -332,8 +332,10 @@ private:
     /// add search results to a Consensus/Feature
     void annotate_(const std::vector<AccurateMassSearchResult>&, BaseFeature&) const;
 
+    /// For two vectors of identical length, compute the cosine of the angle between them.
+    /// Since we look at the angle, scaling of the vectors does not change the result (when ignoring numerical instability).
     double computeCosineSim_(const std::vector<double>& x, const std::vector<double>& y) const;
-    double computeEuclideanDist_(const std::vector<double>& x, const std::vector<double>& y) const;
+
     double computeIsotopePatternSimilarity_(const Feature& feat, const EmpiricalFormula& form) const;
 
     typedef std::vector<std::vector<AccurateMassSearchResult> > QueryResultsTable;

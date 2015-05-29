@@ -1499,22 +1499,6 @@ namespace OpenMS
     return (denom > 0.0) ? mixed_sum / denom : 0.0;
   }
 
-  double AccurateMassSearchEngine::computeEuclideanDist_( const std::vector<double>& x, const std::vector<double>& y ) const
-  {
-    if (x.size() != y.size())
-    {
-      return -100.0;
-    }
-
-    double sum_of_squares(0.0);
-
-    for (Size i = 0; i < x.size(); ++i)
-    {
-      sum_of_squares += (x[i] - y[i]) * (x[i] - y[i]);
-    }
-
-    return std::sqrt(sum_of_squares);
-  }
 
   double AccurateMassSearchEngine::computeIsotopePatternSimilarity_(const Feature& feat, const EmpiricalFormula& form) const
   {
@@ -1523,42 +1507,23 @@ namespace OpenMS
 
     Size common_size = std::min(num_traces, MAX_THEORET_ISOS);
 
+    // compute theoretical isotope distribution
     IsotopeDistribution iso_dist(form.getIsotopeDistribution((UInt)common_size));
-
-    // scale available peaks to 1
-    iso_dist.renormalize();
-    std::vector<double> normed_iso_ratios;
-    // std::cout << "theoret. iso: ";
-    for (IsotopeDistribution::ConstIterator iso_it = iso_dist.begin(); iso_it != (iso_dist.begin() + common_size); ++iso_it)
+    std::vector<double> theoretical_iso_dist;
+    for (IsotopeDistribution::ConstIterator iso_it = iso_dist.begin(); iso_it != iso_dist.end(); ++iso_it)
     {
-      normed_iso_ratios.push_back(iso_it->second);
-      // std::cout << temp_ratio << " ";
+      theoretical_iso_dist.push_back(iso_it->second);
     }
-
-    // std::cout << "\nact. iso: ";
     
     // same for observed isotope distribution
-    double max_feat_int((double)feat.getMetaValue("masstrace_intensity_0"));
-    std::vector<double> normed_feat_ratios;
+    std::vector<double> observed_iso_dist;
     for (Size int_idx = 0; int_idx < common_size; ++int_idx)
     {
       double mt_int = (double)feat.getMetaValue("masstrace_intensity_" + String(int_idx));
-      normed_feat_ratios.push_back(mt_int);
-
-      if (mt_int > max_feat_int)
-      {
-        max_feat_int = mt_int;
-      }
+      observed_iso_dist.push_back(mt_int);
     }
 
-    // normalize with max isotope intensity
-    for (Size int_idx = 0; int_idx < common_size; ++int_idx)
-    {
-      normed_feat_ratios[int_idx] /= max_feat_int;
-    }
-
-    return computeCosineSim_(normed_iso_ratios, normed_feat_ratios);
-    // return computeEuclideanDist_(normed_iso_ratios, normed_feat_ratios);
+    return computeCosineSim_(theoretical_iso_dist, observed_iso_dist);
   }
 
 } // closing namespace OpenMS

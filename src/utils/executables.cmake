@@ -23,6 +23,7 @@ LowMemPeakPickerHiRes_RandomAccess
 MapAlignmentEvaluation
 MassCalculator
 MetaboliteSpectralMatcher
+MetaProSIP
 MRMPairFinder
 MSSimulator
 OpenMSInfo

@@ -73,7 +73,7 @@ namespace OpenMS
   {
     if (seq1 == seq2) return 1.0;
     // order of sequences matters for cache look-up:
-    if (seq2 < seq1) swap(seq1, seq2); // "operator>" not defined
+    if (seq2 < seq1) std::swap(seq1, seq2); // "operator>" not defined
     pair<AASequence, AASequence> seq_pair = make_pair(seq1, seq2);
     SimilarityCache::iterator pos = similarities_.find(seq_pair);
     if (pos != similarities_.end()) return pos->second; // score found in cache

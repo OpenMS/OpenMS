@@ -698,6 +698,7 @@ namespace OpenMS
         save_param.setValue("vertices:" + id + ":toppas_type", DataValue("output file list"));
         save_param.setValue("vertices:" + id + ":x_pos", DataValue(tv->x()));
         save_param.setValue("vertices:" + id + ":y_pos", DataValue(tv->y()));
+        save_param.setValue("vertices:" + id + ":output_folder_name", oflv->getOutputFolderName());
         continue;
       }
 
@@ -771,7 +772,7 @@ namespace OpenMS
       ++counter;
     }
 
-    //save file
+    // save file
     ParamXMLFile paramFile;
     paramFile.store(file, save_param);
     setChanged(false);
@@ -875,7 +876,7 @@ namespace OpenMS
     QVector<TOPPASVertex*> vertex_vector;
     vertex_vector.resize((Size)(int)load_param.getValue("info:num_vertices"));
 
-    //load all vertices
+    // load all vertices
     for (Param::ParamIterator it = vertices_param.begin(); it != vertices_param.end(); ++it)
     {
       StringList substrings;
@@ -907,7 +908,12 @@ namespace OpenMS
         else if (current_type == "output file list")
         {
           TOPPASOutputFileListVertex* oflv = new TOPPASOutputFileListVertex();
-
+          // custom output folder
+          if (vertices_param.exists(current_id + ":output_folder_name"))
+          {
+            oflv->setOutputFolderName(vertices_param.getValue(current_id + ":output_folder_name").toQString());
+          }
+          
           connectOutputVertexSignals(oflv);
 
           current_vertex = oflv;
@@ -986,7 +992,7 @@ namespace OpenMS
       }
     }
 
-    //load all edges
+    // load all edges
     for (Param::ParamIterator it = edges_param.begin(); it != edges_param.end(); ++it)
     {
       const String& edge = (it->value).toString();
@@ -1272,8 +1278,9 @@ namespace OpenMS
     emit entirePipelineFinished();
   }
 
-  void TOPPASScene::pipelineErrorSlot(const QString /*msg*/)
+  void TOPPASScene::pipelineErrorSlot(const QString msg)
   {
+    logTOPPOutput(msg); // print to log window or console
     error_occured_ = true;
     setPipelineRunning(false);
     abortPipeline();
@@ -1752,6 +1759,7 @@ namespace OpenMS
 
       if (found_output)
       {
+        action.insert("Set output folder name");
         action.insert("Open files in TOPPView");
         action.insert("Open containing folder");
       }
@@ -1822,7 +1830,7 @@ namespace OpenMS
         return;
       }
 
-      foreach(QGraphicsItem * gi, selectedItems())
+      foreach(QGraphicsItem* gi, selectedItems())
       {
 
         if (text == "Toggle recycling mode")
@@ -1922,7 +1930,14 @@ namespace OpenMS
           {
             ofv->openContainingFolder();
           }
-
+          else if (text == "Set output folder name")
+          {
+            TOPPASVertexNameDialog dlg(ofv->getOutputFolderName(), "[a-zA-Z0-9_-]*");
+            if (dlg.exec())
+            {
+              ofv->setOutputFolderName(dlg.getName());
+            }
+          }
           continue;
         }
       }
@@ -2181,7 +2196,8 @@ namespace OpenMS
 
   void TOPPASScene::connectOutputVertexSignals(TOPPASOutputFileListVertex* oflv)
   {
-    connect(oflv, SIGNAL(outputFileWritten(const String &)), this, SLOT(logOutputFileWritten(const String &)));
+    connect(oflv, SIGNAL(outputFileWritten(const String &)), this, SLOT(logOutputFileWritten(const String&)));
+    connect(oflv, SIGNAL(outputFolderNameChanged()), this, SLOT(changedOutputFolder()));
   }
 
   void TOPPASScene::connectEdgeSignals(TOPPASEdge* e)
@@ -2191,6 +2207,12 @@ namespace OpenMS
     connect(e, SIGNAL(somethingHasChanged()), source, SLOT(outEdgeHasChanged()));
     connect(e, SIGNAL(somethingHasChanged()), target, SLOT(inEdgeHasChanged()));
     connect(e, SIGNAL(somethingHasChanged()), this, SLOT(abortPipeline()));
+  }
+
+  void TOPPASScene::changedOutputFolder()
+  {
+    abortPipeline();
+    setChanged(true); // to allow "Store" of pipeline
   }
 
   void TOPPASScene::changedParameter(const bool invalidates_running_pipeline)

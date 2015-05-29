@@ -655,6 +655,18 @@ set_tests_properties("TOPP_IDFileConverter_10_out1" PROPERTIES DEPENDS "TOPP_IDF
 add_test("TOPP_IDFileConverter_11" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_11_input.tsv -out IDFileConverter_11_output.tmp -out_type idXML)
 add_test("TOPP_IDFileConverter_11_out1" ${DIFF} -in1 IDFileConverter_11_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_11_output.idXML)
 set_tests_properties("TOPP_IDFileConverter_11_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_11")
+# Percolator .psms to idXML (score: q-value)
+add_test("TOPP_IDFileConverter_12" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_12_input.psms -out IDFileConverter_12_output.tmp -out_type idXML -score_type qvalue)
+add_test("TOPP_IDFileConverter_12_out1" ${DIFF} -in1 IDFileConverter_12_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_12_output.idXML -whitelist "IdentificationRun date")
+set_tests_properties("TOPP_IDFileConverter_12_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_12")
+# Percolator .psms to idXML (score: PEP)
+add_test("TOPP_IDFileConverter_13" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_12_input.psms -out IDFileConverter_13_output.tmp -out_type idXML -score_type PEP)
+add_test("TOPP_IDFileConverter_13_out1" ${DIFF} -in1 IDFileConverter_13_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_13_output.idXML -whitelist "IdentificationRun date")
+set_tests_properties("TOPP_IDFileConverter_13_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_13")
+# Percolator .psms to idXML (score: raw score)
+add_test("TOPP_IDFileConverter_14" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_12_input.psms -out IDFileConverter_14_output.tmp -out_type idXML -score_type score)
+add_test("TOPP_IDFileConverter_14_out1" ${DIFF} -in1 IDFileConverter_14_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_14_output.idXML -whitelist "IdentificationRun date")
+set_tests_properties("TOPP_IDFileConverter_14_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_14")
 
 #------------------------------------------------------------------------------
 # IDFilter tests
@@ -1400,8 +1412,9 @@ set_tests_properties("TOPP_IDPosteriorErrorProbability_5_out1" PROPERTIES DEPEND
 add_test("TOPP_IDPosteriorErrorProbability_6" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_Mascot_input2.idXML -out IDPosteriorErrorProbability_output_6.tmp -split_charge)
 add_test("TOPP_IDPosteriorErrorProbability_6_out1" ${DIFF} -in1 IDPosteriorErrorProbability_output_6.tmp -in2 ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_Mascot_output2.idXML)
 set_tests_properties("TOPP_IDPosteriorErrorProbability_6_out1" PROPERTIES DEPENDS "TOPP_IDPosteriorErrorProbability_6")
-# with "ignore_bad_data" (no check for correctness of output?):
+# with "ignore_bad_data" (no check for correctness of output, bc of unresolved platform specific errors):
 add_test("TOPP_IDPosteriorErrorProbability_7" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_bad_data.idXML -out IDPosteriorErrorProbability_bad_data_output.tmp -ignore_bad_data)
+# add_test("TOPP_IDPosteriorErrorProbability_7_out1" ${DIFF} -in1 IDPosteriorErrorProbability_bad_data_output.tmp -in2 ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_bad_data_out.idXML)
 # with "prob_correct":
 add_test("TOPP_IDPosteriorErrorProbability_8" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_OMSSA_input.idXML -out IDPosteriorErrorProbability_output_8.tmp -prob_correct)
 add_test("TOPP_IDPosteriorErrorProbability_8_out1" ${DIFF} -in1 IDPosteriorErrorProbability_output_8.tmp -in2 ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_prob_correct_output.idXML)

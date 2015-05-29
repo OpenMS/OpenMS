@@ -446,7 +446,7 @@ namespace OpenMS
 
   }
 
-  void SVMWrapper::saveModel(string model_filename) const
+  void SVMWrapper::saveModel(std::string model_filename) const
   {
     Int  status = 0;
 
@@ -464,7 +464,7 @@ namespace OpenMS
     }
   }
 
-  void SVMWrapper::loadModel(string model_filename)
+  void SVMWrapper::loadModel(std::string model_filename)
   {
     TextFile file;
     TextFile::ConstIterator it;

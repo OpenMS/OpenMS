@@ -21,6 +21,7 @@ MassAnalyzer.h
 MetaInfo.h
 MetaInfoDescription.h
 MetaInfoInterface.h
+MetaInfoInterfaceUtils.h
 MetaInfoRegistry.h
 Modification.h
 MSQuantifications.h
