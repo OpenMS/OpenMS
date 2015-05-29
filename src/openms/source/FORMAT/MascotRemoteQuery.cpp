@@ -722,7 +722,6 @@ namespace OpenMS
 
   Int MascotRemoteQuery::getSearchNumberFromFilePath_(const String& path) const
   {
-    Int search_number = 0;
     int pos = path.find_last_of("/\\");
     String tmp = path.substr(pos + 1);
     pos = tmp.find_last_of(".");
