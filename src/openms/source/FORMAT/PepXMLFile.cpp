@@ -127,10 +127,29 @@ namespace OpenMS
     f << "<msms_pipeline_analysis date=\"2007-12-05T17:49:46\" xmlns=\"http://regis-web.systemsbiology.net/pepXML\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://sashimi.sourceforge.net/schema_revision/pepXML/pepXML_v117.xsd\" summary_xml=\".xml\">" << "\n";
     f << "<msms_run_summary base_name=\"" << base_name << "\" raw_data_type=\"raw\" raw_data=\"." << raw_data << "\" search_engine=\"" << search_engine_name << "\">" << "\n";
     // If enzyme is not trypsin, skip it here and specify in TPP parser.
-    if (search_params.enzyme == ProteinIdentification::TRYPSIN)
+    if (search_params.enzyme == ProteinIdentification::TRYPSIN || search_params.digestion_enzyme.getName() == "Trypsin")
     {
       f << "\t<sample_enzyme name=\"" << "trypsin" << "\">" << "\n";
       f << "\t\t<specificity cut=\"KR\" no_cut=\"P\" sense=\"C\"/>" << "\n";
+      f << "\t</sample_enzyme>" << "\n";
+    }
+    else if (search_params.digestion_enzyme.getRegEx() != "")
+    {
+      f << "\t<sample_enzyme name=\"" << search_params.digestion_enzyme.getName() << "\">" << "\n";
+      f << "\t\t<specificity cut=\"";
+      vector<String> sub_regex;
+      search_params.digestion_enzyme.getRegEx().split(")",sub_regex);
+      boost::match_results<std::string::const_iterator> results;
+      static const boost::regex e("(.*?)([A-Z]+)(.*?)");
+      if (boost::regex_match(sub_regex[0], results, e))
+      {
+        f << results[2];
+      }
+      if (sub_regex[1].hasSubstring("!P"))
+      {
+        f << "\" no_cut=\"P";
+      }
+      f << "\" sense=\"C\"/>" << "\n";
       f << "\t</sample_enzyme>" << "\n";
     }
 
