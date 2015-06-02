@@ -194,7 +194,8 @@ namespace OpenMS
                                ProteinIdentification& proteins, 
                                vector<PeptideIdentification>& peptides,
                                enum ScoreType output_score,
-                               const String& psm_regex, bool count_from_zero,
+                               const String& psm_regex, 
+                               bool count_from_zero,
                                const MSExperiment<>* experiment_p)
   {
     vector<struct PSMInfoExtractor> extractors;
@@ -262,7 +263,7 @@ namespace OpenMS
       }
       else
       {
-        no_charge++; // maybe TODO: calculate charge from m/z and peptide mass?
+        ++no_charge; // maybe TODO: calculate charge from m/z and peptide mass?
       }
 
       PeptideIdentification peptide;
@@ -273,7 +274,7 @@ namespace OpenMS
       }
       else
       {
-        no_rt++;
+        ++no_rt;
       }
       if (mz != 0.0)
       {
@@ -281,7 +282,7 @@ namespace OpenMS
       }
       else
       {
-        no_mz++;
+        ++no_mz;
       }
 
       double score = items[1].toDouble();
@@ -306,6 +307,9 @@ namespace OpenMS
           hit.setScore(posterrprob);
           peptide.setScoreType("Posterior Error Probability");
           peptide.setHigherScoreBetter(false);
+          break;
+        case SIZE_OF_SCORETYPE:
+          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "'output_score' must not be 'SIZE_OF_SCORETYPE'!");
           break;
       }
 
