@@ -68,38 +68,47 @@ quantifier_features.setParameters(params);
 quantifier_consensus.setParameters(params);
 quantifier_identifications.setParameters(params);
 
-START_SECTION((void quantifyPeptides(FeatureMap& features)))
+START_SECTION((void readQuantData(FeatureMap& features)))
 {
   FeatureMap features;
   FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ProteinQuantifier_input.featureXML"), features);
   TEST_EQUAL(quantifier_features.getPeptideResults().empty(), true);
-  quantifier_features.quantifyPeptides(features);
+  quantifier_features.readQuantData(features);
+  quantifier_features.quantifyPeptides();
   TEST_EQUAL(quantifier_features.getPeptideResults().empty(), false);
 }
 END_SECTION
 
-START_SECTION((void quantifyPeptides(ConsensusMap& consensus)))
+START_SECTION((void readQuantData(ConsensusMap& consensus)))
 {
   ConsensusMap consensus;
   ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ProteinQuantifier_input.consensusXML"), consensus);
   TEST_EQUAL(quantifier_consensus.getPeptideResults().empty(), true);
-  quantifier_consensus.quantifyPeptides(consensus);
+  quantifier_consensus.readQuantData(consensus);
+  quantifier_consensus.quantifyPeptides();
   TEST_EQUAL(quantifier_consensus.getPeptideResults().empty(), false);
 }
 END_SECTION
 
-START_SECTION((void quantifyPeptides(vector<ProteinIdentification>& proteins, vector<PeptideIdentification>& peptides)))
+START_SECTION((void readQuantData(vector<ProteinIdentification>& proteins, vector<PeptideIdentification>& peptides)))
 {
   vector<ProteinIdentification> proteins;
   vector<PeptideIdentification> peptides;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ProteinQuantifier_input.idXML"), proteins, peptides);
   TEST_EQUAL(quantifier_identifications.getPeptideResults().empty(), true);
-  quantifier_identifications.quantifyPeptides(proteins, peptides);
+  quantifier_identifications.readQuantData(proteins, peptides);
+  quantifier_identifications.quantifyPeptides();
   TEST_EQUAL(quantifier_identifications.getPeptideResults().empty(), false);
 }
 END_SECTION
 
-START_SECTION((void quantifyProteins(const ProteinIdentification& proteins=ProteinIdentification())))
+START_SECTION((void quantifyPeptides(const std::vector<PeptideIdentification>& peptides = std::vector<PeptideIdentification>())))
+{
+  NOT_TESTABLE // tested together with the "readQuantData" methods
+}
+END_SECTION
+
+START_SECTION((void quantifyProteins(const ProteinIdentification& proteins = ProteinIdentification())))
 {
   TEST_EQUAL(quantifier_features.getProteinResults().empty(), true);
   quantifier_features.quantifyProteins();
@@ -297,7 +306,8 @@ START_SECTION((const ProteinQuant& getProteinResults()))
   
   parameters.setValue("average", "median");
   quantifier.setParameters(parameters);
-  quantifier.quantifyPeptides(f);
+  quantifier.readQuantData(f);
+  quantifier.quantifyPeptides();
   quantifier.quantifyProteins();
   quant = quantifier.getProteinResults();
   protein = quant["Protein0"];
@@ -305,7 +315,8 @@ START_SECTION((const ProteinQuant& getProteinResults()))
 
   parameters.setValue("average", "mean");
   quantifier.setParameters(parameters);
-  quantifier.quantifyPeptides(f);
+  quantifier.readQuantData(f);
+  quantifier.quantifyPeptides();
   quantifier.quantifyProteins();
   quant = quantifier.getProteinResults();
   protein = quant["Protein0"];
@@ -313,7 +324,8 @@ START_SECTION((const ProteinQuant& getProteinResults()))
 
   parameters.setValue("average", "weighted_mean");
   quantifier.setParameters(parameters);
-  quantifier.quantifyPeptides(f);
+  quantifier.readQuantData(f);
+  quantifier.quantifyPeptides();
   quantifier.quantifyProteins();
   quant = quantifier.getProteinResults();
   protein = quant["Protein0"];
@@ -321,7 +333,8 @@ START_SECTION((const ProteinQuant& getProteinResults()))
 
   parameters.setValue("average", "sum");
   quantifier.setParameters(parameters);
-  quantifier.quantifyPeptides(f);
+  quantifier.readQuantData(f);
+  quantifier.quantifyPeptides();
   quantifier.quantifyProteins();
   quant = quantifier.getProteinResults();
   protein = quant["Protein0"];

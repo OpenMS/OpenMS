@@ -72,10 +72,9 @@ using namespace std;
 
     @experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested!
 
-    This tool counts the peptide sequences that match a protein accession. From this count for all protein hits
-  in the respective id run, only those proteins are accepted that have at least a given number of peptides sequences
-  identified. The peptide identifications should be prefiltered with respect to false discovery rate and the score in
-  general to remove bad identifications.
+    This tool counts the peptide sequences that match a protein accession. From this count for all protein hits in the respective id run, only those proteins are accepted that have at least a given number of peptides sequences identified. The peptide identifications should be prefiltered with respect to false discovery rate and the score in general to remove bad identifications.
+
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_ProteinInference.cli

@@ -1721,7 +1721,7 @@ namespace OpenMS
   String TOPPBase::getSubsection_(const String& name) const
   {
     size_t pos = name.find_last_of(':');
-    if (pos == string::npos)
+    if (pos == std::string::npos)
       return ""; // delimiter not found
 
     return name.substr(0, pos);

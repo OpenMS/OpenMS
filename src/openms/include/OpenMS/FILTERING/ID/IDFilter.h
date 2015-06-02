@@ -323,8 +323,16 @@ public:
     /// Matching is done based on accessions only
     static void filterIdentificationsByProteins(const ProteinIdentification& identification, const std::vector<FASTAFile::FASTAEntry>& proteins, ProteinIdentification& filtered_identification);
 
-    /// removes all peptide hits having a sequence equal to a element in @p peptides
-    static void filterIdentificationsByExclusionPeptides(const PeptideIdentification& identification, const std::set<String>& peptides, PeptideIdentification& filtered_identification);
+    /// filters a PeptideIdentification corresponding to the given proteins
+    /// PeptideHits with no matching @p proteins are removed.
+    static void filterIdentificationsByProteinAccessions(const PeptideIdentification& identification, const StringList& proteins, PeptideIdentification& filtered_identification);
+
+    /// filters a ProteinIdentification corresponding to the given @p proteins
+    /// ProteinHits with no matching proteins are removed.
+    static void filterIdentificationsByProteinAccessions(const ProteinIdentification& identification, const StringList& proteins, ProteinIdentification& filtered_identification);
+
+    /// removes all peptide hits having a sequence equal to a String in @p peptides. If @p ignore_modifications is set, the unmodified versions are generated and compared to the set of Strings.
+    static void filterIdentificationsByExclusionPeptides(const PeptideIdentification& identification, const std::set<String>& peptides, bool ignore_modifications, PeptideIdentification& filtered_identification);
 
     /// Only peptides having a length l with @p min_length <= l <= @p max_length will be kept.
     /// @p max_length will be ignored if it is smaller than @p min_length.

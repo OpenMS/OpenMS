@@ -23,6 +23,7 @@ LowMemPeakPickerHiRes_RandomAccess
 MapAlignmentEvaluation
 MassCalculator
 MetaboliteSpectralMatcher
+MetaProSIP
 MRMPairFinder
 MSSimulator
 OpenMSInfo
@@ -44,6 +45,7 @@ SimpleSearchEngine
 SpecLibCreator
 SvmTheoreticalSpectrumGeneratorTrainer
 TransformationEvaluation
+TopPerc
 XMLValidator
 #SimpleSearchEngine
 #RNPxlSearch

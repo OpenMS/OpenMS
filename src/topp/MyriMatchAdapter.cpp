@@ -80,13 +80,14 @@
 
   This wrapper has been tested successfully with MyriMatch, version 2.1.x.
 
-  Use debug level >=1 to keep intermediate PepXML and config files for manual inspection.
+  Use debug level >=1 to keep intermediate pepXML and configuration files for manual inspection.
 
-  @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
+  @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_MyriMatchAdapter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_MyriMatchAdapter.html
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_MyriMatchAdapter.html
 */
 
 // We do not want this class to show up in the docu:

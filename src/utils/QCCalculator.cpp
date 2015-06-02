@@ -107,6 +107,9 @@ using namespace std;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshadow"
+
 class TOPPQCCalculator :
   public TOPPBase
 {
@@ -964,6 +967,9 @@ protected:
   }
 
 };
+
+#pragma clang diagnostic pop
+
 int main(int argc, const char** argv)
 {
   TOPPQCCalculator tool;

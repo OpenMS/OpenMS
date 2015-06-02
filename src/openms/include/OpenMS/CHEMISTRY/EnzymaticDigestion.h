@@ -48,7 +48,7 @@ namespace OpenMS
 
    Digestion can be performed using simple regular expressions,
    e.g. [KR] | [^P]
-   for trypsin. Also missed cleavages can be modelled, i.e. adjacent peptides are not cleaved
+   for trypsin. Also missed cleavages can be modeled, i.e. adjacent peptides are not cleaved
    due to enzyme malfunction/access restrictions. If @em n missed cleavages are given, all possible resulting
    peptides (cleaved and uncleaved) with up to @em n missed cleavages are returned.
    Thus @b no random selection of just @em n specific missed cleavage sites is performed.
@@ -67,7 +67,8 @@ public:
     /// Possible enzymes for the digestion (adapt NamesOfEnzymes & nextCleavageSite_() if you add more enzymes here)
     enum Enzyme
     {
-      ENZYME_TRYPSIN,
+      ENZYME_TRYPSIN, //< Trypsin with [KR] | [^P]
+      ENZYME_TRYPSIN_P, //< relaxed Trypsin, allowing any AA after cleavage [KR] | .
       SIZE_OF_ENZYMES
     };
     /// Names of the Enzymes
@@ -193,7 +194,7 @@ protected:
     /// specificity of enzyme
     Specificity specificity_;
 
-    /// use the log model or naive digestion (with missed cleavages)
+    /// Use the log model (only supported for 'Trypsin' with zero missed cleavages) or naive digestion (with missed cleavages)
     bool use_log_model_;
     /// Threshold to decide if position is cleaved or missed (only for the model)
     double log_model_threshold_;

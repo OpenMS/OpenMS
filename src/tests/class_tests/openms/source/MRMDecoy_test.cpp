@@ -44,6 +44,9 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 ///////////////////////////
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshadow"
+
 using namespace OpenMS;
 using namespace std;
 
@@ -540,3 +543,7 @@ END_TEST
     - 'std::map<String, std::map<String, double> > getIonSeries(AASequence sequence, int precursor_charge)'
     - 'std::vector<std::pair<std::string::size_type, std::string> > find_all_tryptic(std::string sequence)'
   */
+
+
+#pragma clang diagnostic pop
+

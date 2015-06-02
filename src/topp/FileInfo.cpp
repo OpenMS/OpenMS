@@ -170,9 +170,9 @@ protected:
   virtual void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "input file ");
-    setValidFormats_("in", ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid"));
+    setValidFormats_("in", ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid"));
     registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content", false);
-    setValidStrings_("in_type", ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid"));
+    setValidStrings_("in_type", ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid"));
     registerOutputFile_("out", "<file>", "", "Optional output file. If left out, the output is written to the command line.", false);
     setValidFormats_("out", ListUtils::create<String>("txt"));
     registerOutputFile_("out_tsv", "<file>", "", "Second optional output file. Tab separated flat text file.", false, true);
@@ -550,7 +550,7 @@ protected:
       os << "  non-redundant protein hits: " << proteins.size() << "\n";
       os << "  (only hits that differ in the accession)" << "\n";
       os << "\n";
-      os << "  spectra:                    " << spectrum_count << "\n";
+      os << "  matched spectra:    " << spectrum_count << "\n";
       os << "  peptide hits:               " << peptide_hit_count << "\n";
       os << "  modified top-hits:          " << modified_peptide_count << "/" << spectrum_count << (spectrum_count > 0 ? String(" (") + (modified_peptide_count * 100.0 / spectrum_count) + "%)" : "") << "\n";
       os << "  non-redundant peptide hits: " << peptides.size() << "\n";

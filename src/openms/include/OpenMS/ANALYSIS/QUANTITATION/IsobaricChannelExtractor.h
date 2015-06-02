@@ -96,14 +96,14 @@ private:
       @brief Small struct to capture the current state of the purity computation.
 
       It basically contains two iterators pointing to the current potential
-      ms1 precursor scan of an ms2 scan and the ms1 scan immediately
-      following the current ms2 scan.
+      MS1 precursor scan of an MS2 scan and the MS1 scan immediately
+      following the current MS2 scan.
     */
     struct PuritySate_
     {
-      /// Iterator pointing to the potential ms1 precursor scan
+      /// Iterator pointing to the potential MS1 precursor scan
       MSExperiment<Peak1D>::ConstIterator precursorScan;
-      /// Iterator pointing to the potential follow up ms1 scan
+      /// Iterator pointing to the potential follow up MS1 scan
       MSExperiment<Peak1D>::ConstIterator followUpScan;
 
       /// Indicates if a follow up scan was found
@@ -119,7 +119,7 @@ private:
       PuritySate_(const MSExperiment<>& targetExp);
 
       /**
-        @brief Searches the experiment for the next ms1 spectrum with a retention time bigger then @p rt.
+        @brief Searches the experiment for the next MS1 spectrum with a retention time bigger then @p rt.
 
         @param rt The next follow up scan should have a retention bigger then this value.
       */
@@ -160,7 +160,7 @@ private:
     /// Max. allowed deviation between theoretical and observed isotopic peaks of the precursor peak in the isolation window to be counted as part of the precursor.
     double max_precursor_isotope_deviation_;
 
-    /// Flag if precursor purity will solely be computed based on the precursor scan (false), or interpolated between the precursor- and the following ms1 scan.
+    /// Flag if precursor purity will solely be computed based on the precursor scan (false), or interpolated between the precursor- and the following MS1 scan.
     bool interpolate_precursor_purity_;
 
     /// add channel information to the map after it has been filled
@@ -185,7 +185,7 @@ private:
     /**
       @brief Computes the purity of the precursor given an iterator pointing to the MS/MS spectrum and one to the precursor spectrum.
 
-      @param ms2_spec Iterator pointing to the ms2 spectrum.
+      @param ms2_spec Iterator pointing to the MS2 spectrum.
       @param precursor Iterator pointing to the precursor spectrum of ms2_spec.
       @return Fraction of the total intensity in the isolation window of the precursor spectrum that was assigned to the precursor.
     */
@@ -194,7 +194,7 @@ private:
     /**
       @brief Computes the purity of the precursor given an iterator pointing to the MS/MS spectrum and a reference to the potential precursor spectrum.
 
-      @param ms2_spec Iterator pointing to the ms2 spectrum.
+      @param ms2_spec Iterator pointing to the MS2 spectrum.
       @param precursor Iterator pointing to the precursor spectrum of ms2_spec.
       @return Fraction of the total intensity in the isolation window of the precursor spectrum that was assigned to the precursor.
     */

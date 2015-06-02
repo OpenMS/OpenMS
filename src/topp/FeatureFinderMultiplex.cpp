@@ -1019,7 +1019,7 @@ public:
   {
     map.sortByPosition();
     map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
-    map.setExperimentType("multiplex");
+    map.setExperimentType("labeled_MS1");
 
     // annotate maps
     for (unsigned i = 0; i < samples_labels_.size(); ++i)
@@ -1030,7 +1030,10 @@ public:
       if (knock_out_)
       {
         // With knock-outs present, the correct labels can only be determined during ID mapping.
-        desc.label = "";
+        // For now, we simply store a unique identifier.
+        std::stringstream stream;
+        stream << "label " << i;
+        desc.label = stream.str();
       }
       else
       {

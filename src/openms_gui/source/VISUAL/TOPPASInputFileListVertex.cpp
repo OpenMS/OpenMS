@@ -101,15 +101,17 @@ namespace OpenMS
 
   void TOPPASInputFileListVertex::showFilesDialog()
   {
-    TOPPASInputFilesDialog tifd(this->getFileNames());
+    TOPPASInputFilesDialog tifd(getFileNames());
     if (tifd.exec())
     {
       QStringList updated_filelist;
       tifd.getFilenames(updated_filelist);
-      this->setFilenames(updated_filelist); // to correct filenames (separators etc)
-      qobject_cast<TOPPASScene *>(scene())->setChanged(true);
-      qobject_cast<TOPPASScene *>(scene())->updateEdgeColors();
-      emit somethingHasChanged();
+      if (getFileNames() != updated_filelist)
+      { // files were changed
+        setFilenames(updated_filelist); // to correct filenames (separators etc)
+        qobject_cast<TOPPASScene *>(scene())->updateEdgeColors();
+        emit parameterChanged(true); // aborts the pipeline (if running) and resets downstream nodes
+      }
     }
   }
 
@@ -257,17 +259,17 @@ namespace OpenMS
     }
   }
 
-  void TOPPASInputFileListVertex::setKey(const QString & key)
+  void TOPPASInputFileListVertex::setKey(const QString& key)
   {
     key_ = key;
   }
 
-  const QString & TOPPASInputFileListVertex::getKey()
+  const QString& TOPPASInputFileListVertex::getKey()
   {
     return key_;
   }
 
-  void TOPPASInputFileListVertex::setFilenames(const QStringList & files)
+  void TOPPASInputFileListVertex::setFilenames(const QStringList& files)
   {
     output_files_.clear();
     output_files_.resize(files.size()); // for now, assume one file per round (we could later extend that)
@@ -281,7 +283,7 @@ namespace OpenMS
 
   void TOPPASInputFileListVertex::outEdgeHasChanged()
   {
-    reset(true);
+    reset();
     qobject_cast<TOPPASScene *>(scene())->updateEdgeColors();
     TOPPASVertex::outEdgeHasChanged();
   }

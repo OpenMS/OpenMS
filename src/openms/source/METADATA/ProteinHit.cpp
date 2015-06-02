@@ -142,6 +142,12 @@ namespace OpenMS
     return accession_;
   }
 
+  // returns the description of the protein
+  String ProteinHit::getDescription() const
+  {
+    return getMetaValue("Description").toString();
+  }
+
   // returns the coverage (in percent) of the protein hit based upon matched peptides
   double ProteinHit::getCoverage() const
   {
@@ -165,6 +171,12 @@ namespace OpenMS
   {
     sequence_ = sequence;
     sequence_.trim();
+  }
+
+  // sets the description of the protein
+  void ProteinHit::setDescription(const String & description)
+  {
+    setMetaValue("Description", description);
   }
 
   // sets the accession of the protein

@@ -56,6 +56,9 @@ START_TEST(String, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshadow"
+
 String* s_ptr = 0;
 String* s_nullPointer = 0;
 START_SECTION((String()))
@@ -1016,3 +1019,6 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
+
+#pragma clang diagnostic pop
+

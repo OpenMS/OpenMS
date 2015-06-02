@@ -38,7 +38,7 @@
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
-
+#include <OpenMS/CHEMISTRY/Enzyme.h>
 #include <set>
 
 namespace OpenMS
@@ -128,7 +128,8 @@ public:
       UInt missed_cleavages;           ///< The number of allowed missed cleavages
       double peak_mass_tolerance;           ///< Mass tolerance of fragment ions (Dalton)
       double precursor_tolerance;           ///< Mass tolerance of precursor ions (Dalton)
-
+      Enzyme digestion_enzyme;           ///< The cleavage site information in details (from EnzymesDB)
+      
       SearchParameters();
 
       bool operator==(const SearchParameters & rhs) const;

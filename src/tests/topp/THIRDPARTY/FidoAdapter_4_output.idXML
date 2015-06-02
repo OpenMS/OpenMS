@@ -3,625 +3,771 @@
 <IdXML version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<SearchParameters id="SP_0" db="/tmp/2014-11-26_134242_giraffe_14458_1/TOPPAS_tmp/Untitled_workflow/003_DecoyDatabase/out/uniprot-all.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="+1-+4" enzyme="unknown_enzyme" missed_cleavages="1" precursor_peak_tolerance="1.5" peak_mass_tolerance="0.3" >
 	</SearchParameters>
-	<IdentificationRun date="2014-11-26T14:16:10" search_engine="XTandem" search_engine_version="" search_parameters_ref="SP_0" >
-		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" >
-			<ProteinHit id="PH_0" accession="sp|A5A3E0|POTEF_HUMAN" score="0.861961245536804" sequence="" >
+	<IdentificationRun date="2015-05-28T11:36:50" search_engine="XTandem" search_engine_version="" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="Posterior Probability" higher_score_better="true" significance_threshold="0" >
+			<ProteinHit id="PH_0" accession="sp|A5A3E0|POTEF_HUMAN" score="0.724701523780823" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="sp|A6NJY1|SL9P1_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_1" accession="sp|A6NJY1|SL9P1_HUMAN" score="0.763314068317413" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_2" accession="sp|O00203|AP3B1_HUMAN_rev" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_2" accession="sp|O00203|AP3B1_HUMAN_rev" score="0.715531349182129" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_3" accession="sp|O00338|ST1C2_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_3" accession="sp|O00338|ST1C2_HUMAN" score="0.709431886672974" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_4" accession="sp|O15551|CLD3_HUMAN_rev" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_4" accession="sp|O15551|CLD3_HUMAN_rev" score="0.711190223693848" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_5" accession="sp|O43526|KCNQ2_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_5" accession="sp|O43526|KCNQ2_HUMAN" score="0.76867288351059" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_6" accession="sp|O43581|SYT7_HUMAN_rev" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_6" accession="sp|O43581|SYT7_HUMAN_rev" score="0.72068840265274" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_7" accession="sp|O60333|KIF1B_HUMAN_rev" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_7" accession="sp|O60333|KIF1B_HUMAN_rev" score="0.701049864292145" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_8" accession="sp|O60814|H2B1K_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_8" accession="sp|O60814|H2B1K_HUMAN" score="0.715740621089935" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_9" accession="sp|O75146|HIP1R_HUMAN_rev" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_9" accession="sp|O75146|HIP1R_HUMAN_rev" score="0.757597506046295" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_10" accession="sp|O75165|DJC13_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_10" accession="sp|O75165|DJC13_HUMAN" score="0.718985676765442" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_11" accession="sp|O94933|SLIK3_HUMAN_rev" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_11" accession="sp|O94933|SLIK3_HUMAN_rev" score="0.709755897521973" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_12" accession="sp|P00167|CYB5_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_12" accession="sp|P00167|CYB5_HUMAN" score="0.795778095722198" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_13" accession="sp|P00915|CAH1_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_13" accession="sp|P00915|CAH1_HUMAN" score="1" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_14" accession="sp|P00918|CAH2_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_14" accession="sp|P00918|CAH2_HUMAN" score="1" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_15" accession="sp|P01008|ANT3_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_15" accession="sp|P01008|ANT3_HUMAN" score="0.726140141487122" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_16" accession="sp|P01031|CO5_HUMAN_rev" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_16" accession="sp|P01031|CO5_HUMAN_rev" score="0.701049864292145" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_17" accession="sp|P01133|EGF_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_17" accession="sp|P01133|EGF_HUMAN" score="0.93668794631958" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_18" accession="sp|P01138|NGF_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_18" accession="sp|P01138|NGF_HUMAN" score="0.715531349182129" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_19" accession="sp|P02042|HBD_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_19" accession="sp|P02042|HBD_HUMAN" score="0.999998569488525" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_20" accession="sp|P02100|HBE_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_20" accession="sp|P02100|HBE_HUMAN" score="0.999998092651367" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_21" accession="sp|P02144|MYG_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_21" accession="sp|P02144|MYG_HUMAN" score="1" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_22" accession="sp|P02753|RET4_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_22" accession="sp|P02753|RET4_HUMAN" score="0.999986052513123" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_23" accession="sp|P02768|ALBU_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_23" accession="sp|P02768|ALBU_HUMAN" score="1" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_24" accession="sp|P04040|CATA_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_24" accession="sp|P04040|CATA_HUMAN" score="1" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_25" accession="sp|P04070|PROC_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_25" accession="sp|P04070|PROC_HUMAN" score="0.700325548648834" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_26" accession="sp|P04264|K2C1_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_26" accession="sp|P04264|K2C1_HUMAN" score="1" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_27" accession="sp|P04908|H2A1B_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_27" accession="sp|P04908|H2A1B_HUMAN" score="0.726313292980194" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_28" accession="sp|P05362|ICAM1_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_28" accession="sp|P05362|ICAM1_HUMAN" score="0.70722770690918" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_29" accession="sp|P06732|KCRM_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_29" accession="sp|P06732|KCRM_HUMAN" score="1" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_30" accession="sp|P06899|H2B1J_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_30" accession="sp|P06899|H2B1J_HUMAN" score="0.715740621089935" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_31" accession="sp|P07737|PROF1_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_31" accession="sp|P07737|PROF1_HUMAN" score="0.816030383110046" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_32" accession="sp|P0C0S8|H2A1_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_32" accession="sp|P0C0S8|H2A1_HUMAN" score="0.726313292980194" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_33" accession="sp|P0C7X3|CCYL3_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_33" accession="sp|P0C7X3|CCYL3_HUMAN" score="0.741690874099731" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_34" accession="sp|P0CG38|POTEI_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_34" accession="sp|P0CG38|POTEI_HUMAN" score="0.724701523780823" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_35" accession="sp|P0CG39|POTEJ_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_35" accession="sp|P0CG39|POTEJ_HUMAN" score="0.724701523780823" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_36" accession="sp|P0CG47|UBB_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_36" accession="sp|P0CG47|UBB_HUMAN" score="0.820197284221649" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_37" accession="sp|P0CG48|UBC_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_37" accession="sp|P0CG48|UBC_HUMAN" score="0.820197284221649" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_38" accession="sp|P11047|LAMC1_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_38" accession="sp|P11047|LAMC1_HUMAN" score="0.710809111595154" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_39" accession="sp|P12081|SYHC_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_39" accession="sp|P12081|SYHC_HUMAN" score="1" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_40" accession="sp|P13611|CSPG2_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_40" accession="sp|P13611|CSPG2_HUMAN" score="0.93668794631958" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_41" accession="sp|P13645|K1C10_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_41" accession="sp|P13645|K1C10_HUMAN" score="1" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_42" accession="sp|P15559|NQO1_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_42" accession="sp|P15559|NQO1_HUMAN" score="0.801546037197113" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_43" accession="sp|P20671|H2A1D_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_43" accession="sp|P20671|H2A1D_HUMAN" score="0.726313292980194" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_44" accession="sp|P23527|H2B1O_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_44" accession="sp|P23527|H2B1O_HUMAN" score="0.715740621089935" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_45" accession="sp|P27816|MAP4_HUMAN_rev" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_45" accession="sp|P27816|MAP4_HUMAN_rev" score="0.715531349182129" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_46" accession="sp|P29353|SHC1_HUMAN_rev" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_46" accession="sp|P29353|SHC1_HUMAN_rev" score="0.741690874099731" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_47" accession="sp|P32119|PRDX2_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_47" accession="sp|P32119|PRDX2_HUMAN" score="0.820155382156372" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_48" accession="sp|P33778|H2B1B_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_48" accession="sp|P33778|H2B1B_HUMAN" score="0.715740621089935" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_49" accession="sp|P35527|K1C9_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_49" accession="sp|P35527|K1C9_HUMAN" score="0.999998569488525" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_50" accession="sp|P35749|MYH11_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_50" accession="sp|P35749|MYH11_HUMAN" score="0.72068840265274" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_51" accession="sp|P35908|K22E_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_51" accession="sp|P35908|K22E_HUMAN" score="0.999998807907104" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_52" accession="sp|P41159|LEP_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_52" accession="sp|P41159|LEP_HUMAN" score="1" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_53" accession="sp|P49590|SYHM_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_53" accession="sp|P49590|SYHM_HUMAN" score="0.872822701931" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_54" accession="sp|P54802|ANAG_HUMAN_rev" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_54" accession="sp|P54802|ANAG_HUMAN_rev" score="0.703772246837616" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_55" accession="sp|P57053|H2BFS_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_55" accession="sp|P57053|H2BFS_HUMAN" score="0.715740621089935" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_56" accession="sp|P58876|H2B1D_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_56" accession="sp|P58876|H2B1D_HUMAN" score="0.715740621089935" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_57" accession="sp|P60709|ACTB_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_57" accession="sp|P60709|ACTB_HUMAN" score="0.845521330833435" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_58" accession="sp|P61626|LYSC_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_58" accession="sp|P61626|LYSC_HUMAN" score="0.999992847442627" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_59" accession="sp|P62805|H4_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_59" accession="sp|P62805|H4_HUMAN" score="0.982079207897186" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_60" accession="sp|P62807|H2B1C_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_60" accession="sp|P62807|H2B1C_HUMAN" score="0.715740621089935" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_61" accession="sp|P62937|PPIA_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_61" accession="sp|P62937|PPIA_HUMAN" score="1" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_62" accession="sp|P62979|RS27A_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_62" accession="sp|P62979|RS27A_HUMAN" score="0.820197284221649" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_63" accession="sp|P62987|RL40_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_63" accession="sp|P62987|RL40_HUMAN" score="0.820197284221649" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_64" accession="sp|P63165|SUMO1_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_64" accession="sp|P63165|SUMO1_HUMAN" score="0.922832727432251" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_65" accession="sp|P63261|ACTG_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_65" accession="sp|P63261|ACTG_HUMAN" score="0.845521330833435" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_66" accession="sp|P68032|ACTC_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_66" accession="sp|P68032|ACTC_HUMAN" score="0.724701523780823" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_67" accession="sp|P68133|ACTS_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_67" accession="sp|P68133|ACTS_HUMAN" score="0.724701523780823" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_68" accession="sp|P68363|TBA1B_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_68" accession="sp|P68363|TBA1B_HUMAN" score="0.797172665596008" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_69" accession="sp|P68871|HBB_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_69" accession="sp|P68871|HBB_HUMAN" score="1" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_70" accession="sp|P69891|HBG1_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_70" accession="sp|P69891|HBG1_HUMAN" score="0.868501782417297" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_71" accession="sp|P69892|HBG2_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_71" accession="sp|P69892|HBG2_HUMAN" score="0.868501782417297" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_72" accession="sp|P69905|HBA_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_72" accession="sp|P69905|HBA_HUMAN" score="1" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_73" accession="sp|Q06830|PRDX1_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_73" accession="sp|Q06830|PRDX1_HUMAN" score="1" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_74" accession="sp|Q08116|RGS1_HUMAN_rev" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_74" accession="sp|Q08116|RGS1_HUMAN_rev" score="0.711190223693848" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_75" accession="sp|Q0VGE8|ZN816_HUMAN_rev" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_75" accession="sp|Q0VGE8|ZN816_HUMAN_rev" score="0.709120035171509" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_76" accession="sp|Q12955|ANK3_HUMAN_rev" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_76" accession="sp|Q12955|ANK3_HUMAN_rev" score="0.712003469467163" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_77" accession="sp|Q13117|DAZ2_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_77" accession="sp|Q13117|DAZ2_HUMAN" score="0.717791438102722" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_78" accession="sp|Q13162|PRDX4_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_78" accession="sp|Q13162|PRDX4_HUMAN" score="0.892829895019531" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_79" accession="sp|Q13470|TNK1_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_79" accession="sp|Q13470|TNK1_HUMAN" score="0.734360039234161" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_80" accession="sp|Q14315|FLNC_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_80" accession="sp|Q14315|FLNC_HUMAN" score="0.715531349182129" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_81" accession="sp|Q14587|ZN268_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_81" accession="sp|Q14587|ZN268_HUMAN" score="0.706765174865723" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_82" accession="sp|Q14676|MDC1_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_82" accession="sp|Q14676|MDC1_HUMAN" score="0.699714958667755" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_83" accession="sp|Q15814|TBCC_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_83" accession="sp|Q15814|TBCC_HUMAN" score="0.738965094089508" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_84" accession="sp|Q15843|NEDD8_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_84" accession="sp|Q15843|NEDD8_HUMAN" score="0.730614721775055" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_85" accession="sp|Q16777|H2A2C_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_85" accession="sp|Q16777|H2A2C_HUMAN" score="0.726313292980194" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_86" accession="sp|Q16778|H2B2E_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_86" accession="sp|Q16778|H2B2E_HUMAN" score="0.715740621089935" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_87" accession="sp|Q4G0U5|PCDP1_HUMAN_rev" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_87" accession="sp|Q4G0U5|PCDP1_HUMAN_rev" score="0.699714958667755" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_88" accession="sp|Q4LDG9|DNAL1_HUMAN_rev" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_88" accession="sp|Q4LDG9|DNAL1_HUMAN_rev" score="0.700325548648834" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_89" accession="sp|Q4ZJI4|SL9B1_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_89" accession="sp|Q4ZJI4|SL9B1_HUMAN" score="0.763314068317413" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_90" accession="sp|Q562R1|ACTBL_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_90" accession="sp|Q562R1|ACTBL_HUMAN" score="0.995594680309296" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_91" accession="sp|Q5QNW6|H2B2F_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_91" accession="sp|Q5QNW6|H2B2F_HUMAN" score="0.715740621089935" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_92" accession="sp|Q5VWP2|FA46C_HUMAN_rev" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_92" accession="sp|Q5VWP2|FA46C_HUMAN_rev" score="0.712892949581146" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_93" accession="sp|Q6FI13|H2A2A_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_93" accession="sp|Q6FI13|H2A2A_HUMAN" score="0.726313292980194" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_94" accession="sp|Q6IBW4|CNDH2_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_94" accession="sp|Q6IBW4|CNDH2_HUMAN" score="0.700325548648834" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_95" accession="sp|Q6NSJ2|PHLB3_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_95" accession="sp|Q6NSJ2|PHLB3_HUMAN" score="0.713369727134705" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_96" accession="sp|Q6S8J3|POTEE_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_96" accession="sp|Q6S8J3|POTEE_HUMAN" score="0.724701523780823" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_97" accession="sp|Q71U36|TBA1A_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_97" accession="sp|Q71U36|TBA1A_HUMAN" score="0.797172665596008" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_98" accession="sp|Q7L7L0|H2A3_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_98" accession="sp|Q7L7L0|H2A3_HUMAN" score="0.726313292980194" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_99" accession="sp|Q7Z3Y7|K1C28_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_99" accession="sp|Q7Z3Y7|K1C28_HUMAN" score="0.763847768306732" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_100" accession="sp|Q7Z3Y8|K1C27_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_100" accession="sp|Q7Z3Y8|K1C27_HUMAN" score="0.763847768306732" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_101" accession="sp|Q7Z3Z0|K1C25_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_101" accession="sp|Q7Z3Z0|K1C25_HUMAN" score="0.763847768306732" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_102" accession="sp|Q86SG3|DAZ4_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_102" accession="sp|Q86SG3|DAZ4_HUMAN" score="0.717791438102722" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_103" accession="sp|Q86T13|CLC14_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_103" accession="sp|Q86T13|CLC14_HUMAN" score="0.906450986862183" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_104" accession="sp|Q86UL8|MAGI2_HUMAN_rev" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_104" accession="sp|Q86UL8|MAGI2_HUMAN_rev" score="0.708530306816101" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_105" accession="sp|Q8N257|H2B3B_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_105" accession="sp|Q8N257|H2B3B_HUMAN" score="0.715740621089935" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_106" accession="sp|Q8NDH2|CC168_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_106" accession="sp|Q8NDH2|CC168_HUMAN" score="0.714948773384094" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_107" accession="sp|Q8NFZ0|FBX18_HUMAN_rev" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_107" accession="sp|Q8NFZ0|FBX18_HUMAN_rev" score="0.72068840265274" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_108" accession="sp|Q8TD26|CHD6_HUMAN_rev" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_108" accession="sp|Q8TD26|CHD6_HUMAN_rev" score="0.709431886672974" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_109" accession="sp|Q8WXH0|SYNE2_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_109" accession="sp|Q8WXH0|SYNE2_HUMAN" score="0.947275221347809" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_110" accession="sp|Q8WXI7|MUC16_HUMAN_rev" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_110" accession="sp|Q8WXI7|MUC16_HUMAN_rev" score="0.708251297473907" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_111" accession="sp|Q8WZ42|TITIN_HUMAN_rev" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_111" accession="sp|Q8WZ42|TITIN_HUMAN_rev" score="0.721627712249756" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_112" accession="sp|Q92466|DDB2_HUMAN_rev" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_112" accession="sp|Q92466|DDB2_HUMAN_rev" score="0.707470595836639" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_113" accession="sp|Q92620|PRP16_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_113" accession="sp|Q92620|PRP16_HUMAN" score="0.707982003688812" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_114" accession="sp|Q93077|H2A1C_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_114" accession="sp|Q93077|H2A1C_HUMAN" score="0.726313292980194" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_115" accession="sp|Q93079|H2B1H_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_115" accession="sp|Q93079|H2B1H_HUMAN" score="0.715740621089935" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_116" accession="sp|Q96A08|H2B1A_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_116" accession="sp|Q96A08|H2B1A_HUMAN" score="0.715740621089935" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_117" accession="sp|Q96DN5|TBC31_HUMAN_rev" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_117" accession="sp|Q96DN5|TBC31_HUMAN_rev" score="0.756072103977203" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_118" accession="sp|Q96DX4|RSPRY_HUMAN_rev" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_118" accession="sp|Q96DX4|RSPRY_HUMAN_rev" score="0.838105857372284" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_119" accession="sp|Q96JJ3|ELMO2_HUMAN_rev" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_119" accession="sp|Q96JJ3|ELMO2_HUMAN_rev" score="0.759202063083649" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_120" accession="sp|Q96KK5|H2A1H_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_120" accession="sp|Q96KK5|H2A1H_HUMAN" score="0.726313292980194" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_121" accession="sp|Q96MS0|ROBO3_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_121" accession="sp|Q96MS0|ROBO3_HUMAN" score="0.699714958667755" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_122" accession="sp|Q96PH6|DB118_HUMAN_rev" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_122" accession="sp|Q96PH6|DB118_HUMAN_rev" score="0.699714958667755" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_123" accession="sp|Q99877|H2B1N_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_123" accession="sp|Q99877|H2B1N_HUMAN" score="0.715740621089935" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_124" accession="sp|Q99878|H2A1J_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_124" accession="sp|Q99878|H2A1J_HUMAN" score="0.726313292980194" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_125" accession="sp|Q99879|H2B1M_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_125" accession="sp|Q99879|H2B1M_HUMAN" score="0.715740621089935" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_126" accession="sp|Q99880|H2B1L_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_126" accession="sp|Q99880|H2B1L_HUMAN" score="0.715740621089935" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_127" accession="sp|Q9BQE3|TBA1C_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_127" accession="sp|Q9BQE3|TBA1C_HUMAN" score="0.797172665596008" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_128" accession="sp|Q9BRG1|VPS25_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_128" accession="sp|Q9BRG1|VPS25_HUMAN" score="0.724880874156952" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_129" accession="sp|Q9BTM1|H2AJ_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_129" accession="sp|Q9BTM1|H2AJ_HUMAN" score="0.726313292980194" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_130" accession="sp|Q9BYX7|ACTBM_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_130" accession="sp|Q9BYX7|ACTBM_HUMAN" score="0.724701523780823" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_131" accession="sp|Q9HBE4|IL21_HUMAN_rev" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_131" accession="sp|Q9HBE4|IL21_HUMAN_rev" score="0.713134109973907" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_132" accession="sp|Q9HCK8|CHD8_HUMAN_rev" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_132" accession="sp|Q9HCK8|CHD8_HUMAN_rev" score="0.728991270065308" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_133" accession="sp|Q9NQZ3|DAZ1_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_133" accession="sp|Q9NQZ3|DAZ1_HUMAN" score="0.717791438102722" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_134" accession="sp|Q9NR90|DAZ3_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_134" accession="sp|Q9NR90|DAZ3_HUMAN" score="0.717791438102722" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_135" accession="sp|Q9NT22|EMIL3_HUMAN_rev" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_135" accession="sp|Q9NT22|EMIL3_HUMAN_rev" score="0.716145992279053" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_136" accession="sp|Q9NT68|TEN2_HUMAN_rev" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_136" accession="sp|Q9NT68|TEN2_HUMAN_rev" score="0.713369727134705" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_137" accession="sp|Q9NVU0|RPC5_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_137" accession="sp|Q9NVU0|RPC5_HUMAN" score="0.708251297473907" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_138" accession="sp|Q9NWA0|MED9_HUMAN_rev" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_138" accession="sp|Q9NWA0|MED9_HUMAN_rev" score="0.705923676490784" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_139" accession="sp|Q9P2D3|HTR5B_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_139" accession="sp|Q9P2D3|HTR5B_HUMAN" score="0.716795384883881" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_140" accession="sp|Q9UBT7|CTNL1_HUMAN_rev" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_140" accession="sp|Q9UBT7|CTNL1_HUMAN_rev" score="0.707470595836639" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_141" accession="sp|Q9ULP0|NDRG4_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_141" accession="sp|Q9ULP0|NDRG4_HUMAN" score="0.701049864292145" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_142" accession="sp|Q9UMD9|COHA1_HUMAN_rev" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_142" accession="sp|Q9UMD9|COHA1_HUMAN_rev" score="0.708819687366486" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_143" accession="sp|Q9UPN4|CP131_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_143" accession="sp|Q9UPN4|CP131_HUMAN" score="0.699714958667755" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_144" accession="sp|Q9Y2Z9|COQ6_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_144" accession="sp|Q9Y2Z9|COQ6_HUMAN" score="0.730614721775055" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
-			<ProteinHit id="PH_145" accession="sp|Q9Y485|DMXL1_HUMAN" score="0.861961245536804" sequence="" >
+			<ProteinHit id="PH_145" accession="sp|Q9Y485|DMXL1_HUMAN" score="0.699714958667755" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0"/>
+				<UserParam type="float" name="q-value_score" value="0.861961245536804"/>
 			</ProteinHit>
 			<UserParam type="float" name="Fido_prob_protein" value="0.7"/>
 			<UserParam type="float" name="Fido_prob_peptide" value="0.04"/>
 			<UserParam type="float" name="Fido_prob_spurious" value="0"/>
 			<UserParam type="string" name="indistinguishable_proteins_0" value="1,PH_13"/>
 			<UserParam type="string" name="indistinguishable_proteins_1" value="1,PH_14"/>
-			<UserParam type="string" name="indistinguishable_proteins_2" value="1,PH_19"/>
-			<UserParam type="string" name="indistinguishable_proteins_3" value="1,PH_20"/>
-			<UserParam type="string" name="indistinguishable_proteins_4" value="1,PH_21"/>
-			<UserParam type="string" name="indistinguishable_proteins_5" value="1,PH_23"/>
-			<UserParam type="string" name="indistinguishable_proteins_6" value="1,PH_24"/>
-			<UserParam type="string" name="indistinguishable_proteins_7" value="1,PH_26"/>
-			<UserParam type="string" name="indistinguishable_proteins_8" value="1,PH_29"/>
-			<UserParam type="string" name="indistinguishable_proteins_9" value="1,PH_39"/>
-			<UserParam type="string" name="indistinguishable_proteins_10" value="1,PH_41"/>
-			<UserParam type="string" name="indistinguishable_proteins_11" value="1,PH_52"/>
-			<UserParam type="string" name="indistinguishable_proteins_12" value="1,PH_61"/>
-			<UserParam type="string" name="indistinguishable_proteins_13" value="1,PH_69"/>
-			<UserParam type="string" name="indistinguishable_proteins_14" value="1,PH_73"/>
-			<UserParam type="string" name="indistinguishable_proteins_15" value="1,PH_70,PH_71"/>
-			<UserParam type="string" name="indistinguishable_proteins_16" value="0.9999999999,PH_72"/>
-			<UserParam type="string" name="indistinguishable_proteins_17" value="0.9999988095,PH_51"/>
-			<UserParam type="string" name="indistinguishable_proteins_18" value="0.9999985926,PH_49"/>
-			<UserParam type="string" name="indistinguishable_proteins_19" value="0.9999928573,PH_58"/>
-			<UserParam type="string" name="indistinguishable_proteins_20" value="0.9999860593,PH_22"/>
-			<UserParam type="string" name="indistinguishable_proteins_21" value="0.9955946929,PH_90"/>
-			<UserParam type="string" name="indistinguishable_proteins_22" value="0.9820792206,PH_59"/>
-			<UserParam type="string" name="indistinguishable_proteins_23" value="0.9472752191,PH_109"/>
-			<UserParam type="string" name="indistinguishable_proteins_24" value="0.9366879406,PH_17"/>
-			<UserParam type="string" name="indistinguishable_proteins_25" value="0.9366879406,PH_40"/>
-			<UserParam type="string" name="indistinguishable_proteins_26" value="0.9228327521,PH_64"/>
-			<UserParam type="string" name="indistinguishable_proteins_27" value="0.9064509792,PH_103"/>
-			<UserParam type="string" name="indistinguishable_proteins_28" value="0.8928299093,PH_78"/>
-			<UserParam type="string" name="indistinguishable_proteins_29" value="0.8728226813,PH_53"/>
+			<UserParam type="string" name="indistinguishable_proteins_2" value="1,PH_21"/>
+			<UserParam type="string" name="indistinguishable_proteins_3" value="1,PH_23"/>
+			<UserParam type="string" name="indistinguishable_proteins_4" value="1,PH_24"/>
+			<UserParam type="string" name="indistinguishable_proteins_5" value="1,PH_26"/>
+			<UserParam type="string" name="indistinguishable_proteins_6" value="1,PH_29"/>
+			<UserParam type="string" name="indistinguishable_proteins_7" value="1,PH_39"/>
+			<UserParam type="string" name="indistinguishable_proteins_8" value="1,PH_41"/>
+			<UserParam type="string" name="indistinguishable_proteins_9" value="1,PH_52"/>
+			<UserParam type="string" name="indistinguishable_proteins_10" value="1,PH_61"/>
+			<UserParam type="string" name="indistinguishable_proteins_11" value="1,PH_69"/>
+			<UserParam type="string" name="indistinguishable_proteins_12" value="1,PH_73"/>
+			<UserParam type="string" name="indistinguishable_proteins_13" value="0.9999999999,PH_72"/>
+			<UserParam type="string" name="indistinguishable_proteins_14" value="0.9999988095,PH_51"/>
+			<UserParam type="string" name="indistinguishable_proteins_15" value="0.9999985926,PH_49"/>
+			<UserParam type="string" name="indistinguishable_proteins_16" value="0.9999985744,PH_19"/>
+			<UserParam type="string" name="indistinguishable_proteins_17" value="0.9999980891,PH_20"/>
+			<UserParam type="string" name="indistinguishable_proteins_18" value="0.9999928573,PH_58"/>
+			<UserParam type="string" name="indistinguishable_proteins_19" value="0.9999860593,PH_22"/>
+			<UserParam type="string" name="indistinguishable_proteins_20" value="0.9955946929,PH_90"/>
+			<UserParam type="string" name="indistinguishable_proteins_21" value="0.9820792206,PH_59"/>
+			<UserParam type="string" name="indistinguishable_proteins_22" value="0.9472752191,PH_109"/>
+			<UserParam type="string" name="indistinguishable_proteins_23" value="0.9366879406,PH_17"/>
+			<UserParam type="string" name="indistinguishable_proteins_24" value="0.9366879406,PH_40"/>
+			<UserParam type="string" name="indistinguishable_proteins_25" value="0.9228327521,PH_64"/>
+			<UserParam type="string" name="indistinguishable_proteins_26" value="0.9064509792,PH_103"/>
+			<UserParam type="string" name="indistinguishable_proteins_27" value="0.8928299093,PH_78"/>
+			<UserParam type="string" name="indistinguishable_proteins_28" value="0.8728226813,PH_53"/>
+			<UserParam type="string" name="indistinguishable_proteins_29" value="0.8685017911,PH_70,PH_71"/>
 			<UserParam type="string" name="indistinguishable_proteins_30" value="0.8455213075,PH_57,PH_65"/>
 			<UserParam type="string" name="indistinguishable_proteins_31" value="0.8381058782,PH_118"/>
 			<UserParam type="string" name="indistinguishable_proteins_32" value="0.820197279,PH_36,PH_37,PH_62,PH_63"/>

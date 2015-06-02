@@ -146,7 +146,7 @@ public:
         charge_ = ch;
     }
 
-    std::vector<double> getAllIntensities(bool smoothed = false)
+    std::vector<double> getAllIntensities(bool smoothed = false) const
     {
         std::vector<double> tmp;
 
@@ -177,26 +177,26 @@ public:
         return iso_pattern_[0]->getCentroidRT();
     }
 
-    double getFWHM(bool use_smoothed_ints = false) const
+    double getFWHM() const
     {
-        if (iso_pattern_.empty())
-        {
-            return 0.0;
-        }
-        return iso_pattern_[0]->estimateFWHM(use_smoothed_ints);
+      if (iso_pattern_.empty())
+      {
+        return 0.0;
+      }
+      return iso_pattern_[0]->getFWHM();
     }
 
     /// addMassTrace
     void addMassTrace(MassTrace &);
-    double getMonoisotopicFeatureIntensity(bool);
-    double getSummedFeatureIntensity(bool);
+    double getMonoisotopicFeatureIntensity(bool) const;
+    double getSummedFeatureIntensity(bool) const;
 
     Size getNumFeatPoints() const;
     std::vector<ConvexHull2D> getConvexHulls() const;
 
 private:
     // pointers of MassTraces contained in isotopic pattern
-    std::vector<MassTrace *> iso_pattern_;
+    std::vector<const MassTrace *> iso_pattern_;
     double feat_score_;
 
     SignedSize charge_;
@@ -273,6 +273,7 @@ private:
     double chrom_fwhm_;
 
     bool report_summed_ints_;
+    bool enable_RT_filtering_;
     bool disable_isotope_filtering_;
     String isotope_model_;
     String metabo_iso_noisemodel_;

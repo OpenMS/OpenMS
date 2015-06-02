@@ -42,3 +42,11 @@ cdef extern from "<OpenMS/FORMAT/PepXMLFile.h>" namespace "OpenMS":
                   libcpp_vector[PeptideIdentification] & peptide_ids
                   ) nogil except +
 
+        void store(String filename,
+                  libcpp_vector[ProteinIdentification] & protein_ids,
+                  libcpp_vector[PeptideIdentification] & peptide_ids,
+                  String mz_file,
+                  String mz_name,
+                  bool peptideprophet_analyzed
+                  ) nogil except +
+

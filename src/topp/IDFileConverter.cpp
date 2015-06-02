@@ -32,15 +32,16 @@
 // $Authors: Katharina Albers, Clemens Groepl, Chris Bielow, Mathias Walzer $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/SequestOutfile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/PepXMLFile.h>
-#include <OpenMS/FORMAT/OMSSAXMLFile.h>
-#include <OpenMS/FORMAT/MascotXMLFile.h>
-#include <OpenMS/FORMAT/ProtXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
+#include <OpenMS/FORMAT/OMSSAXMLFile.h>
+#include <OpenMS/FORMAT/PepXMLFile.h>
+#include <OpenMS/FORMAT/PercolatorOutfile.h>
+#include <OpenMS/FORMAT/ProtXMLFile.h>
+#include <OpenMS/FORMAT/SequestOutfile.h>
 #include <OpenMS/FORMAT/XTandemXMLFile.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -74,6 +75,13 @@ using namespace std;
     </table>
 </CENTER>
 
+IDFileConverter can be used to convert identification results from external tools/pipelines (like TPP, Sequest, Mascot, OMSSA, X! Tandem)
+into other (OpenMS-specific) formats.
+For search engine results, it might be advisable to use the respective TOPP Adapters (e.g. OMSSAAdapter) to avoid the extra conversion step.
+
+The most simple format accepted is '.tsv': A tab separated text file, which contains one or more peptide sequences per line.
+Each line represents one spectrum, i.e. is stored as a PeptideIdentification with one or more PeptideHits.
+Lines starting with "#" are ignored by the parser.
 
 Conversion from the TPP file formats pepXML and protXML to OpenMS' idXML is quite comprehensive, to the extent that the original data can be
 represented in the simpler idXML format.
@@ -92,8 +100,9 @@ Some search engine output files (like pepXML, mascotXML, Sequest .out files) may
 pepXML files can contain results from multiple experiments. However, the idXML format does not support this. The @p mz_name parameter (or @p mz_file, if given) thus serves to define what parts to extract from the pepXML.
 
 @p scan_regex: \n
-For Mascot results exported to XML, the scan numbers (used to look up retention times using @p mz_file) should be given in the "pep_scan_title" XML elements, but the format can vary. If the defaults fail to extract the scan numbers, a Perl-style regular expression can be given through the advanced parameter @p scan_regex, and will be used instead. The regular expression should contain a named group "SCAN" matching the scan number or "RT" matching the actual retention time. For example, if the format of the "pep_scan_title" elements is "scan=123", where 123 is the scan number, the expression "scan=(?<SCAN>\\d+)" can be used to extract the number. (However, the format in this example is actually covered by the defaults.)
-
+For Mascot results exported to XML, the scan numbers (used to look up retention times using @p mz_file) should be given in the "pep_scan_title" XML elements, but the format can vary. If the defaults fail to extract the scan numbers, a Perl-style regular expression can be given through the advanced parameter @p scan_regex, and will be used instead. The regular expression should contain a named group "SCAN" matching the scan number or "RT" matching the actual retention time. For example, if the format of the "pep_scan_title" elements is "scan=123", where 123 is the scan number, the expression "scan=(?<SCAN>\\d+)" can be used to extract the number. (However, the format in this example is actually covered by the defaults.)\n
+For Percolator tab-delimited output, information is extracted from the "PSMId" column. By default, extraction of scan numbers and charge states is supported for MS-GF+ Percolator results (retention times and precursor m/z values can then be looked up in the raw data via @p mz_file).
+In a user-defined regular expression, the named groups "SCAN" (scan number), "CHARGE" (charge state), "RT" (retention time) and "MZ" (precursor m/z) are supported. The parameter @p count_from_zero defines whether scans are counted from zero or from one (default) in the number extracted via "SCAN". If "CHARGE", "RT" and "MZ" are present, it is not necessary to look up any information in the raw data, so @p mz_file is not needed.
 
 Some information about the supported input types:
   @ref OpenMS::MzIdentMLFile "mzIdentML"
@@ -104,12 +113,12 @@ Some information about the supported input types:
   @ref OpenMS::OMSSAXMLFile "omssaXML"
   @ref OpenMS::XTandemXMLFile "XTandem.xml"
   @ref OpenMS::SequestOutfile "Sequest .out directory"
+  @ref OpenMS::PercolatorOutfile "Percolator tab-delimited output"
 
-    @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_IDFileConverter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_IDFileConverter.html
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude TOPP_IDFileConverter.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_IDFileConverter.html
 
 */
 
@@ -133,9 +142,10 @@ protected:
     registerInputFile_("in", "<path/file>", "",
                        "Input file or directory containing the data to convert. This may be:\n"
                        "- a single file in a multi-purpose XML format (pepXML, protXML, idXML, mzid),\n"
-                       "- a single file in a search engine-specific XML format (Mascot: mascotXML, OMSSA: omssaXML, X! Tandem: xml),\n"
+                       "- a single file in a search engine-specific format (Mascot: mascotXML, OMSSA: omssaXML, X! Tandem: xml, Percolator: psms),\n"
+                       "- a single text file (tab separated) with one line for all peptide sequences matching a spectrum (top N hits),\n"
                        "- for Sequest results, a directory containing .out files.\n");
-    setValidFormats_("in", ListUtils::create<String>("pepXML,protXML,mascotXML,omssaXML,xml,idXML,mzid"));
+    setValidFormats_("in", ListUtils::create<String>("pepXML,protXML,mascotXML,omssaXML,xml,psms,tsv,idXML,mzid"));
 
     registerOutputFile_("out", "<file>", "", "Output file", true);
     String formats("idXML,mzid,pepXML,FASTA");
@@ -144,15 +154,19 @@ protected:
     setValidStrings_("out_type", ListUtils::create<String>(formats));
 
     addEmptyLine_();
-    registerInputFile_("mz_file", "<file>", "", "[Sequest, pepXML, mascotXML, XTandem only] Retention times will be looked up in this file", false);
+    registerInputFile_("mz_file", "<file>", "", "[pepXML, Sequest, Mascot, X! Tandem, Percolator only] Retention times will be looked up in this file", false);
     setValidFormats_("mz_file", ListUtils::create<String>("mzML,mzXML,mzData"));
     addEmptyLine_();
-    registerFlag_("ignore_proteins_per_peptide", "[Sequest only] Workaround to deal with .out files that contain e.g. \"+1\" in references column,\n"
-                                                 "but do not list extra references in subsequent lines (try -debug 3 or 4)", true);
     registerStringOption_("mz_name", "<file>", "", "[pepXML only] Experiment filename/path (extension will be removed) to match in the pepXML file ('base_name' attribute). Only necessary if different from 'mz_file'.", false);
     registerFlag_("use_precursor_data", "[pepXML only] Use precursor RTs (and m/z values) from 'mz_file' for the generated peptide identifications, instead of the RTs of MS2 spectra.", false);
     registerFlag_("peptideprophet_analyzed", "[pepXML output only] Write output in the format of a PeptideProphet analysis result. By default a 'raw' pepXML is produced that contains only search engine results.", false);
-    registerStringOption_("scan_regex", "<expression>", "", "[mascotXML only] Regular expression used to extract the scan number or retention time. See documentation for details.", false, true);
+    registerStringOption_("score_type", "<choice>", PercolatorOutfile::score_type_names[0], "[Percolator only] Which of the Percolator scores to report as 'the' score for a peptide hit", false);
+    setValidStrings_("score_type", vector<String>(PercolatorOutfile::score_type_names, PercolatorOutfile::score_type_names + int(PercolatorOutfile::SIZE_OF_SCORETYPE)));
+
+    registerFlag_("ignore_proteins_per_peptide", "[Sequest only] Workaround to deal with .out files that contain e.g. \"+1\" in references column,\n"
+                                                 "but do not list extra references in subsequent lines (try -debug 3 or 4)", true);
+    registerStringOption_("scan_regex", "<expression>", "", "[Mascot, Percolator only] Regular expression used to extract the scan number or retention time. See documentation for details.", false, true);
+    registerFlag_("count_from_zero", "[Percolator only] Scan numbers extracted by 'scan_regex' start counting at zero (default: start at one).", true);
   }
 
   ExitCodes
@@ -181,7 +195,6 @@ protected:
       const bool ignore_proteins_per_peptide = getFlag_("ignore_proteins_per_peptide");
 
       UInt i = 0;
-      FileHandler fh;
       FileTypes::Type type;
       MSExperiment<Peak1D> msexperiment;
       // Note: we had issues with leading zeroes, so let us represent scan numbers as Int (next line used to be map<String, float> num_and_rt;)  However, now String::toInt() might throw.
@@ -351,7 +364,7 @@ protected:
         MascotXMLFile().load(in, protein_identifications[0],
                              peptide_identifications, rt_mapping, scan_regex);
       }
-      else if (in_type == FileTypes::XML)
+      else if (in_type == FileTypes::XML) // X! Tandem
       {
         ProteinIdentification protein_id;
         XTandemXMLFile().load(in, protein_id, peptide_identifications);
@@ -383,9 +396,58 @@ protected:
           }
         }
       }
+      else if (in_type == FileTypes::PSMS) // Percolator
+      {
+        String mz_file = getStringOption_("mz_file");
+        MSExperiment<> experiment;
+        MSExperiment<>* experiment_p = 0;
+        if (!mz_file.empty())
+        {
+          fh.loadExperiment(mz_file, experiment);
+          experiment_p = &experiment;
+        }
+        String score_type = getStringOption_("score_type");
+        enum PercolatorOutfile::ScoreType perc_score =
+          PercolatorOutfile::getScoreType(score_type);
+        String scan_regex = getStringOption_("scan_regex");
+        bool count_from_zero = getFlag_("count_from_zero");
+        protein_identifications.resize(1);
+        PercolatorOutfile().load(in, protein_identifications[0],
+                                 peptide_identifications, perc_score, 
+                                 scan_regex, count_from_zero, experiment_p);
+      }
+      else if (in_type == FileTypes::TSV)
+      {
+        ProteinIdentification protein_id;
+        protein_id.setSearchEngineVersion("");
+        protein_id.setSearchEngine("XTandem");
+        protein_identifications.push_back(protein_id);
+
+        TextFile tf;
+        tf.load(in, true, -1, true);
+        for (TextFile::Iterator it = tf.begin(); it != tf.end(); ++it)
+        {
+          it->trim();
+          // skip empty and comment lines
+          if (it->empty() || it->hasPrefix("#")) continue;
+
+          PeptideIdentification pepid;
+          StringList peps;
+          it->split('\t', peps, false);
+          std::vector<PeptideHit> hits;
+          for (StringList::const_iterator sit=peps.begin(); sit != peps.end(); ++sit)
+          {
+            PeptideHit hit;
+            hit.setSequence(AASequence::fromString(*sit));
+            hits.push_back(hit);
+          }
+          pepid.setHits(hits);
+          peptide_identifications.push_back(pepid);
+        }
+      }
       else
       {
-        writeLog_("Unknown input file type given. Aborting!");
+        writeLog_("Error: Unknown input file type given. Aborting!");
         printUsage_();
         return ILLEGAL_PARAMETERS;
       }
@@ -432,17 +494,22 @@ protected:
         for (Size l = 0; l < peptide_identifications[i].getHits().size(); ++l)
         {
           const PeptideHit& hit = peptide_identifications[i].getHits()[l];
-          fasta << ">" << hit.getSequence().toUnmodifiedString() << "|" << count++
-                << "|" << hit.getSequence().toString() << endl;
           String seq = hit.getSequence().toUnmodifiedString();
+          std::set<String> prot = hit.extractProteinAccessions();
+          fasta << ">" << seq
+                << " " << ++count
+                << " " << hit.getSequence().toString() 
+                << " " << ListUtils::concatenate(StringList(prot.begin(), prot.end()), ";")
+                << "\n";
           // FASTA files should have at most 60 characters of sequence info per line
           for (Size j = 0; j < seq.size(); j += 60)
           {
             Size k = min(j + 60, seq.size());
-            fasta << string(seq[j], seq[k]) << endl;
+            fasta << seq.substr(j, k - j) << "\n";
           }
         }
       }
+      fasta.close();
     }
     else
     {
