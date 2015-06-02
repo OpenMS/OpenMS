@@ -389,7 +389,11 @@ namespace OpenMS
       String inputs_element;
       std::map<String,String> /* peps, pepevis, */ sil_map, sil_2_date;
       std::set<String> sen_set, sof_set, sip_set;
-      std::map<String, String> sdb_ids, sen_ids, sof_ids, sdat_ids, pep_ids;
+      std::map<String, UInt64> sdb_ids, sen_ids, sof_ids, sip_ids, spd_ids, sdat_ids, pep_ids;
+      std::map<String, String> pie_ids, sip_sdb;
+      std::map<UInt64, String> sip_dates;
+      std::map<UInt64, String> spd_ref;
+      std::vector<String> /* peps, pepevis, */ sidlist, pidlist;
       std::map<String, double> pp_identifier_2_thresh;
 
       //TODO if constructed with a msexperiment - not yet implemented
@@ -406,7 +410,7 @@ namespace OpenMS
       /*---------------------------------------------------------------------
       DataCollection:
       +Inputs
-      -AnalysisData collected in sidlist --> unclosed element string
+      -AnalysisData collected in sidlist & pidlist --> unclosed element strings
       ---------------------------------------------------------------------*/
       inputs_element += String("\t<Inputs>\n");
       String spectra_data, search_database;
@@ -937,6 +941,10 @@ namespace OpenMS
         }
       }
 
+      //TODO write ProteinDetection and protocol
+      //TODO getProteinGroups
+      //TODO getIndistinguishableProteins
+
       //--------------------------------------------------------------------------------------------
       // XML header
       //--------------------------------------------------------------------------------------------
@@ -1029,7 +1037,13 @@ namespace OpenMS
         os << sil_it->second;
         os << "\t\t</SpectrumIdentificationList>\n";
       }
-      os << "\t</AnalysisData>\n</DataCollection>\n";
+      os << "\t\t</ProteinDetectionList>\n";
+      for (std::vector<String>::const_iterator pid = pidlist.begin(); pid != pidlist.end(); ++pid)
+      {
+        os << *pid;
+      }
+      os << "\t\t</ProteinDetectionList>\n\t</AnalysisData>\n";
+      os << "</DataCollection>\n";
 
       //--------------------------------------------------------------------------------------------
       // close XML header
