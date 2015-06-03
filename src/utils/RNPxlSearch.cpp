@@ -272,7 +272,12 @@ protected:
     {
       return a.score > b.score;
     }
+  };
 
+  // detailed information on an annotated hit and the corresponding spectrum for reporting
+  struct SpectrumAnnotation
+  {
+    RichPeakSpectrum peaks;
   };
 
   vector<ResidueModification> getModifications_(StringList modNames)
@@ -556,25 +561,33 @@ private:
           }
 
           // score partial losses
-          #ifdef DEBUG_RNPXLSEARCH
-            double best_score(0.0);
-            Size best_index(0);
-            for (Size i = 0; i != theoretical_spectra.size(); ++i)
-            {
-              const RichPeakSpectrum& theo_spectrum = theoretical_spectra[i];
-              const double score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum);
+          double best_score(0.0);
+          Size best_index(0);
+          vector<double> partial_loss_scores;
+          for (Size i = 0; i != theoretical_spectra.size(); ++i)
+          {
+            const RichPeakSpectrum& theo_spectrum = theoretical_spectra[i];
+            const double score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum);
+            partial_loss_scores.push_back(score);
+          }
+
+          for (Size i = 0; i != partial_loss_scores.size(); ++i)
+          {
+            const double score = partial_loss_scores[i];
+            #ifdef DEBUG_RNPXLSEARCH
               cout << "Theoretical spectrum index: " << i << " score: " << score << endl;
-              if (score > best_score)
-              {
-                best_score = score;
-                best_index = i;
-              }
+            #endif
+            if (score > best_score)
+            {
+              best_score = score;
+              best_index = i;
             }
-            HyperScore::IndexScorePair best_localization_score =  std::make_pair(best_index, best_score);
+          }
+
+          HyperScore::IndexScorePair best_localization_score =  std::make_pair(best_index, best_score);
+          #ifdef DEBUG_RNPXLSEARCH
             cout << "Best theoretical spectrum index: " << best_index << " score: " << best_score << endl; 
-          #else
-            HyperScore::IndexScorePair best_localization_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theoretical_spectra);
-          #endif          
+          #endif
 
           // store score of current localization
           a_it->localization_score = best_localization_score.second;
