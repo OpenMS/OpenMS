@@ -65,14 +65,14 @@ public:
 
     /// detailed constructor
     explicit Enzyme(const String & name,
-                      const String & cleavage_regex,
-                      const std::set<String> & synonyms = std::set<String>(),
-                      String regex_description = "",
-                      EmpiricalFormula n_term_gain = EmpiricalFormula("H"),
-                      EmpiricalFormula c_term_gain = EmpiricalFormula("OH"),
-                      String psi_id = "",
-                      String xtandem_id = "",
-                      UInt omssa_id = 0);
+                    const String & cleavage_regex,
+                    const std::set<String> & synonyms = std::set<String>(),
+                    String regex_description = "",
+                    EmpiricalFormula n_term_gain = EmpiricalFormula("H"),
+                    EmpiricalFormula c_term_gain = EmpiricalFormula("OH"),
+                    String psi_id = "",
+                    String xtandem_id = "",
+                    UInt omssa_id = 0);
 
     /// destructor
     virtual ~Enzyme();
@@ -111,7 +111,7 @@ public:
 
     /// sets the regex description
     void setRegExDescription(String value);
-    
+
     /// returns the regex description
     String getRegExDescription() const;
 
@@ -126,13 +126,13 @@ public:
 
     /// returns C-terminal gain
     EmpiricalFormula getCTermGain() const;
-    
+
     /// sets the PSI id
     void setPSIid(String value);
-    
+
     /// returns the PSI id
     String getPSIid() const;
-    
+
     /// sets the XTANDEM enzyme id
     void setXTANDEMid(String value);
 
@@ -141,7 +141,7 @@ public:
 
     /// sets the OMSSA enzyme id
     void setOMSSAid(UInt value);
-    
+
     /// returns the OMSSA enzyme id
     UInt getOMSSAid() const;
     //@}
@@ -161,7 +161,7 @@ public:
     /// equality operator for regex
     bool operator!=(String cleavage_regex) const;
 
-    /// order operator 
+    /// order operator
     bool operator<(const Enzyme & enzyme) const;
     //@}
 
@@ -180,15 +180,15 @@ protected:
     std::set<String> synonyms_;
 
     String regex_description_;
-    
+
     EmpiricalFormula n_term_gain_;
-    
+
     EmpiricalFormula c_term_gain_;
-    
+
     String psi_id_;
 
     String xtandem_id_;
-    
+
     UInt omssa_id_;
   };
 

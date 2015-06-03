@@ -8,13 +8,18 @@ from EmpiricalFormula cimport *
 cdef extern from "<OpenMS/CHEMISTRY/Enzyme.h>" namespace "OpenMS":
 
     cdef cppclass Enzyme:
-
-        Enzyme() nogil except +
         Enzyme(Enzyme) nogil except + # wrap-ignore
 
         # detailed constructor
         Enzyme(String name,
-                EmpiricalFormula cleavage_regex) nogil except +
+               String cleavage_regex,
+               libcpp_set[String]  synonyms,
+               String regex_description,
+               EmpiricalFormula n_term_gain,
+               EmpiricalFormula c_term_gain,
+               String psi_id,
+               String xtandem_id,
+               UInt omssa_id) nogil except +
 
         # sets the name of the Enzyme
         void setName(String name) nogil except +
