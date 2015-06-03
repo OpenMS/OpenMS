@@ -32,37 +32,39 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_MISC_HELPERS_H
-#define OPENMS_VISUAL_MISC_HELPERS_H
+#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 
-// OpenMS_GUI config
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+#include <QDesktopServices>
+#include <QDir>
+#include <QUrl>
+#include <QMessageBox>
+#include <QString>
 
-class QString; // declare this OUTSIDE of namespace OpenMS!
 
 namespace OpenMS
 {
 
-
-  /**
-    @brief Class which holds static helper functions.
-
-    It has only static methods, that's why the constructor is private.
-    
-    @ingroup Visual
-  */
-  class OPENMS_GUI_DLLAPI Helpers
+  void GUIHelpers::openFolder(const QString& folder)
   {
-  public:
-
-    /// Open a folder in file explorer
-    /// Will show a message box on failure
-    static void openFolder(const QString& folder);
-
-  private:
-    /// private C'tor
-    Helpers();
-  };
-
-}
+#if defined(__APPLE__)
+    QProcess* p = new QProcess();
+    p->setProcessChannelMode(QProcess::ForwardedChannels);
+    QStringList app_args;
+    app_args.append(path);
+    p->start("/usr/bin/open", app_args);
+    if (!p->waitForStarted())
+    {
+      // execution failed
+      QMessageBox::warning(0, "Open Folder Error", "The folder '" + path + "' could not be opened!");
+      LOG_ERROR << "Failed to open folder '" << path.toStdString() << "'" << std::endl;
+      LOG_ERROR << p->errorString().toStdString() << std::endl;
+    }
+#else
+    if (!QDir(folder).exists() || (!QDesktopServices::openUrl(QUrl("file:///" + folder, QUrl::TolerantMode))))
+    {
+      QMessageBox::warning(0, "Open Folder Error", "The folder '" + folder + "' could not be opened!");
+    }
 #endif
+  }
+
+} //namespace OpenMS

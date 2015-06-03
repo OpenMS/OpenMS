@@ -41,7 +41,7 @@
 #include <OpenMS/VISUAL/TOPPASMergerVertex.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
-#include <OpenMS/VISUAL/MISC/Helpers.h>
+#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 
 #include <QtCore>
 #include <QtCore/QFile>
@@ -331,7 +331,7 @@ namespace OpenMS
   void TOPPASOutputFileListVertex::openContainingFolder()
   {
     QString path = getFullOutputDirectory().toQString();
-    Helpers::openFolder(path);
+    GUIHelpers::openFolder(path);
   }
 
   String TOPPASOutputFileListVertex::getFullOutputDirectory() const

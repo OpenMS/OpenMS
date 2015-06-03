@@ -41,7 +41,7 @@
 #include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASInputFilesDialog.h>
-#include <OpenMS/VISUAL/MISC/Helpers.h>
+#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 
 #include <QtCore/QFileInfo>
 #include <QtCore/QDir>
@@ -217,7 +217,7 @@ namespace OpenMS
     for (std::set<String>::const_iterator it = directories.begin(); it != directories.end(); ++it)
     {
       QString path = QDir::toNativeSeparators(it->toQString());
-      Helpers::openFolder(path);
+      GUIHelpers::openFolder(path);
     }
   }
 

@@ -42,7 +42,7 @@
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASToolConfigDialog.h>
-#include <OpenMS/VISUAL/MISC/Helpers.h>
+#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 
 #include <QtGui/QGraphicsScene>
 #include <QtGui/QMessageBox>
@@ -1087,7 +1087,7 @@ namespace OpenMS
   void TOPPASToolVertex::openContainingFolder()
   {
     QString path = getFullOutputDirectory().toQString();
-    Helpers::openFolder(path);
+    GUIHelpers::openFolder(path);
   }
 
   String TOPPASToolVertex::getFullOutputDirectory() const

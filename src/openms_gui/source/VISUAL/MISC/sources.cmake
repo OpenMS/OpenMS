@@ -3,7 +3,7 @@ set(directory source/VISUAL/MISC)
 
 ### list all filenames of the directory here
 set(sources_list
-Helpers.cpp
+GUIHelpers.cpp
 )
 
 ### add path to the filenames
