@@ -39,6 +39,7 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 class QString; // declare this OUTSIDE of namespace OpenMS!
+class QStringList;
 
 namespace OpenMS
 {
@@ -58,6 +59,13 @@ namespace OpenMS
     /// Open a folder in file explorer
     /// Will show a message box on failure
     static void openFolder(const QString& folder);
+
+    /// Open TOPPView (e.g. from within TOPPAS)
+    static void startTOPPView(const QStringList& args);
+
+    /// Open a certain URL (in a browser)
+    /// Will show a message box on failure
+    static void openURL(const QString& target);
 
   private:
     /// private C'tor
