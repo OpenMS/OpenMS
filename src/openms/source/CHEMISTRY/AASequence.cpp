@@ -50,6 +50,8 @@
 #include <iterator> // for "distance"
 #include <sstream>
 
+using namespace std;
+
 namespace OpenMS
 {
   AASequence::AASequence() :
@@ -176,11 +178,16 @@ namespace OpenMS
 
   EmpiricalFormula AASequence::getFormula(Residue::ResidueType type, Int charge) const
   {
-    EmpiricalFormula ef;
+
+    // x/c-ion for a single residue is not defined
+    if (peptide_.size() == 1 && (type == Residue::XIon || type == Residue::CIon))
+    {
+      LOG_ERROR << "AASequence::getFormula: Mass for ResidueType " << type << " not defined for sequences of length 1." << std::endl;
+    }
+
+    // Initialize with the missing/additional protons
+    EmpiricalFormula ef; // = EmpiricalFormula("H") * charge; ??
     ef.setCharge(charge);
-    static EmpiricalFormula H("H");
-    static EmpiricalFormula OH("OH");
-    static EmpiricalFormula NH("NH");
 
     // terminal modifications
     if (n_term_mod_ != 0 &&
@@ -202,12 +209,6 @@ namespace OpenMS
 
     if (peptide_.size() > 0)
     {
-      if (peptide_.size() == 1)
-      {
-        ef += peptide_[0]->getFormula(type);
-      }
-      else
-      {
         for (Size i = 0; i != peptide_.size(); ++i)
         {
           ef += peptide_[i]->getFormula(Residue::Internal);
@@ -216,40 +217,39 @@ namespace OpenMS
         // add the missing formula part
         switch (type)
         {
-        case Residue::Full:
-          return ef + Residue::getInternalToFull();
+          case Residue::Full:
+            return ef + AASequence::getInternalToFull();
 
-        case Residue::Internal:
-          return ef /* + add_protons*/;
+          case Residue::Internal:
+            return ef;
 
-        case Residue::NTerminal:
-          return ef + Residue::getInternalToFull() - Residue::getNTerminalToFull();
+          case Residue::NTerminal:
+            return ef + AASequence::getInternalToNTerm();
 
-        case Residue::CTerminal:
-          return ef + Residue::getInternalToFull() - Residue::getCTerminalToFull();
+          case Residue::CTerminal:
+            return ef + AASequence::getInternalToCTerm();
 
-        case Residue::BIon:
-          return ef + Residue::getInternalToFull() - Residue::getBIonToFull() - H;
+          case Residue::AIon:
+            return ef + AASequence::getInternalToAIon();
 
-        case Residue::AIon:
-          return ef + Residue::getInternalToFull() - Residue::getAIonToFull() - H;
+          case Residue::BIon:
+            return ef + AASequence::getInternalToBIon();
 
-        case Residue::CIon:
-          return ef + Residue::getInternalToFull() - OH + NH;
+          case Residue::CIon:
+            return ef + AASequence::getInternalToCIon();
 
-        case Residue::XIon:
-          return ef + Residue::getInternalToFull() + Residue::getXIonToFull();
+          case Residue::XIon:
+            return ef + AASequence::getInternalToXIon();
 
-        case Residue::YIon:
-          return ef + Residue::getInternalToFull() + Residue::getYIonToFull();
+          case Residue::YIon:
+            return ef + AASequence::getInternalToYIon();
 
-        case Residue::ZIon:
-          return ef + Residue::getInternalToFull() - Residue::getZIonToFull();
+          case Residue::ZIon:
+            return ef + AASequence::getInternalToZIon();
 
-        default:
-          LOG_ERROR << "AASequence::getFormula: unknown ResidueType" << std::endl;
+          default:
+            LOG_ERROR << "AASequence::getFormula: unknown ResidueType" << std::endl;
         }
-      }
     }
 
     return ef;
@@ -266,21 +266,17 @@ namespace OpenMS
         tag_offset += it->getAverageWeight(Residue::Internal);
       }
     }
+    // TODO inefficient, if averageWeight is already set in the Residue
     return tag_offset + getFormula(type, charge).getAverageWeight();
   }
 
   double AASequence::getMonoWeight(Residue::ResidueType type, Int charge) const
   {
-    static const double H_weight = EmpiricalFormula("H").getMonoWeight();
-    static const double OH_weight = EmpiricalFormula("OH").getMonoWeight();
-    static const double NH_weight = EmpiricalFormula("NH").getMonoWeight();
-    static const double internal_to_full = EmpiricalFormula("H2O").getMonoWeight();
-    static const double nterm_to_full = EmpiricalFormula("OH").getMonoWeight();
-    static const double cterm_to_full = EmpiricalFormula("H").getMonoWeight();
-    static const double b_ion_to_full = EmpiricalFormula("OH").getMonoWeight();
-    static const double a_ion_to_full = EmpiricalFormula("HCO2").getMonoWeight();
-    static const double x_ion_to_full = EmpiricalFormula("HCO").getMonoWeight();
-    static const double z_ion_to_full = EmpiricalFormula("NH2").getMonoWeight();
+    // x/c-ion for a single residue is not defined
+    if (peptide_.size() == 1 && (type == Residue::XIon || type == Residue::CIon))
+    {
+      LOG_ERROR << "AASequence::getMonoWeight: Mass for ResidueType " << type << " not defined for sequences of length 1." << std::endl;
+    }
 
     double mono_weight(Constants::PROTON_MASS_U * charge);
 
@@ -302,54 +298,47 @@ namespace OpenMS
 
     if (peptide_.size() > 0)
     {
-      if (peptide_.size() == 1)
+      for (ConstIterator it = this->begin(); it != this->end(); ++it)
       {
-        return mono_weight + peptide_[0]->getMonoWeight(type);
+        // standard internal residue including named modifications
+        mono_weight += it->getMonoWeight(Residue::Internal);
       }
-      else
-      {
-        for (ConstIterator it = this->begin(); it != this->end(); ++it)
-        {
-          // standard residue including named modifications
-          mono_weight += it->getMonoWeight(Residue::Internal);
-        }
 
-        // add the missing formula part
-        switch (type)
-        {
+      // add the missing formula part
+      switch (type)
+      {
         case Residue::Full:
-          return mono_weight + internal_to_full;
+          return mono_weight + AASequence::getInternalToFull().getMonoWeight();
 
         case Residue::Internal:
-          return mono_weight /* + add_protons*/;
+          return mono_weight;
 
         case Residue::NTerminal:
-          return mono_weight + internal_to_full - nterm_to_full;
+          return mono_weight + AASequence::getInternalToNTerm().getMonoWeight();
 
         case Residue::CTerminal:
-          return mono_weight + internal_to_full - cterm_to_full;
-
-        case Residue::BIon:
-          return mono_weight + internal_to_full - b_ion_to_full - H_weight;
+          return mono_weight + AASequence::getInternalToCTerm().getMonoWeight();
 
         case Residue::AIon:
-          return mono_weight + internal_to_full - a_ion_to_full - H_weight;
+          return mono_weight + AASequence::getInternalToAIon().getMonoWeight();
+
+        case Residue::BIon:
+          return mono_weight + AASequence::getInternalToBIon().getMonoWeight();
 
         case Residue::CIon:
-          return mono_weight + internal_to_full - OH_weight + NH_weight;
+          return mono_weight + AASequence::getInternalToCIon().getMonoWeight();
 
         case Residue::XIon:
-          return mono_weight + internal_to_full + x_ion_to_full;
+          return mono_weight + AASequence::getInternalToXIon().getMonoWeight();
 
         case Residue::YIon:
-          return mono_weight + internal_to_full;
+          return mono_weight + AASequence::getInternalToYIon().getMonoWeight();
 
         case Residue::ZIon:
-          return mono_weight + internal_to_full - z_ion_to_full;
+          return mono_weight + AASequence::getInternalToZIon().getMonoWeight();
 
         default:
           LOG_ERROR << "AASequence::getMonoWeight: unknown ResidueType" << std::endl;
-        }
       }
     }
 
@@ -912,8 +901,7 @@ namespace OpenMS
     if (residue && delta_mass)
     {
       new_res.setMonoWeight(mass + residue->getMonoWeight());
-      new_res.setAverageWeight(mass +
-                               residue->getAverageWeight());
+      new_res.setAverageWeight(mass + residue->getAverageWeight());
     }
     else
     { // mass value is for an internal residue, but methods expect full residue:

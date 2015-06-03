@@ -232,8 +232,17 @@ START_SECTION((double getAverageWeight(Residue::ResidueType type = Residue::Full
 END_SECTION
 
 START_SECTION((double getMonoWeight(Residue::ResidueType type = Residue::Full, Int charge=0) const))
-  TOLERANCE_ABSOLUTE(1e-6)
-  TOLERANCE_RELATIVE(1.0 + 1e-6)
+  TOLERANCE_ABSOLUTE(1e-5)
+  TOLERANCE_RELATIVE(1.0 + 1e-5)
+
+  // test if charged single amino acid sequences match the charged residue weight
+  TEST_REAL_SIMILAR(AASequence::fromString("A").getMonoWeight(Residue::AIon, 1), 44.04947);
+  TEST_REAL_SIMILAR(AASequence::fromString("A").getMonoWeight(Residue::BIon, 1), 72.04439);
+
+  TEST_REAL_SIMILAR(AASequence::fromString("A").getMonoWeight(Residue::YIon, 1), 90.05496);
+  TEST_REAL_SIMILAR(AASequence::fromString("A").getMonoWeight(Residue::ZIon, 1), 73.02900);
+
+
   TEST_REAL_SIMILAR(AASequence::fromString("DFPIANGER").getMonoWeight(), double(1017.48796))
 
   // test if direct calculation and calculation via empirical formula yield the same result
