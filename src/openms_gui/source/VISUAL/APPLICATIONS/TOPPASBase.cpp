@@ -1551,61 +1551,64 @@ namespace OpenMS
 
   void TOPPASBase::openFilesInTOPPView(QStringList files)
   {
-    if (files.size() > 0)
+    if (files.empty()) return;
+    QProcess* p = new QProcess();
+    p->setProcessChannelMode(QProcess::ForwardedChannels);
+    QStringList arg = files;
+
+    if (files.size() > 1)
     {
-      QProcess* p = new QProcess();
-      p->setProcessChannelMode(QProcess::ForwardedChannels);
-      QStringList arg = files;
-
-      if (files.size() > 1)
+      // ask user how to open multiple files
+      QMessageBox msgBox(
+        QMessageBox::Question,
+        tr("Open files with overlay?"),
+        tr("How do you want to open the output files?"),
+        QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+      msgBox.setButtonText(QMessageBox::Yes, tr("&Single Tab - Overlay"));
+      msgBox.setButtonText(QMessageBox::No, tr("&Separate tabs"));
+      int ret = msgBox.exec();
+      if (ret == QMessageBox::Cancel) return; // Escape was pressed
+      if (ret == QMessageBox::Yes)
       {
-        // ask user how to open multiple files
-        if (!QMessageBox::question(
-              this,
-              tr("Open in separate windows? -- TOPPAS"),
-              tr("How do you want to open the output files?"),
-              tr("&Single window"), tr("&Separate windows"),
-              QString::null, 0, 1))
-        {
-          arg = files.join("#SpLiT_sTrInG#+#SpLiT_sTrInG#").split("#SpLiT_sTrInG#", QString::SkipEmptyParts);
-        }
-      }
-#if defined(__APPLE__)
-      // check if we can find the TOPPView.app
-      QString app_path = (File::getExecutablePath() + "../../../TOPPView.app").toQString();
-
-      if (File::exists(app_path))
-      {
-        // we found the app
-        QStringList app_args;
-        app_args.append("-a");
-        app_args.append(app_path);
-        app_args.append("--args");
-        app_args.append(arg);
-        p->start("/usr/bin/open", app_args);
-      }
-      else
-      {
-        // we could not find the app, try it the linux way
-        QString toppview_executable = (File::findExecutable("TOPPView")).toQString();
-        p->start(toppview_executable, arg);
-      }
-#else
-      // LINUX+WIN
-      QString toppview_executable = (File::findExecutable("TOPPView")).toQString();
-      p->start(toppview_executable, arg);
-#endif
-
-
-      if (!p->waitForStarted())
-      {
-        // execution failed
-        std::cerr << p->errorString().toStdString() << std::endl;
-#if defined(Q_WS_MAC)
-        std::cerr << "Please check if TOPPAS and TOPPView are located in the same directory" << std::endl;
-#endif
+        arg = files.join("#SpLiT_sTrInG#+#SpLiT_sTrInG#").split("#SpLiT_sTrInG#", QString::SkipEmptyParts);
       }
     }
+#if defined(__APPLE__)
+    // check if we can find the TOPPView.app
+    QString app_path = (File::getExecutablePath() + "../../../TOPPView.app").toQString();
+
+    if (File::exists(app_path))
+    {
+      // we found the app
+      QStringList app_args;
+      app_args.append("-a");
+      app_args.append(app_path);
+      app_args.append("--args");
+      app_args.append(arg);
+      p->start("/usr/bin/open", app_args);
+    }
+    else
+    {
+      // we could not find the app, try it the Linux way
+      QString toppview_executable = (File::findExecutable("TOPPView")).toQString();
+      p->start(toppview_executable, arg);
+    }
+#else
+    // LINUX+WIN
+    QString toppview_executable = (File::findExecutable("TOPPView")).toQString();
+    p->start(toppview_executable, arg);
+#endif
+
+
+    if (!p->waitForStarted())
+    {
+      // execution failed
+      LOG_ERROR << p->errorString().toStdString() << std::endl;
+#if defined(Q_WS_MAC)
+      LOG_ERROR << "Please check if TOPPAS and TOPPView are located in the same directory" << std::endl;
+#endif
+    }
+
   }
 
   void TOPPASBase::openToppasFile(QString filename)
