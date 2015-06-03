@@ -33,21 +33,20 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
-#include <OpenMS/VISUAL/TOPPASToolVertex.h>
-#include <OpenMS/VISUAL/TOPPASMergerVertex.h>
-#include <OpenMS/VISUAL/TOPPASEdge.h>
-#include <OpenMS/VISUAL/TOPPASScene.h>
-#include <OpenMS/SYSTEM/File.h>
+
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/VISUAL/TOPPASEdge.h>
+#include <OpenMS/VISUAL/TOPPASMergerVertex.h>
+#include <OpenMS/VISUAL/TOPPASScene.h>
+#include <OpenMS/VISUAL/TOPPASToolVertex.h>
+#include <OpenMS/VISUAL/MISC/Helpers.h>
 
 #include <QtCore>
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
 #include <QtCore/QDir>
-#include <QDesktopServices>
-#include <QUrl>
-#include <QMessageBox>
 
 #include <QCoreApplication>
 
@@ -332,25 +331,7 @@ namespace OpenMS
   void TOPPASOutputFileListVertex::openContainingFolder()
   {
     QString path = getFullOutputDirectory().toQString();
-#if defined(__APPLE__)
-    QProcess* p = new QProcess();
-    p->setProcessChannelMode(QProcess::ForwardedChannels);
-    QStringList app_args;
-    app_args.append(path);
-    p->start("/usr/bin/open", app_args);
-    if (!p->waitForStarted())
-    {
-      // execution failed
-      QMessageBox::warning(0, "Open Folder Error", "The folder " + path + " could not be opened!");
-      LOG_ERROR << "Failed to open folder " << path.toStdString() << std::endl;
-      LOG_ERROR << p->errorString().toStdString() << std::endl;
-    }
-#else
-    if (!QDir(path).exists() || (!QDesktopServices::openUrl(QUrl("file:///" + path, QUrl::TolerantMode))))
-    {
-      QMessageBox::warning(0, "Open Folder Error", "The folder '" + path + "' could not be opened!");
-    }
-#endif
+    Helpers::openFolder(path);
   }
 
   String TOPPASOutputFileListVertex::getFullOutputDirectory() const
