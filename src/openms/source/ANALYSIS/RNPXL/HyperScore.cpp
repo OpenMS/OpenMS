@@ -84,7 +84,7 @@ namespace OpenMS
         {
           ++y_ion_count;
         }
-        else
+        else if (theo_peak_it->getMetaValue("IonName").toString()[0] == 'b')
         {
           ++b_ion_count;
         }

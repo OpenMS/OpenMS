@@ -49,6 +49,7 @@
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlMarkerIonExtractor.h>
 #include <OpenMS/ANALYSIS/RNPXL/HyperScore.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>
@@ -79,7 +80,7 @@
 #define NUMBER_OF_THREADS (1)
 #endif
 
-//#define DEBUG_RNPXLSEARCH 1
+#define DEBUG_RNPXLSEARCH 
 
 using namespace OpenMS;
 using namespace std;
@@ -275,7 +276,7 @@ protected:
   };
 
   // detailed information on an annotated hit and the corresponding spectrum for reporting
-  struct SpectrumAnnotation
+  struct AnnotatedHitDetail
   {
     RichPeakSpectrum peaks;
   };
@@ -488,8 +489,26 @@ private:
     }
   }
 
-  void postScoreHits_(const PeakMap& exp, vector<vector<AnnotatedHit> >& annotated_hits, Size top_hits, const RNPxlModificationMassesResult& mm, const vector<ResidueModification>& fixed_modifications, const vector<ResidueModification>& variable_modifications, Size max_variable_mods_per_peptide, const TheoreticalSpectrumGenerator& spectrum_generator, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm)
+  void postScoreHits_(const PeakMap& exp, vector<vector<AnnotatedHit> >& annotated_hits, Size top_hits, const RNPxlModificationMassesResult& mm, const vector<ResidueModification>& fixed_modifications, const vector<ResidueModification>& variable_modifications, Size max_variable_mods_per_peptide, TheoreticalSpectrumGenerator spectrum_generator, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm)
   {
+    Param ps = spectrum_generator.getParameters();
+    ps.setValue("add_metainfo", "true", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
+    spectrum_generator.setParameters(ps);
+
+    SpectrumAlignment spectrum_aligner;
+    Param pa = spectrum_aligner.getParameters();
+    pa.setValue("tolerance", (double)fragment_mass_tolerance, "Defines the absolute (in Da) or relative (in ppm) tolerance in the alignment");
+    if (fragment_mass_tolerance_unit_ppm)
+    {
+      pa.setValue("is_relative_tolerance", "true");
+    } 
+    else
+    {
+      pa.setValue("is_relative_tolerance", "false");
+    } 
+  
+    spectrum_aligner.setParameters(pa);
+
   // remove all but top n scoring for localization (usually all but the first one)
 #ifdef _OPENMP
 #pragma omp parallel for
@@ -567,6 +586,9 @@ private:
           for (Size i = 0; i != theoretical_spectra.size(); ++i)
           {
             const RichPeakSpectrum& theo_spectrum = theoretical_spectra[i];
+            #ifdef DEBUG_RNPXLSEARCH
+              cout << "Scoring: "  << all_loss_peptides[i].toString() << endl;
+            #endif
             const double score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum);
             partial_loss_scores.push_back(score);
           }
@@ -575,7 +597,7 @@ private:
           {
             const double score = partial_loss_scores[i];
             #ifdef DEBUG_RNPXLSEARCH
-              cout << "Theoretical spectrum index: " << i << " score: " << score << endl;
+              cout << "Theoretical spectrum index: " << i << " score: " << score << " sequence: " << all_loss_peptides[i].toString() << endl;
             #endif
             if (score > best_score)
             {
@@ -584,10 +606,73 @@ private:
             }
           }
 
-          HyperScore::IndexScorePair best_localization_score =  std::make_pair(best_index, best_score);
+          HyperScore::IndexScorePair best_localization_score = std::make_pair(best_index, best_score);
           #ifdef DEBUG_RNPXLSEARCH
             cout << "Best theoretical spectrum index: " << best_index << " score: " << best_score << endl; 
           #endif
+    
+          RichPeakSpectrum peaks;
+
+          // detailed information on the annotated hit not stored in the pre-scoring due to size reasons
+          AnnotatedHitDetail current_hit_detail;
+          // fill annotated spectrum information
+          set<Size> peak_is_annotated;  // experimental peak index
+          for (Size i = 0; i != theoretical_spectra.size(); ++i)
+          {
+            // align every theoretical loss spectrum to the experimental measured one
+            const RichPeakSpectrum& theo_spectrum = theoretical_spectra[i];
+            std::vector<std::pair<Size, Size> > alignment;
+            spectrum_aligner.getSpectrumAlignment(alignment, theo_spectrum, exp_spectrum);
+
+            for (vector<std::pair<Size, Size> >::const_iterator pair_it = alignment.begin(); pair_it != alignment.end(); ++pair_it)
+            {
+              // only annotate experimental peak once
+              if (peak_is_annotated.find(pair_it->second) != peak_is_annotated.end())
+              {
+                continue;
+              }
+
+              RichPeak1D r;
+              r.setMZ(exp_spectrum[pair_it->second].getMZ());
+              r.setIntensity(exp_spectrum[pair_it->second].getIntensity());
+              String ion_name = theo_spectrum[pair_it->first].getMetaValue("IonName");
+
+              // define which ion names are annotated 
+              if (ion_name.hasPrefix("y"))
+              { 
+                String ion_nr_string = ion_name;
+                ion_nr_string.substitute("y", "");
+                ion_nr_string.substitute("+", "");
+                Size ion_number = (Size)ion_nr_string.toInt();
+                const AASequence& peptide_sequence = all_loss_peptides[i].getSuffix(ion_number);
+                if (peptide_sequence.isModified())
+                {
+                  cout << "Annotating ion: " << ion_name << " at position: " << r.getMZ() << " " << peptide_sequence.toString() << " intensity: " << r.getIntensity() << endl;
+                  r.setMetaValue("IonName", ion_name);                  
+                  r.setMetaValue("Sequence", peptide_sequence.toString());
+                  peak_is_annotated.insert(pair_it->second);                  
+                  current_hit_detail.peaks.push_back(r);
+                }
+              }
+              else if (ion_name.hasPrefix("b"))
+              { 
+                String ion_nr_string = ion_name;
+                ion_nr_string.substitute("b", "");
+                ion_nr_string.substitute("+", "");
+                Size ion_number = (Size)ion_nr_string.toInt();
+                const AASequence& peptide_sequence = all_loss_peptides[i].getPrefix(ion_number);
+                if (peptide_sequence.isModified())
+                {
+                  cout << "Annotating ion: " << ion_name << " at position: " << r.getMZ() << " " << peptide_sequence.toString() << " intensity: " << r.getIntensity() << endl;
+                  r.setMetaValue("IonName", ion_name);
+                  r.setMetaValue("Sequence", peptide_sequence.toString());                  
+                  peak_is_annotated.insert(pair_it->second);                  
+                  current_hit_detail.peaks.push_back(r);
+                }
+              }
+            }
+          }
+
 
           // store score of current localization
           a_it->localization_score = best_localization_score.second;
@@ -1081,3 +1166,4 @@ int main(int argc, const char** argv)
   RNPxlSearch tool;
   return tool.main(argc, argv);
 }
+
