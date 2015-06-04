@@ -37,12 +37,12 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
+#include <OpenMS/ANALYSIS/SVM/SimpleSVM.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -50,8 +50,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
-
-#include <svm.h>
 
 #include <cstdlib> // for "rand"
 #include <ctime> // for "time" (seeding of random number generator)
@@ -200,30 +198,26 @@ protected:
     registerDoubleOption_("detect:mapping_tolerance", "<value>", 0.0, "RT tolerance (plus/minus) for mapping peptide IDs to features. Absolute value in seconds if 1 or greater, else relative to the RT span of the feature.", false);
     setMinFloat_("detect:mapping_tolerance", 0.0);
 
+    // parameters for SVM classification:
     registerTOPPSubsection_("svm", "Parameters for scoring features using a support vector machine (SVM)");
-    registerIntOption_("svm:xval", "<number>", 5, "Number of partitions for cross-validation", false);
-    setMinInt_("svm:xval", 1);
     registerIntOption_("svm:samples", "<number>", 0, "Number of observations to use for training ('0' for all)", false);
     setMinInt_("svm:samples", 0);
     registerFlag_("svm:unbiased", "Reduce biases by choosing (roughly) the same number of positive and negative observations, with the same intensity distribution, for training. This reduces the number of available samples.");
-    registerStringOption_("svm:kernel", "<choice>", "RBF", "SVM kernel", false);
-    setValidStrings_("svm:kernel", ListUtils::create<String>("RBF,linear"));
-    String values = "-5,-3,-1,1,3,5,7,9,11,13,15";
-    registerDoubleList_("svm:log2_C", "<values>", ListUtils::create<double>(values), "Values to try for the SVM parameter 'C' during parameter optimization. A value 'x' is used as 'C = 2^x'.", false);
-    values = "-15,-13,-11,-9,-7,-5,-3,-1,1,3";
-    registerDoubleList_("svm:log2_gamma", "<values>", ListUtils::create<double>(values), "Values to try for the SVM parameter 'gamma' during parameter optimization (RBF kernel only). A value 'x' is used as 'gamma = 2^x'.", false);
     registerOutputFile_("svm:xval_out", "<file>", "", "Output file: SVM cross-validation (parameter optimization) results", false);
     setValidFormats_("svm:xval_out", ListUtils::create<String>("csv"));
+    Param svm_params;
+    svm_params.insert("svm:", SimpleSVM().getParameters());
+    registerFullParam_(svm_params);
 
     // parameters for model fitting (via ElutionModelFitter):
+    registerTOPPSubsection_("model", "Parameters for fitting elution models to features");
     StringList models = ListUtils::create<String>("none,symmetric,asymmetric");
-    Param params;
-    params.setValue("model:type", models[0], "Type of elution model to fit to features");
-    params.setValidStrings("model:type", models);
-    params.setSectionDescription("model", "Parameters for fitting elution models to features");
-    params.insert("model:", ElutionModelFitter().getParameters());
-    params.remove("model:asymmetric");
-    registerFullParam_(params);
+    registerStringOption_("model:type", "<choice>", models[0], "Type of elution model to fit to features", false);
+    setValidStrings_("model:type", models);
+    Param emf_params;
+    emf_params.insert("model:", ElutionModelFitter().getParameters());
+    emf_params.remove("model:asymmetric");
+    registerFullParam_(emf_params);
   }
 
 
@@ -244,9 +238,6 @@ protected:
     double start, end;
     set<Int> charges; // charge states for which there are IDs in the region
   };
-
-  // classification performance for different SVM param. combinations (C/gamma):
-  typedef vector<vector<double> > SVMPerformance;
 
   // predicate for filtering features by overall quality:
   struct FeatureFilterQuality
@@ -691,68 +682,6 @@ protected:
   }
 
 
-  void scaleSVMData_(vector<vector<double> >& predictor_values,
-                     const vector<String>& predictors)
-  {
-    for (Size i = 0; i < predictors.size(); ++i)
-    {
-      if (predictor_values[i].empty()) continue;
-      vector<double>::iterator pv_begin = predictor_values[i].begin();
-      vector<double>::iterator pv_end = predictor_values[i].end();
-      double vmin = *min_element(pv_begin, pv_end);
-      double vmax = *max_element(pv_begin, pv_end);
-      if (vmin == vmax)
-      {
-        LOG_DEBUG << "Predictor '" + predictors[i] + "' is uninformative." 
-                  << endl;
-        predictor_values[i].clear();
-        continue;
-      }
-      double range = vmax - vmin;
-      for (vector<double>::iterator it = pv_begin; it != pv_end; ++it)
-      {
-        *it = (*it - vmin) / range;
-      }
-    }
-  }
-
-
-  void convertSVMData_(vector<vector<double> >& predictor_values,
-                       vector<vector<struct svm_node> >& svm_nodes)
-  {
-    Size n_obs = predictor_values[0].size();
-    svm_nodes.resize(n_obs);
-    Size skipped_predictors = 0;
-    for (Size pred_index = 0; pred_index < predictor_values.size(); 
-         ++pred_index)
-    {
-      if (predictor_values[pred_index].empty()) // uninformative predictor
-      {
-        skipped_predictors++;
-        continue;
-      }
-      for (Size obs_index = 0; obs_index < n_obs; ++obs_index)
-      {
-        double value = predictor_values[pred_index][obs_index];
-        if (value > 0)
-        {
-          int node_index = pred_index - skipped_predictors;
-          svm_node node = {node_index, value};
-          svm_nodes[obs_index].push_back(node);
-        }
-      }
-    }
-    LOG_DEBUG << "Number of predictors for SVM: "
-              << predictor_values.size() - skipped_predictors << endl;
-    svm_node final = {-1, 0.0};
-    for (vector<vector<struct svm_node> >::iterator it = svm_nodes.begin();
-         it != svm_nodes.end(); ++it)
-    {
-      it->push_back(final);
-    }
-  }
-
-
   void checkNumObservations_(Size n_pos, Size n_neg, const String& note = "")
   {
     if (n_pos < n_parts_)
@@ -771,393 +700,213 @@ protected:
     }
   }
 
-  
-  void getTrainingSample_(const vector<double>& labels,
-                          const vector<double>& intensities,
-                          vector<vector<struct svm_node> >& svm_nodes,
-                          struct svm_problem& svm_data)
+
+  void getUnbiasedSample_(const multimap<double, pair<Size, bool> >& valid_obs,
+                          map<Size, Int>& training_labels)
   {
-    vector<Size> selection; // indexes of observations selected for training
-    // mapping: intensity -> (index, positive?)
+    // Create an unbiased training sample:
+    // - same number of pos./neg. observations (approx.),
+    // - same intensity distribution of pos./neg. observations.
+    // We use a sliding window over the set of observations, ordered by
+    // intensity. At each step, we examine the proportion of both pos./neg.
+    // observations in the window and select the middle element with according
+    // probability. (We use an even window size, to cover the ideal case where
+    // the two classes are balanced.)
+    const Size window_size = 8;
+    const Size half_win_size = window_size / 2;
+    if (valid_obs.size() < half_win_size + 1)
+    {
+      String msg = "Not enough observations for intensity-bias filtering.";
+      throw Exception::MissingInformation(__FILE__, __LINE__, 
+                                          __PRETTY_FUNCTION__, msg);
+    }
+    srand(time(0)); // seed random number generator
+    Size n_obs[2] = {0, 0}; // counters for neg./pos. observations
+    Size counts[2] = {0, 0}; // pos./neg. counts in current window
+    // iterators to begin, middle and past-the-end of sliding window:
+    multimap<double, pair<Size, bool> >::const_iterator begin, middle, end;
+    begin = middle = end = valid_obs.begin();
+    // initialize ("middle" is at beginning of sequence, so no full window):
+    for (Size i = 0; i <= half_win_size; ++i, ++end)
+    {
+      ++counts[end->second.second]; // increase counter for pos./neg. obs.
+    }
+    // "i" is the index of one of the two middle values of the sliding window:
+    // - in the left half of the sequence, "i" is left-middle,
+    // - in the right half of the sequence, "i" is right-middle.
+    // The counts are updated as "i" and the sliding window move to the right.
+    for (Size i = 0; i < valid_obs.size(); ++i, ++middle)
+    {
+      // if count for either class is zero, we don't select anything:
+      if ((counts[0] > 0) && (counts[1] > 0))
+      {
+        // probability thresholds for neg./pos. observations:
+        double thresholds[2] = {counts[1] / float(counts[0]),
+                                counts[0] / float(counts[1])};
+        // check middle values:
+        double rnd = rand() / double(RAND_MAX); // random num. in range 0-1
+        if (rnd < thresholds[middle->second.second])
+        {
+          training_labels[middle->second.first] = Int(middle->second.second);
+          ++n_obs[middle->second.second];
+        }
+      }
+      // update sliding window and class counts;
+      // when we reach the middle of the sequence, we keep the window in place
+      // for one step, to change from "left-middle" to "right-middle":
+      if (i != valid_obs.size() / 2)
+      {
+        // only move "begin" when "middle" has advanced far enough:
+        if (i > half_win_size)
+        {
+          --counts[begin->second.second];
+          ++begin;
+        }
+        // don't increment "end" beyond the defined range:
+        if (end != valid_obs.end())
+        {
+          ++counts[end->second.second];
+          ++end;
+        }
+      }
+    }
+    checkNumObservations_(n_obs[1], n_obs[0], " after bias filtering");
+  }
+
+
+  void getRandomSample_(map<Size, Int>& training_labels)
+  {
+    // @TODO: can this be done with less copying back and forth of data?
+    // Pick a random subset of size "n_samples_" for training: Shuffle the whole
+    // sequence, then select the first "n_samples_" elements.
+    vector<Size> selection;
+    selection.reserve(training_labels.size());
+    for (map<Size, Int>::iterator it = training_labels.begin();
+         it != training_labels.end(); ++it)
+    {
+      selection.push_back(it->first);
+    }
+    random_shuffle(selection.begin(), selection.end());
+    // However, ensure that at least "n_parts_" pos./neg. observations are
+    // included (for cross-validation) - there must be enough, otherwise
+    // "checkNumObservations_" would have thrown an error. To this end, move
+    // "n_parts_" pos. observations to the beginning of sequence, followed by
+    // "n_parts_" neg. observations (pos. first - see reason below):
+    Size n_obs[2] = {0, 0}; // counters for neg./pos. observations
+    for (Int label = 1; label >= 0; --label)
+    {
+      for (Size i = n_obs[1]; i < selection.size(); ++i)
+      {
+        Size obs_index = selection[i];
+        if (training_labels[obs_index] == label)
+        {
+          swap(selection[i], selection[n_obs[label]]);
+          ++n_obs[label];
+        }
+        if (n_obs[label] == n_parts_) break;
+      }
+    }
+    selection.resize(n_samples_);
+    // copy the selected subset back:
+    map<Size, Int> temp;
+    for (vector<Size>::iterator it = selection.begin(); it != selection.end();
+         ++it)
+    {
+      temp[*it] = training_labels[*it];
+    }
+    training_labels.swap(temp);
+  }
+
+
+  void classifyFeatures_(FeatureMap& features)
+  {
+    // get predictors for SVM:
+    vector<String> predictor_names = 
+      ListUtils::create<String>(score_metavalues_);
+    // values for all featues per predictor (this way around to simplify scaling
+    // of predictors):
+    map<String, vector<double> > predictors;
+    for (vector<String>::iterator pred_it = predictor_names.begin();
+         pred_it != predictor_names.end(); ++pred_it)
+    {
+      predictors[*pred_it].reserve(features.size());
+      for (FeatureMap::Iterator feat_it = features.begin(); 
+           feat_it < features.end(); ++feat_it)
+      {
+        if (!feat_it->metaValueExists(*pred_it))
+        {
+          LOG_ERROR << "Meta value '" << *pred_it << "' missing for feature '"
+                    << feat_it->getUniqueId() << "'" << endl;
+          predictors.erase(*pred_it);
+          break;
+        }
+        predictors[*pred_it].push_back(feat_it->getMetaValue(*pred_it));
+      }
+    }
+
+    // get labels for SVM:
+    map<Size, Int> training_labels;
+    bool unbiased = getFlag_("svm:unbiased");
+    // mapping (for bias correction): intensity -> (index, positive?)
     multimap<double, pair<Size, bool> > valid_obs;
     Size n_obs[2] = {0, 0}; // counters for neg./pos. observations
-    srand(time(0)); // seed random number generator
-    bool unbiased = getFlag_("svm:unbiased");
-
-    // get positive/negative observations for training (no "maybes"/unknowns):
-    for (Size i = 0; i < labels.size(); ++i)
+    for (Size feat_index = 0; feat_index < features.size(); ++feat_index)
     {
-      if ((labels[i] == 0.0) || (labels[i] == 1.0))
+      String feature_class = features[feat_index].getMetaValue("feature_class");
+      Int label = -1;
+      if (feature_class == "true_positive") label = 1;
+      else if (feature_class == "false_positive") label = 0;
+      if (label != -1)
       {
-        Size category = Size(labels[i]);
-        ++n_obs[category];
-        if (unbiased) // fill "valid_obs" first ("selection" is filled later)
+        ++n_obs[label];
+        if (unbiased)
         {
-          valid_obs.insert(make_pair(intensities[i],
-                                     make_pair(i, bool(category))));
+          double intensity = features[feat_index].getIntensity();
+          valid_obs.insert(make_pair(intensity, make_pair(feat_index,
+                                                          bool(label))));
         }
-        else // fill "selection" directly
+        else
         {
-          selection.push_back(i);
+          training_labels[feat_index] = label;
         }
       }
     }
     checkNumObservations_(n_obs[1], n_obs[0]);
 
-    if (unbiased)
-    {
-      // Create an unbiased training sample:
-      // - same number of pos./neg. observations (approx.),
-      // - same intensity distribution of pos./neg. observations.
-      // We use a sliding window over the set of observations, ordered by
-      // intensity. At each step, we examine the proportion of both pos./neg.
-      // observations in the window and select the middle element with according
-      // probability. (We use an even window size, to cover the ideal case where
-      // the two classes are balanced.)
-      const Size window_size = 8;
-      const Size half_win_size = window_size / 2;
-      if (labels.size() < half_win_size + 1)
-      {
-        String msg = "Not enough observations for intensity-bias filtering.";
-        throw Exception::MissingInformation(__FILE__, __LINE__, 
-                                            __PRETTY_FUNCTION__, msg);
-      }
-      Size counts[2] = {0, 0};
-      n_obs[0] = n_obs[1] = 0;
-      // iterators to begin, middle and past-the-end of sliding window:
-      multimap<double, pair<Size, bool> >::iterator begin, middle, end;
-      begin = middle = end = valid_obs.begin();
-      // initialize ("middle" is at beginning of sequence, so no full window):
-      for (Size i = 0; i <= half_win_size; ++i, ++end)
-      {
-        ++counts[end->second.second]; // increase counter for pos./neg. obs.
-      }
-      // "i" is the index of one of the two middle values of the sliding window:
-      // - in the left half of the sequence, "i" is left-middle,
-      // - in the right half of the sequence, "i" is right-middle.
-      // The counts are updated as "i" and the sliding window move to the right.
-      for (Size i = 0; i < valid_obs.size(); ++i, ++middle)
-      {
-        // if count for either class is zero, we don't select anything:
-        if ((counts[0] > 0) && (counts[1] > 0))
-        {
-          // probability thresholds for neg./pos. observations:
-          double thresholds[2] = {counts[1] / float(counts[0]),
-                                  counts[0] / float(counts[1])};
-          // check middle values:
-          double rnd = rand() / double(RAND_MAX); // random num. in range 0-1
-          if (rnd < thresholds[middle->second.second])
-          {
-            selection.push_back(middle->second.first);
-            ++n_obs[middle->second.second];
-          }
-        }
-        // update sliding window and class counts;
-        // when we reach the middle of the sequence, we keep the window in place
-        // for one step, to change from "left-middle" to "right-middle":
-        if (i != valid_obs.size() / 2)
-        {
-          // only move "begin" when "middle" has advanced far enough:
-          if (i > half_win_size)
-          {
-            --counts[begin->second.second];
-            ++begin;
-          }
-          // don't increment "end" beyond the defined range:
-          if (end != valid_obs.end())
-          {
-            ++counts[end->second.second];
-            ++end;
-          }
-        }
-      }
-      checkNumObservations_(n_obs[1], n_obs[0], " after bias filtering");
-    }
+    if (unbiased) getUnbiasedSample_(valid_obs, training_labels);
 
     if (n_samples_ > 0) // limited number of samples for training
     {
-      if (selection.size() < n_samples_)
+      if (training_labels.size() < n_samples_)
       {
-        LOG_WARN << "Warning: There are only " << selection.size()
+        LOG_WARN << "Warning: There are only " << training_labels.size()
                  << " valid observations for training." << endl;
       }
-      else if (selection.size() > n_samples_) // pick random subset for training
+      else if (training_labels.size() > n_samples_)
       {
-        // To get a random subset of size "n_samples_", shuffle the whole
-        // sequence, then select the first "n_samples_" elements.
-        random_shuffle(selection.begin(), selection.end());
-        // However, ensure that at least "n_parts_" pos./neg. observations are
-        // included (for cross-validation) - there must be enough, otherwise
-        // "checkNumObservations_" would have thrown an error. To this end, move
-        // "n_parts_" pos. observations to the beginning of sequence, followed
-        // by "n_parts_" neg. observations (pos. first - see reason below):
-        n_obs[0] = n_obs[1] = 0;        
-        for (Int category = 1; category >= 0; --category)
-        {
-          for (Size i = n_obs[1]; i < selection.size(); ++i)
-          {
-            Size obs_index = selection[i];
-            if (labels[obs_index] == category)
-            {
-              swap(selection[i], selection[n_obs[category]]);
-              ++n_obs[category];
-            }
-            if (n_obs[category] == n_parts_) break;
-          }
-        }
-        selection.resize(n_samples_);
+        getRandomSample_(training_labels);
       }
     }
-    // make sure the first observation is positive, or SVM class labels may be
-    // reversed due to a bug in LIBSVM (before version 3.17; see LIBSVM FAQ:
-    // http://www.csie.ntu.edu.tw/~cjlin/libsvm/faq.html#f430):
-    Size i = 0;
-    while (labels[selection[i]] != 1.0) ++i;
-    swap(selection[0], selection[i]);
 
-    // fill LIBSVM data structure:
-    svm_data.l = selection.size();
-    svm_data.x = new svm_node*[svm_data.l];
-    svm_data.y = new double[svm_data.l];
-    n_obs[0] = n_obs[1] = 0;
-    for (i = 0; i < selection.size(); ++i)
-    {
-      Size obs_index = selection[i];
-      svm_data.x[i] = &(svm_nodes[obs_index][0]);
-      svm_data.y[i] = labels[obs_index];
-      ++n_obs[Size(labels[obs_index])];
-    }
-    LOG_INFO << "Training SVM on " << selection.size() << " observations ("
-             << n_obs[1] << " positive, " << n_obs[0] << " negative)." << endl;
-  }
-
-  
-  void writeXvalResults_(const String& path, const SVMPerformance& performance,
-                         const vector<double>& log2_C, 
-                         const vector<double>& log2_gamma)
-  {
-    ofstream outstr(path.c_str());
-    SVOutStream output(outstr);
-    output.modifyStrings(false);
-    output << "log2_C" << "log2_gamma" << "performance" << nl;
-    for (Size g_index = 0; g_index < log2_gamma.size(); ++g_index)
-    {
-      for (Size c_index = 0; c_index < log2_C.size(); ++c_index)
-      {
-        output << log2_C[c_index] << log2_gamma[g_index] 
-               << performance[g_index][c_index] << nl;
-      }
-    }
-  }
-
-
-  pair<double, double> chooseBestSVMParams_(const SVMPerformance& performance,
-                                            const vector<double>& log2_C, 
-                                            const vector<double>& log2_gamma)
-  {
-    // which parameter set(s) achieved best cross-validation performance?
-    double best_value = 0.0;
-    vector<pair<Size, Size> > best_indexes;
-    for (Size g_index = 0; g_index < log2_gamma.size(); ++g_index)
-    {
-      for (Size c_index = 0; c_index < log2_C.size(); ++c_index)
-      {
-        double value = performance[g_index][c_index];
-        if (value == best_value)
-        {
-          best_indexes.push_back(make_pair(g_index, c_index));
-        }
-        else if (value > best_value)
-        {
-          best_value = value;
-          best_indexes.clear();
-          best_indexes.push_back(make_pair(g_index, c_index));
-        }
-      }
-    }
-    LOG_INFO << "Best cross-validation performance: " 
-             << float(best_value * 100.0) << "% correct" << endl;
-    if (best_indexes.size() == 1)
-    {
-      return make_pair(log2_C[best_indexes[0].second],
-                       log2_gamma[best_indexes[0].first]);
-    }
-    // break ties between parameter sets - look at "neighboring" parameters:
-    multimap<pair<double, Size>, Size> tiebreaker;
-    for (Size i = 0; i < best_indexes.size(); ++i)
-    {
-      const pair<Size, Size>& indexes = best_indexes[i];
-      Size n_neighbors = 0;
-      double neighbor_value = 0.0;
-      if (indexes.first > 0)
-      {
-        neighbor_value += performance[indexes.first - 1][indexes.second];
-        ++n_neighbors;
-      }
-      if (indexes.first + 1 < log2_gamma.size())
-      {
-        neighbor_value += performance[indexes.first + 1][indexes.second];
-        ++n_neighbors;
-      }
-      if (indexes.second > 0)
-      {
-        neighbor_value += performance[indexes.first][indexes.second - 1];
-        ++n_neighbors;
-      }
-      if (indexes.second + 1 < log2_C.size())
-      {
-        neighbor_value += performance[indexes.first][indexes.second + 1];
-        ++n_neighbors;
-      }
-      neighbor_value /= n_neighbors; // avg. performance of neighbors
-      tiebreaker.insert(make_pair(make_pair(neighbor_value, n_neighbors), i));
-    }
-    const pair<Size, Size>& indexes = best_indexes[tiebreaker.rbegin()->second];
-    return make_pair(log2_C[indexes.second], log2_gamma[indexes.first]);
-  }
-
-
-  void optimizeSVMParams_(struct svm_problem& svm_data,
-                          struct svm_parameter& svm_params)
-  {
-    vector<double> log2_C = getDoubleList_("svm:log2_C");
-    vector<double> log2_gamma;
-    if (svm_params.kernel_type == RBF)
-    {
-      log2_gamma = getDoubleList_("svm:log2_gamma");
-    }
-    else
-    {
-      log2_gamma.push_back(0.0);
-    }
-
-    LOG_INFO << "Running cross-validation to find optimal SVM parameters..."
-             << endl;
-    Size prog_counter = 0;
-    prog_log_.startProgress(1, log2_gamma.size() * log2_C.size(),
-                            "testing SVM parameters");
-    // classification performance for different parameter pairs:
-    SVMPerformance performance(log2_gamma.size());
-    // vary "C"s in inner loop to keep results for all "C"s in one vector:
-    for (Size g_index = 0; g_index < log2_gamma.size(); ++g_index)
-    {
-      svm_params.gamma = pow(2.0, log2_gamma[g_index]);
-      performance[g_index].resize(log2_C.size());
-      for (Size c_index = 0; c_index < log2_C.size(); ++c_index)
-      {
-        svm_params.C = pow(2.0, log2_C[c_index]);
-        vector<double> targets(svm_data.l);
-        svm_cross_validation(&svm_data, &svm_params, n_parts_, &(targets[0]));
-        Size n_correct = 0;
-        for (Size i = 0; i < Size(svm_data.l); ++i)
-        {
-          if (targets[i] == svm_data.y[i]) n_correct++;
-        }
-        double ratio = n_correct / double(svm_data.l);
-        performance[g_index][c_index] = ratio;
-        prog_log_.setProgress(++prog_counter);
-        LOG_DEBUG << "Performance (log2_C = " << log2_C[c_index]
-                  << ", log2_gamma = " << log2_gamma[g_index] << "): "
-                  << n_correct << " correct (" << float(ratio * 100.0) << "%)"
-                  << endl;
-      }
-    }
-    prog_log_.endProgress();
-
+    SimpleSVM svm;
+    Param svm_params = getParam_().copy("svm:", true);
+    svm_params.remove("unbiased");
+    svm_params.remove("xval_out");
+    svm.setParameters(svm_params);
+    svm.setup(predictors, training_labels);
     String xval_out = getStringOption_("svm:xval_out");
-    if (!xval_out.empty())
-    {
-      writeXvalResults_(xval_out, performance, log2_C, log2_gamma);
-    }
-    
-    pair<double, double> best_params = chooseBestSVMParams_(performance, log2_C,
-                                                            log2_gamma);
-    LOG_INFO << "Best SVM parameters: log2_C = " << best_params.first
-             << ", log2_gamma = " << best_params.second << endl;
-
-    svm_params.C = pow(2.0, best_params.first);
-    svm_params.gamma = pow(2.0, best_params.second);
-  }
-
-
-  static void printNull_(const char*) {} // to suppress LIBSVM output
-
-
-  void classifyFeatures_(FeatureMap& features)
-  {
-    vector<double> labels(features.size());
-    vector<double> intensities(features.size()); // feature intensities
-    for (Size feat_index = 0; feat_index < features.size(); ++feat_index)
-    {
-      intensities[feat_index] = features[feat_index].getIntensity();
-      String feature_class = features[feat_index].getMetaValue("feature_class");
-      if (feature_class == "true_positive") labels[feat_index] = 1.0;
-      else if (feature_class == "unknown") labels[feat_index] = -1.0;
-      else if (feature_class == "ambiguous") labels[feat_index] = 0.5;
-      // else labels[feat_index] = 0.0; // "false_positive", zero is default
-    }
-
-    vector<String> predictors = ListUtils::create<String>(score_metavalues_);
-    // values for all featues per predictor (this way around to simplify scaling
-    // of predictors):
-    vector<vector<double> > predictor_values(predictors.size());
-    for (Size pred_index = 0; pred_index < predictors.size(); ++pred_index)
-    {
-      const String& metavalue = predictors[pred_index];
-      predictor_values[pred_index].resize(features.size());
-      for (Size feat_index = 0; feat_index < features.size(); ++feat_index)
-      {
-        if (!features[feat_index].metaValueExists(metavalue))
-        {
-          LOG_ERROR << "Metavalue '" << metavalue 
-                    << "' missing for feature '"
-                    << features[feat_index].getUniqueId() << " (index " 
-                    << feat_index << ")" << endl;
-          predictor_values[pred_index].clear();
-          break;
-        }
-        predictor_values[pred_index][feat_index] = 
-          double(features[feat_index].getMetaValue(metavalue));
-      }
-    }
-
-    scaleSVMData_(predictor_values, predictors);
-
-    vector<vector<struct svm_node> > svm_nodes;
-    convertSVMData_(predictor_values, svm_nodes);
-
-    struct svm_problem svm_data;
-    getTrainingSample_(labels, intensities, svm_nodes, svm_data);
-    
-    struct svm_parameter svm_params;
-    svm_params.svm_type = C_SVC;
-    String kernel = getStringOption_("svm:kernel");
-    svm_params.kernel_type = (kernel == "RBF") ? RBF : LINEAR;
-    svm_params.eps = 0.001;
-    svm_params.cache_size = 100.0;
-    svm_params.nr_weight = 0; // use weighting of unbalanced classes?
-    svm_params.shrinking = 1; // use shrinking heuristics?
-    svm_params.probability = 1;
-
-    svm_set_print_string_function(&printNull_); // suppress output of LIBSVM
-    optimizeSVMParams_(svm_data, svm_params);
-
-    // train SVM on the full dataset:
-    struct svm_model* model = svm_train(&svm_data, &svm_params);
-    // obtain predictions for all features (including those used for training):
-    double probs[2];
+    if (!xval_out.empty()) svm.writeXvalResults(xval_out);
+    vector<SimpleSVM::Prediction> predictions;
+    svm.predict(predictions);
+    OPENMS_POSTCONDITION(predictions.size() == features.size(), 
+                         "SVM predictions for all features expected");
     for (Size i = 0; i < features.size(); ++i)
     {
-      Int pred = Int(svm_predict_probability(model, &(svm_nodes[i][0]), probs));
-      features[i].setMetaValue("predicted_class", pred);
-      features[i].setMetaValue("predicted_probability", probs[0]);
-      features[i].setOverallQuality(probs[0]); // @TODO: is this a good idea?
+      features[i].setMetaValue("predicted_class", predictions[i].label);
+      double prob_positive = predictions[i].probabilities[1];
+      features[i].setMetaValue("predicted_probability", prob_positive);
+      features[i].setOverallQuality(prob_positive);
     }
-    
-    svm_free_model_content(model);
-    // free memory reserved in function "getTrainingSample_":
-    delete[] svm_data.y;
-    delete[] svm_data.x;
   }
 
 
