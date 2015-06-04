@@ -55,6 +55,8 @@ namespace OpenMS
      The parameter @p labels of setup() defines the training set; it contains the indexes of observations (corresponding to positions in the vectors in @p predictors) together with the class labels for training.
      
      To predict class labels based on a model, use the predict() method. The parameter @p indexes of predict() takes a vector of indexes corresponding to the observations for which predictions should be made. (With an empty vector, the default, predictions are made for all observations, including those used for training.)
+
+     @htmlinclude OpenMS_SimpleSVM.parameters
   */
   class OPENMS_DLLAPI SimpleSVM :
     public DefaultParamHandler

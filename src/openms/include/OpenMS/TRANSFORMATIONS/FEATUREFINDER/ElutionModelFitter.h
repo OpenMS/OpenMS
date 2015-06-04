@@ -44,6 +44,8 @@ namespace OpenMS
 {
   /**
      @brief Helper class for fitting elution models to features
+
+     @htmlinclude OpenMS_ElutionModelFitter.parameters
   */
   class OPENMS_DLLAPI ElutionModelFitter :
     public DefaultParamHandler
