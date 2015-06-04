@@ -121,6 +121,21 @@ namespace OpenMS
     }
   }
 
+//  bool ControlledVocabulary::CVTerm::isSearchEngineSpecificScore()
+//  { //maybe unsafe?
+//    if (this->parents.find("MS:1001143")!=this->parents.end()) return true;
+//    return false;
+//  }
+
+  bool ControlledVocabulary::CVTerm::isHigherBetterScore() const
+  {
+    for (StringList::const_iterator unp = this->unparsed.begin(); unp != this->unparsed.end(); ++unp)
+    {
+      if (unp->hasPrefix("relationship: has_order MS:1002108")) return true;
+    }
+    return false;
+  }
+
   String ControlledVocabulary::CVTerm::toXMLString(const OpenMS::String& ref, const String& value) const
   {
     String s =  "<cvParam accession=\"" + id + "\" cvRef=\"" + ref + "\" name=\"" + name;

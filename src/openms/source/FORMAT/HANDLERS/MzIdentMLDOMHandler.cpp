@@ -71,8 +71,8 @@ namespace OpenMS
       schema_version_(version),
       mzid_parser_()
     {
-      cv_.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
       unimod_.loadFromOBO("UNIMOD", File::find("/CV/unimod.obo"));
+      cv_.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
 
       try
       {
@@ -1218,10 +1218,12 @@ namespace OpenMS
       long double score = 0;
       pair<CVTermList, map<String, DataValue> > params = parseParamGroup_(spectrumIdentificationItemElement->getChildNodes());
       set<String> q_score_terms;
-      set<String> e_score_terms;
+      set<String> e_score_terms,e_score_tmp;
       set<String> specific_score_terms;
       cv_.getAllChildTerms(q_score_terms, "MS:1002354"); //q-value for peptides
-      cv_.getAllChildTerms(e_score_terms, "MS:1001872"); //E-value for peptides
+      cv_.getAllChildTerms(e_score_terms, "MS:1001872");
+      cv_.getAllChildTerms(e_score_tmp, "MS:1002353");
+      e_score_terms.insert(e_score_tmp.begin(),e_score_tmp.end()); //E-value for peptides
       cv_.getAllChildTerms(specific_score_terms, "MS:1001143"); //search engine specific score for PSMs
       bool scoretype = false;
       for (map<String, vector<OpenMS::CVTerm> >::const_iterator scoreit = params.first.getCVTerms().begin(); scoreit != params.first.getCVTerms().end(); ++scoreit)
@@ -1248,7 +1250,7 @@ namespace OpenMS
         else if (specific_score_terms.find(scoreit->first) != specific_score_terms.end() || scoreit->first == "MS:1001143")
         {
           score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
-          spectrum_identification.setHigherScoreBetter(true);
+          spectrum_identification.setHigherScoreBetter(cv_.getTerm(scoreit->first).isHigherBetterScore());
           spectrum_identification.setScoreType(scoreit->second.front().getName());
           scoretype = true;
         }

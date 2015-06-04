@@ -76,6 +76,8 @@ public:
       };
 
       static String getXRefTypeName(XRefType type);
+      //bool isSearchEngineSpecificScore();
+      bool isHigherBetterScore() const; ///if it is a score type, lookup has_order
 
       String name; ///< Text name
       String id; ///< Identifier
