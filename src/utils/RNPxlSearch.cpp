@@ -768,6 +768,7 @@ private:
 
           vector<Size> site_determining_ions_present(aas.size(),0);
           vector<Size> number_of_site_determining_ions(aas.size(),0);
+          vector<Size> sites_sum_score(aas.size(), 0);
 
           // annotate partial loss peaks
           for (Size i = 0; i != theoretical_spectra.size(); ++i)
@@ -871,45 +872,90 @@ private:
                 current_hit_detail.peaks.push_back(r);                
               }
             }
-            cout << "Smallest shifted b/y ion: " << smallest_shifted_b_ion << "/" << smallest_shifted_y_ion << endl;
-            Size region_start(0), region_end(0);
-            region_start = smallest_shifted_b_ion == aas.size() ? 0 : smallest_shifted_b_ion;
-            region_end = aas.size() - smallest_shifted_y_ion + 1;
+
+            #ifdef DEBUG_RNPXLSEARCH
+              cout << "Smallest shifted b/y ion: " << smallest_shifted_b_ion << "/" << smallest_shifted_y_ion << endl;
+            #endif
+            Size region_start(0), region_end(aas.size()-1);
+
+            if ((smallest_shifted_b_ion - 1) != aas.size())
+            {
+              region_start = smallest_shifted_b_ion - 1;
+            }
+            else
+            {
+              region_start = aas.size() - 1;
+            }
+
+            if ((smallest_shifted_y_ion - 1) != aas.size())
+            {
+              region_end = aas.size() - smallest_shifted_y_ion;
+            }
+            else
+            {
+              region_end = 0;
+            }
 
             if (region_start > region_end) std::swap(region_start, region_end);
 
-            cout << "Localisation based on ion-series: " << region_start << "-" << region_end << " shifted b/y ions: " << supporting_b_ions << "/" << supporting_y_ions << endl;
+            #ifdef DEBUG_RNPXLSEARCH
+              cout << "Localisation based on ion-series: " << region_start << "-" << region_end << " shifted b/y ions: " << supporting_b_ions << "/" << supporting_y_ions << endl;
+            #endif
 
             // set region from ion series sites to candidate
             vector<Size> sites(aas.size(), 0);
-            cout << "Localisation based on immonium ions: ";
+            #ifdef DEBUG_RNPXLSEARCH
+              cout << "Localisation based on immonium ions: ";
+            #endif
             String aas_unmodified = aas.toUnmodifiedString();
             for (Size i = 0; i != aas_unmodified.size(); ++i)
             {
               String origin = String(aas_unmodified[i]);
               if (observed_immonium_ions.find(origin) != observed_immonium_ions.end())
               {                                
-                cout << i+1 << " ";
+                #ifdef DEBUG_RNPXLSEARCH
+                  cout << i+1 << " ";
+                #endif
                 ++sites[i];  // support from immonium ion
               }
             }
             cout << endl;
 
-            for (Size i = region_start - 1; i <= region_end - 1; ++i) ++sites[i];  // support from b/y ions
+            for (Size i = region_start; i <= region_end; ++i) ++sites[i];  // support from b/y ions
 
-            cout << "Localisation based on ion series and immonium ions: ";
-            Size max_support = 0;
+            #ifdef DEBUG_RNPXLSEARCH
+              cout << "Localisation based on ion series and immonium ions: ";
+              Size max_support = 0;
+              for (Size i = 0; i != sites.size(); ++i)
+              {
+                if (sites[i] > max_support) max_support = sites[i];
+              }
+              for (Size i = 0; i != sites.size(); ++i)
+              {
+                if (sites[i] == max_support) cout << i+1 << " ";
+              }
+              cout << endl;
+            #endif
+
+            // sum up score            
             for (Size i = 0; i != sites.size(); ++i)
             {
-              if (sites[i] > max_support) max_support = sites[i];
+              sites_sum_score[i] += sites[i];
             }
-
-            for (Size i = 0; i != sites.size(); ++i)
-            {
-              if (sites[i] == max_support) cout << i+1 << " ";
-            }
-            cout << endl;
           }
+
+          cout << "Localisation based on ion series and immonium ions of all possible fragments: ";
+          Size max_support = 0;
+          for (Size i = 0; i != sites_sum_score.size(); ++i)
+          {
+            //cout << sites_sum_score[i] << ",";
+            if (sites_sum_score[i] > max_support) max_support = sites_sum_score[i];
+          }
+          for (Size i = 0; i != sites_sum_score.size(); ++i)
+          {
+            if (sites_sum_score[i] == max_support) cout << i+1 << " ";
+          }
+          cout << endl;
 
           // store score of current localization
           a_it->localization_score = best_localization_score.second;
