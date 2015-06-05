@@ -82,7 +82,7 @@ namespace OpenMS
   }
 
 
-  vector<vector<Size> > PScore::calculateRankMap(const PeakMap& peak_map, double mz_window = 100)
+  vector<vector<Size> > PScore::calculateRankMap(const PeakMap& peak_map, double mz_window)
   {
     vector<std::vector<Size> > rank_map;
     rank_map.reserve(peak_map.size());
@@ -101,7 +101,7 @@ namespace OpenMS
     return rank_map;
   }
 
-  map<Size, MSSpectrum<Peak1D> > PScore::calculatePeakLevelSpectra(const PeakSpectrum& spec, const vector<Size>& ranks, Size min_level = 2, Size max_level = 10)
+  map<Size, PeakSpectrum > PScore::calculatePeakLevelSpectra(const PeakSpectrum& spec, const vector<Size>& ranks, Size min_level, Size max_level)
   {
     map<Size, MSSpectrum<Peak1D> > peak_level_spectra;
 
@@ -128,7 +128,7 @@ namespace OpenMS
     return peak_level_spectra;
   }
 
-  double PScore::computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const map<Size, PeakSpectrum>& peak_level_spectra, const vector<RichPeakSpectrum> & theo_spectra, double mz_window = 100.0)
+  double PScore::computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const map<Size, PeakSpectrum>& peak_level_spectra, const vector<RichPeakSpectrum> & theo_spectra, double mz_window)
   {
     AScore a_score_algorithm; // TODO: make the cumulative score function static
 
@@ -171,6 +171,52 @@ namespace OpenMS
         {
           best_pscore = pscore;
         }
+      }
+    }
+
+    return best_pscore;
+  }
+
+  double PScore::computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const map<Size, PeakSpectrum>& peak_level_spectra, const RichPeakSpectrum & theo_spectrum, double mz_window)
+  {
+    AScore a_score_algorithm; // TODO: make the cumulative score function static
+
+    double best_pscore = 0.0;
+
+    // number of theoretical ions for current spectrum
+    Size N = theo_spectrum.size();
+
+    for (map<Size, PeakSpectrum>::const_iterator l_it = peak_level_spectra.begin(); l_it != peak_level_spectra.end(); ++l_it)
+    {
+      const double level = static_cast<double>(l_it->first);
+      const PeakSpectrum& exp_spectrum = l_it->second;
+
+      Size matched_peaks(0);
+      for (RichPeakSpectrum::ConstIterator theo_peak_it = theo_spectrum.begin(); theo_peak_it != theo_spectrum.end(); ++theo_peak_it)
+      {
+        const double& theo_mz = theo_peak_it->getMZ();
+
+        double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
+
+        // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
+        Size index = exp_spectrum.findNearest(theo_mz);
+        double exp_mz = exp_spectrum[index].getMZ();
+
+        // found peak match
+        if (std::abs(theo_mz - exp_mz) < max_dist_dalton)
+        {
+          ++matched_peaks;
+        }
+      }
+
+      // compute p score as e.g. in the AScore implementation or Andromeda
+      const double p = level / mz_window;
+      const double pscore = -10.0 * log10(a_score_algorithm.computeCumulativeScore(N, matched_peaks, p));
+
+      std::cout << "level: " << level << " score: " << pscore << " matched peaks: " << matched_peaks << std::endl;
+      if (pscore > best_pscore)
+      {
+        best_pscore = pscore;
       }
     }
 

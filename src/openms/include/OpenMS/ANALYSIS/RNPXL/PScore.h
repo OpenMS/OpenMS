@@ -47,16 +47,19 @@ struct OPENMS_DLLAPI PScore
   static std::vector<Size> calculateIntensityRankInMZWindow(const std::vector<double>& mz, const std::vector<double>& intensities, double mz_window);
 
   // used to precalculate peak ranks for a whole experiment using the calculateIntensityRankInMZWindow function
-  static std::vector<std::vector<Size> > calculateRankMap(const PeakMap& peak_map, double mz_window);
+  static std::vector<std::vector<Size> > calculateRankMap(const PeakMap& peak_map, double mz_window = 100);
 
   // Calculates spectra for peak level between min_level to max_level and stores them in the map
   // A spectrum of peak level n retains the top n intensity peaks in a sliding mz_window centered at each peak
   // min and max level are taken from the Andromeda publication but are similar to the AScore publication
-  static std::map<Size, MSSpectrum<Peak1D> > calculatePeakLevelSpectra(const PeakSpectrum& spec, const std::vector<Size>& ranks, Size min_level, Size max_level);
+  static std::map<Size, PeakSpectrum > calculatePeakLevelSpectra(const PeakSpectrum& spec, const std::vector<Size>& ranks, Size min_level = 2, Size max_level = 10);
 
   // Similar to Andromeda, a vector of theoretical spectra can be provided that e.g. contain loss spectra or higher charge spectra depending on the sequence
   // The best score obtained by scoring all those theoretical spectra against the experimental ones is returned.
-  static double computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const std::map<Size, PeakSpectrum>& peak_level_spectra, const std::vector<RichPeakSpectrum>& theo_spectra, double mz_window);
+  static double computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const std::map<Size, PeakSpectrum>& peak_level_spectra, const std::vector<RichPeakSpectrum>& theo_spectra, double mz_window = 100.0);
+
+  // Single spectrum version of above
+  static double computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const std::map<Size, PeakSpectrum>& peak_level_spectra, const RichPeakSpectrum& theo_spectrum, double mz_window = 100.0);
 
   // additive correction terms used by Andromeda (pscore + massC + cleaveC + modC - 100)
   static double massCorrectionTerm(double mass);

@@ -48,6 +48,7 @@
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlReport.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlMarkerIonExtractor.h>
 #include <OpenMS/ANALYSIS/RNPXL/HyperScore.h>
+#include <OpenMS/ANALYSIS/RNPXL/PScore.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
@@ -491,6 +492,9 @@ private:
 
   void postScoreHits_(const PeakMap& exp, vector<vector<AnnotatedHit> >& annotated_hits, Size top_hits, const RNPxlModificationMassesResult& mm, const vector<ResidueModification>& fixed_modifications, const vector<ResidueModification>& variable_modifications, Size max_variable_mods_per_peptide, TheoreticalSpectrumGenerator spectrum_generator, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm)
   {
+    // for pscore calculation only
+    vector<vector<Size> > rank_map = PScore::calculateRankMap(exp);
+
     Param ps = spectrum_generator.getParameters();
     ps.setValue("add_metainfo", "true", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
     spectrum_generator.setParameters(ps);
@@ -575,7 +579,8 @@ private:
           // generate total loss spectrum
           RichPeakSpectrum total_loss_spectrum;
           spectrum_generator.getSpectrum(total_loss_spectrum, aas, 1);
-          
+          total_loss_spectrum.sortByPosition();          
+ 
           // generate all partial loss spectra (excluding the complete loss spectrum)
           vector<RichPeakSpectrum> theoretical_spectra;
           for (Size i = 0; i != all_loss_peptides.size(); ++i)
@@ -588,11 +593,91 @@ private:
             // add fragment peak
             RichPeak1D RNA_fragment_peak;
             RNA_fragment_peak.setIntensity(1.0);
-            RNA_fragment_peak.setMZ(all_loss_peptides_mod_pos[i][0].second.getDiffMonoMass() + Constants::PROTON_MASS_U); // there is exactly one RNA fragment modification for the partial loss spectra
-            RNA_fragment_peak.setMetaValue("IonName", String("RNA:") + all_loss_peptides_mod_pos[i][0].second.getFullId());
+            RNA_fragment_peak.setMZ(all_loss_peptides_mod_pos[i][0].second.getDiffMonoMass() + Constants::PROTON_MASS_U); // there is exactly one RNA fragment modification that we added to this partial loss spectrum. So get the modification and mass to calculate the RNA peak mass.
+            RNA_fragment_peak.setMetaValue("IonName", all_loss_peptides_mod_pos[i][0].second.getFullId());  // add name (e.g. RNA:U-H2O)
             partial_loss_spectrum.push_back(RNA_fragment_peak);
             //cout << all_loss_peptides_mod_pos[i][0].second.getFullId() << " " << all_loss_peptides_mod_pos[i][0].second.getDiffMonoMass() << endl;
+
+            // RNA is cross-linked to amino acid that gives rise to immonium ions? Then add the shifted immonium peak
+            String origin = all_loss_peptides_mod_pos[i][0].second.getOrigin();
+
+            if (origin == "Y")
+            {
+              RichPeak1D RNA_fragment_peak;
+              RNA_fragment_peak.setIntensity(1.0);
+              RNA_fragment_peak.setMZ(EmpiricalFormula("C8H10NO").getMonoWeight() + all_loss_peptides_mod_pos[i][0].second.getDiffMonoMass()); // there is exactly one RNA fragment modification that we added to this partial loss spectrum. So get the modification and mass to calculate the RNA peak mass.
+              RNA_fragment_peak.setMetaValue("IonName", String("iY + ") + all_loss_peptides_mod_pos[i][0].second.getFullId());
+              //cout << "Adding immonium ion: " << EmpiricalFormula("C8H10NO").getMonoWeight() + all_loss_peptides_mod_pos[i][0].second.getDiffMonoMass() << " " << all_loss_peptides_mod_pos[i][0].second.getFullId() << endl;
+              partial_loss_spectrum.push_back(RNA_fragment_peak);             
+            }
+            else if (origin == "W")
+            {
+              RichPeak1D RNA_fragment_peak;
+              RNA_fragment_peak.setIntensity(1.0);
+              RNA_fragment_peak.setMZ(EmpiricalFormula("C10H11N2").getMonoWeight() + all_loss_peptides_mod_pos[i][0].second.getDiffMonoMass()); // there is exactly one RNA fragment modification that we added to this partial loss spectrum. So get the modification and mass to calculate the RNA peak mass.
+              RNA_fragment_peak.setMetaValue("IonName", String("iW + ") + all_loss_peptides_mod_pos[i][0].second.getFullId());
+              partial_loss_spectrum.push_back(RNA_fragment_peak);             
+            }
+            else if (origin == "F")
+            {
+              RichPeak1D RNA_fragment_peak;
+              RNA_fragment_peak.setIntensity(1.0);
+              RNA_fragment_peak.setMZ(EmpiricalFormula("C8H10N").getMonoWeight() + all_loss_peptides_mod_pos[i][0].second.getDiffMonoMass()); // there is exactly one RNA fragment modification that we added to this partial loss spectrum. So get the modification and mass to calculate the RNA peak mass.
+              RNA_fragment_peak.setMetaValue("IonName", String("iF + ") + all_loss_peptides_mod_pos[i][0].second.getFullId());
+              partial_loss_spectrum.push_back(RNA_fragment_peak);             
+            }
+            else if (origin == "H")
+            {
+              RichPeak1D RNA_fragment_peak;
+              RNA_fragment_peak.setIntensity(1.0);
+              RNA_fragment_peak.setMZ(EmpiricalFormula("C5H8N3").getMonoWeight() + all_loss_peptides_mod_pos[i][0].second.getDiffMonoMass()); // there is exactly one RNA fragment modification that we added to this partial loss spectrum. So get the modification and mass to calculate the RNA peak mass.
+              RNA_fragment_peak.setMetaValue("IonName", String("iH + ") + all_loss_peptides_mod_pos[i][0].second.getFullId());
+              partial_loss_spectrum.push_back(RNA_fragment_peak);             
+            }
+            else if (origin == "C")
+            {
+              RichPeak1D RNA_fragment_peak;
+              RNA_fragment_peak.setIntensity(1.0);
+              RNA_fragment_peak.setMZ(EmpiricalFormula("C2H6NS").getMonoWeight() + all_loss_peptides_mod_pos[i][0].second.getDiffMonoMass()); // there is exactly one RNA fragment modification that we added to this partial loss spectrum. So get the modification and mass to calculate the RNA peak mass.
+              RNA_fragment_peak.setMetaValue("IonName", String("iC + ") + all_loss_peptides_mod_pos[i][0].second.getFullId());
+              partial_loss_spectrum.push_back(RNA_fragment_peak);             
+            }
+            else if (origin == "P")
+            {
+              RichPeak1D RNA_fragment_peak;
+              RNA_fragment_peak.setIntensity(1.0);
+              RNA_fragment_peak.setMZ(EmpiricalFormula("C4H8N").getMonoWeight() + all_loss_peptides_mod_pos[i][0].second.getDiffMonoMass()); // there is exactly one RNA fragment modification that we added to this partial loss spectrum. So get the modification and mass to calculate the RNA peak mass.
+              RNA_fragment_peak.setMetaValue("IonName", String("iP + ") + all_loss_peptides_mod_pos[i][0].second.getFullId());
+              partial_loss_spectrum.push_back(RNA_fragment_peak);             
+            }
+            else if (origin == "L" || origin =="I")
+            {
+              RichPeak1D RNA_fragment_peak;
+              RNA_fragment_peak.setIntensity(1.0);
+              RNA_fragment_peak.setMZ(EmpiricalFormula("C5H12N").getMonoWeight() + all_loss_peptides_mod_pos[i][0].second.getDiffMonoMass()); // there is exactly one RNA fragment modification that we added to this partial loss spectrum. So get the modification and mass to calculate the RNA peak mass.
+              RNA_fragment_peak.setMetaValue("IonName", String("iL/I + ") + all_loss_peptides_mod_pos[i][0].second.getFullId());
+              partial_loss_spectrum.push_back(RNA_fragment_peak);             
+            }
+ 
             partial_loss_spectrum.sortByPosition();
+
+            // merge in peaks of total loss spectrum into the partial loss spectrum (but only if not already contained)
+            // If these are not added the scoring is biased to longer ion series without shifts
+            for (Size k = 0; k != total_loss_spectrum.size(); ++k)
+            {
+              double mz = total_loss_spectrum[k].getMZ();
+              Size pi = partial_loss_spectrum.findNearest(mz);
+              double pmz = partial_loss_spectrum[pi].getMZ();
+
+              // found no approx. exact peak match
+              if (std::abs(mz - pmz) > 1e-4)
+              {
+                partial_loss_spectrum.push_back(total_loss_spectrum[k]);
+              }
+            }
+
+            partial_loss_spectrum.sortByPosition();
+
             theoretical_spectra.push_back(partial_loss_spectrum);        
           }
 
@@ -606,7 +691,13 @@ private:
             #ifdef DEBUG_RNPXLSEARCH
               cout << "Scoring: "  << all_loss_peptides[i].toString() << endl;
             #endif
-            const double score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum);
+            // use hyperscore
+            //const double score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum);
+
+            // use PScore
+            const vector<Size>& ranks = rank_map[scan_index];
+            map<Size, MSSpectrum<Peak1D> > peak_level_spectra = PScore::calculatePeakLevelSpectra(exp_spectrum, ranks);
+            const double score = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra, theo_spectrum);
             partial_loss_scores.push_back(score);
           }
 
@@ -675,6 +766,9 @@ private:
             }
           }
 
+          vector<Size> site_determining_ions_present(aas.size(),0);
+          vector<Size> number_of_site_determining_ions(aas.size(),0);
+
           // annotate partial loss peaks
           for (Size i = 0; i != theoretical_spectra.size(); ++i)
           {
@@ -685,9 +779,17 @@ private:
 
             if (alignment.empty()) continue;
             bool has_one_shifted_match = false;
+
+            // smallest b/y ion with RNA shift
+            Size smallest_shifted_b_ion = aas.size();
+            Size smallest_shifted_y_ion = aas.size();
+
+            Size supporting_b_ions(0), supporting_y_ions(0);
+            set<String> observed_immonium_ions;
+
             for (vector<std::pair<Size, Size> >::const_iterator pair_it = alignment.begin(); pair_it != alignment.end(); ++pair_it)
             {
-              // only annotate experimental peak if not annotated as complete loss peak
+              // only annotate experimental peak if not annotated as complete loss peak (e.g. b and y ions without shift)
               if (peak_is_annotated.find(pair_it->second) != peak_is_annotated.end())
               {
                 continue;
@@ -708,6 +810,8 @@ private:
                 const AASequence& peptide_sequence = all_loss_peptides[i].getSuffix(ion_number);
                 if (peptide_sequence.isModified())
                 {
+                  if (ion_number < smallest_shifted_y_ion) smallest_shifted_y_ion = ion_number;
+                  ++supporting_y_ions;
                   if (!has_one_shifted_match) 
                   {
                     cout << "Annotating ion: " << all_loss_peptides[i].toString()  << endl;
@@ -728,6 +832,8 @@ private:
                 const AASequence& peptide_sequence = all_loss_peptides[i].getPrefix(ion_number);
                 if (peptide_sequence.isModified())
                 {
+                  ++supporting_b_ions;
+                  if (ion_number < smallest_shifted_b_ion) smallest_shifted_b_ion = ion_number;
                   if (!has_one_shifted_match) 
                   {
                     cout << "Annotating ion: " << all_loss_peptides[i].toString()  << endl;
@@ -741,13 +847,69 @@ private:
               }
               else if (ion_name.hasPrefix("RNA:"))
               {
+                if (!has_one_shifted_match) 
+                {
+                  cout << "Annotating ion: " << all_loss_peptides[i].toString()  << endl;
+                  has_one_shifted_match = true;
+                }
+                cout << "Annotating ion: " << ion_name << " at position: " << r.getMZ() << " intensity: " << 100.0 * r.getIntensity() << endl;
+                r.setMetaValue("IonName", ion_name);
+                current_hit_detail.peaks.push_back(r);                
+              }
+              else if (ion_name.hasPrefix("i"))
+              {
+                String ion_nr_string = ion_name;
+                String origin = ion_name[1];  // type of immonium ion
+                observed_immonium_ions.insert(origin);
+                if (!has_one_shifted_match) 
+                {
+                  cout << "Annotating ion: " << all_loss_peptides[i].toString()  << endl;
+                  has_one_shifted_match = true;
+                }
                 cout << "Annotating ion: " << ion_name << " at position: " << r.getMZ() << " intensity: " << 100.0 * r.getIntensity() << endl;
                 r.setMetaValue("IonName", ion_name);
                 current_hit_detail.peaks.push_back(r);                
               }
             }
-          }
+            cout << "Smallest shifted b/y ion: " << smallest_shifted_b_ion << "/" << smallest_shifted_y_ion << endl;
+            Size region_start(0), region_end(0);
+            region_start = smallest_shifted_b_ion == aas.size() ? 0 : smallest_shifted_b_ion;
+            region_end = aas.size() - smallest_shifted_y_ion + 1;
 
+            if (region_start > region_end) std::swap(region_start, region_end);
+
+            cout << "Localisation based on ion-series: " << region_start << "-" << region_end << " shifted b/y ions: " << supporting_b_ions << "/" << supporting_y_ions << endl;
+
+            // set region from ion series sites to candidate
+            vector<Size> sites(aas.size(), 0);
+            cout << "Localisation based on immonium ions: ";
+            String aas_unmodified = aas.toUnmodifiedString();
+            for (Size i = 0; i != aas_unmodified.size(); ++i)
+            {
+              String origin = String(aas_unmodified[i]);
+              if (observed_immonium_ions.find(origin) != observed_immonium_ions.end())
+              {                                
+                cout << i+1 << " ";
+                ++sites[i];  // support from immonium ion
+              }
+            }
+            cout << endl;
+
+            for (Size i = region_start - 1; i <= region_end - 1; ++i) ++sites[i];  // support from b/y ions
+
+            cout << "Localisation based on ion series and immonium ions: ";
+            Size max_support = 0;
+            for (Size i = 0; i != sites.size(); ++i)
+            {
+              if (sites[i] > max_support) max_support = sites[i];
+            }
+
+            for (Size i = 0; i != sites.size(); ++i)
+            {
+              if (sites[i] == max_support) cout << i+1 << " ";
+            }
+            cout << endl;
+          }
 
           // store score of current localization
           a_it->localization_score = best_localization_score.second;

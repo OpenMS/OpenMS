@@ -161,6 +161,7 @@ namespace OpenMS
       addAbundantImmoniumIons(spec, peptide);
     }
 
+    spec.sortByPosition();
     return;
   }
 
