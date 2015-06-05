@@ -921,7 +921,11 @@ private:
             }
             cout << endl;
 
-            for (Size i = region_start; i <= region_end; ++i) ++sites[i];  // support from b/y ions
+            // check if some support from b/y ions series
+            if (region_start != 0 || region_end != (aas.size() - 1))
+            {         
+              for (Size i = region_start; i <= region_end; ++i) ++sites[i];  // support from b/y ions
+            }
 
             #ifdef DEBUG_RNPXLSEARCH
               cout << "Localisation based on ion series and immonium ions: ";
@@ -932,7 +936,7 @@ private:
               }
               for (Size i = 0; i != sites.size(); ++i)
               {
-                if (sites[i] == max_support) cout << i+1 << " ";
+                if (max_support != 0 && sites[i] == max_support) cout << i+1 << " ";
               }
               cout << endl;
             #endif
@@ -944,16 +948,20 @@ private:
             }
           }
 
-          cout << "Localisation based on ion series and immonium ions of all possible fragments: ";
           Size max_support = 0;
+          cout << "Sum score: ";
           for (Size i = 0; i != sites_sum_score.size(); ++i)
           {
-            //cout << sites_sum_score[i] << ",";
+            #ifdef DEBUG_RNPXLSEARCH
+            cout << sites_sum_score[i] << ",";
+            #endif
             if (sites_sum_score[i] > max_support) max_support = sites_sum_score[i];
           }
+          cout << endl;
+          cout << "Localisation based on ion series and immonium ions of all possible fragments: ";
           for (Size i = 0; i != sites_sum_score.size(); ++i)
           {
-            if (sites_sum_score[i] == max_support) cout << i+1 << " ";
+            if (max_support != 0 && sites_sum_score[i] == max_support) cout << i+1 << " ";
           }
           cout << endl;
 
