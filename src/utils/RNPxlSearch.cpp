@@ -562,6 +562,9 @@ private:
           // generate all RNA fragment modified sequences (already modified (e.g. Oxidation) residues are skipped. The complete loss one is not included (false) as it was already scored) 
           ModifiedPeptideGenerator::applyVariableModifications(partial_loss_modifications.begin(), partial_loss_modifications.end(), aas, 1, all_loss_peptides, false);
 
+          vector<ModifiedPeptideGenerator::PositionModificationPairs> all_loss_peptides_mod_pos;
+          ModifiedPeptideGenerator::getVariableModificationsIndices(partial_loss_modifications.begin(), partial_loss_modifications.end(), aas, 1, all_loss_peptides_mod_pos, false);
+
           #ifdef DEBUG_RNPXLSEARCH
             for (Size i = 0; i != all_loss_peptides.size(); ++i)
             {
@@ -569,12 +572,26 @@ private:
             }
           #endif
 
+          // generate total loss spectrum
+          RichPeakSpectrum total_loss_spectrum;
+          spectrum_generator.getSpectrum(total_loss_spectrum, aas, 1);
+          
           // generate all partial loss spectra (excluding the complete loss spectrum)
           vector<RichPeakSpectrum> theoretical_spectra;
-          for (vector<AASequence>::const_iterator aas_it = all_loss_peptides.begin(); aas_it != all_loss_peptides.end(); ++aas_it)
+          for (Size i = 0; i != all_loss_peptides.size(); ++i)
           {
+            const AASequence& partial_loss_peptide = all_loss_peptides[i];
             RichPeakSpectrum partial_loss_spectrum;
-            spectrum_generator.getSpectrum(partial_loss_spectrum, *aas_it, 1);
+            spectrum_generator.addPeaks(partial_loss_spectrum, partial_loss_peptide, Residue::BIon, 1);
+            spectrum_generator.addPeaks(partial_loss_spectrum, partial_loss_peptide, Residue::YIon, 1);
+
+            // add fragment peak
+            RichPeak1D RNA_fragment_peak;
+            RNA_fragment_peak.setIntensity(1.0);
+            RNA_fragment_peak.setMZ(all_loss_peptides_mod_pos[i][0].second.getDiffMonoMass() + Constants::PROTON_MASS_U); // there is exactly one RNA fragment modification for the partial loss spectra
+            RNA_fragment_peak.setMetaValue("IonName", String("RNA:") + all_loss_peptides_mod_pos[i][0].second.getFullId());
+            partial_loss_spectrum.push_back(RNA_fragment_peak);
+            //cout << all_loss_peptides_mod_pos[i][0].second.getFullId() << " " << all_loss_peptides_mod_pos[i][0].second.getDiffMonoMass() << endl;
             partial_loss_spectrum.sortByPosition();
             theoretical_spectra.push_back(partial_loss_spectrum);        
           }
@@ -617,6 +634,48 @@ private:
           AnnotatedHitDetail current_hit_detail;
           // fill annotated spectrum information
           set<Size> peak_is_annotated;  // experimental peak index
+
+          // first annotate total loss peaks
+          cout << "Annotating ion (total loss spectrum): " << aas.toString()  << endl;
+          std::vector<std::pair<Size, Size> > alignment;
+          spectrum_aligner.getSpectrumAlignment(alignment, total_loss_spectrum, exp_spectrum);
+          for (vector<std::pair<Size, Size> >::const_iterator pair_it = alignment.begin(); pair_it != alignment.end(); ++pair_it)
+          {
+            RichPeak1D r;
+            r.setMZ(exp_spectrum[pair_it->second].getMZ());
+            r.setIntensity(exp_spectrum[pair_it->second].getIntensity());
+            String ion_name = total_loss_spectrum[pair_it->first].getMetaValue("IonName");
+
+            // define which ion names are annotated 
+            if (ion_name.hasPrefix("y"))
+            { 
+              String ion_nr_string = ion_name;
+              ion_nr_string.substitute("y", "");
+              ion_nr_string.substitute("+", "");
+              Size ion_number = (Size)ion_nr_string.toInt();
+              const AASequence& peptide_sequence = aas.getSuffix(ion_number);
+              cout << "Annotating ion: " << ion_name << " at position: " << r.getMZ() << " " << peptide_sequence.toString() << " intensity: " << 100.0 * r.getIntensity() << endl;
+              r.setMetaValue("IonName", ion_name);                  
+              r.setMetaValue("Sequence", peptide_sequence.toString());
+              peak_is_annotated.insert(pair_it->second);                  
+              current_hit_detail.peaks.push_back(r);
+            }
+            else if (ion_name.hasPrefix("b"))
+            { 
+              String ion_nr_string = ion_name;
+              ion_nr_string.substitute("b", "");
+              ion_nr_string.substitute("+", "");
+              Size ion_number = (Size)ion_nr_string.toInt();
+              const AASequence& peptide_sequence = aas.getPrefix(ion_number);
+              cout << "Annotating ion: " << ion_name << " at position: " << r.getMZ() << " " << peptide_sequence.toString() << " intensity: " << 100.0 * r.getIntensity() << endl;
+              r.setMetaValue("IonName", ion_name);
+              r.setMetaValue("Sequence", peptide_sequence.toString());                  
+              peak_is_annotated.insert(pair_it->second);                  
+              current_hit_detail.peaks.push_back(r);
+            }
+          }
+
+          // annotate partial loss peaks
           for (Size i = 0; i != theoretical_spectra.size(); ++i)
           {
             // align every theoretical loss spectrum to the experimental measured one
@@ -624,14 +683,16 @@ private:
             std::vector<std::pair<Size, Size> > alignment;
             spectrum_aligner.getSpectrumAlignment(alignment, theo_spectrum, exp_spectrum);
 
+            if (alignment.empty()) continue;
+            bool has_one_shifted_match = false;
             for (vector<std::pair<Size, Size> >::const_iterator pair_it = alignment.begin(); pair_it != alignment.end(); ++pair_it)
             {
-              // only annotate experimental peak once
+              // only annotate experimental peak if not annotated as complete loss peak
               if (peak_is_annotated.find(pair_it->second) != peak_is_annotated.end())
               {
                 continue;
               }
-
+ 
               RichPeak1D r;
               r.setMZ(exp_spectrum[pair_it->second].getMZ());
               r.setIntensity(exp_spectrum[pair_it->second].getIntensity());
@@ -647,10 +708,14 @@ private:
                 const AASequence& peptide_sequence = all_loss_peptides[i].getSuffix(ion_number);
                 if (peptide_sequence.isModified())
                 {
-                  cout << "Annotating ion: " << ion_name << " at position: " << r.getMZ() << " " << peptide_sequence.toString() << " intensity: " << r.getIntensity() << endl;
+                  if (!has_one_shifted_match) 
+                  {
+                    cout << "Annotating ion: " << all_loss_peptides[i].toString()  << endl;
+                    has_one_shifted_match = true;
+                  }
+                  cout << "Annotating ion: " << ion_name << " at position: " << r.getMZ() << " " << peptide_sequence.toString() << " intensity: " << 100.0 * r.getIntensity() << endl;
                   r.setMetaValue("IonName", ion_name);                  
                   r.setMetaValue("Sequence", peptide_sequence.toString());
-                  peak_is_annotated.insert(pair_it->second);                  
                   current_hit_detail.peaks.push_back(r);
                 }
               }
@@ -663,12 +728,22 @@ private:
                 const AASequence& peptide_sequence = all_loss_peptides[i].getPrefix(ion_number);
                 if (peptide_sequence.isModified())
                 {
-                  cout << "Annotating ion: " << ion_name << " at position: " << r.getMZ() << " " << peptide_sequence.toString() << " intensity: " << r.getIntensity() << endl;
+                  if (!has_one_shifted_match) 
+                  {
+                    cout << "Annotating ion: " << all_loss_peptides[i].toString()  << endl;
+                    has_one_shifted_match = true;
+                  }
+                  cout << "Annotating ion: " << ion_name << " at position: " << r.getMZ() << " " << peptide_sequence.toString() << " intensity: " << 100.0 * r.getIntensity() << endl;
                   r.setMetaValue("IonName", ion_name);
                   r.setMetaValue("Sequence", peptide_sequence.toString());                  
-                  peak_is_annotated.insert(pair_it->second);                  
                   current_hit_detail.peaks.push_back(r);
                 }
+              }
+              else if (ion_name.hasPrefix("RNA:"))
+              {
+                cout << "Annotating ion: " << ion_name << " at position: " << r.getMZ() << " intensity: " << 100.0 * r.getIntensity() << endl;
+                r.setMetaValue("IonName", ion_name);
+                current_hit_detail.peaks.push_back(r);                
               }
             }
           }

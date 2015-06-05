@@ -82,10 +82,12 @@ namespace OpenMS
         dot_product += exp_spectrum[index].getIntensity();
         if (theo_peak_it->getMetaValue("IonName").toString()[0] == 'y')
         {
+          std::cout << theo_peak_it->getMetaValue("IonName").toString() << " intensity: " << exp_spectrum[index].getIntensity() << std::endl;
           ++y_ion_count;
         }
         else if (theo_peak_it->getMetaValue("IonName").toString()[0] == 'b')
         {
+          std::cout << theo_peak_it->getMetaValue("IonName").toString() << " intensity: " << exp_spectrum[index].getIntensity() << std::endl;
           ++b_ion_count;
         }
       }
