@@ -1,0 +1,29 @@
+<ttd>
+	<tool status="external">
+		<category>does not really matter</category>
+		// multiple of these are allowed
+		<type>Rscript_mzTab2csv_peptides</type>
+		#name# -- for internal only
+		// multiple of these allowed (same # as 'types') - for external only
+		<external>
+				<text>
+					<onstartup>Calling Rscript mzTab2csv_peptides ...</onstartup>
+					<onfail>Something went wrong. Is the 'Rscript' executable in your PATH?</onfail>
+					<onfinish>Tool finished successfully.</onfinish>
+				</text>
+			<e_category>Postprocessing</e_category>
+			<cloptions>--vanilla %1 -in %2 -out %3</cloptions>
+			<path>Rscript</path>
+			<mappings>
+				<mapping id="1" cl="%%file_script" />
+				<mapping id="2" cl="%%in" />
+				<mapping id="3" cl="%%out" />
+			</mappings>
+			<ini_param>
+				<ITEM name="file_script" value="." type="string" description="input script path" tags="input file"/>
+				<ITEM name="in" value="" type="input-file" description="Input mzTab file" required="true" advanced="false"/>
+				<ITEM name="out" value="" type="output-file" description="Output csv file" required="true" advanced="false"/>
+			</ini_param>
+		</external>
+	</tool>
+</ttd>
