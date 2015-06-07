@@ -396,17 +396,6 @@ namespace OpenMS
       std::vector<String> /* peps, pepevis, */ sidlist, pidlist;
       std::map<String, double> pp_identifier_2_thresh;
 
-      //TODO if constructed with a msexperiment - not yet implemented
-      //~ if(ms_exp_ == 0)
-      //~ {
-      //~ synthesize spectrum references
-      //~ }
-      //~ else
-      //~ {
-      //~ extract peptide and proteinid from msexperiment
-      //~ genereate spectrum references from msexperiment foreach peptideidentification
-      //~ }
-
       /*---------------------------------------------------------------------
       DataCollection:
       +Inputs
@@ -414,12 +403,69 @@ namespace OpenMS
       ---------------------------------------------------------------------*/
       inputs_element += String("\t<Inputs>\n");
       String spectra_data, search_database;
+      std::map<String, std::vector<String> > acc_sii_map;
 
       /*
       1st: iterate over proteinidentification vector
       */
       for (std::vector<ProteinIdentification>::const_iterator it = cpro_id_->begin(); it != cpro_id_->end(); ++it)
-      {     
+      {
+        UInt64 dbid, sdid;
+
+        // handle SearchDatabase element for each ProteinIdentification
+        String dbst(it->getSearchParameters().db); //TODO @mths for several IdentificationRuns this must be something else, otherwise for two of the same db just one will be created
+        std::map<String, UInt64>::iterator dbit = sdb_ids.find(dbst);
+        if (dbit == sdb_ids.end())
+        {
+          dbid = UniqueIdGenerator::getUniqueId();
+
+          search_database += String("\t\t<SearchDatabase ");
+          search_database += String("location=\"") + dbst + "\" ";
+          if (!String(it->getSearchParameters().db_version).empty())
+          {
+            search_database += String("version=\"") + String(it->getSearchParameters().db_version) + "\" ";
+          }
+          search_database += String("id=\"") + String(dbid) + String("\" > \n\t\t\t<FileFormat> \n ");
+          //TODO Searchdb file format type cvParam handling
+          search_database += String(4, '\t') + cv_.getTermByName("FASTA format").toXMLString(cv_ns);
+          search_database += String("\n\t\t\t</FileFormat>\n\t\t\t<DatabaseName>\n\t\t\t\t<userParam name=\"") + dbst + String("\"/>\n\t\t\t</DatabaseName>\n");
+          search_database += "\t\t</SearchDatabase> \n";
+
+          sdb_ids.insert(std::pair<String, UInt64>(dbst, dbid));
+        }
+        else
+        {
+          dbid = dbit->second;
+        }
+
+        // handle SpectraData element for each ProteinIdentification
+        String sdst(it->getMetaValue("spectra_data"));
+        if (sdst.empty())
+        {
+          sdst = String("UNKNOWN");
+        }
+        std::map<String, UInt64>::iterator sdit = spd_ids.find(sdst); //this part ist strongly connected to AnalysisCollection write part
+        if (sdit == spd_ids.end())
+        {
+          sdid = UniqueIdGenerator::getUniqueId();
+
+          spectra_data += String("\t\t<SpectraData location=\"") + sdst + String("\" id=\"") + String(sdid) + String("\">");
+          spectra_data += String("\n\t\t\t<FileFormat> \n");
+          spectra_data += String(4, '\t') + cv_.getTermByName("mzML format").toXMLString(cv_ns);
+          spectra_data += String("\n\t\t\t</FileFormat>\n\t\t\t<SpectrumIDFormat> \n ");
+          spectra_data += String(4, '\t') + cv_.getTermByName("multiple peak list nativeID format").toXMLString(cv_ns);
+          spectra_data += String("\n\t\t\t</SpectrumIDFormat> \n\t\t</SpectraData>\n");
+
+          spd_ids.insert(std::pair<String, UInt64>(sdst, sdid));
+        }
+        else
+        {
+          sdid = sdit->second;
+        }
+
+        // get a map from identifier to match OpenMS Protein/PeptideIdentification match string;
+        pie_ids.insert(std::pair<String, String>(it->getIdentifier(), it->getSearchEngine()));
+
         //~ collect analysissoftware in this loop - does not go into inputelement
         String sof_id;
         String sof_name = String(it->getSearchEngine());
@@ -608,6 +654,8 @@ namespace OpenMS
             sen_ids.insert(std::pair<String, String>(enst, enid));
             sen_set.insert(entry);
 
+            //init for proteingroup writing accession to spectrum identification item ids
+            acc_sii_map.insert(std::pair<String, std::vector<String> >(enst, std::vector<String>()));
           }
           else
           {
@@ -623,6 +671,8 @@ namespace OpenMS
       2nd: iterate over peptideidentification vector
       */
       std::map<String, std::vector<String> > pep_evis; //maps the sequence to the corresponding evidence elements for the next scope
+      std::map<String, std::vector<String> > acc_evis; //maps the accession to the corresponding evidence elements
+      std::map<String, std::vector<String> > evis_sii; //maps each evidence element to the corresponding spectrum identification item
       for (std::vector<PeptideIdentification>::const_iterator it = cpep_id_->begin(); it != cpep_id_->end(); ++it)
       {
         String emz(it->getMZ());
@@ -739,7 +789,12 @@ namespace OpenMS
             pepid = pit->second;
           }
 
-          std::vector<String> pevid_ids;
+          ///if new mzid:peptide had to be constructed, also new mzid:peptideEvidence have to be used - compliant with 6.46 PeptideEvidence: There MUST only be one PeptideEvidence item per Peptide-to-DBSequence-position.
+          ///establish a peptide sequence (with mods) to mzid:peptideEvidence:ids mapping
+          std::vector<String> pevid_ids; //mzid:peptideEvidence:ids for this PeptideHit
+
+          ///pepvid_ids will be needed but may not be repeated - no lookup but inferred from previous lookup in pep_ids
+          ///this inference implies, that all PeptideHits with same sequence will have the same PeptideEvidences! @PeptideIndexer
           if (pit == pep_ids.end())
           {        
             std::vector<PeptideEvidence> peptide_evidences = jt->getPeptideEvidences();
@@ -796,6 +851,15 @@ namespace OpenMS
               e += "/> \n";
               sen_set.insert(e);
               pevid_ids.push_back(pevid);
+              //add mapping from accession to (all) pevid (maybe better pepi?)
+              std::map<String, std::vector<String> >::iterator acc_evis_it = acc_evis.find(pe->getProteinAccession());
+              if (acc_evis_it == acc_evis.end())
+              {
+                //maybe reserve some space for the vector to avoid realloc?
+                acc_evis_it = acc_evis.insert(std::make_pair<String, std::vector<String> >(pe->getProteinAccession(),std::vector<String>())).first;
+              }
+              acc_evis_it->second.push_back(pevid);
+
             }
             pep_evis.insert(make_pair(pepi, pevid_ids));
           }
@@ -804,6 +868,7 @@ namespace OpenMS
             pevid_ids =  pep_evis[pepi];
           }
 
+          ///contruct SpectrumIdentificationItem element for this PeptideHit
           String cmz((jt->getSequence().getMonoWeight() +  jt->getCharge() * Constants::PROTON_MASS_U) / jt->getCharge()); //calculatedMassToCharge
           String r(jt->getRank()); //rank
           String sc(jt->getScore());
@@ -834,8 +899,8 @@ namespace OpenMS
             pte = true;
           }
 
-          //write SpectrumIdentificationItem elements
-          String sii = "SII_" + String(UniqueIdGenerator::getUniqueId());
+          //write SpectrumIdentificationItem element to sidres
+          String sii =  String("SII_") + String(UniqueIdGenerator::getUniqueId());
           sidres += String("\t\t\t\t<SpectrumIdentificationItem passThreshold=\"")
                   + pte + String("\" rank=\"") + r + String("\" peptide_ref=\"")
                   + pepid + String("\" calculatedMassToCharge=\"") + cmz
@@ -849,7 +914,16 @@ namespace OpenMS
           }
           for (std::vector<String>::const_iterator pevref = pevid_ids.begin(); pevref != pevid_ids.end(); ++pevref)
           {
-            sidres += "\t\t\t\t\t<PeptideEvidenceRef peptideEvidence_ref=\"" +  String(*pevref) + "\"/> \n";
+            sidres += "\t\t\t\t\t<PeptideEvidenceRef peptideEvidence_ref=\"" +  *pevref + "\"/> \n";
+
+            //add pevid_ids to sii mapping
+            std::map<String, std::vector<String> >::iterator evis_sii_it = evis_sii.find(*pevref);
+            if (evis_sii_it == evis_sii.end())
+            {
+              //maybe reserve some space for the vector to avoid realloc?
+              evis_sii_it = evis_sii.insert(std::make_pair<String, std::vector<String> >(*pevref,std::vector<String>())).first;
+            }
+            evis_sii_it->second.push_back(sii);
           }
 
           std::set<String> peptide_result_details;
@@ -909,17 +983,21 @@ namespace OpenMS
           }
           sidres += "\n";
 
+          ///write MetaInfo of this PeptideHit but without stuff that is included as XML attribute
           copy_jt.removeMetaValue("calcMZ");
           copy_jt.removeMetaValue("target_decoy");
           writeMetaInfos_(sidres, copy_jt, 5);
 
           //~ sidres += "<cvParam accession=\"MS:1000796\" cvRef=\"PSI-MS\" value=\"55.835.842.3.dta\" name=\"spectrum title\"/>";
           sidres += "\t\t\t\t</SpectrumIdentificationItem>\n";
+
         }
         if (!ert.empty() && ert != "nan" && ert != "NaN")
         {
           sidres +=  "\t\t\t\t" + cv_.getTermByName("retention time").toXMLString(cv_ns, ert) + "\n";
         }
+
+        //TODO @mths write PeptideIdentification MetaInfoInterface
         sidres += "\t\t\t</SpectrumIdentificationResult>\n";
         std::map<String, String>::const_iterator ps_it = pp_identifier_2_sil_.find(it->getIdentifier());
         if (ps_it != pp_identifier_2_sil_.end())
@@ -941,9 +1019,53 @@ namespace OpenMS
         }
       }
 
-      //TODO write ProteinDetection and protocol
-      //TODO getProteinGroups
-      //TODO getIndistinguishableProteins
+      /*
+      3rd: iterate over proteinidentification vector again for the protein groups
+      */
+      for (std::vector<ProteinIdentification>::const_iterator it = cpro_id_->begin(); it != cpro_id_->end(); ++it)
+      {
+        for (std::vector<ProteinIdentification::ProteinGroup>::const_iterator jt = it->getProteinGroups().begin(); jt != it->getProteinGroups().end(); ++jt)
+        {
+          String pidres;
+          pidres += String("\t\t\t<ProteinAmbiguityGroup id=\"PAG_") + String(UniqueIdGenerator::getUniqueId()) + String("\"> \n");
+          for (std::vector<String>::const_iterator acit = jt->accessions.begin(); acit != jt->accessions.end(); ++jt)
+          {
+            std::map<String, std::vector<String> >::const_iterator acc_evis_it = acc_evis.find(*acit);
+            if (acc_evis_it == acc_evis.end())
+            {
+              LOG_WARN << "no peptide evidences found for accession " << *acit << "! This should not happen have you run PeptideIndexer and removed unreferenced accessions?" << std::endl;
+              continue;
+            }
+
+            String pdh =  String("PDH_") + String(UniqueIdGenerator::getUniqueId());
+            pidres += String("\t\t\t\t<ProteinDetectionHypothesis id=\"")
+                              + pdh + String("\" dBSequence_ref=\"")
+                              + *acit + String("\" passThreshold=\"true\"> \n");
+            //get all peptideevidences to current acc
+            for (std::vector<String>::const_iterator evis_it = acc_evis_it->second.begin(); evis_it != acc_evis_it->second.end(); ++evis_it)
+            {
+              pidres += String("\t\t\t\t\t<PeptideHypothesis peptideEvidence_ref=\"PE_")
+                      + *evis_it + String("> \n");
+              //get all spectrumidentificationitems for that peptideevidence
+              std::map<String, std::vector<String> >::iterator evis_sii_it = evis_sii.find(*evis_it);
+              if (evis_sii_it == evis_sii.end())
+              {
+                LOG_WARN << "no spectrum identification items found for this PeptideEvidence..." << std::endl;
+              }
+              for (std::vector<String>::const_iterator siiit = evis_sii_it->second.begin(); siiit != evis_sii_it->second.end(); ++siiit)
+              {
+                pidres += String("\t\t\t\t\t\t<SpectrumIdentificationItemRef spectrumIdentificationItem_ref=\"SII_")
+                        + *siiit + String("\"/> \n");
+              }
+              pidres += String("\t\t\t\t\t</PeptideHypothesis>");
+            }
+            pidres += String("\t\t\t\t</ProteinDetectionHypothesis>");
+          }
+          //TODO group probability cv
+          pidres += String("\t\t\t</ProteinAmbiguityGroup>");
+          pidlist.push_back(pidres);
+        }
+      }
 
       //--------------------------------------------------------------------------------------------
       // XML header
@@ -1010,6 +1132,8 @@ namespace OpenMS
       //--------------------------------------------------------------------------------------------
       // AnalysisProtocolCollection
       //+ SpectrumIdentificationProtocol + SearchType + Threshold
+      //+ SearchType
+      //+ Threshold
       //--------------------------------------------------------------------------------------------
       os << "<AnalysisProtocolCollection>\n";
       for (std::set<String>::const_iterator sip = sip_set.begin(); sip != sip_set.end(); ++sip)
@@ -1020,8 +1144,8 @@ namespace OpenMS
 
       //--------------------------------------------------------------------------------------------
       // DataCollection
-      //+Inputs
-      //+AnalysisData
+      //+ Inputs
+      //+ AnalysisData
       //--------------------------------------------------------------------------------------------
       os << "<DataCollection>\n"
          << inputs_element;
