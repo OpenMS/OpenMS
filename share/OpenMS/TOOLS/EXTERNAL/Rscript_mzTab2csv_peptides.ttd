@@ -20,9 +20,9 @@
 				<mapping id="3" cl="%%out" />
 			</mappings>
 			<ini_param>
-				<ITEM name="file_script" value="" type="string" description=“R script“ tags="input file"/>
-				<ITEM name="in" value="" type="input-file" description="Input mzTab file" required="true" advanced="false"/>
-				<ITEM name="out" value="" type="output-file" description="Output csv file" required="true" advanced="false"/>
+				<ITEM name="file_script" value="" type="string" description="R script" tags="input file" />
+				<ITEM name="in" value="" type="input-file" description="Input mzTab file" required="true" advanced="false" />
+				<ITEM name="out" value="" type="output-file" description="Output csv file" required="true" advanced="false" />
 			</ini_param>
 		</external>
 	</tool>
