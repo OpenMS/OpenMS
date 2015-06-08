@@ -1,5 +1,7 @@
 ## This is an R script reformats mzTab files (*.tsv) to excel files (*.csv)
 
+options(warn=-1)
+
 #source("http://bioconductor.org/biocLite.R")
 #biocLite("MSnbase")
 library(MSnbase)
