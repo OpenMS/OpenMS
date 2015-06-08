@@ -62,7 +62,7 @@ END_SECTION
 START_SECTION((EnzymaticDigestion(const EnzymaticDigestion& rhs) ))
   EnzymaticDigestion ed;
   ed.setMissedCleavages(1234);
-  ed.setEnzyme(EnzymaticDigestion::SIZE_OF_ENZYMES);
+  ed.setEnzyme("no cleavage");
   ed.setSpecificity(EnzymaticDigestion::SPEC_SEMI);
   ed.setLogModelEnabled(true);
   ed.setLogThreshold(81231);
@@ -70,7 +70,7 @@ START_SECTION((EnzymaticDigestion(const EnzymaticDigestion& rhs) ))
   EnzymaticDigestion ed2(ed);
 
   TEST_EQUAL(ed.getMissedCleavages(), ed2.getMissedCleavages());
-  TEST_EQUAL(ed.getEnzyme(), ed2.getEnzyme());
+  TEST_EQUAL(ed.getEnzymeName(), ed2.getEnzymeName());
   TEST_EQUAL(ed.getSpecificity(), ed2.getSpecificity());
   TEST_EQUAL(ed.isLogModelEnabled(), ed2.isLogModelEnabled());
   TEST_EQUAL(ed.getLogThreshold(), ed2.getLogThreshold());
@@ -80,7 +80,7 @@ END_SECTION
 START_SECTION((EnzymaticDigestion& operator=(const EnzymaticDigestion& rhs) ))
   EnzymaticDigestion ed;
   ed.setMissedCleavages(1234);
-  ed.setEnzyme(EnzymaticDigestion::SIZE_OF_ENZYMES);
+  ed.setEnzyme("no cleavage");
   ed.setSpecificity(EnzymaticDigestion::SPEC_SEMI);
   ed.setLogModelEnabled(true);
   ed.setLogThreshold(81231);
@@ -88,7 +88,7 @@ START_SECTION((EnzymaticDigestion& operator=(const EnzymaticDigestion& rhs) ))
   EnzymaticDigestion ed2=ed;
 
   TEST_EQUAL(ed.getMissedCleavages(), ed2.getMissedCleavages());
-  TEST_EQUAL(ed.getEnzyme(), ed2.getEnzyme());
+  TEST_EQUAL(ed.getEnzymeName(), ed2.getEnzymeName());
   TEST_EQUAL(ed.getSpecificity(), ed2.getSpecificity());
   TEST_EQUAL(ed.isLogModelEnabled(), ed2.isLogModelEnabled());
   TEST_EQUAL(ed.getLogThreshold(), ed2.getLogThreshold());
@@ -99,8 +99,8 @@ START_SECTION((SignedSize getMissedCleavages() const ))
 	TEST_EQUAL(EnzymaticDigestion().getMissedCleavages(), 0)
 END_SECTION
 
-START_SECTION((Enzyme getEnzyme() const))
-	TEST_EQUAL(EnzymaticDigestion().getEnzyme(),EnzymaticDigestion::ENZYME_TRYPSIN)
+START_SECTION((Enzyme getEnzymeName() const))
+	TEST_EQUAL(EnzymaticDigestion().getEnzymeName(), "Trypsin")
 END_SECTION
 
 START_SECTION((void setMissedCleavages(SignedSize missed_cleavages)))
@@ -109,20 +109,12 @@ START_SECTION((void setMissedCleavages(SignedSize missed_cleavages)))
 	TEST_EQUAL(ed.getMissedCleavages(),5)
 END_SECTION
 
-START_SECTION((void setEnzyme(Enzyme enzyme)))
+START_SECTION((void setEnzyme(const String enzyme_name)))
 	EnzymaticDigestion ed;
-  ed.setEnzyme(EnzymaticDigestion::ENZYME_TRYPSIN);
-  TEST_EQUAL(ed.getEnzyme(), EnzymaticDigestion::ENZYME_TRYPSIN);
-  ed.setEnzyme(EnzymaticDigestion::ENZYME_TRYPSIN_P);
-  TEST_EQUAL(ed.getEnzyme(), EnzymaticDigestion::ENZYME_TRYPSIN_P);
-  ed.setEnzyme(EnzymaticDigestion::SIZE_OF_ENZYMES);
-  TEST_EQUAL(ed.getEnzyme(), EnzymaticDigestion::SIZE_OF_ENZYMES);
-END_SECTION
-
-START_SECTION((static Enzyme getEnzymeByName(const String& name)))
-	TEST_EQUAL(EnzymaticDigestion::getEnzymeByName("Trypsin"), EnzymaticDigestion::ENZYME_TRYPSIN);
-  TEST_EQUAL(EnzymaticDigestion::getEnzymeByName("Trypsin/P"), EnzymaticDigestion::ENZYME_TRYPSIN_P);
-	TEST_EQUAL(EnzymaticDigestion::getEnzymeByName("DoesNotExist"), EnzymaticDigestion::SIZE_OF_ENZYMES);
+  ed.setEnzyme("Trypsin");
+  TEST_EQUAL(ed.getEnzymeName(), "Trypsin");
+  ed.setEnzyme("Trypsin/P");
+  TEST_EQUAL(ed.getEnzymeName(), "Trypsin/P");
 END_SECTION
 
 START_SECTION(( Specificity getSpecificity() const ))
@@ -176,8 +168,8 @@ START_SECTION((Size peptideCount(const AASequence &protein)))
 	EnzymaticDigestion ed;
   for (int i=0; i<2; ++i)
   { // common cases for Trypsin and Trypsin_P
-    if (i==0) ed.setEnzyme(EnzymaticDigestion::ENZYME_TRYPSIN);
-    else if (i==1) ed.setEnzyme(EnzymaticDigestion::ENZYME_TRYPSIN_P);
+    if (i==0) ed.setEnzyme("Trypsin");
+    else if (i==1) ed.setEnzyme("Trypsin/P");
 
     ed.setMissedCleavages(0);
 	  TEST_EQUAL(ed.peptideCount(AASequence::fromString("ACDE")), 1)
@@ -198,19 +190,19 @@ START_SECTION((Size peptideCount(const AASequence &protein)))
   }
   // special cases:
   ed.setMissedCleavages(0);
-  ed.setEnzyme(EnzymaticDigestion::ENZYME_TRYPSIN);
+  ed.setEnzyme("Trypsin");
   TEST_EQUAL(ed.peptideCount(AASequence::fromString("ACKPDE")), 1)
   TEST_EQUAL(ed.peptideCount(AASequence::fromString("ACRPDE")), 1)
   TEST_EQUAL(ed.peptideCount(AASequence::fromString("ACKPDERA")), 2)
   TEST_EQUAL(ed.peptideCount(AASequence::fromString("ACRPDEKA")), 2)
-  ed.setEnzyme(EnzymaticDigestion::ENZYME_TRYPSIN_P);
+  ed.setEnzyme("Trypsin/P");
   TEST_EQUAL(ed.peptideCount(AASequence::fromString("ACKPDE")), 2)
   TEST_EQUAL(ed.peptideCount(AASequence::fromString("ACRPDE")), 2)
   TEST_EQUAL(ed.peptideCount(AASequence::fromString("ACKPDERA")), 3)
   TEST_EQUAL(ed.peptideCount(AASequence::fromString("ACRPDEKA")), 3)
 
   // with log L model:
-  ed.setEnzyme(EnzymaticDigestion::ENZYME_TRYPSIN);
+  ed.setEnzyme("Trypsin");
   ed.setLogModelEnabled(true);
   TEST_EQUAL(ed.peptideCount(AASequence::fromString("MKWVTFISLLLLFSSAYSRGVFRRDTHKSEIAHRFKDLGEEHFKGLVLIAFSQYLQQCPFDEHVKLVNELTEFAKTCVADESHAGCEKSLHTLFGDELCKVASLRETYGDMADCCEKQEPERNECFLSHKDDSPDLPKLKPDPNTLCDEFKADEKKFWGKYLYEIARRHPYFYAPELLYYANKYNGVFQECQAEDKGACLLPKIETMREKVLASSARQRLRCASIQKFGERALKAWSVARLSQKFPKAEFVEVTKLVTDLTKVHKECCHGDLLECADDRADLAKYICDNQDTISSKLKECCDKPLLEKSHCIAEVEKDAIPENLPPLTADFAEDKDVCKNYQEAKDAFLGSFLYEYSRRHPEYAVSVLLRLAKEYEATLEECCKDDPHACYSTVFDKLKHLVDEPQNLIKQNCDQFEKLGEYGFQNALIVRYTRKVPQVSTPTLVEVSRSLGKVGTRCCTKPESERMPCTEDYLSLILNRLCVLHEKTPVSEKVTKCCTESLVNRRPCFSALTPDETYVPKAFDEKLFTFHADICTLPDTEKQIKKQTALVELLKHKPKATEEQLKTVMENFVAFDKCCAADDKEACFAVEGPKLVVSTQTALA")), 9 + 1 + 1) // K R + 1
   // with non-standard amino-acids "O" and "U":
@@ -321,7 +313,7 @@ START_SECTION((void digest(const AASequence& protein, std::vector< AASequence >&
   // Trypsin/P
   // ------------------------
   ed.setMissedCleavages(0);
-  ed.setEnzyme(EnzymaticDigestion::ENZYME_TRYPSIN_P);
+  ed.setEnzyme("Trypsin/P");
   // .. log-model only for restrictive Trypsin (with P constraint)
   ed.setLogModelEnabled(true);
   TEST_EXCEPTION(Exception::InvalidParameter, ed.digest(AASequence::fromString("ANGER"), out));
@@ -343,7 +335,7 @@ END_SECTION
 
 START_SECTION(( bool isValidProduct(const AASequence& protein, Size pep_pos, Size pep_length) ))
   EnzymaticDigestion ed;
-  ed.setEnzyme(EnzymaticDigestion::ENZYME_TRYPSIN);
+  ed.setEnzyme("Trypsin");
   ed.setSpecificity(EnzymaticDigestion::SPEC_FULL); // require both sides
 
   AASequence prot = AASequence::fromString("ABCDEFGKABCRAAAKAARPBBBB");
@@ -413,7 +405,7 @@ START_SECTION(( bool isValidProduct(const AASequence& protein, Size pep_pos, Siz
   // ------------------------
   // Trypsin/P
   // ------------------------
-  ed.setEnzyme(EnzymaticDigestion::ENZYME_TRYPSIN_P);
+  ed.setEnzyme("Trpsin/P");
   ed.setSpecificity(EnzymaticDigestion::SPEC_FULL); // require both sides
 
   prot = AASequence::fromString("ABCDEFGKABCRAAAKAARPBBBB");

@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -43,13 +44,12 @@ using namespace std;
 
 namespace OpenMS
 {
-  const std::string EnzymaticDigestion::NamesOfEnzymes[] = {"Trypsin", "Trypsin/P"};
   const std::string EnzymaticDigestion::NamesOfSpecificity[] = {"full", "semi", "none"};
 
 
   EnzymaticDigestion::EnzymaticDigestion() :
     missed_cleavages_(0),
-    enzyme_(ENZYME_TRYPSIN),
+    enzyme_(*EnzymesDB::getInstance()->getEnzyme("Trypsin")),
     specificity_(SPEC_FULL),
     use_log_model_(false),
     log_model_threshold_(0.25),
@@ -110,26 +110,14 @@ namespace OpenMS
     missed_cleavages_ = missed_cleavages;
   }
 
-  EnzymaticDigestion::Enzyme EnzymaticDigestion::getEnzyme() const
+  void EnzymaticDigestion::setEnzyme(const String enzyme_name)
   {
-    return enzyme_;
+    enzyme_ = *EnzymesDB::getInstance()->getEnzyme(enzyme_name);
   }
 
-  void EnzymaticDigestion::setEnzyme(Enzyme enzyme)
+  String EnzymaticDigestion::getEnzymeName() const
   {
-    if (enzyme < SIZE_OF_ENZYMES)
-      enzyme_ = enzyme;
-    else
-      enzyme_ = SIZE_OF_ENZYMES;
-  }
-
-  EnzymaticDigestion::Enzyme EnzymaticDigestion::getEnzymeByName(const String& name)
-  {
-    for (Size i = 0; i < SIZE_OF_ENZYMES; ++i)
-    {
-      if (name == NamesOfEnzymes[i]) return Enzyme(i);
-    }
-    return SIZE_OF_ENZYMES;
+    return enzyme_.getName();
   }
 
   EnzymaticDigestion::Specificity EnzymaticDigestion::getSpecificityByName(const String& name)
@@ -174,12 +162,20 @@ namespace OpenMS
   bool EnzymaticDigestion::isCleavageSite_(
     const AASequence& protein, const AASequence::ConstIterator& iterator) const
   {
-    switch (enzyme_)
+    // [M]|[X] [R]|{P},[X]|[DE]
+    vector<String> sites;
+    enzyme_.getXTANDEMid().split("]|", sites);
+    /*vector<String> sites_before;
+    int numSites = sites[0].size();
+    for (int i = 1; i < numSites; ++i)
     {
-    case ENZYME_TRYPSIN:
+      sites_before.push_back(sites[0][i]);
+    }*/
+    if (sites[1] == "{P}")
+    {
       if (use_log_model_)
       {
-        if (*iterator != 'R' && *iterator != 'K') // wait for R or K
+        if (!sites[0].hasSubstring(iterator->getOneLetterCode()))// (std::find(sites_before.begin(), sites_before.end(), iterator) == sites_before.end()) // wait for R or K
         {
           return false;
         }
@@ -205,23 +201,39 @@ namespace OpenMS
       else // naive digestion
       {
         // R or K at the end and not P afterwards
-        return (*iterator == 'R' || *iterator == 'K') &&
-               ((iterator + 1) == protein.end() || *(iterator + 1) != 'P');
+        return (sites[0].hasSubstring(iterator->getOneLetterCode()) && //(std::find(sites_before.begin(), sites_before.end(), *iterator) != sites_before.end()) &&
+               ((iterator + 1) == protein.end() || *(iterator + 1) != 'P'));
       }
-      break;
-    case ENZYME_TRYPSIN_P:
+    }
+    else if (sites[1] == "[X]")
+    {
       if (use_log_model_)
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("EnzymaticDigestion: enzyme '") + NamesOfEnzymes[ENZYME_TRYPSIN_P] + " does not support logModel!");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("EnzymaticDigestion: enzyme '") + enzyme_.getName() + " does not support logModel!");
       }
       else
       {
         // R or K at the end,  presence of P does not matter
-        return (*iterator == 'R' || *iterator == 'K');
+        return (sites[0].hasSubstring(iterator->getOneLetterCode())); // (std::find(sites_before.begin(), sites_before.end(), *iterator) != sites_before.end());
       }
-      break;
-    default:
-      return false;
+    }
+    else // [X]|[DE]
+    {
+      /*vector<String> sites_after;
+      int numSites_after = sites[1].size();
+      for (int i = 1; i < numSites_after-1; ++i)
+      {
+        sites_after.push_back(sites[1][i]);
+      }*/
+      if (use_log_model_)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("EnzymaticDigestion: enzyme '") + enzyme_.getName() + " does not support logModel!");
+      }
+      else
+      {
+        // cut before the cleavage site
+        return (sites[1].hasSubstring(iterator->getOneLetterCode())); // (std::find(sites_after.begin(), sites_after.end(), *(iterator+1)) != sites_after.end());
+      }
     }
   }
 

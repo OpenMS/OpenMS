@@ -42,6 +42,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 
 #include <algorithm>
 
@@ -484,9 +485,9 @@ protected:
 
     registerTOPPSubsection_("enzyme", "The enzyme determines valid cleavage sites; cleavage specificity determines to what extent validity is enforced.");
 
-    registerStringOption_("enzyme:name", "", EnzymaticDigestion::NamesOfEnzymes[0], "Enzyme which determines valid cleavage sites - e.g. trypsin cleaves after lysine (K) or arginine (R), but not before proline (P).", false);
+    registerStringOption_("enzyme:name", "", "Trypsin", "Enzyme which determines valid cleavage sites - e.g. trypsin cleaves after lysine (K) or arginine (R), but not before proline (P).", false);
     StringList enzymes;
-    enzymes.assign(EnzymaticDigestion::NamesOfEnzymes, EnzymaticDigestion::NamesOfEnzymes + EnzymaticDigestion::SIZE_OF_ENZYMES);
+    EnzymesDB::getInstance()->getAllXTandemNames(enzymes);
     setValidStrings_("enzyme:name", enzymes);
 
     registerStringOption_("enzyme:specificity", "", EnzymaticDigestion::NamesOfSpecificity[0], "Specificity of the enzyme."
@@ -544,7 +545,7 @@ protected:
     }
 
     EnzymaticDigestion enzyme;
-    enzyme.setEnzyme(enzyme.getEnzymeByName(getStringOption_("enzyme:name")));
+    enzyme.setEnzyme(getStringOption_("enzyme:name"));
     enzyme.setSpecificity(enzyme.getSpecificityByName(getStringOption_("enzyme:specificity")));
 
 

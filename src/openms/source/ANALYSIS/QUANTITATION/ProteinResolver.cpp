@@ -447,7 +447,7 @@ namespace OpenMS
   {
     EnzymaticDigestion digestor;
     String enzyme_name = param_.getValue("resolver:enzyme");
-    digestor.setEnzyme(digestor.getEnzymeByName(enzyme_name));
+    digestor.setEnzyme(enzyme_name);
     UInt min_size = param_.getValue("resolver:min_length");
     UInt missed_cleavages = param_.getValue("resolver:missed_cleavages");
     digestor.setMissedCleavages(missed_cleavages);

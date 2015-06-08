@@ -37,6 +37,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/Enzyme.h>
 
 #include <string>
 #include <vector>
@@ -64,16 +65,6 @@ namespace OpenMS
   class OPENMS_DLLAPI EnzymaticDigestion
   {
 public:
-    /// Possible enzymes for the digestion (adapt NamesOfEnzymes & nextCleavageSite_() if you add more enzymes here)
-    enum Enzyme
-    {
-      ENZYME_TRYPSIN, //< Trypsin with [KR] | [^P]
-      ENZYME_TRYPSIN_P, //< relaxed Trypsin, allowing any AA after cleavage [KR] | .
-      SIZE_OF_ENZYMES
-    };
-    /// Names of the Enzymes
-    static const std::string NamesOfEnzymes[SIZE_OF_ENZYMES];
-
     /// when querying for valid digestion products, this determines if the specificity of the two peptide ends is considered important
     enum Specificity
     {
@@ -103,14 +94,10 @@ public:
     void setMissedCleavages(SignedSize missed_cleavages);
 
     /// Returns the enzyme for the digestion
-    Enzyme getEnzyme() const;
+    String getEnzymeName() const;
 
-    /// Sets the enzyme for the digestion (default is ENZYME_TRYPSIN).
-    void setEnzyme(Enzyme enzyme);
-    
-    /// convert enzyme string name to enum
-    /// returns SIZE_OF_ENZYMES if @p name is not valid
-    static Enzyme getEnzymeByName(const String & name);
+    /// Sets the enzyme for the digestion 
+    void setEnzyme(const String name);
 
     /// Returns the specificity for the digestion
     Specificity getSpecificity() const;

@@ -37,6 +37,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/KERNEL/Feature.h>
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 
 namespace OpenMS
 {
@@ -69,11 +70,8 @@ namespace OpenMS
   {
     // supported enzymes
     StringList enzymes;
-    enzymes.resize(EnzymaticDigestion::SIZE_OF_ENZYMES + 1);
-    for (UInt i = 0; i < EnzymaticDigestion::SIZE_OF_ENZYMES; ++i)
-      enzymes[i] = EnzymaticDigestion::NamesOfEnzymes[i];
-    enzymes[EnzymaticDigestion::SIZE_OF_ENZYMES] = "none";
-    defaults_.setValue("enzyme", enzymes[0], "Enzyme to use for digestion (select 'none' to skip digestion)");
+    EnzymesDB::getInstance()->getAllXTandemNames(enzymes);
+    defaults_.setValue("enzyme", enzymes[0], "Enzyme to use for digestion (select 'no cleavage' to skip digestion)");
     defaults_.setValidStrings("enzyme", enzymes);
 
     // cleavages
@@ -145,7 +143,7 @@ namespace OpenMS
     double cleave_threshold = param_.getValue("model_trained:threshold");
 
     EnzymaticDigestion digestion;
-    digestion.setEnzyme(digestion.getEnzymeByName((String)param_.getValue("enzyme")));
+    digestion.setEnzyme((String)param_.getValue("enzyme"));
     digestion.setLogModelEnabled(use_log_model);
     digestion.setLogThreshold(cleave_threshold);
 
