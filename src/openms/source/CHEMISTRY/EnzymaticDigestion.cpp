@@ -162,16 +162,14 @@ namespace OpenMS
   bool EnzymaticDigestion::isCleavageSite_(
     const AASequence& protein, const AASequence::ConstIterator& iterator) const
   {
-    // [M]|[X] [R]|{P},[X]|[DE]
+    // [RK]|[X], [RK]|{P},[X]|[DE],[X]|[X]
     vector<String> sites;
     enzyme_.getXTANDEMid().split("]|", sites);
-    /*vector<String> sites_before;
-    int numSites = sites[0].size();
-    for (int i = 1; i < numSites; ++i)
+    if (enzyme_.getXTANDEMid() == "") // no cleavage
     {
-      sites_before.push_back(sites[0][i]);
-    }*/
-    if (sites[1] == "{P}")
+      return false;
+    }
+    else if (sites[1] == "{P}")
     {
       if (use_log_model_)
       {
@@ -212,19 +210,21 @@ namespace OpenMS
         throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("EnzymaticDigestion: enzyme '") + enzyme_.getName() + " does not support logModel!");
       }
       else
-      {
-        // R or K at the end,  presence of P does not matter
-        return (sites[0].hasSubstring(iterator->getOneLetterCode())); // (std::find(sites_before.begin(), sites_before.end(), *iterator) != sites_before.end());
+      { 
+        // unspecific cleavage [X]|[X]
+        if (sites[0] == "[X")
+        {
+          return true;
+        }
+        else
+        {
+          // cleavage site at the end,  presence of P does not matter; 
+          return (sites[0].hasSubstring(iterator->getOneLetterCode())); // (std::find(sites_before.begin(), sites_before.end(), *iterator) != sites_before.end());
+        }
       }
     }
     else // [X]|[DE]
     {
-      /*vector<String> sites_after;
-      int numSites_after = sites[1].size();
-      for (int i = 1; i < numSites_after-1; ++i)
-      {
-        sites_after.push_back(sites[1][i]);
-      }*/
       if (use_log_model_)
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("EnzymaticDigestion: enzyme '") + enzyme_.getName() + " does not support logModel!");
