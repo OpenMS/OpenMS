@@ -487,7 +487,7 @@ protected:
 
     registerStringOption_("enzyme:name", "", "Trypsin", "Enzyme which determines valid cleavage sites - e.g. trypsin cleaves after lysine (K) or arginine (R), but not before proline (P).", false);
     StringList enzymes;
-    EnzymesDB::getInstance()->getAllXTandemNames(enzymes);
+    EnzymesDB::getInstance()->getAllNames(enzymes);
     setValidStrings_("enzyme:name", enzymes);
 
     registerStringOption_("enzyme:specificity", "", EnzymaticDigestion::NamesOfSpecificity[0], "Specificity of the enzyme."

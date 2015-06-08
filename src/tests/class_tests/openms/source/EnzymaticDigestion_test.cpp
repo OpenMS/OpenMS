@@ -405,7 +405,7 @@ START_SECTION(( bool isValidProduct(const AASequence& protein, Size pep_pos, Siz
   // ------------------------
   // Trypsin/P
   // ------------------------
-  ed.setEnzyme("Trpsin/P");
+  ed.setEnzyme("Trypsin/P");
   ed.setSpecificity(EnzymaticDigestion::SPEC_FULL); // require both sides
 
   prot = AASequence::fromString("ABCDEFGKABCRAAAKAARPBBBB");

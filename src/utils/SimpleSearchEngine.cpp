@@ -152,7 +152,7 @@ class SimpleSearchEngine :
       registerIntOption_("modifications:variable_max_per_peptide", "<num>", 2, "Maximum number of residues carrying a variable modification per candidate peptide", false, false);
 
       vector<String> all_enzymes;
-      EnzymesDB::getInstance()->getAllXTandemNames(all_enzymes);
+      EnzymesDB::getInstance()->getAllNames(all_enzymes);
       registerStringOption_("enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false);
       setValidStrings_("enzyme", all_enzymes);
 

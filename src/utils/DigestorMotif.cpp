@@ -91,7 +91,7 @@ protected:
     registerIntOption_("min_length", "<number>", 6, "minimum length of peptide", false);
     registerIntOption_("out_option", "<number>", 1, "indicate 1 (peptide table only), 2 (statistics only) or (both peptide table + statistics)", false);
     vector<String> all_enzymes;
-    EnzymesDB::getInstance()->getAllXTandemNames(all_enzymes);
+    EnzymesDB::getInstance()->getAllNames(all_enzymes);
     registerStringOption_("enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false);
     setValidStrings_("enzyme", all_enzymes);
     registerStringOption_("motif", "<string>", "M", "the motif for the restricted peptidome", false);

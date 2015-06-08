@@ -107,7 +107,7 @@ protected:
     registerIntOption_("min_length", "<number>", 6, "Minimum length of peptide", false);
     registerIntOption_("max_length", "<number>", 40, "Maximum length of peptide", false);
     vector<String> all_enzymes;
-    EnzymesDB::getInstance()->getAllXTandemNames(all_enzymes);
+    EnzymesDB::getInstance()->getAllNames(all_enzymes);
     registerStringOption_("enzyme", "<string>", "Trypsin", "The type of digestion enzyme", false);
     setValidStrings_("enzyme", all_enzymes);
   }

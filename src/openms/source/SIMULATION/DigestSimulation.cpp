@@ -70,8 +70,8 @@ namespace OpenMS
   {
     // supported enzymes
     StringList enzymes;
-    EnzymesDB::getInstance()->getAllXTandemNames(enzymes);
-    defaults_.setValue("enzyme", enzymes[0], "Enzyme to use for digestion (select 'no cleavage' to skip digestion)");
+    EnzymesDB::getInstance()->getAllNames(enzymes);
+    defaults_.setValue("enzyme", "Trypsin", "Enzyme to use for digestion (select 'no cleavage' to skip digestion)");
     defaults_.setValidStrings("enzyme", enzymes);
 
     // cleavages
@@ -96,7 +96,7 @@ namespace OpenMS
   {
     LOG_INFO << "Digest Simulation ... started" << std::endl;
 
-    if ((String)param_.getValue("enzyme") == String("none"))
+    if ((String)param_.getValue("enzyme") == String("no cleavage"))
     {
       //peptides = proteins;
       // convert all proteins into peptides
