@@ -52,6 +52,7 @@ namespace OpenMS
     else
     {
       sl << accessions << RNA << peptide << String(charge) << String(score)
+         << best_localization_score  << localization_scores << best_localization
          << String::number(peptide_weight, 4) << String::number(RNA_weight, 4) << String::number(peptide_weight + RNA_weight, 4);
     }
 
@@ -204,6 +205,13 @@ namespace OpenMS
         row.m_2H = weight_z2;
         row.m_3H = weight_z3;
         row.m_4H = weight_z4;
+
+        if (ph.metaValueExists("RNPxl:best_localization_score") && ph.metaValueExists("RNPxl:localization_scores") && ph.metaValueExists("RNPxl:best_localization"))
+        {
+          row.best_localization_score = ph.getMetaValue("RNPxl:best_localization_score");
+          row.localization_scores = ph.getMetaValue("RNPxl:localization_scores");
+          row.best_localization = ph.getMetaValue("RNPxl:best_localization");;
+        }
 
         ph.setMetaValue("RNPxl:Da difference", (double)absolute_difference);
         ph.setMetaValue("RNPxl:ppm difference", (double)ppm_difference);

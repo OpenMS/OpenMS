@@ -50,6 +50,9 @@ struct OPENMS_DLLAPI RNPxlReportRow
   String accessions;
   String RNA;
   String peptide;
+  double best_localization_score;
+  String localization_scores;
+  String best_localization;
   Int charge;
   double score;
   double peptide_weight;
@@ -73,6 +76,7 @@ struct OPENMS_DLLAPI RNPxlReportRowHeader
   {
     StringList sl;
     sl << "#RT" << "original m/z" << "proteins" << "RNA" << "peptide" << "charge" << "score"
+       << "best localization score" << "localization scores" << "best localization(s)"
        << "peptide weight" << "RNA weight" << "cross-link weight";
 
     // marker ion fields

@@ -221,7 +221,6 @@ protected:
 
     registerFlag_("RNPxl:CysteineAdduct", "Use this flag if the +152 adduct is expected.");
     registerFlag_("RNPxl:filter_fractional_mass", "Use this flag to filter non-crosslinks by fractional mass.");
-    registerFlag_("RNPxl:partial_losses", "Use this flag to score all partial losses in the initial search (slower and may increase false positives).");
     registerFlag_("RNPxl:localization", "Use this flag to perform crosslink localization by partial loss scoring as post-analysis.");
     registerDoubleOption_("RNPxl:filter_small_peptide_mass", "<threshold>", 600.0, "Filter precursor that can only correspond to non-crosslinks by mass.", false, true);
     registerDoubleOption_("RNPxl:marker_ions_tolerance", "<tolerance>", 0.05, "Tolerance used to determine marker ions (Da).", false, true);
@@ -266,10 +265,10 @@ protected:
     IndexedString sequence;
     SignedSize peptide_mod_index; // enumeration index of the non-RNA peptide modification
     Size rna_mod_index; // index of the RNA modification
-    Size best_theoretical_spectrum; // if multiple theoretical spectra have been considered for a given peptide and modification state (e.g. partial loss spectra) this index stores which one scored best
     double score;
-    double localization_score;
-
+    double best_localization_score;
+    String localization_scores;
+    String best_localization;  
     static bool hasBetterScore(const AnnotatedHit& a, const AnnotatedHit& b)
     {
       return a.score > b.score;
@@ -530,7 +529,8 @@ private:
         for (vector<AnnotatedHit>::iterator a_it = annotated_hits[scan_index].begin(); a_it != annotated_hits[scan_index].end(); ++a_it)
         {
           // get unmodified string
-          AASequence aas = AASequence::fromString(a_it->sequence.getString());
+          String unmodified_sequence = a_it->sequence.getString();
+          AASequence aas = AASequence::fromString(unmodified_sequence);
 
           // reapply modifications (because for memory reasons we only stored the index and recreation is fast)
           vector<AASequence> all_modified_peptides;
@@ -676,45 +676,10 @@ private:
             theoretical_spectra.push_back(partial_loss_spectrum);        
           }
 
-          // score partial losses
-          double best_score(0.0);
-          Size best_index(0);
-          vector<double> partial_loss_scores;
-          for (Size i = 0; i != theoretical_spectra.size(); ++i)
-          {
-            const RichPeakSpectrum& theo_spectrum = theoretical_spectra[i];
-            #ifdef DEBUG_RNPXLSEARCH
-              cout << "Scoring: "  << all_loss_peptides[i].toString() << endl;
-            #endif
-            // use hyperscore
-            //const double score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum);
 
-            // use PScore
-            const vector<Size>& ranks = rank_map[scan_index];
-            map<Size, MSSpectrum<Peak1D> > peak_level_spectra = PScore::calculatePeakLevelSpectra(exp_spectrum, ranks);
-            const double score = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra, theo_spectrum);
-            partial_loss_scores.push_back(score);
-          }
-
-          for (Size i = 0; i != partial_loss_scores.size(); ++i)
-          {
-            const double score = partial_loss_scores[i];
-            #ifdef DEBUG_RNPXLSEARCH
-              cout << "Theoretical spectrum index: " << i << " score: " << score << " sequence: " << all_loss_peptides[i].toString() << endl;
-            #endif
-            if (score > best_score)
-            {
-              best_score = score;
-              best_index = i;
-            }
-          }
-
-          HyperScore::IndexScorePair best_localization_score = std::make_pair(best_index, best_score);
           #ifdef DEBUG_RNPXLSEARCH
-            cout << "Best theoretical spectrum index: " << best_index << " score: " << best_score << endl; 
+            RichPeakSpectrum peaks;
           #endif
-    
-          RichPeakSpectrum peaks;
 
           // fill annotated spectrum information
           set<Size> peak_is_annotated;  // experimental peak index
@@ -724,7 +689,9 @@ private:
 
 
           // first annotate total loss peaks
-          cout << "Annotating ion (total loss spectrum): " << aas.toString()  << endl;
+          #ifdef DEBUG_RNPXLSEARCH
+            cout << "Annotating ion (total loss spectrum): " << aas.toString()  << endl;
+          #endif
           std::vector<std::pair<Size, Size> > alignment;
           spectrum_aligner.getSpectrumAlignment(alignment, total_loss_spectrum, exp_spectrum);
           for (vector<std::pair<Size, Size> >::const_iterator pair_it = alignment.begin(); pair_it != alignment.end(); ++pair_it)
@@ -999,26 +966,30 @@ private:
             }
           #endif
 
+          String best_localization = unmodified_sequence;
+          String localization_scores;
+          for (Size i = 0; i != sites_sum_score.size(); ++i)
+          {
+            if (i != 0) localization_scores += ' ';
+            localization_scores += String(sites_sum_score[i]);
+            if (max_support != 0 && sites_sum_score[i] == max_support) // highlight possible cross-link site by making it lower case 
+            {
+              best_localization[i] = std::tolower(best_localization[i]);
+            } 
+          }
+
           #ifdef DEBUG_RNPXLSEARCH
             cout << "Localization scores: ";
-            for (Size i = 0; i != sites_sum_score.size(); ++i)
-            {
-              cout << sites_sum_score[i] << ",";
-            }
-            cout << endl;
+            cout << localization_scores << endl;
 
             cout << "Localisation based on ion series and immonium ions of all observed fragments: ";
-            for (Size i = 0; i != sites_sum_score.size(); ++i)
-            {
-              if (max_support != 0 && sites_sum_score[i] == max_support) cout << i+1 << " ";
-            }
+            cout << best_localization << endl;
           #endif
 
-          // store score of current localization
-          a_it->localization_score = best_localization_score.second;
-
-          // store index of best partial loss spectrum, (index starts at 1 at 0 corresponds to complete loss spectrum)
-          a_it->best_theoretical_spectrum = best_localization_score.first + 1;
+          // store score of best localization(s)
+          a_it->best_localization_score = max_support;
+          a_it->localization_scores = localization_scores;
+          a_it->best_localization = best_localization;
         }
       }
     }
@@ -1079,26 +1050,9 @@ private:
           ph.setMetaValue(String("RNPxl:RNA"), *mod_combinations_it->second.begin()); // return first nucleotide formula matching the index of the empirical formula
           ph.setMetaValue(String("RNPxl:RNA_MASS_z0"), EmpiricalFormula(mod_combinations_it->first).getMonoWeight()); // RNA uncharged mass via empirical formula
 
-          String best_scoring_loss = "complete"; // complete loss on fragmentation
-
-          if (a_it->best_theoretical_spectrum != 0)
-          {
-            String precursor_rna_adduct = *mod_combinations_it->second.begin();
-
-            // get fragment shifts that can occur given the RNA precursor adduct and the given sequence
-            vector<ResidueModification> partial_loss_modifications = RNPxlModificationsGenerator::getRNAFragmentModifications(precursor_rna_adduct, aas); 
-            vector<AASequence> all_loss_peptides;
-            // generate all RNA fragment modified sequences (already modified (e.g. Oxidation) residues are skipped. The unmodified one is not included (false) as it was already scored) 
-            ModifiedPeptideGenerator::applyVariableModifications(partial_loss_modifications.begin(), partial_loss_modifications.end(), fixed_and_variable_modified_peptide, 1, all_loss_peptides, false);
-
-            // report loss type
-            best_scoring_loss = "partial"; // partial loss on fragmentation
-
-            // overwrite fixed and variable modified peptide sequence to contain localization
-            fixed_and_variable_modified_peptide = all_loss_peptides[a_it->best_theoretical_spectrum - 1]; 
-          }
-          ph.setMetaValue(String("RNPxl:FRAGMENT_LOSS_TYPE"), best_scoring_loss);
-          ph.setMetaValue(String("RNPxl:localization_score"), a_it->localization_score);
+          ph.setMetaValue(String("RNPxl:best_localization_score"), a_it->best_localization_score);
+          ph.setMetaValue(String("RNPxl:localization_scores"), a_it->localization_scores);
+          ph.setMetaValue(String("RNPxl:best_localization"), a_it->best_localization);
 
           // set the amino acid sequence (for complete loss spectra this is just the variable and modified peptide. For partial loss spectra it additionally contains the loss induced modification)
           ph.setSequence(fixed_and_variable_modified_peptide);
@@ -1195,8 +1149,6 @@ private:
     Int max_nucleotide_length = getIntOption_("RNPxl:length");
 
     bool cysteine_adduct = getFlag_("RNPxl:CysteineAdduct");
-
-    bool partial_losses = getFlag_("RNPxl:partial_losses");
 
     bool localization = getFlag_("RNPxl:localization");
 
@@ -1398,28 +1350,6 @@ private:
             vector<RichPeakSpectrum> theoretical_spectra;
             theoretical_spectra.push_back(complete_loss_spectrum);
 
-            // consider all partial loss spectra in the initial search (slow and potential decreased specificity)
-            if (partial_losses)
-            {
-              // determine current precursor RNA adduct
-              std::map<String, std::set<String> >::const_iterator mod_combinations_it = mm.mod_combinations.begin();
-              std::advance(mod_combinations_it, rna_mod_index);
-              String precursor_rna_adduct = *mod_combinations_it->second.begin();
-
-              // get fragment shifts that can occur given the RNA precursor adduct and the given sequence
-              vector<ResidueModification> partial_loss_modifications = RNPxlModificationsGenerator::getRNAFragmentModifications(precursor_rna_adduct, candidate);           
-              vector<AASequence> all_loss_peptides;
-              // generate all RNA fragment modified sequences (already modified (e.g. Oxidation) residues are skipped. The unmodified one is not included (false) as it was already scored) 
-              ModifiedPeptideGenerator::applyVariableModifications(partial_loss_modifications.begin(), partial_loss_modifications.end(), candidate, 1, all_loss_peptides, false);
-              for (vector<AASequence>::const_iterator it = all_loss_peptides.begin(); it != all_loss_peptides.end(); ++it)
-              {
-                RichPeakSpectrum partial_loss_spectrum;
-                spectrum_generator.getSpectrum(partial_loss_spectrum, *it, 1);
-                partial_loss_spectrum.sortByPosition();
-                theoretical_spectra.push_back(partial_loss_spectrum);
-              }
-            }
-
             for (; low_it != up_it; ++low_it)
             {
               const Size& scan_index = low_it->second;
@@ -1445,10 +1375,6 @@ private:
                 cout << "best score in pre-score: " << best_score.second << endl;
               #endif
 
-             // store index of best alternative spectra scored for this peptide and modification state (e.g. additional loss spectra). 
-             // index of 0 corresponds to the complete loss spectrum
-             ah.best_theoretical_spectrum = best_score.first;
-      
 #ifdef _OPENMP
 #pragma omp critical (annotated_hits_access)
 #endif
