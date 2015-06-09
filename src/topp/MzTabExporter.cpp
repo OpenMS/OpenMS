@@ -729,8 +729,8 @@ protected:
       }
 
       // currently we don't save how many channels we saved in a consensus feature so we scan the file
-      // for the maximum max index in a consensus feature and take this as number of study variables
-      Size n_study_variables = consensus_map.getFileDescriptions().size() + 1;
+      // for the maximum map index in a consensus feature and take this as number of study variables
+      Size n_study_variables = consensus_map.getFileDescriptions().size();
 
       MzTabMetaData meta_data;
 
