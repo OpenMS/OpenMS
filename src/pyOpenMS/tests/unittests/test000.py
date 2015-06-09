@@ -1750,9 +1750,6 @@ def testEnzymaticDigestion():
      EnzymaticDigestion.__init__
      EnzymaticDigestion.getMissedCleavages()
      EnzymaticDigestion.setMissedCleavages()
-     EnzymaticDigestion.getEnzyme()
-     EnzymaticDigestion.setEnzyme()
-     EnzymaticDigestion.getEnzymeByName()
      EnzymaticDigestion.digest()
      EnzymaticDigestion.peptideCount()
      EnzymaticDigestion.isLogModelEnabled()
@@ -1760,14 +1757,19 @@ def testEnzymaticDigestion():
      EnzymaticDigestion.getLogThreshold()
      EnzymaticDigestion.setLogThreshold()
     """
+    # removed due to name clashes
+    # EnzymaticDigestion.getEnzyme()
+    # EnzymaticDigestion.setEnzyme()
+    # EnzymaticDigestion.getEnzymeByName()
+
     ff = pyopenms.EnzymaticDigestion()
-    enz = pyopenms.EnzymaticDigestion().Enzyme()
+    #enz = pyopenms.EnzymaticDigestion().Enzyme()
 
     assert pyopenms.EnzymaticDigestion().getMissedCleavages is not None
     assert pyopenms.EnzymaticDigestion().setMissedCleavages is not None
-    assert pyopenms.EnzymaticDigestion().getEnzyme is not None
-    assert pyopenms.EnzymaticDigestion().setEnzyme is not None
-    assert pyopenms.EnzymaticDigestion().getEnzymeByName is not None
+    #assert pyopenms.EnzymaticDigestion().getEnzyme is not None
+    #assert pyopenms.EnzymaticDigestion().setEnzyme is not None
+    #assert pyopenms.EnzymaticDigestion().getEnzymeByName is not None
 
     assert pyopenms.EnzymaticDigestion().digest is not None
     assert pyopenms.EnzymaticDigestion().peptideCount is not None
@@ -1777,16 +1779,16 @@ def testEnzymaticDigestion():
     assert pyopenms.EnzymaticDigestion().getLogThreshold  is not None
     assert pyopenms.EnzymaticDigestion().setLogThreshold is not None
 
-    ff.setLogThreshold(5) 
-    assert ff.getLogThreshold() == 5 
+    ff.setLogThreshold(5)
+    assert ff.getLogThreshold() == 5
 
-    ff.setMissedCleavages(5) 
-    assert ff.getMissedCleavages() == 5 
+    ff.setMissedCleavages(5)
+    assert ff.getMissedCleavages() == 5
 
-    ff.setEnzyme(enz.TRYPSIN) 
-    assert ff.getEnzyme() == enz.TRYPSIN
+    #ff.setEnzyme(enz.TRYPSIN)
+    #assert ff.getEnzyme() == enz.TRYPSIN
 
-    ff.setLogModelEnabled(True) 
+    ff.setLogModelEnabled(True)
     assert ff.isLogModelEnabled() == True
 
 @report
