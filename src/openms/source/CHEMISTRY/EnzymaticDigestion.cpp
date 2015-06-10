@@ -166,7 +166,7 @@ namespace OpenMS
     boost::regex re(enzyme_.getRegEx());
     boost::sregex_token_iterator i(s.begin(), s.end(), re, -1);
     boost::sregex_token_iterator j;
-    vector<Size> positions;
+    std::vector<Size> positions;
     Size pos = -1;
     while(i != j)
     {
@@ -204,7 +204,7 @@ namespace OpenMS
         {
           throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("EnzymaticDigestion: enzyme '") + enzyme_.getName() + " does not support logModel!");
         }
-        if (!enzyme_.getRegEx().hasSubstring(iterator->getOneLetterCode()) || *iterator == 'P') // wait for R or K
+        if ((!enzyme_.getRegEx().hasSubstring(iterator->getOneLetterCode())) || *iterator == 'P') // wait for R or K
         {
             return false;
         }
@@ -303,7 +303,7 @@ namespace OpenMS
   Size EnzymaticDigestion::peptideCount(const AASequence& protein)
   {
     SignedSize count = 1;
-    vector<Size> positions = tokenise(protein);
+    std::vector<Size> positions = tokenise(protein);
     AASequence::ConstIterator iterator = protein.begin();
     while (nextCleavageSite_(protein, iterator, positions), iterator != protein.end())
     {
@@ -337,8 +337,8 @@ namespace OpenMS
     if (missed_cleavages != 0)
       mc_iterators.push_back(protein.begin());
     // naive cleavage sites
-    vector<Size> positions = tokenise(protein);
-    cout << positions.size() <<endl;
+    std::vector<Size> positions = tokenise(protein);
+
     AASequence::ConstIterator begin = protein.begin();
     AASequence::ConstIterator end = protein.begin();
     while (nextCleavageSite_(protein, end, positions), end != protein.end())
