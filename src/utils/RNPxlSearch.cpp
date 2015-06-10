@@ -693,7 +693,7 @@ private:
               RichPeak1D RNA_fragment_peak;
               RNA_fragment_peak.setIntensity(1.0);
               RNA_fragment_peak.setMZ(104.05285 + all_loss_peptides_mod_pos[i][0].second.getDiffMonoMass()); // there is exactly one RNA fragment modification that we added to this partial loss spectrum. So get the modification and mass to calculate the RNA peak mass.
-              RNA_fragment_peak.setMetaValue("IonName", String("iK + ") + fragment_shift_name);
+              RNA_fragment_peak.setMetaValue("IonName", String("iM + ") + fragment_shift_name);
               partial_loss_spectrum.push_back(RNA_fragment_peak);
             }
 
