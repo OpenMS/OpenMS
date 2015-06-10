@@ -524,6 +524,7 @@ private:
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
       const PeakSpectrum& exp_spectrum = exp[scan_index];
+      const Size precursor_charge = exp_spectrum.getPrecursors()[0].getCharge();
       if (!annotated_hits[scan_index].empty())
       {
         for (vector<AnnotatedHit>::iterator a_it = annotated_hits[scan_index].begin(); a_it != annotated_hits[scan_index].end(); ++a_it)
@@ -581,8 +582,11 @@ private:
           {
             const AASequence& partial_loss_peptide = all_loss_peptides[i];
             RichPeakSpectrum partial_loss_spectrum;
-            spectrum_generator.addPeaks(partial_loss_spectrum, partial_loss_peptide, Residue::BIon, 1);
-            spectrum_generator.addPeaks(partial_loss_spectrum, partial_loss_peptide, Residue::YIon, 1);
+            for (Size z = 1; z <= precursor_charge; ++z)
+            {
+              spectrum_generator.addPeaks(partial_loss_spectrum, partial_loss_peptide, Residue::BIon, z);
+              spectrum_generator.addPeaks(partial_loss_spectrum, partial_loss_peptide, Residue::YIon, z);
+            }
 
             // RNA is cross-linked to amino acid that gives rise to immonium ions? Then add the shifted immonium peak
             String fragment_shift_origin = all_loss_peptides_mod_pos[i][0].second.getOrigin();
@@ -716,10 +720,9 @@ private:
 
           // ion centric (e.g. b and y-ion) spectrum annotation that records all shifts of specific ions (e.g. y5, y5 + U, y5 + C3O)
           map<String, set<String> > annotated_ions;
-          map<Size, set<String> > shifted_b_ions;
-          map<Size, set<String> > shifted_y_ions;
-
-          map<String, set<String> > annotated_immonium_ions;
+          map<Size, set<pair<String, double> > > shifted_b_ions;
+          map<Size, set<pair<String, double> > > shifted_y_ions;
+          map<String, set<String> > shifted_immonium_ions;
           map<String, set<String> > annotated_marker_ions;
 
           // first annotate total loss peaks
@@ -774,7 +777,7 @@ private:
 
           vector<Size> site_determining_ions_present(aas.size(),0);
           vector<Size> number_of_site_determining_ions(aas.size(),0);
-          vector<int> sites_sum_score(aas.size(), 0);
+          vector<double> sites_sum_score(aas.size(), 0);
 
           // annotate partial loss peaks
           for (Size i = 0; i != theoretical_spectra.size(); ++i)
@@ -843,7 +846,7 @@ private:
                   String annotation = fragment_shift_name;
                   annotation.substitute("RNA:", "");
                   annotated_ions[ion_name].insert(annotation + "(" + String::number(fragment_mz, 3) + ", " + String::number(fragment_intensity, 1) + ")");
-                  shifted_y_ions[ion_number].insert(annotation + "(" + String::number(fragment_mz, 3) + ", " + String::number(fragment_intensity, 1) + ")");
+                  shifted_y_ions[ion_number].insert(make_pair(annotation + "(" + String::number(fragment_mz, 3) + ", " + String::number(fragment_intensity, 1) + ")", fragment_intensity));
                 }
               }
               else if (ion_name.hasPrefix("b"))
@@ -871,7 +874,7 @@ private:
                   String annotation = fragment_shift_name;
                   annotation.substitute("RNA:", "");
                   annotated_ions[ion_name].insert(annotation + "(" + String::number(fragment_mz, 3) + ", " + String::number(fragment_intensity, 1) + ")");
-                  shifted_b_ions[ion_number].insert(annotation + "(" + String::number(fragment_mz, 3) + ", " + String::number(fragment_intensity, 1) + ")");
+                  shifted_b_ions[ion_number].insert(make_pair(annotation + "(" + String::number(fragment_mz, 3) + ", " + String::number(fragment_intensity, 1) + ")", fragment_intensity));
                 }
               }
               else if (ion_name.hasPrefix("RNA:"))
@@ -907,47 +910,11 @@ private:
                 // remove RNA: substring for nicer annotation of ion
                 String annotation = ion_name;
                 annotation.substitute("RNA:", "");
-                annotated_immonium_ions[origin].insert(annotation + "(" + String::number(fragment_mz, 3) + ", " + String::number(fragment_intensity, 1) + ")");
+                shifted_immonium_ions[origin].insert(annotation + "(" + String::number(fragment_mz, 3) + ", " + String::number(fragment_intensity, 1) + ")");
               }
             }
-
-            #ifdef DEBUG_RNPXLSEARCH
-              cout << "Smallest shifted b/y ion: " << smallest_shifted_b_ion << "/" << smallest_shifted_y_ion << endl;
-            #endif
-            Size region_start(0), region_end(aas.size()-1);
-
-            if ((smallest_shifted_b_ion - 1) != aas.size())
-            {
-              region_start = smallest_shifted_b_ion - 1;
-            }
-            else
-            {
-              region_start = aas.size() - 1;
-            }
-
-            if ((smallest_shifted_y_ion - 1) != aas.size())
-            {
-              region_end = aas.size() - smallest_shifted_y_ion;
-            }
-            else
-            {
-              region_end = 0;
-            }
-
-            if (region_start > region_end) std::swap(region_start, region_end);
-
-            #ifdef DEBUG_RNPXLSEARCH
-              cout << "Localisation based on ion-series: " << region_start << "-" << region_end << " shifted b/y ions: " << supporting_b_ions << "/" << supporting_y_ions << endl;
-            #endif
-
-
-
           }
 
-
-            #ifdef DEBUG_RNPXLSEARCH
-              cout << endl;
-            #endif
           #ifdef DEBUG_RNPXLSEARCH
             cout << "Ion centric annotation: " << endl;
             for (map<String, set<String> >::const_iterator ait = annotated_ions.begin(); ait != annotated_ions.end(); ++ait)
@@ -961,7 +928,7 @@ private:
             }
 
             cout << "Immonium ions: " << endl;
-            for (map<String, set<String> >::const_iterator ait = annotated_immonium_ions.begin(); ait != annotated_immonium_ions.end(); ++ait)
+            for (map<String, set<String> >::const_iterator ait = shifted_immonium_ions.begin(); ait != shifted_immonium_ions.end(); ++ait)
             {
               cout << ait->first << ": ";
               for (set<String>::const_iterator sit = ait->second.begin(); sit != ait->second.end(); ++sit)
@@ -991,11 +958,23 @@ private:
             {            
               if ((bi - 1) < i) // subtract contradicting observations
               {
-                if (shifted_b_ions.find(bi) != shifted_b_ions.end()) sites_sum_score[i] -= shifted_b_ions[bi].size();
+                if (shifted_b_ions.find(bi) != shifted_b_ions.end())
+                {
+                  for (set<pair<String, double> >::const_iterator k = shifted_b_ions[bi].begin(); k != shifted_b_ions[bi].end(); ++k)
+                  {
+                    sites_sum_score[i] -= k->second;
+                  }
+                }
               } 
               else // add supporting observations
               {                            
-                if (shifted_b_ions.find(bi) != shifted_b_ions.end()) sites_sum_score[i] += shifted_b_ions[bi].size();
+                if (shifted_b_ions.find(bi) != shifted_b_ions.end())
+                {  
+                  for (set<pair<String, double> >::const_iterator k = shifted_b_ions[bi].begin(); k != shifted_b_ions[bi].end(); ++k)
+                  {
+                    sites_sum_score[i] += k->second;
+                  }
+                }
               } 
             }
 
@@ -1004,11 +983,23 @@ private:
               Size position = sites_sum_score.size() - yi;
               if (position > i) // subtract contradicting observations
               {
-                if (shifted_y_ions.find(yi) != shifted_y_ions.end()) sites_sum_score[i] -= shifted_y_ions[yi].size();
+                if (shifted_y_ions.find(yi) != shifted_y_ions.end())
+                {
+                  for (set<pair<String, double> >::const_iterator k = shifted_y_ions[yi].begin(); k != shifted_y_ions[yi].end(); ++k)
+                  {
+                    sites_sum_score[i] -= k->second;
+                  }
+                }
               }
               else
               {
-                if (shifted_y_ions.find(yi) != shifted_y_ions.end()) sites_sum_score[i] += shifted_y_ions[yi].size();
+                if (shifted_y_ions.find(yi) != shifted_y_ions.end())
+                {
+                  for (set<pair<String, double> >::const_iterator k = shifted_y_ions[yi].begin(); k != shifted_y_ions[yi].end(); ++k)
+                  {
+                    sites_sum_score[i] += k->second;
+                  }
+                }
               }              
             }
           }
@@ -1020,46 +1011,52 @@ private:
           for (Size i = 0; i != aas_unmodified.size(); ++i)
           {
             String origin = String(aas_unmodified[i]);
-            if (annotated_immonium_ions.find(origin) != annotated_immonium_ions.end())
+            if (shifted_immonium_ions.find(origin) != shifted_immonium_ions.end())
             {                                
               #ifdef DEBUG_RNPXLSEARCH
                 cout << i+1 << " ";
               #endif
-              ++sites_sum_score[i];  // support from immonium ion
+              sites_sum_score[i] += shifted_immonium_ions[origin].size();  
             }
           }
           
-          cout << "shifted b ions: " << endl;
-          for (map<Size, set<String> >::const_iterator ait = shifted_b_ions.begin(); ait != shifted_b_ions.end(); ++ait)
-          {
-            cout << ait->first << ": " << ait->second.size() << endl;
-          }
-
-          cout << "shifted y ions: " << endl;
-          for (map<Size, set<String> >::const_iterator ait = shifted_y_ions.begin(); ait != shifted_y_ions.end(); ++ait)
-          {
-            cout << ait->first << ": " << ait->second.size() << endl;
-          }
 
           String best_localization = unmodified_sequence;
+          double best_localization_score = 0;
           String localization_scores;
           for (Size i = 0; i != sites_sum_score.size(); ++i)
           {
-            if (i != 0) localization_scores += ' ';
-            localization_scores += String(sites_sum_score[i]);
+            if (sites_sum_score[i] > best_localization_score) best_localization_score = sites_sum_score[i];
           }
 
-          #ifdef DEBUG_RNPXLSEARCH
-            cout << "Localization scores: ";
-            cout << localization_scores << endl;
-
-            cout << "Localisation based on ion series and immonium ions of all observed fragments: ";
-            cout << best_localization << endl;
-          #endif
+          for (Size i = 0; i != sites_sum_score.size(); ++i)
+          {
+            if (i != 0) localization_scores += ' ';
+            localization_scores += String::number(max(sites_sum_score[i],0.0), 2);
+            if (sites_sum_score[i] >= best_localization_score - 1e-6) best_localization[i] = tolower(best_localization[i]);
+          }
 
           // store score of best localization(s)
           a_it->localization_scores = localization_scores;
           a_it->best_localization = best_localization;
+          a_it->best_localization_score = best_localization_score;
+
+          #ifdef DEBUG_RNPXLSEARCH
+            cout << "shifted b ions: " << endl;
+            for (map<Size, set<pair<String, double > > >::const_iterator ait = shifted_b_ions.begin(); ait != shifted_b_ions.end(); ++ait)
+            {
+              cout << ait->first << ": " << ait->second.size() << endl;
+            }
+            cout << "shifted y ions: " << endl;
+            for (map<Size, set<pair<String, double > > >::const_iterator ait = shifted_y_ions.begin(); ait != shifted_y_ions.end(); ++ait)
+            {
+              cout << ait->first << ": " << ait->second.size() << endl;
+            }
+            cout << "Localization scores: ";
+            cout << localization_scores << endl;
+            cout << "Localisation based on ion series and immonium ions of all observed fragments: ";
+            cout << best_localization << endl;
+          #endif
         }
       }
     }
