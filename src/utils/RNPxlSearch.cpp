@@ -81,7 +81,7 @@
 #define NUMBER_OF_THREADS (1)
 #endif
 
-//#define DEBUG_RNPXLSEARCH 
+#define DEBUG_RNPXLSEARCH 
 
 using namespace OpenMS;
 using namespace std;
@@ -716,6 +716,9 @@ private:
 
           // ion centric (e.g. b and y-ion) spectrum annotation that records all shifts of specific ions (e.g. y5, y5 + U, y5 + C3O)
           map<String, set<String> > annotated_ions;
+          map<Size, set<String> > shifted_b_ions;
+          map<Size, set<String> > shifted_y_ions;
+
           map<String, set<String> > annotated_immonium_ions;
           map<String, set<String> > annotated_marker_ions;
 
@@ -743,8 +746,8 @@ private:
               ion_nr_string.substitute("y", "");
               ion_nr_string.substitute("+", "");
               Size ion_number = (Size)ion_nr_string.toInt();
-              const AASequence& peptide_sequence = aas.getSuffix(ion_number);
               #ifdef DEBUG_RNPXLSEARCH
+                const AASequence& peptide_sequence = aas.getSuffix(ion_number);
                 cout << "Annotating ion: " << ion_name << " at position: " << r.getMZ() << " " << peptide_sequence.toString() << " intensity: " << 100.0 * r.getIntensity() << endl;           
                 r.setMetaValue("IonName", ion_name);                  
                 r.setMetaValue("Sequence", peptide_sequence.toString());
@@ -758,8 +761,8 @@ private:
               ion_nr_string.substitute("b", "");
               ion_nr_string.substitute("+", "");
               Size ion_number = (Size)ion_nr_string.toInt();
-              const AASequence& peptide_sequence = aas.getPrefix(ion_number);
               #ifdef DEBUG_RNPXLSEARCH
+                const AASequence& peptide_sequence = aas.getPrefix(ion_number);
                 cout << "Annotating ion: " << ion_name << " at position: " << r.getMZ() << " " << peptide_sequence.toString() << " intensity: " << 100.0 * r.getIntensity() << endl;
                 r.setMetaValue("IonName", ion_name);
                 r.setMetaValue("Sequence", peptide_sequence.toString());
@@ -771,7 +774,7 @@ private:
 
           vector<Size> site_determining_ions_present(aas.size(),0);
           vector<Size> number_of_site_determining_ions(aas.size(),0);
-          vector<Size> sites_sum_score(aas.size(), 0);
+          vector<int> sites_sum_score(aas.size(), 0);
 
           // annotate partial loss peaks
           for (Size i = 0; i != theoretical_spectra.size(); ++i)
@@ -790,8 +793,8 @@ private:
             #endif 
 
             // smallest b/y ion with RNA shift
-            Size smallest_shifted_b_ion = aas.size();
-            Size smallest_shifted_y_ion = aas.size();
+            Size smallest_shifted_b_ion = aas.size() + 1;
+            Size smallest_shifted_y_ion = aas.size() + 1;
 
             Size supporting_b_ions(0), supporting_y_ions(0);
             set<String> observed_immonium_ions;
@@ -840,6 +843,7 @@ private:
                   String annotation = fragment_shift_name;
                   annotation.substitute("RNA:", "");
                   annotated_ions[ion_name].insert(annotation + "(" + String::number(fragment_mz, 3) + ", " + String::number(fragment_intensity, 1) + ")");
+                  shifted_y_ions[ion_number].insert(annotation + "(" + String::number(fragment_mz, 3) + ", " + String::number(fragment_intensity, 1) + ")");
                 }
               }
               else if (ion_name.hasPrefix("b"))
@@ -867,6 +871,7 @@ private:
                   String annotation = fragment_shift_name;
                   annotation.substitute("RNA:", "");
                   annotated_ions[ion_name].insert(annotation + "(" + String::number(fragment_mz, 3) + ", " + String::number(fragment_intensity, 1) + ")");
+                  shifted_b_ions[ion_number].insert(annotation + "(" + String::number(fragment_mz, 3) + ", " + String::number(fragment_intensity, 1) + ")");
                 }
               }
               else if (ion_name.hasPrefix("RNA:"))
@@ -902,7 +907,7 @@ private:
                 // remove RNA: substring for nicer annotation of ion
                 String annotation = ion_name;
                 annotation.substitute("RNA:", "");
-                annotated_immonium_ions[annotation].insert("(" + String::number(fragment_mz, 3) + ", " + String::number(fragment_intensity, 1) + ")");
+                annotated_immonium_ions[origin].insert(annotation + "(" + String::number(fragment_mz, 3) + ", " + String::number(fragment_intensity, 1) + ")");
               }
             }
 
@@ -935,61 +940,14 @@ private:
               cout << "Localisation based on ion-series: " << region_start << "-" << region_end << " shifted b/y ions: " << supporting_b_ions << "/" << supporting_y_ions << endl;
             #endif
 
-            // set region from ion series sites to candidate
-            vector<Size> sites(aas.size(), 0);
-            #ifdef DEBUG_RNPXLSEARCH
-              cout << "Localisation based on immonium ions: ";
-            #endif
-            String aas_unmodified = aas.toUnmodifiedString();
-            for (Size i = 0; i != aas_unmodified.size(); ++i)
-            {
-              String origin = String(aas_unmodified[i]);
-              if (observed_immonium_ions.find(origin) != observed_immonium_ions.end())
-              {                                
-                #ifdef DEBUG_RNPXLSEARCH
-                  cout << i+1 << " ";
-                #endif
-                ++sites[i];  // support from immonium ion
-              }
-            }
-            #ifdef DEBUG_RNPXLSEARCH
-              cout << endl;
-            #endif
 
-            // check if some support from b/y ions series
-            if (region_start != 0 || region_end != (aas.size() - 1))
-            {         
-              for (Size i = region_start; i <= region_end; ++i) ++sites[i];  // support from b/y ions
-            }
-
-            #ifdef DEBUG_RNPXLSEARCH
-              cout << "Localisation based on ion series and immonium ions: ";
-              Size max_support = 0;
-              for (Size i = 0; i != sites.size(); ++i)
-              {
-                if (sites[i] > max_support) max_support = sites[i];
-              }
-              for (Size i = 0; i != sites.size(); ++i)
-              {
-                if (max_support != 0 && sites[i] == max_support) cout << i+1 << " ";
-              }
-              cout << endl;
-            #endif
-
-            // sum up score            
-            for (Size i = 0; i != sites.size(); ++i)
-            {
-              sites_sum_score[i] += sites[i];
-            }
 
           }
 
-          Size max_support = 0;
-          for (Size i = 0; i != sites_sum_score.size(); ++i)
-          {
-            if (sites_sum_score[i] > max_support) max_support = sites_sum_score[i];
-          }
 
+            #ifdef DEBUG_RNPXLSEARCH
+              cout << endl;
+            #endif
           #ifdef DEBUG_RNPXLSEARCH
             cout << "Ion centric annotation: " << endl;
             for (map<String, set<String> >::const_iterator ait = annotated_ions.begin(); ait != annotated_ions.end(); ++ait)
@@ -1023,8 +981,65 @@ private:
               }
               cout << endl;
             }
-
           #endif
+
+          for (Size i = 0; i != sites_sum_score.size(); ++i) 
+          {            
+            sites_sum_score[i] = 0.0;
+            // caclculate how many ions are explained by this position
+            for (Size bi = 1; bi <= sites_sum_score.size(); ++bi) 
+            {            
+              if ((bi - 1) < i) // subtract contradicting observations
+              {
+                if (shifted_b_ions.find(bi) != shifted_b_ions.end()) sites_sum_score[i] -= shifted_b_ions[bi].size();
+              } 
+              else // add supporting observations
+              {                            
+                if (shifted_b_ions.find(bi) != shifted_b_ions.end()) sites_sum_score[i] += shifted_b_ions[bi].size();
+              } 
+            }
+
+            for (Size yi = 1; yi <= sites_sum_score.size(); ++yi) 
+            {
+              Size position = sites_sum_score.size() - yi;
+              if (position > i) // subtract contradicting observations
+              {
+                if (shifted_y_ions.find(yi) != shifted_y_ions.end()) sites_sum_score[i] -= shifted_y_ions[yi].size();
+              }
+              else
+              {
+                if (shifted_y_ions.find(yi) != shifted_y_ions.end()) sites_sum_score[i] += shifted_y_ions[yi].size();
+              }              
+            }
+          }
+
+          #ifdef DEBUG_RNPXLSEARCH
+            cout << "Localisation based on immonium ions: ";
+          #endif
+          String aas_unmodified = aas.toUnmodifiedString();
+          for (Size i = 0; i != aas_unmodified.size(); ++i)
+          {
+            String origin = String(aas_unmodified[i]);
+            if (annotated_immonium_ions.find(origin) != annotated_immonium_ions.end())
+            {                                
+              #ifdef DEBUG_RNPXLSEARCH
+                cout << i+1 << " ";
+              #endif
+              ++sites_sum_score[i];  // support from immonium ion
+            }
+          }
+          
+          cout << "shifted b ions: " << endl;
+          for (map<Size, set<String> >::const_iterator ait = shifted_b_ions.begin(); ait != shifted_b_ions.end(); ++ait)
+          {
+            cout << ait->first << ": " << ait->second.size() << endl;
+          }
+
+          cout << "shifted y ions: " << endl;
+          for (map<Size, set<String> >::const_iterator ait = shifted_y_ions.begin(); ait != shifted_y_ions.end(); ++ait)
+          {
+            cout << ait->first << ": " << ait->second.size() << endl;
+          }
 
           String best_localization = unmodified_sequence;
           String localization_scores;
@@ -1032,10 +1047,6 @@ private:
           {
             if (i != 0) localization_scores += ' ';
             localization_scores += String(sites_sum_score[i]);
-            if (max_support != 0 && sites_sum_score[i] == max_support) // highlight possible cross-link site by making it lower case 
-            {
-              best_localization[i] = std::tolower(best_localization[i]);
-            } 
           }
 
           #ifdef DEBUG_RNPXLSEARCH
@@ -1047,7 +1058,6 @@ private:
           #endif
 
           // store score of best localization(s)
-          a_it->best_localization_score = max_support;
           a_it->localization_scores = localization_scores;
           a_it->best_localization = best_localization;
         }
