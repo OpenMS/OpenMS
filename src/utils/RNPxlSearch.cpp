@@ -1011,7 +1011,7 @@ private:
             //
             // b-ions
             for (Size bi = 1; bi <= sites_sum_score.size(); ++bi) 
-            {            
+            {      
               if ((bi - 1) < i) // penalize contradicting observations
               {
                 if (shifted_b_ions.find(bi) != shifted_b_ions.end())
@@ -1024,11 +1024,12 @@ private:
               } 
               else // add supporting observations
               {                            
+                double distance = static_cast<double>((bi - 1) - i) / (sites_sum_score.size() - 1.0);
                 if (shifted_b_ions.find(bi) != shifted_b_ions.end())
                 {  
                   for (set<pair<String, double> >::const_iterator k = shifted_b_ions[bi].begin(); k != shifted_b_ions[bi].end(); ++k)
                   {
-                    sites_sum_score[i] += k->second;
+                    sites_sum_score[i] += (1.0 - distance) * k->second; // weight by distance
                   }
                 }
               } 
@@ -1049,11 +1050,12 @@ private:
               } 
               else // add supporting observations
               {                            
+                double distance = static_cast<double>((ai - 1) - i) / (sites_sum_score.size() - 1.0);
                 if (shifted_a_ions.find(ai) != shifted_a_ions.end())
                 {  
                   for (set<pair<String, double> >::const_iterator k = shifted_a_ions[ai].begin(); k != shifted_a_ions[ai].end(); ++k)
                   {
-                    sites_sum_score[i] += k->second;
+                    sites_sum_score[i] += (1.0 - distance) * k->second;
                   }
                 }
               } 
@@ -1075,11 +1077,12 @@ private:
               }
               else
               {
+                double distance = static_cast<double>(i - position) / (sites_sum_score.size() - 1.0);
                 if (shifted_y_ions.find(yi) != shifted_y_ions.end())
                 {
                   for (set<pair<String, double> >::const_iterator k = shifted_y_ions[yi].begin(); k != shifted_y_ions[yi].end(); ++k)
                   {
-                    sites_sum_score[i] += k->second;
+                    sites_sum_score[i] += (1.0 - distance) * k->second;
                   }
                 }
               }              
