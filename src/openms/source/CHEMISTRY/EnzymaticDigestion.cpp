@@ -37,6 +37,7 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <boost/regex.hpp>
 
 #include <iostream>
 
@@ -159,26 +160,56 @@ namespace OpenMS
     log_model_threshold_ = threshold;
   }
 
-  bool EnzymaticDigestion::isCleavageSite_(
-    const AASequence& protein, const AASequence::ConstIterator& iterator) const
+  std::vector<Size> EnzymaticDigestion::tokenise(const AASequence& protein) const
   {
-    // [RK]|[X], [RK]|{P},[X]|[DE],[X]|[X]
-    vector<String> sites;
-    enzyme_.getXTANDEMid().split("]|", sites);
-    if (enzyme_.getXTANDEMid() == "") // no cleavage
+    String s=protein.toUnmodifiedString();
+    boost::regex re(enzyme_.getRegEx());
+    boost::sregex_token_iterator i(s.begin(), s.end(), re, -1);
+    boost::sregex_token_iterator j;
+    vector<Size> positions;
+    Size pos = -1;
+    while(i != j)
+    {
+      AASequence pep = AASequence::fromString((String)(*i++));
+      pos += pep.size();
+      positions.push_back(pos);
+    }
+    return positions;
+  }
+
+  bool EnzymaticDigestion::isCleavageSite_(
+    const AASequence& protein, const AASequence::ConstIterator& iterator, const std::vector<Size> positions) const
+  {
+    if (enzyme_.getRegEx() == "()") // no cleavage
     {
       return false;
     }
-    else if (sites[1] == "{P}")
+    else 
     {
-      if (use_log_model_)
+      if (!use_log_model_)
       {
-        if (!sites[0].hasSubstring(iterator->getOneLetterCode()))// (std::find(sites_before.begin(), sites_before.end(), iterator) == sites_before.end()) // wait for R or K
+        // naive digestion
+        if (iterator != protein.end()-1)
         {
-          return false;
+          return (std::find(positions.begin(), positions.end(), iterator - protein.begin()) != positions.end());
+        }
+        else
+        {
+          return (enzyme_.getRegEx().hasSubstring(iterator->getOneLetterCode()) && *iterator != 'P');
+        }
+      }
+      else
+      {
+        if (!enzyme_.getRegEx().hasSubstring("?!P"))
+        {
+          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("EnzymaticDigestion: enzyme '") + enzyme_.getName() + " does not support logModel!");
+        }
+        if (!enzyme_.getRegEx().hasSubstring(iterator->getOneLetterCode()) || *iterator == 'P') // wait for R or K
+        {
+            return false;
         }
         SignedSize pos = distance(AASequence::ConstIterator(protein.begin()),
-                                  iterator) - 4; // start position in sequence
+                                    iterator) - 4; // start position in sequence
         double score_cleave = 0, score_missed = 0;
         for (SignedSize i = 0; i < 9; ++i)
         {
@@ -196,52 +227,14 @@ namespace OpenMS
         }
         return score_missed - score_cleave > log_model_threshold_;
       }
-      else // naive digestion
-      {
-        // R or K at the end and not P afterwards
-        return (sites[0].hasSubstring(iterator->getOneLetterCode()) && //(std::find(sites_before.begin(), sites_before.end(), *iterator) != sites_before.end()) &&
-               ((iterator + 1) == protein.end() || *(iterator + 1) != 'P'));
-      }
-    }
-    else if (sites[1] == "[X]")
-    {
-      if (use_log_model_)
-      {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("EnzymaticDigestion: enzyme '") + enzyme_.getName() + " does not support logModel!");
-      }
-      else
-      { 
-        // unspecific cleavage [X]|[X]
-        if (sites[0] == "[X")
-        {
-          return true;
-        }
-        else
-        {
-          // cleavage site at the end,  presence of P does not matter; 
-          return (sites[0].hasSubstring(iterator->getOneLetterCode())); // (std::find(sites_before.begin(), sites_before.end(), *iterator) != sites_before.end());
-        }
-      }
-    }
-    else // [X]|[DE]
-    {
-      if (use_log_model_)
-      {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("EnzymaticDigestion: enzyme '") + enzyme_.getName() + " does not support logModel!");
-      }
-      else
-      {
-        // cut before the cleavage site
-        return (sites[1].hasSubstring(iterator->getOneLetterCode())); // (std::find(sites_after.begin(), sites_after.end(), *(iterator+1)) != sites_after.end());
-      }
     }
   }
 
-  void EnzymaticDigestion::nextCleavageSite_(const AASequence& protein, AASequence::ConstIterator& iterator) const
+  void EnzymaticDigestion::nextCleavageSite_(const AASequence& protein, AASequence::ConstIterator& iterator, const std::vector<Size> positions) const
   {
     while (iterator != protein.end())
     {
-      if (isCleavageSite_(protein, iterator))
+      if (isCleavageSite_(protein, iterator, positions))
       {
         ++iterator;
         return;
@@ -277,16 +270,17 @@ namespace OpenMS
     { // either SPEC_SEMI or SPEC_FULL
       bool spec_c = false, spec_n = false;
 
+      std::vector<Size> positions = tokenise(protein);
       // test each end
       if (pep_pos == 0 ||
           (pep_pos == 1 && protein.getResidue((Size)0).getOneLetterCode() == "M") ||
-          isCleavageSite_(protein, protein.begin() + (pep_pos - 1)))
+          isCleavageSite_(protein, protein.begin() + (pep_pos - 1), positions))
       {
         spec_n = true;
       }
 
       if (pep_pos + pep_length == protein.size() ||
-          isCleavageSite_(protein, protein.begin() + (pep_pos + pep_length - 1)))
+          isCleavageSite_(protein, protein.begin() + (pep_pos + pep_length - 1), positions))
       {
         spec_c = true;
       }
@@ -309,9 +303,9 @@ namespace OpenMS
   Size EnzymaticDigestion::peptideCount(const AASequence& protein)
   {
     SignedSize count = 1;
-
+    vector<Size> positions = tokenise(protein);
     AASequence::ConstIterator iterator = protein.begin();
-    while (nextCleavageSite_(protein, iterator), iterator != protein.end())
+    while (nextCleavageSite_(protein, iterator, positions), iterator != protein.end())
     {
       ++count;
     }
@@ -329,7 +323,7 @@ namespace OpenMS
 
   void EnzymaticDigestion::digest(const AASequence& protein, vector<AASequence>& output) const
   {
-    //initialization
+    // initialization
     SignedSize count = 1;
     output.clear();
 
@@ -338,14 +332,16 @@ namespace OpenMS
     if (use_log_model_)
       missed_cleavages = 0; // log model has missed cleavages build-in
 
-    //missed cleavage iterators
-    vector<AASequence::ConstIterator> mc_iterators;
+    // missed cleavage iterators
+    std::vector<AASequence::ConstIterator> mc_iterators;
     if (missed_cleavages != 0)
       mc_iterators.push_back(protein.begin());
-
+    // naive cleavage sites
+    vector<Size> positions = tokenise(protein);
+    cout << positions.size() <<endl;
     AASequence::ConstIterator begin = protein.begin();
     AASequence::ConstIterator end = protein.begin();
-    while (nextCleavageSite_(protein, end), end != protein.end())
+    while (nextCleavageSite_(protein, end, positions), end != protein.end())
     {
       ++count;
       if (missed_cleavages != 0)

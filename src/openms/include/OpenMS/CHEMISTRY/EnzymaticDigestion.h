@@ -168,11 +168,14 @@ protected:
         p_cleave(p_c), p_miss(p_m) {}
     };
 
-    /// moves the iterator @p p behind (i.e., C-term) the next cleavage site of the @p sequence
-    void nextCleavageSite_(const AASequence & sequence, AASequence::ConstIterator & p) const;
+    /// Returns the naive cleavage site positions without specificity
+    std::vector<Size> tokenise(const AASequence & sequence) const;
 
-    /// tests if position pointed to by @p p (N-term side) is a valid cleavage site
-    bool isCleavageSite_(const AASequence & sequence, const AASequence::ConstIterator & p) const;
+    /// Moves the iterator @p p behind (i.e., C-term) the next cleavage site of the @p sequence
+    void nextCleavageSite_(const AASequence & sequence, AASequence::ConstIterator & p, const std::vector<Size> positions) const;
+
+    /// Tests if position pointed to by @p p (N-term side) is a valid cleavage site
+    bool isCleavageSite_(const AASequence & sequence, const AASequence::ConstIterator & p, const std::vector<Size> positions) const;
 
     /// Number of missed cleavages
     SignedSize missed_cleavages_;
