@@ -137,8 +137,8 @@ protected:
     registerOutputFile_("out", "<file>", "", "output file ");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
 
-    registerOutputFile_("out_csv", "<file>", "", "csv output file");
-    setValidFormats_("out_csv", ListUtils::create<String>("csv"));
+    registerOutputFile_("out_tsv", "<file>", "", "tsv output file");
+    setValidFormats_("out_tsv", ListUtils::create<String>("tsv"));
 
     registerTOPPSubsection_("precursor", "Precursor (Parent Ion) Options");
     registerDoubleOption_("precursor:mass_tolerance", "<tolerance>", 10.0, "Width of precursor mass tolerance window", false);
@@ -584,6 +584,7 @@ private:
             RichPeakSpectrum partial_loss_spectrum;
             for (Size z = 1; z <= precursor_charge; ++z)
             {
+              spectrum_generator.addPeaks(partial_loss_spectrum, partial_loss_peptide, Residue::AIon, z);
               spectrum_generator.addPeaks(partial_loss_spectrum, partial_loss_peptide, Residue::BIon, z);
               spectrum_generator.addPeaks(partial_loss_spectrum, partial_loss_peptide, Residue::YIon, z);
             }
@@ -687,6 +688,15 @@ private:
               RNA_fragment_peak.setMetaValue("IonName", String("iK + ") + fragment_shift_name);
               partial_loss_spectrum.push_back(RNA_fragment_peak);
             }
+            else if (fragment_shift_origin == "M")
+            {
+              RichPeak1D RNA_fragment_peak;
+              RNA_fragment_peak.setIntensity(1.0);
+              RNA_fragment_peak.setMZ(104.05285 + all_loss_peptides_mod_pos[i][0].second.getDiffMonoMass()); // there is exactly one RNA fragment modification that we added to this partial loss spectrum. So get the modification and mass to calculate the RNA peak mass.
+              RNA_fragment_peak.setMetaValue("IonName", String("iK + ") + fragment_shift_name);
+              partial_loss_spectrum.push_back(RNA_fragment_peak);
+            }
+
 
             partial_loss_spectrum.sortByPosition();
 
@@ -722,7 +732,8 @@ private:
           map<String, set<String> > annotated_ions;
           map<Size, set<pair<String, double> > > shifted_b_ions;
           map<Size, set<pair<String, double> > > shifted_y_ions;
-          map<String, set<String> > shifted_immonium_ions;
+          map<Size, set<pair<String, double> > > shifted_a_ions;
+          map<String, set<pair<String, double> > > shifted_immonium_ions;
           map<String, set<String> > annotated_marker_ions;
 
           // first annotate total loss peaks
@@ -745,11 +756,11 @@ private:
             // define which ion names are annotated 
             if (ion_name.hasPrefix("y"))
             { 
-              String ion_nr_string = ion_name;
-              ion_nr_string.substitute("y", "");
-              ion_nr_string.substitute("+", "");
-              Size ion_number = (Size)ion_nr_string.toInt();
               #ifdef DEBUG_RNPXLSEARCH
+                String ion_nr_string = ion_name;
+                ion_nr_string.substitute("y", "");
+                ion_nr_string.substitute("+", "");
+                Size ion_number = (Size)ion_nr_string.toInt();
                 const AASequence& peptide_sequence = aas.getSuffix(ion_number);
                 cout << "Annotating ion: " << ion_name << " at position: " << r.getMZ() << " " << peptide_sequence.toString() << " intensity: " << 100.0 * r.getIntensity() << endl;           
                 r.setMetaValue("IonName", ion_name);                  
@@ -760,11 +771,26 @@ private:
             }
             else if (ion_name.hasPrefix("b"))
             { 
-              String ion_nr_string = ion_name;
-              ion_nr_string.substitute("b", "");
-              ion_nr_string.substitute("+", "");
-              Size ion_number = (Size)ion_nr_string.toInt();
               #ifdef DEBUG_RNPXLSEARCH
+                String ion_nr_string = ion_name;
+                ion_nr_string.substitute("b", "");
+                ion_nr_string.substitute("+", "");
+                Size ion_number = (Size)ion_nr_string.toInt();
+                const AASequence& peptide_sequence = aas.getPrefix(ion_number);
+                cout << "Annotating ion: " << ion_name << " at position: " << r.getMZ() << " " << peptide_sequence.toString() << " intensity: " << 100.0 * r.getIntensity() << endl;
+                r.setMetaValue("IonName", ion_name);
+                r.setMetaValue("Sequence", peptide_sequence.toString());
+              #endif
+              peak_is_annotated.insert(pair_it->second);                  
+              annotated_ions[ion_name].insert("(" + String::number(fragment_mz, 3) + ", " + String::number(fragment_intensity, 1) + ")");
+            }
+            else if (ion_name.hasPrefix("a"))
+            { 
+              #ifdef DEBUG_RNPXLSEARCH
+                String ion_nr_string = ion_name;
+                ion_nr_string.substitute("a", "");
+                ion_nr_string.substitute("+", "");
+                Size ion_number = (Size)ion_nr_string.toInt();
                 const AASequence& peptide_sequence = aas.getPrefix(ion_number);
                 cout << "Annotating ion: " << ion_name << " at position: " << r.getMZ() << " " << peptide_sequence.toString() << " intensity: " << 100.0 * r.getIntensity() << endl;
                 r.setMetaValue("IonName", ion_name);
@@ -810,7 +836,7 @@ private:
                 continue;
               }
  
-              const double fragment_intensity = exp_spectrum[pair_it->second].getIntensity() * 100.0; // in percent (%)
+              const double fragment_intensity = exp_spectrum[pair_it->second].getIntensity();
               const double fragment_mz = exp_spectrum[pair_it->second].getMZ();
 
               #ifdef DEBUG_RNPXLSEARCH
@@ -845,8 +871,8 @@ private:
                   // remove RNA: substring for nicer annotation of ion
                   String annotation = fragment_shift_name;
                   annotation.substitute("RNA:", "");
-                  annotated_ions[ion_name].insert(annotation + "(" + String::number(fragment_mz, 3) + ", " + String::number(fragment_intensity, 1) + ")");
-                  shifted_y_ions[ion_number].insert(make_pair(annotation + "(" + String::number(fragment_mz, 3) + ", " + String::number(fragment_intensity, 1) + ")", fragment_intensity));
+                  annotated_ions[ion_name].insert(annotation + "(" + String::number(fragment_mz, 3) + ", " + String::number(100.0 * fragment_intensity, 1) + ")");
+                  shifted_y_ions[ion_number].insert(make_pair(annotation + "(" + String::number(fragment_mz, 3) + ", " + String::number(100.0 * fragment_intensity, 1) + ")", fragment_intensity));
                 }
               }
               else if (ion_name.hasPrefix("b"))
@@ -873,8 +899,36 @@ private:
                   // remove RNA: substring for nicer annotation of ion
                   String annotation = fragment_shift_name;
                   annotation.substitute("RNA:", "");
-                  annotated_ions[ion_name].insert(annotation + "(" + String::number(fragment_mz, 3) + ", " + String::number(fragment_intensity, 1) + ")");
-                  shifted_b_ions[ion_number].insert(make_pair(annotation + "(" + String::number(fragment_mz, 3) + ", " + String::number(fragment_intensity, 1) + ")", fragment_intensity));
+                  annotated_ions[ion_name].insert(annotation + "(" + String::number(fragment_mz, 3) + ", " + String::number(100.0 * fragment_intensity, 1) + ")");
+                  shifted_b_ions[ion_number].insert(make_pair(annotation + "(" + String::number(fragment_mz, 3) + ", " + String::number(100.0 * fragment_intensity, 1) + ")", fragment_intensity));
+                }
+              }
+              else if (ion_name.hasPrefix("a"))
+              { 
+                String ion_nr_string = ion_name;
+                ion_nr_string.substitute("a", "");
+                ion_nr_string.substitute("+", "");
+                Size ion_number = (Size)ion_nr_string.toInt();
+                const AASequence& peptide_sequence = all_loss_peptides[i].getPrefix(ion_number);
+                if (peptide_sequence.isModified())
+                {
+                  ++supporting_b_ions;
+                  if (ion_number < smallest_shifted_b_ion) smallest_shifted_b_ion = ion_number;
+                  #ifdef DEBUG_RNPXLSEARCH
+                    if (!has_one_shifted_match) 
+                    {
+                      cout << "Annotating ion: " << all_loss_peptides[i].toString()  << endl;
+                      has_one_shifted_match = true;
+                    }
+                    cout << "Annotating ion: " << ion_name << " at position: " << r.getMZ() << " " << peptide_sequence.toString() << " intensity: " << 100.0 * r.getIntensity() << endl;
+                  r.setMetaValue("IonName", ion_name);
+                  r.setMetaValue("Sequence", peptide_sequence.toString());                  
+                  #endif
+                  // remove RNA: substring for nicer annotation of ion
+                  String annotation = fragment_shift_name;
+                  annotation.substitute("RNA:", "");
+                  annotated_ions[ion_name].insert(annotation + "(" + String::number(fragment_mz, 3) + ", " + String::number(100.0 * fragment_intensity, 1) + ")");
+                  shifted_a_ions[ion_number].insert(make_pair(annotation + "(" + String::number(fragment_mz, 3) + ", " + String::number(100.0 * fragment_intensity, 1) + ")", fragment_intensity));
                 }
               }
               else if (ion_name.hasPrefix("RNA:"))
@@ -891,7 +945,7 @@ private:
                 // remove RNA prefix from string and annotate ion
                 String annotation = ion_name;
                 annotation.substitute("RNA:", "");
-                annotated_marker_ions[annotation].insert("(" + String::number(fragment_mz, 3) + ", " + String::number(fragment_intensity, 1) + ")");
+                annotated_marker_ions[annotation].insert("(" + String::number(fragment_mz, 3) + ", " + String::number(100.0 * fragment_intensity, 1) + ")");
               }
               else if (ion_name.hasPrefix("i"))
               {
@@ -910,7 +964,7 @@ private:
                 // remove RNA: substring for nicer annotation of ion
                 String annotation = ion_name;
                 annotation.substitute("RNA:", "");
-                shifted_immonium_ions[origin].insert(annotation + "(" + String::number(fragment_mz, 3) + ", " + String::number(fragment_intensity, 1) + ")");
+                shifted_immonium_ions[origin].insert(make_pair(annotation + "(" + String::number(fragment_mz, 3) + ", " + String::number(100.0 * fragment_intensity, 1) + ")", fragment_intensity));
               }
             }
           }
@@ -928,12 +982,12 @@ private:
             }
 
             cout << "Immonium ions: " << endl;
-            for (map<String, set<String> >::const_iterator ait = shifted_immonium_ions.begin(); ait != shifted_immonium_ions.end(); ++ait)
+            for (map<String, set<pair<String, double > > >::const_iterator ait = shifted_immonium_ions.begin(); ait != shifted_immonium_ions.end(); ++ait)
             {
               cout << ait->first << ": ";
-              for (set<String>::const_iterator sit = ait->second.begin(); sit != ait->second.end(); ++sit)
+              for (set<pair<String, double > >::const_iterator sit = ait->second.begin(); sit != ait->second.end(); ++sit)
               {
-                cout << *sit << " ";
+                cout << sit->first << " ";
               }
               cout << endl;
             }
@@ -954,9 +1008,11 @@ private:
           {            
             sites_sum_score[i] = 0.0;
             // caclculate how many ions are explained by this position
+            //
+            // b-ions
             for (Size bi = 1; bi <= sites_sum_score.size(); ++bi) 
             {            
-              if ((bi - 1) < i) // subtract contradicting observations
+              if ((bi - 1) < i) // penalize contradicting observations
               {
                 if (shifted_b_ions.find(bi) != shifted_b_ions.end())
                 {
@@ -977,11 +1033,37 @@ private:
                 }
               } 
             }
-
+            
+            // a-ions
+            for (Size ai = 1; ai <= sites_sum_score.size(); ++ai) 
+            {            
+              if ((ai - 1) < i) // penalize contradicting observations
+              {
+                if (shifted_a_ions.find(ai) != shifted_a_ions.end())
+                {
+                  for (set<pair<String, double> >::const_iterator k = shifted_a_ions[ai].begin(); k != shifted_a_ions[ai].end(); ++k)
+                  {
+                    sites_sum_score[i] -= k->second;
+                  }
+                }
+              } 
+              else // add supporting observations
+              {                            
+                if (shifted_a_ions.find(ai) != shifted_a_ions.end())
+                {  
+                  for (set<pair<String, double> >::const_iterator k = shifted_a_ions[ai].begin(); k != shifted_a_ions[ai].end(); ++k)
+                  {
+                    sites_sum_score[i] += k->second;
+                  }
+                }
+              } 
+            }
+            
+            // y-ions
             for (Size yi = 1; yi <= sites_sum_score.size(); ++yi) 
             {
               Size position = sites_sum_score.size() - yi;
-              if (position > i) // subtract contradicting observations
+              if (position > i) // penalize contradicting observations
               {
                 if (shifted_y_ions.find(yi) != shifted_y_ions.end())
                 {
@@ -1016,10 +1098,12 @@ private:
               #ifdef DEBUG_RNPXLSEARCH
                 cout << i+1 << " ";
               #endif
-              sites_sum_score[i] += shifted_immonium_ions[origin].size();  
+              for (set<pair<String, double> >::const_iterator k = shifted_immonium_ions[origin].begin(); k != shifted_immonium_ions[origin].end(); ++k)
+              {
+                sites_sum_score[i] += k->second;  
+              }
             }
           }
-          
 
           String best_localization = unmodified_sequence;
           double best_localization_score = 0;
@@ -1160,7 +1244,7 @@ private:
     String in_mzml = getStringOption_("in");
     String in_db = getStringOption_("database");
     String out_idxml = getStringOption_("out");
-    String out_csv = getStringOption_("out_csv");
+    String out_csv = getStringOption_("out_tsv");
 
     Int min_precursor_charge = getIntOption_("precursor:min_charge");
     Int max_precursor_charge = getIntOption_("precursor:max_charge");
