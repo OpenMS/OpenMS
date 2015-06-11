@@ -109,7 +109,7 @@ namespace OpenMS
         variance = Math::variance(data.begin(), data.end(), mean);
         min = data.front();
         lowerq = Math::quantile1st(data.begin(), data.end(), true);
-        median = Math::median(data.begin(), data.end(), true);
+        median = Math::median<double>(data.begin(), data.end(), true);
         upperq = Math::quantile3rd(data.begin(), data.end(), true);
         max = data.back();
       }

@@ -242,8 +242,8 @@ namespace OpenMS
     for (map<UInt64, DoubleList>::iterator ab_it = abundances.begin();
          ab_it != abundances.end(); ++ab_it)
     {
-      medians[ab_it->first] = Math::median(ab_it->second.begin(),
-                                           ab_it->second.end());
+      medians[ab_it->first] = Math::median<double>(ab_it->second.begin(),
+                                                   ab_it->second.end());
     }
     DoubleList all_medians;
     for (SampleAbundances::iterator med_it = medians.begin();
@@ -251,8 +251,8 @@ namespace OpenMS
     {
       all_medians.push_back(med_it->second);
     }
-    double overall_median = Math::median(all_medians.begin(),
-                                         all_medians.end());
+    double overall_median = Math::median<double>(all_medians.begin(),
+                                                 all_medians.end());
     SampleAbundances scale_factors;
     for (SampleAbundances::iterator med_it = medians.begin();
          med_it != medians.end(); ++med_it)
@@ -433,7 +433,7 @@ namespace OpenMS
         double result;
         if (average == "median")
         {
-          result = Math::median(ab_it->second.begin(), ab_it->second.end());
+          result = Math::median<double>(ab_it->second.begin(), ab_it->second.end());
         }
         else if (average == "mean")
         {

@@ -83,23 +83,36 @@ START_SECTION([EXTRA](template <typename IteratorType> static double mean(Iterat
 }
 END_SECTION
 
-START_SECTION([EXTRA](template <typename IteratorType> static double median(IteratorType begin, IteratorType end)))
+START_SECTION([EXTRA](template <typename IteratorType> static IteratorType::value_type median(IteratorType begin, IteratorType end, bool sorted = false)))
 {
 	int x[] = {-1, 0, 1, 2, 3};
-	TEST_EQUAL(Math::median(x, x + 5, true), 1);
-	TEST_EXCEPTION(Exception::InvalidRange, Math::median(x, x));
+	TEST_EQUAL(Math::median<int>(x, x + 5, true), 1);
+	TEST_EXCEPTION(Exception::InvalidRange, Math::median<int>(x, x));
 
   // unsorted
 	DoubleList y = ListUtils::create<double>("1.0,-0.5,2.0,0.5,-1.0,1.5,0.0");
-	TEST_REAL_SIMILAR(Math::median(y.begin(), y.end()), 0.5);
+	TEST_REAL_SIMILAR(Math::median<double>(y.begin(), y.end()), 0.5);
 	y.push_back(-1.5); // even length
-	TEST_REAL_SIMILAR(Math::median(y.begin(), y.end()), 0.25);
+	TEST_REAL_SIMILAR(Math::median<double>(y.begin(), y.end()), 0.25);
 
   // sorted
   DoubleList z_odd = ListUtils::create<double>("-1.0,-0.5,0.0,0.5,1.0,1.5,2.0");
-  TEST_REAL_SIMILAR(Math::median(z_odd.begin(), z_odd.end(), true), 0.5);
+  TEST_REAL_SIMILAR(Math::median<double>(z_odd.begin(), z_odd.end(), true), 0.5);
   DoubleList z_even = ListUtils::create<double>("-1.5,-1.0,-0.5,0.0,0.5,1.0,1.5,2.0");
-  TEST_REAL_SIMILAR(Math::median(z_even.begin(), z_even.end(), true), 0.25);
+  TEST_REAL_SIMILAR(Math::median<double>(z_even.begin(), z_even.end(), true), 0.25);
+}
+END_SECTION
+
+START_SECTION([EXTRA](template <typename IteratorType> T MAD(IteratorType begin, IteratorType end, IteratorType::value_type median_of_numbers)))
+{
+  int x[] = {-1, 0, 1, 2, 3};
+  TEST_EQUAL(Math::MAD<int>(x, x + 5, 1), 1);   // median{2, 1, 0, 1, 2}
+  
+  
+  DoubleList z_odd = ListUtils::create<double>("-1.0,-0.5,0.0,0.5,1.0,1.5,2.0"); // median{1.5, 1, 0.5, 0, 0.5, 1, 1.5} == median{0, 0.5, 0.5, 1, 1, 1.5 ,1.5}
+  TEST_REAL_SIMILAR(Math::MAD<double>(z_odd.begin(), z_odd.end(), 0.5), 1);
+  DoubleList z_even = ListUtils::create<double>("-1.5,-1.0,-0.5,0.0,0.5,1.0,1.5,2.0"); // median{2, 1.5, 1, 0.5, 0, 0.5, 1, 1.5} == median{0, 0.5, 0.5, 1, 1, 1.5 , 1.5, 2}
+  TEST_REAL_SIMILAR(Math::MAD<double>(z_even.begin(), z_even.end(), 0.5), 1);
 }
 END_SECTION
 
@@ -387,10 +400,10 @@ START_SECTION([EXTRA](template <typename IteratorType> static double quantile(It
 	std::vector<int> y = boost::assign::list_of(3)(6)(7)(8)(8)(10)(13)(15)(16);
 
 	TEST_REAL_SIMILAR(Math::quantile1st(x.begin(), x.end(), true), 6.5);
-	TEST_REAL_SIMILAR(Math::median(x.begin(), x.end(), true), 9.0);
+	TEST_REAL_SIMILAR(Math::median<int>(x.begin(), x.end(), true), 9.0);
 	TEST_REAL_SIMILAR(Math::quantile3rd(x.begin(), x.end(), true), 15.5);
 	TEST_REAL_SIMILAR(Math::quantile1st(y.begin(), y.end(), true),6.5);
-	TEST_REAL_SIMILAR(Math::median(y.begin(), y.end(), true), 8.0);
+	TEST_REAL_SIMILAR(Math::median<int>(y.begin(), y.end(), true), 8.0);
 	TEST_REAL_SIMILAR(Math::quantile3rd(y.begin(), y.end(), true), 14.0);
 }
 END_SECTION

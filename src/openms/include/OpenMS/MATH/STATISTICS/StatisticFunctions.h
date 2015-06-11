@@ -145,8 +145,8 @@ namespace OpenMS
 
     @ingroup MathFunctionsStatistics
   */
-  template <typename IteratorType>
-  static double median(IteratorType begin, IteratorType end, bool sorted = false)
+  template <typename T, typename IteratorType>
+  static T median(IteratorType begin, IteratorType end, bool sorted = false)
   {
     checkIteratorsNotNULL(begin, end);
     if (!sorted)
@@ -170,6 +170,39 @@ namespace OpenMS
       return *it;
     }
   }
+
+  
+    /** 
+      @brief median absolute deviation (MAD)
+
+      Computes the MAD, defined as 
+
+      MAD = median( | x_i - median(x) | ) for a vector x with indices i in [1,n].
+
+      Sortedness of the input is not required (nor does it provide a speedup).
+      For efficiency, you must provide the median separately, in order to avoid potentially duplicate efforts (usually one
+      computes the median anyway externally).
+      
+      @param begin Start of range
+      @param end End of range (past-the-end iterator)
+      @param median_of_numbers The precomputed median of range @p begin - @p end.
+      @return the MAD
+
+      @ingroup MathFunctionsStatistics
+
+    */
+    template <typename T, typename IteratorType>
+    T MAD(IteratorType begin, IteratorType end, T median_of_numbers)
+    {
+      std::vector<T> diffs;
+      diffs.reserve(std::distance(begin, end));
+      for (IteratorType it = begin; it != end; ++it)
+      {
+        diffs.push_back(abs(*it - median_of_numbers));
+      }
+      sort(diffs.begin(), diffs.end());
+      return (median<T>(diffs.begin(), diffs.end(), false));
+    }
 
   /**
     @brief Calculates the first quantile of a range of values
@@ -198,9 +231,9 @@ namespace OpenMS
     Size size = std::distance(begin, end);
     if (size % 2 == 0)
     {
-      return median(begin, begin + (size/2)-1, true); //-1 to exclude median values
+      return median<double>(begin, begin + (size/2)-1, true); //-1 to exclude median values
     }
-    return median(begin, begin + (size/2), true);
+    return median<double>(begin, begin + (size/2), true);
   }
 
   /**
@@ -227,11 +260,13 @@ namespace OpenMS
     }
 
     Size size = std::distance(begin, end);
-    return median(begin + (size/2)+1, end, true); //+1 to exclude median values
+    return median<double>(begin + (size/2)+1, end, true); //+1 to exclude median values
   }
 
   /**
   @brief Calculates the variance of a range of values
+
+  The @p mean can be provided explicitly to save computation time. If left at default, it will be computed internally.
 
   @exception Exception::InvalidRange is thrown if the range is empty
 
@@ -258,6 +293,8 @@ namespace OpenMS
 
   /**
   @brief Calculates the standard deviation of a range of values.
+
+  The @p mean can be provided explicitly to save computation time. If left at default, it will be computed internally.
 
   @exception Exception::InvalidRange is thrown if the range is empty
 
