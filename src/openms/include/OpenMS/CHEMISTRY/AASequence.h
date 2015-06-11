@@ -78,58 +78,58 @@ public:
 
     // Formulae that need to be added to the internal residues to get to fragment type
     // Formulae from http://www.matrixscience.com/help/fragmentation_help.html
-    inline static const EmpiricalFormula & getInternalToFull()
+    inline static const EmpiricalFormula& getInternalToFull()
     {
       static const EmpiricalFormula to_full = EmpiricalFormula("H2O");
       return to_full;
     }
 
-    inline static const EmpiricalFormula & getInternalToNTerm()
+    inline static const EmpiricalFormula& getInternalToNTerm()
     {
       static const EmpiricalFormula to_full = EmpiricalFormula("H");
       return to_full;
     }
 
-    inline static const EmpiricalFormula & getInternalToCTerm()
+    inline static const EmpiricalFormula& getInternalToCTerm()
     {
       static const EmpiricalFormula to_full = EmpiricalFormula("OH");
       return to_full;
     }
 
-    inline static const EmpiricalFormula & getInternalToAIon()
+    inline static const EmpiricalFormula& getInternalToAIon()
     {
       // Mind the "-"
       static const EmpiricalFormula to_full = getInternalToNTerm() - EmpiricalFormula("CHO");
       return to_full;
     }
 
-    inline static const EmpiricalFormula & getInternalToBIon()
+    inline static const EmpiricalFormula& getInternalToBIon()
     {
       // Mind the "-"
       static const EmpiricalFormula to_full = getInternalToNTerm() - EmpiricalFormula("H");
       return to_full;
     }
 
-    inline static const EmpiricalFormula & getInternalToCIon()
+    inline static const EmpiricalFormula& getInternalToCIon()
     {
       static const EmpiricalFormula to_full = getInternalToNTerm() + EmpiricalFormula("NH2");
       return to_full;
     }
 
-    inline static const EmpiricalFormula & getInternalToXIon()
+    inline static const EmpiricalFormula& getInternalToXIon()
     {
       // Mind the "-"
       static const EmpiricalFormula to_full = getInternalToCTerm() + EmpiricalFormula("CO") - EmpiricalFormula("H");
       return to_full;
     }
 
-    inline static const EmpiricalFormula & getInternalToYIon()
+    inline static const EmpiricalFormula& getInternalToYIon()
     {
       static const EmpiricalFormula to_full = getInternalToCTerm() + EmpiricalFormula("H");
       return to_full;
     }
 
-    inline static const EmpiricalFormula & getInternalToZIon()
+    inline static const EmpiricalFormula& getInternalToZIon()
     {
       // Mind the "-"
       static const EmpiricalFormula to_full = getInternalToCTerm() - EmpiricalFormula("NH2");
