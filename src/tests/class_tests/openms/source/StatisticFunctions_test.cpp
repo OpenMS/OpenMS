@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl $
-// $Authors: $
+// $Authors: Clemens Groepl, Johannes Junker, Mathias Walzer, Chris Bielow $
 // --------------------------------------------------------------------------
 
 ///////////////////////////
@@ -83,7 +83,7 @@ START_SECTION([EXTRA](template <typename IteratorType> static double mean(Iterat
 }
 END_SECTION
 
-START_SECTION([EXTRA](template <typename IteratorType> static IteratorType::value_type median(IteratorType begin, IteratorType end, bool sorted = false)))
+START_SECTION([EXTRA](template <typename T, typename IteratorType> static T median(IteratorType begin, IteratorType end, bool sorted = false)))
 {
 	int x[] = {-1, 0, 1, 2, 3};
 	TEST_EQUAL(Math::median<int>(x, x + 5, true), 1);
@@ -103,7 +103,7 @@ START_SECTION([EXTRA](template <typename IteratorType> static IteratorType::valu
 }
 END_SECTION
 
-START_SECTION([EXTRA](template <typename IteratorType> T MAD(IteratorType begin, IteratorType end, IteratorType::value_type median_of_numbers)))
+START_SECTION([EXTRA](template <typename T, typename IteratorType> T MAD(IteratorType begin, IteratorType end, T median_of_numbers)))
 {
   int x[] = {-1, 0, 1, 2, 3};
   TEST_EQUAL(Math::MAD<int>(x, x + 5, 1), 1);   // median{2, 1, 0, 1, 2}
