@@ -240,8 +240,8 @@ namespace OpenMS
     for (SeqToList::iterator rt_it = rt_data.begin();
          rt_it != rt_data.end(); ++rt_it)
     {
-      double median = Math::median(rt_it->second.begin(),
-                                   rt_it->second.end(), sorted);
+      double median = Math::median<double>(rt_it->second.begin(),
+                                           rt_it->second.end(), sorted);
       medians.insert(pos, make_pair(rt_it->first, median));
       pos = --medians.end(); // would cause segfault if "medians" were empty
     }

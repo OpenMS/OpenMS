@@ -377,7 +377,7 @@ protected:
           DoubleList::iterator start = rts.begin();
           // even number of IDs? don't take the RT _between_ the middle ones!
           if (rts.size() % 2 == 0) ++start;
-          rts[0] = Math::median(start, rts.end(), true);
+          rts[0] = Math::median<double>(start, rts.end(), true);
           rts.resize(1);
         }
       }
@@ -666,16 +666,16 @@ protected:
     // find outliers in model parameters:
     if (width_limit > 0)
     {
-      double median_width = Math::median(widths_good.begin(),
-                                         widths_good.end());
+      double median_width = Math::median<double>(widths_good.begin(),
+                                                 widths_good.end());
       vector<double> abs_diffs(widths_good.size());
       for (Size i = 0; i < widths_good.size(); ++i)
       {
         abs_diffs[i] = fabs(widths_good[i] - median_width);
       }
       // median absolute deviation (constant factor to approximate std. dev.):
-      double mad_width = 1.4826 * Math::median(abs_diffs.begin(),
-                                               abs_diffs.end());
+      double mad_width = 1.4826 * Math::median<double>(abs_diffs.begin(),
+                                                       abs_diffs.end());
 
       for (Size i = 0; i < features.size(); ++i)
       {
@@ -702,15 +702,15 @@ protected:
     }
     if (asym_limit > 0)
     {
-      double median_asym = Math::median(asym_good.begin(), asym_good.end());
+      double median_asym = Math::median<double>(asym_good.begin(), asym_good.end());
       vector<double> abs_diffs(asym_good.size());
       for (Size i = 0; i < asym_good.size(); ++i)
       {
         abs_diffs[i] = fabs(asym_good[i] - median_asym);
       }
       // median absolute deviation (constant factor to approximate std. dev.):
-      double mad_asym = 1.4826 * Math::median(abs_diffs.begin(),
-                                              abs_diffs.end());
+      double mad_asym = 1.4826 * Math::median<double>(abs_diffs.begin(),
+                                                      abs_diffs.end());
 
       for (Size i = 0; i < features.size(); ++i)
       {
