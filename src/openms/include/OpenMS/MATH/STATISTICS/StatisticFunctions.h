@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl $
-// $Authors: Clemens Groepl, Johannes Junker, Mathias Walzer$
+// $Authors: Clemens Groepl, Johannes Junker, Mathias Walzer, Chris Bielow $
 // --------------------------------------------------------------------------
 #ifndef OPENMS_MATH_STATISTICS_STATISTICFUNCTIONS_H
 #define OPENMS_MATH_STATISTICS_STATISTICFUNCTIONS_H
