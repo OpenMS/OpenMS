@@ -62,7 +62,7 @@ namespace OpenMS
     for (TextFile::ConstIterator it = tf.begin(); it != tf.end(); ++it)
     {
       String tmp = *it;
-      if (tmp.trim().hasPrefix("#")) continue; // skip comments
+      if (tmp.trim().hasPrefix("#")) continue;  // skip comments
       StringList components;
       tmp.split(' ', components);
       if (components.size() != 4)
@@ -162,13 +162,13 @@ namespace OpenMS
 
   std::vector<Size> EnzymaticDigestion::tokenise(const AASequence& protein) const
   {
-    String s=protein.toUnmodifiedString();
+    String s = protein.toUnmodifiedString();
     boost::regex re(enzyme_.getRegEx());
     boost::sregex_token_iterator i(s.begin(), s.end(), re, -1);
     boost::sregex_token_iterator j;
     std::vector<Size> positions;
     Size pos = -1;
-    while(i != j)
+    while (i != j)
     {
       AASequence pep = AASequence::fromString((String)(*i++));
       pos += pep.size();
@@ -184,18 +184,18 @@ namespace OpenMS
     {
       return false;
     }
-    else 
+    else
     {
       if (!use_log_model_)
       {
         // naive digestion
-        if (iterator != protein.end()-1)
+        if (iterator != protein.end() - 1)
         {
-          return (std::find(positions.begin(), positions.end(), iterator - protein.begin()) != positions.end());
+          return std::find(positions.begin(), positions.end(), iterator - protein.begin()) != positions.end();
         }
         else
         {
-          return (enzyme_.getRegEx().hasSubstring(iterator->getOneLetterCode()) && *iterator != 'P');
+          return enzyme_.getRegEx().hasSubstring(iterator->getOneLetterCode()) && *iterator != 'P';
         }
       }
       else
@@ -206,10 +206,10 @@ namespace OpenMS
         }
         if ((!enzyme_.getRegEx().hasSubstring(iterator->getOneLetterCode())) || *iterator == 'P') // wait for R or K
         {
-            return false;
+          return false;
         }
         SignedSize pos = distance(AASequence::ConstIterator(protein.begin()),
-                                    iterator) - 4; // start position in sequence
+                                  iterator) - 4;   // start position in sequence
         double score_cleave = 0, score_missed = 0;
         for (SignedSize i = 0; i < 9; ++i)
         {
@@ -266,8 +266,8 @@ namespace OpenMS
     {
       return true; // we don't care about terminal ends
     }
-    else
-    { // either SPEC_SEMI or SPEC_FULL
+    else // either SPEC_SEMI or SPEC_FULL
+    {
       bool spec_c = false, spec_n = false;
 
       std::vector<Size> positions = tokenise(protein);
@@ -309,7 +309,7 @@ namespace OpenMS
     {
       ++count;
     }
-    if (use_log_model_) missed_cleavages_ = 0; // log model has missed cleavages built-in
+    if (use_log_model_) missed_cleavages_ = 0;  // log model has missed cleavages built-in
 
     // missed cleavages
     Size sum = count;
@@ -330,7 +330,7 @@ namespace OpenMS
     SignedSize missed_cleavages = missed_cleavages_;
 
     if (use_log_model_)
-      missed_cleavages = 0; // log model has missed cleavages build-in
+      missed_cleavages = 0;  // log model has missed cleavages build-in
 
     // missed cleavage iterators
     std::vector<AASequence::ConstIterator> mc_iterators;
