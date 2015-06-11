@@ -196,8 +196,7 @@ namespace OpenMS
       if (n_term_mod_ != 0 &&
         (type == Residue::Full || type == Residue::AIon ||
          type == Residue::BIon || type == Residue::CIon ||
-         type == Residue::NTerminal)
-        )
+         type == Residue::NTerminal))
       {
         ef += n_term_mod_->getDiffFormula();
       }
@@ -206,8 +205,7 @@ namespace OpenMS
       if (c_term_mod_ != 0 &&
         (type == Residue::Full || type == Residue::XIon ||
          type == Residue::YIon || type == Residue::ZIon ||
-         type == Residue::CTerminal)
-        )
+         type == Residue::CTerminal))
       {
         ef += c_term_mod_->getDiffFormula();
       }
@@ -221,37 +219,37 @@ namespace OpenMS
       switch (type)
       {
         case Residue::Full:
-        return ef + AASequence::getInternalToFull();
+          return ef + AASequence::getInternalToFull();
 
         case Residue::Internal:
-        return ef;
+          return ef;
 
         case Residue::NTerminal:
-        return ef + AASequence::getInternalToNTerm();
+          return ef + AASequence::getInternalToNTerm();
 
         case Residue::CTerminal:
-        return ef + AASequence::getInternalToCTerm();
+          return ef + AASequence::getInternalToCTerm();
 
         case Residue::AIon:
-        return ef + AASequence::getInternalToAIon();
+          return ef + AASequence::getInternalToAIon();
 
         case Residue::BIon:
-        return ef + AASequence::getInternalToBIon();
+          return ef + AASequence::getInternalToBIon();
 
         case Residue::CIon:
-        return ef + AASequence::getInternalToCIon();
+          return ef + AASequence::getInternalToCIon();
 
         case Residue::XIon:
-        return ef + AASequence::getInternalToXIon();
+          return ef + AASequence::getInternalToXIon();
 
         case Residue::YIon:
-        return ef + AASequence::getInternalToYIon();
+          return ef + AASequence::getInternalToYIon();
 
         case Residue::ZIon:
-        return ef + AASequence::getInternalToZIon();
+          return ef + AASequence::getInternalToZIon();
 
         default:
-        LOG_ERROR << "AASequence::getFormula: unknown ResidueType" << std::endl;
+          LOG_ERROR << "AASequence::getFormula: unknown ResidueType" << std::endl;
       }
 
       return ef;
@@ -318,37 +316,37 @@ namespace OpenMS
       switch (type)
       {
         case Residue::Full:
-        return mono_weight + AASequence::getInternalToFull().getMonoWeight();
+          return mono_weight + AASequence::getInternalToFull().getMonoWeight();
 
         case Residue::Internal:
-        return mono_weight;
+          return mono_weight;
 
         case Residue::NTerminal:
-        return mono_weight + AASequence::getInternalToNTerm().getMonoWeight();
+          return mono_weight + AASequence::getInternalToNTerm().getMonoWeight();
 
         case Residue::CTerminal:
-        return mono_weight + AASequence::getInternalToCTerm().getMonoWeight();
+          return mono_weight + AASequence::getInternalToCTerm().getMonoWeight();
 
         case Residue::AIon:
-        return mono_weight + AASequence::getInternalToAIon().getMonoWeight();
+          return mono_weight + AASequence::getInternalToAIon().getMonoWeight();
 
         case Residue::BIon:
-        return mono_weight + AASequence::getInternalToBIon().getMonoWeight();
+          return mono_weight + AASequence::getInternalToBIon().getMonoWeight();
 
         case Residue::CIon:
-        return mono_weight + AASequence::getInternalToCIon().getMonoWeight();
+          return mono_weight + AASequence::getInternalToCIon().getMonoWeight();
 
         case Residue::XIon:
-        return mono_weight + AASequence::getInternalToXIon().getMonoWeight();
+          return mono_weight + AASequence::getInternalToXIon().getMonoWeight();
 
         case Residue::YIon:
-        return mono_weight + AASequence::getInternalToYIon().getMonoWeight();
+          return mono_weight + AASequence::getInternalToYIon().getMonoWeight();
 
         case Residue::ZIon:
-        return mono_weight + AASequence::getInternalToZIon().getMonoWeight();
+          return mono_weight + AASequence::getInternalToZIon().getMonoWeight();
 
         default:
-        LOG_ERROR << "AASequence::getMonoWeight: unknown ResidueType" << std::endl;
+          LOG_ERROR << "AASequence::getMonoWeight: unknown ResidueType" << std::endl;
       }
 
       return mono_weight;
