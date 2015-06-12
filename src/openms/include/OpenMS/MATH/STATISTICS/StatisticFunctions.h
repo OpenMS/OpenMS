@@ -130,7 +130,7 @@ namespace OpenMS
   template <typename IteratorType>
   static double mean(IteratorType begin, IteratorType end)
   {
-  checkIteratorsNotNULL(begin, end);
+    checkIteratorsNotNULL(begin, end);
     return sum(begin, end) / std::distance(begin, end);
   }
 
@@ -140,13 +140,13 @@ namespace OpenMS
     @param begin Start of range
     @param end End of range (past-the-end iterator)
     @param sorted Is the range already sorted? If not, it will be sorted.
-
+    @return Median (as floating point, since we need to support average of middle values)
     @exception Exception::InvalidRange is thrown if the range is NULL
 
     @ingroup MathFunctionsStatistics
   */
-  template <typename T, typename IteratorType>
-  static T median(IteratorType begin, IteratorType end, bool sorted = false)
+  template <typename IteratorType>
+  static double median(IteratorType begin, IteratorType end, bool sorted = false)
   {
     checkIteratorsNotNULL(begin, end);
     if (!sorted)
@@ -191,17 +191,16 @@ namespace OpenMS
       @ingroup MathFunctionsStatistics
 
     */
-    template <typename T, typename IteratorType>
-    T MAD(IteratorType begin, IteratorType end, T median_of_numbers)
+    template <typename IteratorType>
+    double MAD(IteratorType begin, IteratorType end, double median_of_numbers)
     {
-      std::vector<T> diffs;
+      std::vector<double> diffs;
       diffs.reserve(std::distance(begin, end));
       for (IteratorType it = begin; it != end; ++it)
       {
         diffs.push_back(abs(*it - median_of_numbers));
       }
-      sort(diffs.begin(), diffs.end());
-      return (median<T>(diffs.begin(), diffs.end(), false));
+      return median(diffs.begin(), diffs.end(), false);
     }
 
   /**
@@ -231,9 +230,9 @@ namespace OpenMS
     Size size = std::distance(begin, end);
     if (size % 2 == 0)
     {
-      return median<double>(begin, begin + (size/2)-1, true); //-1 to exclude median values
+      return median(begin, begin + (size/2)-1, true); //-1 to exclude median values
     }
-    return median<double>(begin, begin + (size/2), true);
+    return median(begin, begin + (size/2), true);
   }
 
   /**
@@ -260,7 +259,7 @@ namespace OpenMS
     }
 
     Size size = std::distance(begin, end);
-    return median<double>(begin + (size/2)+1, end, true); //+1 to exclude median values
+    return median(begin + (size/2)+1, end, true); //+1 to exclude median values
   }
 
   /**
@@ -658,6 +657,42 @@ namespace OpenMS
 
       return sum_model_data / (sqrt(sqsum_data) * sqrt(sqsum_model));
     }
+
+    /// Helper class to gather (and dump) some statistics from a e.g. vector<double>.
+    template<typename T>
+    struct SummaryStatistics
+    {
+      SummaryStatistics()
+        :mean(0), variance(0), min(0), lowerq(0), median(0), upperq(0), max(0)
+      {
+      }
+
+      // Ctor with data
+      SummaryStatistics(T& data)
+      {
+        count = data.size();
+        // Sanity check: avoid core dump if no data points present.
+        if (data.empty())
+        {
+          mean = variance = min = lowerq = median = upperq = max = 0.0;
+        }
+        else
+        {
+          sort(data.begin(), data.end());
+          mean = Math::mean(data.begin(), data.end());
+          variance = Math::variance(data.begin(), data.end(), mean);
+          min = data.front();
+          lowerq = Math::quantile1st(data.begin(), data.end(), true);
+          median = Math::median(data.begin(), data.end(), true);
+          upperq = Math::quantile3rd(data.begin(), data.end(), true);
+          max = data.back();
+        }
+      }
+
+      double mean, variance, lowerq, median, upperq;
+      typename T::value_type min, max;
+      size_t count;
+    };
 
   }   // namespace Math
 } // namespace OpenMS

@@ -845,9 +845,9 @@ public:
           group_number_RIAs.push_back(v_it->incorporations.size());
         }
       }
-      double group_global_LR = Math::median<double>(group_global_LRs.begin(), group_global_LRs.end(), false);
+      double group_global_LR = Math::median(group_global_LRs.begin(), group_global_LRs.end(), false);
 
-      Size group_number_RIA = (Size)(Math::median<double>(group_number_RIAs.begin(), group_number_RIAs.end(), false) + 0.5); // median number of RIAs
+      Size group_number_RIA = (Size)(Math::median(group_number_RIAs.begin(), group_number_RIAs.end(), false) + 0.5); // median number of RIAs
       // Group header
       // Distinct peptides := different (on sequence level) unique and non-unique peptides
       out_csv_stream << String("Group ") + String(i + 1) << "# Distinct Peptides" << "# Unambigous Proteins" << "Median Global LR";
@@ -880,7 +880,7 @@ public:
 
       for (Size i = 0; i != group_number_RIA; ++i)
       {
-        group_RIA_medians[i] = Math::median<double>(group_RIAs[i].begin(), group_RIAs[i].end(), false);
+        group_RIA_medians[i] = Math::median(group_RIAs[i].begin(), group_RIAs[i].end(), false);
       }
 
       for (Size i = 0; i != group_number_RIA; ++i)
@@ -903,8 +903,8 @@ public:
             protein_number_RIAs.push_back(v_it->incorporations.size());
           }
         }
-        double protein_global_LR = Math::median<double>(protein_global_LRs.begin(), protein_global_LRs.end(), false);
-        Size protein_number_RIA = (Size)(Math::median<double>(protein_number_RIAs.begin(), protein_number_RIAs.end(), false) + 0.5); // median number of RIAs
+        double protein_global_LR = Math::median(protein_global_LRs.begin(), protein_global_LRs.end(), false);
+        Size protein_number_RIA = (Size)(Math::median(protein_number_RIAs.begin(), protein_number_RIAs.end(), false) + 0.5); // median number of RIAs
 
         out_csv_stream << "" << "Protein Accession" << "Description" << "# Unique Peptides" << "Median Global LR";
         for (Size i = 0; i != protein_number_RIA; ++i)
@@ -948,8 +948,8 @@ public:
 
         for (Size i = 0; i != protein_number_RIA; ++i)
         {
-          protein_RIA_medians[i] = Math::median<double>(protein_RIAs[i].begin(), protein_RIAs[i].end(), false);
-          protein_ratio_medians[i] = Math::median<double>(protein_ratio[i].begin(), protein_ratio[i].end(), false);
+          protein_RIA_medians[i] = Math::median(protein_RIAs[i].begin(), protein_RIAs[i].end(), false);
+          protein_ratio_medians[i] = Math::median(protein_ratio[i].begin(), protein_ratio[i].end(), false);
         }
 
         for (Size i = 0; i != protein_number_RIA; ++i)

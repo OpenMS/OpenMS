@@ -84,7 +84,7 @@ namespace OpenMS
     for (UInt j = 0; j < number_of_maps; j++)
     {
       vector<double>& ints_j = feature_int[j];
-      medians[j] = Math::median<double>(ints_j.begin(), ints_j.end());
+      medians[j] = Math::median(ints_j.begin(), ints_j.end());
     }
     //compute normalization factors
     vector<double> normalization_factors(number_of_maps);

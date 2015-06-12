@@ -735,7 +735,7 @@ protected:
       qp.cvRef = "QC"; ///< cv reference
       qp.cvAcc = "QC:0000041"; ///< cv accession
       qp.id = base_name + "_median_delta"; ///< Identifier
-      qp.value = String(OpenMS::Math::median<double>(deltas.begin(), deltas.end(), false));
+      qp.value = String(OpenMS::Math::median(deltas.begin(), deltas.end(), false));
       try
       {
         const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);

@@ -201,7 +201,7 @@ namespace OpenMS
         intensities.push_back((*pep)->intensity);
       }
       // median von der list ist itensity der msd group
-      group->intensity = Math::median<float>(intensities.begin(), intensities.end());
+      group->intensity = Math::median(intensities.begin(), intensities.end());
     }
   }
 
