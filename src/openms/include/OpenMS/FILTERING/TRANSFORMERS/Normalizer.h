@@ -46,7 +46,7 @@ namespace OpenMS
   /**
     @brief Normalizes the peak intensities spectrum-wise.
 
-    Either to a total intensity-sum of one or to a maximum intensity of one.
+    Either to a total intensity-sum of one (i.e. to total-ion-count; TIC) or to a maximum intensity of one.
 
     @htmlinclude OpenMS_Normalizer.parameters
 
@@ -91,8 +91,12 @@ public:
       double divisor(0);
       // find divisor      
       if (method_ == "to_one")
-      { // normalizes the max peak to 1 and the rest of the peaks to values relative to max
-        divisor = std::max_element(spectrum.begin(), spectrum.end(), SpectrumType::PeakType::IntensityLess())->getIntensity();
+      { // normalizes the max peak to 1 and the remaining peaks to values relative to max
+        divisor = spectrum.begin()->getIntensity(); // safety measure: if all intensities are negative, divisor would stay 0 (as constructed)
+        for (ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it)
+        {
+          if (divisor < it->getIntensity()) divisor = it->getIntensity();
+        }
       }
       else if (method_ == "to_TIC")
       { // normalizes the peak intensities to the TIC
