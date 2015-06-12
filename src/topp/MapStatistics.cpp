@@ -89,42 +89,9 @@ using namespace std;
 
 namespace OpenMS
 {
-  /// A little helper class to gather (and dump) some statistics from a vector<double>.
-  struct SomeStatistics
-  {
-    SomeStatistics()
-      :mean(0), variance(0), min(0), lowerq(0), median(0), upperq(0), max(0)
-    {
-    }
-
-    /**@brief Initialize SomeStatistics from data.
-    */
-    SomeStatistics& operator()(vector<double>& data)
-    {
-      // Sanity check: avoid core dump if no data points present.
-      if (!data.empty())
-      {
-        sort(data.begin(), data.end());
-        mean = Math::mean(data.begin(), data.end());
-        variance = Math::variance(data.begin(), data.end(), mean);
-        min = data.front();
-        lowerq = Math::quantile1st(data.begin(), data.end(), true);
-        median = Math::median(data.begin(), data.end(), true);
-        upperq = Math::quantile3rd(data.begin(), data.end(), true);
-        max = data.back();
-      }
-      else
-      {
-        mean = variance = min = lowerq = median = upperq = max = 0.0;
-      }
-      return *this;
-    }
-
-    double mean, variance, min, lowerq, median, upperq, max;
-  };
-
-  /// Copy the statistics into a vector
-  static vector<double>& operator<<(vector<double>& result, const SomeStatistics& stats)
+  /// Copy the SummaryStatistics into a vector
+  template<class T>
+  static vector<double>& operator<<(vector<double>& result, const Math::SummaryStatistics<T>& stats)
   {
     result.push_back(stats.mean);
     result.push_back(sqrt(stats.variance));
@@ -136,8 +103,9 @@ namespace OpenMS
     return result;
   }
 
-  /// Write SomeStatistics to a stream.
-  static ostream& operator<<(ostream& os, const SomeStatistics& rhs)
+  /// Write SummaryStatistics to a stream.
+  template<class T>
+  static ostream& operator<<(ostream& os, const Math::SummaryStatistics<T>& rhs)
   {
     return os <<
            "  mean: " << rhs.mean << endl <<
@@ -187,15 +155,14 @@ public:
     }
 
     vector<double> results;
-    SomeStatistics some_statistics;
     results.reserve(43); // 6 7-number stats + tic
     results.push_back(tic);
-    results << some_statistics(intensities);
-    results << some_statistics(mz);
-    results << some_statistics(peak_widths);
-    results << some_statistics(overall_qualities);
-    results << some_statistics(rt_qualities);
-    results << some_statistics(mz_qualities);
+    results << Math::SummaryStatistics< vector<double> >(intensities);
+    results << Math::SummaryStatistics< vector<double> >(mz);
+    results << Math::SummaryStatistics< vector<double> >(peak_widths);
+    results << Math::SummaryStatistics< vector<double> >(overall_qualities);
+    results << Math::SummaryStatistics< vector<double> >(rt_qualities);
+    results << Math::SummaryStatistics< vector<double> >(mz_qualities);
 
     return results;
   }
@@ -511,28 +478,26 @@ protected:
         it_aad_by_cfs.push_back(it_aad);
       }
 
-      OpenMS::SomeStatistics some_statistics;
-
       os.precision(writtenDigits(ConsensusFeature::IntensityType()));
-      os << "Intensities of consensus features:" << endl << some_statistics(intensities) << endl;
+      os << "Intensities of consensus features:" << endl << Math::SummaryStatistics< vector<double> >(intensities) << endl;
 
       os.precision(writtenDigits(ConsensusFeature::QualityType()));
-      os << "Qualities of consensus features:" << endl << some_statistics(qualities) << endl;
+      os << "Qualities of consensus features:" << endl << Math::SummaryStatistics< vector<double> >(qualities) << endl;
 
       os.precision(writtenDigits(ConsensusFeature::CoordinateType()));
-      os << "Retention time differences ( element-center, weight 1 per element):" << endl << some_statistics(rt_delta_by_elems) << endl;
-      os << "Absolute retention time differences ( |element-center|, weight 1 per element):" << endl << some_statistics(rt_aad_by_elems) << endl;
-      os << "Average absolute differences of retention time within consensus features ( |element-center|, weight 1 per consensus features):" << endl << some_statistics(rt_aad_by_cfs) << endl;
+      os << "Retention time differences ( element-center, weight 1 per element):" << endl << Math::SummaryStatistics< vector<double> >(rt_delta_by_elems) << endl;
+      os << "Absolute retention time differences ( |element-center|, weight 1 per element):" << endl << Math::SummaryStatistics< vector<double> >(rt_aad_by_elems) << endl;
+      os << "Average absolute differences of retention time within consensus features ( |element-center|, weight 1 per consensus features):" << endl << Math::SummaryStatistics< vector<double> >(rt_aad_by_cfs) << endl;
 
       os.precision(writtenDigits(ConsensusFeature::CoordinateType()));
-      os << "Mass-to-charge differences ( element-center, weight 1 per element):" << endl << some_statistics(mz_delta_by_elems) << endl;
-      os << "Absolute differences of mass-to-charge ( |element-center|, weight 1 per element):" << endl << some_statistics(mz_aad_by_elems) << endl;
-      os << "Average absolute differences of mass-to-charge within consensus features ( |element-center|, weight 1 per consensus features):" << endl << some_statistics(mz_aad_by_cfs) << endl;
+      os << "Mass-to-charge differences ( element-center, weight 1 per element):" << endl << Math::SummaryStatistics< vector<double> >(mz_delta_by_elems) << endl;
+      os << "Absolute differences of mass-to-charge ( |element-center|, weight 1 per element):" << endl << Math::SummaryStatistics< vector<double> >(mz_aad_by_elems) << endl;
+      os << "Average absolute differences of mass-to-charge within consensus features ( |element-center|, weight 1 per consensus features):" << endl << Math::SummaryStatistics< vector<double> >(mz_aad_by_cfs) << endl;
 
       os.precision(writtenDigits(ConsensusFeature::IntensityType()));
-      os << "Intensity ratios ( element/center, weight 1 per element):" << endl << some_statistics(it_delta_by_elems) << endl;
-      os << "Relative intensity error ( max{(element/center),(center/element)}, weight 1 per element):" << endl << some_statistics(it_aad_by_elems) << endl;
-      os << "Average relative intensity error within consensus features ( max{(element/center),(center/element)}, weight 1 per consensus features):" << endl << some_statistics(it_aad_by_cfs) << endl;
+      os << "Intensity ratios ( element/center, weight 1 per element):" << endl << Math::SummaryStatistics< vector<double> >(it_delta_by_elems) << endl;
+      os << "Relative intensity error ( max{(element/center),(center/element)}, weight 1 per element):" << endl << Math::SummaryStatistics< vector<double> >(it_aad_by_elems) << endl;
+      os << "Average relative intensity error within consensus features ( max{(element/center),(center/element)}, weight 1 per consensus features):" << endl << Math::SummaryStatistics< vector<double> >(it_aad_by_cfs) << endl;
     }
 
     return EXECUTION_OK;
