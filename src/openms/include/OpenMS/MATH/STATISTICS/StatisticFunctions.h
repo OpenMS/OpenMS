@@ -198,7 +198,7 @@ namespace OpenMS
       diffs.reserve(std::distance(begin, end));
       for (IteratorType it = begin; it != end; ++it)
       {
-        diffs.push_back(abs(*it - median_of_numbers));
+        diffs.push_back(fabs(*it - median_of_numbers));
       }
       return median(diffs.begin(), diffs.end(), false);
     }
