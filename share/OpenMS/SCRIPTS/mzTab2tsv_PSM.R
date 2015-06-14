@@ -11,9 +11,9 @@ no.col <- max(count.fields(input.file, sep = "\t", quote=""))
 data <- read.table(input.file,sep="\t",fill=TRUE, quote="", col.names=1:no.col)
 
 # extract peptide data
-peptide.data <- data[which(data[,1]=="PEP"),]
-colnames(peptide.data) <- unlist(data[which(data[,1]=="PEH")[1],])
-peptide.data$PEH <- NULL
+psm.data <- data[which(data[,1]=="PSM"),]
+colnames(psm.data) <- unlist(data[which(data[,1]=="PSH")[1],])
+psm.data$PEH <- NULL
 
 countOccurrences <- function(char,s) {
 	s2 <- gsub(char,"",s)
@@ -28,11 +28,11 @@ checkAccessionFormat <- function(accessions) {
 }
 
 # simplify accession (in case it is of the format *|*|* )
-peptide.data$accession <- as.character(peptide.data$accession)
-if (checkAccessionFormat(peptide.data$accession)) {
-	list <- strsplit(peptide.data$accession,"[|]")
-	peptide.data$accession <- unlist(lapply(list, '[[', 2))
-	peptide.data$gene <- unlist(lapply(list, '[[', 3))
+psm.data$accession <- as.character(psm.data$accession)
+if (checkAccessionFormat(psm.data$accession)) {
+	list <- strsplit(psm.data$accession,"[|]")
+	psm.data$accession <- unlist(lapply(list, '[[', 2))
+	psm.data$gene <- unlist(lapply(list, '[[', 3))
 }
 
-write.table(peptide.data, output.file, sep="\t", row.names=FALSE, col.names=TRUE, quote=FALSE)
+write.table(psm.data, output.file, sep="\t", row.names=FALSE, col.names=TRUE, quote=FALSE)

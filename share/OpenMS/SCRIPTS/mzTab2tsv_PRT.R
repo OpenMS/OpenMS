@@ -10,11 +10,6 @@ output.file <- commandArgs(TRUE)[2]
 no.col <- max(count.fields(input.file, sep = "\t", quote=""))
 data <- read.table(input.file, sep="\t", fill=TRUE, quote="", col.names=1:no.col)
 
-# extract PSM data
-#psm.data <- data[which(data[,1]=="PSM"),]
-#colnames(psm.data) <- unlist(data[which(data[,1]=="PSH")[1],])
-#psm.data$PSH <- NULL
-
 # extract protein data
 protein.data <- data[which(data[,1]=="PRT"),]
 colnames(protein.data) <- unlist(data[which(data[,1]=="PRH")[1],])
