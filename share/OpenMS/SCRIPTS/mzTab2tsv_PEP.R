@@ -8,7 +8,7 @@ output.file <- commandArgs(TRUE)[2]
 
 # read entire mzTab
 no.col <- max(count.fields(input.file, sep = "\t", quote=""))
-data <- read.table(input.file, sep="\t", fill=TRUE, quote="", col.names=1:no.col)
+data <- read.table(input.file,sep="\t",fill=TRUE, quote="", col.names=1:no.col)
 
 # extract peptide data
 peptide.data <- data[which(data[,1]=="PEP"),]
