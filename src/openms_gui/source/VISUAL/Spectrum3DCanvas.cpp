@@ -379,11 +379,11 @@ namespace OpenMS
     modificationStatus_(i, false);
   }
 
-  void Spectrum3DCanvas::translateLeft_()
+  void Spectrum3DCanvas::translateLeft_(Qt::KeyboardModifiers m)
   {
   }
 
-  void Spectrum3DCanvas::translateRight_()
+  void Spectrum3DCanvas::translateRight_(Qt::KeyboardModifiers m)
   {
   }
 
