@@ -560,7 +560,7 @@ void  RNPxlModificationsGenerator::generateTargetSequences(const String& res_seq
       if (carbon_is_labeled)
       {
         const Element* carbon = ElementDB::getInstance()->getElement("Carbon");
-        rm.setDiffMonoMass(rm.getDiffMonoMass() + rm.getDiffFormula().getNumberOf(carbon) * 1.0033548); // replace 12C by 13C
+        rm.setDiffMonoMass(rm.getDiffMonoMass() + rm.getDiffFormula().getNumberOf(carbon) * Constants::C13C12_MASSDIFF_U); // replace 12C by 13C
       }
 
       modifications.push_back(rm);
