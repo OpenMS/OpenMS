@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>
+#include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
@@ -501,7 +502,7 @@ void  RNPxlModificationsGenerator::generateTargetSequences(const String& res_seq
   }
 }
 
-  vector<ResidueModification> RNPxlModificationsGenerator::getRNAFragmentModifications(const String& RNA_precursor_adduct, const AASequence& sequence)
+  vector<ResidueModification> RNPxlModificationsGenerator::getRNAFragmentModifications(const String& RNA_precursor_adduct, const AASequence& sequence, const bool carbon_is_labeled)
   {
     // determine (unmodified) amino acids present in sequence (as e.g. modified AA might not cross-link) 
     set<char> unmodified_aa_is_present;
@@ -555,6 +556,13 @@ void  RNPxlModificationsGenerator::generateTargetSequences(const String& res_seq
     {
       const String& modification = *sit;
       ResidueModification rm = ModificationsDB::getInstance()->getModification(modification);
+
+      if (carbon_is_labeled)
+      {
+        const Element* carbon = ElementDB::getInstance()->getElement("Carbon");
+        rm.setDiffMonoMass(rm.getDiffMonoMass() + rm.getDiffFormula().getNumberOf(carbon) * 1.0033548); // replace 12C by 13C
+      }
+
       modifications.push_back(rm);
     }
     return modifications;

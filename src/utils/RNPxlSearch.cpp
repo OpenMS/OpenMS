@@ -222,6 +222,7 @@ protected:
     registerFlag_("RNPxl:CysteineAdduct", "Use this flag if the +152 adduct is expected.");
     registerFlag_("RNPxl:filter_fractional_mass", "Use this flag to filter non-crosslinks by fractional mass.");
     registerFlag_("RNPxl:localization", "Use this flag to perform crosslink localization by partial loss scoring as post-analysis.");
+    registerFlag_("RNPxl:carbon_labeled_fragments", "Generate fragment shifts assuming full labeling of carbon (e.g. completely labeled U13).");
     registerDoubleOption_("RNPxl:filter_small_peptide_mass", "<threshold>", 600.0, "Filter precursor that can only correspond to non-crosslinks by mass.", false, true);
     registerDoubleOption_("RNPxl:marker_ions_tolerance", "<tolerance>", 0.05, "Tolerance used to determine marker ions (Da).", false, true);
   }
@@ -539,7 +540,7 @@ private:
     }
   };
 
-  void postScoreHits_(const PeakMap& exp, vector<vector<AnnotatedHit> >& annotated_hits, Size top_hits, const RNPxlModificationMassesResult& mm, const vector<ResidueModification>& fixed_modifications, const vector<ResidueModification>& variable_modifications, Size max_variable_mods_per_peptide, TheoreticalSpectrumGenerator spectrum_generator, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm)
+  void postScoreHits_(const PeakMap& exp, vector<vector<AnnotatedHit> >& annotated_hits, Size top_hits, const RNPxlModificationMassesResult& mm, const vector<ResidueModification>& fixed_modifications, const vector<ResidueModification>& variable_modifications, Size max_variable_mods_per_peptide, TheoreticalSpectrumGenerator spectrum_generator, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool carbon_is_labeled)
   {
     // for pscore calculation only
     vector<vector<Size> > rank_map = PScore::calculateRankMap(exp);
@@ -603,7 +604,7 @@ private:
           String precursor_rna_adduct = *mod_combinations_it->second.begin();
 
           // get fragment shifts that can occur given the RNA precursor adduct and the given sequence
-          vector<ResidueModification> partial_loss_modifications = RNPxlModificationsGenerator::getRNAFragmentModifications(precursor_rna_adduct, aas); 
+          vector<ResidueModification> partial_loss_modifications = RNPxlModificationsGenerator::getRNAFragmentModifications(precursor_rna_adduct, aas, carbon_is_labeled); 
 
           #ifdef DEBUG_RNPXLSEARCH
             for (Size i = 0; i != partial_loss_modifications.size(); ++i)
@@ -752,7 +753,6 @@ private:
               RNA_fragment_peak.setMetaValue("IonName", String("iM + ") + fragment_shift_name);
               partial_loss_spectrum.push_back(RNA_fragment_peak);
             }
-
 
             partial_loss_spectrum.sortByPosition();
 
@@ -1432,6 +1432,8 @@ private:
 
     bool localization = getFlag_("RNPxl:localization");
 
+    bool carbon_is_labeled = getFlag_("RNPxl:carbon_labeled_fragments");
+
     RNPxlModificationMassesResult mm;
 
     if (max_nucleotide_length != 0)
@@ -1685,7 +1687,7 @@ private:
       spectra.sortSpectra(true);    
       preprocessSpectra_(spectra, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false); // for post scoring don't convert fragments to single charge as we need this information
       progresslogger.startProgress(0, 1, "localization...");
-      postScoreHits_(spectra, annotated_hits, report_top_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, spectrum_generator, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
+      postScoreHits_(spectra, annotated_hits, report_top_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, spectrum_generator, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, carbon_is_labeled);
     }
 
     progresslogger.startProgress(0, 1, "annotation...");
