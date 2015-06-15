@@ -58,7 +58,7 @@ namespace OpenMS
   Spectrum3DCanvas::Spectrum3DCanvas(const Param & preferences, QWidget * parent) :
     SpectrumCanvas(preferences, parent)
   {
-    //Paramater handling
+    // Parameter handling
     defaults_.setValue("dot:shade_mode", 1, "Shade mode: single-color ('flat') or gradient peaks ('smooth').");
     defaults_.setMinInt("dot:shade_mode", 0);
     defaults_.setMaxInt("dot:shade_mode", 1);
@@ -373,17 +373,17 @@ namespace OpenMS
   {
     selected_peak_.clear();
     recalculateRanges_(0, 1, 2);
-    resetZoom(false); //no repaint as this is done in intensityModeChange_() anyway
+    resetZoom(false); // no repaint as this is done in intensityModeChange_() anyway
     openglwidget()->recalculateDotGradient_(i);
     intensityModeChange_();
     modificationStatus_(i, false);
   }
 
-  void Spectrum3DCanvas::translateLeft_(Qt::KeyboardModifiers m)
+  void Spectrum3DCanvas::translateLeft_(Qt::KeyboardModifiers /*m*/)
   {
   }
 
-  void Spectrum3DCanvas::translateRight_(Qt::KeyboardModifiers m)
+  void Spectrum3DCanvas::translateRight_(Qt::KeyboardModifiers /*m*/)
   {
   }
 
@@ -395,4 +395,4 @@ namespace OpenMS
   {
   }
 
-} //namspace
+} //namespace
