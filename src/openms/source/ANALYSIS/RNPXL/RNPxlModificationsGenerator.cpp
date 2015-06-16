@@ -568,49 +568,5 @@ void  RNPxlModificationsGenerator::generateTargetSequences(const String& res_seq
     return modifications;
   }
 
-/*
-  // so far consider that at least one U is always involved in the cross-link. TODO: configure U from target_nucleotides in param, make this more efficient by not recalculating it
-  map<String, EmpiricalFormula> RNPxlModificationsGenerator::getRNAFragmentAdducts(const String& RNA_precursor_adduct)
-  {
-    static EmpiricalFormula U = EmpiricalFormula("C9H13N2O9P");
-    static EmpiricalFormula C3O = EmpiricalFormula("C3O");
-    static EmpiricalFormula U_prime = EmpiricalFormula("C4H4N2O2");
-    static EmpiricalFormula U_prime_water_loss = U_prime - EmpiricalFormula("H2O");
-    static EmpiricalFormula U_H3PO4_loss = U - EmpiricalFormula("H3PO4");
-    static EmpiricalFormula U_HPO3_loss = U - EmpiricalFormula("HPO3");
-    static EmpiricalFormula U_water_loss = U - EmpiricalFormula("H2O");
-
-    map<String, EmpiricalFormula> possible_adducts;    
-    possible_adducts["C3O"] = C3O;
-    possible_adducts["U'-H2O"] = U_prime_water_loss;
-    possible_adducts["U'"] = U_prime;
-    possible_adducts["U-H3PO4"] = U_H3PO4_loss;
-
-    // no more losses possible (afawk)
-    if (RNA_precursor_adduct.hasSubstring("-H3PO4"))
-    {
-      return possible_adducts;
-    }
-
-    if (RNA_precursor_adduct.hasSubstring("-H2O")) // precursor has RNA with water loss
-    {
-      if (!RNA_precursor_adduct.hasSubstring("-HPO3")) // no loss of HPO3? then we can loose another water
-      {
-        possible_adducts["U-H2O"] = U_water_loss;
-      }
-    }
-    else // no water loss on precursor RNA
-    {
-      possible_adducts["U-HPO3"] = U_HPO3_loss; // can still loose HPO3
-      if (!RNA_precursor_adduct.hasSubstring("-HPO3"))
-      {
-        possible_adducts["U-H2O"] = U_water_loss;
-        possible_adducts["U"] = U;
-      }
-    }
-
-    return possible_adducts;
-  }
-*/
 }
 
