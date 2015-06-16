@@ -45,8 +45,8 @@ namespace OpenMS
     DefaultParamHandler("SpectraMerger")
   {
     // common
-    defaults_.setValue("mz_binning_width", 5, "minimum m/z distance for two data points (profile data) or peaks (centroided data) to be considered distinct. Closer data points or peaks will be merged.", ListUtils::create<String>("advanced"));
-    defaults_.setMinFloat("mz_binning_width", 0);
+    defaults_.setValue("mz_binning_width", 5.0, "minimum m/z distance for two data points (profile data) or peaks (centroided data) to be considered distinct. Closer data points or peaks will be merged.", ListUtils::create<String>("advanced"));
+    defaults_.setMinFloat("mz_binning_width", 0.0);
 
     defaults_.setValue("mz_binning_width_unit", "ppm", "Unit in which the distance between two data points or peaks is given.", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("mz_binning_width_unit", ListUtils::create<String>("Da,ppm"));
