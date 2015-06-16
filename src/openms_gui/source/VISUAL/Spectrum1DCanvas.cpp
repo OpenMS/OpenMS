@@ -1630,12 +1630,13 @@ namespace OpenMS
 
   void Spectrum1DCanvas::translateLeft_(Qt::KeyboardModifiers m)
   {
-    double newLo, newHi;
+    double newLo = visible_area_.minX();
+    double newHi = visible_area_.maxX();
     if (m == Qt::NoModifier)
     { // 5% shift
       double shift = 0.05 * visible_area_.width();
-      newLo = visible_area_.minX() + shift;
-      newHi = visible_area_.maxX() + shift;
+      newLo -= shift;
+      newHi -= shift;
     }
     else if (m == Qt::ShiftModifier) 
     { // jump to the next peak (useful for sparse data)
@@ -1661,12 +1662,13 @@ namespace OpenMS
 
   void Spectrum1DCanvas::translateRight_(Qt::KeyboardModifiers m)
   {
-    double newLo, newHi;
+    double newLo = visible_area_.minX();
+    double newHi = visible_area_.maxX();
     if (m == Qt::NoModifier)
     { // 5% shift
       double shift = 0.05 * visible_area_.width();
-      newLo = visible_area_.minX() + shift;
-      newHi = visible_area_.maxX() + shift;
+      newLo += shift;
+      newHi += shift;
     }
     else if (m == Qt::ShiftModifier) 
     { // jump to the next peak (useful for sparse data)

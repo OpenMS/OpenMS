@@ -679,11 +679,11 @@ namespace OpenMS
     }
   }
 
-  void SpectrumCanvas::translateLeft_(Qt::KeyboardModifiers m)
+  void SpectrumCanvas::translateLeft_(Qt::KeyboardModifiers /*m*/)
   {
   }
 
-  void SpectrumCanvas::translateRight_(Qt::KeyboardModifiers m)
+  void SpectrumCanvas::translateRight_(Qt::KeyboardModifiers /*m*/)
   {
   }
 
@@ -695,12 +695,12 @@ namespace OpenMS
   {
   }
 
-  void SpectrumCanvas::setAdditionalContextMenu(QMenu * menu)
+  void SpectrumCanvas::setAdditionalContextMenu(QMenu* menu)
   {
     context_add_ = menu;
   }
 
-  void SpectrumCanvas::getVisiblePeakData(ExperimentType & map) const
+  void SpectrumCanvas::getVisiblePeakData(ExperimentType& map) const
   {
     //clear output experiment
     map.clear(true);
