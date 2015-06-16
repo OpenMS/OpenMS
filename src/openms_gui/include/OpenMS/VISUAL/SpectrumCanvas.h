@@ -729,9 +729,9 @@ protected:
     ///@name Translation methods, which are called when cursor buttons are pressed
     //@{
     /// Translation bound to the 'Left' key
-    virtual void translateLeft_();
+    virtual void translateLeft_(Qt::KeyboardModifiers m);
     /// Translation bound to the 'Right' key
-    virtual void translateRight_();
+    virtual void translateRight_(Qt::KeyboardModifiers m);
     /// Translation bound to the 'Up' key
     virtual void translateForward_();
     /// Translation bound to the 'Down' key

@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer:  Timo Sachsenberg$
-// $Authors: Marc Sturm $
+// $Maintainer: Timo Sachsenberg$
+// $Authors: Marc Sturm, Timo Sachsenberg, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_VISUAL_SPECTRUM1DCANVAS_H
@@ -294,9 +294,9 @@ protected:
     /// docu in base class
     virtual void zoom_(int x, int y, bool zoom_in);
     //docu in base class
-    virtual void translateLeft_();
+    virtual void translateLeft_(Qt::KeyboardModifiers m);
     //docu in base class
-    virtual void translateRight_();
+    virtual void translateRight_(Qt::KeyboardModifiers m);
     //docu in base class
     virtual void paintGridLines_(QPainter & painter);
   };

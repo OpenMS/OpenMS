@@ -2839,13 +2839,13 @@ namespace OpenMS
     emit layerZoomChanged(this);
   }
 
-  void Spectrum2DCanvas::translateLeft_()
+  void Spectrum2DCanvas::translateLeft_(Qt::KeyboardModifiers /*m*/)
   {
     if ( isMzToXAxis() ) translateVisibleArea_( -0.05, 0.0 );
     else translateVisibleArea_( 0.0, -0.05 );
   }
 
-  void Spectrum2DCanvas::translateRight_()
+  void Spectrum2DCanvas::translateRight_(Qt::KeyboardModifiers /*m*/)
   {
     if ( isMzToXAxis() ) translateVisibleArea_( 0.05, 0.0 );
     else translateVisibleArea_( 0.0, 0.05 );
