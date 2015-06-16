@@ -1643,11 +1643,9 @@ namespace OpenMS
       PeakType p_temp(visible_area_.minX(), 0);
       SpectrumConstIteratorType it_next = lower_bound(spec.begin(), spec.end(), p_temp, PeakType::MZLess()); // find first peak in current range
       if (it_next != spec.begin()) --it_next; // move one peak left
-      if (it_next != spec.end())
-      {
-        newLo = it_next->getMZ() - visible_area_.width() / 2; // center the next peak to the left
-        newHi = it_next->getMZ() + visible_area_.width() / 2;
-      }
+      if (it_next == spec.end()) return;
+      newLo = it_next->getMZ() - visible_area_.width() / 2; // center the next peak to the left
+      newHi = it_next->getMZ() + visible_area_.width() / 2;
     }
 
     // check if we are falling out of bounds
@@ -1675,11 +1673,9 @@ namespace OpenMS
       const LayerData::ExperimentType::SpectrumType& spec = getCurrentLayer_().getCurrentSpectrum();
       PeakType p_temp(visible_area_.maxX(), 0);
       SpectrumConstIteratorType it_next = upper_bound(spec.begin(), spec.end(), p_temp, PeakType::MZLess()); // first right-sided peak outside the current range
-      if (it_next != spec.end())
-      {
-        newLo = it_next->getMZ() - visible_area_.width() / 2; // center the next peak to the right
-        newHi = it_next->getMZ() + visible_area_.width() / 2;
-      }
+      if (it_next == spec.end()) return;
+      newLo = it_next->getMZ() - visible_area_.width() / 2; // center the next peak to the right
+      newHi = it_next->getMZ() + visible_area_.width() / 2;
     }
 
     // check if we are falling out of bounds
