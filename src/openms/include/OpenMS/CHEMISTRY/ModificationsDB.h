@@ -70,12 +70,12 @@ namespace OpenMS
   {
 public:
 
-    inline static ModificationsDB * getInstance()
+    inline static ModificationsDB * getInstance(OpenMS::String unimod_file = "CHEMISTRY/unimod.xml", OpenMS::String psimod_file = "CHEMISTRY/PSI-MOD.obo")
     {
       static ModificationsDB * db_ = 0;
       if (db_ == 0)
       {
-        db_ = new ModificationsDB;
+        db_ = new ModificationsDB(unimod_file, psimod_file);
       }
       return db_;
     }
@@ -189,7 +189,7 @@ private:
 */
     //@{
     /// default constructor
-    ModificationsDB();
+    ModificationsDB(OpenMS::String unimod_file = "CHEMISTRY/unimod.xml", OpenMS::String psimod_file = "CHEMISTRY/PSI-MOD.obo");
 
     ///copy constructor
     ModificationsDB(const ModificationsDB & residue_db);

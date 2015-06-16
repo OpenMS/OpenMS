@@ -220,6 +220,11 @@ namespace OpenMS
 
   String File::find(const String& filename, StringList directories)
   {
+    if (exists(filename))
+    {
+        return String(QDir::cleanPath(filename.toQString()));
+    }
+
     String filename_new = filename;
 
     // empty string cannot be found, so throw Exception.

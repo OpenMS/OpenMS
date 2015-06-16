@@ -50,10 +50,16 @@ using namespace std;
 
 namespace OpenMS
 {
-  ModificationsDB::ModificationsDB()
+  ModificationsDB::ModificationsDB(OpenMS::String unimod_file, OpenMS::String psimod_file)
   {
-    readFromUnimodXMLFile("CHEMISTRY/unimod.xml");
-    readFromOBOFile("CHEMISTRY/PSI-MOD.obo");
+    if (!unimod_file.empty())
+    {
+      readFromUnimodXMLFile(unimod_file);
+    }
+    if (!psimod_file.empty())
+    {
+      readFromOBOFile(psimod_file);
+    }
   }
 
   ModificationsDB::~ModificationsDB()
