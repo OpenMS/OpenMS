@@ -848,7 +848,7 @@ protected:
           if (inspect_infile.getEnzyme() == "Trypsin") sp.enzyme = ProteinIdentification::TRYPSIN;
           else if (inspect_infile.getEnzyme() == "No_Enzyme") sp.enzyme = ProteinIdentification::NO_ENZYME;
           else sp.enzyme = ProteinIdentification::UNKNOWN_ENZYME;
-          sp.peak_mass_tolerance = inspect_infile.getPeakMassTolerance();
+          sp.fragment_mass_tolerance = inspect_infile.getPeakMassTolerance();
           sp.precursor_tolerance = inspect_infile.getPrecursorMassTolerance();
           protein_identification.setSearchParameters(sp);
 

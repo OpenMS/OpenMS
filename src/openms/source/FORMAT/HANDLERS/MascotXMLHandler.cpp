@@ -545,7 +545,15 @@ namespace OpenMS
       }
       else if (tag_ == "ITOL")
       {
-        search_parameters_.peak_mass_tolerance = (character_buffer_.trim()).toDouble();
+        search_parameters_.fragment_mass_tolerance = (character_buffer_.trim()).toDouble();
+      }
+      else if (tag_ == "TOLU")
+      {
+        search_parameters_.precursor_mass_tolerance_ppm = (character_buffer_.trim()) == "ppm";
+      }
+      else if (tag_ == "ITOLU")
+      {
+        search_parameters_.fragment_mass_tolerance_ppm = (character_buffer_.trim()) == "ppm";
       }
       else if (tag_ == "name")
       {

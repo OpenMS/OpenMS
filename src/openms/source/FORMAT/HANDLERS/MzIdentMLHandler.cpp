@@ -536,8 +536,8 @@ namespace OpenMS
 //          sip += String(3, '\t') + "<userParam name=\"" + "missed_cleavages" + "\" unitName=\"" + "xsd:integer" + "\" value=\"" + String(it->getSearchParameters().missed_cleavages) + "\"/>" + "\n";
           sip += String("\t\t</AdditionalSearchParams>\n");
           sip += String("\t\t<FragmentTolerance>\n");
-          sip += String(3, '\t') + "<cvParam accession=\"MS:1001412\" name=\"search tolerance plus value\" cvRef=\"PSI-MS\" value=\"" + String(it->getSearchParameters().peak_mass_tolerance) + "\"/>" + "\n";
-          sip += String(3, '\t') + "<cvParam accession=\"MS:1001413\" name=\"search tolerance minus value\" cvRef=\"PSI-MS\" value=\"" + String(it->getSearchParameters().peak_mass_tolerance) + "\"/>" + "\n";
+          sip += String(3, '\t') + "<cvParam accession=\"MS:1001412\" name=\"search tolerance plus value\" cvRef=\"PSI-MS\" value=\"" + String(it->getSearchParameters().fragment_mass_tolerance) + "\"/>" + "\n";
+          sip += String(3, '\t') + "<cvParam accession=\"MS:1001413\" name=\"search tolerance minus value\" cvRef=\"PSI-MS\" value=\"" + String(it->getSearchParameters().fragment_mass_tolerance) + "\"/>" + "\n";
           sip += String("\t\t</FragmentTolerance>\n");
           sip += String("\t\t<ParentTolerance>\n");
           sip += String(3, '\t') + "<cvParam accession=\"MS:1001412\" name=\"search tolerance plus value\" cvRef=\"PSI-MS\" value=\"" + String(it->getSearchParameters().precursor_tolerance) + "\"/>" + "\n";

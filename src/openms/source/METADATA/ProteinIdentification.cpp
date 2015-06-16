@@ -69,7 +69,6 @@ namespace OpenMS
     return accessions < rhs.accessions;
   }
 
-
   ProteinIdentification::SearchParameters::SearchParameters() :
     db(),
     db_version(),
@@ -80,8 +79,10 @@ namespace OpenMS
     variable_modifications(),
     enzyme(UNKNOWN_ENZYME),
     missed_cleavages(0),
-    peak_mass_tolerance(0.0),
+    fragment_mass_tolerance(0.0),
+    fragment_mass_tolerance_ppm(false),
     precursor_tolerance(0.0),
+    precursor_mass_tolerance_ppm(false),
     digestion_enzyme("unknown_enzyme","")
   {
   }
@@ -97,8 +98,10 @@ namespace OpenMS
            variable_modifications == rhs.variable_modifications &&
            enzyme == rhs.enzyme &&
            missed_cleavages == rhs.missed_cleavages &&
-           peak_mass_tolerance == rhs.peak_mass_tolerance &&
+           fragment_mass_tolerance == rhs.fragment_mass_tolerance &&
+           fragment_mass_tolerance_ppm == rhs.fragment_mass_tolerance_ppm &&
            precursor_tolerance == rhs.precursor_tolerance &&
+           precursor_mass_tolerance_ppm == rhs.precursor_mass_tolerance_ppm &&
            digestion_enzyme == rhs.digestion_enzyme;
   }
 

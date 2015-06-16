@@ -994,7 +994,7 @@ namespace OpenMS
               for (map<String, vector<CVTerm> >::const_iterator it = params.first.getCVTerms().begin(); it != params.first.getCVTerms().end(); ++it)
               {
                 f_tol = max(f_tol, boost::lexical_cast<double>(it->second.front().getValue().toString()));
-                sp.peak_mass_tolerance = f_tol;
+                sp.fragment_mass_tolerance = f_tol;
               }
             }
             else if ((std::string)XMLString::transcode(child->getTagName()) == "ParentTolerance")
