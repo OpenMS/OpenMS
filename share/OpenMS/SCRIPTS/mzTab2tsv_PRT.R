@@ -37,19 +37,24 @@ firstEntry <- function(x) {
 	return (unlist(lapply(list, '[[', 1)))
 }
 
-# match indistinguishable groups to protein groups
-group.index <- as.vector(sapply(firstEntry(indistinguishable.groups.members), getIndex))
-table <- data.frame(cbind(group.index, indistinguishable.groups.members))
+if ((dim(protein.groups)[1] > 0) && (dim(indistinguishable.groups)[1] > 0)) {
+	# match indistinguishable groups to protein groups
+	group.index <- as.vector(sapply(firstEntry(indistinguishable.groups.members), getIndex))
+	table <- data.frame(cbind(group.index, indistinguishable.groups.members))
 
-# merge information from the protein list
-colnames(table) <- c("protein group","accessions")
-table$accession <- firstEntry(table$accessions)
-table <- merge(table, proteins, by="accession")
-table$accession <- NULL
+	# merge information from the protein list
+	colnames(table) <- c("protein group","accessions")
+	table$accession <- firstEntry(table$accessions)
+	table <- merge(table, proteins, by="accession")
+	table$accession <- NULL
 
-# order table by protein.group
-table$"protein group" <- as.integer(table$"protein group")
-table <- table[order(table$"protein group"),]
+	# order table by protein.group
+	table$"protein group" <- as.integer(table$"protein group")
+	table <- table[order(table$"protein group"),]
+} else {
+	table <- proteins
+	colnames(table) <- gsub("accession","accessions", colnames(table))
+}
 
 countOccurrences <- function(char,s) {
 	s2 <- gsub(char,"",s)
