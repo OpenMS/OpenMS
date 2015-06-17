@@ -174,7 +174,8 @@ START_SECTION((void getIdentification(PeptideIdentification &id, const PeakSpect
   cni.setParameters(cni_param);
   cni.getIdentification(id, spec, spec_ETD);
   TEST_EQUAL(id.getHits().size() > 0, true)
-  TEST_EQUAL(id.getHits().begin()->getSequence() == AASequence::fromString("DFPLANGER"), true)
+  // After mass correction for b1 ions (#1440) a different peptide scored best.
+  TEST_EQUAL(id.getHits().begin()->getSequence() == AASequence::fromString("DFPDALGQR"), true)
 
 }
 END_SECTION

@@ -238,6 +238,10 @@ START_SECTION((double getMonoWeight(Residue::ResidueType type = Residue::Full, I
 
   // test if fragments of charged single amino acid sequences match the charged residue weight of the fragment ions
   EmpiricalFormula ala_res = EmpiricalFormula("C3H5NO");
+  TEST_REAL_SIMILAR(AASequence::fromString("A").getMonoWeight(Residue::Internal, 0), ala_res.getMonoWeight());
+
+  EmpiricalFormula ala_full = ala_res + EmpiricalFormula("H2O");
+  TEST_REAL_SIMILAR(AASequence::fromString("A").getMonoWeight(Residue::Full, 0), ala_full.getMonoWeight());
 
   EmpiricalFormula ala_a_neutral = EmpiricalFormula("H")+ala_res-EmpiricalFormula("CHO");
   TEST_REAL_SIMILAR(AASequence::fromString("A").getMonoWeight(Residue::AIon, 1), ala_a_neutral.getMonoWeight()+Constants::PROTON_MASS_U);

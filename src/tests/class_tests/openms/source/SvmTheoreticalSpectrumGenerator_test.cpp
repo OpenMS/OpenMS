@@ -99,10 +99,24 @@ START_SECTION(void simulate(RichPeakSpectrum &spectrum, const AASequence &peptid
 //  MzMLFile().store(OPENMS_GET_TEST_DATA_PATH("SvmTheoreticalSpectrumGenerator_test.mzML"),exp2);
 
   mz_file.load(OPENMS_GET_TEST_DATA_PATH("SvmTheoreticalSpectrumGenerator_test.mzML"),exp);
+  RichPeak1D pk;
+
+  // After mass correction, the y4_2+ peak also got an intensity > 0;
+  pk.setIntensity(0.490215);
+  pk.setMZ(216.134269009071);
+  exp[0].push_back(pk);
+
+  // After mass correction, the y2_2+ peak fell into another intensity bin;
+  pk.setIntensity(0.0317678);
+  pk.setMZ(333.184490732371);
+  exp[0][3] = pk;
+
+  exp[0].sortByPosition();
 
   TEST_EQUAL(exp.size(), 1);
   if(exp.size())
   {
+    std::cout << spec.size() << std::endl;
     TEST_EQUAL(spec.size(), exp[0].size());
     Size min_size = min(spec.size(), exp[0].size());
 
