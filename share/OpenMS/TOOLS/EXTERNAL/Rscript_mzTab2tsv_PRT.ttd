@@ -17,16 +17,16 @@
 			<mappings>
 				<mapping id="1" cl="%%scriptpath" />
 				<mapping id="2" cl="%%inTSVacc" />
-				<mapping id="3" cl="%TMP/%BASENAME[%%inTSVacc]_acc.csv" />
-				<file_post location="%TMP/%BASENAME[%%inTSVacc]_acc.csv" target="out" />
+				<mapping id="3" cl="%TMP/%BASENAME[%%inTSVacc]_acc.tsv" />
+				<file_post location="%TMP/%BASENAME[%%inTSVacc]_acc.tsv" target="out" />
 			</mappings>
 			<ini_param>
 				<ITEM name="scriptpath" value="." type="string" description="input script path, this should point
 to share/OpenMS/SCRIPTS of your OpenMS installation"/>
 				<ITEM name="inTSVacc" value="" type="string" description="tabular input data (valid formats:
 &apos;tsv&apos;)" tags="input file" />
-				<ITEM name="out" value="" type="string" description="output csv file (valid formats:
-&apos;csv&apos;)" tags="output file" />
+				<ITEM name="out" value="" type="string" description="output tsv file (valid formats:
+&apos;tsv&apos;)" tags="output file" />
 			</ini_param>
 		</external>
 	</tool>
