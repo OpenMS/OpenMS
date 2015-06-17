@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Xiao Liang  $
-// $Authors: Xiao Liang $
+// $Authors: Xiao Liang, Chris Bielow $
 // --------------------------------------------------------------------------
 //
 
@@ -53,12 +53,11 @@ namespace OpenMS
   EnzymesDB::EnzymesDB()
   {
     readEnzymesFromFile_("CHEMISTRY/Enzymes.xml");
-    buildEnzymeNames_();
   }
 
   EnzymesDB::~EnzymesDB()
   {
-    clear_();
+    clear();
   }
 
   const Enzyme* EnzymesDB::getEnzyme(const String& name) const
@@ -70,7 +69,7 @@ namespace OpenMS
     return enzyme_names_.at(name);
   }
 
-  const Enzyme* EnzymesDB::getEnzymeByRegEx(const String & cleavage_regex) const
+  const Enzyme* EnzymesDB::getEnzymeByRegEx(const String& cleavage_regex) const
   {
     if (!enzyme_regex_.has(cleavage_regex))
     {
@@ -82,42 +81,37 @@ namespace OpenMS
 
   void EnzymesDB::setEnzymes(const String& file_name)
   {
-    clearEnzymes_();
+    clear();
     readEnzymesFromFile_(file_name);
-    buildEnzymeNames_();
   }
 
   void EnzymesDB::addEnzyme(const Enzyme& enzyme)
   {
-    Enzyme* r = new Enzyme(enzyme);
+    const Enzyme* r = new Enzyme(enzyme);
     addEnzyme_(r);
   }
 
-  void EnzymesDB::addEnzyme_(Enzyme* r)
+  void EnzymesDB::addEnzyme_(const Enzyme* r)
   {
-    enzymes_.insert(r);
+    // add to internal storage
     const_enzymes_.insert(r);
-    vector<String> names;
-    if (r->getName() != "")
+    // add to internal indices (by name and its synonyms)
+    enzyme_names_[r->getName()] = r;
+    for (set<String>::const_iterator it = r->getSynonyms().begin(); it != r->getSynonyms().end(); ++it)
     {
-      names.push_back(r->getName());
+      enzyme_names_[*it] = r;
     }
-    set<String> synonyms = r->getSynonyms();
-    for (set<String>::iterator it = synonyms.begin(); it != synonyms.end(); ++it)
+    // ... and by regex
+    if (r->getRegEx() != "")
     {
-      names.push_back(*it);
-    }
-    buildEnzymeNames_();
+      enzyme_regex_[r->getRegEx()] = r;
+    }    
     return;
   }
 
-  bool EnzymesDB::hasRegEx(const String & cleavage_regex) const
+  bool EnzymesDB::hasRegEx(const String& cleavage_regex) const
   {
-    if (enzyme_regex_.has(cleavage_regex))
-    {
-      return true;
-    }
-    return false;
+    return enzyme_regex_.has(cleavage_regex);
   }
 
   bool EnzymesDB::hasEnzyme(const String& enzy_name) const
@@ -148,8 +142,7 @@ namespace OpenMS
       vector<String> split;
       param.begin().getName().split(':', split);
       String prefix = split[0] + split[1];
-      Enzyme* enzy_ptr = 0;
-    
+ 
       Map<String, String> values;
 
       for (Param::ParamIterator it = param.begin(); it != param.end(); ++it)
@@ -158,21 +151,15 @@ namespace OpenMS
         if (prefix != split[0] + split[1])
         {
           // add enzyme
-          enzy_ptr = parseEnzyme_(values);
-          values.clear();
-          enzymes_.insert(enzy_ptr);
-          const_enzymes_.insert(enzy_ptr);
+          addEnzyme_(parseEnzyme_(values));
           prefix = split[0] + split[1];
+          values.clear();
         }
-        String value = it->value;
-        String key = it.getName();
-        values[key] = value;
+        values[it.getName()] = it->value;
       }
 
       // add last enzyme
-      enzy_ptr = parseEnzyme_(values);
-      enzymes_.insert(enzy_ptr);
-      const_enzymes_.insert(enzy_ptr);
+      addEnzyme_(parseEnzyme_(values));
     }
     catch (Exception::BaseException& e)
     {
@@ -180,25 +167,18 @@ namespace OpenMS
     }
   }
 
-  void EnzymesDB::clear_()
+  void EnzymesDB::clear()
   {
-    clearEnzymes_();
-  }
-
-  void EnzymesDB::clearEnzymes_()
-  {
-    set<Enzyme*>::iterator it;
-    for (it = enzymes_.begin(); it != enzymes_.end(); ++it)
+    for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
     {
       delete *it;
     }
-    enzymes_.clear();
     enzyme_names_.clear();
     enzyme_regex_.clear();
     const_enzymes_.clear();
   }
 
-  Enzyme* EnzymesDB::parseEnzyme_(Map<String, String>& values)
+  const Enzyme* EnzymesDB::parseEnzyme_(Map<String, String>& values) const
   {
     Enzyme* enzy_ptr = new Enzyme("unknown_enzyme", "");
 
@@ -271,32 +251,19 @@ namespace OpenMS
     return enzy_ptr;
   }
 
-  void EnzymesDB::buildEnzymeNames_()
-  {
-    set<Enzyme*>::iterator it;
-    for (it = enzymes_.begin(); it != enzymes_.end(); ++it)
-    {
-      enzyme_names_[(*it)->getName()] = *it;
-      if ((*it)->getRegEx() != "")
-      {
-        enzyme_regex_[(*it)->getRegEx()] = *it;
-      }
-    }
-  }
-
-  void EnzymesDB::getAllNames(vector<String> & all_names) const
+  void EnzymesDB::getAllNames(vector<String>& all_names) const
   {
     all_names.clear();
-    for (set<Enzyme *>::const_iterator it = enzymes_.begin(); it != enzymes_.end(); ++it)
+    for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
     {
       all_names.push_back((*it)->getName());
     }
   }
 
-  void EnzymesDB::getAllXTandemNames(vector<String> & all_names) const
+  void EnzymesDB::getAllXTandemNames(vector<String>& all_names) const
   {
     all_names.clear();
-    for (set<Enzyme *>::const_iterator it = enzymes_.begin(); it != enzymes_.end(); ++it)
+    for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
     {
       if ((*it)->getXTANDEMid() != "")
       {
@@ -305,11 +272,11 @@ namespace OpenMS
     }
   }
 
-  void EnzymesDB::getAllOMSSANames(vector<String> & all_names) const
+  void EnzymesDB::getAllOMSSANames(vector<String>& all_names) const
   {
     all_names.clear();
     all_names.push_back("Trypsin");
-    for (set<Enzyme *>::const_iterator it = enzymes_.begin(); it != enzymes_.end(); ++it)
+    for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
     {
       if ((*it)->getOMSSAid() != 0)
       {
