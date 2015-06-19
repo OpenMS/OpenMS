@@ -37,6 +37,10 @@
 #include <OpenMS/VISUAL/DIALOGS/TOPPASInputFileDialog.h>
 
 #include <QtGui/QFileDialog>
+#include <QApplication>
+#include <QClipboard>
+#include <QKeyEvent>
+#include <QUrl>
 
 #include <iostream>
 
@@ -57,6 +61,45 @@ namespace OpenMS
     connect(edit_button, SIGNAL(clicked()), this, SLOT(editCurrentItem()));
     connect(up_button, SIGNAL(clicked()), this, SLOT(moveCurrentItem()));
     connect(down_button, SIGNAL(clicked()), this, SLOT(moveCurrentItem()));
+
+    // allow dragging of filenames from OS window manager (Finder, Explorer etc)
+    setAcceptDrops(true);
+  }
+
+  void TOPPASInputFilesDialog::dragEnterEvent(QDragEnterEvent* e)
+  {
+    // file dropped from a window manager come as URLs
+    if (e->mimeData()->hasUrls()) {
+      e->acceptProposedAction();
+    }
+  }
+
+  void TOPPASInputFilesDialog::dropEvent(QDropEvent* e)
+  {
+    foreach (const QUrl& url, e->mimeData()->urls())
+    {
+      input_file_list->addItem(url.toLocalFile());
+    }
+  }
+
+  void TOPPASInputFilesDialog::keyPressEvent(QKeyEvent* e) {
+    // when Ctrl-C is pressed, copy all selected files to clipboard as text
+    if (e->matches(QKeySequence::Copy))
+    {
+      QStringList strings;
+      QList<QListWidgetItem*> selected_items = input_file_list->selectedItems();
+      foreach (QListWidgetItem* item, selected_items)
+      {
+        strings << item->text();
+      }
+      QApplication::clipboard()->setText(strings.join("\n"));
+      e->accept(); // do not propagate upstream
+    }
+    // exit on escape (without saving the list)
+    else if (e->key() == Qt::Key_Escape)
+    {
+      this->close();
+    }
   }
 
   void TOPPASInputFilesDialog::showFileDialog()
@@ -82,7 +125,7 @@ namespace OpenMS
     input_file_list->clear();
   }
 
-  void TOPPASInputFilesDialog::getFilenames(QStringList & files)
+  void TOPPASInputFilesDialog::getFilenames(QStringList& files) const
   {
     files.clear();
     for (int i = 0; i < input_file_list->count(); ++i)
@@ -119,21 +162,7 @@ namespace OpenMS
       return;
     }
 
-    bool direction;
-    if (QObject::sender() == up_button)
-    {
-      direction = true;
-    }
-    else if (QObject::sender() == down_button)
-    {
-      direction = false;
-    }
-    else
-    {
-      return;
-    }
-
-    if (direction == true)     // move upwards
+    if (QObject::sender() == up_button)     // move upwards
     {
       if (row == 0)
       {
@@ -143,7 +172,7 @@ namespace OpenMS
       input_file_list->insertItem(row - 1, item);
       input_file_list->setCurrentItem(item);
     }
-    else     // move downwards
+    else if (QObject::sender() == down_button) // move downwards
     {
       if (row == input_file_list->count() - 1)
       {
