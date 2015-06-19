@@ -100,15 +100,7 @@ public:
 protected:
 
     /// standard derivation in bounding box
-    CoordinateType tolerance_stdev_box_;
-    /// minimum of the bounding box
-    CoordinateType min_;
-    /// maximum of the bounding box
-    CoordinateType max_;
-    /// standard derivation
-    CoordinateType stdev1_;
-    /// standard derivation
-    CoordinateType stdev2_;
+    CoordinateType tolerance_stdev_box_;    
     /// basic statistics
     Math::BasicStatistics<> statistics_;
     /// interpolation step size

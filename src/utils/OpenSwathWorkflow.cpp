@@ -349,11 +349,11 @@ namespace OpenMS
           exp.setChromatograms(irt_chromatograms);
           MzMLFile().store("debug_irts.mzML", exp);
         }
-        catch (OpenMS::Exception::UnableToCreateFile& e)
+        catch (OpenMS::Exception::UnableToCreateFile& /*e*/)
         {
           LOG_DEBUG << "Error creating file 'debug_irts.mzML', not writing out iRT chromatogram file"  << std::endl;
         }
-        catch (OpenMS::Exception::BaseException& e)
+        catch (OpenMS::Exception::BaseException& /*e*/)
         {
           LOG_DEBUG << "Error writint to file 'debug_irts.mzML', not writing out iRT chromatogram file"  << std::endl;
         }

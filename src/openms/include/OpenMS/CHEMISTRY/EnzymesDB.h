@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Xiao Liang $
-// $Authors: Xiao Liang $
+// $Authors: Xiao Liang, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_CHEMISTRY_ENZYMESDB_H
@@ -47,10 +47,10 @@ namespace OpenMS
 
   /** @ingroup Chemistry
 
-          @brief enzyme database which holds enzymes
+    @brief enzyme database which holds enzymes
 
-          The enzymes stored in this DB are defined in a
-          XML file under share/CHEMISTRY/Enzymes.xml
+    The enzymes stored in this DB are defined in a
+    XML file under share/CHEMISTRY/Enzymes.xml
 
   */
   class OPENMS_DLLAPI EnzymesDB
@@ -60,12 +60,12 @@ public:
     /** @name Typedefs
     */
     //@{
-    typedef std::set<Enzyme *>::iterator EnzymeIterator;
-    typedef std::set<const Enzyme *>::const_iterator EnzymeConstIterator;
+    typedef std::set<const Enzyme *>::const_iterator ConstEnzymeIterator;
+    typedef std::set<const Enzyme *>::iterator EnzymeIterator;
     //@}
 
     /// this member function serves as a replacement of the constructor
-    inline static EnzymesDB * getInstance()
+    inline static EnzymesDB* getInstance()
     {
       static EnzymesDB * db_ = 0;
       if (db_ == 0)
@@ -85,93 +85,84 @@ public:
     /** @name Accessors
     */
     //@{
-    /// returns a pointer to the enzyme with name
-    /// @throw Exception::ElementNotFound if enzyme is unkown
-    const Enzyme * getEnzyme(const String & name) const;
+    /// returns a pointer to the enzyme with name (supports synonym names)
+    /// @throw Exception::ElementNotFound if enzyme is unknown
+    const Enzyme* getEnzyme(const String & name) const;
 
     /// returns a pointer to the enzyme with cleavage regex
     /// @throw Exception::IllegalArgument if enzyme regex  is unregistered.
-    const Enzyme * getEnzymeByRegEx(const String & cleavage_regex) const;
+    const Enzyme* getEnzymeByRegEx(const String & cleavage_regex) const;
 
-    /// sets the enzymes from given file
-    void setEnzymes(const String & filename);
+    /// load enzymes from given file
+    void setEnzymes(const String& filename);
 
-    /// adds an enzyme, i.e. a new enzyme, where only the cleavage regex is known
-    void addEnzyme(const Enzyme & enzyme);
+    /// adds a new enzyme, e.g. a new enzyme, where only the cleavage regex is known
+    void addEnzyme(const Enzyme& enzyme);
 
-    /// returns all the enzyme names
-    void getAllNames(std::vector<String> & all_names) const;
+    /// deletes all enzymes, resulting in an empty database
+    void clear();
+
+    /// returns all the enzyme names (does NOT include synonym names)
+    void getAllNames(std::vector<String>& all_names) const;
 
     /// returns all the enzyme names available for XTandem
-    void getAllXTandemNames(std::vector<String> & all_names) const;
+    void getAllXTandemNames(std::vector<String>& all_names) const;
     
     /// returns all the enzyme names available for OMSSA
-    void getAllOMSSANames(std::vector<String> & all_names) const;
+    void getAllOMSSANames(std::vector<String>& all_names) const;
+
+
     //@}
 
 
     /** @name Predicates
     */
     //@{
-    /// returns true if the db contains a enzyme with the given name
-    bool hasEnzyme(const String & name) const;
+    /// returns true if the db contains a enzyme with the given name (supports synonym names)
+    bool hasEnzyme(const String& name) const;
 
     /// returns true if the db contains a enzyme with the given regex
-    bool hasRegEx(const String & cleavage_regex) const;
+    bool hasRegEx(const String& cleavage_regex) const;
     
     /// returns true if the db contains the enzyme of the given pointer
-    bool hasEnzyme(const Enzyme * enzyme) const;
+    bool hasEnzyme(const Enzyme* enzyme) const;
     //@}
 
     /** @name Iterators
     */
     //@{
-    inline EnzymeIterator beginEnzyme() { return enzymes_.begin(); }
+    inline ConstEnzymeIterator beginEnzyme() const { return const_enzymes_.begin(); }  // we only allow constant iterators -- this DB is not meant to be modifiable
+    inline ConstEnzymeIterator endEnzyme() const { return const_enzymes_.end(); }
 
-    inline EnzymeIterator endEnzyme() { return enzymes_.end(); }
-
-    inline EnzymeConstIterator beginEnzyme() const { return const_enzymes_.begin(); }
-
-    inline EnzymeConstIterator endEnzyme() const { return const_enzymes_.end(); }
     //@}
 protected:
     EnzymesDB();
     
     ///copy constructor
-    EnzymesDB(const EnzymesDB & enzyme_db);
+    EnzymesDB(const EnzymesDB& enzyme_db);
     //@}
 
     /** @name Assignment
     */
     //@{
     /// assignment operator
-    EnzymesDB & operator=(const EnzymesDB & enzymes_db);
+    EnzymesDB & operator=(const EnzymesDB& enzymes_db);
     //@}
 
     /// reads enzymes from the given file
-    void readEnzymesFromFile_(const String & filename);
+    void readEnzymesFromFile_(const String& filename);
 
     /// parses a enzyme, given the key/value pairs from i.e. an XML file
-    Enzyme * parseEnzyme_(Map<String, String> & values);
+    const Enzyme* parseEnzyme_(Map<String, String>& values) const;
 
-    /// deletes all sub-instances of the stored data like enzymes
-    void clear_();
+    // add to internal data; also update indices for search by name and regex
+    void addEnzyme_(const Enzyme* enzyme);
 
-    /// clears the enzymes
-    void clearEnzymes_();
+    boost::unordered_map<String, const Enzyme*> enzyme_names_;  // index by names
 
-    /// builds an index of enzyme names for fast access, synonyms are also considered
-    void buildEnzymeNames_();
+    Map<String, const Enzyme*> enzyme_regex_; // index by regex
 
-    void addEnzyme_(Enzyme * enzyme);
-
-    boost::unordered_map<String, Enzyme *> enzyme_names_;
-
-    Map<String, Enzyme *> enzyme_regex_;
-
-    std::set<Enzyme *> enzymes_;
-
-    std::set<const Enzyme *> const_enzymes_;
+    std::set<const Enzyme*> const_enzymes_; // set of enzymes
 
   };
 }

@@ -29,7 +29,7 @@
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Xiao Liang $
-// $Authors: Xiao Liang $
+// $Authors: Xiao Liang, Chris Bielow $
 // --------------------------------------------------------------------------
 //
 
@@ -70,35 +70,73 @@ END_SECTION
 
 START_SECTION((const Enzyme* getEnzyme(const String &name) const))
     TEST_EQUAL(ptr->getEnzyme("Trypsin")->getName(), "Trypsin")
+    // test the synonyms
+    TEST_EQUAL(ptr->getEnzyme("Clostripain")->getName(), "Arg-C")
+    TEST_EXCEPTION(Exception::ElementNotFound, ptr->getEnzyme("DOESNOTEXIST"))
 END_SECTION
 
-START_SECTION((bool hasRegEx(const String & cleavage_regex) const))
+START_SECTION((bool hasRegEx(const String& cleavage_regex) const))
     TEST_EQUAL(ptr->hasRegEx("(?<=[P])(?!P)"), false)
     TEST_EQUAL(ptr->hasRegEx(RKP), true)
 END_SECTION
 
-START_SECTION((const Enzyme* getEnzymeByRegEx(const String & cleavage_regex) const))
+START_SECTION((const Enzyme* getEnzymeByRegEx(const String& cleavage_regex) const))
     TEST_EQUAL(ptr->getEnzymeByRegEx(RKP)->getName(), "Arg-C")
 END_SECTION
 
-START_SECTION(bool hasEnzyme(const Enzyme *enzyme) const)
-    TEST_EQUAL(ptr->hasEnzyme(ptr->getEnzyme("Trypsin")), true)
+START_SECTION(bool hasEnzyme(const Enzyme* enzyme) const)
+  TEST_EQUAL(ptr->hasEnzyme(ptr->getEnzyme("Trypsin")), true)
+  Enzyme myNewEnzyme("bla", "blubb");
+  TEST_EQUAL(ptr->hasEnzyme(&myNewEnzyme), false);
 END_SECTION
 
-START_SECTION(void setEnzymes(const String &filename))
-    NOT_TESTABLE // this method is hard to test, just provided for convenience
+START_SECTION(void setEnzymes(const String& filename))
+    ptr->setEnzymes("CHEMISTRY/Enzymes.xml"); // requires internal "File::find()"
+    TEST_EQUAL(std::distance(ptr->beginEnzyme(), ptr->endEnzyme()), 20); // should be 18 enzymes in "CHEMISTRY/Enzymes.xml"
+    ptr->setEnzymes(File::find("CHEMISTRY/Enzymes.xml")); // full filename should also work
+    TEST_EQUAL(std::distance(ptr->beginEnzyme(), ptr->endEnzyme()), 20); // should be 18 enzymes in "CHEMISTRY/Enzymes.xml"
 END_SECTION
     
-START_SECTION(void addEnzyme(const Enzyme &enzyme))
-    TEST_EQUAL(ptr->hasEnzyme("Try"), false)
-    TEST_EQUAL(ptr->hasRegEx("(?<=[P])(?!P)"), false)
-    Enzyme enzy = Enzyme("Try","(?<=[P])(?!P)");
+START_SECTION(void addEnzyme(const Enzyme& enzyme))
+    Enzyme enzy = Enzyme("MysticalEnzyme","(?<=[])(?!PATT)");
+    enzy.addSynonym("VeryMysticalEnzyme");
+    enzy.addSynonym("HugelyMysticalEnzyme");
+    TEST_EQUAL(ptr->hasEnzyme(enzy.getName()), false)
+    TEST_EQUAL(ptr->hasEnzyme("HugelyMysticalEnzyme"), false)
+    TEST_EQUAL(ptr->hasRegEx(enzy.getRegEx()), false)
+    
+        
+    vector<String> names;
+    ptr->getAllNames(names);
+    TEST_EQUAL(find(names.begin(), names.end(), "Trypsin") != names.end(), true)
+    TEST_EQUAL(find(names.begin(), names.end(), "Tryptryp") != names.end(), false)
+    
     ptr->addEnzyme(enzy);
-    TEST_EQUAL(ptr->hasEnzyme("Try"), true)
-    TEST_EQUAL(ptr->hasRegEx("(?<=[P])(?!P)"), true)
+    TEST_EQUAL(ptr->hasEnzyme(enzy.getName()), true)
+    TEST_EQUAL(ptr->hasEnzyme("HugelyMysticalEnzyme"), true)
+    TEST_EQUAL(ptr->hasRegEx(enzy.getRegEx()), true)
+    Enzyme eout = *(ptr->getEnzyme(enzy.getName()));
+    TEST_EQUAL(enzy, eout);
+
+    Size old_size=names.size();
+    ptr->getAllNames(names); // should be bigger now by 1 (synonyms do not count)
+    TEST_EQUAL(old_size + 1, names.size())
 END_SECTION
 
-START_SECTION(EnzymeIterator beginEnzyme())
+
+START_SECTION(void clear())
+  TEST_EQUAL(ptr->beginEnzyme() != ptr->endEnzyme(), true)
+  TEST_EQUAL(ptr->hasEnzyme("Trypsin"), true)
+  ptr->clear();
+  TEST_EQUAL(ptr->beginEnzyme() == ptr->endEnzyme(), true)
+  TEST_EQUAL(ptr->hasEnzyme("Trypsin"), false)
+  
+  // restore old status
+  String file = File::find("CHEMISTRY/Enzymes.xml");
+  ptr->setEnzymes(file);
+END_SECTION
+
+START_SECTION(ConstEnzymeIterator beginEnzyme() const)
     EnzymesDB::EnzymeIterator it = ptr->beginEnzyme();
     Size count(0);
     while (it != ptr->endEnzyme())
@@ -108,28 +146,12 @@ START_SECTION(EnzymeIterator beginEnzyme())
     }
     TEST_EQUAL(count >= 10, true)
 END_SECTION
-  
-START_SECTION(EnzymeIterator endEnzyme())
+
+START_SECTION(ConstEnzymeIterator endEnzyme() const)
     NOT_TESTABLE // tested above
 END_SECTION
 
-START_SECTION(EnzymeConstIterator beginEnzyme() const)
-    const EnzymesDB* const_ptr = ptr;
-    EnzymesDB::EnzymeConstIterator it = const_ptr->beginEnzyme();
-    Size count(0);
-    while (it != const_ptr->endEnzyme())
-    {
-      ++it;
-      ++count;
-    }
-    TEST_EQUAL(count >= 10, true)
-END_SECTION
-
-START_SECTION(EnzymeConstIterator endEnzyme() const)
-    NOT_TESTABLE // tested above
-END_SECTION
-
-START_SECTION((void getAllNames(std::vector< String > &all_names)))
+START_SECTION((void getAllNames(std::vector<String>& all_names) const))
     vector<String> names;
     ptr->getAllNames(names);
     TEST_EQUAL(find(names.begin(), names.end(), "Trypsin") != names.end(), true)
@@ -139,7 +161,7 @@ START_SECTION((void getAllNames(std::vector< String > &all_names)))
     TEST_EQUAL(names.size(), old_size)
 END_SECTION
 
-START_SECTION((void getAllXTandemNames(std::vector< String > &all_names)))
+START_SECTION((void getAllXTandemNames(std::vector<String>& all_names) const))
     vector<String> names;
     ptr->getAllXTandemNames(names);
     TEST_EQUAL(find(names.begin(), names.end(), "Trypsin") != names.end(), true)
@@ -149,7 +171,7 @@ START_SECTION((void getAllXTandemNames(std::vector< String > &all_names)))
     TEST_EQUAL(names.size(), old_size)
 END_SECTION
 
-START_SECTION((void getAllOMSSANames(std::vector< String > &all_names)))
+START_SECTION((void getAllOMSSANames(std::vector<String>& all_names) const))
     vector<String> names;
     ptr->getAllOMSSANames(names);
     TEST_EQUAL(find(names.begin(), names.end(), "Trypsin") != names.end(), true)

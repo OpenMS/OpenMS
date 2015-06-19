@@ -668,14 +668,10 @@ protected:
     {
       double median_width = Math::median(widths_good.begin(),
                                          widths_good.end());
-      vector<double> abs_diffs(widths_good.size());
-      for (Size i = 0; i < widths_good.size(); ++i)
-      {
-        abs_diffs[i] = fabs(widths_good[i] - median_width);
-      }
       // median absolute deviation (constant factor to approximate std. dev.):
-      double mad_width = 1.4826 * Math::median(abs_diffs.begin(),
-                                               abs_diffs.end());
+      double mad_width = 1.4826 * Math::MAD(widths_good.begin(),
+                                            widths_good.end(),
+                                            median_width);
 
       for (Size i = 0; i < features.size(); ++i)
       {
@@ -703,14 +699,10 @@ protected:
     if (asym_limit > 0)
     {
       double median_asym = Math::median(asym_good.begin(), asym_good.end());
-      vector<double> abs_diffs(asym_good.size());
-      for (Size i = 0; i < asym_good.size(); ++i)
-      {
-        abs_diffs[i] = fabs(asym_good[i] - median_asym);
-      }
       // median absolute deviation (constant factor to approximate std. dev.):
-      double mad_asym = 1.4826 * Math::median(abs_diffs.begin(),
-                                              abs_diffs.end());
+      double mad_asym = 1.4826 * Math::MAD(asym_good.begin(),
+                                           asym_good.end(),
+                                           median_asym);
 
       for (Size i = 0; i < features.size(); ++i)
       {

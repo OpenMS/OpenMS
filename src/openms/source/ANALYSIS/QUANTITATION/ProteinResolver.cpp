@@ -194,7 +194,7 @@ namespace OpenMS
     // iteriert ueber alles msd gruppe
     for (vector<MSDGroup>::iterator group = msd_groups.begin(); group != msd_groups.end(); ++group)
     {
-      DoubleList intensities;
+      std::vector<float> intensities;
       // iterierere ueber peptide entry (peptide identification), intensitaet (summe der einzelintensitaeten)
       for (list<PeptideEntry *>::iterator pep = group->peptides.begin(); pep != group->peptides.end(); ++pep)
       {
