@@ -630,7 +630,12 @@ private:
 
           // generate total loss spectrum
           RichPeakSpectrum total_loss_spectrum;
-          spectrum_generator.getSpectrum(total_loss_spectrum, aas, 1);
+          for (Size z = 1; z <= precursor_charge; ++z)
+          {
+            spectrum_generator.addPeaks(total_loss_spectrum, aas, Residue::AIon, z);
+            spectrum_generator.addPeaks(total_loss_spectrum, aas, Residue::BIon, z);
+            spectrum_generator.addPeaks(total_loss_spectrum, aas, Residue::YIon, z);
+          }
           total_loss_spectrum.sortByPosition();          
  
           // generate all partial loss spectra (excluding the complete loss spectrum)
