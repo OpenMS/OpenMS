@@ -499,7 +499,6 @@ protected:
     search_parameters.precursor_tolerance = getDoubleOption_("precursor_mass_tolerance");
     search_parameters.precursor_mass_tolerance_ppm = getStringOption_("precursor_mass_tolerance_unit") == "ppm" ? true : false;
     search_parameters.fragment_mass_tolerance_ppm = getStringOption_("fragment_mass_tolerance_unit") == "ppm" ? true : false;
-    search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_name);
     protein_identifications[0].setSearchParameters(search_parameters);
     protein_identifications[0].setSearchEngineVersion(myrimatch_version);
     protein_identifications[0].setSearchEngine("MyriMatch");
