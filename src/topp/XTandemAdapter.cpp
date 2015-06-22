@@ -127,7 +127,7 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
-    registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 1.5, "Precursor mass tolerance", false);
+    registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 10.0, "Precursor mass tolerance", false);
     registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.3, "Fragment mass error", false);
 
     addEmptyLine_();
@@ -140,7 +140,7 @@ protected:
     valid_strings.push_back("Da");
     setValidStrings_("precursor_error_units", valid_strings);
     setValidStrings_("fragment_error_units", valid_strings);
-    registerIntOption_("min_precursor_charge", "<charge>", 1, "Minimum precursor charge", false);
+    registerIntOption_("min_precursor_charge", "<charge>", 2, "Minimum precursor charge", false);
     registerIntOption_("max_precursor_charge", "<charge>", 4, "Maximum precursor charge", false);
 
     registerStringOption_("allow_isotope_error", "<error>", "yes", "If set, misassignment to the first and second isotopic 13C peak are also considered.", false);
@@ -434,6 +434,8 @@ protected:
     search_parameters.missed_cleavages = getIntOption_("missed_cleavages");
     search_parameters.fragment_mass_tolerance = getDoubleOption_("fragment_mass_tolerance");
     search_parameters.precursor_tolerance = getDoubleOption_("precursor_mass_tolerance");
+    search_parameters.precursor_mass_tolerance_ppm = getStringOption_("precursor_error_units") == "ppm" ? true : false;
+    search_parameters.fragment_mass_tolerance_ppm = getStringOption_("fragment_error_units") == "ppm" ? true : false;
     search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_name);
     protein_id.setSearchParameters(search_parameters);
     protein_id.setSearchEngineVersion("");

@@ -487,6 +487,22 @@ protected:
     //-------------------------------------------------------------
     // writing results
     //-------------------------------------------------------------
+    ProteinIdentification::SearchParameters search_parameters;
+    search_parameters.db = getStringOption_("database");
+    search_parameters.charges = "+" + String(getIntOption_("min_precursor_charge")) + "-+" + String(getIntOption_("max_precursor_charge"));
+    ProteinIdentification::PeakMassType mass_type = getFlag_("precursor_mass_tolerance_avg") == true ? ProteinIdentification::AVERAGE : ProteinIdentification::MONOISOTOPIC;
+    search_parameters.mass_type = mass_type;
+    search_parameters.fixed_modifications = getStringList_("fixed_modifications");
+    search_parameters.variable_modifications = getStringList_("variable_modifications");
+    search_parameters.missed_cleavages = getIntOption_("missed_cleavages");
+    search_parameters.fragment_mass_tolerance = getDoubleOption_("fragment_mass_tolerance");
+    search_parameters.precursor_tolerance = getDoubleOption_("precursor_mass_tolerance");
+    search_parameters.precursor_mass_tolerance_ppm = getStringOption_("precursor_mass_tolerance_unit") == "ppm" ? true : false;
+    search_parameters.fragment_mass_tolerance_ppm = getStringOption_("fragment_mass_tolerance_unit") == "ppm" ? true : false;
+    search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_name);
+    protein_identifications[0].setSearchParameters(search_parameters);
+    protein_identifications[0].setSearchEngineVersion(myrimatch_version);
+    protein_identifications[0].setSearchEngine("MyriMatch");
 
     IdXMLFile().store(outputfile_name, protein_identifications, peptide_identifications);
     return EXECUTION_OK;

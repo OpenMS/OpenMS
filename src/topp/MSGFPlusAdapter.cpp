@@ -545,9 +545,11 @@ protected:
       search_parameters.fixed_modifications = fixed_mods;
       search_parameters.variable_modifications = variable_mods;
       search_parameters.precursor_tolerance = precursor_mass_tol;
+      search_parameters.precursor_mass_tolerance_unit_ppm = false;
       if (precursor_error_units == "ppm") // convert to Da (at m/z 666: 0.01 Da ~ 15 ppm)
       {
         search_parameters.precursor_tolerance *= 2.0 / 3000.0;
+        search_parameters.precursor_mass_tolerance_unit_ppm = true;
       }
 
       ProteinIdentification::DigestionEnzyme enzyme_type = ProteinIdentification::UNKNOWN_ENZYME;
