@@ -55,6 +55,7 @@ namespace OpenMS
   {
     public:
       static RNPxlModificationMassesResult initModificationMassesRNA(StringList target_nucleotides, StringList mappings, StringList restrictions, StringList modifications, String sequence_restriction, bool cysteine_adduct, Int max_length = 4);
+      static std::vector<String> getRNAFragmentModificationNames(const String& RNA_precursor_adduct, const AASequence& sequence);
       static std::vector<ResidueModification> getRNAFragmentModifications(const String& RNA_precursor_adduct, const AASequence& sequence, const bool carbon_is_labeled);
     private:
       static bool notInSeq(String res_seq, String query);

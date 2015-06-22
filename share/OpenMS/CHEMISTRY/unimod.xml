@@ -24329,6 +24329,8 @@ M. Zimnicka, et al.  "Tunable Charge Tags for Electron-Based Methods of Peptide 
          <umod:specificity hidden="0" site="V" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="W" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="Y" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="N-term" position="Any N-term" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="C-term" position="Any C-term" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:delta mono_mass="51.9949" avge_mass="52.03150" composition="C(3) O(1)">
             <umod:element symbol="C" number="3"/>
             <umod:element symbol="O" number="1"/>
@@ -24361,6 +24363,8 @@ M. Zimnicka, et al.  "Tunable Charge Tags for Electron-Based Methods of Peptide 
          <umod:specificity hidden="0" site="V" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="W" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="Y" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="N-term" position="Any N-term" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="C-term" position="Any C-term" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:delta mono_mass="324.0359" avge_mass="324.18405" composition="C(9) H(13) N(2) O(9) P(1)">
             <umod:element symbol="C" number="9"/>
             <umod:element symbol="H" number="13"/>
@@ -24396,6 +24400,8 @@ M. Zimnicka, et al.  "Tunable Charge Tags for Electron-Based Methods of Peptide 
          <umod:specificity hidden="0" site="V" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="W" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="Y" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="N-term" position="Any N-term" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="C-term" position="Any C-term" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:delta mono_mass="306.0253" avge_mass="306.1660" composition="C(9) H(11) N(2) O(8) P(1)">
             <umod:element symbol="C" number="9"/>
             <umod:element symbol="H" number="11"/>
@@ -24431,6 +24437,8 @@ M. Zimnicka, et al.  "Tunable Charge Tags for Electron-Based Methods of Peptide 
          <umod:specificity hidden="0" site="V" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="W" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="Y" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="N-term" position="Any N-term" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="C-term" position="Any C-term" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:delta mono_mass="244.0695" avge_mass="244.2014" composition="C(9) H(12) N(2) O(6)">
             <umod:element symbol="C" number="9"/>
             <umod:element symbol="H" number="12"/>
@@ -24465,6 +24473,8 @@ M. Zimnicka, et al.  "Tunable Charge Tags for Electron-Based Methods of Peptide 
          <umod:specificity hidden="0" site="V" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="W" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="Y" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="N-term" position="Any N-term" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="C-term" position="Any C-term" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:delta mono_mass="226.0590" avge_mass="226.1861" composition="C(9) H(10) N(2) O(5)">
             <umod:element symbol="C" number="9"/>
             <umod:element symbol="H" number="10"/>
@@ -24499,6 +24509,8 @@ M. Zimnicka, et al.  "Tunable Charge Tags for Electron-Based Methods of Peptide 
          <umod:specificity hidden="0" site="V" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="W" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="Y" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="N-term" position="Any N-term" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="C-term" position="Any C-term" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:delta mono_mass="112.0273" avge_mass="112.0868" composition="C(4) H(4) N(2) O(2)">
             <umod:element symbol="C" number="4"/>
             <umod:element symbol="H" number="4"/>
@@ -24533,6 +24545,8 @@ M. Zimnicka, et al.  "Tunable Charge Tags for Electron-Based Methods of Peptide 
          <umod:specificity hidden="0" site="V" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="W" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="Y" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="N-term" position="Any N-term" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="C-term" position="Any C-term" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:delta mono_mass="94.0167" avge_mass="94.07148" composition="C(4) H(2) N(2) O(1)">
             <umod:element symbol="C" number="4"/>
             <umod:element symbol="H" number="2"/>

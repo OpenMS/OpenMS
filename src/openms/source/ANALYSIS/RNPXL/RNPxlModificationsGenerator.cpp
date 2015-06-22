@@ -502,6 +502,39 @@ void  RNPxlModificationsGenerator::generateTargetSequences(const String& res_seq
   }
 }
 
+  vector<String> RNPxlModificationsGenerator::getRNAFragmentModificationNames(const String& RNA_precursor_adduct, const AASequence& sequence)
+  {
+    vector<String> possible_modifications;
+    possible_modifications.push_back("RNA:C3O");
+    possible_modifications.push_back("RNA:U_prime-H2O");
+    possible_modifications.push_back("RNA:U_prime");
+    possible_modifications.push_back("RNA:U-H3PO4");
+
+    // no more losses possible (afawk)
+    if (RNA_precursor_adduct.hasSubstring("-H3PO4"))
+    {
+      return possible_modifications;
+    }
+
+    if (RNA_precursor_adduct.hasSubstring("-H2O")) // precursor has RNA with water loss
+    {
+      if (!RNA_precursor_adduct.hasSubstring("-HPO3")) // no loss of HPO3? then we can loose another water
+      {
+        possible_modifications.push_back("RNA:U-H2O");
+      }
+    }
+    else // no water loss on precursor RNA
+    {
+      possible_modifications.push_back("RNA:U-HPO3"); // can still loose HPO3
+      if (!RNA_precursor_adduct.hasSubstring("-HPO3"))
+      {
+        possible_modifications.push_back("RNA:U-H2O");
+        possible_modifications.push_back("RNA:U");
+      }
+    }
+    return possible_modifications;
+  }
+
   vector<ResidueModification> RNPxlModificationsGenerator::getRNAFragmentModifications(const String& RNA_precursor_adduct, const AASequence& sequence, const bool carbon_is_labeled)
   {
     // determine (unmodified) amino acids present in sequence (as e.g. modified AA might not cross-link) 
@@ -515,38 +548,18 @@ void  RNPxlModificationsGenerator::generateTargetSequences(const String& res_seq
         unmodified_aa_is_present.insert(mit->getOneLetterCode()[0]);
       }
     }
+  
+    // mod names without site (e.g. U-H2O)
+    vector<String> possible_modification_names = getRNAFragmentModificationNames(RNA_precursor_adduct, sequence);
 
-    vector<String> possible_modifications;
-    
+    // construct full id with site
+    vector<String> possible_modifications;    
     for (set<char>::const_iterator mit = unmodified_aa_is_present.begin(); mit != unmodified_aa_is_present.end(); ++mit)
     {
       const String site = String(" (") + *mit + ")";
-      possible_modifications.push_back("RNA:C3O" + site);
-      possible_modifications.push_back("RNA:U_prime-H2O" + site);
-      possible_modifications.push_back("RNA:U_prime" + site);
-      possible_modifications.push_back("RNA:U-H3PO4" + site);
-
-      // no more losses possible (afawk)
-      if (RNA_precursor_adduct.hasSubstring("-H3PO4"))
+      for (vector<String>::const_iterator sit = possible_modification_names.begin(); sit != possible_modification_names.end(); ++sit)
       {
-        break;
-      }
-
-      if (RNA_precursor_adduct.hasSubstring("-H2O")) // precursor has RNA with water loss
-      {
-        if (!RNA_precursor_adduct.hasSubstring("-HPO3")) // no loss of HPO3? then we can loose another water
-        {
-          possible_modifications.push_back("RNA:U-H2O" + site);
-        }
-      }
-      else // no water loss on precursor RNA
-      {
-        possible_modifications.push_back("RNA:U-HPO3"); // can still loose HPO3
-        if (!RNA_precursor_adduct.hasSubstring("-HPO3"))
-        {
-          possible_modifications.push_back("RNA:U-H2O" + site);
-          possible_modifications.push_back("RNA:U" + site);
-        }
+        possible_modifications.push_back(*sit + site);
       }
     }
 
