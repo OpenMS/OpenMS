@@ -777,10 +777,6 @@ private:
           }
 
 
-          #ifdef DEBUG_RNPXLSEARCH
-            RichPeakSpectrum peaks;
-          #endif
-
           // fill annotated spectrum information
           set<Size> peak_is_annotated;  // experimental peak index
 
@@ -802,11 +798,6 @@ private:
           {
             const double fragment_intensity = exp_spectrum[pair_it->second].getIntensity() * 100.0; // in percent (%)
             const double fragment_mz = exp_spectrum[pair_it->second].getMZ();
-            #ifdef DEBUG_RNPXLSEARCH
-              RichPeak1D r;
-              r.setMZ(fragment_mz);
-              r.setIntensity(fragment_intensity);
-            #endif
             String ion_name = total_loss_spectrum[pair_it->first].getMetaValue("IonName");
 
             // define which ion names are annotated 
@@ -819,8 +810,6 @@ private:
                 Size ion_number = (Size)ion_nr_string.toInt();
                 const AASequence& peptide_sequence = aas.getSuffix(ion_number);
                 cout << "Annotating ion: " << ion_name << " at position: " << r.getMZ() << " " << peptide_sequence.toString() << " intensity: " << 100.0 * r.getIntensity() << endl;           
-                r.setMetaValue("IonName", ion_name);                  
-                r.setMetaValue("Sequence", peptide_sequence.toString());
               #endif
               peak_is_annotated.insert(pair_it->second);                  
               unshifted_ions[ion_name].insert("(" + String::number(fragment_mz, 3) + ", " + String::number(fragment_intensity, 1) + ")");
@@ -834,8 +823,6 @@ private:
                 Size ion_number = (Size)ion_nr_string.toInt();
                 const AASequence& peptide_sequence = aas.getPrefix(ion_number);
                 cout << "Annotating ion: " << ion_name << " at position: " << r.getMZ() << " " << peptide_sequence.toString() << " intensity: " << 100.0 * r.getIntensity() << endl;
-                r.setMetaValue("IonName", ion_name);
-                r.setMetaValue("Sequence", peptide_sequence.toString());
               #endif
               peak_is_annotated.insert(pair_it->second);                  
               unshifted_ions[ion_name].insert("(" + String::number(fragment_mz, 3) + ", " + String::number(fragment_intensity, 1) + ")");
@@ -849,8 +836,6 @@ private:
                 Size ion_number = (Size)ion_nr_string.toInt();
                 const AASequence& peptide_sequence = aas.getPrefix(ion_number);
                 cout << "Annotating ion: " << ion_name << " at position: " << r.getMZ() << " " << peptide_sequence.toString() << " intensity: " << 100.0 * r.getIntensity() << endl;
-                r.setMetaValue("IonName", ion_name);
-                r.setMetaValue("Sequence", peptide_sequence.toString());
               #endif
               peak_is_annotated.insert(pair_it->second);                  
               unshifted_ions[ion_name].insert("(" + String::number(fragment_mz, 3) + ", " + String::number(fragment_intensity, 1) + ")");
@@ -893,11 +878,6 @@ private:
               const double fragment_intensity = exp_spectrum[pair_it->second].getIntensity();
               const double fragment_mz = exp_spectrum[pair_it->second].getMZ();
 
-              #ifdef DEBUG_RNPXLSEARCH
-                RichPeak1D r;
-                r.setMZ(fragment_mz);
-                r.setIntensity(fragment_intensity);
-              #endif
               String ion_name = theo_spectrum[pair_it->first].getMetaValue("IonName");
 
               // define which ion names are annotated 
@@ -920,8 +900,6 @@ private:
                       has_one_shifted_match = true;
                     }
                     cout << "Annotating ion: " << ion_name << " at position: " << r.getMZ() << " " << peptide_sequence.toString() << " intensity: " << 100.0 * r.getIntensity() << endl;
-                  r.setMetaValue("IonName", ion_name);                  
-                  r.setMetaValue("Sequence", peptide_sequence.toString());
                   #endif
                   // remove RNA: substring for nicer annotation of ion
                   String annotation = fragment_shift_name;
@@ -954,8 +932,6 @@ private:
                       has_one_shifted_match = true;
                     }
                     cout << "Annotating ion: " << ion_name << " at position: " << r.getMZ() << " " << peptide_sequence.toString() << " intensity: " << 100.0 * r.getIntensity() << endl;
-                  r.setMetaValue("IonName", ion_name);
-                  r.setMetaValue("Sequence", peptide_sequence.toString());                  
                   #endif
                   // remove RNA: substring for nicer annotation of ion
                   String annotation = fragment_shift_name;
@@ -988,8 +964,6 @@ private:
                       has_one_shifted_match = true;
                     }
                     cout << "Annotating ion: " << ion_name << " at position: " << r.getMZ() << " " << peptide_sequence.toString() << " intensity: " << 100.0 * r.getIntensity() << endl;
-                  r.setMetaValue("IonName", ion_name);
-                  r.setMetaValue("Sequence", peptide_sequence.toString());                  
                   #endif
                   // remove RNA: substring for nicer annotation of ion
                   String annotation = fragment_shift_name;
