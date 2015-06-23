@@ -82,6 +82,70 @@ namespace OpenMS
     return *this;
   }
 
+    // Formulae that need to be added to the internal residues to get to fragment type
+    // Formulae from http://www.matrixscience.com/help/fragmentation_help.html
+    static const EmpiricalFormula& getInternalToFull()
+    {
+      static const EmpiricalFormula to_full = EmpiricalFormula("H2O");
+      return to_full;
+    }
+
+    static const EmpiricalFormula& getInternalToNTerm()
+    {
+      static const EmpiricalFormula to_full = EmpiricalFormula("H");
+      return to_full;
+    }
+
+    static const EmpiricalFormula& getInternalToCTerm()
+    {
+      static const EmpiricalFormula to_full = EmpiricalFormula("OH");
+      return to_full;
+    }
+
+    static const EmpiricalFormula& getInternalToAIon()
+    {
+      // Mind the "-"
+      static const EmpiricalFormula to_full =
+        getInternalToNTerm() - EmpiricalFormula("CHO");
+      return to_full;
+    }
+
+    static const EmpiricalFormula& getInternalToBIon()
+    {
+      // Mind the "-"
+      static const EmpiricalFormula to_full =
+        getInternalToNTerm() - EmpiricalFormula("H");
+      return to_full;
+    }
+
+    static const EmpiricalFormula& getInternalToCIon()
+    {
+      static const EmpiricalFormula to_full =
+        getInternalToNTerm() + EmpiricalFormula("NH2");
+      return to_full;
+    }
+
+    static const EmpiricalFormula& getInternalToXIon()
+    {
+      // Mind the "-"
+      static const EmpiricalFormula to_full = getInternalToCTerm() + EmpiricalFormula("CO") - EmpiricalFormula("H");
+      return to_full;
+    }
+
+    static const EmpiricalFormula& getInternalToYIon()
+    {
+      static const EmpiricalFormula to_full = getInternalToCTerm() + EmpiricalFormula("H");
+      return to_full;
+    }
+
+    static const EmpiricalFormula& getInternalToZIon()
+    {
+      // Mind the "-"
+      static const EmpiricalFormula to_full = getInternalToCTerm() - EmpiricalFormula("NH2");
+      return to_full;
+    }
+
+
   const Residue& AASequence::getResidue(SignedSize index) const
   {
     if (index >= 0 && Size(index) >= peptide_.size())
@@ -219,34 +283,34 @@ namespace OpenMS
       switch (type)
       {
         case Residue::Full:
-          return ef + AASequence::getInternalToFull();
+          return ef + getInternalToFull();
 
         case Residue::Internal:
           return ef;
 
         case Residue::NTerminal:
-          return ef + AASequence::getInternalToNTerm();
+          return ef + getInternalToNTerm();
 
         case Residue::CTerminal:
-          return ef + AASequence::getInternalToCTerm();
+          return ef + getInternalToCTerm();
 
         case Residue::AIon:
-          return ef + AASequence::getInternalToAIon();
+          return ef + getInternalToAIon();
 
         case Residue::BIon:
-          return ef + AASequence::getInternalToBIon();
+          return ef + getInternalToBIon();
 
         case Residue::CIon:
-          return ef + AASequence::getInternalToCIon();
+          return ef + getInternalToCIon();
 
         case Residue::XIon:
-          return ef + AASequence::getInternalToXIon();
+          return ef + getInternalToXIon();
 
         case Residue::YIon:
-          return ef + AASequence::getInternalToYIon();
+          return ef + getInternalToYIon();
 
         case Residue::ZIon:
-          return ef + AASequence::getInternalToZIon();
+          return ef + getInternalToZIon();
 
         default:
           LOG_ERROR << "AASequence::getFormula: unknown ResidueType" << std::endl;
@@ -316,34 +380,34 @@ namespace OpenMS
       switch (type)
       {
         case Residue::Full:
-          return mono_weight + AASequence::getInternalToFull().getMonoWeight();
+          return mono_weight + getInternalToFull().getMonoWeight();
 
         case Residue::Internal:
           return mono_weight;
 
         case Residue::NTerminal:
-          return mono_weight + AASequence::getInternalToNTerm().getMonoWeight();
+          return mono_weight + getInternalToNTerm().getMonoWeight();
 
         case Residue::CTerminal:
-          return mono_weight + AASequence::getInternalToCTerm().getMonoWeight();
+          return mono_weight + getInternalToCTerm().getMonoWeight();
 
         case Residue::AIon:
-          return mono_weight + AASequence::getInternalToAIon().getMonoWeight();
+          return mono_weight + getInternalToAIon().getMonoWeight();
 
         case Residue::BIon:
-          return mono_weight + AASequence::getInternalToBIon().getMonoWeight();
+          return mono_weight + getInternalToBIon().getMonoWeight();
 
         case Residue::CIon:
-          return mono_weight + AASequence::getInternalToCIon().getMonoWeight();
+          return mono_weight + getInternalToCIon().getMonoWeight();
 
         case Residue::XIon:
-          return mono_weight + AASequence::getInternalToXIon().getMonoWeight();
+          return mono_weight + getInternalToXIon().getMonoWeight();
 
         case Residue::YIon:
-          return mono_weight + AASequence::getInternalToYIon().getMonoWeight();
+          return mono_weight + getInternalToYIon().getMonoWeight();
 
         case Residue::ZIon:
-          return mono_weight + AASequence::getInternalToZIon().getMonoWeight();
+          return mono_weight + getInternalToZIon().getMonoWeight();
 
         default:
           LOG_ERROR << "AASequence::getMonoWeight: unknown ResidueType" << std::endl;
