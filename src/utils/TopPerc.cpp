@@ -106,7 +106,7 @@ public:
   }
 
 protected:
-  void prepareMSGFpin(vector<PeptideIdentification>& peptide_ids, TextFile& txt, int minCharge, int maxCharge, char out_sep='\t')
+  void prepareMSGFpin(vector<PeptideIdentification>& peptide_ids, TextFile& txt, int minCharge, int maxCharge, bool addMHC = false, char out_sep='\t')
   {
     // Create String of the charges for the header of the tab file
     stringstream ss;
@@ -117,8 +117,24 @@ protected:
     }
 
     // Create header for the features
-    string featureset = "SpecId, Label,ScanNr, RawScore, DeNovoScore,ScoreRatio, Energy,lnEValue,IsotopeError, lnExplainedIonCurrentRatio,lnNTermIonCurrentRatio,lnCTermIonCurrentRatio,lnMS2IonCurrent,Mass,PepLen,dM,absdM,MeanErrorTop7,sqMeanErrorTop7,StdevErrorTop7," + ss.str() + "enzN,enzC,enzInt,Peptide,Proteins";
+    string featureset = "SpecId, Label,ScanNr, RawScore, DeNovoScore,ScoreRatio, Energy,lnEValue,IsotopeError, lnExplainedIonCurrentRatio,lnNTermIonCurrentRatio,lnCTermIonCurrentRatio,lnMS2IonCurrent,Mass,PepLen,dM,absdM,MeanErrorTop7,sqMeanErrorTop7,StdevErrorTop7," + ss.str() ;
     StringList txt_header0 = ListUtils::create<String>(featureset);
+    if (addMHC)
+    {
+        txt_header0.push_back("enzN");
+        txt_header0.push_back("enzC");
+        txt_header0.push_back("MHCLct");
+        txt_header0.push_back("Peptide");
+        txt_header0.push_back("Protein");
+    }
+    else
+    {
+        txt_header0.push_back("enzN");
+        txt_header0.push_back("enzC");
+        txt_header0.push_back("enzInt");
+        txt_header0.push_back("Peptide");
+        txt_header0.push_back("Protein");
+    }
     txt.addLine(ListUtils::concatenate(txt_header0, out_sep));
 
     for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
@@ -232,8 +248,28 @@ protected:
                          (String)lnNTermIonCurrentRatio + out_sep + (String)lnCTermIonCurrentRatio + out_sep + (String)lnMS2IonCurrent
                          + out_sep + (String)expMass + out_sep + (String)pepLen + out_sep + (String)dM + out_sep + (String)absdM + out_sep +
                          (String)meanErrorTop7 + out_sep + (String)sqMeanErrorTop7 + out_sep + (String)stdevErrorTop7 +
-                         out_sep + String(ss.str()) + String(enzN) + out_sep + String(enzC) + out_sep + String(enzInt) + out_sep + 
-                         peptide_with_modifications + out_sep + protein + out_sep;
+                         out_sep + String(ss.str());
+            if (addMHC)
+            {
+              bool suf = false;
+              static const string arr[] = {"A", "F", "I", "K", "M", "L", "R", "W", "V"};
+              vector<string> mhcends (arr, arr + sizeof(arr) / sizeof(arr[0]) );
+              for (std::vector<string>::iterator eit = mhcends.begin(); eit != mhcends.end(); ++eit)
+              {
+                if (hit->getSequence().toUnmodifiedString().hasSuffix(string(*eit)))
+                {
+                  suf = true;
+                  break;
+                }
+              }
+              lis = lis + String(enzN) + out_sep + String(enzC) + out_sep
+                      + String(suf) + out_sep + peptide_with_modifications + out_sep + protein + out_sep;
+            }
+            else
+            {
+              lis = lis + String(enzN) + out_sep + String(enzC) + out_sep
+                      + String(enzInt) + out_sep + peptide_with_modifications + out_sep + protein + out_sep;
+            }
 
             // peptide Spectrum Hit pushed to the output file
             txt.addLine(lis);
@@ -569,10 +605,10 @@ protected:
     registerStringOption_("enzyme", "<enzyme>", "trypsin", "Type of enzyme: no_enzyme,elastase,pepsin,proteinasek,thermolysin,chymotrypsin,lys-n,lys-c,arg-c,asp-n,glu-c,trypsin", false, true);
     registerInputFile_("percolator_executable", "<executable>",
         // choose the default value according to the platform where it will be executed
-        #if  defined(__APPLE__)
-                       "percolator",
-        #else
+        #ifdef OPENMS_WINDOWSPLATFORM
                        "percolator.exe",
+        #else
+                       "percolator",
         #endif
                        "Percolator executable of the installation e.g. 'percolator.exe'", true, false, ListUtils::create<String>("skipexists")
     );
@@ -621,6 +657,7 @@ protected:
     registerFlag_("H", "Q-value threshold that will be used in the computation of the MSE and ROC AUC score in the grid search (recommended 0.05 for normal size datasets and 0.1 for big size datasets).(Only valid if option -A is active).", true);
     registerFlag_("fido-truncation", "Proteins with a very low score (< 0.001) will be truncated (assigned 0.0 probability).(Only valid if option -A is active)", true);
     registerFlag_("Q", "Uses protein group level inference, each cluster of proteins is either present or not, therefore when grouping proteins discard all possible combinations for each group.(Only valid if option -A is active and -N is inactive).", true);
+    registerFlag_("MHC", "Add a feature for MHC ligand properties to the specific PSM.", true);
   }
 
   ExitCodes main_(int, const char**)
@@ -640,7 +677,7 @@ protected:
 
     const String percolator_executable(getStringOption_("percolator_executable"));
     writeDebug_(String("Path to the percolator: ") + percolator_executable, 2);
-    if (percolator_executable.empty()) //TODO     TOPPBase::findExecutable
+    if (percolator_executable.empty()) //TODO? - TOPPBase::findExecutable after registerInputFile_("percolator_executable"... ???
     {
       writeLog_("No percolator executable specified. Aborting!");
       printUsage_();
@@ -670,11 +707,26 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
 
-    if (peptide_ids.empty())
+    //being paranoid about the presence of target decoy denominations, which are crucial to the percolator process
+    for (std::vector<PeptideIdentification>::iterator pit = peptide_ids.begin(); pit != peptide_ids.end(); ++pit)
     {
-      writeLog_("No or empty input file specified. Aborting!");
-      printUsage_();
-      return ILLEGAL_PARAMETERS;
+      for (vector<PeptideHit>::iterator pht = pit->getHits().begin(); pht != pit->getHits().end(); ++pht)
+      {
+        // Some Hits have no NumMatchedMainIons, and MeanError, etc. values. Have to ignore them!
+        if (!pht->metaValueExists("target_decoy"))
+        {
+          if (!in_decoy.empty())
+          {
+            pht->setMetaValue("target_decoy", "target");
+          }
+          else
+          {
+            writeLog_("No target decoy search results discrimination possible. Aborting!");
+            printUsage_();
+            return ILLEGAL_PARAMETERS;
+          }
+        }
+      }
     }
 
     //-------------------------------------------------------------
@@ -700,10 +752,10 @@ protected:
         for (std::vector<PeptideHit>::iterator pht = pit->getHits().begin(); pht != pit->getHits().end(); ++pht)
         {
           pht->setMetaValue("target_decoy", "decoy");
-          //TODO what about proteins - internal target decoy handling is shitty - rework
+          //TODO what about proteins - internal target decoy handling is shitty - rework pls
         }
       }
-      //TODO this is going to fail with specrum_reference clashes
+      //TODO this is going to fail with specrum_reference clashes if not handled _REALLY_ carefully
       peptide_ids.insert( peptide_ids.end(), decoy_peptide_ids.begin(), decoy_peptide_ids.end() );
       protein_ids.insert( protein_ids.end(), decoy_protein_ids.begin(), decoy_protein_ids.end() );
       writeLog_("Using decoy hits from separate file.");
@@ -741,7 +793,7 @@ protected:
     }
 
     writeDebug_("Detected search engine: " + se , 2);
-    if (se == "MS-GF+") prepareMSGFpin(peptide_ids, txt, minCharge, maxCharge);
+    if (se == "MS-GF+") prepareMSGFpin(peptide_ids, txt, minCharge, maxCharge, getFlag_("MHC"));
 //    if (se == "Mascot") prepareMASCOTpin(peptide_ids, txt, minCharge, maxCharge);
     if (se == "XTandem") prepareXTANDEMpin(peptide_ids, txt, minCharge, maxCharge);
 
@@ -838,9 +890,10 @@ protected:
       vector<String> row_values;
       // peptide
       row_values.push_back(row[4].chop(2).reverse().chop(2).reverse());
+//      writeDebug_("sequence: " + row[4].chop(2).reverse().chop(2).reverse(), 99);
       // SVM-score
       row_values.push_back(row[1]);
-      // Q-Value
+      // q-Value
       row_values.push_back(row[2]);
       // PEP
       row_values.push_back(row[3]);
@@ -874,8 +927,9 @@ protected:
         sid = sr.back();
         if (pep_map.find(sid) == pep_map.end())
         {
-          writeDebug_("No suitable PeptideIdentification entry 2nd found for " + sid + " - emulate percolator scores with exisiting scores?", 111);
+          //writeDebug_("No suitable PeptideIdentification entry 2nd found for " + sid + " - emulate percolator scores with exisiting scores?", 111);
           ++c_debug;
+          writeDebug_("No suitable PeptideIdentification entry for " + sid + , 3);
           continue;
         }
       }
@@ -883,7 +937,9 @@ protected:
       it->setScoreType("q-value");
       it->setHigherScoreBetter(false);
       AASequence aat;
-      aat.fromString(pep_map[sid][0]);
+//      writeDebug_("sequence: " + pep_map[sid][0], 99);
+      aat = AASequence::fromString(pep_map[sid][0]);
+//      writeDebug_("sequence: " + aat.toString(), 99);
 
       for (vector<PeptideHit>::iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
       {
@@ -893,9 +949,13 @@ protected:
           hit->setMetaValue("MS:1001492", pep_map[sid][1].toDouble());        //svm score
           double qv = pep_map[sid][2].toDouble();        // q-value
           hit->setMetaValue("MS:1001491", qv);
+          hit->setMetaValue("prepercolatorscore", hit->getScore());
+          writeDebug_("found peptide and wrote percolator scoring from "+String(hit->getScore())+" to "+String(qv), 99);
           hit->setScore(qv);
           hit->setMetaValue("MS:1001493", pep_map[sid][3].toDouble());        //pep
+          //writeDebug_("found peptide and wrote percolator scoring", 99);
         }
+        else writeDebug_(aat.toString()+" - found nothing and wrote no percolator scoring", 99);
       }
     }
     writeDebug_("No suitable PeptideIdentification for " + String(c_debug) + " out of " + String(peptide_ids.size()), 2);
