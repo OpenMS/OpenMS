@@ -238,7 +238,10 @@ namespace OpenMS
     double intensity(0);
     bool add_first_prefix_ion(param_.getValue("add_first_prefix_ion").toBool());
 
-    // generate the ion peaks
+    // Generate the ion peaks:
+    // Does not generate peaks of full peptide (therefore "<").
+    // They are added via precursor mass (and neutral losses).
+    // Could be changed in the future.
     switch (res_type)
     {
     case Residue::AIon:
@@ -248,7 +251,6 @@ namespace OpenMS
       {
         i = 2;
       }
-      // TODO Check if it should be <= for all types but C/X
       for (; i < peptide.size(); ++i)
       {
         ion = peptide.getPrefix(i);
@@ -388,7 +390,6 @@ namespace OpenMS
             vector<EmpiricalFormula> loss_formulas = it->getLossFormulas();
             for (Size i = 0; i != loss_formulas.size(); ++i)
             {
-              std::cout << "Loss: " << loss_formulas[i].toString() << std::endl;
               losses.insert(loss_formulas[i].toString());
             }
           }
@@ -402,9 +403,7 @@ namespace OpenMS
 
         for (set<String>::const_iterator it = losses.begin(); it != losses.end(); ++it)
         {
-          std::cout << "Full ion: " << ion.getFormula(res_type, charge) << std::endl;
           EmpiricalFormula loss_ion = ion.getFormula(res_type, charge) - EmpiricalFormula(*it);
-          std::cout << loss_ion << std::endl;
           // thanks to Chris and Sandro
           // check for negative element frequencies (might happen if losses are not allowed for specific ions)
           bool negative_elements(false);

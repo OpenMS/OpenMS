@@ -116,7 +116,6 @@ START_SECTION(void simulate(RichPeakSpectrum &spectrum, const AASequence &peptid
   TEST_EQUAL(exp.size(), 1);
   if(exp.size())
   {
-    std::cout << spec.size() << std::endl;
     TEST_EQUAL(spec.size(), exp[0].size());
     Size min_size = min(spec.size(), exp[0].size());
 
