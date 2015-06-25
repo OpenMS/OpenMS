@@ -29,31 +29,42 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
-// $Authors: Sven Nahnsen, Hendrik Weisser $
+// $Authors: Andreas Bertsch, Marc Sturm, Sven Nahnsen, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmBest.h>
+#ifndef OPENMS_ANALYSIS_ID_CONSENSUSIDALGORITHMWORST_H
+#define OPENMS_ANALYSIS_ID_CONSENSUSIDALGORITHMWORST_H
 
-#include <cmath>
-
-using namespace std;
+#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmIdentity.h>
 
 namespace OpenMS
 {
-  ConsensusIDAlgorithmBest::ConsensusIDAlgorithmBest()
-  {
-    setName("ConsensusIDAlgorithmBest"); // DefaultParamHandler
-  }
+  /**
+    @brief Calculates a consensus from multiple ID runs by taking the worst search score (conservative approach).
 
-
-  double ConsensusIDAlgorithmBest::getAggregateScore_(vector<double>& scores,
-                                                      bool higher_better)
+    @htmlinclude OpenMS_ConsensusIDAlgorithmWorst.parameters
+    
+    @ingroup Analysis_ID
+  */
+  class OPENMS_DLLAPI ConsensusIDAlgorithmWorst :
+    public ConsensusIDAlgorithmIdentity
   {
-    if (higher_better)
-    {
-      return *max_element(scores.begin(), scores.end());
-    }
-    return *min_element(scores.begin(), scores.end());
-  }
+  public:
+    /// Default constructor
+    ConsensusIDAlgorithmWorst();
+
+  private:
+    /// Not implemented
+    ConsensusIDAlgorithmWorst(const ConsensusIDAlgorithmWorst&);
+
+    /// Not implemented
+    ConsensusIDAlgorithmWorst& operator=(const ConsensusIDAlgorithmWorst&);
+
+    /// Aggregate peptide scores into one final score (by taking the worst score)
+    virtual double getAggregateScore_(std::vector<double>& scores,
+                                      bool higher_better);
+  };
 
 } // namespace OpenMS
+
+#endif // OPENMS_ANALYSIS_ID_CONSENSUSIDALGORITHMWORST_H

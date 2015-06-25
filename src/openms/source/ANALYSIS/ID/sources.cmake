@@ -13,6 +13,7 @@ ConsensusIDAlgorithmPEPIons.cpp
 ConsensusIDAlgorithmPEPMatrix.cpp
 ConsensusIDAlgorithmRanks.cpp
 ConsensusIDAlgorithmSimilarity.cpp
+ConsensusIDAlgorithmWorst.cpp
 FalseDiscoveryRate.cpp
 HiddenMarkovModel.cpp
 IDMapper.cpp

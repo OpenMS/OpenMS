@@ -32,7 +32,7 @@
 // $Authors: Sven Nahnsen, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmBest.h>
+#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmWorst.h>
 
 #include <cmath>
 
@@ -40,20 +40,20 @@ using namespace std;
 
 namespace OpenMS
 {
-  ConsensusIDAlgorithmBest::ConsensusIDAlgorithmBest()
+  ConsensusIDAlgorithmWorst::ConsensusIDAlgorithmWorst()
   {
-    setName("ConsensusIDAlgorithmBest"); // DefaultParamHandler
+    setName("ConsensusIDAlgorithmWorst"); // DefaultParamHandler
   }
 
 
-  double ConsensusIDAlgorithmBest::getAggregateScore_(vector<double>& scores,
-                                                      bool higher_better)
+  double ConsensusIDAlgorithmWorst::getAggregateScore_(vector<double>& scores,
+                                                       bool higher_better)
   {
     if (higher_better)
     {
-      return *max_element(scores.begin(), scores.end());
+      return *min_element(scores.begin(), scores.end());
     }
-    return *min_element(scores.begin(), scores.end());
+    return *max_element(scores.begin(), scores.end());
   }
 
 } // namespace OpenMS
