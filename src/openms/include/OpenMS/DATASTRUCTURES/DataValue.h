@@ -120,9 +120,9 @@ public:
     virtual ~DataValue();
     //@}
 
-    ///@name cast operators
+    ///@name Cast operators
     ///These methods are used when the DataType is known.
-    ///If they are applied to a DataValue with the wrong DataType, an exception is thrown.
+    ///If they are applied to a DataValue with the wrong DataType, an exception (Exception::ConversionError) is thrown. In particular, none of these operators will work for an empty DataValue (DataType EMPTY_VALUE) - except toChar(), which will return 0.
     //@{
 
     /**
