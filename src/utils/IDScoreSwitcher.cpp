@@ -49,11 +49,11 @@ using namespace std;
 /**
     @page UTILS_IDScoreSwitcher IDScoreSwitcher
 
-    @brief Switches between different scores of PSMs (peptide hits) in identification data.
+    @brief Switches between different scores of peptide hits (PSMs) or protein hits in identification data.
 
-    In the idXML file format and in OpenMS' internal representation of identification data, every peptide spectrum match (PSM, "peptide hit") can be associated with a single numeric (quality) score of an arbitrary type. However, database search engines that generate PSMs or tools for post-processing of identification data may assign multiple scores of different types to each PSM. These scores can be captured as meta data associated with the PSMs, but they are typically not considered by TOPP tools that utilize the PSM scores. This utility allows to switch between "primary" scores and scores stored as meta values.
+    In the idXML file format and in OpenMS' internal representation of identification data, every peptide spectrum match (PSM, "peptide hit") and every protein hit can be associated with a single numeric (quality) score of an arbitrary type. However, database search engines that generate PSMs or tools for post-processing of identification data may assign multiple scores of different types to each PSM/protein. These scores can be captured as meta data associated with the PSMs/proteins (in idXML: "UserParam" elements), but they are typically not considered by TOPP tools that utilize the scores. This utility allows to switch between "primary" scores and scores stored as meta values.
 
-    The meta value that is supposed to replace the PSM score - given by parameter @p new_score - has to be numeric (type "float") and exist for every PSM. The old PSM score will be stored as a meta value, the name for which is given by the parameter @p old_score. It is an error if a meta value with this name already exists for any PSM, unless that meta value already stores the same score.
+    By default this tool operates on PSM scores; to consider protein scores instead, set the @p proteins flag. The meta value that is supposed to replace the PSM/protein score - given by parameter @p new_score - has to be numeric (type "float") and exist for every peptide or protein hit, respectively. The old score will be stored as a meta value, the name for which is given by the parameter @p old_score. It is an error if a meta value with this name already exists for any hit, unless that meta value already stores the same score.
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
