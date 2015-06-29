@@ -72,11 +72,18 @@ class TOPPIDScoreSwitcher :
 public:
 
   TOPPIDScoreSwitcher() :
-    TOPPBase("IDScoreSwitcher", "Switches between different scores of PSMs (peptide hits) in identification data", false)
+    TOPPBase("IDScoreSwitcher", "Switches between different scores of peptide or protein hits in identification data", false), tolerance_(1e-6)
   {
   }
 
 protected:
+
+  /// relative tolerance for score comparisons:
+  const double tolerance_;
+
+  String new_score_, new_score_type_, old_score_; // tool parameters
+  bool higher_better_; // for the new scores, are higher ones better?
+
 
   void registerOptionsAndFlags_()
   {
@@ -90,9 +97,11 @@ protected:
     setValidStrings_("new_score_orientation", ListUtils::create<String>("lower_better,higher_better"));
     registerStringOption_("new_score_type", "<name>", "", "Name to use as the type of the new score (default: same as 'new_score')", false);
     registerStringOption_("old_score", "<name>", "", "Name to use for the meta value storing the old score (default: old score type)", false);
+    registerFlag_("proteins", "Apply to protein scores instead of PSM scores");
   }
 
-  String describePeptideHit(const PeptideHit& hit)
+
+  String describeHit_(const PeptideHit& hit)
   {
     return "peptide hit with sequence '" + hit.getSequence().toString() +
       "', charge " + String(hit.getCharge()) + ", score " + 
@@ -100,18 +109,63 @@ protected:
   }
 
 
+  String describeHit_(const ProteinHit& hit)
+  {
+    return "protein hit with accession '" + hit.getAccession() + "', score " +
+      String(hit.getScore());
+  }
+
+
+  template <typename IDType, typename HitType>
+  void switchScores_(IDType& id, Size& counter)
+  {
+    for (typename vector<HitType>::iterator hit_it = id.getHits().begin();
+         hit_it != id.getHits().end(); ++hit_it, ++counter)
+    {
+      if (!hit_it->metaValueExists(new_score_))
+      {
+        String msg = "Meta value '" + new_score_ + "' not found for " + 
+          describeHit_(*hit_it);
+        throw Exception::MissingInformation(__FILE__, __LINE__,
+                                            __PRETTY_FUNCTION__, msg);
+      }
+
+      String old_score_meta = (old_score_.empty() ? id.getScoreType() : 
+                               old_score_);
+      DataValue dv = hit_it->getMetaValue(old_score_meta);
+      if (!dv.isEmpty()) // meta value for old score already exists
+      {
+        if (fabs((double(dv) - hit_it->getScore()) * 2.0 /
+                 (double(dv) + hit_it->getScore())) > tolerance_)
+        {
+          String msg = "Meta value '" + old_score_meta + "' already exists "
+            "with a conflicting value for " + describeHit_(*hit_it);
+          throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+                                        msg, dv.toString());
+        } // else: values match, nothing to do
+      }
+      else
+      {
+        hit_it->setMetaValue(old_score_meta, hit_it->getScore());
+      }
+      hit_it->setScore(hit_it->getMetaValue(new_score_));
+    }
+    id.setScoreType(new_score_type_);
+    id.setHigherScoreBetter(higher_better_);
+  }
+
+
   ExitCodes main_(int, const char**)
   {
-    String in = getStringOption_("in"), out = getStringOption_("out"),
-      new_score = getStringOption_("new_score"),
-      new_score_type = getStringOption_("new_score_type"),
-      old_score = getStringOption_("old_score");
-    bool higher_better = (getStringOption_("new_score_orientation") == 
-                          "higher_better");
+    String in = getStringOption_("in"), out = getStringOption_("out");
+    bool do_proteins = getFlag_("proteins");
+    new_score_ = getStringOption_("new_score");
+    new_score_type_ = getStringOption_("new_score_type");
+    old_score_ = getStringOption_("old_score");
+    higher_better_ = (getStringOption_("new_score_orientation") == 
+                      "higher_better");
 
-    if (new_score_type.empty()) new_score_type = new_score;
-
-    const double tolerance = 1e-6; // relative tolerance
+    if (new_score_type_.empty()) new_score_type_ = new_score_;
 
     vector<ProteinIdentification> proteins;
     vector<PeptideIdentification> peptides;
@@ -119,45 +173,27 @@ protected:
     IdXMLFile().load(in, proteins, peptides);
 
     Size counter = 0;
-    for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
-         pep_it != peptides.end(); ++pep_it)
+    if (do_proteins)
     {
-      for (vector<PeptideHit>::iterator hit_it = pep_it->getHits().begin();
-           hit_it != pep_it->getHits().end(); ++hit_it, ++counter)
+      for (vector<ProteinIdentification>::iterator prot_it = proteins.begin();
+           prot_it != proteins.end(); ++prot_it)
       {
-        if (!hit_it->metaValueExists(new_score))
-        {
-          String msg = "Meta value '" + new_score + "' not found for " + 
-            describePeptideHit(*hit_it);
-          throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, msg);
-        }
-
-        String old_score_meta = (old_score.empty() ? pep_it->getScoreType() :
-                                 old_score);
-        DataValue dv = hit_it->getMetaValue(old_score_meta);
-        if (!dv.isEmpty()) // meta value for old score already exists
-        {
-          if (fabs((double(dv) - hit_it->getScore()) * 2.0 /
-                   (double(dv) + hit_it->getScore())) > tolerance)
-          {
-            String msg = "Meta value '" + old_score_meta + "' already exists "
-              "with a conflicting value for " + describePeptideHit(*hit_it);
-            throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, msg, dv.toString());
-          } // else: values match, nothing to do
-        }
-        else
-        {
-          hit_it->setMetaValue(old_score_meta, hit_it->getScore());
-        }
-        hit_it->setScore(hit_it->getMetaValue(new_score));
+        switchScores_<ProteinIdentification, ProteinHit>(*prot_it, counter);
       }
-      pep_it->setScoreType(new_score_type);
-      pep_it->setHigherScoreBetter(higher_better);
+    }
+    else
+    {
+      for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
+           pep_it != peptides.end(); ++pep_it)
+      {
+        switchScores_<PeptideIdentification, PeptideHit>(*pep_it, counter);
+      }
     }
 
     IdXMLFile().store(out, proteins, peptides);
 
-    LOG_INFO << "Successfully switched " << counter << " PSM scores." << endl;
+    LOG_INFO << "Successfully switched " << counter << " "
+             << (do_proteins ? "protein" : "PSM") << " scores." << endl;
 
     return EXECUTION_OK;
   }
