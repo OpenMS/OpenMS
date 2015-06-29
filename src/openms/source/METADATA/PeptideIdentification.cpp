@@ -275,6 +275,11 @@ namespace OpenMS
     }
   }
 
+  void PeptideIdentification::sortByRank()
+  {
+    std::sort(hits_.begin(), hits_.end(), PeptideHit::RankLess());
+  }
+
   bool PeptideIdentification::empty() const
   {
     return id_ == ""

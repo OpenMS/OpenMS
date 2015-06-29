@@ -147,6 +147,13 @@ public:
     */
     void sort();
 
+    /**
+         @brief Sorts the hits by rank
+
+         Sorting hits by rank attribute, i.e. after sorting, the hits will be in ascending order of rank.
+    */
+    void sortByRank();
+
     /// Returns if this PeptideIdentification result is empty
     bool empty() const;
 
