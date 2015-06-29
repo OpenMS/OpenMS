@@ -120,6 +120,84 @@ protected:
       setValidFormats_("out", ListUtils::create<String>("tsv"));
     }
 
+    /// Helper:
+    /// gets peptide_evidences with data from internal structures,
+    /// a row with information about the PeptideHit in general
+    /// a reference to a vector of rows
+    /// and adds a row for each PeptideEvidence to rows.
+    static void addPepEvidenceToRows(const vector<PeptideEvidence>& peptide_evidences, MzTabPSMSectionRow& row, MzTabPSMSectionRows& rows)
+    {
+      if (!peptide_evidences.empty())
+      {
+        for (Size i = 0; i != peptide_evidences.size(); ++i)
+        {
+
+          // get AABefore and AAAfter as well as start and end for all pep evidences
+
+          // pre/post
+          // from spec: Amino acid preceding the peptide (coming from the PSM) in the protein
+          // sequence. If unknown “null” MUST be used, if the peptide is N-terminal “-“
+          // MUST be used.
+          if (peptide_evidences[i].getAABefore() == PeptideEvidence::UNKNOWN_AA)
+          {
+            row.pre = MzTabString("null");
+          }
+          else if (peptide_evidences[i].getAABefore() == PeptideEvidence::N_TERMINAL_AA)
+          {
+            row.pre = MzTabString("-");
+          }
+          else
+          {
+            row.pre = MzTabString(String(peptide_evidences[i].getAABefore()));
+          }
+
+          if (peptide_evidences[i].getAAAfter() == PeptideEvidence::UNKNOWN_AA)
+          {
+            row.post = MzTabString("null");
+          }
+          else if (peptide_evidences[i].getAAAfter() == PeptideEvidence::C_TERMINAL_AA)
+          {
+            row.post = MzTabString("-");
+          }
+          else
+          {
+            row.post = MzTabString(String(peptide_evidences[i].getAAAfter()));
+          }
+
+          // start/end
+          if (peptide_evidences[i].getStart() == PeptideEvidence::UNKNOWN_POSITION)
+          {
+            row.start = MzTabString("-");
+          }
+          else
+          {
+            row.start = MzTabString(String(peptide_evidences[i].getStart() + 1)); // counting in mzTab starts at 1
+          }
+
+          if (peptide_evidences[i].getEnd() == PeptideEvidence::UNKNOWN_POSITION)
+          {
+            row.end = MzTabString("-");
+          }
+          else
+          {
+            row.end = MzTabString(String(peptide_evidences[i].getEnd() + 1)); // counting in mzTab starts at 1
+          }
+
+          row.accession = MzTabString(peptide_evidences[i].getProteinAccession());
+
+          rows.push_back(row);
+        }
+      }
+      else
+      { // report without pep evidence information
+        row.pre = MzTabString("-");
+        row.post = MzTabString("-");
+        row.start = MzTabString("-");
+        row.end = MzTabString("-");
+        rows.push_back(row);
+      }
+    }
+
     static map<Size, MzTabModificationMetaData> generateMzTabStringFromModifications(const vector<String>& mods)
     {
       map<Size, MzTabModificationMetaData> mods_mztab;
@@ -443,24 +521,24 @@ protected:
             MzTabProteinSectionRow protein_row;
             protein_row.accession = MzTabString(hit.getAccession());
             protein_row.description = MzTabString(hit.getDescription()); 
-//          protein_row.taxid = hit.getTaxonomyID(); // TODO add as meta value to protein hitNEWT taxonomy for the species.
-//          MzTabString species = hit.getSpecies(); // Human readable name of the species
+         // protein_row.taxid = hit.getTaxonomyID(); // TODO add as meta value to protein hitNEWT taxonomy for the species.
+         // MzTabString species = hit.getSpecies(); // Human readable name of the species
             protein_row.database = db; // Name of the protein database.
             protein_row.database_version = db_version; // String Version of the protein database.
             protein_row.best_search_engine_score[1] = MzTabDouble(hit.getScore());
-//          MzTabParameterList search_engine; // Search engine(s) identifying the protein.
-//          std::map<Size, MzTabDouble>  best_search_engine_score; // best_search_engine_score[1-n]
-//          std::map<Size, std::map<Size, MzTabDouble> > search_engine_score_ms_run; // search_engine_score[index1]_ms_run[index2]
-//          MzTabInteger reliability;
-//          std::map<Size, MzTabInteger> num_psms_ms_run;
-//          std::map<Size, MzTabInteger> num_peptides_distinct_ms_run;
-//          std::map<Size, MzTabInteger> num_peptides_unique_ms_run;
-//          MzTabModificationList modifications; // Modifications identified in the protein.
-//          MzTabString uri; // Location of the protein’s source entry.
-//          MzTabStringList go_terms; // List of GO terms for the protein.
+         // MzTabParameterList search_engine; // Search engine(s) identifying the protein.
+         // std::map<Size, MzTabDouble>  best_search_engine_score; // best_search_engine_score[1-n]
+         // std::map<Size, std::map<Size, MzTabDouble> > search_engine_score_ms_run; // search_engine_score[index1]_ms_run[index2]
+         // MzTabInteger reliability;
+         // std::map<Size, MzTabInteger> num_psms_ms_run;
+         // std::map<Size, MzTabInteger> num_peptides_distinct_ms_run;
+         // std::map<Size, MzTabInteger> num_peptides_unique_ms_run;
+         // MzTabModificationList modifications; // Modifications identified in the protein.
+         // MzTabString uri; // Location of the protein’s source entry.
+         // MzTabStringList go_terms; // List of GO terms for the protein.
             double coverage = hit.getCoverage();
             protein_row.protein_coverage = coverage >= 0 ? MzTabDouble(coverage) : MzTabDouble(); // (0-1) Amount of protein sequence identified.
-//          std::vector<MzTabOptionalColumnEntry> opt_; // Optional Columns must start with “opt_”
+         // std::vector<MzTabOptionalColumnEntry> opt_; // Optional Columns must start with “opt_”
             // optional column
             MzTabOptionalColumnEntry opt_column_entry;
             opt_column_entry.first = "opt_global_protein_group_type";
@@ -594,16 +672,6 @@ protected:
         mod_list.set(mods);
         row.modifications = mod_list;
 
-        const set<String>& accessions = best_ph.extractProteinAccessions();
-        const vector<PeptideEvidence> peptide_evidences = best_ph.getPeptideEvidences();
-
-        // determine if peptide unique (TODO: move to static helper)
-        row.unique = accessions.size() == 1 ? MzTabBoolean(true) : MzTabBoolean(false);
-
-        // TODO: add option to export all peptide evidences of a peptide (e.g. same sequence but different proteins)
-        // select accession of first peptide_evidence as representative ("leading") accession
-        row.accession = peptide_evidences.empty() ? MzTabString("null") : MzTabString(peptide_evidences[0].getProteinAccession());
-
         row.database = db;
         row.database_version = db_version;
         row.search_engine_score[1] = MzTabDouble(best_ph.getScore());
@@ -615,66 +683,6 @@ protected:
         row.charge = MzTabInteger(best_ph.getCharge());
         row.exp_mass_to_charge = MzTabDouble(it->getMZ());
         row.calc_mass_to_charge = best_ph.getCharge() != 0 ? MzTabDouble(aas.getMonoWeight(Residue::Full, best_ph.getCharge()) / best_ph.getCharge()) : MzTabDouble();
-
-        // get AABefore and AAAfter as well as start and end of first peptide_evidence as representative
-        if (peptide_evidences.empty())
-        {
-          row.pre = MzTabString("-");
-          row.post = MzTabString("-");
-          row.start = MzTabString("-");
-          row.end = MzTabString("-");
-        }
-        else
-        {
-          // pre/post
-          // from spec: Amino acid preceding the peptide (coming from the PSM) in the protein
-          // sequence. If unknown “null” MUST be used, if the peptide is N-terminal “-“
-          // MUST be used.
-          if (peptide_evidences[0].getAABefore() == PeptideEvidence::UNKNOWN_AA)
-          {
-            row.pre = MzTabString("null");
-          }
-          else if (peptide_evidences[0].getAABefore() == PeptideEvidence::N_TERMINAL_AA)
-          {
-            row.pre = MzTabString("-");
-          }
-          else
-          {
-            row.pre = MzTabString(String(peptide_evidences[0].getAABefore()));
-          }
-
-          if (peptide_evidences[0].getAAAfter() == PeptideEvidence::UNKNOWN_AA)
-          {
-            row.post = MzTabString("null");
-          }
-          else if (peptide_evidences[0].getAAAfter() == PeptideEvidence::C_TERMINAL_AA)
-          {
-            row.post = MzTabString("-");
-          }
-          else
-          {
-            row.post = MzTabString(String(peptide_evidences[0].getAAAfter()));
-          }
-
-          // start/end
-          if (peptide_evidences[0].getStart() == PeptideEvidence::UNKNOWN_POSITION)
-          {
-            row.start = MzTabString("-");
-          }
-          else
-          {
-            row.start = MzTabString(String(peptide_evidences[0].getStart() + 1)); // counting in mzTab starts at 1
-          }
-
-          if (peptide_evidences[0].getEnd() == PeptideEvidence::UNKNOWN_POSITION)
-          {
-            row.end = MzTabString("-");
-          }
-          else
-          {
-            row.end = MzTabString(String(peptide_evidences[0].getEnd() + 1)); // counting in mzTab starts at 1
-          }
-        }
 
         // find opt_global_modified_sequence in opt_ and set it to the OpenMS amino acid string (easier human readable than unimod accessions)
         for (Size i = 0; i != row.opt_.size(); ++i)
@@ -705,14 +713,23 @@ protected:
             }
           }
         }
-        rows.push_back(row);
+
+        // TODO Think about if the uniqueness can be determined by # of peptide evidences
+        // b/c this would only differ when evidences come from different DBs
+        const set<String>& accessions = best_ph.extractProteinAccessions();
+        row.unique = accessions.size() == 1 ? MzTabBoolean(true) : MzTabBoolean(false);
+
+        // create row for every PeptideEvidence entry (mapping to a protein)
+        const vector<PeptideEvidence> peptide_evidences = best_ph.getPeptideEvidences();
+
+        addPepEvidenceToRows(peptide_evidences, row, rows);
       }
 
       mztab.setPSMSectionRows(rows);
 
       return mztab;
     }
- 
+
     static MzTab exportConsensusMapToMzTab(const ConsensusMap& consensus_map, const String& filename)
     {
       MzTab mztab;
@@ -996,9 +1013,8 @@ protected:
       MzTabFile().store(out, mztab);
       return EXECUTION_OK;
     }
-
   };
-}
+} //namespace OpenMS
 
 #pragma clang diagnostic pop
 
