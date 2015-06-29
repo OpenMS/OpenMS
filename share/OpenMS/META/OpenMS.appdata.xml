@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+ <id>OpenMS.desktop</id>
+ <metadata_license>BSD-3-Clause</metadata_license>
+ <project_license>BSD-3-Clause</project_license>
+ <name>OpenMS</name>
+ <summary>Mass spectrometry (MS) software for Proteomics and Metabolomics</summary>
+ <description>
+  <p>
+   OpenMS is a powerful set of tools as well as a C++ library to
+   process low and high-resolution LC-MS(-MS) mass spectrometry data.
+  </p>
+  <p>
+   OpenMS is modular, consisting of more than 80 chainable tools (executables).
+   It features a graphical data viewer (TOPPView), a pipeline editor (TOPPAS) and
+   wrappers for most tandem-MS search engines (like Mascot, MSGF+ and X!Tandem).
+   The OpenMS library itself comes with Python bindings for rapid prototyping.
+  </p>
+ </description>
+ <screenshots>
+  <screenshot type="default">
+   <image>http://www.openms.de/current_doxygen/html/TOPPView.png</image>
+   <caption>TOPPView is a viewer for MS and HPLC-MS data supporting many common formats, e.g. mzML, mzData, mzXML and several others.
+            The figure shows two instances of TOPPView displaying a HPLC-MS map and a MS raw spectrum.</caption>
+  </screenshot>
+  <screenshot>
+   <image>http://www.openms.de/current_doxygen/html/TOPPAS_simple_example.png</image>
+   <caption>A simple example pipeline created in TOPPAS and successfully executed.</caption>
+  </screenshot>
+ </screenshots>
+ <url type="homepage">http://www.openms.de</url>
+ <updatecontact>open-ms-developers@lists.sourceforge.net</updatecontact>
+ <project_group></project_group>
+</component>
