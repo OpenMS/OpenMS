@@ -1143,7 +1143,8 @@ namespace OpenMS
 //                      +"T"+si_pro_map_[id]->getDateTime().getTime();
               pep_id_->back().setIdentifier(pro_id_->at(si_pro_map_[id]).getIdentifier());
               pep_id_->back().setMetaValue("spectrum_reference", spectrumID); //String scannr = substrings.back().reverse().chop(5);
-              //pep_id_->back().setScoreType(); #set in parseSpectrumIdentificationItemElement_
+
+              pep_id_->back().sortByRank();
 
               //adopt cv s
               for (map<String, vector<CVTerm> >::const_iterator cvit =  params.first.getCVTerms().begin(); cvit != params.first.getCVTerms().end(); ++cvit)
@@ -1255,7 +1256,7 @@ namespace OpenMS
           scoretype = true;
         }
       }
-      if (scoretype) //else (i.e. no q/E/raw score) no hit will be read TODO @mths: yielding no peptide hits will be error prone!!! what to do? remove and warn peptideidentifications with no hits inside?!
+      if (scoretype && pass) //else (i.e. no q/E/raw score or threshold not passed) no hit will be read TODO @mths: yielding no peptide hits will be error prone!!! what to do? remove and warn peptideidentifications with no hits inside?!
       {
         //build the PeptideHit from a SpectrumIdentificationItem
         PeptideHit hit(score, rank, chargeState, pep_map_[peptide_ref]);
