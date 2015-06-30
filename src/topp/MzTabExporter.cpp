@@ -131,7 +131,6 @@ protected:
       {
         for (Size i = 0; i != peptide_evidences.size(); ++i)
         {
-
           // get AABefore and AAAfter as well as start and end for all pep evidences
 
           // pre/post
@@ -515,10 +514,25 @@ protected:
           const std::vector<ProteinIdentification::ProteinGroup> indist_groups = it->getIndistinguishableProteins();
           const std::vector<ProteinHit> protein_hits = it->getHits();
 
+          // pre-analyze data for occuring meta values at protein hit level
+          // these are used to build optional columns containing the meta values in internal data structures
+          set<String> protein_hit_user_value_keys;
+          for (Size i = 0; i < protein_hits.size(); ++i)
+          {
+            const ProteinHit& protein_hit = protein_hits[i];
+            vector<String> keys;
+            protein_hit.getKeys(keys); //TODO: why not just return it?
+            protein_hit_user_value_keys.insert(keys.begin(), keys.end());
+          }
+
+          // we do not want descriptions twice (TODO: use CVs?)
+          protein_hit_user_value_keys.erase("Description");
+
           for (Size i = 0; i != protein_hits.size(); ++i)
           {
             const ProteinHit& hit = protein_hits[i];
             MzTabProteinSectionRow protein_row;
+
             protein_row.accession = MzTabString(hit.getAccession());
             protein_row.description = MzTabString(hit.getDescription()); 
          // protein_row.taxid = hit.getTaxonomyID(); // TODO add as meta value to protein hitNEWT taxonomy for the species.
@@ -539,14 +553,48 @@ protected:
             double coverage = hit.getCoverage();
             protein_row.protein_coverage = coverage >= 0 ? MzTabDouble(coverage) : MzTabDouble(); // (0-1) Amount of protein sequence identified.
          // std::vector<MzTabOptionalColumnEntry> opt_; // Optional Columns must start with “opt_”
-            // optional column
+
+            // create opt_ columns for protein hit user values
+            for (set<String>::const_iterator mit = protein_hit_user_value_keys.begin(); mit != protein_hit_user_value_keys.end(); ++mit)
+            {
+              MzTabOptionalColumnEntry opt_entry;
+              const String& key = *mit;
+              opt_entry.first = String("opt_prt_") + key;
+              // leave value empty as we have to fill it with the value from the best peptide hit
+              protein_row.opt_.push_back(opt_entry);
+            }
+
+            // fill opt_ column of protein hits
+            vector<String> prothit_keys;
+            // get actual meta values in the current hit
+            hit.getKeys(prothit_keys);
+
+            for (Size k = 0; k != prothit_keys.size(); ++k)
+            {
+              const String& key = prothit_keys[k];
+
+              // find matching entry in opt_ (TODO: speed this up)
+              for (Size i = 0; i != protein_row.opt_.size(); ++i)
+              {
+                MzTabOptionalColumnEntry& opt_entry = protein_row.opt_[i];
+
+                if (opt_entry.first == String("opt_prt_") + key)
+                {
+                  opt_entry.second = MzTabString(hit.getMetaValue(key).toString());
+                }
+              }
+            }
+
+            // optional column for protein groups
             MzTabOptionalColumnEntry opt_column_entry;
             opt_column_entry.first = "opt_global_protein_group_type";
+            opt_column_entry.second = MzTabString("single_protein");
             protein_row.opt_.push_back(opt_column_entry);
              
             protein_rows.push_back(protein_row);
           }
 
+          // Protein groups are currently simply PRT rows with extra opt columns
           for (Size i = 0; i != protein_groups.size(); ++i)
           {
             const ProteinIdentification::ProteinGroup& group = protein_groups[i];
@@ -611,7 +659,7 @@ protected:
         }
         mztab.setProteinSectionRows(protein_rows);
       }
-
+      // end protein groups
 
       // mandatory meta values
       meta_data.mz_tab_type = MzTabString("Identification");
@@ -861,7 +909,7 @@ protected:
         {
           if (pep_ids.size() != 1)
           {
-            throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Consensus features might contain at most one identification. Run IDConflictResolver first to remove ambiguities!");
+            throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Consensus features may contain at most one identification. Run IDConflictResolver first to remove ambiguities!");
           }
 
           pep_ids[0].assignRanks();
