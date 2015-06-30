@@ -38,6 +38,7 @@
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPMatrix.h>
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPIons.h>
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmBest.h>
+#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmWorst.h>
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmAverage.h>
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmRanks.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
@@ -92,6 +93,7 @@ using namespace std;
     @li @p PEPMatrix: Scoring based on posterior error probabilities (PEPs) and peptide sequence similarities. This algorithm uses a substitution matrix to score the similarity of sequences not listed by all search engines. It requires PEPs as the scores for all peptide hits.
     @li @p PEPIons: Scoring based on posterior error probabilities (PEPs) and fragment ion similarities ("shared peak count"). This algorithm, too, requires PEPs as scores.
     @li @p best: For each peptide ID, this uses the best score of any search engine as the consensus score. All peptide IDs must have the same score type.
+    @li @p worst: For each peptide ID, this uses the worst score of any search engine as the consensus score. All peptide IDs must have the same score type.
     @li @p average: For each peptide ID, this uses the average score of all search engines as the consensus score. Again, all peptide IDs must have the same score type.
     @li @p ranks: Calculates a consensus score based on the ranks of peptide IDs in the results of different search engines. The final score is in the range (0, 1], with 1 being the best score. The input peptide IDs do not need to have the same score type.
 
@@ -113,7 +115,7 @@ using namespace std;
 
     Generally, search results can be filtered according to various criteria using @ref TOPP_IDFilter before (or after) applying this tool. ConsensusID itself offers only a limited number of filtering options that are especially useful in its context (see the @p filter parameter section):
     @li @p considered_hits: Limits the number of alternative peptide hits considered per spectrum/feature for each identification run. This helps to reduce runtime, especially for the @p PEPMatrix and @p PEPIons algorithms, which involve costly "all vs. all" comparisons of peptide hits.
-    @li @p min_support: This allows filtering of peptide hits based on agreement between search engines. Every peptide sequence in the analysis has been identified by at least one search run. This parameter defines which fraction (between 0 and 1) of the remaining search runs must "support" a peptide identification that should be kept. The meaning of "support" differs slightly between algorithms: For @p best, @p average and @p rank, each search run supports peptides that it has also identified among its top @p considered_hits candidates. So @p min_support simply gives the fraction of additional search engines that must have identified a peptide. (For example, if there are three search runs, and only peptides identified by at least two of them should be kept, set @p min_support to 0.5.) For the similarity-based algorithms @p PEPMatrix and @p PEPIons, the "support" for a peptide is the average similarity of the most-similar peptide from each (other) search run. (In the context of the JPR publication, this is the average of the similarity scores used in the consensus score calculation for a peptide.)
+    @li @p min_support: This allows filtering of peptide hits based on agreement between search engines. Every peptide sequence in the analysis has been identified by at least one search run. This parameter defines which fraction (between 0 and 1) of the remaining search runs must "support" a peptide identification that should be kept. The meaning of "support" differs slightly between algorithms: For @p best, @p worst, @p average and @p rank, each search run supports peptides that it has also identified among its top @p considered_hits candidates. So @p min_support simply gives the fraction of additional search engines that must have identified a peptide. (For example, if there are three search runs, and only peptides identified by at least two of them should be kept, set @p min_support to 0.5.) For the similarity-based algorithms @p PEPMatrix and @p PEPIons, the "support" for a peptide is the average similarity of the most-similar peptide from each (other) search run. (In the context of the JPR publication, this is the average of the similarity scores used in the consensus score calculation for a peptide.)
     @li @p count_empty: Typically not all search engines will provide results for all searched MS2 spectra. This parameter determines whether search runs that provided no results should be counted in the "support" calculation; by default, they are ignored.
 
     <B>The command line parameters of this tool are:</B>
@@ -164,9 +166,10 @@ protected:
                           "* PEPMatrix: Scoring based on posterior error probabilities (PEPs) and peptide sequence similarities (scored by a substitution matrix). Requires PEPs as scores.\n"
                           "* PEPIons: Scoring based on posterior error probabilities (PEPs) and fragment ion similarities ('shared peak count'). Requires PEPs as scores.\n"
                           "* best: For each peptide ID, use the best score of any search engine as the consensus score. Requires the same score type in all ID runs.\n"
+                          "* worst: For each peptide ID, use the worst score of any search engine as the consensus score. Requires the same score type in all ID runs.\n"
                           "* average:  For each peptide ID, use the average score of all search engines as the consensus. Requires the same score type in all ID runs.\n"
                           "* ranks: Calculates a consensus score based on the ranks of peptide IDs in the results of different search engines. The final score is in the range (0, 1], with 1 being the best score. No requirements about score types.", false);
-    setValidStrings_("algorithm", ListUtils::create<String>("PEPMatrix,PEPIons,best,average,ranks"));
+    setValidStrings_("algorithm", ListUtils::create<String>("PEPMatrix,PEPIons,best,worst,average,ranks"));
 
     // subsections appear in alphabetical (?) order, independent of the order
     // in which they were registered:
@@ -274,6 +277,10 @@ protected:
     else if (algorithm_ == "best")
     {
       consensus = new ConsensusIDAlgorithmBest();
+    }
+    else if (algorithm_ == "worst")
+    {
+      consensus = new ConsensusIDAlgorithmWorst();
     }
     else if (algorithm_ == "average")
     {
