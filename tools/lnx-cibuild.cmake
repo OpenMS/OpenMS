@@ -53,7 +53,13 @@ if("$ENV{ENABLE_STYLE_TESTING}" STREQUAL "Off")
 else()
 	set(_build_errors 0)
 endif()
-ctest_test      (BUILD "${CTEST_BINARY_DIRECTORY}" PARALLEL_LEVEL 3)
+
+if("$ENV{TEST_TOPP}" STREQUAL "On")
+	ctest_test(BUILD "${CTEST_BINARY_DIRECTORY}" PARALLEL_LEVEL 3 INCLUDE ^TOPP)
+else()
+	ctest_test(BUILD "${CTEST_BINARY_DIRECTORY}" PARALLEL_LEVEL 3 EXCLUDE ^TOPP)
+endif()
+
 ctest_submit()
 
 # indicate errors
