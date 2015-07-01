@@ -48,8 +48,8 @@ namespace OpenMS
   FalseDiscoveryRate::FalseDiscoveryRate() :
     DefaultParamHandler("FalseDiscoveryRate")
   {
-    defaults_.setValue("q_value", "true", "If 'true' q-values will be calculated instead of FDRs");
-    defaults_.setValidStrings("q_value", ListUtils::create<String>("true,false"));
+    defaults_.setValue("no_qvalues", "false", "If 'true' strict FDRs will be calculated instead of q-values (the default)");
+    defaults_.setValidStrings("no_qvalues", ListUtils::create<String>("true,false"));
     defaults_.setValue("use_all_hits", "false", "If 'true' not only the first hit, but all are used (peptides only)");
     defaults_.setValidStrings("use_all_hits", ListUtils::create<String>("true,false"));
     defaults_.setValue("split_charge_variants", "false", "If 'true' charge variants are treated separately (for peptides of combined target/decoy searches only).");
@@ -63,13 +63,13 @@ namespace OpenMS
 
   void FalseDiscoveryRate::apply(vector<PeptideIdentification>& ids)
   {
-    bool q_value = param_.getValue("q_value").toBool();
+    bool q_value = !param_.getValue("no_qvalues").toBool();
     bool use_all_hits = param_.getValue("use_all_hits").toBool();
     bool treat_runs_separately = param_.getValue("treat_runs_separately").toBool();
     bool split_charge_variants = param_.getValue("split_charge_variants").toBool();
     bool add_decoy_peptides = param_.getValue("add_decoy_peptides").toBool();
 #ifdef FALSE_DISCOVERY_RATE_DEBUG
-    cerr << "Parameters: q_value=" << q_value << ", use_all_hits=" << use_all_hits << ", treat_runs_separately=" << treat_runs_separately << ", split_charge_variants=" << split_charge_variants << endl;
+    cerr << "Parameters: no_qvalues=" << !q_value << ", use_all_hits=" << use_all_hits << ", treat_runs_separately=" << treat_runs_separately << ", split_charge_variants=" << split_charge_variants << endl;
 #endif
 
 
@@ -363,8 +363,8 @@ namespace OpenMS
       }
     }
 
-    bool q_value(param_.getValue("q_value").toBool());
-    bool higher_score_better(fwd_ids.begin()->isHigherScoreBetter());
+    bool q_value = !param_.getValue("no_qvalues").toBool();
+    bool higher_score_better = fwd_ids.begin()->isHigherScoreBetter();
     bool add_decoy_peptides = param_.getValue("add_decoy_peptides").toBool();
     // calculate fdr for the forward scores
     Map<double, double> score_to_fdr;
@@ -462,8 +462,8 @@ namespace OpenMS
       }
     }
 
-    bool q_value(param_.getValue("q_value").toBool());
-    bool higher_score_better(ids.begin()->isHigherScoreBetter());
+    bool q_value = !param_.getValue("no_qvalues").toBool();
+    bool higher_score_better = ids.begin()->isHigherScoreBetter();
 
     // calculate fdr for the forward scores
     Map<double, double> score_to_fdr;
@@ -517,8 +517,8 @@ namespace OpenMS
       }
     }
 
-    bool q_value(param_.getValue("q_value").toBool());
-    bool higher_score_better(fwd_ids.begin()->isHigherScoreBetter());
+    bool q_value = !param_.getValue("no_qvalues").toBool();
+    bool higher_score_better = fwd_ids.begin()->isHigherScoreBetter();
     // calculate fdr for the forward scores
     Map<double, double> score_to_fdr;
     calculateFDRs_(score_to_fdr, target_scores, decoy_scores, q_value, higher_score_better);
