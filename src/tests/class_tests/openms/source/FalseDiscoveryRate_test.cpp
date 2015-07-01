@@ -188,11 +188,19 @@ START_SECTION((void apply(std::vector<ProteinIdentification>& ids)))
   for (vector<ProteinIdentification>::const_iterator it = fwd_prot_ids.begin(); it != fwd_prot_ids.end(); ++it)
   {
     prot_ids.push_back(*it);
+    for (vector<ProteinHit>::iterator hit_it = prot_ids.back().getHits().begin(); hit_it != prot_ids.back().getHits().end(); ++hit_it)
+    {
+      hit_it->setMetaValue("target_decoy", "target");
+    }
   }
   
   for (vector<ProteinIdentification>::const_iterator it = rev_prot_ids.begin(); it != rev_prot_ids.end(); ++it)
   {
     prot_ids.push_back(*it);
+    for (vector<ProteinHit>::iterator hit_it = prot_ids.back().getHits().begin(); hit_it != prot_ids.back().getHits().end(); ++hit_it)
+    {
+      hit_it->setMetaValue("target_decoy", "decoy");
+    }
   }
 
   ptr->apply(prot_ids);
