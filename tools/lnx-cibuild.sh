@@ -41,13 +41,6 @@ if [ "${WITH_GUI}" = "Off" ]; then
   _build_name=${_build_name}"-no-gui"
 fi
 
-# add test-subset to build name if requested
-if [ "${TEST_TOPP}" = "Off" ]; then
-  _build_name=${_build_name}"-testClass"
-else
-  _build_name=${_build_name}"-testTOPP"
-fi
-
 # we will use this in the cmake script
 export BUILD_NAME=${_build_name}
 
