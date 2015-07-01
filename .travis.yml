@@ -1,18 +1,9 @@
 language: cpp
-compiler:
-  - gcc
-  - clang
 cache: apt
 before_script:
    ./tools/lnx-cibuild.before.sh
 script:
   ./tools/lnx-cibuild.sh
-env:
-  - ENABLE_STYLE_TESTING=On ENABLE_UNITYBUILD=Off WITH_GUI=On
-  - ENABLE_STYLE_TESTING=Off ENABLE_UNITYBUILD=Off WITH_GUI=On TEST_TOPP=Off
-  - ENABLE_STYLE_TESTING=Off ENABLE_UNITYBUILD=Off WITH_GUI=Off TEST_TOPP=Off
-  - ENABLE_STYLE_TESTING=Off ENABLE_UNITYBUILD=Off WITH_GUI=On TEST_TOPP=On
-  - ENABLE_STYLE_TESTING=Off ENABLE_UNITYBUILD=Off WITH_GUI=Off TEST_TOPP=On
 matrix:
   include:
     - env: ENABLE_STYLE_TESTING=On ENABLE_UNITYBUILD=Off WITH_GUI=On
