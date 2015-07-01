@@ -48,7 +48,7 @@ namespace OpenMS
   FalseDiscoveryRate::FalseDiscoveryRate() :
     DefaultParamHandler("FalseDiscoveryRate")
   {
-    defaults_.setValue("q_value", "true", "If 'true', q-values will be calculated instead of FDRs");
+    defaults_.setValue("q_value", "true", "If 'true' q-values will be calculated instead of FDRs");
     defaults_.setValidStrings("q_value", ListUtils::create<String>("true,false"));
     defaults_.setValue("use_all_hits", "false", "If 'true' not only the first hit, but all are used (peptides only)");
     defaults_.setValidStrings("use_all_hits", ListUtils::create<String>("true,false"));
@@ -56,7 +56,7 @@ namespace OpenMS
     defaults_.setValidStrings("split_charge_variants", ListUtils::create<String>("true,false"));
     defaults_.setValue("treat_runs_separately", "false", "If 'true' different search runs are treated separately (for peptides of combined target/decoy searches only).");
     defaults_.setValidStrings("treat_runs_separately", ListUtils::create<String>("true,false"));
-    defaults_.setValue("add_decoy_peptides", "false", "If set to true, decoy peptides will be written to output file, too. The q-value is set to the closest target score.");
+    defaults_.setValue("add_decoy_peptides", "false", "If 'true' decoy peptides will be written to output file, too. The q-value is set to the closest target score.");
     defaults_.setValidStrings("add_decoy_peptides", ListUtils::create<String>("true,false"));
     defaultsToParam_();
   }

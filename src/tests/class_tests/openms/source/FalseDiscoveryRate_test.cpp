@@ -63,7 +63,7 @@ START_SECTION(~FalseDiscoveryRate())
 }
 END_SECTION
 
-START_SECTION((void apply(std::vector< PeptideIdentification > &fwd_ids, std::vector< PeptideIdentification > &rev_ids)))
+START_SECTION((void apply(std::vector<PeptideIdentification> &fwd_ids, std::vector<PeptideIdentification> &rev_ids)))
 {
   ptr = new FalseDiscoveryRate();
   vector<ProteinIdentification> fwd_prot_ids, rev_prot_ids;
@@ -94,7 +94,7 @@ START_SECTION((void apply(std::vector< PeptideIdentification > &fwd_ids, std::ve
 }
 END_SECTION
 
-START_SECTION((void apply(std::vector< ProteinIdentification > &fwd_ids, std::vector< ProteinIdentification > &rev_ids)))
+START_SECTION((void apply(std::vector<ProteinIdentification> &fwd_ids, std::vector<ProteinIdentification> &rev_ids)))
 {
   vector<ProteinIdentification> fwd_prot_ids, rev_prot_ids;
   vector<PeptideIdentification> fwd_pep_ids, rev_pep_ids;
@@ -129,7 +129,7 @@ START_SECTION((void apply(std::vector< ProteinIdentification > &fwd_ids, std::ve
 }
 END_SECTION
 
-START_SECTION((void apply(std::vector< PeptideIdentification > &id)))
+START_SECTION((void apply(std::vector<PeptideIdentification> &id)))
 {
   vector<ProteinIdentification> prot_ids;
   vector<PeptideIdentification> pep_ids;
