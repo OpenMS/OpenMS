@@ -103,20 +103,18 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "Identification input file containing a search against "
-                                           "a concatenated sequence database. "
-                                           "Either specify '-in' alone or 'fwd_in' together with 'rev_in' as input.", false);
+    registerInputFile_("in", "<file>", "", "Identification input file containing a search against a concatenated sequence database. Either specify '-in' alone or 'in_target' together with 'in_decoy' as input.", false);
     setValidFormats_("in", ListUtils::create<String>("idXML"));
 
-    registerInputFile_("fwd_in", "<file>", "", "Identification input to estimate FDR, forward run.", false);
-    setValidFormats_("fwd_in", ListUtils::create<String>("idXML"));
-    registerInputFile_("rev_in", "<file>", "", "Identification input to estimate FDR, decoy run.", false);
-    setValidFormats_("rev_in", ListUtils::create<String>("idXML"));
+    registerInputFile_("in_target", "<file>", "", "Identification input file containing a search against a target-only database.", false);
+    setValidFormats_("in_target", ListUtils::create<String>("idXML"));
+    registerInputFile_("in_decoy", "<file>", "", "Identification input file containing a search against a decoy-only database.", false);
+    setValidFormats_("in_decoy", ListUtils::create<String>("idXML"));
 
     registerOutputFile_("out", "<file>", "", "Identification output with annotated FDR");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
-    registerFlag_("proteins_only", "If set, the FDR of the proteins only is calculated");
-    registerFlag_("peptides_only", "If set, the FDR of the peptides only is calculated");
+    registerFlag_("proteins_only", "If set only the FDR on protein level is calculated");
+    registerFlag_("peptides_only", "If set only the FDR on peptide (PSM) level is calculated");
 
     registerSubsection_("algorithm", "Parameter section for the FDR calculation algorithm");
   }
@@ -137,15 +135,15 @@ protected:
     }
 
     // input/output files
-    // either "fwd_in" and "rev_in" must be given, or just "in" (which contains results of a search against a concatenated target-decoy sequence db):
-    String fwd_in = getStringOption_("fwd_in"),
-      rev_in = getStringOption_("rev_in"), in = getStringOption_("in");
+    // either "in_target" and "in_decoy" must be given, or just "in" (which contains results of a search against a concatenated target-decoy sequence db):
+    String in_target = getStringOption_("in_target"),
+      in_decoy = getStringOption_("in_decoy"), in = getStringOption_("in");
     bool combined = false;
-    if (!fwd_in.empty() && !rev_in.empty())
+    if (!in_target.empty() && !in_decoy.empty())
     {
       if (!in.empty())
       {
-        writeLog_("Error, either 'fwd_in' and 'rev_in' must be given or 'in', but not both");
+        writeLog_("Error, either 'in_target' and 'in_decoy' must be given or 'in', but not both");
         return ILLEGAL_PARAMETERS;
       }
     }
@@ -157,7 +155,7 @@ protected:
       }
       else
       {
-        writeLog_("Error, at least 'fwd_in' and 'rev_in' or 'in' must be given");
+        writeLog_("Error, at least 'in_target' and 'in_decoy' or 'in' must be given");
         return ILLEGAL_PARAMETERS;
       }
     }
@@ -169,7 +167,7 @@ protected:
     // loading input
     //-------------------------------------------------------------
 
-    if (combined) // -in was given
+    if (combined) // "in" was given
     {
       vector<PeptideIdentification> pep_ids;
       vector<ProteinIdentification> prot_ids;
@@ -204,27 +202,27 @@ protected:
 
       IdXMLFile().store(out, prot_ids, pep_ids);
     }
-    else         // -fw_in & rev_in given
+    else // "in_target" and "in_decoy" given
     {
-      vector<PeptideIdentification> fwd_pep, rev_pep;
-      vector<ProteinIdentification> fwd_prot, rev_prot;
+      vector<PeptideIdentification> pep_target, pep_decoy;
+      vector<ProteinIdentification> prot_target, prot_decoy;
 
-      IdXMLFile().load(fwd_in, fwd_prot, fwd_pep);
-      IdXMLFile().load(rev_in, rev_prot, rev_pep);
+      IdXMLFile().load(in_target, prot_target, pep_target);
+      IdXMLFile().load(in_decoy, prot_decoy, pep_decoy);
 
       //-------------------------------------------------------------
       // calculations
       //-------------------------------------------------------------
 
-      writeDebug_("Starting calculations with " + String(fwd_pep.size()) + "/" + String(rev_pep.size()) + " read peptide IDs", 1);
+      writeDebug_("Starting calculations with " + String(pep_target.size()) + " target and " + String(pep_decoy.size()) + " decoy peptide IDs", 1);
 
       if (!proteins_only)
       {
-        fdr.apply(fwd_pep, rev_pep);
+        fdr.apply(pep_target, pep_decoy);
       }
       if (!peptides_only)
       {
-        fdr.apply(fwd_prot, rev_prot);
+        fdr.apply(prot_target, prot_decoy);
       }
 
       // TODO @all shouldn't ranks be assigned here as well?
@@ -232,7 +230,7 @@ protected:
       //-------------------------------------------------------------
       // writing output
       //-------------------------------------------------------------
-      IdXMLFile().store(out, fwd_prot, fwd_pep);
+      IdXMLFile().store(out, prot_target, pep_target);
     }
 
     return EXECUTION_OK;
