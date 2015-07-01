@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=TOPPView
+Categories=Science;Biology;Chemistry;
+Comment=viewer for mass spectrometry data
+Exec=TOPPView %U
+Icon=/usr/share/pixmaps/TOPPView.xpm
+Terminal=false
+Type=Application
+StartupNotify=true  
+Name[fr_FR]=TOPPView
+
