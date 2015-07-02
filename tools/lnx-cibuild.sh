@@ -28,7 +28,7 @@ _build_name=${_build_name}"-"${CXX}
 
 # add style to build name if requested
 if [ "${ENABLE_STYLE_TESTING}" = "On" ]; then
-  _build_name=${_build_name}"-coding-style"
+  _build_name=${_build_name}"-codingStyle"
 fi
 
 # add class-testing to build name if requested
@@ -42,7 +42,7 @@ fi
 
 # add GUI to build name if requested
 if [ "${WITH_GUI}" = "Off" ]; then
-  _build_name=${_build_name}"-no-gui"
+  _build_name=${_build_name}"-noGUI"
 fi
 
 # we will use this in the cmake script
