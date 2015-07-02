@@ -65,7 +65,7 @@ if [ $ENABLE_STYLE_TESTING == "On" ]; then
   export PATH=${SOURCE_DIRECTORY}/cppcheck:$PATH
 fi
 
-ctest -V -S tools/lnx-cibuild.cmake
+ctest -V -S tools/travis/lnx-cibuild.cmake
 
 # tell the user where he can find the results
 echo "Please check the build results at: http://cdash.openms.de/index.php?project=OpenMS&date="$(date +"%y-%m-%d")"#Continuous"

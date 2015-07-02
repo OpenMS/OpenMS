@@ -1,9 +1,9 @@
 language: cpp
 cache: apt
 before_script:
-   ./tools/lnx-cibuild.before.sh
+   ./tools/travis/lnx-cibuild.before.sh
 script:
-  ./tools/lnx-cibuild.sh
+  ./tools/travis/lnx-cibuild.sh
 matrix:
   include:
     - env: ENABLE_STYLE_TESTING=On WITH_GUI=On
