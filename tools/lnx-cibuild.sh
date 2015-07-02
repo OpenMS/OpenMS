@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# helper function to convert build name into a proper, cdash compatible format
+# helper function to convert build name into a proper, CDash-compatible format
 function cdashify()
 {
   cdash_version=$(echo $1 | sed 's/\//_/g')
@@ -31,12 +31,16 @@ if [ "${ENABLE_STYLE_TESTING}" = "On" ]; then
   _build_name=${_build_name}"-coding-style"
 fi
 
-# add unity to build name if requested
-if [ "${ENABLE_UNITYBUILD}" = "On" ]; then
-  _build_name=${_build_name}"-unity-build"
+# add class-testing to build name if requested
+if [ "${ENABLE_CLASS_TESTING}" = "On" ]; then
+  _build_name=${_build_name}"-testClass"
+fi
+# add TOPP-testing to build name if requested
+if [ "${ENABLE_TOPP_TESTING}" = "On" ]; then
+  _build_name=${_build_name}"-testTOPP"
 fi
 
-# add unity to build name if requested
+# add GUI to build name if requested
 if [ "${WITH_GUI}" = "Off" ]; then
   _build_name=${_build_name}"-no-gui"
 fi
