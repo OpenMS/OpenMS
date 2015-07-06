@@ -336,10 +336,10 @@ public:
           bool terminate_now;
           typename MapType::const_iterator it_rt_2;
 
-          // go forward
+          // go forward (start at next downstream spectrum; the current spectrum will be covered when looking backwards)
           steps = 0;
-          m = n;
-          it_rt_2 = it_rt;
+          m = n + 1;
+          it_rt_2 = it_rt + 1;
           terminate_now = false;
           while (it_rt_2 != exp.end() && !terminate_now)
           {
@@ -354,8 +354,6 @@ public:
               spectra_to_average_over[n].push_back(p);
               ++steps;
             }
-            ++m;
-            ++it_rt_2;
             if (average_type == "gaussian")
             {
               // Gaussian
@@ -371,6 +369,8 @@ public:
               // Top-Hat with RT unit = seconds
               terminate_now = (std::abs(it_rt_2->getRT() - it_rt->getRT()) > range_seconds);
             }
+            ++m;
+            ++it_rt_2;
           }
 
           // go backward
@@ -380,7 +380,7 @@ public:
           terminate_now = false;
           while (it_rt_2 != exp.begin() && !terminate_now)
           {
-            if (Int(it_rt_2->getMSLevel()) == ms_level && m != n) // m == n already covered in forward case
+            if (Int(it_rt_2->getMSLevel()) == ms_level)
             {
               double weight = 1;
               if (average_type == "gaussian")
@@ -391,8 +391,6 @@ public:
               spectra_to_average_over[n].push_back(p);
               ++steps;
             }
-            --m;
-            --it_rt_2;
             if (average_type == "gaussian")
             {
               // Gaussian
@@ -408,6 +406,8 @@ public:
               // Top-Hat with RT unit = seconds
               terminate_now = (std::abs(it_rt_2->getRT() - it_rt->getRT()) > range_seconds);
             }
+            --m;
+            --it_rt_2;
           }
 
         }
