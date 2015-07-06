@@ -358,9 +358,14 @@ protected:
         if (!it->getPeptideIdentifications().empty())
         {
           PeptideIdentification& pep_id = it->getPeptideIdentifications()[0];
-          pep_id.setRT(it->getRT());
-          pep_id.setMZ(it->getMZ());
-          pep_ids.push_back(pep_id);
+          // hits may be empty due to filtering (parameter "min_support");
+          // in that case skip to a avoid warning from "IDXMLFile::store":
+          if (!pep_id.getHits().empty())
+          {
+            pep_id.setRT(it->getRT());
+            pep_id.setMZ(it->getMZ());
+            pep_ids.push_back(pep_id);
+          }
         }
       }
 
