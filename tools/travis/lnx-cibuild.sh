@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# helper function to convert build name into a proper, cdash compatible format
+# helper function to convert build name into a proper, CDash-compatible format
 function cdashify()
 {
   cdash_version=$(echo $1 | sed 's/\//_/g')
@@ -28,17 +28,21 @@ _build_name=${_build_name}"-"${CXX}
 
 # add style to build name if requested
 if [ "${ENABLE_STYLE_TESTING}" = "On" ]; then
-  _build_name=${_build_name}"-coding-style"
+  _build_name=${_build_name}"-codingStyle"
 fi
 
-# add unity to build name if requested
-if [ "${ENABLE_UNITYBUILD}" = "On" ]; then
-  _build_name=${_build_name}"-unity-build"
+# add class-testing to build name if requested
+if [ "${ENABLE_CLASS_TESTING}" = "On" ]; then
+  _build_name=${_build_name}"-testClass"
+fi
+# add TOPP-testing to build name if requested
+if [ "${ENABLE_TOPP_TESTING}" = "On" ]; then
+  _build_name=${_build_name}"-testTOPP"
 fi
 
-# add unity to build name if requested
+# add GUI to build name if requested
 if [ "${WITH_GUI}" = "Off" ]; then
-  _build_name=${_build_name}"-no-gui"
+  _build_name=${_build_name}"-noGUI"
 fi
 
 # we will use this in the cmake script
@@ -61,7 +65,7 @@ if [ $ENABLE_STYLE_TESTING == "On" ]; then
   export PATH=${SOURCE_DIRECTORY}/cppcheck:$PATH
 fi
 
-ctest -V -S tools/lnx-cibuild.cmake
+ctest -V -S tools/travis/lnx-cibuild.cmake
 
 # tell the user where he can find the results
 echo "Please check the build results at: http://cdash.openms.de/index.php?project=OpenMS&date="$(date +"%y-%m-%d")"#Continuous"

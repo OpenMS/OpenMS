@@ -1,22 +1,20 @@
 language: cpp
-compiler:
-  - gcc
-  - clang
 cache: apt
 before_script:
-   ./tools/lnx-cibuild.before.sh
+   ./tools/travis/lnx-cibuild.before.sh
 script:
-  ./tools/lnx-cibuild.sh
-env:
-  - ENABLE_STYLE_TESTING=On ENABLE_UNITYBUILD=Off WITH_GUI=On
-#- ENABLE_STYLE_TESTING=Off ENABLE_UNITYBUILD=On WITH_GUI=On
-  - ENABLE_STYLE_TESTING=Off ENABLE_UNITYBUILD=Off WITH_GUI=On
-  - ENABLE_STYLE_TESTING=Off ENABLE_UNITYBUILD=Off WITH_GUI=Off
+  ./tools/travis/lnx-cibuild.sh
 matrix:
-  exclude:
-    - env: ENABLE_STYLE_TESTING=On ENABLE_UNITYBUILD=Off WITH_GUI=On
-      compiler: clang
-#    - env: ENABLE_STYLE_TESTING=Off ENABLE_UNITYBUILD=On WITH_GUI=On
-#      compiler: gcc
-    - env: ENABLE_STYLE_TESTING=Off ENABLE_UNITYBUILD=Off WITH_GUI=Off
+  include:
+    - env: ENABLE_STYLE_TESTING=On WITH_GUI=On
       compiler: gcc
+## split class vs TOPP tests for GCC (otherwise it will run into time limit of 50min)      
+    - env: ENABLE_STYLE_TESTING=Off ENABLE_TOPP_TESTING=On  ENABLE_CLASS_TESTING=Off WITH_GUI=On
+      compiler: gcc
+    - env: ENABLE_STYLE_TESTING=Off ENABLE_TOPP_TESTING=Off ENABLE_CLASS_TESTING=On  WITH_GUI=On
+      compiler: gcc
+## clang can run both class+TOPP tests since its faster      
+    - env: ENABLE_STYLE_TESTING=Off WITH_GUI=Off
+      compiler: clang
+    - env: ENABLE_STYLE_TESTING=Off WITH_GUI=On
+      compiler: clang
