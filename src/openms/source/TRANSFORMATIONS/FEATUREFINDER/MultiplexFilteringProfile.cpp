@@ -133,7 +133,7 @@ namespace OpenMS
 
     // loop over patterns
     for (unsigned pattern = 0; pattern < patterns_.size(); ++pattern)
-    {      
+    {
       // data structure storing peaks which pass all filters
       MultiplexFilterResult result;
 
