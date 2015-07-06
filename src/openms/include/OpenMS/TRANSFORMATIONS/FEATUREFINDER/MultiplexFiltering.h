@@ -208,8 +208,6 @@ protected:
      */
     void blacklistPeaks(MultiplexPeakPattern pattern, int spectrum, const std::vector<int>& mz_shifts_actual_indices, int peaks_found_in_all_peptides_spline);
 
-    void blacklistPeaks2(MultiplexPeakPattern pattern, int spectrum, const std::vector<int>& mz_shifts_actual_indices, int peaks_found_in_all_peptides_spline);
-
     /**
      * @brief returns the index of a peak at m/z
      * (finds not only a valid peak, i.e. within certain m/z deviation, but the best of the valid peaks)
