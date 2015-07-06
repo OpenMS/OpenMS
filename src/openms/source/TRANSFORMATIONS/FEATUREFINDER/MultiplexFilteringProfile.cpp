@@ -134,6 +134,16 @@ namespace OpenMS
     // loop over patterns
     for (unsigned pattern = 0; pattern < patterns_.size(); ++pattern)
     {
+      std::vector<double> mshifts = patterns_[pattern].getMassShifts();
+      if (mshifts.size() > 1)
+      {
+        std::cout << "pattern: " << pattern << "   charge: " << patterns_[pattern].getCharge() << "   mass shift 1: " << patterns_[pattern].getMassShifts()[1] << "\n";
+      }
+      else
+      {
+        std::cout << "pattern: " << pattern << "   charge: " << patterns_[pattern].getCharge() << "\n";
+      }
+      
       // data structure storing peaks which pass all filters
       MultiplexFilterResult result;
 
@@ -261,11 +271,15 @@ namespace OpenMS
             // add raw data point to list that passed all filters
             MultiplexFilterResultRaw result_raw(mz, mz_shifts_actual, intensities_actual);
             results_raw.push_back(result_raw);
+            
+            std::cout << "Found something.   RT = " << rt_picked << "\n";
 
             // blacklist peaks in the current spectrum and the two neighbouring ones
             if (!blacklisted)
             {
-              blacklistPeaks(patterns_[pattern], spectrum, mz_shifts_actual_indices, peaks_found_in_all_peptides_spline);
+              std::cout << "Now blacklisting.   RT = " << rt_picked << "   mz = " << mz <<  "   index = " << mz_shifts_actual_indices[1] << "\n";
+              
+              blacklistPeaks2(patterns_[pattern], spectrum, mz_shifts_actual_indices, peaks_found_in_all_peptides_spline);
               blacklisted = true;
             }
 

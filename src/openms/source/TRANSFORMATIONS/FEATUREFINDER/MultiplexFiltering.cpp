@@ -329,6 +329,76 @@ namespace OpenMS
     }
   }
 
+  void MultiplexFiltering::blacklistPeaks2(MultiplexPeakPattern pattern, int spectrum, const vector<int>& mz_shifts_actual_indices, int peaks_found_in_all_peptides_spline)
+  {
+    for (unsigned peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
+    {
+      for (int isotope = 0; isotope < peaks_found_in_all_peptides_spline; ++isotope)
+      {
+        int mz_position = peptide * (peaks_per_peptide_max_ + 1) + isotope + 1; // index in m/z shift list
+        int peak_index;
+
+        // blacklist peaks in this spectrum
+        peak_index = mz_shifts_actual_indices[mz_position];
+        if (peak_index != -1 && !blacklist_[spectrum][peak_index].black)
+        {
+          blacklist_[spectrum][peak_index].black = true;
+          blacklist_[spectrum][peak_index].black_exception_mass_shift_index = pattern.getMassShiftIndex();
+          blacklist_[spectrum][peak_index].black_exception_charge = pattern.getCharge();
+          blacklist_[spectrum][peak_index].black_exception_mz_position = mz_position;
+        }
+
+        // blacklist peaks in previous spectrum
+        peak_index = registry_[spectrum][mz_shifts_actual_indices[mz_position]].index_in_previous_spectrum;
+        if (peak_index != -1 && !blacklist_[spectrum - 1][peak_index].black)
+        {
+          blacklist_[spectrum - 1][peak_index].black = true;
+          blacklist_[spectrum - 1][peak_index].black_exception_mass_shift_index = pattern.getMassShiftIndex();
+          blacklist_[spectrum - 1][peak_index].black_exception_charge = pattern.getCharge();
+          blacklist_[spectrum - 1][peak_index].black_exception_mz_position = mz_position;
+        }
+        
+        // blacklist peaks in spectrum -2
+        if (peak_index != -1 && spectrum > 1)
+        {
+          int peak_index2 = registry_[spectrum - 1][peak_index].index_in_previous_spectrum;
+          if (peak_index2 != -1 && !blacklist_[spectrum - 2][peak_index2].black)
+          {
+            blacklist_[spectrum - 2][peak_index2].black = true;
+            blacklist_[spectrum - 2][peak_index2].black_exception_mass_shift_index = pattern.getMassShiftIndex();
+            blacklist_[spectrum - 2][peak_index2].black_exception_charge = pattern.getCharge();
+            blacklist_[spectrum - 2][peak_index2].black_exception_mz_position = mz_position;
+          }
+        }
+        
+        // blacklist peaks in next spectrum
+        peak_index = registry_[spectrum][mz_shifts_actual_indices[mz_position]].index_in_next_spectrum;
+        if (peak_index != -1 && !blacklist_[spectrum + 1][peak_index].black)
+        {
+          blacklist_[spectrum + 1][peak_index].black = true;
+          blacklist_[spectrum + 1][peak_index].black_exception_mass_shift_index = pattern.getMassShiftIndex();
+          blacklist_[spectrum + 1][peak_index].black_exception_charge = pattern.getCharge();
+          blacklist_[spectrum + 1][peak_index].black_exception_mz_position = mz_position;
+        }
+        
+        // blacklist peaks in spectrum +2
+        if (peak_index != -1 && spectrum + 2 < (int) blacklist_.size())
+        {
+          int peak_index2 = registry_[spectrum + 1][peak_index].index_in_next_spectrum;
+          if (peak_index2 != -1 && !blacklist_[spectrum + 2][peak_index2].black)
+          {
+            blacklist_[spectrum + 2][peak_index2].black = true;
+            blacklist_[spectrum + 2][peak_index2].black_exception_mass_shift_index = pattern.getMassShiftIndex();
+            blacklist_[spectrum + 2][peak_index2].black_exception_charge = pattern.getCharge();
+            blacklist_[spectrum + 2][peak_index2].black_exception_mz_position = mz_position;
+          }
+        }
+
+
+      }
+    }
+  }
+
   int MultiplexFiltering::getPeakIndex(std::vector<double> peak_position, int start, double mz, double scaling) const
   {
     vector<int> valid_index; // indices of valid peaks that lie within the ppm range of the expected peak
