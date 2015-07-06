@@ -341,30 +341,7 @@ protected:
         const AASequence& aas = best_ph.getSequence();
         row.sequence = MzTabString(aas.toUnmodifiedString());
 
-        MzTabModificationList mod_list;
-        vector<MzTabModification> mods;
-        if (aas.isModified())
-        {
-          for (Size ai = 0; ai != aas.size(); ++ai)
-          {
-            if (aas.isModified(ai))
-            {
-              MzTabModification mod;
-              String mod_name = aas[ai].getModification();
-              ModificationsDB* mod_db = ModificationsDB::getInstance();
-
-              // MzTab standard is to just report Unimod accession.
-              MzTabString unimod_accession = MzTabString(mod_db->getModification(mod_name).getUniModAccession());
-              mod.setModificationIdentifier(unimod_accession);
-              vector<std::pair<Size, MzTabParameter> > pos;
-              pos.push_back(make_pair(ai + 1, MzTabParameter()));
-              mod.setPositionsAndParameters(pos);
-              mods.push_back(mod);
-            }
-          }
-        }
-        mod_list.set(mods);
-        row.modifications = mod_list;
+        row.modifications = extractModificationListFromAASequence(aas);
 
         const set<String>& accessions = best_ph.extractProteinAccessions();
         const vector<PeptideEvidence> peptide_evidences = best_ph.getPeptideEvidences();
@@ -569,30 +546,7 @@ protected:
         row.sequence = MzTabString(aas.toUnmodifiedString());
 
         // extract all modifications in the current sequence for reporting
-        MzTabModificationList mod_list;
-        vector<MzTabModification> mods;
-        if (aas.isModified())
-        {
-          for (Size ai = 0; ai != aas.size(); ++ai)
-          {
-            if (aas.isModified(ai))
-            {
-              MzTabModification mod;
-              String mod_name = aas[ai].getModification();
-              ModificationsDB* mod_db = ModificationsDB::getInstance();
-
-              // MzTab standard is to just report Unimod accession.
-              MzTabString unimod_accession = MzTabString(mod_db->getModification(mod_name).getUniModAccession());
-              mod.setModificationIdentifier(unimod_accession);
-              vector<std::pair<Size, MzTabParameter> > pos;
-              pos.push_back(make_pair(ai + 1, MzTabParameter()));
-              mod.setPositionsAndParameters(pos);
-              mods.push_back(mod);
-            }
-          }
-        }
-        mod_list.set(mods);
-        row.modifications = mod_list;
+        row.modifications = extractModificationListFromAASequence(aas);
 
         const set<String>& accessions = best_ph.extractProteinAccessions();
         const vector<PeptideEvidence> peptide_evidences = best_ph.getPeptideEvidences();
@@ -712,7 +666,59 @@ protected:
 
       return mztab;
     }
- 
+
+    static MzTabModificationList extractModificationListFromAASequence(const AASequence& aas)
+    {
+      MzTabModificationList mod_list;
+      vector<MzTabModification> mods;
+
+      if (aas.isModified())
+      {
+        ModificationsDB* mod_db = ModificationsDB::getInstance();
+
+        if (aas.hasNTerminalModification())
+        {
+          MzTabModification mod;
+          String mod_name = aas.getNTerminalModification();
+          MzTabString unimod_accession = MzTabString(mod_db->getModification(mod_name).getUniModAccession());
+          vector<std::pair<Size, MzTabParameter> > pos;
+          pos.push_back(make_pair(0, MzTabParameter()));
+          mod.setPositionsAndParameters(pos);
+          mods.push_back(mod);
+        }
+
+        for (Size ai = 0; ai != aas.size(); ++ai)
+        {
+          if (aas.isModified(ai))
+          {
+            MzTabModification mod;
+            String mod_name = aas[ai].getModification();
+
+            // MzTab standard is to just report Unimod accession.
+            MzTabString unimod_accession = MzTabString(mod_db->getModification(mod_name).getUniModAccession());
+            mod.setModificationIdentifier(unimod_accession);
+            vector<std::pair<Size, MzTabParameter> > pos;
+            pos.push_back(make_pair(ai + 1, MzTabParameter()));
+            mod.setPositionsAndParameters(pos);
+            mods.push_back(mod);
+          }
+        }
+
+        if (aas.hasCTerminalModification())
+        {
+          MzTabModification mod;
+          String mod_name = aas.getCTerminalModification();
+          MzTabString unimod_accession = MzTabString(mod_db->getModification(mod_name).getUniModAccession());
+          vector<std::pair<Size, MzTabParameter> > pos;
+          pos.push_back(make_pair(aas.size() + 1, MzTabParameter()));
+          mod.setPositionsAndParameters(pos);
+          mods.push_back(mod);
+        }
+      }
+      mod_list.set(mods);
+      return mod_list;
+    }
+  
     static MzTab exportConsensusMapToMzTab(const ConsensusMap& consensus_map, const String& filename)
     {
       MzTab mztab;
@@ -852,30 +858,7 @@ protected:
           const AASequence& aas = best_ph.getSequence();
           row.sequence = MzTabString(aas.toUnmodifiedString());
 
-          MzTabModificationList mod_list;
-          vector<MzTabModification> mods;
-          if (aas.isModified())
-          {
-            for (Size ai = 0; ai != aas.size(); ++ai)
-            {
-              if (aas.isModified(ai))
-              {
-                MzTabModification mod;
-                String mod_name = aas[ai].getModification();
-                ModificationsDB* mod_db = ModificationsDB::getInstance();
-
-                // MzTab standard is to just report Unimod accession.
-                MzTabString unimod_accession = MzTabString(mod_db->getModification(mod_name).getUniModAccession());
-                mod.setModificationIdentifier(unimod_accession);
-                vector<std::pair<Size, MzTabParameter> > pos;
-                pos.push_back(make_pair(ai + 1, MzTabParameter()));
-                mod.setPositionsAndParameters(pos);
-                mods.push_back(mod);
-              }
-            }
-          }
-          mod_list.set(mods);
-          row.modifications = mod_list;
+          row.modifications = extractModificationListFromAASequence(aas);
 
           const set<String>& accessions = best_ph.extractProteinAccessions();
           const vector<PeptideEvidence> peptide_evidences = best_ph.getPeptideEvidences();
