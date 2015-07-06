@@ -110,12 +110,8 @@ protected:
 
     void registerOptionsAndFlags_()
     {
-      registerInputFile_("in_feature", "<file>", "", "FeatureXMLs used to generate the mzTab file.", false);
-      setValidFormats_("in_feature", ListUtils::create<String>("featureXML"));
-      registerInputFile_("in_consensus", "<file>", "", "ConsensusXMLs used to generate the mzTab file.", false);
-      setValidFormats_("in_consensus", ListUtils::create<String>("consensusXML"));
-      registerInputFile_("in_id", "<file>", "", "Identifications used to generate the mzTab file.", false);
-      setValidFormats_("in_id", ListUtils::create<String>("idXML"));
+      registerInputFile_("in", "<file>", "", "FeatureXMLs used to generate the mzTab file.", false);
+      setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,idXML"));
       registerOutputFile_("out", "<file>", "", "Output file (mzTab)", true);
       setValidFormats_("out", ListUtils::create<String>("tsv"));
     }
@@ -341,7 +337,7 @@ protected:
         const AASequence& aas = best_ph.getSequence();
         row.sequence = MzTabString(aas.toUnmodifiedString());
 
-        row.modifications = extractModificationListFromAASequence(aas);
+        row.modifications = extractModificationListFromAASequence(aas, fixed_mods);
 
         const set<String>& accessions = best_ph.extractProteinAccessions();
         const vector<PeptideEvidence> peptide_evidences = best_ph.getPeptideEvidences();
@@ -545,7 +541,7 @@ protected:
         const AASequence& aas = best_ph.getSequence();
         row.sequence = MzTabString(aas.toUnmodifiedString());
 
-        // extract all modifications in the current sequence for reporting
+        // extract all modifications in the current sequence for reporting. In contrast to peptide and protein section all modifications are reported.
         row.modifications = extractModificationListFromAASequence(aas);
 
         const set<String>& accessions = best_ph.extractProteinAccessions();
@@ -667,7 +663,9 @@ protected:
       return mztab;
     }
 
-    static MzTabModificationList extractModificationListFromAASequence(const AASequence& aas)
+    // generate list of modifications from modified AASequence object. All passed fixed modifications are not reported (PRT and PEP section).
+    // In contrast, modifications are reported in the PSM section (see standard document for details).
+    static MzTabModificationList extractModificationListFromAASequence(const AASequence& aas, const vector<String>& fixed_mods = vector<String>())
     {
       MzTabModificationList mod_list;
       vector<MzTabModification> mods;
@@ -683,6 +681,7 @@ protected:
           MzTabString unimod_accession = MzTabString(mod_db->getTerminalModification(mod_name, ResidueModification::N_TERM).getUniModAccession());
           vector<std::pair<Size, MzTabParameter> > pos;
           pos.push_back(make_pair(0, MzTabParameter()));
+          mod.setModificationIdentifier(unimod_accession);
           mod.setPositionsAndParameters(pos);
           mods.push_back(mod);
         }
@@ -693,13 +692,12 @@ protected:
           {
             MzTabModification mod;
             String mod_name = aas[ai].getModification();
-
             // MzTab standard is to just report Unimod accession.
             MzTabString unimod_accession = MzTabString(mod_db->getModification(aas[ai].getOneLetterCode(), mod_name, ResidueModification::ANYWHERE).getUniModAccession());
-            mod.setModificationIdentifier(unimod_accession);
             vector<std::pair<Size, MzTabParameter> > pos;
             pos.push_back(make_pair(ai + 1, MzTabParameter()));
             mod.setPositionsAndParameters(pos);
+            mod.setModificationIdentifier(unimod_accession);
             mods.push_back(mod);
           }
         }
@@ -711,6 +709,7 @@ protected:
           MzTabString unimod_accession = MzTabString(mod_db->getTerminalModification(mod_name, ResidueModification::C_TERM).getUniModAccession());
           vector<std::pair<Size, MzTabParameter> > pos;
           pos.push_back(make_pair(aas.size() + 1, MzTabParameter()));
+          mod.setModificationIdentifier(unimod_accession);
           mod.setPositionsAndParameters(pos);
           mods.push_back(mod);
         }
@@ -858,7 +857,7 @@ protected:
           const AASequence& aas = best_ph.getSequence();
           row.sequence = MzTabString(aas.toUnmodifiedString());
 
-          row.modifications = extractModificationListFromAASequence(aas);
+          row.modifications = extractModificationListFromAASequence(aas, fixed_mods);
 
           const set<String>& accessions = best_ph.extractProteinAccessions();
           const vector<PeptideEvidence> peptide_evidences = best_ph.getPeptideEvidences();
@@ -912,14 +911,14 @@ protected:
     ExitCodes main_(int, const char**)
     {
       // parameter handling
-      String in_feature = getStringOption_("in_feature");
-      String in_id = getStringOption_("in_id");
-      String in_consensus = getStringOption_("in_consensus");
+      String in = getStringOption_("in");
+      FileTypes::Type in_type = FileHandler().getType(in);
+
       String out = getStringOption_("out");
 
       MzTab mztab;
 
-      if (!in_feature.empty())
+      if (in_type == FileTypes::FEATUREXML)
       {
         // For featureXML we export a "Summary Quantification" file. This means we don't need to report feature quantification values at the assay level
         // but only at the (single) study variable variable level.
@@ -927,7 +926,7 @@ protected:
         // load featureXML
         FeatureMap feature_map;
         FeatureXMLFile f;
-        f.load(in_feature, feature_map);
+        f.load(in, feature_map);
 
         // calculate coverage
         vector<PeptideIdentification> pep_ids;
@@ -954,26 +953,26 @@ protected:
         }
         feature_map.setProteinIdentifications(prot_ids);
 
-        mztab = exportFeatureMapToMzTab(feature_map, in_feature);
+        mztab = exportFeatureMapToMzTab(feature_map, in);
       }
 
       // export identification data
-      if (!in_id.empty())
+      if (in_type == FileTypes::IDXML)
       {
         String document_id;
         vector<ProteinIdentification> prot_ids;
         vector<PeptideIdentification> pep_ids;
-        IdXMLFile().load(in_id, prot_ids, pep_ids, document_id);
-        mztab = exportIdentificationsToMzTab(prot_ids, pep_ids, in_id); 
+        IdXMLFile().load(in, prot_ids, pep_ids, document_id);
+        mztab = exportIdentificationsToMzTab(prot_ids, pep_ids, in); 
       }
 
       // export quantification data
-      if (!in_consensus.empty())
+      if (in_type == FileTypes::CONSENSUSXML)
       {
         ConsensusMap consensus_map;
         ConsensusXMLFile c;
-        c.load(in_consensus, consensus_map);
-        mztab = exportConsensusMapToMzTab(consensus_map, in_consensus);
+        c.load(in, consensus_map);
+        mztab = exportConsensusMapToMzTab(consensus_map, in);
       }
 
       MzTabFile().store(out, mztab);
