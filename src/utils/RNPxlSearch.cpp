@@ -541,6 +541,15 @@ private:
     }
   };
 
+  RichPeak1D getAnnotatedImmoniumIon_(char c, double immonium_ion_mz, const String& fragment_shift_name)
+  {
+    RichPeak1D RNA_fragment_peak;
+    RNA_fragment_peak.setIntensity(1.0);
+    RNA_fragment_peak.setMZ(immonium_ion_mz); 
+    RNA_fragment_peak.setMetaValue("IonName", String("i") + c + " + " + fragment_shift_name);
+    return RNA_fragment_peak;
+  }
+ 
   void postScoreHits_(const PeakMap& exp, vector<vector<AnnotatedHit> >& annotated_hits, Size top_hits, const RNPxlModificationMassesResult& mm, const vector<ResidueModification>& fixed_modifications, const vector<ResidueModification>& variable_modifications, Size max_variable_mods_per_peptide, TheoreticalSpectrumGenerator spectrum_generator, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool carbon_is_labeled)
   {
     // for pscore calculation only
@@ -611,14 +620,14 @@ private:
           RichPeakSpectrum partial_loss_spectrum;
 
           // generate total loss spectrum
+          RichPeakSpectrum total_loss_spectrum;
           for (Size z = 1; z <= precursor_charge; ++z)
           {
-            spectrum_generator.addPeaks(partial_loss_spectrum, aas, Residue::AIon, z);
-            spectrum_generator.addPeaks(partial_loss_spectrum, aas, Residue::BIon, z);
-            spectrum_generator.addPeaks(partial_loss_spectrum, aas, Residue::YIon, z);
+            spectrum_generator.addPeaks(total_loss_spectrum, aas, Residue::AIon, z);
+            spectrum_generator.addPeaks(total_loss_spectrum, aas, Residue::BIon, z);
+            spectrum_generator.addPeaks(total_loss_spectrum, aas, Residue::YIon, z);
           }
 
-          RichPeakSpectrum total_loss_spectrum = partial_loss_spectrum;
           total_loss_spectrum.sortByPosition();
 
           //TODO generate unshifted immonium ions
@@ -672,75 +681,48 @@ private:
             // Add shifted immonium ion peaks if the amino acid is present in the sequence
             if (unmodified_sequence.hasSubstring("Y"))
             {
-              RichPeak1D RNA_fragment_peak;
-              RNA_fragment_peak.setIntensity(1.0);
-              RNA_fragment_peak.setMZ(EmpiricalFormula("C8H10NO").getMonoWeight() + fragment_shift_mass); // there is exactly one RNA fragment modification that we added to this partial loss spectrum. So get the modification and mass to calculate the RNA peak mass.
-              RNA_fragment_peak.setMetaValue("IonName", String("iY + ") + fragment_shift_name);
-              partial_loss_spectrum.push_back(RNA_fragment_peak);             
+              double immonium_ion_mz = EmpiricalFormula("C8H10NO").getMonoWeight() + fragment_shift_mass; 
+              partial_loss_spectrum.push_back(getAnnotatedImmoniumIon_('Y', fragment_shift_mass, fragment_shift_name));
             }
             else if (unmodified_sequence.hasSubstring("W"))
             {
-              RichPeak1D RNA_fragment_peak;
-              RNA_fragment_peak.setIntensity(1.0);
-              RNA_fragment_peak.setMZ(EmpiricalFormula("C10H11N2").getMonoWeight() + fragment_shift_mass); // there is exactly one RNA fragment modification that we added to this partial loss spectrum. So get the modification and mass to calculate the RNA peak mass.
-              RNA_fragment_peak.setMetaValue("IonName", String("iW + ") + fragment_shift_name);
-              partial_loss_spectrum.push_back(RNA_fragment_peak);             
+              double immonium_ion_mz = EmpiricalFormula("C10H11N2").getMonoWeight() + fragment_shift_mass;
+              partial_loss_spectrum.push_back(getAnnotatedImmoniumIon_('W', immonium_ion_mz, fragment_shift_name));
             }
             else if (unmodified_sequence.hasSubstring("F"))
             {
-              RichPeak1D RNA_fragment_peak;
-              RNA_fragment_peak.setIntensity(1.0);
-              RNA_fragment_peak.setMZ(EmpiricalFormula("C8H10N").getMonoWeight() + fragment_shift_mass); // there is exactly one RNA fragment modification that we added to this partial loss spectrum. So get the modification and mass to calculate the RNA peak mass.
-              RNA_fragment_peak.setMetaValue("IonName", String("iF + ") + fragment_shift_name);
-              partial_loss_spectrum.push_back(RNA_fragment_peak);             
+              double immonium_ion_mz = EmpiricalFormula("C8H10N").getMonoWeight() + fragment_shift_mass;
+              partial_loss_spectrum.push_back(getAnnotatedImmoniumIon_('F', immonium_ion_mz, fragment_shift_name));
             }
             else if (unmodified_sequence.hasSubstring("H"))
             {
-              RichPeak1D RNA_fragment_peak;
-              RNA_fragment_peak.setIntensity(1.0);
-              RNA_fragment_peak.setMZ(EmpiricalFormula("C5H8N3").getMonoWeight() + fragment_shift_mass); // there is exactly one RNA fragment modification that we added to this partial loss spectrum. So get the modification and mass to calculate the RNA peak mass.
-              RNA_fragment_peak.setMetaValue("IonName", String("iH + ") + fragment_shift_name);
-              partial_loss_spectrum.push_back(RNA_fragment_peak);             
+              double immonium_ion_mz = EmpiricalFormula("C5H8N3").getMonoWeight() + fragment_shift_mass;
+              partial_loss_spectrum.push_back(getAnnotatedImmoniumIon_('H', immonium_ion_mz, fragment_shift_name));
             }
             else if (unmodified_sequence.hasSubstring("C"))
             {
-              RichPeak1D RNA_fragment_peak;
-              RNA_fragment_peak.setIntensity(1.0);
-              RNA_fragment_peak.setMZ(EmpiricalFormula("C2H6NS").getMonoWeight() + fragment_shift_mass); // there is exactly one RNA fragment modification that we added to this partial loss spectrum. So get the modification and mass to calculate the RNA peak mass.
-              RNA_fragment_peak.setMetaValue("IonName", String("iC + ") + fragment_shift_name);
-              partial_loss_spectrum.push_back(RNA_fragment_peak);             
+              double immonium_ion_mz = EmpiricalFormula("C2H6NS").getMonoWeight() + fragment_shift_mass;
+              partial_loss_spectrum.push_back(getAnnotatedImmoniumIon_('C', immonium_ion_mz, fragment_shift_name));
             }
             else if (unmodified_sequence.hasSubstring("P"))
             {
-              RichPeak1D RNA_fragment_peak;
-              RNA_fragment_peak.setIntensity(1.0);
-              RNA_fragment_peak.setMZ(EmpiricalFormula("C4H8N").getMonoWeight() + fragment_shift_mass); // there is exactly one RNA fragment modification that we added to this partial loss spectrum. So get the modification and mass to calculate the RNA peak mass.
-              RNA_fragment_peak.setMetaValue("IonName", String("iP + ") + fragment_shift_name);
-              partial_loss_spectrum.push_back(RNA_fragment_peak);             
+              double immonium_ion_mz = EmpiricalFormula("C4H8N").getMonoWeight() + fragment_shift_mass;
+              partial_loss_spectrum.push_back(getAnnotatedImmoniumIon_('P', immonium_ion_mz, fragment_shift_name));
             }
             else if (unmodified_sequence.hasSubstring("L") || unmodified_sequence.hasSubstring("I"))
             {
-              RichPeak1D RNA_fragment_peak;
-              RNA_fragment_peak.setIntensity(1.0);
-              RNA_fragment_peak.setMZ(EmpiricalFormula("C5H12N").getMonoWeight() + fragment_shift_mass); // there is exactly one RNA fragment modification that we added to this partial loss spectrum. So get the modification and mass to calculate the RNA peak mass.
-              RNA_fragment_peak.setMetaValue("IonName", String("iL/I + ") + fragment_shift_name);
-              partial_loss_spectrum.push_back(RNA_fragment_peak);             
+              double immonium_ion_mz = EmpiricalFormula("C5H12N").getMonoWeight() + fragment_shift_mass;
+              partial_loss_spectrum.push_back(getAnnotatedImmoniumIon_('L', immonium_ion_mz, fragment_shift_name));
             }
             else if (unmodified_sequence.hasSubstring("K"))
             {
-              RichPeak1D RNA_fragment_peak;
-              RNA_fragment_peak.setIntensity(1.0);
-              RNA_fragment_peak.setMZ(101.10732 + fragment_shift_mass); // there is exactly one RNA fragment modification that we added to this partial loss spectrum. So get the modification and mass to calculate the RNA peak mass.
-              RNA_fragment_peak.setMetaValue("IonName", String("iK + ") + fragment_shift_name);
-              partial_loss_spectrum.push_back(RNA_fragment_peak);
+              double immonium_ion_mz = EmpiricalFormula("101.10732").getMonoWeight() + fragment_shift_mass;
+              partial_loss_spectrum.push_back(getAnnotatedImmoniumIon_('K', immonium_ion_mz, fragment_shift_name));
             }
             else if (unmodified_sequence.hasSubstring("M"))
             {
-              RichPeak1D RNA_fragment_peak;
-              RNA_fragment_peak.setIntensity(1.0);
-              RNA_fragment_peak.setMZ(104.05285 + fragment_shift_mass); // there is exactly one RNA fragment modification that we added to this partial loss spectrum. So get the modification and mass to calculate the RNA peak mass.
-              RNA_fragment_peak.setMetaValue("IonName", String("iM + ") + fragment_shift_name);
-              partial_loss_spectrum.push_back(RNA_fragment_peak);
+              double immonium_ion_mz = EmpiricalFormula("104.05285").getMonoWeight() + fragment_shift_mass;
+              partial_loss_spectrum.push_back(getAnnotatedImmoniumIon_('M', immonium_ion_mz, fragment_shift_name));
             }
 
             // generate all possible shifted ion a,b,y ion peaks by putting a modification on the N or C terminus
@@ -955,29 +937,6 @@ private:
               annotation.substitute("RNA:", "");
               shifted_immonium_ions[origin].insert(make_pair(annotation + "(" + String::number(fragment_mz, 3) + ", " + String::number(100.0 * fragment_intensity, 1) + ")", fragment_intensity));
             }
-          }
-
-          // make entries unique as currently ions of a shifted series get multiple times annotated
-          for (map<Size, vector<FragmentAnnotationDetail_> >::iterator fit = shifted_b_ions.begin(); fit != shifted_b_ions.end(); ++fit)
-          {
-            vector<FragmentAnnotationDetail_>& v = fit->second;
-            sort(v.begin(), v.end());
-            vector<FragmentAnnotationDetail_>::iterator it = std::unique(v.begin(), v.end());
-            v.resize( std::distance(v.begin(), it) ); 
-          }
-          for (map<Size, vector<FragmentAnnotationDetail_> >::iterator fit = shifted_y_ions.begin(); fit != shifted_y_ions.end(); ++fit)
-          {
-            vector<FragmentAnnotationDetail_>& v = fit->second;
-            sort(v.begin(), v.end());
-            vector<FragmentAnnotationDetail_>::iterator it = std::unique(v.begin(), v.end());
-            v.resize( std::distance(v.begin(), it) ); 
-          }
-          for (map<Size, vector<FragmentAnnotationDetail_> >::iterator fit = shifted_a_ions.begin(); fit != shifted_a_ions.end(); ++fit)
-          {
-            vector<FragmentAnnotationDetail_>& v = fit->second;
-            sort(v.begin(), v.end());
-            vector<FragmentAnnotationDetail_>::iterator it = std::unique(v.begin(), v.end());
-            v.resize( std::distance(v.begin(), it) ); 
           }
 
           for (Size i = 0; i != sites_sum_score.size(); ++i) 
