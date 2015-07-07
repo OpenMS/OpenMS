@@ -802,6 +802,7 @@ namespace OpenMS
             pro_id_->back().setDateTime(DateTime::now());
           }
           pro_id_->back().setIdentifier(UniqueIdGenerator::getUniqueId()); // no more identification wit engine/date/time!
+          //TODO setIdentifier to xml id?
           si_pro_map_.insert(make_pair(spectrumIdentificationList_ref, pro_id_->size() - 1));
         }
       }
@@ -1020,6 +1021,23 @@ namespace OpenMS
           SpectrumIdentificationProtocol temp_struct = {searchtype, enzymename, param_cv, param_up, modparam, p_tol, f_tol, tcv, tup};
           sp_map_.insert(make_pair(id, temp_struct));
 
+          double thresh = 0.0;
+          bool use_thresh = false;
+          set<String> threshold_terms;
+          cv_.getAllChildTerms(threshold_terms, "MS:1002482"); //q-value for peptides
+          for (map<String, vector<OpenMS::CVTerm> >::const_iterator thit = tcv.getCVTerms().begin(); thit != tcv.getCVTerms().end(); ++thit)
+          {
+            if (threshold_terms.find(thit->first) != threshold_terms.end())
+            {
+              if (thit->first != "MS:1001494") // do not use peptide-level q-values for now
+              {
+                thresh = thit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
+                use_thresh = true;
+                break;
+              }
+            }
+          }
+
           String search_engine, search_engine_version;
           for (map<String, SpectrumIdentification>::const_iterator si_it = si_map_.begin(); si_it != si_map_.end(); ++si_it)
           {
@@ -1035,6 +1053,10 @@ namespace OpenMS
               sp.db = pro_id_->at(si_pro_map_[si_it->second.spectrum_identification_list_ref]).getSearchParameters().db; // was previously set, but main parts of sp are set here
               sp.db_version = pro_id_->at(si_pro_map_[si_it->second.spectrum_identification_list_ref]).getSearchParameters().db_version; // was previously set, but main parts of sp are set here
               pro_id_->at(si_pro_map_[si_it->second.spectrum_identification_list_ref]).setSearchParameters(sp);
+              if (use_thresh)
+              {
+                pro_id_->at(si_pro_map_[si_it->second.spectrum_identification_list_ref]).setSignificanceThreshold(thresh);
+              }
             }
           }
         }
@@ -1214,7 +1236,7 @@ namespace OpenMS
       }
       delete val;
       LOG_DEBUG << "'passThreshold' value " << pass;
-      // TODO @all: where to store passThreshold value?
+      // TODO @all: where to store passThreshold value? set after score type eval in pass_threshold
 
       long double score = 0;
       pair<CVTermList, map<String, DataValue> > params = parseParamGroup_(spectrumIdentificationItemElement->getChildNodes());
@@ -1256,7 +1278,7 @@ namespace OpenMS
           scoretype = true;
         }
       }
-      if (scoretype && pass) //else (i.e. no q/E/raw score or threshold not passed) no hit will be read TODO @mths: yielding no peptide hits will be error prone!!! what to do? remove and warn peptideidentifications with no hits inside?!
+      if (scoretype) //else (i.e. no q/E/raw score or threshold not passed) no hit will be read TODO @mths: yielding no peptide hits will be error prone!!! what to do? remove and warn peptideidentifications with no hits inside?!
       {
         //build the PeptideHit from a SpectrumIdentificationItem
         PeptideHit hit(score, rank, chargeState, pep_map_[peptide_ref]);
@@ -1273,6 +1295,7 @@ namespace OpenMS
         }
         hit.setMetaValue("calcMZ", calculatedMassToCharge);
         spectrum_identification.setMZ(experimentalMassToCharge); // TODO @ mths: why is this not in SpectrumIdentificationResult? exp. m/z for one spec should not change from one id for it to the next!
+        hit.setMetaValue("pass_threshold", pass); //TODO @ mths do not write metavalue pass_threshold
 
         //connect the PeptideHit with PeptideEvidences (for AABefore/After) and subsequently with DBSequence (for ProteinAccession)
         pair<multimap<String, String>::iterator, multimap<String, String>::iterator> pev_its;
