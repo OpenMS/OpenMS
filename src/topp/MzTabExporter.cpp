@@ -71,8 +71,8 @@ using namespace std;
      <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
     </tr>
     <tr>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> ProteinQuantifier </td>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> external tools (MS Excel, OpenOffice, Notepad)</td>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> Any tool producing one of the input formats </td>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> External tools (MS Excel, OpenOffice, Notepad)</td>
     </tr>
    </table>
   </CENTER>
@@ -110,7 +110,7 @@ protected:
 
     void registerOptionsAndFlags_()
     {
-      registerInputFile_("in", "<file>", "", "FeatureXMLs used to generate the mzTab file.", false);
+      registerInputFile_("in", "<file>", "", "Input files used to generate the mzTab file.", false);
       setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,idXML"));
       registerOutputFile_("out", "<file>", "", "Output file (mzTab)", true);
       setValidFormats_("out", ListUtils::create<String>("tsv"));
@@ -663,8 +663,9 @@ protected:
       return mztab;
     }
 
-    // generate list of modifications from modified AASequence object. All passed fixed modifications are not reported (PRT and PEP section).
-    // In contrast, modifications are reported in the PSM section (see standard document for details).
+    // Generate MzTab style list of PTMs from AASequence object. 
+    // All passed fixed modifications are not reported (as suggested by the standard for the PRT and PEP section).
+    // In contrast, all modifications are reported in the PSM section (see standard document for details).
     static MzTabModificationList extractModificationListFromAASequence(const AASequence& aas, const vector<String>& fixed_mods = vector<String>())
     {
       MzTabModificationList mod_list;
@@ -678,12 +679,15 @@ protected:
         {
           MzTabModification mod;
           String mod_name = aas.getNTerminalModification();
-          MzTabString unimod_accession = MzTabString(mod_db->getTerminalModification(mod_name, ResidueModification::N_TERM).getUniModAccession());
-          vector<std::pair<Size, MzTabParameter> > pos;
-          pos.push_back(make_pair(0, MzTabParameter()));
-          mod.setModificationIdentifier(unimod_accession);
-          mod.setPositionsAndParameters(pos);
-          mods.push_back(mod);
+          if (std::find(fixed_mods.begin(), fixed_mods.end(), mod_name) == fixed_mods.end())
+          {
+            MzTabString unimod_accession = MzTabString(mod_db->getTerminalModification(mod_name, ResidueModification::N_TERM).getUniModAccession());
+            vector<std::pair<Size, MzTabParameter> > pos;
+            pos.push_back(make_pair(0, MzTabParameter()));
+            mod.setModificationIdentifier(unimod_accession);
+            mod.setPositionsAndParameters(pos);
+            mods.push_back(mod);
+          }
         }
 
         for (Size ai = 0; ai != aas.size(); ++ai)
@@ -692,13 +696,16 @@ protected:
           {
             MzTabModification mod;
             String mod_name = aas[ai].getModification();
-            // MzTab standard is to just report Unimod accession.
-            MzTabString unimod_accession = MzTabString(mod_db->getModification(aas[ai].getOneLetterCode(), mod_name, ResidueModification::ANYWHERE).getUniModAccession());
-            vector<std::pair<Size, MzTabParameter> > pos;
-            pos.push_back(make_pair(ai + 1, MzTabParameter()));
-            mod.setPositionsAndParameters(pos);
-            mod.setModificationIdentifier(unimod_accession);
-            mods.push_back(mod);
+            if (std::find(fixed_mods.begin(), fixed_mods.end(), mod_name) == fixed_mods.end())
+            {
+              // MzTab standard is to just report Unimod accession.
+              MzTabString unimod_accession = MzTabString(mod_db->getModification(aas[ai].getOneLetterCode(), mod_name, ResidueModification::ANYWHERE).getUniModAccession());
+              vector<std::pair<Size, MzTabParameter> > pos;
+              pos.push_back(make_pair(ai + 1, MzTabParameter()));
+              mod.setPositionsAndParameters(pos);
+              mod.setModificationIdentifier(unimod_accession);
+              mods.push_back(mod);
+            }
           }
         }
 
@@ -706,12 +713,15 @@ protected:
         {
           MzTabModification mod;
           String mod_name = aas.getCTerminalModification();
-          MzTabString unimod_accession = MzTabString(mod_db->getTerminalModification(mod_name, ResidueModification::C_TERM).getUniModAccession());
-          vector<std::pair<Size, MzTabParameter> > pos;
-          pos.push_back(make_pair(aas.size() + 1, MzTabParameter()));
-          mod.setModificationIdentifier(unimod_accession);
-          mod.setPositionsAndParameters(pos);
-          mods.push_back(mod);
+          if (std::find(fixed_mods.begin(), fixed_mods.end(), mod_name) == fixed_mods.end())
+          {
+            MzTabString unimod_accession = MzTabString(mod_db->getTerminalModification(mod_name, ResidueModification::C_TERM).getUniModAccession());
+            vector<std::pair<Size, MzTabParameter> > pos;
+            pos.push_back(make_pair(aas.size() + 1, MzTabParameter()));
+            mod.setPositionsAndParameters(pos);
+            mod.setModificationIdentifier(unimod_accession);
+            mods.push_back(mod);
+          }
         }
       }
       mod_list.set(mods);
