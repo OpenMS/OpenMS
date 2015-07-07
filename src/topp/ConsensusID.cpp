@@ -359,7 +359,7 @@ protected:
         {
           PeptideIdentification& pep_id = it->getPeptideIdentifications()[0];
           // hits may be empty due to filtering (parameter "min_support");
-          // in that case skip to a avoid warning from "IDXMLFile::store":
+          // in that case skip to avoid a warning from "IDXMLFile::store":
           if (!pep_id.getHits().empty())
           {
             pep_id.setRT(it->getRT());
