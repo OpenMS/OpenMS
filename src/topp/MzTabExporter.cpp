@@ -390,6 +390,15 @@ protected:
       MzTabMetaData meta_data;
       vector<String> var_mods, fixed_mods;
       MzTabString db, db_version;
+      String search_engine;
+      String search_engine_version;
+
+      if (!prot_ids.empty())
+      {
+        search_engine = prot_ids[0].getSearchEngine();
+        search_engine_version = prot_ids[0].getSearchEngineVersion();
+      }
+
       if (!prot_ids.empty())
       {
         MzTabParameter protein_score_type;
@@ -401,6 +410,8 @@ protected:
         db = sp.db.empty() ? MzTabString() : MzTabString(sp.db);
         db_version = sp.db_version.empty() ? MzTabString() : MzTabString(sp.db_version);
 
+        //sp.digestion_enzyme
+        //sp.missed_cleavages
         // generate protein section
         MzTabProteinSectionRows protein_rows;
 
@@ -421,7 +432,6 @@ protected:
             protein_row.database = db; // Name of the protein database.
             protein_row.database_version = db_version; // String Version of the protein database.
             protein_row.best_search_engine_score[1] = MzTabDouble(hit.getScore());
-//          MzTabParameterList search_engine; // Search engine(s) identifying the protein.
 //          std::map<Size, MzTabDouble>  best_search_engine_score; // best_search_engine_score[1-n]
 //          std::map<Size, std::map<Size, MzTabDouble> > search_engine_score_ms_run; // search_engine_score[index1]_ms_run[index2]
 //          MzTabInteger reliability;
@@ -515,15 +525,18 @@ protected:
 
       meta_data.variable_mod = generateMzTabStringFromModifications(var_mods);
       meta_data.fixed_mod = generateMzTabStringFromModifications(fixed_mods);
+      MzTabParameter psm_search_engine_score;
+      psm_search_engine_score.fromCellString("[,," + search_engine + "," + search_engine_version + "]");
+      meta_data.psm_search_engine_score[1] = psm_search_engine_score;
 
-      meta_data.psm_search_engine_score[1] = MzTabParameter(); // TODO insert search engine information
       MzTabMSRunMetaData ms_run;
       ms_run.location = MzTabString(filename);
       meta_data.ms_run[1] = ms_run;
       mztab.setMetaData(meta_data);
 
       MzTabPSMSectionRows rows;
-      for (vector<PeptideIdentification>::iterator it = pep_ids.begin(); it != pep_ids.end(); ++it)
+      Size psm_id(0);
+      for (vector<PeptideIdentification>::iterator it = pep_ids.begin(); it != pep_ids.end(); ++it, ++psm_id)
       {
         // skip empty peptide identification objects
         if (it->getHits().empty())
@@ -553,9 +566,13 @@ protected:
         // TODO: add option to export all peptide evidences of a peptide (e.g. same sequence but different proteins)
         // select accession of first peptide_evidence as representative ("leading") accession
         row.accession = peptide_evidences.empty() ? MzTabString("null") : MzTabString(peptide_evidences[0].getProteinAccession());
-
+        row.PSM_ID = MzTabInteger(psm_id);
         row.database = db;
         row.database_version = db_version;
+        MzTabParameterList search_engines;
+        search_engines.fromCellString("[,," + search_engine + "," + search_engine_version + "]");
+        row.search_engine = search_engines;
+
         row.search_engine_score[1] = MzTabDouble(best_ph.getScore());
         vector<MzTabDouble> rts_vector;
         rts_vector.push_back(MzTabDouble(it->getRT()));
