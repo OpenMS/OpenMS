@@ -1021,15 +1021,19 @@ namespace OpenMS
           double thresh = 0.0;
           bool use_thresh = false;
           set<String> threshold_terms;
-          cv_.getAllChildTerms(threshold_terms, "MS:1002482"); //q-value for peptides
+          cv_.getAllChildTerms(threshold_terms, "MS:1002482"); //statistical threshold
           for (map<String, vector<OpenMS::CVTerm> >::const_iterator thit = tcv.getCVTerms().begin(); thit != tcv.getCVTerms().end(); ++thit)
           {
             if (threshold_terms.find(thit->first) != threshold_terms.end())
             {
-              if (thit->first != "MS:1001494") // do not use peptide-level q-values for now
+              if (thit->first != "MS:1001494") // no threshold
               {
                 thresh = thit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
                 use_thresh = true;
+                break;
+              }
+              else
+              {
                 break;
               }
             }
