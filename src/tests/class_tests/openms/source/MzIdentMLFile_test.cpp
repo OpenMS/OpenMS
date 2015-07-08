@@ -233,22 +233,42 @@ START_SECTION(void store(String filename, const std::vector<ProteinIdentificatio
 
 END_SECTION
 
-START_SECTION(([EXTRA] multiple runs))
-  std::vector<ProteinIdentification> protein_ids, protein_ids2;
-  std::vector<PeptideIdentification> peptide_ids, peptide_ids2;
-  String input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentML_3runs.mzid");
-  MzIdentMLFile().load(input_path, protein_ids2, peptide_ids2);
-  String filename;
-  NEW_TMP_FILE(filename)
-  MzIdentMLFile().store(filename, protein_ids2, peptide_ids2);
+  START_SECTION(([EXTRA] multiple runs))
+    std::vector<ProteinIdentification> protein_ids, protein_ids2;
+    std::vector<PeptideIdentification> peptide_ids, peptide_ids2;
+    String input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentML_3runs.mzid");
+    MzIdentMLFile().load(input_path, protein_ids2, peptide_ids2);
+    String filename;
+    NEW_TMP_FILE(filename)
+    MzIdentMLFile().store(filename, protein_ids2, peptide_ids2);
 
-  MzIdentMLFile().load(filename, protein_ids, peptide_ids);
+    MzIdentMLFile().load(filename, protein_ids, peptide_ids);
 
-  TEST_EQUAL(protein_ids.size(),protein_ids2.size())
+    TEST_EQUAL(protein_ids.size(),protein_ids2.size())
 
-  TEST_EQUAL(protein_ids[0].getHits().size(),protein_ids2[0].getHits().size())
-  TEST_EQUAL(protein_ids[1].getHits().size(),protein_ids2[1].getHits().size())
-  TEST_EQUAL(protein_ids[2].getHits().size(),protein_ids2[2].getHits().size())
+    TEST_EQUAL(protein_ids[0].getHits().size(),protein_ids2[0].getHits().size())
+    TEST_EQUAL(protein_ids[1].getHits().size(),protein_ids2[1].getHits().size())
+    TEST_EQUAL(protein_ids[2].getHits().size(),protein_ids2[2].getHits().size())
+
+  END_SECTION
+
+
+START_SECTION(([EXTRA] psm ranking))
+  std::vector<ProteinIdentification> protein_ids;
+  std::vector<PeptideIdentification> peptide_ids;
+  String input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_whole.mzid");
+  MzIdentMLFile().load(input_path, protein_ids, peptide_ids);
+
+  TEST_EQUAL(peptide_ids.size(),3)
+  for (size_t i = 0; i < peptide_ids.size(); ++i)
+  {
+    size_t r = 0;
+    for (size_t j = 0; j < peptide_ids[i].getHits().size(); ++j)
+    {
+      TEST_EQUAL(peptide_ids[i].getHits()[j].getRank()>=r,true)
+      r = peptide_ids[i].getHits()[j].getRank();
+    }
+  }
 
 END_SECTION
 
