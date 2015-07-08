@@ -129,11 +129,17 @@ namespace OpenMS
 
   bool ControlledVocabulary::CVTerm::isHigherBetterScore() const
   {
-    for (StringList::const_iterator unp = this->unparsed.begin(); unp != this->unparsed.end(); ++unp)
-    {
-      if (unp->hasPrefix("relationship: has_order MS:1002108")) return true;
-    }
-    return false;
+//      for (StringList::const_iterator unp = this->unparsed.begin(); unp != this->unparsed.end(); ++unp)
+//      {
+//        if (unp->hasPrefix("relationship: has_order MS:1002108")) return true;
+//      }
+//      return false;
+      //most scores are higher better, but most entries in CV for these are not annotated -> default is true
+      for (StringList::const_iterator unp = this->unparsed.begin(); unp != this->unparsed.end(); ++unp)
+      {
+        if (unp->hasPrefix("relationship: has_order MS:1002109")) return false;
+      }
+      return true;
   }
 
   String ControlledVocabulary::CVTerm::toXMLString(const OpenMS::String& ref, const String& value) const
