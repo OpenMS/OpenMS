@@ -251,10 +251,7 @@ namespace OpenMS
         {
           it->sort();
         }
-        for (vector<PeptideIdentification>::iterator it = pep_id_->begin(); it != pep_id_->end(); ++it)
-        {
-          it->sort();
-        }
+        //note: PeptideIdentification sorting here not necessary any more, due to sorting according to cv in SpectrumIdentificationResult
 
       }
       catch (xercesc::XMLException& e)
