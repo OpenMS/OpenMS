@@ -240,7 +240,7 @@ START_SECTION([EXTRA] void load(const String& filename, std::vector<ProteinIdent
   TEST_EQUAL(pep_hit.getAnalysisResults().size(), 2);
 
   PeptideHit::AnalysisResult a = pep_hit.getAnalysisResults()[0];
-  TEST_EQUAL(a.analysis_type, "peptideprophet");
+  TEST_EQUAL(a.score_type, "peptideprophet");
   TEST_REAL_SIMILAR(a.main_score, 0.0660);
 
   TEST_EQUAL(a.sub_scores.find("fval") != a.sub_scores.end(), true);
@@ -284,7 +284,7 @@ START_SECTION([EXTRA] void load(const String& filename, std::vector<ProteinIdent
   // </analysis_result>
 
   a = pep_hit.getAnalysisResults()[1];
-  TEST_EQUAL(a.analysis_type, "interprophet");
+  TEST_EQUAL(a.score_type, "interprophet");
   TEST_REAL_SIMILAR(a.main_score, 0.93814);
 
   TEST_EQUAL(a.sub_scores.find("fval") == a.sub_scores.end(), true);
@@ -396,7 +396,7 @@ START_SECTION([EXTRA] void store(const String& filename, std::vector<ProteinIden
     TEST_EQUAL(pep_hit.getAnalysisResults().size(), 2);
 
     PeptideHit::AnalysisResult a = pep_hit.getAnalysisResults()[0];
-    TEST_EQUAL(a.analysis_type, "peptideprophet");
+    TEST_EQUAL(a.score_type, "peptideprophet");
     TEST_REAL_SIMILAR(a.main_score, 0.0660);
 
     TEST_EQUAL(a.sub_scores.find("fval") != a.sub_scores.end(), true);

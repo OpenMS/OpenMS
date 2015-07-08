@@ -414,23 +414,23 @@ namespace OpenMS
           for (std::vector<PeptideHit::AnalysisResult>::const_iterator ar_it = h.getAnalysisResults().begin();
               ar_it != h.getAnalysisResults().end(); ++ar_it)
           {
-            f << "\t\t\t<analysis_result analysis=\"" << ar_it->analysis_type << "\">" << "\n";
+            f << "\t\t\t<analysis_result analysis=\"" << ar_it->score_type << "\">" << "\n";
 
             // get name of next tag
             String tagname = "peptideprophet_result";
-            if (ar_it->analysis_type == "peptideprophet")
+            if (ar_it->score_type == "peptideprophet")
             {
               peptideprophet_written = true; // remember that we have now already written peptide prophet results
               tagname = "peptideprophet_result";
             }
-            else if (ar_it->analysis_type == "interprophet")
+            else if (ar_it->score_type == "interprophet")
             {
               tagname = "interprophet_result";
             }
             else
             {
               peptideprophet_written = true; // remember that we have now already written peptide prophet results
-              warning(STORE, "Analysis type " + ar_it->analysis_type + " not supported, will use peptideprophet_result.");
+              warning(STORE, "Analysis type " + ar_it->score_type + " not supported, will use peptideprophet_result.");
             }
 
             f << "\t\t\t\t<" << tagname <<  " probability=\"" << ar_it->main_score;
@@ -954,7 +954,7 @@ namespace OpenMS
     else if (element == "analysis_result") // parent: "search_hit" 
     {
       current_analysis_result_ = PeptideHit::AnalysisResult();
-      current_analysis_result_.analysis_type = attributeAsString_(attributes, "analysis");
+      current_analysis_result_.score_type = attributeAsString_(attributes, "analysis");
     }
     else if (element == "search_score_summary")
     {

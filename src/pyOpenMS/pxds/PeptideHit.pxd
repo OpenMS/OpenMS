@@ -65,7 +65,7 @@ cdef extern from "<OpenMS/METADATA/PeptideHit.h>" namespace "OpenMS":
         PeptideHit_AnalysisResult() nogil except +
         PeptideHit_AnalysisResult(PeptideHit_AnalysisResult) nogil except + #wrap-ignore
 
-        String analysis_type
+        String score_type
         double main_score
         libcpp_map[String, double] sub_scores
 

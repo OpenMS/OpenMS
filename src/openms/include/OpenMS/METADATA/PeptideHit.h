@@ -88,14 +88,14 @@ public:
     class OPENMS_DLLAPI AnalysisResult
     {
 public:
-      String analysis_type; // e.g. peptideprophet / interprophet
+      String score_type; // e.g. peptideprophet / interprophet
       bool higher_is_better; // is higher score better ?
       double main_score; // posterior probability for example
       std::map<String, double> sub_scores; /// additional scores attached to the original, aggregated score
 
       bool operator==(const AnalysisResult& rhs) const
       {
-        return analysis_type == rhs.analysis_type 
+        return score_type == rhs.score_type 
           && main_score == rhs.main_score
           && sub_scores == rhs.sub_scores;
       }
