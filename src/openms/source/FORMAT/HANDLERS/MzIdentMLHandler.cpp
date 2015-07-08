@@ -468,7 +468,7 @@ namespace OpenMS
         pp_identifier_2_thresh.insert(make_pair(it->getIdentifier(),it->getSignificanceThreshold()));
         if (it->getSignificanceThreshold() != 0.0)
         {
-          thcv = cv_.getTermByName("spectrum identification statistical threshold").toXMLString(cv_ns, String(it->getSignificanceThreshold()));
+          thcv = cv_.getTermByName("PSM-level statistical threshold").toXMLString(cv_ns, String(it->getSignificanceThreshold()));
         }
         else
         {

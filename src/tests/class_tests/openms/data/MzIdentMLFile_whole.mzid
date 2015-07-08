@@ -71,7 +71,7 @@
 			<cvParam accession="MS:1001413" name="search tolerance minus value" cvRef="PSI-MS" value="1"/>
 		</ParentTolerance>
 		<Threshold>
-			<cvParam accession="MS:1001494" cvRef="PSI-MS" name="no threshold"/>
+			<cvParam accession="MS:1002483" cvRef="PSI-MS" name="PSM-level statistical threshold" value="0.5"/>
 		</Threshold>
 		<ModificationParams>
 			<SearchModification fixedMod="true" massDelta="0" residues="C">
