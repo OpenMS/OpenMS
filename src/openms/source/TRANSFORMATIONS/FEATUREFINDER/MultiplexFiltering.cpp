@@ -314,7 +314,20 @@ namespace OpenMS
           blacklist_[spectrum - 1][peak_index].black_exception_charge = pattern.getCharge();
           blacklist_[spectrum - 1][peak_index].black_exception_mz_position = mz_position;
         }
-
+        
+        // blacklist peaks in spectrum before previous one
+        if (peak_index != -1 && spectrum > 1)
+        {
+          int peak_index_2 = registry_[spectrum - 1][peak_index].index_in_previous_spectrum;
+          if (peak_index_2 != -1 && !blacklist_[spectrum - 2][peak_index_2].black)
+          {
+            blacklist_[spectrum - 2][peak_index_2].black = true;
+            blacklist_[spectrum - 2][peak_index_2].black_exception_mass_shift_index = pattern.getMassShiftIndex();
+            blacklist_[spectrum - 2][peak_index_2].black_exception_charge = pattern.getCharge();
+            blacklist_[spectrum - 2][peak_index_2].black_exception_mz_position = mz_position;
+          }
+        }
+        
         // blacklist peaks in next spectrum
         peak_index = registry_[spectrum][mz_shifts_actual_indices[mz_position]].index_in_next_spectrum;
         if (peak_index != -1 && !blacklist_[spectrum + 1][peak_index].black)
@@ -323,6 +336,19 @@ namespace OpenMS
           blacklist_[spectrum + 1][peak_index].black_exception_mass_shift_index = pattern.getMassShiftIndex();
           blacklist_[spectrum + 1][peak_index].black_exception_charge = pattern.getCharge();
           blacklist_[spectrum + 1][peak_index].black_exception_mz_position = mz_position;
+        }
+        
+        // blacklist peaks in spectrum after next one
+        if (peak_index != -1 && spectrum + 2 < (int) blacklist_.size())
+        {
+          int peak_index_2 = registry_[spectrum + 1][peak_index].index_in_next_spectrum;
+          if (peak_index_2 != -1 && !blacklist_[spectrum + 2][peak_index_2].black)
+          {
+            blacklist_[spectrum + 2][peak_index_2].black = true;
+            blacklist_[spectrum + 2][peak_index_2].black_exception_mass_shift_index = pattern.getMassShiftIndex();
+            blacklist_[spectrum + 2][peak_index_2].black_exception_charge = pattern.getCharge();
+            blacklist_[spectrum + 2][peak_index_2].black_exception_mz_position = mz_position;
+          }
         }
 
       }

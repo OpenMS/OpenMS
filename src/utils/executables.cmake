@@ -16,6 +16,7 @@ FuzzyDiff
 IDDecoyProbability
 IDExtractor
 IDMassAccuracy
+IDScoreSwitcher
 IDSplitter
 LabeledEval
 LowMemPeakPickerHiRes

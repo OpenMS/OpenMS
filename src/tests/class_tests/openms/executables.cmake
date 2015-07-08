@@ -392,6 +392,7 @@ set(analysis_executables_list
   ConsensusIDAlgorithmPEPIons_test
   ConsensusIDAlgorithmPEPMatrix_test
   ConsensusIDAlgorithmRanks_test
+  ConsensusIDAlgorithmWorst_test
   ConsensusMapNormalizerAlgorithmThreshold_test
   ConsensusMapNormalizerAlgorithmMedian_test
   ConsensusMapNormalizerAlgorithmQuantile_test

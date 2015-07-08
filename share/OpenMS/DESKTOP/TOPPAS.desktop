@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=TOPPAS
+Categories=Science;Biology;Chemistry;
+Comment=an workflow engine for mass spectrometry data analysis
+Exec=TOPPAS %U
+Icon=/usr/share/pixmaps/TOPPAS.xpm
+Terminal=false
+Type=Application
+StartupNotify=true  
+Name[fr_FR]=TOPPAS

@@ -261,7 +261,7 @@ namespace OpenMS
             // add raw data point to list that passed all filters
             MultiplexFilterResultRaw result_raw(mz, mz_shifts_actual, intensities_actual);
             results_raw.push_back(result_raw);
-
+            
             // blacklist peaks in the current spectrum and the two neighbouring ones
             if (!blacklisted)
             {
