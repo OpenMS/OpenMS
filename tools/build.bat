@@ -8,12 +8,12 @@ REM
 
 IF "%~1"=="" (
   ECHO.
-  ECHO   Usage: b.bat ^<target^(- for all^)^> [[^<[r]elease^|[d]ebug^>] ^<Sln:[c]lass-test^|[t]opp^|[u]til^|[g]ui^>]
+  ECHO   Usage: build ^<target^(- for all^)^> [[^<[r]elease^|[d]ebug^>] ^<Sln:[c]lass-test^|[t]opp^|[u]til^|[g]ui^>]
   ECHO.
   ECHO  e.g.
-  ECHO          b.bat -    
-  ECHO          b.bat - r c   // same as above ^(build all class tests in release mode^)
-  ECHO          b.bat FeatureFinderCentroided r t
+  ECHO          build -    
+  ECHO          build - r c   // same as above ^(build all class tests in release mode^)
+  ECHO          build FeatureFinderCentroided r t
   goto end
 )
 
