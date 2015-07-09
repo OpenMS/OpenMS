@@ -52,7 +52,6 @@ namespace OpenMS
     significance_threshold_(0.0),
     score_type_(),
     higher_score_better_(true),
-    experiment_label_(),
     base_name_(),
     mz_(std::numeric_limits<double>::quiet_NaN()),
     rt_(std::numeric_limits<double>::quiet_NaN())
@@ -66,11 +65,11 @@ namespace OpenMS
     significance_threshold_(rhs.significance_threshold_),
     score_type_(rhs.score_type_),
     higher_score_better_(rhs.higher_score_better_),
-    experiment_label_(rhs.experiment_label_),
     base_name_(rhs.base_name_),
     mz_(rhs.mz_),
     rt_(rhs.rt_)
   {
+    setExperimentLabel( rhs.getExperimentLabel() );
   }
 
   PeptideIdentification::~PeptideIdentification()
@@ -90,7 +89,7 @@ namespace OpenMS
     significance_threshold_ = rhs.significance_threshold_;
     score_type_ = rhs.score_type_;
     higher_score_better_ = rhs.higher_score_better_;
-    experiment_label_ = rhs.experiment_label_;
+    setExperimentLabel( rhs.getExperimentLabel() );
     base_name_ = rhs.base_name_;
     mz_ = rhs.mz_;
     rt_ = rhs.rt_;
@@ -107,7 +106,7 @@ namespace OpenMS
            && significance_threshold_ == rhs.getSignificanceThreshold()
            && score_type_ == rhs.score_type_
            && higher_score_better_ == rhs.higher_score_better_
-           && experiment_label_ == rhs.experiment_label_
+           && getExperimentLabel() == rhs.getExperimentLabel()
            && base_name_ == rhs.base_name_
            && (mz_ == rhs.mz_ || (!this->hasMZ() && !rhs.hasMZ())) // might be NaN, so comparing == will always be false
            && (rt_ == rhs.rt_ || (!this->hasRT() && !rhs.hasRT()));// might be NaN, so comparing == will always be false
@@ -219,14 +218,23 @@ namespace OpenMS
     base_name_ = base_name;
   }
 
-  const String& PeptideIdentification::getExperimentLabel() const
+  const String PeptideIdentification::getExperimentLabel() const
   {
-    return experiment_label_;
+    // implement as meta value in order to reduce bloat of PeptideIdentification object
+    //  -> this is mostly used for pepxml at the moment which allows each peptide id to belong to a different experiment
+    if (metaValueExists("experiment_label"))
+    {
+      return getMetaValue("experiment_label").toString();
+    }
+    else
+    {
+      return "";
+    }
   }
 
   void PeptideIdentification::setExperimentLabel(const String& label)
   {
-    experiment_label_ = label;
+    setMetaValue("experiment_label", label);
   }
 
   void PeptideIdentification::assignRanks()

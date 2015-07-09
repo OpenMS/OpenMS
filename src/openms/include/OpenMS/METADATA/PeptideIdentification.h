@@ -133,7 +133,7 @@ public:
     void setBaseName(const String& base_name);
 
     /// returns the experiment label for this identification 
-    const String& getExperimentLabel() const;
+    const String getExperimentLabel() const;
     /// sets the experiment label for this identification
     void setExperimentLabel(const String& type);
 
@@ -170,7 +170,6 @@ protected:
     double significance_threshold_; ///< the peptide significance threshold
     String score_type_; ///< The score type (Mascot, Sequest, e-value, p-value)
     bool higher_score_better_; ///< The score orientation
-    String experiment_label_; ///< Identifier for the experiment in which this PeptideIdentification was found
     String base_name_;
     double mz_;
     double rt_;
