@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl, Andreas Bertsch $
-// $Authors: Clemens Groepl, Andreas Bertsch $
+// $Maintainer: Chris Bielow $
+// $Authors: Clemens Groepl, Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 //
 
@@ -160,6 +160,37 @@ START_SECTION(IsotopeDistribution& operator *= (Size factor))
 		TEST_EQUAL(id.getContainer()[i].first, container[i].first)
 		TEST_REAL_SIMILAR(id.getContainer()[i].second, container[i].second)
 	}
+
+  // test gapped isotope distributions, e.g. bromide 79,81 (missing 80)
+  {
+    EmpiricalFormula ef("Br2");
+    IsotopeDistribution id = ef.getIsotopeDistribution(5);
+    container.clear();
+    container.push_back(make_pair<Size, double>(158, 0.2569476));
+    container.push_back(make_pair<Size, double>(160, 0.49990478000000005));
+    container.push_back(make_pair<Size, double>(162, 0.24314761000000004));
+    for (Size i = 0; i != id.size(); ++i)
+    {
+      TEST_EQUAL(id.getContainer()[i].first, container[i].first)
+      TEST_REAL_SIMILAR(id.getContainer()[i].second, container[i].second)
+    }
+  }
+  {
+    EmpiricalFormula ef("CBr2");
+    IsotopeDistribution id = ef.getIsotopeDistribution(7);
+    container.clear();
+    container.push_back(make_pair<Size, double>(170, 0.25486133807300215));
+    container.push_back(make_pair<Size, double>(171, 0.0027565109849197653));
+    container.push_back(make_pair<Size, double>(172, 0.49584583075082816));
+    container.push_back(make_pair<Size, double>(173, 0.0053489811460000012));
+    container.push_back(make_pair<Size, double>(174, 0.24054593057300006));
+    container.push_back(make_pair<Size, double>(175, 0.0026016794270000009));
+    for (Size i = 0; i != id.size(); ++i)
+    {
+      TEST_EQUAL(id.getContainer()[i].first, container[i].first)
+      TEST_REAL_SIMILAR(id.getContainer()[i].second, container[i].second)
+    }
+  }
 
 END_SECTION
 
