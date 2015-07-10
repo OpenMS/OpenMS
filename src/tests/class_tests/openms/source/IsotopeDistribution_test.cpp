@@ -167,8 +167,10 @@ START_SECTION(IsotopeDistribution& operator *= (Size factor))
     IsotopeDistribution id = ef.getIsotopeDistribution(5);
     container.clear();
     container.push_back(make_pair<Size, double>(158, 0.2569476));
-    container.push_back(make_pair<Size, double>(160, 0.49990478000000005));
-    container.push_back(make_pair<Size, double>(162, 0.24314761000000004));
+    container.push_back(make_pair<Size, double>(159, 0.0));
+    container.push_back(make_pair<Size, double>(160, 0.49990478));
+    container.push_back(make_pair<Size, double>(161, 0.0));
+    container.push_back(make_pair<Size, double>(162, 0.24314761));
     for (Size i = 0; i != id.size(); ++i)
     {
       TEST_EQUAL(id.getContainer()[i].first, container[i].first)
@@ -179,12 +181,12 @@ START_SECTION(IsotopeDistribution& operator *= (Size factor))
     EmpiricalFormula ef("CBr2");
     IsotopeDistribution id = ef.getIsotopeDistribution(7);
     container.clear();
-    container.push_back(make_pair<Size, double>(170, 0.25486133807300215));
-    container.push_back(make_pair<Size, double>(171, 0.0027565109849197653));
-    container.push_back(make_pair<Size, double>(172, 0.49584583075082816));
-    container.push_back(make_pair<Size, double>(173, 0.0053489811460000012));
-    container.push_back(make_pair<Size, double>(174, 0.24054593057300006));
-    container.push_back(make_pair<Size, double>(175, 0.0026016794270000009));
+    container.push_back(make_pair<Size, double>(170, 0.254198270573));
+    container.push_back(make_pair<Size, double>(171, 0.002749339427));
+    container.push_back(make_pair<Size, double>(172, 0.494555798854));
+    container.push_back(make_pair<Size, double>(173, 0.005348981146));
+    container.push_back(make_pair<Size, double>(174, 0.240545930573));
+    container.push_back(make_pair<Size, double>(175, 0.002601679427));
     for (Size i = 0; i != id.size(); ++i)
     {
       TEST_EQUAL(id.getContainer()[i].first, container[i].first)
