@@ -258,6 +258,7 @@ namespace OpenMS
     else
     {
       LOG_ERROR << "AASequence::getFormula: Formula for ResidueType " << type << " not defined for sequences of length 0." << std::endl;
+      return EmpiricalFormula("");
     }
   }
 
@@ -355,6 +356,7 @@ namespace OpenMS
   else
   {
     LOG_ERROR << "AASequence::getMonoWeight: Mass for ResidueType " << type << " not defined for sequences of length 0." << std::endl;
+    return 0.0;
   }
 }
 

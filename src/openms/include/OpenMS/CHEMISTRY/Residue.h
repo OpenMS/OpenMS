@@ -113,20 +113,23 @@ public:
     inline static const EmpiricalFormula& getInternalToXIon()
     {
       // Mind the "-"
-      static const EmpiricalFormula to_full = getInternalToCTerm() + EmpiricalFormula("CO") - EmpiricalFormula("H");
+      static const EmpiricalFormula to_full = 
+        getInternalToCTerm() + EmpiricalFormula("CO") - EmpiricalFormula("H");
       return to_full;
     }
 
     inline static const EmpiricalFormula& getInternalToYIon()
     {
-      static const EmpiricalFormula to_full = getInternalToCTerm() + EmpiricalFormula("H");
+      static const EmpiricalFormula to_full = 
+        getInternalToCTerm() + EmpiricalFormula("H");
       return to_full;
     }
 
     inline static const EmpiricalFormula& getInternalToZIon()
     {
       // Mind the "-"
-      static const EmpiricalFormula to_full = getInternalToCTerm() - EmpiricalFormula("NH2");
+      static const EmpiricalFormula to_full = 
+        getInternalToCTerm() - EmpiricalFormula("NH2");
       return to_full;
     }
 
