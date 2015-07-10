@@ -67,289 +67,239 @@ public:
     */
     //@{
     // Internal
-    inline static const EmpiricalFormula & getInternalToFull()
+    // inline static const EmpiricalFormula & getInternalToFull()
+    // {
+    //   static const EmpiricalFormula internal_to_full = EmpiricalFormula("H2O");
+    //   return internal_to_full;
+    // }
+
+    // inline static double getInternalToFullAverageWeight()
+    // {
+    //   static const double internal_to_full_average_weight = getInternalToFull().getAverageWeight();
+    //   return internal_to_full_average_weight;
+    // }
+
+    // inline static double getInternalToFullMonoWeight()
+    // {
+    //   static const double internal_to_full_mono_weight = getInternalToFull().getMonoWeight();
+    //   return internal_to_full_mono_weight;
+    // }
+
+    // // N-terminal
+    // inline static const EmpiricalFormula & getNTerminalToFull()
+    // {
+    //   static const EmpiricalFormula Nterminal_to_full = EmpiricalFormula("HO");
+    //   return Nterminal_to_full;
+    // }
+
+    // inline static double getNTerminalToFullAverageWeight()
+    // {
+    //   static const double Nterminal_to_full_average_weight = getNTerminalToFull().getAverageWeight();
+    //   return Nterminal_to_full_average_weight;
+    // }
+
+    // inline static double getNTerminalToFullMonoWeight()
+    // {
+    //   static const double Nterminal_to_full_mono_weight = getNTerminalToFull().getMonoWeight();
+    //   return Nterminal_to_full_mono_weight;
+    // }
+
+    // // C-terminal
+    // inline static const EmpiricalFormula & getCTerminalToFull()
+    // {
+    //   static const EmpiricalFormula Cterminal_to_full = EmpiricalFormula("H");
+    //   return Cterminal_to_full;
+    // }
+
+    // inline static double getCTerminalToFullAverageWeight()
+    // {
+    //   static const double Cterminal_to_full_average_weight = getCTerminalToFull().getAverageWeight();
+    //   return Cterminal_to_full_average_weight;
+    // }
+
+    // inline static double getCTerminalToFullMonoWeight()
+    // {
+    //   static const double Cterminal_to_full_mono_weight = getCTerminalToFull().getMonoWeight();
+    //   return Cterminal_to_full_mono_weight;
+    // }
+
+    // // b ion
+    // inline static const EmpiricalFormula & getBIonToFull()
+    // {
+    //   static const EmpiricalFormula b_ion_to_full = EmpiricalFormula("HO");
+    //   return b_ion_to_full;
+    // }
+
+    // inline static double getBIonToFullAverageWeight()
+    // {
+    //   static const double b_ion_to_full_average_weight = getBIonToFull().getAverageWeight();
+    //   return b_ion_to_full_average_weight;
+    // }
+
+    // inline static double getBIonToFullMonoWeight()
+    // {
+    //   static const double b_ion_to_full_mono_weight = getBIonToFull().getMonoWeight();
+    //   return b_ion_to_full_mono_weight;
+    // }
+
+    // // a ion
+    // inline static const EmpiricalFormula & getAIonToFull()
+    // {
+    //   static const EmpiricalFormula a_ion_to_full = EmpiricalFormula("HCO2");
+    //   return a_ion_to_full;
+    // }
+
+    // inline static double getAIonToFullAverageWeight()
+    // {
+    //   static const double a_ion_to_full_average_weight = getAIonToFull().getAverageWeight();
+    //   return a_ion_to_full_average_weight;
+    // }
+
+    // inline static double getAIonToFullMonoWeight()
+    // {
+    //   static const double a_ion_to_full_mono_weight = getAIonToFull().getMonoWeight();
+    //   return a_ion_to_full_mono_weight;
+    // }
+
+    // // y ion
+    // inline static const EmpiricalFormula & getYIonToFull()
+    // {
+    //   static const EmpiricalFormula y_ion_to_full = EmpiricalFormula("");
+    //   return y_ion_to_full;
+    // }
+
+    // inline static double getYIonToFullAverageWeight()
+    // {
+    //   static const double y_ion_to_full_average_weight = getYIonToFull().getAverageWeight();
+    //   return y_ion_to_full_average_weight;
+    // }
+
+    // inline static double getYIonToFullMonoWeight()
+    // {
+    //   static const double y_ion_to_full_mono_weight = getYIonToFull().getMonoWeight();
+    //   return y_ion_to_full_mono_weight;
+    // }
+
+    // // c ion
+    // inline static const EmpiricalFormula & getCIonToFull()
+    // {
+    //   static const EmpiricalFormula c_ion_to_full = EmpiricalFormula("H-1");
+    //   return c_ion_to_full;
+    // }
+
+    // inline static double getCIonToFullAverageWeight()
+    // {
+    //   static const double c_ion_to_full_average_weight = getCIonToFull().getAverageWeight();
+    //   return c_ion_to_full_average_weight;
+    // }
+
+    // inline static double getCIonToFullMonoWeight()
+    // {
+    //   static const double c_ion_to_full_mono_weight = getCIonToFull().getMonoWeight();
+    //   return c_ion_to_full_mono_weight;
+    // }
+
+    // // x ion
+    // inline static const EmpiricalFormula & getXIonToFull()
+    // {
+    //   static const EmpiricalFormula x_ion_to_full = EmpiricalFormula("HCO");
+    //   return x_ion_to_full;
+    // }
+
+    // inline static double getXIonToFullAverageWeight()
+    // {
+    //   static const double x_ion_to_full_average_weight = getXIonToFull().getAverageWeight();
+    //   return x_ion_to_full_average_weight;
+    // }
+
+    // inline static double getXIonToFullMonoWeight()
+    // {
+    //   static const double x_ion_to_full_mono_weight = getXIonToFull().getMonoWeight();
+    //   return x_ion_to_full_mono_weight;
+    // }
+
+    // // z ion
+    // inline static const EmpiricalFormula & getZIonToFull()
+    // {
+    //   static const EmpiricalFormula z_ion_to_full = EmpiricalFormula("NH2");
+    //   return z_ion_to_full;
+    // }
+
+    // inline static double getZIonToFullAverageWeight()
+    // {
+    //   static const double z_ion_to_full_average_weight = getZIonToFull().getAverageWeight();
+    //   return z_ion_to_full_average_weight;
+    // }
+
+    // inline static double getZIonToFullMonoWeight()
+    // {
+    //   static const double z_ion_to_full_mono_weight = getZIonToFull().getMonoWeight();
+    //   return z_ion_to_full_mono_weight;
+    // }
+
+        // Formulae that need to be added to the internal residues to get to fragment type
+    // Formulae from http://www.matrixscience.com/help/fragmentation_help.html
+    inline static const EmpiricalFormula& getInternalToFull()
     {
-      static const EmpiricalFormula internal_to_full = EmpiricalFormula("H2O");
-      return internal_to_full;
+      static const EmpiricalFormula to_full = EmpiricalFormula("H2O");
+      return to_full;
     }
 
-    inline static double getInternalToFullAverageWeight()
+    inline static const EmpiricalFormula& getInternalToNTerm()
     {
-      static const double internal_to_full_average_weight = getInternalToFull().getAverageWeight();
-      return internal_to_full_average_weight;
+      static const EmpiricalFormula to_full = EmpiricalFormula("H");
+      return to_full;
     }
 
-    inline static double getInternalToFullMonoWeight()
+    inline static const EmpiricalFormula& getInternalToCTerm()
     {
-      static const double internal_to_full_mono_weight = getInternalToFull().getMonoWeight();
-      return internal_to_full_mono_weight;
+      static const EmpiricalFormula to_full = EmpiricalFormula("OH");
+      return to_full;
     }
 
-    // N-terminal
-    inline static const EmpiricalFormula & getNTerminalToFull()
+    inline static const EmpiricalFormula& getInternalToAIon()
     {
-      static const EmpiricalFormula Nterminal_to_full = EmpiricalFormula("HO");
-      return Nterminal_to_full;
+      // Mind the "-"
+      static const EmpiricalFormula to_full =
+        getInternalToNTerm() - EmpiricalFormula("CHO");
+      return to_full;
     }
 
-    inline static double getNTerminalToFullAverageWeight()
+    inline static const EmpiricalFormula& getInternalToBIon()
     {
-      static const double Nterminal_to_full_average_weight = getNTerminalToFull().getAverageWeight();
-      return Nterminal_to_full_average_weight;
+      // Mind the "-"
+      static const EmpiricalFormula to_full =
+        getInternalToNTerm() - EmpiricalFormula("H");
+      return to_full;
     }
 
-    inline static double getNTerminalToFullMonoWeight()
+    inline static const EmpiricalFormula& getInternalToCIon()
     {
-      static const double Nterminal_to_full_mono_weight = getNTerminalToFull().getMonoWeight();
-      return Nterminal_to_full_mono_weight;
+      static const EmpiricalFormula to_full =
+        getInternalToNTerm() + EmpiricalFormula("NH2");
+      return to_full;
     }
 
-    // C-terminal
-    inline static const EmpiricalFormula & getCTerminalToFull()
+    inline static const EmpiricalFormula& getInternalToXIon()
     {
-      static const EmpiricalFormula Cterminal_to_full = EmpiricalFormula("H");
-      return Cterminal_to_full;
+      // Mind the "-"
+      static const EmpiricalFormula to_full = getInternalToCTerm() + EmpiricalFormula("CO") - EmpiricalFormula("H");
+      return to_full;
     }
 
-    inline static double getCTerminalToFullAverageWeight()
+    inline static const EmpiricalFormula& getInternalToYIon()
     {
-      static const double Cterminal_to_full_average_weight = getCTerminalToFull().getAverageWeight();
-      return Cterminal_to_full_average_weight;
+      static const EmpiricalFormula to_full = getInternalToCTerm() + EmpiricalFormula("H");
+      return to_full;
     }
 
-    inline static double getCTerminalToFullMonoWeight()
+    inline static const EmpiricalFormula& getInternalToZIon()
     {
-      static const double Cterminal_to_full_mono_weight = getCTerminalToFull().getMonoWeight();
-      return Cterminal_to_full_mono_weight;
+      // Mind the "-"
+      static const EmpiricalFormula to_full = getInternalToCTerm() - EmpiricalFormula("NH2");
+      return to_full;
     }
 
-    // b ion
-    inline static const EmpiricalFormula & getBIonToFull()
-    {
-      static const EmpiricalFormula b_ion_to_full = EmpiricalFormula("HO");
-      return b_ion_to_full;
-    }
-
-    inline static double getBIonToFullAverageWeight()
-    {
-      static const double b_ion_to_full_average_weight = getBIonToFull().getAverageWeight();
-      return b_ion_to_full_average_weight;
-    }
-
-    inline static double getBIonToFullMonoWeight()
-    {
-      static const double b_ion_to_full_mono_weight = getBIonToFull().getMonoWeight();
-      return b_ion_to_full_mono_weight;
-    }
-
-    // a ion
-    inline static const EmpiricalFormula & getAIonToFull()
-    {
-      static const EmpiricalFormula a_ion_to_full = EmpiricalFormula("HCO2");
-      return a_ion_to_full;
-    }
-
-    inline static double getAIonToFullAverageWeight()
-    {
-      static const double a_ion_to_full_average_weight = getAIonToFull().getAverageWeight();
-      return a_ion_to_full_average_weight;
-    }
-
-    inline static double getAIonToFullMonoWeight()
-    {
-      static const double a_ion_to_full_mono_weight = getAIonToFull().getMonoWeight();
-      return a_ion_to_full_mono_weight;
-    }
-
-    // y ion
-    inline static const EmpiricalFormula & getYIonToFull()
-    {
-      static const EmpiricalFormula y_ion_to_full = EmpiricalFormula("");
-      return y_ion_to_full;
-    }
-
-    inline static double getYIonToFullAverageWeight()
-    {
-      static const double y_ion_to_full_average_weight = getYIonToFull().getAverageWeight();
-      return y_ion_to_full_average_weight;
-    }
-
-    inline static double getYIonToFullMonoWeight()
-    {
-      static const double y_ion_to_full_mono_weight = getYIonToFull().getMonoWeight();
-      return y_ion_to_full_mono_weight;
-    }
-
-    // c ion
-    inline static const EmpiricalFormula & getCIonToFull()
-    {
-      static const EmpiricalFormula c_ion_to_full = EmpiricalFormula("H-1");
-      return c_ion_to_full;
-    }
-
-    inline static double getCIonToFullAverageWeight()
-    {
-      static const double c_ion_to_full_average_weight = getCIonToFull().getAverageWeight();
-      return c_ion_to_full_average_weight;
-    }
-
-    inline static double getCIonToFullMonoWeight()
-    {
-      static const double c_ion_to_full_mono_weight = getCIonToFull().getMonoWeight();
-      return c_ion_to_full_mono_weight;
-    }
-
-    // c-1 ion
-    inline static const EmpiricalFormula & getCIonMinusOneToFull()
-    {
-      static const EmpiricalFormula c_ion_to_full = EmpiricalFormula("H-2");
-      return c_ion_to_full;
-    }
-
-    inline static double getCIonMinusOneToFullAverageWeight()
-    {
-      static const double c_ion_to_full_average_weight = getCIonMinusOneToFull().getAverageWeight();
-      return c_ion_to_full_average_weight;
-    }
-
-    inline static double getCIonMinusOneToFullMonoWeight()
-    {
-      static const double c_ion_to_full_mono_weight = getCIonMinusOneToFull().getMonoWeight();
-      return c_ion_to_full_mono_weight;
-    }
-
-    // c+1 ion
-    inline static const EmpiricalFormula & getCIonPlusOneToFull()
-    {
-      static const EmpiricalFormula c_ion_to_full = EmpiricalFormula("");
-      return c_ion_to_full;
-    }
-
-    inline static double getCIonPlusOneToFullAverageWeight()
-    {
-      static const double c_ion_to_full_average_weight = getCIonPlusOneToFull().getAverageWeight();
-      return c_ion_to_full_average_weight;
-    }
-
-    inline static double getCIonPlusOneToFullMonoWeight()
-    {
-      static const double c_ion_to_full_mono_weight = getCIonPlusOneToFull().getMonoWeight();
-      return c_ion_to_full_mono_weight;
-    }
-
-    // c+2 ion
-    inline static const EmpiricalFormula & getCIonPlusTwoToFull()
-    {
-      static const EmpiricalFormula c_ion_to_full = EmpiricalFormula("H2");
-      return c_ion_to_full;
-    }
-
-    inline static double getCIonPlusTwoToFullAverageWeight()
-    {
-      static const double c_ion_to_full_average_weight = getCIonPlusTwoToFull().getAverageWeight();
-      return c_ion_to_full_average_weight;
-    }
-
-    inline static double getCIonPlusTwoToFullMonoWeight()
-    {
-      static const double c_ion_to_full_mono_weight = getCIonPlusTwoToFull().getMonoWeight();
-      return c_ion_to_full_mono_weight;
-    }
-
-    // x ion
-    inline static const EmpiricalFormula & getXIonToFull()
-    {
-      static const EmpiricalFormula x_ion_to_full = EmpiricalFormula("HCO");
-      return x_ion_to_full;
-    }
-
-    inline static double getXIonToFullAverageWeight()
-    {
-      static const double x_ion_to_full_average_weight = getXIonToFull().getAverageWeight();
-      return x_ion_to_full_average_weight;
-    }
-
-    inline static double getXIonToFullMonoWeight()
-    {
-      static const double x_ion_to_full_mono_weight = getXIonToFull().getMonoWeight();
-      return x_ion_to_full_mono_weight;
-    }
-
-    // z ion
-    inline static const EmpiricalFormula & getZIonToFull()
-    {
-      static const EmpiricalFormula z_ion_to_full = EmpiricalFormula("NH2");
-      return z_ion_to_full;
-    }
-
-    inline static double getZIonToFullAverageWeight()
-    {
-      static const double z_ion_to_full_average_weight = getZIonToFull().getAverageWeight();
-      return z_ion_to_full_average_weight;
-    }
-
-    inline static double getZIonToFullMonoWeight()
-    {
-      static const double z_ion_to_full_mono_weight = getZIonToFull().getMonoWeight();
-      return z_ion_to_full_mono_weight;
-    }
-
-    // z-1 ion
-    inline static const EmpiricalFormula & getZIonMinusOneToFull()
-    {
-      static const EmpiricalFormula z_ion_to_full = EmpiricalFormula("N2");
-      return z_ion_to_full;
-    }
-
-    inline static double getZIonMinusOneToFullAverageWeight()
-    {
-      static const double z_ion_to_full_average_weight = getZIonMinusOneToFull().getAverageWeight();
-      return z_ion_to_full_average_weight;
-    }
-
-    inline static double getZIonMinusOneToFullMonoWeight()
-    {
-      static const double z_ion_to_full_mono_weight = getZIonMinusOneToFull().getMonoWeight();
-      return z_ion_to_full_mono_weight;
-    }
-
-    // z+1 ion
-    inline static const EmpiricalFormula & getZIonPlusOneToFull()
-    {
-      static const EmpiricalFormula z_ion_to_full = EmpiricalFormula("NH3");
-      return z_ion_to_full;
-    }
-
-    inline static double getZIonPlusOneToFullAverageWeight()
-    {
-      static const double z_ion_to_full_average_weight = getZIonPlusOneToFull().getAverageWeight();
-      return z_ion_to_full_average_weight;
-    }
-
-    inline static double getZIonPlusOneToFullMonoWeight()
-    {
-      static const double z_ion_to_full_mono_weight = getZIonPlusOneToFull().getMonoWeight();
-      return z_ion_to_full_mono_weight;
-    }
-
-    // z+2 ion
-    inline static const EmpiricalFormula & getZIonPlusTwoToFull()
-    {
-      static const EmpiricalFormula z_ion_to_full = EmpiricalFormula("NH4");
-      return z_ion_to_full;
-    }
-
-    inline static double getZIonPlusTwoToFullAverageWeight()
-    {
-      static const double z_ion_to_full_average_weight = getZIonPlusTwoToFull().getAverageWeight();
-      return z_ion_to_full_average_weight;
-    }
-
-    inline static double getZIonPlusTwoToFullMonoWeight()
-    {
-      static const double z_ion_to_full_mono_weight = getZIonPlusTwoToFull().getMonoWeight();
-      return z_ion_to_full_mono_weight;
-    }
 
     //@}
 
@@ -364,19 +314,11 @@ public:
       CTerminal,           // only C-terminus
       AIon,           // N-terminus up to the C-alpha/carbonyl carbon bond
       BIon,           // N-terminus up to the peptide bond
-      CIonMinusOne,           // N-terminus up to the amide/C-alpha bond
       CIon,           // N-terminus up to the amide/C-alpha bond
-      CIonPlusOne,           // N-terminus up to the amide/C-alpha bond
-      CIonPlusTwo,           // N-terminus up to the amide/C-alpha bond
       XIon,           // amide/C-alpha bond up to the C-terminus
       YIon,           // peptide bond up to the C-terminus
-      ZIonMinusOne,           // C-alpha/carbonyl carbon bond
       ZIon,            // C-alpha/carbonyl carbon bond
-      ZIonPlusOne,            // C-alpha/carbonyl carbon bond
-      ZIonPlusTwo,            // C-alpha/carbonyl carbon bond
       SizeOfResidueType
-
-      /// @todo add c+1, z+1, z+2 ion types (Andreas)
     };
     //@}
 
