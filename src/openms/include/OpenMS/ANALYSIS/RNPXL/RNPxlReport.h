@@ -65,7 +65,7 @@ struct OPENMS_DLLAPI RNPxlReportRow
   double m_2H;
   double m_3H;
   double m_4H;
-
+  String fragment_annotation_string;  
   String getString(String separator) const;
 
 };
@@ -88,7 +88,7 @@ struct OPENMS_DLLAPI RNPxlReportRowHeader
         sl << String(it->first + "_" + it->second[i].first);
       }
     }
-    sl << "abs prec. error Da" << "rel. prec. error ppm" << "M+H" << "M+2H" << "M+3H" << "M+4H";
+    sl << "abs prec. error Da" << "rel. prec. error ppm" << "M+H" << "M+2H" << "M+3H" << "M+4H" << "fragment_annotation";
     return ListUtils::concatenate(sl, separator);
   }
 };

@@ -271,6 +271,7 @@ protected:
     double best_localization_score;
     String localization_scores;
     String best_localization;  
+    String fragment_annotation_string;
     static bool hasBetterScore(const AnnotatedHit& a, const AnnotatedHit& b)
     {
       return a.score > b.score;
@@ -550,6 +551,70 @@ private:
     return RNA_fragment_peak;
   }
  
+  String fragmentAnnotationDetailsToString_(const String& ion_type, map<Size, vector<FragmentAnnotationDetail_> > ion_annotation_details)
+  {
+    String fas;
+    for (map<Size, vector<FragmentAnnotationDetail_> >::const_iterator ait = ion_annotation_details.begin(); ait != ion_annotation_details.end(); ++ait)
+    {
+      fas += ion_type + ait->first + ":";
+      for (vector<FragmentAnnotationDetail_>::const_iterator sit = ait->second.begin(); sit != ait->second.end(); ++sit)
+      {
+        if (sit != ait->second.begin()) fas += "|";
+        fas += sit->shift + "(" + String::number(sit->mz, 3) + "," + String::number(100.0 * sit->intensity, 1) + ")" + sit->charge + "+";
+      }
+     fas += ";";    
+    }
+    return fas;
+  }
+
+  String shiftedImmoniumIonsToString_(const map<String, set<pair<String, double > > >& shifted_immonium_ions)
+  {
+    String fas;
+    for (map<String, set<pair<String, double > > >::const_iterator ait = shifted_immonium_ions.begin(); ait != shifted_immonium_ions.end(); ++ait)
+    {
+      fas += ait->first + ":";
+      for (set<pair<String, double> >::const_iterator sit = ait->second.begin(); sit != ait->second.end(); ++sit)
+      {
+        fas += sit->first;
+        if (std::distance(sit, ait->second.end()) != 1) fas += " ";
+      }
+      fas += ";";
+    }
+    return fas;
+  }
+
+  String shiftedMarkerIonsToString_(const map<String, set<String> >& annotated_marker_ions)
+  {
+    String fas;
+    for (map<String, set<String> >::const_iterator ait = annotated_marker_ions.begin(); ait != annotated_marker_ions.end(); ++ait)
+    {
+      fas += ait->first + ":";
+      for (set<String>::const_iterator sit = ait->second.begin(); sit != ait->second.end(); ++sit)
+      {
+        fas += *sit;
+        if (std::distance(sit, ait->second.end()) != 1) fas += " ";
+      }
+      fas += ";";
+    }
+    return fas;
+  }
+
+  String unshiftedIonsToString_(const map<String, set<String> >& unshifted_ions)
+  {
+    String fas;
+    for (map<String, set<String> >::const_iterator ait = unshifted_ions.begin(); ait != unshifted_ions.end(); ++ait)
+    {
+      fas += ait->first + ":";
+      for (set<String>::const_iterator sit = ait->second.begin(); sit != ait->second.end(); ++sit)
+      {
+        fas += *sit;
+        if (std::distance(sit, ait->second.end()) != 1) fas += " ";
+      }
+      fas += ";";
+    }
+    return fas;
+  }
+
   void postScoreHits_(const PeakMap& exp, vector<vector<AnnotatedHit> >& annotated_hits, Size top_hits, const RNPxlModificationMassesResult& mm, const vector<ResidueModification>& fixed_modifications, const vector<ResidueModification>& variable_modifications, Size max_variable_mods_per_peptide, TheoreticalSpectrumGenerator spectrum_generator, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool carbon_is_labeled)
   {
     // for pscore calculation only
@@ -682,7 +747,7 @@ private:
             if (unmodified_sequence.hasSubstring("Y"))
             {
               double immonium_ion_mz = EmpiricalFormula("C8H10NO").getMonoWeight() + fragment_shift_mass; 
-              partial_loss_spectrum.push_back(getAnnotatedImmoniumIon_('Y', fragment_shift_mass, fragment_shift_name));
+              partial_loss_spectrum.push_back(getAnnotatedImmoniumIon_('Y', immonium_ion_mz, fragment_shift_name));
             }
             else if (unmodified_sequence.hasSubstring("W"))
             {
@@ -1071,76 +1136,29 @@ private:
           a_it->best_localization = best_localization;
           a_it->best_localization_score = best_localization_score;
 
+          String fas = a_it->fragment_annotation_string;
+          fas += unshiftedIonsToString_(unshifted_ions);
+          fas += fragmentAnnotationDetailsToString_("b", shifted_b_ions) + "\t";
+          fas += fragmentAnnotationDetailsToString_("y", shifted_y_ions) + "\t";
+          fas += fragmentAnnotationDetailsToString_("a", shifted_a_ions) + "\t";
+          fas += shiftedImmoniumIonsToString_(shifted_immonium_ions);
+          fas += shiftedMarkerIonsToString_(annotated_marker_ions);
+          a_it->fragment_annotation_string = fas;
+
           #ifdef DEBUG_RNPXLSEARCH
             cout << "Ion centric annotation: " << endl;
-
             cout << "unshifted ions: " << endl;
-            for (map<String, set<String> >::const_iterator ait = unshifted_ions.begin(); ait != unshifted_ions.end(); ++ait)
-            {
-              cout << ait->first << ": ";
-              for (set<String>::const_iterator sit = ait->second.begin(); sit != ait->second.end(); ++sit)
-              {
-                cout << *sit << " ";
-              }
-              cout << endl;
-            }
-
+            cout << unshiftedIonsToString_(unshifted_ions) << endl;
             cout << "shifted b ions: " << endl;
-            for (map<Size, vector<FragmentAnnotationDetail_> >::const_iterator ait = shifted_b_ions.begin(); ait != shifted_b_ions.end(); ++ait)
-            {
-              String s = String("b") + ait->first + ": ";
-              for (vector<FragmentAnnotationDetail_>::const_iterator sit = ait->second.begin(); sit != ait->second.end(); ++sit)
-              {
-                if (sit != ait->second.begin()) s += " | ";
-                s += sit->shift + "(" + String::number(sit->mz, 3) + "," + String::number(100.0 * sit->intensity, 1) + ")" + sit->charge + "+";
-              }
-              cout << s << endl;
-            }
-
+            cout << fragmentAnnotationDetailsToString_("b", shifted_b_ions) << endl;
             cout << "shifted y ions: " << endl;
-            for (map<Size, vector<FragmentAnnotationDetail_> >::const_iterator ait = shifted_y_ions.begin(); ait != shifted_y_ions.end(); ++ait)
-            {
-              String s = String("y") + ait->first + ": ";
-              for (vector<FragmentAnnotationDetail_>::const_iterator sit = ait->second.begin(); sit != ait->second.end(); ++sit)
-              {
-                if (sit != ait->second.begin()) s += " | ";
-                s += sit->shift + "(" + String::number(sit->mz, 3) + "," + String::number(100.0 * sit->intensity, 1) + ")" + sit->charge + "+";
-              }
-              cout << s << endl;
-            }
-
+            cout << fragmentAnnotationDetailsToString_("y", shifted_y_ions) << endl;
             cout << "shifted a ions: " << endl;
-            for (map<Size, vector<FragmentAnnotationDetail_> >::const_iterator ait = shifted_a_ions.begin(); ait != shifted_a_ions.end(); ++ait)
-            {
-              String s = String("a") + ait->first + ": ";
-              for (vector<FragmentAnnotationDetail_>::const_iterator sit = ait->second.begin(); sit != ait->second.end(); ++sit)
-              {
-                if (sit != ait->second.begin()) s += " | ";
-                s += sit->shift + "(" + String::number(sit->mz, 3) + "," + String::number(100.0 * sit->intensity, 1) + ")" + sit->charge + "+";
-              }
-              cout << s << endl;
-            }
-
+            cout << fragmentAnnotationDetailsToString_("a", shifted_a_ions) << endl;
             cout << "shifted immonium ions: " << endl;
-            for (map<String, set<pair<String, double > > >::const_iterator ait = shifted_immonium_ions.begin(); ait != shifted_immonium_ions.end(); ++ait)
-            {
-              cout << ait->first << ": ";
-              for (set<pair<String, double > >::const_iterator sit = ait->second.begin(); sit != ait->second.end(); ++sit)
-              {
-                cout << sit->first << " ";
-              }
-              cout << endl;
-            }
+            cout << shiftedImmoniumIonsToString_(shifted_immonium_ions) << endl;
             cout << "shifted marker ions: " << endl;
-            for (map<String, set<String> >::const_iterator ait = annotated_marker_ions.begin(); ait != annotated_marker_ions.end(); ++ait)
-            {
-              cout << ait->first << ": ";
-              for (set<String>::const_iterator sit = ait->second.begin(); sit != ait->second.end(); ++sit)
-              {
-                cout << *sit << " ";
-              }
-              cout << endl;
-            }
+            cout << shiftedMarkerIonsToString_(annotated_marker_ions) << endl;
             cout << "Localization scores: ";
             cout << localization_scores << endl;
             cout << "Localisation based on ion series and immonium ions of all observed fragments: ";
@@ -1210,6 +1228,10 @@ private:
           ph.setMetaValue(String("RNPxl:localization_scores"), a_it->localization_scores);
           ph.setMetaValue(String("RNPxl:best_localization"), a_it->best_localization);
 
+          if (!a_it->fragment_annotation_string.empty())
+          {
+            ph.setMetaValue(String("RNPxl:fragment_annotation"), a_it->fragment_annotation_string);
+          }
           // set the amino acid sequence (for complete loss spectra this is just the variable and modified peptide. For partial loss spectra it additionally contains the loss induced modification)
           ph.setSequence(fixed_and_variable_modified_peptide);
           phs.push_back(ph);
