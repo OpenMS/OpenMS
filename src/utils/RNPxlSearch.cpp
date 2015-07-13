@@ -82,7 +82,7 @@
 #define NUMBER_OF_THREADS (1)
 #endif
 
-#define DEBUG_RNPXLSEARCH 
+//#define DEBUG_RNPXLSEARCH 
 
 using namespace OpenMS;
 using namespace std;
