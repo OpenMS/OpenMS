@@ -1,4 +1,8 @@
-# define build name&co for easier identification on cdassh
+##
+## this script is invoked by lnx-cibuild.sh during the main "script:" section in .travis.yml
+##
+
+# define build name&co for easier identification on cdash
 set(CTEST_BUILD_NAME "$ENV{BUILD_NAME}")
 
 set(CTEST_SITE "travis-ci-build-server")
@@ -14,8 +18,9 @@ BOOST_USE_STATIC=Off
 CMAKE_BUILD_TYPE=Release
 ENABLE_TUTORIALS=Off
 ENABLE_GCC_WERROR=On
-ENABLE_UNITYBUILD=$ENV{ENABLE_UNITYBUILD}
 ENABLE_STYLE_TESTING=$ENV{ENABLE_STYLE_TESTING}
+ENABLE_TOPP_TESTING=$ENV{ENABLE_TOPP_TESTING}
+ENABLE_CLASS_TESTING=$ENV{ENABLE_CLASS_TESTING}
 WITH_GUI=$ENV{WITH_GUI}"
 )
 
@@ -40,6 +45,11 @@ set (CTEST_CUSTOM_WARNING_EXCEPTION
 # try to speed up the builds so we don't get killed
 set(CTEST_BUILD_FLAGS -j3)
 
+## speed up compile time on GCC
+if (CMAKE_COMPILER_IS_GNUCXX)
+	add_definitions(-O0)
+endif()
+
 # we want makefiles
 set(CTEST_CMAKE_GENERATOR "Unix Makefiles")
 
@@ -49,11 +59,14 @@ ctest_start     (Continuous)
 ctest_configure (BUILD "${CTEST_BINARY_DIRECTORY}" RETURN_VALUE _configure_ret)
 # we only build when we do non-style testing
 if("$ENV{ENABLE_STYLE_TESTING}" STREQUAL "Off")
-	ctest_build     (BUILD "${CTEST_BINARY_DIRECTORY}" NUMBER_ERRORS _build_errors)
+	ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" NUMBER_ERRORS _build_errors)
 else()
 	set(_build_errors 0)
 endif()
-ctest_test      (BUILD "${CTEST_BINARY_DIRECTORY}" PARALLEL_LEVEL 3)
+
+## build lib&executables, run tests
+ctest_test(BUILD "${CTEST_BINARY_DIRECTORY}" PARALLEL_LEVEL 3)
+## send to cdash
 ctest_submit()
 
 # indicate errors

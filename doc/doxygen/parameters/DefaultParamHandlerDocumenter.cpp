@@ -38,6 +38,7 @@
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmBest.h>
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPIons.h>
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmRanks.h>
+#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmWorst.h>
 #include <OpenMS/ANALYSIS/ID/PILISScoring.h>
 #include <OpenMS/ANALYSIS/ID/PILISModel.h>
 #include <OpenMS/ANALYSIS/ID/PILISModelGenerator.h>
@@ -361,6 +362,7 @@ int main(int argc, char** argv)
   DOCME(ConsensusIDAlgorithmPEPIons);
   DOCME(ConsensusIDAlgorithmPEPMatrix);
   DOCME(ConsensusIDAlgorithmRanks);
+  DOCME(ConsensusIDAlgorithmWorst);
   DOCME(DetectabilitySimulation);
   DOCME(DIAScoring);
   DOCME(DigestSimulation);

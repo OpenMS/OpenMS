@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -535,6 +536,15 @@ protected:
       return INPUT_FILE_EMPTY;
     }
     
+    // remove protein hits that shouldn't be there:
+    for (vector<ProteinIdentification>::iterator prot_it = proteins.begin();
+         prot_it != proteins.end(); ++prot_it)
+    {
+      ProteinIdentification filtered;
+      IDFilter::removeUnreferencedProteinHits(*prot_it, peptides, filtered);
+      *prot_it = filtered;
+    }
+
     // sanitize protein accessions:
     set<String> accessions;
     for (vector<ProteinIdentification>::iterator prot_it = proteins.begin();
@@ -638,6 +648,9 @@ protected:
                prot_it->getHits().rbegin(); hit_it !=
                prot_it->getHits().rend(); ++hit_it)
         {
+          // save original score type:
+          // @TODO: does this make sense if we have potentially different score
+          // types from different search engines?
           hit_it->setMetaValue("old_score_type", prot_it->getScoreType());
           hit_map[hit_it->getAccession()] = &(*hit_it);
         }

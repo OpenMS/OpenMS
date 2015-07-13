@@ -28,61 +28,32 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Junker $
-// $Authors: Johannes Junker $
+// $Maintainer: Hendrik Weisser $
+// $Authors: Sven Nahnsen, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_DIALOGS_TOPPASINPUTFILESDIALOG_H
-#define OPENMS_VISUAL_DIALOGS_TOPPASINPUTFILESDIALOG_H
+#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmWorst.h>
 
-// OpenMS_GUI config
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+#include <cmath>
 
-#include <OpenMS/VISUAL/DIALOGS/UIC/ui_TOPPASInputFilesDialog.h>
+using namespace std;
 
 namespace OpenMS
 {
-  /**
-      @brief Dialog which allows to specify a list of input files
-
-      @ingroup TOPPAS_elements
-      @ingroup Dialogs
-  */
-  class OPENMS_GUI_DLLAPI TOPPASInputFilesDialog :
-    public QDialog,
-    public Ui::TOPPASInputFilesDialogTemplate
+  ConsensusIDAlgorithmWorst::ConsensusIDAlgorithmWorst()
   {
-    Q_OBJECT
+    setName("ConsensusIDAlgorithmWorst"); // DefaultParamHandler
+  }
 
-public:
-    /// support drag'n'drop of files from OS window manager
-    void dragEnterEvent(QDragEnterEvent *e);
-    /// support drag'n'drop of files from OS window manager
-    void dropEvent(QDropEvent *e);
 
-    /// Constructor
-    TOPPASInputFilesDialog(const QStringList& list);
+  double ConsensusIDAlgorithmWorst::getAggregateScore_(vector<double>& scores,
+                                                       bool higher_better)
+  {
+    if (higher_better)
+    {
+      return *min_element(scores.begin(), scores.end());
+    }
+    return *max_element(scores.begin(), scores.end());
+  }
 
-    /// Stores the list of all filenames in the list widget in @p files
-    void getFilenames(QStringList& files) const;
-
-    /// support Ctrl+C to copy currently selected items to clipboard
-    virtual void keyPressEvent(QKeyEvent *e);
-
-public slots:
-
-    /// Lets the user select files via a file dialog
-    void showFileDialog();
-    /// Removes all currently selected files from the list
-    void removeSelected();
-    /// Removes all files from the list
-    void removeAll();
-    /// Shows a TOPPASInputFileDialog which edits the current item
-    void editCurrentItem();
-    /// Moves the current item up/downwards
-    void moveCurrentItem();
-
-  };
-
-}
-#endif // OPENMS_VISUAL_DIALOGS_TOPPASINPUTFILESDIALOG_H
+} // namespace OpenMS
