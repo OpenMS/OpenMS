@@ -329,7 +329,7 @@ namespace OpenMS
       // map to multiple residues), we calculate a monoisotopic mass from the
       // delta mass.
       // First the internal (inside an AA chain) weight of the residue.
-      double internal_weight = residue_->getMonoWeight() - residue_->getInternalToFullMonoWeight(); 
+      double internal_weight = residue_->getMonoWeight() - residue_->getInternalToFull().getMonoWeight(); 
       if ( fabs((*it)->getDiffMonoMass() + internal_weight - mass) < min_error)
       {
         String origin = (*it)->getOrigin();

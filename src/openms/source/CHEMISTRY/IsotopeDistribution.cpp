@@ -244,6 +244,9 @@ namespace OpenMS
 
   void IsotopeDistribution::convolvePow_(ContainerType & result, const ContainerType & input, Size n) const
   {
+
+    // TODO: Maybe use FFT convolve
+    
     /*
     // my code
     ContainerType tmp, tmp_result;

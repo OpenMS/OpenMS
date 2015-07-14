@@ -238,7 +238,10 @@ namespace OpenMS
     double intensity(0);
     bool add_first_prefix_ion(param_.getValue("add_first_prefix_ion").toBool());
 
-    // generate the ion peaks
+    // Generate the ion peaks:
+    // Does not generate peaks of full peptide (therefore "<").
+    // They are added via precursor mass (and neutral losses).
+    // Could be changed in the future.
     switch (res_type)
     {
     case Residue::AIon:
