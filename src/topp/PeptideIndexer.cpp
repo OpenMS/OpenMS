@@ -71,28 +71,23 @@ using namespace std;
     </table>
 </CENTER>
 
-  Each peptide hit is annotated by a target_decoy string,
-  indicating if the peptide sequence is found in a 'target' protein, a 'decoy' protein, or in both 'target+decoy' proteins. This information is
-  crucial for the @ref TOPP_FalseDiscoveryRate @ref TOPP_IDPosteriorErrorProbability tools.
+  All peptide and protein hits are annotated with target/decoy information, using the meta value "target_decoy". For proteins the possible values are "target" and "decoy", depending on whether the protein accession contains the decoy pattern (parameter @p decoy_string) as a suffix or prefix, respectively (see parameter @p prefix). For peptides, the possible values are "target", "decoy" and "target+decoy", depending on whether the peptide sequence is found only in target proteins, only in decoy proteins, or in both. The target/decoy information is crucial for the @ref TOPP_FalseDiscoveryRate tool. (For FDR calculations, "target+decoy" peptide hits count as target hits.)
 
   @note Make sure that your protein names in the database contain a correctly formatted decoy string. This can be ensured by using @ref UTILS_DecoyDatabase.
         If the decoy identifier is not recognized successfully all proteins will be assumed to stem from the target-part of the query.<br>
         E.g., "sw|P33354_REV|YEHR_ECOLI Uncharacterized lipop..." is <b>invalid</b>, since the tool has no knowledge of how SwissProt entries are build up.
-        A correct identifier could be "rev_sw|P33354|YEHR_ECOLI Uncharacterized li ..." or "sw|P33354|YEHR_ECOLI_rev Uncharacterized li", depending on if you are
+        A correct identifier could be "rev_sw|P33354|YEHR_ECOLI Uncharacterized li ..." or "sw|P33354|YEHR_ECOLI_rev Uncharacterized li", depending on whether you are
         using prefix annotation or not.<br>
-        This tool will also give you some target/decoy statistics when its done. Look carefully!
+        This tool will also report some helpful target/decoy statistics when it is done.
 
-
-  This tool supports relative database filenames, which (when not found in the current working directory) are looked up in the directories specified 
+  PeptideIndexer supports relative database filenames, which (when not found in the current working directory) are looked up in the directories specified 
   by @p OpenMS.ini:id_db_dir (see @subpage TOPP_advanced).
 
-  By default the tool will fail if an unmatched peptide occurs, i.e. the database does not contain the corresponding protein.
-  You can force the tool to return successfully in this case by using the flag @p allow_unmatched.
+  By default this tool will fail if an unmatched peptide occurs, i.e. if the database does not contain the corresponding protein.
+  You can force it to return successfully in this case by using the flag @p allow_unmatched.
 
-  Some search engines (such as Mascot) will replace ambiguous amino acids ('B', 'Z', and 'X') in the protein database with unambiguous 
-  amino acids in the reported peptides, e.g. exchange 'X' with 'H'.
-  This will cause this peptide not to be found by exactly matching its sequence to the database. However, we can recover these cases
-  by using tolerant search (done automatically).
+  Some search engines (such as Mascot) will replace ambiguous amino acids ('B', 'Z', and 'X') in the protein database with unambiguous amino acids in the reported peptides, e.g. exchange 'X' with 'H'.
+  This will cause such peptides to not be found by exactly matching their sequences to the database. However, we can recover these cases by using tolerant search (done automatically).
 
   Two search modes are available:
     - exact: [default mode] Peptide sequences require exact match in protein database.
@@ -110,8 +105,7 @@ using namespace std;
   The exact mode also supports usage of multiple threads (@p threads option) to speed up computation even further, at the cost of some memory.
   If tolerant searching needs to be done for unassigned peptides,
   the latter will consume the major share of the runtime.
-  Independent of whether exact or tolerant search is used, we require ambiguous amino acids in peptide sequences to match exactly in the
-  protein DB (i.e. 'X' in a peptide only matches 'X' in the database).
+  Independent of whether exact or tolerant search is used, we require ambiguous amino acids in peptide sequences to match exactly in the protein DB (i.e. 'X' in a peptide only matches 'X' in the database).
 
   Leucine/Isoleucine:
   Further complications can arise due to the presence of the isobaric amino acids isoleucine ('I') and leucine ('L') in protein sequences. 
@@ -132,7 +126,7 @@ using namespace std;
   You can relax the requirements further by choosing <tt>semi-tryptic</tt> (only one of two "internal" termini must match requirements) 
   or <tt>none</tt> (essentially allowing all hits, no matter their context).
 
-  @note For mzid in-/out- put, you are temporarily asked to use IDFileConverter as a wrapper.
+  @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_PeptideIndexer.cli
@@ -479,6 +473,7 @@ protected:
     registerOutputFile_("out", "<file>", "", "Output idXML file.");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerStringOption_("decoy_string", "<string>", "_rev", "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.", false);
+    registerFlag_("prefix", "If set, protein accessions in the database contain 'decoy_string' as prefix.");
     registerStringOption_("missing_decoy_action", "<action>", "error", "Action to take if NO peptide was assigned to a decoy protein (which indicates wrong database or decoy string): 'error' (exit with error, no output), 'warn' (exit with success, warning message)", false);
     setValidStrings_("missing_decoy_action", ListUtils::create<String>("error,warn"));
 
@@ -497,8 +492,6 @@ protected:
     spec.assign(EnzymaticDigestion::NamesOfSpecificity, EnzymaticDigestion::NamesOfSpecificity + EnzymaticDigestion::SIZE_OF_SPECIFICITY);
     setValidStrings_("enzyme:specificity", spec);
 
-    registerFlag_("prefix", "If set, protein accessions in the database contain 'decoy_string' as prefix.");
-    registerFlag_("annotate_proteins", "If set, add target/decoy information to proteins (as well as peptides).");
     registerFlag_("write_protein_sequence", "If set, the protein sequences are stored as well.");
     registerFlag_("write_protein_description", "If set, the protein description is stored as well.");
     registerFlag_("keep_unreferenced_proteins", "If set, protein hits which are not referenced by any peptide are kept.");
@@ -998,15 +991,12 @@ protected:
       prot_ids[run_idx].setHits(new_protein_hits);
     }
 
-    /// if requested, store target/decoy status of proteins
-    if (getFlag_("annotate_proteins"))
+    // annotate target/decoy status of proteins:
+    for (vector<ProteinIdentification>::iterator id_it = prot_ids.begin(); id_it != prot_ids.end(); ++id_it)
     {
-      for (vector<ProteinIdentification>::iterator id_it = prot_ids.begin(); id_it != prot_ids.end(); ++id_it)
+      for (vector<ProteinHit>::iterator hit_it = id_it->getHits().begin(); hit_it != id_it->getHits().end(); ++hit_it)
       {
-        for (vector<ProteinHit>::iterator hit_it = id_it->getHits().begin(); hit_it != id_it->getHits().end(); ++hit_it)
-        {
-          hit_it->setMetaValue("target_decoy", (protein_is_decoy[hit_it->getAccession()] ? "decoy" : "target"));
-        }
+        hit_it->setMetaValue("target_decoy", (protein_is_decoy[hit_it->getAccession()] ? "decoy" : "target"));
       }
     }
 
