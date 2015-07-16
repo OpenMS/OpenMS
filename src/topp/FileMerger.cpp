@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Marc Sturm, Chris Bielow $
+// $Authors: Marc Sturm, Chris Bielow, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/TextFile.h>
@@ -42,6 +42,8 @@
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+
+#include <boost/regex.hpp>
 
 using namespace OpenMS;
 using namespace std;
@@ -309,44 +311,21 @@ protected:
           }
           else if (rt_filename)
           {
-            if (!filename.hasSubstring("rt"))
+            static const boost::regex re("rt(\\d+(\\.\\d+)?)");
+            boost::smatch match;
+            bool found = boost::regex_search(filename, match, re);
+            if (found)
             {
-              writeLog_(String("Warning: cannot guess retention time from filename as it does not contain 'rt'"));
+              rt_final = String(match[1]).toFloat();
             }
-            for (Size i = 0; i < filename.size(); ++i)
+            else
             {
-              if (filename[i] == 'r' && ++i != filename.size() && filename[i] == 't' && ++i != filename.size() && isdigit(filename[i]))
-              {
-                String rt;
-                while (i != filename.size() && (filename[i] == '.' || isdigit(filename[i])))
-                {
-                  rt += filename[i++];
-                }
-                if (rt.size() > 0)
-                {
-                  // remove dot from rt3892.98.dta
-                  //                          ^
-                  if (rt[rt.size() - 1] == '.')
-                  {
-                    // remove last character
-                    rt.erase(rt.end() - 1);
-                  }
-                }
-                try
-                {
-                  float tmp = rt.toFloat();
-                  rt_final = tmp;
-                }
-                catch (Exception::ConversionError)
-                {
-                  writeLog_(String("Warning: cannot convert the found retention time in a value '" + rt + "'."));
-                }
-              }
+              writeLog_("Warning: could not extract retention time from filename '" + filename + "'");
             }
           }
 
           // none of the rt methods were successful
-          if (rt_final == -1)
+          if (rt_final < 0)
           {
             writeLog_(String("Warning: No valid retention time for output scan '") + rt_auto + "' from file '" + filename + "'");
           }
