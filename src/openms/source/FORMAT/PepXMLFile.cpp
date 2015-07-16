@@ -119,7 +119,7 @@ namespace OpenMS
     {
       base_name = mz_name;
     }
-    if (base_name.hasSubstring(".")) // spectrum query name is splited by dot, otherwise correct charge can not be read.
+    if (base_name.hasSubstring(".")) // spectrum query name is split by dot, otherwise correct charge can not be read.
     {
       replace(base_name.begin(), base_name.end(), '.', '_');
     }
@@ -617,7 +617,7 @@ namespace OpenMS
     {
       fatalError(LOAD, "Found no experiment with name '" + experiment_name + "'");
     }
-    // clean up duplicate ProteinHits in each ProteinIdentification separatly:
+    // clean up duplicate ProteinHits in each ProteinIdentification separately:
     // (can't use "sort" and "unique" because no "op<" defined for ProteinHit)
     for (vector<ProteinIdentification>::iterator prot_it = proteins.begin();
          prot_it != proteins.end(); ++prot_it)
