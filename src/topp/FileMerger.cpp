@@ -116,15 +116,11 @@ protected:
     registerFlag_("annotate_file_origin", "Store the original filename in each feature using meta value \"file_origin\" (for featureXML and consensusXML only).");
 
     addEmptyLine_();
-    registerTOPPSubsection_("raw", "Flags for non-featureXML input/output");
+    registerTOPPSubsection_("raw", "Options for raw data input/output (primarily for DTA files)");
     registerFlag_("raw:rt_auto", "Assign retention times automatically (integers starting at 1)");
-    registerDoubleList_("raw:rt_custom", "<rt>", DoubleList(), "List of custom retention times that are assigned to the files. The number of given retention times must be equal to the number of given input file.", false);
-    registerFlag_("raw:rt_filename", "If this flag is set FileMerger tries to guess the rt of the file name.\n"
-                                     "This option is useful for merging DTA file, which should contain the string\n"
-                                     "'rt' directly followed by a floating point number:\n"
-                                     "i.e. my_spectrum_rt2795.15.dta");
-    registerIntOption_("raw:ms_level", "<num>", 2, "This option is useful for use with DTA files which does not contain MS level information. The given level is assigned to the spectra.", false);
-    registerFlag_("raw:user_ms_level", "If this flag is set, the MS level given above is used");
+    registerDoubleList_("raw:rt_custom", "<rts>", DoubleList(), "List of custom retention times that are assigned to the files. The number of given retention times must be equal to the number of input files.", false);
+    registerFlag_("raw:rt_filename", "Try to guess the retention time of a file based on the filename. This option is useful for merging DTA files, where filenames should contain the string 'rt' directly followed by a floating point number, e.g. 'my_spectrum_rt2795.15.dta'");
+    registerIntOption_("raw:ms_level", "<num>", 0, "If 1 or higher, this number is assigned to spectra as the MS level. This option is useful for DTA files which do not contain MS level information.", false);
   }
 
   ExitCodes main_(int, const char**)
@@ -251,7 +247,7 @@ protected:
       //... well, what was coded here did a) nothing what was not done already in the code and b) nothing what the above comment kind of claims
       // instead, type assesment for loading has to be done for each file in the list
 
-      //rt
+      // RT
       bool rt_auto_number = getFlag_("raw:rt_auto");
       bool rt_filename = getFlag_("raw:rt_filename");
       bool rt_custom = false;
@@ -267,8 +263,8 @@ protected:
         }
       }
 
-      //ms level
-      bool user_ms_level = getFlag_("raw:user_ms_level");
+      // MS level
+      Int ms_level = getIntOption_("raw:ms_level");
 
       MSExperiment<> out;
       out.reserve(file_list.size());
@@ -334,9 +330,9 @@ protected:
           out.getSpectra().back().setRT(rt_final);
           out.getSpectra().back().setNativeID(native_id);
 
-          if (user_ms_level)
+          if (ms_level > 0)
           {
-            out.getSpectra().back().setMSLevel((int)getIntOption_("raw:ms_level"));
+            out.getSpectra().back().setMSLevel(ms_level);
           }
           ++native_id;
         }
