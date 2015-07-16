@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche $
-// $Authors: Stephan Aiche $
+// $Authors: Stephan Aiche, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>
@@ -42,101 +42,85 @@
 
 using std::vector;
 
-
 namespace OpenMS
 {
-  void MapAlignmentTransformer::transformPeakMaps(vector<MSExperiment<> >& maps,
-                                                  const vector<TransformationDescription>& given_trafos)
+
+  void MapAlignmentTransformer::checkInputSizes_(Size maps_size,
+                                                 Size trafos_size)
   {
-    typedef vector<MSExperiment<> >::iterator TMapIterator;
-    typedef vector<TransformationDescription>::const_iterator TTrafoIterator;
-
-    if (given_trafos.size() != maps.size())
+    if (trafos_size != maps_size)
     {
-      throw Exception::IllegalArgument(__FILE__,
-                                       __LINE__,
-                                       __PRETTY_FUNCTION__,
-                                       String("MapAlignmentTransformer expects one given transformation (got: ")
-                                       + given_trafos.size()
-                                       + ") per input map (got: "
-                                       + maps.size()
-                                       + "), these numbers are not equal");
-    }
-
-    TMapIterator mapIter = maps.begin();
-    TTrafoIterator trafoIter = given_trafos.begin();
-
-    for (; mapIter != maps.end() && trafoIter != given_trafos.end();
-         ++mapIter,
-         ++trafoIter)
-    {
-      transformSinglePeakMap(*mapIter, *trafoIter);
+      String msg = "MapAlignmentTransformer expects one transformation per "
+        "input map (got " + String(trafos_size) + " transformations and " + 
+        String(maps_size) + " input maps)";
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+                                       msg);
     }
   }
 
-  void MapAlignmentTransformer::transformSinglePeakMap(MSExperiment<>& msexp,
-                                                       const TransformationDescription& trafo)
+
+  void MapAlignmentTransformer::transformPeakMaps(
+    vector<MSExperiment<> >& maps,
+    const vector<TransformationDescription>& trafos)
+  {
+    checkInputSizes_(maps.size(), trafos.size());
+
+    vector<TransformationDescription>::const_iterator trafo_it = trafos.begin();
+    for (vector<MSExperiment<> >::iterator map_it = maps.begin();
+         map_it != maps.end(); ++map_it, ++trafo_it)
+    {
+      transformSinglePeakMap(*map_it, *trafo_it);
+    }
+  }
+
+
+  void MapAlignmentTransformer::transformSinglePeakMap(
+    MSExperiment<>& msexp, const TransformationDescription& trafo)
   {
     msexp.clearRanges();
 
     // Transform spectra
-    for (MSExperiment<>::iterator mse_iter = msexp.begin(); mse_iter != msexp.end(); ++mse_iter)
+    for (MSExperiment<>::iterator mse_iter = msexp.begin();
+         mse_iter != msexp.end(); ++mse_iter)
     {
       double rt = mse_iter->getRT();
       mse_iter->setRT(trafo.apply(rt));
     }
 
     // Also transform chromatograms
-    double rt;
-    std::vector<MSChromatogram<ChromatogramPeak> > chromatograms;
-    for (Size i = 0; i < msexp.getChromatograms().size(); i++)
+    for (Size i = 0; i < msexp.getNrChromatograms(); ++i)
     {
-      MSChromatogram<ChromatogramPeak> chromatogram = msexp.getChromatograms()[i];
+      MSChromatogram<ChromatogramPeak>& chromatogram = msexp.getChromatogram(i);
       for (Size j = 0; j < chromatogram.size(); j++)
       {
-        rt = chromatogram[j].getRT();
+        double rt = chromatogram[j].getRT();
         chromatogram[j].setRT(trafo.apply(rt));
       }
-      chromatograms.push_back(chromatogram);
     }
-    msexp.setChromatograms(chromatograms);
 
     msexp.updateRanges();
   }
 
-  void MapAlignmentTransformer::transformFeatureMaps(vector<FeatureMap >& maps,
-                                                     const vector<TransformationDescription>& given_trafos)
+
+  void MapAlignmentTransformer::transformFeatureMaps(
+    vector<FeatureMap>& maps, const vector<TransformationDescription>& trafos)
   {
-    typedef vector<FeatureMap >::iterator TFeatureMapsIterator;
-    typedef vector<TransformationDescription>::const_iterator TTrafoIterator;
+    checkInputSizes_(maps.size(), trafos.size());
 
-    if (given_trafos.size() != maps.size())
+    vector<TransformationDescription>::const_iterator trafo_it = trafos.begin();
+    for (vector<FeatureMap>::iterator map_it = maps.begin(); 
+         map_it != maps.end(); ++map_it, ++trafo_it)
     {
-      throw Exception::IllegalArgument(__FILE__,
-                                       __LINE__,
-                                       __PRETTY_FUNCTION__,
-                                       String("MapAlignmentTransformer expects one given transformation (got: ")
-                                       + given_trafos.size()
-                                       + ") per input map (got: "
-                                       + maps.size()
-                                       + "), these numbers are not equal");
-    }
-
-    TFeatureMapsIterator fmapIter = maps.begin();
-    TTrafoIterator trafoIter = given_trafos.begin();
-
-    for (; fmapIter != maps.end() && trafoIter != given_trafos.end();
-         ++fmapIter,
-         ++trafoIter)
-    {
-      transformSingleFeatureMap(*fmapIter, *trafoIter);
+      transformSingleFeatureMap(*map_it, *trafo_it);
     }
   }
 
-  void MapAlignmentTransformer::transformSingleFeatureMap(FeatureMap& fmap,
-                                                          const TransformationDescription& trafo)
+
+  void MapAlignmentTransformer::transformSingleFeatureMap(
+    FeatureMap& fmap, const TransformationDescription& trafo)
   {
-    for (vector<Feature>::iterator fmit = fmap.begin(); fmit != fmap.end(); ++fmit)
+    for (vector<Feature>::iterator fmit = fmap.begin(); fmit != fmap.end();
+         ++fmit)
     {
       applyToFeature_(*fmit, trafo);
     }
@@ -149,8 +133,9 @@ namespace OpenMS
     }
   }
 
-  void MapAlignmentTransformer::applyToBaseFeature_(BaseFeature& feature,
-                                                    const TransformationDescription& trafo)
+
+  void MapAlignmentTransformer::applyToBaseFeature_(
+    BaseFeature& feature, const TransformationDescription& trafo)
   {
     // transform feature position:
     double rt = feature.getRT();
@@ -164,8 +149,9 @@ namespace OpenMS
     }
   }
 
-  void MapAlignmentTransformer::applyToFeature_(Feature& feature,
-                                                const TransformationDescription& trafo)
+
+  void MapAlignmentTransformer::applyToFeature_(
+    Feature& feature, const TransformationDescription& trafo)
   {
     applyToBaseFeature_(feature, trafo);
 
@@ -178,9 +164,7 @@ namespace OpenMS
       ConvexHull2D::PointArrayType points = chiter->getHullPoints();
       chiter->clear();
       for (ConvexHull2D::PointArrayType::iterator points_iter = points.begin();
-           points_iter != points.end();
-           ++points_iter
-           )
+           points_iter != points.end(); ++points_iter)
       {
         double rt = (*points_iter)[Feature::RT];
         (*points_iter)[Feature::RT] = trafo.apply(rt);
@@ -190,47 +174,31 @@ namespace OpenMS
 
     // recurse into subordinates
     for (vector<Feature>::iterator subiter = feature.getSubordinates().begin();
-         subiter != feature.getSubordinates().end();
-         ++subiter)
+         subiter != feature.getSubordinates().end(); ++subiter)
     {
       applyToFeature_(*subiter, trafo);
     }
   }
 
-  void MapAlignmentTransformer::transformConsensusMaps(vector<ConsensusMap>& maps,
-                                                       const vector<TransformationDescription>& given_trafos)
+
+  void MapAlignmentTransformer::transformConsensusMaps(
+    vector<ConsensusMap>& maps, const vector<TransformationDescription>& trafos)
   {
-    typedef vector<ConsensusMap>::iterator TMapIterator;
-    typedef vector<TransformationDescription>::const_iterator TTrafoIterator;
+    checkInputSizes_(maps.size(), trafos.size());
 
-    if (given_trafos.size() != maps.size())
+    vector<TransformationDescription>::const_iterator trafo_it = trafos.begin();
+    for (vector<ConsensusMap>::iterator map_it = maps.begin();
+         map_it != maps.end(); ++map_it, ++trafo_it)
     {
-      throw Exception::IllegalArgument(__FILE__,
-                                       __LINE__,
-                                       __PRETTY_FUNCTION__,
-                                       String("MapAlignmentTransformer expects one given transformation (got: ")
-                                       + given_trafos.size()
-                                       + ") per input map (got: "
-                                       + maps.size()
-                                       + "), these numbers are not equal");
-    }
-
-    TMapIterator mapIter = maps.begin();
-    TTrafoIterator trafoIter = given_trafos.begin();
-
-    for (; mapIter != maps.end() && trafoIter != given_trafos.end();
-         ++mapIter,
-         ++trafoIter)
-    {
-      transformSingleConsensusMap(*mapIter, *trafoIter);
+      transformSingleConsensusMap(*map_it, *trafo_it);
     }
   }
 
-  void MapAlignmentTransformer::transformSingleConsensusMap(ConsensusMap& cmap,
-                                                            const TransformationDescription& trafo)
+
+  void MapAlignmentTransformer::transformSingleConsensusMap(
+    ConsensusMap& cmap, const TransformationDescription& trafo)
   {
-    for (ConsensusMap::Iterator cmit = cmap.begin(); cmit != cmap.end();
-         ++cmit)
+    for (ConsensusMap::Iterator cmit = cmap.begin(); cmit != cmap.end(); ++cmit)
     {
       applyToConsensusFeature_(*cmit, trafo);
     }
@@ -243,59 +211,45 @@ namespace OpenMS
     }
   }
 
-  void MapAlignmentTransformer::transformPeptideIdentifications(vector<vector<PeptideIdentification> >& maps,
-                                                                const vector<TransformationDescription>& given_trafos)
+
+  void MapAlignmentTransformer::transformPeptideIdentifications(
+    vector<vector<PeptideIdentification> >& maps,
+    const vector<TransformationDescription>& trafos)
   {
-    typedef vector<vector<PeptideIdentification> >::iterator TPeptideIdentificationsIterator;
-    typedef vector<TransformationDescription>::const_iterator TTrafoIterator;
+    checkInputSizes_(maps.size(), trafos.size());
 
-    if (given_trafos.size() != maps.size())
+    vector<TransformationDescription>::const_iterator trafo_it = trafos.begin();
+    for (vector<vector<PeptideIdentification> >::iterator pep_it = 
+           maps.begin(); pep_it != maps.end(); ++pep_it, ++trafo_it)
     {
-      throw Exception::IllegalArgument(__FILE__,
-                                       __LINE__,
-                                       __PRETTY_FUNCTION__,
-                                       String("MapAlignmentTransformer expects one given transformation (got: ")
-                                       + given_trafos.size()
-                                       + ") per input map (got: "
-                                       + maps.size()
-                                       + "), these numbers are not equal");
-    }
-
-    TPeptideIdentificationsIterator pepIdentIter = maps.begin();
-    TTrafoIterator trafoIter = given_trafos.begin();
-
-    for (; pepIdentIter != maps.end() && trafoIter != given_trafos.end();
-         ++pepIdentIter,
-         ++trafoIter)
-    {
-      transformSinglePeptideIdentification(*pepIdentIter, *trafoIter);
+      transformSinglePeptideIdentification(*pep_it, *trafo_it);
     }
   }
 
-  void MapAlignmentTransformer::transformSinglePeptideIdentification(vector<PeptideIdentification>& pepids,
-                                                                     const TransformationDescription& trafo)
+
+  void MapAlignmentTransformer::transformSinglePeptideIdentification(
+    vector<PeptideIdentification>& pep_ids,
+    const TransformationDescription& trafo)
   {
-    for (UInt pepid_index = 0; pepid_index < pepids.size(); ++pepid_index)
+    for (vector<PeptideIdentification>::iterator pep_it = pep_ids.begin(); 
+         pep_it != pep_ids.end(); ++pep_it)
     {
-      PeptideIdentification& pepid = pepids[pepid_index];
-      if (pepid.hasRT())
+      if (pep_it->hasRT())
       {
-        pepid.setRT(trafo.apply(pepid.getRT()));
+        pep_it->setRT(trafo.apply(pep_it->getRT()));
       }
     }
-
   }
 
-  void MapAlignmentTransformer::applyToConsensusFeature_(ConsensusFeature& feature,
-                                                         const TransformationDescription& trafo)
-  {
-    typedef ConsensusFeature::HandleSetType::const_iterator TConstHandleSetIterator;
 
+  void MapAlignmentTransformer::applyToConsensusFeature_(
+    ConsensusFeature& feature, const TransformationDescription& trafo)
+  {
     applyToBaseFeature_(feature, trafo);
 
     // apply to grouped features (feature handles):
-    for (TConstHandleSetIterator it = feature.getFeatures().begin();
-         it != feature.getFeatures().end();
+    for (ConsensusFeature::HandleSetType::const_iterator it = 
+           feature.getFeatures().begin(); it != feature.getFeatures().end();
          ++it)
     {
       double rt = it->getRT();

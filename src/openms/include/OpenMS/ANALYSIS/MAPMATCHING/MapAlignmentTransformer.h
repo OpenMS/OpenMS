@@ -44,7 +44,6 @@
 
 namespace OpenMS
 {
-
   class TransformationDescription;
   class ConsensusMap;
   class PeptideIdentification;
@@ -56,42 +55,63 @@ namespace OpenMS
   class OPENMS_DLLAPI MapAlignmentTransformer
   {
 
-public:
-    /// Applies the <i>given</i> transformations to peak maps
-    static void transformPeakMaps(std::vector<MSExperiment<> > & maps, const std::vector<TransformationDescription> & given_trafos);
+  public:
+    /// Applies the given transformations to peak maps
+    static void transformPeakMaps(
+      std::vector<MSExperiment<> >& maps, 
+      const std::vector<TransformationDescription>& trafos);
 
-    /// Applies the <i>given</i> transformations to feature maps
-    static void transformFeatureMaps(std::vector<FeatureMap > & maps, const std::vector<TransformationDescription> & given_trafos);
+    /// Applies the given transformations to feature maps
+    static void transformFeatureMaps(
+      std::vector<FeatureMap>& maps,
+      const std::vector<TransformationDescription>& trafos);
 
-    /// Applies the <i>given</i> transformations to consensus maps
-    static void transformConsensusMaps(std::vector<ConsensusMap> & maps, const std::vector<TransformationDescription> & given_trafos);
+    /// Applies the given transformations to consensus maps
+    static void transformConsensusMaps(
+      std::vector<ConsensusMap>& maps,
+      const std::vector<TransformationDescription>& trafos);
 
-    /// Applies the <i>given</i> transformations to peptide identifications
-    static void transformPeptideIdentifications(std::vector<std::vector<PeptideIdentification> > & maps, const std::vector<TransformationDescription> & given_trafos);
+    /// Applies the given transformations to peptide identifications
+    static void transformPeptideIdentifications(
+      std::vector<std::vector<PeptideIdentification> >& maps,
+      const std::vector<TransformationDescription>& trafos);
 
+    /// Applies the given transformation to a single peak map
+    static void transformSinglePeakMap(MSExperiment<>& msexp,
+                                       const TransformationDescription& trafo);
 
-    /// Applies the <i>given</i> transformations to a single peak map
-    static void transformSinglePeakMap(MSExperiment<> & msexp, const TransformationDescription & trafo);
+    /// Applies the given transformation to a single feature map
+    static void transformSingleFeatureMap(
+      FeatureMap& fmap, const TransformationDescription& trafo);
 
-    /// Applies the <i>given</i> transformations to a single feature map
-    static void transformSingleFeatureMap(FeatureMap & fmap, const TransformationDescription & trafo);
+    /// Applies the given transformation to a single consensus map
+    static void transformSingleConsensusMap(
+      ConsensusMap& cmap, const TransformationDescription& trafo);
 
-    /// Applies the <i>given</i> transformations to a single consensus map
-    static void transformSingleConsensusMap(ConsensusMap & cmap, const TransformationDescription & trafo);
+    /// Applies the given transformation to a single set of peptide identifications
+    static void transformSinglePeptideIdentification(
+      std::vector<PeptideIdentification>& pep_ids,
+      const TransformationDescription& trafo);
 
-    /// Applies the <i>given</i> transformations to a single peptide identification
-    static void transformSinglePeptideIdentification(std::vector<PeptideIdentification> & pepids, const TransformationDescription & trafo);
+  private:
+    /// Applies a transformation to a feature
+    static void applyToFeature_(Feature& feature,
+                                const TransformationDescription& trafo);
 
-private:
+    /// Applies a transformation to a basic feature
+    static void applyToBaseFeature_(BaseFeature& feature,
+                                    const TransformationDescription& trafo);
 
-    /// apply a transformation to a feature
-    static void applyToFeature_(Feature & feature, const TransformationDescription & trafo);
+    /// Applies a transformation to a consensus feature
+    static void applyToConsensusFeature_(
+      ConsensusFeature& feature, const TransformationDescription& trafo);
 
-    /// apply a transformation to a basic feature
-    static void applyToBaseFeature_(BaseFeature & feature, const TransformationDescription & trafo);
+    /** 
+        @brief Checks whether the number of input maps and transformations match
 
-    /// apply a transformation to a consensus feature
-    static void applyToConsensusFeature_(ConsensusFeature & feature, const TransformationDescription & trafo);
+        @throws Exception::IllegalArgument Numbers don't match
+    */
+    static void checkInputSizes_(Size maps_size, Size trafos_size);
 
   };
 } // namespace OpenMS
