@@ -129,10 +129,10 @@ protected:
     //-------------------------------------------------------------
     // parameter handling
     //-------------------------------------------------------------
-    //file list
+    // file list
     StringList file_list = getStringList_("in");
 
-    //file type
+    // file type
     FileHandler file_handler;
     FileTypes::Type force_type;
     if (getStringOption_("in_type").size() > 0)
@@ -144,7 +144,7 @@ protected:
       force_type = file_handler.getType(file_list[0]);
     }
 
-    //output file names and types
+    // output file names and types
     String out_file = getStringOption_("out");
 
     //-------------------------------------------------------------
@@ -176,7 +176,7 @@ protected:
       // writing output
       //-------------------------------------------------------------
 
-      //annotate output with data processing info
+      // annotate output with data processing info
       addDataProcessing_(out, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
 
       FeatureXMLFile f;
@@ -188,7 +188,7 @@ protected:
       ConsensusMap out;
       ConsensusXMLFile fh;
       fh.load(file_list[0], out);
-      //skip first file
+      // skip first file
       for (Size i = 1; i < file_list.size(); ++i)
       {
         ConsensusMap map;
@@ -209,7 +209,7 @@ protected:
       // writing output
       //-------------------------------------------------------------
 
-      //annotate output with data processing info
+      // annotate output with data processing info
       addDataProcessing_(out, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
 
       ConsensusXMLFile f;
@@ -230,7 +230,7 @@ protected:
       // writing output
       //-------------------------------------------------------------
 
-      //annotate output with data processing info
+      // annotate output with data processing info
       Software software;
       software.setName("FileMerger");
       software.setVersion(VersionInfo::getVersion());
@@ -239,14 +239,8 @@ protected:
       TraMLFile f;
       f.store(out_file, out);
     }
-    else
+    else // raw data input (e.g. mzML)
     {
-      // we might want to combine different types, thus we only
-      // query in_type (which applies to all files)
-      // and not the suffix or content of a single file
-      //... well, what was coded here did a) nothing what was not done already in the code and b) nothing what the above comment kind of claims
-      // instead, type assesment for loading has to be done for each file in the list
-
       // RT
       bool rt_auto_number = getFlag_("raw:rt_auto");
       bool rt_filename = getFlag_("raw:rt_filename");
@@ -287,7 +281,7 @@ protected:
         }
         out.reserve(out.size() + in.size());
 
-        //warn if custom RT and more than one scan in input file
+        // warn if custom RT and more than one scan in input file
         if (rt_custom && in.size() > 1)
         {
           writeLog_(String("Warning: More than one scan in file '") + filename + "'! All scans will have the same retention time!");
@@ -295,7 +289,7 @@ protected:
 
         for (MSExperiment<>::const_iterator it2 = in.begin(); it2 != in.end(); ++it2)
         {
-          //handle rt
+          // handle RT
           float rt_final = it2->getRT();
           if (rt_auto_number)
           {
@@ -367,7 +361,7 @@ protected:
       // writing output
       //-------------------------------------------------------------
 
-      //annotate output with data processing info
+      // annotate output with data processing info
       addDataProcessing_(out, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
 
       MzMLFile f;
