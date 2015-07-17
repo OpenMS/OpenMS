@@ -59,9 +59,18 @@ namespace OpenMS
   }
 
 
+  bool MapAlignmentTransformer::storeOriginalRT_(MetaInfoInterface& interface,
+                                                 double original_rt)
+  {
+    if (interface.metaValueExists("original_RT")) return false;
+    interface.setMetaValue("original_RT", original_rt);
+    return true;
+  }
+
+
   void MapAlignmentTransformer::transformPeakMaps(
     vector<MSExperiment<> >& maps,
-    const vector<TransformationDescription>& trafos)
+    const vector<TransformationDescription>& trafos, bool store_original_rt)
   {
     checkInputSizes_(maps.size(), trafos.size());
 
@@ -69,13 +78,14 @@ namespace OpenMS
     for (vector<MSExperiment<> >::iterator map_it = maps.begin();
          map_it != maps.end(); ++map_it, ++trafo_it)
     {
-      transformSinglePeakMap(*map_it, *trafo_it);
+      transformSinglePeakMap(*map_it, *trafo_it, store_original_rt);
     }
   }
 
 
   void MapAlignmentTransformer::transformSinglePeakMap(
-    MSExperiment<>& msexp, const TransformationDescription& trafo)
+    MSExperiment<>& msexp, const TransformationDescription& trafo,
+    bool store_original_rt)
   {
     msexp.clearRanges();
 
@@ -84,6 +94,7 @@ namespace OpenMS
          mse_iter != msexp.end(); ++mse_iter)
     {
       double rt = mse_iter->getRT();
+      if (store_original_rt) storeOriginalRT_(*mse_iter, rt);
       mse_iter->setRT(trafo.apply(rt));
     }
 
@@ -91,10 +102,17 @@ namespace OpenMS
     for (Size i = 0; i < msexp.getNrChromatograms(); ++i)
     {
       MSChromatogram<ChromatogramPeak>& chromatogram = msexp.getChromatogram(i);
+      vector<double> original_rts;
+      if (store_original_rt) original_rts.reserve(chromatogram.size());
       for (Size j = 0; j < chromatogram.size(); j++)
       {
         double rt = chromatogram[j].getRT();
+        if (store_original_rt) original_rts.push_back(rt);
         chromatogram[j].setRT(trafo.apply(rt));
+      }
+      if (store_original_rt && !chromatogram.metaValueExists("original_rt"))
+      {
+        chromatogram.setMetaValue("original_rt", original_rts);
       }
     }
 
@@ -103,7 +121,8 @@ namespace OpenMS
 
 
   void MapAlignmentTransformer::transformFeatureMaps(
-    vector<FeatureMap>& maps, const vector<TransformationDescription>& trafos)
+    vector<FeatureMap>& maps, const vector<TransformationDescription>& trafos,
+    bool store_original_rt)
   {
     checkInputSizes_(maps.size(), trafos.size());
 
@@ -111,49 +130,53 @@ namespace OpenMS
     for (vector<FeatureMap>::iterator map_it = maps.begin(); 
          map_it != maps.end(); ++map_it, ++trafo_it)
     {
-      transformSingleFeatureMap(*map_it, *trafo_it);
+      transformSingleFeatureMap(*map_it, *trafo_it, store_original_rt);
     }
   }
 
 
   void MapAlignmentTransformer::transformSingleFeatureMap(
-    FeatureMap& fmap, const TransformationDescription& trafo)
+    FeatureMap& fmap, const TransformationDescription& trafo,
+    bool store_original_rt)
   {
     for (vector<Feature>::iterator fmit = fmap.begin(); fmit != fmap.end();
          ++fmit)
     {
-      applyToFeature_(*fmit, trafo);
+      applyToFeature_(*fmit, trafo, store_original_rt);
     }
 
     // adapt RT values of unassigned peptides:
     if (!fmap.getUnassignedPeptideIdentifications().empty())
     {
       transformSinglePeptideIdentification(
-        fmap.getUnassignedPeptideIdentifications(), trafo);
+        fmap.getUnassignedPeptideIdentifications(), trafo, store_original_rt);
     }
   }
 
 
   void MapAlignmentTransformer::applyToBaseFeature_(
-    BaseFeature& feature, const TransformationDescription& trafo)
+    BaseFeature& feature, const TransformationDescription& trafo,
+    bool store_original_rt)
   {
     // transform feature position:
     double rt = feature.getRT();
+    if (store_original_rt) storeOriginalRT_(feature, rt);
     feature.setRT(trafo.apply(rt));
 
     // adapt RT values of annotated peptides:
     if (!feature.getPeptideIdentifications().empty())
     {
       transformSinglePeptideIdentification(feature.getPeptideIdentifications(),
-                                           trafo);
+                                           trafo, store_original_rt);
     }
   }
 
 
   void MapAlignmentTransformer::applyToFeature_(
-    Feature& feature, const TransformationDescription& trafo)
+    Feature& feature, const TransformationDescription& trafo,
+    bool store_original_rt)
   {
-    applyToBaseFeature_(feature, trafo);
+    applyToBaseFeature_(feature, trafo, store_original_rt);
 
     // loop over all convex hulls
     vector<ConvexHull2D>& convex_hulls = feature.getConvexHulls();
@@ -176,13 +199,14 @@ namespace OpenMS
     for (vector<Feature>::iterator subiter = feature.getSubordinates().begin();
          subiter != feature.getSubordinates().end(); ++subiter)
     {
-      applyToFeature_(*subiter, trafo);
+      applyToFeature_(*subiter, trafo, store_original_rt);
     }
   }
 
 
   void MapAlignmentTransformer::transformConsensusMaps(
-    vector<ConsensusMap>& maps, const vector<TransformationDescription>& trafos)
+    vector<ConsensusMap>& maps,
+    const vector<TransformationDescription>& trafos, bool store_original_rt)
   {
     checkInputSizes_(maps.size(), trafos.size());
 
@@ -190,31 +214,32 @@ namespace OpenMS
     for (vector<ConsensusMap>::iterator map_it = maps.begin();
          map_it != maps.end(); ++map_it, ++trafo_it)
     {
-      transformSingleConsensusMap(*map_it, *trafo_it);
+      transformSingleConsensusMap(*map_it, *trafo_it, store_original_rt);
     }
   }
 
 
   void MapAlignmentTransformer::transformSingleConsensusMap(
-    ConsensusMap& cmap, const TransformationDescription& trafo)
+    ConsensusMap& cmap, const TransformationDescription& trafo,
+    bool store_original_rt)
   {
     for (ConsensusMap::Iterator cmit = cmap.begin(); cmit != cmap.end(); ++cmit)
     {
-      applyToConsensusFeature_(*cmit, trafo);
+      applyToConsensusFeature_(*cmit, trafo, store_original_rt);
     }
 
     // adapt RT values of unassigned peptides:
     if (!cmap.getUnassignedPeptideIdentifications().empty())
     {
       transformSinglePeptideIdentification(
-        cmap.getUnassignedPeptideIdentifications(), trafo);
+        cmap.getUnassignedPeptideIdentifications(), trafo, store_original_rt);
     }
   }
 
 
   void MapAlignmentTransformer::transformPeptideIdentifications(
     vector<vector<PeptideIdentification> >& maps,
-    const vector<TransformationDescription>& trafos)
+    const vector<TransformationDescription>& trafos, bool store_original_rt)
   {
     checkInputSizes_(maps.size(), trafos.size());
 
@@ -222,30 +247,34 @@ namespace OpenMS
     for (vector<vector<PeptideIdentification> >::iterator pep_it = 
            maps.begin(); pep_it != maps.end(); ++pep_it, ++trafo_it)
     {
-      transformSinglePeptideIdentification(*pep_it, *trafo_it);
+      transformSinglePeptideIdentification(*pep_it, *trafo_it,
+                                           store_original_rt);
     }
   }
 
 
   void MapAlignmentTransformer::transformSinglePeptideIdentification(
     vector<PeptideIdentification>& pep_ids,
-    const TransformationDescription& trafo)
+    const TransformationDescription& trafo, bool store_original_rt)
   {
     for (vector<PeptideIdentification>::iterator pep_it = pep_ids.begin(); 
          pep_it != pep_ids.end(); ++pep_it)
     {
       if (pep_it->hasRT())
       {
-        pep_it->setRT(trafo.apply(pep_it->getRT()));
+        double rt = pep_it->getRT();
+        if (store_original_rt) storeOriginalRT_(*pep_it, rt);
+        pep_it->setRT(trafo.apply(rt));
       }
     }
   }
 
 
   void MapAlignmentTransformer::applyToConsensusFeature_(
-    ConsensusFeature& feature, const TransformationDescription& trafo)
+    ConsensusFeature& feature, const TransformationDescription& trafo,
+    bool store_original_rt)
   {
-    applyToBaseFeature_(feature, trafo);
+    applyToBaseFeature_(feature, trafo, store_original_rt);
 
     // apply to grouped features (feature handles):
     for (ConsensusFeature::HandleSetType::const_iterator it = 
