@@ -107,13 +107,14 @@ protected:
   void registerOptionsAndFlags_()
   {
     String file_formats = "mzML,featureXML,consensusXML,idXML";
-    registerInputFileList_("in", "<files>", StringList(), "Input files to transform (separated by blanks)", false);
+    // "in" is not required, in case we only want to invert a transformation:
+    registerInputFile_("in", "<file>", "", "Input file to transform (separated by blanks)", false);
     setValidFormats_("in", ListUtils::create<String>(file_formats));
-    registerOutputFileList_("out", "<files>", StringList(), "Output files separated by blanks. Either this option or 'trafo_out' have to be provided. They can be used together.", false);
+    registerOutputFile_("out", "<file>", "", "Output file. Either this option or 'trafo_out' have to be provided. They can be used together.", false);
     setValidFormats_("out", ListUtils::create<String>(file_formats));
-    registerInputFileList_("trafo_in", "<files>", StringList(), "Transformations to apply (files separated by blanks)");
+    registerInputFile_("trafo_in", "<file>", "", "Transformation to apply");
     setValidFormats_("trafo_in", ListUtils::create<String>("trafoXML"));
-    registerOutputFileList_("trafo_out", "<files>", StringList(), "Transformation output files separated by blanks. Either this option or 'out' have to be provided. They can be used together.", false);
+    registerOutputFile_("trafo_out", "<file>", "", "Transformation output file. Either this option or 'out' have to be provided. They can be used together.", false);
     setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
     registerFlag_("invert", "Invert transformations (approximatively) before applying them");
     registerFlag_("store_original_rt", "Store the original retention time (before transformation) as meta data");
@@ -127,15 +128,26 @@ protected:
     return getModelDefaults("none");
   }
 
+  template <class TFile, class TMap>
+  void applyTransformation_(const String& in, const String& out, 
+                            const TransformationDescription& trafo,
+                            TFile& file, TMap& map)
+  {
+    file.load(in, map);
+    MapAlignmentTransformer::transformRetentionTimes(map, trafo);
+    addDataProcessing_(map, getProcessingInfo_(DataProcessing::ALIGNMENT));
+    file.store(out, map);
+  }
+
   ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parameter handling
     //-------------------------------------------------------------
-    StringList ins = getStringList_("in");
-    StringList outs = getStringList_("out");
-    StringList trafo_ins = getStringList_("trafo_in");
-    StringList trafo_outs = getStringList_("trafo_out");
+    String in = getStringOption_("in");
+    String out = getStringOption_("out");
+    String trafo_in = getStringOption_("trafo_in");
+    String trafo_out = getStringOption_("trafo_out");
     Param model_params = getParam_().copy("model:", true);
     String model_type = model_params.getValue("type");
     model_params = model_params.copy(model_type + ":", true);
@@ -146,100 +158,68 @@ protected:
     //-------------------------------------------------------------
     // check for valid input
     //-------------------------------------------------------------
-    // check whether numbers of input and transformation input files is equal:
-    if (!ins.empty() && (ins.size() != trafo_ins.size()))
+    if (out.empty() && trafo_out.empty())
     {
-      writeLog_("Error: The number of input and transformation input files has to be equal!");
+      writeLog_("Error: Either a data or a transformation output file has to be provided (parameters 'out'/'trafo_out')");
       return ILLEGAL_PARAMETERS;
     }
-    // check whether some kind of output file is given:
-    if (outs.empty() && trafo_outs.empty())
+    if (in.empty() != out.empty())
     {
-      writeLog_("Error: Either data output or transformation output files have to be provided!");
-      return ILLEGAL_PARAMETERS;
-    }
-    // check whether number of input files equals number of output files:
-    if (!outs.empty() && (ins.size() != outs.size()))
-    {
-      writeLog_("Error: The number of input and output files has to be equal!");
-      return ILLEGAL_PARAMETERS;
-    }
-    if (!trafo_outs.empty() && (trafo_ins.size() != trafo_outs.size()))
-    {
-      writeLog_("Error: The number of transformation input and output files has to be equal!");
+      writeLog_("Error: Data input and output parameters ('in'/'out') must be used together");
       return ILLEGAL_PARAMETERS;
     }
 
     //-------------------------------------------------------------
-    // apply transformations
+    // apply transformation
     //-------------------------------------------------------------
-    progresslogger.startProgress(0, trafo_ins.size(),
-                                 "applying RT transformations");
-    for (Size i = 0; i < trafo_ins.size(); ++i)
+    TransformationXMLFile trafoxml;
+    TransformationDescription trafo;
+    trafoxml.load(trafo_in, trafo);
+    if (model_type != "none")
     {
-      TransformationXMLFile trafoxml;
-      TransformationDescription trafo;
-      trafoxml.load(trafo_ins[i], trafo);
-      if (model_type != "none")
-      {
-        trafo.fitModel(model_type, model_params);
-      }
-      if (getFlag_("invert"))
-      {
-        trafo.invert();
-      }
-      if (!trafo_outs.empty())
-      {
-        trafoxml.store(trafo_outs[i], trafo);
-      }
-      if (!ins.empty()) // load input
-      {
-        String in_file = ins[i];
-        FileTypes::Type in_type = FileHandler::getType(in_file);
-        if (in_type == FileTypes::MZML)
-        {
-          MzMLFile file;
-          MSExperiment<> map;
-          file.load(in_file, map);
-          MapAlignmentTransformer::transformRetentionTimes(map, trafo);
-          addDataProcessing_(map,
-                             getProcessingInfo_(DataProcessing::ALIGNMENT));
-          file.store(outs[i], map);
-        }
-        else if (in_type == FileTypes::FEATUREXML)
-        {
-          FeatureXMLFile file;
-          FeatureMap map;
-          file.load(in_file, map);
-          MapAlignmentTransformer::transformRetentionTimes(map, trafo);
-          addDataProcessing_(map,
-                             getProcessingInfo_(DataProcessing::ALIGNMENT));
-          file.store(outs[i], map);
-        }
-        else if (in_type == FileTypes::CONSENSUSXML)
-        {
-          ConsensusXMLFile file;
-          ConsensusMap map;
-          file.load(in_file, map);
-          MapAlignmentTransformer::transformRetentionTimes(map, trafo);
-          addDataProcessing_(map,
-                             getProcessingInfo_(DataProcessing::ALIGNMENT));
-          file.store(outs[i], map);
-        }
-        else if (in_type == FileTypes::IDXML)
-        {
-          IdXMLFile file;
-          vector<ProteinIdentification> proteins;
-          vector<PeptideIdentification> peptides;
-          file.load(in_file, proteins, peptides);
-          MapAlignmentTransformer::transformRetentionTimes(peptides, trafo);
-          // no "data processing" section in idXML
-          file.store(outs[i], proteins, peptides);
-        }
-      }
-      progresslogger.setProgress(i);
+      trafo.fitModel(model_type, model_params);
     }
-    progresslogger.endProgress();
+    if (getFlag_("invert"))
+    {
+      trafo.invert();
+    }
+    if (!trafo_out.empty())
+    {
+      trafoxml.store(trafo_out, trafo);
+    }
+    if (!in.empty()) // load input
+    {
+      FileTypes::Type in_type = FileHandler::getType(in);
+      if (in_type == FileTypes::MZML)
+      {
+        MzMLFile file;
+        MSExperiment<> map;
+        applyTransformation_(in, out, trafo, file, map);
+      }
+      else if (in_type == FileTypes::FEATUREXML)
+      {
+        FeatureXMLFile file;
+        FeatureMap map;
+        applyTransformation_(in, out, trafo, file, map);
+      }
+      else if (in_type == FileTypes::CONSENSUSXML)
+      {
+        ConsensusXMLFile file;
+        ConsensusMap map;
+        applyTransformation_(in, out, trafo, file, map);
+      }
+      else if (in_type == FileTypes::IDXML)
+      {
+        IdXMLFile file;
+        vector<ProteinIdentification> proteins;
+        vector<PeptideIdentification> peptides;
+        file.load(in, proteins, peptides);
+        MapAlignmentTransformer::transformRetentionTimes(peptides, trafo);
+        // no "data processing" section in idXML
+        file.store(out, proteins, peptides);
+      }
+    }
+
     return EXECUTION_OK;
   }
 

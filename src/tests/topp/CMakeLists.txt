@@ -802,13 +802,13 @@ add_test("TOPP_MapAlignerSpectrum_1_out3" ${DIFF} -in1 MapAlignerSpectrum_1_outp
 set_tests_properties("TOPP_MapAlignerSpectrum_1_out3" PROPERTIES DEPENDS "TOPP_MapAlignerSpectrum_1")
 
 #------------------------------------------------------------------------------
-# MapRTTransformer tests:
-add_test("TOPP_MapRTTransformer_1" ${TOPP_BIN_PATH}/MapRTTransformer -test -in ${DATA_DIR_TOPP}/MapRTTransformer_1_input.featureXML ${DATA_DIR_TOPP}/MapRTTransformer_1_input.featureXML -trafo_in ${DATA_DIR_TOPP}/MapRTTransformer_1_trafo1.trafoXML ${DATA_DIR_TOPP}/MapRTTransformer_1_trafo2.trafoXML -out MapRTTransformer_1_output1.tmp MapRTTransformer_1_output2.tmp)
-add_test("TOPP_MapRTTransformer_1_out1" ${DIFF} -in1 MapRTTransformer_1_output1.tmp -in2 ${DATA_DIR_TOPP}/MapRTTransformer_1_output1.featureXML )
+# MapRTTransformer tests
+# featureXML input:
+add_test("TOPP_MapRTTransformer_1" ${TOPP_BIN_PATH}/MapRTTransformer -test -in ${DATA_DIR_TOPP}/MapRTTransformer_1_input.featureXML -trafo_in ${DATA_DIR_TOPP}/MapRTTransformer_trafo_linear.trafoXML -out MapRTTransformer_1_output.tmp)
+add_test("TOPP_MapRTTransformer_1_out1" ${DIFF} -in1 MapRTTransformer_1_output.tmp -in2 ${DATA_DIR_TOPP}/MapRTTransformer_1_output.featureXML )
 set_tests_properties("TOPP_MapRTTransformer_1_out1" PROPERTIES DEPENDS "TOPP_MapRTTransformer_1")
-add_test("TOPP_MapRTTransformer_1_out2" ${DIFF} -in1 MapRTTransformer_1_output2.tmp -in2 ${DATA_DIR_TOPP}/MapRTTransformer_1_output2.featureXML )
-set_tests_properties("TOPP_MapRTTransformer_1_out2" PROPERTIES DEPENDS "TOPP_MapRTTransformer_1")
-add_test("TOPP_MapRTTransformer_2" ${TOPP_BIN_PATH}/MapRTTransformer -test -in ${DATA_DIR_TOPP}/MapRTTransformer_2_input.mzML -trafo_in ${DATA_DIR_TOPP}/MapRTTransformer_2_trafo.trafoXML -out MapRTTransformer_2_output.tmp)
+# mzML input:
+add_test("TOPP_MapRTTransformer_2" ${TOPP_BIN_PATH}/MapRTTransformer -test -in ${DATA_DIR_TOPP}/MapRTTransformer_2_input.mzML -trafo_in ${DATA_DIR_TOPP}/MapRTTransformer_trafo_linear.trafoXML -out MapRTTransformer_2_output.tmp)
 add_test("TOPP_MapRTTransformer_2_out1" ${DIFF} -in1 MapRTTransformer_2_output.tmp -in2 ${DATA_DIR_TOPP}/MapRTTransformer_2_output.mzML )
 set_tests_properties("TOPP_MapRTTransformer_2_out1" PROPERTIES DEPENDS "TOPP_MapRTTransformer_2")
 # "invert" option:
@@ -816,9 +816,13 @@ add_test("TOPP_MapRTTransformer_3" ${TOPP_BIN_PATH}/MapRTTransformer -test -inve
 add_test("TOPP_MapRTTransformer_3_out1" ${DIFF} -in1 MapRTTransformer_3_output.tmp -in2 ${DATA_DIR_TOPP}/MapRTTransformer_3_trafo.trafoXML )
 set_tests_properties("TOPP_MapRTTransformer_3_out1" PROPERTIES DEPENDS "TOPP_MapRTTransformer_3")
 # chromatograms
-add_test("TOPP_MapRTTransformer_4" ${TOPP_BIN_PATH}/MapRTTransformer -test -in ${DATA_DIR_TOPP}/MapRTTransformer_4_input.chrom.mzML -trafo_in ${DATA_DIR_TOPP}/MapRTTransformer_4_trafo.trafoXML -out MapRTTransformer_4_output.tmp)
+add_test("TOPP_MapRTTransformer_4" ${TOPP_BIN_PATH}/MapRTTransformer -test -in ${DATA_DIR_TOPP}/MapRTTransformer_4_input.chrom.mzML -trafo_in ${DATA_DIR_TOPP}/MapRTTransformer_trafo_linear.trafoXML -out MapRTTransformer_4_output.tmp)
 add_test("TOPP_MapRTTransformer_4_out1" ${DIFF} -in1 MapRTTransformer_4_output.tmp -in2 ${DATA_DIR_TOPP}/MapRTTransformer_4_output.chrom.mzML )
 set_tests_properties("TOPP_MapRTTransformer_4_out1" PROPERTIES DEPENDS "TOPP_MapRTTransformer_4")
+# no transformation:
+add_test("TOPP_MapRTTransformer_5" ${TOPP_BIN_PATH}/MapRTTransformer -test -in ${DATA_DIR_TOPP}/MapRTTransformer_1_input.featureXML -trafo_in ${DATA_DIR_TOPP}/MapRTTransformer_trafo_none.trafoXML -out MapRTTransformer_5_output.tmp)
+add_test("TOPP_MapRTTransformer_5_out1" ${DIFF} -in1 MapRTTransformer_5_output.tmp -in2 ${DATA_DIR_TOPP}/MapRTTransformer_5_output.featureXML )
+set_tests_properties("TOPP_MapRTTransformer_5_out1" PROPERTIES DEPENDS "TOPP_MapRTTransformer_5")
 
 #------------------------------------------------------------------------------
 # MascotAdapter tests
