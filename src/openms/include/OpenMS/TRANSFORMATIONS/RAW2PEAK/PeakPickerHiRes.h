@@ -197,7 +197,8 @@ public:
           }
 
           // checking signal-to-noise?
-          if ((i + 2 < input.size()) &&
+          if ((i > 1) &&
+              (i + 2 < input.size()) &&
               (left_neighbor_int < input[i - 2].getIntensity()) &&
               (right_neighbor_int < input[i + 2].getIntensity()) &&
               (act_snt_l2 >= signal_to_noise_) &&
