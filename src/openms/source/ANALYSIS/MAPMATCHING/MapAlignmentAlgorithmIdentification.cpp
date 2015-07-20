@@ -121,9 +121,7 @@ namespace OpenMS
     computeMedians_(rt_data, reference_, sorted);
     if (reference_.empty())
     {
-      throw Exception::MissingInformation(
-              __FILE__, __LINE__, __PRETTY_FUNCTION__,
-              "Could not extract retention time information from the reference file");
+      throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not extract retention time information from the reference file");
     }
   }
 
@@ -170,8 +168,7 @@ namespace OpenMS
     vector<SeqToList> rt_data(maps.size() - bool(reference_index_));
     for (Size i = 0, j = 0; i < maps.size(); ++i)
     {
-      if (i == reference_index_ - 1)
-        continue; // skip reference map, if any
+      if (i == reference_index_ - 1) continue; // skip reference map, if any
       getRetentionTimes_(maps[i], rt_data[j++]);
     }
     setProgress(1);
@@ -179,13 +176,13 @@ namespace OpenMS
     computeTransformations_(rt_data, transformations);
     setProgress(2);
 
-    // transformPeakMaps(maps, transformations);
+    // transformRetentionTimes(maps, transformations);
     setProgress(3);
     endProgress();
   }
 
   void MapAlignmentAlgorithmIdentification::alignFeatureMaps(
-    vector<FeatureMap >& maps,
+    vector<FeatureMap>& maps,
     vector<TransformationDescription>& transformations)
   {
     alignMaps(maps, transformations);
@@ -225,7 +222,7 @@ namespace OpenMS
     computeTransformations_(rt_data, transformations, true);
     setProgress(2);
 
-    // transformPeptideIdentifications(maps, transformations);
+    // transformRetentionTimes(maps, transformations);
     setProgress(3);
     endProgress();
   }

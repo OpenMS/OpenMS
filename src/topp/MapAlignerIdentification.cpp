@@ -141,7 +141,7 @@ private:
     for (Size i = 0; i < outs.size(); ++i)
     {
       progresslogger.setProgress(i);
-      //annotate output with data processing info:
+      // annotate output with data processing info:
       addDataProcessing_(maps[i], 
                          getProcessingInfo_(DataProcessing::ALIGNMENT));
       output_file.store(outs[i], maps[i]);
