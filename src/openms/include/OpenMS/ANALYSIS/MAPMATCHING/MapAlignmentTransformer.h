@@ -56,47 +56,23 @@ namespace OpenMS
   {
 
   public:
-    /// Applies the given transformations to peak maps
-    static void transformPeakMaps(
-      std::vector<MSExperiment<> >& maps, 
-      const std::vector<TransformationDescription>& trafos,
-      bool store_original_rt = false);
+    /// Applies the given transformation to a peak map
+    static void transformRetentionTimes(MSExperiment<>& msexp,
+                                        const TransformationDescription& trafo,
+                                        bool store_original_rt = false);
 
-    /// Applies the given transformations to feature maps
-    static void transformFeatureMaps(
-      std::vector<FeatureMap>& maps,
-      const std::vector<TransformationDescription>& trafos,
-      bool store_original_rt = false);
-
-    /// Applies the given transformations to consensus maps
-    static void transformConsensusMaps(
-      std::vector<ConsensusMap>& maps,
-      const std::vector<TransformationDescription>& trafos,
-      bool store_original_rt = false);
-
-    /// Applies the given transformations to peptide identifications
-    static void transformPeptideIdentifications(
-      std::vector<std::vector<PeptideIdentification> >& maps,
-      const std::vector<TransformationDescription>& trafos,
-      bool store_original_rt = false);
-
-    /// Applies the given transformation to a single peak map
-    static void transformSinglePeakMap(MSExperiment<>& msexp,
-                                       const TransformationDescription& trafo,
-                                       bool store_original_rt = false);
-
-    /// Applies the given transformation to a single feature map
-    static void transformSingleFeatureMap(
+    /// Applies the given transformation to a feature map
+    static void transformRetentionTimes(
       FeatureMap& fmap, const TransformationDescription& trafo,
       bool store_original_rt = false);
 
-    /// Applies the given transformation to a single consensus map
-    static void transformSingleConsensusMap(
+    /// Applies the given transformation to a consensus map
+    static void transformRetentionTimes(
       ConsensusMap& cmap, const TransformationDescription& trafo,
       bool store_original_rt = false);
 
-    /// Applies the given transformation to a single set of peptide identifications
-    static void transformSinglePeptideIdentification(
+    /// Applies the given transformation to peptide identifications
+    static void transformRetentionTimes(
       std::vector<PeptideIdentification>& pep_ids,
       const TransformationDescription& trafo, bool store_original_rt = false);
 
@@ -115,13 +91,6 @@ namespace OpenMS
     static void applyToConsensusFeature_(
       ConsensusFeature& feature, const TransformationDescription& trafo,
       bool store_original_rt = false);
-
-    /** 
-        @brief Checks whether the number of input maps and transformations match
-
-        @throws Exception::IllegalArgument Numbers don't match
-    */
-    static void checkInputSizes_(Size maps_size, Size trafos_size);
 
     /**
        @brief Stores the original RT in a meta value

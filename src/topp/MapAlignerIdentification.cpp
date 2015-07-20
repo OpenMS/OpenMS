@@ -229,8 +229,11 @@ private:
       {
         algorithm.fitModel(model_type, model_params, transformations);
       }
-      MapAlignmentTransformer::transformFeatureMaps(feature_maps, 
-                                                    transformations);
+      for (Size i = 0; i < feature_maps.size(); ++i)
+      {
+        MapAlignmentTransformer::transformRetentionTimes(feature_maps[i], 
+                                                         transformations[i]);
+      }
       if (!output_files.empty())
       {
         storeTransformedMaps_(feature_maps, output_files, fxml_file);
@@ -251,8 +254,11 @@ private:
       {
         algorithm.fitModel(model_type, model_params, transformations);
       }
-      MapAlignmentTransformer::transformConsensusMaps(consensus_maps, 
-                                                      transformations);
+      for (Size i = 0; i < consensus_maps.size(); ++i)
+      {
+        MapAlignmentTransformer::transformRetentionTimes(consensus_maps[i], 
+                                                         transformations[i]);
+      }
       if (!output_files.empty())
       {
         storeTransformedMaps_(consensus_maps, output_files, cxml_file);
@@ -282,9 +288,11 @@ private:
       {
         algorithm.fitModel(model_type, model_params, transformations);
       }
-      MapAlignmentTransformer::transformPeptideIdentifications(peptide_ids,
-                                                               transformations);
-
+      for (Size i = 0; i < peptide_ids.size(); ++i)
+      {
+        MapAlignmentTransformer::transformRetentionTimes(peptide_ids[i], 
+                                                         transformations[i]);
+      }
       if (!output_files.empty())
       {
         progresslogger.startProgress(0, output_files.size(),

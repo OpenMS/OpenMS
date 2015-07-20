@@ -120,7 +120,8 @@ START_SECTION((virtual void alignPeakMaps(std::vector< MSExperiment<> > &, std::
 	Param params;
 	params.setValue("interpolation_type", "cspline");
 	ma.fitModel(model_type, params, transformations);
-  MapAlignmentTransformer::transformPeakMaps(maps, transformations);
+  MapAlignmentTransformer::transformRetentionTimes(maps[0], transformations[0]);
+  MapAlignmentTransformer::transformRetentionTimes(maps[1], transformations[1]);
 	maps[0].updateRanges(-1);
 	maps[1].updateRanges(-1);
   for (Size i=0; i< maps[0].size(); ++i)

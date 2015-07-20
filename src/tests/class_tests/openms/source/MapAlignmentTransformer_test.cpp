@@ -77,275 +77,7 @@ START_SECTION(~MapAlignmentTransformer())
 }
 END_SECTION
 
-START_SECTION((static void transformPeakMaps(std::vector<MSExperiment<> >& maps, const std::vector<TransformationDescription>& trafos, bool store_original_rt = false)))
-{
-  // create experiment
-  MSExperiment<> exp;
-  MSExperiment<>::SpectrumType spec;
-
-  // first spectrum (MS)
-  spec.setRT(11.1);
-  spec.setMSLevel(1);
-  exp.addSpectrum(spec);
-
-  // second spectrum (MS/MS)
-  spec.clear(true);
-  spec.setRT(11.5);
-  spec.setMSLevel(2);
-  exp.addSpectrum(spec);
-
-  // third spectrum (MS)
-  spec.clear(true);
-  spec.setRT(12.2);
-  spec.setMSLevel(1);
-  exp.addSpectrum(spec);
-
-  // forth spectrum (MS/MS)
-  spec.clear(true);
-  spec.setRT(12.5);
-  spec.setMSLevel(2);
-  exp.addSpectrum(spec);
-
-  vector<MSExperiment<> > maps;
-  maps.push_back(exp);
-  maps.push_back(exp);
-
-  vector<TransformationDescription> trafos;
-  trafos.push_back(td);
-  trafos.push_back(td);
-
-  MapAlignmentTransformer::transformPeakMaps(maps, trafos);
-
-  // check the spectra:
-  TEST_EQUAL(maps[0][0].getRT(), 23.2);
-  TEST_EQUAL(maps[0][1].getRT(), 24.0);
-  TEST_EQUAL(maps[0][2].getRT(), 25.4);
-  TEST_EQUAL(maps[0][3].getRT(), 26.0);
-
-  TEST_EQUAL(maps[1][0].getRT(), 23.2);
-  TEST_EQUAL(maps[1][1].getRT(), 24.0);
-  TEST_EQUAL(maps[1][2].getRT(), 25.4);
-  TEST_EQUAL(maps[1][3].getRT(), 26.0);
-
-  // check storing of original RTs:
-  for (Size i = 0; i < 2; ++i)
-  {
-    for (Size j = 0; j < 4; ++j)
-    {
-      TEST_EQUAL(maps[i][j].metaValueExists("original_RT"), false);
-    }
-  }
-
-  MapAlignmentTransformer::transformPeakMaps(maps, trafos, true);
-  TEST_EQUAL(maps[0][0].getMetaValue("original_RT"), 23.2);
-  TEST_EQUAL(maps[0][1].getMetaValue("original_RT"), 24.0);
-  TEST_EQUAL(maps[0][2].getMetaValue("original_RT"), 25.4);
-  TEST_EQUAL(maps[0][3].getMetaValue("original_RT"), 26.0);
-
-  TEST_EQUAL(maps[1][0].getMetaValue("original_RT"), 23.2);
-  TEST_EQUAL(maps[1][1].getMetaValue("original_RT"), 24.0);
-  TEST_EQUAL(maps[1][2].getMetaValue("original_RT"), 25.4);
-  TEST_EQUAL(maps[1][3].getMetaValue("original_RT"), 26.0);
-
-  // number of input maps and transformations must match:
-  trafos.push_back(td);
-  TEST_EXCEPTION(Exception::IllegalArgument, MapAlignmentTransformer::transformPeakMaps(maps, trafos))
-}
-END_SECTION
-
-START_SECTION((static void transformFeatureMaps(std::vector<FeatureMap>& maps, const std::vector<TransformationDescription>& trafos, bool store_original_rt = false)))
-{
-  Feature f;
-  FeatureMap featMap;
-
-  f.setRT(11.1);
-  featMap.push_back(f);
-
-  f.setRT(11.5);
-  featMap.push_back(f);
-
-  f.setRT(12.2);
-  featMap.push_back(f);
-
-  f.setRT(12.5);
-  featMap.push_back(f);
-
-  vector<FeatureMap > maps;
-  maps.push_back(featMap);
-  maps.push_back(featMap);
-
-  vector<TransformationDescription> trafos;
-  trafos.push_back(td);
-  trafos.push_back(td);
-
-  MapAlignmentTransformer::transformFeatureMaps(maps, trafos);
-
-  // check the features:
-  TEST_EQUAL(maps[0][0].getRT(), 23.2)
-  TEST_EQUAL(maps[0][1].getRT(), 24.0)
-  TEST_EQUAL(maps[0][2].getRT(), 25.4)
-  TEST_EQUAL(maps[0][3].getRT(), 26.0)
-
-  TEST_EQUAL(maps[1][0].getRT(), 23.2)
-  TEST_EQUAL(maps[1][1].getRT(), 24.0)
-  TEST_EQUAL(maps[1][2].getRT(), 25.4)
-  TEST_EQUAL(maps[1][3].getRT(), 26.0)
-
-  // check storing of original RTs:
-  for (Size i = 0; i < 2; ++i)
-  {
-    for (Size j = 0; j < 4; ++j)
-    {
-      TEST_EQUAL(maps[i][j].metaValueExists("original_RT"), false);
-    }
-  }
-
-  MapAlignmentTransformer::transformFeatureMaps(maps, trafos, true);
-  TEST_EQUAL(maps[0][0].getMetaValue("original_RT"), 23.2);
-  TEST_EQUAL(maps[0][1].getMetaValue("original_RT"), 24.0);
-  TEST_EQUAL(maps[0][2].getMetaValue("original_RT"), 25.4);
-  TEST_EQUAL(maps[0][3].getMetaValue("original_RT"), 26.0);
-
-  TEST_EQUAL(maps[1][0].getMetaValue("original_RT"), 23.2);
-  TEST_EQUAL(maps[1][1].getMetaValue("original_RT"), 24.0);
-  TEST_EQUAL(maps[1][2].getMetaValue("original_RT"), 25.4);
-  TEST_EQUAL(maps[1][3].getMetaValue("original_RT"), 26.0);
-
-  // number of input maps and transformations must match:
-  trafos.push_back(td);
-  TEST_EXCEPTION(Exception::IllegalArgument, MapAlignmentTransformer::transformFeatureMaps(maps, trafos))
-}
-END_SECTION
-
-START_SECTION((static void transformConsensusMaps(std::vector<ConsensusMap>& maps, const std::vector<TransformationDescription>& trafos, bool store_original_rt = false)))
-{
-  ConsensusFeature cf;
-  ConsensusMap consensusMap;
-
-  cf.setRT(11.1);
-  consensusMap.push_back(cf);
-
-  cf.setRT(11.5);
-  consensusMap.push_back(cf);
-
-  cf.setRT(12.2);
-  consensusMap.push_back(cf);
-
-  cf.setRT(12.5);
-  consensusMap.push_back(cf);
-
-  vector<ConsensusMap> maps;
-  maps.push_back(consensusMap);
-  maps.push_back(consensusMap);
-
-  vector<TransformationDescription> trafos;
-  trafos.push_back(td);
-  trafos.push_back(td);
-
-  MapAlignmentTransformer::transformConsensusMaps(maps, trafos);
-
-  // check the consensus features:
-  TEST_EQUAL(maps[0][0].getRT(), 23.2)
-  TEST_EQUAL(maps[0][1].getRT(), 24.0)
-  TEST_EQUAL(maps[0][2].getRT(), 25.4)
-  TEST_EQUAL(maps[0][3].getRT(), 26.0)
-
-  TEST_EQUAL(maps[1][0].getRT(), 23.2)
-  TEST_EQUAL(maps[1][1].getRT(), 24.0)
-  TEST_EQUAL(maps[1][2].getRT(), 25.4)
-  TEST_EQUAL(maps[1][3].getRT(), 26.0)
-
-  // check storing of original RTs:
-  for (Size i = 0; i < 2; ++i)
-  {
-    for (Size j = 0; j < 4; ++j)
-    {
-      TEST_EQUAL(maps[i][j].metaValueExists("original_RT"), false);
-    }
-  }
-
-  MapAlignmentTransformer::transformConsensusMaps(maps, trafos, true);
-  TEST_EQUAL(maps[0][0].getMetaValue("original_RT"), 23.2);
-  TEST_EQUAL(maps[0][1].getMetaValue("original_RT"), 24.0);
-  TEST_EQUAL(maps[0][2].getMetaValue("original_RT"), 25.4);
-  TEST_EQUAL(maps[0][3].getMetaValue("original_RT"), 26.0);
-
-  TEST_EQUAL(maps[1][0].getMetaValue("original_RT"), 23.2);
-  TEST_EQUAL(maps[1][1].getMetaValue("original_RT"), 24.0);
-  TEST_EQUAL(maps[1][2].getMetaValue("original_RT"), 25.4);
-  TEST_EQUAL(maps[1][3].getMetaValue("original_RT"), 26.0);
-
-  // number of input maps and transformations must match:
-  trafos.push_back(td);
-  TEST_EXCEPTION(Exception::IllegalArgument, MapAlignmentTransformer::transformConsensusMaps(maps, trafos))
-}
-END_SECTION
-
-START_SECTION((static void transformPeptideIdentifications(std::vector<std::vector<PeptideIdentification> >& maps, const std::vector<TransformationDescription>& trafos, bool store_original_rt = false)))
-{
-  PeptideIdentification pi;
-  vector<PeptideIdentification> pis;
-
-  pi.setRT(11.1);
-  pis.push_back(pi);
-
-  pi.setRT(11.5);
-  pis.push_back(pi);
-
-  pi.setRT(12.2);
-  pis.push_back(pi);
-
-  pi.setRT(12.5);
-  pis.push_back(pi);
-
-  vector<vector<PeptideIdentification> > maps;
-  maps.push_back(pis);
-  maps.push_back(pis);
-
-  vector<TransformationDescription> trafos;
-  trafos.push_back(td);
-  trafos.push_back(td);
-
-  MapAlignmentTransformer::transformPeptideIdentifications(maps, trafos);
-
-  // check the peptide IDs:
-  TEST_EQUAL(maps[0][0].getRT(), 23.2)
-  TEST_EQUAL(maps[0][1].getRT(), 24.0)
-  TEST_EQUAL(maps[0][2].getRT(), 25.4)
-  TEST_EQUAL(maps[0][3].getRT(), 26.0)
-
-  TEST_EQUAL(maps[1][0].getRT(), 23.2)
-  TEST_EQUAL(maps[1][1].getRT(), 24.0)
-  TEST_EQUAL(maps[1][2].getRT(), 25.4)
-  TEST_EQUAL(maps[1][3].getRT(), 26.0)
-
-  // check storing of original RTs:
-  for (Size i = 0; i < 2; ++i)
-  {
-    for (Size j = 0; j < 4; ++j)
-    {
-      TEST_EQUAL(maps[i][j].metaValueExists("original_RT"), false);
-    }
-  }
-
-  MapAlignmentTransformer::transformPeptideIdentifications(maps, trafos, true);
-  TEST_EQUAL(maps[0][0].getMetaValue("original_RT"), 23.2);
-  TEST_EQUAL(maps[0][1].getMetaValue("original_RT"), 24.0);
-  TEST_EQUAL(maps[0][2].getMetaValue("original_RT"), 25.4);
-  TEST_EQUAL(maps[0][3].getMetaValue("original_RT"), 26.0);
-
-  TEST_EQUAL(maps[1][0].getMetaValue("original_RT"), 23.2);
-  TEST_EQUAL(maps[1][1].getMetaValue("original_RT"), 24.0);
-  TEST_EQUAL(maps[1][2].getMetaValue("original_RT"), 25.4);
-  TEST_EQUAL(maps[1][3].getMetaValue("original_RT"), 26.0);
-
-  // number of input maps and transformations must match:
-  trafos.push_back(td);
-  TEST_EXCEPTION(Exception::IllegalArgument, MapAlignmentTransformer::transformPeptideIdentifications(maps, trafos))
-}
-END_SECTION
-
-START_SECTION((static void transformSinglePeakMap(MSExperiment<>& msexp, const TransformationDescription& trafo, bool store_original_rt = false)))
+START_SECTION((static void transformRetentionTimes(MSExperiment<>& msexp, const TransformationDescription& trafo, bool store_original_rt = false)))
 {
   MSExperiment<> exp;
   MSExperiment<>::SpectrumType spec;
@@ -373,7 +105,7 @@ START_SECTION((static void transformSinglePeakMap(MSExperiment<>& msexp, const T
   spec.setMSLevel(2);
   exp.addSpectrum(spec);
 
-  MapAlignmentTransformer::transformSinglePeakMap(exp, td);
+  MapAlignmentTransformer::transformRetentionTimes(exp, td);
 
   // check the spectra:
   TEST_EQUAL(exp[0].getRT(), 23.2)
@@ -387,14 +119,14 @@ START_SECTION((static void transformSinglePeakMap(MSExperiment<>& msexp, const T
     TEST_EQUAL(exp[i].metaValueExists("original_RT"), false);
   }
 
-  MapAlignmentTransformer::transformSinglePeakMap(exp, td, true);
+  MapAlignmentTransformer::transformRetentionTimes(exp, td, true);
   TEST_EQUAL(exp[0].getMetaValue("original_RT"), 23.2);
   TEST_EQUAL(exp[1].getMetaValue("original_RT"), 24.0);
   TEST_EQUAL(exp[2].getMetaValue("original_RT"), 25.4);
   TEST_EQUAL(exp[3].getMetaValue("original_RT"), 26.0);
 
   // applying a transform again doesn't overwrite the original RTs:
-  MapAlignmentTransformer::transformSinglePeakMap(exp, td, true);
+  MapAlignmentTransformer::transformRetentionTimes(exp, td, true);
   TEST_EQUAL(exp[0].getMetaValue("original_RT"), 23.2);
   TEST_EQUAL(exp[1].getMetaValue("original_RT"), 24.0);
   TEST_EQUAL(exp[2].getMetaValue("original_RT"), 25.4);
@@ -402,7 +134,7 @@ START_SECTION((static void transformSinglePeakMap(MSExperiment<>& msexp, const T
 }
 END_SECTION
 
-START_SECTION((static void transformSingleFeatureMap(FeatureMap& fmap, const TransformationDescription& trafo, bool store_original_rt = false)))
+START_SECTION((static void transformRetentionTimes(FeatureMap& fmap, const TransformationDescription& trafo, bool store_original_rt = false)))
 {
   Feature f;
   FeatureMap featmap;
@@ -420,7 +152,7 @@ START_SECTION((static void transformSingleFeatureMap(FeatureMap& fmap, const Tra
   featmap.push_back(f);
 
 
-  MapAlignmentTransformer::transformSingleFeatureMap(featmap, td);
+  MapAlignmentTransformer::transformRetentionTimes(featmap, td);
 
   // check the features:
   TEST_EQUAL(featmap[0].getRT(), 23.2)
@@ -434,14 +166,14 @@ START_SECTION((static void transformSingleFeatureMap(FeatureMap& fmap, const Tra
     TEST_EQUAL(featmap[i].metaValueExists("original_RT"), false);
   }
 
-  MapAlignmentTransformer::transformSingleFeatureMap(featmap, td, true);
+  MapAlignmentTransformer::transformRetentionTimes(featmap, td, true);
   TEST_EQUAL(featmap[0].getMetaValue("original_RT"), 23.2);
   TEST_EQUAL(featmap[1].getMetaValue("original_RT"), 24.0);
   TEST_EQUAL(featmap[2].getMetaValue("original_RT"), 25.4);
   TEST_EQUAL(featmap[3].getMetaValue("original_RT"), 26.0);
 
   // applying a transform again doesn't overwrite the original RTs:
-  MapAlignmentTransformer::transformSingleFeatureMap(featmap, td, true);
+  MapAlignmentTransformer::transformRetentionTimes(featmap, td, true);
   TEST_EQUAL(featmap[0].getMetaValue("original_RT"), 23.2);
   TEST_EQUAL(featmap[1].getMetaValue("original_RT"), 24.0);
   TEST_EQUAL(featmap[2].getMetaValue("original_RT"), 25.4);
@@ -449,7 +181,7 @@ START_SECTION((static void transformSingleFeatureMap(FeatureMap& fmap, const Tra
 }
 END_SECTION
 
-START_SECTION((static void transformSingleConsensusMap(ConsensusMap& cmap, const TransformationDescription& trafo, bool store_original_rt = false)))
+START_SECTION((static void transformRetentionTimes(ConsensusMap& cmap, const TransformationDescription& trafo, bool store_original_rt = false)))
 {
   ConsensusFeature cf;
   ConsensusMap consensusmap;
@@ -466,7 +198,7 @@ START_SECTION((static void transformSingleConsensusMap(ConsensusMap& cmap, const
   cf.setRT(12.5);
   consensusmap.push_back(cf);
 
-  MapAlignmentTransformer::transformSingleConsensusMap(consensusmap, td);
+  MapAlignmentTransformer::transformRetentionTimes(consensusmap, td);
 
   // check the consensus features:
   TEST_EQUAL(consensusmap[0].getRT(), 23.2)
@@ -480,14 +212,14 @@ START_SECTION((static void transformSingleConsensusMap(ConsensusMap& cmap, const
     TEST_EQUAL(consensusmap[i].metaValueExists("original_RT"), false);
   }
 
-  MapAlignmentTransformer::transformSingleConsensusMap(consensusmap, td, true);
+  MapAlignmentTransformer::transformRetentionTimes(consensusmap, td, true);
   TEST_EQUAL(consensusmap[0].getMetaValue("original_RT"), 23.2);
   TEST_EQUAL(consensusmap[1].getMetaValue("original_RT"), 24.0);
   TEST_EQUAL(consensusmap[2].getMetaValue("original_RT"), 25.4);
   TEST_EQUAL(consensusmap[3].getMetaValue("original_RT"), 26.0);
 
   // applying a transform again doesn't overwrite the original RTs:
-  MapAlignmentTransformer::transformSingleConsensusMap(consensusmap, td, true);
+  MapAlignmentTransformer::transformRetentionTimes(consensusmap, td, true);
   TEST_EQUAL(consensusmap[0].getMetaValue("original_RT"), 23.2);
   TEST_EQUAL(consensusmap[1].getMetaValue("original_RT"), 24.0);
   TEST_EQUAL(consensusmap[2].getMetaValue("original_RT"), 25.4);
@@ -495,7 +227,7 @@ START_SECTION((static void transformSingleConsensusMap(ConsensusMap& cmap, const
 }
 END_SECTION
 
-START_SECTION((static void transformSinglePeptideIdentification(std::vector<PeptideIdentification>& pep_ids, const TransformationDescription& trafo, bool store_original_rt = false)))
+START_SECTION((static void transformRetentionTimes(std::vector<PeptideIdentification>& pep_ids, const TransformationDescription& trafo, bool store_original_rt = false)))
 {
   PeptideIdentification pi;
   vector<PeptideIdentification> pis;
@@ -512,7 +244,7 @@ START_SECTION((static void transformSinglePeptideIdentification(std::vector<Pept
   pi.setRT(12.5);
   pis.push_back(pi);
 
-  MapAlignmentTransformer::transformSinglePeptideIdentification(pis, td);
+  MapAlignmentTransformer::transformRetentionTimes(pis, td);
 
   // check the peptide IDs:
   TEST_EQUAL(pis[0].getRT(), 23.2)
@@ -526,14 +258,14 @@ START_SECTION((static void transformSinglePeptideIdentification(std::vector<Pept
     TEST_EQUAL(pis[i].metaValueExists("original_RT"), false);
   }
 
-  MapAlignmentTransformer::transformSinglePeptideIdentification(pis, td, true);
+  MapAlignmentTransformer::transformRetentionTimes(pis, td, true);
   TEST_EQUAL(pis[0].getMetaValue("original_RT"), 23.2);
   TEST_EQUAL(pis[1].getMetaValue("original_RT"), 24.0);
   TEST_EQUAL(pis[2].getMetaValue("original_RT"), 25.4);
   TEST_EQUAL(pis[3].getMetaValue("original_RT"), 26.0);
 
   // applying a transform again doesn't overwrite the original RTs:
-  MapAlignmentTransformer::transformSinglePeptideIdentification(pis, td, true);
+  MapAlignmentTransformer::transformRetentionTimes(pis, td, true);
   TEST_EQUAL(pis[0].getMetaValue("original_RT"), 23.2);
   TEST_EQUAL(pis[1].getMetaValue("original_RT"), 24.0);
   TEST_EQUAL(pis[2].getMetaValue("original_RT"), 25.4);

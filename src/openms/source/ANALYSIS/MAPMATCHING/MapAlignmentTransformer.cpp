@@ -45,20 +45,6 @@ using std::vector;
 namespace OpenMS
 {
 
-  void MapAlignmentTransformer::checkInputSizes_(Size maps_size,
-                                                 Size trafos_size)
-  {
-    if (trafos_size != maps_size)
-    {
-      String msg = "MapAlignmentTransformer expects one transformation per "
-        "input map (got " + String(trafos_size) + " transformations and " + 
-        String(maps_size) + " input maps)";
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-                                       msg);
-    }
-  }
-
-
   bool MapAlignmentTransformer::storeOriginalRT_(MetaInfoInterface& interface,
                                                  double original_rt)
   {
@@ -68,22 +54,7 @@ namespace OpenMS
   }
 
 
-  void MapAlignmentTransformer::transformPeakMaps(
-    vector<MSExperiment<> >& maps,
-    const vector<TransformationDescription>& trafos, bool store_original_rt)
-  {
-    checkInputSizes_(maps.size(), trafos.size());
-
-    vector<TransformationDescription>::const_iterator trafo_it = trafos.begin();
-    for (vector<MSExperiment<> >::iterator map_it = maps.begin();
-         map_it != maps.end(); ++map_it, ++trafo_it)
-    {
-      transformSinglePeakMap(*map_it, *trafo_it, store_original_rt);
-    }
-  }
-
-
-  void MapAlignmentTransformer::transformSinglePeakMap(
+  void MapAlignmentTransformer::transformRetentionTimes(
     MSExperiment<>& msexp, const TransformationDescription& trafo,
     bool store_original_rt)
   {
@@ -120,22 +91,7 @@ namespace OpenMS
   }
 
 
-  void MapAlignmentTransformer::transformFeatureMaps(
-    vector<FeatureMap>& maps, const vector<TransformationDescription>& trafos,
-    bool store_original_rt)
-  {
-    checkInputSizes_(maps.size(), trafos.size());
-
-    vector<TransformationDescription>::const_iterator trafo_it = trafos.begin();
-    for (vector<FeatureMap>::iterator map_it = maps.begin(); 
-         map_it != maps.end(); ++map_it, ++trafo_it)
-    {
-      transformSingleFeatureMap(*map_it, *trafo_it, store_original_rt);
-    }
-  }
-
-
-  void MapAlignmentTransformer::transformSingleFeatureMap(
+  void MapAlignmentTransformer::transformRetentionTimes(
     FeatureMap& fmap, const TransformationDescription& trafo,
     bool store_original_rt)
   {
@@ -148,8 +104,8 @@ namespace OpenMS
     // adapt RT values of unassigned peptides:
     if (!fmap.getUnassignedPeptideIdentifications().empty())
     {
-      transformSinglePeptideIdentification(
-        fmap.getUnassignedPeptideIdentifications(), trafo, store_original_rt);
+      transformRetentionTimes(fmap.getUnassignedPeptideIdentifications(), trafo,
+                              store_original_rt);
     }
   }
 
@@ -166,8 +122,8 @@ namespace OpenMS
     // adapt RT values of annotated peptides:
     if (!feature.getPeptideIdentifications().empty())
     {
-      transformSinglePeptideIdentification(feature.getPeptideIdentifications(),
-                                           trafo, store_original_rt);
+      transformRetentionTimes(feature.getPeptideIdentifications(), trafo,
+                              store_original_rt);
     }
   }
 
@@ -204,22 +160,7 @@ namespace OpenMS
   }
 
 
-  void MapAlignmentTransformer::transformConsensusMaps(
-    vector<ConsensusMap>& maps,
-    const vector<TransformationDescription>& trafos, bool store_original_rt)
-  {
-    checkInputSizes_(maps.size(), trafos.size());
-
-    vector<TransformationDescription>::const_iterator trafo_it = trafos.begin();
-    for (vector<ConsensusMap>::iterator map_it = maps.begin();
-         map_it != maps.end(); ++map_it, ++trafo_it)
-    {
-      transformSingleConsensusMap(*map_it, *trafo_it, store_original_rt);
-    }
-  }
-
-
-  void MapAlignmentTransformer::transformSingleConsensusMap(
+  void MapAlignmentTransformer::transformRetentionTimes(
     ConsensusMap& cmap, const TransformationDescription& trafo,
     bool store_original_rt)
   {
@@ -231,41 +172,8 @@ namespace OpenMS
     // adapt RT values of unassigned peptides:
     if (!cmap.getUnassignedPeptideIdentifications().empty())
     {
-      transformSinglePeptideIdentification(
-        cmap.getUnassignedPeptideIdentifications(), trafo, store_original_rt);
-    }
-  }
-
-
-  void MapAlignmentTransformer::transformPeptideIdentifications(
-    vector<vector<PeptideIdentification> >& maps,
-    const vector<TransformationDescription>& trafos, bool store_original_rt)
-  {
-    checkInputSizes_(maps.size(), trafos.size());
-
-    vector<TransformationDescription>::const_iterator trafo_it = trafos.begin();
-    for (vector<vector<PeptideIdentification> >::iterator pep_it = 
-           maps.begin(); pep_it != maps.end(); ++pep_it, ++trafo_it)
-    {
-      transformSinglePeptideIdentification(*pep_it, *trafo_it,
-                                           store_original_rt);
-    }
-  }
-
-
-  void MapAlignmentTransformer::transformSinglePeptideIdentification(
-    vector<PeptideIdentification>& pep_ids,
-    const TransformationDescription& trafo, bool store_original_rt)
-  {
-    for (vector<PeptideIdentification>::iterator pep_it = pep_ids.begin(); 
-         pep_it != pep_ids.end(); ++pep_it)
-    {
-      if (pep_it->hasRT())
-      {
-        double rt = pep_it->getRT();
-        if (store_original_rt) storeOriginalRT_(*pep_it, rt);
-        pep_it->setRT(trafo.apply(rt));
-      }
+      transformRetentionTimes(cmap.getUnassignedPeptideIdentifications(), trafo,
+                              store_original_rt);
     }
   }
 
@@ -283,6 +191,23 @@ namespace OpenMS
     {
       double rt = it->getRT();
       it->asMutable().setRT(trafo.apply(rt));
+    }
+  }
+
+
+  void MapAlignmentTransformer::transformRetentionTimes(
+    vector<PeptideIdentification>& pep_ids, 
+    const TransformationDescription& trafo, bool store_original_rt)
+  {
+    for (vector<PeptideIdentification>::iterator pep_it = pep_ids.begin(); 
+         pep_it != pep_ids.end(); ++pep_it)
+    {
+      if (pep_it->hasRT())
+      {
+        double rt = pep_it->getRT();
+        if (store_original_rt) storeOriginalRT_(*pep_it, rt);
+        pep_it->setRT(trafo.apply(rt));
+      }
     }
   }
 

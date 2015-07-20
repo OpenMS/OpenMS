@@ -219,7 +219,7 @@ protected:
         else algorithm.align(map, trafo);
         if (out_files.size())
         {
-          MapAlignmentTransformer::transformSingleFeatureMap(map, trafo);
+          MapAlignmentTransformer::transformRetentionTimes(map, trafo);
           // annotate output with data processing info
           addDataProcessing_(map, getProcessingInfo_(DataProcessing::ALIGNMENT));
           f_fxml_tmp.store(out_files[i], map);
@@ -233,7 +233,7 @@ protected:
         else algorithm.align(map, trafo);
         if (out_files.size())
         {
-          MapAlignmentTransformer::transformSinglePeakMap(map, trafo);
+          MapAlignmentTransformer::transformRetentionTimes(map, trafo);
           // annotate output with data processing info
           addDataProcessing_(map, getProcessingInfo_(DataProcessing::ALIGNMENT));
           MzMLFile().store(out_files[i], map);

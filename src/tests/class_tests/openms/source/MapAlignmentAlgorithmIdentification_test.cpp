@@ -94,7 +94,8 @@ START_SECTION((virtual void alignPeptideIdentifications(std::vector<std::vector<
 	aligner->alignPeptideIdentifications(peptides, transforms);
 	params.clear();
 	aligner->fitModel("interpolated", params, transforms);
-  MapAlignmentTransformer::transformPeptideIdentifications(peptides, transforms);
+  MapAlignmentTransformer::transformRetentionTimes(peptides[0], transforms[0]);
+  MapAlignmentTransformer::transformRetentionTimes(peptides[1], transforms[1]);
 	for (Size i = 0; i < peptides[0].size(); ++i)
 	{
 		TEST_REAL_SIMILAR(peptides[0][i].getRT(), peptides[1][i].getRT());

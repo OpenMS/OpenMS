@@ -88,16 +88,19 @@ namespace OpenMS
     LOG_WARN << "MapAlignmentAlgorithm::alignConsensusMaps() does not support ConsensusMaps directly. Converting to FeatureMaps.\n";
 
     vector<FeatureMap> maps_f;
-    for (Size i = 0; i < cms.size(); ++i)
+    for (vector<ConsensusMap>::iterator it = cms.begin(); it != cms.end(); ++it)
     {
       FeatureMap fm;
-      MapConversion::convert(cms[i], true, fm);
+      MapConversion::convert(*it, true, fm);
       maps_f.push_back(fm);
     }
     // call FeatureMap version of group()
     alignFeatureMaps(maps_f, tf);
     // apply transform
-    MapAlignmentTransformer::transformConsensusMaps(cms, tf);
+    for (Size i = 0; i < cms.size(); ++i)
+    {
+      MapAlignmentTransformer::transformRetentionTimes(cms[i], tf[i]);
+    }
   }
 
   void MapAlignmentAlgorithm::alignPeptideIdentifications(vector<vector<PeptideIdentification> >&, vector<TransformationDescription>&)

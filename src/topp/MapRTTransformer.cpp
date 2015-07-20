@@ -69,6 +69,8 @@ using namespace std;
 
     With this tool it is also possible to invert transformations, or to fit a different model than originally specified to the retention time data in the transformation files. To fit a new model, choose a value other than "none" for the model type (see below).
 
+    Original retention time values can be kept as meta data. With the option @p store_original_rt, meta values with the name "original_RT" and the original retention time will be created for every major data element (spectrum, chromatogram, feature, consensus feature, peptide identification), unless they already exist - "original_RT" values from a previous invocation will not be overwritten.
+
     Since %OpenMS 1.8, the extraction of data for the alignment has been separate from the modeling of RT transformations based on that data. It is now possible to use different models independently of the chosen algorithm. The different available models are:
     - @ref OpenMS::TransformationModelLinear "linear": Linear model.
     - @ref OpenMS::TransformationModelBSpline "b_spline": Smoothing spline (non-linear).
@@ -77,7 +79,7 @@ using namespace std;
     The following parameters control the modeling of RT transformations (they can be set in the "model" section of the INI file):
     @htmlinclude OpenMS_MapRTTransformerModel.parameters @n
 
-    @note As output options, either 'out' or 'trafo_out' has to be provided. They can be used together.
+    @note As output options, either @p out or @p trafo_out has to be provided. They can be used together.
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
@@ -114,6 +116,7 @@ protected:
     registerOutputFileList_("trafo_out", "<files>", StringList(), "Transformation output files separated by blanks. Either this option or 'out' have to be provided. They can be used together.", false);
     setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
     registerFlag_("invert", "Invert transformations (approximatively) before applying them");
+    registerFlag_("store_original_rt", "Store the original retention time (before transformation) as meta data");
     addEmptyLine_();
 
     registerSubsection_("model", "Options to control the modeling of retention time transformations from data");
@@ -198,7 +201,7 @@ protected:
           MzMLFile file;
           MSExperiment<> map;
           file.load(in_file, map);
-          MapAlignmentTransformer::transformSinglePeakMap(map, trafo);
+          MapAlignmentTransformer::transformRetentionTimes(map, trafo);
           addDataProcessing_(map,
                              getProcessingInfo_(DataProcessing::ALIGNMENT));
           file.store(outs[i], map);
@@ -208,7 +211,7 @@ protected:
           FeatureXMLFile file;
           FeatureMap map;
           file.load(in_file, map);
-          MapAlignmentTransformer::transformSingleFeatureMap(map, trafo);
+          MapAlignmentTransformer::transformRetentionTimes(map, trafo);
           addDataProcessing_(map,
                              getProcessingInfo_(DataProcessing::ALIGNMENT));
           file.store(outs[i], map);
@@ -218,7 +221,7 @@ protected:
           ConsensusXMLFile file;
           ConsensusMap map;
           file.load(in_file, map);
-          MapAlignmentTransformer::transformSingleConsensusMap(map, trafo);
+          MapAlignmentTransformer::transformRetentionTimes(map, trafo);
           addDataProcessing_(map,
                              getProcessingInfo_(DataProcessing::ALIGNMENT));
           file.store(outs[i], map);
@@ -229,8 +232,7 @@ protected:
           vector<ProteinIdentification> proteins;
           vector<PeptideIdentification> peptides;
           file.load(in_file, proteins, peptides);
-          MapAlignmentTransformer::transformSinglePeptideIdentification(peptides,
-                                                                        trafo);
+          MapAlignmentTransformer::transformRetentionTimes(peptides, trafo);
           // no "data processing" section in idXML
           file.store(outs[i], proteins, peptides);
         }

@@ -271,16 +271,18 @@ protected:
       {
         alignment->fitModel(model_type, model_params, transformations);
       }
-      MapAlignmentTransformer::transformPeakMaps(peak_maps, transformations);
 
       // write output
-      progresslogger.startProgress(0, outs.size(), "writing output files");
+      progresslogger.startProgress(0, outs.size(), "applying RT transformations and writing output files");
       for (Size i = 0; i < outs.size(); ++i)
       {
         progresslogger.setProgress(i);
 
+        MapAlignmentTransformer::transformRetentionTimes(peak_maps[i],
+                                                         transformations[i]);
         //annotate output with data processing info
-        addDataProcessing_(peak_maps[i], getProcessingInfo_(DataProcessing::ALIGNMENT));
+        addDataProcessing_(peak_maps[i],
+                           getProcessingInfo_(DataProcessing::ALIGNMENT));
 
         f.store(outs[i], peak_maps[i]);
       }
@@ -319,17 +321,17 @@ protected:
       }
       catch (Exception::NotImplemented&)
       {
-        writeLog_("Error: The algorithm '" + alignment->getName() + "' cannot be used for feature data!");
+        writeLog_("Error: The algorithm '" + alignment->getName() + 
+                  "' cannot be used for feature data!");
         return INTERNAL_ERROR;
       }
       if (model_type != "none")
       {
         alignment->fitModel(model_type, model_params, transformations);
       }
-      // alignment->transformFeatureMaps(feat_maps, transformations);
 
       // write output
-      progresslogger.startProgress(0, outs.size(), "writing output files");
+      progresslogger.startProgress(0, outs.size(), "applying RT transformations and writing output files");
       for (Size i = 0; i < outs.size(); ++i)
       {
         progresslogger.setProgress(i);
@@ -337,10 +339,12 @@ protected:
         FeatureMap feature_map;
         f.load(ins[i], feature_map);
 
-        MapAlignmentTransformer::transformSingleFeatureMap(feature_map, transformations[i]);
+        MapAlignmentTransformer::transformRetentionTimes(feature_map,
+                                                         transformations[i]);
 
         //annotate output with data processing info
-        addDataProcessing_(feature_map, getProcessingInfo_(DataProcessing::ALIGNMENT));
+        addDataProcessing_(feature_map, 
+                           getProcessingInfo_(DataProcessing::ALIGNMENT));
 
         f.store(outs[i], feature_map);
       }
@@ -370,23 +374,27 @@ protected:
       }
       catch (Exception::NotImplemented&)
       {
-        writeLog_("Error: The algorithm '" + alignment->getName() + "' cannot be used for consensus feature data!");
+        writeLog_("Error: The algorithm '" + alignment->getName() +
+                  "' cannot be used for consensus feature data!");
         return INTERNAL_ERROR;
       }
       if (model_type != "none")
       {
         alignment->fitModel(model_type, model_params, transformations);
       }
-      MapAlignmentTransformer::transformConsensusMaps(cons_maps, transformations);
 
       // write output
-      progresslogger.startProgress(0, outs.size(), "writing output files");
+      progresslogger.startProgress(0, outs.size(), "applying RT transformations and writing output files");
       for (Size i = 0; i < outs.size(); ++i)
       {
         progresslogger.setProgress(i);
 
+        MapAlignmentTransformer::transformRetentionTimes(cons_maps[i],
+                                                         transformations[i]);
+
         //annotate output with data processing info
-        addDataProcessing_(cons_maps[i], getProcessingInfo_(DataProcessing::ALIGNMENT));
+        addDataProcessing_(cons_maps[i],
+                           getProcessingInfo_(DataProcessing::ALIGNMENT));
 
         f.store(outs[i], cons_maps[i]);
       }
@@ -398,8 +406,10 @@ protected:
     else if (in_type == FileTypes::IDXML)
     {
       // load input
-      std::vector<std::vector<ProteinIdentification> > protein_ids_vec(ins.size());
-      std::vector<std::vector<PeptideIdentification> > peptide_ids_vec(ins.size());
+      std::vector<std::vector<ProteinIdentification> >
+        protein_ids_vec(ins.size());
+      std::vector<std::vector<PeptideIdentification> >
+        peptide_ids_vec(ins.size());
 
       IdXMLFile f;
       // f.setLogType_(log_type_);
@@ -415,25 +425,27 @@ protected:
       // try to align
       try
       {
-        alignment->alignPeptideIdentifications(peptide_ids_vec, transformations);
+        alignment->alignPeptideIdentifications(peptide_ids_vec,
+                                               transformations);
       }
       catch (Exception::NotImplemented&)
       {
-        writeLog_("Error: The algorithm '" + alignment->getName() + "' cannot be used for peptide data!");
+        writeLog_("Error: The algorithm '" + alignment->getName() +
+                  "' cannot be used for peptide data!");
         return INTERNAL_ERROR;
       }
       if (model_type != "none")
       {
         alignment->fitModel(model_type, model_params, transformations);
       }
-      MapAlignmentTransformer::transformPeptideIdentifications(peptide_ids_vec,
-                                                               transformations);
 
       // write output
-      progresslogger.startProgress(0, outs.size(), "writing output files");
+      progresslogger.startProgress(0, outs.size(), "applying RT transformations and writing output files");
       for (Size i = 0; i < outs.size(); ++i)
       {
         progresslogger.setProgress(i);
+        MapAlignmentTransformer::transformRetentionTimes(peptide_ids_vec[i],
+                                                         transformations[i]);
         f.store(outs[i], protein_ids_vec[i], peptide_ids_vec[i]);
       }
       progresslogger.endProgress();
