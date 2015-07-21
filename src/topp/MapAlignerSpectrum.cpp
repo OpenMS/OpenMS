@@ -123,9 +123,13 @@ protected:
 
   ExitCodes main_(int, const char**)
   {
-    MapAlignmentAlgorithmSpectrumAlignment algorithm;
-    ExitCodes ret = initialize_(&algorithm);
+    ExitCodes ret = checkParameters_();
     if (ret != EXECUTION_OK) return ret;
+
+    MapAlignmentAlgorithmSpectrumAlignment algorithm;
+    Param algo_params = getParam_().copy("algorithm:", true);
+    algorithm.setParameters(algo_params);
+    algorithm.setLogType(log_type_);
 
     StringList ins = getStringList_("in");
     StringList outs = getStringList_("out");
@@ -154,10 +158,14 @@ protected:
     progresslogger.endProgress();
 
     // try to align
-    algorithm.alignPeakMaps(peak_maps, transformations);
+    algorithm.align(peak_maps, transformations);
     if (model_type != "none")
     {
-      algorithm.fitModel(model_type, model_params, transformations);
+      for (vector<TransformationDescription>::iterator it = 
+             transformations.begin(); it != transformations.end(); ++it)
+      {
+        it->fitModel(model_type, model_params);
+      }
     }
 
     // write output

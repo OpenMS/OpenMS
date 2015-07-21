@@ -37,9 +37,6 @@
 // Helper class to apply transformations to all sorts of KERNEL types
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>
 
-// Derived classes are included here
-#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment.h>
-
 #include <OpenMS/KERNEL/ConversionHelper.h>
 
 #include <OpenMS/CONCEPT/Factory.h>
@@ -51,7 +48,6 @@ namespace OpenMS
   //register products here
   void MapAlignmentAlgorithm::registerChildren()
   {
-    Factory<MapAlignmentAlgorithm>::registerProduct(MapAlignmentAlgorithmSpectrumAlignment::getProductName(), &MapAlignmentAlgorithmSpectrumAlignment::create);
   }
 
   MapAlignmentAlgorithm::MapAlignmentAlgorithm() :
