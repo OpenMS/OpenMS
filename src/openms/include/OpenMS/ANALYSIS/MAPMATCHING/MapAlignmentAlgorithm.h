@@ -102,17 +102,6 @@ public:
     virtual void alignPeptideIdentifications(std::vector<std::vector<PeptideIdentification> >&, std::vector<TransformationDescription>&);
 
     /**
-         @brief Defines a reference for the alignment
-
-         @exception Exception::NotImplemented The algorithm does not support references
-        */
-    template <typename MapType>
-    virtual void setReference(const MapType& map)
-    {
-      throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-    }
-
-    /**
          @brief Fits a model with given parameters to the transformations
 
          This will not alter transformations of reference files (transformation type "identity").

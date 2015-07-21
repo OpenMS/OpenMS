@@ -40,7 +40,6 @@
 // Derived classes are included here
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 
 #include <OpenMS/KERNEL/ConversionHelper.h>
 
@@ -53,7 +52,6 @@ namespace OpenMS
   //register products here
   void MapAlignmentAlgorithm::registerChildren()
   {
-    Factory<MapAlignmentAlgorithm>::registerProduct(MapAlignmentAlgorithmIdentification::getProductName(), &MapAlignmentAlgorithmIdentification::create);
     Factory<MapAlignmentAlgorithm>::registerProduct(MapAlignmentAlgorithmPoseClustering::getProductName(), &MapAlignmentAlgorithmPoseClustering::create);
     Factory<MapAlignmentAlgorithm>::registerProduct(MapAlignmentAlgorithmSpectrumAlignment::getProductName(), &MapAlignmentAlgorithmSpectrumAlignment::create);
   }
@@ -106,15 +104,6 @@ namespace OpenMS
   void MapAlignmentAlgorithm::alignPeptideIdentifications(vector<vector<PeptideIdentification> >&, vector<TransformationDescription>&)
   {
     throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-  }
-
-  void MapAlignmentAlgorithm::setReference(Size reference_index,
-                                           const String& reference_file)
-  {
-    if (reference_index || !reference_file.empty())
-    {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "This algorithm does not support a reference for the alignment.");
-    }
   }
 
   void MapAlignmentAlgorithm::fitModel(const String& model_type, const Param& params, vector<TransformationDescription>& trafos)

@@ -126,7 +126,7 @@ protected:
   }
 
   /// deprecated? (not used in PoseClustering... and moved to initialize_() )
-  void handleReference_(MapAlignmentAlgorithm* alignment)
+  void handleReference_(MapAlignmentAlgorithmIdentification& alignment)
   {
     // note: this function is in the base class to avoid code duplication, but
     // it only makes sense for some derived classes - don't call the function
@@ -145,11 +145,10 @@ protected:
     }
 
     // pass the reference parameters on to the algorithm:
-    alignment->setReference(reference_index, reference_file);
+    alignment.setReference(reference_index, reference_file);
   }
 
-  ExitCodes initialize_(MapAlignmentAlgorithm* alignment,
-                        bool check_ref = false)
+  ExitCodes checkParameters_(FileTypes::Type& in_type)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -179,7 +178,7 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
     // check whether all input files have the same type (this type is used to store the output type too):
-    FileTypes::Type in_type = FileHandler::getType(ins[0]);
+    in_type = FileHandler::getType(ins[0]);
     for (Size i = 1; i < ins.size(); ++i)
     {
       if (FileHandler::getType(ins[i]) != in_type)
@@ -188,7 +187,16 @@ protected:
         return ILLEGAL_PARAMETERS;
       }
     }
+    return EXECUTION_OK;
+  }
 
+  ExitCodes initialize_(MapAlignmentAlgorithm* alignment,
+                        bool check_ref = false)
+  {
+    FileTypes::Type in_type;
+    ExitCodes retval = checkParameters_(in_type);
+    if (retval != EXECUTION_OK) return retval;
+    
     if (check_ref) // a valid index OR file should be given
     {
       Size reference_index = getIntOption_("reference:index");

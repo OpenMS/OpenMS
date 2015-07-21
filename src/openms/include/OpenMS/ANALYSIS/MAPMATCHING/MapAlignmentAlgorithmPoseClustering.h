@@ -80,7 +80,7 @@ public:
 
     /// Sets the reference for the alignment
     template <typename MapType>
-    virtual void setReference(const MapType& map)
+    void setReference(const MapType& map)
     {
       MapType map2 = map; // todo: avoid copy (MSExperiment version of convert() demands non-const version)
       MapConversion::convert(0, map2, reference_, max_num_peaks_considered_);

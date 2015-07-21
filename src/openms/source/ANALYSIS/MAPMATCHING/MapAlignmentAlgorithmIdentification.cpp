@@ -50,8 +50,9 @@ namespace OpenMS
 {
 
   MapAlignmentAlgorithmIdentification::MapAlignmentAlgorithmIdentification() :
-    MapAlignmentAlgorithm(), reference_index_(0), reference_(),
-    score_threshold_(0.0), min_run_occur_(0)
+    DefaultParamHandler("MapAlignmentAlgorithmIdentification"),
+    ProgressLogger(), reference_index_(0), reference_(), score_threshold_(0.0),
+    min_run_occur_(0)
   {
     setName("MapAlignmentAlgorithmIdentification");
 
@@ -130,101 +131,19 @@ namespace OpenMS
     min_run_occur_ = param_.getValue("min_run_occur");
 
     // reference is not counted as a regular run:
-    if (!reference_.empty())
-      runs++;
+    if (!reference_.empty()) runs++;
 
     if (min_run_occur_ > runs)
     {
-      LOG_WARN << "Warning: Value of parameter 'min_run_occur' (here: "
-        + String(min_run_occur_)
-        + ") is higher than the number of runs incl. reference (here: "
-        + String(runs)
-        + "). Using "
-        + String(runs)
-        + " instead."
-               << endl;
-
+      String msg = "Warning: Value of parameter 'min_run_occur' (here: " + 
+        String(min_run_occur_) + ") is higher than the number of runs incl. "
+        "reference (here: " + String(runs) + "). Using " + String(runs) +
+        " instead.";
+      LOG_WARN << msg << endl;      
       min_run_occur_ = runs;
     }
 
     score_threshold_ = param_.getValue("peptide_score_threshold");
-  }
-
-  void MapAlignmentAlgorithmIdentification::alignPeakMaps(
-    vector<MSExperiment<> >& maps,
-    vector<TransformationDescription>& transformations)
-  {
-    checkParameters_(maps.size());
-    startProgress(0, 3, "aligning peak maps");
-
-    if (reference_index_) // reference is one of the input files
-    {
-      SeqToList rt_data;
-      getRetentionTimes_(maps[reference_index_ - 1], rt_data);
-      computeMedians_(rt_data, reference_, false);
-    }
-
-    // one set of RT data for each input map, except reference:
-    vector<SeqToList> rt_data(maps.size() - bool(reference_index_));
-    for (Size i = 0, j = 0; i < maps.size(); ++i)
-    {
-      if (i == reference_index_ - 1) continue; // skip reference map, if any
-      getRetentionTimes_(maps[i], rt_data[j++]);
-    }
-    setProgress(1);
-
-    computeTransformations_(rt_data, transformations);
-    setProgress(2);
-
-    // transformRetentionTimes(maps, transformations);
-    setProgress(3);
-    endProgress();
-  }
-
-  void MapAlignmentAlgorithmIdentification::alignFeatureMaps(
-    vector<FeatureMap>& maps,
-    vector<TransformationDescription>& transformations)
-  {
-    alignMaps(maps, transformations);
-  }
-
-  void MapAlignmentAlgorithmIdentification::alignConsensusMaps(
-    vector<ConsensusMap>& maps,
-    vector<TransformationDescription>& transformations)
-  {
-    alignMaps(maps, transformations);
-  }
-
-  void MapAlignmentAlgorithmIdentification::alignPeptideIdentifications(
-    vector<vector<PeptideIdentification> >& maps,
-    vector<TransformationDescription>& transformations)
-  {
-    checkParameters_(maps.size());
-    startProgress(0, 3, "aligning peptide identifications");
-
-    if (reference_index_) // reference is one of the input files
-    {
-      SeqToList rt_data;
-      getRetentionTimes_(maps[reference_index_ - 1], rt_data);
-      computeMedians_(rt_data, reference_, true);
-    }
-
-    // one set of RT data for each input map, except reference:
-    vector<SeqToList> rt_data(maps.size() - bool(reference_index_));
-    for (Size i = 0, j = 0; i < maps.size(); ++i)
-    {
-      if (i == reference_index_ - 1)
-        continue; // skip reference map, if any
-      getRetentionTimes_(maps[i], rt_data[j++]);
-    }
-    setProgress(1);
-
-    computeTransformations_(rt_data, transformations, true);
-    setProgress(2);
-
-    // transformRetentionTimes(maps, transformations);
-    setProgress(3);
-    endProgress();
   }
 
   // RT lists in "rt_data" will be sorted (unless "sorted" is true)
@@ -248,33 +167,30 @@ namespace OpenMS
   bool MapAlignmentAlgorithmIdentification::hasGoodHit_(PeptideIdentification&
                                                         peptide)
   {
-    if (peptide.empty() || peptide.getHits().empty())
-      return false;
-
+    if (peptide.empty() || peptide.getHits().empty()) return false;
     peptide.sort();
     double score = peptide.getHits().begin()->getScore();
-    if (peptide.isHigherScoreBetter())
-      return score >= score_threshold_;
-
+    if (peptide.isHigherScoreBetter()) return score >= score_threshold_;
     return score <= score_threshold_;
   }
 
   // lists of peptide hits in "peptides" will be sorted
-  void MapAlignmentAlgorithmIdentification::getRetentionTimes_(
+  bool MapAlignmentAlgorithmIdentification::getRetentionTimes_(
     vector<PeptideIdentification>& peptides, SeqToList& rt_data)
   {
-    for (vector<PeptideIdentification>::iterator pep_it =
-           peptides.begin(); pep_it != peptides.end(); ++pep_it)
+    for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
+         pep_it != peptides.end(); ++pep_it)
     {
       if (hasGoodHit_(*pep_it))
       {
         rt_data[pep_it->getHits()[0].getSequence().toString()].push_back(pep_it->getRT());
       }
     }
+    return false;
   }
 
   // lists of peptide hits in "maps" will be sorted
-  void MapAlignmentAlgorithmIdentification::getRetentionTimes_(
+  bool MapAlignmentAlgorithmIdentification::getRetentionTimes_(
     MSExperiment<>& experiment, SeqToList& rt_data)
   {
     for (MSExperiment<>::Iterator exp_it = experiment.begin();
@@ -282,11 +198,12 @@ namespace OpenMS
     {
       getRetentionTimes_(exp_it->getPeptideIdentifications(), rt_data);
     }
-    // duplicates should not be possible -> no need to remove them
+    // duplicate annotations should not be possible -> no need to remove them
+    return false;
   }
 
   template <typename MapType>
-  void MapAlignmentAlgorithmIdentification::getRetentionTimes_(
+  bool MapAlignmentAlgorithmIdentification::getRetentionTimes_(
     MapType& features, SeqToList& rt_data)
   {
     bool use_feature_rt = param_.getValue("use_feature_rt").toBool();
@@ -342,6 +259,7 @@ namespace OpenMS
       DoubleList::iterator it = unique(rt_values.begin(), rt_values.end());
       rt_values.resize(it - rt_values.begin());
     }
+    return true; // RTs are already sorted for duplicate detection
   }
 
   void MapAlignmentAlgorithmIdentification::computeTransformations_(
@@ -451,8 +369,7 @@ namespace OpenMS
         offset = 1;
       }
 
-      if (i >= size)
-        break;
+      if (i >= size) break;
 
       // to be useful for the alignment, a peptide sequence has to occur in the
       // current run ("medians_per_run[i]"), but also in at least one other run
@@ -475,15 +392,13 @@ namespace OpenMS
     LOG_INFO << endl;
 
     // delete temporary reference
-    if (!reference_given)
-      reference_.clear();
-
+    if (!reference_given) reference_.clear();
   }
 
-  // explicit template instantiation for windows dll
-  template OPENMS_DLLAPI void MapAlignmentAlgorithmIdentification::getRetentionTimes_(ConsensusMap& features, SeqToList& rt_data);
+  // explicit template instantiation for Windows DLL
+  template bool OPENMS_DLLAPI MapAlignmentAlgorithmIdentification::getRetentionTimes_(ConsensusMap& features, SeqToList& rt_data);
 
-  // explicit template instantiation for windows dll
-  template void OPENMS_DLLAPI MapAlignmentAlgorithmIdentification::getRetentionTimes_(FeatureMap& features, SeqToList& rt_data);
+  // explicit template instantiation for Windows DLL
+  template bool OPENMS_DLLAPI MapAlignmentAlgorithmIdentification::getRetentionTimes_(FeatureMap& features, SeqToList& rt_data);
 
 } //namespace
