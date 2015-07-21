@@ -215,8 +215,7 @@ private:
 
   ExitCodes main_(int, const char**)
   {
-    FileTypes::Type in_type;
-    ExitCodes return_code = checkParameters_(in_type);
+    ExitCodes return_code = checkParameters_();
     if (return_code != EXECUTION_OK) return return_code;
 
     // set up alignment algorithm:
@@ -230,7 +229,7 @@ private:
     StringList input_files = getStringList_("in");
     StringList output_files = getStringList_("out");
     StringList trafo_files = getStringList_("trafo_out");
-    // FileTypes::Type in_type = FileHandler::getType(input_files[0]);
+    FileTypes::Type in_type = FileHandler::getType(input_files[0]);
 
     vector<TransformationDescription> transformations;
 

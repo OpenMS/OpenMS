@@ -54,8 +54,6 @@ namespace OpenMS
     ProgressLogger(), reference_index_(0), reference_(), score_threshold_(0.0),
     min_run_occur_(0)
   {
-    setName("MapAlignmentAlgorithmIdentification");
-
     defaults_.setValue("peptide_score_threshold", 0.0, "Score threshold for peptide hits to be used in the alignment.\nSelect a value that allows only 'high confidence' matches.");
 
     defaults_.setValue("min_run_occur", 2, "Minimum number of runs (incl. reference, if any) a peptide must occur in to be used for the alignment.\nUnless you have very few runs or identifications, increase this value to focus on more informative peptides.");

@@ -44,6 +44,7 @@
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithm.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelBSpline.h>
@@ -148,7 +149,7 @@ protected:
     alignment.setReference(reference_index, reference_file);
   }
 
-  ExitCodes checkParameters_(FileTypes::Type& in_type)
+  ExitCodes checkParameters_(bool check_ref = false)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -178,7 +179,7 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
     // check whether all input files have the same type (this type is used to store the output type too):
-    in_type = FileHandler::getType(ins[0]);
+    FileTypes::Type in_type = FileHandler::getType(ins[0]);
     for (Size i = 1; i < ins.size(); ++i)
     {
       if (FileHandler::getType(ins[i]) != in_type)
@@ -187,15 +188,6 @@ protected:
         return ILLEGAL_PARAMETERS;
       }
     }
-    return EXECUTION_OK;
-  }
-
-  ExitCodes initialize_(MapAlignmentAlgorithm* alignment,
-                        bool check_ref = false)
-  {
-    FileTypes::Type in_type;
-    ExitCodes retval = checkParameters_(in_type);
-    if (retval != EXECUTION_OK) return retval;
     
     if (check_ref) // a valid index OR file should be given
     {
@@ -220,15 +212,6 @@ protected:
         }
       }
     }
-
-    //-------------------------------------------------------------
-    // set up alignment algorithm
-    //-------------------------------------------------------------
-    Param alignment_param = getParam_().copy("algorithm:", true);
-
-    writeDebug_("Used alignment parameters", alignment_param, 3);
-    alignment->setParameters(alignment_param);
-    alignment->setLogType(log_type_);
 
     return EXECUTION_OK;
   }

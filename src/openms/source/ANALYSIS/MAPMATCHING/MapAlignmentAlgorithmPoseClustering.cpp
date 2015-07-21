@@ -45,11 +45,9 @@ namespace OpenMS
 {
 
   MapAlignmentAlgorithmPoseClustering::MapAlignmentAlgorithmPoseClustering() :
-    MapAlignmentAlgorithm(),
-    max_num_peaks_considered_(0)
+    DefaultParamHandler("MapAlignmentAlgorithmPoseClustering"), 
+    ProgressLogger(), max_num_peaks_considered_(0)
   {
-    setName("MapAlignmentAlgorithmPoseClustering");
-
     defaults_.insert("superimposer:", PoseClusteringAffineSuperimposer().getParameters());
     defaults_.insert("pairfinder:", StablePairFinder().getParameters());
     defaults_.setValue("max_num_peaks_considered", 1000, "The maximal number of peaks/features to be considered per map. To use all, set to '-1'.");

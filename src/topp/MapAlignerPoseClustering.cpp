@@ -113,7 +113,7 @@ protected:
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String & section) const
+  Param getSubsectionDefaults_(const String& section) const
   {
     if (section == "algorithm")
     {
@@ -125,9 +125,13 @@ protected:
 
   ExitCodes main_(int, const char**)
   {
-    MapAlignmentAlgorithmPoseClustering algorithm;
-    ExitCodes ret = TOPPMapAlignerBase::initialize_(&algorithm, true);
+    ExitCodes ret = TOPPMapAlignerBase::checkParameters_(true);
     if (ret != EXECUTION_OK) return ret;
+
+    MapAlignmentAlgorithmPoseClustering algorithm;
+    Param algo_params = getParam_().copy("algorithm:", true);
+    algorithm.setParameters(algo_params);
+    algorithm.setLogType(log_type_);
 
     StringList in_files = getStringList_("in");
     StringList out_files = getStringList_("out");
