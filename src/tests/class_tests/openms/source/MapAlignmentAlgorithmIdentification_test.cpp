@@ -55,7 +55,6 @@ START_TEST(MapAlignmentAlgorithmIdentification, "$Id$")
 
 MapAlignmentAlgorithmIdentification* ptr = 0;
 MapAlignmentAlgorithmIdentification* nullPointer = 0;
-MapAlignmentAlgorithm* base_nullPointer = 0;
 START_SECTION((MapAlignmentAlgorithmIdentification()))
 	ptr = new MapAlignmentAlgorithmIdentification();
 	TEST_NOT_EQUAL(ptr, nullPointer)
@@ -67,93 +66,48 @@ START_SECTION((virtual ~MapAlignmentAlgorithmIdentification()))
 END_SECTION
 
 
-START_SECTION((static MapAlignmentAlgorithm* create()))
-  TEST_NOT_EQUAL(MapAlignmentAlgorithmIdentification::create(), base_nullPointer)
-END_SECTION
-
-
-START_SECTION((static String getProductName()))
-	TEST_EQUAL(MapAlignmentAlgorithmIdentification::getProductName(), "identification")
-END_SECTION
-
-
-START_SECTION((virtual void alignPeptideIdentifications(std::vector<std::vector<PeptideIdentification> >&, std::vector<TransformationDescription>&)))
+START_SECTION((template <typename DataType> void align(std::vector<DataType>& data, std::vector<TransformationDescription>& transformations)))
 {
+  MapAlignmentAlgorithmIdentification aligner;
+	Param params = aligner.getParameters();
+	aligner.setLogType(ProgressLogger::CMD);
+
 	vector<vector<PeptideIdentification> > peptides(2);
 	vector<ProteinIdentification> proteins;
 	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmIdentification_test_1.idXML"),	proteins, peptides[0]);
  	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmIdentification_test_2.idXML"),	proteins, peptides[1]);
 	vector<TransformationDescription> transforms(2);
-	MapAlignmentAlgorithm* aligner = Factory<MapAlignmentAlgorithm>::create(
-		"identification");
 
-	Param params = aligner->getParameters();
 	params.setValue("peptide_score_threshold", 0.0);
-	aligner->setParameters(params);
-	aligner->setLogType(ProgressLogger::CMD);
-	aligner->alignPeptideIdentifications(peptides, transforms);
+	aligner.setParameters(params);
+	aligner.align(peptides, transforms);
+
 	params.clear();
-	aligner->fitModel("interpolated", params, transforms);
+  transforms[0].fitModel("interpolated", params);
+  transforms[1].fitModel("interpolated", params);
   MapAlignmentTransformer::transformRetentionTimes(peptides[0], transforms[0]);
   MapAlignmentTransformer::transformRetentionTimes(peptides[1], transforms[1]);
 	for (Size i = 0; i < peptides[0].size(); ++i)
 	{
 		TEST_REAL_SIMILAR(peptides[0][i].getRT(), peptides[1][i].getRT());
 	}
+
+  // algorithm works the same way for other input data types -> no extra tests
 }
 END_SECTION
 
 
-START_SECTION((virtual void alignPeakMaps(std::vector<MSExperiment<> >&, std::vector<TransformationDescription>&)))
+START_SECTION((void setReference(Size reference_index = 0, const String& reference_file = "")))
 {
-	// largely the same as "alignPeptideIdentifications"
-  NOT_TESTABLE;
-}
-END_SECTION
-
-
-START_SECTION((virtual void alignFeatureMaps(std::vector<FeatureMap >&, std::vector<TransformationDescription>&)))
-{
-	// largely the same as "alignPeptideIdentifications"
-  NOT_TESTABLE;
-}
-END_SECTION
-
-
-START_SECTION((virtual void alignConsensusMaps(std::vector<ConsensusMap>&, std::vector<TransformationDescription>&)))
-{
-	// largely the same as "alignPeptideIdentifications"
-  NOT_TESTABLE;
-}
-END_SECTION
-
-
-START_SECTION((virtual void setReference(Size reference_index=0, const String& reference_file="")))
-{
-	MapAlignmentAlgorithm* aligner = Factory<MapAlignmentAlgorithm>::create(
-		"identification");
-	aligner->setReference(1); // nothing happens
+	MapAlignmentAlgorithmIdentification aligner;
+	aligner.setReference(1); // nothing happens
 	TEST_EXCEPTION(Exception::FileNotFound,
-								 aligner->setReference(0, "not-a-real-file.idXML"));
+								 aligner.setReference(0, "not-a-real-file.idXML"));
 }
 END_SECTION
 
 
 // can't test protected methods...
-
-// START_SECTION((double median_(DoubleList&, bool)))
-// {
-// 	DoubleList values;
-// 	TEST_EXCEPTION(Exception::IllegalArgument, median_(values)); // empty list
-// 	// -1.0, -0.5, ..., 2.0 scrambled:
-// 	values << 0.5 << -1.0 << 0.0 << 1.5 << 1.0 << -0.5 << 2.0;
-// 	TEST_EQUAL(median_(values, false), 0.5);
-// 	TEST_EQUAL(median_(values, true), 0.5); // should be sorted now
-// 	values << 2.5; // even number of values
-// 	TEST_EQUAL(median_(values, true), 0.75);
-// }
-// END_SECTION
-
 
 // START_SECTION((void computeMedians_(SeqToList&, SeqToValue&, bool)))
 // {
