@@ -120,10 +120,10 @@ protected:
       MapAlignmentAlgorithmPoseClustering algo;
       return algo.getParameters();
     }
-    return Param();     // shouldn't happen
+    return Param(); // shouldn't happen
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     MapAlignmentAlgorithmPoseClustering algorithm;
     ExitCodes ret = TOPPMapAlignerBase::initialize_(&algorithm, true);
@@ -143,9 +143,9 @@ protected:
       file = reference_file;
       reference_index = in_files.size(); // points to invalid index
     }
-    else if (reference_index > 0)  //  normal reference (index was checked before)
+    else if (reference_index > 0) // normal reference (index was checked before)
     {
-      file = in_files[--reference_index]; // ref index is 1-based in parameters, but should be 0-based here
+      file = in_files[--reference_index]; // ref. index is 1-based in parameters, but should be 0-based here
     }
     else if (reference_index == 0) // no reference given
     {
@@ -153,21 +153,21 @@ protected:
       // use map with highest number of features as reference:
       Size max_count(0);
       FeatureXMLFile f;
-      for (Size m = 0; m < in_files.size(); ++m)
+      for (Size i = 0; i < in_files.size(); ++i)
       {
-        Size s(0);
-        if (in_type == FileTypes::FEATUREXML) s = f.loadSize(in_files[m]);
+        Size s = 0;
+        if (in_type == FileTypes::FEATUREXML) s = f.loadSize(in_files[i]);
         else if (in_type == FileTypes::MZML) // this is expensive!
         {
           MSExperiment<> exp;
-          MzMLFile().load(in_files[m], exp);
+          MzMLFile().load(in_files[i], exp);
           exp.updateRanges(1);
           s = exp.getSize();
         }
         if (s > max_count)
         {
           max_count = s;
-          reference_index = m;
+          reference_index = i;
         }
       }
       LOG_INFO << " done" << std::endl;
@@ -175,7 +175,7 @@ protected:
     }
 
     FeatureXMLFile f_fxml;
-    if (out_files.size() == 0) // no need to store featureXML, thus we can load only minimum required information
+    if (out_files.empty()) // no need to store featureXML, thus we can load only minimum required information
     {
       f_fxml.getOptions().setLoadConvexHull(false);
       f_fxml.getOptions().setLoadSubordinates(false);
@@ -200,12 +200,12 @@ protected:
     plog.setLogType(log_type_);
 
     plog.startProgress(0, in_files.size(), "Aligning input maps");
-    Size progress(0);     // thread-safe progress
+    Size progress(0); // thread-safe progress
     // TODO: it should all work on featureXML files, since we might need them for output anyway. Converting to consensusXML is just wasting memory!
 #ifdef _OPENMP
 #pragma omp parallel for schedule(dynamic, 1)
 #endif
-    for (Int i = 0; i < static_cast<Int>(in_files.size()); ++i)
+    for (Size i = 0; i < in_files.size(); ++i)
     {
       TransformationDescription trafo;
       if (in_type == FileTypes::FEATUREXML)
@@ -215,7 +215,7 @@ protected:
         FeatureXMLFile f_fxml_tmp; // do not use OMP-firstprivate, since FeatureXMLFile has no copy c'tor
         f_fxml_tmp.getOptions() = f_fxml.getOptions();
         f_fxml_tmp.load(in_files[i], map);
-        if (i == static_cast<Int>(reference_index)) trafo.fitModel("identity");
+        if (i == reference_index) trafo.fitModel("identity");
         else algorithm.align(map, trafo);
         if (out_files.size())
         {
@@ -229,7 +229,7 @@ protected:
       {
         MSExperiment<> map;
         MzMLFile().load(in_files[i], map);
-        if (i == static_cast<Int>(reference_index)) trafo.fitModel("identity");
+        if (i == reference_index) trafo.fitModel("identity");
         else algorithm.align(map, trafo);
         if (out_files.size())
         {
@@ -240,7 +240,7 @@ protected:
         }
       }
 
-      if (out_trafos.size())
+      if (!out_trafos.empty())
       {
         TransformationXMLFile().store(out_trafos[i], trafo);
       }
@@ -256,12 +256,11 @@ protected:
 
     plog.endProgress();
     return EXECUTION_OK;
-
   }
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPMapAlignerPoseClustering tool;
   return tool.main(argc, argv);

@@ -74,19 +74,19 @@ public:
     /// Destructor
     virtual ~MapAlignmentAlgorithmPoseClustering();
 
-    void align(const FeatureMap & map, TransformationDescription & trafo);
-    void align(const MSExperiment<> & map, TransformationDescription & trafo);
-    void align(const ConsensusMap & map, TransformationDescription & trafo);
+    void align(const FeatureMap& map, TransformationDescription& trafo);
+    void align(const MSExperiment<>& map, TransformationDescription& trafo);
+    void align(const ConsensusMap& map, TransformationDescription& trafo);
 
     template <typename MapType>
-    void setReference(const MapType & map)
+    void setReference(const MapType& map)
     {
       MapType map2 = map; // todo: avoid copy (MSExperiment version of convert() demands non-const version)
       MapConversion::convert(0, map2, reference_, max_num_peaks_considered_);
     }
 
     /// Creates a new instance of this class (for Factory)
-    static MapAlignmentAlgorithm * create()
+    static MapAlignmentAlgorithm* create()
     {
       return new MapAlignmentAlgorithmPoseClustering();
     }
@@ -112,9 +112,9 @@ protected:
 private:
 
     /// Copy constructor intentionally not implemented -> private
-    MapAlignmentAlgorithmPoseClustering(const MapAlignmentAlgorithmPoseClustering &);
+    MapAlignmentAlgorithmPoseClustering(const MapAlignmentAlgorithmPoseClustering&);
     ///Assignment operator intentionally not implemented -> private
-    MapAlignmentAlgorithmPoseClustering & operator=(const MapAlignmentAlgorithmPoseClustering &);
+    MapAlignmentAlgorithmPoseClustering& operator=(const MapAlignmentAlgorithmPoseClustering&);
   };
 } // namespace OpenMS
 
