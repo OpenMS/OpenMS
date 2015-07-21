@@ -78,8 +78,9 @@ public:
     void align(const MSExperiment<>& map, TransformationDescription& trafo);
     void align(const ConsensusMap& map, TransformationDescription& trafo);
 
+    /// Sets the reference for the alignment
     template <typename MapType>
-    void setReference(const MapType& map)
+    virtual void setReference(const MapType& map)
     {
       MapType map2 = map; // todo: avoid copy (MSExperiment version of convert() demands non-const version)
       MapConversion::convert(0, map2, reference_, max_num_peaks_considered_);

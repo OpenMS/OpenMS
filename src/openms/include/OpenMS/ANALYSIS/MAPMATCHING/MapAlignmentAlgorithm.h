@@ -71,61 +71,62 @@ public:
 
     @exception Exception::NotImplemented is thrown if an algorithm cannot align peak maps
     */
-    virtual void alignPeakMaps(std::vector<MSExperiment<> > &, std::vector<TransformationDescription> &);
+    virtual void alignPeakMaps(std::vector<MSExperiment<> >&, std::vector<TransformationDescription>&);
 
     /**
     @brief Aligns vectors of 2D peaks (memory efficient version of FeatureMap)
 
     @exception Exception::NotImplemented is thrown if an algorithm cannot align feature maps
     */
-    virtual void alignCompactFeatureMaps(std::vector<std::vector<Peak2D> > &, std::vector<TransformationDescription> &);
+    virtual void alignCompactFeatureMaps(std::vector<std::vector<Peak2D> >&, std::vector<TransformationDescription>&);
 
     /**
     @brief Aligns feature maps
 
     @exception Exception::NotImplemented is thrown if an algorithm cannot align feature maps
     */
-    virtual void alignFeatureMaps(std::vector<FeatureMap > &, std::vector<TransformationDescription> &);
+    virtual void alignFeatureMaps(std::vector<FeatureMap>&, std::vector<TransformationDescription>&);
 
     /**
     @brief Aligns consensus maps
 
     @exception Exception::NotImplemented is thrown if an algorithm cannot align consensus maps
     */
-    virtual void alignConsensusMaps(std::vector<ConsensusMap> &, std::vector<TransformationDescription> &);
+    virtual void alignConsensusMaps(std::vector<ConsensusMap>&, std::vector<TransformationDescription>&);
 
     /**
     @brief Aligns peptide identifications
 
     @exception Exception::NotImplemented is thrown if an algorithm cannot align peptide identifications
     */
-    virtual void alignPeptideIdentifications(std::vector<std::vector<PeptideIdentification> > &, std::vector<TransformationDescription> &);
+    virtual void alignPeptideIdentifications(std::vector<std::vector<PeptideIdentification> >&, std::vector<TransformationDescription>&);
 
     /**
          @brief Defines a reference for the alignment
 
-         @param reference_index Index of input file to use as reference (1-based!)
-         @param reference_file Path to external reference file
-
-         @exception Exception::InvalidParameter is thrown if the algorithm does not support references
+         @exception Exception::NotImplemented The algorithm does not support references
         */
-    virtual void setReference(Size reference_index = 0, const String & reference_file = "");
+    template <typename MapType>
+    virtual void setReference(const MapType& map)
+    {
+      throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+    }
 
     /**
          @brief Fits a model with given parameters to the transformations
 
          This will not alter transformations of reference files (transformation type "identity").
     */
-    static void fitModel(const String & model_type, const Param & params, std::vector<TransformationDescription> & trafos);
+    static void fitModel(const String& model_type, const Param& params, std::vector<TransformationDescription>& trafos);
 
     /// Register all derived classes in this method
     static void registerChildren();
 
 private:
     /// Copy constructor is not implemented -> private
-    MapAlignmentAlgorithm(const MapAlignmentAlgorithm &);
+    MapAlignmentAlgorithm(const MapAlignmentAlgorithm&);
     /// Assignment operator is not implemented -> private
-    MapAlignmentAlgorithm & operator=(const MapAlignmentAlgorithm &);
+    MapAlignmentAlgorithm& operator=(const MapAlignmentAlgorithm&);
 
   };
 
