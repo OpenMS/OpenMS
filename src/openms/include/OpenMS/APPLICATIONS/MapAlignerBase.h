@@ -125,29 +125,6 @@ protected:
     }
   }
 
-  /// deprecated? (not used in PoseClustering... and moved to initialize_() )
-  void handleReference_(MapAlignmentAlgorithmIdentification& alignment)
-  {
-    // note: this function is in the base class to avoid code duplication, but
-    // it only makes sense for some derived classes - don't call the function
-    // in a class that doesn't support a reference!
-
-    // check reference parameters:
-    Size reference_index = getIntOption_("reference:index");
-    String reference_file = getStringOption_("reference:file");
-    if (reference_index > getStringList_("in").size())
-    {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "'reference:index' must not be higher than the number of input files");
-    }
-    if (reference_index && !reference_file.empty())
-    {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "'reference:index' and 'reference:file' cannot be used together");
-    }
-
-    // pass the reference parameters on to the algorithm:
-    alignment.setReference(reference_index, reference_file);
-  }
-
   ExitCodes checkParameters_(bool check_ref = false)
   {
     //-------------------------------------------------------------

@@ -34,15 +34,8 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-
-#include <cmath> // for "abs"
-#include <limits> // for "max"
 
 using namespace std;
 
@@ -51,7 +44,7 @@ namespace OpenMS
 
   MapAlignmentAlgorithmIdentification::MapAlignmentAlgorithmIdentification() :
     DefaultParamHandler("MapAlignmentAlgorithmIdentification"),
-    ProgressLogger(), reference_index_(0), reference_(), score_threshold_(0.0),
+    ProgressLogger(), reference_index_(-1), reference_(), score_threshold_(0.0),
     min_run_occur_(0)
   {
     defaults_.setValue("peptide_score_threshold", 0.0, "Score threshold for peptide hits to be used in the alignment.\nSelect a value that allows only 'high confidence' matches.");
@@ -74,54 +67,6 @@ namespace OpenMS
 
   MapAlignmentAlgorithmIdentification::~MapAlignmentAlgorithmIdentification()
   {
-  }
-
-  void MapAlignmentAlgorithmIdentification::setReference(Size reference_index,
-                                                         const String& reference_file)
-  {
-    reference_.clear();
-    reference_index_ = reference_index;
-    // reference is one of the input files, or no reference given:
-    if (reference_index_ || reference_file.empty())
-      return;
-
-    // reference is external file:
-    LOG_DEBUG << "Extracting reference RT data..." << endl;
-    SeqToList rt_data;
-    bool sorted = true;
-    FileTypes::Type filetype = FileHandler::getType(reference_file);
-    if (filetype == FileTypes::MZML)
-    {
-      MSExperiment<> experiment;
-      MzMLFile().load(reference_file, experiment);
-      getRetentionTimes_(experiment, rt_data);
-      sorted = false;
-    }
-    else if (filetype == FileTypes::FEATUREXML)
-    {
-      FeatureMap features;
-      FeatureXMLFile().load(reference_file, features);
-      getRetentionTimes_(features, rt_data);
-    }
-    else if (filetype == FileTypes::CONSENSUSXML)
-    {
-      ConsensusMap features;
-      ConsensusXMLFile().load(reference_file, features);
-      getRetentionTimes_(features, rt_data);
-    }
-    else if (filetype == FileTypes::IDXML)
-    {
-      vector<ProteinIdentification> proteins;
-      vector<PeptideIdentification> peptides;
-      IdXMLFile().load(reference_file, proteins, peptides);
-      getRetentionTimes_(peptides, rt_data);
-    }
-
-    computeMedians_(rt_data, reference_, sorted);
-    if (reference_.empty())
-    {
-      throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not extract retention time information from the reference file");
-    }
   }
 
   void MapAlignmentAlgorithmIdentification::checkParameters_(Size runs)
@@ -181,7 +126,8 @@ namespace OpenMS
     {
       if (hasGoodHit_(*pep_it))
       {
-        rt_data[pep_it->getHits()[0].getSequence().toString()].push_back(pep_it->getRT());
+        const String& seq = pep_it->getHits()[0].getSequence().toString();
+        rt_data[seq].push_back(pep_it->getRT());
       }
     }
     return false;
@@ -200,71 +146,11 @@ namespace OpenMS
     return false;
   }
 
-  template <typename MapType>
-  bool MapAlignmentAlgorithmIdentification::getRetentionTimes_(
-    MapType& features, SeqToList& rt_data)
-  {
-    bool use_feature_rt = param_.getValue("use_feature_rt").toBool();
-    for (typename MapType::Iterator feat_it = features.begin();
-         feat_it != features.end(); ++feat_it)
-    {
-      if (use_feature_rt)
-      {
-        // find the peptide ID closest in RT to the feature centroid:
-        String sequence;
-        double rt_distance = numeric_limits<double>::max();
-        bool any_good_hit = false;
-        for (vector<PeptideIdentification>::iterator pep_it =
-               feat_it->getPeptideIdentifications().begin(); pep_it !=
-             feat_it->getPeptideIdentifications().end(); ++pep_it)
-        {
-          if (hasGoodHit_(*pep_it))
-          {
-            any_good_hit = true;
-            double current_distance =
-              abs(pep_it->getRT() - feat_it->getRT());
-            if (current_distance < rt_distance)
-            {
-              sequence = pep_it->getHits()[0].getSequence().toString();
-              rt_distance = current_distance;
-            }
-          }
-        }
-
-        if (any_good_hit)
-          rt_data[sequence].push_back(feat_it->getRT());
-
-      }
-      else
-      {
-        getRetentionTimes_(feat_it->getPeptideIdentifications(), rt_data);
-      }
-    }
-
-    if (!use_feature_rt && param_.getValue("use_unassigned_peptides").toBool())
-    {
-      getRetentionTimes_(features.getUnassignedPeptideIdentifications(),
-                         rt_data);
-    }
-
-    // remove duplicates (can occur if a peptide ID was assigned to several
-    // features due to overlap or annotation tolerance):
-    for (SeqToList::iterator rt_it = rt_data.begin();
-         rt_it != rt_data.end(); ++rt_it)
-    {
-      DoubleList& rt_values = rt_it->second;
-      sort(rt_values.begin(), rt_values.end());
-      DoubleList::iterator it = unique(rt_values.begin(), rt_values.end());
-      rt_values.resize(it - rt_values.begin());
-    }
-    return true; // RTs are already sorted for duplicate detection
-  }
-
   void MapAlignmentAlgorithmIdentification::computeTransformations_(
     vector<SeqToList>& rt_data, vector<TransformationDescription>& transforms,
     bool sorted)
   {
-    Size size = rt_data.size();
+    Int size = rt_data.size(); // not Size because we compare to Ints later
     transforms.clear();
 
     // filter RT data (remove peptides that elute in several fractions):
@@ -273,7 +159,7 @@ namespace OpenMS
     // compute RT medians:
     LOG_DEBUG << "Computing RT medians..." << endl;
     vector<SeqToValue> medians_per_run(size);
-    for (Size i = 0; i < size; ++i)
+    for (Int i = 0; i < size; ++i)
     {
       computeMedians_(rt_data[i], medians_per_run[i], sorted);
     }
@@ -304,7 +190,7 @@ namespace OpenMS
         if ((med_it != medians_per_seq.end()) &&
             (med_it->second.size() + 1 >= min_run_occur_))
         {
-          temp.insert(pos, *ref_it);
+          temp.insert(pos, *ref_it); // we know new items should go at the end
           pos = --temp.end(); // would cause segfault if "temp" was empty
         }
       }
@@ -336,8 +222,9 @@ namespace OpenMS
     {
       max_rt_shift = numeric_limits<double>::max();
     }
-    else if (max_rt_shift <= 1) // compute max. allowed shift from overall retention time range:
+    else if (max_rt_shift <= 1)
     {
+      // compute max. allowed shift from overall retention time range:
       double rt_range, rt_min = reference_.begin()->second,
              rt_max = rt_min;
       for (SeqToValue::iterator it = ++reference_.begin();
@@ -354,19 +241,20 @@ namespace OpenMS
     // generate RT transformations:
     LOG_DEBUG << "Generating RT transformations..." << endl;
     LOG_INFO << "\nAlignment based on:" << endl; // diagnostic output
-    for (Size i = 0, offset = 0; i < size + 1; ++i)
+    Size offset = 0; // offset in case of internal reference
+    for (Int i = 0; i < size + 1; ++i)
     {
-      if (i == reference_index_ - 1)
+      if (i == reference_index_)
       {
         // if one of the input maps was used as reference, it has been skipped
         // so far - now we have to consider it again:
         TransformationDescription trafo;
         trafo.fitModel("identity");
         transforms.push_back(trafo);
-        LOG_INFO << "- 0 data points for sample " << i + 1 << " (reference)\n";
+        LOG_INFO << "- " << reference_.size() << " data points for sample "
+                 << i + 1 << " (reference)\n";
         offset = 1;
       }
-
       if (i >= size) break;
 
       // to be useful for the alignment, a peptide sequence has to occur in the
@@ -378,7 +266,7 @@ namespace OpenMS
       {
         SeqToValue::const_iterator pos = reference_.find(med_it->first);
         if ((pos != reference_.end()) &&
-            (fabs(med_it->second - pos->second) <= max_rt_shift))
+            (abs(med_it->second - pos->second) <= max_rt_shift))
         { // found, and satisfies "max_rt_shift" condition!
           data.push_back(make_pair(med_it->second, pos->second));
         }
@@ -393,10 +281,11 @@ namespace OpenMS
     if (!reference_given) reference_.clear();
   }
 
-  // explicit template instantiation for Windows DLL
-  template bool OPENMS_DLLAPI MapAlignmentAlgorithmIdentification::getRetentionTimes_(ConsensusMap& features, SeqToList& rt_data);
+  // explicit template instantiation for Windows DLL:
+  template bool OPENMS_DLLAPI MapAlignmentAlgorithmIdentification::getRetentionTimes_<>(ConsensusMap& features, SeqToList& rt_data);
 
-  // explicit template instantiation for Windows DLL
-  template bool OPENMS_DLLAPI MapAlignmentAlgorithmIdentification::getRetentionTimes_(FeatureMap& features, SeqToList& rt_data);
+  // explicit template instantiation for Windows DLL:
+  template bool OPENMS_DLLAPI MapAlignmentAlgorithmIdentification::getRetentionTimes_<>(FeatureMap& features, SeqToList& rt_data);
+
 
 } //namespace

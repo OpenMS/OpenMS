@@ -39,9 +39,13 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
+#include <cmath> // for "abs"
+#include <limits> // for "max"
 #include <map>
 
 namespace OpenMS
@@ -78,8 +82,18 @@ public:
     virtual ~MapAlignmentAlgorithmIdentification();
 
     // Set a reference for the alignment
-    void setReference(Size reference_index = 0, 
-                      const String& reference_file = "");
+    template <typename DataType> void setReference(DataType& data)
+    {
+      reference_.clear();
+      if (data.empty()) return; // empty input resets the reference
+      SeqToList rt_data;
+      bool sorted = getRetentionTimes_(data, rt_data);
+      computeMedians_(rt_data, reference_, sorted);
+      if (reference_.empty())
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not extract retention time information from the reference file");
+      }
+    }
 
     /**
       @brief Align feature maps, consensus maps, peak maps, or peptide identifications.
@@ -89,24 +103,30 @@ public:
     */
     template <typename DataType>
     void align(std::vector<DataType>& data, 
-               std::vector<TransformationDescription>& transformations)
+               std::vector<TransformationDescription>& transformations,
+               Int reference_index = -1)
     {
       checkParameters_(data.size());
       startProgress(0, 3, "aligning maps");
 
-      if (reference_index_) // reference is one of the input files
+      reference_index_ = reference_index;
+      if (reference_index >= 0) // reference is one of the input files
       {
-        SeqToList rt_data;
-        bool sorted = getRetentionTimes_(data[reference_index_ - 1], rt_data);
-        computeMedians_(rt_data, reference_, sorted);
+        if (reference_index >= data.size())
+        {
+          throw Exception::IndexOverflow(__FILE__, __LINE__,
+                                         __PRETTY_FUNCTION__, reference_index, 
+                                         data.size());
+        }
+        setReference(data[reference_index]);
       }
 
       // one set of RT data for each input map, except reference:
-      std::vector<SeqToList> rt_data(data.size() - bool(reference_index_));
+      std::vector<SeqToList> rt_data(data.size() - (reference_index >= 0));
       bool all_sorted = true;
       for (Size i = 0, j = 0; i < data.size(); ++i)
       {
-        if (i == reference_index_ - 1) continue; // skip reference map, if any
+        if (i == reference_index) continue; // skip reference map, if any
         all_sorted &= getRetentionTimes_(data[i], rt_data[j++]);
       }
       setProgress(1);
@@ -126,9 +146,9 @@ protected:
     /// Type to store one representative retention time per peptide sequence
     typedef std::map<String, double> SeqToValue;
 
-    /// Index of input file to use as reference (1-based!)
-    Size reference_index_;
-
+    /// Index of input file to use as reference (if any)
+    Int reference_index_;
+    
     /// Reference retention times (per peptide sequence)
     SeqToValue reference_;
 
@@ -187,7 +207,61 @@ protected:
       @return Are the RTs already sorted? (Here: true)
     */
     template <typename MapType>
-    bool getRetentionTimes_(MapType& features, SeqToList& rt_data);
+    bool getRetentionTimes_(MapType& features, SeqToList& rt_data)
+    {
+      bool use_feature_rt = param_.getValue("use_feature_rt").toBool();
+      for (typename MapType::Iterator feat_it = features.begin();
+           feat_it != features.end(); ++feat_it)
+      {
+        if (use_feature_rt)
+        {
+          // find the peptide ID closest in RT to the feature centroid:
+          String sequence;
+          double rt_distance = std::numeric_limits<double>::max();
+          bool any_good_hit = false;
+          for (std::vector<PeptideIdentification>::iterator pep_it =
+                 feat_it->getPeptideIdentifications().begin(); pep_it !=
+                 feat_it->getPeptideIdentifications().end(); ++pep_it)
+          {
+            if (hasGoodHit_(*pep_it))
+            {
+              any_good_hit = true;
+              double current_distance = abs(pep_it->getRT() - feat_it->getRT());
+              if (current_distance < rt_distance)
+              {
+                sequence = pep_it->getHits()[0].getSequence().toString();
+                rt_distance = current_distance;
+              }
+            }
+          }
+
+          if (any_good_hit) rt_data[sequence].push_back(feat_it->getRT());
+        }
+        else
+        {
+          getRetentionTimes_(feat_it->getPeptideIdentifications(), rt_data);
+        }
+      }
+
+      if (!use_feature_rt && 
+          param_.getValue("use_unassigned_peptides").toBool())
+      {
+        getRetentionTimes_(features.getUnassignedPeptideIdentifications(),
+                           rt_data);
+      }
+
+      // remove duplicates (can occur if a peptide ID was assigned to several
+      // features due to overlap or annotation tolerance):
+      for (SeqToList::iterator rt_it = rt_data.begin(); rt_it != rt_data.end();
+           ++rt_it)
+      {
+        DoubleList& rt_values = rt_it->second;
+        sort(rt_values.begin(), rt_values.end());
+        DoubleList::iterator it = unique(rt_values.begin(), rt_values.end());
+        rt_values.resize(it - rt_values.begin());
+      }
+      return true; // RTs were already sorted for duplicate detection
+    }
 
     /**
       @brief Compute retention time transformations from RT data grouped by peptide sequence

@@ -152,9 +152,10 @@ private:
   template <typename DataType>
   void performAlignment_(MapAlignmentAlgorithmIdentification& algorithm,
                          vector<DataType>& data,
-                         vector<TransformationDescription>& transformations)
+                         vector<TransformationDescription>& transformations,
+                         Int reference_index)
   {
-    algorithm.align(data, transformations);
+    algorithm.align(data, transformations, reference_index);
 
     // find model parameters:
     Param model_params = getParam_().copy("model:", true);
@@ -190,10 +191,69 @@ private:
     progresslogger.endProgress();
   }
 
+  Int getReference_(MapAlignmentAlgorithmIdentification& algorithm)
+  {
+    Size reference_index = getIntOption_("reference:index");
+    String reference_file = getStringOption_("reference:file");
+
+    if (!reference_file.empty())
+    {
+      if (reference_index > 0)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "'reference:index' and 'reference:file' cannot be used together");
+      }
+
+      FileTypes::Type filetype = FileHandler::getType(reference_file);
+      if (filetype == FileTypes::MZML)
+      {
+        MSExperiment<> experiment;
+        MzMLFile().load(reference_file, experiment);
+        algorithm.setReference(experiment);
+      }
+      else if (filetype == FileTypes::FEATUREXML)
+      {
+        FeatureMap features;
+        FeatureXMLFile().load(reference_file, features);
+        algorithm.setReference(features);
+      }
+      else if (filetype == FileTypes::CONSENSUSXML)
+      {
+        ConsensusMap consensus;
+        ConsensusXMLFile().load(reference_file, consensus);
+        algorithm.setReference(consensus);
+      }
+      else if (filetype == FileTypes::IDXML)
+      {
+        vector<ProteinIdentification> proteins;
+        vector<PeptideIdentification> peptides;
+        IdXMLFile().load(reference_file, proteins, peptides);
+        algorithm.setReference(peptides);
+      }
+    }
+
+    if (reference_index > getStringList_("in").size())
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "'reference:index' must not be higher than the number of input files");
+    }
+    return Int(reference_index) - 1; // internally, we count from zero
+  }
+
   void registerOptionsAndFlags_()
   {
     String formats = "featureXML,consensusXML,idXML";
-    TOPPMapAlignerBase::registerOptionsAndFlags_(formats, true);
+    registerInputFileList_("in", "<files>", StringList(), "Input files to align (all must have the same file type)", true);
+    setValidFormats_("in", ListUtils::create<String>(formats));
+    registerOutputFileList_("out", "<files>", StringList(), "Output files (same file type as 'in')", false);
+    setValidFormats_("out", ListUtils::create<String>(formats));
+    registerOutputFileList_("trafo_out", "<files>", StringList(), "Transformation output files. Either 'out' or 'trafo_out' has to be provided. They can be used together.", false);
+    setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
+
+    registerTOPPSubsection_("reference", "Options to define a reference file (use either 'file' or 'index', not both).");
+    registerInputFile_("reference:file", "<file>", "", "File to use as reference", false);
+    setValidFormats_("reference:file", ListUtils::create<String>(formats));
+    registerIntOption_("reference:index", "<number>", 0, "Use one of the input files as reference ('1' for the first file, etc.).\nIf '0', no explicit reference is set - the algorithm will generate a reference.", false);
+    setMinInt_("reference:index", 0);
+
     registerSubsection_("algorithm", "Algorithm parameters section");
     registerSubsection_("model", "Options to control the modeling of retention time transformations from data");
   }
@@ -207,7 +267,7 @@ private:
     }
     if (section == "model")
     {
-      return getModelDefaults("b_spline");
+      return TOPPMapAlignerBase::getModelDefaults("b_spline");
     }
 
     return Param(); // this shouldn't happen
@@ -215,15 +275,16 @@ private:
 
   ExitCodes main_(int, const char**)
   {
-    ExitCodes return_code = checkParameters_();
+    ExitCodes return_code = TOPPMapAlignerBase::checkParameters_();
     if (return_code != EXECUTION_OK) return return_code;
 
     // set up alignment algorithm:
     MapAlignmentAlgorithmIdentification algorithm;
-    handleReference_(algorithm);
     Param algo_params = getParam_().copy("algorithm:", true);
     algorithm.setParameters(algo_params);
     algorithm.setLogType(log_type_);
+
+    Int reference_index = getReference_(algorithm);
 
     // handle in- and output files:
     StringList input_files = getStringList_("in");
@@ -249,7 +310,8 @@ private:
       }
       loadInitialMaps_(feature_maps, input_files, fxml_file);
 
-      performAlignment_(algorithm, feature_maps, transformations);
+      performAlignment_(algorithm, feature_maps, transformations,
+                        reference_index);
 
       if (!output_files.empty())
       {
@@ -266,13 +328,15 @@ private:
       ConsensusXMLFile cxml_file;
       loadInitialMaps_(consensus_maps, input_files, cxml_file);
 
-      performAlignment_(algorithm, consensus_maps, transformations);
+      performAlignment_(algorithm, consensus_maps, transformations,
+                        reference_index);
 
       if (!output_files.empty())
       {
         storeTransformedMaps_(consensus_maps, output_files, cxml_file);
       }
     }
+
     //-------------------------------------------------------------
     // perform peptide alignment
     //-------------------------------------------------------------
@@ -292,7 +356,8 @@ private:
       }
       progresslogger.endProgress();
 
-      performAlignment_(algorithm, peptide_ids, transformations);
+      performAlignment_(algorithm, peptide_ids, transformations,
+                        reference_index);
 
       if (!output_files.empty())
       {
