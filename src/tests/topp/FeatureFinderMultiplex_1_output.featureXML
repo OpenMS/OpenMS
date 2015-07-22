@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.6" id="fm_7804704400743266335" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_6.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<featureMap version="1.7" id="fm_7804704400743266335" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<featureList count="4">
 		<feature id="f_15004869347769368353">
 			<position dim="0">1481.78192813311</position>

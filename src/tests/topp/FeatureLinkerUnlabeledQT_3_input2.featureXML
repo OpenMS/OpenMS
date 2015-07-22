@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.6" id="fm_10253060449047408476" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<featureMap version="1.7" id="fm_10253060449047408476" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<userParam type="string" name="user_param_1" value="User Param 1"/>
+	<userParam type="string" name="user_param_2" value="User Param 2"/>
 	<dataProcessing completion_time="2013-06-20T16:35:04">
 		<software name="MassTraceExtractor" version="1.11.0" />
 		<processingAction name="Quantitation" />
