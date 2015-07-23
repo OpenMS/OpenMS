@@ -286,8 +286,23 @@ protected:
     for (StringList::iterator mod_it = modNames.begin(); mod_it != modNames.end(); ++mod_it)
     {
       String modification(*mod_it);
-      ResidueModification rm = ModificationsDB::getInstance()->getModification(modification);
+      ResidueModification rm;
+      if (modification.hasSubstring(" (N-term)"))
+      {
+        modification.substitute(" (N-term)", "");
+        rm = ModificationsDB::getInstance()->getTerminalModification(modification, ResidueModification::N_TERM);
+      }
+      else if (modification.hasSubstring(" (C-term)"))
+      {
+        modification.substitute(" (C-term)", "");
+        rm = ModificationsDB::getInstance()->getTerminalModification(modification, ResidueModification::C_TERM);
+      }
+      else
+      {
+        rm = ModificationsDB::getInstance()->getModification(modification);
+      }
       modifications.push_back(rm);
+
       // attempt to register modified residue in the single thread context (no locking required) and obtain thread safety this way
       ResidueDB::getInstance()->getModifiedResidue(modification);
     }
