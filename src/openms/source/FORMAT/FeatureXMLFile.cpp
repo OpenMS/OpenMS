@@ -44,8 +44,8 @@ using namespace std;
 namespace OpenMS
 {
   FeatureXMLFile::FeatureXMLFile() :
-    Internal::XMLHandler("", "1.6"),
-    Internal::XMLFile("/SCHEMAS/FeatureXML_1_6.xsd", "1.6")
+    Internal::XMLHandler("", "1.7"),
+    Internal::XMLFile("/SCHEMAS/FeatureXML_1_7.xsd", "1.7")
   {
     resetMembers_();
   }
@@ -175,7 +175,10 @@ namespace OpenMS
     {
       os << " id=\"fm_" << feature_map.getUniqueId() << "\"";
     }
-    os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/FeatureXML_1_6.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+    os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/FeatureXML_1_7.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+
+    // user param
+    writeUserParam_("userParam", os, feature_map, 1);
 
     //write data processing
     for (Size i = 0; i < feature_map.getDataProcessing().size(); ++i)
@@ -488,6 +491,7 @@ namespace OpenMS
       {
         map_->setUniqueId(unique_id);
       }
+      last_meta_ = map_;
     }
     else if (tag == "dataProcessing")
     {
