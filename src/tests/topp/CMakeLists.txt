@@ -823,6 +823,10 @@ set_tests_properties("TOPP_MapRTTransformer_4_out1" PROPERTIES DEPENDS "TOPP_Map
 add_test("TOPP_MapRTTransformer_5" ${TOPP_BIN_PATH}/MapRTTransformer -test -in ${DATA_DIR_TOPP}/MapRTTransformer_1_input.featureXML -trafo_in ${DATA_DIR_TOPP}/MapRTTransformer_trafo_none.trafoXML -out MapRTTransformer_5_output.tmp)
 add_test("TOPP_MapRTTransformer_5_out1" ${DIFF} -in1 MapRTTransformer_5_output.tmp -in2 ${DATA_DIR_TOPP}/MapRTTransformer_5_output.featureXML )
 set_tests_properties("TOPP_MapRTTransformer_5_out1" PROPERTIES DEPENDS "TOPP_MapRTTransformer_5")
+# "store_original_rt" option:
+add_test("TOPP_MapRTTransformer_6" ${TOPP_BIN_PATH}/MapRTTransformer -test -in ${DATA_DIR_TOPP}/MapRTTransformer_1_input.featureXML -trafo_in ${DATA_DIR_TOPP}/MapRTTransformer_trafo_linear.trafoXML -out MapRTTransformer_6_output.tmp -store_original_rt)
+add_test("TOPP_MapRTTransformer_6_out1" ${DIFF} -in1 MapRTTransformer_6_output.tmp -in2 ${DATA_DIR_TOPP}/MapRTTransformer_6_output.featureXML )
+set_tests_properties("TOPP_MapRTTransformer_6_out1" PROPERTIES DEPENDS "TOPP_MapRTTransformer_6")
 
 #------------------------------------------------------------------------------
 # MascotAdapter tests
