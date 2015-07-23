@@ -119,9 +119,9 @@ protected:
   {
     registerInputFileList_("in", "<files>", StringList(), "Input files to align (all must have the same file type)", true);
     setValidFormats_("in", ListUtils::create<String>(file_formats));
-    registerOutputFileList_("out", "<files>", StringList(), "Output files (same file type as 'in')", false);
+    registerOutputFileList_("out", "<files>", StringList(), "Output files (same file type as 'in'). Either this option or 'trafo_out' has to be provided; they can be used together.", false);
     setValidFormats_("out", ListUtils::create<String>(file_formats));
-    registerOutputFileList_("trafo_out", "<files>", StringList(), "Transformation output files. Either 'out' or 'trafo_out' has to be provided; they can be used together.", false);
+    registerOutputFileList_("trafo_out", "<files>", StringList(), "Transformation output files. Either this option or 'out' has to be provided; they can be used together.", false);
     setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
 
     if (ref_params != REF_NONE)

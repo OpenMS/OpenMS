@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
-// $Authors: Marc Sturm, Clemens Groepl $
+// $Maintainer: Hendrik Weisser $
+// $Authors: Marc Sturm, Clemens Groepl, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
@@ -94,12 +94,12 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPMapRTTransformer :
-  public TOPPMapAlignerBase
+  public TOPPBase
 {
 
 public:
   TOPPMapRTTransformer() :
-    TOPPMapAlignerBase("MapRTTransformer", "Applies retention time transformations to maps.")
+    TOPPBase("MapRTTransformer", "Applies retention time transformations to maps.")
   {
   }
 
@@ -110,14 +110,14 @@ protected:
     // "in" is not required, in case we only want to invert a transformation:
     registerInputFile_("in", "<file>", "", "Input file to transform (separated by blanks)", false);
     setValidFormats_("in", ListUtils::create<String>(file_formats));
-    registerOutputFile_("out", "<file>", "", "Output file. Either this option or 'trafo_out' have to be provided. They can be used together.", false);
+    registerOutputFile_("out", "<file>", "", "Output file (same file type as 'in'). Either this option or 'trafo_out' has to be provided; they can be used together.", false);
     setValidFormats_("out", ListUtils::create<String>(file_formats));
     registerInputFile_("trafo_in", "<file>", "", "Transformation to apply");
     setValidFormats_("trafo_in", ListUtils::create<String>("trafoXML"));
-    registerOutputFile_("trafo_out", "<file>", "", "Transformation output file. Either this option or 'out' have to be provided. They can be used together.", false);
+    registerOutputFile_("trafo_out", "<file>", "", "Transformation output file. Either this option or 'out' has to be provided; they can be used together.", false);
     setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
-    registerFlag_("invert", "Invert transformations (approximatively) before applying them");
-    registerFlag_("store_original_rt", "Store the original retention time (before transformation) as meta data");
+    registerFlag_("invert", "Invert transformation (approximatively) before applying it");
+    registerFlag_("store_original_rt", "Store the original retention times (before transformation) as meta data in the output file");
     addEmptyLine_();
 
     registerSubsection_("model", "Options to control the modeling of retention time transformations from data");
@@ -125,7 +125,7 @@ protected:
 
   Param getSubsectionDefaults_(const String& /* section */) const
   {
-    return getModelDefaults("none");
+    return TOPPMapAlignerBase::getModelDefaults("none");
   }
 
   template <class TFile, class TMap>
@@ -134,7 +134,9 @@ protected:
                             TFile& file, TMap& map)
   {
     file.load(in, map);
-    MapAlignmentTransformer::transformRetentionTimes(map, trafo);
+    bool store_original_rt = getFlag_("store_original_rt");
+    MapAlignmentTransformer::transformRetentionTimes(map, trafo,
+                                                     store_original_rt);
     addDataProcessing_(map, getProcessingInfo_(DataProcessing::ALIGNMENT));
     file.store(out, map);
   }
@@ -214,7 +216,9 @@ protected:
         vector<ProteinIdentification> proteins;
         vector<PeptideIdentification> peptides;
         file.load(in, proteins, peptides);
-        MapAlignmentTransformer::transformRetentionTimes(peptides, trafo);
+        bool store_original_rt = getFlag_("store_original_rt");
+        MapAlignmentTransformer::transformRetentionTimes(peptides, trafo,
+                                                         store_original_rt);
         // no "data processing" section in idXML
         file.store(out, proteins, peptides);
       }
