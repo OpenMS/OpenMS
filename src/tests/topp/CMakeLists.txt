@@ -1028,13 +1028,32 @@ add_test("TOPP_PeakPickerWavelet_3" ${TOPP_BIN_PATH}/PeakPickerWavelet  -test -i
 # On Ubuntu 14.04 in Release mode only (not Debug mode), the output of this
 # file is slightly different due to a small numerical error. Since FuzzyDiff is
 # not able to compare the numbers in base64, we have to "whitelist" the
-# corresponding base64 string which means that the line will be marked as
-# correct if the string is found in both lines. This means that if there are
-# any changes in the base64 string *after* the
-# 3bAxk01KjUAAAACgmVGNQIvf6JpEWo1Ah string, they will be ignore.
-# Note that this string occurs twice in the file.
+# corresponding base64 string.
 #
-add_test("TOPP_PeakPickerWavelet_3_out1" ${DIFF} -in1 PeakPickerWavelet_3.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerWavelet_2Dopt_output.mzML -whitelist "3bAxk01KjUAAAACgmVGNQIvf6JpEWo1Ah")
+#  Validation: 
+#   mynr = base64.standard_b64decode("3bAxk01KjUAAAACgmVGNQIvf6JpEWo1AhaXzLTpijUA=")
+#   [struct.unpack('<d', mynr[i:i+8]) for i in range(0, len(mynr), 8) ]
+#   [(937.2878784067249,), (938.2000122070312,), (939.2834985917301,), (940.2784079584968,)]
+#
+#   mynr = base64.standard_b64decode("3bAxk01KjUAAAACgmVGNQIvf6JpEWo1AhqXzLTpijUA=") 
+#   [struct.unpack('<d', mynr[i:i+8]) for i in range(0, len(mynr), 8) ]
+#   [(937.2878784067249,), (938.2000122070312,), (939.2834985917301,), (940.2784079584969,)]
+#
+#   mynr = base64.standard_b64decode("bSj7DzRKjUDnZAujlFGNQINk5GQ2Wo1AeTS9qztijUA=") 
+#   [struct.unpack('<d', mynr[i:i+8]) for i in range(0, len(mynr), 8) ]
+#   [(937.2754211065018,), (938.1975766077202,), (939.2765596240209,), (940.2791361600531,)]
+#
+#   -- case 2
+# 
+#   mynr = base64.standard_b64decode("3bAxk01KjUAAAACgmVGNQIvf6JpEWo1AhqXzLTpijUAAAACgmWmNQA==") 
+#   [struct.unpack('<d', mynr[i:i+8]) for i in range(0, len(mynr), 8) ]
+#   [(937.2878784067249,), (938.2000122070312,), (939.2834985917301,), (940.2784079584969,), (941.2000122070312,)]
+#
+#   mynr = base64.standard_b64decode("3bAxk01KjUAAAACgmVGNQIvf6JpEWo1AhaXzLTpijUAAAACgmWmNQA==") 
+#   [struct.unpack('<d', mynr[i:i+8]) for i in range(0, len(mynr), 8) ]
+#   [(937.2878784067249,), (938.2000122070312,), (939.2834985917301,), (940.2784079584968,), (941.2000122070312,)]
+#
+add_test("TOPP_PeakPickerWavelet_3_out1" ${DIFF} -in1 PeakPickerWavelet_3.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerWavelet_2Dopt_output.mzML -matched_whitelist 3bAxk01KjUAAAACgmVGNQIvf6JpEWo1AhaXzLTpijUA:3bAxk01KjUAAAACgmVGNQIvf6JpEWo1AhqXzLTpijUAAAACgmWmNQA 3bAxk01KjUAAAACgmVGNQIvf6JpEWo1AhaXzLTpijUA:bSj7DzRKjUDnZAujlFGNQINk5GQ2Wo1AeTS9qztijUA 3bAxk01KjUAAAACgmVGNQIvf6JpEWo1AhqXzLTpijUAAAACgmWmNQA:3bAxk01KjUAAAACgmVGNQIvf6JpEWo1AhaXzLTpijUAAAACgmWmNQA)
 set_tests_properties("TOPP_PeakPickerWavelet_3_out1" PROPERTIES DEPENDS "TOPP_PeakPickerWavelet_3")
 add_test("TOPP_PeakPickerWavelet_4" ${TOPP_BIN_PATH}/PeakPickerWavelet  -test -ini ${DATA_DIR_TOPP}/PeakPickerWavelet_parameters.ini -in ${DATA_DIR_TOPP}/PeakPickerWavelet_input.mzML -out PeakPickerWavelet_4.tmp -threads 2)
 add_test("TOPP_PeakPickerWavelet_4_out1" ${DIFF} -in1 PeakPickerWavelet_4.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerWavelet_output.mzML)
