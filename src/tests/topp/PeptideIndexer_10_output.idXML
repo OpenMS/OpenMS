@@ -6,8 +6,10 @@
 	<IdentificationRun date="2014-08-04T15:32:46" search_engine="" search_engine_version="" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="Protein1" score="0" sequence="PEPTIDEXXX" >
+                <UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
 			<ProteinHit id="PH_1" accession="Protein2_rev" score="0" sequence="PEPTLDEXXX" >
+                <UserParam type="string" name="target_decoy" value="decoy"/>
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="0" RT="0" >

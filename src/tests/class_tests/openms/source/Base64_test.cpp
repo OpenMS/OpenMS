@@ -67,6 +67,26 @@ START_SECTION((virtual ~Base64()))
   delete ptr;
 END_SECTION
 
+/*
+
+Python 
+
+# Little Endian floats
+>>> import base64
+>>> import struct
+>>> mynr = base64.standard_b64decode("pDiTRQ==")
+>>> [struct.unpack('<f', mynr[i:i+4]) for i in range(0, len(mynr), 4) ]
+[(4711.080078125,)]
+ 
+# Big Endian doubles
+>>> import base64
+>>> import struct
+>>> mynr = base64.standard_b64decode("QHLCZmZmZmZAcv/3ztkWh0BzCZmZmZma")
+>>> [struct.unpack('>d', mynr[i:i+8]) for i in range(0, len(mynr), 8) ]
+[(300.15,), (303.998,), (304.6,)]
+
+*/
+
 START_SECTION((template < typename FromType > void encode(std::vector< FromType > &in, ByteOrder to_byte_order, String &out, bool zlib_compression=false)))
   TOLERANCE_ABSOLUTE(0.001)
 {

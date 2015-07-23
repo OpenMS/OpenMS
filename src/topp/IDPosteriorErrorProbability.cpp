@@ -72,20 +72,19 @@ using namespace std;
     By default an estimation is performed using the (inverse) Gumbel distribution for incorrectly assigned sequences
     and a Gaussian distribution for correctly assigned sequences. The probabilities are calculated by using Bayes' law, similar to PeptideProphet.
     Alternatively, a second Gaussian distribution can be used for incorrectly assigned sequences.
-    At the moment, IDPosteriorErrorProbability is able to handle X!Tandem, Mascot, MyriMatch and OMSSA scores.
+    At the moment, IDPosteriorErrorProbability is able to handle X! Tandem, Mascot, MyriMatch and OMSSA scores.
 
-  No target/decoy information needs to be provided, since the model fits are done on the mixed distribution.
+    No target/decoy information needs to be provided, since the model fits are done on the mixed distribution.
 
     In order to validate the computed probabilities an optional plot output can be generated.
     There are two parameters for the plot:
-    The scores are plotted in form of bins. Each bin represents a set of scores in a range of (highest_score - smallest_score)/number_of_bins (if all scores have positive values).
+    The scores are plotted in the form of bins. Each bin represents a set of scores in a range of '(highest_score - smallest_score) / number_of_bins' (if all scores have positive values).
     The midpoint of the bin is the mean of the scores it represents.
     The parameter 'out_plot' should be used to give the plot a unique name. Two files are created. One with the binned scores and one with all steps of the estimation.
-    If top_hits_only is set, only the top hits of each PeptideIdentification are used for the estimation process.
-    Additionally, if 'top_hits_only' is set and target_decoy information are available and a False Discovery Rate run was performed before, an additional plot will be plotted with target and decoy bins('out_plot' must not be empty).
-    A peptide hit is assumed to be a target if its q-value is smaller than fdr_for_targets_smaller.
-    The plots are saved as a gnuplot file. An attempt is made to call Gnuplot, which will create a PDF file which contains all steps of the estimation. If this fails, the user has to run Gnuplot manually
-    or adjust the PATH environment such that this tool can find it.
+    If parameter @p top_hits_only is set, only the top hits of each peptide identification are used for the estimation process.
+    Additionally, if 'top_hits_only' is set, target/decoy information is available and a @ref TOPP_FalseDiscoveryRate run was performed previously, an additional plot will be generated with target and decoy bins ('out_plot' must not be empty).
+    A peptide hit is assumed to be a target if its q-value is smaller than @p fdr_for_targets_smaller.
+    The plots are saved as a Gnuplot file. An attempt is made to call Gnuplot, which will create a PDF file containing all steps of the estimation. If this fails, the user has to run Gnuplot manually - or adjust the PATH environment such that Gnuplot can be found and retry.
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
@@ -125,9 +124,9 @@ protected:
 
     registerFlag_("split_charge", "The search engine scores are split by charge if this flag is set. Thus, for each charge state a new model will be computed.");
     registerFlag_("top_hits_only", "If set only the top hits of every PeptideIdentification will be used");
-    registerDoubleOption_("fdr_for_targets_smaller", "<value>", 0.05, "Only used, when top_hits_only set. Additionally, target_decoy information should be available. The score_type must be q-value from an previous False Discovery Rate run.", false, true);
+    registerDoubleOption_("fdr_for_targets_smaller", "<value>", 0.05, "Only used, when top_hits_only set. Additionally, target/decoy information should be available. The score_type must be q-value from an previous False Discovery Rate run.", false, true);
     registerFlag_("ignore_bad_data", "If set errors will be written but ignored. Useful for pipelines with many datasets where only a few are bad, but the pipeline should run through.");
-    registerFlag_("prob_correct", "If set scores will be calculated as 1-ErrorProbabilities and can be interpreted as probabilities for correct identifications.");
+    registerFlag_("prob_correct", "If set scores will be calculated as '1 - ErrorProbabilities' and can be interpreted as probabilities for correct identifications.");
     registerSubsection_("fit_algorithm", "Algorithm parameter subsection");
     addEmptyLine_();
   }

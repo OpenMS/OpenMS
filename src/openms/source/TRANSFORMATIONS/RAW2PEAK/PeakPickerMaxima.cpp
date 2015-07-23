@@ -57,8 +57,10 @@ namespace OpenMS
       const std::vector<double>& int_array, std::vector<PeakCandidate>& pc, 
       bool check_spacings)
   {
+    // don't pick a spectrum with less than 5 data points
     if (mz_array.size() < 5) return;
 
+    // signal-to-noise estimation
     SignalToNoiseEstimatorMedianRapid::NoiseEstimator noise_estimator(0, 0, 0);
     if (signal_to_noise_ > 0.0)
     {
@@ -74,10 +76,8 @@ namespace OpenMS
       double right_neighbor_mz = mz_array[i + 1], right_neighbor_int = int_array[i + 1];
 
       // do not interpolate when the left or right support is a zero-data-point
-      if (std::fabs(left_neighbor_int) < std::numeric_limits<double>::epsilon())
-        continue;
-      if (std::fabs(right_neighbor_int) < std::numeric_limits<double>::epsilon())
-        continue;
+      if (std::fabs(left_neighbor_int) < std::numeric_limits<double>::epsilon()) continue;
+      if (std::fabs(right_neighbor_int) < std::numeric_limits<double>::epsilon()) continue;
 
       // MZ spacing sanity checks
       double left_to_central = std::fabs(central_peak_mz - left_neighbor_mz);
@@ -85,7 +85,6 @@ namespace OpenMS
       double min_spacing = (left_to_central < central_to_right) ? left_to_central : central_to_right;
 
       double act_snt = 0.0, act_snt_l1 = 0.0, act_snt_r1 = 0.0;
-
       if (signal_to_noise_ > 0.0)
       {
         act_snt = central_peak_int / noise_estimator.get_noise_value(central_peak_mz);
@@ -94,13 +93,14 @@ namespace OpenMS
       }
 
       // look for peak cores meeting MZ and intensity/SNT criteria
-      if (act_snt >= signal_to_noise_
-         && (!check_spacings || left_to_central < spacing_difference_ * min_spacing)
-         && central_peak_int > left_neighbor_int
-         && act_snt_l1 >= signal_to_noise_
-         && (!check_spacings || central_to_right < spacing_difference_ * min_spacing)
-         && central_peak_int > right_neighbor_int
-         && act_snt_r1 >= signal_to_noise_)
+      if ((central_peak_int > left_neighbor_int) && 
+          (central_peak_int > right_neighbor_int) && 
+          (act_snt >= signal_to_noise_) && 
+          (act_snt_l1 >= signal_to_noise_) && 
+          (act_snt_r1 >= signal_to_noise_) &&
+          (!check_spacings || 
+           ((left_to_central < spacing_difference_ * min_spacing) && 
+            (central_to_right < spacing_difference_ * min_spacing))))
       {
         // special case: if a peak core is surrounded by more intense
         // satellite peaks (indicates oscillation rather than
@@ -118,15 +118,14 @@ namespace OpenMS
           act_snt_r2 = int_array[i + 2] / noise_estimator.get_noise_value(mz_array[i + 2]);
         }
 
-        if ((i > 1
-            && (!check_spacings || std::fabs(left_neighbor_mz - mz_array[i - 2]) < spacing_difference_ * min_spacing)
+        if (i > 1
+            && (i + 2) < mz_array.size()
             && left_neighbor_int < int_array[i - 2]
-            && act_snt_l2 >= signal_to_noise_)
-           &&
-            ((i + 2) < mz_array.size()
-            && (!check_spacings || std::fabs(mz_array[i + 2] - right_neighbor_mz) < spacing_difference_ * min_spacing)
             && right_neighbor_int < int_array[i + 2]
-            && act_snt_r2 >= signal_to_noise_)
+            && act_snt_l2 >= signal_to_noise_
+            && act_snt_r2 >= signal_to_noise_
+            && (!check_spacings || std::fabs(left_neighbor_mz - mz_array[i - 2]) < spacing_difference_ * min_spacing)
+            && (!check_spacings || std::fabs(mz_array[i + 2] - right_neighbor_mz) < spacing_difference_ * min_spacing)
             )
         {
           ++i;
@@ -243,21 +242,9 @@ namespace OpenMS
     {
       PeakCandidate candidate = pc[j];
 
-      // output all raw data points selected for one peak
-      // TODO: #ifdef DEBUG_ ...
-      // for (std::map<double, double>::const_iterator map_it = peak_raw_data.begin(); map_it != peak_raw_data.end(); ++map_it) {
-      // PeakType peak;
-      // peak.setMZ(map_it->first);
-      // peak.setIntensity(map_it->second);
-      // output.push_back(peak);
-      // std::cout << map_it->first << " " << map_it->second << " snt: " << std::endl;
-      // }
-      // std::cout << "--------------------" << std::endl;
-
       double central_peak_mz = mz_array[candidate.pos], central_peak_int = int_array[candidate.pos];
       double left_neighbor_mz = mz_array[candidate.pos - 1];   //, left_neighbor_int = int_array[candidate.pos - 1];
       double right_neighbor_mz = mz_array[candidate.pos + 1];   //, right_neighbor_int = int_array[candidate.pos + 1];
-
 
       std::vector<double> raw_mz_values;
       std::vector<double> raw_int_values;
