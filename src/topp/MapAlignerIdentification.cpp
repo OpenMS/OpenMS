@@ -193,16 +193,14 @@ private:
 
   Int getReference_(MapAlignmentAlgorithmIdentification& algorithm)
   {
+    // consistency of reference parameters has already been checked via
+    // "TOPPMapAlignerBase::checkParameters_"
+
     Size reference_index = getIntOption_("reference:index");
     String reference_file = getStringOption_("reference:file");
 
     if (!reference_file.empty())
     {
-      if (reference_index > 0)
-      {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "'reference:index' and 'reference:file' cannot be used together");
-      }
-
       FileTypes::Type filetype = FileHandler::getType(reference_file);
       if (filetype == FileTypes::MZML)
       {
@@ -231,28 +229,13 @@ private:
       }
     }
 
-    if (reference_index > getStringList_("in").size())
-    {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "'reference:index' must not be higher than the number of input files");
-    }
     return Int(reference_index) - 1; // internally, we count from zero
   }
 
   void registerOptionsAndFlags_()
   {
     String formats = "featureXML,consensusXML,idXML";
-    registerInputFileList_("in", "<files>", StringList(), "Input files to align (all must have the same file type)", true);
-    setValidFormats_("in", ListUtils::create<String>(formats));
-    registerOutputFileList_("out", "<files>", StringList(), "Output files (same file type as 'in')", false);
-    setValidFormats_("out", ListUtils::create<String>(formats));
-    registerOutputFileList_("trafo_out", "<files>", StringList(), "Transformation output files. Either 'out' or 'trafo_out' has to be provided. They can be used together.", false);
-    setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
-
-    registerTOPPSubsection_("reference", "Options to define a reference file (use either 'file' or 'index', not both).");
-    registerInputFile_("reference:file", "<file>", "", "File to use as reference", false);
-    setValidFormats_("reference:file", ListUtils::create<String>(formats));
-    registerIntOption_("reference:index", "<number>", 0, "Use one of the input files as reference ('1' for the first file, etc.).\nIf '0', no explicit reference is set - the algorithm will generate a reference.", false);
-    setMinInt_("reference:index", 0);
+    TOPPMapAlignerBase::registerOptionsAndFlags_(formats, REF_FLEXIBLE);
 
     registerSubsection_("algorithm", "Algorithm parameters section");
     registerSubsection_("model", "Options to control the modeling of retention time transformations from data");

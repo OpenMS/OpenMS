@@ -74,7 +74,7 @@ class TOPPMapAlignerBase :
 
 public:
   TOPPMapAlignerBase(String name, String description, bool official = true) :
-    TOPPBase(name, description, official)
+    TOPPBase(name, description, official), ref_params_(REF_NONE)
   {
   }
 
@@ -106,26 +106,41 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_(const String& file_formats, const bool add_reference = false)
+
+  // Kind of reference parameters that the tool offers:
+  // - REF_NONE: no reference
+  // - REF_RESTRICTED: reference file must have same type as input files
+  // - REF_FLEXIBLE: reference file can have any supported file type
+  enum ReferenceParameterKind { REF_NONE, REF_RESTRICTED, REF_FLEXIBLE }
+    ref_params_;
+
+  void registerOptionsAndFlags_(const String& file_formats,
+                                enum ReferenceParameterKind ref_params)
   {
-    registerInputFileList_("in", "<files>", StringList(), "Input files separated by blanks (all must have the same file type)", true);
+    registerInputFileList_("in", "<files>", StringList(), "Input files to align (all must have the same file type)", true);
     setValidFormats_("in", ListUtils::create<String>(file_formats));
-    registerOutputFileList_("out", "<files>", StringList(), "Output files separated by blanks. Either 'out' or 'trafo_out' has to be provided. They can be used together.", false);
+    registerOutputFileList_("out", "<files>", StringList(), "Output files (same file type as 'in')", false);
     setValidFormats_("out", ListUtils::create<String>(file_formats));
-    registerOutputFileList_("trafo_out", "<files>", StringList(), "Transformation output files separated by blanks. Either 'out' or 'trafo_out' has to be provided. They can be used together.", false);
+    registerOutputFileList_("trafo_out", "<files>", StringList(), "Transformation output files. Either 'out' or 'trafo_out' has to be provided; they can be used together.", false);
     setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
-    addEmptyLine_();
-    if (add_reference)
+
+    if (ref_params != REF_NONE)
     {
-      registerTOPPSubsection_("reference", "Options to define a reference file (use either 'file' or 'index', not both; if neither is given 'index' is used).");
-      registerInputFile_("reference:file", "<file>", "", "File to use as reference (same file format as input files required)", false);
+      registerTOPPSubsection_("reference", "Options to define a reference file (use either 'file' or 'index', not both)");
+      String description = "File to use as reference";
+      if (ref_params == REF_RESTRICTED)
+      {
+        description += " (same file format as input files required)";
+      }
+      registerInputFile_("reference:file", "<file>", "",  description, false);
       setValidFormats_("reference:file", ListUtils::create<String>(file_formats));
       registerIntOption_("reference:index", "<number>", 0, "Use one of the input files as reference ('1' for the first file, etc.).\nIf '0', no explicit reference is set - the algorithm will select a reference.", false);
       setMinInt_("reference:index", 0);
     }
+    ref_params_ = ref_params;
   }
 
-  ExitCodes checkParameters_(bool check_ref = false)
+  ExitCodes checkParameters_()
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -165,27 +180,26 @@ protected:
       }
     }
     
-    if (check_ref) // a valid index OR file should be given
+    if (ref_params_ != REF_NONE) // a valid ref. index OR file should be given
     {
       Size reference_index = getIntOption_("reference:index");
       String reference_file = getStringOption_("reference:file");
-      if (reference_index > getStringList_("in").size())
+      if (reference_index > ins.size())
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "'reference:index' must not be higher than the number of input files");
+        writeLog_("Error: Value of parameter 'reference:index' must not be higher than the number of input files");
+        return ILLEGAL_PARAMETERS;
       }
       if (reference_index && !reference_file.empty())
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "'reference:index' and 'reference:file' cannot be used together");
+        writeLog_("Error: Parameters 'reference:index' and 'reference:file' cannot be used together");
+        return ILLEGAL_PARAMETERS;
       }
 
-      // file should have same type as other input
-      if (!reference_file.empty())
+      if ((ref_params_ == REF_RESTRICTED) && !reference_file.empty() &&
+          (FileHandler::getType(reference_file) != in_type))
       {
-        if (FileHandler::getType(reference_file) != in_type)
-        {
-          writeLog_("Error: Reference file must have the same format as other input files (parameters 'reference:file'/'in')");
-          return ILLEGAL_PARAMETERS;
-        }
+        writeLog_("Error: Reference file must have the same format as other input files (parameters 'reference:file'/'in')");
+        return ILLEGAL_PARAMETERS;
       }
     }
 

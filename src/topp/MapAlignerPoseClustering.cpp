@@ -109,7 +109,8 @@ public:
 protected:
   void registerOptionsAndFlags_()
   {
-    TOPPMapAlignerBase::registerOptionsAndFlags_("mzML,featureXML", true);
+    TOPPMapAlignerBase::registerOptionsAndFlags_("mzML,featureXML",
+                                                 REF_RESTRICTED);
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
@@ -125,7 +126,7 @@ protected:
 
   ExitCodes main_(int, const char**)
   {
-    ExitCodes ret = TOPPMapAlignerBase::checkParameters_(true);
+    ExitCodes ret = TOPPMapAlignerBase::checkParameters_();
     if (ret != EXECUTION_OK) return ret;
 
     MapAlignmentAlgorithmPoseClustering algorithm;
