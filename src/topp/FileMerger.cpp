@@ -246,12 +246,12 @@ protected:
       bool rt_filename = getFlag_("raw:rt_filename");
       bool rt_custom = false;
       DoubleList custom_rts = getDoubleList_("raw:rt_custom");
-      if (custom_rts.size() != 0)
+      if (!custom_rts.empty())
       {
         rt_custom = true;
         if (custom_rts.size() != file_list.size())
         {
-          writeLog_("Custom retention time list must have as many elements as there are input files!");
+          writeLog_("Custom retention time list (parameter 'raw:rt_custom') must have as many elements as there are input files (parameter 'in')!");
           printUsage_();
           return ILLEGAL_PARAMETERS;
         }
@@ -269,7 +269,7 @@ protected:
       {
         String filename = file_list[i];
 
-        //load file
+        // load file
         force_type = file_handler.getType(file_list[i]);
         MSExperiment<> in;
         file_handler.loadExperiment(filename, in, force_type, log_type_);
