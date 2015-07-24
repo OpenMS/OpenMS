@@ -30,6 +30,9 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         void reset() nogil except +
         bool clearMetaDataArrays() nogil except +
         ExperimentalSettings getExperimentalSettings() nogil except +
+        
+        void setPrimaryMSRunPath(StringList& s) nogil except +
+        StringList getPrimaryMSRunPath() nogil except +
 
         void swap(MSExperiment[PeakT, ChromoPeakT]) nogil except +
 
@@ -52,8 +55,8 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         MSChromatogram[ChromoPeakT] getTIC() nogil except +
         void clear(bool clear_meta_data) nogil except +
 
-        void   updateRanges() nogil except +
-        void   updateRanges(int msLevel) nogil except +
+        void updateRanges() nogil except +
+        void updateRanges(int msLevel) nogil except +
 
         void reserveSpaceSpectra(Size s) nogil except +
         void reserveSpaceChromatograms(Size s) nogil except +

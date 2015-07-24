@@ -697,6 +697,21 @@ public:
       return *this;
     }
 
+    /// set the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)
+    void setPrimaryMSRunPath(const StringList& s)
+    {
+      this->setMetaValue("ms_run-location", DataValue(s));
+    }
+
+    /// get the file path to the first MS run
+    StringList getPrimaryMSRunPath() const
+    {
+      if (this->hasMetaValue("ms_run-location"))
+      {
+        return static_cast<StringList>(this->getMetaValue("ms_run-location"));
+      }
+    }
+
     /**
       @brief Returns the precursor spectrum of the scan pointed to by @p iterator
 

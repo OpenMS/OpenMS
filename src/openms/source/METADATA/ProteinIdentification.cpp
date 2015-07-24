@@ -240,6 +240,20 @@ namespace OpenMS
     protein_hits_.push_back(protein_hit);
   }
 
+  void ProteinIdentification::setPrimaryMSRunPath(const StringList& s);
+  {
+    this->setMetaValue("ms_run-location", DataValue(s));
+  }
+
+  /// get the file path to the first MS run
+  StringList ProteinIdentification::getPrimaryMSRunPath() const
+  {
+    if (this->hasMetaValue("ms_run-location"))
+    {
+      return static_cast<StringList>(this->getMetaValue("ms_run-location"));
+    }
+  }
+
   ProteinIdentification& ProteinIdentification::operator=(const ProteinIdentification& source)
   {
     if (this == &source)
