@@ -109,7 +109,7 @@ START_SECTION((static void applyFixedModifications(const std::vector< ResidueMod
   ModifiedPeptideGenerator::applyFixedModifications(fixed_mods.begin(), fixed_mods.end(), seq0);
   ModifiedPeptideGenerator::applyFixedModifications(fixed_mods.begin(), fixed_mods.end(), seq1);
   TEST_EQUAL(seq0.toString(), "K(Carbamyl)AAAAAAAA");
-  TEST_EQUAL(seq1.toString(), "K(Carbamyl)(Carbamyl)AAAAAAAA");
+  TEST_EQUAL(seq1.toString(), "(Carbamyl)K(Carbamyl)AAAAAAAA");
  
 }
 END_SECTION

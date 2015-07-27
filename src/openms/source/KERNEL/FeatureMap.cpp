@@ -359,7 +359,7 @@ namespace OpenMS
   }
 
   /// set the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)
-  OPENMS_DLLAPI void FeatureMap::setPrimaryMSRunPath(const StringList& s);
+  OPENMS_DLLAPI void FeatureMap::setPrimaryMSRunPath(const StringList& s)
   {
     this->setMetaValue("ms_run-location", DataValue(s));
   }
@@ -367,10 +367,12 @@ namespace OpenMS
   /// get the file path to the first MS run
   OPENMS_DLLAPI StringList FeatureMap::getPrimaryMSRunPath() const
   {
-    if (this->hasMetaValue("ms_run-location"))
+    StringList ret;
+    if (this->metaValueExists("ms_run-location"))
     {
-      return static_cast<StringList>(this->getMetaValue("ms_run-location"));
+      ret = this->getMetaValue("ms_run-location");
     }
+    return ret;
   }
 
   void FeatureMap::clear(bool clear_meta_data)
