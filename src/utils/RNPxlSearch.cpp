@@ -88,14 +88,6 @@ using namespace OpenMS;
 using namespace std;
 /*
   TODO:
-    proper C-term N-term handling of terminal modifications that can be at every amino acid
-
-        // should be something like this: check if AA of modification and peptide match
-        if (origin != aa_seq[pos].getOneLetterCode() && origin != "C-term" && origin != "N-term")
-        {
-          continue;
-        }
-
   // check for common annotation error in unimod
   if ((origin == "C-term" || origin == "N-term") && term_specifity == ResidueModification::ANYWHERE)
         {

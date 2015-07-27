@@ -47,6 +47,25 @@ namespace OpenMS
   // static
   void ModifiedPeptideGenerator::applyFixedModifications(const vector<ResidueModification>::const_iterator& fixed_mods_begin, const vector<ResidueModification>::const_iterator& fixed_mods_end, AASequence& peptide)
   {
+    // set terminal modifications for modifications without amino acid preference
+    for (vector<ResidueModification>::const_iterator fixed_it = fixed_mods_begin; fixed_it != fixed_mods_end; ++fixed_it)
+    {
+      if (fixed_it->getOrigin() == "N-term")
+      {
+        if (peptide.getNTerminalModification().empty())
+        {
+          peptide.setNTerminalModification(fixed_it->getFullName());
+        }
+      }
+      else if (fixed_it->getOrigin() == "C-term")
+      {
+        if (peptide.getCTerminalModification().empty())
+        {
+          peptide.setCTerminalModification(fixed_it->getFullName());
+        }
+      }
+    }
+
     //iterate over each residue
     for (AASequence::ConstIterator residue_it = peptide.begin(); residue_it != peptide.end(); ++residue_it)
     {
@@ -87,6 +106,25 @@ namespace OpenMS
   {
     const int N_TERM_MODIFICATION_INDEX = -1; // magic constant to distinguish N_TERM only modifications from ANYWHERE modifications placed at N-term residue
     const int C_TERM_MODIFICATION_INDEX = -2; // magic constant to distinguish C_TERM only modifications from ANYWHERE modifications placed at C-term residue
+
+    // set terminal modifications for modifications without amino acid preference
+    for (vector<ResidueModification>::const_iterator fixed_it = fixed_mods_begin; fixed_it != fixed_mods_end; ++fixed_it)
+    {
+      if (fixed_it->getOrigin() == "N-term")
+      {
+        if (!peptide.getNTerminalModification().empty())
+        {
+          modified_peptide.push_back(std::make_pair(N_TERM_MODIFICATION_INDEX, *fixed_it));
+        }
+      }
+      else if (fixed_it->getOrigin() == "C-term")
+      {
+        if (!peptide.getCTerminalModification().empty())
+        {
+          modified_peptide.push_back(std::make_pair(C_TERM_MODIFICATION_INDEX, *fixed_it));
+        }
+      }
+    }
 
     //iterate over each residue
     for (AASequence::ConstIterator residue_it = peptide.begin(); residue_it != peptide.end(); ++residue_it)
@@ -161,6 +199,25 @@ namespace OpenMS
     //iterate over each residue and build compatibility mapping describing
     //which amino acid (peptide index) is compatible with which modification
     map<int, vector<ResidueModification> > map_compatibility;
+
+    // set terminal modifications for modifications without amino acid preference
+    for (vector<ResidueModification>::const_iterator variable_it = var_mods_begin; variable_it != var_mods_end; ++variable_it)
+    {
+      if (variable_it->getOrigin() == "N-term")
+      {
+        if (peptide.getNTerminalModification().empty())
+        {
+          map_compatibility[N_TERM_MODIFICATION_INDEX].push_back(*variable_it);
+        }
+      }
+      else if (variable_it->getOrigin() == "C-term")
+      {
+        if (peptide.getCTerminalModification().empty())
+        {
+          map_compatibility[C_TERM_MODIFICATION_INDEX].push_back(*variable_it);
+        }
+      }
+    }
 
     for (AASequence::ConstIterator residue_it = peptide.begin(); residue_it != peptide.end(); ++residue_it)
     {
@@ -292,6 +349,25 @@ namespace OpenMS
     //iterate over each residue and build compatibility mapping describing
     //which amino acid (peptide index) is compatible with which modification
     map<int, vector<ResidueModification> > map_compatibility;
+
+    // set terminal modifications for modifications without amino acid preference
+    for (vector<ResidueModification>::const_iterator variable_it = var_mods_begin; variable_it != var_mods_end; ++variable_it)
+    {
+      if (variable_it->getOrigin() == "N-term")
+      {
+        if (peptide.getNTerminalModification().empty())
+        {
+          map_compatibility[N_TERM_MODIFICATION_INDEX].push_back(*variable_it);
+        }
+      }
+      else if (variable_it->getOrigin() == "C-term")
+      {
+        if (peptide.getCTerminalModification().empty())
+        {
+          map_compatibility[C_TERM_MODIFICATION_INDEX].push_back(*variable_it);
+        }
+      }
+    }
 
     for (AASequence::ConstIterator residue_it = peptide.begin(); residue_it != peptide.end(); ++residue_it)
     {
