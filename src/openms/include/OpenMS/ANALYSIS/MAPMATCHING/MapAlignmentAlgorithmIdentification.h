@@ -110,7 +110,9 @@ public:
       startProgress(0, 3, "aligning maps");
 
       reference_index_ = reference_index;
-      if (reference_index >= 0) // reference is one of the input files
+      // is reference one of the input files?
+      bool use_internal_reference = (reference_index >= 0);
+      if (use_internal_reference)
       {
         if (reference_index >= data.size())
         {
@@ -121,8 +123,8 @@ public:
         setReference(data[reference_index]);
       }
 
-      // one set of RT data for each input map, except reference:
-      std::vector<SeqToList> rt_data(data.size() - (reference_index >= 0));
+      // one set of RT data for each input map, except reference (if any):
+      std::vector<SeqToList> rt_data(data.size() - use_internal_reference);
       bool all_sorted = true;
       for (Size i = 0, j = 0; i < data.size(); ++i)
       {
