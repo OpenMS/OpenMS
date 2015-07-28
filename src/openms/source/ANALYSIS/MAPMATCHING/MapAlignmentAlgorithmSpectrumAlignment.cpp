@@ -43,10 +43,9 @@ namespace OpenMS
 {
 
   MapAlignmentAlgorithmSpectrumAlignment::MapAlignmentAlgorithmSpectrumAlignment() :
-    MapAlignmentAlgorithm(),
-    c1_(0)
+    DefaultParamHandler("MapAlignmentAlgorithmSpectrumAlignment"),
+    ProgressLogger(), c1_(0)
   {
-    setName("MapAlignmentAlgorithmSpectrumAlignment");
     defaults_.setValue("gapcost", 1.0, " This Parameter stands for the cost of opining a gap in the Alignment. A Gap means that one Spectrum can not be aligned directly to another Spectrum in the Map. This happens, when the similarity of both spectra a too low or even not present. Imagen as a insert or delete of the spectrum in the map. The gap is necessary for aligning, if we open a gap there is a possibility that an another spectrum can be correct aligned with a higher score as before without gap. But to open a gap is a negative event and has to be punished a bit, so such only in case  it 's a good choice to open a gap, if the score is bad enough. The Parameter is to giving as a positive number, the implementation convert it to a negative number.");
     defaults_.setMinFloat("gapcost", 0.0);
     defaults_.setValue("affinegapcost", 0.5, " This Parameter controls the cost of extension a already open gap. The idea behind the affine gapcost lies under the assumption, that it is better to get a long distance of connected gaps than to have a structure gap match gap match.  There for the punishment for the extension of a gap has to be lower than the normal gapcost. If the the result of the alignment show high compression, it is a good idea to lower the affine gapcost or the normal gapcost.");
@@ -74,7 +73,7 @@ namespace OpenMS
     delete c1_;
   }
 
-  void MapAlignmentAlgorithmSpectrumAlignment::alignPeakMaps(std::vector<MSExperiment<> >& peakmaps, std::vector<TransformationDescription>& transformation)
+  void MapAlignmentAlgorithmSpectrumAlignment::align(std::vector<MSExperiment<> >& peakmaps, std::vector<TransformationDescription>& transformation)
   {
     transformation.clear();
     TransformationDescription trafo;
