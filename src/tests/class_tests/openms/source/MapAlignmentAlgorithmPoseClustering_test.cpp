@@ -36,6 +36,7 @@
 #include <OpenMS/test_config.h>
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
 #include <OpenMS/CONCEPT/Factory.h>
@@ -53,7 +54,6 @@ START_TEST(MapAlignmentAlgorithmPoseClustering, "$Id$")
 
 MapAlignmentAlgorithmPoseClustering* ptr = 0;
 MapAlignmentAlgorithmPoseClustering* nullPointer = 0;
-MapAlignmentAlgorithm* base_nullPointer = 0;
 START_SECTION((MapAlignmentAlgorithmPoseClustering()))
 	ptr = new MapAlignmentAlgorithmPoseClustering();
 	TEST_NOT_EQUAL(ptr, nullPointer)
@@ -63,36 +63,46 @@ START_SECTION((virtual ~MapAlignmentAlgorithmPoseClustering()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((static MapAlignmentAlgorithm* create()))
-  TEST_NOT_EQUAL(MapAlignmentAlgorithmPoseClustering::create(),base_nullPointer)
-END_SECTION
-
-START_SECTION((static String getProductName()))
-	TEST_EQUAL(MapAlignmentAlgorithmPoseClustering::getProductName(), "pose_clustering")
-END_SECTION
-
-START_SECTION((virtual void setReference(Size reference_index=0, const String& reference_file="")))
+START_SECTION((template <typename MapType> void setReference(const MapType& map)))
 {
-	NOT_TESTABLE; // only some internal variables are set
+  NOT_TESTABLE // tested together with "align"
 }
 END_SECTION
 
-START_SECTION((virtual void alignPeakMaps(std::vector< MSExperiment<> > &, std::vector< TransformationDescription > &)))
+START_SECTION((void align(const MSExperiment<>& map, TransformationDescription& trafo)))
 {
   MzMLFile f;
-  std::vector< MSExperiment<> > peak_maps(2);
-  f.load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmPoseClustering_in1.mzML.gz"), peak_maps[0]);
-  f.load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmPoseClustering_in2.mzML.gz"), peak_maps[1]);
+  std::vector<MSExperiment<> > maps(2);
+  f.load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmPoseClustering_in1.mzML.gz"), maps[0]);
+  f.load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmPoseClustering_in2.mzML.gz"), maps[1]);
 
-  MapAlignmentAlgorithm* alignment = Factory<MapAlignmentAlgorithm>::create("pose_clustering");
-  std::vector<TransformationDescription> transformations;
-  // Trafo cannot be computed, due to too few datapoints
-  // -- the ideal solution would be to fix the trafo estimation
-  TEST_EXCEPTION(Exception::NotImplemented, alignment->alignPeakMaps(peak_maps,transformations));
+  MapAlignmentAlgorithmPoseClustering aligner;
+  aligner.setReference(maps[0]);
+
+  TransformationDescription trafo;
+  aligner.align(maps[1], trafo);
+
+  TEST_EQUAL(trafo.getModelType(), "linear");
+  TEST_EQUAL(trafo.getDataPoints().size(), 307);
+  
+  // @TODO: can we get the slope/intercept without fitting a model again?
+  TransformationModelLinear lm(trafo.getDataPoints(),
+                               trafo.getModelParameters());
+  double slope, intercept;
+  lm.getParameters(slope, intercept);
+  TEST_REAL_SIMILAR(slope, 1.01164);
+  TEST_REAL_SIMILAR(intercept, -32.0912);
 }
 END_SECTION
 
-START_SECTION((virtual void alignFeatureMaps(std::vector< FeatureMap > &, std::vector< TransformationDescription > &)))
+START_SECTION((void align(const FeatureMap& map, TransformationDescription& trafo)))
+{
+  // Tested extensively in TEST/TOPP
+  NOT_TESTABLE;
+}
+END_SECTION
+
+START_SECTION((void align(const ConsensusMap& map, TransformationDescription& trafo)))
 {
   // Tested extensively in TEST/TOPP
   NOT_TESTABLE;
