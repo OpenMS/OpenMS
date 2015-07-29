@@ -116,6 +116,7 @@ protected:
     //-------------------------------------------------------------
     // load input
     ConsensusMap out_map;
+    StringList ms_run_locations;
     if (file_type == FileTypes::FEATUREXML)
     {
       vector<FeatureMap > maps(ins.size());
@@ -134,6 +135,9 @@ protected:
           it->getConvexHulls().clear();
         }
         maps[i].updateRanges();
+        // copy over information on the primary MS run
+        const StringList& ms_runs = maps[i].getPrimaryMSRunPath();
+        ms_run_locations.insert(ms_run_locations.end(), ms_runs.begin(), ms_runs.end());
       }
       // exception for "labeled" algorithms: copy file descriptions
       if (labeled)
@@ -154,6 +158,9 @@ protected:
       {
         f.load(ins[i], maps[i]);
         maps[i].updateRanges();
+        // copy over information on the primary MS run
+        const StringList& ms_runs = maps[i].getPrimaryMSRunPath();
+        ms_run_locations.insert(ms_run_locations.end(), ms_runs.begin(), ms_runs.end());
       }
       // group
       algorithm->group(maps, out_map);
@@ -183,6 +190,9 @@ protected:
     // annotate output with data processing info
     addDataProcessing_(out_map,
                        getProcessingInfo_(DataProcessing::FEATURE_GROUPING));
+
+    // set primary MS runs
+    out_map.setPrimaryMSRunPath(ms_run_locations);
 
     // write output
     ConsensusXMLFile().store(out, out_map);
