@@ -802,13 +802,13 @@ add_test("TOPP_MapAlignerSpectrum_1_out3" ${DIFF} -in1 MapAlignerSpectrum_1_outp
 set_tests_properties("TOPP_MapAlignerSpectrum_1_out3" PROPERTIES DEPENDS "TOPP_MapAlignerSpectrum_1")
 
 #------------------------------------------------------------------------------
-# MapRTTransformer tests:
-add_test("TOPP_MapRTTransformer_1" ${TOPP_BIN_PATH}/MapRTTransformer -test -in ${DATA_DIR_TOPP}/MapRTTransformer_1_input.featureXML ${DATA_DIR_TOPP}/MapRTTransformer_1_input.featureXML -trafo_in ${DATA_DIR_TOPP}/MapRTTransformer_1_trafo1.trafoXML ${DATA_DIR_TOPP}/MapRTTransformer_1_trafo2.trafoXML -out MapRTTransformer_1_output1.tmp MapRTTransformer_1_output2.tmp)
-add_test("TOPP_MapRTTransformer_1_out1" ${DIFF} -in1 MapRTTransformer_1_output1.tmp -in2 ${DATA_DIR_TOPP}/MapRTTransformer_1_output1.featureXML )
+# MapRTTransformer tests
+# featureXML input:
+add_test("TOPP_MapRTTransformer_1" ${TOPP_BIN_PATH}/MapRTTransformer -test -in ${DATA_DIR_TOPP}/MapRTTransformer_1_input.featureXML -trafo_in ${DATA_DIR_TOPP}/MapRTTransformer_trafo_linear.trafoXML -out MapRTTransformer_1_output.tmp)
+add_test("TOPP_MapRTTransformer_1_out1" ${DIFF} -in1 MapRTTransformer_1_output.tmp -in2 ${DATA_DIR_TOPP}/MapRTTransformer_1_output.featureXML )
 set_tests_properties("TOPP_MapRTTransformer_1_out1" PROPERTIES DEPENDS "TOPP_MapRTTransformer_1")
-add_test("TOPP_MapRTTransformer_1_out2" ${DIFF} -in1 MapRTTransformer_1_output2.tmp -in2 ${DATA_DIR_TOPP}/MapRTTransformer_1_output2.featureXML )
-set_tests_properties("TOPP_MapRTTransformer_1_out2" PROPERTIES DEPENDS "TOPP_MapRTTransformer_1")
-add_test("TOPP_MapRTTransformer_2" ${TOPP_BIN_PATH}/MapRTTransformer -test -in ${DATA_DIR_TOPP}/MapRTTransformer_2_input.mzML -trafo_in ${DATA_DIR_TOPP}/MapRTTransformer_2_trafo.trafoXML -out MapRTTransformer_2_output.tmp)
+# mzML input:
+add_test("TOPP_MapRTTransformer_2" ${TOPP_BIN_PATH}/MapRTTransformer -test -in ${DATA_DIR_TOPP}/MapRTTransformer_2_input.mzML -trafo_in ${DATA_DIR_TOPP}/MapRTTransformer_trafo_linear.trafoXML -out MapRTTransformer_2_output.tmp)
 add_test("TOPP_MapRTTransformer_2_out1" ${DIFF} -in1 MapRTTransformer_2_output.tmp -in2 ${DATA_DIR_TOPP}/MapRTTransformer_2_output.mzML )
 set_tests_properties("TOPP_MapRTTransformer_2_out1" PROPERTIES DEPENDS "TOPP_MapRTTransformer_2")
 # "invert" option:
@@ -816,9 +816,17 @@ add_test("TOPP_MapRTTransformer_3" ${TOPP_BIN_PATH}/MapRTTransformer -test -inve
 add_test("TOPP_MapRTTransformer_3_out1" ${DIFF} -in1 MapRTTransformer_3_output.tmp -in2 ${DATA_DIR_TOPP}/MapRTTransformer_3_trafo.trafoXML )
 set_tests_properties("TOPP_MapRTTransformer_3_out1" PROPERTIES DEPENDS "TOPP_MapRTTransformer_3")
 # chromatograms
-add_test("TOPP_MapRTTransformer_4" ${TOPP_BIN_PATH}/MapRTTransformer -test -in ${DATA_DIR_TOPP}/MapRTTransformer_4_input.chrom.mzML -trafo_in ${DATA_DIR_TOPP}/MapRTTransformer_4_trafo.trafoXML -out MapRTTransformer_4_output.tmp)
+add_test("TOPP_MapRTTransformer_4" ${TOPP_BIN_PATH}/MapRTTransformer -test -in ${DATA_DIR_TOPP}/MapRTTransformer_4_input.chrom.mzML -trafo_in ${DATA_DIR_TOPP}/MapRTTransformer_trafo_linear.trafoXML -out MapRTTransformer_4_output.tmp)
 add_test("TOPP_MapRTTransformer_4_out1" ${DIFF} -in1 MapRTTransformer_4_output.tmp -in2 ${DATA_DIR_TOPP}/MapRTTransformer_4_output.chrom.mzML )
 set_tests_properties("TOPP_MapRTTransformer_4_out1" PROPERTIES DEPENDS "TOPP_MapRTTransformer_4")
+# no transformation:
+add_test("TOPP_MapRTTransformer_5" ${TOPP_BIN_PATH}/MapRTTransformer -test -in ${DATA_DIR_TOPP}/MapRTTransformer_1_input.featureXML -trafo_in ${DATA_DIR_TOPP}/MapRTTransformer_trafo_none.trafoXML -out MapRTTransformer_5_output.tmp)
+add_test("TOPP_MapRTTransformer_5_out1" ${DIFF} -in1 MapRTTransformer_5_output.tmp -in2 ${DATA_DIR_TOPP}/MapRTTransformer_5_output.featureXML )
+set_tests_properties("TOPP_MapRTTransformer_5_out1" PROPERTIES DEPENDS "TOPP_MapRTTransformer_5")
+# "store_original_rt" option:
+add_test("TOPP_MapRTTransformer_6" ${TOPP_BIN_PATH}/MapRTTransformer -test -in ${DATA_DIR_TOPP}/MapRTTransformer_1_input.featureXML -trafo_in ${DATA_DIR_TOPP}/MapRTTransformer_trafo_linear.trafoXML -out MapRTTransformer_6_output.tmp -store_original_rt)
+add_test("TOPP_MapRTTransformer_6_out1" ${DIFF} -in1 MapRTTransformer_6_output.tmp -in2 ${DATA_DIR_TOPP}/MapRTTransformer_6_output.featureXML )
+set_tests_properties("TOPP_MapRTTransformer_6_out1" PROPERTIES DEPENDS "TOPP_MapRTTransformer_6")
 
 #------------------------------------------------------------------------------
 # MascotAdapter tests
@@ -1028,13 +1036,32 @@ add_test("TOPP_PeakPickerWavelet_3" ${TOPP_BIN_PATH}/PeakPickerWavelet  -test -i
 # On Ubuntu 14.04 in Release mode only (not Debug mode), the output of this
 # file is slightly different due to a small numerical error. Since FuzzyDiff is
 # not able to compare the numbers in base64, we have to "whitelist" the
-# corresponding base64 string which means that the line will be marked as
-# correct if the string is found in both lines. This means that if there are
-# any changes in the base64 string *after* the
-# 3bAxk01KjUAAAACgmVGNQIvf6JpEWo1Ah string, they will be ignore.
-# Note that this string occurs twice in the file.
+# corresponding base64 string.
 #
-add_test("TOPP_PeakPickerWavelet_3_out1" ${DIFF} -in1 PeakPickerWavelet_3.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerWavelet_2Dopt_output.mzML -whitelist "3bAxk01KjUAAAACgmVGNQIvf6JpEWo1Ah")
+#  Validation: 
+#   mynr = base64.standard_b64decode("3bAxk01KjUAAAACgmVGNQIvf6JpEWo1AhaXzLTpijUA=")
+#   [struct.unpack('<d', mynr[i:i+8]) for i in range(0, len(mynr), 8) ]
+#   [(937.2878784067249,), (938.2000122070312,), (939.2834985917301,), (940.2784079584968,)]
+#
+#   mynr = base64.standard_b64decode("3bAxk01KjUAAAACgmVGNQIvf6JpEWo1AhqXzLTpijUA=") 
+#   [struct.unpack('<d', mynr[i:i+8]) for i in range(0, len(mynr), 8) ]
+#   [(937.2878784067249,), (938.2000122070312,), (939.2834985917301,), (940.2784079584969,)]
+#
+#   mynr = base64.standard_b64decode("bSj7DzRKjUDnZAujlFGNQINk5GQ2Wo1AeTS9qztijUA=") 
+#   [struct.unpack('<d', mynr[i:i+8]) for i in range(0, len(mynr), 8) ]
+#   [(937.2754211065018,), (938.1975766077202,), (939.2765596240209,), (940.2791361600531,)]
+#
+#   -- case 2
+# 
+#   mynr = base64.standard_b64decode("3bAxk01KjUAAAACgmVGNQIvf6JpEWo1AhqXzLTpijUAAAACgmWmNQA==") 
+#   [struct.unpack('<d', mynr[i:i+8]) for i in range(0, len(mynr), 8) ]
+#   [(937.2878784067249,), (938.2000122070312,), (939.2834985917301,), (940.2784079584969,), (941.2000122070312,)]
+#
+#   mynr = base64.standard_b64decode("3bAxk01KjUAAAACgmVGNQIvf6JpEWo1AhaXzLTpijUAAAACgmWmNQA==") 
+#   [struct.unpack('<d', mynr[i:i+8]) for i in range(0, len(mynr), 8) ]
+#   [(937.2878784067249,), (938.2000122070312,), (939.2834985917301,), (940.2784079584968,), (941.2000122070312,)]
+#
+add_test("TOPP_PeakPickerWavelet_3_out1" ${DIFF} -in1 PeakPickerWavelet_3.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerWavelet_2Dopt_output.mzML -matched_whitelist 3bAxk01KjUAAAACgmVGNQIvf6JpEWo1AhaXzLTpijUA:3bAxk01KjUAAAACgmVGNQIvf6JpEWo1AhqXzLTpijUAAAACgmWmNQA 3bAxk01KjUAAAACgmVGNQIvf6JpEWo1AhaXzLTpijUA:bSj7DzRKjUDnZAujlFGNQINk5GQ2Wo1AeTS9qztijUA 3bAxk01KjUAAAACgmVGNQIvf6JpEWo1AhqXzLTpijUAAAACgmWmNQA:3bAxk01KjUAAAACgmVGNQIvf6JpEWo1AhaXzLTpijUAAAACgmWmNQA)
 set_tests_properties("TOPP_PeakPickerWavelet_3_out1" PROPERTIES DEPENDS "TOPP_PeakPickerWavelet_3")
 add_test("TOPP_PeakPickerWavelet_4" ${TOPP_BIN_PATH}/PeakPickerWavelet  -test -ini ${DATA_DIR_TOPP}/PeakPickerWavelet_parameters.ini -in ${DATA_DIR_TOPP}/PeakPickerWavelet_input.mzML -out PeakPickerWavelet_4.tmp -threads 2)
 add_test("TOPP_PeakPickerWavelet_4_out1" ${DIFF} -in1 PeakPickerWavelet_4.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerWavelet_output.mzML)

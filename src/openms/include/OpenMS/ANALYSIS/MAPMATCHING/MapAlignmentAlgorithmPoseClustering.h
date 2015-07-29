@@ -35,10 +35,11 @@
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTALGORITHMPOSECLUSTERING_H
 #define OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTALGORITHMPOSECLUSTERING_H
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithm.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/StablePairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
 #include <OpenMS/KERNEL/ConversionHelper.h>
@@ -65,7 +66,8 @@ namespace OpenMS
 
   */
   class OPENMS_DLLAPI MapAlignmentAlgorithmPoseClustering :
-    public MapAlignmentAlgorithm
+    public DefaultParamHandler,
+    public ProgressLogger
   {
 public:
     /// Default constructor
@@ -74,27 +76,16 @@ public:
     /// Destructor
     virtual ~MapAlignmentAlgorithmPoseClustering();
 
-    void align(const FeatureMap & map, TransformationDescription & trafo);
-    void align(const MSExperiment<> & map, TransformationDescription & trafo);
-    void align(const ConsensusMap & map, TransformationDescription & trafo);
+    void align(const FeatureMap& map, TransformationDescription& trafo);
+    void align(const MSExperiment<>& map, TransformationDescription& trafo);
+    void align(const ConsensusMap& map, TransformationDescription& trafo);
 
+    /// Sets the reference for the alignment
     template <typename MapType>
-    void setReference(const MapType & map)
+    void setReference(const MapType& map)
     {
       MapType map2 = map; // todo: avoid copy (MSExperiment version of convert() demands non-const version)
       MapConversion::convert(0, map2, reference_, max_num_peaks_considered_);
-    }
-
-    /// Creates a new instance of this class (for Factory)
-    static MapAlignmentAlgorithm * create()
-    {
-      return new MapAlignmentAlgorithmPoseClustering();
-    }
-
-    /// Returns the product name (for the Factory)
-    static String getProductName()
-    {
-      return "pose_clustering";
     }
 
 protected:
@@ -112,9 +103,9 @@ protected:
 private:
 
     /// Copy constructor intentionally not implemented -> private
-    MapAlignmentAlgorithmPoseClustering(const MapAlignmentAlgorithmPoseClustering &);
-    ///Assignment operator intentionally not implemented -> private
-    MapAlignmentAlgorithmPoseClustering & operator=(const MapAlignmentAlgorithmPoseClustering &);
+    MapAlignmentAlgorithmPoseClustering(const MapAlignmentAlgorithmPoseClustering&);
+    /// Assignment operator intentionally not implemented -> private
+    MapAlignmentAlgorithmPoseClustering& operator=(const MapAlignmentAlgorithmPoseClustering&);
   };
 } // namespace OpenMS
 
