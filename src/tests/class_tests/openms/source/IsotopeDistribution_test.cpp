@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl, Andreas Bertsch $
-// $Authors: Clemens Groepl, Andreas Bertsch $
+// $Maintainer: Chris Bielow $
+// $Authors: Clemens Groepl, Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 //
 
@@ -160,6 +160,46 @@ START_SECTION(IsotopeDistribution& operator *= (Size factor))
 		TEST_EQUAL(id.getContainer()[i].first, container[i].first)
 		TEST_REAL_SIMILAR(id.getContainer()[i].second, container[i].second)
 	}
+
+  // test gapped isotope distributions, e.g. bromide 79,81 (missing 80)
+  {
+    EmpiricalFormula ef("Br2");
+    IsotopeDistribution id = ef.getIsotopeDistribution(5);
+    container.clear();
+    // the expected results as pairs of
+    // [nominal mass, probability]
+    // derived via convolution of elemental probabilities; the sum of all probabilities is 1
+    // For Br2, this is simply the product of Bromine x Bromine, which
+    // has a light isotope (79 Da, ~50% probability) and a heavy isotope (81 Da, ~50% probability)
+    container.push_back(make_pair<Size, double>(158, 0.2569476));  // 79+79, ~ 0.5 * 0.5
+    container.push_back(make_pair<Size, double>(159, 0.0));        // this mass cannot be explained by two Br atoms
+    container.push_back(make_pair<Size, double>(160, 0.49990478)); // 79+81 (or 81+79), ~ 0.5 * 0.5 + 0.5 * 0.5
+    container.push_back(make_pair<Size, double>(161, 0.0));        // same as mass 159
+    container.push_back(make_pair<Size, double>(162, 0.24314761)); // 81+81, ~ 0.5 * 0.5
+    for (Size i = 0; i != id.size(); ++i)
+    {
+      TEST_EQUAL(id.getContainer()[i].first, container[i].first)
+      TEST_REAL_SIMILAR(id.getContainer()[i].second, container[i].second)
+    }
+  }
+  {
+    // testing a formula which has more than one element (here: C and Br), since the internal computation is different
+    // The convolution is similar to the one above, but add another convolution step with Carbon (hence the lightest mass is 12 Da heavier)
+    EmpiricalFormula ef("CBr2");
+    IsotopeDistribution id = ef.getIsotopeDistribution(7);
+    container.clear();
+    container.push_back(make_pair<Size, double>(170, 0.254198270573));
+    container.push_back(make_pair<Size, double>(171, 0.002749339427));
+    container.push_back(make_pair<Size, double>(172, 0.494555798854));
+    container.push_back(make_pair<Size, double>(173, 0.005348981146));
+    container.push_back(make_pair<Size, double>(174, 0.240545930573));
+    container.push_back(make_pair<Size, double>(175, 0.002601679427));
+    for (Size i = 0; i != id.size(); ++i)
+    {
+      TEST_EQUAL(id.getContainer()[i].first, container[i].first)
+      TEST_REAL_SIMILAR(id.getContainer()[i].second, container[i].second)
+    }
+  }
 
 END_SECTION
 

@@ -6,14 +6,19 @@
 	<IdentificationRun date="2005-01-27T17:47:41" search_engine="" search_engine_version="" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="test" score="0" sequence="" >
+                <UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
 			<ProteinHit id="PH_1" accession="BSA4" score="0" sequence="" >
+                <UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
 			<ProteinHit id="PH_2" accession="BSA4_rev" score="0" sequence="" >
+                <UserParam type="string" name="target_decoy" value="decoy"/>
 			</ProteinHit>
 			<ProteinHit id="PH_3" accession="MismatchProt0" score="0" sequence="" >
+                <UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
 			<ProteinHit id="PH_4" accession="MismatchProt1" score="0" sequence="" >
+                <UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >

@@ -336,10 +336,10 @@ public:
           bool terminate_now;
           typename MapType::const_iterator it_rt_2;
 
-          // go forward
+          // go forward (start at next downstream spectrum; the current spectrum will be covered when looking backwards)
           steps = 0;
-          m = n;
-          it_rt_2 = it_rt;
+          m = n + 1;
+          it_rt_2 = it_rt + 1;
           terminate_now = false;
           while (it_rt_2 != exp.end() && !terminate_now)
           {
@@ -354,8 +354,6 @@ public:
               spectra_to_average_over[n].push_back(p);
               ++steps;
             }
-            ++m;
-            ++it_rt_2;
             if (average_type == "gaussian")
             {
               // Gaussian
@@ -371,6 +369,8 @@ public:
               // Top-Hat with RT unit = seconds
               terminate_now = (std::abs(it_rt_2->getRT() - it_rt->getRT()) > range_seconds);
             }
+            ++m;
+            ++it_rt_2;
           }
 
           // go backward
@@ -380,7 +380,7 @@ public:
           terminate_now = false;
           while (it_rt_2 != exp.begin() && !terminate_now)
           {
-            if (Int(it_rt_2->getMSLevel()) == ms_level && m != n) // m == n already covered in forward case
+            if (Int(it_rt_2->getMSLevel()) == ms_level)
             {
               double weight = 1;
               if (average_type == "gaussian")
@@ -391,8 +391,6 @@ public:
               spectra_to_average_over[n].push_back(p);
               ++steps;
             }
-            --m;
-            --it_rt_2;
             if (average_type == "gaussian")
             {
               // Gaussian
@@ -408,6 +406,8 @@ public:
               // Top-Hat with RT unit = seconds
               terminate_now = (std::abs(it_rt_2->getRT() - it_rt->getRT()) > range_seconds);
             }
+            --m;
+            --it_rt_2;
           }
 
         }
@@ -625,12 +625,18 @@ protected:
     /**
      * @brief average spectra (profile mode)
      *
-     * Averages spectra in profile mode of one MS level in an experiment. The blocks of spectra to be combined
-     * and their relative weights have previously been determined. The averaged spectra are generated in two steps:
-     * (1) The m/z of all spectra in a block are collected and sorted. m/z positions closer than mz_binning_width are removed.
-     * (2) At these positions the weighted sum of all spline interpolations is calculated.
-     * The first step ensures roughly the same sampling rate as the one of the original spectra. The exact m/z position is
-     * not crucial, since not the original intensities but the spline-interpolated intensities are used.
+     * Averages spectra in profile mode of one MS level in an experiment. The
+     * blocks of spectra to be combined and their relative weights have
+     * previously been determined. The averaged spectra are generated in two
+     * steps:
+     * (1) The m/z of all spectra in a block are collected and sorted. m/z
+     *     positions closer than mz_binning_width are removed.
+     * (2) At these positions the weighted sum of all spline interpolations is
+     *     calculated.
+     *
+     * The first step ensures roughly the same sampling rate as the one of the
+     * original spectra. The exact m/z position is not crucial, since not the
+     * original intensities but the spline-interpolated intensities are used.
      *
      * @param exp   experimental data to be averaged
      * @param spectra_to_average_over    mapping of spectral index to set of spectra to average over with corresponding weights
@@ -737,11 +743,13 @@ protected:
     /**
      * @brief average spectra (centroid mode)
      *
-     * Averages spectra in centroid mode of one MS level in an experiment. The blocks of spectra to be combined
-     * and their relative weights have previously determined. The averaged spectra are generated in two steps:
-     * (1) The m/z of all spectra in a block are collected and sorted. Their corresponing intensities are weighted.
-     * (2) m/z positions closer than mz_binning_width are combined to a single peak. The m/z are averaged and the 
-     * corresponing intensities summed.
+     * Averages spectra in centroid mode of one MS level in an experiment. The
+     * blocks of spectra to be combined and their relative weights have
+     * previously determined. The averaged spectra are generated in two steps:
+     * (1) The m/z of all spectra in a block are collected and sorted. Their
+     *     corresponding intensities are weighted.
+     * (2) m/z positions closer than mz_binning_width are combined to a single
+     *     peak. The m/z are averaged and the corresponding intensities summed.
      *
      * @param exp   experimental data to be averaged
      * @param spectra_to_average_over    mapping of spectral index to set of spectra to average over with corresponding weights

@@ -100,9 +100,12 @@ START_SECTION((static bool writable(const String &file)))
 END_SECTION
 
 START_SECTION((static String find(const String &filename, StringList directories=StringList())))
-	TEST_EXCEPTION(Exception::FileNotFound,File::find("File.h"))
-  TEST_NOT_EQUAL(File::find("CV/psi-ms.obo"),"");
-  TEST_EXCEPTION(Exception::FileNotFound,File::find(""))
+	TEST_EXCEPTION(Exception::FileNotFound, File::find("File.h"))
+  String s_obo = File::find("CV/psi-ms.obo");
+  TEST_EQUAL(s_obo.empty(), false);
+  TEST_EQUAL(File::find(s_obo), s_obo); // iterative finding should return the identical file
+  
+  TEST_EXCEPTION(Exception::FileNotFound, File::find(""))
 END_SECTION
 
 START_SECTION((static String findDoc(const String& filename)))

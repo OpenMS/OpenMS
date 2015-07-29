@@ -393,6 +393,7 @@ set(analysis_executables_list
   ConsensusIDAlgorithmPEPIons_test
   ConsensusIDAlgorithmPEPMatrix_test
   ConsensusIDAlgorithmRanks_test
+  ConsensusIDAlgorithmWorst_test
   ConsensusMapNormalizerAlgorithmThreshold_test
   ConsensusMapNormalizerAlgorithmMedian_test
   ConsensusMapNormalizerAlgorithmQuantile_test
@@ -436,7 +437,6 @@ set(analysis_executables_list
   MapAlignmentAlgorithmIdentification_test
   MapAlignmentAlgorithmPoseClustering_test
   MapAlignmentAlgorithmSpectrumAlignment_test
-  MapAlignmentAlgorithm_test
   MapAlignmentEvaluationAlgorithmPrecision_test
   MapAlignmentEvaluationAlgorithmRecall_test
   MapAlignmentEvaluationAlgorithm_test

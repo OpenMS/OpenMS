@@ -13,6 +13,7 @@ ConsensusIDAlgorithmPEPIons.h
 ConsensusIDAlgorithmPEPMatrix.h
 ConsensusIDAlgorithmRanks.h
 ConsensusIDAlgorithmSimilarity.h
+ConsensusIDAlgorithmWorst.h
 FalseDiscoveryRate.h
 HiddenMarkovModel.h
 IDDecoyProbability.h

@@ -73,6 +73,7 @@
   - @subpage UTILS_DigestorMotif - Digests a protein database in-silico (optionally allowing only peptides with a specific motif) and produces statistical data for all peptides.
   - @subpage UTILS_IDExtractor - Extracts n peptides randomly or best n from idXML files.
   - @subpage UTILS_IDMassAccuracy - Calculates a distribution of the mass error from given mass spectra and IDs.
+  - @subpage UTILS_IDScoreSwitcher - Switches between different scores of peptide or protein hits in identification data.
   - @subpage UTILS_RNPxl - Tool for RNP cross linking experiment analysis.
   - @subpage UTILS_SequenceCoverageCalculator - Prints information about idXML files.
   - @subpage UTILS_SpecLibCreator - Creates an MSP-formatted spectral library.

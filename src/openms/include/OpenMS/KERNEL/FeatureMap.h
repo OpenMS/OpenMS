@@ -38,6 +38,7 @@
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/RangeManager.h>
 #include <OpenMS/METADATA/DocumentIdentifier.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
@@ -92,6 +93,7 @@ namespace OpenMS
   */
   class FeatureMap :
     private std::vector<Feature>,
+    public MetaInfoInterface,
     public RangeManager<2>,
     public DocumentIdentifier,
     public UniqueIdInterface,

@@ -220,6 +220,11 @@ namespace OpenMS
 
   String File::find(const String& filename, StringList directories)
   {
+    // maybe we do not need to do anything?!
+    // This check is required since calling File::find(File::find("CHEMISTRY/Elements.xml")) will otherwise fail
+    // because the outer call receives an absolute path already
+    if (exists(filename)) return filename;
+
     String filename_new = filename;
 
     // empty string cannot be found, so throw Exception.

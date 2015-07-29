@@ -59,7 +59,8 @@ using namespace std;
     the second RT dimension as well as for the IDs filtered in both dimensions. The output is a table with
     either csv format (can be imported by Excel) or latex format (to include in tables in your latex manuscripts).
 
-    @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_RTEvaluation.cli
     <B>INI file documentation of this tool:</B>
