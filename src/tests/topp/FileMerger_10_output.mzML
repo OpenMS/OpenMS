@@ -12,7 +12,7 @@
 			<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" />
 			<cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" />
 		</fileContent>
-		<sourceFileList count="3">
+		<sourceFileList count="4">
 			<sourceFile id="sf_ru_0" name="FileMerger_6_input2.mzML" location="<TEST_DATA_PATH>">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="0e3787759e3b0d2ca8e321527f759879f94a4829" />
 				<cvParam cvRef="MS" accession="MS:1000584" name="mzML format" />
@@ -22,6 +22,11 @@
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="0e3787759e3b0d2ca8e321527f759879f94a4829" />
 				<cvParam cvRef="MS" accession="MS:1000584" name="mzML format" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
+			</sourceFile>
+			<sourceFile id="sf_sp_2" name="tiny1.dta" location="file:///F:/data/Exp01">
+				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="81be39fb2700ab2f3c8b2234b91274968b6899b1" />
+				<cvParam cvRef="MS" accession="MS:1000613" name="DTA format" />
+				<cvParam cvRef="MS" accession="MS:1000824" name="no nativeID format" />
 			</sourceFile>
 			<sourceFile id="sf_sp_2" name="tiny1.dta" location="file:///F:/data/Exp01">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="81be39fb2700ab2f3c8b2234b91274968b6899b1" />
@@ -47,23 +52,17 @@
 			<userParam name="name" type="xsd:string" value="sample"/>
 		</sample>
 	</sampleList>
-	<softwareList count="6">
+	<softwareList count="4">
 		<software id="so_in_0" version="2.0.5" >
 			<cvParam cvRef="MS" accession="MS:1000532" name="Xcalibur" />
 		</software>
 		<software id="so_default" version="" >
 			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="" />
 		</software>
-		<software id="so_dp_sp_0_pm_0" version="2.0.5" >
-			<cvParam cvRef="MS" accession="MS:1000532" name="Xcalibur" />
-		</software>
-		<software id="so_dp_sp_0_pm_1" version="version_string" >
-			<cvParam cvRef="MS" accession="MS:1000758" name="FileMerger" />
-		</software>
-		<software id="so_dp_sp_1_pm_0" version="1.0" >
+		<software id="so_dp_sp_0_pm_0" version="1.0" >
 			<cvParam cvRef="MS" accession="MS:1000615" name="ProteoWizard software" />
 		</software>
-		<software id="so_dp_sp_1_pm_1" version="version_string" >
+		<software id="so_dp_sp_0_pm_1" version="version_string" >
 			<cvParam cvRef="MS" accession="MS:1000758" name="FileMerger" />
 		</software>
 	</softwareList>
@@ -98,25 +97,12 @@
 			<softwareRef ref="so_in_0" />
 		</instrumentConfiguration>
 	</instrumentConfigurationList>
-	<dataProcessingList count="2">
+	<dataProcessingList count="1">
 		<dataProcessing id="dp_sp_0">
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_0">
-				<cvParam cvRef="MS" accession="MS:1000033" name="deisotoping" />
 				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="name" type="xsd:string" value="processingMethod"/>
-				<userParam name="low_intensity_threshold" type="xsd:double" value="5.9"/>
 			</processingMethod>
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_1">
-				<cvParam cvRef="MS" accession="MS:1000530" name="file format conversion" />
-				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="1999-12-31+23:59" />
-				<userParam name="parameter: mode" type="xsd:string" value="test_mode"/>
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_1">
-			<processingMethod order="0" softwareRef="so_dp_sp_1_pm_0">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-			</processingMethod>
-			<processingMethod order="0" softwareRef="so_dp_sp_1_pm_1">
 				<cvParam cvRef="MS" accession="MS:1000530" name="file format conversion" />
 				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="1999-12-31+23:59" />
 				<userParam name="parameter: mode" type="xsd:string" value="test_mode"/>
@@ -213,7 +199,7 @@
 				<userParam name="name" type="xsd:string" value="scan2"/>
 				<userParam name="filter string" type="xsd:string" value="+ c d Full ms2  445.35@cid35.00 [ 110.00-905.00]"/>
 				<userParam name="preset scan configuration" type="xsd:string" value="4"/>
-                <userParam name="original_RT" type="xsd:float" value="5.99049997329712"/>
+                <userParam name="original_RT" type="xsd:double" value="5.99049997329712"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan externalSpectrumID="0">
@@ -267,7 +253,7 @@
 				<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" />
 				<userParam name="name" type="xsd:string" value="spectrum3"/>
-                <userParam name="original_RT" type="xsd:float" value="6.09049987792969"/>
+                <userParam name="original_RT" type="xsd:double" value="6.09049987792969"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan externalSpectrumID="0">
