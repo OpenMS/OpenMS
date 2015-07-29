@@ -137,8 +137,6 @@ protected:
   void adjustRetentionTimes_(MapType& map, const String& trafo_out,
                              bool first_file)
   {
-    cout << "RT gap: " << rt_gap_ << endl;
-    cout << "RT offset: " << rt_offset_ << endl;
     map.updateRanges();
     TransformationDescription trafo;
     if (first_file) // no transformation necessary
@@ -189,8 +187,7 @@ protected:
     String out_file = getStringOption_("out");
 
     bool annotate_file_origin =  getFlag_("annotate_file_origin");
-    double rt_gap_ = getDoubleOption_("rt_concat:gap");
-    cout << "RT gap (1): " << rt_gap_ << endl;
+    rt_gap_ = getDoubleOption_("rt_concat:gap");
     vector<String> trafo_out = getStringList_("rt_concat:trafo_out");
     if (trafo_out.empty())
     {
@@ -399,9 +396,7 @@ protected:
 
         if (rt_gap_ > 0.0) // concatenate in RT
         {
-          cout << "RT gap (2): " << rt_gap_ << endl;
           adjustRetentionTimes_(in, trafo_out[i], i == 0);
-          cout << "RT gap (3): " << rt_gap_ << endl;
         }
 
         // add spectra to output
