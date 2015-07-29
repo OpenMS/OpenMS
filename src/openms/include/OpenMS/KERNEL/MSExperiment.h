@@ -705,7 +705,11 @@ public:
       std::vector<SourceFile> sfs(this->getSourceFiles());
       for (std::vector<SourceFile>::const_iterator it = sfs.begin(); it != sfs.end(); ++it)
       {
-        ms_run_paths.push_back(it->getPathToFile() + "/" + it->getNameOfFile());
+        String ms_run_location = it->getPathToFile() + "/" + it->getNameOfFile();
+        if (!ms_run_location.empty())
+        {
+          ms_run_paths.push_back(ms_run_location);
+        }
       }
       return ms_run_paths;
     }
