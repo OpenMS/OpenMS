@@ -670,9 +670,9 @@ namespace OpenMS
       /*
       2nd: iterate over peptideidentification vector
       */
-      std::map<String, std::vector<String> > pep_evis; //maps the sequence to the corresponding evidence elements for the next scope
-      std::map<String, std::vector<String> > acc_evis; //maps the accession to the corresponding evidence elements
-      std::map<String, std::vector<String> > evis_sii; //maps each evidence element to the corresponding spectrum identification item
+      pep_evis_.clear(); //maps the sequence to the corresponding evidence elements for the next scope
+      acc_evis_.clear(); //maps the accession to the corresponding evidence elements
+      evis_sii_.clear(); //maps each evidence element to the corresponding spectrum identification item
       for (std::vector<PeptideIdentification>::const_iterator it = cpep_id_->begin(); it != cpep_id_->end(); ++it)
       {
         String emz(it->getMZ());
@@ -852,11 +852,11 @@ namespace OpenMS
               sen_set.insert(e);
               pevid_ids.push_back(pevid);
               //add mapping from accession to (all) pevid (maybe better pepi?)
-              std::map<String, std::vector<String> >::iterator acc_evis_it = acc_evis.find(pe->getProteinAccession());
-              if (acc_evis_it == acc_evis.end())
+              std::map<String, std::vector<String> >::iterator acc_evis_it = acc_evis_.find(pe->getProteinAccession());
+              if (acc_evis_it == acc_evis_.end())
               {
                 //maybe reserve some space for the vector to avoid realloc?
-                acc_evis_it = acc_evis.insert(std::make_pair<String, std::vector<String> >(pe->getProteinAccession(),std::vector<String>())).first;
+                acc_evis_it = acc_evis_.insert(std::make_pair<String, std::vector<String> >(pe->getProteinAccession(),std::vector<String>())).first;
               }
               acc_evis_it->second.push_back(pevid);
 
@@ -865,7 +865,7 @@ namespace OpenMS
           }
           else
           {
-            pevid_ids =  pep_evis[pepi];
+            pevid_ids =  pep_evis_[pepi];
           }
 
           ///contruct SpectrumIdentificationItem element for this PeptideHit
@@ -917,11 +917,11 @@ namespace OpenMS
             sidres += "\t\t\t\t\t<PeptideEvidenceRef peptideEvidence_ref=\"" +  *pevref + "\"/> \n";
 
             //add pevid_ids to sii mapping
-            std::map<String, std::vector<String> >::iterator evis_sii_it = evis_sii.find(*pevref);
-            if (evis_sii_it == evis_sii.end())
+            std::map<String, std::vector<String> >::iterator evis_sii_it = evis_sii_.find(*pevref);
+            if (evis_sii_it == evis_sii_.end())
             {
               //maybe reserve some space for the vector to avoid realloc?
-              evis_sii_it = evis_sii.insert(std::make_pair<String, std::vector<String> >(*pevref,std::vector<String>())).first;
+              evis_sii_it = evis_sii_.insert(std::make_pair<String, std::vector<String> >(*pevref,std::vector<String>())).first;
             }
             evis_sii_it->second.push_back(sii);
           }
@@ -1024,47 +1024,10 @@ namespace OpenMS
       */
       for (std::vector<ProteinIdentification>::const_iterator it = cpro_id_->begin(); it != cpro_id_->end(); ++it)
       {
-        for (std::vector<ProteinIdentification::ProteinGroup>::const_iterator jt = it->getProteinGroups().begin(); jt != it->getProteinGroups().end(); ++jt)
-        {
-          String pidres;
-          pidres += String("\t\t\t<ProteinAmbiguityGroup id=\"PAG_") + String(UniqueIdGenerator::getUniqueId()) + String("\"> \n");
-          for (std::vector<String>::const_iterator acit = jt->accessions.begin(); acit != jt->accessions.end(); ++jt)
-          {
-            std::map<String, std::vector<String> >::const_iterator acc_evis_it = acc_evis.find(*acit);
-            if (acc_evis_it == acc_evis.end())
-            {
-              LOG_WARN << "no peptide evidences found for accession " << *acit << "! This should not happen have you run PeptideIndexer and removed unreferenced accessions?" << std::endl;
-              continue;
-            }
-
-            String pdh =  String("PDH_") + String(UniqueIdGenerator::getUniqueId());
-            pidres += String("\t\t\t\t<ProteinDetectionHypothesis id=\"")
-                              + pdh + String("\" dBSequence_ref=\"")
-                              + *acit + String("\" passThreshold=\"true\"> \n");
-            //get all peptideevidences to current acc
-            for (std::vector<String>::const_iterator evis_it = acc_evis_it->second.begin(); evis_it != acc_evis_it->second.end(); ++evis_it)
-            {
-              pidres += String("\t\t\t\t\t<PeptideHypothesis peptideEvidence_ref=\"PE_")
-                      + *evis_it + String("> \n");
-              //get all spectrumidentificationitems for that peptideevidence
-              std::map<String, std::vector<String> >::iterator evis_sii_it = evis_sii.find(*evis_it);
-              if (evis_sii_it == evis_sii.end())
-              {
-                LOG_WARN << "no spectrum identification items found for this PeptideEvidence..." << std::endl;
-              }
-              for (std::vector<String>::const_iterator siiit = evis_sii_it->second.begin(); siiit != evis_sii_it->second.end(); ++siiit)
-              {
-                pidres += String("\t\t\t\t\t\t<SpectrumIdentificationItemRef spectrumIdentificationItem_ref=\"SII_")
-                        + *siiit + String("\"/> \n");
-              }
-              pidres += String("\t\t\t\t\t</PeptideHypothesis>");
-            }
-            pidres += String("\t\t\t\t</ProteinDetectionHypothesis>");
-          }
-          //TODO group probability cv
-          pidres += String("\t\t\t</ProteinAmbiguityGroup>");
-          pidlist.push_back(pidres);
-        }
+        String pidres;
+        writeProteinGroups_(pidres, it->getProteinGroups(), false, 3);
+        writeProteinGroups_(pidres, it->getIndistinguishableProteins(), true, 3);
+        pidlist.push_back(pidres);
       }
 
       //--------------------------------------------------------------------------------------------
@@ -1288,5 +1251,62 @@ namespace OpenMS
       }
       s += String(indent, '\t') + "</ModificationParams>" + "\n";
     }
+
+    void MzIdentMLHandler::writeProteinGroups_(String& s, const std::vector<ProteinIdentification::ProteinGroup>& pg, bool indistinguishable, UInt indent) const
+    {
+        for (std::vector<ProteinIdentification::ProteinGroup>::const_iterator jt = pg.begin(); jt != pg.end(); ++jt)
+        {
+          s += String(indent, '\t') + String("<ProteinAmbiguityGroup id=\"PAG_") + String(UniqueIdGenerator::getUniqueId()) + String("\"> \n");
+          for (std::vector<String>::const_iterator acit = jt->accessions.begin(); acit != jt->accessions.end(); ++acit)
+          {
+            std::map<String, std::vector<String> >::const_iterator acc_evis_it = acc_evis_.find(*acit);
+            if (acc_evis_it == acc_evis_.end())
+            {
+              LOG_WARN << "no peptide evidences found for accession " << *acit << "! This should not happen have you run PeptideIndexer and removed unreferenced accessions?" << std::endl;
+              s += String(indent, '\t') + String("\t<userParam name=\"OpenMS_UnreferencedProtein\" value=\"" + String(*acit) +"\" /> \n");
+              continue;
+            }
+            else
+            {
+              String pdh =  String("PDH_") + String(UniqueIdGenerator::getUniqueId());
+              String dbs_ref = String(acc_dbs_.find(String(*acit))->second);
+              s += String(indent, '\t') + String("\t<ProteinDetectionHypothesis id=\"")
+                                + pdh + String("\" dBSequence_ref=\"")
+                                + dbs_ref + String("\" passThreshold=\"true\"> \n");
+              //get all peptideevidences to current acc
+              for (std::vector<String>::const_iterator evis_it = acc_evis_it->second.begin(); evis_it != acc_evis_it->second.end(); ++evis_it)
+              {
+                s += String(indent, '\t') + String("\t\t<PeptideHypothesis peptideEvidence_ref=\"")
+                        + *evis_it + String("\"> \n");
+                //get all spectrumidentificationitems for that peptideevidence
+                std::map<String, std::vector<String> >::const_iterator evis_sii_it = evis_sii_.find(*evis_it);
+                if (evis_sii_it == evis_sii_.end())
+                {
+                  LOG_WARN << "no spectrum identification items found for this PeptideEvidence..." << std::endl;
+                  continue;
+                }
+                else
+                {
+                    for (std::vector<String>::const_iterator siiit = evis_sii_it->second.begin(); siiit != evis_sii_it->second.end(); ++siiit)
+                    {
+                      s += String(indent, '\t') + String("\t\t\t<SpectrumIdentificationItemRef spectrumIdentificationItem_ref=\"")
+                              + *siiit + String("\"/> \n");
+                    }
+                }
+                s += String(indent, '\t') + String("\t\t</PeptideHypothesis> \n");
+              }
+            }
+            s += String(indent, '\t') + String("\t</ProteinDetectionHypothesis> \n");
+          }
+
+          s += String(indent, '\t') + String("\t<userParam name=\"OpenMS_ProteinGroupProbability\" value=\"" + String(jt->probability) +"\" /> \n");
+          if (indistinguishable)
+          {
+            s += String(indent+1, '\t') + cv_.getTerm("MS:1001594").toXMLString("PSI-MS")+ " \n";
+          }
+          s += String(indent, '\t') + String("</ProteinAmbiguityGroup> \n");
+        }
+    }
+
   } //namespace Internal
 } // namespace OpenMS

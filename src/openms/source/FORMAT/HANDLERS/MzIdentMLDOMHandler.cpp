@@ -243,9 +243,11 @@ namespace OpenMS
         if (!spectrumIdentificationListElements) throw(runtime_error("No SpectrumIdentificationList nodes"));
         parseSpectrumIdentificationListElements_(spectrumIdentificationListElements);
 
-        DOMNodeList* parseProteinDetectionListElements = xmlDoc->getElementsByTagName(XMLString::transcode("ProteinDetectionList"));
-        if (!parseProteinDetectionListElements) throw(runtime_error("No ProteinDetectionList nodes"));
-        parseProteinDetectionListElements_(parseProteinDetectionListElements);
+        DOMNodeList* proteinDetectionListElements = xmlDoc->getElementsByTagName(XMLString::transcode("ProteinDetectionList"));
+        if (proteinDetectionListElements)
+        {
+          parseProteinDetectionListElements_(proteinDetectionListElements);
+        }
 
         for (vector<ProteinIdentification>::iterator it = pro_id_->begin(); it != pro_id_->end(); ++it)
         {
@@ -1429,13 +1431,8 @@ namespace OpenMS
           ++count;
 
 //          String id = XMLString::transcode(element_pr->getAttribute(XMLString::transcode("id")));
+            //TODO @all: ProteinGroup has no metainfointerface - hence nowhere to store the cv/up
 //          pair<CVTermList, map<String, DataValue> > params = parseParamGroup_(current_pr->getChildNodes());
-
-          // TODO @mths : this needs to be a ProteinIdentification for the ProteinDetectionListElement which is not mandatory and used in downstream analysis ProteinInference etc.
-//          pro_id_->push_back(ProteinIdentification());
-//          pro_id_->back().setSearchEngine(search_engine_);
-//          pro_id_->back().setSearchEngineVersion(search_engine_version_);
-//          pro_id_->back().setIdentifier(search_engine_);
 
           //      SearchParameters  search_parameters_
           //      DateTime  date_
@@ -1447,7 +1444,7 @@ namespace OpenMS
           {
             if ((std::string)XMLString::transcode(child->getTagName()) == "ProteinAmbiguityGroup")
             {
-              parseProteinAmbiguityGroupElement_(child, pro_id_->back());
+              parseProteinAmbiguityGroupElement_(child, pro_id_->back()); //this needs to be the matched ProteinIdentification as soon as pull/1505 merged
             }
             child = child->getNextElementSibling();
             ++count_ag;
