@@ -1752,10 +1752,6 @@ def testEnzymaticDigestion():
      EnzymaticDigestion.setMissedCleavages()
      EnzymaticDigestion.digest()
      EnzymaticDigestion.peptideCount()
-     EnzymaticDigestion.isLogModelEnabled()
-     EnzymaticDigestion.setLogModelEnabled()
-     EnzymaticDigestion.getLogThreshold()
-     EnzymaticDigestion.setLogThreshold()
     """
     # removed due to name clashes
     # EnzymaticDigestion.getEnzyme()
@@ -1774,22 +1770,21 @@ def testEnzymaticDigestion():
     assert pyopenms.EnzymaticDigestion().digest is not None
     assert pyopenms.EnzymaticDigestion().peptideCount is not None
 
-    assert pyopenms.EnzymaticDigestion().isLogModelEnabled is not None
-    assert pyopenms.EnzymaticDigestion().setLogModelEnabled is not None
-    assert pyopenms.EnzymaticDigestion().getLogThreshold  is not None
-    assert pyopenms.EnzymaticDigestion().setLogThreshold is not None
-
-    ff.setLogThreshold(5)
-    assert ff.getLogThreshold() == 5
-
     ff.setMissedCleavages(5)
     assert ff.getMissedCleavages() == 5
 
     #ff.setEnzyme(enz.TRYPSIN)
     #assert ff.getEnzyme() == enz.TRYPSIN
 
-    ff.setLogModelEnabled(True)
-    assert ff.isLogModelEnabled() == True
+@report
+def testEnzymaticDigestion():
+    ff = pyopenms.EnzymaticDigestionLogModel()
+    assert pyopenms.EnzymaticDigestion().getLogThreshold is not None
+    assert pyopenms.EnzymaticDigestion().setLogThreshold is not None
+    assert pyopenms.EnzymaticDigestionLogModel().digest is not None
+    assert pyopenms.EnzymaticDigestionLogModel().peptideCount is not None
+    ff.setLogThreshold(0.25)
+    assert ff.getLogThreshold() == 0.25
 
 @report
 def testIDDecoyProbability():
