@@ -94,23 +94,6 @@ START_SECTION((static void applyFixedModifications(const std::vector< ResidueMod
   TEST_EQUAL(seq2.toString(), "C(Carbamidomethyl)C(Carbamidomethyl)C(Carbamidomethyl)C(Carbamidomethyl)C(Carbamidomethyl)C(Carbamidomethyl)C(Carbamidomethyl)C(Carbamidomethyl)C(Carbamidomethyl)");
   TEST_EQUAL(seq3.toString(), "AAAAC(Carbamidomethyl)AAC(Carbamidomethyl)AAA");
   TEST_EQUAL(seq4.toString(), "AAAAC(Carbamidomethyl)AAC(Oxidation)AAA");
-
-   // test terminal modifications
-   modNames.clear();
-   modNames << "Carbamyl (N-term)";
-   fixed_mods.clear();
-   for (StringList::iterator mod_it = modNames.begin(); mod_it != modNames.end(); ++mod_it)
-   {
-     String modification(*mod_it);
-     fixed_mods.push_back( ModificationsDB::getInstance()->getModification(modification));
-   }
-  seq0 = AASequence::fromString("KAAAAAAAA"); // exactly one target site
-  seq1 = AASequence::fromString("K(Carbamyl)AAAAAAAA"); // ambigous case: is mod Carbamyl (K) or (N-Term)?
-  ModifiedPeptideGenerator::applyFixedModifications(fixed_mods.begin(), fixed_mods.end(), seq0);
-  ModifiedPeptideGenerator::applyFixedModifications(fixed_mods.begin(), fixed_mods.end(), seq1);
-  TEST_EQUAL(seq0.toString(), "K(Carbamyl)AAAAAAAA");
-  TEST_EQUAL(seq1.toString(), "(Carbamyl)K(Carbamyl)AAAAAAAA");
- 
 }
 END_SECTION
 
