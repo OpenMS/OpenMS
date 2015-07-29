@@ -34,11 +34,6 @@
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 
-#include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
-
-#include <OpenMS/METADATA/DocumentIdentifier.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -359,13 +354,13 @@ namespace OpenMS
   }
 
   /// set the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)
-  OPENMS_DLLAPI void FeatureMap::setPrimaryMSRunPath(const StringList& s)
+  void FeatureMap::setPrimaryMSRunPath(const StringList& s)
   {
     this->setMetaValue("ms_run-location", DataValue(s));
   }
 
   /// get the file path to the first MS run
-  OPENMS_DLLAPI StringList FeatureMap::getPrimaryMSRunPath() const
+  StringList FeatureMap::getPrimaryMSRunPath() const
   {
     StringList ret;
     if (this->metaValueExists("ms_run-location"))

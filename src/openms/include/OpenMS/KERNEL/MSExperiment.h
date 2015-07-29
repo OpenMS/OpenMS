@@ -45,6 +45,7 @@
 #include <vector>
 #include <algorithm>
 #include <limits>
+#include <OpenMS/SYSTEM/File.h>
 
 namespace OpenMS
 {
@@ -697,19 +698,16 @@ public:
       return *this;
     }
 
-    /// set the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)
-    void setPrimaryMSRunPath(const StringList& s)
-    {
-      this->setMetaValue("ms_run-location", DataValue(s));
-    }
-
     /// get the file path to the first MS run
     StringList getPrimaryMSRunPath() const
     {
-      if (this->hasMetaValue("ms_run-location"))
+      StringList ms_run_paths;
+      std::vector<SourceFile> sfs(this->getSourceFiles());
+      for (std::vector<SourceFile>::const_iterator it = sfs.begin(); it != sfs.end(); ++it)
       {
-        return static_cast<StringList>(this->getMetaValue("ms_run-location"));
+        ms_run_paths.push_back(it->getPathToFile() + "/" + it->getNameOfFile());
       }
+      return ms_run_paths;
     }
 
     /**
