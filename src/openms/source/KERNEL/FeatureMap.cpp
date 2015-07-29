@@ -356,7 +356,10 @@ namespace OpenMS
   /// set the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)
   void FeatureMap::setPrimaryMSRunPath(const StringList& s)
   {
-    this->setMetaValue("ms_run-location", DataValue(s));
+    if (!s.empty())
+    {
+      this->setMetaValue("ms_run-location", DataValue(s));
+    }
   }
 
   /// get the file path to the first MS run

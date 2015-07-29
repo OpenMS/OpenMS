@@ -241,7 +241,10 @@ namespace OpenMS
 
   void ProteinIdentification::setPrimaryMSRunPath(const StringList& s)
   {
-    this->setMetaValue("ms_run-location", DataValue(s));
+    if (!s.empty())
+    {
+      this->setMetaValue("ms_run-location", DataValue(s));
+    }
   }
 
   /// get the file path to the first MS run
