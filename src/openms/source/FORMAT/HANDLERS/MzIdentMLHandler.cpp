@@ -391,8 +391,8 @@ namespace OpenMS
       std::set<String> sen_set, sof_set, sip_set;
       std::map<String, UInt64> sdb_ids, sen_ids, sof_ids, sip_ids, spd_ids, sdat_ids, pep_ids;
       std::map<String, String> pie_ids, sip_sdb;
-      std::map<UInt64, String> sip_dates;
-      std::map<UInt64, String> spd_ref;
+      std::map<UInt64, String> sip_dates, pdp_dates;
+      std::map<UInt64, String> spd_ref, pdp_ref;
       std::vector<String> /* peps, pepevis, */ sidlist, pidlist;
       std::map<String, double> pp_identifier_2_thresh;
 
@@ -1024,6 +1024,29 @@ namespace OpenMS
       */
       for (std::vector<ProteinIdentification>::const_iterator it = cpro_id_->begin(); it != cpro_id_->end(); ++it)
       {
+        UInt64 swid = UniqueIdGenerator::getUniqueId();;
+        String swcn = String(it->getSearchEngine());
+
+        std::map<String, UInt64>::iterator pdpit = pdp_ids.find(swcn);
+        //~ collect ProteinGroupingProtocol for analysisprotocol in this loop - does not go into inputelement
+        if (pdpit == pdp_ids.end())
+        {
+          UInt64 pdid = UniqueIdGenerator::getUniqueId();
+          String pdp = String("\t<ProteinDetectionProtocol id=\"") + String(pdid) + String("\" analysisSoftware_ref=\"")  + String(swid) + String("\">");
+          pdp += String("\n\t\t<AnalysisParams>\n");
+          writeMetaInfos_(pdp, it->getGroupingParameters(), 3);
+          pdp += String("\t\t</AnalysisParams>\n");
+          pdp += String("\t\t<Threshold>\n\t\t\t") + cv_.getTermByName("no threshold").toXMLString(cv_ns) + "\n";
+          pdp += String("\t\t</Threshold>\n");
+          pdp += String("\t</ProteinDetectionProtocol>\n");
+          pdp_set.insert(pdp);
+          pdp_ids.insert(std::pair<String, UInt64>(swcn, pdid));
+          pdp_dates.insert(std::make_pair(pdid, String(it->getDateTime().getDate() + "T" + it->getDateTime().getTime())));
+          pdp_ref.insert(make_pair(pdid, pdp_ids[swcn])); //this part ist strongly connected to AnalysisCollection write part
+        }
+
+
+
         String pidres;
         writeProteinGroups_(pidres, it->getProteinGroups(), false, 3);
         writeProteinGroups_(pidres, it->getIndistinguishableProteins(), true, 3);
@@ -1078,6 +1101,9 @@ namespace OpenMS
       // + SpectrumIdentification
       // TODO ProteinDetection
       //--------------------------------------------------------------------------------------------
+      UInt64 silly  = UniqueIdGenerator::getUniqueId();
+      UInt64 pdlly  = UniqueIdGenerator::getUniqueId();
+
       os << "<AnalysisCollection>\n";
       for (std::map<String,String>::const_iterator pp2sil_it = pp_identifier_2_sil_.begin(); pp2sil_it != pp_identifier_2_sil_.end(); ++pp2sil_it)
       {
@@ -1090,11 +1116,28 @@ namespace OpenMS
                            + "\t</SpectrumIdentification>\n";
           os <<   entry;
       }
+      for (std::map<String, UInt64>::const_iterator pdp = pdp_ids.begin(); pdp != pdp_ids.end(); ++pdp)
+      {
+        //~ TODO unsure when to create several lists instead of one SpectrumIdentificationList - for now only one list
+        //~ for  (std::set<String>::const_iterator sip = sip_set.begin(); sip != sip_set.end(); ++sip)
+        //~ {
+        UInt64 ss  = UniqueIdGenerator::getUniqueId();
+        String entry = String("\t<ProteinDetection id=\"") + String(ss) + String("\" proteinDetectionProtocol_ref=\"")
+                       + String(pdp->second) + String("\" spectrumIdentificationList_ref=\"") + String(pdlly)
+                       + String("\" activityDate=\"") + pdp_dates[pdp->second]
+                       + String("\">\n")
+                       + "\t\t<InputSpectrumIdentifications spectrumIdentificationList_ref=\"" + pdp_ref[pdp->second] + "\"/>\n"
+                       + "\t</ProteinDetection>\n";
+        os <<   entry;
+        //~ }
+      }
+
       os << "</AnalysisCollection>\n";
 
       //--------------------------------------------------------------------------------------------
       // AnalysisProtocolCollection
       //+ SpectrumIdentificationProtocol + SearchType + Threshold
+      //+ ProteinDetectionProtocol
       //+ SearchType
       //+ Threshold
       //--------------------------------------------------------------------------------------------
@@ -1102,6 +1145,10 @@ namespace OpenMS
       for (std::set<String>::const_iterator sip = sip_set.begin(); sip != sip_set.end(); ++sip)
       {
         os << *sip;
+      }
+      for (std::set<String>::const_iterator pdp = pdp_set.begin(); pdp != pdp_set.end(); ++pdp)
+      {
+        os << *pdp;
       }
       os << "</AnalysisProtocolCollection>\n";
 

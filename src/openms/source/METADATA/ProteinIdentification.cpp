@@ -118,6 +118,7 @@ namespace OpenMS
     protein_hits_(),
     protein_groups_(),
     indistinguishable_proteins_(),
+    grouping_parameters_(),
     protein_significance_threshold_(0.0)
   {
   }
@@ -134,6 +135,7 @@ namespace OpenMS
     protein_hits_(source.protein_hits_),
     protein_groups_(source.protein_groups_),
     indistinguishable_proteins_(source.indistinguishable_proteins_),
+    grouping_parameters_(source.grouping_parameters_),
     protein_significance_threshold_(source.protein_significance_threshold_)
   {
   }
@@ -451,6 +453,16 @@ namespace OpenMS
   const ProteinIdentification::SearchParameters& ProteinIdentification::getSearchParameters() const
   {
     return search_parameters_;
+  }
+
+  void ProteinIdentification::setGroupingParameters(const CVTermList& grouping_parameters)
+  {
+    grouping_parameters_ = grouping_parameters;
+  }
+
+  const CVTermList& ProteinIdentification::getGroupingParameters() const
+  {
+    return grouping_parameters_;
   }
 
 } // namespace OpenMS
