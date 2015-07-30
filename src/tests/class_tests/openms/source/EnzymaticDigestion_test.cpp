@@ -121,7 +121,7 @@ TEST_EQUAL(ed.getSpecificity(), EnzymaticDigestion::SPEC_SEMI);
 END_SECTION
 
 START_SECTION((void setSpecificity(Specificity spec)))
-NOT_TESTABLE   // tested above
+NOT_TESTABLE // tested above
 END_SECTION
 
 START_SECTION((static Specificity getSpecificityByName(const String &name)))
@@ -273,144 +273,149 @@ TEST_EQUAL(out[1].toString(), "PDE")
 END_SECTION
 
 
-START_SECTION((bool isValidProduct(const AASequence &protein, Size pep_pos, Size pep_length)))
+START_SECTION((bool isValidProduct(const AASequence &protein, Size pep_pos, Size pep_length, bool methionine_cleavage)))
 EnzymaticDigestion ed;
 ed.setEnzyme("Trypsin");
-ed.setSpecificity(EnzymaticDigestion::SPEC_FULL);   // require both sides
+ed.setSpecificity(EnzymaticDigestion::SPEC_FULL); // require both sides
 
 AASequence prot = AASequence::fromString("ABCDEFGKABCRAAAKAARPBBBB");
-TEST_EQUAL(ed.isValidProduct(prot, 100, 3), false);    // invalid position
-TEST_EQUAL(ed.isValidProduct(prot, 10, 300), false);   // invalid length
-TEST_EQUAL(ed.isValidProduct(prot, 10, 0), false);    // invalid size
-TEST_EQUAL(ed.isValidProduct(AASequence::fromString(""), 10, 0), false);    // invalid size
+TEST_EQUAL(ed.isValidProduct(prot, 100, 3), false); // invalid position
+TEST_EQUAL(ed.isValidProduct(prot, 10, 300), false); // invalid length
+TEST_EQUAL(ed.isValidProduct(prot, 10, 0), false); // invalid size
+TEST_EQUAL(ed.isValidProduct(AASequence::fromString(""), 10, 0), false); // invalid size
 
-TEST_EQUAL(ed.isValidProduct(prot, 0, 3), false);    // invalid N-term
-TEST_EQUAL(ed.isValidProduct(prot, 0, 8), true);     //   valid N-term
-TEST_EQUAL(ed.isValidProduct(prot, 8, 4), true);     //   valid fully-tryptic
-TEST_EQUAL(ed.isValidProduct(prot, 8, 8), true);     //   valid fully-tryptic
-TEST_EQUAL(ed.isValidProduct(prot, 0, 19), false);   // invalid C-term - followed by proline
-TEST_EQUAL(ed.isValidProduct(prot, 8, 3), false);    // invalid C-term
-TEST_EQUAL(ed.isValidProduct(prot, 3, 6), false);    // invalid C+N-term
-TEST_EQUAL(ed.isValidProduct(prot, 1, 7), false);    // invalid N-term
-TEST_EQUAL(ed.isValidProduct(prot, 0, prot.size()), true);    // the whole thing
+TEST_EQUAL(ed.isValidProduct(prot, 0, 3), false); // invalid N-term
+TEST_EQUAL(ed.isValidProduct(prot, 0, 8), true); //   valid N-term
+TEST_EQUAL(ed.isValidProduct(prot, 8, 4), true); //   valid fully-tryptic
+TEST_EQUAL(ed.isValidProduct(prot, 8, 8), true); //   valid fully-tryptic
+TEST_EQUAL(ed.isValidProduct(prot, 0, 19), false); // invalid C-term - followed by proline
+TEST_EQUAL(ed.isValidProduct(prot, 8, 3), false); // invalid C-term
+TEST_EQUAL(ed.isValidProduct(prot, 3, 6), false); // invalid C+N-term
+TEST_EQUAL(ed.isValidProduct(prot, 1, 7), false); // invalid N-term
+TEST_EQUAL(ed.isValidProduct(prot, 0, prot.size()), true); // the whole thing
 
-prot = AASequence::fromString("MBCDEFGKABCRAAAKAA");   // starts with Met - we assume the cleaved form without Met occurs in vivo
-TEST_EQUAL(ed.isValidProduct(prot, 1, 7), true);    // valid N-term (since protein starts with Met)
-TEST_EQUAL(ed.isValidProduct(prot, 0, prot.size()), true);    // the whole thing
 
-//################################################
-// same as above, just with other specificity
-
-ed.setSpecificity(EnzymaticDigestion::SPEC_SEMI);   // require one special cleavage site
-prot = AASequence::fromString("ABCDEFGKABCRAAAKAARPBBBB");
-TEST_EQUAL(ed.isValidProduct(prot, 100, 3), false);    // invalid position
-TEST_EQUAL(ed.isValidProduct(prot, 10, 300), false);    // invalid length
-TEST_EQUAL(ed.isValidProduct(prot, 10, 0), false);    // invalid size
-TEST_EQUAL(ed.isValidProduct(AASequence::fromString(""), 10, 0), false);    // invalid size
-
-TEST_EQUAL(ed.isValidProduct(prot, 0, 3), true);     // invalid N-term
-TEST_EQUAL(ed.isValidProduct(prot, 0, 8), true);     //   valid N-term
-TEST_EQUAL(ed.isValidProduct(prot, 8, 4), true);     //   valid fully-tryptic
-TEST_EQUAL(ed.isValidProduct(prot, 8, 8), true);     //   valid fully-tryptic
-TEST_EQUAL(ed.isValidProduct(prot, 0, 19), true);    // invalid C-term - followed by proline
-TEST_EQUAL(ed.isValidProduct(prot, 8, 3), true);    // invalid C-term
-TEST_EQUAL(ed.isValidProduct(prot, 3, 6), false);    // invalid C+N-term
-TEST_EQUAL(ed.isValidProduct(prot, 1, 7), true);    // invalid N-term
-TEST_EQUAL(ed.isValidProduct(prot, 0, prot.size()), true);    // the whole thing
-
-prot = AASequence::fromString("MBCDEFGKABCRAAAKAA");   // starts with Met - we assume the cleaved form without Met occurs in vivo
-TEST_EQUAL(ed.isValidProduct(prot, 1, 7), true);    // valid N-term (since protein starts with Met)
-TEST_EQUAL(ed.isValidProduct(prot, 0, prot.size()), true);    // the whole thing
+prot = AASequence::fromString("MBCDEFGKABCRAAAKAA"); // starts with Met - we assume the cleaved form without Met occurs in vivo
+TEST_EQUAL(ed.isValidProduct(prot, 1, 7, true), true); // valid N-term (since protein starts with Met)
+TEST_EQUAL(ed.isValidProduct(prot, 1, 7, false), false); // invalid N-term (since Met cleavage is not allowed.)
+TEST_EQUAL(ed.isValidProduct(prot, 0, prot.size()), true); // the whole thing
 
 //################################################
 // same as above, just with other specificity
 
-ed.setSpecificity(EnzymaticDigestion::SPEC_NONE);   // require no special cleavage site
+ed.setSpecificity(EnzymaticDigestion::SPEC_SEMI); // require one special cleavage site
 prot = AASequence::fromString("ABCDEFGKABCRAAAKAARPBBBB");
-TEST_EQUAL(ed.isValidProduct(prot, 100, 3), false);    // invalid position
-TEST_EQUAL(ed.isValidProduct(prot, 10, 300), false);    // invalid length
-TEST_EQUAL(ed.isValidProduct(prot, 10, 0), false);    // invalid size
-TEST_EQUAL(ed.isValidProduct(AASequence::fromString(""), 10, 0), false);    // invalid size
+TEST_EQUAL(ed.isValidProduct(prot, 100, 3), false); // invalid position
+TEST_EQUAL(ed.isValidProduct(prot, 10, 300), false); // invalid length
+TEST_EQUAL(ed.isValidProduct(prot, 10, 0), false); // invalid size
+TEST_EQUAL(ed.isValidProduct(AASequence::fromString(""), 10, 0), false); // invalid size
 
-TEST_EQUAL(ed.isValidProduct(prot, 0, 3), true);     // invalid N-term
-TEST_EQUAL(ed.isValidProduct(prot, 0, 8), true);     //   valid N-term
-TEST_EQUAL(ed.isValidProduct(prot, 8, 4), true);     //   valid fully-tryptic
-TEST_EQUAL(ed.isValidProduct(prot, 8, 8), true);     //   valid fully-tryptic
-TEST_EQUAL(ed.isValidProduct(prot, 0, 19), true);    // invalid C-term - followed by proline
-TEST_EQUAL(ed.isValidProduct(prot, 8, 3), true);    // invalid C-term
-TEST_EQUAL(ed.isValidProduct(prot, 3, 6), true);    // invalid C+N-term
-TEST_EQUAL(ed.isValidProduct(prot, 1, 7), true);    // invalid N-term
-TEST_EQUAL(ed.isValidProduct(prot, 0, prot.size()), true);    // the whole thing
+TEST_EQUAL(ed.isValidProduct(prot, 0, 3), true); // invalid N-term
+TEST_EQUAL(ed.isValidProduct(prot, 0, 8), true); //   valid N-term
+TEST_EQUAL(ed.isValidProduct(prot, 8, 4), true); //   valid fully-tryptic
+TEST_EQUAL(ed.isValidProduct(prot, 8, 8), true); //   valid fully-tryptic
+TEST_EQUAL(ed.isValidProduct(prot, 0, 19), true); // invalid C-term - followed by proline
+TEST_EQUAL(ed.isValidProduct(prot, 8, 3), true); // invalid C-term
+TEST_EQUAL(ed.isValidProduct(prot, 3, 6), false); // invalid C+N-term
+TEST_EQUAL(ed.isValidProduct(prot, 1, 7), true); // invalid N-term
+TEST_EQUAL(ed.isValidProduct(prot, 0, prot.size()), true); // the whole thing
+
+prot = AASequence::fromString("MBCDEFGKABCRAAAKAA"); // starts with Met - we assume the cleaved form without Met occurs in vivo
+TEST_EQUAL(ed.isValidProduct(prot, 1, 7, true), true); // valid N-term (since protein starts with Met)
+TEST_EQUAL(ed.isValidProduct(prot, 1, 7, false), true); // invalid N-term (since Met cleavage is not allowed.)
+TEST_EQUAL(ed.isValidProduct(prot, 0, prot.size()), true); // the whole thing
+
+//################################################
+// same as above, just with other specificity
+
+ed.setSpecificity(EnzymaticDigestion::SPEC_NONE); // require no special cleavage site
+prot = AASequence::fromString("ABCDEFGKABCRAAAKAARPBBBB");
+TEST_EQUAL(ed.isValidProduct(prot, 100, 3), false); // invalid position
+TEST_EQUAL(ed.isValidProduct(prot, 10, 300), false); // invalid length
+TEST_EQUAL(ed.isValidProduct(prot, 10, 0), false); // invalid size
+TEST_EQUAL(ed.isValidProduct(AASequence::fromString(""), 10, 0), false); // invalid size
+
+TEST_EQUAL(ed.isValidProduct(prot, 0, 3), true); // invalid N-term
+TEST_EQUAL(ed.isValidProduct(prot, 0, 8), true); //   valid N-term
+TEST_EQUAL(ed.isValidProduct(prot, 8, 4), true); //   valid fully-tryptic
+TEST_EQUAL(ed.isValidProduct(prot, 8, 8), true); //   valid fully-tryptic
+TEST_EQUAL(ed.isValidProduct(prot, 0, 19), true); // invalid C-term - followed by proline
+TEST_EQUAL(ed.isValidProduct(prot, 8, 3), true); // invalid C-term
+TEST_EQUAL(ed.isValidProduct(prot, 3, 6), true); // invalid C+N-term
+TEST_EQUAL(ed.isValidProduct(prot, 1, 7), true); // invalid N-term
+TEST_EQUAL(ed.isValidProduct(prot, 0, prot.size()), true); // the whole thing
 
 // ------------------------
 // Trypsin/P
 // ------------------------
 ed.setEnzyme("Trypsin/P");
-ed.setSpecificity(EnzymaticDigestion::SPEC_FULL);   // require both sides
+ed.setSpecificity(EnzymaticDigestion::SPEC_FULL); // require both sides
 
 prot = AASequence::fromString("ABCDEFGKABCRAAAKAARPBBBB");
-TEST_EQUAL(ed.isValidProduct(prot, 100, 3), false);    // invalid position
-TEST_EQUAL(ed.isValidProduct(prot, 10, 300), false);   // invalid length
-TEST_EQUAL(ed.isValidProduct(prot, 10, 0), false);    // invalid size
-TEST_EQUAL(ed.isValidProduct(AASequence::fromString(""), 10, 0), false);    // invalid size
+TEST_EQUAL(ed.isValidProduct(prot, 100, 3), false); // invalid position
+TEST_EQUAL(ed.isValidProduct(prot, 10, 300), false); // invalid length
+TEST_EQUAL(ed.isValidProduct(prot, 10, 0), false); // invalid size
+TEST_EQUAL(ed.isValidProduct(AASequence::fromString(""), 10, 0), false); // invalid size
 
-TEST_EQUAL(ed.isValidProduct(prot, 0, 3), false);    // invalid N-term
-TEST_EQUAL(ed.isValidProduct(prot, 0, 8), true);     //   valid N-term
-TEST_EQUAL(ed.isValidProduct(prot, 8, 4), true);     //   valid fully-tryptic
-TEST_EQUAL(ed.isValidProduct(prot, 8, 8), true);     //   valid fully-tryptic
-TEST_EQUAL(ed.isValidProduct(prot, 0, 19), true);    //   valid C-term - followed by proline
-TEST_EQUAL(ed.isValidProduct(prot, 8, 3), false);    // invalid C-term
-TEST_EQUAL(ed.isValidProduct(prot, 3, 6), false);    // invalid C+N-term
-TEST_EQUAL(ed.isValidProduct(prot, 1, 7), false);    // invalid N-term
-TEST_EQUAL(ed.isValidProduct(prot, 0, prot.size()), true);    // the whole thing
+TEST_EQUAL(ed.isValidProduct(prot, 0, 3), false); // invalid N-term
+TEST_EQUAL(ed.isValidProduct(prot, 0, 8), true); //   valid N-term
+TEST_EQUAL(ed.isValidProduct(prot, 8, 4), true); //   valid fully-tryptic
+TEST_EQUAL(ed.isValidProduct(prot, 8, 8), true); //   valid fully-tryptic
+TEST_EQUAL(ed.isValidProduct(prot, 0, 19), true); //   valid C-term - followed by proline
+TEST_EQUAL(ed.isValidProduct(prot, 8, 3), false); // invalid C-term
+TEST_EQUAL(ed.isValidProduct(prot, 3, 6), false); // invalid C+N-term
+TEST_EQUAL(ed.isValidProduct(prot, 1, 7), false); // invalid N-term
+TEST_EQUAL(ed.isValidProduct(prot, 0, prot.size()), true); // the whole thing
 
-prot = AASequence::fromString("MBCDEFGKABCRAAAKAA");   // starts with Met - we assume the cleaved form without Met occurs in vivo
-TEST_EQUAL(ed.isValidProduct(prot, 1, 7), true);    // valid N-term (since protein starts with Met)
-TEST_EQUAL(ed.isValidProduct(prot, 0, prot.size()), true);    // the whole thing
+prot = AASequence::fromString("MBCDEFGKABCRAAAKAA"); // starts with Met - we assume the cleaved form without Met occurs in vivo
+TEST_EQUAL(ed.isValidProduct(prot, 1, 7, true), true); // valid N-term (since protein starts with Met)
+TEST_EQUAL(ed.isValidProduct(prot, 1, 7), false); // invalid N-term (since Met cleavage is not allowed.)
+TEST_EQUAL(ed.isValidProduct(prot, 0, prot.size()), true); // the whole thing
 
 //################################################
 // same as above, just with other specificity
 
-ed.setSpecificity(EnzymaticDigestion::SPEC_SEMI);   // require one special cleavage site
+ed.setSpecificity(EnzymaticDigestion::SPEC_SEMI); // require one special cleavage site
 prot = AASequence::fromString("ABCDEFGKABCRAAAKAARPBBBB");
-TEST_EQUAL(ed.isValidProduct(prot, 100, 3), false);    // invalid position
-TEST_EQUAL(ed.isValidProduct(prot, 10, 300), false);    // invalid length
-TEST_EQUAL(ed.isValidProduct(prot, 10, 0), false);    // invalid size
-TEST_EQUAL(ed.isValidProduct(AASequence::fromString(""), 10, 0), false);    // invalid size
+TEST_EQUAL(ed.isValidProduct(prot, 100, 3), false); // invalid position
+TEST_EQUAL(ed.isValidProduct(prot, 10, 300), false); // invalid length
+TEST_EQUAL(ed.isValidProduct(prot, 10, 0), false); // invalid size
+TEST_EQUAL(ed.isValidProduct(AASequence::fromString(""), 10, 0), false); // invalid size
 
-TEST_EQUAL(ed.isValidProduct(prot, 0, 3), true);     // invalid N-term
-TEST_EQUAL(ed.isValidProduct(prot, 0, 8), true);     //   valid N-term
-TEST_EQUAL(ed.isValidProduct(prot, 8, 4), true);     //   valid fully-tryptic
-TEST_EQUAL(ed.isValidProduct(prot, 8, 8), true);     //   valid fully-tryptic
-TEST_EQUAL(ed.isValidProduct(prot, 0, 19), true);    //   valid C-term - followed by proline
-TEST_EQUAL(ed.isValidProduct(prot, 8, 3), true);    // invalid C-term
-TEST_EQUAL(ed.isValidProduct(prot, 3, 6), false);    // invalid C+N-term
-TEST_EQUAL(ed.isValidProduct(prot, 1, 7), true);    // invalid N-term
-TEST_EQUAL(ed.isValidProduct(prot, 0, prot.size()), true);    // the whole thing
+TEST_EQUAL(ed.isValidProduct(prot, 0, 3), true); // invalid N-term
+TEST_EQUAL(ed.isValidProduct(prot, 0, 8), true); //   valid N-term
+TEST_EQUAL(ed.isValidProduct(prot, 8, 4), true); //   valid fully-tryptic
+TEST_EQUAL(ed.isValidProduct(prot, 8, 8), true); //   valid fully-tryptic
+TEST_EQUAL(ed.isValidProduct(prot, 0, 19), true); //   valid C-term - followed by proline
+TEST_EQUAL(ed.isValidProduct(prot, 8, 3), true); // invalid C-term
+TEST_EQUAL(ed.isValidProduct(prot, 3, 6), false); // invalid C+N-term
+TEST_EQUAL(ed.isValidProduct(prot, 1, 7), true); // invalid N-term valid C-term
+TEST_EQUAL(ed.isValidProduct(prot, 0, prot.size()), true); // the whole thing
 
-prot = AASequence::fromString("MBCDEFGKABCRAAAKAA");   // starts with Met - we assume the cleaved form without Met occurs in vivo
-TEST_EQUAL(ed.isValidProduct(prot, 1, 7), true);    // valid N-term (since protein starts with Met)
-TEST_EQUAL(ed.isValidProduct(prot, 0, prot.size()), true);    // the whole thing
+prot = AASequence::fromString("MBCDEFGKABCRAAAKAA"); // starts with Met - we assume the cleaved form without Met occurs in vivo
+TEST_EQUAL(ed.isValidProduct(prot, 1, 7, true), true); // valid N-term (since protein starts with Met)
+TEST_EQUAL(ed.isValidProduct(prot, 1, 7, false), true); // invalid N-term (since Met cleavage is not allowed.)
+TEST_EQUAL(ed.isValidProduct(prot, 0, prot.size()), true); // the whole thing
 
 //################################################
 // same as above, just with other specificity
 
-ed.setSpecificity(EnzymaticDigestion::SPEC_NONE);   // require no special cleavage site
+ed.setSpecificity(EnzymaticDigestion::SPEC_NONE); // require no special cleavage site
 prot = AASequence::fromString("ABCDEFGKABCRAAAKAARPBBBB");
-TEST_EQUAL(ed.isValidProduct(prot, 100, 3), false);    // invalid position
-TEST_EQUAL(ed.isValidProduct(prot, 10, 300), false);    // invalid length
-TEST_EQUAL(ed.isValidProduct(prot, 10, 0), false);    // invalid size
-TEST_EQUAL(ed.isValidProduct(AASequence::fromString(""), 10, 0), false);    // invalid size
+TEST_EQUAL(ed.isValidProduct(prot, 100, 3), false); // invalid position
+TEST_EQUAL(ed.isValidProduct(prot, 10, 300), false); // invalid length
+TEST_EQUAL(ed.isValidProduct(prot, 10, 0), false); // invalid size
+TEST_EQUAL(ed.isValidProduct(AASequence::fromString(""), 10, 0), false); // invalid size
 
-TEST_EQUAL(ed.isValidProduct(prot, 0, 3), true);     // invalid N-term
-TEST_EQUAL(ed.isValidProduct(prot, 0, 8), true);     //   valid N-term
-TEST_EQUAL(ed.isValidProduct(prot, 8, 4), true);     //   valid fully-tryptic
-TEST_EQUAL(ed.isValidProduct(prot, 8, 8), true);     //   valid fully-tryptic
-TEST_EQUAL(ed.isValidProduct(prot, 0, 19), true);    //   valid C-term - followed by proline
-TEST_EQUAL(ed.isValidProduct(prot, 8, 3), true);    // invalid C-term
-TEST_EQUAL(ed.isValidProduct(prot, 3, 6), true);    // invalid C+N-term
-TEST_EQUAL(ed.isValidProduct(prot, 1, 7), true);    // invalid N-term
-TEST_EQUAL(ed.isValidProduct(prot, 0, prot.size()), true);    // the whole thing
+TEST_EQUAL(ed.isValidProduct(prot, 0, 3), true); // invalid N-term
+TEST_EQUAL(ed.isValidProduct(prot, 0, 8), true); //   valid N-term
+TEST_EQUAL(ed.isValidProduct(prot, 8, 4), true); //   valid fully-tryptic
+TEST_EQUAL(ed.isValidProduct(prot, 8, 8), true); //   valid fully-tryptic
+TEST_EQUAL(ed.isValidProduct(prot, 0, 19), true); //   valid C-term - followed by proline
+TEST_EQUAL(ed.isValidProduct(prot, 8, 3), true); // invalid C-term
+TEST_EQUAL(ed.isValidProduct(prot, 3, 6), true); // invalid C+N-term
+TEST_EQUAL(ed.isValidProduct(prot, 1, 7), true); // invalid N-term
+TEST_EQUAL(ed.isValidProduct(prot, 0, prot.size()), true); // the whole thing
 
 END_SECTION
 

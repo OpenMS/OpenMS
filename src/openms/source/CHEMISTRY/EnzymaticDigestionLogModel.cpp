@@ -63,8 +63,8 @@ namespace OpenMS
       {
         throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("split(' ',") + tmp + ")", String("Got ") + components.size() + " columns, expected 4!");
       }
-      BindingSite bs(components[0].toInt(), components[1].trim());
-      CleavageModel cl(components[2].toDouble(), components[3].toDouble());
+      BindingSite_ bs(components[0].toInt(), components[1].trim());
+      CleavageModel_ cl(components[2].toDouble(), components[3].toDouble());
       model_data_[bs] = cl;
     }
   }
@@ -129,8 +129,8 @@ namespace OpenMS
       {
         if ((pos + i >= 0) && (pos + i < (SignedSize)protein.size()))
         {
-          BindingSite bs(i, protein[pos + i].getOneLetterCode());
-          Map<BindingSite, CleavageModel>::const_iterator pos_it =
+          BindingSite_ bs(i, protein[pos + i].getOneLetterCode());
+          Map<BindingSite_, CleavageModel_>::const_iterator pos_it =
             model_data_.find(bs);
           if (pos_it != model_data_.end()) // no data for non-std. amino acids
           {

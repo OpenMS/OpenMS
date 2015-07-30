@@ -88,23 +88,23 @@ public:
 
 protected:
     // define a binding site by position and AA
-    struct BindingSite
+    struct BindingSite_
     {
       Size position;
       String AAname;
 
-      BindingSite() :
+      BindingSite_() :
         position(), AAname() {}
 
-      BindingSite(const Size& p, const String& name) :
+      BindingSite_(const Size& p, const String& name) :
         position(p), AAname(name) {}
 
-      bool operator<(const BindingSite& rhs) const
+      bool operator<(const BindingSite_& rhs) const
       {
         return (position < rhs.position) || ((position == rhs.position) && (AAname < rhs.AAname));
       }
 
-      bool operator==(const BindingSite& rhs) const
+      bool operator==(const BindingSite_& rhs) const
       {
         return position == rhs.position && AAname == rhs.AAname;
       }
@@ -112,14 +112,14 @@ protected:
     };
 
     // define the log likelihood for missed and cleavage model
-    struct CleavageModel
+    struct CleavageModel_
     {
       double p_cleave;
       double p_miss;
 
-      CleavageModel() :
+      CleavageModel_() :
         p_cleave(0), p_miss(0) {}
-      CleavageModel(const double& p_c, const double& p_m) :
+      CleavageModel_(const double& p_c, const double& p_m) :
         p_cleave(p_c), p_miss(p_m) {}
     };
 
@@ -135,7 +135,7 @@ protected:
     /// Threshold to decide if position is cleaved or missed (only for the model)
     double log_model_threshold_;
     /// Holds the cleavage model
-    Map<BindingSite, CleavageModel> model_data_;
+    Map<BindingSite_, CleavageModel_> model_data_;
   };
 
 } // namespace OpenMS

@@ -112,7 +112,7 @@ namespace OpenMS
     specificity_ = spec;
   }
 
-  std::vector<Size> EnzymaticDigestion::tokenise(const String& s) const
+  std::vector<Size> EnzymaticDigestion::tokenize_(const String& s) const
   {
     std::vector<Size> pep_positions;
     Size pos = 0;
@@ -134,7 +134,7 @@ namespace OpenMS
     return pep_positions;
   }
 
-  bool EnzymaticDigestion::isValidProduct(const AASequence& protein, Size pep_pos, Size pep_length)
+  bool EnzymaticDigestion::isValidProduct(const AASequence& protein, Size pep_pos, Size pep_length, bool methionine_cleavage)
   {
     if (pep_pos >= protein.size())
     {
@@ -160,11 +160,15 @@ namespace OpenMS
     {
       bool spec_c = false, spec_n = false;
 
-      std::vector<Size> pep_positions = tokenise(protein.toUnmodifiedString());
+      std::vector<Size> pep_positions = tokenize_(protein.toUnmodifiedString());
       // test each end
       if (pep_pos == 0 ||
-          (pep_pos == 1 && protein.getResidue((Size)0).getOneLetterCode() == "M") ||
           std::find(pep_positions.begin(), pep_positions.end(), pep_pos) != pep_positions.end())
+      {
+        spec_n = true;
+      }
+      // if allow methionine cleavage at the protein start position
+      if (pep_pos == 1 && methionine_cleavage && protein.getResidue((Size)0).getOneLetterCode() == "M")
       {
         spec_n = true;
       }
@@ -191,7 +195,7 @@ namespace OpenMS
 
   Size EnzymaticDigestion::peptideCount(const AASequence& protein)
   {
-    std::vector<Size> pep_positions = tokenise(protein.toUnmodifiedString());
+    std::vector<Size> pep_positions = tokenize_(protein.toUnmodifiedString());
     SignedSize count = pep_positions.size();
     // missed cleavages
     Size sum = count;
@@ -209,7 +213,7 @@ namespace OpenMS
     output.clear();
     // naive cleavage sites
     Size missed_cleavages = missed_cleavages_;
-    std::vector<Size> pep_positions = tokenise(protein.toUnmodifiedString());
+    std::vector<Size> pep_positions = tokenize_(protein.toUnmodifiedString());
     Size count = pep_positions.size();
     Size begin = pep_positions[0];
     for (Size i = 1; i < count; ++i)
