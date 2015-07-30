@@ -536,7 +536,7 @@ set_tests_properties("TOPP_FileMerger_3_out1" PROPERTIES DEPENDS "TOPP_FileMerge
 add_test("TOPP_FileMerger_4" ${TOPP_BIN_PATH}/FileMerger -test -in ${DATA_DIR_TOPP}/FileMerger_4_input1.dta2d ${DATA_DIR_TOPP}/FileMerger_4_input2.dta2d -out FileMerger_4.tmp)
 add_test("TOPP_FileMerger_4_out1" ${DIFF} -whitelist "id=" "location=" "href=" -in1 FileMerger_4.tmp -in2 ${DATA_DIR_TOPP}/FileMerger_4_output.mzML )
 set_tests_properties("TOPP_FileMerger_4_out1" PROPERTIES DEPENDS "TOPP_FileMerger_4")
-add_test("TOPP_FileMerger_5" ${TOPP_BIN_PATH}/FileMerger -test -in ${DATA_DIR_TOPP}/FileMerger_5_input_rt1023.331.dta ${DATA_DIR_TOPP}/FileMerger_5_input_rt2044.334.dta ${DATA_DIR_TOPP}/FileMerger_5_input_rt889.32.dta -raw:rt_filename -raw:user_ms_level -raw:ms_level 2 -out FileMerger_5.tmp)
+add_test("TOPP_FileMerger_5" ${TOPP_BIN_PATH}/FileMerger -test -in ${DATA_DIR_TOPP}/FileMerger_5_input_rt1023.331.dta ${DATA_DIR_TOPP}/FileMerger_5_input_rt2044.334.dta ${DATA_DIR_TOPP}/FileMerger_5_input_rt889.32.dta -raw:rt_filename -raw:ms_level 2 -out FileMerger_5.tmp)
 add_test("TOPP_FileMerger_5_out1" ${DIFF} -whitelist "id=" "location=" "href=" -in1 FileMerger_5.tmp -in2 ${DATA_DIR_TOPP}/FileMerger_5_output.mzML )
 set_tests_properties("TOPP_FileMerger_5_out1" PROPERTIES DEPENDS "TOPP_FileMerger_5")
 add_test("TOPP_FileMerger_6" ${TOPP_BIN_PATH}/FileMerger -test -in ${DATA_DIR_TOPP}/FileMerger_6_input1.mzML ${DATA_DIR_TOPP}/FileMerger_6_input2.mzML -out FileMerger_6.tmp)
@@ -551,6 +551,14 @@ set_tests_properties("TOPP_FileMerger_8_out1" PROPERTIES DEPENDS "TOPP_FileMerge
 add_test("TOPP_FileMerger_9" ${TOPP_BIN_PATH}/FileMerger -test -in ${DATA_DIR_TOPP}/FileMerger_9_input1.traML ${DATA_DIR_TOPP}/FileMerger_9_input2.traML -out FileMerger_9.tmp)
 add_test("TOPP_FileMerger_9_out1" ${DIFF} -whitelist "id=" "location=" "href=" -in1 FileMerger_9.tmp -in2 ${DATA_DIR_TOPP}/FileMerger_9_output.traML )
 set_tests_properties("TOPP_FileMerger_9_out1" PROPERTIES DEPENDS "TOPP_FileMerger_9")
+# "rt_concat" options:
+add_test("TOPP_FileMerger_10" ${TOPP_BIN_PATH}/FileMerger -test -in ${DATA_DIR_TOPP}/FileMerger_6_input2.mzML ${DATA_DIR_TOPP}/FileMerger_6_input2.mzML -out FileMerger_10_output.tmp -rt_concat:gap 10.0 -rt_concat:trafo_out FileMerger_10_trafo1.tmp FileMerger_10_trafo2.tmp)
+add_test("TOPP_FileMerger_10_out1" ${DIFF} -whitelist "id=" "location=" "href=" -in1 FileMerger_10_output.tmp -in2 ${DATA_DIR_TOPP}/FileMerger_10_output.mzML )
+set_tests_properties("TOPP_FileMerger_10_out1" PROPERTIES DEPENDS "TOPP_FileMerger_10")
+add_test("TOPP_FileMerger_10_out2" ${DIFF} -in1 FileMerger_10_trafo1.tmp -in2 ${DATA_DIR_TOPP}/FileMerger_10_trafo1.trafoXML)
+set_tests_properties("TOPP_FileMerger_10_out2" PROPERTIES DEPENDS "TOPP_FileMerger_10")
+add_test("TOPP_FileMerger_10_out3" ${DIFF} -in1 FileMerger_10_trafo2.tmp -in2 ${DATA_DIR_TOPP}/FileMerger_10_trafo2.trafoXML)
+set_tests_properties("TOPP_FileMerger_10_out3" PROPERTIES DEPENDS "TOPP_FileMerger_10")
 
 #------------------------------------------------------------------------------
 # HighResPrecursorMassCorrector tests
