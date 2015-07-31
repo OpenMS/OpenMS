@@ -39,6 +39,7 @@
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/Element.h>
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 
 #include <map>
 
@@ -90,7 +91,10 @@ protected:
     registerIntOption_("mass_accuracy", "<number>", 1000, "give your mass accuracy in ppb", false);
     registerIntOption_("min_length", "<number>", 6, "minimum length of peptide", false);
     registerIntOption_("out_option", "<number>", 1, "indicate 1 (peptide table only), 2 (statistics only) or (both peptide table + statistics)", false);
-    registerStringOption_("enzyme", "<string>", "Trypsin", "the digestion enzyme", false);
+    vector<String> all_enzymes;
+    EnzymesDB::getInstance()->getAllNames(all_enzymes);
+    registerStringOption_("enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false);
+    setValidStrings_("enzyme", all_enzymes);
     registerStringOption_("motif", "<string>", "M", "the motif for the restricted peptidome", false);
     setMinInt_("missed_cleavages", 0);
   }
@@ -141,8 +145,9 @@ protected:
     //-------------------------------------------------------------
 
     // This should be updated if more cleavage enzymes are available
-    digestor.setEnzyme(EnzymaticDigestion::ENZYME_TRYPSIN);
-    search_parameters.enzyme = ProteinIdentification::TRYPSIN;
+    String enzyme_name = getStringOption_("enzyme");
+    digestor.setEnzyme(enzyme_name);
+    search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_name);
     digestor.setMissedCleavages(missed_cleavages);
 
     for (UInt i = 0; i < protein_data.size(); ++i)
