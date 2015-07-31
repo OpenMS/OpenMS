@@ -38,6 +38,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 
 #include <map>
 
@@ -106,8 +107,10 @@ protected:
     setMinInt_("missed_cleavages", 0);
     registerIntOption_("min_length", "<number>", 6, "Minimum length of peptide", false);
     registerIntOption_("max_length", "<number>", 40, "Maximum length of peptide", false);
+    vector<String> all_enzymes;
+    EnzymesDB::getInstance()->getAllNames(all_enzymes);
     registerStringOption_("enzyme", "<string>", "Trypsin", "The type of digestion enzyme", false);
-    setValidStrings_("enzyme", ListUtils::create<String>("Trypsin,none"));
+    setValidStrings_("enzyme", all_enzymes);
   }
 
   ExitCodes main_(int, const char**)
@@ -165,21 +168,9 @@ protected:
     ProteinIdentification::SearchParameters search_parameters;
     String enzyme = getStringOption_("enzyme");
     EnzymaticDigestion digestor;
-    if (enzyme == "Trypsin")
-    {
-      digestor.setEnzyme(EnzymaticDigestion::ENZYME_TRYPSIN);
-      digestor.setMissedCleavages(missed_cleavages);
-      search_parameters.enzyme = ProteinIdentification::TRYPSIN;
-    }
-    else if (enzyme == "none")
-    {
-      search_parameters.enzyme = ProteinIdentification::NO_ENZYME;
-    }
-    else
-    {
-      LOG_ERROR << "Internal error in Digestor, when evaluating enzyme name! Please report this!" << std::endl;
-      return ILLEGAL_PARAMETERS;
-    }
+    digestor.setEnzyme(enzyme);
+    digestor.setMissedCleavages(missed_cleavages);
+    search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme);
 
     PeptideHit temp_peptide_hit;
     PeptideEvidence temp_pe;

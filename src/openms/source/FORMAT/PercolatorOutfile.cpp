@@ -40,8 +40,6 @@
 #include <boost/math/special_functions/fpclassify.hpp> // for "isnan"
 
 
-
-
 namespace OpenMS
 {
   using namespace std;

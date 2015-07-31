@@ -1,7 +1,7 @@
 
 
 
-    def alignPeptideIdentifications(self, list ids , list trafos ):
+    def align(self, list ids , list trafos, int ref_index):
         assert isinstance(ids, list) and all(isinstance(li, list) and all(isinstance(li_, PeptideIdentification) for li_ in li) for li in ids), 'arg ids wrong type'
         assert isinstance(trafos, list) and all(isinstance(li, TransformationDescription) for li in trafos), 'arg trafos wrong type'
         cdef libcpp_vector[libcpp_vector[_PeptideIdentification]] * v0 = new libcpp_vector[libcpp_vector[_PeptideIdentification]]()
@@ -17,7 +17,7 @@
         cdef TransformationDescription item1
         for item1 in trafos:
             v1.push_back(deref(item1.inst.get()))
-        self.inst.get().alignPeptideIdentifications(deref(v0), deref(v1))
+        self.inst.get().align(deref(v0), deref(v1), ref_index)
         cdef libcpp_vector[_TransformationDescription].iterator it_trafos = v1.begin()
         replace_0 = []
         while it_trafos != v1.end():

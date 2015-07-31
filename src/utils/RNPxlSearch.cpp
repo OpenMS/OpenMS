@@ -53,6 +53,7 @@
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
@@ -168,6 +169,12 @@ protected:
     registerTOPPSubsection_("peptide", "Peptide Options");
     registerIntOption_("peptide:min_size", "<num>", 6, "Minimum size a peptide must have after digestion to be considered in the search.", false, true);
     registerIntOption_("peptide:missed_cleavages", "<num>", 1, "Number of missed cleavages.", false, false);
+
+    StringList all_enzymes;
+    EnzymesDB::getInstance()->getAllNames(all_enzymes);
+    registerStringOption_("peptide:enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false);
+    setValidStrings_("peptide:enzyme", all_enzymes);
+
 
     registerTOPPSubsection_("report", "Reporting Options");
     registerIntOption_("report:top_hits", "<num>", 1, "Maximum number of top scoring hits per spectrum that are reported.", false, true);
@@ -1420,7 +1427,7 @@ private:
 
     const Size missed_cleavages = getIntOption_("peptide:missed_cleavages");
     EnzymaticDigestion digestor;
-    digestor.setEnzyme(EnzymaticDigestion::ENZYME_TRYPSIN);
+    digestor.setEnzyme(getStringOption_("peptide:enzyme"));
     digestor.setMissedCleavages(missed_cleavages);
 
     progresslogger.startProgress(0, (Size)(fasta_db.end() - fasta_db.begin()), "Scoring peptide models against spectra...");
