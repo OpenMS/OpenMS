@@ -705,6 +705,7 @@ public:
       std::vector<SourceFile> sfs(this->getSourceFiles());
       for (std::vector<SourceFile>::const_iterator it = sfs.begin(); it != sfs.end(); ++it)
       {
+        // assemble a single location string from the URI (path to file) and file name
         String ms_run_location = it->getPathToFile() + "/" + it->getNameOfFile();
         if (!ms_run_location.empty())
         {
