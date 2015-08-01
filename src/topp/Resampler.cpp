@@ -138,7 +138,6 @@ protected:
     if (!align_sampling)
     {
       LinearResampler lin_resampler;
-      Param resampler_param;
       lin_resampler.setParameters(resampler_param);
 
       // resample every scan
