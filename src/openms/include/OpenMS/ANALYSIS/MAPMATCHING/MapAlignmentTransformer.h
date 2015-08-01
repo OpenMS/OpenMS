@@ -40,12 +40,12 @@
 #include <OpenMS/config.h>
 
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
 
 namespace OpenMS
 {
   class TransformationDescription;
   class ConsensusMap;
+  class FeatureMap;
   class PeptideIdentification;
   class ConsensusFeature;
   class MetaInfoInterface;
