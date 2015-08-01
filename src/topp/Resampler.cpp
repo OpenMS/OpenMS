@@ -154,8 +154,8 @@ protected:
 
       bool start_pos_set = false;
       bool end_pos_set = false;
-      double start_pos;
-      double end_pos;
+      double start_pos = 0.0;
+      double end_pos = 0.0;
       // get max / min positions across whole map
       for (Size i = 0; i < exp.size(); ++i)
       {
@@ -171,13 +171,16 @@ protected:
         }
       }
 
-      // start with even position
-      start_pos = std::floor(start_pos);
-
-      // resample every scan
-      for (Size i = 0; i < exp.size(); ++i)
+      if (start_pos_set)
       {
-        lin_resampler.raster_align(exp[i], start_pos, end_pos);
+        // start with even position
+        start_pos = std::floor(start_pos);
+
+        // resample every scan
+        for (Size i = 0; i < exp.size(); ++i)
+        {
+          lin_resampler.raster_align(exp[i], start_pos, end_pos);
+        }
       }
     }
 
