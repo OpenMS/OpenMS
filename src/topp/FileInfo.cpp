@@ -417,17 +417,24 @@ protected:
       {
         ++num_consfeat_of_size[cmit->size()];
       }
-      Size field_width = num_consfeat_of_size.rbegin()->first / 10 + 1;
-      os << "\n" << "Number of consensus features:" << "\n";
-      for (map<Size, UInt>::reverse_iterator i = num_consfeat_of_size.rbegin(); i != num_consfeat_of_size.rend(); ++i)
+      if (num_consfeat_of_size.empty() )
       {
-        os << "  of size " << setw(field_width) << i->first << ": " << i->second << "\n";
+        os << "\n" << "Number of consensus features: 0" << "\n";
+        os << "No consensus features found, map is empty!" << "\n\n";
       }
-      os << "  total:    " << string(field_width, ' ') << cons.size() << "\n" << "\n";
+      else
+      {
+        Size field_width = num_consfeat_of_size.rbegin()->first / 10 + 1;
+        os << "\n" << "Number of consensus features:" << "\n";
+        for (map<Size, UInt>::reverse_iterator i = num_consfeat_of_size.rbegin(); i != num_consfeat_of_size.rend(); ++i)
+        {
+          os << "  of size " << setw(field_width) << i->first << ": " << i->second << "\n";
+        }
+        os << "  total:    " << string(field_width, ' ') << cons.size() << "\n" << "\n";
 
-      writeRangesHumanReadable_(cons, os);
-      writeRangesMachineReadable_(cons, os_tsv);
-
+        writeRangesHumanReadable_(cons, os);
+        writeRangesMachineReadable_(cons, os_tsv);
+      }
 
       // file descriptions
       const ConsensusMap::FileDescriptions& descs = cons.getFileDescriptions();
