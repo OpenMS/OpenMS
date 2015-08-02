@@ -521,6 +521,7 @@ add_test("TOPP_FileInfo_11" ${TOPP_BIN_PATH}/FileInfo -in ${DATA_DIR_TOPP}/FileI
 set_tests_properties("TOPP_FileInfo_11" PROPERTIES WILL_FAIL 1) ## the mzML has no index
 add_test("TOPP_FileInfo_12" ${TOPP_BIN_PATH}/FileInfo -in ${DATA_DIR_TOPP}/FileInfo_12_input.mzML -i  -no_progress)
 set_tests_properties("TOPP_FileInfo_12" PROPERTIES WILL_FAIL 0) ## this mzML has an index, should succeed
+add_test("TOPP_FileInfo_13" ${TOPP_BIN_PATH}/FileInfo -in ${DATA_DIR_TOPP}/FileInfo_13_input.consensusXML -no_progress) # empty file should not crash
 
 #------------------------------------------------------------------------------
 # FileMerger tests
