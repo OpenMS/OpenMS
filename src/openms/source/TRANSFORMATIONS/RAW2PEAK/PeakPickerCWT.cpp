@@ -225,13 +225,13 @@ namespace OpenMS
     const ContinuousWaveletTransform & wt,
     PeakArea_ & area,
     const Int distance_from_scan_border,
-    const double peak_bound_,
+    const double fxn_param_peak_bound,
     const double peak_bound_cwt,
     const Int direction) const
   {
     // ATTENTION! It is assumed that the resolution==1 (no resolution higher than 1).
     // Comment: Who cares ??
-    const double noise_level = peak_bound_;
+    const double noise_level = fxn_param_peak_bound;
     const double noise_level_cwt = peak_bound_cwt;
 
     const Int zeros_left_index  = wt.getLeftPaddingIndex();
@@ -1403,15 +1403,15 @@ namespace OpenMS
       }
 
       //reserve space in the output container
-      Size number_of_peaks = peak_shapes.size() - peaks_to_skip.size();
-      output.reserve(number_of_peaks);
-      output.getFloatDataArrays()[0].reserve(number_of_peaks);
-      output.getFloatDataArrays()[1].reserve(number_of_peaks);
-      output.getFloatDataArrays()[2].reserve(number_of_peaks);
-      output.getFloatDataArrays()[3].reserve(number_of_peaks);
-      output.getFloatDataArrays()[4].reserve(number_of_peaks);
-      output.getFloatDataArrays()[5].reserve(number_of_peaks);
-      output.getFloatDataArrays()[6].reserve(number_of_peaks);
+      Size npeaks = peak_shapes.size() - peaks_to_skip.size();
+      output.reserve(npeaks);
+      output.getFloatDataArrays()[0].reserve(npeaks);
+      output.getFloatDataArrays()[1].reserve(npeaks);
+      output.getFloatDataArrays()[2].reserve(npeaks);
+      output.getFloatDataArrays()[3].reserve(npeaks);
+      output.getFloatDataArrays()[4].reserve(npeaks);
+      output.getFloatDataArrays()[5].reserve(npeaks);
+      output.getFloatDataArrays()[6].reserve(npeaks);
 
       // write the picked peaks to the output container
       for (Size i = 0; i < peak_shapes.size(); ++i)
@@ -1477,9 +1477,9 @@ namespace OpenMS
     sort(index_tic_vec.begin(), index_tic_vec.end(), PairComparatorSecondElement<std::pair<Size, double> >());
     
     std::vector<double> best_FWHMs;
-    for (Size i = 0; i < 3 && i < index_tic_vec.size(); ++i)
+    for (Size vec_it = 0; vec_it < 3 && vec_it < index_tic_vec.size(); ++vec_it)
     {
-      std::pair<Size, double> tic = index_tic_vec[i];
+      std::pair<Size, double> tic = index_tic_vec[vec_it];
       // skip empty spectra
       if (tic.second == 0) continue;
 
