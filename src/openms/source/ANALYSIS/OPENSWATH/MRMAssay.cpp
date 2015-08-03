@@ -185,9 +185,9 @@ namespace OpenMS
     OpenMS::MRMIonSeries mrmis;
 
     size_t j = 0;
-    for (size_t i = 0; i < exp.getTransitions().size(); ++i)
+    for (Size tr_it = 0; tr_it < exp.getTransitions().size(); ++tr_it)
     {
-      ReactionMonitoringTransition tr = exp.getTransitions()[i];
+      ReactionMonitoringTransition tr = exp.getTransitions()[tr_it];
 
       TargetedExperiment::Peptide target_peptide = exp.getPeptideByRef(tr.getPeptideRef());
       OpenMS::AASequence target_peptide_sequence = TargetedExperimentHelper::getAASequence(target_peptide);
@@ -217,15 +217,15 @@ namespace OpenMS
           ResidueModification rmod = mod_db->getTerminalModification(aa_it->getCTerminalModification(), ResidueModification::C_TERM);
           addModification_(mods, aa_it->size(), rmod, aa_it->getCTerminalModification());
         }
-        for (Size i = 0; i != aa_it->size(); ++i)
+        for (Size j = 0; j != aa_it->size(); ++j)
         {
-          if (aa_it->isModified(i))
+          if (aa_it->isModified(j))
           {
             // search the residue in the modification database (if the sequence is valid, we should find it)
             TargetedExperiment::Peptide::Modification mod;
-            ResidueModification rmod = mod_db->getModification(aa_it->getResidue(i).getOneLetterCode(),
-                                                               aa_it->getResidue(i).getModification(), ResidueModification::ANYWHERE);
-            addModification_(mods, i, rmod, aa_it->getResidue(i).getModification());
+            ResidueModification rmod = mod_db->getModification(aa_it->getResidue(j).getOneLetterCode(),
+                                                               aa_it->getResidue(j).getModification(), ResidueModification::ANYWHERE);
+            addModification_(mods, j, rmod, aa_it->getResidue(j).getModification());
           }
         }
 
