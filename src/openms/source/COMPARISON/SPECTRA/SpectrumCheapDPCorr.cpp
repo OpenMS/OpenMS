@@ -108,7 +108,7 @@ namespace OpenMS
   {
     double var = (double)param_.getValue("variation");
     double score(0);
-    bool keeppeaks_ = (int)param_.getValue("keeppeaks");
+    keeppeaks_ = (int)param_.getValue("keeppeaks");
 
     lastconsensus_ = PeakSpectrum();
     Precursor p1, p2;
