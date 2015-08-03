@@ -1004,44 +1004,75 @@ namespace OpenMS
         error(LOAD, String("Cannot find modification '") + String(modification_mass) + "' of residue " + String(origin) + " at position " + String(modification_position) + " in '" + current_sequence_ + "'");
       }
     }
-    else if (element == "aminoacid_modification") // parent: "search_summary"
+    else if (element == "aminoacid_modification" || element == "terminal_modification") // parent: "search_summary"
     {
       AminoAcidModification aa_mod;
       optionalAttributeAsString_(aa_mod.description, attributes, "description");
       aa_mod.massdiff = attributeAsString_(attributes, "massdiff");
-      aa_mod.aminoacid = attributeAsString_(attributes, "aminoacid");
       aa_mod.mass = attributeAsDouble_(attributes, "mass");
       String is_variable = attributeAsString_(attributes, "variable");
-      if (is_variable == "Y")
+      if (element == "aminoacid_modification")
       {
-        if (aa_mod.description != "")
+        aa_mod.aminoacid = attributeAsString_(attributes, "aminoacid");
+      }
+      else
+      {
+        optionalAttributeAsString_(aa_mod.aminoacid, attributes, "aminoacid");
+        aa_mod.terminus = attributeAsString_(attributes, "terminus");
+        // somehow very small fixed modification (electron mass?) gets annotated by X!Tandem. Don't add them as they interfere with other modifications.
+        if (fabs(aa_mod.massdiff.toDouble()) < 0.0005)
         {
-          params_.variable_modifications.push_back(aa_mod.description); // TODO
+          return;
         }
-        else
+      }
+      String desc = "";
+      // check if the modification is uniquely defined:
+      if (aa_mod.description != "")
+      {
+        try
         {
-          String desc = aa_mod.aminoacid;
-          if (aa_mod.massdiff.toDouble() >= 0)
+          desc = ModificationsDB::getInstance()->getModification(aa_mod.description).getName();
+          if (is_variable == "Y")
           {
-            desc += "+" + String(aa_mod.massdiff);
+            variable_modifications_.push_back(aa_mod);
+            params_.variable_modifications.push_back(desc);
           }
           else
           {
-            desc += String(aa_mod.massdiff);
+            fixed_modifications_.push_back(aa_mod);
+            params_.fixed_modifications.push_back(desc);
           }
-          params_.variable_modifications.push_back(desc);
+        }
+        catch (Exception::ElementNotFound)
+        {
+          error(LOAD, "Modification '" + String(aa_mod.description) + "' is not uniquely defined by the given data. Trying by modification mass.");
         }
       }
       else
       {
-        fixed_modifications_.push_back(aa_mod);
-        if (aa_mod.description != "")
+        error(LOAD, "No modification description given. Trying to define by modification mass.");
+      }
+      if (desc == "")
+      {
+        vector<String> mods;
+        if (aa_mod.terminus != "")
         {
-          params_.fixed_modifications.push_back(aa_mod.description); // TODO
+          ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(
+                        mods, aa_mod.massdiff.toDouble(), 0.001, ResidueModification::ANYWHERE);
+        }
+        else if (aa_mod.aminoacid != "")
+        {
+          ModificationsDB::getInstance()->getModificationsByDiffMonoMass(
+                      mods, aa_mod.aminoacid, aa_mod.massdiff.toDouble(), 0.001);
         }
         else
         {
-          String desc = aa_mod.aminoacid;
+          ModificationsDB::getInstance()->getModificationsByDiffMonoMass(
+                      mods, aa_mod.massdiff.toDouble(), 0.001);
+        }
+        if (mods.size() < 1)
+        {
+          desc = aa_mod.aminoacid;
           if (aa_mod.massdiff.toDouble() >= 0)
           {
             desc += "+" + String(aa_mod.massdiff);
@@ -1050,94 +1081,33 @@ namespace OpenMS
           {
             desc += String(aa_mod.massdiff);
           }
-          params_.fixed_modifications.push_back(desc);
+          //Modification unknown, but trying to continue as we want to be able to read the rest despite of the modifications but warning this will fail downstream
+          error(LOAD, "Modification '" + String(aa_mod.mass) + "/delta" + String(aa_mod.massdiff) + "' is unknown. Resuming with '" + desc +  "' which will probably fail using the data downstream.");
         }
-      }
-      // check if the modification is uniquely defined:
-      vector<String> mods;
-      ModificationsDB::getInstance()->getModificationsByDiffMonoMass(
-        mods, aa_mod.aminoacid, aa_mod.massdiff.toDouble(), 0.001);
-      if (mods.size() > 1)
-      {
-        String mod_str = mods[0];
-        for (vector<String>::const_iterator mit = ++mods.begin(); mit != mods.end(); ++mit)
+        else if (mods.size() > 1)
         {
-          mod_str += ", " + *mit;
+          String mod_str = mods[0];
+          desc = mods[0];
+          for (vector<String>::const_iterator mit = ++mods.begin(); mit != mods.end(); ++mit)
+          {
+            mod_str += ", " + *mit;
+          }
+          error(LOAD, "Modification '" + String(aa_mod.mass) + "' is not uniquely defined by the given data. Using '" + mods[0] +  "' to represent any of '" + mod_str + "'.");
         }
-        error(LOAD, "Modification '" + String(aa_mod.mass) + "' is not uniquely defined by the given data. Using '" + mods[0] +  "' to represent any of '" + mod_str + "'.");
+        else
+        {
+          desc = mods[0];
+        }
       }
-    }
-    else if (element == "terminal_modification") // parent: "search_summary"
-    {
-      // <terminal_modification terminus="n" massdiff="+108.05" mass="109.06" variable="N" protein_terminus="" description="dNIC (N-term)"/>
-      AminoAcidModification aa_mod;
-      optionalAttributeAsString_(aa_mod.description, attributes, "description");
-      aa_mod.massdiff = attributeAsString_(attributes, "massdiff");
-
-      // somehow very small fixed modification (electron mass?) gets annotated by X!Tandem. Don't add them as they interfere with other modifications.
-      if (fabs(aa_mod.massdiff.toDouble()) < 0.0005)
-      {
-        return;
-      }
-      optionalAttributeAsString_(aa_mod.aminoacid, attributes, "aminoacid");
-      aa_mod.mass = attributeAsDouble_(attributes, "mass");
-      aa_mod.terminus = attributeAsString_(attributes, "terminus");
-      String is_variable = attributeAsString_(attributes, "variable");
-
       if (is_variable == "Y")
       {
         variable_modifications_.push_back(aa_mod);
-        if (aa_mod.description != "")
-        {
-          params_.variable_modifications.push_back(aa_mod.description); // TODO
-        }
-        else
-        {
-          String desc = aa_mod.aminoacid;
-          if (aa_mod.massdiff.toDouble() > 0)
-          {
-            desc += "+" + String(aa_mod.massdiff);
-          }
-          else
-          {
-            desc += String(aa_mod.massdiff);
-          }
-          params_.variable_modifications.push_back(desc);
-        }
+        params_.variable_modifications.push_back(desc);
       }
       else
       {
         fixed_modifications_.push_back(aa_mod);
-        if (aa_mod.description != "")
-        {
-          params_.fixed_modifications.push_back(aa_mod.description); // TODO
-        }
-        else
-        {
-          String desc = aa_mod.aminoacid;
-          if (aa_mod.massdiff.toDouble() > 0)
-          {
-            desc += "+" + String(aa_mod.massdiff);
-          }
-          else
-          {
-            desc += String(aa_mod.massdiff);
-          }
-          params_.fixed_modifications.push_back(desc);
-        }
-      }
-      // check if the modification is uniquely defined:
-      vector<String> mods;
-      ModificationsDB::getInstance()->getModificationsByDiffMonoMass(
-        mods, aa_mod.aminoacid, aa_mod.massdiff.toDouble(), 0.001);
-      if (mods.size() > 1)
-      {
-        String mod_str = mods[0];
-        for (vector<String>::const_iterator mit = ++mods.begin(); mit != mods.end(); ++mit)
-        {
-          mod_str += ", " + *mit;
-        }
-        error(LOAD, "Modification '" + String(aa_mod.mass) + "' is not uniquely defined by the given data. Using '" + mods[0] +  "' to represent any of '" + mod_str + "'.");
+        params_.fixed_modifications.push_back(desc);
       }
     }
     else if (element == "search_summary") // parent: "msms_run_summary"
