@@ -587,6 +587,7 @@ namespace OpenMS
               }
               else if (!swn.second.empty())
               {
+                // TODO: why iterate here if we break in either case ? 
                 for (map<String, DataValue>::const_iterator up = swn.second.begin(); up != swn.second.end(); ++up)
                 {
                   if (up->first.hasSubstring("name"))
