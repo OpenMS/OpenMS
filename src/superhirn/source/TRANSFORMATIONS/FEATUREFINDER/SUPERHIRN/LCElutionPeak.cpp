@@ -422,7 +422,7 @@ namespace OpenMS
     }
 
     // set the apex ms peak:
-    MSPeak * APEX = find_true_peak((float) apexScan);
+    MSPeak * APEX = find_true_peak((float) apexScan); // TODO : this may be a bug, maybe this should not declare a new APEX
     if (!APEX->getExtraPeakInfo().empty())
     {
       setElutionPeakExtraInfo(APEX->getExtraPeakInfo());
