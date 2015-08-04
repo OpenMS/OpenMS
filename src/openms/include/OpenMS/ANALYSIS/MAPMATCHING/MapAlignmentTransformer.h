@@ -41,6 +41,7 @@
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
 
 namespace OpenMS
 {
@@ -48,7 +49,6 @@ namespace OpenMS
   class ConsensusMap;
   class PeptideIdentification;
   class ConsensusFeature;
-  class MetaInfoInterface;
 
   /**
    * @brief This class collects functions for applying retention time transformations to data structures.
