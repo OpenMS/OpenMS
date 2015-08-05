@@ -27,21 +27,21 @@ fi
 _build_name=${_build_name}"-"${CXX}
 
 # add style to build name if requested
-if [ "${ENABLE_STYLE_TESTING}" = "On" ]; then
+if [ "${ENABLE_STYLE_TESTING}" = "ON" ]; then
   _build_name=${_build_name}"-codingStyle"
 fi
 
 # add class-testing to build name if requested
-if [ "${ENABLE_CLASS_TESTING}" = "On" ]; then
+if [ "${ENABLE_CLASS_TESTING}" = "ON" ]; then
   _build_name=${_build_name}"-testClass"
 fi
 # add TOPP-testing to build name if requested
-if [ "${ENABLE_TOPP_TESTING}" = "On" ]; then
+if [ "${ENABLE_TOPP_TESTING}" = "ON" ]; then
   _build_name=${_build_name}"-testTOPP"
 fi
 
 # add GUI to build name if requested
-if [ "${WITH_GUI}" = "Off" ]; then
+if [ "${WITH_GUI}" = "OFF" ]; then
   _build_name=${_build_name}"-noGUI"
 fi
 
@@ -61,7 +61,7 @@ export PATH=${SOURCE_DIRECTORY}/_thirdparty/MSGFPlus:$PATH
 export PATH=${SOURCE_DIRECTORY}/_thirdparty/Fido:$PATH
 
 # if we perform style tests, add cppcheck to path
-if [ $ENABLE_STYLE_TESTING == "On" ]; then
+if [ $ENABLE_STYLE_TESTING == "ON" ]; then
   export PATH=${SOURCE_DIRECTORY}/cppcheck:$PATH
 fi
 
