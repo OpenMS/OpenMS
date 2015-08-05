@@ -8,12 +8,12 @@ matrix:
   include:
     - env: ENABLE_STYLE_TESTING=ON WITH_GUI=ON
       compiler: gcc
-## split class vs. TOPP tests for GCC (otherwise it will run into time limit of 50min)      
-    - env: ENABLE_STYLE_TESTING=OFF ENABLE_TOPP_TESTING=ON  ENABLE_CLASS_TESTING=OFF WITH_GUI=ON
+## split class vs. TOPP tests for GCC (otherwise it will run into time limit of 50min)
+    - env: ENABLE_STYLE_TESTING=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=OFF WITH_GUI=ON
       compiler: gcc
     - env: ENABLE_STYLE_TESTING=OFF ENABLE_TOPP_TESTING=OFF ENABLE_CLASS_TESTING=ON  WITH_GUI=ON
       compiler: gcc
-## clang can run both class+TOPP tests since its faster      
+## clang can run both class+TOPP tests since it's faster
     - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=OFF
       compiler: clang
     - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=ON
