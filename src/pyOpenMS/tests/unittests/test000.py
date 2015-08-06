@@ -1779,8 +1779,8 @@ def testEnzymaticDigestion():
 @report
 def testEnzymaticDigestion():
     ff = pyopenms.EnzymaticDigestionLogModel()
-    assert pyopenms.EnzymaticDigestion().getLogThreshold is not None
-    assert pyopenms.EnzymaticDigestion().setLogThreshold is not None
+    assert pyopenms.EnzymaticDigestionLogModel().getLogThreshold is not None
+    assert pyopenms.EnzymaticDigestionLogModel().setLogThreshold is not None
     assert pyopenms.EnzymaticDigestionLogModel().digest is not None
     assert pyopenms.EnzymaticDigestionLogModel().peptideCount is not None
     ff.setLogThreshold(0.25)
