@@ -27,25 +27,25 @@ fi
 _build_name=${_build_name}"-"${CXX}
 
 # add style to build name if requested
-if [ "${ENABLE_STYLE_TESTING}" = "On" ]; then
+if [ "${ENABLE_STYLE_TESTING}" = "ON" ]; then
   _build_name=${_build_name}"-codingStyle"
 fi
 
 # add class-testing to build name if requested
-if [ "${ENABLE_CLASS_TESTING}" = "On" ]; then
+if [ "${ENABLE_CLASS_TESTING}" = "ON" ]; then
   _build_name=${_build_name}"-testClass"
 fi
 # add TOPP-testing to build name if requested
-if [ "${ENABLE_TOPP_TESTING}" = "On" ]; then
+if [ "${ENABLE_TOPP_TESTING}" = "ON" ]; then
   _build_name=${_build_name}"-testTOPP"
 fi
 
 # add GUI to build name if requested
-if [ "${WITH_GUI}" = "Off" ]; then
+if [ "${WITH_GUI}" = "OFF" ]; then
   _build_name=${_build_name}"-noGUI"
 fi
 
-# we will use this in the cmake script
+# we will use this in the CMake script
 export BUILD_NAME=${_build_name}
 
 # we need an X-server for building the documentation and some tests
@@ -53,7 +53,7 @@ export BUILD_NAME=${_build_name}
 export DISPLAY=:99.0
 sh -e /etc/init.d/xvfb start
 
-# add thirdparty binaries (e.g. search engines) to PATH
+# add third-party binaries (e.g. search engines) to PATH
 export PATH=${SOURCE_DIRECTORY}/_thirdparty/MyriMatch:$PATH
 export PATH=${SOURCE_DIRECTORY}/_thirdparty/OMSSA:$PATH
 export PATH=${SOURCE_DIRECTORY}/_thirdparty/XTandem:$PATH
@@ -61,7 +61,7 @@ export PATH=${SOURCE_DIRECTORY}/_thirdparty/MSGFPlus:$PATH
 export PATH=${SOURCE_DIRECTORY}/_thirdparty/Fido:$PATH
 
 # if we perform style tests, add cppcheck to path
-if [ $ENABLE_STYLE_TESTING == "On" ]; then
+if [ $ENABLE_STYLE_TESTING == "ON" ]; then
   export PATH=${SOURCE_DIRECTORY}/cppcheck:$PATH
 fi
 
@@ -71,7 +71,7 @@ ctest -V -S tools/travis/lnx-cibuild.cmake
 echo "Please check the build results at: http://cdash.openms.de/index.php?project=OpenMS&date="$(date +"%y-%m-%d")"#Continuous"
 echo "This build has the name: ${BUILD_NAME}"
 
-# we indicate build failures if ctest experienced any errors
+# we indicate build failures if CTest experienced any errors
 if [ -f ${SOURCE_DIRECTORY}/failed ]; then
   echo "Configure/Build failed"
   exit -1
@@ -84,5 +84,5 @@ if [ "$FAILED_TEST" -gt "0" ]; then
   exit -1
 fi
 
-# it seems like everything worked
+# seems like everything worked
 exit 0
