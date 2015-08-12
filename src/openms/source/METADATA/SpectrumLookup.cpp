@@ -40,14 +40,24 @@ using namespace std;
 
 namespace OpenMS
 {
-  SpectrumLookup::SpectrumLookup(vector<MSSpectrum<> >& spectra,
-                                 const String& id_regexp_match,
-                                 const String& id_regexp_replace):
-    spectra_(spectra)
+  SpectrumLookup::SpectrumLookup(): spectra_(0), n_spectra_(0)
   {
+  }
+
+
+  SpectrumLookup::~SpectrumLookup()
+  {}
+  
+
+  void SpectrumLookup::setSpectra(vector<MSSpectrum<> >& spectra,
+                                  const String& id_regexp_match,
+                                  const String& id_regexp_replace)
+  {
+    spectra_ = &spectra;
+    n_spectra_ = spectra.size();
     if (id_regexp_match.empty())
     {
-      for (Size i = 0; i < spectra.size(); ++i)
+      for (Size i = 0; i < n_spectra_; ++i)
       {
         MSSpectrum<>& spec = spectra[i];
         rts_[spec.getRT()] = i;
@@ -57,7 +67,7 @@ namespace OpenMS
     else
     {
       boost::regex re(id_regexp_match);
-      for (Size i = 0; i < spectra.size(); ++i)
+      for (Size i = 0; i < n_spectra_; ++i)
       {
         MSSpectrum<>& spec = spectra[i];
         rts_[spec.getRT()] = i;
@@ -69,10 +79,6 @@ namespace OpenMS
     }
   }
 
-
-  SpectrumLookup::~SpectrumLookup()
-  {}
-  
   
   MSSpectrum<>& SpectrumLookup::findByRT(double rt, double tolerance) const
   {
@@ -91,9 +97,9 @@ namespace OpenMS
     }
     if ((lower_diff < upper_diff) && (lower_diff <= tolerance))
     {
-      return spectra_[lower->second];
+      return (*spectra_)[lower->second];
     }
-    if (upper_diff <= tolerance) return spectra_[upper->second];
+    if (upper_diff <= tolerance) return (*spectra_)[upper->second];
 
     String element = "spectrum with RT " + String(rt);
     throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__,
@@ -110,24 +116,22 @@ namespace OpenMS
       throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__,
                                        element);
     }
-    return spectra_[pos->second];
+    return (*spectra_)[pos->second];
   }
 
 
   MSSpectrum<>& SpectrumLookup::findByIndex(Size index, bool count_from_one)
     const
   {
-    cout << "count from one? " << count_from_one << endl;
     Size adjusted_index = index;
     if (count_from_one) --adjusted_index; // overflow (index = 0) handled below
-    if (adjusted_index >= spectra_.size())
+    if (adjusted_index >= n_spectra_)
     {
       String element = "spectrum with index " + String(index);
       throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__,
                                        element);
     }
-    cout << "adjusted index: " << adjusted_index << endl;
-    return spectra_[adjusted_index];
+    return (*spectra_)[adjusted_index];
   }
 
   
@@ -203,10 +207,9 @@ namespace OpenMS
     String msg = "Unexpected format of spectrum reference '" + spectrum_ref +
       "'. The regular expression '" + regexp + "' matched, but no usable "
       "information could be extracted.";
-    throw Exception::MissingInformation(__FILE__, __LINE__,
-                                        __PRETTY_FUNCTION__, msg);
+    throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+                                        msg);
   }
-
 
 
   MSSpectrum<>& SpectrumLookup::findByReference(const String& spectrum_ref)

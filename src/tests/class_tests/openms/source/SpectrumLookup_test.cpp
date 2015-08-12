@@ -49,6 +49,19 @@ START_TEST(SpectrumLookup, "$Id$")
 SpectrumLookup* ptr = 0;
 SpectrumLookup* null_ptr = 0;
 
+START_SECTION((SpectrumLookup()))
+{
+	ptr = new SpectrumLookup();
+	TEST_NOT_EQUAL(ptr, null_ptr)
+}
+END_SECTION
+
+START_SECTION((~SpectrumLookup()))
+{
+	delete ptr;
+}
+END_SECTION
+
 vector<MSSpectrum<> > spectra;
 MSSpectrum<> spectrum;
 spectrum.setNativeID("spectrum=0");
@@ -61,20 +74,15 @@ spectrum.setNativeID("spectrum=2");
 spectrum.setRT(3.0);
 spectra.push_back(spectrum);
 
-START_SECTION((SpectrumLookup(MSSpectrum<>&, const String&, const String&)))
+SpectrumLookup lookup;
+
+START_SECTION((void setSpectra(vector<MSSpectrum<> >& spectra, const String& id_regexp_match, const String& id_regexp_replace)))
 {
-	ptr = new SpectrumLookup(spectra);
-	TEST_NOT_EQUAL(ptr, null_ptr)
+  lookup.setSpectra(spectra);
+  NOT_TESTABLE; // tested with other methods below
 }
 END_SECTION
 
-START_SECTION((~SpectrumLookup()))
-{
-	delete ptr;
-}
-END_SECTION
-
-SpectrumLookup lookup(spectra);
 
 START_SECTION((MSSpectrum<>& findByRT(double, double) const))
 {

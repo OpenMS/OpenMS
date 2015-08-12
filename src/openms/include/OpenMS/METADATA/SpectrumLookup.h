@@ -77,12 +77,15 @@ namespace OpenMS
     };
 
     /// Constructor
-    SpectrumLookup(std::vector<MSSpectrum<> >& spectra,
-                   const String& id_regexp_match = "",
-                   const String& id_regexp_replace = "");
+    SpectrumLookup();
 
     /// Destructor
     virtual ~SpectrumLookup();
+
+    /// Set the spectra that can be looked up
+    void setSpectra(std::vector<MSSpectrum<> >& spectra,
+                    const String& id_regexp_match = "",
+                    const String& id_regexp_replace = "");
 
     /// Look up spectrum by retention time (RT)
     MSSpectrum<>& findByRT(double rt, double tolerance = 0.01) const;
@@ -112,7 +115,9 @@ namespace OpenMS
 
   protected:
 
-    std::vector<MSSpectrum<> >& spectra_; ///< Reference to spectra
+    std::vector<MSSpectrum<> >* spectra_; ///< Pointer to spectra
+
+    Size n_spectra_; ///< Number of spectra
 
     /// Possible formats of spectrum references
     std::vector<ReferenceFormat> reference_formats_;
