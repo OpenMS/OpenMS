@@ -36,9 +36,10 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/CsvFile.h>
+#include <OpenMS/METADATA/SpectrumLookup.h>
 
 #include <boost/math/special_functions/fpclassify.hpp> // for "isnan"
-
+#include <boost/regex.hpp>
 
 namespace OpenMS
 {
@@ -51,16 +52,6 @@ namespace OpenMS
 
   PercolatorOutfile::PercolatorOutfile()
   {
-    PSMInfoExtractor extractor;
-    // MS-GF+ Percolator (mzid?) format:
-    extractor.re.assign("_SII_(?<SCAN>\\d+)_\\d+_\\d+_(?<CHARGE>\\d+)_\\d+");
-    extractor.count_from_zero = false;
-    extractors_.push_back(extractor);
-    // Mascot Percolator format (RT may be missing, e.g. for searches via
-    // ProteomeDiscoverer):
-    extractor.re.assign("spectrum:[^;]+[(scans:)(scan=)(spectrum=)](?<SCAN>\\d+)[^;]+;rt:(?<RT>\\d*(\\.\\d+)?);mz:(?<MZ>\\d+(\\.\\d+)?);charge:(?<CHARGE>-?\\d+)");
-    extractor.count_from_zero = true;
-    extractors_.push_back(extractor);
   }
 
 
@@ -88,61 +79,6 @@ namespace OpenMS
   }
   
 
-  bool PercolatorOutfile::getPSMInfo_(const String& PSM_ID, 
-                                      const vector<struct PSMInfoExtractor>& 
-                                      extractors, Int& scan_number, Int& charge,
-                                      double& rt, double& mz)
-  {
-    scan_number = -1;
-    charge = 0;
-    rt = numeric_limits<double>::quiet_NaN();
-    mz = 0.0;
-
-    vector<struct PSMInfoExtractor>::const_iterator ex_it = extractors.begin();
-    try
-    {
-      for (; ex_it != extractors.end(); ++ex_it)
-      {
-        boost::smatch match;
-        bool found = boost::regex_search(PSM_ID, match, ex_it->re);
-        if (found)
-        {
-          if (match["RT"].matched)
-          {
-            String rt_val = match["RT"].str();
-            if (!rt_val.empty()) rt = rt_val.toDouble();
-          }
-          if (match["MZ"].matched)
-          {
-            String mz_val = match["MZ"].str();
-            if (!mz_val.empty()) mz = mz_val.toDouble();
-          }
-          if (match["CHARGE"].matched)
-          {
-            String charge_val = match["CHARGE"].str();
-            if (!charge_val.empty()) charge = charge_val.toInt();
-          }
-          if (match["SCAN"].matched)
-          {
-            String scan_val = match["SCAN"].str();
-            if (!scan_val.empty()) scan_number = scan_val.toInt();
-            if (!ex_it->count_from_zero) --scan_number;
-          }
-          return true;
-        }
-      }
-    }
-    catch (Exception::ConversionError&)
-    {
-      String msg = "Error: PSM ID has unexpected format '" + PSM_ID + "'. The "
-        "regular expression '" + ex_it->re.str() + "' matched, but the "
-        "extracted information could not be converted to a number.";
-      LOG_ERROR << msg << endl;
-    }
-    return false;
-  }
-
-
   void PercolatorOutfile::getPeptideSequence_(String peptide, AASequence& seq)
     const
   {
@@ -168,26 +104,6 @@ namespace OpenMS
   }
 
 
-  void PercolatorOutfile::preprocessExperiment_(
-    const MSExperiment<>& experiment, ScanInfoMap& scan_map)
-  {
-    Size index = 0;
-    for (MSExperiment<>::ConstIterator it = experiment.begin(); 
-         it != experiment.end(); ++it, ++index)
-    {
-      if (it->getMSLevel() > 1)
-      {
-        const Precursor& precursor = it->getPrecursors()[0];
-        ScanInfo scan_info;
-        scan_info.charge = precursor.getCharge();
-        scan_info.rt = it->getRT();
-        scan_info.mz = precursor.getMZ();
-        scan_map[index] = scan_info;
-      }
-    }
-  }
-
-
   void PercolatorOutfile::load(const String& filename,
                                ProteinIdentification& proteins, 
                                vector<PeptideIdentification>& peptides,
@@ -196,21 +112,30 @@ namespace OpenMS
                                bool count_from_zero,
                                const MSExperiment<>* experiment_p)
   {
-    vector<struct PSMInfoExtractor> extractors;
-    if (psm_regex.empty()) // use default regular expressions
+    SpectrumLookup spectrum_lookup;
+    SpectrumLookup::MetaDataFlags lookup_flags = 
+      (SpectrumLookup::METADATA_RT | SpectrumLookup::METADATA_MZ |
+       SpectrumLookup::METADATA_CHARGE);
+
+    if (psm_regex.empty())
     {
-      extractors = extractors_;
+      // MS-GF+ Percolator (mzid?) format:
+      spectrum_lookup.addReferenceFormat("_SII_(?<SCAN>\\d+)_\\d+_\\d+_(?<CHARGE>\\d+)_\\d+", true);
+      // Mascot Percolator format (RT may be missing, e.g. for searches via
+      // ProteomeDiscoverer):
+      spectrum_lookup.addReferenceFormat("spectrum:[^;]+[(scans:)(scan=)(spectrum=)](?<SCAN>\\d+)[^;]+;rt:(?<RT>\\d*(\\.\\d+)?);mz:(?<MZ>\\d+(\\.\\d+)?);charge:(?<CHARGE>-?\\d+)");
     }
-    else // use only user-supplied regular expression
+    else
     {
-      struct PSMInfoExtractor extractor;
-      extractor.re.assign(psm_regex);
-      extractor.count_from_zero = count_from_zero;
-      extractors.push_back(extractor);
+      spectrum_lookup.addReferenceFormat(psm_regex, !count_from_zero);
     }
 
-    ScanInfoMap scan_map;
-    if (experiment_p) preprocessExperiment_(*experiment_p, scan_map);
+    if (experiment_p)
+    {
+      vector<MSSpectrum<> >& spectra = 
+        const_cast<vector<MSSpectrum<> >&>(experiment_p->getSpectra());
+      spectrum_lookup.setSpectra(spectra);
+    }
 
     vector<String> items;
     CsvFile source(filename, '\t');
@@ -231,33 +156,24 @@ namespace OpenMS
     for (Size row = 1; row < source.rowCount(); ++row)
     {
       source.getRow(row, items);
-      Int scan_number, charge;
-      double rt, mz;
-      bool success = getPSMInfo_(items[0], extractors, scan_number, charge,
-                                 rt, mz);
 
-      // can we look up additional information in the raw data?
-      if (success && (scan_number >= 0) && !scan_map.empty())
+      SpectrumLookup::SpectrumMetaData meta_data;
+      try
       {
-        ScanInfoMap::const_iterator pos = scan_map.find(Size(scan_number));
-        if (pos == scan_map.end())
-        {
-          String msg = "Error: Could not find spectrum for scan number " + 
-            String(scan_number) + ", extracted from row " + String(row);
-          LOG_ERROR << msg << endl;
-        }
-        else
-        {
-          if (charge == 0) charge = pos->second.charge;
-          if (boost::math::isnan(rt)) rt = pos->second.rt;
-          if (mz == 0.0) mz = pos->second.mz;
-        }
+        spectrum_lookup.getSpectrumMetaDataByReference(items[0], meta_data,
+                                                       lookup_flags);
+      }
+      catch(...)
+      {
+        String msg = "Error: Could not extract data for spectrum reference '" +
+          items[0] + "' from row " + String(row);
+        LOG_ERROR << msg << endl;
       }
       
       PeptideHit hit;
-      if (charge != 0)
+      if (meta_data.charge != 0)
       {
-        hit.setCharge(charge);
+        hit.setCharge(meta_data.charge);
       }
       else
       {
@@ -266,17 +182,17 @@ namespace OpenMS
 
       PeptideIdentification peptide;
       peptide.setIdentifier("id");
-      if (!boost::math::isnan(rt))
+      if (!boost::math::isnan(meta_data.rt))
       {
-        peptide.setRT(rt);
+        peptide.setRT(meta_data.rt);
       }
       else
       {
         ++no_rt;
       }
-      if (mz != 0.0)
+      if (!boost::math::isnan(meta_data.mz))
       {
-        peptide.setMZ(mz);
+        peptide.setMZ(meta_data.mz);
       }
       else
       {

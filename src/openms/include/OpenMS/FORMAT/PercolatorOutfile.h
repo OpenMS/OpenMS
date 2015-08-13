@@ -39,9 +39,6 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
-#include <boost/regex.hpp>
-
-#include <map>
 #include <vector>
 
 namespace OpenMS
@@ -77,41 +74,9 @@ namespace OpenMS
 
   private:
 
-    /// Information about a single fragment spectrum
-    struct ScanInfo
-    {
-      Int charge;
-      double rt, mz;
-    };
-
-    /// Mapping: spectrum index -> fragment spectrum details
-    typedef std::map<Size, struct ScanInfo> ScanInfoMap;
-
-    /// Description of how to extract information from PSM IDs
-    struct PSMInfoExtractor
-    {
-      boost::regex re; // regular expression for meta data extraction
-      bool count_from_zero; // start counting scans at 0 or 1?
-    };
-
-    /// List of data extractors to try by default
-    std::vector<struct PSMInfoExtractor> extractors_;
-
-    /**
-       @brief Extract information from a Percolator PSM ID
-
-       @return Returns whether extraction was successful
-    */
-    bool getPSMInfo_(const String& PSM_ID,
-                     const std::vector<struct PSMInfoExtractor>& extractors,
-                     Int& scan_number, Int& charge, double& rt, double& mz);
-
     /// Converts the peptide string to an 'AASequence' instance
     void getPeptideSequence_(String peptide, AASequence& seq) const;
 
-    /// Extracts information from the raw data
-    void preprocessExperiment_(const MSExperiment<>& experiment,
-                               ScanInfoMap& scan_map);
   };
 
 } // namespace OpenMS
