@@ -39,6 +39,8 @@
 
 #include <boost/regex.hpp>
 
+#include <limits> // for "quiet_NaN"
+
 namespace OpenMS
 {
   /**
@@ -63,7 +65,9 @@ namespace OpenMS
       Int charge;
       String native_ID;
 
-      SpectrumMetaData(): rt(0.0), mz(0.0), charge(0), native_ID("")
+      SpectrumMetaData():
+        rt(std::numeric_limits<double>::quiet_NaN()), 
+        mz(std::numeric_limits<double>::quiet_NaN()), charge(0), native_ID("")
       {
       }
     };

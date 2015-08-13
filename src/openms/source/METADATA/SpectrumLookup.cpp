@@ -34,8 +34,6 @@
 
 #include <OpenMS/METADATA/SpectrumLookup.h>
 
-#include <limits> // for "infinity"
-
 using namespace std;
 
 namespace OpenMS
