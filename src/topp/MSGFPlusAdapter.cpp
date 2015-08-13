@@ -419,7 +419,7 @@ protected:
 
     if (!JavaInfo::canRun("java"))
     {
-      writeLog_("Fatal error: Java not found. Java is needed to run MS-GF+. Make sure that it can be executed by calling 'java', e.g. add the directory containing the Java binary to your PATH variable.");
+      writeLog_("Fatal error: Java not found, or the Java process timed out. Java is needed to run MS-GF+. Make sure that it can be executed by calling 'java', e.g. add the directory containing the Java binary to your PATH variable.");
       return EXTERNAL_PROGRAM_ERROR;
     }
 
