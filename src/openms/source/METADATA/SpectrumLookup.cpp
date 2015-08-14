@@ -34,6 +34,8 @@
 
 #include <OpenMS/METADATA/SpectrumLookup.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
+
 using namespace std;
 
 namespace OpenMS
@@ -45,34 +47,57 @@ namespace OpenMS
 
   SpectrumLookup::~SpectrumLookup()
   {}
+
+
+  bool SpectrumLookup::empty() const
+  {
+    return n_spectra_ == 0;
+  }
   
 
-  void SpectrumLookup::setSpectra(vector<MSSpectrum<> >& spectra,
-                                  const String& id_regexp_match,
-                                  const String& id_regexp_replace)
+  void SpectrumLookup::setSpectra(vector<MSSpectrum<> >& spectra, 
+                                  const String& scan_regexp)
   {
     spectra_ = &spectra;
     n_spectra_ = spectra.size();
-    if (id_regexp_match.empty())
+    rts_.clear();
+    ids_.clear();
+    scans_.clear();
+    boost::regex re;
+    if (!scan_regexp.empty())
     {
-      for (Size i = 0; i < n_spectra_; ++i)
+      if (!scan_regexp.hasSubstring("?<SCAN>"))
       {
-        MSSpectrum<>& spec = spectra[i];
-        rts_[spec.getRT()] = i;
-        ids_[spec.getNativeID()] = i;
+        String msg = "The regular expression for extracting scan numbers from native IDs must contain a named group '?<SCAN>'.";
+        throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                         __PRETTY_FUNCTION__, msg);
       }
+      re.assign(scan_regexp);
     }
-    else
+    for (Size i = 0; i < n_spectra_; ++i)
     {
-      boost::regex re(id_regexp_match);
-      for (Size i = 0; i < n_spectra_; ++i)
+      MSSpectrum<>& spec = spectra[i];
+      String native_id = spec.getNativeID();
+      rts_[spec.getRT()] = i;
+      ids_[native_id] = i;
+      if (!scan_regexp.empty())
       {
-        MSSpectrum<>& spec = spectra[i];
-        rts_[spec.getRT()] = i;
-        String derived_id = boost::regex_replace(spec.getNativeID(), re,
-                                                 id_regexp_replace,
-                                                 boost::format_no_copy);
-        ids_[derived_id] = i;
+        boost::smatch match;
+        bool found = boost::regex_search(native_id, match, re);
+        if (found && match["SCAN"].matched)
+        {
+          String value = match["SCAN"].str();
+          try
+          {
+            Size scan_no = value.toInt();
+            scans_[scan_no] = i;
+            continue;
+          }
+          catch(Exception::ConversionError& e)
+          {
+          }
+        }
+        LOG_WARN << "Warning: Could not extract scan number from spectrum native ID '" + native_id + "' using regular expression '" + scan_regexp + "'. Look-up by scan number may not work properly." << endl;
       }
     }
   }
@@ -132,6 +157,19 @@ namespace OpenMS
     return (*spectra_)[adjusted_index];
   }
 
+
+  MSSpectrum<>& SpectrumLookup::findByScanNumber(Size scan_number) const
+  {
+    map<Size, Size>::const_iterator pos = scans_.find(scan_number);
+    if (pos == scans_.end())
+    {
+      String element = "spectrum with scan number " + String(scan_number);
+      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+                                       element);
+    }
+    return (*spectra_)[pos->second];
+  }
+
   
   void SpectrumLookup::getSpectrumMetaData(const MSSpectrum<>& spectrum,
                                            SpectrumMetaData& metadata,
@@ -166,7 +204,7 @@ namespace OpenMS
     format.re.assign(regexp);
     format.count_from_one = count_from_one;
     format.rt_tolerance = rt_tolerance;
-    reference_formats_.push_back(format);
+    reference_formats.push_back(format);
   }
 
 
@@ -176,13 +214,22 @@ namespace OpenMS
                                                    bool count_from_one,
                                                    double rt_tolerance) const
   {
+    if (match["INDEX"].matched)
+    {
+      String value = match["INDEX"].str();
+      if (!value.empty()) 
+      {
+        Size index = value.toInt();
+        return findByIndex(index, count_from_one);
+      }
+    }
     if (match["SCAN"].matched)
     {
       String value = match["SCAN"].str();
       if (!value.empty()) 
       {
-        Size index = value.toInt();
-        return findByIndex(index, count_from_one);
+        Size scan_number = value.toInt();
+        return findByScanNumber(scan_number);
       }
     }
     if (match["ID"].matched)
@@ -213,8 +260,8 @@ namespace OpenMS
   MSSpectrum<>& SpectrumLookup::findByReference(const String& spectrum_ref)
     const
   {
-    for (vector<ReferenceFormat>::const_iterator it =
-           reference_formats_.begin(); it != reference_formats_.end(); ++it)
+    for (vector<ReferenceFormat>::const_iterator it = reference_formats.begin();
+         it != reference_formats.end(); ++it)
     {
       boost::smatch match;
       bool found = boost::regex_search(spectrum_ref, match, it->re);
@@ -234,8 +281,8 @@ namespace OpenMS
     const String& spectrum_ref, SpectrumMetaData& metadata, MetaDataFlags flags)
     const
   {
-    for (vector<ReferenceFormat>::const_iterator it = 
-           reference_formats_.begin(); it != reference_formats_.end(); ++it)
+    for (vector<ReferenceFormat>::const_iterator it = reference_formats.begin();
+         it != reference_formats.end(); ++it)
     {
       boost::smatch match;
       bool found = boost::regex_search(spectrum_ref, match, it->re);

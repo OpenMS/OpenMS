@@ -76,7 +76,7 @@ spectra.push_back(spectrum);
 
 SpectrumLookup lookup;
 
-START_SECTION((void setSpectra(vector<MSSpectrum<> >& spectra, const String& id_regexp_match, const String& id_regexp_replace)))
+START_SECTION((void setSpectra(vector<MSSpectrum<> >&, const String&)))
 {
   lookup.setSpectra(spectra);
   NOT_TESTABLE; // tested with other methods below
@@ -119,6 +119,16 @@ START_SECTION((MSSpectrum<>& findByIndex(Size, bool) const))
 }
 END_SECTION
 
+START_SECTION((MSSpectrum<>& findByScanNumber(Size) const))
+{
+  MSSpectrum<>& spec = lookup.findByScanNumber(1);
+  TEST_EQUAL(spec.getNativeID(), "spectrum=1");
+  TEST_EQUAL(spec.getRT(), 2.0);
+
+  TEST_EXCEPTION(Exception::ElementNotFound, lookup.findByScanNumber(5));
+}
+END_SECTION
+
 START_SECTION((void getSpectrumMetaData(const MSSpectrum<>&, SpectrumMetaData&, MetaDataFlags) const))
 {
   Precursor prec;
@@ -155,7 +165,7 @@ END_SECTION
 
 START_SECTION((MSSpectrum<>& findByReference(const String&) const))
 {
-  MSSpectrum<>& spec = lookup.findByReference("scan_number=2");
+  MSSpectrum<>& spec = lookup.findByReference("scan_number=1");
   TEST_EQUAL(spec.getRT(), 2.0);
   TEST_EQUAL(spec.getNativeID(), "spectrum=1");
 
@@ -170,7 +180,7 @@ END_SECTION
 START_SECTION((void getSpectrumMetaDataByReference(const String&, SpectrumMetaData&, MetaDataFlags) const))
 {
   SpectrumLookup::SpectrumMetaData meta;
-  lookup.getSpectrumMetaDataByReference("scan_number=2", meta);
+  lookup.getSpectrumMetaDataByReference("scan_number=1", meta);
   TEST_EQUAL(meta.rt, 2.0);
   TEST_EQUAL(meta.native_ID, "spectrum=1");
   // precursor information is empty:
@@ -196,7 +206,7 @@ START_SECTION((void getSpectrumMetaDataByReference(const String&, SpectrumMetaDa
   TEST_EQUAL(meta3.charge, 0);
   TEST_EQUAL(meta3.native_ID, "spectrum=1");
 
-  TEST_EXCEPTION(Exception::ElementNotFound, lookup.getSpectrumMetaDataByReference("rt=5.0,mz=1000.0", meta3);)
+  TEST_EXCEPTION(Exception::ElementNotFound, lookup.getSpectrumMetaDataByReference("rt=5.0,mz=1000.0", meta3));
 }
 END_SECTION
 

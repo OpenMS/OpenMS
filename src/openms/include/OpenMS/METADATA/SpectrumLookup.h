@@ -80,16 +80,26 @@ namespace OpenMS
       double rt_tolerance;
     };
 
+    /// Possible formats of spectrum references
+    std::vector<ReferenceFormat> reference_formats;
+
     /// Constructor
     SpectrumLookup();
 
     /// Destructor
     virtual ~SpectrumLookup();
 
-    /// Set the spectra that can be looked up
+    /// Check if any spectra were set
+    bool empty() const;
+
+    /**
+       @brief Set the spectra that can be looked up
+
+       @param spectra Reference to spectra (must exist for the lifetime of the SpectrumLookup object or until setSpectra() is called again!)
+       @param scan_regexp Regular expression for matching scan numbers in spectrum native IDs (must contain the named group '?<SCAN>')
+    */
     void setSpectra(std::vector<MSSpectrum<> >& spectra,
-                    const String& id_regexp_match = "",
-                    const String& id_regexp_replace = "");
+                    const String& scan_regexp = "=(?<SCAN>\\d+)$");
 
     /// Look up spectrum by retention time (RT)
     MSSpectrum<>& findByRT(double rt, double tolerance = 0.01) const;
@@ -99,6 +109,9 @@ namespace OpenMS
     
     /// Look up spectrum by index
     MSSpectrum<>& findByIndex(Size index, bool count_from_one = false) const;
+
+    // Look up spectrum by scan number (extracted from native ID)
+    MSSpectrum<>& findByScanNumber(Size scan_number) const;
 
     /// Extract meta data from a spectrum
     static void getSpectrumMetaData(const MSSpectrum<>& spectrum,
@@ -123,11 +136,9 @@ namespace OpenMS
 
     Size n_spectra_; ///< Number of spectra
 
-    /// Possible formats of spectrum references
-    std::vector<ReferenceFormat> reference_formats_;
-
     std::map<double, Size> rts_; ///< Mapping: RT -> spectrum index
     std::map<String, Size> ids_; ///< Mapping: native ID -> spectrum index
+    std::map<Size, Size> scans_; ///< Mapping: scan number -> spectrum index
 
     /// Look up spectrum by regular expression match
     MSSpectrum<>& findByRegExpMatch_(
