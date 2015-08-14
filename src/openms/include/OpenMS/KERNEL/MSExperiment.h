@@ -706,9 +706,16 @@ public:
       for (std::vector<SourceFile>::const_iterator it = sfs.begin(); it != sfs.end(); ++it)
       {
         // assemble a single location string from the URI (path to file) and file name
-        String ms_run_location = it->getPathToFile() + "/" + it->getNameOfFile();
-        if (!ms_run_location.empty())
+        String path = it->getPathToFile();
+        String filename = it->getNameOfFile();
+
+        if (path.empty() || filename.empty())
         {
+          LOG_ERROR << "Path or file name of primary MS run is empty. This might be the result of incomplete conversion. This might make tracing back results to the original file more difficult." << std::endl;
+        }
+        else
+        {
+          String ms_run_location = path + "/" + filename;
           ms_run_paths.push_back(ms_run_location);
         }
       }
