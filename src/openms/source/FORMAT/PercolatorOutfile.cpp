@@ -120,10 +120,10 @@ namespace OpenMS
     if (psm_regex.empty())
     {
       // MS-GF+ Percolator (mzid?) format:
-      spectrum_lookup.addReferenceFormat("_SII_(?<SCAN>\\d+)_\\d+_\\d+_(?<CHARGE>\\d+)_\\d+", true);
+      spectrum_lookup.addReferenceFormat("_SII_(?<INDEX>\\d+)_\\d+_\\d+_(?<CHARGE>\\d+)_\\d+", true);
       // Mascot Percolator format (RT may be missing, e.g. for searches via
       // ProteomeDiscoverer):
-      spectrum_lookup.addReferenceFormat("spectrum:[^;]+[(scans:)(scan=)(spectrum=)](?<SCAN>\\d+)[^;]+;rt:(?<RT>\\d*(\\.\\d+)?);mz:(?<MZ>\\d+(\\.\\d+)?);charge:(?<CHARGE>-?\\d+)");
+      spectrum_lookup.addReferenceFormat("spectrum:[^;]+[(scans:)(scan=)(spectrum=)](?<INDEX>\\d+)[^;]+;rt:(?<RT>\\d*(\\.\\d+)?);mz:(?<MZ>\\d+(\\.\\d+)?);charge:(?<CHARGE>-?\\d+)");
     }
     else
     {
@@ -134,7 +134,7 @@ namespace OpenMS
     {
       vector<MSSpectrum<> >& spectra = 
         const_cast<vector<MSSpectrum<> >&>(experiment_p->getSpectra());
-      spectrum_lookup.setSpectra(spectra);
+      spectrum_lookup.setSpectra(spectra, "");
     }
 
     vector<String> items;
