@@ -57,7 +57,7 @@ namespace OpenMS
 
      @f$ RT_i @f$, @f$ MZ_i @f$, and @f$ int_i @f$ are the RT, m/z, and intensity values of the respective feature.
 
-     Constraints are: @f$ {\Delta RT_{max}}, {\Delta MZ_{max}}, int_{max}  @f$ and (optionally) @f$ charge @f$.
+     Constraints are: @f$ {\Delta RT_{max}}, {\Delta MZ_{max}} @f$ and @f$ int_{max} @f$.
      If an absolute difference exceeds the specified maximum, the behavior depends on the value used for @p check_constraints in the constructor: 
      If "false" (i.e., no constraints), the distance in that dimension may become greater than 1; if "true", @ref infinity is returned as overall distance.
 
@@ -71,13 +71,13 @@ namespace OpenMS
      @f$ p_X @f$ is the exponent for the distance in dimension X, specified by the parameter @p distance_X:exponent. 
      Normalized differences (between (0, 1) unless unconstrained) are taken to this power. This makes it possible to compare values using linear, quadratic, etc. distance.
 
-     By default, two features are paired only if they have the same charge state (or at least one unknown charge '0') - otherwise, @ref infinity is returned. 
-     This behavior can be changed by the @p ignore_charge parameter.
-
      @f$ w_X @f$ is the weight of final distance in dimension X, specified by the parameter @p distance_X:weight. The weights can be used to increase or decrease 
      the contribution of RT, m/z, or intensity in the distance function. 
      (The default weight for the intensity dimension is zero, i.e. intensity is not considered by default. However, @f$ int_{max} @f$ is still a constraint and
       should be set sensibly in the c'tor.)
+
+     By default, two features are paired only if they have the same charge state (or at least one unknown charge '0') - otherwise, @ref infinity is returned. 
+     This behavior can be changed by the @p ignore_charge parameter.
 
 
      @note Peptide identifications annotated to features are not taken into account here, 
