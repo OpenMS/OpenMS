@@ -67,7 +67,7 @@ const std::vector<int>& GridBasedCluster::getPoints() const
   return point_indices_;
 }
 
-const int GridBasedCluster::getPropertyA() const
+int GridBasedCluster::getPropertyA() const
 {
   return property_A_;
 }

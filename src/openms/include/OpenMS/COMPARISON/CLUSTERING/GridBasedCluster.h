@@ -93,7 +93,7 @@ class OPENMS_DLLAPI GridBasedCluster
     /**
      * @brief returns property A
      */
-    const int getPropertyA() const;
+    int getPropertyA() const;
 
     /**
      * @brief returns properties B of all points
