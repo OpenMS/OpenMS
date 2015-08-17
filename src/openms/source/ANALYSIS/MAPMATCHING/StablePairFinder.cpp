@@ -59,10 +59,10 @@ namespace OpenMS
     //set the name for DefaultParamHandler error messages
     Base::setName(getProductName());
 
-    defaults_.setValue("second_nearest_gap", 2.0, "The distance to the second nearest neighbors must be larger by this factor than the distance to the matching element itself.");
+    defaults_.setValue("second_nearest_gap", 2.0, "Only link features whose distance to the second nearest neighbors (for both sides) is larger by 'second_nearest_gap' than the distance between the matched pair itself.");
     defaults_.setMinFloat("second_nearest_gap", 1.0);
 
-    defaults_.setValue("use_identifications", "false", "Never link features that are annotated with different peptides (only the best hit per peptide identification is taken into account).");
+    defaults_.setValue("use_identifications", "false", "Never link features that are annotated with different peptides (features without ID's always match; only the best hit per peptide identification is considered).");
     defaults_.setValidStrings("use_identifications", ListUtils::create<String>("true,false"));
 
     defaults_.insert("", FeatureDistance().getDefaults());
@@ -143,7 +143,8 @@ namespace OpenMS
         double distance = result.second;
         // we only care if distance constraints are satisfied for "best
         // matches", not for second-best; this means that second-best distances
-        // can become smaller than best distances!
+        // can become smaller than best distances
+        // (e.g. the RT is larger than allowed (->invalid pair), but m/z is perfect and has the most weight --> better score!)
         bool valid = result.first;
 
         // update entries for map 0:
