@@ -144,7 +144,7 @@ if iswin:
         shutil.copy(j(OPEN_MS_CONTRIB_BUILD_DIR, "lib", "xerces-c_3_1.dll"),
                     "pyopenms")
 
-elif sys.platform == "linux2":
+elif sys.platform.startswith('linux'):
 
     shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libOpenMS.so"), "pyopenms")
     shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libSuperHirn.so"), "pyopenms")
@@ -158,7 +158,7 @@ elif sys.platform == "darwin":
 
 else:
     print("\n")
-    print("platform ", sys.platform, "not supported yet")
+    print("platform", sys.platform, "not supported yet")
     print("\n")
     exit()
 
