@@ -540,7 +540,7 @@ private:
       int A1 = c1.getPropertyA();
       int A2 = c2.getPropertyA();
 
-      // check if any of the properties A and B is not set i.e. =-1
+      // check if properties A of both clusters is set or not (not set := -1)
       if (A1 == -1 || A2 == -1)
       {
         return false;
@@ -552,6 +552,7 @@ private:
       std::vector<int> B1 = c1.getPropertiesB();
       std::vector<int> B2 = c2.getPropertiesB();
 
+      // check if properties B of both clusters is set or not (not set := -1)
       if (std::find(B1.begin(), B1.end(), -1) != B1.end() || std::find(B2.begin(), B2.end(), -1) != B2.end())
       {
         return false;
@@ -580,7 +581,7 @@ private:
      *
      * @param Should the cluster be removed from the cluster list?
      */
-    bool findNearestNeighbour_(GridBasedCluster cluster, int cluster_index)
+    bool findNearestNeighbour_(const GridBasedCluster& cluster, int cluster_index)
     {
       const Point& centre = cluster.getCentre();
       const CellIndex& cell_index = grid_.getIndex(centre);
