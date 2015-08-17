@@ -32,6 +32,7 @@
 # $Authors: Chris Bielow $
 # --------------------------------------------------------------------------
 
+from __future__ import print_function
 import re
 import random
 import math
@@ -88,7 +89,7 @@ def main(argv):
 			parser.add_argument('--weight_low', dest='weight_low', action='store', default=0, help='minimum molecular weight of protein')
 			parser.add_argument('--weight_up', dest='weight_up', action='store', default=0, help='Maximum molecular weight of protein (use 0 for unlimited)')
 		else:
-			print "Warning: protein weight filtering not supported, as BioPython module is not installed."
+			print("Warning: protein weight filtering not supported, as BioPython module is not installed.")
 			
 		## argument parsing
 		args = parser.parse_args()
