@@ -194,8 +194,6 @@ protected:
 
     registerIntOption_("java_memory", "<num>", 3500, "Maximum Java heap size (in MB)", false);
     registerIntOption_("java_permgen", "<num>", 0, "Maximum Java permanent generation space (in MB); only for Java 7 and below", false, true);
-    
-    registerFlag_("force", "New description for force flag.", true);
   }
 
   // The following sequence modification methods are used to modify the sequence stored in the TSV such that it can be used by AASequence
