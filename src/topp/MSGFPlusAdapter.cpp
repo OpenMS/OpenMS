@@ -425,6 +425,10 @@ protected:
         return EXTERNAL_PROGRAM_ERROR;
       }
     }
+    else
+    {
+      writeLog_("The installation of Java was not checked.");
+    }
 
     // create temporary directory (and modifications file, if necessary):
     String temp_dir, mzid_temp, mod_file;
