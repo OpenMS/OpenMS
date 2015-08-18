@@ -110,7 +110,7 @@ protected:
     registerFlag_("align_sampling", "Ensures that sampling is performed equally across the map (same raster is used for all spectra)");
 
     registerDoubleOption_("min_int_cutoff", "<min intensity>", -1.0,
-                          "Minimal intensity to store in output spectrum (-1 means store all data)", false);
+                          "Intensity cutoff for peaks to be stored in output spectrum (only peaks above this cutoff will be stored, -1 means store all data)", false);
 
   }
 
