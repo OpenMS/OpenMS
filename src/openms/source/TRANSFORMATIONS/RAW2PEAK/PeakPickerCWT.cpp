@@ -1477,9 +1477,9 @@ namespace OpenMS
     sort(index_tic_vec.begin(), index_tic_vec.end(), PairComparatorSecondElement<std::pair<Size, double> >());
     
     std::vector<double> best_FWHMs;
-    for (Size vec_it = 0; vec_it < 3 && vec_it < index_tic_vec.size(); ++vec_it)
+    for (Size vec_idx = 0; vec_idx < 3 && vec_idx < index_tic_vec.size(); ++vec_idx)
     {
-      std::pair<Size, double> tic = index_tic_vec[vec_it];
+      std::pair<Size, double> tic = index_tic_vec[vec_idx];
       // skip empty spectra
       if (tic.second == 0) continue;
 
