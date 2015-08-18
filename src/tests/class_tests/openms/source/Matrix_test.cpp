@@ -74,10 +74,10 @@ START_SECTION((~Matrix()))
 }
 END_SECTION;
 
+Matrix<int> mi;
+
 START_SECTION((void resize(size_type i, size_type j, value_type value = value_type())))
 {
-  Matrix<int> mi;
-
 	mi.resize(2,2,3);
   STATUS("mi1:\n"<< mi);
 	mi.resize(2,3,7);
@@ -93,9 +93,7 @@ END_SECTION
 
 START_SECTION((void resize(std::pair<Size, Size> const & size_pair, value_type value = value_type())))
 {
-  Matrix<int> mi;
 	std::pair<Size, Size> const sizepair(2,2);
-
 	mi.resize(sizepair,3);
   STATUS("mi1:\n"<< mi);
 	mi.resize(2,3,7);
@@ -141,7 +139,6 @@ START_SECTION((Matrix& operator = (const Matrix & rhs)))
 }
 END_SECTION
 
-Matrix<int> mi;
 mi(1,1)=17;
 
 START_SECTION((const_reference getValue(size_type const i, size_type const j) const))
@@ -229,9 +226,10 @@ START_SECTION((void setValue(size_type const i, size_type const j, value_type va
 }
 END_SECTION;
 
+Matrix<int> mi5(4,5,6);
+
 START_SECTION((Matrix(const SizeType rows, const SizeType cols, ValueType value = ValueType())))
 {
-  Matrix<int> mi5(4,5,6);
   STATUS("mi5:\n"<<mi5);
 	TEST_EQUAL(mi5.size(),20);
 }
@@ -239,14 +237,12 @@ END_SECTION;
 
 START_SECTION((SizeType cols() const))
 {
-  Matrix<int> mi5(4,5,6);
 	TEST_EQUAL(mi5.rows(),4);
 }
 END_SECTION;
 
 START_SECTION((SizeType rows() const))
 {
-  Matrix<int> mi5(4,5,6);
 	TEST_EQUAL(mi5.cols(),5);
 }
 END_SECTION;
@@ -281,9 +277,9 @@ END_SECTION
 
 START_SECTION((std::pair<Size,Size> sizePair() const))
 {
-	Matrix<float> const mf_(6,7,8);
-	TEST_EQUAL(mf_.sizePair().first,6);
-	TEST_EQUAL(mf_.sizePair().second,7);
+	Matrix<float> const mf(6,7,8);
+	TEST_EQUAL(mf.sizePair().first,6);
+	TEST_EQUAL(mf.sizePair().second,7);
 }
 END_SECTION
 
@@ -350,13 +346,13 @@ END_SECTION
 
 START_SECTION((template <typename  Value > std::ostream & operator<<(std::ostream &os, const Matrix< Value > &matrix)))
 {
-	Matrix<int> mi_l(2,3,6);
-	mi_l(1,2)=112;
-	mi_l(0,0)=100;
-	mi_l(1,1)=111;
-	mi_l(0,2)=103;
+	Matrix<int> mi(2,3,6);
+	mi(1,2)=112;
+	mi(0,0)=100;
+	mi(1,1)=111;
+	mi(0,2)=103;
 	std::ostringstream os;
-	os << mi_l;
+	os << mi;
 	// Uh, finally I got the whitespace right
 	char matrix_dump[] =
 	"   100      6    103 \n"
