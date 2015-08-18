@@ -477,11 +477,11 @@ namespace OpenMS
               "from SWATH " << i << " in batches of " << batch_size << std::endl;
             }
 
-            for (size_t pep_it = 0; pep_it <= (transition_exp_used_all.getPeptides().size() / batch_size); pep_it++)
+            for (size_t pep_idx = 0; pep_idx <= (transition_exp_used_all.getPeptides().size() / batch_size); pep_idx++)
             {
               // Create the new, batch-size transition experiment
               OpenSwath::LightTargetedExperiment transition_exp_used;
-              selectPeptidesForBatch_(transition_exp_used_all, transition_exp_used, batch_size, pep_it);
+              selectPeptidesForBatch_(transition_exp_used_all, transition_exp_used, batch_size, pep_idx);
 
               // Step 2.1: extract these transitions
               ChromatogramExtractor extractor;
@@ -514,9 +514,9 @@ namespace OpenMS
 #endif
               {
                 // write chromatograms to output if so desired
-                for (Size chrom_it = 0; chrom_it < chromatograms.size(); ++chrom_it)
+                for (Size chrom_idx = 0; chrom_idx < chromatograms.size(); ++chrom_idx)
                 {
-                  chromConsumer->consumeChromatogram(chromatograms[chrom_it]);
+                  chromConsumer->consumeChromatogram(chromatograms[chrom_idx]);
                 }
 
                 // write features to output if so desired
@@ -600,15 +600,15 @@ namespace OpenMS
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-      for (SignedSize map_it = 0; map_it < boost::numeric_cast<SignedSize>(swath_maps.size()); ++map_it)
+      for (SignedSize map_idx = 0; map_idx < boost::numeric_cast<SignedSize>(swath_maps.size()); ++map_idx)
       {
         std::vector< OpenMS::MSChromatogram<> > tmp_chromatograms;
-        if (!swath_maps[map_it].ms1) // skip MS1
+        if (!swath_maps[map_idx].ms1) // skip MS1
         {
 
           TargetedExperiment transition_exp_used;
           OpenSwathHelper::selectSwathTransitions(irt_transitions, transition_exp_used,
-              cp.min_upper_edge_dist, swath_maps[map_it].lower, swath_maps[map_it].upper);
+              cp.min_upper_edge_dist, swath_maps[map_idx].lower, swath_maps[map_idx].upper);
           if (transition_exp_used.getTransitions().size() > 0) // skip if no transitions found
           {
 
@@ -616,7 +616,7 @@ namespace OpenMS
             std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
             ChromatogramExtractor extractor;
             extractor.prepare_coordinates(tmp_out, coordinates, transition_exp_used, cp.rt_extraction_window, false);
-            extractor.extractChromatograms(swath_maps[map_it].sptr, tmp_out, coordinates, cp.mz_extraction_window,
+            extractor.extractChromatograms(swath_maps[map_idx].sptr, tmp_out, coordinates, cp.mz_extraction_window,
                 cp.ppm, cp.extraction_function);
             extractor.return_chromatogram(tmp_out, coordinates,
                 transition_exp_used, SpectrumSettings(), tmp_chromatograms, false);
@@ -626,24 +626,24 @@ namespace OpenMS
 #endif
             {
               LOG_DEBUG << "Extracted "  << tmp_chromatograms.size() << " chromatograms from SWATH map " <<
-                map_it << " with m/z " << swath_maps[map_it].lower << " to " << swath_maps[map_it].upper << ":" << std::endl;
-              for (Size cit = 0; cit < tmp_chromatograms.size(); cit++)
+                map_idx << " with m/z " << swath_maps[map_idx].lower << " to " << swath_maps[map_idx].upper << ":" << std::endl;
+              for (Size chrom_idx = 0; chrom_idx < tmp_chromatograms.size(); chrom_idx++)
               {
                 // Check TIC and remove empty chromatograms (can happen if the
                 // extraction window is outside the mass spectrometric acquisition
                 // window).
-                double tic = std::accumulate(tmp_out[cit]->getIntensityArray()->data.begin(),
-                                             tmp_out[cit]->getIntensityArray()->data.end(),0);
-                LOG_DEBUG << "Chromatogram "  << coordinates[cit].id << " with size "
-                  << tmp_out[cit]->getIntensityArray()->data.size() << " and TIC " << tic  << std::endl;
+                double tic = std::accumulate(tmp_out[chrom_idx]->getIntensityArray()->data.begin(),
+                                             tmp_out[chrom_idx]->getIntensityArray()->data.end(),0);
+                LOG_DEBUG << "Chromatogram "  << coordinates[chrom_idx].id << " with size "
+                  << tmp_out[chrom_idx]->getIntensityArray()->data.size() << " and TIC " << tic  << std::endl;
                 if (tic > 0.0)
                 {
                   // add the chromatogram to the output
-                  chromatograms.push_back(tmp_chromatograms[cit]);
+                  chromatograms.push_back(tmp_chromatograms[chrom_idx]);
                 }
                 else
                 {
-                  std::cerr << " - Warning: Empty chromatogram " << coordinates[cit].id << 
+                  std::cerr << " - Warning: Empty chromatogram " << coordinates[chrom_idx].id << 
                     " detected. Will skip it!" << std::endl;
                 }
               }
@@ -651,8 +651,8 @@ namespace OpenMS
           }
           else
           {
-            LOG_DEBUG << "Extracted no transitions from SWATH map " << map_it << " with m/z " <<
-                swath_maps[map_it].lower << " to " << swath_maps[map_it].upper << ":" << std::endl;
+            LOG_DEBUG << "Extracted no transitions from SWATH map " << map_idx << " with m/z " <<
+                swath_maps[map_idx].lower << " to " << swath_maps[map_idx].upper << ":" << std::endl;
           }
         }
       }
