@@ -50,32 +50,28 @@ namespace OpenMS
   void MascotXMLFile::load(const String& filename,
                            ProteinIdentification& protein_identification,
                            vector<PeptideIdentification>& id_data,
-                           const RTMapping& rt_mapping,
-                           const String& scan_regex)
+                           SpectrumLookup& lookup)
   {
     map<String, vector<AASequence> > peptides;
 
-    load(filename, protein_identification, id_data, peptides, rt_mapping, 
-         scan_regex);
+    load(filename, protein_identification, id_data, peptides, lookup);
   }
 
   void MascotXMLFile::load(const String& filename,
                            ProteinIdentification& protein_identification,
                            vector<PeptideIdentification>& id_data,
                            map<String, vector<AASequence> >& peptides,
-                           const RTMapping& rt_mapping, 
-                           const String& scan_regex)
+                           SpectrumLookup& lookup)
   {
     //clear
     protein_identification = ProteinIdentification();
     id_data.clear();
 
     Internal::MascotXMLHandler handler(protein_identification, id_data, 
-                                       filename, peptides, rt_mapping,
-                                       scan_regex);
+                                       filename, peptides, lookup);
     parse_(filename, &handler);
 
-    // since the mascotXML can contain "peptides" without sequences,
+    // since the Mascot XML can contain "peptides" without sequences,
     // the identifications without any real peptide hit are removed
     vector<PeptideIdentification> filtered_hits;
     filtered_hits.reserve(id_data.size());
@@ -113,7 +109,7 @@ namespace OpenMS
                << endl;
     }
     // if we have a mapping, but couldn't find any RT values, that's an error:
-    if (!rt_mapping.empty() && (no_rt_count == id_data.size()))
+    if (!lookup.empty() && (no_rt_count == id_data.size()))
     {
       throw Exception::MissingInformation(
         __FILE__, __LINE__, __PRETTY_FUNCTION__, 
@@ -139,29 +135,15 @@ namespace OpenMS
     }
   }
 
-  
-  void MascotXMLFile::generateRTMapping(
-    const MSExperiment<>::ConstIterator begin,
-    const MSExperiment<>::ConstIterator end, RTMapping& rt_mapping)
+
+  void MascotXMLFile::initializeSpectrumLookup(MSExperiment<>& experiment,
+                                               SpectrumLookup& lookup,
+                                               const String& scan_regex)
   {
-    rt_mapping.clear();
-    for (MSExperiment<>::ConstIterator it = begin; it != end; ++it)
-    {
-      String id = it->getNativeID(); // expected format: "... scan=#"
-      try
-      {
-        Int num_id = id.suffix('=').toInt();
-        if (num_id >= 0) rt_mapping[num_id] = it->getRT();
-        else throw Exception::ConversionError(__FILE__, __LINE__,
-                                              __PRETTY_FUNCTION__, "error");
-      }
-      catch (Exception::ConversionError)
-      {
-        LOG_ERROR << "Error: Could not create mapping of scan numbers to retention times." << endl;
-        rt_mapping.clear();
-        break;
-      }
-    }
+    // load spectra and extract scan numbers from the native IDs
+    // (expected format: "... scan=#"):
+    lookup.setSpectra(experiment.getSpectra());
+    if (!scan_regex.empty()) lookup.addReferenceFormat(scan_regex, true);
   }
 
 } // namespace OpenMS

@@ -44,38 +44,19 @@ namespace OpenMS
   namespace Internal
   {
     const String MascotXMLHandler::primary_scan_regex =
-      "scan( number)?s?[=:]? *(?<SCAN>\\d+)";
+      "[Ss]can( [Nn]umber)?s?[=:]? *(?<SCAN>\\d+)";
 
-    MascotXMLHandler::MascotXMLHandler(ProteinIdentification& protein_identification,
-                                       vector<PeptideIdentification>& id_data,
-                                       const String& filename,
-                                       map<String, vector<AASequence> >& modified_peptides,
-                                       const RTMapping& rt_mapping,
-                                       const String& scan_regex) :
-      XMLHandler(filename, ""),
-      protein_identification_(protein_identification),
-      id_data_(id_data),
-      actual_protein_hit_(),
-      actual_peptide_hit_(),
-      actual_peptide_evidence_(),
-      peptide_identification_index_(0),
-      tag_(),
-      date_(),
-      actual_title_(""),
-      modified_peptides_(modified_peptides),
-      rt_mapping_(rt_mapping),
-      scan_regex_(),
+    MascotXMLHandler::MascotXMLHandler(ProteinIdentification& protein_identification, vector<PeptideIdentification>& id_data, const String& filename, map<String, vector<AASequence> >& modified_peptides, SpectrumLookup& lookup):
+      XMLHandler(filename, ""), protein_identification_(protein_identification),
+      id_data_(id_data), peptide_identification_index_(0), actual_title_(""),
+      modified_peptides_(modified_peptides), lookup_(lookup),
       no_rt_error_(false)
     {
-      // user-supplied regex -> use only this one
-      if (!scan_regex.empty()) scan_regex_.push_back(boost::regex(scan_regex));
-      else // try different default regexes (more probable ones first)
+      if (lookup_.reference_formats.empty()) // no user-defined format
       {
-        boost::regex re;
-        // if we have a mapping, we can look for the scan number:
-        if (!rt_mapping_.empty())
+        if (!lookup_.empty()) // spectra provided, look-up possible
         {
-          // possible formats and resulting scan numbers (1-based!):
+          // possible formats and resulting scan numbers:
           // - Mascot 2.3 (?):
           // <pep_scan_title>scan=818</pep_scan_title> -> 818
           // - ProteomeDiscoverer/Mascot 2.3 or 2.4:
@@ -85,17 +66,14 @@ namespace OpenMS
           // <...>File773 Spectrum198145 scans: 6094</...> -> 6094
           // <...>6860: Scan 10668 (rt=5380.57)</...> -> 10668
           // <pep_scan_title>Scan Number: 1460</pep_scan_title> -> 1460
-          re.assign(primary_scan_regex, boost::regex::perl | boost::regex::icase);
-          scan_regex_.push_back(re);
+          lookup_.addReferenceFormat(primary_scan_regex, true);
           // - with .dta input to Mascot:
           // <...>/path/to/FTAC05_13.673.673.2.dta</...> -> 673
-          re.assign("\\.(?<SCAN>\\d+)\\.\\d+.\\d+.dta");
-          scan_regex_.push_back(re);
+          lookup_.addReferenceFormat("\\.(?<SCAN>\\d+)\\.\\d+.\\d+.dta", true);
         }
         // title containing RT and MZ instead of scan number:
         // <...>575.848571777344_5018.0811_controllerType=0 controllerNumber=1 scan=11515_EcoliMS2small</...>
-        re.assign("^(?<MZ>\\d+(\\.\\d+)?)_(?<RT>\\d+(\\.\\d+)?)");
-        scan_regex_.push_back(re);
+        lookup_.addReferenceFormat("^(?<MZ>\\d+(\\.\\d+)?)_(?<RT>\\d+(\\.\\d+)?)");
       }
     }
 
@@ -136,7 +114,7 @@ namespace OpenMS
 
         if (peptide_identification_index_ > id_data_.size())
         {
-          fatalError(LOAD, "No or conflicting header information present (make sure to use the show_header=1 option in the ./export_dat.pl script)");
+          fatalError(LOAD, "No or conflicting header information present (make sure to use the 'show_header=1' option in the ./export_dat.pl script)");
         }
       }
     }
@@ -163,61 +141,42 @@ namespace OpenMS
       }
       else if (tag_ == "pep_exp_mz")
       {
-        id_data_[peptide_identification_index_].setMZ(character_buffer_.trim().toDouble());
+        id_data_[peptide_identification_index_].setMZ(
+          character_buffer_.trim().toDouble());
       }
       else if (tag_ == "pep_scan_title")
       {
         // extract RT (and possibly m/z, if not already set) from title:
         String title = character_buffer_.trim();
-
-        vector<boost::regex>::const_iterator re_it = scan_regex_.begin();
-        try
+        SpectrumLookup::SpectrumMetaData meta;
+        SpectrumLookup::MetaDataFlags flags = SpectrumLookup::METADATA_RT;
+        if (!id_data_[peptide_identification_index_].hasMZ())
         {
-          for (; re_it != scan_regex_.end(); ++re_it)
+          flags |= SpectrumLookup::METADATA_MZ;
+        }
+        // try
+        // {
+          lookup_.getSpectrumMetaDataByReference(title, meta, flags);
+          id_data_[peptide_identification_index_].setRT(meta.rt);
+          // have we looked up the m/z value?
+          if ((flags & SpectrumLookup::METADATA_MZ) == SpectrumLookup::METADATA_MZ)
           {
-            boost::smatch match;
-            bool found = boost::regex_search(title, match, *re_it);
-            if (found)
-            {
-              if (match["RT"].matched)
-              {
-                double rt = String(match["RT"].str()).toDouble();
-                id_data_[peptide_identification_index_].setRT(rt);
-              }
-              else if (match["SCAN"].matched)
-              {
-                Size scan_no = String(match["SCAN"].str()).toInt();
-                if (scan_no && rt_mapping_.has(scan_no))
-                {
-                  id_data_[peptide_identification_index_].setRT(rt_mapping_[scan_no]);
-                }
-              }
-              if (match["MZ"].matched &&
-                  !id_data_[peptide_identification_index_].hasMZ())
-              {
-                double mz = String(match["MZ"].str()).toDouble();
-                id_data_[peptide_identification_index_].setMZ(mz);
-              }
-              break;
-            }
+            id_data_[peptide_identification_index_].setMZ(meta.mz);
           }
-        }
-        catch (Exception::ConversionError&)
-        {
-          String msg = "<pep_scan_title> element has unexpected format '" +
-                       title + "'. The regular expression '" + re_it->str() + "' matched, "
-                                                                              "but the extracted information could not be converted to a number.";
-          error(LOAD, msg);
-        }
+        // }
+        // catch(...)
+        // {
+        //   String msg = "<pep_scan_title> element has unexpected format '" + title + "'. Could not extract spectrum meta data.";
+        //   error(LOAD, msg);
+        // }
         // did it work?
         if (!id_data_[peptide_identification_index_].getRT())
         {
           if (!no_rt_error_) // report the error only the first time
           {
             String msg = "Could not extract RT value ";
-            if (!rt_mapping_.empty()) msg += "or a matching scan number ";
-            msg += "from <pep_scan_title> element with format '" + title +
-                   "'. Try adjusting the 'scan_regex' parameter.";
+            if (!lookup_.empty()) msg += "or a matching scan number ";
+            msg += "from <pep_scan_title> element with format '" + title + "'. Try adjusting the 'scan_regex' parameter.";
             error(LOAD, msg);
           }
           no_rt_error_ = true;
@@ -233,7 +192,8 @@ namespace OpenMS
       }
       else if (tag_ == "pep_expect")
       {
-        actual_peptide_hit_.metaRegistry().registerName("EValue", "E-value of e.g. Mascot searches", ""); // @todo what E-value flag? (andreas)
+        // @todo what E-value flag? (andreas)
+        actual_peptide_hit_.metaRegistry().registerName("EValue", "E-value of e.g. Mascot searches", "");
         actual_peptide_hit_.setMetaValue("EValue", character_buffer_.trim().toDouble());
       }
       else if (tag_ == "pep_homol")
@@ -247,8 +207,7 @@ namespace OpenMS
 
         // According to Matrix Science the homology threshold is only used if it
         // exists and is smaller than the identity threshold.
-        temp_homology =
-          id_data_[peptide_identification_index_].getSignificanceThreshold();
+        temp_homology = id_data_[peptide_identification_index_].getSignificanceThreshold();
         temp_identity = character_buffer_.trim().toDouble();
         actual_peptide_hit_.setMetaValue("homology_threshold", temp_homology);
         actual_peptide_hit_.setMetaValue("identity_threshold", temp_identity);
@@ -273,16 +232,14 @@ namespace OpenMS
             if (mod_split.size() >= 2)
             {
               // could be "(C-term)" or "(C-term X)" etc.
-              if (mod_split[1].hasPrefix("(C-term") ||
-                  mod_split[1].hasPrefix("(Protein C-term"))
+              if (mod_split[1].hasPrefix("(C-term") || mod_split[1].hasPrefix("(Protein C-term"))
               {
                 temp_aa_sequence.setCTerminalModification(mod_split[0]);
               }
               else
               {
                 // could be "(N-term)" or "(N-term X)" etc.
-                if (mod_split[1].hasPrefix("(N-term") ||
-                    mod_split[1].hasPrefix("(Protein N-term"))
+                if (mod_split[1].hasPrefix("(N-term") || mod_split[1].hasPrefix("(Protein N-term"))
                 {
                   temp_aa_sequence.setNTerminalModification(mod_split[0]);
                 }
@@ -304,7 +261,7 @@ namespace OpenMS
             }
             else
             {
-              error(LOAD, String("Cannot parse fixed modification '") + *it  + "'");
+              error(LOAD, String("Cannot parse fixed modification '") + *it + "'");
             }
           }
         }

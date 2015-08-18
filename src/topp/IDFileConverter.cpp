@@ -102,7 +102,7 @@ pepXML files can contain results from multiple experiments. However, the idXML f
 @p scan_regex: \n
 For Mascot results exported to XML, the scan numbers (used to look up retention times using @p mz_file) should be given in the "pep_scan_title" XML elements, but the format can vary. If the defaults fail to extract the scan numbers, a Perl-style regular expression can be given through the advanced parameter @p scan_regex, and will be used instead. The regular expression should contain a named group "SCAN" matching the scan number or "RT" matching the actual retention time. For example, if the format of the "pep_scan_title" elements is "scan=123", where 123 is the scan number, the expression "scan=(?<SCAN>\\d+)" can be used to extract the number. (However, the format in this example is actually covered by the defaults.)\n
 For Percolator tab-delimited output, information is extracted from the "PSMId" column. By default, extraction of scan numbers and charge states is supported for MS-GF+ Percolator results (retention times and precursor m/z values can then be looked up in the raw data via @p mz_file).
-In a user-defined regular expression, the named groups "SCAN" (scan number), "CHARGE" (charge state), "RT" (retention time) and "MZ" (precursor m/z) are supported. The parameter @p count_from_zero defines whether scans are counted from zero or from one (default) in the number extracted via "SCAN". If "CHARGE", "RT" and "MZ" are present, it is not necessary to look up any information in the raw data, so @p mz_file is not needed.
+In a user-defined regular expression, the named groups "INDEX" (spectrum index), "ID" (native ID), "SCAN" (scan number), "CHARGE" (charge state), "RT" (retention time) and "MZ" (precursor m/z) are supported. The parameter @p count_from_zero defines whether scans are counted from zero or from one (default) in the number extracted via "SCAN". If "CHARGE", "RT" and "MZ" are present, it is not necessary to look up any information in the raw data, so @p mz_file is not needed.
 
 Some information about the supported input types:
   @ref OpenMS::MzIdentMLFile "mzIdentML"
@@ -351,18 +351,18 @@ protected:
       {
         String scan_regex = getStringOption_("scan_regex");
         String exp_name = getStringOption_("mz_file");
-        MascotXMLFile::RTMapping rt_mapping;
+        SpectrumLookup lookup;
+        PeakMap exp;
         if (!exp_name.empty())
         {
-          PeakMap exp;
           // load only MS2 spectra:
           fh.getOptions().addMSLevel(2);
           fh.loadExperiment(exp_name, exp, FileTypes::MZML, log_type_);
-          MascotXMLFile::generateRTMapping(exp.begin(), exp.end(), rt_mapping);
+          MascotXMLFile::initializeSpectrumLookup(exp, lookup, scan_regex);
         }
         protein_identifications.resize(1);
-        MascotXMLFile().load(in, protein_identifications[0],
-                             peptide_identifications, rt_mapping, scan_regex);
+        MascotXMLFile().load(in, protein_identifications[0], 
+                             peptide_identifications, lookup);
       }
       else if (in_type == FileTypes::XML) // X! Tandem
       {

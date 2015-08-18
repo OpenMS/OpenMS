@@ -35,15 +35,15 @@
 #ifndef OPENMS_FORMAT_HANDLERS_MASCOTXMLHANDLER_H
 #define OPENMS_FORMAT_HANDLERS_MASCOTXMLHANDLER_H
 
-#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
+#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/SpectrumLookup.h>
 
 #include <vector>
-#include <boost/regex.hpp>
 
 namespace OpenMS
 {
@@ -56,16 +56,12 @@ namespace OpenMS
       public XMLHandler
     {
 public:
-
-      typedef Map<Size, float> RTMapping;
-
       /// Constructor
       MascotXMLHandler(ProteinIdentification& protein_identification,
                        std::vector<PeptideIdentification>& identifications,
                        const String& filename,
                        std::map<String, std::vector<AASequence> >& peptides,
-                       const RTMapping& rt_mapping = RTMapping(),
-                       const String& scan_regex = "");
+                       SpectrumLookup& lookup);
 
       /// Destructor
       virtual ~MascotXMLHandler();
@@ -104,12 +100,7 @@ private:
       String major_version_;
       String minor_version_;
 
-      const RTMapping& rt_mapping_; ///< optional mapping of scan indices to RTs if scan numbers are given;
-                                    ///< without this mapping, other sources of RT information are used (if available);
-                                    ///< if all fails, there will be no RT information for peptide hits
-
-      /// List of possible Perl-style regular expressions used to extract the scan number (named group "SCAN") or retention time (named group "RT"), and possibly precursor m/z (named group "MZ") from the "pep_scan_title" element
-      std::vector<boost::regex> scan_regex_;
+      SpectrumLookup& lookup_; ///< helper object for looking up RT information
 
       /// Error for missing RT information already reported?
       bool no_rt_error_;
