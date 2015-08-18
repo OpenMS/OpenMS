@@ -163,9 +163,9 @@ protected:
           start_pos = exp[i][0].getMZ();
           start_pos_set = true;
         }
-        if (!exp[i].empty() && (!end_pos_set || exp[i][exp[i].size()-1].getMZ() > end_pos) )
+        if (!exp[i].empty() && (!end_pos_set || exp[i].back().getMZ() > end_pos) )
         {
-          end_pos = exp[i][exp[i].size()-1].getMZ();
+          end_pos = exp[i].back().getMZ();
           end_pos_set = true;
         }
       }
@@ -215,7 +215,6 @@ protected:
   }
 
 };
-
 
 int main(int argc, const char ** argv)
 {
