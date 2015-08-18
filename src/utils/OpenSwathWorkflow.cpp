@@ -633,7 +633,7 @@ namespace OpenMS
                 // extraction window is outside the mass spectrometric acquisition
                 // window).
                 double tic = std::accumulate(tmp_out[chrom_idx]->getIntensityArray()->data.begin(),
-                                             tmp_out[chrom_idx]->getIntensityArray()->data.end(),0);
+                                             tmp_out[chrom_idx]->getIntensityArray()->data.end(),0.0);
                 LOG_DEBUG << "Chromatogram "  << coordinates[chrom_idx].id << " with size "
                   << tmp_out[chrom_idx]->getIntensityArray()->data.size() << " and TIC " << tic  << std::endl;
                 if (tic > 0.0)
