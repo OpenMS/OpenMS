@@ -210,7 +210,7 @@ protected:
 #ifdef _OPENMP
 #pragma omp parallel for schedule(dynamic, 1)
 #endif
-    for (Size i = 0; i < in_files.size(); ++i)
+    for (Int i = 0; i < (Int)in_files.size(); ++i)
     {
       TransformationDescription trafo;
       if (in_type == FileTypes::FEATUREXML)
