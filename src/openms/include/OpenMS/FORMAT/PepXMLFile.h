@@ -39,9 +39,9 @@
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/XMLFile.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/SpectrumLookup.h>
 
 #include <vector>
 #include <map>
@@ -82,7 +82,7 @@ public:
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String& filename, std::vector<ProteinIdentification>& proteins, std::vector<PeptideIdentification>& peptides, const String& experiment_name, const MSExperiment<>& experiment, bool use_precursor_data = false);
+    void load(const String& filename, std::vector<ProteinIdentification>& proteins, std::vector<PeptideIdentification>& peptides, const String& experiment_name, SpectrumLookup& lookup);
 
     /**
         @brief @a load function with empty defaults for some parameters (see above)
@@ -180,8 +180,8 @@ private:
     /// Pointer to the list of identified peptides
     std::vector<PeptideIdentification>* peptides_;
 
-    /// Pointer to the experiment from which the pepXML file was generated
-    const MSExperiment<>* experiment_;
+    /// Pointer to wrapper for looking up spectrum meta data
+    SpectrumLookup* lookup_;
 
     /// Name of the associated experiment (filename of the data file, extension will be removed)
     String exp_name_;
@@ -189,14 +189,8 @@ private:
     /// Set name of search engine
     String search_engine_;
 
-    /// Get RT and m/z for peptide ID from precursor scan (should only matter for RT)?
-    bool use_precursor_data_;
-
     /// Mapping between scan number in the pepXML file and index in the corresponding MSExperiment
     std::map<Size, Size> scan_map_;
-
-    /// Retention time and mass-to-charge tolerance
-    double rt_tol_, mz_tol_;
 
     /// Hydrogen data (for mass types)
     Element hydrogen_;

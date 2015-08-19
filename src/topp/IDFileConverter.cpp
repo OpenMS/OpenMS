@@ -158,7 +158,6 @@ protected:
     setValidFormats_("mz_file", ListUtils::create<String>("mzML,mzXML,mzData"));
     addEmptyLine_();
     registerStringOption_("mz_name", "<file>", "", "[pepXML only] Experiment filename/path (extension will be removed) to match in the pepXML file ('base_name' attribute). Only necessary if different from 'mz_file'.", false);
-    registerFlag_("use_precursor_data", "[pepXML only] Use precursor RTs (and m/z values) from 'mz_file' for the generated peptide identifications, instead of the RTs of MS2 spectra.", false);
     registerFlag_("peptideprophet_analyzed", "[pepXML output only] Write output in the format of a PeptideProphet analysis result. By default a 'raw' pepXML is produced that contains only search engine results.", false);
     registerStringOption_("score_type", "<choice>", PercolatorOutfile::score_type_names[0], "[Percolator only] Which of the Percolator scores to report as 'the' score for a peptide hit", false);
     setValidStrings_("score_type", vector<String>(PercolatorOutfile::score_type_names, PercolatorOutfile::score_type_names + int(PercolatorOutfile::SIZE_OF_SCORETYPE)));
@@ -305,7 +304,6 @@ protected:
       {
         String exp_name = getStringOption_("mz_file");
         String orig_name =  getStringOption_("mz_name");
-        bool use_precursor_data = getFlag_("use_precursor_data");
 
         if (exp_name.empty())
         {
@@ -320,9 +318,10 @@ protected:
           {
             exp_name = orig_name;
           }
+          SpectrumLookup lookup;
+          lookup.setSpectra(exp.getSpectra());
           PepXMLFile().load(in, protein_identifications,
-                            peptide_identifications, exp_name, exp,
-                            use_precursor_data);
+                            peptide_identifications, exp_name, lookup);
         }
       }
       else if (in_type == FileTypes::IDXML)

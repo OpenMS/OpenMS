@@ -454,17 +454,19 @@ protected:
     String exp_name = File::basename(inputfile_name);
     String pep_file = tmp_dir + File::removeExtension(exp_name) + ".pepXML";
 
-    FileHandler fh;
-    MSExperiment<> exp;
-    fh.loadExperiment(inputfile_name, exp);
-
     vector<ProteinIdentification> protein_identifications;
     vector<PeptideIdentification> peptide_identifications;
+
     if (File::exists(pep_file))
     {
-      const bool use_precursor_data = false;
-      PepXMLFile().load(pep_file, protein_identifications, peptide_identifications,
-                        exp_name, exp, use_precursor_data);
+      FileHandler fh;
+      MSExperiment<> exp;
+      fh.loadExperiment(inputfile_name, exp);
+
+      SpectrumLookup lookup;
+      lookup.setSpectra(exp.getSpectra());
+      PepXMLFile().load(pep_file, protein_identifications,
+                        peptide_identifications, exp_name, lookup);
     }
     else
     {
