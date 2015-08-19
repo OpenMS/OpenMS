@@ -588,19 +588,17 @@ protected:
     }         // from if(!mascot_out)
     if (!mascot_in)
     {
+      SpectrumLookup lookup;
       if (mascot_out)
       {
-        mascotXML_file.load(mascotXML_file_name,
-                            protein_identification,
-                            identifications);
+        mascotXML_file.load(mascotXML_file_name, protein_identification,
+                            identifications, lookup);
       }
       else
       {
         pepXML_file.load(pepXML_file_name, modified_peptides);
-        mascotXML_file.load(mascotXML_file_name,
-                            protein_identification,
-                            identifications,
-                            modified_peptides);
+        mascotXML_file.load(mascotXML_file_name, protein_identification,
+                            identifications, modified_peptides, lookup);
       }
 
       if (first_dim_rt > 0)
