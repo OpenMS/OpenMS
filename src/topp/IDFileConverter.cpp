@@ -397,23 +397,26 @@ protected:
       }
       else if (in_type == FileTypes::PSMS) // Percolator
       {
-        String mz_file = getStringOption_("mz_file");
-        MSExperiment<> experiment;
-        MSExperiment<>* experiment_p = 0;
-        if (!mz_file.empty())
-        {
-          fh.loadExperiment(mz_file, experiment);
-          experiment_p = &experiment;
-        }
         String score_type = getStringOption_("score_type");
         enum PercolatorOutfile::ScoreType perc_score =
           PercolatorOutfile::getScoreType(score_type);
+        String mz_file = getStringOption_("mz_file");
+        SpectrumLookup lookup;
+        MSExperiment<> experiment;
+        if (!mz_file.empty())
+        {
+          fh.loadExperiment(mz_file, experiment);
+          lookup.setSpectra(experiment.getSpectra());
+        }
         String scan_regex = getStringOption_("scan_regex");
         bool count_from_zero = getFlag_("count_from_zero");
+        if (!scan_regex.empty())
+        {
+          lookup.addReferenceFormat(scan_regex, !count_from_zero);
+        }
         protein_identifications.resize(1);
         PercolatorOutfile().load(in, protein_identifications[0],
-                                 peptide_identifications, perc_score, 
-                                 scan_regex, count_from_zero, experiment_p);
+                                 peptide_identifications, lookup, perc_score);
       }
       else if (in_type == FileTypes::TSV)
       {

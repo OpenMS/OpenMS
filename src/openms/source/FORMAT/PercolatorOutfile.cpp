@@ -36,7 +36,6 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/CsvFile.h>
-#include <OpenMS/METADATA/SpectrumLookup.h>
 
 #include <boost/math/special_functions/fpclassify.hpp> // for "isnan"
 #include <boost/regex.hpp>
@@ -107,34 +106,20 @@ namespace OpenMS
   void PercolatorOutfile::load(const String& filename,
                                ProteinIdentification& proteins, 
                                vector<PeptideIdentification>& peptides,
-                               enum ScoreType output_score,
-                               const String& psm_regex, 
-                               bool count_from_zero,
-                               const MSExperiment<>* experiment_p)
+                               SpectrumLookup& lookup,
+                               enum ScoreType output_score)
   {
-    SpectrumLookup spectrum_lookup;
     SpectrumLookup::MetaDataFlags lookup_flags = 
       (SpectrumLookup::METADATA_RT | SpectrumLookup::METADATA_MZ |
        SpectrumLookup::METADATA_CHARGE);
 
-    if (psm_regex.empty())
+    if (lookup.reference_formats.empty())
     {
       // MS-GF+ Percolator (mzid?) format:
-      spectrum_lookup.addReferenceFormat("_SII_(?<INDEX>\\d+)_\\d+_\\d+_(?<CHARGE>\\d+)_\\d+", true);
+      lookup.addReferenceFormat("_SII_(?<INDEX>\\d+)_\\d+_\\d+_(?<CHARGE>\\d+)_\\d+", true);
       // Mascot Percolator format (RT may be missing, e.g. for searches via
       // ProteomeDiscoverer):
-      spectrum_lookup.addReferenceFormat("spectrum:[^;]+[(scans:)(scan=)(spectrum=)](?<INDEX>\\d+)[^;]+;rt:(?<RT>\\d*(\\.\\d+)?);mz:(?<MZ>\\d+(\\.\\d+)?);charge:(?<CHARGE>-?\\d+)");
-    }
-    else
-    {
-      spectrum_lookup.addReferenceFormat(psm_regex, !count_from_zero);
-    }
-
-    if (experiment_p)
-    {
-      vector<MSSpectrum<> >& spectra = 
-        const_cast<vector<MSSpectrum<> >&>(experiment_p->getSpectra());
-      spectrum_lookup.setSpectra(spectra, "");
+      lookup.addReferenceFormat("spectrum:[^;]+[(scans:)(scan=)(spectrum=)](?<INDEX>\\d+)[^;]+;rt:(?<RT>\\d*(\\.\\d+)?);mz:(?<MZ>\\d+(\\.\\d+)?);charge:(?<CHARGE>-?\\d+)");
     }
 
     vector<String> items;
@@ -160,7 +145,7 @@ namespace OpenMS
       SpectrumLookup::SpectrumMetaData meta_data;
       try
       {
-        spectrum_lookup.getSpectrumMetaDataByReference(items[0], meta_data,
+        lookup.getSpectrumMetaDataByReference(items[0], meta_data,
                                                        lookup_flags);
       }
       catch(...)
