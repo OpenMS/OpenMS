@@ -38,7 +38,6 @@ QCMerger
 QCShrinker
 RNPxl
 RNPxlXICFilter
-RTAnnotator
 RTEvaluation
 SemanticValidator
 SequenceCoverageCalculator
