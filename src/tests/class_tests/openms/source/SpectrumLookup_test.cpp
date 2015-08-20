@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/test_config.h>
 
 ///////////////////////////
 #include <OpenMS/METADATA/SpectrumLookup.h>
@@ -76,10 +77,17 @@ spectra.push_back(spectrum);
 
 SpectrumLookup lookup;
 
+START_SECTION((bool empty() const))
+{
+  TEST_EQUAL(lookup.empty(), true);
+}
+END_SECTION
+
+
 START_SECTION((void setSpectra(vector<MSSpectrum<> >&, const String&)))
 {
   lookup.setSpectra(spectra);
-  NOT_TESTABLE; // tested with other methods below
+  TEST_EQUAL(lookup.empty(), false);
 }
 END_SECTION
 
@@ -94,6 +102,7 @@ START_SECTION((MSSpectrum<>& findByRT(double, double) const))
 }
 END_SECTION
 
+
 START_SECTION((MSSpectrum<>& findByNativeID(const String&) const))
 {
   MSSpectrum<>& spec = lookup.findByNativeID("spectrum=1");
@@ -104,6 +113,7 @@ START_SECTION((MSSpectrum<>& findByNativeID(const String&) const))
                  lookup.findByNativeID("spectrum=3"));
 }
 END_SECTION
+
 
 START_SECTION((MSSpectrum<>& findByIndex(Size, bool) const))
 {
@@ -119,6 +129,7 @@ START_SECTION((MSSpectrum<>& findByIndex(Size, bool) const))
 }
 END_SECTION
 
+
 START_SECTION((MSSpectrum<>& findByScanNumber(Size) const))
 {
   MSSpectrum<>& spec = lookup.findByScanNumber(1);
@@ -128,6 +139,7 @@ START_SECTION((MSSpectrum<>& findByScanNumber(Size) const))
   TEST_EXCEPTION(Exception::ElementNotFound, lookup.findByScanNumber(5));
 }
 END_SECTION
+
 
 START_SECTION((void getSpectrumMetaData(const MSSpectrum<>&, SpectrumMetaData&, MetaDataFlags) const))
 {
@@ -155,6 +167,7 @@ START_SECTION((void getSpectrumMetaData(const MSSpectrum<>&, SpectrumMetaData&, 
 }
 END_SECTION
 
+
 START_SECTION((void addReferenceFormat(const String&, bool, double)))
 {
   lookup.addReferenceFormat("scan_number=(?<SCAN>\\d+)", true);
@@ -162,6 +175,7 @@ START_SECTION((void addReferenceFormat(const String&, bool, double)))
   NOT_TESTABLE; // tested with other methods below
 }
 END_SECTION
+
 
 START_SECTION((MSSpectrum<>& findByReference(const String&) const))
 {
@@ -176,6 +190,7 @@ START_SECTION((MSSpectrum<>& findByReference(const String&) const))
   TEST_EXCEPTION(Exception::ParseError, lookup.findByReference("test123"));
 }
 END_SECTION
+
 
 START_SECTION((void getSpectrumMetaDataByReference(const String&, SpectrumMetaData&, MetaDataFlags) const))
 {
@@ -207,6 +222,26 @@ START_SECTION((void getSpectrumMetaDataByReference(const String&, SpectrumMetaDa
   TEST_EQUAL(meta3.native_ID, "spectrum=1");
 
   TEST_EXCEPTION(Exception::ElementNotFound, lookup.getSpectrumMetaDataByReference("rt=5.0,mz=1000.0", meta3));
+}
+END_SECTION
+
+
+START_SECTION((bool addMissingRTsToPeptideIDs(vector<PeptideIdentification>&, const String&, bool)))
+{
+  vector<PeptideIdentification> peptides(1);
+  peptides[0].setRT(1.0);
+  String filename = "this_file_does_not_exist.mzML";
+  // no missing RTs -> no attempt to load mzML file:
+  SpectrumLookup::addMissingRTsToPeptideIDs(peptides, filename);
+  TEST_EQUAL(peptides[0].getRT(), 1.0);
+
+  peptides.resize(2);
+  peptides[0].setMetaValue("spectrum_reference", "index=0");
+  peptides[1].setMetaValue("spectrum_reference", "index=2");
+  filename = OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML");
+  SpectrumLookup::addMissingRTsToPeptideIDs(peptides, filename);
+  TEST_EQUAL(peptides[0].getRT(), 1.0); // this doesn't get overwritten
+  TEST_REAL_SIMILAR(peptides[1].getRT(), 5.3);
 }
 END_SECTION
 
