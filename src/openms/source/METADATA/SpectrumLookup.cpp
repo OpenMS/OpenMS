@@ -35,6 +35,7 @@
 #include <OpenMS/METADATA/SpectrumLookup.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 using namespace std;
 
@@ -335,6 +336,40 @@ namespace OpenMS
         }
       }
     }
+  }
+
+
+  bool SpectrumLookup::addMissingRTsToPeptideIDs(
+    vector<PeptideIdentification>& peptides, const String& filename,
+    bool stop_on_error)
+  {
+    SpectrumLookup lookup;
+    MSExperiment<> exp;
+    bool success = true;
+    for (vector<PeptideIdentification>::iterator it = peptides.begin();
+         it != peptides.end(); ++it)
+    {
+      if (boost::math::isnan(it->getRT()))
+      {
+        if (lookup.empty()) // load raw data only if we have to
+        {
+          FileHandler().loadExperiment(filename, exp);
+          lookup.setSpectra(exp.getSpectra());
+        }
+        String spectrum_id = it->getMetaValue("spectrum_reference");
+        try
+        {
+          it->setRT(lookup.findByNativeID(spectrum_id).getRT());
+        }
+        catch(Exception::ElementNotFound& e)
+        {
+          LOG_ERROR << "Error: Failed to look up retention time for peptide ID with spectrum reference '" + spectrum_id + "' - no spectrum with corresponding native ID found." << endl;
+          success = false;
+          if (stop_on_error) break;
+        }
+      }
+    }
+    return success;
   }
 
 } // namespace OpenMS

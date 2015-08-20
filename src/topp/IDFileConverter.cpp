@@ -46,6 +46,8 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
+#include <boost/math/special_functions/fpclassify.hpp> // for "isnan"
+
 using namespace OpenMS;
 using namespace std;
 
@@ -168,8 +170,7 @@ protected:
     registerFlag_("count_from_zero", "[Percolator only] Scan numbers extracted by 'scan_regex' start counting at zero (default: start at one).", true);
   }
 
-  ExitCodes
-  main_(int, const char**)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // general variables and data
@@ -324,15 +325,27 @@ protected:
                             peptide_identifications, exp_name, lookup);
         }
       }
+
       else if (in_type == FileTypes::IDXML)
       {
         IdXMLFile().load(in, protein_identifications, peptide_identifications);
       }
+
       else if (in_type == FileTypes::MZIDENTML)
       {
         LOG_WARN << "Converting from mzid: you might experience loss of information depending on the capabilities of the target format." << endl;
-        MzIdentMLFile().load(in, protein_identifications, peptide_identifications);
+        MzIdentMLFile().load(in, protein_identifications,
+                             peptide_identifications);
+
+        // get retention times from the raw data, if necessary:
+        String exp_name = getStringOption_("mz_file");
+        if (!exp_name.empty())
+        {
+          SpectrumLookup::addMissingRTsToPeptideIDs(peptide_identifications,
+                                                    exp_name, false);
+        }
       }
+
       else if (in_type == FileTypes::PROTXML)
       {
         protein_identifications.resize(1);
@@ -340,12 +353,14 @@ protected:
         ProtXMLFile().load(in, protein_identifications[0],
                            peptide_identifications[0]);
       }
+
       else if (in_type == FileTypes::OMSSAXML)
       {
         protein_identifications.resize(1);
         OMSSAXMLFile().load(in, protein_identifications[0],
                             peptide_identifications, true);
       }
+
       else if (in_type == FileTypes::MASCOTXML)
       {
         String scan_regex = getStringOption_("scan_regex");
@@ -363,6 +378,7 @@ protected:
         MascotXMLFile().load(in, protein_identifications[0], 
                              peptide_identifications, lookup);
       }
+
       else if (in_type == FileTypes::XML) // X! Tandem
       {
         ProteinIdentification protein_id;
@@ -395,6 +411,7 @@ protected:
           }
         }
       }
+
       else if (in_type == FileTypes::PSMS) // Percolator
       {
         String score_type = getStringOption_("score_type");
@@ -418,6 +435,7 @@ protected:
         PercolatorOutfile().load(in, protein_identifications[0],
                                  peptide_identifications, lookup, perc_score);
       }
+
       else if (in_type == FileTypes::TSV)
       {
         ProteinIdentification protein_id;

@@ -128,7 +128,22 @@ namespace OpenMS
     /// Extract meta data from a spectrum reference (only look up the spectrum if necessary)
     void getSpectrumMetaDataByReference(
       const String& spectrum_ref, SpectrumMetaData& metadata, 
-      MetaDataFlags flags= METADATA_ALL) const;
+      MetaDataFlags flags = METADATA_ALL) const;
+
+    /**
+       @brief Add missing retention time values to peptide identifications based on raw data
+       
+       @param peptides Peptide IDs with or without RT values
+       @param filename Name of a raw data file (e.g. mzML) for looking up RTs
+       @param stop_on_error Stop when an ID could not be matched to a spectrum (or keep going)?
+
+       Look-up works by matching the "spectrum_reference" (meta value) of a peptide ID to the native ID of a spectrum. Only peptide IDs without RT (where PeptideIdentification::getRT() returns "NaN") are looked up; the RT is set to that of the corresponding spectrum.
+
+       The raw data is only loaded from @p filename if necessary, i.e. if there are any peptide IDs with missing RTs.
+    */
+    static bool addMissingRTsToPeptideIDs(
+      std::vector<PeptideIdentification>& peptides, const String& filename,
+      bool stop_on_error = false);
 
   protected:
 
