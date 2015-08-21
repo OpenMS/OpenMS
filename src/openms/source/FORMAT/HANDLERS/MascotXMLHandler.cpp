@@ -66,10 +66,10 @@ namespace OpenMS
           // <...>File773 Spectrum198145 scans: 6094</...> -> 6094
           // <...>6860: Scan 10668 (rt=5380.57)</...> -> 10668
           // <pep_scan_title>Scan Number: 1460</pep_scan_title> -> 1460
-          lookup_.addReferenceFormat(primary_scan_regex, true);
+          lookup_.addReferenceFormat(primary_scan_regex);
           // - with .dta input to Mascot:
           // <...>/path/to/FTAC05_13.673.673.2.dta</...> -> 673
-          lookup_.addReferenceFormat("\\.(?<SCAN>\\d+)\\.\\d+.\\d+.dta", true);
+          lookup_.addReferenceFormat("\\.(?<SCAN>\\d+)\\.\\d+\\.(?<CHARGE>\\d+)(\\.dta)?");
         }
         // title containing RT and MZ instead of scan number:
         // <...>575.848571777344_5018.0811_controllerType=0 controllerNumber=1 scan=11515_EcoliMS2small</...>

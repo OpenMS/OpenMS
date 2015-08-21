@@ -167,7 +167,6 @@ protected:
     registerFlag_("ignore_proteins_per_peptide", "[Sequest only] Workaround to deal with .out files that contain e.g. \"+1\" in references column,\n"
                                                  "but do not list extra references in subsequent lines (try -debug 3 or 4)", true);
     registerStringOption_("scan_regex", "<expression>", "", "[Mascot, Percolator only] Regular expression used to extract the scan number or retention time. See documentation for details.", false, true);
-    registerFlag_("count_from_zero", "[Percolator only] Scan numbers extracted by 'scan_regex' start counting at zero (default: start at one).", true);
   }
 
   ExitCodes main_(int, const char**)
@@ -426,11 +425,7 @@ protected:
           lookup.setSpectra(experiment.getSpectra());
         }
         String scan_regex = getStringOption_("scan_regex");
-        bool count_from_zero = getFlag_("count_from_zero");
-        if (!scan_regex.empty())
-        {
-          lookup.addReferenceFormat(scan_regex, !count_from_zero);
-        }
+        if (!scan_regex.empty()) lookup.addReferenceFormat(scan_regex);
         protein_identifications.resize(1);
         PercolatorOutfile().load(in, protein_identifications[0],
                                  peptide_identifications, lookup, perc_score);

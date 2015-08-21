@@ -116,10 +116,10 @@ namespace OpenMS
     if (lookup.reference_formats.empty())
     {
       // MS-GF+ Percolator (mzid?) format:
-      lookup.addReferenceFormat("_SII_(?<INDEX>\\d+)_\\d+_\\d+_(?<CHARGE>\\d+)_\\d+", true);
+      lookup.addReferenceFormat("_SII_(?<INDEX1>\\d+)_\\d+_\\d+_(?<CHARGE>\\d+)_\\d+");
       // Mascot Percolator format (RT may be missing, e.g. for searches via
       // ProteomeDiscoverer):
-      lookup.addReferenceFormat("spectrum:[^;]+[(scans:)(scan=)(spectrum=)](?<INDEX>\\d+)[^;]+;rt:(?<RT>\\d*(\\.\\d+)?);mz:(?<MZ>\\d+(\\.\\d+)?);charge:(?<CHARGE>-?\\d+)");
+      lookup.addReferenceFormat("spectrum:[^;]+[(scans:)(scan=)(spectrum=)](?<INDEX0>\\d+)[^;]+;rt:(?<RT>\\d*(\\.\\d+)?);mz:(?<MZ>\\d+(\\.\\d+)?);charge:(?<CHARGE>-?\\d+)");
     }
 
     vector<String> items;

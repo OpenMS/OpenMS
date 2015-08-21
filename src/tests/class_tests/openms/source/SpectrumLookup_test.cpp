@@ -53,7 +53,8 @@ SpectrumLookup* null_ptr = 0;
 START_SECTION((SpectrumLookup()))
 {
 	ptr = new SpectrumLookup();
-	TEST_NOT_EQUAL(ptr, null_ptr)
+	TEST_NOT_EQUAL(ptr, null_ptr);
+  TEST_REAL_SIMILAR(ptr->rt_tolerance, 0.01);
 }
 END_SECTION
 
@@ -92,13 +93,13 @@ START_SECTION((void setSpectra(vector<MSSpectrum<> >&, const String&)))
 END_SECTION
 
 
-START_SECTION((MSSpectrum<>& findByRT(double, double) const))
+START_SECTION((MSSpectrum<>& findByRT(double) const))
 {
-  MSSpectrum<>& spec = lookup.findByRT(2.0, 1.0);
+  MSSpectrum<>& spec = lookup.findByRT(2.0);
   TEST_EQUAL(spec.getRT(), 2.0);
   TEST_EQUAL(spec.getNativeID(), "spectrum=1");
 
-  TEST_EXCEPTION(Exception::ElementNotFound, lookup.findByRT(5.0, 1.0));
+  TEST_EXCEPTION(Exception::ElementNotFound, lookup.findByRT(5.0));
 }
 END_SECTION
 
@@ -168,11 +169,13 @@ START_SECTION((void getSpectrumMetaData(const MSSpectrum<>&, SpectrumMetaData&, 
 END_SECTION
 
 
-START_SECTION((void addReferenceFormat(const String&, bool, double)))
+START_SECTION((void addReferenceFormat(const String&)))
 {
-  lookup.addReferenceFormat("scan_number=(?<SCAN>\\d+)", true);
+  TEST_EXCEPTION(Exception::IllegalArgument, lookup.addReferenceFormat("XXX"));
+
+  // tested with other methods below:
+  lookup.addReferenceFormat("scan_number=(?<SCAN>\\d+)");
   lookup.addReferenceFormat("(?<ID>spectrum=\\d+)");
-  NOT_TESTABLE; // tested with other methods below
 }
 END_SECTION
 

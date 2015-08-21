@@ -72,16 +72,11 @@ namespace OpenMS
       }
     };
 
-    /// Format of a spectrum reference
-    struct ReferenceFormat
-    {
-      boost::regex re;
-      bool count_from_one;
-      double rt_tolerance;
-    };
+    /// Possible formats of spectrum references, defined as regular expressions
+    std::vector<boost::regex> reference_formats;
 
-    /// Possible formats of spectrum references
-    std::vector<ReferenceFormat> reference_formats;
+    /// Tolerance for look-up by retention time
+    double rt_tolerance;
 
     /// Constructor
     SpectrumLookup();
@@ -102,7 +97,7 @@ namespace OpenMS
                     const String& scan_regexp = "=(?<SCAN>\\d+)$");
 
     /// Look up spectrum by retention time (RT)
-    MSSpectrum<>& findByRT(double rt, double tolerance = 0.01) const;
+    MSSpectrum<>& findByRT(double rt) const;
 
     /// Look up spectrum by native ID
     MSSpectrum<>& findByNativeID(const String& native_id) const;
@@ -119,8 +114,7 @@ namespace OpenMS
                                     MetaDataFlags flags = METADATA_ALL);
 
     /// Register a possible format for a spectrum reference
-    void addReferenceFormat(const String& regexp, bool count_from_one = false,
-                            double rt_tolerance = 0.01);
+    void addReferenceFormat(const String& regexp);
 
     /// Look up spectrum by reference
     MSSpectrum<>& findByReference(const String& spectrum_ref) const;
@@ -147,20 +141,24 @@ namespace OpenMS
 
   protected:
 
+    /// Named groups recognized in regular expression
+    static const String& regexp_names_;
+
     std::vector<MSSpectrum<> >* spectra_; ///< Pointer to spectra
 
     Size n_spectra_; ///< Number of spectra
+
+    std::vector<String> regexp_name_list_; ///< Named groups in vector format
 
     std::map<double, Size> rts_; ///< Mapping: RT -> spectrum index
     std::map<String, Size> ids_; ///< Mapping: native ID -> spectrum index
     std::map<Size, Size> scans_; ///< Mapping: scan number -> spectrum index
 
     /// Look up spectrum by regular expression match
-    MSSpectrum<>& findByRegExpMatch_(
-      const String& spectrum_ref, const String& regexp, 
-      const boost::smatch& match, bool count_from_one, double rt_tolerance)
-      const;
-    
+    MSSpectrum<>& findByRegExpMatch_(const String& spectrum_ref,
+                                     const String& regexp, 
+                                     const boost::smatch& match) const;
+
   private:
     /// Copy constructor (not implemented)
     SpectrumLookup(const SpectrumLookup&);

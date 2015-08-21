@@ -41,9 +41,12 @@ using namespace std;
 
 namespace OpenMS
 {
-  SpectrumLookup::SpectrumLookup(): spectra_(0), n_spectra_(0)
-  {
-  }
+  const String& SpectrumLookup::regexp_names_ = "INDEX0 INDEX1 SCAN ID RT";
+
+  SpectrumLookup::SpectrumLookup(): 
+    rt_tolerance(0.01), spectra_(0), n_spectra_(0),
+    regexp_name_list_(ListUtils::create<String>(regexp_names_, ' '))
+  {}
 
 
   SpectrumLookup::~SpectrumLookup()
@@ -104,7 +107,7 @@ namespace OpenMS
   }
 
   
-  MSSpectrum<>& SpectrumLookup::findByRT(double rt, double tolerance) const
+  MSSpectrum<>& SpectrumLookup::findByRT(double rt) const
   {
     double upper_diff = numeric_limits<double>::infinity();
     map<double, Size>::const_iterator upper = rts_.upper_bound(rt);
@@ -119,11 +122,11 @@ namespace OpenMS
       --lower;
       lower_diff = rt - lower->first;
     }
-    if ((lower_diff < upper_diff) && (lower_diff <= tolerance))
+    if ((lower_diff < upper_diff) && (lower_diff <= rt_tolerance))
     {
       return (*spectra_)[lower->second];
     }
-    if (upper_diff <= tolerance) return (*spectra_)[upper->second];
+    if (upper_diff <= rt_tolerance) return (*spectra_)[upper->second];
 
     String element = "spectrum with RT " + String(rt);
     throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__,
@@ -197,31 +200,52 @@ namespace OpenMS
   }
 
 
-  void SpectrumLookup::addReferenceFormat(const String& regexp,
-                                          bool count_from_one,
-                                          double rt_tolerance)
+  void SpectrumLookup::addReferenceFormat(const String& regexp)
   {
-    ReferenceFormat format;
-    format.re.assign(regexp);
-    format.count_from_one = count_from_one;
-    format.rt_tolerance = rt_tolerance;
-    reference_formats.push_back(format);
+    // does the reg. exp. contain any of the recognized group names?
+    bool found = false;
+    for (vector<String>::iterator it = regexp_name_list_.begin();
+         it != regexp_name_list_.end(); ++it)
+    {
+      if (regexp.hasSubstring("?<" + (*it) + ">"))
+      {
+        found = true;
+        break;
+      }
+    }
+    if (!found)
+    {
+      String msg = "The regular expression describing the reference format must contain at least one of the following named groups (in the format '?<GROUP>'): " + regexp_names_;
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+                                       msg);
+    }
+
+    boost::regex re(regexp);
+    reference_formats.push_back(re);
   }
 
 
   MSSpectrum<>& SpectrumLookup::findByRegExpMatch_(const String& spectrum_ref,
                                                    const String& regexp,
-                                                   const boost::smatch& match,
-                                                   bool count_from_one,
-                                                   double rt_tolerance) const
+                                                   const boost::smatch& match)
+    const
   {
-    if (match["INDEX"].matched)
+    if (match["INDEX0"].matched)
     {
-      String value = match["INDEX"].str();
+      String value = match["INDEX0"].str();
       if (!value.empty()) 
       {
         Size index = value.toInt();
-        return findByIndex(index, count_from_one);
+        return findByIndex(index, false);
+      }
+    }
+    if (match["INDEX1"].matched)
+    {
+      String value = match["INDEX1"].str();
+      if (!value.empty()) 
+      {
+        Size index = value.toInt();
+        return findByIndex(index, true);
       }
     }
     if (match["SCAN"].matched)
@@ -247,7 +271,7 @@ namespace OpenMS
       if (!value.empty())
       {
         double rt = value.toDouble();
-        return findByRT(rt, rt_tolerance);
+        return findByRT(rt);
       }
     }
     String msg = "Unexpected format of spectrum reference '" + spectrum_ref +
@@ -261,15 +285,14 @@ namespace OpenMS
   MSSpectrum<>& SpectrumLookup::findByReference(const String& spectrum_ref)
     const
   {
-    for (vector<ReferenceFormat>::const_iterator it = reference_formats.begin();
+    for (vector<boost::regex>::const_iterator it = reference_formats.begin();
          it != reference_formats.end(); ++it)
     {
       boost::smatch match;
-      bool found = boost::regex_search(spectrum_ref, match, it->re);
+      bool found = boost::regex_search(spectrum_ref, match, *it);
       if (found)
       {
-        return findByRegExpMatch_(spectrum_ref, it->re.str(), match,
-                                  it->count_from_one, it->rt_tolerance);
+        return findByRegExpMatch_(spectrum_ref, it->str(), match);
       }
     }
     String msg = "Spectrum reference doesn't match any known format";
@@ -282,11 +305,11 @@ namespace OpenMS
     const String& spectrum_ref, SpectrumMetaData& metadata, MetaDataFlags flags)
     const
   {
-    for (vector<ReferenceFormat>::const_iterator it = reference_formats.begin();
+    for (vector<boost::regex>::const_iterator it = reference_formats.begin();
          it != reference_formats.end(); ++it)
     {
       boost::smatch match;
-      bool found = boost::regex_search(spectrum_ref, match, it->re);
+      bool found = boost::regex_search(spectrum_ref, match, *it);
       if (found)
       {
         // first try to extract the requested meta data from the reference:
@@ -329,9 +352,8 @@ namespace OpenMS
         }
         if (flags) // not all requested values have been found -> look them up
         {
-          MSSpectrum<>& spec = findByRegExpMatch_(spectrum_ref, it->re.str(),
-                                                  match, it->count_from_one,
-                                                  it->rt_tolerance);
+          MSSpectrum<>& spec = findByRegExpMatch_(spectrum_ref, it->str(),
+                                                  match);
           getSpectrumMetaData(spec, metadata, flags);
         }
       }

@@ -143,7 +143,7 @@ namespace OpenMS
     // load spectra and extract scan numbers from the native IDs
     // (expected format: "... scan=#"):
     lookup.setSpectra(experiment.getSpectra());
-    if (!scan_regex.empty()) lookup.addReferenceFormat(scan_regex, true);
+    if (!scan_regex.empty()) lookup.addReferenceFormat(scan_regex);
   }
 
 } // namespace OpenMS
