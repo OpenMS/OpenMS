@@ -100,7 +100,7 @@ namespace OpenMS
 
   void TOPPASInputFileListVertex::showFilesDialog()
   {
-    TOPPASInputFilesDialog tifd(getFileNames());
+    TOPPASInputFilesDialog tifd(getFileNames(), cwd_);
     if (tifd.exec())
     {
       QStringList updated_filelist;
@@ -109,6 +109,10 @@ namespace OpenMS
       { // files were changed
         setFilenames(updated_filelist); // to correct filenames (separators etc)
         qobject_cast<TOPPASScene *>(scene())->updateEdgeColors();
+
+        // update cwd
+        cwd_ = tifd.getCWD();
+
         emit parameterChanged(true); // aborts the pipeline (if running) and resets downstream nodes
       }
     }
@@ -253,6 +257,9 @@ namespace OpenMS
   void TOPPASInputFileListVertex::setFilenames(const QStringList& files)
   {
     output_files_.clear();
+
+    if (files.empty()) return;
+
     output_files_.resize(files.size()); // for now, assume one file per round (we could later extend that)
     for (int f = 0; f < files.size(); ++f)
     {
@@ -260,6 +267,9 @@ namespace OpenMS
     }
 
     setToolTip(files.join("\n"));
+
+    // set current working dir when opening files to the last file
+    cwd_ = File::path(files.back()).toQString();
   }
 
   void TOPPASInputFileListVertex::outEdgeHasChanged()
