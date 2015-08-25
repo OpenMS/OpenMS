@@ -262,7 +262,9 @@ namespace OpenMS
           else // update the target parameters
           {
             tv_target->setParam(to);
-            changedParameter(TOPPASToolVertex::TOOL_READY); // show *, indicating changed params
+            abortPipeline();
+            setChanged(true); // to allow "Store" of pipeline
+            resetDownstream(target);
           }
           //ss << "test test";
           my_log << " ---------------------------------- " << std::endl; // this will cause a flush... removing this line might cause loss(!) of log content!
