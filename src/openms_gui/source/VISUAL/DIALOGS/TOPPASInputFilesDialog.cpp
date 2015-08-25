@@ -36,6 +36,8 @@
 #include <OpenMS/VISUAL/DIALOGS/TOPPASInputFilesDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASInputFileDialog.h>
 
+#include <OpenMS/SYSTEM/File.h>
+
 #include <QtGui/QFileDialog>
 #include <QApplication>
 #include <QClipboard>
@@ -46,7 +48,8 @@
 
 namespace OpenMS
 {
-  TOPPASInputFilesDialog::TOPPASInputFilesDialog(const QStringList & list)
+  TOPPASInputFilesDialog::TOPPASInputFilesDialog(const QStringList & list, const QString& cwd)
+    : cwd_(cwd)
   {
     setupUi(this);
 
@@ -69,7 +72,8 @@ namespace OpenMS
   void TOPPASInputFilesDialog::dragEnterEvent(QDragEnterEvent* e)
   {
     // file dropped from a window manager come as URLs
-    if (e->mimeData()->hasUrls()) {
+    if (e->mimeData()->hasUrls())
+    {
       e->acceptProposedAction();
     }
   }
@@ -104,10 +108,13 @@ namespace OpenMS
 
   void TOPPASInputFilesDialog::showFileDialog()
   {
-    QStringList file_names = QFileDialog::getOpenFileNames(this, tr("Select input file(s)"), tr(""), tr(/*valid filetypes*/ ""));
+    QStringList file_names = QFileDialog::getOpenFileNames(this,
+                                                           tr("Select input file(s)"), 
+                                                           cwd_);
     if (!file_names.isEmpty())
     {
       input_file_list->addItems(file_names);
+      cwd_ = File::path(file_names.back()).toQString();
     }
   }
 
@@ -134,6 +141,11 @@ namespace OpenMS
     }
     if (flag_sort_list->isChecked())
       files.sort();
+  }
+
+  const QString& TOPPASInputFilesDialog::getCWD() const
+  {
+    return cwd_;
   }
 
   void TOPPASInputFilesDialog::editCurrentItem()
