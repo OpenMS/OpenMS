@@ -580,8 +580,7 @@ namespace OpenMS
 
   void QcMLFile::merge(const QcMLFile& addendum, String setname)
   {
-    //TODO registerRun and registerSet! name_id mapping!
-    //~ runs
+    //~ runs (and create set if setname not empty)
     for (std::map<String, std::vector<QualityParameter> >::const_iterator it = addendum.runQualityQPs_.begin(); it != addendum.runQualityQPs_.end(); ++it)
     {
       runQualityQPs_[it->first].insert(runQualityQPs_[it->first].end(), it->second.begin(), it->second.end());
@@ -1139,7 +1138,7 @@ namespace OpenMS
     {
       for (std::set<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
       {
-        os << "\t<setQuality> ID=\"" << String(*it) << ">\n";
+        os << "\t<setQuality ID=\"" << String(*it) << "\">\n";
         //~ TODO warn if key has no entries in members_
 
         //document set members
@@ -1149,18 +1148,30 @@ namespace OpenMS
         {
           for (std::set<String>::const_iterator kt = jt->second.begin(); kt != jt->second.end(); ++kt)
           {
-            QcMLFile::QualityParameter qp;
-            qp.name = "mzML file"; ///< Name
-            qp.id = *kt + "_run_name"; ///< Identifier
-            qp.cvRef = "MS"; ///< cv reference
-            qp.cvAcc = "MS:1000584";
-            qp.value = *kt;
-            os << qp.toXMLString(4);
+            std::map<String, std::vector<QualityParameter> >::const_iterator rq = runQualityQPs_.find(*kt);
+            if (rq != runQualityQPs_.end())
+            {
+                QcMLFile::QualityParameter qp;
+                qp.id = *kt; ///< Identifier
+                qp.name = "set name"; ///< Name
+                qp.cvRef = "QC"; ///< cv reference
+                qp.cvAcc = "QC:0000005";
+                for (std::vector<QualityParameter>::const_iterator qit = rq->second.begin(); qit != rq->second.end(); ++qit)
+                {
+                  //<qualityParameter name="mzML file" ID="OTT0650-S44-A-Leber_1_run_name" cvRef="MS" accession="MS:1000577" value="OTT0650-S44-A-Leber_1"/>
+                  if (qit->cvAcc == "MS:1000577")
+                    qp.value = qit->value;
+                }
+                os << qp.toXMLString(4);
+            }
+            else
+            {
+              //TODO warn - no mzML file registered for this runQC
+            }
           }
         }
 
         std::map<String, std::vector<QualityParameter> >::const_iterator qpsit = setQualityQPs_.find(*it);
-
         if (qpsit != setQualityQPs_.end())
         {
           for (std::vector<QcMLFile::QualityParameter>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
@@ -1168,6 +1179,7 @@ namespace OpenMS
             os << qit->toXMLString(4);
           }
         }
+
         std::map<String, std::vector<Attachment> >::const_iterator attit = setQualityAts_.find(*it);
         if (attit != setQualityAts_.end())
         {
@@ -1178,12 +1190,10 @@ namespace OpenMS
         }
         os << "\t</setQuality>\n";
       }
-
-
     }
     os <<  "\t<cvList>\n";
     os <<  "\t<cv uri=\"http://psidev.cvs.sourceforge.net/viewvc/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo\" ID=\"psi_cv_ref\" fullName=\"PSI-MS\" version=\"3.41.0\"/>\n";
-    os <<  "\t<cv uri=\"http://qcml.googlecode.com/svn/trunk/cv/qc-cv.obo\" ID=\"qc_cv_ref\" fullName=\"MS-QC\" version=\"0.1.0\"/>\n";
+    os <<  "\t<cv uri=\"https://github.com/qcML/qcML-development/blob/master/cv/qc-cv.obo\" ID=\"qc_cv_ref\" fullName=\"QC-CV\" version=\"0.1.1\"/>\n";
     os <<  "\t<cv uri=\"http://obo.cvs.sourceforge.net/viewvc/obo/obo/ontology/phenotype/unit.obo\" ID=\"uo_cv_ref\" fullName=\"unit\" version=\"1.0.0\"/>\n";
     os <<  "\t</cvList>\n";
 
