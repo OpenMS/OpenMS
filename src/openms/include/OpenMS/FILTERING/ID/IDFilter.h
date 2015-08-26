@@ -82,6 +82,7 @@ public:
 
       Size best_i_index(0), best_h_index(0);
       Size max_h(-1);
+      bool hit_found(false);
       // determine best scoring hit
       for (Size i = 0; i != identifications.size(); ++i)
       {
@@ -89,6 +90,7 @@ public:
         
         is_higher_score_better = identifications[i].isHigherScoreBetter();
         max_h = (assume_sorted ? 1 : identifications[i].getHits().size());        
+        hit_found = true;
         for (Size h = 0; h < max_h; ++h)
         {
           double score = identifications[i].getHits()[h].getScore();
@@ -102,7 +104,10 @@ public:
         }
       }
 
-      if (max_h == -1) return false;// all hits were empty 
+      if (!hit_found)
+      {
+        return false;// all hits were empty 
+      }
 
       best_hit = identifications[best_i_index].getHits()[best_h_index];
       return true;

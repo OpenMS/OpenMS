@@ -173,7 +173,6 @@ namespace OpenMS
     {
       return false;
     }
-    return true;
   }
 
 }

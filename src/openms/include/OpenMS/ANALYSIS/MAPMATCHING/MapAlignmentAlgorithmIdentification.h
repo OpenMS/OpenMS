@@ -128,7 +128,10 @@ public:
       bool all_sorted = true;
       for (Size i = 0, j = 0; i < data.size(); ++i)
       {
-        if (i == reference_index) continue; // skip reference map, if any
+        if (reference_index >= 0 && i == (Size)reference_index) 
+        {
+          continue; // skip reference map, if any
+        }
         all_sorted &= getRetentionTimes_(data[i], rt_data[j++]);
       }
       setProgress(1);
