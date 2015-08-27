@@ -1085,7 +1085,7 @@ namespace OpenMS
            << "  id  ID  #REQUIRED>\n"
            << "  ]>\n";
     }
-    os << "<qcML xmlns=\"http://www.prime-xs.eu/ms/qcml\" >\n"; //TODO creation date into schema!!
+    os << "<qcML xmlns=\"https://github.com/qcML/qcml\" >\n"; //TODO creation date into schema!!
 
     //content runs
     std::set<String> keys;
