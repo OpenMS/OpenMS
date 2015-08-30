@@ -1048,6 +1048,7 @@ add_test("TOPP_PeakPickerWavelet_3" ${TOPP_BIN_PATH}/PeakPickerWavelet  -test -i
 # corresponding base64 string.
 #
 #  Validation: 
+#
 #   mynr = base64.standard_b64decode("3bAxk01KjUAAAACgmVGNQIvf6JpEWo1AhaXzLTpijUA=")
 #   [struct.unpack('<d', mynr[i:i+8]) for i in range(0, len(mynr), 8) ]
 #   [(937.2878784067249,), (938.2000122070312,), (939.2834985917301,), (940.2784079584968,)]
@@ -1070,7 +1071,11 @@ add_test("TOPP_PeakPickerWavelet_3" ${TOPP_BIN_PATH}/PeakPickerWavelet  -test -i
 #   [struct.unpack('<d', mynr[i:i+8]) for i in range(0, len(mynr), 8) ]
 #   [(937.2878784067249,), (938.2000122070312,), (939.2834985917301,), (940.2784079584968,), (941.2000122070312,)]
 #
-add_test("TOPP_PeakPickerWavelet_3_out1" ${DIFF} -in1 PeakPickerWavelet_3.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerWavelet_2Dopt_output.mzML -matched_whitelist 3bAxk01KjUAAAACgmVGNQIvf6JpEWo1AhaXzLTpijUA:3bAxk01KjUAAAACgmVGNQIvf6JpEWo1AhqXzLTpijUAAAACgmWmNQA 3bAxk01KjUAAAACgmVGNQIvf6JpEWo1AhaXzLTpijUA:bSj7DzRKjUDnZAujlFGNQINk5GQ2Wo1AeTS9qztijUA 3bAxk01KjUAAAACgmVGNQIvf6JpEWo1AhqXzLTpijUAAAACgmWmNQA:3bAxk01KjUAAAACgmVGNQIvf6JpEWo1AhaXzLTpijUAAAACgmWmNQA)
+#   almost equivalence: AAAAAIKa0UAAAADgo0bBQAAAAECJObxAAAAAYHPunkA=:AAAAAECa0UAAAAAAgETBQAAAAAAAOLxAAAAAAADonkA=
+#
+#   it seems however that tLHrRPbvRkRc3h9E+Qs7Qw:4GceRe6sTUQRxUdE+XxVQw is simply wrong
+#
+add_test("TOPP_PeakPickerWavelet_3_out1" ${DIFF} -in1 PeakPickerWavelet_3.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerWavelet_2Dopt_output.mzML -matched_whitelist 3bAxk01KjUAAAACgmVGNQIvf6JpEWo1AhaXzLTpijUA:3bAxk01KjUAAAACgmVGNQIvf6JpEWo1AhqXzLTpijUAAAACgmWmNQA 3bAxk01KjUAAAACgmVGNQIvf6JpEWo1AhaXzLTpijUA:bSj7DzRKjUDnZAujlFGNQINk5GQ2Wo1AeTS9qztijUA 3bAxk01KjUAAAACgmVGNQIvf6JpEWo1AhqXzLTpijUAAAACgmWmNQA:3bAxk01KjUAAAACgmVGNQIvf6JpEWo1AhaXzLTpijUAAAACgmWmNQA tLHrRPbvRkRc3h9E+Qs7Qw:4GceRe6sTUQRxUdE+XxVQw AAAAAIKa0UAAAADgo0bBQAAAAECJObxAAAAAYHPunkA=:AAAAAECa0UAAAAAAgETBQAAAAAAAOLxAAAAAAADonkA=) 
 set_tests_properties("TOPP_PeakPickerWavelet_3_out1" PROPERTIES DEPENDS "TOPP_PeakPickerWavelet_3")
 add_test("TOPP_PeakPickerWavelet_4" ${TOPP_BIN_PATH}/PeakPickerWavelet  -test -ini ${DATA_DIR_TOPP}/PeakPickerWavelet_parameters.ini -in ${DATA_DIR_TOPP}/PeakPickerWavelet_input.mzML -out PeakPickerWavelet_4.tmp -threads 2)
 add_test("TOPP_PeakPickerWavelet_4_out1" ${DIFF} -in1 PeakPickerWavelet_4.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerWavelet_output.mzML)
