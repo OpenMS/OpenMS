@@ -1,10 +1,16 @@
 language: cpp
+os:
+ - linux
+ - osx
 cache: apt
 before_script:
-   ./tools/travis/lnx-cibuild.before.sh
+  ./tools/travis/cibuild.before.sh
 script:
-  ./tools/travis/lnx-cibuild.sh
+  ./tools/travis/cibuild.sh
 matrix:
+  exclude:
+    - os: osx
+      compiler: gcc
   include:
     - env: ENABLE_STYLE_TESTING=ON WITH_GUI=ON
       compiler: gcc
