@@ -7,16 +7,32 @@ before_script:
   ./tools/travis/cibuild.before.sh
 script:
   ./tools/travis/cibuild.sh
-env:
-- ENABLE_STYLE_TESTING=ON WITH_GUI=ON
-## split class vs. TOPP tests for GCC (otherwise it will run into time limit of 50min)
-- ENABLE_STYLE_TESTING=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=OFF WITH_GUI=ON CMAKE_BUILD_TYPE=Debug
-- ENABLE_STYLE_TESTING=OFF ENABLE_TOPP_TESTING=OFF ENABLE_CLASS_TESTING=ON  WITH_GUI=ON
-## clang can run both class+TOPP tests since it's faster
-- ENABLE_STYLE_TESTING=OFF WITH_GUI=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON
-- ENABLE_STYLE_TESTING=OFF WITH_GUI=ON ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON
 
+#second we exclude those that are redundant, don't make sense or take too long
 matrix:
-  exclude:
-    - os: osx
+  include:
+    - env: ENABLE_STYLE_TESTING=ON WITH_GUI=ON
+      os: linux
       compiler: gcc
+## split class vs. TOPP tests for GCC (otherwise it will run into time limit of 50min)
+    - env: ENABLE_STYLE_TESTING=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=OFF WITH_GUI=ON CMAKE_BUILD_TYPE=Debug
+      os: linux
+      compiler: gcc
+
+    - env: ENABLE_STYLE_TESTING=OFF ENABLE_TOPP_TESTING=OFF ENABLE_CLASS_TESTING=ON  WITH_GUI=ON
+      os: linux
+      compiler: gcc
+## clang can run both class+TOPP tests since it's faster
+    - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON
+      os: linux
+      compiler: clang
+    - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=ON ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON
+      os: linux
+      compiler: clang
+
+    - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON
+      os: osx
+      compiler: clang
+
+
+
