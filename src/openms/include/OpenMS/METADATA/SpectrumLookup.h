@@ -44,7 +44,30 @@
 namespace OpenMS
 {
   /**
-    @brief Helper class for looking up spectra based on different attributes
+    @brief Helper class for looking up spectra or spectrum meta data based on different attributes
+
+    This class provides functions for looking up spectra that are stored in a vector (e.g. MSExperiment::getSpectra()) by index, retention time, native ID, scan number (extracted from the native ID), or by a reference string ("spectrum reference") containing any of the previous information.
+
+    The class further includes functions for extracting specific meta data (retention time, precursor m/z, precursor charge, native ID) from spectra or from spectrum references.
+
+    A common use case for this functionality is importing peptide/protein identification results from search engine-specific file formats, where some meta information may have to be looked up in the raw data (primarily retention times). One example of this is in the function addMissingRTsToPeptideIDs().
+
+    @par Spectrum reference formats
+    Formats for spectrum references are defined by regular expressions, that must contain certain fields (named groups, i.e. "(?<GROUP>...)") referring to usable information. The following named groups are recognized:
+    @li @c INDEX0: spectrum index, i.e. position in the vector of spectra, counting from zero
+    @li @c INDEX1: spectrum index, i.e. position in the vector of spectra, counting from one
+    @li @c ID: spectrum native ID
+    @li @c SCAN: scan number (extracted from the native ID)
+    @li @c RT: retention time
+    @li @c MZ: precursor mass-to-charge ratio
+    @li @c CHARGE: precursor charge state
+    For example, if the format of a spectrum reference is "scan=123", where 123 is the scan number, the expression "scan=(?<SCAN>\\d+)" can be used to extract that number, allowing look-up of the corresponding spectrum.
+
+    @par
+    @p CHARGE and @p MZ cannot be used for spectrum look-up, but are useful (together with @p RT) when meta data is encoded directly in the reference.
+
+    @par
+    Reference formats are registered via addReferenceFormat(). Several possible formats can be added and will be tried in order by the functions findByReference() and getSpectrumMetaDataByReference().
   */
   class OPENMS_DLLAPI SpectrumLookup
   {

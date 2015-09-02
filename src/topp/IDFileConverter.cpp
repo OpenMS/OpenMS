@@ -95,16 +95,17 @@ Support for conversion to/from mzIdentML (.mzid) is still experimental and may l
 
 <B>Details on additional parameters:</B>
 
-@p mz_file: \n
+@p mz_file:@n
 Some search engine output files (like pepXML, mascotXML, Sequest .out files) may not contain retention times, only scan numbers. To be able to look up the actual RT values, the raw file has to be provided using the parameter @p mz_file. (If the identification results should be used later to annotate feature maps or consensus maps, it is critical that they contain RT values. See also @ref TOPP_IDMapper.)
 
-@p mz_name: \n
+@p mz_name:@n
 pepXML files can contain results from multiple experiments. However, the idXML format does not support this. The @p mz_name parameter (or @p mz_file, if given) thus serves to define what parts to extract from the pepXML.
 
-@p scan_regex: \n
-For Mascot results exported to XML, the scan numbers (used to look up retention times using @p mz_file) should be given in the "pep_scan_title" XML elements, but the format can vary. If the defaults fail to extract the scan numbers, a Perl-style regular expression can be given through the advanced parameter @p scan_regex, and will be used instead. The regular expression should contain a named group "SCAN" matching the scan number or "RT" matching the actual retention time. For example, if the format of the "pep_scan_title" elements is "scan=123", where 123 is the scan number, the expression "scan=(?<SCAN>\\d+)" can be used to extract the number. (However, the format in this example is actually covered by the defaults.)\n
-For Percolator tab-delimited output, information is extracted from the "PSMId" column. By default, extraction of scan numbers and charge states is supported for MS-GF+ Percolator results (retention times and precursor m/z values can then be looked up in the raw data via @p mz_file).
-In a user-defined regular expression, the named groups "INDEX0"/"INDEX1" (spectrum index, i.e. position in the vector, counting from zero/one), "ID" (native ID), "SCAN" (scan number), "CHARGE" (charge state), "RT" (retention time) and "MZ" (precursor m/z) are supported. If "CHARGE", "RT" and "MZ" are present, it is not necessary to look up any information in the raw data, so @p mz_file is not needed.
+@p scan_regex:@n
+Definition of a spectrum reference format via a regular expression. This is used to look up e.g. retention times in the raw data (@p mz_file) if necessary.@n
+For Mascot results exported to XML, the scan numbers (used to look up retention times using @p mz_file) should be given in the "pep_scan_title" XML elements, but the format can vary. If the defaults fail to extract the scan numbers, a Perl-style regular expression can be given through the advanced parameter @p scan_regex, and will be used instead. The regular expression should contain a named group "SCAN" matching the scan number or "RT" matching the actual retention time.@n
+For Percolator tab-delimited output, information is extracted from the "PSMId" column. By default, extraction of scan numbers and charge states is supported for MS-GF+ Percolator results (retention times and precursor m/z values can then be looked up in the raw data via @p mz_file).@n
+See the documentation of @ref OpenMS::SpectrumLookup for details on how to specify spectrum reference formats using @p scan_regex. Note that it is not necessary to look up any information in the raw data if that information can be extracted directly from the spectrum reference, in which case @p mz_file is not needed.
 
 Some information about the supported input types:
   @ref OpenMS::MzIdentMLFile "mzIdentML"
