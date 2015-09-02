@@ -561,7 +561,7 @@ private:
     RichPeak1D RNA_fragment_peak;
     RNA_fragment_peak.setIntensity(1.0);
     RNA_fragment_peak.setMZ(immonium_ion_mz); 
-    RNA_fragment_peak.setMetaValue("IonName", String("i") + c + " + " + fragment_shift_name);
+    RNA_fragment_peak.setMetaValue("IonName", String("i") + c + "+" + fragment_shift_name);
     return RNA_fragment_peak;
   }
  
@@ -570,13 +570,18 @@ private:
     String fas;
     for (map<Size, vector<FragmentAnnotationDetail_> >::const_iterator ait = ion_annotation_details.begin(); ait != ion_annotation_details.end(); ++ait)
     {
-      fas += ion_type + ait->first + ":";
       for (vector<FragmentAnnotationDetail_>::const_iterator sit = ait->second.begin(); sit != ait->second.end(); ++sit)
       {
-        if (sit != ait->second.begin()) fas += "|";
-        fas += sit->shift + "(" + String::number(sit->mz, 3) + "," + String::number(100.0 * sit->intensity, 1) + ")" + sit->charge + "+";
+        if (ait != ion_annotation_details.begin() || sit != ait->second.begin())
+        {
+          fas += "|";
+        }
+
+        String annotation_text;
+        annotation_text = sit->shift.empty() ? "[" + ion_type + String(ait->first) + "]" + String(sit->charge, '+') : "[" + ion_type + String(ait->first) + "+" + sit->shift + "]" + String(sit->charge, '+'); // e.g.: [b3]+ and  [y3+H3PO4]++
+        // e.g.: (343.5,99.5,"[b2-H2O]+")
+        fas += "(" + String::number(sit->mz, 3) + "," + String::number(100.0 * sit->intensity, 1) + "," + "\"" + annotation_text+ "\")";
       }
-     fas += ";";    
     }
     return fas;
   }
@@ -586,13 +591,14 @@ private:
     String fas;
     for (map<String, set<pair<String, double > > >::const_iterator ait = shifted_immonium_ions.begin(); ait != shifted_immonium_ions.end(); ++ait)
     {
-      fas += ait->first + ":";
       for (set<pair<String, double> >::const_iterator sit = ait->second.begin(); sit != ait->second.end(); ++sit)
       {
+        if (ait != shifted_immonium_ions.begin() || sit != ait->second.begin())
+        {
+          fas += "|";
+        }
         fas += sit->first;
-        if (std::distance(sit, ait->second.end()) != 1) fas += " ";
       }
-      fas += ";";
     }
     return fas;
   }
@@ -602,32 +608,18 @@ private:
     String fas;
     for (map<String, set<String> >::const_iterator ait = annotated_marker_ions.begin(); ait != annotated_marker_ions.end(); ++ait)
     {
-      fas += ait->first + ":";
       for (set<String>::const_iterator sit = ait->second.begin(); sit != ait->second.end(); ++sit)
       {
+        if (ait != annotated_marker_ions.begin() || sit != ait->second.begin())
+        {
+          fas += "|";
+        }
         fas += *sit;
-        if (std::distance(sit, ait->second.end()) != 1) fas += " ";
       }
-      fas += ";";
     }
     return fas;
   }
 
-  String unshiftedIonsToString_(const map<String, set<String> >& unshifted_ions)
-  {
-    String fas;
-    for (map<String, set<String> >::const_iterator ait = unshifted_ions.begin(); ait != unshifted_ions.end(); ++ait)
-    {
-      fas += ait->first + ":";
-      for (set<String>::const_iterator sit = ait->second.begin(); sit != ait->second.end(); ++sit)
-      {
-        fas += *sit;
-        if (std::distance(sit, ait->second.end()) != 1) fas += " ";
-      }
-      fas += ";";
-    }
-    return fas;
-  }
 
   void postScoreHits_(const PeakMap& exp, vector<vector<AnnotatedHit> >& annotated_hits, Size top_hits, const RNPxlModificationMassesResult& mm, const vector<ResidueModification>& fixed_modifications, const vector<ResidueModification>& variable_modifications, Size max_variable_mods_per_peptide, TheoreticalSpectrumGenerator spectrum_generator, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool carbon_is_labeled)
   {
@@ -837,10 +829,7 @@ private:
           set<Size> peak_is_annotated;  // experimental peak index
 
           // ion centric (e.g. b and y-ion) spectrum annotation that records all shifts of specific ions (e.g. y5, y5 + U, y5 + C3O)
-          map<String, set<String> > unshifted_ions;
-          map<Size, vector<FragmentAnnotationDetail_> > shifted_b_ions;
-          map<Size, vector<FragmentAnnotationDetail_> > shifted_y_ions;
-          map<Size, vector<FragmentAnnotationDetail_> > shifted_a_ions;
+          map<Size, vector<FragmentAnnotationDetail_> > unshifted_b_ions, unshifted_y_ions, unshifted_a_ions, shifted_b_ions, shifted_y_ions, shifted_a_ions;
           map<String, set<pair<String, double> > > shifted_immonium_ions;
           map<String, set<String> > annotated_marker_ions;
 
@@ -859,42 +848,60 @@ private:
             // define which ion names are annotated 
             if (ion_name.hasPrefix("y"))
             { 
-              #ifdef DEBUG_RNPXLSEARCH
                 String ion_nr_string = ion_name;
                 ion_nr_string.substitute("y", "");
                 ion_nr_string.substitute("+", "");
                 Size ion_number = (Size)ion_nr_string.toInt();
+              #ifdef DEBUG_RNPXLSEARCH
                 const AASequence& peptide_sequence = aas.getSuffix(ion_number);
                 cout << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
               #endif
               peak_is_annotated.insert(pair_it->second);                  
-              unshifted_ions[ion_name].insert("(" + String::number(fragment_mz, 3) + ", " + String::number(fragment_intensity, 1) + ")");
+
+              Size charge = std::count(ion_name.begin(), ion_name.end(), '+');
+              FragmentAnnotationDetail_ d;
+              d.charge = charge;
+              d.mz = fragment_mz;
+              d.intensity = fragment_intensity;
+              unshifted_y_ions[ion_number].push_back(d);
             }
             else if (ion_name.hasPrefix("b"))
             { 
-              #ifdef DEBUG_RNPXLSEARCH
                 String ion_nr_string = ion_name;
                 ion_nr_string.substitute("b", "");
                 ion_nr_string.substitute("+", "");
                 Size ion_number = (Size)ion_nr_string.toInt();
+              #ifdef DEBUG_RNPXLSEARCH
                 const AASequence& peptide_sequence = aas.getPrefix(ion_number);
                 cout << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
               #endif
               peak_is_annotated.insert(pair_it->second);                  
-              unshifted_ions[ion_name].insert("(" + String::number(fragment_mz, 3) + ", " + String::number(fragment_intensity, 1) + ")");
+
+              Size charge = std::count(ion_name.begin(), ion_name.end(), '+');
+              FragmentAnnotationDetail_ d;
+              d.charge = charge;
+              d.mz = fragment_mz;
+              d.intensity = fragment_intensity;
+              unshifted_b_ions[ion_number].push_back(d);
             }
             else if (ion_name.hasPrefix("a"))
             { 
-              #ifdef DEBUG_RNPXLSEARCH
                 String ion_nr_string = ion_name;
                 ion_nr_string.substitute("a", "");
                 ion_nr_string.substitute("+", "");
                 Size ion_number = (Size)ion_nr_string.toInt();
+              #ifdef DEBUG_RNPXLSEARCH
                 const AASequence& peptide_sequence = aas.getPrefix(ion_number);
                 cout << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
               #endif
               peak_is_annotated.insert(pair_it->second);                  
-              unshifted_ions[ion_name].insert("(" + String::number(fragment_mz, 3) + ", " + String::number(fragment_intensity, 1) + ")");
+
+              Size charge = std::count(ion_name.begin(), ion_name.end(), '+');
+              FragmentAnnotationDetail_ d;
+              d.charge = charge;
+              d.mz = fragment_mz;
+              d.intensity = fragment_intensity;
+              unshifted_a_ions[ion_number].push_back(d);
             }
           }
 
@@ -1001,7 +1008,7 @@ private:
               // remove RNA prefix from string and annotate ion
               String annotation = ion_name;
               annotation.substitute("RNA:", "");
-              annotated_marker_ions[annotation].insert("(" + String::number(fragment_mz, 3) + ", " + String::number(100.0 * fragment_intensity, 1) + ")");
+              annotated_marker_ions[annotation].insert("(" + String::number(fragment_mz, 3) + "," + String::number(100.0 * fragment_intensity, 1) + ",\"" + annotation + "\")");
             }
             else if (ion_name.hasPrefix("i"))
             {
@@ -1014,7 +1021,7 @@ private:
               // remove RNA: substring for nicer annotation of ion
               String annotation = ion_name;
               annotation.substitute("RNA:", "");
-              shifted_immonium_ions[origin].insert(make_pair(annotation + "(" + String::number(fragment_mz, 3) + ", " + String::number(100.0 * fragment_intensity, 1) + ")", fragment_intensity));
+              shifted_immonium_ions[origin].insert(make_pair("(" + String::number(fragment_mz, 3) + "," + String::number(100.0 * fragment_intensity, 1) + ",\"" + annotation + "\")", fragment_intensity));
             }
           }
 
@@ -1150,19 +1157,34 @@ private:
           a_it->best_localization = best_localization;
           a_it->best_localization_score = best_localization_score;
 
-          String fas = a_it->fragment_annotation_string;
-          fas += unshiftedIonsToString_(unshifted_ions);
-          fas += fragmentAnnotationDetailsToString_("b", shifted_b_ions) + "\t";
-          fas += fragmentAnnotationDetailsToString_("y", shifted_y_ions) + "\t";
-          fas += fragmentAnnotationDetailsToString_("a", shifted_a_ions) + "\t";
-          fas += shiftedImmoniumIonsToString_(shifted_immonium_ions);
-          fas += shiftedMarkerIonsToString_(annotated_marker_ions);
-          a_it->fragment_annotation_string = fas;
+          StringList fragment_annotations;
+          String ub = fragmentAnnotationDetailsToString_("b", unshifted_b_ions);
+          if (!ub.empty()) fragment_annotations.push_back(ub);
+          String uy = fragmentAnnotationDetailsToString_("y", unshifted_y_ions);
+          if (!uy.empty()) fragment_annotations.push_back(uy);
+          String ua = fragmentAnnotationDetailsToString_("a", unshifted_a_ions);
+          if (!ua.empty()) fragment_annotations.push_back(ua);
+          String sb = fragmentAnnotationDetailsToString_("b", shifted_b_ions);
+          if (!sb.empty()) fragment_annotations.push_back(sb);
+          String sy = fragmentAnnotationDetailsToString_("y", shifted_y_ions);
+          if (!sy.empty()) fragment_annotations.push_back(sy);
+          String sa = fragmentAnnotationDetailsToString_("a", shifted_a_ions);
+          if (!sa.empty()) fragment_annotations.push_back(sa);
+          String sii = shiftedImmoniumIonsToString_(shifted_immonium_ions);
+          if (!sii.empty()) fragment_annotations.push_back(sii);
+          String smi = shiftedMarkerIonsToString_(annotated_marker_ions);
+          if (!smi.empty()) fragment_annotations.push_back(smi);
+
+          a_it->fragment_annotation_string = ListUtils::concatenate(fragment_annotations, "|");
 
           #ifdef DEBUG_RNPXLSEARCH
             cout << "Ion centric annotation: " << endl;
-            cout << "unshifted ions: " << endl;
-            cout << unshiftedIonsToString_(unshifted_ions) << endl;
+            cout << "unshifted b ions: " << endl;
+            cout << fragmentAnnotationDetailsToString_("b", unshifted_b_ions) << endl;
+            cout << "unshifted y ions: " << endl;
+            cout << fragmentAnnotationDetailsToString_("y", unshifted_y_ions) << endl;
+            cout << "unshifted a ions: " << endl;
+            cout << fragmentAnnotationDetailsToString_("a", unshifted_a_ions) << endl;
             cout << "shifted b ions: " << endl;
             cout << fragmentAnnotationDetailsToString_("b", shifted_b_ions) << endl;
             cout << "shifted y ions: " << endl;
