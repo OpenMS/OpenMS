@@ -774,7 +774,8 @@ namespace OpenMS
 
   bool TOPPASToolVertex::renameOutput_()
   {
-    // get all output names
+    // get all output names (can span multiple directories if tool has multiple output edges, but each should have a different output type)
+    // duplicating output edges of the same parameter does not matter (since the output only exists once for this node and is only duplicated downstream)
     QStringList files = this->getFileNames();
 
     std::set<String> unique;
@@ -786,13 +787,11 @@ namespace OpenMS
       QFileInfo fi(file);
       String new_suffix = FileTypes::typeToName(FileHandler::getTypeByContent(file));
       String new_prefix = String(fi.path() + "/" + fi.baseName()) + ".";
-      String new_name = new_prefix + new_suffix;
+      String new_name = new_prefix + new_suffix; 
       if (unique.count(new_name)) // make a new name
       {
-        Int counter(0);
-        while (unique.count(new_prefix + counter + "." + new_suffix))
-          ++counter;
-        new_name = new_prefix + counter + "." + new_suffix;
+        LOG_ERROR << "SOMETHING is very fishy. The vertex (" << this->getTopoNr() << ") is has non-unique names: " << files.join("\n") << ". Please contact the developers!" << std::endl;
+        throw Exception::IllegalSelfOperation(__FILE__, __LINE__, __PRETTY_FUNCTION__);
       }
 
       // filename is unique - use it
@@ -808,10 +807,15 @@ namespace OpenMS
       {
         for (int fi = 0; fi < it->second.filenames.size(); ++fi)
         {
+          if (it->second.filenames[fi] == name_old_to_new[it->second.filenames[fi]])
+          { // filename was already correct, no renaming required
+            continue;
+          }
           // rename file and update record
           QFile file(it->second.filenames[fi]);
           if (File::exists(name_old_to_new[it->second.filenames[fi]]))
           {
+            // remove files from old runs (otherwise the rename below will fail)
             bool success = File::remove(name_old_to_new[it->second.filenames[fi]]);
             if (!success)
             {
@@ -819,6 +823,7 @@ namespace OpenMS
               return false;
             }
           }
+          // rename output according to new mapping
           bool success = file.rename(name_old_to_new[it->second.filenames[fi]].toQString());
           if (!success)
           {
@@ -893,10 +898,13 @@ namespace OpenMS
     for (Size i = 0; i < pkg.size(); ++i)
     {
       per_round_basenames.push_back(pkg[i].find(max_size_index)->second.filenames);
+      String s = String(pkg[i].find(max_size_index)->second.filenames.join(" + "));
     }
 
     // maybe we find something more unique, e.g. last base directory if all filenames are equal
     smartFileNames_(per_round_basenames);
+
+    // todo: create unique output here (e.g. using the topoID) ...
 
     // clear output file list
     output_files_.clear();
@@ -946,15 +954,14 @@ namespace OpenMS
       {
         // store edge for this param for all rounds
         output_files_[r][param_index] = vrp; // index by index of source-out param
-        QString fn = path;
 
         // check if tool consumes list and outputs single file (such as IDMerger or FileMerger)
         if (per_round_basenames[r].size() > 1 && out_params[param_index].type == IOInfo::IOT_FILE)
         {
-          fn += QString(QFileInfo(per_round_basenames[r].first()).fileName()
-                        + "_to_"
-                        + QFileInfo(per_round_basenames[r].last()).fileName()
-                        + "_merged");
+          QString fn = path + QString(QFileInfo(per_round_basenames[r].first()).fileName()
+                            + "_to_"
+                            + QFileInfo(per_round_basenames[r].last()).fileName()
+                            + "_merged");
           fn = fn.left(220); // allow max of 220 chars per path+filename (~NTFS limit)
           fn += "_tmp" + QString::number(uid_++);
           fn = QDir::toNativeSeparators(fn);
@@ -964,7 +971,7 @@ namespace OpenMS
         {
           foreach(const QString &input_file, per_round_basenames[r])
           {
-            fn += QFileInfo(input_file).fileName(); // discard directory
+            QString fn = path + QFileInfo(input_file).fileName(); // discard directory
             QRegExp rx("_tmp\\d+$"); // remove "_tmp<number>" if its a suffix
             int tmp_index = rx.indexIn(fn);
             if (tmp_index != -1)

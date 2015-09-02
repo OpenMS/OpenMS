@@ -228,10 +228,15 @@ namespace OpenMS
   QStringList TOPPASVertex::getFileNames(int param_index, int round) const
   {
     if ((Size)round >= output_files_.size())
+    {
       throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, round, output_files_.size());
+    }
     RoundPackage rp = output_files_[round];
     if (rp.find(param_index) == rp.end())
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, param_index, rp.size());                                   // index could be larger (its a map, but nevertheless)
+    {
+      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, param_index, rp.size());  // index could be larger (its a map, but nevertheless)
+    }
+    String s = String(rp[param_index].filenames.join("\" \""));
     return rp[param_index].filenames;
   }
 
