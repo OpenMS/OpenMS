@@ -184,10 +184,10 @@ namespace OpenMS
     ModificationsDB* mod_db = ModificationsDB::getInstance();
     OpenMS::MRMIonSeries mrmis;
 
-    size_t j = 0;
-    for (size_t i = 0; i < exp.getTransitions().size(); ++i)
+    size_t tr_cnt = 0;
+    for (Size tr_idx = 0; tr_idx < exp.getTransitions().size(); ++tr_idx)
     {
-      ReactionMonitoringTransition tr = exp.getTransitions()[i];
+      ReactionMonitoringTransition tr = exp.getTransitions()[tr_idx];
 
       TargetedExperiment::Peptide target_peptide = exp.getPeptideByRef(tr.getPeptideRef());
       OpenMS::AASequence target_peptide_sequence = TargetedExperimentHelper::getAASequence(target_peptide);
@@ -217,15 +217,15 @@ namespace OpenMS
           ResidueModification rmod = mod_db->getTerminalModification(aa_it->getCTerminalModification(), ResidueModification::C_TERM);
           addModification_(mods, aa_it->size(), rmod, aa_it->getCTerminalModification());
         }
-        for (Size i = 0; i != aa_it->size(); ++i)
+        for (Size aa_idx = 0; aa_idx != aa_it->size(); ++aa_idx)
         {
-          if (aa_it->isModified(i))
+          if (aa_it->isModified(aa_idx))
           {
             // search the residue in the modification database (if the sequence is valid, we should find it)
             TargetedExperiment::Peptide::Modification mod;
-            ResidueModification rmod = mod_db->getModification(aa_it->getResidue(i).getOneLetterCode(),
-                                                               aa_it->getResidue(i).getModification(), ResidueModification::ANYWHERE);
-            addModification_(mods, i, rmod, aa_it->getResidue(i).getModification());
+            ResidueModification rmod = mod_db->getModification(aa_it->getResidue(aa_idx).getOneLetterCode(),
+                                                               aa_it->getResidue(aa_idx).getModification(), ResidueModification::ANYWHERE);
+            addModification_(mods, aa_idx, rmod, aa_it->getResidue(aa_idx).getModification());
           }
         }
 
@@ -253,9 +253,9 @@ namespace OpenMS
 
         tr.setPeptideRef(target_peptide.id);
         tr.setPrecursorMZ(Math::roundDecimal(target_peptide_sequence.getMonoWeight(Residue::Full, target_peptide.getChargeState()) / target_peptide.getChargeState(), round_decPow));
-        tr.setNativeID(String(j) + String("_") +  String(target_peptide.protein_refs[0]) + String("_") + target_peptide.sequence + String("_") + String(tr.getPrecursorMZ()) + "_" + String(tr.getProductMZ()));
+        tr.setNativeID(String(tr_cnt) + String("_") +  String(target_peptide.protein_refs[0]) + String("_") + target_peptide.sequence + String("_") + String(tr.getPrecursorMZ()) + "_" + String(tr.getProductMZ()));
 
-        j += 1;
+        tr_cnt += 1;
         transitions.push_back(tr);
       }
     }

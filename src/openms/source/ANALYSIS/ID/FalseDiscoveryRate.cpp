@@ -662,11 +662,11 @@ namespace OpenMS
     for (Size i = 0; i != decoy_scores.size(); ++i)
     {
       Size closest_idx = 0;
-      for (Size j = 0; j != target_scores.size(); ++j)
+      for (Size k = 0; k != target_scores.size(); ++k)
       {
-        if (fabs(decoy_scores[i] - target_scores[j]) < fabs(decoy_scores[i] - target_scores[closest_idx]))
+        if (fabs(decoy_scores[i] - target_scores[k]) < fabs(decoy_scores[i] - target_scores[closest_idx]))
         {
-          closest_idx = j;
+          closest_idx = k;
         }
       }
       score_to_fdr[decoy_scores[i]] = score_to_fdr[target_scores[closest_idx]];

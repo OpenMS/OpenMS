@@ -66,6 +66,8 @@ namespace OpenMS
 
     // fill peak registry and initialise blacklist
     MSExperiment<Peak1D>::Iterator it_rt;
+    blacklist_.reserve(exp_picked_.getNrSpectra());
+    registry_.reserve(exp_picked_.getNrSpectra());
     for (it_rt = exp_picked_.begin(); it_rt < exp_picked_.end(); ++it_rt)
     {
       int index = it_rt - exp_picked_.begin();
@@ -127,7 +129,7 @@ namespace OpenMS
       for (MSExperiment<Peak1D>::Iterator it_rt_picked = exp_picked_.begin(); it_rt_picked < exp_picked_.end(); ++it_rt_picked)
       {
         // skip empty spectra
-        if ((*it_rt_picked).size() == 0)
+        if (it_rt_picked->empty())
         {
           continue;
         }
@@ -140,6 +142,8 @@ namespace OpenMS
         // vectors of peak details
         vector<double> peak_position;
         vector<double> peak_intensity;
+        peak_position.reserve(it_rt_picked->size());
+        peak_intensity.reserve(it_rt_picked->size());
         for (MSSpectrum<Peak1D>::Iterator it_mz = it_rt_picked->begin(); it_mz < it_rt_picked->end(); ++it_mz)
         {
           peak_position.push_back(it_mz->getMZ());

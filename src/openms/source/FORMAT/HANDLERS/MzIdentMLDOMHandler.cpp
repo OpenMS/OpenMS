@@ -597,7 +597,6 @@ namespace OpenMS
                   else
                   {
                     swname = up->first;
-                    break;
                   }
                 }
               }
