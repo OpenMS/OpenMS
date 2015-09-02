@@ -444,8 +444,8 @@ protected:
         String in_features_filepath(getStringOption_("in_features"));
         String out_features_filepath(getStringOption_("out_features"));
 
-        double precursor_mass_tolerance = getDoubleOption_("precursor:mass_tolerance");
-        bool precursor_mass_tolerance_unit_ppm = (getStringOption_("precursor:mass_tolerance_unit") == "ppm");
+        //double precursor_mass_tolerance = getDoubleOption_("precursor:mass_tolerance");
+        //bool precursor_mass_tolerance_unit_ppm = (getStringOption_("precursor:mass_tolerance_unit") == "ppm");
 
         double fragment_mass_tolerance = getDoubleOption_("fragment:mass_tolerance");
         bool fragment_mass_tolerance_unit_ppm = (getStringOption_("fragment:mass_tolerance_unit") == "ppm");

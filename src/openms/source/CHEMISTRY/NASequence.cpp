@@ -120,43 +120,43 @@ EmpiricalFormula NASequence::getFormula(Residue::ResidueType type, Int charge) c
             switch (type)
             {
             case Residue::Full:
-                return mono_formula + internal_to_full - fivePrime_to_full-(H_weight*charge);
+                return mono_formula + internal_to_full - fivePrime_to_full+(H_weight*charge);
 
 //            case Residue::Internal:
 //                return EmpiricalFormula("");//mono_formula-(H_weight*charge) /* THIS IS NOT CORRECT AND SHOULDNT BE USED FIXME*/;
 
             case Residue::NTerminal:
-                return mono_formula + internal_to_full - fivePrime_to_full-(H_weight*charge);
+                return mono_formula + internal_to_full - fivePrime_to_full+(H_weight*charge);
 
 //            case Residue::CTerminal:
 //                return EmpiricalFormula("");//mono_formula + internal_to_full - threePrime_to_full-(H_weight*charge); //NEED TO CHECK WHAT IS CORRECT FIXME
 
             case Residue::BIon:
-                return mono_formula + internal_to_full - b_ion_to_full - H_weight-(H_weight*charge);
+                return mono_formula + internal_to_full - b_ion_to_full - H_weight+(H_weight*charge);
 
             case Residue::AIon:
-                return mono_formula + internal_to_full - a_ion_to_full - H_weight * 2 -(H_weight*charge);
+                return mono_formula + internal_to_full - a_ion_to_full - H_weight * 2 +(H_weight*charge);
 
             case Residue::CIon:
-                return mono_formula + internal_to_full - c_ion_to_full - (H_weight*charge);
+                return mono_formula + internal_to_full - c_ion_to_full + (H_weight*charge);
 
             case Residue::DIon:
-                return mono_formula + internal_to_full - d_ion_to_full - (H_weight*charge);
+                return mono_formula + internal_to_full - d_ion_to_full + (H_weight*charge);
 
             case Residue::XIon:
-                return mono_formula + internal_to_full - x_ion_to_full - (H_weight*charge);
+                return mono_formula + internal_to_full - x_ion_to_full + (H_weight*charge);
 
             case Residue::WIon:
-                return mono_formula + internal_to_full - w_ion_to_full - (H_weight*charge);
+                return mono_formula + internal_to_full - w_ion_to_full + (H_weight*charge);
 
             case Residue::YIon:
-                return mono_formula + internal_to_full - y_ion_to_full - (H_weight*charge);
+                return mono_formula + internal_to_full - y_ion_to_full + (H_weight*charge);
 
             case Residue::ZIon:
-                return mono_formula + internal_to_full - z_ion_to_full - (H_weight*charge);
+                return mono_formula + internal_to_full - z_ion_to_full + (H_weight*charge);
 
             case Residue::AminusB:
-                return mono_formula + internal_to_full - a_ion_to_full - H_weight * 2 - (H_weight*charge) - base_to_formula[s_[s_.size()-1]];
+                return mono_formula + internal_to_full - a_ion_to_full - H_weight * 2 + (H_weight*charge) - base_to_formula[s_[s_.size()-1]];
 
             default:
                 LOG_ERROR << "AASequence::getMonoWeight: unknown ResidueType" << std::endl;

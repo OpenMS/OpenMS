@@ -60,7 +60,7 @@ namespace OpenMS
     charge_ = parseFormula_(formula_, formula);
   }
 
-  EmpiricalFormula::EmpiricalFormula(SignedSize number, const Element* element, SignedSize charge)
+  EmpiricalFormula::EmpiricalFormula(SignedSize number, const Element* element, Int charge)
   {
     formula_[element] = number;
     charge_ = charge;
@@ -135,12 +135,12 @@ namespace OpenMS
     return num_atoms;
   }
 
-  void EmpiricalFormula::setCharge(SignedSize charge)
+  void EmpiricalFormula::setCharge(Int charge)
   {
     charge_ = charge;
   }
 
-  SignedSize EmpiricalFormula::getCharge() const
+  Int EmpiricalFormula::getCharge() const
   {
     return charge_;
   }
@@ -354,9 +354,9 @@ namespace OpenMS
     return os;
   }
 
-  SignedSize EmpiricalFormula::parseFormula_(std::map<const Element*, SignedSize>& ef, const String& input_formula) const
+  Int EmpiricalFormula::parseFormula_(std::map<const Element*, SignedSize>& ef, const String& input_formula) const
   {
-    SignedSize charge = 0;
+    Int charge = 0;
     String formula(input_formula);
 
     // we start with the charge part, read until the begin of the formula or a element symbol occurs
@@ -393,7 +393,7 @@ namespace OpenMS
           charge_str += suffix[j];
         }
 
-        SignedSize tmp_charge = 1;
+        Int tmp_charge = 1;
         if (!charge_str.empty())
         {
           tmp_charge = charge_str.toInt();

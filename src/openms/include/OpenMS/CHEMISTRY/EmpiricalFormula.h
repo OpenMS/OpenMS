@@ -109,7 +109,7 @@ public:
     explicit EmpiricalFormula(const String& rhs);
 
     /// constructor with element pointer and number
-    EmpiricalFormula(SignedSize number, const Element* element, SignedSize charge = 0);
+    EmpiricalFormula(SignedSize number, const Element* element, Int charge = 0);
 
     /// destructor
     virtual ~EmpiricalFormula();
@@ -140,10 +140,10 @@ public:
     SignedSize getNumberOfAtoms() const;
 
     /// returns the charge
-    SignedSize getCharge() const;
+    Int getCharge() const;
 
     /// sets the charge
-    void setCharge(SignedSize charge);
+    void setCharge(Int charge);
 
     /// returns the formula as a string (charges are not included)
     String toString() const;
@@ -213,9 +213,9 @@ protected:
 
     MapType_ formula_;
 
-    SignedSize charge_;
+    Int charge_;
 
-    SignedSize parseFormula_(std::map<const Element*, SignedSize>& ef, const String& formula) const;
+    Int parseFormula_(std::map<const Element*, SignedSize>& ef, const String& formula) const;
 
   };
 

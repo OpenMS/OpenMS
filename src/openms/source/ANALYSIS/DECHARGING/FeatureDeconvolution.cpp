@@ -198,7 +198,7 @@ namespace OpenMS
       }
       EmpiricalFormula ef(adduct[0].remove('+'));
       ef -= EmpiricalFormula("H" + String(l_charge));
-      ef.setCharge(l_charge); // effectively subtract electron masses
+      ef.setCharge(l_charge); // effectively subtract electron masses FIXME this only works with + charge
 
       // RT Shift:
       double rt_shift(0);
