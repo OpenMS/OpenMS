@@ -106,7 +106,7 @@ START_SECTION(void addPeaks(RichPeakSpectrum& spectrum, const AASequence& peptid
   TOLERANCE_ABSOLUTE(0.01)
   for (Size i = 0; i != y_spec2.size(); ++i)
   {
-    TEST_REAL_SIMILAR(y_spec2[i].getPosition()[0], (y_result[i]+1.0)/2.0)
+    TEST_REAL_SIMILAR(y_spec2[i].getPosition()[0], (y_result[i+1]+1.0)/2.0)
   }
 END_SECTION
 
@@ -156,7 +156,7 @@ START_SECTION(void getSpectrum(RichPeakSpectrum& spec, const AASequence& peptide
 
   spec.clear(true);
   ptr->getSpectrum(spec, peptide, 2);
-  TEST_EQUAL(spec.size(), 22)
+  TEST_EQUAL(spec.size(), 20)
 
   spec.clear(true);
   Param param(ptr->getParameters());
