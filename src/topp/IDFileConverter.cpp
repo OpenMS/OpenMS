@@ -96,16 +96,16 @@ Support for conversion to/from mzIdentML (.mzid) is still experimental and may l
 <B>Details on additional parameters:</B>
 
 @p mz_file:@n
-Some search engine output files (like pepXML, mascotXML, Sequest .out files) may not contain retention times, only scan numbers. To be able to look up the actual RT values, the raw file has to be provided using the parameter @p mz_file. (If the identification results should be used later to annotate feature maps or consensus maps, it is critical that they contain RT values. See also @ref TOPP_IDMapper.)
+Some search engine output files (like pepXML, mascotXML, Sequest .out files) may not contain retention times, only scan numbers or spectrum IDs. To be able to look up the actual RT values, the raw file has to be provided using the parameter @p mz_file. (If the identification results should be used later to annotate feature maps or consensus maps, it is critical that they contain RT values. See also @ref TOPP_IDMapper.)
 
 @p mz_name:@n
 pepXML files can contain results from multiple experiments. However, the idXML format does not support this. The @p mz_name parameter (or @p mz_file, if given) thus serves to define what parts to extract from the pepXML.
 
 @p scan_regex:@n
-Definition of a spectrum reference format via a regular expression. This is used to look up e.g. retention times in the raw data (@p mz_file) if necessary.@n
-For Mascot results exported to XML, the scan numbers (used to look up retention times using @p mz_file) should be given in the "pep_scan_title" XML elements, but the format can vary. If the defaults fail to extract the scan numbers, a Perl-style regular expression can be given through the advanced parameter @p scan_regex, and will be used instead. The regular expression should contain a named group "SCAN" matching the scan number or "RT" matching the actual retention time.@n
+This advanced parameter defines a spectrum reference format via a Perl-style regular expression. The reference format connects search hits to the MS2 spectra that were searched, and may be needed to look up e.g. retention times in the raw data (@p mz_file). See the documentation of @ref OpenMS::SpectrumLookup for details on how to specify spectrum reference formats. Note that it is not necessary to look up any information in the raw data if that information can be extracted directly from the spectrum reference, in which case @p mz_file is not needed.@n
+For Mascot results exported to (Mascot) XML, scan numbers that can be used to look up retention times (via @p mz_file) should be given in the "pep_scan_title" XML elements, but the format can vary. Some default formats are defined in the Mascot XML reader, but if those fail to extract the scan numbers, @p scan_regex can be used to overwrite the defaults.@n
+For pepXML, supplying @p scan_regex may be necessary for files exported from Mascot, but only if the default reference formats (same as for Mascot XML) do not match. The spectrum references to which @p scan_regex is applied are read from the "spectrum" attribute of the "spectrum_query" elements.@n
 For Percolator tab-delimited output, information is extracted from the "PSMId" column. By default, extraction of scan numbers and charge states is supported for MS-GF+ Percolator results (retention times and precursor m/z values can then be looked up in the raw data via @p mz_file).@n
-See the documentation of @ref OpenMS::SpectrumLookup for details on how to specify spectrum reference formats using @p scan_regex. Note that it is not necessary to look up any information in the raw data if that information can be extracted directly from the spectrum reference, in which case @p mz_file is not needed.
 
 Some information about the supported input types:
   @ref OpenMS::MzIdentMLFile "mzIdentML"
@@ -167,7 +167,7 @@ protected:
 
     registerFlag_("ignore_proteins_per_peptide", "[Sequest only] Workaround to deal with .out files that contain e.g. \"+1\" in references column,\n"
                                                  "but do not list extra references in subsequent lines (try -debug 3 or 4)", true);
-    registerStringOption_("scan_regex", "<expression>", "", "[Mascot, Percolator only] Regular expression used to extract the scan number or retention time. See documentation for details.", false, true);
+    registerStringOption_("scan_regex", "<expression>", "", "[Mascot, pepXML, Percolator only] Regular expression used to extract the scan number or retention time. See documentation for details.", false, true);
   }
 
   ExitCodes main_(int, const char**)
@@ -320,7 +320,9 @@ protected:
             exp_name = orig_name;
           }
           SpectrumLookup lookup;
-          lookup.setSpectra(exp.getSpectra());
+          String scan_regex = getStringOption_("scan_regex");
+          // we may have to parse Mascot spectrum references in pepXML, too:
+          MascotXMLFile::initializeSpectrumLookup(lookup, exp, scan_regex);
           PepXMLFile().load(in, protein_identifications,
                             peptide_identifications, exp_name, lookup);
         }
@@ -372,7 +374,7 @@ protected:
           // load only MS2 spectra:
           fh.getOptions().addMSLevel(2);
           fh.loadExperiment(exp_name, exp, FileTypes::MZML, log_type_);
-          MascotXMLFile::initializeSpectrumLookup(exp, lookup, scan_regex);
+          MascotXMLFile::initializeSpectrumLookup(lookup, exp, scan_regex);
         }
         protein_identifications.resize(1);
         MascotXMLFile().load(in, protein_identifications[0], 
