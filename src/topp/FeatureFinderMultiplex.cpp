@@ -1303,7 +1303,7 @@ private:
     {
       MSQuantifications quantifications;
       generateMSQuantifications(exp, consensus_map, quantifications);
-      //writeMSQuantifications(out_mzq_, quantifications);
+      writeMSQuantifications(out_mzq_, quantifications);
     }
 
     return EXECUTION_OK;
