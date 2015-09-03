@@ -215,7 +215,7 @@ namespace OpenMS
     Size spectra_count(0);
 
     // *********************************************************** //
-    //  Detecting potential chromatographic apices
+    //  Step 1: Detecting potential chromatographic apices
     // *********************************************************** //
     for (Size scan_idx = 0; scan_idx < input_exp.size(); ++scan_idx)
     {
@@ -232,6 +232,10 @@ namespace OpenMS
                 double tmp_peak_int(input_exp[scan_idx][peak_idx].getIntensity());
                 if (tmp_peak_int > noise_threshold_int_)
                 {
+                    // Assume that noise_threshold_int_ contains the noise level of the
+                    // data and we want to be chrom_peak_snr times above the noise
+                    // level 
+                    // -> add this peak as possible chromatographic apex
                     tmp_spec.push_back(input_exp[scan_idx][peak_idx]);
                     if (tmp_peak_int > chrom_peak_snr_ * noise_threshold_int_)
                     {
@@ -269,7 +273,8 @@ namespace OpenMS
     spec_offsets.pop_back();
 
     // *********************************************************** //
-    //  start extending mass traces beginning with the apex peak
+    // Step 2:  start extending mass traces beginning with the apex peak (go
+    // through all peaks in order of decreasing intensity) 
     // *********************************************************** //
     boost::dynamic_bitset<> peak_visited(peak_count);
     Size trace_number(1); Size peaks_detected(0);
@@ -311,7 +316,7 @@ namespace OpenMS
         bool toggle_up = true, toggle_down = true;
 
         Size conseq_missed_peak_up(0), conseq_missed_peak_down(0);
-        Size MAX_CONSEQ_MISSING(trace_termination_outliers_);
+        Size max_consecutive_missing(trace_termination_outliers_);
 
         double current_sample_rate(1.0);
         // Size min_scans_to_consider(std::floor((min_sample_rate_ /2)*10));
@@ -331,7 +336,7 @@ namespace OpenMS
             // double centroid_mz = current_trace.getCentroidMZ();
 
             // *********************************************************** //
-            // MOVE DOWN in RT dim
+            // Step 2.1 MOVE DOWN in RT dim
             // *********************************************************** //
             if ( (trace_down_idx > 0) && toggle_down)
             {
@@ -369,9 +374,11 @@ namespace OpenMS
 
                         current_trace.push_front(next_peak);
 
+                        // Update the m/z mean of the current trace as we added a new peak
                         updateIterativeWeightedMeanMZ(next_down_peak_mz, next_down_peak_int, centroid_mz, prev_counter, prev_denom);
                         gathered_idx.push_back(std::make_pair(trace_down_idx - 1, next_down_peak_idx));
 
+                        // Update the m/z variance dynamically
                         if (reestimate_mt_sd_) //  && (down_hitting_peak+1 > min_flank_scans))
                         {
                             // if (ftl_t > min_fwhm_scans)
@@ -397,7 +404,7 @@ namespace OpenMS
                 // sampling_rate falls below min_sample_rate_
                 if (trace_termination_criterion_ == "outlier")
                 {
-                    if (conseq_missed_peak_down > MAX_CONSEQ_MISSING)
+                    if (conseq_missed_peak_down > max_consecutive_missing)
                     {
                         toggle_down = false;
                     }
@@ -415,9 +422,8 @@ namespace OpenMS
             }
 
             // *********************************************************** //
-            // MOVE UP in RT dim
+            // Step 2.2 MOVE UP in RT dim
             // *********************************************************** //
-
             if ((trace_up_idx < work_exp.size() - 1) && toggle_up)
             {
                 if (!work_exp[trace_up_idx + 1].empty())
@@ -447,10 +453,11 @@ namespace OpenMS
 
                         current_trace.push_back(next_peak);
 
+                        // Update the m/z mean of the current trace as we added a new peak
                         updateIterativeWeightedMeanMZ(next_up_peak_mz, next_up_peak_int, centroid_mz, prev_counter, prev_denom);
                         gathered_idx.push_back(std::make_pair(trace_up_idx + 1, next_up_peak_idx));
 
-
+                        // Update the m/z variance dynamically
                         if (reestimate_mt_sd_) //  && (up_hitting_peak+1 > min_flank_scans))
                         {
                             // if (ftl_t > min_fwhm_scans)
@@ -476,7 +483,7 @@ namespace OpenMS
 
                 if (trace_termination_criterion_ == "outlier")
                 {
-                    if (conseq_missed_peak_up > MAX_CONSEQ_MISSING)
+                    if (conseq_missed_peak_up > max_consecutive_missing)
                     {
                         toggle_up = false;
                     }
@@ -504,8 +511,9 @@ namespace OpenMS
         // std::cout << "mt quality: " << mt_quality << std::endl;
         double rt_range(std::fabs(current_trace.rbegin()->getRT() - current_trace.begin()->getRT()));
 
-        // std::cout << num_scans << " " << mt_quality << " " << rt_range << std::endl;
-        // check if minimum length and quality of mass trace criteria are met
+        // *********************************************************** //
+        // Step 2.3 check if minimum length and quality of mass trace criteria are met
+        // *********************************************************** //
         if (rt_range >= min_trace_length_ && rt_range < max_trace_length_ && mt_quality >= min_sample_rate_)
         {
             // std::cout << "T" << trace_number << "\t" << mt_quality << std::endl;
