@@ -899,6 +899,8 @@ namespace OpenMS
     // maybe we find something more unique, e.g. last base directory if all filenames are equal
     smartFileNames_(per_round_basenames);
 
+    QRegExp rx_tmp_suffix("_tmp\\d+$"); // regex to remove "_tmp<number>" if its a suffix
+
     // clear output file list
     output_files_.clear();
     output_files_.resize(pkg.size()); // #rounds
@@ -964,9 +966,8 @@ namespace OpenMS
         {
           foreach(const QString &input_file, per_round_basenames[r])
           {
-            QString fn = path + QFileInfo(input_file).fileName(); // discard directory
-            QRegExp rx("_tmp\\d+$"); // remove "_tmp<number>" if its a suffix
-            int tmp_index = rx.indexIn(fn);
+            QString fn = path + QFileInfo(input_file).fileName(); // out_path + filename
+            int tmp_index = rx_tmp_suffix.indexIn(fn);
             if (tmp_index != -1)
             {
               fn = fn.left(tmp_index);
