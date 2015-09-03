@@ -46,7 +46,7 @@ namespace OpenMS
   /**
     @brief Helper class for looking up spectra or spectrum meta data based on different attributes
 
-    This class provides functions for looking up spectra that are stored in a vector (e.g. MSExperiment::getSpectra()) by index, retention time, native ID, scan number (extracted from the native ID), or by a reference string ("spectrum reference") containing any of the previous information.
+    This class provides functions for looking up spectra that are stored in a vector (e.g. MSExperiment::getSpectra()) by index, retention time, native ID, scan number (extracted from the native ID), or by a reference string containing any of the previous information ("spectrum reference").
 
     The class further includes functions for extracting specific meta data (retention time, precursor m/z, precursor charge, native ID) from spectra or from spectrum references.
 
@@ -76,10 +76,12 @@ namespace OpenMS
     /// Bit mask for which meta data to extract from a spectrum
     typedef unsigned char MetaDataFlags;
 
-    /// Possible meta data to extract from a spectrum
+    /// @name Possible meta data to extract from a spectrum
+    //@{
     static const MetaDataFlags METADATA_RT = 1, METADATA_MZ = 2,
       METADATA_CHARGE = 4, METADATA_NATIVEID = 8, METADATA_ALL = 15;
-
+    //@}
+    
     /// Meta data of a spectrum
     struct SpectrumMetaData
     {
@@ -112,7 +114,7 @@ namespace OpenMS
     bool empty() const;
 
     /**
-       @brief Set the spectra that can be looked up
+       @brief Set the spectra that can be looked up.
 
        @param spectra Reference to spectra
        @param scan_regexp Regular expression for matching scan numbers in spectrum native IDs (must contain the named group "?<SCAN>")
@@ -127,7 +129,7 @@ namespace OpenMS
                     const String& scan_regexp = "=(?<SCAN>\\d+)$");
 
     /**
-       @brief Look up spectrum by retention time (RT)
+       @brief Look up spectrum by retention time (RT).
 
        @param rt Retention time to look up
 
@@ -140,7 +142,7 @@ namespace OpenMS
     MSSpectrum<>& findByRT(double rt) const;
 
     /**
-       @brief Look up spectrum by native ID
+       @brief Look up spectrum by native ID.
 
        @param native_id Native ID to look up
 
@@ -151,7 +153,7 @@ namespace OpenMS
     MSSpectrum<>& findByNativeID(const String& native_id) const;
     
     /**
-       @brief Look up spectrum by index (position in the vector of spectra)
+       @brief Look up spectrum by index (position in the vector of spectra).
 
        @param index Index to look up
        @param count_from_one Do indexes start counting at one (default: zero)?
@@ -163,7 +165,7 @@ namespace OpenMS
     MSSpectrum<>& findByIndex(Size index, bool count_from_one = false) const;
 
     /**
-       @brief Look up spectrum by scan number (extracted from the native ID)
+       @brief Look up spectrum by scan number (extracted from the native ID).
 
        @param scan_number Scan number to look up
 
@@ -174,7 +176,7 @@ namespace OpenMS
     MSSpectrum<>& findByScanNumber(Size scan_number) const;
 
     /**
-       @brief Extract meta data from a spectrum
+       @brief Extract meta data from a spectrum.
 
        @param spectrum Spectrum input
        @param metadata Meta data output
@@ -187,7 +189,7 @@ namespace OpenMS
                                     MetaDataFlags flags = METADATA_ALL);
 
     /**
-       @brief Register a possible format for a spectrum reference
+       @brief Register a possible format for a spectrum reference.
 
        @param regexp Regular expression defining the format
 
@@ -198,7 +200,7 @@ namespace OpenMS
     void addReferenceFormat(const String& regexp);
 
     /**
-       @brief Look up spectrum by reference
+       @brief Look up spectrum by reference.
 
        @param spectrum_ref Spectrum reference to parse
 
@@ -212,7 +214,7 @@ namespace OpenMS
     MSSpectrum<>& findByReference(const String& spectrum_ref) const;
 
     /**
-       @brief Extract meta data via a spectrum reference
+       @brief Extract meta data via a spectrum reference.
 
        @param spectrum_ref Spectrum reference to parse
        @param metadata Meta data output
@@ -227,7 +229,7 @@ namespace OpenMS
       MetaDataFlags flags = METADATA_ALL) const;
 
     /**
-       @brief Add missing retention time values to peptide identifications based on raw data
+       @brief Add missing retention time values to peptide identifications based on raw data.
        
        @param peptides Peptide IDs with or without RT values
        @param filename Name of a raw data file (e.g. mzML) for looking up RTs
@@ -274,10 +276,10 @@ namespace OpenMS
                                      const boost::smatch& match) const;
 
   private:
-    /// Copy constructor (not implemented)
+    /// Copy constructor (not implemented).
     SpectrumLookup(const SpectrumLookup&);
 
-    /// Assignment operator (not implemented)
+    /// Assignment operator (not implemented).
     SpectrumLookup& operator=(const SpectrumLookup&);
 
   };
