@@ -776,29 +776,53 @@ namespace OpenMS
   {
     // get all output names
     QStringList files = this->getFileNames();
+    
+    struct NameComponent
+    {
+      String prefix, suffix;
+      int counter;
+      NameComponent()
+        : counter(-1)
+      {}
 
-    std::set<String> unique;
-    std::map<String, String> name_old_to_new;
+      NameComponent(const String& r_prefix, const String& r_suffix)
+       : prefix(r_prefix),
+         suffix(r_suffix),
+         counter(-1)
+      {}
+      
+      String toString() const
+      {
+        String s_counter;
+        if (counter != -1) s_counter = String(counter).fillLeft('0', 3) + ".";
+        return (prefix + s_counter + suffix);
+      }
 
-    // create mapping from old to new filenames, while ensuring that they are unique
+    };
+
+    std::map<String, NameComponent> name_old_to_new;
+    Map<String, int> name_new_count, name_new_idx; // count occurrence (for optional counter infix)
+
+    // a first round to find which filenames are not unique (and require augmentation with a counter)
+
     foreach(QString file, files)
     {
       QFileInfo fi(file);
       String new_suffix = FileTypes::typeToName(FileHandler::getTypeByContent(file));
       String new_prefix = String(fi.path() + "/" + fi.baseName()) + ".";
-      String new_name = new_prefix + new_suffix;
-      if (unique.count(new_name)) // make a new name
-      {
-        Int counter(0);
-        while (unique.count(new_prefix + counter + "." + new_suffix))
-          ++counter;
-        new_name = new_prefix + counter + "." + new_suffix;
-      }
-
-      // filename is unique - use it
-      unique.insert(new_name);
-      name_old_to_new[file] = new_name;
+      NameComponent nc(new_prefix, new_suffix);
+      name_old_to_new[file] = nc;
+      ++name_new_count[nc.toString()];
     }
+    // for all names which occur more than once, introduce a counter  
+    foreach(QString file, files)
+    {
+      if (name_new_count[name_old_to_new[file].toString()] > 1) // candidate for counter
+      {
+        name_old_to_new[file].counter = ++name_new_idx[name_old_to_new[file].toString()]; // start at index 1
+      }
+    }
+
 
     for (Size i = 0; i < output_files_.size(); ++i)
     {
@@ -810,22 +834,23 @@ namespace OpenMS
         {
           // rename file and update record
           QFile file(it->second.filenames[fi]);
-          if (File::exists(name_old_to_new[it->second.filenames[fi]]))
+          String new_filename = name_old_to_new[it->second.filenames[fi]].toString();
+          if (File::exists(new_filename))
           {
-            bool success = File::remove(name_old_to_new[it->second.filenames[fi]]);
+            bool success = File::remove(new_filename);
             if (!success)
             {
-              std::cerr << "Could not remove " << name_old_to_new[it->second.filenames[fi]] << "\n";
+              std::cerr << "Could not remove '" << new_filename << "'.\n";
               return false;
             }
           }
-          bool success = file.rename(name_old_to_new[it->second.filenames[fi]].toQString());
+          bool success = file.rename(new_filename.toQString());
           if (!success)
           {
-            std::cerr << "Could not rename " << String(it->second.filenames[fi]) << " to " << name_old_to_new[it->second.filenames[fi]] << "\n";
+            std::cerr << "Could not rename " << String(it->second.filenames[fi]) << " to " << new_filename << "\n";
             return false;
           }
-          it->second.filenames[fi] = name_old_to_new[it->second.filenames[fi]].toQString();
+          it->second.filenames[fi] = new_filename.toQString();
         }
       }
     }
@@ -973,7 +998,7 @@ namespace OpenMS
               fn = fn.left(tmp_index);
             }
             fn = fn.left(220); // allow max of 220 chars per path+filename (~NTFS limit)
-            fn += "_tmp" + QString::number(uid_++);
+            fn += "_tmp" +  QString("%1").arg(uid_++, 3, 10, QChar('0')); // pad with zeros '00X' etc...
             fn = QDir::toNativeSeparators(fn);
             output_files_[r][param_index].filenames.push_back(fn);
           }
