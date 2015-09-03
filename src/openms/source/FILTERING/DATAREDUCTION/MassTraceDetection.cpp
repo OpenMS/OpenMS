@@ -53,7 +53,7 @@ MassTraceDetection::MassTraceDetection() :
 {
     defaults_.setValue("mass_error_ppm", 20.0, "Allowed mass deviation (in ppm).");
     defaults_.setValue("noise_threshold_int", 10.0, "Intensity threshold below which peaks are removed as noise.");
-    defaults_.setValue("chrom_peak_snr", 3.0, "Minimum signal-to-noise a mass trace should have.");
+    defaults_.setValue("chrom_peak_snr", 3.0, "Minimum intensity above noise_threshold_int (signal-to-noise) a peak should have to be considered an apex.");
 
     defaults_.setValue("reestimate_mt_sd", "true", "Enables dynamic re-estimation of m/z variance during mass trace collection stage.");
     defaults_.setValidStrings("reestimate_mt_sd", ListUtils::create<String>("true,false"));
@@ -65,7 +65,7 @@ MassTraceDetection::MassTraceDetection() :
 
     defaults_.setValue("min_sample_rate", 0.5, "Minimum fraction of scans along the mass trace that must contain a peak.", ListUtils::create<String>("advanced"));
     defaults_.setValue("min_trace_length", 5.0, "Minimum expected length of a mass trace (in seconds).", ListUtils::create<String>("advanced"));
-    defaults_.setValue("max_trace_length", 300.0, "Minimum expected length of a mass trace (in seconds).", ListUtils::create<String>("advanced"));
+    defaults_.setValue("max_trace_length", 300.0, "Maximum expected length of a mass trace (in seconds).", ListUtils::create<String>("advanced"));
 
     defaultsToParam_();
 
