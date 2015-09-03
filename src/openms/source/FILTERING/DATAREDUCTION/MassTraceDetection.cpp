@@ -200,6 +200,8 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
     found_masstraces.clear();
 
     // gather all peaks that are potential chromatographic peak apeces
+    //   - use work_exp for actual work (remove peaks below noise threshold)
+    //   - store potential apices in chrom_apeces
     typedef std::multimap<double, std::pair<Size, Size> > MapIdxSortedByInt;
     MSExperiment<Peak1D> work_exp;
     MapIdxSortedByInt chrom_apeces;
@@ -210,29 +212,25 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
 
     Size spectra_count(0);
 
-
-    // this->startProgress(0, input_exp.size(), "Detect potential chromatographic apeces...");
+    // *********************************************************** //
+    //  Detecting potential chromatographic apices
+    // *********************************************************** //
     for (Size scan_idx = 0; scan_idx < input_exp.size(); ++scan_idx)
     {
-        // this->setProgress(scan_idx);
-
         // check if this is a MS1 survey scan
         if (input_exp[scan_idx].getMSLevel() == 1)
         {
             double scan_rt = input_exp[scan_idx].getRT();
             MSSpectrum<Peak1D> tmp_spec;
             Size spec_peak_idx = 0;
-
             tmp_spec.setRT(scan_rt);
 
             for (Size peak_idx = 0; peak_idx < input_exp[scan_idx].size(); ++peak_idx)
             {
                 double tmp_peak_int(input_exp[scan_idx][peak_idx].getIntensity());
-
                 if (tmp_peak_int > noise_threshold_int_)
                 {
                     tmp_spec.push_back(input_exp[scan_idx][peak_idx]);
-
                     if (tmp_peak_int > chrom_peak_snr_ * noise_threshold_int_)
                     {
                         chrom_apeces.insert(std::make_pair(tmp_peak_int, std::make_pair(scan_idx, spec_peak_idx)));
@@ -241,20 +239,17 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
                     ++spec_peak_idx;
                 }
             }
-
-
             work_exp.addSpectrum(tmp_spec);
             spec_offsets.push_back(spec_offsets[spec_offsets.size() - 1] + tmp_spec.size());
-
             ++spectra_count;
         }
     }
 
     if (spectra_count < 3)
     {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Input map consists of too few spectra (less than 3!). Aborting...", String(spectra_count));
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+            "Input map consists of too few spectra (less than 3!). Aborting...", String(spectra_count));
     }
-
 
     Size min_fwhm_scans(3);
     double scan_time(std::fabs(input_exp[input_exp.size() - 1].getRT() - input_exp[0].getRT()) / input_exp.size());
@@ -267,29 +262,25 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
     {
         min_fwhm_scans = scan_nums;
     }
-
-
     // Size min_flank_scans(3);
-
     // discard last spectrum's offset
     spec_offsets.pop_back();
 
+    // *********************************************************** //
+    //  start extending mass traces beginning with the apex peak
+    // *********************************************************** //
     boost::dynamic_bitset<> peak_visited(peak_count);
-
-    // start extending mass traces beginning with the apex peak
-
-    Size trace_number(1);
-
+    Size trace_number(1); Size peaks_detected(0);
     this->startProgress(0, peak_count, "mass trace detection");
-    Size peaks_detected(0);
-
     for (MapIdxSortedByInt::reverse_iterator m_it = chrom_apeces.rbegin(); m_it != chrom_apeces.rend(); ++m_it)
     {
         Size apex_scan_idx(m_it->second.first);
         Size apex_peak_idx(m_it->second.second);
 
         if (peak_visited[spec_offsets[apex_scan_idx] + apex_peak_idx])
+        {
             continue;
+        }
 
         Peak2D apex_peak;
         apex_peak.setRT(work_exp[apex_scan_idx].getRT());
@@ -330,13 +321,17 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
         double ftl_sd((centroid_mz / 1e6) * mass_error_ppm_);
         double intensity_so_far(apex_peak.getIntensity());
 
-        while (((trace_down_idx > 0) && toggle_down) || ((trace_up_idx < work_exp.size() - 1) && toggle_up))
+        while ( ((trace_down_idx > 0) && toggle_down) || 
+                ((trace_up_idx < work_exp.size() - 1) && toggle_up)
+              )
         {
 
             // double centroid_mz = current_trace.getCentroidMZ();
 
-            // try to go downwards in RT
-            if (((trace_down_idx > 0) && toggle_down))
+            // *********************************************************** //
+            // MOVE DOWN in RT dim
+            // *********************************************************** //
+            if ( (trace_down_idx > 0) && toggle_down)
             {
                 if (!work_exp[trace_down_idx - 1].empty())
                 {
@@ -360,9 +355,10 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
                     // double left_mz(work_exp[trace_down_idx - 1][left_next_idx].getMZ());
                     // double right_mz(work_exp[trace_down_idx - 1][right_next_idx].getMZ());
 
-                    // std::cout << "next: " << next_down_peak_mz << std::endl;
-
-                    if ((next_down_peak_mz <= right_bound) && (next_down_peak_mz >= left_bound) && !peak_visited[spec_offsets[trace_down_idx - 1] + next_down_peak_idx])
+                    if ((next_down_peak_mz <= right_bound) && 
+                        (next_down_peak_mz >= left_bound) && 
+                        !peak_visited[spec_offsets[trace_down_idx - 1] + next_down_peak_idx]
+                       )
                     {
                         Peak2D next_peak;
                         next_peak.setRT(work_exp[trace_down_idx - 1].getRT());
@@ -373,8 +369,6 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
 
                         updateIterativeWeightedMeanMZ(next_down_peak_mz, next_down_peak_int, centroid_mz, prev_counter, prev_denom);
                         gathered_idx.push_back(std::make_pair(trace_down_idx - 1, next_down_peak_idx));
-
-
 
                         if (reestimate_mt_sd_) //  && (down_hitting_peak+1 > min_flank_scans))
                         {
@@ -392,7 +386,6 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
                         ++conseq_missed_peak_down;
                     }
 
-
                 }
                 --trace_down_idx;
                 ++down_scan_counter;
@@ -409,24 +402,21 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
                 }
                 else if (trace_termination_criterion_ == "sample_rate")
                 {
-                    current_sample_rate = (double)(down_hitting_peak + up_hitting_peak + 1)/(double)(down_scan_counter + up_scan_counter + 1);
-
+                    current_sample_rate = (double)(down_hitting_peak + up_hitting_peak + 1) / 
+                                              (double)(down_scan_counter + up_scan_counter + 1);
                     if (down_scan_counter > min_scans_to_consider && current_sample_rate < min_sample_rate_)
                     {
                         // std::cout << "stopping down..." << std::endl;
                         toggle_down = false;
                     }
-
                 }
-
             }
 
-            //}
             // *********************************************************** //
             // MOVE UP in RT dim
             // *********************************************************** //
 
-            if (((trace_up_idx < work_exp.size() - 1) && toggle_up))
+            if ((trace_up_idx < work_exp.size() - 1) && toggle_up)
             {
                 if (!work_exp[trace_up_idx + 1].empty())
                 {
@@ -444,7 +434,9 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
                     left_bound = centroid_mz - 3 * ftl_sd;
 
 
-                    if ((next_up_peak_mz <= right_bound) && (next_up_peak_mz >= left_bound) && !peak_visited[spec_offsets[trace_up_idx + 1] + next_up_peak_idx])
+                    if ((next_up_peak_mz <= right_bound) && 
+                        (next_up_peak_mz >= left_bound) && 
+                        !peak_visited[spec_offsets[trace_up_idx + 1] + next_up_peak_idx])
                     {
                         Peak2D next_peak;
                         next_peak.setRT(work_exp[trace_up_idx + 1].getRT());
