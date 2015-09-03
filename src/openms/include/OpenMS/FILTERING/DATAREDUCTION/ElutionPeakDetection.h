@@ -78,7 +78,7 @@ public:
     */
     void detectPeaks(MassTrace& mt, std::vector<MassTrace>& single_mtraces);
 
-    /** @brief Applies the aforementioned detection method on a series of mass traces as input
+    /** @brief Extracts chromatographic peaks from multiple MassTraces and stores the splits into a vector of new mass traces.
      *
      * @note Smoothed intensities are added to @p mt_vec
      *

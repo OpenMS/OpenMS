@@ -54,10 +54,13 @@ namespace OpenMS
   ElutionPeakDetection::ElutionPeakDetection() :
     DefaultParamHandler("ElutionPeakDetection"), ProgressLogger()
   {
-    defaults_.setValue("chrom_fwhm", 5.0, "Expected full-width-at-half-maximum of chromatographic peaks.");
+    defaults_.setValue("chrom_fwhm", 5.0, "Expected full-width-at-half-maximum of chromatographic peaks (in seconds).");
     defaults_.setValue("chrom_peak_snr", 3.0, "Minimum signal-to-noise a mass trace should have.");
     defaults_.setValue("noise_threshold_int", 10.0, "Intensity threshold below which peaks are regarded as noise.");
 
+    // NOTE: the algorithm will only act upon the "fixed" value, if you would
+    // like to use the "auto" setting, you will have to call filterByPeakWidth
+    // yourself
     defaults_.setValue("width_filtering", "fixed", "Enable filtering of unlikely peak widths. The fixed setting filters out mass traces outside the [min_fwhm, max_fwhm] interval (set parameters accordingly!). The auto setting filters with the 5 and 95% quantiles of the peak width distribution.");
     defaults_.setValidStrings("width_filtering", ListUtils::create<String>("off,fixed,auto"));
     defaults_.setValue("min_fwhm", 3.0, "Minimum full-width-at-half-maximum of chromatographic peaks (in seconds). Ignored if paramter width_filtering is off or auto.", ListUtils::create<String>("advanced"));
@@ -66,12 +69,7 @@ namespace OpenMS
     defaults_.setValue("masstrace_snr_filtering", "false", "Apply post-filtering by signal-to-noise ratio after smoothing.", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("masstrace_snr_filtering", ListUtils::create<String>("false,true"));
 
-    // defaults_.setValue("min_trace_length", 5.0, "Minimum length of a mass trace (in seconds).", ListUtils::create<String>("advanced"));
-    // defaults_.setValue("max_trace_length", 300.0, "Maximum length of a mass trace (in seconds).", ListUtils::create<String>("advanced"));
-
-
     defaultsToParam_();
-
     this->setLogType(CMD);
   }
 
@@ -142,7 +140,8 @@ namespace OpenMS
 
     if (mt_length != tr.getSize())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MassTrace was not smoothed before! Aborting...", String(smoothed_ints_vec.size()));
+      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+          "MassTrace was not smoothed before! Aborting...", String(smoothed_ints_vec.size()));
     }
 
     // first make sure that everything is cleared
@@ -162,7 +161,7 @@ namespace OpenMS
       intensity_indices.insert(std::make_pair(smoothed_ints_vec[i], i));
     }
 
-
+    // Step 1: Identify maxima
     for (std::multimap<double, Size>::const_iterator c_it = intensity_indices.begin(); c_it != intensity_indices.end(); ++c_it)
     {
       double ref_int = c_it->first;
@@ -172,21 +171,20 @@ namespace OpenMS
       {
         bool real_max = true;
 
-        // iterate up the RT
+        // Get start_idx and end_idx based on expected peak width
         Size start_idx(0);
-
         if (ref_idx > num_neighboring_peaks)
         {
           start_idx = ref_idx - num_neighboring_peaks;
         }
-
         Size end_idx = ref_idx + num_neighboring_peaks;
-
         if (end_idx > mt_length)
         {
           end_idx = mt_length;
         }
 
+        // Identify putative peak between start_idx and end_idx, now check if
+        // no other maxima exist within the expected boundaries
         for (Size j = start_idx; j < end_idx; ++j)
         {
           if (used_idx[j])
@@ -206,6 +204,7 @@ namespace OpenMS
           }
         }
 
+        // Continue if no other maxima exists
         if (real_max)
         {
           chrom_maxes.push_back(ref_idx);
@@ -215,20 +214,15 @@ namespace OpenMS
             used_idx[j] = true;
           }
         }
-
       }
     }
 
-
     std::sort(chrom_maxes.begin(), chrom_maxes.end());
 
-
+    // Step 1: Identify minima
     if (chrom_maxes.size() > 1)
     {
-
       Size i(0), j(1);
-      //for (Size i = 0; i < chrom_maxes.size() - 1; ++i)
-
       while (i < j && j < chrom_maxes.size())
       {
         // bisection
@@ -238,9 +232,7 @@ namespace OpenMS
         while ((left_bound + 1) < right_bound)
         {
           double mid_dist((right_bound - left_bound) / 2.0);
-
           Size mid_element_idx(left_bound + std::floor(mid_dist));
-
           double mid_element_int = smoothed_ints_vec[mid_element_idx];
 
           if (mid_element_int <= smoothed_ints_vec[mid_element_idx + 1])
@@ -277,16 +269,12 @@ namespace OpenMS
         // out debug info
         // std::cout << tr.getLabel() << ": i,j " << i << "," << j << ":" << left_max_int << " min: " << min_int << " " << right_max_int << " l " << left_rt << " r " << right_rt << " m " << mid_rt << std::endl;
 
-
-
         if (left_max_int / min_int >= 2.0
            && right_max_int / min_int >= 2.0
            && left_dist >= min_dist
            && right_dist >= min_dist)
         {
           chrom_mins.push_back(min_rt);
-
-          // std::cout << "min added!" << std::endl;
           i = j;
           ++j;
         }
@@ -303,8 +291,6 @@ namespace OpenMS
             ++j;
           }
         }
-
-        // chrom_mins.push_back(min_rt);
       }
     }
 
@@ -411,21 +397,17 @@ namespace OpenMS
       bool pw_ok = true;
       bool snr_ok = true;
 
-      // check mass trace filter criteria (if enabled)
+      // check mass trace filter criteria (if fixed filter is enabled)
       if (pw_filtering_ == "fixed")
       {
         double act_fwhm(mt.estimateFWHM(true));
-
-        // std::cout << "act_fwhm: " << act_fwhm << " ";
-
         if (act_fwhm < min_fwhm_ || act_fwhm > max_fwhm_)
         {
           pw_ok = false;
         }
-
-        // std::cout << pw_ok << std::endl;
       }
 
+      // check mass trace signal to noise filter criteria
       if (mt_snr_filtering_)
       {
         if (computeApexSNR(mt) < chrom_peak_snr_)
@@ -433,7 +415,6 @@ namespace OpenMS
           snr_ok = false;
         }
       }
-
 
       if (pw_ok && snr_ok)
       {
@@ -483,35 +464,28 @@ namespace OpenMS
           ++last_idx;
         }
 
-        // check if
-
-//            if (tmp_mt.size() >= win_size / 2)
-//            {
+//      Old if statement ... 
+//      if (tmp_mt.size() >= win_size / 2)
         MassTrace new_mt(tmp_mt);
 
         // copy smoothed int's
         new_mt.setSmoothedIntensities(smoothed_tmp);
 
-
         // check filter criteria
         bool pw_ok = true;
         bool snr_ok = true;
 
-        // check mass trace filter criteria (if enabled)
+        // check mass trace filter criteria (if fixed filter is enabled)
         if (pw_filtering_ == "fixed")
         {
           double act_fwhm(new_mt.estimateFWHM(true));
-
-          // std::cout << "act_fwhm: " << act_fwhm << " ";
-
           if (act_fwhm < min_fwhm_ || act_fwhm > max_fwhm_)
           {
             pw_ok = false;
           }
-
-          // std::cout << pw_ok << std::endl;
         }
 
+        // check mass trace signal to noise filter criteria
         if (mt_snr_filtering_)
         {
           if (computeApexSNR(mt) < chrom_peak_snr_)
@@ -519,7 +493,6 @@ namespace OpenMS
             snr_ok = false;
           }
         }
-
 
         if (pw_ok && snr_ok)
         {
@@ -546,7 +519,6 @@ namespace OpenMS
 #endif
           single_mtraces.push_back(new_mt);
         }
-        //  }
       }
 
     }
