@@ -75,12 +75,12 @@ START_SECTION((MascotXMLFile()))
   TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
-START_SECTION((static void initializeSpectrumLookup(MSExperiment<>& experiment, SpectrumLookup& lookup, const String& scan_regex = "")))
+START_SECTION((static void initializeSpectrumLookup(SpectrumLookup& lookup, MSExperiment<>& experiment, const String& scan_regex = "")))
 {
   MSExperiment<> exp;
   exp.getSpectra().resize(1);
   SpectrumLookup lookup;
-  xml_file.initializeSpectrumLookup(exp, lookup);
+  xml_file.initializeSpectrumLookup(lookup, exp);
   TEST_EQUAL(lookup.empty(), false);
 }
 END_SECTION

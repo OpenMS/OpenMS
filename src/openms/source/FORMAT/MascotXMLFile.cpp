@@ -136,14 +136,40 @@ namespace OpenMS
   }
 
 
-  void MascotXMLFile::initializeSpectrumLookup(MSExperiment<>& experiment,
-                                               SpectrumLookup& lookup,
+  void MascotXMLFile::initializeSpectrumLookup(SpectrumLookup& lookup,
+                                               MSExperiment<>& exp,
                                                const String& scan_regex)
   {
     // load spectra and extract scan numbers from the native IDs
     // (expected format: "... scan=#"):
-    lookup.setSpectra(experiment.getSpectra());
-    if (!scan_regex.empty()) lookup.addReferenceFormat(scan_regex);
+    lookup.setSpectra(exp.getSpectra());
+    if (scan_regex.empty()) // use default formats
+    {
+      if (!lookup.empty()) // raw data given -> spectrum look-up possible
+      {
+        // possible formats and resulting scan numbers:
+        // - Mascot 2.3 (?):
+        // <pep_scan_title>scan=818</pep_scan_title> -> 818
+        // - ProteomeDiscoverer/Mascot 2.3 or 2.4:
+        // <pep_scan_title>Spectrum136 scans:712,</pep_scan_title> -> 712
+        // - other variants:
+        // <pep_scan_title>Spectrum3411 scans: 2975,</pep_scan_title> -> 2975
+        // <...>File773 Spectrum198145 scans: 6094</...> -> 6094
+        // <...>6860: Scan 10668 (rt=5380.57)</...> -> 10668
+        // <pep_scan_title>Scan Number: 1460</pep_scan_title> -> 1460
+        lookup.addReferenceFormat("[Ss]can( [Nn]umber)?s?[=:]? *(?<SCAN>\\d+)");
+        // - with .dta input to Mascot:
+        // <...>/path/to/FTAC05_13.673.673.2.dta</...> -> 673
+        lookup.addReferenceFormat("\\.(?<SCAN>\\d+)\\.\\d+\\.(?<CHARGE>\\d+)(\\.dta)?");
+      }
+      // title containing RT and MZ instead of scan number:
+      // <...>575.848571777344_5018.0811_controllerType=0 controllerNumber=1 scan=11515_EcoliMS2small</...>
+      lookup.addReferenceFormat("^(?<MZ>\\d+(\\.\\d+)?)_(?<RT>\\d+(\\.\\d+)?)");
+    }
+    else // use only user-defined format
+    {
+      lookup.addReferenceFormat(scan_regex);
+    }
   }
 
 } // namespace OpenMS

@@ -246,7 +246,7 @@ protected:
 
       // set up helper object for looking up spectrum meta data:
       SpectrumLookup lookup;
-      MascotXMLFile::initializeSpectrumLookup(exp, lookup);
+      MascotXMLFile::initializeSpectrumLookup(lookup, exp);
 
       // read the response
       MascotXMLFile().load(mascot_tmp_file_name, prot_id, pep_ids, lookup);

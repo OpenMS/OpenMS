@@ -103,9 +103,9 @@ public:
       @param lookup Helper object to initialize
       @param scan_regex Optional regular expression for extracting information from references to spectra
     */  
-    static void initializeSpectrumLookup(
-      MSExperiment<>& experiment, SpectrumLookup& lookup,
-      const String& scan_regex = "");
+    static void initializeSpectrumLookup(SpectrumLookup& lookup, 
+                                         MSExperiment<>& experiment, 
+                                         const String& scan_regex = "");
 
   };
 

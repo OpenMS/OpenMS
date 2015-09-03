@@ -39,7 +39,6 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
-#include <OpenMS/FORMAT/HANDLERS/MascotXMLHandler.h> // for "primary_scan_regex"
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <fstream>
@@ -506,7 +505,6 @@ namespace OpenMS
     if (experiment_name != "")
     {
       exp_name_ = File::removeExtension(experiment_name);
-      lookup.addReferenceFormat(Internal::MascotXMLHandler::primary_scan_regex);
       lookup_ = &lookup;
     }
 

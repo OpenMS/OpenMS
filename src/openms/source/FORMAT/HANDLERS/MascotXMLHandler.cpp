@@ -43,38 +43,12 @@ namespace OpenMS
 {
   namespace Internal
   {
-    const String MascotXMLHandler::primary_scan_regex =
-      "[Ss]can( [Nn]umber)?s?[=:]? *(?<SCAN>\\d+)";
-
     MascotXMLHandler::MascotXMLHandler(ProteinIdentification& protein_identification, vector<PeptideIdentification>& id_data, const String& filename, map<String, vector<AASequence> >& modified_peptides, SpectrumLookup& lookup):
       XMLHandler(filename, ""), protein_identification_(protein_identification),
       id_data_(id_data), peptide_identification_index_(0), actual_title_(""),
       modified_peptides_(modified_peptides), lookup_(lookup),
       no_rt_error_(false)
     {
-      if (lookup_.reference_formats.empty()) // no user-defined format
-      {
-        if (!lookup_.empty()) // spectra provided, look-up possible
-        {
-          // possible formats and resulting scan numbers:
-          // - Mascot 2.3 (?):
-          // <pep_scan_title>scan=818</pep_scan_title> -> 818
-          // - ProteomeDiscoverer/Mascot 2.3 or 2.4:
-          // <pep_scan_title>Spectrum136 scans:712,</pep_scan_title> -> 712
-          // - other variants:
-          // <pep_scan_title>Spectrum3411 scans: 2975,</pep_scan_title> -> 2975
-          // <...>File773 Spectrum198145 scans: 6094</...> -> 6094
-          // <...>6860: Scan 10668 (rt=5380.57)</...> -> 10668
-          // <pep_scan_title>Scan Number: 1460</pep_scan_title> -> 1460
-          lookup_.addReferenceFormat(primary_scan_regex);
-          // - with .dta input to Mascot:
-          // <...>/path/to/FTAC05_13.673.673.2.dta</...> -> 673
-          lookup_.addReferenceFormat("\\.(?<SCAN>\\d+)\\.\\d+\\.(?<CHARGE>\\d+)(\\.dta)?");
-        }
-        // title containing RT and MZ instead of scan number:
-        // <...>575.848571777344_5018.0811_controllerType=0 controllerNumber=1 scan=11515_EcoliMS2small</...>
-        lookup_.addReferenceFormat("^(?<MZ>\\d+(\\.\\d+)?)_(?<RT>\\d+(\\.\\d+)?)");
-      }
     }
 
     MascotXMLHandler::~MascotXMLHandler()
@@ -154,8 +128,8 @@ namespace OpenMS
         {
           flags |= SpectrumLookup::METADATA_MZ;
         }
-        // try
-        // {
+        try
+        {
           lookup_.getSpectrumMetaDataByReference(title, meta, flags);
           id_data_[peptide_identification_index_].setRT(meta.rt);
           // have we looked up the m/z value?
@@ -163,12 +137,12 @@ namespace OpenMS
           {
             id_data_[peptide_identification_index_].setMZ(meta.mz);
           }
-        // }
-        // catch(...)
-        // {
-        //   String msg = "<pep_scan_title> element has unexpected format '" + title + "'. Could not extract spectrum meta data.";
-        //   error(LOAD, msg);
-        // }
+        }
+        catch(...)
+        {
+          String msg = "<pep_scan_title> element has unexpected format '" + title + "'. Could not extract spectrum meta data.";
+          error(LOAD, msg);
+        }
         // did it work?
         if (!id_data_[peptide_identification_index_].getRT())
         {
