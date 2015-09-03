@@ -183,7 +183,8 @@ protected:
     {
       if (!getFlag_("force"))
       {
-        throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided spectra expected. To enforce processing of the data set the -force flag.");
+        throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__,
+            "Error: Profile data provided but centroided spectra expected. To enforce processing of the data set the -force flag.");
       }
     }
 
@@ -277,7 +278,8 @@ protected:
     Size trace_count(0);
     for (Size i = 0; i < feat_map.size(); ++i)
     {
-      OPENMS_PRECONDITION(feat_map[i].metaValueExists("num_of_masstraces"), "MetaValue 'num_of_masstraces' missing from FFMetabo output!");
+      OPENMS_PRECONDITION(feat_map[i].metaValueExists("num_of_masstraces"),
+          "MetaValue 'num_of_masstraces' missing from FFMetabo output!");
       trace_count += (Size) feat_map[i].getMetaValue("num_of_masstraces");
     }
 
@@ -312,7 +314,6 @@ protected:
       }
       feat_map[0].setMetaValue("scan_polarity", ListUtils::concatenate(sl_pols, ";"));
     }
-
 
     //-------------------------------------------------------------
     // writing output

@@ -134,7 +134,7 @@ namespace OpenMS
   }
 
   void ElutionPeakDetection::findLocalExtrema(const MassTrace& tr, const Size& num_neighboring_peaks,
-      std::vector<Size>& chrom_maxes, std::vector<Size>& chrom_mins)
+                                              std::vector<Size>& chrom_maxes, std::vector<Size>& chrom_mins)
   {
     std::vector<double> smoothed_ints_vec(tr.getSmoothedIntensities());
 
@@ -337,7 +337,7 @@ namespace OpenMS
 #ifdef _OPENMP
 #pragma omp atomic
 #endif
-        ++progress;
+      ++progress;
 
       // push_back to 'single_mtraces' is protected, so threading is ok
       detectElutionPeaks_(mt_vec[i], single_mtraces);

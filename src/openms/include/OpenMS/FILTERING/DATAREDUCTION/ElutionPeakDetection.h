@@ -41,19 +41,18 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MassTrace.h>
 
-
 namespace OpenMS
 {
   /**
     @brief Extracts chromatographic peaks from a mass trace.
 
-      Mass traces may consist of several consecutively (partly overlapping)
-      eluting peaks, e.g., stemming from isomeric compounds with exactly the
-      same mass but different retentional behaviour. This method first applies
-      smoothing on the mass trace's intensities, then detects local
-      minima/maxima in order to separate the chromatographic peaks from each
-      other. This results in a vector that gathers the split mass traces
-      (see @ref ElutionPeakDetection parameters).
+    Mass traces may consist of several consecutively (partly overlapping)
+    eluting peaks, e.g., stemming from isomeric compounds with exactly the
+    same mass but different retentional behaviour. This method first applies
+    smoothing on the mass trace's intensities, then detects local
+    minima/maxima in order to separate the chromatographic peaks from each
+    other. This results in a vector that gathers the split mass traces
+    (see @ref ElutionPeakDetection parameters).
 
     @htmlinclude OpenMS_ElutionPeakDetection.parameters
 
@@ -90,7 +89,7 @@ public:
     void detectPeaks(std::vector<MassTrace>& mt_vec, std::vector<MassTrace>& single_mtraces);
 
     /// Filter out mass traces below lower 5 % quartile and above upper 95 % quartile
-    void filterByPeakWidth(std::vector<MassTrace> &, std::vector<MassTrace> &);
+    void filterByPeakWidth(std::vector<MassTrace>&, std::vector<MassTrace>&);
 
     /// Compute noise level (as RMSE of the actual signal and the smoothed signal)
     double computeMassTraceNoise(const MassTrace&);
@@ -101,7 +100,7 @@ public:
     /// Compute the signal to noise ratio at the apex (estimated by computeMassTraceNoise)
     double computeApexSNR(const MassTrace&);
 
-    /** @brief Computes local extrema on a mass trace 
+    /** @brief Computes local extrema on a mass trace
      *
      * This function computes local extrema on a given input mass trace
      *
@@ -111,7 +110,7 @@ public:
      * @param chrom_mins Output of minima (gets cleared)
      *
     */
-    void findLocalExtrema(const MassTrace& tr, const Size& num_neighboring_peaks, 
+    void findLocalExtrema(const MassTrace& tr, const Size& num_neighboring_peaks,
                           std::vector<Size>& chrom_maxes, std::vector<Size>& chrom_mins);
 
     /// adds smoothed_intensities to internal data of @p mt
@@ -135,7 +134,7 @@ private:
     String pw_filtering_;
     bool mt_snr_filtering_;
 
-    void detectElutionPeaks_(MassTrace &, std::vector<MassTrace> &);
+    void detectElutionPeaks_(MassTrace&, std::vector<MassTrace>&);
   };
 
 } // namespace OpenMS
