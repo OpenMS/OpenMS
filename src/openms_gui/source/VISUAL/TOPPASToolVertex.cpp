@@ -902,7 +902,7 @@ namespace OpenMS
         //std::cerr << "Edge: " << (it->second.edge->toString()) << "\n";
         if ((it->second.filenames.size() > max_size) ||   // either just larger 
             // ... or it's from '-in' (which we prefer as naming source).. only for non-recycling -in though
-            (it->second.filenames.size () == max_size) && (it->second.edge->getTargetInParamName() == "in") && (use_recycling == 0))
+            ((it->second.filenames.size () == max_size) && (it->second.edge->getTargetInParamName() == "in") && (use_recycling == 0)))
         {
           max_size_index = it->first;
           max_size       = it->second.filenames.size();
