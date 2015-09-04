@@ -256,18 +256,6 @@ namespace OpenMS
                                     "Input map consists of too few spectra (less than 3!). Aborting...", String(spectra_count));
     }
 
-    Size min_fwhm_scans(3);
-    double scan_time(std::fabs(input_exp[input_exp.size() - 1].getRT() - input_exp[0].getRT()) / input_exp.size());
-
-    // std::cout << "scan_time: " << scan_time << " " << min_trace_length_ << std::endl;
-
-    Size scan_nums(std::floor(min_trace_length_ / scan_time));
-
-    if (scan_nums > min_fwhm_scans)
-    {
-      min_fwhm_scans = scan_nums;
-    }
-    // Size min_flank_scans(3);
     // discard last spectrum's offset
     spec_offsets.pop_back();
 
@@ -275,15 +263,16 @@ namespace OpenMS
     // Step 2: start extending mass traces beginning with the apex peak (go
     // through all peaks in order of decreasing intensity)
     // *********************************************************************
-    run_(chrom_apeces, scan_time, peak_count, work_exp, spec_offsets, found_masstraces);
+    run_(chrom_apeces, peak_count, work_exp, spec_offsets, found_masstraces);
 
     return;
   } // end of MassTraceDetection::run
 
-  void MassTraceDetection::run_(const MapIdxSortedByInt& chrom_apeces, double scan_time, Size peak_count, 
-      const MSExperiment<Peak1D> & work_exp, const std::vector<Size>& spec_offsets, std::vector<MassTrace> & found_masstraces)
+  void MassTraceDetection::run_(const MapIdxSortedByInt& chrom_apeces, Size peak_count, 
+                                const MSExperiment<Peak1D> & work_exp, 
+                                const std::vector<Size>& spec_offsets,
+                                std::vector<MassTrace> & found_masstraces)
   {
-
     // Size min_flank_scans(3);
     boost::dynamic_bitset<> peak_visited(peak_count);
     Size trace_number(1);
