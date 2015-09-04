@@ -93,8 +93,10 @@ private:
     typedef std::multimap<double, std::pair<Size, Size> > MapIdxSortedByInt;
 
     /// The internal run method
-    void run_(const MapIdxSortedByInt& chrom_apeces, double scan_time, Size peak_count, 
-        const MSExperiment<Peak1D> & work_exp, const std::vector<Size>& spec_offsets, std::vector<MassTrace> & found_masstraces);
+    void run_(const MapIdxSortedByInt& chrom_apeces, Size peak_count, 
+              const MSExperiment<Peak1D> & work_exp,
+              const std::vector<Size>& spec_offsets,
+              std::vector<MassTrace> & found_masstraces);
 
     // parameter stuff
     double mass_error_ppm_;
