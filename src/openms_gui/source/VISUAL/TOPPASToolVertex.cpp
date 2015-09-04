@@ -55,6 +55,31 @@
 
 namespace OpenMS
 {
+
+
+  struct NameComponent
+  {
+    String prefix, suffix;
+    int counter;
+    NameComponent()
+      : counter(-1)
+    {}
+
+    NameComponent(const String& r_prefix, const String& r_suffix)
+      : prefix(r_prefix),
+      suffix(r_suffix),
+      counter(-1)
+    {}
+
+    String toString() const
+    {
+      String s_counter;
+      if (counter != -1) s_counter = String(counter).fillLeft('0', 3) + ".";
+      return (prefix + s_counter + suffix);
+    }
+
+  };
+
   UInt TOPPASToolVertex::uid_ = 1;
 
   TOPPASToolVertex::TOPPASToolVertex() :
@@ -776,29 +801,6 @@ namespace OpenMS
   {
     // get all output names
     QStringList files = this->getFileNames();
-    
-    struct NameComponent
-    {
-      String prefix, suffix;
-      int counter;
-      NameComponent()
-        : counter(-1)
-      {}
-
-      NameComponent(const String& r_prefix, const String& r_suffix)
-       : prefix(r_prefix),
-         suffix(r_suffix),
-         counter(-1)
-      {}
-      
-      String toString() const
-      {
-        String s_counter;
-        if (counter != -1) s_counter = String(counter).fillLeft('0', 3) + ".";
-        return (prefix + s_counter + suffix);
-      }
-
-    };
 
     std::map<String, NameComponent> name_old_to_new;
     Map<String, int> name_new_count, name_new_idx; // count occurrence (for optional counter infix)
