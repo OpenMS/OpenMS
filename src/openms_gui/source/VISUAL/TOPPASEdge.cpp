@@ -89,6 +89,11 @@ namespace OpenMS
     setFlag(QGraphicsItem::ItemIsSelectable, true);
   }
 
+  String TOPPASEdge::toString()
+  {
+    String s = String("Edge: ") + getSourceOutParamName() + " target-in: " + getTargetInParamName() + "\n";
+    return s;
+  }
   TOPPASEdge & TOPPASEdge::operator=(const TOPPASEdge & rhs)
   {
     from_ = rhs.from_;

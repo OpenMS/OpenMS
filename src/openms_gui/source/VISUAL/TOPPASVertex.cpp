@@ -37,6 +37,7 @@
 #include <OpenMS/VISUAL/TOPPASScene.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <iostream>
 
@@ -138,12 +139,12 @@ namespace OpenMS
     return true;
   }
 
-  bool TOPPASVertex::buildRoundPackages(RoundPackages & pkg, String & error_msg) // check all incoming edges for this node and construct the package
+  bool TOPPASVertex::buildRoundPackages(RoundPackages& pkg, String& error_msg) // check all incoming edges for this node and construct the package
   {
     if (inEdgesBegin() == inEdgesEnd())
     {
       error_msg = "buildRoundPackages() called on vertex with no input edges!\n";
-      std::cerr << error_msg;
+      LOG_ERROR << error_msg;
       return false;
     }
 
@@ -154,11 +155,15 @@ namespace OpenMS
     {
       TOPPASVertex * tv = (*it)->getSourceVertex();
       if (tv->allow_output_recycling_)
+      {
         continue;
+      }
 
       ++no_recycle_count;
       if (round_common == -1)
+      {
         round_common = tv->round_total_;                       // first non-recycler sets the pace
+      }
 
       if (round_common != tv->round_total_)
       {

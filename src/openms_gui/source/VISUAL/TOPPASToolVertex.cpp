@@ -885,8 +885,8 @@ namespace OpenMS
 
     // look for the input with the most files in round 0 (as this is the maximal number of output files we can produce)
     // we assume the number of files is equal in all rounds...
-    // however, we delay using nodes which use 'recycling' of input, as the names will always be the same
-    //          only iff a recycling node gives the most input files we use its names
+    // However, we delay using nodes which use 'recycling' of input, as the names will always be the same.
+    //          Only if a recycling node gives the most input files we use its names
     int max_size_index = -1;
     int max_size = -1;
     for (int use_recycling = 0; use_recycling < 2; ++use_recycling)
@@ -899,7 +899,10 @@ namespace OpenMS
         { // first test all input nodes with disabled recycling
           continue;
         }
-        if (it->second.filenames.size() > max_size)
+        //std::cerr << "Edge: " << (it->second.edge->toString()) << "\n";
+        if ((it->second.filenames.size() > max_size) ||   // either just larger 
+            // ... or it's from '-in' (which we prefer as naming source).. only for non-recycling -in though
+            (it->second.filenames.size () == max_size) && (it->second.edge->getTargetInParamName() == "in") && (use_recycling == 0))
         {
           max_size_index = it->first;
           max_size       = it->second.filenames.size();
@@ -908,8 +911,8 @@ namespace OpenMS
 
       if (max_size_index == -1)
       {
-        error_msg = "Did not find upstream nodes with unrecycled names. Something is fishy!\n";
-        std::cerr << error_msg;
+        error_msg = "Did not find upstream nodes with un-recycled names. Something is fishy!\n";
+        LOG_ERROR << error_msg;
         return false;
       }
     }
