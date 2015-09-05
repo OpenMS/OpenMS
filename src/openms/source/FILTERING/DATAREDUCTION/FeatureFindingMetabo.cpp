@@ -748,43 +748,36 @@ namespace OpenMS
 
     for (Size charge = charge_lower_bound_; charge <= charge_upper_bound_; ++charge)
     {
-      //   std::cout << "checking charge: " << std::endl;
-
       FeatureHypothesis fh_tmp;
       fh_tmp.addMassTrace(*candidates[0]);
       fh_tmp.setScore((candidates[0]->getIntensity(use_smoothed_intensities_)) / total_intensity_);
 
-      //        double mono_iso_rt(candidates[0]->getCentroidRT());
-      //        double mono_iso_mz(candidates[0]->getCentroidMZ());
+      // double mono_iso_rt(candidates[0]->getCentroidRT());
+      // double mono_iso_mz(candidates[0]->getCentroidMZ());
       // double mono_iso_int(candidates[0]->computePeakArea());
 
       Size last_iso_idx(0);
-
       Size iso_pos_max(std::floor(charge * local_mz_range_));
-      // Size iso_pos_max(6);
-
-      // std::cout << "isoposmax: " << iso_pos_max << std::endl;
-
       for (Size iso_pos = 1; iso_pos <= iso_pos_max; ++iso_pos)
       {
 
         double best_so_far(0.0);
         Size best_idx(0);
-
         for (Size mt_idx = last_iso_idx + 1; mt_idx < candidates.size(); ++mt_idx)
         {
           // double tmp_iso_rt(candidates[mt_idx]->getCentroidRT());
           // double tmp_iso_mz(candidates[mt_idx]->getCentroidMZ());
           // double tmp_iso_int(candidates[mt_idx]->computePeakArea());
 
-          // std::cout << "scoring " << candidates[0]->getLabel() << " " << candidates[0]->getCentroidMZ() << " with " << candidates[mt_idx]->getLabel() << " " << candidates[mt_idx]->getCentroidMZ() << std::endl;
+#ifdef FFM_DEBUG
+          std::cout << "scoring " << candidates[0]->getLabel() << " " << candidates[0]->getCentroidMZ() << 
+            " with " << candidates[mt_idx]->getLabel() << " " << candidates[mt_idx]->getCentroidMZ() << std::endl;
+#endif
           double rt_score(scoreRT_(*candidates[0], *candidates[mt_idx]));
-
           double mz_score(scoreMZ_(*candidates[0], *candidates[mt_idx], iso_pos, charge));
 
           // disable intensity scoring for now...
           double int_score(1.0);
-
           // double int_score((candidates[0]->getIntensity(use_smoothed_intensities_))/total_weight + (candidates[mt_idx]->getIntensity(use_smoothed_intensities_))/total_weight);
 
           if (isotope_model_ == "peptides")
@@ -794,23 +787,23 @@ namespace OpenMS
             int_score = computeAveragineSimScore_(tmp_ints, candidates[mt_idx]->getCentroidMZ() * charge);
           }
 
-
-          // std::cout << fh_tmp.getLabel() << "_" << candidates[mt_idx]->getLabel() << "\t" "ch: " << charge << " isopos: " << iso_pos << " rt: " << rt_score << "mz: " << mz_score << "int: " << int_score << std::endl;
+#ifdef FFM_DEBUG
+          std::cout << fh_tmp.getLabel() << "_" << candidates[mt_idx]->getLabel() << 
+            "\t" << "ch: " << charge << " isopos: " << iso_pos << " rt: " << 
+            rt_score << "mz: " << mz_score << "int: " << int_score << std::endl;
+#endif
 
           double total_pair_score(0.0);
-
           if (rt_score > 0.0 && mz_score > 0.0 && int_score > 0.0)
           {
             total_pair_score = std::exp(std::log(rt_score) + log(mz_score) + log(int_score));
           }
-
           if (total_pair_score > best_so_far)
           {
             best_so_far = total_pair_score;
             best_idx = mt_idx;
-
           }
-        }             // end mt_idx
+        } // end mt_idx
 
         if (best_so_far > 0.0)
         {
@@ -833,11 +826,11 @@ namespace OpenMS
         {
           break;
         }
+      } // end for iso_pos
 
-
-      }       // end for iso_pos
-
-      // std::cout << "best found for ch " << charge << ":" << fh_tmp.getLabel() << " score: " << fh_tmp.getScore() << std::endl;
+#ifdef FFM_DEBUG
+      std::cout << "best found for ch " << charge << ":" << fh_tmp.getLabel() << " score: " << fh_tmp.getScore() << std::endl;
+#endif
     } // end for charge
 
     return;
@@ -851,12 +844,11 @@ namespace OpenMS
     // mass traces must be sorted by their centroid MZ
     std::sort(input_mtraces.begin(), input_mtraces.end(), CmpMassTraceByMZ());
 
-    std::vector<FeatureHypothesis> feat_hypos;
-
     this->startProgress(0, input_mtraces.size(), "assembling mass traces to features");
 
-    // configure quantification method
-    
+    // *********************************************************** //
+    // Step 1 configure quantification method
+    // *********************************************************** //
     MassTrace::MT_QUANTMETHOD method = MassTrace::getQuantMethod((String)param_.getValue("quant_method"));
     for (std::vector<MassTrace>::iterator it = input_mtraces.begin();
       it != input_mtraces.end();
@@ -865,8 +857,9 @@ namespace OpenMS
       it->setQuantMethod(method);
     }
 
-    // initialize SVM model for isotope ratio filtering
-    //loadIsotopeModel_("MetaboliteIsoModelNoised2");
+    // *********************************************************** //
+    // Step 2 initialize SVM model for isotope ratio filtering
+    // *********************************************************** //
     if (metabo_iso_noisemodel_ == "2%RMS")
     {
       LOG_INFO << "Loading metabolite isotope model with 2% RMS error" << std::endl;
@@ -901,8 +894,6 @@ namespace OpenMS
 
       local_traces.push_back(&input_mtraces[i]);
 
-      // std::cout << "__" << input_mtraces[i].getLabel() << " " << input_mtraces[i].getCentroidMZ() << " " << input_mtraces[i].getCentroidRT() << std::endl;
-
       for (Size ext_idx = i + 1; ext_idx < input_mtraces.size(); ++ext_idx)
       {
         // traces are sorted by m/z, so we can break when we leave the allowed window
@@ -916,7 +907,6 @@ namespace OpenMS
           local_traces.push_back(&input_mtraces[ext_idx]);
         }
       }
-
       findLocalFeatures_(local_traces, feat_hypos);
     }
     this->endProgress();
