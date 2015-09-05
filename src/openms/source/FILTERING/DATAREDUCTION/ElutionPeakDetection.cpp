@@ -156,9 +156,9 @@ namespace OpenMS
     std::multimap<double, Size> intensity_indices;
     boost::dynamic_bitset<> used_idx(mt_length);
 
-    for (Size i = 0; i < mt_length; ++i)
+    for (Size idx = 0; idx < mt_length; ++idx)
     {
-      intensity_indices.insert(std::make_pair(smoothed_ints_vec[i], i));
+      intensity_indices.insert(std::make_pair(smoothed_ints_vec[idx], idx));
     }
 
     // Step 1: Identify maxima
@@ -223,13 +223,13 @@ namespace OpenMS
     if (chrom_maxes.size() > 1)
     {
       // Keep track of two maxima
-      Size i(0), j(1);
-      while (i < j && j < chrom_maxes.size())
+      Size left_idx(0), right_idx(1);
+      while (left_idx < right_idx && right_idx < chrom_maxes.size())
       {
 
         // 2.1 Perform bisection between the two maxima to find potential minimum
-        Size left_bound(chrom_maxes[i] + 1);
-        Size right_bound(chrom_maxes[j] - 1);
+        Size left_bound(chrom_maxes[left_idx] + 1);
+        Size right_bound(chrom_maxes[right_idx] - 1);
         while ((left_bound + 1) < right_bound)
         {
           // Identify middle between two bounds
@@ -259,12 +259,12 @@ namespace OpenMS
         }
 
         // 2.3 Compute distance and intensities
-        double left_max_int(smoothed_ints_vec[chrom_maxes[i]]);
-        double right_max_int(smoothed_ints_vec[chrom_maxes[j]]);
+        double left_max_int(smoothed_ints_vec[chrom_maxes[left_idx]]);
+        double right_max_int(smoothed_ints_vec[chrom_maxes[right_idx]]);
 
-        double left_rt(tr[chrom_maxes[i]].getRT());
+        double left_rt(tr[chrom_maxes[left_idx]].getRT());
         double mid_rt(tr[min_rt].getRT());
-        double right_rt(tr[chrom_maxes[j]].getRT());
+        double right_rt(tr[chrom_maxes[right_idx]].getRT());
 
         // compute the distance from the two maxima to the new minima 
         double left_dist(std::fabs(mid_rt - left_rt));
@@ -272,7 +272,7 @@ namespace OpenMS
         double min_dist(min_fwhm_ / 2.0);
 
         // out debug info
-        // std::cout << tr.getLabel() << ": i,j " << i << "," << j << ":" << left_max_int << " min: " << min_int << " " << right_max_int << " l " << left_rt << " r " << right_rt << " m " << mid_rt << std::endl;
+        // std::cout << tr.getLabel() << ": left_idx,right_idx " << left_idx << "," << right_idx << ":" << left_max_int << " min: " << min_int << " " << right_max_int << " l " << left_rt << " r " << right_rt << " m " << mid_rt << std::endl;
 
         // 2.4 Decide whether to split the masstrace (introduce a minimum):
         // i)  the maxima intensity should be at least 2x above the minimum for a split
@@ -283,8 +283,8 @@ namespace OpenMS
            && right_dist >= min_dist)
         {
           chrom_mins.push_back(min_rt);
-          i = j;
-          ++j;
+          left_idx = right_idx;
+          ++right_idx;
         }
         else
         {
@@ -292,12 +292,12 @@ namespace OpenMS
           // the other with the next in RT
           if (left_max_int > right_max_int)
           {
-            ++j;
+            ++right_idx;
           }
           else
           {
-            i = j;
-            ++j;
+            left_idx = right_idx;
+            ++right_idx;
           }
         }
       }

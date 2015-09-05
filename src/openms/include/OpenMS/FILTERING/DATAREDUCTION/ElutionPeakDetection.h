@@ -105,7 +105,7 @@ public:
      * This function computes local extrema on a given input mass trace
      *
      * @param tr Input mass trace
-     * @param num_neighboring_peaks How many data points are expected to belong to a peak
+     * @param num_neighboring_peaks How many data points are expected to belong to a peak (used to split traces and find maxima)
      * @param chrom_maxes Output of maxima (gets cleared)
      * @param chrom_mins Output of minima (gets cleared)
      *
