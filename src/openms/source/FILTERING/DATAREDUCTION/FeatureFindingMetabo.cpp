@@ -44,8 +44,13 @@
 #include <sstream>
 #include <fstream>
 
-
 #include <boost/dynamic_bitset.hpp>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
+// #define FFM_DEBUG
 
 namespace OpenMS
 {
@@ -730,12 +735,16 @@ namespace OpenMS
 
   void FeatureFindingMetabo::findLocalFeatures_(std::vector<MassTrace*>& candidates, std::vector<FeatureHypothesis>& output_hypos)
   {
-    // single Mass trace hypothesis
-    FeatureHypothesis tmp_hypo;
-    tmp_hypo.addMassTrace(*candidates[0]);
-    tmp_hypo.setScore((candidates[0]->getIntensity(use_smoothed_intensities_)) / total_intensity_);
-
-    output_hypos.push_back(tmp_hypo);
+#ifdef _OPENMP
+#pragma omp critical (OPENMS_FFMetabo_flf_top)
+#endif
+    {
+      // single Mass trace hypothesis
+      FeatureHypothesis tmp_hypo;
+      tmp_hypo.addMassTrace(*candidates[0]);
+      tmp_hypo.setScore((candidates[0]->getIntensity(use_smoothed_intensities_)) / total_intensity_);
+      output_hypos.push_back(tmp_hypo);
+    }
 
     for (Size charge = charge_lower_bound_; charge <= charge_upper_bound_; ++charge)
     {
@@ -812,7 +821,12 @@ namespace OpenMS
           fh_tmp.setCharge(charge);
           //std::cout << "adding " << fh_tmp.getLabel() << std::endl;
 
-          output_hypos.push_back(fh_tmp);
+#ifdef _OPENMP
+#pragma omp critical (OPENMS_FFMetabo_flf_bot)
+#endif
+          {
+            output_hypos.push_back(fh_tmp);
+          }
           last_iso_idx = best_idx;
         }
         else
@@ -865,12 +879,18 @@ namespace OpenMS
     }
 
     total_intensity_ = 0.0;
-
     for (Size i = 0; i < input_mtraces.size(); ++i)
     {
       total_intensity_ += input_mtraces[i].getIntensity(use_smoothed_intensities_);
     }
 
+    // *********************************************************** //
+    // Step 3 Apply model
+    // *********************************************************** //
+    std::vector<FeatureHypothesis> feat_hypos;
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
     for (Size i = 0; i < input_mtraces.size(); ++i)
     {
       this->setProgress(i);
