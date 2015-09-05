@@ -56,15 +56,15 @@ namespace OpenMS
   {
     defaults_.setValue("chrom_fwhm", 5.0, "Expected full-width-at-half-maximum of chromatographic peaks (in seconds).");
     defaults_.setValue("chrom_peak_snr", 3.0, "Minimum signal-to-noise a mass trace should have.");
-    defaults_.setValue("noise_threshold_int", 10.0, "Intensity threshold below which peaks are regarded as noise.");
+    // defaults_.setValue("noise_threshold_int", 10.0, "Intensity threshold below which peaks are regarded as noise.");
 
     // NOTE: the algorithm will only act upon the "fixed" value, if you would
     // like to use the "auto" setting, you will have to call filterByPeakWidth
     // yourself
     defaults_.setValue("width_filtering", "fixed", "Enable filtering of unlikely peak widths. The fixed setting filters out mass traces outside the [min_fwhm, max_fwhm] interval (set parameters accordingly!). The auto setting filters with the 5 and 95% quantiles of the peak width distribution.");
     defaults_.setValidStrings("width_filtering", ListUtils::create<String>("off,fixed,auto"));
-    defaults_.setValue("min_fwhm", 3.0, "Minimum full-width-at-half-maximum of chromatographic peaks (in seconds). Ignored if paramter width_filtering is off or auto.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("max_fwhm", 60.0, "Maximum full-width-at-half-maximum of chromatographic peaks (in seconds). Ignored if paramter width_filtering is off or auto.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("min_fwhm", 3.0, "Minimum full-width-at-half-maximum of chromatographic peaks (in seconds). Ignored if parameter width_filtering is off or auto.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("max_fwhm", 60.0, "Maximum full-width-at-half-maximum of chromatographic peaks (in seconds). Ignored if parameter width_filtering is off or auto.", ListUtils::create<String>("advanced"));
 
     defaults_.setValue("masstrace_snr_filtering", "false", "Apply post-filtering by signal-to-noise ratio after smoothing.", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("masstrace_snr_filtering", ListUtils::create<String>("false,true"));
@@ -578,7 +578,7 @@ namespace OpenMS
   {
     chrom_fwhm_ = (double)param_.getValue("chrom_fwhm");
     chrom_peak_snr_ = (double)param_.getValue("chrom_peak_snr");
-    noise_threshold_int_ = (double)param_.getValue("noise_threshold_int");
+    // noise_threshold_int_ = (double)param_.getValue("noise_threshold_int");
     // min_trace_length_ = (double)param_.getValue("min_trace_length");
     // max_trace_length_ = (double)param_.getValue("max_trace_length");
     min_fwhm_ = (double)param_.getValue("min_fwhm");
