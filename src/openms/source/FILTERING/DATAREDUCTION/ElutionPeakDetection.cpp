@@ -219,42 +219,46 @@ namespace OpenMS
 
     std::sort(chrom_maxes.begin(), chrom_maxes.end());
 
-    // Step 1: Identify minima
+    // Step 2: Identify minima
     if (chrom_maxes.size() > 1)
     {
+      // Keep track of two maxima
       Size i(0), j(1);
       while (i < j && j < chrom_maxes.size())
       {
-        // bisection
+
+        // 2.1 Perform bisection between the two maxima to find potential minimum
         Size left_bound(chrom_maxes[i] + 1);
         Size right_bound(chrom_maxes[j] - 1);
-
         while ((left_bound + 1) < right_bound)
         {
+          // Identify middle between two bounds
           double mid_dist((right_bound - left_bound) / 2.0);
           Size mid_element_idx(left_bound + std::floor(mid_dist));
           double mid_element_int = smoothed_ints_vec[mid_element_idx];
 
+          // Walk to the left if the slope is positive here
           if (mid_element_int <= smoothed_ints_vec[mid_element_idx + 1])
           {
             right_bound = mid_element_idx;
           }
-          else // or to the right...
+          // else walk to the right ... 
+          else
           {
             left_bound = mid_element_idx;
           }
 
         }
 
+        // 2.2 Choose minimum (either left_bound or right_bound) and get minimal RT / Intensity
         Size min_rt((smoothed_ints_vec[left_bound] < smoothed_ints_vec[right_bound]) ? left_bound : right_bound);
-
-        // check for valley depth between chromatographic peaks
         double min_int(1.0);
         if (smoothed_ints_vec[min_rt] > min_int)
         {
           min_int = smoothed_ints_vec[min_rt];
         }
 
+        // 2.3 Compute distance and intensities
         double left_max_int(smoothed_ints_vec[chrom_maxes[i]]);
         double right_max_int(smoothed_ints_vec[chrom_maxes[j]]);
 
@@ -262,6 +266,7 @@ namespace OpenMS
         double mid_rt(tr[min_rt].getRT());
         double right_rt(tr[chrom_maxes[j]].getRT());
 
+        // compute the distance from the two maxima to the new minima 
         double left_dist(std::fabs(mid_rt - left_rt));
         double right_dist(std::fabs(right_rt - mid_rt));
         double min_dist(min_fwhm_ / 2.0);
@@ -269,6 +274,9 @@ namespace OpenMS
         // out debug info
         // std::cout << tr.getLabel() << ": i,j " << i << "," << j << ":" << left_max_int << " min: " << min_int << " " << right_max_int << " l " << left_rt << " r " << right_rt << " m " << mid_rt << std::endl;
 
+        // 2.4 Decide whether to split the masstrace (introduce a minimum):
+        // i)  the maxima intensity should be at least 2x above the minimum for a split
+        // ii) check that splitting the trace would not create peaks smaller than min_dist 
         if (left_max_int / min_int >= 2.0
            && right_max_int / min_int >= 2.0
            && left_dist >= min_dist
@@ -280,7 +288,8 @@ namespace OpenMS
         }
         else
         {
-          // keep one of the chrom_maxes, iterate the other
+          // keep one of the maxima (the one with higher intensity), replace
+          // the other with the next in RT
           if (left_max_int > right_max_int)
           {
             ++j;
