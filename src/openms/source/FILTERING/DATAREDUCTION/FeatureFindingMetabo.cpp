@@ -735,6 +735,7 @@ namespace OpenMS
 
   void FeatureFindingMetabo::findLocalFeatures_(std::vector<MassTrace*>& candidates, std::vector<FeatureHypothesis>& output_hypos)
   {
+
 #ifdef _OPENMP
 #pragma omp critical (OPENMS_FFMetabo_flf_top)
 #endif
@@ -834,7 +835,6 @@ namespace OpenMS
     } // end for charge
 
     return;
-
   } // end of findLocalFeatures_(...)
 
   void FeatureFindingMetabo::run(std::vector<MassTrace>& input_mtraces, FeatureMap& output_featmap)
@@ -914,28 +914,25 @@ namespace OpenMS
     // sort feature candidates by their score
     std::sort(feat_hypos.begin(), feat_hypos.end(), CmpHypothesesByScore());
 
-    std::map<String, bool> trace_excl_map;
-
-    // std::cout << "size of hypotheses: " << feat_hypos.size() << std::endl;
-
+#ifdef FFM_DEBUG
+    std::cout << "size of hypotheses: " << feat_hypos.size() << std::endl;
     // output all hypotheses:
-    //        for (Size hypo_idx = 0; hypo_idx < feat_hypos.size(); ++ hypo_idx)
-    //        {
-    //            bool legal;
-
-    //            if (feat_hypos[hypo_idx].getSize() > 1)
-    //            {
-    //                legal = isLegalIsotopePattern_(feat_hypos[hypo_idx]);
-    //            }
-
-
-    //            // std::cout << feat_hypos[hypo_idx].getLabel() << " ch: " << feat_hypos[hypo_idx].getCharge() << " score: " << feat_hypos[hypo_idx].getScore() << " legal: " << legal << std::endl;
-    //        }
-
+    for (Size hypo_idx = 0; hypo_idx < feat_hypos.size(); ++ hypo_idx)
+    {
+      bool legal;
+      if (feat_hypos[hypo_idx].getSize() > 1)
+      {
+        legal = isLegalIsotopePattern_(feat_hypos[hypo_idx]);
+      }
+      std::cout << feat_hypos[hypo_idx].getLabel() << " ch: " << feat_hypos[hypo_idx].getCharge() << 
+        " score: " << feat_hypos[hypo_idx].getScore() << " legal: " << legal << std::endl;
+    }
+#endif
 
 
     // accept all hypothesis in order of their scores
     // unless a trace has already been used
+    std::map<String, bool> trace_excl_map;
     for (Size hypo_idx = 0; hypo_idx < feat_hypos.size(); ++hypo_idx)
     {
       // std::cout << "score now: " <<  feat_hypos[hypo_idx].getScore() << std::endl;
@@ -950,12 +947,19 @@ namespace OpenMS
         }
       }
 
-      //            if (feat_hypos[hypo_idx].getSize() > 1)
-      //            {
-      //                std::cout << "check for collision: " << trace_coll << " " << feat_hypos[hypo_idx].getLabel() << " " << isLegalIsotopePattern_(feat_hypos[hypo_idx]) << " " << feat_hypos[hypo_idx].getScore() << std::endl;
-      //            }
+#ifdef FFM_DEBUG
+      if (feat_hypos[hypo_idx].getSize() > 1)
+      {
+        std::cout << "check for collision: " << trace_coll << " " << 
+          feat_hypos[hypo_idx].getLabel() << " " << isLegalIsotopePattern_(feat_hypos[hypo_idx]) << 
+          " " << feat_hypos[hypo_idx].getScore() << std::endl;
+      }
+#endif
 
-      if (trace_coll) continue;
+      if (trace_coll) 
+      {
+        continue;
+      }
 
       bool pass_isotope_filter = true;
       if (feat_hypos[hypo_idx].getSize() > 1)
@@ -974,7 +978,10 @@ namespace OpenMS
         // std::cout << "\nlegal iso? " << feat_hypos[hypo_idx].getLabel() << " score: " << feat_hypos[hypo_idx].getScore() << " " << result << std::endl;
       }
 
-      if (!pass_isotope_filter) continue;
+      if (!pass_isotope_filter) 
+      {
+        continue;
+      }
 
       Feature f;
       f.setRT(feat_hypos[hypo_idx].getCentroidRT());
@@ -1002,7 +1009,6 @@ namespace OpenMS
       {
         f.setMetaValue("masstrace_intensity_" + String(int_idx), all_ints[int_idx]);
       }
-
 
       f.setConvexHulls(feat_hypos[hypo_idx].getConvexHulls());
       f.setOverallQuality(feat_hypos[hypo_idx].getScore());
