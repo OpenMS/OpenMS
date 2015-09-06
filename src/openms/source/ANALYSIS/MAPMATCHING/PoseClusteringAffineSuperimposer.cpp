@@ -107,8 +107,41 @@ namespace OpenMS
     return;
   }
 
-  void
-  PoseClusteringAffineSuperimposer::run(const ConsensusMap & map_model, const ConsensusMap & map_scene, TransformationDescription & transformation)
+  void initializeHashTables(
+    Math::LinearInterpolation<double, double> & scaling_hash_1,
+    Math::LinearInterpolation<double, double> & scaling_hash_2,
+    Math::LinearInterpolation<double, double> & rt_low_hash_,
+    Math::LinearInterpolation<double, double> &rt_high_hash_,
+    const double max_scaling, const double max_shift,
+    const double scaling_bucket_size, const double shift_bucket_size,
+    const double rt_low, const double rt_high)
+  {
+    const Int scaling_buckets_num_half = (Int) ceil(log(max_scaling) / scaling_bucket_size) + 1;
+
+    scaling_hash_1.getData().clear();
+    scaling_hash_1.getData().resize(2 * scaling_buckets_num_half + 1);
+    scaling_hash_1.setMapping(scaling_bucket_size, scaling_buckets_num_half, 0.);
+
+    scaling_hash_2.getData().clear();
+    scaling_hash_2.getData().resize(2 * scaling_buckets_num_half + 1);
+    scaling_hash_2.setMapping(scaling_bucket_size, scaling_buckets_num_half, 0.);
+
+    // (over)estimate the required number of buckets for shifting
+    const Int rt_buckets_num_half = 4 + 2 * (Int) ceil((max_shift * max_scaling) / shift_bucket_size);
+    const Int rt_buckets_num = 1 + 2 * rt_buckets_num_half;
+
+    rt_low_hash_.getData().clear();
+    rt_low_hash_.getData().resize(rt_buckets_num);
+    rt_low_hash_.setMapping(shift_bucket_size, rt_buckets_num_half, rt_low);
+
+    rt_high_hash_.getData().clear();
+    rt_high_hash_.getData().resize(rt_buckets_num);
+    rt_high_hash_.setMapping(shift_bucket_size, rt_buckets_num_half, rt_high);
+  }
+
+  void PoseClusteringAffineSuperimposer::run(const ConsensusMap & map_model,
+                                             const ConsensusMap & map_scene,
+                                             TransformationDescription & transformation)
   {
 
     if (map_model.empty() || map_scene.empty())
@@ -198,35 +231,14 @@ namespace OpenMS
     const double rt_pair_min_distance = (double) param_.getValue("rt_pair_distance_fraction") * (rt_high - rt_low);
 
     // Initialize the hash tables: rt_scaling_hash_, rt_low_hash_, and rt_high_hash_
-    {
-      // (over)estimate the required number of buckets for scaling
-      const double max_scaling = param_.getValue("max_scaling");
-      const double max_shift = param_.getValue("max_shift");
-      // Note: the user-specified bucket size only applies to scales around 1.
-      // The hashing uses a log transformation because we do not like skewed distributions.
-      const double scaling_bucket_size = param_.getValue("scaling_bucket_size");
-      const Int scaling_buckets_num_half = (Int) ceil(log(max_scaling) / scaling_bucket_size) + 1;
+    // (over)estimate the required number of buckets for scaling
+    // Note: the user-specified bucket size only applies to scales around 1.
+    // The hashing uses a log transformation because we do not like skewed distributions.
+    initializeHashTables( scaling_hash_1, scaling_hash_2, rt_low_hash_, rt_high_hash_, 
+    param_.getValue("max_scaling"), param_.getValue("max_shift"), 
+    param_.getValue("scaling_bucket_size"), param_.getValue("shift_bucket_size"),
+    rt_low, rt_high);
 
-      scaling_hash_1.getData().clear();
-      scaling_hash_1.getData().resize(2 * scaling_buckets_num_half + 1);
-      scaling_hash_1.setMapping(scaling_bucket_size, scaling_buckets_num_half, 0.);
-
-      scaling_hash_2.getData().clear();
-      scaling_hash_2.getData().resize(2 * scaling_buckets_num_half + 1);
-      scaling_hash_2.setMapping(scaling_bucket_size, scaling_buckets_num_half, 0.);
-
-      // (over)estimate the required number of buckets for shifting
-      const Int rt_buckets_num_half = 4 + 2 * (Int) ceil((max_shift * max_scaling) / shift_bucket_size);
-      const Int rt_buckets_num = 1 + 2 * rt_buckets_num_half;
-
-      rt_low_hash_.getData().clear();
-      rt_low_hash_.getData().resize(rt_buckets_num);
-      rt_low_hash_.setMapping(shift_bucket_size, rt_buckets_num_half, rt_low);
-
-      rt_high_hash_.getData().clear();
-      rt_high_hash_.getData().resize(rt_buckets_num);
-      rt_high_hash_.setMapping(shift_bucket_size, rt_buckets_num_half, rt_high);
-    }
     setProgress(++actual_progress);
 
     //**************************************************************************
@@ -395,6 +407,7 @@ namespace OpenMS
               {
                 scaling_hash_1.addValue(log(scaling), similarity_ik_jl);
 
+                /////  TODO up to here the code is identical 
                 ///// This will take place in the second round of hashing!
                 //  const double rt_low_image = shift + rt_low * scaling;
                 //  rt_low_hash_.addValue(rt_low_image, similarity_ik_jl);
