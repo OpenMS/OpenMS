@@ -231,14 +231,11 @@ public:
     /// Default destructor
     virtual ~FeatureFindingMetabo();
 
-
     /// main method of FeatureFindingMetabo
     void run(std::vector<MassTrace>&, FeatureMap&);
 
-
 protected:
     virtual void updateMembers_();
-
 
 private:
     /// private member functions

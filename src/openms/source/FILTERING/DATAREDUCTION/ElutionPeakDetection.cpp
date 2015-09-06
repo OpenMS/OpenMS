@@ -49,6 +49,8 @@
 #include <omp.h>
 #endif
 
+// #define DEBUG_EPD
+
 namespace OpenMS
 {
   ElutionPeakDetection::ElutionPeakDetection() :
@@ -272,7 +274,14 @@ namespace OpenMS
         double min_dist(min_fwhm_ / 2.0);
 
         // out debug info
-        // std::cout << tr.getLabel() << ": left_idx,right_idx " << left_idx << "," << right_idx << ":" << left_max_int << " min: " << min_int << " " << right_max_int << " l " << left_rt << " r " << right_rt << " m " << mid_rt << std::endl;
+#ifdef DEBUG_EPD
+        std::cout << "findLocalExtrema: Identified potential minimum " << std::endl;
+        std::cout << "    " << tr.getLabel() << ": left_idx,right_idx " << left_idx << "," << right_idx << 
+          ":" << left_max_int << " min: " << min_int << " " << right_max_int << 
+          " l " << left_rt << " r " << right_rt << " m " << mid_rt << std::endl;
+        std::cout << "    Int: min " << min_int << ", left: " << left_max_int << ", right: " << right_max_int << std::endl;
+        std::cout << "    Distance: min " << min_dist << ", left: " << left_dist << ", right: " << right_dist << std::endl;
+#endif
 
         // 2.4 Decide whether to split the masstrace (introduce a minimum):
         // i)  the maxima intensity should be at least 2x above the minimum for a split
@@ -282,6 +291,11 @@ namespace OpenMS
            && left_dist >= min_dist
            && right_dist >= min_dist)
         {
+#ifdef DEBUG_EPD
+        std::cout << "    -> add new minima " << ": left_idx,right_idx " << left_idx << "," << right_idx << 
+          " l " << left_rt << " r " << right_rt << " m " << mid_rt << std::endl;
+#endif
+
           chrom_mins.push_back(min_rt);
           left_idx = right_idx;
           ++right_idx;
@@ -385,20 +399,26 @@ namespace OpenMS
     // add smoothed data (original data is still accessible)
     smoothData(mt, static_cast<Int>(win_size));
 
-    // debug intensities
-
-    // Size i = 0;
-
-    //    std::cout << "*****" << std::endl;
-    //    for (MassTrace::const_iterator mt_it = mt.begin(); mt_it != mt.end(); ++mt_it)
-    //    {
-    //        std::cout << mt_it->getIntensity() << " " << smoothed_data[i] << std::endl;
-    //        ++i;
-    //    }
-    //std::cout << "*****" << std::endl;
+#ifdef DEBUG_EPD
+    Size i = 0;
+    std::cout << "*****" << std::endl;
+    std::cout << "   finding elution peaks in mass traces RT "  << mt.getCentroidRT()  << " / mz " << mt.getCentroidMZ() << std::endl;
+    std::cout << "   used for smoothing: win_size "  << win_size << " FWHM scan num " /* << mt.getFWHMScansNum() */ << std::endl;
+    std::cout << "*****" << std::endl;
+    for (MassTrace::const_iterator mt_it = mt.begin(); mt_it != mt.end(); ++mt_it)
+    {
+      // std::cout << mt_it->getIntensity() << " " << mt.getSmoothedIntensities()[i] << std::endl;
+      ++i;
+    }
+    std::cout << "*****" << std::endl;
+#endif
 
     std::vector<Size> maxes, mins;
     findLocalExtrema(mt, win_size / 2, maxes, mins);
+
+#ifdef DEBUG_EPD
+    std::cout << "findLocalExtrema returned: maxima " << maxes.size() << " / minima " << mins.size() << std::endl;
+#endif
 
     // if only one maximum exists: finished!
     if (maxes.size() == 1)
