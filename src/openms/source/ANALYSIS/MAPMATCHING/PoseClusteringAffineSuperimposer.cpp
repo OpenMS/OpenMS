@@ -202,7 +202,8 @@ namespace OpenMS
       // (over)estimate the required number of buckets for scaling
       const double max_scaling = param_.getValue("max_scaling");
       const double max_shift = param_.getValue("max_shift");
-      // Note: the user-specified bucket size only applies to scales around 1.  The hashing uses a log transformation because we do not like skewed distributions.
+      // Note: the user-specified bucket size only applies to scales around 1.
+      // The hashing uses a log transformation because we do not like skewed distributions.
       const double scaling_bucket_size = param_.getValue("scaling_bucket_size");
       const Int scaling_buckets_num_half = (Int) ceil(log(max_scaling) / scaling_bucket_size) + 1;
 
@@ -996,7 +997,8 @@ namespace OpenMS
 
       if (boost::math::isinf(slope) || boost::math::isnan(slope) || boost::math::isinf(intercept) || boost::math::isnan(intercept))
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Superimposer could not compute an initial transformation! You can try to increase 'max_num_peaks_considered' to solve this.", String(intercept * slope));
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+            "Superimposer could not compute an initial transformation! You can try to increase 'max_num_peaks_considered' to solve this.", String(intercept * slope));
       }
 
       transformation.fitModel("linear", params);       // no data, but explicit parameters
