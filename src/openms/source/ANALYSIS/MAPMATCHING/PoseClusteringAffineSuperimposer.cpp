@@ -139,167 +139,14 @@ namespace OpenMS
     rt_high_hash_.setMapping(shift_bucket_size, rt_buckets_num_half, rt_high);
   }
 
-  void hashingRoundOne(bool do_dump_pairs, Size model_map_size, Size scene_map_size, 
+  void affineTransformationHashing(const bool do_dump_pairs, const Size model_map_size, const Size scene_map_size, 
     const ConstRefVector<ConsensusMap> & model_map, 
     const ConstRefVector<ConsensusMap> & scene_map,
     Math::LinearInterpolation<double, double> & scaling_hash_1,
-    /*
-    Math::LinearInterpolation<double, double> & scaling_hash_2,
-    */
-    const double rt_pair_min_distance, 
-    String dump_pairs_basename,
-    Int dump_buckets_serial,
-    const double mz_pair_max_distance, 
-    const double winlength_factor_baseline,
-    const double total_intensity_ratio)
-  {
-    String dump_pairs_filename;
-    std::ofstream dump_pairs_file;
-    if (do_dump_pairs)
-    {
-      dump_pairs_filename = dump_pairs_basename + "_phase_one_" + String(dump_buckets_serial);
-      dump_pairs_file.open(dump_pairs_filename.c_str());
-      dump_pairs_file << "#" << ' ' << "i" << ' ' << "j" << ' ' << "k" << ' ' << "l" << ' ' << std::endl;
-    }
-    // setProgress(++actual_progress);
-
-    // first point in model map
-    for (Size i = 0, i_low = 0, i_high = 0, k_low = 0, k_high = 0; i < model_map_size - 1; ++i)
-    {
-      // setProgress(actual_progress + float(i) / model_map_size * 10.f);
-
-      // Adjust window around i in model map
-      while (i_low < model_map_size && model_map[i_low].getMZ() < model_map[i].getMZ() - mz_pair_max_distance)
-        ++i_low;
-      while (i_high < model_map_size && model_map[i_high].getMZ() <= model_map[i].getMZ() + mz_pair_max_distance)
-        ++i_high;
-      double i_winlength_factor = 1. / (i_high - i_low);
-      i_winlength_factor -= winlength_factor_baseline;
-      if (i_winlength_factor <= 0)
-        continue;
-
-      // Adjust window around k in scene map
-      while (k_low < scene_map_size && scene_map[k_low].getMZ() < model_map[i].getMZ() - mz_pair_max_distance)
-        ++k_low;
-      while (k_high < scene_map_size && scene_map[k_high].getMZ() <= model_map[i].getMZ() + mz_pair_max_distance)
-        ++k_high;
-
-      // first point in scene map
-      for (Size k = k_low; k < k_high; ++k)
-      {
-        double k_winlength_factor = 1. / (k_high - k_low);
-        k_winlength_factor -= winlength_factor_baseline;
-        if (k_winlength_factor <= 0)
-          continue;
-
-        // compute similarity of intensities i k
-        double similarity_ik;
-        {
-          const double int_i = model_map[i].getIntensity();
-          const double int_k = scene_map[k].getIntensity() * total_intensity_ratio;
-          similarity_ik = (int_i < int_k) ? int_i / int_k : int_k / int_i;
-          // weight is inverse proportional to number of elements with similar mz
-          similarity_ik *= i_winlength_factor;
-          similarity_ik *= k_winlength_factor;
-          // VV_(int_i<<' '<<int_k<<' '<<int_similarity_ik);
-        }
-
-        // second point in model map
-        for (Size j = i + 1, j_low = i_low, j_high = i_low, l_low = k_low, l_high = k_high; j < model_map_size; ++j)
-        {
-          // diff in model map
-          double diff_model = model_map[j].getRT() - model_map[i].getRT();
-          if (fabs(diff_model) < rt_pair_min_distance)
-            continue;
-
-          // Adjust window around j in model map
-          while (j_low < model_map_size && model_map[j_low].getMZ() < model_map[i].getMZ() - mz_pair_max_distance)
-            ++j_low;
-          while (j_high < model_map_size && model_map[j_high].getMZ() <= model_map[i].getMZ() + mz_pair_max_distance)
-            ++j_high;
-          double j_winlength_factor = 1. / (j_high - j_low);
-          j_winlength_factor -= winlength_factor_baseline;
-          if (j_winlength_factor <= 0)
-            continue;
-
-          // Adjust window in scene map
-          while (l_low < scene_map_size && scene_map[l_low].getMZ() < model_map[j].getMZ() - mz_pair_max_distance)
-            ++l_low;
-          while (l_high < scene_map_size && scene_map[l_high].getMZ() <= model_map[j].getMZ() + mz_pair_max_distance)
-            ++l_high;
-
-          // second point in scene map
-          for (Size l = l_low; l < l_high; ++l)
-          {
-            double l_winlength_factor = 1. / (l_high - l_low);
-            l_winlength_factor -= winlength_factor_baseline;
-            if (l_winlength_factor <= 0)
-              continue;
-
-            // diff in scene map
-            double diff_scene = scene_map[l].getRT() - scene_map[k].getRT();
-
-            // avoid cross mappings (i,j) -> (k,l) (e.g. i_rt < j_rt and k_rt > l_rt)
-            // and point pairs with equal retention times (e.g. i_rt == j_rt)
-            if (fabs(diff_scene) < rt_pair_min_distance || ((diff_model > 0) != (diff_scene > 0)))
-              continue;
-
-            // compute the transformation (i,j) -> (k,l)
-            double scaling = diff_model / diff_scene;
-            // double shift = model_map[i].getRT() - scene_map[k].getRT() * scaling;
-
-            // compute similarity of intensities i k j l
-            double similarity_ik_jl;
-            {
-              // compute similarity of intensities j l
-              const double int_j = model_map[j].getIntensity();
-              const double int_l = scene_map[l].getIntensity() * total_intensity_ratio;
-              double similarity_jl = (int_j < int_l) ? int_j / int_l : int_l / int_j;
-              // weight is inverse proportional to number of elements with similar mz
-              similarity_jl *= j_winlength_factor;
-              similarity_jl *= l_winlength_factor;
-
-              // ... and finally ...
-              similarity_ik_jl = similarity_ik * similarity_jl;
-              // VV_(int_j<<' '<<int_l<<' '<<int_similarity_ik<<' '<<int_similarity_jl<<' '<<int_similarity);
-            }
-
-            // hash the images of scaling, rt_low and rt_high into their respective hash tables
-            {
-              scaling_hash_1.addValue(log(scaling), similarity_ik_jl);
-
-              /////  TODO up to here the code is identical 
-              ///// This will take place in the second round of hashing!
-              //  const double rt_low_image = shift + rt_low * scaling;
-              //  rt_low_hash_.addValue(rt_low_image, similarity_ik_jl);
-              //  const double rt_high_image = shift + rt_high * scaling;
-              //  rt_high_hash_.addValue(rt_high_image, similarity_ik_jl);
-            }
-
-            if (do_dump_pairs)
-            {
-              dump_pairs_file << i << ' ' << model_map[i].getRT() << ' ' << model_map[i].getMZ() << ' ' << j << ' ' << model_map[j].getRT() << ' '
-                              << model_map[j].getMZ() << ' ' << k << ' ' << scene_map[k].getRT() << ' ' << scene_map[k].getMZ() << ' ' << l << ' '
-                              << scene_map[l].getRT() << ' ' << scene_map[l].getMZ() << ' ' << similarity_ik_jl << ' ' << std::endl;
-            }
-          } // l
-        } // j
-      } // k
-    } // i
-  }
-
-  void hashingRoundTwo(const bool do_dump_pairs, const Size model_map_size, const Size scene_map_size, 
-    const ConstRefVector<ConsensusMap> & model_map, 
-    const ConstRefVector<ConsensusMap> & scene_map,
-    Math::LinearInterpolation<double, double> & /* scaling_hash_1 */,
     Math::LinearInterpolation<double, double> & scaling_hash_2,
     Math::LinearInterpolation<double, double> & rt_low_hash_,
     Math::LinearInterpolation<double, double> & rt_high_hash_,
-    /*
-    const bool do_dump_pairs, 
-    const Size model_map_size, 
-    const Size scene_map_size, 
-    */
+    const int hashing_round,
     const double rt_pair_min_distance, 
     const String dump_pairs_basename,
     const Int dump_buckets_serial,
@@ -422,8 +269,14 @@ namespace OpenMS
               }
 
               // hash the images of scaling, rt_low and rt_high into their respective hash tables
-              if (scaling >= scale_low_1 && scaling <= scale_high_1)
+              if (hashing_round == 1) 
               {
+                // hashing round 1
+                scaling_hash_1.addValue(log(scaling), similarity_ik_jl);
+              }
+              else if (scaling >= scale_low_1 && scaling <= scale_high_1)
+              {
+                // hashing round 2
                 scaling_hash_2.addValue(log(scaling), similarity_ik_jl);
 
                 const double rt_low_image = shift + rt_low * scaling;
@@ -1004,13 +857,22 @@ namespace OpenMS
 
     ///////////////////////////////////////////////////////////////////
     // First round of hashing:  Estimate the scaling
-    hashingRoundOne(do_dump_pairs, model_map_size, scene_map_size, 
-                    model_map, scene_map, scaling_hash_1, /* scaling_hash_2, */
-                    rt_pair_min_distance, dump_pairs_basename,
-                    dump_buckets_serial,
-                    mz_pair_max_distance, 
-                    winlength_factor_baseline,
-                    total_intensity_ratio);
+    double dummy_scale_low_1(0);
+    double dummy_scale_high_1(0);
+    affineTransformationHashing(
+      do_dump_pairs, model_map_size, scene_map_size, 
+      model_map, scene_map, 
+      scaling_hash_1, scaling_hash_2, rt_low_hash_, rt_high_hash_,
+      1,
+      rt_pair_min_distance, 
+      dump_pairs_basename,
+      dump_buckets_serial,
+      mz_pair_max_distance, 
+      winlength_factor_baseline,
+      total_intensity_ratio, 
+      dummy_scale_low_1, // only used in 2nd round of hashing
+      dummy_scale_high_1, // only used in 2nd round of hashing
+      rt_low, rt_high);
     setProgress((actual_progress = 30));
 
     ///////////////////////////////////////////////////////////////////
@@ -1040,24 +902,20 @@ namespace OpenMS
     // Second round of hashing:  Estimate the shift at both ends and thereby
     // re-estimate the scaling.  This uses the first guess of the scaling to
     // reduce noise in the histograms.
-
-    do // begin of hashing (the extra syntax helps with code folding in eclipse!)
-    {
-      hashingRoundTwo(do_dump_pairs, model_map_size, scene_map_size, 
-        model_map, scene_map, 
-        scaling_hash_1, scaling_hash_2, rt_low_hash_, rt_high_hash_,
-        rt_pair_min_distance, 
-        dump_pairs_basename,
-        dump_buckets_serial,
-        mz_pair_max_distance, 
-        winlength_factor_baseline,
-        total_intensity_ratio, 
-        scale_low_1,
-        scale_high_1,
-        rt_low, rt_high);
-    }
-    while (0);   // end of hashing (the extra syntax helps with code folding in eclipse!)
-
+    affineTransformationHashing(
+      do_dump_pairs, model_map_size, scene_map_size, 
+      model_map, scene_map, 
+      scaling_hash_1, scaling_hash_2, rt_low_hash_, rt_high_hash_,
+      2,
+      rt_pair_min_distance, 
+      dump_pairs_basename,
+      dump_buckets_serial,
+      mz_pair_max_distance, 
+      winlength_factor_baseline,
+      total_intensity_ratio, 
+      scale_low_1,
+      scale_high_1,
+      rt_low, rt_high);
     setProgress((actual_progress = 50));
 
     ///////////////////////////////////////////////////////////////////
