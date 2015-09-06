@@ -47,12 +47,6 @@
 #include <boost/math/special_functions/fpclassify.hpp>
 
 // #define Debug_PoseClusteringAffineSuperimposer
-#ifdef Debug_PoseClusteringAffineSuperimposer
-#define V_(bla) std::cout << __FILE__ ":" << __LINE__ << ": " << bla << std::endl;
-#else
-#define V_(bla)
-#endif
-#define VV_(bla) V_("" # bla ": " << bla)
 
 namespace OpenMS
 {
@@ -107,6 +101,12 @@ namespace OpenMS
     return;
   }
 
+  /**
+    @brief Initialize hash maps for the algorithm.
+
+    The hash maps will contain a histogram of the values to be estimated.
+
+  */
   void initializeHashTables(
     Math::LinearInterpolation<double, double> & scaling_hash_1,
     Math::LinearInterpolation<double, double> & scaling_hash_2,
@@ -118,18 +118,21 @@ namespace OpenMS
   {
     const Int scaling_buckets_num_half = (Int) ceil(log(max_scaling) / scaling_bucket_size) + 1;
 
+    // set scale to scaling_bucket_size and establish initial mapping of scaling_buckets_num_half to zero
+
     scaling_hash_1.getData().clear();
     scaling_hash_1.getData().resize(2 * scaling_buckets_num_half + 1);
-    scaling_hash_1.setMapping(scaling_bucket_size, scaling_buckets_num_half, 0.);
+    scaling_hash_1.setMapping(scaling_bucket_size, scaling_buckets_num_half, 0.); 
 
     scaling_hash_2.getData().clear();
     scaling_hash_2.getData().resize(2 * scaling_buckets_num_half + 1);
-    scaling_hash_2.setMapping(scaling_bucket_size, scaling_buckets_num_half, 0.);
+    scaling_hash_2.setMapping(scaling_bucket_size, scaling_buckets_num_half, 0.); // map scaling_buckets_num_half to zero
 
     // (over)estimate the required number of buckets for shifting
     const Int rt_buckets_num_half = 4 + 2 * (Int) ceil((max_shift * max_scaling) / shift_bucket_size);
     const Int rt_buckets_num = 1 + 2 * rt_buckets_num_half;
 
+    // set scale to shift_bucket_size and establish initial mapping of rt_buckets_num_half to rt_low/rt_high
     rt_low_hash_.getData().clear();
     rt_low_hash_.getData().resize(rt_buckets_num);
     rt_low_hash_.setMapping(shift_bucket_size, rt_buckets_num_half, rt_low);
@@ -139,7 +142,20 @@ namespace OpenMS
     rt_high_hash_.setMapping(shift_bucket_size, rt_buckets_num_half, rt_high);
   }
 
-  void affineTransformationHashing(const bool do_dump_pairs, const Size model_map_size, const Size scene_map_size, 
+  /**
+    @brief Estimates scaling by trying different (weighted) affine transformations.
+
+    Basically try all combinations of two pairs from map model (i,j) and two
+    pairs from map scene (k,l) and compute shift and scale based on these
+    four points. The computed value is weighed by the intensity of all
+    points, thus this is a density-based approach.
+
+    In the first round, compute and store every combination. In the second
+    round, only consider quadruplets where the scaling factor matches the
+    estimated bounds of (scale_low_1,scale_high_1), discard all other data.
+
+  */
+  void affineTransformationHashing(const bool do_dump_pairs, 
     const ConstRefVector<ConsensusMap> & model_map, 
     const ConstRefVector<ConsensusMap> & scene_map,
     Math::LinearInterpolation<double, double> & scaling_hash_1,
@@ -157,6 +173,9 @@ namespace OpenMS
     const double scale_high_1,
     const double rt_low, const double rt_high)
     {
+      Size const model_map_size = model_map.size(); // i j
+      Size const scene_map_size = scene_map.size(); // k l
+
       String dump_pairs_filename;
       std::ofstream dump_pairs_file;
       if (do_dump_pairs)
@@ -167,36 +186,40 @@ namespace OpenMS
       }
       // setProgress(++actual_progress);
 
-      // first point in model map
+      // first point in model map (i)
       for (Size i = 0, i_low = 0, i_high = 0, k_low = 0, k_high = 0; i < model_map_size - 1; ++i)
       {
         // setProgress(actual_progress + float(i) / model_map_size * 10.f);
 
-        // Adjust window around i in model map
+        // Adjust window around i in model map (get all features in a m/z range of item i in the model map)
         while (i_low < model_map_size && model_map[i_low].getMZ() < model_map[i].getMZ() - mz_pair_max_distance)
           ++i_low;
         while (i_high < model_map_size && model_map[i_high].getMZ() <= model_map[i].getMZ() + mz_pair_max_distance)
           ++i_high;
+        // stop if there are too many features are in our window
         double i_winlength_factor = 1. / (i_high - i_low);
         i_winlength_factor -= winlength_factor_baseline;
         if (i_winlength_factor <= 0)
           continue;
 
-        // Adjust window around k in scene map
+        // Adjust window around k in scene map (get all features in a m/z range of item i in the scene map)
         while (k_low < scene_map_size && scene_map[k_low].getMZ() < model_map[i].getMZ() - mz_pair_max_distance)
           ++k_low;
         while (k_high < scene_map_size && scene_map[k_high].getMZ() <= model_map[i].getMZ() + mz_pair_max_distance)
           ++k_high;
 
-        // first point in scene map
+        // Iterate through all matching features in the scene map that are
+        // within the m/z distance of item i from the model map.
+        // first point in scene map (k)
         for (Size k = k_low; k < k_high; ++k)
         {
+          // stop if there are too many features are in our window
           double k_winlength_factor = 1. / (k_high - k_low);
           k_winlength_factor -= winlength_factor_baseline;
           if (k_winlength_factor <= 0)
             continue;
 
-          // compute similarity of intensities i k
+          // compute similarity of intensities i k by taking the ratio of the two intensities
           double similarity_ik;
           {
             const double int_i = model_map[i].getIntensity();
@@ -205,13 +228,12 @@ namespace OpenMS
             // weight is inverse proportional to number of elements with similar mz
             similarity_ik *= i_winlength_factor;
             similarity_ik *= k_winlength_factor;
-            // VV_(int_i<<' '<<int_k<<' '<<int_similarity_ik);
           }
 
-          // second point in model map
+          // second point in model map (j)
           for (Size j = i + 1, j_low = i_low, j_high = i_low, l_low = k_low, l_high = k_high; j < model_map_size; ++j)
           {
-            // diff in model map
+            // diff in model map -> skip features that are too far away in RT
             double diff_model = model_map[j].getRT() - model_map[i].getRT();
             if (fabs(diff_model) < rt_pair_min_distance)
               continue;
@@ -226,13 +248,13 @@ namespace OpenMS
             if (j_winlength_factor <= 0)
               continue;
 
-            // Adjust window in scene map
+            // Adjust window around l in scene map
             while (l_low < scene_map_size && scene_map[l_low].getMZ() < model_map[j].getMZ() - mz_pair_max_distance)
               ++l_low;
             while (l_high < scene_map_size && scene_map[l_high].getMZ() <= model_map[j].getMZ() + mz_pair_max_distance)
               ++l_high;
 
-            // second point in scene map
+            // second point in scene map (l)
             for (Size l = l_low; l < l_high; ++l)
             {
               double l_winlength_factor = 1. / (l_high - l_low);
@@ -240,7 +262,7 @@ namespace OpenMS
               if (l_winlength_factor <= 0)
                 continue;
 
-              // diff in scene map
+              // diff in scene map -> skip features that are too far away in RT
               double diff_scene = scene_map[l].getRT() - scene_map[k].getRT();
 
               // avoid cross mappings (i,j) -> (k,l) (e.g. i_rt < j_rt and k_rt > l_rt)
@@ -262,21 +284,21 @@ namespace OpenMS
                 // weight is inverse proportional to number of elements with similar mz
                 similarity_jl *= j_winlength_factor;
                 similarity_jl *= l_winlength_factor;
-
-                // ... and finally ...
                 similarity_ik_jl = similarity_ik * similarity_jl;
-                // VV_(int_j<<' '<<int_l<<' '<<int_similarity_ik<<' '<<int_similarity_jl<<' '<<int_similarity);
               }
 
               // hash the images of scaling, rt_low and rt_high into their respective hash tables
+              // store the scaling parameter and the (estimated) transformation of start/end of the maps in hashes
+              //   -> in round 2, discard values outside of scale_low_1 and
+              //   scale_high_1 (estimated before in scalingEstimate)
               if (hashing_round == 1) 
               {
-                // hashing round 1
+                // hashing round 1 (estimate the scaling only)
                 scaling_hash_1.addValue(log(scaling), similarity_ik_jl);
               }
               else if (scaling >= scale_low_1 && scaling <= scale_high_1)
               {
-                // hashing round 2
+                // hashing round 2 (estimate scaling and shift)
                 scaling_hash_2.addValue(log(scaling), similarity_ik_jl);
 
                 const double rt_low_image = shift + rt_low * scaling;
@@ -297,6 +319,18 @@ namespace OpenMS
       } // i
     }
 
+    /**
+      @brief Estimates likely position of the scale factor based on scaling_hash_1.
+
+      Uses the histogram given in scaling_hash_1 to perform some filtering and
+      correction of the data and then estimate the mean of the scaling factor
+      and standard deviation, thus returning a likely range for the scaling
+      factor. Outliers are removed in an iterative process.
+
+      Returns scale_centroid_1 (mean), scale_low_1 (lower bound) and
+      scale_high_1 (upper bound) of the scaling factor.
+      
+    */
   void scalingEstimate(
     Math::LinearInterpolation<double, double> & scaling_hash_1,
     const bool do_dump_buckets,
@@ -320,7 +354,6 @@ namespace OpenMS
       {
         dump_buckets_filename = dump_buckets_basename + "_scale_" + String(dump_buckets_serial);
         dump_buckets_file.open(dump_buckets_filename.c_str());
-        VV_(dump_buckets_filename);
 
         dump_buckets_file << "# rt scale hash table buckets dump ( scale, height ) : " << dump_buckets_filename << std::endl;
         dump_buckets_file << "# unfiltered hash data\n";
@@ -336,7 +369,9 @@ namespace OpenMS
       ++filtering_stage;
       //setProgress(++actual_progress);
 
-      // apply tophat filter to histogram
+      // ***************************************************************************
+      // Data filtering: apply tophat filter to histogram of different scales
+      // ***************************************************************************
       MorphologicalFilter morph_filter;
       Param morph_filter_param;
       morph_filter_param.setValue("struc_elem_unit", "DataPoints");
@@ -364,7 +399,11 @@ namespace OpenMS
 
       ++filtering_stage;
 
-      // compute freq_cutoff using a fancy criterion to distinguish between the noise level of the histogram and enriched histogram bins
+      // ***************************************************************************
+      // Data cutoff: estimate cutoff for filtered histogram
+      // compute freq_cutoff using a fancy criterion to distinguish between the
+      // noise level of the histogram and enriched histogram bins
+      // ***************************************************************************
       double freq_cutoff;
       do
       {
@@ -380,6 +419,8 @@ namespace OpenMS
         }
         else
         {
+          // -> basically trying to find the intersection where sorted values fall
+          // below fitted line with slop "freq_slope"
           Size index = 1; // not 0 (!)
           while (buffer[index] >= freq_intercept + freq_slope * double(index))
           {
@@ -391,6 +432,7 @@ namespace OpenMS
       while (0);
       //setProgress(++actual_progress);
 
+      // ***************************************************************************
       // apply freq_cutoff, setting smaller values to zero
       for (Size index = 0; index < scaling_hash_1.getData().size(); ++index)
       {
@@ -415,7 +457,9 @@ namespace OpenMS
       }
       //setProgress(++actual_progress);
 
+      // ***************************************************************************
       // iterative cut-off based on mean and stdev - relies upon scaling_cutoff_stdev_multiplier which is a bit hard to set right.
+      // ***************************************************************************
       Math::BasicStatistics<double> statistics;
       std::vector<double>::const_iterator data_begin = scaling_hash_1.getData().begin();
       const Size data_size = scaling_hash_1.getData().size();
@@ -450,7 +494,7 @@ namespace OpenMS
       }
     }
 
-  void run_(
+  void shiftEstimate(
     const bool do_dump_buckets,
     Math::LinearInterpolation<double, double> & rt_low_hash_,
     Math::LinearInterpolation<double, double> & rt_high_hash_,
@@ -463,7 +507,6 @@ namespace OpenMS
     double& rt_low_centroid,
     double& rt_high_centroid)
   {
-
     UInt filtering_stage = 0;
 
     // optionally, dump before filtering
@@ -475,7 +518,6 @@ namespace OpenMS
     {
       dump_buckets_low_filename = dump_buckets_basename + "_low_" + String(dump_buckets_serial);
       dump_buckets_low_file.open(dump_buckets_low_filename.c_str());
-      VV_(dump_buckets_low_filename);
 
       dump_buckets_low_file << "# rt low hash table buckets dump ( scale, height ) : " << dump_buckets_low_filename << std::endl;
       dump_buckets_low_file << "# unfiltered hash data\n";
@@ -489,7 +531,6 @@ namespace OpenMS
 
       dump_buckets_high_filename = dump_buckets_basename + "_high_" + String(dump_buckets_serial);
       dump_buckets_high_file.open(dump_buckets_high_filename.c_str());
-      VV_(dump_buckets_high_filename);
 
       dump_buckets_high_file << "# rt high hash table buckets dump ( scale, height ) : " << dump_buckets_high_filename << std::endl;
       dump_buckets_high_file << "# unfiltered hash data\n";
@@ -705,36 +746,67 @@ namespace OpenMS
     }
   }
 
+  double computeIntensityRatio(const ConstRefVector<ConsensusMap> & model_map, const ConstRefVector<ConsensusMap> & scene_map)
+  {
+    double total_int_model_map = 0;
+    for (Size i = 0; i < model_map.size(); ++i)
+    {
+      total_int_model_map += model_map[i].getIntensity();
+    }
+
+    double total_int_scene_map = 0;
+    for (Size i = 0; i < scene_map.size(); ++i)
+    {
+      total_int_scene_map += scene_map[i].getIntensity();
+    }
+
+    return total_int_model_map / total_int_scene_map;
+  }
+
   void PoseClusteringAffineSuperimposer::run(const ConsensusMap & map_model,
                                              const ConsensusMap & map_scene,
                                              TransformationDescription & transformation)
   {
     if (map_model.empty() || map_scene.empty())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "One of the input maps is empty! This is not allowed!");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+          "One of the input maps is empty! This is not allowed!");
     }
 
     //**************************************************************************
-    // Variable definitions
+    // Parameters
     //**************************************************************************
-    const UInt struc_elem_length_datapoints = 21; // MAGIC ALERT: number of data points in structuring element for tophat filter, which removes baseline from histogram
-    const double scaling_histogram_crossing_slope = 3.0; // MAGIC ALERT: used when distinguishing noise level and enriched histogram bins
-    const double scaling_cutoff_stdev_multiplier = 1.5; // MAGIC ALERT: multiplier for stdev in cutoff for outliers
-    const UInt loops_mean_stdev_cutoff = 3; // MAGIC ALERT: number of loops in stdev cutoff for outliers
-    const double winlength_factor_baseline = 0.1; // MAGIC ALERT: Each window is given unit weight.  If there are too many pairs for a window, the individual contributions will be very small, but running time will be high, so we provide a cutoff for this.  Typically this will exclude compounds which elute over the whole retention time range from consideration.
+
+    // number of data points in structuring element for tophat filter, which removes baseline from histogram
+    const UInt struc_elem_length_datapoints = 21;
+    // used when distinguishing noise level and enriched histogram bins
+    const double scaling_histogram_crossing_slope = 3.0; 
+    // multiplier for stdev in cutoff for outliers
+    const double scaling_cutoff_stdev_multiplier = 1.5;
+    // number of loops in stdev cutoff for outliers
+    const UInt loops_mean_stdev_cutoff = 3;
+    // Each m/z window is given unit weight. If there are too many pairs for a
+    // window, the individual contributions will be very small, but running
+    // time will be high, so we provide a cutoff for this.  Typically this will
+    // exclude compounds which elute over the whole retention time range from
+    // consideration.
+    // This may lead to the exclusion of certain m/z windows that are very
+    // crowded.
+    const double winlength_factor_baseline = 0.1;
 
     /// Maximum deviation in mz of two partner points
     const double mz_pair_max_distance = param_.getValue("mz_pair_max_distance");
 
     //**************************************************************************
-    // Working variables definitions
+    // Working variables
     //**************************************************************************
     typedef ConstRefVector<ConsensusMap> PeakPointerArray_;
     typedef Math::LinearInterpolation<double, double> LinearInterpolationType_;
-    LinearInterpolationType_ scaling_hash_1;
-    LinearInterpolationType_ scaling_hash_2;
-    LinearInterpolationType_ rt_low_hash_;
-    LinearInterpolationType_ rt_high_hash_;
+    // these are a set of hashes that transform bins to actual RT values ... 
+    LinearInterpolationType_ scaling_hash_1; //scaling estimate from round 1 hashing
+    LinearInterpolationType_ scaling_hash_2; //scaling estimate from round 2 hashing
+    LinearInterpolationType_ rt_low_hash_; // rt shift estimate of map start
+    LinearInterpolationType_ rt_high_hash_; // rt shift estimate of map end
     UInt actual_progress = 0;
 
     startProgress(0, 100, "affine pose clustering");
@@ -760,8 +832,9 @@ namespace OpenMS
     setProgress(++actual_progress);
 
     //**************************************************************************
-    // Select the most abundant data points only.  After that, disallow modifications
-    // (we tend to have annoying issues with const_iterator versus iterator).
+    // Step 1: Select the most abundant data points only.  After that, disallow modifications
+    //         (we tend to have annoying issues with const_iterator versus
+    //         iterator).
     //**************************************************************************
     PeakPointerArray_ model_map_ini(map_model.begin(), map_model.end());
     const PeakPointerArray_ & model_map(model_map_ini);
@@ -797,15 +870,18 @@ namespace OpenMS
     const double rt_low = (map_model.getMin()[ConsensusFeature::RT] + map_scene.getMin()[ConsensusFeature::RT]) / 2.;
     const double rt_high = (map_model.getMax()[ConsensusFeature::RT] + map_scene.getMax()[ConsensusFeature::RT]) / 2.;
 
+    // Distance in RT two points need to have at most to be considered for clustering
     const double rt_pair_min_distance = (double) param_.getValue("rt_pair_distance_fraction") * (rt_high - rt_low);
 
     //**************************************************************************
-    // Initialize the hash tables: rt_scaling_hash_, rt_low_hash_, and rt_high_hash_
-    // (over)estimate the required number of buckets for scaling
-    // Note: the user-specified bucket size only applies to scales around 1.
-    // The hashing uses a log transformation because we do not like skewed distributions.
+    // Step 2: Initialize the hash tables: rt_scaling_hash_, rt_low_hash_, and
+    //         rt_high_hash_. (over)estimate the required number of buckets
+    //         for scaling
+    //         Note: the user-specified bucket size only applies to scales
+    //         around 1.  The hashing uses a log transformation because we do
+    //         not like skewed distributions.
     //**************************************************************************
-    initializeHashTables( scaling_hash_1, scaling_hash_2, rt_low_hash_, rt_high_hash_, 
+    initializeHashTables(scaling_hash_1, scaling_hash_2, rt_low_hash_, rt_high_hash_, 
       param_.getValue("max_scaling"), param_.getValue("max_shift"), 
       param_.getValue("scaling_bucket_size"), param_.getValue("shift_bucket_size"),
       rt_low, rt_high);
@@ -813,55 +889,33 @@ namespace OpenMS
     setProgress(++actual_progress);
 
     //**************************************************************************
-    // compute the ratio of the total intensities of both maps, for normalization
+    // Step 3: compute the ratio of the total intensities of both maps, for
+    //         normalization
     //**************************************************************************
-    double total_intensity_ratio;
-    do
-    {
-      double total_int_model_map = 0;
-      for (Size i = 0; i < model_map.size(); ++i)
-      {
-        total_int_model_map += model_map[i].getIntensity();
-      }
-      setProgress(++actual_progress);
-      double total_int_scene_map = 0;
-      for (Size i = 0; i < scene_map.size(); ++i)
-      {
-        total_int_scene_map += scene_map[i].getIntensity();
-      }
-      setProgress(++actual_progress);
-      // ... and finally ...
-      total_intensity_ratio = total_int_model_map / total_int_scene_map;
-    }
-    while (0);   // (the extra syntax helps with code folding in eclipse!)
+    double total_intensity_ratio = computeIntensityRatio(model_map, scene_map);
     setProgress((actual_progress = 20));
 
-    /// The serial number is incremented for each invocation of this, to avoid overwriting of hash table dumps.
+    // The serial number is incremented for each invocation of this, to avoid
+    // overwriting of hash table dumps.
     static Int dump_buckets_serial = 0;
     ++dump_buckets_serial;
 
     //**************************************************************************
-    // Hashing
+    // Step 4: Hashing
+    //         Compute the transformations between each point pair in the model
+    //         map and each point pair in the scene map and hash the affine
+    //         transformation.
+    //
+    //         To speed up the calculation of the final transformation, we
+    //         confine the number of considered point pairs.  We match a point
+    //         p in the model map only onto those points p' in the scene map
+    //         that lie in a certain mz interval.
     //**************************************************************************
-    // Compute the transformations between each point pair in the model map
-    // and each point pair in the scene map and hash the affine
-    // transformation.
-
-    // To speed up the calculation of the final transformation, we confine the number of
-    // considered point pairs.  We match a point p in the model map only onto those points p'
-    // in the scene map that lie in a certain mz interval.
-
-    VV_(rt_pair_min_distance);
-
-    Size const model_map_size = model_map.size(); // i j
-    Size const scene_map_size = scene_map.size(); // k l
 
     ///////////////////////////////////////////////////////////////////
-    // First round of hashing:  Estimate the scaling
-    double dummy_scale_low_1(0);
-    double dummy_scale_high_1(0);
+    // Step 4.1 First round of hashing: Estimate the scaling
     affineTransformationHashing(
-      do_dump_pairs, model_map_size, scene_map_size, 
+      do_dump_pairs, 
       model_map, scene_map, 
       scaling_hash_1, scaling_hash_2, rt_low_hash_, rt_high_hash_,
       1,
@@ -871,13 +925,15 @@ namespace OpenMS
       mz_pair_max_distance, 
       winlength_factor_baseline,
       total_intensity_ratio, 
-      dummy_scale_low_1, // only used in 2nd round of hashing
-      dummy_scale_high_1, // only used in 2nd round of hashing
+      -1, // only used in 2nd round of hashing
+      -1, // only used in 2nd round of hashing
       rt_low, rt_high);
     setProgress((actual_progress = 30));
 
+    std::cout << " rework scaling " << std::endl;
     ///////////////////////////////////////////////////////////////////
-    // work on rt_scaling_hash_
+    // Step 4.2 Estimate the scaling factor (and potential bounds) based on the
+    // histogram work on rt_scaling_hash_
     double scale_low_1;
     double scale_centroid_1;
     double scale_high_1;
@@ -896,11 +952,11 @@ namespace OpenMS
     setProgress((actual_progress = 40));
 
     ///////////////////////////////////////////////////////////////////
-    // Second round of hashing:  Estimate the shift at both ends and thereby
-    // re-estimate the scaling.  This uses the first guess of the scaling to
-    // reduce noise in the histograms.
+    // Step 4.3 Second round of hashing: Estimate the shift at both ends and
+    // thereby re-estimate the scaling. This uses the first guess of the
+    // scaling to reduce noise in the histograms.
     affineTransformationHashing(
-      do_dump_pairs, model_map_size, scene_map_size, 
+      do_dump_pairs, 
       model_map, scene_map, 
       scaling_hash_1, scaling_hash_2, rt_low_hash_, rt_high_hash_,
       2,
@@ -916,10 +972,11 @@ namespace OpenMS
     setProgress((actual_progress = 50));
 
     ///////////////////////////////////////////////////////////////////
-    // work on rt_low_hash_ and rt_high_hash_
+    // Step 4.4 Estimate the shift factor at start/end of the map based on the
+    // histogram work on rt_low_hash_ and rt_high_hash_
     double rt_low_centroid;
     double rt_high_centroid;
-    run_(
+    shiftEstimate(
       do_dump_buckets,
       rt_low_hash_,
       rt_high_hash_,
@@ -933,17 +990,27 @@ namespace OpenMS
       rt_high_centroid);
     setProgress(80);
 
-    //************************************************************************************
-    // Estimate transform
-    //************************************************************************************
+    //**************************************************************************
+    // Step 5: Estimate transform
+    //         Compute the shifts at the low and high ends by either using the
+    //         estimated centroids from the distribution (new method) or by
+    //         looking at (around) the fullest bins (old method).
+    //**************************************************************************
 
-    // Compute the shifts at the low and high ends by looking at (around) the fullest bins.
     double rt_low_image;
     double rt_high_image;
-#if 1 // yes of course, use centroids for images of rt_low and rt_high
+
+    // 5.1 use centroids for images of rt_low and rt_high
+#if 1
     rt_low_image = rt_low_centroid;
     rt_high_image = rt_high_centroid;
-#else // ooh, use maximum bins instead (Note: this is a fossil which would disregard most of the above computations!  The code is left here for developers/debugging only.)
+#else 
+    // Alternative: use maximum bins instead (i.e. most likely shift)
+    // (Note: this is a fossil which would disregard most of the above
+    // computations! The code is left here for developers/debugging only.)
+    // This does not fully take into account the shape of the histogram and may
+    // be potentially not be as robust as working on histogram data
+
     const Size rt_low_max_index = std::distance(rt_low_hash_.getData().begin(),
                                                 std::max_element(rt_low_hash_.getData().begin(), rt_low_hash_.getData().end()));
     rt_low_image = rt_low_hash_.index2key(rt_low_max_index);
@@ -953,15 +1020,13 @@ namespace OpenMS
     rt_high_image = rt_high_hash_.index2key(rt_high_max_index);
 #endif
 
-    VV_(rt_low); VV_(rt_low_image); VV_(rt_high); VV_(rt_high_image);
-
     setProgress(++actual_progress);
 
+    // 5.2 compute slope and intercept from matching high/low retention times
     // set trafo
     {
       Param params;
-      const double slope = ((rt_high_image - rt_low_image) /
-                                (rt_high - rt_low));
+      const double slope = ((rt_high_image - rt_low_image) / (rt_high - rt_low));
       params.setValue("slope", slope);
 
       const double intercept = rt_low_image - rt_low * slope;
@@ -970,7 +1035,8 @@ namespace OpenMS
       if (boost::math::isinf(slope) || boost::math::isnan(slope) || boost::math::isinf(intercept) || boost::math::isnan(intercept))
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-            "Superimposer could not compute an initial transformation! You can try to increase 'max_num_peaks_considered' to solve this.", String(intercept * slope));
+            String("Superimposer could not compute an initial transformation!") + 
+            "You can try to increase 'max_num_peaks_considered' to solve this.", String(intercept * slope));
       }
 
       transformation.fitModel("linear", params);       // no data, but explicit parameters
