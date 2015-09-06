@@ -703,43 +703,42 @@ namespace OpenMS
       dump_buckets_high_file << "# EOF" << std::endl;
       dump_buckets_high_file.close();
     }
-    // setProgress(80);
-
   }
 
   void PoseClusteringAffineSuperimposer::run(const ConsensusMap & map_model,
                                              const ConsensusMap & map_scene,
                                              TransformationDescription & transformation)
   {
-
     if (map_model.empty() || map_scene.empty())
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "One of the input maps is empty! This is not allowed!");
     }
 
-    typedef ConstRefVector<ConsensusMap> PeakPointerArray_;
-    typedef Math::LinearInterpolation<double, double> LinearInterpolationType_;
-
-    LinearInterpolationType_ scaling_hash_1;
-    LinearInterpolationType_ scaling_hash_2;
-    LinearInterpolationType_ rt_low_hash_;
-    LinearInterpolationType_ rt_high_hash_;
-
-    /// Maximum deviation in mz of two partner points
-    const double mz_pair_max_distance = param_.getValue("mz_pair_max_distance");
-
-    /// Size of each shift bucket
-    // const double shift_bucket_size = param_.getValue("shift_bucket_size");
-
+    //**************************************************************************
+    // Variable definitions
+    //**************************************************************************
     const UInt struc_elem_length_datapoints = 21; // MAGIC ALERT: number of data points in structuring element for tophat filter, which removes baseline from histogram
     const double scaling_histogram_crossing_slope = 3.0; // MAGIC ALERT: used when distinguishing noise level and enriched histogram bins
     const double scaling_cutoff_stdev_multiplier = 1.5; // MAGIC ALERT: multiplier for stdev in cutoff for outliers
     const UInt loops_mean_stdev_cutoff = 3; // MAGIC ALERT: number of loops in stdev cutoff for outliers
+    const double winlength_factor_baseline = 0.1; // MAGIC ALERT: Each window is given unit weight.  If there are too many pairs for a window, the individual contributions will be very small, but running time will be high, so we provide a cutoff for this.  Typically this will exclude compounds which elute over the whole retention time range from consideration.
+
+    /// Maximum deviation in mz of two partner points
+    const double mz_pair_max_distance = param_.getValue("mz_pair_max_distance");
+
+    //**************************************************************************
+    // Working variables definitions
+    //**************************************************************************
+    typedef ConstRefVector<ConsensusMap> PeakPointerArray_;
+    typedef Math::LinearInterpolation<double, double> LinearInterpolationType_;
+    LinearInterpolationType_ scaling_hash_1;
+    LinearInterpolationType_ scaling_hash_2;
+    LinearInterpolationType_ rt_low_hash_;
+    LinearInterpolationType_ rt_high_hash_;
+    UInt actual_progress = 0;
 
     startProgress(0, 100, "affine pose clustering");
-    UInt actual_progress = 0;
     setProgress(++actual_progress);
-
     // Optionally, we will write dumps of the hash table buckets.
     bool do_dump_buckets = false;
     String dump_buckets_basename;
@@ -763,6 +762,7 @@ namespace OpenMS
     //**************************************************************************
     // Select the most abundant data points only.  After that, disallow modifications
     // (we tend to have annoying issues with const_iterator versus iterator).
+    //**************************************************************************
     PeakPointerArray_ model_map_ini(map_model.begin(), map_model.end());
     const PeakPointerArray_ & model_map(model_map_ini);
     PeakPointerArray_ scene_map_ini(map_scene.begin(), map_scene.end());
@@ -790,6 +790,7 @@ namespace OpenMS
 
     //**************************************************************************
     // Preprocessing
+    //**************************************************************************
 
     // get RT ranges (NOTE: we trust that min and max have been updated in the
     // ConsensusMap::convert() method !)
@@ -798,10 +799,12 @@ namespace OpenMS
 
     const double rt_pair_min_distance = (double) param_.getValue("rt_pair_distance_fraction") * (rt_high - rt_low);
 
+    //**************************************************************************
     // Initialize the hash tables: rt_scaling_hash_, rt_low_hash_, and rt_high_hash_
     // (over)estimate the required number of buckets for scaling
     // Note: the user-specified bucket size only applies to scales around 1.
     // The hashing uses a log transformation because we do not like skewed distributions.
+    //**************************************************************************
     initializeHashTables( scaling_hash_1, scaling_hash_2, rt_low_hash_, rt_high_hash_, 
       param_.getValue("max_scaling"), param_.getValue("max_shift"), 
       param_.getValue("scaling_bucket_size"), param_.getValue("shift_bucket_size"),
@@ -811,6 +814,7 @@ namespace OpenMS
 
     //**************************************************************************
     // compute the ratio of the total intensities of both maps, for normalization
+    //**************************************************************************
     double total_intensity_ratio;
     do
     {
@@ -838,7 +842,7 @@ namespace OpenMS
 
     //**************************************************************************
     // Hashing
-
+    //**************************************************************************
     // Compute the transformations between each point pair in the model map
     // and each point pair in the scene map and hash the affine
     // transformation.
@@ -851,9 +855,6 @@ namespace OpenMS
 
     Size const model_map_size = model_map.size(); // i j
     Size const scene_map_size = scene_map.size(); // k l
-
-    const double winlength_factor_baseline = 0.1; // MAGIC ALERT: Each window is given unit weight.  If there are too many pairs for a window, the individual contributions will be very small, but running time will be high, so we provide a cutoff for this.  Typically this will exclude compounds which elute over the whole retention time range from consideration.
-
 
     ///////////////////////////////////////////////////////////////////
     // First round of hashing:  Estimate the scaling
@@ -880,22 +881,18 @@ namespace OpenMS
     double scale_low_1;
     double scale_centroid_1;
     double scale_high_1;
-    do
-    {
-      scalingEstimate(
-        scaling_hash_1,
-        do_dump_buckets,
-        struc_elem_length_datapoints,
-        dump_buckets_basename,
-        dump_buckets_serial,
-        scaling_histogram_crossing_slope,
-        scaling_cutoff_stdev_multiplier,
-        loops_mean_stdev_cutoff,
-        scale_low_1,
-        scale_high_1,
-        scale_centroid_1);
-    }
-    while (0);
+    scalingEstimate(
+      scaling_hash_1,
+      do_dump_buckets,
+      struc_elem_length_datapoints,
+      dump_buckets_basename,
+      dump_buckets_serial,
+      scaling_histogram_crossing_slope,
+      scaling_cutoff_stdev_multiplier,
+      loops_mean_stdev_cutoff,
+      scale_low_1,
+      scale_high_1,
+      scale_centroid_1);
     setProgress((actual_progress = 40));
 
     ///////////////////////////////////////////////////////////////////
@@ -920,31 +917,25 @@ namespace OpenMS
 
     ///////////////////////////////////////////////////////////////////
     // work on rt_low_hash_ and rt_high_hash_
-    // double rt_low_low;
     double rt_low_centroid;
-    // double rt_low_high;
-    // double rt_high_low;
     double rt_high_centroid;
-    // double rt_high_high;
-    do
-    {
-      run_(
-        do_dump_buckets,
-        rt_low_hash_,
-        rt_high_hash_,
-        dump_buckets_serial,
-        struc_elem_length_datapoints,
-        scaling_histogram_crossing_slope,
-        scaling_cutoff_stdev_multiplier,
-        loops_mean_stdev_cutoff,
-        dump_buckets_basename,
-        rt_low_centroid,
-        rt_high_centroid);
-    }
-    while (0);
+    run_(
+      do_dump_buckets,
+      rt_low_hash_,
+      rt_high_hash_,
+      dump_buckets_serial,
+      struc_elem_length_datapoints,
+      scaling_histogram_crossing_slope,
+      scaling_cutoff_stdev_multiplier,
+      loops_mean_stdev_cutoff,
+      dump_buckets_basename,
+      rt_low_centroid,
+      rt_high_centroid);
+    setProgress(80);
 
     //************************************************************************************
     // Estimate transform
+    //************************************************************************************
 
     // Compute the shifts at the low and high ends by looking at (around) the fullest bins.
     double rt_low_image;
@@ -987,8 +978,6 @@ namespace OpenMS
 
     setProgress(++actual_progress);
     endProgress();
-
-    return;
   } // run()
 
 } // namespace OpenMS
