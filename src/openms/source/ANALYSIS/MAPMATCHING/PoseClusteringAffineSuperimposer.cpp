@@ -184,13 +184,10 @@ namespace OpenMS
         dump_pairs_file.open(dump_pairs_filename.c_str());
         dump_pairs_file << "#" << ' ' << "i" << ' ' << "j" << ' ' << "k" << ' ' << "l" << ' ' << std::endl;
       }
-      // setProgress(++actual_progress);
 
       // first point in model map (i)
       for (Size i = 0, i_low = 0, i_high = 0, k_low = 0, k_high = 0; i < model_map_size - 1; ++i)
       {
-        // setProgress(actual_progress + float(i) / model_map_size * 10.f);
-
         // Adjust window around i in model map (get all features in a m/z range of item i in the model map)
         while (i_low < model_map_size && model_map[i_low].getMZ() < model_map[i].getMZ() - mz_pair_max_distance)
           ++i_low;
@@ -367,7 +364,6 @@ namespace OpenMS
       }
 
       ++filtering_stage;
-      //setProgress(++actual_progress);
 
       // ***************************************************************************
       // Data filtering: apply tophat filter to histogram of different scales
@@ -381,7 +377,6 @@ namespace OpenMS
       LinearInterpolationType_::container_type buffer(scaling_hash_1.getData().size());
       morph_filter.filterRange(scaling_hash_1.getData().begin(), scaling_hash_1.getData().end(), buffer.begin());
       scaling_hash_1.getData().swap(buffer);
-      //setProgress(++actual_progress);
 
       // optionally, dump after filtering
       if (do_dump_buckets)
@@ -395,7 +390,6 @@ namespace OpenMS
         }
         dump_buckets_file << '\n';
       }
-      //setProgress(++actual_progress);
 
       ++filtering_stage;
 
@@ -430,7 +424,6 @@ namespace OpenMS
         }
       }
       while (0);
-      //setProgress(++actual_progress);
 
       // ***************************************************************************
       // apply freq_cutoff, setting smaller values to zero
@@ -441,7 +434,6 @@ namespace OpenMS
           scaling_hash_1.getData()[index] = 0;
         }
       }
-      //setProgress(++actual_progress);
 
       // optionally, dump after noise filtering using freq_cutoff
       if (do_dump_buckets)
@@ -455,7 +447,6 @@ namespace OpenMS
         }
         dump_buckets_file << '\n';
       }
-      //setProgress(++actual_progress);
 
       // ***************************************************************************
       // iterative cut-off based on mean and stdev - relies upon scaling_cutoff_stdev_multiplier which is a bit hard to set right.
@@ -484,7 +475,6 @@ namespace OpenMS
                             << log_outside_mean + log_outside_stdev << " [" << scale_high_1 << "]  data_range_begin: " << data_range_begin << "  data_range_end: "
                             << data_range_end << std::endl;
         }
-        //setProgress(++actual_progress);
       }
 
       if (do_dump_buckets)
@@ -544,7 +534,6 @@ namespace OpenMS
     }
 
     ++filtering_stage;
-    // setProgress(++actual_progress);
 
     // apply tophat filter to histogram
     MorphologicalFilter morph_filter;
@@ -582,7 +571,6 @@ namespace OpenMS
       }
       dump_buckets_high_file << '\n';
     }
-    // setProgress(++actual_progress);
 
     ++filtering_stage;
 
@@ -612,7 +600,6 @@ namespace OpenMS
           freq_cutoff_low = buffer[--index]; // note that we have index >= 1
         }
       }
-      // setProgress(++actual_progress);
       {
         std::copy(rt_high_hash_.getData().begin(), rt_high_hash_.getData().end(), buffer.begin());
         std::sort(buffer.begin(), buffer.end(), std::greater<double>());
@@ -636,7 +623,6 @@ namespace OpenMS
       }
     }
     while (0);
-    //setProgress(++actual_progress);
 
     // apply freq_cutoff, setting smaller values to zero
     for (Size index = 0; index < rt_low_hash_.getData().size(); ++index)
@@ -646,7 +632,6 @@ namespace OpenMS
         rt_low_hash_.getData()[index] = 0;
       }
     }
-    //setProgress(++actual_progress);
     for (Size index = 0; index < rt_high_hash_.getData().size(); ++index)
     {
       if (rt_high_hash_.getData()[index] < freq_cutoff_high)
@@ -654,7 +639,6 @@ namespace OpenMS
         rt_high_hash_.getData()[index] = 0;
       }
     }
-    //setProgress(++actual_progress);
 
     // optionally, dump after noise filtering using freq_cutoff
     if (do_dump_buckets)
@@ -667,7 +651,6 @@ namespace OpenMS
         dump_buckets_low_file << rt_image << '\t' << height << '\t' << filtering_stage << '\n';
       }
       dump_buckets_low_file << '\n';
-      //setProgress(++actual_progress);
 
       dump_buckets_high_file << "# after freq_cutoff, which is: " << freq_cutoff_high << '\n';
       for (Size index = 0; index < rt_high_hash_.getData().size(); ++index)
@@ -678,7 +661,6 @@ namespace OpenMS
       }
       dump_buckets_high_file << '\n';
     }
-    //setProgress(++actual_progress);
 
     // iterative cut-off based on mean and stdev - relies upon scaling_cutoff_stdev_multiplier which is a bit hard to set right.
     {
@@ -706,7 +688,6 @@ namespace OpenMS
                                 << data_range_end << std::endl;
         }
       }
-      //setProgress(++actual_progress);
     }
 
     // iterative cut-off based on mean and stdev - relies upon scaling_cutoff_stdev_multiplier which is a bit hard to set right.
@@ -735,7 +716,6 @@ namespace OpenMS
                                  << data_range_end << std::endl;
         }
       }
-      //setProgress(++actual_progress);
     }
     if (do_dump_buckets)
     {
@@ -1023,7 +1003,6 @@ namespace OpenMS
     setProgress(++actual_progress);
 
     // 5.2 compute slope and intercept from matching high/low retention times
-    // set trafo
     {
       Param params;
       const double slope = ((rt_high_image - rt_low_image) / (rt_high - rt_low));
@@ -1044,6 +1023,6 @@ namespace OpenMS
 
     setProgress(++actual_progress);
     endProgress();
-  } // run()
+  }
 
 } // namespace OpenMS
