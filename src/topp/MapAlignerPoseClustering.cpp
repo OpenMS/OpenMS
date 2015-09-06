@@ -65,21 +65,30 @@ using namespace std;
   </table>
 </CENTER>
 
-  This tool provides an algorithm to align the retention time scales of multiple input files, correcting shifts and distortions between them.
-  Retention time adjustment may be necessary to correct for chromatography differences e.g. before data from multiple LC-MS runs can be combined
-  (feature grouping), or when one run should be annotated with peptide identifications obtained in a different run.
+  This tool provides an algorithm to align the retention time scales of
+  multiple input files, correcting shifts and distortions between them.
+  Retention time adjustment may be necessary to correct for chromatography
+  differences e.g. before data from multiple LC-MS runs can be combined
+  (feature grouping), or when one run should be annotated with peptide
+  identifications obtained in a different run.
 
-  All map alignment tools (MapAligner...) collect retention time data from the input files and - by fitting a model to this data
-  - compute transformations that map all runs to a common retention time scale. They can apply the transformations right away and
-  return output files with aligned time scales (parameter @p out), and/or return descriptions of the transformations in trafoXML
-  format (parameter @p trafo_out). Transformations stored as trafoXML can be applied to arbitrary files with the @ref TOPP_MapRTTransformer tool.
+  All map alignment tools (MapAligner...) collect retention time data from the
+  input files and - by fitting a model to this data - compute transformations
+  that map all runs to a common retention time scale. They can apply the
+  transformations right away and return output files with aligned time scales
+  (parameter @p out), and/or return descriptions of the transformations in
+  trafoXML format (parameter @p trafo_out). Transformations stored as trafoXML
+  can be applied to arbitrary files with the @ref TOPP_MapRTTransformer tool.
 
-  The map alignment tools differ in how they obtain retention time data for the modeling of transformations, and consequently what types
-  of data they can be applied to. The alignment algorithm implemented here is the pose clustering algorithm as described in
-  doi:10.1093/bioinformatics/btm209. It is used to find an affine transformation, which is further refined by a feature grouping step.
-  This algorithm can be applied to features (featureXML) and peaks (mzML), but it has mostly been developed and tested on features.
-  For more details and algorithm-specific parameters (set in the INI file) see "Detailed Description" in the
-  @ref OpenMS::MapAlignmentAlgorithmPoseClustering "algorithm documentation".
+  The map alignment tools differ in how they obtain retention time data for the
+  modeling of transformations, and consequently what types of data they can be
+  applied to. The alignment algorithm implemented here is the pose clustering
+  algorithm as described in doi:10.1093/bioinformatics/btm209. It is used to
+  find an affine transformation, which is further refined by a feature grouping
+  step.  This algorithm can be applied to features (featureXML) and peaks
+  (mzML), but it has mostly been developed and tested on features.  For more
+  details and algorithm-specific parameters (set in the INI file) see "Detailed
+  Description" in the @ref OpenMS::MapAlignmentAlgorithmPoseClustering "algorithm documentation".
 
   @see @ref TOPP_MapAlignerPoseClustering @ref TOPP_MapAlignerSpectrum @ref TOPP_MapRTTransformer
 
@@ -161,7 +170,10 @@ protected:
       for (Size i = 0; i < in_files.size(); ++i)
       {
         Size s = 0;
-        if (in_type == FileTypes::FEATUREXML) s = f.loadSize(in_files[i]);
+        if (in_type == FileTypes::FEATUREXML) 
+        {
+          s = f.loadSize(in_files[i]);
+        }
         else if (in_type == FileTypes::MZML) // this is expensive!
         {
           MSExperiment<> exp;
