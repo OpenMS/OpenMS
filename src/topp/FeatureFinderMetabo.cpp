@@ -49,41 +49,43 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-        @page TOPP_FeatureFinderMetabo FeatureFinderMetabo
+  @page TOPP_FeatureFinderMetabo FeatureFinderMetabo
 
-        @brief FeatureFinderMetabo assembles metabolite features from singleton mass traces.
+  @brief FeatureFinderMetabo assembles metabolite features from singleton mass traces.
 
-        <CENTER>
-        <table>
-        <tr>
-        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-        <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ FeatureFinderMetabo \f$ \longrightarrow \f$</td>
-        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-        </tr>
-        <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_TextExporter</td>
-        </tr>
-        <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet </td>
-        </tr>
-        </table>
-        </CENTER>
+  <CENTER>
+  <table>
+  <tr>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+  <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ FeatureFinderMetabo \f$ \longrightarrow \f$</td>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+  </tr>
+  <tr>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_TextExporter</td>
+  </tr>
+  <tr>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet </td>
+  </tr>
+  </table>
+  </CENTER>
 
-        Mass traces alone would allow for further analysis such as metabolite ID or statistical
-        evaluation. However, in general, monoisotopic mass traces are accompanied by satellite
-        C13 peaks and thus may render the analysis more difficult. @ref FeatureFinderMetabo fulfills
-        a further data reduction step by assembling compatible mass traces to metabolite features
-        (that is, all mass traces originating from one metabolite). To this end, multiple metabolite
-        hypotheses are formulated and scored according to how well differences in RT and m/z or
-        intensity ratios match to those of theoretical isotope patterns.
+  Mass traces alone would allow for further analysis such as metabolite ID or
+  statistical evaluation. However, in general, monoisotopic mass traces are
+  accompanied by satellite C13 peaks and thus may render the analysis more
+  difficult. @ref FeatureFinderMetabo fulfills a further data reduction step by
+  assembling compatible mass traces to metabolite features (that is, all mass
+  traces originating from one metabolite). To this end, multiple metabolite
+  hypotheses are formulated and scored according to how well differences in RT
+  and m/z or intensity ratios match to those of theoretical isotope patterns.
 
-        If the raw data scans contain the scan polarity information, it is stored as meta value "scan_polarity" in the output file.
+  If the raw data scans contain the scan polarity information, it is stored as
+  meta value "scan_polarity" in the output file.
 
-        <B>The command line parameters of this tool are:</B>
-        @verbinclude TOPP_FeatureFinderMetabo.cli
-        <B>INI file documentation of this tool:</B>
-        @htmlinclude TOPP_FeatureFinderMetabo.html
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude TOPP_FeatureFinderMetabo.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_FeatureFinderMetabo.html
 */
 
 // We do not want this class to show up in the docu:
@@ -181,7 +183,8 @@ protected:
     {
       if (!getFlag_("force"))
       {
-        throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided spectra expected. To enforce processing of the data set the -force flag.");
+        throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__,
+            "Error: Profile data provided but centroided spectra expected. To enforce processing of the data set the -force flag.");
       }
     }
 
@@ -241,12 +244,12 @@ protected:
       {
         m_traces_final = splitted_mtraces;
       }
-    } 
-    else
-    { // no elution peak detection
+    }
+    else // no elution peak detection
+    {
       m_traces_final = m_traces;
-      for (Size i=0; i<m_traces_final.size(); ++i)
-      { // estimate FWHM, so .getIntensity() can be called later
+      for (Size i = 0; i < m_traces_final.size(); ++i) // estimate FWHM, so .getIntensity() can be called later
+      {
         m_traces_final[i].estimateFWHM(false);
       }
       if (ffm_param.getValue("use_smoothed_intensities").toBool())
@@ -275,7 +278,8 @@ protected:
     Size trace_count(0);
     for (Size i = 0; i < feat_map.size(); ++i)
     {
-      OPENMS_PRECONDITION(feat_map[i].metaValueExists("num_of_masstraces"), "MetaValue 'num_of_masstraces' missing from FFMetabo output!");
+      OPENMS_PRECONDITION(feat_map[i].metaValueExists("num_of_masstraces"),
+          "MetaValue 'num_of_masstraces' missing from FFMetabo output!");
       trace_count += (Size) feat_map[i].getMetaValue("num_of_masstraces");
     }
 
@@ -296,21 +300,20 @@ protected:
     if (feat_map.size() > 0)
     {
       set<IonSource::Polarity> pols;
-      for (Size i=0; i < ms_peakmap.size(); ++i)
+      for (Size i = 0; i < ms_peakmap.size(); ++i)
       {
         pols.insert(ms_peakmap[i].getInstrumentSettings().getPolarity());
       }
       // concat to single string
       StringList sl_pols;
       for (set<IonSource::Polarity>::const_iterator it = pols.begin();
-                                                    it !=pols.end();
-                                                    ++it)
+           it != pols.end();
+           ++it)
       {
         sl_pols.push_back(String(IonSource::NamesOfPolarity[*it]));
       }
       feat_map[0].setMetaValue("scan_polarity", ListUtils::concatenate(sl_pols, ";"));
     }
-
 
     //-------------------------------------------------------------
     // writing output
