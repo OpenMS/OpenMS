@@ -42,7 +42,7 @@ namespace OpenMS
     StringList sl;
 
     // rt mz
-    sl << String::number(rt, 1) << String::number(original_mz, 4);
+    sl << String::number(rt, 3) << String::number(original_mz, 4);
 
     // id if available
     if (no_id)
