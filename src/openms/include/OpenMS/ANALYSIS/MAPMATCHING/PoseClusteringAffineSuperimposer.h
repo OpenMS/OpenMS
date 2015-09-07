@@ -37,6 +37,7 @@
 #define OPENMS_ANALYSIS_MAPMATCHING_POSECLUSTERINGAFFINESUPERIMPOSER_H
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/BaseSuperimposer.h>
+#include <OpenMS/KERNEL/Peak2D.h>
 
 namespace OpenMS
 {
@@ -95,6 +96,9 @@ public:
       @exception IllegalArgument is thrown if the input maps are invalid.
     */
     virtual void run(const ConsensusMap & map_model, const ConsensusMap & map_scene, TransformationDescription & transformation);
+
+    /// Perform alignment on vector of 1D peaks
+    virtual void run(const std::vector<Peak2D> & map_model, const std::vector<Peak2D> & map_scene, TransformationDescription & transformation);
 
     /// Returns an instance of this class
     static BaseSuperimposer * create()

@@ -743,6 +743,34 @@ namespace OpenMS
     return total_int_model_map / total_int_scene_map;
   }
 
+  void PoseClusteringAffineSuperimposer::run(const std::vector<Peak2D> & map_model,
+                                             const std::vector<Peak2D> & map_scene, 
+                                             TransformationDescription & transformation)
+  {
+    ConsensusMap c_map_model, c_map_scene;
+    for (std::vector<Peak2D>::const_iterator it = map_model.begin(); it != map_model.end(); ++it)
+    {
+      ConsensusFeature c;
+      c.setIntensity( it->getIntensity() );
+      c.setRT( it->getRT() );
+      c.setMZ( it->getMZ() );
+      c_map_model.push_back(c);
+    }
+    for (std::vector<Peak2D>::const_iterator it = map_scene.begin(); it != map_scene.end(); ++it)
+    {
+      ConsensusFeature c;
+      c.setIntensity( it->getIntensity() );
+      c.setRT( it->getRT() );
+      c.setMZ( it->getMZ() );
+      c_map_scene.push_back(c);
+    }
+
+    c_map_model.updateRanges();
+    c_map_scene.updateRanges();
+
+    run(c_map_model, c_map_scene, transformation);
+  }
+
   void PoseClusteringAffineSuperimposer::run(const ConsensusMap& map_model,
                                              const ConsensusMap& map_scene,
                                              TransformationDescription& transformation)
