@@ -43,6 +43,7 @@
 #include <vector>
 #include <map>
 #include <cmath>
+#include <algorithm>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
@@ -156,8 +157,12 @@ namespace OpenMS
 
   */
   void affineTransformationHashing(const bool do_dump_pairs,
+                                   /*
                                    const ConstRefVector<ConsensusMap>& model_map,
                                    const ConstRefVector<ConsensusMap>& scene_map,
+                                   */
+                                   const std::vector<Peak2D> & model_map,
+                                   const std::vector<Peak2D> & scene_map,
                                    Math::LinearInterpolation<double, double>& scaling_hash_1,
                                    Math::LinearInterpolation<double, double>& scaling_hash_2,
                                    Math::LinearInterpolation<double, double>& rt_low_hash_,
@@ -726,7 +731,8 @@ namespace OpenMS
     }
   }
 
-  double computeIntensityRatio(const ConstRefVector<ConsensusMap>& model_map, const ConstRefVector<ConsensusMap>& scene_map)
+  //double computeIntensityRatio(const ConstRefVector<ConsensusMap>& model_map, const ConstRefVector<ConsensusMap>& scene_map)
+  double computeIntensityRatio(const std::vector<Peak2D> & model_map, const std::vector<Peak2D> & scene_map)
   {
     double total_int_model_map = 0;
     for (Size i = 0; i < model_map.size(); ++i)
@@ -746,34 +752,7 @@ namespace OpenMS
   void PoseClusteringAffineSuperimposer::run(const std::vector<Peak2D> & map_model,
                                              const std::vector<Peak2D> & map_scene, 
                                              TransformationDescription & transformation)
-  {
-    ConsensusMap c_map_model, c_map_scene;
-    for (std::vector<Peak2D>::const_iterator it = map_model.begin(); it != map_model.end(); ++it)
-    {
-      ConsensusFeature c;
-      c.setIntensity( it->getIntensity() );
-      c.setRT( it->getRT() );
-      c.setMZ( it->getMZ() );
-      c_map_model.push_back(c);
-    }
-    for (std::vector<Peak2D>::const_iterator it = map_scene.begin(); it != map_scene.end(); ++it)
-    {
-      ConsensusFeature c;
-      c.setIntensity( it->getIntensity() );
-      c.setRT( it->getRT() );
-      c.setMZ( it->getMZ() );
-      c_map_scene.push_back(c);
-    }
 
-    c_map_model.updateRanges();
-    c_map_scene.updateRanges();
-
-    run(c_map_model, c_map_scene, transformation);
-  }
-
-  void PoseClusteringAffineSuperimposer::run(const ConsensusMap& map_model,
-                                             const ConsensusMap& map_scene,
-                                             TransformationDescription& transformation)
   {
     if (map_model.empty() || map_scene.empty())
     {
@@ -808,7 +787,7 @@ namespace OpenMS
     //**************************************************************************
     // Working variables
     //**************************************************************************
-    typedef ConstRefVector<ConsensusMap> PeakPointerArray_;
+    // typedef ConstRefVector<ConsensusMap> PeakPointerArray_;
     typedef Math::LinearInterpolation<double, double> LinearInterpolationType_;
     // these are a set of hashes that transform bins to actual RT values ...
     LinearInterpolationType_ scaling_hash_1; //scaling estimate from round 1 hashing
@@ -840,43 +819,49 @@ namespace OpenMS
     setProgress(++actual_progress);
 
     //**************************************************************************
-    // Step 1: Select the most abundant data points only.  After that, disallow modifications
-    //         (we tend to have annoying issues with const_iterator versus
-    //         iterator).
+    // Step 1: Select the most abundant data points only.
     //**************************************************************************
-    PeakPointerArray_ model_map_ini(map_model.begin(), map_model.end());
-    const PeakPointerArray_& model_map(model_map_ini);
-    PeakPointerArray_ scene_map_ini(map_scene.begin(), map_scene.end());
-    const PeakPointerArray_& scene_map(scene_map_ini);
+    // use copy to truncate
+    std::vector<Peak2D> model_map(map_model);
+    std::vector<Peak2D> scene_map(map_scene);
     {
       // truncate the data as necessary
       const Size num_used_points = (Int) param_.getValue("num_used_points");
-      if (model_map_ini.size() > num_used_points)
+
+      // sort the last data points by ascending intensity (from the right, using reverse iterators)
+      //  -> linear in complexity, should be faster than sorting and then taking cutoff
+      //  TODO code-review this
+      if (model_map.size() > num_used_points)
       {
-        model_map_ini.sortByIntensity(true);
-        model_map_ini.resize(num_used_points);
+        std::nth_element(model_map.rbegin(), model_map.rbegin() + (model_map.size() - num_used_points),
+            model_map.rend(), Peak2D::IntensityLess());
+        model_map.resize(num_used_points);
       }
-      model_map_ini.sortByComparator(Peak2D::MZLess());
       setProgress(++actual_progress);
-      if (scene_map_ini.size() > num_used_points)
+      if (scene_map.size() > num_used_points)
       {
-        scene_map_ini.sortByIntensity(true);
-        scene_map_ini.resize(num_used_points);
+        std::nth_element(scene_map.rbegin(), scene_map.rbegin() + (scene_map.size() - num_used_points),
+            scene_map.rend(), Peak2D::IntensityLess());
+        scene_map.resize(num_used_points);
       }
-      scene_map_ini.sortByComparator(Peak2D::MZLess());
       setProgress(++actual_progress);
-      // Note: model_map_ini and scene_map_ini will not be used further below
     }
+    // sort by ascending m/z
+    std::sort(model_map.begin(), model_map.end(), Peak2D::MZLess());
+    std::sort(scene_map.begin(), scene_map.end(), Peak2D::MZLess());
     setProgress((actual_progress = 10));
 
     //**************************************************************************
     // Preprocessing
     //**************************************************************************
-
-    // get RT ranges (NOTE: we trust that min and max have been updated in the
-    // ConsensusMap::convert() method !)
-    const double rt_low = (map_model.getMin()[ConsensusFeature::RT] + map_scene.getMin()[ConsensusFeature::RT]) / 2.;
-    const double rt_high = (map_model.getMax()[ConsensusFeature::RT] + map_scene.getMax()[ConsensusFeature::RT]) / 2.;
+    const double model_minrt = std::min_element(map_model.begin(), map_model.end(), Peak2D::RTLess())->getRT();
+    const double scene_minrt = std::min_element(map_scene.begin(), map_scene.end(), Peak2D::RTLess())->getRT();
+    const double model_maxrt = std::max_element(map_model.begin(), map_model.end(), Peak2D::RTLess())->getRT();
+    const double scene_maxrt = std::max_element(map_scene.begin(), map_scene.end(), Peak2D::RTLess())->getRT();
+    // const double rt_low = (map_model.getMin()[ConsensusFeature::RT] + map_scene.getMin()[ConsensusFeature::RT]) / 2.;
+    // const double rt_high = (map_model.getMax()[ConsensusFeature::RT] + map_scene.getMax()[ConsensusFeature::RT]) / 2.;
+    const double rt_low =  (model_minrt + scene_minrt) / 2.;
+    const double rt_high = (model_maxrt + scene_maxrt) / 2.;
 
     // Distance in RT two points need to have at most to be considered for clustering
     const double rt_pair_min_distance = (double) param_.getValue("rt_pair_distance_fraction") * (rt_high - rt_low);
@@ -938,7 +923,6 @@ namespace OpenMS
       rt_low, rt_high);
     setProgress((actual_progress = 30));
 
-    std::cout << " rework scaling " << std::endl;
     ///////////////////////////////////////////////////////////////////
     // Step 4.2 Estimate the scaling factor (and potential bounds) based on the
     // histogram work on rt_scaling_hash_
@@ -1051,6 +1035,31 @@ namespace OpenMS
 
     setProgress(++actual_progress);
     endProgress();
+  }
+
+  void PoseClusteringAffineSuperimposer::run(const ConsensusMap& map_model,
+                                             const ConsensusMap& map_scene,
+                                             TransformationDescription& transformation)
+  {
+    std::vector<Peak2D> c_map_model, c_map_scene;
+    for (ConsensusMap::const_iterator it = map_model.begin(); it != map_model.end(); ++it)
+    {
+      Peak2D c;
+      c.setIntensity( it->getIntensity() );
+      c.setRT( it->getRT() );
+      c.setMZ( it->getMZ() );
+      c_map_model.push_back(c);
+    }
+    for (ConsensusMap::const_iterator it = map_scene.begin(); it != map_scene.end(); ++it)
+    {
+      Peak2D c;
+      c.setIntensity( it->getIntensity() );
+      c.setRT( it->getRT() );
+      c.setMZ( it->getMZ() );
+      c_map_scene.push_back(c);
+    }
+
+    run(c_map_model, c_map_scene, transformation);
   }
 
 } // namespace OpenMS
