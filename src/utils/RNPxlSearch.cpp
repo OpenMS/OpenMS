@@ -70,6 +70,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 
+#include <QtCore/QProcess>
 
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 
@@ -1631,6 +1632,37 @@ private:
     // annotate RNPxl related information to hits and create report
     vector<RNPxlReportRow> csv_rows = RNPxlReport::annotate(spectra, peptide_ids, marker_ions_tolerance);
 
+    // write ProteinIdentifications and PeptideIdentifications to IdXML
+    IdXMLFile().store(out_idxml, protein_ids, peptide_ids);
+
+    QStringList qparam;
+    qparam << "-in" << out_idxml.toQString() << "-out" << out_idxml.toQString() << "-fasta" << in_db.toQString() << "-prefix" << "-enzyme:specificity" << "none" << "-missing_decoy_action" << "warn";
+    Int status;
+#ifdef OPENMS_WINDOWSPLATFORM
+    if (db_name_contains_space)
+    {
+      // for some reason QProcess doesn't handle escaped " in arguments properly so we use a system call
+      String call_string = "PeptideIndexer " + ListUtils::concatenate(qparam, " ");
+      writeDebug_(call_string, 5);
+      status = system(call_string.c_str());
+    }
+    else
+    {
+      status = QProcess::execute("PeptideIndexer", qparam);
+    }
+#else
+    status = QProcess::execute("PeptideIndexer", qparam);
+#endif
+
+    if (status != 0)
+    {
+      writeLog_("Error: Calling PeptideIndexer resulted in an error.");
+      return EXTERNAL_PROGRAM_ERROR;
+    }
+
+    IdXMLFile().load(out_idxml, protein_ids, peptide_ids);
+    csv_rows = RNPxlReport::annotate(spectra, peptide_ids, marker_ions_tolerance);
+
     // save report
     TextFile csv_file;
     csv_file.addLine(RNPxlReportRowHeader().getString("\t"));
@@ -1639,10 +1671,7 @@ private:
       csv_file.addLine(csv_rows[i].getString("\t"));
     }
     csv_file.store(out_csv);
-
-    // write ProteinIdentifications and PeptideIdentifications to IdXML
-    IdXMLFile().store(out_idxml, protein_ids, peptide_ids);
-
+    
     return EXECUTION_OK;
   }
 
