@@ -108,10 +108,10 @@ namespace OpenMS
 
   */
   void initializeHashTables(
-    Math::LinearInterpolation<double, double> & scaling_hash_1,
-    Math::LinearInterpolation<double, double> & scaling_hash_2,
-    Math::LinearInterpolation<double, double> & rt_low_hash_,
-    Math::LinearInterpolation<double, double> & rt_high_hash_,
+    Math::LinearInterpolation<double, double>& scaling_hash_1,
+    Math::LinearInterpolation<double, double>& scaling_hash_2,
+    Math::LinearInterpolation<double, double>& rt_low_hash_,
+    Math::LinearInterpolation<double, double>& rt_high_hash_,
     const double max_scaling, const double max_shift,
     const double scaling_bucket_size, const double shift_bucket_size,
     const double rt_low, const double rt_high)
@@ -122,7 +122,7 @@ namespace OpenMS
 
     scaling_hash_1.getData().clear();
     scaling_hash_1.getData().resize(2 * scaling_buckets_num_half + 1);
-    scaling_hash_1.setMapping(scaling_bucket_size, scaling_buckets_num_half, 0.); 
+    scaling_hash_1.setMapping(scaling_bucket_size, scaling_buckets_num_half, 0.);
 
     scaling_hash_2.getData().clear();
     scaling_hash_2.getData().resize(2 * scaling_buckets_num_half + 1);
@@ -155,181 +155,181 @@ namespace OpenMS
     estimated bounds of (scale_low_1,scale_high_1), discard all other data.
 
   */
-  void affineTransformationHashing(const bool do_dump_pairs, 
-    const ConstRefVector<ConsensusMap> & model_map, 
-    const ConstRefVector<ConsensusMap> & scene_map,
-    Math::LinearInterpolation<double, double> & scaling_hash_1,
-    Math::LinearInterpolation<double, double> & scaling_hash_2,
-    Math::LinearInterpolation<double, double> & rt_low_hash_,
-    Math::LinearInterpolation<double, double> & rt_high_hash_,
-    const int hashing_round,
-    const double rt_pair_min_distance, 
-    const String dump_pairs_basename,
-    const Int dump_buckets_serial,
-    const double mz_pair_max_distance, 
-    const double winlength_factor_baseline,
-    const double total_intensity_ratio, 
-    const double scale_low_1,
-    const double scale_high_1,
-    const double rt_low, const double rt_high)
+  void affineTransformationHashing(const bool do_dump_pairs,
+                                   const ConstRefVector<ConsensusMap>& model_map,
+                                   const ConstRefVector<ConsensusMap>& scene_map,
+                                   Math::LinearInterpolation<double, double>& scaling_hash_1,
+                                   Math::LinearInterpolation<double, double>& scaling_hash_2,
+                                   Math::LinearInterpolation<double, double>& rt_low_hash_,
+                                   Math::LinearInterpolation<double, double>& rt_high_hash_,
+                                   const int hashing_round,
+                                   const double rt_pair_min_distance,
+                                   const String dump_pairs_basename,
+                                   const Int dump_buckets_serial,
+                                   const double mz_pair_max_distance,
+                                   const double winlength_factor_baseline,
+                                   const double total_intensity_ratio,
+                                   const double scale_low_1,
+                                   const double scale_high_1,
+                                   const double rt_low, const double rt_high)
+  {
+    Size const model_map_size = model_map.size();   // i j
+    Size const scene_map_size = scene_map.size();   // k l
+
+    String dump_pairs_filename;
+    std::ofstream dump_pairs_file;
+    if (do_dump_pairs)
     {
-      Size const model_map_size = model_map.size(); // i j
-      Size const scene_map_size = scene_map.size(); // k l
-
-      String dump_pairs_filename;
-      std::ofstream dump_pairs_file;
-      if (do_dump_pairs)
-      {
-        dump_pairs_filename = dump_pairs_basename + "_phase_two_" + String(dump_buckets_serial);
-        dump_pairs_file.open(dump_pairs_filename.c_str());
-        dump_pairs_file << "#" << ' ' << "i" << ' ' << "j" << ' ' << "k" << ' ' << "l" << ' ' << std::endl;
-      }
-
-      // first point in model map (i)
-      for (Size i = 0, i_low = 0, i_high = 0, k_low = 0, k_high = 0; i < model_map_size - 1; ++i)
-      {
-        // Adjust window around i in model map (get all features in a m/z range of item i in the model map)
-        while (i_low < model_map_size && model_map[i_low].getMZ() < model_map[i].getMZ() - mz_pair_max_distance)
-          ++i_low;
-        while (i_high < model_map_size && model_map[i_high].getMZ() <= model_map[i].getMZ() + mz_pair_max_distance)
-          ++i_high;
-        // stop if there are too many features are in our window
-        double i_winlength_factor = 1. / (i_high - i_low);
-        i_winlength_factor -= winlength_factor_baseline;
-        if (i_winlength_factor <= 0)
-          continue;
-
-        // Adjust window around k in scene map (get all features in a m/z range of item i in the scene map)
-        while (k_low < scene_map_size && scene_map[k_low].getMZ() < model_map[i].getMZ() - mz_pair_max_distance)
-          ++k_low;
-        while (k_high < scene_map_size && scene_map[k_high].getMZ() <= model_map[i].getMZ() + mz_pair_max_distance)
-          ++k_high;
-
-        // Iterate through all matching features in the scene map that are
-        // within the m/z distance of item i from the model map.
-        // first point in scene map (k)
-        for (Size k = k_low; k < k_high; ++k)
-        {
-          // stop if there are too many features are in our window
-          double k_winlength_factor = 1. / (k_high - k_low);
-          k_winlength_factor -= winlength_factor_baseline;
-          if (k_winlength_factor <= 0)
-            continue;
-
-          // compute similarity of intensities i k by taking the ratio of the two intensities
-          double similarity_ik;
-          {
-            const double int_i = model_map[i].getIntensity();
-            const double int_k = scene_map[k].getIntensity() * total_intensity_ratio;
-            similarity_ik = (int_i < int_k) ? int_i / int_k : int_k / int_i;
-            // weight is inverse proportional to number of elements with similar mz
-            similarity_ik *= i_winlength_factor;
-            similarity_ik *= k_winlength_factor;
-          }
-
-          // second point in model map (j)
-          for (Size j = i + 1, j_low = i_low, j_high = i_low, l_low = k_low, l_high = k_high; j < model_map_size; ++j)
-          {
-            // diff in model map -> skip features that are too far away in RT
-            double diff_model = model_map[j].getRT() - model_map[i].getRT();
-            if (fabs(diff_model) < rt_pair_min_distance)
-              continue;
-
-            // Adjust window around j in model map
-            while (j_low < model_map_size && model_map[j_low].getMZ() < model_map[i].getMZ() - mz_pair_max_distance)
-              ++j_low;
-            while (j_high < model_map_size && model_map[j_high].getMZ() <= model_map[i].getMZ() + mz_pair_max_distance)
-              ++j_high;
-            double j_winlength_factor = 1. / (j_high - j_low);
-            j_winlength_factor -= winlength_factor_baseline;
-            if (j_winlength_factor <= 0)
-              continue;
-
-            // Adjust window around l in scene map
-            while (l_low < scene_map_size && scene_map[l_low].getMZ() < model_map[j].getMZ() - mz_pair_max_distance)
-              ++l_low;
-            while (l_high < scene_map_size && scene_map[l_high].getMZ() <= model_map[j].getMZ() + mz_pair_max_distance)
-              ++l_high;
-
-            // second point in scene map (l)
-            for (Size l = l_low; l < l_high; ++l)
-            {
-              double l_winlength_factor = 1. / (l_high - l_low);
-              l_winlength_factor -= winlength_factor_baseline;
-              if (l_winlength_factor <= 0)
-                continue;
-
-              // diff in scene map -> skip features that are too far away in RT
-              double diff_scene = scene_map[l].getRT() - scene_map[k].getRT();
-
-              // avoid cross mappings (i,j) -> (k,l) (e.g. i_rt < j_rt and k_rt > l_rt)
-              // and point pairs with equal retention times (e.g. i_rt == j_rt)
-              if (fabs(diff_scene) < rt_pair_min_distance || ((diff_model > 0) != (diff_scene > 0)))
-                continue;
-
-              // compute the transformation (i,j) -> (k,l)
-              double scaling = diff_model / diff_scene;
-              double shift = model_map[i].getRT() - scene_map[k].getRT() * scaling;
-
-              // compute similarity of intensities i k j l
-              double similarity_ik_jl;
-              {
-                // compute similarity of intensities j l
-                const double int_j = model_map[j].getIntensity();
-                const double int_l = scene_map[l].getIntensity() * total_intensity_ratio;
-                double similarity_jl = (int_j < int_l) ? int_j / int_l : int_l / int_j;
-                // weight is inverse proportional to number of elements with similar mz
-                similarity_jl *= j_winlength_factor;
-                similarity_jl *= l_winlength_factor;
-                similarity_ik_jl = similarity_ik * similarity_jl;
-              }
-
-              // hash the images of scaling, rt_low and rt_high into their respective hash tables
-              // store the scaling parameter and the (estimated) transformation of start/end of the maps in hashes
-              //   -> in round 2, discard values outside of scale_low_1 and
-              //   scale_high_1 (estimated before in scalingEstimate)
-              if (hashing_round == 1) 
-              {
-                // hashing round 1 (estimate the scaling only)
-                scaling_hash_1.addValue(log(scaling), similarity_ik_jl);
-              }
-              else if (scaling >= scale_low_1 && scaling <= scale_high_1)
-              {
-                // hashing round 2 (estimate scaling and shift)
-                scaling_hash_2.addValue(log(scaling), similarity_ik_jl);
-
-                const double rt_low_image = shift + rt_low * scaling;
-                rt_low_hash_.addValue(rt_low_image, similarity_ik_jl);
-                const double rt_high_image = shift + rt_high * scaling;
-                rt_high_hash_.addValue(rt_high_image, similarity_ik_jl);
-
-                if (do_dump_pairs)
-                {
-                  dump_pairs_file << i << ' ' << model_map[i].getRT() << ' ' << model_map[i].getMZ() << ' ' << j << ' ' << model_map[j].getRT() << ' '
-                                  << model_map[j].getMZ() << ' ' << k << ' ' << scene_map[k].getRT() << ' ' << scene_map[k].getMZ() << ' ' << l << ' '
-                                  << scene_map[l].getRT() << ' ' << scene_map[l].getMZ() << ' ' << similarity_ik_jl << ' ' << std::endl;
-                }
-              }
-            } // l
-          } // j
-        } // k
-      } // i
+      dump_pairs_filename = dump_pairs_basename + "_phase_two_" + String(dump_buckets_serial);
+      dump_pairs_file.open(dump_pairs_filename.c_str());
+      dump_pairs_file << "#" << ' ' << "i" << ' ' << "j" << ' ' << "k" << ' ' << "l" << ' ' << std::endl;
     }
 
-    /**
-      @brief Estimates likely position of the scale factor based on scaling_hash_1.
+    // first point in model map (i)
+    for (Size i = 0, i_low = 0, i_high = 0, k_low = 0, k_high = 0; i < model_map_size - 1; ++i)
+    {
+      // Adjust window around i in model map (get all features in a m/z range of item i in the model map)
+      while (i_low < model_map_size && model_map[i_low].getMZ() < model_map[i].getMZ() - mz_pair_max_distance)
+        ++i_low;
+      while (i_high < model_map_size && model_map[i_high].getMZ() <= model_map[i].getMZ() + mz_pair_max_distance)
+        ++i_high;
+      // stop if there are too many features are in our window
+      double i_winlength_factor = 1. / (i_high - i_low);
+      i_winlength_factor -= winlength_factor_baseline;
+      if (i_winlength_factor <= 0)
+        continue;
 
-      Uses the histogram given in scaling_hash_1 to perform some filtering and
-      correction of the data and then estimate the mean of the scaling factor
-      and standard deviation, thus returning a likely range for the scaling
-      factor. Outliers are removed in an iterative process.
+      // Adjust window around k in scene map (get all features in a m/z range of item i in the scene map)
+      while (k_low < scene_map_size && scene_map[k_low].getMZ() < model_map[i].getMZ() - mz_pair_max_distance)
+        ++k_low;
+      while (k_high < scene_map_size && scene_map[k_high].getMZ() <= model_map[i].getMZ() + mz_pair_max_distance)
+        ++k_high;
 
-      Returns scale_centroid_1 (mean), scale_low_1 (lower bound) and
-      scale_high_1 (upper bound) of the scaling factor.
-      
-    */
+      // Iterate through all matching features in the scene map that are
+      // within the m/z distance of item i from the model map.
+      // first point in scene map (k)
+      for (Size k = k_low; k < k_high; ++k)
+      {
+        // stop if there are too many features are in our window
+        double k_winlength_factor = 1. / (k_high - k_low);
+        k_winlength_factor -= winlength_factor_baseline;
+        if (k_winlength_factor <= 0)
+          continue;
+
+        // compute similarity of intensities i k by taking the ratio of the two intensities
+        double similarity_ik;
+        {
+          const double int_i = model_map[i].getIntensity();
+          const double int_k = scene_map[k].getIntensity() * total_intensity_ratio;
+          similarity_ik = (int_i < int_k) ? int_i / int_k : int_k / int_i;
+          // weight is inverse proportional to number of elements with similar mz
+          similarity_ik *= i_winlength_factor;
+          similarity_ik *= k_winlength_factor;
+        }
+
+        // second point in model map (j)
+        for (Size j = i + 1, j_low = i_low, j_high = i_low, l_low = k_low, l_high = k_high; j < model_map_size; ++j)
+        {
+          // diff in model map -> skip features that are too far away in RT
+          double diff_model = model_map[j].getRT() - model_map[i].getRT();
+          if (fabs(diff_model) < rt_pair_min_distance)
+            continue;
+
+          // Adjust window around j in model map
+          while (j_low < model_map_size && model_map[j_low].getMZ() < model_map[i].getMZ() - mz_pair_max_distance)
+            ++j_low;
+          while (j_high < model_map_size && model_map[j_high].getMZ() <= model_map[i].getMZ() + mz_pair_max_distance)
+            ++j_high;
+          double j_winlength_factor = 1. / (j_high - j_low);
+          j_winlength_factor -= winlength_factor_baseline;
+          if (j_winlength_factor <= 0)
+            continue;
+
+          // Adjust window around l in scene map
+          while (l_low < scene_map_size && scene_map[l_low].getMZ() < model_map[j].getMZ() - mz_pair_max_distance)
+            ++l_low;
+          while (l_high < scene_map_size && scene_map[l_high].getMZ() <= model_map[j].getMZ() + mz_pair_max_distance)
+            ++l_high;
+
+          // second point in scene map (l)
+          for (Size l = l_low; l < l_high; ++l)
+          {
+            double l_winlength_factor = 1. / (l_high - l_low);
+            l_winlength_factor -= winlength_factor_baseline;
+            if (l_winlength_factor <= 0)
+              continue;
+
+            // diff in scene map -> skip features that are too far away in RT
+            double diff_scene = scene_map[l].getRT() - scene_map[k].getRT();
+
+            // avoid cross mappings (i,j) -> (k,l) (e.g. i_rt < j_rt and k_rt > l_rt)
+            // and point pairs with equal retention times (e.g. i_rt == j_rt)
+            if (fabs(diff_scene) < rt_pair_min_distance || ((diff_model > 0) != (diff_scene > 0)))
+              continue;
+
+            // compute the transformation (i,j) -> (k,l)
+            double scaling = diff_model / diff_scene;
+            double shift = model_map[i].getRT() - scene_map[k].getRT() * scaling;
+
+            // compute similarity of intensities i k j l
+            double similarity_ik_jl;
+            {
+              // compute similarity of intensities j l
+              const double int_j = model_map[j].getIntensity();
+              const double int_l = scene_map[l].getIntensity() * total_intensity_ratio;
+              double similarity_jl = (int_j < int_l) ? int_j / int_l : int_l / int_j;
+              // weight is inverse proportional to number of elements with similar mz
+              similarity_jl *= j_winlength_factor;
+              similarity_jl *= l_winlength_factor;
+              similarity_ik_jl = similarity_ik * similarity_jl;
+            }
+
+            // hash the images of scaling, rt_low and rt_high into their respective hash tables
+            // store the scaling parameter and the (estimated) transformation of start/end of the maps in hashes
+            //   -> in round 2, discard values outside of scale_low_1 and
+            //   scale_high_1 (estimated before in scalingEstimate)
+            if (hashing_round == 1)
+            {
+              // hashing round 1 (estimate the scaling only)
+              scaling_hash_1.addValue(log(scaling), similarity_ik_jl);
+            }
+            else if (scaling >= scale_low_1 && scaling <= scale_high_1)
+            {
+              // hashing round 2 (estimate scaling and shift)
+              scaling_hash_2.addValue(log(scaling), similarity_ik_jl);
+
+              const double rt_low_image = shift + rt_low * scaling;
+              rt_low_hash_.addValue(rt_low_image, similarity_ik_jl);
+              const double rt_high_image = shift + rt_high * scaling;
+              rt_high_hash_.addValue(rt_high_image, similarity_ik_jl);
+
+              if (do_dump_pairs)
+              {
+                dump_pairs_file << i << ' ' << model_map[i].getRT() << ' ' << model_map[i].getMZ() << ' ' << j << ' ' << model_map[j].getRT() << ' '
+                                << model_map[j].getMZ() << ' ' << k << ' ' << scene_map[k].getRT() << ' ' << scene_map[k].getMZ() << ' ' << l << ' '
+                                << scene_map[l].getRT() << ' ' << scene_map[l].getMZ() << ' ' << similarity_ik_jl << ' ' << std::endl;
+              }
+            }
+          }   // l
+        }   // j
+      }   // k
+    }   // i
+  }
+
+  /**
+    @brief Estimates likely position of the scale factor based on scaling_hash_1.
+
+    Uses the histogram given in scaling_hash_1 to perform some filtering and
+    correction of the data and then estimate the mean of the scaling factor
+    and standard deviation, thus returning a likely range for the scaling
+    factor. Outliers are removed in an iterative process.
+
+    Returns scale_centroid_1 (mean), scale_low_1 (lower bound) and
+    scale_high_1 (upper bound) of the scaling factor.
+
+  */
   void scalingEstimate(
-    Math::LinearInterpolation<double, double> & scaling_hash_1,
+    Math::LinearInterpolation<double, double>& scaling_hash_1,
     const bool do_dump_buckets,
     const UInt struc_elem_length_datapoints,
     const String dump_buckets_basename,
@@ -340,154 +340,154 @@ namespace OpenMS
     double& scale_low_1,
     double& scale_high_1,
     double& scale_centroid_1)
+  {
+    typedef Math::LinearInterpolation<double, double> LinearInterpolationType_;
+    UInt filtering_stage = 0;
+
+    // optionally, dump before filtering
+    String dump_buckets_filename;
+    std::ofstream dump_buckets_file;
+    if (do_dump_buckets)
     {
-      typedef Math::LinearInterpolation<double, double> LinearInterpolationType_;
-      UInt filtering_stage = 0;
+      dump_buckets_filename = dump_buckets_basename + "_scale_" + String(dump_buckets_serial);
+      dump_buckets_file.open(dump_buckets_filename.c_str());
 
-      // optionally, dump before filtering
-      String dump_buckets_filename;
-      std::ofstream dump_buckets_file;
-      if (do_dump_buckets)
-      {
-        dump_buckets_filename = dump_buckets_basename + "_scale_" + String(dump_buckets_serial);
-        dump_buckets_file.open(dump_buckets_filename.c_str());
-
-        dump_buckets_file << "# rt scale hash table buckets dump ( scale, height ) : " << dump_buckets_filename << std::endl;
-        dump_buckets_file << "# unfiltered hash data\n";
-        for (Size index = 0; index < scaling_hash_1.getData().size(); ++index)
-        {
-          const double log_of_scale = scaling_hash_1.index2key(index);
-          const double height = scaling_hash_1.getData()[index];
-          dump_buckets_file << log_of_scale << '\t' << height << '\t' << filtering_stage << '\n';
-        }
-        dump_buckets_file << '\n';
-      }
-
-      ++filtering_stage;
-
-      // ***************************************************************************
-      // Data filtering: apply tophat filter to histogram of different scales
-      // ***************************************************************************
-      MorphologicalFilter morph_filter;
-      Param morph_filter_param;
-      morph_filter_param.setValue("struc_elem_unit", "DataPoints");
-      morph_filter_param.setValue("struc_elem_length", double(struc_elem_length_datapoints));
-      morph_filter_param.setValue("method", "tophat");
-      morph_filter.setParameters(morph_filter_param);
-      LinearInterpolationType_::container_type buffer(scaling_hash_1.getData().size());
-      morph_filter.filterRange(scaling_hash_1.getData().begin(), scaling_hash_1.getData().end(), buffer.begin());
-      scaling_hash_1.getData().swap(buffer);
-
-      // optionally, dump after filtering
-      if (do_dump_buckets)
-      {
-        dump_buckets_file << "# tophat filtered hash data\n";
-        for (Size index = 0; index < scaling_hash_1.getData().size(); ++index)
-        {
-          const double log_of_scale = scaling_hash_1.index2key(index);
-          const double height = scaling_hash_1.getData()[index];
-          dump_buckets_file << log_of_scale << '\t' << height << '\t' << filtering_stage << '\n';
-        }
-        dump_buckets_file << '\n';
-      }
-
-      ++filtering_stage;
-
-      // ***************************************************************************
-      // Data cutoff: estimate cutoff for filtered histogram
-      // compute freq_cutoff using a fancy criterion to distinguish between the
-      // noise level of the histogram and enriched histogram bins
-      // ***************************************************************************
-      double freq_cutoff;
-      do
-      {
-        std::copy(scaling_hash_1.getData().begin(), scaling_hash_1.getData().end(), buffer.begin());
-        std::sort(buffer.begin(), buffer.end(), std::greater<double>());
-        double freq_intercept = scaling_hash_1.getData().front();
-        double freq_slope = (scaling_hash_1.getData().back() - scaling_hash_1.getData().front()) / double(buffer.size())
-                                / scaling_histogram_crossing_slope;
-        if (!freq_slope || !buffer.size())
-        {
-          // in fact these conditions are actually impossible, but let's be really sure ;-)
-          freq_cutoff = 0;
-        }
-        else
-        {
-          // -> basically trying to find the intersection where sorted values fall
-          // below fitted line with slop "freq_slope"
-          Size index = 1; // not 0 (!)
-          while (buffer[index] >= freq_intercept + freq_slope * double(index))
-          {
-            ++index;
-          }
-          freq_cutoff = buffer[--index]; // note that we have index >= 1
-        }
-      }
-      while (0);
-
-      // ***************************************************************************
-      // apply freq_cutoff, setting smaller values to zero
+      dump_buckets_file << "# rt scale hash table buckets dump ( scale, height ) : " << dump_buckets_filename << std::endl;
+      dump_buckets_file << "# unfiltered hash data\n";
       for (Size index = 0; index < scaling_hash_1.getData().size(); ++index)
       {
-        if (scaling_hash_1.getData()[index] < freq_cutoff)
-        {
-          scaling_hash_1.getData()[index] = 0;
-        }
+        const double log_of_scale = scaling_hash_1.index2key(index);
+        const double height = scaling_hash_1.getData()[index];
+        dump_buckets_file << log_of_scale << '\t' << height << '\t' << filtering_stage << '\n';
       }
+      dump_buckets_file << '\n';
+    }
 
-      // optionally, dump after noise filtering using freq_cutoff
-      if (do_dump_buckets)
+    ++filtering_stage;
+
+    // ***************************************************************************
+    // Data filtering: apply tophat filter to histogram of different scales
+    // ***************************************************************************
+    MorphologicalFilter morph_filter;
+    Param morph_filter_param;
+    morph_filter_param.setValue("struc_elem_unit", "DataPoints");
+    morph_filter_param.setValue("struc_elem_length", double(struc_elem_length_datapoints));
+    morph_filter_param.setValue("method", "tophat");
+    morph_filter.setParameters(morph_filter_param);
+    LinearInterpolationType_::container_type buffer(scaling_hash_1.getData().size());
+    morph_filter.filterRange(scaling_hash_1.getData().begin(), scaling_hash_1.getData().end(), buffer.begin());
+    scaling_hash_1.getData().swap(buffer);
+
+    // optionally, dump after filtering
+    if (do_dump_buckets)
+    {
+      dump_buckets_file << "# tophat filtered hash data\n";
+      for (Size index = 0; index < scaling_hash_1.getData().size(); ++index)
       {
-        dump_buckets_file << "# after freq_cutoff, which is: " << freq_cutoff << '\n';
-        for (Size index = 0; index < scaling_hash_1.getData().size(); ++index)
-        {
-          const double log_of_scale = scaling_hash_1.index2key(index);
-          const double height = scaling_hash_1.getData()[index];
-          dump_buckets_file << log_of_scale << '\t' << height << '\t' << filtering_stage << '\n';
-        }
-        dump_buckets_file << '\n';
+        const double log_of_scale = scaling_hash_1.index2key(index);
+        const double height = scaling_hash_1.getData()[index];
+        dump_buckets_file << log_of_scale << '\t' << height << '\t' << filtering_stage << '\n';
       }
+      dump_buckets_file << '\n';
+    }
 
-      // ***************************************************************************
-      // iterative cut-off based on mean and stdev - relies upon scaling_cutoff_stdev_multiplier which is a bit hard to set right.
-      // ***************************************************************************
-      Math::BasicStatistics<double> statistics;
-      std::vector<double>::const_iterator data_begin = scaling_hash_1.getData().begin();
-      const Size data_size = scaling_hash_1.getData().size();
-      Size data_range_begin = 0;
-      Size data_range_end = data_size;
-      for (UInt loop = 0; loop < loops_mean_stdev_cutoff; ++loop)   // MAGIC ALERT: number of loops
+    ++filtering_stage;
+
+    // ***************************************************************************
+    // Data cutoff: estimate cutoff for filtered histogram
+    // compute freq_cutoff using a fancy criterion to distinguish between the
+    // noise level of the histogram and enriched histogram bins
+    // ***************************************************************************
+    double freq_cutoff;
+    do
+    {
+      std::copy(scaling_hash_1.getData().begin(), scaling_hash_1.getData().end(), buffer.begin());
+      std::sort(buffer.begin(), buffer.end(), std::greater<double>());
+      double freq_intercept = scaling_hash_1.getData().front();
+      double freq_slope = (scaling_hash_1.getData().back() - scaling_hash_1.getData().front()) / double(buffer.size())
+                          / scaling_histogram_crossing_slope;
+      if (!freq_slope || !buffer.size())
       {
-        statistics.update(data_begin + data_range_begin, data_begin + data_range_end);
-        double mean = statistics.mean() + data_range_begin;
-        double stdev = sqrt(statistics.variance());
-        data_range_begin = floor(std::max<double>(mean - scaling_cutoff_stdev_multiplier * stdev, 0));
-        data_range_end = ceil(std::min<double>(mean + scaling_cutoff_stdev_multiplier * stdev + 1, data_size));
-        const double log_outside_mean = scaling_hash_1.index2key(mean);
-        const double log_outside_stdev = stdev * scaling_hash_1.getScale();
-        scale_low_1 = exp(log_outside_mean - log_outside_stdev);
-        scale_centroid_1 = exp(log_outside_mean);
-        scale_high_1 = exp(log_outside_mean + log_outside_stdev);
-        if (do_dump_buckets)
-        {
-          dump_buckets_file << "# loop: " << loop << "  mean: " << log_outside_mean << " [" << exp(log_outside_mean) << "]  stdev: " << log_outside_stdev
-                            << " [" << scale_centroid_1 << "]  (mean-stdev): " << log_outside_mean - log_outside_stdev << " [" << scale_low_1 << "]  (mean+stdev): "
-                            << log_outside_mean + log_outside_stdev << " [" << scale_high_1 << "]  data_range_begin: " << data_range_begin << "  data_range_end: "
-                            << data_range_end << std::endl;
-        }
+        // in fact these conditions are actually impossible, but let's be really sure ;-)
+        freq_cutoff = 0;
       }
-
-      if (do_dump_buckets)
+      else
       {
-        dump_buckets_file << "# EOF" << std::endl;
-        dump_buckets_file.close();
+        // -> basically trying to find the intersection where sorted values fall
+        // below fitted line with slop "freq_slope"
+        Size index = 1;   // not 0 (!)
+        while (buffer[index] >= freq_intercept + freq_slope * double(index))
+        {
+          ++index;
+        }
+        freq_cutoff = buffer[--index];   // note that we have index >= 1
+      }
+    }
+    while (0);
+
+    // ***************************************************************************
+    // apply freq_cutoff, setting smaller values to zero
+    for (Size index = 0; index < scaling_hash_1.getData().size(); ++index)
+    {
+      if (scaling_hash_1.getData()[index] < freq_cutoff)
+      {
+        scaling_hash_1.getData()[index] = 0;
       }
     }
 
+    // optionally, dump after noise filtering using freq_cutoff
+    if (do_dump_buckets)
+    {
+      dump_buckets_file << "# after freq_cutoff, which is: " << freq_cutoff << '\n';
+      for (Size index = 0; index < scaling_hash_1.getData().size(); ++index)
+      {
+        const double log_of_scale = scaling_hash_1.index2key(index);
+        const double height = scaling_hash_1.getData()[index];
+        dump_buckets_file << log_of_scale << '\t' << height << '\t' << filtering_stage << '\n';
+      }
+      dump_buckets_file << '\n';
+    }
+
+    // ***************************************************************************
+    // iterative cut-off based on mean and stdev - relies upon scaling_cutoff_stdev_multiplier which is a bit hard to set right.
+    // ***************************************************************************
+    Math::BasicStatistics<double> statistics;
+    std::vector<double>::const_iterator data_begin = scaling_hash_1.getData().begin();
+    const Size data_size = scaling_hash_1.getData().size();
+    Size data_range_begin = 0;
+    Size data_range_end = data_size;
+    for (UInt loop = 0; loop < loops_mean_stdev_cutoff; ++loop)     // MAGIC ALERT: number of loops
+    {
+      statistics.update(data_begin + data_range_begin, data_begin + data_range_end);
+      double mean = statistics.mean() + data_range_begin;
+      double stdev = sqrt(statistics.variance());
+      data_range_begin = floor(std::max<double>(mean - scaling_cutoff_stdev_multiplier * stdev, 0));
+      data_range_end = ceil(std::min<double>(mean + scaling_cutoff_stdev_multiplier * stdev + 1, data_size));
+      const double log_outside_mean = scaling_hash_1.index2key(mean);
+      const double log_outside_stdev = stdev * scaling_hash_1.getScale();
+      scale_low_1 = exp(log_outside_mean - log_outside_stdev);
+      scale_centroid_1 = exp(log_outside_mean);
+      scale_high_1 = exp(log_outside_mean + log_outside_stdev);
+      if (do_dump_buckets)
+      {
+        dump_buckets_file << "# loop: " << loop << "  mean: " << log_outside_mean << " [" << exp(log_outside_mean) << "]  stdev: " << log_outside_stdev
+                          << " [" << scale_centroid_1 << "]  (mean-stdev): " << log_outside_mean - log_outside_stdev << " [" << scale_low_1 << "]  (mean+stdev): "
+                          << log_outside_mean + log_outside_stdev << " [" << scale_high_1 << "]  data_range_begin: " << data_range_begin << "  data_range_end: "
+                          << data_range_end << std::endl;
+      }
+    }
+
+    if (do_dump_buckets)
+    {
+      dump_buckets_file << "# EOF" << std::endl;
+      dump_buckets_file.close();
+    }
+  }
+
   void shiftEstimate(
     const bool do_dump_buckets,
-    Math::LinearInterpolation<double, double> & rt_low_hash_,
-    Math::LinearInterpolation<double, double> & rt_high_hash_,
+    Math::LinearInterpolation<double, double>& rt_low_hash_,
+    Math::LinearInterpolation<double, double>& rt_high_hash_,
     const Int dump_buckets_serial,
     const UInt struc_elem_length_datapoints,
     const double scaling_histogram_crossing_slope,
@@ -584,7 +584,7 @@ namespace OpenMS
         std::sort(buffer.begin(), buffer.end(), std::greater<double>());
         double freq_intercept = rt_low_hash_.getData().front();
         double freq_slope = (rt_low_hash_.getData().back() - rt_low_hash_.getData().front()) / double(buffer.size())
-                                / scaling_histogram_crossing_slope;
+                            / scaling_histogram_crossing_slope;
         if (!freq_slope || !buffer.size())
         {
           // in fact these conditions are actually impossible, but let's be really sure ;-)
@@ -605,7 +605,7 @@ namespace OpenMS
         std::sort(buffer.begin(), buffer.end(), std::greater<double>());
         double freq_intercept = rt_high_hash_.getData().front();
         double freq_slope = (rt_high_hash_.getData().back() - rt_high_hash_.getData().front()) / double(buffer.size())
-                                / scaling_histogram_crossing_slope;
+                            / scaling_histogram_crossing_slope;
         if (!freq_slope || !buffer.size())
         {
           // in fact these conditions are actually impossible, but let's be really sure ;-)
@@ -726,7 +726,7 @@ namespace OpenMS
     }
   }
 
-  double computeIntensityRatio(const ConstRefVector<ConsensusMap> & model_map, const ConstRefVector<ConsensusMap> & scene_map)
+  double computeIntensityRatio(const ConstRefVector<ConsensusMap>& model_map, const ConstRefVector<ConsensusMap>& scene_map)
   {
     double total_int_model_map = 0;
     for (Size i = 0; i < model_map.size(); ++i)
@@ -743,14 +743,14 @@ namespace OpenMS
     return total_int_model_map / total_int_scene_map;
   }
 
-  void PoseClusteringAffineSuperimposer::run(const ConsensusMap & map_model,
-                                             const ConsensusMap & map_scene,
-                                             TransformationDescription & transformation)
+  void PoseClusteringAffineSuperimposer::run(const ConsensusMap& map_model,
+                                             const ConsensusMap& map_scene,
+                                             TransformationDescription& transformation)
   {
     if (map_model.empty() || map_scene.empty())
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-          "One of the input maps is empty! This is not allowed!");
+                                       "One of the input maps is empty! This is not allowed!");
     }
 
     //**************************************************************************
@@ -760,7 +760,7 @@ namespace OpenMS
     // number of data points in structuring element for tophat filter, which removes baseline from histogram
     const UInt struc_elem_length_datapoints = 21;
     // used when distinguishing noise level and enriched histogram bins
-    const double scaling_histogram_crossing_slope = 3.0; 
+    const double scaling_histogram_crossing_slope = 3.0;
     // multiplier for stdev in cutoff for outliers
     const double scaling_cutoff_stdev_multiplier = 1.5;
     // number of loops in stdev cutoff for outliers
@@ -782,7 +782,7 @@ namespace OpenMS
     //**************************************************************************
     typedef ConstRefVector<ConsensusMap> PeakPointerArray_;
     typedef Math::LinearInterpolation<double, double> LinearInterpolationType_;
-    // these are a set of hashes that transform bins to actual RT values ... 
+    // these are a set of hashes that transform bins to actual RT values ...
     LinearInterpolationType_ scaling_hash_1; //scaling estimate from round 1 hashing
     LinearInterpolationType_ scaling_hash_2; //scaling estimate from round 2 hashing
     LinearInterpolationType_ rt_low_hash_; // rt shift estimate of map start
@@ -817,9 +817,9 @@ namespace OpenMS
     //         iterator).
     //**************************************************************************
     PeakPointerArray_ model_map_ini(map_model.begin(), map_model.end());
-    const PeakPointerArray_ & model_map(model_map_ini);
+    const PeakPointerArray_& model_map(model_map_ini);
     PeakPointerArray_ scene_map_ini(map_scene.begin(), map_scene.end());
-    const PeakPointerArray_ & scene_map(scene_map_ini);
+    const PeakPointerArray_& scene_map(scene_map_ini);
     {
       // truncate the data as necessary
       const Size num_used_points = (Int) param_.getValue("num_used_points");
@@ -861,10 +861,10 @@ namespace OpenMS
     //         around 1.  The hashing uses a log transformation because we do
     //         not like skewed distributions.
     //**************************************************************************
-    initializeHashTables(scaling_hash_1, scaling_hash_2, rt_low_hash_, rt_high_hash_, 
-      param_.getValue("max_scaling"), param_.getValue("max_shift"), 
-      param_.getValue("scaling_bucket_size"), param_.getValue("shift_bucket_size"),
-      rt_low, rt_high);
+    initializeHashTables(scaling_hash_1, scaling_hash_2, rt_low_hash_, rt_high_hash_,
+                         param_.getValue("max_scaling"), param_.getValue("max_shift"),
+                         param_.getValue("scaling_bucket_size"), param_.getValue("shift_bucket_size"),
+                         rt_low, rt_high);
 
     setProgress(++actual_progress);
 
@@ -895,16 +895,16 @@ namespace OpenMS
     ///////////////////////////////////////////////////////////////////
     // Step 4.1 First round of hashing: Estimate the scaling
     affineTransformationHashing(
-      do_dump_pairs, 
-      model_map, scene_map, 
+      do_dump_pairs,
+      model_map, scene_map,
       scaling_hash_1, scaling_hash_2, rt_low_hash_, rt_high_hash_,
       1,
-      rt_pair_min_distance, 
+      rt_pair_min_distance,
       dump_pairs_basename,
       dump_buckets_serial,
-      mz_pair_max_distance, 
+      mz_pair_max_distance,
       winlength_factor_baseline,
-      total_intensity_ratio, 
+      total_intensity_ratio,
       -1, // only used in 2nd round of hashing
       -1, // only used in 2nd round of hashing
       rt_low, rt_high);
@@ -936,16 +936,16 @@ namespace OpenMS
     // thereby re-estimate the scaling. This uses the first guess of the
     // scaling to reduce noise in the histograms.
     affineTransformationHashing(
-      do_dump_pairs, 
-      model_map, scene_map, 
+      do_dump_pairs,
+      model_map, scene_map,
       scaling_hash_1, scaling_hash_2, rt_low_hash_, rt_high_hash_,
       2,
-      rt_pair_min_distance, 
+      rt_pair_min_distance,
       dump_pairs_basename,
       dump_buckets_serial,
-      mz_pair_max_distance, 
+      mz_pair_max_distance,
       winlength_factor_baseline,
-      total_intensity_ratio, 
+      total_intensity_ratio,
       scale_low_1,
       scale_high_1,
       rt_low, rt_high);
@@ -984,7 +984,7 @@ namespace OpenMS
 #if 1
     rt_low_image = rt_low_centroid;
     rt_high_image = rt_high_centroid;
-#else 
+#else
     // Alternative: use maximum bins instead (i.e. most likely shift)
     // (Note: this is a fossil which would disregard most of the above
     // computations! The code is left here for developers/debugging only.)
@@ -1014,8 +1014,8 @@ namespace OpenMS
       if (boost::math::isinf(slope) || boost::math::isnan(slope) || boost::math::isinf(intercept) || boost::math::isnan(intercept))
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-            String("Superimposer could not compute an initial transformation!") + 
-            "You can try to increase 'max_num_peaks_considered' to solve this.", String(intercept * slope));
+                                      String("Superimposer could not compute an initial transformation!") +
+                                      "You can try to increase 'max_num_peaks_considered' to solve this.", String(intercept * slope));
       }
 
       transformation.fitModel("linear", params);       // no data, but explicit parameters
