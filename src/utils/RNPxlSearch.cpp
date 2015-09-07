@@ -181,7 +181,7 @@ protected:
 
     // RNPxl specific
     registerTOPPSubsection_("RNPxl", "RNPxl Options");
-    registerIntOption_("RNPxl:length", "", 1, "Oligonucleotide maximum length. 0 = disable search for RNA variants.", false);
+    registerIntOption_("RNPxl:length", "", 2, "Oligonucleotide maximum length. 0 = disable search for RNA variants.", false);
 
     registerStringOption_("RNPxl:sequence", "", "", "Sequence to restrict the generation of oligonucleotide chains. (disabled for empty sequence)", false);
 
@@ -204,7 +204,7 @@ protected:
     StringList restrictions;
     restrictions.push_back("A=0");
     restrictions.push_back("C=0");
-    restrictions.push_back("U=0");
+    restrictions.push_back("U=1");
     restrictions.push_back("G=0");
 
     registerStringList_("RNPxl:restrictions", "", restrictions, "format: target nucleotide=min_count: e.g U=1 if at least one U must be in the generated sequence.", false, false);
