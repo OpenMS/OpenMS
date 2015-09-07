@@ -47,7 +47,7 @@ namespace OpenMS
     // id if available
     if (no_id)
     {
-      sl << "" << "" << "" << "" << "" << "" << "" << "";
+      sl << "" << "" << "" << "" << "" << "" << "" << "" << "" << "" << "";
     }
     else
     {
@@ -68,7 +68,7 @@ namespace OpenMS
     // id error and multiple charged mass
     if (no_id)
     {
-      sl << "" << ""
+      sl << "" << "" << ""
          << "" << "" << "" << "";
     }
     else
