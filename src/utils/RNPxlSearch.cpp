@@ -841,7 +841,7 @@ private:
           spectrum_aligner.getSpectrumAlignment(alignment, total_loss_spectrum, exp_spectrum);
           for (vector<std::pair<Size, Size> >::const_iterator pair_it = alignment.begin(); pair_it != alignment.end(); ++pair_it)
           {
-            const double fragment_intensity = exp_spectrum[pair_it->second].getIntensity() * 100.0; // in percent (%)
+            const double fragment_intensity = exp_spectrum[pair_it->second].getIntensity(); // in percent (%)
             const double fragment_mz = exp_spectrum[pair_it->second].getMZ();
             String ion_name = total_loss_spectrum[pair_it->first].getMetaValue("IonName");
 
