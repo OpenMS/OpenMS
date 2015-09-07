@@ -57,7 +57,7 @@ namespace OpenMS
     brush_color_ = Qt::lightGray;
   }
 
-  TOPPASInputFileListVertex::TOPPASInputFileListVertex(const QStringList & files) :
+  TOPPASInputFileListVertex::TOPPASInputFileListVertex(const QStringList& files) :
     TOPPASVertex(),
     key_()
   {
@@ -66,12 +66,13 @@ namespace OpenMS
     setFilenames(files);
   }
 
-  TOPPASInputFileListVertex::TOPPASInputFileListVertex(const TOPPASInputFileListVertex & rhs) :
+  TOPPASInputFileListVertex::TOPPASInputFileListVertex(const TOPPASInputFileListVertex& rhs) :
     TOPPASVertex(rhs),
     key_()
   {
     pen_color_ = Qt::black;
     brush_color_ = Qt::lightGray;
+    output_files_ = rhs.output_files_; // copy input file paths, too
   }
 
   TOPPASInputFileListVertex::~TOPPASInputFileListVertex()
@@ -79,11 +80,12 @@ namespace OpenMS
 
   }
 
-  TOPPASInputFileListVertex & TOPPASInputFileListVertex::operator=(const TOPPASInputFileListVertex & rhs)
+  TOPPASInputFileListVertex& TOPPASInputFileListVertex::operator=(const TOPPASInputFileListVertex& rhs)
   {
     TOPPASVertex::operator=(rhs);
 
     key_ = rhs.key_;
+    output_files_ = rhs.output_files_; // copy input file paths, too
 
     return *this;
   }
@@ -118,7 +120,7 @@ namespace OpenMS
     }
   }
 
-  void TOPPASInputFileListVertex::paint(QPainter * painter, const QStyleOptionGraphicsItem * /*option*/, QWidget * /*widget*/)
+  void TOPPASInputFileListVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/)
   {
     QPen pen(pen_color_, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
     if (isSelected())
@@ -176,7 +178,7 @@ namespace OpenMS
     if (this->allow_output_recycling_)
     {
       painter->setPen(Qt::green);
-      QSvgRenderer * svg_renderer = new QSvgRenderer(QString(":/Recycling_symbol.svg"), 0);
+      QSvgRenderer* svg_renderer = new QSvgRenderer(QString(":/Recycling_symbol.svg"), 0);
       svg_renderer->render(painter, QRectF(-7, -32, 14, 14));
     }
 
@@ -197,7 +199,7 @@ namespace OpenMS
   bool TOPPASInputFileListVertex::fileNamesValid()
   {
     QStringList fl = getFileNames();
-    foreach(const QString &file, fl)
+    foreach(const QString& file, fl)
     {
       if (!File::exists(file))
       {
@@ -236,8 +238,8 @@ namespace OpenMS
 
     for (ConstEdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
     {
-      TOPPASVertex * tv = (*it)->getTargetVertex();
-      if (tv && !tv->isFinished())       // this tool might have already been called by another path, so do not call it again (as this will throw an error)
+      TOPPASVertex* tv = (*it)->getTargetVertex();
+      if (tv && !tv->isFinished()) // this tool might have already been called by another path, so do not call it again (as this will throw an error)
       {
         tv->run();
       }
@@ -275,7 +277,7 @@ namespace OpenMS
   void TOPPASInputFileListVertex::outEdgeHasChanged()
   {
     reset();
-    qobject_cast<TOPPASScene *>(scene())->updateEdgeColors();
+    qobject_cast<TOPPASScene*>(scene())->updateEdgeColors();
     TOPPASVertex::outEdgeHasChanged();
   }
 
