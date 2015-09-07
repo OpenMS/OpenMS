@@ -237,7 +237,6 @@ private:
         and yend by another given sequence. The result of the alignment is stored in the second argument.
         The first sequence is used as a template for the alignment.
 
-
         @param xbegin coordinate for the beginning of the template sequence.
         @param ybegin coordinate for the beginning of the aligned sequence .
         @param xend coordinate for the end of the template sequence.
