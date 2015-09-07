@@ -787,12 +787,12 @@ private:
             }
             else if (unmodified_sequence.hasSubstring("K"))
             {
-              double immonium_ion_mz = EmpiricalFormula("101.10732").getMonoWeight() + fragment_shift_mass;
+              double immonium_ion_mz = 101.10732 + fragment_shift_mass;
               partial_loss_spectrum.push_back(getAnnotatedImmoniumIon_('K', immonium_ion_mz, fragment_shift_name));
             }
             else if (unmodified_sequence.hasSubstring("M"))
             {
-              double immonium_ion_mz = EmpiricalFormula("104.05285").getMonoWeight() + fragment_shift_mass;
+              double immonium_ion_mz = 104.05285 + fragment_shift_mass;
               partial_loss_spectrum.push_back(getAnnotatedImmoniumIon_('M', immonium_ion_mz, fragment_shift_name));
             }
 
