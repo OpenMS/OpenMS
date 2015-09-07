@@ -736,14 +736,16 @@ namespace OpenMS
   void FeatureFindingMetabo::findLocalFeatures_(std::vector<MassTrace*>& candidates, std::vector<FeatureHypothesis>& output_hypos)
   {
 
+    // single Mass trace hypothesis
+    FeatureHypothesis tmp_hypo;
+    tmp_hypo.addMassTrace(*candidates[0]);
+    tmp_hypo.setScore((candidates[0]->getIntensity(use_smoothed_intensities_)) / total_intensity_);
+
 #ifdef _OPENMP
-#pragma omp critical (OPENMS_FFMetabo_flf_top)
+#pragma omp critical (OPENMS_FFMetabo_output_hypos)
 #endif
     {
-      // single Mass trace hypothesis
-      FeatureHypothesis tmp_hypo;
-      tmp_hypo.addMassTrace(*candidates[0]);
-      tmp_hypo.setScore((candidates[0]->getIntensity(use_smoothed_intensities_)) / total_intensity_);
+      // pushing back to shared vector needs to be synchronized
       output_hypos.push_back(tmp_hypo);
     }
 
@@ -815,13 +817,15 @@ namespace OpenMS
           fh_tmp.setCharge(charge);
           //std::cout << "adding " << fh_tmp.getLabel() << std::endl;
 
+          last_iso_idx = best_idx;
+
 #ifdef _OPENMP
-#pragma omp critical (OPENMS_FFMetabo_flf_bot)
+#pragma omp critical (OPENMS_FFMetabo_output_hypos)
 #endif
           {
+            // pushing back to shared vector needs to be synchronized
             output_hypos.push_back(fh_tmp);
           }
-          last_iso_idx = best_idx;
         }
         else
         {
@@ -839,7 +843,10 @@ namespace OpenMS
 
   void FeatureFindingMetabo::run(std::vector<MassTrace>& input_mtraces, FeatureMap& output_featmap)
   {
-    if (input_mtraces.empty()) return;
+    if (input_mtraces.empty()) 
+    {
+      return;
+    }
 
     // mass traces must be sorted by their centroid MZ
     std::sort(input_mtraces.begin(), input_mtraces.end(), CmpMassTraceByMZ());
@@ -881,14 +888,20 @@ namespace OpenMS
     // Step 3 Apply model
     // *********************************************************** //
     std::vector<FeatureHypothesis> feat_hypos;
+    Size progress(0);
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
     for (Size i = 0; i < input_mtraces.size(); ++i)
     {
-      this->setProgress(i);
-      std::vector<MassTrace*> local_traces;
 
+      IF_MASTERTHREAD this->setProgress(progress);
+#ifdef _OPENMP
+#pragma omp atomic
+#endif
+      ++progress;
+
+      std::vector<MassTrace*> local_traces;
       double ref_trace_mz(input_mtraces[i].getCentroidMZ());
       double ref_trace_rt(input_mtraces[i].getCentroidRT());
 
