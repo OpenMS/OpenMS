@@ -35,7 +35,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h>
 #include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
-#include <OpenMS/DATASTRUCTURES/ConstRefVector.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/MATH/MISC/LinearInterpolation.h>
 
@@ -157,10 +156,6 @@ namespace OpenMS
 
   */
   void affineTransformationHashing(const bool do_dump_pairs,
-                                   /*
-                                   const ConstRefVector<ConsensusMap>& model_map,
-                                   const ConstRefVector<ConsensusMap>& scene_map,
-                                   */
                                    const std::vector<Peak2D> & model_map,
                                    const std::vector<Peak2D> & scene_map,
                                    Math::LinearInterpolation<double, double>& scaling_hash_1,
@@ -731,7 +726,6 @@ namespace OpenMS
     }
   }
 
-  //double computeIntensityRatio(const ConstRefVector<ConsensusMap>& model_map, const ConstRefVector<ConsensusMap>& scene_map)
   double computeIntensityRatio(const std::vector<Peak2D> & model_map, const std::vector<Peak2D> & scene_map)
   {
     double total_int_model_map = 0;
@@ -787,7 +781,6 @@ namespace OpenMS
     //**************************************************************************
     // Working variables
     //**************************************************************************
-    // typedef ConstRefVector<ConsensusMap> PeakPointerArray_;
     typedef Math::LinearInterpolation<double, double> LinearInterpolationType_;
     // these are a set of hashes that transform bins to actual RT values ...
     LinearInterpolationType_ scaling_hash_1; //scaling estimate from round 1 hashing
