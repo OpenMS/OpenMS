@@ -28,12 +28,12 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Junker $
-// $Authors: Johannes Junker, Chris Bielow $
+// $Maintainer: Hendrik Weisser $
+// $Authors: Johannes Junker, Chris Bielow, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_TOPPASMERGERVERTEX_H
-#define OPENMS_VISUAL_TOPPASMERGERVERTEX_H
+#ifndef OPENMS_VISUAL_TOPPASSPLITTERVERTEX_H
+#define OPENMS_VISUAL_TOPPASSPLITTERVERTEX_H
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -43,20 +43,15 @@
 namespace OpenMS
 {
   /**
-      @brief A special vertex that allows to merge several inputs.
+      @brief A special vertex that allows to split a list of inputs.
 
-      A special vertex that allows to merge several inputs. Mergers have two modes: The normal,
-      round-based merging mode and a "wait & merge all" mode. In round-based mode, a merger
-      first takes the first files of each incoming file list and merges them into a list (which
-      has as many elements as the merger has incoming edges).
+      Tools that produce lists of output files (several files in each processing round, e.g. map alignment tools) cannot directly provide input for tools that only take a single input file in TOPPAS. This "Splitter" node provides the necessary glue, by splitting a list of output files into several rounds of single input files.
 
-      In "wait & merge all" mode, the merger first waits for all upstream mergers to finish all
-      their merging rounds and then merges all collected files from all merging rounds for all
-      incoming edges into one single list and calls the next tool with this list of files as input.
+      See the @ref OpenMS::TOPPASMergerVertex "Collector" node for the opposite operation.
 
       @ingroup TOPPAS_elements
   */
-  class OPENMS_GUI_DLLAPI TOPPASMergerVertex :
+  class OPENMS_GUI_DLLAPI TOPPASSplitterVertex :
     public TOPPASVertex
   {
     Q_OBJECT
@@ -64,21 +59,17 @@ namespace OpenMS
 public:
 
     /// Default constructor
-    TOPPASMergerVertex();
-    /// Constructor
-    TOPPASMergerVertex(bool round_based);
+    TOPPASSplitterVertex();
     /// Copy constructor
-    TOPPASMergerVertex(const TOPPASMergerVertex& rhs);
+    TOPPASSplitterVertex(const TOPPASSplitterVertex& rhs);
     /// Destructor
-    virtual ~TOPPASMergerVertex();
+    virtual ~TOPPASSplitterVertex();
     /// Assignment operator
-    TOPPASMergerVertex& operator=(const TOPPASMergerVertex& rhs);
-    /// returns "MergerVertex"
+    TOPPASSplitterVertex& operator=(const TOPPASSplitterVertex& rhs);
+    /// returns "SplitterVertex"
     virtual String getName() const;
     /// check if upstream nodes are finished and call downstream nodes
     virtual void run();
-    /// Determines whether this merger is merging round based or merging all inputs into one list
-    bool roundBasedMode();
     // documented in base class
     virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
     // documented in base class
@@ -88,24 +79,14 @@ public:
     // documented in base class
     virtual void markUnreachable();
 
-public slots:
-
-signals:
-    /// Emitted when merging upstream data failed
-    void mergeFailed(const QString message);
-
 protected:
-
-    /// Stores whether this merger is merging round based or merging all inputs into one list
-    bool round_based_mode_;
 
     ///@name reimplemented Qt events
     //@{
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e);
     //@}
 
-
   };
 }
 
-#endif
+#endif // OPENMS_VISUAL_TOPPASSPLITTERVERTEX_H

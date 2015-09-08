@@ -38,7 +38,6 @@
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
-#include <OpenMS/VISUAL/TOPPASMergerVertex.h>
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASToolConfigDialog.h>

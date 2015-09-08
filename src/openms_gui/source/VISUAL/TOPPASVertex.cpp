@@ -69,7 +69,7 @@ namespace OpenMS
     setZValue(42);
   }
 
-  TOPPASVertex::TOPPASVertex(const TOPPASVertex & rhs) :
+  TOPPASVertex::TOPPASVertex(const TOPPASVertex& rhs) :
     QObject(),
     QGraphicsItem(),
     // do not copy pointers to edges
@@ -98,7 +98,7 @@ namespace OpenMS
   {
   }
 
-  TOPPASVertex & TOPPASVertex::operator=(const TOPPASVertex & rhs)
+  TOPPASVertex& TOPPASVertex::operator=(const TOPPASVertex& rhs)
   {
     in_edges_ = rhs.in_edges_;
     out_edges_ = rhs.out_edges_;
@@ -153,7 +153,7 @@ namespace OpenMS
     int no_recycle_count = 0; // number of edges that do NOT do recycling (there needs to be at least one)
     for (ConstEdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it) // all incoming edges should have the same number of rounds (or should be set to 'recycle') !
     {
-      TOPPASVertex * tv = (*it)->getSourceVertex();
+      TOPPASVertex* tv = (*it)->getSourceVertex();
       if (tv->allow_output_recycling_)
       {
         continue;
@@ -162,7 +162,7 @@ namespace OpenMS
       ++no_recycle_count;
       if (round_common == -1)
       {
-        round_common = tv->round_total_;                       // first non-recycler sets the pace
+        round_common = tv->round_total_; // first non-recycler sets the pace
       }
 
       if (round_common != tv->round_total_)
@@ -205,9 +205,10 @@ namespace OpenMS
     pkg.clear();
     pkg.resize(round_common);
 
-    for (ConstEdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it) // all incoming edges should have the same number of rounds!
+    // all incoming edges should have the same number of rounds!
+    for (ConstEdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
     {
-      TOPPASVertex * tv = (*it)->getSourceVertex();
+      TOPPASVertex* tv = (*it)->getSourceVertex();
 
       // fill files for each round
       int param_index_src_out = (*it)->getSourceOutParam();
@@ -218,11 +219,16 @@ namespace OpenMS
         rpg.edge = *it;
         int upstream_round = round;
         if (tv->allow_output_recycling_ && upstream_round >= tv->round_total_)
+        {
           upstream_round %= tv->round_total_;
+        }
         rpg.filenames = tv->getFileNames(param_index_src_out, upstream_round);
 
+        // hack for merger vertices, as they have multiple incoming edges with -1 as index
         while (pkg[round].count(param_index_tgt_in))
-          --param_index_tgt_in;                                            //hack for merger vertices, as they have multiple incoming edges with -1 as index
+        {
+          --param_index_tgt_in;
+        }
 
         pkg[round][param_index_tgt_in] = rpg; // index by incoming edge number
       }
@@ -276,12 +282,12 @@ namespace OpenMS
     return TV_ALLFINISHED;
   }
 
-  const TOPPASVertex::RoundPackages & TOPPASVertex::getOutputFiles() const
+  const TOPPASVertex::RoundPackages& TOPPASVertex::getOutputFiles() const
   {
     return output_files_;
   }
 
-  void TOPPASVertex::mousePressEvent(QGraphicsSceneMouseEvent * e)
+  void TOPPASVertex::mousePressEvent(QGraphicsSceneMouseEvent* e)
   {
     if (!(e->modifiers() & Qt::ControlModifier))
     {
@@ -289,7 +295,7 @@ namespace OpenMS
     }
   }
 
-  void TOPPASVertex::mouseReleaseEvent(QGraphicsSceneMouseEvent * e)
+  void TOPPASVertex::mouseReleaseEvent(QGraphicsSceneMouseEvent* e)
   {
     if (edge_being_created_)
     {
@@ -304,25 +310,25 @@ namespace OpenMS
     {
       emit released();
       // resize scene rect in case item has been moved outside
-      const QRectF & scene_rect = scene()->sceneRect();
-      const QRectF & items_bounding = scene()->itemsBoundingRect();
+      const QRectF& scene_rect = scene()->sceneRect();
+      const QRectF& items_bounding = scene()->itemsBoundingRect();
       scene()->setSceneRect(scene_rect.united(items_bounding));
     }
   }
 
-  void TOPPASVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent * e)
+  void TOPPASVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e)
   {
     e->ignore();
   }
 
-  void TOPPASVertex::contextMenuEvent(QGraphicsSceneContextMenuEvent * e)
+  void TOPPASVertex::contextMenuEvent(QGraphicsSceneContextMenuEvent* e)
   {
     e->ignore();
   }
 
-  void TOPPASVertex::mouseMoveEvent(QGraphicsSceneMouseEvent * e)
+  void TOPPASVertex::mouseMoveEvent(QGraphicsSceneMouseEvent* e)
   {
-    TOPPASScene * ts = qobject_cast<TOPPASScene *>(scene());
+    TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
 
     if (isSelected())
     {
@@ -336,7 +342,7 @@ namespace OpenMS
     }
   }
 
-  void TOPPASVertex::moveNewEdgeTo_(const QPointF & pos)
+  void TOPPASVertex::moveNewEdgeTo_(const QPointF& pos)
   {
     if (!edge_being_created_)
     {
@@ -367,22 +373,22 @@ namespace OpenMS
     return in_edges_.end();
   }
 
-  void TOPPASVertex::addInEdge(TOPPASEdge * edge)
+  void TOPPASVertex::addInEdge(TOPPASEdge* edge)
   {
     in_edges_.push_back(edge);
   }
 
-  void TOPPASVertex::addOutEdge(TOPPASEdge * edge)
+  void TOPPASVertex::addOutEdge(TOPPASEdge* edge)
   {
     out_edges_.push_back(edge);
   }
 
-  void TOPPASVertex::removeInEdge(TOPPASEdge * edge)
+  void TOPPASVertex::removeInEdge(TOPPASEdge* edge)
   {
     in_edges_.removeAll(edge);
   }
 
-  void TOPPASVertex::removeOutEdge(TOPPASEdge * edge)
+  void TOPPASVertex::removeOutEdge(TOPPASEdge* edge)
   {
     out_edges_.removeAll(edge);
   }
@@ -402,7 +408,7 @@ namespace OpenMS
     return dfs_parent_;
   }
 
-  void TOPPASVertex::setDFSParent(TOPPASVertex * parent)
+  void TOPPASVertex::setDFSParent(TOPPASVertex* parent)
   {
     dfs_parent_ = parent;
   }
@@ -420,14 +426,14 @@ namespace OpenMS
   void TOPPASVertex::inEdgeHasChanged()
   {
     // (overridden behavior in output and tool vertices)
-    qobject_cast<TOPPASScene *>(scene())->setChanged(true);
+    qobject_cast<TOPPASScene*>(scene())->setChanged(true);
     emit somethingHasChanged();
   }
 
   void TOPPASVertex::outEdgeHasChanged()
   {
     // (overridden behavior in input and tool vertices)
-    qobject_cast<TOPPASScene *>(scene())->setChanged(true);
+    qobject_cast<TOPPASScene*>(scene())->setChanged(true);
     emit somethingHasChanged();
   }
 
@@ -509,7 +515,7 @@ namespace OpenMS
 
     for (ConstEdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
     {
-      TOPPASVertex * tv = qobject_cast<TOPPASVertex *>((*it)->getSourceVertex());
+      TOPPASVertex* tv = qobject_cast<TOPPASVertex*>((*it)->getSourceVertex());
       if (tv && !tv->isFinished())
       {
         // some (reachable) tool that we depend on has not finished execution yet --> do not start yet
@@ -527,7 +533,7 @@ namespace OpenMS
     reachable_ = false;
     for (ConstEdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
     {
-      TOPPASVertex * tv = (*it)->getTargetVertex();
+      TOPPASVertex* tv = (*it)->getTargetVertex();
       if (tv->reachable_)
       {
         tv->markUnreachable();
