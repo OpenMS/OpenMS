@@ -193,7 +193,7 @@ public:
     }
 
     /// addMassTrace
-    void addMassTrace(MassTrace&);
+    void addMassTrace(const MassTrace&);
     double getMonoisotopicFeatureIntensity(bool) const;
     double getSummedFeatureIntensity(bool) const;
 
@@ -249,15 +249,15 @@ private:
      * See also https://en.wikipedia.org/wiki/Cosine_similarity
      *
     */
-    double computeCosineSim_(const std::vector<double>&, const std::vector<double>&);
+    double computeCosineSim_(const std::vector<double>&, const std::vector<double>&) const;
 
     /// unused function ???
     /// TODO: remove
-    double computeOLSCoeff_(const std::vector<double>&, const std::vector<double>&);
+    double computeOLSCoeff_(const std::vector<double>&, const std::vector<double>&) const;
 
     /// Only used in debugging output ???  -> seems old model with 7 traces
     /// TODO: remove
-    bool isLegalIsotopePattern_(FeatureHypothesis &);
+    bool isLegalIsotopePattern_(const FeatureHypothesis &) const;
 
     /** @brief Compare intensities of feature hypothesis with model 
      *
@@ -269,12 +269,9 @@ private:
      * Reference: Kenar et al., doi: 10.1074/mcp.M113.031278
      *
     */
-    bool isLegalIsotopePattern2_(FeatureHypothesis &);
+    bool isLegalIsotopePattern2_(const FeatureHypothesis &) const;
 
-    //bool isLegalAveraginePattern(FeatureHypothesis&);
     void loadIsotopeModel_(const String&);
-
-    double total_intensity_;
 
     /** @brief Perform mass to charge scoring of two multiple mass traces
      *
@@ -296,10 +293,11 @@ private:
      * Reference: Kenar et al., doi: 10.1074/mcp.M113.031278
      *
     */
-    double scoreMZ_(const MassTrace &, const MassTrace &, Size isotopic_position, Size charge);
+    double scoreMZ_(const MassTrace &, const MassTrace &, Size isotopic_position, Size charge) const;
+
     /// Not used any more ???  -> seems to be old model 
     /// TODO: remove
-    double scoreMZ2_(const MassTrace &, const MassTrace &, Size isotopic_position, Size charge);
+    double scoreMZ2_(const MassTrace &, const MassTrace &, Size isotopic_position, Size charge) const;
 
     /** @brief Perform retention time scoring of two multiple mass traces
      *
@@ -312,7 +310,7 @@ private:
      * @note this only works for equally sampled mass traces, e.g. they need to
      * come from the same map (not for SRM measurements for example).
     */
-    double scoreRT_(const MassTrace&, const MassTrace&);
+    double scoreRT_(const MassTrace&, const MassTrace&) const;
 
     /** @brief Perform intensity scoring using the averagine model (for peptides only)
      *
@@ -322,14 +320,22 @@ private:
     */
     double computeAveragineSimScore_(const std::vector<double>& intensities, const double& molecular_weight);
 
-    // double scoreTraceSim_(MassTrace, MassTrace);
-    // double scoreIntRatio_(double, double, Size);
-    void findLocalFeatures_(std::vector<MassTrace*>&, std::vector<FeatureHypothesis>&);
+    /** @brief Identify groupings of mass traces based on a set of reasonable candidates
+     *
+     * Takes a set of reasonable candidates for mass trace grouping and checks
+     * all combinations of charge and isotopic positions on the candidates. It
+     * is assumed that candidates[0] is the monoisotopic trace.
+     *
+     * The resulting possible groupings are appended to output_hypotheses.
+    */
+    void findLocalFeatures_(const std::vector<const MassTrace*>& candidates, std::vector<FeatureHypothesis>& output_hypotheses);
 
     /// SVM parameters
     svm_model* isotope_filt_svm_;
     std::vector<double> svm_feat_centers_;
     std::vector<double> svm_feat_scales_;
+
+    double total_intensity_;
 
     /// parameter stuff
     double local_rt_range_;

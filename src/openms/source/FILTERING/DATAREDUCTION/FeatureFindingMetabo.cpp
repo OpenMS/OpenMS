@@ -87,7 +87,7 @@ namespace OpenMS
     return *this;
   }
 
-  void FeatureHypothesis::addMassTrace(MassTrace& mt_ptr)
+  void FeatureHypothesis::addMassTrace(const MassTrace& mt_ptr)
   {
     iso_pattern_.push_back(&mt_ptr);
   }
@@ -240,7 +240,7 @@ namespace OpenMS
     return iso_score;
   }
 
-  bool FeatureFindingMetabo::isLegalIsotopePattern_(FeatureHypothesis& feat_hypo)
+  bool FeatureFindingMetabo::isLegalIsotopePattern_(const FeatureHypothesis& feat_hypo) const
   {
     if (feat_hypo.getSize() == 1)
     {
@@ -303,7 +303,7 @@ namespace OpenMS
     return (predict == 2.0) ? true : false;
   }
 
-  bool FeatureFindingMetabo::isLegalIsotopePattern2_(FeatureHypothesis& feat_hypo)
+  bool FeatureFindingMetabo::isLegalIsotopePattern2_(const FeatureHypothesis& feat_hypo) const
   {
     if (feat_hypo.getSize() == 1)
     {
@@ -430,7 +430,7 @@ namespace OpenMS
     }
   }
 
-  double FeatureFindingMetabo::scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge)
+  double FeatureFindingMetabo::scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge) const
   {
     double mu((1.000857 * (double)iso_pos + 0.001091) / (double)charge);
     double sd((0.0016633 * (double)iso_pos - 0.0004751) / (double)charge);
@@ -470,7 +470,7 @@ namespace OpenMS
     return mz_score;
   }
 
-  double FeatureFindingMetabo::scoreMZ2_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge)
+  double FeatureFindingMetabo::scoreMZ2_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge) const
   {
     double mu((1.003355 * (double)iso_pos) / (double)charge); 
     double sd(0.01 / (double)charge);
@@ -582,7 +582,7 @@ namespace OpenMS
 //    return mz_score;
 //}
 
-  double FeatureFindingMetabo::scoreRT_(const MassTrace& tr1, const MassTrace& tr2)
+  double FeatureFindingMetabo::scoreRT_(const MassTrace& tr1, const MassTrace& tr2) const
   {
     // return success if this filter is disabled
     if (!enable_RT_filtering_) return 1.0;
@@ -657,7 +657,7 @@ namespace OpenMS
     return computeCosineSim_(x, y);
   }
 
-  double FeatureFindingMetabo::computeCosineSim_(const std::vector<double>& x, const std::vector<double>& y)
+  double FeatureFindingMetabo::computeCosineSim_(const std::vector<double>& x, const std::vector<double>& y) const
   {
     if (x.size() != y.size())
     {
@@ -679,7 +679,7 @@ namespace OpenMS
     return (denom > 0.0) ? mixed_sum / denom : 0.0;
   }
 
-  double FeatureFindingMetabo::computeOLSCoeff_(const std::vector<double>& x, const std::vector<double>& y)
+  double FeatureFindingMetabo::computeOLSCoeff_(const std::vector<double>& x, const std::vector<double>& y) const
   {
     if (x.size() != y.size())
     {
@@ -698,7 +698,7 @@ namespace OpenMS
     return (x_squared_sum > 0.0) ? mixed_sum / x_squared_sum : 0.0;
   }
 
-  void FeatureFindingMetabo::findLocalFeatures_(std::vector<MassTrace*>& candidates, std::vector<FeatureHypothesis>& output_hypos)
+  void FeatureFindingMetabo::findLocalFeatures_(const std::vector<const MassTrace*>& candidates, std::vector<FeatureHypothesis>& output_hypos)
   {
     // single Mass trace hypothesis
     FeatureHypothesis tmp_hypo;
@@ -868,7 +868,7 @@ namespace OpenMS
 #endif
       ++progress;
 
-      std::vector<MassTrace*> local_traces;
+      std::vector<const MassTrace*> local_traces;
       double ref_trace_mz(input_mtraces[i].getCentroidMZ());
       double ref_trace_rt(input_mtraces[i].getCentroidRT());
 
