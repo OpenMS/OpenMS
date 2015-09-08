@@ -90,29 +90,25 @@ namespace OpenMS
   void FeatureHypothesis::addMassTrace(MassTrace& mt_ptr)
   {
     iso_pattern_.push_back(&mt_ptr);
-
-    return;
   }
 
   double FeatureHypothesis::getMonoisotopicFeatureIntensity(bool smoothed = false) const
   {
     if (iso_pattern_.empty())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "FeatureHypothesis is empty, no traces contained!", String(iso_pattern_.size()));
+      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+          "FeatureHypothesis is empty, no traces contained!", String(iso_pattern_.size()));
     }
-
     return iso_pattern_[0]->getIntensity(smoothed);
   }
 
   double FeatureHypothesis::getSummedFeatureIntensity(bool smoothed = false) const
   {
     double int_sum(0.0);
-
     for (Size i = 0; i < iso_pattern_.size(); ++i)
     {
       int_sum += iso_pattern_[i]->getIntensity(smoothed);
     }
-
     return int_sum;
   }
 
@@ -131,10 +127,8 @@ namespace OpenMS
   std::vector<ConvexHull2D> FeatureHypothesis::getConvexHulls() const
   {
     std::vector<ConvexHull2D> tmp_hulls;
-
     for (Size mt_idx = 0; mt_idx < iso_pattern_.size(); ++mt_idx)
     {
-
       ConvexHull2D::PointArrayType hull_points(iso_pattern_[mt_idx]->getSize());
 
       Size i = 0;
@@ -145,14 +139,10 @@ namespace OpenMS
         ++i;
       }
 
-
       ConvexHull2D hull;
       hull.addPoints(hull_points);
-
       tmp_hulls.push_back(hull);
     }
-
-
     return tmp_hulls;
   }
 
@@ -216,12 +206,6 @@ namespace OpenMS
 
   double FeatureFindingMetabo::computeAveragineSimScore_(const std::vector<double>& hypo_ints, const double& mol_weight)
   {
-    //    if (feat_hypo.getSize() == 1)
-    //    {
-    //        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Cannot compute isotope pattern on a single mass trace!", String(feat_hypo.getSize()));
-    //    }
-
-
     IsotopeDistribution isodist(hypo_ints.size());
     isodist.estimateFromPeptideWeight(mol_weight);
     // isodist.renormalize();
@@ -231,7 +215,6 @@ namespace OpenMS
     // std::vector<double> hypo_ints = feat_hypo.getAllIntensities();
 
     double max_int(0.0), theo_max_int(0.0);
-
     for (Size i = 0; i < hypo_ints.size(); ++i)
     {
       if (hypo_ints[i] > max_int)
@@ -245,20 +228,15 @@ namespace OpenMS
       }
     }
 
-
-
+    // compute normalized intensities
     std::vector<double> averagine_ratios, hypo_isos;
-
     for (Size i = 0; i < hypo_ints.size(); ++i)
     {
-      // std::cout << "iso ratios for mass " << mol_weight << " " << hypo_ints[i]/max_int << " / " << averagine_dist[i].second/theo_max_int << std::endl;
       averagine_ratios.push_back(averagine_dist[i].second / theo_max_int);
       hypo_isos.push_back(hypo_ints[i] / max_int);
     }
 
     double iso_score = computeCosineSim_(averagine_ratios, hypo_isos);
-    // std::cout << "score: " << iso_score << std::endl;
-
     return iso_score;
   }
 
@@ -266,16 +244,11 @@ namespace OpenMS
   {
     if (feat_hypo.getSize() == 1)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Cannot compute isotope pattern on a single mass trace!", String(feat_hypo.getSize()));
+      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+          "Cannot compute isotope pattern on a single mass trace!", String(feat_hypo.getSize()));
     }
 
     std::vector<double> all_ints = feat_hypo.getAllIntensities(use_smoothed_intensities_);
-
-    //    for (Size i = 0; i < all_ints.size(); ++i)
-    //    {
-    //        std::cout << "i: " << i << " " << all_ints[i] << std::endl;
-    //    }
-
     double mono_int(all_ints[0]);
 
     svm_node* nodes;
@@ -334,23 +307,27 @@ namespace OpenMS
   {
     if (feat_hypo.getSize() == 1)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Cannot compute isotope pattern on a single mass trace!", String(feat_hypo.getSize()));
+      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+          "Cannot compute isotope pattern on a single mass trace!", String(feat_hypo.getSize()));
     }
 
     std::vector<double> all_ints = feat_hypo.getAllIntensities(use_smoothed_intensities_);
+    double mono_int(all_ints[0]); // monoisotopic intensity
 
-    double mono_int(all_ints[0]);
+    // Limit the feature size to 4, since the model was only trained on
+    // monoisotopic + 3 isotopic traces
+    const Size FEAT_NUM(4);
+    Size feat_size(feat_hypo.getSize());
+    if (feat_size > 4)
+    {
+      feat_size = 4;
+    }
 
     svm_node* nodes;
-
-    const Size FEAT_NUM(4);
-
     nodes = new svm_node[FEAT_NUM + 1];
 
     double charge(feat_hypo.getCharge());
     double act_mass(feat_hypo.getCentroidMZ() * charge);
-
-    // std::cout << act_mass << std::endl;
 
     // isotope model currently restricted to formulas up to 1000 Da
     if (act_mass > 1000.0)
@@ -361,33 +338,25 @@ namespace OpenMS
     nodes[0].index = 1;
     nodes[0].value = (act_mass - svm_feat_centers_[0]) / svm_feat_scales_[0];
 
+    // Iterate, start with first isotopic trace (skip monoisotopic)
     Size i = 2;
-
-    Size feat_size(feat_hypo.getSize());
-
-    if (feat_size > 4)
-    {
-      feat_size = 4;
-    }
-
     for (; i - 1 < feat_size; ++i)
     {
       nodes[i - 1].index = static_cast<Int>(i);
 
+      // compute ratio of trace to monoisotopic intensity
       double ratio((all_ints[i - 1] / mono_int));
 
       // std::cout << i << " " << ratio << " " << std::endl;
-
-      //        if (ratio > 1.0)
-      //        {
-      //            delete[] nodes;
-      //            return false;
-      //        }
+      // if (ratio > 1.0)
+      // {
+      //     delete[] nodes;
+      //     return false;
+      // }
 
       double tmp_val((ratio - svm_feat_centers_[i - 1]) / svm_feat_scales_[i - 1]);
       nodes[i - 1].value = tmp_val;
     }
-
 
     for (; i < FEAT_NUM + 1; ++i)
     {
@@ -405,6 +374,8 @@ namespace OpenMS
     //        std::cout << "idx: " << nodes[i].index << " val: " << nodes[i].value << std::endl;
     //    }
 
+    // Use SVM model to predict the category in which the current trace group
+    // belongs ...
     double predict = svm_predict(isotope_filt_svm_, nodes);
 
     // std::cout << "predict: " << predict << std::endl;
@@ -417,14 +388,14 @@ namespace OpenMS
   {
     String search_name("CHEMISTRY/" + model_name);
 
-
     std::string model_filename = File::find(search_name + ".svm");
     std::string scale_filename = File::find(search_name + ".scale");
 
     isotope_filt_svm_ = svm_load_model(model_filename.c_str());
     if (isotope_filt_svm_ == NULL)
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Loading " + model_filename + " failed", model_filename);
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+          "Loading " + model_filename + " failed", model_filename);
     }
 
     std::ifstream ifs(scale_filename.c_str());
@@ -453,10 +424,10 @@ namespace OpenMS
 
     if (svm_feat_centers_.size() != svm_feat_scales_.size())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Numbers of centers and scales from file " + scale_filename + " are different!", String(svm_feat_centers_.size()) + " and " + String(svm_feat_scales_.size()));
+      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+          "Numbers of centers and scales from file " + scale_filename + " are different!",
+          String(svm_feat_centers_.size()) + " and " + String(svm_feat_scales_.size()));
     }
-
-    return;
   }
 
   double FeatureFindingMetabo::scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge)
@@ -501,8 +472,9 @@ namespace OpenMS
 
   double FeatureFindingMetabo::scoreMZ2_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge)
   {
-    double mu((1.003355 * (double)iso_pos) / (double)charge);
+    double mu((1.003355 * (double)iso_pos) / (double)charge); 
     double sd(0.01 / (double)charge);
+    // only difference to above: model parameters
 
     double mz1(tr1.getCentroidMZ());
     double mz2(tr2.getCentroidMZ());
@@ -538,6 +510,9 @@ namespace OpenMS
 
     return mz_score;
   }
+
+    /// Not used any more ???  -> seems to be old model with special treatment of isotopic position 1
+    /// TODO: remove
 
 //double FeatureFindingMetabo::scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge)
 //{
@@ -607,8 +582,6 @@ namespace OpenMS
 //    return mz_score;
 //}
 
-
-
   double FeatureFindingMetabo::scoreRT_(const MassTrace& tr1, const MassTrace& tr2)
   {
     // return success if this filter is disabled
@@ -635,19 +608,19 @@ namespace OpenMS
 
     // std::cout << "tr1 " << tr1_length << " tr2 " << tr2_length << std::endl;
 
+    // Extract peak shape between FWHM borders for both peaks
     for (Size i = tr1_fwhm_idx.first; i <= tr1_fwhm_idx.second; ++i)
     {
       coinciding_rts[tr1[i].getRT()].push_back(tr1[i].getIntensity());
     }
-
     for (Size i = tr2_fwhm_idx.first; i <= tr2_fwhm_idx.second; ++i)
     {
       coinciding_rts[tr2[i].getRT()].push_back(tr2[i].getIntensity());
     }
 
+    // Look at peaks at the same RT 
+    // TODO: this only works if both traces are sampled with equal rate at the same RT
     std::vector<double> x, y, overlap_rts;
-
-
     for (std::map<double, std::vector<double> >::const_iterator m_it = coinciding_rts.begin(); m_it != coinciding_rts.end(); ++m_it)
     {
       if (m_it->second.size() == 2)
@@ -662,31 +635,25 @@ namespace OpenMS
     //        {
     //            return 0.0;
     //        }
-
-    double overlap(0.0);
-
     // double rt_range(0.0)
     // if (coinciding_rts.size() > 0)
     // {
     //     rt_range = std::fabs(coinciding_rts.rbegin()->first - coinciding_rts.begin()->first);
     // }
 
+
+    double overlap(0.0);
     if (overlap_rts.size() > 0)
     {
       double start_rt(*(overlap_rts.begin())), end_rt(*(overlap_rts.rbegin()));
       overlap = std::fabs(end_rt - start_rt);
     }
 
-
     double proportion(overlap / max_length);
-    // std::cout << tr1.getLabel() << " & " << tr2.getLabel() << " prop:" << proportion << std::endl;
-
     if (proportion < 0.7)
     {
-      // std::cout << "reject";
       return 0.0;
     }
-
     return computeCosineSim_(x, y);
   }
 
@@ -701,7 +668,6 @@ namespace OpenMS
     double x_squared_sum(0.0);
     double y_squared_sum(0.0);
 
-
     for (Size i = 0; i < x.size(); ++i)
     {
       mixed_sum += x[i] * y[i];
@@ -710,7 +676,6 @@ namespace OpenMS
     }
 
     double denom(std::sqrt(x_squared_sum) * std::sqrt(y_squared_sum));
-
     return (denom > 0.0) ? mixed_sum / denom : 0.0;
   }
 
@@ -735,7 +700,6 @@ namespace OpenMS
 
   void FeatureFindingMetabo::findLocalFeatures_(std::vector<MassTrace*>& candidates, std::vector<FeatureHypothesis>& output_hypos)
   {
-
     // single Mass trace hypothesis
     FeatureHypothesis tmp_hypo;
     tmp_hypo.addMassTrace(*candidates[0]);
@@ -764,6 +728,8 @@ namespace OpenMS
       for (Size iso_pos = 1; iso_pos <= iso_pos_max; ++iso_pos)
       {
 
+        // Find mass trace that best agrees with current hypothesis of charge
+        // and isotopic position
         double best_so_far(0.0);
         Size best_idx(0);
         for (Size mt_idx = last_iso_idx + 1; mt_idx < candidates.size(); ++mt_idx)
@@ -776,6 +742,8 @@ namespace OpenMS
           std::cout << "scoring " << candidates[0]->getLabel() << " " << candidates[0]->getCentroidMZ() << 
             " with " << candidates[mt_idx]->getLabel() << " " << candidates[mt_idx]->getCentroidMZ() << std::endl;
 #endif
+
+          // Score current mass trace candidates against hypothesis
           double rt_score(scoreRT_(*candidates[0], *candidates[mt_idx]));
           double mz_score(scoreMZ_(*candidates[0], *candidates[mt_idx], iso_pos, charge));
 
@@ -808,6 +776,8 @@ namespace OpenMS
           }
         } // end mt_idx
 
+        // Store mass trace that best agrees with current hypothesis of charge
+        // and isotopic position
         if (best_so_far > 0.0)
         {
           fh_tmp.addMassTrace(*candidates[best_idx]);
@@ -815,8 +785,6 @@ namespace OpenMS
 
           fh_tmp.setScore(fh_tmp.getScore() + weighted_score);
           fh_tmp.setCharge(charge);
-          //std::cout << "adding " << fh_tmp.getLabel() << std::endl;
-
           last_iso_idx = best_idx;
 
 #ifdef _OPENMP
@@ -837,8 +805,6 @@ namespace OpenMS
       std::cout << "best found for ch " << charge << ":" << fh_tmp.getLabel() << " score: " << fh_tmp.getScore() << std::endl;
 #endif
     } // end for charge
-
-    return;
   } // end of findLocalFeatures_(...)
 
   void FeatureFindingMetabo::run(std::vector<MassTrace>& input_mtraces, FeatureMap& output_featmap)
@@ -885,7 +851,8 @@ namespace OpenMS
     }
 
     // *********************************************************** //
-    // Step 3 Apply model
+    // Step 3 Iterate through all mass traces to find likely matches 
+    // and generate isotopic / charge hypotheses
     // *********************************************************** //
     std::vector<FeatureHypothesis> feat_hypos;
     Size progress(0);
@@ -942,9 +909,11 @@ namespace OpenMS
     }
 #endif
 
-
-    // accept all hypothesis in order of their scores
-    // unless a trace has already been used
+    // *********************************************************** //
+    // Step 4 Iterate through all hypotheses, starting with the highest 
+    // scoring one. Accept them if they do not contain traces that have 
+    // already been used by a higher scoring hypothesis.
+    // *********************************************************** //
     std::map<String, bool> trace_excl_map;
     for (Size hypo_idx = 0; hypo_idx < feat_hypos.size(); ++hypo_idx)
     {
@@ -969,11 +938,15 @@ namespace OpenMS
       }
 #endif
 
+      // Skip hypotheses that contain a mass trace that has already been used
       if (trace_coll) 
       {
         continue;
       }
 
+      // Check whether the trace  passes the intensity filter (metabolites
+      // only). This is based on a pre-trained SVM model of isotopic
+      // intensities.
       bool pass_isotope_filter = true;
       if (feat_hypos[hypo_idx].getSize() > 1)
       {
@@ -996,6 +969,10 @@ namespace OpenMS
         continue;
       }
 
+      //
+      // Now accept hypothesis
+      //
+
       Feature f;
       f.setRT(feat_hypos[hypo_idx].getCentroidRT());
       f.setMZ(feat_hypos[hypo_idx].getCentroidMZ());
@@ -1017,12 +994,12 @@ namespace OpenMS
       std::vector<double> all_ints(feat_hypos[hypo_idx].getAllIntensities(use_smoothed_intensities_));
 
       f.setMetaValue("num_of_masstraces", all_ints.size());
-
       for (Size int_idx = 0; int_idx < all_ints.size(); ++int_idx)
       {
         f.setMetaValue("masstrace_intensity_" + String(int_idx), all_ints[int_idx]);
       }
 
+      // TODO add flag to skip this step, blows up in memory and increases size of featureXML ...
       f.setConvexHulls(feat_hypos[hypo_idx].getConvexHulls());
       f.setOverallQuality(feat_hypos[hypo_idx].getScore());
 
@@ -1034,8 +1011,6 @@ namespace OpenMS
         trace_excl_map[labels[lab_idx]] = true;
       }
     }
-
-    return;
   } // end of FeatureFindingMetabo::run
 
 }
