@@ -92,7 +92,7 @@ public:
       @brief Interface for GSL or OpenMS::MATH linear regression implementation
       standard least-squares fit to a straight line takes as input a standard
       vector of a standard pair of points in a 2D space and returns the
-      coefficients of the linear regression Y(c,x) = c0 + c1 * x
+      R-squared value for the corresponding linear regression Y(c,x) = c0 + c1 * x
     */
     static double llsm_rsq(std::vector<std::pair<double, double> >& pairs);
 
