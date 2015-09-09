@@ -72,12 +72,12 @@ protected:
   
     /// interface for GSL or OpenMS::MATH linear regression implementation
     /// calculates the residual sum of squares of the input points and the linear fit with coefficients c0 & c1.
-    static double llsm_rss(std::vector<std::pair<double, double> >& pairs, std::pair<double, double >& coefficients);
+    static double llsm_rss_(std::vector<std::pair<double, double> >& pairs, std::pair<double, double >& coefficients);
   
     /// calculates the residual sum of squares of the input points and the linear fit with coefficients c0 & c1.
     /// further removes all points that have an error larger or equal than max_threshold.
-    static std::vector<std::pair<double, double> > llsm_rss_inliers(std::vector<std::pair<double, double> >& pairs,
-        std::pair<double, double >& coefficients, double max_threshold);
+    static std::vector<std::pair<double, double> > llsm_rss_inliers_(std::vector<std::pair<double, double> >& pairs,
+        std::pair<double, double >& coefficients, double max_threshold) const;
 
     /**
       @brief This function computes a candidate outlier peptide by iteratively
@@ -90,7 +90,7 @@ protected:
 
       @exception Exception::UnableToFit is thrown if fitting cannot be performed
     */
-    static int jackknifeOutlierCandidate(std::vector<double>& x, std::vector<double>& y);
+    static int jackknifeOutlierCandidate_(std::vector<double>& x, std::vector<double>& y);
 
     /**
       @brief This function computes a candidate outlier peptide by computing
@@ -103,7 +103,7 @@ protected:
 
       @exception Exception::UnableToFit is thrown if fitting cannot be performed
     */
-    static int residualOutlierCandidate(std::vector<double>& x, std::vector<double>& y);
+    static int residualOutlierCandidate_(std::vector<double>& x, std::vector<double>& y);
 
 public:
  
@@ -155,7 +155,7 @@ public:
 
       @return A vector of pairs
     */
-    static std::vector<std::pair<double, double> > ransac(std::vector<std::pair<double, double> >& pairs, size_t n, size_t k, double t, size_t d, bool test = false); 
+    static std::vector<std::pair<double, double> > ransac(std::vector<std::pair<double, double> >& pairs, size_t n, size_t k, double t, size_t d, bool test = false) const;
 
     /**
       @brief This function removes potential outliers in a linear regression dataset.
@@ -207,4 +207,4 @@ public:
   };
 
 }
-#endif
+#endif // OPENMS_ANALYSIS_OPENSWATH_MRMRTNORMALIZER_H

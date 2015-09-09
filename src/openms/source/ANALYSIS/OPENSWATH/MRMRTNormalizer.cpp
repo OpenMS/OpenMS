@@ -91,7 +91,7 @@ namespace OpenMS
     return lin_reg.getRSquared();
   }
 
-  double MRMRTNormalizer::llsm_rss(std::vector<std::pair<double, double> >& pairs, std::pair<double, double >& coefficients)
+  double MRMRTNormalizer::llsm_rss_(std::vector<std::pair<double, double> >& pairs, std::pair<double, double >& coefficients)
   {
     double rss = 0;
 
@@ -103,9 +103,9 @@ namespace OpenMS
     return rss;
   }
 
-  std::vector<std::pair<double, double> > MRMRTNormalizer::llsm_rss_inliers(
+  std::vector<std::pair<double, double> > MRMRTNormalizer::llsm_rss_inliers_(
       std::vector<std::pair<double, double> >& pairs,
-      std::pair<double, double >& coefficients, double max_threshold)
+      std::pair<double, double >& coefficients, double max_threshold) const
   {
     std::vector<std::pair<double, double> > alsoinliers;
 
@@ -131,7 +131,8 @@ namespace OpenMS
 
     if (n < 5)
     {
-      throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-LinearRegression-RTNormalizer", "WARNING: RANSAC: " + boost::lexical_cast<std::string>(n) + " sampled RT peptides is below limit of 5 peptides required for the RANSAC outlier detection algorithm.");
+      throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-LinearRegression-RTNormalizer",
+          "WARNING: RANSAC: " + boost::lexical_cast<std::string>(n) + " sampled RT peptides is below limit of 5 peptides required for the RANSAC outlier detection algorithm.");
     }
 
     if (pairs.size() < 30)
@@ -157,7 +158,7 @@ namespace OpenMS
   }
 
   std::vector<std::pair<double, double> > MRMRTNormalizer::ransac(
-      std::vector<std::pair<double, double> >& pairs, size_t n, size_t k, double t, size_t d, bool test)
+      std::vector<std::pair<double, double> >& pairs, size_t n, size_t k, double t, size_t d, bool test) const
   {
     // implementation of the RANSAC algorithm according to http://wiki.scipy.org/Cookbook/RANSAC.
 
@@ -187,14 +188,14 @@ namespace OpenMS
 
       std::pair<double, double > coeff = llsm_fit(maybeinliers);
 
-      alsoinliers = llsm_rss_inliers(test_points,coeff,t);
+      alsoinliers = llsm_rss_inliers_(test_points,coeff,t);
 
       if (alsoinliers.size() > d)
       {
         betterdata = maybeinliers;
         betterdata.insert( betterdata.end(), alsoinliers.begin(), alsoinliers.end() );
         std::pair<double, double > bettercoeff = llsm_fit(betterdata);
-        bettererror = llsm_rss(betterdata,bettercoeff);
+        bettererror = llsm_rss_(betterdata,bettercoeff);
 #ifdef DEBUG_MRMRTNORMALIZER
         betterrsq = llsm_rsq(betterdata);
 #endif
@@ -227,7 +228,7 @@ namespace OpenMS
     return(bestdata);
   }
 
-  int MRMRTNormalizer::jackknifeOutlierCandidate(std::vector<double>& x, std::vector<double>& y)
+  int MRMRTNormalizer::jackknifeOutlierCandidate_(std::vector<double>& x, std::vector<double>& y)
   {
     // Returns candidate outlier: A linear regression and rsq is calculated for
     // the data points with one removed pair. The combination resulting in
@@ -250,7 +251,7 @@ namespace OpenMS
     return max_element(rsq_tmp.begin(), rsq_tmp.end()) - rsq_tmp.begin();
   }
 
-  int MRMRTNormalizer::residualOutlierCandidate(std::vector<double>& x, std::vector<double>& y)
+  int MRMRTNormalizer::residualOutlierCandidate_(std::vector<double>& x, std::vector<double>& y)
   {
     // Returns candidate outlier: A linear regression and residuals are calculated for
     // the data points. The one with highest residual error is selected as the outlier candidate. The
@@ -322,12 +323,12 @@ namespace OpenMS
         if (method == "iter_jackknife")
         {
           // get candidate outlier: removal of which datapoint results in best rsq?
-          pos = jackknifeOutlierCandidate(x, y);
+          pos = jackknifeOutlierCandidate_(x, y);
         }
         else if (method == "iter_residual")
         {
           // get candidate outlier: removal of datapoint with largest residual?
-          pos = residualOutlierCandidate(x, y);
+          pos = residualOutlierCandidate_(x, y);
         }
         else
         {

@@ -53,14 +53,14 @@ class MRMRTNormalizer_test : public MRMRTNormalizer
 {
   public :
 
-    static int jackknifeOutlierCandidate(std::vector<double> & x, std::vector<double> & y)
+    static int jackknifeOutlierCandidate_(std::vector<double> & x, std::vector<double> & y)
     {
-      return MRMRTNormalizer::jackknifeOutlierCandidate(x, y);
+      return MRMRTNormalizer::jackknifeOutlierCandidate_(x, y);
     }
 
-    static int residualOutlierCandidate(std::vector<double> & x, std::vector<double> & y)
+    static int residualOutlierCandidate_(std::vector<double> & x, std::vector<double> & y)
     {
-      return MRMRTNormalizer::residualOutlierCandidate(x, y);
+      return MRMRTNormalizer::residualOutlierCandidate_(x, y);
     }
 
     static std::pair<double, double > llsm_fit(std::vector<std::pair<double, double> >& pairs)
@@ -68,14 +68,14 @@ class MRMRTNormalizer_test : public MRMRTNormalizer
       return MRMRTNormalizer::llsm_fit(pairs);
     }
 
-    static double llsm_rss(std::vector<std::pair<double, double> >& pairs, std::pair<double, double >& coefficients  )
+    static double llsm_rss_(std::vector<std::pair<double, double> >& pairs, std::pair<double, double >& coefficients  )
     {
-      return MRMRTNormalizer::llsm_rss(pairs, coefficients);
+      return MRMRTNormalizer::llsm_rss_(pairs, coefficients);
     }
 
-    static std::vector<std::pair<double, double> > llsm_rss_inliers(std::vector<std::pair<double, double> >&   pairs, std::pair<double, double >& coefficients, double max_threshold)
+    static std::vector<std::pair<double, double> > llsm_rss_inliers_(std::vector<std::pair<double, double> >&   pairs, std::pair<double, double >& coefficients, double max_threshold)
     {
-      return MRMRTNormalizer::llsm_rss_inliers(pairs, coefficients, max_threshold);
+      return MRMRTNormalizer::llsm_rss_inliers_(pairs, coefficients, max_threshold);
     }
 
     static std::vector<std::pair<double, double> > ransac(std::vector<std::pair<double, double> >& pairs, size_t n, size_t k, double t, size_t d)
@@ -90,14 +90,14 @@ class MRMRTNormalizer_test : public MRMRTNormalizer
 // ~MRMRTNormalizer() 
 //
 
-START_SECTION((static int jackknifeOutlierCandidate(std::vector<double> & x, std::vector<double> & y)))
+START_SECTION((static int jackknifeOutlierCandidate_(std::vector<double> & x, std::vector<double> & y)))
 {
   static const double arrx1[] = { 1.1, 2.0,3.3,3.9,4.9,6.2  };
   std::vector<double> x1 (arrx1, arrx1 + sizeof(arrx1) / sizeof(arrx1[0]) );
   static const double arry1[] = { 0.9, 1.9,3.0,3.7,5.2,6.1  };
   std::vector<double> y1 (arry1, arry1 + sizeof(arry1) / sizeof(arry1[0]) );
 
-  int c1 = MRMRTNormalizer_test::jackknifeOutlierCandidate(x1,y1);
+  int c1 = MRMRTNormalizer_test::jackknifeOutlierCandidate_(x1,y1);
   TEST_EQUAL(c1,4);
 
   static const double arrx2[] = { 1,2,3,4,5,6  };
@@ -105,19 +105,19 @@ START_SECTION((static int jackknifeOutlierCandidate(std::vector<double> & x, std
   static const double arry2[] = { 1,2,3,4,5,6};
   std::vector<double> y2 (arry2, arry2 + sizeof(arry2) / sizeof(arry2[0]) );
 
-  int c2 = MRMRTNormalizer_test::jackknifeOutlierCandidate(x2,y2);
+  int c2 = MRMRTNormalizer_test::jackknifeOutlierCandidate_(x2,y2);
   TEST_EQUAL(c2,0);
 }
 END_SECTION
 
-START_SECTION((static int residualOutlierCandidate(std::vector<double> & x, std::vector<double> & y)))
+START_SECTION((static int residualOutlierCandidate_(std::vector<double> & x, std::vector<double> & y)))
 {
   static const double arrx1[] = { 1.1, 2.0,3.3,3.9,4.9,6.2  };
   std::vector<double> x1 (arrx1, arrx1 + sizeof(arrx1) / sizeof(arrx1[0]) );
   static const double arry1[] = { 0.9, 1.9,3.0,3.7,5.2,6.1  };
   std::vector<double> y1 (arry1, arry1 + sizeof(arry1) / sizeof(arry1[0]) );
 
-  int c1 = MRMRTNormalizer_test::residualOutlierCandidate(x1,y1);
+  int c1 = MRMRTNormalizer_test::residualOutlierCandidate_(x1,y1);
   TEST_EQUAL(c1,4);
 
   static const double arrx2[] = { 1,2,3,4,5,6  };
@@ -125,7 +125,7 @@ START_SECTION((static int residualOutlierCandidate(std::vector<double> & x, std:
   static const double arry2[] = { 1,2,3,4,5,6};
   std::vector<double> y2 (arry2, arry2 + sizeof(arry2) / sizeof(arry2[0]) );
 
-  int c2 = MRMRTNormalizer_test::residualOutlierCandidate(x2,y2);
+  int c2 = MRMRTNormalizer_test::residualOutlierCandidate_(x2,y2);
   TEST_EQUAL(c2,0);
 
 }
@@ -357,7 +357,7 @@ START_SECTION((static std::pair<double, double > llsm_fit(std::vector<std::pair<
   TEST_REAL_SIMILAR( coeff.first, 46.03865245);
   TEST_REAL_SIMILAR( coeff.second, 31.20358812);
 
-  double rss = MRMRTNormalizer_test::llsm_rss(test_pairs, coeff);
+  double rss = MRMRTNormalizer_test::llsm_rss_(test_pairs, coeff);
   TEST_REAL_SIMILAR( rss, 864089.67832345);
 
   std::vector<std::pair<double, double> > new_test_pairs;
@@ -393,7 +393,7 @@ START_SECTION((static std::pair<double, double > llsm_fit(std::vector<std::pair<
   new_test_pairs.push_back(std::make_pair(1.14474730e+01, 4.83241860e+02));
   new_test_pairs.push_back(std::make_pair(3.79416666e+00, 1.64038065e+02));
 
-  std::vector<std::pair<double, double> > inliers = MRMRTNormalizer_test::llsm_rss_inliers(new_test_pairs, coeff, 7e3);
+  std::vector<std::pair<double, double> > inliers = MRMRTNormalizer_test::llsm_rss_inliers_(new_test_pairs, coeff, 7e3);
   TEST_REAL_SIMILAR( inliers[0].first, 1.68354224e+00);
   TEST_REAL_SIMILAR( inliers[1].first, 4.64668635e+00);
   TEST_REAL_SIMILAR( inliers[2].first, 8.13976269e+00);
@@ -413,14 +413,14 @@ START_SECTION((static std::pair<double, double > llsm_fit(std::vector<std::pair<
 }
 END_SECTION
 
-START_SECTION(static double llsm_rss(std::vector<std::pair<double, double> >& pairs, std::pair<double, double >& coefficients  ) )
+START_SECTION(static double llsm_rss_(std::vector<std::pair<double, double> >& pairs, std::pair<double, double >& coefficients  ) )
 {
   // tested above in llsm_fit
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((static std::vector<std::pair<double, double> > llsm_rss_inliers(std::vector<std::pair<double, double> >&   pairs, std::pair<double, double >& coefficients, double max_threshold)))
+START_SECTION((static std::vector<std::pair<double, double> > llsm_rss_inliers_(std::vector<std::pair<double, double> >&   pairs, std::pair<double, double >& coefficients, double max_threshold)))
 {
   // tested above in llsm_fit
   NOT_TESTABLE
