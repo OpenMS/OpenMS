@@ -237,6 +237,107 @@ START_SECTION(([EXTRA]virtual void run(const std::vector<Peak2D> & map_model, co
 }
 END_SECTION
 
+START_SECTION(([EXTRA]virtual void run(const std::vector<Peak2D> & map_model, const std::vector<Peak2D> & map_scene, TransformationDescription& transformation)))
+{
+  std::vector<Peak2D> map_model, map_scene;
+
+  // add another point at 5.2 -> 5.8 RT (and add some chaff in the middle)
+  double map1_rt[] = {1.0, 5.0, 1.3, 2.2, 5.2};
+  double map2_rt[] = {1.4, 5.4, 4.4, 4.4, 5.8};
+
+  double map1_mz[] = {1.0 , 5.0 , 800, 900, 5.0 };
+  double map2_mz[] = {1.02, 5.02, 800, 900, 5.02};
+
+  double map1_int[] = {100, 100, 41, 20, 50};
+  double map2_int[] = {100, 100, 40, 20, 50};
+
+  for (Size i = 0; i < 5; i++)
+  {
+    Peak2D p;
+    p.setRT(map1_rt[i]);
+    p.setMZ(map1_mz[i]);
+    p.setIntensity(map1_int[i]);
+    map_model.push_back(p);
+  }
+  for (Size i = 0; i < 5; i++)
+  {
+    Peak2D p;
+    p.setRT(map2_rt[i]);
+    p.setMZ(map2_mz[i]);
+    p.setIntensity(map2_int[i]);
+    map_scene.push_back(p);
+  }
+
+  // make sure vector is not really sorted
+  std::reverse(map_model.begin(), map_model.end() );
+  std::reverse(map_scene.begin(), map_scene.end() );
+
+  // using 2 points
+  {
+    Param parameters;
+    parameters.setValue(String("scaling_bucket_size"), 0.01);
+    parameters.setValue(String("shift_bucket_size"), 0.1);
+    parameters.setValue(String("num_used_points"), 2); // only use first two points -> same results as before expected
+
+    TransformationDescription transformation;
+    PoseClusteringAffineSuperimposer pcat;
+    pcat.setParameters(parameters);
+
+    pcat.run(map_model, map_scene, transformation);
+
+    TEST_STRING_EQUAL(transformation.getModelType(), "linear")
+    parameters = transformation.getModelParameters();
+    TEST_EQUAL(parameters.size(), 2)
+    TEST_REAL_SIMILAR(parameters.getValue("slope"), 1.0)
+    TEST_REAL_SIMILAR(parameters.getValue("intercept"), -0.4)
+  }
+
+  // using 3 points
+  {
+    Param parameters;
+    parameters.setValue(String("scaling_bucket_size"), 0.01);
+    parameters.setValue(String("shift_bucket_size"), 0.1);
+    parameters.setValue(String("num_used_points"), 3); // only use first three points -> different results as before expected
+
+    TransformationDescription transformation;
+    PoseClusteringAffineSuperimposer pcat;
+    pcat.setParameters(parameters);
+
+    pcat.run(map_model, map_scene, transformation);
+
+    TEST_STRING_EQUAL(transformation.getModelType(), "linear")
+    parameters = transformation.getModelParameters();
+    TEST_EQUAL(parameters.size(), 2)
+    TEST_REAL_SIMILAR(parameters.getValue("slope"), 0.977273) // slope should be less than before
+    TEST_REAL_SIMILAR(parameters.getValue("intercept"), -0.368182) // intercept should be higher than before
+  }
+
+  // what happens if we set the wrong parameters?
+  {
+    Param parameters;
+    parameters.setValue(String("scaling_bucket_size"), 0.01);
+    parameters.setValue(String("shift_bucket_size"), 0.1);
+    parameters.setValue(String("num_used_points"), 3); // only use first three points -> different results as before expected
+    parameters.setValue(String("max_shift"), 0.2);
+    parameters.setValue(String("max_scaling"), 1.001);
+
+    TransformationDescription transformation;
+    PoseClusteringAffineSuperimposer pcat;
+    pcat.setParameters(parameters);
+
+    pcat.run(map_model, map_scene, transformation);
+
+    // quite easy: we get the wrong results!
+    // TODO: dont let this happen, so easy to prevent!
+    TEST_STRING_EQUAL(transformation.getModelType(), "linear")
+    parameters = transformation.getModelParameters();
+    TEST_EQUAL(parameters.size(), 2)
+    TEST_REAL_SIMILAR(parameters.getValue("slope"), 1.0) // TODO this is completely wrong
+    TEST_REAL_SIMILAR(parameters.getValue("intercept"), -0.4) // TODO this is completely wrong
+  }
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

@@ -83,7 +83,7 @@ namespace OpenMS
                                                  "the time between consecutive MS scans.");
     defaults_.setMinFloat("shift_bucket_size", 0.);
 
-    defaults_.setValue("max_shift", 1000.0, "Maximal shift which is considered during histogramming.  "
+    defaults_.setValue("max_shift", 1000.0, "Maximal shift which is considered during histogramming (in seconds).  "
                                             "This applies for both directions.", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("max_shift", 0.);
 
@@ -823,7 +823,6 @@ namespace OpenMS
 
       // sort the last data points by ascending intensity (from the right, using reverse iterators)
       //  -> linear in complexity, should be faster than sorting and then taking cutoff
-      //  TODO code-review this
       if (model_map.size() > num_used_points)
       {
         std::nth_element(model_map.rbegin(), model_map.rbegin() + (model_map.size() - num_used_points),
@@ -847,14 +846,44 @@ namespace OpenMS
     //**************************************************************************
     // Preprocessing
     //**************************************************************************
+    // take estimates of the minimal / maximal element from both maps
+    // possible improvement: use the truncated map from above which should be
+    // more reliable (one outlier of low intensity could derail the estimate
+    // below)
     const double model_minrt = std::min_element(map_model.begin(), map_model.end(), Peak2D::RTLess())->getRT();
     const double scene_minrt = std::min_element(map_scene.begin(), map_scene.end(), Peak2D::RTLess())->getRT();
     const double model_maxrt = std::max_element(map_model.begin(), map_model.end(), Peak2D::RTLess())->getRT();
     const double scene_maxrt = std::max_element(map_scene.begin(), map_scene.end(), Peak2D::RTLess())->getRT();
-    // const double rt_low = (map_model.getMin()[ConsensusFeature::RT] + map_scene.getMin()[ConsensusFeature::RT]) / 2.;
-    // const double rt_high = (map_model.getMax()[ConsensusFeature::RT] + map_scene.getMax()[ConsensusFeature::RT]) / 2.;
     const double rt_low =  (model_minrt + scene_minrt) / 2.;
     const double rt_high = (model_maxrt + scene_maxrt) / 2.;
+
+    //**************************************************************************
+    // Sanity check
+    //**************************************************************************
+    {
+      // crude estimate of the shift and slope
+      double shift = std::fabs(model_minrt - scene_minrt);
+      double slope = (model_maxrt - model_minrt) / (scene_maxrt - scene_minrt);
+
+      if ( (double)param_.getValue("max_scaling") < slope * 1.2 || 
+           1.0 / (double)param_.getValue("max_scaling") > slope / 1.2)
+      {
+        std::cout << "WARNING: your map likely has a scaling around " << slope
+          << " but your parameters only allow for a maximal scaling of " <<
+          param_.getValue("max_scaling") << std::endl;
+        std::cout << "It is strongly adviced to adjust your max_scaling factor" << std::endl;
+      }
+
+      if ( (double)param_.getValue("max_shift") < shift * 1.2)
+      {
+        std::cout << "WARNING: your map likely has a shift around " << shift
+          << " but your parameters only allow for a maximal shift of " <<
+          param_.getValue("max_shift") << std::endl;
+        std::cout << "It is strongly adviced to adjust your max_shift factor" << std::endl;
+      }
+
+    }
+    
 
     // Distance in RT two points need to have at most to be considered for clustering
     const double rt_pair_min_distance = (double) param_.getValue("rt_pair_distance_fraction") * (rt_high - rt_low);
