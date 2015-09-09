@@ -304,11 +304,14 @@ namespace OpenMS
 
     // write features with their corresponding attributes
     os << "\t<featureList count=\"" << feature_map.size() << "\">\n";
+    startProgress(0, feature_map.size(), "Storing featureXML file");
     for (Size s = 0; s < feature_map.size(); s++)
     {
       writeFeature_(filename, os, feature_map[s], "f_", feature_map[s].getUniqueId(), 0);
+      setProgress(s);
       // writeFeature_(filename, os, feature_map[s], "f_", s, 0);
     }
+    endProgress();
 
     os << "\t</featureList>\n";
     os << "</featureMap>\n";
@@ -919,7 +922,7 @@ namespace OpenMS
 
       ConvexHull2D current_hull = hulls[i];
       current_hull.compress();
-      Size hull_size  = current_hull.getHullPoints().size();
+      Size hull_size = current_hull.getHullPoints().size();
 
       for (Size j = 0; j < hull_size; j++)
       {

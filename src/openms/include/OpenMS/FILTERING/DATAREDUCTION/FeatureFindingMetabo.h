@@ -46,36 +46,42 @@
 namespace OpenMS
 {
 /**
-  @brief Method for the assembly of mass traces belonging to the same isotope pattern, i.e., that are compatible in retention times, mass-to-charge ratios, and isotope abundances.
+  @brief Method for the assembly of mass traces belonging to the same isotope
+  pattern, i.e., that are compatible in retention times, mass-to-charge ratios,
+  and isotope abundances.
 
-  In @ref FeatureFindingMetabo, mass traces detected by the @ref MassTraceDetection method and afterwards split into individual chromatographic peaks by the
-  @ref ElutionPeakDetection method are assembled to composite features if they are compatible with respect to RTs, m/z ratios, and isotopic intensities. To this end,
-  feature hypotheses are formulated exhaustively based on the set of mass traces detected within a local RT and m/z region. These feature hypotheses are scored by their similarity to
-  real metabolite isotope patterns. The score is derived from independent models for retention time shifts and m/z differences between isotopic mass traces.
-  Hypotheses with correct or false isotopic abundances are distinguished by a SVM model. Mass traces that could not be assembled or low-intensity metabolites with only a
-  monoisotopic mass trace to observe are left in the resulting @ref FeatureMap as singletons with the undefined charge state of 0.
+  In @ref FeatureFindingMetabo, mass traces detected by the @ref
+  MassTraceDetection method and afterwards split into individual
+  chromatographic peaks by the @ref ElutionPeakDetection method are assembled
+  to composite features if they are compatible with respect to RTs, m/z ratios,
+  and isotopic intensities. To this end, feature hypotheses are formulated
+  exhaustively based on the set of mass traces detected within a local RT and
+  m/z region. These feature hypotheses are scored by their similarity to real
+  metabolite isotope patterns. The score is derived from independent models for
+  retention time shifts and m/z differences between isotopic mass traces.
+  Hypotheses with correct or false isotopic abundances are distinguished by a
+  SVM model. Mass traces that could not be assembled or low-intensity
+  metabolites with only a monoisotopic mass trace to observe are left in the
+  resulting @ref FeatureMap as singletons with the undefined charge state of 0.
 
   @htmlinclude OpenMS_FeatureFindingMetabo.parameters
 
   @ingroup Quantitation
 */
 
-
-
-class OPENMS_DLLAPI CmpMassTraceByMZ
-{
+  class OPENMS_DLLAPI CmpMassTraceByMZ
+  {
 public:
 
     bool operator()(MassTrace x, MassTrace y) const
     {
-        return x.getCentroidMZ() < y.getCentroidMZ();
+      return x.getCentroidMZ() < y.getCentroidMZ();
     }
 
-};
+  };
 
-
-class OPENMS_DLLAPI FeatureHypothesis
-{
+  class OPENMS_DLLAPI FeatureHypothesis
+  {
 public:
     /// default constructor
     FeatureHypothesis();
@@ -84,97 +90,97 @@ public:
     ~FeatureHypothesis();
 
     /// copy constructor
-    FeatureHypothesis(const FeatureHypothesis &);
+    FeatureHypothesis(const FeatureHypothesis&);
 
     /// assignment operator
-    FeatureHypothesis & operator=(const FeatureHypothesis & rhs);
+    FeatureHypothesis& operator=(const FeatureHypothesis& rhs);
 
 
     // getter & setter
     Size getSize() const
     {
-        return iso_pattern_.size();
+      return iso_pattern_.size();
     }
 
     String getLabel() const
     {
-        String label;
+      String label;
 
-        if (iso_pattern_.size() > 0)
-        {
-            label = iso_pattern_[0]->getLabel();
-        }
+      if (iso_pattern_.size() > 0)
+      {
+        label = iso_pattern_[0]->getLabel();
+      }
 
-        for (Size i = 1; i < iso_pattern_.size(); ++i)
-        {
-            String tmp_str = "_" + iso_pattern_[i]->getLabel();
-            label += tmp_str;
-        }
+      for (Size i = 1; i < iso_pattern_.size(); ++i)
+      {
+        String tmp_str = "_" + iso_pattern_[i]->getLabel();
+        label += tmp_str;
+      }
 
-        return label;
+      return label;
     }
 
     std::vector<String> getLabels() const
     {
-        std::vector<String> tmp_labels;
+      std::vector<String> tmp_labels;
 
-        for (Size i = 0; i < iso_pattern_.size(); ++i)
-        {
-            tmp_labels.push_back(iso_pattern_[i]->getLabel());
-        }
+      for (Size i = 0; i < iso_pattern_.size(); ++i)
+      {
+        tmp_labels.push_back(iso_pattern_[i]->getLabel());
+      }
 
-        return tmp_labels;
+      return tmp_labels;
     }
 
     double getScore() const
     {
-        return feat_score_;
+      return feat_score_;
     }
 
-    void setScore(const double & score)
+    void setScore(const double& score)
     {
-        feat_score_ = score;
+      feat_score_ = score;
     }
 
     SignedSize getCharge() const
     {
-        return charge_;
+      return charge_;
     }
 
-    void setCharge(const SignedSize & ch)
+    void setCharge(const SignedSize& ch)
     {
-        charge_ = ch;
+      charge_ = ch;
     }
 
     std::vector<double> getAllIntensities(bool smoothed = false) const
     {
-        std::vector<double> tmp;
+      std::vector<double> tmp;
 
-        for (Size i = 0; i < iso_pattern_.size(); ++i)
-        {
-              tmp.push_back(iso_pattern_[i]->getIntensity(smoothed));
-        }
+      for (Size i = 0; i < iso_pattern_.size(); ++i)
+      {
+        tmp.push_back(iso_pattern_[i]->getIntensity(smoothed));
+      }
 
-        return tmp;
+      return tmp;
     }
 
     double getCentroidMZ() const
     {
-        if (iso_pattern_.empty())
-        {
-            throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "FeatureHypothesis is empty, no centroid MZ!", String(iso_pattern_.size()));
-        }
+      if (iso_pattern_.empty())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "FeatureHypothesis is empty, no centroid MZ!", String(iso_pattern_.size()));
+      }
 
-        return iso_pattern_[0]->getCentroidMZ();
+      return iso_pattern_[0]->getCentroidMZ();
     }
 
     double getCentroidRT() const
     {
-        if (iso_pattern_.empty())
-        {
-            throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "FeatureHypothesis is empty, no centroid RT!", String(iso_pattern_.size()));
-        }
-        return iso_pattern_[0]->getCentroidRT();
+      if (iso_pattern_.empty())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "FeatureHypothesis is empty, no centroid RT!", String(iso_pattern_.size()));
+      }
+      return iso_pattern_[0]->getCentroidRT();
     }
 
     double getFWHM() const
@@ -187,7 +193,7 @@ public:
     }
 
     /// addMassTrace
-    void addMassTrace(MassTrace &);
+    void addMassTrace(MassTrace&);
     double getMonoisotopicFeatureIntensity(bool) const;
     double getSummedFeatureIntensity(bool) const;
 
@@ -196,31 +202,28 @@ public:
 
 private:
     // pointers of MassTraces contained in isotopic pattern
-    std::vector<const MassTrace *> iso_pattern_;
+    std::vector<const MassTrace*> iso_pattern_;
     double feat_score_;
 
     SignedSize charge_;
 
-};
+  };
 
-
-class OPENMS_DLLAPI CmpHypothesesByScore
-{
+  class OPENMS_DLLAPI CmpHypothesesByScore
+  {
 public:
 
     bool operator()(FeatureHypothesis x, FeatureHypothesis y) const
     {
-        return x.getScore() > y.getScore();
+      return x.getScore() > y.getScore();
     }
 
-};
+  };
 
-
-
-class OPENMS_DLLAPI FeatureFindingMetabo :
-        public DefaultParamHandler,
-        public ProgressLogger
-{
+  class OPENMS_DLLAPI FeatureFindingMetabo :
+    public DefaultParamHandler,
+    public ProgressLogger
+  {
 public:
     /// Default constructor
     FeatureFindingMetabo();
@@ -230,7 +233,7 @@ public:
 
 
     /// main method of FeatureFindingMetabo
-    void run(std::vector<MassTrace> &, FeatureMap &);
+    void run(std::vector<MassTrace>&, FeatureMap&);
 
 
 protected:
@@ -239,14 +242,14 @@ protected:
 
 private:
     /// private member functions
-    double computeOLSCoeff_(const std::vector<double> &, const std::vector<double> &);
-    double computeCosineSim_(const std::vector<double> &, const std::vector<double> &);
+    double computeOLSCoeff_(const std::vector<double>&, const std::vector<double>&);
+    double computeCosineSim_(const std::vector<double>&, const std::vector<double>&);
 
-    svm_model * isotope_filt_svm_;
+    svm_model* isotope_filt_svm_;
     std::vector<double> svm_feat_centers_;
     std::vector<double> svm_feat_scales_;
-    bool isLegalIsotopePattern_(FeatureHypothesis &);
-    bool isLegalIsotopePattern2_(FeatureHypothesis &);
+    bool isLegalIsotopePattern_(FeatureHypothesis&);
+    bool isLegalIsotopePattern2_(FeatureHypothesis&);
 
     //bool isLegalAveraginePattern(FeatureHypothesis&);
     void loadIsotopeModel_(const String&);
@@ -255,13 +258,13 @@ private:
 
     double scoreMZ_(const MassTrace &, const MassTrace &, Size, Size);
     double scoreMZ2_(const MassTrace &, const MassTrace &, Size, Size);
-    double scoreRT_(const MassTrace &, const MassTrace &);
+    double scoreRT_(const MassTrace&, const MassTrace&);
 
-    double computeAveragineSimScore_(const std::vector<double> &, const double &);
+    double computeAveragineSimScore_(const std::vector<double>&, const double&);
 
     // double scoreTraceSim_(MassTrace, MassTrace);
     // double scoreIntRatio_(double, double, Size);
-    void findLocalFeatures_(std::vector<MassTrace *> &, std::vector<FeatureHypothesis> &);
+    void findLocalFeatures_(std::vector<MassTrace*>&, std::vector<FeatureHypothesis>&);
 
 
     /// parameter stuff
@@ -279,12 +282,8 @@ private:
     String metabo_iso_noisemodel_;
     bool use_smoothed_intensities_;
 
-};
-
+  };
 
 }
-
-
-
 
 #endif // OPENMS_FILTERING_DATAREDUCTION_FEATUREFINDINGMETABO_H

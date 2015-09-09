@@ -157,7 +157,9 @@ namespace OpenMS
             nn_index_0[fi0] = fi1;
           }
           else
+          {
             nn_distance_0[fi0].second = distance;
+          }
         }
         // update entries for map 1:
         if (distance < nn_distance_1[fi1].second)
@@ -169,7 +171,9 @@ namespace OpenMS
             nn_index_1[fi1] = fi0;
           }
           else
+          {
             nn_distance_1[fi1].second = distance;
+          }
         }
       }
     }

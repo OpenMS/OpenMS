@@ -73,11 +73,11 @@ private:
     MapAlignmentAlgorithmSpectrumAlignment & operator=(const MapAlignmentAlgorithmSpectrumAlignment &);
 
     /**
-        @brief inner class necessary for using the sort algo.
+      @brief inner class necessary for using the sort algorithm.
 
-        Defines several overloaded operator() for using the std::sort  algorithm
+      Defines several overloaded operator() for usage with the std::sort algorithm
 
-        @experimental This algorithm is work in progress and might change.
+      @experimental This algorithm is work in progress and might change.
 
     */
     class OPENMS_DLLAPI Compare
@@ -93,7 +93,15 @@ private:
       {
       }
 
-      /// overloaded operator() for comparing maps of maps std::pair<std::pair<Int,float>,float>. If flag is false the second argument of the outer map is selected. The output is an ascending order. If the order flag is true, the first argument of the inner class is selected to get a descending order.
+      /**
+       * @brief overloaded operator() for comparing maps of maps std::pair<std::pair<Int,float>,float>.
+       *
+       * If the order flag is false, the second argument of the outer map is
+       * selected. The output is an ascending order. If the order flag is true,
+       * the first argument of the inner class is selected to get a descending
+       * order.
+       *
+       */
       inline bool operator()(const std::pair<std::pair<Int, float>, float>& c1, const std::pair<std::pair<Int, float>, float>& c2)
       {
         if (!flag)
@@ -106,7 +114,13 @@ private:
         }
       }
 
-      /// overloaded operator() for comparing pairs of float, float std::pair<float,float>. If the order flag is false, an ascending order are returned else a descending. The comparison is done by the first argument of the map.
+      /** 
+       * @brief overloaded operator() for comparing pairs of float, float std::pair<float,float>.
+       *
+       * If the order flag is false, an ascending order are returned else a
+       * descending. The comparison is done by the first argument of the map.
+       *
+       */
       inline bool operator()(const std::pair<float, float>& c1, const std::pair<float, float>& c2)
       {
         if (!flag)
@@ -130,7 +144,8 @@ private:
         With these two arguments a pre-calculation is done to find some corresponding data points(maximum 4) for building alignment blocks.
         After the alignment a re-transformation is done, the new Retention Times appear in the original data.
 
-      The parameters are MSExperiments.
+        The parameters are MSExperiments.
+
         @param pattern template map.
         @param aligned map which has to be aligned.
         @param transformation container for rebuilding the alignment only by specific data-points
@@ -143,7 +158,7 @@ private:
         The alignment works only on MSLevel 1 data, so a filter has to be run.
 
         @param peakmap map which has to be filtered
-        @param spectrum_pointer_container output container, where pointers of the MSSpectrum are saved(only with MS level 1)
+        @param spectrum_pointer_container output container, where pointers of the MSSpectrum are saved (only with MS level 1)
 
         @exception Exception::IllegalArgument is thrown if no spectra are contained in @p peakmap
     */
@@ -166,7 +181,10 @@ private:
     /**
         @brief calculate the size of the band for the alignment for two given Sequence
 
-        This function calculates the size of the band for the alignment. It takes three samples from the aligned sequence and tries to find the highscore pairs(matching against the template sequence). The highscore pair with the worst distance is to be chosen as the size of k.
+        This function calculates the size of the band for the alignment. It
+        takes three samples from the aligned sequence and tries to find the
+        highscore pairs (matching against the template sequence). The highscore
+        pair with the worst distance is to be chosen as the size of k.
 
         @param pattern vector of pointers of the template sequence
         @param aligned vector of pointers of the aligned sequence
@@ -177,14 +195,20 @@ private:
         @param ybegin indicate the beginning of the aligned sequence
         @param yend indicate the end of the aligned sequence
     */
-    Int bestk_(const std::vector<MSSpectrum<>*>& pattern, std::vector<MSSpectrum<>*>& aligned, std::map<Size, std::map<Size, float> >& buffer, bool column_row_orientation, Size xbegin, Size xend, Size ybegin, Size yend);
+    Int bestk_(const std::vector<MSSpectrum<>*>& pattern,
+              std::vector<MSSpectrum<>*>& aligned, std::map<Size, std::map<Size, float> >& buffer,
+              bool column_row_orientation, Size xbegin, Size xend, Size ybegin, Size yend);
 
     /**
         @brief calculate the score of two given MSSpectra calls intern scoring_
 
-        This function calculates the score from two MSSpectra. These two MSSpectra are chosen by the coordinates i,j.
-        I,j indicate the index in the matrix. To find the right index on the sequence, each beginning is also given to the function.
-        A flag indicates the labeling of the axes. The buffermatrix stores the result of the scoring. If the band expands only a lookup of known scores is done.
+        This function calculates the score from two MSSpectra. These two
+        MSSpectra are chosen by the coordinates i,j.  The two coordinates i,j
+        indicate the index in the matrix. To find the right index on the
+        sequence, each beginning is also given to the function.  A flag
+        indicates the labeling of the axes. The buffermatrix stores the result
+        of the scoring. If the band expands only a lookup of known scores is
+        done.
 
         @param i is a index from the matrix.
         @param j is a index from the matrix.
@@ -195,7 +219,9 @@ private:
         @param buffer  holds the calculated score of index i,j.
         @param column_row_orientation indicate the order of the matrix
     */
-    float scoreCalculation_(Size i, Size j, Size patternbegin, Size alignbegin, const std::vector<MSSpectrum<>*>& pattern, std::vector<MSSpectrum<>*>& aligned, std::map<Size, std::map<Size, float> >& buffer, bool column_row_orientation);
+    float scoreCalculation_(Size i, Size j, Size patternbegin, Size alignbegin,
+                            const std::vector<MSSpectrum<>*>& pattern, std::vector<MSSpectrum<>*>& aligned,
+                            std::map<Size, std::map<Size, float> >& buffer, bool column_row_orientation);
 
     /**
         @brief return the score of two given MSSpectra by calling the scorefunction
@@ -211,7 +237,6 @@ private:
         and yend by another given sequence. The result of the alignment is stored in the second argument.
         The first sequence is used as a template for the alignment.
 
-
         @param xbegin coordinate for the beginning of the template sequence.
         @param ybegin coordinate for the beginning of the aligned sequence .
         @param xend coordinate for the end of the template sequence.
@@ -224,14 +249,20 @@ private:
 
         @exception Exception::OutOfRange if a out of bound appear @p pattern or @p aligned
     */
-    void affineGapalign_(Size xbegin, Size ybegin, Size xend, Size yend, const std::vector<MSSpectrum<>*>& pattern, std::vector<MSSpectrum<>*>& aligned, std::vector<int>& xcoordinate, std::vector<float>& ycoordinate, std::vector<int>& xcoordinatepattern);
+    void affineGapalign_(Size xbegin, Size ybegin, Size xend, Size yend,
+                        const std::vector<MSSpectrum<>*>& pattern, 
+                        std::vector<MSSpectrum<>*>& aligned,
+                        std::vector<int>& xcoordinate, std::vector<float>& ycoordinate, 
+                        std::vector<int>& xcoordinatepattern);
 
     /**
-        @brief  preparation function of data points to construct later the  spline function.
+        @brief  preparation function of data points to construct later the spline function.
 
-        This function reduced the amount of data values for the next step. The reduction is done by using a number of buckets, where the data points a selected.
-        Within the buckets, only defined number a selected, to be written back as a data point.
-        The selection within the buckets is done by scoring.
+        This function reduced the amount of data values for the next step. The
+        reduction is done by using a number of buckets, where the data points a
+        selected.  Within the buckets, only defined number a selected, to be
+        written back as a data point.  The selection within the buckets is done
+        by scoring.
 
         @param pattern template map.
         @param aligned map to be aligned.
@@ -239,12 +270,26 @@ private:
         @param ycoordinate  save the retention times of an anchor points
         @param xcoordinatepattern save the reference position of the anchor points from the pattern
     */
-    void bucketFilter_(const std::vector<MSSpectrum<>*>& pattern, std::vector<MSSpectrum<>*>& aligned, std::vector<Int>& xcoordinate, std::vector<float>& ycoordinate, std::vector<Int>& xcoordinatepattern);
+    void bucketFilter_(const std::vector<MSSpectrum<>*>& pattern,
+                       std::vector<MSSpectrum<>*>& aligned, std::vector<Int>& xcoordinate, 
+                       std::vector<float>& ycoordinate, std::vector<Int>& xcoordinatepattern);
 
     /**
         @brief Creates files for the debugging
 
-        This function is only active if the debugflag is true. The debugfileCreator creates following files debugtraceback.txt(gnuplotScript), debugscoreheatmap.r and debugRscript. Debugscoreheatmap.r contains the scores of the Spectra to each other from the alignment and also the traceback. DebugRscript is the R script which reads those data. So both files are only working under R. Start R and type main(location of debugscoreheatmap.r). The output will be a heatmap of each sub-alignment. Debugtraceback.txt shows the way of the Traceback by using gnuplot.
+        This function is only active if the debug_ flag is true. The
+        debugfileCreator creates following files:
+
+        - debugtraceback.txt(gnuplotScript),
+        - debugscoreheatmap.r and
+        - debugRscript. 
+        
+        Debugscoreheatmap.r contains the scores of the Spectra to each other
+        from the alignment and also the traceback. DebugRscript is the R script
+        which reads those data. So both files are only working under R. Start R
+        and type main(location of debugscoreheatmap.r). The output will be a
+        heatmap of each sub-alignment. Debugtraceback.txt shows the way of the
+        Traceback by using gnuplot.
 
         @param pattern template map.
         @param aligned map to be aligned.
@@ -257,6 +302,7 @@ private:
         This function rounded the score of two spectra. This is necessary for some function in the Debug-Mode
     */
     void debugscoreDistributionCalculation_(float score);
+
     ///Represent the gap cost for opening or closing a gap in the alignment
     float gap_;
     ///Extension cost after a gap is open

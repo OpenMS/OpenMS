@@ -37,6 +37,7 @@
 #include <OpenMS/VISUAL/TOPPASScene.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <iostream>
 
@@ -138,12 +139,12 @@ namespace OpenMS
     return true;
   }
 
-  bool TOPPASVertex::buildRoundPackages(RoundPackages & pkg, String & error_msg) // check all incoming edges for this node and construct the package
+  bool TOPPASVertex::buildRoundPackages(RoundPackages& pkg, String& error_msg) // check all incoming edges for this node and construct the package
   {
     if (inEdgesBegin() == inEdgesEnd())
     {
       error_msg = "buildRoundPackages() called on vertex with no input edges!\n";
-      std::cerr << error_msg;
+      LOG_ERROR << error_msg;
       return false;
     }
 
@@ -154,11 +155,15 @@ namespace OpenMS
     {
       TOPPASVertex * tv = (*it)->getSourceVertex();
       if (tv->allow_output_recycling_)
+      {
         continue;
+      }
 
       ++no_recycle_count;
       if (round_common == -1)
+      {
         round_common = tv->round_total_;                       // first non-recycler sets the pace
+      }
 
       if (round_common != tv->round_total_)
       {
@@ -228,10 +233,15 @@ namespace OpenMS
   QStringList TOPPASVertex::getFileNames(int param_index, int round) const
   {
     if ((Size)round >= output_files_.size())
+    {
       throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, round, output_files_.size());
+    }
     RoundPackage rp = output_files_[round];
     if (rp.find(param_index) == rp.end())
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, param_index, rp.size());                                   // index could be larger (its a map, but nevertheless)
+    {
+      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, param_index, rp.size());  // index could be larger (its a map, but nevertheless)
+    }
+    //String s = String(rp[param_index].filenames.join("\" \""));
     return rp[param_index].filenames;
   }
 
