@@ -451,4 +451,50 @@ namespace OpenMS
 
   }
 
+  String StopWatch::toString() const
+  {
+    return(
+      StopWatch::toString(this->getClockTime()) + " (wall), " +
+      StopWatch::toString(this->getCPUTime()) + " (CPU), " + 
+      StopWatch::toString(this->getSystemTime()) + " (system), " +
+      StopWatch::toString(this->getUserTime()) + " (user)"
+    );
+  }
+
+  double StopWatch::getCPUTime() const
+  {
+    return getUserTime() + getSystemTime();
+  }
+
+  bool StopWatch::isRunning() const
+  {
+    return is_running_;
+  }
+
+  bool StopWatch::operator!=(const StopWatch & stop_watch) const
+  {
+    return !(*this == stop_watch);
+  }
+
+  bool StopWatch::operator<(const StopWatch & stop_watch) const
+  {
+    return getCPUTime() < stop_watch.getCPUTime();
+  }
+
+ 
+  bool StopWatch::operator<=(const StopWatch & stop_watch) const
+  {
+    return !(stop_watch < *this);
+  }
+
+  bool StopWatch::operator>=(const StopWatch & stop_watch) const
+  {
+    return !(*this < stop_watch);
+  }
+
+  bool StopWatch::operator>(const StopWatch & stop_watch) const
+  {
+    return stop_watch < *this;
+  }
+
 } // namespace OpenMS

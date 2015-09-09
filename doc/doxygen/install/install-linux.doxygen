@@ -154,7 +154,7 @@
   contrib to avoid any potential issues. 
 
   \code
-  cmake -DCMAKE_PREFIX_PATH="/PATH/TO/contrib;/usr;/usr/local" -DBOOST_USE_STATIC=OFF ../OpenMS
+  cmake -DCMAKE_PREFIX_PATH="/PATH/TO/contrib-build;/usr;/usr/local" -DBOOST_USE_STATIC=OFF ../OpenMS
   \endcode
 
   In order to <i>build</i> the %OpenMS library, the TOPP tools, tests, and this

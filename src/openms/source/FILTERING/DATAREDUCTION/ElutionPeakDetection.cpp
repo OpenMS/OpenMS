@@ -133,7 +133,8 @@ namespace OpenMS
     return snr;
   }
 
-  void ElutionPeakDetection::findLocalExtrema(const MassTrace& tr, const Size& num_neighboring_peaks, std::vector<Size>& chrom_maxes, std::vector<Size>& chrom_mins)
+  void ElutionPeakDetection::findLocalExtrema(const MassTrace& tr, const Size& num_neighboring_peaks,
+                                              std::vector<Size>& chrom_maxes, std::vector<Size>& chrom_mins)
   {
     std::vector<double> smoothed_ints_vec(tr.getSmoothedIntensities());
 
@@ -152,7 +153,7 @@ namespace OpenMS
 
     // std::cout << "neighboring peaks: " << num_neighboring_peaks << std::endl;
 
-    //  Store indices along with smoothed_ints to keep track of the peak order
+    // Store indices along with smoothed_ints to keep track of the peak order
     std::multimap<double, Size> intensity_indices;
     boost::dynamic_bitset<> used_idx(mt_length);
 
@@ -332,10 +333,12 @@ namespace OpenMS
     for (SignedSize i = 0; i < (SignedSize) mt_vec.size(); ++i)
     {
       IF_MASTERTHREAD this->setProgress(progress);
+
 #ifdef _OPENMP
 #pragma omp atomic
 #endif
       ++progress;
+
       // push_back to 'single_mtraces' is protected, so threading is ok
       detectElutionPeaks_(mt_vec[i], single_mtraces);
     }

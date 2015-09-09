@@ -200,6 +200,7 @@ namespace OpenMS
     util_map["IDDecoyProbability"] = Internal::ToolDescription("IDDecoyProbability", util_category);
     util_map["IDExtractor"] = Internal::ToolDescription("IDExtractor", util_category);
     util_map["IDMassAccuracy"] = Internal::ToolDescription("IDMassAccuracy", util_category);
+    util_map["IDScoreSwitcher"] = Internal::ToolDescription("IDScoreSwitcher", util_category);
     util_map["IDSplitter"] = Internal::ToolDescription("IDSplitter", util_category);
     util_map["LabeledEval"] = Internal::ToolDescription("LabeledEval", util_category);
     util_map["LowMemPeakPickerHiRes"] = Internal::ToolDescription("LowMemPeakPickerHiRes", util_category);
@@ -207,6 +208,7 @@ namespace OpenMS
     util_map["MapAlignmentEvaluation"] = Internal::ToolDescription("MapAlignmentEvaluation", util_category);
     util_map["MassCalculator"] = Internal::ToolDescription("MassCalculator", util_category);
     util_map["MetaboliteSpectralMatcher"] = Internal::ToolDescription("MetaboliteSpectralMatcher", util_category);
+    util_map["MetaProSIP"] = Internal::ToolDescription("MetaProSIP", util_category);
     util_map["MRMTransitionGroupPicker"] = Internal::ToolDescription("MRMTransitionGroupPicker", util_category);
     util_map["MRMPairFinder"] = Internal::ToolDescription("MRMPairFinder", util_category);
     util_map["MSSimulator"] = Internal::ToolDescription("MSSimulator", util_category);

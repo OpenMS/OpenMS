@@ -32,14 +32,15 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 
 #include <fstream>
 #include <iostream>
@@ -178,7 +179,7 @@ class TOPPHiResPrecursorMassCorrector :
     {
       const int f_charge = feature.getCharge();
       const double f_mz = feature.getMZ();
-      double trace = round((pc_mz - f_mz) / (Constants::C13C12_MASSDIFF_U / f_charge)); // isotopic trace number at precursor mz
+      double trace = Math::round((pc_mz - f_mz) / (Constants::C13C12_MASSDIFF_U / f_charge)); // isotopic trace number at precursor mz
       double mass_error = fabs(pc_mz - (f_mz + trace * (Constants::C13C12_MASSDIFF_U / f_charge)));
 
       if (mass_error < mz_tolerance && (trace < max_trace_number + 0.01))

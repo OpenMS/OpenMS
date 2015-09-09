@@ -107,7 +107,10 @@ public:
     EmpiricalFormula getFormula();
 
     /// set sample/supporting points of interpolation
-    void setSamples(const EmpiricalFormula & formula);
+    virtual void setSamples(const EmpiricalFormula & formula);
+
+    /// set sample/supporting points of interpolation (from base class)
+    using InterpolationModel::setSamples;
 
     /** @brief get the center of the Isotope model
 

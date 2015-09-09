@@ -43,6 +43,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
+#include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
@@ -234,15 +235,46 @@ namespace OpenMS
   void writeProteinHeader(SVOutStream& out)
   {
     bool old = out.modifyStrings(false);
-    out << "#PROTEIN" << "score" << "rank" << "accession" << "coverage"
+    out << "#PROTEIN" << "score" << "rank" << "accession" << "protein_description" << "coverage"
         << "sequence" << nl;
     out.modifyStrings(old);
   }
 
+
+  void writeMetaValuesHeader(SVOutStream& output, const StringList& meta_keys)
+  {
+    if (!meta_keys.empty())
+    {
+      for (StringList::const_iterator its = meta_keys.begin(); its != meta_keys.end(); ++its)
+      {
+        output << *its;
+      }
+    }
+  }
+
+  void writeMetaValues(SVOutStream& output, const FeatureMap::const_iterator& it, const StringList& meta_keys)
+  {
+    if (!meta_keys.empty())
+    {
+      for (StringList::const_iterator its = meta_keys.begin(); its != meta_keys.end(); ++its)
+      {
+        if (it->metaValueExists(*its))
+        {
+          output << it->getMetaValue(*its);
+        }
+        else
+        {
+          output << "";
+        }
+      }
+    }
+  }
+
+
   // stream output operator for a ProteinHit
   SVOutStream& operator<<(SVOutStream& out, const ProteinHit& hit)
-  {
-    out << hit.getScore() << hit.getRank() << hit.getAccession()
+  {    
+    out << hit.getScore() << hit.getRank() << hit.getAccession() << hit.getDescription()
         << hit.getCoverage() << hit.getSequence();
     return out;
   }
@@ -447,11 +479,14 @@ protected:
       registerStringOption_("replacement", "<string>", "_", "Used to replace occurrences of the separator in strings before writing, if 'quoting' is 'none'", false);
       registerStringOption_("quoting", "<method>", "none", "Method for quoting of strings: 'none' for no quoting, 'double' for quoting with doubling of embedded quotes,\n'escape' for quoting with backslash-escaping of embedded quotes", false);
       setValidStrings_("quoting", ListUtils::create<String>("none,double,escape"));
-      registerFlag_("no_ids", "Supresses output of identification data.");
+      registerFlag_("no_ids", "Suppresses output of identification data.");
       addEmptyLine_();
 
       registerTOPPSubsection_("feature", "Options for featureXML input files");
       registerFlag_("feature:minimal", "Set this flag to write only three attributes: RT, m/z, and intensity.");
+      registerIntOption_("feature:add_metavalues", "<min_frequency>", -1, "Add columns for meta values which occur with a certain frequency (0-100%). Set to -1 to omit meta values (default).", false);
+      setMinInt_("feature:add_metavalues", -1);
+      setMaxInt_("feature:add_metavalues", 100);
       addEmptyLine_();
 
       registerTOPPSubsection_("id", "Options for idXML input files");
@@ -482,6 +517,7 @@ protected:
       String out = getStringOption_("out");
       bool no_ids = getFlag_("no_ids");
       bool first_dim_rt = getFlag_("id:first_dim_rt");
+      int add_metavalues = getIntOption_("feature:add_metavalues");
 
       // separator etc.
       String sep = getStringOption_("separator");
@@ -504,6 +540,8 @@ protected:
         return PARSE_ERROR;
       }
 
+      StringList meta_keys;
+
       if (in_type == FileTypes::FEATUREXML)
       {
         //-------------------------------------------------------------
@@ -513,6 +551,11 @@ protected:
         FeatureMap feature_map;
         FeatureXMLFile f;
         f.load(in, feature_map);
+
+        if (add_metavalues >= 0) 
+        {
+          meta_keys = MetaInfoInterfaceUtils::findCommonMetaKeys<FeatureMap, StringList>(feature_map.begin(), feature_map.end(), add_metavalues);
+        }
 
         // compute protein coverage
         vector<ProteinIdentification> prot_ids = feature_map.getProteinIdentifications();
@@ -562,6 +605,7 @@ protected:
           writeFeatureHeader(output, "", true, comment);
           output << "rt_quality" << "mz_quality" << "rt_start" << "rt_end";
         }
+        writeMetaValuesHeader(output, meta_keys);
         output << nl;
         if (!no_ids)
         {
@@ -602,18 +646,18 @@ protected:
             output << *citer << citer->getQuality(0) << citer->getQuality(1);
             if (citer->getConvexHulls().size() > 0)
             {
-              output << citer->getConvexHulls().begin()->
-                getBoundingBox().minX() << citer->getConvexHulls().begin()->
-                getBoundingBox().maxX();
+              output << citer->getConvexHulls().begin()->getBoundingBox().minX() 
+                     << citer->getConvexHulls().begin()->getBoundingBox().maxX();
             }
             else
             {
               output << "-1" << "-1";
             }
           }
+          writeMetaValues(output, citer, meta_keys);
           output << nl;
 
-          //peptide ids
+          // peptide ids
           if (!no_ids)
           {
             for (vector<PeptideIdentification>::const_iterator pit =

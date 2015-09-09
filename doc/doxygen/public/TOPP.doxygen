@@ -89,6 +89,7 @@
   - @subpage TOPP_Decharger - Decharges and merges different feature charge variants of the same chemical entity.
   - @subpage TOPP_EICExtractor - Quantifies signals at given positions in (raw or picked) LC-MS maps.
   - @subpage TOPP_FeatureFinderCentroided - Detects two-dimensional features in centroided LC-MS data.
+  - @subpage TOPP_FeatureFinderIdentification - Detects two-dimensional features in MS1 data based on peptide identifications.
   - @subpage TOPP_FeatureFinderIsotopeWavelet - Detects two-dimensional features in uncentroided (=raw) LC-MS data.
   - @subpage TOPP_FeatureFinderMetabo - Detects two-dimensional features in centroided LC-MS data of metabolites.
   - @subpage TOPP_FeatureFinderMRM - Quantifies features LC-MS/MS MRM data.

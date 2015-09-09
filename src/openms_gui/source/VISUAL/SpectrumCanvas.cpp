@@ -651,11 +651,11 @@ namespace OpenMS
     // Arrow keys => translate
     else if (e->key() == Qt::Key_Left)
     {
-      translateLeft_();
+      translateLeft_(e->modifiers());
     }
     else if (e->key() == Qt::Key_Right)
     {
-      translateRight_();
+      translateRight_(e->modifiers());
     }
     else if (e->key() == Qt::Key_Up)
     {
@@ -679,11 +679,11 @@ namespace OpenMS
     }
   }
 
-  void SpectrumCanvas::translateLeft_()
+  void SpectrumCanvas::translateLeft_(Qt::KeyboardModifiers /*m*/)
   {
   }
 
-  void SpectrumCanvas::translateRight_()
+  void SpectrumCanvas::translateRight_(Qt::KeyboardModifiers /*m*/)
   {
   }
 
@@ -695,12 +695,12 @@ namespace OpenMS
   {
   }
 
-  void SpectrumCanvas::setAdditionalContextMenu(QMenu * menu)
+  void SpectrumCanvas::setAdditionalContextMenu(QMenu* menu)
   {
     context_add_ = menu;
   }
 
-  void SpectrumCanvas::getVisiblePeakData(ExperimentType & map) const
+  void SpectrumCanvas::getVisiblePeakData(ExperimentType& map) const
   {
     //clear output experiment
     map.clear(true);

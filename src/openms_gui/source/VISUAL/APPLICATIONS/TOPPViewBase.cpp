@@ -55,15 +55,12 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
-#include <OpenMS/VISUAL/DIALOGS/DataFilterDialog.h>
-#include <OpenMS/VISUAL/DIALOGS/TOPPViewOpenDialog.h>
-#include <OpenMS/VISUAL/DIALOGS/TheoreticalSpectrumGenerationDialog.h>
-#include <OpenMS/VISUAL/DIALOGS/ToolsDialog.h>
-#include <OpenMS/VISUAL/DIALOGS/TOPPViewPrefDialog.h>
-#include <OpenMS/VISUAL/DIALOGS/SpectrumAlignmentDialog.h>
-#include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
-#include <OpenMS/VISUAL/ANNOTATION/Annotation1DTextItem.h>
-#include <OpenMS/VISUAL/ANNOTATION/Annotation1DDistanceItem.h>
+#include <OpenMS/VISUAL/ColorSelector.h>
+#include <OpenMS/VISUAL/EnhancedTabBar.h>
+#include <OpenMS/VISUAL/EnhancedWorkspace.h>
+#include <OpenMS/VISUAL/MetaDataBrowser.h>
+#include <OpenMS/VISUAL/MultiGradientSelector.h>
+#include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/VISUAL/SpectraViewWidget.h>
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum2DCanvas.h>
@@ -71,12 +68,16 @@
 #include <OpenMS/VISUAL/Spectrum1DWidget.h>
 #include <OpenMS/VISUAL/Spectrum2DWidget.h>
 #include <OpenMS/VISUAL/Spectrum3DWidget.h>
-#include <OpenMS/VISUAL/MetaDataBrowser.h>
-#include <OpenMS/VISUAL/ParamEditor.h>
-#include <OpenMS/VISUAL/ColorSelector.h>
-#include <OpenMS/VISUAL/MultiGradientSelector.h>
-#include <OpenMS/VISUAL/EnhancedTabBar.h>
-#include <OpenMS/VISUAL/EnhancedWorkspace.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotation1DTextItem.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotation1DDistanceItem.h>
+#include <OpenMS/VISUAL/DIALOGS/DataFilterDialog.h>
+#include <OpenMS/VISUAL/DIALOGS/TOPPViewOpenDialog.h>
+#include <OpenMS/VISUAL/DIALOGS/TheoreticalSpectrumGenerationDialog.h>
+#include <OpenMS/VISUAL/DIALOGS/ToolsDialog.h>
+#include <OpenMS/VISUAL/DIALOGS/TOPPViewPrefDialog.h>
+#include <OpenMS/VISUAL/DIALOGS/SpectrumAlignmentDialog.h>
+#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 
 
 //Qt
@@ -86,7 +87,6 @@
 #include <QtCore/QUrl>
 #include <QtGui/QCheckBox>
 #include <QtGui/QCloseEvent>
-#include <QtGui/QDesktopServices>
 #include <QtGui/QDesktopWidget>
 #include <QtGui/QDockWidget>
 #include <QtGui/QFileDialog>
@@ -629,40 +629,8 @@ namespace OpenMS
 
   void TOPPViewBase::showURL()
   {
-    // NOTE: This code identical to TOPPASBase::showURL(), if you change anything here
-    //       you probably need to change it also there.
-
-    QAction* action = qobject_cast<QAction*>(sender());
-    QString target = action->data().toString();
-    QUrl url_target;
-
-    // add protocol handler if none is given
-    if (!(target.startsWith("http://") || target.startsWith("https://")))
-    {
-      // we expect all unqualified urls to be file urls
-      try
-      {
-        String local_url = File::findDoc(target);
-        url_target = QUrl::fromLocalFile(local_url.toQString());
-      }
-      catch (Exception::FileNotFound&)
-      {
-        // we fall back to the web url
-        url_target = QUrl(QString("http://www.openms.de/current_doxygen/%1").arg(target), QUrl::TolerantMode);
-      }
-    }
-    else
-    {
-      url_target = QUrl(target, QUrl::TolerantMode);
-    }
-
-    if (!QDesktopServices::openUrl(url_target))
-    {
-      QMessageBox::warning(this, tr("Error"),
-                           tr("Unable to open\n") +
-                           action->data().toString() +
-                           tr("\n\nPossible reason: security settings or misconfigured Operating System"));
-    }
+    QString target = qobject_cast<QAction*>(sender())->data().toString();
+    GUIHelpers::openURL(target);
   }
 
 
@@ -1831,30 +1799,31 @@ namespace OpenMS
 
   void TOPPViewBase::updateLayerBar()
   {
-    //reset
+    // reset
     layer_manager_->clear();
     SpectrumCanvas* cc = getActiveCanvas();
     if (cc == 0)
+    {
       return;
+    }
 
-    //determine if this is a 1D view (for text color)
-    bool is_1d_view = false;
-    if (dynamic_cast<Spectrum1DCanvas*>(cc))
-      is_1d_view = true;
+    // determine if this is a 1D view (for text color)
+    bool is_1d_view = (dynamic_cast<Spectrum1DCanvas*>(cc) != 0);
 
     layer_manager_->blockSignals(true);
-    QString name;
     for (Size i = 0; i < cc->getLayerCount(); ++i)
     {
       const LayerData& layer = cc->getLayer(i);
-      //add item
+      // add item
       QListWidgetItem* item = new QListWidgetItem(layer_manager_);
-      name = layer.name.toQString();
+      QString name = layer.name.toQString();
       if (layer.flipped)
       {
         name += " [flipped]";
       }
       item->setText(name);
+      item->setToolTip(layer.filename.toQString());
+
       if (is_1d_view && cc->getLayerCount() > 1)
       {
         QPixmap icon(7, 7);
@@ -1873,7 +1842,7 @@ namespace OpenMS
       {
         item->setText(item->text() + '*');
       }
-      //highlight active item
+      // highlight active item
       if (i == cc->activeLayerIndex())
       {
         layer_manager_->setCurrentItem(item);
@@ -1960,24 +1929,6 @@ namespace OpenMS
     updateViewBar();
   }
 
-  /*
-  void TOPPViewBase::updateDataBar()
-  {
-    const set<String> filenames = getFilenamesOfOpenFiles();
-    //reset
-    data_manager_view_->clear();
-    data_manager_view_->blockSignals(true);
-    QTreeWidgetItem* item = 0;
-    for (set<String>::const_iterator it = filenames.begin(); it != filenames.end(); ++it)
-    {
-      item = new QTreeWidgetItem(data_manager_view_);
-      QString name = it->toQString();
-      QFileInfo fi(name);
-      item->setText(0, fi.fileName());
-    }
-    layer_manager_->blockSignals(false);
-  }
-*/
   void TOPPViewBase::layerSelectionChange(int i)
   {
     // after adding a layer i is -1. TODO: check if this is the correct behaviour

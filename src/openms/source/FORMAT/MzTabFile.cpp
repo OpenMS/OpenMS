@@ -40,6 +40,10 @@
 
 using namespace std;
 
+// TODO fix all the shadowed "String s"
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshadow"
+
 namespace OpenMS
 {
 
@@ -2558,3 +2562,6 @@ void MzTabFile::store(const String& filename, const MzTab& mz_tab) const
 }
 
 }
+
+#pragma clang diagnostic pop
+

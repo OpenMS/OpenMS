@@ -349,11 +349,11 @@ namespace OpenMS
           exp.setChromatograms(irt_chromatograms);
           MzMLFile().store("debug_irts.mzML", exp);
         }
-        catch (OpenMS::Exception::UnableToCreateFile& e)
+        catch (OpenMS::Exception::UnableToCreateFile& /*e*/)
         {
           LOG_DEBUG << "Error creating file 'debug_irts.mzML', not writing out iRT chromatogram file"  << std::endl;
         }
-        catch (OpenMS::Exception::BaseException& e)
+        catch (OpenMS::Exception::BaseException& /*e*/)
         {
           LOG_DEBUG << "Error writint to file 'debug_irts.mzML', not writing out iRT chromatogram file"  << std::endl;
         }
@@ -477,11 +477,11 @@ namespace OpenMS
               "from SWATH " << i << " in batches of " << batch_size << std::endl;
             }
 
-            for (size_t j = 0; j <= (transition_exp_used_all.getPeptides().size() / batch_size); j++)
+            for (size_t pep_idx = 0; pep_idx <= (transition_exp_used_all.getPeptides().size() / batch_size); pep_idx++)
             {
               // Create the new, batch-size transition experiment
               OpenSwath::LightTargetedExperiment transition_exp_used;
-              selectPeptidesForBatch_(transition_exp_used_all, transition_exp_used, batch_size, j);
+              selectPeptidesForBatch_(transition_exp_used_all, transition_exp_used, batch_size, pep_idx);
 
               // Step 2.1: extract these transitions
               ChromatogramExtractor extractor;
@@ -514,9 +514,9 @@ namespace OpenMS
 #endif
               {
                 // write chromatograms to output if so desired
-                for (Size j = 0; j < chromatograms.size(); j++)
+                for (Size chrom_idx = 0; chrom_idx < chromatograms.size(); ++chrom_idx)
                 {
-                  chromConsumer->consumeChromatogram(chromatograms[j]);
+                  chromConsumer->consumeChromatogram(chromatograms[chrom_idx]);
                 }
 
                 // write features to output if so desired
@@ -600,15 +600,15 @@ namespace OpenMS
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-      for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
+      for (SignedSize map_idx = 0; map_idx < boost::numeric_cast<SignedSize>(swath_maps.size()); ++map_idx)
       {
         std::vector< OpenMS::MSChromatogram<> > tmp_chromatograms;
-        if (!swath_maps[i].ms1) // skip MS1
+        if (!swath_maps[map_idx].ms1) // skip MS1
         {
 
           TargetedExperiment transition_exp_used;
           OpenSwathHelper::selectSwathTransitions(irt_transitions, transition_exp_used,
-              cp.min_upper_edge_dist, swath_maps[i].lower, swath_maps[i].upper);
+              cp.min_upper_edge_dist, swath_maps[map_idx].lower, swath_maps[map_idx].upper);
           if (transition_exp_used.getTransitions().size() > 0) // skip if no transitions found
           {
 
@@ -616,7 +616,7 @@ namespace OpenMS
             std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
             ChromatogramExtractor extractor;
             extractor.prepare_coordinates(tmp_out, coordinates, transition_exp_used, cp.rt_extraction_window, false);
-            extractor.extractChromatograms(swath_maps[i].sptr, tmp_out, coordinates, cp.mz_extraction_window,
+            extractor.extractChromatograms(swath_maps[map_idx].sptr, tmp_out, coordinates, cp.mz_extraction_window,
                 cp.ppm, cp.extraction_function);
             extractor.return_chromatogram(tmp_out, coordinates,
                 transition_exp_used, SpectrumSettings(), tmp_chromatograms, false);
@@ -626,31 +626,33 @@ namespace OpenMS
 #endif
             {
               LOG_DEBUG << "Extracted "  << tmp_chromatograms.size() << " chromatograms from SWATH map " <<
-                i << " with m/z " << swath_maps[i].lower << " to " << swath_maps[i].upper << ":" << std::endl;
-              for (Size i = 0; i < tmp_chromatograms.size(); i++)
+                map_idx << " with m/z " << swath_maps[map_idx].lower << " to " << swath_maps[map_idx].upper << ":" << std::endl;
+              for (Size chrom_idx = 0; chrom_idx < tmp_chromatograms.size(); chrom_idx++)
               {
                 // Check TIC and remove empty chromatograms (can happen if the
                 // extraction window is outside the mass spectrometric acquisition
                 // window).
-                double tic = std::accumulate(tmp_out[i]->getIntensityArray()->data.begin(),tmp_out[i]->getIntensityArray()->data.end(),0);
-                LOG_DEBUG << "Chromatogram "  << coordinates[i].id << " with size "
-                  << tmp_out[i]->getIntensityArray()->data.size() << " and TIC " << tic  << std::endl;
+                double tic = std::accumulate(tmp_out[chrom_idx]->getIntensityArray()->data.begin(),
+                                             tmp_out[chrom_idx]->getIntensityArray()->data.end(),0.0);
+                LOG_DEBUG << "Chromatogram "  << coordinates[chrom_idx].id << " with size "
+                  << tmp_out[chrom_idx]->getIntensityArray()->data.size() << " and TIC " << tic  << std::endl;
                 if (tic > 0.0)
                 {
                   // add the chromatogram to the output
-                  chromatograms.push_back(tmp_chromatograms[i]);
+                  chromatograms.push_back(tmp_chromatograms[chrom_idx]);
                 }
                 else
                 {
-                  std::cerr << " - Warning: Empty chromatogram " << coordinates[i].id << " detected. Will skip it!" << std::endl;
+                  std::cerr << " - Warning: Empty chromatogram " << coordinates[chrom_idx].id << 
+                    " detected. Will skip it!" << std::endl;
                 }
               }
             }
           }
           else
           {
-            LOG_DEBUG << "Extracted no transitions from SWATH map " << i << " with m/z " <<
-                swath_maps[i].lower << " to " << swath_maps[i].upper << ":" << std::endl;
+            LOG_DEBUG << "Extracted no transitions from SWATH map " << map_idx << " with m/z " <<
+                swath_maps[map_idx].lower << " to " << swath_maps[map_idx].upper << ":" << std::endl;
           }
         }
       }
@@ -678,7 +680,11 @@ namespace OpenMS
       OpenSwath::LightTargetedExperiment targeted_exp;
       OpenSwathDataAccessHelper::convertTargetedExp(transition_exp_, targeted_exp);
 
-      bool estimateBestPeptides = irt_detection_param.getValue("estimateBestPeptides") == "true";
+      bool estimateBestPeptides = irt_detection_param.getValue("estimateBestPeptides").toBool();
+      if (estimateBestPeptides)
+      {
+        LOG_DEBUG << "Activated the 'estimateBestPeptides' option." << std::endl;
+      }
 
       // 1. Estimate the retention time range of the whole experiment
       std::pair<double,double> RTRange = OpenSwathHelper::estimateRTRange(targeted_exp);
@@ -746,7 +752,7 @@ namespace OpenMS
       if (outlier_method == "iter_residual" || outlier_method == "iter_jackknife")
       {
         pairs_corrected = MRMRTNormalizer::removeOutliersIterative(pairs, min_rsq, min_coverage,
-        irt_detection_param.getValue("useIterativeChauvenet") == "true", outlier_method);
+        irt_detection_param.getValue("useIterativeChauvenet").toBool(), outlier_method);
       }
       else if (outlier_method == "ransac")
       {
@@ -1286,11 +1292,18 @@ protected:
     {
       Param p;
       p.setValue("outlierMethod", "iter_residual", "Which outlier detection method to use (valid: 'iter_residual', 'iter_jackknife', 'ransac', 'none'). Iterative methods remove one outlier at a time. Jackknife approach optimizes for maximum r-squared improvement while 'iter_residual' removes the datapoint with the largest residual error (removal by residual is computationally cheaper, use this with lots of peptides).");
+      p.setValidStrings("outlierMethod", ListUtils::create<String>("iter_residual,iter_jackknife,ransac,none"));
+
       p.setValue("useIterativeChauvenet", "false", "Whether to use Chauvenet's criterion when using iterative methods. This should be used if the algorithm removes too many datapoints but it may lead to true outliers being retained.");
+      p.setValidStrings("useIterativeChauvenet", ListUtils::create<String>("true,false"));
+
       p.setValue("RANSACMaxIterations", 1000, "Maximum iterations for the RANSAC outlier detection algorithm.");
       p.setValue("RANSACMaxPercentRTThreshold", 3, "Maximum threshold in RT dimension for the RANSAC outlier detection algorithm (in percent of the total gradient). Default is set to 3% which is around +/- 4 minutes on a 120 gradient.");
       p.setValue("RANSACSamplingSize", 10, "Sampling size of data points per iteration for the RANSAC outlier detection algorithm.");
+
       p.setValue("estimateBestPeptides", "false", "Whether the algorithms should try to choose the best peptides based on their peak shape for normalization. Use this option you do not expect all your peptides to be detected in a sample and too many 'bad' peptides enter the outlier removal step (e.g. due to them being endogenous peptides or using a less curated list of peptides).");
+      p.setValidStrings("estimateBestPeptides", ListUtils::create<String>("true,false"));
+
       p.setValue("InitialQualityCutoff", 0.5, "The initial overall quality cutoff for a peak to be scored (range ca. -2 to 2)");
       p.setValue("OverallQualityCutoff", 5.5, "The overall quality cutoff for a peak to go into the retention time estimation (range ca. 0 to 10)");
       p.setValue("NrRTBins", 10, "Number of RT bins to use to compute coverage. This option should be used to ensure that there is a complete coverage of the RT space (this should detect cases where only a part of the RT gradient is actually covered by normalization peptides)");

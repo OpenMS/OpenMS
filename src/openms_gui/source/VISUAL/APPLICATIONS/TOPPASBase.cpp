@@ -36,53 +36,54 @@
 #include <cstdlib>
 
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
+
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
-#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/FORMAT/ParamXMLFile.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/VISUAL/TOPPASWidget.h>
-#include <OpenMS/VISUAL/TOPPASToolVertex.h>
 #include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
-#include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
-#include <OpenMS/VISUAL/TOPPASMergerVertex.h>
-#include <OpenMS/VISUAL/TOPPASTabBar.h>
 #include <OpenMS/VISUAL/TOPPASLogWindow.h>
+#include <OpenMS/VISUAL/TOPPASMergerVertex.h>
+#include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASResources.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FORMAT/ParamXMLFile.h>
+#include <OpenMS/VISUAL/TOPPASTabBar.h>
+#include <OpenMS/VISUAL/TOPPASToolVertex.h>
+#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 
 //Qt
-#include <QtGui/QToolBar>
-#include <QtGui/QDesktopWidget>
-#include <QtGui/QDockWidget>
-#include <QtGui/QListWidget>
-#include <QtGui/QListWidgetItem>
-#include <QtGui/QTreeWidget>
-#include <QtGui/QTreeWidgetItem>
-#include <QtGui/QMenu>
-#include <QtGui/QMenuBar>
-#include <QtGui/QStatusBar>
-#include <QtGui/QToolButton>
-#include <QtGui/QMessageBox>
-#include <QtGui/QToolTip>
-#include <QtGui/QFileDialog>
-#include <QtGui/QWhatsThis>
-#include <QtGui/QInputDialog>
-#include <QtGui/QTextEdit>
+#include <QtCore/QDir>
+#include <QtCore/QFile>
+#include <QtCore/QMap>
+#include <QtCore/QSet>
+#include <QtCore/QUrl>
+#include <QtGui/QApplication>
 #include <QtGui/QCheckBox>
 #include <QtGui/QCloseEvent>
 #include <QtGui/QDesktopServices>
-#include <QtCore/QUrl>
-#include <QtGui/QSplashScreen>
-#include <QtGui/QVBoxLayout>
-#include <QtGui/QApplication>
+#include <QtGui/QDesktopWidget>
+#include <QtGui/QDockWidget>
+#include <QtGui/QFileDialog>
+#include <QtGui/QInputDialog>
 #include <QtGui/QLabel>
-#include <QtCore/QFile>
-#include <QtCore/QDir>
-#include <QtCore/QSet>
-#include <QtCore/QMap>
+#include <QtGui/QListWidget>
+#include <QtGui/QListWidgetItem>
+#include <QtGui/QMenu>
+#include <QtGui/QMenuBar>
+#include <QtGui/QMessageBox>
+#include <QtGui/QSplashScreen>
+#include <QtGui/QStatusBar>
+#include <QtGui/QTextEdit>
+#include <QtGui/QToolBar>
+#include <QtGui/QToolButton>
+#include <QtGui/QTreeWidget>
+#include <QtGui/QTreeWidgetItem>
+#include <QtGui/QToolTip>
+#include <QtGui/QVBoxLayout>
+#include <QtGui/QWhatsThis>
 
 #include <QWebView>
 #include <QNetworkAccessManager>
@@ -878,40 +879,8 @@ namespace OpenMS
 
   void TOPPASBase::showURL()
   {
-    // NOTE: This code identical to TOPPViewBase::showURL(), if you change anything here
-    //       you probably need to change it also there.
-
-    QAction* action = qobject_cast<QAction*>(sender());
-    QString target = action->data().toString();
-    QUrl url_target;
-
-    // add protocol handler if none is given
-    if (!(target.startsWith("http://") || target.startsWith("https://")))
-    {
-      // we expect all unqualified urls to be file urls
-      try
-      {
-        String local_url = File::findDoc(target);
-        url_target = QUrl::fromLocalFile(local_url.toQString());
-      }
-      catch (Exception::FileNotFound&)
-      {
-        // we fall back to the web url
-        url_target = QUrl(QString("http://www.openms.de/current_doxygen/%1").arg(target), QUrl::TolerantMode);
-      }
-    }
-    else
-    {
-      url_target = QUrl(target, QUrl::TolerantMode);
-    }
-
-    if (!QDesktopServices::openUrl(url_target))
-    {
-      QMessageBox::warning(this, tr("Error"),
-                           tr("Unable to open\n") +
-                           action->data().toString() +
-                           tr("\n\nPossible reason: security settings or misconfigured Operating System"));
-    }
+    QString target = qobject_cast<QAction*>(sender())->data().toString();
+    GUIHelpers::openURL(target);
   }
 
   TOPPASWidget* TOPPASBase::window_(int id) const
@@ -1551,61 +1520,28 @@ namespace OpenMS
 
   void TOPPASBase::openFilesInTOPPView(QStringList files)
   {
-    if (files.size() > 0)
+    if (files.empty()) return;
+    
+    if (files.size() > 1)
     {
-      QProcess* p = new QProcess();
-      p->setProcessChannelMode(QProcess::ForwardedChannels);
-      QStringList arg = files;
-
-      if (files.size() > 1)
+      // ask user how to open multiple files
+      QMessageBox msgBox(
+        QMessageBox::Question,
+        tr("Open files with overlay?"),
+        tr("How do you want to open the output files?"),
+        QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+      msgBox.setButtonText(QMessageBox::Yes, tr("&Single Tab - Overlay"));
+      msgBox.setButtonText(QMessageBox::No, tr("&Separate tabs"));
+      int ret = msgBox.exec();
+      if (ret == QMessageBox::Cancel) return; // Escape was pressed
+      if (ret == QMessageBox::Yes)
       {
-        // ask user how to open multiple files
-        if (!QMessageBox::question(
-              this,
-              tr("Open in separate windows? -- TOPPAS"),
-              tr("How do you want to open the output files?"),
-              tr("&Single window"), tr("&Separate windows"),
-              QString::null, 0, 1))
-        {
-          arg = files.join("#SpLiT_sTrInG#+#SpLiT_sTrInG#").split("#SpLiT_sTrInG#", QString::SkipEmptyParts);
-        }
-      }
-#if defined(__APPLE__)
-      // check if we can find the TOPPView.app
-      QString app_path = (File::getExecutablePath() + "../../../TOPPView.app").toQString();
-
-      if (File::exists(app_path))
-      {
-        // we found the app
-        QStringList app_args;
-        app_args.append("-a");
-        app_args.append(app_path);
-        app_args.append("--args");
-        app_args.append(arg);
-        p->start("/usr/bin/open", app_args);
-      }
-      else
-      {
-        // we could not find the app, try it the linux way
-        QString toppview_executable = (File::findExecutable("TOPPView")).toQString();
-        p->start(toppview_executable, arg);
-      }
-#else
-      // LINUX+WIN
-      QString toppview_executable = (File::findExecutable("TOPPView")).toQString();
-      p->start(toppview_executable, arg);
-#endif
-
-
-      if (!p->waitForStarted())
-      {
-        // execution failed
-        std::cerr << p->errorString().toStdString() << std::endl;
-#if defined(Q_WS_MAC)
-        std::cerr << "Please check if TOPPAS and TOPPView are located in the same directory" << std::endl;
-#endif
+        files = files.join("#SpLiT_sTrInG#+#SpLiT_sTrInG#").split("#SpLiT_sTrInG#", QString::SkipEmptyParts);
       }
     }
+    
+    GUIHelpers::startTOPPView(files);
+
   }
 
   void TOPPASBase::openToppasFile(QString filename)

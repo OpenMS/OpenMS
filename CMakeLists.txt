@@ -110,16 +110,19 @@ endif()
 
 message(STATUS "Building OpenMS ${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}")
 if(NOT GIT_TRACKING)
-	set(OPENMS_GIT_SHORT_SHA1 "disabled")
-	set(OPENMS_GIT_SHORT_REFSPEC "disabled")
+  set(OPENMS_GIT_SHORT_SHA1 "disabled")
+  set(OPENMS_GIT_SHORT_REFSPEC "disabled")
+  message(STATUS "  [CMake is not tracking Git commits and branching. To enable use '-D GIT_TRACKING=ON'.]")
 elseif(OPENMS_GIT_SHORT_REFSPEC EQUAL "GIT-NOTFOUND" OR ${OPENMS_GIT_SHORT_REFSPEC} EQUAL "HEAD-HASH-NOTFOUND")
-	set(OPENMS_GIT_SHORT_SHA1 "exported")
-	set(OPENMS_GIT_SHORT_REFSPEC "exported")
+  set(OPENMS_GIT_SHORT_SHA1 "exported")
+  set(OPENMS_GIT_SHORT_REFSPEC "exported")
+  message(STATUS "  [CMake is not tracking Git commits and branching. Git not found.]")
 else()
-	# everything found, print some status information
-	message(STATUS "  - Repository revision ${OPENMS_GIT_SHORT_SHA1}")
-	message(STATUS "  - Repository branch ${OPENMS_GIT_SHORT_REFSPEC}")
-	message(STATUS "  - Repository last change date ${OPENMS_GIT_LC_DATE}")
+  # everything found, print some status information
+  message(STATUS "  - Repository revision ${OPENMS_GIT_SHORT_SHA1}")
+  message(STATUS "  - Repository branch ${OPENMS_GIT_SHORT_REFSPEC}")
+  message(STATUS "  - Repository last change date ${OPENMS_GIT_LC_DATE}")
+  message(STATUS "  [CMake is tracking Git commits and branching. To disable use '-D GIT_TRACKING=OFF'.]")
 endif()
 
 # add some informations used when building packages
@@ -133,7 +136,7 @@ if (MINGW OR MSYS)
 endif()
 
 #------------------------------------------------------------------------------
-# All the multithreading stuff (OpenMP, CUDA, TBB)
+# All the multi-threading stuff (OpenMP, CUDA, TBB)
 #------------------------------------------------------------------------------
 include(cmake/multithreading.cmake)
 

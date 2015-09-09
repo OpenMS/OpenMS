@@ -133,9 +133,9 @@ protected:
     bool legend_shown_;
 
     //docu in base class
-    virtual void translateLeft_();
+    virtual void translateLeft_(Qt::KeyboardModifiers m);
     //docu in base class
-    virtual void translateRight_();
+    virtual void translateRight_(Qt::KeyboardModifiers m);
     //docu in base class
     virtual void translateForward_();
     //docu in base class
