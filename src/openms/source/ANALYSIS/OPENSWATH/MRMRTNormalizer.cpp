@@ -35,6 +35,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMRTNormalizer.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <OpenMS/CONCEPT/LogStream.h> // LOG_DEBUG
+#include <OpenMS/MATH/MISC/RANSAC.h> // RANSAC algorithm
 
 #include <numeric>
 #include <boost/math/special_functions/erf.hpp>
@@ -42,83 +43,6 @@
 
 namespace OpenMS
 {
-  std::pair<double, double > Math::RANSAC::llsm_fit_(std::vector<std::pair<double, double> >& pairs)
-  {
-    std::vector<double> x, y;
-
-    for (std::vector<std::pair<double, double> >::iterator it = pairs.begin(); it != pairs.end(); ++it)
-    {
-      x.push_back(it->first);
-      y.push_back(it->second);
-    }
-
-    // GSL implementation
-    //double c0, c1, cov00, cov01, cov11, sumsq;
-    //double* xa = &x[0];
-    //double* ya = &y[0];
-    //gsl_fit_linear(xa, 1, ya, 1, pairs.size(), &c0, &c1, &cov00, &cov01, &cov11, &sumsq);
-
-    // OpenMS::MATH implementation
-    Math::LinearRegression lin_reg;
-    lin_reg.computeRegression(0.95, x.begin(), x.end(), y.begin());
-    double c0, c1;
-    c0 = lin_reg.getIntercept();
-    c1 = lin_reg.getSlope();
-
-    return(std::make_pair(c0,c1));
-  }
-
-  double Math::RANSAC::llsm_rsq(std::vector<std::pair<double, double> >& pairs)
-  {
-    std::vector<double> x, y;
-
-    for (std::vector<std::pair<double, double> >::iterator it = pairs.begin(); it != pairs.end(); ++it)
-    {
-      x.push_back(it->first);
-      y.push_back(it->second);
-    }
-
-    // GSL implementation
-    //double* xa = &x[0];
-    //double* ya = &y[0];
-    //double r = gsl_stats_correlation(xa, 1, ya, 1, pairs.size());
-    //return(r);
-
-    // OpenMS::MATH implementation
-    Math::LinearRegression lin_reg;
-    lin_reg.computeRegression(0.95, x.begin(), x.end(), y.begin());
-
-    return lin_reg.getRSquared();
-  }
-
-  double Math::RANSAC::llsm_rss_(std::vector<std::pair<double, double> >& pairs, std::pair<double, double >& coefficients)
-  {
-    double rss = 0;
-
-    for (std::vector<std::pair<double, double> >::iterator it = pairs.begin(); it != pairs.end(); ++it)
-    {
-      rss += pow(it->second - (coefficients.first + ( coefficients.second * it->first)), 2);
-    }
-
-    return rss;
-  }
-
-  std::vector<std::pair<double, double> > Math::RANSAC::llsm_rss_inliers_(
-      std::vector<std::pair<double, double> >& pairs,
-      std::pair<double, double >& coefficients, double max_threshold)
-  {
-    std::vector<std::pair<double, double> > alsoinliers;
-
-    for (std::vector<std::pair<double, double> >::iterator it = pairs.begin(); it != pairs.end(); ++it)
-    {
-      if (pow(it->second - (coefficients.first + ( coefficients.second * it->first)), 2) < max_threshold)
-      {
-        alsoinliers.push_back(*it);
-      }
-    }
-
-    return alsoinliers;
-  }
 
   std::vector<std::pair<double, double> > MRMRTNormalizer::removeOutliersRANSAC(
       std::vector<std::pair<double, double> >& pairs, double rsq_limit,
@@ -144,7 +68,6 @@ namespace OpenMS
     }
 
     std::vector<std::pair<double, double> > new_pairs = Math::RANSAC::ransac(pairs, n, k, t, d);
-
     double bestrsq = Math::RANSAC::llsm_rsq(new_pairs);
 
     if (bestrsq < rsq_limit)
@@ -166,77 +89,6 @@ namespace OpenMS
     }
 
     return new_pairs;
-  }
-
-  std::vector<std::pair<double, double> > Math::RANSAC::ransac(
-      std::vector<std::pair<double, double> >& pairs, size_t n, size_t k, double t, size_t d, bool test)
-  {
-    // implementation of the RANSAC algorithm according to http://wiki.scipy.org/Cookbook/RANSAC.
-
-    std::vector<std::pair<double, double> > maybeinliers, test_points, alsoinliers, betterdata, bestdata;
-
-    double besterror = std::numeric_limits<double>::max();
-    double bettererror;
-#ifdef DEBUG_MRMRTNORMALIZER
-    std::pair<double, double > bestcoeff;
-    double betterrsq = 0;
-    double bestrsq = 0;
-#endif
-
-    for (size_t ransac_int=0; ransac_int<k; ransac_int++)
-    {
-      std::vector<std::pair<double, double> > pairs_shuffled = pairs;
-
-      if (!test)
-      { // disables random selection in test mode
-        std::random_shuffle(pairs_shuffled.begin(), pairs_shuffled.end());
-      }
-
-      maybeinliers.clear();
-      test_points.clear();
-      std::copy( pairs_shuffled.begin(), pairs_shuffled.begin()+n, std::back_inserter(maybeinliers) );
-      std::copy( pairs_shuffled.begin()+n, pairs_shuffled.end(), std::back_inserter(test_points) );
-
-      std::pair<double, double > coeff = Math::RANSAC::llsm_fit_(maybeinliers);
-
-      alsoinliers = Math::RANSAC::llsm_rss_inliers_(test_points,coeff,t);
-
-      if (alsoinliers.size() > d)
-      {
-        betterdata = maybeinliers;
-        betterdata.insert( betterdata.end(), alsoinliers.begin(), alsoinliers.end() );
-        std::pair<double, double > bettercoeff = Math::RANSAC::llsm_fit_(betterdata);
-        bettererror = Math::RANSAC::llsm_rss_(betterdata,bettercoeff);
-#ifdef DEBUG_MRMRTNORMALIZER
-        betterrsq = Math::RANSAC::llsm_rsq(betterdata);
-#endif
-
-        if (bettererror < besterror)
-        {
-          besterror = bettererror;
-#ifdef DEBUG_MRMRTNORMALIZER
-          bestcoeff = bettercoeff;
-#endif
-          bestdata = betterdata;
-
-#ifdef DEBUG_MRMRTNORMALIZER
-          bestrsq = betterrsq;
-          std::cout << "RANSAC " << ransac_int << ": Points: " << betterdata.size() << " RSQ: " << bestrsq << " Error: " << besterror << " c0: " << bestcoeff.first << " c1: " << bestcoeff.second << std::endl;
-#endif
-        }
-      }
-    }
-
-#ifdef DEBUG_MRMRTNORMALIZER
-    std::cout << "=======STARTPOINTS=======" << std::endl;
-    for (std::vector<std::pair<double, double> >::iterator it = bestdata.begin(); it != bestdata.end(); ++it)
-    {
-      std::cout << it->first << "\t" << it->second << std::endl;
-    }
-    std::cout << "=======ENDPOINTS=======" << std::endl;
-#endif
-
-    return(bestdata);
   }
 
   int MRMRTNormalizer::jackknifeOutlierCandidate_(std::vector<double>& x, std::vector<double>& y)
