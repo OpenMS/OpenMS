@@ -3,7 +3,8 @@
   @page install_linux Building OpenMS on GNU/Linux
 
   This document describes how to build OpenMS on a GNU/Linux system from
-  source. It assumes that you have root privileges on your system. 
+  source. If you do not have root privileges on your system, make sure you 
+  read the section @ref build_linux_noroot.
 
   We are working on adding %OpenMS to the repositories of the most popular
   distributions, but for now the toolkit needs to be manually compiled on your
