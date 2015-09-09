@@ -66,9 +66,9 @@ protected:
       vector of a standard pair of points in a 2D space and returns the
       coefficients of the linear regression Y(c,x) = c0 + c1 * x
     */
-    static double llsm_rsq(std::vector<std::pair<double, double> >& pairs);
+    static double llsm_rsq_(std::vector<std::pair<double, double> >& pairs);
 
-    static std::pair<double, double > llsm_fit(std::vector<std::pair<double, double> >& pairs);
+    static std::pair<double, double > llsm_fit_(std::vector<std::pair<double, double> >& pairs);
   
     /// interface for GSL or OpenMS::MATH linear regression implementation
     /// calculates the residual sum of squares of the input points and the linear fit with coefficients c0 & c1.
@@ -77,7 +77,7 @@ protected:
     /// calculates the residual sum of squares of the input points and the linear fit with coefficients c0 & c1.
     /// further removes all points that have an error larger or equal than max_threshold.
     static std::vector<std::pair<double, double> > llsm_rss_inliers_(std::vector<std::pair<double, double> >& pairs,
-        std::pair<double, double >& coefficients, double max_threshold) const;
+        std::pair<double, double >& coefficients, double max_threshold);
 
     /**
       @brief This function computes a candidate outlier peptide by iteratively
@@ -155,7 +155,7 @@ public:
 
       @return A vector of pairs
     */
-    static std::vector<std::pair<double, double> > ransac(std::vector<std::pair<double, double> >& pairs, size_t n, size_t k, double t, size_t d, bool test = false) const;
+    static std::vector<std::pair<double, double> > ransac(std::vector<std::pair<double, double> >& pairs, size_t n, size_t k, double t, size_t d, bool test = false);
 
     /**
       @brief This function removes potential outliers in a linear regression dataset.

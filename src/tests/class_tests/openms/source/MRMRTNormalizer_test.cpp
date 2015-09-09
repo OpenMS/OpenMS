@@ -63,9 +63,9 @@ class MRMRTNormalizer_test : public MRMRTNormalizer
       return MRMRTNormalizer::residualOutlierCandidate_(x, y);
     }
 
-    static std::pair<double, double > llsm_fit(std::vector<std::pair<double, double> >& pairs)
+    static std::pair<double, double > llsm_fit_(std::vector<std::pair<double, double> >& pairs)
     {
-      return MRMRTNormalizer::llsm_fit(pairs);
+      return MRMRTNormalizer::llsm_fit_(pairs);
     }
 
     static double llsm_rss_(std::vector<std::pair<double, double> >& pairs, std::pair<double, double >& coefficients  )
@@ -328,7 +328,7 @@ START_SECTION((static bool chauvenet(std::vector<double> & residuals, int pos)))
 }
 END_SECTION
 
-START_SECTION((static std::pair<double, double > llsm_fit(std::vector<std::pair<double, double> >& pairs)))
+START_SECTION((static std::pair<double, double > llsm_fit_(std::vector<std::pair<double, double> >& pairs)))
 {
   std::vector<std::pair<double, double> > test_pairs;
 
@@ -353,7 +353,7 @@ START_SECTION((static std::pair<double, double > llsm_fit(std::vector<std::pair<
   test_pairs.push_back(std::make_pair(9.61444550e+00, 3.82697907e+02));
   test_pairs.push_back(std::make_pair(5.34540857e+00, 2.56156813e+02));
 
-  std::pair<double, double > coeff = MRMRTNormalizer_test::llsm_fit(test_pairs);
+  std::pair<double, double > coeff = MRMRTNormalizer_test::llsm_fit_(test_pairs);
   TEST_REAL_SIMILAR( coeff.first, 46.03865245);
   TEST_REAL_SIMILAR( coeff.second, 31.20358812);
 
@@ -415,14 +415,14 @@ END_SECTION
 
 START_SECTION(static double llsm_rss_(std::vector<std::pair<double, double> >& pairs, std::pair<double, double >& coefficients  ) )
 {
-  // tested above in llsm_fit
+  // tested above in llsm_fit_
   NOT_TESTABLE
 }
 END_SECTION
 
 START_SECTION((static std::vector<std::pair<double, double> > llsm_rss_inliers_(std::vector<std::pair<double, double> >&   pairs, std::pair<double, double >& coefficients, double max_threshold)))
 {
-  // tested above in llsm_fit
+  // tested above in llsm_fit_
   NOT_TESTABLE
 }
 END_SECTION
