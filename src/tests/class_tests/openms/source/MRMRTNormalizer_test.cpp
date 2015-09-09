@@ -49,6 +49,27 @@ START_TEST(MRMRTNormalizer, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
+class RANSAC_test : public Math::RANSAC
+{
+  public:
+
+    static std::pair<double, double > llsm_fit_(std::vector<std::pair<double, double> >& pairs)
+    {
+      return Math::RANSAC::llsm_fit_(pairs);
+    }
+
+    static double llsm_rss_(std::vector<std::pair<double, double> >& pairs, std::pair<double, double >& coefficients  )
+    {
+      return Math::RANSAC::llsm_rss_(pairs, coefficients);
+    }
+
+    static std::vector<std::pair<double, double> > llsm_rss_inliers_(std::vector<std::pair<double, double> >&   pairs, std::pair<double, double >& coefficients, double max_threshold)
+    {
+      return Math::RANSAC::llsm_rss_inliers_(pairs, coefficients, max_threshold);
+    }
+
+};
+
 class MRMRTNormalizer_test : public MRMRTNormalizer
 {
   public :
@@ -63,25 +84,6 @@ class MRMRTNormalizer_test : public MRMRTNormalizer
       return MRMRTNormalizer::residualOutlierCandidate_(x, y);
     }
 
-    static std::pair<double, double > llsm_fit_(std::vector<std::pair<double, double> >& pairs)
-    {
-      return MRMRTNormalizer::llsm_fit_(pairs);
-    }
-
-    static double llsm_rss_(std::vector<std::pair<double, double> >& pairs, std::pair<double, double >& coefficients  )
-    {
-      return MRMRTNormalizer::llsm_rss_(pairs, coefficients);
-    }
-
-    static std::vector<std::pair<double, double> > llsm_rss_inliers_(std::vector<std::pair<double, double> >&   pairs, std::pair<double, double >& coefficients, double max_threshold)
-    {
-      return MRMRTNormalizer::llsm_rss_inliers_(pairs, coefficients, max_threshold);
-    }
-
-    static std::vector<std::pair<double, double> > ransac(std::vector<std::pair<double, double> >& pairs, size_t n, size_t k, double t, size_t d)
-    {
-      return MRMRTNormalizer::ransac(pairs, n, k, t, d, true); // set test variable to true
-    }
 };
 
 // no constructor / destructor of static class
@@ -353,11 +355,11 @@ START_SECTION((static std::pair<double, double > llsm_fit_(std::vector<std::pair
   test_pairs.push_back(std::make_pair(9.61444550e+00, 3.82697907e+02));
   test_pairs.push_back(std::make_pair(5.34540857e+00, 2.56156813e+02));
 
-  std::pair<double, double > coeff = MRMRTNormalizer_test::llsm_fit_(test_pairs);
+  std::pair<double, double > coeff = RANSAC_test::llsm_fit_(test_pairs);
   TEST_REAL_SIMILAR( coeff.first, 46.03865245);
   TEST_REAL_SIMILAR( coeff.second, 31.20358812);
 
-  double rss = MRMRTNormalizer_test::llsm_rss_(test_pairs, coeff);
+  double rss = RANSAC_test::llsm_rss_(test_pairs, coeff);
   TEST_REAL_SIMILAR( rss, 864089.67832345);
 
   std::vector<std::pair<double, double> > new_test_pairs;
@@ -393,7 +395,7 @@ START_SECTION((static std::pair<double, double > llsm_fit_(std::vector<std::pair
   new_test_pairs.push_back(std::make_pair(1.14474730e+01, 4.83241860e+02));
   new_test_pairs.push_back(std::make_pair(3.79416666e+00, 1.64038065e+02));
 
-  std::vector<std::pair<double, double> > inliers = MRMRTNormalizer_test::llsm_rss_inliers_(new_test_pairs, coeff, 7e3);
+  std::vector<std::pair<double, double> > inliers = RANSAC_test::llsm_rss_inliers_(new_test_pairs, coeff, 7e3);
   TEST_REAL_SIMILAR( inliers[0].first, 1.68354224e+00);
   TEST_REAL_SIMILAR( inliers[1].first, 4.64668635e+00);
   TEST_REAL_SIMILAR( inliers[2].first, 8.13976269e+00);
@@ -733,7 +735,7 @@ if __name__=='__main__':
   test_pairs.push_back(std::make_pair(1.14474730e+01, 4.83241860e+02));
   test_pairs.push_back(std::make_pair(3.79416666e+00, 1.64038065e+02));
 
-  test_pairs_out = MRMRTNormalizer_test::ransac(test_pairs, 20, 1, 7e3, 10);
+  test_pairs_out = Math::RANSAC::ransac(test_pairs, 20, 1, 7e3, 10, true);
 
   TEST_REAL_SIMILAR( test_pairs_out[0].first, 7.66217066e+00);
   TEST_REAL_SIMILAR( test_pairs_out[1].first, 1.88986378e+01);

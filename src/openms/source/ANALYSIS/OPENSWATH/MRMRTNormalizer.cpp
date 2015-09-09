@@ -42,7 +42,7 @@
 
 namespace OpenMS
 {
-  std::pair<double, double > MRMRTNormalizer::llsm_fit_(std::vector<std::pair<double, double> >& pairs)
+  std::pair<double, double > Math::RANSAC::llsm_fit_(std::vector<std::pair<double, double> >& pairs)
   {
     std::vector<double> x, y;
 
@@ -68,7 +68,7 @@ namespace OpenMS
     return(std::make_pair(c0,c1));
   }
 
-  double MRMRTNormalizer::llsm_rsq_(std::vector<std::pair<double, double> >& pairs)
+  double Math::RANSAC::llsm_rsq(std::vector<std::pair<double, double> >& pairs)
   {
     std::vector<double> x, y;
 
@@ -91,7 +91,7 @@ namespace OpenMS
     return lin_reg.getRSquared();
   }
 
-  double MRMRTNormalizer::llsm_rss_(std::vector<std::pair<double, double> >& pairs, std::pair<double, double >& coefficients)
+  double Math::RANSAC::llsm_rss_(std::vector<std::pair<double, double> >& pairs, std::pair<double, double >& coefficients)
   {
     double rss = 0;
 
@@ -103,7 +103,7 @@ namespace OpenMS
     return rss;
   }
 
-  std::vector<std::pair<double, double> > MRMRTNormalizer::llsm_rss_inliers_(
+  std::vector<std::pair<double, double> > Math::RANSAC::llsm_rss_inliers_(
       std::vector<std::pair<double, double> >& pairs,
       std::pair<double, double >& coefficients, double max_threshold)
   {
@@ -143,9 +143,9 @@ namespace OpenMS
           boost::lexical_cast<std::string>(pairs.size()) + " input RT peptides is below limit of 30 peptides required for the RANSAC outlier detection algorithm.");
     }
 
-    std::vector<std::pair<double, double> > new_pairs = MRMRTNormalizer::ransac(pairs, n, k, t, d);
+    std::vector<std::pair<double, double> > new_pairs = Math::RANSAC::ransac(pairs, n, k, t, d);
 
-    double bestrsq = llsm_rsq_(new_pairs);
+    double bestrsq = Math::RANSAC::llsm_rsq(new_pairs);
 
     if (bestrsq < rsq_limit)
     {
@@ -168,7 +168,7 @@ namespace OpenMS
     return new_pairs;
   }
 
-  std::vector<std::pair<double, double> > MRMRTNormalizer::ransac(
+  std::vector<std::pair<double, double> > Math::RANSAC::ransac(
       std::vector<std::pair<double, double> >& pairs, size_t n, size_t k, double t, size_t d, bool test)
   {
     // implementation of the RANSAC algorithm according to http://wiki.scipy.org/Cookbook/RANSAC.
@@ -197,18 +197,18 @@ namespace OpenMS
       std::copy( pairs_shuffled.begin(), pairs_shuffled.begin()+n, std::back_inserter(maybeinliers) );
       std::copy( pairs_shuffled.begin()+n, pairs_shuffled.end(), std::back_inserter(test_points) );
 
-      std::pair<double, double > coeff = llsm_fit_(maybeinliers);
+      std::pair<double, double > coeff = Math::RANSAC::llsm_fit_(maybeinliers);
 
-      alsoinliers = llsm_rss_inliers_(test_points,coeff,t);
+      alsoinliers = Math::RANSAC::llsm_rss_inliers_(test_points,coeff,t);
 
       if (alsoinliers.size() > d)
       {
         betterdata = maybeinliers;
         betterdata.insert( betterdata.end(), alsoinliers.begin(), alsoinliers.end() );
-        std::pair<double, double > bettercoeff = llsm_fit_(betterdata);
-        bettererror = llsm_rss_(betterdata,bettercoeff);
+        std::pair<double, double > bettercoeff = Math::RANSAC::llsm_fit_(betterdata);
+        bettererror = Math::RANSAC::llsm_rss_(betterdata,bettercoeff);
 #ifdef DEBUG_MRMRTNORMALIZER
-        betterrsq = llsm_rsq_(betterdata);
+        betterrsq = Math::RANSAC::llsm_rsq(betterdata);
 #endif
 
         if (bettererror < besterror)
