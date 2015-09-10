@@ -112,19 +112,21 @@ namespace OpenMS
     bool empty() const;
 
     /**
-       @brief Set the spectra that can be looked up
+       @brief Read and index spectra for later look-up
 
-       @param spectra Reference to spectra
+       @tparam SpectrumContainer Spectrum container class, must support @p size and @p operator[]
+
+       @param spectra Container of spectra
        @param scan_regexp Regular expression for matching scan numbers in spectrum native IDs (must contain the named group "?<SCAN>")
 
        @throw Exception::IllegalArgument if @p scan_regexp does not contain "?<SCAN>" (and is not empty)
 
-       The vector of spectra set by @p spectra must exist for the lifetime of the SpectrumLookup object or until setSpectra() is called again - otherwise crashes due to illegal memory access (segmentation faults) may result!
        Spectra are indexed by retention time, native ID and scan number. In all cases it is expected that the value for each spectrum will be unique.
        Setting @p scan_regexp to the empty string ("") disables extraction of scan numbers; look-ups by scan number will fail in that case.
     */
-    void setSpectra(std::vector<MSSpectrum<> >& spectra,
-                    const String& scan_regexp = "=(?<SCAN>\\d+)$");
+    template <typename SpectrumContainer>
+    void readSpectra(const SpectrumContainer& spectra, 
+                     const String& scan_regexp = "=(?<SCAN>\\d+)$");
 
     /**
        @brief Look up spectrum by retention time (RT)
@@ -133,11 +135,11 @@ namespace OpenMS
 
        @throw Exception::ElementNotFound if no matching spectrum was found
 
-       @return Spectrum that matched
+       @return Index of the spectrum that matched
 
        There is a tolerance for matching of RT values defined by SpectrumLookup::rt_tolerance. The spectrum with the closest match within that tolerance is returned (if any).
     */
-    MSSpectrum<>& findByRT(double rt) const;
+    Size findByRT(double rt) const;
 
     /**
        @brief Look up spectrum by native ID
@@ -146,9 +148,9 @@ namespace OpenMS
 
        @throw Exception::ElementNotFound if no matching spectrum was found
 
-       @return Spectrum that matched
+       @return Index of the spectrum that matched
     */
-    MSSpectrum<>& findByNativeID(const String& native_id) const;
+    Size findByNativeID(const String& native_id) const;
     
     /**
        @brief Look up spectrum by index (position in the vector of spectra)
@@ -158,9 +160,9 @@ namespace OpenMS
 
        @throw Exception::ElementNotFound if no matching spectrum was found
 
-       @return Spectrum that matched
+       @return Index of the spectrum that matched
     */
-    MSSpectrum<>& findByIndex(Size index, bool count_from_one = false) const;
+    Size findByIndex(Size index, bool count_from_one = false) const;
 
     /**
        @brief Look up spectrum by scan number (extracted from the native ID)
@@ -169,9 +171,9 @@ namespace OpenMS
 
        @throw Exception::ElementNotFound if no matching spectrum was found
 
-       @return Spectrum that matched
+       @return Index of the spectrum that matched
     */
-    MSSpectrum<>& findByScanNumber(Size scan_number) const;
+    Size findByScanNumber(Size scan_number) const;
 
     /**
        @brief Extract meta data from a spectrum
@@ -205,14 +207,16 @@ namespace OpenMS
        @throw Exception::ElementNotFound if no matching spectrum was found
        @throw Exception::ParseError if the reference could not be parsed (no reference format matched)
 
-       @return Spectrum that matched
+       @return Index of the spectrum that matched
 
        The regular expressions in SpectrumLookup::reference_formats are matched against the spectrum reference in order. The first one that matches is used to look up the spectrum.
     */
-    MSSpectrum<>& findByReference(const String& spectrum_ref) const;
+    Size findByReference(const String& spectrum_ref) const;
 
     /**
        @brief Extract meta data via a spectrum reference
+
+       @tparam SpectrumContainer Spectrum container class, must support @p operator[]
 
        @param spectrum_ref Spectrum reference to parse
        @param metadata Meta data output
@@ -222,9 +226,10 @@ namespace OpenMS
 
        This function is a combination of getSpectrumMetaData() and findByReference(). However, the spectrum is only looked up if necessary, i.e. if the required meta data cannot be extracted from the spectrum reference itself.
     */
+    template <typename SpectrumContainer>
     void getSpectrumMetaDataByReference(
-      const String& spectrum_ref, SpectrumMetaData& metadata, 
-      MetaDataFlags flags = METADATA_ALL) const;
+      const SpectrumContainer& spectra, const String& spectrum_ref,
+      SpectrumMetaData& metadata, MetaDataFlags flags = METADATA_ALL) const;
 
     /**
        @brief Add missing retention time values to peptide identifications based on raw data
@@ -248,8 +253,6 @@ namespace OpenMS
     /// Named groups recognized in regular expression
     static const String& regexp_names_;
 
-    std::vector<MSSpectrum<> >* spectra_; ///< Pointer to spectra
-
     Size n_spectra_; ///< Number of spectra
 
     std::vector<String> regexp_name_list_; ///< Named groups in vector format
@@ -267,11 +270,10 @@ namespace OpenMS
        
        @throw Exception::ElementNotFound if no matching spectrum was found
 
-       @return Spectrum that matched
+       @return Index of the spectrum that matched
     */
-    MSSpectrum<>& findByRegExpMatch_(const String& spectrum_ref,
-                                     const String& regexp, 
-                                     const boost::smatch& match) const;
+    Size findByRegExpMatch_(const String& spectrum_ref, const String& regexp, 
+                            const boost::smatch& match) const;
 
   private:
     /// Copy constructor (not implemented)

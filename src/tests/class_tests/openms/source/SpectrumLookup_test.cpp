@@ -85,57 +85,46 @@ START_SECTION((bool empty() const))
 END_SECTION
 
 
-START_SECTION((void setSpectra(vector<MSSpectrum<> >&, const String&)))
+START_SECTION((template <typename SpectrumContainer> void readSpectra(const SpectrumContainer&, const String&)))
 {
-  lookup.setSpectra(spectra);
+  lookup.readSpectra(spectra);
   TEST_EQUAL(lookup.empty(), false);
 }
 END_SECTION
 
 
-START_SECTION((MSSpectrum<>& findByRT(double) const))
+START_SECTION((Size findByRT(double) const))
 {
-  MSSpectrum<>& spec = lookup.findByRT(2.0);
-  TEST_EQUAL(spec.getRT(), 2.0);
-  TEST_EQUAL(spec.getNativeID(), "spectrum=1");
+  TEST_EQUAL(lookup.findByRT(2.0), 1);
 
   TEST_EXCEPTION(Exception::ElementNotFound, lookup.findByRT(5.0));
 }
 END_SECTION
 
 
-START_SECTION((MSSpectrum<>& findByNativeID(const String&) const))
+START_SECTION((Size findByNativeID(const String&) const))
 {
-  MSSpectrum<>& spec = lookup.findByNativeID("spectrum=1");
-  TEST_EQUAL(spec.getNativeID(), "spectrum=1");
-  TEST_EQUAL(spec.getRT(), 2.0);
+  TEST_EQUAL(lookup.findByNativeID("spectrum=1"), 1);
 
-  TEST_EXCEPTION(Exception::ElementNotFound,
+  TEST_EXCEPTION(Exception::ElementNotFound, 
                  lookup.findByNativeID("spectrum=3"));
 }
 END_SECTION
 
 
-START_SECTION((MSSpectrum<>& findByIndex(Size, bool) const))
+START_SECTION((Size findByIndex(Size, bool) const))
 {
-  MSSpectrum<>& spec = lookup.findByIndex(1);
-  TEST_EQUAL(spec.getRT(), 2.0);
-  TEST_EQUAL(spec.getNativeID(), "spectrum=1");
-
-  MSSpectrum<>& spec2 = lookup.findByIndex(1, true);
-  TEST_EQUAL(spec2.getRT(), 1.0);
-  TEST_EQUAL(spec2.getNativeID(), "spectrum=0");
+  TEST_EQUAL(lookup.findByIndex(1), 1);
+  TEST_EQUAL(lookup.findByIndex(1, true), 0);
 
   TEST_EXCEPTION(Exception::ElementNotFound, lookup.findByIndex(0, true));
 }
 END_SECTION
 
 
-START_SECTION((MSSpectrum<>& findByScanNumber(Size) const))
+START_SECTION((Size findByScanNumber(Size) const))
 {
-  MSSpectrum<>& spec = lookup.findByScanNumber(1);
-  TEST_EQUAL(spec.getNativeID(), "spectrum=1");
-  TEST_EQUAL(spec.getRT(), 2.0);
+  TEST_EQUAL(lookup.findByScanNumber(1), 1);
 
   TEST_EXCEPTION(Exception::ElementNotFound, lookup.findByScanNumber(5));
 }
@@ -180,25 +169,20 @@ START_SECTION((void addReferenceFormat(const String&)))
 END_SECTION
 
 
-START_SECTION((MSSpectrum<>& findByReference(const String&) const))
+START_SECTION((Size findByReference(const String&) const))
 {
-  MSSpectrum<>& spec = lookup.findByReference("scan_number=1");
-  TEST_EQUAL(spec.getRT(), 2.0);
-  TEST_EQUAL(spec.getNativeID(), "spectrum=1");
-
-  MSSpectrum<>& spec2 = lookup.findByReference("name=bla,spectrum=0");
-  TEST_EQUAL(spec2.getRT(), 1.0);
-  TEST_EQUAL(spec2.getNativeID(), "spectrum=0");
+  TEST_EQUAL(lookup.findByReference("scan_number=1"), 1);
+  TEST_EQUAL(lookup.findByReference("name=bla,spectrum=0"), 0);
 
   TEST_EXCEPTION(Exception::ParseError, lookup.findByReference("test123"));
 }
 END_SECTION
 
 
-START_SECTION((void getSpectrumMetaDataByReference(const String&, SpectrumMetaData&, MetaDataFlags) const))
+START_SECTION((template <typename SpectrumContainer> void getSpectrumMetaDataByReference(const SpectrumContainer&, const String&, SpectrumMetaData&, MetaDataFlags) const))
 {
   SpectrumLookup::SpectrumMetaData meta;
-  lookup.getSpectrumMetaDataByReference("scan_number=1", meta);
+  lookup.getSpectrumMetaDataByReference(spectra, "scan_number=1", meta);
   TEST_EQUAL(meta.rt, 2.0);
   TEST_EQUAL(meta.native_ID, "spectrum=1");
   // precursor information is empty:
@@ -210,7 +194,8 @@ START_SECTION((void getSpectrumMetaDataByReference(const String&, SpectrumMetaDa
   SpectrumLookup::MetaDataFlags flags = (SpectrumLookup::METADATA_RT | 
                                          SpectrumLookup::METADATA_MZ);
   // no actual look-up of the spectrum necessary:
-  lookup.getSpectrumMetaDataByReference("rt=5.0,mz=1000.0", meta2, flags);
+  lookup.getSpectrumMetaDataByReference(spectra, "rt=5.0,mz=1000.0", meta2,
+                                        flags);
   TEST_EQUAL(meta2.rt, 5.0);
   TEST_EQUAL(meta2.mz, 1000.0);
   TEST_EQUAL(meta2.charge, 0);
@@ -218,13 +203,13 @@ START_SECTION((void getSpectrumMetaDataByReference(const String&, SpectrumMetaDa
 
   // look-up of the spectrum necessary:
   SpectrumLookup::SpectrumMetaData meta3;
-  lookup.getSpectrumMetaDataByReference("rt=2.0,mz=1000.0", meta3);
+  lookup.getSpectrumMetaDataByReference(spectra, "rt=2.0,mz=1000.0", meta3);
   TEST_EQUAL(meta3.rt, 2.0);
   TEST_EQUAL(meta3.mz, 1000.0);
   TEST_EQUAL(meta3.charge, 0);
   TEST_EQUAL(meta3.native_ID, "spectrum=1");
 
-  TEST_EXCEPTION(Exception::ElementNotFound, lookup.getSpectrumMetaDataByReference("rt=5.0,mz=1000.0", meta3));
+  TEST_EXCEPTION(Exception::ElementNotFound, lookup.getSpectrumMetaDataByReference(spectra, "rt=5.0,mz=1000.0", meta3));
 }
 END_SECTION
 

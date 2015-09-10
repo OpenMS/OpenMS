@@ -44,7 +44,7 @@ namespace OpenMS
   const String& SpectrumLookup::regexp_names_ = "INDEX0 INDEX1 SCAN ID RT";
 
   SpectrumLookup::SpectrumLookup(): 
-    rt_tolerance(0.01), spectra_(0), n_spectra_(0),
+    rt_tolerance(0.01), n_spectra_(0),
     regexp_name_list_(ListUtils::create<String>(regexp_names_, ' '))
   {}
 
@@ -59,10 +59,10 @@ namespace OpenMS
   }
   
 
-  void SpectrumLookup::setSpectra(vector<MSSpectrum<> >& spectra, 
-                                  const String& scan_regexp)
+  template <typename SpectrumContainer>
+  void SpectrumLookup::readSpectra(const SpectrumContainer& spectra, 
+                                   const String& scan_regexp)
   {
-    spectra_ = &spectra;
     n_spectra_ = spectra.size();
     rts_.clear();
     ids_.clear();
@@ -80,7 +80,7 @@ namespace OpenMS
     }
     for (Size i = 0; i < n_spectra_; ++i)
     {
-      MSSpectrum<>& spec = spectra[i];
+      const MSSpectrum<>& spec = spectra[i];
       String native_id = spec.getNativeID();
       rts_[spec.getRT()] = i;
       ids_[native_id] = i;
@@ -107,7 +107,7 @@ namespace OpenMS
   }
 
   
-  MSSpectrum<>& SpectrumLookup::findByRT(double rt) const
+  Size SpectrumLookup::findByRT(double rt) const
   {
     double upper_diff = numeric_limits<double>::infinity();
     map<double, Size>::const_iterator upper = rts_.upper_bound(rt);
@@ -124,9 +124,9 @@ namespace OpenMS
     }
     if ((lower_diff < upper_diff) && (lower_diff <= rt_tolerance))
     {
-      return (*spectra_)[lower->second];
+      return lower->second;
     }
-    if (upper_diff <= rt_tolerance) return (*spectra_)[upper->second];
+    if (upper_diff <= rt_tolerance) return upper->second;
 
     String element = "spectrum with RT " + String(rt);
     throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__,
@@ -134,7 +134,7 @@ namespace OpenMS
   }
 
 
-  MSSpectrum<>& SpectrumLookup::findByNativeID(const String& native_id) const
+  Size SpectrumLookup::findByNativeID(const String& native_id) const
   {
     map<String, Size>::const_iterator pos = ids_.find(native_id);
     if (pos == ids_.end())
@@ -143,12 +143,11 @@ namespace OpenMS
       throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__,
                                        element);
     }
-    return (*spectra_)[pos->second];
+    return pos->second;
   }
 
 
-  MSSpectrum<>& SpectrumLookup::findByIndex(Size index, bool count_from_one)
-    const
+  Size SpectrumLookup::findByIndex(Size index, bool count_from_one) const
   {
     Size adjusted_index = index;
     if (count_from_one) --adjusted_index; // overflow (index = 0) handled below
@@ -158,11 +157,11 @@ namespace OpenMS
       throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__,
                                        element);
     }
-    return (*spectra_)[adjusted_index];
+    return adjusted_index;
   }
 
 
-  MSSpectrum<>& SpectrumLookup::findByScanNumber(Size scan_number) const
+  Size SpectrumLookup::findByScanNumber(Size scan_number) const
   {
     map<Size, Size>::const_iterator pos = scans_.find(scan_number);
     if (pos == scans_.end())
@@ -171,7 +170,7 @@ namespace OpenMS
       throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__,
                                        element);
     }
-    return (*spectra_)[pos->second];
+    return pos->second;
   }
 
   
@@ -225,10 +224,9 @@ namespace OpenMS
   }
 
 
-  MSSpectrum<>& SpectrumLookup::findByRegExpMatch_(const String& spectrum_ref,
-                                                   const String& regexp,
-                                                   const boost::smatch& match)
-    const
+  Size SpectrumLookup::findByRegExpMatch_(const String& spectrum_ref,
+                                          const String& regexp, 
+                                          const boost::smatch& match) const
   {
     if (match["INDEX0"].matched)
     {
@@ -282,8 +280,7 @@ namespace OpenMS
   }
 
 
-  MSSpectrum<>& SpectrumLookup::findByReference(const String& spectrum_ref)
-    const
+  Size SpectrumLookup::findByReference(const String& spectrum_ref) const
   {
     for (vector<boost::regex>::const_iterator it = reference_formats.begin();
          it != reference_formats.end(); ++it)
@@ -301,9 +298,10 @@ namespace OpenMS
   }
 
 
+  template <typename SpectrumContainer>
   void SpectrumLookup::getSpectrumMetaDataByReference(
-    const String& spectrum_ref, SpectrumMetaData& metadata, MetaDataFlags flags)
-    const
+    const SpectrumContainer& spectra, const String& spectrum_ref,
+    SpectrumMetaData& metadata, MetaDataFlags flags) const
   {
     for (vector<boost::regex>::const_iterator it = reference_formats.begin();
          it != reference_formats.end(); ++it)
@@ -352,9 +350,9 @@ namespace OpenMS
         }
         if (flags) // not all requested values have been found -> look them up
         {
-          MSSpectrum<>& spec = findByRegExpMatch_(spectrum_ref, it->str(),
-                                                  match);
-          getSpectrumMetaData(spec, metadata, flags);
+          Size index = findByRegExpMatch_(spectrum_ref, it->str(), match);
+          const MSSpectrum<>& spectrum = spectra[index];
+          getSpectrumMetaData(spectrum, metadata, flags);
         }
       }
     }
@@ -376,12 +374,13 @@ namespace OpenMS
         if (lookup.empty()) // load raw data only if we have to
         {
           FileHandler().loadExperiment(filename, exp);
-          lookup.setSpectra(exp.getSpectra());
+          lookup.readSpectra(exp);
         }
         String spectrum_id = it->getMetaValue("spectrum_reference");
         try
         {
-          it->setRT(lookup.findByNativeID(spectrum_id).getRT());
+          Size index = lookup.findByNativeID(spectrum_id);
+          it->setRT(exp[index].getRT());
         }
         catch(Exception::ElementNotFound& e)
         {
