@@ -78,6 +78,56 @@ static compar(const void *aa, const void *bb)
   else return(0);
 }
 
+/* ratfor code:
+*
+*  subroutine lowest(x,y,n,xs,ys,nleft,nright,w,userw,rw,ok)
+*  real x(n),y(n),w(n),rw(n)
+*  logical userw,ok
+*  range = x(n)-x(1)
+*  h = amax1(xs-x(nleft),x(nright)-xs)
+*  h9 = .999*h
+*  h1 = .001*h
+*  a = 0.0        # sum of weights
+*  for(j=nleft; j<=n; j=j+1){     # compute weights (pick up all ties on right)
+*         w(j)=0.
+*         r = abs(x(j)-xs)
+*         if (r<=h9) {    # small enough for non-zero weight
+*                 if (r>h1) w(j) = (1.0-(r/h)**3)**3
+*                 else      w(j) = 1.
+*                 if (userw) w(j) = rw(j)*w(j)
+*                 a = a+w(j)
+*                 }
+*         else if(x(j)>xs)break   # get out at first zero wt on right
+*         }
+*  nrt=j-1        # rightmost pt (may be greater than nright because of ties)
+*  if (a<=0.0) ok = FALSE
+*  else { # weighted least squares
+*         ok = TRUE
+*         do j = nleft,nrt
+*                 w(j) = w(j)/a   # make sum of w(j) == 1
+*         if (h>0.) {     # use linear fit
+*                 a = 0.0
+*                 do j = nleft,nrt
+*                         a = a+w(j)*x(j) # weighted center of x values
+*                 b = xs-a
+*                 c = 0.0
+*                 do j = nleft,nrt
+*                         c = c+w(j)*(x(j)-a)**2
+*                 if(sqrt(c)>.001*range) {
+*  # points are spread out enough to compute slope
+*                         b = b/c
+*                         do j = nleft,nrt
+*                                 w(j) = w(j)*(1.0+b*(x(j)-a))
+*                         }
+*                 }
+*         ys = 0.0
+*         do j = nleft,nrt
+*                 ys = ys+w(j)*y(j)
+*         }
+*  return
+*  end
+
+*/
 static void
 lowest(double *x, double *y, size_t n, double xs, double *ys, long nleft, long nright,
        double *w, int userw, double *rw, bool *ok)
@@ -133,7 +183,7 @@ lowest(double *x, double *y, size_t n, double xs, double *ys, long nleft, long n
     for (j = nleft; j <= nrt; j++) w[j] = w[j] / a;
 
     if (h > 0.0) 
-    { 
+    {
       // use linear fit
 
       // find weighted center of x values
@@ -164,6 +214,71 @@ lowest(double *x, double *y, size_t n, double xs, double *ys, long nleft, long n
   }
 }
 
+/* ratfor code:
+*
+*  subroutine lowess(x,y,n,f,nsteps,delta,ys,rw,res)
+*  real x(n),y(n),ys(n),rw(n),res(n)
+*  logical ok
+*  if (n<2){ ys(1) = y(1); return }
+*  ns = max0(min0(ifix(f*float(n)),n),2)  # at least two, at most n points
+*  for(iter=1; iter<=nsteps+1; iter=iter+1){      # robustness iterations
+*         nleft = 1; nright = ns
+*         last = 0        # index of prev estimated point
+*         i = 1   # index of current point
+*         repeat{
+*                 while(nright<n){
+*  # move nleft, nright to right if radius decreases
+*                         d1 = x(i)-x(nleft)
+*                         d2 = x(nright+1)-x(i)
+*  # if d1<=d2 with x(nright+1)==x(nright), lowest fixes
+*                         if (d1<=d2) break
+*  # radius will not decrease by move right
+*                         nleft = nleft+1
+*                         nright = nright+1
+*                         }
+*                 call lowest(x,y,n,x(i),ys(i),nleft,nright,res,iter>1,rw,ok)
+*  # fitted value at x(i)
+*                 if (!ok) ys(i) = y(i)
+*  # all weights zero - copy over value (all rw==0)
+*                 if (last<i-1) { # skipped points -- interpolate
+*                         denom = x(i)-x(last)    # non-zero - proof?
+*                         for(j=last+1; j<i; j=j+1){
+*                                 alpha = (x(j)-x(last))/denom
+*                                 ys(j) = alpha*ys(i)+(1.0-alpha)*ys(last)
+*                                 }
+*                         }
+*                 last = i        # last point actually estimated
+*                 cut = x(last)+delta     # x coord of close points
+*                 for(i=last+1; i<=n; i=i+1){     # find close points
+*                         if (x(i)>cut) break     # i one beyond last pt within cut
+*                         if(x(i)==x(last)){      # exact match in x
+*                                 ys(i) = ys(last)
+*                                 last = i
+*                                 }
+*                         }
+*                 i=max0(last+1,i-1)
+*  # back 1 point so interpolation within delta, but always go forward
+*                 } until(last>=n)
+*         do i = 1,n      # residuals
+*                 res(i) = y(i)-ys(i)
+*         if (iter>nsteps) break  # compute robustness weights except last time
+*         do i = 1,n
+*                 rw(i) = abs(res(i))
+*         call sort(rw,n)
+*         m1 = 1+n/2; m2 = n-m1+1
+*         cmad = 3.0*(rw(m1)+rw(m2))      # 6 median abs resid
+*         c9 = .999*cmad; c1 = .001*cmad
+*         do i = 1,n {
+*                 r = abs(res(i))
+*                 if(r<=c1) rw(i)=1.      # near 0, avoid underflow
+*                 else if(r>c9) rw(i)=0.  # near 1, avoid underflow
+*                 else rw(i) = (1.0-(r/cmad)**2)**2
+*                 }
+*         }
+*  return
+*  end
+
+*/
 static void
 sort(double *x, size_t n)
 {
@@ -321,17 +436,26 @@ namespace OpenMS
                double f, int nsteps,
                double delta, std::vector<double>& result)
     {
+      OPENMS_PRECONDITION(delta > 0.0, "lowess: parameter delta must be larger than 0")
       OPENMS_PRECONDITION(f > 0.0, "lowess: parameter f must be larger than 0")
       OPENMS_PRECONDITION(f <= 1.0, "lowess: parameter f must be smaller or equal to 1")
+      OPENMS_PRECONDITION(nsteps > 0, "lowess: parameter nstesp must be larger than zero")
       OPENMS_PRECONDITION(x.size() == y.size(), "Vectors x and y must have the same length")
       OPENMS_PRECONDITION(x.size() >= 2, "Need at least two points for smoothing")
       OPENMS_PRECONDITION(std::adjacent_find(x.begin(), x.end(), std::greater<double>()) == x.end(),
           "The vector x needs to be sorted")
 
+
       size_t n = x.size(); // check array size, it needs to fit into a "long" variable
+
+      result.clear();
+      result.resize(n); // needs to have the correct size as we use C-style arrays from here on
+
       double *rweights = new double[n];
       double *residuals = new double[n];
+
       int retval = c_lowess::lowess(&x[0], &y[0], n, f, nsteps, delta, &result[0], rweights, residuals);
+
       delete[] rweights;
       delete[] residuals;
 

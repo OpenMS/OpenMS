@@ -68,24 +68,28 @@ namespace OpenMS
       @param y The input vector in the second dimension
       @param f Fraction of datapoints to use for each local regression (the span, recommended value: 2/3) 
       @param nsteps The number of rubstifying iterations (recommended value: 3)
-      @param delta Allows to skip computation of regression at some points, larger values lead to increased speed up (recommended value: 0.01 * range of x)
+      @param delta nonnegative parameter which may be used to save computations (recommended value: 0.01 * range of x)
       @param result Result of fit
 
       \pre The size of the vectors x and y needs to be equal
       \pre The vector needs to have at least 2 elements
       \pre The vector x needs to be sorted
       \pre The f value needs to be between 0 and 1
+      \pre The nsteps parameter needs to be larger than zero
+      \pre The delta parameter needs to be larger than zero
 
       The delta parameter allows the algorithm to not perform the regression at
       every data point, as it assumes that points that are close to each other
       will have the same regression parameters. A linear interpolation is used
-      to fill in the skipped points.
+      to fill in the skipped points, larger values lead to increased speed up.
 
       The f parameter allows the caller to influence the smoothness. A larger
-      values will increase smoothness (recommended value: 2/3)
+      values will increase smoothness (recommended value: 2/3) It is the
+      fraction of points used to compute each fitted value. Choosing F in the
+      range .2 to .8 usually results in a good fit
 
     */
-    int lowess(std::vector<double>& x, std::vector<double>& y,
+    int OPENMS_DLLAPI lowess(std::vector<double>& x, std::vector<double>& y,
                double f, int nsteps, double delta, std::vector<double>& result);
 
     /**
@@ -100,7 +104,7 @@ namespace OpenMS
       \pre The vector x needs to be sorted
       
     */
-    int lowess(std::vector<double>& x, std::vector<double>& y,
+    int OPENMS_DLLAPI lowess(std::vector<double>& x, std::vector<double>& y,
                std::vector<double>& result)
     {
       OPENMS_PRECONDITION(x.size() == y.size(), "Vectors x and y must have the same length")
