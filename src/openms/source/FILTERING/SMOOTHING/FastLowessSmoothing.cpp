@@ -116,8 +116,11 @@ static double pow3(double x) { return(x * x * x); }
 */
 static void
 lowest(const std::vector<double>& x, const std::vector<double>& y, size_t n,
-       double xs, double *ys, size_t nleft, size_t nright, std::vector<double>& w,
-       bool userw, const std::vector<double>& rw, bool *ok)
+       double xs, double *ys, size_t nleft, size_t nright, 
+       std::vector<double>& weights, // vector w
+       bool userw, 
+       const std::vector<double>& resid_weights,
+       bool *ok)
 {
   double range, h, h1, h9, a, b, c, r;
   long j, nrt;
@@ -133,19 +136,19 @@ lowest(const std::vector<double>& x, const std::vector<double>& y, size_t n,
   for (j = nleft; j < (long)n; j++) 
   {
 
-    w[j]=0.0;
+    weights[j]=0.0;
     r = fabs(x[j] - xs);
     if (r <= h9)
     {  
       if (r > h1) 
       {
         // small enough for non-zero weight
-        w[j] = pow3(1.0-pow3(r/h));
+        weights[j] = pow3(1.0-pow3(r/h));
       }
-      else w[j] = 1.0;
+      else weights[j] = 1.0;
 
-      if (userw) w[j] = rw[j] * w[j];
-      a += w[j];
+      if (userw) weights[j] = resid_weights[j] * weights[j];
+      a += weights[j];
     }
     else if (x[j] > xs) 
     {
@@ -167,19 +170,19 @@ lowest(const std::vector<double>& x, const std::vector<double>& y, size_t n,
     // weighted least squares
     
     // make sum of w[j] == 1
-    for (j = nleft; j <= nrt; j++) w[j] = w[j] / a;
+    for (j = nleft; j <= nrt; j++) weights[j] = weights[j] / a;
 
     if (h > 0.0) 
     {
       // use linear fit
 
       // find weighted center of x values
-      for (j = nleft, a = 0.0; j <= nrt; j++) a += w[j] * x[j];
+      for (j = nleft, a = 0.0; j <= nrt; j++) a += weights[j] * x[j];
 
       b = xs - a;
       for (j = nleft, c = 0.0; j <= nrt; j++) 
       {
-        c += w[j] * (x[j] - a) * (x[j] - a);
+        c += weights[j] * (x[j] - a) * (x[j] - a);
       }
 
       if (sqrt(c) > .001 * range) 
@@ -188,14 +191,14 @@ lowest(const std::vector<double>& x, const std::vector<double>& y, size_t n,
         b = b/c;
         for (j = nleft; j <= nrt; j++) 
         {
-          w[j] = w[j] * (1.0 + b*(x[j] - a));
+          weights[j] = weights[j] * (1.0 + b*(x[j] - a));
         }
       }
     }
 
     for (j = nleft, *ys = 0.0; j <= nrt; j++)
     {
-      *ys += w[j] * y[j];
+      *ys += weights[j] * y[j];
     }
 
   }
@@ -301,8 +304,9 @@ lowess(const std::vector<double>& x, const std::vector<double>& y,
        int nsteps, 
        double delta,
        std::vector<double>& ys,
-       std::vector<double>& rw,
-       std::vector<double>& res)
+       std::vector<double>& resid_weights, // vector rw
+       std::vector<double>& weights // vector res
+       )
 {
   bool ok;
   size_t i, j, last, m1, m2, nleft, nright, ns;
@@ -340,12 +344,12 @@ lowess(const std::vector<double>& x, const std::vector<double>& y,
              n, x[i],
              &ys[i],
              nleft, nright,
-             res, (iter > 1), rw, &ok);
+             weights, (iter > 1), resid_weights, &ok);
 
       // fitted value at x[i]
       if (! ok) ys[i] = y[i];
 
-      // all weights zero - copy over value (all rw==0)
+      // all weights zero - copy over value (all resid_weights==0)
       if (last < i - 1) 
       {
         // skipped points -- interpolate
@@ -385,7 +389,7 @@ lowess(const std::vector<double>& x, const std::vector<double>& y,
     // residuals
     for (i = 0; i < n; i++)
     {
-      res[i] = y[i] - ys[i];
+      weights[i] = y[i] - ys[i];
     }
 
     // compute robustness weights except last time
@@ -393,33 +397,33 @@ lowess(const std::vector<double>& x, const std::vector<double>& y,
 
     for (i = 0; i < n; i++) 
     {
-      rw[i] = fabs(res[i]);
+      resid_weights[i] = fabs(weights[i]);
     }
 
-    std::sort(rw.begin(), rw.end());
+    std::sort(resid_weights.begin(), resid_weights.end());
     m1 = 1 + n / 2;
     m2 = n - m1 + 1;
     // cmad = 6 * median abs resid
-    cmad = 3.0 * (rw[m1] + rw[m2]);
+    cmad = 3.0 * (resid_weights[m1] + resid_weights[m2]);
     c9 = .999 * cmad; 
     c1 = .001 * cmad;
 
     for (i = 0; i < n; i++) 
     {
-      r = fabs(res[i]);
+      r = fabs(weights[i]);
       if (r <= c1) 
       {
         // near 0, avoid underflow
-        rw[i] = 1.0;
+        resid_weights[i] = 1.0;
       }
       else if (r > c9) 
       {
         // near 1, avoid underflow
-        rw[i] = 0.0;
+        resid_weights[i] = 0.0;
       }
       else 
       {
-        rw[i] = pow2(1.0 - pow2(r / cmad));
+        resid_weights[i] = pow2(1.0 - pow2(r / cmad));
       }
     }
 
@@ -454,10 +458,11 @@ namespace OpenMS
       // result as well as working vectors need to have the correct size
       result.clear();
       result.resize(n);
-      std::vector<double> rweights(n);
-      std::vector<double> residuals(n);
+      std::vector<double> resid_weights(n);
+      std::vector<double> weights(n);
 
-      int retval = c_lowess::lowess(x, y, f, nsteps, delta, result, rweights, residuals);
+      int retval = c_lowess::lowess(x, y, f, nsteps, delta, result,
+                                    resid_weights, weights);
 
       return retval;
     }
