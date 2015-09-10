@@ -411,6 +411,45 @@ void interpolate_skipped_fits(const std::vector<double>& x,
   }
 }
         
+/// Calculate residual weights for the next `robustifying` iteration.
+void calculate_residual_weights(const size_t n, 
+                                const std::vector<double>& weights, 
+                                std::vector<double>& resid_weights)
+{
+  double m1, m2, cmad, c9, c1, r;
+
+  for (size_t i = 0; i < n; i++) 
+  {
+    resid_weights[i] = fabs(weights[i]);
+  }
+
+  std::sort(resid_weights.begin(), resid_weights.end());
+  m1 = 1 + n / 2;
+  m2 = n - m1 + 1;
+  // cmad = 6 * median abs resid
+  cmad = 3.0 * (resid_weights[m1] + resid_weights[m2]);
+  c9 = .999 * cmad; 
+  c1 = .001 * cmad;
+
+  for (size_t i = 0; i < n; i++) 
+  {
+    r = fabs(weights[i]);
+    if (r <= c1) 
+    {
+      // near 0, avoid underflow
+      resid_weights[i] = 1.0;
+    }
+    else if (r > c9) 
+    {
+      // near 1, avoid underflow
+      resid_weights[i] = 0.0;
+    }
+    else 
+    {
+      resid_weights[i] = pow2(1.0 - pow2(r / cmad));
+    }
+  }
+}
 
 int
 lowess(const std::vector<double>& x, const std::vector<double>& y,
@@ -423,8 +462,7 @@ lowess(const std::vector<double>& x, const std::vector<double>& y,
        )
 {
   bool ok;
-  size_t i, last, m1, m2, nleft, nright, ns;
-  double cut, cmad, c9, c1, r;
+  size_t i, last, nleft, nright, ns;
   
   size_t n = x.size();
   if (n < 2)
@@ -486,37 +524,7 @@ lowess(const std::vector<double>& x, const std::vector<double>& y,
     // compute robustness weights except last time
     if (iter > nsteps) break;
 
-    for (i = 0; i < n; i++) 
-    {
-      resid_weights[i] = fabs(weights[i]);
-    }
-
-    std::sort(resid_weights.begin(), resid_weights.end());
-    m1 = 1 + n / 2;
-    m2 = n - m1 + 1;
-    // cmad = 6 * median abs resid
-    cmad = 3.0 * (resid_weights[m1] + resid_weights[m2]);
-    c9 = .999 * cmad; 
-    c1 = .001 * cmad;
-
-    for (i = 0; i < n; i++) 
-    {
-      r = fabs(weights[i]);
-      if (r <= c1) 
-      {
-        // near 0, avoid underflow
-        resid_weights[i] = 1.0;
-      }
-      else if (r > c9) 
-      {
-        // near 1, avoid underflow
-        resid_weights[i] = 0.0;
-      }
-      else 
-      {
-        resid_weights[i] = pow2(1.0 - pow2(r / cmad));
-      }
-    }
+    calculate_residual_weights(n, weights, resid_weights);
 
   }
   return(0);
