@@ -97,16 +97,6 @@ START_SECTION([FastLowessSmoothing_cars]void smoothData(const DoubleVector&, con
   {
     TEST_REAL_SIMILAR(out[i], expected_2[i]);
   }
-
-  /*
-  FastLowessSmoothing::lowess(x, y_noisy, out);
-  idx = 1;
-  for (Size i = 0; i < out.size(); ++i, ++idx)
-  {
-      TEST_REAL_SIMILAR(out[i], targetFunction(idx));
-  }
-  */
-
 }
 END_SECTION
 
