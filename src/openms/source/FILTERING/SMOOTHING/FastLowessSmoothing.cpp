@@ -65,13 +65,13 @@ static double pow2(double x) { return(x * x); }
 static double pow3(double x) { return(x * x * x); }
 
 /// Calculate weights for weighted regression.
-bool calculate_weights(const std::vector<double>& x,
-                       const size_t n, const double xs, 
-                       const bool use_resid_weights, 
-                       const size_t nleft, 
-                       const std::vector<double>& resid_weights, 
-                       std::vector<double>& weights, 
-                       size_t& nrt, const double h)
+static bool calculate_weights(const std::vector<double>& x,
+                              const size_t n, const double current_x, 
+                              const bool use_resid_weights, 
+                              const size_t nleft, 
+                              const std::vector<double>& resid_weights, 
+                              std::vector<double>& weights, 
+                              size_t& nrt, const double h)
 {
   double r;
   size_t j;
@@ -89,7 +89,7 @@ bool calculate_weights(const std::vector<double>& x,
     // use_resid_weights will be False on the first iteration, then True
     // on the subsequent ones, after some residuals have been calculated.
     weights[j] = 0.0;
-    r = fabs(x[j] - xs);
+    r = fabs(x[j] - current_x);
     if (r <= h9)
     {  
       if (r > h1) 
@@ -110,7 +110,7 @@ bool calculate_weights(const std::vector<double>& x,
 
       a += weights[j];
     }
-    else if (x[j] > xs) 
+    else if (x[j] > current_x) 
     {
       // get out at first zero wt on right
       break;
@@ -121,7 +121,7 @@ bool calculate_weights(const std::vector<double>& x,
   nrt = j - 1;
   if (a <= 0.0) 
   {
-    return false;
+    return (false);
   }
   else 
   {
@@ -132,58 +132,66 @@ bool calculate_weights(const std::vector<double>& x,
       weights[j] = weights[j] / a;
     }
 
-    return true;
+    return (true);
 
   }
 }
 
 /// Calculate smoothed/fitted y-value by weighted regression.
-void calculate_y_fit (const std::vector<double>& x,
-                      const std::vector<double>& y,
-                      const double xs, const double range,
-                      const size_t nleft, const size_t nrt, const double h,
-                      double *ys, std::vector<double>& weights)
+static void calculate_y_fit(const std::vector<double>& x,
+                            const std::vector<double>& y,
+                            const double current_x, const size_t n,
+                            const size_t nleft, const size_t nrt, const double h,
+                            double& ys, std::vector<double>& weights)
 {
+  double range = x[n - 1] - x[0];
 
-  double b, c;
   if (h > 0.0) 
   {
     // use linear fit
 
+    // No regression function (e.g. lstsq) is called. Instead a "projection
+    // vector" p_i_j is calculated, and y_fit[i] = sum(p_i_j * y[j]) = y_fit[i]
+    // for j s.t. x[j] is in the neighborhood of x[i]. p_i_j is a function of
+    // the weights, x[i], and its neighbors.
+    // To save space, p_i_j is computed in place using the weight vector.
+
     // find weighted center of x values
-    double a = 0.0;
+    double sum_weighted_x = 0.0; // originally a
     for (size_t j = nleft; j <= nrt; j++) 
     {
-      a += weights[j] * x[j];
+      sum_weighted_x += weights[j] * x[j];
     }
 
-    b = xs - a;
-    c = 0.0;
+    double b = current_x - sum_weighted_x; // originally b
+    double weighted_sqdev = 0.0; // originally c
     for (size_t j = nleft; j <= nrt; j++) 
     {
-      c += weights[j] * (x[j] - a) * (x[j] - a);
+      weighted_sqdev += weights[j] * 
+                        (x[j] - sum_weighted_x) * (x[j] - sum_weighted_x);
     }
 
-    if (sqrt(c) > .001 * range) 
+    if (sqrt(weighted_sqdev) > .001 * range) 
     {
       // points are spread out enough to compute slope
-      b = b/c;
+      b = b/weighted_sqdev;
       for (size_t j = nleft; j <= nrt; j++) 
       {
-        weights[j] = weights[j] * (1.0 + b*(x[j] - a));
+        // Compute p_i_j in place
+        weights[j] = weights[j] * (1.0 + b*(x[j] - sum_weighted_x));
       }
     }
   }
 
-  *ys = 0.0;
+  ys = 0.0;
   for (size_t j = nleft; j <= nrt; j++)
   {
-    *ys += weights[j] * y[j];
+    ys += weights[j] * y[j];
   }
 }
 
 
-/* ratfor code:
+/* ratfor code for lowest:
 *
 *  subroutine lowest(x,y,n,xs,ys,nleft,nright,w,userw,rw,ok)
 *  real x(n),y(n),w(n),rw(n)
@@ -233,28 +241,34 @@ void calculate_y_fit (const std::vector<double>& x,
 *  end
 
 */
-static void
-lowest(const std::vector<double>& x, const std::vector<double>& y, size_t n,
-       double xs, double *ys, size_t nleft, size_t nright, 
-       std::vector<double>& weights, // vector w
-       bool use_resid_weights,  // userw
-       const std::vector<double>& resid_weights,
-       bool *ok)
+static bool lowest(const std::vector<double>& x,
+                   const std::vector<double>& y, size_t n,
+                   double current_x, //xs 
+                   double& ys, size_t nleft, size_t nright, 
+                   std::vector<double>& weights, // vector w
+                   bool use_resid_weights,  // userw
+                   const std::vector<double>& resid_weights)
 {
-  double range, h;
+  double h;
   size_t nrt; // rightmost pt (may be greater than nright because of ties)
 
-  range = x[n - 1] - x[0];
-  h = std::max(xs - x[nleft], x[nright] - xs);
+  h = std::max(current_x - x[nleft], x[nright] - current_x);
 
-  *ok = calculate_weights(x, n, xs, use_resid_weights, nleft, resid_weights, 
-                          weights, nrt, h);
-
-  if (ok)
-  { 
-    // weighted least squares
-    calculate_y_fit (x, y, xs, range, nleft, nrt, h, ys, weights);
+  // Calculate the weights for the regression in this neighborhood.
+  // Determine if at least some weights are positive, so a regression
+  // is ok.
+  bool fit_ok = calculate_weights(x, n, current_x, use_resid_weights, 
+                                  nleft, resid_weights, 
+                                  weights, nrt, h);
+  if (!fit_ok) 
+  {
+    return (fit_ok);
   }
+
+  // If it is ok to fit, run the weighted least squares regression
+  calculate_y_fit (x, y, current_x, n, nleft, nrt, h, ys, weights);
+
+  return (fit_ok);
 }
 
 /* ratfor code:
@@ -324,7 +338,7 @@ lowest(const std::vector<double>& x, const std::vector<double>& y, size_t n,
 */
 
 /// Find the indices bounding the k-nearest-neighbors of the current point.
-void inline update_neighborhood(const std::vector<double>& x,
+static void update_neighborhood(const std::vector<double>& x,
                                 size_t n, size_t i,
                                 size_t& nleft, size_t& nright)
 {
@@ -352,7 +366,7 @@ void inline update_neighborhood(const std::vector<double>& x,
 }
 
 /// Update the counters of the local regression.
-void update_indices(const std::vector<double>& x,
+static void update_indices(const std::vector<double>& x,
                     const size_t n,
                     const double delta,
                     size_t& i, size_t& last, 
@@ -396,7 +410,7 @@ void update_indices(const std::vector<double>& x,
 
 /// Calculate smoothed/fitted y by linear interpolation between the current /
 //and previous y fitted by weighted regression.
-void interpolate_skipped_fits(const std::vector<double>& x,
+static void interpolate_skipped_fits(const std::vector<double>& x,
                               const size_t i, const size_t last, 
                               std::vector<double>& ys)
 {
@@ -439,7 +453,7 @@ void interpolate_skipped_fits(const std::vector<double>& x,
 // }
         
 /// Calculate residual weights for the next `robustifying` iteration.
-void calculate_residual_weights(const size_t n, 
+static void calculate_residual_weights(const size_t n, 
                                 const std::vector<double>& weights, 
                                 std::vector<double>& resid_weights)
 {
@@ -488,8 +502,7 @@ void calculate_residual_weights(const size_t n,
   }
 }
 
-int
-lowess(const std::vector<double>& x, const std::vector<double>& y,
+int lowess(const std::vector<double>& x, const std::vector<double>& y,
        double frac,  // parameter f
        int nsteps, 
        double delta,
@@ -498,14 +511,14 @@ lowess(const std::vector<double>& x, const std::vector<double>& y,
        std::vector<double>& weights // vector res
        )
 {
-  bool ok;
+  bool fit_ok;
   size_t i, last, nleft, nright, ns;
   
   size_t n = x.size();
   if (n < 2)
   { 
     ys[0] = y[0]; 
-    return(1);
+    return (1);
   }
 
   // how many points around estimation point should be used for regression:
@@ -522,22 +535,20 @@ lowess(const std::vector<double>& x, const std::vector<double>& y,
     last = -1;        // index of prev estimated point
     i = 0;            // index of current point
 
+    // Fit all data points y[i] until the end of the array
     do 
     {
-
       // Identify the neighborhood around the current x[i] 
       // -> get the nearest ns points
       update_neighborhood(x, n, i, nleft, nright);
 
-      // Calculate weights and apply fit
-      lowest(x, y,
-             n, x[i],
-             &ys[i],
-             nleft, nright,
-             weights, (iter > 1), resid_weights, &ok);
+      // Calculate weights and apply fit (original lowest function)
+      fit_ok = lowest(x, y, n, x[i], ys[i], nleft, nright,
+                      weights, (iter > 1), resid_weights);
 
+      // recover: if something went wrong during the fit, use y[i] 
       // fitted value at x[i]
-      if (! ok) ys[i] = y[i];
+      if (! fit_ok) ys[i] = y[i];
 
       // If we skipped some points (because of how delta was set), go back
       // and fit them by linear interpolation.
@@ -562,9 +573,8 @@ lowess(const std::vector<double>& x, const std::vector<double>& y,
     if (iter > nsteps) break;
 
     calculate_residual_weights(n, weights, resid_weights);
-
   }
-  return(0);
+  return (0);
 }
 
 
