@@ -64,17 +64,6 @@ namespace c_lowess
 static double pow2(double x) { return(x * x); }
 static double pow3(double x) { return(x * x * x); }
 
-int 
-static compar(const void *aa, const void *bb)
-{
-  const double* a = (double*)aa;
-  const double* b = (double*)bb;
-
-  if (*a < *b) return(-1);
-  else if (*a > *b) return(1);
-  else return(0);
-}
-
 /* ratfor code:
 *
 *  subroutine lowest(x,y,n,xs,ys,nleft,nright,w,userw,rw,ok)
@@ -126,8 +115,8 @@ static compar(const void *aa, const void *bb)
 
 */
 static void
-lowest(double *x, double *y, size_t n, double xs, double *ys, long nleft, long nright,
-       double *w, int userw, double *rw, bool *ok)
+lowest(std::vector<double>& x, std::vector<double>& y, size_t n, double xs, double *ys, long nleft, long nright,
+       std::vector<double>& w, bool userw, std::vector<double>& rw, bool *ok)
 {
   double range, h, h1, h9, a, b, c, r;
   long j, nrt;
@@ -276,18 +265,11 @@ lowest(double *x, double *y, size_t n, double xs, double *ys, long nleft, long n
 *  end
 
 */
-static void
-sort(double *x, size_t n)
-{
-  // C code only needs this
-  // extern void qsort();
-  qsort(x, n, sizeof(double), compar);
-}
 
 int
-lowess(double *x, double *y, long n,
+lowess(std::vector<double>& x, std::vector<double>& y, long n,
        double f, int nsteps,
-       double delta, double *ys, double *rw, double *res)
+       double delta, std::vector<double>& ys, std::vector<double>& rw, std::vector<double>& res)
 {
   int iter;
   bool ok;
@@ -389,7 +371,7 @@ lowess(double *x, double *y, long n,
       rw[i] = fabs(res[i]);
     }
 
-    sort(rw,n);
+    std::sort(rw.begin(), rw.end());
     m1 = 1 + n / 2;
     m2 = n - m1 + 1;
     // cmad = 6 * median abs resid
@@ -448,13 +430,10 @@ namespace OpenMS
       result.clear();
       result.resize(n); // needs to have the correct size as we use C-style arrays from here on
 
-      double *rweights = new double[n];
-      double *residuals = new double[n];
+      std::vector<double> rweights(n);
+      std::vector<double> residuals(n);
 
-      int retval = c_lowess::lowess(&x[0], &y[0], n, f, nsteps, delta, &result[0], rweights, residuals);
-
-      delete[] rweights;
-      delete[] residuals;
+      int retval = c_lowess::lowess(x, y, n, f, nsteps, delta, result, rweights, residuals);
 
       return retval;
     }
