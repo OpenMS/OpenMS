@@ -32,8 +32,27 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-// This code below is C code, obtained from the common lisp stat project under the BSD licence: 
-// https://raw.githubusercontent.com/blindglobe/common-lisp-stat/3bdd28c4ae3de28dce32d8b9158c1f8d1b2e3924/lib/lowess.c
+/*
+ * This code below is C code, obtained from the common lisp stat project under the BSD licence: 
+ * https://raw.githubusercontent.com/blindglobe/common-lisp-stat/3bdd28c4ae3de28dce32d8b9158c1f8d1b2e3924/lib/lowess.c
+ *
+ * Like much lowess code, it is derived from the initial FORTRAN code by W. S.
+ * Cleveland published at NETLIB. The original FORTRAN code can be found at
+ * http://www.netlib.org/go/lowess.f
+ *
+ * Other implementations and ports of the same code can be found at the R project: http://svn.r-project.org/R/trunk/src/library/stats/src/lowess.c
+ * while a Cython version is available at: https://github.com/statsmodels/statsmodels/blob/master/statsmodels/nonparametric/_smoothers_lowess.pyx
+ *
+*/
+
+#include <OpenMS/FILTERING/SMOOTHING/FastLowessSmoothing.h>
+
+#include <OpenMS/CONCEPT/Macros.h>
+
+#include <math.h>
+#include <algorithm>    // std::min, std::max
+#include <stdlib.h>
+#include <vector>
 
 namespace c_lowess
 {
@@ -42,18 +61,11 @@ namespace c_lowess
   Translated from RATFOR lowess code of W. S. Cleveland as obtained from NETLIB
 */
 
-#include "math.h"
-#include <stdlib.h>
-
 #define FALSE 0
 #define TRUE 1
 
-extern long max(long, long);
-extern long min(long, long);
-
 static double pow2(double x) { return(x * x); }
 static double pow3(double x) { return(x * x * x); }
-static double local_fmax(double x, double y) { return (x > y ? x : y); }
 
 int 
 static compar(const void *aa, const void *bb)
@@ -68,20 +80,20 @@ static compar(const void *aa, const void *bb)
 
 static void
 lowest(double *x, double *y, size_t n, double xs, double *ys, long nleft, long nright,
-       double *w, int userw, double *rw, int *ok)
+       double *w, int userw, double *rw, bool *ok)
 {
   double range, h, h1, h9, a, b, c, r;
   long j, nrt;
 
   range = x[n - 1] - x[0];
-  h = local_fmax(xs - x[nleft], x[nright] - xs);
+  h = std::max(xs - x[nleft], x[nright] - xs);
   h9 = .999 * h;
   h1 = .001 * h;
 
   a = 0.0; // sum of weights
 
   // compute weights (pick up all ties on right)
-  for (j = nleft; j < n; j++) 
+  for (j = nleft; j < (long)n; j++) 
   {
 
     w[j]=0.0;
@@ -155,19 +167,18 @@ lowest(double *x, double *y, size_t n, double xs, double *ys, long nleft, long n
 static void
 sort(double *x, size_t n)
 {
-  extern void qsort();
-
+  // C code only needs this
+  // extern void qsort();
   qsort(x, n, sizeof(double), compar);
 }
 
-
-
 int
-lowess(double *x, double *y, size_t n,
-       double f, size_t nsteps,
+lowess(double *x, double *y, long n,
+       double f, int nsteps,
        double delta, double *ys, double *rw, double *res)
 {
-  int iter, ok;
+  int iter;
+  bool ok;
   long i, j, last, m1, m2, nleft, nright, ns;
   double d1, d2, denom, alpha, cut, cmad, c9, c1, r;
   
@@ -177,8 +188,9 @@ lowess(double *x, double *y, size_t n,
     return(1);
   }
 
+  // how many points around estimation point should be used for regression:
   // at least two, at most n points
-  ns = max(min( (long) (f * n), n), 2); 
+  ns = std::max(std::min( (long) (f * n), n), (long)2); 
 
   // robustness iterations
   for (iter = 1; iter <= nsteps + 1; iter++)
@@ -247,7 +259,7 @@ lowess(double *x, double *y, size_t n,
       }
 
       // back 1 point so interpolation within delta, but always go forward
-      i = max(last + 1,i - 1);
+      i = std::max(last + 1,i - 1);
 
     } while (last < n - 1);
 
@@ -298,5 +310,34 @@ lowess(double *x, double *y, size_t n,
 
 
 }
+
+namespace OpenMS 
+{
+
+  namespace FastLowessSmoothing
+  {
+
+    int lowess(std::vector<double>& x, std::vector<double>& y,
+               double f, int nsteps,
+               double delta, std::vector<double>& result)
+    {
+      OPENMS_PRECONDITION(f > 0.0, "lowess: parameter f must be larger than 0")
+      OPENMS_PRECONDITION(f <= 1.0, "lowess: parameter f must be smaller or equal to 1")
+      OPENMS_PRECONDITION(x.size() == y.size(), "Vectors x and y must have the same length")
+      OPENMS_PRECONDITION(x.size() >= 2, "Need at least two points for smoothing")
+      OPENMS_PRECONDITION(std::adjacent_find(x.begin(), x.end(), std::greater<double>()) == x.end(),
+          "The vector x needs to be sorted")
+
+      size_t n = x.size(); // check array size, it needs to fit into a "long" variable
+      double *rweights = new double[n];
+      double *residuals = new double[n];
+      int retval = c_lowess::lowess(&x[0], &y[0], n, f, nsteps, delta, &result[0], rweights, residuals);
+      delete[] rweights;
+      delete[] residuals;
+
+      return retval;
+    }
+  }
  
 
+}
