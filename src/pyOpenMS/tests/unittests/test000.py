@@ -1752,10 +1752,6 @@ def testEnzymaticDigestion():
      EnzymaticDigestion.setMissedCleavages()
      EnzymaticDigestion.digest()
      EnzymaticDigestion.peptideCount()
-     EnzymaticDigestion.isLogModelEnabled()
-     EnzymaticDigestion.setLogModelEnabled()
-     EnzymaticDigestion.getLogThreshold()
-     EnzymaticDigestion.setLogThreshold()
     """
     # removed due to name clashes
     # EnzymaticDigestion.getEnzyme()
@@ -1774,22 +1770,21 @@ def testEnzymaticDigestion():
     assert pyopenms.EnzymaticDigestion().digest is not None
     assert pyopenms.EnzymaticDigestion().peptideCount is not None
 
-    assert pyopenms.EnzymaticDigestion().isLogModelEnabled is not None
-    assert pyopenms.EnzymaticDigestion().setLogModelEnabled is not None
-    assert pyopenms.EnzymaticDigestion().getLogThreshold  is not None
-    assert pyopenms.EnzymaticDigestion().setLogThreshold is not None
-
-    ff.setLogThreshold(5)
-    assert ff.getLogThreshold() == 5
-
     ff.setMissedCleavages(5)
     assert ff.getMissedCleavages() == 5
 
     #ff.setEnzyme(enz.TRYPSIN)
     #assert ff.getEnzyme() == enz.TRYPSIN
 
-    ff.setLogModelEnabled(True)
-    assert ff.isLogModelEnabled() == True
+@report
+def testEnzymaticDigestion():
+    ff = pyopenms.EnzymaticDigestionLogModel()
+    assert pyopenms.EnzymaticDigestionLogModel().getLogThreshold is not None
+    assert pyopenms.EnzymaticDigestionLogModel().setLogThreshold is not None
+    assert pyopenms.EnzymaticDigestionLogModel().digest is not None
+    assert pyopenms.EnzymaticDigestionLogModel().peptideCount is not None
+    ff.setLogThreshold(0.25)
+    assert ff.getLogThreshold() == 0.25
 
 @report
 def testIDDecoyProbability():
@@ -2967,10 +2962,7 @@ def testMapAlignment():
      MapAlignmentAlgorithmPoseClustering.setProgress
      MapAlignmentAlgorithmPoseClustering.startProgress
 
-     MapAlignmentTransformer.transformFeatureMaps
-     MapAlignmentTransformer.transformPeakMaps
-     MapAlignmentTransformer.transformSingleFeatureMap
-     MapAlignmentTransformer.transformSinglePeakMap
+     MapAlignmentTransformer.transformRetentionTimes
      """
     ma = pyopenms.MapAlignmentAlgorithmPoseClustering()
     assert isinstance(ma.getDefaults(), pyopenms.Param)
@@ -2987,11 +2979,7 @@ def testMapAlignment():
     ma.setReference
     ma.align
 
-
-    pyopenms.MapAlignmentTransformer.transformPeakMaps
-    pyopenms.MapAlignmentTransformer.transformFeatureMaps
-    pyopenms.MapAlignmentTransformer.transformSinglePeakMap
-    pyopenms.MapAlignmentTransformer.transformSingleFeatureMap
+    pyopenms.MapAlignmentTransformer.transformRetentionTimes
 
 @report
 def testMapAlignmentIdentification():
@@ -3002,12 +2990,8 @@ def testMapAlignmentIdentification():
      """
     ma = pyopenms.MapAlignmentAlgorithmIdentification()
 
-    assert pyopenms.MapAlignmentAlgorithmIdentification().alignPeakMaps is not None
-    assert pyopenms.MapAlignmentAlgorithmIdentification().alignFeatureMaps is not None
-    assert pyopenms.MapAlignmentAlgorithmIdentification().alignConsensusMaps is not None
-    assert pyopenms.MapAlignmentAlgorithmIdentification().alignPeptideIdentifications is not None
+    assert pyopenms.MapAlignmentAlgorithmIdentification().align is not None
     assert pyopenms.MapAlignmentAlgorithmIdentification().setReference is not None
-    assert pyopenms.MapAlignmentAlgorithmIdentification().fitModel is not None
 
 @report
 def testMapAlignmentTransformer():
@@ -3018,15 +3002,7 @@ def testMapAlignmentTransformer():
      """
     ma = pyopenms.MapAlignmentTransformer()
 
-    assert pyopenms.MapAlignmentTransformer().transformPeakMaps is not None
-    assert pyopenms.MapAlignmentTransformer().transformFeatureMaps is not None
-    assert pyopenms.MapAlignmentTransformer().transformConsensusMaps is not None
-    # assert pyopenms.MapAlignmentTransformer().transformPeptideIdentifications is not None
-    assert pyopenms.MapAlignmentTransformer().transformSinglePeakMap is not None
-    assert pyopenms.MapAlignmentTransformer().transformSingleFeatureMap is not None
-    assert pyopenms.MapAlignmentTransformer().transformSingleConsensusMap is not None
-    assert pyopenms.MapAlignmentTransformer().transformSinglePeptideIdentification is not None
-
+    assert pyopenms.MapAlignmentTransformer().transformRetentionTimes is not None
 
 @report
 def testMxxxFile():

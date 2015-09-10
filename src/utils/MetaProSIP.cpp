@@ -225,7 +225,7 @@ public:
       double dxdy = spline.derivatives(xi, 1);
       double yi = spline.eval(xi);
 
-      if (debug >= 100)
+      if (debug)
       {
         cout << x[0] << " " << x[n - 1] << " " << xi << " " << yi << endl;
       }

@@ -182,7 +182,6 @@ namespace OpenMS
       //clustering.extendClustersY();
       clustering.removeSmallClustersY(rt_minimum_);
       cluster_results.push_back(clustering.getResults());
-
     }
 
     endProgress();

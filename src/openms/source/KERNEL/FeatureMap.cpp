@@ -105,6 +105,7 @@ namespace OpenMS
 
   FeatureMap::FeatureMap() :
     Base(),
+    MetaInfoInterface(),
     RangeManagerType(),
     DocumentIdentifier(),
     UniqueIdInterface(),
@@ -117,6 +118,7 @@ namespace OpenMS
 
   FeatureMap::FeatureMap(const FeatureMap& source) :
     Base(source),
+    MetaInfoInterface(source),
     RangeManagerType(source),
     DocumentIdentifier(source),
     UniqueIdInterface(source),
@@ -136,6 +138,7 @@ namespace OpenMS
     if (&rhs == this) return *this;
 
     Base::operator=(rhs);
+    MetaInfoInterface::operator=(rhs);
     RangeManagerType::operator=(rhs);
     DocumentIdentifier::operator=(rhs);
     UniqueIdInterface::operator=(rhs);
@@ -149,6 +152,7 @@ namespace OpenMS
   bool FeatureMap::operator==(const FeatureMap& rhs) const
   {
     return std::operator==(*this, rhs) &&
+           MetaInfoInterface::operator==(rhs) &&
            RangeManagerType::operator==(rhs) &&
            DocumentIdentifier::operator==(rhs) &&
            UniqueIdInterface::operator==(rhs) &&
@@ -360,6 +364,7 @@ namespace OpenMS
 
     if (clear_meta_data)
     {
+      clearMetaInfo();
       clearRanges();
       this->DocumentIdentifier::operator=(DocumentIdentifier()); // no "clear" method
       clearUniqueId();

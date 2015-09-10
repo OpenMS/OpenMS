@@ -249,7 +249,7 @@ PeptideProteinResolution::findConnectedComponent(Size& root_prot_grp)
          nb_it != neighbors.end();
          ++nb_it)
     {
-      // If current node is protein, its neigbors are peptides and
+      // If current node is protein, its neighbors are peptides and
       // vice versa -> look in corresponding "result" set and insert
       // if not present
       if (!curr_node.first)
@@ -262,7 +262,7 @@ PeptideProteinResolution::findConnectedComponent(Size& root_prot_grp)
       }
       
       // If it was not seen yet, add it to the queue to process
-      // its neigbors later. All neighbors are from the opposite type now
+      // its neighbors later. All neighbors are from the opposite type now
       if (success.second)
       {
         my_queue.push(make_pair(!curr_node.first, *nb_it));
@@ -282,7 +282,7 @@ PeptideProteinResolution::findConnectedComponent(Size& root_prot_grp)
  * This is achieved by removing all other evidence from the input
  * PeptideIDs and iterating until
  * In accordance with Fido only the best hit (PSM) for an ID is considered.
- * Probability ties are _currently_ resolved by taking the first occurence.
+ * Probability ties are _currently_ resolved by taking the first occurrence.
  */
 void PeptideProteinResolution::resolveConnectedComponent(
                                 ConnectedComponent& conn_comp,
@@ -355,7 +355,7 @@ void PeptideProteinResolution::resolveConnectedComponent(
       // proteins but the ones from the current indist. group
       for (vector<PeptideEvidence>::iterator pepev_it = best_hit_ev.begin();
            pepev_it != best_hit_ev.end();
-           //dont increase index, will be done by case
+           //don't increase index, will be done by case
            )
       {
         // if its accession is not in the current best group, remove evidence

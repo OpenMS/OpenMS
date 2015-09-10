@@ -57,27 +57,35 @@ PoseClusteringAffineSuperimposer* nullPointer = 0;
 BaseSuperimposer* base_nullPointer = 0;
 
 START_SECTION((PoseClusteringAffineSuperimposer()))
-	ptr = new PoseClusteringAffineSuperimposer();
-	TEST_NOT_EQUAL(ptr, nullPointer)
+{
+  ptr = new PoseClusteringAffineSuperimposer();
+  TEST_NOT_EQUAL(ptr, nullPointer)
+}
 END_SECTION
 
 START_SECTION((virtual ~PoseClusteringAffineSuperimposer()))
-	delete ptr;
+{
+  delete ptr;
+}
 END_SECTION
 
 START_SECTION((static BaseSuperimposer* create()))
+{
   BaseSuperimposer* base_ptr = 0;
-	base_ptr = PoseClusteringAffineSuperimposer::create();
+  base_ptr = PoseClusteringAffineSuperimposer::create();
   TEST_NOT_EQUAL(base_ptr, base_nullPointer)
+}
 END_SECTION
 
 START_SECTION((static const String getProductName()))
+{
   PoseClusteringAffineSuperimposer pcat;
-
   TEST_EQUAL(pcat.getName() == "poseclustering_affine",true)
+}
 END_SECTION
 
 START_SECTION((virtual void run(const ConsensusMap& map_model, const ConsensusMap& map_scene, TransformationDescription& transformation)))
+{
   std::vector<ConsensusMap> input(2);
   Feature feat1;
   Feature feat2;
@@ -121,14 +129,116 @@ START_SECTION((virtual void run(const ConsensusMap& map_model, const ConsensusMa
 
   TEST_STRING_EQUAL(transformation.getModelType(), "linear")
   parameters = transformation.getModelParameters();
-	TEST_EQUAL(parameters.size(), 2)
+  TEST_EQUAL(parameters.size(), 2)
   TEST_REAL_SIMILAR(parameters.getValue("slope"), 1.0)
   TEST_REAL_SIMILAR(parameters.getValue("intercept"), -0.4)
+}
+END_SECTION
+
+START_SECTION((virtual void run(const std::vector<Peak2D> & map_model, const std::vector<Peak2D> & map_scene, TransformationDescription& transformation)))
+{
+  std::vector<Peak2D> map_model, map_scene;
+
+  Peak2D p1;
+  p1.setRT(1);
+  p1.setMZ(1);
+  p1.setIntensity(100.0f);
+  Peak2D p2;
+  p2.setRT(5);
+  p2.setMZ(5);
+  p2.setIntensity(100.0f);
+  map_model.push_back(p1);
+  map_model.push_back(p2);
+
+  Peak2D p3;
+  p3.setRT(1.4);
+  p3.setMZ(1.02);
+  p3.setIntensity(100.0f);
+  Peak2D p4;
+  p4.setRT(5.4);
+  p4.setMZ(5.02);
+  p4.setIntensity(100.0f);
+  map_scene.push_back(p3);
+  map_scene.push_back(p4);
+
+  Param parameters;
+  parameters.setValue(String("scaling_bucket_size"), 0.01);
+  parameters.setValue(String("shift_bucket_size"), 0.1);
+
+  // If hashing goes wrong, get debug output with the following:
+  //  parameters.setValue(String("dump_buckets"),"pcast_buckets");
+  //  parameters.setValue(String("dump_pairs"),"pcast_pairs");
+
+  TransformationDescription transformation;
+  PoseClusteringAffineSuperimposer pcat;
+  pcat.setParameters(parameters);
+
+  pcat.run(map_model, map_scene, transformation);
+
+  TEST_STRING_EQUAL(transformation.getModelType(), "linear")
+  parameters = transformation.getModelParameters();
+  TEST_EQUAL(parameters.size(), 2)
+  TEST_REAL_SIMILAR(parameters.getValue("slope"), 1.0)
+  TEST_REAL_SIMILAR(parameters.getValue("intercept"), -0.4)
+}
+END_SECTION
+
+START_SECTION(([EXTRA]virtual void run(const std::vector<Peak2D> & map_model, const std::vector<Peak2D> & map_scene, TransformationDescription& transformation)))
+{
+  std::vector<Peak2D> map_model, map_scene;
+
+  // map1_rt = 
+  double map1_rt[] = {1.0, 5.0};
+  double map2_rt[] = {1.4, 5.4};
+
+  double map1_mz[] = {1.0 , 5.0 };
+  double map2_mz[] = {1.02, 5.02};
+
+  double map1_int[] = {100, 100};
+  double map2_int[] = {100, 100};
+
+  for (Size i = 0; i < 2; i++)
+  {
+    Peak2D p;
+    p.setRT(map1_rt[i]);
+    p.setMZ(map1_mz[i]);
+    p.setIntensity(map1_int[i]);
+    map_model.push_back(p);
+  }
+  for (Size i = 0; i < 2; i++)
+  {
+    Peak2D p;
+    p.setRT(map2_rt[i]);
+    p.setMZ(map2_mz[i]);
+    p.setIntensity(map2_int[i]);
+    map_scene.push_back(p);
+  }
+
+
+  Param parameters;
+  parameters.setValue(String("scaling_bucket_size"), 0.01);
+  parameters.setValue(String("shift_bucket_size"), 0.1);
+
+  // If hashing goes wrong, get debug output with the following:
+  //  parameters.setValue(String("dump_buckets"),"pcast_buckets");
+  //  parameters.setValue(String("dump_pairs"),"pcast_pairs");
+
+  TransformationDescription transformation;
+  PoseClusteringAffineSuperimposer pcat;
+  pcat.setParameters(parameters);
+
+  pcat.run(map_model, map_scene, transformation);
+
+  TEST_STRING_EQUAL(transformation.getModelType(), "linear")
+  parameters = transformation.getModelParameters();
+  TEST_EQUAL(parameters.size(), 2)
+  TEST_REAL_SIMILAR(parameters.getValue("slope"), 1.0)
+  TEST_REAL_SIMILAR(parameters.getValue("intercept"), -0.4)
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
 
 

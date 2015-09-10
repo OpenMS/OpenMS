@@ -65,7 +65,10 @@ namespace OpenMS
   {
   }
 
-  int MultiplexFiltering::positionsAndBlacklistFilter(MultiplexPeakPattern pattern, int spectrum, vector<double> peak_position, int peak, vector<double>& mz_shifts_actual, vector<int>& mz_shifts_actual_indices) const
+  int MultiplexFiltering::positionsAndBlacklistFilter(const MultiplexPeakPattern& pattern, int spectrum,
+                                                      const vector<double>& peak_position, int peak,
+                                                      vector<double>& mz_shifts_actual,
+                                                      vector<int>& mz_shifts_actual_indices) const
   {
     // Try to find peaks at the expected m/z positions
     // loop over expected m/z shifts of a peak pattern
@@ -164,7 +167,7 @@ namespace OpenMS
     return peaks_found_in_all_peptides;
   }
 
-  bool MultiplexFiltering::monoIsotopicPeakIntensityFilter(MultiplexPeakPattern pattern, int spectrum_index, const vector<int>& mz_shifts_actual_indices) const
+  bool MultiplexFiltering::monoIsotopicPeakIntensityFilter(const MultiplexPeakPattern& pattern, int spectrum_index, const vector<int>& mz_shifts_actual_indices) const
   {
     MSExperiment<Peak1D>::ConstIterator it_rt = exp_picked_.begin() + spectrum_index;
     for (unsigned peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
@@ -185,7 +188,7 @@ namespace OpenMS
     return false;
   }
 
-  bool MultiplexFiltering::zerothPeakFilter(MultiplexPeakPattern pattern, const vector<double>& intensities_actual) const
+  bool MultiplexFiltering::zerothPeakFilter(const MultiplexPeakPattern& pattern, const vector<double>& intensities_actual) const
   {
     for (unsigned peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
     {
@@ -211,7 +214,7 @@ namespace OpenMS
     return false;
   }
 
-  bool MultiplexFiltering::peptideSimilarityFilter(MultiplexPeakPattern pattern, const vector<double>& intensities_actual, int peaks_found_in_all_peptides_spline) const
+  bool MultiplexFiltering::peptideSimilarityFilter(const MultiplexPeakPattern& pattern, const vector<double>& intensities_actual, int peaks_found_in_all_peptides_spline) const
   {
     std::vector<double> isotope_pattern_1;
     std::vector<double> isotope_pattern_2;
@@ -247,7 +250,7 @@ namespace OpenMS
     return true;
   }
 
-  bool MultiplexFiltering::averagineSimilarityFilter(MultiplexPeakPattern pattern, const vector<double>& intensities_actual, int peaks_found_in_all_peptides_spline, double mz) const
+  bool MultiplexFiltering::averagineSimilarityFilter(const MultiplexPeakPattern& pattern, const vector<double>& intensities_actual, int peaks_found_in_all_peptides_spline, double mz) const
   {
     // Use a more restrictive averagine similarity when we are searching for peptide singlets.
     double similarity;
@@ -286,7 +289,7 @@ namespace OpenMS
     return true;
   }
 
-  void MultiplexFiltering::blacklistPeaks(MultiplexPeakPattern pattern, int spectrum, const vector<int>& mz_shifts_actual_indices, int peaks_found_in_all_peptides_spline)
+  void MultiplexFiltering::blacklistPeaks(const MultiplexPeakPattern& pattern, int spectrum, const vector<int>& mz_shifts_actual_indices, int peaks_found_in_all_peptides_spline)
   {
     for (unsigned peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
     {
@@ -355,7 +358,7 @@ namespace OpenMS
     }
   }
 
-  int MultiplexFiltering::getPeakIndex(std::vector<double> peak_position, int start, double mz, double scaling) const
+  int MultiplexFiltering::getPeakIndex(const std::vector<double>& peak_position, int start, double mz, double scaling) const
   {
     vector<int> valid_index; // indices of valid peaks that lie within the ppm range of the expected peak
     vector<double> valid_deviation; // ppm deviations between expected and (valid) actual peaks
@@ -439,7 +442,7 @@ namespace OpenMS
     }
   }
 
-  double MultiplexFiltering::getPatternSimilarity(vector<double> pattern1, vector<double> pattern2) const
+  double MultiplexFiltering::getPatternSimilarity(const vector<double>& pattern1, const vector<double>& pattern2) const
   {
     if (pattern1.empty() || pattern2.empty())
     {
@@ -449,7 +452,7 @@ namespace OpenMS
     return OpenMS::Math::pearsonCorrelationCoefficient(pattern1.begin(), pattern1.end(), pattern2.begin(), pattern2.end());
   }
 
-  double MultiplexFiltering::getAveragineSimilarity(vector<double> pattern, double m) const
+  double MultiplexFiltering::getAveragineSimilarity(const vector<double>& pattern, double m) const
   {
     // construct averagine distribution
     IsotopeDistribution distribution;

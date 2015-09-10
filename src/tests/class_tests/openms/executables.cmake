@@ -253,6 +253,7 @@ set(math_executables_list
   PosteriorErrorProbabilityModel_test
   #QuadraticRegression_test
   #RegressionUtils_test
+  RANSAC_test
   ROCCurve_test
   StatisticFunctions_test
   #Spline2d_test
@@ -343,6 +344,7 @@ set(chemistry_executables_list
   ElementDB_test
   Element_test
   EmpiricalFormula_test
+  EnzymaticDigestionLogModel_test
   EnzymaticDigestion_test
   Enzyme_test
   EnzymesDB_test
@@ -436,7 +438,6 @@ set(analysis_executables_list
   MapAlignmentAlgorithmIdentification_test
   MapAlignmentAlgorithmPoseClustering_test
   MapAlignmentAlgorithmSpectrumAlignment_test
-  MapAlignmentAlgorithm_test
   MapAlignmentEvaluationAlgorithmPrecision_test
   MapAlignmentEvaluationAlgorithmRecall_test
   MapAlignmentEvaluationAlgorithm_test

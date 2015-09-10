@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
-// $Authors: Marc Sturm, Clemens Groepl $
+// $Maintainer: Hendrik Weisser $
+// $Authors: Marc Sturm, Clemens Groepl, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
@@ -69,6 +69,8 @@ using namespace std;
 
     With this tool it is also possible to invert transformations, or to fit a different model than originally specified to the retention time data in the transformation files. To fit a new model, choose a value other than "none" for the model type (see below).
 
+    Original retention time values can be kept as meta data. With the option @p store_original_rt, meta values with the name "original_RT" and the original retention time will be created for every major data element (spectrum, chromatogram, feature, consensus feature, peptide identification), unless they already exist - "original_RT" values from a previous invocation will not be overwritten.
+
     Since %OpenMS 1.8, the extraction of data for the alignment has been separate from the modeling of RT transformations based on that data. It is now possible to use different models independently of the chosen algorithm. The different available models are:
     - @ref OpenMS::TransformationModelLinear "linear": Linear model.
     - @ref OpenMS::TransformationModelBSpline "b_spline": Smoothing spline (non-linear).
@@ -77,7 +79,7 @@ using namespace std;
     The following parameters control the modeling of RT transformations (they can be set in the "model" section of the INI file):
     @htmlinclude OpenMS_MapRTTransformerModel.parameters @n
 
-    @note As output options, either 'out' or 'trafo_out' has to be provided. They can be used together.
+    @note As output options, either @p out or @p trafo_out has to be provided. They can be used together.
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
@@ -92,12 +94,12 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPMapRTTransformer :
-  public TOPPMapAlignerBase
+  public TOPPBase
 {
 
 public:
   TOPPMapRTTransformer() :
-    TOPPMapAlignerBase("MapRTTransformer", "Applies retention time transformations to maps.")
+    TOPPBase("MapRTTransformer", "Applies retention time transformations to maps.")
   {
   }
 
@@ -105,15 +107,17 @@ protected:
   void registerOptionsAndFlags_()
   {
     String file_formats = "mzML,featureXML,consensusXML,idXML";
-    registerInputFileList_("in", "<files>", StringList(), "Input files to transform (separated by blanks)", false);
+    // "in" is not required, in case we only want to invert a transformation:
+    registerInputFile_("in", "<file>", "", "Input file to transform (separated by blanks)", false);
     setValidFormats_("in", ListUtils::create<String>(file_formats));
-    registerOutputFileList_("out", "<files>", StringList(), "Output files separated by blanks. Either this option or 'trafo_out' have to be provided. They can be used together.", false);
+    registerOutputFile_("out", "<file>", "", "Output file (same file type as 'in'). Either this option or 'trafo_out' has to be provided; they can be used together.", false);
     setValidFormats_("out", ListUtils::create<String>(file_formats));
-    registerInputFileList_("trafo_in", "<files>", StringList(), "Transformations to apply (files separated by blanks)");
+    registerInputFile_("trafo_in", "<file>", "", "Transformation to apply");
     setValidFormats_("trafo_in", ListUtils::create<String>("trafoXML"));
-    registerOutputFileList_("trafo_out", "<files>", StringList(), "Transformation output files separated by blanks. Either this option or 'out' have to be provided. They can be used together.", false);
+    registerOutputFile_("trafo_out", "<file>", "", "Transformation output file. Either this option or 'out' has to be provided; they can be used together.", false);
     setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
-    registerFlag_("invert", "Invert transformations (approximatively) before applying them");
+    registerFlag_("invert", "Invert transformation (approximatively) before applying it");
+    registerFlag_("store_original_rt", "Store the original retention times (before transformation) as meta data in the output file");
     addEmptyLine_();
 
     registerSubsection_("model", "Options to control the modeling of retention time transformations from data");
@@ -121,7 +125,20 @@ protected:
 
   Param getSubsectionDefaults_(const String& /* section */) const
   {
-    return getModelDefaults("none");
+    return TOPPMapAlignerBase::getModelDefaults("none");
+  }
+
+  template <class TFile, class TMap>
+  void applyTransformation_(const String& in, const String& out, 
+                            const TransformationDescription& trafo,
+                            TFile& file, TMap& map)
+  {
+    file.load(in, map);
+    bool store_original_rt = getFlag_("store_original_rt");
+    MapAlignmentTransformer::transformRetentionTimes(map, trafo,
+                                                     store_original_rt);
+    addDataProcessing_(map, getProcessingInfo_(DataProcessing::ALIGNMENT));
+    file.store(out, map);
   }
 
   ExitCodes main_(int, const char**)
@@ -129,10 +146,10 @@ protected:
     //-------------------------------------------------------------
     // parameter handling
     //-------------------------------------------------------------
-    StringList ins = getStringList_("in");
-    StringList outs = getStringList_("out");
-    StringList trafo_ins = getStringList_("trafo_in");
-    StringList trafo_outs = getStringList_("trafo_out");
+    String in = getStringOption_("in");
+    String out = getStringOption_("out");
+    String trafo_in = getStringOption_("trafo_in");
+    String trafo_out = getStringOption_("trafo_out");
     Param model_params = getParam_().copy("model:", true);
     String model_type = model_params.getValue("type");
     model_params = model_params.copy(model_type + ":", true);
@@ -143,101 +160,70 @@ protected:
     //-------------------------------------------------------------
     // check for valid input
     //-------------------------------------------------------------
-    // check whether numbers of input and transformation input files is equal:
-    if (!ins.empty() && (ins.size() != trafo_ins.size()))
+    if (out.empty() && trafo_out.empty())
     {
-      writeLog_("Error: The number of input and transformation input files has to be equal!");
+      writeLog_("Error: Either a data or a transformation output file has to be provided (parameters 'out'/'trafo_out')");
       return ILLEGAL_PARAMETERS;
     }
-    // check whether some kind of output file is given:
-    if (outs.empty() && trafo_outs.empty())
+    if (in.empty() != out.empty())
     {
-      writeLog_("Error: Either data output or transformation output files have to be provided!");
-      return ILLEGAL_PARAMETERS;
-    }
-    // check whether number of input files equals number of output files:
-    if (!outs.empty() && (ins.size() != outs.size()))
-    {
-      writeLog_("Error: The number of input and output files has to be equal!");
-      return ILLEGAL_PARAMETERS;
-    }
-    if (!trafo_outs.empty() && (trafo_ins.size() != trafo_outs.size()))
-    {
-      writeLog_("Error: The number of transformation input and output files has to be equal!");
+      writeLog_("Error: Data input and output parameters ('in'/'out') must be used together");
       return ILLEGAL_PARAMETERS;
     }
 
     //-------------------------------------------------------------
-    // apply transformations
+    // apply transformation
     //-------------------------------------------------------------
-    progresslogger.startProgress(0, trafo_ins.size(),
-                                 "applying RT transformations");
-    for (Size i = 0; i < trafo_ins.size(); ++i)
+    TransformationXMLFile trafoxml;
+    TransformationDescription trafo;
+    trafoxml.load(trafo_in, trafo);
+    if (model_type != "none")
     {
-      TransformationXMLFile trafoxml;
-      TransformationDescription trafo;
-      trafoxml.load(trafo_ins[i], trafo);
-      if (model_type != "none")
-      {
-        trafo.fitModel(model_type, model_params);
-      }
-      if (getFlag_("invert"))
-      {
-        trafo.invert();
-      }
-      if (!trafo_outs.empty())
-      {
-        trafoxml.store(trafo_outs[i], trafo);
-      }
-      if (!ins.empty()) // load input
-      {
-        String in_file = ins[i];
-        FileTypes::Type in_type = FileHandler::getType(in_file);
-        if (in_type == FileTypes::MZML)
-        {
-          MzMLFile file;
-          MSExperiment<> map;
-          file.load(in_file, map);
-          MapAlignmentTransformer::transformSinglePeakMap(map, trafo);
-          addDataProcessing_(map,
-                             getProcessingInfo_(DataProcessing::ALIGNMENT));
-          file.store(outs[i], map);
-        }
-        else if (in_type == FileTypes::FEATUREXML)
-        {
-          FeatureXMLFile file;
-          FeatureMap map;
-          file.load(in_file, map);
-          MapAlignmentTransformer::transformSingleFeatureMap(map, trafo);
-          addDataProcessing_(map,
-                             getProcessingInfo_(DataProcessing::ALIGNMENT));
-          file.store(outs[i], map);
-        }
-        else if (in_type == FileTypes::CONSENSUSXML)
-        {
-          ConsensusXMLFile file;
-          ConsensusMap map;
-          file.load(in_file, map);
-          MapAlignmentTransformer::transformSingleConsensusMap(map, trafo);
-          addDataProcessing_(map,
-                             getProcessingInfo_(DataProcessing::ALIGNMENT));
-          file.store(outs[i], map);
-        }
-        else if (in_type == FileTypes::IDXML)
-        {
-          IdXMLFile file;
-          vector<ProteinIdentification> proteins;
-          vector<PeptideIdentification> peptides;
-          file.load(in_file, proteins, peptides);
-          MapAlignmentTransformer::transformSinglePeptideIdentification(peptides,
-                                                                        trafo);
-          // no "data processing" section in idXML
-          file.store(outs[i], proteins, peptides);
-        }
-      }
-      progresslogger.setProgress(i);
+      trafo.fitModel(model_type, model_params);
     }
-    progresslogger.endProgress();
+    if (getFlag_("invert"))
+    {
+      trafo.invert();
+    }
+    if (!trafo_out.empty())
+    {
+      trafoxml.store(trafo_out, trafo);
+    }
+    if (!in.empty()) // load input
+    {
+      FileTypes::Type in_type = FileHandler::getType(in);
+      if (in_type == FileTypes::MZML)
+      {
+        MzMLFile file;
+        MSExperiment<> map;
+        applyTransformation_(in, out, trafo, file, map);
+      }
+      else if (in_type == FileTypes::FEATUREXML)
+      {
+        FeatureXMLFile file;
+        FeatureMap map;
+        applyTransformation_(in, out, trafo, file, map);
+      }
+      else if (in_type == FileTypes::CONSENSUSXML)
+      {
+        ConsensusXMLFile file;
+        ConsensusMap map;
+        applyTransformation_(in, out, trafo, file, map);
+      }
+      else if (in_type == FileTypes::IDXML)
+      {
+        IdXMLFile file;
+        vector<ProteinIdentification> proteins;
+        vector<PeptideIdentification> peptides;
+        file.load(in, proteins, peptides);
+        bool store_original_rt = getFlag_("store_original_rt");
+        MapAlignmentTransformer::transformRetentionTimes(peptides, trafo,
+                                                         store_original_rt);
+        // no "data processing" section in idXML
+        file.store(out, proteins, peptides);
+      }
+    }
+
     return EXECUTION_OK;
   }
 
