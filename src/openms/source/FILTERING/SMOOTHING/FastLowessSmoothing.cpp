@@ -116,7 +116,7 @@ static double pow3(double x) { return(x * x * x); }
 */
 static void
 lowest(const std::vector<double>& x, const std::vector<double>& y, size_t n,
-       double xs, double *ys, long nleft, long nright, std::vector<double>& w,
+       double xs, double *ys, size_t nleft, size_t nright, std::vector<double>& w,
        bool userw, const std::vector<double>& rw, bool *ok)
 {
   double range, h, h1, h9, a, b, c, r;
@@ -267,6 +267,34 @@ lowest(const std::vector<double>& x, const std::vector<double>& y, size_t n,
 
 */
 
+/// Find the indices bounding the k-nearest-neighbors of the current point.
+void inline update_neighborhood(const std::vector<double>& x,
+                                size_t n, size_t i,
+                                size_t& nleft, size_t& nright)
+{
+  double d1,d2;
+  // A subtle loop. Start from the current neighborhood range:
+  // [nleft, nright). Shift both ends rightwards by one
+  // (so that the neighborhood still contains ns points), until
+  // the current point is in the center (or just to the left of
+  // the center) of the neighborhood. This neighborhood will
+  // contain the ns-nearest neighbors of x[i].
+  //
+  // Once the right end hits the end of the data, hold the
+  // neighborhood the same for the remaining x[i]s.
+  while (nright < n - 1)
+  {
+    // move nleft, nright to right if radius decreases
+    d1 = x[i] - x[nleft];
+    d2 = x[nright + 1] - x[i];
+    // if d1 <= d2 with x[nright+1] == x[nright], lowest fixes
+    if (d1 <= d2) break;
+    // radius will not decrease by move right
+    nleft++;
+    nright++;
+  }
+}
+
 int
 lowess(const std::vector<double>& x, const std::vector<double>& y,
        double frac,  // parameter f
@@ -277,8 +305,8 @@ lowess(const std::vector<double>& x, const std::vector<double>& y,
        std::vector<double>& res)
 {
   bool ok;
-  long i, j, last, m1, m2, nleft, nright, ns;
-  double d1, d2, denom, alpha, cut, cmad, c9, c1, r;
+  size_t i, j, last, m1, m2, nleft, nright, ns;
+  double denom, alpha, cut, cmad, c9, c1, r;
   
   size_t n = x.size();
   if (n < 2)
@@ -289,7 +317,7 @@ lowess(const std::vector<double>& x, const std::vector<double>& y,
 
   // how many points around estimation point should be used for regression:
   // at least two, at most n points
-  ns = std::max(std::min( (long) (frac * n), n), (long)2); 
+  ns = std::max(std::min( (size_t) (frac * n), n), (size_t)2); 
 
   // robustness iterations
   for (int iter = 1; iter <= nsteps + 1; iter++)
@@ -304,17 +332,9 @@ lowess(const std::vector<double>& x, const std::vector<double>& y,
     do 
     {
 
-      while (nright < n - 1)
-      {
-        // move nleft, nright to right if radius decreases
-        d1 = x[i] - x[nleft];
-        d2 = x[nright + 1] - x[i];
-        // if d1 <= d2 with x[nright+1] == x[nright], lowest fixes
-        if (d1 <= d2) break;
-        // radius will not decrease by move right
-        nleft++;
-        nright++;
-      }
+      // Identify the neighborhood around the current x[i] 
+      // -> get the nearest ns points
+      update_neighborhood(x, n, i, nleft, nright);
 
       lowest(x, y,
              n, x[i],
@@ -429,9 +449,11 @@ namespace OpenMS
       OPENMS_PRECONDITION(std::adjacent_find(x.begin(), x.end(), std::greater<double>()) == x.end(),
           "The vector x needs to be sorted")
 
-      result.clear();
-      result.resize(n); // needs to have the correct size as we use C-style arrays from here on
+      size_t n = x.size();
 
+      // result as well as working vectors need to have the correct size
+      result.clear();
+      result.resize(n);
       std::vector<double> rweights(n);
       std::vector<double> residuals(n);
 
