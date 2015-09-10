@@ -54,7 +54,6 @@ START_TEST(FastLowessSmoothing, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-TOLERANCE_RELATIVE(1.025);
 START_SECTION([FastLowessSmoothing_cars]void smoothData(const DoubleVector&, const DoubleVector&, DoubleVector&))
 {
 
@@ -67,8 +66,13 @@ START_SECTION([FastLowessSmoothing_cars]void smoothData(const DoubleVector&, con
      lines(lowess(cars), col = 2)
      lines(lowess(cars, f = .2), col = 3)
      legend(5, 120, c(paste("f = ", c("2/3", ".2"))), lty = 1, col = 2:3)
+
+     The data below is what we expect from the R function (it differs slightly
+     as the R function is not numerically identical). So we set the tolerance
+     to 2.5%
      
   */
+TOLERANCE_RELATIVE(1.025);
 
   int speed[] = {4, 4, 7, 7, 8, 9, 10, 10, 10, 11, 11, 12, 12, 12, 12, 13, 13, 13, 13, 14, 14, 14, 14, 15, 15, 15, 16, 16, 17, 17, 17, 18, 18, 18, 18, 19, 19, 19, 20, 20, 20, 20, 20, 22, 23, 24, 24, 24, 24, 25};
   int dist[] = { 2, 10, 4, 22, 16, 10, 18, 26, 34, 17, 28, 14, 20, 24, 28, 26, 34, 34, 46, 26, 36, 60, 80, 20, 26, 54, 32, 40, 32, 40, 50, 42, 56, 76, 84, 36, 46, 68, 32, 48, 52, 56, 64, 66, 54, 70, 92, 93, 120, 85};
@@ -90,27 +94,48 @@ START_SECTION([FastLowessSmoothing_cars]void smoothData(const DoubleVector&, con
   }
 
   out.clear();
-
   double delta = 0.01 * (x[ x.size()-1 ] - x[0]); // x is sorted
   FastLowessSmoothing::lowess(x, y, 0.2,  3, delta, out);
   for (Size i = 0; i < out.size(); ++i)
   {
     TEST_REAL_SIMILAR(out[i], expected_2[i]);
   }
+
+
+  // numerical identity with the C++ function
+  TOLERANCE_RELATIVE(4e-7);
+  TOLERANCE_ABSOLUTE(1e-4);
+  double expected_3[] = {4.85732, 4.85732, 13.1037, 13.1037, 15.87, 18.6227, 21.353, 21.353, 21.353, 24.2458, 24.2458, 27.295, 27.295, 27.295, 27.295, 30.2576, 30.2576, 30.2576, 30.2576, 33.2576, 33.2576, 33.2576, 33.2576, 37.1807, 37.1807, 37.1807, 40.9256, 40.9256, 43.9149, 43.9149, 43.9149, 47.2201, 47.2201, 47.2201, 47.2201, 51.0752, 51.0752, 51.0752, 56.8507, 56.8507, 56.8507, 56.8507, 56.8507, 67.9984, 73.512, 79.1023, 79.1023, 79.1023, 79.1023, 84.8252};
+  double expected_4[] = { 6.03048, 6.03048, 12.6797, 12.6797, 15.3863, 18.673, 22.235, 22.235, 22.235, 23.31, 23.31, 21.524, 21.524, 21.524, 21.524, 34.8893, 34.8893, 34.8893, 34.8893, 47.3304, 47.3304, 47.3304, 47.3304, 38.0105, 38.0105, 38.0105, 36.8013, 36.8013, 46.2421, 46.2421, 46.2421, 65.3351, 65.3351, 65.3351, 65.3351, 49.0501, 49.0501, 49.0501, 50.9667, 50.9667, 50.9667, 50.9667, 50.9667, 66, 71.9744, 82.5746, 82.5746, 82.5746, 82.5746, 93.0276};
+
+  out.clear();
+  FastLowessSmoothing::lowess(x, y, out);
+  for (Size i = 0; i < out.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(out[i], expected_3[i]);
+  }
+  out.clear();
+  FastLowessSmoothing::lowess(x, y, 0.2,  3, delta, out);
+  for (Size i = 0; i < out.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(out[i], expected_4[i]);
+  }
+
 }
 END_SECTION
 
+// trying to fit a quadratic function -> wont work so well, obviously
 TOLERANCE_RELATIVE(1.06);
 START_SECTION([FastLowessSmoothing]void smoothData(const DoubleVector&, const DoubleVector&, DoubleVector&))
 {
   std::vector<double> x, y, y_noisy, out, expect;
 
-  //exact data
+  //exact data -> sample many points
   for (Size i = 1; i <= 10000; ++i)
   {
-      x.push_back(i/500.0);
-      y.push_back(targetFunction(i/500.0));
-      expect.push_back(targetFunction(i/500.0));
+    x.push_back(i/500.0);
+    y.push_back(targetFunction(i/500.0));
+    expect.push_back(targetFunction(i/500.0));
   }
 
   //noisy data
@@ -125,7 +150,7 @@ START_SECTION([FastLowessSmoothing]void smoothData(const DoubleVector&, const Do
   FastLowessSmoothing::lowess(x, y, 0.02, 3, 0.2, out);
   for (Size i = 0; i < out.size(); ++i)
   {
-      TEST_REAL_SIMILAR(out[i], expect[i]);
+    TEST_REAL_SIMILAR(out[i], expect[i]);
   }
 
   out.clear();
@@ -133,15 +158,13 @@ START_SECTION([FastLowessSmoothing]void smoothData(const DoubleVector&, const Do
   FastLowessSmoothing::lowess(x, y_noisy, 0.02, 3, 0.2, out);
   for (Size i = 0; i < out.size(); ++i)
   {
-      TEST_REAL_SIMILAR(out[i], expect[i]);
+    TEST_REAL_SIMILAR(out[i], expect[i]);
   }
 }
 END_SECTION
 
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
 
 

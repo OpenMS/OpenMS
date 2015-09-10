@@ -61,9 +61,6 @@ namespace c_lowess
   Translated from RATFOR lowess code of W. S. Cleveland as obtained from NETLIB
 */
 
-#define FALSE 0
-#define TRUE 1
-
 static double pow2(double x) { return(x * x); }
 static double pow3(double x) { return(x * x * x); }
 
@@ -171,11 +168,11 @@ lowest(double *x, double *y, size_t n, double xs, double *ys, long nleft, long n
   nrt = j - 1;
   if (a <= 0.0) 
   {
-    *ok = FALSE;
+    *ok = false;
   }
   else 
   { 
-    *ok = TRUE;
+    *ok = true;
 
     // weighted least squares
     
