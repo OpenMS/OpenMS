@@ -64,6 +64,78 @@ namespace c_lowess
 static double pow2(double x) { return(x * x); }
 static double pow3(double x) { return(x * x * x); }
 
+bool calculate_weights(const std::vector<double>& x,
+                       const size_t n, const double xs, 
+                       const bool use_resid_weights, 
+                       const size_t nleft, 
+                       const std::vector<double>& resid_weights, 
+                       std::vector<double>& weights, 
+                       size_t& nrt, double& h)
+{
+  double r;
+  size_t j;
+
+  double h9 = .999 * h;
+  double h1 = .001 * h;
+  double a = 0.0; // sum of weights
+
+  // compute weights (pick up all ties on right)
+  for (j = nleft; j < (long)n; j++) 
+  {
+
+    // Compute the distance measure, then apply the tricube
+    // function on the distance to get the weight.
+    // use_resid_weights will be False on the first iteration, then True
+    // on the subsequent ones, after some residuals have been calculated.
+    weights[j] = 0.0;
+    r = fabs(x[j] - xs);
+    if (r <= h9)
+    {  
+      if (r > h1) 
+      {
+        // small enough for non-zero weight
+        // compute tricube function: ( 1 - (r/h)^3 )^3
+        weights[j] = pow3(1.0-pow3(r/h));
+      }
+      else 
+      {
+        weights[j] = 1.0;
+      }
+
+      if (use_resid_weights) 
+      {
+        weights[j] = resid_weights[j] * weights[j];
+      }
+
+      a += weights[j];
+    }
+    else if (x[j] > xs) 
+    {
+      // get out at first zero wt on right
+      break;
+    }
+  }
+
+  // rightmost pt (may be greater than nright because of ties)
+  nrt = j - 1;
+  if (a <= 0.0) 
+  {
+    return false;
+  }
+  else 
+  {
+
+    // normalize weights (make sum of w[j] == 1)
+    for (j = nleft; j <= nrt; j++) 
+    {
+      weights[j] = weights[j] / a;
+    }
+
+    return true;
+
+  }
+}
+
 /* ratfor code:
 *
 *  subroutine lowest(x,y,n,xs,ys,nleft,nright,w,userw,rw,ok)
@@ -118,69 +190,34 @@ static void
 lowest(const std::vector<double>& x, const std::vector<double>& y, size_t n,
        double xs, double *ys, size_t nleft, size_t nright, 
        std::vector<double>& weights, // vector w
-       bool userw, 
+       bool use_resid_weights,  // userw
        const std::vector<double>& resid_weights,
        bool *ok)
 {
-  double range, h, h1, h9, a, b, c, r;
-  long j, nrt;
+  double range, h, b, c;
+  size_t nrt; // rightmost pt (may be greater than nright because of ties)
 
   range = x[n - 1] - x[0];
   h = std::max(xs - x[nleft], x[nright] - xs);
-  h9 = .999 * h;
-  h1 = .001 * h;
 
-  a = 0.0; // sum of weights
+  *ok = calculate_weights(x, n, xs, use_resid_weights, nleft, resid_weights, 
+                          weights, nrt, h);
 
-  // compute weights (pick up all ties on right)
-  for (j = nleft; j < (long)n; j++) 
-  {
-
-    weights[j]=0.0;
-    r = fabs(x[j] - xs);
-    if (r <= h9)
-    {  
-      if (r > h1) 
-      {
-        // small enough for non-zero weight
-        weights[j] = pow3(1.0-pow3(r/h));
-      }
-      else weights[j] = 1.0;
-
-      if (userw) weights[j] = resid_weights[j] * weights[j];
-      a += weights[j];
-    }
-    else if (x[j] > xs) 
-    {
-      // get out at first zero wt on right
-      break;
-    }
-  }
-
-  // rightmost pt (may be greater than nright because of ties)
-  nrt = j - 1;
-  if (a <= 0.0) 
-  {
-    *ok = false;
-  }
-  else 
+  if (ok)
   { 
-    *ok = true;
-
     // weighted least squares
     
-    // make sum of w[j] == 1
-    for (j = nleft; j <= nrt; j++) weights[j] = weights[j] / a;
-
     if (h > 0.0) 
     {
       // use linear fit
 
       // find weighted center of x values
-      for (j = nleft, a = 0.0; j <= nrt; j++) a += weights[j] * x[j];
+      double a = 0.0;
+      for (size_t j = nleft; j <= nrt; j++) a += weights[j] * x[j];
 
       b = xs - a;
-      for (j = nleft, c = 0.0; j <= nrt; j++) 
+      c = 0.0;
+      for (size_t j = nleft; j <= nrt; j++) 
       {
         c += weights[j] * (x[j] - a) * (x[j] - a);
       }
@@ -189,14 +226,15 @@ lowest(const std::vector<double>& x, const std::vector<double>& y, size_t n,
       {
         // points are spread out enough to compute slope
         b = b/c;
-        for (j = nleft; j <= nrt; j++) 
+        for (size_t j = nleft; j <= nrt; j++) 
         {
           weights[j] = weights[j] * (1.0 + b*(x[j] - a));
         }
       }
     }
 
-    for (j = nleft, *ys = 0.0; j <= nrt; j++)
+    *ys = 0.0;
+    for (size_t j = nleft; j <= nrt; j++)
     {
       *ys += weights[j] * y[j];
     }
