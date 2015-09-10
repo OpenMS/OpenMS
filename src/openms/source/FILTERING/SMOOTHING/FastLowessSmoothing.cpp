@@ -115,8 +115,9 @@ static double pow3(double x) { return(x * x * x); }
 
 */
 static void
-lowest(std::vector<double>& x, std::vector<double>& y, size_t n, double xs, double *ys, long nleft, long nright,
-       std::vector<double>& w, bool userw, std::vector<double>& rw, bool *ok)
+lowest(const std::vector<double>& x, const std::vector<double>& y, size_t n,
+       double xs, double *ys, long nleft, long nright, std::vector<double>& w,
+       bool userw, const std::vector<double>& rw, bool *ok)
 {
   double range, h, h1, h9, a, b, c, r;
   long j, nrt;
@@ -267,16 +268,20 @@ lowest(std::vector<double>& x, std::vector<double>& y, size_t n, double xs, doub
 */
 
 int
-lowess(std::vector<double>& x, std::vector<double>& y, long n,
-       double f, int nsteps,
-       double delta, std::vector<double>& ys, std::vector<double>& rw, std::vector<double>& res)
+lowess(const std::vector<double>& x, const std::vector<double>& y,
+       double frac,  // parameter f
+       int nsteps, 
+       double delta,
+       std::vector<double>& ys,
+       std::vector<double>& rw,
+       std::vector<double>& res)
 {
-  int iter;
   bool ok;
   long i, j, last, m1, m2, nleft, nright, ns;
   double d1, d2, denom, alpha, cut, cmad, c9, c1, r;
   
-  if (n < 2) 
+  size_t n = x.size();
+  if (n < 2)
   { 
     ys[0] = y[0]; 
     return(1);
@@ -284,10 +289,10 @@ lowess(std::vector<double>& x, std::vector<double>& y, long n,
 
   // how many points around estimation point should be used for regression:
   // at least two, at most n points
-  ns = std::max(std::min( (long) (f * n), n), (long)2); 
+  ns = std::max(std::min( (long) (frac * n), n), (long)2); 
 
   // robustness iterations
-  for (iter = 1; iter <= nsteps + 1; iter++)
+  for (int iter = 1; iter <= nsteps + 1; iter++)
   {
 
     // start of array in C++ at 0 / in FORTRAN at 1
@@ -424,16 +429,13 @@ namespace OpenMS
       OPENMS_PRECONDITION(std::adjacent_find(x.begin(), x.end(), std::greater<double>()) == x.end(),
           "The vector x needs to be sorted")
 
-
-      size_t n = x.size(); // check array size, it needs to fit into a "long" variable
-
       result.clear();
       result.resize(n); // needs to have the correct size as we use C-style arrays from here on
 
       std::vector<double> rweights(n);
       std::vector<double> residuals(n);
 
-      int retval = c_lowess::lowess(x, y, n, f, nsteps, delta, result, rweights, residuals);
+      int retval = c_lowess::lowess(x, y, f, nsteps, delta, result, rweights, residuals);
 
       return retval;
     }
