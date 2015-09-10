@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -123,7 +123,7 @@ protected:
         @param origin AA one letter code
         @param modification_description [out] Name of the modification, e.g. 'Carboxymethyl (C)'
     */
-    void matchModification_(const DoubleReal mass, const String & origin, String & modification_description);
+    void matchModification_(const double mass, const String & origin, String & modification_description);
 
     /// @name members for loading data
     //@{

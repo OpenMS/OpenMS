@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -64,30 +64,30 @@ namespace OpenMS
 {
 
   /**
-      @brief 1-sided Compomer for a feature
+    @brief 1-sided Compomer for a feature
 
-      Holds information on an explicit (with H+) 1-sided Compomer of a feature.
-  **/
+    Holds information on an explicit (with H+) 1-sided Compomer of a feature.
+  */
   struct FeatureDeconvolution::CmpInfo_
   {
-    String s_comp;     //< formula as String
-    Size idx_cp;         //< index into compomer vector
-    UInt side_cp;        //< side of parent compomer (LEFT or RIGHT)
+    String s_comp; //< formula as String
+    Size idx_cp; //< index into compomer vector
+    UInt side_cp; //< side of parent compomer (LEFT or RIGHT)
 
     // C'tor
     CmpInfo_() :
       s_comp(), idx_cp(), side_cp() {}
 
     // C'tor
-    CmpInfo_(String & s, Size idx, UInt side) :
+    CmpInfo_(String& s, Size idx, UInt side) :
       s_comp(s), idx_cp(idx), side_cp(side) {}
 
     // Copy C'tor
-    CmpInfo_(const CmpInfo_ & rhs) :
+    CmpInfo_(const CmpInfo_& rhs) :
       s_comp(rhs.s_comp), idx_cp(rhs.idx_cp), side_cp(rhs.side_cp) {}
 
     // Assignment
-    CmpInfo_ & operator=(const CmpInfo_ & rhs)
+    CmpInfo_& operator=(const CmpInfo_& rhs)
     {
       if (&rhs == this) return *this;
 
@@ -98,12 +98,12 @@ namespace OpenMS
     }
 
     // Comparator
-    bool operator<(const CmpInfo_ & other) const
+    bool operator<(const CmpInfo_& other) const
     {
       if (s_comp < other.s_comp) return true; else return false;
     }
 
-    bool operator==(const CmpInfo_ & other) const
+    bool operator==(const CmpInfo_& other) const
     {
       if (s_comp == other.s_comp) return true; else return false;
     }
@@ -155,7 +155,7 @@ namespace OpenMS
   {
     map_label_.clear();
     map_label_inverse_.clear();
-    map_label_inverse_[param_.getValue("default_map_label")] = 0;     // default virtual map (for unlabeled experiments)
+    map_label_inverse_[param_.getValue("default_map_label")] = 0; // default virtual map (for unlabeled experiments)
     map_label_[0] = param_.getValue("default_map_label");
 
     if (param_.getValue("q_try") == "feature")
@@ -169,7 +169,7 @@ namespace OpenMS
     StringList potential_adducts_s = param_.getValue("potential_adducts");
     potential_adducts_.clear();
 
-    bool had_nonzero_RT = false;     // adducts with RT-shift > 0 ?
+    bool had_nonzero_RT = false; // adducts with RT-shift > 0 ?
 
     // adducts might look like this:
     //   Element:Probability[:RTShift[:Label]]
@@ -197,10 +197,11 @@ namespace OpenMS
         throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, error);
       }
       EmpiricalFormula ef(adduct[0].remove('+'));
-      ef -= "H" + String(l_charge); ef.setCharge(l_charge); // effectively subtract electron masses
+      ef -= EmpiricalFormula("H" + String(l_charge));
+      ef.setCharge(l_charge); // effectively subtract electron masses
 
       // RT Shift:
-      DoubleReal rt_shift(0);
+      double rt_shift(0);
       if (adduct.size() >= 3)
       {
         rt_shift = adduct[2].toDouble();
@@ -213,7 +214,7 @@ namespace OpenMS
       if (adduct.size() >= 4)
       {
         label = adduct[3].trim();
-        map_label_inverse_[label] = map_label_.size();         // add extra virtual map
+        map_label_inverse_[label] = map_label_.size(); // add extra virtual map
         map_label_[map_label_inverse_[label]] = label;
       }
 
@@ -225,8 +226,8 @@ namespace OpenMS
     }
 
     // RT sanity check:
-    DoubleReal rt_diff_max = param_.getValue("retention_max_diff");
-    DoubleReal rt_diff_max_local = param_.getValue("retention_max_diff_local");
+    double rt_diff_max = param_.getValue("retention_max_diff");
+    double rt_diff_max_local = param_.getValue("retention_max_diff_local");
     if (!had_nonzero_RT) // only 0 RT shift:
     {
       if (rt_diff_max != rt_diff_max_local)
@@ -236,7 +237,7 @@ namespace OpenMS
         param_.setValue("retention_max_diff_local", std::min(rt_diff_max, rt_diff_max_local));
       }
     }
-    else  // has RT shift:
+    else // has RT shift:
     {
       if (rt_diff_max < rt_diff_max_local)
       {
@@ -250,7 +251,7 @@ namespace OpenMS
   }
 
   /// Copy constructor
-  FeatureDeconvolution::FeatureDeconvolution(const FeatureDeconvolution & source) :
+  FeatureDeconvolution::FeatureDeconvolution(const FeatureDeconvolution& source) :
     DefaultParamHandler(source),
     potential_adducts_(source.potential_adducts_),
     map_label_(source.map_label_),
@@ -260,7 +261,7 @@ namespace OpenMS
   }
 
   /// Assignment operator
-  inline FeatureDeconvolution & FeatureDeconvolution::operator=(const FeatureDeconvolution & source)
+  inline FeatureDeconvolution& FeatureDeconvolution::operator=(const FeatureDeconvolution& source)
   {
     if (&source == this)
     {
@@ -282,10 +283,10 @@ namespace OpenMS
 
   //@}
 
-  void FeatureDeconvolution::compute(const FeatureMapType & fm_in, FeatureMapType & fm_out, ConsensusMap & cons_map, ConsensusMap & cons_map_p)
+  void FeatureDeconvolution::compute(const FeatureMapType& fm_in, FeatureMapType& fm_out, ConsensusMap& cons_map, ConsensusMap& cons_map_p)
   {
 
-    ConsensusMap cons_map_p_neg;     // tmp
+    ConsensusMap cons_map_p_neg; // tmp
     cons_map = ConsensusMap();
     cons_map_p = ConsensusMap();
 
@@ -294,12 +295,12 @@ namespace OpenMS
     Int q_span = param_.getValue("charge_span_max");
     Size max_neutrals = param_.getValue("max_neutrals");
 
-    DoubleReal rt_diff_max = param_.getValue("retention_max_diff");
-    DoubleReal rt_diff_max_local = param_.getValue("retention_max_diff_local");
+    double rt_diff_max = param_.getValue("retention_max_diff");
+    double rt_diff_max_local = param_.getValue("retention_max_diff_local");
 
-    DoubleReal mz_diff_max = param_.getValue("mass_max_diff");
+    double mz_diff_max = param_.getValue("mass_max_diff");
 
-    DoubleReal rt_min_overlap = param_.getValue("min_rt_overlap");
+    double rt_min_overlap = param_.getValue("min_rt_overlap");
 
 
     // sort by RT and then m/z
@@ -310,16 +311,16 @@ namespace OpenMS
 
 
     // search for most & least probable adduct to fix p threshold
-    DoubleReal adduct_lowest_log_p = log(1.0);
-    DoubleReal adduct_highest_log_p = log(0.0000000001);
+    double adduct_lowest_log_p = log(1.0);
+    double adduct_highest_log_p = log(0.0000000001);
     for (Size i = 0; i < potential_adducts_.size(); ++i)
     {
       adduct_lowest_log_p  = std::min(adduct_lowest_log_p, potential_adducts_[i].getLogProb());
       adduct_highest_log_p = std::max(adduct_highest_log_p, potential_adducts_[i].getLogProb());
     }
     Int max_minority_bound = param_.getValue("max_minority_bound");
-    DoubleReal thresh_logp = adduct_lowest_log_p * max_minority_bound +
-                             adduct_highest_log_p * std::max(q_max - max_minority_bound, 0);
+    double thresh_logp = adduct_lowest_log_p * max_minority_bound +
+                         adduct_highest_log_p * std::max(q_max - max_minority_bound, 0);
 
 
     // create mass difference list
@@ -331,7 +332,7 @@ namespace OpenMS
 
     // holds query results for a mass difference
     MassExplainer::CompomerIterator md_s, md_e;
-    Compomer null_compomer(0, 0, -std::numeric_limits<DoubleReal>::max());
+    Compomer null_compomer(0, 0, -std::numeric_limits<double>::max());
     SignedSize hits(0);
 
     CoordinateType mz1, mz2, m1;
@@ -360,22 +361,22 @@ namespace OpenMS
            ; (i_RT_window < fm_out.size())
           && ((fm_out[i_RT_window].getRT() - fm_out[i_RT].getRT()) <= rt_diff_max)
            ; ++i_RT_window)
-      {       // ** RT-window
+      { // ** RT-window
 
         // knock-out criterion first: RT overlap
         // use sorted structure and use 2nd start--1stend / 1st start--2ndend
-        const Feature & f1 = fm_out[i_RT];
-        const Feature & f2 = fm_out[i_RT_window];
+        const Feature& f1 = fm_out[i_RT];
+        const Feature& f2 = fm_out[i_RT_window];
 
         if (!(f1.getConvexHull().getBoundingBox().isEmpty() || f2.getConvexHull().getBoundingBox().isEmpty()))
         {
-          DoubleReal f_start1 = std::min(f1.getConvexHull().getBoundingBox().minX(), f2.getConvexHull().getBoundingBox().minX());
-          DoubleReal f_start2 = std::max(f1.getConvexHull().getBoundingBox().minX(), f2.getConvexHull().getBoundingBox().minX());
-          DoubleReal f_end1 = std::min(f1.getConvexHull().getBoundingBox().maxX(), f2.getConvexHull().getBoundingBox().maxX());
-          DoubleReal f_end2 = std::max(f1.getConvexHull().getBoundingBox().maxX(), f2.getConvexHull().getBoundingBox().maxX());
+          double f_start1 = std::min(f1.getConvexHull().getBoundingBox().minX(), f2.getConvexHull().getBoundingBox().minX());
+          double f_start2 = std::max(f1.getConvexHull().getBoundingBox().minX(), f2.getConvexHull().getBoundingBox().minX());
+          double f_end1 = std::min(f1.getConvexHull().getBoundingBox().maxX(), f2.getConvexHull().getBoundingBox().maxX());
+          double f_end2 = std::max(f1.getConvexHull().getBoundingBox().maxX(), f2.getConvexHull().getBoundingBox().maxX());
 
-          DoubleReal union_length = f_end2 - f_start1;
-          DoubleReal intersect_length = std::max(0., f_end1 - f_start2);
+          double union_length = f_end2 - f_start1;
+          double intersect_length = std::max(0., f_end1 - f_start2);
 
           if (intersect_length / union_length < rt_min_overlap)
             continue;
@@ -405,15 +406,15 @@ namespace OpenMS
           for (Int q2 = std::max(q_min, q1 - q_span + 1)
                ; (q2 <= q_max) && (q2 <= q1 + q_span - 1)
                ; ++q2)
-          {           // ** q2
+          { // ** q2
             if (!chargeTestworthy_(f2.getCharge(), q2, f1.getCharge() == q1))
               continue;
 
-            ++possibleEdges;             // internal count, not vital
+            ++possibleEdges; // internal count, not vital
 
             // find possible adduct combinations
             CoordinateType naive_mass_diff = mz2 * q2 - m1;
-            DoubleReal abs_mass_diff = mz_diff_max * q1 + mz_diff_max * q2; // tolerance must increase when looking at M instead of m/z, as error margins increase as well
+            double abs_mass_diff = mz_diff_max * q1 + mz_diff_max * q2; // tolerance must increase when looking at M instead of m/z, as error margins increase as well
             hits = me.query(q2 - q1, naive_mass_diff, abs_mass_diff, thresh_logp, md_s, md_e);
             OPENMS_PRECONDITION(hits >= 0, "FeatureDeconvolution querying #hits got negative result!");
 
@@ -446,7 +447,7 @@ namespace OpenMS
                   continue;
 
                 //std::cout << "neg: " << md_s->getNegativeCharges() << " pos: " << md_s->getPositiveCharges() << " p: " << md_s->getLogP() << " \n";
-                if (                // compomer fits charge assignment of left & right feature
+                if ( // compomer fits charge assignment of left & right feature
                   (q1 >= md_s->getNegativeCharges()) && (q2 >= md_s->getPositiveCharges())
                   )
                 {
@@ -473,8 +474,8 @@ namespace OpenMS
                     continue;
                   }
 
-                  int hc_left  = (q1 - cmp.getNegativeCharges()) / proton.getCharge();                   // this should always be positive! check!!
-                  int hc_right = (q2 - cmp.getPositiveCharges()) / proton.getCharge();                   // this should always be positive! check!!
+                  int hc_left  = (q1 - cmp.getNegativeCharges()) / proton.getCharge(); // this should always be positive! check!!
+                  int hc_right = (q2 - cmp.getPositiveCharges()) / proton.getCharge(); // this should always be positive! check!!
 
 
                   if (hc_left < 0 || hc_right < 0)
@@ -515,7 +516,7 @@ namespace OpenMS
                   feature_relation.push_back(cp);
 #endif
                 }
-              }               // ! hits loop
+              } // ! hits loop
 
               if (best_hit == null_compomer)
               {
@@ -535,9 +536,9 @@ namespace OpenMS
               }
             }
 
-          }           // q2
-        }         // q1
-      }       // RT-window
+          } // q2
+        } // q1
+      } // RT-window
     } // RT sweep line
 
     LOG_INFO << no_cmp_hit << " of " << (no_cmp_hit + cmp_hit) << " valid net charge compomer results did not pass the feature charge constraints\n";
@@ -573,7 +574,7 @@ namespace OpenMS
       // forward set of putative edges to ILP
       ILPDCWrapper lp_wrapper;
       // compute best solution (this will REORDER elements on feature_relation[] !) - do not rely on order afterwards!
-      DoubleReal ilp_score = lp_wrapper.compute(fm_out, feature_relation, this->verbose_level_);
+      double ilp_score = lp_wrapper.compute(fm_out, feature_relation, this->verbose_level_);
       LOG_INFO << "ILP score is: " << ilp_score << std::endl;
     }
 
@@ -586,7 +587,7 @@ namespace OpenMS
     // -------------------------- //
 
     //printEdgesOfConnectedFeatures_(888, 889, feature_relation);
-    Map<Size, Size> features_aes, features_des;      // count of adjacent active and dead edges
+    Map<Size, Size> features_aes, features_des; // count of adjacent active and dead edges
     UInt agreeing_fcharge = 0;
     std::vector<Size> f_idx_v(2);
     Size aedges = 0;
@@ -611,7 +612,7 @@ namespace OpenMS
       }
 
       // print mass delta of each edge
-      out_massdeltas.push_back(String(feature_relation[i].getMassDiff()) + ", " + String(feature_relation[i].getCharge(0)) + ", " + String(feature_relation[i].isActive() == 0));
+      out_massdeltas.addLine(String(feature_relation[i].getMassDiff()) + ", " + String(feature_relation[i].getCharge(0)) + ", " + String(feature_relation[i].isActive() == 0));
 
     }
 
@@ -628,11 +629,11 @@ namespace OpenMS
 
       if (!feature_relation[i].isActive())
       {
-        out_dead.push_back(String("dead e") + i + " (" + (c.getAdductsAsString(Compomer::LEFT)) + " -> " + (c.getAdductsAsString(Compomer::RIGHT)) + "): "
-                           + f_idx_v[0] + " (q_ff:" + fm_out[f_idx_v[0]].getCharge() + " q_de:" + feature_relation[i].getCharge(0) + ")"
-                           + f_idx_v[1] + " (q_ff:" + fm_out[f_idx_v[1]].getCharge() + " q_de:" + feature_relation[i].getCharge(1) + ")"
-                           + "score: " + feature_relation[i].getEdgeScore()
-                           );
+        out_dead.addLine(String("dead e") + i + " (" + (c.getAdductsAsString(Compomer::LEFT)) + " -> " + (c.getAdductsAsString(Compomer::RIGHT)) + "): "
+                         + f_idx_v[0] + " (q_ff:" + fm_out[f_idx_v[0]].getCharge() + " q_de:" + feature_relation[i].getCharge(0) + ")"
+                         + f_idx_v[1] + " (q_ff:" + fm_out[f_idx_v[1]].getCharge() + " q_de:" + feature_relation[i].getCharge(1) + ")"
+                         + "score: " + feature_relation[i].getEdgeScore()
+                         );
         continue;
       }
       ++aedges;
@@ -648,7 +649,7 @@ namespace OpenMS
         }
         else
         {
-          DoubleReal rt_diff =  fabs(fm_out[feature_relation[i].getElementIndex(0)].getRT() - fm_out[feature_relation[i].getElementIndex(1)].getRT());
+          double rt_diff =  fabs(fm_out[feature_relation[i].getElementIndex(0)].getRT() - fm_out[feature_relation[i].getElementIndex(1)].getRT());
           if (verbose_level_ > 2)
           {
             LOG_WARN << "Conflict in f_Q! f_RT:" << fm_out[f_idx_v[f_idx]].getRT() << " f_MZ:" << fm_out[f_idx_v[f_idx]].getMZ() << " f_int:" << fm_out[f_idx_v[f_idx]].getIntensity()
@@ -683,7 +684,7 @@ namespace OpenMS
 #ifdef DC_DEVEL
     out_dead.store("ILP_dead_edges.txt"); // TODO disable
     //std::cout << "Edge score distribution (clean):\n" + scores_clean_edge.concatenate(" ") + "\n(dirty)\n" + scores_dirty_edge.concatenate(" ") + "\n\n";
-    //std::cout << "Edge emprirical formula (clean):\n" + ef_clean_edge.toString() + "\n(dirty)\n" + ef_dirty_edge.toString() + "\n\n";
+    //std::cout << "Edge empirical formula (clean):\n" + ef_clean_edge.toString() + "\n(dirty)\n" + ef_dirty_edge.toString() + "\n\n";
 #endif
 
     // END DEBUG
@@ -706,7 +707,6 @@ namespace OpenMS
     // if no mapping is found, make a new CF.
     // if new pair spans two existing CFs -> merge CFs
     typedef std::map<Size, Size> CliqueMap;
-    typedef CliqueMap::const_iterator MapCI;
     CliqueMap clique_register;
 
     StringList scores;
@@ -840,7 +840,7 @@ namespace OpenMS
           {
             cons_map[target_cf0].insert((UInt64) fm_out[f1_idx].getMetaValue("map_idx"), fm_out[f1_idx]);
             clique_register[f1_idx] = target_cf0;
-            //std::cout << "add: F" << f1_idx << " to " <<target_cf0 << " dueto F" << f0_idx << "\n";
+            //std::cout << "add: F" << f1_idx << " to " <<target_cf0 << " due to F" << f0_idx << "\n";
           }
           else //** conflict: the two elements of the pair already have separate CFs --> merge
           { // take every feature from second CF and: #1 put into first CF, #2 change registration with map
@@ -910,7 +910,7 @@ namespace OpenMS
 
     // remove empty ConsensusFeatures from map
     ConsensusMap cons_map_tmp(cons_map);
-    cons_map_tmp.clear(false);     // keep other meta information (like ProteinIDs & Map)
+    cons_map_tmp.clear(false); // keep other meta information (like ProteinIDs & Map)
     for (ConsensusMap::Iterator it = cons_map.begin(); it != cons_map.end(); ++it)
     {
       // skip if empty
@@ -954,7 +954,7 @@ namespace OpenMS
 
     }
     cons_map_tmp.swap(cons_map);
-    // Warning: from here on cons_map indices have changes --> clique_register[]'s values are not reliable any longer (keys are still goood)
+    // Warning: from here on cons_map indices have changes --> clique_register[]'s values are not reliable any longer (keys are still good)
 
     // include single features without a buddy!
     Size singletons_count = 0;
@@ -967,7 +967,7 @@ namespace OpenMS
       FeatureMapType::FeatureType f_single = fm_out_untouched[i];
       f_single.setMetaValue("is_single_feature", 1);
       f_single.setMetaValue("charge", f_single.getCharge());
-      fm_out[i] = f_single;       // overwrite whatever DC has done to this feature!
+      fm_out[i] = f_single; // overwrite whatever DC has done to this feature!
 
       ConsensusFeature cf(f_single);
       cf.setQuality(0.0);
@@ -1012,7 +1012,7 @@ namespace OpenMS
     return;
   }
 
-  void FeatureDeconvolution::checkSolution_(const ConsensusMap & cons_map) const
+  void FeatureDeconvolution::checkSolution_(const ConsensusMap& cons_map) const
   {
     Size ladders_total(0);
     Size ladders_even(0);
@@ -1052,7 +1052,7 @@ namespace OpenMS
   /// (more difficult explanation) supported by neighboring edges
   /// e.g. (.)   -> (H+) might be augmented to
   ///      (Na+) -> (H+Na+)
-  void FeatureDeconvolution::inferMoreEdges_(PairsType & edges, Map<Size, std::set<CmpInfo_> > & feature_adducts)
+  void FeatureDeconvolution::inferMoreEdges_(PairsType& edges, Map<Size, std::set<CmpInfo_> >& feature_adducts)
   {
     Adduct default_adduct(1, 1, Constants::PROTON_MASS_U, "H1", log(1.0), 0);
 
@@ -1084,16 +1084,16 @@ namespace OpenMS
         {
           it->second.setLogProb(0);
         }
-        ChargePair cp(edges[i]);         // make a copy
+        ChargePair cp(edges[i]); // make a copy
         Compomer new_cmp = cp.getCompomer().removeAdduct(default_adduct);
         new_cmp.add(to_add, Compomer::LEFT);
         new_cmp.add(to_add, Compomer::RIGHT);
         // refill with default adducts (usually H+):
         if (((cp.getCharge(0) - new_cmp.getNegativeCharges()) % default_adduct.getCharge() == 0) &&
-            ((cp.getCharge(1) - new_cmp.getPositiveCharges()) % default_adduct.getCharge() == 0))              // for singly charged default_adducts this should always be true
+            ((cp.getCharge(1) - new_cmp.getPositiveCharges()) % default_adduct.getCharge() == 0)) // for singly charged default_adducts this should always be true
         {
-          int hc_left  = (cp.getCharge(0) - new_cmp.getNegativeCharges()) / default_adduct.getCharge();           // this should always be positive! check!!
-          int hc_right = (cp.getCharge(1) - new_cmp.getPositiveCharges()) / default_adduct.getCharge();           // this should always be positive! check!!
+          int hc_left  = (cp.getCharge(0) - new_cmp.getNegativeCharges()) / default_adduct.getCharge(); // this should always be positive! check!!
+          int hc_right = (cp.getCharge(1) - new_cmp.getPositiveCharges()) / default_adduct.getCharge(); // this should always be positive! check!!
 
           // we have not stepped over the charge capacity of the features
           if (hc_left >= 0 && hc_right >= 0)
@@ -1109,8 +1109,8 @@ namespace OpenMS
                 (new_cmp.getPositiveCharges() == cp.getCharge(1)))
             {
               cp.setCompomer(new_cmp);
-              cp.setEdgeScore(0.99);               //TODO how to score this new edge?
-              edges.push_back(cp);                    // add edge
+              cp.setEdgeScore(0.99); //TODO how to score this new edge?
+              edges.push_back(cp); // add edge
               //std::cout << "adding infer CMP with log-score: " << new_cmp.getLogP() << "\n";
             }
             else
@@ -1123,12 +1123,12 @@ namespace OpenMS
 
         ++result_it;
       }
-    }     // edge for
+    } // edge for
 
     LOG_INFO << "Inferring edges raised edge count from " << edges_size << " to " << edges.size() << "\n";
   }
 
-  void FeatureDeconvolution::printEdgesOfConnectedFeatures_(Size idx_1, Size idx_2, const PairsType & feature_relation)
+  void FeatureDeconvolution::printEdgesOfConnectedFeatures_(Size idx_1, Size idx_2, const PairsType& feature_relation)
   {
     std::cout << " +++++ printEdgesOfConnectedFeatures_ +++++\n";
     for (Size i = 0; i < feature_relation.size(); ++i)
@@ -1146,7 +1146,7 @@ namespace OpenMS
     return;
   }
 
-  inline bool FeatureDeconvolution::intensityFilterPassed_(const Int q1, const Int q2, const Compomer & cmp, const FeatureType & f1, const FeatureType & f2)
+  inline bool FeatureDeconvolution::intensityFilterPassed_(const Int q1, const Int q2, const Compomer& cmp, const FeatureType& f1, const FeatureType& f2)
   {
     if (!enable_intensity_filter_)
       return true;

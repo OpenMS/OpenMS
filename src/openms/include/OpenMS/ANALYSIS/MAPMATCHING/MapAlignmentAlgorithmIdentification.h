@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,11 +35,17 @@
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTALGORITHMIDENTIFICATION_H
 #define OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTALGORITHMIDENTIFICATION_H
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithm.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
-#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
+#include <cmath> // for "abs"
+#include <limits> // for "max"
 #include <map>
 
 namespace OpenMS
@@ -65,7 +71,8 @@ namespace OpenMS
     @ingroup MapAlignment
   */
   class OPENMS_DLLAPI MapAlignmentAlgorithmIdentification :
-    public MapAlignmentAlgorithm
+    public DefaultParamHandler, 
+    public ProgressLogger
   {
 public:
     /// Default constructor
@@ -74,77 +81,66 @@ public:
     /// Destructor
     virtual ~MapAlignmentAlgorithmIdentification();
 
-    // Docu in base class
-    virtual void alignPeakMaps(std::vector<MSExperiment<> > &,
-                               std::vector<TransformationDescription> &);
-
-    // Docu in base class
-    virtual void alignFeatureMaps(std::vector<FeatureMap<> > &,
-                                  std::vector<TransformationDescription> &);
-
-    // Docu in base class
-    virtual void alignConsensusMaps(std::vector<ConsensusMap> &,
-                                    std::vector<TransformationDescription> &);
-
-    // Docu in base class
-    virtual void alignPeptideIdentifications(
-      std::vector<std::vector<PeptideIdentification> > &,
-      std::vector<TransformationDescription> &);
-
-    // Docu in base class
-    virtual void setReference(Size reference_index = 0,
-                              const String & reference_file = "");
+    // Set a reference for the alignment
+    template <typename DataType> void setReference(DataType& data)
+    {
+      reference_.clear();
+      if (data.empty()) return; // empty input resets the reference
+      SeqToList rt_data;
+      bool sorted = getRetentionTimes_(data, rt_data);
+      computeMedians_(rt_data, reference_, sorted);
+      if (reference_.empty())
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not extract retention time information from the reference file");
+      }
+    }
 
     /**
-      @brief Align feature maps or consensus maps.
+      @brief Align feature maps, consensus maps, peak maps, or peptide identifications.
 
-      Since the method of aligning feature and consensus maps is equal for this algorithm,
-      alignFeatureMaps and alignConsensusMaps are only defined in conformance with the interface and
-      forward to this method.
-
-      @param maps Vector maps (FeatureMap or ConsensusMap) that should be aligned.
-      @param transformations Vector of TransformationDescription that will be computed.
+      @param data Vector of input data (FeatureMap, ConsensusMap, MSExperiment<> or @p vector<PeptideIdentification>) that should be aligned.
+      @param transformations Vector of RT transformations that will be computed.
     */
-    template <typename MapType>
-    void alignMaps(std::vector<MapType> & maps,
-                   std::vector<TransformationDescription> & transformations)
+    template <typename DataType>
+    void align(std::vector<DataType>& data, 
+               std::vector<TransformationDescription>& transformations,
+               Int reference_index = -1)
     {
-      checkParameters_(maps.size());
+      checkParameters_(data.size());
       startProgress(0, 3, "aligning maps");
 
-      if (reference_index_)     // reference is one of the input files
+      reference_index_ = reference_index;
+      // is reference one of the input files?
+      bool use_internal_reference = (reference_index >= 0);
+      if (use_internal_reference)
       {
-        SeqToList rt_data;
-        getRetentionTimes_(maps[reference_index_ - 1], rt_data);
-        computeMedians_(rt_data, reference_, true);
+        if (reference_index >= data.size())
+        {
+          throw Exception::IndexOverflow(__FILE__, __LINE__,
+                                         __PRETTY_FUNCTION__, reference_index, 
+                                         data.size());
+        }
+        setReference(data[reference_index]);
       }
 
-      // one set of RT data for each input map, except reference:
-      std::vector<SeqToList> rt_data(maps.size() - bool(reference_index_));
-      for (Size i = 0, j = 0; i < maps.size(); ++i)
+      // one set of RT data for each input map, except reference (if any):
+      std::vector<SeqToList> rt_data(data.size() - use_internal_reference);
+      bool all_sorted = true;
+      for (Size i = 0, j = 0; i < data.size(); ++i)
       {
-        if (i == reference_index_ - 1) continue;  // skip reference map, if any
-
-        getRetentionTimes_(maps[i], rt_data[j++]);
+        if (reference_index >= 0 && i == (Size)reference_index) 
+        {
+          continue; // skip reference map, if any
+        }
+        all_sorted &= getRetentionTimes_(data[i], rt_data[j++]);
       }
       setProgress(1);
 
-      computeTransformations_(rt_data, transformations, true);
+      computeTransformations_(rt_data, transformations, all_sorted);
+      setProgress(2);
 
       setProgress(3);
       endProgress();
-    }
-
-    /// Creates a new instance of this class (for Factory)
-    static MapAlignmentAlgorithm * create()
-    {
-      return new MapAlignmentAlgorithmIdentification();
-    }
-
-    /// Returns the product name (for the Factory)
-    static String getProductName()
-    {
-      return "identification";
     }
 
 protected:
@@ -153,16 +149,16 @@ protected:
     typedef std::map<String, DoubleList> SeqToList;
 
     /// Type to store one representative retention time per peptide sequence
-    typedef std::map<String, DoubleReal> SeqToValue;
+    typedef std::map<String, double> SeqToValue;
 
-    /// Index of input file to use as reference (1-based!)
-    Size reference_index_;
-
+    /// Index of input file to use as reference (if any)
+    Int reference_index_;
+    
     /// Reference retention times (per peptide sequence)
     SeqToValue reference_;
 
     /// Score threshold for peptide hits
-    DoubleReal score_threshold_;
+    double score_threshold_;
 
     /// Minimum number of runs a peptide must occur in
     Size min_run_occur_;
@@ -172,32 +168,36 @@ protected:
 
       @param rt_data Lists of RT values for diff. peptide sequences (input, will be sorted)
       @param medians Median RT values for the peptide sequences (output)
-      @param sorted Are RT lists already sorted? (see @p median_)
+      @param sorted Are RT lists already sorted?
 
       @throw Exception::IllegalArgument if the input list is empty
     */
-    void computeMedians_(SeqToList & rt_data, SeqToValue & medians,
+    void computeMedians_(SeqToList& rt_data, SeqToValue& medians,
                          bool sorted = false);
 
     /// Check if peptide ID contains a hit that passes the significance threshold @p score_threshold_ (list of peptide hits will be sorted)
-    bool hasGoodHit_(PeptideIdentification & peptide);
+    bool hasGoodHit_(PeptideIdentification& peptide);
 
     /**
       @brief Collect retention time data ("RT" MetaInfo) from peptide IDs
 
       @param peptides Input peptide IDs (lists of peptide hits will be sorted)
       @param rt_data Lists of RT values for diff. peptide sequences (output)
+      
+      @return Are the RTs already sorted? (Here: false)
     */
-    void getRetentionTimes_(std::vector<PeptideIdentification> & peptides,
-                            SeqToList & rt_data);
+    bool getRetentionTimes_(std::vector<PeptideIdentification>& peptides,
+                            SeqToList& rt_data);
 
     /**
       @brief Collect retention time data ("RT" MetaInfo) from peptide IDs annotated to spectra
 
       @param experiment Input map for RT data
       @param rt_data Lists of RT values for diff. peptide sequences (output)
+
+      @return Are the RTs already sorted? (Here: false)
     */
-    void getRetentionTimes_(MSExperiment<> & experiment, SeqToList & rt_data);
+    bool getRetentionTimes_(MSExperiment<>& experiment, SeqToList& rt_data);
 
     /**
       @brief Collect retention time data ("RT" MetaInfo) from peptide IDs contained in feature maps or consensus maps
@@ -208,19 +208,75 @@ protected:
 
       @param features Input features for RT data
       @param rt_data Lists of RT values for diff. peptide sequences (output)
+
+      @return Are the RTs already sorted? (Here: true)
     */
     template <typename MapType>
-    void getRetentionTimes_(MapType & features, SeqToList & rt_data);
+    bool getRetentionTimes_(MapType& features, SeqToList& rt_data)
+    {
+      bool use_feature_rt = param_.getValue("use_feature_rt").toBool();
+      for (typename MapType::Iterator feat_it = features.begin();
+           feat_it != features.end(); ++feat_it)
+      {
+        if (use_feature_rt)
+        {
+          // find the peptide ID closest in RT to the feature centroid:
+          String sequence;
+          double rt_distance = std::numeric_limits<double>::max();
+          bool any_good_hit = false;
+          for (std::vector<PeptideIdentification>::iterator pep_it =
+                 feat_it->getPeptideIdentifications().begin(); pep_it !=
+                 feat_it->getPeptideIdentifications().end(); ++pep_it)
+          {
+            if (hasGoodHit_(*pep_it))
+            {
+              any_good_hit = true;
+              double current_distance = abs(pep_it->getRT() - feat_it->getRT());
+              if (current_distance < rt_distance)
+              {
+                sequence = pep_it->getHits()[0].getSequence().toString();
+                rt_distance = current_distance;
+              }
+            }
+          }
+
+          if (any_good_hit) rt_data[sequence].push_back(feat_it->getRT());
+        }
+        else
+        {
+          getRetentionTimes_(feat_it->getPeptideIdentifications(), rt_data);
+        }
+      }
+
+      if (!use_feature_rt && 
+          param_.getValue("use_unassigned_peptides").toBool())
+      {
+        getRetentionTimes_(features.getUnassignedPeptideIdentifications(),
+                           rt_data);
+      }
+
+      // remove duplicates (can occur if a peptide ID was assigned to several
+      // features due to overlap or annotation tolerance):
+      for (SeqToList::iterator rt_it = rt_data.begin(); rt_it != rt_data.end();
+           ++rt_it)
+      {
+        DoubleList& rt_values = rt_it->second;
+        sort(rt_values.begin(), rt_values.end());
+        DoubleList::iterator it = unique(rt_values.begin(), rt_values.end());
+        rt_values.resize(it - rt_values.begin());
+      }
+      return true; // RTs were already sorted for duplicate detection
+    }
 
     /**
       @brief Compute retention time transformations from RT data grouped by peptide sequence
 
       @param rt_data Lists of RT values for diff. peptide sequences, per dataset (input, will be sorted)
       @param transforms Resulting transformations, per dataset (output)
-      @param sorted Are RT lists already sorted? (see @p median_)
+      @param sorted Are RT lists already sorted?
     */
-    void computeTransformations_(std::vector<SeqToList> & rt_data,
-                                 std::vector<TransformationDescription> &
+    void computeTransformations_(std::vector<SeqToList>& rt_data,
+                                 std::vector<TransformationDescription>&
                                  transforms, bool sorted = false);
 
     /**
@@ -243,10 +299,10 @@ protected:
 private:
 
     /// Copy constructor intentionally not implemented -> private
-    MapAlignmentAlgorithmIdentification(const MapAlignmentAlgorithmIdentification &);
+    MapAlignmentAlgorithmIdentification(const MapAlignmentAlgorithmIdentification&);
 
     ///Assignment operator intentionally not implemented -> private
-    MapAlignmentAlgorithmIdentification & operator=(const MapAlignmentAlgorithmIdentification &);
+    MapAlignmentAlgorithmIdentification& operator=(const MapAlignmentAlgorithmIdentification&);
 
   };
 

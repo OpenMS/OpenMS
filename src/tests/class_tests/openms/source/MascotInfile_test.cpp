@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -86,7 +86,7 @@ START_SECTION((const String& getBoundary()))
 	TEST_EQUAL(file.getBoundary() , "ABCDEFGHIJKMNOPQRSTUVWXYZ")
 END_SECTION
 
-START_SECTION((void store(const String &filename, const PeakSpectrum& spec, DoubleReal mz, DoubleReal retention_time, String search_title)))
+START_SECTION((void store(const String &filename, const PeakSpectrum& spec, double mz, double retention_time, String search_title)))
 
 	// here a fixed name has to be used as it has to be in the template
 	file.store("MascotInfile_test.txt", spec, 1998.0f, 25.379, "TestTitle");
@@ -157,21 +157,21 @@ START_SECTION((UInt getMissedCleavages()))
 	TEST_EQUAL(file.getMissedCleavages() , 4711)
 END_SECTION
 
-START_SECTION((void setPrecursorMassTolerance(Real precursor_mass_tolerance)))
+START_SECTION((void setPrecursorMassTolerance(float precursor_mass_tolerance)))
 	file.setPrecursorMassTolerance(4711.1f);
 	TEST_REAL_SIMILAR(file.getPrecursorMassTolerance() , 4711.1f)
 END_SECTION
 
-START_SECTION((Real getPrecursorMassTolerance()))
+START_SECTION((float getPrecursorMassTolerance()))
 	TEST_REAL_SIMILAR(file.getPrecursorMassTolerance() , 4711.1f)
 END_SECTION
 
-START_SECTION((void setPeakMassTolerance(Real ion_mass_tolerance)))
+START_SECTION((void setPeakMassTolerance(float ion_mass_tolerance)))
 	file.setPeakMassTolerance(4711.2f);
 	TEST_REAL_SIMILAR(file.getPeakMassTolerance() , 4711.2f)
 END_SECTION
 
-START_SECTION((Real getPeakMassTolerance()))
+START_SECTION((float getPeakMassTolerance()))
 	TEST_REAL_SIMILAR(file.getPeakMassTolerance() , 4711.2f)
 END_SECTION
 

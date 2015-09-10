@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -165,6 +165,8 @@ using namespace std;
     but deleted at the end of execution.
     <br>
 
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_MascotAdapter.cli
     <B>INI file documentation of this tool:</B>
@@ -293,8 +295,8 @@ protected:
     vector<PeptideIdentification> identifications;
     IntList charges;
     StringList parts;
-    DoubleReal precursor_mass_tolerance(0);
-    DoubleReal peak_mass_tolerance(0);
+    double precursor_mass_tolerance(0);
+    double peak_mass_tolerance(0);
     double pep_ident(0), sigthreshold(0), pep_homol(0), prot_score(0), pep_score(0);
     int pep_rank(0), pep_exp_z(0), show_unassigned(0);
     String temp_charge;
@@ -310,7 +312,7 @@ protected:
     String date_time_string;
     String boundary = "";
     map<String, vector<AASequence> > modified_peptides;
-    DoubleReal first_dim_rt = 0;
+    double first_dim_rt = 0;
 
     date_time.now();
     date_time_string = date_time.get();

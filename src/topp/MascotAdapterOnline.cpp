@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -58,6 +58,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
+
     @page TOPP_MascotAdapterOnline MascotAdapterOnline
 
     @brief Identifies peptides in MS/MS spectra via Mascot.
@@ -70,27 +71,25 @@ using namespace std;
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
         </tr>
         <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any signal-/preprocessing tool @n (in mzML format)</td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any signal-/preprocessing tool @n (that writes mzML format)</td>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter or @n any protein/peptide processing tool</td>
         </tr>
     </table>
 </CENTER>
 
-    This wrapper application serves for getting peptide identifications
-    for MS/MS spectra. It communicates with the Mascot server
-    over the network and is not needed to be called from same machine.
+    This wrapper application generates peptide identifications for MS/MS spectra using the search engine Mascot. It communicates with the Mascot server over the network (i.e. it does not have to run on the server itself).
 
-    It support Mascot security features and has also proxy server
-    support. This minimal version of Mascot support by this wrapper
-    is version 2.2.x. Mascot 2.3 works as well, but has not been tested extensively.
-  @note Some Mascot server instances seem to fail without reporting back an error message.
-        Thus, try to run the search on another Mascot server or change/validate search parameters
-        (e.g., using modifications in the INI file, which are unknown to Mascot, but known to OpenMS might be a problem).
+    The adapter supports Mascot security features as well as proxy connections. Mascot versions 2.2.x up to 2.4.1 are supported and have been successfully tested (to varying degrees).
 
+    @bug Running the adapter on Mascot 2.4 (possibly also other versions) produces the following error messages, which should be ignored:\n
+    MascotRemoteQuery: An error occurred (requestId=11): Request aborted (QT Error Code: 7)\n
+    MascotRemoteQuery: An error occurred (requestId=12): Request aborted (QT Error Code: 7)
 
-  @note Be aware that Mascot returns incomplete/incorrect protein assignments for most identified peptides (why ever that is).
-        Thus we do not forward any protein assignments, only peptide sequences. You should run PeptideIndexer after this tool to get correct assignments.
-        You can use the flag 'keep_protein_links' to override this behavior.
+    @note Some Mascot server instances seem to fail without reporting back an error message. In such cases, try to run the search on another Mascot server or change/validate the search parameters (e.g. using modifications that are known to Mascot and can thus be set in the INI file, but which are unknown to Mascot, might pose a problem).
+
+    @note Mascot returns incomplete/incorrect protein assignments for most identified peptides (due to protein-level grouping/filtering). By default the protein associations are therefore not included in the output of this adapter, only the peptide sequences. @ref TOPP_PeptideIndexer should be run after this tool to get correct assignments. The flag @p keep_protein_links can be used to override this behavior.
+
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_MascotAdapterOnline.cli
@@ -127,11 +126,10 @@ protected:
 
     registerSubsection_("Mascot_server", "Mascot server details");
     registerSubsection_("Mascot_parameters", "Mascot parameters used for searching");
-    registerFlag_("keep_protein_links", "The Mascot response file usually returns incomplete/wrong protein hits, so re-indexing the peptide hits is required. To avoid confusion why there"
-                                        " are so few protein hits and force re-indexing, no proteins should be reported. To see the original (wrong) list, enable this flag.", true);
+    registerFlag_("keep_protein_links", "The Mascot response file usually returns incomplete/wrong protein hits, so re-indexing the peptide hits is required. To avoid confusion why there are so few protein hits and force re-indexing, no proteins should be reported. To see the original (wrong) list, enable this flag.", true);
   }
 
-  Param getSubsectionDefaults_(const String & section) const
+  Param getSubsectionDefaults_(const String& section) const
   {
     if (section == "Mascot_server")
     {
@@ -150,13 +148,13 @@ protected:
     return Param();
   }
 
-  ExitCodes main_(int argc, const char ** argv)
+  ExitCodes main_(int argc, const char** argv)
   {
     //-------------------------------------------------------------
     // parameter handling
     //-------------------------------------------------------------
 
-    //input/output files
+    // input/output files
     String in(getStringOption_("in")), out(getStringOption_("out"));
     FileHandler fh;
     FileTypes::Type in_type = fh.getType(in);
@@ -170,6 +168,22 @@ protected:
     fh.getOptions().addMSLevel(2);
     fh.loadExperiment(in, exp, in_type, log_type_);
     writeDebug_(String("Spectra loaded: ") + exp.size(), 2);
+
+    if (exp.getSpectra().empty())
+    {
+      throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS2 spectra in input file.");
+    }
+
+    // determine type of spectral data (profile or centroided)
+    SpectrumSettings::SpectrumType spectrum_type = exp[0].getType();
+
+    if (spectrum_type == SpectrumSettings::RAWDATA)
+    {
+      if (!getFlag_("force"))
+      {
+        throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided MS2 spectra expected. To enforce processing of the data set the -force flag.");
+      }
+    }
 
     //-------------------------------------------------------------
     // calculations
@@ -185,16 +199,16 @@ protected:
     mgf_file.setParameters(mascot_param);
 
     // get the spectra into string stream
-    writeDebug_("Writing Mascot MGF file to stringstream", 1);
+    writeDebug_("Writing MGF file to stream", 1);
     stringstream ss;
-    mgf_file.store(ss, in, exp);
+    mgf_file.store(ss, in, exp, true); // write in compact format
 
     // Usage of a QCoreApplication is overkill here (and ugly too), but we just use the
     // QEventLoop to process the signals and slots and grab the results afterwards from
     // the MascotRemotQuery instance
-    char ** argv2 = const_cast<char **>(argv);
+    char** argv2 = const_cast<char**>(argv);
     QCoreApplication event_loop(argc, argv2);
-    MascotRemoteQuery * mascot_query = new MascotRemoteQuery(&event_loop);
+    MascotRemoteQuery* mascot_query = new MascotRemoteQuery(&event_loop);
     Param mascot_query_param = getParam_().copy("Mascot_server:", true);
     writeDebug_("Setting parameters for Mascot query", 1);
     mascot_query->setParameters(mascot_query_param);
@@ -217,72 +231,76 @@ protected:
       return EXTERNAL_PROGRAM_ERROR;
     }
 
-    // write Mascot response to file
-    String mascot_tmp_file_name(File::getTempDirectory() + "/" + File::getUniqueName() + "_Mascot_response");
-    QFile mascot_tmp_file(mascot_tmp_file_name.c_str());
-    mascot_tmp_file.open(QIODevice::WriteOnly);
-    mascot_tmp_file.write(mascot_query->getMascotXMLResponse());
-    mascot_tmp_file.close();
-
-    // clean up
-    delete mascot_query;
-
     vector<PeptideIdentification> pep_ids;
     ProteinIdentification prot_id;
 
-    // set up mapping between scan numbers and retention times:
-    MascotXMLFile::RTMapping rt_mapping;
-    MascotXMLFile::generateRTMapping(exp.begin(), exp.end(), rt_mapping);
-
-    // read the response
-    MascotXMLFile().load(mascot_tmp_file_name, prot_id, pep_ids, rt_mapping);
-    writeDebug_("Read " + String(pep_ids.size()) + " peptide ids and " + String(prot_id.getHits().size()) + " protein identifications from Mascot", 5);
-
-    // for debugging errors relating to unexpected response files
-    if (this->debug_level_ >= 100)
+    if (!mascot_query_param.exists("skip_export") ||
+        (mascot_query_param.getValue("skip_export") != "true"))
     {
-      writeDebug_(String("\nMascot Server Response file saved to: '") + mascot_tmp_file_name + "'. If an error occurs, send this file to the OpenMS team.\n", 100);
-    }
-    else
-    {
-      // delete file
-      mascot_tmp_file.remove();
-    }
+      // write Mascot response to file
+      String mascot_tmp_file_name(File::getTempDirectory() + "/" + File::getUniqueName() + "_Mascot_response");
+      QFile mascot_tmp_file(mascot_tmp_file_name.c_str());
+      mascot_tmp_file.open(QIODevice::WriteOnly);
+      mascot_tmp_file.write(mascot_query->getMascotXMLResponse());
+      mascot_tmp_file.close();
 
-    // keep or delete protein identifications?!
-    vector<ProteinIdentification> prot_ids;
-    if (!getFlag_("keep_protein_links"))
-    {
-      // remove protein links from peptides
-      std::vector<String> empty;
-      for (Size i = 0; i < pep_ids.size(); ++i)
+      // set up mapping between scan numbers and retention times:
+      MascotXMLFile::RTMapping rt_mapping;
+      MascotXMLFile::generateRTMapping(exp.begin(), exp.end(), rt_mapping);
+
+      // read the response
+      MascotXMLFile().load(mascot_tmp_file_name, prot_id, pep_ids, rt_mapping);
+      writeDebug_("Read " + String(pep_ids.size()) + " peptide ids and " + String(prot_id.getHits().size()) + " protein identifications from Mascot", 5);
+
+      // for debugging errors relating to unexpected response files
+      if (this->debug_level_ >= 100)
       {
-        std::vector<PeptideHit> hits = pep_ids[i].getHits();
-        for (Size h = 0; h < hits.size(); ++h)
-        {
-          hits[h].setProteinAccessions(empty);
-        }
-        pep_ids[i].setHits(hits);
+        writeDebug_(String("\nMascot Server Response file saved to: '") + mascot_tmp_file_name + "'. If an error occurs, send this file to the OpenMS team.\n", 100);
       }
-      // remove proteins
-      std::vector<ProteinHit> p_hit;
-      prot_id.setHits(p_hit);
+      else
+      {
+        mascot_tmp_file.remove(); // delete file
+      }
+
+      // keep or delete protein identifications?!
+      if (!getFlag_("keep_protein_links"))
+      {
+        // remove protein links from peptides
+        for (vector<PeptideIdentification>::iterator pep_it = pep_ids.begin();
+             pep_it != pep_ids.end(); ++pep_it)
+        {
+          for (vector<PeptideHit>::iterator hit_it = pep_it->getHits().begin();
+               hit_it != pep_it->getHits().end(); ++hit_it)
+          {
+            hit_it->setPeptideEvidences(vector<PeptideEvidence>());
+          }
+        }
+        // remove proteins
+        prot_id.getHits().clear();
+      }
     }
-    prot_ids.push_back(prot_id);
+
+    Int search_number = mascot_query->getSearchNumber();
+    prot_id.setMetaValue("SearchNumber", search_number);
+
+    // clean up
+    delete mascot_query;
 
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
 
+    vector<ProteinIdentification> prot_ids;
+    prot_ids.push_back(prot_id);
     IdXMLFile().store(out, prot_ids, pep_ids);
-
+    
     return EXECUTION_OK;
   }
 
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPMascotAdapterOnline tool;
 

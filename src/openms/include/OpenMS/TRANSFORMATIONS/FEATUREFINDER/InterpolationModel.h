@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -57,10 +57,10 @@ namespace OpenMS
   {
 
 public:
-    typedef DoubleReal IntensityType;
+    typedef double IntensityType;
     typedef DPosition<1> PositionType;
-    typedef DoubleReal CoordinateType;
-    typedef Math::LinearInterpolation<DoubleReal> LinearInterpolation;
+    typedef double CoordinateType;
+    typedef Math::LinearInterpolation<double> LinearInterpolation;
 
     /// Default constructor
     InterpolationModel() :
@@ -143,7 +143,10 @@ public:
       BaseModel<1>::PeakType peak;
       for (Size i = 0; i < interpolation_.getData().size(); ++i)
       {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wconversion"
         peak.setIntensity(interpolation_.getData()[i]);
+#pragma clang diagnostic pop
         peak.getPosition()[0] = interpolation_.index2key(i);
         cont.push_back(peak);
       }
@@ -153,7 +156,6 @@ public:
     virtual CoordinateType getCenter() const
     {
       throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-      return CoordinateType();           // we will never get here, but this avoids a warning
     }
 
     /// set sample/supporting points of interpolation wrt params.

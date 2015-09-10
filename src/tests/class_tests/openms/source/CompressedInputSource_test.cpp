@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,33 +50,40 @@ START_TEST(CompressedInputSource, "$Id$")
 CompressedInputSource* ptr = 0;
 CompressedInputSource* nullPointer = 0;
 START_SECTION(CompressedInputSource(const   String& file_path, const char * header,xercesc::MemoryManager* const manager = xercesc::XMLPlatformUtils::fgMemoryManager))
-	char header[2];
-	header[0] = 'B';
-	header[1] = 'Z';
-	ptr = new CompressedInputSource(OPENMS_GET_TEST_DATA_PATH("Bzip2IfStream_1.bz2"),header);
-	TEST_NOT_EQUAL(ptr, nullPointer)
+  char header[3];
+  header[0] = 'B';
+  header[1] = 'Z';
+  header[2] = '\0';
+  String bz = String(header);
+  ptr = new CompressedInputSource(OPENMS_GET_TEST_DATA_PATH("Bzip2IfStream_1.bz2"),bz);
+  TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
+
 START_SECTION((~CompressedInputSource()))
-	delete ptr;
+  delete ptr;
 END_SECTION
 
 START_SECTION(CompressedInputSource(const XMLCh *const file_path, const char *header, xercesc::MemoryManager *const manager=xercesc::XMLPlatformUtils::fgMemoryManager))
-		char header[2];
-	header[0] = 'B';
-	header[1] = 'Z';
-	String filename(OPENMS_GET_TEST_DATA_PATH("Bzip2IfStream_1.bz2"));
-	ptr = new CompressedInputSource(Internal::StringManager().convert(filename.c_str()),header);
-	TEST_NOT_EQUAL(ptr, nullPointer)
-	delete ptr;
+  char header[3];
+  header[0] = 'B';
+  header[1] = 'Z';
+  header[2] = '\0';
+  String bz = String(header);
+  String filename(OPENMS_GET_TEST_DATA_PATH("Bzip2IfStream_1.bz2"));
+  ptr = new CompressedInputSource(Internal::StringManager().convert(filename.c_str()),bz);
+  TEST_NOT_EQUAL(ptr, nullPointer)
+  delete ptr;
 END_SECTION
 
 
 START_SECTION(virtual xercesc::BinInputStream* makeStream() const)
-	char header[2];
-	header[0] = 'B';
-	header[1] = 'Z';
-	CompressedInputSource source(OPENMS_GET_TEST_DATA_PATH("ThisFileDoesNotExist"),header);
-	TEST_EXCEPTION(Exception::FileNotFound,source.makeStream())
+  char header[3];
+  header[0] = 'B';
+  header[1] = 'Z';
+  header[2] = '\0';
+  String bz = String(header);
+  CompressedInputSource source(OPENMS_GET_TEST_DATA_PATH("ThisFileDoesNotExist"),bz);
+  TEST_EXCEPTION(Exception::FileNotFound,source.makeStream())
 END_SECTION
 
 /////////////////////////////////////////////////////////////

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,30 +28,31 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: Andreas Bertsch $
+// $Maintainer: Chris Bielow $
+// $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 //
 
 #include <OpenMS/MATH/STATISTICS/GaussFitter.h>
+
+#include <boost/math/distributions/normal.hpp>
+#include <unsupported/Eigen/NonLinearOptimization>
+
 #include <sstream>
+#include <iostream>
 
 using namespace std;
 
-#define GAUSS_FITTER_VERBOSE
-#undef  GAUSS_FITTER_VERBOSE
-
-#include <iostream>
+// #define GAUSS_FITTER_VERBOSE
+// #undef  GAUSS_FITTER_VERBOSE
 
 namespace OpenMS
 {
   namespace Math
   {
     GaussFitter::GaussFitter()
+    : init_param_(0.06, 3.0, 0.5)
     {
-      init_param_.A = 0.06;
-      init_param_.x0 = 3.0;
-      init_param_.sigma = 0.5;
     }
 
     GaussFitter::~GaussFitter()
@@ -60,157 +61,104 @@ namespace OpenMS
 
     void GaussFitter::setInitialParameters(const GaussFitResult & param)
     {
-      init_param_.A = param.A;
-      init_param_.x0 = param.x0;
-      init_param_.sigma = param.sigma;
+      init_param_ = param;
     }
 
-    const String & GaussFitter::getGnuplotFormula() const
+    struct GaussFunctor
     {
-      return gnuplot_formula_;
-    }
+      int inputs() const { return m_inputs; }
+      int values() const { return m_values; }
 
-    int GaussFitter::gaussFitterf_(const gsl_vector * x, void * params, gsl_vector * f)
-    {
-      vector<DPosition<2> > * data = static_cast<vector<DPosition<2> > *>(params);
+      GaussFunctor(int dimensions, const std::vector<DPosition<2> >* data)
+      : m_inputs(dimensions), 
+        m_values(data->size()), 
+        m_data(data)
+      {}
 
-      double A = gsl_vector_get(x, 0);
-      double x0 = gsl_vector_get(x, 1);
-      double sig = gsl_vector_get(x, 2);
-
-      UInt i = 0;
-      for (vector<DPosition<2> >::iterator it = data->begin(); it != data->end(); ++it)
+      int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec) const
       {
-        gsl_vector_set(f, i++, A * exp(-1.0 * pow(it->getX() - x0, 2) / (2 * pow(sig, 2))) - it->getY());
-      }
+        const double A = x(0);
+        const double x0 = x(1);
+        const double sig = x(2);
+        const double sig2 = 2 * sig * sig;
 
-      return GSL_SUCCESS;
-    }
-
-    int GaussFitter::gaussFitterdf_(const gsl_vector * x, void * params, gsl_matrix * J)
-    {
-      vector<DPosition<2> > * data = static_cast<vector<DPosition<2> > *>(params);
-
-      double A = gsl_vector_get(x, 0);
-      double x0 = gsl_vector_get(x, 1);
-      double sig = gsl_vector_get(x, 2);
-
-      UInt i = 0;
-      for (vector<DPosition<2> >::iterator it = data->begin(); it != data->end(); ++it)
-      {
-        gsl_matrix_set(J, i, 0, exp(-1.0 * pow(it->getX() - x0, 2) / (2 * pow(sig, 2))));
-        gsl_matrix_set(J, i, 1, (A * exp(-1.0 * pow(it->getX() - x0, 2) / (2 * pow(sig, 2))) * (-1 * (-2 * it->getX() + 2.0 * x0) / (2 * pow(sig, 2)))));
-        gsl_matrix_set(J, i++, 2, (A * exp(-1.0 * pow(it->getX() - x0, 2) / (2 * pow(sig, 2))) * (pow(it->getX() - x0, 2) / (4 * pow(sig, 3)))));
-      }
-      return GSL_SUCCESS;
-    }
-
-    int GaussFitter::gaussFitterfdf_(const gsl_vector * x, void * params, gsl_vector * f, gsl_matrix * J)
-    {
-      gaussFitterf_(x, params, f);
-      gaussFitterdf_(x, params, J);
-      return GSL_SUCCESS;
-    }
-
-#ifdef GAUSS_FITTER_VERBOSE
-    void GaussFitter::printState_(size_t iter, gsl_multifit_fdfsolver * s)
-    {
-      printf("iter: %3u x = % 15.8f % 15.8f % 15.8f "
-             "|f(x)| = %g\n",
-             iter,
-             gsl_vector_get(s->x, 0),
-             gsl_vector_get(s->x, 1),
-             gsl_vector_get(s->x, 2),
-             /*gsl_blas_dnrm2(s->f)*/ 0);
-    }
-
-#endif
-
-    GaussFitter::GaussFitResult GaussFitter::fit(vector<DPosition<2> > & input)
-    {
-      const gsl_multifit_fdfsolver_type * T = NULL;
-      gsl_multifit_fdfsolver * s = NULL;
-
-      int status(0);
-      size_t iter = 0;
-
-      const size_t p = 3;
-
-      //gsl_matrix *covar = gsl_matrix_alloc (p, p);
-      gsl_multifit_function_fdf f;
-      double x_init[3] = { init_param_.A, init_param_.x0, init_param_.sigma };
-      gsl_vector_view x = gsl_vector_view_array(x_init, p);
-      const gsl_rng_type * type = NULL;
-      gsl_rng * r = NULL;
-
-      gsl_rng_env_setup();
-
-      type = gsl_rng_default;
-      r = gsl_rng_alloc(type);
-
-      f.f = &gaussFitterf_;
-      f.df = &gaussFitterdf_;
-      f.fdf = &gaussFitterfdf_;
-      f.n = input.size();
-      f.p = p;
-      f.params = &input;
-
-      T = gsl_multifit_fdfsolver_lmsder;
-      s = gsl_multifit_fdfsolver_alloc(T, input.size(), p);
-      gsl_multifit_fdfsolver_set(s, &f, &x.vector);
-
-#ifdef GAUSS_FITTER_VERBOSE
-      printState_(iter, s);
-#endif
-
-      do
-      {
-        iter++;
-        status = gsl_multifit_fdfsolver_iterate(s);
-
-#ifdef GAUSS_FITTER_VERBOSE
-        printf("status = %s\n", gsl_strerror(status));
-        printState_(iter, s);
-
-        cerr << "f(x)=" << gsl_vector_get(s->x, 0) << " * exp(-(x - " << gsl_vector_get(s->x, 1) << ") ** 2 / 2 / (" << gsl_vector_get(s->x, 2) << ") ** 2)";
-#endif
-
-        if (status)
+        UInt i = 0;
+        for (std::vector<DPosition<2> >::const_iterator it = m_data->begin(); it != m_data->end(); ++it, ++i)
         {
-          break;
+          fvec(i) = A * std::exp(- (it->getX() - x0) * (it->getX() - x0) / sig2) - it->getY();
         }
 
-        status = gsl_multifit_test_delta(s->dx, s->x,
-                                         1e-4, 1e-4);
+        return 0;
       }
-      while (status == GSL_CONTINUE && iter < 500);
-
-      if (status != GSL_SUCCESS)
+      // compute Jacobian matrix for the different parameters
+      int df(const Eigen::VectorXd &x, Eigen::MatrixXd &J) const
       {
-        gsl_rng_free(r);
-        gsl_multifit_fdfsolver_free(s);
+        const double A = x(0);
+        const double x0 = x(1);
+        const double sig = x(2);
+        const double sig2 = 2 * sig * sig;
+        const double sig3 = 2 * sig2 * sig;
 
-        throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-GaussFitter", "Could not fit the gaussian to the data");
+        UInt i = 0;
+        for (std::vector<DPosition<2> >::const_iterator it = m_data->begin(); it != m_data->end(); ++it, ++i)
+        {
+          const double xd = (it->getX() - x0);
+          const double xd2 = xd*xd;
+          double j0 = std::exp(-1.0 * xd2 / sig2);
+          J(i,0) = j0;
+          J(i,1) = (A * j0 * (-(-2 * it->getX() + 2.0 * x0) / sig2));
+          J(i,2) = (A * j0 * (xd2 / sig3));
+        }
+        return 0;
       }
 
-      // write the result in a GaussFitResult struct
-      GaussFitResult result;
-      result.A = gsl_vector_get(s->x, 0);
-      result.x0 = gsl_vector_get(s->x, 1);
-      result.sigma = gsl_vector_get(s->x, 2);
+      const int m_inputs, m_values;
+      const std::vector<DPosition<2> >* m_data;
+    };
 
-      // build a formula with the fitted parameters for gnuplot
-      stringstream formula;
-      formula << "f(x)=" << result.A << " * exp(-(x - " << result.x0 << ") ** 2 / 2 / (" << result.sigma << ") ** 2)";
-      gnuplot_formula_ = formula.str();
+    GaussFitter::GaussFitResult GaussFitter::fit(vector<DPosition<2> > & input) const
+    {
+      Eigen::VectorXd x_init (3);
+      x_init(0) = init_param_.A;
+      x_init(1) = init_param_.x0;
+      x_init(2) = init_param_.sigma;
+      GaussFunctor functor (3, &input);
+      Eigen::LevenbergMarquardt<GaussFunctor> lmSolver (functor);
+      Eigen::LevenbergMarquardtSpace::Status status = lmSolver.minimize(x_init);
+
+      // the states are poorly documented. after checking the source and
+      // http://www.ultimatepp.org/reference%24Eigen_demo%24en-us.html we believe that
+      // all states except TooManyFunctionEvaluation and ImproperInputParameters are good
+      // termination states.
+      if (status == Eigen::LevenbergMarquardtSpace::ImproperInputParameters ||
+          status == Eigen::LevenbergMarquardtSpace::TooManyFunctionEvaluation)
+      {
+          throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-GaussFitter", "Could not fit the Gaussian to the data: Error " + String(status));
+      }
+      
+      x_init(2) = fabs(x_init(2)); // sigma can be negative, but |sigma| would actually be the correct solution
+
 #ifdef GAUSS_FITTER_VERBOSE
-      cout << gnuplot_formula_ << endl;
+      std::stringstream formula;
+      formula << "f(x)=" << result.A << " * exp(-(x - " << result.x0 << ") ** 2 / 2 / (" << result.sigma << ") ** 2)";
+      std::cout << formular.str() << std::endl;
 #endif
+      
+      return GaussFitResult (x_init(0), x_init(1), x_init(2));
+    }
 
-      gsl_rng_free(r);
-      gsl_multifit_fdfsolver_free(s);
-
-      return result;
+    // static
+    std::vector<double> GaussFitter::eval(const std::vector<double>& evaluation_points, const GaussFitter::GaussFitResult& model)
+    {
+      std::vector<double> out;
+      out.reserve(evaluation_points.size());
+      boost::math::normal_distribution<> ndf(model.x0, model.sigma);
+      double int0 = model.A / boost::math::pdf(ndf, model.x0); // intensity normalization factor of the max @ x0 (simply multiplying the CDF with A is wrong!)
+      for (Size i = 0; i < evaluation_points.size(); ++i)
+      {
+        out.push_back(boost::math::pdf(ndf, evaluation_points[i]) * int0 );
+      }
+      return out;
     }
 
   }   //namespace Math

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,8 @@
 // OpenMS includes
 #include <OpenMS/VISUAL/MultiGradient.h>
 #include <cstdlib>
+#include <limits>
+#include <sstream>
 
 using namespace std;
 
@@ -88,7 +90,7 @@ namespace OpenMS
     return pos_col_.size();
   }
 
-  void MultiGradient::insert(DoubleReal position, QColor color)
+  void MultiGradient::insert(double position, QColor color)
   {
     if (position >= 0 && position <= 100)
     {
@@ -107,7 +109,7 @@ namespace OpenMS
       throw IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__);
     }
 
-    map<DoubleReal, QColor>::iterator it = pos_col_.begin();
+    map<double, QColor>::iterator it = pos_col_.begin();
     for (Size i = 0; i < index; ++i)
     {
       ++it;
@@ -122,7 +124,7 @@ namespace OpenMS
       throw IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__);
     }
 
-    map<DoubleReal, QColor>::iterator it = pos_col_.begin();
+    map<double, QColor>::iterator it = pos_col_.begin();
     for (Size i = 0; i < index; ++i)
     {
       ++it;
@@ -130,7 +132,7 @@ namespace OpenMS
     return it->second;
   }
 
-  QColor MultiGradient::interpolatedColorAt(DoubleReal position) const
+  QColor MultiGradient::interpolatedColorAt(double position) const
   {
     if (position <= 0.0)
     {
@@ -145,17 +147,17 @@ namespace OpenMS
     //linear
     if (interpolation_mode_ == IM_LINEAR)
     {
-      map<DoubleReal, QColor>::const_iterator it1 = pos_col_.lower_bound(position);
+      map<double, QColor>::const_iterator it1 = pos_col_.lower_bound(position);
 
-      if (std::abs(it1->first - position) < numeric_limits<DoubleReal>::epsilon())  // compare double
+      if (std::abs(it1->first - position) < numeric_limits<double>::epsilon())  // compare double
       {
         return it1->second;
       }
       else
       {
-        map<DoubleReal, QColor>::const_iterator it0 = it1;
+        map<double, QColor>::const_iterator it0 = it1;
         --it0;
-        DoubleReal factor = (position - it0->first) / (it1->first - it0->first);
+        double factor = (position - it0->first) / (it1->first - it0->first);
         return QColor(Int(factor * it1->second.red() + (1 - factor) * it0->second.red() + 0.001)
                      , Int(factor * it1->second.green() + (1 - factor) * it0->second.green() + 0.001)
                      , Int(factor * it1->second.blue() + (1 - factor) * it0->second.blue() + 0.001));
@@ -164,13 +166,13 @@ namespace OpenMS
     //stairs
     else
     {
-      map<DoubleReal, QColor>::const_iterator it = pos_col_.upper_bound(position);
+      map<double, QColor>::const_iterator it = pos_col_.upper_bound(position);
       --it;
       return it->second;
     }
   }
 
-  QColor MultiGradient::interpolatedColorAt(DoubleReal position, DoubleReal min, DoubleReal max) const
+  QColor MultiGradient::interpolatedColorAt(double position, double min, double max) const
   {
     return interpolatedColorAt((position - min) / (max - min) * 100.0);
   }
@@ -199,7 +201,7 @@ namespace OpenMS
       out << "Stairs|";
     }
 
-    for (map<DoubleReal, QColor>::const_iterator it = pos_col_.begin(); it != pos_col_.end(); ++it)
+    for (map<double, QColor>::const_iterator it = pos_col_.begin(); it != pos_col_.end(); ++it)
     {
       if (it != pos_col_.begin())
       {
@@ -223,7 +225,7 @@ namespace OpenMS
 
     string g(gradient);
     string::iterator tmp(g.begin());
-    DoubleReal tmp_pos = 0;
+    double tmp_pos = 0;
     for (string::iterator it = g.begin(); it != g.end(); ++it)
     {
       if (*it == '|')
@@ -253,7 +255,7 @@ namespace OpenMS
     pos_col_[tmp_pos] = QColor(string(tmp, g.end()).c_str());
   }
 
-  void MultiGradient::activatePrecalculationMode(DoubleReal min, DoubleReal max, UInt steps)
+  void MultiGradient::activatePrecalculationMode(double min, double max, UInt steps)
   {
     //add security margin to range to avoid numerical problems
     pre_min_ = std::min(min, max) - 0.000005;
@@ -273,19 +275,19 @@ namespace OpenMS
     pre_.clear();
   }
 
-  bool MultiGradient::exists(DoubleReal position)
+  bool MultiGradient::exists(double position)
   {
     return pos_col_.find(position) != pos_col_.end();
   }
 
-  bool MultiGradient::remove(DoubleReal position)
+  bool MultiGradient::remove(double position)
   {
-    if (position < 0 + std::numeric_limits<DoubleReal>::epsilon() || position > 100 - std::numeric_limits<DoubleReal>::epsilon())
+    if (position < 0 + std::numeric_limits<double>::epsilon() || position > 100 - std::numeric_limits<double>::epsilon())
     {
       return false;
     }
 
-    map<DoubleReal, QColor>::iterator it = pos_col_.find(position);
+    map<double, QColor>::iterator it = pos_col_.find(position);
     if (it != pos_col_.end())
     {
       pos_col_.erase(it);

@@ -12,18 +12,18 @@
 		<sourceFileList count="1">
 			<sourceFile id="sf_ru_0" name="MzDataFile_test_1.raw" location="/share/data/">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="" />
-				<cvParam cvRef="MS" accession="MS:1000564" name="PSI mzData file" />
+				<cvParam cvRef="MS" accession="MS:1000564" name="PSI mzData format" />
 			<cvParam cvRef="MS" accession="MS:1000824" name="no nativeID format" />
 			</sourceFile>
 		</sourceFileList>
 		<contact>
 			<cvParam cvRef="MS" accession="MS:1000586" name="contact name" value="Doe, John" />
-			<cvParam cvRef="MS" accession="MS:1000590" name="contact organization" value="department 1" />
+			<cvParam cvRef="MS" accession="MS:1000590" name="contact affiliation" value="department 1" />
 			<userParam name="contact_info" type="xsd:string" value="www.john.doe" />
 		</contact>
 		<contact>
 			<cvParam cvRef="MS" accession="MS:1000586" name="contact name" value="Doe, Jane" />
-			<cvParam cvRef="MS" accession="MS:1000590" name="contact organization" value="department 2" />
+			<cvParam cvRef="MS" accession="MS:1000590" name="contact affiliation" value="department 2" />
 			<userParam name="contact_info" type="xsd:string" value="www.jane.doe" />
 		</contact>
 	</fileDescription>
@@ -135,7 +135,7 @@
 						<binary>AAAAAAAAXkA=</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="8">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>AADIQg==</binary>
@@ -196,7 +196,7 @@
 						<binary>AAAAAACAW0AAAAAAAABeQAAAAAAAQGBA</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="16">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>AADIQgAASEMAAMhC</binary>
@@ -228,7 +228,7 @@
 						<binary>AAAAAAAAWUAAAAAAAIBbQAAAAAAAAF5AAAAAAABAYEAAAAAAAIBhQA==</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="28">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>AADIQgAASEMAAJZDAABIQwAAyEI=</binary>

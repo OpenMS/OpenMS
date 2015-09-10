@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,14 +46,15 @@ namespace OpenMS
   /**
     @brief Internal representation of a peak shape (used by the PeakPickerCWT)
 
-    It defines an asymmetric lorentzian and asymmetric hyperbolic squared secan function.
+    It defines an asymmetric Lorentzian and asymmetric hyperbolic squared secan function.
   */
-  struct OPENMS_DLLAPI PeakShape
+  class OPENMS_DLLAPI PeakShape
   {
+  public:
     /**
-      @brief Peak shape type (asymmetric lorentzian or asymmetric hyperbolic secans squared).
+      @brief Peak shape type (asymmetric Lorentzian or asymmetric hyperbolic secans squared).
 
-      The peak shape can represent an asymmetric lorentzian function, given by
+      The peak shape can represent an asymmetric Lorentzian function, given by
 
       l(x) = height/(1.+pow(left_width*(x - mz_position), 2)) (x<=mz_position)
 
@@ -76,35 +77,21 @@ namespace OpenMS
     typedef MSSpectrum<>::const_iterator PeakIterator;
 
     /// Default constructor
-    PeakShape() :
-      height(0),
-      mz_position(0),
-      left_width(0),
-      right_width(0),
-      area(0),
-      r_value(0),
-      signal_to_noise(0.),
-      type(UNDEFINED)
-    {
-      left_endpoint_ = exp_.end();
-      right_endpoint_ = exp_.end();
-    }
+    PeakShape();
 
     /// Constructor that sets most of the members
-    PeakShape(DoubleReal height_, DoubleReal mz_position_, DoubleReal left_width_, DoubleReal right_width_, DoubleReal area_, PeakIterator left_, PeakIterator right_, Type type_);
+    PeakShape(double height_, double mz_position_, double left_width_, double right_width_, double area_, PeakIterator left_, PeakIterator right_, Type type_);
 
     /// Constructor that sets most of the members
-    PeakShape(DoubleReal height_, DoubleReal mz_position_, DoubleReal left_width_, DoubleReal right_width_, DoubleReal area_, Type type_);
+    PeakShape(double height_, double mz_position_, double left_width_, double right_width_, double area_, Type type_);
 
 
     /// Copy constructor
     PeakShape(const PeakShape & rhs);
 
     /// Destructor
-    virtual ~PeakShape()
-    {
-    }
-
+    virtual ~PeakShape();
+    
     /// Assignment operator
     PeakShape & operator=(const PeakShape & rhs);
 
@@ -114,12 +101,12 @@ namespace OpenMS
     bool operator!=(const PeakShape & rhs) const;
 
     /// Compute the intensity of the peaks shape at position x
-    DoubleReal operator()(DoubleReal x) const;
-    /// Computes symmetry measure of the peak shape, which is corresponds to th ratio of the left and right width parameters.
-    DoubleReal getSymmetricMeasure() const;
+    double operator()(double x) const;
+    /// Computes symmetry measure of the peak shape, which is corresponds to the ratio of the left and right width parameters.
+    double getSymmetricMeasure() const;
     /// Estimates the full width at half maximum.
-    DoubleReal getFWHM() const;
-    /// Check if endpoint iterators
+    double getFWHM() const;
+    /// Check if endpoint iterators are provided
     bool iteratorsSet() const;
 
     PeakIterator getLeftEndpoint() const;
@@ -128,22 +115,22 @@ namespace OpenMS
     PeakIterator getRightEndpoint() const;
     void setRightEndpoint(PeakIterator right_endpoint);
     /// Maximum intensity of the peak shape
-    DoubleReal height;
+    double height;
     /// Centroid position
-    DoubleReal mz_position;
+    double mz_position;
     /// Left width parameter
-    DoubleReal left_width;
+    double left_width;
     /// Right width parameter
-    DoubleReal right_width;
+    double right_width;
     /// Area of the peak shape
-    DoubleReal area;
+    double area;
     /** @brief Correlation coefficient.
 
-      It represents the squared pearson correlation coefficient with the original data (0 <= r_value <= 1).
+      It represents the squared Pearson correlation coefficient with the original data (0 <= r_value <= 1).
     */
-    DoubleReal r_value;
+    double r_value;
     /// The signal to noise ratio at the mz_position
-    DoubleReal signal_to_noise;
+    double signal_to_noise;
 
     ///peak shape type
     Type type;
@@ -154,7 +141,6 @@ namespace OpenMS
     class OPENMS_DLLAPI PositionLess
     {
 public:
-
       inline bool operator()(const PeakShape & a, const PeakShape & b)
       {
         return a.mz_position < b.mz_position;
@@ -166,7 +152,7 @@ protected:
     PeakIterator left_endpoint_;
     /// Right peak endpoint in the data
     PeakIterator right_endpoint_;
-    /// Needed for initialisation of endpoint iterators
+    /// Needed for initialization of endpoint iterators
     MSSpectrum<> exp_;
     /// flag if left endpoint iterator differs from default value
     bool left_iterator_set_;

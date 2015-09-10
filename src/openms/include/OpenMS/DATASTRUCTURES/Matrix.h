@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,10 +40,7 @@
 #include <cmath> // pow()
 #include <iomanip>
 #include <vector>
-
-#include <gsl/gsl_matrix.h>
-#include <gsl/gsl_vector.h>
-#include <gsl/gsl_linalg.h>
+#include <iostream>
 
 namespace OpenMS
 {
@@ -367,28 +364,6 @@ public:
       }
     }
 
-    /**
-      @brief create gsl_matrix*
-
-      allocate and return an equivalent GSL matrix
-      @note Works only for Matrix<double> and Matrix<float>
-      @note Clean up the gsl_matrix using gsl_matrix_free (gsl_matrix * m)
-    */
-    gsl_matrix* toGslMatrix()
-    {
-      gsl_matrix* m_ptr = gsl_matrix_alloc(rows_, cols_);
-
-      for (size_type i = 0; i < this->rows_; ++i)
-      {
-        for (size_type j = 0; j < this->cols_; ++j)
-        {
-          gsl_matrix_set(m_ptr, i, j, (double) (*this)(i, j));
-        }
-      }
-
-      return m_ptr;
-    }
-
 protected:
 
     ///@name Data members
@@ -400,9 +375,6 @@ protected:
     //@}
 
   }; // class Matrix
-
-  // template<> OPENMS_DLLAPI gsl_matrix* Matrix<double>::toGslMatrix();
-  // template<> OPENMS_DLLAPI gsl_matrix* Matrix<float>::toGslMatrix();
 
   /**
     @brief Print the contents to a stream.

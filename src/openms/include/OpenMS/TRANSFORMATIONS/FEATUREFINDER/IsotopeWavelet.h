@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,7 +53,7 @@ namespace OpenMS
 public:
 
     /** The init function; creates an instance of this singleton class. */
-    static IsotopeWavelet * init(const DoubleReal max_m, const UInt max_charge);
+    static IsotopeWavelet * init(const double max_m, const UInt max_charge);
 
     /** Returns an pointer to the current instance of the class. */
     static IsotopeWavelet * getInstance()
@@ -74,7 +74,7 @@ public:
         * @param m The m/z position within the signal (i.e. the mass not de-charged) within the signal.
         * @param z The charge @p z we want to detect.
         * @param mode Indicates whether positive mode (+1) or negative mode (-1) has been used for ionization. */
-    static DoubleReal getValueByMass(const DoubleReal t, const DoubleReal m, const UInt z, const Int mode = +1)
+    static double getValueByMass(const double t, const double m, const UInt z, const Int mode = +1)
     {
       return getValueByLambda(getLambdaL(m * z - z * mode * Constants::IW_PROTON_MASS), t * z + 1);
     }
@@ -87,7 +87,7 @@ public:
         * value given by Psi.
         * @param lambda The mass-parameter lambda.
         * @param tz1 t (the position) times the charge (z) plus 1. */
-    static DoubleReal getValueByLambda(const DoubleReal lambda, const DoubleReal tz1);
+    static double getValueByLambda(const double lambda, const double tz1);
 
     /** @brief Returns the value of the isotope wavelet at position @p t.
         * This function is usually significantly slower than the table lookup performed in @see getValueByLambda.
@@ -101,9 +101,9 @@ public:
         * value given by Psi.
         * @param lambda The mass-parameter lambda.
         * @param tz1 t (the position) times the charge (z) plus 1. */
-    static DoubleReal getValueByLambdaExtrapol(const DoubleReal lambda, const DoubleReal tz1);
+    static double getValueByLambdaExtrapol(const double lambda, const double tz1);
 
-    static DoubleReal getValueByLambdaExact(const DoubleReal lambda, const DoubleReal tz1);
+    static double getValueByLambdaExact(const double lambda, const double tz1);
 
 
     /** @brief Returns the largest charge state we will consider. */
@@ -122,7 +122,7 @@ public:
         *
         * This is an internally used parameter controlling the precision of several pre-sampling steps.
         * Normally, this parameter can be left unchanged. */
-    static DoubleReal getTableSteps()
+    static double getTableSteps()
     {
       return table_steps_;
     }
@@ -131,27 +131,27 @@ public:
         *
         * This is an internally used parameter controlling the precision of several pre-sampling steps.
         * Normally, this parameter can be left unchanged. */
-    static DoubleReal getInvTableSteps()
+    static double getInvTableSteps()
     {
       return inv_table_steps_;
     }
 
     /** @brief Sets the @p table_steps parameter. */
-    static void setTableSteps(const DoubleReal table_steps)
+    static void setTableSteps(const double table_steps)
     {
       inv_table_steps_ = 1. / table_steps;
       table_steps_ = table_steps;
     }
 
     /** @brief Returns the mass-parameter lambda (linear fit). */
-    static DoubleReal getLambdaL(const DoubleReal m);
+    static double getLambdaL(const double m);
 
 
     /** @brief Computes the averagine isotopic distribution we would expect at the de-convoluted mass.
         * @param m The de-convoluted mass m.
         * @param size Returns the number of significant peaks within a pattern occurring at mass @p m.
         * @return The isotopic distribution. */
-    static const IsotopeDistribution::ContainerType & getAveragine(const DoubleReal m, UInt * size = NULL);
+    static const IsotopeDistribution::ContainerType & getAveragine(const double m, UInt * size = NULL);
 
 
     /** @brief Returns the largest possible index for the pre-sampled gamma table. */
@@ -170,11 +170,11 @@ public:
         * @note Please, do not modify this function. */
     static float myPow(float a, float b);
 
-    static UInt getMzPeakCutOffAtMonoPos(const DoubleReal mass, const UInt z);
+    static UInt getMzPeakCutOffAtMonoPos(const double mass, const UInt z);
 
-    static UInt getNumPeakCutOff(const DoubleReal mass, const UInt z);
+    static UInt getNumPeakCutOff(const double mass, const UInt z);
 
-    static UInt getNumPeakCutOff(const DoubleReal mz);
+    static UInt getNumPeakCutOff(const double mz);
 
 
 protected:
@@ -188,7 +188,7 @@ protected:
     /** @brief Constructor
         * @param max_m The maximal de-convoluted mass that occurs in the current data set.
         * @param max_charge The maximal charge state we would like to analyze. */
-    IsotopeWavelet(const DoubleReal max_m, const UInt max_charge);
+    IsotopeWavelet(const double max_m, const UInt max_charge);
 
 
     /** @brief Destructor. */
@@ -203,12 +203,12 @@ protected:
         * the gamma function online.
         *
         * @param max_m The maximal de-convoluted mass that occurs in the current data set. */
-    static void preComputeExpensiveFunctions_(const DoubleReal max_m);
+    static void preComputeExpensiveFunctions_(const double max_m);
 
 
     /** @brief Initializes the internally used averagine model; automatically called by the public constructor.
         * @param max_m The maximal de-convoluted mass that occurs in the current data set.	*/
-    static void computeIsotopeDistributionSize_(const DoubleReal max_m);
+    static void computeIsotopeDistributionSize_(const double max_m);
 
 
     /** @brief Internally used function; uses register shifts for fast computation of the power function.
@@ -234,18 +234,18 @@ protected:
     static UInt max_charge_;
 
     /** This parameter determines the sample rate for the pre-computation of the gamma function. */
-    static DoubleReal table_steps_;
-    static DoubleReal inv_table_steps_;
+    static double table_steps_;
+    static double inv_table_steps_;
 
     /** Internal table for the precomputed values of the gamma function. */
-    static std::vector<DoubleReal> gamma_table_;
-    static std::vector<DoubleReal> gamma_table_new_;
+    static std::vector<double> gamma_table_;
+    static std::vector<double> gamma_table_new_;
 
     /** Internal table for the precomputed values of the exponential function. */
-    static std::vector<DoubleReal> exp_table_;
+    static std::vector<double> exp_table_;
 
     /** Internal table for the precomputed values of the exponential function. */
-    static std::vector<DoubleReal> sine_table_;
+    static std::vector<double> sine_table_;
 
     /** Internally used averagine model. */
     static IsotopeDistribution averagine_;

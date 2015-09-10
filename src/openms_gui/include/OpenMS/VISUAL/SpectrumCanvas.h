@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,9 +32,11 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-
 #ifndef OPENMS_VISUAL_SPECTRUMCANVAS_H
 #define OPENMS_VISUAL_SPECTRUMCANVAS_H
+
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 //OpenMS
 #include <OpenMS/CONCEPT/Types.h>
@@ -383,7 +385,7 @@ public:
                   const String & filename = "");
 
     /// Returns the minimum intensity of the active layer
-    inline Real getCurrentMinIntensity() const
+    inline float getCurrentMinIntensity() const
     {
       if (getCurrentLayer().type == LayerData::DT_PEAK || getCurrentLayer().type == LayerData::DT_CHROMATOGRAM)
       {
@@ -400,7 +402,7 @@ public:
     }
 
     /// Returns the maximum intensity of the active layer
-    inline Real getCurrentMaxIntensity() const
+    inline float getCurrentMaxIntensity() const
     {
       if (getCurrentLayer().type == LayerData::DT_PEAK || getCurrentLayer().type == LayerData::DT_CHROMATOGRAM)
       {
@@ -417,7 +419,7 @@ public:
     }
 
     /// Returns the minimum intensity of the layer with index @p index
-    inline Real getMinIntensity(Size index) const
+    inline float getMinIntensity(Size index) const
     {
       if (getLayer(index).type == LayerData::DT_PEAK || getCurrentLayer().type == LayerData::DT_CHROMATOGRAM)
       {
@@ -434,7 +436,7 @@ public:
     }
 
     /// Returns the maximum intensity of the layer with index @p index
-    inline Real getMaxIntensity(Size index) const
+    inline float getMaxIntensity(Size index) const
     {
       if (getLayer(index).type == LayerData::DT_PEAK || getCurrentLayer().type == LayerData::DT_CHROMATOGRAM)
       {
@@ -475,10 +477,10 @@ public:
 
         @see snap_factors_
     */
-    DoubleReal getSnapFactor();
+    double getSnapFactor();
 
     /// Returns the percentage factor
-    DoubleReal getPercentageFactor();
+    double getPercentageFactor();
 
     /// Shows the preferences dialog of the active layer
     virtual void showCurrentLayerPreferences() = 0;
@@ -652,7 +654,7 @@ protected:
     void drawText_(QPainter & painter, QStringList text);
 
     /// Returns the m/z value of an identification depending on the m/z source of the layer (precursor mass/theoretical peptide mass)
-    DoubleReal getIdentificationMZ_(const Size layer_index,
+    double getIdentificationMZ_(const Size layer_index,
                                     const PeptideIdentification & peptide) const;
 
     ///Method that is called when a new layer has been added
@@ -727,9 +729,9 @@ protected:
     ///@name Translation methods, which are called when cursor buttons are pressed
     //@{
     /// Translation bound to the 'Left' key
-    virtual void translateLeft_();
+    virtual void translateLeft_(Qt::KeyboardModifiers m);
     /// Translation bound to the 'Right' key
-    virtual void translateRight_();
+    virtual void translateRight_(Qt::KeyboardModifiers m);
     /// Translation bound to the 'Up' key
     virtual void translateForward_();
     /// Translation bound to the 'Down' key
@@ -752,7 +754,7 @@ protected:
         @param y the widget coordinate y
         @return chart coordinates
     */
-    inline PointType widgetToData_(DoubleReal x, DoubleReal y)
+    inline PointType widgetToData_(double x, double y)
     {
       if (!isMzToXAxis())
       {
@@ -784,7 +786,7 @@ protected:
         @param y the chart coordinate y
         @param point returned widget coordinates
     */
-    inline void dataToWidget_(DoubleReal x, DoubleReal y, QPoint & point)
+    inline void dataToWidget_(double x, double y, QPoint & point)
     {
       if (!isMzToXAxis())
       {
@@ -915,7 +917,7 @@ protected:
 
         In this mode the highest currently visible intensity is treated like the maximum overall intensity.
     */
-    std::vector<DoubleReal> snap_factors_;
+    std::vector<double> snap_factors_;
 
     /// Rubber band for selected area
     QRubberBand rubber_band_;

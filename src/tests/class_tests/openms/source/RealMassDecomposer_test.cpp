@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,7 +51,7 @@ using namespace std;
 
 Weights createWeights()
 {
-  Map<char, DoubleReal> aa_to_weight;
+  Map<char, double> aa_to_weight;
 
   set<const Residue*> residues = ResidueDB::getInstance()->getResidues("Natural19WithoutI");
 
@@ -62,7 +62,7 @@ Weights createWeights()
 
   // init mass decomposer
   IMSAlphabet alphabet;
-  for (Map<char, DoubleReal>::ConstIterator it = aa_to_weight.begin(); it != aa_to_weight.end(); ++it)
+  for (Map<char, double>::ConstIterator it = aa_to_weight.begin(); it != aa_to_weight.end(); ++it)
   {
     alphabet.push_back(String(it->first), it->second);
   }

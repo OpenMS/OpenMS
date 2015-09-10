@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -67,7 +67,7 @@ END_SECTION
 Compomer cmp;
 cmp.setID(99);
 
-START_SECTION((ChargePair(const Size &index0, const Size &index1, const Int &charge0, const Int &charge1, const Compomer &compomer, const DoubleReal &mass_diff, const bool active)))
+START_SECTION((ChargePair(const Size &index0, const Size &index1, const Int &charge0, const Int &charge1, const Compomer &compomer, const double &mass_diff, const bool active)))
 {
 	ChargePair cp(34,45, 4,5, cmp, 12.34, false);
 	TEST_EQUAL(cp.getElementIndex(0), 34);
@@ -157,13 +157,13 @@ START_SECTION((void setCompomer(const Compomer &compomer)))
 }
 END_SECTION
 
-START_SECTION((DoubleReal getMassDiff() const))
+START_SECTION((double getMassDiff() const))
 {
 	NOT_TESTABLE //well.. tested below...
 }
 END_SECTION
 
-START_SECTION((void setMassDiff(DoubleReal mass_diff)))
+START_SECTION((void setMassDiff(double mass_diff)))
 {
   ChargePair cp;
 	cp.setMassDiff(123.432);
@@ -171,13 +171,13 @@ START_SECTION((void setMassDiff(DoubleReal mass_diff)))
 }
 END_SECTION
 
-START_SECTION((DoubleReal getEdgeScore() const))
+START_SECTION((double getEdgeScore() const))
 {
 	NOT_TESTABLE //well.. tested below...
 }
 END_SECTION
 
-START_SECTION((void setEdgeScore(DoubleReal score)))
+START_SECTION((void setEdgeScore(double score)))
 {
   ChargePair cp;
 	cp.setEdgeScore(1123.432f);

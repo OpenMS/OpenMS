@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MzIdentML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://psidev.info/psi/pi/mzIdentML/1.1 http://psi-pi.googlecode.com/svn/trunk/schema/mzIdentML1.1.0.xsd"
+	xmlns="http://psidev.info/psi/pi/mzIdentML/1.1"
+	version="1.1.0"
+	id="OpenMS_15050004366391181853"
+	creationDate="2014-12-02T14:07:43">
+<cvList> 
+ 	<cv id="PSI-MS" fullName="Proteomics Standards Initiative Mass Spectrometry Vocabularies"  uri="http://psidev.cvs.sourceforge.net/viewvc/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo" version="3.15.0"></cv> 
+ 	<cv id="UNIMOD" fullName="UNIMOD"        uri="http://www.unimod.org/obo/unimod.obo"></cv> 
+ 	<cv id="UO"     fullName="UNIT-ONTOLOGY" uri="http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/unit.obo"></cv>
+</cvList>
+<AnalysisSoftwareList>
+	<AnalysisSoftware version="2.1.0" name="Mascot" id="17749660155506638460"> 
+		<SoftwareName> 
+ 			<cvParam accession="MS:1001207" cvRef="PSI-MS" name="Mascot"/>
+		</SoftwareName> 
+	</AnalysisSoftware> 
+	<AnalysisSoftware version="OpenMS TOPP v1.9" name="TOPP software" id="17716858074023296841"> 
+		<SoftwareName> 
+			<cvParam accession="MS:1000752" cvRef="PSI-MS" name="TOPP software"/> 
+		</SoftwareName> 
+	</AnalysisSoftware> 
+</AnalysisSoftwareList>
+<SequenceCollection>
+	<DBSequence accession="PROT1" searchDatabase_ref="5233264595117471314" length="7" id="3332699010107892018">
+	<Seq>ABCDEFG</Seq>
+		<cvParam accession="MS:1001088" cvRef="PSI-MS" name="protein description" value="PROT1"/>
+	</DBSequence>
+	<DBSequence accession="PROT2" searchDatabase_ref="5233264595117471314" length="7" id="13440783915218733453">
+	<Seq>ABCDEFG</Seq>
+		<cvParam accession="MS:1001088" cvRef="PSI-MS" name="protein description" value="PROT2"/>
+	</DBSequence>
+	<DBSequence accession="PROT3" searchDatabase_ref="5233264595117471314" id="15916652588957785155">
+		<cvParam accession="MS:1001088" cvRef="PSI-MS" name="protein description" value="PROT3"/>
+	</DBSequence>
+	<Peptide id="12524258085768770586"> 
+		<PeptideSequence>PEPTIDERRR</PeptideSequence> 
+	</Peptide> 
+ 	<Peptide id="14811341817612382122"> 
+		<PeptideSequence>PEPTIDERRRR</PeptideSequence> 
+	</Peptide> 
+ 	<Peptide id="17314619952666245179"> 
+		<PeptideSequence>PEPTIDERRRRR</PeptideSequence> 
+	</Peptide> 
+ 	<Peptide id="2927519776102075938"> 
+		<PeptideSequence>PEPTIDERR</PeptideSequence> 
+	</Peptide> 
+ 	<Peptide id="6408859317243173796"> 
+		<PeptideSequence>PEPTIDER</PeptideSequence> 
+	</Peptide> 
+ 	<PeptideEvidence id="12999979801269632061" peptide_ref="6408859317243173796" dBSequence_ref="13440783915218733453" isDecoy="0"/> 
+	<PeptideEvidence id="3023658190814908261" peptide_ref="17314619952666245179" dBSequence_ref="15916652588957785155" isDecoy="0"/> 
+	<PeptideEvidence id="474525871221756682" peptide_ref="6408859317243173796" dBSequence_ref="3332699010107892018" post="B" pre="A" isDecoy="0"/> 
+</SequenceCollection>
+<AnalysisCollection>
+	<SpectrumIdentification id="16177748921272733768" spectrumIdentificationProtocol_ref="7804704400743266335" spectrumIdentificationList_ref="16250062551099875712" activityDate="2006-01-12T12:13:14">
+		<InputSpectra spectraData_ref="4835329514588776807"/>
+		<SearchDatabaseRef searchDatabase_ref="5233264595117471314"/>
+	</SpectrumIdentification>
+</AnalysisCollection>
+<AnalysisProtocolCollection>
+	<SpectrumIdentificationProtocol id="7804704400743266335" analysisSoftware_ref="17749660155506638460"> 
+		<SearchType>
+			<cvParam accession="MS:1001083" cvRef="PSI-MS" name="ms-ms search"/> 
+		</SearchType>
+		<AdditionalSearchParams>
+			<userParam name="charges" unitName="xsd:string" value="+1, +2"/>
+		</AdditionalSearchParams>
+		<FragmentTolerance>
+			<cvParam accession="MS:1001412" name="search tolerance plus value" cvRef="PSI-MS" value="0.3"/>
+			<cvParam accession="MS:1001413" name="search tolerance minus value" cvRef="PSI-MS" value="0.3"/>
+		</FragmentTolerance>
+		<ParentTolerance>
+			<cvParam accession="MS:1001412" name="search tolerance plus value" cvRef="PSI-MS" value="1"/>
+			<cvParam accession="MS:1001413" name="search tolerance minus value" cvRef="PSI-MS" value="1"/>
+		</ParentTolerance>
+		<Threshold>
+			<cvParam accession="MS:1001494" cvRef="PSI-MS" name="no threshold"/>
+		</Threshold>
+		<ModificationParams>
+		</ModificationParams>
+		<Enzymes independent="false">
+			<Enzyme missedCleavages="0" id="15004869347769368353">
+				<EnzymeName>
+					<cvParam accession="MS:1001251" cvRef="PSI-MS" name="Trypsin"/>
+				</EnzymeName>
+			</Enzyme>
+		</Enzymes>
+	</SpectrumIdentificationProtocol>
+</AnalysisProtocolCollection>
+<DataCollection>
+	<Inputs>
+		<SearchDatabase location="MSDB" version="1.0" id="5233264595117471314" > 
+			<FileFormat> 
+ 				<cvParam accession="MS:1001348" cvRef="PSI-MS" name="FASTA format"/>
+			</FileFormat>
+			<DatabaseName>
+				<userParam name="MSDB"/>
+			</DatabaseName>
+		</SearchDatabase> 
+		<SpectraData location="UNKNOWN" id="4835329514588776807">
+			<FileFormat> 
+				<cvParam accession="MS:1000584" cvRef="PSI-MS" name="mzML format"/>
+			</FileFormat>
+			<SpectrumIDFormat> 
+ 				<cvParam accession="MS:1000774" cvRef="PSI-MS" name="multiple peak list nativeID format"/>
+			</SpectrumIDFormat> 
+		</SpectraData>
+	</Inputs>
+	<AnalysisData>
+		<SpectrumIdentificationList id="16250062551099875712"> 
+			<FragmentationTable>
+				<Measure id="Measure_MZ">
+					<cvParam accession="MS:1001225" cvRef="PSI-MS" unitCvRef="PSI-MS" unitName="m/z" unitAccession="MS:1000040" name="product ion m/z"/>
+				</Measure>
+			</FragmentationTable>
+			<SpectrumIdentificationResult spectraData_ref="4835329514588776807" spectrumID="17" id="15157403601844400700"> 
+				<SpectrumIdentificationItem passThreshold="0" rank="0" peptide_ref="6408859317243173796" calculatedMassToCharge="956.468357540271" experimentalMassToCharge="675.9" chargeState="1" id="17413765565443951891"> 
+					<PeptideEvidenceRef peptideEvidence_ref="474525871221756682"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="12999979801269632061"/> 
+					<cvParam accession="MS:1001143" cvRef="PSI-MS" name="search engine specific score for PSMs" value="0.9"/>
+					<userParam name="name" unitName="xsd:string" value="PeptideHit"/>
+				</SpectrumIdentificationItem>
+				<SpectrumIdentificationItem passThreshold="0" rank="0" peptide_ref="2927519776102075938" calculatedMassToCharge="1112.56946892307" experimentalMassToCharge="675.9" chargeState="1" id="16907355690727166316"> 
+					<cvParam accession="MS:1001143" cvRef="PSI-MS" name="search engine specific score for PSMs" value="1.4"/>
+				</SpectrumIdentificationItem>
+				<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="1234.5"/>
+			</SpectrumIdentificationResult>
+			<SpectrumIdentificationResult spectraData_ref="4835329514588776807" spectrumID="MZ:nan@RT:nan" id="10306100746905639127"> 
+				<SpectrumIdentificationItem passThreshold="1" rank="0" peptide_ref="12524258085768770586" calculatedMassToCharge="634.838928386321" experimentalMassToCharge="nan" chargeState="2" id="1755235105885170967"> 
+					<cvParam accession="MS:1001143" cvRef="PSI-MS" name="search engine specific score for PSMs" value="44.4"/>
+				</SpectrumIdentificationItem>
+				<SpectrumIdentificationItem passThreshold="1" rank="0" peptide_ref="14811341817612382122" calculatedMassToCharge="712.889484077721" experimentalMassToCharge="nan" chargeState="2" id="2684106197423007927"> 
+					<cvParam accession="MS:1001143" cvRef="PSI-MS" name="search engine specific score for PSMs" value="33.3"/>
+				</SpectrumIdentificationItem>
+			</SpectrumIdentificationResult>
+			<SpectrumIdentificationResult spectraData_ref="4835329514588776807" spectrumID="MZ:nan@RT:nan" id="8119044117483804262"> 
+				<SpectrumIdentificationItem passThreshold="1" rank="0" peptide_ref="17314619952666245179" calculatedMassToCharge="1580.87280307147" experimentalMassToCharge="nan" chargeState="1" id="7898004582401008768"> 
+					<PeptideEvidenceRef peptideEvidence_ref="3023658190814908261"/> 
+					<cvParam accession="MS:1001143" cvRef="PSI-MS" name="search engine specific score for PSMs" value="1.4"/>
+				</SpectrumIdentificationItem>
+			</SpectrumIdentificationResult>
+		</SpectrumIdentificationList>
+	</AnalysisData>
+</DataCollection>
+</MzIdentML>

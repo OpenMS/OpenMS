@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -52,52 +52,52 @@ namespace OpenMS
   {
   }
 
-  void LabelFreeLabeler::preCheck(Param & /* param */) const
+  void LabelFreeLabeler::preCheck(Param& /* param */) const
   {
     // no specific requirements
   }
 
   // merge all channels into the first one
   // no further influence of the simulation process needed
-  void LabelFreeLabeler::setUpHook(FeatureMapSimVector & features)
+  void LabelFreeLabeler::setUpHook(SimTypes::FeatureMapSimVector& features)
   {
     if (features.size() == 1)
       return;
     else
     {
       LOG_INFO << "Merging input FASTA files into one. Intensities will be summed up if duplicates occur.";
-      FeatureMapSim final_map = mergeProteinIdentificationsMaps_(features);
+      SimTypes::FeatureMapSim final_map = mergeProteinIdentificationsMaps_(features);
       features.clear();
       features.push_back(final_map);
     }
   }
 
   /// Labeling between digestion and rt simulation
-  void LabelFreeLabeler::postDigestHook(FeatureMapSimVector & /* features_to_simulate */)
+  void LabelFreeLabeler::postDigestHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */)
   {
   }
 
   /// Labeling between RT and Detectability
-  void LabelFreeLabeler::postRTHook(FeatureMapSimVector & /* features_to_simulate */)
+  void LabelFreeLabeler::postRTHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */)
   {
   }
 
   /// Labeling between Detectability and Ionization
-  void LabelFreeLabeler::postDetectabilityHook(FeatureMapSimVector & /* features_to_simulate */)
+  void LabelFreeLabeler::postDetectabilityHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */)
   {
   }
 
   /// Labeling between Ionization and RawMS
-  void LabelFreeLabeler::postIonizationHook(FeatureMapSimVector & /* features_to_simulate */)
+  void LabelFreeLabeler::postIonizationHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */)
   {
   }
 
   /// Labeling after RawMS
-  void LabelFreeLabeler::postRawMSHook(FeatureMapSimVector & /* features_to_simulate */)
+  void LabelFreeLabeler::postRawMSHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */)
   {
   }
 
-  void LabelFreeLabeler::postRawTandemMSHook(FeatureMapSimVector &, MSSimExperiment &)
+  void LabelFreeLabeler::postRawTandemMSHook(SimTypes::FeatureMapSimVector&, SimTypes::MSSimExperiment&)
   {
 
   }

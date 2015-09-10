@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,46 +65,46 @@ public:
 
               The allowed characters given by 'allowed_characters' are counted in the sequence 'sequence'
               and the relative frequency of the letters are sored in the composition vector.
-              The first entry of the vector (<UInt, DoubleReal>) corresponds to the first letter of
+              The first entry of the vector (<UInt, double>) corresponds to the first letter of
               'allowed_characters' that has a non zero frequency in 'sequence' and its corresponding
               relative frequency...
           */
-    void encodeCompositionVector(const String & sequence, std::vector<std::pair<Int, DoubleReal> > & encoded_vector, const String & allowed_characters = "ACDEFGHIKLMNPQRSTVWY");
+    void encodeCompositionVector(const String & sequence, std::vector<std::pair<Int, double> > & encoded_vector, const String & allowed_characters = "ACDEFGHIKLMNPQRSTVWY");
 
     /**
               @brief stores composition vectors of the sequences given by 'sequence' in 'composition_vectors'
 
               The allowed characters given by 'allowed_characters' are counted in the sequences 'sequences'
               and the relative frequency of the letters are sored in the composition vectors.
-              The first entry of the first vector (<UInt, DoubleReal>) corresponds to the first letter of
+              The first entry of the first vector (<UInt, double>) corresponds to the first letter of
               'allowed_characters' that has a non zero frequency in the first 'sequence' and its corresponding
               relative frequency...
           */
-    void encodeCompositionVectors(const std::vector<String> & sequences, const String & allowed_characters, std::vector<std::vector<std::pair<Int, DoubleReal> > > & composition_vectors);
+    void encodeCompositionVectors(const std::vector<String> & sequences, const String & allowed_characters, std::vector<std::vector<std::pair<Int, double> > > & composition_vectors);
     /// encodes the feature vector in LibSVM compliant format
-    svm_node * encodeLibSVMVector(const std::vector<std::pair<Int, DoubleReal> > & feature_vector);
+    svm_node * encodeLibSVMVector(const std::vector<std::pair<Int, double> > & feature_vector);
 
     /// encodes the feature vectors in LibSVM compliant format
-    void encodeLibSVMVectors(const std::vector<std::vector<std::pair<Int, DoubleReal> > > & feature_vectors, std::vector<svm_node *> & libsvm_vectors);
+    void encodeLibSVMVectors(const std::vector<std::vector<std::pair<Int, double> > > & feature_vectors, std::vector<svm_node *> & libsvm_vectors);
 
     /// encodes the LibSVM compliant vectors into a LibSVM compliant structure
     svm_problem * encodeLibSVMProblem(const std::vector<svm_node *> & vectors,
-                                      std::vector<DoubleReal> & labels);
+                                      std::vector<double> & labels);
 
     /// creates composition vectors for 'sequences' and stores them in LibSVM compliant format
     svm_problem * encodeLibSVMProblemWithCompositionVectors(const std::vector<String> & sequences,
-                                                            std::vector<DoubleReal> & labels,
+                                                            std::vector<double> & labels,
                                                             const String & allowed_characters);
 
     /// creates composition vectors with additional length information for 'sequences' and stores them in LibSVM compliant format
     svm_problem * encodeLibSVMProblemWithCompositionAndLengthVectors(const std::vector<String> & sequences,
-                                                                     std::vector<DoubleReal> & labels,
+                                                                     std::vector<double> & labels,
                                                                      const String & allowed_characters,
                                                                      UInt                maximum_sequence_length);
 
     /// creates composition vectors with additional length and average weight information for 'sequences' and stores them in LibSVM compliant format
     svm_problem * encodeLibSVMProblemWithCompositionLengthAndWeightVectors(const std::vector<String> & sequences,
-                                                                           std::vector<DoubleReal> & labels,
+                                                                           std::vector<double> & labels,
                                                                            const String & allowed_characters);
 
     /// stores the LibSVM-encoded data in a text file that can be used by the LibSVM applications (svm-scale, svm-train,...)
@@ -118,14 +118,14 @@ public:
                             UInt                                                                             k_mer_length,
                             const String & allowed_characters,
                             UInt                                        border_length,
-                            std::vector<std::pair<Int, DoubleReal> > & libsvm_vector,
+                            std::vector<std::pair<Int, double> > & libsvm_vector,
                             bool                                                                                             strict = false,
                             bool                                                                                             unpaired = false,
                             bool                                                                                             length_encoding = false);
 
     /// creates oligo border vectors vectors for 'sequences' and stores them in LibSVM compliant format
     svm_problem * encodeLibSVMProblemWithOligoBorderVectors(const std::vector<String> & sequences,
-                                                            std::vector<DoubleReal> & labels,
+                                                            std::vector<double> & labels,
                                                             UInt                           k_mer_length,
                                                             const String & allowed_characters,
                                                             UInt                           border_length,
@@ -138,7 +138,7 @@ public:
                                              UInt                                                       k_mer_length,
                                              const String & allowed_characters,
                                              UInt                                                       border_length,
-                                             std::vector<std::vector<std::pair<Int, DoubleReal> > > & vectors);
+                                             std::vector<std::vector<std::pair<Int, double> > > & vectors);
 
     /**
               @brief stores a string representation of the encoded sequence 'vector' in 'output'
@@ -165,7 +165,7 @@ public:
     void encodeOligo(const AASequence & sequence,
                      UInt k_mer_length,
                      const String & allowed_characters,
-                     std::vector<std::pair<Int, DoubleReal> > & values,
+                     std::vector<std::pair<Int, double> > & values,
                      bool is_right_border = false);
 
     /**
@@ -177,8 +177,8 @@ public:
 
 private:
     /// comparator for oligos encoded by encodeOligo
-    static bool cmpOligos_(std::pair<Int, DoubleReal> a,
-                           std::pair<Int, DoubleReal> b);
+    static bool cmpOligos_(std::pair<Int, double> a,
+                           std::pair<Int, double> b);
 
   };
 

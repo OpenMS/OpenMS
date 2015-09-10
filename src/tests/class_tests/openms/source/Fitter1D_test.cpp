@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -80,7 +80,7 @@ class TestModel : public Fitter1D
 
   QualityType fit1d(const RawDataArrayType& /*range*/, InterpolationModel*&  /*model*/)
   {
-//    DoubleReal center = 0.0;
+//    double center = 0.0;
 //    center = model->getCenter();
 
     return 1.0;

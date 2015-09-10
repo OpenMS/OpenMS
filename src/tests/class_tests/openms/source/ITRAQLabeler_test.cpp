@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -77,19 +77,19 @@ START_SECTION((void preCheck(Param &param) const ))
 }
 END_SECTION
 
-START_SECTION((void setUpHook(FeatureMapSimVector &)))
+START_SECTION((void setUpHook(SimTypes::FeatureMapSimVector &)))
 {
   ITRAQLabeler i;
   // check for correct number of channels
-  FeatureMapSimVector f_maps;
-  f_maps.push_back(FeatureMap<>());
+  SimTypes::FeatureMapSimVector f_maps;
+  f_maps.push_back(FeatureMap());
   i.setUpHook(f_maps);
 
   // add another map
   Param p = i.getParameters();
   p.setValue("channel_active_4plex", ListUtils::create<String>("114:myReference, 117:blabla"), "Four-plex only: Each channel that was used in the experiment and its description (114-117) in format <channel>:<name>, e.g. \"114:myref\",\"115:liver\".");
   i.setParameters(p);
-  f_maps.push_back(FeatureMap<>());
+  f_maps.push_back(FeatureMap());
   i.setUpHook(f_maps);
 
   // if no Exception until here, all is good
@@ -98,32 +98,33 @@ START_SECTION((void setUpHook(FeatureMapSimVector &)))
 }
 END_SECTION
 
-START_SECTION((void postDigestHook(FeatureMapSimVector &)))
+START_SECTION((void postDigestHook(SimTypes::FeatureMapSimVector &)))
 {
   ITRAQLabeler i;
 
-  FeatureMapSimVector f_maps;
-  FeatureMap<> fm1, fm2, fm3;
+  SimTypes::FeatureMapSimVector f_maps;
+  FeatureMap fm1, fm2, fm3;
 
   // create peptide
-  PeptideHit pep_hit(1.0, 1, 0, AASequence("AAHJK"));
-  std::vector<String> prot_accessions;
-  prot_accessions.push_back("p1");
-  pep_hit.setProteinAccessions(prot_accessions);
+  PeptideHit pep_hit(1.0, 1, 0, AASequence::fromString("AAHJK"));
+  PeptideEvidence pe1;
+  pe1.setProteinAccession("p1");
+  pep_hit.setPeptideEvidences(vector<PeptideEvidence>(1, pe1));
   PeptideIdentification pep_id;
   pep_id.insertHit(pep_hit);
   // --
-  PeptideHit pep_hit2(1.0, 1, 0, AASequence("EEEEPPPK"));
-  std::vector<String> prot_accessions2;
-  prot_accessions2.push_back("p2");
-  pep_hit2.setProteinAccessions(prot_accessions2);
+  PeptideHit pep_hit2(1.0, 1, 0, AASequence::fromString("EEEEPPPK"));
+  PeptideEvidence pe2;
+  pe2.setProteinAccession("p2");
+  pep_hit2.setPeptideEvidences(vector<PeptideEvidence>(1, pe2));
+
   PeptideIdentification pep_id2;
   pep_id2.insertHit(pep_hit2);
   // --
-  PeptideHit pep_hit3(1.0, 1, 0, AASequence("EEEEPPPK")); // same peptide as #2, but from different protein
-  std::vector<String> prot_accessions3;
-  prot_accessions3.push_back("p3");
-  pep_hit3.setProteinAccessions(prot_accessions3);
+  PeptideHit pep_hit3(1.0, 1, 0, AASequence::fromString("EEEEPPPK")); // same peptide as #2, but from different protein
+  PeptideEvidence pe3;
+  pe3.setProteinAccession("p3");
+  pep_hit3.setPeptideEvidences(vector<PeptideEvidence>(1, pe3));
   PeptideIdentification pep_id3;
   pep_id3.insertHit(pep_hit3);
 
@@ -150,54 +151,54 @@ START_SECTION((void postDigestHook(FeatureMapSimVector &)))
 
   i.postDigestHook(f_maps);
 
-
   // one merged map
   TEST_EQUAL(f_maps.size(), 1)
 
   TEST_EQUAL(f_maps[0].size(), 2)
 
-  TEST_EQUAL(f_maps[0][0].getPeptideIdentifications()[0].getHits()[0].getProteinAccessions().size(), 1)
-  TEST_EQUAL(f_maps[0][1].getPeptideIdentifications()[0].getHits()[0].getProteinAccessions().size(), 2)
+  set<String> protein_accessions1 = f_maps[0][0].getPeptideIdentifications()[0].getHits()[0].extractProteinAccessions();
+  TEST_EQUAL(protein_accessions1.size(), 1)
 
+  set<String> protein_accessions2 = f_maps[0][1].getPeptideIdentifications()[0].getHits()[0].extractProteinAccessions();
+  TEST_EQUAL(protein_accessions2.size(), 2)
 }
 END_SECTION
 
-START_SECTION((void postRTHook(FeatureMapSimVector &)))
+START_SECTION((void postRTHook(SimTypes::FeatureMapSimVector &)))
 {
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((void postDetectabilityHook(FeatureMapSimVector &)))
+START_SECTION((void postDetectabilityHook(SimTypes::FeatureMapSimVector &)))
 {
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((void postIonizationHook(FeatureMapSimVector &)))
+START_SECTION((void postIonizationHook(SimTypes::FeatureMapSimVector &)))
 {
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((void postRawMSHook(FeatureMapSimVector &)))
+START_SECTION((void postRawMSHook(SimTypes::FeatureMapSimVector &)))
 {
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((void postRawTandemMSHook(FeatureMapSimVector &, MSSimExperiment &)))
+START_SECTION((void postRawTandemMSHook(SimTypes::FeatureMapSimVector &, SimTypes::MSSimExperiment &)))
 {
   ITRAQLabeler i;
-  SimRandomNumberGenerator rnd_gen;
-  rnd_gen.biological_rng = gsl_rng_alloc(gsl_rng_mt19937);
-  rnd_gen.technical_rng = gsl_rng_alloc(gsl_rng_mt19937);
+  SimTypes::MutableSimRandomNumberGeneratorPtr rnd_gen (new SimTypes::SimRandomNumberGenerator);
+  rnd_gen->initialize(false, false);
   i.setRnd(rnd_gen);
 
-  FeatureMapSimVector f_maps;
-  FeatureMap<> fm1;
+  SimTypes::FeatureMapSimVector f_maps;
+  FeatureMap fm1;
 
-  MSSimExperiment exp;
+  SimTypes::MSSimExperiment exp;
   MSSpectrum<> spec;
   IntList il;
   il.push_back(0);
@@ -206,12 +207,12 @@ START_SECTION((void postRawTandemMSHook(FeatureMapSimVector &, MSSimExperiment &
   spec.setMSLevel(2);
   exp.addSpectrum(spec);
 
-  MSSimExperiment exp2=exp;
+  SimTypes::MSSimExperiment exp2=exp;
 
-  std::vector<DoubleReal> eb(4);
+  std::vector<double> eb(4);
   DoubleList elution_bounds(eb);
   elution_bounds[0] = 100; elution_bounds[1] = 509.2; elution_bounds[2] = 120; elution_bounds[3] = 734.3;
-  std::vector<DoubleReal> ei(5, 0.5); // 50% elution profile
+  std::vector<double> ei(5, 0.5); // 50% elution profile
   DoubleList elution_ints(ei);
   Feature f;
   f.setMetaValue("elution_profile_bounds", elution_bounds);
@@ -307,10 +308,6 @@ START_SECTION((static const String getProductName()))
 }
 END_SECTION
 
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
-
-

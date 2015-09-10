@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -102,7 +102,7 @@ START_SECTION((template <typename PeakType> void filterExperiment(MSExperiment<P
 
 	MSExperiment<RichPeak1D> exp;
   exp.resize(4);
-  
+
   RichPeak1D p;
   for (int i=0; i<9; ++i)
   {
@@ -127,14 +127,14 @@ START_SECTION((template <typename PeakType> void filterExperiment(MSExperiment<P
   SavitzkyGolayFilter sgolay;
 	sgolay.setParameters(param);
   sgolay.filterExperiment(exp);
-	
+
 	TEST_EQUAL(exp.size(),4)
 	TEST_EQUAL(exp[0].size(),9)
 	TEST_EQUAL(exp[1].size(),9)
 	TEST_EQUAL(exp[2].size(),1)
 	TEST_EQUAL(exp[3].size(),0)
 
-	TEST_REAL_SIMILAR(exp[0][0].getIntensity(),0.0)	
+	TEST_REAL_SIMILAR(exp[0][0].getIntensity(),0.0)
 	TEST_REAL_SIMILAR(exp[0][1].getIntensity(),0.0571429)
 	TEST_REAL_SIMILAR(exp[0][2].getIntensity(),0.274286)
 	TEST_REAL_SIMILAR(exp[0][3].getIntensity(),0.657143)

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -118,7 +118,7 @@ protected:
     registerSubsection_("algorithm", "Algorithm section for peak picking");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const
   {
     // there is only one subsection: 'algorithm' (s.a) .. and in it belongs the PeakPicker param
     Param tmp;
@@ -126,7 +126,7 @@ protected:
     return tmp;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
 
     //-------------------------------------------------------------
@@ -159,14 +159,14 @@ protected:
     TextFile ref_file;
     ref_file.load(ref, true);
 
-    for (TextFile::Iterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
+    for (TextFile::ConstIterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
     {
       ref_masses.push_back(String(iter->c_str()).toDouble());
     }
     TextFile const_file;
     const_file.load(conv, true);
     std::vector<String> vec;
-    TextFile::Iterator iter = const_file.begin();
+    TextFile::ConstIterator iter = const_file.begin();
     iter->split('\t', vec);
 
     std::vector<double> ml1, ml2, ml3;
@@ -225,7 +225,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPTOFCalibration tool;
   return tool.main(argc, argv);

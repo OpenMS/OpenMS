@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -68,7 +68,7 @@ START_SECTION((Adduct(Int charge)))
 }
 END_SECTION
 
-START_SECTION((Adduct(Int charge, Int amount, DoubleReal singleMass, String formula, DoubleReal log_prob, DoubleReal rt_shift, const String label="")))
+START_SECTION((Adduct(Int charge, Int amount, double singleMass, String formula, double log_prob, double rt_shift, const String label="")))
 {
 	Adduct a(123, 43, 123.456f, "S", -0.3453, -10);
 	TEST_EQUAL(a.getCharge(), 123);
@@ -125,13 +125,13 @@ START_SECTION((void setAmount(const Int &amount)))
 }
 END_SECTION
 
-START_SECTION((const DoubleReal& getSingleMass() const))
+START_SECTION((const double& getSingleMass() const))
 {
 	NOT_TESTABLE //well.. tested below...
 }
 END_SECTION
 
-START_SECTION((void setSingleMass(const DoubleReal &singleMass)))
+START_SECTION((void setSingleMass(const double &singleMass)))
 {
 	Adduct a;
 	a.setSingleMass(43.21);
@@ -139,13 +139,13 @@ START_SECTION((void setSingleMass(const DoubleReal &singleMass)))
 }
 END_SECTION
 
-START_SECTION((const DoubleReal& getLogProb() const))
+START_SECTION((const double& getLogProb() const))
 {
 	NOT_TESTABLE //well.. tested below...
 }
 END_SECTION
 
-START_SECTION((void setLogProb(const DoubleReal &log_prob)))
+START_SECTION((void setLogProb(const double &log_prob)))
 {
 	Adduct a;
 	a.setLogProb(43.21f);
@@ -165,7 +165,7 @@ START_SECTION((void setFormula(const String &formula)))
   TEST_EQUAL(a.getFormula()=="S1", true);
 END_SECTION
 
-START_SECTION((const DoubleReal& getRTShift() const))
+START_SECTION((const double& getRTShift() const))
 	Adduct a(123, 43, 123.456f, "S", -0.3453, -10);
   TEST_REAL_SIMILAR(a.getRTShift(), -10);
 	Adduct a1(123, 43, 123.456f, "S", -0.3453, 11);

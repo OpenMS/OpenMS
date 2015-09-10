@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -81,20 +81,21 @@ public:
     }
 
     /**
-        @brief Run the algorithm
+      @brief Run the algorithm
 
-        @note Exactly one @em input map has to be provided.
-        @note The @em output map has to have two file descriptions, containing
-        the same file name. The file descriptions have to be labeled 'heavy' and 'light'.
+      @note Exactly one @em input map has to be provided.
+      @note The @em output map has to have two file descriptions, containing
+      the same file name. The file descriptions have to be labeled 'heavy'
+      and 'light'.
 
-        @exception Exception::IllegalArgument is thrown if the input data is not valid.
+      @exception Exception::IllegalArgument is thrown if the input data is not valid.
     */
     virtual void run(const std::vector<ConsensusMap> & input_maps, ConsensusMap & result_map);
 
 protected:
 
     /// return the p-value at position x for the bi-Gaussian distribution with mean @p m and standard deviation @p sig1 (left) and @p sig2 (right)
-    inline DoubleReal PValue_(DoubleReal x, DoubleReal m, DoubleReal sig1, DoubleReal sig2)
+    inline double PValue_(double x, double m, double sig1, double sig2)
     {
       if (m < x)
       {

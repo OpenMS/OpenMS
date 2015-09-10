@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -93,9 +93,9 @@ public:
 
 private:
     /**
-     * Check if column exists and convert String into DoubleReal.
+     * Check if column exists and convert String into double.
      */
-    DoubleReal checkedToDouble_(const std::vector<String> & parts, Size index, DoubleReal def = -1);
+    double checkedToDouble_(const std::vector<String> & parts, Size index, double def = -1);
 
     /**
      * Check if column exists and convert String into Int.
@@ -130,7 +130,7 @@ public:
 
               @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
-    void store(const String & filename, const FeatureMap<> & map) const;
+    void store(const String & filename, const FeatureMap & map) const;
   };
 } // namespace OpenMS
 

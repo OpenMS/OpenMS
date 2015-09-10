@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,14 +41,14 @@
 namespace OpenMS
 {
   /**
-      @brief This class handles csv files. Currently only loading is implemented.
+    @brief This class handles csv files. Currently only loading is implemented.
 
-      @note items are allowed to be enclosed by only one character e.g. "item" where " is enclosing character
+    @note items are allowed to be enclosed by only one character e.g. "item" where " is enclosing character
 
-  @ingroup FileIO
+    @ingroup FileIO
   */
   class OPENMS_DLLAPI CsvFile :
-    public TextFile
+    private TextFile
   {
 public:
 
@@ -68,7 +68,7 @@ public:
 
       @exception Exception::FileNotFound is thrown if the file could not be opened.
     */
-    CsvFile(const String & filename, char is = ',', bool ie = false, Int first_n = -1);
+    CsvFile(const String& filename, char is = ',', bool ie = false, Int first_n = -1);
 
     /**
       @brief Loads data from a text file.
@@ -80,7 +80,7 @@ public:
 
       @exception Exception::FileNotFound is thrown if the file could not be opened.
     */
-    void fload(const String & filename, char is = ',', bool ie = false, Int first_n = -1);
+    void fload(const String& filename, char is = ',', bool ie = false, Int first_n = -1);
 
     /**
       @brief writes all items from a row to list
@@ -92,7 +92,14 @@ public:
 
       @return  returns false if the given row could not be separated into items
     */
-    bool getRow(Size row, StringList & list);
+    bool getRow(Size row, StringList& list);
+
+    /**
+      @brief Returns the number of rows that were loaded from the file.
+
+      @return The number of loaded rows.
+    */
+    std::vector<String>::size_type rowCount() const;
 
 private:
     char itemseperator_;

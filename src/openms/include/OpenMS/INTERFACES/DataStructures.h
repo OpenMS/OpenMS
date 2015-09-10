@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -70,7 +70,7 @@ namespace Interfaces
   */
 
   /// The structure into which encoded binary data goes.
-  struct BinaryDataArray
+  struct OPENMS_DLLAPI BinaryDataArray
   {
     /// this optional attribute may reference the 'id' attribute of the appropriate dataProcessing.
     //DataProcessingPtr dataProcessingPtr;
@@ -78,10 +78,10 @@ namespace Interfaces
     /// the binary data.
     std::vector<double> data;
   };
-  OPENMS_DLLAPI typedef boost::shared_ptr<BinaryDataArray> BinaryDataArrayPtr;
+  typedef boost::shared_ptr<BinaryDataArray> BinaryDataArrayPtr;
 
   /// Identifying information for a chromatogram
-  struct ChromatogramMeta
+  struct OPENMS_DLLAPI ChromatogramMeta
   {
     /// the zero-based, consecutive index of the chromatogram in the ChromatogramList.
     std::size_t index;
@@ -97,10 +97,10 @@ namespace Interfaces
     }
 
   };
-  OPENMS_DLLAPI typedef boost::shared_ptr<ChromatogramMeta> ChromatogramMetaPtr;
+  typedef boost::shared_ptr<ChromatogramMeta> ChromatogramMetaPtr;
 
   /// A single chromatogram.
-  struct Chromatogram
+  struct OPENMS_DLLAPI Chromatogram
   {
     /// default length of binary data arrays contained in this element.
     std::size_t defaultArrayLength;
@@ -135,7 +135,7 @@ public:
       return binaryDataArrayPtrs[0];
     }
 
-    /// set time array 
+    /// set time array
     void setTimeArray(BinaryDataArrayPtr data)
     {
       binaryDataArrayPtrs[0] = data;
@@ -147,17 +147,17 @@ public:
       return binaryDataArrayPtrs[1];
     }
 
-    /// set intensity array 
+    /// set intensity array
     void setIntensityArray(BinaryDataArrayPtr data)
     {
       binaryDataArrayPtrs[1] = data;
     }
 
   };
-  OPENMS_DLLAPI typedef boost::shared_ptr<Chromatogram> ChromatogramPtr;
+  typedef boost::shared_ptr<Chromatogram> ChromatogramPtr;
 
   /// Identifying information for a spectrum
-  struct SpectrumMeta
+  struct OPENMS_DLLAPI SpectrumMeta
   {
     /// the zero-based, consecutive index of the spectrum in the SpectrumList.
     size_t index;
@@ -168,7 +168,7 @@ public:
     /// retention time information
     double RT;
 
-    /// ms level 
+    /// ms level
     int ms_level;
 
     SpectrumMeta() :
@@ -177,10 +177,10 @@ public:
     }
 
   };
-  OPENMS_DLLAPI typedef boost::shared_ptr<SpectrumMeta> SpectrumMetaPtr;
+  typedef boost::shared_ptr<SpectrumMeta> SpectrumMetaPtr;
 
   /// The structure that captures the generation of a peak list (including the underlying acquisitions)
-  struct Spectrum
+  struct OPENMS_DLLAPI Spectrum
   {
     /// default length of binary data arrays contained in this element.
     std::size_t defaultArrayLength;
@@ -215,7 +215,7 @@ public:
       return binaryDataArrayPtrs[0];
     }
 
-    /// set mz array 
+    /// set mz array
     void setMZArray(BinaryDataArrayPtr data)
     {
       binaryDataArrayPtrs[0] = data;
@@ -227,14 +227,14 @@ public:
       return binaryDataArrayPtrs[1];
     }
 
-    /// set intensity array 
+    /// set intensity array
     void setIntensityArray(BinaryDataArrayPtr data)
     {
       binaryDataArrayPtrs[1] = data;
     }
 
   };
-  OPENMS_DLLAPI typedef boost::shared_ptr<Spectrum> SpectrumPtr;
+  typedef boost::shared_ptr<Spectrum> SpectrumPtr;
 
 } //end namespace Interfaces
 } //end namespace OpenMS

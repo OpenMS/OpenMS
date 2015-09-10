@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,7 +65,7 @@ using namespace std;
 /**
     @page UTILS_QCCalculator QCCalculator
 
-    @brief Calculates basic quality parameters from MS experiments and subsequent analysis data as identification or feature detection.
+    @brief Calculates basic quality parameters from MS experiments and compiles data for subsequent QC into a qcML file.
 
     <CENTER>
       <table>
@@ -85,8 +85,8 @@ using namespace std;
       </table>
     </CENTER>
 
-    The calculated quality parameters include file origin, spectra distribution, aquisition details, ion current stability ( & tic ), id accuracy statistics and feature statistics.
-    The MS experiments base name is used as name to the qcml element that is comprising all quality parameter values for the given run (including the given downstream analysis data).  
+    The calculated quality parameters or data compiled as attachments for easy plotting input include file origin, spectra distribution, aquisition details, ion current stability ( & TIC ), id accuracy statistics and feature statistics.
+    The MS experiments base name is used as name to the qcML element that is comprising all quality parameter values for the given run (including the given downstream analysis data).
     
     - @p id produces quality parameter values for the identification file;
     - @p feature produces quality parameter values for the feature file;
@@ -94,7 +94,9 @@ using namespace std;
     some quality parameter calculation are only available if both feature and ids are given.
     - @p remove_duplicate_features only needed when you work with a set of merged features. Then considers duplicate features only once.
 
-    Output is in qcML format (see parameter @p out) which can be viewed directly in a modern browser (chromium, firefox). 
+    Output is in qcML format (see parameter @p out) which can be viewed directly in a modern browser (chromium, firefox, safari).
+
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_QCCalculator.cli
@@ -105,6 +107,9 @@ using namespace std;
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshadow"
 
 class TOPPQCCalculator :
   public TOPPBase
@@ -133,13 +138,13 @@ protected:
     //~ registerFlag_("MS2", "This flag should be set, if you want to work with MS2 stats.");
   }
 
-  DoubleReal getMassDifference(DoubleReal theo_mz, DoubleReal exp_mz, bool use_ppm)
+  double getMassDifference(double theo_mz, double exp_mz, bool use_ppm)
   {
-    DoubleReal error(exp_mz - theo_mz);
+    double error(exp_mz - theo_mz);
     if (use_ppm)
     {
-      error = error / (theo_mz * (DoubleReal)1e-6);
-      //~ error = (1-exp_mz/theo_mz) * (DoubleReal)1e6;
+      error = error / (theo_mz * (double)1e-6);
+      //~ error = (1-exp_mz/theo_mz) * (double)1e6;
     }
     return error;
   }
@@ -393,23 +398,26 @@ protected:
     Size below_10k = 0;
     for (Size i = 0; i < exp.size(); ++i)
     {
-      UInt sum = 0;
-      for (Size j = 0; j < exp[i].size(); ++j)
+      if (exp[i].getMSLevel() == 1)
       {
-        sum += exp[i][j].getIntensity();
+        UInt sum = 0;
+        for (Size j = 0; j < exp[i].size(); ++j)
+        {
+          sum += exp[i][j].getIntensity();
+        }
+        if (sum > max)
+        {
+          max = sum;
+        }
+        if (sum < 10000)
+        {
+          ++below_10k;
+        }
+        std::vector<String> row;
+        row.push_back(exp[i].getRT());
+        row.push_back(sum);
+        at.tableRows.push_back(row);
       }
-      if (sum > max)
-      {
-        max = sum;
-      }
-      if (sum < 10000)
-      {
-        ++below_10k;
-      }
-      std::vector<String> row;
-      row.push_back(exp[i].getRT());
-      row.push_back(sum);
-      at.tableRows.push_back(row);
     }
     qcmlfile.addRunAttachment(base_name, at);
     
@@ -657,15 +665,15 @@ protected:
         at.colTypes.push_back(String(var_mods[w]).substitute(' ', '_'));
       }
 
-      std::vector<DoubleReal> deltas;
+      std::vector<double> deltas;
       //~ prot_ids[0].getSearchParameters();
       for (vector<PeptideIdentification>::iterator it = pep_ids.begin(); it != pep_ids.end(); ++it)
       {
         if (it->getHits().size() > 0)
         {
           std::vector<String> row;
-          row.push_back(it->getMetaValue("RT"));
-          row.push_back(it->getMetaValue("MZ"));
+          row.push_back(it->getRT());
+          row.push_back(it->getMZ());
           PeptideHit tmp = it->getHits().front(); //TODO depends on score & sort
           vector<UInt> pep_mods;
           for (UInt w = 0; w < var_mods.size(); ++w)
@@ -694,7 +702,7 @@ protected:
           row.push_back(tmp.getSequence().toString().removeWhitespaces());
           row.push_back(tmp.getCharge());
           row.push_back(String((tmp.getSequence().getMonoWeight() + tmp.getCharge() * Constants::PROTON_MASS_U) / tmp.getCharge()));
-          DoubleReal dppm = /* std::abs */ (getMassDifference(((tmp.getSequence().getMonoWeight() + tmp.getCharge() * Constants::PROTON_MASS_U) / tmp.getCharge()), double(it->getMetaValue("MZ")), true));
+          double dppm = /* std::abs */ (getMassDifference(((tmp.getSequence().getMonoWeight() + tmp.getCharge() * Constants::PROTON_MASS_U) / tmp.getCharge()), it->getMZ(), true));
           row.push_back(String(dppm));
           deltas.push_back(dppm);
           for (UInt w = 0; w < var_mods.size(); ++w)
@@ -745,7 +753,7 @@ protected:
       qp.cvRef = "QC"; ///< cv reference
       qp.cvAcc = "QC:0000035"; ///< cv accession
       qp.id = base_name + "_ratio_id"; ///< Identifier
-      qp.value = String(DoubleReal(pep_ids.size()) / DoubleReal(mslevelcounts[2]));
+      qp.value = String(double(pep_ids.size()) / double(mslevelcounts[2]));
       try
       {
         const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);
@@ -761,7 +769,7 @@ protected:
     //-------------------------------------------------------------
     // MS quantitation
     //------------------------------------------------------------
-    FeatureMap<> map;
+    FeatureMap map;
     String msqu_ref = base_name + "_msqu";
     if (inputfile_feature != "")
     {
@@ -872,14 +880,14 @@ protected:
       at.colTypes.push_back("RT");
       at.colTypes.push_back("Intensity");
       at.colTypes.push_back("Charge");
-      FeatureMap<> map, map_out;
+      FeatureMap map, map_out;
       FeatureXMLFile f;
       f.load(inputfile_feature, map);
       UInt fiter = 0;
       map.sortByRT();
       while (fiter < map.size())
       {
-        FeatureMap<> map_tmp;
+        FeatureMap map_tmp;
         for (UInt k = fiter; k <= map.size(); ++k)
         {
           if (abs(map[fiter].getRT() - map[k].getRT()) < 0.1)
@@ -960,6 +968,9 @@ protected:
   }
 
 };
+
+#pragma clang diagnostic pop
+
 int main(int argc, const char** argv)
 {
   TOPPQCCalculator tool;

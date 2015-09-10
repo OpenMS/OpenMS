@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -82,6 +82,8 @@ using namespace std;
     the file given in the parameter 'trained_model_file'. Additionally, a model can
     be given as starting point via the parameter 'model_file'. With the min_charge and
     max_charge parameters, the peptides can be restricted to the specified charge range.
+
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
     <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_PILISModelTrainer.cli
@@ -187,7 +189,7 @@ protected:
     String trained_model_file(getStringOption_("trained_model_file"));
     String model_file(getStringOption_("model_file"));
     bool score_filtering(getFlag_("score_filtering"));
-    DoubleReal score_threshold(getDoubleOption_("score_threshold"));
+    double score_threshold(getDoubleOption_("score_threshold"));
     Int min_charge(getIntOption_("min_charge"));
     Int max_charge(getIntOption_("max_charge"));
 

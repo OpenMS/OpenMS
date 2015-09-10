@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -193,20 +193,13 @@ namespace OpenMS
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
     stringstream file_content;
 
-    Real
-    dyn_n_term_mod(0.0),
-    dyn_c_term_mod(0.0),
-    stat_n_term_mod(0.0),
-    stat_c_term_mod(0.0),
-    stat_n_term_prot_mod(0.0),
-    stat_c_term_prot_mod(0.0);
+    float dyn_n_term_mod(0.0), dyn_c_term_mod(0.0), stat_n_term_mod(0.0), stat_c_term_mod(0.0), stat_n_term_prot_mod(0.0), stat_c_term_prot_mod(0.0);
 
-    map<char, Real> stat_mods, dyn_mods;
-    map<char, Real> * mods_p = NULL;
-    dyn_n_term_mod = dyn_c_term_mod = stat_n_term_mod = stat_c_term_mod = stat_n_term_prot_mod = stat_c_term_prot_mod = .0;
+    map<char, float> stat_mods, dyn_mods;
+    map<char, float> * mods_p = NULL;
 
     // compute the masses for the amino acids, divided into fixed and optional modifications
-    Real mass(0.0);
+    float mass(0.0);
     String residues, dyn_mods_string;
     for (map<String, vector<String> >::const_iterator mods_i = PTMname_residues_mass_type_.begin(); mods_i != PTMname_residues_mass_type_.end(); ++mods_i)
     {
@@ -242,8 +235,8 @@ namespace OpenMS
     }
 
     // now put together all optional modifications with the same mass change
-    map<Real, String> dyn_mods_masses;
-    for (map<char, Real>::const_iterator dyn_mod_i = dyn_mods.begin(); dyn_mod_i != dyn_mods.end(); ++dyn_mod_i)
+    map<float, String> dyn_mods_masses;
+    for (map<char, float>::const_iterator dyn_mod_i = dyn_mods.begin(); dyn_mod_i != dyn_mods.end(); ++dyn_mod_i)
     {
       dyn_mods_masses[dyn_mod_i->second].append(1, dyn_mod_i->first);
     }
@@ -252,7 +245,7 @@ namespace OpenMS
       dyn_mods_string = "0 X";
     else
     {
-      for (map<Real, String>::const_iterator dyn_mod_i = dyn_mods_masses.begin(); dyn_mod_i != dyn_mods_masses.end(); ++dyn_mod_i)
+      for (map<float, String>::const_iterator dyn_mod_i = dyn_mods_masses.begin(); dyn_mod_i != dyn_mods_masses.end(); ++dyn_mod_i)
       {
         dyn_mods_string.append(String(dyn_mod_i->first) + " " + dyn_mod_i->second + " ");
       }
@@ -480,42 +473,42 @@ namespace OpenMS
     protein_mass_filter_ = protein_mass_filter;
   }
 
-  Real SequestInfile::getPrecursorMassTolerance() const
+  float SequestInfile::getPrecursorMassTolerance() const
   {
     return precursor_mass_tolerance_;
   }
 
-  void SequestInfile::setPrecursorMassTolerance(Real precursor_mass_tolerance)
+  void SequestInfile::setPrecursorMassTolerance(float precursor_mass_tolerance)
   {
     precursor_mass_tolerance_ = precursor_mass_tolerance;
   }
 
-  Real SequestInfile::getPeakMassTolerance() const
+  float SequestInfile::getPeakMassTolerance() const
   {
     return peak_mass_tolerance_;
   }
 
-  void SequestInfile::setPeakMassTolerance(Real peak_mass_tolerance)
+  void SequestInfile::setPeakMassTolerance(float peak_mass_tolerance)
   {
     peak_mass_tolerance_ = peak_mass_tolerance;
   }
 
-  Real SequestInfile::getMatchPeakTolerance() const
+  float SequestInfile::getMatchPeakTolerance() const
   {
     return match_peak_tolerance_;
   }
 
-  void SequestInfile::setMatchPeakTolerance(Real match_peak_tolerance)
+  void SequestInfile::setMatchPeakTolerance(float match_peak_tolerance)
   {
     match_peak_tolerance_ = match_peak_tolerance;
   }
 
-  Real SequestInfile::getIonCutoffPercentage() const
+  float SequestInfile::getIonCutoffPercentage() const
   {
     return ion_cutoff_percentage_;
   }
 
-  void SequestInfile::setIonCutoffPercentage(Real ion_cutoff_percentage)
+  void SequestInfile::setIonCutoffPercentage(float ion_cutoff_percentage)
   {
     ion_cutoff_percentage_ = ion_cutoff_percentage;
   }
@@ -725,7 +718,8 @@ namespace OpenMS
         if (mod_i->empty())
           continue;
         // clear the formulae
-        add_formula = substract_formula = name = residues = mass = type = "";
+        add_formula = substract_formula = EmpiricalFormula();
+        name = residues = mass = type = "";
 
         // get the single parts of the modification string
         mod_i->split(',', mod_parts);
@@ -796,12 +790,12 @@ namespace OpenMS
           {
             if (pos != String::npos)
             {
-              add_formula = mass.substr(0, pos);
-              substract_formula = mass.substr(++pos);
+              add_formula = EmpiricalFormula(mass.substr(0, pos));
+              substract_formula = EmpiricalFormula(mass.substr(++pos));
             }
             else
             {
-              add_formula = mass;
+              add_formula = EmpiricalFormula(mass);
             }
             // sum up the masses
             if (monoisotopic)

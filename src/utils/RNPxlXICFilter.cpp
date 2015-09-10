@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -105,11 +105,11 @@ protected:
   }
 
   void filterByFoldChange(const MSExperiment<>& exp1, const MSExperiment<>& exp2,
-                          const vector<DoubleReal>& pc_ms2_rts, const vector<DoubleReal>& pc_mzs,
-                          const DoubleReal rttol, const DoubleReal mztol, DoubleReal fold_change,
-                          vector<DoubleReal>& control_XIC_larger,
-                          vector<DoubleReal>& treatment_XIC_larger,
-                          vector<DoubleReal>& indifferent_XICs)
+                          const vector<double>& pc_ms2_rts, const vector<double>& pc_mzs,
+                          const double rttol, const double mztol, double fold_change,
+                          vector<double>& control_XIC_larger,
+                          vector<double>& treatment_XIC_larger,
+                          vector<double>& indifferent_XICs)
   {
     assert(pc_mzs.size() == pc_ms2_rts.size());
 
@@ -117,21 +117,21 @@ protected:
     for (Size i = 0; i < pc_mzs.size(); ++i)
     {
       //cerr << "start" << endl;
-      DoubleReal pc_ms2_rt = pc_ms2_rts[i];
-      DoubleReal pc_mz = pc_mzs[i];
+      double pc_ms2_rt = pc_ms2_rts[i];
+      double pc_mz = pc_mzs[i];
 
       //std::cerr << "Rt" << cm[i].getRT() << "  mz: " << cm[i].getMZ() << " R " <<  cm[i].getMetaValue("rank") << "\n";
 
-      DoubleReal mz_da = mztol * pc_mzs[i] / 1e6; // mz tolerance in Dalton
-      DoubleReal rt_start = pc_ms2_rts[i] - rttol / 2.0;
+      double mz_da = mztol * pc_mzs[i] / 1e6; // mz tolerance in Dalton
+      double rt_start = pc_ms2_rts[i] - rttol / 2.0;
 
       // get area iterator (is MS1 only!) for rt and mz window
       MSExperiment<>::ConstAreaIterator it1 = exp1.areaBeginConst(pc_ms2_rt - rttol / 2, pc_ms2_rt + rttol / 2, pc_mz - mz_da, pc_mz  + mz_da);
       MSExperiment<>::ConstAreaIterator it2 = exp2.areaBeginConst(pc_ms2_rt - rttol / 2, pc_ms2_rt + rttol / 2, pc_mz - mz_da, pc_mz  + mz_da);
 
       // determine maximum number of MS1 scans in retention time window
-      set<DoubleReal> rts1;
-      set<DoubleReal> rts2;
+      set<double> rts1;
+      set<double> rts2;
       for (; it1 != exp1.areaEndConst(); ++it1)
       {
         rts1.insert(it1.getRT());
@@ -151,15 +151,15 @@ protected:
         continue;
       }
 
-      vector<DoubleReal> XIC1(length, 0.0);
-      vector<DoubleReal> XIC2(length, 0.0);
+      vector<double> XIC1(length, 0.0);
+      vector<double> XIC2(length, 0.0);
 
       it1 = exp1.areaBeginConst(pc_ms2_rt - rttol / 2, pc_ms2_rt + rttol / 2, pc_mz - mz_da, pc_mz + mz_da);
       it2 = exp2.areaBeginConst(pc_ms2_rt - rttol / 2, pc_ms2_rt + rttol / 2, pc_mz - mz_da, pc_mz + mz_da);
 
       for (; it1 != exp1.areaEndConst(); ++it1)
       {
-        DoubleReal relative_rt = (it1.getRT() - rt_start) / rttol;
+        double relative_rt = (it1.getRT() - rt_start) / rttol;
         Size bin = relative_rt * (length - 1);
         XIC1[bin] += it1->getIntensity();
         if (bin >= length)
@@ -171,7 +171,7 @@ protected:
 
       for (; it2 != exp2.areaEndConst(); ++it2)
       {
-        DoubleReal relative_rt = (it2.getRT() - rt_start) / rttol;
+        double relative_rt = (it2.getRT() - rt_start) / rttol;
         Size bin = relative_rt * (length - 1);
         if (bin >= length)
         {
@@ -180,10 +180,10 @@ protected:
         XIC2[bin] += it2->getIntensity();
       }
 
-      DoubleReal total_itensity1 = std::accumulate(XIC1.begin(), XIC1.end(), 0.0);
-      DoubleReal total_itensity2 = std::accumulate(XIC2.begin(), XIC2.end(), 0.0);
+      double total_itensity1 = std::accumulate(XIC1.begin(), XIC1.end(), 0.0);
+      double total_itensity2 = std::accumulate(XIC2.begin(), XIC2.end(), 0.0);
 
-      DoubleReal ratio = total_itensity2 / (total_itensity1 + 1);
+      double ratio = total_itensity2 / (total_itensity1 + 1);
 
       //cout << pc_ms2_rt << "/" << pc_mz << " has ratio: " << ratio << " determined on " << length << " bins" << endl;
 
@@ -220,9 +220,9 @@ protected:
     const string treatment_mzml(getStringOption_("treatment"));
 
     const string out_mzml(getStringOption_("out"));
-    const DoubleReal mz_tolerance_ppm = getDoubleOption_("mz_tol");
-    const DoubleReal fold_change = getDoubleOption_("fold_change");
-    const DoubleReal rt_tolerance_s = getDoubleOption_("rt_tol");
+    const double mz_tolerance_ppm = getDoubleOption_("mz_tol");
+    const double fold_change = getDoubleOption_("fold_change");
+    const double rt_tolerance_s = getDoubleOption_("rt_tol");
 
     // load experiments
     MSExperiment<> exp_control;
@@ -233,8 +233,8 @@ protected:
     mzml_file.load(treatment_mzml, exp_treatment);
 
     // extract precursor mz and rts
-    vector<DoubleReal> pc_mzs;
-    vector<DoubleReal> pc_ms2_rts;
+    vector<double> pc_mzs;
+    vector<double> pc_ms2_rts;
     for (Size i = 0; i != exp_treatment.size(); ++i)
     {
       if (exp_treatment[i].getMSLevel() == 2)
@@ -242,17 +242,17 @@ protected:
         if (!exp_treatment[i].getPrecursors().empty())
         {
           // cout << i << endl;
-          DoubleReal pc_mz = exp_treatment[i].getPrecursors()[0].getMZ();
-          DoubleReal ms2_rt = exp_treatment[i].getRT(); // use rt of MS2
+          double pc_mz = exp_treatment[i].getPrecursors()[0].getMZ();
+          double ms2_rt = exp_treatment[i].getRT(); // use rt of MS2
           pc_mzs.push_back(pc_mz);
           pc_ms2_rts.push_back(ms2_rt);
         }
       }
     }
 
-    vector<DoubleReal> control_XIC_larger_rts;
-    vector<DoubleReal> treatment_XIC_larger_rts;
-    vector<DoubleReal> indifferent_XICs_rts;
+    vector<double> control_XIC_larger_rts;
+    vector<double> treatment_XIC_larger_rts;
+    vector<double> indifferent_XICs_rts;
 
     filterByFoldChange(exp_control, exp_treatment,
                        pc_ms2_rts, pc_mzs,
@@ -277,7 +277,7 @@ protected:
       else if (ms_level == 2)
       {
         // determine if pc is in list -> passed
-        DoubleReal rt = exp_treatment[i].getRT();
+        double rt = exp_treatment[i].getRT();
         for (Size j = 0; j != treatment_XIC_larger_rts.size(); ++j)
         {
           if (fabs(rt - treatment_XIC_larger_rts[j]) <= 0.001)

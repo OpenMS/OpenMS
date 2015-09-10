@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -67,7 +67,7 @@ END_SECTION
 START_SECTION(EdwardsLippertIteratorTryptic(const EdwardsLippertIteratorTryptic& rhs))
   ptr = new EdwardsLippertIteratorTryptic();
   ptr->setFastaFile(OPENMS_GET_TEST_DATA_PATH("EdwardsLippertIterator_test_2.fasta"));
-	vector<DoubleReal> specc;
+	vector<double> specc;
 	specc.push_back(178.1864);
 	specc.push_back(441.4806);
   ptr->setSpectrum(specc);
@@ -83,7 +83,7 @@ END_SECTION
 START_SECTION(EdwardsLippertIteratorTryptic& operator=(const EdwardsLippertIteratorTryptic &rhs))
 	ptr = new EdwardsLippertIteratorTryptic();
   ptr->setFastaFile(OPENMS_GET_TEST_DATA_PATH("EdwardsLippertIterator_test_2.fasta"));
-  vector<DoubleReal> specc;
+  vector<double> specc;
   specc.push_back(178.1864);
   specc.push_back(441.4806);
   ptr->setSpectrum(specc);
@@ -107,10 +107,10 @@ START_SECTION(virtual bool isDigestingEnd(char aa1,char aa2))
 END_SECTION
 
 START_SECTION([EXTRA] FASTAEntry operator*())
-	vector<DoubleReal> spec;
+	vector<double> spec;
 	spec.push_back(178.1864);
 	spec.push_back(441.4806);
-	const vector<DoubleReal> specc (spec);
+	const vector<double> specc (spec);
 
 	ptr = new EdwardsLippertIteratorTryptic();
 	FastaIterator * fit = new FastaIterator();
@@ -120,7 +120,7 @@ START_SECTION([EXTRA] FASTAEntry operator*())
 	fit->begin();
 	ptr->begin();
 	
-	DoubleReal tol = 0.2;
+	double tol = 0.2;
 	ptr->setTolerance(tol);
 	
 	while (!ptr->isAtEnd())

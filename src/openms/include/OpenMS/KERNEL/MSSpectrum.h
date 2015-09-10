@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,7 +37,6 @@
 
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/METADATA/MetaInfoDescription.h>
-#include <OpenMS/FORMAT/DB/PersistentObject.h>
 #include <OpenMS/KERNEL/RangeManager.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
 
@@ -65,27 +64,26 @@ namespace OpenMS
   */
   template <typename PeakT = Peak1D>
   class MSSpectrum :
-    public std::vector<PeakT>,
+    private std::vector<PeakT>,
     public RangeManager<1>,
-    public SpectrumSettings,
-    public PersistentObject
+    public SpectrumSettings
   {
 public:
 
     ///Float data array class
-    class OPENMS_DLLAPI FloatDataArray :
+    class FloatDataArray :
       public MetaInfoDescription,
-      public std::vector<Real>
+      public std::vector<float>
     {};
 
     ///Integer data array class
-    class OPENMS_DLLAPI IntegerDataArray :
+    class IntegerDataArray :
       public MetaInfoDescription,
       public std::vector<Int>
     {};
 
     ///String data array class
-    class OPENMS_DLLAPI StringDataArray :
+    class StringDataArray :
       public MetaInfoDescription,
       public std::vector<String>
     {};
@@ -94,7 +92,7 @@ public:
     struct RTLess :
       public std::binary_function<MSSpectrum, MSSpectrum, bool>
     {
-      inline bool operator()(const MSSpectrum & a, const MSSpectrum & b) const
+      inline bool operator()(const MSSpectrum& a, const MSSpectrum& b) const
       {
         return a.getRT() < b.getRT();
       }
@@ -129,13 +127,41 @@ public:
     typedef typename ContainerType::const_reverse_iterator ConstReverseIterator;
     //@}
 
+    ///@name Export methods from std::vector<PeakT>
+    //@{
+    using ContainerType::operator[];
+    using ContainerType::begin;
+    using ContainerType::rbegin;
+    using ContainerType::end;
+    using ContainerType::rend;
+    using ContainerType::resize;
+    using ContainerType::size;
+    using ContainerType::push_back;
+    using ContainerType::pop_back;
+    using ContainerType::empty;
+    using ContainerType::front;
+    using ContainerType::back;
+    using ContainerType::reserve;
+    using ContainerType::insert;
+    using ContainerType::erase;
+    using ContainerType::swap;
+
+    using typename ContainerType::iterator;
+    using typename ContainerType::const_iterator;
+    using typename ContainerType::size_type;
+    using typename ContainerType::value_type;
+    using typename ContainerType::reference;
+    using typename ContainerType::const_reference;
+    using typename ContainerType::pointer;
+    using typename ContainerType::difference_type;
+    //@}
+
 
     /// Constructor
     MSSpectrum() :
       ContainerType(),
       RangeManager<1>(),
       SpectrumSettings(),
-      PersistentObject(),
       retention_time_(-1),
       ms_level_(1),
       name_(),
@@ -145,11 +171,10 @@ public:
     {}
 
     /// Copy constructor
-    MSSpectrum(const MSSpectrum & source) :
+    MSSpectrum(const MSSpectrum& source) :
       ContainerType(source),
       RangeManager<1>(source),
       SpectrumSettings(source),
-      PersistentObject(source),
       retention_time_(source.retention_time_),
       ms_level_(source.ms_level_),
       name_(source.name_),
@@ -163,14 +188,13 @@ public:
     {}
 
     /// Assignment operator
-    MSSpectrum & operator=(const MSSpectrum & source)
+    MSSpectrum& operator=(const MSSpectrum& source)
     {
       if (&source == this) return *this;
 
       ContainerType::operator=(source);
       RangeManager<1>::operator=(source);
       SpectrumSettings::operator=(source);
-      PersistentObject::operator=(source);
 
       retention_time_ = source.retention_time_;
       ms_level_ = source.ms_level_;
@@ -183,9 +207,11 @@ public:
     }
 
     /// Equality operator
-    bool operator==(const MSSpectrum & rhs) const
+    bool operator==(const MSSpectrum& rhs) const
     {
       //name_ can differ => it is not checked
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wfloat-equal"
       return std::operator==(*this, rhs) &&
              RangeManager<1>::operator==(rhs) &&
              SpectrumSettings::operator==(rhs) &&
@@ -194,10 +220,12 @@ public:
              float_data_arrays_ == rhs.float_data_arrays_ &&
              string_data_arrays_ == rhs.string_data_arrays_ &&
              integer_data_arrays_ == rhs.integer_data_arrays_;
+
+#pragma clang diagnostic pop
     }
 
     /// Equality operator
-    bool operator!=(const MSSpectrum & rhs) const
+    bool operator!=(const MSSpectrum& rhs) const
     {
       return !(operator==(rhs));
     }
@@ -212,13 +240,13 @@ public:
     ///@name Accessors for meta information
     ///@{
     /// Returns the absolute retention time (is seconds)
-    inline DoubleReal getRT() const
+    inline double getRT() const
     {
       return retention_time_;
     }
 
     /// Sets the absolute retention time (is seconds)
-    inline void setRT(DoubleReal rt)
+    inline void setRT(double rt)
     {
       retention_time_ = rt;
     }
@@ -240,13 +268,13 @@ public:
     }
 
     /// Returns the name
-    inline const String & getName() const
+    inline const String& getName() const
     {
       return name_;
     }
 
     /// Sets the name
-    inline void setName(const String & name)
+    inline void setName(const String& name)
     {
       name_ = name;
     }
@@ -267,37 +295,37 @@ public:
     */
     //@{
     /// Returns a const reference to the float meta data arrays
-    inline const FloatDataArrays & getFloatDataArrays() const
+    inline const FloatDataArrays& getFloatDataArrays() const
     {
       return float_data_arrays_;
     }
 
     /// Returns a mutable reference to the float meta data arrays
-    inline FloatDataArrays & getFloatDataArrays()
+    inline FloatDataArrays& getFloatDataArrays()
     {
       return float_data_arrays_;
     }
 
     /// Returns a const reference to the string meta data arrays
-    inline const StringDataArrays & getStringDataArrays() const
+    inline const StringDataArrays& getStringDataArrays() const
     {
       return string_data_arrays_;
     }
 
     /// Returns a mutable reference to the string meta data arrays
-    inline StringDataArrays & getStringDataArrays()
+    inline StringDataArrays& getStringDataArrays()
     {
       return string_data_arrays_;
     }
 
     /// Returns a const reference to the integer meta data arrays
-    inline const IntegerDataArrays & getIntegerDataArrays() const
+    inline const IntegerDataArrays& getIntegerDataArrays() const
     {
       return integer_data_arrays_;
     }
 
     /// Returns a mutable reference to the integer meta data arrays
-    inline IntegerDataArrays & getIntegerDataArrays()
+    inline IntegerDataArrays& getIntegerDataArrays()
     {
       return integer_data_arrays_;
     }
@@ -353,7 +381,7 @@ public:
 
         for (Size i = 0; i < float_data_arrays_.size(); ++i)
         {
-          std::vector<Real> mda_tmp;
+          std::vector<float> mda_tmp;
           for (Size j = 0; j < float_data_arrays_[i].size(); ++j)
           {
             mda_tmp.push_back(*(float_data_arrays_[i].begin() + (sorted_indices[j].second)));
@@ -416,7 +444,7 @@ public:
 
         for (Size i = 0; i < float_data_arrays_.size(); ++i)
         {
-          std::vector<Real> mda_tmp;
+          std::vector<float> mda_tmp;
           mda_tmp.reserve(float_data_arrays_[i].size());
           for (Size j = 0; j < float_data_arrays_[i].size(); ++j)
           {
@@ -452,6 +480,8 @@ public:
     /// Checks if all peaks are sorted with respect to ascending m/z
     bool isSorted() const
     {
+      if (this->size() < 2) return true;
+
       for (Size i = 1; i < this->size(); ++i)
       {
         if (this->operator[](i - 1).getMZ() > this->operator[](i).getMZ()) return false;
@@ -609,7 +639,6 @@ public:
       if (clear_meta_data)
       {
         clearRanges();
-        clearId();
         this->SpectrumSettings::operator=(SpectrumSettings()); // no "clear" method
         retention_time_ = -1.0;
         ms_level_ = 1;
@@ -621,12 +650,9 @@ public:
     }
 
 protected:
-    // Docu in base class
-    virtual void clearChildIds_()
-    {}
 
     /// Retention time
-    DoubleReal retention_time_;
+    double retention_time_;
 
     /// MS level
     UInt ms_level_;
@@ -646,12 +672,12 @@ protected:
 
   /// Print the contents to a stream.
   template <typename PeakT>
-  std::ostream & operator<<(std::ostream & os, const MSSpectrum<PeakT> & spec)
+  std::ostream& operator<<(std::ostream& os, const MSSpectrum<PeakT>& spec)
   {
     os << "-- MSSPECTRUM BEGIN --" << std::endl;
 
     //spectrum settings
-    os << static_cast<const SpectrumSettings &>(spec);
+    os << static_cast<const SpectrumSettings&>(spec);
 
     //peaklist
     for (typename MSSpectrum<PeakT>::ConstIterator it = spec.begin(); it != spec.end(); ++it)

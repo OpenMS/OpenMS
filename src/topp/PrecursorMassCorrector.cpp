@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,12 +35,10 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIsotopeWavelet.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder_impl.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 
 #include <algorithm>
-
 
 using namespace OpenMS;
 using namespace std;
@@ -126,7 +124,7 @@ protected:
     String in(getStringOption_("in"));
     String feature_in(getStringOption_("feature_in"));
     String out(getStringOption_("out"));
-    DoubleReal precursor_mass_tolerance(getDoubleOption_("precursor_mass_tolerance"));
+    double precursor_mass_tolerance(getDoubleOption_("precursor_mass_tolerance"));
 
     // reading input
     FileHandler fh;
@@ -136,14 +134,14 @@ protected:
     fh.loadExperiment(in, exp, in_type, log_type_);
     exp.sortSpectra();
 
-    FeatureMap<> feature_map;
+    FeatureMap feature_map;
     if (feature_in != "")
     {
       FeatureXMLFile().load(feature_in, feature_map);
     }
 
     // calculations
-    FeatureFinderAlgorithmIsotopeWavelet<Peak1D, Feature> iso_ff;
+    FeatureFinderAlgorithmIsotopeWavelet iso_ff;
     Param ff_param(iso_ff.getParameters());
     ff_param.setValue("max_charge", getIntOption_("max_charge"));
     ff_param.setValue("intensity_threshold", getDoubleOption_("intensity_threshold"));
@@ -211,7 +209,7 @@ protected:
         }
 
         Precursor prec = *ms2_it->getPrecursors().begin();
-        DoubleReal prec_pos = prec.getMZ();
+        double prec_pos = prec.getMZ();
 
         PeakMap new_exp;
         // now excise small region from the MS1 spec for the feature finder (isotope pattern must be covered...)
@@ -225,7 +223,7 @@ protected:
         }
         new_exp.addSpectrum(zoom_spec);
         new_exp.updateRanges();
-        FeatureMap<> features, seeds;
+        FeatureMap features, seeds;
         ff.run("isotope_wavelet", new_exp, features, ff_param, seeds);
         if (features.empty())
         {
@@ -234,8 +232,8 @@ protected:
           continue;
         }
 
-        DoubleReal max_int(numeric_limits<DoubleReal>::min());
-        DoubleReal min_dist(numeric_limits<DoubleReal>::max());
+        double max_int(numeric_limits<double>::min());
+        double min_dist(numeric_limits<double>::max());
         Size max_int_feat_idx(0);
 
         for (Size i = 0; i != features.size(); ++i)

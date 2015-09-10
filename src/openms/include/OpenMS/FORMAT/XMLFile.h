@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,6 +41,8 @@
 
 #include <xercesc/framework/XMLFormatter.hpp>
 
+#include <iosfwd>
+
 namespace OpenMS
 {
   namespace Internal
@@ -65,10 +67,13 @@ public:
 
         Error messages are printed to the error stream, unless redirected with the attribute @p os .
 
+        @param filename The name of the file to validate.
+        @param os The ostream where error messages should be send.
+       
         @exception Exception::FileNotFound is thrown if the file cannot be found
         @exception Exception::NotImplemented is thrown if there is no schema available for the file type
       */
-      bool isValid(const String & filename, std::ostream & os = std::cerr);
+      bool isValid(const String & filename, std::ostream & os);
 
       ///return the version of the schema
       const String & getVersion() const;
@@ -100,15 +105,6 @@ protected:
 
       void enforceEncoding_(const String& encoding);
     };
-
-    /**
-      @brief Escapes a string and returns the escaped string
-
-      Some characters must be escaped which are allowed in user params. E.g. > and & are not in XML and
-      need to be escaped. Parsing those escaped strings from file again is automatically done by Xerces.
-      Escaped characters are: & < > " ' 
-    */
-    String OPENMS_DLLAPI writeXMLEscape(const String & to_escape);
 
     /**
       @brief Encodes tabs '\t' in the string as &amp;#x9; and returns the encoded string.

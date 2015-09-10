@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,6 +36,7 @@
 #include <OpenMS/SIMULATION/LABELING/BaseLabeler_impl.h>
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
 #include <map>
 
@@ -48,7 +49,7 @@ namespace OpenMS
 
   BaseLabeler::BaseLabeler() :
     DefaultParamHandler("BaseLabeler"),
-    rng_(0),
+    rng_(),
     channel_description_()
   {
     warn_empty_defaults_ = false;
@@ -63,9 +64,9 @@ namespace OpenMS
     return this->defaults_;
   }
 
-  void BaseLabeler::setRnd(const SimRandomNumberGenerator & rng)
+  void BaseLabeler::setRnd(SimTypes::MutableSimRandomNumberGeneratorPtr rng)
   {
-    rng_ = &rng;
+    rng_ = rng;
   }
 
   String BaseLabeler::getChannelIntensityName(const Size channel_index) const
@@ -73,13 +74,13 @@ namespace OpenMS
     return String("channel_") + String(channel_index) + "_intensity";
   }
 
-  FeatureMapSim BaseLabeler::mergeProteinIdentificationsMaps_(const FeatureMapSimVector & maps)
+  SimTypes::FeatureMapSim BaseLabeler::mergeProteinIdentificationsMaps_(const SimTypes::FeatureMapSimVector& maps)
   {
     // we do not have any features yet (or at least we ignore them), so simply iterate over the protein
     // identifications
     std::map<String, ProteinHit> prot_hits;
     Size channel_index = 1;
-    for (FeatureMapSimVector::const_iterator maps_iterator = maps.begin(); maps_iterator != maps.end(); ++maps_iterator)
+    for (SimTypes::FeatureMapSimVector::const_iterator maps_iterator = maps.begin(); maps_iterator != maps.end(); ++maps_iterator)
     {
       if (maps_iterator->getProteinIdentifications().size() == 0)
         continue;
@@ -90,12 +91,12 @@ namespace OpenMS
       {
         if (prot_hits.count((*protein_hit).getSequence())) // we already know this protein -- sum up abundances
         {
-          SimIntensityType new_intensity = prot_hits[(*protein_hit).getSequence()].getMetaValue("intensity");
+          SimTypes::SimIntensityType new_intensity = prot_hits[(*protein_hit).getSequence()].getMetaValue("intensity");
 
           // remember channel intensity
           prot_hits[(*protein_hit).getSequence()].setMetaValue("intensity_" + String(channel_index), new_intensity);
 
-          new_intensity += static_cast<SimIntensityType>((*protein_hit).getMetaValue("intensity"));
+          new_intensity += static_cast<SimTypes::SimIntensityType>((*protein_hit).getMetaValue("intensity"));
           prot_hits[(*protein_hit).getSequence()].setMetaValue("intensity", new_intensity);
         }
         else // new protein hit .. remember
@@ -108,7 +109,7 @@ namespace OpenMS
       ++channel_index;
     }
 
-    FeatureMapSim final_map;
+    SimTypes::FeatureMapSim final_map;
     ProteinIdentification protIdent;
 
     for (std::map<String, ProteinHit>::iterator prot_hit_iter = prot_hits.begin(); prot_hit_iter != prot_hits.end(); ++prot_hit_iter)
@@ -122,31 +123,22 @@ namespace OpenMS
     return final_map;
   }
 
-  void BaseLabeler::mergeProteinAccessions_(Feature & target, const Feature & source) const
+  void BaseLabeler::mergeProteinAccessions_(Feature& target, const Feature& source) const
   {
-    std::vector<String> target_acc(target.getPeptideIdentifications()[0].getHits()[0].getProteinAccessions());
-    std::vector<String> source_acc(source.getPeptideIdentifications()[0].getHits()[0].getProteinAccessions());
+    std::set<String> target_acc = target.getPeptideIdentifications()[0].getHits()[0].extractProteinAccessions();
+    std::set<String> source_acc = source.getPeptideIdentifications()[0].getHits()[0].extractProteinAccessions();
 
-    std::set<String> unique_acc;
-
-    // all from 'target'
-    for (vector<String>::iterator target_acc_iterator = target_acc.begin(); target_acc_iterator != target_acc.end(); ++target_acc_iterator)
-    {
-      unique_acc.insert(*target_acc_iterator);
-    }
-
-    //  + some from 'source', which are not present yet
-    for (vector<String>::iterator source_acc_iterator = source_acc.begin(); source_acc_iterator != source_acc.end(); ++source_acc_iterator)
-    {
-      std::pair<std::set<String>::iterator, bool> result = unique_acc.insert(*source_acc_iterator);
-      if (result.second)
-      {
-        target_acc.push_back(*source_acc_iterator);
-      }
-    }
+    // merge
+    target_acc.insert(source_acc.begin(), source_acc.end());
 
     PeptideHit pepHit(target.getPeptideIdentifications()[0].getHits()[0]);
-    pepHit.setProteinAccessions(target_acc);
+
+    for (std::set<String>::const_iterator a_it = target_acc.begin(); a_it != target_acc.end(); ++a_it)
+    {
+      PeptideEvidence pe;
+      pe.setProteinAccession(*a_it);
+      pepHit.addPeptideEvidence(pe);
+    }
 
     std::vector<PeptideHit> pepHits;
     pepHits.push_back(pepHit);
@@ -154,7 +146,7 @@ namespace OpenMS
     target.getPeptideIdentifications()[0].setHits(pepHits);
   }
 
-  void BaseLabeler::recomputeConsensus_(const FeatureMapSim & simulated_features)
+  void BaseLabeler::recomputeConsensus_(const SimTypes::FeatureMapSim& simulated_features)
   {
     // iterate over all given features stored in the labeling consensus and try to find the corresponding feature in
     // in the feature map
@@ -275,12 +267,12 @@ namespace OpenMS
     consensus_.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
   }
 
-  ConsensusMap & BaseLabeler::getConsensus()
+  ConsensusMap& BaseLabeler::getConsensus()
   {
     return consensus_;
   }
 
-  const String & BaseLabeler::getDescription() const
+  const String& BaseLabeler::getDescription() const
   {
     return channel_description_;
   }

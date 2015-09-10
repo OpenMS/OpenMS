@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,7 +48,7 @@ using namespace std;
 template <template <typename> class SpectrumT, typename PeakT>
 void check_results(SpectrumT<PeakT> spec)
 {
-  DoubleReal sum = 0.0;
+  double sum = 0.0;
   for (Size i=0; i<spec.size(); ++i)
   {
     sum += spec[i].getIntensity();
@@ -97,7 +97,7 @@ START_SECTION(( template < template< typename > class SpecT, typename PeakType >
   lr.setParameters(param);
 	lr.raster(spec);
 
-  DoubleReal sum = 0.0;
+  double sum = 0.0;
   for (Size i=0; i<spec.size(); ++i)
   {
     sum += spec[i].getIntensity();
@@ -163,7 +163,7 @@ START_SECTION([EXTRA] test_linear_res_align_3)
   lr.setParameters(param);
 	lr.raster_align(spec, -0.25, 1.8);
 
-  DoubleReal sum = 0.0;
+  double sum = 0.0;
   for (Size i=0; i<spec.size(); ++i)
   {
     sum += spec[i].getIntensity();
@@ -190,7 +190,7 @@ START_SECTION([EXTRA] test_linear_res_align_4)
   lr.setParameters(param);
 	lr.raster_align(spec, -2.25, 1.8);
 
-  DoubleReal sum = 0.0;
+  double sum = 0.0;
   for (Size i=0; i<spec.size(); ++i)
   {
     sum += spec[i].getIntensity();
@@ -218,7 +218,7 @@ START_SECTION([EXTRA] test_linear_res_align_5)
   lr.setParameters(param);
 	lr.raster_align(spec, -0.25, 1.25);
 
-  DoubleReal sum = 0.0;
+  double sum = 0.0;
   for (Size i=0; i<spec.size(); ++i)
   {
     sum += spec[i].getIntensity();
@@ -243,7 +243,7 @@ START_SECTION([EXTRA] test_linear_res_align_6)
   lr.setParameters(param);
 	lr.raster_align(spec, 0.25, 1.8);
 
-  DoubleReal sum = 0.0;
+  double sum = 0.0;
   for (Size i=0; i<spec.size(); ++i)
   {
     sum += spec[i].getIntensity();
@@ -272,7 +272,7 @@ START_SECTION([EXTRA] test_linear_res_align_scaling)
   lr.setParameters(param);
 	lr.raster_align(spec, -2.5, 12.5);
 
-  DoubleReal sum = 0.0;
+  double sum = 0.0;
   for (Size i=0; i<spec.size(); ++i)
   {
     sum += spec[i].getIntensity();
@@ -312,7 +312,7 @@ START_SECTION((template < typename PeakTypeIterator > void raster_interpolate(Pe
 
   spec = resampled;
 
-  DoubleReal sum = 0.0;
+  double sum = 0.0;
   for (Size i=0; i<spec.size(); ++i)
   {
     sum += spec[i].getIntensity();
@@ -355,7 +355,7 @@ START_SECTION(( template < typename PeakTypeIterator, typename ConstPeakTypeIter
 
   spec = resampled;
 
-  DoubleReal sum = 0.0;
+  double sum = 0.0;
   for (Size i=0; i<spec.size(); ++i)
   {
     sum += spec[i].getIntensity();
@@ -380,7 +380,7 @@ START_SECTION([EXTRA] test_linear_res_align_input)
   lr.setParameters(param);
 
 	lr.raster_align(spec, 2.25, 1.8);
-  DoubleReal sum = 0.0;
+  double sum = 0.0;
   for (Size i=0; i<spec.size(); ++i)
   {
     sum += spec[i].getIntensity();

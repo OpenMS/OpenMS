@@ -1,7 +1,276 @@
 PyOpenMSChecker:
 
   # The following methods will be ignored by the checker
-  IgnoreMethods: 
+  IgnoreMethods:
+
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    # TODO items (nested STL etc)
+    #  - go through these, some of them might need some work done 
+    #  - status Jan 2015 (Release 2.0)
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    # OpenMS::PeakMarker:
+    #     - apply
+
+    OpenMS::DefaultParamHandler:
+        - DefaultParamHandler
+        - getSubsections
+    OpenMS::ims::RealMassDecomposer:
+        - getDecompositions
+    OpenMS::ims::MassDecomposer:
+        - getDecomposition
+        - getAllDecompositions
+    OpenMS::Spline2d:
+        - eval
+        - derivatives
+    OpenMS::TransformationModelBSpline:
+        - evaluate
+        - getDefaultParameters
+    OpenMS::TransformationModelLinear:
+        # TODO 
+        - TransformationModelLinear
+        - evaluate
+        - getParameters
+        - invert
+    OpenMS::LocalLinearMap:
+        - getCord
+        - neigh
+    OpenMS::DocumentIdentifier:
+        - swap
+    OpenMS::ModifiedPeptideGenerator:
+        - applyFixedModifications
+        - applyVariableModifications
+    OpenMS::TransformationModel:
+        - evaluate
+        - getDefaultParameters
+    OpenMS::SeedListGenerator:
+        # STL wrapped key
+        - generateSeedLists
+    OpenMS::SvmTheoreticalSpectrumGenerator:
+        # boost rng
+        - simulate
+    OpenMS::TransformationModelInterpolated:
+        - TransformationModelInterpolated
+    OpenMS::Param:
+        # argc **
+        - parseCommandLine
+    OpenMS::FeatureMap:
+        - getAnnotationStatistics
+    OpenMS::BinnedSpectrum:
+        - getBins
+    OpenMS::PSProteinInference:
+        - getNumberOfProtIdsPeptideRule
+    OpenMS::FilterFunctor:
+        - apply
+    OpenMS::ContinuousWaveletTransformNumIntegration:
+        - transform
+        - init
+    OpenMS::SplineSpectrum:
+        - getNavigator
+    OpenMS::ComplementMarker:
+        - getProductName
+    OpenMS::PeakPickerIterative:
+        - updateMembers_
+    OpenMS::InternalCalibration:
+        - calibrateMapList
+    OpenMS::QTCluster:
+        - add
+        - getElements
+        - update
+        - getNeighbors # boost map
+    OpenMS::SvmTheoreticalSpectrumGeneratorSet:
+        - simulate
+    OpenMS::MzMLFile:
+        - loadSize
+        - isValid
+    OpenMS::Map:
+        - has
+        - equals
+    OpenMS::MascotXMLFile:
+        - load
+        - generateRTMapping # it
+    OpenMS::ControlledVocabulary:
+        - getTerms
+    OpenMS::PILISIdentification:
+        - getIdentifications
+    OpenMS::OpenSwathScoring:
+        - calculateChromatographicScores
+        - calculateLibraryScores
+        - calculateDIAScores
+    OpenMS::PeptideAndProteinQuant:
+        # wrapped key map
+        - getPeptideResults
+        - getProteinResults
+    OpenMS::Gradient:
+        - getPercentages
+    OpenMS::Fitter1D:
+        - fit1d
+    OpenMS::MassTraceDetection:
+        - updateIterativeWeightedMeanMZ
+    OpenMS::ClusteringGrid:
+        # TODO 
+        - getClusters
+    OpenMS::PepXMLFileMascot:
+        # TODO map
+        - load
+    OpenMS::CompNovoIonScoring:
+        # TODO map
+        - scoreSpectra
+    OpenMS::OptimizePick:
+        - optimize
+    OpenMS::FeatureFinder:
+        - getPeakFlag
+    OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces:
+        - computeIntensityProfile
+
+    OpenMS::SvmTheoreticalSpectrumGenerator::SvmModelParameterSet:
+        # STL attributes
+        - class_models
+        - reg_models
+        - _intensities
+        - ion_types
+        - secondary_types
+
+    OpenMS::ProteinResolver::ISDGroup:
+        # STL pointer attributes / list
+        - proteins
+        - peptides
+        - msd_groups # TODO no converter for List
+
+    OpenMS::ProteinResolver::MSDGroup:
+        # STL pointer attributes / list
+        - proteins
+        - peptides
+        - isd_group # raw pointer
+
+    OpenMS::PeptideAndProteinQuant::PeptideData:
+        # STL attributes / map
+        - abundances 
+        - total_abundances 
+    OpenMS::PeptideAndProteinQuant::ProteinData:
+        # STL attributes / map
+        - abundances 
+        - total_abundances 
+
+    OpenMS::ProteinResolver::PeptideEntry:
+        - proteins # std::list
+
+    OpenMS::Base64:
+        # unwrappable type (QByteArray)
+        - decodeSingleString
+
+    OpenMS::ResidueDB:
+        - getResidue
+        - getModifiedResidue
+        - getModifiedResidue
+        # POINTER # libcpp_set[ Residue * ] getResidues(String & residue_set) nogil except +
+        - getResidues
+        # Cannot get ResidueDB since its constructor and destructor is private ... 
+        - getInstance
+        # iterator
+        - beginResidue
+        - endResidue
+
+    OpenMS::SimTypes::SimRandomNumberGenerator:
+        - getBiologicalRng
+        - getTechnicalRng
+        - setBiologicalRngSeed
+        - setTechnicalRngSeed
+
+    OpenMS::FeatureHandle:
+        - asMutable
+
+    OpenMS::ConfidenceScoring:
+        # other attributes
+        - intercept
+        - rt_coef
+        - int_coef
+        - min_rt
+        - max_rt
+
+    OpenMS::ModificationsDB:
+        # Cannot get ModificationsDB since its constructor and destructor is private ... 
+        # POINTER 
+        - getInstance
+        - searchTerminalModifications
+        - searchModifications
+        - searchModifications
+        - getBestModificationsByMonoMass
+        - getBestModificationsByDiffMonoMass
+
+    OpenMS::ModifiedRep:
+        # TODO immutable types by reference
+        - getModificationsForMass
+
+    OpenMS::ConfidenceScoring:
+        - loadSize
+        - isValid
+
+    OpenMS::RNPxlModificationMassesResult:
+        # STL attributes
+        - mod_masses
+        - mod_combinations
+        - mod_formula_idx
+
+    OpenMS::ElementDB:
+        # const pointer and Map
+        - getInstance
+        - getNames
+        - getSymbols
+        - getAtomicNumbers
+        - getElement
+        - getElement
+
+    OpenMS::IsobaricQuantifierStatistics:
+        # STL attributes
+        - empty_channels
+
+    OpenMS::PrecursorIonSelectionPreprocessing:
+        # TODO STL map
+        - getProtMasses
+        - getProteinRTMap
+        - getProteinPTMap
+        - getProteinPeptideSequenceMap
+        - getFixedModifications
+
+    OpenMS::CompNovoIonScoringCID:
+        - scoreSpectrum
+
+    OpenMS::DIAScoring:
+        - dia_isotope_scores
+        - dia_massdiff_score
+    OpenMS::PILISCrossValidation:
+        - setOptions
+        - scoreHits
+    OpenMS::ims::IntegerMassDecomposer:
+        - getDecomposition
+        - getAllDecompositions
+        - getNumberOfDecompositions
+    OpenMS::InterpolationModel:
+        - getSamples
+    OpenMS::MapAlignmentEvaluationAlgorithm:
+        - evaluate
+        - isSameHandle
+    OpenMS::IsotopeMarker:
+        - getProductName
+    OpenMS::TwoDOptimization:
+        - getPenalties
+        - setPenalties
+        - optimize
+    OpenMS::ModifierRep:
+        - getModificationsForMass
+    OpenMS_Matrix:
+        - row
+        - col
+        - setMatrix
+    OpenMS::IsotopeWavelet:
+        - init
+        - getInstance
+        - getAveragine
+    OpenMS::Math::LinearInterpolation:
+        - getData
+        - getData
+        - setData
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     #  Manual
@@ -20,8 +289,7 @@ PyOpenMSChecker:
         # unwrappable type
         - biological_rng
         - technical_rng
-    OpenMS::ProteinResolver::PeptideEntry:
-        - proteins # std::list
+
     OpenMS::MzTabUnitIdMetaData:
         - title
         - description
@@ -52,27 +320,10 @@ PyOpenMSChecker:
         - colunit_peptide
         - colunit_small_molecule
 
-    # SILAC
-    OpenMS::SILACAnalyzer:
-        - calculateLabelsAndMassShifts
-        - filterData
-        - clusterData
-        - getSILAClabels
-        - getMassShifts
-        - generateClusterConsensusByCluster
-        - generateClusterConsensusByPattern
-        - generateClusterDebug
-        - generateFilterConsensusByPattern
-        - generateClusterFeatureByCluster
-        - readFilterConsensusByPattern
-    OpenMS::SILACFiltering:
-        - peak_width
-        - blacklist
-    OpenMS::SILACFiltering::BlacklistEntry:
-        - range
     OpenMS::SILACPoint:
         - mz_positions
         - intensities
+
     OpenMS::SILACLabeler:
         - setUpHook
         - postDigestHook
@@ -83,10 +334,9 @@ PyOpenMSChecker:
         - postRawTandemMSHook
         - create
 
-
     # static elements
     OpenMS::ChromatogramSettings:
-        - ChromatogramNames 
+        - ChromatogramNames
     OpenMS::ims::IMSElement:
         - ELECTRON_MASS_IN_U
     OpenMS::ItraqConstants:
@@ -106,8 +356,6 @@ PyOpenMSChecker:
         - readOutHeader
     OpenMS::PeakPickerRapid:
         - computeTPG
-    OpenMS::MSQuantifications:
-        - NamesOfQuantTypes # renamed
     OpenMS::ProteinResolver:
         # pointers
         - getPeptideIdentification
@@ -118,17 +366,28 @@ PyOpenMSChecker:
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     OpenMS::PeakPickerSH:
         - pick
+    OpenMS::MzTabFile:
+        - storeProteinReliabilityColumn
+        - storePeptideReliabilityColumn
+        - storePSMReliabilityColumn
+        - storeSmallMoleculeReliabilityColumn
+        - storeProteinUriColumn
+        - storePeptideUriColumn
+        - storePSMUriColumn
+        - storeSmallMoleculeUriColumn
+        - storeProteinGoTerms
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     #  Renamed enums / Attributes of enums that are wrapped already
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-    OpenMS::PeakShape:
-        - Type
+
     OpenMS::ProteinIdentification:
-        - findHit
+        - findHit # iterator
         # names
         - NamesOfPeakMassType
         - NamesOfDigestionEnzyme
+    OpenMS::BaseFeature:
+        - NamesOfAnnotationState 
     OpenMS::MassAnalyzer:
         - NamesOfAnalyzerType
         - NamesOfResolutionMethod
@@ -138,6 +397,7 @@ PyOpenMSChecker:
         - NamesOfReflectronState
     OpenMS::EnzymaticDigestion:
         - NamesOfEnzymes
+        - NamesOfSpecificity
     OpenMS::SourceFile:
         - NamesOfChecksumType
     OpenMS::Precursor:
@@ -155,17 +415,21 @@ PyOpenMSChecker:
         - NamesOfScanMode
     OpenMS::SpectrumSettings:
         - NamesOfSpectrumType
+    OpenMS::Instrument:
+        - NamesOfIonOpticsType
+    OpenMS::MSQuantifications:
+        - NamesOfQuantTypes
+    OpenMS::IonDetector:
+        - Type
+        - AcquisitionMode
+        - NamesOfType
+        - NamesOfAcquisitionMode
     OpenMS::PrecursorIonSelection:
         - Type
         - getNextPrecursorsSeq # immutable types by reference
         - getPeptideProteinCounter # not implemented
     OpenMS::PeakShape:
         - Type
-    OpenMS::IonDetector:
-        - Type
-        - AcquisitionMode
-        - NamesOfType
-        - NamesOfAcquisitionMode
     OpenMS::PILISCrossValidation::Option:
         - Option # renamed constructor
         - Type
@@ -175,7 +439,7 @@ PyOpenMSChecker:
         - XRefType
     OpenMS::ProteinResolver::ResolverResult:
         - type
-        # attributes
+        # attributes (raw ptrs)
         - isds
         - msds
         - protein_entries
@@ -187,15 +451,28 @@ PyOpenMSChecker:
         - consensus_map
     OpenMS::ims::Weights:
         - Weights
-    OpenMS::Instrument:
-        - NamesOfIonOpticsType
     OpenMS::PeptideAndProteinQuant::PeptideData:
-        - PeptideData # renamed constructor
+        - PeptideData # constructor
     OpenMS::PeptideAndProteinQuant::ProteinData:
-        - ProteinData # renamed constructor
+        - ProteinData # constructor
     OpenMS::PeptideAndProteinQuant::Statistics:
-        - Statistics # renamed constructor
+        - Statistics # constructor
+    OpenMS::ims::IMSIsotopeDistribution::Peak:
+        - Peak # constructor
+    OpenMS::PeakShape:
+        - Type
 
+    # Legacy functions only
+    OpenMS::OnDiscMSExperiment:
+        - isSortedByRT
+        - size
+        - empty
+        - getExperimentalSettings # TODO 
+
+    OpenMS::OptimizationFunctions::PenaltyFactors:
+        # renamed constructor
+        - PenaltyFactors
+        - PenaltyFactors
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     #  Renamed methods
@@ -222,11 +499,15 @@ PyOpenMSChecker:
         - getTypeByFileName
         - getTypeByContent
         - isSupported
-    
+
     # problematic functions
     OpenMS::MSChromatogram:
         - RTBegin
         - RTEnd
+        # Maybe TODO 
+        - getFloatDataArrays
+        - getStringDataArrays
+        - getIntegerDataArrays
 
     # std::ifstream/ofstream
     OpenMS::CachedmzML:
@@ -235,9 +516,11 @@ PyOpenMSChecker:
         - readChromatogramFast
     OpenMS::ParamXMLFile:
         - writeXMLToStream
+    OpenMS::XMLFile:
+        - isValid
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-    # Iterators
+    # Iterators / Streams
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     OpenMS::IsotopeWaveletTransform:
         - MZBegin
@@ -261,6 +544,15 @@ PyOpenMSChecker:
     OpenMS::SignalToNoiseEstimator:
         - init
         - getSignalToNoise
+    OpenMS::Internal::XMLFile:
+        - isValid
+    OpenMS::ConsensusFeature:
+        - getPositionRange
+        - getIntensityRange
+        - getFeatures
+    OpenMS::Param::ParamNode:
+        - findEntry
+        - findNode
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Others
@@ -291,16 +583,30 @@ PyOpenMSChecker:
         - MZBegin
         - MZEnd
         - MZEnd
+        # Maybe TODO 
+        - getFloatDataArrays
+        - getStringDataArrays
+        - getIntegerDataArrays
 
     OpenMS::ConsensusMap:
         - swap
         - applyMemberFunction
+        - isMapConsistent
     OpenMS::Feature:
         - applyMemberFunction
         - getModelDescription
         - setModelDescription
 
     # Not part of the public interface
+    OpenMS::SVMWrapper:
+        # External lib
+        - performCrossValidation
+        - getDecisionValues
+        - scaleData
+        - computeKernelMatrix
+        - getSVCProbabilities
+        - getLabels
+        - kernelOligo
     OpenMS::FeatureDistance:
         - infinity
     OpenMS::Digestion:
@@ -319,11 +625,13 @@ PyOpenMSChecker:
 
     OpenMS::MRMFeatureFinderScoring:
         - mapExperimentToTransitionList
+        - scorePeakgroups
 
     OpenMS::SpectrumAccessOpenMS:
         - getSpectraMetaInfo
         - getChromatogramMetaInfo
         - getSpectrumMetaById
+        - lightClone
 
     OpenMS::Spectrum:
         - defaultArrayLength
@@ -331,6 +639,7 @@ PyOpenMSChecker:
     OpenSwath::MRMScoring:
         - getXCorrMatrix
         - initializeXCorrMatrix
+        - initializeMS1XCorr
         - calcLibraryScore
         - calcSNScore
 
@@ -342,6 +651,15 @@ PyOpenMSChecker:
     OpenMS::ChromatogramExtractor:
         - extract_value_tophat
         - extract_value_bartlett
+        - prepare_coordinates
+        - return_chromatogram
+
+    OpenMS::ChromatogramExtractorAlgorithm:
+        - extract_value_tophat
+
+    OpenMS::ChromatogramExtractorAlgorithm::ExtractionCoordinates:
+        - SortExtractionCoordinatesByMZ
+        - SortExtractionCoordinatesReverseByMZ
 
     OpenMS::LinearResamplerAlign:
         - raster
@@ -356,6 +674,7 @@ PyOpenMSChecker:
         - selectSwathTransitions
         - checkSwathMap
         - selectSwathTransitions
+        - simpleFindBestFeature
 
     OpenMS::EmgScoring:
         - calcElutionFitScore
@@ -368,43 +687,36 @@ PyOpenMSChecker:
         - getSpectrumMetaById
         - getSpectraMetaInfo
         - getChromatogramMetaInfo
+        - lightClone
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Raw pointers
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    OpenMS::QTClusterFinder:
+        - create
+    OpenMS::FeatureFinderAlgorithmIsotopeWavelet:
+        - createHRData
+        - create
+    OpenMS::UnimodXMLFile:
+        # TODO should now work ... 
+        - load
+    OpenMS::Tagging:
+        - clone
+        - NamesOfIsotopeVariant
     OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTrace:
         - max_peak
         - peaks
-    OpenMS::EmpiricalFormula:
-        - getElement
-        - getElement
-        - getElementDB
-    OpenMS::ElementDB:
-        - getInstance
-        - getNames
-        - getSymbols
-        - getAtomicNumbers
-        - getElement
-        - getElement
-        - getElement
-        - getElement
     OpenMS::HiddenMarkovModel:
         - write # stream
-        - calculateEmissionProbabilities
-        - getState 
+        - calculateEmissionProbabilities # ptr inside Map
     OpenMS::MarkerMower:
-        - insertmarker 
+        - insertmarker
     OpenMS::ProteinResolver::ProteinEntry:
         - peptides
         - fasta_entry
         - indis
         - type
-    OpenMS::ResidueDB:
-        - getResidue
-        - getModifiedResidue
-        - getModifiedResidue
-        - getResidues
-        - getInstance
     # char pointer
     OpenMS::Peak2D:
         - shortDimensionName
@@ -419,14 +731,12 @@ PyOpenMSChecker:
         - fullDimensionUnit
         - fullDimensionUnitRT
         - fullDimensionUnitMZ
+        - getPosition # position type
+        - setPosition
 
-    OpenMS::HMMState:
-        addPredecessorState
-        deletePredecessorState
-        addSuccessorState
-        deleteSuccessorState
-        getPredecessorStates
-        getSuccessorStates
+    OpenMS::Peak1D:
+        - getPosition # position type
+        - setPosition
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     #  Factory pattern / create methods
@@ -499,16 +809,16 @@ PyOpenMSChecker:
         - create
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-    #  Base class problem : 
+    #  Base class problem :
     #  Cython cannot handle overloaded functions in the base class, consequently
     #  they will show up as missing. Thus ignore the inherited methods here
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-    
+
     OpenMS::FeatureGroupingAlgorithm:
         - group
         - FeatureGroupingAlgorithm # abstract class
     OpenMS::NeutralLossMarker:
-        - getProductName 
+        - getProductName
     OpenMS::MetaInfoInterface:
         - getMetaValue
         - metaValueExists
@@ -538,7 +848,14 @@ PyOpenMSChecker:
         - getNumberOfChannels
         - getIsotopeCorrectionMatrix
         - getReferenceChannel
+    OpenMS::TMTTenPlexQuantitationMethod:
+        - getName
+        - getChannelInformation
+        - getNumberOfChannels
+        - getIsotopeCorrectionMatrix
+        - getReferenceChannel
     OpenMS::EdwardsLippertIterator:
+        # see base class
         - setFastaFile
         - getFastaFile
         - setSpectrum
@@ -572,21 +889,399 @@ PyOpenMSChecker:
         - int_list_
         - dou_list_
 
-
   # The following classes are ignore completely
-  IgnoreNames: 
+  IgnoreNames:
+
+    ########################################################################
+    #        Manually curated list of classes we do not want to wrap
+    ########################################################################
+
+    # renamed classes (they exist but under a different name)
+    - OpenMS::PeakShape::Type
+    - OpenMS::ResidueModification::Term_Specificity
+
+    # rarely used classes
+    - OpenMS::WeightWrapper
+    - OpenMS::FileTypes # no need for them, the actual types are at OpenMS::FileTypes::Types
+
+    # produces compile error
+    - OpenMS::IsotopeWaveletTransform::TransSpectrum
+
+    # Algorithm class only
+    - OpenMS::GaussFilterAlgorithm # very new, use GaussFilter for most work!
+
+    # Special classes
+    - OpenMS::PrecisionWrapper # Wrapper for float precision
+    - OpenMS::SvmTheoreticalSpectrumGenerator::DescriptorSet # no public members that we could wrap
     - OpenMS::SimpleOpenMSSpectraFactory
+    - OpenMS::Map::IllegalKey
+    - OpenMS::StopWatch
+    - OpenMS::StopFileWatcher
+    - OpenMS::FileWatcher
+    - OpenMS::MSDataTransformingConsumer # not really useful since it uses function pointers
+    - OpenMS::NoopMSDataConsumer
+    - OpenMS::MSDataChainingConsumer 
+    - OpenMS::GUIProgressLoggerImpl
+    - OpenMS::ProgressLogger::ProgressLoggerImpl
+
+    # MzTab internals -> maybe when its finished!
+    - OpenMS::MzTabSpectraRef
+    - OpenMS::MzTabModification
+    - OpenMS::MzTabNullAbleBase
+    - OpenMS::MzTabSubIdMetaData
+    - OpenMS::MzTabParameter
+    - OpenMS::MzTabBoolean
+    - OpenMS::MzTabNullAbleInterface
+    - OpenMS::MzTabPeptideSectionRow
+    - OpenMS::MzTabParameterList
+    - OpenMS::MzTabProteinSectionRow
+    - OpenMS::MzTabNullNaNAndInfAbleBase
+    - OpenMS::MzTabInteger
+    - OpenMS::MzTabSmallMoleculeSectionRow
+    - OpenMS::MzTabDouble
+    - OpenMS::MzTab
+    - OpenMS::MzTabModificationList
+    - OpenMS::MzTabString
+    - OpenMS::MzTabNullNaNAndInfAbleInterface
+    - OpenMS::MzTabDoubleList
+    - OpenMS::MzTabStringList
+    - OpenMS::MzTabIntegerList
+    - OpenMS::MzTabAssayMetaData
+    - OpenMS::MzTabContactMetaData 
+    - OpenMS::MzTabCVMetaData 
+    - OpenMS::MzTabInstrumentMetaData
+    - OpenMS::MzTabMetaData
+    - OpenMS::MzTabModificationMetaData
+    - OpenMS::MzTabMSRunMetaData
+    - OpenMS::MzTabPSMSectionRow 
+    - OpenMS::MzTabSampleMetaData
+    - OpenMS::MzTabSoftwareMetaData
+    - OpenMS::MzTabStudyVariableMetaData
+
+    # MultiplexFiltering
+    - OpenMS::MultiplexFiltering
+    - OpenMS::MultiplexFilterResult
+    - OpenMS::MultiplexFilterResultPeak 
+    - OpenMS::MultiplexFilterResultRaw
+    - OpenMS::MultiplexPeakPattern
+    - OpenMS::MultiplexFiltering::BlackListEntry
+    - OpenMS::MultiplexFiltering::PeakReference
+    - OpenMS::GridBasedClustering
+    - OpenMS::MinimumDistance
+    - OpenMS::MultiplexClustering
+    - OpenMS::MultiplexClustering::MultiplexDistance
+    - OpenMS::SplineSpectrum::Navigator
+    - OpenMS::MultiplexFilteringCentroided
+    - OpenMS::MultiplexFilteringProfile
 
     # Do not expose List, String and Utils methods - Python has better ones
     - OpenMS::String
     - OpenMS::StringUtils
+    - OpenMS::StringListUtils
     - OpenMS::ListUtils
+    - OpenMS::SysInfo
+
+
+    # CONCEPT
+    - OpenMS::SingletonRegistry
+    - OpenMS::StreamHandler
+    - OpenMS::UnaryComposeFunctionAdapter
+    - OpenMS::Factory
+    - OpenMS::BinaryComposeFunctionAdapter
+    - OpenMS::UniqueIdIndexer
+    - OpenMS::FactoryBase
+
+    # METADATA
+    - OpenMS::MetaInfoDescription
+    - OpenMS::SampleTreatment # abstract class
+    - OpenMS::MetaInfoRegistry
+    - OpenMS::DocumentIDTagger
+
+    # FORMAT: helpers, old or not supported file formats
+    - OpenMS::SpecArrayFile
+    - OpenMS::PersistentObject
+    - OpenMS::FastaIterator
+    - OpenMS::MascotRemoteQuery
+    - OpenMS::LibSVMEncoder
+    - OpenMS::CsvFile
+    - OpenMS::ToolDescriptionFile
+    - OpenMS::PTMXMLFile
+    - OpenMS::FastaIteratorIntern
+    - OpenMS::XMassFile
+    - OpenMS::PepNovoOutfile
+    - OpenMS::PepNovoInfile
+    - OpenMS::CompressedInputSource
+    - OpenMS::SVOutStream
+    - OpenMS::XMLValidator
+
+    # FEATUREFINDER internals - maybe we want some of them
+    - OpenMS::ExtendedIsotopeModel
+    - OpenMS::PeakWidthEstimator::Result
+    - OpenMS::LmaGaussModel
+    - OpenMS::FeatureFinderAlgorithm
+    - OpenMS::FeatureFinderDefs::NoSuccessor
+    - OpenMS::FeaFiModule
+    - OpenMS::ProductModel< 2 >
+    - OpenMS::LmaGaussFitter1D
+    - OpenMS::MaxLikeliFitter1D
+    - OpenMS::LmaIsotopeFitter1D
+    - OpenMS::FeatureFinderDefs
+    - OpenMS::FeatureFinderAlgorithmMRM
+    - OpenMS::ModelDescription
+    - OpenMS::PeakWidthEstimator
+    - OpenMS::Summary
+    - OpenMS::IsotopeWaveletParallelFor
+    - OpenMS::GaussFitter1D
+    - OpenMS::EGHTraceFitter
+    - OpenMS::GaussModel
+    - OpenMS::ExtendedIsotopeFitter1D
+    - OpenMS::LmaIsotopeModel
+    - OpenMS::FeatureFinderAlgorithmSHCtrl
+
+    # Interfaces - they are not ready yet
+    - OpenMS::Interfaces::ISpectraWriter
+    - OpenMS::Interfaces::ISpectraReader
+    - OpenMS::Interfaces::Chromatogram
+    - OpenMS::Interfaces::IChromatogramsReader
+    - OpenMS::Interfaces::IChromatogramsWriter
+    - OpenMS::Interfaces::ChromatogramMeta
+    - OpenMS::Interfaces::Spectrum
+    - OpenMS::Interfaces::BinaryDataArray
+    - OpenMS::Interfaces::SpectrumMeta
+    - OpenMS::Interfaces::IMSDataConsumer
+
+    # KERNEL - internals and ranges
+    - OpenMS::RangeManager
+    - OpenMS::RichPeak1D
+    - OpenMS::FeatureHandle::FeatureHandleMutable_
+    - OpenMS::FeatureHandle::IndexLess
+
+    # SIMULATION - Simulator internals (we might want to wrap those)
+    - OpenMS::LabelFreeLabeler
+    - OpenMS::ITRAQLabeler
+    - OpenMS::ICPLLabeler
+    - OpenMS::RawMSSignalSimulation
+    - OpenMS::IonizationSimulation
+    - OpenMS::RawTandemMSSignalSimulation
+    - OpenMS::RTSimulation
+    - OpenMS::EGHModel
+    - OpenMS::EGHFitter1D
+    - OpenMS::O18Labeler
+    - OpenMS::DetectabilitySimulation
+
+    # DATASTRUCTURES
+    - OpenMS::SuffixArray
+    - OpenMS::SuffixArraySeqan
+    - OpenMS::SuffixArrayPeptideFinder
+    - OpenMS::SuffixArrayTrypticCompressed
+    - OpenMS::SuffixArrayTrypticSeqan
+    - OpenMS::GridFeature
+    - OpenMS::BinaryTreeNode
+
+    # COMPARISON - mostly functors
+    - OpenMS::OptimizePick::OptPeakFunctor
+    - OpenMS::LevMarqFitter1D::GenericFunctor
+    - OpenMS::EGHTraceFitter::EGHTraceFunctor
+    - OpenMS::TraceFitter::GenericFunctor
+    - OpenMS::SpectralMatchScoreComparator
+    - OpenMS::PrecursorMassComparator
+    - OpenMS::FloatsWithTolLess
+    - OpenMS::IntsInRangeLess
+    - OpenMS::PeakSpectrumCompareFunctor
+    - OpenMS::BinnedSpectrumCompareFunctor::IncompatibleBinning
+    - OpenMS::BinnedSpectrumCompareFunctor
+    - OpenMS::CompareFouriertransform
+    - OpenMS::BinnedSpectralContrastAngle
+    - OpenMS::BinnedSharedPeakCount
+    - OpenMS::BinnedSpectrum::NoSpectrumIntegrated
+    - OpenMS::BinnedSumAgreeingIntensities
+    - OpenMS::ZhangSimilarityScore
+    - OpenMS::SingleLinkage
+    - OpenMS::SteinScottImproveScore
+    - OpenMS::ClusterHierarchical
+    - OpenMS::ClusterAnalyzer
+    - OpenMS::EuclideanSimilarity
+    - OpenMS::CompleteLinkage
+    - OpenMS::SpectrumAlignmentScore
+    - OpenMS::SpectrumCheapDPCorr
+    - OpenMS::PeakAlignment
+    - OpenMS::HierarchicalClustering::Cluster
+    - OpenMS::HierarchicalClustering::BoundingBox
+    # Is wrapped but under different name
+    - OpenMS::DPosition
+    - OpenMS::DBoundingBox
+    - OpenMS::DRange
+
+    # Iterators, comparators, helpers
+    - OpenMS::Internal::SemanticValidator::CVTerm
+    - OpenMS::AASequence::ConstIterator
+    - OpenMS::Internal::IntensityIteratorWrapper
+    - OpenMS::Param::ParamIterator::TraceInfo
+
+    # Internal OpenMS algorithm datastructures that cannot be used in Python
+    - OpenMS::TwoDOptimization::Data
+    - OpenMS::PoseClusteringAffineSuperimposer
+    - OpenMS::PoseClusteringShiftSuperimposer
+    - OpenMS::Base64::Reinterpreter32_
+    - OpenMS::Base64::Reinterpreter64_
+    - OpenMS::Base64::decodeSingleString
+    - OpenMS::BinnedSpectrum::getBins
+    - OpenMS::ClusterFunctor
+    - OpenMS::ClusterFunctor::InsufficientInput
+    - OpenMS::CompNovoIdentificationBase
+    - OpenMS::CompNovoIdentificationBase::Permut
+    - OpenMS::CompNovoIonScoringBase
+    - OpenMS::CompNovoIonScoringBase::IonScore
+    - OpenMS::ConstRefVector
+    - OpenMS::ConstRefVector::ConstRefVectorConstIterator
+    - OpenMS::ConstRefVector::ConstRefVectorIterator
+    - OpenMS::Constants # TODO maybe we also need constants ?
+    - OpenMS::DBAdapter
+    - OpenMS::DBConnection
+    - OpenMS::DBConnection::InvalidQuery
+    - OpenMS::DBConnection::NotConnected
+    - OpenMS::DBOpenDialog
+    - OpenMS::FuzzyStringComparator
+    - OpenMS::FuzzyStringComparator::InputLine
+    - OpenMS::FuzzyStringComparator::PrefixInfo_
+    - OpenMS::FuzzyStringComparator::StreamElement_
+    - OpenMS::HashGrid
+    - OpenMS::HashGrid::ConstIterator
+    - OpenMS::HashGrid::Iterator
+    - OpenMS::ims::IMSAlphabetParser
+    - OpenMS::ims::IMSAlphabetTextParser
+
+    # Comperators
+    - OpenMS::Peak2D::PositionLess
+    - OpenMS::MSChromatogram::MZLess
+    - OpenMS::PeakShape::PositionLess
+    - OpenMS::AASequence::Iterator
+    - OpenMS::Peak1D::PositionLess
+    - OpenMS::Peak2D::IntensityLess
+    - OpenMS::Peak2D::MZLess
+    - OpenMS::ConsensusFeature::SizeLess
+    - OpenMS::Peak1D::IntensityLess
+    - OpenMS::PSLPFormulation::ScanLess
+    - OpenMS::PSLPFormulation::IndexLess
+    - OpenMS::BaseFeature::QualityLess
+    - OpenMS::Peak1D::MZLess
+    - OpenMS::PSLPFormulation::VariableIndexLess
+    - OpenMS::FeatureHypothesis
+    - OpenMS::ConsensusFeature::MapsLess
+    - OpenMS::ProteinHit::ScoreLess
+    - OpenMS::ReactionMonitoringTransition::ProductMZLess
+    - OpenMS::PeptideHit::ScoreLess
+    - OpenMS::MSSpectrum::RTLess
+    - OpenMS::ChromatogramPeak::RTLess
+    - OpenMS::Peak2D::RTLess
+    - OpenMS::ChromatogramPeak::IntensityLess
+    - OpenMS::ChromatogramPeak::PositionLess
+    - OpenMS::CmpHypothesesByScore
+    - OpenMS::CmpPeakByIntensity
+    - OpenMS::ReverseComparator
+    - OpenMS::UnnormalizedComparator
+    - OpenMS::PairComparatorFirstElementMore
+    - OpenMS::PairComparatorFirstElement
+    - OpenMS::SpectrumPrecursorComparator
+    - OpenMS::PointerComparator
+    - OpenMS::PairMatcherFirstElement
+    - OpenMS::PairComparatorSecondElement
+    - OpenMS::PairComparatorSecondElementMore
+    - OpenMS::PairMatcherSecondElement
+    - OpenMS::LexicographicComparator
+    - OpenMS::EqualInTolerance
+    - OpenMS::PeptideHit::ScoreMore
+    - OpenMS::PrecursorIonSelection::SeqTotalScoreMore
+    - OpenMS::PrecursorIonSelection::TotalScoreMore
+    - OpenMS::ProteinHit::ScoreMore
+    - OpenMS::CmpMassTraceByMZ
+
+    # RangeUtils - we probably cannot use them in Python
+    - OpenMS::InIntensityRange
+    - OpenMS::InPrecursorMZRange
+    - OpenMS::HasScanMode
+    - OpenMS::HasActivationMethod
+    - OpenMS::InMzRange
+    - OpenMS::InMSLevelRange
+    - OpenMS::HasPrecursorCharge
+    - OpenMS::IsZoomSpectrum
+    - OpenMS::IsEmptySpectrum
+    - OpenMS::InRTRange
+    - OpenMS::HasScanPolarity
+    - OpenMS::HasMetaValue
+    - OpenMS::IsInCollisionEnergyRange
+    - OpenMS::IsInIsolationWindowSizeRange
+
+    # OPENSWATH classes
+    - OpenSwath::mySqrt
+    - OpenSwath::MockTransitionGroup
+    - OpenSwath::mean_and_stddev
+    - OpenSwath::Protein
+    - OpenSwath::CSVWriter
+    - OpenSwath::IFeature
+    - OpenSwath::TargetedExperiment
+    - OpenSwath::MockMRMFeature
+    - OpenSwath::MockSignalToNoise
+    - OpenSwath::IDataFrameWriter
+    - OpenSwath::TransitionHelper
+    - OpenSwath::ISignalToNoise
+    - OpenSwath::DataMatrix
+    - OpenSwath::ITransitionGroup
+    - OpenSwath::Peptide
+    - OpenSwath::IMRMFeature
+    - OpenSwath::MockFeature
+    - OpenMS::OpenSwath_Scores
+    - OpenMS::FeatureOpenMS
+    - OpenMS::SignalToNoiseOpenMS
+    - OpenMS::MRMFeatureOpenMS
+    - OpenMS::TransitionGroupOpenMS
+    - OpenMS::DiaPrescore
+    - OpenMS::SpectrumAddition
+    - OpenSwath::ChromatogramMeta
+    - OpenSwath::ISpectrumAccess
+    - OpenSwath::SpectrumMeta
+
+    # SuperHirn classes
+    - OpenMS::DeconvPeak
+    - OpenMS::MS1FeatureMerger::OPERATOR_FEATURE_TR
+    - OpenMS::MS1Signal
+    - OpenMS::LCMS::OPERATOR_MZ
+    - OpenMS::LCMS::OPERATOR_FeatureCompare
+    - OpenMS::BackgroundControl
+    - OpenMS::BackgroundIntensityBin
+    - OpenMS::CentroidData
+    - OpenMS::CentroidPeak
+    - OpenMS::ClusteredMS2ConsensusSpectrum
+    - OpenMS::ConsensusIsotopePattern
+    - OpenMS::Deisotoper
+    - OpenMS::FeatureLCProfile
+    - OpenMS::FTPeakDetectController
+    - OpenMS::IsotopicDist
+    - OpenMS::LCElutionPeak
+    - OpenMS::LCMSCData
+    - OpenMS::LCMS
+    - OpenMS::MS1FeatureMerger
+    - OpenMS::MS2ConsensusSpectrum
+    - OpenMS::MS2Feature
+    - OpenMS::MS2Fragment
+    - OpenMS::MS2Info
+    - OpenMS::MSPeak
+    - OpenMS::ProcessData
+    - OpenMS::RawData
+    - OpenMS::SHFeature
+    - OpenMS::SuperHirnParameters
+    - OpenMS::SuperHirnUtil
+
+    ########################################################################
+    #        List of classes we cannot wrap (whole types of classes)
+    ########################################################################
 
     # External libraries
     # -- Seqan
     - seqan
     - seqan::EquivalenceClassAA_
     - seqan::FoundProteinFunctor
+
     # -- std
     - std::allocator
     - std::auto_ptr
@@ -605,7 +1300,10 @@ PyOpenMSChecker:
     - std::vector
     - std::weak_ptr
 
-    # Internal OpenMS datastructures that cannot be used in Python 
+    # other
+    - glp_prob
+
+    # Internal OpenMS datastructures that cannot be used in Python
     - OpenMS::Internal::ClassTest
     - OpenMS::Bzip2Ifstream
     - OpenMS::Bzip2InputStream
@@ -634,9 +1332,11 @@ PyOpenMSChecker:
     - OpenMS::Internal::MzDataValidator
     - OpenMS::Internal::MzIdentMLHandler
     - OpenMS::Internal::MzIdentMLValidator
+    - OpenMS::Internal::MzIdentMLDOMHandler
     - OpenMS::Internal::MzIterator
     - OpenMS::Internal::MzMLHandler
-    - OpenMS::Internal::MzMLHandler::BinaryData
+    - OpenMS::Internal::MzMLHandlerHelper
+    - OpenMS::Internal::MzMLHandlerHelper::BinaryData
     - OpenMS::Internal::MzMLValidator
     - OpenMS::Internal::MzQuantMLHandler
     - OpenMS::Internal::MzQuantMLValidator
@@ -660,7 +1360,6 @@ PyOpenMSChecker:
     - OpenMS::Internal::TraMLHandler
     - OpenMS::Internal::TraMLValidator
     - OpenMS::Internal::UnimodXMLHandler
-    # - OpenMS::Internal::XMLFile
     - OpenMS::Internal::XMLHandler
     - OpenMS::Internal::XMLHandler::EndParsingSoftly
     - OpenMS::Internal::XTandemInfileNote
@@ -672,7 +1371,7 @@ PyOpenMSChecker:
     - OpenMS::SparseVector::SparseVectorReverseIterator
     - OpenMS::SparseVector::ValueProxy
 
-    # Math - Python provides alternative functions for most
+    # MATH - Python provides alternative functions for most
     - OpenMS::Math
     - OpenMS::Math::AsymmetricStatistics
     - OpenMS::Math::AveragePosition
@@ -685,8 +1384,8 @@ PyOpenMSChecker:
     - OpenMS::Math::GumbelDistributionFitter
     - OpenMS::Math::GumbelDistributionFitter::GumbelDistributionFitResult
     - OpenMS::Math::Histogram
-    # - OpenMS::Math::LinearInterpolation
     - OpenMS::Math::LinearRegression
+    - OpenMS::Math::QuadraticRegression
     - OpenMS::Math::ROCCurve
     - OpenMS::Math::ROCCurve::simsortdec
 
@@ -698,6 +1397,9 @@ PyOpenMSChecker:
     - OpenMS::BigString
     - OpenMS::TOPPBase
     - OpenMS::TraceFitter
+
+    # Abstract Base classes
+    - OpenMS::MSDataWritingConsumer
 
     # Exception classes
     - OpenMS::Exception::BaseException
@@ -870,369 +1572,24 @@ PyOpenMSChecker:
     - OpenMS::TOPPASToolVertex::IOInfo
     - OpenMS::TOPPASScene::TOPPProcess
     - OpenMS::TOPPASVertex::VertexRoundPackage
+    - OpenMS::Annotation1DCaret
     - TOPPPCV
 
-    ######################################################################## 
-    #        Manually cureated list of classes we do not want to wrap
-    ######################################################################## 
-    #
-    # rarely used classes
-    - OpenMS::WeightWrapper
-    - OpenMS::FileTypes # no need for them, the actual types are at OpenMS::FileTypes::Types
-    # others
-    - OpenMS::Map::IllegalKey
-    - glp_prob
-    - OpenMS::StopWatch
-    - OpenMS::StopFileWatcher
-    - OpenMS::FileWatcher
-
-    # prduces compile error
-    - OpenMS::IsotopeWaveletTransform::TransSpectrum
-
-    - OpenMS::FileWatcher
-    - OpenMS::GaussFilterAlgorithm # very new, use GaussFilter for most work!
-
-    - OpenMS::PrecisionWrapper
-    - OpenMS::ChromatogramPeak::PositionLess
-    - OpenMS::Param::ParamIterator::TraceInfo
-    - OpenMS::CmpHypothesesByScore
-    
-    - OpenMS::SvmTheoreticalSpectrumGenerator::DescriptorSet # no public members that we could wrap 
-
-    # models
-    - OpenMS::TransformationModelBSpline
-
-    # Internal OpenMS algorithm datastructures that cannot be used in Python
-    - OpenMS::TwoDOptimization::Data
-    - OpenMS::PoseClusteringAffineSuperimposer
-    - OpenMS::PoseClusteringShiftSuperimposer
-    - OpenMS::Base64::Reinterpreter32_
-    - OpenMS::Base64::Reinterpreter64_
-    - OpenMS::ClusterFunctor
-    - OpenMS::ClusterFunctor::InsufficientInput
-    - OpenMS::CompNovoIdentificationBase
-    - OpenMS::CompNovoIdentificationBase::Permut
-    - OpenMS::CompNovoIonScoringBase
-    - OpenMS::CompNovoIonScoringBase::IonScore
-    - OpenMS::ConstRefVector
-    - OpenMS::ConstRefVector::ConstRefVectorConstIterator
-    - OpenMS::ConstRefVector::ConstRefVectorIterator
-    - OpenMS::Constants # maybe we also need constants ?
-    - OpenMS::DBAdapter
-    - OpenMS::DBConnection
-    - OpenMS::DBConnection::InvalidQuery
-    - OpenMS::DBConnection::NotConnected
-    - OpenMS::DBOpenDialog
-    - OpenMS::FuzzyStringComparator
-    - OpenMS::FuzzyStringComparator::InputLine
-    - OpenMS::FuzzyStringComparator::PrefixInfo_
-    - OpenMS::FuzzyStringComparator::StreamElement_
-    - OpenMS::HashGrid
-    - OpenMS::HashGrid::ConstIterator
-    - OpenMS::HashGrid::Iterator
-    - OpenMS::SimpleExtender
-    - OpenMS::SimpleExtender::IndexWithPriority
-    - OpenMS::SimpleExtender::IndexWithPriority::PriorityLess
-    - OpenMS::ims::IMSAlphabetParser
-    - OpenMS::ims::IMSAlphabetTextParser
-
-    # Is wrapped but under different name
-    - OpenMS::DPosition
-    - OpenMS::DBoundingBox
-    - OpenMS::DRange
-
-    # MzTab internals -> maybe when its finished!
-    - OpenMS::MzTabSpectraRef
-    - OpenMS::MzTabModification
-    - OpenMS::MzTabNullAbleBase
-    - OpenMS::MzTabSubIdMetaData
-    - OpenMS::MzTabParameter
-    - OpenMS::MzTabBoolean
-    - OpenMS::MzTabNullAbleInterface
-    - OpenMS::MzTabPeptideSectionRow
-    - OpenMS::MzTabParameterList
-    - OpenMS::MzTabProteinSectionRow
-    - OpenMS::MzTabNullNaNAndInfAbleBase
-    - OpenMS::MzTabInteger
-    - OpenMS::MzTabSmallMoleculeSectionRow
-    - OpenMS::MzTabDouble
-    - OpenMS::MzTab
-    - OpenMS::MzTabModificationList
-    - OpenMS::MzTabString
-    - OpenMS::MzTabNullNaNAndInfAbleInterface
-    - OpenMS::MzTabDoubleList
-    - OpenMS::MzTabStringList
-
-    # Iterators, comperators, helpers
-    - OpenMS::CmpMassTraceByMZ
-    - OpenMS::cudaHelp
-    - OpenMS::Internal::SemanticValidator::CVTerm
-    - OpenMS::AASequence::ConstIterator
-    - OpenMS::Internal::IntensityIteratorWrapper
-
-    # Comperators
-    - OpenMS::Peak2D::PositionLess
-    - OpenMS::MSChromatogram::MZLess
-    - OpenMS::PeakShape::PositionLess
-    - OpenMS::AASequence::Iterator
-    - OpenMS::Peak1D::PositionLess
-    - OpenMS::Peak2D::IntensityLess
-    - OpenMS::Peak2D::MZLess
-    - OpenMS::ConsensusFeature::SizeLess
-    - OpenMS::Peak1D::IntensityLess
-    - OpenMS::PSLPFormulation::ScanLess
-    - OpenMS::PSLPFormulation::IndexLess
-    - OpenMS::BaseFeature::QualityLess
-    - OpenMS::Peak1D::MZLess
-    - OpenMS::PSLPFormulation::VariableIndexLess
-    - OpenMS::FeatureHypothesis
-    - OpenMS::ConsensusFeature::MapsLess
-    - OpenMS::ProteinHit::ScoreLess
-    - OpenMS::ReactionMonitoringTransition::ProductMZLess
-    - OpenMS::PeptideHit::ScoreLess
-    - OpenMS::MSSpectrum::RTLess
-    - OpenMS::ChromatogramPeak::RTLess
-    - OpenMS::Peak2D::RTLess
-    - OpenMS::ChromatogramPeak::IntensityLess
-
-    # RangeUtils - we probably cannot use them in Python
-    - OpenMS::InIntensityRange
-    - OpenMS::InPrecursorMZRange
-    - OpenMS::HasScanMode
-    - OpenMS::HasActivationMethod
-    - OpenMS::InMzRange
-    - OpenMS::InMSLevelRange
-    - OpenMS::HasPrecursorCharge
-    - OpenMS::IsZoomSpectrum
-    - OpenMS::IsEmptySpectrum
-    - OpenMS::InRTRange
-    - OpenMS::HasMetaValue
-    - OpenMS::IsInCollisionEnergyRange
-    - OpenMS::IsInIsolationWindowSizeRange
-
-    # CONCEPT 
-    - OpenMS::SingletonRegistry
-    - OpenMS::StreamHandler
-    - OpenMS::UnaryComposeFunctionAdapter
-    - OpenMS::Factory
-    - OpenMS::BinaryComposeFunctionAdapter
-    - OpenMS::UniqueIdIndexer
-    - OpenMS::FactoryBase
-
-    # METADATA
-    - OpenMS::Tagging
-    - OpenMS::Modification
-    - OpenMS::MetaInfoDescription
-    - OpenMS::SampleTreatment # abstract class
-    - OpenMS::ScanWindow
-    - OpenMS::MetaInfoRegistry
-    - OpenMS::DocumentIDTagger
-
-    # FORMAT: helpers, old or not supported file formats
-    - OpenMS::SpecArrayFile
-    - OpenMS::PersistentObject
-    - OpenMS::FastaIterator
-    - OpenMS::PepXMLFileMascot
-    - OpenMS::MascotRemoteQuery
-    - OpenMS::LibSVMEncoder
-    - OpenMS::CsvFile
-    - OpenMS::PepNovoOutfile
-    - OpenMS::ToolDescriptionFile
-    - OpenMS::PTMXMLFile
-    - OpenMS::UnimodXMLFile
-    - OpenMS::FastaIteratorIntern
-    - OpenMS::XMassFile
-    - OpenMS::PepNovoInfile
-    - OpenMS::CompressedInputSource
-    - OpenMS::SVOutStream
-    - OpenMS::XMLValidator
-    - OpenMS::OMSSACSVFile
-    - OpenMS::MascotXMLFile
-    - OpenMS::OMSSAXMLFile
-     
-    # OPENSWATH classes
-    - OpenSwath::mySqrt
-    - OpenSwath::MockTransitionGroup
-    - OpenSwath::mean_and_stddev
-    - OpenSwath::Protein
-    - OpenSwath::CSVWriter
-    - OpenSwath::IFeature
-    - OpenSwath::TargetedExperiment
-    - OpenSwath::MockMRMFeature
-    - OpenSwath::MockSignalToNoise
-    - OpenSwath::IDataFrameWriter
-    - OpenSwath::TransitionHelper
-    - OpenSwath::ISignalToNoise
-    - OpenSwath::DataMatrix
-    - OpenSwath::ITransitionGroup
-    - OpenSwath::Peptide
-    - OpenSwath::IMRMFeature
-    - OpenSwath::MockFeature
-    - OpenMS::OpenSwath_Scores
-    - OpenMS::FeatureOpenMS
-    - OpenMS::SignalToNoiseOpenMS
-    - OpenMS::MRMFeatureOpenMS
-    - OpenMS::TransitionGroupOpenMS
-    - OpenMS::DiaPrescore
-    - OpenMS::SpectrumAddition
-    - OpenSwath::ChromatogramMeta
-    - OpenSwath::ISpectrumAccess
-    - OpenSwath::SpectrumMeta
-     
-    # SuperHirn classes
-    - OpenMS::DeconvPeak
-    - OpenMS::MS1FeatureMerger::OPERATOR_FEATURE_TR
-    - OpenMS::MS1Signal
-    - OpenMS::LCMS::OPERATOR_MZ
-    - OpenMS::LCMS::OPERATOR_FeatureCompare
-    - OpenMS::BackgroundControl
-    - OpenMS::BackgroundIntensityBin
-    - OpenMS::CentroidData
-    - OpenMS::CentroidPeak
-    - OpenMS::ClusteredMS2ConsensusSpectrum
-    - OpenMS::ConsensusIsotopePattern
-    - OpenMS::Deisotoper
-    - OpenMS::FeatureLCProfile
-    - OpenMS::FTPeakDetectController
-    - OpenMS::IsotopicDist
-    - OpenMS::LCElutionPeak
-    - OpenMS::LCMSCData
-    - OpenMS::LCMS
-    - OpenMS::MS1FeatureMerger
-    - OpenMS::MS2ConsensusSpectrum
-    - OpenMS::MS2Feature
-    - OpenMS::MS2Fragment
-    - OpenMS::MS2Info
-    - OpenMS::MSPeak
-    - OpenMS::ProcessData
-    - OpenMS::RawData
-    - OpenMS::SHFeature
-    - OpenMS::SuperHirnParameters
-    - OpenMS::SuperHirnUtil
-     
     # APPLICATION
+    - OpenMS::INIUpdater
+    - OpenMS::ParameterInformation
+    - OpenMS::ToolHandler
+    - OpenMS::ConsoleUtils
+    - OpenMS::OpenSwathWorkflow
+    - OpenMS::OpenSwathWindowLoader
+    - OpenMS::OpenSwathWorkflow::ChromExtractParams
+    - OpenMS::OpenSwathTSVWriter 
     - ModificationMassesResult
     - RNPxlReportRow
-    - OpenMS::INIUpdater
     - TOPPFuzzyDiff
     - TOPPRNPxlXICFilter
-    - OpenMS::ParameterInformation
     - MarkerIonExtractor
-    - OpenMS::ToolHandler
     - RNPxlReportRowHeader
-    - OpenMS::ConsoleUtils
     - TOPPRNPxl
-     
-    # Comparators of all sorts
-    - OpenMS::ReverseComparator
-    - OpenMS::UnnormalizedComparator
-    - OpenMS::PairComparatorFirstElementMore
-    - OpenMS::PairComparatorFirstElement
-    - OpenMS::SpectrumPrecursorComparator
-    - OpenMS::PointerComparator
-    - OpenMS::PairMatcherFirstElement
-    - OpenMS::PairComparatorSecondElement
-    - OpenMS::PairComparatorSecondElementMore
-    - OpenMS::PairMatcherSecondElement
-    - OpenMS::LexicographicComparator
-    - OpenMS::EqualInTolerance
-    - OpenMS::PeptideHit::ScoreMore
-    - OpenMS::PrecursorIonSelection::SeqTotalScoreMore
-    - OpenMS::PrecursorIonSelection::TotalScoreMore
-    - OpenMS::ProteinHit::ScoreMore
-    - OpenMS::CmpPeakByIntensity
-     
-    # FEATUREFINDER internals - maybe we want some of them
-    - OpenMS::ExtendedIsotopeModel
-    - OpenMS::PeakWidthEstimator::Result
-    - OpenMS::LmaGaussModel
-    - OpenMS::FeatureFinderAlgorithmSimplest
-    - OpenMS::FeatureFinderAlgorithm
-    - OpenMS::ModelFitter
-    - OpenMS::FeatureFinderDefs::NoSuccessor
-    - OpenMS::FeaFiModule
-    - OpenMS::ProductModel< 2 >
-    - OpenMS::LmaGaussFitter1D
-    - OpenMS::MaxLikeliFitter1D
-    - OpenMS::LmaIsotopeFitter1D
-    - OpenMS::FeatureFinderDefs
-    - OpenMS::FeatureFinderAlgorithmMRM
-    - OpenMS::ModelDescription
-    - OpenMS::FeatureFinderAlgorithmSimple
-    - OpenMS::PeakWidthEstimator
-    - OpenMS::Summary
-    - OpenMS::IsotopeWaveletParallelFor
-    - OpenMS::GaussFitter1D
-    - OpenMS::SimpleSeeder
-    - OpenMS::EGHTraceFitter
-    - OpenMS::GaussModel
-    - OpenMS::ExtendedIsotopeFitter1D
-    - OpenMS::LmaIsotopeModel
-    - OpenMS::FeatureFinderAlgorithmSHCtrl
-    
-    # Interfaces - they are not ready yet
-    - OpenMS::Interfaces::ISpectraWriter
-    - OpenMS::Interfaces::ISpectraReader
-    - OpenMS::Interfaces::Chromatogram
-    - OpenMS::Interfaces::IChromatogramsReader
-    - OpenMS::Interfaces::IChromatogramsWriter
-    - OpenMS::Interfaces::ChromatogramMeta
-    - OpenMS::Interfaces::Spectrum
-    - OpenMS::Interfaces::BinaryDataArray
-    - OpenMS::Interfaces::SpectrumMeta
-
-    # KERNEL - probably not necessary
-    - OpenMS::RangeManager
-    - OpenMS::RichPeak1D
-    - OpenMS::FeatureHandle::FeatureHandleMutable_
-    - OpenMS::FeatureHandle::IndexLess
-    - OpenMS::FeatureHandle
-
-    # MS Simulator internals - we might want to wrap those
-    - OpenMS::LabelFreeLabeler
-    - OpenMS::ITRAQLabeler
-    - OpenMS::ICPLLabeler
-    - OpenMS::RawMSSignalSimulation
-    - OpenMS::IonizationSimulation
-    - OpenMS::RawTandemMSSignalSimulation
-    - OpenMS::RTSimulation
-    - OpenMS::EGHModel
-    - OpenMS::EGHFitter1D
-    - OpenMS::O18Labeler
-    - OpenMS::DetectabilitySimulation
-
-    # DATASTRUCTURES
-    - OpenMS::SuffixArray
-    - OpenMS::SuffixArraySeqan
-    - OpenMS::SuffixArrayPeptideFinder
-    - OpenMS::SuffixArrayTrypticCompressed
-    - OpenMS::SuffixArrayTrypticSeqan
-    - OpenMS::GridFeature
-    - OpenMS::BinaryTreeNode
-     
-    # COMPARISON - mostly functors
-    - OpenMS::PeakSpectrumCompareFunctor
-    - OpenMS::BinnedSpectrumCompareFunctor::IncompatibleBinning
-    - OpenMS::BinnedSpectrumCompareFunctor
-    - OpenMS::CompareFouriertransform
-
-    - OpenMS::BinnedSpectralContrastAngle
-    - OpenMS::BinnedSharedPeakCount
-    - OpenMS::BinnedSpectrum::NoSpectrumIntegrated
-    - OpenMS::BinnedSumAgreeingIntensities
-    - OpenMS::ZhangSimilarityScore
-    - OpenMS::SingleLinkage
-    - OpenMS::SteinScottImproveScore
-    - OpenMS::ClusterHierarchical
-    - OpenMS::ClusterAnalyzer
-    - OpenMS::EuclideanSimilarity
-    - OpenMS::CompleteLinkage
-    - OpenMS::SpectrumAlignmentScore
-    - OpenMS::SpectrumCheapDPCorr
-    - OpenMS::PeakAlignment
-
-    - OpenMS::HierarchicalClustering::Cluster
-    - OpenMS::HierarchicalClustering::BoundingBox
-
 
 

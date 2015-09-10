@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,8 @@
 //
 
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoringBase.h>
+
+#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
@@ -126,19 +128,19 @@ namespace OpenMS
   {
   }
 
-  void CompNovoIonScoringBase::addSingleChargedIons_(Map<DoubleReal, IonScore> & ion_scores, PeakSpectrum & CID_spec)
+  void CompNovoIonScoringBase::addSingleChargedIons_(Map<double, IonScore> & ion_scores, PeakSpectrum & CID_spec)
   {
-    DoubleReal double_charged_iso_threshold_single((DoubleReal)param_.getValue("double_charged_iso_threshold_single"));
+    double double_charged_iso_threshold_single((double)param_.getValue("double_charged_iso_threshold_single"));
     PeakSpectrum CID_spec_new = CID_spec;
     for (PeakSpectrum::ConstIterator it = CID_spec.begin(); it != CID_spec.end(); ++it)
     {
       if (it->getPosition()[0] < CID_spec.getPrecursors().begin()->getMZ() / 2.0)
       {
-        DoubleReal score = scoreIsotopes_(CID_spec, it, ion_scores, 2);
+        double score = scoreIsotopes_(CID_spec, it, ion_scores, 2);
         if (score > double_charged_iso_threshold_single)
         {
           // infer this peak as single charged variant
-          DoubleReal mz_comp = it->getPosition()[0] * 2.0 - Constants::PROTON_MASS_U;
+          double mz_comp = it->getPosition()[0] * 2.0 - Constants::PROTON_MASS_U;
           bool found(false);
           for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); ++it1)
           {
@@ -169,12 +171,12 @@ namespace OpenMS
 
   CompNovoIonScoringBase::IsotopeType CompNovoIonScoringBase::classifyIsotopes_(const PeakSpectrum & spec, PeakSpectrum::ConstIterator it)
   {
-    DoubleReal it_pos(it->getPosition()[0]);
+    double it_pos(it->getPosition()[0]);
 
     // is there a peak left of it with diff 1Da?
     for (PeakSpectrum::ConstIterator it1 = it; it1 != spec.end(); --it1)
     {
-      DoubleReal it1_pos(it1->getPosition()[0]);
+      double it1_pos(it1->getPosition()[0]);
 
       if (it1 == spec.begin() || fabs(it_pos - it1_pos) > 1.5)
       {
@@ -190,7 +192,7 @@ namespace OpenMS
     // is there a peak right of it with diff 1Da?
     for (PeakSpectrum::ConstIterator it1 = it; it1 != spec.end(); ++it1)
     {
-      DoubleReal it1_pos(it1->getPosition()[0]);
+      double it1_pos(it1->getPosition()[0]);
       if (fabs(fabs(it_pos - it1_pos) - 1.0) < fragment_mass_tolerance_)
       {
         return PARENT;
@@ -205,22 +207,22 @@ namespace OpenMS
     return LONE;
   }
 
-  DoubleReal CompNovoIonScoringBase::scoreIsotopes_(const PeakSpectrum & CID_spec, PeakSpectrum::ConstIterator it, Map<DoubleReal, IonScore> & ion_scores, Size charge)
+  double CompNovoIonScoringBase::scoreIsotopes_(const PeakSpectrum & CID_spec, PeakSpectrum::ConstIterator it, Map<double, IonScore> & ion_scores, Size charge)
   {
-    DoubleReal it_pos(it->getMZ());  // ~ weight of the fragment
+    double it_pos(it->getMZ());  // ~ weight of the fragment
     UInt max_isotope_to_score(param_.getValue("max_isotope_to_score"));
-    DoubleReal double_charged_iso_threshold(param_.getValue("double_charged_iso_threshold"));
-    DoubleReal actual_pos = it_pos;
+    double double_charged_iso_threshold(param_.getValue("double_charged_iso_threshold"));
+    double actual_pos = it_pos;
 
-    vector<DoubleReal> iso_pattern;
+    vector<double> iso_pattern;
     vector<PeakSpectrum::ConstIterator> iso_pattern_its;
     iso_pattern.push_back(it->getIntensity());
     iso_pattern_its.push_back(it);
     // get all peaks that have the right distance right of the given peak
     for (PeakSpectrum::ConstIterator it1 = it; it1 != CID_spec.end(); ++it1)
     {
-      DoubleReal it1_pos(it1->getPosition()[0]);
-      if (fabs(fabs(actual_pos - it1_pos) - Constants::NEUTRON_MASS_U / (DoubleReal)charge) < fragment_mass_tolerance_)
+      double it1_pos(it1->getPosition()[0]);
+      if (fabs(fabs(actual_pos - it1_pos) - Constants::NEUTRON_MASS_U / (double)charge) < fragment_mass_tolerance_)
       {
         iso_pattern.push_back(it1->getIntensity());
         actual_pos = it1_pos;
@@ -239,13 +241,13 @@ namespace OpenMS
     }
 
     // normalize the intensity to a sum of one
-    DoubleReal sum(0);
-    for (vector<DoubleReal>::const_iterator it1 = iso_pattern.begin(); it1 != iso_pattern.end(); ++it1)
+    double sum(0);
+    for (vector<double>::const_iterator it1 = iso_pattern.begin(); it1 != iso_pattern.end(); ++it1)
     {
       sum += *it1;
     }
 
-    for (vector<DoubleReal>::iterator it1 = iso_pattern.begin(); it1 != iso_pattern.end(); ++it1)
+    for (vector<double>::iterator it1 = iso_pattern.begin(); it1 != iso_pattern.end(); ++it1)
     {
       *it1 /= sum;
     }
@@ -262,9 +264,9 @@ namespace OpenMS
     }
 
     // calculate simple correlation score
-    DoubleReal score(0.0);
+    double score(0.0);
 
-    DoubleReal numerator(0), auto1(0), auto2(0);
+    double numerator(0), auto1(0), auto2(0);
     for (Size i = 0; i != iso_dist.size(); ++i)
     {
       numerator += iso_dist.getContainer()[i].second * iso_pattern[i];
@@ -296,27 +298,27 @@ namespace OpenMS
     return score;
   }
 
-  DoubleReal CompNovoIonScoringBase::scoreIsotopes(const PeakSpectrum & spec, PeakSpectrum::ConstIterator it, Size charge)
+  double CompNovoIonScoringBase::scoreIsotopes(const PeakSpectrum & spec, PeakSpectrum::ConstIterator it, Size charge)
   {
 #ifdef ION_SCORING_DEBUG
     cerr << "scoreIsotopes: " << spec.size() << " " << it->getPosition()[0] << " " << it->getIntensity() << " " << charge << endl;
 #endif
-    DoubleReal it_pos(it->getMZ()); // ~ weight of the fragment
-    DoubleReal actual_pos = it_pos;
+    double it_pos(it->getMZ()); // ~ weight of the fragment
+    double actual_pos = it_pos;
     UInt max_isotope_to_score = (UInt)param_.getValue("max_isotope_to_score");
 
-    vector<DoubleReal> iso_pattern;
+    vector<double> iso_pattern;
     iso_pattern.push_back(it->getIntensity());
 
     // get all peaks that have the right distance right of the given peak
     //cerr << "Scoring peaks...";
     for (PeakSpectrum::ConstIterator it1 = it; it1 != spec.end(); ++it1)
     {
-      DoubleReal it1_pos(it1->getMZ());
+      double it1_pos(it1->getMZ());
 
       //cerr << "PRE: " << actual_pos << " " << it1_pos << " " << Constants::NEUTRON_MASS_U << " " << charge << " " << fragment_mass_tolerance_ << endl;
 
-      if (fabs(fabs(actual_pos - it1_pos) - Constants::NEUTRON_MASS_U / (DoubleReal)charge) < fragment_mass_tolerance_ / (DoubleReal)charge)
+      if (fabs(fabs(actual_pos - it1_pos) - Constants::NEUTRON_MASS_U / (double)charge) < fragment_mass_tolerance_ / (double)charge)
       {
 #ifdef ION_SCORING_DEBUG
         cerr << actual_pos << " " << it1_pos << " " << charge << " " << fragment_mass_tolerance_ << endl;
@@ -339,13 +341,13 @@ namespace OpenMS
 
     // normalize the intensity to a sum of one
     /*
-  DoubleReal sum(0);
-  for (vector<DoubleReal>::const_iterator it1 = iso_pattern.begin(); it1 != iso_pattern.end(); ++it1)
+  double sum(0);
+  for (vector<double>::const_iterator it1 = iso_pattern.begin(); it1 != iso_pattern.end(); ++it1)
   {
     sum += *it1;
   }
 
-  for (vector<DoubleReal>::iterator it1 = iso_pattern.begin(); it1 != iso_pattern.end(); ++it1)
+  for (vector<double>::iterator it1 = iso_pattern.begin(); it1 != iso_pattern.end(); ++it1)
   {
     *it1 /= sum;
   }*/
@@ -353,7 +355,7 @@ namespace OpenMS
 
     // get the theoretical isotope distribution
     IsotopeDistribution iso_dist(iso_pattern.size());
-    iso_dist.estimateFromPeptideWeight(it_pos * (DoubleReal)charge - (DoubleReal)(charge - 1) * Constants::PROTON_MASS_U);
+    iso_dist.estimateFromPeptideWeight(it_pos * (double)charge - (double)(charge - 1) * Constants::PROTON_MASS_U);
 
     // compare the distribution sizes
     if (iso_dist.size() != iso_pattern.size())
@@ -363,9 +365,9 @@ namespace OpenMS
     }
 
     // calculate simple correlation score
-    DoubleReal score(0.0);
+    double score(0.0);
 
-    DoubleReal numerator(0), auto1(0), auto2(0);
+    double numerator(0), auto1(0), auto2(0);
     for (Size i = 0; i != iso_dist.size(); ++i)
     {
       numerator += iso_dist.getContainer()[i].second * iso_pattern[i];
@@ -385,14 +387,14 @@ namespace OpenMS
 
   void CompNovoIonScoringBase::initIsotopeDistributions_()
   {
-    DoubleReal max_mz(param_.getValue("max_mz"));
+    double max_mz(param_.getValue("max_mz"));
     UInt max_isotope(param_.getValue("max_isotope"));
     IsotopeDistribution iso_dist(max_isotope);
     for (Size i = 1; i <= max_mz; ++i)
     {
-      iso_dist.estimateFromPeptideWeight((DoubleReal)i);
+      iso_dist.estimateFromPeptideWeight((double)i);
       iso_dist.renormalize();
-      vector<DoubleReal> iso(max_isotope, 0.0);
+      vector<double> iso(max_isotope, 0.0);
 
       for (Size j = 0; j != iso_dist.size(); ++j)
       {
@@ -404,7 +406,7 @@ namespace OpenMS
 
   void    CompNovoIonScoringBase::updateMembers_()
   {
-    fragment_mass_tolerance_ = (DoubleReal)param_.getValue("fragment_mass_tolerance");
+    fragment_mass_tolerance_ = (double)param_.getValue("fragment_mass_tolerance");
 
     initIsotopeDistributions_();
 

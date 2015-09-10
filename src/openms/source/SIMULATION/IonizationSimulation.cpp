@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,6 +41,11 @@
 #include <OpenMS/CONCEPT/Constants.h>
 
 #include <cmath>
+#include <algorithm>
+
+#include <boost/bind.hpp>
+#include <boost/random/binomial_distribution.hpp>
+#include <boost/random/discrete_distribution.hpp>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -49,8 +54,7 @@
 namespace OpenMS
 {
 
-
-  IonizationSimulation::IonizationSimulation(const SimRandomNumberGenerator & random_generator) :
+  IonizationSimulation::IonizationSimulation() :
     DefaultParamHandler("IonizationSimulation"),
     ProgressLogger(),
     ionization_type_(),
@@ -60,13 +64,29 @@ namespace OpenMS
     esi_adducts_(),
     max_adduct_charge_(),
     maldi_probabilities_(),
-    rnd_gen_(&random_generator)
+    rnd_gen_(new SimTypes::SimRandomNumberGenerator())
   {
     setDefaultParams_();
     updateMembers_();
   }
 
-  IonizationSimulation::IonizationSimulation(const IonizationSimulation & source) :
+  IonizationSimulation::IonizationSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr random_generator) :
+    DefaultParamHandler("IonizationSimulation"),
+    ProgressLogger(),
+    ionization_type_(),
+    basic_residues_(),
+    esi_probability_(),
+    esi_impurity_probabilities_(),
+    esi_adducts_(),
+    max_adduct_charge_(),
+    maldi_probabilities_(),
+    rnd_gen_(random_generator)
+  {
+    setDefaultParams_();
+    updateMembers_();
+  }
+
+  IonizationSimulation::IonizationSimulation(const IonizationSimulation& source) :
     DefaultParamHandler(source),
     ProgressLogger(source),
     ionization_type_(source.ionization_type_),
@@ -81,7 +101,7 @@ namespace OpenMS
     //updateMembers_();
   }
 
-  IonizationSimulation & IonizationSimulation::operator=(const IonizationSimulation & source)
+  IonizationSimulation& IonizationSimulation::operator=(const IonizationSimulation& source)
   {
     DefaultParamHandler::operator=(source);
     ionization_type_ = source.ionization_type_;
@@ -100,7 +120,7 @@ namespace OpenMS
   {
   }
 
-  void IonizationSimulation::ionize(FeatureMapSim & features, ConsensusMap & charge_consensus, MSSimExperiment & experiment)
+  void IonizationSimulation::ionize(SimTypes::FeatureMapSim& features, ConsensusMap& charge_consensus, SimTypes::MSSimExperiment& experiment)
   {
     LOG_INFO << "Ionization Simulation ... started" << std::endl;
 
@@ -148,7 +168,7 @@ namespace OpenMS
 
     // ionization probabilities
     defaults_.setValue("esi:ionization_probability", 0.8, "Probability for the binomial distribution of the ESI charge states");
-    defaults_.setValue("maldi:ionization_probabilities", ListUtils::create<DoubleReal>("0.9,0.1"), "List of probabilities for the different charge states during MALDI ionization (the list must sum up to 1.0)");
+    defaults_.setValue("maldi:ionization_probabilities", ListUtils::create<double>("0.9,0.1"), "List of probabilities for the different charge states during MALDI ionization (the list must sum up to 1.0)");
 
     // maximal size of map in mz dimension
     defaults_.setValue("mz:lower_measurement_limit", 200.0, "Lower m/z detector limit.");
@@ -193,8 +213,8 @@ namespace OpenMS
     // reset internal state:
     esi_impurity_probabilities_.clear();
     esi_adducts_.clear();
-    // cumulate probabilities in list
-    DoubleReal summed_probability(0);
+    // accumulate probabilities in list
+    double summed_probability(0);
     for (Size i = 0; i < esi_charge_impurity.size(); ++i)
     {
       esi_charge_impurity[i].split(':', components);
@@ -205,7 +225,7 @@ namespace OpenMS
       l_charge -= components[0].remove('+').size();
       EmpiricalFormula ef(components[0].remove('+'));
       // effectively subtract electrons
-      ef.setCharge(l_charge); ef -= String("H") + String(l_charge);
+      ef.setCharge(l_charge); ef -= EmpiricalFormula(String("H") + String(l_charge));
       // create adduct
       Adduct a((Int)l_charge, 1, ef.getMonoWeight(), components[0].remove('+'), log(components[1].toDouble()), 0);
       esi_adducts_.push_back(a);
@@ -215,7 +235,7 @@ namespace OpenMS
       max_adduct_charge_ = std::max(max_adduct_charge_, l_charge);
     }
 
-    // scale probability to 1 (the later GSL step does this as well, but just to be sure)
+    // scale probability to 1
     for (Size i = 0; i < esi_charge_impurity.size(); ++i)
     {
       esi_impurity_probabilities_[i] /= summed_probability;
@@ -240,20 +260,27 @@ namespace OpenMS
   class IonizationSimulation::CompareCmpByEF_
   {
 public:
-    bool operator()(const Compomer & x, const Compomer & y) const { return x.getAdductsAsString() < y.getAdductsAsString(); }
+    bool operator()(const Compomer& x, const Compomer& y) const { return x.getAdductsAsString() < y.getAdductsAsString(); }
   };
 
-  void IonizationSimulation::ionizeEsi_(FeatureMapSim & features, ConsensusMap & charge_consensus)
+  void IonizationSimulation::ionizeEsi_(SimTypes::FeatureMapSim& features, ConsensusMap& charge_consensus)
   {
+    for (size_t i = 0; i < esi_impurity_probabilities_.size(); ++i)
+      std::cout << "esi_impurity_probabilities_[" << i << "]: " << esi_impurity_probabilities_.at(i) << std::endl;
 
-    // we need to do this locally to avoid memory leaks (copying this stuff in C'tors is not wise)
-    // (this GSL function does normalization to sum=1 internally)
-    gsl_ran_discrete_t * gsl_ran_lookup_esi_charge_impurity = gsl_ran_discrete_preproc(esi_impurity_probabilities_.size(), &esi_impurity_probabilities_[0]);
+    std::vector<double> weights;
+    std::transform(esi_impurity_probabilities_.begin(),
+                   esi_impurity_probabilities_.end(),
+                   std::back_inserter(weights),
+                   boost::bind(std::multiplies<double>(), _1, 10));
+    for (size_t i = 0; i < weights.size(); ++i)
+      std::cout << "weights[" << i << "]: " << weights.at(i) << std::endl;
+    boost::random::discrete_distribution<Size, double> ddist(weights.begin(), weights.end());
 
     try
     {
       // map for charged features
-      FeatureMapSim copy_map = features;
+      SimTypes::FeatureMapSim copy_map = features;
       // but leave meta information & other stuff intact
       copy_map.clear(false);
 
@@ -289,6 +316,7 @@ public:
         Int abundance = (Int) ceil(features[index].getIntensity());
         UInt basic_residues_c = countIonizedResidues_(features[index].getPeptideIdentifications()[0].getHits()[0].getSequence());
 
+
         /// shortcut: if abundance is >1000, we 1) downsize by power of 2 until 1000 < abundance_ < 2000
         ///                                     2) dice distribution
         ///                                     3) blow abundance up to original level  (to save A LOT of computation time)
@@ -301,17 +329,18 @@ public:
 
         if (basic_residues_c == 0)
         {
-          ++uncharged_feature_count;           // OMP
+          ++uncharged_feature_count; // OMP
           continue;
         }
 
         // precompute random numbers:
         std::vector<UInt> prec_rndbin(abundance);
-#pragma omp critical (OPENMS_gsl)
         {
+          boost::random::binomial_distribution<Int, double> bdist(basic_residues_c, esi_probability_);
           for (Int j = 0; j < abundance; ++j)
           {
-            prec_rndbin[j] = gsl_ran_binomial(rnd_gen_->technical_rng, esi_probability_, basic_residues_c);
+            Int rnd_no = bdist(rnd_gen_->getTechnicalRng());
+            prec_rndbin[j] = (UInt) rnd_no; //cast is save because random dist should give result in the intervall [0, basic_residues_c]
           }
         }
 
@@ -354,11 +383,10 @@ public:
               if (prec_rnduni_remaining == 0)
               {
                 // refill discrete rnd numbers if container is depleted
-#pragma omp critical (OPENMS_gsl)
                 {
                   for (Size i_rnd = 0; i_rnd < prec_rnduni.size(); ++i_rnd)
                   {
-                    prec_rnduni[i_rnd] = gsl_ran_discrete(rnd_gen_->technical_rng, gsl_ran_lookup_esi_charge_impurity);
+                    prec_rnduni[i_rnd] = ddist(rnd_gen_->getTechnicalRng());
                   }
                   prec_rnduni_remaining = prec_rnduni.size();
                 }
@@ -375,7 +403,7 @@ public:
         // no charges > 0 selected (this should be really rare)
         if (charge_states.empty())
         {
-          ++uncharged_feature_count;           // OMP!
+          ++uncharged_feature_count; // OMP!
           continue;
         }
 
@@ -404,19 +432,19 @@ public:
              it_s != charge_states_sorted.rend();
              ++it_s)
         {
-          Int charge = it_s->second.getNetCharge();
-          if (allowed_entities_of_charge[charge] > 0)
+          Int lcharge = it_s->second.getNetCharge();
+          if (allowed_entities_of_charge[lcharge] > 0)
           {
             Feature charged_feature(features[index]);
 
-            setFeatureProperties_(charged_feature, it_s->second.getMass(), it_s->second.getAdductsAsString(1), charge, it_s->first, index);
+            setFeatureProperties_(charged_feature, it_s->second.getMass(), it_s->second.getAdductsAsString(1), lcharge, it_s->first, index);
 
             // remember the original feature as parent feature (needed for labeling consensus)
             charged_feature.setMetaValue("parent_feature", String(features[index].getUniqueId()));
 
             if (!isFeatureValid_(charged_feature))
             {
-              ++undetected_features_count;               // OMP!
+              ++undetected_features_count; // OMP!
               continue;
             }
 
@@ -428,7 +456,7 @@ public:
             cf.insert(0, charged_feature);
 
             // decrease # of allowed compomers of current compomer's charge
-            --allowed_entities_of_charge[charge];
+            --allowed_entities_of_charge[lcharge];
           }
         }
 
@@ -438,7 +466,7 @@ public:
           charge_consensus.push_back(cf);
         }
 
-      }       // ! for feature  (parallel)
+      } // ! for feature  (parallel)
 
       this->endProgress();
 
@@ -453,22 +481,18 @@ public:
       LOG_INFO << "#Peptides not ionized: " << uncharged_feature_count << std::endl;
       LOG_INFO << "#Peptides outside mz range: " << undetected_features_count << std::endl;
     }
-    catch (std::exception & e)
+    catch (std::exception& e)
     {
       // before leaving: free
-      gsl_ran_discrete_free(gsl_ran_lookup_esi_charge_impurity);
       LOG_WARN << "Exception (" << e.what() << ") caught in " << __FILE__ << "\n";
       throw;
     }
-
-    // all ok: free
-    gsl_ran_discrete_free(gsl_ran_lookup_esi_charge_impurity);
 
     features.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
     charge_consensus.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
   }
 
-  UInt IonizationSimulation::countIonizedResidues_(const AASequence & seq) const
+  UInt IonizationSimulation::countIonizedResidues_(const AASequence& seq) const
   {
     UInt count = 1; // +1 for N-term
     for (Size i = 0; i < seq.size(); ++i)
@@ -483,9 +507,14 @@ public:
     return count;
   }
 
-  void IonizationSimulation::ionizeMaldi_(FeatureMapSim & features, ConsensusMap & charge_consensus)
+  void IonizationSimulation::ionizeMaldi_(SimTypes::FeatureMapSim& features, ConsensusMap& charge_consensus)
   {
-    gsl_ran_discrete_t * gsl_ran_lookup_maldi = gsl_ran_discrete_preproc(maldi_probabilities_.size(), &maldi_probabilities_[0]);
+    std::vector<double> weights;
+    std::transform(maldi_probabilities_.begin(),
+                   maldi_probabilities_.end(),
+                   std::back_inserter(weights),
+                   boost::bind(std::multiplies<double>(), _1, 10));
+    boost::random::discrete_distribution<Size, double> ddist(weights.begin(), weights.end());
 
     try
     {
@@ -493,9 +522,9 @@ public:
       Size undetected_features_count = 0;
       Size feature_index = 0;
 
-      FeatureMapSim copy_map(features);
+      SimTypes::FeatureMapSim copy_map(features);
       copy_map.clear(false);
-      DoubleReal h_mono_weight = Constants::PROTON_MASS_U;
+      double h_mono_weight = Constants::PROTON_MASS_U;
 
       this->startProgress(0, features.size(), "Ionization");
       Size progress = 0;
@@ -508,7 +537,7 @@ public:
         for (Int j = 0; j < abundance; ++j)
         {
           // sample charge from discrete distribution
-          Size charge = gsl_ran_discrete(rnd_gen_->technical_rng, gsl_ran_lookup_maldi) + 1;
+          Size charge = ddist(rnd_gen_->getTechnicalRng()) + 1;
 
           // add 1 to abundance of sampled charge state
           ++charge_states[charge];
@@ -549,7 +578,7 @@ public:
 
         this->setProgress(progress);
         ++feature_index;
-      }       // ! feature loop (parallel)
+      } // ! feature loop (parallel)
 
       this->endProgress();
 
@@ -558,26 +587,21 @@ public:
 
       LOG_INFO << "#Peptides outside mz range: " << undetected_features_count << std::endl;
     }
-    catch (std::exception & e)
+    catch (std::exception& e)
     {
-      // before leaving: free
-      gsl_ran_discrete_free(gsl_ran_lookup_maldi);
       LOG_WARN << "Exception (" << e.what() << ") caught in " << __FILE__ << "\n";
       throw;
     }
-
-    // all ok: free
-    gsl_ran_discrete_free(gsl_ran_lookup_maldi);
 
     features.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
     charge_consensus.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
   }
 
-  void IonizationSimulation::setFeatureProperties_(Feature & f,
-                                                   const DoubleReal & adduct_mass,
-                                                   const String & adduct_formula,
-                                                   const SimChargeType charge,
-                                                   const SimIntensityType new_intensity,
+  void IonizationSimulation::setFeatureProperties_(Feature& f,
+                                                   const double& adduct_mass,
+                                                   const String& adduct_formula,
+                                                   const SimTypes::SimChargeType charge,
+                                                   const SimTypes::SimIntensityType new_intensity,
                                                    const Size parent_index)
   {
     EmpiricalFormula feature_ef = f.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();
@@ -588,9 +612,9 @@ public:
     hits[0].setCharge(charge);
     f.getPeptideIdentifications()[0].setHits(hits);
     // set "main" intensity
-    SimIntensityType old_intensity = f.getIntensity();
+    SimTypes::SimIntensityType old_intensity = f.getIntensity();
     f.setIntensity(new_intensity);
-    DoubleReal factor = new_intensity / old_intensity;
+    double factor = new_intensity / old_intensity;
 
 #pragma omp critical (OPENMS_setfeatureprop)
     {
@@ -608,13 +632,13 @@ public:
       {
         if (it_key->hasPrefix("intensity"))
         {
-          f.setMetaValue(*it_key, SimIntensityType(f.getMetaValue(*it_key)) * factor);
+          f.setMetaValue(*it_key, SimTypes::SimIntensityType(f.getMetaValue(*it_key)) * factor);
         }
       }
     } // ! pragma
   }
 
-  bool IonizationSimulation::isFeatureValid_(const Feature & feature)
+  bool IonizationSimulation::isFeatureValid_(const Feature& feature)
   {
     if (feature.getMZ() > maximal_mz_measurement_limit_ || feature.getMZ() < minimal_mz_measurement_limit_) // remove feature
     {

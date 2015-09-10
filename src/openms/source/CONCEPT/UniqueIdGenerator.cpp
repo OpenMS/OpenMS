@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,112 +34,97 @@
 
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 
-#include <gsl/gsl_rng.h>
-
-
-// debugging
-#define V_UniqueIdGenerator(a);
-// #define V_UniqueIdGenerator(a) std::cout << "line " << __LINE__ << ": " << a << std::endl;
+#include <boost/date_time/posix_time/posix_time_types.hpp> //no i/o just types
+#include <limits>
+#include <iostream>
 
 namespace OpenMS
 {
+  UInt64 UniqueIdGenerator::seed_ = 0;
+  UniqueIdGenerator* UniqueIdGenerator::instance_ = NULL;
+  boost::mt19937_64* UniqueIdGenerator::rng_ = NULL;
+  boost::uniform_int<UInt64>* UniqueIdGenerator::dist_ = NULL;
 
-  namespace
+  UInt64 UniqueIdGenerator::getUniqueId()
   {
-
-// Defined outside so that we can initialize from different places.
-// Note the "=0" and read the following comment.
-    static UniqueIdGenerator * instance_ = 0;
-
-// Do not add a "=0" here:  The initialization is taken care of by init_() or setSeed().
-// Remember: The order of execution of static initializers is unspecified.
-// Well, actually that paragraph does not apply here (instance_ is just a pointer, not an object)...
-// But don't blame me ... just in case ...
-    static gsl_rng * rng_;
-
-  }
-
-
-  UInt64
-  UniqueIdGenerator::getUniqueId()
-  {
-    V_UniqueIdGenerator("UniqueIdGenerator::getUID()");
-    getInstance_();
-    UInt64 r;
-#pragma omp critical
+    UniqueIdGenerator& instance = getInstance_();
+#ifdef _OPENMP
+    UInt64 val;
+#pragma omp critical (OPENMS_UniqueIdGenerator_getUniqueId)
     {
-      r = (UInt64(gsl_rng_get(rng_)) << 32) + UInt64(gsl_rng_get(rng_));
+      val = (*instance.dist_)(*instance.rng_);
     }
-    return r;
+    // note: OpenMP can only work on a structured block, return needs to be outside that block
+    return val; 
+#else
+    return (*instance.dist_)(*instance.rng_);
+#endif
   }
 
-  const Param &
-  UniqueIdGenerator::getInfo()
+  UInt64 UniqueIdGenerator::getSeed()
   {
-    V_UniqueIdGenerator("UniqueIdGenerator::getInfo()");
-    return getInstance_().info_;
+    return getInstance_().seed_;
   }
 
-// We can't add an underscore to a private constructor, sorry!  Even templates won't help.  ;-)
+  void UniqueIdGenerator::setSeed(UInt64 seed)
+  {
+  // modifies static members
+#ifdef _OPENMP
+#pragma omp critical (OPENMS_UniqueIdGenerator_setSeed)
+#endif
+    {
+      UniqueIdGenerator& instance = getInstance_();
+      instance.seed_ = seed;
+      instance.rng_->seed( instance.seed_ );
+      instance.dist_->reset();
+    }
+  }
+
   UniqueIdGenerator::UniqueIdGenerator()
   {
-    V_UniqueIdGenerator("UniqueIdGenerator::UniqueIdGenerator()");
-    rng_ = gsl_rng_alloc(gsl_rng_mt19937);
-    // The random seed is set by a call to init_()
-    // from within either getInstance_() or setSeed(),
-    // depending upon what is called first.
-    return;
   }
 
-  UniqueIdGenerator &
-  UniqueIdGenerator::getInstance_()
+  UniqueIdGenerator & UniqueIdGenerator::getInstance_()
   {
-    V_UniqueIdGenerator("UniqueIdGenerator::getInstance_()");
-    if (!instance_)
+  // modifies static members
+#ifdef _OPENMP
+#pragma omp critical (OPENMS_UniqueIdGenerator_getInstance_)
+#endif
     {
-      instance_ = new UniqueIdGenerator();
-      instance_->init_(OpenMS::DateTime::now());
+      if (!instance_)
+      {
+        instance_ = new UniqueIdGenerator();
+        instance_->init_();
+      }
     }
     return *instance_;
   }
 
-  void
-  UniqueIdGenerator::setSeed(const DateTime & date_time)
+  void UniqueIdGenerator::init_()
   {
-    V_UniqueIdGenerator("UniqueIdGenerator::setSeed()");
-    if (!instance_)
-    {
-      instance_ = new UniqueIdGenerator();
+  // modifies static members
+#ifdef _OPENMP
+#pragma omp critical (OPENMS_UniqueIdGenerator_init_)
+#endif
+    { 
+      // find a seed:
+      // get something with high resolution (around microseconds) -- its hard to do better on Windows --
+      // which has absolute system time (there is higher resolution available for the time since program startup, but 
+      // we do not want this here since this seed usually gets initialized at the same program uptime).
+      // Reason for high-res: in pipelines, instances of TOPP tools can get initialized almost simultaneously (i.e., resolution in seconds is not enough),
+      // leading to identical random numbers (e.g. feature-IDs) in two or more distinct files.
+      // C++11 note: C++ build-in alternative once C++11 can be presumed: 'std::chrono::high_resolution_clock'
+      boost::posix_time::ptime t(boost::posix_time::microsec_clock::local_time() );
+      seed_ = t.time_of_day().ticks();  // independent of implementation; as opposed to nanoseconds(), which need not be available on every platform
+      rng_ = new boost::mt19937_64 (seed_);
+      dist_ = new boost::uniform_int<UInt64> (0, std::numeric_limits<UInt64>::max());
     }
-    instance_->init_(date_time);
-    return;
-  }
-
-  void
-  UniqueIdGenerator::init_(const DateTime & date_time)
-  {
-    V_UniqueIdGenerator("UniqueIdGenerator::init_()");
-
-    const UInt64 seed_64 = date_time.toString("yyyyMMddhhmmsszzz").toLongLong();
-    const unsigned long int actually_used_seed = ((UInt64(1) << 32) - 1) & ((seed_64 >> 32) ^ seed_64); // just to mix the bits a bit
-    gsl_rng_set(rng_, actually_used_seed);
-
-    info_.setValue("generator_type", gsl_rng_name(rng_));
-    info_.setValue("generator_min", String(gsl_rng_min(rng_)));
-    info_.setValue("generator_max", String(gsl_rng_max(rng_)));
-    info_.setValue("initialization_date_time_as_string", date_time.get());
-    info_.setValue("initialization_date_time_as_longlong", String(seed_64));
-    info_.setValue("actually_used_seed", String(actually_used_seed));
-    V_UniqueIdGenerator("info:\n" << info_);
-
-    return;
   }
 
   UniqueIdGenerator::~UniqueIdGenerator()
   {
-    V_UniqueIdGenerator("UniqueIdGenerator::~UniqueIdGenerator()");
-    gsl_rng_free(rng_);
-    return;
+    delete rng_;
+    delete dist_;
   }
 
 }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -72,19 +72,19 @@ public:
 protected:
 
     /// Mapping: Q3 m/z <-> transition intensity (maybe not unique!)
-    typedef boost::bimap<DoubleReal, boost::bimaps::multiset_of<DoubleReal> > 
+    typedef boost::bimap<double, boost::bimaps::multiset_of<double> > 
     BimapType;
 
     /// Binomial GLM
     struct
     {
-      DoubleReal intercept;
-      DoubleReal rt_coef;
-      DoubleReal int_coef;
+      double intercept;
+      double rt_coef;
+      double int_coef;
 
-      DoubleReal operator()(DoubleReal diff_rt, DoubleReal dist_int)
+      double operator()(double diff_rt, double dist_int)
       {
-        DoubleReal lm = intercept + rt_coef * diff_rt * diff_rt + 
+        double lm = intercept + rt_coef * diff_rt * diff_rt + 
           int_coef * dist_int;
         return 1.0 / (1.0 + exp(-lm));
       }
@@ -93,10 +93,10 @@ protected:
     /// Helper for RT normalization (range 0-100)
     struct
     {
-      DoubleReal min_rt;
-      DoubleReal max_rt;
+      double min_rt;
+      double max_rt;
       
-      DoubleReal operator()(DoubleReal rt)
+      double operator()(double rt)
       {
         return (rt - min_rt) / (max_rt - min_rt) * 100;
       }
@@ -124,10 +124,10 @@ protected:
     void chooseDecoys_();
 
     /// Manhattan distance
-    DoubleReal manhattanDist_(DoubleList x, DoubleList y);
+    double manhattanDist_(DoubleList x, DoubleList y);
 
     /// Get the retention time of an assay
-    DoubleReal getAssayRT_(const TargetedExperiment::Peptide& assay,
+    double getAssayRT_(const TargetedExperiment::Peptide& assay,
                            const String& cv_accession = "MS:1000896");
 
     /// Extract the @p n_transitions highest intensities from @p intensity_map,
@@ -138,8 +138,8 @@ protected:
     /// Score the assay @p assay against feature data (@p feature_rt,
     /// @p feature_intensities), optionally using only the specified transitions
     /// (@p transition_ids)
-    DoubleReal scoreAssay_(const TargetedExperiment::Peptide& assay, 
-                           DoubleReal feature_rt, DoubleList& feature_intensities,
+    double scoreAssay_(const TargetedExperiment::Peptide& assay, 
+                           double feature_rt, DoubleList& feature_intensities,
                            const std::set<String>& transition_ids = std::set<String>());
 
     /// Score a feature
@@ -174,7 +174,7 @@ public:
         assay has transitions (mapped with MetaValue "native_id").
 
     */
-    void scoreMap(FeatureMap<> & features)
+    void scoreMap(FeatureMap & features)
     {
       // are there enough assays in the library?
       Size n_assays = library_.getPeptides().size();
@@ -211,7 +211,7 @@ public:
              library_.getPeptides().begin(); it != library_.getPeptides().end();
            ++it)
       {
-        DoubleReal current_rt = getAssayRT_(*it);
+        double current_rt = getAssayRT_(*it);
         if (current_rt == -1.0) continue; // indicates a missing value
         rt_norm_.min_rt = std::min(rt_norm_.min_rt, current_rt);
         rt_norm_.max_rt = std::max(rt_norm_.max_rt, current_rt);
@@ -221,7 +221,7 @@ public:
       LOG_DEBUG << "Scoring features..." << std::endl;
       startProgress(0, features.size(), "scoring features");
 
-      for (FeatureMap<>::Iterator feat_it = features.begin(); 
+      for (FeatureMap::Iterator feat_it = features.begin(); 
            feat_it != features.end(); ++feat_it)
       {
         LOG_DEBUG << "Feature " << feat_it - features.begin() + 1 

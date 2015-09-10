@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,6 +50,8 @@
 using namespace OpenMS;
 using namespace std;
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunreachable-code"
 
 class LowlevelComparator
 {
@@ -159,6 +161,7 @@ class LowlevelComparator
 	}
 };
 
+#pragma clang diagnostic pop
 
 START_TEST(ClusterHierarchical, "$Id$")
 
@@ -205,7 +208,7 @@ START_SECTION((void setThreshold(double x)))
 }
 END_SECTION
 
-START_SECTION((template <typename Data, typename SimilarityComparator> void cluster(std::vector< Data > &data, const SimilarityComparator &comparator, const ClusterFunctor &clusterer, std::vector<BinaryTreeNode>& cluster_tree, DistanceMatrix<Real>& original_distance)))
+START_SECTION((template <typename Data, typename SimilarityComparator> void cluster(std::vector< Data > &data, const SimilarityComparator &comparator, const ClusterFunctor &clusterer, std::vector<BinaryTreeNode>& cluster_tree, DistanceMatrix<float>& original_distance)))
 {
 	vector<Size> d(6,0);
 	for (Size i = 0; i<d.size(); ++i)
@@ -222,7 +225,7 @@ START_SECTION((template <typename Data, typename SimilarityComparator> void clus
 	tree.push_back(BinaryTreeNode(0,1,0.5f));
 	tree.push_back(BinaryTreeNode(0,3,0.6f));
 	tree.push_back(BinaryTreeNode(0,5,0.7f));
-	DistanceMatrix<Real> matrix;
+	DistanceMatrix<float> matrix;
 
 	ch.cluster<Size,LowlevelComparator>(d,lc,sl,result, matrix);
 
@@ -237,7 +240,7 @@ START_SECTION((template <typename Data, typename SimilarityComparator> void clus
 }
 END_SECTION
 
-START_SECTION((void cluster(std::vector<PeakSpectrum>& data, const BinnedSpectrumCompareFunctor& comparator, double sz, UInt sp, const ClusterFunctor& clusterer, std::vector<BinaryTreeNode>& cluster_tree, DistanceMatrix<Real>& original_distance)))
+START_SECTION((void cluster(std::vector<PeakSpectrum>& data, const BinnedSpectrumCompareFunctor& comparator, double sz, UInt sp, const ClusterFunctor& clusterer, std::vector<BinaryTreeNode>& cluster_tree, DistanceMatrix<float>& original_distance)))
 {
 
 	PeakSpectrum s1, s2, s3;
@@ -264,7 +267,7 @@ START_SECTION((void cluster(std::vector<PeakSpectrum>& data, const BinnedSpectru
 	vector< BinaryTreeNode > tree;
 	tree.push_back(BinaryTreeNode(1,2,0.0));
 	tree.push_back(BinaryTreeNode(0,1,0.0086f));
-	DistanceMatrix<Real> matrix;
+	DistanceMatrix<float> matrix;
 
 	ch.cluster(d,bspc,1.5,2,sl,result, matrix);
 

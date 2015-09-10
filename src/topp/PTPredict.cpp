@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -68,6 +68,8 @@ using namespace std;
     by the <b>svm_model</b> parameter in the command line or the ini file.
     This file should have been produced by the @ref TOPP_PTModel application.
 
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_PTPredict.cli
     <B>INI file documentation of this tool:</B>
@@ -109,19 +111,15 @@ protected:
     SVMWrapper svm;
     LibSVMEncoder encoder;
     String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
-    vector<DoubleReal> predicted_likelihoods;
-    vector<DoubleReal> predicted_labels;
-    map<String, DoubleReal> predicted_data;
+    vector<double> predicted_likelihoods;
+    vector<double> predicted_labels;
+    map<String, double> predicted_data;
     svm_problem* training_data = NULL;
-    svm_problem* prediction_data = NULL;
     UInt border_length = 0;
     UInt k_mer_length = 0;
-    DoubleReal sigma = 0;
+    double sigma = 0;
     String temp_string = "";
     UInt maximum_length = 50;
-    String inputfile_name = "";
-    String outputfile_name = "";
-    String svmfile_name = "";
     UInt max_number_of_peptides = getIntOption_("max_number_of_peptides");
 
 
@@ -129,10 +127,10 @@ protected:
     // parsing parameters
     //-------------------------------------------------------------
 
-    inputfile_name = getStringOption_("in");
-    outputfile_name = getStringOption_("out");
+    String inputfile_name = getStringOption_("in");
+    String outputfile_name = getStringOption_("out");
 
-    svmfile_name = getStringOption_("svm_model");
+    String svmfile_name = getStringOption_("svm_model");
 
     //-------------------------------------------------------------
     // reading input
@@ -196,7 +194,7 @@ protected:
       }
     }
 
-    vector<DoubleReal> labels;
+    vector<double> labels;
     labels.resize(peptides.size(), 0);
 
     vector<String>::iterator it_from = peptides.begin();
@@ -204,7 +202,7 @@ protected:
     while (it_from != peptides.end())
     {
       vector<String> temp_peptides;
-      vector<DoubleReal> temp_labels;
+      vector<double> temp_labels;
       UInt i = 0;
       while (i <= max_number_of_peptides && it_to != peptides.end())
       {
@@ -214,6 +212,8 @@ protected:
 
       temp_peptides.insert(temp_peptides.end(), it_from, it_to);
       temp_labels.resize(temp_peptides.size(), 0);
+
+      svm_problem* prediction_data = NULL;
 
       if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) != SVMWrapper::OLIGO)
       {
@@ -261,7 +261,7 @@ protected:
       temp_peptide_hits = identifications[i].getHits();
       for (Size j = 0; j < temp_peptide_hits.size(); j++)
       {
-        DoubleReal temp_likelihood = predicted_data[temp_peptide_hits[j].getSequence().toUnmodifiedString()];
+        double temp_likelihood = predicted_data[temp_peptide_hits[j].getSequence().toUnmodifiedString()];
 
         temp_peptide_hits[j].setMetaValue("predicted_PT", temp_likelihood);
       }

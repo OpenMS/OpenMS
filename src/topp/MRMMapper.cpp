@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -124,8 +124,8 @@ protected:
     String in = getStringOption_("in");
     String tr_file = getStringOption_("tr");
     String out = getStringOption_("out");
-    DoubleReal map_precursor_tol_ = getDoubleOption_("precursor_tolerance");
-    DoubleReal map_product_tol_ = getDoubleOption_("product_tolerance");
+    double map_precursor_tol_ = getDoubleOption_("precursor_tolerance");
+    double map_product_tol_ = getDoubleOption_("product_tolerance");
     bool nostrict = getFlag_("no-strict");
 
     OpenMS::TargetedExperiment targeted_exp;

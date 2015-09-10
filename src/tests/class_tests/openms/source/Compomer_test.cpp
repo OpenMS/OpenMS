@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -63,7 +63,7 @@ START_SECTION(~Compomer())
 }
 END_SECTION
 
-START_SECTION((Compomer(Int net_charge, DoubleReal mass, DoubleReal log_p)))
+START_SECTION((Compomer(Int net_charge, double mass, double log_p)))
 {
 	Compomer c(34, 45.32f, 12.34f);
 	TEST_EQUAL(c.getNetCharge(), 34);
@@ -131,7 +131,7 @@ END_SECTION
 
 START_SECTION((void add(const Adduct &a, UInt side)))
 {
-	//Adduct(Int charge, Int amount, DoubleReal singleMass, String formula, DoubleReal log_prob
+	//Adduct(Int charge, Int amount, double singleMass, String formula, double log_prob
 	Adduct a1(123, 43, 123.456f, "S", -0.3453f, 0);
 	Adduct a2(123,  3, 123.456f, "S", -0.3453f, 0);
 
@@ -273,7 +273,7 @@ START_SECTION((const Int& getNetCharge() const))
 }
 END_SECTION
 
-START_SECTION((const DoubleReal& getMass() const))
+START_SECTION((const double& getMass() const))
 {
   Compomer c(1,-123.12, 0.23);
 	TEST_REAL_SIMILAR(c.getMass(), -123.12)
@@ -306,14 +306,14 @@ START_SECTION((const Int& getNegativeCharges() const))
 END_SECTION
 
 
-START_SECTION((const DoubleReal& getLogP() const))
+START_SECTION((const double& getLogP() const))
 {
   Compomer c(1,1,-123.12);
 	TEST_REAL_SIMILAR(c.getLogP(), -123.12)
 }
 END_SECTION
 
-START_SECTION((const DoubleReal& getRTShift() const))
+START_SECTION((const double& getRTShift() const))
 {
   Compomer c(1,1,-123.12);
   Adduct a(123, 43, 123.456f, "S", -0.3453, -10.12);  

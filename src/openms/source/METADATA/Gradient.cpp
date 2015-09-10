@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,7 +41,6 @@ using namespace std;
 namespace OpenMS
 {
   Gradient::Gradient() :
-    //   //PersistentObject(),
     eluents_(),
     times_(),
     percentages_()
@@ -50,7 +49,6 @@ namespace OpenMS
   }
 
   Gradient::Gradient(const Gradient & source) :
-    //PersistentObject(source),
     eluents_(source.eluents_),
     times_(source.times_),
     percentages_(source.percentages_)
@@ -71,7 +69,6 @@ namespace OpenMS
     eluents_ = source.eluents_;
     times_ = source.times_;
     percentages_ = source.percentages_;
-    //PersistentObject::operator = (source);
 
     return *this;
   }
@@ -231,7 +228,7 @@ namespace OpenMS
   void Gradient::clearPercentages()
   {
     percentages_.clear();
-    // fill all precentages with 0
+    // fill all percentages with 0
     percentages_.insert(percentages_.begin(), eluents_.size(), vector<UInt>(times_.size(), 0));
   }
 

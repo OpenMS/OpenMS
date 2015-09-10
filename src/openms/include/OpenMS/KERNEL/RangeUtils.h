@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche$
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_KERNEL_RANGEUTILS_H
@@ -111,11 +111,8 @@ public:
     inline bool operator()(const MetaContainer& s) const
     {
       bool has_meta_value = s.metaValueExists(metavalue_key_);
-      if (reverse_)
-      {
-        return !has_meta_value;
-      }
-      return has_meta_value;
+      // XOR(^): same as 'if (rev_) return !(test) else return test;' where (test) is the condition;   Speed: XOR is about 25% faster in VS10
+      return reverse_ ^ has_meta_value;
     }
 
 protected:
@@ -144,7 +141,7 @@ public:
       @param reverse if @p reverse is true, operator() returns true if the spectrum lies outside the
       range
     */
-    InRTRange(DoubleReal min, DoubleReal max, bool reverse = false) :
+    InRTRange(double min, double max, bool reverse = false) :
       min_(min),
       max_(max),
       reverse_(reverse)
@@ -152,16 +149,13 @@ public:
 
     inline bool operator()(const SpectrumType& s) const
     {
-      DoubleReal tmp = s.getRT();
-      if (reverse_)
-      {
-        return min_ > tmp || max_ < tmp;
-      }
-      return min_ <= tmp && max_ >= tmp;
+      double tmp = s.getRT();
+      // XOR(^): same as 'if (rev_) return !(test) else return test;' where (test) is the condition;   Speed: XOR is about 25% faster in VS10
+      return reverse_ ^ (min_ <= tmp && tmp <= max_);
     }
 
 protected:
-    DoubleReal min_, max_;
+    double min_, max_;
     bool reverse_;
   };
 
@@ -192,11 +186,8 @@ public:
     inline bool operator()(const SpectrumType& s) const
     {
       Int tmp = s.getMSLevel();
-      if (reverse_)
-      {
-        return std::find(levels_.begin(), levels_.end(), tmp) == levels_.end();
-      }
-      return std::find(levels_.begin(), levels_.end(), tmp) != levels_.end();
+      // XOR(^): same as 'if (rev_) return !(test) else return test;' where (test) is the condition;   Speed: XOR is about 25% faster in VS10
+      return reverse_ ^ std::find(levels_.begin(), levels_.end(), tmp) != levels_.end();
     }
 
 protected:
@@ -230,17 +221,50 @@ public:
 
     inline bool operator()(const SpectrumType& s) const
     {
-      if (reverse_)
-      {
-        return s.getInstrumentSettings().getScanMode() != mode_;
-      }
-      return s.getInstrumentSettings().getScanMode() == mode_;
+      // XOR(^): same as 'if (rev_) return !(test) else return test;' where (test) is the condition;   Speed: XOR is about 25% faster in VS10
+      return reverse_ ^ (s.getInstrumentSettings().getScanMode() == mode_);
     }
 
 protected:
     Int mode_;
     bool reverse_;
   };
+
+  /**
+    @brief Predicate that determines if a spectrum has a certain scan polarity
+
+    SpectrumType must be a Spectrum or have the same interface (SpectrumSettings)
+
+    @ingroup RangeUtils
+  */
+  template <class SpectrumType>
+  class HasScanPolarity :
+    std::unary_function<SpectrumType, bool>
+  {
+public:
+    /**
+      @brief Constructor
+
+      @param mode scan polarity
+      @param reverse if @p reverse is true, operator() returns true if the spectrum has a different
+      scan polarity
+    */
+    HasScanPolarity(Int polarity, bool reverse = false) :
+      polarity_(polarity),
+      reverse_(reverse)
+    {}
+
+    inline bool operator()(const SpectrumType& s) const
+    {
+      // XOR(^): same as 'if (rev_) return !(test) else return test;' where (test) is the condition;   Speed: XOR is about 25% faster in VS10
+      return reverse_ ^ (s.getInstrumentSettings().getPolarity() == polarity_);
+    }
+
+protected:
+    Int polarity_;
+    bool reverse_;
+  };
+
 
   /**
     @brief Predicate that determines if a spectrum is empty.
@@ -265,11 +289,8 @@ public:
 
     inline bool operator()(const SpectrumType& s) const
     {
-      if (reverse_)
-      {
-        return !s.empty();
-      }
-      return s.empty();
+      // XOR(^): same as 'if (rev_) return !(test) else return test;' where (test) is the condition;   Speed: XOR is about 25% faster in VS10
+      return reverse_ ^ s.empty();
     }
 
 protected:
@@ -300,11 +321,8 @@ public:
 
     inline bool operator()(const SpectrumType& s) const
     {
-      if (reverse_)
-      {
-        return !s.getInstrumentSettings().getZoomScan();
-      }
-      return s.getInstrumentSettings().getZoomScan();
+      // XOR(^): same as 'if (rev_) return !(test) else return test;' where (test) is the condition;   Speed: XOR is about 25% faster in VS10
+      return reverse_ ^ s.getInstrumentSettings().getZoomScan();
     }
 
 protected:
@@ -384,7 +402,7 @@ public:
       @param mz_right right m/z boundary (closed interval)
       @param reverse if @p reverse is true, operator() returns true if the precursor's m/z is outside of the given interval.
     */
-    InPrecursorMZRange(const DoubleReal& mz_left, const DoubleReal& mz_right, bool reverse = false) :
+    InPrecursorMZRange(const double& mz_left, const double& mz_right, bool reverse = false) :
       mz_left_(mz_left),
       mz_right_(mz_right),
       reverse_(reverse)
@@ -407,8 +425,8 @@ public:
     }
 
 protected:
-    DoubleReal mz_left_;
-    DoubleReal mz_right_;
+    double mz_left_;
+    double mz_right_;
     bool reverse_;
   };
 
@@ -479,7 +497,7 @@ public:
       @param reverse if @p reverse is true, operator() returns true if the peak lies outside the
       range
     */
-    InMzRange(DoubleReal min, DoubleReal max, bool reverse = false) :
+    InMzRange(double min, double max, bool reverse = false) :
       min_(min),
       max_(max),
       reverse_(reverse)
@@ -487,16 +505,13 @@ public:
 
     inline bool operator()(const PeakType& p) const
     {
-      DoubleReal tmp = p.getPosition()[0];
-      if (reverse_)
-      {
-        return min_ > tmp || max_ < tmp;
-      }
-      return min_ <= tmp && max_ >= tmp;
+      double tmp = p.getPosition()[0];
+      // XOR(^): same as 'if (rev_) return !(test) else return test;' where (test) is the condition;   Speed: XOR is about 25% faster in VS10
+      return reverse_ ^ (min_ <= tmp && tmp <= max_);
     }
 
 protected:
-    DoubleReal min_, max_;
+    double min_, max_;
     bool reverse_;
   };
 
@@ -519,7 +534,7 @@ public:
       @param max upper boundary
       @param reverse if @p reverse is true, operator() returns true if the peak lies outside the set
     */
-    InIntensityRange(DoubleReal min, DoubleReal max, bool reverse = false) :
+    InIntensityRange(double min, double max, bool reverse = false) :
       min_(min),
       max_(max),
       reverse_(reverse)
@@ -527,16 +542,13 @@ public:
 
     inline bool operator()(const PeakType& p) const
     {
-      DoubleReal tmp = p.getIntensity();
-      if (reverse_)
-      {
-        return min_ > tmp || max_ < tmp;
-      }
-      return min_ <= tmp && max_ >= tmp;
+      double tmp = p.getIntensity();
+      // XOR(^): same as 'if (rev_) return !(test) else return test;' where (test) is the condition;   Speed: XOR is about 25% faster in VS10
+      return reverse_ ^ (min_ <= tmp && tmp <= max_);
     }
 
 protected:
-    DoubleReal min_, max_;
+    double min_, max_;
     bool reverse_;
   };
 
@@ -559,7 +571,7 @@ public:
       @param max maximum collision energy to be included in the range.
       @param reverse if @p reverse is true, operator() returns true if the collision energy lies outside the range.
     */
-    IsInCollisionEnergyRange(DoubleReal min, DoubleReal max, bool reverse = false) :
+    IsInCollisionEnergyRange(double min, double max, bool reverse = false) :
       min_energy_(min),
       max_energy_(max),
       reverse_(reverse)
@@ -577,7 +589,7 @@ public:
         if (it->metaValueExists("collision energy"))
         {
           hasCollisionEnergy = true;
-          DoubleReal cE = it->getMetaValue("collision energy");
+          double cE = it->getMetaValue("collision energy");
           isIn |= !(cE > max_energy_ || cE < min_energy_);
         }
       }
@@ -590,7 +602,7 @@ public:
     }
 
 private:
-    DoubleReal min_energy_, max_energy_;
+    double min_energy_, max_energy_;
     bool reverse_;
   };
 
@@ -613,7 +625,7 @@ public:
       @param max_size maximum width of the isolation window.
       @param reverse if @p reverse is true, operator() returns true if the width of the isolation window lies outside the range.
     */
-    IsInIsolationWindowSizeRange(DoubleReal min_size, DoubleReal max_size, bool reverse = false) :
+    IsInIsolationWindowSizeRange(double min_size, double max_size, bool reverse = false) :
       min_size_(min_size),
       max_size_(max_size),
       reverse_(reverse)
@@ -627,7 +639,7 @@ public:
       bool isIn = false;
       for (std::vector<Precursor>::const_iterator it = s.getPrecursors().begin(); it != s.getPrecursors().end(); ++it)
       {
-        const DoubleReal isolationWindowSize = it->getIsolationWindowUpperOffset() + it->getIsolationWindowLowerOffset();
+        const double isolationWindowSize = it->getIsolationWindowUpperOffset() + it->getIsolationWindowLowerOffset();
         isIn |= !(isolationWindowSize > max_size_ || isolationWindowSize < min_size_);
       }
 
@@ -636,7 +648,7 @@ public:
     }
 
 private:
-    DoubleReal min_size_, max_size_;
+    double min_size_, max_size_;
     bool reverse_;
   };
 

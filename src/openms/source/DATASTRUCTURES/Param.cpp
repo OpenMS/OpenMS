@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,20 +32,21 @@
 // $Authors: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
-#include <iostream>
-#include <fstream>
-#include <limits>
-#include <algorithm>
-#include <cctype> // for "isalpha"
-
-#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
+#include <OpenMS/config.h>
 
 #include <QtCore/QString>
-
-using namespace std;
-using namespace OpenMS::Exception;
+#include <algorithm>
+#include <cctype>
+#include <fstream>
+#include <iostream>
+#include <limits>
 
 namespace OpenMS
 {
@@ -56,15 +57,15 @@ namespace OpenMS
     description(),
     value(),
     tags(),
-    min_float(-std::numeric_limits<DoubleReal>::max()),
-    max_float(std::numeric_limits<DoubleReal>::max()),
+    min_float(-std::numeric_limits<double>::max()),
+    max_float(std::numeric_limits<double>::max()),
     min_int(-std::numeric_limits<Int>::max()),
     max_int(std::numeric_limits<Int>::max()),
     valid_strings()
   {
   }
 
-  Param::ParamEntry::ParamEntry(const ParamEntry & other) :
+  Param::ParamEntry::ParamEntry(const ParamEntry& other) :
     name(other.name),
     description(other.description),
     value(other.value),
@@ -82,8 +83,8 @@ namespace OpenMS
     description(d),
     value(v),
     tags(),
-    min_float(-std::numeric_limits<DoubleReal>::max()),
-    max_float(std::numeric_limits<DoubleReal>::max()),
+    min_float(-std::numeric_limits<double>::max()),
+    max_float(std::numeric_limits<double>::max()),
     min_int(-std::numeric_limits<Int>::max()),
     max_int(std::numeric_limits<Int>::max()),
     valid_strings()
@@ -96,7 +97,7 @@ namespace OpenMS
     //check name
     if (name.has(':'))
     {
-      cerr << "Error ParamEntry name must not contain ':' characters!" << endl;
+      std::cerr << "Error ParamEntry name must not contain ':' characters!" << std::endl;
     }
   }
 
@@ -125,7 +126,7 @@ namespace OpenMS
         {
           String valid;
           valid.concatenate(valid_strings.begin(), valid_strings.end(), ",");
-          message = "Invalid string parameter value '" + (String)value + "' for parameter '" + name + "' given! Valid values are: '" + valid + "'.";
+          message = "Invalid string parameter value '" + static_cast<String>(value) + "' for parameter '" + name + "' given! Valid values are: '" + valid + "'.";
           return false;
         }
       }
@@ -186,8 +187,8 @@ namespace OpenMS
     }
     else if (value.valueType() == DataValue::DOUBLE_VALUE)
     {
-      DoubleReal tmp = value;
-      if ((min_float != -std::numeric_limits<DoubleReal>::max() && tmp < min_float) || (max_float != std::numeric_limits<DoubleReal>::max() && tmp > max_float))
+      double tmp = value;
+      if ((min_float != -std::numeric_limits<double>::max() && tmp < min_float) || (max_float != std::numeric_limits<double>::max() && tmp > max_float))
       {
         message = String("Invalid double parameter value '") + tmp + "' for parameter '" + name + "' given! The valid range is: [" + min_float + ":" + max_float + "].";
         return false;
@@ -195,12 +196,11 @@ namespace OpenMS
     }
     else if (value.valueType() == DataValue::DOUBLE_LIST)
     {
-      DoubleReal dou_value;
       DoubleList ls_value = value;
       for (Size i = 0; i < ls_value.size(); ++i)
       {
-        dou_value = ls_value[i];
-        if ((min_float != -std::numeric_limits<DoubleReal>::max() && dou_value < min_float) || (max_float != std::numeric_limits<DoubleReal>::max() && dou_value > max_float))
+        double dou_value = ls_value[i];
+        if ((min_float != -std::numeric_limits<double>::max() && dou_value < min_float) || (max_float != std::numeric_limits<double>::max() && dou_value > max_float))
         {
           message = String("Invalid double parameter value '") + dou_value + "' for parameter '" + name + "' given! The valid range is: [" + min_float + ":" + max_float + "].";
           return false;
@@ -232,7 +232,7 @@ namespace OpenMS
   {
     if (name.has(':'))
     {
-      cerr << "Error ParamNode name must not contain ':' characters!" << endl;
+      std::cerr << "Error ParamNode name must not contain ':' characters!" << std::endl;
     }
   }
 
@@ -264,11 +264,11 @@ namespace OpenMS
     return true;
   }
 
-  Param::ParamNode::EntryIterator Param::ParamNode::findEntry(const String& name)
+  Param::ParamNode::EntryIterator Param::ParamNode::findEntry(const String& local_name)
   {
     for (EntryIterator it = entries.begin(); it != entries.end(); ++it)
     {
-      if (it->name == name)
+      if (it->name == local_name)
       {
         return it;
       }
@@ -276,11 +276,11 @@ namespace OpenMS
     return entries.end();
   }
 
-  Param::ParamNode::NodeIterator Param::ParamNode::findNode(const String& name)
+  Param::ParamNode::NodeIterator Param::ParamNode::findNode(const String& local_name)
   {
     for (NodeIterator it = nodes.begin(); it != nodes.end(); ++it)
     {
-      if (it->name == name)
+      if (it->name == local_name)
       {
         return it;
       }
@@ -288,47 +288,47 @@ namespace OpenMS
     return nodes.end();
   }
 
-  Param::ParamNode* Param::ParamNode::findParentOf(const String& name)
+  Param::ParamNode* Param::ParamNode::findParentOf(const String& local_name)
   {
-    //cout << "findParentOf nodename: " << this->name << " - nodes: " << this->nodes.size() << " - find: "<< name << endl;
-    if (!name.has(':')) // we are in the right child
+    //cout << "findParentOf nodename: " << this->name << " - nodes: " << this->nodes.size() << " - find: "<< name << std::endl;
+    if (!local_name.has(':')) // we are in the right child
     {
       //check if a node or entry prefix match
       for (Size i = 0; i < nodes.size(); ++i)
       {
-        if (nodes[i].name.hasPrefix(name))
+        if (nodes[i].name.hasPrefix(local_name))
           return this;
       }
       for (Size i = 0; i < entries.size(); ++i)
       {
-        if (entries[i].name.hasPrefix(name))
+        if (entries[i].name.hasPrefix(local_name))
           return this;
       }
       return 0;
     }
     else //several subnodes to browse through
     {
-      String prefix = name.prefix(':');
-      //cout << " - Prefix: '" << prefix << "'" << endl;
+      String prefix = local_name.prefix(':');
+      //cout << " - Prefix: '" << prefix << "'" << std::endl;
       NodeIterator it = findNode(prefix);
       if (it == nodes.end()) //subnode not found
       {
         return 0;
       }
       //recursively call findNode for the rest of the path
-      String new_name = name.substr(it->name.size() + 1);
-      //cout << " - Next name: '" << new_name << "'" << endl;
+      String new_name = local_name.substr(it->name.size() + 1);
+      //cout << " - Next name: '" << new_name << "'" << std::endl;
       return it->findParentOf(new_name);
     }
   }
 
-  Param::ParamEntry* Param::ParamNode::findEntryRecursive(const String& name)
+  Param::ParamEntry* Param::ParamNode::findEntryRecursive(const String& local_name)
   {
-    ParamNode* parent = findParentOf(name);
+    ParamNode* parent = findParentOf(local_name);
     if (parent == 0)
       return 0;
 
-    EntryIterator it = parent->findEntry(suffix(name));
+    EntryIterator it = parent->findEntry(suffix(local_name));
     if (it == parent->entries.end())
       return 0;
 
@@ -337,27 +337,27 @@ namespace OpenMS
 
   void Param::ParamNode::insert(const ParamNode& node, const String& prefix)
   {
-    //cerr << "INSERT NODE  " << node.name << " (" << prefix << ")" << endl;
+    //std::cerr << "INSERT NODE  " << node.name << " (" << prefix << ")" << std::endl;
     String prefix2 = prefix + node.name;
 
     ParamNode* insert_node = this;
     while (prefix2.has(':'))
     {
-      String name = prefix2.prefix(':');
+      String local_name = prefix2.prefix(':');
       //check if the node already exists
-      NodeIterator it = insert_node->findNode(name);
+      NodeIterator it = insert_node->findNode(local_name);
       if (it != insert_node->nodes.end()) //exists
       {
         insert_node = &(*it);
       }
       else //create it
       {
-        insert_node->nodes.push_back(ParamNode(name, ""));
+        insert_node->nodes.push_back(ParamNode(local_name, ""));
         insert_node = &(insert_node->nodes.back());
-        //cerr << " - Created new node: " << insert_node->name << endl;
+        //std::cerr << " - Created new node: " << insert_node->name << std::endl;
       }
       //remove prefix
-      prefix2 = prefix2.substr(name.size() + 1);
+      prefix2 = prefix2.substr(local_name.size() + 1);
     }
 
     //check if the node already exists
@@ -387,34 +387,34 @@ namespace OpenMS
 
   void Param::ParamNode::insert(const ParamEntry& entry, const String& prefix)
   {
-    //cerr << "INSERT ENTRY " << entry.name << " (" << prefix << ")" << endl;
+    //std::cerr << "INSERT ENTRY " << entry.name << " (" << prefix << ")" << std::endl;
     String prefix2 = prefix + entry.name;
-    //cerr << " - inserting: " << prefix2 << endl;
+    //std::cerr << " - inserting: " << prefix2 << std::endl;
 
     ParamNode* insert_node = this;
     while (prefix2.has(':'))
     {
-      String name = prefix2.prefix(':');
-      //cerr << " - looking for node: " << name << endl;
+      String local_name = prefix2.prefix(':');
+      //std::cerr << " - looking for node: " << name << std::endl;
       //look up if the node already exists
-      NodeIterator it = insert_node->findNode(name);
+      NodeIterator it = insert_node->findNode(local_name);
       if (it != insert_node->nodes.end()) //exists
       {
         insert_node = &(*it);
       }
       else //create it
       {
-        insert_node->nodes.push_back(ParamNode(name, ""));
+        insert_node->nodes.push_back(ParamNode(local_name, ""));
         insert_node = &(insert_node->nodes.back());
-        //cerr << " - Created new node: " << insert_node->name << endl;
+        //std::cerr << " - Created new node: " << insert_node->name << std::endl;
       }
       //remove prefix
-      prefix2 = prefix2.substr(name.size() + 1);
-      //cerr << " - new prefix: " << prefix2 << endl;
+      prefix2 = prefix2.substr(local_name.size() + 1);
+      //std::cerr << " - new prefix: " << prefix2 << std::endl;
     }
 
     //check if the entry already exists
-    //cerr << " - final entry name: " << prefix2 << endl;
+    //std::cerr << " - final entry name: " << prefix2 << std::endl;
     EntryIterator it = insert_node->findEntry(prefix2);
     if (it != insert_node->entries.end()) //overwrite entry
     {
@@ -436,7 +436,7 @@ namespace OpenMS
   Size Param::ParamNode::size() const
   {
     Size subnode_size = 0;
-    for (vector<ParamNode>::const_iterator it = nodes.begin(); it != nodes.end(); ++it)
+    for (std::vector<ParamNode>::const_iterator it = nodes.begin(); it != nodes.end(); ++it)
     {
       subnode_size += it->size();
     }
@@ -497,14 +497,14 @@ namespace OpenMS
     //check if correct parameter type
     if (entry.value.valueType() != DataValue::STRING_VALUE && entry.value.valueType() != DataValue::STRING_LIST)
     {
-      throw ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, key);
+      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, key);
     }
     //check for commas
     for (Size i = 0; i < strings.size(); ++i)
     {
       if (strings[i].has(','))
       {
-        throw InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Comma characters in Param string restrictions are not allowed!");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Comma characters in Param string restrictions are not allowed!");
       }
     }
     entry.valid_strings = strings;
@@ -515,7 +515,7 @@ namespace OpenMS
     ParamEntry& entry = getEntry_(key);
     if (entry.value.valueType() != DataValue::INT_VALUE && entry.value.valueType() != DataValue::INT_LIST)
     {
-      throw ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, key);
+      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, key);
     }
     entry.min_int = min;
   }
@@ -525,27 +525,27 @@ namespace OpenMS
     ParamEntry& entry = getEntry_(key);
     if (entry.value.valueType() != DataValue::INT_VALUE && entry.value.valueType() != DataValue::INT_LIST)
     {
-      throw ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, key);
+      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, key);
     }
     entry.max_int = max;
   }
 
-  void Param::setMinFloat(const String& key, DoubleReal min)
+  void Param::setMinFloat(const String& key, double min)
   {
     ParamEntry& entry = getEntry_(key);
     if (entry.value.valueType() != DataValue::DOUBLE_VALUE && entry.value.valueType() != DataValue::DOUBLE_LIST)
     {
-      throw ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, key);
+      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, key);
     }
     entry.min_float = min;
   }
 
-  void Param::setMaxFloat(const String& key, DoubleReal max)
+  void Param::setMaxFloat(const String& key, double max)
   {
     ParamEntry& entry = getEntry_(key);
     if (entry.value.valueType() != DataValue::DOUBLE_VALUE && entry.value.valueType() != DataValue::DOUBLE_LIST)
     {
-      throw ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, key);
+      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, key);
     }
     entry.max_float = max;
   }
@@ -558,7 +558,7 @@ namespace OpenMS
   const String& Param::getSectionDescription(const String& key) const
   {
     //This variable is used instead of String::EMPTY as the method is used in
-    //statis initialization und thus cannot rely on String::EMPTY been initialized.
+    //static initialization and thus cannot rely on String::EMPTY been initialized.
     static String empty;
 
     ParamNode* node = root_.findParentOf(key);
@@ -578,7 +578,7 @@ namespace OpenMS
 
   void Param::insert(const String& prefix, const Param& param)
   {
-    //cerr << "INSERT PARAM (" << prefix << ")" << endl;
+    //std::cerr << "INSERT PARAM (" << prefix << ")" << std::endl;
     for (Param::ParamNode::NodeIterator it = param.root_.nodes.begin(); it != param.root_.nodes.end(); ++it)
     {
       root_.insert(*it, prefix);
@@ -603,11 +603,11 @@ namespace OpenMS
       if (!exists(prefix2 + it.getName()))
       {
         if (showMessage)
-          cerr << "Setting " << prefix2 + it.getName() << " to " << it->value << endl;
+          std::cerr << "Setting " << prefix2 + it.getName() << " to " << it->value << std::endl;
         String name = prefix2 + it.getName();
         root_.insert(ParamEntry("", it->value, it->description), name);
         //copy tags
-        for (set<String>::const_iterator tag_it = it->tags.begin(); tag_it != it->tags.end(); ++tag_it)
+        for (std::set<String>::const_iterator tag_it = it->tags.begin(); tag_it != it->tags.end(); ++tag_it)
         {
           addTag(name, *tag_it);
         }
@@ -643,15 +643,12 @@ namespace OpenMS
         String real_pathname = pathname.chop(1); //remove ':' at the end
         if (real_pathname != "")
         {
-          String description_old = "";
-          String description_new = "";
-
-          description_old = getSectionDescription(prefix + real_pathname);
-          description_new = defaults.getSectionDescription(real_pathname);
+          String description_old = getSectionDescription(prefix + real_pathname);
+          String description_new = defaults.getSectionDescription(real_pathname);
           if (description_old == "")
           {
-            //cerr << "## Setting description of " << prefix+real_pathname << " to"<< endl;
-            //cerr << "## " << description_new << endl;
+            //std::cerr << "## Setting description of " << prefix+real_pathname << " to"<< std::endl;
+            //std::cerr << "## " << description_new << std::endl;
             setSectionDescription(prefix2 + real_pathname, description_new);
           }
         }
@@ -851,7 +848,7 @@ namespace OpenMS
       if (arg1.size() >= 2 && arg1[0] == '-' && arg1[1] != '0' && arg1[1] != '1' && arg1[1] != '2' && arg1[1] != '3' && arg1[1] != '4' && arg1[1] != '5' && arg1[1] != '6' && arg1[1] != '7' && arg1[1] != '8' && arg1[1] != '9')
         arg1_is_option = true;
 
-      //cout << "Parse: '"<< arg << "' '" << arg1 << "'" << endl;
+      //cout << "Parse: '"<< arg << "' '" << arg1 << "'" << std::endl;
 
       //flag (option without text argument)
       if (arg_is_option && arg1_is_option)
@@ -915,7 +912,7 @@ namespace OpenMS
         arg1_is_option = true;
 
 
-      //with multpile argument
+      //with multiple argument
       if (options_with_multiple_argument.has(arg))
       {
         //next argument is an option
@@ -999,7 +996,7 @@ namespace OpenMS
     }
   }
 
-  ostream& operator<<(ostream& os, const Param& param)
+  std::ostream& operator<<(std::ostream& os, const Param& param)
   {
     for (Param::ParamIterator it = param.begin(); it != param.end(); ++it)
     {
@@ -1013,7 +1010,7 @@ namespace OpenMS
       {
         os << " (" << it->description << ")";
       }
-      os << endl;
+      os << std::endl;
     }
     return os;
   }
@@ -1033,7 +1030,7 @@ namespace OpenMS
     root_ = ParamNode("ROOT", "");
   }
 
-  void Param::checkDefaults(const String& name, const Param& defaults, const String& prefix, std::ostream& os) const
+  void Param::checkDefaults(const String& name, const Param& defaults, const String& prefix) const
   {
     //Extract right parameters
     String prefix2 = prefix;
@@ -1049,10 +1046,10 @@ namespace OpenMS
       //unknown parameter
       if (!defaults.exists(it.getName()))
       {
-        os << "Warning: " << name << " received the unknown parameter '" << it.getName() << "'";
+        LOG_WARN << "Warning: " << name << " received the unknown parameter '" << it.getName() << "'";
         if (!prefix2.empty())
-          os << " in '" << prefix2 << "'";
-        os << "!" << endl;
+          LOG_WARN << " in '" << prefix2 << "'";
+        LOG_WARN << "!" << std::endl;
       }
 
       //different types
@@ -1131,6 +1128,11 @@ namespace OpenMS
     return this->end();
   }
 
+  void Param::update(const Param& old_version, const bool add_unknown)
+  {
+    update(old_version, add_unknown, LOG_WARN);
+  }
+
   void Param::update(const Param& old_version, const bool add_unknown, Logger::LogStream& stream)
   {
     // augment
@@ -1167,17 +1169,19 @@ namespace OpenMS
         target_name = it.getName();
 
       }
-      else // old param non-existant in new param
+      else // old param non-existent in new param
       {
         // search by suffix in new param. Only match complete names, e.g. myname will match newsection:myname, but not newsection:othermyname
-        Param::ParamEntry entry = old_version.getEntry(it.getName());
-        // since the old param with full path does not exist within new param, we will never find the new entry by using exists() as above, thus its safe to
-        // modify it here
-        ParamIterator it_match = this->findFirst(entry.name);
+        Param::ParamEntry l1_entry = old_version.getEntry(it.getName());
+        // since the old param with full path does not exist within new param,
+        // we will never find the new entry by using exists() as above, thus
+        // its safe to modify it here
+
+        ParamIterator it_match = this->findFirst(l1_entry.name);
         if (it_match != this->end())
         {
           // make sure the same leaf name does not exist at any other position
-          if (this->findNext(entry.name, it_match) == this->end())
+          if (this->findNext(l1_entry.name, it_match) == this->end())
           {
             stream << "Found '" << it.getName() << "' as '" << it_match.getName() << "' in new param." << std::endl;
             new_entry = this->getEntry(it_match.getName());
@@ -1190,13 +1194,13 @@ namespace OpenMS
           if (add_unknown)
           {
             stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in old parameter file! Adding to current set ..." << std::endl;
-            Param::ParamEntry entry = old_version.getEntry(it.getName());
+            Param::ParamEntry local_entry = old_version.getEntry(it.getName());
             String prefix = "";
             if (it.getName().has(':'))
             {
               prefix = it.getName().substr(0, 1 + it.getName().find_last_of(':'));
             }
-            this->root_.insert(entry, prefix); //->setValue(it.getName(), entry.value, entry.description, entry.tags);
+            this->root_.insert(local_entry, prefix); //->setValue(it.getName(), local_entry.value, local_entry.description, local_entry.tags);
           }
           else
           {
@@ -1276,11 +1280,8 @@ namespace OpenMS
         String real_pathname = pathname.chop(1); //remove ':' at the end
         if (real_pathname != "")
         {
-          String description_old = "";
-          String description_new = "";
-
-          description_old = getSectionDescription(prefix + real_pathname);
-          description_new = toMerge.getSectionDescription(real_pathname);
+          String description_old = getSectionDescription(prefix + real_pathname);
+          String description_new = toMerge.getSectionDescription(real_pathname);
           if (description_old == "")
           {
             setSectionDescription(real_pathname, description_new);
@@ -1296,13 +1297,13 @@ namespace OpenMS
     ParamNode* node = root_.findParentOf(key);
     if (node == 0)
     {
-      throw ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, key);
+      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, key);
     }
 
     Param::ParamNode::NodeIterator it = node->findNode(node->suffix(key));
     if (it == node->nodes.end())
     {
-      throw ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, key);
+      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, key);
     }
     it->description = description;
   }
@@ -1418,7 +1419,7 @@ namespace OpenMS
           //track changes (leave a node)
           trace_.push_back(TraceInfo(last->name, last->description, false));
 
-          //check of new subtree is accessable
+          //check of new subtree is accessible
           UInt next_index = (last - &(node->nodes[0])) + 1;
           if (next_index < node->nodes.size())
           {
@@ -1433,7 +1434,7 @@ namespace OpenMS
       }
     }
 
-    return *this;
+    return *this; // TODO unreachable code
   }
 
   bool Param::ParamIterator::operator==(const ParamIterator& rhs) const
@@ -1497,7 +1498,7 @@ namespace OpenMS
   {
     ParamEntry& entry = getEntry_(key);
     StringList list;
-    for (set<String>::const_iterator it = entry.tags.begin(); it != entry.tags.end(); ++it)
+    for (std::set<String>::const_iterator it = entry.tags.begin(); it != entry.tags.end(); ++it)
     {
       list.push_back(*it);
     }
@@ -1524,7 +1525,7 @@ namespace OpenMS
     ParamEntry* entry = root_.findEntryRecursive(key);
     if (entry == 0)
     {
-      throw ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, key);
+      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, key);
     }
 
     return *entry;

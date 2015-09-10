@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,24 +34,33 @@
 
 #include <OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
+#include <algorithm>
+#include <iterator>
+
+#include <boost/bind.hpp>
+#include <boost/random/discrete_distribution.hpp>
+
 #ifdef _OPENMP
 #include <omp.h>
+#include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
+#include <boost/shared_ptr.hpp>
 #endif
 
-#define DEBUG
+// #define DEBUG
 
 namespace OpenMS
 {
 
   std::map<String, Size> SvmTheoreticalSpectrumGenerator::aa_to_index_;
-  std::map<String, DoubleReal> SvmTheoreticalSpectrumGenerator::hydrophobicity_;
-  std::map<String, DoubleReal> SvmTheoreticalSpectrumGenerator::helicity_;
-  std::map<String, DoubleReal> SvmTheoreticalSpectrumGenerator::basicity_;
+  std::map<String, double> SvmTheoreticalSpectrumGenerator::hydrophobicity_;
+  std::map<String, double> SvmTheoreticalSpectrumGenerator::helicity_;
+  std::map<String, double> SvmTheoreticalSpectrumGenerator::basicity_;
 
   // do not remove, see ticket #352 for more details
   SvmTheoreticalSpectrumGenerator init;
@@ -64,27 +73,15 @@ namespace OpenMS
     {
     case (Residue::AIon): return "AIon";
 
-      break;
-
     case (Residue::BIon): return "BIon";
-
-      break;
 
     case (Residue::CIon): return "CIon";
 
-      break;
-
     case (Residue::XIon): return "XIon";
-
-      break;
 
     case (Residue::YIon): return "YIon";
 
-      break;
-
     case (Residue::ZIon): return "ZIon";
-
-      break;
 
     default: return "undefined ion type";
     }
@@ -96,11 +93,11 @@ namespace OpenMS
 
     if (aa_to_index_.empty())
     {
-      ResidueDB * res_db;
+      ResidueDB* res_db;
       res_db = ResidueDB::getInstance();
-      std::set<const Residue *> all_aa = res_db->getResidues("Natural20");
+      std::set<const Residue*> all_aa = res_db->getResidues("Natural20");
       std::set<String> residues;
-      std::set<const Residue *>::const_iterator aa_it;
+      std::set<const Residue*>::const_iterator aa_it;
       for (aa_it = all_aa.begin(); aa_it != all_aa.end(); ++aa_it)
       {
         residues.insert((*aa_it)->getOneLetterCode());
@@ -241,14 +238,14 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  SvmTheoreticalSpectrumGenerator::SvmTheoreticalSpectrumGenerator(const SvmTheoreticalSpectrumGenerator & rhs) :
+  SvmTheoreticalSpectrumGenerator::SvmTheoreticalSpectrumGenerator(const SvmTheoreticalSpectrumGenerator& rhs) :
     DefaultParamHandler(rhs),
     mp_(rhs.mp_)
   {
     updateMembers_();
   }
 
-  SvmTheoreticalSpectrumGenerator & SvmTheoreticalSpectrumGenerator::operator=(const SvmTheoreticalSpectrumGenerator & rhs)
+  SvmTheoreticalSpectrumGenerator& SvmTheoreticalSpectrumGenerator::operator=(const SvmTheoreticalSpectrumGenerator& rhs)
   {
     if (this != &rhs)
     {
@@ -263,7 +260,7 @@ namespace OpenMS
   {
   }
 
-  Size SvmTheoreticalSpectrumGenerator::generateDescriptorSet_(AASequence peptide, Size position, IonType type, Size /* precursor_charge */, DescriptorSet & desc_set)
+  Size SvmTheoreticalSpectrumGenerator::generateDescriptorSet_(AASequence peptide, Size position, IonType type, Size /* precursor_charge */, DescriptorSet& desc_set)
   {
 
     std::vector<svm_node> descriptors_tmp;
@@ -284,7 +281,7 @@ namespace OpenMS
       fragment = peptide.getSuffix(peptide.size() - (position + 1));
     }
 
-    DoubleReal fragment_mass = (fragment.getMonoWeight(res_type, charge) - loss.getMonoWeight());
+    double fragment_mass = (fragment.getMonoWeight(res_type, charge) - loss.getMonoWeight());
 
     Residue res_n = peptide.getResidue(position);
     Residue res_c = peptide.getResidue(position + 1);
@@ -348,7 +345,7 @@ namespace OpenMS
     node.value = basicity_[res_n_string] - basicity_[res_c_string];
     descriptors_tmp.push_back(node);
 
-    DoubleReal ba_p = 0, hy_p = 0, ba_yi = 0, hy_yi = 0, ba_bi = 0, hy_bi = 0;
+    double ba_p = 0, hy_p = 0, ba_yi = 0, hy_yi = 0, ba_bi = 0, hy_bi = 0;
     for (Size i = 0; i < peptide.size(); ++i)
     {
       ba_p += basicity_[peptide.getResidue(i).getOneLetterCode()];
@@ -467,17 +464,19 @@ namespace OpenMS
 
     //RLIP (works for B also)
     node.index = index++;
-    node.value = (DoubleReal)fragment.size() / peptide.size();
+    node.value = (double)fragment.size() / peptide.size();
     descriptors_tmp.push_back(node);
 
     //NBaR_P
+    String umps = peptide.toUnmodifiedString(); // unmodified peptide string
     node.index = index++;
-    node.value = peptide.getNumberOf("H") + peptide.getNumberOf("K") + peptide.getNumberOf("R");
+    node.value = std::count(umps.begin(), umps.end(), 'H') + std::count(umps.begin(), umps.end(), 'K') + std::count(umps.begin(), umps.end(), 'R');
     descriptors_tmp.push_back(node);
 
     //NBaR_YI (works for B also)
     node.index = index++;
-    node.value = fragment.getNumberOf("H") + fragment.getNumberOf("K") + fragment.getNumberOf("R");
+    String umfs = fragment.toUnmodifiedString(); // unmodified fragment string
+    node.value = std::count(umfs.begin(), umfs.end(), 'H') + std::count(umfs.begin(), umfs.end(), 'K') + std::count(umfs.begin(), umfs.end(), 'R');
     descriptors_tmp.push_back(node);
 
     //MP
@@ -565,8 +564,8 @@ namespace OpenMS
     String path_to_models = File().path(svm_info_file) + "/";
     info_file.load(svm_info_file);
 
-    TextFile::iterator left_marker = StringListUtils::searchPrefix(info_file, "<PrecursorCharge>");
-    TextFile::iterator right_marker = StringListUtils::searchPrefix(info_file, "</PrecursorCharge>");
+    TextFile::ConstIterator left_marker = StringListUtils::searchPrefix(info_file.begin(), info_file.end(), "<PrecursorCharge>");
+    TextFile::ConstIterator right_marker = StringListUtils::searchPrefix(info_file.begin(), info_file.end(), "</PrecursorCharge>");
     if (left_marker == right_marker)
     {
       //Todo throw different exception (File Corrupt)
@@ -575,8 +574,8 @@ namespace OpenMS
     ++left_marker;
     precursor_charge_ = left_marker->toInt();
 
-    left_marker = StringListUtils::searchPrefix(info_file, "<PrimaryTypes>");
-    right_marker = StringListUtils::searchPrefix(info_file, "</PrimaryTypes>");
+    left_marker = StringListUtils::searchPrefix(info_file.begin(), info_file.end(), "<PrimaryTypes>");
+    right_marker = StringListUtils::searchPrefix(info_file.begin(), info_file.end(), "</PrimaryTypes>");
     if (left_marker == right_marker)
     {
       //Todo throw different exception (File Corrupt)
@@ -689,7 +688,7 @@ namespace OpenMS
       right_marker = StringListUtils::searchPrefix(left_marker, info_file.end(), "</IonType>");
       while (left_marker < right_marker)
       {
-        mp_.conditional_prob[std::make_pair(actual_type, region)].assign(mp_.number_intensity_levels, std::vector<DoubleReal>(mp_.number_intensity_levels));
+        mp_.conditional_prob[std::make_pair(actual_type, region)].assign(mp_.number_intensity_levels, std::vector<double>(mp_.number_intensity_levels));
         for (Size prim = 0; prim < mp_.number_intensity_levels; ++prim)
         {
           for (Size sec = 0; sec < mp_.number_intensity_levels; ++sec)
@@ -710,7 +709,7 @@ namespace OpenMS
     //map the secondary types to their corresponding primary types
     for (Size i = 0; i < sec_ion_types.size(); ++i)
     {
-      const IonType & tmp = sec_ion_types[i];
+      const IonType& tmp = sec_ion_types[i];
       if (tmp.residue == Residue::BIon || tmp.residue == Residue::AIon || tmp.residue == Residue::CIon)
       {
         mp_.secondary_types[IonType(Residue::BIon)].push_back(tmp);
@@ -722,7 +721,7 @@ namespace OpenMS
     }
   }
 
-  void SvmTheoreticalSpectrumGenerator::simulate(RichPeakSpectrum & spectrum, const AASequence & peptide, const gsl_rng * rng, Size precursor_charge)
+  void SvmTheoreticalSpectrumGenerator::simulate(RichPeakSpectrum& spectrum, const AASequence& peptide, boost::random::mt19937_64& rng, Size precursor_charge)
   {
     RichPeak1D p_;
     // just in case someone wants the ion names;
@@ -738,7 +737,7 @@ namespace OpenMS
     bool add_isotopes = param_.getValue("add_isotopes").toBool();
     Size max_isotope = (Size)param_.getValue("max_isotope");
     bool add_losses = !(param_.getValue("hide_losses").toBool());
-    DoubleReal relative_loss_intens = param_.getValue("relative_loss_intensity");
+    double relative_loss_intens = param_.getValue("relative_loss_intensity");
     bool add_first_nterminals = param_.getValue("add_first_prefix_ion").toBool();
     bool add_metainfo = param_.getValue("add_metainfo").toBool();
 
@@ -748,8 +747,6 @@ namespace OpenMS
     std::vector<std::set<String> > possible_c_term_losses(peptide.size());
 
     UInt ion_nr = 0;
-    gsl_ran_discrete_t * gsl_gen = 0;
-
 
     for (Size i = 1; i < peptide.size(); ++i)
     {
@@ -780,7 +777,7 @@ namespace OpenMS
     }
 
 
-    std::vector<std::pair<std::pair<IonType, DoubleReal>, Size> > peaks_to_generate;
+    std::vector<std::pair<std::pair<IonType, double>, Size> > peaks_to_generate;
 
     for (Size type_nr = 0; type_nr < mp_.ion_types.size(); ++type_nr)
     {
@@ -792,7 +789,7 @@ namespace OpenMS
       Residue::ResidueType residue = mp_.ion_types[type_nr].residue;
       EmpiricalFormula loss_formula = mp_.ion_types[type_nr].loss;
 
-      std::vector<DoubleReal> predicted_intensity(peptide.size(), 0.);
+      std::vector<double> predicted_intensity(peptide.size(), 0.);
       std::vector<bool> predicted_class(peptide.size(), false);
 
 #pragma omp parallel for
@@ -834,8 +831,8 @@ namespace OpenMS
 
         if (simulation_type == 0)
         {
-          std::vector<DoubleReal> tmp_out;
-          std::vector<svm_node *> tmp_in(1, &descriptor.descriptors[0]);
+          std::vector<double> tmp_out;
+          std::vector<svm_node*> tmp_in(1, &descriptor.descriptors[0]);
 
           mp_.class_models[type_nr].get()->predict(tmp_in, tmp_out);
           predicted_class[i] = tmp_out[0];
@@ -843,8 +840,8 @@ namespace OpenMS
 
         if (simulation_type == 1)
         {
-          std::vector<DoubleReal> tmp_out;
-          std::vector<svm_node *> tmp_in(1, &descriptor.descriptors[0]);
+          std::vector<double> tmp_out;
+          std::vector<svm_node*> tmp_in(1, &descriptor.descriptors[0]);
 
           mp_.reg_models[type_nr].get()->predict(tmp_in, tmp_out);
           predicted_intensity[i] = std::min(std::max(0., tmp_out[0]), 1.0);
@@ -864,7 +861,7 @@ namespace OpenMS
         {
           if (predicted_class[i] == 1 && mp_.static_intensities[residue] != 0)
           {
-            DoubleReal intens = mp_.static_intensities[residue];
+            double intens = mp_.static_intensities[residue];
             if (!loss_formula.isEmpty())
             {
               intens = intens * relative_loss_intens;
@@ -902,7 +899,7 @@ namespace OpenMS
           {
             if (predicted_class[i] != 0 && mp_.static_intensities[it->residue] != 0  && hide_type_[*it] == false) //no secondary ion if primary is classified as missing
             {
-              DoubleReal intens = mp_.static_intensities[it->residue];
+              double intens = mp_.static_intensities[it->residue];
               if (!it->loss.isEmpty())
               {
                 intens = intens * relative_loss_intens;
@@ -917,10 +914,11 @@ namespace OpenMS
           {
             //sample intensities for secondary types
             Size region = std::min(mp_.number_regions - 1, (Size)floor(mp_.number_regions * prefix.getMonoWeight(Residue::Internal) / peptide.getMonoWeight()));
-            DoubleReal * condit_probs = &(mp_.conditional_prob[std::make_pair(*it, region)][bin][0]);
-            gsl_gen = gsl_ran_discrete_preproc(mp_.number_intensity_levels, condit_probs);
-            Size binned_int = gsl_ran_discrete(rng, gsl_gen);
-            gsl_ran_discrete_free(gsl_gen);
+            std::vector<double>& props = mp_.conditional_prob[std::make_pair(*it, region)][bin];
+            std::vector<double> weights;
+            std::transform(props.begin(), props.end(), std::back_inserter(weights), boost::bind(std::multiplies<double>(), _1, 10));
+            boost::random::discrete_distribution<Size> ddist(weights.begin(), weights.end());
+            Size binned_int = ddist(rng);
 
             if (binned_int != 0)
             {
@@ -931,12 +929,11 @@ namespace OpenMS
       }
     }
 
-
     //Now create the actual spectrum containing also isotopic peaks if selected and precursor peaks etc.
     for (Size i = 0; i < peaks_to_generate.size(); ++i)
     {
       IonType type = peaks_to_generate[i].first.first;
-      DoubleReal intensity = peaks_to_generate[i].first.second;
+      double intensity = peaks_to_generate[i].first.second;
       Residue::ResidueType residue = type.residue;
       EmpiricalFormula loss_formula = type.loss;
       Int charge = type.charge;
@@ -954,7 +951,7 @@ namespace OpenMS
       }
 
       EmpiricalFormula ion_formula = ion.getFormula(residue, charge) - loss_formula;
-      DoubleReal mz_pos = ion_formula.getMonoWeight() / charge;
+      double mz_pos = ion_formula.getMonoWeight() / charge;
 
       String ion_name = ResidueTypeToString_(residue) + " " + loss_formula.toString() + " " + String(ion_nr) + String(charge, '+');
 
@@ -964,7 +961,7 @@ namespace OpenMS
         Size j = 0;
         for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
         {
-          p_.setMZ(mz_pos + (DoubleReal)j * Constants::NEUTRON_MASS_U / charge);
+          p_.setMZ(mz_pos + (double)j * Constants::NEUTRON_MASS_U / charge);
           p_.setIntensity(intensity * it->second);
           if (add_metainfo && j == 0)
           {
@@ -988,7 +985,7 @@ namespace OpenMS
     spectrum.sortByPosition();
   }
 
-  void SvmTheoreticalSpectrumGenerator::scaleDescriptorSet_(DescriptorSet & desc, double lower, double upper)
+  void SvmTheoreticalSpectrumGenerator::scaleDescriptorSet_(DescriptorSet& desc, double lower, double upper)
   {
     std::vector<svm_node> tmp_desc;
     std::vector<svm_node>::iterator it;
@@ -1047,12 +1044,12 @@ namespace OpenMS
     hide_type_[IonType(Residue::XIon, EmpiricalFormula(""), 1)] = param_.getValue("hide_x_ions").toBool();
     hide_type_[IonType(Residue::ZIon, EmpiricalFormula(""), 1)] = param_.getValue("hide_z_ions").toBool();
 
-    mp_.static_intensities[Residue::BIon] = !hide_type_[IonType(Residue::BIon)] ? (DoubleReal)param_.getValue("b_intensity") : 0;
-    mp_.static_intensities[Residue::YIon] = !hide_type_[IonType(Residue::YIon)] ? (DoubleReal)param_.getValue("y_intensity") : 0;
-    mp_.static_intensities[Residue::AIon] = !hide_type_[IonType(Residue::AIon)] ? (DoubleReal)param_.getValue("a_intensity") : 0;
-    mp_.static_intensities[Residue::CIon] = !hide_type_[IonType(Residue::CIon)] ? (DoubleReal)param_.getValue("c_intensity") : 0;
-    mp_.static_intensities[Residue::XIon] = !hide_type_[IonType(Residue::XIon)] ? (DoubleReal)param_.getValue("x_intensity") : 0;
-    mp_.static_intensities[Residue::ZIon] = !hide_type_[IonType(Residue::ZIon)] ? (DoubleReal)param_.getValue("z_intensity") : 0;
+    mp_.static_intensities[Residue::BIon] = !hide_type_[IonType(Residue::BIon)] ? (double)param_.getValue("b_intensity") : 0;
+    mp_.static_intensities[Residue::YIon] = !hide_type_[IonType(Residue::YIon)] ? (double)param_.getValue("y_intensity") : 0;
+    mp_.static_intensities[Residue::AIon] = !hide_type_[IonType(Residue::AIon)] ? (double)param_.getValue("a_intensity") : 0;
+    mp_.static_intensities[Residue::CIon] = !hide_type_[IonType(Residue::CIon)] ? (double)param_.getValue("c_intensity") : 0;
+    mp_.static_intensities[Residue::XIon] = !hide_type_[IonType(Residue::XIon)] ? (double)param_.getValue("x_intensity") : 0;
+    mp_.static_intensities[Residue::ZIon] = !hide_type_[IonType(Residue::ZIon)] ? (double)param_.getValue("z_intensity") : 0;
   }
 
 } //namespace

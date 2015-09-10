@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -70,7 +70,13 @@ namespace OpenMS
       Replicates
       NrModifications
       PrecursorCharge (integer)
-      Labelgroup (free text, e.g. heavy or light)
+      PeptideGroupLabel (free text, designates to which peptide label group (as defined in MS:1000893) the peptide belongs to)
+      LabelType (free text, optional description of which label was used, e.g. heavy or light)
+      detecting_transition (bool, should this transition be used for peak-picking (detection) of the peak group?)
+      identifying_transition (bool, should this transition be used for UIS identification together with the detecting transitions?)
+      site_identifying_transition (String contains the information for which sites the transition is diagnostic)
+      site_identifying_class (String, contains the diagnostic class for each site)
+      quantifying_transition (bool, should this transition be used for quantification?)
 
   @htmlinclude OpenMS_TransitionTSVReader.parameters
 
@@ -83,12 +89,19 @@ namespace OpenMS
 private:
     /// Members
     String retentionTimeInterpretation_;
+    bool override_group_label_check_;
 
     /// Typedefs
     typedef std::vector<OpenMS::TargetedExperiment::Protein> ProteinVectorType;
     typedef std::vector<OpenMS::TargetedExperiment::Peptide> PeptideVectorType;
     typedef std::vector<OpenMS::ReactionMonitoringTransition> TransitionVectorType;
 
+    /**
+      @brief Internal structure to represent a transition
+
+      Internal structure to represent a single line from a transition input
+      file (one transition).
+    */
     struct TSVTransition
     {
       double precursor;
@@ -104,33 +117,89 @@ private:
       String Annotation;
       String FullPeptideName;
       int precursor_charge;
-      String group_label;
+      String peptide_group_label;
+      String label_type;
       int fragment_charge;
       int fragment_nr;
+      double fragment_mzdelta;
+      int fragment_modification;
       String fragment_type;
       String uniprot_id;
+      bool detecting_transition;
+      bool identifying_transition;
+      String site_identifying_transition;
+      String site_identifying_class;
+      bool quantifying_transition;
     };
 
     static const char* strarray_[];
 
     static const std::vector<std::string> header_names_;
 
-    /// read TSV input with columns in defined order
-    void readTSVInput_(const char* filename, std::vector<TSVTransition>& transition_list);
+    /** @brief Determine separator in a CSV file and check for correct headers
+     *
+     * @param line The header to be parsed
+     * @param delimiter The delimiter which will be determined from the input
+     * @param header The fields of the header
+     * @param header_dict The map which maps the fields in the header to their position
+     *
+    */
+    void getTSVHeader_(const std::string& line, char& delimiter, std::vector<std::string> header, std::map<std::string, int>& header_dict);
 
-    /// determine separator in a CSV file and check for correct headers
-    void getTSVHeader_(std::string & line, char & delimiter, std::vector<std::string> header, std::map<std::string, int> & header_dict);
+    /** @brief Read tab or comma separated input with columns defined by their column headers only
+     *
+     * @param filename The input file
+     * @param filetype The type of file ("mrm" or "tsv")
+     * @param transition_list The output list of transitions
+     *
+    */
+    void readUnstructuredTSVInput_(const char* filename, FileTypes::Type filetype, std::vector<TSVTransition>& transition_list);
 
-    /// read tab or comma separated input with columns defined by their column headers only
-    void readUnstructuredTSVInput_(const char* filename, std::vector<TSVTransition>& transition_list);
+    /** @brief Cleanup of the read fields (removing quotes etc.)
+    */
+    void cleanupTransitions_(TSVTransition& mytransition);
 
-    /// do post-processing on read input data (removing quotes etc)
-    void cleanupTransitions_(TSVTransition & mytransition);
-
-    /// store a list of TSVTransition objects properly in a TargetedExperiment
+    /** @brief Convert a list of TSVTransition to a TargetedExperiment
+     *
+     * Converts the list (read from csv/mrm) file into a object model using the
+     * TargetedExperiment with proper hierarchical structure from Transition to
+     * Peptide to Protein.
+     *
+    */
     void TSVToTargetedExperiment_(std::vector<TSVTransition>& transition_list, OpenMS::TargetedExperiment& exp);
 
+    /** @brief Convert a list of TSVTransition to a LightTargetedExperiment
+     *
+     * Converts the list (read from csv/mrm) file into a object model using the
+     * LightTargetedExperiment with proper hierarchical structure from
+     * Transition to Peptide to Protein.
+     *
+    */
     void TSVToTargetedExperiment_(std::vector<TSVTransition>& transition_list, OpenSwath::LightTargetedExperiment& exp);
+
+    /** @name  Conversion functions from TSVTransition objects to TraML datastructures
+     *
+     * These functions convert the relevant data from a TSVTransition to the
+     * datastructures used by the TraML handler, namely
+     * ReactionMonitoringTransition, TargetedExperiment::Protein and
+     * TargetedExperiment::Peptide.
+     *
+   */
+    //@{
+
+    /** Resolve cases where the same peptide label group has different sequences.
+     *
+     * Since members in a peptide label group (MS:1000893) should only be
+     * isotopically modified forms of the same peptide, having different
+     * peptide sequences (different AA order) within the same group most likely
+     * constitutes an error. This function will fix the error by erasing the
+     * provided "peptide group label" for a peptide and replace it with the
+     * peptide id (transition group id).
+     *
+     * @param transition_list The list of read transitions to be fixed.
+     *
+     */
+    void resolveMixedSequenceGroups_(std::vector<TSVTransition>& transition_list);
 
     void createTransition_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::ReactionMonitoringTransition& rm_trans);
 
@@ -138,10 +207,16 @@ private:
 
     void createPeptide_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Peptide& peptide);
 
-    void addModification_(std::vector<TargetedExperiment::Peptide::Modification> & mods,
-          int location, ResidueModification & rmod, const String & name);
+    void addModification_(std::vector<TargetedExperiment::Peptide::Modification>& mods,
+                          int location, ResidueModification& rmod, const String& name);
+    //@}
 
-    /// write a TargetedExperiment to a file
+
+    /** @brief Write a TargetedExperiment to a file
+     *
+     * @param filename Name of the output file
+     * @param targeted_exp The data structure to be written to the file
+    */
     void writeTSVOutput_(const char* filename, OpenMS::TargetedExperiment& targeted_exp);
 
 protected:
@@ -159,14 +234,31 @@ public:
     ~TransitionTSVReader();
     //@}
 
-    /// Write out a targeted experiment (TraML structure) into a tsv file
+    /** @brief Write out a targeted experiment (TraML structure) into a tsv file
+     *
+     * @param filename The output file
+     * @param targeted_exp The targeted experiment
+     *
+    */
     void convertTargetedExperimentToTSV(const char* filename, OpenMS::TargetedExperiment& targeted_exp);
 
-    /// Read in a tsv file and construct a targeted experiment (TraML structure)
-    void convertTSVToTargetedExperiment(const char* filename, OpenMS::TargetedExperiment& targeted_exp);
+    /** @brief Read in a tsv/mrm file and construct a targeted experiment (TraML structure)
+     *
+     * @param filename The input file
+     * @param filetype The type of file ("mrm" or "tsv")
+     * @param targeted_exp The output targeted experiment
+     *
+    */
+    void convertTSVToTargetedExperiment(const char* filename, FileTypes::Type filetype, OpenMS::TargetedExperiment& targeted_exp);
 
-    /// Read in a tsv file and construct a targeted experiment (Light transition structure)
-    void convertTSVToTargetedExperiment(const char* filename, OpenSwath::LightTargetedExperiment& targeted_exp);
+    /** @brief Read in a tsv file and construct a targeted experiment (Light transition structure)
+     *
+     * @param filename The input file
+     * @param filetype The type of file ("mrm" or "tsv")
+     * @param targeted_exp The output targeted experiment
+     *
+    */
+    void convertTSVToTargetedExperiment(const char* filename, FileTypes::Type filetype, OpenSwath::LightTargetedExperiment& targeted_exp);
 
     /// Validate a TargetedExperiment (check that all ids are unique)
     void validateTargetedExperiment(OpenMS::TargetedExperiment& targeted_exp);
@@ -175,4 +267,3 @@ public:
 }
 
 #endif
-

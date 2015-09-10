@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 
 #include <algorithm>
+#include <iostream>
 
 using namespace std;
 
@@ -55,15 +56,18 @@ namespace OpenMS
     zlib_compression_(false),
     size_only_(false),
     always_append_data_(false),
+    skip_xml_checks_(false),
+    sort_spectra_by_mz_(true),
+    sort_chromatograms_by_rt_(true),
     fill_data_(true),
-    write_index_(false), 
+    write_index_(false),
     np_config_mz_(),
     np_config_int_(),
     maximal_data_pool_size_(100)
   {
   }
 
-  PeakFileOptions::PeakFileOptions(const PeakFileOptions & options) :
+  PeakFileOptions::PeakFileOptions(const PeakFileOptions& options) :
     metadata_only_(options.metadata_only_),
     write_supplemental_data_(options.write_supplemental_data_),
     has_rt_range_(options.has_rt_range_),
@@ -78,6 +82,9 @@ namespace OpenMS
     zlib_compression_(options.zlib_compression_),
     size_only_(options.size_only_),
     always_append_data_(options.always_append_data_),
+    skip_xml_checks_(options.skip_xml_checks_),
+    sort_spectra_by_mz_(options.sort_spectra_by_mz_),
+    sort_chromatograms_by_rt_(options.sort_chromatograms_by_rt_),
     fill_data_(options.fill_data_),
     write_index_(options.write_index_),
     np_config_mz_(options.np_config_mz_),
@@ -110,7 +117,7 @@ namespace OpenMS
     return write_supplemental_data_;
   }
 
-  void PeakFileOptions::setRTRange(const DRange<1> & range)
+  void PeakFileOptions::setRTRange(const DRange<1>& range)
   {
     rt_range_ = range;
     has_rt_range_ = true;
@@ -121,12 +128,12 @@ namespace OpenMS
     return has_rt_range_;
   }
 
-  const DRange<1> & PeakFileOptions::getRTRange() const
+  const DRange<1>& PeakFileOptions::getRTRange() const
   {
     return rt_range_;
   }
 
-  void PeakFileOptions::setMZRange(const DRange<1> & range)
+  void PeakFileOptions::setMZRange(const DRange<1>& range)
   {
     mz_range_ = range;
     has_mz_range_ = true;
@@ -137,12 +144,12 @@ namespace OpenMS
     return has_mz_range_;
   }
 
-  const DRange<1> & PeakFileOptions::getMZRange() const
+  const DRange<1>& PeakFileOptions::getMZRange() const
   {
     return mz_range_;
   }
 
-  void PeakFileOptions::setIntensityRange(const DRange<1> & range)
+  void PeakFileOptions::setIntensityRange(const DRange<1>& range)
   {
     intensity_range_ = range;
     has_intensity_range_ = true;
@@ -153,12 +160,12 @@ namespace OpenMS
     return has_intensity_range_;
   }
 
-  const DRange<1> & PeakFileOptions::getIntensityRange() const
+  const DRange<1>& PeakFileOptions::getIntensityRange() const
   {
     return intensity_range_;
   }
 
-  void PeakFileOptions::setMSLevels(const vector<Int> & levels)
+  void PeakFileOptions::setMSLevels(const vector<Int>& levels)
   {
     ms_levels_ = levels;
   }
@@ -183,7 +190,7 @@ namespace OpenMS
     return find(ms_levels_.begin(), ms_levels_.end(), level) != ms_levels_.end();
   }
 
-  const vector<Int> & PeakFileOptions::getMSLevels() const
+  const vector<Int>& PeakFileOptions::getMSLevels() const
   {
     return ms_levels_;
   }
@@ -221,6 +228,36 @@ namespace OpenMS
   bool PeakFileOptions::getFillData() const
   {
     return fill_data_;
+  }
+
+  void PeakFileOptions::setSkipXMLChecks(bool skip)
+  {
+    skip_xml_checks_ = skip;
+  }
+
+  bool PeakFileOptions::getSkipXMLChecks() const
+  {
+    return skip_xml_checks_;
+  }
+
+  void PeakFileOptions::setSortSpectraByMZ(bool sort)
+  {
+    sort_spectra_by_mz_ = sort;
+  }
+
+  bool PeakFileOptions::getSortSpectraByMZ() const
+  {
+    return sort_spectra_by_mz_;
+  }
+
+  void PeakFileOptions::setSortChromatogramsByRT(bool sort)
+  {
+    sort_chromatograms_by_rt_ = sort;
+  }
+
+  bool PeakFileOptions::getSortChromatogramsByRT() const
+  {
+    return sort_chromatograms_by_rt_;
   }
 
   void PeakFileOptions::setFillData(bool fill_data)
@@ -293,4 +330,3 @@ namespace OpenMS
   }
 
 } // namespace OpenMS
-

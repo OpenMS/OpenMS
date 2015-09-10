@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -106,12 +106,12 @@ for(Int i = 0; i<100;++i)
   spec[i].setMZ(i*0.1);
   spec[i].setIntensity(100.); 
 }
-START_SECTION((PeakShape(DoubleReal height_, DoubleReal mz_position_, DoubleReal left_width_, DoubleReal right_width_, DoubleReal area_, PeakIterator left_, PeakIterator right_, Type type_)))
-    DoubleReal height = 100.0;
-    DoubleReal mz_position = 0.0;
-    DoubleReal left_width = 3.0;
-    DoubleReal right_width = 3.0;
-    DoubleReal area = 309.23292;
+START_SECTION((PeakShape(double height_, double mz_position_, double left_width_, double right_width_, double area_, PeakIterator left_, PeakIterator right_, Type type_)))
+    double height = 100.0;
+    double mz_position = 0.0;
+    double left_width = 3.0;
+    double right_width = 3.0;
+    double area = 309.23292;
     PeakShape::Type type = PeakShape::LORENTZ_PEAK;
 
     
@@ -134,12 +134,12 @@ START_SECTION((PeakShape(DoubleReal height_, DoubleReal mz_position_, DoubleReal
 		TEST_EQUAL(peakshape.type, PeakShape::LORENTZ_PEAK)
 END_SECTION
 
-START_SECTION((PeakShape(DoubleReal height_, DoubleReal mz_position_, DoubleReal left_width_, DoubleReal right_width_, DoubleReal area_, Type type_)))
-    DoubleReal height = 100.0;
-    DoubleReal mz_position = 0.0;
-    DoubleReal left_width = 3.0;
-    DoubleReal right_width = 3.0;
-    DoubleReal area = 309.23292;
+START_SECTION((PeakShape(double height_, double mz_position_, double left_width_, double right_width_, double area_, Type type_)))
+    double height = 100.0;
+    double mz_position = 0.0;
+    double left_width = 3.0;
+    double right_width = 3.0;
+    double area = 309.23292;
     PeakShape::Type type = PeakShape::LORENTZ_PEAK;
 
     PeakShape peakshape(height,
@@ -160,11 +160,11 @@ START_SECTION((PeakShape(DoubleReal height_, DoubleReal mz_position_, DoubleReal
 END_SECTION
 
 START_SECTION((bool iteratorsSet() const))
-    DoubleReal height = 100.0;
-    DoubleReal mz_position = 0.0;
-    DoubleReal left_width = 3.0;
-    DoubleReal right_width = 3.0;
-    DoubleReal area = 309.23292;
+    double height = 100.0;
+    double mz_position = 0.0;
+    double left_width = 3.0;
+    double right_width = 3.0;
+    double area = 309.23292;
     PeakShape::Type type = PeakShape::LORENTZ_PEAK;
 
     PeakShape peakshape(height,
@@ -189,11 +189,11 @@ START_SECTION((bool iteratorsSet() const))
 END_SECTION
 
 START_SECTION((PeakIterator getRightEndpoint() const))
-    DoubleReal height = 100.0;
-    DoubleReal mz_position = 4.0;
-    DoubleReal left_width = 3.0;
-    DoubleReal right_width = 3.0;
-    DoubleReal area = 309.23292;
+    double height = 100.0;
+    double mz_position = 4.0;
+    double left_width = 3.0;
+    double right_width = 3.0;
+    double area = 309.23292;
     PeakShape::Type type = PeakShape::LORENTZ_PEAK;
 
     PeakShape::PeakIterator it1 = spec.begin()+2;
@@ -211,11 +211,11 @@ END_SECTION
 
 
 START_SECTION((void setRightEndpoint(PeakIterator right_endpoint)))
-    DoubleReal height = 100.0;
-    DoubleReal mz_position = 4.0;
-    DoubleReal left_width = 3.0;
-    DoubleReal right_width = 3.0;
-    DoubleReal area = 309.23292;
+    double height = 100.0;
+    double mz_position = 4.0;
+    double left_width = 3.0;
+    double right_width = 3.0;
+    double area = 309.23292;
     PeakShape::Type type = PeakShape::LORENTZ_PEAK;
 
     PeakShape::PeakIterator it1 = spec.begin()+2;
@@ -235,11 +235,11 @@ START_SECTION((void setRightEndpoint(PeakIterator right_endpoint)))
 END_SECTION
 
 START_SECTION((PeakIterator getLeftEndpoint() const))
-    DoubleReal height = 100.0;
-    DoubleReal mz_position = 4.0;
-    DoubleReal left_width = 3.0;
-    DoubleReal right_width = 3.0;
-    DoubleReal area = 309.23292;
+    double height = 100.0;
+    double mz_position = 4.0;
+    double left_width = 3.0;
+    double right_width = 3.0;
+    double area = 309.23292;
     PeakShape::Type type = PeakShape::LORENTZ_PEAK;
 
     PeakShape::PeakIterator it1 = spec.begin()+2;
@@ -257,11 +257,11 @@ END_SECTION
 
 
 START_SECTION((void setLeftEndpoint(PeakIterator left_endpoint)))
-    DoubleReal height = 100.0;
-    DoubleReal mz_position = 4.0;
-    DoubleReal left_width = 3.0;
-    DoubleReal right_width = 3.0;
-    DoubleReal area = 309.23292;
+    double height = 100.0;
+    double mz_position = 4.0;
+    double left_width = 3.0;
+    double right_width = 3.0;
+    double area = 309.23292;
     PeakShape::Type type = PeakShape::LORENTZ_PEAK;
 
     PeakShape::PeakIterator it1 = spec.begin()+2;
@@ -279,12 +279,12 @@ START_SECTION((void setLeftEndpoint(PeakIterator left_endpoint)))
 END_SECTION
 
 
-START_SECTION((DoubleReal getSymmetricMeasure() const))
-		DoubleReal height = 100.0;
-    DoubleReal mz_position = 0.0;
-    DoubleReal left_width = 3.0;
-    DoubleReal right_width = 9.0;
-    DoubleReal area = 309.23292;
+START_SECTION((double getSymmetricMeasure() const))
+		double height = 100.0;
+    double mz_position = 0.0;
+    double left_width = 3.0;
+    double right_width = 9.0;
+    double area = 309.23292;
     PeakShape::Type type = PeakShape::SECH_PEAK;
 
     PeakShape peakshape(height,
@@ -294,16 +294,16 @@ START_SECTION((DoubleReal getSymmetricMeasure() const))
 												area,
 												type);
 
-    DoubleReal sym_value = peakshape.getSymmetricMeasure();
+    double sym_value = peakshape.getSymmetricMeasure();
     TEST_REAL_SIMILAR(sym_value,3.0/9.0)
 END_SECTION
 
-START_SECTION((DoubleReal operator() (DoubleReal x) const))
-    DoubleReal height = 100.0;
-    DoubleReal mz_position = 0.0;
-    DoubleReal left_width = 4.0;
-    DoubleReal right_width = 4.0;
-    DoubleReal area = 100;
+START_SECTION((double operator() (double x) const))
+    double height = 100.0;
+    double mz_position = 0.0;
+    double left_width = 4.0;
+    double right_width = 4.0;
+    double area = 100;
     PeakShape::Type type = PeakShape::LORENTZ_PEAK;
     
     PeakShape peakshape(height,
@@ -316,12 +316,12 @@ START_SECTION((DoubleReal operator() (DoubleReal x) const))
     TEST_REAL_SIMILAR(peakshape.getFWHM(),.5)
 END_SECTION
 
-START_SECTION((DoubleReal getFWHM() const))
-  DoubleReal height = 100.0;
-  DoubleReal mz_position = 0.0;
-  DoubleReal left_width = 4.0;
-  DoubleReal right_width = 4.0;
-  DoubleReal area = 100;
+START_SECTION((double getFWHM() const))
+  double height = 100.0;
+  double mz_position = 0.0;
+  double left_width = 4.0;
+  double right_width = 4.0;
+  double area = 100;
   PeakShape::Type type = PeakShape::LORENTZ_PEAK;
     
   PeakShape p(height,

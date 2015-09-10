@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -83,7 +83,7 @@ public:
             @throw ParseError is thrown if the given file could not be parsed
             @throw FileEmpty is thrown if the given file is empty
     */
-    std::vector<Size> load(const String & result_filename, std::vector<PeptideIdentification> & peptide_identifications, ProteinIdentification & protein_identification, const DoubleReal p_value_threshold, const String & database_filename = "");
+    std::vector<Size> load(const String & result_filename, std::vector<PeptideIdentification> & peptide_identifications, ProteinIdentification & protein_identification, const double p_value_threshold, const String & database_filename = "");
 
     /** loads only results which exceeds a given P-value threshold
 
@@ -92,7 +92,7 @@ public:
             @throw FileNotFound is thrown is the file is not found
             @throw FileEmpty is thrown if the given file is empty
     */
-    std::vector<Size> getWantedRecords(const String & result_filename, DoubleReal p_value_threshold);
+    std::vector<Size> getWantedRecords(const String & result_filename, double p_value_threshold);
 
     /** generates a trie database from another one, using the wanted records only
 

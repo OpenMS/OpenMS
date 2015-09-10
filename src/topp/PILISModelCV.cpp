@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -80,8 +80,10 @@ using namespace std;
     parameter set. More on the cross validation can be found at the docu of the
     PILISCrossValidation class.
 
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
     <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_PILISModelCV.cli
+    @verbinclude TOPP_PILISModelCV.cli
     <B>INI file documentation of this tool:</B>
     @htmlinclude TOPP_PILISModelCV.html
 */
@@ -299,7 +301,7 @@ protected:
     String trained_model_file(getStringOption_("trained_model_file"));
     String model_file(getStringOption_("model_file"));
     bool score_filtering(getFlag_("score_filtering"));
-    DoubleReal score_threshold(getDoubleOption_("score_threshold"));
+    double score_threshold(getDoubleOption_("score_threshold"));
     Int min_charge(getIntOption_("min_charge"));
     Int max_charge(getIntOption_("max_charge"));
 
@@ -481,9 +483,9 @@ protected:
 
         model.setParameters(optimal_param);
         cv.setOptions(Map<String, PILISCrossValidation::Option>());
-        DoubleReal min_value = (DoubleReal)grid_param.getValue(*it + "_min");
-        DoubleReal max_value = (DoubleReal)grid_param.getValue(*it + "_max");
-        DoubleReal step_size_value = (DoubleReal)grid_param.getValue(*it + "_step_size");
+        double min_value = (double)grid_param.getValue(*it + "_min");
+        double max_value = (double)grid_param.getValue(*it + "_max");
+        double step_size_value = (double)grid_param.getValue(*it + "_step_size");
         cv.setOption(*it, PILISCrossValidation::Option(PILISCrossValidation::Option::DOUBLE, min_value, max_value, step_size_value));
         cv.apply(optimal_param, model, peptides);
       }

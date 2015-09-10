@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -105,6 +105,9 @@ public:
     /// Initialize the scoring object and building the cross-correlation matrix
     void initializeXCorrMatrix(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> native_ids);
 
+    /// Initialize the cross-correlation vector with the MS1 trace
+    void initializeMS1XCorr(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> native_ids, std::string precursor_id);
+
     /// calculate the cross-correlation score
     double calcXcorrCoelutionScore();
 
@@ -117,9 +120,17 @@ public:
     /// calculate the weighted cross-correlation score
     double calcXcorrCoelutionScore_weighted(const std::vector<double>& normalized_library_intensity);
 
+    /// calculate the MS1 cross-correlation score
+    double calcMS1XcorrCoelutionScore();
+
+    /// calculate the MS1 cross-correlation shape score
+    double calcMS1XcorrShape_score();
+
     /// calculate the library correlation score
-    static void calcLibraryScore(OpenSwath::IMRMFeature* mrmfeature, const std::vector<TransitionType>& transitions,
-                                 double& correlation, double& norm_manhattan, double& manhattan, double& dotprod, double& spectral_angle, double& rmsd);
+    static void calcLibraryScore(OpenSwath::IMRMFeature* mrmfeature,
+      const std::vector<TransitionType>& transitions, double& correlation, 
+      double& norm_manhattan, double& manhattan, double& dotprod, 
+      double& spectral_angle, double& rmsd);
 
     /// calculate the retention time correlation score
     static double calcRTScore(const PeptideType& peptide, double normalized_experimental_rt);
@@ -127,7 +138,8 @@ public:
     /// calculate the Signal to Noise ratio
     //  using a vector of SignalToNoiseEstimatorMedian that were calculated for
     //  each chromatogram of the transition_group.
-    static double calcSNScore(OpenSwath::IMRMFeature* mrmfeature, std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators);
+    static double calcSNScore(OpenSwath::IMRMFeature* mrmfeature, 
+        std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators);
 
     //@}
 
@@ -137,6 +149,9 @@ private:
     //@{
     /// the precomputed cross correlation matrix
     XCorrMatrixType xcorr_matrix_;
+
+    /// the precomputed cross correlation with the MS1 trace
+    std::vector<XCorrArrayType> ms1_xcorr_vector_;
     //@}
 
   };

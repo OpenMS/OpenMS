@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -114,7 +114,7 @@ namespace OpenMS
     // draw ticks
     if (!ticks_.empty())
     {
-      for (vector<DoubleReal>::iterator it = ticks_.begin(); it != ticks_.end(); ++it)
+      for (vector<double>::iterator it = ticks_.begin(); it != ticks_.end(); ++it)
       {
         QPoint tick;
         canvas->dataToWidget(*it, start_point_.getY(), tick, flipped, true);
@@ -181,7 +181,7 @@ namespace OpenMS
     return end_point_;
   }
 
-  void Annotation1DDistanceItem::setTicks(const std::vector<DoubleReal> & ticks)
+  void Annotation1DDistanceItem::setTicks(const std::vector<double> & ticks)
   {
     ticks_ = ticks;
   }

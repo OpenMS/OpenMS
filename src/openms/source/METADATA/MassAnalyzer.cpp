@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -208,62 +208,62 @@ namespace OpenMS
     reflectron_state_ = reflectron_state;
   }
 
-  DoubleReal MassAnalyzer::getResolution() const
+  double MassAnalyzer::getResolution() const
   {
     return resolution_;
   }
 
-  void MassAnalyzer::setResolution(DoubleReal resolution)
+  void MassAnalyzer::setResolution(double resolution)
   {
     resolution_ = resolution;
   }
 
-  DoubleReal MassAnalyzer::getAccuracy() const
+  double MassAnalyzer::getAccuracy() const
   {
     return accuracy_;
   }
 
-  void MassAnalyzer::setAccuracy(DoubleReal accuracy)
+  void MassAnalyzer::setAccuracy(double accuracy)
   {
     accuracy_ = accuracy;
   }
 
-  DoubleReal MassAnalyzer::getScanRate() const
+  double MassAnalyzer::getScanRate() const
   {
     return scan_rate_;
   }
 
-  void MassAnalyzer::setScanRate(DoubleReal scan_rate)
+  void MassAnalyzer::setScanRate(double scan_rate)
   {
     scan_rate_ = scan_rate;
   }
 
-  DoubleReal MassAnalyzer::getScanTime() const
+  double MassAnalyzer::getScanTime() const
   {
     return scan_time_;
   }
 
-  void MassAnalyzer::setScanTime(DoubleReal scan_time)
+  void MassAnalyzer::setScanTime(double scan_time)
   {
     scan_time_ = scan_time;
   }
 
-  DoubleReal MassAnalyzer::getTOFTotalPathLength() const
+  double MassAnalyzer::getTOFTotalPathLength() const
   {
     return TOF_total_path_length_;
   }
 
-  void MassAnalyzer::setTOFTotalPathLength(DoubleReal TOF_total_path_length)
+  void MassAnalyzer::setTOFTotalPathLength(double TOF_total_path_length)
   {
     TOF_total_path_length_ = TOF_total_path_length;
   }
 
-  DoubleReal MassAnalyzer::getIsolationWidth() const
+  double MassAnalyzer::getIsolationWidth() const
   {
     return isolation_width_;
   }
 
-  void MassAnalyzer::setIsolationWidth(DoubleReal isolation_width)
+  void MassAnalyzer::setIsolationWidth(double isolation_width)
   {
     isolation_width_ = isolation_width;
   }
@@ -278,12 +278,12 @@ namespace OpenMS
     final_MS_exponent_ = final_MS_exponent;
   }
 
-  DoubleReal MassAnalyzer::getMagneticFieldStrength() const
+  double MassAnalyzer::getMagneticFieldStrength() const
   {
     return magnetic_field_strength_;
   }
 
-  void MassAnalyzer::setMagneticFieldStrength(DoubleReal magnetic_field_strength)
+  void MassAnalyzer::setMagneticFieldStrength(double magnetic_field_strength)
   {
     magnetic_field_strength_ = magnetic_field_strength;
   }

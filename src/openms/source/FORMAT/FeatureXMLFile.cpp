@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,8 @@
 
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/PrecisionWrapper.h>
+#include <OpenMS/METADATA/DataProcessing.h>
 
 #include <fstream>
 
@@ -42,8 +44,8 @@ using namespace std;
 namespace OpenMS
 {
   FeatureXMLFile::FeatureXMLFile() :
-    Internal::XMLHandler("", "1.6"),
-    Internal::XMLFile("/SCHEMAS/FeatureXML_1_6.xsd", "1.6")
+    Internal::XMLHandler("", "1.7"),
+    Internal::XMLFile("/SCHEMAS/FeatureXML_1_7.xsd", "1.7")
   {
     resetMembers_();
   }
@@ -60,7 +62,6 @@ namespace OpenMS
     //options_ = FeatureFileOptions(); do NOT reset this, since we need to preserve options!
     size_only_ = false;
     expected_size_ = 0;
-    model_desc_ = ModelDescription<2>();
     param_ = Param();
     current_chull_ = ConvexHull2D::PointArrayType();
     hull_position_ = DPosition<2>();
@@ -80,12 +81,12 @@ namespace OpenMS
 
   }
 
-  Size FeatureXMLFile::loadSize(const String & filename)
+  Size FeatureXMLFile::loadSize(const String& filename)
   {
     size_only_ = true;
     file_ = filename;
 
-    FeatureMap<> map_dummy;
+    FeatureMap map_dummy;
     map_ = &map_dummy;
 
     parse_(filename, this);
@@ -96,7 +97,7 @@ namespace OpenMS
     return size_backup;
   }
 
-  void FeatureXMLFile::load(const String & filename, FeatureMap<> & feature_map)
+  void FeatureXMLFile::load(const String& filename, FeatureMap& feature_map)
   {
     //Filename for error messages in XMLHandler
     file_ = filename;
@@ -113,7 +114,7 @@ namespace OpenMS
     // !!! Hack: set feature FWHM from meta info entries as
     // long as featureXML doesn't support a width entry.
     // See also hack in BaseFeature::setWidth().
-    for (FeatureMap<>::Iterator it = map_->begin(); it != map_->end(); ++it)
+    for (FeatureMap::Iterator it = map_->begin(); it != map_->end(); ++it)
     {
       if (it->metaValueExists("FWHM"))
       {
@@ -129,7 +130,7 @@ namespace OpenMS
     return;
   }
 
-  void FeatureXMLFile::store(const String & filename, const FeatureMap<> & feature_map)
+  void FeatureXMLFile::store(const String& filename, const FeatureMap& feature_map)
   {
     //open stream
     ofstream os(filename.c_str());
@@ -154,13 +155,13 @@ namespace OpenMS
     {
       feature_map.updateUniqueIdToIndex();
     }
-    catch (Exception::Postcondition & e)
+    catch (Exception::Postcondition& e)
     {
       LOG_FATAL_ERROR << e.getName() << ' ' << e.getMessage() << std::endl;
       throw;
     }
 
-    os.precision(writtenDigits<DoubleReal>());
+    os.precision(writtenDigits<double>(0.0));
 
     os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
        << "<featureMap version=\"" << version_ << "\"";
@@ -174,12 +175,15 @@ namespace OpenMS
     {
       os << " id=\"fm_" << feature_map.getUniqueId() << "\"";
     }
-    os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/FeatureXML_1_6.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+    os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/FeatureXML_1_7.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+
+    // user param
+    writeUserParam_("userParam", os, feature_map, 1);
 
     //write data processing
     for (Size i = 0; i < feature_map.getDataProcessing().size(); ++i)
     {
-      const DataProcessing & processing = feature_map.getDataProcessing()[i];
+      const DataProcessing& processing = feature_map.getDataProcessing()[i];
       os << "\t<dataProcessing completion_time=\"" << processing.getCompletionTime().getDate() << 'T' << processing.getCompletionTime().getTime() << "\">\n";
       os << "\t\t<software name=\"" << processing.getSoftware().getName() << "\" version=\"" << processing.getSoftware().getVersion() << "\" />\n";
       for (set<DataProcessing::ProcessingAction>::const_iterator it = processing.getProcessingActions().begin(); it != processing.getProcessingActions().end(); ++it)
@@ -194,7 +198,7 @@ namespace OpenMS
     Size prot_count = 0;
     for (Size i = 0; i < feature_map.getProteinIdentifications().size(); ++i)
     {
-      const ProteinIdentification & current_prot_id = feature_map.getProteinIdentifications()[i];
+      const ProteinIdentification& current_prot_id = feature_map.getProteinIdentifications()[i];
       os << "\t<IdentificationRun ";
       os << "id=\"PI_" << i << "\" ";
       identifier_id_[current_prot_id.getIdentifier()] = String("PI_") + i;
@@ -203,7 +207,7 @@ namespace OpenMS
       os << "search_engine_version=\"" << current_prot_id.getSearchEngineVersion() << "\">\n";
 
       //write search parameters
-      const ProteinIdentification::SearchParameters & search_param = current_prot_id.getSearchParameters();
+      const ProteinIdentification::SearchParameters& search_param = current_prot_id.getSearchParameters();
       os << "\t\t<SearchParameters "
          << "db=\"" << search_param.db << "\" "
          << "db_version=\"" << search_param.db_version << "\" "
@@ -300,11 +304,14 @@ namespace OpenMS
 
     // write features with their corresponding attributes
     os << "\t<featureList count=\"" << feature_map.size() << "\">\n";
+    startProgress(0, feature_map.size(), "Storing featureXML file");
     for (Size s = 0; s < feature_map.size(); s++)
     {
       writeFeature_(filename, os, feature_map[s], "f_", feature_map[s].getUniqueId(), 0);
+      setProgress(s);
       // writeFeature_(filename, os, feature_map[s], "f_", s, 0);
     }
+    endProgress();
 
     os << "\t</featureList>\n";
     os << "</featureMap>\n";
@@ -314,34 +321,34 @@ namespace OpenMS
     identifier_id_.clear();
   }
 
-  FeatureFileOptions & FeatureXMLFile::getOptions()
+  FeatureFileOptions& FeatureXMLFile::getOptions()
   {
     return options_;
   }
 
-  const FeatureFileOptions & FeatureXMLFile::getOptions() const
+  const FeatureFileOptions& FeatureXMLFile::getOptions() const
   {
     return options_;
   }
 
-  void FeatureXMLFile::setOptions(const FeatureFileOptions & options)
+  void FeatureXMLFile::setOptions(const FeatureFileOptions& options)
   {
-      options_ = options;
+    options_ = options;
   }
 
-  void FeatureXMLFile::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes)
+  void FeatureXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
   {
-    static const XMLCh * s_dim = xercesc::XMLString::transcode("dim");
-    static const XMLCh * s_name = xercesc::XMLString::transcode("name");
-    static const XMLCh * s_version = xercesc::XMLString::transcode("version");
-    static const XMLCh * s_value = xercesc::XMLString::transcode("value");
-    static const XMLCh * s_type = xercesc::XMLString::transcode("type");
-    static const XMLCh * s_completion_time = xercesc::XMLString::transcode("completion_time");
-    static const XMLCh * s_document_id = xercesc::XMLString::transcode("document_id");
-    static const XMLCh * s_id = xercesc::XMLString::transcode("id");
+    static const XMLCh* s_dim = xercesc::XMLString::transcode("dim");
+    static const XMLCh* s_name = xercesc::XMLString::transcode("name");
+    static const XMLCh* s_version = xercesc::XMLString::transcode("version");
+    static const XMLCh* s_value = xercesc::XMLString::transcode("value");
+    static const XMLCh* s_type = xercesc::XMLString::transcode("type");
+    static const XMLCh* s_completion_time = xercesc::XMLString::transcode("completion_time");
+    static const XMLCh* s_document_id = xercesc::XMLString::transcode("document_id");
+    static const XMLCh* s_id = xercesc::XMLString::transcode("id");
 
     // TODO The next line should be removed in OpenMS 1.7 or so!
-    static const XMLCh * s_unique_id = xercesc::XMLString::transcode("unique_id");
+    static const XMLCh* s_unique_id = xercesc::XMLString::transcode("unique_id");
 
     String tag = sm_.convert(qname);
 
@@ -411,12 +418,6 @@ namespace OpenMS
     {
       hull_position_ = DPosition<2>::zero();
     }
-    else if (tag == "model")
-    {
-      model_desc_ = ModelDescription<2>();
-      param_.clear();
-      model_desc_.setName(attributeAsString_(attributes, s_name));
-    }
     else if (tag == "param")
     {
       String name = attributeAsString_(attributes, s_name);
@@ -470,7 +471,7 @@ namespace OpenMS
       optionalAttributeAsString_(file_version, attributes, s_version);
       if (file_version == "")
       {
-        file_version = "1.0";       //default version is 1.0
+        file_version = "1.0"; //default version is 1.0
       }
       if (file_version.toDouble() > version_.toDouble())
       {
@@ -493,6 +494,7 @@ namespace OpenMS
       {
         map_->setUniqueId(unique_id);
       }
+      last_meta_ = map_;
     }
     else if (tag == "dataProcessing")
     {
@@ -593,7 +595,7 @@ namespace OpenMS
       prot_id_.setScoreType(attributeAsString_(attributes, "score_type"));
 
       //optional significance threshold
-      DoubleReal tmp = 0.0;
+      double tmp = 0.0;
       optionalAttributeAsDouble_(tmp, attributes, "significance_threshold");
       if (tmp != 0.0)
       {
@@ -634,7 +636,7 @@ namespace OpenMS
       pep_id_.setScoreType(attributeAsString_(attributes, "score_type"));
 
       //optional significance threshold
-      DoubleReal tmp = 0.0;
+      double tmp = 0.0;
       optionalAttributeAsDouble_(tmp, attributes, "significance_threshold");
       if (tmp != 0.0)
       {
@@ -645,22 +647,22 @@ namespace OpenMS
       pep_id_.setHigherScoreBetter(asBool_(attributeAsString_(attributes, "higher_score_better")));
 
       //MZ
-      DoubleReal tmp2 = -numeric_limits<DoubleReal>::max();
+      double tmp2 = -numeric_limits<double>::max();
       optionalAttributeAsDouble_(tmp2, attributes, "MZ");
-      if (tmp2 != -numeric_limits<DoubleReal>::max())
+      if (tmp2 != -numeric_limits<double>::max())
       {
-        pep_id_.setMetaValue("MZ", tmp2);
+        pep_id_.setMZ(tmp2);
       }
       //RT
-      tmp2 = -numeric_limits<DoubleReal>::max();
+      tmp2 = -numeric_limits<double>::max();
       optionalAttributeAsDouble_(tmp2, attributes, "RT");
-      if (tmp2 != -numeric_limits<DoubleReal>::max())
+      if (tmp2 != -numeric_limits<double>::max())
       {
-        pep_id_.setMetaValue("RT", tmp2);
+        pep_id_.setRT(tmp2);
       }
-      Int tmp3 = -numeric_limits<Int>::max();
-      optionalAttributeAsInt_(tmp3, attributes, "spectrum_reference");
-      if (tmp3 != -numeric_limits<Int>::max())
+      String tmp3;
+      optionalAttributeAsString_(tmp3, attributes, "spectrum_reference");
+      if (!tmp3.empty())
       {
         pep_id_.setMetaValue("spectrum_reference", tmp3);
       }
@@ -670,28 +672,14 @@ namespace OpenMS
     else if (tag == "PeptideHit")
     {
       pep_hit_ = PeptideHit();
+      vector<PeptideEvidence> peptide_evidences_;
 
       pep_hit_.setCharge(attributeAsInt_(attributes, "charge"));
       pep_hit_.setScore(attributeAsDouble_(attributes, "score"));
-      pep_hit_.setSequence(AASequence(attributeAsString_(attributes, "sequence")));
-
-      //aa_before
-      String tmp = "";
-      optionalAttributeAsString_(tmp, attributes, "aa_before");
-      if (!tmp.empty())
-      {
-        pep_hit_.setAABefore(tmp[0]);
-      }
-      //aa_after
-      tmp = "";
-      optionalAttributeAsString_(tmp, attributes, "aa_after");
-      if (!tmp.empty())
-      {
-        pep_hit_.setAAAfter(tmp[0]);
-      }
+      pep_hit_.setSequence(AASequence::fromString(String(attributeAsString_(attributes, "sequence"))));
 
       //parse optional protein ids to determine accessions
-      const XMLCh * refs = attributes.getValue(sm_.convert("protein_refs"));
+      const XMLCh* refs = attributes.getValue(sm_.convert("protein_refs"));
       if (refs != 0)
       {
         String accession_string = sm_.convert(refs);
@@ -707,7 +695,9 @@ namespace OpenMS
           Map<String, String>::const_iterator it2 = proteinid_to_accession_.find(*it);
           if (it2 != proteinid_to_accession_.end())
           {
-            pep_hit_.addProteinAccession(it2->second);
+            PeptideEvidence pe;
+            pe.setProteinAccession(it2->second);
+            peptide_evidences_.push_back(pe);
           }
           else
           {
@@ -715,11 +705,31 @@ namespace OpenMS
           }
         }
       }
+
+      //aa_before
+      String tmp = "";
+      optionalAttributeAsString_(tmp, attributes, "aa_before");
+
+      // store this information in first peptide evidence object
+      if (!tmp.empty() && !peptide_evidences_.empty())
+      {
+        peptide_evidences_[0].setAABefore(tmp[0]);
+      }
+
+      //aa_after
+      tmp = "";
+      optionalAttributeAsString_(tmp, attributes, "aa_after");
+      if (!tmp.empty() && !peptide_evidences_.empty())
+      {
+        peptide_evidences_[0].setAAAfter(tmp[0]);
+      }
+
+      pep_hit_.setPeptideEvidences(peptide_evidences_);
       last_meta_ = &pep_hit_;
     }
   }
 
-  void FeatureXMLFile::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname)
+  void FeatureXMLFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
   {
     String tag = sm_.convert(qname);
 
@@ -762,7 +772,7 @@ namespace OpenMS
         }
         else
         {
-          Feature * f1(0);
+          Feature* f1(0);
           if (!map_->empty())
           {
             f1 = &(map_->back());
@@ -784,8 +794,7 @@ namespace OpenMS
     }
     else if (tag == "model")
     {
-      model_desc_.setParam(param_);
-      current_feature_->setModelDescription(model_desc_);
+      warning(LOAD, String("The featureXML file contains a 'model' description, but the internal datastructure has no model support since OpenMS 1.12. Model will be ignored!"));
     }
     else if (tag == "hullpoint" || tag == "pt")
     {
@@ -842,7 +851,7 @@ namespace OpenMS
     }
   }
 
-  void FeatureXMLFile::characters(const XMLCh * const chars, const XMLSize_t /*length*/)
+  void FeatureXMLFile::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
   {
     // handle skipping of whole sections
     if (disable_parsing_)
@@ -858,7 +867,7 @@ namespace OpenMS
     if (open_tags_.size() == 0)
       return;
 
-    String & current_tag = open_tags_.back();
+    String& current_tag = open_tags_.back();
     if (current_tag == "intensity")
     {
       current_feature_->setIntensity(asDouble_(sm_.convert(chars)));
@@ -885,7 +894,7 @@ namespace OpenMS
     }
   }
 
-  void FeatureXMLFile::writeFeature_(const String & filename, ostream & os, const Feature & feat, const String & identifier_prefix, UInt64 identifier, UInt indentation_level)
+  void FeatureXMLFile::writeFeature_(const String& filename, ostream& os, const Feature& feat, const String& identifier_prefix, UInt64 identifier, UInt indentation_level)
   {
     String indent = String(indentation_level, '\t');
 
@@ -902,21 +911,6 @@ namespace OpenMS
     os << indent << "\t\t\t<overallquality>" << precisionWrapper(feat.getOverallQuality()) << "</overallquality>\n";
     os << indent << "\t\t\t<charge>" << feat.getCharge() << "</charge>\n";
 
-    // write model description
-    ModelDescription<2> desc = feat.getModelDescription();
-    if (!desc.getName().empty() || !desc.getParam().empty())
-    {
-      os << indent << "\t\t\t<model name=\"" << desc.getName() << "\">\n";
-      Param modelp = desc.getParam();
-      Param::ParamIterator piter = modelp.begin();
-      while (piter != modelp.end())
-      {
-        os << indent << "\t\t\t\t<param name=\"" << piter.getName() << "\" value=\"" << piter->value << "\"/>\n";
-        piter++;
-      }
-      os << indent << "\t\t\t</model>\n";
-    }
-
     // write convex hull
     vector<ConvexHull2D> hulls = feat.getConvexHulls();
 
@@ -928,7 +922,7 @@ namespace OpenMS
 
       ConvexHull2D current_hull = hulls[i];
       current_hull.compress();
-      Size hull_size  = current_hull.getHullPoints().size();
+      Size hull_size = current_hull.getHullPoints().size();
 
       for (Size j = 0; j < hull_size; j++)
       {
@@ -970,7 +964,7 @@ namespace OpenMS
     os << indent << "\t\t</feature>\n";
   }
 
-  void FeatureXMLFile::writePeptideIdentification_(const String & filename, std::ostream & os, const PeptideIdentification & id, const String & tag_name, UInt indentation_level)
+  void FeatureXMLFile::writePeptideIdentification_(const String& filename, std::ostream& os, const PeptideIdentification& id, const String& tag_name, UInt indentation_level)
   {
     String indent = String(indentation_level, '\t');
 
@@ -985,22 +979,20 @@ namespace OpenMS
     os << "higher_score_better=\"" << (id.isHigherScoreBetter() ? "true" : "false") << "\" ";
     os << "significance_threshold=\"" << id.getSignificanceThreshold() << "\" ";
     //mz
-    DataValue dv = id.getMetaValue("MZ");
-    if (dv != DataValue::EMPTY)
+    if (id.hasMZ())
     {
-      os << "MZ=\"" << dv.toString() << "\" ";
+      os << "MZ=\"" << id.getMZ() << "\" ";
     }
     // rt
-    dv = id.getMetaValue("RT");
-    if (dv != DataValue::EMPTY)
+    if (id.hasRT())
     {
-      os << "RT=\"" << dv.toString() << "\" ";
+      os << "RT=\"" << id.getRT() << "\" ";
     }
     // spectrum_reference
-    dv = id.getMetaValue("spectrum_reference");
+    DataValue dv = id.getMetaValue("spectrum_reference");
     if (dv != DataValue::EMPTY)
     {
-      os << "spectrum_reference=\"" << dv.toString() << "\" ";
+      os << "spectrum_reference=\"" << writeXMLEscape(dv.toString()) << "\" ";
     }
     os << ">\n";
 
@@ -1011,23 +1003,39 @@ namespace OpenMS
       os << " score=\"" << id.getHits()[j].getScore() << "\"";
       os << " sequence=\"" << id.getHits()[j].getSequence() << "\"";
       os << " charge=\"" << id.getHits()[j].getCharge() << "\"";
-      if (id.getHits()[j].getAABefore() != ' ')
+
+      vector<PeptideEvidence> pes = id.getHits()[j].getPeptideEvidences();
+
+      // do we have peptide evidence information? print information of the first one (featureXML only supports one evidence per hit)
+      if (!pes.empty())
       {
-        os << " aa_before=\"" << id.getHits()[j].getAABefore() << "\"";
-      }
-      if (id.getHits()[j].getAAAfter() != ' ')
-      {
-        os << " aa_after=\"" << id.getHits()[j].getAAAfter() << "\"";
-      }
-      if (id.getHits()[j].getProteinAccessions().size() != 0)
-      {
-        String accs = "";
-        for (Size m = 0; m < id.getHits()[j].getProteinAccessions().size(); ++m)
+        if (pes[0].getAABefore() != PeptideEvidence::UNKNOWN_AA)
         {
-          if (m)
+          os << " aa_before=\"" << pes[0].getAABefore() << "\"";
+        }
+      }
+
+      if (!pes.empty())
+      {
+        if (pes[0].getAAAfter() != PeptideEvidence::UNKNOWN_AA)
+        {
+          os << " aa_after=\"" << pes[0].getAAAfter() << "\"";
+        }
+      }
+
+      set<String> protein_accessions = id.getHits()[j].extractProteinAccessions();
+
+      if (!protein_accessions.empty())
+      {
+        String accs;
+        for (set<String>::const_iterator s_it = protein_accessions.begin(); s_it != protein_accessions.end(); ++s_it)
+        {
+          if (s_it != protein_accessions.begin())
+          {
             accs += " ";
+          }
           accs += "PH_";
-          accs += String(accession_to_id_[id.getIdentifier() + "_" + id.getHits()[j].getProteinAccessions()[m]]);
+          accs += String(accession_to_id_[id.getIdentifier() + "_" + *s_it]);
         }
         os << " protein_refs=\"" << accs << "\"";
       }
@@ -1036,10 +1044,8 @@ namespace OpenMS
       os << indent << "\t</PeptideHit>\n";
     }
 
-    //do not write "RT", "MZ" and "spectrum_reference" as they are written as attributes already
+    //do not write "spectrum_reference" since it is written as attribute already
     MetaInfoInterface tmp = id;
-    tmp.removeMetaValue("RT");
-    tmp.removeMetaValue("MZ");
     tmp.removeMetaValue("spectrum_reference");
     writeUserParam_("userParam", os, tmp, indentation_level + 1);
     os << indent << "</" << tag_name << ">\n";
@@ -1072,7 +1078,7 @@ namespace OpenMS
       return;
     }
 
-    Feature * f1 = 0;
+    Feature* f1 = 0;
     if (map_->empty())
     {
       // do NOT throw an exception here. this is a valid case! e.g. the

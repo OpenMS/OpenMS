@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,9 @@
 
 #ifndef OPENMS_VISUAL_DIALOGS_FEATUREEDITDIALOG_H
 #define OPENMS_VISUAL_DIALOGS_FEATUREEDITDIALOG_H
+
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/VISUAL/DIALOGS/UIC/ui_FeatureEditDialog.h>

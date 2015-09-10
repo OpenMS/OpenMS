@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -325,29 +325,29 @@ START_SECTION((void expandToBoundingBox()))
 
 	// Check that values agree with min/max of the 
 	// enclosed points.
-	Real min_x, min_y, max_x, max_y;
+	float min_x, min_y, max_x, max_y;
 	min_x = tmp.getHullPoints()[0][0];
 	min_y = tmp.getHullPoints()[0][1];
 	max_x = min_x;
 	max_y = min_y;
 	for (Size i = 0; i < tmp.getHullPoints().size(); ++i)
 	{
-		Real x = tmp.getHullPoints()[i][0];
-		Real y = tmp.getHullPoints()[i][1];
+		float x = tmp.getHullPoints()[i][0];
+		float y = tmp.getHullPoints()[i][1];
 		min_x = std::min(min_x, x);
 		max_x = std::max(max_x, x);
 		min_y = std::min(min_y, y);
 		max_y = std::max(max_y, y);
 	}
-	Real o_min_x, o_min_y, o_max_x, o_max_y;
+	float o_min_x, o_min_y, o_max_x, o_max_y;
 	o_min_x = original.getHullPoints()[0][0];
 	o_min_y = original.getHullPoints()[0][1];
 	o_max_x = o_min_x;
 	o_max_y = o_min_y;
 	for (Size i = 0; i < original.getHullPoints().size(); ++i)
 	{
-		Real x = original.getHullPoints()[i][0];
-		Real y = original.getHullPoints()[i][1];
+		float x = original.getHullPoints()[i][0];
+		float y = original.getHullPoints()[i][1];
 		o_min_x = std::min(o_min_x, x);
 		o_max_x = std::max(o_max_x, x);
 		o_min_y = std::min(o_min_y, y);

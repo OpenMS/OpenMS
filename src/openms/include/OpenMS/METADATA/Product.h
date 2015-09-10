@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -68,25 +68,25 @@ public:
     bool operator!=(const Product & rhs) const;
 
     /// returns the target m/z
-    DoubleReal getMZ() const;
+    double getMZ() const;
     /// sets the target m/z
-    void setMZ(DoubleReal mz);
+    void setMZ(double mz);
 
     /// returns the lower offset from the target m/z
-    DoubleReal getIsolationWindowLowerOffset() const;
+    double getIsolationWindowLowerOffset() const;
     /// sets the lower offset from the target m/z
-    void setIsolationWindowLowerOffset(DoubleReal bound);
+    void setIsolationWindowLowerOffset(double bound);
 
     /// returns the upper offset from the target m/z
-    DoubleReal getIsolationWindowUpperOffset() const;
+    double getIsolationWindowUpperOffset() const;
     /// sets the upper offset from the target m/z
-    void setIsolationWindowUpperOffset(DoubleReal bound);
+    void setIsolationWindowUpperOffset(double bound);
 
 protected:
 
-    DoubleReal mz_;
-    DoubleReal window_low_;
-    DoubleReal window_up_;
+    double mz_;
+    double window_low_;
+    double window_up_;
   };
 } // namespace OpenMS
 

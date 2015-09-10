@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -83,7 +83,7 @@ START_SECTION((template<typename PeakType> void raster(MSSpectrum<PeakType>& spe
   lr.setParameters(param);
   lr.raster(spec);
 
-  DoubleReal sum = 0.0;
+  double sum = 0.0;
   for (Size i=0; i<spec.size(); ++i)
   {
     sum += spec[i].getIntensity();
@@ -115,7 +115,7 @@ START_SECTION((template<typename PeakType> void raster(MSSpectrum<PeakType>& spe
   lr.setParameters(param);
   lr.raster(spec);
 
-  DoubleReal sum = 0.0;
+  double sum = 0.0;
   for (Size i=0; i<spec.size(); ++i)
   {
     sum += spec[i].getIntensity();
@@ -157,7 +157,7 @@ START_SECTION(( template <typename PeakType > void rasterExperiment(MSExperiment
 
   for (Size s=0; s<exp.size(); ++s)
   {
-    DoubleReal sum = 0.0;
+    double sum = 0.0;
     for (Size i=0; i<exp[s].size(); ++i)
     {
       sum += exp[s][i].getIntensity();

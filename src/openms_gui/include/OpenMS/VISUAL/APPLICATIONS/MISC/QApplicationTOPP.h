@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,12 +35,11 @@
 #ifndef OPENMS_VISUAL_APPLICATIONS_MISC_QAPPLICATIONTOPP_H
 #define OPENMS_VISUAL_APPLICATIONS_MISC_QAPPLICATIONTOPP_H
 
-
-#include <OpenMS/config.h>
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 //Qt
 #include <QtGui/QApplication>
-
 
 namespace OpenMS
 {
@@ -70,7 +69,7 @@ public:
     */
     virtual bool notify(QObject* rec, QEvent* ev);
 
-    /* 
+    /*
       Reimplemented from QApplication, to handle QEvent::FileOpen to enable handling of odoc event on MacOSX
     */
     bool event(QEvent*);

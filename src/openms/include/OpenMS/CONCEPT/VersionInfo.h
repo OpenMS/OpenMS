@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,7 +49,8 @@ namespace OpenMS
 
       Note that the term <i>"version"</i> refers to releases (such as 1.0, 1.1, 1.1.1,
       1.2, ...),  whereas the term <i>"revision"</i> refers to a revision control system
-      such as subversion and is mainly of interest for developers.
+      such as git and is mainly of interest for developers. The term <i>"branch"</i>
+      refers to the git branch that this build of OpenMS is based on.
 
       The VersionInfo class contains only static methods.
 
@@ -78,10 +79,10 @@ public:
       {
       }
 
-      /** @brief parse String and return as proper struct
+      /**
+        @brief parse String and return as proper struct
 
-          @returns VersionInfo::empty on failure
-
+        @returns VersionInfo::empty on failure
       */
       static VersionDetails create(const String & version);
 
@@ -102,17 +103,30 @@ public:
     static VersionDetails getVersionStruct();
 
     /**
-      @brief Return the revision number from revision control system, e.g. Subversion.
+      @brief Return the revision number from revision control system, e.g. git.
 
       On released versions of OpenMS (not from SVN), the result is "exported".
       The result can be possibly be "" on some platforms, which means that
       revision info is unavailable.  You should check for both cases in your
       code.
 
-      @internal The current svn version is queried by the build system regularly and
+      @internal The current git version is queried by the build system regularly and
       the result is written as a header file which is included by VersionInfo.cpp.
-        */
+    */
     static String getRevision();
+
+    /**
+      @brief Return the branch name from revision control system, e.g. git.
+
+      On released versions of OpenMS (not from SVN), the result is "exported".
+      The result can be possibly be "" on some platforms, which means that
+      revision info is unavailable.  You should check for both cases in your
+      code.
+
+      @internal The current git branch is queried by the build system regularly and
+      the result is written as a header file which is included by VersionInfo.cpp.
+    */
+    static String getBranch();
 
   };
 

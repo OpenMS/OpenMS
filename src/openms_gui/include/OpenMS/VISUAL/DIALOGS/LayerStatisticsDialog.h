@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,9 +32,11 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-
 #ifndef OPENMS_VISUAL_DIALOGS_LAYERSTATISTICSDIALOG_H
 #define OPENMS_VISUAL_DIALOGS_LAYERSTATISTICSDIALOG_H
+
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <OpenMS/VISUAL/DIALOGS/UIC/ui_LayerStatisticsDialog.h>
 #include <OpenMS/VISUAL/LayerData.h>
@@ -77,7 +79,7 @@ protected:
     */
     struct MetaStatsValue_
     {
-      MetaStatsValue_(unsigned long c = 0, DoubleReal mi = 0, DoubleReal ma = 0, DoubleReal a = 0)
+      MetaStatsValue_(unsigned long c = 0, double mi = 0, double ma = 0, double a = 0)
       {
         count = c;
         min = mi;
@@ -86,7 +88,7 @@ protected:
       }
 
       unsigned long count;
-      DoubleReal min, max, avg;
+      double min, max, avg;
     };
 
     /// Iterates over peaks of a spectrum
@@ -121,29 +123,29 @@ protected:
     /// The LayerData object we compute statistics about
     LayerData layer_data_;
     /// Minimum intensity value
-    DoubleReal min_intensity_;
+    double min_intensity_;
     /// Maximum intensity value
-    DoubleReal max_intensity_;
+    double max_intensity_;
     /// Average intensity value
-    DoubleReal avg_intensity_;
+    double avg_intensity_;
     /// Minimum charge value
-    DoubleReal min_charge_;
+    double min_charge_;
     /// Maximum charge value
-    DoubleReal max_charge_;
+    double max_charge_;
     /// Average charge value
-    DoubleReal avg_charge_;
+    double avg_charge_;
     /// Minimum quality value
-    DoubleReal min_quality_;
+    double min_quality_;
     /// Maximum quality value
-    DoubleReal max_quality_;
+    double max_quality_;
     /// Average quality value
-    DoubleReal avg_quality_;
+    double avg_quality_;
     /// Minimum number of elements (for consensus features only)
-    DoubleReal min_elements_;
+    double min_elements_;
     /// Maximum number of elements (for consensus features only)
-    DoubleReal max_elements_;
+    double max_elements_;
     /// Average number of elements (for consensus features only)
-    DoubleReal avg_elements_;
+    double avg_elements_;
 
 private:
     ///Not implemented
@@ -164,7 +166,7 @@ private:
         meta_stats_value = it->second;
         for (typename MetaDataIterator::value_type::const_iterator value_it = meta_array_it->begin(); value_it != meta_array_it->end(); value_it++)
         {
-          Real value = *value_it;
+          float value = *value_it;
           meta_stats_value.count++;
           if (value < meta_stats_value.min)
           {
@@ -180,11 +182,11 @@ private:
       }
       else if (meta_array_it->size() > 0)    // meta name has not occurred before, create new stats for it:
       {
-        Real init_value = *(meta_array_it->begin());
+        float init_value = *(meta_array_it->begin());
         meta_stats_value = MetaStatsValue_(0, init_value, init_value, 0);
         for (typename MetaDataIterator::value_type::const_iterator value_it = meta_array_it->begin(); value_it != meta_array_it->end(); value_it++)
         {
-          Real value = *value_it;
+          float value = *value_it;
           meta_stats_value.count++;
           if (value < meta_stats_value.min)
           {

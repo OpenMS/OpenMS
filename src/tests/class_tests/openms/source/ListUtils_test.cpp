@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -68,10 +68,10 @@ START_SECTION((template < typename T, typename E > static bool contains(const st
 }
 END_SECTION
 
-START_SECTION((static bool contains(const std::vector< DoubleReal > &container, const DoubleReal &elem, DoubleReal tolerance=0.00001)))
+START_SECTION((static bool contains(const std::vector< double > &container, const double &elem, double tolerance=0.00001)))
 {
   //
-  std::vector<DoubleReal> dv;
+  std::vector<double> dv;
   dv.push_back(1.2);
   dv.push_back(3.4);
   TEST_EQUAL(ListUtils::contains(dv, 1.2),true)
@@ -101,7 +101,7 @@ START_SECTION((template < typename T > static std::vector<T> create(const std::v
   TEST_EQUAL(sv[2], iv[2])
 
   // create double vector
-  std::vector<DoubleReal> dv = ListUtils::create<DoubleReal>(iv);
+  std::vector<double> dv = ListUtils::create<double>(iv);
   TEST_EQUAL(dv.size(), 3)
   ABORT_IF(dv.size() != 3)
   TEST_EQUAL(dv[0], 1.2)
@@ -114,7 +114,7 @@ START_SECTION((template < typename T > static std::vector<T> create(const std::v
   ABORT_IF(sv2.size() != 4)
   TEST_EQUAL(sv2[3], iv[3])
 
-  TEST_EXCEPTION(Exception::ConversionError, ListUtils::create<DoubleReal>(iv))
+  TEST_EXCEPTION(Exception::ConversionError, ListUtils::create<double>(iv))
 }
 END_SECTION
 
@@ -127,7 +127,7 @@ START_SECTION((template < typename T > static std::vector<T> create(const String
   TEST_EQUAL(sv[1], "no")
   TEST_EQUAL(sv[2], " maybe")
 
-  std::vector<DoubleReal> dv = ListUtils::create<DoubleReal>("1.2,3.5");
+  std::vector<double> dv = ListUtils::create<double>("1.2,3.5");
   TEST_EQUAL(dv.size(), 2)
   ABORT_IF(dv.size() != 2)
   TEST_EQUAL(dv[0], 1.2)
@@ -201,15 +201,34 @@ START_SECTION((template < typename T > static String concatenate(const std::vect
 }
 END_SECTION
 
-START_SECTION(([EXTRA] template<typename StringType> StringList& operator<<(StringList& sl, const StringType& string)))
-  StringList list;
-  list << "a" << "b" << "c" << "a";
-  TEST_EQUAL(list.size(),4)
-  ABORT_IF(list.size() != 4)
-  TEST_STRING_EQUAL(list[0],"a")
-  TEST_STRING_EQUAL(list[1],"b")
-  TEST_STRING_EQUAL(list[2],"c")
-  TEST_STRING_EQUAL(list[3],"a")
+START_SECTION((template <typename T> static Int getIndex(const std::vector<T>& container, const E& elem)))
+{
+  IntList ints;
+  ints.push_back(4);
+  ints.push_back(3);
+  ints.push_back(1);
+  ints.push_back(2);
+
+  TEST_EQUAL(ListUtils::getIndex<Int>(ints, 0), -1);
+  TEST_EQUAL(ListUtils::getIndex<Int>(ints, 1), 2);
+  TEST_EQUAL(ListUtils::getIndex<Int>(ints, 2), 3);
+  TEST_EQUAL(ListUtils::getIndex<Int>(ints, 3), 1);
+  TEST_EQUAL(ListUtils::getIndex<Int>(ints, 4), 0);
+  TEST_EQUAL(ListUtils::getIndex<Int>(ints, 5), -1);
+
+  StringList strings;
+  strings.push_back("four");
+  strings.push_back("three");
+  strings.push_back("one");
+  strings.push_back("two");
+
+  TEST_EQUAL(ListUtils::getIndex<String>(strings, "zero"), -1);
+  TEST_EQUAL(ListUtils::getIndex<String>(strings, "one"), 2);
+  TEST_EQUAL(ListUtils::getIndex<String>(strings, "two"), 3);
+  TEST_EQUAL(ListUtils::getIndex<String>(strings, "three"), 1);
+  TEST_EQUAL(ListUtils::getIndex<String>(strings, "four"), 0);
+  TEST_EQUAL(ListUtils::getIndex<String>(strings, "five"), -1);
+}
 END_SECTION
 
 END_TEST

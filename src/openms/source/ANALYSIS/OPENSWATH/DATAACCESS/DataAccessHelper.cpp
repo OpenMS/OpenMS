@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,7 +56,7 @@ namespace OpenMS
   {
     OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
     OpenSwath::BinaryDataArrayPtr mz_array(new OpenSwath::BinaryDataArray);
-    for (MSSpectrum<>::const_iterator it = spectrum.begin(); it != spectrum.end(); it++)
+    for (MSSpectrum<>::const_iterator it = spectrum.begin(); it != spectrum.end(); ++it)
     {
       mz_array->data.push_back(it->getMZ());
       intensity_array->data.push_back(it->getIntensity());
@@ -114,7 +114,7 @@ namespace OpenMS
 
       // legacy
 #if 1
-      if (transition_exp_.getTransitions()[i].getCVTerms().has("decoy") && 
+      if (transition_exp_.getTransitions()[i].getCVTerms().has("decoy") &&
           transition_exp_.getTransitions()[i].getCVTerms()["decoy"][0].getValue().toString() == "1" )
       {
         t.decoy = true;
@@ -127,7 +127,7 @@ namespace OpenMS
       {
         t.decoy = true;
       }
-      else if (transition_exp_.getTransitions()[i].getCVTerms().has("MS:1002007") && 
+      else if (transition_exp_.getTransitions()[i].getCVTerms().has("MS:1002007") &&
           transition_exp_.getTransitions()[i].getCVTerms().has("MS:1002008"))    // both == illegal
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
@@ -135,7 +135,7 @@ namespace OpenMS
       }
       else
 #endif
-      if (transition_exp_.getTransitions()[i].getDecoyTransitionType() == ReactionMonitoringTransition::UNKNOWN || 
+      if (transition_exp_.getTransitions()[i].getDecoyTransitionType() == ReactionMonitoringTransition::UNKNOWN ||
           transition_exp_.getTransitions()[i].getDecoyTransitionType() == ReactionMonitoringTransition::TARGET)
       {
         // assume its target
@@ -144,6 +144,84 @@ namespace OpenMS
       else if (transition_exp_.getTransitions()[i].getDecoyTransitionType() == ReactionMonitoringTransition::DECOY)
       {
         t.decoy = true;
+      }
+
+      if (transition_exp_.getTransitions()[i].metaValueExists("detecting_transition"))
+      {
+        if (!transition_exp_.getTransitions()[i].getMetaValue("detecting_transition").toBool())
+        {
+          t.detecting_transition = false;
+        }
+        else if (transition_exp_.getTransitions()[i].getMetaValue("detecting_transition").toBool())
+        {
+          t.detecting_transition = true;
+        }
+      }
+      else
+      {
+        t.detecting_transition = true;
+      }
+      if (transition_exp_.getTransitions()[i].metaValueExists("identifying_transition"))
+      {
+        if (!transition_exp_.getTransitions()[i].getMetaValue("identifying_transition").toBool())
+        {
+          t.identifying_transition = false;
+        }
+        else if (transition_exp_.getTransitions()[i].getMetaValue("identifying_transition").toBool())
+        {
+          t.identifying_transition = true;
+        }
+      }
+      else
+      {
+        t.identifying_transition = false;
+      }
+      String sites_data = transition_exp_.getTransitions()[i].getMetaValue("site_identifying_transition").toString();
+      if (sites_data != "")
+      {
+        IntList sites = ListUtils::create<Int>(sites_data);
+        if (sites.size() > 0)
+        {
+          t.site_identifying_transition = sites;
+        }
+        else
+        {
+          t.site_identifying_transition = std::vector<int>();
+        }
+      }
+      String sites_classes_data = transition_exp_.getTransitions()[i].getMetaValue("site_identifying_class").toString();
+      if (sites_classes_data != "")
+      {
+        StringList sites_classes_sl = ListUtils::create<String>(sites_classes_data);
+        std::vector<std::string> sites_classes;
+        for (std::vector<String>::iterator sl_it = sites_classes_sl.begin(); sl_it != sites_classes_sl.end(); ++sl_it)
+        {
+          sites_classes.push_back(*sl_it);
+        }
+
+        if (sites_classes.size() > 0)
+        {
+          t.site_identifying_class = sites_classes;
+        }
+      }
+      else
+      {
+        t.site_identifying_class = std::vector<std::string>();
+      }
+      if (transition_exp_.getTransitions()[i].metaValueExists("quantifying_transition"))
+      {
+        if (!transition_exp_.getTransitions()[i].getMetaValue("quantifying_transition").toBool())
+        {
+          t.quantifying_transition = false;
+        }
+        else if (transition_exp_.getTransitions()[i].getMetaValue("quantifying_transition").toBool())
+        {
+          t.quantifying_transition = true;
+        }
+      }
+      else
+      {
+        t.quantifying_transition = true;
       }
 
       transition_exp.transitions.push_back(t);
@@ -162,9 +240,12 @@ namespace OpenMS
     }
     p.charge = pep.getChargeState();
     p.sequence = pep.sequence;
+    p.peptide_group_label = pep.getPeptideGroupLabel();
+
+    p.protein_refs.clear();
     if (!pep.protein_refs.empty())
     {
-      p.protein_ref = pep.protein_refs[0];
+      p.protein_refs.insert( p.protein_refs.begin(), pep.protein_refs.begin(), pep.protein_refs.end() ); 
     }
 
     // Mapping of peptide modifications
@@ -197,14 +278,14 @@ namespace OpenMS
 
         }
       }
-        
+
     }
     // transition_exp.peptides.push_back(p);
   }
 
   void OpenSwathDataAccessHelper::convertPeptideToAASequence(const OpenSwath::LightPeptide & peptide, AASequence & aa_sequence)
   {
-      aa_sequence = AASequence(peptide.sequence);
+      aa_sequence = AASequence::fromString(peptide.sequence);
       for (std::vector<OpenSwath::LightModification>::const_iterator it = peptide.modifications.begin(); it != peptide.modifications.end(); ++it)
       {
         TargetedExperimentHelper::setModification(it->location, boost::numeric_cast<int>(peptide.sequence.size()), it->unimod_id, aa_sequence);

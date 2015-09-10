@@ -12,17 +12,17 @@
     </fileContent>
     <sourceFileList count="3">
       <sourceFile id="sf1" name="tiny1.RAW" location="file:///F:/data/Exp01">
-        <cvParam cvRef="MS" accession="MS:1000563" name="Thermo RAW file"/>
+        <cvParam cvRef="MS" accession="MS:1000563" name="Thermo RAW format"/>
         <cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="71be39fb2700ab2f3c8b2234b91274968b6899b1"/>
       	<cvParam cvRef="MS" accession="MS:1000774" name="multiple peak list nativeID format"/>
       </sourceFile>
       <sourceFile id="sf_parameters" name="parameters.par" location="file:///C:/settings/">
-        <cvParam cvRef="MS" accession="MS:1000563" name="Thermo RAW file"/>
+        <cvParam cvRef="MS" accession="MS:1000563" name="Thermo RAW format"/>
         <cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="61be39fb2700ab2f3c8b2234b91274968b6899b1"/>
 				<cvParam cvRef="MS" accession="MS:1000824" name="no nativeID format" />
       </sourceFile>
       <sourceFile id="sf_spectrum_2" name="tiny1.dta" location="file:///F:/data/Exp01">
-        <cvParam cvRef="MS" accession="MS:1000613" name="DTA file" value=""/>
+        <cvParam cvRef="MS" accession="MS:1000613" name="DTA format" value=""/>
         <cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="81be39fb2700ab2f3c8b2234b91274968b6899b1"/>
 				<cvParam cvRef="MS" accession="MS:1000824" name="no nativeID format" />
       </sourceFile>
@@ -32,7 +32,7 @@
       <cvParam cvRef="MS" accession="MS:1000587" name="contact address" value="Higglesworth University, 12 Higglesworth Avenue, 12045, HI, USA"/>
       <cvParam cvRef="MS" accession="MS:1000588" name="contact URL" value="http://www.higglesworth.edu/"/>
       <cvParam cvRef="MS" accession="MS:1000589" name="contact email" value="wpennington@higglesworth.edu"/>
-			<cvParam cvRef="MS" accession="MS:1000590" name="contact organization" value="Higglesworth University"/>
+			<cvParam cvRef="MS" accession="MS:1000590" name="contact affiliation" value="Higglesworth University"/>
  			<userParam name="name" value="contact1"/>
     </contact>
   </fileDescription>
@@ -53,7 +53,7 @@
       <cvParam cvRef="MS" accession="MS:1000533" name="Bioworks"/>
     </software>
     <software id="pwiz" version="1.0">
-      <cvParam cvRef="MS" accession="MS:1000615" name="ProteoWizard"/>
+      <cvParam cvRef="MS" accession="MS:1000615" name="ProteoWizard software"/>
     </software>
     <software id="Xcalibur" version="2.0.5">
       <cvParam cvRef="MS" accession="MS:1000532" name="Xcalibur"/>
@@ -93,7 +93,7 @@
     <dataProcessing id="XcaliburProcessing">
       <processingMethod order="1" softwareRef="Xcalibur">
         <cvParam cvRef="MS" accession="MS:1000033" name="deisotoping" value=""/>
-        <cvParam cvRef="MS" accession="MS:1000629" name="low intensity threshold" value="5.9" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+        <cvParam cvRef="MS" accession="MS:1000629" name="low intensity threshold" value="5.9" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
         <cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" value=""/>
   			<userParam name="name" value="processingMethod"/>
       </processingMethod>
@@ -146,7 +146,7 @@
           <binaryDataArray encodedLength="160" dataProcessingRef="XcaliburProcessing">
             <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
             <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
-            <cvParam cvRef="MS" accession="MS:1000515" name="intensity array" value="" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+            <cvParam cvRef="MS" accession="MS:1000515" name="intensity array" value="" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
             <binary>AAAAAAAALkAAAAAAAAAsQAAAAAAAACpAAAAAAAAAKEAAAAAAAAAmQAAAAAAAACRAAAAAAAAAIkAAAAAAAAAgQAAAAAAAABxAAAAAAAAAGEAAAAAAAAAUQAAAAAAAABBAAAAAAAAACEAAAAAAAAAAQAAAAAAAAPA/</binary>
           </binaryDataArray>
         </binaryDataArrayList>

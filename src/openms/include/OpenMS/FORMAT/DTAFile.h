@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,32 +45,38 @@
 
 namespace OpenMS
 {
+
   /**
-      @brief File adapter for DTA files.
+    @brief File adapter for DTA files.
 
-  The first line contains the singly protonated peptide mass (MH+) and the peptide charge state separated by a space.
-  Subsequent lines contain space separated pairs of fragment ion m/z and intensity values.
+    The first line contains the singly protonated peptide mass (MH+) and the
+    peptide charge state separated by a space.  Subsequent lines contain space
+    separated pairs of fragment ion m/z and intensity values.
 
-  From precursor mass and charge state the mass-charge-ratio is calculated and stored in the spectrum as precursor mass.
+    From precursor mass and charge state the mass-charge-ratio is calculated
+    and stored in the spectrum as precursor mass.
 
-  @ingroup FileIO
-*/
+    @ingroup FileIO
+  */
   class OPENMS_DLLAPI DTAFile
   {
+
 public:
+
     /// Default constructor
     DTAFile();
+
     /// Destructor
     virtual ~DTAFile();
 
     /**
-              @brief Loads a DTA file to a spectrum.
+      @brief Loads a DTA file to a spectrum.
 
-              The content of the file is stored in @p spectrum.
-              @p spectrum has to be a MSSpectrum or have the same interface.
+      The content of the file is stored in @p spectrum.
+      @p spectrum has to be a MSSpectrum or have the same interface.
 
-              @exception Exception::FileNotFound is thrown if the file could not be opened
-              @exception Exception::ParseError is thrown if an error occurs during parsing
+      @exception Exception::FileNotFound is thrown if the file could not be opened
+      @exception Exception::ParseError is thrown if an error occurs during parsing
     */
     template <typename SpectrumType>
     void load(const String & filename, SpectrumType & spectrum)
@@ -81,10 +87,10 @@ public:
         throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
       }
 
-      //  Delete old spectrum
+      // delete old spectrum
       spectrum.clear(true);
 
-      //temporary variables
+      // temporary variables
       String line;
       std::vector<String> strings(2);
       typename SpectrumType::PeakType p;
@@ -93,11 +99,11 @@ public:
       // line number counter
       Size line_number = 1;
 
-      //read first line and store precursor m/z and charge
+      // read first line and store precursor m/z and charge
       getline(is, line, '\n');
       line.trim();
 
-      //test which delimiter is used in the line
+      // test which delimiter is used in the line
       if (line.has('\t'))
       {
         delimiter = '\t';
@@ -113,7 +119,7 @@ public:
         throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, std::string("Bad data line (" + String(line_number) + "): \"") + line + "\" (got  " + String(strings.size()) + ", expected 2 entries)", filename);
       }
       Precursor precursor;
-      DoubleReal mh_mass;
+      double mh_mass;
       Int charge;
       try
       {
@@ -135,6 +141,7 @@ public:
       }
       precursor.setCharge(charge);
       spectrum.getPrecursors().push_back(precursor);
+      spectrum.setMSLevel(default_ms_level_);
 
       while (getline(is, line, '\n'))
       {
@@ -180,7 +187,7 @@ public:
       The content of @p spectrum is stored in a file.
       @p spectrum has to be a MSSpectrum or have the same interface.
 
-              @exception Exception::UnableToCreateFile is thrown if the file could not be created
+      @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
     template <typename SpectrumType>
     void store(const String & filename, const SpectrumType & spectrum) const
@@ -190,9 +197,9 @@ public:
       {
         throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
       }
-      os.precision(writtenDigits<DoubleReal>());
+      os.precision(writtenDigits<double>(0.0));
 
-      //write precursor information
+      // write precursor information
       Precursor precursor;
       if (spectrum.getPrecursors().size() > 0)
       {
@@ -202,31 +209,36 @@ public:
       {
         std::cerr << "Warning: The spectrum written to the DTA file '" << filename << "' has more than one precursor. The first precursor is used!" << "\n";
       }
-      //unknown charge
+      // unknown charge
       if (precursor.getCharge() == 0)
       {
         os << precursor.getMZ();
       }
-      //known charge
+      // known charge
       else
       {
         os << ((precursor.getMZ() - 1.0) * precursor.getCharge() + 1.0);
       }
-      //charge
+      // charge
       os << " " << precursor.getCharge() << "\n";
 
-      // Iterate over all peaks of the spectrum and
+      // iterate over all peaks of the spectrum and
       // write one line for each peak of the spectrum.
       typename SpectrumType::ConstIterator it(spectrum.begin());
       for (; it != spectrum.end(); ++it)
       {
-        // Write m/z and intensity.
+        // write m/z and intensity
         os << it->getPosition() << " " << it->getIntensity() << "\n";
       }
 
-      // Done.
+      // done
       os.close();
     }
+
+protected:
+
+    /// Default MS level used when reading the file
+    Size default_ms_level_;
 
   };
 } // namespace OpenMS

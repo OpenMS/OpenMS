@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -118,32 +118,32 @@ namespace OpenMS
     activation_methods_ = activation_methods;
   }
 
-  DoubleReal Precursor::getActivationEnergy() const
+  double Precursor::getActivationEnergy() const
   {
     return activation_energy_;
   }
 
-  void Precursor::setActivationEnergy(DoubleReal activation_energy)
+  void Precursor::setActivationEnergy(double activation_energy)
   {
     activation_energy_ = activation_energy;
   }
 
-  DoubleReal Precursor::getIsolationWindowLowerOffset() const
+  double Precursor::getIsolationWindowLowerOffset() const
   {
     return window_low_;
   }
 
-  void Precursor::setIsolationWindowLowerOffset(DoubleReal bound)
+  void Precursor::setIsolationWindowLowerOffset(double bound)
   {
     window_low_ = bound;
   }
 
-  DoubleReal Precursor::getIsolationWindowUpperOffset() const
+  double Precursor::getIsolationWindowUpperOffset() const
   {
     return window_up_;
   }
 
-  void Precursor::setIsolationWindowUpperOffset(DoubleReal bound)
+  void Precursor::setIsolationWindowUpperOffset(double bound)
   {
     window_up_ = bound;
   }

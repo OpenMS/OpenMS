@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,9 @@
 #include <utility>
 #include <map>
 #include <utility>
+#include <boost/shared_ptr.hpp>
+
+#include <boost/random/mersenne_twister.hpp>
 
 #include <OpenMS/KERNEL/Peak2D.h>
 #include <OpenMS/KERNEL/RichPeak1D.h>
@@ -49,127 +52,132 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 
-// GSL includes (random number generation)
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_randist.h>
+
 
 namespace OpenMS
 {
-  /// Coordinate type in mz and rt dimension
-  typedef Peak2D::CoordinateType SimCoordinateType;
 
-  /// Abundance of proteins/peptides
-  typedef Peak2D::IntensityType SimIntensityType;
-
-  /// Charge of a peptide
-  typedef Feature::ChargeType SimChargeType;
-
-  /// Raw data point
-  typedef Peak1D SimPointType;
-
-  /// Container for FASTAEntry & abundance information
-  class OPENMS_DLLAPI SampleProteins : public std::vector<std::pair<FASTAFile::FASTAEntry, MetaInfoInterface> > { }; 
-
-  /// Container for multiple channels of SampleProteins
-  class OPENMS_DLLAPI SampleChannels : public std::vector<SampleProteins> { }; 
-
-  /// Sim FeatureMap
-  typedef FeatureMap<> FeatureMapSim;
-
-  /// Sim FeatureMap Vector
-  typedef std::vector<FeatureMapSim> FeatureMapSimVector;
-
-  /// Sim MSExperiment type
-  typedef MSExperiment<SimPointType> MSSimExperiment;
-
-  /**
-    @brief Wrapper class for random number generators used by the simulation classes
-
-    The random numbers are separated two sources of randomness:
-
-    <ul>
-      <li><em>technical random numbers</em> which should represent technical
-          sources of variability like instrument noise and </li>
-      <li><em>biological random numbers</em> which should represent biological
-          sources of variability (e.g. between two samples of the same composition)</li>
-    </ul>
-
-    @ingroup Simulation
-  */
-  struct SimRandomNumberGenerator
+  namespace SimTypes
   {
-    /// GSL random number generator for biological variability
-    gsl_rng * biological_rng;
-    /// GSL random number generator for technical variability
-    gsl_rng * technical_rng;
+    /// Coordinate type in mz and rt dimension
+    typedef Peak2D::CoordinateType SimCoordinateType;
 
-    /// Default constructor
-    SimRandomNumberGenerator() :
-      biological_rng(NULL),
-      technical_rng(NULL)
+    /// Abundance of proteins/peptides
+    typedef Peak2D::IntensityType SimIntensityType;
+
+    /// Charge of a peptide
+    typedef Feature::ChargeType SimChargeType;
+
+    /// Raw data point
+    typedef Peak1D SimPointType;
+
+    /**
+      @brief Plain data object holding sequence and abundance information on a single protein.
+    */
+    struct SimProtein
     {
-    }
+      /// FASTAEntry holding the sequence information
+      FASTAFile::FASTAEntry entry;
+      /// MetaInfoInterface holding the abundance information
+      MetaInfoInterface meta;
 
-    /** @name Constructors and Destructors
+      /**
+        @brief c'tor
       */
-    //@{
-    /// Copy constructor
-    SimRandomNumberGenerator(const SimRandomNumberGenerator & other) :
-      biological_rng(other.biological_rng),
-      technical_rng(other.technical_rng)
+      SimProtein(FASTAFile::FASTAEntry& e, MetaInfoInterface& m) :
+       entry(e),
+       meta(m)
+      {}
+    };
+
+    /// Container for FASTAEntry & abundance information
+    typedef std::vector<SimProtein> SampleProteins;
+
+    /// Container for multiple channels of SampleProteins
+    typedef std::vector<SampleProteins> SampleChannels;
+
+    /// Sim FeatureMap
+    typedef FeatureMap FeatureMapSim;
+
+    /// Sim FeatureMap Vector
+    typedef std::vector<FeatureMapSim> FeatureMapSimVector;
+
+    /// Sim MSExperiment type
+    typedef MSExperiment<SimPointType> MSSimExperiment;
+
+    /**
+      @brief Wrapper class for random number generators used by the simulation classes
+
+      The random numbers are separated two sources of randomness:
+
+      <ul>
+        <li><em>technical random numbers</em> which should represent technical
+            sources of variability like instrument noise and </li>
+        <li><em>biological random numbers</em> which should represent biological
+            sources of variability (e.g. between two samples of the same composition)</li>
+      </ul>
+
+      @ingroup Simulation
+    */
+    class SimRandomNumberGenerator
     {
-    }
+public:
 
-    /// Destructor
-    ~SimRandomNumberGenerator()
-    {
-      if (biological_rng != 0)
+      boost::random::mt19937_64& getBiologicalRng()
       {
-        gsl_rng_free(biological_rng);
+        return biological_rng_;
       }
 
-      if (technical_rng != 0)
+      boost::random::mt19937_64& getTechnicalRng()
       {
-        gsl_rng_free(technical_rng);
-      }
-    }
-
-    //@}
-
-    /// Assignment operator
-    SimRandomNumberGenerator & operator=(const SimRandomNumberGenerator & source)
-    {
-      this->biological_rng = source.biological_rng;
-      this->technical_rng = source.technical_rng;
-
-      return *this;
-    }
-
-    /// Initialize the RNGs
-    void initialize(bool biological_random, bool technical_random)
-    {
-      biological_rng = gsl_rng_alloc(gsl_rng_mt19937);
-      if (biological_random)
-      {
-        gsl_rng_set(biological_rng, time(0));
-      }
-      else // use gsl default seed to get reproducible experiments
-      {
-        gsl_rng_set(biological_rng, 0);
+        return technical_rng_;
       }
 
-      technical_rng = gsl_rng_alloc(gsl_rng_mt19937);
-      if (technical_random)
+      void setBiologicalRngSeed(unsigned long int seed)
       {
-        gsl_rng_set(technical_rng, time(0));
+        biological_rng_.seed(seed);
       }
-      else // use gsl default seed to get reproducible experiments
-      {
-        gsl_rng_set(technical_rng, 0);
-      }
-    }
 
-  };
+      void setTechnicalRngSeed(unsigned long int seed)
+      {
+        technical_rng_.seed(seed);
+      }
+
+      /// Initialize the RNGs
+      void initialize(bool biological_random, bool technical_random)
+      {
+        // use 0 as default seed to get reproducible experiments
+        if (biological_random)
+        {
+          biological_rng_ = boost::random::mt19937_64(std::time(0));
+        }
+        else
+        {
+          biological_rng_ = boost::random::mt19937_64(0);
+        }
+
+        if (technical_random)
+        {
+          technical_rng_ = boost::random::mt19937_64(std::time(0));
+        }
+        else
+        {
+          technical_rng_ = boost::random::mt19937_64(0);
+        }
+      }
+
+private:
+      /// random number generator for biological variability
+      boost::random::mt19937_64 biological_rng_;
+      /// random number generator for technical variability
+      boost::random::mt19937_64 technical_rng_;
+
+    };
+
+    //Sim Shared Pointer type
+    typedef boost::shared_ptr<SimRandomNumberGenerator> MutableSimRandomNumberGeneratorPtr;
+
+  }
 
 }
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,88 +36,59 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/Factory.h>
+
 #include <boost/math/special_functions/fpclassify.hpp>
 
 namespace OpenMS
 {
-  EmgFitter1D::EmgFitter1D() :
-    LevMarqFitter1D()
+  int EmgFitter1D::EgmFitterFunctor::operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec)
   {
-    setName(getProductName());
-    defaults_.setValue("statistics:variance", 1.0, "Variance of the model.", ListUtils::create<String>("advanced"));
-    defaultsToParam_();
-  }
+    Size n = m_data->n;
+    EmgFitter1D::RawDataArrayType set = m_data->set;
 
-  EmgFitter1D::EmgFitter1D(const EmgFitter1D & source) :
-    LevMarqFitter1D(source)
-  {
-    setParameters(source.getParameters());
-    updateMembers_();
-  }
+    EmgFitter1D::CoordinateType h = x(0);
+    EmgFitter1D::CoordinateType w = x(1);
+    EmgFitter1D::CoordinateType s = x(2);
+    EmgFitter1D::CoordinateType z = x(3);
 
-  EmgFitter1D::~EmgFitter1D()
-  {
-  }
-
-  EmgFitter1D & EmgFitter1D::operator=(const EmgFitter1D & source)
-  {
-    if (&source == this)
-      return *this;
-
-    LevMarqFitter1D::operator=(source);
-    setParameters(source.getParameters());
-    updateMembers_();
-
-    return *this;
-  }
-
-  Int EmgFitter1D::residual_(const gsl_vector * x, void * params, gsl_vector * f)
-  {
-    Size n = static_cast<EmgFitter1D::Data *>(params)->n;
-    RawDataArrayType set = static_cast<EmgFitter1D::Data *>(params)->set;
-
-    CoordinateType h = gsl_vector_get(x, 0);
-    CoordinateType w = gsl_vector_get(x, 1);
-    CoordinateType s = gsl_vector_get(x, 2);
-    CoordinateType z = gsl_vector_get(x, 3);
-
-    CoordinateType Yi = 0.0;
+    EmgFitter1D::CoordinateType Yi = 0.0;
 
     // iterate over all points of the signal
     for (Size i = 0; i < n; i++)
     {
-      DoubleReal t = set[i].getPos();
+      double t = set[i].getPos();
 
       // Simplified EMG
       Yi = (h * w / s) * sqrt(2.0 * Constants::PI) * exp((pow(w, 2) / (2 * pow(s, 2))) - ((t - z) / s)) / (1 + exp((-2.4055 / sqrt(2.0)) * (((t - z) / w) - w / s)));
 
-      gsl_vector_set(f, i, (Yi - set[i].getIntensity()));
+      fvec(i) = Yi - set[i].getIntensity();
     }
-
-    return GSL_SUCCESS;
+    return 0;
   }
 
-  Int EmgFitter1D::jacobian_(const gsl_vector * x, void * params, gsl_matrix * J)
+  // compute Jacobian matrix for the different parameters
+  int EmgFitter1D::EgmFitterFunctor::df(const Eigen::VectorXd& x, Eigen::MatrixXd& J)
   {
-    Size n =  static_cast<EmgFitter1D::Data *>(params)->n;
-    RawDataArrayType set = static_cast<EmgFitter1D::Data *>(params)->set;
+    Size n =  m_data->n;
+    EmgFitter1D::RawDataArrayType set = m_data->set;
 
-    CoordinateType h = gsl_vector_get(x, 0);
-    CoordinateType w = gsl_vector_get(x, 1);
-    CoordinateType s = gsl_vector_get(x, 2);
-    CoordinateType z = gsl_vector_get(x, 3);
+    EmgFitter1D::CoordinateType h = x(0);
+    EmgFitter1D::CoordinateType w = x(1);
+    EmgFitter1D::CoordinateType s = x(2);
+    EmgFitter1D::CoordinateType z = x(3);
 
-    const CoordinateType emg_const = 2.4055;
-    const CoordinateType sqrt_2pi = sqrt(2 * Constants::PI);
-    const CoordinateType sqrt_2 = sqrt(2.0);
+    const EmgFitter1D::CoordinateType emg_const = 2.4055;
+    const EmgFitter1D::CoordinateType sqrt_2pi = sqrt(2 * Constants::PI);
+    const EmgFitter1D::CoordinateType sqrt_2 = sqrt(2.0);
 
-    CoordinateType exp1, exp2, exp3 = 0.0;
-    CoordinateType derivative_height, derivative_width, derivative_symmetry, derivative_retention = 0.0;
+    EmgFitter1D::CoordinateType exp1, exp2, exp3 = 0.0;
+    EmgFitter1D::CoordinateType derivative_height, derivative_width, derivative_symmetry, derivative_retention = 0.0;
 
     // iterate over all points of the signal
     for (Size i = 0; i < n; i++)
     {
-      CoordinateType t = set[i].getPos();
+      EmgFitter1D::CoordinateType t = set[i].getPos();
 
       exp1 = exp(((w * w) / (2 * s * s)) - ((t - z) / s));
       exp2 = (1 + exp((-emg_const / sqrt_2) * (((t - z) / w) - w / s)));
@@ -136,52 +107,63 @@ namespace OpenMS
       derivative_retention = h * w / (s * s) * sqrt_2pi * exp1 / exp2 - (emg_const * h) / s * sqrt_2pi * exp1 * exp3 / ((exp2 * exp2) * sqrt_2);
 
       // set the jacobian matrix
-      gsl_matrix_set(J, i, 0, derivative_height);
-      gsl_matrix_set(J, i, 1, derivative_width);
-      gsl_matrix_set(J, i, 2, derivative_symmetry);
-      gsl_matrix_set(J, i, 3, derivative_retention);
+      J(i, 0) = derivative_height;
+      J(i, 1) = derivative_width;
+      J(i, 2) = derivative_symmetry;
+      J(i, 3) = derivative_retention;
     }
-
-    return GSL_SUCCESS;
+    return 0;
   }
 
-  Int EmgFitter1D::evaluate_(const gsl_vector * x, void * params, gsl_vector * f, gsl_matrix * J)
+  EmgFitter1D::EmgFitter1D() :
+    LevMarqFitter1D()
   {
-    EmgFitter1D::residual_(x, params, f);
-    EmgFitter1D::jacobian_(x, params, J);
-
-    return GSL_SUCCESS;
+    setName(getProductName());
+    defaults_.setValue("statistics:variance", 1.0, "Variance of the model.", ListUtils::create<String>("advanced"));
+    defaultsToParam_();
   }
 
-  void EmgFitter1D::printState_(Int iter, gsl_multifit_fdfsolver * s)
+  EmgFitter1D::EmgFitter1D(const EmgFitter1D& source) :
+    LevMarqFitter1D(source)
   {
-    printf("iter: %4u x = % 15.8f % 15.8f  % 15.8f  % 15.8f |f(x)| = %g\n", iter,
-           gsl_vector_get(s->x, 0),
-           gsl_vector_get(s->x, 1),
-           gsl_vector_get(s->x, 2),
-           gsl_vector_get(s->x, 3),
-           gsl_blas_dnrm2(s->f));
+    setParameters(source.getParameters());
+    updateMembers_();
   }
 
-  EmgFitter1D::QualityType EmgFitter1D::fit1d(const RawDataArrayType & set, InterpolationModel * & model)
+  EmgFitter1D::~EmgFitter1D()
+  {
+  }
+
+  EmgFitter1D& EmgFitter1D::operator=(const EmgFitter1D& source)
+  {
+    if (&source == this)
+      return *this;
+
+    LevMarqFitter1D::operator=(source);
+    setParameters(source.getParameters());
+    updateMembers_();
+
+    return *this;
+  }
+
+  EmgFitter1D::QualityType EmgFitter1D::fit1d(const RawDataArrayType& set, InterpolationModel*& model)
   {
     // Calculate bounding box
-    min_ = max_ = set[0].getPos();
+    CoordinateType min_bb = set[0].getPos(), max_bb = set[0].getPos();
     for (Size pos = 1; pos < set.size(); ++pos)
     {
       CoordinateType tmp = set[pos].getPos();
-      if (min_ > tmp)
-        min_ = tmp;
-      if (max_ < tmp)
-        max_ = tmp;
+      if (min_bb > tmp)
+        min_bb = tmp;
+      if (max_bb < tmp)
+        max_bb = tmp;
     }
 
     // Enlarge the bounding box by a few multiples of the standard deviation
-    {
-      stdev1_ = sqrt(statistics_.variance()) * tolerance_stdev_box_;
-      min_ -= stdev1_;
-      max_ += stdev1_;
-    }
+    const CoordinateType stdev = sqrt(statistics_.variance()) * tolerance_stdev_box_;
+    min_bb -= stdev;
+    max_bb += stdev;
+
 
     // Set advanced parameters for residual_  und jacobian_ method
     EmgFitter1D::Data d;
@@ -191,11 +173,17 @@ namespace OpenMS
     // Compute start parameters
     setInitialParameters_(set);
 
-    // Optimize parameter with Levenberg-Marquardt algorithm (GLS)
-    CoordinateType x_init[4] = { height_, width_, symmetry_, retention_ };
+    // Optimize parameter with Levenberg-Marquardt algorithm
+//    CoordinateType x_init[4] = { height_, width_, symmetry_, retention_ };
+    Eigen::VectorXd x_init(4);
+    x_init(0) = height_;
+    x_init(1) = width_;
+    x_init(2) = symmetry_;
+    x_init(3) = retention_;
     if (symmetric_ == false)
     {
-      optimize_(set, 4, x_init, &(residual_), &(jacobian_), &(evaluate_), &d);
+      EgmFitterFunctor functor(4, &d);
+      optimize_(x_init, functor);
     }
 
     // Set optimized parameters
@@ -212,12 +200,12 @@ namespace OpenMS
 #endif
 
     // build model
-    model = static_cast<InterpolationModel *>(Factory<BaseModel<1> >::create("EmgModel"));
+    model = static_cast<InterpolationModel*>(Factory<BaseModel<1> >::create("EmgModel"));
     model->setInterpolationStep(interpolation_step_);
 
     Param tmp;
-    tmp.setValue("bounding_box:min", min_);
-    tmp.setValue("bounding_box:max", max_);
+    tmp.setValue("bounding_box:min", min_bb);
+    tmp.setValue("bounding_box:max", max_bb);
     tmp.setValue("statistics:variance", statistics_.variance());
     tmp.setValue("statistics:mean", statistics_.mean());
     tmp.setValue("emg:height", height_);
@@ -228,9 +216,9 @@ namespace OpenMS
 
 
     // calculate pearson correlation
-    std::vector<Real> real_data;
+    std::vector<float> real_data;
     real_data.reserve(set.size());
-    std::vector<Real> model_data;
+    std::vector<float> model_data;
     model_data.reserve(set.size());
 
     for (Size i = 0; i < set.size(); ++i)
@@ -246,7 +234,7 @@ namespace OpenMS
     return correlation;
   }
 
-  void EmgFitter1D::setInitialParameters_(const RawDataArrayType & set)
+  void EmgFitter1D::setInitialParameters_(const RawDataArrayType& set)
   {
     // sum over all intensities
     CoordinateType sum = 0.0;
@@ -255,7 +243,7 @@ namespace OpenMS
 
     // calculate the median
     Size median = 0;
-    Real count = 0.0;
+    float count = 0.0;
     for (Size i = 0; i < set.size(); ++i)
     {
       count += set[i].getIntensity();
@@ -284,7 +272,7 @@ namespace OpenMS
 
     // optimize the symmetry
     // The computations can lead to an overflow error at very low values of symmetry (s~0).
-    // For s~5 the parameter can be aproximized by the Levenberg-Marquardt argorithms.
+    // For s~5 the parameter can be approximated by the Levenberg-Marquardt algorithms.
     // (the other parameters are much greater than one)
     if (symmetry_ < 1)
       symmetry_ += 5;

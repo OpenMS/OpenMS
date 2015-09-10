@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,7 +37,6 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
-#include <OpenMS/FORMAT/DB/PersistentObject.h>
 #include <OpenMS/KERNEL/AreaIterator.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -52,23 +51,24 @@ namespace OpenMS
   class Peak1D;
 
   /**
-    @brief Representation of a mass spectrometry experiment.
+    @brief In-Memory representation of a mass spectrometry experiment.
 
-    Contains the data and metadata of an experiment performed with an MS (or HPLC and MS).
+    Contains the data and metadata of an experiment performed with an MS (or HPLC and MS). This representation of an MS experiment is organized as list of spectra and chromatograms and provides an in-memory representation of popular mass-spectrometric file formats such as mzXML or mzML. The meta-data associated with an experiment is contained in ExperimentalSettings (by inheritance) while the raw data (as well as spectra and chromatogram level meta data) is stored in objects of type MSSpectrum and MSChromatogram which are accessible through the getSpectrum and getChromatogam functions.
 
     Be careful when changing the order of contained MSSpectrum instances, if tandem-MS data is
     stored in this class. The only way to find a precursor spectrum of MSSpectrum x is to
     search for the first spectrum before x that has a lower MS-level!
 
     @note For range operations, see \ref RangeUtils "RangeUtils module"!
+    @note Some of the meta data is associated with the spectra directly (e.g. DataProcessing) and therefore the spectra need to be present to retain this information.
+    @note For an on-disc representation of an MS experiment, see OnDiskExperiment.
 
     @ingroup Kernel
   */
   template <typename PeakT = Peak1D, typename ChromatogramPeakT = ChromatogramPeak>
   class MSExperiment :
     public RangeManager<2>,
-    public ExperimentalSettings,
-    public PersistentObject
+    public ExperimentalSettings
   {
 
 public:
@@ -179,7 +179,6 @@ public:
     MSExperiment() :
       RangeManagerType(),
       ExperimentalSettings(),
-      PersistentObject(),
       ms_levels_(),
       total_size_(0)
     {}
@@ -188,7 +187,6 @@ public:
     MSExperiment(const MSExperiment & source) :
       RangeManagerType(source),
       ExperimentalSettings(source),
-      PersistentObject(source),
       ms_levels_(source.ms_levels_),
       total_size_(source.total_size_),
       chromatograms_(source.chromatograms_),
@@ -202,7 +200,6 @@ public:
 
       RangeManagerType::operator=(source);
       ExperimentalSettings::operator=(source);
-      PersistentObject::operator=(source);
 
       ms_levels_     = source.ms_levels_;
       total_size_    = source.total_size_;
@@ -270,7 +267,7 @@ public:
       Fill MSExperiment with data.
       Note that all data present (including meta-data) will be deleted prior to adding new data!
 
-      @param container An iteratable type whose elements support getRT(), getMZ() and getIntensity()
+      @param container An iterable type whose elements support getRT(), getMZ() and getIntensity()
 
       @exception Exception::Precondition is thrown if the container is not sorted according to
       retention time (in debug AND release mode)
@@ -325,7 +322,7 @@ public:
           spectrum->setMSLevel(1);
         }
 
-        // add either datapoint or mass traces (depending on template argument value)
+        // add either data point or mass traces (depending on template argument value)
         ContainerAdd_<typename Container::const_iterator, add_mass_traces>::addData_(spectrum, iter);
       }
     }
@@ -491,10 +488,10 @@ public:
         {
           if (!it->getPrecursors().empty())
           {
-            DoubleReal pc_rt = it->getRT();
+            double pc_rt = it->getRT();
             if (pc_rt < RangeManagerType::pos_range_.minX()) RangeManagerType::pos_range_.setMinX(pc_rt);
             if (pc_rt > RangeManagerType::pos_range_.maxX()) RangeManagerType::pos_range_.setMaxX(pc_rt);
-            DoubleReal pc_mz = it->getPrecursors()[0].getMZ();
+            double pc_mz = it->getPrecursors()[0].getMZ();
             if (pc_mz < RangeManagerType::pos_range_.minY()) RangeManagerType::pos_range_.setMinY(pc_mz);
             if (pc_mz > RangeManagerType::pos_range_.maxY()) RangeManagerType::pos_range_.setMaxY(pc_mz);
           }
@@ -740,11 +737,6 @@ public:
       this->ExperimentalSettings::operator=(from);
       from.ExperimentalSettings::operator=(tmp);
 
-      //swap persistent object
-      tmp.PersistentObject::operator=(* this);
-      this->PersistentObject::operator=(from);
-      from.PersistentObject::operator=(tmp);
-
       // swap chromatograms
       std::swap(chromatograms_, from.chromatograms_);
 
@@ -834,7 +826,7 @@ public:
       {
         if (spec_it->getMSLevel() == 1)
         {
-          DoubleReal totalIntensity = 0;
+          double totalIntensity = 0;
           // sum intensities of a spectrum
           for (typename SpectrumType::const_iterator peak_it = spec_it->begin(); peak_it != spec_it->end(); ++peak_it)
           {
@@ -862,7 +854,6 @@ public:
       if (clear_meta_data)
       {
         clearRanges();
-        clearId();
         this->ExperimentalSettings::operator=(ExperimentalSettings());             // no "clear" method
         chromatograms_.clear();
         ms_levels_.clear();
@@ -872,14 +863,6 @@ public:
 
 protected:
 
-    // Docu in base class
-    virtual void clearChildIds_()
-    {
-      for (Size i = 0; i < spectra_.size(); ++i)
-      {
-        spectra_[i].clearId(true);
-      }
-    }
 
     /// MS levels of the data
     std::vector<UInt> ms_levels_;
@@ -923,7 +906,8 @@ private:
         if (iter->metaValueExists("num_of_masstraces"))
         {
           Size mts = iter->getMetaValue("num_of_masstraces");
-          for (Size i=0; i<mts; ++i)
+          int charge = (iter->getCharge()==0 ? 1 : iter->getCharge()); // set to 1 if charge is 0, otherwise div/0 below
+          for (Size i = 0; i < mts; ++i)
           {
             String meta_name = String("masstrace_intensity_") + i;
             if (!iter->metaValueExists(meta_name))
@@ -932,7 +916,7 @@ private:
             }
             spectrum->insert(spectrum->end(), PeakType());
             spectrum->back().setIntensity(iter->getMetaValue(meta_name));
-            spectrum->back().setPosition(iter->getMZ() + Constants::C13C12_MASSDIFF_U/iter->getCharge()*i);
+            spectrum->back().setPosition(iter->getMZ() + Constants::C13C12_MASSDIFF_U / charge * i);
           }
         }
         else ContainerAdd_<ContainerIterator, false>::addData_(spectrum, iter);

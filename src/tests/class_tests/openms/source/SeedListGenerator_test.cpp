@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -89,12 +89,12 @@ END_SECTION
 START_SECTION((void generateSeedList(vector<PeptideIdentification>& peptides, SeedList& seeds, bool use_peptide_mass = false)))
 {
 	vector<PeptideIdentification> peptides(3);
-	peptides[0].setMetaValue("RT", 1.1);
-	peptides[0].setMetaValue("MZ", 111.111);
-	peptides[1].setMetaValue("RT", 2.2);
-	peptides[1].setMetaValue("MZ", 222.222);
-	peptides[2].setMetaValue("RT", 3.3);
-	peptides[2].setMetaValue("MZ", 333.333);
+	peptides[0].setRT(1.1);
+	peptides[0].setMZ(111.111);
+	peptides[1].setRT(2.2);
+	peptides[1].setMZ(222.222);
+	peptides[2].setRT(3.3);
+	peptides[2].setMZ(333.333);
 	SeedListGenerator::SeedList seeds;
 	SeedListGenerator().generateSeedList(peptides, seeds);
 	TEST_EQUAL(seeds.size(), 3);
@@ -102,7 +102,7 @@ START_SECTION((void generateSeedList(vector<PeptideIdentification>& peptides, Se
 	TEST_EQUAL(seeds[1], DPosition<2>(2.2, 222.222));
 	TEST_EQUAL(seeds[2], DPosition<2>(3.3, 333.333));
 	PeptideHit hit;
-	hit.setSequence(AASequence("TEST"));
+	hit.setSequence(AASequence::fromString("TEST"));
 	hit.setCharge(2);
 	peptides[0].insertHit(hit);
 	peptides.resize(1);
@@ -129,13 +129,13 @@ START_SECTION((void generateSeedLists(const ConsensusMap& consensus, Map<UInt64,
 END_SECTION
 
 
-START_SECTION((void convertSeedList(const SeedList& seeds, FeatureMap<>& features)))
+START_SECTION((void convertSeedList(const SeedList& seeds, FeatureMap& features)))
 {
 	SeedListGenerator::SeedList seeds(3);
 	seeds[0] = DPosition<2>(1.1, 111.111);
 	seeds[1] = DPosition<2>(2.2, 222.222);
 	seeds[2] = DPosition<2>(3.3, 333.333);
-	FeatureMap<> features;
+	FeatureMap features;
 	SeedListGenerator().convertSeedList(seeds, features);
 	TEST_EQUAL(features.size(), 3);
 	TEST_EQUAL(features[0].getRT(), 1.1);
@@ -148,9 +148,9 @@ START_SECTION((void convertSeedList(const SeedList& seeds, FeatureMap<>& feature
 END_SECTION
 
 
-START_SECTION((void convertSeedList(const FeatureMap<>& features, SeedList& seeds)))
+START_SECTION((void convertSeedList(const FeatureMap& features, SeedList& seeds)))
 {
-	FeatureMap<> features;
+	FeatureMap features;
 	features.resize(3);
 	features[0].setRT(1.1);
 	features[0].setMZ(111.111);

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,29 +32,19 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/MRMScoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/Macros.h>
 //#define MRMSCORING_TESTING
 #include <algorithm>
-#include <algorithm>
-#include <iterator>
 #include <iostream>
+#include <iterator>
 
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/MRMScoring.h"
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h"
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h"
-
-
-#ifdef OPENMS_ASSERTIONS
-#define OPENMS_PRECONDITION(condition, message)\
-	if (!(condition))\
-    { throw std::runtime_error(message); }
-#else
-#define OPENMS_PRECONDITION(condition, message)
-#endif
 
 namespace OpenSwath
 {
 
-  const MRMScoring::XCorrMatrixType & MRMScoring::getXCorrMatrix() const
+  const MRMScoring::XCorrMatrixType& MRMScoring::getXCorrMatrix() const
   {
     return xcorr_matrix_;
   }
@@ -82,6 +72,22 @@ namespace OpenSwath
     }
   }
 
+  void MRMScoring::initializeMS1XCorr(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> native_ids, std::string precursor_id)
+  {
+    std::vector<double> intensityi, intensity_ms1;
+    mrmfeature->getPrecursorFeature(precursor_id)->getIntensity(intensity_ms1);
+    ms1_xcorr_vector_.resize(native_ids.size());
+    for (std::size_t i = 0; i < native_ids.size(); i++)
+    {
+      String native_id = native_ids[i];
+      FeatureType fi = mrmfeature->getFeature(native_id);
+      intensityi.clear();
+      fi->getIntensity(intensityi);
+      ms1_xcorr_vector_[i] = Scoring::normalizedCrossCorrelation(
+        intensityi, intensity_ms1, boost::numeric_cast<int>(intensityi.size()), 1);
+    }
+  }
+
   // see /IMSB/users/reiterl/bin/code/biognosys/trunk/libs/mrm_libs/MRM_pgroup.pm
   // _calc_xcorr_coelution_score
   //
@@ -90,7 +96,7 @@ namespace OpenSwath
   // return $deltascore_mean + $deltascore_stdev
   double MRMScoring::calcXcorrCoelutionScore()
   {
-    OPENMS_PRECONDITION(xcorr_matrix_.size() > 1, "Expect cross-correlation matrix of at least 2x2");
+    OPENSWATH_PRECONDITION(xcorr_matrix_.size() > 1, "Expect cross-correlation matrix of at least 2x2");
 
     std::vector<int> deltas;
     for (std::size_t i = 0; i < xcorr_matrix_.size(); i++)
@@ -109,17 +115,15 @@ namespace OpenSwath
     msc = std::for_each(deltas.begin(), deltas.end(), msc);
     double deltas_mean = msc.mean();
     double deltas_stdv = msc.sample_stddev();
-    //double deltas_mean = gsl_stats_int_mean(&deltas[0], 1, deltas.size());
-    //double deltas_stdv = gsl_stats_int_sd(&deltas[0], 1, deltas.size());
 
     double xcorr_coelution_score = deltas_mean + deltas_stdv;
     return xcorr_coelution_score;
   }
 
   double MRMScoring::calcXcorrCoelutionScore_weighted(
-    const std::vector<double> & normalized_library_intensity)
+    const std::vector<double>& normalized_library_intensity)
   {
-    OPENMS_PRECONDITION(xcorr_matrix_.size() > 1, "Expect cross-correlation matrix of at least 2x2");
+    OPENSWATH_PRECONDITION(xcorr_matrix_.size() > 1, "Expect cross-correlation matrix of at least 2x2");
 
 #ifdef MRMSCORING_TESTING
     double weights = 0;
@@ -133,7 +137,7 @@ namespace OpenSwath
         * normalized_library_intensity[i]);
 #ifdef MRMSCORING_TESTING
       std::cout << "_xcoel_weighted " << i << " " << i << " " << Scoring::xcorrArrayGetMaxPeak(xcorr_matrix_[i][i])->first << " weight " <<
-      normalized_library_intensity[i] * normalized_library_intensity[i] << std::endl;
+        normalized_library_intensity[i] * normalized_library_intensity[i] << std::endl;
       weights += normalized_library_intensity[i] * normalized_library_intensity[i];
 #endif
       for (std::size_t j = i + 1; j < xcorr_matrix_.size(); j++)
@@ -145,7 +149,7 @@ namespace OpenSwath
           * normalized_library_intensity[j] * 2);
 #ifdef MRMSCORING_TESTING
         std::cout << "_xcoel_weighted " << i << " " << j << " " << Scoring::xcorrArrayGetMaxPeak(xcorr_matrix_[i][j])->first << " weight " <<
-        normalized_library_intensity[i] * normalized_library_intensity[j] * 2 << std::endl;
+          normalized_library_intensity[i] * normalized_library_intensity[j] * 2 << std::endl;
         weights += normalized_library_intensity[i] * normalized_library_intensity[j];
 #endif
 
@@ -156,13 +160,6 @@ namespace OpenSwath
     std::cout << " all weights sum " << weights << std::endl;
 #endif
 
-    /*
-     double deltas_mean = gsl_stats_int_mean(&deltas[0],1,deltas.size() );
-     double deltas_stdv = gsl_stats_int_sd(  &deltas[0],1,deltas.size() );
-
-     double xcorr_coelution_score = deltas_mean + deltas_stdv;
-     return xcorr_coelution_score;
-     */
     return std::accumulate(deltas.begin(), deltas.end(), 0.0);
   }
 
@@ -174,7 +171,7 @@ namespace OpenSwath
   ///
   double MRMScoring::calcXcorrShape_score()
   {
-    OPENMS_PRECONDITION(xcorr_matrix_.size() > 1, "Expect cross-correlation matrix of at least 2x2");
+    OPENSWATH_PRECONDITION(xcorr_matrix_.size() > 1, "Expect cross-correlation matrix of at least 2x2");
 
     std::vector<double> intensities;
     for (std::size_t i = 0; i < xcorr_matrix_.size(); i++)
@@ -191,9 +188,9 @@ namespace OpenSwath
   }
 
   double MRMScoring::calcXcorrShape_score_weighted(
-    const std::vector<double> & normalized_library_intensity)
+    const std::vector<double>& normalized_library_intensity)
   {
-    OPENMS_PRECONDITION(xcorr_matrix_.size() > 1, "Expect cross-correlation matrix of at least 2x2");
+    OPENSWATH_PRECONDITION(xcorr_matrix_.size() > 1, "Expect cross-correlation matrix of at least 2x2");
 
     // TODO (hroest) : check implementation
     //         see _calc_weighted_xcorr_shape_score in MRM_pgroup.pm
@@ -207,7 +204,7 @@ namespace OpenSwath
         * normalized_library_intensity[i]);
 #ifdef MRMSCORING_TESTING
       std::cout << "_xcorr_weighted " << i << " " << i << " " << Scoring::xcorrArrayGetMaxPeak(xcorr_matrix_[i][i])->second << " weight " <<
-      normalized_library_intensity[i] * normalized_library_intensity[i] << std::endl;
+        normalized_library_intensity[i] * normalized_library_intensity[i] << std::endl;
 #endif
       for (std::size_t j = i + 1; j < xcorr_matrix_.size(); j++)
       {
@@ -217,15 +214,52 @@ namespace OpenSwath
           * normalized_library_intensity[j] * 2);
 #ifdef MRMSCORING_TESTING
         std::cout << "_xcorr_weighted " << i << " " << j << " " << Scoring::xcorrArrayGetMaxPeak(xcorr_matrix_[i][j])->second << " weight " <<
-        normalized_library_intensity[i] * normalized_library_intensity[j] * 2 << std::endl;
+          normalized_library_intensity[i] * normalized_library_intensity[j] * 2 << std::endl;
 #endif
       }
     }
     return std::accumulate(intensities.begin(), intensities.end(), 0.0);
   }
 
+  double MRMScoring::calcMS1XcorrCoelutionScore()
+  {
+    OPENSWATH_PRECONDITION(ms1_xcorr_vector_.size() > 1, "Expect cross-correlation vector of a size of least 2");
+
+    std::vector<int> deltas;
+    for (std::size_t i = 0; i < ms1_xcorr_vector_.size(); i++)
+    {
+      // first is the X value (RT), should be an int
+      deltas.push_back(std::abs(Scoring::xcorrArrayGetMaxPeak(ms1_xcorr_vector_[i])->first));
+    }
+
+    OpenSwath::mean_and_stddev msc;
+    msc = std::for_each(deltas.begin(), deltas.end(), msc);
+    double deltas_mean = msc.mean();
+    double deltas_stdv = msc.sample_stddev();
+    //double deltas_mean = gsl_stats_int_mean(&deltas[0], 1, deltas.size());
+    //double deltas_stdv = gsl_stats_int_sd(&deltas[0], 1, deltas.size());
+
+    double xcorr_coelution_score = deltas_mean + deltas_stdv;
+    return xcorr_coelution_score;
+  }
+
+  double MRMScoring::calcMS1XcorrShape_score()
+  {
+    OPENSWATH_PRECONDITION(ms1_xcorr_vector_.size() > 1, "Expect cross-correlation vector of a size of least 2");
+
+    std::vector<double> intensities;
+    for (std::size_t i = 0; i < ms1_xcorr_vector_.size(); i++)
+    {
+      // second is the Y value (intensity)
+      intensities.push_back(Scoring::xcorrArrayGetMaxPeak(ms1_xcorr_vector_[i])->second);
+    }
+    OpenSwath::mean_and_stddev msc;
+    msc = std::for_each(intensities.begin(), intensities.end(), msc);
+    return msc.mean();
+  }
+
   void MRMScoring::calcLibraryScore(OpenSwath::IMRMFeature* mrmfeature, const std::vector<TransitionType>& transitions,
-                                 double& correlation, double& norm_manhattan, double& manhattan, double& dotprod, double& spectral_angle, double& rmsd)
+                                    double& correlation, double& norm_manhattan, double& manhattan, double& dotprod, double& spectral_angle, double& rmsd)
   {
     std::vector<double> library_intensity;
     std::vector<double> experimental_intensity;
@@ -244,7 +278,7 @@ namespace OpenSwath
       library_intensity.push_back(intensity);
     }
 
-    OPENMS_PRECONDITION(library_intensity.size() == experimental_intensity.size(), "Both vectors need to have the same size");
+    OPENSWATH_PRECONDITION(library_intensity.size() == experimental_intensity.size(), "Both vectors need to have the same size");
 
 #ifdef MRMSCORING_TESTING
     for (std::size_t k = 0; k < transitions.size(); k++)
@@ -272,7 +306,7 @@ namespace OpenSwath
     }
   }
 
-  double MRMScoring::calcRTScore(const PeptideType & peptide, double normalized_experimental_rt)
+  double MRMScoring::calcRTScore(const PeptideType& peptide, double normalized_experimental_rt)
   {
     double expected_rt;
     expected_rt = peptide.rt;
@@ -287,12 +321,12 @@ namespace OpenSwath
     return rt_score;
   }
 
-  double MRMScoring::calcSNScore(OpenSwath::IMRMFeature * mrmfeature, std::vector<OpenSwath::ISignalToNoisePtr> & signal_noise_estimators)
+  double MRMScoring::calcSNScore(OpenSwath::IMRMFeature* mrmfeature, std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators)
   {
-    OPENMS_PRECONDITION(signal_noise_estimators.size() > 1, "Input S/N estimators needs to be larger than 1");
+    OPENSWATH_PRECONDITION(signal_noise_estimators.size() > 1, "Input S/N estimators needs to be larger than 1");
 
     double sn_score = 0;
-    if (signal_noise_estimators.size() == 0) 
+    if (signal_noise_estimators.size() == 0)
     {
       return 0;
     }

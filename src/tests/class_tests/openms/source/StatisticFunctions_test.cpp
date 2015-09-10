@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl $
-// $Authors: $
+// $Authors: Clemens Groepl, Johannes Junker, Mathias Walzer, Chris Bielow $
 // --------------------------------------------------------------------------
 
 ///////////////////////////
@@ -38,6 +38,7 @@
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <boost/math/special_functions/fpclassify.hpp>
+#include <boost/assign/list_of.hpp>
 ///////////////////////////
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -53,7 +54,7 @@ START_TEST( StatisticFunctions, "$Id$" );
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-START_SECTION([EXTRA](template <typename IteratorType> static DoubleReal sum(IteratorType begin, IteratorType end)))
+START_SECTION([EXTRA](template <typename IteratorType> static double sum(IteratorType begin, IteratorType end)))
 {
 	int x[] = {-1, 0, 1, 2, 3};
 	TEST_EQUAL(int(Math::sum(x, x + 5)), 5);
@@ -71,43 +72,59 @@ START_SECTION([EXTRA](template <typename IteratorType> static DoubleReal sum(Ite
 }
 END_SECTION
 
-START_SECTION([EXTRA](template <typename IteratorType> static DoubleReal mean(IteratorType begin, IteratorType end)))
+START_SECTION([EXTRA](template <typename IteratorType> static double mean(IteratorType begin, IteratorType end)))
 {
 	int x[] = {-1, 0, 1, 2, 3};
 	TEST_EQUAL(Math::mean(x, x + 5), 1);
 	TEST_EXCEPTION(Exception::InvalidRange, Math::mean(x, x));
 
-	DoubleList y = ListUtils::create<DoubleReal>("-1.0,-0.5,0.0,0.5,1.0,1.5,2.0");
+	DoubleList y = ListUtils::create<double>("-1.0,-0.5,0.0,0.5,1.0,1.5,2.0");
 	TEST_REAL_SIMILAR(Math::mean(y.begin(), y.end()), 0.5);
 }
 END_SECTION
 
-START_SECTION([EXTRA](template <typename IteratorType> static DoubleReal median(IteratorType begin, IteratorType end)))
+START_SECTION([EXTRA](template <typename IteratorType> static double median(IteratorType begin, IteratorType end, bool sorted = false)))
 {
 	int x[] = {-1, 0, 1, 2, 3};
-	TEST_EQUAL(Math::median(x, x + 5, true), 1);
+	TEST_REAL_SIMILAR(Math::median(x, x + 5, true), 1.0);
+  int x2[] = {-1, 0, 1, 2, 3, 4}; // (1+2)/2
+  TEST_REAL_SIMILAR(Math::median(x2, x2 + 6, true), 1.5);
 	TEST_EXCEPTION(Exception::InvalidRange, Math::median(x, x));
 
   // unsorted
-	DoubleList y = ListUtils::create<DoubleReal>("1.0,-0.5,2.0,0.5,-1.0,1.5,0.0");
+	DoubleList y = ListUtils::create<double>("1.0,-0.5,2.0,0.5,-1.0,1.5,0.0");
 	TEST_REAL_SIMILAR(Math::median(y.begin(), y.end()), 0.5);
 	y.push_back(-1.5); // even length
 	TEST_REAL_SIMILAR(Math::median(y.begin(), y.end()), 0.25);
 
   // sorted
-  DoubleList z_odd = ListUtils::create<DoubleReal>("-1.0,-0.5,0.0,0.5,1.0,1.5,2.0");
+  DoubleList z_odd = ListUtils::create<double>("-1.0,-0.5,0.0,0.5,1.0,1.5,2.0");
   TEST_REAL_SIMILAR(Math::median(z_odd.begin(), z_odd.end(), true), 0.5);
-  DoubleList z_even = ListUtils::create<DoubleReal>("-1.5,-1.0,-0.5,0.0,0.5,1.0,1.5,2.0");
+  DoubleList z_even = ListUtils::create<double>("-1.5,-1.0,-0.5,0.0,0.5,1.0,1.5,2.0");
   TEST_REAL_SIMILAR(Math::median(z_even.begin(), z_even.end(), true), 0.25);
+}
+END_SECTION
+
+START_SECTION([EXTRA](template <typename IteratorType> double MAD(IteratorType begin, IteratorType end, double median_of_numbers)))
+{
+  int x[] = {-1, 0, 1, 2, 3};
+  TEST_EQUAL(Math::MAD(x, x + 5, 1), 1);   // median{2, 1, 0, 1, 2}
+  int x2[] = {-1, 0, 1, 2, 3, 4}; // median = 1.5 --> median{2.5, 1.5, 0.5, 0.5, 1.5, 2.5}
+  TEST_REAL_SIMILAR(Math::MAD(x2, x2 + 6, true), 1.5);
+  
+  DoubleList z_odd = ListUtils::create<double>("-1.0,-0.5,0.0,0.5,1.0,1.5,2.0"); // median{1.5, 1, 0.5, 0, 0.5, 1, 1.5} == median{0, 0.5, 0.5, 1, 1, 1.5 ,1.5}
+  TEST_REAL_SIMILAR(Math::MAD(z_odd.begin(), z_odd.end(), 0.5), 1);
+  DoubleList z_even = ListUtils::create<double>("-1.5,-1.0,-0.5,0.0,0.5,1.0,1.5,2.0"); // median{2, 1.5, 1, 0.5, 0, 0.5, 1, 1.5} == median{0, 0.5, 0.5, 1, 1, 1.5 , 1.5, 2}
+  TEST_REAL_SIMILAR(Math::MAD(z_even.begin(), z_even.end(), 0.5), 1);
 }
 END_SECTION
 
 
 START_SECTION([EXTRA](template< typename IteratorType1, typename IteratorType2 > static RealType meanSquareError( IteratorType1 begin_a, const IteratorType1 end_a, IteratorType2 begin_b, const IteratorType2 end_b )))
 {
-	std::list<DoubleReal> numbers1(20, 1.5);
-	std::list<DoubleReal> numbers2(20, 1.3);
-	DoubleReal result = 0;
+	std::list<double> numbers1(20, 1.5);
+	std::list<double> numbers2(20, 1.3);
+	double result = 0;
 
 	TOLERANCE_ABSOLUTE(0.000001);
 	result = Math::meanSquareError(numbers1.begin(), numbers1.end(), numbers2.begin(), numbers2.end());
@@ -117,9 +134,9 @@ END_SECTION
 
 START_SECTION([EXTRA](template< typename IteratorType1, typename IteratorType2 > static RealType classificationRate( IteratorType1 begin_a, const IteratorType1 end_a, IteratorType2 begin_b, const IteratorType2 end_b )))
 {
-	std::vector<DoubleReal> numbers1(20, 1);
-	std::vector<DoubleReal> numbers2(20, 1);
-	DoubleReal result = 0;
+	std::vector<double> numbers1(20, 1);
+	std::vector<double> numbers2(20, 1);
+	double result = 0;
 
 	numbers1.resize(40, -1);
 	numbers2.resize(40, -1);
@@ -142,9 +159,9 @@ END_SECTION
 
 START_SECTION([EXTRA](template< typename IteratorType1, typename IteratorType2 > static RealType pearsonCorrelationCoefficient( const IteratorType1 begin_a, const IteratorType1 end_a, const IteratorType2 begin_b, const IteratorType2 end_b )))
 {
-	std::vector<DoubleReal> numbers1(20, 1.5);
-	std::vector<DoubleReal> numbers2(20, 1.3);
-	DoubleReal result = 0;
+	std::vector<double> numbers1(20, 1.5);
+	std::vector<double> numbers2(20, 1.3);
+	double result = 0;
 
 	numbers1[0] = 0.1;
 	numbers2[0] = 0.5;
@@ -161,7 +178,7 @@ START_SECTION([EXTRA](template< typename IteratorType1, typename IteratorType2 >
 	TEST_REAL_SIMILAR(result, 0.897811);
 
 // ************ TEST for nan *****************
-	std::vector<Real> vv1,vv2;
+	std::vector<float> vv1,vv2;
 	vv1.push_back(1);
 	vv1.push_back(1);
 	vv1.push_back(1);
@@ -180,7 +197,7 @@ START_SECTION([EXTRA](template< typename IteratorType1, typename IteratorType2 >
 	TEST_REAL_SIMILAR(result, -1.0);
 // ************ TEST for nan *****************
 
-	std::vector<Real> v1,v2;
+	std::vector<float> v1,v2;
 	v1.push_back(1);
 	v1.push_back(2);
 	v1.push_back(3);
@@ -302,9 +319,9 @@ START_SECTION([EXTRA](template< typename IteratorType1, typename IteratorType2 >
 }
 END_SECTION
 
-START_SECTION([EXTRA](static void computeRank(std::vector<DoubleReal>& w)))
+START_SECTION([EXTRA](static void computeRank(std::vector<double>& w)))
 {
-  std::vector<DoubleReal> numbers1(10, 1.5);
+  std::vector<double> numbers1(10, 1.5);
 
   numbers1[0] = 1.4;
   numbers1[1] = 0.2;
@@ -335,15 +352,15 @@ END_SECTION
 
 START_SECTION([EXTRA](template< typename IteratorType1, typename IteratorType2 > static RealType rankCorrelationCoefficient( const IteratorType1 begin_a, const IteratorType1 end_a, const IteratorType2 begin_b, const IteratorType2 end_b )))
 {
-  std::vector<DoubleReal> numbers1(10, 1.5);
-  std::vector<DoubleReal> numbers2(10, 1.3);
-  std::vector<DoubleReal> numbers3(10, 0.42);
-  std::vector<DoubleReal> numbers4(10, 0.0);
-  DoubleReal result = 0;
+  std::vector<double> numbers1(10, 1.5);
+  std::vector<double> numbers2(10, 1.3);
+  std::vector<double> numbers3(10, 0.42);
+  std::vector<double> numbers4(10, 0.0);
+  double result = 0;
 
   for (Size i = 0; i < numbers4.size(); ++i)
   {
-    numbers4[i] = (DoubleReal)(i+1);
+    numbers4[i] = (double)(i+1);
   }
 
   numbers1[0] = 0.4;
@@ -380,6 +397,19 @@ START_SECTION([EXTRA](template< typename IteratorType1, typename IteratorType2 >
 }
 END_SECTION
 
+START_SECTION([EXTRA](template <typename IteratorType> static double quantile(IteratorType begin, IteratorType end, UInt quantile, bool sorted = false) ))
+{
+	std::vector<int> x = boost::assign::list_of(3)(6)(7)(8)(8)(10)(13)(15)(16)(20);
+	std::vector<int> y = boost::assign::list_of(3)(6)(7)(8)(8)(10)(13)(15)(16);
+
+	TEST_REAL_SIMILAR(Math::quantile1st(x.begin(), x.end(), true), 6.5);
+	TEST_REAL_SIMILAR(Math::median(x.begin(), x.end(), true), 9.0);
+	TEST_REAL_SIMILAR(Math::quantile3rd(x.begin(), x.end(), true), 15.5);
+	TEST_REAL_SIMILAR(Math::quantile1st(y.begin(), y.end(), true),6.5);
+	TEST_REAL_SIMILAR(Math::median(y.begin(), y.end(), true), 8.0);
+	TEST_REAL_SIMILAR(Math::quantile3rd(y.begin(), y.end(), true), 14.0);
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

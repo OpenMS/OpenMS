@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -72,10 +72,9 @@ using namespace std;
 
     @experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested!
 
-    This tool counts the peptide sequences that match a protein accession. From this count for all protein hits
-  in the respective id run, only those proteins are accepted that have at least a given number of peptides sequences
-  identified. The peptide identifications should be prefiltered with respect to false discovery rate and the score in
-  general to remove bad identifications.
+    This tool counts the peptide sequences that match a protein accession. From this count for all protein hits in the respective id run, only those proteins are accepted that have at least a given number of peptides sequences identified. The peptide identifications should be prefiltered with respect to false discovery rate and the score in general to remove bad identifications.
+
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_ProteinInference.cli
@@ -113,7 +112,7 @@ protected:
     //registerSubsection_("algorithm","Consensus algorithm section");
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     String in = getStringOption_("in");
     String out = getStringOption_("out");
@@ -163,7 +162,8 @@ protected:
         }
 
         // for all protein accessions
-        for (vector<String>::const_iterator it3 = it2->getProteinAccessions().begin(); it3 != it2->getProteinAccessions().end(); ++it3)
+        set<String> protein_accessions = it2->extractProteinAccessions();
+        for (set<String>::const_iterator it3 = protein_accessions.begin(); it3 != protein_accessions.end(); ++it3)
         {
           acc_peptides[*it3][charge].insert(pep_seq);
         }
@@ -203,7 +203,8 @@ protected:
       it1->setHits(vector<PeptideHit>());
       for (vector<PeptideHit>::const_iterator it2 = peptide_hits.begin(); it2 != peptide_hits.end(); ++it2)
       {
-        for (vector<String>::const_iterator it3 = it2->getProteinAccessions().begin(); it3 != it2->getProteinAccessions().end(); ++it3)
+        set<String> protein_accessions = it2->extractProteinAccessions();
+        for (set<String>::const_iterator it3 = protein_accessions.begin(); it3 != protein_accessions.end(); ++it3)
         {
           if (accepted_proteins.find(*it3) != accepted_proteins.end())
           {
@@ -224,15 +225,17 @@ protected:
       vector<PeptideHit> peptide_ids = it1->getHits();
       for (vector<PeptideHit>::iterator it2 = peptide_ids.begin(); it2 != peptide_ids.end(); ++it2)
       {
-        vector<String> valid_accessions;
-        for (vector<String>::const_iterator it3 = it2->getProteinAccessions().begin(); it3 != it2->getProteinAccessions().end(); ++it3)
+        vector<PeptideEvidence> filtered_evidence;
+        vector<PeptideEvidence> old_evidence = it2->getPeptideEvidences();
+
+        for (vector<PeptideEvidence>::const_iterator evidence_it = old_evidence.begin(); evidence_it != old_evidence.end(); ++evidence_it)
         {
-          if (accepted_proteins.find(*it3) != accepted_proteins.end())
+          if (accepted_proteins.find(evidence_it->getProteinAccession()) != accepted_proteins.end())
           {
-            valid_accessions.push_back(*it3);
+            filtered_evidence.push_back(*evidence_it);
           }
         }
-        it2->setProteinAccessions(valid_accessions);
+        it2->setPeptideEvidences(filtered_evidence);
       }
       it1->setHits(peptide_ids);
     }
@@ -255,7 +258,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPProteinInference tool;
   return tool.main(argc, argv);

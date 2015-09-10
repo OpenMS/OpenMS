@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -57,6 +57,8 @@ using namespace std;
   Input and output format are 'idXML'. The tools allows you to extract subsets of peptides
   from idXML files.
 
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_IDExtractor.cli
     <B>INI file documentation of this tool:</B>
@@ -76,7 +78,7 @@ public:
 
   }
 
-  static bool compareIDsWithScores(pair<DoubleReal, PeptideIdentification> a, pair<DoubleReal, PeptideIdentification> b)
+  static bool compareIDsWithScores(pair<double, PeptideIdentification> a, pair<double, PeptideIdentification> b)
   {
     if (a.second.isHigherScoreBetter())
     {
@@ -102,7 +104,7 @@ protected:
     registerFlag_("best_hits", "If this flag is set the best n peptides are chosen.");
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     IdXMLFile idXML_file;
     vector<ProteinIdentification> protein_identifications;
@@ -113,16 +115,11 @@ protected:
     vector<PeptideHit> temp_peptide_hits;
     vector<ProteinHit> temp_protein_hits;
     vector<ProteinHit> chosen_protein_hits;
-    String inputfile_name = "";
-    String outputfile_name = "";
-    Size number_of_peptides = 0;
-    Size number_of_rand_invokations = 0;
     map<String, vector<PeptideIdentification> > identifiers;
     PeptideIdentification temp_identification;
     vector<String> chosen_ids;
-    bool best_hits = false;
-    vector<pair<DoubleReal, PeptideIdentification> > identifications_with_scores;
-    vector<pair<DoubleReal, PeptideIdentification> >::iterator it = identifications_with_scores.begin();
+    vector<pair<double, PeptideIdentification> > identifications_with_scores;
+    vector<pair<double, PeptideIdentification> >::iterator it = identifications_with_scores.begin();
     vector<PeptideIdentification> temp_identifications;
 
 
@@ -130,11 +127,11 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    inputfile_name = getStringOption_("in");
-    outputfile_name = getStringOption_("out");
-    number_of_peptides = getIntOption_("number_of_peptides");
-    number_of_rand_invokations = getIntOption_("number_of_rand_invokations");
-    best_hits = getFlag_("best_hits");
+    String inputfile_name = getStringOption_("in");
+    String outputfile_name = getStringOption_("out");
+    Size number_of_peptides = getIntOption_("number_of_peptides");
+    Size number_of_rand_invokations = getIntOption_("number_of_rand_invokations");
+    bool best_hits = getFlag_("best_hits");
 
     //-------------------------------------------------------------
     // reading input
@@ -235,7 +232,9 @@ protected:
           for (Size k = 0; k < temp_identifications.size(); ++k)
           {
             temp_peptide_hits.clear();
-            temp_identifications[k].getReferencingHits(temp_protein_hits[j].getAccession(), temp_peptide_hits);
+            set<String> accession;
+            accession.insert(temp_protein_hits[j].getAccession());
+            temp_peptide_hits = PeptideIdentification::getReferencingHits(temp_identifications[k].getHits(), accession);
             if (!temp_peptide_hits.empty() && !already_chosen)
             {
               chosen_protein_hits.push_back(temp_protein_hits[j]);
@@ -263,7 +262,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPIDExtractor tool;
   return tool.main(argc, argv);

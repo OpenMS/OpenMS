@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,8 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionHelper.h>
+
+#include <iostream>
 
 namespace OpenMS
 {
@@ -81,13 +83,13 @@ namespace OpenMS
     OpenSwath::TransitionHelper::convert(transition_exp_used, transmap);
     // std::cout << "nr peptides : " << transmap.size() << std::endl;
 
-    Mmap::iterator beg = transmap.begin();
-    Mmap::iterator end = transmap.end();
+    Mmap::iterator m_begin = transmap.begin();
+    Mmap::iterator m_end = transmap.end();
     std::vector<std::string> transitionsNames;
 
-    for (; beg != end; ++beg)
+    for (; m_begin != m_end; ++m_begin)
     {
-      transitionsNames.push_back(beg->first);
+      transitionsNames.push_back(m_begin->first);
     }
 
     ivw->colnames(transitionsNames);
@@ -108,7 +110,7 @@ namespace OpenMS
       std::vector<double> score2v;
       for (; beg != end; ++beg, ++xx)
       {
-        //std::cout << "analysing transtion" << xx << beg->second.size()
+        //std::cout << "analysing transition" << xx << beg->second.size()
         //    << " " << beg->first << std::endl;
         double score1;
         double score2;
@@ -180,7 +182,7 @@ namespace OpenMS
 
   void DiaPrescore::updateMembers_()
   {
-    dia_extract_window_ = (DoubleReal) param_.getValue(
+    dia_extract_window_ = (double) param_.getValue(
       "dia_extraction_window");
     nr_isotopes_ = (int) param_.getValue("nr_isotopes");
     nr_charges_ = (int) param_.getValue("nr_charges");

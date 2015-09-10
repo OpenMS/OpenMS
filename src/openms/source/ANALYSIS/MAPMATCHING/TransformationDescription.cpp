@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,6 +36,10 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelBSpline.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
+
 using namespace std;
 
 namespace OpenMS
@@ -47,7 +51,7 @@ namespace OpenMS
   }
 
   TransformationDescription::TransformationDescription(
-    const TransformationDescription::DataPoints & data) :
+    const TransformationDescription::DataPoints& data) :
     data_(data), model_type_("none"), model_(new TransformationModel())
   {
   }
@@ -58,40 +62,37 @@ namespace OpenMS
   }
 
   TransformationDescription::TransformationDescription(
-    const TransformationDescription & rhs)
+    const TransformationDescription& rhs)
   {
     data_ = rhs.data_;
     model_type_ = "none";
-    model_ = 0;     // initialize this before the "delete" call in "fitModel"!
-    Param params;
-    rhs.getModelParameters(params);
+    model_ = 0; // initialize this before the "delete" call in "fitModel"!
+    Param params = rhs.getModelParameters();
     fitModel(rhs.model_type_, params);
   }
 
-  TransformationDescription & TransformationDescription::operator=(
-    const TransformationDescription & rhs)
+  TransformationDescription& TransformationDescription::operator=(
+    const TransformationDescription& rhs)
   {
     if (this == &rhs)
       return *this;
 
     data_ = rhs.data_;
     model_type_ = "none";
-    Param params;
-    rhs.getModelParameters(params);
+    Param params = rhs.getModelParameters();
     fitModel(rhs.model_type_, params);
 
     return *this;
   }
 
-  void TransformationDescription::fitModel(const String & model_type,
-                                           const Param & params)
+  void TransformationDescription::fitModel(const String& model_type,
+                                           const Param& params)
   {
-    // if the transformation is the identity, don't fit another model:
-    if (model_type_ == "identity")
-      return;
+    // if (previous) transformation is the identity, don't fit another model:
+    if (model_type_ == "identity") return;
 
     delete model_;
-    model_ = 0;     // avoid segmentation fault in case of exception
+    model_ = 0; // avoid segmentation fault in case of exception
     if ((model_type == "none") || (model_type == "identity"))
     {
       model_ = new TransformationModel();
@@ -100,18 +101,18 @@ namespace OpenMS
     {
       model_ = new TransformationModelLinear(data_, params);
       // // debug output:
-      // DoubleReal slope, intercept;
+      // double slope, intercept;
       // TransformationModelLinear* lm = dynamic_cast<TransformationModelLinear*>(model_);
       // lm->getParameters(slope, intercept);
       // cout << "slope: " << slope << ", intercept: " << intercept << endl;
     }
-    else if (model_type == "interpolated")
-    {
-      model_ = new TransformationModelInterpolated(data_, params);
-    }
     else if (model_type == "b_spline")
     {
       model_ = new TransformationModelBSpline(data_, params);
+    }
+    else if (model_type == "interpolated")
+    {
+      model_ = new TransformationModelInterpolated(data_, params);
     }
     else
     {
@@ -120,39 +121,39 @@ namespace OpenMS
     model_type_ = model_type;
   }
 
-  DoubleReal TransformationDescription::apply(DoubleReal value) const
+  double TransformationDescription::apply(double value) const
   {
     return model_->evaluate(value);
   }
 
-  const String & TransformationDescription::getModelType() const
+  const String& TransformationDescription::getModelType() const
   {
     return model_type_;
   }
 
-  void TransformationDescription::getModelTypes(StringList & result)
+  void TransformationDescription::getModelTypes(StringList& result)
   {
     result = ListUtils::create<String>("linear,b_spline,interpolated");
     // "none" and "identity" don't count
   }
 
-  void TransformationDescription::setDataPoints(const DataPoints & data)
+  void TransformationDescription::setDataPoints(const DataPoints& data)
   {
     data_ = data;
-    model_type_ = "none";     // reset the model even if it was "identity"
+    model_type_ = "none"; // reset the model even if it was "identity"
     delete model_;
     model_ = new TransformationModel();
   }
 
-  const TransformationDescription::DataPoints &
+  const TransformationDescription::DataPoints&
   TransformationDescription::getDataPoints() const
   {
     return data_;
   }
 
-  void TransformationDescription::getModelParameters(Param & params) const
+  const Param& TransformationDescription::getModelParameters() const
   {
-    model_->getParameters(params);
+    return model_->getParameters();
   }
 
   void TransformationDescription::invert()
@@ -165,14 +166,13 @@ namespace OpenMS
     // ugly hack for linear model with explicit slope/intercept parameters:
     if ((model_type_ == "linear") && data_.empty())
     {
-      TransformationModelLinear * lm =
-        dynamic_cast<TransformationModelLinear *>(model_);
+      TransformationModelLinear* lm =
+        dynamic_cast<TransformationModelLinear*>(model_);
       lm->invert();
     }
     else
     {
-      Param params;
-      getModelParameters(params);
+      Param params = getModelParameters();
       fitModel(model_type_, params);
     }
   }

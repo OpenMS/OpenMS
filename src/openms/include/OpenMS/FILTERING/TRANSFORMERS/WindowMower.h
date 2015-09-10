@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -74,7 +74,7 @@ public:
     {
       typedef typename SpectrumType::ConstIterator ConstIterator;
 
-      windowsize_ = (DoubleReal)param_.getValue("windowsize");
+      windowsize_ = (double)param_.getValue("windowsize");
       peakcount_ = (UInt)param_.getValue("peakcount");
 
       //copy spectrum
@@ -137,24 +137,24 @@ public:
 
       spectrum.sortByPosition();
 
-      windowsize_ = (DoubleReal)param_.getValue("windowsize");
-      peakcount_ = (UInt)param_.getValue("peakcount");
+      windowsize_ = static_cast<double>(param_.getValue("windowsize"));
+      peakcount_ = static_cast<UInt>(param_.getValue("peakcount"));
 
       // copy meta data
       SpectrumType out = spectrum;
       out.clear(false);
 
       SpectrumType peaks_in_window;
-      DoubleReal window_start = spectrum[0].getMZ();
+      double window_start = spectrum[0].getMZ();
       for (Size i = 0; i != spectrum.size(); ++i)
       {
-        if (spectrum[i].getMZ() - window_start < windowsize_)      // collect peaks in window
+        if (spectrum[i].getMZ() - window_start < windowsize_) // collect peaks in window
         {
           peaks_in_window.push_back(spectrum[i]);
         }
-        else       // step over window boundaries
+        else // step over window boundaries
         {
-          window_start = spectrum[i].getMZ();       // as there might be large gaps between peaks resulting in empty windows, set new window start to next peak
+          window_start = spectrum[i].getMZ(); // as there might be large gaps between peaks resulting in empty windows, set new window start to next peak
 
           // copy N highest peaks to out
           if (peaks_in_window.size() > peakcount_)
@@ -173,7 +173,7 @@ public:
         }
       }
 
-      if (peaks_in_window.empty())    // last window is empty -> no special handling needed
+      if (peaks_in_window.empty()) // last window is empty -> no special handling needed
       {
         out.sortByPosition();
         spectrum = out;
@@ -184,11 +184,11 @@ public:
       // Therefor the number of peaks copied from this window should be adapted accordingly.
       // Otherwise a lot of noise peaks are copied from each end of a spectrum.
 
-      DoubleReal last_window_size = peaks_in_window.back().getMZ() - window_start;
-      DoubleReal last_window_size_fraction = last_window_size / windowsize_;
+      double last_window_size = peaks_in_window.back().getMZ() - window_start;
+      double last_window_size_fraction = last_window_size / windowsize_;
       Size last_window_peakcount = last_window_size_fraction * peakcount_;
 
-      if (last_window_peakcount)    // handle single peak in last window (will produce no proper fraction)
+      if (last_window_peakcount) // handle single peak in last window (will produce no proper fraction)
       {
         last_window_peakcount = 1;
       }
@@ -213,7 +213,7 @@ public:
     //TODO reimplement DefaultParamHandler::updateMembers_()
 
 private:
-    DoubleReal windowsize_;
+    double windowsize_;
     UInt peakcount_;
   };
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,8 +36,20 @@
 #include <OpenMS/COMPARISON/CLUSTERING/SingleLinkage.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <OpenMS/DATASTRUCTURES/String.h>
+
 namespace OpenMS
 {
+  ClusterFunctor * SingleLinkage::create()
+  {
+    return new SingleLinkage();
+  }
+
+  const String SingleLinkage::getProductName()
+  {
+    return "SingleLinkage";
+  }
+
   SingleLinkage::SingleLinkage() :
     ClusterFunctor(), ProgressLogger()
   {
@@ -62,7 +74,7 @@ namespace OpenMS
     return *this;
   }
 
-  void SingleLinkage::operator()(DistanceMatrix<Real> & original_distance, std::vector<BinaryTreeNode> & cluster_tree, const Real threshold /*=1*/) const
+  void SingleLinkage::operator()(DistanceMatrix<float> & original_distance, std::vector<BinaryTreeNode> & cluster_tree, const float threshold /*=1*/) const
   {
     // input MUST have >= 2 elements!
     if (original_distance.dimensionsize() < 2)
@@ -80,23 +92,23 @@ namespace OpenMS
     //SLINK
     std::vector<Size> pi;
     pi.reserve(original_distance.dimensionsize());
-    std::vector<Real> lambda;
+    std::vector<float> lambda;
     lambda.reserve(original_distance.dimensionsize());
 
     startProgress(0, original_distance.dimensionsize(), "clustering data");
 
     //initialize first pointer values
     pi.push_back(0);
-    lambda.push_back(std::numeric_limits<Real>::max());
+    lambda.push_back(std::numeric_limits<float>::max());
 
     for (Size k = 1; k < original_distance.dimensionsize(); ++k)
     {
-      std::vector<Real> row_k;
+      std::vector<float> row_k;
       row_k.reserve(k);
 
       //initialize pointer values for element to cluster
       pi.push_back(k);
-      lambda.push_back(std::numeric_limits<Real>::max());
+      lambda.push_back(std::numeric_limits<float>::max());
 
       // get the right distances
       for (Size i = 0; i < k; ++i)
@@ -119,7 +131,7 @@ namespace OpenMS
         }
       }
 
-      //update clustering if neccessary
+      //update clustering if necessary
       for (Size i = 0; i < k; ++i)
       {
         if (lambda[i] >= lambda[pi[i]])

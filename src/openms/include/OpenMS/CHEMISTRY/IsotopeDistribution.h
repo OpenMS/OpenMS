@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl, Andreas Bertsch $
-// $Authors: Clemens Groepl, Andreas Bertsch $
+// $Maintainer: Chris Bielow $
+// $Authors: Clemens Groepl, Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_H
@@ -143,7 +143,7 @@ public:
 
             Do consider normalising the distribution afterwards.
     */
-    void trimRight(DoubleReal cutoff);
+    void trimRight(double cutoff);
 
     /** @brief Trims the left side of the isotope distribution to isotopes with a significant contribution.
 
@@ -153,7 +153,7 @@ public:
 
             Do consider normalising the distribution afterwards.
     */
-    void trimLeft(DoubleReal cutoff);
+    void trimLeft(double cutoff);
     //@}
 
     /// @name Operators
@@ -201,6 +201,9 @@ protected:
 
     /// convolves the distribution @p input with itself and stores the result in @p result
     void convolveSquare_(ContainerType & result, const ContainerType & input) const;
+
+    /// fill a gapped isotope pattern (i.e. certain masses are missing), with zero probability masses
+    ContainerType fillGaps_(const ContainerType& id) const;
 
     /// maximal isotopes which is used to calculate the distribution
     Size max_isotope_;

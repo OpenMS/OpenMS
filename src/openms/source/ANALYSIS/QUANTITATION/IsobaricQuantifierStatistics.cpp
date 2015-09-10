@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifierStatistics.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 namespace OpenMS
 {
@@ -79,8 +80,7 @@ namespace OpenMS
 
   IsobaricQuantifierStatistics& IsobaricQuantifierStatistics::operator=(const IsobaricQuantifierStatistics& rhs)
   {
-    if (this == &rhs)
-      return *this;
+    if (this == &rhs) return *this;
 
     channel_count = rhs.channel_count;
     iso_number_ms2_negative = rhs.iso_number_ms2_negative;

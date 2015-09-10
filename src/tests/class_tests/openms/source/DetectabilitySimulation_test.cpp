@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,14 +53,14 @@ DetectabilitySimulation* ptr = 0;
 DetectabilitySimulation* nullPointer = 0;
 START_SECTION(DetectabilitySimulation())
 {
-	ptr = new DetectabilitySimulation();
-	TEST_NOT_EQUAL(ptr, nullPointer)
+  ptr = new DetectabilitySimulation();
+  TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 
 START_SECTION(~DetectabilitySimulation())
 {
-	delete ptr;
+  delete ptr;
 }
 END_SECTION
 
@@ -81,16 +81,16 @@ START_SECTION((DetectabilitySimulation& operator=(const DetectabilitySimulation 
   DetectabilitySimulation detect_sim1;
   DetectabilitySimulation detect_sim2(detect_sim1);
 
-	Param p = detect_sim1.getParameters();
-	p.setValue("min_detect", 0.0);
-	detect_sim1.setParameters(p);
-	TEST_NOT_EQUAL(detect_sim1.getParameters(),detect_sim2.getParameters());
-	detect_sim2 = detect_sim1;
-	TEST_EQUAL(detect_sim2.getParameters(),detect_sim2.getParameters());
+  Param p = detect_sim1.getParameters();
+  p.setValue("min_detect", 0.0);
+  detect_sim1.setParameters(p);
+  TEST_NOT_EQUAL(detect_sim1.getParameters(),detect_sim2.getParameters());
+  detect_sim2 = detect_sim1;
+  TEST_EQUAL(detect_sim2.getParameters(),detect_sim2.getParameters());
 }
 END_SECTION
 
-START_SECTION((void filterDetectability(FeatureMapSim & features)))
+START_SECTION((void filterDetectability(SimTypes::FeatureMapSim & features)))
 {
   // test no detect
   DetectabilitySimulation detect_off;
@@ -99,13 +99,13 @@ START_SECTION((void filterDetectability(FeatureMapSim & features)))
   p.setValue("min_detect", 0.9);
   detect_off.setParameters(p);
 
-  FeatureMapSim no_detect_features;
+  SimTypes::FeatureMapSim no_detect_features;
   StringList peps = ListUtils::create<String>("TVQMENQFVAFVDK,ACHKKKKHHACAC,AAAAHTKLRTTIPPEFG,RYCNHKTUIKL");
   for (StringList::const_iterator it=peps.begin(); it!=peps.end(); ++it)
   {
     Feature f;
     PeptideIdentification pep_id;
-    pep_id.insertHit(PeptideHit(1.0, 1, 1, AASequence(*it)));
+    pep_id.insertHit(PeptideHit(1.0, 1, 1, AASequence::fromString(*it)));
     f.getPeptideIdentifications().push_back(pep_id);
     f.setIntensity(10);
     no_detect_features.push_back(f);
@@ -127,16 +127,16 @@ START_SECTION((void filterDetectability(FeatureMapSim & features)))
   svm_params.setValue("dt_model_file",OPENMS_GET_TEST_DATA_PATH("DetectabilitySimulation.svm"));
   detect_svm.setParameters(svm_params);
 
-  FeatureMapSim svm_features;
-	for (StringList::const_iterator it=peps.begin(); it!=peps.end(); ++it)
-	{
-		Feature f;
-		PeptideIdentification pep_id;
-		pep_id.insertHit(PeptideHit(1.0, 1, 1, AASequence(*it)));
-		f.getPeptideIdentifications().push_back(pep_id);
-		f.setIntensity(10);
-		svm_features.push_back(f);
-	}
+  SimTypes::FeatureMapSim svm_features;
+  for (StringList::const_iterator it=peps.begin(); it!=peps.end(); ++it)
+  {
+    Feature f;
+    PeptideIdentification pep_id;
+    pep_id.insertHit(PeptideHit(1.0, 1, 1, AASequence::fromString(*it)));
+    f.getPeptideIdentifications().push_back(pep_id);
+    f.setIntensity(10);
+    svm_features.push_back(f);
+  }
 
   detect_svm.filterDetectability(svm_features);
 
@@ -147,7 +147,7 @@ START_SECTION((void filterDetectability(FeatureMapSim & features)))
   TEST_REAL_SIMILAR(svm_features[1].getMetaValue("detectability"), 0.723545391996237)
 
   /*
-  for(FeatureMapSim::const_iterator it = svm_features.begin() ; it != svm_features.end();
+  for(SimTypes::FeatureMapSim::const_iterator it = svm_features.begin() ; it != svm_features.end();
       ++it)
   {
     std::cout << (*it).getPeptideIdentifications()[0].getHits()[0].getSequence().toString()  << " " << (*it).getMetaValue("detectibility") << std::endl;
@@ -156,7 +156,7 @@ START_SECTION((void filterDetectability(FeatureMapSim & features)))
 }
 END_SECTION
 
-START_SECTION((void predictDetectabilities(std::vector<String>& peptides_vector,std::vector<DoubleReal>& labels, std::vector<DoubleReal>& detectabilities)))
+START_SECTION((void predictDetectabilities(std::vector<String>& peptides_vector,std::vector<double>& labels, std::vector<double>& detectabilities)))
 {
   // this method is called by "filterDetectability" so we already test it
   NOT_TESTABLE

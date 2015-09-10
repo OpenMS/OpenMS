@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
-// 
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
 // $Authors: Hannes Roest $
@@ -52,7 +52,7 @@ using namespace OpenMS;
       <table>
           <tr>
               <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-              <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ FeatureXMLToTSV \f$ \longrightarrow \f$</td>
+              <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ OpenSwathFeatureXMLToTSV \f$ \longrightarrow \f$</td>
               <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
           </tr>
           <tr>
@@ -82,7 +82,7 @@ using namespace OpenMS;
 
 std::map<String, std::vector<const ReactionMonitoringTransition *> > peptide_transition_map;
 
-void write_out_header(std::ostream &os, FeatureMap<Feature> &feature_map, /* String main_var_name,  */ std::vector<String> &meta_value_names, bool short_format)
+void write_out_header(std::ostream &os, FeatureMap &feature_map, /* String main_var_name,  */ std::vector<String> &meta_value_names, bool short_format)
 {
   std::vector<String> meta_value_names_tmp;
 
@@ -280,7 +280,7 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
     for (std::vector<Feature>::iterator sub_it = feature_it->getSubordinates().begin(); sub_it != feature_it->getSubordinates().end(); ++sub_it)
     {
       String Peak_Apex = "NA";
-      os.precision(writtenDigits(DoubleReal()));
+      os.precision(writtenDigits(double()));
       sprintf(intensity_char, "%f", sub_it->getIntensity());
       sprintf(mz_char, "%f", sub_it->getMZ());
       os << line << meta_values << (String)intensity_char << "\t" << Peak_Apex << "\t" << (String)sub_it->getMetaValue("native_id") << "\t" << (String)mz_char << std::endl;
@@ -290,14 +290,12 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
 
 Feature *find_best_feature(const std::vector<Feature *> &features, String score_)
 {
-  DoubleReal best_score = -std::numeric_limits<DoubleReal>::max();
+  double best_score = -std::numeric_limits<double>::max();
   Feature *best_feature = NULL;
-  DoubleReal score;
 
   for (Size i = 0; i < features.size(); i++)
   {
-
-    score = features[i]->getMetaValue(score_).toString().toDouble();
+    double  score = features[i]->getMetaValue(score_).toString().toDouble();
     if (score > best_score)
     {
       best_feature = features[i];
@@ -307,7 +305,7 @@ Feature *find_best_feature(const std::vector<Feature *> &features, String score_
   return best_feature;
 }
 
-void write_out_body_best_score(std::ostream &os, FeatureMap<Feature> &feature_map,
+void write_out_body_best_score(std::ostream &os, FeatureMap &feature_map,
                                TargetedExperiment &transition_exp, std::vector<String> &meta_value_names,
                                int run_id, bool short_format, String best_score, String filename)
 {
@@ -315,7 +313,7 @@ void write_out_body_best_score(std::ostream &os, FeatureMap<Feature> &feature_ma
   // for each peptide reference search for the best feature
   typedef std::map<String, std::vector<Feature *> > PeptideFeatureMapType;
   PeptideFeatureMapType peptide_feature_map;
-  for (FeatureMap<Feature>::iterator feature_it = feature_map.begin(); feature_it != feature_map.end(); ++feature_it)
+  for (FeatureMap::iterator feature_it = feature_map.begin(); feature_it != feature_map.end(); ++feature_it)
   {
     String peptide_ref = feature_it->getMetaValue("PeptideRef");
     peptide_feature_map[peptide_ref].push_back(&(*feature_it));
@@ -372,14 +370,14 @@ protected:
     registerStringOption_("best_scoring_peptide", "<varname>", "", "If only the best scoring feature per peptide should be printed, give the variable name", false);
   }
 
-  void write_out_body(std::ostream &os, FeatureMap<Feature> &feature_map,
+  void write_out_body(std::ostream &os, FeatureMap &feature_map,
                       TargetedExperiment &transition_exp, std::vector<String> &meta_value_names,
                       int run_id, bool short_format, String filename)
   {
 
     Size progress = 0;
     startProgress(0, feature_map.size(), "writing out features");
-    for (FeatureMap<Feature>::iterator feature_it = feature_map.begin(); feature_it != feature_map.end(); ++feature_it)
+    for (FeatureMap::iterator feature_it = feature_map.begin(); feature_it != feature_map.end(); ++feature_it)
     {
       setProgress(progress++);
       write_out_body_(os, &(*feature_it), transition_exp, meta_value_names, run_id, short_format, feature_map.getIdentifier(), filename);
@@ -416,7 +414,7 @@ protected:
 
     std::ofstream os(out.c_str());
     //set high precision for writing of floating point numbers
-    os.precision(writtenDigits(DoubleReal()));
+    os.precision(writtenDigits(double()));
 
     if (!os)
     {
@@ -428,7 +426,7 @@ protected:
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No input files given ");
     }
-    FeatureMap<Feature> feature_map;
+    FeatureMap feature_map;
     FeatureXMLFile feature_file;
     feature_file.setLogType(log_type_);
     feature_file.load(file_list[0], feature_map);

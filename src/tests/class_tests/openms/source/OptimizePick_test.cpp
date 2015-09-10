@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,15 +65,11 @@ START_SECTION((OptimizePick(const struct OptimizationFunctions::PenaltyFactors& 
   penalties.lWidth = 1;
   penalties.rWidth = 2;
   unsigned int number = 10;
-  double abs_err = 0.01;
-  double rel_err = 0.001;
-  OptimizePick opt_pick(penalties,number,abs_err,rel_err);
+  OptimizePick opt_pick(penalties,number);
   TEST_REAL_SIMILAR(penalties.pos,opt_pick.getPenalties().pos)
   TEST_REAL_SIMILAR(penalties.lWidth,opt_pick.getPenalties().lWidth)
   TEST_REAL_SIMILAR(penalties.rWidth,opt_pick.getPenalties().rWidth)
  	TEST_EQUAL(number == opt_pick.getNumberIterations(), true)
- 	TEST_REAL_SIMILAR(abs_err, opt_pick.getMaxAbsError())
- 	TEST_REAL_SIMILAR(rel_err, opt_pick.getMaxRelError())
 END_SECTION
 
 START_SECTION((void optimize(std::vector< PeakShape > &peaks, Data &data)))
@@ -104,67 +100,6 @@ START_SECTION((void optimize(std::vector< PeakShape > &peaks, Data &data)))
  	TEST_REAL_SIMILAR(peak_shape.right_width,0.1)
  	TEST_REAL_SIMILAR(peak_shape.area,100)
  	TEST_REAL_SIMILAR(peak_shape.height,400)
-END_SECTION
-
-START_SECTION((void setMaxAbsError(double eps_abs)))
-  TOLERANCE_ABSOLUTE(0.0001)
-  double abs_err = 0.01;
-
-  OptimizePick opt_pick;
-  opt_pick.setMaxAbsError(abs_err);
-
- 	TEST_REAL_SIMILAR(abs_err, opt_pick.getMaxAbsError())
-END_SECTION
-
-
-START_SECTION((DoubleReal getMaxAbsError() const))
-  TOLERANCE_ABSOLUTE(0.0001)
-  double abs_err = 0.01;
-
-  OptimizePick opt_pick;
-  opt_pick.setMaxAbsError(abs_err);
-
- 	TEST_REAL_SIMILAR(abs_err, opt_pick.getMaxAbsError())
-END_SECTION
-
-START_SECTION((double& getMaxAbsError()))
-  TOLERANCE_ABSOLUTE(0.0001)
-  double abs_err = 0.01;
-
-  OptimizePick opt_pick;
-  opt_pick.setMaxAbsError(abs_err);
-
- 	TEST_REAL_SIMILAR(abs_err, opt_pick.getMaxAbsError())
-END_SECTION
-
-START_SECTION((void setMaxRelError(double eps_rel)))
-  TOLERANCE_ABSOLUTE(0.0001)
-  double rel_err = 0.01;
-
-  OptimizePick opt_pick;
-  opt_pick.setMaxRelError(rel_err);
-
- 	TEST_REAL_SIMILAR(rel_err, opt_pick.getMaxRelError())
-END_SECTION
-
-START_SECTION((DoubleReal getMaxRelError() const))
-  TOLERANCE_ABSOLUTE(0.0001)
-  double rel_err = 0.01;
-
-  OptimizePick opt_pick;
-  opt_pick.setMaxRelError(rel_err);
-
- 	TEST_REAL_SIMILAR(rel_err, opt_pick.getMaxRelError())
-END_SECTION
-
-START_SECTION((double& getMaxRelError()))
-  TOLERANCE_ABSOLUTE(0.0001)
-  double rel_err = 0.01;
-
-  OptimizePick opt_pick;
-  opt_pick.setMaxRelError(rel_err);
-
- 	TEST_REAL_SIMILAR(rel_err, opt_pick.getMaxRelError())
 END_SECTION
 
 START_SECTION((void setNumberIterations(const int max_iteration)))

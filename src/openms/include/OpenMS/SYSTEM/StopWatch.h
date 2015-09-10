@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,8 +47,6 @@
 #ifdef OPENMS_HAS_TIME_H
 #include <ctime>
 #endif
-
-#include <iostream>
 
 namespace OpenMS
 {
@@ -122,26 +120,23 @@ public:
     /**	Get clock time.
             Return the accumulated clock (real) time in seconds.
     */
-    DoubleReal getClockTime() const;
+    double getClockTime() const;
 
     /**	Get user time.
             Return the accumulated user time in seconds.
     */
-    DoubleReal getUserTime() const;
+    double getUserTime() const;
 
     /**	Get user time.
             Return the accumulated system time in seconds.
     */
-    DoubleReal getSystemTime() const;
+    double getSystemTime() const;
 
     /**	Get CPU time.
             Return the accumulated CPU time in seconds.
             CPU time is the sum of user time and system time.
     */
-    inline DoubleReal getCPUTime() const
-    {
-      return getUserTime() + getSystemTime();
-    }
+    double getCPUTime() const;
 
     //@}
 
@@ -165,10 +160,7 @@ public:
     /**	Return true if the stop watch is running.
             @return bool <b>true</b> if the stop watch is running, <b>false</b> otherwise
     */
-    bool isRunning() const
-    {
-      return is_running_;
-    }
+    bool isRunning() const;
 
     /**	Equality operator.
             Return <b>true</b> if two stop watches are equal, i.e. they contain exactly
@@ -186,10 +178,7 @@ public:
             @param stop_watch the stop watch to compare with
             @return bool <b>true</b> on inequality, <b>false</b> otherwise
     */
-    inline bool operator!=(const StopWatch & stop_watch) const
-    {
-      return !(*this == stop_watch);
-    }
+    bool operator!=(const StopWatch & stop_watch) const;
 
     /**	Lesser than operator.
             Return true, if the stop watch is in all timings lesser than the
@@ -197,10 +186,7 @@ public:
             @param stop_watch the stop watch to compare with
             @return bool <b>true</b> if all times are lesser
     */
-    inline bool operator<(const StopWatch & stop_watch) const
-    {
-      return getCPUTime() < stop_watch.getCPUTime();
-    }
+    bool operator<(const StopWatch & stop_watch) const;
 
     /**	Lesser or equal operator.
             Return true, if the stop watch is in all timings lesser or equal than the
@@ -208,10 +194,7 @@ public:
             @param stop_watch the stop watch to compare with
             @return bool <b>true</b> if all times are lesser or equal
     */
-    inline bool operator<=(const StopWatch & stop_watch) const
-    {
-      return !(stop_watch < *this);
-    }
+    bool operator<=(const StopWatch & stop_watch) const;
 
     /**	Greater or equal operator.
             Return true, if the stop watch is in all timings greater or equal than the
@@ -219,10 +202,7 @@ public:
             @param stop_watch the stop watch to compare with
             @return bool <b>true</b> if all times are greater or equal
     */
-    inline bool operator>=(const StopWatch & stop_watch) const
-    {
-      return !(*this < stop_watch);
-    }
+    bool operator>=(const StopWatch & stop_watch) const;
 
     /**	Greater operator.
             Return true, if the stop watch is in all timings greater than the
@@ -230,17 +210,23 @@ public:
             @param stop_watch the stop watch to compare with
             @return bool <b>true</b> if all times are greater
     */
-    inline bool operator>(const StopWatch & stop_watch) const
-    {
-      return stop_watch < *this;
-    }
+    bool operator>(const StopWatch & stop_watch) const;
 
     //@}
 
     /**
+      @brief get a compact representation of the current time status.
+      
+      The output will be something like: 
+      2.10 s (wall), 1.67 s (CPU), 0.12 s (system), 1.54 s (user)
+      
+    */
+    String toString() const;
+
+    /**
       custom string formatting of time, using only the minimal number of units required (e.g., does not report hours when seconds suffice).
     */
-    static String toString(DoubleReal time);
+    static String toString(double time);
 
 private:
 
@@ -282,5 +268,7 @@ private:
   };
 
 }
+
+
 
 #endif // OPENMS_SYSTEM_STOPWATCH_H

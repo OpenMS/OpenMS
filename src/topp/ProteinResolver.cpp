@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,10 +46,10 @@
 
 #include <QDir>
 
-using std::list;
-using std::vector;
-using std::ofstream;
 using std::endl;
+using std::list;
+using std::ofstream;
+using std::vector;
 
 using namespace OpenMS;
 
@@ -77,7 +77,7 @@ using namespace OpenMS;
   </table>
 </CENTER>
 
-  @experimental This tool has not been tested thoroughly and might behave not as expected!
+  @experimental This tool has not been tested thoroughly and might NOT behave as expected!
 
   This tool is an imlementation of
   <p>
@@ -88,18 +88,15 @@ using namespace OpenMS;
 
   The algorithm tries to assign to each protein its experimentally validated peptide (meaning you should supply peptides with
   have undergone FDR filtering or alike).
-  Proteins are grouped into ISD groups(in-silico derived) and MSD groups(MS/MS derived)
+  Proteins are grouped into ISD groups (in-silico derived) and MSD groups (MS/MS derived)
   if they have in-silico derived or MS/MS derived peptides in common. Proteins and peptides span a bipartite graph.
   There is an edge between a protein node and a peptide node if and only if the protein contains the peptide.
   ISD groups are connected graphs in the forementionend bipartite graph. MSD groups are subgraphs of ISD groups.
   For further information see above paper.
 
   <p><b>Remark:</b>
-  If parameter @p in is given, @p in_path is ignored. Parameter @p in_path is considered only, if @p in is empty.
+  If parameter @p in is given, @p in_path is ignored. Parameter @p in_path is considered only if @p in is empty.
   </p>
-
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_ProteinResolver.cli
 
   <B>Input</B>
 
@@ -202,8 +199,12 @@ using namespace OpenMS;
 
   </p>
 
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_ProteinResolver.html
+  @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude TOPP_ProteinResolver.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_ProteinResolver.html
 */
 
 // We do not want this class to show up in the docu:
@@ -371,9 +372,9 @@ protected:
           //charge
           out << ph.getCharge();
           //RT
-          out << String(pi.getMetaValue("RT"));
+          out << String(pi.getRT());
           //MZ
-          out << String(pi.getMetaValue("MZ"));
+          out << String(pi.getMZ());
           out << endl;
         }
         else
@@ -392,9 +393,9 @@ protected:
           //charge
           out << ph.getCharge();
           //RT
-          out << String(pi.getMetaValue("RT"));
+          out << String(pi.getRT());
           //MZ
-          out << String(pi.getMetaValue("MZ"));
+          out << String(pi.getMZ());
           out << endl;
         }
       }
@@ -475,8 +476,8 @@ protected:
         target_plus_decoy_peptides += msd->number_of_target_plus_decoy;
         exp_peps += msd->peptides.size();
       }
-      Real fdr1 = (float)decoy_peptides / (float)(target_peptides + target_plus_decoy_peptides);
-      Real fdr2 = (float)(decoy_peptides + target_plus_decoy_peptides) / (float)target_peptides;
+      float fdr1 = (float)decoy_peptides / (float)(target_peptides + target_plus_decoy_peptides);
+      float fdr2 = (float)(decoy_peptides + target_plus_decoy_peptides) / (float)target_peptides;
       out << "Number of target peptides:" << target_peptides << endl;
       out << "Number of decoy peptides:" << decoy_peptides << endl;
       out << "Number of target+decoy peptides:" << target_plus_decoy_peptides << endl;

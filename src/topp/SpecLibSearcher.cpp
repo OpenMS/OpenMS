@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,7 +40,6 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectraSTSimilarityScore.h>
-#include <OpenMS/COMPARISON/SPECTRA/CompareFouriertransform.h>
 #include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
@@ -76,6 +75,8 @@ using namespace std;
 </CENTER>
 
     @experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested.
+
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_SpecLibSearcher.cli
@@ -138,7 +139,7 @@ protected:
     addEmptyLine_();
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -149,10 +150,10 @@ protected:
     String in_lib = getStringOption_("lib");
     String compare_function = getStringOption_("compare_function");
     Int precursor_mass_multiplier = getIntOption_("round_precursor_to_integer");
-    Real precursor_mass_tolerance = getDoubleOption_("precursor_mass_tolerance");
+    float precursor_mass_tolerance = getDoubleOption_("precursor_mass_tolerance");
     //Int min_precursor_charge = getIntOption_("min_precursor_charge");
     //Int max_precursor_charge = getIntOption_("max_precursor_charge");
-    Real remove_peaks_below_threshold = getDoubleOption_("filter:remove_peaks_below_threshold");
+    float remove_peaks_below_threshold = getDoubleOption_("filter:remove_peaks_below_threshold");
     UInt min_peaks = getIntOption_("filter:min_peaks");
     UInt max_peaks = getIntOption_("filter:max_peaks");
     Int cut_peaks_below = getIntOption_("filter:cut_peaks_below");
@@ -191,12 +192,12 @@ protected:
 
     map<Size, vector<PeakSpectrum> > MSLibrary;
     {
-      RichPeakMap::iterator s;
-      vector<PeptideIdentification>::iterator i;
-      ModificationsDB * mdb = ModificationsDB::getInstance();
-      for (s = library.begin(), i = ids.begin(); s < library.end(); ++s, ++i)
+      RichPeakMap::iterator s_it;
+      vector<PeptideIdentification>::iterator it;
+      ModificationsDB* mdb = ModificationsDB::getInstance();
+      for (s_it = library.begin(), it = ids.begin(); s_it < library.end(); ++s_it, ++it)
       {
-        DoubleReal precursor_MZ = (*s).getPrecursors()[0].getMZ();
+        double precursor_MZ = (*s_it).getPrecursors()[0].getMZ();
         Size MZ_multi = (Size)precursor_MZ * precursor_mass_multiplier;
         map<Size, vector<PeakSpectrum> >::iterator found;
         found = MSLibrary.find(MZ_multi);
@@ -204,16 +205,16 @@ protected:
         PeakSpectrum librar;
         bool variable_modifications_ok = true;
         bool fixed_modifications_ok = true;
-        const AASequence & aaseq = i->getHits()[0].getSequence();
+        const AASequence& aaseq = it->getHits()[0].getSequence();
         //variable fixed modifications
         if (!fixed_modifications.empty())
         {
-          for (Size i = 0; i < aaseq.size(); ++i)
+          for (Size j = 0; j < aaseq.size(); ++j)
           {
-            const   Residue & mod  = aaseq.getResidue(i);
-            for (Size s = 0; s < fixed_modifications.size(); ++s)
+            const Residue& mod = aaseq.getResidue(j);
+            for (Size k = 0; k < fixed_modifications.size(); ++k)
             {
-              if (mod.getOneLetterCode() == mdb->getModification(fixed_modifications[s]).getOrigin() && fixed_modifications[s] != mod.getModification())
+              if (mod.getOneLetterCode() == mdb->getModification(fixed_modifications[k]).getOrigin() && fixed_modifications[k] != mod.getModification())
               {
                 fixed_modifications_ok = false;
                 break;
@@ -224,14 +225,14 @@ protected:
         //variable modifications
         if (aaseq.isModified() && (!variable_modifications.empty()))
         {
-          for (Size i = 0; i < aaseq.size(); ++i)
+          for (Size j = 0; j < aaseq.size(); ++j)
           {
-            if (aaseq.isModified(i))
+            if (aaseq.isModified(j))
             {
-              const   Residue & mod  = aaseq.getResidue(i);
-              for (Size s = 0; s < variable_modifications.size(); ++s)
+              const Residue& mod = aaseq.getResidue(j);
+              for (Size k = 0; k < variable_modifications.size(); ++k)
               {
-                if (mod.getOneLetterCode() == mdb->getModification(variable_modifications[s]).getOrigin() && variable_modifications[s] != mod.getModification())
+                if (mod.getOneLetterCode() == mdb->getModification(variable_modifications[k]).getOrigin() && variable_modifications[k] != mod.getModification())
                 {
                   variable_modifications_ok = false;
                   break;
@@ -242,27 +243,27 @@ protected:
         }
         if (variable_modifications_ok && fixed_modifications_ok)
         {
-          PeptideIdentification & translocate_pid = *i;
+          PeptideIdentification& translocate_pid = *it;
           librar.getPeptideIdentifications().push_back(translocate_pid);
-          librar.setPrecursors(s->getPrecursors());
+          librar.setPrecursors(s_it->getPrecursors());
           //library entry transformation
-          for (UInt l = 0; l < s->size(); ++l)
+          for (UInt l = 0; l < s_it->size(); ++l)
           {
             Peak1D peak;
-            if ((*s)[l].getIntensity() >  remove_peaks_below_threshold)
+            if ((*s_it)[l].getIntensity() >  remove_peaks_below_threshold)
             {
-              const String & info = (*s)[l].getMetaValue("MSPPeakInfo");
+              const String& info = (*s_it)[l].getMetaValue("MSPPeakInfo");
               if (info[0] == '?')
               {
-                peak.setIntensity(sqrt(0.2 * (*s)[l].getIntensity()));
+                peak.setIntensity(sqrt(0.2 * (*s_it)[l].getIntensity()));
               }
               else
               {
-                peak.setIntensity(sqrt((*s)[l].getIntensity()));
+                peak.setIntensity(sqrt((*s_it)[l].getIntensity()));
               }
 
-              peak.setMZ((*s)[l].getMZ());
-              peak.setPosition((*s)[l].getPosition());
+              peak.setMZ((*s_it)[l].getMZ());
+              peak.setPosition((*s_it)[l].getPosition());
               librar.push_back(peak);
             }
           }
@@ -282,11 +283,11 @@ protected:
     time_t end_build_time = time(NULL);
     cout << "Time needed for preprocessing data: " << (end_build_time - start_build_time) << "\n";
     //compare function
-    PeakSpectrumCompareFunctor * comparor = Factory<PeakSpectrumCompareFunctor>::create(compare_function);
+    PeakSpectrumCompareFunctor* comparor = Factory<PeakSpectrumCompareFunctor>::create(compare_function);
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
-    DoubleReal score;
+    double score;
     StringList::iterator in, out_file;
     for (in  = in_spec.begin(), out_file  = out.begin(); in < in_spec.end(); ++in, ++out_file)
     {
@@ -319,7 +320,7 @@ protected:
         PeakSpectrum quer;
         bool peak_ok = true;
         query[j].sortByIntensity(true);
-        DoubleReal min_high_intensity = 0;
+        double min_high_intensity = 0;
 
         if (query[j].empty() || query[j].getMSLevel() != 2)
         {
@@ -353,7 +354,7 @@ protected:
         {
           peak_ok = false;
         }
-        DoubleReal query_MZ = query[j].getPrecursors()[0].getMZ();
+        double query_MZ = query[j].getPrecursors()[0].getMZ();
         if (peak_ok)
         {
           bool charge_one = false;
@@ -370,40 +371,34 @@ protected:
           {
             charge_one = true;
           }
-          Real min_MZ = (query_MZ - precursor_mass_tolerance) * precursor_mass_multiplier;
-          Real max_MZ = (query_MZ + precursor_mass_tolerance) * precursor_mass_multiplier;
+          float min_MZ = (query_MZ - precursor_mass_tolerance) * precursor_mass_multiplier;
+          float max_MZ = (query_MZ + precursor_mass_tolerance) * precursor_mass_multiplier;
           for (Size mz = (Size)min_MZ; mz <= ((Size)max_MZ) + 1; ++mz)
           {
             map<Size, vector<PeakSpectrum> >::iterator found;
             found = MSLibrary.find(mz);
             if (found != MSLibrary.end())
             {
-              vector<PeakSpectrum> & library = found->second;
+              vector<PeakSpectrum>& library = found->second;
               for (Size i = 0; i < library.size(); ++i)
               {
-                Real this_MZ  = library[i].getPrecursors()[0].getMZ() * precursor_mass_multiplier;
+                float this_MZ  = library[i].getPrecursors()[0].getMZ() * precursor_mass_multiplier;
                 if (this_MZ >= min_MZ && max_MZ >= this_MZ && ((charge_one == true && library[i].getPeptideIdentifications()[0].getHits()[0].getCharge() == 1) || charge_one == false))
                 {
                   PeptideHit hit = library[i].getPeptideIdentifications()[0].getHits()[0];
-                  PeakSpectrum & librar = library[i];
+                  PeakSpectrum& librar = library[i];
                   //Special treatment for SpectraST score as it computes a score based on the whole library
                   if (compare_function == "SpectraSTSimilarityScore")
                   {
-                    SpectraSTSimilarityScore * sp = static_cast<SpectraSTSimilarityScore *>(comparor);
+                    SpectraSTSimilarityScore* sp = static_cast<SpectraSTSimilarityScore*>(comparor);
                     BinnedSpectrum quer_bin = sp->transform(quer);
                     BinnedSpectrum librar_bin = sp->transform(librar);
-                    score = (*sp)(quer, librar);                           //(*sp)(quer_bin,librar_bin);
+                    score = (*sp)(quer, librar); //(*sp)(quer_bin,librar_bin);
                     double dot_bias = sp->dot_bias(quer_bin, librar_bin, score);
                     hit.setMetaValue("DOTBIAS", dot_bias);
                   }
                   else
                   {
-                    if (compare_function == "CompareFouriertransform")
-                    {
-                      CompareFouriertransform * ft = static_cast<CompareFouriertransform *>(comparor);
-                      ft->transform(quer);
-                      ft->transform(librar);
-                    }
                     score = (*comparor)(quer, librar);
                   }
 
@@ -412,7 +407,9 @@ protected:
                   hit.setMetaValue("RT", RT);
                   hit.setMetaValue("MZ", MZ);
                   hit.setScore(score);
-                  hit.addProteinAccession(pr_hit.getAccession());
+                  PeptideEvidence pe;
+                  pe.setProteinAccession(pr_hit.getAccession());
+                  hit.addPeptideEvidence(pe);
                   pid.insertHit(hit);
                 }
               }
@@ -427,7 +424,7 @@ protected:
           {
             vector<PeptideHit> final_hits;
             final_hits.resize(pid.getHits().size());
-            SpectraSTSimilarityScore * sp = static_cast<SpectraSTSimilarityScore *>(comparor);
+            SpectraSTSimilarityScore* sp = static_cast<SpectraSTSimilarityScore*>(comparor);
             Size runner_up = 1;
             for (; runner_up < pid.getHits().size(); ++runner_up)
             {
@@ -448,8 +445,8 @@ protected:
             }
             pid.setHits(final_hits);
             pid.sort();
-            pid.setMetaValue("MZ", query[j].getPrecursors()[0].getMZ());
-            pid.setMetaValue("RT", query_MZ);
+            pid.setMZ(query[j].getPrecursors()[0].getMZ());
+            pid.setRT(query_MZ);
           }
         }
         if (top_hits != -1 && (UInt)top_hits < pid.getHits().size())
@@ -483,7 +480,7 @@ protected:
 
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPSpecLibSearcher tool;
   return tool.main(argc, argv);

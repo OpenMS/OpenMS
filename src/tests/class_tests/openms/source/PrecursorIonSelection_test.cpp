@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -70,11 +70,11 @@ START_SECTION(PrecursorIonSelection(const PrecursorIonSelection& source))
   TEST_REAL_SIMILAR(copy.getMaxScore(), ptr->getMaxScore())
 END_SECTION
 
-START_SECTION(const DoubleReal& getMaxScore() const)
+START_SECTION(const double& getMaxScore() const)
  TEST_REAL_SIMILAR(ptr->getMaxScore(),23.5)
 END_SECTION  
 
-START_SECTION(void setMaxScore(const DoubleReal& max_score))
+START_SECTION(void setMaxScore(const double& max_score))
   ptr->setMaxScore(24.5);
   TEST_REAL_SIMILAR(ptr->getMaxScore(),24.5)
 END_SECTION
@@ -85,19 +85,19 @@ String document_id;
 IdXMLFile file;
 file.load(OPENMS_GET_TEST_DATA_PATH("PrecursorIonSelection_ids.idXML"),prot_ids,pep_ids, document_id);
 
-FeatureMap<> features,next_features;
+FeatureMap features,next_features;
 FeatureXMLFile f_file;
 f_file.load(OPENMS_GET_TEST_DATA_PATH("PrecursorIonSelection_features.featureXML"),features);
-START_SECTION(void sortByTotalScore(FeatureMap<>& features))
+START_SECTION(void sortByTotalScore(FeatureMap& features))
   ptr->sortByTotalScore(features);
-  TEST_REAL_SIMILAR((DoubleReal)features[0].getMetaValue("msms_score"),49485.75)
+  TEST_REAL_SIMILAR((double)features[0].getMetaValue("msms_score"),49485.75)
 END_SECTION
 
-START_SECTION(void getNextPrecursors(FeatureMap<>& features,FeatureMap<>& next_features,UInt number))
+START_SECTION(void getNextPrecursors(FeatureMap& features,FeatureMap& next_features,UInt number))
   ptr->getNextPrecursors(features,next_features,2);
   TEST_EQUAL(next_features.size(),2)
-  TEST_REAL_SIMILAR((DoubleReal)next_features[0].getMetaValue("msms_score"),49485.75)
-  TEST_REAL_SIMILAR((DoubleReal)next_features[1].getMetaValue("msms_score"),47365)
+  TEST_REAL_SIMILAR((double)next_features[0].getMetaValue("msms_score"),49485.75)
+  TEST_REAL_SIMILAR((double)next_features[1].getMetaValue("msms_score"),47365)
 END_SECTION
 
 PrecursorIonSelectionPreprocessing preprocessing;
@@ -119,13 +119,13 @@ param2.setValue("MIPFormulation:thresholds:use_peptide_rule","true");
 ptr->setParameters(param2);
 next_features.clear(true);
 
-START_SECTION(void rescore(FeatureMap<>& features,std::vector<PeptideIdentification>& new_pep_ids,std::vector<ProteinIdentification>& prot_ids,PrecursorIonSelectionPreprocessing& preprocessed_db, bool check_meta_values=true))
+START_SECTION(void rescore(FeatureMap& features,std::vector<PeptideIdentification>& new_pep_ids,std::vector<ProteinIdentification>& prot_ids,PrecursorIonSelectionPreprocessing& preprocessed_db, bool check_meta_values=true))
   ptr->rescore(features,pep_ids,prot_ids,preprocessing,false);
   ptr->getNextPrecursors(features,next_features,1);
   TEST_REAL_SIMILAR(next_features[0].getMetaValue("msms_score"),46365.5)
 END_SECTION
 
-  START_SECTION( void simulateRun(FeatureMap<>& features,std::vector<PeptideIdentification>& pep_ids,std::vector<ProteinIdentification>& prot_ids,PrecursorIonSelectionPreprocessing& preprocessed_db, String path,MSExperiment<> & experiment, String precursor_path=""))
+  START_SECTION( void simulateRun(FeatureMap& features,std::vector<PeptideIdentification>& pep_ids,std::vector<ProteinIdentification>& prot_ids,PrecursorIonSelectionPreprocessing& preprocessed_db, String path,MSExperiment<> & experiment, String precursor_path=""))
   ptr->reset();
 	features.clear(true);
   f_file.load(OPENMS_GET_TEST_DATA_PATH("PrecursorIonSelection_features.featureXML"),features);
@@ -178,13 +178,13 @@ START_SECTION((LPWrapper::SOLVER getLPSolver()))
 }
 END_SECTION
 
-START_SECTION((void getNextPrecursorsSeq(FeatureMap<> &features, FeatureMap<> &next_features, UInt number, DoubleReal &rt)))
+START_SECTION((void getNextPrecursorsSeq(FeatureMap &features, FeatureMap &next_features, UInt number, double &rt)))
 {
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((void getNextPrecursors(std::vector< Int > &solution_indices, std::vector< PSLPFormulation::IndexTriple > &variable_indices, std::set< Int > &measured_variables, FeatureMap<> &features, FeatureMap<> &new_features, UInt step_size, PSLPFormulation &ilp)))
+START_SECTION((void getNextPrecursors(std::vector< Int > &solution_indices, std::vector< PSLPFormulation::IndexTriple > &variable_indices, std::set< Int > &measured_variables, FeatureMap &features, FeatureMap &new_features, UInt step_size, PSLPFormulation &ilp)))
 {
   NOT_TESTABLE
 }

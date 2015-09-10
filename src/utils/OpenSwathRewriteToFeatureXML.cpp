@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -79,13 +79,13 @@ class TOPPOpenSwathRewriteToFeatureXML
     registerDoubleOption_("FDR_cutoff", "<double>", -1, "FDR cutoff (e.g. to remove all features with a an m_score above 0.05 use 0.05 here)", false);
   }
 
-  void applyFDRcutoff(FeatureMap<Feature> & feature_map, double cutoff, String fdr_name)
+  void applyFDRcutoff(FeatureMap & feature_map, double cutoff, String fdr_name)
   {
-    FeatureMap<Feature> out_feature_map = feature_map;
+    FeatureMap out_feature_map = feature_map;
     out_feature_map.clear(false);
     for (Size i = 0; i < feature_map.size(); i++)
     {
-      if ((DoubleReal)feature_map[i].getMetaValue(fdr_name) < cutoff)
+      if ((double)feature_map[i].getMetaValue(fdr_name) < cutoff)
       {
         out_feature_map.push_back(feature_map[i]);
       }
@@ -93,14 +93,14 @@ class TOPPOpenSwathRewriteToFeatureXML
     feature_map = out_feature_map;
   }
 
-  void processInput(const char * filename, FeatureMap<Feature> & feature_map)
+  void processInput(const char * filename, FeatureMap & feature_map)
   {
-    FeatureMap<Feature> out_feature_map = feature_map;
+    FeatureMap out_feature_map = feature_map;
     std::map<String, int> added_already;
     out_feature_map.clear(false);
 
     std::map<String, Feature*> feature_map_ref;
-    //for (FeatureMap<Feature>::iterator feature = feature_map.begin(); feature != feature_map.end(); feature++)
+    //for (FeatureMap::iterator feature = feature_map.begin(); feature != feature_map.end(); feature++)
     for (Size i = 0; i < feature_map.size(); i++)
     {
       feature_map_ref[feature_map[i].getUniqueId()] = &feature_map[i];
@@ -136,7 +136,7 @@ class TOPPOpenSwathRewriteToFeatureXML
     std::vector<std::string> current_row;
     std::string                cell;
     int line_nr = 0;
-    DoubleReal m_score, d_score;
+    double m_score, d_score;
     while (std::getline(data, line))
     {
       line_nr++;
@@ -188,9 +188,9 @@ class TOPPOpenSwathRewriteToFeatureXML
   String feature_file = getStringOption_("featureXML");
   String csv = getStringOption_("csv");
   String out = getStringOption_("out");
-  DoubleReal fdr_cutoff = getDoubleOption_("FDR_cutoff");
+  double fdr_cutoff = getDoubleOption_("FDR_cutoff");
 
-  FeatureMap<Feature> feature_map;
+  FeatureMap feature_map;
   FeatureXMLFile().load(feature_file, feature_map);
 
   if (csv.size() > 0)

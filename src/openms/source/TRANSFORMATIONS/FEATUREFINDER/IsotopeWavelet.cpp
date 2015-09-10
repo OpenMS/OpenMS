@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,8 +48,6 @@
 #define TWOPI 6.283185307
 #endif
 
-#ifndef SINETRAINVECS
-#define SINETRAINVECS
 double avec[] =
 {
   1.00729092576906387,
@@ -105,25 +103,24 @@ double dvec[] =
   -1.15609867020231,
   -1.37929313525534
 };
-#endif
 
 namespace OpenMS
 {
   //internally used variables / defaults
   IsotopeWavelet * IsotopeWavelet::me_ = NULL;
   UInt IsotopeWavelet::max_charge_ = 1;
-  std::vector<DoubleReal> IsotopeWavelet::gamma_table_;
-  std::vector<DoubleReal> IsotopeWavelet::gamma_table_new_;
-  std::vector<DoubleReal> IsotopeWavelet::exp_table_;
-  std::vector<DoubleReal> IsotopeWavelet::sine_table_;
-  DoubleReal IsotopeWavelet::table_steps_ = 0.0001;
-  DoubleReal IsotopeWavelet::inv_table_steps_ = 1. / table_steps_;
+  std::vector<double> IsotopeWavelet::gamma_table_;
+  std::vector<double> IsotopeWavelet::gamma_table_new_;
+  std::vector<double> IsotopeWavelet::exp_table_;
+  std::vector<double> IsotopeWavelet::sine_table_;
+  double IsotopeWavelet::table_steps_ = 0.0001;
+  double IsotopeWavelet::inv_table_steps_ = 1. / table_steps_;
   IsotopeDistribution IsotopeWavelet::averagine_;
   Size IsotopeWavelet::gamma_table_max_index_ = 0;
   Size IsotopeWavelet::exp_table_max_index_ = 0;
 
 
-  IsotopeWavelet * IsotopeWavelet::init(const DoubleReal max_m, const UInt max_charge)
+  IsotopeWavelet * IsotopeWavelet::init(const double max_m, const UInt max_charge)
   {
     if (me_ == NULL)
     {
@@ -137,7 +134,7 @@ namespace OpenMS
   {
   }
 
-  IsotopeWavelet::IsotopeWavelet(const DoubleReal max_m, const UInt max_charge)
+  IsotopeWavelet::IsotopeWavelet(const double max_m, const UInt max_charge)
   {
     max_charge_ = max_charge;
     computeIsotopeDistributionSize_(max_m);
@@ -162,39 +159,39 @@ namespace OpenMS
     exp_table_max_index_ = 0;
   }
 
-  DoubleReal IsotopeWavelet::getValueByLambda(const DoubleReal lambda, const DoubleReal tz1)
+  double IsotopeWavelet::getValueByLambda(const double lambda, const double tz1)
   {
-    DoubleReal tz(tz1 - 1);
-    DoubleReal fi_lgamma(gamma_table_[(Int)(tz1 * inv_table_steps_)]);
-    DoubleReal help(tz * Constants::WAVELET_PERIODICITY / (TWOPI));
-    DoubleReal sine_index((help - (int)(help)) * TWOPI * inv_table_steps_);
-    DoubleReal fac(-lambda + tz * myLog2_(lambda) * ONEOLOG2E - fi_lgamma);
+    double tz(tz1 - 1);
+    double fi_lgamma(gamma_table_[(Int)(tz1 * inv_table_steps_)]);
+    double help(tz * Constants::WAVELET_PERIODICITY / (TWOPI));
+    double sine_index((help - (int)(help)) * TWOPI * inv_table_steps_);
+    double fac(-lambda + tz * myLog2_(lambda) * ONEOLOG2E - fi_lgamma);
 
     return sine_table_[(Int)(sine_index)] * exp(fac);
   }
 
-  DoubleReal IsotopeWavelet::getValueByLambdaExtrapol(const DoubleReal lambda, const DoubleReal tz1)
+  double IsotopeWavelet::getValueByLambdaExtrapol(const double lambda, const double tz1)
   {
-    DoubleReal fac(-lambda + (tz1 - 1) * myLog2_(lambda) * ONEOLOG2E - boost::math::lgamma(tz1));
-    DoubleReal help((tz1 - 1) * Constants::WAVELET_PERIODICITY / (TWOPI));
-    DoubleReal sine_index((help - (int)(help)) * TWOPI * inv_table_steps_);
+    double fac(-lambda + (tz1 - 1) * myLog2_(lambda) * ONEOLOG2E - boost::math::lgamma(tz1));
+    double help((tz1 - 1) * Constants::WAVELET_PERIODICITY / (TWOPI));
+    double sine_index((help - (int)(help)) * TWOPI * inv_table_steps_);
 
     return sine_table_[(Int)(sine_index)] * exp(fac);
   }
 
-  DoubleReal IsotopeWavelet::getValueByLambdaExact(const DoubleReal lambda, const DoubleReal tz1)
+  double IsotopeWavelet::getValueByLambdaExact(const double lambda, const double tz1)
   {
     return sin(2 * Constants::PI * (tz1 - 1) / Constants::IW_NEUTRON_MASS) * exp(-lambda) * pow(lambda, tz1 - 1) / boost::math::tgamma(tz1); //boost::math::tgamma(tz1));
   }
 
-  DoubleReal IsotopeWavelet::getLambdaL(const DoubleReal m)
+  double IsotopeWavelet::getLambdaL(const double m)
   {
     return Constants::LAMBDA_L_0 + Constants::LAMBDA_L_1 * m;
   }
 
-  UInt IsotopeWavelet::getMzPeakCutOffAtMonoPos(const DoubleReal mass, const UInt z)
+  UInt IsotopeWavelet::getMzPeakCutOffAtMonoPos(const double mass, const UInt z)
   {
-    DoubleReal mz(mass * z);
+    double mz(mass * z);
     int res = -1;
     if (mz < Constants::CUT_LAMBDA_BREAK_0_1)
       res = ceil(Constants::CUT_LAMBDA_Q_0_A + Constants::CUT_LAMBDA_Q_0_B * mz + Constants::CUT_LAMBDA_Q_0_C * mz * mz);
@@ -206,9 +203,9 @@ namespace OpenMS
     return res;
   }
 
-  UInt IsotopeWavelet::getNumPeakCutOff(const DoubleReal mass, const UInt z)
+  UInt IsotopeWavelet::getNumPeakCutOff(const double mass, const UInt z)
   {
-    DoubleReal mz(mass * z);
+    double mz(mass * z);
     int res = -1;
     if (mz < Constants::CUT_LAMBDA_BREAK_0_1)
       res = ceil(Constants::CUT_LAMBDA_Q_0_A + Constants::CUT_LAMBDA_Q_0_B * mz + Constants::CUT_LAMBDA_Q_0_C * mz * mz - Constants::IW_QUARTER_NEUTRON_MASS);
@@ -220,7 +217,7 @@ namespace OpenMS
     return res;
   }
 
-  UInt IsotopeWavelet::getNumPeakCutOff(const DoubleReal mz)
+  UInt IsotopeWavelet::getNumPeakCutOff(const double mz)
   {
     int res = -1;
     if (mz < Constants::CUT_LAMBDA_BREAK_0_1)
@@ -264,14 +261,14 @@ namespace OpenMS
     return x2 + y;
   }
 
-  void IsotopeWavelet::preComputeExpensiveFunctions_(const DoubleReal max_m)
+  void IsotopeWavelet::preComputeExpensiveFunctions_(const double max_m)
   {
     UInt peak_cutoff = getNumPeakCutOff(max_m, max_charge_);
     UInt up_to = peak_cutoff * max_charge_ + 1;
     gamma_table_.clear();
     gamma_table_new_.clear();
     exp_table_.clear();
-    DoubleReal query = 0;
+    double query = 0;
     gamma_table_.push_back(std::numeric_limits<int>::max());
     gamma_table_new_.push_back(std::numeric_limits<int>::max());
     query += table_steps_;
@@ -284,7 +281,7 @@ namespace OpenMS
     }
     gamma_table_max_index_ = gamma_table_.size();
 
-    DoubleReal up_to2 = getLambdaL(max_m * max_charge_);
+    double up_to2 = getLambdaL(max_m * max_charge_);
     query = 0;
     while (query <= up_to2)
     {
@@ -301,7 +298,7 @@ namespace OpenMS
     }
   }
 
-  const IsotopeDistribution::ContainerType & IsotopeWavelet::getAveragine(const DoubleReal mass, UInt * size)
+  const IsotopeDistribution::ContainerType & IsotopeWavelet::getAveragine(const double mass, UInt * size)
   {
 
     averagine_.estimateFromPeptideWeight(mass);
@@ -316,9 +313,9 @@ namespace OpenMS
     return averagine_.getContainer();
   }
 
-  void IsotopeWavelet::computeIsotopeDistributionSize_(const DoubleReal max_m)
+  void IsotopeWavelet::computeIsotopeDistributionSize_(const double max_m)
   {
-    DoubleReal max_deconv_mz = max_m * max_charge_;
+    double max_deconv_mz = max_m * max_charge_;
     averagine_.setMaxIsotope(UInt(max_deconv_mz / 100. + 10.)); // expect less than 10 extra Da for heavy isotopes per 1000 Da mono mass.
     // averagine_.setMaxIsotope (INT_MAX); // old version INT_MAX is C not C++, should use #include <limits> anyway
     averagine_.estimateFromPeptideWeight(max_deconv_mz);

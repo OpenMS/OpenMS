@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 
 namespace OpenMS
 {
@@ -66,6 +67,7 @@ public:
     static void selectSwathTransitions(const OpenSwath::LightTargetedExperiment& targeted_exp,
                                        OpenSwath::LightTargetedExperiment& transition_exp_used, double min_upper_edge_dist,
                                        double lower, double upper);
+
     /**
       @brief Get the lower / upper offset for this SWATH map and do some sanity checks
 
@@ -111,6 +113,25 @@ public:
       return true;
 
     }
+
+    /**
+      @brief Estimate the retention time span of a targeted experiment (returns min/max values as a pair)
+    */
+    static std::pair<double,double> estimateRTRange(OpenSwath::LightTargetedExperiment & exp);
+
+    /**
+      @brief Simple method to extract the best Feature for each transition group (e.g. for RT alignment)
+
+      @param transition_group_map Input data containing the picked and scored map
+      @param useQualCutoff Whether to apply a quality cutoff to the data
+      @param qualCutoff When applying a quality cutoff, what it should be
+
+      @return Result of the best scoring peaks (stored as map of peptide id and RT)
+
+    */
+    static std::map<std::string, double> simpleFindBestFeature(
+        OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map, 
+        bool useQualCutoff = false, double qualCutoff = 0.0);
 
   };
 }

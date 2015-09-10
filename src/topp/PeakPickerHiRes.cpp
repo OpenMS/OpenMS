@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,7 +50,7 @@ using namespace std;
   @page TOPP_PeakPickerHiRes PeakPickerHiRes
 
   @brief A tool for peak detection in profile data. Executes the peak picking with @ref OpenMS::PeakPickerHiRes "high_res" algorithm.
- 
+
   <center>
   <table>
   <tr>
@@ -90,6 +90,9 @@ using namespace std;
 
   For the parameters of the algorithm section see the algorithm documentation: @ref OpenMS::PeakPickerHiRes "PeakPickerHiRes"
 
+  Be aware that applying the algorithm to already picked data results in an error message and program exit or corrupted output data.
+  Advanced users may skip the check for already centroided data using the flag "-force" (useful e.g. if spectrum annotations in the data files are wrong).
+
   In the following table you, can find example values of the most important algorithm parameters for
   different instrument types. @n These parameters are not valid for all instruments of that type,
   but can be used as a starting point for finding suitable parameters.
@@ -125,38 +128,38 @@ protected:
     @brief Helper class for the Low Memory peak-picking
   */
   class PPHiResMzMLConsumer :
-    public MSDataWritingConsumer 
+    public MSDataWritingConsumer
   {
 
   public:
 
     PPHiResMzMLConsumer(String filename, const PeakPickerHiRes& pp) :
-      MSDataWritingConsumer(filename) 
+      MSDataWritingConsumer(filename),
+      ms_levels_(pp.getParameters().getValue("ms_levels").toIntList())
     {
       pp_ = pp;
-      ms1_only_ = pp.getParameters().getValue("ms1_only").toBool();
     }
 
     void processSpectrum_(MapType::SpectrumType& s)
     {
-      if (ms1_only_ && (s.getMSLevel() != 1)) {return;}
+      if (!ListUtils::contains(ms_levels_, s.getMSLevel())) {return;}
 
       MapType::SpectrumType sout;
       pp_.pick(s, sout);
       s = sout;  // todo: swap? (requires implementation)
     }
 
-    void processChromatogram_(MapType::ChromatogramType & c) 
+    void processChromatogram_(MapType::ChromatogramType & c)
     {
-      MapType::ChromatogramType cout;
-      pp_.pick(c, cout);
-      c = cout;
+      MapType::ChromatogramType c_out;
+      pp_.pick(c, c_out);
+      c = c_out;
     }
 
   private:
 
     PeakPickerHiRes pp_;
-    bool ms1_only_;
+    std::vector<Int> ms_levels_;
   };
 
   void registerOptionsAndFlags_()
@@ -189,6 +192,7 @@ protected:
     // Create new MSDataReader and set our consumer
     ///////////////////////////////////
     MzMLFile mz_data_file;
+    mz_data_file.setLogType(log_type_);
     mz_data_file.transform(in, &pp_consumer);
 
     return EXECUTION_OK;
@@ -231,12 +235,6 @@ protected:
       return INCOMPATIBLE_INPUT_DATA;
     }
 
-    //check for peak type (profile data required)
-    if (!ms_exp_raw.empty() && PeakTypeEstimator().estimateType(ms_exp_raw[0].begin(), ms_exp_raw[0].end()) == SpectrumSettings::PEAKS)
-    {
-      writeLog_("Warning: OpenMS peak type estimation indicates that this is not profile data!");
-    }
-
     //check if spectra are sorted
     for (Size i = 0; i < ms_exp_raw.size(); ++i)
     {
@@ -257,12 +255,12 @@ protected:
       }
     }
 
-
     //-------------------------------------------------------------
     // pick
     //-------------------------------------------------------------
     MSExperiment<> ms_exp_peaks;
-    pp.pickExperiment(ms_exp_raw, ms_exp_peaks);
+    bool check_spectrum_type = !getFlag_("force");
+    pp.pickExperiment(ms_exp_raw, ms_exp_peaks, check_spectrum_type);
 
     //-------------------------------------------------------------
     // writing output

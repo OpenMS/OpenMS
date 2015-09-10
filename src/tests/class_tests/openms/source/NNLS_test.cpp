@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -63,7 +63,7 @@ START_SECTION(~NNLS())
 END_SECTION
 */
 
-START_SECTION([EXTRA]int nnls_(doublereal *a, integer *mda, integer *m, integer *n, doublereal *b, doublereal *x, doublereal *rnorm, doublereal *w, doublereal *zz, integer *index, integer *mode))
+START_SECTION([EXTRA]int nnls_(double *a, integer *mda, integer *m, integer *n, double *b, double *x, double *rnorm, double *w, double *zz, integer *index, integer *mode))
 
 	// translate A to array a (column major order)
 	double a_vec[4]= {1, 0, 0, 1};

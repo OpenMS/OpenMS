@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,10 +37,9 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIsotopeWavelet.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder_impl.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-
-#include <gsl/gsl_statistics.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -83,10 +82,10 @@ using namespace std;
 // charge
 struct SILAC_pair
 {
-  DoubleReal mz_light;
-  DoubleReal mz_heavy;
+  double mz_light;
+  double mz_heavy;
   Int charge;
-  DoubleReal rt;
+  double rt;
 };
 
 
@@ -94,7 +93,7 @@ struct SILAC_pair
 // SILAC_pair which it is matched to
 struct MatchedFeature
 {
-  MatchedFeature(const Feature & feature, Size index) :
+  MatchedFeature(const Feature& feature, Size index) :
     f(feature),
     idx(index)
   {
@@ -108,15 +107,15 @@ struct MatchedFeature
 // for fast access to defined pair
 struct SILACQuantitation
 {
-  SILACQuantitation(DoubleReal l_intensity, DoubleReal h_intensity, Size index) :
+  SILACQuantitation(double l_intensity, double h_intensity, Size index) :
     light_intensity(l_intensity),
     heavy_intensity(h_intensity),
     idx(index)
   {
   }
 
-  DoubleReal light_intensity;
-  DoubleReal heavy_intensity;
+  double light_intensity;
+  double heavy_intensity;
   Size idx;
 };
 
@@ -164,7 +163,7 @@ protected:
     setMinFloat_("expansion_range", 0.0);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parsing parameters
@@ -173,9 +172,9 @@ protected:
     String out(getStringOption_("out"));
     String pair_in(getStringOption_("pair_in"));
     String feature_out(getStringOption_("feature_out"));
-    DoubleReal precursor_mass_tolerance(getDoubleOption_("precursor_mass_tolerance"));
-    DoubleReal RT_tolerance(getDoubleOption_("RT_tolerance"));
-    DoubleReal expansion_range(getDoubleOption_("expansion_range"));
+    double precursor_mass_tolerance(getDoubleOption_("precursor_mass_tolerance"));
+    double RT_tolerance(getDoubleOption_("RT_tolerance"));
+    double expansion_range(getDoubleOption_("expansion_range"));
     Size max_isotope(getIntOption_("max_isotope"));
     Int debug(getIntOption_("debug"));
 
@@ -225,7 +224,7 @@ protected:
     results_map.getFileDescriptions()[1].label = "heavy";
     results_map.getFileDescriptions()[1].filename = in;
 
-    FeatureFinderAlgorithmIsotopeWavelet<Peak1D, Feature> iso_ff;
+    FeatureFinderAlgorithmIsotopeWavelet iso_ff;
     Param ff_param(iso_ff.getParameters());
     ff_param.setValue("max_charge", 3);
     ff_param.setValue("intensity_threshold", -1.0);
@@ -235,7 +234,7 @@ protected:
     ff.setLogType(ProgressLogger::NONE);
 
     vector<SILACQuantitation> quantlets;
-    FeatureMap<> all_features;
+    FeatureMap all_features;
     for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it)
     {
       if (it->size() == 0 || it->getMSLevel() != 1 || !it->getInstrumentSettings().getZoomScan())
@@ -246,8 +245,8 @@ protected:
       PeakSpectrum new_spec = *it;
 
       // get spacing from data
-      DoubleReal min_spacing(numeric_limits<DoubleReal>::max());
-      DoubleReal last_mz(0);
+      double min_spacing(numeric_limits<double>::max());
+      double last_mz(0);
       for (PeakSpectrum::ConstIterator pit = new_spec.begin(); pit != new_spec.end(); ++pit)
       {
         if (pit->getMZ() - last_mz < min_spacing)
@@ -275,15 +274,15 @@ protected:
         heavy_spec.setRT(it->getRT());
         for (PeakSpectrum::ConstIterator sit = it->begin(); sit != it->end(); ++sit)
         {
-          DoubleReal mz(sit->getMZ());
+          double mz(sit->getMZ());
           if (mz - (pit->mz_light - precursor_mass_tolerance) > 0 &&
-              (pit->mz_light + (DoubleReal)max_isotope * Constants::NEUTRON_MASS_U / (DoubleReal)pit->charge + precursor_mass_tolerance) - mz  > 0)
+              (pit->mz_light + (double)max_isotope * Constants::NEUTRON_MASS_U / (double)pit->charge + precursor_mass_tolerance) - mz  > 0)
           {
             light_spec.push_back(*sit);
           }
 
           if (mz - (pit->mz_heavy - precursor_mass_tolerance) > 0 &&
-              (pit->mz_heavy + (DoubleReal)max_isotope * Constants::NEUTRON_MASS_U / (DoubleReal)pit->charge + precursor_mass_tolerance) - mz  > 0)
+              (pit->mz_heavy + (double)max_isotope * Constants::NEUTRON_MASS_U / (double)pit->charge + precursor_mass_tolerance) - mz  > 0)
           {
             heavy_spec.push_back(*sit);
           }
@@ -295,15 +294,15 @@ protected:
 
         if (light_spec.size() > 0)
         {
-          DoubleReal lower_border = light_spec.begin()->getMZ() - expansion_range;
-          for (DoubleReal pos = light_spec.begin()->getMZ(); pos > lower_border; pos -= min_spacing)
+          double lower_border = light_spec.begin()->getMZ() - expansion_range;
+          for (double pos = light_spec.begin()->getMZ(); pos > lower_border; pos -= min_spacing)
           {
             p.setMZ(pos);
             light_spec.insert(light_spec.begin(), p);
           }
 
-          DoubleReal upper_border = light_spec.begin()->getMZ() - expansion_range;
-          for (DoubleReal pos = light_spec.rbegin()->getMZ(); pos < upper_border; pos += min_spacing)
+          double upper_border = light_spec.begin()->getMZ() - expansion_range;
+          for (double pos = light_spec.rbegin()->getMZ(); pos < upper_border; pos += min_spacing)
           {
             p.setMZ(pos);
             light_spec.push_back(p);
@@ -313,15 +312,15 @@ protected:
         if (heavy_spec.size() > 0)
         {
           // expand heavy spectrum
-          DoubleReal lower_border = heavy_spec.begin()->getMZ() - expansion_range;
-          for (DoubleReal pos = heavy_spec.begin()->getMZ(); pos > lower_border; pos -= min_spacing)
+          double lower_border = heavy_spec.begin()->getMZ() - expansion_range;
+          for (double pos = heavy_spec.begin()->getMZ(); pos > lower_border; pos -= min_spacing)
           {
             p.setMZ(pos);
             heavy_spec.insert(heavy_spec.begin(), p);
           }
 
-          DoubleReal upper_border = heavy_spec.begin()->getMZ() - expansion_range;
-          for (DoubleReal pos = heavy_spec.rbegin()->getMZ(); pos < upper_border; pos += min_spacing)
+          double upper_border = heavy_spec.begin()->getMZ() - expansion_range;
+          for (double pos = heavy_spec.rbegin()->getMZ(); pos < upper_border; pos += min_spacing)
           {
             p.setMZ(pos);
             heavy_spec.push_back(p);
@@ -344,7 +343,7 @@ protected:
         new_exp_light.updateRanges();
         new_exp_heavy.updateRanges();
 
-        FeatureMap<> feature_map_light, feature_map_heavy, seeds;
+        FeatureMap feature_map_light, feature_map_heavy, seeds;
         if (light_spec.size() > 0)
         {
           ff.run("isotope_wavelet", new_exp_light, feature_map_light, ff_param, seeds);
@@ -358,12 +357,12 @@ protected:
 
         // search if feature maps to m/z value of pair
         vector<MatchedFeature> light, heavy;
-        for (FeatureMap<>::const_iterator fit = feature_map_light.begin(); fit != feature_map_light.end(); ++fit)
+        for (FeatureMap::const_iterator fit = feature_map_light.begin(); fit != feature_map_light.end(); ++fit)
         {
           all_features.push_back(*fit);
           light.push_back(MatchedFeature(*fit, idx));
         }
-        for (FeatureMap<>::const_iterator fit = feature_map_heavy.begin(); fit != feature_map_heavy.end(); ++fit)
+        for (FeatureMap::const_iterator fit = feature_map_heavy.begin(); fit != feature_map_heavy.end(); ++fit)
         {
           all_features.push_back(*fit);
           heavy.push_back(MatchedFeature(*fit, idx));
@@ -374,7 +373,7 @@ protected:
           writeDebug_("Finding best feature pair out of " + String(light.size()) + " light and " + String(heavy.size()) + " heavy matching features.", 1);
           // now find "good" matches, means the pair with the smallest m/z deviation
           Feature best_light, best_heavy;
-          DoubleReal best_deviation(numeric_limits<DoubleReal>::max());
+          double best_deviation(numeric_limits<double>::max());
           Size best_idx(pairs.size());
           for (vector<MatchedFeature>::const_iterator fit1 = light.begin(); fit1 != light.end(); ++fit1)
           {
@@ -386,7 +385,7 @@ protected:
               {
                 continue;
               }
-              DoubleReal deviation(0);
+              double deviation(0);
               deviation = fabs((fit1->f.getMZ() - pairs[fit1->idx].mz_light) - (fit2->f.getMZ() - pairs[fit2->idx].mz_heavy));
               if (deviation < best_deviation && deviation < precursor_mass_tolerance)
               {
@@ -426,8 +425,8 @@ protected:
       SILAC_pair silac_pair = pairs[it1->first];
 
       // simply add up all intensities and calculate the final ratio
-      DoubleReal light_sum(0), heavy_sum(0);
-      vector<DoubleReal> light_ints, heavy_ints, ratios;
+      double light_sum(0), heavy_sum(0);
+      vector<double> light_ints, heavy_ints, ratios;
       for (vector<SILACQuantitation>::const_iterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
       {
         light_sum += it2->light_intensity;
@@ -437,7 +436,7 @@ protected:
         ratios.push_back(it2->heavy_intensity / it2->light_intensity * (it2->heavy_intensity + it2->light_intensity));
       }
 
-      DoubleReal absdev_ratios = gsl_stats_absdev(&ratios.front(), 1, ratios.size()) / (heavy_sum + light_sum);
+      double absdev_ratios = Math::absdev(ratios.begin(), ratios.begin() + (ratios.size()) / (heavy_sum + light_sum));
       cout << "Ratio: " << silac_pair.mz_light << " <-> " << silac_pair.mz_heavy << " @ " << silac_pair.rt << " s, ratio(h/l) " << heavy_sum / light_sum << " +/- " << absdev_ratios << " (#scans for quantation: " << String(it1->second.size()) << " )" << endl;
     }
 
@@ -459,7 +458,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPERPairFinder tool;
   return tool.main(argc, argv);

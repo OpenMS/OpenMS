@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -163,7 +163,7 @@ protected:
     }
   }
 
-  void markFeatureLocations_(FeatureMap<> & feature_map, MSExperiment<> & exp, QImage & image, bool transpose, QColor color)
+  void markFeatureLocations_(FeatureMap & feature_map, MSExperiment<> & exp, QImage & image, bool transpose, QColor color)
   {
     double xcoef = image.width(), ycoef = image.height();
     if (transpose)
@@ -177,13 +177,13 @@ protected:
       ycoef /= exp.getMaxRT() - exp.getMinRT();
     }
 
-    for (FeatureMap<>::Iterator feat_iter = feature_map.begin();
+    for (FeatureMap::Iterator feat_iter = feature_map.begin();
          feat_iter != feature_map.end(); ++feat_iter)
     {
       const ConvexHull2D convex_hull = feat_iter->getConvexHull();
       DBoundingBox<2> box = convex_hull.getBoundingBox();
-      DoubleReal rt = feat_iter->getRT();
-      DoubleReal mz = feat_iter->getMZ();
+      double rt = feat_iter->getRT();
+      double mz = feat_iter->getMZ();
       double lower_mz = box.minY();
       double lower_rt = box.minX();
       double upper_mz = box.maxY();
@@ -305,7 +305,7 @@ protected:
 
     //----------------------------------------------------------------
     //Do the actual resampling
-    BilinearInterpolation<DoubleReal, DoubleReal> bilip;
+    BilinearInterpolation<double, double> bilip;
     bilip.getData().resize(rows, cols);
 
     if (!getFlag_("transpose"))
@@ -380,7 +380,7 @@ protected:
     painter->fillRect(0, 0, peaks, scans, Qt::SolidPattern);
     delete painter;
 
-    DoubleReal factor = getDoubleOption_("max_intensity");
+    double factor = getDoubleOption_("max_intensity");
     if (factor == 0)
     {
       factor = (*std::max_element(bilip.getData().begin(), bilip.getData().end()));
@@ -415,7 +415,7 @@ protected:
 
     if (!in_featureXML.empty())
     {
-      FeatureMap<> feature_map;
+      FeatureMap feature_map;
       FeatureXMLFile ff;
       ff.load(in_featureXML, feature_map);
       markFeatureLocations_(feature_map, exp, image, getFlag_("transpose"), feature_color);

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,8 +45,6 @@ namespace OpenMS
 
   /**
       @brief File adapter for HUPO PSI TraML files
-
-      If a critical error occurs due to the missing functionality, Exception::NotImplemented is thrown.
 
       @ingroup FileIO
   */
@@ -92,4 +90,5 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FOMAT_ANLYSISXMLFILE_H
+#endif // OPENMS_FOMAT_TRAMLFILE_H
+

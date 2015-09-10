@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -80,23 +80,23 @@ START_SECTION((void setType(Type type)))
   TEST_EQUAL(tmp.getType(),IonDetector::ELECTRONMULTIPLIER);
 END_SECTION
 
-START_SECTION((DoubleReal getADCSamplingFrequency() const ))
+START_SECTION((double getADCSamplingFrequency() const ))
   IonDetector tmp;
   TEST_EQUAL(tmp.getADCSamplingFrequency(),0);
 END_SECTION
 
-START_SECTION((void setADCSamplingFrequency(DoubleReal ADC_sampling_frequency)))
+START_SECTION((void setADCSamplingFrequency(double ADC_sampling_frequency)))
   IonDetector tmp;
   tmp.setADCSamplingFrequency(47.11);
   TEST_REAL_SIMILAR(tmp.getADCSamplingFrequency(),47.11);
 END_SECTION
 
-START_SECTION((DoubleReal getResolution() const ))
+START_SECTION((double getResolution() const ))
   IonDetector tmp;
   TEST_EQUAL(tmp.getResolution(),0);
 END_SECTION
 
-START_SECTION((void setResolution(DoubleReal resolution)))
+START_SECTION((void setResolution(double resolution)))
   IonDetector tmp;
   tmp.setResolution(47.11);
   TEST_REAL_SIMILAR(tmp.getResolution(),47.11);

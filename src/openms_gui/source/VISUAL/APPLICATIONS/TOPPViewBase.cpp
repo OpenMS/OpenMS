@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,9 +44,7 @@
 #include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/DB/DBConnection.h>
 #include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/FORMAT/DB/DBAdapter.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
@@ -57,16 +55,12 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
-#include <OpenMS/VISUAL/DIALOGS/DataFilterDialog.h>
-#include <OpenMS/VISUAL/DIALOGS/TOPPViewOpenDialog.h>
-#include <OpenMS/VISUAL/DIALOGS/DBOpenDialog.h>
-#include <OpenMS/VISUAL/DIALOGS/TheoreticalSpectrumGenerationDialog.h>
-#include <OpenMS/VISUAL/DIALOGS/ToolsDialog.h>
-#include <OpenMS/VISUAL/DIALOGS/TOPPViewPrefDialog.h>
-#include <OpenMS/VISUAL/DIALOGS/SpectrumAlignmentDialog.h>
-#include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
-#include <OpenMS/VISUAL/ANNOTATION/Annotation1DTextItem.h>
-#include <OpenMS/VISUAL/ANNOTATION/Annotation1DDistanceItem.h>
+#include <OpenMS/VISUAL/ColorSelector.h>
+#include <OpenMS/VISUAL/EnhancedTabBar.h>
+#include <OpenMS/VISUAL/EnhancedWorkspace.h>
+#include <OpenMS/VISUAL/MetaDataBrowser.h>
+#include <OpenMS/VISUAL/MultiGradientSelector.h>
+#include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/VISUAL/SpectraViewWidget.h>
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum2DCanvas.h>
@@ -74,12 +68,16 @@
 #include <OpenMS/VISUAL/Spectrum1DWidget.h>
 #include <OpenMS/VISUAL/Spectrum2DWidget.h>
 #include <OpenMS/VISUAL/Spectrum3DWidget.h>
-#include <OpenMS/VISUAL/MetaDataBrowser.h>
-#include <OpenMS/VISUAL/ParamEditor.h>
-#include <OpenMS/VISUAL/ColorSelector.h>
-#include <OpenMS/VISUAL/MultiGradientSelector.h>
-#include <OpenMS/VISUAL/EnhancedTabBar.h>
-#include <OpenMS/VISUAL/EnhancedWorkspace.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotation1DTextItem.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotation1DDistanceItem.h>
+#include <OpenMS/VISUAL/DIALOGS/DataFilterDialog.h>
+#include <OpenMS/VISUAL/DIALOGS/TOPPViewOpenDialog.h>
+#include <OpenMS/VISUAL/DIALOGS/TheoreticalSpectrumGenerationDialog.h>
+#include <OpenMS/VISUAL/DIALOGS/ToolsDialog.h>
+#include <OpenMS/VISUAL/DIALOGS/TOPPViewPrefDialog.h>
+#include <OpenMS/VISUAL/DIALOGS/SpectrumAlignmentDialog.h>
+#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 
 
 //Qt
@@ -89,7 +87,6 @@
 #include <QtCore/QUrl>
 #include <QtGui/QCheckBox>
 #include <QtGui/QCloseEvent>
-#include <QtGui/QDesktopServices>
 #include <QtGui/QDesktopWidget>
 #include <QtGui/QDockWidget>
 #include <QtGui/QFileDialog>
@@ -200,14 +197,12 @@ namespace OpenMS
     QMenu* file = new QMenu("&File", this);
     menuBar()->addMenu(file);
     file->addAction("&Open file", this, SLOT(openFileDialog()), Qt::CTRL + Qt::Key_O);
-    file->addAction("Open from &database", this, SLOT(openDatabaseDialog()), Qt::CTRL + Qt::Key_D);
     file->addAction("Open &example file", this, SLOT(openExampleDialog()));
     file->addAction("&Close", this, SLOT(closeFile()), Qt::CTRL + Qt::Key_W);
     file->addSeparator();
 
     //Meta data
     file->addAction("&Show meta data (file)", this, SLOT(metadataFileDialog()));
-    file->addAction("&Show meta data (database)", this, SLOT(metadataDatabaseDialog()));
     file->addSeparator();
 
     //Recent files
@@ -513,7 +508,7 @@ namespace OpenMS
     connect(spectra_identification_view_widget_, SIGNAL(spectrumSelected(int)), this, SLOT(activate1DSpectrum(int)));
     //connect(spectra_identification_view_widget_, SIGNAL(spectrumSelected(std::vector<int, std::allocator<int> >)), this, SLOT(activate1DSpectrum(std::vector<int, std::allocator<int> >)));
     identificationview_behavior_ = new TOPPViewIdentificationViewBehavior(this);
-    connect(spectra_identification_view_widget_, SIGNAL(requestVisibleArea1D(DoubleReal, DoubleReal)), identificationview_behavior_, SLOT(setVisibleArea1D(DoubleReal, DoubleReal)));
+    connect(spectra_identification_view_widget_, SIGNAL(requestVisibleArea1D(double, double)), identificationview_behavior_, SLOT(setVisibleArea1D(double, double)));
 
     views_tabwidget_->addTab(spectra_view_widget_, "Scan view");
     views_tabwidget_->addTab(spectra_identification_view_widget_, "Identification view");
@@ -601,12 +596,6 @@ namespace OpenMS
     defaults_.setValidStrings("preferences:on_file_change", ListUtils::create<String>("none,ask,update automatically"));
     defaults_.setValue("preferences:topp_cleanup", "true", "If the temporary files for calling of TOPP tools should be removed after the call.");
     defaults_.setValidStrings("preferences:topp_cleanup", ListUtils::create<String>("true,false"));
-    //db
-    defaults_.setValue("preferences:db:host", "localhost", "Database server host name.");
-    defaults_.setValue("preferences:db:login", "NoName", "Database login.");
-    defaults_.setValue("preferences:db:name", "OpenMS", "Database name.");
-    defaults_.setValue("preferences:db:port", 3306, "Database server port.");
-    defaults_.setSectionDescription("preferences:db", "Database settings.");
     // 1d view
     Spectrum1DCanvas* def1 = new Spectrum1DCanvas(Param(), 0);
     defaults_.insert("preferences:1d:", def1->getDefaults());
@@ -640,98 +629,10 @@ namespace OpenMS
 
   void TOPPViewBase::showURL()
   {
-    // NOTE: This code identical to TOPPASBase::showURL(), if you change anything here
-    //       you probably need to change it also there.
-    
-    QAction* action = qobject_cast<QAction*>(sender());
-    QString target = action->data().toString();
-    QUrl url_target;
-    
-    // add protocol handler if none is given
-    if (!(target.startsWith("http://") || target.startsWith("https://")))
-    {
-      // we expect all unqualified urls to be file urls
-      try
-      {
-        String local_url = File::findDoc(target);
-        url_target = QUrl::fromLocalFile(local_url.toQString());
-      }
-      catch (Exception::FileNotFound&)
-      {
-        // we fall back to the web url
-        url_target = QUrl(QString("http://www.openms.de/current_doxygen/%1").arg(target), QUrl::TolerantMode);
-      }
-    }
-    else
-    {
-      url_target = QUrl(target, QUrl::TolerantMode);
-    }
-    
-    if (!QDesktopServices::openUrl(url_target))
-    {
-      QMessageBox::warning(this, tr("Error"),
-                           tr("Unable to open\n") +
-                           action->data().toString() +
-                           tr("\n\nPossible reason: security settings or misconfigured Operating System"));
-    }
+    QString target = qobject_cast<QAction*>(sender())->data().toString();
+    GUIHelpers::openURL(target);
   }
 
-
-  void TOPPViewBase::addDataDB(UInt db_id, bool show_options, String caption, UInt window_id)
-  {
-    //set wait cursor
-    setCursor(Qt::WaitCursor);
-
-    //Open DB connection
-    DBConnection con;
-    connectToDB_(con);
-    if (!con.isConnected())
-    {
-      setCursor(Qt::ArrowCursor);
-      return;
-    }
-
-    //load the data
-    DBAdapter db(con);
-
-    // create managed pointer to experiment data
-    ExperimentType* exp = new ExperimentType();
-    ExperimentSharedPtrType exp_sptr(exp);
-
-    FeatureMapType* dummy_map = new FeatureMapType();
-    FeatureMapSharedPtrType dummy_map_sptr(dummy_map);
-
-    ConsensusMapType* dummy_map2 = new ConsensusMapType();
-    ConsensusMapSharedPtrType dummy_map2_sptr(dummy_map2);
-
-    vector<PeptideIdentification> dummy_peptides;
-    try
-    {
-      db.loadExperiment(db_id, *exp);
-    }
-    catch (Exception::BaseException& e)
-    {
-      QMessageBox::critical(this, "Error", (String("Error while reading data: ") + e.what()).c_str());
-      setCursor(Qt::ArrowCursor);
-      return;
-    }
-    exp_sptr->sortSpectra(true);
-    exp_sptr->updateRanges(1);
-
-    //determine if the data is 1D or 2D
-    QSqlQuery result = con.executeQuery(String("SELECT count(id) from DATA_Spectrum where fid_MSExperiment='") + db_id + "' and MSLevel='1'");
-    LayerData::DataType data_type = ((result.value(0).toInt() > 1) ?
-                                     LayerData::DT_PEAK :
-                                     LayerData::DT_CHROMATOGRAM);
-
-    //add data
-    if (caption == "")
-      caption = String("DB entry ") + db_id;
-    addData(dummy_map_sptr, dummy_map2_sptr, dummy_peptides, exp_sptr, data_type, false, show_options, true, "", caption, window_id);
-
-    //Reset cursor
-    setCursor(Qt::ArrowCursor);
-  }
 
   // static
   bool TOPPViewBase::containsMS1Scans(const ExperimentType& exp)
@@ -779,7 +680,7 @@ namespace OpenMS
         ++count;
       }
     }
-    return noise / (DoubleReal)n_scans;
+    return noise / (double)n_scans;
   }
 
   // static
@@ -799,7 +700,7 @@ namespace OpenMS
       }
       for (Size j = 0; j != exp[i].size(); ++j)
       {
-        DoubleReal intensity = exp[i][j].getIntensity();
+        double intensity = exp[i][j].getIntensity();
         if (intensity == 0.0)
         {
           zeros++;
@@ -837,12 +738,6 @@ namespace OpenMS
     QComboBox* map_default = dlg.findChild<QComboBox*>("map_default");
     QComboBox* map_cutoff = dlg.findChild<QComboBox*>("map_cutoff");
     QComboBox* on_file_change = dlg.findChild<QComboBox*>("on_file_change");
-
-    // db tab
-    QLineEdit* db_host = dlg.findChild<QLineEdit*>("db_host");
-    QSpinBox* db_port = dlg.findChild<QSpinBox*>("db_port");
-    QLineEdit* db_name = dlg.findChild<QLineEdit*>("db_name");
-    QLineEdit* db_login = dlg.findChild<QLineEdit*>("db_login");
 
     // 1D view tab
     ColorSelector* color_1D = dlg.findChild<ColorSelector*>("color_1D");
@@ -903,12 +798,6 @@ namespace OpenMS
     map_cutoff->setCurrentIndex(map_cutoff->findText(param_.getValue("preferences:intensity_cutoff").toQString()));
     on_file_change->setCurrentIndex(on_file_change->findText(param_.getValue("preferences:on_file_change").toQString()));
 
-    // db
-    db_host->setText(param_.getValue("preferences:db:host").toQString());
-    db_port->setValue((Int)param_.getValue("preferences:db:port"));
-    db_name->setText(param_.getValue("preferences:db:name").toQString());
-    db_login->setText(param_.getValue("preferences:db:login").toQString());
-
     // 1D view
     color_1D->setColor(QColor(param_.getValue("preferences:1d:peak_color").toQString()));
     selected_1D->setColor(QColor(param_.getValue("preferences:1d:highlighted_peak_color").toQString()));
@@ -926,15 +815,15 @@ namespace OpenMS
     line_width_3D->setValue((Int)param_.getValue("preferences:3d:dot:line_width"));
 
     // id view
-    a_intensity->setValue((DoubleReal)param_.getValue("preferences:idview:a_intensity"));
-    b_intensity->setValue((DoubleReal)param_.getValue("preferences:idview:b_intensity"));
-    c_intensity->setValue((DoubleReal)param_.getValue("preferences:idview:c_intensity"));
-    x_intensity->setValue((DoubleReal)param_.getValue("preferences:idview:x_intensity"));
-    y_intensity->setValue((DoubleReal)param_.getValue("preferences:idview:y_intensity"));
-    z_intensity->setValue((DoubleReal)param_.getValue("preferences:idview:z_intensity"));
-    tolerance->setValue((DoubleReal)param_.getValue("preferences:idview:tolerance"));
+    a_intensity->setValue((double)param_.getValue("preferences:idview:a_intensity"));
+    b_intensity->setValue((double)param_.getValue("preferences:idview:b_intensity"));
+    c_intensity->setValue((double)param_.getValue("preferences:idview:c_intensity"));
+    x_intensity->setValue((double)param_.getValue("preferences:idview:x_intensity"));
+    y_intensity->setValue((double)param_.getValue("preferences:idview:y_intensity"));
+    z_intensity->setValue((double)param_.getValue("preferences:idview:z_intensity"));
+    tolerance->setValue((double)param_.getValue("preferences:idview:tolerance"));
 
-    relative_loss_intensity->setValue((DoubleReal)param_.getValue("preferences:idview:relative_loss_intensity"));
+    relative_loss_intensity->setValue((double)param_.getValue("preferences:idview:relative_loss_intensity"));
 
     if (a_ions.empty())
     {
@@ -1054,12 +943,6 @@ namespace OpenMS
       param_.setValue("preferences:default_map_view", map_default->currentText());
       param_.setValue("preferences:intensity_cutoff", map_cutoff->currentText());
       param_.setValue("preferences:on_file_change", on_file_change->currentText());
-
-      param_.setValue("preferences:db:host", db_host->text());
-      param_.setValue("preferences:db:port", db_port->value());
-      param_.setValue("preferences:db:name", db_name->text());
-      param_.setValue("preferences:db:login", db_login->text());
-      param_.remove("DBPassword");
 
       param_.setValue("preferences:1d:peak_color", color_1D->getColor().name());
       param_.setValue("preferences:1d:highlighted_peak_color", selected_1D->getColor().name());
@@ -1215,7 +1098,7 @@ namespace OpenMS
         for (vector<PeptideIdentification>::const_iterator it =
                peptides.begin(); it != peptides.end(); ++it)
         {
-          if (!it->getHits().empty() && it->metaValueExists("RT"))
+          if (!it->getHits().empty() && it->hasRT())
           {
             peptides_with_rt.push_back(*it);
           }
@@ -1414,7 +1297,7 @@ namespace OpenMS
         //calculate noise
         if (use_intensity_cutoff)
         {
-          DoubleReal cutoff = estimateNoiseFromRandomMS1Scans(*(target_window->canvas()->getCurrentLayer().getPeakData()));
+          double cutoff = estimateNoiseFromRandomMS1Scans(*(target_window->canvas()->getCurrentLayer().getPeakData()));
           //create filter
           DataFilters::DataFilter filter;
           filter.field = DataFilters::INTENSITY;
@@ -1575,6 +1458,8 @@ namespace OpenMS
             {
               views_tabwidget_->setCurrentIndex(0); // switch to scan tab for 2D widget
             }
+            // cppcheck produces a false positive warning here -> ignore
+            // cppcheck-suppress multiCondition
             else if (dynamic_cast<Spectrum1DWidget*>(w))
             {
               views_tabwidget_->setCurrentIndex(1); // switch to identification tab for 1D widget
@@ -1914,30 +1799,31 @@ namespace OpenMS
 
   void TOPPViewBase::updateLayerBar()
   {
-    //reset
+    // reset
     layer_manager_->clear();
     SpectrumCanvas* cc = getActiveCanvas();
     if (cc == 0)
+    {
       return;
+    }
 
-    //determine if this is a 1D view (for text color)
-    bool is_1d_view = false;
-    if (dynamic_cast<Spectrum1DCanvas*>(cc))
-      is_1d_view = true;
+    // determine if this is a 1D view (for text color)
+    bool is_1d_view = (dynamic_cast<Spectrum1DCanvas*>(cc) != 0);
 
     layer_manager_->blockSignals(true);
-    QString name;
     for (Size i = 0; i < cc->getLayerCount(); ++i)
     {
       const LayerData& layer = cc->getLayer(i);
-      //add item
+      // add item
       QListWidgetItem* item = new QListWidgetItem(layer_manager_);
-      name = layer.name.toQString();
+      QString name = layer.name.toQString();
       if (layer.flipped)
       {
         name += " [flipped]";
       }
       item->setText(name);
+      item->setToolTip(layer.filename.toQString());
+
       if (is_1d_view && cc->getLayerCount() > 1)
       {
         QPixmap icon(7, 7);
@@ -1956,7 +1842,7 @@ namespace OpenMS
       {
         item->setText(item->text() + '*');
       }
-      //highlight active item
+      // highlight active item
       if (i == cc->activeLayerIndex())
       {
         layer_manager_->setCurrentItem(item);
@@ -2043,24 +1929,6 @@ namespace OpenMS
     updateViewBar();
   }
 
-  /*
-  void TOPPViewBase::updateDataBar()
-  {
-    const set<String> filenames = getFilenamesOfOpenFiles();
-    //reset
-    data_manager_view_->clear();
-    data_manager_view_->blockSignals(true);
-    QTreeWidgetItem* item = 0;
-    for (set<String>::const_iterator it = filenames.begin(); it != filenames.end(); ++it)
-    {
-      item = new QTreeWidgetItem(data_manager_view_);
-      QString name = it->toQString();
-      QFileInfo fi(name);
-      item->setText(0, fi.fileName());
-    }
-    layer_manager_->blockSignals(false);
-  }
-*/
   void TOPPViewBase::layerSelectionChange(int i)
   {
     // after adding a layer i is -1. TODO: check if this is the correct behaviour
@@ -2832,53 +2700,6 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewBase::connectToDB_(DBConnection& db)
-  {
-    //get the password if unset
-    if (!param_.exists("DBPassword"))
-    {
-      stringstream ss;
-      ss << "Enter password for user '" << (String)param_.getValue("preferences:db:login") << "' at '" << (String)param_.getValue("preferences:db:host") << ":" << (String)param_.getValue("preferences:db:port") << "' : ";
-      bool ok;
-      QString text = QInputDialog::getText(this, "TOPPView database password", ss.str().c_str(), QLineEdit::Password, QString::null, &ok);
-      if (ok)
-      {
-        param_.setValue("DBPassword", text);
-      }
-    }
-
-    if (param_.exists("DBPassword"))
-    {
-      try
-      {
-        db.connect((String)param_.getValue("preferences:db:name"), (String)param_.getValue("preferences:db:login"), (String)param_.getValue("DBPassword"), (String)param_.getValue("preferences:db:host"), (UInt)param_.getValue("preferences:db:port"));
-      }
-      catch (DBConnection::InvalidQuery& er)
-      {
-        param_.remove("DBPassword");
-        showLogMessage_(LS_ERROR, "Unable to log in to the database server", String("Check the login data in the preferences!\nDatabase error message: ") + er.what());
-      }
-    }
-  }
-
-  void TOPPViewBase::openDatabaseDialog()
-  {
-    DBConnection db;
-    connectToDB_(db);
-    if (db.isConnected())
-    {
-      vector<UInt> result;
-      DBOpenDialog db_dialog(db, result, this);
-      if (db_dialog.exec())
-      {
-        db.disconnect();
-        for (vector<UInt>::iterator it = result.begin(); it != result.end(); ++it)
-        {
-          addDataDB(*it, true);
-        }
-      }
-    }
-  }
 
   void TOPPViewBase::rerunTOPPTool()
   {
@@ -3153,23 +2974,69 @@ namespace OpenMS
     addDataFile(String(filename), true, false);
   }
 
+  bool TOPPViewBase::annotateMS1FromMassFingerprinting_(const FeatureMap& identifications)
+  {
+    const LayerData& layer = getActiveCanvas()->getCurrentLayer();
+    if (layer.type == LayerData::DT_PEAK)
+    {
+      IDMapper im;
+      Param p = im.getParameters();
+      p.setValue("rt_tolerance", 5.0);
+      im.setParameters(p);
+      showLogMessage_(LS_NOTICE, "Note", "Mapping matches with 5 sec tolerance and no m/z limit to spectra...");
+      im.annotate((*layer.getPeakData()), identifications, true, true);
+    }
+    else
+    {
+      return false;
+    }
+    return true;
+  }
+
+
   void TOPPViewBase::annotateWithID()
   {
     const LayerData& layer = getActiveCanvas()->getCurrentLayer();
-    //warn if hidden layer => wrong layer selected...
+    // warn if hidden layer => wrong layer selected...
     if (!layer.visible)
     {
       showLogMessage_(LS_NOTICE, "The current layer is not visible", "Have you selected the right layer for this action? Aborting.");
       return;
     }
 
-    //load id data
-    QString name = QFileDialog::getOpenFileName(this,
-                                                "Select protein identification data",
+    // load id data
+    QString fname = QFileDialog::getOpenFileName(this,
+                                                "Select protein/AMT identification data",
                                                 current_path_.toQString(),
-                                                "idXML files (*.idXML);; all files (*.*)");
+                                                "idXML files (*.idXML);featureXML files (*.featureXML); all files (*.*)");
+    if (fname.isEmpty()) return;
 
-    if (name != "")
+    FileTypes::Type type = FileHandler::getType(fname);
+    if (type == FileTypes::FEATUREXML)
+    {
+      FeatureMap fm;
+      FeatureXMLFile().load(fname, fm);
+
+      // last protein ID must be from AccurateMassSearch (it gets appended there)
+      String engine = "no protein identification section found";
+      bool ams_ok = false;
+      if (fm.getProteinIdentifications().size() > 0)
+      {
+        engine = fm.getProteinIdentifications().back().getSearchEngine();
+        if (engine == "AccurateMassSearch")
+        {
+          annotateMS1FromMassFingerprinting_(fm);
+          views_tabwidget_->setTabEnabled(1, true); // enable identification view
+          ams_ok = true;
+        }
+      }
+      if (!ams_ok)
+      {
+        QMessageBox::warning(this, "Error", (String("FeatureXML is currently only supported for files generated by the AccurateMassSearch tool (got '") + engine +  "', expected 'AccurateMassSearch'.").toQString());
+        return;
+      }
+    }
+    else if (type == FileTypes::IDXML)
     {
       vector<PeptideIdentification> identifications;
       vector<ProteinIdentification> protein_identifications;
@@ -3177,7 +3044,7 @@ namespace OpenMS
       try
       {
         String document_id;
-        IdXMLFile().load(name, protein_identifications, identifications, document_id);
+        IdXMLFile().load(fname, protein_identifications, identifications, document_id);
       }
       catch (Exception::BaseException& e)
       {
@@ -3188,20 +3055,12 @@ namespace OpenMS
       IDMapper mapper;
       if (layer.type == LayerData::DT_PEAK)
       {
-        // clear identifications
-        MSExperiment<>& exp = *layer.getPeakData();
-        for (MSExperiment<>::iterator it = exp.begin(); it != exp.end(); ++it)
-        {
-          vector<PeptideIdentification> empty_ids;
-          it->setPeptideIdentifications(empty_ids);
-        }
-
         Param p = mapper.getDefaults();
         p.setValue("rt_tolerance", 0.1, "RT tolerance (in seconds) for the matching");
         p.setValue("mz_tolerance", 1.0, "m/z tolerance (in ppm or Da) for the matching");
         p.setValue("mz_measure", "Da", "unit of 'mz_tolerance' (ppm or Da)");
         mapper.setParameters(p);
-        mapper.annotate(*layer.getPeakData(), identifications, protein_identifications);
+        mapper.annotate(*layer.getPeakData(), identifications, protein_identifications, true);
         views_tabwidget_->setTabEnabled(1, true); // enable identification view
       }
       else if (layer.type == LayerData::DT_FEATURE)
@@ -3213,6 +3072,12 @@ namespace OpenMS
         mapper.annotate(*layer.getConsensusMap(), identifications, protein_identifications);
       }
     }
+    else // file type other than idXML or featureXML
+    {
+      QMessageBox::warning(this, "Error", QString("Unknown file type. No annotation performed."));
+      return;
+    }
+
     showLogMessage_(LS_NOTICE, "Done", "Annotation of spectra finished. Open identification view to see results!");
     updateViewBar();
   }
@@ -3231,7 +3096,7 @@ namespace OpenMS
       AASequence aa_sequence;
       try
       {
-        aa_sequence.setStringSequence(seq_string);
+        aa_sequence = AASequence::fromString(seq_string);
       }
       catch (Exception::BaseException& e)
       {
@@ -3240,110 +3105,105 @@ namespace OpenMS
       }
       Int charge = spec_gen_dialog.spin_box->value();
 
-      if (aa_sequence.isValid())
+      RichPeakSpectrum rich_spec;
+      TheoreticalSpectrumGenerator generator;
+      Param p;
+
+      p.setValue("add_metainfo", "true", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
+
+      bool losses = (spec_gen_dialog.list_widget->item(7)->checkState() == Qt::Checked); // "Neutral losses"
+      String losses_str = losses ? "true" : "false";
+      p.setValue("add_losses", losses_str, "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
+
+      bool isotopes = (spec_gen_dialog.list_widget->item(8)->checkState() == Qt::Checked); // "Isotope clusters"
+      String iso_str = isotopes ? "true" : "false";
+      p.setValue("add_isotopes", iso_str, "If set to 1 isotope peaks of the product ion peaks are added");
+
+      bool abundant_immonium_ions = (spec_gen_dialog.list_widget->item(9)->checkState() == Qt::Checked); // "abundant immonium-ions"
+      String abundant_immonium_ions_str = abundant_immonium_ions ? "true" : "false";
+      p.setValue("add_abundant_immonium_ions", abundant_immonium_ions_str, "Add most abundant immonium ions");
+
+      Size max_iso_count = (Size)spec_gen_dialog.max_iso_spinbox->value();
+      p.setValue("max_isotope", max_iso_count, "Number of isotopic peaks");
+      p.setValue("a_intensity", spec_gen_dialog.a_intensity->value(), "Intensity of the a-ions");
+      p.setValue("b_intensity", spec_gen_dialog.b_intensity->value(), "Intensity of the b-ions");
+      p.setValue("c_intensity", spec_gen_dialog.c_intensity->value(), "Intensity of the c-ions");
+      p.setValue("x_intensity", spec_gen_dialog.x_intensity->value(), "Intensity of the x-ions");
+      p.setValue("y_intensity", spec_gen_dialog.y_intensity->value(), "Intensity of the y-ions");
+      p.setValue("z_intensity", spec_gen_dialog.z_intensity->value(), "Intensity of the z-ions");
+      double rel_loss_int = (double)(spec_gen_dialog.rel_loss_intensity->value()) / 100.0;
+      p.setValue("relative_loss_intensity", rel_loss_int, "Intensity of loss ions, in relation to the intact ion intensity");
+      generator.setParameters(p);
+
+      try
       {
-        RichPeakSpectrum rich_spec;
-        TheoreticalSpectrumGenerator generator;
-        Param p;
-
-        p.setValue("add_metainfo", "true", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
-
-        bool losses = (spec_gen_dialog.list_widget->item(7)->checkState() == Qt::Checked); // "Neutral losses"
-        String losses_str = losses ? "true" : "false";
-        p.setValue("add_losses", losses_str, "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
-
-        bool isotopes = (spec_gen_dialog.list_widget->item(8)->checkState() == Qt::Checked); // "Isotope clusters"
-        String iso_str = isotopes ? "true" : "false";
-        p.setValue("add_isotopes", iso_str, "If set to 1 isotope peaks of the product ion peaks are added");
-
-        bool abundant_immonium_ions = (spec_gen_dialog.list_widget->item(9)->checkState() == Qt::Checked); // "abundant immonium-ions"
-        String abundant_immonium_ions_str = abundant_immonium_ions ? "true" : "false";
-        p.setValue("add_abundant_immonium_ions", abundant_immonium_ions_str, "Add most abundant immonium ions");
-
-        Size max_iso_count = (Size)spec_gen_dialog.max_iso_spinbox->value();
-        p.setValue("max_isotope", max_iso_count, "Number of isotopic peaks");
-        p.setValue("a_intensity", spec_gen_dialog.a_intensity->value(), "Intensity of the a-ions");
-        p.setValue("b_intensity", spec_gen_dialog.b_intensity->value(), "Intensity of the b-ions");
-        p.setValue("c_intensity", spec_gen_dialog.c_intensity->value(), "Intensity of the c-ions");
-        p.setValue("x_intensity", spec_gen_dialog.x_intensity->value(), "Intensity of the x-ions");
-        p.setValue("y_intensity", spec_gen_dialog.y_intensity->value(), "Intensity of the y-ions");
-        p.setValue("z_intensity", spec_gen_dialog.z_intensity->value(), "Intensity of the z-ions");
-        DoubleReal rel_loss_int = (DoubleReal)(spec_gen_dialog.rel_loss_intensity->value()) / 100.0;
-        p.setValue("relative_loss_intensity", rel_loss_int, "Intensity of loss ions, in relation to the intact ion intensity");
-        generator.setParameters(p);
-
-        try
+        if (spec_gen_dialog.list_widget->item(0)->checkState() == Qt::Checked) // "A-ions"
         {
-          if (spec_gen_dialog.list_widget->item(0)->checkState() == Qt::Checked) // "A-ions"
-          {
-            generator.addPeaks(rich_spec, aa_sequence, Residue::AIon, charge);
-          }
-          if (spec_gen_dialog.list_widget->item(1)->checkState() == Qt::Checked) // "B-ions"
-          {
-            generator.addPeaks(rich_spec, aa_sequence, Residue::BIon, charge);
-          }
-          if (spec_gen_dialog.list_widget->item(2)->checkState() == Qt::Checked) // "C-ions"
-          {
-            generator.addPeaks(rich_spec, aa_sequence, Residue::CIon, charge);
-          }
-          if (spec_gen_dialog.list_widget->item(3)->checkState() == Qt::Checked) // "X-ions"
-          {
-            generator.addPeaks(rich_spec, aa_sequence, Residue::XIon, charge);
-          }
-          if (spec_gen_dialog.list_widget->item(4)->checkState() == Qt::Checked) // "Y-ions"
-          {
-            generator.addPeaks(rich_spec, aa_sequence, Residue::YIon, charge);
-          }
-          if (spec_gen_dialog.list_widget->item(5)->checkState() == Qt::Checked) // "Z-ions"
-          {
-            generator.addPeaks(rich_spec, aa_sequence, Residue::ZIon, charge);
-          }
-          if (spec_gen_dialog.list_widget->item(6)->checkState() == Qt::Checked) // "Precursor"
-          {
-            generator.addPrecursorPeaks(rich_spec, aa_sequence, charge);
-          }
-          if (spec_gen_dialog.list_widget->item(9)->checkState() == Qt::Checked) // "abundant Immonium-ions"
-          {
-            generator.addAbundantImmoniumIons(rich_spec);
-          }
+          generator.addPeaks(rich_spec, aa_sequence, Residue::AIon, charge);
         }
-        catch (Exception::BaseException& e)
+        if (spec_gen_dialog.list_widget->item(1)->checkState() == Qt::Checked) // "B-ions"
         {
-          QMessageBox::warning(this, "Error", QString("Spectrum generation failed! (") + e.what() + "). Please report this to the developers (specify what input you used)!");
-          return;
+          generator.addPeaks(rich_spec, aa_sequence, Residue::BIon, charge);
         }
-
-        // set precursor information
-        PeakSpectrum new_spec;
-        vector<Precursor> precursors;
-        Precursor precursor;
-        precursor.setMZ(aa_sequence.getMonoWeight());
-        precursor.setCharge(charge);
-        precursors.push_back(precursor);
-        new_spec.setPrecursors(precursors);
-        new_spec.setMSLevel(2);
-        // convert rich spectrum to simple spectrum
-        for (RichPeakSpectrum::Iterator it = rich_spec.begin(); it != rich_spec.end(); ++it)
+        if (spec_gen_dialog.list_widget->item(2)->checkState() == Qt::Checked) // "C-ions"
         {
-          new_spec.push_back(static_cast<Peak1D>(*it));
+          generator.addPeaks(rich_spec, aa_sequence, Residue::CIon, charge);
         }
-
-        PeakMap new_exp;
-        new_exp.addSpectrum(new_spec);
-        ExperimentSharedPtrType new_exp_sptr(new PeakMap(new_exp));
-        FeatureMapSharedPtrType f_dummy(new FeatureMapType());
-        ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
-        vector<PeptideIdentification> p_dummy;
-        addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, LayerData::DT_CHROMATOGRAM, false, true, true, "", seq_string + QString(" (theoretical)"));
-
-        // ensure spectrum is drawn as sticks
-        draw_group_1d_->button(Spectrum1DCanvas::DM_PEAKS)->setChecked(true);
-        setDrawMode1D(Spectrum1DCanvas::DM_PEAKS);
+        if (spec_gen_dialog.list_widget->item(3)->checkState() == Qt::Checked) // "X-ions"
+        {
+          generator.addPeaks(rich_spec, aa_sequence, Residue::XIon, charge);
+        }
+        if (spec_gen_dialog.list_widget->item(4)->checkState() == Qt::Checked) // "Y-ions"
+        {
+          generator.addPeaks(rich_spec, aa_sequence, Residue::YIon, charge);
+        }
+        if (spec_gen_dialog.list_widget->item(5)->checkState() == Qt::Checked) // "Z-ions"
+        {
+          generator.addPeaks(rich_spec, aa_sequence, Residue::ZIon, charge);
+        }
+        if (spec_gen_dialog.list_widget->item(6)->checkState() == Qt::Checked) // "Precursor"
+        {
+          generator.addPrecursorPeaks(rich_spec, aa_sequence, charge);
+        }
+        if (spec_gen_dialog.list_widget->item(9)->checkState() == Qt::Checked) // "abundant Immonium-ions"
+        {
+          generator.addAbundantImmoniumIons(rich_spec);
+        }
       }
-      else
+      catch (Exception::BaseException& e)
       {
-        QMessageBox::warning(this, "Error", "The entered peptide sequence is invalid!");
+        QMessageBox::warning(this, "Error", QString("Spectrum generation failed! (") + e.what() + "). Please report this to the developers (specify what input you used)!");
+        return;
       }
+
+      // set precursor information
+      PeakSpectrum new_spec;
+      vector<Precursor> precursors;
+      Precursor precursor;
+      precursor.setMZ(aa_sequence.getMonoWeight());
+      precursor.setCharge(charge);
+      precursors.push_back(precursor);
+      new_spec.setPrecursors(precursors);
+      new_spec.setMSLevel(2);
+      // convert rich spectrum to simple spectrum
+      for (RichPeakSpectrum::Iterator it = rich_spec.begin(); it != rich_spec.end(); ++it)
+      {
+        new_spec.push_back(static_cast<Peak1D>(*it));
+      }
+
+      PeakMap new_exp;
+      new_exp.addSpectrum(new_spec);
+      ExperimentSharedPtrType new_exp_sptr(new PeakMap(new_exp));
+      FeatureMapSharedPtrType f_dummy(new FeatureMapType());
+      ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
+      vector<PeptideIdentification> p_dummy;
+      addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, LayerData::DT_CHROMATOGRAM, false, true, true, "", seq_string + QString(" (theoretical)"));
+
+      // ensure spectrum is drawn as sticks
+      draw_group_1d_->button(Spectrum1DCanvas::DM_PEAKS)->setChecked(true);
+      setDrawMode1D(Spectrum1DCanvas::DM_PEAKS);
+
+
     }
   }
 
@@ -3370,14 +3230,14 @@ namespace OpenMS
       }
 
       Param param;
-      DoubleReal tolerance = spec_align_dialog.tolerance_spinbox->value();
+      double tolerance = spec_align_dialog.tolerance_spinbox->value();
       param.setValue("tolerance", tolerance, "Defines the absolute (in Da) or relative (in ppm) mass tolerance");
       String unit_is_ppm = spec_align_dialog.ppm->isChecked() ? "true" : "false";
       param.setValue("is_relative_tolerance", unit_is_ppm, "If true, the mass tolerance is interpreted as ppm value otherwise in Dalton");
 
       active_1d_window->performAlignment((UInt)layer_index_1, (UInt)layer_index_2, param);
 
-      DoubleReal al_score = cc->getAlignmentScore();
+      double al_score = cc->getAlignmentScore();
       Size al_size = cc->getAlignmentSize();
 
       QMessageBox::information(this, "Alignment performed", QString("Aligned %1 pairs of peaks (Score: %2).").arg(al_size).arg(al_score));
@@ -3563,7 +3423,7 @@ namespace OpenMS
     QString text = QString("<BR>"
                            "<FONT size=+3>TOPPView</font><BR>"
                            "<BR>"
-                           "Version: %1<BR>"
+                           "Version: %1%2<BR>"
                            "<BR>"
                            "OpenMS and TOPP is free software available under the<BR>"
                            "BSD 3-Clause Licence (BSD-new)<BR>"
@@ -3575,8 +3435,10 @@ namespace OpenMS
                            "Any published work based on TOPP and OpenMS shall cite these papers:<BR>"
                            "Sturm et al., BMC Bioinformatics (2008), 9, 163<BR>"
                            "Kohlbacher et al., Bioinformatics (2007), 23:e191-e197<BR>"
-                           ).arg(VersionInfo::getVersion().toQString());
-    label = new QLabel(text, dlg);
+                           ).arg(VersionInfo::getVersion().toQString()
+                           ).arg( // if we have a revision, embed it also into the shown version number
+                             VersionInfo::getRevision() != "" ? QString(" (") + VersionInfo::getRevision().toQString() + ")" : "");    label = new QLabel(text, dlg);
+
     grid->addWidget(label, 0, 1, Qt::AlignTop | Qt::AlignLeft);
 
     //close button
@@ -3860,38 +3722,6 @@ namespace OpenMS
       MetaDataBrowser dlg(false, this);
       dlg.add(exp);
       dlg.exec();
-    }
-  }
-
-  void TOPPViewBase::metadataDatabaseDialog()
-  {
-    DBConnection con;
-    connectToDB_(con);
-    if (con.isConnected())
-    {
-      vector<UInt> ids;
-      DBOpenDialog db_dialog(con, ids, ws_);
-      if (db_dialog.exec())
-      {
-        DBAdapter db(con);
-        db.getOptions().setMetadataOnly(true);
-        for (vector<UInt>::iterator it = ids.begin(); it != ids.end(); ++it)
-        {
-          ExperimentType exp;
-          try
-          {
-            db.loadExperiment(*it, exp);
-          }
-          catch (Exception::BaseException& e)
-          {
-            QMessageBox::critical(this, "Error", (String("Error while reading data: ") + e.what()).c_str());
-            return;
-          }
-          MetaDataBrowser dlg(false, this);
-          dlg.add(exp);
-          dlg.exec();
-        }
-      }
     }
   }
 

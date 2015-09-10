@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -127,21 +127,21 @@ START_SECTION(virtual bool isAtEnd())
 END_SECTION
 
 
-START_SECTION(virtual void setSpectrum(const std::vector< DoubleReal > &))
-	const std::vector<DoubleReal> spec;
+START_SECTION(virtual void setSpectrum(const std::vector< double > &))
+	const std::vector<double> spec;
 	TEST_EXCEPTION (Exception::NotImplemented, (*ptr).setSpectrum(spec));
 END_SECTION
 
-START_SECTION(virtual const std::vector<DoubleReal>& getSpectrum())
+START_SECTION(virtual const std::vector<double>& getSpectrum())
 	TEST_EXCEPTION (Exception::NotImplemented, (*ptr).getSpectrum());
 END_SECTION
 
-START_SECTION(virtual void setTolerance(DoubleReal))
-	DoubleReal t = 0.5;
+START_SECTION(virtual void setTolerance(double))
+	double t = 0.5;
 	TEST_EXCEPTION (Exception::NotImplemented, (*ptr).setTolerance(t));
 END_SECTION
 
-START_SECTION(virtual DoubleReal getTolerance())
+START_SECTION(virtual double getTolerance())
 	TEST_EXCEPTION (Exception::NotImplemented, (*ptr).getTolerance());
 END_SECTION
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,9 +35,13 @@
 #ifndef OPENMS_KERNEL_FEATURE_H
 #define OPENMS_KERNEL_FEATURE_H
 
-#include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ModelDescription.h>
+#include <OpenMS/KERNEL/BaseFeature.h>
+
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/OpenMSConfig.h>
+
+#include <vector>
 
 namespace OpenMS
 {
@@ -74,7 +78,7 @@ public:
     Feature();
 
     /// Copy constructor
-    Feature(const Feature & feature);
+    Feature(const Feature& feature);
 
     /// Destructor
     ~Feature();
@@ -96,50 +100,42 @@ public:
     /// Compare by quality
     typedef QualityLess OverallQualityLess;
 
-    /// Non-mutable access to the model description
-    const ModelDescription<2> & getModelDescription() const;
-
-    /// Mutable access to the model description
-    ModelDescription<2> & getModelDescription();
-
-    /// Set the model description
-    void setModelDescription(const ModelDescription<2> & q);
     //@}
 
     ///@name Convex hulls and bounding box
     //@{
     /// Non-mutable access to the convex hulls
-    const std::vector<ConvexHull2D> & getConvexHulls() const;
+    const std::vector<ConvexHull2D>& getConvexHulls() const;
     /// Mutable access to the convex hulls of single mass traces
-    std::vector<ConvexHull2D> & getConvexHulls();
+    std::vector<ConvexHull2D>& getConvexHulls();
     /// Set the convex hulls of single mass traces
-    void setConvexHulls(const std::vector<ConvexHull2D> & hulls);
+    void setConvexHulls(const std::vector<ConvexHull2D>& hulls);
 
     /**
       @brief Returns the overall convex hull of the feature (calculated from the convex hulls of the mass traces)
 
       @note the bounding box of the feature can be accessed through the returned convex hull
     */
-    ConvexHull2D & getConvexHull() const;
+    ConvexHull2D& getConvexHull() const;
 
     /// Returns if the mass trace convex hulls of the feature enclose the position specified by @p rt and @p mz
-    bool encloses(DoubleReal rt, DoubleReal mz) const;
+    bool encloses(double rt, double mz) const;
     //@}
 
     /// Assignment operator
-    Feature & operator=(const Feature & rhs);
+    Feature& operator=(const Feature& rhs);
 
     /// Equality operator
-    bool operator==(const Feature & rhs) const;
+    bool operator==(const Feature& rhs) const;
 
     /// immutable access to subordinate features
-    const std::vector<Feature> & getSubordinates() const;
+    const std::vector<Feature>& getSubordinates() const;
 
     /// mutable access to subordinate features
-    std::vector<Feature> & getSubordinates();
+    std::vector<Feature>& getSubordinates();
 
     /// mutable access to subordinate features
-    void setSubordinates(const std::vector<Feature> & rhs);
+    void setSubordinates(const std::vector<Feature>& rhs);
 
     /**
       @brief Applies a member function of Type to the feature (including subordinates).
@@ -183,9 +179,6 @@ protected:
     /// Quality measures for each dimension
     QualityType qualities_[2];
 
-    /// Description of the theoretical model the feature was constructed with
-    ModelDescription<2> model_desc_;
-
     /// Array of convex hulls (one for each mass trace)
     std::vector<ConvexHull2D> convex_hulls_;
 
@@ -195,8 +188,9 @@ protected:
     /// Overall convex hull of the feature
     mutable ConvexHull2D convex_hull_;
 
-    /// subordinate features (e.g. features that the ModelFitter discarded due to inferior quality)
+    /// subordinate features (e.g. features that represent alternative explanations, usually with lower quality)
     std::vector<Feature> subordinates_;
+
   };
 
 } // namespace OpenMS

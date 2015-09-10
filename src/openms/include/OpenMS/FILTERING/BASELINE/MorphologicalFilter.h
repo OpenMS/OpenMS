@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -206,7 +206,7 @@ public:
       //determine the struct size in data points if not already set
       if (struct_size_in_datapoints_ == 0)
       {
-        struct_size_in_datapoints_ = (UInt)(DoubleReal)param_.getValue("struc_elem_length");
+        struct_size_in_datapoints_ = (UInt)(double)param_.getValue("struc_elem_length");
       }
 
       //apply the filtering
@@ -297,9 +297,9 @@ public:
         struct_size_in_datapoints_ =
           UInt(
             ceil(
-              (DoubleReal)(param_.getValue("struc_elem_length"))
+              (double)(param_.getValue("struc_elem_length"))
               *
-              DoubleReal(spectrum.size() - 1)
+              double(spectrum.size() - 1)
               /
               (spectrum.back().getMZ() - spectrum.begin()->getMZ())
               )
@@ -307,7 +307,7 @@ public:
       }
       else
       {
-        struct_size_in_datapoints_ = (UInt)(DoubleReal)param_.getValue("struc_elem_length");
+        struct_size_in_datapoints_ = (UInt)(double)param_.getValue("struc_elem_length");
       }
       //make it odd (needed for the algorithm)
       if (!Math::isOdd(struct_size_in_datapoints_)) ++struct_size_in_datapoints_;

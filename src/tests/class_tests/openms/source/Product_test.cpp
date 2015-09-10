@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -58,34 +58,34 @@ START_SECTION((~Product()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((DoubleReal getMZ() const ))
+START_SECTION((double getMZ() const ))
   Product tmp;
   TEST_EQUAL(tmp.getMZ(),0);
 END_SECTION
 
-START_SECTION((void setMZ(DoubleReal mz)))
+START_SECTION((void setMZ(double mz)))
   Product tmp;
   tmp.setMZ(47.11);
   TEST_REAL_SIMILAR(tmp.getMZ(),47.11);
 END_SECTION
 
-START_SECTION((DoubleReal getIsolationWindowUpperOffset() const ))
+START_SECTION((double getIsolationWindowUpperOffset() const ))
   Product tmp;
   TEST_REAL_SIMILAR(tmp.getIsolationWindowUpperOffset(), 0);
 END_SECTION
 
-START_SECTION((void setIsolationWindowUpperOffset(DoubleReal bound)))
+START_SECTION((void setIsolationWindowUpperOffset(double bound)))
   Product tmp;
   tmp.setIsolationWindowUpperOffset(22.7);
   TEST_REAL_SIMILAR(tmp.getIsolationWindowUpperOffset(), 22.7);
 END_SECTION
 
-START_SECTION((DoubleReal getIsolationWindowLowerOffset() const ))
+START_SECTION((double getIsolationWindowLowerOffset() const ))
   Product tmp;
   TEST_REAL_SIMILAR(tmp.getIsolationWindowLowerOffset(), 0);
 END_SECTION
 
-START_SECTION((void setIsolationWindowLowerOffset(DoubleReal bound)))
+START_SECTION((void setIsolationWindowLowerOffset(double bound)))
   Product tmp;
   tmp.setIsolationWindowLowerOffset(22.8);
   TEST_REAL_SIMILAR(tmp.getIsolationWindowLowerOffset(), 22.8);

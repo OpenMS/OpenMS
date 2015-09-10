@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -187,9 +187,9 @@ protected:
       /// encoded data which is read and has to be decoded
       std::vector<String> data_to_decode_;
       /// floating point numbers which have to be encoded and written
-      std::vector<Real> data_to_encode_;
-      std::vector<std::vector<Real> > decoded_list_;
-      std::vector<std::vector<DoubleReal> > decoded_double_list_;
+      std::vector<float> data_to_encode_;
+      std::vector<std::vector<float> > decoded_list_;
+      std::vector<std::vector<double> > decoded_double_list_;
       std::vector<String> precisions_;
       std::vector<String> endians_;
       //@}
@@ -219,7 +219,7 @@ protected:
           Example:
           &lt;cvParam cvLabel="psi" accession="PSI:@p acc" name="@p name" value="@p value"/&gt;
       */
-      inline void writeCVS_(std::ostream & os, DoubleReal value, const String & acc, const String & name, UInt indent = 4) const
+      inline void writeCVS_(std::ostream & os, double value, const String & acc, const String & name, UInt indent = 4) const
       {
         if (value != 0.0)
         {
@@ -721,8 +721,8 @@ protected:
     template <typename MapType>
     void MzDataHandler<MapType>::fillData_()
     {
-      std::vector<Real> decoded;
-      std::vector<DoubleReal> decoded_double;
+      std::vector<float> decoded;
+      std::vector<double> decoded_double;
 
       // data_to_decode is an encoded spectrum, represented as
       // vector of base64-encoded strings:
@@ -793,8 +793,8 @@ protected:
         //push_back the peaks into the container
         for (Size n = 0; n < peak_count_; ++n)
         {
-          DoubleReal mz = mz_precision_64 ? decoded_double_list_[0][n] : decoded_list_[0][n];
-          DoubleReal intensity = int_precision_64 ? decoded_double_list_[1][n] : decoded_list_[1][n];
+          double mz = mz_precision_64 ? decoded_double_list_[0][n] : decoded_list_[0][n];
+          double intensity = int_precision_64 ? decoded_double_list_[1][n] : decoded_list_[1][n];
           if ((!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(mz)))
              && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(intensity))))
           {
@@ -829,7 +829,10 @@ protected:
          << sm.getName()
          << "</sampleName>\n";
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wconversion"
       if (sm.getNumber() != "" || sm.getState() || sm.getMass() || sm.getVolume() || sm.getConcentration()  || !sm.isMetaEmpty())
+#pragma clang diagnostic pop
       {
         os << "\t\t\t<sampleDescription>\n";
         writeCVS_(os, sm.getNumber(), "1000001", "SampleNumber");

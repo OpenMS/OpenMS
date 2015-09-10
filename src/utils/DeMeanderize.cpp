@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -90,7 +90,7 @@ protected:
     String in(getStringOption_("in"));
     String out(getStringOption_("out"));
     Size num_spots_per_row(getIntOption_("num_spots_per_row"));
-    DoubleReal RT_distance(getDoubleOption_("RT_distance"));
+    double RT_distance(getDoubleOption_("RT_distance"));
 
     //-------------------------------------------------------------
     // reading input
@@ -110,18 +110,18 @@ protected:
     pl.startProgress(0, exp.size(), "Assigning pseudo RTs.");
     Size num_ms1(0), num_ms1_base(0), row_counter(0);
     bool row_to_reverse(false);
-    DoubleReal actual_RT(0);
+    double actual_RT(0);
     for (Size i = 0; i != exp.size(); ++i)
     {
       pl.setProgress(i);
       if (row_to_reverse)
       {
-        actual_RT = (DoubleReal)(num_ms1_base + (num_spots_per_row - row_counter)) * RT_distance;
+        actual_RT = (double)(num_ms1_base + (num_spots_per_row - row_counter)) * RT_distance;
         writeDebug_("RT=" + String(actual_RT) + " (modified, row_counter=" + String(row_counter) + ")", 1);
       }
       else
       {
-        actual_RT = (DoubleReal)num_ms1 * RT_distance;
+        actual_RT = (double)num_ms1 * RT_distance;
         writeDebug_("RT=" + String(actual_RT), 1);
       }
 

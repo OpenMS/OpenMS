@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2012.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -37,7 +37,7 @@ project("OpenMS_class_tests_openswathalgo")
 
 # --------------------------------------------------------------------------
 # add include directories
-include_directories(${OPENMS_INCLUDE_DIRECTORIES})
+include_directories(SYSTEM ${OpenMS_INCLUDE_DIRECTORIES})
 
 # --------------------------------------------------------------------------
 # list of available tests

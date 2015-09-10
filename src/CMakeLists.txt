@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2012.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -46,9 +46,24 @@ add_subdirectory(openswathalgo)
 add_subdirectory(openms)
 
 #------------------------------------------------------------------------------
-# OpenMS gui lib
+# SuperHirn lib
 #------------------------------------------------------------------------------
-add_subdirectory(openms_gui)
+add_subdirectory(superhirn)
+
+#------------------------------------------------------------------------------
+# pyOpenMS
+#------------------------------------------------------------------------------
+option(PYOPENMS "setup build system for pyOpenMS" OFF)
+if(PYOPENMS)
+  add_subdirectory(pyOpenMS)
+endif()
+
+if(WITH_GUI)
+  #------------------------------------------------------------------------------
+  # OpenMS gui lib
+  #------------------------------------------------------------------------------
+  add_subdirectory(openms_gui)
+endif()
 
 #------------------------------------------------------------------------------
 # TOPP tools

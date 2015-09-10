@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -60,33 +60,31 @@ using namespace std;
 /**
     @page UTILS_QCExporter QCExporter
 
-    @brief Will extract several qp from several run/sets in a tabular format.
+    @brief Will extract several quality parameter from several run/sets from a qcML file into a tabular (text) format - counterpart to QCImporter.
 
     <CENTER>
       <table>
         <tr>
         <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-        <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ QCEmbedder \f$ \longrightarrow \f$</td>
+        <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ QCExporter \f$ \longrightarrow \f$</td>
         <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
         </tr>
         <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_QCExporter </td>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_QCMerger </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> ? </td>
         </tr>
         <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_XTandemAdapter </td>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_QCShrinker </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_QCEmbedder </td>
         </tr>
       </table>
     </CENTER>
 
-    The data contained as values of the qp of a qcml file at @p in can be exported in tabluar (csv) format.
-    
+    The data contained as values of the qp of a qcML file at @p in can be exported in tabluar (csv) format.
+
     - @p names The name of the target runs or sets to be exported from. If empty, from all will be exported.
     - @p mapping The mapping of the exported table's headers to the according qp cvs. The first row is considered containing the headers as for the exported the table. The second row is considered the according qp cv accessions of the qp to be exported.
-    
-    Output is in csv format (see parameter @p out_csv) which can be easily viewed/parsed by many programs. 
-    
+
+    Output is in csv format (see parameter @p out_csv) which can be easily viewed/parsed by many programs.
+
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_QCExporter.cli
     <B>INI file documentation of this tool:</B>
@@ -110,7 +108,7 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input qcml file");
     setValidFormats_("in", ListUtils::create<String>("qcML"));
-    registerStringList_("names", "<names>", StringList(), "The name of the target runs or sets to be exported from. If empty, from all will be exported.",false);
+    registerStringList_("names", "<names>", StringList(), "The name of the target runs or sets to be exported from. If empty, from all will be exported.", false);
     registerInputFile_("mapping", "<file>", "", "The mapping of the exported table's headers to the according qp cvs. The first row is considered containing the headers as for the exported the table. The second row is considered the according qp cv accessions of the qp to be exported.", true);
     setValidFormats_("mapping", ListUtils::create<String>("csv"));
     registerOutputFile_("out_csv", "<file>", "", "Output csv formatted quality parameter.");
@@ -126,7 +124,7 @@ protected:
     String csv = getStringOption_("out_csv");
     StringList names = getStringList_("names");
     String mappi = getStringOption_("mapping");
-    
+
     ControlledVocabulary cv;
     cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
     cv.loadFromOBO("QC", File::find("/CV/qc-cv.obo"));
@@ -139,13 +137,13 @@ protected:
     if (mappi != "")
     {
       CsvFile map_file(mappi);
-      
-      if (map_file.size()<2) //assumed that first row is the header of table and second row is the according qc
+
+      if (map_file.rowCount() < 2) //assumed that first row is the header of table and second row is the according qc
       {
         cerr << "Error: You have to give a mapping of your table (first row is the header of table and second row is the according qc). Aborting!" << endl;
         return ILLEGAL_PARAMETERS;
       }
-      StringList header,according;
+      StringList header, according;
       map_file.getRow(0, header);
       map_file.getRow(1, according);
       if (header.size() != according.size())
@@ -168,18 +166,18 @@ protected:
           }
           catch (...)
           {
-            cerr << "Error: You have to specify a correct cv with accession or name in col "<< String(i) <<". Aborting!" << endl;
+            cerr << "Error: You have to specify a correct cv with accession or name in col " << String(i) << ". Aborting!" << endl;
             return ILLEGAL_PARAMETERS;
           }
         }
         //~ else
         //~ {
-          //~ const ControlledVocabulary::CVTerm& term = cv.getTerm(according[i]);
-          //~ header[i] = term.name; //TODO what if custom headers are needed?!
+        //~ const ControlledVocabulary::CVTerm& term = cv.getTerm(according[i]);
+        //~ header[i] = term.name; //TODO what if custom headers are needed?!
         //~ }
         //~ if (header[i] == "raw file name")
         //~ {
-          //~ runset_col = i;
+        //~ runset_col = i;
         //~ }
       }
 
@@ -188,28 +186,28 @@ protected:
         std::vector<String> ns;
         qcmlfile.getRunIDs(ns); //n.b. names are ids
         names = StringList(ns); //TODO also  sets
-      } 
-    
+      }
+
       String csv_str = ListUtils::concatenate(header, ",");
       csv_str += '\n';
       for (Size i = 0; i < names.size(); ++i)
       {
         //~ if (qcmlfile.existsRun(names[i]))
         //~ {
-        csv_str += qcmlfile.exportQPs(names[i],according);
+        csv_str += qcmlfile.exportQPs(names[i], according);
         csv_str += '\n';
         //~ }
         //~ else if (qcmlfile.existsSet(names[i]))
         //~ {
-          //~ csv_str += qcmlfile.exportSetQP(names[i],according);
+        //~ csv_str += qcmlfile.exportSetQP(names[i],according);
         //~ }
         //~ else
         //~ {
-          //~ cerr << "Error: You have to specify a existing set for this qp. " << names[i] << " seems not to exist. Aborting!" << endl;
-          //~ return ILLEGAL_PARAMETERS;
+        //~ cerr << "Error: You have to specify a existing set for this qp. " << names[i] << " seems not to exist. Aborting!" << endl;
+        //~ return ILLEGAL_PARAMETERS;
         //~ }
       }
-   
+
       ofstream fout(csv.c_str());
       fout << csv_str << endl;
       fout.close();
@@ -220,6 +218,7 @@ protected:
     }
     return EXECUTION_OK;
   }
+
 };
 int main(int argc, const char** argv)
 {

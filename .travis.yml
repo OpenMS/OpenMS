@@ -1,10 +1,20 @@
 language: cpp
-compiler:
-  - gcc
-  - clang
 cache: apt
 before_script:
-   ./tools/lnx-cibuild.before.sh
+   ./tools/travis/lnx-cibuild.before.sh
 script:
-  ./tools/lnx-cibuild.sh
-
+  ./tools/travis/lnx-cibuild.sh
+matrix:
+  include:
+    - env: ENABLE_STYLE_TESTING=ON WITH_GUI=ON
+      compiler: gcc
+## split class vs. TOPP tests for GCC (otherwise it will run into time limit of 50min)
+    - env: ENABLE_STYLE_TESTING=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=OFF WITH_GUI=ON DISABLE_PPWAVELET3=ON
+      compiler: gcc
+    - env: ENABLE_STYLE_TESTING=OFF ENABLE_TOPP_TESTING=OFF ENABLE_CLASS_TESTING=ON WITH_GUI=ON DISABLE_PPWAVELET3=OFF
+      compiler: gcc
+## clang can run both class+TOPP tests since it's faster
+    - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON DISABLE_PPWAVELET3=OFF
+      compiler: clang
+    - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=ON ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON DISABLE_PPWAVELET3=OFF
+      compiler: clang

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -52,11 +52,11 @@ using namespace std;
 #include <omp.h>
 #endif
 
-#ifdef _OPENMP
-  #define IF_MASTERTHREAD if (omp_get_thread_num() ==0)  
-#else
-  #define IF_MASTERTHREAD 
-#endif    
+// #ifdef _OPENMP
+//   #define IF_MASTERTHREAD if (omp_get_thread_num() ==0)  
+// #else
+//   #define IF_MASTERTHREAD 
+// #endif    
 
 using namespace OpenMS;
 
@@ -175,11 +175,6 @@ protected:
     }
     setValidStrings_("model:type", model_types);
     registerFlag_("model:symmetric_regression", "Only for 'linear' model: Perform linear regression on 'y - x' vs. 'y + x', instead of on 'y' vs. 'x'.");
-    registerIntOption_("model:num_breakpoints", "<number>", 5,
-        "Only for 'b_spline' model: Number of breakpoints of the cubic spline in the smoothing step. The breakpoints are spaced uniformly on the retention time interval. More breakpoints mean less smoothing. Reduce this number if the transformation has an unexpected shape.",
-        false);
-    setMinInt_("model:num_breakpoints", 2);
-    registerStringOption_("model:interpolation_type", "<name>", "cspline", "Only for 'interpolated' model: Type of interpolation to apply.", false);
   }
 
   ExitCodes main_(int, const char **)
@@ -190,9 +185,9 @@ protected:
     bool is_swath = getFlag_("is_swath");
     bool ppm = getFlag_("ppm");
     bool extract_MS1 = getFlag_("extract_MS1");
-    DoubleReal min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
-    DoubleReal mz_extraction_window = getDoubleOption_("mz_window");
-    DoubleReal rt_extraction_window = getDoubleOption_("rt_window");
+    double min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
+    double mz_extraction_window = getDoubleOption_("mz_window");
+    double rt_extraction_window = getDoubleOption_("rt_window");
 
     String extraction_function = getStringOption_("extraction_function");
 
@@ -284,7 +279,7 @@ protected:
         {
           // Use an rt extraction window of 0.0 which will just write the retention time in start / end positions
           extractor.prepare_coordinates(chromatogram_ptrs, coordinates, transition_exp_used, 0.0, extract_MS1);
-          for (std::vector< ChromatogramExtractor::ExtractionCoordinates >::iterator it = coordinates.begin(); it != coordinates.end(); it++)
+          for (std::vector< ChromatogramExtractor::ExtractionCoordinates >::iterator it = coordinates.begin(); it != coordinates.end(); ++it)
           {
             it->rt_start = trafo_inverse.apply(it->rt_start) - rt_extraction_window / 2.0;
             it->rt_end = trafo_inverse.apply(it->rt_end) + rt_extraction_window / 2.0;

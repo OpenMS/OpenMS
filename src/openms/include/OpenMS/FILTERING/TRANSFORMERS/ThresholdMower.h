@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -78,7 +78,7 @@ public:
 
       // find right position to erase
       typename SpectrumType::PeakType p;
-      threshold_ = ((DoubleReal)param_.getValue("threshold"));
+      threshold_ = ((double)param_.getValue("threshold"));
       p.setIntensity(threshold_);
       spectrum.erase(
         spectrum.begin(),
@@ -93,7 +93,7 @@ public:
     //TODO reimplement DefaultParamHandler::updateMembers_()
 
 private:
-    DoubleReal threshold_;
+    double threshold_;
 
     // @}
   };

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -63,8 +63,8 @@ two[1]=2;
 
 //do not modify these points, they are used in many tests
 
-std::cout.precision(writtenDigits<>(DoubleReal()));
-std::cerr.precision(writtenDigits<>(DoubleReal()));
+std::cout.precision(writtenDigits<>(double()));
+std::cerr.precision(writtenDigits<>(double()));
 
 DRange<2>* ptr = 0;
 DRange<2>* nullPointer = 0;

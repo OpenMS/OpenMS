@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,15 +36,20 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
+
 #include <fstream>
 
-#include <seqan/seq_io.h>
+#include <seqan/basic.h>
+#include <seqan/stream.h>
+#include <seqan/seq_io/guess_stream_format.h>
+#include <seqan/seq_io/read_fasta_fastq.h>
 #include <seqan/sequence.h>
-
-using namespace std;
 
 namespace OpenMS
 {
+  using namespace std;
+
   FASTAFile::FASTAFile()
   {
 
@@ -57,10 +62,6 @@ namespace OpenMS
 
   void FASTAFile::load(const String& filename, vector<FASTAEntry>& data)
   {
-    String temp = "";
-    string::size_type position = String::npos;
-    Size size_read(0);
-
     data.clear();
 
     if (!File::exists(filename))
@@ -78,6 +79,8 @@ namespace OpenMS
     seqan::RecordReader<std::fstream, seqan::SinglePass<> > reader(in);
 
     String id, seq;
+    String::size_type position = String::npos;
+    Size size_read(0);
 
     while (!atEnd(reader))
     {
@@ -85,7 +88,7 @@ namespace OpenMS
       {
         String msg;
         if (data.empty()) msg = "The first entry could not be read!";
-        else msg = "The last successfull FASTA record was: '>" + data.back().identifier + "'. The record after failed.";
+        else msg = "The last successful FASTA record was: '>" + data.back().identifier + "'. The record after failed.";
         throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", "Error while parsing FASTA file '" + filename + "'! " + msg +  " Please check the file!");
       }
 

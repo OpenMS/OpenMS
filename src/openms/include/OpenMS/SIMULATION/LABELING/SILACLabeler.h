@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -74,19 +74,19 @@ public:
     // redeclaration of virtual methods
     void preCheck(Param& /* param */) const;
 
-    void setUpHook(FeatureMapSimVector& /* channels */);
+    void setUpHook(SimTypes::FeatureMapSimVector& /* channels */);
 
-    void postDigestHook(FeatureMapSimVector& /* features_to_simulate */);
+    void postDigestHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */);
 
-    void postRTHook(FeatureMapSimVector& /* features_to_simulate */);
+    void postRTHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */);
 
-    void postDetectabilityHook(FeatureMapSimVector& /* features_to_simulate */);
+    void postDetectabilityHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */);
 
-    void postIonizationHook(FeatureMapSimVector& /* features_to_simulate */);
+    void postIonizationHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */);
 
-    void postRawMSHook(FeatureMapSimVector& /* features_to_simulate */);
+    void postRawMSHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */);
 
-    void postRawTandemMSHook(FeatureMapSimVector& /* features_to_simulate */, MSSimExperiment& /* simulated map */);
+    void postRawTandemMSHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */, SimTypes::MSSimExperiment& /* simulated map */);
 
 protected:
     void addModificationToPeptideHit_(Feature& feature, const String& modification) const;
@@ -103,7 +103,7 @@ protected:
 
     bool canModificationBeApplied_(const String& modification_id, const String& aa) const;
 
-    void applyLabelToProteinHit_(FeatureMapSim& protein_hit, const String& arginine_label, const String& lysine_label) const;
+    void applyLabelToProteinHit_(SimTypes::FeatureMapSim& protein_hit, const String& arginine_label, const String& lysine_label) const;
 
     void updateMembers_();
 

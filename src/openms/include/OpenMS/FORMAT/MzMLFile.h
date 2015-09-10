@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,10 +49,6 @@ namespace OpenMS
     @brief File adapter for MzML files
 
     This implementation does currently not support the whole functionality of MzML.
-    Some minor features are still missing:
-        - chromatograms
-
-    @todo Implement chromatograms (Andreas)
 
     @ingroup FileIO
   */
@@ -76,7 +72,7 @@ public:
     void setOptions(const PeakFileOptions &);
 
     /**
-      @brief Loads a map from a MzML file.
+      @brief Loads a map from a MzML file. Spectra and chromatograms are sorted by default (this can be disabled using PeakFileOptions).
 
       @p map has to be a MSExperiment or have the same interface.
 
@@ -94,26 +90,7 @@ public:
 
       Internal::MzMLHandler<MapType> handler(map, filename, getVersion(), *this);
       handler.setOptions(options_);
-      //handler can throw parse error and other errors - catch those here - they are the cause for a parse error - report accordingly
-      try
-      {
-        parse_(filename, &handler);
-      }
-      catch (Exception::BaseException& e)
-      {
-        std::string expr;
-        expr.append(e.getFile());
-        expr.append("@");
-        std::stringstream ss;
-        ss << e.getLine(); // we need c++11!! maybe in 2012?
-        expr.append(ss.str());
-        expr.append("-");
-        expr.append(e.getFunction());
-        std::string mess = "- due to that error of type ";
-        mess.append(e.getName());
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, expr, mess);
-      }
-
+      safeParse_(filename, &handler);
     }
 
     /**
@@ -139,73 +116,66 @@ public:
     /**
       @brief Transforms a map while loading using the supplied MSDataConsumer.
 
-      The result will not be stored by this class.
+      The result will not be stored directly but is available through the
+      events triggered by the parser and caught by the provided IMSDataConsumer
+      object.
+
+      This function should be used if processing and storage of the result can
+      be performed directly in the provided IMSDataConsumer object.
+
+      @note Transformation can be speed up by setting skip_full_count which
+      does not require a full first pass through the file to compute the
+      correct number of spectra and chromatograms in the input file.
+
+      @param filename_in Filename of input mzML file to transform
+      @param consumer Consumer class to operate on the input filename (implementing a transformation)
+      @param skip_full_count Whether to skip computing the correct number of spectra and chromatograms in the input file
     */
     template <typename MapType>
-    void transform(const String& filename_in, /* const String& filename_out, */ Interfaces::IMSDataConsumer<MapType> * consumer/* , const MapType& map */)
+    void transform(const String& filename_in, Interfaces::IMSDataConsumer<MapType> * consumer, bool skip_full_count = false, bool skip_first_pass = false)
     {
-      //    typedef MSExperiment<> MapType;
-      
       // First pass through the file -> get the meta-data and hand it to the consumer
-      {
-        Size scount = 0, ccount = 0;
-        MapType experimental_settings;
-        bool size_only_before_ = options_.getSizeOnly();
-        options_.setSizeOnly(true);
-        Internal::MzMLHandler<MapType> handler(experimental_settings, filename_in, getVersion(), *this);
-        handler.setOptions(options_);
-        parse_(filename_in, &handler);
-        handler.getCounts(scount, ccount);
-        options_.setSizeOnly(size_only_before_);
-        consumer->setExpectedSize(scount, ccount);
-        consumer->setExperimentalSettings(experimental_settings);
-      }
-      
+      if (!skip_first_pass) transformFirstPass_(filename_in, consumer, skip_full_count);
+
       // Second pass through the data, now read the spectra!
       {
         MapType dummy;
         Internal::MzMLHandler<MapType> handler(dummy, filename_in, getVersion(), *this);
         handler.setOptions(options_);
         handler.setMSDataConsumer(consumer);
-        // TODO catch errors as above ?
-        parse_(filename_in, &handler);
+        safeParse_(filename_in, &handler);
       }
     }
 
     /**
       @brief Transforms a map while loading using the supplied MSDataConsumer
 
-      The result will be stored in the supplied map.
+      The result will be stored in the provided map.
+
+      This function should be used if a specific pre-processing should be
+      applied to the data before storing them in a map (e.g. if data-reduction
+      should be applied to the data before loading all data into memory).
+
+      @param filename_in Filename of input mzML file to transform
+      @param consumer Consumer class to operate on the input filename (implementing a transformation)
+      @param map Map to store the resulting spectra and chromatograms
+      @param skip_full_count Whether to skip computing the correct number of spectra and chromatograms in the input file
     */
     template <typename MapType>
-    void transform(const String& filename_in, /* const String& filename_out, */ Interfaces::IMSDataConsumer<MapType> * consumer, MapType& map)
+    void transform(const String& filename_in, Interfaces::IMSDataConsumer<MapType> * consumer, MapType& map, bool skip_full_count = false, bool skip_first_pass = false)
     {
       // First pass through the file -> get the meta-data and hand it to the consumer
-      {
-        Size scount = 0, ccount = 0;
-        MapType experimental_settings;
-        bool size_only_before_ = options_.getSizeOnly();
-        options_.setSizeOnly(true);
-        Internal::MzMLHandler<MapType> handler(experimental_settings, filename_in, getVersion(), *this);
-        handler.setOptions(options_);
-        parse_(filename_in, &handler);
-        handler.getCounts(scount, ccount);
-        options_.setSizeOnly(size_only_before_);
-        consumer->setExpectedSize(scount, ccount);
-        consumer->setExperimentalSettings(experimental_settings);
-      }
+      if (!skip_first_pass) transformFirstPass_(filename_in, consumer, skip_full_count);
 
       // Second pass through the data, now read the spectra!
       {
+        PeakFileOptions tmp_options(options_);
         Internal::MzMLHandler<MapType> handler(map, filename_in, getVersion(), *this);
-        bool always_append_data = options_.getAlwaysAppendData();
-        options_.setAlwaysAppendData(true);
-        handler.setOptions(options_);
+        tmp_options.setAlwaysAppendData(true);
+        handler.setOptions(tmp_options);
         handler.setMSDataConsumer(consumer);
 
-        // TODO catch errors as above ?
-        parse_(filename_in, &handler);
-        options_.setAlwaysAppendData(always_append_data);
+        safeParse_(filename_in, &handler);
       }
     }
 
@@ -226,6 +196,35 @@ public:
       @exception Exception::FileNotFound is thrown if the file could not be opened
     */
     bool isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings);
+
+protected:
+
+
+    /// Perform first pass through the file and retrieve the meta-data to initialize the consumer
+    template <typename MapType>
+    void transformFirstPass_(const String& filename_in, Interfaces::IMSDataConsumer<MapType> * consumer, bool skip_full_count)
+    {
+      // Create temporary objects and counters
+      PeakFileOptions tmp_options(options_);
+      Size scount = 0, ccount = 0;
+      MapType experimental_settings;
+      Internal::MzMLHandler<MapType> handler(experimental_settings, filename_in, getVersion(), *this);
+
+      // set temporary options for handler
+      tmp_options.setSizeOnly(true);
+      tmp_options.setMetadataOnly( skip_full_count );
+      handler.setOptions(tmp_options);
+
+      safeParse_(filename_in, &handler);
+
+      // After parsing, collect information
+      handler.getCounts(scount, ccount);
+      consumer->setExpectedSize(scount, ccount);
+      consumer->setExperimentalSettings(experimental_settings);
+    }
+
+    /// Safe parse that catches exceptions and handles them accordingly
+    void safeParse_(const String & filename, Internal::XMLHandler * handler);
 
 private:
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,8 @@
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 namespace OpenMS
 {
@@ -138,7 +140,7 @@ namespace OpenMS
 #endif
     consensus_map.clear(false);
     // set <mapList> header
-    Int index = 0;
+    Int index_cnt = 0;
     for (ChannelMapType::const_iterator cm_it = channel_map_.begin(); cm_it != channel_map_.end(); ++cm_it)
     {
       // structure of Map cm_it
@@ -159,7 +161,7 @@ namespace OpenMS
       channel_as_map.setMetaValue("channel_description", cm_it->second.description);
       channel_as_map.setMetaValue("channel_center", cm_it->second.center);
       channel_as_map.setMetaValue("channel_active", String(cm_it->second.active ? "true" : "false"));
-      consensus_map.getFileDescriptions()[index++] = channel_as_map;
+      consensus_map.getFileDescriptions()[index_cnt++] = channel_as_map;
     }
 
     // create consensusElements

@@ -14,17 +14,17 @@
 		<sourceFileList count="3">
 			<sourceFile id="sf_sp_0" name="FileMerger_1_input1.dta2d" location="<TEST_DATA_PATH>">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="47361b9c3807929755a552eb5633eb789c29e93a" />
-				<cvParam cvRef="MS" accession="MS:1000613" name="DTA file" />
+				<cvParam cvRef="MS" accession="MS:1000613" name="DTA format" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
 			</sourceFile>
 			<sourceFile id="sf_sp_1" name="FileMerger_1_input2.dta" location="<TEST_DATA_PATH>">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="bbee73d177ce92065984b078309de6dcd0db4a2c" />
-				<cvParam cvRef="MS" accession="MS:1000613" name="DTA file" />
+				<cvParam cvRef="MS" accession="MS:1000613" name="DTA format" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
 			</sourceFile>
 			<sourceFile id="sf_sp_2" name="FileMerger_1_input3.dta2d" location="<TEST_DATA_PATH>">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="0502bbc772a9a4029fff26594ecf85c4e2c16b3c" />
-				<cvParam cvRef="MS" accession="MS:1000613" name="DTA file" />
+				<cvParam cvRef="MS" accession="MS:1000613" name="DTA format" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
 			</sourceFile>
 		</sourceFileList>
@@ -82,7 +82,7 @@
 						<binary>AAAAAADghUAAAAAAACCMQAAAAAAAMJFA</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="16">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>AAAwQQAAQEEAAFBB</binary>
@@ -91,7 +91,7 @@
 			</spectrum>
 			<spectrum id="spectrum=1" index="1" defaultArrayLength="3" sourceFileRef="sf_sp_1">
 				<cvParam cvRef="MS" accession="MS:1000525" name="spectrum representation" />
-				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
@@ -126,7 +126,7 @@
 						<binary>AAAAAADAgkAAAAAAAACJQAAAAAAAQI9A</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="16">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>AACoQQAAsEEAALhB</binary>
@@ -151,7 +151,7 @@
 						<binary>AAAAAADAgkAAAAAAAACJQAAAAAAAQI9A</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="16">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>AAD4QQAAAEIAAARC</binary>

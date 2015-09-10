@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,11 +33,13 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/test_config.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
+
 
 ///////////////////////////
 #include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
@@ -70,9 +72,7 @@ END_SECTION
 MSExperiment<Peak1D> input;
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("FeatureFindingMetabo_input1.mzML"), input);
 
-FeatureMap<> exp_fm, test_fm;
-FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("FeatureFindingMetabo_output1.featureXML"), exp_fm);
-// exp_fm.sortByMZ();
+FeatureMap test_fm;
 
 std::vector<MassTrace> output_mt, splitted_mt, filtered_mt;
 
@@ -81,26 +81,33 @@ test_mtd.run(input, output_mt);
 
 ElutionPeakDetection test_epd;
 test_epd.detectPeaks(output_mt, splitted_mt);
-// test_epd.filterByPeakWidth(splitted_mt, filtered_mt);
 
-START_SECTION((void run(std::vector< MassTrace > &, FeatureMap<> &)))
+FuzzyStringComparator fsc;
+fsc.setAcceptableRelative(1.001);
+fsc.setAcceptableAbsolute(1);
+StringList sl;
+sl.push_back("xml-stylesheet");
+sl.push_back("<featureMap");
+fsc.setWhitelist(sl);
+
+//std::cout << "\n\n" << fsc.compareStrings("529090", "529091") << "\n\n\n";
+
+
+START_SECTION((void run(std::vector< MassTrace > &, FeatureMap &)))
 {
     FeatureFindingMetabo test_ffm;
     test_ffm.run(splitted_mt, test_fm);
     test_fm.sortByMZ();
 
-    TEST_EQUAL(exp_fm.size(), test_fm.size());
+    test_fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
-    if (exp_fm.size() == test_fm.size())
-    {
-        for (Size i = 0; i < exp_fm.size(); ++i)
-        {
-            TEST_EQUAL(exp_fm[i].getMetaValue(3), test_fm[i].getMetaValue(3));
-            TEST_REAL_SIMILAR(exp_fm[i].getRT(), test_fm[i].getRT());
-            TEST_REAL_SIMILAR(exp_fm[i].getMZ(), test_fm[i].getMZ());
-            TEST_REAL_SIMILAR(exp_fm[i].getIntensity(), test_fm[i].getIntensity());
-        }
-    }
+    // test annotation of input
+    String tmp_file;
+    NEW_TMP_FILE(tmp_file);
+    FeatureXMLFile ff;
+    ff.store(tmp_file, test_fm);
+    TEST_EQUAL(fsc.compareFiles(tmp_file, OPENMS_GET_TEST_DATA_PATH("FeatureFindingMetabo_output1.featureXML")), true);
+
 }
 END_SECTION
 

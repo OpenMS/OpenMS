@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -60,7 +60,7 @@ START_SECTION((virtual ~GaussFilterAlgorithm()))
     delete dgauss_ptr;
 END_SECTION
 
-START_SECTION((void initialize(DoubleReal gaussian_width, DoubleReal spacing, DoubleReal ppm_tolerance, bool use_ppm_tolerance)))
+START_SECTION((void initialize(double gaussian_width, double spacing, double ppm_tolerance, bool use_ppm_tolerance)))
   // We cannot really test that the variables are correctly set since we dont
   // have access to them.
   dgauss_ptr = new GaussFilterAlgorithm;

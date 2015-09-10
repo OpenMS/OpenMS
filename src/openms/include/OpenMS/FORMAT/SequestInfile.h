@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -108,24 +108,24 @@ public:
 
 
     /// returns the peak mass tolerance
-    Real getPeakMassTolerance() const;
+    float getPeakMassTolerance() const;
     /// sets the peak mass tolerance
-    void setPeakMassTolerance(Real peak_mass_tolerance);
+    void setPeakMassTolerance(float peak_mass_tolerance);
 
     /// returns the precursor mass tolerance
-    Real getPrecursorMassTolerance() const;
+    float getPrecursorMassTolerance() const;
     /// sets the precursor mass tolerance
-    void setPrecursorMassTolerance(Real precursor_mass_tolerance);
+    void setPrecursorMassTolerance(float precursor_mass_tolerance);
 
     /// returns the match peak tolerance
-    Real getMatchPeakTolerance() const;
+    float getMatchPeakTolerance() const;
     /// sets the match peak tolerance
-    void setMatchPeakTolerance(Real match_peak_tolerance);
+    void setMatchPeakTolerance(float match_peak_tolerance);
 
     /// returns the the cutoff of the ratio matching theoretical peaks/theoretical peaks
-    Real getIonCutoffPercentage() const;
+    float getIonCutoffPercentage() const;
     /// sets the ion cutoff of the ratio matching theoretical peaks/theoretical peaks
-    void setIonCutoffPercentage(Real ion_cutoff_percentage);
+    void setIonCutoffPercentage(float ion_cutoff_percentage);
 
     /// returns the peptide mass unit
     Size getPeptideMassUnit() const;
@@ -257,10 +257,10 @@ protected:
     String sequence_header_filter_;        ///< space-delimited list of sequences that have to occur or be absent (preceded by a tilde) in a protein header; to be considered
     String protein_mass_filter_;
 
-    Real precursor_mass_tolerance_;        ///< tolerance for matching a theoretical to an experimental peptide
-    Real peak_mass_tolerance_;        ///< tolerance for matching a theoretical to an experimental peak
-    Real match_peak_tolerance_;        ///< minimum distance between two experimental peaks
-    Real ion_cutoff_percentage_;        ///< cutoff of the ratio matching theoretical peaks/theoretical peaks
+    float precursor_mass_tolerance_;        ///< tolerance for matching a theoretical to an experimental peptide
+    float peak_mass_tolerance_;        ///< tolerance for matching a theoretical to an experimental peak
+    float match_peak_tolerance_;        ///< minimum distance between two experimental peaks
+    float ion_cutoff_percentage_;        ///< cutoff of the ratio matching theoretical peaks/theoretical peaks
 
     Size peptide_mass_unit_;        ///< peptide mass unit (0 = amu; 1 = mmu; 2 = ppm)
     Size output_lines_;        ///< number of peptides to be displayed

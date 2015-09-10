@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -104,29 +104,29 @@ public:
 
     /**
     @brief setter for spectrum
-    @param s ms spectrum given as vector of DoubleReals
+    @param s ms spectrum given as vector of doubles
     @throw Exception::InvalidValue if spectrum is not sorted ascendingly
     */
-    virtual void setSpectrum(const std::vector<DoubleReal> & s) = 0;
+    virtual void setSpectrum(const std::vector<double> & s) = 0;
 
     /**
     @brief getter for spectrum
     @return the used spectrum
     */
-    virtual const std::vector<DoubleReal> & getSpectrum() = 0;
+    virtual const std::vector<double> & getSpectrum() = 0;
 
     /**
     @brief setter for tolerance
     @param t tolerance value
     @throw Exception::InvalidValue if tolerance is negative
     */
-    virtual void setTolerance(DoubleReal t) = 0;
+    virtual void setTolerance(double t) = 0;
 
     /**
     @brief getter for tolerance
     @return tolerance
     */
-    virtual DoubleReal getTolerance() = 0;
+    virtual double getTolerance() = 0;
 
     /**
     @brief initializing iterator

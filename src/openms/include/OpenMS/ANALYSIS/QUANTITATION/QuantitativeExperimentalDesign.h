@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -87,7 +87,7 @@ private:
     ///Not implemented
     QuantitativeExperimentalDesign & operator=(const QuantitativeExperimentalDesign &);
 
-    void mergeFeatureMaps_(FeatureMap<> & map, const String & experiment, StringList & file_paths);
+    void mergeFeatureMaps_(FeatureMap & map, const String & experiment, StringList & file_paths);
 
     void mergeConsensusMaps_(ConsensusMap & map, const String & experiment, StringList & file_paths);
 

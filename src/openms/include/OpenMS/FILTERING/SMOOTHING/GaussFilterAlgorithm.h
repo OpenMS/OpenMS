@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -149,7 +149,7 @@ public:
           initialize((*mz_it) * ppm_tolerance_ * 10e-6, spacing_, ppm_tolerance_, use_ppm_tolerance_ );
         }
 
-        DoubleReal new_int = integrate_(mz_it, int_it, mz_in_start, mz_in_end);
+        double new_int = integrate_(mz_it, int_it, mz_in_start, mz_in_end);
         
         // store new intensity and m/z into output iterator
         *mz_out = *mz_it;
@@ -162,32 +162,32 @@ public:
       return found_signal;
     }
 
-    void initialize(DoubleReal gaussian_width, DoubleReal spacing, DoubleReal ppm_tolerance, bool use_ppm_tolerance);
+    void initialize(double gaussian_width, double spacing, double ppm_tolerance, bool use_ppm_tolerance);
 
 protected:
 
     ///Coefficients
-    std::vector<DoubleReal> coeffs_;
+    std::vector<double> coeffs_;
     /// The standard derivation  \f$ \sigma \f$.
-    DoubleReal sigma_;
+    double sigma_;
     /// The spacing of the pre-tabulated kernel coefficients
-    DoubleReal spacing_;
+    double spacing_;
 
     // tolerance in ppm
     bool use_ppm_tolerance_;
-    DoubleReal ppm_tolerance_;
+    double ppm_tolerance_;
 
     /// Computes the convolution of the raw data at position x and the gaussian kernel
     template <typename InputPeakIterator>
-    DoubleReal integrate_(InputPeakIterator x /* mz */, InputPeakIterator y /* int */, InputPeakIterator first, InputPeakIterator last)
+    double integrate_(InputPeakIterator x /* mz */, InputPeakIterator y /* int */, InputPeakIterator first, InputPeakIterator last)
     {
-      DoubleReal v = 0.;
+      double v = 0.;
       // norm the gaussian kernel area to one
-      DoubleReal norm = 0.;
+      double norm = 0.;
       Size middle = coeffs_.size();
 
-      DoubleReal start_pos = (( (*x) - (middle * spacing_)) > (*first)) ? ((*x) - (middle * spacing_)) : (*first);
-      DoubleReal end_pos = (( (*x) + (middle * spacing_)) < (*(last - 1))) ? ((*x) + (middle * spacing_)) : (*(last - 1));
+      double start_pos = (( (*x) - (middle * spacing_)) > (*first)) ? ((*x) - (middle * spacing_)) : (*first);
+      double end_pos = (( (*x) + (middle * spacing_)) < (*(last - 1))) ? ((*x) + (middle * spacing_)) : (*(last - 1));
 
       InputPeakIterator help_x = x;
       InputPeakIterator help_y = y;
@@ -200,7 +200,7 @@ protected:
       while ((help_x != first) && (*(help_x - 1) > start_pos))
       {
         // search for the corresponding datapoint of help in the gaussian (take the left most adjacent point)
-        DoubleReal distance_in_gaussian = fabs(*x - *help_x);
+        double distance_in_gaussian = fabs(*x - *help_x);
         Size left_position = (Size)floor(distance_in_gaussian / spacing_);
 
         // search for the true left adjacent data point (because of rounding errors)
@@ -221,9 +221,9 @@ protected:
 
         // interpolate between the left and right data points in the gaussian to get the true value at position distance_in_gaussian
         Size right_position = left_position + 1;
-        DoubleReal d = fabs((left_position * spacing_) - distance_in_gaussian) / spacing_;
+        double d = fabs((left_position * spacing_) - distance_in_gaussian) / spacing_;
         // check if the right data point in the gaussian exists
-        DoubleReal coeffs_right = (right_position < middle) ? (1 - d) * coeffs_[left_position] + d * coeffs_[right_position]
+        double coeffs_right = (right_position < middle) ? (1 - d) * coeffs_[left_position] + d * coeffs_[right_position]
                                   : coeffs_[left_position];
 #ifdef DEBUG_FILTERING
 
@@ -259,7 +259,7 @@ protected:
         // start the interpolation for the true value in the gaussian
         right_position = left_position + 1;
         d = fabs((left_position * spacing_) - distance_in_gaussian) / spacing_;
-        DoubleReal coeffs_left = (right_position < middle) ? (1 - d) * coeffs_[left_position] + d * coeffs_[right_position]
+        double coeffs_left = (right_position < middle) ? (1 - d) * coeffs_[left_position] + d * coeffs_[right_position]
                                  : coeffs_[left_position];
 #ifdef DEBUG_FILTERING
 
@@ -294,7 +294,7 @@ protected:
       while ((help_x != (last - 1)) && (*(help_x + 1) < end_pos))
       {
         // search for the corresponding datapoint for help in the gaussian (take the left most adjacent point)
-        DoubleReal distance_in_gaussian = fabs((*x) - (*help_x));
+        double distance_in_gaussian = fabs((*x) - (*help_x));
         int left_position = (UInt)floor(distance_in_gaussian / spacing_);
 
         // search for the true left adjacent data point (because of rounding errors)
@@ -314,8 +314,8 @@ protected:
         }
         // start the interpolation for the true value in the gaussian
         Size right_position = left_position + 1;
-        DoubleReal d = fabs((left_position * spacing_) - distance_in_gaussian) / spacing_;
-        DoubleReal coeffs_left = (right_position < middle) ? (1 - d) * coeffs_[left_position] + d * coeffs_[right_position]
+        double d = fabs((left_position * spacing_) - distance_in_gaussian) / spacing_;
+        double coeffs_left = (right_position < middle) ? (1 - d) * coeffs_[left_position] + d * coeffs_[right_position]
                                  : coeffs_[left_position];
 
 #ifdef DEBUG_FILTERING
@@ -350,7 +350,7 @@ protected:
         // start the interpolation for the true value in the gaussian
         right_position = left_position + 1;
         d = fabs((left_position * spacing_) - distance_in_gaussian) / spacing_;
-        DoubleReal coeffs_right = (right_position < middle) ? (1 - d) * coeffs_[left_position] + d * coeffs_[right_position]
+        double coeffs_right = (right_position < middle) ? (1 - d) * coeffs_[left_position] + d * coeffs_[right_position]
                                   : coeffs_[left_position];
 #ifdef DEBUG_FILTERING
 

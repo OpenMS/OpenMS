@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,7 +56,7 @@ namespace OpenMS
   {
   }
 
-  PepNovoInfile::PepNovoInfile(const PepNovoInfile & pepnovo_infile)
+  PepNovoInfile::PepNovoInfile(const PepNovoInfile& pepnovo_infile)
   {
     mods_ = pepnovo_infile.mods_;
     mods_and_keys_ = pepnovo_infile.mods_and_keys_;
@@ -67,7 +67,7 @@ namespace OpenMS
   {
   }
 
-  PepNovoInfile & PepNovoInfile::operator=(const PepNovoInfile & pepnovo_infile)
+  PepNovoInfile& PepNovoInfile::operator=(const PepNovoInfile& pepnovo_infile)
   {
     if (this != &pepnovo_infile)
     {
@@ -78,7 +78,7 @@ namespace OpenMS
     return *this;
   }
 
-  bool PepNovoInfile::operator==(const PepNovoInfile & pepnovo_infile) const
+  bool PepNovoInfile::operator==(const PepNovoInfile& pepnovo_infile) const
   {
     if (this != &pepnovo_infile)
     {
@@ -88,13 +88,13 @@ namespace OpenMS
     return true;
   }
 
-  String PepNovoInfile::handlePTMs_(const String & modification, const bool variable)
+  String PepNovoInfile::handlePTMs_(const String& modification, const bool variable)
   {
     String locations, key, type;
 
     ResidueModification::Term_Specificity ts = ModificationsDB::getInstance()->getModification(modification).getTermSpecificity();
     String origin = ModificationsDB::getInstance()->getModification(modification).getOrigin();
-    DoubleReal mass = ModificationsDB::getInstance()->getModification(modification).getDiffMonoMass();
+    double mass = ModificationsDB::getInstance()->getModification(modification).getDiffMonoMass();
     String full_name = ModificationsDB::getInstance()->getModification(modification).getFullName();
     String full_id = ModificationsDB::getInstance()->getModification(modification).getFullId();
 
@@ -172,35 +172,34 @@ namespace OpenMS
     return line;
   }
 
-  void PepNovoInfile::store(const String & filename)
+  void PepNovoInfile::store(const String& filename)
   {
     ptm_file_.store(filename);
   }
 
-  void PepNovoInfile::setModifications(const StringList & fixed_mods, const StringList & variable_mods)
+  void PepNovoInfile::setModifications(const StringList& fixed_mods, const StringList& variable_mods)
   {
     mods_.setModifications(fixed_mods, variable_mods);
     mods_and_keys_.clear();
 
     //TextFile ptm_file_;
-    ptm_file_.reserve(mods_.getNumberOfModifications() + 1);
-    ptm_file_.push_back("#AA\toffset\ttype\tlocations\tsymbol\tPTM\tname");
+    ptm_file_.addLine("#AA\toffset\ttype\tlocations\tsymbol\tPTM\tname");
 
     // fixed modifications
     std::set<String> fixed_modifications = mods_.getFixedModificationNames();
     for (std::set<String>::const_iterator it = fixed_modifications.begin(); it != fixed_modifications.end(); ++it)
     {
-      ptm_file_.push_back(handlePTMs_(*it, false));
+      ptm_file_.addLine(handlePTMs_(*it, false));
     }
     // variable modifications
     std::set<String> variable_modifications = mods_.getVariableModificationNames();
     for (std::set<String>::const_iterator it = variable_modifications.begin(); it != variable_modifications.end(); ++it)
     {
-      ptm_file_.push_back(handlePTMs_(*it, true));
+      ptm_file_.addLine(handlePTMs_(*it, true));
     }
   }
 
-  void PepNovoInfile::getModifications(std::map<String, String> & modification_key_map) const
+  void PepNovoInfile::getModifications(std::map<String, String>& modification_key_map) const
   {
     modification_key_map = mods_and_keys_;
   }

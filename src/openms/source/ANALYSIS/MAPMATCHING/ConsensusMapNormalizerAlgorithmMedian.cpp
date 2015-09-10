@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,10 +33,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMedian.h>
-#include <gsl/gsl_statistics.h>
-#include <gsl/gsl_sort_double.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <algorithm>
 
 using namespace std;
 
@@ -51,18 +50,23 @@ namespace OpenMS
 
   }
 
-  vector<double> ConsensusMapNormalizerAlgorithmMedian::computeNormalizationFactors(const ConsensusMap & map)
+  vector<double> ConsensusMapNormalizerAlgorithmMedian::computeNormalizationFactors(const ConsensusMap& map)
   {
     Size number_of_maps = map.getFileDescriptions().size();
     vector<vector<double> > feature_int(number_of_maps);
     //get map with most features, reserve space for feature_int (unequal vector lengths, 0-features omitted)
-    UInt map_with_most_features = 0;
+    ConsensusMap::FileDescriptions::const_iterator map_with_most_features = map.getFileDescriptions().find(0);
+    UInt map_with_most_features_idx = 0;
     for (UInt i = 0; i < number_of_maps; i++)
     {
-      feature_int[i].reserve(map.getFileDescriptions()[i].size);
-      if (map.getFileDescriptions()[i].size > map.getFileDescriptions()[map_with_most_features].size)
+      ConsensusMap::FileDescriptions::const_iterator it = map.getFileDescriptions().find(i);
+      if (it == map.getFileDescriptions().end()) throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, String(i));
+      feature_int[i].reserve(it->second.size);
+
+      if (it->second.size > map_with_most_features->second.size)
       {
-        map_with_most_features = i;
+        map_with_most_features = it;
+        map_with_most_features_idx = i;
       }
     }
     //fill feature_int with intensities
@@ -79,21 +83,20 @@ namespace OpenMS
     vector<double> medians(number_of_maps);
     for (UInt j = 0; j < number_of_maps; j++)
     {
-      vector<double> & ints_j = feature_int[j];
-      gsl_sort(&ints_j.front(), 1, ints_j.size());
-      medians[j] = gsl_stats_median_from_sorted_data(&ints_j.front(), 1, ints_j.size());
+      vector<double>& ints_j = feature_int[j];
+      medians[j] = Math::median(ints_j.begin(), ints_j.end());
     }
     //compute normalization factors
     vector<double> normalization_factors(number_of_maps);
     for (UInt j = 0; j < number_of_maps; ++j)
     {
-      normalization_factors[j] = medians[map_with_most_features] / medians[j];
+      normalization_factors[j] = medians[map_with_most_features_idx] / medians[j];
     }
 
     return normalization_factors;
   }
 
-  void ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(ConsensusMap & map)
+  void ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(ConsensusMap& map)
   {
     ConsensusMap::Iterator cf_it;
     ProgressLogger progresslogger;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -87,14 +87,14 @@ public:
     /** @name Accessors
      */
     //@{
-    void scoreSpectra(Map<DoubleReal, IonScore> & CID_ion_scores, PeakSpectrum & CID_spec, PeakSpectrum & ETD_spec, DoubleReal precursor_weight, Size charge);
+    void scoreSpectra(Map<double, IonScore> & CID_ion_scores, PeakSpectrum & CID_spec, PeakSpectrum & ETD_spec, double precursor_weight, Size charge);
     //@}
 
 protected:
 
-    void scoreETDFeatures_(Size charge, DoubleReal precursor_weight, Map<DoubleReal, IonScore> & CID_nodes, const PeakSpectrum & CID_orig_spec, const PeakSpectrum & ETD_orig_spec);
+    void scoreETDFeatures_(Size charge, double precursor_weight, Map<double, IonScore> & CID_nodes, const PeakSpectrum & CID_orig_spec, const PeakSpectrum & ETD_orig_spec);
 
-    void scoreWitnessSet_(Size charge, DoubleReal precursor_weight, Map<DoubleReal, IonScore> & CID_nodes, const PeakSpectrum & CID_orig_spec);
+    void scoreWitnessSet_(Size charge, double precursor_weight, Map<double, IonScore> & CID_nodes, const PeakSpectrum & CID_orig_spec);
 
   };
 

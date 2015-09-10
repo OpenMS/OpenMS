@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -995,7 +995,7 @@ namespace OpenMS
     connectVisualizer_(visualizer);
   }
 
-  void MetaDataBrowser::filterHits_(DoubleReal threshold, bool higher_better, int tree_item_id)
+  void MetaDataBrowser::filterHits_(double threshold, bool higher_better, int tree_item_id)
   {
     // find item in tree belonging to PeptideIdentification object
     QTreeWidgetItem * item = treeview_->findItems(QString::number(tree_item_id), Qt::MatchExactly | Qt::MatchRecursive, 1).first();

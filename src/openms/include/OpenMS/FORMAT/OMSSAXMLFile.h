@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -72,10 +72,11 @@ public:
     /**
       @brief loads data from a OMSSAXML file
 
-      @param filename the file to be loaded
-      @param protein_identification protein identifications belonging to the whole experiment
-      @param id_data the identifications with m/z and RT
-          @param load_proteins if this flag is set to false, the protein identifications are not loaded
+      @param filename The file to be loaded
+      @param protein_identification Protein identifications belonging to the whole experiment
+      @param id_data The identifications with m/z and RT
+      @param load_proteins If this flag is set to false, the protein identifications are not loaded
+      @param load_empty_hits Many spectra will not return a hit. Report empty peptide identifications?
 
       This class serves to read in a OMSSAXML file. The information can be
       retrieved via the load function.
@@ -85,36 +86,44 @@ public:
 
       @ingroup FileIO
     */
-    void load(const String & filename, ProteinIdentification & protein_identification, std::vector<PeptideIdentification> & id_data, bool load_proteins = true);
+    void load(const String& filename,
+              ProteinIdentification& protein_identification,
+              std::vector<PeptideIdentification>& id_data,
+              bool load_proteins = true,
+              bool load_empty_hits = true);
 
     /// sets the valid modifications
-    void setModificationDefinitionsSet(const ModificationDefinitionsSet & rhs);
+    void setModificationDefinitionsSet(const ModificationDefinitionsSet& rhs);
 
 protected:
     // Docu in base class
-    void endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname);
+    void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
 
     // Docu in base class
-    void startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes);
+    void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
 
     // Docu in base class
-    void characters(const XMLCh * const chars, const XMLSize_t /*length*/);
+    void characters(const XMLCh* const chars, const XMLSize_t /*length*/);
 
 private:
 
-    OMSSAXMLFile(const OMSSAXMLFile & rhs);
+    OMSSAXMLFile(const OMSSAXMLFile& rhs);
 
-    OMSSAXMLFile & operator=(const OMSSAXMLFile & rhs);
+    OMSSAXMLFile& operator=(const OMSSAXMLFile& rhs);
 
     /// reads the mapping file needed for modifications
     void readMappingFile_();
 
     /// the identifications (storing the peptide hits)
-    std::vector<PeptideIdentification> * peptide_identifications_;
+    std::vector<PeptideIdentification>* peptide_identifications_;
 
     ProteinHit actual_protein_hit_;
 
     PeptideHit actual_peptide_hit_;
+
+    PeptideEvidence actual_peptide_evidence_;
+
+    std::vector<PeptideEvidence> actual_peptide_evidences_;
 
     PeptideIdentification actual_peptide_id_;
 
@@ -133,6 +142,9 @@ private:
 
     /// should protein hits be read from the file?
     bool load_proteins_;
+
+    /// should empty peptide identifications be loaded or skipped?
+    bool load_empty_hits_;
 
     /// modifications mapping file from OMSSA mod num to UniMod accession
     Map<UInt, std::vector<ResidueModification> > mods_map_;

@@ -1,34 +1,34 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
-// 
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch$
+// $Maintainer: Stephan Aiche $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -109,9 +109,7 @@ START_SECTION((GammaDistributionFitResult fit(std::vector< DPosition< 2 > > & po
 	pos.setX(0.9501); pos.setY(0); points.push_back(pos);
 	pos.setX(0.9751); pos.setY(0.2); points.push_back(pos);
 
-	GammaDistributionFitter::GammaDistributionFitResult init_param;
-	init_param.b = 1.0;
-	init_param.p = 3.0;	
+	GammaDistributionFitter::GammaDistributionFitResult init_param(1.0, 3.0);
 
   ptr = new GammaDistributionFitter;
 	ptr->setInitialParameters(init_param);
@@ -126,21 +124,14 @@ END_SECTION
 START_SECTION((void setInitialParameters(const GammaDistributionFitResult & result)))
 {
   GammaDistributionFitter f1;
-  GammaDistributionFitter::GammaDistributionFitResult result;
+  GammaDistributionFitter::GammaDistributionFitResult result (1.0, 5.0);
   f1.setInitialParameters(result);
-	
+
 	NOT_TESTABLE //implicitly tested in fit method
 }
-END_SECTION
-
-START_SECTION((const String& getGnuplotFormula() const ))
-	TEST_EQUAL(ptr->getGnuplotFormula().hasPrefix("f(x)="), true)
 END_SECTION
 
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
-
-

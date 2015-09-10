@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -88,8 +88,8 @@ namespace OpenMS
     std::vector<String> valid_strings;
     Int min_int;
     Int max_int;
-    DoubleReal min_float;
-    DoubleReal max_float;
+    double min_float;
+    double max_float;
     //@}
 
     /// Constructor that takes all members in declaration order

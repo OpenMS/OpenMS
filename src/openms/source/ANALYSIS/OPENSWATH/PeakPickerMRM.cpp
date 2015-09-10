@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,7 +44,7 @@ namespace OpenMS
   PeakPickerMRM::PeakPickerMRM() :
     DefaultParamHandler("PeakPickerMRM")
   {
-    // NEW default settings: recommeded:
+    // NEW default settings: recommended:
     //
     // sgolay_frame_length = 9  (29.7s on our data)
     // gauss_width = 30  (if even gauss is used)
@@ -59,6 +59,7 @@ namespace OpenMS
     defaults_.setValue("sgolay_polynomial_order", 3, "Order of the polynomial that is fitted.");
     defaults_.setValue("gauss_width", 50.0, "Gaussian width in seconds, estimated peak size.");
     defaults_.setValue("use_gauss", "true", "Use Gaussian filter for smoothing (alternative is Savitzky-Golay filter)");
+    defaults_.setValidStrings("use_gauss", ListUtils::create<String>("false,true"));
 
     defaults_.setValue("peak_width", 40.0, "Force a certain minimal peak_width on the data (e.g. extend the peak at least by this amount on both sides) in seconds. -1 turns this feature off.");
     defaults_.setValue("signal_to_noise", 1.0, "Signal-to-noise threshold at which a peak will not be extended any more. Note that setting this too high (e.g. 1.0) can lead to peaks whose flanks are not fully captured.");
@@ -66,6 +67,8 @@ namespace OpenMS
 
     defaults_.setValue("sn_win_len", 1000.0, "Signal to noise window length.");
     defaults_.setValue("sn_bin_count", 30, "Signal to noise bin count.");
+    defaults_.setValue("write_sn_log_messages", "true", "Write out log messages of the signal-to-noise estimator in case of sparse windows or median in rightmost histogram bin");
+    defaults_.setValidStrings("write_sn_log_messages", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("remove_overlapping_peaks", "false", "Try to remove overlapping peaks during peak picking");
     defaults_.setValidStrings("remove_overlapping_peaks", ListUtils::create<String>("false,true"));
@@ -91,14 +94,14 @@ namespace OpenMS
     if (chromatogram.empty())
     {
         LOG_DEBUG << std::endl; 
-        LOG_DEBUG << " - Error:  chromatogram is empty, abort picking."  << std::endl;
+        LOG_DEBUG << " - Error: chromatogram is empty, abort picking."  << std::endl;
         return;
     }
     LOG_DEBUG << "(start at RT " << chromatogram[0].getMZ() << " to RT " << chromatogram[ chromatogram.size() -1].getMZ() << ") "
         "using method \'" << method_ << "\'" << std::endl;
 
     picked_chrom.clear(true);
-    // Crowdad has its own methods, so we can call the wrapper directly
+    // Crawdad has its own methods, so we can call the wrapper directly
     if (method_ == "crawdad")
     {
       pickChromatogramCrawdad_(chromatogram, picked_chrom);
@@ -129,6 +132,9 @@ namespace OpenMS
     PeakPickerHiRes pp;
     Param pepi_param = PeakPickerHiRes().getDefaults();
     pepi_param.setValue("signal_to_noise", signal_to_noise_);
+    // disable spacing constraints, since we're dealing with chromatograms
+    pepi_param.setValue("spacing_difference", 0.0);
+    pepi_param.setValue("spacing_difference_gap", 0.0);
     pp.setParameters(pepi_param);
     pp.pick(smoothed_chrom, picked_chrom);
 
@@ -161,8 +167,8 @@ namespace OpenMS
     picked_chrom.getFloatDataArrays()[2].setName("rightWidth");
     for (Size i = 0; i < picked_chrom.size(); i++)
     {
-      Real leftborder = chromatogram[left_width_[i]].getMZ();
-      Real rightborder = chromatogram[right_width_[i]].getMZ();
+      float leftborder = chromatogram[left_width_[i]].getMZ();
+      float rightborder = chromatogram[right_width_[i]].getMZ();
       picked_chrom.getFloatDataArrays()[0].push_back(integrated_intensities_[i]);
       picked_chrom.getFloatDataArrays()[1].push_back(leftborder);
       picked_chrom.getFloatDataArrays()[2].push_back(rightborder);
@@ -175,6 +181,7 @@ namespace OpenMS
     Param snt_parameters = snt.getParameters();
     snt_parameters.setValue("win_len", sn_win_len_);
     snt_parameters.setValue("bin_count", sn_bin_count_);
+    snt_parameters.setValue("write_log_messages", param_.getValue("write_sn_log_messages"));
     snt.setParameters(snt_parameters);
 
     integrated_intensities_.clear();
@@ -254,7 +261,7 @@ namespace OpenMS
     picked_chrom.getFloatDataArrays()[0].setName("IntegratedIntensity");
     picked_chrom.getFloatDataArrays()[1].setName("leftWidth");
     picked_chrom.getFloatDataArrays()[2].setName("rightWidth");
-    for (std::vector<crawpeaks::SlimCrawPeak>::iterator it = result.begin(); it != result.end(); it++)
+    for (std::vector<crawpeaks::SlimCrawPeak>::iterator it = result.begin(); it != result.end(); ++it)
     {
       ChromatogramPeak p;
       p.setRT(chromatogram[it->peak_rt_idx].getRT());
@@ -290,7 +297,6 @@ namespace OpenMS
     }
 
   }
-
 #else
   void PeakPickerMRM::pickChromatogramCrawdad_(const RichPeakChromatogram& /* chromatogram */, RichPeakChromatogram& /* picked_chrom */)
   {
@@ -298,7 +304,6 @@ namespace OpenMS
                                      "PeakPickerMRM was not compiled with crawdad, please choose a different algorithm!");
   }
 #endif
-
 
   void PeakPickerMRM::removeOverlappingPeaks_(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom)
   {
@@ -393,7 +398,7 @@ namespace OpenMS
 
       // Also integrate the intensities
       integrated_intensities_[i] = 0;
-      for (Size k = current_left_idx; k <= current_right_idx; k++)
+      for (int k = current_left_idx; k <= current_right_idx; k++)
       {
         integrated_intensities_[i] += chromatogram[k].getIntensity();
       }
@@ -404,14 +409,15 @@ namespace OpenMS
   {
     sgolay_frame_length_ = (UInt)param_.getValue("sgolay_frame_length");
     sgolay_polynomial_order_ = (UInt)param_.getValue("sgolay_polynomial_order");
-    gauss_width_ = (DoubleReal)param_.getValue("gauss_width");
-    peak_width_ = (DoubleReal)param_.getValue("peak_width");
-    signal_to_noise_ = (DoubleReal)param_.getValue("signal_to_noise");
-    sn_win_len_ = (DoubleReal)param_.getValue("sn_win_len");
+    gauss_width_ = (double)param_.getValue("gauss_width");
+    peak_width_ = (double)param_.getValue("peak_width");
+    signal_to_noise_ = (double)param_.getValue("signal_to_noise");
+    sn_win_len_ = (double)param_.getValue("sn_win_len");
     sn_bin_count_ = (UInt)param_.getValue("sn_bin_count");
     // TODO make list, not boolean
     use_gauss_ = (bool)param_.getValue("use_gauss").toBool();
     remove_overlapping_ = (bool)param_.getValue("remove_overlapping_peaks").toBool();
+    write_sn_log_messages_ = (bool)param_.getValue("write_sn_log_messages").toBool();
     method_ = (String)param_.getValue("method");
 
     if (method_ != "crawdad" && method_ != "corrected" && method_ != "legacy")

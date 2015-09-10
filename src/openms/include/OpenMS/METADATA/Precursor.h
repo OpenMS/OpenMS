@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -104,9 +104,9 @@ public:
     void setActivationMethods(const std::set<ActivationMethod> & activation_methods);
 
     /// returns the activation energy (in electronvolt)
-    DoubleReal getActivationEnergy() const;
+    double getActivationEnergy() const;
     /// sets the activation energy (in electronvolt)
-    void setActivationEnergy(DoubleReal activation_energy);
+    void setActivationEnergy(double activation_energy);
 
     /**
      * @brief Returns the lower offset from the target m/z
@@ -117,9 +117,9 @@ public:
      *
      * @return the lower offset from the target m/z
      */
-    DoubleReal getIsolationWindowLowerOffset() const;
+    double getIsolationWindowLowerOffset() const;
     /// sets the lower offset from the target m/z
-    void setIsolationWindowLowerOffset(DoubleReal bound);
+    void setIsolationWindowLowerOffset(double bound);
 
     /**
      * @brief Returns the upper offset from the target m/z
@@ -130,9 +130,9 @@ public:
      *
      * @return the upper offset from the target m/z
      */
-    DoubleReal getIsolationWindowUpperOffset() const;
+    double getIsolationWindowUpperOffset() const;
     /// sets the upper offset from the target m/z
-    void setIsolationWindowUpperOffset(DoubleReal bound);
+    void setIsolationWindowUpperOffset(double bound);
 
     /// Non-mutable access to the charge
     Int getCharge() const;
@@ -147,7 +147,7 @@ public:
     void setPossibleChargeStates(const std::vector<Int> & possible_charge_states);
 
     /// Returns the uncharged mass of the precursor, if charge is unknown, i.e. 0 best guess is its doubly charged
-    inline DoubleReal getUnchargedMass() const
+    inline double getUnchargedMass() const
     {
       int c = charge_;
       (c == 0) ? c = 2 : c = charge_;
@@ -157,9 +157,9 @@ public:
 protected:
 
     std::set<ActivationMethod> activation_methods_;
-    DoubleReal activation_energy_;
-    DoubleReal window_low_;
-    DoubleReal window_up_;
+    double activation_energy_;
+    double window_low_;
+    double window_up_;
     Int charge_;
     std::vector<Int> possible_charge_states_;
   };

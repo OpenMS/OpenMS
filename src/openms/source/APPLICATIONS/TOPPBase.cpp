@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,9 +35,11 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/StopWatch.h>
 
 #include <OpenMS/DATASTRUCTURES/Date.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
@@ -52,7 +54,7 @@
 
 #include <QDir>
 #include <QFile>
-#include <QApplication>
+#include <QCoreApplication>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
@@ -125,7 +127,7 @@ namespace OpenMS
 #if  defined(__APPLE__)
     // we do not want to load plugins as this leads to serious problems
     // when shipping on mac os x
-    QApplication::setLibraryPaths(QStringList());
+    QCoreApplication::setLibraryPaths(QStringList());
 #endif
   }
 
@@ -167,6 +169,7 @@ namespace OpenMS
     registerStringOption_("write_ctd", "<out_dir>", "", "Writes the common tool description file(s) (Toolname(s).ctd) to <out_dir>", false, true);
     registerStringOption_("write_wsdl", "<file>", "", "Writes the default WSDL file", false, true);
     registerFlag_("no_progress", "Disables progress logging to command line", true);
+    registerFlag_("force", "Overwrite tool specific checks.", true);
     if (id_tag_support_)
     {
       registerStringOption_("id_pool", "<file>", "", String("ID pool file to DocumentID's for all generated output files. Disabled by default. (Set to 'main' to use ") + String() + id_tagger_.getPoolFile() + ")", false);
@@ -381,9 +384,7 @@ namespace OpenMS
       test_mode_ = true;
 
       // initialize the random generator as early as possible!
-      DateTime date_time;
-      date_time.set("1999-12-31 23:59:59");
-      UniqueIdGenerator::setSeed(date_time);
+      UniqueIdGenerator::setSeed(19991231235959);
     }
 
     //-------------------------------------------------------------
@@ -456,11 +457,7 @@ namespace OpenMS
     sw.start();
     result = main_(argc, argv);
     sw.stop();
-    LOG_INFO << this->tool_name_ << " took "
-             << StopWatch::toString(sw.getClockTime()) << " (wall), "
-             << StopWatch::toString(sw.getCPUTime()) << " (CPU), "
-             << StopWatch::toString(sw.getSystemTime()) << " (system), "
-             << StopWatch::toString(sw.getUserTime()) << " (user)." << std::endl;
+    LOG_INFO << this->tool_name_ << " took " << sw.toString() << "." << std::endl;
 
 #ifndef DEBUG_TOPP
   }
@@ -600,14 +597,18 @@ namespace OpenMS
       if (!subsection.empty() && current_TOPP_subsection != subsection)
       {
         current_TOPP_subsection = subsection;
-        map<String, String>::const_iterator it = subsections_TOPP_.find(current_TOPP_subsection);
-        if (it == subsections_TOPP_.end())
+        map<String, String>::const_iterator subsec_it = subsections_TOPP_.find(current_TOPP_subsection);
+        if (subsec_it == subsections_TOPP_.end())
+        {
           throw ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, "'" + current_TOPP_subsection + "' (TOPP subsection not registered)");
+        }
         cerr << "\n"; // print newline for new subsection
 
-        String subsection_description = it->second;
+        String subsection_description = subsec_it->second;
         if (subsection_description.length() == 0)
+        {
           subsection_description = current_TOPP_subsection;
+        }
 
         cerr << ConsoleUtils::breakString(subsection_description, 0, 10) << ":\n"; // print subsection description
       }
@@ -618,17 +619,17 @@ namespace OpenMS
       }
 
       //NAME + ARGUMENT
-      String tmp = "  -";
-      tmp += it->name + " " + it->argument;
+      String str_tmp = "  -";
+      str_tmp += it->name + " " + it->argument;
       if (it->required)
-        tmp += '*';
+        str_tmp += '*';
       if (it->type == ParameterInformation::NEWLINE)
-        tmp = "";
+        str_tmp = "";
 
       //OFFSET
-      tmp.fillRight(' ', offset);
+      str_tmp.fillRight(' ', offset);
       if (it->type == ParameterInformation::TEXT)
-        tmp = "";
+        str_tmp = "";
 
       //DESCRIPTION
       String desc_tmp = it->description;
@@ -645,10 +646,10 @@ namespace OpenMS
       case ParameterInformation::INTLIST:
       case ParameterInformation::DOUBLELIST:
       {
-        String tmp = it->default_value.toString().substitute(", ", " ");
-        if (tmp != "" && tmp != "[]")
+        String tmp_s = it->default_value.toString().substitute(", ", " ");
+        if (tmp_s != "" && tmp_s != "[]")
         {
-          addons.push_back(String("default: '") + tmp + "'");
+          addons.push_back(String("default: '") + tmp_s + "'");
         }
       }
       break;
@@ -698,11 +699,11 @@ namespace OpenMS
 
       case ParameterInformation::DOUBLE:
       case ParameterInformation::DOUBLELIST:
-        if (it->min_float != -std::numeric_limits<DoubleReal>::max())
+        if (it->min_float != -std::numeric_limits<double>::max())
         {
           addons.push_back(String("min: '") + it->min_float + "'");
         }
-        if (it->max_float != std::numeric_limits<DoubleReal>::max())
+        if (it->max_float != std::numeric_limits<double>::max())
         {
           addons.push_back(String("max: '") + it->max_float + "'");
         }
@@ -719,9 +720,9 @@ namespace OpenMS
       }
 
       if (it->type == ParameterInformation::TEXT)
-        cerr << ConsoleUtils::breakString(tmp + desc_tmp, 0, 10); // no indentation for text
+        cerr << ConsoleUtils::breakString(str_tmp + desc_tmp, 0, 10); // no indentation for text
       else
-        cerr << ConsoleUtils::breakString(tmp + desc_tmp, offset, 10);
+        cerr << ConsoleUtils::breakString(str_tmp + desc_tmp, offset, 10);
       cerr << "\n";
     }
 
@@ -772,7 +773,7 @@ namespace OpenMS
     {
       throw InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Parameter '" + full_name + "' marked as both input and output file");
     }
-    enum ParameterInformation::ParameterTypes type;
+    enum ParameterInformation::ParameterTypes type = ParameterInformation::NONE;
     switch (entry.value.valueType())
     {
     case DataValue::STRING_VALUE:
@@ -1044,7 +1045,7 @@ namespace OpenMS
     p.max_int = max;
   }
 
-  void TOPPBase::setMinFloat_(const String& name, DoubleReal min)
+  void TOPPBase::setMinFloat_(const String& name, double min)
   {
     ParameterInformation& p = getParameterByName_(name);
 
@@ -1055,7 +1056,7 @@ namespace OpenMS
     }
     DoubleList defaults;
     if (p.type == ParameterInformation::DOUBLE)
-      defaults.push_back(DoubleReal(p.default_value));
+      defaults.push_back(double(p.default_value));
     else
       defaults = p.default_value;
     for (Size j = 0; j < defaults.size(); ++j)
@@ -1068,7 +1069,7 @@ namespace OpenMS
     p.min_float = min;
   }
 
-  void TOPPBase::setMaxFloat_(const String& name, DoubleReal max)
+  void TOPPBase::setMaxFloat_(const String& name, double max)
   {
     ParameterInformation& p = getParameterByName_(name);
 
@@ -1079,7 +1080,7 @@ namespace OpenMS
     }
     DoubleList defaults;
     if (p.type == ParameterInformation::DOUBLE)
-      defaults.push_back(DoubleReal(p.default_value));
+      defaults.push_back(double(p.default_value));
     else
       defaults = p.default_value;
     for (Size j = 0; j < defaults.size(); ++j)
@@ -1110,7 +1111,7 @@ namespace OpenMS
   {
     if (required)
     {
-      throw InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering an Int param (" + name + ") as 'required' is forbidden! (there is no value to indicate it is missing)!", String(default_value));
+      throw InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a double param (" + name + ") as 'required' is forbidden (there is no value to indicate it is missing)!", String(default_value));
     }
     parameters_.push_back(ParameterInformation(name, ParameterInformation::DOUBLE, argument, default_value, description, required, advanced));
   }
@@ -1119,7 +1120,7 @@ namespace OpenMS
   {
     if (required)
     {
-      throw InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering an Int param (" + name + ") as 'required' is forbidden! (there is no value to indicate it is missing)!", String(default_value));
+      throw InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering an Int param (" + name + ") as 'required' is forbidden (there is no value to indicate it is missing)!", String(default_value));
     }
     parameters_.push_back(ParameterInformation(name, ParameterInformation::INT, argument, default_value, description, required, advanced));
   }
@@ -1199,13 +1200,13 @@ namespace OpenMS
     {
       throw WrongParameterType(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
     }
-    String message = "'" + name + "'";
-    if (p.valid_strings.size() > 0)
-    {
-      message += " [valid: " + ListUtils::concatenate(p.valid_strings, ", ") + "]";
-    }
     if (p.required && (getParam_(name).isEmpty() || getParam_(name) == ""))
     {
+      String message = "'" + name + "'";
+      if (p.valid_strings.size() > 0)
+      {
+        message += " [valid: " + ListUtils::concatenate(p.valid_strings, ", ") + "]";
+      }
       throw RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, message);
     }
     String tmp = getParamAsString_(name, p.default_value);
@@ -1300,7 +1301,7 @@ namespace OpenMS
     return tmp;
   }
 
-  DoubleReal TOPPBase::getDoubleOption_(const String& name) const
+  double TOPPBase::getDoubleOption_(const String& name) const
   {
     const ParameterInformation& p = findEntry_(name);
     if (p.type != ParameterInformation::DOUBLE)
@@ -1311,7 +1312,7 @@ namespace OpenMS
     {
       throw RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
     }
-    double tmp = getParamAsDouble_(name, (DoubleReal)p.default_value);
+    double tmp = getParamAsDouble_(name, (double)p.default_value);
     if (p.required && boost::math::isnan(tmp))
     {
       throw RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
@@ -1319,7 +1320,7 @@ namespace OpenMS
     writeDebug_(String("Value of double option '") + name + "': " + String(tmp), 1);
 
     //check if in valid range
-    if (p.required || (!getParam_(name).isEmpty() && tmp != (DoubleReal)p.default_value))
+    if (p.required || (!getParam_(name).isEmpty() && tmp != (double)p.default_value))
     {
       if (tmp < p.min_float || tmp > p.max_float)
       {
@@ -1342,7 +1343,7 @@ namespace OpenMS
       throw RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
     }
     Int tmp = getParamAsInt_(name, (Int)p.default_value);
-    // not checking if NAN here (as done with DoubleReal, as NAN is not supported for Int)
+    // not checking if NAN here (as done with double, as NAN is not supported for Int)
     writeDebug_(String("Value of int option '") + name + "': " + String(tmp), 1);
 
     //check if in valid range
@@ -1382,7 +1383,7 @@ namespace OpenMS
       // if required or set by user, do some validity checks
       if (p.required || (!getParam_(name).isEmpty() && tmp_list != p.default_value))
       {
-        //check if files are readable/writeable
+        //check if files are readable/writable
         if (p.type == ParameterInformation::INPUT_FILE_LIST)
         {
           inputFileReadable_(tmp, name);
@@ -1483,10 +1484,10 @@ namespace OpenMS
     {
       throw RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
     }
-    DoubleReal tmp;
+
     for (DoubleList::iterator it = tmp_list.begin(); it < tmp_list.end(); ++it)
     {
-      tmp = *it;
+      double tmp = *it;
       writeDebug_(String("Value of string option '") + name + "': " + String(tmp), 1);
 
       //check if in valid range
@@ -1609,14 +1610,14 @@ namespace OpenMS
     }
   }
 
-  DoubleReal TOPPBase::getParamAsDouble_(const String& key, DoubleReal default_value) const
+  double TOPPBase::getParamAsDouble_(const String& key, double default_value) const
   {
     const DataValue& tmp = getParam_(key);
     if (!tmp.isEmpty())
     {
       if (tmp.valueType() == DataValue::DOUBLE_VALUE)
       {
-        return (DoubleReal)tmp;
+        return (double)tmp;
       }
       throw WrongParameterType(__FILE__, __LINE__, __PRETTY_FUNCTION__, key);
     }
@@ -1716,7 +1717,7 @@ namespace OpenMS
   String TOPPBase::getSubsection_(const String& name) const
   {
     size_t pos = name.find_last_of(':');
-    if (pos == string::npos)
+    if (pos == std::string::npos)
       return ""; // delimiter not found
 
     return name.substr(0, pos);
@@ -1902,8 +1903,9 @@ namespace OpenMS
       {
         low = tmp.toDouble();
       }
-      tmp = "";
+
       tmp = text.suffix(':');
+
       if (tmp != "")
       {
         high = tmp.toDouble();
@@ -1912,7 +1914,7 @@ namespace OpenMS
     catch (Exception::ConversionError&)
     {
       throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-                                       "Could not convert string '" + text + 
+                                       "Could not convert string '" + text +
                                        "' to a range of floating point values");
     }
   }
@@ -1926,8 +1928,9 @@ namespace OpenMS
       {
         low = tmp.toInt();
       }
-      tmp = "";
+
       tmp = text.suffix(':');
+
       if (tmp != "")
       {
         high = tmp.toInt();
@@ -1936,7 +1939,7 @@ namespace OpenMS
     catch (Exception::ConversionError&)
     {
       throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-                                       "Could not convert string '" + text + 
+                                       "Could not convert string '" + text +
                                        "' to a range of integer values");
     }
   }
@@ -1944,8 +1947,6 @@ namespace OpenMS
   Param TOPPBase::getSubsectionDefaults_(const String& /*section*/) const
   {
     throw NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-
-    return Param();
   }
 
   Param TOPPBase::getDefaultParameters_() const
@@ -1996,11 +1997,11 @@ namespace OpenMS
 
       case ParameterInformation::DOUBLE:
         tmp.setValue(name, it->default_value, it->description, tags);
-        if (it->min_float != -std::numeric_limits<DoubleReal>::max())
+        if (it->min_float != -std::numeric_limits<double>::max())
         {
           tmp.setMinFloat(name, it->min_float);
         }
-        if (it->max_float != std::numeric_limits<DoubleReal>::max())
+        if (it->max_float != std::numeric_limits<double>::max())
         {
           tmp.setMaxFloat(name, it->max_float);
         }
@@ -2060,11 +2061,11 @@ namespace OpenMS
 
       case ParameterInformation::DOUBLELIST:
         tmp.setValue(name, it->default_value, it->description, tags);
-        if (it->min_float != -std::numeric_limits<DoubleReal>::max())
+        if (it->min_float != -std::numeric_limits<double>::max())
         {
           tmp.setMinFloat(name, it->min_float);
         }
-        if (it->max_float != std::numeric_limits<DoubleReal>::max())
+        if (it->max_float != std::numeric_limits<double>::max())
         {
           tmp.setMaxFloat(name, it->max_float);
         }
@@ -2222,6 +2223,11 @@ namespace OpenMS
       }
     }
   }
+  
+  void TOPPBase::addDataProcessing_(FeatureMap& map, const DataProcessing& dp) const
+  {
+    map.getDataProcessing().push_back(dp);
+  }
 
   bool TOPPBase::writeCTD_()
   {
@@ -2266,7 +2272,7 @@ namespace OpenMS
         docurl = "http://ftp.mi.fu-berlin.de/OpenMS/release-documentation/html/UTILS_" + tool_name_.toQString() + ".html";
         category = ToolHandler::getCategory(tool_name_).toQString();
       }
-      
+
       // morph to ctd format
       QStringList lines = ini_file_str.toQString().split("\n", QString::SkipEmptyParts);
       lines.replace(0, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
@@ -2324,7 +2330,7 @@ namespace OpenMS
       {
         restricted = true;
       }
-      else if (it->value.valueType() == DataValue::DOUBLE_VALUE && (it->min_float != -std::numeric_limits<DoubleReal>::max() || it->max_float != std::numeric_limits<DoubleReal>::max()))
+      else if (it->value.valueType() == DataValue::DOUBLE_VALUE && (it->min_float != -std::numeric_limits<double>::max() || it->max_float != std::numeric_limits<double>::max()))
       {
         restricted = true;
       }
@@ -2381,11 +2387,11 @@ namespace OpenMS
         else if (it->value.valueType() == DataValue::DOUBLE_VALUE)
         {
           os << "                <xs:restriction base=\"xs:double\">" << endl;
-          if (it->min_float != -std::numeric_limits<DoubleReal>::max())
+          if (it->min_float != -std::numeric_limits<double>::max())
           {
             os << "                  <xs:minInclusive value=\"" << it->min_float << "\"/>" << endl;
           }
-          if (it->max_float != std::numeric_limits<DoubleReal>::max())
+          if (it->max_float != std::numeric_limits<double>::max())
           {
             os << "                  <xs:maxInclusive value=\"" << it->max_float << "\"/>" << endl;
           }

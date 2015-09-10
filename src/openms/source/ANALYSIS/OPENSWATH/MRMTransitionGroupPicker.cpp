@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -74,7 +74,7 @@ namespace OpenMS
     if (&rhs == this)
       return *this;
 
-    // dont copy parameters
+    // don't copy parameters
 
     return *this;
   }
@@ -82,14 +82,14 @@ namespace OpenMS
   void MRMTransitionGroupPicker::updateMembers_()
   {
     stop_after_feature_ = (int)param_.getValue("stop_after_feature");
-    stop_after_intensity_ratio_ = (DoubleReal)param_.getValue("stop_after_intensity_ratio");
+    stop_after_intensity_ratio_ = (double)param_.getValue("stop_after_intensity_ratio");
     background_subtraction_ = param_.getValue("background_subtraction");
     recalculate_peaks_ = (bool)param_.getValue("recalculate_peaks").toBool();
-    recalculate_peaks_max_z_ = (DoubleReal)param_.getValue("recalculate_peaks_max_z");
+    recalculate_peaks_max_z_ = (double)param_.getValue("recalculate_peaks_max_z");
     // detect_outliers_ = (bool)param_.getValue("detect_outliers").toBool();
     compute_peak_quality_ = (bool)param_.getValue("compute_peak_quality").toBool();
-    min_qual_ = (DoubleReal)param_.getValue("minimal_quality");
-    min_peak_width_ = (DoubleReal)param_.getValue("min_peak_width");
+    min_qual_ = (double)param_.getValue("minimal_quality");
+    min_peak_width_ = (double)param_.getValue("min_peak_width");
   }
 
   double MRMTransitionGroupPicker::calculateBgEstimation_(const RichPeakChromatogram& chromatogram, double best_left, double best_right)
@@ -148,3 +148,4 @@ namespace OpenMS
   }
 
 }
+

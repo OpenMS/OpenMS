@@ -26,6 +26,7 @@ DistanceMatrix.h
 GridFeature.h
 IsotopeCluster.h
 ListUtils.h
+ListUtilsIO.h
 Map.h
 MassExplainer.h
 Matrix.h
@@ -34,6 +35,7 @@ QTCluster.h
 SeqanIncludeWrapper.h
 SparseVector.h
 String.h
+StringUtils.h
 StringListUtils.h
 SuffixArray.h
 SuffixArrayPeptideFinder.h

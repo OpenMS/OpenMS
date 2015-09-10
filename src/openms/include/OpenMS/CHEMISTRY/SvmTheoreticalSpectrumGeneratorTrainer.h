@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -64,14 +64,14 @@ namespace OpenMS
   {
     typedef SvmTheoreticalSpectrumGenerator::IonType IonType;
     typedef SvmTheoreticalSpectrumGenerator::DescriptorSet DescriptorSet;
-    typedef std::map<std::pair<IonType, Size>, std::vector<DoubleReal> > ObservedIntensMap;
+    typedef std::map<std::pair<IonType, Size>, std::vector<double> > ObservedIntensMap;
 
     /// stores the observed intensities for each sector-type combination in a vector
     void countIntensities_(const PeakSpectrum & spectrum,
                            const AASequence & annotation,
                            IonType type,
-                           std::map<std::pair<IonType, Size>, std::vector<DoubleReal> > & observed_intensities,
-                           DoubleReal tolerance,
+                           std::map<std::pair<IonType, Size>, std::vector<double> > & observed_intensities,
+                           double tolerance,
                            Size number_of_regions
                            );
 
@@ -110,7 +110,7 @@ public:
 protected:
 
     /// Write a training file that can be passed to libsvm command line tools
-    void writeTrainingFile_(std::vector<DescriptorSet> & training_input, std::vector<DoubleReal> & training_output, String filename);
+    void writeTrainingFile_(std::vector<DescriptorSet> & training_input, std::vector<double> & training_output, String filename);
 
   };
 }

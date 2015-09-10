@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,7 +35,7 @@
 #ifndef OPENMS_FORMAT_HANDLERS_XMLHANDLER_H
 #define OPENMS_FORMAT_HANDLERS_XMLHANDLER_H
 
-#include <iostream>
+#include <iosfwd>
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Macros.h>
@@ -154,12 +154,30 @@ public:
       virtual void endElement(const XMLCh * const uri, const XMLCh * const localname, const XMLCh * const qname);
 
       /// Writes the contents to a stream.
-      virtual void writeTo(std::ostream & /*os*/)
-      {
-      }
+      virtual void writeTo(std::ostream & /*os*/);
 
       /// Returns the last error description
       String errorString();
+
+      /**
+        @brief Escapes a string and returns the escaped string
+
+        Some characters must be escaped which are allowed in user params. E.g. > and & are not in XML and
+        need to be escaped. Parsing those escaped strings from file again is automatically done by Xerces.
+        Escaped characters are: & < > " ' 
+      */
+      static String writeXMLEscape(const String& to_escape)
+      {
+        String _copy = to_escape;
+        // has() is cheap, so check before calling substitute(), since substitute() will usually happen rarely
+        if (_copy.has('&')) _copy.substitute("&","&amp;");
+        if (_copy.has('>')) _copy.substitute(">","&gt;");
+        if (_copy.has('"')) _copy.substitute("\"","&quot;");
+        if (_copy.has('<')) _copy.substitute("<","&lt;");
+        if (_copy.has('\'')) _copy.substitute("'","&apos;");
+
+        return _copy;
+      }
 
 protected:
       /// Error message of the last error
@@ -182,7 +200,7 @@ protected:
       std::vector<String> open_tags_;
 
       /// Returns if two xerces strings are equal
-      inline bool equal_(const XMLCh * a, const XMLCh * b)
+      inline bool equal_(const XMLCh * a, const XMLCh * b) const
       {
         return xercesc::XMLString::compareString(a, b) == 0;
       }
@@ -360,8 +378,8 @@ protected:
         return xercesc::XMLString::parseInt(val);
       }
 
-      /// Converts an attribute to a DoubleReal
-      inline DoubleReal attributeAsDouble_(const xercesc::Attributes & a, const char * name) const
+      /// Converts an attribute to a double
+      inline double attributeAsDouble_(const xercesc::Attributes & a, const char * name) const
       {
         const XMLCh * val = a.getValue(sm_.convert(name));
         if (val == 0) fatalError(LOAD, String("Required attribute '") + name + "' not present!");
@@ -372,7 +390,7 @@ protected:
       inline DoubleList attributeAsDoubleList_(const xercesc::Attributes & a, const char * name) const
       {
         String tmp(expectList_(attributeAsString_(a, name)));
-        return ListUtils::create<DoubleReal>(tmp.substr(1, tmp.size() - 2));
+        return ListUtils::create<double>(tmp.substr(1, tmp.size() - 2));
       }
 
       /// Converts an attribute to an IntList
@@ -438,11 +456,11 @@ protected:
       }
 
       /**
-          @brief Assigns the attribute content to the DoubleReal @a value if the attribute is present
+          @brief Assigns the attribute content to the double @a value if the attribute is present
 
           @return if the attribute was present
       */
-      inline bool optionalAttributeAsDouble_(DoubleReal & value, const xercesc::Attributes & a, const char * name) const
+      inline bool optionalAttributeAsDouble_(double & value, const xercesc::Attributes & a, const char * name) const
       {
         const XMLCh * val = a.getValue(sm_.convert(name));
         if (val != 0)
@@ -517,8 +535,8 @@ protected:
         return xercesc::XMLString::parseInt(val);
       }
 
-      /// Converts an attribute to a DoubleReal
-      inline DoubleReal attributeAsDouble_(const xercesc::Attributes & a, const XMLCh * name) const
+      /// Converts an attribute to a double
+      inline double attributeAsDouble_(const xercesc::Attributes & a, const XMLCh * name) const
       {
         const XMLCh * val = a.getValue(name);
         if (val == 0) fatalError(LOAD, String("Required attribute '") + sm_.convert(name) + "' not present!");
@@ -529,7 +547,7 @@ protected:
       inline DoubleList attributeAsDoubleList_(const xercesc::Attributes & a, const XMLCh * name) const
       {
         String tmp(expectList_(attributeAsString_(a, name)));
-        return ListUtils::create<DoubleReal>(tmp.substr(1, tmp.size() - 2));
+        return ListUtils::create<double>(tmp.substr(1, tmp.size() - 2));
       }
 
       /// Converts an attribute to a IntList
@@ -586,8 +604,8 @@ protected:
         return false;
       }
 
-      /// Assigns the attribute content to the DoubleReal @a value if the attribute is present
-      inline bool optionalAttributeAsDouble_(DoubleReal & value, const xercesc::Attributes & a, const XMLCh * name) const
+      /// Assigns the attribute content to the double @a value if the attribute is present
+      inline bool optionalAttributeAsDouble_(double & value, const xercesc::Attributes & a, const XMLCh * name) const
       {
         const XMLCh * val = a.getValue(name);
         if (val != 0)

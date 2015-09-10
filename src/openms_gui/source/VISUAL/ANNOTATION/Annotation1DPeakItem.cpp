@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -75,8 +75,8 @@ namespace OpenMS
     // compute bounding box of text_item on the specified painter
     bounding_box_ = painter.boundingRect(QRectF(position_widget, position_widget), Qt::AlignCenter, text_);
 
-    DoubleReal vertical_shift = 0;
-    DoubleReal horizontal_shift = 0;
+    double vertical_shift = 0;
+    double horizontal_shift = 0;
 
     if (canvas->isMzToXAxis())
     {

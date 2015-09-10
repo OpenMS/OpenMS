@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -55,7 +55,7 @@ public:
     virtual ~LabelFreeLabeler();
 
     /// create new GaussModel object (needed by Factory)
-    static BaseLabeler * create()
+    static BaseLabeler* create()
     {
       return new LabelFreeLabeler();
     }
@@ -67,21 +67,21 @@ public:
     }
 
     // redeclaration of virtual methods
-    void preCheck(Param & param) const;
+    void preCheck(Param& param) const;
 
-    void setUpHook(FeatureMapSimVector & /* channels */);
+    void setUpHook(SimTypes::FeatureMapSimVector& /* channels */);
 
-    void postDigestHook(FeatureMapSimVector & /* features_to_simulate */);
+    void postDigestHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */);
 
-    void postRTHook(FeatureMapSimVector & /* features_to_simulate */);
+    void postRTHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */);
 
-    void postDetectabilityHook(FeatureMapSimVector & /* features_to_simulate */);
+    void postDetectabilityHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */);
 
-    void postIonizationHook(FeatureMapSimVector & /* features_to_simulate */);
+    void postIonizationHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */);
 
-    void postRawMSHook(FeatureMapSimVector & /* features_to_simulate */);
+    void postRawMSHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */);
 
-    void postRawTandemMSHook(FeatureMapSimVector & /* features_to_simulate */, MSSimExperiment & /* simulated map */);
+    void postRawTandemMSHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */, SimTypes::MSSimExperiment& /* simulated map */);
   };
 } // namespace OpenMS
 

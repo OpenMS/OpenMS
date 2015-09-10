@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,9 @@
 
 #ifndef OPENMS_VISUAL_TOPPASINPUTFILELISTVERTEX_H
 #define OPENMS_VISUAL_TOPPASINPUTFILELISTVERTEX_H
+
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <OpenMS/VISUAL/TOPPASVertex.h>
 
@@ -92,6 +95,9 @@ protected:
 
     /// The key of this input node (for applying resources from a resource file)
     QString key_;
+
+    /// current working dir, i.e. the last position a file was added from
+    QString cwd_;
 
     ///@name reimplemented Qt events
     //@{

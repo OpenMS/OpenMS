@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -121,12 +121,12 @@ using namespace std;
   All tokens therein will be replaced and the result will be patched into the <tt>cloptions</tt> string.
   Allowed tokens are:
   <ul>
-  <li>%TMP  --> The current temp directory, fetched using File::getTempDirectory()
-  <li>%DIR --> directory prefix, e.g.:, c:/tmp/mzfile.mzML gives 'c:/tmp'
-  <li>%BASENAME[file] --> the basename of a file, e.g. c:/tmp/myfile.mzML gives 'myfile'
-  <li>%RND --> generates a long random number, which can be used to generate unique filenames in a &lt;file_pre&gt; tag
-  <li>%WORKINGDIR --> expands to the current working directory (default is '.'), settable by &lt;workingdirectory&gt; tag in the .ttd file.
-  <li>%%&lt;param&gt; --> any param registered in the ini_param section, e.g. '%%in'
+  <li>\%TMP  --> The current temp directory, fetched using File::getTempDirectory()
+  <li>\%DIR --> directory prefix, e.g.:, c:/tmp/mzfile.mzML gives 'c:/tmp'
+  <li>\%BASENAME[file] --> the basename of a file, e.g. c:/tmp/myfile.mzML gives 'myfile'
+  <li>\%RND --> generates a long random number, which can be used to generate unique directory or file names in a &lt;file_pre&gt; tag
+  <li>\%WORKINGDIR --> expands to the current working directory (default is '.'), settable by &lt;workingdirectory&gt; tag in the .ttd file.
+  <li>\%\%&lt;param&gt; --> any param registered in the ini_param section, e.g. '\%\%in'
   </ul>
 
   Example:
@@ -212,7 +212,7 @@ protected:
   };
 
 
-  void createFragment_(String & fragment, const Param & param)
+  void createFragment_(String & fragment, const Param & param, const std::map<int, std::string>& optional_mappings = (std::map<int, std::string>()))
   {
 
     //std::cerr << "FRAGMENT: " << fragment << "\n\n";
@@ -223,7 +223,7 @@ protected:
     // to sort the param names by length, otherwise we have a
     // problem with parameter substitution
     // i.e., if A is a prefix of B and gets replaced first, the
-    // suffix of B remains and will cause trouble!
+    // suffix of B remains and will cause trouble, e.g.: "%%out" vs. "%%out_fm"
     vector<String> param_names;
     param_names.reserve(param.size());
     for (Param::ParamIterator it = param.begin(); it != param.end(); ++it)
@@ -245,6 +245,17 @@ protected:
       fragment.substitute("%%" + *it, s_new);
     }
     if (fragment.hasSubstring("%%")) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid '%%' found in '" + fragment + "' after replacing all parameters!", fragment);
+
+    // mapping replace> e.g.: %2
+    // do it reverse, since %10 should precede %1
+    for (std::map<int, std::string>::const_reverse_iterator it = optional_mappings.rbegin(); it != optional_mappings.rend(); ++it)
+    {
+      String m = String("%") + it->first;
+      if (fragment.hasSubstring(m)) {
+        writeDebug_(String("Replacing '") + m + "' in '" + fragment + "' by '" + it->second + "'\n", 10);
+        fragment.substitute(m, it->second);
+      }
+    }
 
     // %TMP replace:
     fragment.substitute("%TMP", File::getTempDirectory());
@@ -434,6 +445,7 @@ protected:
     }
 
     ///// construct the command line:
+    std::map<int, std::string> mappings;  // remember the values for each mapping (for file_post substitution later on)
     // go through mappings (reverse because replacing %10 must come before %1):
     for (std::map<Int, String>::reverse_iterator it = tde_.tr_table.mapping.rbegin(); it != tde_.tr_table.mapping.rend(); ++it)
     {
@@ -445,6 +457,9 @@ protected:
       // replace fragment in cl
       //std::cout << "replace : " << "%"+String(it->first) << " with '" << fragment << "\n";
       command_args.substitute("%" + String(it->first), fragment);
+
+      // cache mapping
+      mappings[it->first] = fragment;
     }
 
     QProcess builder;
@@ -466,18 +481,18 @@ protected:
     LOG_INFO << ("External tool output:\n" + String(QString(builder.readAll())));
 
 
-    // post processing (file moving via 'file' command)
+    // post processing (file moving via 'file_post' command)
     for (Size i = 0; i < tde_.tr_table.post_moves.size(); ++i)
     {
       const Internal::FileMapping & fm = tde_.tr_table.post_moves[i];
       // find target param:
       Param p = tool_param.copy("ETool:", true);
-      String target = fm.target;
-      if (!p.exists(target)) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Cannot find target parameter '" + target + "' being mapped from external tools output!", target);
       String source = fm.location;
       // fragment's placeholder evaluation:
-      createFragment_(source, p);
+      createFragment_(source, p, mappings);
       // check if target already exists:
+      String target = fm.target;
+      if (!p.exists(target)) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Cannot find target parameter '" + target + "' being mapped from external tools output!", target);
       String target_file = (String)p.getValue(target);
 
       if (target_file.trim().empty())   // if target was not given, we skip the copying step (usually for optional parameters)
@@ -485,6 +500,7 @@ protected:
         LOG_INFO << "Parameter '" + target + "' not given. Skipping forwarding of files.\n";
         continue;
       }
+      // check if the target exists already (should not; if yes, delete it before overwriting it)
       if (File::exists(target_file))
       {
         if (!File::remove(target_file))

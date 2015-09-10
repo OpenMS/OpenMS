@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,9 @@
 
 #ifndef OPENMS_VISUAL_AXISWIDGET_H
 #define OPENMS_VISUAL_AXISWIDGET_H
+
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 // QT
 #include <QtGui/QWidget>
@@ -67,7 +70,7 @@ public:
     ///Type definitions
     //@{
     ///Vector of vector of doubles that defines the grid
-    typedef std::vector<std::vector<DoubleReal> > GridVector;
+    typedef std::vector<std::vector<double> > GridVector;
 
     /// constructor
     AxisWidget(AxisPainter::Alignment alignment, const char * legend = "", QWidget * parent = 0);
@@ -112,10 +115,10 @@ public:
     void setAllowShortNumbers(bool short_nums);
 
     /// returns the minimum value displayed on the axis
-    DoubleReal getAxisMinimum() const;
+    double getAxisMinimum() const;
 
     /// returns the maximum value displayed on the axis
-    DoubleReal getAxisMaximum() const;
+    double getAxisMaximum() const;
 
     /// Actual painting takes place here
     void paint(QPainter * painter, QPaintEvent * e);
@@ -123,7 +126,7 @@ public:
 public slots:
 
     ///sets min/max of the axis
-    void setAxisBounds(DoubleReal min, DoubleReal max);
+    void setAxisBounds(double min, double max);
 
     /// set maximum number of tick levels ('1' or '2', default: '2')
     void setTickLevel(UInt level);
@@ -148,10 +151,10 @@ protected:
     UInt margin_;
 
     /// minimum value on the axis
-    DoubleReal min_;
+    double min_;
 
     /// maximum value on the axis
-    DoubleReal max_;
+    double max_;
 
     /// text/unit on axis
     String legend_;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -58,7 +58,7 @@ namespace OpenMS
   Spectrum3DCanvas::Spectrum3DCanvas(const Param & preferences, QWidget * parent) :
     SpectrumCanvas(preferences, parent)
   {
-    //Paramater handling
+    // Parameter handling
     defaults_.setValue("dot:shade_mode", 1, "Shade mode: single-color ('flat') or gradient peaks ('smooth').");
     defaults_.setMinInt("dot:shade_mode", 0);
     defaults_.setMaxInt("dot:shade_mode", 1);
@@ -182,10 +182,13 @@ namespace OpenMS
     return static_cast<Spectrum3DOpenGLCanvas *>(openglcanvas_);
   }
 
+#ifdef DEBUG_TOPPVIEW
   void Spectrum3DCanvas::update_(const char * caller)
   {
-#ifdef DEBUG_TOPPVIEW
     cout << "BEGIN " << __PRETTY_FUNCTION__ << " caller: " << caller << endl;
+#else
+  void Spectrum3DCanvas::update_(const char * /* caller */)
+  {
 #endif
 
     if (update_buffer_)
@@ -370,17 +373,17 @@ namespace OpenMS
   {
     selected_peak_.clear();
     recalculateRanges_(0, 1, 2);
-    resetZoom(false); //no repaint as this is done in intensityModeChange_() anyway
+    resetZoom(false); // no repaint as this is done in intensityModeChange_() anyway
     openglwidget()->recalculateDotGradient_(i);
     intensityModeChange_();
     modificationStatus_(i, false);
   }
 
-  void Spectrum3DCanvas::translateLeft_()
+  void Spectrum3DCanvas::translateLeft_(Qt::KeyboardModifiers /*m*/)
   {
   }
 
-  void Spectrum3DCanvas::translateRight_()
+  void Spectrum3DCanvas::translateRight_(Qt::KeyboardModifiers /*m*/)
   {
   }
 
@@ -392,4 +395,4 @@ namespace OpenMS
   {
   }
 
-} //namspace
+} //namespace

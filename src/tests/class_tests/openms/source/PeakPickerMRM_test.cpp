@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -120,7 +120,7 @@ START_SECTION(void pickChromatogram(const RichPeakChromatogram &chromatogram, Ri
 
   // Peak picking is done on the smoothed data by cubic spline interpolation
   // and searching for the point with zero derivative.
-  TEST_REAL_SIMILAR( picked_chrom[0].getIntensity(), 9981.76460102146);
+  TEST_REAL_SIMILAR( picked_chrom[0].getIntensity(), 9981.93933103869);
   TEST_REAL_SIMILAR( picked_chrom[0].getMZ(), 1495.11321013749);
   TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[0][0], 60124.9); // IntegratedIntensity
   TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[1][0], 1490.95); // leftWidth

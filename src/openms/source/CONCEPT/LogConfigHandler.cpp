@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,7 +38,6 @@
 #include <OpenMS/CONCEPT/StreamHandler.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
-using namespace OpenMS::Logger;
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -123,7 +122,7 @@ namespace OpenMS
       StringList commands;
       iter->split(' ', commands, true);
 
-      LogStream & log = getLogStreamByName_(commands[0]);
+      Logger::LogStream & log = getLogStreamByName_(commands[0]);
 
       // convenience variables
       String & command = commands[1];
@@ -256,9 +255,9 @@ namespace OpenMS
     }
   }
 
-  LogStream & LogConfigHandler::getLogStreamByName_(const String & stream_name)
+  Logger::LogStream & LogConfigHandler::getLogStreamByName_(const String & stream_name)
   {
-    LogStream * log = &Log_debug; // default
+    Logger::LogStream * log = &Log_debug; // default
 
     if (stream_name == "DEBUG")
     {
@@ -351,6 +350,7 @@ namespace OpenMS
     return type;
   }
 
+  void printStreamConfig_(std::ostream & os, const String & name, const std::set<String> & stream_names, const std::map<String, StreamHandler::StreamType> & stream_type_map);
   void printStreamConfig_(std::ostream & os, const String & name, const std::set<String> & stream_names, const std::map<String, StreamHandler::StreamType> & stream_type_map)
   {
     os << name << endl;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -108,7 +108,7 @@ START_SECTION((template <typename T> T round (T x)))
 END_SECTION
 
 
-START_SECTION((bool approximatelyEqual(DoubleReal a, DoubleReal b, DoubleReal tol)))
+START_SECTION((bool approximatelyEqual(double a, double b, double tol)))
 	TEST_EQUAL(approximatelyEqual(1.1, 1.1002, 0.1), true)
 	TEST_EQUAL(approximatelyEqual(1.1, 1.1002, 0.01), true)
 	TEST_EQUAL(approximatelyEqual(1.1, 1.1002, 0.001), true)

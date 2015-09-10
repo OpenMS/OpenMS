@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -111,7 +111,7 @@ public:
                         double identity_threshold, int max_attempts, double mz_threshold, 
                         bool theoretical, double mz_shift, bool exclude_similar, 
                         double similarity_threshold, bool remove_CNterm_mods, 
-                        double precursor_mass_shift, bool enable_losses, bool enable_isotopes);
+                        double precursor_mass_shift, bool enable_losses, bool remove_unannotated);
     /**
       @brief Remove transitions s.t. all peptides have a defined set of transitions.
 
@@ -134,23 +134,23 @@ public:
     /**
       @brief Selects a decoy ion from a set of ions.
     */
-    std::pair<String, DoubleReal> getDecoyIon(String ionid,
-                                              boost::unordered_map<String, boost::unordered_map<String, DoubleReal> >& decoy_ionseries);
+    std::pair<String, double> getDecoyIon(String ionid,
+                                              boost::unordered_map<String, boost::unordered_map<String, double> >& decoy_ionseries);
 
     /**
       @brief Selects a target ion from a set of ions.
     */
     std::pair<String, double> getTargetIon(double ProductMZ, double mz_threshold,
                                            boost::unordered_map<String, boost::unordered_map<String, double> > target_ionseries,
-                                           bool enable_losses, bool enable_isotopes);
+                                           bool enable_losses);
     /**
       @brief Generate all ion series for an input AASequence
 
       Currently generated are:
 
-      bionseries, bionseries_isotopes, bionseries_loss, bionseries_isotopes_loss,
-      yionseries, yionseries_isotopes, yionseries_loss, yionseries_isotopes_loss,
-      aionseries, aionseries_isotopes
+      bionseries, bionseries_loss,
+      yionseries, yionseries_loss,
+      aionseries
 
       for each of these, the following neutral losses are calculated:
         -17, -18, -34, -35, -36, -44, -45, -46, -64, -98.
@@ -159,7 +159,7 @@ public:
       generated. possible integration with TheoreticalSpectrumGenerator?
     */
     boost::unordered_map<String, boost::unordered_map<String, double> > getIonSeries(
-      AASequence sequence, int precursor_charge, int max_isotopes = 2);
+      AASequence sequence, int precursor_charge);
 
     /**
       @brief Find all tryptic sites in a sequence
@@ -180,7 +180,7 @@ public:
     /**
       @brief Correct the masses according to theoretically computed masses
     */
-    void correctMasses(OpenMS::TargetedExperiment& exp, double mz_threshold, bool enable_losses, bool enable_isotopes);
+    void correctMasses(OpenMS::TargetedExperiment& exp, double mz_threshold, bool enable_losses);
 
     /**
       @brief Shuffle a peptide (with its modifications) sequence

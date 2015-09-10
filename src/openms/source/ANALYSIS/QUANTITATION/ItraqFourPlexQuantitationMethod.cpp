@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,7 +33,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h>
+
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/Matrix.h>
 
 namespace OpenMS
 {
@@ -44,10 +46,10 @@ namespace OpenMS
     setName("ItraqFourPlexQuantitationMethod");
 
     // create the channel map
-    channels_.push_back(IsobaricChannelInformation(114, 0, "", 114.1112));
-    channels_.push_back(IsobaricChannelInformation(115, 1, "", 115.1082));
-    channels_.push_back(IsobaricChannelInformation(116, 2, "", 116.1116));
-    channels_.push_back(IsobaricChannelInformation(117, 3, "", 117.1149));
+    channels_.push_back(IsobaricChannelInformation("114", 0, "", 114.1112, -1, -1, 1, 2));
+    channels_.push_back(IsobaricChannelInformation("115", 1, "", 115.1082, -1, 0, 2, 3));
+    channels_.push_back(IsobaricChannelInformation("116", 2, "", 116.1116, 0, 1, 3, -1));
+    channels_.push_back(IsobaricChannelInformation("117", 3, "", 117.1149, 1, 2, -1, -1));
 
     // we assume 114 to be the reference
     reference_channel_ = 0;
@@ -77,7 +79,7 @@ namespace OpenMS
                                                                "0.0/2.0/5.6/0.1,"
                                                                "0.0/3.0/4.5/0.1,"
                                                                "0.1/4.0/3.5/0.1"),
-                       "Override default values (see Documentation); use the following format: <-2Da>/<-1Da>/<+1Da>/<+2Da> ; e.g. '0/0.3/4/0' , '0.1/0.3/3/0.2'");
+                       "Correction matrix for isotope distributions (see documentation); use the following format: <-2Da>/<-1Da>/<+1Da>/<+2Da>; e.g. '0/0.3/4/0', '0.1/0.3/3/0.2'");
 
     defaultsToParam_();
   }

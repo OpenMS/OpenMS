@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,36 +38,4 @@ namespace OpenMS
 {
   Matrix<int>    default_matrix_int;
   Matrix<double> default_matrix_double;
-
-#if 0
-  template <>
-  gsl_matrix * Matrix<double>::toGslMatrix()
-  {
-    gsl_matrix * m_ptr = gsl_matrix_alloc(rows_, cols_);
-    for (size_type i = 0; i < this->rows_; ++i)
-    {
-      for (size_type j = 0; j < this->cols_; ++j)
-      {
-        gsl_matrix_set(m_ptr, i, j, (*this)(i, j));
-      }
-    }
-    return m_ptr;
-  }
-
-  template <>
-  gsl_matrix * Matrix<float>::toGslMatrix()
-  {
-    gsl_matrix * m_ptr = gsl_matrix_alloc(rows_, cols_);
-    for (size_type i = 0; i < this->rows_; ++i)
-    {
-      for (size_type j = 0; j < this->cols_; ++j)
-      {
-        gsl_matrix_set(m_ptr, i, j, (double) (*this)(i, j));
-      }
-    }
-    return m_ptr;
-  }
-
-#endif
-
 }

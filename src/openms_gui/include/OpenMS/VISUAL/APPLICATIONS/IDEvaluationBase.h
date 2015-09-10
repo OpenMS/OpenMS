@@ -1,9 +1,8 @@
-
 // --------------------------------------------------------------------------
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +34,9 @@
 
 #ifndef OPENMS_VISUAL_APPLICATIONS_IDEVALUATIONBASE_H
 #define OPENMS_VISUAL_APPLICATIONS_IDEVALUATIONBASE_H
+
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 //OpenMS
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -105,7 +107,7 @@ public slots:
 
     /// compute q-values from ids and store as vector of points for plotting
     /// returns false on error, the return vector 'points' will also be empty in this case
-    bool getPoints(std::vector<PeptideIdentification> & peptides /* cannot be const, to avoid copy */, const std::vector<DoubleReal> & q_value_thresholds, MSSpectrum<> & points);
+    bool getPoints(std::vector<PeptideIdentification> & peptides /* cannot be const, to avoid copy */, const std::vector<double> & q_value_thresholds, MSSpectrum<> & points);
 
     /// calls 'getPoints()' after loading the idXML file and returns the result
     bool loadCurve(const String& file_name, MSSpectrum<>& points);
@@ -191,7 +193,7 @@ protected:
     /// Shows a log message in the log_ window
     void showLogMessage_(LogState state, const String & heading, const String & body);
 
-    std::vector<DoubleReal> q_value_thresholds_;
+    std::vector<double> q_value_thresholds_;
 
     // holds the computed curves for easy export to outside
     MSExperiment<> data_;

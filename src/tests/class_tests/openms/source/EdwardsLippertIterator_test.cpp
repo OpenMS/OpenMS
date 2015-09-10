@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,10 +53,10 @@ START_TEST(EdwardsLippertIterator, "$Id$")
 /////////////////////////////////////////////////////////////
 typedef std::pair <String, String> FASTAEntry;
 
-vector<DoubleReal> spec;
+vector<double> spec;
 spec.push_back(178.1864);
 spec.push_back(441.4806);
-const vector<DoubleReal> specc (spec);
+const vector<double> specc (spec);
 
 EdwardsLippertIterator* ptr = 0;
 EdwardsLippertIterator* nullPointer = 0;
@@ -101,7 +101,7 @@ END_SECTION
 
 
 START_SECTION(virtual FASTAEntry operator *())
-	DoubleReal masse[255];
+	double masse[255];
 	ResidueDB* rdb = ResidueDB::getInstance();
 		
 	char aa[] = "ARNDCEQGHILKMFPSTWYV";
@@ -141,13 +141,13 @@ START_SECTION(virtual FASTAEntry operator *())
 	ptr->setFastaFile(OPENMS_GET_TEST_DATA_PATH("EdwardsLippertIterator_test_2.fasta"));
 	ptr->setSpectrum(specc);
 	ptr->begin();
-	DoubleReal tol = 0.2;
+	double tol = 0.2;
 	ptr->setTolerance(tol);
 	while (!ptr->isAtEnd())
 	{
 		String seq = (**ptr).second;
 		(++*ptr);
-		DoubleReal m = 0;
+		double m = 0;
 		for (Size i = 0; i < seq.length();i++)
 		{
 			m+=masse[(int)seq[i]];
@@ -211,31 +211,31 @@ START_SECTION(bool isAtEnd ())
 	TEST_EQUAL(ptr->isAtEnd(),true);
 END_SECTION
 
-START_SECTION(virtual void setTolerance(DoubleReal t))
+START_SECTION(virtual void setTolerance(double t))
 	ptr = new EdwardsLippertIterator();
 	ptr->setTolerance(0.4);
 	TEST_REAL_SIMILAR(0.4,ptr->getTolerance());
 	TEST_EXCEPTION (Exception::InvalidValue,ptr->setTolerance(-0.1));
 END_SECTION
 
-START_SECTION(virtual DoubleReal getTolerance())
+START_SECTION(virtual double getTolerance())
 	ptr = new EdwardsLippertIterator();
 	TEST_REAL_SIMILAR(0.5,ptr->getTolerance());
 	ptr->setTolerance(0.4);
 	TEST_REAL_SIMILAR(0.4,ptr->getTolerance());
 END_SECTION
 
-START_SECTION(virtual void setSpectrum(const std::vector< DoubleReal > &s))
+START_SECTION(virtual void setSpectrum(const std::vector< double > &s))
 	ptr = new EdwardsLippertIterator();
 	ptr->setSpectrum(specc);
-	vector<DoubleReal> spec2;
+	vector<double> spec2;
 	spec2.push_back(441.4806);
 	spec2.push_back(178.1864);
-	const vector<DoubleReal> specc2 (spec2);
+	const vector<double> specc2 (spec2);
 	TEST_EXCEPTION (Exception::InvalidValue,ptr->setSpectrum(specc2));
 END_SECTION
 
-START_SECTION(virtual const std::vector<DoubleReal>& getSpectrum())
+START_SECTION(virtual const std::vector<double>& getSpectrum())
 	ptr = new EdwardsLippertIterator();
 	ptr->setSpectrum(specc);
 	TEST_EQUAL(specc.size(),ptr->getSpectrum().size());

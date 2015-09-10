@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,12 +44,12 @@
 using namespace OpenMS;
 using namespace std;
 
-void createTestFeatureMapSimVector_(FeatureMapSimVector& feature_maps)
+void createTestFeatureMapSimVector_(SimTypes::FeatureMapSimVector& feature_maps)
 {
   feature_maps.clear();
 
   // first feature map TVQMENQFVAFVDK,ACHKKKKHHACAC,AAAAHTKLRTTIPPEFG,RYCNHKTUIKL
-  FeatureMapSim fm1,fm2;
+  SimTypes::FeatureMapSim fm1,fm2;
   ProteinHit prothit1,prothit2,prothit3,prothit4,prothit5,prothit6;
 
   // create first map
@@ -104,7 +104,7 @@ void createTestFeatureMapSimVector_(FeatureMapSimVector& feature_maps)
   feature_maps.push_back(fm2);
 }
 
-void digestFeaturesMapSimVector_(FeatureMapSimVector& feature_maps)
+void digestFeaturesMapSimVector_(SimTypes::FeatureMapSimVector& feature_maps)
 {
   // digest here
   DigestSimulation digest_sim;
@@ -113,7 +113,7 @@ void digestFeaturesMapSimVector_(FeatureMapSimVector& feature_maps)
   p.setValue("model_naive:missed_cleavages", 0);
   digest_sim.setParameters(p);
   std::cout << digest_sim.getParameters() << std::endl;
-  for(FeatureMapSimVector::iterator iter = feature_maps.begin() ; iter != feature_maps.end() ; ++iter)
+  for(SimTypes::FeatureMapSimVector::iterator iter = feature_maps.begin() ; iter != feature_maps.end() ; ++iter)
   {
     digest_sim.digest((*iter));
   }
@@ -131,14 +131,14 @@ BaseLabeler* base_nullPointer = 0;
 
 START_SECTION(O18Labeler())
 {
-	ptr = new O18Labeler();
-	TEST_NOT_EQUAL(ptr, nullPointer)
+  ptr = new O18Labeler();
+  TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 
 START_SECTION(~O18Labeler())
 {
-	delete ptr;
+  delete ptr;
 }
 END_SECTION
 
@@ -156,12 +156,12 @@ START_SECTION((void preCheck(Param &param) const ))
 }
 END_SECTION
 
-START_SECTION((void setUpHook(FeatureMapSimVector &)))
+START_SECTION((void setUpHook(SimTypes::FeatureMapSimVector &)))
 {
   O18Labeler labeler;
 
-  FeatureMapSim fm1,fm2,fm3;
-  FeatureMapSimVector fm_vec;
+  SimTypes::FeatureMapSim fm1,fm2,fm3;
+  SimTypes::FeatureMapSimVector fm_vec;
 
   fm_vec.push_back(fm1);
   TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, labeler.setUpHook(fm_vec), "1 channel(s) given. 18O Labeling only works with 2 channels. Please provide two FASTA files!")
@@ -172,9 +172,9 @@ START_SECTION((void setUpHook(FeatureMapSimVector &)))
 }
 END_SECTION
 
-START_SECTION((void postDigestHook(FeatureMapSimVector &)))
+START_SECTION((void postDigestHook(SimTypes::FeatureMapSimVector &)))
 {
-  FeatureMapSimVector feature_maps;
+  SimTypes::FeatureMapSimVector feature_maps;
 
   createTestFeatureMapSimVector_(feature_maps);
   digestFeaturesMapSimVector_(feature_maps);
@@ -194,14 +194,14 @@ START_SECTION((void postDigestHook(FeatureMapSimVector &)))
   TEST_EQUAL(feature_maps[0][1].getIntensity(), 200)
   TEST_EQUAL(feature_maps[0][1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK")
 
-  TEST_EQUAL(feature_maps[0][2].getIntensity(), 200)
-  TEST_EQUAL(feature_maps[0][2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNHAAAAAAAAA")
+  TEST_EQUAL(feature_maps[0][2].getIntensity(), 250)
+  TEST_EQUAL(feature_maps[0][2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "HHHHHHHHHHH")
 
-  TEST_EQUAL(feature_maps[0][3].getIntensity(), 120)
-  TEST_EQUAL(feature_maps[0][3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNHAADDAAAAA")
+  TEST_EQUAL(feature_maps[0][3].getIntensity(), 200)
+  TEST_EQUAL(feature_maps[0][3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNHAAAAAAAAA")
 
-  TEST_EQUAL(feature_maps[0][4].getIntensity(), 250)
-  TEST_EQUAL(feature_maps[0][4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "HHHHHHHHHHH")
+  TEST_EQUAL(feature_maps[0][4].getIntensity(), 120)
+  TEST_EQUAL(feature_maps[0][4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNHAADDAAAAA")
 
   TEST_EQUAL(feature_maps[0][5].getIntensity(), 100)
   TEST_EQUAL(feature_maps[0][5].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "LDCELR")
@@ -243,14 +243,14 @@ START_SECTION((void postDigestHook(FeatureMapSimVector &)))
   TEST_EQUAL(feature_maps[0][2].getIntensity(), 204.5)
   TEST_EQUAL(feature_maps[0][2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK")
 
-  TEST_EQUAL(feature_maps[0][3].getIntensity(), 200)
-  TEST_EQUAL(feature_maps[0][3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNHAAAAAAAAA")
+  TEST_EQUAL(feature_maps[0][3].getIntensity(), 250)
+  TEST_EQUAL(feature_maps[0][3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "HHHHHHHHHHH")
 
-  TEST_EQUAL(feature_maps[0][4].getIntensity(), 120)
-  TEST_EQUAL(feature_maps[0][4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNHAADDAAAAA")
+  TEST_EQUAL(feature_maps[0][4].getIntensity(), 200)
+  TEST_EQUAL(feature_maps[0][4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNHAAAAAAAAA")
 
-  TEST_EQUAL(feature_maps[0][5].getIntensity(), 250)
-  TEST_EQUAL(feature_maps[0][5].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "HHHHHHHHHHH")
+  TEST_EQUAL(feature_maps[0][5].getIntensity(), 120)
+  TEST_EQUAL(feature_maps[0][5].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNHAADDAAAAA")
 
   TEST_EQUAL(feature_maps[0][6].getIntensity(), 100)
   TEST_EQUAL(feature_maps[0][6].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "LDCELR")
@@ -270,32 +270,32 @@ START_SECTION((void postDigestHook(FeatureMapSimVector &)))
 }
 END_SECTION
 
-START_SECTION((void postRTHook(FeatureMapSimVector &)))
+START_SECTION((void postRTHook(SimTypes::FeatureMapSimVector &)))
 {
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((void postDetectabilityHook(FeatureMapSimVector &)))
+START_SECTION((void postDetectabilityHook(SimTypes::FeatureMapSimVector &)))
 {
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((void postIonizationHook(FeatureMapSimVector &)))
+START_SECTION((void postIonizationHook(SimTypes::FeatureMapSimVector &)))
 {
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((void postRawMSHook(FeatureMapSimVector &)))
+START_SECTION((void postRawMSHook(SimTypes::FeatureMapSimVector &)))
 {
   NOT_TESTABLE
   // TODO Test ConsensusMap association
 }
 END_SECTION
 
-START_SECTION((void postRawTandemMSHook(FeatureMapSimVector &, MSSimExperiment &)))
+START_SECTION((void postRawTandemMSHook(SimTypes::FeatureMapSimVector &, SimTypes::MSSimExperiment &)))
 {
   NOT_TESTABLE
 }

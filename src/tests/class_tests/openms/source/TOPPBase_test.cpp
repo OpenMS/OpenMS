@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,6 +42,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -70,7 +71,7 @@ class TOPPBaseTest
       registerIntOption_("intoption","<int>",4711,"int description",false);
       registerDoubleOption_("doubleoption","<double>",0.4711,"double description",false);
       registerIntList_("intlist","<intlist>",ListUtils::create<Int>("1,2,3,4"),"intlist description",false);
-      registerDoubleList_("doublelist","<doublelist>", ListUtils::create<DoubleReal>("0.4711,1.022,4.0"),"doubelist description",false);
+      registerDoubleList_("doublelist","<doublelist>", ListUtils::create<double>("0.4711,1.022,4.0"),"doubelist description",false);
       registerStringList_("stringlist","<stringlist>", ListUtils::create<String>("abc,def,ghi,jkl"),"stringlist description",false);
       registerFlag_("flag","flag description");
 
@@ -85,7 +86,7 @@ class TOPPBaseTest
       setMinInt_("intlist2",2);
       setMaxInt_("intlist2",6);
 
-      registerDoubleList_("doublelist2","<double>", ListUtils::create<DoubleReal>("1.2,2.33"),"doublelist with restrictions",false);
+      registerDoubleList_("doublelist2","<double>", ListUtils::create<double>("1.2,2.33"),"doublelist with restrictions",false);
       setMinFloat_("doublelist2",0.2);
       setMaxFloat_("doublelist2",5.4);
     }
@@ -157,7 +158,7 @@ class TOPPBaseTest
       addDataProcessing_(map, dp);
 
       //additionally test FeatureMap and ConsensusMap
-      FeatureMap<> f_map;
+      FeatureMap f_map;
       addDataProcessing_(f_map, dp);
 
       ConsensusMap c_map;
@@ -196,7 +197,7 @@ class TOPPBaseTestNOP
       registerFlag_("flag","flag description");
       registerStringList_("stringlist","<stringlist>", ListUtils::create<String>(""),"stringlist description");
       registerIntList_("intlist","<intlist>",ListUtils::create<Int>(""),"intlist description");
-      registerDoubleList_("doublelist","<doublelist>", ListUtils::create<DoubleReal>(""),"doubelist description");
+      registerDoubleList_("doublelist","<doublelist>", ListUtils::create<double>(""),"doubelist description");
     }
 
     String getStringOption(const String& name) const
@@ -465,13 +466,14 @@ START_SECTION(([EXTRA]String getStringOption_(const String& name) const))
 	p2.setValue("TOPPBaseTest:1:intoption",4711,"int description");
 	p2.setValue("TOPPBaseTest:1:doubleoption",0.4711,"double description");
 	p2.setValue("TOPPBaseTest:1:intlist",ListUtils::create<Int>("1,2,3,4"),"intlist description");
-	p2.setValue("TOPPBaseTest:1:doublelist", ListUtils::create<DoubleReal>("0.4711,1.022,4.0"),"doubelist description");
+	p2.setValue("TOPPBaseTest:1:doublelist", ListUtils::create<double>("0.4711,1.022,4.0"),"doubelist description");
 	p2.setValue("TOPPBaseTest:1:stringlist", ListUtils::create<String>("abc,def,ghi,jkl"),"stringlist description");
 	p2.setValue("TOPPBaseTest:1:flag","false","flag description");
   p2.setValue("TOPPBaseTest:1:log","","Name of log file (created only when specified)");
 	p2.setValue("TOPPBaseTest:1:debug",0,"Sets the debug level");
 	p2.setValue("TOPPBaseTest:1:threads",1, "Sets the number of threads allowed to be used by the TOPP tool");
 	p2.setValue("TOPPBaseTest:1:no_progress","false","Disables progress logging to command line");
+	p2.setValue("TOPPBaseTest:1:force","false","Overwrite tool specific checks.");
 	p2.setValue("TOPPBaseTest:1:test","false","Enables the test mode (needed for software testing only)");
 	//with restriction
   p2.setValue("TOPPBaseTest:1:stringlist2", ListUtils::create<String>("hopla,dude"),"stringlist with restrictions");
@@ -485,7 +487,7 @@ START_SECTION(([EXTRA]String getStringOption_(const String& name) const))
 	p2.setValue(intlist2,ListUtils::create<Int>("3,4,5"),"intlist with restriction");
 	p2.setMinInt(intlist2,2);
 	p2.setMaxInt(intlist2,6);
-	p2.setValue(doublelist2, ListUtils::create<DoubleReal>("1.2,2.33"),"doubelist with restrictions");
+	p2.setValue(doublelist2, ListUtils::create<double>("1.2,2.33"),"doubelist with restrictions");
 	p2.setMinFloat(doublelist2,0.2);
 	p2.setMaxFloat(doublelist2,5.4);
 	TEST_EQUAL(p1,p2)
@@ -545,19 +547,19 @@ END_SECTION
 START_SECTION(([EXTRA] String getDoubleList_(const String& name) const))
 	//default
 	TOPPBaseTest tmp;
-	TEST_EQUAL(tmp.getDoubleList("doublelist") == ListUtils::create<DoubleReal>("0.4711,1.022,4.0"), true)
+	TEST_EQUAL(tmp.getDoubleList("doublelist") == ListUtils::create<double>("0.4711,1.022,4.0"), true)
 	//command line
 	const char* string_cl[3]={a1, a19, a20}; //commandline:"TOPPBaseTest -doublelist 0.411"
 	TOPPBaseTest tmp2(3, string_cl);
-	TEST_EQUAL(tmp2.getDoubleList("doublelist") == ListUtils::create<DoubleReal>("0.411"), true)
+	TEST_EQUAL(tmp2.getDoubleList("doublelist") == ListUtils::create<double>("0.411"), true)
 	const char* a21 = "4.0";
 	const char* string_cl2[5]={a1,a19,a20,a13,a21};//commandline :"TOPPBaseTest -doublelist 0.411 4.5 4.0
 	TOPPBaseTest tmp3(5,string_cl2);
-	TEST_EQUAL(tmp3.getDoubleList("doublelist") == ListUtils::create<DoubleReal>("0.411,4.5,4.0"), true)
+	TEST_EQUAL(tmp3.getDoubleList("doublelist") == ListUtils::create<double>("0.411,4.5,4.0"), true)
 
 	const char* string_cl21[4]={a1,a19,a20,a13};//commandline :"TOPPBaseTest -doublelist 0.411 4.5
 	TOPPBaseTest tmp31(4,string_cl21);
-	TEST_EQUAL(tmp31.getDoubleList("doublelist") == ListUtils::create<DoubleReal>("0.411,4.5"), true)
+	TEST_EQUAL(tmp31.getDoubleList("doublelist") == ListUtils::create<double>("0.411,4.5"), true)
 
 	TEST_EXCEPTION(Exception::WrongParameterType,tmp2.getDoubleList("intoption"));
 	TEST_EXCEPTION(Exception::UnregisteredParameter,tmp2.getDoubleList("imleeewenit"));
@@ -623,7 +625,7 @@ START_SECTION(([EXTRA]void outputFileWritable_(const String& filename, const Str
 	//Actually writing something to the file is not necessary, but on Mac all tmp files are called 'source_<line>.tmp'.
 	//So we have to make sure the file is empty. Otherwise the test might fail...
 	TextFile dummy;
-	dummy.resize(5);
+  dummy.addLine("");dummy.addLine("");dummy.addLine("");dummy.addLine("");dummy.addLine("");
 	dummy.store(filename);
 END_SECTION
 
@@ -695,7 +697,7 @@ START_SECTION(([EXTRA] const Param& getParam_()))
 	test_param.setValue("param_string", "test", "param string description");
 	test_param.setValue("param_stringlist", ListUtils::create<String>("this,is,a,test"), "param stringlist description");
 	test_param.setValue("param_intlist", ListUtils::create<Int>("7,-8,9"), "param intlist description");
-	test_param.setValue("param_doublelist", ListUtils::create<DoubleReal>("123,-4.56,0.789"), "param doublelist description");
+	test_param.setValue("param_doublelist", ListUtils::create<double>("123,-4.56,0.789"), "param doublelist description");
 	test_param.setValue("param_flag", "true", "param flag description");
 	test_param.setValidStrings("param_flag", ListUtils::create<String>("true,false"));
 

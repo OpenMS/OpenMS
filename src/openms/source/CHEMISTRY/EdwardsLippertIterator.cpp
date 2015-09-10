@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,56 +33,20 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/EdwardsLippertIterator.h>
+#include <OpenMS/DATASTRUCTURES/SuffixArraySeqan.h>
 #include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 
-#include <cstring>
-#include <algorithm>
+#include <string>
 #include <fstream>
-
-using namespace std;
 
 namespace OpenMS
 {
 
-/**
-@brief comperator for two DoubleReals with a tolerance value
-*/
-  struct FloatsWithTolLess :
-    public binary_function<DoubleReal, DoubleReal, bool>
-  {
-    /**
-    @brief constructor
-    @param t const reference to the tolerance
-    */
-    explicit FloatsWithTolLess(const DoubleReal & t) :
-      tol_(t) {}
-    /**
-    @brief copy constructor
-    */
-    FloatsWithTolLess(const FloatsWithTolLess & rhs) :
-      tol_(rhs.tol_) {}
+  typedef std::pair<String, String> FASTAEntry;
 
-    /**
-    @brief implementation of the '<' operator for two DoubleReals with the tolerance value
-    @param f1 first DoubleReal
-    @param f2 second DoubleReal
-    @return true if first DoubleReal '<' second DoubleReal-tolerance
-    */
-    bool operator()(DoubleReal f1, DoubleReal f2) const
-    {
-      return f1 < (f2 - tol_);
-    }
-
-protected:
-    DoubleReal const & tol_; ///< tolerance value
-  };
-
-
-  typedef pair<String, String> FASTAEntry;
-
-  ///Constructor to intialize algorithm
+  ///Constructor to initialize algorithm
   EdwardsLippertIterator::EdwardsLippertIterator() :
     PepIterator()
   {
@@ -174,7 +138,7 @@ protected:
     return old;
   }
 
-  void EdwardsLippertIterator::setTolerance(DoubleReal t)
+  void EdwardsLippertIterator::setTolerance(double t)
   {
     if (t < 0)
     {
@@ -183,12 +147,12 @@ protected:
     tol_ = t;
   }
 
-  DoubleReal EdwardsLippertIterator::getTolerance()
+  double EdwardsLippertIterator::getTolerance()
   {
     return tol_;
   }
 
-  void EdwardsLippertIterator::setSpectrum(const vector<DoubleReal> & s)
+  void EdwardsLippertIterator::setSpectrum(const std::vector<double> & s)
   {
     //check if spectrum is sorted
     for (Size i = 1; i < s.size(); ++i)
@@ -202,14 +166,14 @@ protected:
     massMax_ = spec_.back();
   }
 
-  const vector<DoubleReal> & EdwardsLippertIterator::getSpectrum()
+  const std::vector<double> & EdwardsLippertIterator::getSpectrum()
   {
     return spec_;
   }
 
   void EdwardsLippertIterator::setFastaFile(const String & f)
   {
-    fstream fs;
+    std::fstream fs;
     fs.open(f.c_str());
     if (!fs.is_open())
     {
@@ -242,10 +206,10 @@ protected:
     return true;
   }
 
-  string EdwardsLippertIterator::next_()
+  std::string EdwardsLippertIterator::next_()
   {
 
-    string seq = f_entry_.second;
+    std::string seq = f_entry_.second;
 
     while (b_ < seq.length())
     {
@@ -301,10 +265,10 @@ protected:
 
   bool EdwardsLippertIterator::hasNext_()
   {
-    DoubleReal mold = m_;
+    double mold = m_;
     unsigned int bold = b_;
     unsigned int eold = e_;
-    string res = next_();
+    std::string res = next_();
     m_ = mold;
     b_ = bold;
     e_ = eold;
@@ -317,7 +281,7 @@ protected:
 
   void EdwardsLippertIterator::goToNextAA_()
   {
-    string seq = f_entry_.second;
+    std::string seq = f_entry_.second;
     m_ = 0;
     b_++;
 
@@ -339,7 +303,7 @@ protected:
     return true;
   }
 
-  bool EdwardsLippertIterator::isInSpectrum_(DoubleReal & mass)
+  bool EdwardsLippertIterator::isInSpectrum_(double & mass)
   {
     return binary_search(spec_.begin(), spec_.end(), mass, FloatsWithTolLess(tol_));
   }

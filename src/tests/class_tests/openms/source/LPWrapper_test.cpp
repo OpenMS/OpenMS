@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -67,7 +67,7 @@ END_SECTION
 
 LPWrapper lp;
 //lp.setSolver(LPWrapper::SOLVER_GLPK);
-std::vector<DoubleReal> values(2,0.5);
+std::vector<double> values(2,0.5);
 std::vector<Int> indices;
 indices.push_back(0);
 indices.push_back(1);
@@ -80,7 +80,7 @@ END_SECTION
 
 
 
-START_SECTION((Int addRow(std::vector< Int > row_indices, std::vector< DoubleReal > row_values, const String &name)))
+START_SECTION((Int addRow(std::vector< Int > row_indices, std::vector< double > row_values, const String &name)))
 {
   lp.addColumn();
   lp.addRow(indices,values,String("row1"));
@@ -90,7 +90,7 @@ START_SECTION((Int addRow(std::vector< Int > row_indices, std::vector< DoubleRea
 END_SECTION
 
 
-START_SECTION((Int addColumn(std::vector< Int > column_indices, std::vector< DoubleReal > column_values, const String &name)))
+START_SECTION((Int addColumn(std::vector< Int > column_indices, std::vector< double > column_values, const String &name)))
 {
   lp.addRow(indices,values,String("row2"));
   lp.addColumn(indices,values,String("col3"));
@@ -99,7 +99,7 @@ START_SECTION((Int addColumn(std::vector< Int > column_indices, std::vector< Dou
 }
 END_SECTION
 
-START_SECTION((Int addRow(std::vector< Int > &row_indices, std::vector< DoubleReal > &row_values, const String &name, DoubleReal lower_bound, DoubleReal upper_bound, Type type)))
+START_SECTION((Int addRow(std::vector< Int > &row_indices, std::vector< double > &row_values, const String &name, double lower_bound, double upper_bound, Type type)))
 {
   lp.addRow(indices,values,String("row3"),0.2,1.2,LPWrapper::DOUBLE_BOUNDED);
   TEST_EQUAL(lp.getNumberOfRows(),3);
@@ -107,7 +107,7 @@ START_SECTION((Int addRow(std::vector< Int > &row_indices, std::vector< DoubleRe
 }
 END_SECTION
 
-START_SECTION((Int addColumn(std::vector< Int > &column_indices, std::vector< DoubleReal > &column_values, const String &name, DoubleReal lower_bound, DoubleReal upper_bound, Type type)))
+START_SECTION((Int addColumn(std::vector< Int > &column_indices, std::vector< double > &column_values, const String &name, double lower_bound, double upper_bound, Type type)))
 {
   lp.addColumn(indices,values,String("col4"),0.2,1.2,LPWrapper::DOUBLE_BOUNDED);
   TEST_EQUAL(lp.getNumberOfColumns(),4);
@@ -153,7 +153,7 @@ START_SECTION((void setRowName(Int index, const String &name)))
 }
 END_SECTION
 
-START_SECTION((void setColumnBounds(Int index, DoubleReal lower_bound, DoubleReal upper_bound, Type type)))
+START_SECTION((void setColumnBounds(Int index, double lower_bound, double upper_bound, Type type)))
 {
   lp.setColumnBounds(0,0.3,1.0,LPWrapper::DOUBLE_BOUNDED);
   TEST_EQUAL(lp.getColumnUpperBound(0),1.0);
@@ -161,7 +161,7 @@ START_SECTION((void setColumnBounds(Int index, DoubleReal lower_bound, DoubleRea
 }
 END_SECTION
 
-START_SECTION((void setRowBounds(Int index, DoubleReal lower_bound, DoubleReal upper_bound, Type type)))
+START_SECTION((void setRowBounds(Int index, double lower_bound, double upper_bound, Type type)))
 {
   lp.setRowBounds(0,-0.3,1.0,LPWrapper::DOUBLE_BOUNDED);
   TEST_EQUAL(lp.getRowUpperBound(0),1.0);
@@ -184,14 +184,14 @@ START_SECTION((VariableType getColumnType(Int index)))
 }
 END_SECTION
 
-START_SECTION((void setObjective(Int index, DoubleReal obj_value)))
+START_SECTION((void setObjective(Int index, double obj_value)))
 {
   lp.setObjective(0,3.5);
   TEST_EQUAL(lp.getObjective(0),3.5);
 }
 END_SECTION
 
-START_SECTION((DoubleReal getObjective(Int index)))
+START_SECTION((double getObjective(Int index)))
 {
   lp.setObjective(1,2.5);
   TEST_EQUAL(lp.getObjective(1),2.5);
@@ -224,7 +224,7 @@ START_SECTION((Int getNumberOfRows()))
 }
 END_SECTION
 
-START_SECTION((DoubleReal getColumnUpperBound(Int index)))
+START_SECTION((double getColumnUpperBound(Int index)))
 {
   TEST_REAL_SIMILAR(lp.getColumnUpperBound(0),1.0)
 }
@@ -249,26 +249,26 @@ START_SECTION((void deleteRow(Int index)))
 }
 END_SECTION
 
-START_SECTION((DoubleReal getColumnLowerBound(Int index)))
+START_SECTION((double getColumnLowerBound(Int index)))
 {
   TEST_REAL_SIMILAR(lp.getColumnLowerBound(0),0.3)
 }
 END_SECTION
 
-START_SECTION((DoubleReal getRowUpperBound(Int index)))
+START_SECTION((double getRowUpperBound(Int index)))
 {
   TEST_REAL_SIMILAR(lp.getRowUpperBound(0),1.0)
 }
 END_SECTION
 
-START_SECTION((DoubleReal getRowLowerBound(Int index)))
+START_SECTION((double getRowLowerBound(Int index)))
 {
   TEST_REAL_SIMILAR(lp.getRowLowerBound(0),-0.3)  
 }
 END_SECTION
 
 
-START_SECTION((void setElement(Int row_index, Int column_index, DoubleReal value)))
+START_SECTION((void setElement(Int row_index, Int column_index, double value)))
 {
   lp.setElement(1,2,0.5);
   TEST_REAL_SIMILAR(lp.getElement(1,2),0.5)  
@@ -276,7 +276,7 @@ START_SECTION((void setElement(Int row_index, Int column_index, DoubleReal value
 END_SECTION
 
 
-START_SECTION((DoubleReal getElement(Int row_index, Int column_index)))
+START_SECTION((double getElement(Int row_index, Int column_index)))
 {
   lp.setElement(0,2,0.1);
   TEST_REAL_SIMILAR(lp.getElement(0,2),0.1)
@@ -358,6 +358,13 @@ START_SECTION((Int solve(SolverParam &solver_param, const Size verbose_level=0))
   lp2.solve(param);
   TEST_EQUAL(lp2.getColumnValue(0),1)
   TEST_EQUAL(lp2.getColumnValue(1),1)
+
+  // Test an integer problem
+  lp2.readProblem(OPENMS_GET_TEST_DATA_PATH("LPWrapper_test_integer.mps"),"MPS");
+  lp2.setObjectiveSense(LPWrapper::MAX);
+  lp2.solve(param);
+  TEST_EQUAL(lp2.getColumnValue(0),2)
+  TEST_EQUAL(lp2.getColumnValue(1),2)
 }
 END_SECTION
 
@@ -379,13 +386,13 @@ START_SECTION((SolverStatus getStatus()))
 }
 END_SECTION
 
-START_SECTION((DoubleReal getObjectiveValue()))
+START_SECTION((double getObjectiveValue()))
 {
   TEST_REAL_SIMILAR(lp.getObjectiveValue(),2)
 }
 END_SECTION
 
-START_SECTION((DoubleReal getColumnValue(Int index)))
+START_SECTION((double getColumnValue(Int index)))
 {
   TEST_REAL_SIMILAR(lp.getColumnValue(0),2)
   TEST_REAL_SIMILAR(lp.getColumnValue(1),2)

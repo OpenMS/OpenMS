@@ -21,9 +21,12 @@ MassAnalyzer.h
 MetaInfo.h
 MetaInfoDescription.h
 MetaInfoInterface.h
+MetaInfoInterfaceUtils.h
 MetaInfoRegistry.h
 Modification.h
+MSQuantifications.h
 PeptideHit.h
+PeptideEvidence.h
 PeptideIdentification.h
 Precursor.h
 ProteinHit.h
@@ -36,7 +39,6 @@ SpectrumSettings.h
 Tagging.h
 ScanWindow.h
 Product.h
-PeptideEvidence.h
 Identification.h
 SpectrumIdentification.h
 IdentificationHit.h
@@ -48,7 +50,7 @@ CVTermList.h
 ### add path to the filenames
 set(sources_h)
 foreach(i ${sources_list_h})
-	list(APPEND sources_h ${directory}/${i})
+  list(APPEND sources_h ${directory}/${i})
 endforeach(i)
 
 ### source group definition

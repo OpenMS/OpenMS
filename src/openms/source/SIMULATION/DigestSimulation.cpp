@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,7 +36,9 @@
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CHEMISTRY/EnzymaticDigestionLogModel.h>
 #include <OpenMS/KERNEL/Feature.h>
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 
 namespace OpenMS
 {
@@ -47,12 +49,12 @@ namespace OpenMS
     setDefaultParams_();
   }
 
-  DigestSimulation::DigestSimulation(const DigestSimulation & source) :
+  DigestSimulation::DigestSimulation(const DigestSimulation& source) :
     DefaultParamHandler(source)
   {
   }
 
-  DigestSimulation & DigestSimulation::operator=(const DigestSimulation & source)
+  DigestSimulation& DigestSimulation::operator=(const DigestSimulation& source)
   {
     if (this != &source)
     {
@@ -69,11 +71,8 @@ namespace OpenMS
   {
     // supported enzymes
     StringList enzymes;
-    enzymes.resize(EnzymaticDigestion::SIZE_OF_ENZYMES + 1);
-    for (UInt i = 0; i < EnzymaticDigestion::SIZE_OF_ENZYMES; ++i)
-      enzymes[i] = EnzymaticDigestion::NamesOfEnzymes[i];
-    enzymes[EnzymaticDigestion::SIZE_OF_ENZYMES] = "none";
-    defaults_.setValue("enzyme", enzymes[0], "Enzyme to use for digestion (select 'none' to skip digestion)");
+    EnzymesDB::getInstance()->getAllNames(enzymes);
+    defaults_.setValue("enzyme", "Trypsin", "Enzyme to use for digestion (select 'no cleavage' to skip digestion)");
     defaults_.setValidStrings("enzyme", enzymes);
 
     // cleavages
@@ -94,11 +93,11 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  void DigestSimulation::digest(FeatureMapSim & feature_map)
+  void DigestSimulation::digest(SimTypes::FeatureMapSim& feature_map)
   {
     LOG_INFO << "Digest Simulation ... started" << std::endl;
 
-    if ((String)param_.getValue("enzyme") == String("none"))
+    if ((String)param_.getValue("enzyme") == String("no cleavage"))
     {
       //peptides = proteins;
       // convert all proteins into peptides
@@ -109,10 +108,10 @@ namespace OpenMS
            ++protein_hit)
       {
         // generate a PeptideHit hit with the correct link to the protein
-        PeptideHit pep_hit(1.0, 1, 0, AASequence(protein_hit->getSequence()));
-        std::vector<String> prot_accessions;
-        prot_accessions.push_back(protein_hit->getAccession());
-        pep_hit.setProteinAccessions(prot_accessions);
+        PeptideHit pep_hit(1.0, 1, 0, AASequence::fromString(protein_hit->getSequence()));
+        PeptideEvidence pe;
+        pe.setProteinAccession(protein_hit->getAccession());
+        pep_hit.addPeptideEvidence(pe);
 
         // add the PeptideHit to the PeptideIdentification
         PeptideIdentification pep_id;
@@ -131,7 +130,7 @@ namespace OpenMS
           f.setMetaValue(*it_key, protein_hit->getMetaValue(*it_key));
         }
 
-        // add Feature to FeatureMapSim
+        // add Feature to SimTypes::FeatureMapSim
         feature_map.push_back(f);
       }
 
@@ -139,15 +138,20 @@ namespace OpenMS
     }
 
 
-    UInt min_peptide_length     = param_.getValue("min_peptide_length");
-    bool use_log_model          = param_.getValue("model") == "trained" ? true : false;
-    UInt missed_cleavages       = param_.getValue("model_naive:missed_cleavages");
-    DoubleReal cleave_threshold = param_.getValue("model_trained:threshold");
-
-    EnzymaticDigestion digestion;
-    digestion.setEnzyme(digestion.getEnzymeByName((String)param_.getValue("enzyme")));
-    digestion.setLogModelEnabled(use_log_model);
-    digestion.setLogThreshold(cleave_threshold);
+    UInt min_peptide_length = param_.getValue("min_peptide_length");
+    bool use_log_model = param_.getValue("model") == "trained" ? true : false;
+    UInt missed_cleavages = param_.getValue("model_naive:missed_cleavages");
+    double cleave_threshold = param_.getValue("model_trained:threshold");
+    if (use_log_model)
+    {
+      EnzymaticDigestionLogModel digestion;
+      digestion.setLogThreshold(cleave_threshold);
+    }
+    else
+    {
+      EnzymaticDigestion digestion;
+      digestion.setEnzyme((String)param_.getValue("enzyme"));
+    }
 
     std::vector<AASequence> digestion_products;
 
@@ -164,8 +168,21 @@ namespace OpenMS
       // note: missed cleavages reduce overall abundance as they combine two (or more) single peptides
 
       // how many "atomic"(i.e. non-cleavable) peptides are created?
-      digestion.setMissedCleavages(0);
-      Size complete_digest_count = digestion.peptideCount(AASequence(protein_hit->getSequence()));
+      Size complete_digest_count;
+      if (use_log_model)
+      {
+        EnzymaticDigestionLogModel digestion;
+        digestion.setLogThreshold(cleave_threshold);
+        complete_digest_count = digestion.peptideCount(AASequence::fromString(protein_hit->getSequence()));
+      }
+      else
+      {
+        EnzymaticDigestion digestion;
+        digestion.setEnzyme((String)param_.getValue("enzyme"));
+        digestion.setMissedCleavages(0);
+        complete_digest_count = digestion.peptideCount(AASequence::fromString(protein_hit->getSequence()));
+      }
+
       // compute average number of "atomic" peptides summed from all digestion products
       Size number_atomic_whole = 0;
       Size number_of_digestion_products = 0;
@@ -179,21 +196,32 @@ namespace OpenMS
       // -> thus abundance of a digestion product is: #proteins / avg#of"atomic"peptides
       // i.e.: protein->second / (number_atomic_whole / number_of_digestion_products)
 
-      Map<String, SimIntensityType> intensities;
+      Map<String, SimTypes::SimIntensityType> intensities;
       StringList keys;
       protein_hit->getKeys(keys);
       for (StringList::const_iterator it_key = keys.begin(); it_key != keys.end(); ++it_key)
       {
         if (!it_key->hasPrefix("intensity"))
           continue;
-        intensities[*it_key] = std::max(SimIntensityType(1), SimIntensityType(protein_hit->getMetaValue(*it_key))
-                                        * SimIntensityType(number_of_digestion_products)
-                                        / SimIntensityType(number_atomic_whole));                                                                                         // order changed for numeric stability
+        intensities[*it_key] = std::max(SimTypes::SimIntensityType(1), SimTypes::SimIntensityType(protein_hit->getMetaValue(*it_key))
+                                        * SimTypes::SimIntensityType(number_of_digestion_products)
+                                        / SimTypes::SimIntensityType(number_atomic_whole)); // order changed for numeric stability
       }
 
       // do real digest
-      digestion.setMissedCleavages(missed_cleavages);
-      digestion.digest(AASequence(protein_hit->getSequence()), digestion_products);
+      if (use_log_model)
+      {
+        EnzymaticDigestionLogModel digestion;
+        digestion.setLogThreshold(cleave_threshold);
+        digestion.digest(AASequence::fromString(protein_hit->getSequence()), digestion_products);
+      }
+      else
+      {
+        EnzymaticDigestion digestion;
+        digestion.setEnzyme((String)param_.getValue("enzyme"));
+        digestion.setMissedCleavages(missed_cleavages);
+        digestion.digest(AASequence::fromString(protein_hit->getSequence()), digestion_products);
+      }
 
       for (std::vector<AASequence>::const_iterator dp_it = digestion_products.begin();
            dp_it != digestion_products.end();
@@ -219,9 +247,9 @@ namespace OpenMS
           f.setIntensity(0.0);
 
           // copy all non-intensity meta values
-          StringList keys;
-          protein_hit->getKeys(keys);
-          for (StringList::iterator key = keys.begin(); key != keys.end(); ++key)
+          StringList lkeys;
+          protein_hit->getKeys(lkeys);
+          for (StringList::iterator key = lkeys.begin(); key != lkeys.end(); ++key)
           {
             if (!key->hasPrefix("intensity"))
             {
@@ -236,7 +264,7 @@ namespace OpenMS
         // sum up intensity values
         generated_features[*dp_it].setIntensity(generated_features[*dp_it].getIntensity() + intensities["intensity"]);
         // ... same for other intensities (iTRAQ...)
-        for (Map<String, SimIntensityType>::const_iterator it_other = intensities.begin(); it_other != intensities.end(); ++it_other)
+        for (Map<String, SimTypes::SimIntensityType>::const_iterator it_other = intensities.begin(); it_other != intensities.end(); ++it_other)
         {
           if (!generated_features[*dp_it].metaValueExists(it_other->first))
           {
@@ -244,20 +272,26 @@ namespace OpenMS
           }
           else
           {
-            generated_features[*dp_it].setMetaValue(it_other->first, SimIntensityType(generated_features[*dp_it].getMetaValue(it_other->first)) + it_other->second);
+            generated_features[*dp_it].setMetaValue(it_other->first, SimTypes::SimIntensityType(generated_features[*dp_it].getMetaValue(it_other->first)) + it_other->second);
           }
         }
 
         // add current protein accession
         // existing proteins accessions ...
-        std::vector<String> prot_accessions(generated_features[*dp_it].getPeptideIdentifications()[0].getHits()[0].getProteinAccessions());
+        std::set<String> protein_accessions = generated_features[*dp_it].getPeptideIdentifications()[0].getHits()[0].extractProteinAccessions();
 
         // ... add accession of current protein
-        prot_accessions.push_back(protein_hit->getAccession());
+        protein_accessions.insert(protein_hit->getAccession());
 
         std::vector<PeptideIdentification> pep_idents = generated_features[*dp_it].getPeptideIdentifications();
         std::vector<PeptideHit> pep_hits = pep_idents[0].getHits();
-        pep_hits[0].setProteinAccessions(prot_accessions);
+
+        for (std::set<String>::const_iterator s_it = protein_accessions.begin(); s_it != protein_accessions.end(); ++s_it)
+        {
+          PeptideEvidence pe;
+          pe.setProteinAccession(*s_it);
+          pep_hits[0].addPeptideEvidence(pe);
+        }
         pep_idents[0].setHits(pep_hits);
         generated_features[*dp_it].setPeptideIdentifications(pep_idents);
       }

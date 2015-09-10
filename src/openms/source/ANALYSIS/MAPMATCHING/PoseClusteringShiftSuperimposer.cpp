@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -92,7 +92,7 @@ namespace OpenMS
   void PoseClusteringShiftSuperimposer::run(const ConsensusMap & map_model, const ConsensusMap & map_scene, TransformationDescription & transformation)
   {
     typedef ConstRefVector<ConsensusMap> PeakPointerArray_;
-    typedef Math::LinearInterpolation<DoubleReal, DoubleReal> LinearInterpolationType_;
+    typedef Math::LinearInterpolation<double, double> LinearInterpolationType_;
 
     LinearInterpolationType_ shift_hash_;
 
@@ -103,14 +103,14 @@ namespace OpenMS
     //    LinearInterpolationType_ rt_high_hash_;
 
     /// Maximum deviation in mz of two partner points
-    const DoubleReal mz_pair_max_distance = param_.getValue("mz_pair_max_distance");
+    const double mz_pair_max_distance = param_.getValue("mz_pair_max_distance");
 
     /// Size of each shift bucket
-    const DoubleReal shift_bucket_size = param_.getValue("shift_bucket_size");
+    const double shift_bucket_size = param_.getValue("shift_bucket_size");
 
     const UInt struc_elem_length_datapoints = 21; // MAGIC ALERT: number of data points in structuring element for tophat filter, which removes baseline from histogram
-    const DoubleReal scaling_histogram_crossing_slope = 3.0; // MAGIC ALERT: used when distinguishing noise level and enriched histogram bins
-    const DoubleReal scaling_cutoff_stdev_multiplier = 1.5; // MAGIC ALERT: multiplier for stdev in cutoff for outliers
+    const double scaling_histogram_crossing_slope = 3.0; // MAGIC ALERT: used when distinguishing noise level and enriched histogram bins
+    const double scaling_cutoff_stdev_multiplier = 1.5; // MAGIC ALERT: multiplier for stdev in cutoff for outliers
     const UInt loops_mean_stdev_cutoff = 3; // MAGIC ALERT: number of loops in stdev cutoff for outliers
 
     startProgress(0, 100, "shift pose clustering");
@@ -172,20 +172,20 @@ namespace OpenMS
     // get RT ranges (NOTE: we trust that min and max have been updated in the
     // ConsensusMap::convert() method !)
 
-    const DoubleReal model_low = map_model.getMin()[ConsensusFeature::RT];
-    const DoubleReal scene_low = map_scene.getMin()[ConsensusFeature::RT];
-    const DoubleReal model_high = map_model.getMax()[ConsensusFeature::RT];
-    const DoubleReal scene_high = map_scene.getMax()[ConsensusFeature::RT];
+    const double model_low = map_model.getMin()[ConsensusFeature::RT];
+    const double scene_low = map_scene.getMin()[ConsensusFeature::RT];
+    const double model_high = map_model.getMax()[ConsensusFeature::RT];
+    const double scene_high = map_scene.getMax()[ConsensusFeature::RT];
 
     // OLD STUFF
-    //    const DoubleReal rt_low = (maps[0].getMin()[ConsensusFeature::RT] + maps[1].getMin()[ConsensusFeature::RT]) / 2.;
-    //    const DoubleReal rt_high = (maps[0].getMax()[ConsensusFeature::RT] + maps[1].getMax()[ConsensusFeature::RT]) / 2.;
+    //    const double rt_low = (maps[0].getMin()[ConsensusFeature::RT] + maps[1].getMin()[ConsensusFeature::RT]) / 2.;
+    //    const double rt_high = (maps[0].getMax()[ConsensusFeature::RT] + maps[1].getMax()[ConsensusFeature::RT]) / 2.;
 
     // Initialize the hash tables: shift_hash_
     // OLD STUFF: was:  rt_scaling_hash_, rt_low_hash_, and rt_high_hash_
     {
       // (over)estimate the required number of buckets for shifting
-      DoubleReal max_shift = param_.getValue("max_shift");
+      double max_shift = param_.getValue("max_shift");
       // actually the largest possible shift can be much smaller, depending on the data
       do
       {
@@ -193,7 +193,7 @@ namespace OpenMS
           max_shift = -max_shift;
         //     ...ml@@@mh........    ,    ........ml@@@mh...
         //     ........sl@@@sh...    ,    ...sl@@@sh........
-        DoubleReal diff;
+        double diff;
         diff = model_high - scene_low;
         if (diff < 0)
           diff = -diff;
@@ -218,16 +218,16 @@ namespace OpenMS
 
     //**************************************************************************
     // compute the ratio of the total intensities of both maps, for normalization
-    DoubleReal total_intensity_ratio;
+    double total_intensity_ratio;
     do
     {
-      DoubleReal total_int_model_map = 0;
+      double total_int_model_map = 0;
       for (Size i = 0; i < model_map.size(); ++i)
       {
         total_int_model_map += model_map[i].getIntensity();
       }
       setProgress(++actual_progress);
-      DoubleReal total_int_scene_map = 0;
+      double total_int_scene_map = 0;
       for (Size i = 0; i < scene_map.size(); ++i)
       {
         total_int_scene_map += scene_map[i].getIntensity();
@@ -257,7 +257,7 @@ namespace OpenMS
     Size const model_map_size = model_map.size(); // i  /* OLD STUFF: also: j */
     Size const scene_map_size = scene_map.size(); // k  /* OLD STUFF: also: l */
 
-    const DoubleReal winlength_factor_baseline = 0.1; // MAGIC ALERT: Each window is given unit weight.  If there are too many pairs for a window, the individual contributions will be very small, but running time will be high, so we provide a cutoff for this.  Typically this will exclude compounds which elute over the whole retention time range from consideration.
+    const double winlength_factor_baseline = 0.1; // MAGIC ALERT: Each window is given unit weight.  If there are too many pairs for a window, the individual contributions will be very small, but running time will be high, so we provide a cutoff for this.  Typically this will exclude compounds which elute over the whole retention time range from consideration.
 
 
     ///////////////////////////////////////////////////////////////////
@@ -278,14 +278,14 @@ namespace OpenMS
       // first point in model map
       for (Size i = 0, i_low = 0, i_high = 0, k_low = 0, k_high = 0; i < model_map_size - 1; ++i)
       {
-        setProgress(actual_progress + Real(i) / model_map_size * 10.f);
+        setProgress(actual_progress + float(i) / model_map_size * 10.f);
 
         // Adjust window around i in model map
         while (i_low < model_map_size && model_map[i_low].getMZ() < model_map[i].getMZ() - mz_pair_max_distance)
           ++i_low;
         while (i_high < model_map_size && model_map[i_high].getMZ() <= model_map[i].getMZ() + mz_pair_max_distance)
           ++i_high;
-        DoubleReal i_winlength_factor = 1. / (i_high - i_low);
+        double i_winlength_factor = 1. / (i_high - i_low);
         i_winlength_factor -= winlength_factor_baseline;
         if (i_winlength_factor <= 0)
           continue;
@@ -299,16 +299,16 @@ namespace OpenMS
         // first point in scene map
         for (Size k = k_low; k < k_high; ++k)
         {
-          DoubleReal k_winlength_factor = 1. / (k_high - k_low);
+          double k_winlength_factor = 1. / (k_high - k_low);
           k_winlength_factor -= winlength_factor_baseline;
           if (k_winlength_factor <= 0)
             continue;
 
           // compute similarity of intensities i k
-          DoubleReal similarity_ik;
+          double similarity_ik;
           {
-            const DoubleReal int_i = model_map[i].getIntensity();
-            const DoubleReal int_k = scene_map[k].getIntensity() * total_intensity_ratio;
+            const double int_i = model_map[i].getIntensity();
+            const double int_k = scene_map[k].getIntensity() * total_intensity_ratio;
             similarity_ik = (int_i < int_k) ? int_i / int_k : int_k / int_i;
             // weight is inverse proportional to number of elements with similar mz
             similarity_ik *= i_winlength_factor;
@@ -317,7 +317,7 @@ namespace OpenMS
           }
 
           // compute the transformation (i) -> (k)
-          DoubleReal shift = model_map[i].getRT() - scene_map[k].getRT();
+          double shift = model_map[i].getRT() - scene_map[k].getRT();
 
           // hash the images of scaling, rt_low and rt_high into their respective hash tables
           shift_hash_.addValue(shift, similarity_ik);
@@ -337,14 +337,14 @@ namespace OpenMS
 
     ///////////////////////////////////////////////////////////////////
     // work on shift_hash_
-    //   DoubleReal shift_low;
-    //   DoubleReal shift_centroid;
-    //   DoubleReal shift_high;
+    //   double shift_low;
+    //   double shift_centroid;
+    //   double shift_high;
 
     // OLD STUFF
-    DoubleReal shift_low;
-    DoubleReal shift_centroid;
-    DoubleReal shift_high;
+    // double shift_low;
+    double shift_centroid;
+    // double shift_high;
     do
     {
 
@@ -363,8 +363,8 @@ namespace OpenMS
         dump_buckets_file << "# unfiltered hash data\n";
         for (Size index = 0; index < shift_hash_.getData().size(); ++index)
         {
-          const DoubleReal image = shift_hash_.index2key(index);
-          const DoubleReal height = shift_hash_.getData()[index];
+          const double image = shift_hash_.index2key(index);
+          const double height = shift_hash_.getData()[index];
           dump_buckets_file << filtering_stage << '\t' << index << '\t' << image << '\t' << height << '\n';
         }
         dump_buckets_file << '\n';
@@ -377,7 +377,7 @@ namespace OpenMS
       MorphologicalFilter morph_filter;
       Param morph_filter_param;
       morph_filter_param.setValue("struc_elem_unit", "DataPoints");
-      morph_filter_param.setValue("struc_elem_length", DoubleReal(struc_elem_length_datapoints));
+      morph_filter_param.setValue("struc_elem_length", double(struc_elem_length_datapoints));
       morph_filter_param.setValue("method", "tophat");
       morph_filter.setParameters(morph_filter_param);
 
@@ -391,8 +391,8 @@ namespace OpenMS
         dump_buckets_file << "# tophat filtered hash data\n";
         for (Size index = 0; index < shift_hash_.getData().size(); ++index)
         {
-          const DoubleReal image = shift_hash_.index2key(index);
-          const DoubleReal height = shift_hash_.getData()[index];
+          const double image = shift_hash_.index2key(index);
+          const double height = shift_hash_.getData()[index];
           dump_buckets_file << filtering_stage << '\t' << index << '\t' << image << '\t' << height << '\n';
         }
         dump_buckets_file << '\n';
@@ -402,14 +402,14 @@ namespace OpenMS
       ++filtering_stage;
 
       // compute freq_cutoff using a fancy criterion to distinguish between the noise level of the histogram and enriched histogram bins
-      DoubleReal freq_cutoff_low;
+      double freq_cutoff_low;
       do
       {
         {
           std::copy(shift_hash_.getData().begin(), shift_hash_.getData().end(), buffer.begin());
-          std::sort(buffer.begin(), buffer.end(), std::greater<DoubleReal>());
-          DoubleReal freq_intercept = shift_hash_.getData().front();
-          DoubleReal freq_slope = (shift_hash_.getData().back() - shift_hash_.getData().front()) / DoubleReal(buffer.size())
+          std::sort(buffer.begin(), buffer.end(), std::greater<double>());
+          double freq_intercept = shift_hash_.getData().front();
+          double freq_slope = (shift_hash_.getData().back() - shift_hash_.getData().front()) / double(buffer.size())
                                   / scaling_histogram_crossing_slope;
           if (!freq_slope || !buffer.size())
           {
@@ -419,7 +419,7 @@ namespace OpenMS
           else
           {
             Size index = 1; // not 0 (!)
-            while (buffer[index] >= freq_intercept + freq_slope * DoubleReal(index))
+            while (buffer[index] >= freq_intercept + freq_slope * double(index))
             {
               ++index;
             }
@@ -446,8 +446,8 @@ namespace OpenMS
         dump_buckets_file << "# after freq_cutoff, which is: " << freq_cutoff_low << '\n';
         for (Size index = 0; index < shift_hash_.getData().size(); ++index)
         {
-          const DoubleReal image = shift_hash_.index2key(index);
-          const DoubleReal height = shift_hash_.getData()[index];
+          const double image = shift_hash_.index2key(index);
+          const double height = shift_hash_.getData()[index];
           dump_buckets_file << filtering_stage << '\t' << index << '\t' << image << '\t' << height << '\n';
         }
         dump_buckets_file << '\n';
@@ -456,25 +456,23 @@ namespace OpenMS
 
       // iterative cut-off based on mean and stdev - relies upon scaling_cutoff_stdev_multiplier which is a bit hard to set right.
       {
-        Math::BasicStatistics<DoubleReal> statistics;
-        std::vector<DoubleReal>::const_iterator data_begin = shift_hash_.getData().begin();
+        Math::BasicStatistics<double> statistics;
+        std::vector<double>::const_iterator data_begin = shift_hash_.getData().begin();
         const Size data_size = shift_hash_.getData().size();
         Size data_range_begin = 0;
         Size data_range_end = data_size;
-        DoubleReal mean;
-        DoubleReal stdev;
         for (UInt loop = 0; loop < loops_mean_stdev_cutoff; ++loop)   // MAGIC ALERT: number of loops
         {
           statistics.update(data_begin + data_range_begin, data_begin + data_range_end);
-          mean = statistics.mean() + data_range_begin;
-          stdev = sqrt(statistics.variance());
-          data_range_begin = floor(std::max<DoubleReal>(mean - scaling_cutoff_stdev_multiplier * stdev, 0));
-          data_range_end = ceil(std::min<DoubleReal>(mean + scaling_cutoff_stdev_multiplier * stdev + 1, data_size));
-          const DoubleReal outside_mean = shift_hash_.index2key(mean);
-          const DoubleReal outside_stdev = stdev * shift_hash_.getScale();
-          shift_low = (outside_mean - outside_stdev);
+          double mean = statistics.mean() + data_range_begin;
+          double stdev = sqrt(statistics.variance());
+          data_range_begin = floor(std::max<double>(mean - scaling_cutoff_stdev_multiplier * stdev, 0));
+          data_range_end = ceil(std::min<double>(mean + scaling_cutoff_stdev_multiplier * stdev + 1, data_size));
+          const double outside_mean = shift_hash_.index2key(mean);
+          const double outside_stdev = stdev * shift_hash_.getScale();
+          // shift_low = (outside_mean - outside_stdev);
           shift_centroid = (outside_mean);
-          shift_high = (outside_mean + outside_stdev);
+          // shift_high = (outside_mean + outside_stdev);
           if (do_dump_buckets)
           {
             dump_buckets_file << "# loop: " << loop << "  mean: " << outside_mean << "  stdev: " << outside_stdev << "  (mean-stdev): "
@@ -499,7 +497,7 @@ namespace OpenMS
     // Estimate transform
 
     // Compute the shifts at the low and high ends by looking at (around) the fullest bins.
-    DoubleReal intercept;
+    double intercept;
 #if 1 // yes of course, use centroids for images of rt_low and rt_high
     intercept = shift_centroid;
 #else // ooh, use maximum bins instead (Note: this is a fossil which would disregard most of the above computations!  The code is left here for developers/debugging only.)

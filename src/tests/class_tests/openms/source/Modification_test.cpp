@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -71,7 +71,7 @@ START_SECTION((const String& getReagentName() const))
 	TEST_EQUAL(s.getReagentName(),"")
 END_SECTION
 
-START_SECTION((DoubleReal getMass() const ))
+START_SECTION((double getMass() const ))
 	Modification s;
 	TEST_REAL_SIMILAR(s.getMass(),0.0)
 END_SECTION
@@ -92,7 +92,7 @@ START_SECTION((void setReagentName(const String& reagent_name)))
 	TEST_EQUAL(s.getReagentName(),"TTEST")
 END_SECTION
 
-START_SECTION((void setMass(DoubleReal mass)))
+START_SECTION((void setMass(double mass)))
 	Modification s;
 	s.setMass(11.9);
 	TEST_REAL_SIMILAR(s.getMass(),11.9)

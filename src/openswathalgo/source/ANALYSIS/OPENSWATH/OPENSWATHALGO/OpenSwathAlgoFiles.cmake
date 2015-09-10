@@ -37,17 +37,18 @@ set(directory source/ANALYSIS/OPENSWATH/OPENSWATHALGO)
 
 ### list all files of the directory here
 set(sources_algo_list
-  ALGO/Scoring.cpp
   ALGO/MRMScoring.cpp
+  ALGO/Scoring.cpp
   ALGO/StatsHelpers.cpp
 )
 
 set(sources_dataaccess_list
+  DATAACCESS/DataFrameWriter.cpp
+  DATAACCESS/ISpectrumAccess.cpp
+  DATAACCESS/MockObjects.cpp
   DATAACCESS/SpectrumHelpers.cpp
-	DATAACCESS/ISpectrumAccess.cpp
-	DATAACCESS/TransitionHelper.cpp
-	DATAACCESS/MockObjects.cpp
-	DATAACCESS/DataFrameWriter.cpp
+  DATAACCESS/TransitionHelper.cpp
+  DATAACCESS/Transitions.cpp
 )
 
 ### add path to the filenames
@@ -81,11 +82,11 @@ set(header_dataaccess_list
   DATAACCESS/DataFrameWriter.h
   DATAACCESS/DataStructures.h
   DATAACCESS/ISpectrumAccess.h
-  DATAACCESS/TransitionHelper.h
   DATAACCESS/ITransition.h
   DATAACCESS/MockObjects.h
   DATAACCESS/SpectrumHelpers.h
   DATAACCESS/TransitionExperiment.h
+  DATAACCESS/TransitionHelper.h
   DATAACCESS/Transitions.h
 )
 
@@ -102,6 +103,10 @@ endforeach(i)
 
 list(APPEND OpenSwathAlgoFiles ${header_algo})
 list(APPEND OpenSwathAlgoFiles ${header_dataaccess})
+
+# define list of headers related to openswathalgo needed for
+# installation and export
+set(OpenSwathAlgoHeaders ${header_algo} ${header_dataaccess})
 
 source_group("Header Files\\ANALYSIS\\OPENSWATH\\OPENSWATHALGO\\DATAACESS" FILES ${header_dataaccess})
 source_group("Header Files\\ANALYSIS\\OPENSWATH\\OPENSWATHALGO\\ALGO" FILES ${header_algo})

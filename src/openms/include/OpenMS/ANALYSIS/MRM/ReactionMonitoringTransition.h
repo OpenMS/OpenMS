@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,9 +46,11 @@ namespace OpenMS
   /**
     @brief This class stores a SRM/MRM transition
 
-    The default values for precursor and product m/z values are
-    set to numeric_limits<DoubleReal>::max(). Default values for
-    precursor an product charge is set to numeric_limits<Int>::max().
+    This class is capable of representing a <Transition> tag in a TraML
+    document completely and contains all associated information.
+
+    The default values for precursor m/z is 0.0 which indicates that it is
+    uninitialized.
   */
   class OPENMS_DLLAPI ReactionMonitoringTransition :
     public CVTermList
@@ -104,9 +106,9 @@ public:
     const String & getCompoundRef() const;
 
     /// sets the precursor mz (Q1 value)
-    void setPrecursorMZ(DoubleReal mz);
+    void setPrecursorMZ(double mz);
 
-    DoubleReal getPrecursorMZ() const;
+    double getPrecursorMZ() const;
 
     void setPrecursorCVTermList(const CVTermList & list);
 
@@ -114,9 +116,9 @@ public:
 
     const CVTermList & getPrecursorCVTermList() const;
 
-    void setProductMZ(DoubleReal mz);
+    void setProductMZ(double mz);
 
-    DoubleReal getProductMZ() const;
+    double getProductMZ() const;
 
     //void setProductCVTermList(const CVTermList& list);
 
@@ -148,9 +150,9 @@ public:
 
     void setDecoyTransitionType(const DecoyTransitionType & d);
 
-    DoubleReal getLibraryIntensity() const;
+    double getLibraryIntensity() const;
 
-    void setLibraryIntensity(DoubleReal intensity);
+    void setLibraryIntensity(double intensity);
 
     //@}
 
@@ -205,8 +207,9 @@ protected:
     // Prediction
     // cvparam / userParam
 
-    // A transition has exactly one precursor and it must supply the CV Term 1000827 (isolation window target m/z
-    DoubleReal precursor_mz_;
+    // A transition has exactly one precursor and it must supply the CV Term 1000827 (isolation window target m/z)
+    double precursor_mz_;
+
     CVTermList precursor_cv_terms_;
 
     Product product_;
@@ -221,7 +224,7 @@ protected:
     /// specific properties of a transition (e.g. specific CV terms)
     DecoyTransitionType decoy_type_;
 
-    DoubleReal library_intensity_;
+    double library_intensity_;
   };
 }
 

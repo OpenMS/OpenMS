@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,7 +37,6 @@
 
 #include <OpenMS/METADATA/ChromatogramSettings.h>
 #include <OpenMS/METADATA/MetaInfoDescription.h>
-#include <OpenMS/FORMAT/DB/PersistentObject.h>
 #include <OpenMS/KERNEL/RangeManager.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
@@ -51,28 +50,27 @@ namespace OpenMS
   */
   template <typename PeakT = ChromatogramPeak>
   class MSChromatogram :
-    public std::vector<PeakT>,
+    private std::vector<PeakT>,
     public RangeManager<1>,
-    public ChromatogramSettings,
-    public PersistentObject
+    public ChromatogramSettings
   {
 
 public:
 
     /// Float data array class
-    class OPENMS_DLLAPI FloatDataArray :
+    class FloatDataArray :
       public MetaInfoDescription,
-      public std::vector<Real>
+      public std::vector<float>
     {};
 
     /// String data array class
-    class OPENMS_DLLAPI StringDataArray :
+    class StringDataArray :
       public MetaInfoDescription,
       public std::vector<String>
     {};
 
     /// Float data array class
-    class OPENMS_DLLAPI IntegerDataArray :
+    class IntegerDataArray :
       public MetaInfoDescription,
       public std::vector<Int>
     {};
@@ -81,7 +79,7 @@ public:
     struct MZLess :
       public std::binary_function<MSChromatogram, MSChromatogram, bool>
     {
-      inline bool operator()(const MSChromatogram & a, const MSChromatogram & b) const
+      inline bool operator()(const MSChromatogram& a, const MSChromatogram& b) const
       {
         return a.getMZ() < b.getMZ();
       }
@@ -116,13 +114,40 @@ public:
     typedef typename ContainerType::const_reverse_iterator ConstReverseIterator;
     //@}
 
+    ///@name Export methods from std::vector<PeakT>
+    //@{
+    using ContainerType::operator[];
+    using ContainerType::begin;
+    using ContainerType::rbegin;
+    using ContainerType::end;
+    using ContainerType::rend;
+    using ContainerType::resize;
+    using ContainerType::size;
+    using ContainerType::push_back;
+    using ContainerType::pop_back;
+    using ContainerType::empty;
+    using ContainerType::front;
+    using ContainerType::back;
+    using ContainerType::reserve;
+    using ContainerType::insert;
+    using ContainerType::erase;
+    using ContainerType::swap;
+
+    using typename ContainerType::iterator;
+    using typename ContainerType::const_iterator;
+    using typename ContainerType::size_type;
+    using typename ContainerType::value_type;
+    using typename ContainerType::reference;
+    using typename ContainerType::const_reference;
+    using typename ContainerType::pointer;
+    using typename ContainerType::difference_type;
+    //@}
 
     /// Constructor
     MSChromatogram() :
       ContainerType(),
       RangeManager<1>(),
       ChromatogramSettings(),
-      PersistentObject(),
       name_(),
       float_data_arrays_(),
       string_data_arrays_(),
@@ -130,11 +155,10 @@ public:
     {}
 
     /// Copy constructor
-    MSChromatogram(const MSChromatogram & source) :
+    MSChromatogram(const MSChromatogram& source) :
       ContainerType(source),
       RangeManager<1>(source),
       ChromatogramSettings(source),
-      PersistentObject(source),
       name_(source.name_),
       float_data_arrays_(source.float_data_arrays_),
       string_data_arrays_(source.string_data_arrays_),
@@ -146,14 +170,13 @@ public:
     {}
 
     /// Assignment operator
-    MSChromatogram & operator=(const MSChromatogram & source)
+    MSChromatogram& operator=(const MSChromatogram& source)
     {
       if (&source == this) return *this;
 
       ContainerType::operator=(source);
       RangeManager<1>::operator=(source);
       ChromatogramSettings::operator=(source);
-      PersistentObject::operator=(source);
 
       name_ = source.name_;
       float_data_arrays_ = source.float_data_arrays_;
@@ -164,7 +187,7 @@ public:
     }
 
     /// Equality operator
-    bool operator==(const MSChromatogram & rhs) const
+    bool operator==(const MSChromatogram& rhs) const
     {
       //name_ can differ => it is not checked
       return std::operator==(*this, rhs) &&
@@ -176,7 +199,7 @@ public:
     }
 
     /// Equality operator
-    bool operator!=(const MSChromatogram & rhs) const
+    bool operator!=(const MSChromatogram& rhs) const
     {
       return !(operator==(rhs));
     }
@@ -191,13 +214,13 @@ public:
     ///@name Accessors for meta information
     ///@{
     /// Returns the name
-    inline const String & getName() const
+    inline const String& getName() const
     {
       return name_;
     }
 
     /// Sets the name
-    inline void setName(const String & name)
+    inline void setName(const String& name)
     {
       name_ = name;
     }
@@ -205,7 +228,7 @@ public:
     ///@}
 
     /// returns the mz of the product entry, makes sense especially for MRM scans
-    inline DoubleReal getMZ() const
+    inline double getMZ() const
     {
       return getProduct().getMZ();
     }
@@ -224,37 +247,37 @@ public:
     */
     ///@{
     /// Returns a const reference to the float meta data arrays
-    inline const FloatDataArrays & getFloatDataArrays() const
+    inline const FloatDataArrays& getFloatDataArrays() const
     {
       return float_data_arrays_;
     }
 
     /// Returns a mutable reference to the float meta data arrays
-    inline FloatDataArrays & getFloatDataArrays()
+    inline FloatDataArrays& getFloatDataArrays()
     {
       return float_data_arrays_;
     }
 
     /// Returns a const reference to the string meta data arrays
-    inline const StringDataArrays & getStringDataArrays() const
+    inline const StringDataArrays& getStringDataArrays() const
     {
       return string_data_arrays_;
     }
 
     /// Returns a mutable reference to the string meta data arrays
-    inline StringDataArrays & getStringDataArrays()
+    inline StringDataArrays& getStringDataArrays()
     {
       return string_data_arrays_;
     }
 
     /// Returns a const reference to the integer meta data arrays
-    inline const IntegerDataArrays & getIntegerDataArrays() const
+    inline const IntegerDataArrays& getIntegerDataArrays() const
     {
       return integer_data_arrays_;
     }
 
     /// Returns a mutable reference to the integer meta data arrays
-    inline IntegerDataArrays & getIntegerDataArrays()
+    inline IntegerDataArrays& getIntegerDataArrays()
     {
       return integer_data_arrays_;
     }
@@ -310,7 +333,7 @@ public:
 
         for (Size i = 0; i < float_data_arrays_.size(); ++i)
         {
-          std::vector<Real> mda_tmp;
+          std::vector<float> mda_tmp;
           for (Size j = 0; j < float_data_arrays_[i].size(); ++j)
           {
             mda_tmp.push_back(*(float_data_arrays_[i].begin() + (sorted_indices[j].second)));
@@ -373,7 +396,7 @@ public:
 
         for (Size i = 0; i < float_data_arrays_.size(); ++i)
         {
-          std::vector<Real> mda_tmp;
+          std::vector<float> mda_tmp;
           for (Size j = 0; j < float_data_arrays_[i].size(); ++j)
           {
             mda_tmp.push_back(*(float_data_arrays_[i].begin() + (sorted_indices[j].second)));
@@ -568,8 +591,7 @@ public:
       if (clear_meta_data)
       {
         clearRanges();
-        clearId();
-        this->ChromatogramSettings::operator=(ChromatogramSettings());   // no "clear" method
+        this->ChromatogramSettings::operator=(ChromatogramSettings()); // no "clear" method
         name_.clear();
         float_data_arrays_.clear();
         string_data_arrays_.clear();
@@ -580,9 +602,6 @@ public:
     ///@}
 
 protected:
-    // Docu in base class
-    virtual void clearChildIds_()
-    {}
 
     /// Name
     String name_;
@@ -599,12 +618,12 @@ protected:
 
   /// Print the contents to a stream.
   template <typename PeakT>
-  std::ostream & operator<<(std::ostream & os, const MSChromatogram<PeakT> & chrom)
+  std::ostream& operator<<(std::ostream& os, const MSChromatogram<PeakT>& chrom)
   {
     os << "-- MSCHROMATOGRAM BEGIN --" << std::endl;
 
     //chromatogram settings
-    os << static_cast<const ChromatogramSettings &>(chrom);
+    os << static_cast<const ChromatogramSettings&>(chrom);
 
     //data list
     for (typename MSChromatogram<PeakT>::ConstIterator it = chrom.begin(); it != chrom.end(); ++it)

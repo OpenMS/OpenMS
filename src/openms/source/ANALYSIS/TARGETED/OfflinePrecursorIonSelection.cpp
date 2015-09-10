@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,13 +48,13 @@ namespace OpenMS
     defaults_.setValue("ms2_spectra_per_rt_bin", 5, "Number of allowed MS/MS spectra in a retention time bin.");
     defaults_.setMinInt("ms2_spectra_per_rt_bin", 1);
 
-    defaults_.setValue("min_peak_distance", 3., "The minimal distance (in Da) of two peaks in one spectrum so that they can be selected.");
-    defaults_.setMinFloat("min_peak_distance", 0.);
+    defaults_.setValue("min_mz_peak_distance", 2.0, "The minimal distance (in Th) between two peaks for concurrent selection for fragmentation. Also used to define the m/z width of an exclusion window (distance +/- from m/z of precursor). If you set this lower than the isotopic envelope of a peptide, you might get multiple fragment spectra pointing to the same precursor.");
+    defaults_.setMinFloat("min_mz_peak_distance", 0.0001);
 
-    defaults_.setValue("selection_window", 2., "All peaks within a mass window (in Da) of a selected peak are also selected for fragmentation.");
-    defaults_.setMinFloat("selection_window", 0.);
+    defaults_.setValue("mz_isolation_window", 2.0, "All peaks within a mass window (in Th) of a selected peak are also selected for fragmentation.");
+    defaults_.setMinFloat("mz_isolation_window", 0.);
 
-    defaults_.setValue("exclude_overlapping_peaks", "false", "If true overlapping or nearby peaks (within min_peak_distance) are excluded for selection.");
+    defaults_.setValue("exclude_overlapping_peaks", "false", "If true, overlapping or nearby peaks (within 'min_mz_peak_distance') are excluded for selection.");
     defaults_.setValidStrings("exclude_overlapping_peaks", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("Exclusion:use_dynamic_exclusion", "false", "If true dynamic exclusion is applied.");
@@ -82,7 +82,7 @@ namespace OpenMS
   }
 
   void OfflinePrecursorIonSelection::createProteinSequenceBasedLPInclusionList(String include, String rt_model_file, String pt_model_file,
-                                                                               FeatureMap<> & precursors)
+                                                                               FeatureMap & precursors)
   {
     PrecursorIonSelectionPreprocessing pisp;
     Param pisp_param = pisp.getParameters();
@@ -103,6 +103,24 @@ namespace OpenMS
     ilp_wrapper.createAndSolveILPForInclusionListCreation(pisp, param_.getValue("ms2_spectra_per_rt_bin"),
                                                           param_.getValue("ProteinBasedInclusion:max_list_size"), precursors, true); //,960.,3840.,30.);
 
+  }
+
+  void OfflinePrecursorIonSelection::updateExclusionList_(ExclusionListType_& exclusion_list) const
+  {
+    ExclusionListType_::iterator it = exclusion_list.begin();
+    // decrease scan counter by 1 for each entry
+    // remove all entries which have no scans left
+    while (it != exclusion_list.end())
+    {
+      if ((--(it->second)) == 0)
+      {
+        exclusion_list.erase(it++);
+      }
+      else
+      {
+        ++it;
+      }
+    }
   }
 
 }

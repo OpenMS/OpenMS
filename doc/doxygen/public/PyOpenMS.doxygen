@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2012.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -245,6 +245,9 @@ comment to the pxd file. For some examples, look into the addons folder:
   - for a map< String, vector<String> > to get returned
 - Attachment.pyx 
   - for a vector< vector<String> > to get returned
+
+- ChromatogramExtractorAlgorithm.h 
+  - for an example of a abstract base class (ISpectrumAccess), to see how it is handled please refer to the ./addons folder
 
 Make sure that you _always_ declare your objects (all C++ and all Cython
 objects need to be declared) using cdef Type name. Otherwise you get "Cannot

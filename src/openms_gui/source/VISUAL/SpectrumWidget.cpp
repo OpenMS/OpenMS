@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,7 +50,7 @@ namespace OpenMS
 {
   using namespace Math;
 
-  SpectrumWidget::SpectrumWidget(const Param & /*preferences*/, QWidget * parent) :
+  SpectrumWidget::SpectrumWidget(const Param& /*preferences*/, QWidget* parent) :
     QWidget(parent),
     canvas_(0)
   {
@@ -59,13 +59,13 @@ namespace OpenMS
     grid_->setSpacing(0);
     grid_->setMargin(1);
 
-    setMinimumSize(250, 250);    //Canvas (200) + AxisWidget (30) + ScrollBar (20)
+    setMinimumSize(250, 250); //Canvas (200) + AxisWidget (30) + ScrollBar (20)
     setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
 
     setAcceptDrops(true);
   }
 
-  void SpectrumWidget::setCanvas_(SpectrumCanvas * canvas, UInt row, UInt col)
+  void SpectrumWidget::setCanvas_(SpectrumCanvas* canvas, UInt row, UInt col)
   {
     canvas_ = canvas;
     setFocusProxy(canvas_);
@@ -79,9 +79,14 @@ namespace OpenMS
     connect(canvas_, SIGNAL(recalculateAxes()), this, SLOT(updateAxes()));
     connect(canvas_, SIGNAL(changeLegendVisibility()), this, SLOT(changeLegendVisibility()));
     //scrollbars
-    x_scrollbar_ = new QScrollBar(Qt::Horizontal, this);
-    y_scrollbar_ = new QScrollBar(Qt::Vertical, this);
-    y_scrollbar_->setInvertedAppearance(true);
+    x_scrollbar_ = new QScrollBar(Qt::Horizontal, this); // left is small value, right is high value
+    y_scrollbar_ = new QScrollBar(Qt::Vertical, this); // top is low value, bottom is high value (however, our coordinate system is inverse for the y-Axis!)
+    // We achieve the desired behavior by setting negative min/max ranges within the scrollbar when updateVScrollbar() is called.
+    // Thus, y_scrollbar_->valueChanged() will report negative values (which you need to multiply by -1 to get the correct value).
+    // Remember this when implementing verticalScrollBarChange() in your canvas class (currently only used in Spectrum2DCanvas)
+    // Do NOT use the build-in functions to invert a scrollbar, since implementation can be incomplete depending on style and platform
+    //y_scrollbar_->setInvertedAppearance(true);
+    //y_scrollbar_->setInvertedControls(true);
     grid_->addWidget(y_scrollbar_, row, col - 2);
     grid_->addWidget(x_scrollbar_, row + 2, col);
     x_scrollbar_->hide();
@@ -106,13 +111,13 @@ namespace OpenMS
 
   void SpectrumWidget::correctAreaToObeyMinMaxRanges_(SpectrumCanvas::AreaType& area)
   {
-    if(area.maxX() > canvas()->getDataRange().maxX())
+    if (area.maxX() > canvas()->getDataRange().maxX())
       area.setMaxX(canvas()->getDataRange().maxX());
-    if(area.minX() < canvas()->getDataRange().minX())
+    if (area.minX() < canvas()->getDataRange().minX())
       area.setMinX(canvas()->getDataRange().minX());
-    if(area.maxY() > canvas()->getDataRange().maxY())
+    if (area.maxY() > canvas()->getDataRange().maxY())
       area.setMaxY(canvas()->getDataRange().maxY());
-    if(area.minY() < canvas()->getDataRange().minY())
+    if (area.minY() < canvas()->getDataRange().minY())
       area.setMinY(canvas()->getDataRange().minY());
   }
 
@@ -168,7 +173,7 @@ namespace OpenMS
     }
   }
 
-  void SpectrumWidget::showMetaDistribution(const String & name)
+  void SpectrumWidget::showMetaDistribution(const String& name)
   {
     Histogram<> dist = createMetaDistribution_(name);
     HistogramDialog dw(dist);
@@ -254,17 +259,17 @@ namespace OpenMS
     x_axis_->hide();
   }
 
-  void SpectrumWidget::updateHScrollbar(float min, float disp_min, float disp_max, float max)
+  void SpectrumWidget::updateHScrollbar(float f_min, float disp_min, float disp_max, float f_max)
   {
-    if ((disp_min == min && disp_max == max) || (disp_min < min &&  disp_max > max))
+    if ((disp_min == f_min && disp_max == f_max) || (disp_min < f_min &&  disp_max > f_max))
     {
       x_scrollbar_->hide();
     }
     else
     {
       //block signals as this causes repainting due to rounding (QScrollBar works with int ...)
-      int local_min = std::min(min, disp_min);
-      int local_max = std::max(max, disp_max);
+      int local_min = min(f_min, disp_min);
+      int local_max = max(f_max, disp_max);
       x_scrollbar_->blockSignals(true);
       x_scrollbar_->show();
       x_scrollbar_->setMinimum(static_cast<int>(local_min));
@@ -275,22 +280,24 @@ namespace OpenMS
     }
   }
 
-  void SpectrumWidget::updateVScrollbar(float min, float disp_min, float disp_max, float max)
+  void SpectrumWidget::updateVScrollbar(float f_min, float disp_min, float disp_max, float f_max)
   {
-    if ((disp_min == min && disp_max == max) || (disp_min < min &&  disp_max > max))
+    if ((disp_min == f_min && disp_max == f_max) || (disp_min < f_min &&  disp_max > f_max))
     {
       y_scrollbar_->hide();
     }
     else
     {
       //block signals as this causes repainting due to rounding (QScrollBar works with int ...)
-      int local_min = std::min(min, disp_min);
-      int local_max = std::max(max, disp_max);
+      int local_min = min(f_min, disp_min);
+      int local_max = max(f_max, disp_max);
       y_scrollbar_->blockSignals(true);
       y_scrollbar_->show();
-      y_scrollbar_->setMinimum(static_cast<int>(local_min));
-      y_scrollbar_->setMaximum(static_cast<int>(std::ceil(local_max - disp_max + disp_min)));
-      y_scrollbar_->setValue(static_cast<int>(disp_min));
+      // we use negative min/max here, because our coordinate system is inverted (small values are the bottom, higher values at the top)
+      // and we want the scrollbar to move correctly when clicking it
+      y_scrollbar_->setMaximum(static_cast<int>(-local_min));
+      y_scrollbar_->setMinimum(static_cast<int>(-std::ceil(local_max - (disp_max - disp_min))));
+      y_scrollbar_->setValue(static_cast<int>(-disp_min)); // 'disp_min' would be expected, but we invert, since our coordinate system is bottom to top
       y_scrollbar_->setPageStep(static_cast<int>(disp_max - disp_min));
       y_scrollbar_->blockSignals(false);
     }
@@ -301,12 +308,12 @@ namespace OpenMS
     showLegend(!isLegendShown());
   }
 
-  void SpectrumWidget::closeEvent(QCloseEvent * e)
+  void SpectrumWidget::closeEvent(QCloseEvent* e)
   {
     for (UInt l = 0; l < canvas()->getLayerCount(); ++l)
     {
       //modified => ask if it should be saved
-      const LayerData & layer = canvas()->getLayer(l);
+      const LayerData& layer = canvas()->getLayer(l);
       if (layer.modified)
       {
         QMessageBox::StandardButton result = QMessageBox::question(this, "Save?", (String("Do you want to save your changes to layer '") + layer.name +  "'?").toQString(), QMessageBox::Ok | QMessageBox::Discard);
@@ -320,7 +327,7 @@ namespace OpenMS
     e->accept();
   }
 
-  void SpectrumWidget::dragEnterEvent(QDragEnterEvent * event)
+  void SpectrumWidget::dragEnterEvent(QDragEnterEvent* event)
   {
     if (event->mimeData()->hasUrls())
     {
@@ -328,7 +335,7 @@ namespace OpenMS
     }
   }
 
-  void SpectrumWidget::dragMoveEvent(QDragMoveEvent * event)
+  void SpectrumWidget::dragMoveEvent(QDragMoveEvent* event)
   {
     if (event->mimeData()->hasUrls())
     {
@@ -336,7 +343,7 @@ namespace OpenMS
     }
   }
 
-  void SpectrumWidget::dropEvent(QDropEvent * event)
+  void SpectrumWidget::dropEvent(QDropEvent* event)
   {
     emit dropReceived(event->mimeData(), event->source(), window_id_);
     event->acceptProposedAction();

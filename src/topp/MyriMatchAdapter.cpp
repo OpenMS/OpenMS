@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,6 +43,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
 #include <OpenMS/SYSTEM/File.h>
 #include <fstream>
@@ -79,12 +80,14 @@
 
   This wrapper has been tested successfully with MyriMatch, version 2.1.x.
 
-  Use debug level >=1 to keep intermediate PepXML and config files for manual inspection.
+  Use debug level >=1 to keep intermediate pepXML and configuration files for manual inspection.
+
+  @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_MyriMatchAdapter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_MyriMatchAdapter.html
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_MyriMatchAdapter.html
 */
 
 // We do not want this class to show up in the docu:
@@ -321,6 +324,15 @@ protected:
     if (myrimatch_version_i.myrimatch_major != 2 && myrimatch_version_i.myrimatch_minor != 1)
     {
       writeDebug_("Warning: unsupported MyriMatch version (" + myrimatch_version + "). Tested only for MyriMatch 2.1.x", 0);
+    }
+
+    //-------------------------------------------------------------
+    // Validate user parameters
+    //-------------------------------------------------------------
+    if (getIntOption_("min_precursor_charge") > getIntOption_("max_precursor_charge"))
+    {
+      LOG_ERROR << "Given charge range is invalid: max_precursor_charge needs to be >= min_precursor_charge." << std::endl;
+      return ILLEGAL_PARAMETERS;
     }
 
 

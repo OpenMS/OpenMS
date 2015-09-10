@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,14 @@
 // --------------------------------------------------------------------------
 #include <OpenMS/ANALYSIS/DECHARGING/ILPDCWrapper.h>
 
+#include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/DATASTRUCTURES/LPWrapper.h>
+#include <OpenMS/DATASTRUCTURES/MassExplainer.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
+#include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/SYSTEM/StopWatch.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+
 #include <iostream>
 #include <ctime>
 #include <cmath>
@@ -41,15 +49,6 @@
 #include <vector>
 #include <algorithm>
 #include <utility>
-
-#include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/DATASTRUCTURES/LPWrapper.h>
-#include <OpenMS/DATASTRUCTURES/MassExplainer.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
-#include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/SYSTEM/StopWatch.h>
-
-
 
 namespace OpenMS
 {
@@ -62,7 +61,7 @@ namespace OpenMS
   {
   }
 
-  DoubleReal ILPDCWrapper::compute(const FeatureMap<> fm, PairsType& pairs, Size verbose_level) const
+  double ILPDCWrapper::compute(const FeatureMap fm, PairsType& pairs, Size verbose_level) const
   {
     if (fm.empty())
     {
@@ -204,12 +203,12 @@ namespace OpenMS
     time1.start();
 
     // split problem into slices and have each one solved by the ILPS
-    DoubleReal score = 0;
+    double score = 0;
 // OMP currently causes spurious segfaults in Release mode; OMP fix applied, however: disable if problem persists
 //#ifdef _OPENMP
 //#pragma omp parallel for schedule(dynamic, 1), reduction(+: score)
 //#endif
-    for (SignedSize i = 0; i < (SignedSize)bins.size(); ++i)
+    for (SignedSize i = 0; i < static_cast<SignedSize>(bins.size()); ++i)
     {
       score = computeSlice_(fm, pairs, bins[i].first, bins[i].second, verbose_level);
     }
@@ -226,7 +225,7 @@ namespace OpenMS
     f_set[rota_l].insert(v);
   }
 
-  double ILPDCWrapper::computeSlice_(const FeatureMap<> fm,
+  double ILPDCWrapper::computeSlice_(const FeatureMap fm,
                                      PairsType& pairs,
                                      const PairsIndex margin_left,
                                      const PairsIndex margin_right,
@@ -246,7 +245,7 @@ namespace OpenMS
     {
       // log scores are good for addition in ILP - but they are < 0, thus not suitable for maximizing
       // ... so we just add normal probabilities...
-      DoubleReal score = exp(getLogScore_(pairs[i], fm));
+      double score = exp(getLogScore_(pairs[i], fm));
       pairs[i].setEdgeScore(score * pairs[i].getEdgeScore()); // multiply with preset score
 
       // create the column representing the edge
@@ -328,11 +327,11 @@ namespace OpenMS
 
   // old version, slower, as ILP has different layout (i.e, the same as described in paper)
 
-  DoubleReal ILPDCWrapper::computeSliceOld_(const FeatureMap<> fm,
-                                            PairsType& pairs,
-                                            const PairsIndex margin_left,
-                                            const PairsIndex margin_right,
-                                            const Size verbose_level) const
+  double ILPDCWrapper::computeSliceOld_(const FeatureMap fm,
+                                        PairsType& pairs,
+                                        const PairsIndex margin_left,
+                                        const PairsIndex margin_right,
+                                        const Size verbose_level) const
   {
     LPWrapper build;
     //build.setSolver(LPWrapper::SOLVER_GLPK);
@@ -340,8 +339,7 @@ namespace OpenMS
 
     //------------------------------------objective function-----------------------------------------------
     // find maximal objective value
-    DoubleReal score = 0;
-    DoubleReal score_min = 10e10f, score_max = -10e10f;
+    double score_min = 10e10f, score_max = -10e10f;
 
     // fill in objective values
     std::ostringstream namebuf;
@@ -351,7 +349,7 @@ namespace OpenMS
 
       // log scores are good for addition in ILP - but they are < 0, thus not suitable for maximizing
       // ... so we just add normal probabilities...
-      score = exp(getLogScore_(pairs[i], fm));
+      double score = exp(getLogScore_(pairs[i], fm));
       pairs[i].setEdgeScore(score * pairs[i].getEdgeScore()); // multiply with preset score
       namebuf.str("");
       namebuf << "x#" << i;
@@ -510,15 +508,15 @@ namespace OpenMS
       //std::cout << "Cmp " << it->first << " x " << it->second << "\n";
     }
 
-    DoubleReal opt_value = build.getObjectiveValue();
+    double opt_value = build.getObjectiveValue();
 
     //objective function value of optimal(?) solution
     return opt_value;
   } // !compute_slice
 
-  DoubleReal ILPDCWrapper::getLogScore_(const PairsType::value_type& pair, const FeatureMap<>& fm) const
+  double ILPDCWrapper::getLogScore_(const PairsType::value_type& pair, const FeatureMap& fm) const
   {
-    DoubleReal score;
+    double score;
     String e;
     if (getenv("M") != 0)
       e = String(getenv("M"));
@@ -526,7 +524,7 @@ namespace OpenMS
     {
       //std::cout << "1";
       score = pair.getCompomer().getLogP();
-      /*DoubleReal charge_enhance = 0;
+      /*double charge_enhance = 0;
 
       if (pairs[i].getCharge(0) == fm[pairs[i].getElementIndex(0)].getCharge())
           charge_enhance += log(0.9); else charge_enhance += log(0.1);
@@ -541,12 +539,12 @@ namespace OpenMS
     else
     {
       //std::cout << "2";
-      DoubleReal rt_diff =  fabs(fm[pair.getElementIndex(0)].getRT() - fm[pair.getElementIndex(1)].getRT());
+      double rt_diff =  fabs(fm[pair.getElementIndex(0)].getRT() - fm[pair.getElementIndex(1)].getRT());
       // enhance correct charge
-      DoubleReal charge_enhance = ((pair.getCharge(0) == fm[pair.getElementIndex(0)].getCharge())
-                                  &&
-                                   (pair.getCharge(1) == fm[pair.getElementIndex(1)].getCharge()))
-                                  ? 100 : 1;
+      double charge_enhance = ((pair.getCharge(0) == fm[pair.getElementIndex(0)].getCharge())
+                              &&
+                               (pair.getCharge(1) == fm[pair.getElementIndex(1)].getCharge()))
+                              ? 100 : 1;
       score = charge_enhance * (1 / (pair.getMassDiff() + 1) + 1 / (rt_diff + 1));
     }
 

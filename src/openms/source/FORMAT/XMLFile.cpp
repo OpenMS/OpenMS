@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,7 +53,7 @@ namespace OpenMS
   {
 
     /// This class ensures that the reset() method of the XMLHandler is called when it goes out of scope.
-    /// useful when used in exeption handling
+    /// useful when used in exception handling
     class XMLCleaner_
     {
 public:
@@ -93,7 +93,7 @@ private:
 
     void XMLFile::parse_(const String & filename, XMLHandler * handler)
     {
-      // ensure handler->reset() is called to save memory (in case the XMLFile reader, e.g. FatureXMLFile, is used again)
+      // ensure handler->reset() is called to save memory (in case the XMLFile reader, e.g. FeatureXMLFile, is used again)
       XMLCleaner_ clean(handler);
 
       //try to open file
@@ -121,8 +121,10 @@ private:
 
       //is it bzip2 or gzip compressed?
       std::ifstream file(filename.c_str());
-      char bz[2];
-      file.read(bz, 2);
+      char tmp_bz[3];
+      file.read(tmp_bz, 2);
+      tmp_bz[2] = '\0';
+      String bz = String(tmp_bz);
       xercesc::InputSource * source;
 
       char g1 = 0x1f;
@@ -132,7 +134,7 @@ private:
       g2 |= 1 << 1;
       g2 |= 1 << 0;
       //g2 = static_cast<char>(0x8b); // can make troubles if it is casted to 0x7F which is the biggest number signed char can save
-      if ((bz[0] == 'B' && bz[1] == 'Z') ||    (bz[0] == g1 && bz[1] == g2))
+      if ((bz[0] == 'B' && bz[1] == 'Z') || (bz[0] == g1 && bz[1] == g2))
       {
         source = new CompressedInputSource(StringManager().convert(filename.c_str()), bz);
       }
@@ -173,7 +175,7 @@ private:
       std::ofstream os(filename.c_str(), std::ios::out | std::ios::binary);
 
       //set high precision for writing of floating point numbers
-      os.precision(writtenDigits(DoubleReal()));
+      os.precision(writtenDigits(double()));
 
       if (!os)
       {
@@ -185,19 +187,6 @@ private:
       os.close();
     }
 
-    String writeXMLEscape(const String& to_escape)
-    {
-      String _copy = to_escape;
-      // has() is cheap, so check before calling substitute(), since substitute() will usually happen rarely
-      if (_copy.has('&')) _copy.substitute("&","&amp;");
-      if (_copy.has('>')) _copy.substitute(">","&gt;");
-      if (_copy.has('"')) _copy.substitute("\"","&quot;");
-      if (_copy.has('<')) _copy.substitute("<","&lt;");
-      if (_copy.has('\'')) _copy.substitute("'","&apos;");
-
-      return _copy;
-    }
-    
     String encodeTab(const String& to_encode)
     {
       if (!to_encode.has('\t')) return to_encode;

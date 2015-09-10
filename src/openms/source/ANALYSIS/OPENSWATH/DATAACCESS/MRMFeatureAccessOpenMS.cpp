@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,10 +46,18 @@ namespace OpenMS
   {
     std::vector<String> ids;
     mrmfeature.getFeatureIDs(ids);
-    for (std::vector<String>::iterator it = ids.begin(); it != ids.end(); it++)
+    for (std::vector<String>::iterator it = ids.begin(); it != ids.end(); ++it)
     {
       boost::shared_ptr<FeatureOpenMS> ptr = boost::shared_ptr<FeatureOpenMS>(new FeatureOpenMS(mrmfeature.getFeature(*it)));
       features_[*it] = ptr;
+    }
+
+    std::vector<String> p_ids;
+    mrmfeature.getPrecursorFeatureIDs(p_ids);
+    for (std::vector<String>::iterator it = p_ids.begin(); it != p_ids.end(); ++it)
+    {
+      boost::shared_ptr<FeatureOpenMS> ptr = boost::shared_ptr<FeatureOpenMS>(new FeatureOpenMS(mrmfeature.getPrecursorFeature(*it)));
+      precursor_features_[*it] = ptr;
     }
   }
 
@@ -66,7 +74,7 @@ namespace OpenMS
   {
     OPENMS_PRECONDITION(feature_->getConvexHulls().size() == 1, "There needs to exactly one convex hull per feature.");
     ConvexHull2D::PointArrayType data_points = feature_->getConvexHulls()[0].getHullPoints();
-    for (ConvexHull2D::PointArrayType::iterator it = data_points.begin(); it != data_points.end(); it++)
+    for (ConvexHull2D::PointArrayType::iterator it = data_points.begin(); it != data_points.end(); ++it)
     {
       rt.push_back(it->getX());
     }
@@ -76,7 +84,7 @@ namespace OpenMS
   {
     OPENMS_PRECONDITION(feature_->getConvexHulls().size() == 1, "There needs to exactly one convex hull per feature.");
     ConvexHull2D::PointArrayType data_points = feature_->getConvexHulls()[0].getHullPoints();
-    for (ConvexHull2D::PointArrayType::iterator it = data_points.begin(); it != data_points.end(); it++)
+    for (ConvexHull2D::PointArrayType::iterator it = data_points.begin(); it != data_points.end(); ++it)
     {
       intens.push_back(it->getY());
     }
@@ -101,6 +109,21 @@ namespace OpenMS
     return boost::static_pointer_cast<OpenSwath::IFeature>(features_[nativeID]);
   }
 
+  boost::shared_ptr<OpenSwath::IFeature> MRMFeatureOpenMS::getPrecursorFeature(std::string nativeID)
+  {
+    return boost::static_pointer_cast<OpenSwath::IFeature>(precursor_features_[nativeID]);
+  }
+
+  std::vector<std::string> MRMFeatureOpenMS::getPrecursorIDs() const
+  {
+    std::vector<std::string> v;
+    for (std::map<std::string, boost::shared_ptr<FeatureOpenMS> >::const_iterator it = precursor_features_.begin(); it != precursor_features_.end(); ++it) 
+    {
+      v.push_back(it->first);
+    }
+    return v;
+  }
+
   float MRMFeatureOpenMS::getIntensity()
   {
     return mrmfeature_.getIntensity();
@@ -118,7 +141,7 @@ namespace OpenMS
 
   // default instances
   MSSpectrum<Peak1D> chromat;
-  SignalToNoiseOpenMS<Peak1D> default_signal_to_noise_openms(chromat, 1.0, 3);
+  SignalToNoiseOpenMS<Peak1D> default_signal_to_noise_openms(chromat, 1.0, 3, true);
 
   MRMTransitionGroup<MSSpectrum<Peak1D>, ReactionMonitoringTransition> trgroup;
   TransitionGroupOpenMS<MSSpectrum<Peak1D>, ReactionMonitoringTransition> default_transition_group_openms(trgroup);

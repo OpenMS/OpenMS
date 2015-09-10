@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: Marc Sturm $
+// $Maintainer: Chris Bielow $
+// $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/TextFile.h>
@@ -44,8 +44,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  TextFile::TextFile() :
-    StringList()
+  TextFile::TextFile()
   {
 
   }
@@ -54,21 +53,22 @@ namespace OpenMS
   {
   }
 
-  TextFile::TextFile(const String & filename, bool trim_lines, Int first_n) :
-    StringList()
+  TextFile::TextFile(const String& filename, bool trim_lines, Int first_n, bool skip_empty_lines)
   {
-    load(filename, trim_lines, first_n);
+    load(filename, trim_lines, first_n, skip_empty_lines);
   }
 
-  void TextFile::load(const String & filename, bool trim_lines, Int first_n)
+  void TextFile::load(const String& filename, bool trim_lines, Int first_n, bool skip_empty_lines)
   {
+    // stream in binary mode prevents interpretation and merging of \r on Windows & MacOS
+    // .. so we can deal with it ourselves in a consistent way
     ifstream is(filename.c_str(), ios_base::in | ios_base::binary);
     if (!is)
     {
       throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
     }
 
-    clear();
+    buffer_.clear();
 
     String str;
     bool had_enough = false;
@@ -78,32 +78,35 @@ namespace OpenMS
       // Windows LE: \r\n
       //    we now have a line with \r at the end: get rid of it
       if (str.size() >= 1 && *str.rbegin() == '\r')
+      {
         str = str.substr(0, str.size() - 1);
+      }
 
       // Mac (OS<=9): \r
       //    we just read the whole file into a string: split it
       StringList lines;
       if (str.hasSubstring("\r"))
+      {
         lines = ListUtils::create<String>(str, '\r');
+      }
       else
+      {
         lines.push_back(str);
+      }
 
       // Linux&MacOSX: \n
       //    nothing to do
 
       for (Size i = 0; i < lines.size(); ++i)
       {
-        str = lines[i];
-        if (trim_lines)
-        {
-          push_back(str.trim());
-        }
-        else
-        {
-          push_back(str);
-        }
+        // remove leading/trailing whitespace
+        if (trim_lines) lines[i].trim();
+        // skip? (only after trimming!)
+        if (skip_empty_lines && lines[i].empty()) continue;
 
-        if (first_n > -1 && (Int)(size()) == first_n)
+        buffer_.push_back(lines[i]);
+
+        if (first_n > -1 && static_cast<Int>(buffer_.size()) == first_n)
         {
           had_enough = true;
           break;
@@ -112,9 +115,10 @@ namespace OpenMS
     }
   }
 
-  void TextFile::store(const String & filename)
+  void TextFile::store(const String& filename)
   {
     ofstream os;
+    // stream not opened in binary mode, thus "\n" will be evaluated platform dependent (e.g. resolve to \r\n on Windows)
     os.open(filename.c_str(), ofstream::out);
 
     if (!os)
@@ -122,7 +126,7 @@ namespace OpenMS
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
     }
 
-    for (Iterator it = begin(); it != end(); ++it)
+    for (Iterator it = buffer_.begin(); it != buffer_.end(); ++it)
     {
       if (it->hasSuffix("\n"))
       {
@@ -132,7 +136,7 @@ namespace OpenMS
         }
         else
         {
-          os << it->chop(1) << "\n";
+          os << *it;
         }
       }
       else
@@ -143,4 +147,23 @@ namespace OpenMS
     os.close();
   }
 
+  TextFile::ConstIterator TextFile::begin() const
+  {
+    return buffer_.begin();
+  }
+
+  TextFile::ConstIterator TextFile::end() const
+  {
+    return buffer_.end();
+  }
+
+  TextFile::Iterator TextFile::begin()
+  {
+    return buffer_.begin();
+  }
+
+  TextFile::Iterator TextFile::end()
+  {
+    return buffer_.end();
+  }
 } // namespace OpenMS

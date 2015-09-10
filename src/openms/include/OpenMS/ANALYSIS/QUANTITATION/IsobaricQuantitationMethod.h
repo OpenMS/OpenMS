@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,7 +36,6 @@
 #define OPENMS_ANALYSIS_QUANTITATION_ISOBARICQUANTITATIONMETHOD_H
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/DATASTRUCTURES/Matrix.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <OpenMS/KERNEL/Peak2D.h>
@@ -45,6 +44,11 @@
 
 namespace OpenMS
 {
+
+  // Forward declarations
+  template <typename Value>
+  class Matrix;
+
   /**
     @brief Abstract base class describing an isobaric quantitation method in terms of the used channels and an isotope correction matrix.
   */
@@ -59,7 +63,7 @@ public:
     struct IsobaricChannelInformation
     {
       /// The name of the channel.
-      Int name;
+      String name;
       /// The id of the channel.
       Int id;
       /// Optional description of the channel.
@@ -68,14 +72,33 @@ public:
       Peak2D::CoordinateType center;
 
       /// C'tor
-      IsobaricChannelInformation(const Int name, const Int id, const String& description, const Peak2D::CoordinateType& center) :
-        name(name),
-        id(id),
-        description(description),
-        center(center)
+      IsobaricChannelInformation(const String local_name,
+                                 const Int local_id,
+                                 const String& local_description,
+                                 const Peak2D::CoordinateType& local_center,
+                                 const Int minus_2,
+                                 const Int minus_1,
+                                 const Int plus_1,
+                                 const Int plus_2) :
+        name(local_name),
+        id(local_id),
+        description(local_description),
+        center(local_center),
+        channel_id_minus_2(minus_2),
+        channel_id_minus_1(minus_1),
+        channel_id_plus_1(plus_1),
+        channel_id_plus_2(plus_2)
       {
       }
 
+      /// Id of the -2 isotopic channel (== -1 -> no channel)
+      Int channel_id_minus_2;
+      /// Id of the -1 isotopic channel (== -1 -> no channel)
+      Int channel_id_minus_1;
+      /// Id of the +1 isotopic channel (== -1 -> no channel)
+      Int channel_id_plus_1;
+      // Id of the +2 isotopic channel (== -1 -> no channel)
+      Int channel_id_plus_2;
     };
 
     /// @brief c'tor setting the name for the underlying param handler
@@ -111,7 +134,7 @@ public:
       @brief Returns an isotope correction matrix suitable for the given quantitation method.
     */
     virtual Matrix<double> getIsotopeCorrectionMatrix() const = 0;
-    
+
     /**
       @brief Returns the index of the reference channel in the IsobaricChannelList (see IsobaricQuantitationMethod::getChannelInformation()).
     */

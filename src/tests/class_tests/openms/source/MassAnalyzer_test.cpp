@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -104,37 +104,37 @@ START_SECTION((Int getFinalMSExponent() const))
   TEST_EQUAL(tmp.getFinalMSExponent(),0);
 END_SECTION
 
-START_SECTION((DoubleReal getAccuracy() const ))
+START_SECTION((double getAccuracy() const ))
   MassAnalyzer tmp;
   TEST_REAL_SIMILAR(tmp.getAccuracy(),0.0);
 END_SECTION
 
-START_SECTION((DoubleReal getIsolationWidth() const ))
+START_SECTION((double getIsolationWidth() const ))
   MassAnalyzer tmp;
   TEST_REAL_SIMILAR(tmp.getIsolationWidth(),0.0);
 END_SECTION
 
-START_SECTION((DoubleReal getMagneticFieldStrength() const ))
+START_SECTION((double getMagneticFieldStrength() const ))
   MassAnalyzer tmp;
   TEST_REAL_SIMILAR(tmp.getMagneticFieldStrength(),0.0);
 END_SECTION
 
-START_SECTION((DoubleReal getResolution() const ))
+START_SECTION((double getResolution() const ))
   MassAnalyzer tmp;
   TEST_REAL_SIMILAR(tmp.getResolution(),0.0);
 END_SECTION
 
-START_SECTION((DoubleReal getScanRate() const ))
+START_SECTION((double getScanRate() const ))
   MassAnalyzer tmp;
   TEST_REAL_SIMILAR(tmp.getScanRate(),0.0);
 END_SECTION
 
-START_SECTION((DoubleReal getScanTime() const ))
+START_SECTION((double getScanTime() const ))
   MassAnalyzer tmp;
   TEST_REAL_SIMILAR(tmp.getScanTime(),0.0);
 END_SECTION
 
-START_SECTION((DoubleReal getTOFTotalPathLength() const ))
+START_SECTION((double getTOFTotalPathLength() const ))
   MassAnalyzer tmp;
   TEST_REAL_SIMILAR(tmp.getTOFTotalPathLength(),0.0);
 END_SECTION
@@ -145,7 +145,7 @@ START_SECTION((void setType(AnalyzerType type)))
   TEST_EQUAL(tmp.getType(),MassAnalyzer::QUADRUPOLE);
 END_SECTION
 
-START_SECTION((void setAccuracy(DoubleReal accuracy)))
+START_SECTION((void setAccuracy(double accuracy)))
   MassAnalyzer tmp;
   tmp.setAccuracy(47.11);
   TEST_REAL_SIMILAR(tmp.getAccuracy(),47.11);
@@ -157,13 +157,13 @@ START_SECTION((void setFinalMSExponent(Int final_MS_exponent)))
   TEST_EQUAL(tmp.getFinalMSExponent(),47);
 END_SECTION
 
-START_SECTION((void setIsolationWidth(DoubleReal isolation_width)))
+START_SECTION((void setIsolationWidth(double isolation_width)))
   MassAnalyzer tmp;
   tmp.setIsolationWidth(47.11);
   TEST_REAL_SIMILAR(tmp.getIsolationWidth(),47.11);
 END_SECTION
 
-START_SECTION((void setMagneticFieldStrength(DoubleReal magnetic_field_strength)))
+START_SECTION((void setMagneticFieldStrength(double magnetic_field_strength)))
   MassAnalyzer tmp;
   tmp.setMagneticFieldStrength(47.11);
   TEST_REAL_SIMILAR(tmp.getMagneticFieldStrength(),47.11);
@@ -175,7 +175,7 @@ START_SECTION((void setReflectronState(ReflectronState reflecton_state)))
   TEST_EQUAL(tmp.getReflectronState(),MassAnalyzer::ON);
 END_SECTION
 
-START_SECTION((void setResolution(DoubleReal resolution)))
+START_SECTION((void setResolution(double resolution)))
   MassAnalyzer tmp;
   tmp.setResolution(47.11);
   TEST_REAL_SIMILAR(tmp.getResolution(),47.11);
@@ -205,19 +205,19 @@ START_SECTION((void setScanLaw(ScanLaw scan_law)))
   TEST_EQUAL(tmp.getScanLaw(),MassAnalyzer::LINEAR);
 END_SECTION
 
-START_SECTION((void setScanRate(DoubleReal scan_rate)))
+START_SECTION((void setScanRate(double scan_rate)))
   MassAnalyzer tmp;
   tmp.setScanRate(47.11);
   TEST_REAL_SIMILAR(tmp.getScanRate(),47.11);
 END_SECTION
 
-START_SECTION((void setScanTime(DoubleReal scan_time)))
+START_SECTION((void setScanTime(double scan_time)))
   MassAnalyzer tmp;
   tmp.setScanTime(47.11);
   TEST_REAL_SIMILAR(tmp.getScanTime(),47.11);
 END_SECTION
 
-START_SECTION((void setTOFTotalPathLength(DoubleReal TOF_total_path_length)))
+START_SECTION((void setTOFTotalPathLength(double TOF_total_path_length)))
   MassAnalyzer tmp;
   tmp.setTOFTotalPathLength(47.11);
   TEST_REAL_SIMILAR(tmp.getTOFTotalPathLength(),47.11);

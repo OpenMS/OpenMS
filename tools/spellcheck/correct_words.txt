@@ -8,10 +8,12 @@
 Redistributions
 Tuebingen
 Freie
+Eberhard
 Karls
 ETH
 Universitaet
 Lund
+MERCHANTABILITY
 # }}}
 
 ###################################
@@ -113,6 +115,12 @@ Florian
 Zeller
 Peter
 Kunszt
+Johan
+Helge
+Lennart
+Ralf
+Nicolai
+Ivar
 # }}}
 
 ###################################
@@ -186,6 +194,8 @@ cdot
 ClusterMethod
 Const
 C'Tor
+gnuplot
+getter
 IMPL
 Longman
 lookup
@@ -225,6 +235,10 @@ XTandemXML
 ###################################
 # Directory names and abbreviations {{{
 ###################################
+FNs
+FPs
+RNP
+TPs
 qMZ
 TAc
 TNVs
@@ -430,12 +444,25 @@ Brusniak
 Meinicke
 Scherbart
 Tholey
+Faires
 # }}}
 
 ###################################
 # Classnames, functions and closely related {{{
 ###################################
 # {{{Classnames
+SILACAnalyzer
+LowLevelComparator
+IDEvaluatorGUI
+AxisWidget
+SpectrumCanvas
+SpectrumWidget
+CachedMzMLConsumer
+LowLevelComparator
+ParamEditor
+SavitzkyGolayQRFilter
+SavitzkyGolaySVDFilter
+TICWritingConsumer
 IsotopeWaveletFeatureFinder
 MetaInfos
 ChargePairs
@@ -590,6 +617,26 @@ DataProcessingPtr
 FullId
 Indices
 FeatureFinderMetabo
+MRMScoring
+OPENSWATHALGO
+DCanvas
+PersistentObject
+SignalToNoiseEstimatorRapid
+PeptideIdentication
+LabelType
+MissedCleavages
+PeptideGroupLabel
+OnDiskExperiment
+LocalClustering
+MovingAverage
+HierarchicalClustering
+LocalClustering
+SpectraIdentificationViewWidget
+MetaValueInterface
+ProteinIdentificationVisualizer
+
+DWidget
+MetaDataBrowser
 #  }}}
 
 # Functions {{{ 
@@ -669,14 +716,28 @@ encodeOligoBorder
 indistinguishableProteins
 massShift
 removeDatabase
+getChromatogam
+
 #  }}}
 
+  
+lastPackage
 AAD
 Elephas
 GenBank
 getPValuesFromOutFiles
 gi
 maximus
+
+ApprLineFit
+GeometricTools
+DataCollection
+IdentificationRuns
+PeptideEvidences
+SequenceCollection
+spectradata
+XSValue
+
 # }}}
 
 ###################################
@@ -702,6 +763,16 @@ ltnote
 ###################################
 # common technical words {{{
 ###################################
+LLVM
+tokenize
+Wikipedia
+Exabyte
+Exbibit
+Exbibyte
+subelement
+subdirectory
+NaN
+peaklist
 doi
 pubmed
 subproblems
@@ -860,11 +931,42 @@ Quantiles
 Manhatten
 Massdiff
 Dotproduct
+Sortedness
+printf
+stdout
+li
+libc
+GSL
+SciPy
+colspan
+html
+inlining
+iterable
+eol
+PIMPL
+multiplet
+multiplets
+NotStarted
+deltaAbsError
+deltaRelError
+higherScoreBetter
+SignificanceThreshold
+KiloBytes
+pearson
+rowspan
+Google
+ol
+Javascript
 # }}}
 
 ###################################
 # common Mass spectrometry and OpenMS words {{{
 ###################################
+Histidin
+Leucin
+Phenylalanin
+PSM’s
+pepID
 Carboxymethyl
 paramXML
 TOPPASWidgets
@@ -1026,6 +1128,20 @@ RMSD
 Chauvenet's
 iRT
 hyperscore
+Proc
+SwathMaps
+mzq
+Isotopically
+IBSpectra
+timepoints
+Transcodes
+sulfoxide
+codon
+immonium
+
+Askenazi
+Savitski
+Sweetman
 # }}}
 
 ###################################
@@ -1340,6 +1456,37 @@ convolving
 functionalities
 authentification
 
+GitHub
+gui
+mkdir
+mkspecs
+nmake
+testname
+WildMagic
+coinmp
+github
+gsl
+GSL
+mkdir
+valign
+WildMagic
+WILDMAGIC
+WildMagic
+XSERVER
+endhtmlonly
+endlink
+htmlonly
+coli
+CTRL
+omssacl
+OpenMSInfo
+consts
+CUDA
+nbsp
+PageDown
+PageUp
+ReadMe
+
 # }}}
 
 ###################################
@@ -1633,6 +1780,27 @@ mymeta
 josie
 kim
 paul
+
+sapf
+nd
+xxxxxx
+xxxxxxx
+iosconstructors
+nd
+ame
+IZ
+evel
+PDF
+nl
+Cmpd
+Deamidated
+NQ
+dx
+dfs
+io
+c'tors
+XXXXX
+
 
 #  }}}
 

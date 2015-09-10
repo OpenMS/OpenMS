@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -100,6 +100,8 @@ using namespace std;
 
   Consult your PepNovo reference manual for further details about parameter meanings.
 
+ @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_PepNovoAdapter.cli
   <B>INI file documentation of this tool:</B>
@@ -178,7 +180,7 @@ class TOPPPepNovoAdapter :
       String model_name = getStringOption_("model");
       writeDebug_(String("model directory: ") + model_name, 1);
 
-      DoubleReal fragment_tolerance = getDoubleOption_("fragment_tolerance");
+      double fragment_tolerance = getDoubleOption_("fragment_tolerance");
       if (fragment_tolerance!=-1.0 && (fragment_tolerance<0 || fragment_tolerance>0.75))
       {
         writeLog_("Invalid fragment tolerance");
@@ -186,7 +188,7 @@ class TOPPPepNovoAdapter :
         return ILLEGAL_PARAMETERS;
       }
 
-      DoubleReal pm_tolerance = getDoubleOption_("pm_tolerance");
+      double pm_tolerance = getDoubleOption_("pm_tolerance");
       if (pm_tolerance!=-1.0 && (pm_tolerance<0.0 || pm_tolerance>5.0))
       {
         writeLog_("Invalid fragment tolerance");

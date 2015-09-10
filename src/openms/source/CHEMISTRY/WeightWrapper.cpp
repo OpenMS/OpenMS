@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -68,7 +68,7 @@ namespace OpenMS
     return weight_mode_;
   }
 
-  DoubleReal WeightWrapper::getWeight(const AASequence & aa) const
+  double WeightWrapper::getWeight(const AASequence & aa) const
   {
     if (weight_mode_ == WeightWrapper::MONO)
       return aa.getMonoWeight();
@@ -76,7 +76,7 @@ namespace OpenMS
       return aa.getAverageWeight();
   }
 
-  DoubleReal WeightWrapper::getWeight(const EmpiricalFormula & ef) const
+  double WeightWrapper::getWeight(const EmpiricalFormula & ef) const
   {
     if (weight_mode_ == WeightWrapper::MONO)
       return ef.getMonoWeight();
@@ -84,7 +84,7 @@ namespace OpenMS
       return ef.getAverageWeight();
   }
 
-  DoubleReal WeightWrapper::getWeight(const Residue & r, Residue::ResidueType res_type) const
+  double WeightWrapper::getWeight(const Residue & r, Residue::ResidueType res_type) const
   {
     if (weight_mode_ == WeightWrapper::MONO)
       return r.getMonoWeight(res_type);

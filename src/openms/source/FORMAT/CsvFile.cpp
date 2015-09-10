@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,26 +51,26 @@ namespace OpenMS
   {
   }
 
-  CsvFile::CsvFile(const String & filename, char is, bool ie, Int first_n) :
+  CsvFile::CsvFile(const String& filename, char is, bool ie, Int first_n) :
     TextFile(), itemseperator_(is), itemenclosed_(ie)
   {
     load(filename, false, first_n);
   }
 
-  void CsvFile::fload(const String & filename, char is, bool ie, Int first_n)
+  void CsvFile::fload(const String& filename, char is, bool ie, Int first_n)
   {
     itemseperator_ = is;
     itemenclosed_ = ie;
     load(filename, true, first_n);
   }
 
-  bool CsvFile::getRow(Size row, StringList & list)
+  bool CsvFile::getRow(Size row, StringList& list)
   {
-    if (row > this->size())
+    if (row > TextFile::buffer_.size())
     {
       throw Exception::InvalidIterator(__FILE__, __LINE__, __PRETTY_FUNCTION__);
     }
-    bool splitted = this->operator[](row).split(itemseperator_, list);
+    bool splitted = TextFile::buffer_.operator[](row).split(itemseperator_, list);
     if (!splitted)
     {
       return splitted;
@@ -83,6 +83,11 @@ namespace OpenMS
       }
     }
     return true;
+  }
+
+  std::vector<String>::size_type CsvFile::rowCount() const
+  {
+    return TextFile::buffer_.size();
   }
 
 } // namespace OpenMS

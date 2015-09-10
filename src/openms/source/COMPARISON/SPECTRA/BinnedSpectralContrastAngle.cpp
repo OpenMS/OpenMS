@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,7 +48,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  BinnedSpectralContrastAngle::BinnedSpectralContrastAngle(const BinnedSpectralContrastAngle & source) :
+  BinnedSpectralContrastAngle::BinnedSpectralContrastAngle(const BinnedSpectralContrastAngle& source) :
     BinnedSpectrumCompareFunctor(source)
   {
   }
@@ -57,7 +57,7 @@ namespace OpenMS
   {
   }
 
-  BinnedSpectralContrastAngle & BinnedSpectralContrastAngle::operator=(const BinnedSpectralContrastAngle & source)
+  BinnedSpectralContrastAngle& BinnedSpectralContrastAngle::operator=(const BinnedSpectralContrastAngle& source)
   {
     if (this != &source)
     {
@@ -66,12 +66,17 @@ namespace OpenMS
     return *this;
   }
 
-  double BinnedSpectralContrastAngle::operator()(const BinnedSpectrum & spec) const
+  double BinnedSpectralContrastAngle::operator()(const BinnedSpectrum& spec) const
   {
     return operator()(spec, spec);
   }
 
-  double BinnedSpectralContrastAngle::operator()(const BinnedSpectrum & spec1, const BinnedSpectrum & spec2) const
+  void BinnedSpectralContrastAngle::updateMembers_()
+  {
+    precursor_mass_tolerance_ = param_.getValue("precursor_mass_tolerance");
+  }
+
+  double BinnedSpectralContrastAngle::operator()(const BinnedSpectrum& spec1, const BinnedSpectrum& spec2) const
   {
     if (!spec1.checkCompliance(spec2))
     {
@@ -79,13 +84,17 @@ namespace OpenMS
     }
 
     // shortcut similarity calculation by comparing PrecursorPeaks (PrecursorPeaks more than delta away from each other are supposed to be from another peptide)
-    DoubleReal pre_mz1 = 0.0;
-    if (!spec1.getPrecursors().empty())
-      pre_mz1 = spec1.getPrecursors()[0].getMZ();
-    DoubleReal pre_mz2 = 0.0;
-    if (!spec2.getPrecursors().empty())
-      pre_mz2 = spec2.getPrecursors()[0].getMZ();
-    if (fabs(pre_mz1 - pre_mz2) > (double)param_.getValue("precursor_mass_tolerance"))
+    double pre_mz1 = 0.0;
+    if (!spec1.getRawSpectrum().getPrecursors().empty())
+    {
+      pre_mz1 = spec1.getRawSpectrum().getPrecursors()[0].getMZ();
+    }
+    double pre_mz2 = 0.0;
+    if (!spec2.getRawSpectrum().getPrecursors().empty())
+    {
+      pre_mz2 = spec2.getRawSpectrum().getPrecursors()[0].getMZ();
+    }
+    if (fabs(pre_mz1 - pre_mz2) > precursor_mass_tolerance_)
     {
       return 0;
     }

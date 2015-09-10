@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,7 +45,7 @@
 #include <OpenMS/MATH/STATISTICS/GaussFitter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 
-#include <gsl/gsl_statistics.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -59,6 +59,8 @@ using namespace Math;
     @page UTILS_IDMassAccuracy IDMassAccuracy
 
     @brief Calculates a distribution of the mass error from given mass spectra and IDs.
+
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_IDMassAccuracy.cli
@@ -83,10 +85,10 @@ using namespace Math;
 // measured and expected masses
 struct MassDifference
 {
-  DoubleReal exp_mz;
+  double exp_mz;
   Int charge;
-  DoubleReal theo_mz;
-  DoubleReal intensity;
+  double theo_mz;
+  double intensity;
 };
 
 class TOPPIDMassAccuracy :
@@ -130,12 +132,12 @@ protected:
     setValidStrings_("generate_gnuplot_scripts", ListUtils::create<String>("true,false"));
   }
 
-  DoubleReal getMassDifference(DoubleReal theo_mz, DoubleReal exp_mz, bool use_ppm)
+  double getMassDifference(double theo_mz, double exp_mz, bool use_ppm)
   {
-    DoubleReal error(exp_mz - theo_mz);
+    double error(exp_mz - theo_mz);
     if (use_ppm)
     {
-      error = error / theo_mz * (DoubleReal)1e6;
+      error = error / theo_mz * (double)1e6;
     }
     return error;
   }
@@ -223,18 +225,14 @@ protected:
             if (it->getHits().size() > 0)
             {
               PeptideHit hit = *it->getHits().begin();
-              if (!hit.getSequence().isValid())
-              {
-                continue;
-              }
               MassDifference md;
               Int charge = hit.getCharge();
               if (charge == 0)
               {
                 charge = 1;
               }
-              md.exp_mz = (DoubleReal)it->getMetaValue("MZ");
-              md.theo_mz = (hit.getSequence().getMonoWeight() + (DoubleReal)charge * Constants::PROTON_MASS_U) / (DoubleReal)charge;
+              md.exp_mz = it->getMZ();
+              md.theo_mz = (hit.getSequence().getMonoWeight() + (double)charge * Constants::PROTON_MASS_U) / (double)charge;
               md.charge = charge;
               precursor_diffs.push_back(md);
             }
@@ -247,7 +245,7 @@ protected:
     vector<MassDifference> fragment_diffs;
     TheoreticalSpectrumGenerator tsg;
     SpectrumAlignment sa;
-    DoubleReal fragment_mass_tolerance(getDoubleOption_("fragment_mass_tolerance"));
+    double fragment_mass_tolerance(getDoubleOption_("fragment_mass_tolerance"));
     Param sa_param(sa.getParameters());
     sa_param.setValue("tolerance", fragment_mass_tolerance);
     sa.setParameters(sa_param);
@@ -268,10 +266,6 @@ protected:
             {
               PeptideHit hit = *it->getHits().begin();
 
-              if (!hit.getSequence().isValid())
-              {
-                continue;
-              }
               RichPeakSpectrum theo_spec;
               tsg.addPeaks(theo_spec, hit.getSequence(), Residue::YIon);
               tsg.addPeaks(theo_spec, hit.getSequence(), Residue::BIon);
@@ -303,12 +297,12 @@ protected:
     String precursor_out_file(getStringOption_("precursor_out"));
     if (precursor_out_file != "")
     {
-      vector<DoubleReal> errors;
+      vector<double> errors;
       ofstream precursor_out(precursor_out_file.c_str());
-      DoubleReal min_diff(numeric_limits<DoubleReal>::max()), max_diff(numeric_limits<DoubleReal>::min());
+      double min_diff(numeric_limits<double>::max()), max_diff(numeric_limits<double>::min());
       for (Size i = 0; i != precursor_diffs.size(); ++i)
       {
-        DoubleReal diff = getMassDifference(precursor_diffs[i].theo_mz, precursor_diffs[i].exp_mz, precursor_error_ppm);
+        double diff = getMassDifference(precursor_diffs[i].theo_mz, precursor_diffs[i].exp_mz, precursor_error_ppm);
         precursor_out << diff << "\n";
         errors.push_back(diff);
 
@@ -324,8 +318,8 @@ protected:
       precursor_out.close();
 
       // fill histogram with the collected values
-      DoubleReal bin_size = (max_diff - min_diff) / (DoubleReal)number_of_bins;
-      Histogram<DoubleReal, DoubleReal> hist(min_diff, max_diff, bin_size);
+      double bin_size = (max_diff - min_diff) / (double)number_of_bins;
+      Histogram<double, double> hist(min_diff, max_diff, bin_size);
       for (Size i = 0; i != errors.size(); ++i)
       {
         hist.inc(errors[i], 1.0);
@@ -338,16 +332,16 @@ protected:
       for (Size i = 0; i != hist.size(); ++i)
       {
         DPosition<2> p;
-        p.setX((DoubleReal)i / (DoubleReal)number_of_bins * (max_diff - min_diff) + min_diff);
+        p.setX((double)i / (double)number_of_bins * (max_diff - min_diff) + min_diff);
         p.setY(hist[i]);
         values.push_back(p);
       }
 
-      DoubleReal mean = gsl_stats_mean(&errors.front(), 1, errors.size());
-      DoubleReal abs_dev = gsl_stats_absdev(&errors.front(), 1, errors.size());
-      DoubleReal sdv = gsl_stats_sd(&errors.front(), 1, errors.size());
+      double mean = Math::mean(errors.begin(), errors.end());
+      double abs_dev = Math::absdev(errors.begin(), errors.end(), mean);
+      double sdv = Math::sd(errors.begin(), errors.end(), mean);
       sort(errors.begin(), errors.end());
-      DoubleReal median = errors[(Size)(errors.size() / 2.0)];
+      double median = errors[(Size)(errors.size() / 2.0)];
 
       writeDebug_("Precursor mean error: " + String(mean), 1);
       writeDebug_("Precursor abs. dev.:  " + String(abs_dev), 1);
@@ -357,16 +351,12 @@ protected:
 
       // calculate histogram for gauss fitting
       GaussFitter gf;
-      GaussFitter::GaussFitResult init_param;
-      init_param.A = hist.maxValue();
-      init_param.x0 = median;
-      init_param.sigma = sdv / 500.0;
+      GaussFitter::GaussFitResult init_param (hist.maxValue(), median, sdv/500.0);
       gf.setInitialParameters(init_param);
 
       try
       {
         gf.fit(values);
-        cout << "Gauss-fit: " << gf.getGnuplotFormula() << endl;
 
         // write gnuplot scripts
         if (generate_gnuplot_scripts)
@@ -381,7 +371,6 @@ protected:
           ofstream gpl_out(String(precursor_out_file + "_gnuplot.gpl").c_str());
           gpl_out << "set terminal png" << endl;
           gpl_out << "set output \"" << precursor_out_file  << "_gnuplot.png\"" << endl;
-          gpl_out << gf.getGnuplotFormula() << endl;
           if (precursor_error_ppm)
           {
             gpl_out << "set xlabel \"error in ppm\"" << endl;
@@ -405,12 +394,12 @@ protected:
     String fragment_out_file(getStringOption_("fragment_out"));
     if (fragment_out_file != "")
     {
-      vector<DoubleReal> errors;
+      vector<double> errors;
       ofstream fragment_out(fragment_out_file.c_str());
-      DoubleReal min_diff(numeric_limits<DoubleReal>::max()), max_diff(numeric_limits<DoubleReal>::min());
+      double min_diff(numeric_limits<double>::max()), max_diff(numeric_limits<double>::min());
       for (Size i = 0; i != fragment_diffs.size(); ++i)
       {
-        DoubleReal diff = getMassDifference(fragment_diffs[i].theo_mz, fragment_diffs[i].exp_mz, fragment_error_ppm);
+        double diff = getMassDifference(fragment_diffs[i].theo_mz, fragment_diffs[i].exp_mz, fragment_error_ppm);
         fragment_out << diff << endl;
         errors.push_back(diff);
 
@@ -428,11 +417,11 @@ protected:
       // fill histogram with the collected values
       // here we use the intensities to scale the error
       // low intensity peaks are likely to be random matches
-      DoubleReal bin_size = (max_diff - min_diff) / (DoubleReal)number_of_bins;
-      Histogram<DoubleReal, DoubleReal> hist(min_diff, max_diff, bin_size);
+      double bin_size = (max_diff - min_diff) / (double)number_of_bins;
+      Histogram<double, double> hist(min_diff, max_diff, bin_size);
       for (Size i = 0; i != fragment_diffs.size(); ++i)
       {
-        DoubleReal diff = getMassDifference(fragment_diffs[i].theo_mz, fragment_diffs[i].exp_mz, fragment_error_ppm);
+        double diff = getMassDifference(fragment_diffs[i].theo_mz, fragment_diffs[i].exp_mz, fragment_error_ppm);
         hist.inc(diff, fragment_diffs[i].intensity);
       }
 
@@ -443,16 +432,16 @@ protected:
       for (Size i = 0; i != hist.size(); ++i)
       {
         DPosition<2> p;
-        p.setX((DoubleReal)i / (DoubleReal)number_of_bins * (max_diff - min_diff) + min_diff);
+        p.setX((double)i / (double)number_of_bins * (max_diff - min_diff) + min_diff);
         p.setY(hist[i]);
         values.push_back(p);
       }
 
-      DoubleReal mean = gsl_stats_mean(&errors.front(), 1, errors.size());
-      DoubleReal abs_dev = gsl_stats_absdev(&errors.front(), 1, errors.size());
-      DoubleReal sdv = gsl_stats_sd(&errors.front(), 1, errors.size());
+      double mean = Math::mean(errors.begin(), errors.end());
+      double abs_dev = Math::absdev(errors.begin(), errors.end(), mean);
+      double sdv = Math::sd(errors.begin(), errors.end(), mean);
       sort(errors.begin(), errors.end());
-      DoubleReal median = errors[(Size)(errors.size() / 2.0)];
+      double median = errors[(Size)(errors.size() / 2.0)];
 
       writeDebug_("Fragment mean error:  " + String(mean), 1);
       writeDebug_("Fragment abs. dev.:   " + String(abs_dev), 1);
@@ -461,17 +450,13 @@ protected:
 
       // calculate histogram for gauss fitting
       GaussFitter gf;
-      GaussFitter::GaussFitResult init_param;
-      init_param.A = hist.maxValue();
-      init_param.x0 = median;
-      init_param.sigma = sdv / 100.0;
+      GaussFitter::GaussFitResult init_param (hist.maxValue(), median, sdv / 100.0);
       gf.setInitialParameters(init_param);
 
       try
       {
         gf.fit(values);
 
-        cout << "Gauss-fit: " << gf.getGnuplotFormula() << endl;
 
         // write gnuplot script
         if (generate_gnuplot_scripts)
@@ -486,7 +471,6 @@ protected:
           ofstream gpl_out(String(fragment_out_file + "_gnuplot.gpl").c_str());
           gpl_out << "set terminal png" << endl;
           gpl_out << "set output \"" << fragment_out_file  << "_gnuplot.png\"" << endl;
-          gpl_out << gf.getGnuplotFormula() << endl;
           if (fragment_error_ppm)
           {
             gpl_out << "set xlabel \"error in ppm\"" << endl;

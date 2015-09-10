@@ -5,6 +5,7 @@ set(concept_executables_list
   FactoryBase_test
   Factory_test
   FuzzyStringComparator_test
+  #GlobalExceptionHandler_test
   SingletonRegistry_test
   StreamHandler_test
   VersionInfo_test
@@ -18,6 +19,8 @@ set(concept_executables_list
 
 set(datastructures_executables_list
   Adduct_test
+  #BinaryTreeNode_test
+  ClusteringGrid_test
   CVMappingRule_test
   CVMappingTerm_test
   CVMappings_test
@@ -34,24 +37,30 @@ set(datastructures_executables_list
   Date_test
   DefaultParamHandler_test
   DistanceMatrix_test
+  GridBasedCluster_test
+  GridBasedClustering_test
   GridFeature_test
   HashGrid_test
   ListUtils_test
+  ListUtilsIO_test
   LPWrapper_test
   Map_test
   MassExplainer_test
   Matrix_test
+  #MatrixUtils_test
   Param_test
   QTCluster_test
   RangeManager_test
   SparseVector_test
   StringListUtils_test
+  StringUtils_test
   String_test
   SuffixArrayPeptideFinder_test
   SuffixArraySeqan_test
   SuffixArrayTrypticCompressed_test
   SuffixArrayTrypticSeqan_test
   SuffixArray_test
+  #ToolDescription_test
 )
 
 set(metadata_executables_list
@@ -68,6 +77,8 @@ set(metadata_executables_list
   Gradient_test
   HPLC_test
   DocumentIDTagger_test
+  Identification_test
+  IdentificationHit_test
   InstrumentSettings_test
   Instrument_test
   IonDetector_test
@@ -75,9 +86,12 @@ set(metadata_executables_list
   MassAnalyzer_test
   MetaInfoDescription_test
   MetaInfoInterface_test
+  MetaInfoInterfaceUtils_test
   MetaInfoRegistry_test
   MetaInfo_test
   Modification_test
+  MSQuantifications_test
+  PeptideEvidence_test
   PeptideHit_test
   PeptideIdentification_test
   Precursor_test
@@ -89,6 +103,7 @@ set(metadata_executables_list
   ScanWindow_test
   Software_test
   SourceFile_test
+  SpectrumIdentification_test
   SpectrumSettings_test
   Tagging_test
 )
@@ -96,7 +111,9 @@ set(metadata_executables_list
 set(system_executables_list
   File_test
   FileWatcher_test
+  JavaInfo_test
   StopWatch_test
+  SysInfo_test
 )
 
 set(kernel_executables_list
@@ -107,6 +124,7 @@ set(kernel_executables_list
   ComparatorUtils_test
   ConsensusFeature_test
   ConsensusMap_test
+  ConversionHelper_test
   ConstRefVector_test
   DPeak_test
   DRichPeak_test
@@ -143,6 +161,7 @@ set(format_executables_list
   DTAFile_test
   EDTAFile_test
   FASTAFile_test
+  FeatureFileOptions_test
   FeatureXMLFile_test
   FileHandler_test
   FileTypes_test
@@ -162,6 +181,7 @@ set(format_executables_list
   MascotInfile_test
   MascotRemoteQuery_test
   MascotXMLFile_test
+  #MSDataWritingConsumer_test
   MsInspectFile_test
   MzDataFile_test
   MzIdentMLFile_test
@@ -172,7 +192,10 @@ set(format_executables_list
   MzMLValidator_test
   MzTab_test
   MzTabFile_test
+  MzQuantMLFile_test
+  #MzQuantMLValidator_test
   MzXMLFile_test
+  NoopMSDataConsumer_test
   TraMLValidator_test
   OMSSACSVFile_test
   OMSSAXMLFile_test
@@ -184,7 +207,7 @@ set(format_executables_list
   PepNovoOutfile_test
   PepXMLFileMascot_test
   PepXMLFile_test
-  PersistentObject_test
+  PercolatorOutfile_test
   ProtXMLFile_test
   SVOutStream_test
   SemanticValidator_test
@@ -193,6 +216,7 @@ set(format_executables_list
   SpecArrayFile_test
   SwathFile_test
   SwathFileConsumer_test
+  SwathWindowLoader_test
   TextFile_test
   ToolDescriptionFile_test
   TraMLFile_test
@@ -206,18 +230,16 @@ set(format_executables_list
   # DATAACCESS
   MSDataCachedConsumer_test
   MSDataTransformingConsumer_test
+  MSDataChainingConsumer_test
 )
-
-if (DB_TEST)
-  list(APPEND format_executables_list DBConnection_test)
-  list(APPEND format_executables_list DBAdapter_test)
-endif()
 
 set(math_executables_list
   AsymmetricStatistics_test
   AveragePosition_test
   BasicStatistics_test
   BilinearInterpolation_test
+  BSpline2d_test
+  CubicSpline2d_test
   GammaDistributionFitter_test
   GaussFitter_test
   GumbelDistributionFitter_test
@@ -225,11 +247,16 @@ set(math_executables_list
   LinearInterpolation_test
   LinearRegression_test
   MathFunctions_test
+  #MSNumpress_test
   NNLS_test
   NonNegativeLeastSquaresSolver_test
   PosteriorErrorProbabilityModel_test
+  #QuadraticRegression_test
+  #RegressionUtils_test
+  RANSAC_test
   ROCCurve_test
   StatisticFunctions_test
+  #Spline2d_test
 )
 
 set(filtering_executables_list
@@ -237,8 +264,8 @@ set(filtering_executables_list
   ComplementFilter_test
   ComplementMarker_test
   DataFilters_test
-ElutionPeakDetection_test
-FeatureFindingMetabo_test
+  ElutionPeakDetection_test
+  FeatureFindingMetabo_test
   FilterFunctor_test
   GaussFilter_test
   GaussFilterAlgorithm_test
@@ -253,22 +280,29 @@ FeatureFindingMetabo_test
   LinearResamplerAlign_test
   LowessSmoothing_test
   MarkerMower_test
-MassTraceDetection_test
+  MassTraceDetection_test
   MorphologicalFilter_test
+  MultiplexClustering_test
+  MultiplexFiltering_test
+  MultiplexFilteringCentroided_test
+  MultiplexFilteringProfile_test
+  MultiplexFilterResult_test
+  MultiplexFilterResultPeak_test
+  MultiplexFilterResultRaw_test
+  MultiplexPeakPattern_test
   NLargest_test
   NeutralLossDiffFilter_test
   NeutralLossMarker_test
   Normalizer_test
   ParentPeakMower_test
   PeakMarker_test
-  SILACFilter_test
-  SILACFiltering_test
-  SILACPattern_test
-  SILACPoint_test
+  SplinePackage_test
+  SplineSpectrum_test
   SavitzkyGolayFilter_test
   Scaler_test
   SignalToNoiseEstimatorMeanIterative_test
   SignalToNoiseEstimatorMedian_test
+  SignalToNoiseEstimatorMedianRapid_test
   SignalToNoiseEstimator_test
   SqrtMower_test
   TICFilter_test
@@ -288,14 +322,11 @@ set(comparison_executables_list
   ClusterAnalyzer_test
   ClusterFunctor_test
   ClusterHierarchical_test
-  CompareFouriertransform_test
   CompleteLinkage_test
   EuclideanSimilarity_test
-  HierarchicalClustering_test
   PeakAlignment_test
   PeakSpectrumCompareFunctor_test
   SingleLinkage_test
-  SILACClustering_test
   SpectraSTSimilarityScore_test
   SpectrumAlignmentScore_test
   SpectrumAlignment_test
@@ -313,7 +344,10 @@ set(chemistry_executables_list
   ElementDB_test
   Element_test
   EmpiricalFormula_test
+  EnzymaticDigestionLogModel_test
   EnzymaticDigestion_test
+  Enzyme_test
+  EnzymesDB_test
   FastaIteratorIntern_test
   FastaIterator_test
   IsotopeDistribution_test
@@ -355,10 +389,16 @@ set(analysis_executables_list
   CompNovoIonScoringCID_test
   CompNovoIonScoring_test
   ConfidenceScoring_test
-  ConsensusID_test
+  ConsensusIDAlgorithmAverage_test
+  ConsensusIDAlgorithmBest_test
+  ConsensusIDAlgorithmPEPIons_test
+  ConsensusIDAlgorithmPEPMatrix_test
+  ConsensusIDAlgorithmRanks_test
+  ConsensusIDAlgorithmWorst_test
   ConsensusMapNormalizerAlgorithmThreshold_test
-  #ConsensusMapNormalizerAlgorithmMedian_test
-  #ConsensusMapNormalizerAlgorithmQuantile_test
+  ConsensusMapNormalizerAlgorithmMedian_test
+  ConsensusMapNormalizerAlgorithmQuantile_test
+  #DataAccessHelper_test
   DeNovoAlgorithm_test
   DeNovoIdentification_test
   DeNovoIonScoring_test
@@ -366,6 +406,7 @@ set(analysis_executables_list
   FalseDiscoveryRate_test
   FeatureDeconvolution_test
   FeatureDistance_test
+  FeatureGroupingAlgorithmIdentification_test
   FeatureGroupingAlgorithmLabeled_test
   FeatureGroupingAlgorithmQT_test
   FeatureGroupingAlgorithmUnlabeled_test
@@ -375,6 +416,7 @@ set(analysis_executables_list
   IDMapper_test
   IDRipper_test
   ILPDCWrapper_test
+  IncludeExcludeTarget_test
   InclusionExclusionList_test
   IsobaricChannelExtractor_test
   IsobaricIsotopeCorrector_test
@@ -387,6 +429,7 @@ set(analysis_executables_list
   ItraqFourPlexQuantitationMethod_test
   ItraqEightPlexQuantitationMethod_test
   TMTSixPlexQuantitationMethod_test
+  TMTTenPlexQuantitationMethod_test
   ItraqQuantifier_test
   LabeledPairFinder_test
   LocalLinearMap_test
@@ -395,13 +438,13 @@ set(analysis_executables_list
   MapAlignmentAlgorithmIdentification_test
   MapAlignmentAlgorithmPoseClustering_test
   MapAlignmentAlgorithmSpectrumAlignment_test
-  MapAlignmentAlgorithm_test
   MapAlignmentEvaluationAlgorithmPrecision_test
   MapAlignmentEvaluationAlgorithmRecall_test
   MapAlignmentEvaluationAlgorithm_test
   MapAlignmentTransformer_test
   MassDecompositionAlgorithm_test
   MassDecomposition_test
+  MetaboliteSpectralMatching_test
   ModifiedPeptideGenerator_test
   OfflinePrecursorIonSelection_test
   PeptideAndProteinQuant_test
@@ -421,17 +464,23 @@ set(analysis_executables_list
   PSLPFormulation_test
   PSProteinInference_test
   QTClusterFinder_test
-  #QuantitativeExperimentalDesign_test
+  QuantitativeExperimentalDesign_test
   ReactionMonitoringTransition_test
+  RNPxlModificationsGenerator_test
   SVMWrapper_test
   SimplePairFinder_test
   StablePairFinder_test
+  #TargetedExperimentHelper_test
   TransformationDescription_test
   TransformationModel_test
+  TransformationModelBSpline_test
+  TransformationModelInterpolated_test
+  TransformationModelLinear_test
 )
 
 set(applications_executables_list
   INIUpdater_test
+  #MapAlignerBase_test
   TOPPBase_test
   ToolHandler_test
   ParameterInformation_test
@@ -454,32 +503,8 @@ set(transformations_executables_list
   FeatureFinderAlgorithmMRM_test
   FeatureFinderAlgorithmPickedHelperStructs_test
   FeatureFinderAlgorithmPicked_test
-  FeatureFinderAlgorithmSH_test
-  FeatureFinderAlgorithmSHSuperhirnBackgroundControl_test
-  FeatureFinderAlgorithmSHSuperhirnBackgroundIntensityBin_test
-  FeatureFinderAlgorithmSHSuperhirnCentroidData_test
-  FeatureFinderAlgorithmSHSuperhirnCentroidPeak_test
-  FeatureFinderAlgorithmSHSuperhirnClusteredMS2ConsensusSpectrum_test
-  FeatureFinderAlgorithmSHSuperhirnDeisotoper_test
-  FeatureFinderAlgorithmSHSuperhirnFT_PeakDetectController_test
-  FeatureFinderAlgorithmSHSuperhirnIsotopicDist_test
-  FeatureFinderAlgorithmSHSuperhirnLCMSCData_test
-  FeatureFinderAlgorithmSHSuperhirnLC_MS_test
-  FeatureFinderAlgorithmSHSuperhirnLC_elution_peak_test
-  FeatureFinderAlgorithmSHSuperhirnMS1_feature_merger_test
-  FeatureFinderAlgorithmSHSuperhirnMS2ConsensusSpectrum_test
-  FeatureFinderAlgorithmSHSuperhirnMS2Fragment_test
-  FeatureFinderAlgorithmSHSuperhirnMS2_feature_test
-  FeatureFinderAlgorithmSHSuperhirnMS2Info_test
-  FeatureFinderAlgorithmSHSuperhirnProcess_Data_test
-  FeatureFinderAlgorithmSHSuperhirnRawData_test
-  FeatureFinderAlgorithmSHSuperhirnconsensIsotopePattern_test
-  FeatureFinderAlgorithmSHSuperhirnfeatureLCprofile_test
-  FeatureFinderAlgorithmSHSuperhirnfeature_test
-  FeatureFinderAlgorithmSHSuperhirnms_peak_test
-  # deprecated: FeatureFinderAlgorithmSimple_test
-  # deprecated: FeatureFinderAlgorithmSimplest_test
   FeatureFinderAlgorithm_test
+  FeatureFinderDefs_test
   FeatureFinder_test
   Fitter1D_test
   GaussFitter1D_test
@@ -491,23 +516,19 @@ set(transformations_executables_list
   IsotopeWaveletTransform_test
   IsotopeWavelet_test
   LevMarqFitter1D_test
-  LmaGaussFitter1D_test
-  LmaGaussModel_test
-  LmaIsotopeFitter1D_test
-  LmaIsotopeModel_test
   MaxLikeliFitter1D_test
   ModelDescription_test
-  ModelFitter_test
   OptimizePeakDeconvolution_test
   OptimizePick_test
   PeakPickerCWT_test
   PeakPickerHiRes_test
-PeakWidthEstimator_test
+  PeakPickerIterative_test
+  PeakPickerMaxima_test
+  PeakPickerSH_test
+  PeakWidthEstimator_test
   PeakShape_test
   ProductModel_test
   SeedListGenerator_test
-  SimpleExtender_test
-  SimpleSeeder_test
   TwoDOptimization_test
   TraceFitter_test
 )
@@ -539,7 +560,9 @@ set(simulation_executables_list
 
 if(NOT DISABLE_OPENSWATH)
   set(swath_executables_list
+    MRMAssay_test
     MRMDecoy_test
+    MRMIonSeries_test
     MRMRTNormalizer_test
     TransitionTSVReader_test
     ChromatogramExtractor_test

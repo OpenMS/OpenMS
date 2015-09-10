@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,24 +36,18 @@
 #define OPENMS_COMPARISON_CLUSTERING_CLUSTERANALYZER_H
 
 #include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/BinaryTreeNode.h>
 
 #include <vector>
-#include <set>
-#include <list>
-#include <iostream>
-#include <fstream>
-#include <cfloat>
 
 namespace OpenMS
 {
   class String;
 
   /**
-      @brief Bundles analyzing tools for a clustering (given as sequence of BinaryTreeNode's)
+    @brief Bundles analyzing tools for a clustering (given as sequence of BinaryTreeNode's)
 
-      @ingroup SpectraClustering
+    @ingroup SpectraClustering
   */
   class OPENMS_DLLAPI ClusterAnalyzer
   {
@@ -77,7 +71,7 @@ public:
         The average silhouette width will be calculated for each clustering step beginning with the first step(n-1 cluster) ending with the last (1 cluster, average silhouette width is 0 by definition).
         @see BinaryTreeNode
     */
-    std::vector<Real> averageSilhouetteWidth(const std::vector<BinaryTreeNode> & tree, const DistanceMatrix<Real> & original);
+    std::vector<float> averageSilhouetteWidth(const std::vector<BinaryTreeNode> & tree, const DistanceMatrix<float> & original);
 
     /**
         @brief Method to calculate Dunns indices for a clustering
@@ -87,7 +81,7 @@ public:
         @param tree_from_singlelinkage true if tree was created by SingleLinkage, i.e. the distances are the minimal distances in increasing order and can be used to speed up the calculation
         @see BinaryTreeNode
     */
-    std::vector<Real> dunnIndices(const std::vector<BinaryTreeNode> & tree, const DistanceMatrix<Real> & original, const bool tree_from_singlelinkage = false);
+    std::vector<float> dunnIndices(const std::vector<BinaryTreeNode> & tree, const DistanceMatrix<float> & original, const bool tree_from_singlelinkage = false);
 
     /**
         @brief Method to calculate the cohesions of a certain partition
@@ -96,7 +90,7 @@ public:
         @param original DistanceMatrix for all clustered elements started from
         @return a vector that holds the cohesions of each cluster given with @p clusters (order corresponds to @p clusters)
     */
-    std::vector<Real> cohesion(const std::vector<std::vector<Size> > & clusters, const DistanceMatrix<Real> & original);
+    std::vector<float> cohesion(const std::vector<std::vector<Size> > & clusters, const DistanceMatrix<float> & original);
 
     /**
         @brief Method to calculate the average aberration from average population in partition resulting from a certain step in clustering
@@ -107,7 +101,7 @@ public:
         @return the average aberration from the average cluster population (number of elements/cluster_quantity) at cluster_quantity
         @see BinaryTreeNode
     */
-    Real averagePopulationAberration(Size cluster_quantity, std::vector<BinaryTreeNode> & tree);
+    float averagePopulationAberration(Size cluster_quantity, std::vector<BinaryTreeNode> & tree);
 
 /**
         @brief Method to calculate a partition resulting from a certain step in clustering given by the number of clusters

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,9 +39,9 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BiGaussFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ExtendedIsotopeFitter1D.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LmaIsotopeFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgFitter1D.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LmaGaussFitter1D.h>
+
+#include <OpenMS/CONCEPT/Factory.h>
 
 namespace OpenMS
 {
@@ -56,14 +56,14 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  Fitter1D::Fitter1D(const Fitter1D & source) :
+  Fitter1D::Fitter1D(const Fitter1D& source) :
     DefaultParamHandler(source)
   {
     setParameters(source.getParameters());
     updateMembers_();
   }
 
-  Fitter1D & Fitter1D::operator=(const Fitter1D & source)
+  Fitter1D& Fitter1D::operator=(const Fitter1D& source)
   {
     if (&source == this)
       return *this;
@@ -80,10 +80,8 @@ namespace OpenMS
     Factory<Fitter1D>::registerProduct(GaussFitter1D::getProductName(), &GaussFitter1D::create);
     Factory<Fitter1D>::registerProduct(BiGaussFitter1D::getProductName(), &BiGaussFitter1D::create);
     Factory<Fitter1D>::registerProduct(IsotopeFitter1D::getProductName(), &IsotopeFitter1D::create);
-    Factory<Fitter1D>::registerProduct(LmaIsotopeFitter1D::getProductName(), &LmaIsotopeFitter1D::create);
     Factory<Fitter1D>::registerProduct(ExtendedIsotopeFitter1D::getProductName(), &ExtendedIsotopeFitter1D::create);
     Factory<Fitter1D>::registerProduct(EmgFitter1D::getProductName(), &EmgFitter1D::create);
-    Factory<Fitter1D>::registerProduct(LmaGaussFitter1D::getProductName(), &LmaGaussFitter1D::create);
   }
 
   void Fitter1D::updateMembers_()
@@ -92,6 +90,11 @@ namespace OpenMS
     interpolation_step_ = param_.getValue("interpolation_step");
     statistics_.setMean(param_.getValue("statistics:mean"));
     statistics_.setVariance(param_.getValue("statistics:variance"));
+  }
+
+  Fitter1D::QualityType Fitter1D::fit1d(const RawDataArrayType& /* range */, InterpolationModel*& /* model */)
+  {
+    throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
   }
 
 } // namespace OpenMS

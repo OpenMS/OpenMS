@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,9 +32,6 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_MRMFEATURE_C
-#define OPENMS_KERNEL_MRMFEATURE_C
-
 #include <OpenMS/KERNEL/MRMFeature.h>
 
 namespace OpenMS
@@ -49,8 +46,10 @@ namespace OpenMS
   MRMFeature::MRMFeature(const MRMFeature & rhs) :
     Feature(rhs),
     features_(rhs.features_),
+    precursor_features_(rhs.precursor_features_),
     pg_scores_(rhs.pg_scores_),
-    feature_map_(rhs.feature_map_)
+    feature_map_(rhs.feature_map_),
+    precursor_feature_map_(rhs.precursor_feature_map_)
   {
     setScores(rhs.getScores());
   }
@@ -63,8 +62,10 @@ namespace OpenMS
 
     Feature::operator = (rhs);
     setScores(rhs.getScores());
-    feature_map_ = rhs.feature_map_;
     features_ = rhs.features_;
+    precursor_features_ = rhs.precursor_features_;
+    feature_map_ = rhs.feature_map_;
+    precursor_feature_map_ = rhs.precursor_feature_map_;
 
     return *this;
   }
@@ -87,7 +88,7 @@ namespace OpenMS
   {
 
     for (MRMFeature::PGScoresType::const_iterator score = scores.begin();
-         score != scores.end(); score++)
+         score != scores.end(); ++score)
     {
       addScore(score->first, score->second);
     }
@@ -117,11 +118,30 @@ namespace OpenMS
 
   void MRMFeature::getFeatureIDs(std::vector<String> & result) const
   {
-    for (std::map<String, int>::const_iterator it = feature_map_.begin(); it != feature_map_.end(); it++ )
+    for (std::map<String, int>::const_iterator it = feature_map_.begin(); it != feature_map_.end(); ++it)
     {
       result.push_back(it->first);
     }
   }
+
+  void MRMFeature::addPrecursorFeature(Feature & feature, const String& key)
+  {
+    precursor_features_.push_back(feature);
+    precursor_feature_map_[key] = Int(precursor_features_.size()) - 1;
+  }
+
+  void MRMFeature::getPrecursorFeatureIDs(std::vector<String> & result) const
+  {
+    for (std::map<String, int>::const_iterator it = precursor_feature_map_.begin(); it != precursor_feature_map_.end(); ++it)
+    {
+      result.push_back(it->first);
+    }
+  }
+
+  Feature & MRMFeature::getPrecursorFeature(String key)
+  {
+    return precursor_features_.at(precursor_feature_map_[key]);
+  }
+
 }
 
-#endif

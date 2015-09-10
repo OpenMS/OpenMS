@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -77,7 +77,7 @@ Param param;
 param.setValue("mz_tolerance",100.);
 param.setValue("mz_tolerance_unit","ppm");
 
-START_SECTION((template < typename InputPeakType > void calibrateMapSpectrumwise(const MSExperiment< InputPeakType > &exp, MSExperiment< InputPeakType > &calibrated_exp, std::vector< DoubleReal > &ref_masses)))
+START_SECTION((template < typename InputPeakType > void calibrateMapSpectrumwise(const MSExperiment< InputPeakType > &exp, MSExperiment< InputPeakType > &calibrated_exp, std::vector< double > &ref_masses)))
 {
   TOLERANCE_ABSOLUTE(0.000001)
   MSExperiment<> calibrated_exp;
@@ -91,7 +91,7 @@ START_SECTION((template < typename InputPeakType > void calibrateMapSpectrumwise
 }
 END_SECTION
 
-START_SECTION((template < typename InputPeakType > void calibrateMapGlobally(const MSExperiment< InputPeakType > &exp, MSExperiment< InputPeakType > &calibrated_exp, std::vector< DoubleReal > &ref_masses, String trafo_file_name="")))
+START_SECTION((template < typename InputPeakType > void calibrateMapGlobally(const MSExperiment< InputPeakType > &exp, MSExperiment< InputPeakType > &calibrated_exp, std::vector< double > &ref_masses, String trafo_file_name="")))
 {
   TOLERANCE_ABSOLUTE(0.000001)
   MSExperiment<> calibrated_exp;
@@ -123,12 +123,12 @@ START_SECTION((template < typename InputPeakType > void calibrateMapGlobally(con
 }
 END_SECTION
 
-FeatureMap<> f_map;
+FeatureMap f_map;
 FeatureXMLFile f_file;
 f_file.load(OPENMS_GET_TEST_DATA_PATH("InternalCalibration_annotated.featureXML"),f_map);
-START_SECTION((void calibrateMapGlobally(const FeatureMap<> &feature_map, FeatureMap<> &calibrated_feature_map, String trafo_file_name="")))
+START_SECTION((void calibrateMapGlobally(const FeatureMap &feature_map, FeatureMap &calibrated_feature_map, String trafo_file_name="")))
 {
-  FeatureMap<> calibrated_f_map;
+  FeatureMap calibrated_f_map;
   ptr->calibrateMapGlobally(f_map,calibrated_f_map);
   TEST_REAL_SIMILAR(calibrated_f_map[0].getMZ(),687.841430243171)
   TEST_REAL_SIMILAR(calibrated_f_map[1].getMZ(),720.005082366204)
@@ -139,9 +139,9 @@ START_SECTION((void calibrateMapGlobally(const FeatureMap<> &feature_map, Featur
 }
 END_SECTION
 id_file.load(OPENMS_GET_TEST_DATA_PATH("InternalCalibration_2.idXML"),prot_ids,pep_ids);
-START_SECTION((void calibrateMapGlobally(const FeatureMap<> &feature_map, FeatureMap<> &calibrated_feature_map, std::vector< PeptideIdentification > &ref_ids, String trafo_file_name="")))
+START_SECTION((void calibrateMapGlobally(const FeatureMap &feature_map, FeatureMap &calibrated_feature_map, std::vector< PeptideIdentification > &ref_ids, String trafo_file_name="")))
 {
-  FeatureMap<> calibrated_f_map;
+  FeatureMap calibrated_f_map;
   ptr->calibrateMapGlobally(f_map,calibrated_f_map,pep_ids);
   TEST_REAL_SIMILAR(calibrated_f_map[0].getMZ(),687.841430243171)
   TEST_REAL_SIMILAR(calibrated_f_map[1].getMZ(),720.005082366204)
@@ -152,7 +152,7 @@ START_SECTION((void calibrateMapGlobally(const FeatureMap<> &feature_map, Featur
 }
 END_SECTION
 
-START_SECTION((template < typename InputPeakType > void calibrateMapList(std::vector< MSExperiment< InputPeakType > > &exp_list, std::vector< MSExperiment< InputPeakType > > &calibrated_exp_list, std::vector< DoubleReal > &ref_masses, std::vector< DoubleReal > &detected_background_masses)))
+START_SECTION((template < typename InputPeakType > void calibrateMapList(std::vector< MSExperiment< InputPeakType > > &exp_list, std::vector< MSExperiment< InputPeakType > > &calibrated_exp_list, std::vector< double > &ref_masses, std::vector< double > &detected_background_masses)))
 {
   NOT_TESTABLE  // not yet existing
 }

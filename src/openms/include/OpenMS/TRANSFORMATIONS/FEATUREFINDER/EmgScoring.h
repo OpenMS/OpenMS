@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
-// 
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
 // $Authors: Hannes Roest $
@@ -52,7 +52,7 @@ namespace OpenMS
 
   /**
     @brief Scoring of an elution peak using an exponentially modified gaussian distribution model.
-    
+
     This class uses the original ideas from FeatureFinderAlgorithmMRM to
     construct an interface that allows scoring of chromatographic peaks.
 
@@ -118,7 +118,7 @@ namespace OpenMS
       std::vector<LocalPeakType> data_to_fit;
       prepareFit_(current_section, data_to_fit, smooth_data);
       InterpolationModel * model_rt = 0;
-      DoubleReal quality = fitRT_(data_to_fit, model_rt);
+      double quality = fitRT_(data_to_fit, model_rt);
       // cut line 354 of FeatureFinderAlgorithmMRM
       delete model_rt;
 
@@ -130,7 +130,7 @@ namespace OpenMS
     template<class LocalPeakType>
     double fitRT_(std::vector<LocalPeakType> & rt_input_data, InterpolationModel * & model)
     {
-      DoubleReal quality;
+      double quality;
       //Param param;
 
       /*EmgFitter
@@ -171,12 +171,12 @@ namespace OpenMS
 
       // add two peaks at the beginning and at the end for better fit
       // therefore calculate average distance first
-      std::vector<DoubleReal> distances;
+      std::vector<double> distances;
       for (Size j = 1; j < filter_spec.size(); ++j)
       {
         distances.push_back(filter_spec[j].getMZ() - filter_spec[j - 1].getMZ());
       }
-      DoubleReal dist_average = std::accumulate(distances.begin(), distances.end(), 0.0) / (DoubleReal) distances.size();
+      double dist_average = std::accumulate(distances.begin(), distances.end(), 0.0) / (double) distances.size();
 
       // append peaks
       Peak1D new_peak;

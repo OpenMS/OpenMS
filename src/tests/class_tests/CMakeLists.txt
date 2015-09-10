@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2012.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -49,8 +49,14 @@ add_subdirectory(openswathalgo)
 add_subdirectory(openms)
 
 #------------------------------------------------------------------------------
-# add OpenMS_GUI specific tests
-add_subdirectory(openms_gui)
+# add OpenMS specific tests
+add_subdirectory(superhirn)
+
+if(WITH_GUI)
+  #------------------------------------------------------------------------------
+  # add OpenMS_GUI specific tests
+  add_subdirectory(openms_gui)
+endif()
 
 #------------------------------------------------------------------------------
 # restore old CMAKE_RUNTIME_OUTPUT_DIRECTORY

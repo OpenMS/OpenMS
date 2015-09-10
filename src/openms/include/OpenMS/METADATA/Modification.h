@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -93,9 +93,9 @@ public:
     void setReagentName(const String & reagent_name);
 
     /// returns the mass change (default: 0.0)
-    DoubleReal getMass() const;
+    double getMass() const;
     /// sets the mass change
-    void setMass(DoubleReal mass);
+    void setMass(double mass);
 
     /// returns the specificity of the the reagent (default: AA)
     const SpecificityType & getSpecificityType() const;
@@ -109,7 +109,7 @@ public:
 
 protected:
     String reagent_name_;
-    DoubleReal mass_;
+    double mass_;
     SpecificityType specificity_type_;
     String affected_amino_acids_;
   };

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -384,7 +384,7 @@ namespace OpenMS
 
         if (!current_precursors.empty() || current_spec.metaValueExists("analyzer scan offset"))
         {
-          DoubleReal pc_val;
+          double pc_val;
           if (current_spec.metaValueExists("analyzer scan offset"))
           {
             pc_val = current_spec.getMetaValue("analyzer scan offset");

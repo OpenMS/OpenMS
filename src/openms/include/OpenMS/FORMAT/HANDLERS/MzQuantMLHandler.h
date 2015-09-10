@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,7 +37,6 @@
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
-#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/METADATA/MSQuantifications.h>
 
 namespace OpenMS
@@ -115,7 +114,7 @@ protected:
 
 
       /// Helper method that writes the featuremaps
-      void writeFeature_(String & feature_xml, const std::vector<FeatureMap<> >& fm, UInt indentation_level);
+      void writeFeature_(String & feature_xml, const std::vector<FeatureMap >& fm, UInt indentation_level);
 
       /// Helper method that writes a source file
       //void writeSourceFile_(std::ostream& os, const String& id, const SourceFile& software);
@@ -150,8 +149,8 @@ private:
       std::set<DataProcessing::ProcessingAction> current_pas_;
 
       std::vector<String> current_col_types_;
-      std::vector<DoubleReal> current_dm_values_;
-      std::vector<DoubleReal> current_row_;
+      std::vector<double> current_dm_values_;
+      std::vector<double> current_row_;
 
     };
   }   // namespace Internal

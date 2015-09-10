@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
+#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
@@ -92,14 +93,14 @@ namespace OpenMS
 
       void
       setWhitelist(const char* const /* file */, const int line,
-                   const std::string& whitelist)
+                   const std::string& whitelist_)
       {
-        TEST::whitelist = ListUtils::create<String>(whitelist);
+        TEST::whitelist = ListUtils::create<String>(whitelist_);
 
         if ((TEST::verbose > 1) || (!TEST::this_test && (TEST::verbose > 0)))
         {
           TEST::initialNewline();
-          std__cout << " +  line " << line << ":  WHITELIST(\"" << whitelist
+          std__cout << " +  line " << line << ":  WHITELIST(\"" << whitelist_
                     << "\"):   whitelist is: " << TEST::whitelist << std::endl;
         }
         return;
@@ -166,7 +167,7 @@ namespace OpenMS
             break;
 
             case FileTypes::MZDATA:
-              if (!MzDataFile().isValid(file_names[i]))
+              if (!MzDataFile().isValid(file_names[i], std::cerr))
               {
                 std::cout << " - Error: Invalid mzData file '" << file_names[i] << "'" << std::endl;
                 passed_single = false;
@@ -174,7 +175,7 @@ namespace OpenMS
               break;
 
             case FileTypes::MZXML:
-              if (!MzXMLFile().isValid(file_names[i]))
+              if (!MzXMLFile().isValid(file_names[i], std::cerr))
               {
                 std::cout << " - Error: Invalid mzXML file '" << file_names[i] << "'" << std::endl;
                 passed_single = false;
@@ -182,7 +183,7 @@ namespace OpenMS
               break;
 
             case FileTypes::FEATUREXML:
-              if (!FeatureXMLFile().isValid(file_names[i]))
+              if (!FeatureXMLFile().isValid(file_names[i], std::cerr))
               {
                 std::cout << " - Error: Invalid featureXML file '" << file_names[i] << "'" << std::endl;
                 passed_single = false;
@@ -190,7 +191,7 @@ namespace OpenMS
               break;
 
             case FileTypes::IDXML:
-              if (!IdXMLFile().isValid(file_names[i]))
+              if (!IdXMLFile().isValid(file_names[i], std::cerr))
               {
                 std::cout << " - Error: Invalid idXML file '" << file_names[i] << "'" << std::endl;
                 passed_single = false;
@@ -198,7 +199,7 @@ namespace OpenMS
               break;
 
             case FileTypes::CONSENSUSXML:
-              if (!ConsensusXMLFile().isValid(file_names[i]))
+              if (!ConsensusXMLFile().isValid(file_names[i], std::cerr))
               {
                 std::cout << " - Error: Invalid consensusXML file '" << file_names[i] << "'" << std::endl;
                 passed_single = false;
@@ -206,7 +207,7 @@ namespace OpenMS
               break;
 
             case FileTypes::INI:
-              if (!ParamXMLFile().isValid(file_names[i]))
+              if (!ParamXMLFile().isValid(file_names[i], std::cerr))
               {
                 std::cout << " - Error: Invalid Param file '" << file_names[i] << "'" << std::endl;
                 passed_single = false;
@@ -214,7 +215,7 @@ namespace OpenMS
               break;
 
             case FileTypes::TRANSFORMATIONXML:
-              if (!TransformationXMLFile().isValid(file_names[i]))
+              if (!TransformationXMLFile().isValid(file_names[i], std::cerr))
               {
 
                 passed_single = false;

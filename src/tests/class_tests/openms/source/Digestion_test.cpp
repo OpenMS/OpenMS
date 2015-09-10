@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -73,19 +73,19 @@ START_SECTION((const String& getEnzyme() const))
 END_SECTION
 
 //basic accessors
-START_SECTION((DoubleReal getDigestionTime() const ))
+START_SECTION((double getDigestionTime() const ))
 	Digestion s;
 	TEST_REAL_SIMILAR(s.getDigestionTime(),0.0)
 END_SECTION
 
 //basic accessors
-START_SECTION((DoubleReal getTemperature() const ))
+START_SECTION((double getTemperature() const ))
 	Digestion s;
 	TEST_REAL_SIMILAR(s.getTemperature(),0.0)
 END_SECTION
 
 //basic accessors
-START_SECTION((DoubleReal getPh() const ))
+START_SECTION((double getPh() const ))
 	Digestion s;
 	TEST_REAL_SIMILAR(s.getPh(),0.0)
 END_SECTION
@@ -98,7 +98,7 @@ START_SECTION((void setEnzyme(const String& enzyme)))
 END_SECTION
 
 //basic accessors
-START_SECTION((void setDigestionTime(DoubleReal digestion_time)))
+START_SECTION((void setDigestionTime(double digestion_time)))
 	Digestion s;
 	//set
 	s.setDigestionTime(4711.2);
@@ -106,14 +106,14 @@ START_SECTION((void setDigestionTime(DoubleReal digestion_time)))
 END_SECTION
 
 //basic accessors
-START_SECTION((void setTemperature(DoubleReal temperature)))
+START_SECTION((void setTemperature(double temperature)))
 	Digestion s;
 	s.setTemperature(4711.3);
 	TEST_REAL_SIMILAR(s.getTemperature(),4711.3)
 END_SECTION
 
 //basic accessors
-START_SECTION((void setPh(DoubleReal ph)))
+START_SECTION((void setPh(double ph)))
 	Digestion s;
 	s.setPh(4711.4);
 	TEST_REAL_SIMILAR(s.getPh(),4711.4)

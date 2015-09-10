@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,7 @@
 
 ///////////////////////////
 
+#include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/XTandemInfile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -284,13 +285,23 @@ END_SECTION
 START_SECTION(bool isRefining() const )
   XTandemInfile file;
   TEST_EQUAL(file.isRefining()==true, true)
-
 END_SECTION
 
 START_SECTION(void setRefine(const bool refine))
   XTandemInfile file;
   file.setRefine(false);
   TEST_EQUAL(file.isRefining()==false, true)
+END_SECTION
+
+START_SECTION(bool getNoiseSuppression() const )
+  XTandemInfile file;
+  TEST_EQUAL(file.getNoiseSuppression()==false, true)
+END_SECTION
+
+START_SECTION(void setNoiseSuppression(const bool noise_suppression))
+  XTandemInfile file;
+  file.setNoiseSuppression(false);
+  TEST_EQUAL(file.getNoiseSuppression()==false, true)
 END_SECTION
 
 /////////////////////////////////////////////////////////////

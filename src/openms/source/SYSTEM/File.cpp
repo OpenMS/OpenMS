@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/openms_data_path.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
@@ -219,6 +220,11 @@ namespace OpenMS
 
   String File::find(const String& filename, StringList directories)
   {
+    // maybe we do not need to do anything?!
+    // This check is required since calling File::find(File::find("CHEMISTRY/Elements.xml")) will otherwise fail
+    // because the outer call receives an absolute path already
+    if (exists(filename)) return filename;
+
     String filename_new = filename;
 
     // empty string cannot be found, so throw Exception.
@@ -255,9 +261,6 @@ namespace OpenMS
 
     //if the file was not found, throw an exception
     throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
-
-    //this is never reached, but needs to be there to avoid compiler warnings
-    return "";
   }
 
   bool File::fileList(const String& dir, const String& file_pattern, StringList& output, bool full_path)
@@ -293,6 +296,7 @@ namespace OpenMS
     search_dirs.push_back(String(OPENMS_SOURCE_PATH) + "/../../doc/");
     search_dirs.push_back(getOpenMSDataPath() + "/../../doc/");
     search_dirs.push_back(OPENMS_DOC_PATH);
+    search_dirs.push_back(OPENMS_INSTALL_DOC_PATH);
 
     // needed for OpenMS Mac OS X packages where documentation is stored in <package-root>/Documentation
 #if defined(__APPLE__)
@@ -331,6 +335,13 @@ namespace OpenMS
     {
       path = getenv("OPENMS_DATA_PATH");
       from_env = true;
+      path_checked = isOpenMSDataPath_(path);
+    }
+
+    // probe the install path
+    if (!path_checked)
+    {
+      path = OPENMS_INSTALL_DATA_PATH;
       path_checked = isOpenMSDataPath_(path);
     }
 

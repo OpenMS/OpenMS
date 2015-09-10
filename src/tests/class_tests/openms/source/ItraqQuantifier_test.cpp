@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,6 +41,8 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 ///////////////////////////
+
+//#include <OpenMS/DATASTRUCTURES/Matrix.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -151,7 +153,7 @@ START_SECTION((void run(const ConsensusMap &consensus_map_in, ConsensusMap &cons
 	NEW_TMP_FILE(cm_file_out);
 	cm_file.store(cm_file_out,cm_out);
 
-	WHITELIST("<?xml-stylesheet");
+	WHITELIST("<?xml-stylesheet,id=");
 	// WHITELIST("<?xml-stylesheet,consensusElement id=");
 	TEST_FILE_SIMILAR(cm_file_out,OPENMS_GET_TEST_DATA_PATH("ItraqQuantifier.consensusXML"));
 }

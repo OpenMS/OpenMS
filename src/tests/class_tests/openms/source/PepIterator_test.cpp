@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -98,25 +98,25 @@ START_SECTION((virtual String getFastaFile()=0))
 }
 END_SECTION
 
-START_SECTION((virtual void setSpectrum(const std::vector< DoubleReal > &s)=0))
+START_SECTION((virtual void setSpectrum(const std::vector< double > &s)=0))
 {
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((virtual const std::vector<DoubleReal>& getSpectrum()=0))
+START_SECTION((virtual const std::vector<double>& getSpectrum()=0))
 {
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((virtual void setTolerance(DoubleReal t)=0))
+START_SECTION((virtual void setTolerance(double t)=0))
 {
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((virtual DoubleReal getTolerance()=0))
+START_SECTION((virtual double getTolerance()=0))
 {
   NOT_TESTABLE
 }

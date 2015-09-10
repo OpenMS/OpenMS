@@ -1,8 +1,8 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -10,26 +10,26 @@
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: Andreas Bertsch $
+// $Maintainer: Mathias Walzer $
+// $Authors: Mathias Walzer $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -38,7 +38,8 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
-#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/FuzzyStringComparator.h>
+
 
 using namespace OpenMS;
 using namespace std;
@@ -52,37 +53,210 @@ START_TEST(MzIdentMLFile, "$Id")
 MzIdentMLFile* ptr = 0;
 MzIdentMLFile* nullPointer = 0;
 START_SECTION((MzIdentMLFile()))
-	ptr = new MzIdentMLFile;
-	TEST_NOT_EQUAL(ptr, nullPointer)
+    ptr = new MzIdentMLFile;
+    TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((~MzIdentMLFile()))
-	delete ptr;
+    delete ptr;
 END_SECTION
 
-START_SECTION((template <typename MapType> void load(const String& filename, Identification& id)))
-	MzIdentMLFile file;
-	Identification id;
-	file.load(OPENMS_GET_TEST_DATA_PATH("Mascot_MSMS_example.mzid"), id);
-	// TODO
+START_SECTION(void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids) )
+  std::vector<ProteinIdentification> protein_ids;
+  std::vector<PeptideIdentification> peptide_ids;
+  std::vector<String> fm;
+  fm.push_back("Carbamidomethyl (C)");
+  MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_msgf_mini.mzid"), protein_ids, peptide_ids);
+
+  TEST_EQUAL(protein_ids.size(),2)
+  TEST_EQUAL(protein_ids[0].getHits().size(),2)
+  TEST_EQUAL(protein_ids[1].getHits().size(),1)
+  TEST_EQUAL(peptide_ids.size(),5)
+  TEST_EQUAL(peptide_ids[0].getHits().size(),1)
+  TEST_EQUAL(peptide_ids[1].getHits().size(),1)
+  TEST_EQUAL(peptide_ids[2].getHits().size(),1)
+  TEST_EQUAL(peptide_ids[3].getHits().size(),1)
+  TEST_EQUAL(peptide_ids[4].getHits().size(),1)
+
+  /////////////// protein id 1 //////////////////
+  TEST_EQUAL(protein_ids[0].getSearchEngine(),"MS-GF+")
+  TEST_EQUAL(protein_ids[0].getSearchEngineVersion(),"Beta (v9979)")
+  TEST_NOT_EQUAL(protein_ids[0].getDateTime().getDate(),"0000-00-00")
+  TEST_NOT_EQUAL(protein_ids[0].getDateTime().getTime(),"00:00:00")
+  TEST_EQUAL(protein_ids[0].getSearchParameters().db,"database.fasta")
+  TEST_EQUAL(protein_ids[0].getSearchParameters().enzyme, ProteinIdentification::TRYPSIN)
+  TEST_EQUAL(protein_ids[0].getSearchParameters().missed_cleavages, 1000)
+  TEST_EQUAL(protein_ids[0].getSearchParameters().fixed_modifications.size(), fm.size())
+  TEST_EQUAL(protein_ids[0].getSearchParameters().fixed_modifications.back(), fm.back())
+  TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().peak_mass_tolerance,0)
+  TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().precursor_tolerance,20)
+
+  //ProteinGroups not nupported yet, also no ProteinDetection, too few input here
+//  TEST_EQUAL(protein_ids[0].getProteinGroups().size(), 0);
+//  TEST_EQUAL(protein_ids[0].getIndistinguishableProteins().size(), 0);
+
+  //protein hit 1
+  TEST_EQUAL(protein_ids[0].getHits()[0].getAccession(),"sp|P0A9K9|SLYD_ECOLI")
+  TEST_EQUAL(protein_ids[0].getHits()[0].getSequence(),"")
+  //protein hit 2
+  TEST_EQUAL(protein_ids[0].getHits()[1].getAccession(),"sp|P0A786|PYRB_ECOLI")
+  TEST_EQUAL(protein_ids[0].getHits()[1].getSequence(),"")
+
+  //peptide id s
+  TEST_EQUAL(peptide_ids[0].getScoreType(),"MS-GF:EValue")
+  TEST_REAL_SIMILAR(peptide_ids[0].getHits()[0].getScore(),3.7710217E-26)
+  TEST_EQUAL(peptide_ids[0].getHits()[0].getSequence().toString(),"LATEFSGNVPVLNAGDGSNQHPTQTLLDLFTIQETQGR")
+  TEST_EQUAL(peptide_ids[0].getMetaValue("spectrum_reference"),"controllerType=0 controllerNumber=1 scan=32805")
+  TEST_EQUAL(peptide_ids[1].getScoreType(),"MS-GF:EValue")
+  TEST_REAL_SIMILAR(peptide_ids[1].getHits()[0].getScore(),4.6707992E-26)
+  TEST_EQUAL(peptide_ids[1].getHits()[0].getSequence().toString(),"FLAETDQGPVPVEITAVEDDHVVVDGNHMLAGQNLK")
+  TEST_EQUAL(peptide_ids[1].getMetaValue("spectrum_reference"),"controllerType=0 controllerNumber=1 scan=26090")
+  TEST_EQUAL(peptide_ids[2].getScoreType(),"MS-GF:EValue")
+  TEST_REAL_SIMILAR(peptide_ids[2].getHits()[0].getScore(),3.298934E-24)
+  TEST_EQUAL(peptide_ids[2].getHits()[0].getSequence().toString(),"FLAETDQGPVPVEITAVEDDHVVVDGNHMLAGQNLK")
+  TEST_EQUAL(peptide_ids[2].getMetaValue("spectrum_reference"),"controllerType=0 controllerNumber=1 scan=26157")
+  TEST_EQUAL(peptide_ids[3].getScoreType(),"MS-GF:EValue")
+  TEST_REAL_SIMILAR(peptide_ids[3].getHits()[0].getScore(),1.7844179E-23)
+  TEST_EQUAL(peptide_ids[3].getHits()[0].getSequence().toString(),"VGAGPFPTELFDETGEFLC(Carbamidomethyl)K")
+  TEST_EQUAL(peptide_ids[3].getMetaValue("spectrum_reference"),"controllerType=0 controllerNumber=1 scan=15094")
+
 END_SECTION
 
-START_SECTION((template <typename MapType> void store(const String& filename, const Identification& id) const))
-	MzIdentMLFile file;
+START_SECTION(void store(String filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids) )
 
-	// TODO
+  //store and load data from various sources, starting with idxml, contents already checked above, so checking integrity of the data over repeated r/w
+  std::vector<ProteinIdentification> protein_ids, protein_ids2;
+  std::vector<PeptideIdentification> peptide_ids, peptide_ids2;
+  String input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_whole.mzid");
+  MzIdentMLFile().load(input_path, protein_ids2, peptide_ids2);
+  String filename;
+  NEW_TMP_FILE(filename)
+  MzIdentMLFile().store(filename, protein_ids2, peptide_ids2);
+
+  MzIdentMLFile().load(filename, protein_ids, peptide_ids);
+  TEST_EQUAL(protein_ids.size(),protein_ids2.size())
+  TEST_EQUAL(protein_ids[0].getHits().size(),protein_ids2[0].getHits().size())
+  TEST_EQUAL(peptide_ids.size(),peptide_ids2.size())
+  TEST_EQUAL(peptide_ids[0].getHits().size(),peptide_ids2[0].getHits().size())
+  TEST_EQUAL(peptide_ids[1].getHits().size(),peptide_ids2[1].getHits().size())
+  TEST_EQUAL(peptide_ids[2].getHits().size(),peptide_ids2[2].getHits().size())
+
+  /////////////// protein id 1 //////////////////
+  TEST_EQUAL(protein_ids[0].getSearchEngine(),protein_ids2[0].getSearchEngine())
+  TEST_EQUAL(protein_ids[0].getSearchEngineVersion(),protein_ids2[0].getSearchEngineVersion())
+  TEST_EQUAL(protein_ids[0].getDateTime().getDate(),protein_ids2[0].getDateTime().getDate())
+  TEST_EQUAL(protein_ids[0].getDateTime().getTime(),protein_ids2[0].getDateTime().getTime())
+  TEST_EQUAL(protein_ids[0].getSearchParameters().db,protein_ids2[0].getSearchParameters().db)
+  TEST_EQUAL(protein_ids[0].getSearchParameters().db_version,protein_ids2[0].getSearchParameters().db_version)
+  TEST_EQUAL(protein_ids[0].getSearchParameters().enzyme,protein_ids2[0].getSearchParameters().enzyme)
+  TEST_EQUAL(protein_ids[0].getSearchParameters().charges,protein_ids2[0].getSearchParameters().charges)
+  TEST_EQUAL(protein_ids[0].getSearchParameters().mass_type,protein_ids2[0].getSearchParameters().mass_type)
+  TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().peak_mass_tolerance,protein_ids2[0].getSearchParameters().peak_mass_tolerance)
+  TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().precursor_tolerance,protein_ids2[0].getSearchParameters().precursor_tolerance)
+
+  //ProteinGroups not nupported yet, also no ProteinDetection, too few input here
+//  TEST_EQUAL(protein_ids[0].getProteinGroups().size(), 0);
+//  TEST_EQUAL(protein_ids[0].getIndistinguishableProteins().size(), 0);
+
+  //protein hit 1
+  TEST_EQUAL(protein_ids[0].getHits()[0].getAccession(),protein_ids2[0].getHits()[0].getAccession())
+  TEST_EQUAL(protein_ids[0].getHits()[0].getSequence(),protein_ids2[0].getHits()[0].getSequence())
+  //protein hit 2
+  TEST_EQUAL(protein_ids[0].getHits()[1].getAccession(),protein_ids2[0].getHits()[1].getAccession())
+  TEST_EQUAL(protein_ids[0].getHits()[1].getSequence(),protein_ids2[0].getHits()[1].getSequence())
+
+  //peptide id 1
+  TEST_EQUAL(peptide_ids[0].getScoreType(),peptide_ids2[0].getScoreType())
+  TEST_EQUAL(peptide_ids[0].isHigherScoreBetter(),peptide_ids2[0].isHigherScoreBetter())
+  TEST_REAL_SIMILAR(peptide_ids[0].getMZ(),peptide_ids2[0].getMZ())
+  TEST_REAL_SIMILAR(peptide_ids[0].getRT(),peptide_ids2[0].getRT())
+  TEST_EQUAL(peptide_ids[0].getMetaValue("spectrum_reference"),peptide_ids2[0].getMetaValue("spectrum_reference"))
+  //peptide hit 1
+  TEST_REAL_SIMILAR(peptide_ids[0].getHits()[0].getScore(),peptide_ids2[0].getHits()[0].getScore())
+  TEST_EQUAL(peptide_ids[0].getHits()[0].getSequence(),peptide_ids2[0].getHits()[0].getSequence())
+  TEST_EQUAL(peptide_ids[0].getHits()[0].getCharge(),peptide_ids2[0].getHits()[0].getCharge())
+  for (size_t i = 0; i < peptide_ids[0].getHits()[0].getPeptideEvidences().size(); ++i)
+   TEST_EQUAL(peptide_ids[0].getHits()[0].getPeptideEvidences()[i]==peptide_ids2[0].getHits()[0].getPeptideEvidences()[i],true)
+  //AA before/after tested by peptide evidences vector equality check
+  //peptide hit 2
+  TEST_REAL_SIMILAR(peptide_ids[0].getHits()[1].getScore(),peptide_ids2[0].getHits()[1].getScore())
+  TEST_EQUAL(peptide_ids[0].getHits()[1].getSequence(),peptide_ids2[0].getHits()[1].getSequence())
+  TEST_EQUAL(peptide_ids[0].getHits()[1].getCharge(),peptide_ids2[0].getHits()[1].getCharge())
+  for (size_t i = 0; i < peptide_ids[0].getHits()[1].getPeptideEvidences().size(); ++i)
+    TEST_EQUAL(peptide_ids[0].getHits()[1].getPeptideEvidences()[i]==peptide_ids2[0].getHits()[1].getPeptideEvidences()[i],true)
+
+  //peptide id 2
+  TEST_EQUAL(peptide_ids[1].getScoreType(),peptide_ids2[1].getScoreType())
+  TEST_EQUAL(peptide_ids[1].isHigherScoreBetter(),peptide_ids2[1].isHigherScoreBetter())
+  TEST_REAL_SIMILAR(peptide_ids[1].getMZ(),peptide_ids2[1].getMZ())
+  TEST_REAL_SIMILAR(peptide_ids[1].getRT(),peptide_ids2[1].getRT())
+  //peptide hit 1
+  TEST_REAL_SIMILAR(peptide_ids[1].getHits()[0].getScore(),peptide_ids2[1].getHits()[0].getScore())
+  TEST_EQUAL(peptide_ids[1].getHits()[0].getSequence(),peptide_ids2[1].getHits()[0].getSequence())
+  TEST_EQUAL(peptide_ids[1].getHits()[0].getCharge(),peptide_ids2[1].getHits()[0].getCharge())
+  for (size_t i = 0; i < peptide_ids[1].getHits()[0].getPeptideEvidences().size(); ++i)
+    TEST_EQUAL(peptide_ids[1].getHits()[0].getPeptideEvidences()[i]==peptide_ids2[1].getHits()[0].getPeptideEvidences()[i],true)
+  //peptide hit 2
+  TEST_REAL_SIMILAR(peptide_ids[1].getHits()[1].getScore(),peptide_ids2[1].getHits()[1].getScore())
+  TEST_EQUAL(peptide_ids[1].getHits()[1].getSequence(),peptide_ids2[1].getHits()[1].getSequence())
+  TEST_EQUAL(peptide_ids[1].getHits()[1].getCharge(),peptide_ids2[1].getHits()[1].getCharge())
+  for (size_t i = 0; i < peptide_ids[1].getHits()[1].getPeptideEvidences().size(); ++i)
+    TEST_EQUAL(peptide_ids[1].getHits()[1].getPeptideEvidences()[i]==peptide_ids2[1].getHits()[1].getPeptideEvidences()[i],true)
+  //peptide id 3
+  TEST_EQUAL(peptide_ids[2].getScoreType(),peptide_ids2[2].getScoreType())
+  TEST_EQUAL(peptide_ids[2].isHigherScoreBetter(),peptide_ids2[2].isHigherScoreBetter())
+  TEST_REAL_SIMILAR(peptide_ids[2].getMZ(),peptide_ids2[2].getMZ())
+  TEST_REAL_SIMILAR(peptide_ids[2].getRT(),peptide_ids2[2].getRT())
+  //peptide hit 1
+  TEST_REAL_SIMILAR(peptide_ids[2].getHits()[0].getScore(),peptide_ids2[2].getHits()[0].getScore())
+  TEST_EQUAL(peptide_ids[2].getHits()[0].getSequence(),peptide_ids2[2].getHits()[0].getSequence())
+  TEST_EQUAL(peptide_ids[2].getHits()[0].getCharge(),peptide_ids2[2].getHits()[0].getCharge())
+  for (size_t i = 0; i < peptide_ids[2].getHits()[0].getPeptideEvidences().size(); ++i)
+    TEST_EQUAL(peptide_ids[2].getHits()[0].getPeptideEvidences()[i]==peptide_ids2[2].getHits()[0].getPeptideEvidences()[i],true)
+  //peptide hit 2
+  TEST_REAL_SIMILAR(peptide_ids[1].getHits()[1].getScore(),peptide_ids2[1].getHits()[1].getScore())
+  TEST_EQUAL(peptide_ids[2].getHits()[1].getSequence(),peptide_ids2[2].getHits()[1].getSequence())
+  TEST_EQUAL(peptide_ids[2].getHits()[1].getCharge(),peptide_ids2[2].getHits()[1].getCharge())
+  for (size_t i = 0; i < peptide_ids[2].getHits()[1].getPeptideEvidences().size(); ++i)
+    TEST_EQUAL(peptide_ids[2].getHits()[1].getPeptideEvidences()[i]==peptide_ids2[2].getHits()[1].getPeptideEvidences()[i],true)
+
 END_SECTION
 
-START_SECTION(bool isValid(const String& filename, std::ostream& os = std::cerr))
-  MzIdentMLFile file;
-	// TODO
-END_SECTION
+START_SECTION(([EXTRA] compability issues))
+//  MzIdentMLFile mzidfile;
+//  vector<ProteinIdentification> protein_ids;
+//  vector<PeptideIdentification> peptide_ids;
+//  mzidfile.load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_no_proteinhits.mzid"), protein_ids, peptide_ids);
 
-START_SECTION(bool isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings))
-	// TODO
+//  TEST_EQUAL(protein_ids.size(), 1)
+//  TEST_EQUAL(protein_ids[0].getHits().size(), 0)
+//  TEST_EQUAL(peptide_ids.size(), 10)
+//  TEST_EQUAL(peptide_ids[0].getHits().size(), 1)
+
+//  String filename;
+//  NEW_TMP_FILE(filename)
+//  mzidfile.store(filename , protein_ids, peptide_ids);
+
+//  vector<ProteinIdentification> protein_ids2;
+//  vector<PeptideIdentification> peptide_ids2;
+//  mzidfile.load(filename, protein_ids2, peptide_ids2);
+
+//  TEST_EQUAL(protein_ids == protein_ids2, true)
+//  TEST_EQUAL(peptide_ids == peptide_ids2, true)
+
+//  Misplaced Elements ignored in ParamGroup
+
+//  Converting unknown score type to search engine specific score CV. #should not occurr  scoretype is whatever
+
+//  PSM without peptide evidences reigstered in the given search database found. This will cause an invalid MzIdentML file (which OpenMS still can consume). #might occurr when reading idxml. no protein reference accession
+
+//  No RT #might occurr when reading idxml. no rt to peptidehit
+//  No MZ #might occurr when reading idxml. no mz to peptidehit
+
+//  PeptideEvidence without reference to the positional in originating sequence found. #will always occurr when reading idxml  no start end positional arguments
+
 END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-

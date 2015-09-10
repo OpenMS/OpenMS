@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -74,11 +74,11 @@ START_SECTION((static String getProductName()))
 	TEST_EQUAL(MapAlignmentEvaluationAlgorithmPrecision::getProductName(),"precision")
 END_SECTION
 
-START_SECTION((virtual void evaluate(const ConsensusMap &consensus_map_in, const ConsensusMap &consensus_map_gt, const DoubleReal &rt_dev, const DoubleReal &mz_dev, const Peak2D::IntensityType &int_dev, const bool use_charge, DoubleReal &out)))
+START_SECTION((virtual void evaluate(const ConsensusMap &consensus_map_in, const ConsensusMap &consensus_map_gt, const double &rt_dev, const double &mz_dev, const Peak2D::IntensityType &int_dev, const bool use_charge, double &out)))
 	MapAlignmentEvaluationAlgorithmPrecision maea;
 	ConsensusMap in;
 	ConsensusMap gt;
-	DoubleReal out;
+	double out;
 
 	ConsensusXMLFile consensus_xml_file_in;
 	consensus_xml_file_in.load( OPENMS_GET_TEST_DATA_PATH("MapAlignmentEvaluationAlgorithm_in.consensusXML"), in );

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -95,13 +95,13 @@ protected:
     void filterPermuts_(std::set<String> & permut);
 
     /// selects pivot ion of the given range using the scores given in CID_nodes
-    void selectPivotIons_(std::vector<Size> & pivots, Size left, Size right, Map<DoubleReal, IonScore> & CID_nodes, const PeakSpectrum & CID_orig_spec, DoubleReal precursor_weight, bool full_range = false);
+    void selectPivotIons_(std::vector<Size> & pivots, Size left, Size right, Map<double, IonScore> & CID_nodes, const PeakSpectrum & CID_orig_spec, double precursor_weight, bool full_range = false);
 
     /// filters the decomps by the amino acid frequencies
     void filterDecomps_(std::vector<MassDecomposition> & decomps);
 
     /// produces mass decompositions using the given mass
-    void getDecompositions_(std::vector<MassDecomposition> & decomps, DoubleReal mass, bool no_caching = false);
+    void getDecompositions_(std::vector<MassDecomposition> & decomps, double mass, bool no_caching = false);
 
     /// permuts the String s adds the prefix and stores the results in permutations
     void permute_(String prefix, String s, std::set<String> & permutations);
@@ -109,22 +109,22 @@ protected:
     Size countMissedCleavagesTryptic_(const String & peptide) const;
 
     /// fills the spec with b and y ions, no other ion types or doubly charged variants are used
-    void getCIDSpectrumLight_(PeakSpectrum & spec, const String & sequence, DoubleReal prefix, DoubleReal suffix);
+    void getCIDSpectrumLight_(PeakSpectrum & spec, const String & sequence, double prefix, double suffix);
 
     /// fills the spectrum with b,y ions, multiple charged variants; if prefix and suffix weights are given, the sequence is treated as tag
-    void getCIDSpectrum_(PeakSpectrum & spec, const String & sequence, Size charge, DoubleReal prefix = 0.0, DoubleReal suffix = 0.0);
+    void getCIDSpectrum_(PeakSpectrum & spec, const String & sequence, Size charge, double prefix = 0.0, double suffix = 0.0);
 
     /// initializes the score distribution pre-calculated for the use in spectrum generation
     void initIsotopeDistributions_();
 
     /// estimates an exact precursor weight of the ETD spectrum, because in most of the cases the precursor is found in the MS/MS spec
-    DoubleReal estimatePrecursorWeight_(const PeakSpectrum & ETD_spec, Size & charge);
+    double estimatePrecursorWeight_(const PeakSpectrum & ETD_spec, Size & charge);
 
     /// keep for each window of size windowsize in the m/z range of the spectrum exactly no_peaks
-    void windowMower_(PeakSpectrum & spec, DoubleReal windowsize, Size no_peaks);
+    void windowMower_(PeakSpectrum & spec, double windowsize, Size no_peaks);
 
     /// compares two spectra
-    DoubleReal compareSpectra_(const PeakSpectrum & s1, const PeakSpectrum & s2);
+    double compareSpectra_(const PeakSpectrum & s1, const PeakSpectrum & s2);
 
     /// returns a modified AASequence from a given internal representation
     AASequence getModifiedAASequence_(const String & sequence);
@@ -139,14 +139,14 @@ protected:
     Map<const Residue *, char> residue_to_name_;
 
     ///
-    Map<Size, std::vector<DoubleReal> > isotope_distributions_;
+    Map<Size, std::vector<double> > isotope_distributions_;
 
     /// masses of the amino acids
-    Map<char, DoubleReal> aa_to_weight_;
+    Map<char, double> aa_to_weight_;
 
     MassDecompositionAlgorithm mass_decomp_algorithm_;
 
-    DoubleReal min_aa_weight_;
+    double min_aa_weight_;
 
     ZhangSimilarityScore zhang_;
 
@@ -156,23 +156,23 @@ protected:
 
     bool tryptic_only_;
 
-    DoubleReal fragment_mass_tolerance_;
+    double fragment_mass_tolerance_;
 
     Size max_number_pivot_;
 
-    DoubleReal decomp_weights_precision_;
+    double decomp_weights_precision_;
 
-    DoubleReal max_mz_;
+    double max_mz_;
 
-    DoubleReal min_mz_;
+    double min_mz_;
 
-    DoubleReal max_decomp_weight_;
+    double max_decomp_weight_;
 
     Size max_subscore_number_;
 
     Size max_isotope_;
 
-    Map<DoubleReal, std::vector<MassDecomposition> > decomp_cache_;
+    Map<double, std::vector<MassDecomposition> > decomp_cache_;
 
     Map<String, std::set<String> > permute_cache_;
 
@@ -194,7 +194,7 @@ private:
 
 public:
 
-      Permut(const std::set<String>::const_iterator & permut, DoubleReal s) :
+      Permut(const std::set<String>::const_iterator & permut, double s) :
         permut_(permut),
         score_(s)
       {
@@ -230,12 +230,12 @@ public:
         permut_ = it;
       }
 
-      DoubleReal getScore() const
+      double getScore() const
       {
         return score_;
       }
 
-      void setScore(DoubleReal score)
+      void setScore(double score)
       {
         score_ = score;
       }
@@ -243,7 +243,7 @@ public:
 protected:
 
       std::set<String>::const_iterator permut_;
-      DoubleReal score_;
+      double score_;
     };
 
   };

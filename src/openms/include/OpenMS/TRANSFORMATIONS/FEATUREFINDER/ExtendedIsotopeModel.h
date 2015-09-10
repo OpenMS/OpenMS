@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -111,10 +111,10 @@ protected:
     CoordinateType isotope_stdev_;
     UInt charge_;
     CoordinateType monoisotopic_mz_;
-    DoubleReal averagine_[AVERAGINE_NUM];
+    double averagine_[AVERAGINE_NUM];
     Int max_isotope_;
-    DoubleReal trim_right_cutoff_;
-    DoubleReal isotope_distance_;
+    double trim_right_cutoff_;
+    double isotope_distance_;
 
     void updateMembers_();
   };

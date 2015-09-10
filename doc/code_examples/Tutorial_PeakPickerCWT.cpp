@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,7 +56,7 @@ int main(int argc, const char** argv)
   pp.pickExperiment(exp_raw, exp_picked);
   exp_picked.updateRanges();
 
-  cout << "\nMinimal fwhm of a mass spectrometric peak: " << (DoubleReal)param.getValue("peak_width")
+  cout << "\nMinimal fwhm of a mass spectrometric peak: " << (double)param.getValue("peak_width")
        << "\n\nNumber of picked peaks " << exp_picked.getSize() << std::endl;
 
   return 0;

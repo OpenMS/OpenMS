@@ -8,6 +8,7 @@ AxisPainter.cpp
 AxisWidget.cpp
 ColorSelector.cpp
 EnhancedTabBar.cpp
+GUIProgressLoggerImpl.cpp
 HistogramWidget.cpp
 LayerData.cpp
 MetaDataBrowser.cpp

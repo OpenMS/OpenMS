@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -52,6 +52,8 @@ using namespace std;
 
     @brief Prints information about idXML files.
 
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_SequenceCoverageCalculator.cli
     <B>INI file documentation of this tool:</B>
@@ -82,7 +84,7 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("txt"));
   }
 
-  void getStartAndEndIndex(const String & sequence, const String & substring, pair<Size, Size> & indices)
+  void getStartAndEndIndex(const String& sequence, const String& substring, pair<Size, Size>& indices)
   {
     indices.first = 0;
     indices.second = 0;
@@ -110,15 +112,13 @@ protected:
     }
   }
 
-  ExitCodes outputTo_(ostream & os)
+  ExitCodes outputTo_(ostream& os)
   {
     IdXMLFile idXML_file;
     vector<ProteinIdentification> protein_identifications;
     vector<PeptideIdentification> identifications;
-    String inputfile_name = "";
-    String database_name = "";
     vector<FASTAFile::FASTAEntry> proteins;
-    vector<DoubleReal> statistics;
+    vector<double> statistics;
     vector<Size> counts;
     vector<Size> mod_counts;
     vector<PeptideHit> temp_hits;
@@ -132,8 +132,8 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    inputfile_name = getStringOption_("in_peptides");
-    database_name = getStringOption_("in_database");
+    String inputfile_name = getStringOption_("in_peptides");
+    String database_name = getStringOption_("in_database");
 
     //-------------------------------------------------------------
     // reading input
@@ -166,8 +166,10 @@ protected:
                       << "Use the IDFilter with the -best_hits option to filter for best hits." << endl;
             return ILLEGAL_PARAMETERS;
           }
-          temp_hits.clear();
-          identifications[i].getReferencingHits(proteins[j].identifier, temp_hits);
+
+          set<String> accession;
+          accession.insert(proteins[j].identifier);
+          temp_hits = PeptideIdentification::getReferencingHits(identifications[i].getHits(), accession);
 
           if (temp_hits.size() == 1)
           {
@@ -179,7 +181,7 @@ protected:
             }
             if (indices.first != indices.second)
             {
-            // os <<  temp_hits[0].getSequence().toUnmodifiedString() << endl;
+              // os <<  temp_hits[0].getSequence().toUnmodifiedString() << endl;
             }
             ++spectrum_count;
             if (unique_peptides.find(temp_hits[0].getSequence().toString()) == unique_peptides.end())
@@ -206,7 +208,7 @@ protected:
 */
       // statistics[j] = make_pair(,
       // accumulate(coverage.begin(), coverage.end(), 0) / proteins[j].sequence.size());
-      statistics[j] = ((DoubleReal) accumulate(coverage.begin(), coverage.end(), Size(0))) / proteins[j].sequence.size();
+      statistics[j] = ((double) accumulate(coverage.begin(), coverage.end(), Size(0))) / proteins[j].sequence.size();
       counts[j] = temp_unique_peptides.size();
       mod_counts[j] = temp_modified_unique_peptides.size();
 
@@ -221,12 +223,12 @@ protected:
 
 // os << "Sum of coverage is " << accumulate(statistics.begin(), statistics.end(), 0.) << endl;
     os << "Average coverage per protein is " << (accumulate(statistics.begin(), statistics.end(), 0.) / statistics.size()) << endl;
-    os << "Average number of peptides per protein is " << (((DoubleReal) accumulate(counts.begin(), counts.end(), 0.)) / counts.size()) << endl;
-    os << "Average number of un/modified peptides per protein is " << (((DoubleReal) accumulate(mod_counts.begin(), mod_counts.end(), 0.)) / mod_counts.size()) << endl;
+    os << "Average number of peptides per protein is " << (((double) accumulate(counts.begin(), counts.end(), 0.)) / counts.size()) << endl;
+    os << "Average number of un/modified peptides per protein is " << (((double) accumulate(mod_counts.begin(), mod_counts.end(), 0.)) / mod_counts.size()) << endl;
     os << "Number of identified spectra: " << spectrum_count << endl;
     os << "Number of unique identified peptides: " << unique_peptides.size() << endl;
 
-    vector<DoubleReal>::iterator it = statistics.begin();
+    vector<double>::iterator it = statistics.begin();
     vector<Size>::iterator it2 = counts.begin();
     vector<Size>::iterator it3 = mod_counts.begin();
     while (it != statistics.end())
@@ -245,13 +247,13 @@ protected:
       }
     }
     os << "Average coverage per found protein (" << statistics.size() << ") is " << (accumulate(statistics.begin(), statistics.end(), 0.) / statistics.size()) << endl;
-    os << "Average number of peptides per found protein is " << (((DoubleReal) accumulate(counts.begin(), counts.end(), 0.)) / counts.size()) << endl;
-    os << "Average number of un/modified peptides per protein is " << (((DoubleReal) accumulate(mod_counts.begin(), mod_counts.end(), 0.)) / mod_counts.size()) << endl;
+    os << "Average number of peptides per found protein is " << (((double) accumulate(counts.begin(), counts.end(), 0.)) / counts.size()) << endl;
+    os << "Average number of un/modified peptides per protein is " << (((double) accumulate(mod_counts.begin(), mod_counts.end(), 0.)) / mod_counts.size()) << endl;
 
     return EXECUTION_OK;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     String out = getStringOption_("out");
 
@@ -273,7 +275,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPSequenceCoverageCalculator tool;
   return tool.main(argc, argv);

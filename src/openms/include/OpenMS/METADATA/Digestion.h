@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -78,25 +78,25 @@ public:
     void setEnzyme(const String & enzyme);
 
     /// returns the digestion time in minutes (default is 0.0)
-    DoubleReal getDigestionTime() const;
+    double getDigestionTime() const;
     /// sets the digestion time in minutes
-    void setDigestionTime(DoubleReal digestion_time);
+    void setDigestionTime(double digestion_time);
 
     /// return the temperature during digestion in degree C (default is 0.0)
-    DoubleReal getTemperature() const;
+    double getTemperature() const;
     /// sets the temperature during digestion in degree C
-    void setTemperature(DoubleReal temperature);
+    void setTemperature(double temperature);
 
     /// returns the pH value (default is 0.0)
-    DoubleReal getPh() const;
+    double getPh() const;
     /// sets the pH value
-    void setPh(DoubleReal ph);
+    void setPh(double ph);
 
 protected:
     String enzyme_;
-    DoubleReal digestion_time_;
-    DoubleReal temperature_;
-    DoubleReal ph_;
+    double digestion_time_;
+    double temperature_;
+    double ph_;
   };
 } // namespace OpenMS
 

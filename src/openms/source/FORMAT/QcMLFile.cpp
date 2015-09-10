@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,6 +43,10 @@
 #include <boost/range/algorithm/copy.hpp>
 
 using namespace std;
+
+// TODO fix all the shadowed "const_iterator qpsit"
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshadow"
 
 namespace OpenMS
 {
@@ -576,8 +580,7 @@ namespace OpenMS
 
   void QcMLFile::merge(const QcMLFile& addendum, String setname)
   {
-    //TODO registerRun and registerSet! name_id mapping!
-    //~ runs
+    //~ runs (and create set if setname not empty)
     for (std::map<String, std::vector<QualityParameter> >::const_iterator it = addendum.runQualityQPs_.begin(); it != addendum.runQualityQPs_.end(); ++it)
     {
       runQualityQPs_[it->first].insert(runQualityQPs_[it->first].end(), it->second.begin(), it->second.end());
@@ -1045,40 +1048,44 @@ namespace OpenMS
     //~ setProgress(++progress_);
 
     //~ file should either contain the complete stylesheet injection (including the stylesheet file preamble, the DOCTYPE definition and the stylesheet itself) or be empty
-    String xslt = "";
+    std::string xslt = "";
+    std::string xslt_ref = "";
     try
     {
-      String xslt_file = File::find("XSL/QcML_report_sheet.xsl");
+      String xslt_file = File::find("XSL/QcML_report_sheet.xsl"); //TODO make this user defined pt.1
       std::ifstream in(xslt_file.c_str());
-      xslt = String((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+      xslt = std::string((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+      xslt = xslt.erase(0, xslt.find("\n") + 1);
+      xslt_ref = "openms-qc-stylesheet"; //TODO make this user defined pt.2
     }
     catch (Exception::FileNotFound &)
     {
       warning(STORE, String("No qcml stylesheet found, result will not be viewable in a browser!"));
     }
-    
-    
+
+
     //open stream
     ofstream os(filename.c_str());
     if (!os)
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
     }
- 
-    os.precision(writtenDigits<DoubleReal>());
+
+    os.precision(writtenDigits<double>(0.0));
 
     //~ setProgress(++progress_);
     //header & xslt
 
     os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
-    os << "<?xml-stylesheet type=\"text/xml\" href=\"#stylesheet\"?>\n";
-    os << "<!DOCTYPE catelog [\n"
-       << "  <!ATTLIST xsl:stylesheet\n"
-       << "  id  ID  #REQUIRED>\n"
-       << "  ]>\n";
-    os << "<qcML xmlns=\"http://www.prime-xs.eu/ms/qcml\" >\n"; //TODO creation date into schema!!
-    
-    os << xslt << "\n";
+    if (!xslt_ref.empty())
+    {
+        os << "<?xml-stylesheet type=\"text/xml\" href=\"#" << xslt_ref << "\"?>\n";
+        os << "<!DOCTYPE catelog [\n"
+           << "  <!ATTLIST xsl:stylesheet\n"
+           << "  id  ID  #REQUIRED>\n"
+           << "  ]>\n";
+    }
+    os << "<qcML xmlns=\"https://github.com/qcML/qcml\" >\n"; //TODO creation date into schema!!
 
     //content runs
     std::set<String> keys;
@@ -1131,7 +1138,7 @@ namespace OpenMS
     {
       for (std::set<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
       {
-        os << "\t<setQuality> ID=\"" << String(*it) << ">\n";
+        os << "\t<setQuality ID=\"" << String(*it) << "\">\n";
         //~ TODO warn if key has no entries in members_
 
         //document set members
@@ -1141,18 +1148,30 @@ namespace OpenMS
         {
           for (std::set<String>::const_iterator kt = jt->second.begin(); kt != jt->second.end(); ++kt)
           {
-            QcMLFile::QualityParameter qp;
-            qp.name = "mzML file"; ///< Name
-            qp.id = *kt + "_run_name"; ///< Identifier
-            qp.cvRef = "MS"; ///< cv reference
-            qp.cvAcc = "MS:1000584";
-            qp.value = *kt;
-            os << qp.toXMLString(4);
+            std::map<String, std::vector<QualityParameter> >::const_iterator rq = runQualityQPs_.find(*kt);
+            if (rq != runQualityQPs_.end())
+            {
+                QcMLFile::QualityParameter qp;
+                qp.id = *kt; ///< Identifier
+                qp.name = "set name"; ///< Name
+                qp.cvRef = "QC"; ///< cv reference
+                qp.cvAcc = "QC:0000005";
+                for (std::vector<QualityParameter>::const_iterator qit = rq->second.begin(); qit != rq->second.end(); ++qit)
+                {
+                  //<qualityParameter name="mzML file" ID="OTT0650-S44-A-Leber_1_run_name" cvRef="MS" accession="MS:1000577" value="OTT0650-S44-A-Leber_1"/>
+                  if (qit->cvAcc == "MS:1000577")
+                    qp.value = qit->value;
+                }
+                os << qp.toXMLString(4);
+            }
+            else
+            {
+              //TODO warn - no mzML file registered for this runQC
+            }
           }
         }
 
         std::map<String, std::vector<QualityParameter> >::const_iterator qpsit = setQualityQPs_.find(*it);
-
         if (qpsit != setQualityQPs_.end())
         {
           for (std::vector<QcMLFile::QualityParameter>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
@@ -1160,6 +1179,7 @@ namespace OpenMS
             os << qit->toXMLString(4);
           }
         }
+
         std::map<String, std::vector<Attachment> >::const_iterator attit = setQualityAts_.find(*it);
         if (attit != setQualityAts_.end())
         {
@@ -1170,16 +1190,22 @@ namespace OpenMS
         }
         os << "\t</setQuality>\n";
       }
-
-
     }
     os <<  "\t<cvList>\n";
     os <<  "\t<cv uri=\"http://psidev.cvs.sourceforge.net/viewvc/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo\" ID=\"psi_cv_ref\" fullName=\"PSI-MS\" version=\"3.41.0\"/>\n";
-    os <<  "\t<cv uri=\"http://qcml.googlecode.com/svn/trunk/cv/qc-cv.obo\" ID=\"qc_cv_ref\" fullName=\"MS-QC\" version=\"0.1.0\"/>\n";
+    os <<  "\t<cv uri=\"https://github.com/qcML/qcML-development/blob/master/cv/qc-cv.obo\" ID=\"qc_cv_ref\" fullName=\"QC-CV\" version=\"0.1.1\"/>\n";
     os <<  "\t<cv uri=\"http://obo.cvs.sourceforge.net/viewvc/obo/obo/ontology/phenotype/unit.obo\" ID=\"uo_cv_ref\" fullName=\"unit\" version=\"1.0.0\"/>\n";
     os <<  "\t</cvList>\n";
+
+    if (!xslt_ref.empty())
+    {
+      os << xslt << "\n";
+    }
 
     os << "</qcML>\n";
   }
 
 }
+
+#pragma clang diagnostic pop
+

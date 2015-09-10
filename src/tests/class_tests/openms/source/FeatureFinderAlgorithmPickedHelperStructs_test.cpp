@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,8 +37,9 @@
 
 ///////////////////////////
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
-#include <OpenMS/KERNEL/Peak1D.h>
 ///////////////////////////
+
+#include <OpenMS/KERNEL/Peak1D.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -62,7 +63,7 @@ START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::IsotopePattern] Isoto
 END_SECTION
 
 // MassTrace for testing
-FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> mt1;
+FeatureFinderAlgorithmPickedHelperStructs::MassTrace mt1;
 mt1.theoretical_int = 0.8;
 
 /////////////////////////////////////////////////////////////
@@ -134,12 +135,12 @@ START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTrace] void updat
 }
 END_SECTION
 
-START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTrace] DoubleReal getAvgMZ() const ))
+START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTrace] double getAvgMZ() const ))
 {
   // getAvgMZ computes intensity weighted avg of the mass trace
   TEST_EQUAL(mt1.getAvgMZ(), 1000)
 
-  FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> mt_avg;
+  FeatureFinderAlgorithmPickedHelperStructs::MassTrace mt_avg;
 
   Peak1D pAvg1;
   pAvg1.setMZ(10.5);
@@ -163,7 +164,7 @@ END_SECTION
 START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTrace] bool isValid() const ))
 {
   TEST_EQUAL(mt1.isValid(), true)
-  FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> mt_non_valid;
+  FeatureFinderAlgorithmPickedHelperStructs::MassTrace mt_non_valid;
 
   mt_non_valid.peaks.push_back(std::make_pair(679.8 , &p1_10));
   TEST_EQUAL(mt_non_valid.isValid(), false)
@@ -177,8 +178,8 @@ START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTrace] bool isVal
 END_SECTION
 
 // testing mass trace
-FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D> mt;
-FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D> empty_traces;
+FeatureFinderAlgorithmPickedHelperStructs::MassTraces mt;
+FeatureFinderAlgorithmPickedHelperStructs::MassTraces empty_traces;
 
 // add a mass trace
 mt.push_back(mt1);
@@ -196,7 +197,7 @@ START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTraces] Size getP
 }
 END_SECTION
 
-FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> mt2;
+FeatureFinderAlgorithmPickedHelperStructs::MassTrace mt2;
 mt2.theoretical_int = 0.2;
 
 Peak1D p2_4;
@@ -214,10 +215,10 @@ mt2.peaks.push_back(std::make_pair(678.6, &p2_6));
 
 mt.push_back(mt2);
 
-START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTraces] bool isValid(DoubleReal seed_mz, DoubleReal trace_tolerance)))
+START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTraces] bool isValid(double seed_mz, double trace_tolerance)))
 {
   // isValid checks if if we have enough traces
-  FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D> invalid_traces;
+  FeatureFinderAlgorithmPickedHelperStructs::MassTraces invalid_traces;
   invalid_traces.push_back(mt1);
 
   TEST_EQUAL(invalid_traces.isValid(600.0, 0.03), false) // contains only one mass trace
@@ -247,11 +248,11 @@ START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTraces] void upda
 }
 END_SECTION
 
-START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTraces] std::pair<DoubleReal,DoubleReal> getRTBounds() const ))
+START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTraces] std::pair<double,double> getRTBounds() const ))
 {
   TEST_EXCEPTION(Exception::Precondition, empty_traces.getRTBounds())
 
-  std::pair<DoubleReal, DoubleReal> bounds = mt.getRTBounds();
+  std::pair<double, double> bounds = mt.getRTBounds();
   TEST_EQUAL(bounds.first, 677.1)
   TEST_EQUAL(bounds.second, 679.8)
 }
@@ -277,15 +278,15 @@ p2_8.setIntensity(0.672624672f);
 p2_8.setMZ(1001);
 mt[1].peaks.push_back(std::make_pair(680.1, &p2_8));
 
-START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTraces] void computeIntensityProfile(std::list< std::pair<DoubleReal, DoubleReal> > intensity_profile) const))
+START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTraces] void computeIntensityProfile(std::list< std::pair<double, double> > intensity_profile) const))
 {
-  std::list< std::pair<DoubleReal, DoubleReal> > intensity_profile;
+  std::list< std::pair<double, double> > intensity_profile;
   mt.computeIntensityProfile(intensity_profile);
 
   TEST_EQUAL(intensity_profile.size(), 12)
   ABORT_IF(intensity_profile.size() != 12)
 
-  std::list< std::pair<DoubleReal, DoubleReal> >::iterator profile = intensity_profile.begin();
+  std::list< std::pair<double, double> >::iterator profile = intensity_profile.begin();
 
   // the leading peak
   // 676.8 -> 0.286529652f

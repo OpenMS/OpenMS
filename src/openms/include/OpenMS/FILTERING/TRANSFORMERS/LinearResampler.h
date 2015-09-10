@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -82,7 +82,7 @@ public:
         @brief Applies the resampling algorithm to an MSSpectrum.
     */
     template <typename PeakType>
-    void raster(MSSpectrum<PeakType> & spectrum)
+    void raster(MSSpectrum<PeakType>& spectrum)
     {
       //return if nothing to do
       if (spectrum.empty()) return;
@@ -92,8 +92,8 @@ public:
 
       double end_pos = (last - 1)->getMZ();
       double start_pos = first->getMZ();
-      int number_raw_points = (int)spectrum.size();
-      int number_resampled_points = (int)(ceil((end_pos - start_pos) / spacing_ + 1));
+      int number_raw_points = static_cast<int>(spectrum.size());
+      int number_resampled_points = static_cast<int>(ceil((end_pos - start_pos) / spacing_ + 1));
 
       typename std::vector<PeakType> resampled_peak_container;
       resampled_peak_container.resize(number_resampled_points);
@@ -116,7 +116,7 @@ public:
       it = resampled_peak_container.begin();
       for (int i = 0; i < number_raw_points; ++i)
       {
-        int help = (int)floor(((first + i)->getMZ() - start_pos) / spacing_);
+        int help = static_cast<int>(floor(((first + i)->getMZ() - start_pos) / spacing_));
         left_index = (help < 0) ? 0 : help;
         help = distance(first, last) - 1;
         right_index = (left_index >= help) ? help : left_index + 1;
@@ -130,7 +130,7 @@ public:
 
 
         // add the distance_right*h to the left resampled peak and distance_left*h to the right resampled peak
-        DoubleReal intensity = (it + left_index)->getIntensity();
+        double intensity = (it + left_index)->getIntensity();
         intensity += (first + i)->getIntensity() * distance_right / spacing_;
         (it + left_index)->setIntensity(intensity);
         intensity = (it + right_index)->getIntensity();
@@ -138,14 +138,14 @@ public:
         (it + right_index)->setIntensity(intensity);
       }
 
-      resampled_peak_container.swap(spectrum);
+      spectrum.swap(resampled_peak_container);
     }
 
     /**
         @brief Resamples the data in an MSExperiment.
     */
     template <typename PeakType>
-    void rasterExperiment(MSExperiment<PeakType> & exp)
+    void rasterExperiment(MSExperiment<PeakType>& exp)
     {
       startProgress(0, exp.size(), "resampling of data");
       for (Size i = 0; i < exp.size(); ++i)

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,8 @@
 
 namespace OpenMS
 {
+  class AASequence;
+
   /**
     @brief This class implements a pair finding algorithm for consensus features.
 
@@ -167,7 +169,7 @@ protected:
                         const ConsensusFeature& feat2) const;
 
     /// The distance to the second nearest neighbors must be by this factor larger than the distance to the matched element itself.
-    DoubleReal second_nearest_gap_;
+    double second_nearest_gap_;
 
     /// Only match if peptide IDs are compatible?
     bool use_IDs_;

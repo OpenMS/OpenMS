@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,7 +43,6 @@ namespace OpenMS
   namespace NNLS
   {
     typedef int integer;
-    typedef double doublereal;
 
     /*     SUBROUTINE NNLS  (A,MDA,M,N,B,X,RNORM,W,ZZ,INDEX,MODE) */
 
@@ -92,18 +91,18 @@ namespace OpenMS
     /*             2     THE DIMENSIONS OF THE PROBLEM ARE BAD. */
     /*                   EITHER M .LE. 0 OR N .LE. 0. */
     /*             3    ITERATION COUNT EXCEEDED.  MORE THAN 3*N ITERATIONS. */
-    int OPENMS_DLLAPI nnls_(doublereal * a, integer * mda, integer * m, integer *
-                            n, doublereal * b, doublereal * x, doublereal * rnorm, doublereal * w,
-                            doublereal * zz, integer * index, integer * mode);
+    int OPENMS_DLLAPI nnls_(double * a, integer * mda, integer * m, integer *
+                            n, double * b, double * x, double * rnorm, double * w,
+                            double * zz, integer * index, integer * mode);
 
     /* Subroutine */
-    int OPENMS_DLLAPI g1_(doublereal *, doublereal *, doublereal *, doublereal *, doublereal *);
+    int OPENMS_DLLAPI g1_(double *, double *, double *, double *, double *);
 
     /* Subroutine */
-    int OPENMS_DLLAPI h12_(integer *, integer *, integer *, integer *, doublereal *, integer *, doublereal *, doublereal *, integer *, integer *, integer *);
+    int OPENMS_DLLAPI h12_(integer *, integer *, integer *, integer *, double *, integer *, double *, double *, integer *, integer *, integer *);
 
     /* Subroutine */
-    doublereal OPENMS_DLLAPI diff_(doublereal *, doublereal *);
+    double OPENMS_DLLAPI diff_(double *, double *);
 
     /* Subroutine */
     double OPENMS_DLLAPI d_sign_(double & a, double & b);

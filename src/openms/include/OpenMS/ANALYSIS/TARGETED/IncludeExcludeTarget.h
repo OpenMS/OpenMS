@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,7 +47,7 @@ namespace OpenMS
     @brief This class stores a SRM/MRM transition
 
     The default values for precursor and product m/z values are
-    set to numeric_limits<DoubleReal>::max(). Default values for
+    set to numeric_limits<double>::max(). Default values for
     precursor an product charge is set to numeric_limits<Int>::max().
   */
   class OPENMS_DLLAPI IncludeExcludeTarget :
@@ -91,9 +91,9 @@ public:
     const String & getCompoundRef() const;
 
     /// sets the precursor mz (Q1 value)
-    void setPrecursorMZ(DoubleReal mz);
+    void setPrecursorMZ(double mz);
 
-    DoubleReal getPrecursorMZ() const;
+    double getPrecursorMZ() const;
 
     void setPrecursorCVTermList(const CVTermList & list);
 
@@ -101,9 +101,9 @@ public:
 
     const CVTermList & getPrecursorCVTermList() const;
 
-    void setProductMZ(DoubleReal mz);
+    void setProductMZ(double mz);
 
-    DoubleReal getProductMZ() const;
+    double getProductMZ() const;
 
     void setProductCVTermList(const CVTermList & list);
 
@@ -150,11 +150,11 @@ protected:
 
     String name_;
 
-    DoubleReal precursor_mz_;
+    double precursor_mz_;
 
     CVTermList precursor_cv_terms_;
 
-    DoubleReal product_mz_;
+    double product_mz_;
 
     CVTermList product_cv_terms_;
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -59,7 +59,7 @@ public:
     SpectrumSettings::SpectrumType estimateType(const PeakConstIterator & begin, const PeakConstIterator & end) const
     {
       const Size MAX_SAMPLED_DISTANCES = 1000;
-      const DoubleReal DISTANCE_VARIANCE_THRESHOLD = 0.5;
+      const double DISTANCE_VARIANCE_THRESHOLD = 0.5;
 
       // abort if there are less than 5 peak in the iterator range
       if (end - begin < 5)
@@ -67,9 +67,9 @@ public:
         return SpectrumSettings::UNKNOWN;
       }
 
-      DoubleReal count(0);
+      double count(0);
 
-      std::vector<DoubleReal> distances;
+      std::vector<double> distances;
 
       PeakConstIterator peak(begin);
 
@@ -77,22 +77,22 @@ public:
       {
       }
 
-      DoubleReal scnd_last_mz(peak->getMZ());
+      double scnd_last_mz(peak->getMZ());
 
       for (++peak; peak->getIntensity() <= 0 && peak != end - 1; ++peak) // 2nd positive intensity
       {
       }
 
-      DoubleReal last_mz(peak->getMZ());
+      double last_mz(peak->getMZ());
 
-      DoubleReal last_dist(last_mz - scnd_last_mz);
+      double last_dist(last_mz - scnd_last_mz);
 
       for (++peak; peak != end && count < MAX_SAMPLED_DISTANCES; ++peak) // max  positive intensity
       {
         if (peak->getIntensity() > 0)
         {
-          DoubleReal mz(peak->getMZ());
-          DoubleReal dist(mz - last_mz);
+          double mz(peak->getMZ());
+          double dist(mz - last_mz);
           distances.push_back(std::min(last_dist, dist)); // min distances
           ++count;
           scnd_last_mz = last_mz;
@@ -106,19 +106,19 @@ public:
         return SpectrumSettings::UNKNOWN;
       }
 
-      DoubleReal mean(std::accumulate(distances.begin(), distances.end(), 0) / count); // sum/size
+      double mean(std::accumulate(distances.begin(), distances.end(), 0) / count); // sum/size
 
       // calculate variance
-      DoubleReal variance(0);
-      for (std::vector<DoubleReal>::iterator value = distances.begin(); value != distances.end(); ++value)
+      double variance(0);
+      for (std::vector<double>::iterator value = distances.begin(); value != distances.end(); ++value)
       {
-        DoubleReal delta = (*value - mean);
+        double delta = (*value - mean);
         variance += delta * delta;
       }
       variance /= count - 1;
 
       // calculate stdev
-      DoubleReal standard_deviation(std::sqrt(variance));
+      double standard_deviation(std::sqrt(variance));
 
       if (standard_deviation < DISTANCE_VARIANCE_THRESHOLD)
       {

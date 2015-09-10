@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -202,7 +202,7 @@ delete sequence_db_;
 
     scorer_ = Factory<PeakSpectrumCompareFunctor>::create(score_name);
     Param scorer_param(scorer_->getParameters());
-    scorer_param.setValue("epsilon", (DoubleReal)param_.getValue("peak_mass_tolerance"));
+    scorer_param.setValue("epsilon", (double)param_.getValue("peak_mass_tolerance"));
     scorer_->setParameters(scorer_param);
 
     double pre_pos = 0.0;
@@ -272,7 +272,7 @@ delete sequence_db_;
       //cerr << it1->first << " " << it1->second << endl;
       try
       {
-        AASequence seq(it1->first);
+        AASequence seq = AASequence::fromString(it1->first);
         getSpectrum_(sim_spec, it1->first, it1->second);
       }
       catch (Exception::ParseError & /*e*/)
@@ -295,7 +295,7 @@ delete sequence_db_;
       }
       double score = (*scorer_)(s1, s2);
       //cerr << "Pre: " << it1->first << " " << it1->second << " " << score << endl;
-      PeptideHit peptide_hit(score, 0, it1->second, AASequence(it1->first));
+      PeptideHit peptide_hit(score, 0, it1->second, AASequence::fromString(it1->first));
       id.insertHit(peptide_hit);
     }
 
@@ -456,7 +456,6 @@ delete sequence_db_;
         {
           if (mod_split[i][j] == '@')
           {
-            DoubleReal mass_diff(mod_split[i].substr(0, j).toFloat());
             if (j != mod_split[i].size() - 2)
             {
               throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "modification in wrong format", "weight@one_letter_code");
@@ -465,6 +464,7 @@ delete sequence_db_;
 
             if (aa_weight_.has(res))
             {
+              double mass_diff(mod_split[i].substr(0, j).toFloat());
               //cerr << res << " " << mass_diff << endl;
               aa_weight_[res] += mass_diff;
             }

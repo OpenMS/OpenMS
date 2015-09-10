@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,7 @@
 
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 #ifdef _MSC_VER // disable some BOOST warnings that distract from ours
 #   pragma warning( push ) // save warning state
@@ -56,7 +57,7 @@ namespace OpenMS
 /**@brief A base class for random access containers for classes derived from UniqueIdInterface
  * that adds functionality to convert a unique id into an index into the container.
  *
- * See FeatureMap<> and ConsensusMap for living examples.
+ * See FeatureMap and ConsensusMap for living examples.
  * The RandomAccessContainer must support operator[], at(), and size().
  */
   template <typename RandomAccessContainer>

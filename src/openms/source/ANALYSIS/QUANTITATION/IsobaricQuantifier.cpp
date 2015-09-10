@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,8 +34,12 @@
 
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifier.h>
 
+#include <OpenMS/KERNEL/ConsensusMap.h>
+
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricIsotopeCorrector.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricNormalizer.h>
 
 namespace OpenMS
@@ -104,18 +108,17 @@ namespace OpenMS
     // apply isotope correction if requested by user
     if (isotope_correction_enabled_)
     {
-      IsobaricIsotopeCorrector corrector(quant_method_);
-      stats_ = corrector.correctIsotopicImpurities(consensus_map_in, consensus_map_out);
+      stats_ = IsobaricIsotopeCorrector::correctIsotopicImpurities(consensus_map_in, consensus_map_out, quant_method_);
     }
     else
     {
       LOG_WARN << "Warning: Due to deactivated isotope-correction labeling statistics will be based on raw intensities, which might give too optimistic results." << std::endl;
     }
 
-    // compute statitics and embed into ouput map
+    // compute statistics and embed into output map
     computeLabelingStatistics_(consensus_map_out);
 
-    // apply normaization if requested
+    // apply normalization if requested
     if (normalization_enabled_)
     {
       IsobaricNormalizer normalizer(quant_method_);
@@ -132,8 +135,7 @@ namespace OpenMS
     for (size_t i = 0; i < consensus_map_out.size(); ++i)
     {
       // is whole scan empty?!
-      if (consensus_map_out[i].getIntensity() == 0)
-        ++stats_.number_ms2_empty;
+      if (consensus_map_out[i].getIntensity() == 0) ++stats_.number_ms2_empty;
 
       // look at single reporters
       for (ConsensusFeature::HandleSetType::const_iterator it_elements = consensus_map_out[i].begin();
@@ -142,7 +144,7 @@ namespace OpenMS
       {
         if (it_elements->getIntensity() == 0)
         {
-          Int ch_index = consensus_map_out.getFileDescriptions()[it_elements->getMapIndex()].getMetaValue("channel_name");
+          String ch_index = consensus_map_out.getFileDescriptions()[it_elements->getMapIndex()].getMetaValue("channel_name");
           ++stats_.empty_channels[ch_index];
         }
       }
@@ -152,7 +154,7 @@ namespace OpenMS
     consensus_map_out.setMetaValue("isoquant:scans_total", consensus_map_out.size());
 
     LOG_INFO << "IsobaricQuantifier: channels with signal\n";
-    for (std::map<Size, Size>::const_iterator it_m = stats_.empty_channels.begin();
+    for (std::map<String, Size>::const_iterator it_m = stats_.empty_channels.begin();
          it_m != stats_.empty_channels.end();
          ++it_m)
     {

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,9 +32,11 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-
 #ifndef OPENMS_VISUAL_DIALOGS_SPECTRUM1DGOTODIALOG_H
 #define OPENMS_VISUAL_DIALOGS_SPECTRUM1DGOTODIALOG_H
+
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <QtGui/QDialog>
 #include <OpenMS/VISUAL/DIALOGS/UIC/ui_Spectrum1DGoToDialog.h>
@@ -61,18 +63,18 @@ public:
     ~Spectrum1DGoToDialog();
 
     ///Sets the m/z range displayed initially
-    void setRange(Real min, Real max);
+    void setRange(float min, float max);
 
     ///Sets the m/z range displayed initially
-    void setMinMaxOfRange(Real min, Real max);
+    void setMinMaxOfRange(float min, float max);
 
     /// Fixes the currently stored range (i.e. ensure correct order of min-max; enforce minimum of 1 Da window IFF min==max
     void fixRange();
 
     ///Returns the lower m/z bound
-    Real getMin() const;
+    float getMin() const;
     ///Returns the upper m/z bound
-    Real getMax() const;
+    float getMax() const;
   };
 
 }

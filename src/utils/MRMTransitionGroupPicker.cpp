@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -140,7 +140,7 @@ protected:
     /// Check that all assays have a corresponding chromatogram
     bool allAssaysHaveChromatograms()
     {
-      for (AssayMapT::iterator assay_it = assay_map.begin(); assay_it != assay_map.end(); assay_it++)
+      for (AssayMapT::iterator assay_it = assay_map.begin(); assay_it != assay_map.end(); ++assay_it)
       {
         for (Size i = 0; i < assay_it->second.size(); i++)
         {
@@ -189,7 +189,7 @@ protected:
   };
 
   void run_(OpenSwath::SpectrumAccessPtr input,
-    FeatureMap<> & output, TargetedExpType& transition_exp)
+    FeatureMap & output, TargetedExpType& transition_exp)
   {
     MRMTransitionGroupPicker trgroup_picker;
     Param picker_param = getParam_().copy("algorithm:", true);
@@ -204,7 +204,7 @@ protected:
     }
 
     // Iterating over all the assays
-    for (MRMGroupMapper::AssayMapT::iterator assay_it = m.assay_map.begin(); assay_it != m.assay_map.end(); assay_it++)
+    for (MRMGroupMapper::AssayMapT::iterator assay_it = m.assay_map.begin(); assay_it != m.assay_map.end(); ++assay_it)
     {
       String id = assay_it->first;
 
@@ -238,7 +238,7 @@ protected:
     TargetedExpType transition_exp;
     TraMLFile().load(tr_file, transition_exp);
 
-    FeatureMap<> output;
+    FeatureMap output;
     OpenSwath::SpectrumAccessPtr input = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
     run_(input, output, transition_exp);
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -81,7 +81,7 @@ class TestModel : public MaxLikeliFitter1D
 
   QualityType fit1d(const RawDataArrayType& /*range*/, InterpolationModel*&  /*model*/)
   {
-//    DoubleReal center = 0.0;
+//    double center = 0.0;
 //    center = model->getCenter();
 
     return 1.0;
@@ -89,14 +89,14 @@ class TestModel : public MaxLikeliFitter1D
 
   QualityType fitOffset_(InterpolationModel* /* model */, const RawDataArrayType& /*set*/ , const CoordinateType /* stdev1 */, const CoordinateType /* stdev2 */, const CoordinateType /* offset_step */)
   {
-//    DoubleReal center = 0.0;
+//    double center = 0.0;
 //    center = model->getCenter();
 
-//    DoubleReal st_dev_1 = 0.0;
+//    double st_dev_1 = 0.0;
 //    st_dev_1 = stdev1;
-//    DoubleReal st_dev_2 = 0.0;
+//    double st_dev_2 = 0.0;
 //    st_dev_2 = stdev2;
-//    DoubleReal offset = 0.0;
+//    double offset = 0.0;
 //    offset = offset_step;
 
     return 1.0;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,35 +56,39 @@ namespace OpenMS
     public DefaultParamHandler
   {
 
+
 public:
     /** @name Constructors and Destructors
       */
     //@{
 
+    /// Default constructor
+    RTSimulation();
+
     /// Constructor taking a random generator
-    explicit RTSimulation(const SimRandomNumberGenerator & random_generator);
+    explicit RTSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr random_generator);
 
     /// Copy constructor
-    RTSimulation(const RTSimulation & source);
+    RTSimulation(const RTSimulation& source);
 
     /// Destructor
     virtual ~RTSimulation();
     //@}
 
     /// Assignment operator
-    RTSimulation & operator=(const RTSimulation & source);
+    RTSimulation& operator=(const RTSimulation& source);
 
     /**
      @brief Predict retention times for given peptide features based for HPLC or CE
 
      @param features Feature map for which the retention times will be predicted
      */
-    void predictRT(FeatureMapSim & features);
+    void predictRT(SimTypes::FeatureMapSim& features);
 
     /**
      @brief Set retention times randomly for given contaminants
      */
-    void predictContaminantsRT(FeatureMapSim &);
+    void predictContaminantsRT(SimTypes::FeatureMapSim&);
 
     /**
      @brief Returns true if a RT column was simulated
@@ -92,25 +96,22 @@ public:
     bool isRTColumnOn() const;
 
     /// Wrapper for the SVM RT Prediction (HPLC) using AASequences
-    void wrapSVM(std::vector<AASequence> & peptide_sequences, std::vector<DoubleReal> & predicted_retention_times);
+    void wrapSVM(std::vector<AASequence>& peptide_sequences, std::vector<double>& predicted_retention_times);
 
-    SimCoordinateType getGradientTime() const;
+    SimTypes::SimCoordinateType getGradientTime() const;
 
     /// Size experiment and assign retention time grid
-    void createExperiment(MSSimExperiment & experiment);
+    void createExperiment(SimTypes::MSSimExperiment& experiment);
 
 private:
-    /// Default constructor
-    RTSimulation();
-
     /// Set default parameters
     void setDefaultParams_();
 
     /// Simply set all retention times to -1
-    void noRTColumn_(FeatureMapSim &);
+    void noRTColumn_(SimTypes::FeatureMapSim&);
 
     /// smoothes the simulated distortion for the elution profiles with a moving average filter of size 3
-    void smoothRTDistortion_(MSSimExperiment & experiment);
+    void smoothRTDistortion_(SimTypes::MSSimExperiment& experiment);
 
     /**
       Wrapper for the Migration time calculation (CE)
@@ -119,12 +120,12 @@ private:
              describing widening of MT shape.
       @param predicted_retention_times will contain afterwards the predicted retention times.
     */
-    void calculateMT_(FeatureMapSim & features, std::vector<DoubleReal> & predicted_retention_times);
+    void calculateMT_(SimTypes::FeatureMapSim& features, std::vector<double>& predicted_retention_times);
 
-    void getChargeContribution_(Map<String, double> & q_cterm,
-                                Map<String, double> & q_nterm,
-                                Map<String, double> & q_aa_basic,
-                                Map<String, double> & q_aa_acidic);
+    void getChargeContribution_(Map<String, double>& q_cterm,
+                                Map<String, double>& q_nterm,
+                                Map<String, double>& q_aa_basic,
+                                Map<String, double>& q_aa_acidic);
 
     // MEMBERS:
 
@@ -132,31 +133,31 @@ private:
     OpenMS::String rt_model_file_;
 
     /// Total gradient time
-    SimCoordinateType total_gradient_time_;
+    SimTypes::SimCoordinateType total_gradient_time_;
 
     /// gradient ranges
 
     /// Minimal observed gradient time
-    SimCoordinateType gradient_min_;
+    SimTypes::SimCoordinateType gradient_min_;
     /// Maximal observed gradient time
-    SimCoordinateType gradient_max_;
+    SimTypes::SimCoordinateType gradient_max_;
 
     /// bin size in rt dimension
-    SimCoordinateType rt_sampling_rate_;
+    SimTypes::SimCoordinateType rt_sampling_rate_;
 
     /// EGH tau value
-    DoubleReal egh_tau_location_;
+    double egh_tau_location_;
     /// EGH tau scale parameter of the lorentzian variation
-    DoubleReal egh_tau_scale_;
+    double egh_tau_scale_;
 
     /// EGH sigma value
-    DoubleReal egh_variance_location_;
+    double egh_variance_location_;
     /// EGH sigma scale parameter of the lorentzian variation
-    DoubleReal egh_variance_scale_;
+    double egh_variance_scale_;
 
 protected:
     /// Random number generator
-    SimRandomNumberGenerator const * rnd_gen_;
+    SimTypes::MutableSimRandomNumberGeneratorPtr rnd_gen_;
 
     /// Synchronize members with param class
     void updateMembers_();

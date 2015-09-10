@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -195,7 +195,7 @@ START_SECTION((void setValue(const DataValue &value)))
 	TEST_EQUAL(term.getValue() == DataValue::EMPTY, true)
 	DataValue value(300.0);
 	term.setValue(value);
-	TEST_REAL_SIMILAR((DoubleReal)term.getValue(), 300.0)
+	TEST_REAL_SIMILAR((double)term.getValue(), 300.0)
 	DataValue value2("bla");
 	term.setValue(value2);
 	TEST_STRING_EQUAL(term.getValue().toString(), "bla")

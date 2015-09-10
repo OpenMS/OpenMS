@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,8 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+
 #include <vector>
 #include <algorithm>
 #include <fstream>
@@ -93,7 +95,7 @@ namespace OpenMS
       //cerr << "Possible modification " << (*it)->getFullId() << " " << (*it)->getTermSpecificity() << endl;
       if (term_spec == ResidueModification::ANYWHERE || term_spec == (*it)->getTermSpecificity())
       {
-        //cerr << "Found correc term spec and adding '" << (*it)->getFullId() << "'" << endl;
+        //cerr << "Found correct term spec and adding '" << (*it)->getFullId() << "'" << endl;
         mods.insert(*it);
       }
     }
@@ -248,7 +250,7 @@ namespace OpenMS
     return idx;
   }
 
-  void ModificationsDB::getTerminalModificationsByDiffMonoMass(vector<String>& mods, DoubleReal mass, DoubleReal error, ResidueModification::Term_Specificity term_spec)
+  void ModificationsDB::getTerminalModificationsByDiffMonoMass(vector<String>& mods, double mass, double error, ResidueModification::Term_Specificity term_spec)
   {
     mods.clear();
     for (vector<ResidueModification *>::const_iterator it = mods_.begin(); it != mods_.end(); ++it)
@@ -260,7 +262,7 @@ namespace OpenMS
     }
   }
 
-  void ModificationsDB::getModificationsByDiffMonoMass(vector<String>& mods, DoubleReal mass, DoubleReal error)
+  void ModificationsDB::getModificationsByDiffMonoMass(vector<String>& mods, double mass, double error)
   {
     mods.clear();
     for (vector<ResidueModification *>::const_iterator it = mods_.begin(); it != mods_.end(); ++it)
@@ -272,7 +274,7 @@ namespace OpenMS
     }
   }
 
-  void ModificationsDB::getModificationsByDiffMonoMass(vector<String> & mods, const String & residue, DoubleReal mass, DoubleReal error)
+  void ModificationsDB::getModificationsByDiffMonoMass(vector<String> & mods, const String & residue, double mass, double error)
   {
     mods.clear();
     for (vector<ResidueModification *>::const_iterator it = mods_.begin(); it != mods_.end(); ++it)
@@ -303,9 +305,9 @@ namespace OpenMS
     }
   }
 
-  const ResidueModification * ModificationsDB::getBestModificationsByMonoMass(const String & residue, DoubleReal mass, DoubleReal max_error)
+  const ResidueModification * ModificationsDB::getBestModificationsByMonoMass(const String & residue, double mass, double max_error)
   {
-    DoubleReal min_error = max_error;
+    double min_error = max_error;
     const ResidueModification * res = NULL;
     const Residue* residue_ = ResidueDB::getInstance()->getResidue(residue);
     for (vector<ResidueModification *>::const_iterator it = mods_.begin(); it != mods_.end(); ++it)
@@ -327,7 +329,7 @@ namespace OpenMS
       // map to multiple residues), we calculate a monoisotopic mass from the
       // delta mass.
       // First the internal (inside an AA chain) weight of the residue.
-      double internal_weight = residue_->getMonoWeight() - residue_->getInternalToFullMonoWeight(); 
+      double internal_weight = residue_->getMonoWeight() - residue_->getInternalToFull().getMonoWeight(); 
       if ( fabs((*it)->getDiffMonoMass() + internal_weight - mass) < min_error)
       {
         String origin = (*it)->getOrigin();
@@ -341,9 +343,9 @@ namespace OpenMS
     return res;
   }
 
-  const ResidueModification * ModificationsDB::getBestModificationsByDiffMonoMass(const String & residue, DoubleReal mass, DoubleReal max_error)
+  const ResidueModification * ModificationsDB::getBestModificationsByDiffMonoMass(const String & residue, double mass, double max_error)
   {
-    DoubleReal min_error = max_error;
+    double min_error = max_error;
     const ResidueModification * res = NULL;
     const Residue* residue_ = ResidueDB::getInstance()->getResidue(residue);
     for (vector<ResidueModification *>::const_iterator it = mods_.begin(); it != mods_.end(); ++it)
@@ -397,7 +399,7 @@ namespace OpenMS
       modification_names_[(*it)->getFullId()].insert(*it);
       // e.g. Oxidation
       modification_names_[(*it)->getId()].insert(*it);
-      // e.g. Oxidated
+      // e.g. Oxidized
       modification_names_[(*it)->getFullName()].insert(*it);
       // e.g. UniMod:312
       modification_names_[(*it)->getUniModAccession()].insert(*it);

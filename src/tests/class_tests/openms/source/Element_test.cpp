@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,11 +65,11 @@ END_SECTION
 IsotopeDistribution dist;
 String name("Name"), symbol("Symbol");
 UInt atomic_number(43);
-DoubleReal average_weight(0.12345);
-DoubleReal mono_weight(0.123456789);
+double average_weight(0.12345);
+double mono_weight(0.123456789);
 
 e_ptr = 0;
-START_SECTION((Element(const String& name, const String& symbol, UInt atomic_number, DoubleReal average_weight, DoubleReal mono_weight, const IsotopeDistribution& isotopes)))
+START_SECTION((Element(const String& name, const String& symbol, UInt atomic_number, double average_weight, double mono_weight, const IsotopeDistribution& isotopes)))
 	e_ptr = new Element(name, symbol, atomic_number, average_weight, mono_weight, dist);	
 	TEST_NOT_EQUAL(e_ptr, e_nullPointer)
 END_SECTION
@@ -118,21 +118,21 @@ START_SECTION((const IsotopeDistribution& getIsotopeDistribution() const))
 	TEST_EQUAL(e_ptr->getIsotopeDistribution() == dist, true)
 END_SECTION
 
-START_SECTION(void setAverageWeight(DoubleReal weight))
+START_SECTION(void setAverageWeight(double weight))
 	e_ptr->setAverageWeight(average_weight);
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(DoubleReal getAverageWeight() const)
+START_SECTION(double getAverageWeight() const)
 	TEST_REAL_SIMILAR(e_ptr->getAverageWeight(), average_weight)
 END_SECTION
 
-START_SECTION(void setMonoWeight(DoubleReal weight))
+START_SECTION(void setMonoWeight(double weight))
 	e_ptr->setMonoWeight(2.333);
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(DoubleReal getMonoWeight() const)
+START_SECTION(double getMonoWeight() const)
 	TEST_REAL_SIMILAR(e_ptr->getMonoWeight(), 2.333)
 END_SECTION
 

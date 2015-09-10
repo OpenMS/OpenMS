@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,17 +47,17 @@
 namespace OpenMS
 {
   /**
-      @brief File adapter for SpecArray (.pepList) files.
+    @brief File adapter for SpecArray (.pepList) files.
 
-  The first line is the header and contains the column names:<br>
-         m/z	     rt(min)	       snr	      charge	   intensity
+    The first line is the header and contains the column names:<br>
+     m/z	     rt(min)	       snr	      charge	   intensity
 
-  Every subsequent line is a feature.
-  Entries are separated by Tab (\\t).
+    Every subsequent line is a feature.
+    Entries are separated by Tab (\\t).
 
 
-  @ingroup FileIO
-*/
+    @ingroup FileIO
+  */
   class OPENMS_DLLAPI SpecArrayFile
   {
 public:
@@ -67,15 +67,15 @@ public:
     virtual ~SpecArrayFile();
 
     /**
-              @brief Loads a SpecArray file into a featureXML.
+      @brief Loads a SpecArray file into a featureXML.
 
-              The content of the file is stored in @p features.
+      The content of the file is stored in @p features.
 
-              @exception Exception::FileNotFound is thrown if the file could not be opened
-              @exception Exception::ParseError is thrown if an error occurs during parsing
+      @exception Exception::FileNotFound is thrown if the file could not be opened
+      @exception Exception::ParseError is thrown if an error occurs during parsing
     */
     template <typename FeatureMapType>
-    void load(const String & filename, FeatureMapType & feature_map)
+    void load(const String& filename, FeatureMapType& feature_map)
     {
       // load input
       TextFile input(filename, false);
@@ -84,16 +84,22 @@ public:
       FeatureMapType fmap;
       feature_map = fmap;
 
-      for (Size i = 1; i < input.size(); ++i)
+      TextFile::ConstIterator it = input.begin();
+      if (it == input.end()) return; // no data to load
+
+      // skip header line
+      ++it;
+      // process content
+      for (; it != input.end(); ++it)
       {
-        String line = input[i];
+        String line = *it;
 
         std::vector<String> parts;
         line.split('\t', parts);
 
         if (parts.size() < 5)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed to convert line")  + String(i + 1) + "not enough columns (expected 5 or more, got " + String(parts.size()) + ")");
+          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed to convert line")  + String((it - input.begin()) + 1) + "not enough columns (expected 5 or more, got " + String(parts.size()) + ")");
         }
 
         Feature f;
@@ -107,7 +113,7 @@ public:
         }
         catch (Exception::BaseException /*&e*/)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed to convert value into a number (line '") + (i + 1) + ")");
+          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed to convert value into a number (line '") + String((it - input.begin()) + 1) + ")");
         }
         feature_map.push_back(f);
       }
@@ -121,7 +127,7 @@ public:
               @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
     template <typename SpectrumType>
-    void store(const String & filename, const SpectrumType & spectrum) const
+    void store(const String& filename, const SpectrumType& spectrum) const
     {
       std::cerr << "Store() for SpecArrayFile not implemented. Filename was: " << filename << ", spec of size " << spectrum.size() << "\n";
       throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);

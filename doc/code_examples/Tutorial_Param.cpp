@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,7 +44,7 @@ Int main()
   param.setValue("file:data:max_int", 16459);
 
   cout << "Name   : " << (String)(param.getValue("file:name")) << endl;
-  cout << "Size   : " << (Real)(param.getValue("file:size(MB)")) << endl;
+  cout << "Size   : " << (float)(param.getValue("file:size(MB)")) << endl;
   cout << "Min int: " << (UInt)(param.getValue("file:data:min_int")) << endl;
   cout << "Max int: " << (UInt)(param.getValue("file:data:max_int")) << endl;
 

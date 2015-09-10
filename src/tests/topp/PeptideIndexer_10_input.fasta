@@ -1,0 +1,4 @@
+>Protein1  ## testing I/L conversion, with additional three 'X' to saturate the max_aaa=3 constraint. This is done to ensure that internally 'J' is not used for 'I' or 'L', since 'J' is unknown to Seqan and will get converted to 'X' by Seqan
+PEPTIDEXXX
+>Protein2_rev
+PEPTLDEXXX

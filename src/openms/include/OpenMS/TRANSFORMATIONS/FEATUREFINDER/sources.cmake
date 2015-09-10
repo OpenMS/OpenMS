@@ -10,22 +10,17 @@ BiGaussModel.h
 EGHTraceFitter.h
 EmgFitter1D.h
 EmgModel.h
+EmgScoring.h
 ExtendedIsotopeFitter1D.h
 ExtendedIsotopeModel.h
 FeaFiModule.h
 FeatureFinder.h
 FeatureFinderAlgorithm.h
 FeatureFinderAlgorithmIsotopeWavelet.h
+FeatureFinderAlgorithmMRM.h
 FeatureFinderAlgorithmPicked.h
 FeatureFinderAlgorithmPickedHelperStructs.h
-FeatureFinderAlgorithmSH.h
-FeatureFinderAlgorithmSHCtrl.h
-FeatureFinderAlgorithmSimple.h
-FeatureFinderAlgorithmSimplest.h
-FeatureFinderAlgorithmMRM.h
-FeatureFinderAlgorithm_impl.h
 FeatureFinderDefs.h
-FeatureFinder_impl.h
 Fitter1D.h
 GaussFitter1D.h
 GaussModel.h
@@ -35,29 +30,28 @@ IsotopeFitter1D.h
 IsotopeModel.h
 IsotopeWavelet.h
 IsotopeWaveletConstants.h
-IsotopeWaveletCudaKernel.h
-IsotopeWaveletParallelFor.h
 IsotopeWaveletTransform.h
 LevMarqFitter1D.h
-LmaGaussFitter1D.h
-LmaGaussModel.h
-LmaIsotopeFitter1D.h
-LmaIsotopeModel.h
 MaxLikeliFitter1D.h
 ModelDescription.h
-ModelFitter.h
+MultiplexClustering.h
+MultiplexFiltering.h
+MultiplexFilteringCentroided.h
+MultiplexFilteringProfile.h
+MultiplexFilterResult.h
+MultiplexFilterResultPeak.h
+MultiplexFilterResultRaw.h
+MultiplexPeakPattern.h
 PeakWidthEstimator.h
 ProductModel.h
 SeedListGenerator.h
-SimpleExtender.h
-SimpleSeeder.h
 TraceFitter.h
 )
 
 ### add path to the filenames
 set(sources_h)
 foreach(i ${sources_list_h})
-	list(APPEND sources_h ${directory}/${i})
+  list(APPEND sources_h ${directory}/${i})
 endforeach(i)
 
 ### source group definition

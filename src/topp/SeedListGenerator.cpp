@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -97,6 +97,7 @@ using namespace std;
     - When additional information becomes available during an analysis, one might want to perform a second, targeted round of feature detection on the experimental data. For example, once a feature map is annotated with peptide identifications, it is possible to go back to the LC-MS map and look for features near unassigned peptides, potentially with a lower score threshold (featureXML input).
     - Similarly, when features from different experiments are aligned and grouped, the consensus map may reveal where features were missed in the initial detection round in some experiments. The locations of these "holes" in the consensus map can be compiled into seed lists for the individual experiments (consensusXML input). (Note that the resulting seed lists use the retention time scale of the consensus map, which might be different from the original time scales of the experiments if e.g. one of the MapAligner tools was used to perform retention time correction as part of the alignment process. In this case, the RT transformations from the alignment must be applied to the LC-MS maps prior to the seed list-based feature detection runs.)
 
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_SeedListGenerator.cli
@@ -177,7 +178,7 @@ protected:
       }
       else if (in_type == FileTypes::FEATUREXML)
       {
-        FeatureMap<> features;
+        FeatureMap features;
         FeatureXMLFile().load(in, features);
         seed_gen.generateSeedList(
           features.getUnassignedPeptideIdentifications(), seed_lists[0]);
@@ -188,7 +189,7 @@ protected:
       for (Map<UInt64, SeedListGenerator::SeedList>::Iterator it =
              seed_lists.begin(); it != seed_lists.end(); ++it, ++num_maps)
       {
-        FeatureMap<> features;
+        FeatureMap features;
         seed_gen.convertSeedList(it->second, features);
         //annotate output with data processing info:
         addDataProcessing_(features, getProcessingInfo_(

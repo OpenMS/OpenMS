@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -78,6 +78,8 @@ using namespace std;
     peptide in a separate line, either only the sequence or additionally
     with weight and charge in the second and third column.
 
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_PILISIdentification.cli
     <B>INI file documentation of this tool:</B>
@@ -85,7 +87,7 @@ using namespace std;
 
     @todo Check for missing precursors (Hiwi)
 */
-
+//@deprecated Deprecated in OpenMS 2.0
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
@@ -301,8 +303,8 @@ protected:
         cerr << "#cand=" << cand.size() << endl;
         PILIS_id.getIdentification(cand, id, *it);
 
-        id.setMetaValue("RT", it->getRT());
-        id.setMetaValue("MZ", it->getPrecursors()[0].getMZ());
+        id.setRT(it->getRT());
+        id.setMZ(it->getPrecursors()[0].getMZ());
 
         ids.push_back(id);
 
@@ -360,8 +362,8 @@ protected:
     {
       if (it->getMSLevel() == 2)
       {
-        ids[count].setMetaValue("RT", it->getRT());
-        ids[count].setMetaValue("MZ", it->getPrecursors()[0].getMZ());
+        ids[count].setRT(it->getRT());
+        ids[count].setMZ(it->getPrecursors()[0].getMZ());
 
         ids[count].setIdentifier(identifier);
         ids[count++].setHigherScoreBetter(false);

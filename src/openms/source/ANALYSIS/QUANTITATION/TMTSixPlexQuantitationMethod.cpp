@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTSixPlexQuantitationMethod.h>
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/Matrix.h>
 
 namespace OpenMS
 {
@@ -45,12 +46,12 @@ namespace OpenMS
     setName("TMTSixPlexQuantitationMethod");
 
     // create the channel map
-    channels_.push_back(IsobaricChannelInformation(126, 0, "", 126.127725));
-    channels_.push_back(IsobaricChannelInformation(127, 1, "", 127.124760));
-    channels_.push_back(IsobaricChannelInformation(128, 2, "", 128.134433));
-    channels_.push_back(IsobaricChannelInformation(129, 3, "", 129.131468));
-    channels_.push_back(IsobaricChannelInformation(130, 4, "", 130.141141));
-    channels_.push_back(IsobaricChannelInformation(131, 5, "", 131.138176));
+    channels_.push_back(IsobaricChannelInformation("126", 0, "", 126.127725, -1, -1, 1, 2));
+    channels_.push_back(IsobaricChannelInformation("127", 1, "", 127.124760, -1, 0, 2, 3));
+    channels_.push_back(IsobaricChannelInformation("128", 2, "", 128.134433, 0, 1, 3, 4));
+    channels_.push_back(IsobaricChannelInformation("129", 3, "", 129.131468, 1, 2, 4, 5));
+    channels_.push_back(IsobaricChannelInformation("130", 4, "", 130.141141, 2, 3, 5, -1));
+    channels_.push_back(IsobaricChannelInformation("131", 5, "", 131.138176, 3, 4, -1, -1));
 
     // we assume 126 to be the reference
     reference_channel_ = 0;
@@ -84,7 +85,7 @@ namespace OpenMS
                                                                "0.0/0.0/0.0/0.0,"
                                                                "0.0/0.0/0.0/0.0,"
                                                                "0.0/0.0/0.0/0.0"),
-                       "Override default values (see Documentation); use the following format: <-2Da>/<-1Da>/<+1Da>/<+2Da> ; e.g. '0/0.3/4/0' , '0.1/0.3/3/0.2'");
+                       "Correction matrix for isotope distributions (see documentation); use the following format: <-2Da>/<-1Da>/<+1Da>/<+2Da>; e.g. '0/0.3/4/0', '0.1/0.3/3/0.2'");
 
     defaultsToParam_();
   }

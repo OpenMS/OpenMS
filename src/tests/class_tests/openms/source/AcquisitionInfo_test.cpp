@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -81,7 +81,7 @@ START_SECTION(AcquisitionInfo(const AcquisitionInfo& source))
 	TEST_EQUAL(tmp2.size(), 1);
 	TEST_EQUAL(tmp2[0].getIdentifier(), "4711");  
 	TEST_EQUAL(tmp2.getMethodOfCombination(), "Combo");  
-	TEST_REAL_SIMILAR((DoubleReal)(tmp2.getMetaValue("bla")), 4.0)
+	TEST_REAL_SIMILAR((double)(tmp2.getMetaValue("bla")), 4.0)
 END_SECTION
 
 START_SECTION(AcquisitionInfo& operator= (const AcquisitionInfo& source))
@@ -98,7 +98,7 @@ START_SECTION(AcquisitionInfo& operator= (const AcquisitionInfo& source))
 	TEST_EQUAL(tmp2.size(), 1);
 	TEST_EQUAL(tmp2[0].getIdentifier(), "4711");  
 	TEST_EQUAL(tmp2.getMethodOfCombination(), "Combo");
-	TEST_REAL_SIMILAR((DoubleReal)(tmp2.getMetaValue("bla")), 4.0)
+	TEST_REAL_SIMILAR((double)(tmp2.getMetaValue("bla")), 4.0)
 		
 	//assignment of a empty value
 	tmp2 = AcquisitionInfo();

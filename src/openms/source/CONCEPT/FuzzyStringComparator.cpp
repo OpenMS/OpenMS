@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,6 +36,12 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <QDir>
 #include <sstream>
+#include <cstdlib> // for strtod()
+#include <cctype> // for isspace()
+#include <limits> // for NaN
+#include <fstream>
+#include <iostream>
+#include <iomanip>
 
 namespace OpenMS
 {
@@ -113,6 +119,16 @@ namespace OpenMS
   void FuzzyStringComparator::setWhitelist(const StringList& rhs)
   {
     whitelist_ = rhs;
+  }
+
+  void FuzzyStringComparator::setMatchedWhitelist(const std::vector< std::pair<std::string, std::string> >& rhs)
+  {
+    matched_whitelist_ = rhs;
+  }
+
+  const std::vector< std::pair<std::string, std::string> >& FuzzyStringComparator::getMatchedWhitelist() const
+  {
+    return matched_whitelist_;
   }
 
   const int& FuzzyStringComparator::getVerboseLevel() const
@@ -290,6 +306,25 @@ namespace OpenMS
           )
       {
         ++whitelist_cases_[*slit];
+        // *log_dest_ << "whitelist_ case: " << *slit << '\n';
+        return is_status_success_;
+      }
+    }
+
+    // check matched whitelist
+    // If file 1 contains element 1 and file 2 contains element 2, they are skipped over.
+    for (std::vector< std::pair<std::string, std::string> >::const_iterator pair_it = matched_whitelist_.begin(); 
+         pair_it != matched_whitelist_.end(); ++pair_it)
+    {
+      if ((line_str_1.find(pair_it->first) != String::npos &&
+           line_str_2.find(pair_it->second) != String::npos
+          ) ||
+          (line_str_1.find(pair_it->second) != String::npos &&
+           line_str_2.find(pair_it->first) != String::npos
+          )
+         )
+      {
+        // ++whitelist_cases_[*slit];
         // *log_dest_ << "whitelist_ case: " << *slit << '\n';
         return is_status_success_;
       }
@@ -503,6 +538,9 @@ namespace OpenMS
 
   bool FuzzyStringComparator::compareStreams(std::istream& input_1, std::istream& input_2)
   {
+    // reset 'success' state to true, in case its currently false due to a prior call (reporting depends on it)
+    const_cast<bool&>(is_status_success_) = true;
+
     std::string line_str_1;
     std::string line_str_2;
 
@@ -550,7 +588,7 @@ namespace OpenMS
 
     if (input_1_name_ == input_2_name_)
     {
-      *log_dest_ << "Error: first and second input file have the same name.  That's cheating!\n";
+      *log_dest_ << "Error: first and second input file have the same name. That's cheating!\n";
       return false;
     }
 
@@ -700,7 +738,7 @@ namespace OpenMS
     {
       // add char to buffer
       buffer.push_back(c_peek);
-      c_peek = input_line.line_.get();
+      input_line.line_.get();
       // get next char
       c_peek = input_line.line_.peek();
 
@@ -821,7 +859,7 @@ namespace OpenMS
                           // a macro here... So we use a real function name (both internally and externally)
   }
 
-  FuzzyStringComparator::PrefixInfo_::PrefixInfo_(const InputLine& input_line, const int tab_width_, const int first_column_) :
+  FuzzyStringComparator::PrefixInfo_::PrefixInfo_(const InputLine& input_line, const int this_tab_width_, const int this_first_column_) :
     prefix(input_line.line_.str()), line_column(0)
   {
     prefix = prefix.prefix(size_t(input_line.line_position_));
@@ -835,10 +873,10 @@ namespace OpenMS
       }
       else
       {
-        line_column = (line_column / tab_width_ + 1) * tab_width_;
+        line_column = (line_column / this_tab_width_ + 1) * this_tab_width_;
       }
     }
-    line_column += first_column_;
+    line_column += this_first_column_;
   }
 
 } //namespace OpenMS

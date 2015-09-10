@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -131,6 +131,8 @@ using namespace std;
     The model can be used in @ref TOPP_PTPredict, to predict the likelihood
     for peptides to be proteotypic.
 
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_PTModel.cli
     <B>INI file documentation of this tool:</B>
@@ -215,27 +217,27 @@ protected:
     vector<ProteinIdentification> protein_identifications_negative;
     vector<PeptideIdentification> identifications_negative;
     vector<String> training_peptides;
-    vector<DoubleReal> training_labels;
+    vector<double> training_labels;
     PeptideHit temp_peptide_hit;
     SVMWrapper svm;
     LibSVMEncoder encoder;
     svm_problem* encoded_training_sample = 0;
     String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
-    map<SVMWrapper::SVM_parameter_type, DoubleReal> start_values;
-    map<SVMWrapper::SVM_parameter_type, DoubleReal> step_sizes;
-    map<SVMWrapper::SVM_parameter_type, DoubleReal> end_values;
-    DoubleReal sigma_start = 0;
-    DoubleReal sigma_step_size = 0;
-    DoubleReal sigma_stop = 0;
+    map<SVMWrapper::SVM_parameter_type, double> start_values;
+    map<SVMWrapper::SVM_parameter_type, double> step_sizes;
+    map<SVMWrapper::SVM_parameter_type, double> end_values;
+    double sigma_start = 0;
+    double sigma_step_size = 0;
+    double sigma_stop = 0;
     UInt number_of_partitions = 0;
     UInt number_of_runs = 0;
-    map<SVMWrapper::SVM_parameter_type, DoubleReal> optimized_parameters;
-    map<SVMWrapper::SVM_parameter_type, DoubleReal>::iterator parameters_iterator;
+    map<SVMWrapper::SVM_parameter_type, double> optimized_parameters;
+    map<SVMWrapper::SVM_parameter_type, double>::iterator parameters_iterator;
     bool additive_cv = true;
     Param additional_parameters;
     Int temp_type = POLY;
     String debug_string = "";
-    DoubleReal sigma = 0.1;
+    double sigma = 0.1;
     UInt k_mer_length = 1;
     Int border_length = 0;
     bool non_redundant = false;
@@ -319,14 +321,14 @@ protected:
       svm.setParameter(SVMWrapper::DEGREE, getIntOption_("degree"));
       if (!skip_cv)
       {
-        DoubleReal degree_start = getIntOption_("cv:degree_start");
-        DoubleReal degree_step_size = getIntOption_("cv:degree_step_size");
+        double degree_start = getIntOption_("cv:degree_start");
+        double degree_step_size = getIntOption_("cv:degree_step_size");
         if (!additive_cv && degree_step_size <= 1)
         {
           writeLog_("Step size of degree <= 1 and additive_cv is false. Aborting!");
           return ILLEGAL_PARAMETERS;
         }
-        DoubleReal degree_stop = getIntOption_("cv:degree_stop");
+        double degree_stop = getIntOption_("cv:degree_stop");
 
         start_values.insert(make_pair(SVMWrapper::DEGREE, degree_start));
         step_sizes.insert(make_pair(SVMWrapper::DEGREE, degree_step_size));
@@ -336,14 +338,14 @@ protected:
 
     if (svm.getIntParameter(SVMWrapper::SVM_TYPE) == C_SVC && !skip_cv)
     {
-      DoubleReal c_start = getDoubleOption_("cv:c_start");
-      DoubleReal c_step_size = getDoubleOption_("cv:c_step_size");
+      double c_start = getDoubleOption_("cv:c_start");
+      double c_step_size = getDoubleOption_("cv:c_step_size");
       if (!additive_cv && c_step_size <= 1)
       {
         writeLog_("Step size of c <= 1 and additive_cv is false. Aborting!");
         return ILLEGAL_PARAMETERS;
       }
-      DoubleReal c_stop = getDoubleOption_("cv:c_stop");
+      double c_stop = getDoubleOption_("cv:c_stop");
 
       start_values.insert(make_pair(SVMWrapper::C, c_start));
       step_sizes.insert(make_pair(SVMWrapper::C, c_step_size));
@@ -352,14 +354,14 @@ protected:
 
     if (svm.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC && !skip_cv)
     {
-      DoubleReal nu_start = getDoubleOption_("cv:nu_start");
-      DoubleReal nu_step_size = getDoubleOption_("cv:nu_step_size");
+      double nu_start = getDoubleOption_("cv:nu_start");
+      double nu_step_size = getDoubleOption_("cv:nu_step_size");
       if (!additive_cv && nu_step_size <= 1)
       {
         writeLog_("Step size of nu <= 1 and additive_cv is false. Aborting!");
         return ILLEGAL_PARAMETERS;
       }
-      DoubleReal nu_stop = getDoubleOption_("cv:nu_stop");
+      double nu_stop = getDoubleOption_("cv:nu_stop");
 
       start_values.insert(make_pair(SVMWrapper::NU, nu_start));
       step_sizes.insert(make_pair(SVMWrapper::NU, nu_step_size));
@@ -544,7 +546,7 @@ protected:
         }
       }
       SVMData dummy;
-      DoubleReal cv_quality = svm.performCrossValidation(encoded_training_sample,
+      double cv_quality = svm.performCrossValidation(encoded_training_sample,
                                                          dummy,
                                                          false,
                                                          start_values,

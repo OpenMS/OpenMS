@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -64,13 +64,13 @@ public:
     PrecursorIonSelectionPreprocessing & operator=(const PrecursorIonSelectionPreprocessing & source);
 
 
-    const std::map<String, std::vector<DoubleReal> > & getProtMasses() const;
+    const std::map<String, std::vector<double> > & getProtMasses() const;
 
 
-    const std::vector<DoubleReal> & getMasses(String acc) const;
+    const std::vector<double> & getMasses(String acc) const;
 
-    const std::map<String, std::vector<DoubleReal> > & getProteinRTMap() const;
-    const std::map<String, std::vector<DoubleReal> > & getProteinPTMap() const;
+    const std::map<String, std::vector<double> > & getProteinRTMap() const;
+    const std::map<String, std::vector<double> > & getProteinPTMap() const;
     const std::map<String, std::vector<String> > & getProteinPeptideSequenceMap() const;
 
 
@@ -109,11 +109,11 @@ public:
     void loadPreprocessing();
 
     /// get the weighted frequency of a mass
-    DoubleReal getWeight(DoubleReal mass);
+    double getWeight(double mass);
 
-    DoubleReal getRT(String prot_id, Size peptide_index);
+    double getRT(String prot_id, Size peptide_index);
 
-    DoubleReal getPT(String prot_id, Size peptide_index);
+    double getPT(String prot_id, Size peptide_index);
 
     void setFixedModifications(StringList & modifications);
     const std::map<char, std::vector<String> > & getFixedModifications()
@@ -121,19 +121,19 @@ public:
       return fixed_modifications_;
     }
 
-    void setGaussianParameters(DoubleReal mu, DoubleReal sigma);
-    DoubleReal getGaussMu()
+    void setGaussianParameters(double mu, double sigma);
+    double getGaussMu()
     {
       return mu_;
     }
 
-    DoubleReal getGaussSigma()
+    double getGaussSigma()
     {
       return sigma_;
     }
 
-    DoubleReal getRTProbability(String prot_id, Size peptide_index, Feature & feature);
-    DoubleReal getRTProbability(DoubleReal pred_rt, Feature & feature);
+    double getRTProbability(String prot_id, Size peptide_index, Feature & feature);
+    double getRTProbability(double pred_rt, Feature & feature);
 
 protected:
     /// saves the preprocessed db
@@ -143,31 +143,31 @@ protected:
     void loadPreprocessedDB_(String path);
     /// pre-process fasta identifier
     void filterTaxonomyIdentifier_(FASTAFile::FASTAEntry & entry);
-    Int getScanNumber_(DoubleReal rt);
-    DoubleReal getRTProbability_(DoubleReal min_obs_rt, DoubleReal max_obs_rt, DoubleReal pred_rt);
+    Int getScanNumber_(double rt);
+    double getRTProbability_(double min_obs_rt, double max_obs_rt, double pred_rt);
     /// update members method from DefaultParamHandler to update the members
     void updateMembers_();
 
     /// all tryptic masses of the distinct peptides in the database
-    std::vector<DoubleReal> masses_;
+    std::vector<double> masses_;
     /// the sequences of the tryptic peptides
     std::set<AASequence> sequences_;
     /// stores masses of tryptic peptides for proteins, key is the accession number
-    std::map<String, std::vector<DoubleReal> > prot_masses_;
+    std::map<String, std::vector<double> > prot_masses_;
     /// the masses of the bins used for preprocessing (only used if bins are not equidistant, i.e. with ppm)
-    std::vector<DoubleReal> bin_masses_;
+    std::vector<double> bin_masses_;
     /// counter for the bins
     std::vector<UInt> counter_;
     /// maximal relative frequency of a mass
     UInt f_max_;
 
     bool fixed_mods_;
-    std::map<String, std::vector<DoubleReal> > rt_prot_map_;
-    std::map<String, std::vector<DoubleReal> > pt_prot_map_;
+    std::map<String, std::vector<double> > rt_prot_map_;
+    std::map<String, std::vector<double> > pt_prot_map_;
     std::map<String, std::vector<String> > prot_peptide_seq_map_;
     std::map<char, std::vector<String> > fixed_modifications_;
-    DoubleReal sigma_;
-    DoubleReal mu_;
+    double sigma_;
+    double mu_;
 
 
   };

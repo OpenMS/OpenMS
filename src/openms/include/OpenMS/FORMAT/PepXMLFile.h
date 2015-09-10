@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -97,7 +97,7 @@ public:
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be opened for writing
     */
-    void store(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids);
+    void store(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, const String& mz_file = "", const String& mz_name = "", bool peptideprophet_analyzed = false);
 
 protected:
 
@@ -127,13 +127,13 @@ private:
         @param origin AA one letter code
         @param modification_description [out] Name of the modification, e.g. 'Carboxymethyl (C)'
     */
-    void matchModification_(const DoubleReal mass, const String& origin, String& modification_description);
+    void matchModification_(const double mass, const String& origin, String& modification_description);
 
     struct AminoAcidModification
     {
       String aminoacid;
       String massdiff;
-      DoubleReal mass;
+      double mass;
       bool variable;
       String description;
       String terminus;
@@ -196,10 +196,13 @@ private:
     std::map<Size, Size> scan_map_;
 
     /// Retention time and mass-to-charge tolerance
-    DoubleReal rt_tol_, mz_tol_;
+    double rt_tol_, mz_tol_;
 
     /// Hydrogen data (for mass types)
     Element hydrogen_;
+
+    /// Are we currently in an "analysis_summary" element (should be skipped)?
+    bool analysis_summary_;
 
     /// Do current entries belong to the experiment of interest (for pepXML files that bundle results from different experiments)?
     bool wrong_experiment_;
@@ -209,6 +212,9 @@ private:
 
     /// Have we checked the "base_name" attribute in the "msms_run_summary" element?
     bool checked_base_name_;
+
+    /// current base name
+    String current_base_name_;
 
     /// References to currently active ProteinIdentifications
     std::vector<std::vector<ProteinIdentification>::iterator> current_proteins_;
@@ -229,7 +235,7 @@ private:
     String current_sequence_;
 
     /// RT and m/z of current PeptideIdentification
-    DoubleReal rt_, mz_;
+    double rt_, mz_;
 
     /// Precursor ion charge
     Int charge_;
@@ -244,7 +250,7 @@ private:
     DateTime date_;
 
     /// Mass of a hydrogen atom (monoisotopic/average depending on case)
-    DoubleReal hydrogen_mass_;
+    double hydrogen_mass_;
 
     /// The modifications of the current peptide hit (position is 1-based)
     std::vector<std::pair<String, Size> > current_modifications_;

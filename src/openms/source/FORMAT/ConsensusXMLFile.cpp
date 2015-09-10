@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,8 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/PrecisionWrapper.h>
+#include <OpenMS/METADATA/DataProcessing.h>
 
 #include <fstream>
 
@@ -51,20 +53,20 @@ namespace OpenMS
   {
   }
 
-  PeakFileOptions &
+  PeakFileOptions&
   ConsensusXMLFile::getOptions()
   {
     return options_;
   }
 
-  const PeakFileOptions &
+  const PeakFileOptions&
   ConsensusXMLFile::getOptions() const
   {
     return options_;
   }
 
   void
-  ConsensusXMLFile::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname)
+  ConsensusXMLFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
   {
     String tag = sm_.convert(qname);
     open_tags_.pop_back();
@@ -108,6 +110,7 @@ namespace OpenMS
     }
     else if (tag == "PeptideHit")
     {
+      pep_hit_.setPeptideEvidences(peptide_evidences_);
       pep_id_.insertHit(pep_hit_);
       last_meta_ = &pep_id_;
     }
@@ -118,12 +121,12 @@ namespace OpenMS
   }
 
   void
-  ConsensusXMLFile::characters(const XMLCh * const /*chars*/, const XMLSize_t /*length*/)
+  ConsensusXMLFile::characters(const XMLCh* const /*chars*/, const XMLSize_t /*length*/)
   {
   }
 
   void
-  ConsensusXMLFile::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes)
+  ConsensusXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
   {
     String tag = sm_.convert(qname);
     String parent_tag;
@@ -164,7 +167,7 @@ namespace OpenMS
       act_cons_element_ = ConsensusFeature();
       last_meta_ = &act_cons_element_;
       // quality
-      DoubleReal quality = 0.0;
+      double quality = 0.0;
       if (optionalAttributeAsDouble_(quality, attributes, "quality"))
       {
         act_cons_element_.setQuality(quality);
@@ -250,7 +253,7 @@ namespace OpenMS
       String file_version = "";
       optionalAttributeAsString_(file_version, attributes, "version");
       if (file_version == "")
-        file_version = "1.0";  //default version is 1.0
+        file_version = "1.0"; //default version is 1.0
       if (file_version.toDouble() > version_.toDouble())
       {
         warning(LOAD, "The XML file (" + file_version + ") is newer than the parser (" + version_ + "). This might lead to undefined program behavior.");
@@ -396,7 +399,7 @@ namespace OpenMS
       prot_id_.setScoreType(attributeAsString_(attributes, "score_type"));
 
       //optional significance threshold
-      DoubleReal tmp = 0.0;
+      double tmp = 0.0;
       optionalAttributeAsDouble_(tmp, attributes, "significance_threshold");
       if (tmp != 0.0)
       {
@@ -438,7 +441,7 @@ namespace OpenMS
       pep_id_.setScoreType(attributeAsString_(attributes, "score_type"));
 
       //optional significance threshold
-      DoubleReal tmp = 0.0;
+      double tmp = 0.0;
       optionalAttributeAsDouble_(tmp, attributes, "significance_threshold");
       if (tmp != 0.0)
       {
@@ -449,22 +452,22 @@ namespace OpenMS
       pep_id_.setHigherScoreBetter(asBool_(attributeAsString_(attributes, "higher_score_better")));
 
       //MZ
-      DoubleReal tmp2 = -numeric_limits<DoubleReal>::max();
+      double tmp2 = -numeric_limits<double>::max();
       optionalAttributeAsDouble_(tmp2, attributes, "MZ");
-      if (tmp2 != -numeric_limits<DoubleReal>::max())
+      if (tmp2 != -numeric_limits<double>::max())
       {
-        pep_id_.setMetaValue("MZ", tmp2);
+        pep_id_.setMZ(tmp2);
       }
       //RT
-      tmp2 = -numeric_limits<DoubleReal>::max();
+      tmp2 = -numeric_limits<double>::max();
       optionalAttributeAsDouble_(tmp2, attributes, "RT");
-      if (tmp2 != -numeric_limits<DoubleReal>::max())
+      if (tmp2 != -numeric_limits<double>::max())
       {
-        pep_id_.setMetaValue("RT", tmp2);
+        pep_id_.setRT(tmp2);
       }
-      Int tmp3 = -numeric_limits<Int>::max();
-      optionalAttributeAsInt_(tmp3, attributes, "spectrum_reference");
-      if (tmp3 != -numeric_limits<Int>::max())
+      String tmp3;
+      optionalAttributeAsString_(tmp3, attributes, "spectrum_reference");
+      if (!tmp3.empty())
       {
         pep_id_.setMetaValue("spectrum_reference", tmp3);
       }
@@ -475,27 +478,13 @@ namespace OpenMS
     {
       setProgress(++progress_);
       pep_hit_ = PeptideHit();
+      peptide_evidences_ = vector<PeptideEvidence>();
       pep_hit_.setCharge(attributeAsInt_(attributes, "charge"));
       pep_hit_.setScore(attributeAsDouble_(attributes, "score"));
-      pep_hit_.setSequence(AASequence(attributeAsString_(attributes, "sequence")));
-
-      //aa_before
-      String tmp = "";
-      optionalAttributeAsString_(tmp, attributes, "aa_before");
-      if (!tmp.empty())
-      {
-        pep_hit_.setAABefore(tmp[0]);
-      }
-      //aa_after
-      tmp = "";
-      optionalAttributeAsString_(tmp, attributes, "aa_after");
-      if (!tmp.empty())
-      {
-        pep_hit_.setAAAfter(tmp[0]);
-      }
+      pep_hit_.setSequence(AASequence::fromString(String(attributeAsString_(attributes, "sequence"))));
 
       //parse optional protein ids to determine accessions
-      const XMLCh * refs = attributes.getValue(sm_.convert("protein_refs"));
+      const XMLCh* refs = attributes.getValue(sm_.convert("protein_refs"));
       if (refs != 0)
       {
         String accession_string = sm_.convert(refs);
@@ -506,12 +495,15 @@ namespace OpenMS
         {
           accessions.push_back(accession_string);
         }
+
         for (vector<String>::const_iterator it = accessions.begin(); it != accessions.end(); ++it)
         {
           Map<String, String>::const_iterator it2 = proteinid_to_accession_.find(*it);
           if (it2 != proteinid_to_accession_.end())
           {
-            pep_hit_.addProteinAccession(it2->second);
+            PeptideEvidence pe;
+            pe.setProteinAccession(it2->second);
+            peptide_evidences_.push_back(pe);
           }
           else
           {
@@ -519,6 +511,36 @@ namespace OpenMS
           }
         }
       }
+
+      //aa_before
+      String tmp = "";
+      optionalAttributeAsString_(tmp, attributes, "aa_before");
+      if (!tmp.empty())
+      {
+        // so far no peptide evidence information -> create an empty one
+        if (peptide_evidences_.empty())
+        {
+          peptide_evidences_.push_back(PeptideEvidence());
+        }
+
+        // for whatever reason consensusXML does support multiple protein accessions but only one amino acid context so we store it in the first one
+        peptide_evidences_[0].setAABefore(tmp[0]);
+      }
+      //aa_after
+      tmp = "";
+      optionalAttributeAsString_(tmp, attributes, "aa_after");
+      if (!tmp.empty())
+      {
+        // so far no peptide evidence information -> create an empty one
+        if (peptide_evidences_.empty())
+        {
+          peptide_evidences_.push_back(PeptideEvidence());
+        }
+
+        // for whatever reason consensusXML does support multiple protein accessions but only one amino acid context so we store it in the first one
+        peptide_evidences_[0].setAAAfter(tmp[0]);
+      }
+
       last_meta_ = &pep_hit_;
     }
     else if (tag == "dataProcessing")
@@ -576,7 +598,7 @@ namespace OpenMS
     {
       consensus_map.updateUniqueIdToIndex();
     }
-    catch (Exception::Postcondition & e)
+    catch (Exception::Postcondition& e)
     {
       LOG_FATAL_ERROR << e.getName() << ' ' << e.getMessage() << std::endl;
       throw;
@@ -589,7 +611,7 @@ namespace OpenMS
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
     }
 
-    os.precision(writtenDigits<DoubleReal>());
+    os.precision(writtenDigits<double>(0.0));
 
     setProgress(++progress_);
     os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
@@ -599,7 +621,7 @@ namespace OpenMS
       String xslt_file = File::find("XSL/ConsensusXML.xsl");
       os << "<?xml-stylesheet type=\"text/xsl\" href=\"file:///" << xslt_file << "\"?>\n";
     }
-    catch (Exception::FileNotFound &)
+    catch (Exception::FileNotFound&)
     {
     }
 
@@ -620,7 +642,7 @@ namespace OpenMS
       os << " experiment_type=\"" << consensus_map.getExperimentType() << "\"";
     }
     os
-    << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+      << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
     // user param
     writeUserParam_("userParam", os, consensus_map, 1);
@@ -629,7 +651,7 @@ namespace OpenMS
     // write data processing
     for (Size i = 0; i < consensus_map.getDataProcessing().size(); ++i)
     {
-      const DataProcessing & processing = consensus_map.getDataProcessing()[i];
+      const DataProcessing& processing = consensus_map.getDataProcessing()[i];
       os << "\t<dataProcessing completion_time=\"" << processing.getCompletionTime().getDate() << 'T' << processing.getCompletionTime().getTime() << "\">\n";
       os << "\t\t<software name=\"" << processing.getSoftware().getName() << "\" version=\"" << processing.getSoftware().getVersion() << "\" />\n";
       for (set<DataProcessing::ProcessingAction>::const_iterator it = processing.getProcessingActions().begin(); it != processing.getProcessingActions().end(); ++it)
@@ -647,7 +669,7 @@ namespace OpenMS
     for (UInt i = 0; i < consensus_map.getProteinIdentifications().size(); ++i)
     {
       setProgress(++progress_);
-      const ProteinIdentification & current_prot_id = consensus_map.getProteinIdentifications()[i];
+      const ProteinIdentification& current_prot_id = consensus_map.getProteinIdentifications()[i];
       os << "\t<IdentificationRun ";
       os << "id=\"PI_" << i << "\" ";
       identifier_id_[current_prot_id.getIdentifier()] = String("PI_") + i;
@@ -656,7 +678,7 @@ namespace OpenMS
       os << "search_engine_version=\"" << current_prot_id.getSearchEngineVersion() << "\">\n";
 
       //write search parameters
-      const ProteinIdentification::SearchParameters & search_param = current_prot_id.getSearchParameters();
+      const ProteinIdentification::SearchParameters& search_param = current_prot_id.getSearchParameters();
       os << "\t\t<SearchParameters " << "db=\"" << search_param.db << "\" " << "db_version=\"" << search_param.db_version << "\" " << "taxonomy=\""
          << search_param.taxonomy << "\" ";
       if (search_param.mass_type == ProteinIdentification::MONOISOTOPIC)
@@ -748,7 +770,7 @@ namespace OpenMS
     }
 
     //file descriptions
-    const ConsensusMap::FileDescriptions & description_vector = consensus_map.getFileDescriptions();
+    const ConsensusMap::FileDescriptions& description_vector = consensus_map.getFileDescriptions();
     os << "\t<mapList count=\"" << description_vector.size() << "\">\n";
     for (ConsensusMap::FileDescriptions::const_iterator it = description_vector.begin(); it != description_vector.end(); ++it)
     {
@@ -772,7 +794,7 @@ namespace OpenMS
     {
       setProgress(++progress_);
       // write a consensusElement
-      const ConsensusFeature & elem = consensus_map[i];
+      const ConsensusFeature& elem = consensus_map[i];
       os << "\t\t<consensusElement id=\"e_" << elem.getUniqueId() << "\" quality=\"" << precisionWrapper(elem.getQuality()) << "\"";
       if (elem.getCharge() != 0)
       {
@@ -801,9 +823,9 @@ namespace OpenMS
       os << "\t\t\t</groupedElementList>\n";
 
       // write PeptideIdentification
-      for (UInt i = 0; i < elem.getPeptideIdentifications().size(); ++i)
+      for (UInt j = 0; j < elem.getPeptideIdentifications().size(); ++j)
       {
-        writePeptideIdentification_(filename, os, elem.getPeptideIdentifications()[i], "PeptideIdentification", 3);
+        writePeptideIdentification_(filename, os, elem.getPeptideIdentifications()[j], "PeptideIdentification", 3);
       }
 
       writeUserParam_("userParam", os, elem, 3);
@@ -820,7 +842,7 @@ namespace OpenMS
   }
 
   void
-  ConsensusXMLFile::load(const String & filename, ConsensusMap & map)
+  ConsensusXMLFile::load(const String& filename, ConsensusMap& map)
   {
     //Filename for error messages in XMLHandler
     file_ = filename;
@@ -834,7 +856,7 @@ namespace OpenMS
 
     parse_(filename, this);
 
-    if (!map.isMapConsistent(&LOG_WARN))  // a warning is printed to LOG_WARN during isMapConsistent()
+    if (!map.isMapConsistent(&LOG_WARN)) // a warning is printed to LOG_WARN during isMapConsistent()
     {
       // don't throw exception for now, since this would prevent us from reading old files...
       // throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The ConsensusXML file contains invalid maps or references thereof. Please fix the file!");
@@ -861,7 +883,7 @@ namespace OpenMS
   }
 
   void
-  ConsensusXMLFile::writePeptideIdentification_(const String & filename, std::ostream & os, const PeptideIdentification & id, const String & tag_name,
+  ConsensusXMLFile::writePeptideIdentification_(const String& filename, std::ostream& os, const PeptideIdentification& id, const String& tag_name,
                                                 UInt indentation_level)
   {
     String indent = String(indentation_level, '\t');
@@ -878,19 +900,17 @@ namespace OpenMS
     os << "higher_score_better=\"" << (id.isHigherScoreBetter() ? "true" : "false") << "\" ";
     os << "significance_threshold=\"" << id.getSignificanceThreshold() << "\" ";
     //mz
-    DataValue dv = id.getMetaValue("MZ");
-    if (dv != DataValue::EMPTY)
+    if (id.hasMZ())
     {
-      os << "MZ=\"" << dv.toString() << "\" ";
+      os << "MZ=\"" << id.getMZ() << "\" ";
     }
     // rt
-    dv = id.getMetaValue("RT");
-    if (dv != DataValue::EMPTY)
+    if (id.hasRT())
     {
-      os << "RT=\"" << dv.toString() << "\" ";
+      os << "RT=\"" << id.getRT() << "\" ";
     }
     // spectrum_reference
-    dv = id.getMetaValue("spectrum_reference");
+    DataValue dv = id.getMetaValue("spectrum_reference");
     if (dv != DataValue::EMPTY)
     {
       os << "spectrum_reference=\"" << dv.toString() << "\" ";
@@ -904,23 +924,37 @@ namespace OpenMS
       os << " score=\"" << id.getHits()[j].getScore() << "\"";
       os << " sequence=\"" << id.getHits()[j].getSequence() << "\"";
       os << " charge=\"" << id.getHits()[j].getCharge() << "\"";
-      if (id.getHits()[j].getAABefore() != ' ')
+
+      vector<PeptideEvidence> pes = id.getHits()[j].getPeptideEvidences();
+
+      // do we have peptide evidence information? store information of the first one (consensusXML doesn't support multiple PeptideEvidences except multiple accessions)
+      if (!pes.empty())
       {
-        os << " aa_before=\"" << id.getHits()[j].getAABefore() << "\"";
-      }
-      if (id.getHits()[j].getAAAfter() != ' ')
-      {
-        os << " aa_after=\"" << id.getHits()[j].getAAAfter() << "\"";
-      }
-      if ((id.getHits()[j].getProteinAccessions().size() != 0) && (!accession_to_id_.empty()))
-      {
-        String accs = "";
-        for (Size m = 0; m < id.getHits()[j].getProteinAccessions().size(); ++m)
+        if (pes[0].getAABefore() != PeptideEvidence::UNKNOWN_AA)
         {
-          String a_2_id = String(accession_to_id_[id.getIdentifier() + "_" + id.getHits()[j].getProteinAccessions()[m]]);
+          os << " aa_before=\"" << pes[0].getAABefore() << "\"";
+        }
+      }
+
+      if (!pes.empty())
+      {
+        if (pes[0].getAAAfter() != PeptideEvidence::UNKNOWN_AA)
+        {
+          os << " aa_after=\"" << pes[0].getAAAfter() << "\"";
+        }
+      }
+
+      set<String> protein_accessions = id.getHits()[j].extractProteinAccessions();
+
+      if (!protein_accessions.empty() && !accession_to_id_.empty())
+      {
+        String accs;
+        for (set<String>::const_iterator s_it = protein_accessions.begin(); s_it != protein_accessions.end(); ++s_it)
+        {
+          String a_2_id = String(accession_to_id_[id.getIdentifier() + "_" + *s_it]);
           if (a_2_id.size() > 0)
           {
-            if (m)
+            if (!accs.empty())
             {
               accs += " ";
             }
@@ -928,7 +962,7 @@ namespace OpenMS
             accs += a_2_id;
           }
         }
-        if (accs.size() > 0)
+        if (!accs.empty())
         {
           os << " protein_refs=\"" << accs << "\"";
         }
@@ -938,10 +972,8 @@ namespace OpenMS
       os << indent << "\t</PeptideHit>\n";
     }
 
-    //do not write "RT", "MZ" and "spectrum_reference" as they are written as attributes already
+    // do not write "spectrum_reference" since it is written as attribute already
     MetaInfoInterface tmp = id;
-    tmp.removeMetaValue("RT");
-    tmp.removeMetaValue("MZ");
     tmp.removeMetaValue("spectrum_reference");
     writeUserParam_("userParam", os, tmp, indentation_level + 1);
     os << indent << "</" << tag_name << ">\n";

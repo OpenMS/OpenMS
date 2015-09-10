@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,8 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
 
+#include <OpenMS/KERNEL/ConversionHelper.h>
+
 namespace OpenMS
 {
 
@@ -52,7 +54,7 @@ namespace OpenMS
   {
   }
 
-  void FeatureGroupingAlgorithmLabeled::group(const std::vector<FeatureMap<> > & maps, ConsensusMap & out)
+  void FeatureGroupingAlgorithmLabeled::group(const std::vector<FeatureMap> & maps, ConsensusMap & out)
   {
     //check that the number of maps is ok
     if (maps.size() != 1)
@@ -66,7 +68,7 @@ namespace OpenMS
 
     //convert to consensus map
     std::vector<ConsensusMap> input(1);
-    ConsensusMap::convert(0, maps[0], input[0]);
+    MapConversion::convert(0, maps[0], input[0]);
 
     //run
     pm.run(input, out);

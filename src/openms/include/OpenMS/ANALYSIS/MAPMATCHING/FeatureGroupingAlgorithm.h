@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -58,7 +58,7 @@ public:
     virtual ~FeatureGroupingAlgorithm();
 
     ///Applies the algorithm. The features in the input @p maps are grouped and the output is written to the consensus map @p out
-    virtual void group(const std::vector<FeatureMap<> > & maps, ConsensusMap & out) = 0;
+    virtual void group(const std::vector<FeatureMap > & maps, ConsensusMap & out) = 0;
 
     ///Applies the algorithm. The consensus features in the input @p maps are grouped and the output is written to the consensus map @p out
     /// Algorithms not supporting ConsensusMap input should simply not override this method,

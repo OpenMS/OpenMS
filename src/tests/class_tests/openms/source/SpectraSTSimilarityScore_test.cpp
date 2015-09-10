@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -83,7 +83,7 @@ START_SECTION(SpectraSTSimilarityScore& operator = (const SpectraSTSimilaritySco
 	TEST_EQUAL(copy.getParameters(), ptr->getParameters());
 END_SECTION
 
-START_SECTION(DoubleReal operator () (const PeakSpectrum& spec) const)
+START_SECTION(double operator () (const PeakSpectrum& spec) const)
 	RichPeakMap exp;
 	PeakSpectrum s1;
 	MSPFile msp;
@@ -98,11 +98,11 @@ START_SECTION(DoubleReal operator () (const PeakSpectrum& spec) const)
 			peak.setPosition(exp[0][k].getPosition());
 			s1.push_back(peak);
 	}	
-  DoubleReal score = (*ptr)(s1);
+  double score = (*ptr)(s1);
   TEST_REAL_SIMILAR(score, 1);
 END_SECTION
 
-START_SECTION(DoubleReal operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const)
+START_SECTION(double operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const)
   PeakSpectrum s1, s2, s3;
 	RichPeakMap exp;
 	MSPFile msp;
@@ -127,7 +127,7 @@ START_SECTION(DoubleReal operator () (const PeakSpectrum& spec1, const PeakSpect
 	}	
   TOLERANCE_ABSOLUTE(0.01)
 
-  DoubleReal score = (*ptr)(s1, s2);
+  double score = (*ptr)(s1, s2);
   TEST_REAL_SIMILAR(score, 1)
   
   for(Size k = 0; k < exp[2].size(); ++k)
@@ -142,7 +142,7 @@ START_SECTION(DoubleReal operator () (const PeakSpectrum& spec1, const PeakSpect
   TEST_REAL_SIMILAR(score, 0)
 END_SECTION
 
-START_SECTION((DoubleReal operator()(const BinnedSpectrum &bin1, const BinnedSpectrum &bin2) const))
+START_SECTION((double operator()(const BinnedSpectrum &bin1, const BinnedSpectrum &bin2) const))
   PeakSpectrum s1, s2, s3;
 	RichPeakMap exp;
 	MSPFile msp;
@@ -167,7 +167,7 @@ START_SECTION((DoubleReal operator()(const BinnedSpectrum &bin1, const BinnedSpe
 	}	
   TOLERANCE_ABSOLUTE(0.01)
 
-  DoubleReal score = (*ptr)(ptr->transform(s1), ptr->transform(s2));
+  double score = (*ptr)(ptr->transform(s1), ptr->transform(s2));
   TEST_REAL_SIMILAR(score, 1)
   
   	for(Size k = 0; k < exp[2].size(); ++k)
@@ -182,7 +182,7 @@ START_SECTION((DoubleReal operator()(const BinnedSpectrum &bin1, const BinnedSpe
   TEST_REAL_SIMILAR(score, 0)
 END_SECTION
 
-START_SECTION(bool preprocess(PeakSpectrum &spec, Real remove_peak_intensity_threshold=2.01, UInt cut_peaks_below=1000, Size min_peak_number=5, Size max_peak_number=150))
+START_SECTION(bool preprocess(PeakSpectrum &spec, float remove_peak_intensity_threshold=2.01, UInt cut_peaks_below=1000, Size min_peak_number=5, Size max_peak_number=150))
 	PeakSpectrum s1, s2, s3;
 	RichPeakMap exp;
 	MSPFile msp;
@@ -237,19 +237,19 @@ START_SECTION(static const String getProductName())
 	TEST_EQUAL(ptr->getProductName(), "SpectraSTSimilarityScore")
 END_SECTION
 
-START_SECTION(DoubleReal delta_D(DoubleReal top_hit, DoubleReal runner_up))
+START_SECTION(double delta_D(double top_hit, double runner_up))
 SpectraSTSimilarityScore spectrast;
 TEST_EXCEPTION( Exception::DivisionByZero, spectrast.delta_D(0,5))
 TEST_REAL_SIMILAR(spectrast.delta_D(5,4),0.2)
 TEST_REAL_SIMILAR(spectrast.delta_D(25,1),0.96)
 END_SECTION
 
-START_SECTION((DoubleReal compute_F(DoubleReal dot_product, DoubleReal delta_D, DoubleReal dot_bias)))
+START_SECTION((double compute_F(double dot_product, double delta_D, double dot_bias)))
 //pretty straightforward function
 NOT_TESTABLE
 END_SECTION
 
-START_SECTION(DoubleReal dot_bias(const BinnedSpectrum &bin1, const BinnedSpectrum &bin2, DoubleReal dot_product=-1) const)
+START_SECTION(double dot_bias(const BinnedSpectrum &bin1, const BinnedSpectrum &bin2, double dot_product=-1) const)
 	PeakSpectrum s1,s2;
 	Peak1D peak;
 	peak.setIntensity(1);
@@ -305,14 +305,14 @@ START_SECTION(BinnedSpectrum transform(const PeakSpectrum& spec))
 	s1.push_back(peak);
 	BinnedSpectrum bin = ptr->transform(s1);
 	
-	SparseVector<Real>::SparseVectorIterator iter = bin.getBins().begin();
-	TEST_REAL_SIMILAR((DoubleReal)*iter,0.1205);
+	SparseVector<float>::SparseVectorIterator iter = bin.getBins().begin();
+	TEST_REAL_SIMILAR((double)*iter,0.1205);
 		iter++;
-	TEST_REAL_SIMILAR((DoubleReal)*iter,0.3614);
+	TEST_REAL_SIMILAR((double)*iter,0.3614);
 		iter++;
-			TEST_REAL_SIMILAR((DoubleReal)*iter,0.602);
+			TEST_REAL_SIMILAR((double)*iter,0.602);
 		iter++;
-			TEST_REAL_SIMILAR((DoubleReal)*iter,0.602);
+			TEST_REAL_SIMILAR((double)*iter,0.602);
 	delete ptr;
 END_SECTION
 /////////////////////////////////////////////////////////////

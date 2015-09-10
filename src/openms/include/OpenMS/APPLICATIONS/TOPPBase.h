@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,7 +37,6 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/GlobalExceptionHandler.h>
-#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
@@ -54,9 +53,7 @@
 #include <OpenMS/APPLICATIONS/ParameterInformation.h>
 #include <OpenMS/APPLICATIONS/ToolHandler.h>
 
-#include <iostream>
 #include <fstream>
-#include <limits>
 
 class QStringList;
 
@@ -306,7 +303,7 @@ private:
 
       @note See getParam_(const String&) const for the order in which parameters are searched.
     */
-    DoubleReal getParamAsDouble_(const String& key, DoubleReal default_value = 0) const;
+    double getParamAsDouble_(const String& key, double default_value = 0) const;
 
     /**
       @brief Return the value of parameter @p key as a StringList or @p default_value if this value is not set
@@ -530,13 +527,13 @@ protected:
 
       @exception Exception::ElementNotFound is thrown if @p name is not found or if the parameter type is wrong
     */
-    void setMinFloat_(const String& name, DoubleReal min);
+    void setMinFloat_(const String& name, double min);
     /**
       @brief Sets the maximum value for the floating point parameter(can be a list of floating points,too) @p name.
 
       @exception Exception::ElementNotFound is thrown if @p name is not found or if the parameter type is wrong
     */
-    void setMaxFloat_(const String& name, DoubleReal max);
+    void setMaxFloat_(const String& name, double max);
 
     /**
       @brief Registers an integer option.
@@ -665,7 +662,7 @@ protected:
       @exception Exception::WrongParameterType is thrown if the parameter has the wrong type
       @exception Exception::InvalidParameter is thrown if the parameter restrictions are not met
     */
-    DoubleReal getDoubleOption_(const String& name) const;
+    double getDoubleOption_(const String& name) const;
 
     /**
       @brief Returns the value of a previously registered integer option
@@ -824,11 +821,7 @@ protected:
     void addDataProcessing_(ConsensusMap& map, const DataProcessing& dp) const;
 
     ///Data processing setter for feature maps
-    template <typename FeatureType>
-    void addDataProcessing_(FeatureMap<FeatureType>& map, const DataProcessing& dp) const
-    {
-      map.getDataProcessing().push_back(dp);
-    }
+    void addDataProcessing_(FeatureMap& map, const DataProcessing& dp) const;
 
     ///Data processing setter for peak maps
     template <typename PeakType, typename CT>

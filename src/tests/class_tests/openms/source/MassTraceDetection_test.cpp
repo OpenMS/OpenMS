@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,13 +65,13 @@ END_SECTION
 
 MassTraceDetection test_mtd;
 
-START_SECTION((void updateIterativeWeightedMeanMZ(const DoubleReal &, const DoubleReal &, DoubleReal &, DoubleReal &, DoubleReal &)))
+START_SECTION((void updateIterativeWeightedMeanMZ(const double &, const double &, double &, double &, double &)))
 {
-    DoubleReal centroid_mz(150.22), centroid_int(25000000);
-    DoubleReal new_mz1(150.34), new_int1(23043030);
-    DoubleReal new_mz2(150.11), new_int2(1932392);
+    double centroid_mz(150.22), centroid_int(25000000);
+    double new_mz1(150.34), new_int1(23043030);
+    double new_mz2(150.11), new_int2(1932392);
 
-    std::vector<DoubleReal> mzs, ints;
+    std::vector<double> mzs, ints;
     mzs.push_back(centroid_mz);
     mzs.push_back(new_mz1);
     mzs.push_back(new_mz2);
@@ -79,14 +79,14 @@ START_SECTION((void updateIterativeWeightedMeanMZ(const DoubleReal &, const Doub
     ints.push_back(new_int1);
     ints.push_back(new_int2);
 
-    DoubleReal total_weight1(centroid_int + new_int1);
-    DoubleReal total_weight2(centroid_int + new_int1 + new_int2);
+    double total_weight1(centroid_int + new_int1);
+    double total_weight2(centroid_int + new_int1 + new_int2);
 
-    DoubleReal wmean1((centroid_mz * centroid_int + new_mz1 * new_int1)/total_weight1);
-    DoubleReal wmean2((centroid_mz * centroid_int + new_mz1 * new_int1 + new_mz2 * new_int2)/total_weight2);
+    double wmean1((centroid_mz * centroid_int + new_mz1 * new_int1)/total_weight1);
+    double wmean2((centroid_mz * centroid_int + new_mz1 * new_int1 + new_mz2 * new_int2)/total_weight2);
 
-    DoubleReal prev_count(centroid_mz * centroid_int);
-    DoubleReal prev_denom(centroid_int);
+    double prev_count(centroid_mz * centroid_int);
+    double prev_denom(centroid_int);
 
     test_mtd.updateIterativeWeightedMeanMZ(new_mz1, new_int1, centroid_mz, prev_count, prev_denom);
 
@@ -104,9 +104,9 @@ MSExperiment<Peak1D> input;
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MassTraceDetection_input1.mzML"),input);
 
 Size exp_mt_lengths[3] = {86, 31, 16};
-DoubleReal exp_mt_rts[3] = {347.778, 346.881, 346.836};
-DoubleReal exp_mt_mzs[3] = {437.26675, 438.27241, 439.27594};
-DoubleReal exp_mt_ints[3] = {3124.765, 631.45, 116.966};
+double exp_mt_rts[3] = {341.063314463158, 339.314891947562, 350.698987241276};
+double exp_mt_mzs[3] = {437.26675, 438.27241, 439.27594};
+double exp_mt_ints[3] = {3381.72226139326, 664.763828332733, 109.490108620676};
 
 std::vector<MassTrace> output_mt;
 

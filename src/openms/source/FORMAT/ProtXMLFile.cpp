@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -62,7 +62,7 @@ namespace OpenMS
     cv_terms_[0] = enzyme_names;
   }
 
-  void ProtXMLFile::load(const String & filename, ProteinIdentification & protein_ids, PeptideIdentification & peptide_ids)
+  void ProtXMLFile::load(const String& filename, ProteinIdentification& protein_ids, PeptideIdentification& peptide_ids)
   {
     //Filename for error messages in XMLHandler
     file_ = filename;
@@ -80,7 +80,7 @@ namespace OpenMS
     parse_(filename, this);
   }
 
-  void ProtXMLFile::store(const String & /*filename*/, const ProteinIdentification & /*protein_ids*/, const PeptideIdentification & /*peptide_ids*/, const String & /*document_id*/)
+  void ProtXMLFile::store(const String& /*filename*/, const ProteinIdentification& /*protein_ids*/, const PeptideIdentification& /*peptide_ids*/, const String& /*document_id*/)
   {
     throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
     // resetMembers_();
@@ -95,7 +95,7 @@ namespace OpenMS
     protein_group_ = ProteinGroup();
   }
 
-  void ProtXMLFile::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes)
+  void ProtXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
   {
     String tag = sm_.convert(qname);
 
@@ -150,10 +150,10 @@ namespace OpenMS
       String protein_name = attributeAsString_(attributes, "protein_name");
       // open new "indistinguishable" group:
       prot_id_->insertIndistinguishableProteins(ProteinGroup());
-      registerProtein_(protein_name);       // create new protein
+      registerProtein_(protein_name); // create new protein
 
       // fill protein with life
-      DoubleReal pc_coverage;
+      double pc_coverage;
       if (optionalAttributeAsDouble_(pc_coverage, attributes, "percent_coverage"))
       {
         prot_id_->getHits().back().setCoverage(pc_coverage);
@@ -168,10 +168,13 @@ namespace OpenMS
     else if (tag == "indistinguishable_protein")
     {
       String protein_name = attributeAsString_(attributes, "protein_name");
+      // current last protein is from the same "indistinguishable" group:
+      double score = prot_id_->getHits().back().getScore();
       registerProtein_(protein_name);
-      // score of group leader might not be transferrable (due to protein length
-      // etc.), so we set it to -1
-      prot_id_->getHits().back().setScore(-1);
+      // score of group leader might technically not be transferable (due to
+      // protein length etc.), but we still transfer it to allow filtering of
+      // proteins by score without disrupting the groups:
+      prot_id_->getHits().back().setScore(score);
     }
     else if (tag == "peptide")
     {
@@ -179,7 +182,7 @@ namespace OpenMS
       // We thus treat each instance as a separate peptide
       // todo/improvement: link them by a group in PeptideIdentification?!
       pep_hit_ = new PeptideHit;
-      pep_hit_->setSequence(AASequence(attributeAsString_(attributes, "peptide_sequence")));
+      pep_hit_->setSequence(AASequence::fromString(String(attributeAsString_(attributes, "peptide_sequence"))));
       pep_hit_->setScore(attributeAsDouble_(attributes, "nsp_adjusted_probability"));
 
       Int charge;
@@ -193,8 +196,13 @@ namespace OpenMS
       }
 
       // add accessions of all indistinguishable proteins the peptide belongs to
-      ProteinIdentification::ProteinGroup & indist = prot_id_->getIndistinguishableProteins().back();
-      pep_hit_->setProteinAccessions(indist.accessions);
+      ProteinIdentification::ProteinGroup& indist = prot_id_->getIndistinguishableProteins().back();
+      for (StringList::const_iterator accession = indist.accessions.begin(); accession != indist.accessions.end(); ++accession)
+      {
+        PeptideEvidence pe;
+        pe.setProteinAccession(*accession);
+        pep_hit_->addPeptideEvidence(pe);
+      }
       pep_hit_->setMetaValue("is_unique", String(attributeAsString_(attributes, "is_nondegenerate_evidence")) == "Y" ? 1 : 0);
       pep_hit_->setMetaValue("is_contributing", String(attributeAsString_(attributes, "is_contributing_evidence")) == "Y" ? 1 : 0);
     }
@@ -202,7 +210,7 @@ namespace OpenMS
     {
       // relates to the last seen peptide (we hope)
       Size position = attributeAsInt_(attributes, "position");
-      DoubleReal mass = attributeAsDouble_(attributes, "mass");
+      double mass = attributeAsDouble_(attributes, "mass");
       AASequence temp_aa_sequence(pep_hit_->getSequence());
 
       String temp_description = "";
@@ -246,7 +254,7 @@ namespace OpenMS
     }
   }
 
-  void ProtXMLFile::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname)
+  void ProtXMLFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
   {
     String tag = sm_.convert(qname);
 
@@ -262,7 +270,7 @@ namespace OpenMS
     }
   }
 
-  void ProtXMLFile::registerProtein_(const String & protein_name)
+  void ProtXMLFile::registerProtein_(const String& protein_name)
   {
     ProteinHit hit;
     hit.setAccession(protein_name);
@@ -273,9 +281,9 @@ namespace OpenMS
       protein_name);
   }
 
-  void ProtXMLFile::matchModification_(const DoubleReal mass, const String & origin, String & modification_description)
+  void ProtXMLFile::matchModification_(const double mass, const String& origin, String& modification_description)
   {
-    DoubleReal mod_mass = mass - ResidueDB::getInstance()->getResidue(origin)->getMonoWeight(Residue::Internal);
+    double mod_mass = mass - ResidueDB::getInstance()->getResidue(origin)->getMonoWeight(Residue::Internal);
     vector<String> mods;
     ModificationsDB::getInstance()->getModificationsByDiffMonoMass(mods, origin, mod_mass, 0.001);
 

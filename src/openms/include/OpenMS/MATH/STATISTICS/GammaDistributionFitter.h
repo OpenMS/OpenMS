@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Maintainer: Stephan Aiche $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
 #ifndef OPENMS_MATH_STATISTICS_GAMMADISTRIBUTIONFITTER_H
@@ -39,11 +39,6 @@
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 
 #include <vector>
-
-// gsl includes
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_vector.h>
-#include <gsl/gsl_multifit_nlin.h>
 
 
 namespace OpenMS
@@ -55,15 +50,14 @@ namespace OpenMS
 
       This class fits a Gamma distribution to a number of data points.
       The results as well as the initial guess are specified using the struct
-          GammaDistributionFitResult.
+      GammaDistributionFitResult.
+     
+      @note We actually fit a slightly customized version of the gamma distribution
+      that is 0.0 if the parameters b or p are <= 0.0. With this modification we 
+      can still use an unconstrained optimization algorithm.
 
-      The formula with the fitted parameters can be transformed into a
-      gnuplot formula using getGnuplotFormula() after fitting.
-
-          The implementation is done using GSL fitting algorithms.
-
-          @ingroup Math
-      */
+      @ingroup Math
+    */
     class OPENMS_DLLAPI GammaDistributionFitter
     {
 public:
@@ -73,26 +67,10 @@ public:
       {
 public:
 
-        GammaDistributionFitResult() :
-          b(1.0),
-          p(5.0)
+        GammaDistributionFitResult(double bIn, double pIn) :
+          b(bIn),
+          p(pIn)
         {
-        }
-
-        GammaDistributionFitResult(const GammaDistributionFitResult & rhs) :
-          b(rhs.b),
-          p(rhs.p)
-        {
-        }
-
-        GammaDistributionFitResult & operator=(const GammaDistributionFitResult & rhs)
-        {
-          if (this != &rhs)
-          {
-            b = rhs.b;
-            p = rhs.p;
-          }
-          return *this;
         }
 
         /// parameter b of the gamma distribution
@@ -108,7 +86,7 @@ public:
       virtual ~GammaDistributionFitter();
 
       /// sets the gamma distribution start parameters b and p for the fitting
-      void setInitialParameters(const GammaDistributionFitResult & result);
+      void setInitialParameters(const GammaDistributionFitResult& result);
 
       /**
           @brief Fits a gamma distribution to the given data points
@@ -117,30 +95,17 @@ public:
 
           @exception Exception::UnableToFit is thrown if fitting cannot be performed
       */
-      GammaDistributionFitResult fit(std::vector<DPosition<2> > & points);
-
-      /// returns the gnuplot formula of the fitted gamma distribution
-      const String & getGnuplotFormula() const;
+      GammaDistributionFitResult fit(const std::vector<DPosition<2> >& points);
 
 protected:
 
-      static int gammaDistributionFitterf_(const gsl_vector * x, void * params, gsl_vector * f);
-
-      static int gammaDistributionFitterdf_(const gsl_vector * x, void * params, gsl_matrix * J);
-
-      static int gammaDistributionFitterfdf_(const gsl_vector * x, void * params, gsl_vector * f, gsl_matrix * J);
-
-      void printState_(size_t iter, gsl_multifit_fdfsolver * s);
-
       GammaDistributionFitResult init_param_;
 
-      String gnuplot_formula_;
-
 private:
-      /// Copy constructor (not implemented)
-      GammaDistributionFitter(const GammaDistributionFitter & rhs);
-      /// assignment operator (not implemented)
-      GammaDistributionFitter & operator=(const GammaDistributionFitter & rhs);
+      /// Copy constructor (not implemented to prevent usage)
+      GammaDistributionFitter(const GammaDistributionFitter& rhs);
+      /// assignment operator (not implemented to prevent usage)
+      GammaDistributionFitter& operator=(const GammaDistributionFitter& rhs);
     };
   }
 }

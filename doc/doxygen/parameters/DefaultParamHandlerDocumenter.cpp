@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2012.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,11 +32,13 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <fstream>
-#include <QtGui/QApplication>
-
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
-#include <OpenMS/ANALYSIS/ID/ConsensusID.h>
+#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmAverage.h>
+#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmBest.h>
+#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPIons.h>
+#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmRanks.h>
+#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmWorst.h>
 #include <OpenMS/ANALYSIS/ID/PILISScoring.h>
 #include <OpenMS/ANALYSIS/ID/PILISModel.h>
 #include <OpenMS/ANALYSIS/ID/PILISModelGenerator.h>
@@ -97,7 +99,6 @@
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumPrecursorComparator.h>
 #include <OpenMS/COMPARISON/SPECTRA/SteinScottImproveScore.h>
 #include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
-#include <OpenMS/COMPARISON/SPECTRA/CompareFouriertransform.h>
 #include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/FILTERING/SMOOTHING/LowessSmoothing.h>
@@ -130,33 +131,20 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LmaGaussFitter1D.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LmaGaussModel.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LmaIsotopeFitter1D.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LmaIsotopeModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MaxLikeliFitter1D.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ModelFitter.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleExtender.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleSeeder.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>
-#include <OpenMS/VISUAL/Spectrum1DCanvas.h>
-#include <OpenMS/VISUAL/Spectrum2DCanvas.h>
-#include <OpenMS/VISUAL/Spectrum3DCanvas.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSharedPeakCount.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSumAgreeingIntensities.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
 #include <OpenMS/COMPARISON/SPECTRA/PeakAlignment.h>
-#include <OpenMS/COMPARISON/SPECTRA/CompareFouriertransform.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSimple.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSimplest.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIsotopeWavelet.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMRM.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
@@ -175,9 +163,26 @@
 #include <OpenMS/SIMULATION/LABELING/ITRAQLabeler.h>
 #include <OpenMS/SIMULATION/LABELING/SILACLabeler.h>
 #include <OpenMS/SIMULATION/LABELING/ICPLLabeler.h>
+#include <OpenMS/APPLICATIONS/MapAlignerBase.h>
+
+// those are only added if GUI is enabled
+#ifdef WITH_GUI
+#include <QtGui/QApplication>
+
+#include <OpenMS/VISUAL/Spectrum1DCanvas.h>
+#include <OpenMS/VISUAL/Spectrum2DCanvas.h>
+#include <OpenMS/VISUAL/Spectrum3DCanvas.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
-#include <OpenMS/APPLICATIONS/MapAlignerBase.h>
+#endif
+
+// include this file after the GUI stuff, or there will be a conflict between
+// "LayerData.h" (via "Spectrum1DCanvas.h") and "SeqanIncludeWrapper.h"!
+// (see https://github.com/OpenMS/OpenMS/issues/1327)
+#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPMatrix.h>
+
+
+#include <fstream>
 
 using namespace std;
 using namespace OpenMS;
@@ -185,7 +190,7 @@ using namespace OpenMS;
 //**********************************************************************************
 //Helper method - use this method to generate the actual parameter documentation
 //**********************************************************************************
-void writeParameters(const String & class_name, const Param & param, bool table_only = false)
+void writeParameters(const String& class_name, const Param& param, bool table_only = false)
 {
   ofstream f((String("output/OpenMS_") + class_name + ".parameters").c_str());
 
@@ -225,12 +230,12 @@ void writeParameters(const String & class_name, const Param & param, bool table_
 
       //restrictions
       bool first = true;
-      if (it->min_float != -(numeric_limits<DoubleReal>::max)())
+      if (it->min_float != -(numeric_limits<double>::max)())
       {
         restrictions += String("min: ") + it->min_float;
         first = false;
       }
-      if (it->max_float != (numeric_limits<DoubleReal>::max)())
+      if (it->max_float != (numeric_limits<double>::max)())
       {
         if (!first)
           restrictions += ' ';
@@ -338,11 +343,8 @@ void writeParameters(const String & class_name, const Param & param, bool table_
 //**********************************************************************************
 //Main method - add your class here
 //**********************************************************************************
-int main(int argc, char ** argv)
+int main(int argc, char** argv)
 {
-  // some classes require a QApplication
-  QApplication app(argc, argv);
-
   //////////////////////////////////
   // Simple cases
   //////////////////////////////////
@@ -355,7 +357,12 @@ int main(int argc, char ** argv)
   DOCME(BinnedSumAgreeingIntensities);
   DOCME(ComplementFilter);
   DOCME(ComplementMarker);
-  DOCME(ConsensusID);
+  DOCME(ConsensusIDAlgorithmAverage);
+  DOCME(ConsensusIDAlgorithmBest);
+  DOCME(ConsensusIDAlgorithmPEPIons);
+  DOCME(ConsensusIDAlgorithmPEPMatrix);
+  DOCME(ConsensusIDAlgorithmRanks);
+  DOCME(ConsensusIDAlgorithmWorst);
   DOCME(DetectabilitySimulation);
   DOCME(DIAScoring);
   DOCME(DigestSimulation);
@@ -366,7 +373,7 @@ int main(int argc, char ** argv)
   DOCME(FalseDiscoveryRate);
   DOCME(FeatureDeconvolution);
   DOCME(FeatureDistance);
-  DOCME(FeatureGroupingAlgorithmIdentification);   // deprecated
+  DOCME(FeatureGroupingAlgorithmIdentification); // deprecated
   DOCME(FeatureGroupingAlgorithmLabeled);
   DOCME(FeatureGroupingAlgorithmQT);
   DOCME(FeatureGroupingAlgorithmUnlabeled);
@@ -388,10 +395,6 @@ int main(int argc, char ** argv)
   DOCME(ItraqFourPlexQuantitationMethod);
   DOCME(LabeledPairFinder);
   DOCME(LinearResampler);
-  DOCME(LmaGaussFitter1D);
-  DOCME(LmaGaussModel);
-  DOCME(LmaIsotopeFitter1D);
-  DOCME(LmaIsotopeModel);
   DOCME(MSPFile);
   DOCME(MSSim);
   DOCME(MapAlignmentAlgorithmPoseClustering);
@@ -433,7 +436,6 @@ int main(int argc, char ** argv)
   DOCME(TwoDOptimization);
   DOCME(WindowMower);
   DOCME(ZhangSimilarityScore);
-  DOCME(CompareFouriertransform);
   DOCME(PrecursorIonSelection);
   DOCME(PrecursorIonSelectionPreprocessing);
   DOCME(MorphologicalFilter);
@@ -452,8 +454,6 @@ int main(int argc, char ** argv)
   DOCME(PILISModelGenerator);
   DOCME(FeatureGroupingAlgorithmIdentification);
   DOCME(OfflinePrecursorIonSelection);
-  DOCME(TOPPViewBase);
-  DOCME(TOPPASBase);
   DOCME(Fitter1D);
   DOCME(EGHModel);
   DOCME(EGHFitter1D);
@@ -464,7 +464,7 @@ int main(int argc, char ** argv)
   DOCME(PeptideAndProteinQuant);
   DOCME(Math::PosteriorErrorProbabilityModel);
   // workarounds for documenting model parameters in MapAligners:
-  writeParameters("MapAlignerIdentificationModel", TOPPMapAlignerBase::getModelDefaults("b_spline"), true);
+  writeParameters("MapAlignerIdentificationModel", TOPPMapAlignerBase::getModelDefaults("interpolated"), true);
   writeParameters("MapAlignerPoseClusteringModel", TOPPMapAlignerBase::getModelDefaults("linear"), true);
   writeParameters("MapAlignerSpectrumModel", TOPPMapAlignerBase::getModelDefaults("interpolated"), true);
   writeParameters("MapRTTransformerModel", TOPPMapAlignerBase::getModelDefaults("none"), true);
@@ -473,29 +473,38 @@ int main(int argc, char ** argv)
   // More complicated cases
   //////////////////////////////////
 
-  DOCME2(FeatureFinderAlgorithmIsotopeWavelet, (FeatureFinderAlgorithmIsotopeWavelet<Peak1D, Feature>()))
-  DOCME2(FeatureFinderAlgorithmPicked, (FeatureFinderAlgorithmPicked<Peak1D, Feature>()));
-  DOCME2(FeatureFinderAlgorithmSimple, (FeatureFinderAlgorithmSimple<Peak1D, Feature>()));
-  DOCME2(FeatureFinderAlgorithmSimplest, (FeatureFinderAlgorithmSimplest<Peak1D, Feature>()));
-  DOCME2(FeatureFinderAlgorithmMRM, (FeatureFinderAlgorithmMRM<Peak1D, Feature>()))
-  DOCME2(ModelFitter, (ModelFitter<Peak1D, Feature>(0, 0, 0)));
+  // ConsensusIDAlgorithm...: abstract base classes, get param. from subclass:
+  DOCME2(ConsensusIDAlgorithm, (ConsensusIDAlgorithmBest()));
+  DOCME2(ConsensusIDAlgorithmIdentity, (ConsensusIDAlgorithmBest()));
+  DOCME2(ConsensusIDAlgorithmSimilarity, (ConsensusIDAlgorithmBest()));
+  DOCME2(FeatureFinderAlgorithmIsotopeWavelet, (FeatureFinderAlgorithmIsotopeWavelet()));
+  DOCME2(FeatureFinderAlgorithmPicked, (FeatureFinderAlgorithmPicked()));
+  DOCME2(FeatureFinderAlgorithmMRM, (FeatureFinderAlgorithmMRM()))
   DOCME2(ProductModel, ProductModel<2>());
   DOCME2(SignalToNoiseEstimatorMeanIterative, SignalToNoiseEstimatorMeanIterative<>());
   DOCME2(SignalToNoiseEstimatorMedian, SignalToNoiseEstimatorMedian<>());
-  DOCME2(SimpleExtender, (SimpleExtender<Peak1D, Feature>(0, 0, 0)));
-  DOCME2(SimpleSeeder, (SimpleSeeder<Peak1D, Feature>(0, 0, 0)));
-  DOCME2(Spectrum1DCanvas, Spectrum1DCanvas(Param(), 0));
-  DOCME2(Spectrum2DCanvas, Spectrum2DCanvas(Param(), 0));
-  DOCME2(Spectrum3DCanvas, Spectrum3DCanvas(Param(), 0));
-  DOCME2(IonizationSimulation, IonizationSimulation(OpenMS::SimRandomNumberGenerator()));
-  DOCME2(RawMSSignalSimulation, RawMSSignalSimulation(OpenMS::SimRandomNumberGenerator()));
-  DOCME2(RawTandemMSSignalSimulation, RawTandemMSSignalSimulation(OpenMS::SimRandomNumberGenerator()))
-  DOCME2(RTSimulation, RTSimulation(OpenMS::SimRandomNumberGenerator()))
-  DOCME2(GaussTraceFitter, (GaussTraceFitter<Peak1D>()))
-  DOCME2(EGHTraceFitter, (EGHTraceFitter<Peak1D>()))
+  DOCME2(IonizationSimulation, IonizationSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr()));
+  DOCME2(RawMSSignalSimulation, RawMSSignalSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr()));
+  DOCME2(RawTandemMSSignalSimulation, RawTandemMSSignalSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr()))
+  DOCME2(RTSimulation, RTSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr()))
+  DOCME2(GaussTraceFitter, (GaussTraceFitter()))
+  DOCME2(EGHTraceFitter, (EGHTraceFitter()))
 
   DOCME2(IsobaricChannelExtractor, IsobaricChannelExtractor(new ItraqFourPlexQuantitationMethod()));
   DOCME2(IsobaricQuantifier, IsobaricQuantifier(new ItraqFourPlexQuantitationMethod()));
+
+  // handle GUI documentation separately
+#ifdef WITH_GUI
+  // some classes require a QApplication
+  QApplication app(argc, argv);
+
+  DOCME(TOPPViewBase);
+  DOCME(TOPPASBase);
+
+  DOCME2(Spectrum1DCanvas, Spectrum1DCanvas(Param(), 0));
+  DOCME2(Spectrum2DCanvas, Spectrum2DCanvas(Param(), 0));
+  DOCME2(Spectrum3DCanvas, Spectrum3DCanvas(Param(), 0));
+#endif
+
   return 0;
 }
-

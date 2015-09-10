@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,21 +32,20 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
-#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/CONCEPT/Types.h>
 
 #include <QtCore/QString>
-
-#include <boost/spirit/include/qi.hpp>
-
-#include <string>
+#include <cstddef>
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
-#include <sstream>
 #include <limits>
-#include <algorithm>
+#include <sstream>
+#include <string>
 
 using namespace std;
 
@@ -76,12 +75,7 @@ namespace OpenMS
 
   String::String(const char* s, SizeType length)
   {
-    SizeType count = 0;
-    while (count < length && *(s + count) != 0)
-    {
-      *this += *(s + count);
-      ++count;
-    }
+    string::operator=(StringConversions::toString(s, length));
   }
 
   String::String(const char c) :
@@ -97,738 +91,266 @@ namespace OpenMS
   String::String(int i) :
     string()
   {
-    stringstream s;
-    s << i;
-    string::operator=(s.str());
+    string::operator=(StringConversions::toString(i));
   }
 
   String::String(unsigned int i) :
     string()
   {
-    stringstream s;
-    s << i;
-    string::operator=(s.str());
+    string::operator=(StringConversions::toString(i));
   }
 
   String::String(short int i) :
     string()
   {
-    stringstream s;
-    s << i;
-    string::operator=(s.str());
+    string::operator=(StringConversions::toString(i));
   }
 
   String::String(short unsigned int i) :
     string()
   {
-    stringstream s;
-    s << i;
-    string::operator=(s.str());
+    string::operator=(StringConversions::toString(i));
   }
 
   String::String(long int i) :
     string()
   {
-    stringstream s;
-    s << i;
-    string::operator=(s.str());
+    string::operator=(StringConversions::toString(i));
   }
 
   String::String(long unsigned int i) :
     string()
   {
-    stringstream s;
-    s << i;
-    string::operator=(s.str());
+    string::operator=(StringConversions::toString(i));
   }
 
   String::String(long long unsigned int i) :
     string()
   {
-    stringstream s;
-    s << i;
-    string::operator=(s.str());
+    string::operator=(StringConversions::toString(i));
   }
 
   String::String(long long signed int i) :
     string()
   {
-    stringstream s;
-    s << i;
-    string::operator=(s.str());
+    string::operator=(StringConversions::toString(i));
   }
 
   String::String(float f) :
     string()
   {
-    stringstream s;
-    s.precision(writtenDigits(f));
-    s << f;
-    string::operator=(s.str());
+    string::operator=(StringConversions::toString(f));
   }
 
   String::String(double d) :
     string()
   {
-    stringstream s;
-    s.precision(writtenDigits(d));
-    s << d;
-    string::operator=(s.str());
+    string::operator=(StringConversions::toString(d));
   }
 
   String::String(long double ld) :
     string()
   {
-    stringstream s;
-    s.precision(writtenDigits(ld));
-    s << ld;
-    string::operator=(s.str());
-  }
-
-  String String::numberLength(DoubleReal d, UInt n)
-  {
-    stringstream s;
-    //reserve one space for the minus sign
-    Int sign = 0;
-    if (d < 0)
-      sign = 1;
-    d = fabs(d);
-
-    if (d < pow(10.0, Int(n - sign - 2)))
-    {
-      s.precision(writtenDigits(d));
-      if (sign == 1)
-        s << "-";
-      s << d;
-    }
-    else
-    {
-      UInt exp = 0;
-      while (d > pow(10.0, Int(n - sign - 4)))
-      {
-        d /= 10;
-        ++exp;
-      }
-      d = Int(d) / 10.0;
-      exp += 1;
-      if (sign == 1)
-        s << "-";
-      s << d << "e";
-      if (exp < 10)
-        s << "0";
-      s << exp;
-    }
-    return s.str().substr(0, n);
-  }
-
-  String String::number(DoubleReal d, UInt n)
-  {
-    return QString::number(d, 'f', n);
-  }
-
-  String& String::fillLeft(char c, UInt size)
-  {
-    if (string::size() < size)
-    {
-      string::operator=(String(size - string::size(), c) + * this);
-    }
-    return *this;
-  }
-
-  String& String::fillRight(char c, UInt size)
-  {
-    if (string::size() < size)
-    {
-      string::operator=(* this + String(size - string::size(), c));
-    }
-    return *this;
+    string::operator=(StringConversions::toString(ld));
   }
 
   String::String(const DataValue& d) :
     string()
   {
-    string::operator=(d.toString());
+    string::operator=(StringConversions::toString(d));
+  }
+
+  String String::numberLength(double d, UInt n)
+  {
+    return StringUtils::numberLength(d, n);
+  }
+
+  String String::number(double d, UInt n)
+  {
+    return StringUtils::number(d, n);
+  }
+
+  String& String::fillLeft(char c, UInt size)
+  {
+    return StringUtils::fillLeft(*this, c, size);
+  }
+
+  String& String::fillRight(char c, UInt size)
+  {
+    return StringUtils::fillRight(*this, c, size);
   }
 
   bool String::hasPrefix(const String& string) const
   {
-    if (string.size() > size())
-    {
-      return false;
-    }
-    if (string.empty())
-    {
-      return true;
-    }
-    return compare(0, string.size(), string) == 0;
+    return StringUtils::hasPrefix(*this, string);
   }
 
   bool String::hasSuffix(const String& string) const
   {
-    if (string.size() > size())
-    {
-      return false;
-    }
-    if (string.empty())
-    {
-      return true;
-    }
-    return compare(size() - string.size(), string.size(), string) == 0;
+    return StringUtils::hasSuffix(*this, string);
   }
 
   bool String::hasSubstring(const String& string) const
   {
-    return string::find(string) != string::npos;
+    return StringUtils::hasSubstring(*this, string);
   }
 
   bool String::has(Byte byte) const
   {
-    return string::find(char(byte)) != string::npos;
+    return StringUtils::has(*this, byte);
   }
 
   String String::prefix(SizeType length) const
   {
-    if (length > size())
-    {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, length, size());
-    }
-    return substr(0, length);
+    return StringUtils::prefix(*this, length);
   }
 
   String String::suffix(SizeType length) const
   {
-    if (length > size())
-    {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, length, size());
-    }
-    return substr(size() - length, length);
+    return StringUtils::suffix(*this, length);
   }
 
   String String::prefix(Int length) const
   {
-    if (length < 0)
-    {
-      throw Exception::IndexUnderflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, length, 0);
-    }
-    if (length > Int(size()))
-    {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, length, size());
-    }
-    return substr(0, length);
+    return StringUtils::prefix(*this, length);
   }
 
   String String::suffix(Int length) const
   {
-    if (length < 0)
-    {
-      throw Exception::IndexUnderflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, length, 0);
-    }
-    if (length > Int(size()))
-    {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, length, size());
-    }
-    return substr(size() - length, length);
+    return StringUtils::suffix(*this, length);
   }
 
   String String::prefix(char delim) const
   {
-    Size pos = string::find(delim);
-    if (pos == string::npos) //char not found
-    {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-                                       String(delim));
-    }
-    return string::substr(0, pos);
+    return StringUtils::prefix(*this, delim);
   }
 
   String String::suffix(char delim) const
   {
-    Size pos = string::rfind(delim);
-    if (pos == string::npos) //char not found
-    {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-                                       String(delim));
-    }
-    return string::substr(++pos);
+    return StringUtils::suffix(*this, delim);
   }
 
   String String::substr(size_t pos, size_t n) const
   {
-    Size begin = std::min(pos, this->size());
-    return (String) string::substr(begin, n);
+    return StringUtils::substr(*this, pos, n);
   }
 
   String String::chop(Size n) const
   {
-    Size end = 0;
-    if (n < this->size())
-    {
-      end = this->size() - n;
-    }
-
-    return String(this->begin(), this->begin() + end);
+    return StringUtils::chop(*this, n);
   }
 
   String& String::trim()
   {
-    //search for the begin of truncated string
-    iterator begin = this->begin();
-    while (begin != end() && (*begin == ' ' || *begin == '\t' || *begin == '\n'  || *begin == '\r'))
-    {
-      ++begin;
-    }
-
-    //all characters are whitespaces
-    if (begin == end())
-    {
-      string::clear();
-      return *this;
-    }
-
-    //search for the end of truncated string
-    Iterator end = this->end();
-    end--;
-    while (end != begin && (*end == ' ' || *end == '\n' || *end == '\t' || *end == '\r'))
-    {
-      --end;
-    }
-    ++end;
-
-    //no characters are whitespaces
-    if (begin == this->begin() && end == this->end())
-    {
-      return *this;
-    }
-
-    string::operator=(string(begin, end));
-
-    return *this;
+    return StringUtils::trim(*this);
   }
 
   String& String::quote(char q, QuotingMethod method)
   {
-    if (method == ESCAPE)
-    {
-      substitute(String("\\"), String("\\\\"));
-      substitute(String(q), "\\" + String(q));
-    }
-    else if (method == DOUBLE)
-      substitute(String(q), String(q) + String(q));
-    string::operator=(q + * this + q);
-    return *this;
+    return StringUtils::quote(*this, q, method);
   }
 
   String& String::unquote(char q, QuotingMethod method)
   {
-    // check if input string matches output format of the "quote" method:
-    if ((size() < 2) || ((*this)[0] != q) || ((*this)[size() - 1] != q))
-    {
-      throw Exception::ConversionError(
-              __FILE__, __LINE__, __PRETTY_FUNCTION__,
-              "'" + *this + "' does not have the expected format of a quoted string");
-    }
-    string::operator=(string::substr(1, size() - 2)); // remove quotation marks
-    if (method == ESCAPE)
-    {
-      substitute("\\" + String(q), String(q));
-      substitute(String("\\\\"), String("\\"));
-    }
-    else if (method == DOUBLE)
-      substitute(String(q) + String(q), String(q));
-    return *this;
+    return StringUtils::unquote(*this, q, method);
   }
 
   String& String::simplify()
   {
-    String simple;
-
-    bool last_was_whitespace = false;
-    for (iterator it = this->begin(); it != end(); ++it)
-    {
-      if (*it == ' ' || *it == '\n' || *it == '\t' || *it == '\r')
-      {
-        if (!last_was_whitespace)
-        {
-          simple += ' ';
-        }
-        last_was_whitespace = true;
-      }
-      else
-      {
-        simple += *it;
-        last_was_whitespace = false;
-      }
-    }
-
-    this->swap(simple);
-
-    return *this;
+    return StringUtils::simplify(*this);
   }
 
   String String::random(UInt length)
   {
-    srand(time(0));
-    String tmp(length, '.');
-    SizeType random;
-    for (Size i = 0; i < length; ++i)
-    {
-      random = (SizeType)floor(((double)rand() / (double(RAND_MAX) + 1)) * 62.0);
-      if (random < 10)
-      {
-        tmp[i] = (char)(random + 48);
-      }
-      else if (random < 36)
-      {
-        tmp[i] = (char)(random + 55);
-      }
-      else
-      {
-        tmp[i] = (char)(random + 61);
-      }
-    }
-    return tmp;
+    return StringUtils::random(length);
   }
 
   String& String::reverse()
   {
-    String tmp = *this;
-    for (Size i = 0; i != size(); ++i)
-    {
-      (*this)[i] = tmp[size() - 1 - i];
-    }
-    return *this;
+    return StringUtils::reverse(*this);
   }
 
   bool String::split(const char splitter, vector<String>& substrings,
                      bool quote_protect) const
   {
-    substrings.clear();
-    if (empty())
-      return false;
-
-    Size nsplits = count(begin(), end(), splitter);
-
-    if (!quote_protect && (nsplits == 0))
-    {
-      substrings.push_back(*this);
-      return false;
-    }
-
-    // splitter(s) found
-    substrings.reserve(nsplits + 1);
-
-    // why is "this->" needed here?
-    ConstIterator begin = this->begin();
-    ConstIterator end = this->begin();
-
-    if (quote_protect)
-    {
-      Int quote_count(0);
-      for (; end != this->end(); ++end)
-      {
-        if (*end == '"')
-        {
-          ++quote_count;
-        }
-        if ((quote_count % 2 == 0) && (*end == splitter))
-        {
-          String block = String(begin, end);
-          block.trim();
-          if ((block.size() >= 2) && ((block.prefix(1) == String("\"")) ^
-                                      (block.suffix(1) == String("\""))))
-          { // block has start or end quote, but not both
-            // (one quote is somewhere in the middle)
-            throw Exception::ConversionError(
-                    __FILE__, __LINE__, __PRETTY_FUNCTION__,
-                    String("Could not dequote string '") + block +
-                    "' due to wrongly placed '\"'.");
-          }
-          else if ((block.size() >= 2) && (block.prefix(1) == String("\"")) &&
-                   (block.suffix(1) == String("\"")))
-          { // block has start and end quotes --> remove them
-            block = block.substr(1, block.size() - 2);
-          }
-          substrings.push_back(block);
-          begin = end + 1;
-        }
-      }
-      // no valid splitter found - return empty list
-      if (substrings.empty())
-      {
-        substrings.push_back(*this);
-        return false;
-      }
-
-      String block = String(begin, end);
-      block.trim();
-      if ((block.size() >= 2) && ((block.prefix(1) == String("\"")) ^
-                                  (block.suffix(1) == String("\""))))
-      { // block has start or end quote but not both
-        // (one quote is somewhere in the middle)
-        throw Exception::ConversionError(
-                __FILE__, __LINE__, __PRETTY_FUNCTION__,
-                String("Could not dequote string '") + block +
-                "' due to wrongly placed '\"'.");
-      }
-      else if ((block.size() >= 2) && (block.prefix(1) == String("\"")) &&
-               (block.suffix(1) == String("\"")))
-      { // block has start and end quotes --> remove them
-        block = block.substr(1, block.size() - 2);
-      }
-      substrings.push_back(block);
-    }
-    else // do not honor quotes
-    {
-      for (; end != this->end(); ++end)
-      {
-        if (*end == splitter)
-        {
-          substrings.push_back(String(begin, end));
-          begin = end + 1;
-        }
-      }
-      substrings.push_back(String(begin, end));
-    }
-
-    return true;
+    return StringUtils::split(*this, splitter, substrings, quote_protect);
   }
 
   bool String::split(const String& splitter, std::vector<String>& substrings)
   const
   {
-    substrings.clear();
-    if (empty())
-      return false;
-
-    if (splitter.empty()) // split after every character:
-    {
-      substrings.resize(size());
-      for (Size i = 0; i < size(); ++i)
-        substrings[i] = (*this)[i];
-      return true;
-    }
-
-    Size len = splitter.size(), start = 0, pos = string::find(splitter);
-    if (len == 0)
-      len = 1;
-    while (pos != string::npos)
-    {
-      substrings.push_back(string::substr(start, pos - start));
-      start = pos + len;
-      pos = string::find(splitter, start);
-    }
-    substrings.push_back(string::substr(start, size() - start));
-    return substrings.size() > 1;
+    return StringUtils::split(*this, splitter, substrings);
   }
 
   bool String::split_quoted(const String& splitter, vector<String>& substrings,
                             char q, QuotingMethod method) const
   {
-    substrings.clear();
-    if (empty() || splitter.empty())
-      return false;
-
-    bool in_quote = false;
-    char targets[2] = {q, splitter[0]}; // targets for "find_first_of"
-    std::string rest = splitter.substr(1, splitter.size() - 1);
-    Size start = 0;
-    for (Size i = 0; i < size(); ++i)
-    {
-      if (in_quote) // skip to closing quotation mark
-      {
-        bool embedded = false;
-        if (method == ESCAPE)
-        {
-          for (; i < size(); ++i)
-          {
-            if ((*this)[i] == '\\')
-              embedded = !embedded;
-            else if (((*this)[i] == q) && !embedded)
-              break;
-            else
-              embedded = false;
-          }
-        }
-        else // method: NONE or DOUBLE
-        {
-          for (; i < size(); ++i)
-          {
-            if ((*this)[i] == q)
-            {
-              if (method == NONE)
-                break; // found
-              // next character is also closing quotation mark:
-              if ((i < size() - 1) && ((*this)[i + 1] == q))
-                embedded = !embedded;
-              // even number of subsequent quotes (doubled) => found
-              else if (!embedded)
-                break;
-              // odd number of subsequent quotes => belongs to a pair
-              else
-                embedded = false;
-            }
-          }
-        }
-        in_quote = false; // end of quote reached
-      }
-      else
-      {
-        i = string::find_first_of(targets, i, 2);
-        if (i == string::npos)
-          break; // nothing found
-        if ((*this)[i] == q)
-          in_quote = true;
-        else if (string::compare(i + 1, rest.size(), rest) == 0) // splitter found
-        {
-          substrings.push_back(string::substr(start, i - start));
-          start = i + splitter.size();
-          i = start - 1; // increased by loop
-        }
-      }
-    }
-    if (in_quote) // reached end without finding closing quotation mark
-    {
-      throw Exception::ConversionError(
-              __FILE__, __LINE__, __PRETTY_FUNCTION__,
-              "unbalanced quotation marks in string '" + *this + "'");
-    }
-    substrings.push_back(string::substr(start, size() - start));
-    return substrings.size() > 1;
+    return StringUtils::split_quoted(*this, splitter, substrings, q, method);
   }
 
   QString String::toQString() const
   {
-    return QString(this->c_str());
+    return StringUtils::toQString(*this);
   }
 
   Int String::toInt() const
   {
-    namespace qi = boost::spirit::qi;
-    namespace ascii = boost::spirit::ascii;
-
-    Int ret;
-
-    // boost::spirit::qi was found to be vastly superior to boost::lexical_cast or stringstream extraction (especially for VisualStudio),
-    // so don't change this unless you have benchmarks for all platforms!
-    if (!qi::phrase_parse(this->begin(), this->end(),
-        qi::int_, ascii::space, ret))
-    {
-      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert string '") + *this + "' to an integer value");
-    }
-    return ret;
+    return StringUtils::toInt(*this);
   }
 
-  Real String::toFloat() const
+  float String::toFloat() const
   {
-    namespace qi = boost::spirit::qi;
-    namespace ascii = boost::spirit::ascii;
-
-    Real ret;
-
-    // boost::spirit::qi was found to be vastly superior to boost::lexical_cast or stringstream extraction (especially for VisualStudio),
-    // so don't change this unless you have benchmarks for all platforms!
-    if (!qi::phrase_parse(this->begin(), this->end(),
-        qi::float_, ascii::space, ret))
-    {
-      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert string '") + *this + "' to a float value");
-    }
-    return ret;
+    return StringUtils::toFloat(*this);
   }
 
-  DoubleReal String::toDouble() const
+  double String::toDouble() const
   {
-    namespace qi = boost::spirit::qi;
-    namespace ascii = boost::spirit::ascii;
-
-    DoubleReal ret;
-    // boost::spirit::qi was found to be vastly superior to boost::lexical_cast or stringstream extraction (especially for VisualStudio),
-    // so don't change this unless you have benchmarks for all platforms!
-    if (!qi::phrase_parse(this->begin(), this->end(), qi::double_, ascii::space, ret))
-    {
-      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert string '") + *this + "' to a double value");
-    }
-    return ret;
+    return StringUtils::toDouble(*this);
   }
 
   String& String::toUpper()
   {
-    std::transform(begin(), end(), begin(), (int (*)(int))toupper);
-    return *this;
+    return StringUtils::toUpper(*this);
   }
 
   String& String::firstToUpper()
   {
-    if (size() != 0)
-    {
-      (*this)[0] = toupper((*this)[0]);
-    }
-    return *this;
+    return StringUtils::firstToUpper(*this);
   }
 
   String& String::toLower()
   {
-    std::transform(begin(), end(), begin(), (int (*)(int))tolower);
-    return *this;
+    return StringUtils::toLower(*this);
   }
 
   String& String::substitute(char from, char to)
   {
-    std::replace(this->begin(), this->end(), from, to);
-    return *this;
+    return StringUtils::substitute(*this, from, to);
   }
 
   String& String::substitute(const String& from, const String& to)
   {
-    if (!from.empty())
-    {
-      vector<String> parts;
-      split(from, parts);
-      concatenate(parts.begin(), parts.end(), to);
-    }
-    return *this;
+    return StringUtils::substitute(*this, from, to);
   }
 
   String& String::remove(char what)
   {
-    this->erase(std::remove(this->begin(), this->end(), what), this->end());
-    return *this;
+    return StringUtils::remove(*this, what);
   }
 
   String& String::ensureLastChar(char end)
   {
-    if (!this->hasSuffix(end))
-      this->append(1, end);
-    return *this;
+    return StringUtils::ensureLastChar(*this, end);
   }
 
   String& String::removeWhitespaces()
   {
-    bool contains_ws = false;
-    for (ConstIterator it = this->begin(); it != this->end(); ++it)
-    {
-      char c = *it;
-      if (c == ' ' || c == '\t' || c == '\n' || c == '\r')
-      {
-        contains_ws = true;
-        break;
-      }
-    }
-
-    if (contains_ws)
-    {
-      string tmp;
-      tmp.reserve(this->size());
-      for (ConstIterator it = this->begin(); it != this->end(); ++it)
-      {
-        char c = *it;
-        if (c != ' ' && c != '\t' && c != '\n' && c != '\r')
-          tmp += c;
-      }
-      this->swap(tmp);
-    }
-
-    return *this;
+    return StringUtils::removeWhitespaces(*this);
   }
+
+  ///
+  ///// Operators
+  ///
 
   String String::operator+(int i) const
   {

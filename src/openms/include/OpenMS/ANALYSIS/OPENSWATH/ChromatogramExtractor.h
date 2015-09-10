@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -82,10 +82,8 @@ public:
      * dimension (e.g. a window of 600 seconds means an extraction of 300
      * seconds on either side)
      *
-     * @note: it will replace chromatograms in the output map, not append to
-     * them!
-     * @note: whenever possible, please use the ChromatogramExtractorAlgorithm
-     * implementation since it is more flexible
+     * @note: it will replace chromatograms in the output map, not append to them!
+     * @note: TODO deprecate this function (use ChromatogramExtractorAlgorithm instead)
     */
     template <typename ExperimentT>
     void extractChromatograms(const ExperimentT& input, ExperimentT& output, 
@@ -282,15 +280,16 @@ public:
         chrom.setAcquisitionInfo(settings.getAcquisitionInfo());
         chrom.setSourceFile(settings.getSourceFile());
 
-        for (Size i = 0; i < settings.getDataProcessing().size(); ++i)
+        for (Size j = 0; j < settings.getDataProcessing().size(); ++j)
         {
-          settings.getDataProcessing()[i]->setMetaValue("performed_on_spectra", "true");
-          chrom.getDataProcessing().push_back(settings.getDataProcessing()[i]);
+          settings.getDataProcessing()[j]->setMetaValue("performed_on_spectra", "true");
+          chrom.getDataProcessing().push_back(settings.getDataProcessing()[j]);
         }
         output_chromatograms.push_back(chrom);
       }
     }
 
+     /// @note: TODO deprecate this function (use ChromatogramExtractorAlgorithm instead)
     template <typename SpectrumT>
     void extract_value_tophat(const SpectrumT& input, const double& mz, Size& peak_idx,
         double& integrated_intensity, const double& extract_window, const bool ppm)
@@ -357,6 +356,7 @@ public:
       }
     }
 
+     /// @note: TODO deprecate this function (use ChromatogramExtractorAlgorithm instead)
     template <typename SpectrumT>
     void extract_value_bartlett(const SpectrumT& input, const double& mz, Size& peak_idx,
         double& integrated_intensity, const double& extract_window, const bool ppm)
@@ -487,10 +487,10 @@ private:
         chrom.setAcquisitionInfo(settings.getAcquisitionInfo());
         chrom.setSourceFile(settings.getSourceFile());
 
-        for (Size i = 0; i < settings.getDataProcessing().size(); ++i)
+        for (Size j = 0; j < settings.getDataProcessing().size(); ++j)
         {
-          settings.getDataProcessing()[i]->setMetaValue("performed_on_spectra", "true");
-          chrom.getDataProcessing().push_back(settings.getDataProcessing()[i]);
+          settings.getDataProcessing()[j]->setMetaValue("performed_on_spectra", "true");
+          chrom.getDataProcessing().push_back(settings.getDataProcessing()[j]);
         }
 
         // Set the id of the chromatogram, using the id of the transition (this gives directly the mapping of the two)
@@ -501,11 +501,14 @@ private:
 
     }
 
+     /// @note: TODO deprecate this function (use ChromatogramExtractorAlgorithm instead)
     bool outsideExtractionWindow_(const ReactionMonitoringTransition& transition, double current_rt,
                                    const TransformationDescription& trafo, double rt_extraction_window);
 
+     /// @note: TODO deprecate this function (use ChromatogramExtractorAlgorithm instead)
     int getFilterNr_(String filter);
 
+     /// @note: TODO deprecate this function (use ChromatogramExtractorAlgorithm instead)
     void populatePeptideRTMap_(OpenMS::TargetedExperiment& transition_exp, double rt_extraction_window);
 
     std::map<OpenMS::String, double> PeptideRTMap_;

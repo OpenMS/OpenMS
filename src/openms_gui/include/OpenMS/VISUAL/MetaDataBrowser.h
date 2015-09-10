@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,9 @@
 
 #ifndef OPENMS_VISUAL_METADATABROWSER_H
 #define OPENMS_VISUAL_METADATABROWSER_H
+
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -143,8 +146,7 @@ public:
     }
 
     /// Adds a feature map
-    template <class FeatureType>
-    void add(FeatureMap<FeatureType> & map)
+    void add(FeatureMap& map)
     {
       //identifier
       add(static_cast<DocumentIdentifier &>(map));
@@ -253,7 +255,7 @@ protected:
     void connectVisualizer_(BaseVisualizerGUI * ptr);
 
     /// Filters hits according to a score @a threshold. Takes the score orientation into account
-    void filterHits_(DoubleReal threshold, bool higher_better, int tree_item_id);
+    void filterHits_(double threshold, bool higher_better, int tree_item_id);
     /// Shows hits.
     void showAllHits_(int tree_item_id);
 

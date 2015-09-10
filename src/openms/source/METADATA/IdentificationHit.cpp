@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -124,22 +124,22 @@ namespace OpenMS
     return charge_;
   }
 
-  void IdentificationHit::setCalculatedMassToCharge(DoubleReal mz)
+  void IdentificationHit::setCalculatedMassToCharge(double mz)
   {
     calculated_mass_to_charge_ = mz;
   }
 
-  DoubleReal IdentificationHit::getCalculatedMassToCharge() const
+  double IdentificationHit::getCalculatedMassToCharge() const
   {
     return calculated_mass_to_charge_;
   }
 
-  void IdentificationHit::setExperimentalMassToCharge(DoubleReal mz)
+  void IdentificationHit::setExperimentalMassToCharge(double mz)
   {
     experimental_mass_to_charge_ = mz;
   }
 
-  DoubleReal IdentificationHit::getExperimentalMassToCharge() const
+  double IdentificationHit::getExperimentalMassToCharge() const
   {
     return experimental_mass_to_charge_;
   }

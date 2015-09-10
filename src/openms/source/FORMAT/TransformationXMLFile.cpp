@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,7 +50,7 @@ namespace OpenMS
   {
   }
 
-  void TransformationXMLFile::load(const String & filename, TransformationDescription & transformation)
+  void TransformationXMLFile::load(const String & filename, TransformationDescription & transformation, bool fit_model)
   {
     //Filename for error messages in XMLHandler
     file_ = filename;
@@ -62,7 +62,11 @@ namespace OpenMS
     parse_(filename, this);
 
     transformation.setDataPoints(data_);
-    transformation.fitModel(model_type_, params_);
+
+    if (fit_model) 
+    {
+      transformation.fitModel(model_type_, params_);
+    }
   }
 
   void TransformationXMLFile::store(String filename, const TransformationDescription & transformation)
@@ -78,7 +82,7 @@ namespace OpenMS
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
     }
-    os.precision(writtenDigits<DoubleReal>());
+    os.precision(writtenDigits<double>(0.0));
 
     //write header
     os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << "\n";
@@ -90,8 +94,7 @@ namespace OpenMS
        << "\">\n";
 
     // write parameters
-    Param params;
-    transformation.getModelParameters(params);
+    Param params = transformation.getModelParameters();
     for (Param::ParamIterator it = params.begin(); it != params.end(); ++it)
     {
       if (it->value.valueType() != DataValue::EMPTY_VALUE)
@@ -150,7 +153,7 @@ namespace OpenMS
     if (element == "TrafoXML")
     {
       //check file version against schema version
-      DoubleReal file_version = attributeAsDouble_(attributes, "version");
+      double file_version = attributeAsDouble_(attributes, "version");
       if (file_version > version_.toDouble())
       {
         warning(LOAD, String("The XML file (") + file_version + ") is newer than the parser (" + version_ + "). This might lead to undefined program behavior.");

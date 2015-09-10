@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,7 +65,10 @@ public:
       template <typename Arg>
       bool operator()(const Arg & a, const Arg & b)
       {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wfloat-equal"
         if (a.getScore() != b.getScore())
+#pragma clang diagnostic pop
         {
           return a.getScore() > b.getScore();
         }
@@ -81,7 +84,10 @@ public:
       template <typename Arg>
       bool operator()(const Arg & a, const Arg & b)
       {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wfloat-equal"
         if (a.getScore() != b.getScore())
+#pragma clang diagnostic pop
         {
           return a.getScore() < b.getScore();
         }
@@ -98,7 +104,7 @@ public:
     ProteinHit();
 
     /// values constructor
-    ProteinHit(DoubleReal score, UInt rank, String accession, String sequence);
+    ProteinHit(double score, UInt rank, String accession, String sequence);
 
     /// copy constructor
     ProteinHit(const ProteinHit & source);
@@ -124,7 +130,7 @@ public:
     //@{
 
     /// returns the score of the protein hit
-    Real getScore() const;
+    float getScore() const;
 
     /// returns the rank of the protein hit
     UInt getRank() const;
@@ -134,12 +140,15 @@ public:
 
     /// returns the accession of the protein
     const String & getAccession() const;
+    
+    /// returns the description of the protein
+    String getDescription() const;
 
     /// returns the coverage (in percent) of the protein hit based upon matched peptides
-    DoubleReal getCoverage() const;
+    double getCoverage() const;
 
     /// sets the score of the protein hit
-    void setScore(const DoubleReal score);
+    void setScore(const double score);
 
     /// sets the rank
     void setRank(UInt newrank);
@@ -150,17 +159,20 @@ public:
     /// sets the accession of the protein
     void setAccession(const String & accession);
 
+    /// sets the description of the protein
+    void setDescription(const String & description);
+
     /// sets the coverage (in percent) of the protein hit based upon matched peptides
-    void setCoverage(const DoubleReal coverage);
+    void setCoverage(const double coverage);
 
     //@}
 
 protected:
-    Real score_;                        ///< the score of the protein hit
+    float score_;                        ///< the score of the protein hit
     UInt rank_;                         ///< the position(rank) where the hit appeared in the hit list
     String accession_;          ///< the protein identifier
     String sequence_;               ///< the amino acid sequence of the protein hit
-    DoubleReal coverage_;         ///< coverage of the protein based upon the matched peptide sequences
+    double coverage_;         ///< coverage of the protein based upon the matched peptide sequences
 
   };
 

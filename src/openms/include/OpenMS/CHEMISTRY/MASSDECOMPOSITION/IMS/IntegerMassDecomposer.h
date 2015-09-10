@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -262,9 +262,9 @@ private:
         }
       }
       // fills cache variables for i==1
-      value_type d = Math::gcd(smallestMass, secondMass);
-      _lcms[1] = secondMass * smallestMass / d;
-      _mass_in_lcms[1] = smallestMass / d;
+      value_type tmp_d = Math::gcd(smallestMass, secondMass);
+      _lcms[1] = secondMass * smallestMass / tmp_d;
+      _mass_in_lcms[1] = smallestMass / tmp_d;
 
       // fills remaining table. i is the column index.
       for (size_type i = 2; i < _alphabet.size(); ++i)
@@ -302,13 +302,13 @@ private:
           // current residue (in paper variable 'r' is used)
           size_type p = 0;
           // counter for creation of witness vector
-          decomposition_value_type counter = 0;
+          decomposition_value_type local_counter = 0;
 
           for (size_type m = smallestMass; m > 0; --m)
           {
             n += currentMass;
             p += p_inc;
-            ++counter;
+            ++local_counter;
             if (p >= smallestMass)
             {
               p -= smallestMass;
@@ -316,11 +316,11 @@ private:
             if (n > prev_column[p])
             {
               n = prev_column[p];
-              counter = 0;
+              local_counter = 0;
             }
             else
             {
-              _witnessVector[p] = std::make_pair(i, counter);
+              _witnessVector[p] = std::make_pair(i, local_counter);
             }
             cur_column[p] = n;
           }

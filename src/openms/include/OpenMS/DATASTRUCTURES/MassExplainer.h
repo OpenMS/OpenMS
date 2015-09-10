@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,10 +37,13 @@
 
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
 
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/OpenMSConfig.h>
+
 namespace OpenMS
 {
   class Compomer;
-  class Adduct;
 
   /**
     @brief computes empirical formulas for given mass differences using a set of allowed elements
@@ -53,7 +56,7 @@ namespace OpenMS
 
 public:
 
-    typedef Adduct::AdductsType AdductsType;     //vector<Adduct>
+    typedef Adduct::AdductsType AdductsType; //vector<Adduct>
     typedef std::vector<Compomer>::const_iterator CompomerIterator;
 
     ///@name Constructors and destructor
@@ -65,10 +68,10 @@ public:
     MassExplainer(AdductsType adduct_base);
 
     /// Constructor
-    MassExplainer(Int q_min, Int q_max, Int max_span, DoubleReal thresh_logp);
+    MassExplainer(Int q_min, Int q_max, Int max_span, double thresh_logp);
 
     /// Constructor
-    MassExplainer(AdductsType adduct_base, Int q_min, Int q_max, Int max_span, DoubleReal thresh_logp, Size max_neutrals);
+    MassExplainer(AdductsType adduct_base, Int q_min, Int q_max, Int max_span, double thresh_logp, Size max_neutrals);
 
 
 private:
@@ -77,7 +80,7 @@ private:
     void init_(bool init_thresh_p);
 public:
     /// Assignment operator
-    MassExplainer & operator=(const MassExplainer & rhs);
+    MassExplainer& operator=(const MassExplainer& rhs);
 
     /// Destructor
     virtual ~MassExplainer();
@@ -97,7 +100,7 @@ public:
     AdductsType getAdductBase() const;
 
     /// return a compomer by its Id (useful after a query() ).
-    const Compomer & getCompomerById(Size id) const;
+    const Compomer& getCompomerById(Size id) const;
     //@}
 
 
@@ -112,15 +115,15 @@ public:
                      const float mass_to_explain,
                      const float mass_delta,
                      const float thresh_log_p,
-                     std::vector<Compomer>::const_iterator & firstExplanation,
-                     std::vector<Compomer>::const_iterator & lastExplanation) const;
+                     std::vector<Compomer>::const_iterator& firstExplanation,
+                     std::vector<Compomer>::const_iterator& lastExplanation) const;
 protected:
 
     ///check if the generated compomer is valid judged by its probability, charges etc
-    bool compomerValid_(const Compomer & cmp);
+    bool compomerValid_(const Compomer& cmp);
 
     /// create a proper adduct from formula and charge and probability
-    Adduct createAdduct_(const String & formula, const Int charge, const DoubleReal p) const;
+    Adduct createAdduct_(const String& formula, const Int charge, const double p) const;
 
     /// store possible explanations (as formula) for a certain ChargeDifference and MassDifference
     std::vector<Compomer> explanations_;
@@ -133,7 +136,7 @@ protected:
     /// maximal span (in terms of charge) for co-features, e.g. a cluster with q={3,6} has span=4
     Int max_span_;
     /// minimum required probability of a compound (all other compounds are discarded)
-    DoubleReal thresh_p_;
+    double thresh_p_;
     /// Maximum number of neutral(q=0) adducts
     Size max_neutrals_;
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,28 +33,36 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/SuffixArrayTrypticCompressed.h>
-#include <stack>
-#include <fstream>
-#include <cmath>
-#include <cstring>
-#include <algorithm>
+#include <OpenMS/DATASTRUCTURES/SuffixArraySeqan.h>
 
-#include <OpenMS/CHEMISTRY/ModifierRep.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/CHEMISTRY/ModifierRep.h>
+#include <OpenMS/CHEMISTRY/WeightWrapper.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 
-#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/config.h>
+
+#include <string>
+#include <algorithm>
+#include <cmath>
+#include <cstring>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <stack>
 
 using namespace std;
 
 namespace OpenMS
 {
 
-/**
-@brief comperator for two substings represented as pair of ints
+  /**
+    @brief comparator for two substrings represented as pair of integers
 
-holds a reference of the string and compairs two substrings. It will be used for sorting the indices.
-*/
+    It holds a reference of the string and compares two substrings. It will be
+    used for sorting the indices.
+  */
   struct SubstringLess :
     public binary_function<pair<SignedSize, SignedSize>, pair<SignedSize, SignedSize>, bool>
   {
@@ -85,42 +93,7 @@ protected:
     String const& str_; ///< string
   };
 
-/**
-@brief comparator for two doubles with a tolerance value
-*/
-  struct FloatsWithTolLess :
-    public binary_function<DoubleReal, DoubleReal, bool>
-  {
-    /**
-    @brief constructor
-    @param t const reference to the tolerance
-    */
-    explicit FloatsWithTolLess(const DoubleReal& t) :
-      tol_(t) {}
-    /**
-    @brief copy constructor
-    */
-    FloatsWithTolLess(const FloatsWithTolLess& rhs) :
-      tol_(rhs.tol_) {}
-
-    /**
-    @brief implementation of the '<' operator for two doubles with the tolerance value
-    @param f1 first DoubleReal
-    @param f2 second DoubleReal
-    @return true if first DoubleReal '<' second DoubleReal-tolerance
-    */
-    bool operator()(DoubleReal f1, DoubleReal f2) const
-    {
-      return f1 < (f2 - tol_);
-      //return (fabs(f1 - f2) < tol_);
-    }
-
-protected:
-    DoubleReal const& tol_; ///< tolerance value
-  };
-
-
-// gets the index of the next separator character
+  // gets the index of the next separator character
   SignedSize SuffixArrayTrypticCompressed::getNextSep_(const SignedSize p) const
   {
     for (Size i = (p + 1); i < s_.length(); ++i)
@@ -133,7 +106,7 @@ protected:
     return -1;
   }
 
-// getting lowest common prefix of two entrys of suffix array
+  // getting lowest common prefix of two entries of suffix array
   SignedSize SuffixArrayTrypticCompressed::getLCP_(const pair<SignedSize, SignedSize>& last_point, const pair<SignedSize, SignedSize>& current_point)
   {
     SignedSize lastBegin = last_point.first;
@@ -152,7 +125,7 @@ protected:
     return last_point.second;
   }
 
-// constructor
+  // constructor
   SuffixArrayTrypticCompressed::SuffixArrayTrypticCompressed(const String& st, const String& sa_file_name, const WeightWrapper::WEIGHTMODE weight_mode) :
     WeightWrapper(weight_mode),
     s_(st),
@@ -162,13 +135,13 @@ protected:
     use_tags_ = false;
     if (st[0] != '$')
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "String has to start with empyt string ($)", "");
+      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "String has to start with empty string ($)", "");
     }
     if (st[st.length() - 1] != '$')
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "String has to end with separator ($)", "");
     }
-    //creating array with aminoacid masses
+    //creating array with amino acid masses
     ResidueDB* rdb = ResidueDB::getInstance();
 
     char aa[] = "ARNDCEQGHILKMFPSTWYV";
@@ -198,7 +171,9 @@ protected:
         if (next_pos < i)
           next_pos = getNextSep_(i);
         const char start_char = s_[i];
-        // here we have to pay attension that we are not running out of the string, so if we do we set the next character to a character that will allow a digestion before (e.i. for trypsin everything but P)
+        // here we have to pay attention that we are not running out of the
+        // string, so if we do we set the next character to a character that
+        // will allow a digestion before (i.e. for trypsin everything but P)
         const char next_char = (i < s_.length()) ? s_[i + 1] : 'T';
         if (start_char == '$')
         {
@@ -206,19 +181,25 @@ protected:
         }
         else
         {
-          // if we have been at a start postion in last step or if we reached a digesting site we add the index the the suffix array
+          // if we have been at a start position in last step or if we reached
+          // a digesting site we add the index the suffix array
           if (is_at_start || isDigestingEnd(start_char, next_char))
           {
-            SignedSize start_pos = (is_at_start) ? i : (i + 1);
-            pair<SignedSize, SignedSize> p(start_pos, next_pos - start_pos);
-            if (p.second != 0)
+
+            // this we do always
             {
-              indices_.push_back(p);
+              SignedSize start_pos = (is_at_start) ? i : (i + 1);
+              pair<SignedSize, SignedSize> p(start_pos, next_pos - start_pos);
+              if (p.second != 0)
+              {
+                indices_.push_back(p);
+              }
             }
-            // if we are at start and now at a digesting site we must assure not to forget the index of the distested part
+
+            // if we are at start and now at a digesting site we must assure
+            // not to forget the index of the digested part
             if (is_at_start && isDigestingEnd(start_char, next_char))
             {
-
               SignedSize start_pos = (i + 1);
               pair<SignedSize, SignedSize> p(start_pos, next_pos - start_pos);
               if (p.second != 0)
@@ -386,7 +367,7 @@ protected:
     return ss.str();
   }
 
-  SignedSize SuffixArrayTrypticCompressed::findFirst_(const vector<DoubleReal>& spec, DoubleReal& m, SignedSize start, SignedSize  end)
+  SignedSize SuffixArrayTrypticCompressed::findFirst_(const vector<double>& spec, double& m, SignedSize start, SignedSize  end)
   {
 
     if (end - start <= 1)
@@ -409,13 +390,13 @@ protected:
     return middle + 1;
   }
 
-  SignedSize SuffixArrayTrypticCompressed::findFirst_(const vector<DoubleReal>& spec, DoubleReal& m)
+  SignedSize SuffixArrayTrypticCompressed::findFirst_(const vector<double>& spec, double& m)
   {
     return findFirst_(spec, m, 0, spec.size() - 1);
   }
 
-// finds all occurences of a given spectrum
-  void SuffixArrayTrypticCompressed::findSpec(vector<vector<pair<pair<SignedSize, SignedSize>, DoubleReal> > >& candidates, const vector<DoubleReal>& spec)
+// finds all occurrences of a given spectrum
+  void SuffixArrayTrypticCompressed::findSpec(vector<vector<pair<pair<SignedSize, SignedSize>, double> > >& candidates, const vector<double>& spec)
   {
     //time_t t0 (time(NULL));
     if (spec.empty())
@@ -440,18 +421,18 @@ protected:
     //preparing result table
     for (Size i = 0; i < spec.size(); ++i)
     {
-      vector<pair<pair<SignedSize, SignedSize>, DoubleReal> > v;
+      vector<pair<pair<SignedSize, SignedSize>, double> > v;
       candidates.push_back(v);
     }
-    DoubleReal mmax = spec.back();
+    double mmax = spec.back();
 
     //history contains three values: a position within the indices vector, a position for how far we 'walked' into candidate, and the mass at this position, so we initialize with the length of the indices vector, -1 and 0
-    stack<pair<pair<SignedSize, map<DoubleReal, SignedSize> >, pair<SignedSize, DoubleReal> > > history;
+    stack<pair<pair<SignedSize, map<double, SignedSize> >, pair<SignedSize, double> > > history;
 
 
     SignedSize tag_pos = 0;
 
-    history.push(pair<pair<SignedSize, map<DoubleReal, SignedSize> >, pair<SignedSize, DoubleReal> >(pair<SignedSize, map<DoubleReal, SignedSize> >(indices_.size() + 1, map<DoubleReal, SignedSize>()), pair<SignedSize, DoubleReal>(-1, getWeight(EmpiricalFormula("H2O")))));
+    history.push(pair<pair<SignedSize, map<double, SignedSize> >, pair<SignedSize, double> >(pair<SignedSize, map<double, SignedSize> >(indices_.size() + 1, map<double, SignedSize>()), pair<SignedSize, double>(-1, getWeight(EmpiricalFormula("H2O")))));
 
     SignedSize steps = 0;
     SignedSize nres = 0;
@@ -464,9 +445,9 @@ protected:
         history.pop();
       }
       // mass at this position
-      DoubleReal m = history.top().second.second;
+      double m = history.top().second.second;
 
-      map<DoubleReal, SignedSize> modification_map(history.top().first.second);
+      map<double, SignedSize> modification_map(history.top().first.second);
 
       //if (history.size()==1)
       //{
@@ -506,7 +487,11 @@ protected:
         char cn = ((Size)(indices_[i].first + j + 1) == s_.length() - 1) ? 'R' : s_[(indices_[i].first) + j + 1];
         m += masse_[(int)c];
 
-        // there is one special case if we are at a node where the last character before this node is a digesting start and the first outgoing char prevents digestion but not one of the left childs. then we have to pay attention on not skipping this edge that could possible be a peptide candidate
+        // there is one special case if we are at a node where the last
+        // character before this node is a digesting start and the first
+        // outgoing char prevents digestion but not one of the left children.
+        // then we have to pay attention on not skipping this edge that could
+        // possible be a peptide candidate
         bool have_to_go_in = false;
 
         if (j + 1 <= lcp_[i] && !isDigestingEnd(c, cn) && isDigestingEnd(c, '$'))
@@ -541,16 +526,16 @@ protected:
           if (!use_tags_ || (tag_pos >= 0 && tag_pos <= j - 2))
           {
 
-            vector<DoubleReal> found_masses;
+            vector<double> found_masses;
             if (binary_search(spec.begin(), spec.end(), m, FloatsWithTolLess(tol_)))
             {
               found_masses.push_back(0);
             }
             // if the mass is in spectrum we will add the entry to all matching masses
-            map<DoubleReal, SignedSize>::iterator it;
+            map<double, SignedSize>::iterator it;
             for (it = modification_map.begin(); it != modification_map.end(); ++it)
             {
-              if (binary_search(spec.begin(), spec.end(), m + (DoubleReal)it->first, FloatsWithTolLess(tol_)))
+              if (binary_search(spec.begin(), spec.end(), m + (double)it->first, FloatsWithTolLess(tol_)))
               {
                 found_masses.push_back(it->first);
               }
@@ -558,14 +543,14 @@ protected:
 
             for (Size o = 0; o < found_masses.size(); o++)
             {
-              DoubleReal mass_with_mods = (found_masses[o] + m);
+              double mass_with_mods = (found_masses[o] + m);
               Size first_occ = findFirst_(spec, mass_with_mods);
               Size first_occ_copy = first_occ;
               if (!have_to_go_in)
               {
                 ++steps;
                 ++nres;
-                pair<pair<SignedSize, SignedSize>, DoubleReal> pnew(pair<SignedSize, SignedSize>(indices_[i].first, j + 1), found_masses[o]);
+                pair<pair<SignedSize, SignedSize>, double> pnew(pair<SignedSize, SignedSize>(indices_[i].first, j + 1), found_masses[o]);
 /*
                             try
                             {
@@ -589,8 +574,12 @@ protected:
                   ++first_occ_copy;
                 }
               }
-              // if lcp value is bigger than we have walked into the string we add the next entry (indicated by skip vector)
-              // isDigestingEnd assures the no wrong hits are added (when we are at the end of a entry and it was no digesting site we must not add the next sequences)
+
+              // if lcp value is bigger than we have walked into the string we
+              // add the next entry (indicated by skip vector)
+              // isDigestingEnd assures the no wrong hits are added (when we
+              // are at the end of a entry and it was no digesting site we must
+              // not add the next sequences)
               if ((j + 1) <= lcp_[i] && (isDigestingEnd(c, cn) || have_to_go_in))
               {
                 for (SignedSize z = 1; z <= skip_[i]; ++z)
@@ -600,12 +589,12 @@ protected:
                   if (isDigestingEnd(c, cn_new))
                   {
                     ++nres;
-                    pair<pair<SignedSize, SignedSize>, DoubleReal> pnew(pair<SignedSize, SignedSize>(indices_[i + z].first, j + 1), found_masses[o]);
-                    Size first_occ_copy = first_occ;
-                    while (first_occ_copy < spec.size() && spec[first_occ_copy] <= mass_with_mods + tol_)
+                    pair<pair<SignedSize, SignedSize>, double> pnew(pair<SignedSize, SignedSize>(indices_[i + z].first, j + 1), found_masses[o]);
+                    Size l_first_occ_copy = first_occ;
+                    while (l_first_occ_copy < spec.size() && spec[l_first_occ_copy] <= mass_with_mods + tol_)
                     {
-                      candidates[first_occ_copy].push_back(pnew);
-                      ++first_occ_copy;
+                      candidates[l_first_occ_copy].push_back(pnew);
+                      ++l_first_occ_copy;
                     }
                   }
                 }
@@ -614,10 +603,13 @@ protected:
           }
         }
 
-        // if we are reaching a lcp postion we add this entry to history
+        // if we are reaching a lcp position we add this entry to history
         if (j == (lcp_[i] - 1) && lcp_[i] > 0)
         {
-          history.push(pair<pair<SignedSize, map<DoubleReal, SignedSize> >, pair<SignedSize, DoubleReal> >(pair<SignedSize, map<DoubleReal, SignedSize> >(i + skip_[i], map<DoubleReal, SignedSize>(modification_map)), pair<SignedSize, DoubleReal>(j, m)));
+          history.push(
+            pair<pair<SignedSize, map<double, SignedSize> >, pair<SignedSize, double> >(
+              pair<SignedSize, map<double, SignedSize> >(i + skip_[i], map<double, SignedSize>(modification_map)),
+              pair<SignedSize, double>(j, m)));
         }
         // if mass is to big we can skip the sub tree
         if (m > mmax + tol_)
@@ -636,7 +628,7 @@ protected:
     return;
   }
 
-  void SuffixArrayTrypticCompressed::setTolerance(DoubleReal t)
+  void SuffixArrayTrypticCompressed::setTolerance(double t)
   {
     if (t < 0)
     {
@@ -645,7 +637,7 @@ protected:
     tol_ = t;
   }
 
-  DoubleReal SuffixArrayTrypticCompressed::getTolerance() const
+  double SuffixArrayTrypticCompressed::getTolerance() const
   {
     return tol_;
   }
@@ -720,9 +712,9 @@ protected:
   {
     //to start walked_in set to 0, depth=1, edge_len = 1
 
-    if ((SignedSize)((DoubleReal)leafe_depth.size() / (DoubleReal)indices_.size() * 100) > progress_)
+    if ((SignedSize)((double)leafe_depth.size() / (double)indices_.size() * 100) > progress_)
     {
-      cout << (DoubleReal)leafe_depth.size() / (DoubleReal)indices_.size() * 100 << "%" << endl;
+      cout << (double)leafe_depth.size() / (double)indices_.size() * 100 << "%" << endl;
       progress_++;
 
     }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -76,7 +76,7 @@ namespace OpenMS
   {
   }
 
-  void DetectabilitySimulation::filterDetectability(FeatureMapSim& features)
+  void DetectabilitySimulation::filterDetectability(SimTypes::FeatureMapSim& features)
   {
     LOG_INFO << "Detectability Simulation ... started" << std::endl;
     if (param_.getValue("dt_simulation_on") == "true")
@@ -89,12 +89,12 @@ namespace OpenMS
     }
   }
 
-  void DetectabilitySimulation::noFilter_(FeatureMapSim& features)
+  void DetectabilitySimulation::noFilter_(SimTypes::FeatureMapSim& features)
   {
     // set detectibility to 1.0 for all given peptides
-    DoubleReal defaultDetectibility = 1.0;
+    double defaultDetectibility = 1.0;
 
-    for (FeatureMapSim::iterator feature_it = features.begin();
+    for (SimTypes::FeatureMapSim::iterator feature_it = features.begin();
          feature_it != features.end();
          ++feature_it)
     {
@@ -102,8 +102,8 @@ namespace OpenMS
     }
   }
 
-  void DetectabilitySimulation::predictDetectabilities(vector<String>& peptides_vector, vector<DoubleReal>& labels,
-                                                       vector<DoubleReal>& detectabilities)
+  void DetectabilitySimulation::predictDetectabilities(vector<String>& peptides_vector, vector<double>& labels,
+                                                       vector<double>& detectabilities)
   {
     // The support vector machine
     SVMWrapper svm;
@@ -111,7 +111,7 @@ namespace OpenMS
     // initialize support vector machine
     LibSVMEncoder encoder;
     UInt k_mer_length = 0;
-    DoubleReal sigma = 0.0;
+    double sigma = 0.0;
     UInt border_length = 0;
 
     if (File::readable(dt_model_file_))
@@ -184,7 +184,7 @@ namespace OpenMS
     String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
 
     // Encoding test data
-    vector<DoubleReal> probs;
+    vector<double> probs;
     probs.resize(peptides_vector.size(), 0);
 
     svm_problem* prediction_data = encoder.encodeLibSVMProblemWithOligoBorderVectors(peptides_vector, probs,
@@ -199,7 +199,7 @@ namespace OpenMS
     delete training_data;
   }
 
-  void DetectabilitySimulation::svmFilter_(FeatureMapSim& features)
+  void DetectabilitySimulation::svmFilter_(SimTypes::FeatureMapSim& features)
   {
 
     // transform featuremap to peptides vector
@@ -209,13 +209,13 @@ namespace OpenMS
       peptides_vector[i] = features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString();
     }
 
-    vector<DoubleReal> labels;
-    vector<DoubleReal> detectabilities;
+    vector<double> labels;
+    vector<double> detectabilities;
     predictDetectabilities(peptides_vector, labels, detectabilities);
 
 
     // copy all meta data stored in the feature map
-    FeatureMapSim temp_copy(features);
+    SimTypes::FeatureMapSim temp_copy(features);
     temp_copy.clear(false);
 
     for (Size i = 0; i < peptides_vector.size(); ++i)

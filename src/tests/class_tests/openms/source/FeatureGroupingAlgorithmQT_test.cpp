@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -71,7 +71,7 @@ START_SECTION((static String getProductName()))
 	TEST_EQUAL(FeatureGroupingAlgorithmQT::getProductName(), "unlabeled_qt")
 END_SECTION
 
-START_SECTION((virtual void group(const std::vector< FeatureMap<> >& maps, ConsensusMap& out)))
+START_SECTION((virtual void group(const std::vector< FeatureMap >& maps, ConsensusMap& out)))
 	// This is tested extensively in TEST/TOPP
 	NOT_TESTABLE;
 END_SECTION

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,36 +44,36 @@ namespace OpenMS
 namespace Interfaces
 {
 
-  class OPENMS_DLLAPI MockISpectraReader : 
+  class OPENMS_DLLAPI MockISpectraReader :
     public ISpectraReader
   {
 public:
-    MockISpectraReader() {};
-    ~MockISpectraReader() {};
+    MockISpectraReader() {}
+    ~MockISpectraReader() {}
     /// Return a pointer to a spectrum at the given id
-    SpectrumPtr getSpectrumById(int /* id */) const 
+    SpectrumPtr getSpectrumById(int /* id */) const
     {
       SpectrumPtr spectrum(new Spectrum);
       return spectrum;
     }
     /// Return a pointer to a spectrum at the given string id
-    SpectrumPtr getSpectrumById(const std::string& /* id */) const 
+    SpectrumPtr getSpectrumById(const std::string& /* id */) const
     {
       SpectrumPtr spectrum(new Spectrum);
       return spectrum;
     }
     /// Return a vector of ids of spectra that are within RT +/- deltaRT
-    std::vector<std::size_t> getSpectraByRT(double /* RT */, double /* deltaRT */) const 
+    std::vector<std::size_t> getSpectraByRT(double /* RT */, double /* deltaRT */) const
     {
       return std::vector<std::size_t>();
     }
     /// Returns the number of spectra available
-    virtual size_t getNrSpectra() const 
+    virtual size_t getNrSpectra() const
     {
       return 0;
     }
     /// Returns the meta information for a spectrum
-    virtual SpectrumMetaPtr getSpectrumMetaById(int /* id */) const 
+    virtual SpectrumMetaPtr getSpectrumMetaById(int /* id */) const
     {
       SpectrumMetaPtr spectrum_meta(new SpectrumMeta);
       return spectrum_meta;
@@ -82,36 +82,36 @@ public:
   // create an instance of the mock object to test
   MockISpectraReader test_mock_spectra_reader;
 
-  class OPENMS_DLLAPI MockIChromatogramsReader : 
+  class OPENMS_DLLAPI MockIChromatogramsReader :
     public IChromatogramsReader
   {
 public:
-    MockIChromatogramsReader() {};
-    ~MockIChromatogramsReader() {};
+    MockIChromatogramsReader() {}
+    ~MockIChromatogramsReader() {}
     /// Return a pointer to a chromatogram at the given id
-    ChromatogramPtr getChromatogramById(int /* id */) const 
+    ChromatogramPtr getChromatogramById(int /* id */) const
     {
       ChromatogramPtr chromatogram(new Chromatogram);
       return chromatogram;
     }
     /// Return a pointer to a chromatogram at the given string id
-    ChromatogramPtr getChromatogramById(const std::string& /* id */) const 
+    ChromatogramPtr getChromatogramById(const std::string& /* id */) const
     {
       ChromatogramPtr chromatogram(new Chromatogram);
       return chromatogram;
     }
     /// Return a vector of ids of spectra that are within RT +/- deltaRT
-    std::vector<std::size_t> getChromatogramByPrecursorMZ(double /* mz */, double /* deltaMZ */) const 
+    std::vector<std::size_t> getChromatogramByPrecursorMZ(double /* mz */, double /* deltaMZ */) const
     {
       return std::vector<std::size_t>();
     }
     /// Returns the number of spectra available
-    virtual size_t getNrChromatograms() const 
+    virtual size_t getNrChromatograms() const
     {
       return 0;
     }
     /// Returns the meta information for a chromatogram
-    virtual ChromatogramMetaPtr getChromatogramMetaById(int /* id */) const 
+    virtual ChromatogramMetaPtr getChromatogramMetaById(int /* id */) const
     {
       ChromatogramMetaPtr chromatogram_meta(new ChromatogramMeta);
       return chromatogram_meta;
@@ -124,15 +124,15 @@ public:
     public ISpectraWriter
   {
 public:
-    MockISpectraWriter() {};
-    ~MockISpectraWriter() {};
-    /// Append a spectrum to the end 
-    void appendSpectrum(SpectrumPtr /* spectrum */, bool /* write_through*/) 
+    MockISpectraWriter() {}
+    ~MockISpectraWriter() {}
+    /// Append a spectrum to the end
+    void appendSpectrum(SpectrumPtr /* spectrum */, bool /* write_through*/)
     {
       // do nothing
     }
     /// write all cached data to disk
-    void flush() 
+    void flush()
     {
       // do nothing
     }
@@ -144,15 +144,15 @@ public:
     public IChromatogramsWriter
   {
 public:
-    MockIChromatogramsWriter() {};
-    ~MockIChromatogramsWriter() {};
-    /// Append a chromatogram to the end 
-    void appendChromatogram(ChromatogramPtr /* chromatogram */, bool /* write_through */) 
+    MockIChromatogramsWriter() {}
+    ~MockIChromatogramsWriter() {}
+    /// Append a chromatogram to the end
+    void appendChromatogram(ChromatogramPtr /* chromatogram */, bool /* write_through */)
     {
       // do nothing
     }
     /// write all cached data to disk
-    void flush() 
+    void flush()
     {
       // do nothing
     }

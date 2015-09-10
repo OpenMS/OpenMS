@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -115,7 +115,6 @@ namespace OpenMS
     CoordinateType pos = min_;
 
     // EGH computation
-    pos = min_;
     for (UInt i = 0; pos < max_; ++i)
     {
       pos = min_ + i * interpolation_step_;
@@ -155,7 +154,7 @@ namespace OpenMS
 
   void EGHModel::setOffset(CoordinateType offset)
   {
-    DoubleReal diff = offset - getInterpolation().getOffset();
+    double diff = offset - getInterpolation().getOffset();
     min_ += diff;
     max_ += diff;
 

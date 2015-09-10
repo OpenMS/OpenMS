@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,8 @@
 
 // Actual scoring
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>
+
+#include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgScoring.h>
 
 // Kernel classes
@@ -70,6 +72,16 @@ namespace OpenMS
   all corresponding chromatograms at the peak-position. It then goes on to
   score those MRMFeatures using different criteria described in the
   MRMScoring class.
+
+  Internally, all peak group detection is performed in MRMTransitionGroupPicker
+  which segments the data and determines consensus peaks across traces
+  (MRMFeatures). All scoring is delegated to the OpenSwathScoring class which
+  implements i) chromatographic scores, ii) library based scores and iii) full
+  spectrum (DIA) scores. These scores are retrieved from the OpenSwathScoring
+  class and added to the MRMFeatures found in this algorithm. Note that the
+  OpenSwathScoring is a facade that can be used to communicate with the
+  underlying actual scoring engines and assembles the scores inside a scoring
+  object called OpenSwath_Scores where they are easy to retrieve.
 
   @htmlinclude OpenMS_MRMFeatureFinderScoring.parameters
 
@@ -119,7 +131,7 @@ public:
      * @param swath_map Optional SWATH-MS (DIA) map corresponding from which the chromatograms were extracted
      *
     */
-    void pickExperiment(MSExperiment<Peak1D> & chromatograms, FeatureMap<Feature>& output, TargetedExperiment& transition_exp,
+    void pickExperiment(MSExperiment<Peak1D> & chromatograms, FeatureMap& output, TargetedExperiment& transition_exp,
                         TransformationDescription trafo, MSExperiment<Peak1D>& swath_map);
 
     /** @brief Pick features in one experiment containing chromatogram
@@ -136,7 +148,7 @@ public:
      * @param transition_group_map Output mapping of transition groups
      *
     */
-    void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap<Feature>& output, OpenSwath::LightTargetedExperiment& transition_exp,
+    void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap& output, OpenSwath::LightTargetedExperiment& transition_exp,
                         TransformationDescription trafo, OpenSwath::SpectrumAccessPtr swath_map, TransitionGroupMapType& transition_group_map);
 
     /** @brief Prepares the internal mappings of peptides and proteins.
@@ -166,13 +178,27 @@ public:
      *
     */
     void scorePeakgroups(MRMTransitionGroupType& transition_group, TransformationDescription & trafo,
-                         OpenSwath::SpectrumAccessPtr swath_map, FeatureMap<Feature>& output);
+                         OpenSwath::SpectrumAccessPtr swath_map, FeatureMap& output);
 
     /** @brief Set the flag for strict mapping
     */
     void setStrictFlag(bool f)
     {
       strict_ = f;
+    }
+
+    /** @brief Add an MS1 map containing spectra
+     *
+     * For DIA (SWATH-MS), an optional MS1 map can be supplied which can be
+     * used to extract precursor ion signal and provides additional scores. If
+     * no MS1 map is provided, the respective scores are not calculated.
+     *
+     * @param ms1_map The raw mass spectrometric MS1 data
+     *
+    */
+    void setMS1Map(OpenSwath::SpectrumAccessPtr ms1_map)
+    {
+      ms1_map_ = ms1_map;
     }
 
     /** @brief Map the chromatograms to the transitions.
@@ -198,25 +224,29 @@ private:
     void updateMembers_();
 
     // parameters
-    DoubleReal rt_extraction_window_;
-    DoubleReal quantification_cutoff_;
+    double rt_extraction_window_;
+    double quantification_cutoff_;
     int stop_report_after_feature_;
     bool write_convex_hull_;
     bool strict_;
 
     // scoring parameters
-    DoubleReal rt_normalization_factor_;
+    double rt_normalization_factor_;
     int add_up_spectra_;
-    DoubleReal spacing_for_spectra_resampling_;
+    double spacing_for_spectra_resampling_;
 
     // members
     std::map<OpenMS::String, const PeptideType*> PeptideRefMap_;
-    std::map<OpenMS::String, const ProteinType*> ProteinRefMap_;
     OpenSwath_Scores_Usage su_;
     OpenMS::DIAScoring diascoring_;
     OpenMS::EmgScoring emgscoring_;
+
+    // data 
+    OpenSwath::SpectrumAccessPtr ms1_map_;
+
   };
 }
 
 #undef run_identifier
-#endif
+#endif // OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREFINDERSCORING_H
+

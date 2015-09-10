@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,7 +40,6 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
-#include <iostream>
 #include <vector>
 #include <cmath>
 #include <map>
@@ -193,7 +192,7 @@ protected:
       run = scan_first_;
       while (run != scan_last_)
       {
-        DoubleReal tmp(m - (*run).getIntensity());
+        double tmp(m - (*run).getIntensity());
         v += tmp * tmp;
         ++run;
       }

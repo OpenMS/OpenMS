@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Stephan Aiche $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
@@ -37,201 +37,135 @@
 #include <iostream>
 #include <cmath>
 #include <boost/math/special_functions/gamma.hpp>
+#include <boost/math/special_functions/digamma.hpp>
 
-#include <gsl/gsl_sf_psi.h>
+#include <unsupported/Eigen/NonLinearOptimization>
+
 #include <OpenMS/MATH/STATISTICS/GammaDistributionFitter.h>
 
-using namespace std;
-
-#define GAMMA_DISTRIBUTION_FITTER_VERBOSE
-#undef  GAMMA_DISTRIBUTION_FITTER_VERBOSE
-
-#ifdef GAMMA_DISTRIBUTION_FITTER_VERBOSE
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_randist.h>
-#include <gsl/gsl_vector.h>
-#include <gsl/gsl_blas.h>
-#include <gsl/gsl_multifit_nlin.h>
-#endif
-
+// #define GAMMA_DISTRIBUTION_FITTER_VERBOSE
+// #undef  GAMMA_DISTRIBUTION_FITTER_VERBOSE
 
 namespace OpenMS
 {
   namespace Math
   {
-    GammaDistributionFitter::GammaDistributionFitter()
+    GammaDistributionFitter::GammaDistributionFitter() :
+      init_param_(1.0, 5.0)
     {
-      init_param_.b = 1.0;
-      init_param_.p = 5.0;
     }
 
     GammaDistributionFitter::~GammaDistributionFitter()
     {
     }
 
-    void GammaDistributionFitter::setInitialParameters(const GammaDistributionFitResult & param)
+    void GammaDistributionFitter::setInitialParameters(const GammaDistributionFitResult& param)
     {
-      init_param_.b = param.b;
-      init_param_.p = param.p;
+      init_param_ = param;
     }
 
-    const String & GammaDistributionFitter::getGnuplotFormula() const
+    struct GammaFunctor
     {
-      return gnuplot_formula_;
-    }
+      int inputs() const { return m_inputs; }
+      int values() const { return m_values; }
 
-    int GammaDistributionFitter::gammaDistributionFitterf_(const gsl_vector * x, void * params, gsl_vector * f)
-    {
-      vector<DPosition<2> > * data = static_cast<vector<DPosition<2> > *>(params);
+      GammaFunctor(unsigned dimensions, const std::vector<DPosition<2> >* data) :
+        m_inputs(dimensions), m_values(data->size()), m_data(data) {}
 
-      double b = gsl_vector_get(x, 0);
-      double p = gsl_vector_get(x, 1);
-
-      UInt i = 0;
-      for (vector<DPosition<2> >::iterator it = data->begin(); it != data->end(); ++it)
+      int operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec)
       {
-        double the_x = it->getX();
-        gsl_vector_set(f, i++, pow(b, p) / boost::math::tgamma(p) * pow(the_x, p - 1) * exp(-b * the_x) - it->getY());
-      }
 
-      return GSL_SUCCESS;
-    }
+        double b = x(0);
+        double p = x(1);
 
-    // compute Jacobian matrix for the different parameters
-    int GammaDistributionFitter::gammaDistributionFitterdf_(const gsl_vector * x, void * params, gsl_matrix * J)
-    {
-      vector<DPosition<2> > * data = static_cast<vector<DPosition<2> > *>(params);
+        UInt i = 0;
 
-      double b = gsl_vector_get(x, 0);
-      double p = gsl_vector_get(x, 1);
-
-      UInt i(0);
-      for (vector<DPosition<2> >::iterator it = data->begin(); it != data->end(); ++it, ++i)
-      {
-        double the_x = it->getX();
-
-        // partielle ableitung nach b
-        double part_dev_b = pow(the_x, p - 1) * exp(-the_x * b) / boost::math::tgamma(p) * (p * pow(b, p - 1) - the_x * pow(b, p));
-        gsl_matrix_set(J, i, 0, part_dev_b);
-
-        // partielle ableitung nach p
-        double factor = exp(-b * the_x) * pow(the_x, p - 1) * pow(b, p) / pow(boost::math::tgamma(p), 2);
-        double argument = (log(b) + log(the_x)) * boost::math::tgamma(p) - boost::math::tgamma(p) * gsl_sf_psi(p);
-        double part_dev_p = factor * argument;
-        gsl_matrix_set(J, i, 1, part_dev_p);
-      }
-      return GSL_SUCCESS;
-    }
-
-    int GammaDistributionFitter::gammaDistributionFitterfdf_(const gsl_vector * x, void * params, gsl_vector * f, gsl_matrix * J)
-    {
-      gammaDistributionFitterf_(x, params, f);
-      gammaDistributionFitterdf_(x, params, J);
-      return GSL_SUCCESS;
-    }
-
-#ifdef GAMMA_DISTRIBUTION_FITTER_VERBOSE
-    void GammaDistributionFitter::printState_(size_t iter, gsl_multifit_fdfsolver * s)
-    {
-      printf("iter: %3u x = % 15.8f % 15.8f "
-             "|f(x)| = %g\n",
-             (unsigned int)iter,
-             gsl_vector_get(s->x, 0),
-             gsl_vector_get(s->x, 1),
-             gsl_blas_dnrm2(s->f));
-    }
-
-#endif
-
-    GammaDistributionFitter::GammaDistributionFitResult GammaDistributionFitter::fit(vector<DPosition<2> > & input)
-    {
-      const gsl_multifit_fdfsolver_type * T = NULL;
-      gsl_multifit_fdfsolver * s = NULL;
-
-      int status = 0;
-      size_t iter = 0;
-
-      const size_t p = 2;
-
-      gsl_multifit_function_fdf f;
-      double x_init[2] = { init_param_.b, init_param_.p };
-      gsl_vector_view x = gsl_vector_view_array(x_init, p);
-      const gsl_rng_type * type = NULL;
-      gsl_rng * r = NULL;
-
-      gsl_rng_env_setup();
-
-      type = gsl_rng_default;
-      r = gsl_rng_alloc(type);
-
-      f.f = &gammaDistributionFitterf_;
-      f.df = &gammaDistributionFitterdf_;
-      f.fdf = &gammaDistributionFitterfdf_;
-      f.n = input.size();
-      f.p = p;
-      f.params = &input;
-
-      T = gsl_multifit_fdfsolver_lmsder;
-      s = gsl_multifit_fdfsolver_alloc(T, input.size(), p);
-      gsl_multifit_fdfsolver_set(s, &f, &x.vector);
-
-#ifdef GAMMA_DISTRIBUTION_FITTER_VERBOSE
-      printState_(iter, s);
-#endif
-
-      do
-      {
-        ++iter;
-        status = gsl_multifit_fdfsolver_iterate(s);
-
-#ifdef GAMMA_DISTRIBUTION_FITTER_VERBOSE
-        printf("status = %s\n", gsl_strerror(status));
-        printState_(iter, s);
-#endif
-
-        if (status)
+        // gamma distribution is only defined for positive parameter values
+        if (b > 0.0 && p > 0.0)
         {
-          break;
+          for (std::vector<DPosition<2> >::const_iterator it = m_data->begin(); it != m_data->end(); ++it, ++i)
+          {
+            double the_x = it->getX();
+            fvec(i) =  std::pow(b, p) / boost::math::tgamma(p) * std::pow(the_x, p - 1) * std::exp(-b * the_x) - it->getY();
+          }
+        }
+        else
+        {
+          for (std::vector<DPosition<2> >::const_iterator it = m_data->begin(); it != m_data->end(); ++it, ++i)
+          {
+            fvec(i) = -it->getY();
+          }
         }
 
-        status = gsl_multifit_test_delta(s->dx, s->x, 1e-4, 1e-4);
-#ifdef GAMMA_DISTRIBUTION_FITTER_VERBOSE
-        printf("Status = '%s'\n", gsl_strerror(status));
-#endif
+
+        return 0;
       }
-      while (status == GSL_CONTINUE && iter < 1000);
 
-#ifdef GAMMA_DISTRIBUTION_FITTER_VERBOSE
-      printf("Final status = '%s'\n", gsl_strerror(status));
-#endif
-
-      if (status != GSL_SUCCESS)
+      // compute Jacobian matrix for the different parameters
+      int df(const Eigen::VectorXd& x, Eigen::MatrixXd& J)
       {
-        gsl_rng_free(r);
-        gsl_multifit_fdfsolver_free(s);
 
+        double b = x(0);
+        double p = x(1);
+
+        UInt i = 0;
+        // gamma distribution is only defined for positive parameter values
+        if (b > 0.0 && p > 0.0)
+        {
+          for (std::vector<DPosition<2> >::const_iterator it = m_data->begin(); it != m_data->end(); ++it, ++i)
+          {
+            double the_x = it->getX();
+
+            // partial deviation regarding b
+            double part_dev_b = std::pow(the_x, p - 1) * std::exp(-the_x * b) / boost::math::tgamma(p) * (p * std::pow(b, p - 1) - the_x * std::pow(b, p));
+            J(i, 0) = part_dev_b;
+
+            // partial deviation regarding p
+            double factor = std::exp(-b * the_x) * std::pow(the_x, p - 1) * std::pow(b, p) / std::pow(boost::math::tgamma(p), 2);
+            double argument = (std::log(b) + std::log(the_x)) * boost::math::tgamma(p) - boost::math::tgamma(p) * boost::math::digamma(p);
+            double part_dev_p = factor * argument;
+            J(i, 1) = part_dev_p;
+          }
+        }
+        else
+        {
+          for (std::vector<DPosition<2> >::const_iterator it = m_data->begin(); it != m_data->end(); ++it, ++i)
+          {
+            J(i, 0) = 0.0;
+            J(i, 1) = 0.0;
+          }
+        }
+        return 0;
+      }
+
+      const int m_inputs, m_values;
+      const std::vector<DPosition<2> >* m_data;
+    };
+
+    GammaDistributionFitter::GammaDistributionFitResult GammaDistributionFitter::fit(const std::vector<DPosition<2> >& input)
+    {
+      Eigen::VectorXd x_init(2);
+      x_init << init_param_.b, init_param_.p;
+      GammaFunctor functor(2, &input);
+      Eigen::LevenbergMarquardt<GammaFunctor> lmSolver(functor);
+      Eigen::LevenbergMarquardtSpace::Status status = lmSolver.minimize(x_init);
+
+      //the states are poorly documented. after checking the source, we believe that
+      //all states except NotStarted, Running and ImproperInputParameters are good
+      //termination states.
+      if (status <= Eigen::LevenbergMarquardtSpace::ImproperInputParameters)
+      {
         throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-GammaDistributionFitter", "Could not fit the gamma distribution to the data");
       }
 
-      // write the result in a GammaDistributionFitResult struct
-      GammaDistributionFitResult result;
-      result.b = gsl_vector_get(s->x, 0);
-      result.p = gsl_vector_get(s->x, 1);
-
-      // build a formula with the fitted parameters for gnuplot
-      stringstream formula;
-      formula << "f(x)=" << "(" << result.b << " ** " << result.p << ") / gamma(" << result.p << ") * x ** (" << result.p << " - 1) * exp(- " << result.b << " * x)";
-      gnuplot_formula_ = formula.str();
-
 #ifdef GAMMA_DISTRIBUTION_FITTER_VERBOSE
-      cout << gnuplot_formula_ << endl;
+      std::stringstream formula;
+      formula << "f(x)=" << "(" << x_init(0) << " ** " << x_init(1) << ") / gamma(" << x_init(1) << ") * x ** (" << x_init(1) << " - 1) * exp(- " << x_init(0) << " * x)";
+      std::cout << formula.str() << std::endl;
 #endif
 
-      gsl_rng_free(r);
-      gsl_multifit_fdfsolver_free(s);
-
-      return result;
+      return GammaDistributionFitResult(x_init(0), x_init(1));
     }
 
-  }   //namespace Math
+  } //namespace Math
 } // namespace OpenMS

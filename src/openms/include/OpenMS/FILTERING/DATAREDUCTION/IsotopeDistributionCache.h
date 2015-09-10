@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,16 +48,16 @@ namespace OpenMS
 public:
     typedef FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern TheoreticalIsotopePattern;
 
-    IsotopeDistributionCache(DoubleReal max_mass, DoubleReal mass_window_width, DoubleReal intensity_percentage = 0, DoubleReal intensity_percentage_optional = 0);
+    IsotopeDistributionCache(double max_mass, double mass_window_width, double intensity_percentage = 0, double intensity_percentage_optional = 0);
 
     /// Returns the isotope distribution for a certain mass window
-    const TheoreticalIsotopePattern & getIsotopeDistribution(DoubleReal mass) const;
+    const TheoreticalIsotopePattern & getIsotopeDistribution(double mass) const;
 
 private:
     /// Vector of pre-calculated isotope distributions for several mass windows
     std::vector<TheoreticalIsotopePattern> isotope_distributions_;
 
-    DoubleReal mass_window_width_;
+    double mass_window_width_;
   };
 }
 

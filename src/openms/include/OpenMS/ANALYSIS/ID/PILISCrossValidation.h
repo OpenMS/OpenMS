@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,7 +38,6 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
-#include <iostream>
 #include <vector>
 
 namespace OpenMS
@@ -64,37 +63,15 @@ public:
     /** @brief this struct represents a peptide spectrum pair
 
     */
-    struct Peptide
+    struct OPENMS_DLLAPI Peptide
     {
-      Peptide() :
-        charge(0)
-      {
+      Peptide();
 
-      }
+      Peptide(const Peptide & rhs);
 
-      Peptide(const Peptide & rhs) :
-        sequence(rhs.sequence),
-        charge(rhs.charge),
-        spec(rhs.spec),
-        hits(rhs.hits)
-      {
-      }
+      virtual ~Peptide();
 
-      virtual ~Peptide()
-      {
-      }
-
-      Peptide & operator=(const Peptide & rhs)
-      {
-        if (&rhs != this)
-        {
-          sequence = rhs.sequence;
-          charge = rhs.charge;
-          spec = rhs.spec;
-          hits = rhs.hits;
-        }
-        return *this;
-      }
+      Peptide & operator=(const Peptide & rhs);
 
       AASequence sequence;
       Int charge;
@@ -102,28 +79,14 @@ public:
 
       std::vector<PeptideHit> hits;
 
-      bool operator<(const Peptide & peptide) const
-      {
-        if (sequence < peptide.sequence)
-        {
-          return true;
-        }
-        else
-        {
-          if (sequence == peptide.sequence)
-          {
-            return charge < peptide.charge;
-          }
-        }
-        return false;
-      }
+      bool operator<(const Peptide & peptide) const;
 
     };
 
     /** @brief This struct represents a cross validation option
 
     */
-    struct Option
+    struct OPENMS_DLLAPI Option
     {
       /// Type of the parameters
       enum Type
@@ -135,77 +98,24 @@ public:
       };
 
       /// Default constructor
-      Option() :
-        type(INT),
-        int_min(0),
-        int_max(0),
-        int_stepsize(0),
-        dbl_min(0),
-        dbl_max(0),
-        dbl_stepsize(0)
-      {
-      }
+      Option();
 
       /// copy constructor
-      Option(const Option & rhs) :
-        type(rhs.type),
-        int_min(rhs.int_min),
-        int_max(rhs.int_max),
-        int_stepsize(rhs.int_stepsize),
-        dbl_min(rhs.dbl_min),
-        dbl_max(rhs.dbl_max),
-        dbl_stepsize(rhs.dbl_stepsize)
-      {
-      }
+      Option(const Option & rhs);
 
       /// detailed constructors
-      Option(Type t, DoubleReal min, DoubleReal max, DoubleReal stepsize)
-      {
-        type = t;
-        if (type == INT)
-        {
-          int_min = (Int)min;
-          int_max = (Int)max;
-          int_stepsize = (Int)stepsize;
-        }
-        else
-        {
-          if (type == DOUBLE)
-          {
-            dbl_min = min;
-            dbl_max = max;
-            dbl_stepsize = stepsize;
-          }
-          else
-          {
-            std::cerr << "Type: " << t << " is not known!" << std::endl;
-          }
-        }
-      }
+      Option(Type t, double min, double max, double stepsize);
 
       /// assignment operator
-      Option & operator=(const Option & rhs)
-      {
-        if (&rhs != this)
-        {
-          type = rhs.type;
-          int_min = rhs.int_min;
-          int_max = rhs.int_max;
-          int_stepsize = rhs.int_stepsize;
-          dbl_min = rhs.dbl_min;
-          dbl_max = rhs.dbl_max;
-          dbl_stepsize = rhs.dbl_stepsize;
-        }
-        return *this;
-      }
+      Option & operator=(const Option & rhs);
 
       Type type;
       Int int_min;
       Int int_max;
       Int int_stepsize;
-      DoubleReal dbl_min;
-      DoubleReal dbl_max;
-      DoubleReal dbl_stepsize;
+      double dbl_min;
+      double dbl_max;
+      double dbl_stepsize;
     };
 
 
@@ -244,12 +154,12 @@ public:
     void apply(Param & PILIS_param, const PILISModel & base_model, const std::vector<Peptide> & peptides);
 
     /// compares experimental and simulated spectra and returns a score
-    DoubleReal scoreHits(const std::vector<std::vector<std::vector<RichPeakSpectrum> > > & sim_spectra, const std::vector<std::vector<RichPeakSpectrum> > & exp_spectra);
+    double scoreHits(const std::vector<std::vector<std::vector<RichPeakSpectrum> > > & sim_spectra, const std::vector<std::vector<RichPeakSpectrum> > & exp_spectra);
     //@}
 
 protected:
 
-    DoubleReal scoreSpectra_(const RichPeakSpectrum & spec1, const RichPeakSpectrum & spec2);
+    double scoreSpectra_(const RichPeakSpectrum & spec1, const RichPeakSpectrum & spec2);
 
     void partition_(std::vector<std::vector<Peptide> > & parts, const std::vector<Peptide> & source);
 

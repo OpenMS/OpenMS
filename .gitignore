@@ -11,3 +11,5 @@ bin
 build
 *.user
 *.pyc
+moc_*.cxx*
+.idea

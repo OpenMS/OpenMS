@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -118,15 +118,16 @@ namespace OpenMS
         parent_parent_tag = *(open_tags_.end() - 3);
       }
 
-      static const XMLCh* s_value = xercesc::XMLString::transcode("value");
-      static const XMLCh* s_type = xercesc::XMLString::transcode("type");
-      static const XMLCh* s_name = xercesc::XMLString::transcode("name");
-      static const XMLCh* s_unit_accession = xercesc::XMLString::transcode("unitAccession");
-      static const XMLCh* s_cv_ref = xercesc::XMLString::transcode("cvRef");
-      static const XMLCh* s_accession = xercesc::XMLString::transcode("accession");
+       static const XMLCh* s_type = xercesc::XMLString::transcode("type");
+       static const XMLCh* s_value = xercesc::XMLString::transcode("value");
+       static const XMLCh* s_name = xercesc::XMLString::transcode("name");
 
       if (tag_ == "cvParam")
       {
+        static const XMLCh* s_unit_accession = xercesc::XMLString::transcode("unitAccession");
+        static const XMLCh* s_cv_ref = xercesc::XMLString::transcode("cvRef");
+        static const XMLCh* s_accession = xercesc::XMLString::transcode("accession");
+
         String value, unit_accession, cv_ref;
         optionalAttributeAsString_(value, attributes, s_value);
         optionalAttributeAsString_(unit_accession, attributes, s_unit_accession);
@@ -152,7 +153,7 @@ namespace OpenMS
       }
       else if (tag_ == "ProcessingMethod")
       {
-        //order gets implicity imposed by set<ProcessingAction> - so nothing to do here
+        //order gets implicitly imposed by set<ProcessingAction> - so nothing to do here
       }
       else if (tag_ == "Software")
       {
@@ -271,7 +272,9 @@ namespace OpenMS
         //~ }
         //~ }
 
-        String f_ref = attributeAsString_(attributes, "feature_ref"); // models which features will be included in this consensus feature - idependent from id(is optional)
+        // models which features will be included in this consensus feature -
+        // independent from id(is optional)
+        String f_ref = attributeAsString_(attributes, "feature_ref");
         f_cf_ids_.insert(std::make_pair(f_ref, current_cf_id_));
 
         //~ StringList a_refs = attributeAsStringList_(attributes,"assay_refs"); // what to do with these??
@@ -282,8 +285,8 @@ namespace OpenMS
       else if (tag_ == "Feature")
       {
         current_id_ = attributeAsString_(attributes, "id");
-        DoubleReal rt = attributeAsDouble_(attributes, "rt");
-        DoubleReal mz = attributeAsDouble_(attributes, "mz");
+        double rt = attributeAsDouble_(attributes, "rt");
+        double mz = attributeAsDouble_(attributes, "mz");
         FeatureHandle fh;
         fh.setRT(rt);
         fh.setMZ(mz);
@@ -314,11 +317,11 @@ namespace OpenMS
 
     void MzQuantMLHandler::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
     {
-      //if there is data between the element tags - !attention if element is derived from a xsd:list type, each list entry is a charecters call :(
+      //if there is data between the element tags - !attention if element is derived from a xsd:list type, each list entry is a characters call :(
 
       if (tag_ == "PeptideSequence")
       {
-        AASequence p(sm_.convert(chars));
+        AASequence p = AASequence::fromString(String(sm_.convert(chars)));
         PeptideHit ph = PeptideHit(0, 0, cf_cf_obj_[current_cf_id_].getCharge(), p);
         cf_cf_obj_[current_cf_id_].getPeptideIdentifications().back().insertHit(ph); // just moments before added
         return;
@@ -341,7 +344,7 @@ namespace OpenMS
       {
         //overwrites current_col_types_ with the ratio_refs or the assay_refs
         String r = sm_.convert(chars);
-        //clear must have happened earlyer in QuantLayer tag
+        //clear must have happened earlier in QuantLayer tag
         r.trim();
         if (!r.empty()) // always two notifications for a row, only the first one contains chars - dunno why
         {
@@ -387,7 +390,9 @@ namespace OpenMS
         return;
       }
 
-      // no ProcessingMethod endElement action so each userParam under Dataprocessing will be one processingaction - no other way for core-lib compability yet
+      // no ProcessingMethod endElement action so each userParam under
+      // Dataprocessing will be one processingaction - no other way for
+      // core-lib compatibility yet
       if (tag_ == "DataProcessing")
       {
         current_dp_.second.setProcessingActions(current_pas_);
@@ -633,13 +638,13 @@ namespace OpenMS
       {
         //TODO
         if (accession == "MOD:01522")
-          current_assay_.mods_.push_back(std::make_pair<String, DoubleReal>("114", DoubleReal(114)));
+          current_assay_.mods_.push_back(std::make_pair<String, double>("114", double(114)));
         else if (accession == "MOD:01523")
-          current_assay_.mods_.push_back(std::make_pair<String, DoubleReal>("115", DoubleReal(115)));
+          current_assay_.mods_.push_back(std::make_pair<String, double>("115", double(115)));
         else if (accession == "MOD:01524")
-          current_assay_.mods_.push_back(std::make_pair<String, DoubleReal>("116", DoubleReal(116)));
+          current_assay_.mods_.push_back(std::make_pair<String, double>("116", double(116)));
         else if (accession == "MOD:01525")
-          current_assay_.mods_.push_back(std::make_pair<String, DoubleReal>("117", DoubleReal(117)));
+          current_assay_.mods_.push_back(std::make_pair<String, double>("117", double(117)));
 
       }
       else
@@ -741,7 +746,7 @@ namespace OpenMS
 
       //---AnalysisSummary---
       os << "\t<AnalysisSummary>\n";
-      cmsq_->getAnalysisSummary().quant_type_;
+      // cmsq_->getAnalysisSummary().quant_type_;
       //~ os << "\t\t<userParam name=\"QuantType\" value=\"";
       //~ os << String(MSQuantifications::NamesOfQuantTypes[cmsq_->getAnalysisSummary().quant_type_]);
       switch (cmsq_->getAnalysisSummary().quant_type_)
@@ -815,10 +820,6 @@ namespace OpenMS
         if (dit->getSoftware().getCVTerms().empty())
         {
           softwarelist_tag += "\t\t\t<userParam name=\"" + String(dit->getSoftware().getName()) + "\"/>\n";
-        }
-        if (dit->getSoftware().getName() == "SILACAnalyzer")
-        {
-          softwarelist_tag += "\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001831\" name=\"SILACAnalyzer\"/>\n";
         }
         if (dit->getSoftware().getName() == "ITRAQAnalyzer")
         {
@@ -946,10 +947,10 @@ namespace OpenMS
         switch (cmsq_->getAnalysisSummary().quant_type_) //enum QUANT_TYPES {MS1LABEL=0, MS2LABEL, LABELFREE, SIZE_OF_QUANT_TYPES}; // derived from processing applied
         {
         case 0:
-          for (std::vector<std::pair<String, DoubleReal> >::const_iterator lit = ait->mods_.begin(); lit != ait->mods_.end(); ++lit)
+          for (std::vector<std::pair<String, double> >::const_iterator lit = ait->mods_.begin(); lit != ait->mods_.end(); ++lit)
           {
             String cv_acc, cv_name;
-            switch ((int)std::floor(lit->second + (DoubleReal)0.5)) //delta >! 0
+            switch ((int)std::floor(lit->second + (double)0.5)) //delta >! 0
             {
             case 6:
               cv_acc = "MOD:00544";
@@ -980,7 +981,7 @@ namespace OpenMS
         {
           //~ assay_xml += "\t\t\t\t<Modification massDelta=\"145\" residues=\"N-term\">\n";
           //~ assay_xml += "\t\t\t\t\t<cvParam name =\"itraq label\"/>\n";
-          for (std::vector<std::pair<String, DoubleReal> >::const_iterator lit = ait->mods_.begin(); lit != ait->mods_.end(); ++lit)
+          for (std::vector<std::pair<String, double> >::const_iterator lit = ait->mods_.begin(); lit != ait->mods_.end(); ++lit)
           {
             assay_xml += "\t\t\t\t<Modification massDelta=\"145\">\n";
             String cv_acc, cv_name;
@@ -1040,9 +1041,10 @@ namespace OpenMS
 
       // ---Features and QuantLayers---
       std::vector<UInt64> fid;
-      std::vector<Real> fin, fwi, fqu;
+      std::vector<float> fin;
+      std::vector<float> fwi;
       std::vector<std::vector<std::vector<UInt64> >  > cid; //per consensusmap - per consensus - per feature (first entry is consensus idref)
-      std::vector<std::vector<Real> > f2i;
+      std::vector<std::vector<float> > f2i;
       String peptide_xml, feature_xml = "";
       feature_xml += "\t<FeatureList id=\"featurelist1\" rawFilesGroup_ref=\"rfg_" + glob_rfgr + "\">\n"; //TODO make registerExperiment also register the consensusmaps (and featuremaps) - keep the grouping with ids
       for (std::vector<ConsensusMap>::const_iterator mit = cmsq_->getConsensusMaps().begin(); mit != cmsq_->getConsensusMaps().end(); ++mit)
@@ -1065,7 +1067,7 @@ namespace OpenMS
               fwi.push_back(fit->getWidth());
               //~ fqu.push_back(jt->getQuality());
               feature_xml += "\t\t<Feature id=\"f_" + String(fid.back()) + "\" rt=\"" + String(fit->getRT()) + "\" mz=\"" + String(fit->getMZ()) + "\" charge=\"" + String(fit->getCharge()) + "\">\n";
-              // TODO as soon as SILACanalyzer incorporate convex hulls read from the featuremap
+              // TODO as soon as SILACAnalyzer incorporate convex hulls read from the featuremap
               //~ writeUserParam_(os, *jt, UInt(2)); // FeatureHandle has no MetaInfoInterface!!!
               feature_xml += "\t\t\t<userParam name=\"map_index\" value=\"" + String(fit->getMapIndex()) + "\"/>\n";
               feature_xml += "\t\t\t<userParam name=\"feature_index\" value=\"" + String(fit->getUniqueId()) + "\"/>\n";
@@ -1076,7 +1078,7 @@ namespace OpenMS
 
           case 1: //ms2label
           {
-            std::vector<Real> fi;
+            std::vector<float> fi;
             fid.push_back(UniqueIdGenerator::getUniqueId());
             feature_xml += "\t\t<Feature id=\"f_" + String(fid.back()) + "\" rt=\"" + String(cit->getRT()) + "\" mz=\"" + String(cit->getMZ()) + "\" charge=\"" + String(cit->getCharge()) + "\"/>\n";
             //~ std::vector<UInt64> cidvec;
@@ -1088,7 +1090,7 @@ namespace OpenMS
             f2i.push_back(fi);
           } break;
 
-          case 2: //label free TODO iterate over featuremaps befor switch or something
+          case 2: //label free TODO iterate over featuremaps before switch or something
             break;
 
           case 3:
@@ -1201,7 +1203,7 @@ namespace OpenMS
               r_values.insert(std::make_pair(rd, String(rit->ratio_value_)));
             }
             std::vector<String> dis;
-            //TODO isert missing ratio_refs into r_values with value "-1"
+            //TODO insert missing ratio_refs into r_values with value "-1"
             for (std::map<String, String>::const_iterator sit = r_values.begin(); sit != r_values.end(); ++sit)
             {
               dis.push_back(sit->second);
@@ -1320,20 +1322,20 @@ namespace OpenMS
       }
     }
 
-    void MzQuantMLHandler::writeFeature_(String& feature_xml, const std::vector<FeatureMap<> >& fm, UInt indentation_level)
+    void MzQuantMLHandler::writeFeature_(String& feature_xml, const std::vector<FeatureMap >& fm, UInt indentation_level)
     {
       //TODO: remove dummy
       //os << "\n featurewriter: " << identifier_prefix << "-" << String(identifier) << "-" << String(indentation_level) << "\n";
       //TODO: remove dummy
 
       std::vector<UInt64> fid;
-      std::vector<Real> fin, fwi, fqu;
-      std::vector<std::vector<std::vector<UInt64> >  > cid; //per consensusmap - per consensus - per feature (first entry is consensus idref)
-      std::vector<std::vector<Real> > f2i;
+      std::vector<float> fin, fwi, fqu;
+//      std::vector<std::vector<std::vector<UInt64> >  > cid; //per consensusmap - per consensus - per feature (first entry is consensus idref) TODO removed unused variables
+//      std::vector<std::vector<float> > f2i;
       std::vector<UInt64> idvec;
       idvec.push_back(UniqueIdGenerator::getUniqueId());
 
-      for (std::vector<FeatureMap<> >::const_iterator fat = fm.begin(); fat != fm.end(); ++fat)
+      for (std::vector<FeatureMap >::const_iterator fat = fm.begin(); fat != fm.end(); ++fat)
       {
         for (std::vector<Feature>::const_iterator fit = fat->begin(); fit != fat->end(); ++fit)
         {

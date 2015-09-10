@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -78,7 +78,7 @@ public:
       @param feature_based If true the selection is feature based, if false it is scan based and the highest signals in each spectrum are chosen
     */
     template <typename InputPeakType>
-    void makePrecursorSelectionForKnownLCMSMap(const FeatureMap<>& features,
+    void makePrecursorSelectionForKnownLCMSMap(const FeatureMap& features,
                                                const MSExperiment<InputPeakType>& experiment,
                                                MSExperiment<InputPeakType>& ms2,
                                                std::set<Int>& charges_set,
@@ -92,11 +92,11 @@ public:
       @param indices The boundaries of the features as indices in the raw data
     */
     template <typename InputPeakType>
-    void getMassRanges(const FeatureMap<>& features,
+    void getMassRanges(const FeatureMap& features,
                        const MSExperiment<InputPeakType>& experiment,
                        std::vector<std::vector<std::pair<Size, Size> > >& indices);
 
-    void createProteinSequenceBasedLPInclusionList(String include, String rt_model_file, String pt_model_file, FeatureMap<>& precursors);
+    void createProteinSequenceBasedLPInclusionList(String include, String rt_model_file, String pt_model_file, FeatureMap& precursors);
 
     void setLPSolver(LPWrapper::SOLVER solver)
     {
@@ -110,15 +110,18 @@ public:
     }
 
 private:
+
+    typedef std::map<std::pair<double, double>, int, PairComparatorSecondElement<std::pair<double, double> > > ExclusionListType_;
+
     /**
       @brief Calculate the sum of intensities of relevant features for each scan separately.
     */
     template <typename InputPeakType>
-    void calculateXICs_(const FeatureMap<>& features,
+    void calculateXICs_(const FeatureMap& features,
                         const std::vector<std::vector<std::pair<Size, Size> > >& mass_ranges,
                         const MSExperiment<InputPeakType>& experiment,
                         const std::set<Int>& charges_set,
-                        std::vector<std::vector<std::pair<Size, DoubleReal> > >& xics);
+                        std::vector<std::vector<std::pair<Size, double> > >& xics);
 
     /**
       @brief Eliminates overlapping peaks.
@@ -127,10 +130,8 @@ private:
     void checkMassRanges_(std::vector<std::vector<std::pair<Size, Size> > >& mass_ranges,
                           const MSExperiment<InputPeakType>& experiment);
 
-    template <typename T>
-    void updateExclusionList_(std::vector<std::pair<T, Size> >& exclusion_list);
-
-    void updateExclusionList_(std::map<std::pair<DoubleReal, DoubleReal>, Size, PairComparatorSecondElement<std::pair<DoubleReal, DoubleReal> > >& exclusion_list);
+    /// reduce scan count for each entry, and remove every entry which has reached 0 counts
+    void updateExclusionList_(ExclusionListType_& exclusion_list) const;
 
     LPWrapper::SOLVER solver_;
   };
@@ -152,7 +153,7 @@ private:
   }
 
   template <typename InputPeakType>
-  void OfflinePrecursorIonSelection::getMassRanges(const FeatureMap<>& features,
+  void OfflinePrecursorIonSelection::getMassRanges(const FeatureMap& features,
                                                    const MSExperiment<InputPeakType>& experiment,
                                                    std::vector<std::vector<std::pair<Size, Size> > >& indices)
   {
@@ -233,9 +234,9 @@ private:
         if (spec_iter == experiment.end())
           --spec_iter;
 
-        DoubleReal dist1 = fabs(spec_iter->getRT() - features[f].getRT());
-        DoubleReal dist2 = std::numeric_limits<DoubleReal>::max();
-        DoubleReal dist3 = std::numeric_limits<DoubleReal>::max();
+        double dist1 = fabs(spec_iter->getRT() - features[f].getRT());
+        double dist2 = std::numeric_limits<double>::max();
+        double dist3 = std::numeric_limits<double>::max();
         if ((spec_iter + 1) != experiment.end())
         {
           dist2 = fabs((spec_iter + 1)->getRT() - features[f].getRT());
@@ -282,7 +283,7 @@ private:
           charge = 1;
         while (mz_end + 1 != spec_iter->end())
         {
-          if (fabs((mz_end + 1)->getMZ() - features[f].getMZ()) < 3.0 / (DoubleReal)charge)
+          if (fabs((mz_end + 1)->getMZ() - features[f].getMZ()) < 3.0 / (double)charge)
             ++mz_end;
           else
             break;
@@ -303,11 +304,11 @@ private:
   }
 
   template <typename InputPeakType>
-  void OfflinePrecursorIonSelection::calculateXICs_(const FeatureMap<>& features,
+  void OfflinePrecursorIonSelection::calculateXICs_(const FeatureMap& features,
                                                     const std::vector<std::vector<std::pair<Size, Size> > >& mass_ranges,
                                                     const MSExperiment<InputPeakType>& experiment,
                                                     const std::set<Int>& charges_set,
-                                                    std::vector<std::vector<std::pair<Size, DoubleReal> > >& xics)
+                                                    std::vector<std::vector<std::pair<Size, double> > >& xics)
   {
     xics.clear();
     xics.resize(experiment.size());
@@ -323,7 +324,7 @@ private:
       for (Size s = 0; s < mass_ranges[f].size(); s += 2)
       {
         // sum intensity over all raw datapoints belonging to the feature in the current scan
-        DoubleReal weight = 0.;
+        double weight = 0.;
         for (Size j = mass_ranges[f][s].second; j <= mass_ranges[f][s + 1].second; ++j)
         {
           weight += experiment[mass_ranges[f][s].first][j].getIntensity();
@@ -335,25 +336,22 @@ private:
 
     for (Size s = 0; s < xics.size(); ++s)
     {
-      sort(xics[s].begin(), xics[s].end(), PairComparatorSecondElement<std::pair<Size, DoubleReal> >());
+      sort(xics[s].begin(), xics[s].end(), PairComparatorSecondElement<std::pair<Size, double> >());
     }
   }
 
   template <typename InputPeakType>
-  void OfflinePrecursorIonSelection::makePrecursorSelectionForKnownLCMSMap(const FeatureMap<>& features,
+  void OfflinePrecursorIonSelection::makePrecursorSelectionForKnownLCMSMap(const FeatureMap& features,
                                                                            const MSExperiment<InputPeakType>& experiment,
                                                                            MSExperiment<InputPeakType>& ms2,
-                                                                           std::set<Int>& charges_set,
-                                                                           bool feature_based)
+                                                                           std::set<Int>& charges_set, // allowed charges
+                                                                           bool feature_based) // (MALDI with ILP) vs. scan_based (ESI)
   {
 
-    const DoubleReal window = param_.getValue("selection_window");
-    const DoubleReal excl_window = param_.getValue("min_peak_distance");
+    const double mz_isolation_window = param_.getValue("mz_isolation_window");
+    const double min_mz_peak_distance = param_.getValue("min_mz_peak_distance");
 
-    // get the mass ranges for each features for each scan it occurs in
-    std::vector<std::vector<std::pair<Size, Size> > >  indices;
-    getMassRanges(features, experiment, indices);
-    DoubleReal rt_dist = 0.;
+    double rt_dist = 0.;
     if (experiment.size() > 1)
     {
       rt_dist = experiment[1].getRT() - experiment[0].getRT();
@@ -364,6 +362,10 @@ private:
     {
       // create ILP
       PSLPFormulation ilp_wrapper;
+
+      // get the mass ranges for each features for each scan it occurs in
+      std::vector<std::vector<std::pair<Size, Size> > >  indices;
+      getMassRanges(features, experiment, indices);
 
       std::vector<IndexTriple> variable_indices;
       std::vector<int> solution_indices;
@@ -434,34 +436,33 @@ private:
         meta_values_present = true;
       }
 
-      //for each feature cache for which scans it has to be considered
+      // for each feature: cache for which scans it has to be considered
       std::vector<std::vector<Size> > scan_features(experiment.size());
 
-      for (Size feat = 0; feat < features.size(); ++feat)
+      for (Size feat_idx = 0; feat_idx < features.size(); ++feat_idx)
       {
-        if (charges_set.count(features[feat].getCharge()))
+        if (charges_set.count(features[feat_idx].getCharge()))
         {
-          Size lower_rt = features[feat].getConvexHull().getBoundingBox().minX();
-          Size upper_rt = features[feat].getConvexHull().getBoundingBox().maxX();
+          Size lower_rt = features[feat_idx].getConvexHull().getBoundingBox().minX();
+          Size upper_rt = features[feat_idx].getConvexHull().getBoundingBox().maxX();
           typename MSExperiment<InputPeakType>::ConstIterator it;
           for (it = experiment.RTBegin(lower_rt); it != experiment.RTEnd(upper_rt); ++it)
           {
-            scan_features[it - experiment.begin()].push_back(feat);
+            scan_features[it - experiment.begin()].push_back(feat_idx);
           }
         }
       }
 
-      bool dynamic_exclusion = param_.getValue("Exclusion:use_dynamic_exclusion") == "true" ? true : false;
-      typedef std::map<std::pair<DoubleReal, DoubleReal>, Size, PairComparatorSecondElement<std::pair<DoubleReal, DoubleReal> > > ExclusionListType;
-      ExclusionListType exclusion_list;
-      Size exclusion_specs = (Size)(floor((DoubleReal)param_.getValue("Exclusion:exclusion_time") / (DoubleReal) rt_dist));
+      bool dynamic_exclusion = param_.getValue("Exclusion:use_dynamic_exclusion").toBool();
+      ExclusionListType_ exclusion_list;
+      int exclusion_scan_count = (int)(floor((double)param_.getValue("Exclusion:exclusion_time") / (double) rt_dist));
       if (!dynamic_exclusion)
       {
-        //if the dynamic exclusion if not active we use the exclusion list to guarantee no two peaks within min_peak_distance are selected for single scan
-        exclusion_specs = 0;
+        // if the dynamic exclusion if not active we use the exclusion list to guarantee no two peaks within 'min_mz_peak_distance' are selected for single scan
+        exclusion_scan_count = 0;
       }
 
-      //cache bounding boxes of features and mass traces (mass trace bb are also widened for effective discovery of enclosing peaks in intervals)
+      // cache bounding boxes of features and mass traces (mass trace bb are also widened for effective discovery of enclosing peaks in intervals)
       std::map<Size, typename OpenMS::DBoundingBox<2> > bounding_boxes_f;
       std::map<std::pair<Size, Size>, typename OpenMS::DBoundingBox<2> > bounding_boxes;
       for (Size feature_num = 0; feature_num < features.size(); ++feature_num)
@@ -473,8 +474,8 @@ private:
           for (Size mass_trace_num = 0; mass_trace_num < mass_traces.size(); ++mass_trace_num)
           {
             typename OpenMS::DBoundingBox<2> tmp_bbox = mass_traces[mass_trace_num].getBoundingBox();
-            tmp_bbox.setMinY(tmp_bbox.minY() - window);
-            tmp_bbox.setMaxY(tmp_bbox.maxY() + window);
+            tmp_bbox.setMinY(tmp_bbox.minY() - mz_isolation_window);
+            tmp_bbox.setMaxY(tmp_bbox.maxY() + mz_isolation_window);
             bounding_boxes.insert(std::make_pair(std::make_pair(feature_num, mass_trace_num), tmp_bbox));
           }
         }
@@ -487,45 +488,50 @@ private:
 #ifdef DEBUG_OPS
         std::cout << "scan " << experiment[i].getRT() << ":";
 #endif
+        // decrease scan counter by 1, and remove if entry on time-out
+        updateExclusionList_(exclusion_list); 
 
-        updateExclusionList_(exclusion_list);
-        MSSpectrum<InputPeakType> scan = experiment[i];
+        MSSpectrum<InputPeakType> scan = experiment[i]; // copy & sort
         scan.sortByIntensity(true);
-        Size selected_peaks = 0, j = 0;
+        Size selected_peaks = 0;
 
-        while (selected_peaks < max_spec && j < scan.size())
+        // walk over scan
+        double peak_rt = scan.getRT();
+        for (Size j = 0; j < scan.size(); ++j)
         {
-          DoubleReal peak_mz = scan[j].getMZ();
-          DoubleReal peak_rt = scan.getRT();
+          if (selected_peaks >= max_spec) break;
 
-          ExclusionListType::iterator it_low = exclusion_list.lower_bound(std::make_pair(peak_mz, peak_mz));
-          if (it_low != exclusion_list.end() && it_low->first.first <= peak_mz)
-          {
-            ++j;
+          double peak_mz = scan[j].getMZ();
+
+          // is peak on exclusion? (this relies on 'exclusion_list' being sorted by its right-interval!)
+          ExclusionListType_::iterator it_low = exclusion_list.lower_bound(std::make_pair(peak_mz, peak_mz)); // find the first exclusion entry which ENDS(!) behind this peak
+          if (it_low != exclusion_list.end() && it_low->first.first <= peak_mz) // does it START before this peak?
+          { // then this peak is within the window
             continue;
           }
+          // --> no, then fragment it
           ++selected_peaks;
 
-          //find all features (mass traces that are in the window around peak_mz)
+          // find all features (mass traces that are in the window around peak_mz)
           typename MSExperiment<InputPeakType>::SpectrumType ms2_spec;
           std::vector<Precursor> pcs;
           std::set<std::pair<Size, Size> > selected_mt;
           IntList parent_feature_ids;
 
-          DoubleReal local_mz = peak_mz;
-          //std::cerr<<"MZ pos: "<<local_mz<<std::endl;
+          double local_mz = peak_mz;
+          // std::cerr<<"MZ pos: "<<local_mz<<std::endl;
           for (Size scan_feat_id = 0; scan_feat_id < scan_features[i].size(); ++scan_feat_id)
           {
             Size feature_num = scan_features[i][scan_feat_id];
             if (bounding_boxes_f[feature_num].encloses(peak_rt, local_mz))
             {
               //find a mass trace enclosing the point
-              DoubleReal feature_intensity = 0;
+              double feature_intensity = 0;
               for (Size mass_trace_num = 0; mass_trace_num < features[feature_num].getConvexHulls().size(); ++mass_trace_num)
               {
                 if (bounding_boxes[std::make_pair(feature_num, mass_trace_num)].encloses(DPosition<2>(peak_rt, local_mz)))
                 {
-                  DoubleReal elu_factor = 1.0, iso_factor = 1.0;
+                  double elu_factor = 1.0, iso_factor = 1.0;
                   //get the intensity factor for the position in the elution profile
                   if (meta_values_present)
                   {
@@ -560,10 +566,9 @@ private:
             ms2.addSpectrum(ms2_spec);
           }
 
-          //add m/z window to exclusion list
-          exclusion_list.insert(std::make_pair(std::make_pair(peak_mz - excl_window, peak_mz + excl_window), exclusion_specs + 1));
+          // add m/z window to exclusion list
+          exclusion_list.insert(std::make_pair(std::make_pair(peak_mz - min_mz_peak_distance, peak_mz + min_mz_peak_distance), exclusion_scan_count + 1));
 
-          ++j;
         }
       }
     }
@@ -574,7 +579,7 @@ private:
                                                       const MSExperiment<InputPeakType>& experiment)
   {
     std::vector<std::vector<std::pair<Size, Size> > > checked_mass_ranges;
-    DoubleReal min_peak_distance = param_.getValue("min_peak_distance");
+    double min_mz_peak_distance = param_.getValue("min_mz_peak_distance");
     checked_mass_ranges.reserve(mass_ranges.size());
     for (Size f = 0; f < mass_ranges.size(); ++f)
     {
@@ -600,26 +605,26 @@ private:
               const InputPeakType& tmp_peak_right = experiment[s][mass_ranges[fmr][mr + 1].second];
 #ifdef DEBUG_OPS
               std::cout << tmp_peak_left.getMZ() << " < "
-                        << peak_left_border.getMZ() - min_peak_distance << " && "
+                        << peak_left_border.getMZ() - min_mz_peak_distance << " && "
                         << tmp_peak_right.getMZ() << " < "
-                        << peak_left_border.getMZ() - min_peak_distance << " ? "
-                        << (tmp_peak_left.getMZ() < peak_left_border.getMZ() - min_peak_distance &&
-                  tmp_peak_right.getMZ() < peak_left_border.getMZ() - min_peak_distance)
+                        << peak_left_border.getMZ() - min_mz_peak_distance << " ? "
+                        << (tmp_peak_left.getMZ() < peak_left_border.getMZ() - min_mz_peak_distance &&
+                  tmp_peak_right.getMZ() < peak_left_border.getMZ() - min_mz_peak_distance)
                         << " || "
                         << tmp_peak_left.getMZ() << " > "
-                        << peak_right_border.getMZ() + min_peak_distance << " && "
+                        << peak_right_border.getMZ() + min_mz_peak_distance << " && "
                         << tmp_peak_right.getMZ() << " > "
-                        << peak_right_border.getMZ() + min_peak_distance << " ? "
-                        << (tmp_peak_left.getMZ() > peak_right_border.getMZ() + min_peak_distance &&
-                  tmp_peak_right.getMZ() > peak_right_border.getMZ() + min_peak_distance)
+                        << peak_right_border.getMZ() + min_mz_peak_distance << " ? "
+                        << (tmp_peak_left.getMZ() > peak_right_border.getMZ() + min_mz_peak_distance &&
+                  tmp_peak_right.getMZ() > peak_right_border.getMZ() + min_mz_peak_distance)
                         << std::endl;
 #endif
               // all other features have to be either completely left or
               // right of the current feature
-              if (!((tmp_peak_left.getMZ() < peak_left_border.getMZ() - min_peak_distance &&
-                     tmp_peak_right.getMZ() < peak_left_border.getMZ() - min_peak_distance) ||
-                    (tmp_peak_left.getMZ() > peak_right_border.getMZ() + min_peak_distance &&
-                     tmp_peak_right.getMZ() > peak_right_border.getMZ() + min_peak_distance)))
+              if (!((tmp_peak_left.getMZ() < peak_left_border.getMZ() - min_mz_peak_distance &&
+                     tmp_peak_right.getMZ() < peak_left_border.getMZ() - min_mz_peak_distance) ||
+                    (tmp_peak_left.getMZ() > peak_right_border.getMZ() + min_mz_peak_distance &&
+                     tmp_peak_right.getMZ() > peak_right_border.getMZ() + min_mz_peak_distance)))
               {
 #ifdef DEBUG_OPS
                 std::cout << "found overlapping peak" << std::endl;
@@ -646,40 +651,7 @@ private:
     mass_ranges.swap(checked_mass_ranges);
   }
 
-  template <typename T>
-  void OfflinePrecursorIonSelection::updateExclusionList_(std::vector<std::pair<T, Size> >& exclusion_list)
-  {
-    for (Size i = 0; i < exclusion_list.size(); ++i)
-    {
-      if (exclusion_list[i].second > 0)
-        --exclusion_list[i].second;
-    }
-    sort(exclusion_list.begin(), exclusion_list.end(), PairComparatorSecondElementMore<std::pair<T, Size> >());
-    typename std::vector<std::pair<T, Size> >::iterator iter = exclusion_list.begin();
-    while (iter != exclusion_list.end() && iter->second != 0)
-      ++iter;
-    exclusion_list.erase(iter, exclusion_list.end());
-  }
-
-  inline  void OfflinePrecursorIonSelection::updateExclusionList_(std::map<std::pair<DoubleReal, DoubleReal>, Size, PairComparatorSecondElement<std::pair<DoubleReal, DoubleReal> > >& exclusion_list)
-  {
-    std::map<std::pair<DoubleReal, DoubleReal>, Size, PairComparatorSecondElement<std::pair<DoubleReal, DoubleReal> > >::iterator it;
-
-    it = exclusion_list.begin();
-
-    while (it != exclusion_list.end())
-    {
-      if ((it->second--) == 1)
-      {
-        exclusion_list.erase(it++);
-      }
-      else
-      {
-        ++it;
-      }
-    }
-  }
-
+ 
 }
 
 #endif //  OPENMS_ANALYSIS_ID_OFFLINEPRECURSORIONSELECTION_H

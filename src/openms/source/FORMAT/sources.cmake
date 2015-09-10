@@ -43,7 +43,6 @@ MzDataFile.cpp
 MzTab.cpp
 MzTabFile.cpp
 MzMLFile.cpp
-MzTabFile.cpp
 MzXMLFile.cpp
 OMSSACSVFile.cpp
 OMSSAXMLFile.cpp
@@ -54,6 +53,7 @@ PepNovoInfile.cpp
 PepNovoOutfile.cpp
 PepXMLFile.cpp
 PepXMLFileMascot.cpp
+PercolatorOutfile.cpp
 ProtXMLFile.cpp
 SequestInfile.cpp
 SequestOutfile.cpp

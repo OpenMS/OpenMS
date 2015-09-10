@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>
+
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
 
@@ -71,7 +73,8 @@ namespace OpenMS
     // advance the mz / int iterator until we hit the m/z value of the next transition
     while (mz_it != mz_end && (*mz_it) < mz)
     {
-      mz_it++; int_it++;
+      mz_it++; 
+      int_it++;
     }
 
     // walk right and left and add to our intensity
@@ -81,7 +84,8 @@ namespace OpenMS
     // if we moved past the end of the spectrum, we need to try the last peak of the spectrum (it could still be within the window)
     if (mz_it == mz_end)
     {
-      mz_walker--; int_walker--;
+      --mz_walker; 
+      --int_walker;
     }
 
     // add the current peak if it is between right and left
@@ -95,23 +99,27 @@ namespace OpenMS
     int_walker = int_it;
     if (mz_it != mz_start)
     {
-      mz_walker--;
-      int_walker--;
+      --mz_walker;
+      --int_walker;
     }
     while (mz_walker != mz_start && (*mz_walker) > left && (*mz_walker) < right)
     {
-      integrated_intensity += (*int_walker); mz_walker--; int_walker--;
+      integrated_intensity += (*int_walker); 
+      --mz_walker; 
+      --int_walker;
     }
     mz_walker  = mz_it;
     int_walker = int_it;
     if (mz_it != mz_end)
     {
-      mz_walker++;
-      int_walker++;
+      ++mz_walker;
+      ++int_walker;
     }
     while (mz_walker != mz_end && (*mz_walker) > left && (*mz_walker) < right)
     {
-      integrated_intensity += (*int_walker); mz_walker++; int_walker++;
+      integrated_intensity += (*int_walker); 
+      ++mz_walker; 
+      ++int_walker;
     }
   }
 

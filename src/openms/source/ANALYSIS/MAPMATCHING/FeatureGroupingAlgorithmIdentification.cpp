@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,8 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmIdentification.h>
 
+#include <OpenMS/KERNEL/ConversionHelper.h>
+
 namespace OpenMS
 {
 
@@ -58,9 +60,9 @@ namespace OpenMS
     Size pep_ident_nr;
     Size pep_hit_nr;
     AASequence pep_sequence;
-    DoubleReal pep_rt;
-    DoubleReal pep_mz;
-    DoubleReal pep_xcorr;
+    double pep_rt;
+    double pep_mz;
+    double pep_xcorr;
     String pep_id_algorithm;
   };
 
@@ -92,7 +94,7 @@ namespace OpenMS
   };
 
   void
-  FeatureGroupingAlgorithmIdentification::group(const std::vector<FeatureMap<> > & maps, ConsensusMap & out)
+  FeatureGroupingAlgorithmIdentification::group(const std::vector<FeatureMap> & maps, ConsensusMap & out)
   {
     // check that the number of maps is ok
     if (maps.size() < 2)
@@ -101,9 +103,9 @@ namespace OpenMS
     }
 
     // get the params
-    DoubleReal xcorr_threshold = param_.getValue("xcorr_threshold");
-    DoubleReal rt_stdev_threshold = param_.getValue("rt_stdev_threshold");
-    DoubleReal mz_stdev_threshold = param_.getValue("mz_stdev_threshold");
+    double xcorr_threshold = param_.getValue("xcorr_threshold");
+    double rt_stdev_threshold = param_.getValue("rt_stdev_threshold");
+    double mz_stdev_threshold = param_.getValue("mz_stdev_threshold");
 
     /* In the first step we scan through all peptide identifications.
      * We disregard unreliable peptide identifications having a SEQUEST XCorr score less than 1.2.
@@ -123,17 +125,17 @@ namespace OpenMS
      * These filters are applied for each experiment separately.
      */
 
-    std::vector<FeatureMap<> > feature_maps = maps; // copy maps, so that they can be changed. // ???? größte map als erste!?
+    std::vector<FeatureMap> feature_maps = maps; // copy maps, so that they can be changed. // ???? größte map als erste!?
 
     for (Size i = 0; i < feature_maps.size(); ++i)   // feature maps
     {
       //    feature_maps[i].sortByRT();
 
       std::map<AASequence, Int> abs; // absolute number of peptides with this sequence
-      std::map<AASequence, DoubleReal> num_mean; // sum of rt
-      std::map<AASequence, DoubleReal> mean; // mean = num_mean / abs
-      std::map<AASequence, DoubleReal> num_var; // denominator of the variance
-      std::map<AASequence, DoubleReal> stand_dev; // standard deviation = sqrt(num_var / (abs - 1) )
+      std::map<AASequence, double> num_mean; // sum of rt
+      std::map<AASequence, double> mean; // mean = num_mean / abs
+      std::map<AASequence, double> num_var; // denominator of the variance
+      std::map<AASequence, double> stand_dev; // standard deviation = sqrt(num_var / (abs - 1) )
 
       // features
       for (Size j = 0; j < feature_maps[i].size(); ++j)
@@ -146,9 +148,9 @@ namespace OpenMS
             PeptideHit peptide_hit = feature_maps[i][j].getPeptideIdentifications()[k].getHits()[l];
 
             // first step: identifications having a XCorr smaller than the threshold are discarded
-            if (DoubleReal(peptide_hit.getMetaValue("XCorr")) > xcorr_threshold)
+            if (double(peptide_hit.getMetaValue("XCorr")) > xcorr_threshold)
             {
-              //if ( (DoubleReal)peptide_hit.getScore() >= xcorr_threshold )
+              //if ( (double)peptide_hit.getScore() >= xcorr_threshold )
               peptide_hit.setMetaValue("IDAlgorithm", (String) "true");
               peptide_hits.push_back(peptide_hit);
 
@@ -169,7 +171,7 @@ namespace OpenMS
       // mean
       for (std::map<AASequence, Int>::iterator iter = abs.begin(); iter != abs.end(); ++iter)
       {
-        mean[iter->first] = num_mean[iter->first] / (DoubleReal) abs[iter->first];
+        mean[iter->first] = num_mean[iter->first] / (double) abs[iter->first];
       }
 
       // standard deviation: num_var
@@ -200,7 +202,7 @@ namespace OpenMS
       }
 
       // standard deviation
-      for (std::map<AASequence, DoubleReal>::iterator iter = num_var.begin(); iter != num_var.end(); ++iter)
+      for (std::map<AASequence, double>::iterator iter = num_var.begin(); iter != num_var.end(); ++iter)
       {
         // if only one element exists, the stand. dev. is 0
         if (abs[iter->first] == 1)
@@ -209,7 +211,7 @@ namespace OpenMS
         }
         else // otherwise standard_deviation = sqrt(var)
         {
-          stand_dev[iter->first] = sqrt(num_var[iter->first] / (DoubleReal) (abs[iter->first] - 1));
+          stand_dev[iter->first] = sqrt(num_var[iter->first] / (double) (abs[iter->first] - 1));
         }
       }
 
@@ -281,7 +283,7 @@ namespace OpenMS
             PeptideHit peptide_hit = feature_maps[i][j].getPeptideIdentifications()[k].getHits()[l];
             if (peptide_hit.getMetaValue("IDAlgorithm") == "true")   // put all hits that are not yet discarded in a vector
             {
-              DoubleReal xcorr_pep;
+              double xcorr_pep;
               if (peptide_hit.metaValueExists("XCorr"))
               {
                 xcorr_pep = peptide_hit.getMetaValue("XCorr");
@@ -324,12 +326,12 @@ namespace OpenMS
     for (std::map<AASequence, std::vector<PepHit> >::iterator itermap = pep_hits_initial.begin(); itermap != pep_hits_initial.end(); )
     {
       Int abs = 0;
-      DoubleReal num_mean_mz = 0.0;
-      DoubleReal num_var_mz = 0.0;
+      double num_mean_mz = 0.0;
+      double num_var_mz = 0.0;
 
       // in generateGoldStandard.py also discarded:
-      //    DoubleReal num_mean_rt = 0.0;
-      //    DoubleReal num_var_rt = 0.0;
+      //    double num_mean_rt = 0.0;
+      //    double num_var_rt = 0.0;
 
       for (std::vector<PepHit>::iterator itervec = itermap->second.begin(); itervec != itermap->second.end(); ++itervec)
       {
@@ -338,8 +340,8 @@ namespace OpenMS
         //  num_mean_rt += itervec->pep_rt;
       }
 
-      DoubleReal mean_mz = num_mean_mz / (DoubleReal) abs;
-      //    DoubleReal mean_rt = num_mean_rt / (DoubleReal)abs;
+      double mean_mz = num_mean_mz / (double) abs;
+      //    double mean_rt = num_mean_rt / (double)abs;
 
       for (std::vector<PepHit>::iterator itervec = itermap->second.begin(); itervec != itermap->second.end(); ++itervec)
       {
@@ -347,8 +349,8 @@ namespace OpenMS
         //      num_var_rt += (itervec->pep_rt - mean_rt) * (itervec->pep_rt - mean_rt);
       }
 
-      DoubleReal stand_dev_mz = sqrt(num_var_mz / (DoubleReal) (abs - 1));
-      //    DoubleReal stand_dev_rt = sqrt( num_var_rt / (DoubleReal)(abs - 1) );
+      double stand_dev_mz = sqrt(num_var_mz / (double) (abs - 1));
+      //    double stand_dev_rt = sqrt( num_var_rt / (double)(abs - 1) );
       //    bool dev_rt_too_big = false;
 
       /*	for(std::vector<PepHit>::iterator itervec = itermap->second.begin(); itervec != itermap->second.end(); ++itervec)
@@ -393,12 +395,12 @@ namespace OpenMS
      * This consensus feature is added to the consensus map, and all consensus features having a non-empty intersection with it are also removed from the list.
      * The process is iterated until no more consensus features can be found, i. e., the list has become empty. */
 
-    std::multimap<DoubleReal, std::vector<PepHit> > pep_hits_xcorr; // consensus features sorted by total XCorr score
+    std::multimap<double, std::vector<PepHit> > pep_hits_xcorr; // consensus features sorted by total XCorr score
     std::vector<std::vector<PepHit> > pep_hits_max_xcorr; // list to add the c.f. with highest score
 
     for (std::map<AASequence, std::vector<PepHit> >::iterator itermap = pep_hits_initial.begin(); itermap != pep_hits_initial.end(); ++itermap)
     {
-      DoubleReal xcorr_sum = 0.0;
+      double xcorr_sum = 0.0;
 
       for (std::vector<PepHit>::iterator itervec = itermap->second.begin(); itervec != itermap->second.end(); ++itervec)
       {
@@ -406,14 +408,14 @@ namespace OpenMS
       }
 
       // insert c.f. and the total score as key in multimap, so that the map is automatically sorted by those
-      pep_hits_xcorr.insert(std::pair<DoubleReal, std::vector<PepHit> >(xcorr_sum, (itermap->second)));
+      pep_hits_xcorr.insert(std::pair<double, std::vector<PepHit> >(xcorr_sum, (itermap->second)));
     }
 
     while (!pep_hits_xcorr.empty())
     {
       if (((--pep_hits_xcorr.end())->second).size() > 1)
       {
-        for (std::multimap<DoubleReal, std::vector<PepHit> >::iterator itermap = pep_hits_xcorr.begin(); itermap != --pep_hits_xcorr.end(); )
+        for (std::multimap<double, std::vector<PepHit> >::iterator itermap = pep_hits_xcorr.begin(); itermap != --pep_hits_xcorr.end(); )
         {
           // take the c.f. with the biggest total score and remove all c.f having a not-empty intersection with it
           bool same_feature = false;
@@ -451,14 +453,14 @@ namespace OpenMS
         }
 
         // what happens if i only discard the concerned features from the list and not the whole c.f.??
-        // nothing differnet of course. might make sense, when there are more maps?!
+        // nothing different of course. Might make sense, when there are more maps?!
         // bad idea: increases the runtime a lot!!
 
-        /*	std::multimap< DoubleReal, std::vector< PepHit > > pep_hits_xcorr_help;
-         for(std::multimap<DoubleReal, std::vector< PepHit > >::iterator itermap = pep_hits_xcorr.begin(); itermap != --pep_hits_xcorr.end(); ++itermap)
+        /*	std::multimap< double, std::vector< PepHit > > pep_hits_xcorr_help;
+         for(std::multimap<double, std::vector< PepHit > >::iterator itermap = pep_hits_xcorr.begin(); itermap != --pep_hits_xcorr.end(); ++itermap)
          {
          std::cout << itermap->first << "\t";
-         DoubleReal tot_xcorr = itermap->first;
+         double tot_xcorr = itermap->first;
 
          for(std::vector< PepHit >::iterator iterend = ((--pep_hits_xcorr.end())->second).begin(); iterend < ((--pep_hits_xcorr.end())->second).end(); ++iterend)
          {
@@ -477,7 +479,7 @@ namespace OpenMS
          }
          if(!(itermap->second).empty())
          {
-         pep_hits_xcorr_help.insert( std::pair<DoubleReal, std::vector< PepHit > >(tot_xcorr, itermap->second) );
+         pep_hits_xcorr_help.insert( std::pair<double, std::vector< PepHit > >(tot_xcorr, itermap->second) );
          }
          } */
         pep_hits_max_xcorr.push_back((--pep_hits_xcorr.end())->second);
@@ -497,22 +499,22 @@ namespace OpenMS
      * we confirmed that the removed consensus features are indeed outliers by visual inspection.
      */
 
-    std::vector<DoubleReal> rt_diffs;
-    DoubleReal diff_sum = 0.0;
+    std::vector<double> rt_diffs;
+    double diff_sum = 0.0;
     Int diff_abs = 0;
 
     for (std::vector<std::vector<PepHit> >::iterator iterout = pep_hits_max_xcorr.begin(); iterout != pep_hits_max_xcorr.end(); ++iterout)
     {
       // mean and standard deviation for every c.f.
       //    Int abs = 0; // denominator mean (and stand. dev.)
-      //    DoubleReal num_mean = 0.0; // numerator mean
+      //    double num_mean = 0.0; // numerator mean
       for (std::vector<PepHit>::iterator iterin = (*iterout).begin(); iterin != (*iterout).end(); ++iterin)
       {
         for (std::vector<PepHit>::iterator iterin_2 = (*iterout).begin(); iterin_2 != (*iterout).end(); ++iterin_2)
         {
           if (iterin != iterin_2)
           {
-            DoubleReal rt_diff = fabs(iterin->pep_rt - iterin_2->pep_rt);
+            double rt_diff = fabs(iterin->pep_rt - iterin_2->pep_rt);
             rt_diffs.push_back(rt_diff);
             diff_sum += rt_diff;
             ++diff_abs;
@@ -521,15 +523,15 @@ namespace OpenMS
       }
     }
 
-    DoubleReal mean_diff = diff_sum / (DoubleReal) diff_abs;
-    DoubleReal rt_diff_std_num = 0.0;
+    double mean_diff = diff_sum / (double) diff_abs;
+    double rt_diff_std_num = 0.0;
 
-    for (std::vector<DoubleReal>::iterator iterdiff = rt_diffs.begin(); iterdiff != rt_diffs.end(); ++iterdiff)
+    for (std::vector<double>::iterator iterdiff = rt_diffs.begin(); iterdiff != rt_diffs.end(); ++iterdiff)
     {
       rt_diff_std_num += (*iterdiff - mean_diff) * (*iterdiff - mean_diff);
     }
 
-    DoubleReal rt_diff_std = sqrt(rt_diff_std_num / (DoubleReal) (--diff_abs));
+    double rt_diff_std = sqrt(rt_diff_std_num / (double) (--diff_abs));
 
     std::vector<std::vector<PepHit> > pep_hits_max;
 
@@ -537,19 +539,19 @@ namespace OpenMS
     {
       // mean and standard deviation for every c.f.
       Int abs = 0; // denominator mean (and stand. dev.)
-      DoubleReal num_mean = 0.0; // numerator mean
+      double num_mean = 0.0; // numerator mean
       for (std::vector<PepHit>::iterator iterin = (*iterout).begin(); iterin != (*iterout).end(); ++iterin)
       {
         ++abs;
         num_mean += iterin->pep_rt;
       }
-      DoubleReal mean = num_mean / (DoubleReal) abs;
-      DoubleReal num_std = 0.0;
+      double mean = num_mean / (double) abs;
+      double num_std = 0.0;
       for (std::vector<PepHit>::iterator iterin = (*iterout).begin(); iterin != (*iterout).end(); ++iterin)
       {
         num_std += (iterin->pep_rt - mean) * (iterin->pep_rt - mean);
       }
-      DoubleReal std = sqrt(num_std / (DoubleReal) (--abs));
+      double std = sqrt(num_std / (double) (--abs));
       if (std > 2 * rt_diff_std)
       {
         for (std::vector<PepHit>::iterator itervec = (*iterout).begin(); itervec != (*iterout).end(); ++itervec)
@@ -591,7 +593,7 @@ namespace OpenMS
 
     /* Now build a consensus map and store this in consensusXML format. nö, 2. wird im hauptprogramm gemacht.*/
     ConsensusMap consensus_map_0;
-    ConsensusMap::convert(0, feature_maps[0], consensus_map_0);
+    MapConversion::convert(0, feature_maps[0], consensus_map_0);
 
     for (std::vector<std::vector<PepHit> >::iterator iterout = pep_hits_max.begin(); iterout != pep_hits_max.end(); ++iterout)
     {

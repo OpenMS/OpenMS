@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -85,7 +85,7 @@ namespace OpenMS
     ///Type definitions
     //@{
     /// Spectrum type, see Spectrum interface
-    typedef OpenSwath::SpectrumPtr SpectrumType;
+    typedef OpenSwath::SpectrumPtr SpectrumPtrType;
     /// Transition interface (Transition, Peptide, Protein)
     typedef OpenSwath::LightTransition TransitionType;
     typedef OpenSwath::LightPeptide PeptideType;
@@ -117,20 +117,36 @@ public:
     //@{
     /// Isotope scores, see class description
     void dia_isotope_scores(const std::vector<TransitionType>& transitions,
-                            SpectrumType spectrum, OpenSwath::IMRMFeature* mrmfeature, double& isotope_corr,
+                            SpectrumPtrType spectrum, OpenSwath::IMRMFeature* mrmfeature, double& isotope_corr,
                             double& isotope_overlap);
 
     /// Massdiff scores, see class description
     void dia_massdiff_score(const std::vector<TransitionType>& transitions,
-                            SpectrumType spectrum, const std::vector<double>& normalized_library_intensity,
+                            SpectrumPtrType spectrum, const std::vector<double>& normalized_library_intensity,
                             double& ppm_score, double& ppm_score_weighted);
 
+    /**
+      Precursor massdifference score
+
+      @param precursor_mz Exact m/z of the precursor to be evaluated
+      @param spectrum MS1 spectrum to be evaluated
+      @param ppm_score Resulting score
+      @return False if no signal was found (and no sensible score calculated), true otherwise
+    */
+    bool dia_ms1_massdiff_score(double precursor_mz, SpectrumPtrType spectrum,
+                                double& ppm_score);
+
+    /// Precursor isotope scores
+    void dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType spectrum, size_t charge_state, 
+                                double& isotope_corr, double& isotope_overlap);
+
+
     /// b/y ion scores
-    void dia_by_ion_score(SpectrumType spectrum, AASequence& sequence,
+    void dia_by_ion_score(SpectrumPtrType spectrum, AASequence& sequence,
                           int charge, double& bseries_score, double& yseries_score);
 
     /// Dotproduct / Manhatten score with theoretical spectrum
-    void score_with_isotopes(SpectrumType spectrum, const std::vector<TransitionType>& transitions,
+    void score_with_isotopes(SpectrumPtrType spectrum, const std::vector<TransitionType>& transitions,
                              double& dotprod, double& manhattan);
     //@}
 
@@ -147,7 +163,7 @@ private:
 
     /// Subfunction of dia_isotope_scores
     void diaIsotopeScoresSub_(const std::vector<TransitionType>& transitions,
-                                SpectrumType spectrum, std::map<std::string, double>& intensities,
+                                SpectrumPtrType spectrum, std::map<std::string, double>& intensities,
                                 double& isotope_corr, double& isotope_overlap);
 
     /// retrieves intensities from MRMFeature
@@ -160,23 +176,31 @@ private:
 private:
 
     /**
-      @brief Search for a large peak _before_ (lower m/z) the current peak
+      @brief Determine whether the current m/z value is a monoisotopic peak 
+      
+      This function will try to determine whether the current peak is a
+      monoisotopic peak or not. It will do so by searching for an intense peak
+      at a lower m/z that could explain the current peak as part of a isotope
+      pattern.
 
-      This function will try to determine whether the current peak is part of
-      an isotopic pattern that does NOT have the current peak as monoisotopic
-      peak.
+      @param spectrum The spectrum (MS1 or MS2)
+      @param mono_mz The m/z value where a monoisotopic is expected
+      @param mono_int The intensity of the monoisotopic peak (peak at mono_mz)
+      @param nr_occurences Will contain the count of how often a peak is found at lower m/z than mono_mz with an intensity higher than mono_int. Multiple charge states are tested, see class parameter dia_nr_charges_
+      @param nr_occurences Will contain the maximum ratio of a peaks intensity compared to the monoisotopic peak intensity how often a peak is found at lower m/z than mono_mz with an intensity higher than mono_int. Multiple charge states are tested, see class parameter dia_nr_charges_
+
     */
-    DoubleReal largePeaksBeforeFirstIsotope_(double product_mz,
-                                            SpectrumType& spectrum, double max_ppm_diff, double main_peak);
+    void largePeaksBeforeFirstIsotope_(SpectrumPtrType spectrum, double mono_mz, double mono_int, int& nr_occurences, double& max_ratio);
 
     /**
       @brief Compare an experimental isotope pattern to a theoretical one
 
       This function will take an array of isotope intensities and compare them
-      to the theoretically expected ones using pearson correlation.
+      to the theoretically expected ones for the given m/z using an averagine
+      model. The returned value is a Pearson correlation between the
+      experimental and theoretical pattern.
     */
-    DoubleReal scoreIsotopePattern_(double product_mz,
-                                   const std::vector<double>& isotopes_int, int putative_fragment_charge);
+    double scoreIsotopePattern_(double product_mz, const std::vector<double>& isotopes_int, int putative_fragment_charge);
 
     // Parameters
     double dia_extract_window_;
@@ -185,7 +209,7 @@ private:
     double dia_byseries_ppm_diff_;
     double dia_nr_isotopes_;
     double dia_nr_charges_;
-
+    double peak_before_mono_max_ppm_diff_;
   };
 }
 

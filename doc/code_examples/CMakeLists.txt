@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2012.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -46,29 +46,33 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 include(${CMAKE_CURRENT_LIST_DIR}/executables.cmake)
 
 # add OpenMS includes
-include_directories(${OPENMS_INCLUDE_DIRECTORIES})
+include_directories(SYSTEM ${OpenMS_INCLUDE_DIRECTORIES})
 
 # add the targets
 foreach(i ${EXAMPLES_executables})
   add_executable(${i} ${CMAKE_CURRENT_LIST_DIR}/${i}.cpp)
-  target_link_libraries(${i} ${OPENMS_LIBRARIES})
+  target_link_libraries(${i} ${OpenMS_LIBRARIES})
 
   # if not GUI and no style tests requested -> add as test
   if(NOT ENABLE_STYLE_TESTING)
-  	add_test(NAME ${i}
-						 COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i} ${CMAKE_CURRENT_LIST_DIR})
+    add_test(NAME ${i}
+             COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i} ${CMAKE_CURRENT_LIST_DIR})
   endif()
-endforeach(i)
-
-# add OpenMS GUI includes
-include_directories(${OPENMS_GUI_INCLUDE_DIRECTORIES})
-
-# add the GUI tutorials -- no tests
-foreach(i ${GUI_EXAMPLES_executables})
-  add_executable(${i} ${CMAKE_CURRENT_LIST_DIR}/${i}.cpp)
-  target_link_libraries(${i} ${OPENMS_GUI_LIBRARIES})
 endforeach(i)
 
 # add collection target
 add_custom_target(Tutorials_build)
 add_dependencies(Tutorials_build ${EXAMPLES_executables})
+
+if(WITH_GUI)
+  # add OpenMS GUI includes
+  include_directories(SYSTEM ${OpenMS_GUI_INCLUDE_DIRECTORIES})
+
+  # add the GUI tutorials -- no tests
+  foreach(i ${GUI_EXAMPLES_executables})
+    add_executable(${i} ${CMAKE_CURRENT_LIST_DIR}/${i}.cpp)
+    target_link_libraries(${i} ${OpenMS_GUI_LIBRARIES})
+  endforeach(i)
+
+  add_dependencies(Tutorials_build ${GUI_EXAMPLES_executables})
+endif()

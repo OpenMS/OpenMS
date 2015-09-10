@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,9 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CHEMISTRY/ElementDB.h>
+#include <OpenMS/CHEMISTRY/Element.h>
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 
 #include <map>
 
@@ -54,6 +57,8 @@ using namespace std;
 
     @brief This application is used to digest a protein database to get all peptides given a cleavage enzyme. It will also produce peptide statistics given the mass
     accuracy of the instrument. You can extract peptides with specific motifs,e.g. onyl cysteine containing peptides for ICAT experiments. At the moment only trypsin is supported.
+
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_DigestorMotif.cli
@@ -86,7 +91,10 @@ protected:
     registerIntOption_("mass_accuracy", "<number>", 1000, "give your mass accuracy in ppb", false);
     registerIntOption_("min_length", "<number>", 6, "minimum length of peptide", false);
     registerIntOption_("out_option", "<number>", 1, "indicate 1 (peptide table only), 2 (statistics only) or (both peptide table + statistics)", false);
-    registerStringOption_("enzyme", "<string>", "Trypsin", "the digestion enzyme", false);
+    vector<String> all_enzymes;
+    EnzymesDB::getInstance()->getAllNames(all_enzymes);
+    registerStringOption_("enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false);
+    setValidStrings_("enzyme", all_enzymes);
     registerStringOption_("motif", "<string>", "M", "the motif for the restricted peptidome", false);
     setMinInt_("missed_cleavages", 0);
   }
@@ -108,7 +116,7 @@ protected:
     String outputfile_name;
     UInt min_size, counter = 0;
     UInt missed_cleavages;
-    DoubleReal accurate_mass, min_mass, max_mass;
+    double accurate_mass, min_mass, max_mass;
     UInt mass_acc, out_opt;
     EmpiricalFormula EF;
     UInt zero_count = 0;
@@ -124,7 +132,7 @@ protected:
     mass_acc = getIntOption_("mass_accuracy");
     out_opt = getIntOption_("out_option");
     missed_cleavages = getIntOption_("missed_cleavages");
-    AASequence M = AASequence(getStringOption_("motif"));
+    AASequence M = AASequence::fromString(getStringOption_("motif"));
 
     //-------------------------------------------------------------
     // reading input
@@ -137,19 +145,19 @@ protected:
     //-------------------------------------------------------------
 
     // This should be updated if more cleavage enzymes are available
-    digestor.setEnzyme(EnzymaticDigestion::ENZYME_TRYPSIN);
-    search_parameters.enzyme = ProteinIdentification::TRYPSIN;
+    String enzyme_name = getStringOption_("enzyme");
+    digestor.setEnzyme(enzyme_name);
+    search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_name);
     digestor.setMissedCleavages(missed_cleavages);
 
-    protein_accessions.resize(1, String(""));
     for (UInt i = 0; i < protein_data.size(); ++i)
     {
-      protein_accessions[0] = protein_data[i].identifier;
+      PeptideEvidence pe;
       temp_protein_hit.setSequence(protein_data[i].sequence);
-      temp_protein_hit.setAccession(protein_accessions[0]);
-
-      digestor.digest(AASequence(protein_data[i].sequence), temp_peptides);
-      temp_peptide_hit.setProteinAccessions(protein_accessions);
+      temp_protein_hit.setAccession(protein_data[i].identifier);
+      pe.setProteinAccession(protein_data[i].identifier);
+      digestor.digest(AASequence::fromString(protein_data[i].sequence), temp_peptides);
+      temp_peptide_hit.setPeptideEvidences(vector<PeptideEvidence>(1, pe));
       for (UInt j = 0; j < temp_peptides.size(); ++j)
       {
         if (temp_peptides[j].size() >= min_size)
@@ -187,9 +195,9 @@ protected:
     UInt mass_iter = mass_acc;
     while (mass_iter > 0)
     {
-      vector<DoubleReal> MIN, MAX;
+      vector<double> MIN, MAX;
       vector<String> protein_names, PROTEINS;
-      vector<vector<DoubleReal> > Y;
+      vector<vector<double> > Y;
       vector<UInt> OVER;
       UInt total = 0;
       if (out_opt == 1 || out_opt == 3)
@@ -199,14 +207,15 @@ protected:
 
       for (UInt i = 0; i < protein_data.size(); ++i)
       {
-        protein_accessions[0] = protein_data[i].identifier;
-        temp_protein_hit.setAccession(protein_accessions[0]);
-        digestor.digest(AASequence(protein_data[i].sequence), temp_peptides);
-        temp_peptide_hit.setProteinAccessions(protein_accessions);
+        PeptideEvidence pe;
+        pe.setProteinAccession(protein_data[i].identifier);
+        temp_protein_hit.setAccession(protein_data[i].identifier);
+        digestor.digest(AASequence::fromString(protein_data[i].sequence), temp_peptides);
+        temp_peptide_hit.setPeptideEvidences(vector<PeptideEvidence>(1, pe));
         for (UInt j = 0; j < temp_peptides.size(); ++j)
         {
-          //vector<DoubleReal> B_peptide, Y_peptide;
-          vector<DoubleReal> peptide_ions;
+          //vector<double> B_peptide, Y_peptide;
+          vector<double> peptide_ions;
           accurate_mass = temp_peptides[j].getMonoWeight();
           min_mass = accurate_mass - mass_iter * accurate_mass / 1000000000;
           max_mass = accurate_mass + mass_iter * accurate_mass / 1000000000;
@@ -233,7 +242,42 @@ protected:
               peptide_identification.insertHit(temp_peptide_hit);
               if (out_opt == 1 || out_opt == 3)
               {
-                fp_out << counter << SEP << ">" << protein_accessions[0] << SEP << j << SEP << temp_peptides[j] << SEP << EF.getNumberOf("C") << SEP << EF.getNumberOf("H") << SEP << EF.getNumberOf("N") << SEP << EF.getNumberOf("O") << SEP << EF.getNumberOf("S") << SEP << temp_peptides[j].size() << SEP << precisionWrapper(temp_peptides[j].getMonoWeight()) << SEP << precisionWrapper(min_mass) << SEP << precisionWrapper(max_mass) << SEP << temp_peptides[j].getFormula() << SEP << temp_peptides[j].getNumberOf("D") << SEP << temp_peptides[j].getNumberOf("E") << SEP << temp_peptides[j].getNumberOf("K") << SEP << temp_peptides[j].getNumberOf("R") << SEP << temp_peptides[j].getNumberOf("H") << SEP << temp_peptides[j].getNumberOf("Y") << SEP << temp_peptides[j].getNumberOf("W") << SEP << temp_peptides[j].getNumberOf("F") << SEP << temp_peptides[j].getNumberOf("C") << SEP << temp_peptides[j].getNumberOf("M") << SEP << temp_peptides[j].getNumberOf("S") << SEP << temp_peptides[j].getNumberOf("T") << SEP << temp_peptides[j].getNumberOf("N") << SEP << temp_peptides[j].getNumberOf("Q") << SEP << temp_peptides[j].getNumberOf("G") << SEP << temp_peptides[j].getNumberOf("A") << SEP << temp_peptides[j].getNumberOf("V") << SEP << temp_peptides[j].getNumberOf("L") << SEP << temp_peptides[j].getNumberOf("I") << SEP << temp_peptides[j].getNumberOf("P") << SEP << temp_peptides[j].getNumberOf("D") * (-3.5) + temp_peptides[j].getNumberOf("E") * (-3.5) + temp_peptides[j].getNumberOf("K") * (-3.9) + temp_peptides[j].getNumberOf("R") * (-4.5) + temp_peptides[j].getNumberOf("H") * (-3.2) + temp_peptides[j].getNumberOf("Y") * (-1.3) + temp_peptides[j].getNumberOf("W") * (-0.9) + temp_peptides[j].getNumberOf("F") * (2.8) + temp_peptides[j].getNumberOf("C") * (2.5) + temp_peptides[j].getNumberOf("M") * (1.9) + temp_peptides[j].getNumberOf("S") * (-0.8) + temp_peptides[j].getNumberOf("T") * (-0.7) + temp_peptides[j].getNumberOf("N") * (-3.5) + temp_peptides[j].getNumberOf("Q") * (-3.5) + temp_peptides[j].getNumberOf("G") * (-0.4) + temp_peptides[j].getNumberOf("A") * (1.8) + temp_peptides[j].getNumberOf("V") * (4.2) + temp_peptides[j].getNumberOf("L") * (4.5) + temp_peptides[j].getNumberOf("I") * (4.5) + temp_peptides[j].getNumberOf("P") * (-1.6) << "\n";
+                const String unmodified_peptide = temp_peptides[j].toUnmodifiedString();
+                const Size nK = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'K');
+                const Size nD = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'D');
+                const Size nR = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'R');
+                const Size nW = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'W');
+                const Size nM = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'M');
+                const Size nN = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'N');
+                const Size nA = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'A');
+                const Size nI = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'I');
+                const Size nE = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'E');
+                const Size nH = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'H');
+                const Size nF = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'F');
+                const Size nS = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'S');
+                const Size nQ = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'Q');
+                const Size nV = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'V');
+                const Size nP = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'P');
+                const Size nY = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'Y');
+                const Size nC = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'C');
+                const Size nT = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'T');
+                const Size nG = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'G');
+                const Size nL = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'L');
+
+                const ElementDB* db = ElementDB::getInstance();
+                const Element* C = db->getElement("C");
+                const Element* H = db->getElement("H");
+                const Element* N = db->getElement("N");
+                const Element* O = db->getElement("O");
+                const Element* S = db->getElement("S");
+
+                fp_out << counter << SEP << ">" << protein_accessions[0] << SEP << j << SEP << temp_peptides[j] << SEP
+                       << EF.getNumberOf(C) << SEP << EF.getNumberOf(H) << SEP << EF.getNumberOf(N) << SEP << EF.getNumberOf(O) << SEP
+                       << EF.getNumberOf(S) << SEP << temp_peptides[j].size() << SEP << precisionWrapper(temp_peptides[j].getMonoWeight()) << SEP
+                       << precisionWrapper(min_mass) << SEP << precisionWrapper(max_mass) << SEP << temp_peptides[j].getFormula() << SEP
+                       << nD << SEP << nE << SEP << nK << SEP << nR << SEP << nH << SEP << nY << SEP << nW << SEP << nF << SEP << nC << SEP
+                       << nM << SEP << nS << SEP << nT << SEP << nN << SEP << nQ << SEP << nG << SEP << nA << SEP << nV << SEP << nL << SEP
+                       << nI << SEP << nP << SEP << nD * (-3.5) + nE * (-3.5) + nK * (-3.9) + nR * (-4.5) + nH * (-3.2) + nY * (-1.3) + nW * (-0.9) + nF * (2.8) + nC * (2.5) + nM * (1.9) + nS * (-0.8) + nT * (-0.7) + nN * (-3.5) + nQ * (-3.5) + nG * (-0.4) + nA * (1.8) + nV * (4.2) + nL * (4.5) + nI * (4.5) + nP * (-1.6) << "\n";
               }
               counter++;
             }
@@ -267,7 +311,7 @@ protected:
           {
             OVER[x] = OVER[x] + 1;
             //find overlapping tandem ions
-            vector<DoubleReal> X_temp, Y_temp;
+            vector<double> X_temp, Y_temp;
             X_temp = Y[x];
             Y_temp = Y[y];
             UInt ions = 0;

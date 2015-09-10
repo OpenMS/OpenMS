@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,7 +33,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/SpectraIdentificationViewWidget.h>
+#include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>
 
 #include <QtGui/QVBoxLayout>
 #include <QtGui/QTreeWidget>
@@ -54,7 +56,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  SpectraIdentificationViewWidget::SpectraIdentificationViewWidget(const Param &, QWidget * parent) :
+  SpectraIdentificationViewWidget::SpectraIdentificationViewWidget(const Param&, QWidget* parent) :
     QWidget(parent),
     DefaultParamHandler("SpectraIdentificationViewWidget"),
     ignore_update(false),
@@ -71,7 +73,7 @@ namespace OpenMS
     defaults_.setValue("x_intensity", 1.0, "Default intensity of x-ions");
     defaults_.setValue("y_intensity", 1.0, "Default intensity of y-ions");
     defaults_.setValue("z_intensity", 1.0, "Default intensity of z-ions");
-    defaults_.setValue("relative_loss_intensity", 0.1, "Relativ loss in percent");
+    defaults_.setValue("relative_loss_intensity", 0.1, "Relative loss in percent");
     defaults_.setValue("max_isotope", 2, "Maximum number of isotopes");
     defaults_.setValue("charge", 1, "Charge state");
     defaults_.setValue("show_a_ions", "false", "Show a-ions");
@@ -84,17 +86,17 @@ namespace OpenMS
     defaults_.setValue("add_losses", "false", "Show neutral losses");
     defaults_.setValue("add_isotopes", "false", "Show isotopes");
     defaults_.setValue("add_abundant_immonium_ions", "false", "Show abundant immonium ions");
-    defaults_.setValue("tolerance", 0.5, "Mass tolerance used in the automatic alignment."); // unfortunatly we don't support alignment with ppm error
+    defaults_.setValue("tolerance", 0.5, "Mass tolerance in Th used in the automatic alignment."); // unfortunately we don't support alignment with ppm error
 
-    QVBoxLayout * spectra_widget_layout = new QVBoxLayout(this);
+    QVBoxLayout* spectra_widget_layout = new QVBoxLayout(this);
     table_widget_ = new QTableWidget(this);
     table_widget_->setObjectName("table_widget");
     table_widget_->setWhatsThis("Spectrum selection bar<BR><BR>Here all spectra of the current experiment are shown. Left-click on a spectrum to open it.");
 
     table_widget_->setSortingEnabled(true);
 
-    table_widget_->setColumnWidth(0, 65);  //MS Level
-    table_widget_->setColumnWidth(1, 45);  //index
+    table_widget_->setColumnWidth(0, 65); //MS Level
+    table_widget_->setColumnWidth(1, 45); //index
     table_widget_->setColumnWidth(2, 70);
     table_widget_->setColumnWidth(3, 70);
     table_widget_->setColumnWidth(4, 55);
@@ -118,13 +120,13 @@ namespace OpenMS
     table_widget_->setSelectionBehavior(QAbstractItemView::SelectRows);
     table_widget_->setShowGrid(false);
 
-    connect(table_widget_, SIGNAL(currentItemChanged(QTableWidgetItem *, QTableWidgetItem *)), this, SLOT(spectrumSelectionChange_(QTableWidgetItem *, QTableWidgetItem *)));
+    connect(table_widget_, SIGNAL(currentItemChanged(QTableWidgetItem*, QTableWidgetItem*)), this, SLOT(spectrumSelectionChange_(QTableWidgetItem*, QTableWidgetItem*)));
 
     spectra_widget_layout->addWidget(table_widget_);
 
     ////////////////////////////////////
     // additional checkboxes and buttons
-    QHBoxLayout * tmp_hbox_layout = new QHBoxLayout();
+    QHBoxLayout* tmp_hbox_layout = new QHBoxLayout();
 
     hide_no_identification_ = new QCheckBox("Only hits", this);
     hide_no_identification_->setChecked(true);
@@ -133,10 +135,10 @@ namespace OpenMS
     create_rows_for_commmon_metavalue_ = new QCheckBox("Show advanced\nannotations", this);
     connect(create_rows_for_commmon_metavalue_, SIGNAL(toggled(bool)), this, SLOT(updateEntries()));
 
-    QPushButton * save_idXML = new QPushButton("save idXML", this);
+    QPushButton* save_idXML = new QPushButton("save idXML", this);
     connect(save_idXML, SIGNAL(clicked()), this, SLOT(saveIdXML_()));
 
-    QPushButton * export_table = new QPushButton("export table", this);
+    QPushButton* export_table = new QPushButton("export table", this);
     connect(export_table, SIGNAL(clicked()), this, SLOT(exportEntries_()));
 
     tmp_hbox_layout->addWidget(hide_no_identification_);
@@ -178,7 +180,7 @@ namespace OpenMS
 
     if (column == 3) // precursor mz column
     {
-      if (!(*layer_->getPeakData())[ms2_spectrum_index].getPrecursors().empty())  // has precursor
+      if (!(*layer_->getPeakData())[ms2_spectrum_index].getPrecursors().empty()) // has precursor
       {
         // determine parent MS1 spectrum of current MS2 row
         int ms1_spectrum_index = 0;
@@ -192,10 +194,10 @@ namespace OpenMS
 
         if (ms1_spectrum_index != -1)
         {
-          DoubleReal precursor_mz = (*layer_->getPeakData())[ms2_spectrum_index].getPrecursors()[0].getMZ();
+          double precursor_mz = (*layer_->getPeakData())[ms2_spectrum_index].getPrecursors()[0].getMZ();
           // determine start and stop of isolation window
-          DoubleReal isolation_window_lower_mz = precursor_mz - (*layer_->getPeakData())[ms2_spectrum_index].getPrecursors()[0].getIsolationWindowLowerOffset();
-          DoubleReal isolation_window_upper_mz = precursor_mz + (*layer_->getPeakData())[ms2_spectrum_index].getPrecursors()[0].getIsolationWindowUpperOffset();
+          double isolation_window_lower_mz = precursor_mz - (*layer_->getPeakData())[ms2_spectrum_index].getPrecursors()[0].getIsolationWindowLowerOffset();
+          double isolation_window_upper_mz = precursor_mz + (*layer_->getPeakData())[ms2_spectrum_index].getPrecursors()[0].getIsolationWindowUpperOffset();
 
           if (!is_ms1_shown_)
           {
@@ -216,7 +218,7 @@ namespace OpenMS
     }
   }
 
-  void SpectraIdentificationViewWidget::spectrumSelectionChange_(QTableWidgetItem * current, QTableWidgetItem * previous)
+  void SpectraIdentificationViewWidget::spectrumSelectionChange_(QTableWidgetItem* current, QTableWidgetItem* previous)
   {
     /*test for previous == 0 is important - without it,
       the wrong spectrum will be selected after finishing
@@ -248,7 +250,7 @@ namespace OpenMS
     {
       // handled by cell click event
     }
-    else    // !precursor mz column clicked
+    else // !precursor mz column clicked
     {
 #ifdef DEBUG_IDENTIFICATION_VIEW
       cout << "selection Change MS2 select " << current_spectrum_index << endl;
@@ -257,7 +259,7 @@ namespace OpenMS
     }
   }
 
-  void SpectraIdentificationViewWidget::attachLayer(LayerData * cl)
+  void SpectraIdentificationViewWidget::attachLayer(LayerData* cl)
   {
     layer_ = cl;
   }
@@ -282,43 +284,32 @@ namespace OpenMS
     }
 
     set<String> common_keys;
-    // determine metavalues common to all hits
+    // determine meta values common to all hits
     if (create_rows_for_commmon_metavalue_->isChecked())
     {
       for (Size i = 0; i < layer_->getPeakData()->size(); ++i)
       {
         UInt ms_level = (*layer_->getPeakData())[i].getMSLevel();
-        const vector<PeptideIdentification> peptide_ids = (*layer_->getPeakData())[i].getPeptideIdentifications();
-        Size peptide_ids_count = peptide_ids.size();
+        const vector<PeptideIdentification>& peptide_ids = (*layer_->getPeakData())[i].getPeptideIdentifications();
 
-        if (ms_level != 2 || peptide_ids_count == 0)  // skip non ms2 spectra and spectra with no identification
+        if (ms_level != 2 || peptide_ids.size() == 0) // skip non ms2 spectra and spectra with no identification
         {
           continue;
         }
 
         for (vector<PeptideIdentification>::const_iterator pids_it = peptide_ids.begin(); pids_it != peptide_ids.end(); ++pids_it)
         {
-          const vector<PeptideHit> phits = pids_it->getHits();
-          for (vector<PeptideHit>::const_iterator phits_it = phits.begin(); phits_it != phits.end(); ++phits_it)
+          const vector<PeptideHit>& phits = pids_it->getHits();
+          set<String> current_keys = MetaInfoInterfaceUtils::findCommonMetaKeys<vector<PeptideHit>, set<String> >(phits.begin(), phits.end(), 100.0);
+          if (common_keys.empty()) // first MS2 peptide hit found. Now insert keys.
           {
-            // get meta value keys
-            vector<String> keys;
-            phits_it->getKeys(keys);
-            if (common_keys.empty()) // first MS2 peptide hit found. Now insert keys.
-            {
-              for (vector<String>::iterator sit = keys.begin(); sit != keys.end(); ++sit)
-              {
-                common_keys.insert(*sit);
-              }
-            }
-            else   // calculate intersection between current keys and common keys -> set as common_keys
-            {
-              set<String> current_keys;
-              current_keys.insert(keys.begin(), keys.end());
-              set<String> new_common_keys;
-              set_intersection(current_keys.begin(), current_keys.end(), common_keys.begin(), common_keys.end(), inserter(new_common_keys, new_common_keys.begin()));
-              swap(new_common_keys, common_keys);
-            }
+            swap(current_keys, common_keys);
+          }
+          else // calculate intersection between current keys and common keys -> set as common_keys
+          {
+            set<String> new_common_keys;
+            set_intersection(current_keys.begin(), current_keys.end(), common_keys.begin(), common_keys.end(), inserter(new_common_keys, new_common_keys.begin()));
+            swap(common_keys, new_common_keys);
           }
         }
       }
@@ -354,7 +345,7 @@ namespace OpenMS
     table_widget_->setColumnWidth(10, 400);
     table_widget_->setColumnWidth(11, 45);
 
-    QTableWidgetItem * proto_item = new QTableWidgetItem();
+    QTableWidgetItem* proto_item = new QTableWidgetItem();
     proto_item->setTextAlignment(Qt::AlignCenter);
 
     table_widget_->setItemPrototype(proto_item);
@@ -368,24 +359,22 @@ namespace OpenMS
       return;
     }
 
-    QTableWidgetItem * item = 0;
-    QTableWidgetItem * selected_item = 0;
+    QTableWidgetItem* item = 0;
+    QTableWidgetItem* selected_item = 0;
     Size selected_row = 0;
 
     // generate flat list
-    selected_item = 0;
     for (Size i = 0; i < layer_->getPeakData()->size(); ++i)
     {
       UInt ms_level = (*layer_->getPeakData())[i].getMSLevel();
+      const vector<PeptideIdentification>& pi = (*layer_->getPeakData())[i].getPeptideIdentifications();
+      Size id_count = pi.size();
 
-      // skip all non MS2 level scans
-      if (ms_level != 2)
+      // allow only MS2    OR  MS1 with peptideIDs (from Mass Fingerprinting)
+      if (ms_level != 2 && id_count == 0)
       {
         continue;
       }
-
-      vector<PeptideIdentification> pi = (*layer_->getPeakData())[i].getPeptideIdentifications();
-      Size id_count = pi.size();
 
       // skip
       if (hide_no_identification_->isChecked() && id_count == 0)
@@ -433,42 +422,13 @@ namespace OpenMS
 
       if (id_count != 0)
       {
-        vector<PeptideHit> ph = pi[0].getHits();
-
 #ifdef DEBUG_IDENTIFICATION_VIEW
         cout << "  peptide hits found: " << ph.size() << endl;
 #endif
 
-        bool is_higher_score_better = false;
-        Size best_score = pi[0].getHits()[0].getScore();
-        is_higher_score_better = pi[0].isHigherScoreBetter(); // TODO: check whether its ok to assume this holds for all
-
-        if (!ph.empty())
+        PeptideHit best_ph;
+        if (IDFilter().getBestHit(pi, false, best_ph))
         {
-          Size best_pi_index = 0;
-          Size best_j_index = 0;
-
-          for (Size pi_index = 0; pi_index != id_count; ++pi_index)
-          {
-            for (Size j = 0; j != pi[pi_index].getHits().size(); ++j)
-            {
-              PeptideHit ph = pi[pi_index].getHits()[j];
-
-#ifdef DEBUG_IDENTIFICATION_VIEW
-              cout << "    " << i << " "  << pi_index << " " << j << " " << ph.getScore() << " " << ph.getSequence().toString() << endl;
-#endif
-              // better score?
-              if ((ph.getScore() < best_score && !is_higher_score_better)
-                 || (ph.getScore() > best_score && is_higher_score_better))
-              {
-                best_score = ph.getScore();
-                best_j_index = j;
-                best_pi_index = pi_index;
-              }
-            }
-          }
-
-          PeptideHit best_ph = pi[best_pi_index].getHits()[best_j_index];
           // score
           item = table_widget_->itemPrototype()->clone();
           item->setData(Qt::DisplayRole, best_ph.getScore());
@@ -496,20 +456,9 @@ namespace OpenMS
           //Accession
           item = table_widget_->itemPrototype()->clone();
           item->setTextAlignment(Qt::AlignLeft);
-          String accessions = "";
 
-          // add protein accessions:
-          for (vector<String>::const_iterator it = best_ph.getProteinAccessions().begin(); it != best_ph.getProteinAccessions().end(); ++it)
-          {
-            if (accessions != "")
-            {
-              accessions += ", " + *it;
-            }
-            else
-            {
-              accessions = *it;
-            }
-          }
+          set<String> protein_accessions = best_ph.extractProteinAccessions();
+          String accessions = ListUtils::concatenate(vector<String>(protein_accessions.begin(), protein_accessions.end()), ", ");
           item->setText(accessions.toQString());
           item->setBackgroundColor(c);
           table_widget_->setItem(table_widget_->rowCount() - 1, 11, item);
@@ -525,7 +474,7 @@ namespace OpenMS
               item->setTextAlignment(Qt::AlignLeft);
               if (dv.valueType() == DataValue::DOUBLE_VALUE)
               {
-                item->setData(Qt::DisplayRole, (DoubleReal)dv);
+                item->setData(Qt::DisplayRole, (double)dv);
               }
               else
               {
@@ -538,7 +487,7 @@ namespace OpenMS
           }
         }
       }
-      else   // no identification
+      else // no identification
       {
         // score
         item = table_widget_->itemPrototype()->clone();
@@ -586,7 +535,7 @@ namespace OpenMS
         }
       }
 
-      if (!(*layer_->getPeakData())[i].getPrecursors().empty())  // has precursor
+      if (!(*layer_->getPeakData())[i].getPrecursors().empty()) // has precursor
       {
         item = table_widget_->itemPrototype()->clone();
         item->setData(Qt::DisplayRole, (*layer_->getPeakData())[i].getPrecursors()[0].getMZ());
@@ -615,7 +564,7 @@ namespace OpenMS
         item->setBackgroundColor(c);
         table_widget_->setItem(table_widget_->rowCount() - 1, 4, item);
       }
-      else  // has no precursor (leave fields 3 and 4 empty)
+      else // has no precursor (leave fields 3 and 4 empty)
       {
         item = table_widget_->itemPrototype()->clone();
         item->setText("-");
@@ -680,16 +629,16 @@ namespace OpenMS
     table_widget_->setUpdatesEnabled(true);
   }
 
-  void SpectraIdentificationViewWidget::headerContextMenu_(const QPoint & pos)
+  void SpectraIdentificationViewWidget::headerContextMenu_(const QPoint& pos)
   {
     // create menu
-    QMenu * context_menu = new QMenu(table_widget_);
+    QMenu* context_menu = new QMenu(table_widget_);
 
     // extract header labels
     QStringList header_labels;
     for (int i = 0; i != table_widget_->columnCount(); ++i)
     {
-      QTableWidgetItem * ti = table_widget_->horizontalHeaderItem(i);
+      QTableWidgetItem* ti = table_widget_->horizontalHeaderItem(i);
       if (ti != 0)
       {
         header_labels.append(ti->text());
@@ -699,14 +648,14 @@ namespace OpenMS
     // add actions
     for (int i = 0; i < header_labels.size(); ++i)
     {
-      QAction * tmp = new QAction(header_labels[i], context_menu);
+      QAction* tmp = new QAction(header_labels[i], context_menu);
       tmp->setCheckable(true);
       tmp->setChecked(!table_widget_->isColumnHidden(i));
       context_menu->addAction(tmp);
     }
 
     // show menu and hide selected columns
-    QAction * selected = context_menu->exec(table_widget_->mapToGlobal(pos));
+    QAction* selected = context_menu->exec(table_widget_->mapToGlobal(pos));
     if (selected != 0)
     {
       for (int i = 0; i < header_labels.size(); ++i)
@@ -734,7 +683,7 @@ namespace OpenMS
     QStringList header_labels;
     for (int i = 0; i != table_widget_->columnCount(); ++i)
     {
-      QTableWidgetItem * ti = table_widget_->horizontalHeaderItem(i);
+      QTableWidgetItem* ti = table_widget_->horizontalHeaderItem(i);
       if (ti != 0)
       {
         header_labels.append(ti->text());

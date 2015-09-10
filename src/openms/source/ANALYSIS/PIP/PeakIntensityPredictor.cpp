@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,24 +53,24 @@ namespace OpenMS
   {
   }
 
-  DoubleReal PeakIntensityPredictor::predict(const AASequence & sequence)
+  double PeakIntensityPredictor::predict(const AASequence & sequence)
   {
     //get corresponding attribute values
-    vector<DoubleReal> aafeat = getPropertyVector_(sequence);
+    vector<double> aafeat = getPropertyVector_(sequence);
     //normalize vector (center and scale by variance)
     llm_.normalizeVector(aafeat);
     //pass data_ to llm model and return predicted value
     return map_(aafeat);
   }
 
-  DoubleReal PeakIntensityPredictor::predict(const AASequence & sequence, vector<DoubleReal> & add_info)
+  double PeakIntensityPredictor::predict(const AASequence & sequence, vector<double> & add_info)
   {
     //get corresponding attribute values
-    vector<DoubleReal> aafeat = getPropertyVector_(sequence);
+    vector<double> aafeat = getPropertyVector_(sequence);
     //normalize vector (center and scale by variance)
     llm_.normalizeVector(aafeat);
     //pass data_ to llm model and return predicted value
-    DoubleReal tmp = map_(aafeat);
+    double tmp = map_(aafeat);
 
     //Determine corresponding winning prototype and number of cluster
     //peptide is assigned to. Additionally, the error is given.
@@ -79,9 +79,9 @@ namespace OpenMS
     return tmp;
   }
 
-  vector<DoubleReal> PeakIntensityPredictor::predict(const vector<AASequence> & sequences)
+  vector<double> PeakIntensityPredictor::predict(const vector<AASequence> & sequences)
   {
-    vector<DoubleReal> out(sequences.size());
+    vector<double> out(sequences.size());
 
     for (Size i = 0; i < sequences.size(); i++)
     {
@@ -91,9 +91,9 @@ namespace OpenMS
     return out;
   }
 
-  vector<DoubleReal> PeakIntensityPredictor::predict(const vector<AASequence> & sequences, vector<vector<DoubleReal> > & add_info)
+  vector<double> PeakIntensityPredictor::predict(const vector<AASequence> & sequences, vector<vector<double> > & add_info)
   {
-    vector<DoubleReal> out(sequences.size());
+    vector<double> out(sequences.size());
     add_info.resize(sequences.size());
 
     //for each element in sequences
@@ -105,18 +105,17 @@ namespace OpenMS
     return out;
   }
 
-  DoubleReal PeakIntensityPredictor::map_(const vector<DoubleReal> & data)
+  double PeakIntensityPredictor::map_(const vector<double> & data)
   {
-    DoubleReal c_x = 0.0;
-    DoubleReal sum_g_i, g_i;
-    Matrix<DoubleReal> code = llm_.getCodebooks();
-    vector<DoubleReal> wout = llm_.getVectorWout();
-    Matrix<DoubleReal> A = llm_.getMatrixA();
+    double sum_g_i, g_i;
+    Matrix<double> code = llm_.getCodebooks();
+    vector<double> wout = llm_.getVectorWout();
+    Matrix<double> A = llm_.getMatrixA();
 
     //determine best matching unit
     Size winner = findWinner_(data);
     //calculate Gaussian neighborhood function
-    vector<DoubleReal> nei = llm_.neigh(llm_.getCord(), winner, llm_.getLLMParam().radius);
+    vector<double> nei = llm_.neigh(llm_.getCord(), winner, llm_.getLLMParam().radius);
 
     sum_g_i = 0.0;
     //for each prototype
@@ -131,7 +130,7 @@ namespace OpenMS
     //linear mapping
     for (Size i = 0; i < code.rows(); i++)
     {
-      c_x = 0.0;
+      double c_x = 0.0;
       for (Size c = 0; c < code.cols(); c++)
       {
         c_x += (A.getValue(i, c) * (data[c] - code.getValue(i, c)));
@@ -139,7 +138,7 @@ namespace OpenMS
       //add linear bias to mapped value
       g_i += (c_x + wout[i]) * nei[i];
     }
-    //divide by total neighborhod values
+    //divide by total neighborhood values
     g_i = g_i / sum_g_i;
 
     //normalize predicted values to distribution of training data
@@ -149,11 +148,11 @@ namespace OpenMS
     return g_i;
   }
 
-  Size PeakIntensityPredictor::findWinner_(const vector<DoubleReal> & data)
+  Size PeakIntensityPredictor::findWinner_(const vector<double> & data)
   {
     Size winner = 0;
-    DoubleReal min_dist = 0.0;
-    Matrix<DoubleReal> code = llm_.getCodebooks();
+    double min_dist = 0.0;
+    Matrix<double> code = llm_.getCodebooks();
 
     //calculate euclidean distance of vector data to prototype no 0.
     for (Size c = 0; c < data.size(); c++)
@@ -164,7 +163,7 @@ namespace OpenMS
     //calculate euclidean distance of vector data to the remaining prototypes
     for (Size i = 1; i < code.rows(); i++)
     {
-      DoubleReal dd = 0.0;
+      double dd = 0.0;
       for (Size c = 0; c < data.size(); c++)
       {
         dd += (data[c] - code.getValue(i, c)) * (data[c] - code.getValue(i, c));
@@ -181,17 +180,17 @@ namespace OpenMS
     return winner;
   }
 
-  vector<DoubleReal> PeakIntensityPredictor::calculateAddInfo_(const vector<DoubleReal> & data)
+  vector<double> PeakIntensityPredictor::calculateAddInfo_(const vector<double> & data)
   {
-    vector<DoubleReal> foo(3);
+    vector<double> foo(3);
     Size winner = findWinner_(data);
-    Matrix<DoubleReal> code = llm_.getCodebooks();
+    Matrix<double> code = llm_.getCodebooks();
     Matrix<UInt> cord = llm_.getCord();
 
     foo[0] = cord.getValue(winner, 0);
     foo[1] = cord.getValue(winner, 1);
 
-    DoubleReal dd = 0.0;
+    double dd = 0.0;
     //get distance of data to best matching unit (winner).
     for (Size c = 0; c < data.size(); c++)
     {
@@ -203,9 +202,9 @@ namespace OpenMS
     return foo;
   }
 
-  std::vector<DoubleReal> PeakIntensityPredictor::getPropertyVector_(const AASequence & sequence)
+  std::vector<double> PeakIntensityPredictor::getPropertyVector_(const AASequence & sequence)
   {
-    std::vector<DoubleReal> out(18);
+    std::vector<double> out(18);
 
     //for each element in sequence = residue
     for (Size pos = 0; pos < sequence.size(); pos++)

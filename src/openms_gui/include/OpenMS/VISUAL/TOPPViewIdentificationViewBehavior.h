@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -94,7 +94,7 @@ public slots:
     /// Slot for behavior deactivation
     virtual void deactivateBehavior();
 
-    void setVisibleArea1D(DoubleReal l, DoubleReal h);
+    void setVisibleArea1D(double l, double h);
 
 private:
     /// Adds labels for the provided precursors to the 1D spectrum
@@ -108,6 +108,9 @@ private:
 
     /// removes all layer with theoretical spectrum generated in identification view
     void removeTheoreticalSpectrumLayer_();
+
+    /// Adds annotation (compound name, adducts, ppm error) to a peak in 1D spectra
+    void addPeakAnnotations_(const std::vector<PeptideIdentification> & ph);
 
 private:
     TOPPViewBase * tv_;

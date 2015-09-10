@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -121,12 +121,6 @@ protected:
     }
     setValidStrings_("model:type", model_types);
     registerFlag_("model:symmetric_regression", "Only for 'linear' model: Perform linear regression on 'y - x' vs. 'y + x', instead of on 'y' vs. 'x'.", true);
-    registerIntOption_("model:num_breakpoints", "<number>", 5,
-                       "Only for 'b_spline' model: Number of breakpoints of the cubic spline in the smoothing step. The breakpoints are spaced uniformly on the retention time interval. More breakpoints mean less smoothing. Reduce this number if the transformation has an unexpected shape.",
-                       false, true);
-    setMinInt_("model:num_breakpoints", 2);
-    registerStringOption_("model:interpolation_type", "<name>", "cspline",
-                          "Only for 'interpolated' model: Type of interpolation to apply.", false, true);
   }
 
   void registerOptionsAndFlags_()
@@ -180,7 +174,7 @@ protected:
     String in = getStringOption_("in");
     String tr_file = getStringOption_("tr");
     String out = getStringOption_("out");
-    DoubleReal min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
+    double min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
     bool nostrict = getFlag_("no-strict");
 
     // If we have a transformation file, trafo will transform the RT in the
@@ -201,7 +195,7 @@ protected:
 
     // Create the output map, load the input TraML file and the chromatograms
     boost::shared_ptr<MapType> exp (new MapType());
-    FeatureMap<> out_featureFile;
+    FeatureMap out_featureFile;
     OpenSwath::LightTargetedExperiment transition_exp;
 
     std::cout << "Loading TraML file" << std::endl;
@@ -249,7 +243,7 @@ protected:
       MRMFeatureFinderScoring featureFinder;
       MzMLFile swath_file;
       boost::shared_ptr<MapType> swath_map (new MapType());
-      FeatureMap<> featureFile;
+      FeatureMap featureFile;
       cout << "Loading file " << file_list[i] << endl;
 
 ////#ifndef _OPENMP
@@ -290,15 +284,15 @@ protected:
 #pragma omp critical (featureFinder)
 #endif
         {
-          for (FeatureMap<Feature>::iterator feature_it = featureFile.begin();
-               feature_it != featureFile.end(); feature_it++)
+          for (FeatureMap::iterator feature_it = featureFile.begin();
+               feature_it != featureFile.end(); ++feature_it)
           {
             out_featureFile.push_back(*feature_it);
           }
           for (std::vector<ProteinIdentification>::iterator protid_it =
                  featureFile.getProteinIdentifications().begin();
                protid_it != featureFile.getProteinIdentifications().end();
-               protid_it++)
+               ++protid_it)
           {
             out_featureFile.getProteinIdentifications().push_back(*protid_it);
           }

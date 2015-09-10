@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,7 +34,7 @@
 
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
-
+#include <OpenMS/CONCEPT/LogStream.h>
 
 using namespace xercesc;
 using namespace std;
@@ -104,7 +104,7 @@ namespace OpenMS
     for (vector<PeptideIdentification>::iterator id_it = id_data.begin();
          id_it != id_data.end(); ++id_it)
     {
-      if (!id_it->metaValueExists("RT")) no_rt_count++;
+      if (!id_it->hasRT()) ++no_rt_count;
     }
     if (no_rt_count)
     {

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,52 +42,52 @@ namespace OpenMS
   {
   }
 
-  void SeedListGenerator::generateSeedList(const MSExperiment<> & experiment,
-                                           SeedList & seeds)
+  void SeedListGenerator::generateSeedList(const MSExperiment<>& experiment,
+                                           SeedList& seeds)
   {
     seeds.clear();
     for (MSExperiment<>::ConstIterator exp_it = experiment.begin();
          exp_it != experiment.end(); ++exp_it)
     {
-      if (exp_it->getMSLevel() == 2)       // MS2 spectrum -> look for precursor
+      if (exp_it->getMSLevel() == 2) // MS2 spectrum -> look for precursor
       {
         MSExperiment<>::ConstIterator prec_it =
           experiment.getPrecursorSpectrum(exp_it);
-        const vector<Precursor> & precursors = exp_it->getPrecursors();
+        const vector<Precursor>& precursors = exp_it->getPrecursors();
         DPosition<2> point(prec_it->getRT(), precursors[0].getMZ());
         seeds.push_back(point);
       }
     }
   }
 
-  void SeedListGenerator::generateSeedList(vector<PeptideIdentification> &
-                                           peptides, SeedList & seeds,
+  void SeedListGenerator::generateSeedList(vector<PeptideIdentification>&
+                                           peptides, SeedList& seeds,
                                            bool use_peptide_mass)
   {
     seeds.clear();
     for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
          pep_it != peptides.end(); ++pep_it)
     {
-      DoubleReal mz;
+      double mz;
       if (!pep_it->getHits().empty() && use_peptide_mass)
       {
         pep_it->sort();
-        const PeptideHit & hit = pep_it->getHits().front();
+        const PeptideHit& hit = pep_it->getHits().front();
         Int charge = hit.getCharge();
         mz = hit.getSequence().getMonoWeight(Residue::Full, charge) /
-             DoubleReal(charge);
+             double(charge);
       }
       else
       {
-        mz = pep_it->getMetaValue("MZ");
+        mz = pep_it->getMZ();
       }
-      DPosition<2> point(pep_it->getMetaValue("RT"), mz);
+      DPosition<2> point(pep_it->getRT(), mz);
       seeds.push_back(point);
     }
   }
 
-  void SeedListGenerator::generateSeedLists(const ConsensusMap & consensus,
-                                            Map<UInt64, SeedList> & seed_lists)
+  void SeedListGenerator::generateSeedLists(const ConsensusMap& consensus,
+                                            Map<UInt64, SeedList>& seed_lists)
   {
     seed_lists.clear();
     // iterate over all consensus features...
@@ -97,7 +97,7 @@ namespace OpenMS
       DPosition<2> point(cons_it->getRT(), cons_it->getMZ());
       // for each sub-map in the consensus map, add a seed at the position of
       // this consensus feature:
-      for (ConsensusMap::FileDescriptions::ConstIterator file_it =
+      for (ConsensusMap::FileDescriptions::const_iterator file_it =
              consensus.getFileDescriptions().begin(); file_it !=
            consensus.getFileDescriptions().end(); ++file_it)
         seed_lists[file_it->first].push_back(point);
@@ -114,10 +114,10 @@ namespace OpenMS
     }
   }
 
-  void SeedListGenerator::convertSeedList(const SeedList & seeds,
-                                          FeatureMap<> & features)
+  void SeedListGenerator::convertSeedList(const SeedList& seeds,
+                                          FeatureMap& features)
   {
-    features.clear(true);     // "true" should really be a default value here...
+    features.clear(true); // "true" should really be a default value here...
     Size counter = 0;
     for (SeedList::const_iterator seed_it = seeds.begin();
          seed_it != seeds.end(); ++seed_it, ++counter)
@@ -132,11 +132,11 @@ namespace OpenMS
     // features.applyMemberFunction(&UniqueIdInterface::setUniqueId);
   }
 
-  void SeedListGenerator::convertSeedList(const FeatureMap<> & features,
-                                          SeedList & seeds)
+  void SeedListGenerator::convertSeedList(const FeatureMap& features,
+                                          SeedList& seeds)
   {
     seeds.clear();
-    for (FeatureMap<>::ConstIterator feat_it = features.begin();
+    for (FeatureMap::ConstIterator feat_it = features.begin();
          feat_it != features.end(); ++feat_it)
     {
       DPosition<2> point(feat_it->getRT(), feat_it->getMZ());

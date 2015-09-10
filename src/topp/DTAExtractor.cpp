@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -95,7 +95,7 @@ protected:
     registerStringOption_("level", "i[,j]...", "1,2,3", "MS levels to extract", false);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
 
     //-------------------------------------------------------------
@@ -110,7 +110,7 @@ protected:
     double mz_l, mz_u, rt_l, rt_u;
     vector<UInt> levels;
     //initialize ranges
-    mz_l = rt_l = -1 * numeric_limits<double>::max();
+    mz_l = rt_l = -numeric_limits<double>::max();
     mz_u = rt_u = numeric_limits<double>::max();
 
     rt = getStringOption_("rt");
@@ -130,7 +130,7 @@ protected:
 
       //levels
       tmp = level;
-      if (level.has(','))           //several levels given
+      if (level.has(',')) //several levels given
       {
         vector<String> tmp2;
         level.split(',', tmp2);
@@ -139,7 +139,7 @@ protected:
           levels.push_back(it->toInt());
         }
       }
-      else           //one level given
+      else //one level given
       {
         levels.push_back(level.toInt());
       }
@@ -152,7 +152,7 @@ protected:
       }
       writeDebug_(tmp3, 1);
     }
-    catch (Exception::ConversionError & /*e*/)
+    catch (Exception::ConversionError& /*e*/)
     {
       writeLog_(String("Invalid boundary '") + tmp + "' given. Aborting!");
       printUsage_();
@@ -177,18 +177,13 @@ protected:
 
     for (MSExperiment<Peak1D>::iterator it = exp.begin(); it != exp.end(); ++it)
     {
-      //check for MS-level
-      bool in_level_range = false;
-      for (vector<UInt>::iterator it2 = levels.begin(); it2 != levels.end(); ++it2)
+      // check for MS-level
+      if (std::find(levels.begin(), levels.end(), it->getMSLevel()) == levels.end())
       {
-        if (it->getMSLevel() == *it2)
-        {
-          in_level_range = true;
-        }
+        continue;
       }
-      if (!in_level_range) continue;
 
-      //store spectra
+      // store spectra
       if (it->getMSLevel() > 1)
       {
         double mz_value = 0.0;
@@ -210,11 +205,10 @@ protected:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPDTAExtractor tool;
   return tool.main(argc, argv);
 }
 
 /// @endcond
-

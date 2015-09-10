@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -73,9 +73,9 @@ START_SECTION((virtual ~CompNovoIonScoringCID()))
 }
 END_SECTION
 
-START_SECTION((void scoreSpectrum(Map<DoubleReal, IonScore>& CID_ion_scores, PeakSpectrum& CID_spec, DoubleReal precursor_weight, Size charge)))
+START_SECTION((void scoreSpectrum(Map<double, IonScore>& CID_ion_scores, PeakSpectrum& CID_spec, double precursor_weight, Size charge)))
 {
-  Map<DoubleReal, CompNovoIonScoringBase::IonScore> ion_scores;
+  Map<double, CompNovoIonScoringBase::IonScore> ion_scores;
 	TheoreticalSpectrumGenerator tsg;
 	Param tsg_param(tsg.getParameters());
 	tsg_param.setValue("add_losses", "true");
@@ -83,7 +83,7 @@ START_SECTION((void scoreSpectrum(Map<DoubleReal, IonScore>& CID_ion_scores, Pea
 	tsg.setParameters(tsg_param);
 
 	RichPeakSpectrum rspec;
-	tsg.getSpectrum(rspec, AASequence("DFPIANGER"));
+	tsg.getSpectrum(rspec, AASequence::fromString("DFPIANGER"));
 
 	PeakSpectrum spec;
 	for (Size i = 0; i != rspec.size(); ++i)
@@ -97,7 +97,7 @@ START_SECTION((void scoreSpectrum(Map<DoubleReal, IonScore>& CID_ion_scores, Pea
 	CompNovoIonScoringCID cnis;
 	cnis.scoreSpectrum(ion_scores, spec, 1018.48, 1);
 	
-	for (Map<DoubleReal, CompNovoIonScoringBase::IonScore>::ConstIterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
+	for (Map<double, CompNovoIonScoringBase::IonScore>::ConstIterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
 	{
 /*
 y1 175.118952187571

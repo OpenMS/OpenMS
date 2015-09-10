@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -80,7 +80,7 @@ START_SECTION((const LLMParam& getLLMParam() const))
 	TEST_EQUAL(llm.getLLMParam().radius, 0.4)
 END_SECTION
 
-START_SECTION((const Matrix<DoubleReal>& getCodebooks() const))
+START_SECTION((const Matrix<double>& getCodebooks() const))
 	TEST_EQUAL(llm.getCodebooks().rows(), 2)
 	TEST_EQUAL(llm.getCodebooks().cols(), 18)
 	//-0.06281751 0.9460272
@@ -93,7 +93,7 @@ START_SECTION((const Matrix<DoubleReal>& getCodebooks() const))
 	TEST_REAL_SIMILAR(llm.getCodebooks().getValue(1,17), -0.1460901)
 END_SECTION
 
-START_SECTION((const Matrix<DoubleReal>& getMatrixA() const))
+START_SECTION((const Matrix<double>& getMatrixA() const))
 	TEST_EQUAL(llm.getMatrixA().rows(), 2)
 	TEST_EQUAL(llm.getMatrixA().cols(), 18)
 	//-0.005066359 -0.0251465
@@ -106,7 +106,7 @@ START_SECTION((const Matrix<DoubleReal>& getMatrixA() const))
 	TEST_REAL_SIMILAR(llm.getMatrixA().getValue(1,17), 0.3665653)
 END_SECTION
 
-START_SECTION((const vector<DoubleReal>& getVectorWout() const))
+START_SECTION((const vector<double>& getVectorWout() const))
 	TEST_EQUAL(llm.getVectorWout().size(), 2)
 	//3.746677 
 	//3.395571
@@ -123,13 +123,13 @@ START_SECTION((const Matrix<UInt>& getCord() const))
 	TEST_EQUAL(llm.getCord().getValue(1,1), 1)
 END_SECTION
 
-START_SECTION((std::vector<DoubleReal> neigh(const Matrix< UInt > &cord, Size win, DoubleReal radius)))
-	vector<DoubleReal> nei1 = llm.neigh(llm.getCord(), 0, llm.getLLMParam().radius);
+START_SECTION((std::vector<double> neigh(const Matrix< UInt > &cord, Size win, double radius)))
+	vector<double> nei1 = llm.neigh(llm.getCord(), 0, llm.getLLMParam().radius);
 	TEST_EQUAL(nei1[0], 1)
 	TEST_REAL_SIMILAR(nei1[1], 0.04393693) 	
 END_SECTION
 
-START_SECTION((void normalizeVector(std::vector< DoubleReal > &aaIndexVariables)))
+START_SECTION((void normalizeVector(std::vector< double > &aaIndexVariables)))
 	NOT_TESTABLE
 END_SECTION
 

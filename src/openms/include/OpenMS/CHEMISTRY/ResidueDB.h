@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,6 +36,7 @@
 #define OPENMS_CHEMISTRY_RESIDUEDB_H
 
 #include <OpenMS/DATASTRUCTURES/Map.h>
+#include <boost/unordered_map.hpp>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <set>
@@ -96,6 +97,9 @@ public:
 
     /// returns a pointer to the residue with name, 3 letter code or 1 letter code name
     const Residue * getResidue(const String & name) const;
+
+    /// returns a pointer to the residue with 1 letter code name
+    const Residue * getResidue(const unsigned char & one_letter_code) const;
 
     ///
     const Residue * getModifiedResidue(const String & name);
@@ -189,7 +193,10 @@ protected:
 
     void addResidue_(Residue * residue);
 
-    Map<String, Residue *> residue_names_;
+    boost::unordered_map<String, Residue *> residue_names_;
+
+    // fast lookup table for residues
+    Residue * residue_by_one_letter_code_[256];
 
     Map<String, Map<String, Residue *> > residue_mod_names_;
 

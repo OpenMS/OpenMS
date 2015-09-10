@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -174,7 +174,7 @@ namespace OpenMS
 
   void ItraqConstants::initChannelMap(const int itraq_type, ChannelMapType & map)
   {
-    static Map<Int, DoubleReal> reporter_mass_exact;
+    static Map<Int, double> reporter_mass_exact;
     if (reporter_mass_exact.size() == 0 && (itraq_type == EIGHTPLEX || itraq_type == FOURPLEX)) // exact monoisotopic reporter ion masses (taken from AB Sciex)
     {
       reporter_mass_exact[113] = 113.1078;

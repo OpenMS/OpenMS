@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -74,6 +74,8 @@ using namespace std;
   (or ConsensusID) and use this as input to this tool.
 
 
+  @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
   <B>The command line parameters of this tool are:</B>
   @verbinclude UTILS_IDEvaluator.cli
   <B>INI file documentation of this tool:</B>
@@ -97,7 +99,7 @@ public:
 protected:
   StringList out_formats_; //< valid output formats for image
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const
   {
     Param p_my;
 
@@ -129,7 +131,7 @@ protected:
     registerSubsection_("algorithm", "Additional parameters for FDR and image sizes.");
   }
 
-  ExitCodes main_(int argc, const char ** argv)
+  ExitCodes main_(int, const char**)
   {
     //----------------------------------------------------------------
     // load data
@@ -151,7 +153,7 @@ protected:
       {
         format = out.suffix('.');
       }
-      catch (Exception::ElementNotFound & /*e*/)
+      catch (Exception::ElementNotFound& /*e*/)
       {
         format = "nosuffix";
       }
@@ -163,8 +165,8 @@ protected:
       }
     }
 
-    DoubleReal q_min = getDoubleOption_("q_min");
-    DoubleReal q_max = getDoubleOption_("q_max");
+    double q_min = getDoubleOption_("q_min");
+    double q_max = getDoubleOption_("q_max");
     if (q_min >= q_max)
     {
       LOG_ERROR << "The parameter 'q_min' must be smaller than 'q_max'. Quitting..." << std::endl;
@@ -181,7 +183,7 @@ protected:
     {
       LOG_ERROR << "Tool failed. See above." << std::endl;
       return INCOMPATIBLE_INPUT_DATA;
-    };
+    }
     mw->setVisibleArea(q_min, q_max);
 
     if (!out.empty()) // save as image and exit
@@ -199,23 +201,23 @@ protected:
     if (!out_csv.empty())
     {
       TextFile tf;
-      for (Size i=0; i<mw->getPoints().size(); ++i)
+      for (Size i = 0; i < mw->getPoints().size(); ++i)
       {
         MSSpectrum<> s = mw->getPoints()[i];
         StringList sl1;
         StringList sl2;
-        for (Size j=0;j<s.size();++j)
+        for (Size j = 0; j < s.size(); ++j)
         {
           sl1.push_back(s[j].getMZ());
           sl2.push_back(s[j].getIntensity());
         }
-        tf.push_back(String("# ") + String(s.getMetaValue("search_engine")));
-        tf.push_back(ListUtils::concatenate(sl1, ","));
-        tf.push_back(ListUtils::concatenate(sl2, ","));
+        tf.addLine(String("# ") + String(s.getMetaValue("search_engine")));
+        tf.addLine(ListUtils::concatenate(sl1, ","));
+        tf.addLine(ListUtils::concatenate(sl2, ","));
       }
       tf.store(out_csv);
     }
-    
+
     delete(mw);
     return EXECUTION_OK;
   }
@@ -223,7 +225,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
 
   /*

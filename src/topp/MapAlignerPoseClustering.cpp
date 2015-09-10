@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,21 +65,30 @@ using namespace std;
   </table>
 </CENTER>
 
-  This tool provides an algorithm to align the retention time scales of multiple input files, correcting shifts and distortions between them.
-  Retention time adjustment may be necessary to correct for chromatography differences e.g. before data from multiple LC-MS runs can be combined
-  (feature grouping), or when one run should be annotated with peptide identifications obtained in a different run.
+  This tool provides an algorithm to align the retention time scales of
+  multiple input files, correcting shifts and distortions between them.
+  Retention time adjustment may be necessary to correct for chromatography
+  differences e.g. before data from multiple LC-MS runs can be combined
+  (feature grouping), or when one run should be annotated with peptide
+  identifications obtained in a different run.
 
-  All map alignment tools (MapAligner...) collect retention time data from the input files and - by fitting a model to this data
-  - compute transformations that map all runs to a common retention time scale. They can apply the transformations right away and
-  return output files with aligned time scales (parameter @p out), and/or return descriptions of the transformations in trafoXML
-  format (parameter @p trafo_out). Transformations stored as trafoXML can be applied to arbitrary files with the @ref TOPP_MapRTTransformer tool.
+  All map alignment tools (MapAligner...) collect retention time data from the
+  input files and - by fitting a model to this data - compute transformations
+  that map all runs to a common retention time scale. They can apply the
+  transformations right away and return output files with aligned time scales
+  (parameter @p out), and/or return descriptions of the transformations in
+  trafoXML format (parameter @p trafo_out). Transformations stored as trafoXML
+  can be applied to arbitrary files with the @ref TOPP_MapRTTransformer tool.
 
-  The map alignment tools differ in how they obtain retention time data for the modeling of transformations, and consequently what types
-  of data they can be applied to. The alignment algorithm implemented here is the pose clustering algorithm as described in
-  doi:10.1093/bioinformatics/btm209. It is used to find an affine transformation, which is further refined by a feature grouping step.
-  This algorithm can be applied to features (featureXML) and peaks (mzML), but it has mostly been developed and tested on features.
-  For more details and algorithm-specific parameters (set in the INI file) see "Detailed Description" in the
-  @ref OpenMS::MapAlignmentAlgorithmPoseClustering "algorithm documentation".
+  The map alignment tools differ in how they obtain retention time data for the
+  modeling of transformations, and consequently what types of data they can be
+  applied to. The alignment algorithm implemented here is the pose clustering
+  algorithm as described in doi:10.1093/bioinformatics/btm209. It is used to
+  find an affine transformation, which is further refined by a feature grouping
+  step.  This algorithm can be applied to features (featureXML) and peaks
+  (mzML), but it has mostly been developed and tested on features.  For more
+  details and algorithm-specific parameters (set in the INI file) see "Detailed
+  Description" in the @ref OpenMS::MapAlignmentAlgorithmPoseClustering "algorithm documentation".
 
   @see @ref TOPP_MapAlignerPoseClustering @ref TOPP_MapAlignerSpectrum @ref TOPP_MapRTTransformer
 
@@ -89,9 +98,9 @@ using namespace std;
   If your alignment is not good enough, consider increasing this number (the alignment will take longer though).
 
   <B>The command line parameters of this tool are:</B> @n
-  @verbinclude TOPP_MapAlignerIdentification.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_MapAlignerIdentification.html
+  @verbinclude TOPP_MapAlignerPoseClustering.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_MapAlignerPoseClustering.html
 */
 
 // We do not want this class to show up in the docu:
@@ -109,25 +118,30 @@ public:
 protected:
   void registerOptionsAndFlags_()
   {
-    TOPPMapAlignerBase::registerOptionsAndFlags_("mzML,featureXML", true);
+    TOPPMapAlignerBase::registerOptionsAndFlags_("mzML,featureXML",
+                                                 REF_RESTRICTED);
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String & section) const
+  Param getSubsectionDefaults_(const String& section) const
   {
     if (section == "algorithm")
     {
       MapAlignmentAlgorithmPoseClustering algo;
       return algo.getParameters();
     }
-    return Param();     // shouldn't happen
+    return Param(); // shouldn't happen
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
-    MapAlignmentAlgorithmPoseClustering algorithm;
-    ExitCodes ret = TOPPMapAlignerBase::initialize_(&algorithm, true);
+    ExitCodes ret = TOPPMapAlignerBase::checkParameters_();
     if (ret != EXECUTION_OK) return ret;
+
+    MapAlignmentAlgorithmPoseClustering algorithm;
+    Param algo_params = getParam_().copy("algorithm:", true);
+    algorithm.setParameters(algo_params);
+    algorithm.setLogType(log_type_);
 
     StringList in_files = getStringList_("in");
     StringList out_files = getStringList_("out");
@@ -143,9 +157,9 @@ protected:
       file = reference_file;
       reference_index = in_files.size(); // points to invalid index
     }
-    else if (reference_index > 0)  //  normal reference (index was checked before)
+    else if (reference_index > 0) // normal reference (index was checked before)
     {
-      file = in_files[--reference_index]; // ref index is 1-based in parameters, but should be 0-based here
+      file = in_files[--reference_index]; // ref. index is 1-based in parameters, but should be 0-based here
     }
     else if (reference_index == 0) // no reference given
     {
@@ -153,21 +167,24 @@ protected:
       // use map with highest number of features as reference:
       Size max_count(0);
       FeatureXMLFile f;
-      for (Size m = 0; m < in_files.size(); ++m)
+      for (Size i = 0; i < in_files.size(); ++i)
       {
-        Size s(0);
-        if (in_type == FileTypes::FEATUREXML) s = f.loadSize(in_files[m]);
+        Size s = 0;
+        if (in_type == FileTypes::FEATUREXML) 
+        {
+          s = f.loadSize(in_files[i]);
+        }
         else if (in_type == FileTypes::MZML) // this is expensive!
         {
           MSExperiment<> exp;
-          MzMLFile().load(in_files[m], exp);
+          MzMLFile().load(in_files[i], exp);
           exp.updateRanges(1);
           s = exp.getSize();
         }
         if (s > max_count)
         {
           max_count = s;
-          reference_index = m;
+          reference_index = i;
         }
       }
       LOG_INFO << " done" << std::endl;
@@ -175,14 +192,14 @@ protected:
     }
 
     FeatureXMLFile f_fxml;
-    if (out_files.size() == 0) // no need to store featureXML, thus we can load only minimum required information
+    if (out_files.empty()) // no need to store featureXML, thus we can load only minimum required information
     {
       f_fxml.getOptions().setLoadConvexHull(false);
       f_fxml.getOptions().setLoadSubordinates(false);
     }
     if (in_type == FileTypes::FEATUREXML)
     {
-      FeatureMap<> map_ref;
+      FeatureMap map_ref;
       FeatureXMLFile f_fxml_tmp; // for the reference, we never need CH or subordinates
       f_fxml_tmp.getOptions().setLoadConvexHull(false);
       f_fxml_tmp.getOptions().setLoadSubordinates(false);
@@ -200,26 +217,26 @@ protected:
     plog.setLogType(log_type_);
 
     plog.startProgress(0, in_files.size(), "Aligning input maps");
-    Size progress(0);     // thread-safe progress
+    Size progress(0); // thread-safe progress
     // TODO: it should all work on featureXML files, since we might need them for output anyway. Converting to consensusXML is just wasting memory!
 #ifdef _OPENMP
 #pragma omp parallel for schedule(dynamic, 1)
 #endif
-    for (Int i = 0; i < in_files.size(); ++i)
+    for (int i = 0; i < static_cast<int>(in_files.size()); ++i)
     {
       TransformationDescription trafo;
       if (in_type == FileTypes::FEATUREXML)
       {
-        FeatureMap<> map;
+        FeatureMap map;
         // workaround for loading: use temporary FeatureXMLFile since it is not thread-safe
         FeatureXMLFile f_fxml_tmp; // do not use OMP-firstprivate, since FeatureXMLFile has no copy c'tor
         f_fxml_tmp.getOptions() = f_fxml.getOptions();
         f_fxml_tmp.load(in_files[i], map);
-        if (i == reference_index) trafo.fitModel("identity");
+        if (i == static_cast<int>(reference_index)) trafo.fitModel("identity");
         else algorithm.align(map, trafo);
         if (out_files.size())
         {
-          MapAlignmentTransformer::transformSingleFeatureMap(map, trafo);
+          MapAlignmentTransformer::transformRetentionTimes(map, trafo);
           // annotate output with data processing info
           addDataProcessing_(map, getProcessingInfo_(DataProcessing::ALIGNMENT));
           f_fxml_tmp.store(out_files[i], map);
@@ -229,18 +246,18 @@ protected:
       {
         MSExperiment<> map;
         MzMLFile().load(in_files[i], map);
-        if (i == reference_index) trafo.fitModel("identity");
+        if (i == static_cast<int>(reference_index)) trafo.fitModel("identity");
         else algorithm.align(map, trafo);
         if (out_files.size())
         {
-          MapAlignmentTransformer::transformSinglePeakMap(map, trafo);
+          MapAlignmentTransformer::transformRetentionTimes(map, trafo);
           // annotate output with data processing info
           addDataProcessing_(map, getProcessingInfo_(DataProcessing::ALIGNMENT));
           MzMLFile().store(out_files[i], map);
         }
       }
 
-      if (out_trafos.size())
+      if (!out_trafos.empty())
       {
         TransformationXMLFile().store(out_trafos[i], trafo);
       }
@@ -256,12 +273,11 @@ protected:
 
     plog.endProgress();
     return EXECUTION_OK;
-
   }
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPMapAlignerPoseClustering tool;
   return tool.main(argc, argv);

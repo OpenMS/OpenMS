@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -78,6 +78,7 @@ START_SECTION((template < typename Iterator > void computeRegression(double conf
   lin_reg.computeRegression(0.95,x_axis.begin(),x_axis.end(),y_axis.begin());
   TEST_REAL_SIMILAR(lin_reg.getSlope(),2.0)
   TEST_REAL_SIMILAR(lin_reg.getIntercept(),4.0)
+  TEST_REAL_SIMILAR(lin_reg.getChiSquared(),0.0)
 END_SECTION
 
 START_SECTION((template < typename Iterator > void computeRegressionWeighted(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin, Iterator w_begin)))
@@ -86,51 +87,51 @@ START_SECTION((template < typename Iterator > void computeRegressionWeighted(dou
   TEST_REAL_SIMILAR(lin_reg.getIntercept(),4.0)
 END_SECTION
 
-START_SECTION((DoubleReal getChiSquared() const))
+START_SECTION((double getChiSquared() const))
   TEST_REAL_SIMILAR(lin_reg.getChiSquared(),0)
 END_SECTION
 
-START_SECTION((DoubleReal getIntercept() const))
+START_SECTION((double getIntercept() const))
   TEST_REAL_SIMILAR(lin_reg.getIntercept(),4.0)
 END_SECTION
 
-START_SECTION((DoubleReal getLower() const))
+START_SECTION((double getLower() const))
   TEST_REAL_SIMILAR(lin_reg.getLower(),-2.0)
 END_SECTION
 
-START_SECTION((DoubleReal getUpper() const))
+START_SECTION((double getUpper() const))
   TEST_REAL_SIMILAR(lin_reg.getUpper(),-2.0)
 END_SECTION
 
-START_SECTION((DoubleReal getSlope() const))
+START_SECTION((double getSlope() const))
   TEST_REAL_SIMILAR(lin_reg.getSlope(),2.0)
 END_SECTION
 
-START_SECTION((DoubleReal getStandDevRes() const))
+START_SECTION((double getStandDevRes() const))
   TEST_REAL_SIMILAR(lin_reg.getStandDevRes(),0.0)
 END_SECTION
 
-START_SECTION((DoubleReal getStandErrSlope() const))
+START_SECTION((double getStandErrSlope() const))
   TEST_REAL_SIMILAR(lin_reg.getStandErrSlope(),0.0)
 END_SECTION
 
-START_SECTION((DoubleReal getRSquared() const))
+START_SECTION((double getRSquared() const))
   TEST_REAL_SIMILAR(lin_reg.getRSquared(),1.0)
 END_SECTION
 
-START_SECTION((DoubleReal getTValue() const))
+START_SECTION((double getTValue() const))
   TEST_REAL_SIMILAR(lin_reg.getTValue(),2.306)
 END_SECTION
 
-START_SECTION((DoubleReal getXIntercept() const))
+START_SECTION((double getXIntercept() const))
   TEST_REAL_SIMILAR(lin_reg.getXIntercept(),-2.0)
 END_SECTION
 
-START_SECTION((DoubleReal getRSD() const))
+START_SECTION((double getRSD() const))
   TEST_REAL_SIMILAR(lin_reg.getRSD(),0.0)
 END_SECTION
 
-START_SECTION((DoubleReal getMeanRes() const))
+START_SECTION((double getMeanRes() const))
   TEST_REAL_SIMILAR(lin_reg.getMeanRes(),0.0)
 END_SECTION
 
@@ -140,13 +141,6 @@ for (int i=0; i < 10; ++i)
   y_axis[i]=2*i;
 }
 
-START_SECTION((template < typename Iterator > void computeRegressionNoIntercept(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin)))
-
-  lin_reg.computeRegressionNoIntercept(0.95,x_axis.begin(),x_axis.end(),y_axis.begin());
-
-  TEST_REAL_SIMILAR(lin_reg.getSlope(),2.0)
-  TEST_REAL_SIMILAR(lin_reg.getIntercept(),0.0)
-END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

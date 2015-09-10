@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,6 +44,9 @@
 
 using namespace OpenMS;
 using namespace std;
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshadow"
 
 START_TEST(InclusionExclusionList, "$Id$")
 
@@ -94,10 +97,10 @@ START_SECTION((void writeTargets(const std::vector<FASTAFile::FASTAEntry>& fasta
 }
 END_SECTION
 
-START_SECTION((void writeTargets(const FeatureMap<>& map, const String& out_path)))
+START_SECTION((void writeTargets(const FeatureMap& map, const String& out_path)))
 {
   InclusionExclusionList list;
-	FeatureMap<> map;
+	FeatureMap map;
 	FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("InclusionExclusionList_2.featureXML"),map);
   Param p = list.getParameters();
   p.setValue("missed_cleavages", 0);
@@ -150,12 +153,7 @@ START_SECTION((void writeTargets(const FeatureMap<>& map, const String& out_path
   TextFile tf;
   tf.load(out);
 
-  TEST_EQUAL(tf.size(), 4);
-  for (Size ii=0; ii<tf.size(); ++ii)
-  {
-
-    std::cout << tf[ii] << "\n";
-  }
+  TEST_EQUAL((tf.end() - tf.begin()), 4);
 
   // test exact m/z matching (no deviation allowed)
   {
@@ -170,7 +168,7 @@ START_SECTION((void writeTargets(const FeatureMap<>& map, const String& out_path
   TextFile tf;
   tf.load(out);
 
-  TEST_EQUAL(tf.size(), 5);
+  TEST_EQUAL((tf.end() - tf.begin()), 5);
   }
 
   // now test window overlap
@@ -185,7 +183,7 @@ START_SECTION((void writeTargets(const FeatureMap<>& map, const String& out_path
   TextFile tf;
   tf.load(out);
 
-  TEST_EQUAL(tf.size(), 5);
+  TEST_EQUAL((tf.end() - tf.begin()), 5);
   }
 
 
@@ -195,7 +193,7 @@ END_SECTION
 START_SECTION((void writeTargets(const std::vector<PeptideIdentification>& pep_ids, const String& out_path, const IntList& charges)))
 {
   InclusionExclusionList list;
-	FeatureMap<> map;
+	FeatureMap map;
 	vector<PeptideIdentification> pep_ids;
 	vector<ProteinIdentification> prot_ids;
 	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("InclusionExclusionList_3.idXML"),prot_ids,pep_ids);
@@ -223,5 +221,5 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 END_TEST
 
-
+#pragma clang diagnostic pop
 

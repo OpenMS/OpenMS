@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -59,6 +59,7 @@ namespace OpenMS
     float mz;
   };
 
+  bool sort_peaks_by_intensity(const PeakCandidate& a, const PeakCandidate& b); // prototype
   bool sort_peaks_by_intensity(const PeakCandidate& a, const PeakCandidate& b)
   {
     return a.peak_apex_intensity > b.peak_apex_intensity;
@@ -138,12 +139,12 @@ public:
 
     void updateMembers_()
     {
-      signal_to_noise_ = (DoubleReal)param_.getValue("signal_to_noise_");
-      peak_width_ = (DoubleReal)param_.getValue("peak_width");
-      spacing_difference_ = (DoubleReal)param_.getValue("spacing_difference");
-      sn_bin_count_ = (DoubleReal)param_.getValue("sn_bin_count_");
-      nr_iterations_ = (DoubleReal)param_.getValue("nr_iterations_");
-      sn_win_len_ = (DoubleReal)param_.getValue("sn_win_len_");
+      signal_to_noise_ = (double)param_.getValue("signal_to_noise_");
+      peak_width_ = (double)param_.getValue("peak_width");
+      spacing_difference_ = (double)param_.getValue("spacing_difference");
+      sn_bin_count_ = (double)param_.getValue("sn_bin_count_");
+      nr_iterations_ = (double)param_.getValue("nr_iterations_");
+      sn_win_len_ = (double)param_.getValue("sn_win_len_");
 
       check_width_internally_ = param_.getValue("check_width_internally").toBool();
     }

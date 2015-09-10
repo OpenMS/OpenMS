@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,7 +38,6 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 
 #include <vector>
-#include <iostream>
 
 namespace OpenMS
 {
@@ -102,7 +101,7 @@ public:
     }
 
     // Non-mutable access to the scale of the wavelet
-    inline DoubleReal getScale() const
+    inline double getScale() const
     {
       return scale_;
     }
@@ -114,13 +113,13 @@ public:
     }
 
     /// Mutable access to the spacing of raw data
-    inline void setScale(DoubleReal scale)
+    inline void setScale(double scale)
     {
       scale_ = scale;
     }
 
     // Non-mutable access to the spacing of raw data
-    inline DoubleReal getSpacing() const
+    inline double getSpacing() const
     {
       return spacing_;
     }

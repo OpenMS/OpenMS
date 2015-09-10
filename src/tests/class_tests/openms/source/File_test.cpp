@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -100,11 +100,14 @@ START_SECTION((static bool writable(const String &file)))
 END_SECTION
 
 START_SECTION((static String find(const String &filename, StringList directories=StringList())))
-	TEST_EXCEPTION(Exception::FileNotFound,File::find("File.h"))
-  TEST_NOT_EQUAL(File::find("OpenMS_DB.sql"),"");
-  TEST_EXCEPTION(Exception::FileNotFound,File::find(""))
-END_SECTION
+	TEST_EXCEPTION(Exception::FileNotFound, File::find("File.h"))
+  String s_obo = File::find("CV/psi-ms.obo");
+  TEST_EQUAL(s_obo.empty(), false);
+  TEST_EQUAL(File::find(s_obo), s_obo); // iterative finding should return the identical file
   
+  TEST_EXCEPTION(Exception::FileNotFound, File::find(""))
+END_SECTION
+
 START_SECTION((static String findDoc(const String& filename)))
 	TEST_EXCEPTION(Exception::FileNotFound,File::findDoc("non-existing-documentation"))
   // should exist in every valid source tree (we cannot test for Doxyfile since doxygen might not be installed)

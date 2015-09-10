@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche$
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -331,12 +331,11 @@ START_SECTION((bool operator()(const SpectrumType& s) const))
 END_SECTION
 
 
-
 //InPrecursorMZRange
 
 InPrecursorMZRange<MSSpectrum<> >* ptr50 = 0;
 InPrecursorMZRange<MSSpectrum<> >* nullPointer50 = 0;
-START_SECTION((InPrecursorMZRange(const DoubleReal& mz_left, const DoubleReal& mz_right, bool reverse = false)))
+START_SECTION((InPrecursorMZRange(const double& mz_left, const double& mz_right, bool reverse = false)))
 	ptr50 = new InPrecursorMZRange<MSSpectrum<> >(100.0, 200.0);
   TEST_NOT_EQUAL(ptr50, nullPointer50)
 END_SECTION
@@ -377,6 +376,30 @@ START_SECTION((bool operator()(const SpectrumType& s) const))
 
 
 
+END_SECTION
+
+//HasScanPolarity
+
+HasScanPolarity<MSSpectrum<> >* ptr51 = 0;
+HasScanPolarity<MSSpectrum<> >* nullPointer51 = 0;
+START_SECTION((HasScanPolarity(Int polarity,bool reverse = false)))
+  ptr51 = new HasScanPolarity<MSSpectrum<> >(0);
+  TEST_NOT_EQUAL(ptr48, nullPointer51)
+END_SECTION
+
+START_SECTION(([EXTRA]~HasScanPolarity()))
+  delete ptr51;
+END_SECTION
+
+START_SECTION((bool operator()(const SpectrumType& s) const))
+  HasScanPolarity<MSSpectrum<> > s(IonSource::POSITIVE);
+  HasScanPolarity<MSSpectrum<> > s2(IonSource::POSITIVE, true);
+  MSSpectrum<> spec;
+  TEST_EQUAL(s(spec), false);
+  TEST_EQUAL(s2(spec), true);
+  spec.getInstrumentSettings().setPolarity(IonSource::POSITIVE);
+  TEST_EQUAL(s(spec), true);
+  TEST_EQUAL(s2(spec), false);
 END_SECTION
 
 /////////////////////////////////////////////////////////////

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -82,16 +82,16 @@ public:
     Int getCharge() const;
 
     /// sets the calculated mass to charge ratio
-    void setCalculatedMassToCharge(DoubleReal mz);
+    void setCalculatedMassToCharge(double mz);
 
     /// returns the calculated mass to charge ratio
-    DoubleReal getCalculatedMassToCharge() const;
+    double getCalculatedMassToCharge() const;
 
     /// sets the experimental mass to charge ratio
-    void setExperimentalMassToCharge(DoubleReal mz);
+    void setExperimentalMassToCharge(double mz);
 
     /// returns the experimental mass to charge
-    DoubleReal getExperimentalMassToCharge() const;
+    double getExperimentalMassToCharge() const;
 
     /// sets the name
     void setName(const String & name);
@@ -117,8 +117,8 @@ protected:
 
     String id_;                                     ///< identifier
     Int charge_;                                    ///< peptide charge
-    DoubleReal calculated_mass_to_charge_;         ///< calculated mass to charge ratio
-    DoubleReal experimental_mass_to_charge_;         ///< experimental mass to charge ratio
+    double calculated_mass_to_charge_;         ///< calculated mass to charge ratio
+    double experimental_mass_to_charge_;         ///< experimental mass to charge ratio
     String name_;                               ///< name
     bool pass_threshold_;               ///< pass threshold
     Int rank_;                                      ///< rank of the peptide

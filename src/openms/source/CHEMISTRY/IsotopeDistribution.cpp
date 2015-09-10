@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,14 +28,15 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl, Andreas Bertsch $
-// $Authors: Clemens Groepl, Andreas Bertsch $
+// $Maintainer: Chris Bielow $
+// $Authors: Clemens Groepl, Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 //
 #include <cmath>
 #include <iostream>
 #include <cstdlib>
 #include <algorithm>
+#include <limits>
 
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
@@ -175,7 +176,7 @@ namespace OpenMS
     names.push_back("S");
 
     //Averagine element count divided by averagine weight
-    vector<DoubleReal> factors;
+    vector<double> factors;
     factors.push_back(4.9384 / 111.1254);
     factors.push_back(7.7583 / 111.1254);
     factors.push_back(1.3577 / 111.1254);
@@ -209,6 +210,25 @@ namespace OpenMS
     return !(isotope_distribution == *this);
   }
 
+  IsotopeDistribution::ContainerType IsotopeDistribution::fillGaps_(const IsotopeDistribution::ContainerType& id) const
+  {
+    ContainerType id_gapless;
+    Size mass = id.begin()->first;
+    for (ContainerType::const_iterator it = id.begin(); it < id.end(); ++mass) // go through all masses
+    {
+      if (it->first != mass) 
+      { // missing an entry
+        id_gapless.push_back(make_pair(mass, 0.0));
+      }
+      else 
+      { // mass is registered already
+        id_gapless.push_back(*it); // copy
+        ++it;  // ... and advance
+      }
+    }
+    return id_gapless;
+  }
+
   void IsotopeDistribution::convolve_(ContainerType & result, const ContainerType & left, const ContainerType & right) const
   {
     if (left.empty() || right.empty())
@@ -217,46 +237,40 @@ namespace OpenMS
       return;
     }
 
-    ContainerType::size_type r_max = left.size() + right.size() - 1;
+    
+    // ensure the isotope cluster has no gaps 
+    // (e.g. from Bromine there is only Bromine-79 & Bromine-81, so we need to insert Bromine-80 with zero probability)
+    ContainerType left_l = fillGaps_(left);
+    ContainerType right_l = fillGaps_(right);
+
+    ContainerType::size_type r_max = left_l.size() + right_l.size() - 1;
 
     if ((ContainerType::size_type)max_isotope_ != 0 && r_max > (ContainerType::size_type)max_isotope_)
     {
       r_max = (ContainerType::size_type)max_isotope_;
     }
 
+    // pre-fill result with masses
     result.resize(r_max);
     for (ContainerType::size_type i = 0; i != r_max; ++i)
     {
-      result[i] = make_pair(left[0].first + right[0].first + i, 0);
+      result[i] = make_pair(left_l[0].first + right_l[0].first + i, 0);
     }
 
-    // we loop backwards because then the small products tend to come first
-    // (for better numerics)
-    for (SignedSize i = left.size() - 1; i >= 0; --i)
+    // fill result with probabilities
+    // (we loop backwards because then the small products tend to come first, for better numerics)
+    for (SignedSize i = left_l.size() - 1; i >= 0; --i)
     {
-      for (SignedSize j = min<SignedSize>(r_max - i, right.size()) - 1; j >= 0; --j)
+      for (SignedSize j = min<SignedSize>(r_max - i, right_l.size()) - 1; j >= 0; --j)
       {
-        result[i + j].second += left[i].second * right[j].second;
+        result[i + j].second += left_l[i].second * right_l[j].second;
       }
     }
   }
 
   void IsotopeDistribution::convolvePow_(ContainerType & result, const ContainerType & input, Size n) const
   {
-    /*
-    // my code
-    ContainerType tmp, tmp_result;
-    tmp.push_back(make_pair<Size, double>(0, 1));
-    for (Size i=0; i!=n; ++i)
-    {
-        convolve(tmp_result, input, tmp);
-        swap(tmp_result, tmp);
-    }
-    swap(tmp, result);
-    */
-
-
-    // Clemens' code begin
+    // TODO: Maybe use FFT convolve
     if (n == 1)
     {
       result = input;
@@ -277,11 +291,12 @@ namespace OpenMS
       }
     }
 
+    ContainerType input_l = fillGaps_(input);
 
     // get started
     if (n & 1)
     {
-      result = input;
+      result = input_l;
     }
     else
     {
@@ -291,10 +306,10 @@ namespace OpenMS
 
     ContainerType intermediate;
 
-    // to avoid taking unneccessary squares, we check the loop condition
+    // to avoid taking unnecessary squares, we check the loop condition
     // somewhere in the middle
     ContainerType convolution_power;
-    convolveSquare_(convolution_power, input);
+    convolveSquare_(convolution_power, input_l);
     for (Size i = 1;; ++i)
     {
       if (n & (Size(1) << i))
@@ -310,7 +325,6 @@ namespace OpenMS
       convolveSquare_(intermediate, convolution_power);
       swap(intermediate, convolution_power);
     }
-    // Clemens' code end
   }
 
   void IsotopeDistribution::convolveSquare_(ContainerType & result, const ContainerType & input) const
@@ -348,11 +362,10 @@ namespace OpenMS
     {
       double sum(0);
       // loop backwards as most distributions contains a lot of small values at the end
-      for (ConstIterator it = distribution_.end() - 1; it != distribution_.begin(); --it)
+      for (ContainerType::const_reverse_iterator it = distribution_.rbegin(); it != distribution_.rend(); ++it)
       {
         sum += it->second;
       }
-      sum += distribution_.begin()->second;
 
       for (Iterator it = distribution_.begin(); it != distribution_.end(); ++it)
       {
@@ -362,7 +375,7 @@ namespace OpenMS
     return;
   }
 
-  void IsotopeDistribution::trimRight(DoubleReal cutoff)
+  void IsotopeDistribution::trimRight(double cutoff)
   {
     ContainerType::reverse_iterator riter = distribution_.rbegin();
 
@@ -376,7 +389,7 @@ namespace OpenMS
     distribution_.resize(riter.base() - distribution_.begin());
   }
 
-  void IsotopeDistribution::trimLeft(DoubleReal cutoff)
+  void IsotopeDistribution::trimLeft(double cutoff)
   {
     for (ContainerType::iterator iter = distribution_.begin(); iter != distribution_.end(); ++iter)
     {

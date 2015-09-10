@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -62,7 +62,7 @@ namespace OpenMS
     OpenMS::AASequence getAASequence(const OpenMS::TargetedExperiment::Peptide& peptide)
     {
       OpenMS::ModificationsDB* mod_db = OpenMS::ModificationsDB::getInstance();
-      OpenMS::AASequence aas = AASequence(peptide.sequence);
+      OpenMS::AASequence aas = AASequence::fromString(peptide.sequence);
 
       for (std::vector<OpenMS::TargetedExperiment::Peptide::Modification>::const_iterator it = peptide.mods.begin(); it != peptide.mods.end(); ++it)
       {
@@ -89,16 +89,16 @@ namespace OpenMS
         if (nr_modifications_added == 0)
         {
           const ResidueModification * mod = mod_db->getBestModificationsByDiffMonoMass(
-                 peptide.sequence[it->location], it->mono_mass_delta, 1.0); 
+                 peptide.sequence[it->location], it->mono_mass_delta, 1.0);
           if (mod != NULL)
           {
             setModification(it->location, boost::numeric_cast<int>(peptide.sequence.size()), mod->getId(), aas);
           }
           else
           {
-            // could not find any modification ... 
-            std::cerr << "Warning: Could not determine modification with delta mass " << 
-              it->mono_mass_delta << " for peptide " << peptide.sequence << 
+            // could not find any modification ...
+            std::cerr << "Warning: Could not determine modification with delta mass " <<
+              it->mono_mass_delta << " for peptide " << peptide.sequence <<
               " at position " << it->location << std::endl;
             std::cerr << "Skipping this modifcation" << std::endl;
           }

@@ -17,7 +17,6 @@
   <CompoundList>
     <Peptide id="tr_gr1" sequence="PEPTIDEA">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="light"/>
       <userParam name="full_peptide_name" type="xsd:string" value="PEPTIDEA"/>
       <ProteinRef ref="ProteinA"/>
       <RetentionTimeList>
@@ -28,7 +27,6 @@
     </Peptide>
     <Peptide id="tr_gr2" sequence="PEPTIDECE">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="light"/>
       <userParam name="full_peptide_name" type="xsd:string" value="PEPT(Phospho)IDEC(Carbamidomethyl)E"/>
       <ProteinRef ref="ProteinA"/>
       <Modification location="4" monoisotopicMassDelta="79.966331" averageMassDelta="79.9799">
@@ -45,7 +43,6 @@
     </Peptide>
     <Peptide id="78" sequence="QVFIGCPASVADQDAFERR">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="light"/>
       <userParam name="full_peptide_name" type="xsd:string" value="(UniMod:5)QVFIGC(UniMod:4)PASVADQDAFERR(UniMod:11)"/>
       <ProteinRef ref="ProteinC"/>
       <Modification location="0" monoisotopicMassDelta="43.005814" averageMassDelta="43.0247">
@@ -84,6 +81,11 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="1"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y5"/>
+      <userParam name="detecting_transition" type="xsd:string" value="true"/>
+      <userParam name="identifying_transition" type="xsd:string" value="false"/>
+      <userParam name="site_identifying_transition" type="xsd:string" value=""/>
+      <userParam name="site_identifying_class" type="xsd:string" value=""/>
+      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="tr2" peptideRef="tr_gr1">
       <Precursor>
@@ -104,6 +106,11 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="2"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y6"/>
+      <userParam name="detecting_transition" type="xsd:string" value="true"/>
+      <userParam name="identifying_transition" type="xsd:string" value="false"/>
+      <userParam name="site_identifying_transition" type="xsd:string" value=""/>
+      <userParam name="site_identifying_class" type="xsd:string" value=""/>
+      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="tr3" peptideRef="tr_gr2">
       <Precursor>
@@ -124,6 +131,11 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="10000"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y4"/>
+      <userParam name="detecting_transition" type="xsd:string" value="true"/>
+      <userParam name="identifying_transition" type="xsd:string" value="false"/>
+      <userParam name="site_identifying_transition" type="xsd:string" value=""/>
+      <userParam name="site_identifying_class" type="xsd:string" value=""/>
+      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="tr4" peptideRef="tr_gr2">
       <Precursor>
@@ -144,6 +156,11 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="2000"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y5"/>
+      <userParam name="detecting_transition" type="xsd:string" value="true"/>
+      <userParam name="identifying_transition" type="xsd:string" value="false"/>
+      <userParam name="site_identifying_transition" type="xsd:string" value=""/>
+      <userParam name="site_identifying_class" type="xsd:string" value=""/>
+      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="tr5" peptideRef="tr_gr2">
       <Precursor>
@@ -164,6 +181,11 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="4300"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y6"/>
+      <userParam name="detecting_transition" type="xsd:string" value="true"/>
+      <userParam name="identifying_transition" type="xsd:string" value="false"/>
+      <userParam name="site_identifying_transition" type="xsd:string" value=""/>
+      <userParam name="site_identifying_class" type="xsd:string" value=""/>
+      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="454" peptideRef="78">
       <Precursor>
@@ -176,12 +198,18 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001229" name="frag: a ion"/>
           </Interpretation>
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="2714"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b3"/>
+      <userParam name="detecting_transition" type="xsd:string" value="true"/>
+      <userParam name="identifying_transition" type="xsd:string" value="false"/>
+      <userParam name="site_identifying_transition" type="xsd:string" value=""/>
+      <userParam name="site_identifying_class" type="xsd:string" value=""/>
+      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
   </TransitionList>
 </TraML>

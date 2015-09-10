@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -105,7 +105,7 @@ public:
         @see ClusterFunctor, BinaryTreeNode, ClusterAnalyzer
     */
     template <typename Data, typename SimilarityComparator>
-    void cluster(std::vector<Data> & data, const SimilarityComparator & comparator, const ClusterFunctor & clusterer, std::vector<BinaryTreeNode> & cluster_tree, DistanceMatrix<Real> & original_distance)
+    void cluster(std::vector<Data> & data, const SimilarityComparator & comparator, const ClusterFunctor & clusterer, std::vector<BinaryTreeNode> & cluster_tree, DistanceMatrix<float> & original_distance)
     {
       if (original_distance.dimensionsize() != data.size())
       {
@@ -143,7 +143,7 @@ public:
 
     @ingroup SpectraClustering
     */
-    void cluster(std::vector<PeakSpectrum> & data, const BinnedSpectrumCompareFunctor & comparator, double sz, UInt sp, const ClusterFunctor & clusterer, std::vector<BinaryTreeNode> & cluster_tree, DistanceMatrix<Real> & original_distance)
+    void cluster(std::vector<PeakSpectrum> & data, const BinnedSpectrumCompareFunctor & comparator, double sz, UInt sp, const ClusterFunctor & clusterer, std::vector<BinaryTreeNode> & cluster_tree, DistanceMatrix<float> & original_distance)
     {
 
       std::vector<BinnedSpectrum> binned_data;

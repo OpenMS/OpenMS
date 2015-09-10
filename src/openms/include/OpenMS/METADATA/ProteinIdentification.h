@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,7 +38,7 @@
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
-
+#include <OpenMS/CHEMISTRY/Enzyme.h>
 #include <set>
 
 namespace OpenMS
@@ -68,23 +68,25 @@ public:
     /**
         @brief Bundles multiple (e.g. indistinguishable) proteins in a group
     */
-    struct ProteinGroup
+    struct OPENMS_DLLAPI ProteinGroup
     {
       /// Probability of this group
-      DoubleReal probability;
+      double probability;
+
       /// Accessions of (indistinguishable) proteins that belong to the same group
-      StringList accessions;
+      std::vector<String> accessions;
 
-      ProteinGroup() :
-        probability(0.0), accessions()
-      {}
+      ProteinGroup();
 
-      bool operator==(const ProteinGroup rhs) const
-      {
-        return probability == rhs.probability &&
-               accessions == rhs.accessions;
-      }
+      /// Equality operator
+      bool operator==(const ProteinGroup& rhs) const;
 
+      /*
+        @brief Comparison operator (for sorting)
+
+        This operator is intended for sorting protein groups in a "best first" manner. That means higher probabilities are "less" than lower probabilities (!); smaller groups are "less" than larger groups; everything else being equal, accessions are compared lexicographically.
+      */
+      bool operator<(const ProteinGroup& rhs) const;
     };
 
     /// Peak mass type
@@ -112,7 +114,7 @@ public:
     static const std::string NamesOfDigestionEnzyme[SIZE_OF_DIGESTIONENZYME];
 
     /// Search parameters of the DB search
-    struct SearchParameters :
+    struct OPENMS_DLLAPI SearchParameters :
       public MetaInfoInterface
     {
       String db;           ///< The used database
@@ -124,43 +126,15 @@ public:
       std::vector<String> variable_modifications;           ///< Allowed variable modifications
       DigestionEnzyme enzyme;           ///< The enzyme used for cleavage
       UInt missed_cleavages;           ///< The number of allowed missed cleavages
-      DoubleReal peak_mass_tolerance;           ///< Mass tolerance of fragment ions (Dalton)
-      DoubleReal precursor_tolerance;           ///< Mass tolerance of precursor ions (Dalton)
+      double peak_mass_tolerance;           ///< Mass tolerance of fragment ions (Dalton)
+      double precursor_tolerance;           ///< Mass tolerance of precursor ions (Dalton)
+      Enzyme digestion_enzyme;           ///< The cleavage site information in details (from EnzymesDB)
+      
+      SearchParameters();
 
-      SearchParameters() :
-        db(),
-        db_version(),
-        taxonomy(),
-        charges(),
-        mass_type(MONOISOTOPIC),
-        fixed_modifications(),
-        variable_modifications(),
-        enzyme(UNKNOWN_ENZYME),
-        missed_cleavages(0),
-        peak_mass_tolerance(0.0),
-        precursor_tolerance(0.0)
-      {
-      }
+      bool operator==(const SearchParameters & rhs) const;
 
-      bool operator==(const SearchParameters & rhs) const
-      {
-        return db == rhs.db &&
-               db_version == rhs.db_version &&
-               taxonomy == rhs.taxonomy &&
-               charges == rhs.charges &&
-               mass_type == rhs.mass_type &&
-               fixed_modifications == rhs.fixed_modifications &&
-               variable_modifications == rhs.variable_modifications &&
-               enzyme == rhs.enzyme &&
-               missed_cleavages == rhs.missed_cleavages &&
-               peak_mass_tolerance == rhs.peak_mass_tolerance &&
-               precursor_tolerance == rhs.precursor_tolerance;
-      }
-
-      bool operator!=(const SearchParameters & rhs) const
-      {
-        return !(*this == rhs);
-      }
+      bool operator!=(const SearchParameters & rhs) const;
 
     };
 
@@ -189,8 +163,14 @@ public:
     std::vector<ProteinHit> & getHits();
     /// Appends a protein hit
     void insertHit(const ProteinHit & input);
-    /// Sets the protein hits
+
+    /** 
+        @brief Sets the protein hits
+        
+        @note This may invalidate (indistinguishable) protein groups! If necessary, use e.g. @p IDFilter::updateProteinGroups to update the groupings.
+     */
     void setHits(const std::vector<ProteinHit> & hits);
+
     /// Finds a protein hit by accession (returns past-the-end iterator if not found)
     std::vector<ProteinHit>::iterator findHit(const String & accession);
 
@@ -209,9 +189,9 @@ public:
     void insertIndistinguishableProteins(const ProteinGroup & group);
 
     /// Returns the protein significance threshold value
-    DoubleReal getSignificanceThreshold() const;
+    double getSignificanceThreshold() const;
     /// Sets the protein significance threshold value
-    void setSignificanceThreshold(DoubleReal value);
+    void setSignificanceThreshold(double value);
     /// Returns the protein score type
     const String & getScoreType() const;
     /// Sets the protein score type
@@ -276,7 +256,7 @@ protected:
     std::vector<ProteinGroup> protein_groups_;
     /// Indistinguishable proteins: @p accessions[0] is "group leader", @p probability is meaningless
     std::vector<ProteinGroup> indistinguishable_proteins_;
-    DoubleReal protein_significance_threshold_;
+    double protein_significance_threshold_;
     //@}
   };
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Erhan Kenar $
-// $Authors: Erhan Kenar $
+// $Authors: Erhan Kenar, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
@@ -75,6 +75,8 @@ using namespace std;
         For details see @ref OpenMS::AccurateMassSearchEngine "AccurateMassSearchEngine".
 
 
+        @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
         <B>The command line parameters of this tool are:</B>
         @verbinclude UTILS_AccurateMassSearch.cli
 */
@@ -99,6 +101,10 @@ protected:
         setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML"));
         registerOutputFile_("out", "<file>", "", "mzTab file");
         setValidFormats_("out", ListUtils::create<String>("csv"));
+
+        registerOutputFile_("out_annotation", "<file>", "", "A copy of the input file, annotated with matching hits from the database.", false);
+        setValidFormats_("out_annotation", ListUtils::create<String>("featureXML,consensusXML"));
+
 
         // move some params from algorithm section to top level (to support input file functionality)
         Param p = AccurateMassSearchEngine().getDefaults();
@@ -125,7 +131,6 @@ protected:
       p.remove("positive_adducts_file");
       p.remove("negative_adducts_file");
       return p;
-
     }
 
     ExitCodes main_(int, const char**)
@@ -134,11 +139,11 @@ protected:
         //-------------------------------------------------------------
         // parameter handling
         //-------------------------------------------------------------
-
         String in = getStringOption_("in");
         String out = getStringOption_("out");
+        String file_ann = getStringOption_("out_annotation");
 
-        Param ams_param = getParam_().copy("algorithm:", true);
+         Param ams_param = getParam_().copy("algorithm:", true);
         // copy top-level params to algorithm
         ams_param.setValue("db:mapping", getStringOption_("db:mapping"));
         ams_param.setValue("db:struct", getStringOption_("db:struct"));
@@ -148,59 +153,57 @@ protected:
         writeDebug_("Parameters passed to AccurateMassSearch", ams_param, 3);
 
 
-        // mzTAB output datastructure
+        // mzTAB output data structure
         MzTab mztab_output;
         MzTabFile mztab_outfile;
-
+        
+        AccurateMassSearchEngine ams;
+        ams.setParameters(ams_param);
+        ams.init();
+        
         FileTypes::Type filetype = FileHandler::getType(in);
 
         if (filetype == FileTypes::FEATUREXML)
         {
-            FeatureMap<> ms_feat_map;
+          FeatureMap ms_feat_map;
+          FeatureXMLFile().load(in, ms_feat_map);
 
-            FeatureXMLFile().load(in, ms_feat_map);
+          //-------------------------------------------------------------
+          // do the work
+          //-------------------------------------------------------------
+          ams.run(ms_feat_map, mztab_output);
 
-
-            //-------------------------------------------------------------
-            // do the work
-            //-------------------------------------------------------------
-
-            AccurateMassSearchEngine ams;
-            ams.setParameters(ams_param);
-
-            ams.run(ms_feat_map, mztab_output);
-
-            //-------------------------------------------------------------
-            // writing output
-            //-------------------------------------------------------------
-
-            // annotate output with data processing info
-            //addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
-
-
+          //-------------------------------------------------------------
+          // writing output
+          //-------------------------------------------------------------
+          // annotate output with data processing info
+          //addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
+          if (!file_ann.empty())
+          {
+            FeatureXMLFile().store(file_ann, ms_feat_map);
+          }
         }
         else if (filetype == FileTypes::CONSENSUSXML)
         {
-            ConsensusMap ms_cons_map;
+          ConsensusMap ms_cons_map;
 
-            ConsensusXMLFile().load(in, ms_cons_map);
+          ConsensusXMLFile().load(in, ms_cons_map);
 
-            //-------------------------------------------------------------
-            // do the work
-            //-------------------------------------------------------------
+          //-------------------------------------------------------------
+          // do the work
+          //-------------------------------------------------------------
+          ams.run(ms_cons_map, mztab_output);
 
-            AccurateMassSearchEngine ams;
-            ams.setParameters(ams_param);
+          //-------------------------------------------------------------
+          // writing output
+          //-------------------------------------------------------------
 
-            ams.run(ms_cons_map, mztab_output);
-
-            //-------------------------------------------------------------
-            // writing output
-            //-------------------------------------------------------------
-
-            // annotate output with data processing info
-            //addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
-
+          // annotate output with data processing info
+          //addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
+          if (!file_ann.empty())
+          {
+            ConsensusXMLFile().store(file_ann, ms_cons_map);
+          }
         }
 
         mztab_outfile.store(out, mztab_output);

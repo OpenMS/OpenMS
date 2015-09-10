@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -79,8 +79,8 @@ END_SECTION
 
 
 
-START_SECTION([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<DoubleReal> & spec ))
-	DoubleReal masse[255];
+START_SECTION([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<double> & spec ))
+	double masse[255];
 	ResidueDB* rdb = ResidueDB::getInstance();
 		
 	char aa[] = "ARNDCEQGHILKMFPSTWYV";
@@ -95,20 +95,20 @@ START_SECTION([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<DoubleR
 		masse[(int)aa[i]]=r->getMonoWeight(Residue::Internal);
 	}
 	sa = new SuffixArrayTrypticSeqan(text,"");
-	vector<DoubleReal> spec;
+	vector<double> spec;
 	//spec.push_back(178.1864 + 18.0);
 	//spec.push_back(441.4806 + 18.0);
 	//spec.push_back(245.2816);               // AR
 	//spec.push_back(387.4392);
 
 
-	spec.push_back(AASequence("AR").getMonoWeight(Residue::Full));		// AR
-	spec.push_back(AASequence("AAAR").getMonoWeight(Residue::Full));		// AAAR
+	spec.push_back(AASequence::fromString("AR").getMonoWeight(Residue::Full));		// AR
+	spec.push_back(AASequence::fromString("AAAR").getMonoWeight(Residue::Full));		// AAAR
 
-	cerr << 245.2816 << " " << AASequence("AR").getMonoWeight(Residue::Full) << endl;
-	cerr << 387.4392 << " " << AASequence("AAAR").getMonoWeight(Residue::Full) << endl;
+	cerr << 245.2816 << " " << AASequence::fromString("AR").getMonoWeight(Residue::Full) << endl;
+	cerr << 387.4392 << " " << AASequence::fromString("AAAR").getMonoWeight(Residue::Full) << endl;
 
-	vector <vector< pair<pair<SignedSize, SignedSize>,DoubleReal> > > res;
+	vector <vector< pair<pair<SignedSize, SignedSize>,double> > > res;
 	cerr << "res.size()=" << res.size() << endl;
 	sa->findSpec(res, spec);
 	TEST_EQUAL(res.size(),spec.size());
@@ -122,13 +122,13 @@ START_SECTION([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<DoubleR
 	TEST_EQUAL(res.at(1).at(0).first.first,1)
 	TEST_EQUAL(res.at(1).at(0).first.second,4)
 	spec.clear();
-	const vector<DoubleReal> specc2 (spec);
+	const vector<double> specc2 (spec);
 	res.clear();
 	sa->findSpec(res, specc2);
 	TEST_EQUAL(res.size(),0);
 	spec.push_back(441.4806);	
 	spec.push_back(178.1864);
-	const vector<DoubleReal> specc3 (spec);
+	const vector<double> specc3 (spec);
 	res.clear();
 	TEST_EXCEPTION(Exception::InvalidValue, sa->findSpec(res, specc3));
 	ifstream i_stream;
@@ -136,13 +136,13 @@ START_SECTION([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<DoubleR
 	String txt;
 	getline(i_stream,txt);
 	sa = new SuffixArrayTrypticSeqan(txt,"");
-	vector<DoubleReal> spec_new;
+	vector<double> spec_new;
 	for (int i = 500; i < 5000; i += 197) 
 	{
-		spec_new.push_back((DoubleReal)i);
+		spec_new.push_back((double)i);
 	}
 
-	vector<DoubleReal> specc_new(spec_new);
+	vector<double> specc_new(spec_new);
 	res.clear();
 	sa->findSpec(res, specc_new);
 	
@@ -170,7 +170,7 @@ START_SECTION([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<DoubleR
 			String seq = txt.substr(res.at(i).at(j).first.first,res.at(i).at(j).first.second);
 			if (txt[res.at(i).at(j).first.first-1]!='$') TEST_NOT_EQUAL(seq[0],'P');
 			if (txt[res.at(i).at(j).first.first+res.at(i).at(j).first.second]!='$') TEST_EQUAL(seq[seq.length()-1]=='R'||seq[seq.length()-1]=='K',true)
-			DoubleReal m = EmpiricalFormula("H2O").getMonoWeight();
+			double m = EmpiricalFormula("H2O").getMonoWeight();
 			for (Size k = 0; k < seq.length();k++)
 			{
 				m += masse[(int)seq[k]];
@@ -258,7 +258,7 @@ START_SECTION([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<DoubleR
 		for (Size j = 0; j < res[i].size(); j++)
 		{
 			String seq = txt.substr(res.at(i).at(j).first.first,res.at(i).at(j).first.second);
-			DoubleReal m = EmpiricalFormula("H2O").getMonoWeight();
+			double m = EmpiricalFormula("H2O").getMonoWeight();
 			for (Size k = 0; k < seq.length(); k++)
 			{
 				m += masse[(int)seq[k]];

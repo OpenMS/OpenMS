@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,11 +53,11 @@ using namespace OpenMS;
 using namespace std;
 
 
-Real score = 4.4f;
+float score = 4.4f;
 UInt rank = 3;
 String sequence = "ARRAY";
 String accession = "PROOE34";
-
+String description = "class II antigen";
 
 ProteinHit* ptr = 0;	
 ProteinHit* nullPointer = 0;
@@ -71,7 +71,7 @@ START_SECTION(~ProteinHit())
   delete ptr;
 END_SECTION
 
-START_SECTION((ProteinHit(DoubleReal score, UInt rank, String accession, String sequence)))
+START_SECTION((ProteinHit(double score, UInt rank, String accession, String sequence)))
 	ProteinHit hit(score, rank, accession, sequence);
 	TEST_EQUAL(hit.getScore(), score)
 	TEST_EQUAL(hit.getRank(), rank)
@@ -85,6 +85,7 @@ START_SECTION(ProteinHit(const ProteinHit& source))
 	source.setScore(score);
 	source.setRank(rank);
 	source.setAccession(accession);
+	source.setDescription(description);
 	source.setSequence(sequence);
 	source.setMetaValue("label",17);
   source.setCoverage(123.123);
@@ -94,6 +95,7 @@ START_SECTION(ProteinHit(const ProteinHit& source))
 	TEST_EQUAL(hit.getScore(), score)
 	TEST_EQUAL(hit.getRank(), rank)
 	TEST_EQUAL(hit.getAccession(), accession)
+	TEST_EQUAL(hit.getDescription(), description)
 	TEST_EQUAL(hit.getSequence(), sequence)
 	TEST_EQUAL((UInt)hit.getMetaValue("label"),17)
 	TEST_EQUAL(hit.getCoverage(), 123.123)
@@ -104,12 +106,14 @@ START_SECTION(ProteinHit& operator=(const ProteinHit& source))
 	ProteinHit hit2(score, rank, accession, sequence);
 	hit2.setMetaValue("label",17);
 	hit2.setCoverage(123.123);
+	hit2.setDescription(description);
 	
 	hit = hit2;
 	
 	TEST_EQUAL(hit.getScore(), score)
 	TEST_EQUAL(hit.getRank(), rank)
 	TEST_EQUAL(hit.getAccession(), accession)
+	TEST_EQUAL(hit.getDescription(), description)
 	TEST_EQUAL(hit.getSequence(), sequence)
 	TEST_EQUAL((UInt)hit.getMetaValue("label"),17)
 	TEST_EQUAL(hit.getCoverage(), 123.123)
@@ -195,12 +199,18 @@ START_SECTION(const String& getAccession() const)
 	TEST_EQUAL(hit.getAccession(), accession)
 END_SECTION
 
+START_SECTION(const String& getDescription() const)
+	ProteinHit hit(score, rank, accession, sequence);
+  hit.setDescription(description);
+	TEST_EQUAL(hit.getDescription(), description)
+END_SECTION
+
 START_SECTION(const String& getSequence() const)
 	ProteinHit hit(score, rank, accession, sequence);
 	TEST_EQUAL(hit.getSequence(), sequence)
 END_SECTION
 
-START_SECTION(Real getScore() const)
+START_SECTION(float getScore() const)
 	ProteinHit hit(score, rank, accession, sequence);
 	TEST_EQUAL(hit.getScore(), score)
 END_SECTION
@@ -211,7 +221,7 @@ START_SECTION(UInt getRank() const)
 END_SECTION
 
 
-START_SECTION(DoubleReal getCoverage() const)
+START_SECTION(double getCoverage() const)
 	ProteinHit hit(score, rank, accession, sequence);
 	TEST_EQUAL(hit.getCoverage(), -1)
 	hit.setCoverage(123.123);
@@ -225,7 +235,7 @@ START_SECTION(void setRank(UInt newrank))
 	TEST_EQUAL(hit.getRank(), rank)	
 END_SECTION
 
-START_SECTION(void setScore(const DoubleReal score))
+START_SECTION(void setScore(const double score))
 	ProteinHit hit;
 	hit.setScore(score);
 	TEST_EQUAL(hit.getScore(), score);
@@ -243,7 +253,13 @@ START_SECTION(void setAccession(const String& accession))
 	TEST_EQUAL(hit.getAccession(), accession)
 END_SECTION
 
-START_SECTION(void setCoverage(const DoubleReal coverage))
+START_SECTION(void setDescription(const String& description))
+	ProteinHit hit;
+	hit.setDescription(description);
+	TEST_EQUAL(hit.getDescription(), description)
+END_SECTION
+
+START_SECTION(void setCoverage(const double coverage))
 	ProteinHit hit;
 	hit.setCoverage(123.123);
 	TEST_EQUAL(hit.getCoverage(), 123.123)

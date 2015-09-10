@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -98,7 +98,7 @@ namespace OpenMS
     String line;
     ifstream is(filename.c_str());
 
-    Map<String, DoubleReal> mod_to_mass;
+    Map<String, double> mod_to_mass;
     mod_to_mass["Oxidation"] = 15.994915;
     mod_to_mass["Carbamidomethyl"] = 57.02146;
     mod_to_mass["ICAT_light"] = 227.126991;
@@ -145,7 +145,7 @@ namespace OpenMS
         // remove damn (O), also defined in 'Mods=' comment
         peptide.substitute("(O)", "");
         PeptideIdentification id;
-        id.insertHit(PeptideHit(0, 0, split2[1].toInt(), AASequence(peptide)));
+        id.insertHit(PeptideHit(0, 0, split2[1].toInt(), AASequence::fromString(peptide)));
         ids.push_back(id);
         inst_type_correct = true;
       }
@@ -157,7 +157,7 @@ namespace OpenMS
         {
           UInt charge = ids.back().getHits().begin()->getCharge();
           spec.getPrecursors().resize(1);
-          spec.getPrecursors()[0].setMZ((split[1].toDouble() + (DoubleReal)charge * Constants::PROTON_MASS_U) / (DoubleReal)charge);
+          spec.getPrecursors()[0].setMZ((split[1].toDouble() + (double)charge * Constants::PROTON_MASS_U) / (double)charge);
         }
       }
       else if (line.hasPrefix("Comment:"))
@@ -384,7 +384,7 @@ namespace OpenMS
 
         // normalize to 10,000
         RichPeakSpectrum rich_spec = *it;
-        DoubleReal max_int(0);
+        double max_int(0);
         for (RichPeakSpectrum::ConstIterator sit = rich_spec.begin(); sit != rich_spec.end(); ++sit)
         {
           if (sit->getIntensity() > max_int)

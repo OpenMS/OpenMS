@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,9 @@
 
 #ifndef OPENMS_VISUAL_SPECTRUM3DOPENGLCANVAS_H
 #define OPENMS_VISUAL_SPECTRUM3DOPENGLCANVAS_H
+
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <QtOpenGL/QGLWidget>
 
@@ -124,7 +127,7 @@ public:
     ///  returns the mz-value : BB-coordinates  --> value
     double scaledInversMZ(double mz);
     /// returns the BB-intensity -coordinate :  values --> BB-coordinates
-    double scaledIntensity(Real intensity, Size layer_index);
+    double scaledIntensity(float intensity, Size layer_index);
 
     /// recalculates the dot gradient interpolation values.
     void recalculateDotGradient_(Size layer);

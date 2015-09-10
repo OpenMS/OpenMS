@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,9 +32,11 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-
 #ifndef OPENMS_VISUAL_SPECTRUM2DCANVAS_H
 #define OPENMS_VISUAL_SPECTRUM2DCANVAS_H
+
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 // OpenMS
 #include <OpenMS/VISUAL/SpectrumCanvas.h>
@@ -171,7 +173,7 @@ protected:
     */
     void paintDots_(Size layer_index, QPainter& p);
 
-    void paintAllIntensities_(Size layer_index, DoubleReal pen_width, QPainter& painter);
+    void paintAllIntensities_(Size layer_index, double pen_width, QPainter& painter);
 
     /**
       @brief Paints maximum intensity of individual peaks.
@@ -265,19 +267,14 @@ protected:
     // DOcu in base class
     virtual void recalculateSnapFactor_();
 
-    /// m/z projection data
-    ExperimentType projection_mz_;
-    /// RT projection data
-    ExperimentType projection_rt_;
-
     /**
       @brief Returns the position on color @p gradient associated with given intensity.
 
       Takes intensity modes into account.
     */
-    inline Int precalculatedColorIndex_(Real val, const MultiGradient& gradient, DoubleReal snap_factor)
+    inline Int precalculatedColorIndex_(float val, const MultiGradient& gradient, double snap_factor)
     {
-      Real gradientPos;
+      float gradientPos;
       switch (intensity_mode_)
       {
       case IM_NONE:
@@ -307,7 +304,7 @@ protected:
 
       Takes intensity modes into account.
     */
-    inline QColor heightColor_(Real val, const MultiGradient& gradient, DoubleReal snap_factor)
+    inline QColor heightColor_(float val, const MultiGradient& gradient, double snap_factor)
     {
       return gradient.precalculatedColorByIndex(precalculatedColorIndex_(val, gradient, snap_factor));
     }
@@ -320,7 +317,7 @@ protected:
       @param y the chart coordinate y
       @param point returned widget coordinates
     */
-    inline void dataToWidget_(DoubleReal x, DoubleReal y, QPoint& point)
+    inline void dataToWidget_(double x, double y, QPoint& point)
     {
       if (!isMzToXAxis())
       {
@@ -334,6 +331,19 @@ protected:
       }
     }
 
+    /** 
+      @brief For a certain dimension: computes the size a data point would need, such that the image
+             reaches a certain coverage
+      
+      Internally, this function makes use of the members 'canvas_coverage_min_' (giving the fraction (e.g. 20%) of area which should be covered by data)
+      and 'pen_size_max_' (maximum allowed number of pixels per data point).
+
+      @param ratio_data2pixel The current ratio of #data points vs. # pixels of image
+      @param pen_size In/Out param: gives the initial pen size, and is increased (up to @p MAX_PEN_SIZE) to reach desired coverage given by 'canvas_coverage_min_'
+      @return The factor by which @pen_size increased (gives a hint of how many data points should be merged to avoid overplotting)
+    */
+    double adaptPenScaling_(double ratio_data2pixel, double& pen_size) const;
+    
     /// recalculates the dot gradient of a layer
     void recalculateDotGradient_(Size layer);
 
@@ -346,18 +356,13 @@ protected:
     /// Paints a peak icon for feature and consensus feature peaks
     void paintIcon_(const QPoint& pos, const QRgb& color, const String& icon, Size s, QPainter& p) const;
 
-    /// the nearest peak/feature to the mouse cursor
-    PeakIndex selected_peak_;
-    /// start peak/feature of measuring mode
-    PeakIndex measurement_start_;
-
     /// translates the visible area by a given offset specified in fractions of current visible area
-    virtual void translateVisibleArea_(DoubleReal mzShiftRel, DoubleReal rtShiftRel);
+    virtual void translateVisibleArea_(double mzShiftRel, double rtShiftRel);
 
     //docu in base class
-    virtual void translateLeft_();
+    virtual void translateLeft_(Qt::KeyboardModifiers m);
     //docu in base class
-    virtual void translateRight_();
+    virtual void translateRight_(Qt::KeyboardModifiers m);
     //docu in base class
     virtual void translateForward_();
     //docu in base class
@@ -365,6 +370,25 @@ protected:
 
     /// Finishes context menu after customization to peaks, features or consensus features
     void finishContextMenu_(QMenu* context_menu, QMenu* settings_menu);
+
+    /// m/z projection data
+    ExperimentType projection_mz_;
+    /// RT projection data
+    ExperimentType projection_rt_;
+    
+    /// the nearest peak/feature to the mouse cursor
+    PeakIndex selected_peak_;
+    /// start peak/feature of measuring mode
+    PeakIndex measurement_start_;
+    
+    double pen_size_min_; //< minimum number of pixels for one data point
+    double pen_size_max_; //< maximum number of pixels for one data point
+    double canvas_coverage_min_; //< minimum coverage of the canvas required; if lower, points are upscaled in size
+
+  private:
+    /// Default C'tor hidden
+    Spectrum2DCanvas();
+
   };
 }
 

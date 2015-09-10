@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -86,16 +86,16 @@ public:
     /**
         @brief abstract for clustering the indices according to their respective element distances
 
-        @param original_distance DistanceMatrix<Real> containing the distances of the elements to be clustered, will be changed during clustering process, make sure to have a copy or be able to redo
+        @param original_distance DistanceMatrix<float> containing the distances of the elements to be clustered, will be changed during clustering process, make sure to have a copy or be able to redo
         @param cluster_tree vector< BinaryTreeNode >, represents the clustering, each node contains the next merged clusters (not element indices) and their distance, strict order is kept: left_child < right_child,
-        @param threshold Real value, the minimal distance from which on cluster merging is considered unrealistic. By default set to 1, i.e. complete clustering until only one cluster remains
+        @param threshold float value, the minimal distance from which on cluster merging is considered unrealistic. By default set to 1, i.e. complete clustering until only one cluster remains
 
         @p original_distance is considered mirrored at the main diagonal, so only entrys up the main diagonal are used.
         The @p threshold can be taken from the maximal distance of two elements considered related and adapted in a way corresponding to the employed clustering method.
         The results are represented by @p cluster_tree, to get the actual clustering (with element indices) from a certain step of the clustering
         @see BinaryTreeNode , ClusterAnalyzer::cut
     */
-    virtual void operator()(DistanceMatrix<Real> & original_distance, std::vector<BinaryTreeNode> & cluster_tree, const Real threshold = 1) const = 0;
+    virtual void operator()(DistanceMatrix<float> & original_distance, std::vector<BinaryTreeNode> & cluster_tree, const float threshold = 1) const = 0;
 
     /// registers all derived products
     static void registerChildren();

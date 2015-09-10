@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,7 +43,7 @@ Int main()
     PeakSpectrum spectrum;
     spectrum.setRT(i);
     spectrum.setMSLevel(1);
-    for (Real mz = 500.0; mz <= 900; mz += 100.0)
+    for (float mz = 500.0; mz <= 900; mz += 100.0)
     {
       Peak1D peak;
       peak.setMZ(mz + i);

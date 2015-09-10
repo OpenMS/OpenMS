@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -153,6 +153,8 @@ using namespace std;
     for peptides or peptide separation depending on how you trained
     the model.
 
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_RTModel.cli
     <B>INI file documentation of this tool:</B>
@@ -244,13 +246,13 @@ protected:
 
   void loadStringLabelLines_(String                     filename,
                              std::vector<String>& sequences,
-                             std::vector<DoubleReal>& labels)
+                             std::vector<double>& labels)
   {
     TextFile text_file(filename.c_str(), true);
     std::vector<String> parts;
     labels.clear();
 
-    TextFile::iterator it = text_file.begin();
+    TextFile::ConstIterator it = text_file.begin();
     while (it != text_file.end())
     {
       it->split(' ', parts);
@@ -297,36 +299,36 @@ protected:
     vector<PeptideIdentification> identifications_negative;
     vector<String> training_peptides;
     vector<AASequence> training_modified_peptides;
-    vector<DoubleReal> training_retention_times;
+    vector<double> training_retention_times;
     PeptideHit temp_peptide_hit;
     SVMWrapper svm;
     svm.setLogType(log_type_);
     LibSVMEncoder encoder;
     svm_problem* encoded_training_sample = 0;
     String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
-    map<SVMWrapper::SVM_parameter_type, DoubleReal> start_values;
-    map<SVMWrapper::SVM_parameter_type, DoubleReal> step_sizes;
-    map<SVMWrapper::SVM_parameter_type, DoubleReal> end_values;
-    DoubleReal sigma_start = 0;
-    DoubleReal sigma_step_size = 0;
-    DoubleReal sigma_stop = 0;
+    map<SVMWrapper::SVM_parameter_type, double> start_values;
+    map<SVMWrapper::SVM_parameter_type, double> step_sizes;
+    map<SVMWrapper::SVM_parameter_type, double> end_values;
+    double sigma_start = 0;
+    double sigma_step_size = 0;
+    double sigma_stop = 0;
     UInt number_of_partitions = 0;
     UInt number_of_runs = 0;
-    map<SVMWrapper::SVM_parameter_type, DoubleReal> optimized_parameters;
-    map<SVMWrapper::SVM_parameter_type, DoubleReal>::iterator parameters_iterator;
+    map<SVMWrapper::SVM_parameter_type, double> optimized_parameters;
+    map<SVMWrapper::SVM_parameter_type, double>::iterator parameters_iterator;
 
     bool additive_cv = true;
     Param additional_parameters;
-    pair<DoubleReal, DoubleReal> sigmas;
+    pair<double, double> sigmas;
     Int temp_type = POLY;
     String debug_string = "";
-    DoubleReal sigma = 0.1;
+    double sigma = 0.1;
     UInt k_mer_length = 1;
     Int border_length = 0;
     bool separation_prediction = false;
-    map<String, DoubleReal> redundant_peptides;
-    map<AASequence, DoubleReal> redundant_modified_peptides;
-    DoubleReal max_std = 0.;
+    map<String, double> redundant_peptides;
+    map<AASequence, double> redundant_modified_peptides;
+    double max_std = 0.;
     bool textfile_input = false;
     SVMData training_sample;
     bool first_dim_rt = false;
@@ -363,7 +365,7 @@ protected:
     if (skip_cv) LOG_INFO << "Cross-validation disabled!\n";
     else LOG_INFO << "Cross-validation enabled!\n";
 
-    Real total_gradient_time = getDoubleOption_("total_gradient_time");
+    float total_gradient_time = getDoubleOption_("total_gradient_time");
     max_std = getDoubleOption_("max_std");
     if (!separation_prediction && total_gradient_time   < 0)
     {
@@ -463,14 +465,14 @@ protected:
 
     if (svm.getIntParameter(SVMWrapper::SVM_TYPE) == EPSILON_SVR && !skip_cv)
     {
-      DoubleReal p_start = getDoubleOption_("cv:p_start");
-      DoubleReal p_step_size = getDoubleOption_("cv:p_step_size");
+      double p_start = getDoubleOption_("cv:p_start");
+      double p_step_size = getDoubleOption_("cv:p_step_size");
       if (!additive_cv && p_step_size <= 1)
       {
         writeLog_("Step size of p <= 1 and additive_cv is false. Aborting!");
         return ILLEGAL_PARAMETERS;
       }
-      DoubleReal p_stop = getDoubleOption_("cv:p_stop");
+      double p_stop = getDoubleOption_("cv:p_stop");
 
       start_values.insert(make_pair(SVMWrapper::P, p_start));
       step_sizes.insert(make_pair(SVMWrapper::P, p_step_size));
@@ -479,14 +481,14 @@ protected:
 
     if (!skip_cv)
     {
-      DoubleReal c_start = getDoubleOption_("cv:c_start");
-      DoubleReal c_step_size = getDoubleOption_("cv:c_step_size");
+      double c_start = getDoubleOption_("cv:c_start");
+      double c_step_size = getDoubleOption_("cv:c_step_size");
       if (!additive_cv && c_step_size <= 1)
       {
         writeLog_("Step size of c <= 1 and additive_cv is false. Aborting!");
         return ILLEGAL_PARAMETERS;
       }
-      DoubleReal c_stop = getDoubleOption_("cv:c_stop");
+      double c_stop = getDoubleOption_("cv:c_stop");
 
       start_values.insert(make_pair(SVMWrapper::C, c_start));
       step_sizes.insert(make_pair(SVMWrapper::C, c_step_size));
@@ -496,14 +498,14 @@ protected:
     if ((svm.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVR || svm.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC)
        && !skip_cv)
     {
-      DoubleReal nu_start = getDoubleOption_("cv:nu_start");
-      DoubleReal nu_step_size = getDoubleOption_("cv:nu_step_size");
+      double nu_start = getDoubleOption_("cv:nu_start");
+      double nu_step_size = getDoubleOption_("cv:nu_step_size");
       if (!additive_cv && nu_step_size <= 1)
       {
         writeLog_("Step size of nu <= 1 and additive_cv is false. Aborting!");
         return ILLEGAL_PARAMETERS;
       }
-      DoubleReal nu_stop = getDoubleOption_("cv:nu_stop");
+      double nu_stop = getDoubleOption_("cv:nu_stop");
 
       start_values.insert(make_pair(SVMWrapper::NU, nu_start));
       step_sizes.insert(make_pair(SVMWrapper::NU, nu_step_size));
@@ -571,7 +573,7 @@ protected:
         {
           if (temp_type == SVMWrapper::OLIGO)
           {
-            redundant_modified_peptides.insert(make_pair(AASequence(training_peptides[i]),
+            redundant_modified_peptides.insert(make_pair(AASequence::fromString(training_peptides[i]),
                                                          training_retention_times[i]));
           }
           else
@@ -627,12 +629,12 @@ protected:
                 if (temp_type != SVMWrapper::OLIGO)
                 {
                   redundant_peptides.insert(make_pair(temp_peptide_hit.getSequence().toUnmodifiedString(),
-                                                      (DoubleReal)(identifications[i].getMetaValue("first_dim_rt"))));
+                                                      (double)(identifications[i].getMetaValue("first_dim_rt"))));
                 }
                 else
                 {
                   redundant_modified_peptides.insert(make_pair(temp_peptide_hit.getSequence(),
-                                                               (DoubleReal)(identifications[i].getMetaValue("first_dim_rt"))));
+                                                               (double)(identifications[i].getMetaValue("first_dim_rt"))));
                 }
               }
               else
@@ -640,12 +642,12 @@ protected:
                 if (temp_type != SVMWrapper::OLIGO)
                 {
                   redundant_peptides.insert(make_pair(temp_peptide_hit.getSequence().toUnmodifiedString(),
-                                                      (DoubleReal)(identifications[i].getMetaValue("RT"))));
+                                                      identifications[i].getRT()));
                 }
                 else
                 {
                   redundant_modified_peptides.insert(make_pair(temp_peptide_hit.getSequence(),
-                                                               (DoubleReal)(identifications[i].getMetaValue("RT"))));
+                                                               identifications[i].getRT()));
                 }
               }
             }
@@ -673,17 +675,17 @@ protected:
     // with the median as retention time. Unique peptides are added immediately.
     if (!separation_prediction && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
     {
-      map<AASequence, DoubleReal>::iterator it = redundant_modified_peptides.begin();
-      DoubleReal temp_variance = 0;
-      DoubleReal temp_median = 0;
-      DoubleReal temp_mean = 0;
-      vector<DoubleReal> temp_values;
-      pair<map<AASequence, DoubleReal>::iterator, map<AASequence, DoubleReal>::iterator> it_pair;
+      map<AASequence, double>::iterator it = redundant_modified_peptides.begin();
+
+      double temp_median = 0;
+      double temp_mean = 0;
+      vector<double> temp_values;
+      pair<map<AASequence, double>::iterator, map<AASequence, double>::iterator> it_pair;
 
       while (it != redundant_modified_peptides.end())
       {
         temp_values.clear();
-        temp_variance = 0;
+        double temp_variance = 0;
 
         it_pair = redundant_modified_peptides.equal_range(it->first);
         for (it = it_pair.first; it != it_pair.second; ++it)
@@ -704,7 +706,7 @@ protected:
           }
           else
           {
-            temp_median = ((DoubleReal) temp_values[temp_values.size() / 2]
+            temp_median = ((double) temp_values[temp_values.size() / 2]
                            + temp_values[temp_values.size() / 2 - 1]) / 2;
           }
 
@@ -733,17 +735,16 @@ protected:
 
     if (!separation_prediction && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) != SVMWrapper::OLIGO)
     {
-      map<String, DoubleReal>::iterator it = redundant_peptides.begin();
-      DoubleReal temp_variance = 0;
-      DoubleReal temp_median = 0;
-      DoubleReal temp_mean = 0;
-      vector<DoubleReal> temp_values;
-      pair<map<String, DoubleReal>::iterator, map<String, DoubleReal>::iterator> it_pair;
+      map<String, double>::iterator it = redundant_peptides.begin();
+      double temp_median = 0;
+      double temp_mean = 0;
+      vector<double> temp_values;
+      pair<map<String, double>::iterator, map<String, double>::iterator> it_pair;
 
       while (it != redundant_peptides.end())
       {
         temp_values.clear();
-        temp_variance = 0;
+        double temp_variance = 0;
 
         it_pair = redundant_peptides.equal_range(it->first);
         for (it = it_pair.first; it != it_pair.second; ++it)
@@ -764,7 +765,7 @@ protected:
           }
           else
           {
-            temp_median = ((DoubleReal) temp_values[temp_values.size() / 2]
+            temp_median = ((double) temp_values[temp_values.size() / 2]
                            + temp_values[temp_values.size() / 2 - 1]) / 2;
           }
 
@@ -875,7 +876,7 @@ protected:
           digest = parts[parts.size() - 1];
         }
       }
-      DoubleReal cv_quality = 0.0;
+      double cv_quality = 0.0;
 
       if (temp_type == SVMWrapper::OLIGO)
       {

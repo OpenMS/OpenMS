@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,34 +37,36 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/MATH/STATISTICS/RegressionUtils.h>
 
-#include <iostream>
+#include "Wm5Vector2.h"
+#include "Wm5ApprLineFit2.h"
+#include "Wm5LinearSystem.h"
+
+#include <cmath>
 #include <vector>
-#include <gsl/gsl_fit.h>
-#include <gsl/gsl_statistics.h>
-#include <gsl/gsl_cdf.h>
+
+using std::pow;
 
 namespace OpenMS
 {
   namespace Math
   {
     /**
-            @brief This class offers functions to perform least-squares fits to a straight line model, \f$ Y(c,x) = c_0 + c_1 x \f$.
+      @brief This class offers functions to perform least-squares fits to a straight line model, \f$ Y(c,x) = c_0 + c_1 x \f$.
 
-            It encapsulates the GSL methods for a weighted and an unweighted linear regression.
+      Next to the intercept with the y-axis and the slope of the fitted line, this class computes the:
+        - squared Pearson coefficient
+        - value of the t-distribution
+        - standard deviation of the residuals
+        - standard error of the slope
+        - intercept with the x-axis (useful for additive series experiments)
+        - lower border of confidence interval
+        - higher border of confidence interval
+        - chi squared value
+        - x mean
 
-            Next to the intercept with the y-axis and the slope of the fitted line, this class computes the:
-            - squared pearson coefficient
-            - value of the t-distribution
-            - standard deviation of the residuals
-            - standard error of the slope
-            - intercept with the x-axis (useful for additive series experiments)
-            - lower border of confidence interval
-            - higher border of confidence interval
-            - chi squared value
-            - x mean
-
-            @ingroup Math
+      @ingroup Math
     */
     class OPENMS_DLLAPI LinearRegression
     {
@@ -112,24 +114,6 @@ public:
       void computeRegression(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin);
 
       /**
-          @brief This function computes the best-fit linear regression coefficient \f$ (c_0) \f$
-          of the model \f$ Y = c_1 X \f$ for the dataset \f$ (x, y) \f$.
-
-          The values in x-dimension of the dataset \f$ (x,y) \f$ are given by the iterator range [x_begin,x_end)
-          and the corresponding y-values start at position y_begin.
-
-          For a  "x %" Confidence Interval use confidence_interval_P = x/100.
-          For example the 95% Confidence Interval is supposed to be an interval that has a 95% chance of
-          containing the true value of the parameter.
-
-          @return If an error occurred during the fit.
-
-          @exception Exception::UnableToFit is thrown if fitting cannot be performed
-      */
-      template <typename Iterator>
-      void computeRegressionNoIntercept(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin);
-
-      /**
           @brief This function computes the best-fit linear regression coefficients \f$ (c_0,c_1) \f$
           of the model \f$ Y = c_0 + c_1 X \f$ for the weighted dataset \f$ (x, y) \f$.
 
@@ -148,31 +132,30 @@ public:
       template <typename Iterator>
       void computeRegressionWeighted(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin, Iterator w_begin);
 
-
       /// Non-mutable access to the y-intercept of the straight line
-      DoubleReal getIntercept() const;
+      double getIntercept() const;
       /// Non-mutable access to the slope of the straight line
-      DoubleReal getSlope() const;
+      double getSlope() const;
       /// Non-mutable access to the x-intercept of the straight line
-      DoubleReal getXIntercept() const;
+      double getXIntercept() const;
       /// Non-mutable access to the lower border of confidence interval
-      DoubleReal getLower() const;
+      double getLower() const;
       /// Non-mutable access to the upper border of confidence interval
-      DoubleReal getUpper() const;
+      double getUpper() const;
       /// Non-mutable access to the value of the t-distribution
-      DoubleReal getTValue() const;
-      /// Non-mutable access to the squared pearson coefficient
-      DoubleReal getRSquared() const;
+      double getTValue() const;
+      /// Non-mutable access to the squared Pearson coefficient
+      double getRSquared() const;
       /// Non-mutable access to the standard deviation of the residuals
-      DoubleReal getStandDevRes() const;
+      double getStandDevRes() const;
       /// Non-mutable access to the residual mean
-      DoubleReal getMeanRes() const;
+      double getMeanRes() const;
       /// Non-mutable access to the standard error of the slope
-      DoubleReal getStandErrSlope() const;
+      double getStandErrSlope() const;
       /// Non-mutable access to the chi squared value
-      DoubleReal getChiSquared() const;
+      double getChiSquared() const;
       /// Non-mutable access to relative standard deviation
-      DoubleReal getRSD() const;
+      double getRSD() const;
 
 protected:
 
@@ -203,80 +186,83 @@ protected:
 
 
       /// Computes the goodness of the fitted regression line
-      void computeGoodness_(double * X, double * Y, int N, double confidence_interval_P);
+      void computeGoodness_(const std::vector<Wm5::Vector2d>& points, double confidence_interval_P);
 
-      /// Copies the distance(x_begin,x_end) elements starting at x_begin and y_begin into the arrays x_array and y_array
+      /// Compute the chi squared of a linear fit
       template <typename Iterator>
-      void iteratorRange2Arrays_(Iterator x_begin, Iterator x_end, Iterator y_begin, double * x_array, double * y_array);
+      double computeChiSquare(Iterator x_begin, Iterator x_end, Iterator y_begin, double slope, double intercept);
 
-      /// Copy the distance(x_begin,x_end) elements starting at  x_begin, y_begin and w_begin into the arrays x_array, y_array and w_array
+      /// Compute the chi squared of a weighted linear fit
       template <typename Iterator>
-      void iteratorRange3Arrays_(Iterator x_begin, Iterator x_end, Iterator y_begin, Iterator w_begin, double * x_array, double * y_array, double * w_array);
+      double computeWeightedChiSquare(Iterator x_begin, Iterator x_end, Iterator y_begin, Iterator w_begin, double slope, double intercept);
 
 private:
 
       /// Not implemented
-      LinearRegression(const LinearRegression & arg);
+      LinearRegression(const LinearRegression& arg);
       /// Not implemented
-      LinearRegression & operator=(const LinearRegression & arg);
-    };
+      LinearRegression& operator=(const LinearRegression& arg);
+
+    }; //class
+
+
+    namespace
+    {
+      //given x compute y = slope * x + intercept
+      double computePointY(double x, double slope, double intercept)
+      {
+        return slope * x + intercept;
+      }
+
+    } //namespace
+
+    //x, y, w must be of same size
+    template <typename Iterator>
+    double LinearRegression::computeChiSquare(Iterator x_begin, Iterator x_end, Iterator y_begin, double slope, double intercept)
+    {
+      double chi_squared = 0.0;
+      Iterator xIter = x_begin;
+      Iterator yIter = y_begin;
+      for (; xIter != x_end; ++xIter, ++yIter)
+      {
+        chi_squared += std::pow(*yIter - computePointY(*xIter, slope, intercept), 2);
+      }
+
+      return chi_squared;
+    }
+
+    //x, y, w must be of same size
+    template <typename Iterator>
+    double LinearRegression::computeWeightedChiSquare(Iterator x_begin, Iterator x_end, Iterator y_begin, Iterator w_begin, double slope, double intercept)
+    {
+      double chi_squared = 0.0;
+      Iterator xIter = x_begin;
+      Iterator yIter = y_begin;
+      Iterator wIter = w_begin;
+      for (; xIter != x_end; ++xIter, ++yIter, ++wIter)
+      {
+        chi_squared += *wIter * std::pow(*yIter - computePointY(*xIter, slope, intercept), 2);
+      }
+
+      return chi_squared;
+    }
 
     template <typename Iterator>
     void LinearRegression::computeRegression(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin)
     {
-      int N = int(distance(x_begin, x_end));
-
-      double * X = new double[N];
-      double * Y = new double[N];
-      iteratorRange2Arrays_(x_begin, x_end, y_begin, X, Y);
-
-      double cov00, cov01, cov11;
+      std::vector<Wm5::Vector2d> points = iteratorRange2Wm5Vectors(x_begin, x_end, y_begin);
 
       // Compute the unweighted linear fit.
       // Get the intercept and the slope of the regression Y_hat=intercept_+slope_*X
-      // and the value of Chi squared, the covariances of the intercept and the slope
-      int error = gsl_fit_linear(X, 1, Y, 1, N, &intercept_, &slope_, &cov00, &cov01, &cov11, &chi_squared_);
+      // and the value of Chi squared (sum( (y - evel(x))^2)
+      bool pass = Wm5::HeightLineFit2<double>(static_cast<int>(points.size()), &points.front(), slope_, intercept_);
+      chi_squared_ = computeChiSquare(x_begin, x_end, y_begin, slope_, intercept_);
 
-      if (!error)
+      if (pass)
       {
-        computeGoodness_(X, Y, N, confidence_interval_P);
+        computeGoodness_(points, confidence_interval_P);
       }
-
-      delete[] X;
-      delete[] Y;
-
-      if (error)
-      {
-        throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-LinearRegression", "Could not fit a linear model to the data");
-      }
-    }
-
-    template <typename Iterator>
-    void LinearRegression::computeRegressionNoIntercept(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin)
-    {
-      int N = int(distance(x_begin, x_end));
-
-      double * X = new double[N];
-      double * Y = new double[N];
-      iteratorRange2Arrays_(x_begin, x_end, y_begin, X, Y);
-
-      double cov;
-
-      // Compute the linear fit.
-      // Get the intercept and the slope of the regression Y_hat=intercept_+slope_*X
-      // and the value of Chi squared, the covariances of the intercept and the slope
-      int error = gsl_fit_mul(X, 1, Y, 1, N, &slope_, &cov, &chi_squared_);
-      intercept_ = 0.0;
-
-      if (!error)
-      {
-        computeGoodness_(X, Y, N, confidence_interval_P);
-      }
-
-      delete[] X;
-      delete[] Y;
-
-      if (error)
+      else
       {
         throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-LinearRegression", "Could not fit a linear model to the data");
       }
@@ -285,62 +271,54 @@ private:
     template <typename Iterator>
     void LinearRegression::computeRegressionWeighted(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin, Iterator w_begin)
     {
-      int N = int(distance(x_begin, x_end));
-
-      double * X = new double[N];
-      double * Y = new double[N];
-      double * W = new double[N];
-      iteratorRange3Arrays_(x_begin, x_end, y_begin, w_begin, X, Y, W);
-
-      double cov00, cov01, cov11;
-
       // Compute the weighted linear fit.
       // Get the intercept and the slope of the regression Y_hat=intercept_+slope_*X
       // and the value of Chi squared, the covariances of the intercept and the slope
-      int error = gsl_fit_wlinear(X, 1, W, 1, Y, 1, N, &intercept_, &slope_, &cov00, &cov01, &cov11, &chi_squared_);
+      std::vector<Wm5::Vector2d> points = iteratorRange2Wm5Vectors(x_begin, x_end, y_begin);
+      // Compute sums for linear system. copy&paste from GeometricTools Wm5ApprLineFit2.cpp
+      // and modified to allow weights
+      int numPoints = points.size();
+      double sumX = 0, sumY = 0;
+      double sumXX = 0, sumXY = 0;
+      double sumW = 0;
+      Iterator wIter = w_begin;
 
-      if (!error)
+      for (int i = 0; i < numPoints; ++i, ++wIter)
       {
-        computeGoodness_(X, Y, N, confidence_interval_P);
+        sumX += (*wIter) * points[i].X();
+        sumY += (*wIter) * points[i].Y();
+        sumXX += (*wIter) * points[i].X() * points[i].X();
+        sumXY += (*wIter) * points[i].X() * points[i].Y();
+        sumW += (*wIter);
       }
+      //create matrices to solve Ax = B
+      double A[2][2] =
+      {
+        {sumXX, sumX},
+        {sumX, sumW}
+      };
+      double B[2] =
+      {
+        sumXY,
+        sumY
+      };
+      double X[2];
 
-      delete[] X;
-      delete[] Y;
-      delete[] W;
+      bool nonsingular = Wm5::LinearSystem<double>().Solve2(A, B, X);
+      if (nonsingular)
+      {
+        slope_ = X[0];
+        intercept_ = X[1];
+      }
+      chi_squared_ = computeWeightedChiSquare(x_begin, x_end, y_begin, w_begin, slope_, intercept_);
 
-      if (error)
+      if (nonsingular)
+      {
+        computeGoodness_(points, confidence_interval_P);
+      }
+      else
       {
         throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-LinearRegression", "Could not fit a linear model to the data");
-      }
-    }
-
-    template <typename Iterator>
-    void LinearRegression::iteratorRange2Arrays_(Iterator x_begin, Iterator x_end, Iterator y_begin, double * x_array, double * y_array)
-    {
-      int i = 0;
-      while (x_begin < x_end)
-      {
-        x_array[i] = *x_begin;
-        y_array[i] = *y_begin;
-        ++x_begin;
-        ++y_begin;
-        ++i;
-      }
-    }
-
-    template <typename Iterator>
-    void LinearRegression::iteratorRange3Arrays_(Iterator x_begin, Iterator x_end, Iterator y_begin, Iterator w_begin, double * x_array, double * y_array, double * w_array)
-    {
-      int i = 0;
-      while (x_begin < x_end)
-      {
-        x_array[i] = *x_begin;
-        y_array[i] = *y_begin;
-        w_array[i] = *w_begin;
-        ++x_begin;
-        ++y_begin;
-        ++w_begin;
-        ++i;
       }
     }
 

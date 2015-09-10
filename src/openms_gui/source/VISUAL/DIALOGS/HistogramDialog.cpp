@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -78,22 +78,22 @@ namespace OpenMS
   {
   }
 
-  Real HistogramDialog::getLeftSplitter()
+  float HistogramDialog::getLeftSplitter()
   {
     return mw_->getLeftSplitter();
   }
 
-  Real HistogramDialog::getRightSplitter()
+  float HistogramDialog::getRightSplitter()
   {
     return mw_->getRightSplitter();
   }
 
-  void HistogramDialog::setLeftSplitter(Real position)
+  void HistogramDialog::setLeftSplitter(float position)
   {
     mw_->setLeftSplitter(position);
   }
 
-  void HistogramDialog::setRightSplitter(Real position)
+  void HistogramDialog::setRightSplitter(float position)
   {
     mw_->setRightSplitter(position);
   }

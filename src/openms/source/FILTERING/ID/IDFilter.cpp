@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,6 +53,8 @@ namespace OpenMS
   void IDFilter::filterIdentificationsUnique(const PeptideIdentification& identification,
                                              PeptideIdentification& filtered_identification)
   {
+    // there's no "PeptideHit::operator<" defined, so we can't use a set nor
+    // "sort" + "unique" from the standard library
     vector<PeptideHit> hits;
     filtered_identification = identification;
     vector<PeptideHit> temp_hits = identification.getHits();
@@ -69,7 +71,7 @@ namespace OpenMS
     filtered_identification.setHits(hits);
   }
 
-  void IDFilter::filterIdentificationsByMzError(const PeptideIdentification& identification, DoubleReal mass_error, bool unit_ppm, PeptideIdentification& filtered_identification)
+  void IDFilter::filterIdentificationsByMzError(const PeptideIdentification& identification, double mass_error, bool unit_ppm, PeptideIdentification& filtered_identification)
   {
     vector<PeptideHit> hits;
     filtered_identification = identification;
@@ -84,13 +86,13 @@ namespace OpenMS
         charge = 1;
       }
 
-      DoubleReal exp_mz = (DoubleReal)identification.getMetaValue("MZ");
-      DoubleReal theo_mz =  (it->getSequence().getMonoWeight() + (DoubleReal)charge * Constants::PROTON_MASS_U) / (DoubleReal)charge;
-      DoubleReal error(exp_mz - theo_mz);
+      double exp_mz = identification.getMZ();
+      double theo_mz =  (it->getSequence().getMonoWeight() + (double)charge * Constants::PROTON_MASS_U) / (double)charge;
+      double error(exp_mz - theo_mz);
 
       if (unit_ppm)
       {
-        error = error / theo_mz * (DoubleReal)1e6;
+        error = error / theo_mz * (double)1e6;
       }
 
       if (fabs(error) <= mass_error)
@@ -114,13 +116,13 @@ namespace OpenMS
 
     if (!identification.getHits().empty())
     {
-      Real optimal_value = identification.getHits()[0].getScore();
+      float optimal_value = identification.getHits()[0].getScore();
       new_peptide_indices.push_back(0);
 
       // searching for peptide(s) with maximal score
       for (Size i = 1; i < identification.getHits().size(); i++)
       {
-        Real temp_score = identification.getHits()[i].getScore();
+        float temp_score = identification.getHits()[i].getScore();
         bool new_leader = false;
         if ((identification.isHigherScoreBetter() && (temp_score > optimal_value))
            || (!identification.isHigherScoreBetter() && (temp_score < optimal_value)))
@@ -158,67 +160,43 @@ namespace OpenMS
                                                Size min_length,
                                                Size max_length)
   {
-    vector<Size> new_peptide_indices;
-    vector<PeptideHit> filtered_peptide_hits;
-
     filtered_identification = identification;
-    filtered_identification.setHits(vector<PeptideHit>());
-    Size ml = max_length;
     if (max_length < min_length)
     {
-      ml = UINT_MAX;
+      max_length = UINT_MAX;
     }
 
     const vector<PeptideHit>& temp_peptide_hits = identification.getHits();
-
-    for (Size i = 0; i < temp_peptide_hits.size(); i++)
+    vector<PeptideHit> filtered_peptide_hits;
+    for (Size i = 0; i < temp_peptide_hits.size(); ++i)
     {
-      if (temp_peptide_hits[i].getSequence().size() >= min_length && temp_peptide_hits[i].getSequence().size() <= ml)
+      if (min_length <= temp_peptide_hits[i].getSequence().size() && temp_peptide_hits[i].getSequence().size() <= max_length)
       {
-        new_peptide_indices.push_back(i);
+        filtered_peptide_hits.push_back(temp_peptide_hits[i]);
       }
     }
 
-    for (Size i = 0; i < new_peptide_indices.size(); i++)
-    {
-      filtered_peptide_hits.push_back(identification.getHits()[new_peptide_indices[i]]);
-    }
-    if (!filtered_peptide_hits.empty())
-    {
-      filtered_identification.setHits(filtered_peptide_hits);
-      filtered_identification.assignRanks();
-    }
+    filtered_identification.setHits(filtered_peptide_hits);
+    filtered_identification.assignRanks();
   }
 
   void IDFilter::filterIdentificationsByCharge(const PeptideIdentification& identification,
                                                Int min_charge,
                                                PeptideIdentification& filtered_identification)
   {
-    vector<Size> new_peptide_indices;
-    vector<PeptideHit> filtered_peptide_hits;
-
     filtered_identification = identification;
-    filtered_identification.setHits(vector<PeptideHit>());
-
     const vector<PeptideHit>& temp_peptide_hits = identification.getHits();
-
-    for (Size i = 0; i < temp_peptide_hits.size(); i++)
+    vector<PeptideHit> filtered_peptide_hits;
+    for (Size i = 0; i < temp_peptide_hits.size(); ++i)
     {
       if (temp_peptide_hits[i].getCharge() >= min_charge)
       {
-        new_peptide_indices.push_back(i);
+        filtered_peptide_hits.push_back(temp_peptide_hits[i]);
       }
     }
 
-    for (Size i = 0; i < new_peptide_indices.size(); i++)
-    {
-      filtered_peptide_hits.push_back(identification.getHits()[new_peptide_indices[i]]);
-    }
-    if (!filtered_peptide_hits.empty())
-    {
-      filtered_identification.setHits(filtered_peptide_hits);
-      filtered_identification.assignRanks();
-    }
+    filtered_identification.setHits(filtered_peptide_hits);
+    filtered_identification.assignRanks();
   }
 
   void IDFilter::filterIdentificationsByVariableModifications(const PeptideIdentification& identification,
@@ -318,7 +296,7 @@ namespace OpenMS
 
     for (Size i = 0; i < identification.getHits().size(); i++)
     {
-      if (no_protein_identifiers || accession_sequences == "*") // filter by sequence alone if no protein accesssions are available
+      if (no_protein_identifiers || accession_sequences == "*") // filter by sequence alone if no protein accessions are available
       {
         if (protein_sequences.find(identification.getHits()[i].getSequence().toUnmodifiedString()) != String::npos)
         {
@@ -327,9 +305,8 @@ namespace OpenMS
       }
       else // filter by protein accessions
       {
-        for (vector<String>::const_iterator ac_it = identification.getHits()[i].getProteinAccessions().begin();
-             ac_it != identification.getHits()[i].getProteinAccessions().end();
-             ++ac_it)
+        std::set<String> protein_accessions = identification.getHits()[i].extractProteinAccessions();
+        for (set<String>::const_iterator ac_it = protein_accessions.begin(); ac_it != protein_accessions.end(); ++ac_it)
         {
           if (accession_sequences.find("*" + *ac_it) != String::npos)
           {
@@ -374,21 +351,65 @@ namespace OpenMS
     filtered_identification.assignRanks();
   }
 
+  void IDFilter::filterIdentificationsByProteinAccessions(const PeptideIdentification& identification,
+                                                 const StringList& proteins,
+                                                 PeptideIdentification& filtered_identification)
+  {
+    filtered_identification = identification;
+    filtered_identification.setHits(vector<PeptideHit>());
+    vector<PeptideHit> filtered_peptide_hits;
+
+    for (Size i = 0; i < identification.getHits().size(); i++)
+    {
+      std::set<String> protein_accessions = identification.getHits()[i].extractProteinAccessions();
+      for (set<String>::const_iterator ac_it = protein_accessions.begin(); ac_it != protein_accessions.end(); ++ac_it)
+      {
+        if (std::find(proteins.begin(), proteins.end(), *ac_it) != proteins.end())
+        {
+          filtered_peptide_hits.push_back(identification.getHits()[i]);
+          break;
+        }
+      }
+    }
+
+    filtered_identification.setHits(filtered_peptide_hits);
+    filtered_identification.assignRanks();
+  }
+
+  void IDFilter::filterIdentificationsByProteinAccessions(const ProteinIdentification& identification,
+                                                 const StringList& proteins,
+                                                 ProteinIdentification& filtered_identification)
+  {
+    filtered_identification = identification;
+    filtered_identification.setHits(vector<ProteinHit>());
+    vector<ProteinHit> filtered_protein_hits;
+
+    for (Size i = 0; i < identification.getHits().size(); i++)
+    {
+      if (std::find(proteins.begin(), proteins.end(), identification.getHits()[i].getAccession()) != proteins.end())
+      {
+        filtered_protein_hits.push_back(identification.getHits()[i]);
+      }
+    }
+
+    filtered_identification.setHits(filtered_protein_hits);
+    filtered_identification.assignRanks();
+  }
+
   void IDFilter::filterIdentificationsByExclusionPeptides(const PeptideIdentification& identification,
                                                           const set<String>& peptides,
+                                                          bool ignore_modifications,
                                                           PeptideIdentification& filtered_identification)
   {
-    String protein_sequences;
-    String accession_sequences;
     vector<PeptideHit> filtered_peptide_hits;
-    PeptideHit temp_peptide_hit;
 
     filtered_identification = identification;
     filtered_identification.setHits(vector<PeptideHit>());
 
     for (Size i = 0; i < identification.getHits().size(); i++)
     {
-      if (find(peptides.begin(), peptides.end(), identification.getHits()[i].getSequence().toString()) == peptides.end())
+      String query = ignore_modifications ? identification.getHits()[i].getSequence().toUnmodifiedString() : identification.getHits()[i].getSequence().toString();
+      if (find(peptides.begin(), peptides.end(), query) == peptides.end())
       {
         filtered_peptide_hits.push_back(identification.getHits()[i]);
       }
@@ -402,9 +423,9 @@ namespace OpenMS
 
   void IDFilter::filterIdentificationsByRTFirstDimPValues(const PeptideIdentification& identification,
                                                           PeptideIdentification& filtered_identification,
-                                                          DoubleReal p_value)
+                                                          double p_value)
   {
-    DoubleReal border = 1 - p_value;
+    double border = 1 - p_value;
     vector<PeptideHit> filtered_peptide_hits;
     PeptideHit temp_peptide_hit;
 
@@ -417,7 +438,7 @@ namespace OpenMS
     {
       if (identification.getHits()[i].metaValueExists("predicted_RT_p_value_first_dim"))
       {
-        if ((DoubleReal)(identification.getHits()[i].getMetaValue("predicted_RT_p_value_first_dim")) <= border)
+        if ((double)(identification.getHits()[i].getMetaValue("predicted_RT_p_value_first_dim")) <= border)
         {
           filtered_peptide_hits.push_back(identification.getHits()[i]);
         }
@@ -437,9 +458,9 @@ namespace OpenMS
 
   void IDFilter::filterIdentificationsByRTPValues(const PeptideIdentification& identification,
                                                   PeptideIdentification& filtered_identification,
-                                                  DoubleReal p_value)
+                                                  double p_value)
   {
-    DoubleReal border = 1 - p_value;
+    double border = 1 - p_value;
     vector<PeptideHit> filtered_peptide_hits;
     PeptideHit temp_peptide_hit;
 
@@ -452,7 +473,7 @@ namespace OpenMS
     {
       if (identification.getHits()[i].metaValueExists("predicted_RT_p_value"))
       {
-        if ((DoubleReal)(identification.getHits()[i].getMetaValue("predicted_RT_p_value")) <= border)
+        if ((double)(identification.getHits()[i].getMetaValue("predicted_RT_p_value")) <= border)
         {
           filtered_peptide_hits.push_back(identification.getHits()[i]);
         }
@@ -470,7 +491,7 @@ namespace OpenMS
     }
   }
 
-  void IDFilter::removeUnreferencedProteinHits(const ProteinIdentification& identification, const vector<PeptideIdentification> peptide_identifications, ProteinIdentification& filtered_identification)
+  void IDFilter::removeUnreferencedProteinHits(const ProteinIdentification& identification, const vector<PeptideIdentification>& peptide_identifications, ProteinIdentification& filtered_identification)
   {
     const String& run_identifier = identification.getIdentifier();
 
@@ -485,12 +506,8 @@ namespace OpenMS
         // extract protein accessions of each peptide hit
         for (Size j = 0; j != tmp_pep_hits.size(); ++j)
         {
-          const std::vector<String>& protein_accessions = tmp_pep_hits[j].getProteinAccessions();
-          for (Size k = 0; k != protein_accessions.size(); ++k)
-          {
-            String key = protein_accessions[k];
-            proteinaccessions_with_peptides.insert(key);
-          }
+          const std::set<String>& protein_accessions = tmp_pep_hits[j].extractProteinAccessions();
+          proteinaccessions_with_peptides.insert(protein_accessions.begin(), protein_accessions.end());
         }
       }
     }
@@ -514,8 +531,8 @@ namespace OpenMS
     filtered_identification.setHits(filtered_protein_hits);
   }
 
-  void IDFilter::removeUnreferencedPeptideHits(const ProteinIdentification& identification, 
-                                               std::vector<PeptideIdentification>& peptide_identifications,
+  void IDFilter::removeUnreferencedPeptideHits(const ProteinIdentification& identification,
+                                               vector<PeptideIdentification>& peptide_identifications,
                                                bool delete_unreferenced_peptide_hits /* = false */)
   {
     const String& run_identifier = identification.getIdentifier();
@@ -528,7 +545,7 @@ namespace OpenMS
       all_prots.insert(temp_protein_hits[j].getAccession());
     }
 
-    std::vector<PeptideIdentification> filtered_peptide_identifications;
+    vector<PeptideIdentification> filtered_peptide_identifications;
     // remove peptides which are not referenced
     for (Size i = 0; i != peptide_identifications.size(); ++i)
     {
@@ -540,27 +557,35 @@ namespace OpenMS
         // check protein accessions of each peptide hit
         for (Size j = 0; j != tmp_pep_hits.size(); ++j)
         {
-          const std::vector<String>& acc = tmp_pep_hits[j].getProteinAccessions();
-          std::vector<String> valid_prots;
-          for (Size k = 0; k != acc.size(); ++k)
-          { // find valid proteins
-            if (all_prots.find(acc[k]) != all_prots.end())
+          vector<PeptideEvidence> hit_peptide_evidences = tmp_pep_hits[j].getPeptideEvidences();
+          vector<PeptideEvidence> valid_peptide_evidence;
+
+          for (vector<PeptideEvidence>::const_iterator pe_it = hit_peptide_evidences.begin(); pe_it != hit_peptide_evidences.end(); ++pe_it)
+          {
+            // find valid proteins
+            if (all_prots.find(pe_it->getProteinAccession()) != all_prots.end())
             {
-              valid_prots.push_back(acc[k]);
+              valid_peptide_evidence.push_back(*pe_it);
             }
           }
-          if (valid_prots.size() > 0 || !delete_unreferenced_peptide_hits)
-          { // if present, copy the hit
+
+          if (!valid_peptide_evidence.empty() || !delete_unreferenced_peptide_hits)
+          {
+            // if present, copy the hit
             filtered_pep_hits.push_back(tmp_pep_hits[j]);
-            filtered_pep_hits.back().setProteinAccessions(valid_prots);
+            filtered_pep_hits.back().setPeptideEvidences(valid_peptide_evidence);
           }
         }
         // if the peptide has hits, we use it
-        if (filtered_pep_hits.size() > 0)
+        if (!filtered_pep_hits.empty())
         {
           filtered_peptide_identifications.push_back(peptide_identifications[i]);
           filtered_peptide_identifications.back().setHits(filtered_pep_hits);
         }
+      }
+      else    // peptide is from another run, let it pass the filter‏
+      {
+        filtered_peptide_identifications.push_back(peptide_identifications[i]);
       }
     }
 
@@ -568,14 +593,79 @@ namespace OpenMS
     filtered_peptide_identifications.swap(peptide_identifications);
   }
 
-
-  bool IDFilter::filterIdentificationsByMetaValueRange(const PeptideIdentification& identification, const String& key, DoubleReal low, DoubleReal high, bool missing)
+  bool IDFilter::filterIdentificationsByMetaValueRange(const PeptideIdentification& identification, const String& key, double low, double high, bool missing)
   {
     if (!identification.metaValueExists(key)) return missing;
 
-    DoubleReal value = identification.getMetaValue(key);
+    double value = identification.getMetaValue(key);
     return (value >= low) && (value <= high);
   }
 
+  void IDFilter::filterIdentificationsByRT(const vector<PeptideIdentification>& identifications, double min_rt, double max_rt, vector<PeptideIdentification>& filtered_identifications)
+  {
+    filtered_identifications.clear();
+
+    for (Size i = 0; i < identifications.size(); ++i)
+    {
+      if (identifications[i].getRT() >= min_rt && identifications[i].getRT() <= max_rt)
+      {
+        filtered_identifications.push_back(identifications[i]);
+      }
+    }
+  }
+
+  void IDFilter::filterIdentificationsByMZ(const vector<PeptideIdentification>& identifications, double min_mz, double max_mz, vector<PeptideIdentification>& filtered_identifications)
+  {
+    filtered_identifications.clear();
+
+    for (Size i = 0; i < identifications.size(); ++i)
+    {
+      if (identifications[i].getMZ() >= min_mz && identifications[i].getMZ() <= max_mz)
+      {
+        filtered_identifications.push_back(identifications[i]);
+      }
+    }
+  }
+
+  bool IDFilter::updateProteinGroups(const vector<ProteinIdentification::ProteinGroup>& groups, const vector<ProteinHit>& hits, vector<ProteinIdentification::ProteinGroup>& filtered_groups)
+  {
+    bool valid = true;
+
+    // we'll do lots of look-ups, so use a suitable data structure:
+    set<String> accessions;
+    for (vector<ProteinHit>::const_iterator hit_it = hits.begin();
+         hit_it != hits.end(); ++hit_it)
+    {
+      accessions.insert(hit_it->getAccession());
+    }
+
+    filtered_groups.clear();
+    filtered_groups.reserve(groups.size());
+    for (vector<ProteinIdentification::ProteinGroup>::const_iterator group_it =
+           groups.begin(); group_it != groups.end(); ++group_it)
+    {
+      ProteinIdentification::ProteinGroup filtered;
+      filtered.accessions.reserve(group_it->accessions.size());
+      for (vector<String>::const_iterator acc_it = group_it->accessions.begin();
+           acc_it != group_it->accessions.end(); ++acc_it)
+      {
+        if (accessions.count(*acc_it) > 0)
+        {
+          filtered.accessions.push_back(*acc_it);
+        }
+      }
+      if (!filtered.accessions.empty())
+      {
+        if (filtered.accessions.size() < group_it->accessions.size())
+        {
+          valid = false; // some proteins removed from group
+        }
+        filtered.probability = group_it->probability;
+        filtered_groups.push_back(filtered);
+      }
+    }
+    
+    return valid;
+  }
 
 } // namespace OpenMS

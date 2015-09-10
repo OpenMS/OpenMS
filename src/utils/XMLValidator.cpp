@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
@@ -88,9 +89,9 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "file to validate");
-    setValidFormats_("in", ListUtils::create<String>("mzML,mzData,featureXML,idXML,consensusXML,mzXML,ini,pepXML,TraML,xml"));
+    setValidFormats_("in", ListUtils::create<String>("mzML,mzData,featureXML,mzid,idXML,consensusXML,mzXML,ini,pepXML,TraML,xml"));
     registerInputFile_("schema", "<file>", "", "schema to validate against.\nIf no schema is given, the file is validated against the latest schema of the file type.", false);
-    setValidFormats_("schema", ListUtils::create<String>("xsd"));    
+    setValidFormats_("schema", ListUtils::create<String>("xsd"));
   }
 
   ExitCodes main_(int, const char**)
@@ -118,47 +119,47 @@ protected:
       {
       case FileTypes::MZDATA:
         cout << " against schema version " << MzDataFile().getVersion() << endl;
-        valid = MzDataFile().isValid(in);
+        valid = MzDataFile().isValid(in, std::cerr);
         break;
 
       case FileTypes::FEATUREXML:
         cout << " against schema version " << FeatureXMLFile().getVersion() << endl;
-        valid = FeatureXMLFile().isValid(in);
+        valid = FeatureXMLFile().isValid(in, std::cerr);
         break;
 
       case FileTypes::IDXML:
         cout << " against schema version " << IdXMLFile().getVersion() << endl;
-        valid = IdXMLFile().isValid(in);
+        valid = IdXMLFile().isValid(in, std::cerr);
         break;
 
       case FileTypes::CONSENSUSXML:
         cout << " against schema version " << ConsensusXMLFile().getVersion() << endl;
-        valid = ConsensusXMLFile().isValid(in);
+        valid = ConsensusXMLFile().isValid(in, std::cerr);
         break;
 
       case FileTypes::MZXML:
         cout << " against schema version " << MzXMLFile().getVersion() << endl;
-        valid = MzXMLFile().isValid(in);
+        valid = MzXMLFile().isValid(in, std::cerr);
         break;
 
       case FileTypes::INI:
         cout << " against schema version " << ParamXMLFile().getVersion() << endl;
-        valid = ParamXMLFile().isValid(in);
+        valid = ParamXMLFile().isValid(in, std::cerr);
         break;
 
       case FileTypes::PEPXML:
         cout << " against schema version " << PepXMLFile().getVersion() << endl;
-        valid = PepXMLFile().isValid(in);
+        valid = PepXMLFile().isValid(in, std::cerr);
         break;
 
       case FileTypes::MZML:
         cout << " against schema version " << MzMLFile().getVersion() << endl;
-        valid = MzMLFile().isValid(in);
+        valid = MzMLFile().isValid(in, std::cerr);
         break;
 
       case FileTypes::TRAML:
         cout << " against schema version " << TraMLFile().getVersion() << endl;
-        valid = TraMLFile().isValid(in);
+        valid = TraMLFile().isValid(in, std::cerr);
         break;
 
       default:

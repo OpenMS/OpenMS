@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: Marc Sturm $
+// $Maintainer: Chris Bielow $
+// $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_TEXTFILE_H
@@ -44,8 +44,7 @@ namespace OpenMS
 
   @ingroup FileIO
   */
-  class OPENMS_DLLAPI TextFile :
-    public std::vector<String>
+  class OPENMS_DLLAPI TextFile
   {
 
 public:
@@ -61,8 +60,8 @@ public:
     /// Non-mutable reverse iterator
     typedef std::vector<String>::const_reverse_iterator ConstReverseIterator;
     //@}
-    
-    
+
+
     ///Default constructor
     TextFile();
 
@@ -72,41 +71,66 @@ public:
     /**
       @brief Constructor with filename
 
-      @param filename The input file name.
-      @param trim_lines Whether or not the lines are trimmed when reading them from file.
-      @param first_n If set, only @p first_n lines the lines from the beginning of the file are read.
+      @param filename @see load()
+      @param trim_lines @see load()
+      @param first_n @see load()
+      @param skip_empty_lines @see load()
 
       @exception Exception::FileNotFound is thrown if the file could not be opened.
     */
-    TextFile(const String & filename, bool trim_lines = false, Int first_n = -1);
+    TextFile(const String& filename, bool trim_lines = false, Int first_n = -1, bool skip_empty_lines = false);
 
     /**
       @brief Loads data from a text file.
 
-      @param filename The input file name.
-      @param trim_lines Whether or not the lines are trimmed when reading them from file.
-      @param first_n If set, only @p first_n lines the lines from the beginning of the file are read.
+      @param filename The input file name
+      @param trim_lines Whether or not the lines are trimmed when reading them from file
+      @param first_n If set, only @p first_n lines the lines from the beginning of the file are read
+      @param skip_empty_lines Should empty lines be skipped? If used in conjunction with @p trim_lines, also lines with only whitespace will be skipped. Skipped lines do not count towards the total number of read lines.
 
       @exception Exception::FileNotFound is thrown if the file could not be opened.
     */
-    void load(const String & filename, bool trim_lines = false, Int first_n = -1);
+    void load(const String& filename, bool trim_lines = false, Int first_n = -1, bool skip_empty_lines = false);
 
     /**
       @brief Writes the data to a file
 
-      @note this function uses unix-style linebreaks
+      @note This function uses platform-dependent line breaks
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
-    void store(const String & filename);
-    
+    void store(const String& filename);
+
     /// Operator for appending entries with less code
     template <typename StringType>
-    TextFile & operator<<(const StringType & string)
+    TextFile& operator<<(const StringType& string)
     {
-      this->push_back(string);
+      buffer_.push_back(static_cast<String>(string));
       return *this;
     }
+
+    template <typename StringType>
+    void addLine(const StringType& line)
+    {
+      buffer_.push_back(static_cast<String>(line));
+    }
+
+    /**
+      @brief Gives access to the underlying text buffer.
+    */
+    ConstIterator begin() const;
+
+    Iterator begin();
+    /**
+     @brief Gives access to the underlying text buffer.
+     */
+    ConstIterator end() const;
+
+    Iterator end();
+
+protected:
+    /// Internal buffer storing the lines before writing them to the file.
+    std::vector<String> buffer_;
   };
 
 } // namespace OpenMS

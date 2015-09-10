@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -61,10 +61,10 @@ public:
 
 
     ///Applies the algorithm. The input consensus map is compared to the ground truth.
-    virtual void evaluate(const ConsensusMap & conensus_map_in, const ConsensusMap & consensus_map_gt, const DoubleReal & rt_dev, const DoubleReal & mz_dev, const Peak2D::IntensityType & int_dev, const bool use_charge, DoubleReal & out) = 0;
+    virtual void evaluate(const ConsensusMap & conensus_map_in, const ConsensusMap & consensus_map_gt, const double & rt_dev, const double & mz_dev, const Peak2D::IntensityType & int_dev, const bool use_charge, double & out) = 0;
 
     ///Decides if two features are the same, based on maximum allowed deviations for retention time, m/z and intensity.
-    bool isSameHandle(const FeatureHandle & lhs, const FeatureHandle & rhs, const DoubleReal & rt_dev, const DoubleReal & mz_dev, const Peak2D::IntensityType & int_dev, const bool use_charge);
+    bool isSameHandle(const FeatureHandle & lhs, const FeatureHandle & rhs, const double & rt_dev, const double & mz_dev, const Peak2D::IntensityType & int_dev, const bool use_charge);
 
     /// Register all derived classes in this method
     static void registerChildren();

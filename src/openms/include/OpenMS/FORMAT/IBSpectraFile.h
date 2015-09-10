@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,7 +51,7 @@ namespace OpenMS
   class AASequence;
   
   /**
-    @brief Implements the export of consensusmaps into the ibspectra format
+    @brief Implements the export of consensusmaps into the IBSpectra format
            used by isobar to load quantification results.
   */
   class OPENMS_DLLAPI IBSpectraFile
@@ -93,15 +93,15 @@ private:
     /**
       @brief Constructs the matching file header for the given quantitation method.
       @param quantMethod The used quantitation method.
-      @return The header of the ibspectra file for the given quantiation method.
+      @return The header of the IBSpectra file for the given quantitation method.
     */
     StringList constructHeader_(const IsobaricQuantitationMethod& quantMethod);
     
     /**
-      @brief Generates the modif string for the given AASequence.
+      @brief Generates the modification string for the given AASequence.
      
-      @param seqeunce The sequence for which the modif string should be generated.
-      @return The modif string for the given seequence.
+      @param sequence The sequence for which the modification string should be generated.
+      @return The modification string for the given sequence.
     */
     String getModifString_(const AASequence& sequence);
   };

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,7 +44,7 @@ namespace OpenMS
   /**
       @brief CompareFunctor for 2Dpoints
 
-      each 2D point as a pair of Real holds a Real coordinate for each Dimension
+      each 2D point as a pair of float holds a float coordinate for each Dimension
 
       @ingroup DummyComparison
   */
@@ -53,7 +53,7 @@ namespace OpenMS
   {
 private:
 
-    Real scale_;
+    float scale_;
 
 public:
 
@@ -73,30 +73,30 @@ public:
     /**
         @brief calculates similarity between two points in euclidean space
 
-        @param a a pair of Real, giving the x and the y coordinates of the first point
-        @param b a pair of Real, giving the x and the y coordinates of the second point
+        @param a a pair of float, giving the x and the y coordinates of the first point
+        @param b a pair of float, giving the x and the y coordinates of the second point
 
         calculates similarity from the euclidean distance between given 2D points, scaled in [0,1] @see setScale
     */
-    Real operator()(const std::pair<Real, Real> & a, const std::pair<Real, Real> & b) const;
+    float operator()(const std::pair<float, float> & a, const std::pair<float, float> & b) const;
 
     /**
         @brief calculates self similarity, will yield 0
 
-        @param c a pair of Real, giving the x and the y coordinates
+        @param c a pair of float, giving the x and the y coordinates
 
     */
-    Real operator()(const std::pair<Real, Real> & c) const;
+    float operator()(const std::pair<float, float> & c) const;
 
     /**
         @brief clusters the indices according to their respective element distances
 
-        @param x Real value to scale the result
+        @param x float value to scale the result
         @throw Exception::DivisionByZero if scaling is inapplicable because it is 0
 
         sets the scale so that similarities can be correctly calculated from distances. Should be set so that the greatest distance in a chosen set will be scales to 1 (i.e. @p x = greatest possible distance in the set)
 */
-    void setScale(Real x);
+    void setScale(float x);
 
   };
 

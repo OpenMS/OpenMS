@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -78,7 +78,7 @@ public:
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String & filename, std::vector<ProteinIdentification> & protein_ids, std::vector<PeptideIdentification> & peptide_ids);
+    void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids);
 
     /**
         @brief Loads the identifications of an idXML file
@@ -89,7 +89,7 @@ public:
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String & filename, std::vector<ProteinIdentification> & protein_ids, std::vector<PeptideIdentification> & peptide_ids, String & document_id);
+    void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, String& document_id);
 
     /**
         @brief Stores the data in an idXML file
@@ -98,29 +98,29 @@ public:
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
-    void store(String filename, const std::vector<ProteinIdentification> & protein_ids, const std::vector<PeptideIdentification> & peptide_ids, const String & document_id = "");
+    void store(String filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids, const String& document_id = "");
 
 protected:
     // Docu in base class
-    virtual void endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname);
+    virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
 
     // Docu in base class
-    virtual void startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes);
+    virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
 
     /// Add data from ProteinGroups to a MetaInfoInterface
-    void addProteinGroups_(MetaInfoInterface & meta, const std::vector<ProteinIdentification::ProteinGroup> & groups, const String & group_name, const std::map<String, UInt> & accession_to_id);
+    void addProteinGroups_(MetaInfoInterface& meta, const std::vector<ProteinIdentification::ProteinGroup>& groups, const String& group_name, const std::map<String, UInt>& accession_to_id);
 
     /// Read and store ProteinGroup data
-    void getProteinGroups_(std::vector<ProteinIdentification::ProteinGroup> & groups, const String & group_name);
+    void getProteinGroups_(std::vector<ProteinIdentification::ProteinGroup>& groups, const String& group_name);
 
     /// @name members for loading data
     //@{
     /// Pointer to fill in protein identifications
-    std::vector<ProteinIdentification> * prot_ids_;
+    std::vector<ProteinIdentification>* prot_ids_;
     /// Pointer to fill in peptide identifications
-    std::vector<PeptideIdentification> * pep_ids_;
+    std::vector<PeptideIdentification>* pep_ids_;
     /// Pointer to last read object with MetaInfoInterface
-    MetaInfoInterface * last_meta_;
+    MetaInfoInterface* last_meta_;
     /// Search parameters map (key is the "id")
     std::map<String, ProteinIdentification::SearchParameters> parameters_;
     /// Temporary search parameters variable
@@ -135,10 +135,12 @@ protected:
     ProteinHit prot_hit_;
     /// Temporary peptide hit
     PeptideHit pep_hit_;
+    /// Temporary peptide evidences
+    std::vector<PeptideEvidence> peptide_evidences_;
     /// Map from protein id to accession
     std::map<String, String> proteinid_to_accession_;
     /// Document identifier
-    String * document_id_;
+    String* document_id_;
     /// true if a prot id is contained in the current run
     bool prot_id_in_run_;
     //@}

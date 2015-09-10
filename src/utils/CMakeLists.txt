@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2012.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -39,26 +39,43 @@ cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
 # OpenMS' UTILS tools
 
 # add OpenMS includes
-include_directories(${OPENMS_INCLUDE_DIRECTORIES})
+include_directories(SYSTEM ${OpenMS_INCLUDE_DIRECTORIES})
+add_definitions(/DBOOST_ALL_NO_LIB)
 
 # add all the tools
 set(UTILS_executables)
 include(executables.cmake)
 foreach(i ${UTILS_executables})
-	add_executable(${i} ${i}.cpp)
-	target_link_libraries(${i} ${OPENMS_LIBRARIES})
+  add_executable(${i} ${i}.cpp)
+  # we also want to install each util
+  install_tool(${i})
+  target_link_libraries(${i} ${OpenMS_LIBRARIES})
 endforeach(i)
+
+# some regular UTILS tools need the GUI lib, only build them when WITH_GUI is enabled
+if(WITH_GUI)
+  ## some regular UTILS need the GUI lib
+  include_directories(SYSTEM ${OpenMS_GUI_INCLUDE_DIRECTORIES})
+  foreach(i ${UTILS_executables_with_GUIlib})
+    add_executable(${i} ${i}.cpp)
+    # we also want to install each util
+    install_tool(${i})
+    target_link_libraries(${i} ${OpenMS_GUI_LIBRARIES})
+  endforeach()
+
+  set(UTILS_executables ${UTILS_executables} ${UTILS_executables_with_GUIlib})
+endif()
 
 # collection target
 add_custom_target(UTILS)
 add_dependencies(UTILS ${UTILS_executables})
 
-## some regular UTILS need the GUI lib
-include_directories(${OPENMS_GUI_INCLUDE_DIRECTORIES})
-foreach(i ${UTILS_executables_with_GUIlib})
-	target_link_libraries(${i} ${OPENMS_GUI_LIBRARIES})
-endforeach(i)
+# FFSuperHirn requires linking against SuperHirn
+include_directories(SYSTEM ${SuperHirn_INCLUDE_DIRECTORIES})
+target_link_libraries(FeatureFinderSuperHirn SuperHirn)
 
 ## export the list of UTILS tools into CACHE
 set(UTILS_TOOLS ${UTILS_executables}
     CACHE INTERNAL "OpenMS' UTILS tools" FORCE)
+
+openms_doc_path("${PROJECT_SOURCE_DIR}")

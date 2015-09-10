@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -71,7 +71,7 @@ START_SECTION(~OpenSwathScoring())
 }
 END_SECTION
 
-START_SECTION((void initialize(DoubleReal rt_normalization_factor_, int add_up_spectra_, DoubleReal spacing_for_spectra_resampling_, OpenSwath_Scores_Usage & su_)))
+START_SECTION((void initialize(double rt_normalization_factor_, int add_up_spectra_, double spacing_for_spectra_resampling_, OpenSwath_Scores_Usage & su_)))
 {
 	ptr = new OpenSwathScoring();
   OpenSwath_Scores_Usage su;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -154,14 +154,14 @@ private:
     ///Internal class needed for type-punning
     union Reinterpreter64_
     {
-      DoubleReal f;
+      double f;
       Int64 i;
     };
 
     ///Internal class needed for type-punning
     union Reinterpreter32_
     {
-      Real f;
+      float f;
       Int32 i;
     };
 
@@ -384,7 +384,7 @@ private:
     {
       if (element_size == 4)
       {
-        const Real * float_buffer = reinterpret_cast<const Real *>(byte_buffer);
+        const float * float_buffer = reinterpret_cast<const float *>(byte_buffer);
         if (buffer_size % element_size != 0)
           throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Bad BufferCount?");
         Size float_count = buffer_size / element_size;
@@ -394,7 +394,7 @@ private:
       }
       else
       {
-        const DoubleReal * float_buffer = reinterpret_cast<const DoubleReal *>(byte_buffer);
+        const double * float_buffer = reinterpret_cast<const double *>(byte_buffer);
 
         if (buffer_size % element_size != 0)
           throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Bad BufferCount?");
@@ -417,7 +417,7 @@ private:
     {
       if (element_size == 4)
       {
-        const Real * float_buffer = reinterpret_cast<const Real *>(byte_buffer);
+        const float * float_buffer = reinterpret_cast<const float *>(byte_buffer);
         if (buffer_size % element_size != 0)
           throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Bad BufferCount while decoding?");
 
@@ -426,7 +426,7 @@ private:
       }
       else
       {
-        const DoubleReal * float_buffer = reinterpret_cast<const DoubleReal *>(byte_buffer);
+        const double * float_buffer = reinterpret_cast<const double *>(byte_buffer);
 
         if (buffer_size % element_size != 0)
           throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Bad BufferCount while decoding?");
@@ -448,16 +448,19 @@ private:
   void Base64::decodeUncompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out)
   {
     out.clear();
-    if (in == "")
+
+    // The length of a base64 string is a always a multiple of 4 (always 3
+    // bytes are encoded as 4 characters)
+    if (in.size() < 4)
+    {
       return;
+    }
 
     Size src_size = in.size();
     // last one or two '=' are skipped if contained
     int padding = 0;
-    if (in[src_size - 1] == '=')
-      padding++;
-    if (in[src_size - 2] == '=')
-      padding++;
+    if (in[src_size - 1] == '=') padding++;
+    if (in[src_size - 2] == '=') padding++;
 
     src_size -= padding;
 
@@ -488,14 +491,20 @@ private:
     out.reserve((UInt)(std::ceil((4.0 * src_size) / 3.0) + 6.0));
 
     // sort all read bytes correctly into a char[4] (double) or
-    // char[8] (Real) and push_back when necessary.
+    // char[8] (float) and push_back when necessary.
     for (Size i = 0; i < src_size; i += 4)
     {
       // decode 4 Base64-Chars to 3 Byte
+      // -------------------------------
+
+      // decode the first two chars
       a = decoder_[(int)in[i] - 43] - 62;
       b = decoder_[(int)in[i + 1] - 43] - 62;
       if (i + 1 >= src_size)
+      {
         b = 0;
+      }
+      // write first byte (6 bits from a and 2 highest bits from b)
       element[offset] = (unsigned char) ((a << 2) | (b >> 4));
       written++;
       offset = (offset + inc) % element_size;
@@ -507,9 +516,13 @@ private:
         strcpy(element, "");
       }
 
+      // decode the third char
       a = decoder_[(int)in[i + 2] - 43] - 62;
       if (i + 2 >= src_size)
+      {
         a = 0;
+      }
+      // write second byte (4 lowest bits from b and 4 highest bits from a)
       element[offset] = (unsigned char) (((b & 15) << 4) | (a >> 2));
       written++;
       offset = (offset + inc) % element_size;
@@ -521,9 +534,13 @@ private:
         strcpy(element, "");
       }
 
+      // decode the fourth char
       b = decoder_[(int)in[i + 3] - 43] - 62;
       if (i + 3 >= src_size)
+      {
         b = 0;
+      }
+      // write third byte (2 lowest bits from a and 6 bits from b)
       element[offset] = (unsigned char) (((a & 3) << 6) | b);
       written++;
       offset = (offset + inc) % element_size;
@@ -677,7 +694,7 @@ private:
     czip.resize(4);
     czip[0] = (bazip.size() & 0xff000000) >> 24;
     czip[1] = (bazip.size() & 0x00ff0000) >> 16;
-    czip[2] = (bazip.size() | 0x00000800) >> 8;
+    czip[2] = (bazip.size() & 0x0000ff00) >> 8;
     czip[3] = (bazip.size() & 0x000000ff);
     czip += bazip;
     QByteArray base64_uncompressed = qUncompress(czip);
@@ -774,16 +791,19 @@ private:
   void Base64::decodeIntegersUncompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out)
   {
     out.clear();
-    if (in == "")
+
+    // The length of a base64 string is a always a multiple of 4 (always 3
+    // bytes are encoded as 4 characters)
+    if (in.size() < 4)
+    {
       return;
+    }
 
     Size src_size = in.size();
     // last one or two '=' are skipped if contained
     int padding = 0;
-    if (in[src_size - 1] == '=')
-      padding++;
-    if (in[src_size - 2] == '=')
-      padding++;
+    if (in[src_size - 1] == '=') padding++;
+    if (in[src_size - 2] == '=') padding++;
 
     src_size -= padding;
 
@@ -814,19 +834,23 @@ private:
     out.reserve((UInt)(std::ceil((4.0 * src_size) / 3.0) + 6.0));
 
     // sort all read bytes correctly into a char[4] (double) or
-    // char[8] (Real) and push_back when necessary.
+    // char[8] (float) and push_back when necessary.
     for (Size i = 0; i < src_size; i += 4)
     {
-//printf ("start: i=%d, offset %d\n", i, offset);
 
       // decode 4 Base64-Chars to 3 Byte
+      // -------------------------------
+
+      // decode the first two chars
       a = decoder_[(int)in[i] - 43] - 62;
       b = decoder_[(int)in[i + 1] - 43] - 62;
       if (i + 1 >= src_size)
+      {
         b = 0;
+      }
+      // write first byte (6 bits from a and 2 highest bits from b)
       element[offset] = (unsigned char) ((a << 2) | (b >> 4));
       written++;
-//printf ("1: i=%d, offset %d, wrote %d\n", i, offset, element[offset]);
       offset = (offset + inc) % element_size;
 
       if (written % element_size == 0)
@@ -846,9 +870,13 @@ private:
         strcpy(element, "");
       }
 
+      // decode the third char
       a = decoder_[(int)in[i + 2] - 43] - 62;
       if (i + 2 >= src_size)
+      {
         a = 0;
+      }
+      // write second byte (4 lowest bits from b and 4 highest bits from a)
       element[offset] = (unsigned char) (((b & 15) << 4) | (a >> 2));
       written++;
       offset = (offset + inc) % element_size;
@@ -870,9 +898,13 @@ private:
         strcpy(element, "");
       }
 
+      // decode the fourth char
       b = decoder_[(int)in[i + 3] - 43] - 62;
       if (i + 3 >= src_size)
+      {
         b = 0;
+      }
+      // write third byte (2 lowest bits from a and 6 bits from b)
       element[offset] = (unsigned char) (((a & 3) << 6) | b);
       written++;
       offset = (offset + inc) % element_size;

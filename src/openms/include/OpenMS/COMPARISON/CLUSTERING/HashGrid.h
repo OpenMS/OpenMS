@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -66,7 +66,7 @@ public:
      * @brief Coordinate for stored pairs.
      */
     // XXX: Check is there is another type handy in OpenMS already
-    typedef DPosition<2, DoubleReal> ClusterCenter;
+    typedef DPosition<2, double> ClusterCenter;
 
     /**
      * @brief Index for cells.
@@ -262,18 +262,23 @@ private:
     CellIndex grid_dimension_;
 
 public:
+
     /**
      * @brief Dimension of cells.
      */
     const ClusterCenter cell_dimension;
+
     /**
      * @brief Upper-right corner of key space for cells.
      */
     const CellIndex & grid_dimension;
 
 public:
-    HashGrid(const ClusterCenter & cell_dimension) :
-      cell_dimension(cell_dimension), grid_dimension(grid_dimension_)
+    HashGrid(const ClusterCenter & c_dimension) :
+      cells_(), 
+      grid_dimension_(), 
+      cell_dimension(c_dimension), 
+      grid_dimension(grid_dimension_)
     {}
 
     /**
@@ -420,7 +425,7 @@ private:
       typename ClusterCenter::const_iterator lit = key.begin(), rit = cell_dimension.begin();
       for (; it != ret.end(); ++it, ++lit, ++rit)
       {
-        DoubleReal t = std::floor(*lit / *rit);
+        double t = std::floor(*lit / *rit);
         if (t < std::numeric_limits<Int64>::min() || t > std::numeric_limits<Int64>::max()) throw Exception::OutOfRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
         *it = static_cast<Int64>(t);
       }

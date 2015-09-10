@@ -4,10 +4,13 @@ set(directory source/MATH/MISC)
 ### list all filenames of the directory here
 set(sources_list
 BilinearInterpolation.cpp
+BSpline2d.cpp
+CubicSpline2d.cpp
 LinearInterpolation.cpp
 MathFunctions.cpp
 NonNegativeLeastSquaresSolver.cpp
 MSNumpress.cpp
+RANSAC.cpp
 )
 
 ### add path to the filenames
@@ -21,4 +24,3 @@ set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
 source_group("Source Files\\MATH\\MISC" FILES ${sources})
-

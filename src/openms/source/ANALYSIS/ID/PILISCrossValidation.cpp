@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,6 +46,112 @@ using namespace std;
 
 namespace OpenMS
 {
+  PILISCrossValidation::Peptide::Peptide() :
+    charge(0)
+  {
+  }
+
+  PILISCrossValidation::Peptide::Peptide(const Peptide & rhs) :
+    sequence(rhs.sequence),
+    charge(rhs.charge),
+    spec(rhs.spec),
+    hits(rhs.hits)
+  {
+  }
+
+  PILISCrossValidation::Peptide::~Peptide()
+  {
+  }
+
+  PILISCrossValidation::Peptide & PILISCrossValidation::Peptide::operator=(const PILISCrossValidation::Peptide & rhs)
+  {
+    if (&rhs != this)
+    {
+      sequence = rhs.sequence;
+      charge = rhs.charge;
+      spec = rhs.spec;
+      hits = rhs.hits;
+    }
+    return *this;
+  }
+
+  bool PILISCrossValidation::Peptide::operator<(const PILISCrossValidation::Peptide & peptide) const
+  {
+    if (sequence < peptide.sequence)
+    {
+      return true;
+    }
+    else
+    {
+      if (sequence == peptide.sequence)
+      {
+        return charge < peptide.charge;
+      }
+    }
+    return false;
+  }
+
+  PILISCrossValidation::Option::Option() :
+    type(INT),
+    int_min(0),
+    int_max(0),
+    int_stepsize(0),
+    dbl_min(0),
+    dbl_max(0),
+    dbl_stepsize(0)
+  {
+  }
+
+  PILISCrossValidation::Option::Option(const PILISCrossValidation::Option & rhs) :
+    type(rhs.type),
+    int_min(rhs.int_min),
+    int_max(rhs.int_max),
+    int_stepsize(rhs.int_stepsize),
+    dbl_min(rhs.dbl_min),
+    dbl_max(rhs.dbl_max),
+    dbl_stepsize(rhs.dbl_stepsize)
+  {
+  }
+
+  PILISCrossValidation::Option::Option(Type t, double min, double max, double stepsize)
+  {
+    type = t;
+    if (type == INT)
+    {
+      int_min = (Int)min;
+      int_max = (Int)max;
+      int_stepsize = (Int)stepsize;
+    }
+    else
+    {
+      if (type == DOUBLE)
+      {
+        dbl_min = min;
+        dbl_max = max;
+        dbl_stepsize = stepsize;
+      }
+      else
+      {
+        std::cerr << "Type: " << t << " is not known!" << std::endl;
+      }
+    }
+  }
+
+  PILISCrossValidation::Option & PILISCrossValidation::Option::operator=(const PILISCrossValidation::Option & rhs)
+  {
+    if (&rhs != this)
+    {
+      type = rhs.type;
+      int_min = rhs.int_min;
+      int_max = rhs.int_max;
+      int_stepsize = rhs.int_stepsize;
+      dbl_min = rhs.dbl_min;
+      dbl_max = rhs.dbl_max;
+      dbl_stepsize = rhs.dbl_stepsize;
+    }
+    return *this;
+  }
+
   PILISCrossValidation::PILISCrossValidation() :
     DefaultParamHandler("PILISCrossValidation")
   {
@@ -92,7 +198,7 @@ namespace OpenMS
     while (count != source.size())
     {
       // get new random variable [0, source.size()]
-      Size r = (Size)(DoubleReal(rand()) / DoubleReal(RAND_MAX) * (source.size()));
+      Size r = (Size)(double(rand()) / double(RAND_MAX) * (source.size()));
 
       if (used_numbers.find(r) == used_numbers.end())
       {
@@ -126,12 +232,12 @@ namespace OpenMS
 
       if (it->second.type == Option::DOUBLE)
       {
-        DoubleReal dbl_min(it->second.dbl_min), dbl_max(it->second.dbl_max);
+        double dbl_min(it->second.dbl_min), dbl_max(it->second.dbl_max);
         if (dbl_min > dbl_max)
         {
           cerr << "PILISCrossValidation: " << it->first << " min-value > max-value! (" << dbl_min << ", " << dbl_max << ")" << endl;
         }
-        for (DoubleReal value = dbl_min; value <= dbl_max; value += it->second.dbl_stepsize)
+        for (double value = dbl_min; value <= dbl_max; value += it->second.dbl_stepsize)
         {
           new_param.setValue(it->first, value);
           generateParameters_(new_param, new_options, parameters);
@@ -162,7 +268,7 @@ namespace OpenMS
 
     SpectrumAlignmentScore sa;
     Param sa_param(sa.getParameters());
-    sa_param.setValue("tolerance", (DoubleReal)PILIS_param.getValue("fragment_mass_tolerance"));
+    sa_param.setValue("tolerance", (double)PILIS_param.getValue("fragment_mass_tolerance"));
     sa_param.setValue("use_linear_factor", "true");
     sa.setParameters(sa_param);
 
@@ -207,7 +313,7 @@ namespace OpenMS
     bool normalize_to_TIC(param_.getValue("normalize_to_TIC").toBool());
 
     // iterate over all parameter setting permutations
-    vector<DoubleReal> scores;
+    vector<double> scores;
     for (vector<Param>::const_iterator pait = all_parameters.begin(); pait != all_parameters.end(); ++pait)
     {
       cerr << "Param #" << pait - all_parameters.begin() + 1 << "/" << all_parameters.size() << endl;
@@ -254,7 +360,7 @@ namespace OpenMS
           exp_spec.sortByPosition();
           exp_spectra_part.push_back(exp_spec);
 
-          //cerr << "Evalulating...(#peptides=" << it->hits.size() << ") ";
+          //cerr << "Evaluating...(#peptides=" << it->hits.size() << ") ";
           // for all hits
           vector<RichPeakSpectrum> sim_spectra_hits;
           for (vector<PeptideHit>::const_iterator pit = it->hits.begin(); pit != it->hits.end(); ++pit)
@@ -265,11 +371,11 @@ namespace OpenMS
 
             Precursor prec;
             prec.setCharge(pit->getCharge());
-            prec.setPosition((pit->getSequence().getMonoWeight() + (DoubleReal)pit->getCharge()) / (DoubleReal)pit->getCharge());
+            prec.setPosition((pit->getSequence().getMonoWeight() + (double)pit->getCharge()) / (double)pit->getCharge());
             sim_spec.getPrecursors().push_back(prec);
 
             //sim_spec.getPrecursorPeak().setCharge(pit->getCharge());
-            //sim_spec.getPrecursorPeak().setPosition((pit->getSequence().getMonoWeight() + (DoubleReal)pit->getCharge())/(DoubleReal)pit->getCharge());
+            //sim_spec.getPrecursorPeak().setPosition((pit->getSequence().getMonoWeight() + (double)pit->getCharge())/(double)pit->getCharge());
 
             to_one_normalizer.filterSpectrum(sim_spec);
             sim_spec.sortByPosition();
@@ -286,9 +392,9 @@ namespace OpenMS
     }
 
     Size best_param_pos(0);
-    DoubleReal max_score(0);
+    double max_score(0);
     Size pos(0);
-    for (vector<DoubleReal>::const_iterator it = scores.begin(); it != scores.end(); ++it, ++pos)
+    for (vector<double>::const_iterator it = scores.begin(); it != scores.end(); ++it, ++pos)
     {
       if (*it > max_score)
       {
@@ -308,21 +414,21 @@ namespace OpenMS
     return;
   }
 
-  DoubleReal PILISCrossValidation::scoreHits(const vector<vector<vector<RichPeakSpectrum> > > & sim_spectra, const vector<vector<RichPeakSpectrum> > & exp_spectra)
+  double PILISCrossValidation::scoreHits(const vector<vector<vector<RichPeakSpectrum> > > & sim_spectra, const vector<vector<RichPeakSpectrum> > & exp_spectra)
   {
     String optimization_method = param_.getValue("optimization_method");
 
     if (optimization_method == "tophit_against_all_others")
     {
       // consider all against all
-      vector<DoubleReal> top_scores, non_top_scores;
+      vector<double> top_scores, non_top_scores;
       for (Size i = 0; i != sim_spectra.size(); ++i)
       {
         for (Size j = 0; j != sim_spectra[i].size(); ++j)
         {
           for (Size k = 0; k != sim_spectra[i][j].size(); ++k)
           {
-            DoubleReal score = scoreSpectra_(sim_spectra[i][j][k], exp_spectra[i][j]);
+            double score = scoreSpectra_(sim_spectra[i][j][k], exp_spectra[i][j]);
             if (k == 0)
             {
               top_scores.push_back(score);
@@ -335,15 +441,15 @@ namespace OpenMS
         }
       }
 
-      DoubleReal sum = 0;
-      for (vector<DoubleReal>::const_iterator it1 = top_scores.begin(); it1 != top_scores.end(); ++it1)
+      double sum = 0;
+      for (vector<double>::const_iterator it1 = top_scores.begin(); it1 != top_scores.end(); ++it1)
       {
-        for (vector<DoubleReal>::const_iterator it2 = non_top_scores.begin(); it2 != non_top_scores.end(); ++it2)
+        for (vector<double>::const_iterator it2 = non_top_scores.begin(); it2 != non_top_scores.end(); ++it2)
         {
           sum += *it1 - *it2;
         }
       }
-      DoubleReal score = sum / (DoubleReal)(top_scores.size() * non_top_scores.size());
+      double score = sum / (double)(top_scores.size() * non_top_scores.size());
       cerr << "Avg. score-diff for param: " << score << endl;
       return score;
     }
@@ -351,24 +457,24 @@ namespace OpenMS
     if (optimization_method == "only_top_hit")
     {
       // consider only top-scores
-      vector<DoubleReal> top_scores;
+      vector<double> top_scores;
       for (Size i = 0; i != sim_spectra.size(); ++i)
       {
         for (Size j = 0; j != sim_spectra[i].size(); ++j)
         {
           if (!sim_spectra[i][j].empty())
           {
-            DoubleReal score = scoreSpectra_(sim_spectra[i][j][0], exp_spectra[i][j]);
+            double score = scoreSpectra_(sim_spectra[i][j][0], exp_spectra[i][j]);
             top_scores.push_back(score);
           }
         }
       }
-      DoubleReal sum(0);
-      for (vector<DoubleReal>::const_iterator it = top_scores.begin(); it != top_scores.end(); ++it)
+      double sum(0);
+      for (vector<double>::const_iterator it = top_scores.begin(); it != top_scores.end(); ++it)
       {
         sum += *it;
       }
-      DoubleReal score(sum / (DoubleReal)top_scores.size());
+      double score(sum / (double)top_scores.size());
       cerr << "Avg. score for param: " << score << endl;
       return score;
     }
@@ -388,7 +494,7 @@ namespace OpenMS
             fragment_selection.selectFragments(exp_highest_peak, exp_spectra[i][j]);
             fragment_selection.selectFragments(sim_highest_peak, sim_spectra[i][j][0]);
 
-            DoubleReal fragment_mass_tolerance((DoubleReal)param_.getValue("fragment_mass_tolerance"));
+            double fragment_mass_tolerance((double)param_.getValue("fragment_mass_tolerance"));
             bool has_topn(false);
             for (Size ii = 0; ii < exp_highest_peak.size(); ++ii)
             {
@@ -409,7 +515,7 @@ namespace OpenMS
           }
         }
       }
-      DoubleReal score((DoubleReal)num_correct_topn / (DoubleReal)num_all);
+      double score((double)num_correct_topn / (double)num_all);
       cerr << "Avg. score in top " << param_.getValue("num_top_peaks") << ": " << score << endl;
       return score;
     }
@@ -417,8 +523,8 @@ namespace OpenMS
     if (optimization_method == "top_n_ions_by")
     {
       MRMFragmentSelection fragment_selection;
-      DoubleReal fragment_mass_tolerance((DoubleReal)param_.getValue("fragment_mass_tolerance"));
-      DoubleReal min_intensity((DoubleReal)param_.getValue("min_intensity"));
+      double fragment_mass_tolerance((double)param_.getValue("fragment_mass_tolerance"));
+      double min_intensity((double)param_.getValue("min_intensity"));
 
       TheoreticalSpectrumGenerator tsg;
       Param tsg_param(tsg.getParameters());
@@ -475,7 +581,7 @@ namespace OpenMS
             //cerr << endl;
 
             // normalize the exp spectrum to max possible intensity to be selected
-            DoubleReal max_exp_int(0);
+            double max_exp_int(0);
             for (vector<RichPeak1D>::const_iterator it = exp_highest_peak.begin(); it != exp_highest_peak.end(); ++it)
             {
               if (it->getIntensity() > max_exp_int)
@@ -515,7 +621,7 @@ namespace OpenMS
           }
         }
       }
-      DoubleReal score((DoubleReal)num_correct_topn / (DoubleReal)num_all);
+      double score((double)num_correct_topn / (double)num_all);
       cerr << "Avg. score in top " << param_.getValue("num_top_peaks") << " with a least " << min_intensity * 100.0 << "% intensity: " << score << endl;
       return score;
     }
@@ -524,7 +630,7 @@ namespace OpenMS
     return 0;
   }
 
-  DoubleReal PILISCrossValidation::scoreSpectra_(const RichPeakSpectrum & spec1, const RichPeakSpectrum & spec2)
+  double PILISCrossValidation::scoreSpectra_(const RichPeakSpectrum & spec1, const RichPeakSpectrum & spec2)
   {
     PeakSpectrum s1, s2;
     for (RichPeakSpectrum::ConstIterator piit = spec1.begin(); piit != spec1.end(); ++piit)
@@ -550,7 +656,7 @@ namespace OpenMS
     Param compare_param(pscf_->getParameters());
     if (compare_param.exists("tolerance"))
     {
-      compare_param.setValue("tolerance", (DoubleReal)param_.getValue("fragment_mass_tolerance"));
+      compare_param.setValue("tolerance", (double)param_.getValue("fragment_mass_tolerance"));
       pscf_->setParameters(compare_param);
     }
     return;

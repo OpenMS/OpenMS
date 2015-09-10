@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -71,11 +71,11 @@ START_SECTION((static String getProductName()))
 	TEST_EQUAL(FeatureGroupingAlgorithmLabeled::getProductName(),"labeled")
 END_SECTION
 
-START_SECTION((virtual void group(const std::vector< FeatureMap<> > &maps, ConsensusMap &out)))
+START_SECTION((virtual void group(const std::vector< FeatureMap > &maps, ConsensusMap &out)))
 	TOLERANCE_ABSOLUTE(0.001)
 
 	FeatureGroupingAlgorithmLabeled fga;
-	std::vector< FeatureMap<> > in;
+	std::vector< FeatureMap > in;
 	ConsensusMap out;
 
 	//test exception (no input)
@@ -143,7 +143,7 @@ START_SECTION((virtual void group(const std::vector< FeatureMap<> > &maps, Conse
 	p.setValue("rt_pair_dist",0.4);
 	p.setValue("rt_dev_low",1.0);
 	p.setValue("rt_dev_high",2.0);
-	p.setValue("mz_pair_dists",ListUtils::create<DoubleReal>(4.0));
+	p.setValue("mz_pair_dists",ListUtils::create<double>(4.0));
 	p.setValue("mz_dev",0.6);
 	fga.setParameters(p);
 

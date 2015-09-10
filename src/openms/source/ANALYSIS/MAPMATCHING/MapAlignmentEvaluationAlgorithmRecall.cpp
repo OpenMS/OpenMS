@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,7 +49,7 @@ namespace OpenMS
   {
   }
 
-  void MapAlignmentEvaluationAlgorithmRecall::evaluate(const ConsensusMap & consensus_map_in, const ConsensusMap & consensus_map_gt, const DoubleReal & rt_dev, const DoubleReal & mz_dev, const Peak2D::IntensityType & int_dev, const bool use_charge, DoubleReal & out)
+  void MapAlignmentEvaluationAlgorithmRecall::evaluate(const ConsensusMap & consensus_map_in, const ConsensusMap & consensus_map_gt, const double & rt_dev, const double & mz_dev, const Peak2D::IntensityType & int_dev, const bool use_charge, double & out)
   {
     //Recall = 1/N * sum( gt_subtend_tilde_tool_i / ( m_i * gt_i ) )
 
@@ -76,9 +76,8 @@ namespace OpenMS
     Size cons_tool_size = 0;        //size  of the actual consensus feature of the tool_subtend_tilde_tool
     Size gt_i_subtend_tool_j = 0;       //size of the intersection of the actual cons. feat. of the tool with the c.f. of GT
 
-    DoubleReal recall = 0;      //holds the output
-    DoubleReal fraction = 0;
-    DoubleReal sum = 0;         //intermediate step: the sum
+    double recall = 0;      //holds the output
+    double sum = 0;         //intermediate step: the sum
 
     //loop over all consensus features of the ground truth
     for (Size i = 0; i < cons_map_gt.size(); ++i)     //N = cons_map_gt.size()
@@ -128,15 +127,15 @@ namespace OpenMS
     }
     for (Size k = 0; k < gt_subtend_tilde_tool.size(); ++k)
     {
-      fraction = 0;
+      double fraction = 0;
 
       if (gt_subtend_tilde_tool[k] != 0)
       {
-        fraction = DoubleReal(gt_subtend_tilde_tool[k]) / (m[k] * gt[k]);
+        fraction = double(gt_subtend_tilde_tool[k]) / (m[k] * gt[k]);
       }
       sum += fraction;
     }
-    recall = (1.0 / DoubleReal(cons_map_gt.size())) * sum;
+    recall = (1.0 / double(cons_map_gt.size())) * sum;
     out = recall;
   }
 

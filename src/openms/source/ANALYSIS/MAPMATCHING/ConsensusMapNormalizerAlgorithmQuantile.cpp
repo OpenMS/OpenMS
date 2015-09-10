@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,10 +33,11 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmQuantile.h>
-#include <gsl/gsl_statistics.h>
-#include <gsl/gsl_sort_double.h>
-#include <cmath>
+
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+
+#include <cmath>
+#include <algorithm>
 
 using namespace std;
 
@@ -51,7 +52,7 @@ namespace OpenMS
 
   }
 
-  void ConsensusMapNormalizerAlgorithmQuantile::normalizeMaps(ConsensusMap & map)
+  void ConsensusMapNormalizerAlgorithmQuantile::normalizeMaps(ConsensusMap& map)
   {
     //extract feature intensities
     vector<vector<double> > feature_ints;
@@ -73,9 +74,9 @@ namespace OpenMS
     for (Size i = 0; i < number_of_maps; ++i)
     {
       vector<double> sorted = feature_ints[i];
-      gsl_sort(&sorted.front(), 1, sorted.size());
+      std::sort(sorted.begin(), sorted.end());
       vector<double> resampled(largest_number_of_features);
-      resample(sorted, resampled, largest_number_of_features);
+      resample(sorted, resampled, static_cast<UInt>(largest_number_of_features));
       resampled_sorted_data.push_back(resampled);
     }
 
@@ -94,15 +95,29 @@ namespace OpenMS
     for (Size i = 0; i < number_of_maps; ++i)
     {
       vector<double> ints;
-      resample(reference_distribution, ints, feature_ints[i].size());
+      resample(reference_distribution, ints, static_cast<UInt>(feature_ints[i].size()));
       normalized_sorted_ints[i] = ints;
     }
 
     //set the intensities of feature_ints to the normalized intensities
     for (Size i = 0; i < number_of_maps; ++i)
     {
-      vector<Size> sort_indices(feature_ints[i].size());
-      gsl_sort_index(&sort_indices.front(), &feature_ints[i].front(), 1, feature_ints[i].size());
+      //we do not want to change the order in feature_ints[i] but normalized_sorted_ints
+      //comes sorted, so we transfer the values in feature_ints[i] into pairs that store
+      //the value and the index in feature_ints[i]. than we sort the vector of pair and as
+      //a result store the indexes of feature_ints[i] in a sorted order in sort_indices.
+      std::vector<std::pair<double, UInt> > sort_pairs;
+      sort_pairs.reserve(feature_ints[i].size());
+      for (Size j = 0; j < feature_ints[i].size(); ++j)
+      {
+        sort_pairs.push_back(std::make_pair(feature_ints[i][j], j));
+      }
+      std::sort(sort_pairs.begin(), sort_pairs.end());
+      vector<Size> sort_indices(sort_pairs.size());
+      for (Size j = 0; j < sort_pairs.size(); ++j)
+      {
+        sort_indices.push_back(sort_pairs.at(j).second);
+      }
       Size k = 0;
       for (Size j = 0; j < sort_indices.size(); ++j)
       {
@@ -115,7 +130,7 @@ namespace OpenMS
     setNormalizedIntensityValues(feature_ints, map);
   }
 
-  void ConsensusMapNormalizerAlgorithmQuantile::resample(const vector<double> & data_in, vector<double> & data_out, UInt n_resampling_points)
+  void ConsensusMapNormalizerAlgorithmQuantile::resample(const vector<double>& data_in, vector<double>& data_out, UInt n_resampling_points)
   {
     data_out.clear();
     data_out.resize(n_resampling_points);
@@ -146,7 +161,7 @@ namespace OpenMS
     }
   }
 
-  void ConsensusMapNormalizerAlgorithmQuantile::extractIntensityVectors(const ConsensusMap & map, vector<vector<double> > & out_intensities)
+  void ConsensusMapNormalizerAlgorithmQuantile::extractIntensityVectors(const ConsensusMap& map, vector<vector<double> >& out_intensities)
   {
     //reserve space for out_intensities (unequal vector lengths, 0-features omitted)
     Size number_of_maps = map.getFileDescriptions().size();
@@ -154,7 +169,9 @@ namespace OpenMS
     out_intensities.resize(number_of_maps);
     for (UInt i = 0; i < number_of_maps; i++)
     {
-      out_intensities[i].reserve(map.getFileDescriptions()[i].size);
+      ConsensusMap::FileDescriptions::const_iterator it = map.getFileDescriptions().find(i);
+      if (it == map.getFileDescriptions().end()) throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, String(i));
+      out_intensities[i].reserve(it->second.size);
     }
     //fill out_intensities
     ConsensusMap::ConstIterator cf_it;
@@ -168,7 +185,7 @@ namespace OpenMS
     }
   }
 
-  void ConsensusMapNormalizerAlgorithmQuantile::setNormalizedIntensityValues(const vector<vector<double> > & feature_ints, ConsensusMap & map)
+  void ConsensusMapNormalizerAlgorithmQuantile::setNormalizedIntensityValues(const vector<vector<double> >& feature_ints, ConsensusMap& map)
   {
     //assumes the input map and feature_ints are in the same order as in the beginning,
     //although feature_ints has normalized values now (but the same ranks as before)

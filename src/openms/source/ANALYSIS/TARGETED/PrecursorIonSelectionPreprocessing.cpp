@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,7 +40,8 @@
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/SIMULATION/DetectabilitySimulation.h>
 #include <OpenMS/SIMULATION/RTSimulation.h>
-#include <gsl/gsl_cdf.h>
+
+#include <boost/math/distributions/normal.hpp>
 
 using namespace std;
 //#define PISP_DEBUG
@@ -80,7 +81,7 @@ namespace OpenMS
     updateMembers_();
   }
 
-  PrecursorIonSelectionPreprocessing::PrecursorIonSelectionPreprocessing(const PrecursorIonSelectionPreprocessing & source) :
+  PrecursorIonSelectionPreprocessing::PrecursorIonSelectionPreprocessing(const PrecursorIonSelectionPreprocessing& source) :
     DefaultParamHandler(source),
     sequences_(source.sequences_),
     prot_masses_(source.prot_masses_),
@@ -95,7 +96,7 @@ namespace OpenMS
     //????
   }
 
-  PrecursorIonSelectionPreprocessing & PrecursorIonSelectionPreprocessing::operator=(const PrecursorIonSelectionPreprocessing & source)
+  PrecursorIonSelectionPreprocessing& PrecursorIonSelectionPreprocessing::operator=(const PrecursorIonSelectionPreprocessing& source)
   {
     if (&source != this)
     {
@@ -108,7 +109,7 @@ namespace OpenMS
     return *this;
   }
 
-  void PrecursorIonSelectionPreprocessing::setFixedModifications(StringList & modifications)
+  void PrecursorIonSelectionPreprocessing::setFixedModifications(StringList& modifications)
   {
     fixed_modifications_.clear();
     for (Size i = 0; i < modifications.size(); ++i)
@@ -137,14 +138,14 @@ namespace OpenMS
       fixed_mods_ = true;
   }
 
-  const std::map<String, std::vector<DoubleReal> > & PrecursorIonSelectionPreprocessing::getProtMasses() const
+  const std::map<String, std::vector<double> >& PrecursorIonSelectionPreprocessing::getProtMasses() const
   {
     return prot_masses_;
   }
 
-  const std::vector<DoubleReal> & PrecursorIonSelectionPreprocessing::getMasses(String acc) const
+  const std::vector<double>& PrecursorIonSelectionPreprocessing::getMasses(String acc) const
   {
-    std::map<String, std::vector<DoubleReal> >::const_iterator iter = prot_masses_.begin();
+    std::map<String, std::vector<double> >::const_iterator iter = prot_masses_.begin();
     while (iter != prot_masses_.end() && acc != iter->first)
       ++iter;
     if (iter != prot_masses_.end())
@@ -155,22 +156,22 @@ namespace OpenMS
     }
   }
 
-  const std::map<String, std::vector<DoubleReal> > & PrecursorIonSelectionPreprocessing::getProteinRTMap() const
+  const std::map<String, std::vector<double> >& PrecursorIonSelectionPreprocessing::getProteinRTMap() const
   {
     return rt_prot_map_;
   }
 
-  const std::map<String, std::vector<DoubleReal> > & PrecursorIonSelectionPreprocessing::getProteinPTMap() const
+  const std::map<String, std::vector<double> >& PrecursorIonSelectionPreprocessing::getProteinPTMap() const
   {
     return pt_prot_map_;
   }
 
-  const std::map<String, std::vector<String> > & PrecursorIonSelectionPreprocessing::getProteinPeptideSequenceMap() const
+  const std::map<String, std::vector<String> >& PrecursorIonSelectionPreprocessing::getProteinPeptideSequenceMap() const
   {
     return prot_peptide_seq_map_;
   }
 
-  DoubleReal PrecursorIonSelectionPreprocessing::getRT(String prot_id, Size peptide_index)
+  double PrecursorIonSelectionPreprocessing::getRT(String prot_id, Size peptide_index)
   {
     if (rt_prot_map_.size() > 0)
     {
@@ -188,7 +189,7 @@ namespace OpenMS
     return -1;
   }
 
-  DoubleReal PrecursorIonSelectionPreprocessing::getPT(String prot_id, Size peptide_index)
+  double PrecursorIonSelectionPreprocessing::getPT(String prot_id, Size peptide_index)
   {
     if (pt_prot_map_.size() > 0)
     {
@@ -206,11 +207,11 @@ namespace OpenMS
     return 1;
   }
 
-  DoubleReal PrecursorIonSelectionPreprocessing::getWeight(DoubleReal mass)
+  double PrecursorIonSelectionPreprocessing::getWeight(double mass)
   {
     if (param_.getValue("precursor_mass_tolerance_unit") == "Da")
     {
-      return (DoubleReal)counter_[(Size) floor((mass - masses_[0]) / (DoubleReal)param_.getValue("precursor_mass_tolerance") + 0.5)] / (DoubleReal)f_max_;
+      return (double)counter_[(Size) floor((mass - masses_[0]) / (double)param_.getValue("precursor_mass_tolerance") + 0.5)] / (double)f_max_;
     }
     else //
     {
@@ -218,7 +219,7 @@ namespace OpenMS
       std::cout << bin_masses_.size() << " " << mass << std::endl;
       std::cout << *(bin_masses_.begin()) << " " << *(bin_masses_.end() - 1) << std::endl;
 #endif
-      std::vector<DoubleReal>::iterator tmp_iter = bin_masses_.begin();
+      std::vector<double>::iterator tmp_iter = bin_masses_.begin();
       while (tmp_iter != bin_masses_.end() && *tmp_iter < mass)
       {
         ++tmp_iter;
@@ -235,10 +236,10 @@ namespace OpenMS
       if ((tmp_iter + 1) == bin_masses_.end()
          || fabs(*tmp_iter - mass) < fabs(*(tmp_iter + 1) - mass))
       {
-        return (DoubleReal)counter_[distance(bin_masses_.begin(), tmp_iter)] / (DoubleReal)f_max_;
+        return (double)counter_[distance(bin_masses_.begin(), tmp_iter)] / (double)f_max_;
       }
       else
-        return (DoubleReal)counter_[distance(bin_masses_.begin(), tmp_iter + 1)] / (DoubleReal)f_max_;
+        return (double)counter_[distance(bin_masses_.begin(), tmp_iter + 1)] / (double)f_max_;
     }
   }
 
@@ -259,7 +260,7 @@ namespace OpenMS
     }
   }
 
-  void PrecursorIonSelectionPreprocessing::filterTaxonomyIdentifier_(FASTAFile::FASTAEntry & entry)
+  void PrecursorIonSelectionPreprocessing::filterTaxonomyIdentifier_(FASTAFile::FASTAEntry& entry)
   {
 
 #ifdef PISP_DEBUG
@@ -292,7 +293,7 @@ namespace OpenMS
     std::cout << "Parameters: " << param_.getValue("preprocessed_db_path")
               << "\t" << param_.getValue("precursor_mass_tolerance")
               << " " << param_.getValue("precursor_mass_tolerance_unit")
-    //<< "\t"<<param_.getValue("rt_tolerance")
+      //<< "\t"<<param_.getValue("rt_tolerance")
               << "\t" << param_.getValue("missed_cleavages")
               << "\t" << param_.getValue("taxonomy")
               << "\t" << param_.getValue("tmp_dir") << "---"
@@ -318,15 +319,15 @@ namespace OpenMS
         // preprocess entry identifier
         filterTaxonomyIdentifier_(entries[e]);
 
-        String & seq = entries[e].sequence;
+        String& seq = entries[e].sequence;
         // check for unallowed characters
         if (seq.hasSubstring("X") || seq.hasSubstring("B") ||  seq.hasSubstring("Z"))
         {
           continue;
         }
-        std::vector<DoubleReal> prot_masses;
+        std::vector<double> prot_masses;
         // digest sequence
-        AASequence aa_seq(seq);
+        AASequence aa_seq = AASequence::fromString(seq);
         std::vector<AASequence> vec;
         digest.digest(aa_seq, vec);
 
@@ -349,7 +350,7 @@ namespace OpenMS
                 std::cout << "w/o Mod " << *vec_iter << " "
                           << vec_iter->getMonoWeight(Residue::Full, 1) << std::endl;
 #endif
-                std::vector<String> & mods = fixed_modifications_[(vec_iter->toUnmodifiedString())[aa]];
+                std::vector<String>& mods = fixed_modifications_[(vec_iter->toUnmodifiedString())[aa]];
                 for (Size m = 0; m < mods.size(); ++m)
                 {
                   vec_iter->setModification(aa, mods[m]);
@@ -364,7 +365,7 @@ namespace OpenMS
 
           // write peptide seq in temporary file, for rt prediction
           //seq_file << *vec_iter << "\n";
-          DoubleReal mass = vec_iter->getMonoWeight(Residue::Full, 1);
+          double mass = vec_iter->getMonoWeight(Residue::Full, 1);
           prot_masses.push_back(mass);
           if (tmp_peptide_map.find(vec_iter->toUnmodifiedString()) != tmp_peptide_map.end())
           {
@@ -424,11 +425,10 @@ namespace OpenMS
       {
         std::cout << distance(sequences_.begin(), seq_it) << " peptides done." << std::endl;
         // now make RTPrediction using the RTSimulation class of the simulator
-        SimRandomNumberGenerator rnd_gen;
-        RTSimulation rt_sim(rnd_gen);
+        RTSimulation rt_sim;
         rt_sim.setParameters(rt_param);
 
-        std::vector<DoubleReal> rts2;
+        std::vector<double> rts2;
         rt_sim.wrapSVM(peptide_aa_sequences, rts2);
         for (Size index2 = 0; index2 < rts2.size(); ++index2)
         {
@@ -442,7 +442,7 @@ namespace OpenMS
             }
             else
             {
-              std::vector<DoubleReal> rt_vec(prot_masses_[acc].size());
+              std::vector<double> rt_vec(prot_masses_[acc].size());
               rt_prot_map_.insert(make_pair(acc, rt_vec));
               rt_prot_map_[acc][tmp_idx] = rts2[index2];
             }
@@ -454,8 +454,8 @@ namespace OpenMS
         // now make DTPrediction using the DetectabilitySimulation class of the simulator
         DetectabilitySimulation dt_sim;
         dt_sim.setParameters(dt_param);
-        std::vector<DoubleReal> labels;
-        std::vector<DoubleReal> detectabilities;
+        std::vector<double> labels;
+        std::vector<double> detectabilities;
         dt_sim.predictDetectabilities(peptide_sequences, labels, detectabilities);
 
         for (Size index2 = 0; index2 < detectabilities.size(); ++index2)
@@ -470,7 +470,7 @@ namespace OpenMS
             }
             else
             {
-              std::vector<DoubleReal> pt_vec(prot_masses_[acc].size());
+              std::vector<double> pt_vec(prot_masses_[acc].size());
               pt_prot_map_.insert(make_pair(acc, pt_vec));
               pt_prot_map_[acc][tmp_idx] =   detectabilities[index2];
             }
@@ -508,11 +508,11 @@ namespace OpenMS
     // we have equidistant bins
     if (param_.getValue("precursor_mass_tolerance_unit") == "Da")
     {
-      counter_.resize((UInt)(ceil((*(masses_.end() - 1)) - masses_[0]) / (DoubleReal)param_.getValue("precursor_mass_tolerance")) + 2, 0);
+      counter_.resize((UInt)(ceil((*(masses_.end() - 1)) - masses_[0]) / (double)param_.getValue("precursor_mass_tolerance")) + 2, 0);
       for (UInt i = 0; i < masses_.size(); ++i)
       {
         // get bin index
-        DoubleReal tmp = (masses_[i] - masses_[0]) / (DoubleReal)param_.getValue("precursor_mass_tolerance");
+        double tmp = (masses_[i] - masses_[0]) / (double)param_.getValue("precursor_mass_tolerance");
         ++counter_[(Size) ceil(tmp)];
       }
       UInt max = 0;
@@ -529,7 +529,7 @@ namespace OpenMS
       bin_masses_.clear();
       counter_.clear();
       // so first we calculate the boundings of the bins
-      DoubleReal curr_mass = masses_[0];
+      double curr_mass = masses_[0];
 #ifdef PISP_DEBUG
       std::cout << "min_max_curr " << masses_[0] << " " << *(masses_.end() - 1) << " " << curr_mass << std::endl;
 #endif
@@ -540,7 +540,7 @@ namespace OpenMS
         bin_masses_.push_back(curr_mass);
         ++size;
         /// calculate lower bound for next bin
-        curr_mass = curr_mass + curr_mass * (DoubleReal)param_.getValue("precursor_mass_tolerance") / 1e06;
+        curr_mass = curr_mass + curr_mass * (double)param_.getValue("precursor_mass_tolerance") / 1e06;
       }
 #ifdef PISP_DEBUG
       std::cout << "bin_masses_.size() " <<  bin_masses_.size() << " " << size << std::endl;
@@ -552,7 +552,7 @@ namespace OpenMS
                 << " bin_masses_.size() " << bin_masses_.size() << std::endl;
 
 #endif
-      std::vector<DoubleReal>::iterator old_begin = bin_masses_.begin();
+      std::vector<double>::iterator old_begin = bin_masses_.begin();
       // then we put the peptide masses into the right bins
       for (UInt i = 0; i < masses_.size(); ++i)
       {
@@ -561,7 +561,7 @@ namespace OpenMS
         //   StopWatch timer;
         //   timer.start();
         // #endif
-        std::vector<DoubleReal>::iterator tmp_iter = old_begin;
+        std::vector<double>::iterator tmp_iter = old_begin;
 
         // #ifdef PISP_DEBUG
         //   timer.start();
@@ -592,7 +592,7 @@ namespace OpenMS
           ++counter_[distance(bin_masses_.begin(), tmp_iter)];
         }
         else
-          ++counter_[distance(bin_masses_.begin(), tmp_iter + 1)];  // increase right counter
+          ++counter_[distance(bin_masses_.begin(), tmp_iter + 1)]; // increase right counter
         // #ifdef PISP_DEBUG
         //                      timer.stop();
         //                      std::cout << timer.getCPUTime ()<<std::endl;
@@ -642,15 +642,15 @@ namespace OpenMS
         // preprocess entry identifier
         filterTaxonomyIdentifier_(entries[e]);
 
-        String & seq = entries[e].sequence;
+        String& seq = entries[e].sequence;
         // check for unallowed characters
         if (seq.hasSubstring("X") || seq.hasSubstring("B") ||  seq.hasSubstring("Z"))
         {
           continue;
         }
-        std::vector<DoubleReal> prot_masses;
+        std::vector<double> prot_masses;
         // digest sequence
-        AASequence aa_seq(seq);
+        AASequence aa_seq = AASequence::fromString(seq);
         std::vector<AASequence> vec;
         digest.digest(aa_seq, vec);
 
@@ -670,7 +670,7 @@ namespace OpenMS
                 std::cout << "w/o Mod " << *vec_iter << " "
                           << vec_iter->getMonoWeight(Residue::Full, 1) << std::endl;
 #endif
-                std::vector<String> & mods = fixed_modifications_[(vec_iter->toUnmodifiedString())[aa]];
+                std::vector<String>& mods = fixed_modifications_[(vec_iter->toUnmodifiedString())[aa]];
                 for (Size m = 0; m < mods.size(); ++m)
                 {
                   vec_iter->setModification(aa, mods[m]);
@@ -683,7 +683,7 @@ namespace OpenMS
             }
           }
 
-          DoubleReal mass = vec_iter->getMonoWeight(Residue::Full, 1);
+          double mass = vec_iter->getMonoWeight(Residue::Full, 1);
           prot_masses.push_back(mass);
           if (sequences_.count(*vec_iter) == 0) // peptide sequences are considered only once
           {
@@ -703,7 +703,7 @@ namespace OpenMS
     }
     std::sort(masses_.begin(), masses_.end());
     // now get minimal and maximal mass and create counter_-vectors
-    // count mass occurences using bins
+    // count mass occurrences using bins
 #ifdef PISP_DEBUG
     std::cout << "min\tmax " << masses_[0] << "\t" << *(masses_.end() - 1) << std::endl;
     std::cout << "prot_masses.size() " << prot_masses_.size() << std::endl;
@@ -712,11 +712,11 @@ namespace OpenMS
     // we have equidistant bins
     if (param_.getValue("precursor_mass_tolerance_unit") == "Da")
     {
-      counter_.resize((UInt)(ceil((*(masses_.end() - 1)) - masses_[0]) / (DoubleReal)param_.getValue("precursor_mass_tolerance")) + 2, 0);
+      counter_.resize((UInt)(ceil((*(masses_.end() - 1)) - masses_[0]) / (double)param_.getValue("precursor_mass_tolerance")) + 2, 0);
       for (UInt i = 0; i < masses_.size(); ++i)
       {
         // get bin index
-        DoubleReal tmp = (masses_[i] - masses_[0]) / (DoubleReal)param_.getValue("precursor_mass_tolerance");
+        double tmp = (masses_[i] - masses_[0]) / (double)param_.getValue("precursor_mass_tolerance");
         ++counter_[(Size) ceil(tmp)];
       }
       UInt max = 0;
@@ -733,7 +733,7 @@ namespace OpenMS
       bin_masses_.clear();
       counter_.clear();
       // so first we calculate the boundings of the bins
-      DoubleReal curr_mass = masses_[0];
+      double curr_mass = masses_[0];
 #ifdef PISP_DEBUG
       std::cout << "min_max_curr " << masses_[0] << " " << *(masses_.end() - 1) << " " << curr_mass << std::endl;
 #endif
@@ -744,7 +744,7 @@ namespace OpenMS
         bin_masses_.push_back(curr_mass);
         ++size;
         /// calculate lower bound for next bin
-        curr_mass = curr_mass + curr_mass * (DoubleReal)param_.getValue("precursor_mass_tolerance") / 1e06;
+        curr_mass = curr_mass + curr_mass * (double)param_.getValue("precursor_mass_tolerance") / 1e06;
       }
 #ifdef PISP_DEBUG
       std::cout << "bin_masses_.size() " <<  bin_masses_.size() << " " << size << std::endl;
@@ -760,7 +760,7 @@ namespace OpenMS
                 << " bin_masses_.size() " << bin_masses_.size() << std::endl;
 
 #endif
-      std::vector<DoubleReal>::iterator old_begin = bin_masses_.begin();
+      std::vector<double>::iterator old_begin = bin_masses_.begin();
       // then we put the peptide masses into the right bins
       for (UInt i = 0; i < masses_.size(); ++i)
       {
@@ -769,7 +769,7 @@ namespace OpenMS
         StopWatch timer;
         timer.start();
 #endif
-        std::vector<DoubleReal>::iterator tmp_iter = old_begin;
+        std::vector<double>::iterator tmp_iter = old_begin;
 
 #ifdef PISP_DEBUG
         timer.start();
@@ -801,7 +801,7 @@ namespace OpenMS
           ++counter_[distance(bin_masses_.begin(), tmp_iter)];
         }
         else
-          ++counter_[distance(bin_masses_.begin(), tmp_iter + 1)];  // increase right counter
+          ++counter_[distance(bin_masses_.begin(), tmp_iter + 1)]; // increase right counter
 #ifdef PISP_DEBUG
         timer.stop();
         std::cout << timer.getCPUTime() << std::endl;
@@ -848,7 +848,7 @@ namespace OpenMS
 #ifdef PISP_DEBUG
     std::cout << prot_masses_.size() << " " << counter_.size() << " " << bin_masses_.size() << std::endl;
 #endif
-    std::map<String, std::vector<DoubleReal> >::iterator pm_iter = prot_masses_.begin();
+    std::map<String, std::vector<double> >::iterator pm_iter = prot_masses_.begin();
     for (; pm_iter != prot_masses_.end(); ++pm_iter)
     {
       out << pm_iter->second.size() << "\t" << pm_iter->first;
@@ -941,7 +941,7 @@ namespace OpenMS
 #ifdef PISP_DEBUG
         std::cout << entries[e].identifier << std::endl;
 #endif
-        String & seq = entries[e].sequence;
+        String& seq = entries[e].sequence;
         // check for unallowed characters
         if (seq.hasSubstring("X") || seq.hasSubstring("B") ||  seq.hasSubstring("Z"))
         {
@@ -949,7 +949,7 @@ namespace OpenMS
         }
 
         // digest sequence
-        AASequence aa_seq(seq);
+        AASequence aa_seq = AASequence::fromString(seq);
         std::vector<AASequence> vec;
         digest.digest(aa_seq, vec);
         out << vec.size() << "\t" << entries[e].identifier;
@@ -959,7 +959,7 @@ namespace OpenMS
         {
           // write peptide seq in temporary file, for rt prediction
           //seq_file << *vec_iter << "\n";
-          DoubleReal mass = vec_iter->getMonoWeight(Residue::Full, 1);
+          double mass = vec_iter->getMonoWeight(Residue::Full, 1);
           // out : masse, rt, pt
           out << "\t" << mass << "," << getRT(entries[e].identifier, distance(vec.begin(), vec_iter))
               << "," << getPT(entries[e].identifier, distance(vec.begin(), vec_iter));
@@ -1021,17 +1021,17 @@ namespace OpenMS
     //#ifdef PISP_DEBUG
     std::cout << "load " << path << std::endl;
     //#endif
-    TextFile::Iterator iter = file.begin();
+    TextFile::ConstIterator iter = file.begin();
     ++iter;
     for (; iter != file.end() && !iter->hasPrefix("###"); ++iter)
     {
       std::vector<String> parts;
       iter->split('\t', parts);
-      std::vector<DoubleReal> masses;
+      std::vector<double> masses;
       masses.reserve(parts[0].toInt());
       std::vector<String> line_parts;
-      std::vector<DoubleReal> rts;
-      std::vector<DoubleReal> pts;
+      std::vector<double> rts;
+      std::vector<double> pts;
       for (UInt i = 2; i < parts.size(); ++i)
       {
         // check if rts are stored also
@@ -1142,17 +1142,17 @@ namespace OpenMS
 
   }
 
-  DoubleReal PrecursorIonSelectionPreprocessing::getRTProbability_(DoubleReal min_obs_rt, DoubleReal max_obs_rt, DoubleReal theo_rt)
+  double PrecursorIonSelectionPreprocessing::getRTProbability_(double min_obs_rt, double max_obs_rt, double theo_rt)
   {
     // first adapt gaussian RT error distribution to a normal distribution with \mu = 0
     Int theo_scan = getScanNumber_(theo_rt);
     if (theo_scan == -1)
       return 0.;
 
-    DoubleReal obs_scan_begin = getScanNumber_(min_obs_rt);
+    double obs_scan_begin = getScanNumber_(min_obs_rt);
     if (obs_scan_begin != 0)
       obs_scan_begin -= 1;
-    DoubleReal obs_scan_end = getScanNumber_(max_obs_rt) + 1;
+    double obs_scan_end = getScanNumber_(max_obs_rt) + 1;
 
     if (obs_scan_begin == -1 || obs_scan_end == -1)
     {
@@ -1163,33 +1163,31 @@ namespace OpenMS
 
     obs_scan_begin -= mu_;
     obs_scan_end -= mu_;
-    DoubleReal x1, x2;
-    x1 = theo_scan - obs_scan_end;
-    x2 = theo_scan - obs_scan_begin;
-    DoubleReal prob;
-    // gsl_cdf_gaussian_P computes the cumulative probs up to x (i.e. the area under the curve)
-    // so cgauss(x2)  - cgauss(x1) yields the area between x1 and x2
+    double x1 = double(theo_scan) - obs_scan_end;
+    double x2 = double(theo_scan) - obs_scan_begin;
+
+    // boost::math::cdf computes the cumulative probs up to x (i.e. the area under the curve)
+    boost::math::normal dist(0.0, sigma_);
+    double prob = boost::math::cdf(dist, x1) - boost::math::cdf(dist, x2);
     if (x2 > x1)
-      prob = gsl_cdf_gaussian_P(x2, sigma_) - gsl_cdf_gaussian_P(x1, sigma_);
-    else
-      prob = gsl_cdf_gaussian_P(x1, sigma_) -  gsl_cdf_gaussian_P(x2, sigma_);
+      prob = boost::math::cdf(dist, x2) - boost::math::cdf(dist, x1);
     if ((prob < 0.) || (obs_scan_begin == obs_scan_end))
     {
       std::cerr << min_obs_rt << " " << obs_scan_begin << " " << max_obs_rt << " " << obs_scan_end << " "
                 << theo_rt << " " << theo_scan << " " << mu_ << " " << x1 << " " << x2 << " " << prob << std::endl;
       if (x2 > x1)
-        std::cerr <<  gsl_cdf_gaussian_P(x2, sigma_) << " - " << gsl_cdf_gaussian_P(x1, sigma_) << std::endl;
+        std::cerr <<  boost::math::cdf(dist, x2) << " - " << boost::math::cdf(dist, x1) << std::endl;
       else
-        std::cerr <<   gsl_cdf_gaussian_P(x1, sigma_) << " - " << gsl_cdf_gaussian_P(x2, sigma_) << std::endl;
+        std::cerr << boost::math::cdf(dist, x1) << " - " << boost::math::cdf(dist, x2) << std::endl;
     }
     return prob;
   }
 
-  Int PrecursorIonSelectionPreprocessing::getScanNumber_(DoubleReal rt)
+  Int PrecursorIonSelectionPreprocessing::getScanNumber_(double rt)
   {
-    DoubleReal min_rt = param_.getValue("rt_settings:min_rt");
-    DoubleReal max_rt = param_.getValue("rt_settings:max_rt");
-    DoubleReal rt_step_size = param_.getValue("rt_settings:rt_step_size");
+    double min_rt = param_.getValue("rt_settings:min_rt");
+    double max_rt = param_.getValue("rt_settings:max_rt");
+    double rt_step_size = param_.getValue("rt_settings:rt_step_size");
 
     if (rt > max_rt || rt < min_rt)
       return -1;
@@ -1198,7 +1196,7 @@ namespace OpenMS
     return scan;
   }
 
-  void PrecursorIonSelectionPreprocessing::setGaussianParameters(DoubleReal mu, DoubleReal sigma)
+  void PrecursorIonSelectionPreprocessing::setGaussianParameters(double mu, double sigma)
   {
     sigma_ = sigma;
     mu_ = mu;
@@ -1210,9 +1208,9 @@ namespace OpenMS
     mu_ = param_.getValue("rt_settings:gauss_mean");
   }
 
-  DoubleReal PrecursorIonSelectionPreprocessing::getRTProbability(String prot_id, Size peptide_index, Feature & feature)
+  double PrecursorIonSelectionPreprocessing::getRTProbability(String prot_id, Size peptide_index, Feature& feature)
   {
-    DoubleReal theo_rt = 0.;
+    double theo_rt = 0.;
     if (rt_prot_map_.size() > 0)
     {
       if (rt_prot_map_.find(prot_id) != rt_prot_map_.end())
@@ -1233,15 +1231,15 @@ namespace OpenMS
       }
       std::cerr << "rt_map is empty, no rts predicted!" << std::endl;
     }
-    DoubleReal rt_begin = feature.getConvexHull().getBoundingBox().minPosition()[0];
-    DoubleReal rt_end =   feature.getConvexHull().getBoundingBox().maxPosition()[0];
+    double rt_begin = feature.getConvexHull().getBoundingBox().minPosition()[0];
+    double rt_end =   feature.getConvexHull().getBoundingBox().maxPosition()[0];
     return getRTProbability_(rt_begin, rt_end, theo_rt);
   }
 
-  DoubleReal PrecursorIonSelectionPreprocessing::getRTProbability(DoubleReal pred_rt, Feature & feature)
+  double PrecursorIonSelectionPreprocessing::getRTProbability(double pred_rt, Feature& feature)
   {
-    DoubleReal rt_begin = feature.getConvexHull().getBoundingBox().minPosition()[0];
-    DoubleReal rt_end =   feature.getConvexHull().getBoundingBox().maxPosition()[0];
+    double rt_begin = feature.getConvexHull().getBoundingBox().minPosition()[0];
+    double rt_end =   feature.getConvexHull().getBoundingBox().maxPosition()[0];
 
     return getRTProbability_(rt_begin, rt_end, pred_rt);
   }

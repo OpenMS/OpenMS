@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -67,6 +67,22 @@ namespace OpenMS
     bool use_nr_peaks_score_;
     bool use_sn_score_;
     bool use_dia_scores_;
+    
+    OpenSwath_Scores_Usage() :
+      use_coelution_score_(true),
+      use_shape_score_(true),
+      use_rt_score_(true),
+      use_library_score_(true),
+      use_elution_model_score_(true),
+      use_intensity_score_(true),
+      use_total_xic_score_(true),
+      use_nr_peaks_score_(true),
+      use_sn_score_(true),
+      use_dia_scores_(true)
+    {}
+
+    bool use_ms1_correlation;
+    bool use_ms1_fullscan;
   };
 
   /** @brief A structure to hold the different scores computed by OpenSWATH
@@ -97,6 +113,12 @@ namespace OpenMS
     double weighted_coelution_score;
     double weighted_xcorr_shape;
     double weighted_massdev_score;
+   
+    double xcorr_ms1_coelution_score;
+    double xcorr_ms1_shape_score;
+    double ms1_ppm_score;
+    double ms1_isotope_correlation;
+    double ms1_isotope_overlap;
 
     double library_manhattan;
     double library_dotprod;
@@ -130,6 +152,11 @@ namespace OpenMS
       weighted_coelution_score(0),
       weighted_xcorr_shape(0),
       weighted_massdev_score(0),
+      xcorr_ms1_coelution_score(0),
+      xcorr_ms1_shape_score(0),
+      ms1_ppm_score(0),
+      ms1_isotope_correlation(0),
+      ms1_isotope_overlap(0),
       library_manhattan(0),
       library_dotprod(0),
       intensity(0),
@@ -142,8 +169,8 @@ namespace OpenMS
     }
 
 
-    double get_quick_lda_score(double library_corr, double library_norm_manhattan, double norm_rt_score, double xcorr_coelution_score,
-                               double xcorr_shape_score, double log_sn_score)
+    double get_quick_lda_score(double library_corr_, double library_norm_manhattan_, double norm_rt_score_, double xcorr_coelution_score_,
+                               double xcorr_shape_score_, double log_sn_score_)
     {
       // some scores based on manual evaluation of 80 chromatograms
       // quick LDA average model on 100 2 x Crossvalidated runs (0.85 TPR/0.17 FDR)
@@ -158,12 +185,12 @@ namespace OpenMS
       //
       // NOTE this score means "better" if it is more negative!
       double lda_quick_score =
-        library_corr                    * -0.5319046 +
-        library_norm_manhattan          *  2.1643962 +
-        norm_rt_score                   *  8.0353047 +
-        xcorr_coelution_score           *  0.1458914 +
-        xcorr_shape_score               * -1.6901925 +
-        log_sn_score                    * -0.8002824;
+        library_corr_                    * -0.5319046 +
+        library_norm_manhattan_          *  2.1643962 +
+        norm_rt_score_                   *  8.0353047 +
+        xcorr_coelution_score_           *  0.1458914 +
+        xcorr_shape_score_               * -1.6901925 +
+        log_sn_score_                    * -0.8002824;
       return lda_quick_score;
     }
 
@@ -376,9 +403,9 @@ var_yseries_score   -0.0327896378737766
     typedef OpenSwath::LightPeptide PeptideType;
     typedef OpenSwath::LightTransition TransitionType;
 
-    DoubleReal rt_normalization_factor_;
+    double rt_normalization_factor_;
     int add_up_spectra_;
-    DoubleReal spacing_for_spectra_resampling_;
+    double spacing_for_spectra_resampling_;
     OpenSwath_Scores_Usage su_;
 
   public:
@@ -393,15 +420,15 @@ var_yseries_score   -0.0327896378737766
      *
      * Sets the parameters for the scoring.
      *
-     * @param rt_normalization_factor_ Specifies the range of the normalized retention time space
-     * @param add_up_spectra_ How many spectra to add up (default 1)
-     * @param spacing_for_spectra_resampling_ Spacing factor for spectra addition
-     * @param su_ Which scores to actually compute
+     * @param rt_normalization_factor Specifies the range of the normalized retention time space
+     * @param add_up_spectra How many spectra to add up (default 1)
+     * @param spacing_for_spectra_resampling Spacing factor for spectra addition
+     * @param su Which scores to actually compute
      *
     */
-    void initialize(DoubleReal rt_normalization_factor_,
-      int add_up_spectra_, DoubleReal spacing_for_spectra_resampling_,
-      OpenSwath_Scores_Usage & su_);
+    void initialize(double rt_normalization_factor,
+      int add_up_spectra, double spacing_for_spectra_resampling,
+      OpenSwath_Scores_Usage & su);
 
     /** @brief Score a single peakgroup in a chromatogram using only chromatographic properties.
      *
@@ -456,6 +483,7 @@ var_yseries_score   -0.0327896378737766
      * @param imrmfeature The feature to be scored
      * @param transitions The library transition to score the feature against
      * @param swath_map The SWATH-MS (DIA map) from which to retrieve full MS/MS spectra at the chromatographic peak apices
+     * @param ms1_map The corresponding MS1 (precursor ion map) from which the precursor spectra can be retrieved (optional, may be NULL)
      * @param diascoring DIA Scoring object to use for scoring
      * @param pep The peptide corresponding to the library transitions
      * @param scores The object to store the result
@@ -464,6 +492,7 @@ var_yseries_score   -0.0327896378737766
     void calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature, 
         const std::vector<TransitionType> & transitions,
         OpenSwath::SpectrumAccessPtr swath_map,
+        OpenSwath::SpectrumAccessPtr ms1_map,
         OpenMS::DIAScoring & diascoring,
         const PeptideType& pep,
         OpenSwath_Scores & scores);

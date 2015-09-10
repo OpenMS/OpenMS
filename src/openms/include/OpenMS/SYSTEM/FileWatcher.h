@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -76,7 +76,7 @@ public:
     OPENMS_DLLAPI virtual ~FileWatcher();
 
     ///Sets the delay in seconds (default: 1s)
-    inline void setDelayInSeconds(DoubleReal delay)
+    inline void setDelayInSeconds(double delay)
     {
       delay_in_seconds_ = delay;
     }
@@ -107,7 +107,7 @@ protected:
     /// A map that links timer name and file
     Map<QString, QString> timers_;
     /// Delay (seconds)
-    DoubleReal delay_in_seconds_;
+    double delay_in_seconds_;
   };
 
   // OPENMS_DLLAPI extern FileWatcher myFileWatcher_instance;

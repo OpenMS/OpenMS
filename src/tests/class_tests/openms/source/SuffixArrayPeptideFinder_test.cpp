@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -83,14 +83,14 @@ START_SECTION(SuffixArrayPeptideFinder(const SuffixArrayPeptideFinder &source))
 	TEST_EQUAL (sa_seqan->getTolerance(),new_ptr->getTolerance());
 END_SECTION
 
-START_SECTION(DoubleReal getTolerance() const)
+START_SECTION(double getTolerance() const)
 	sa_seqan->setTolerance(0.1);
 	TEST_REAL_SIMILAR (sa_seqan->getTolerance(),0.1);
 	sa_seqan->setTolerance(0.5);
 	TEST_REAL_SIMILAR (sa_seqan->getTolerance(),0.5);
 END_SECTION
 
-START_SECTION(void setTolerance(const DoubleReal t))
+START_SECTION(void setTolerance(const double t))
 	TEST_EXCEPTION(Exception::InvalidValue,sa_seqan->setTolerance(-0.5));
 END_SECTION
 
@@ -157,12 +157,12 @@ START_SECTION(String getModificationOutputMethod())
 	NOT_TESTABLE // tested above
 END_SECTION
 
-START_SECTION((void getCandidates(std::vector< std::vector< std::pair< FASTAEntry, String > > > &candidates, const std::vector< DoubleReal > &spec)))
+START_SECTION((void getCandidates(std::vector< std::vector< std::pair< FASTAEntry, String > > > &candidates, const std::vector< double > &spec)))
 	SuffixArrayPeptideFinder* sa = new SuffixArrayPeptideFinder(OPENMS_GET_TEST_DATA_PATH("SuffixArrayPeptideFinder_test.fasta"),"trypticSeqan");
-	vector<DoubleReal> spec;
+	vector<double> spec;
 	spec.push_back(178.1864);
 	spec.push_back(441.4806);
-	const vector<DoubleReal> specc (spec);
+	const vector<double> specc (spec);
 	sa->setTolerance(0.5);
 	sa->setNumberOfModifications(0);
 	vector<vector<pair<FASTAEntry,String> > > res2;

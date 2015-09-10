@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -104,14 +104,14 @@ END_SECTION
 
 START_SECTION((MetaInfo(const MetaInfo& rhs)))
 	MetaInfo mi3(mi);
-	TEST_REAL_SIMILAR(DoubleReal(mi3.getValue("cluster_id")),DoubleReal(mi.getValue("cluster_id")))
+	TEST_REAL_SIMILAR(double(mi3.getValue("cluster_id")),double(mi.getValue("cluster_id")))
 	TEST_STRING_EQUAL(mi3.getValue("testname"),"testtesttest2")
 END_SECTION
 
 START_SECTION((MetaInfo& operator = (const MetaInfo& rhs)))
 	MetaInfo mi3;
 	mi3 = mi;
-	TEST_REAL_SIMILAR(DoubleReal(mi3.getValue("cluster_id")),DoubleReal(mi.getValue("cluster_id")))
+	TEST_REAL_SIMILAR(double(mi3.getValue("cluster_id")),double(mi.getValue("cluster_id")))
 	TEST_STRING_EQUAL(mi3.getValue("testname"),"testtesttest2")
 END_SECTION
 

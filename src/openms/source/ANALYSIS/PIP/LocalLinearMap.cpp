@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,7 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <fstream>
+#include <string>
 
 using namespace std;
 
@@ -48,17 +49,14 @@ namespace OpenMS
   {
     String codefile = "/PIP/codebooks.data";
     String a_file = "/PIP/linearMapping.data";
-    UInt xdim = 1;
-    UInt ydim = 2;
-    DoubleReal radius = 0.4;
 
-    param_.xdim = xdim;
-    param_.ydim = ydim;
-    param_.radius = radius;
+    param_.xdim = 1;
+    param_.ydim = 2;
+    param_.radius = 0.4;
 
-    code_ = Matrix<DoubleReal>(param_.xdim * param_.ydim, 18);
-    A_ = Matrix<DoubleReal>(param_.xdim * param_.ydim, 18);
-    wout_ = vector<DoubleReal>(param_.xdim * param_.ydim);
+    code_ = Matrix<double>(param_.xdim * param_.ydim, 18);
+    A_ = Matrix<double>(param_.xdim * param_.ydim, 18);
+    wout_ = vector<double>(param_.xdim * param_.ydim);
 
     // path to codefile + a_file
     codefile = File::find(codefile);
@@ -66,16 +64,16 @@ namespace OpenMS
 
     // read in file containing codebook vectors
     ifstream inputstream_c(codefile.c_str());
-    string line;
+    std::string line;
     UInt i = 0, j = 0, k = 0;
-    //open stream
+    // open stream
     if (inputstream_c.good())
     {
-      DoubleReal pos = 0.0;
+      double pos = 0.0;
       while (getline(inputstream_c, line, '\n'))
       {
         istringstream linestream(line);
-        string proto;
+        std::string proto;
         while (getline(linestream, proto, ' '))
         {
           stringstream(proto) >> pos;
@@ -86,7 +84,7 @@ namespace OpenMS
         }
       }
       inputstream_c.close();
-      //reading codefile is done with success
+      // reading codefile is done with success
     }
     else
     {
@@ -94,7 +92,7 @@ namespace OpenMS
       throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("LocalLinearMap could not open 'codebooks.data' at: ") + codefile);
     }
 
-    // read in file containing Matrix< DoubleReal > A
+    // read in file containing Matrix< double > A
     ifstream inputstream_a(a_file.c_str());
     //string line;
     i = 0;
@@ -102,11 +100,11 @@ namespace OpenMS
     //open stream
     if (inputstream_a.good())
     {
-      DoubleReal pos = 0.0;
+      double pos = 0.0;
       while (getline(inputstream_a, line, '\n'))
       {
         istringstream linestream(line);
-        string map;
+        std::string map;
         while (getline(linestream, map, ' '))
         {
           stringstream(map) >> pos;
@@ -152,14 +150,14 @@ namespace OpenMS
     return foo;
   }
 
-  vector<DoubleReal> LocalLinearMap::neigh(const Matrix<UInt> & cord, Size win, DoubleReal radius)
+  vector<double> LocalLinearMap::neigh(const Matrix<UInt> & cord, Size win, double radius)
   {
-    vector<DoubleReal> neighborhood(cord.rows());
+    vector<double> neighborhood(cord.rows());
 
     for (Size i = 0; i < cord.rows(); ++i)
     {
       // get dist for code i to winner code on grid structure
-      DoubleReal dd = dist_(cord, cord, i, win);
+      double dd = dist_(cord, cord, i, win);
       //Gaussian neighborhood function
       dd = exp(-dd / 2.0 / radius / radius);
       neighborhood[i] = dd;
@@ -168,9 +166,9 @@ namespace OpenMS
     return neighborhood;
   }
 
-  DoubleReal LocalLinearMap::dist_(const Matrix<UInt> & u, const Matrix<UInt> & v, Size a, Size b)
+  double LocalLinearMap::dist_(const Matrix<UInt> & u, const Matrix<UInt> & v, Size a, Size b)
   {
-    DoubleReal dd = 0.0;
+    double dd = 0.0;
     //get euclidean distance of instances a of u and b of v
     for (Size i = 0; i < u.cols(); ++i)
     {
@@ -179,7 +177,7 @@ namespace OpenMS
     return dd;
   }
 
-  const Real normMeanFactors[18] = // hint: remove 'f' IFF this should ever be DoubleReal
+  const float normMeanFactors[18] = // hint: remove 'f' IFF this should ever be double
   {
     0.5967742f, 11.5440323f, 0.4193548f, 1.2177419f, 11.9581452f,
     1399.2211022f, 0.1935484f, 412.0838710f, 0.1209677f, 1358.0966317f,
@@ -188,7 +186,7 @@ namespace OpenMS
   };
 
 
-  const Real normStdFactors[18] = // hint: remove 'f' IFF this should ever be DoubleReal
+  const float normStdFactors[18] = // hint: remove 'f' IFF this should ever be double
   {
     0.5179165f, 5.7367444f, 0.6780753f, 0.4962471f, 5.1953755f,
     51.6311526f, 0.4527976f, 205.0635677f, 0.3727817f, 571.4667323f,
@@ -197,7 +195,7 @@ namespace OpenMS
   };
 
   //center and scale by variance
-  void LocalLinearMap::normalizeVector(vector<DoubleReal> & aaIndexVariables)
+  void LocalLinearMap::normalizeVector(vector<double> & aaIndexVariables)
   {
     for (Size i = 0; i < aaIndexVariables.size(); ++i)
     {
@@ -213,17 +211,17 @@ namespace OpenMS
     return param_;
   }
 
-  const Matrix<DoubleReal> & LocalLinearMap::getCodebooks() const
+  const Matrix<double> & LocalLinearMap::getCodebooks() const
   {
     return code_;
   }
 
-  const Matrix<DoubleReal> & LocalLinearMap::getMatrixA() const
+  const Matrix<double> & LocalLinearMap::getMatrixA() const
   {
     return A_;
   }
 
-  const vector<DoubleReal> & LocalLinearMap::getVectorWout() const
+  const vector<double> & LocalLinearMap::getVectorWout() const
   {
     return wout_;
   }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,7 +44,7 @@
 
 #include <QtCore/QString>
 
-#include <gsl/gsl_statistics.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -60,7 +60,7 @@ using namespace std;
   <table>
   <tr>
   <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-  <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ FileInfo \f$ \longrightarrow \f$</td>
+  <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ MapStatistics \f$ \longrightarrow \f$</td>
   <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
   </tr>
   <tr>
@@ -70,7 +70,7 @@ using namespace std;
   </table>
   </center>
   This tool computes some basic statistics on the features of a map
-  that are frequently used for quality control. In contrast to FileInfo
+  that are frequently used for quality control.
 
   Information displayed includes:
   - show information about the data range of a file (m/z, RT, intensity)
@@ -79,9 +79,9 @@ using namespace std;
   - total ion current included in the features as a function of RT
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_FileInfo.cli
+  @verbinclude TOPP_MapStatistics.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_FileInfo.html
+  @htmlinclude TOPP_MapStatistics.html
 */
 
 // We do not want this class to show up in the docu:
@@ -89,39 +89,9 @@ using namespace std;
 
 namespace OpenMS
 {
-  /// A little helper class to gather (and dump) some statistics from a vector<double>.  Uses statistical functions implemented in GSL.
-  struct SomeStatistics
-  {
-    /**@brief Initialize SomeStatistics from data.
-
-    @note: GSL statistics uses double and so we write double not DoubleReal here and where we use this.
-    */
-    SomeStatistics& operator()(vector<double>& data)
-    {
-      // Sanity check: avoid core dump if no data points present.
-      if (!data.empty())
-      {
-        sort(data.begin(), data.end());
-        mean = gsl_stats_mean(&data.front(), 1, data.size());
-        variance = gsl_stats_variance_m(&data.front(), 1, data.size(), mean);
-        min = data.front();
-        lowerq = gsl_stats_quantile_from_sorted_data(&data.front(), 1, data.size(), 0.25);
-        median = gsl_stats_median_from_sorted_data(&data.front(), 1, data.size());
-        upperq = gsl_stats_quantile_from_sorted_data(&data.front(), 1, data.size(), 0.75);
-        max = data.back();
-      }
-      else
-      {
-        mean = variance = min = lowerq = median = upperq = max = 0.0;
-      }
-      return *this;
-    }
-
-    double mean, variance, min, lowerq, median, upperq, max;
-  };
-
-  /// Copy the statistics into a vector
-  static vector<double>& operator<<(vector<double>& result, const SomeStatistics& stats)
+  /// Copy the SummaryStatistics into a vector
+  template<class T>
+  static vector<double>& operator<<(vector<double>& result, const Math::SummaryStatistics<T>& stats)
   {
     result.push_back(stats.mean);
     result.push_back(sqrt(stats.variance));
@@ -133,8 +103,9 @@ namespace OpenMS
     return result;
   }
 
-  /// Write SomeStatistics to a stream.
-  static ostream& operator<<(ostream& os, const SomeStatistics& rhs)
+  /// Write SummaryStatistics to a stream.
+  template<class T>
+  static ostream& operator<<(ostream& os, const Math::SummaryStatistics<T>& rhs)
   {
     return os <<
            "  mean: " << rhs.mean << endl <<
@@ -155,7 +126,7 @@ public:
   {
   }
 
-  vector<double> sliceStatistics(const FeatureMap<>& map, Size begin, Size end) const
+  vector<double> sliceStatistics(const FeatureMap& map, Size begin, Size end) const
   {
     // If we are asked to produce stats for an empty set, return an empty vector.
     if (end <= begin || end > map.size())
@@ -170,7 +141,7 @@ public:
     vector<double> overall_qualities(size);
     vector<double> mz_qualities(size);
     vector<double> rt_qualities(size);
-    DoubleReal tic = 0.0;
+    double tic = 0.0;
 
     for (Size i = begin; i < end; ++i)
     {
@@ -184,15 +155,14 @@ public:
     }
 
     vector<double> results;
-    SomeStatistics some_statistics;
     results.reserve(43); // 6 7-number stats + tic
     results.push_back(tic);
-    results << some_statistics(intensities);
-    results << some_statistics(mz);
-    results << some_statistics(peak_widths);
-    results << some_statistics(overall_qualities);
-    results << some_statistics(rt_qualities);
-    results << some_statistics(mz_qualities);
+    results << Math::SummaryStatistics< vector<double> >(intensities);
+    results << Math::SummaryStatistics< vector<double> >(mz);
+    results << Math::SummaryStatistics< vector<double> >(peak_widths);
+    results << Math::SummaryStatistics< vector<double> >(overall_qualities);
+    results << Math::SummaryStatistics< vector<double> >(rt_qualities);
+    results << Math::SummaryStatistics< vector<double> >(mz_qualities);
 
     return results;
   }
@@ -245,7 +215,7 @@ protected:
     }
 
     MSExperiment<Peak1D> exp;
-    FeatureMap<> feat;
+    FeatureMap feat;
     ConsensusMap cons;
 
     if (in_type == FileTypes::FEATUREXML) //features
@@ -417,7 +387,7 @@ protected:
       for (Size slice = 0; slice < n; ++slice)
       {
         // Determine slice boundaries.
-        DoubleReal rt_end = feat.back().getRT() / (double)n * (slice + 1);
+        double rt_end = feat.back().getRT() / (double)n * (slice + 1);
         for (end = begin; end < feat.size() && feat[end].getRT() < rt_end; ++end) {}
 
         // Compute statistics on all features in this slice.
@@ -508,28 +478,26 @@ protected:
         it_aad_by_cfs.push_back(it_aad);
       }
 
-      OpenMS::SomeStatistics some_statistics;
-
       os.precision(writtenDigits(ConsensusFeature::IntensityType()));
-      os << "Intensities of consensus features:" << endl << some_statistics(intensities) << endl;
+      os << "Intensities of consensus features:" << endl << Math::SummaryStatistics< vector<double> >(intensities) << endl;
 
       os.precision(writtenDigits(ConsensusFeature::QualityType()));
-      os << "Qualities of consensus features:" << endl << some_statistics(qualities) << endl;
+      os << "Qualities of consensus features:" << endl << Math::SummaryStatistics< vector<double> >(qualities) << endl;
 
       os.precision(writtenDigits(ConsensusFeature::CoordinateType()));
-      os << "Retention time differences ( element-center, weight 1 per element):" << endl << some_statistics(rt_delta_by_elems) << endl;
-      os << "Absolute retention time differences ( |element-center|, weight 1 per element):" << endl << some_statistics(rt_aad_by_elems) << endl;
-      os << "Average absolute differences of retention time within consensus features ( |element-center|, weight 1 per consensus features):" << endl << some_statistics(rt_aad_by_cfs) << endl;
+      os << "Retention time differences ( element-center, weight 1 per element):" << endl << Math::SummaryStatistics< vector<double> >(rt_delta_by_elems) << endl;
+      os << "Absolute retention time differences ( |element-center|, weight 1 per element):" << endl << Math::SummaryStatistics< vector<double> >(rt_aad_by_elems) << endl;
+      os << "Average absolute differences of retention time within consensus features ( |element-center|, weight 1 per consensus features):" << endl << Math::SummaryStatistics< vector<double> >(rt_aad_by_cfs) << endl;
 
       os.precision(writtenDigits(ConsensusFeature::CoordinateType()));
-      os << "Mass-to-charge differences ( element-center, weight 1 per element):" << endl << some_statistics(mz_delta_by_elems) << endl;
-      os << "Absolute differences of mass-to-charge ( |element-center|, weight 1 per element):" << endl << some_statistics(mz_aad_by_elems) << endl;
-      os << "Average absolute differences of mass-to-charge within consensus features ( |element-center|, weight 1 per consensus features):" << endl << some_statistics(mz_aad_by_cfs) << endl;
+      os << "Mass-to-charge differences ( element-center, weight 1 per element):" << endl << Math::SummaryStatistics< vector<double> >(mz_delta_by_elems) << endl;
+      os << "Absolute differences of mass-to-charge ( |element-center|, weight 1 per element):" << endl << Math::SummaryStatistics< vector<double> >(mz_aad_by_elems) << endl;
+      os << "Average absolute differences of mass-to-charge within consensus features ( |element-center|, weight 1 per consensus features):" << endl << Math::SummaryStatistics< vector<double> >(mz_aad_by_cfs) << endl;
 
       os.precision(writtenDigits(ConsensusFeature::IntensityType()));
-      os << "Intensity ratios ( element/center, weight 1 per element):" << endl << some_statistics(it_delta_by_elems) << endl;
-      os << "Relative intensity error ( max{(element/center),(center/element)}, weight 1 per element):" << endl << some_statistics(it_aad_by_elems) << endl;
-      os << "Average relative intensity error within consensus features ( max{(element/center),(center/element)}, weight 1 per consensus features):" << endl << some_statistics(it_aad_by_cfs) << endl;
+      os << "Intensity ratios ( element/center, weight 1 per element):" << endl << Math::SummaryStatistics< vector<double> >(it_delta_by_elems) << endl;
+      os << "Relative intensity error ( max{(element/center),(center/element)}, weight 1 per element):" << endl << Math::SummaryStatistics< vector<double> >(it_aad_by_elems) << endl;
+      os << "Average relative intensity error within consensus features ( max{(element/center),(center/element)}, weight 1 per consensus features):" << endl << Math::SummaryStatistics< vector<double> >(it_aad_by_cfs) << endl;
     }
 
     return EXECUTION_OK;

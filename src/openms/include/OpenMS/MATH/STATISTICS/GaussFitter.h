@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Maintainer: Chris Bielow $
+// $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 //
 
@@ -41,25 +41,18 @@
 
 #include <vector>
 
-// gsl includes
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_vector.h>
-#include <gsl/gsl_multifit_nlin.h>
-
 namespace OpenMS
 {
   namespace Math
   {
     /**
-        @brief Implements a fitter for gaussian functions
+        @brief Implements a fitter for Gaussian functions
 
-        This class fits a gaussian distribution to a number of data points.
+        This class fits a Gaussian distribution to a number of data points.
         The results as well as the initial guess are specified using the struct GaussFitResult.
 
-        The complete gaussian formula with the fitted parameters can be transformed into a
+        The complete Gaussian formula with the fitted parameters can be transformed into a
         gnuplot formula using getGnuplotFormula after fitting.
-
-        The fitting is implemented using GSL fitting algorithms.
 
         @ingroup Math
     */
@@ -67,55 +60,56 @@ namespace OpenMS
     {
 public:
 
-      /// struct of parameters of a gaussian distribution
+      /// struct of parameters of a Gaussian distribution
       struct GaussFitResult
       {
 public:
+        GaussFitResult()
+        : A(-1.0), x0(-1.0), sigma(-1.0) {}
+        GaussFitResult(double a, double x, double s)
+        : A(a), x0(x), sigma(s) {}
 
-        /// parameter A of gaussian distribution (amplitude)
+        /// parameter A of Gaussian distribution (amplitude)
         double A;
 
-        /// parameter x0 of gaussian distribution (left/right shift)
+        /// parameter x0 of Gaussian distribution (center position)
         double x0;
 
-        /// parameter sigma of gaussian distribution (width)
+        /// parameter sigma of Gaussian distribution (width)
         double sigma;
       };
 
-      /// Default constructor
+      /// Constructor
       GaussFitter();
 
       /// Destructor
       virtual ~GaussFitter();
 
-      /// sets the initial parameters used by the fit method as initial guess for the gaussian
-      void setInitialParameters(const GaussFitResult & result);
+      /// sets the initial parameters used by the fit method as initial guess for the Gaussian
+      void setInitialParameters(const GaussFitResult& result);
 
       /**
-          @brief Fits a gaussian distribution to the given data points
+          @brief Fits a Gaussian distribution to the given data points
 
-          @param points the data points used for the gaussian fitting
+          @param points the data points used for the Gaussian fitting
 
           @exception Exception::UnableToFit is thrown if fitting cannot be performed
       */
-      GaussFitResult fit(std::vector<DPosition<2> > & points);
+      GaussFitResult fit(std::vector<DPosition<2> > & points) const;
 
-      /// return the gnuplot formula of the gaussian
-      const String & getGnuplotFormula() const;
+      /**
+        @brief Evaluate the current Gaussian model at the specified points.
+
+        Returns the intensities (i.e. probabilities scaled by the factor 'A') of the PDF at the given positions.
+        This function can be called with any set of parameters, e.g. the initial parameters (to get a 'before-fit' status),
+        or after fitting.
+
+      */
+      static std::vector<double> eval(const std::vector<double>& evaluation_points, const GaussFitResult& model);
 
 protected:
 
-      static int gaussFitterf_(const gsl_vector * x, void * params, gsl_vector * f);
-
-      static int gaussFitterdf_(const gsl_vector * x, void * params, gsl_matrix * J);
-
-      static int gaussFitterfdf_(const gsl_vector * x, void * params, gsl_vector * f, gsl_matrix * J);
-
-      void printState_(size_t iter, gsl_multifit_fdfsolver * s);
-
       GaussFitResult init_param_;
-
-      String gnuplot_formula_;
 
 private:
 

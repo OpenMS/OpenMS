@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
-// $Authors: Marc Sturm, Timo Sachsenberg $
+// $Authors: Marc Sturm, Timo Sachsenberg, Chris Bielow $
 // --------------------------------------------------------------------------
 
 // Qt
@@ -67,8 +67,6 @@
 #include <boost/math/special_functions/fpclassify.hpp>
 
 using namespace std;
-
-#define DEBUG_TOPPVIEW 0
 
 namespace OpenMS
 {
@@ -133,7 +131,7 @@ namespace OpenMS
     dataToWidget(peak.getMZ(), peak.getIntensity(), point, flipped, percentage);
   }
 
-  void Spectrum1DCanvas::dataToWidget(DoubleReal x, DoubleReal y, QPoint & point, bool flipped, bool percentage)
+  void Spectrum1DCanvas::dataToWidget(double x, double y, QPoint & point, bool flipped, bool percentage)
   {
     QPoint tmp;
     if (percentage)
@@ -142,10 +140,10 @@ namespace OpenMS
     }
     SpectrumCanvas::dataToWidget_(x, y, tmp);
     point.setX(tmp.x());
-    DoubleReal alignment_shrink_factor = 1.0;
+    double alignment_shrink_factor = 1.0;
     if (height() > 10)
     {
-      alignment_shrink_factor = (DoubleReal)(height() - 10) / (DoubleReal)height();
+      alignment_shrink_factor = (double)(height() - 10) / (double)height();
     }
     if (mirror_mode_)
     {
@@ -183,13 +181,13 @@ namespace OpenMS
     return widgetToData(pos.x(), pos.y(), percentage);
   }
 
-  SpectrumCanvas::PointType Spectrum1DCanvas::widgetToData(DoubleReal x, DoubleReal y, bool percentage)
+  SpectrumCanvas::PointType Spectrum1DCanvas::widgetToData(double x, double y, bool percentage)
   {
-    DoubleReal actual_y;
-    DoubleReal alignment_shrink_factor = 1.0;
+    double actual_y;
+    double alignment_shrink_factor = 1.0;
     if (height() > 10)
     {
-      alignment_shrink_factor = (DoubleReal)(height() - 10) / (DoubleReal)height();
+      alignment_shrink_factor = (double)(height() - 10) / (double)height();
     }
 
     if (mirror_mode_)
@@ -269,8 +267,8 @@ namespace OpenMS
         Annotation1DDistanceItem * distance_item = dynamic_cast<Annotation1DDistanceItem *>(item);
         if (distance_item)
         {
-          const DoubleReal start_p = distance_item->getStartPoint().getX();
-          const DoubleReal end_p = distance_item->getEndPoint().getX();
+          const double start_p = distance_item->getStartPoint().getX();
+          const double end_p = distance_item->getEndPoint().getX();
           emit sendStatusMessage(QString("Measured: dMZ = %1").arg(end_p - start_p).toStdString(), 0);
         }
       }
@@ -481,9 +479,9 @@ namespace OpenMS
           updatePercentageFactor_(current_layer_);
           PointType p = widgetToData(measurement_start_point_, true);
           bool peak_1_less = peak_1.getMZ() < peak_2.getMZ();
-          DoubleReal start_mz = peak_1_less ? peak_1.getMZ() : peak_2.getMZ();
-          DoubleReal end_mz = peak_1_less ? peak_2.getMZ() : peak_1.getMZ();
-          DoubleReal distance = end_mz - start_mz;
+          double start_mz = peak_1_less ? peak_1.getMZ() : peak_2.getMZ();
+          double end_mz = peak_1_less ? peak_2.getMZ() : peak_1.getMZ();
+          double distance = end_mz - start_mz;
           PointType start_p(start_mz, p.getY());
           PointType end_p(end_mz, p.getY());
 
@@ -622,7 +620,7 @@ namespace OpenMS
     //update range area
     recalculateRanges_(0, 2, 1);
     overall_data_range_.setMinY(0.0);      // minimal intensity always 0.0
-    DoubleReal width = overall_data_range_.width();
+    double width = overall_data_range_.width();
     overall_data_range_.setMinX(overall_data_range_.minX() - 0.002 * width);
     overall_data_range_.setMaxX(overall_data_range_.maxX() + 0.002 * width);
     overall_data_range_.setMaxY(overall_data_range_.maxY() + 0.002 * overall_data_range_.height());
@@ -1008,7 +1006,7 @@ namespace OpenMS
     current_layer_ = getLayerCount() - 1;
     currentPeakData_()->updateRanges();
 
-    //Abort if no data points are contained
+    // Abort if no data points are contained
     if (getCurrentLayer().getPeakData()->size() == 0 || getCurrentLayer().getPeakData()->getSize() == 0)
     {
       layers_.resize(getLayerCount() - 1);
@@ -1018,7 +1016,7 @@ namespace OpenMS
       return false;
     }
 
-    //add new draw mode and style
+    // add new draw mode and style
     draw_modes_.push_back(DM_PEAKS);
     peak_penstyle_.push_back(Qt::SolidLine);
 
@@ -1071,7 +1069,7 @@ namespace OpenMS
     //update ranges
     recalculateRanges_(0, 2, 1);
     overall_data_range_.setMinY(0.0);      // minimal intensity always 0.0
-    DoubleReal width = overall_data_range_.width();
+    double width = overall_data_range_.width();
     overall_data_range_.setMinX(overall_data_range_.minX() - 0.002 * width);
     overall_data_range_.setMaxX(overall_data_range_.maxX() + 0.002 * width);
     overall_data_range_.setMaxY(overall_data_range_.maxY() + 0.002 * overall_data_range_.height());
@@ -1100,8 +1098,8 @@ namespace OpenMS
       return;
 
     //determine coordinates;
-    DoubleReal mz = 0.0;
-    Real it = 0.0;
+    double mz = 0.0;
+    float it = 0.0;
     // only peak data is supported here
     if (getCurrentLayer().type != LayerData::DT_PEAK)
     {
@@ -1118,7 +1116,7 @@ namespace OpenMS
 
     if (isMzToXAxis() ^ is_swapped_) // XOR
     { // only if either one of the conditions holds
-      text = "RT: ";
+      text = "RT:  "; // two spaces, ensuring same indentation as "m/z: " and "int: "
       precision = 2;
     }
     else // only if none or both are true
@@ -1126,8 +1124,8 @@ namespace OpenMS
       text = "m/z: ";
       precision = 8;
     }
-    lines.push_back(text.c_str() + QString::number(mz, 'f', precision));
-    lines.push_back("Int: " + QString::number(it, 'f', 2));
+    lines.push_back(text.c_str() +  QLocale::c().toString(mz, 'f', precision));  // adds group separators (consistency with intensity)
+    lines.push_back("Int: " + QLocale::c().toString(it, 'f', 2));                // adds group separators (every 1e3), to better visualize large numbers (e.g. 23.009.646.54,3));
     drawText_(painter, lines);
   }
 
@@ -1137,9 +1135,9 @@ namespace OpenMS
       return;
 
     //determine coordinates;
-    DoubleReal mz;
-    Real it;
-    Real ppm;
+    double mz;
+    float it;
+    float ppm;
 
     if (getCurrentLayer().type != LayerData::DT_PEAK)
     {
@@ -1158,7 +1156,7 @@ namespace OpenMS
       PointType point = widgetToData_(last_mouse_pos_);
       mz = point[0] - start.getPeak(*getCurrentLayer().getPeakData()).getMZ();
       //rt = point[1] - start.getSpectrum(*getCurrentLayer().getPeakData()).getRT();
-      it = std::numeric_limits<DoubleReal>::quiet_NaN();
+      it = std::numeric_limits<double>::quiet_NaN();
     }
     ppm = (mz / start.getPeak(*getCurrentLayer().getPeakData()).getMZ()) * 1e6;
 
@@ -1193,7 +1191,7 @@ namespace OpenMS
   {
     if (intensity_mode_ == IM_SNAP)
     {
-      DoubleReal local_max  = -numeric_limits<double>::max();
+      double local_max  = -numeric_limits<double>::max();
       for (Size i = 0; i < getLayerCount(); ++i)
       {
         SpectrumType & spectrum = getLayer_(i).getCurrentSpectrum();
@@ -1531,11 +1529,11 @@ namespace OpenMS
         ExperimentType out;
         getVisiblePeakData(out);
         addDataProcessing_(out, DataProcessing::FILTERING);
-        FileHandler().storeExperiment(file_name, out);
+        FileHandler().storeExperiment(file_name, out, ProgressLogger::GUI);
       }
       else
       {
-        FileHandler().storeExperiment(file_name, *layer.getPeakData());
+        FileHandler().storeExperiment(file_name, *layer.getPeakData(), ProgressLogger::GUI);
       }
     }
   }
@@ -1562,7 +1560,7 @@ namespace OpenMS
     //update ranges
     recalculateRanges_(0, 2, 1);
     overall_data_range_.setMinY(0.0);      // minimal intensity always 0.0
-    DoubleReal width = overall_data_range_.width();
+    double width = overall_data_range_.width();
     overall_data_range_.setMinX(overall_data_range_.minX() - 0.002 * width);
     overall_data_range_.setMaxX(overall_data_range_.maxX() + 0.002 * width);
     overall_data_range_.setMaxY(overall_data_range_.maxY() + 0.002 * overall_data_range_.height());
@@ -1630,34 +1628,65 @@ namespace OpenMS
     emit layerZoomChanged(this);
   }
 
-  void Spectrum1DCanvas::translateLeft_()
+  void Spectrum1DCanvas::translateLeft_(Qt::KeyboardModifiers m)
   {
-    DoubleReal shift = 0.05 * visible_area_.width();
-    DoubleReal newLo = visible_area_.minX() - shift;
-    DoubleReal newHi = visible_area_.maxX() - shift;
+    double newLo = visible_area_.minX();
+    double newHi = visible_area_.maxX();
+    if (m == Qt::NoModifier)
+    { // 5% shift
+      double shift = 0.05 * visible_area_.width();
+      newLo -= shift;
+      newHi -= shift;
+    }
+    else if (m == Qt::ShiftModifier) 
+    { // jump to the next peak (useful for sparse data)
+      const LayerData::ExperimentType::SpectrumType& spec = getCurrentLayer_().getCurrentSpectrum();
+      PeakType p_temp(visible_area_.minX(), 0);
+      SpectrumConstIteratorType it_next = lower_bound(spec.begin(), spec.end(), p_temp, PeakType::MZLess()); // find first peak in current range
+      if (it_next != spec.begin()) --it_next; // move one peak left
+      if (it_next == spec.end()) return;
+      newLo = it_next->getMZ() - visible_area_.width() / 2; // center the next peak to the left
+      newHi = it_next->getMZ() + visible_area_.width() / 2;
+    }
+
     // check if we are falling out of bounds
     if (newLo < overall_data_range_.minX())
     {
       newLo = overall_data_range_.minX();
       newHi = newLo + visible_area_.width();
     }
-    //chage data area
+    // change data area
     changeVisibleArea_(newLo, newHi);
     emit layerZoomChanged(this);
   }
 
-  void Spectrum1DCanvas::translateRight_()
+  void Spectrum1DCanvas::translateRight_(Qt::KeyboardModifiers m)
   {
-    DoubleReal shift = 0.05 * visible_area_.width();
-    DoubleReal newLo = visible_area_.minX() + shift;
-    DoubleReal newHi = visible_area_.maxX() + shift;
+    double newLo = visible_area_.minX();
+    double newHi = visible_area_.maxX();
+    if (m == Qt::NoModifier)
+    { // 5% shift
+      double shift = 0.05 * visible_area_.width();
+      newLo += shift;
+      newHi += shift;
+    }
+    else if (m == Qt::ShiftModifier) 
+    { // jump to the next peak (useful for sparse data)
+      const LayerData::ExperimentType::SpectrumType& spec = getCurrentLayer_().getCurrentSpectrum();
+      PeakType p_temp(visible_area_.maxX(), 0);
+      SpectrumConstIteratorType it_next = upper_bound(spec.begin(), spec.end(), p_temp, PeakType::MZLess()); // first right-sided peak outside the current range
+      if (it_next == spec.end()) return;
+      newLo = it_next->getMZ() - visible_area_.width() / 2; // center the next peak to the right
+      newHi = it_next->getMZ() + visible_area_.width() / 2;
+    }
+
     // check if we are falling out of bounds
     if (newHi > overall_data_range_.maxX())
     {
       newHi = overall_data_range_.maxX();
       newLo = newHi - visible_area_.width();
     }
-    //chage data area
+    // change data area
     changeVisibleArea_(newLo, newHi);
     emit layerZoomChanged(this);
   }
@@ -1759,13 +1788,13 @@ namespace OpenMS
           }
           else
           {
-            DoubleReal alignment_shrink_factor = 1.0;
+            double alignment_shrink_factor = 1.0;
             if (height() > 10)
             {
-              alignment_shrink_factor = (DoubleReal)(height() - 10) / (DoubleReal)height();
+              alignment_shrink_factor = (double)(height() - 10) / (double)height();
             }
-            painter.drawLine(xl, (int)((DoubleReal)(y) * alignment_shrink_factor / 2.0), xh, (int)((DoubleReal)(y) * alignment_shrink_factor / 2.0));
-            painter.drawLine(xl, yl - (int)((DoubleReal)(y) * alignment_shrink_factor / 2.0), xh, yl - (int)((DoubleReal)(y) * alignment_shrink_factor / 2.0));
+            painter.drawLine(xl, (int)((double)(y) * alignment_shrink_factor / 2.0), xh, (int)((double)(y) * alignment_shrink_factor / 2.0));
+            painter.drawLine(xl, yl - (int)((double)(y) * alignment_shrink_factor / 2.0), xh, yl - (int)((double)(y) * alignment_shrink_factor / 2.0));
           }
         }
       }
@@ -1796,8 +1825,8 @@ namespace OpenMS
 
     for (Size i = 0; i < aligned_peaks_indices_.size(); ++i)
     {
-      DoubleReal line_begin_mz = spectrum_1[aligned_peaks_indices_[i].first].getMZ();
-      DoubleReal line_end_mz = spectrum_2[aligned_peaks_indices_[i].second].getMZ();
+      double line_begin_mz = spectrum_1[aligned_peaks_indices_[i].first].getMZ();
+      double line_end_mz = spectrum_2[aligned_peaks_indices_[i].second].getMZ();
       aligned_peaks_mz_delta_.push_back(std::make_pair(line_begin_mz, line_end_mz));
     }
 
@@ -1858,7 +1887,7 @@ namespace OpenMS
     return aligned_peaks_mz_delta_.size();
   }
 
-  DoubleReal Spectrum1DCanvas::getAlignmentScore()
+  double Spectrum1DCanvas::getAlignmentScore()
   {
     return alignment_score_;
   }

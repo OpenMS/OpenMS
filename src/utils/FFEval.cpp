@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,23 +46,23 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_FFEval FFEval
+  @page UTILS_FFEval FFEval
 
-    @brief Evaluation tool for feature detection algorithms.
+  @brief Evaluation tool for feature detection algorithms.
 
 
   To plot the ROC curve you might use:
 
-@code
+  @code
   d = read.table("data.roc", skip=1, sep="\t")
   plot(d[,3],d[,4], xlim=c(0,1),ylim=c(0,1), xlab="FDR",ylab="TPR",main="ROC with varying intensity")
   lines(c(0,1),c(0,1))
-@endcode
+  @endcode
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_FFEval.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_FFEval.html
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude UTILS_FFEval.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude UTILS_FFEval.html
 */
 
 // We do not want this class to show up in the docu:
@@ -100,7 +100,7 @@ protected:
   }
 
   /// Counts the number of features with meta value @p name equal to @p value
-  UInt count(const FeatureMap<> & map, const String & name, const String & value = "")
+  UInt count(const FeatureMap& map, const String& name, const String& value = "")
   {
     UInt count = 0;
     for (Size i = 0; i < map.size(); ++i)
@@ -129,31 +129,31 @@ protected:
     return String(" (") + String::number(100.0 * count / size, 2) + "%)";
   }
 
-  String fiveNumbers(vector<DoubleReal> a, UInt decimal_places)
+  String fiveNumbers(vector<double> a, UInt decimal_places)
   {
     sort(a.begin(), a.end());
     return String::number(a[0], decimal_places) + " " + String::number(a[a.size() / 4], decimal_places) + " " + String::number(a[a.size() / 2], decimal_places) + " " + String::number(a[(3 * a.size()) / 4], decimal_places) + " " + String::number(a.back(), decimal_places);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //load data
-    FeatureMap<> features_in, features_truth;
+    FeatureMap features_in, features_truth;
     FeatureXMLFile().load(getStringOption_("in"), features_in);
     features_in.sortByPosition();
     FeatureXMLFile().load(getStringOption_("truth"), features_truth);
     features_truth.sortByPosition();
-    FeatureMap<> abort_reasons;
+    FeatureMap abort_reasons;
     if (getStringOption_("abort_reasons") != "")
     {
       FeatureXMLFile().load(getStringOption_("abort_reasons"), abort_reasons);
     }
-    DoubleReal mz_tol = getDoubleOption_("mz_tol");
+    double mz_tol = getDoubleOption_("mz_tol");
     writeDebug_(String("Final MZ tolerance: ") + mz_tol, 1);
 
     //determine average RT tolerance:
     //median feature RT span times given factor
-    vector<DoubleReal> rt_spans;
+    vector<double> rt_spans;
     for (Size t = 0; t < features_in.size(); ++t)
     {
       if (features_in[t].getConvexHulls().size() != 0)
@@ -162,7 +162,7 @@ protected:
       }
     }
     //feature convex hulls are available => relative RT span
-    DoubleReal rt_tol = getDoubleOption_("rt_tol_abs");
+    double rt_tol = getDoubleOption_("rt_tol_abs");
     if (rt_tol < 0.0)
     {
       if (!rt_spans.empty())
@@ -184,26 +184,26 @@ protected:
     writeDebug_(String("Final RT tolerance: ") + rt_tol, 1);
 
     //general statistics
-    std::vector<DoubleReal> ints_t;
-    std::vector<DoubleReal> ints_i;
-    std::vector<DoubleReal> ints_found;
-    std::vector<DoubleReal> ints_missed;
+    std::vector<double> ints_t;
+    std::vector<double> ints_i;
+    std::vector<double> ints_found;
+    std::vector<double> ints_missed;
     Map<String, UInt> abort_strings;
 
     for (Size m = 0; m < features_truth.size(); ++m)
     {
-      Feature & f_t =  features_truth[m];
+      Feature& f_t =  features_truth[m];
       UInt match_count = 0;
       bool correct_charge = false;
       bool exact_centroid_match = false;
       Size last_match_index = features_in.size() + 1;
       for (Size a = 0; a < features_in.size(); ++a)
       {
-        const Feature & f_i =  features_in[a];
+        const Feature& f_i =  features_in[a];
         //RT match
         if (fabs(f_i.getRT() - f_t.getRT()) < rt_tol)
         {
-          DoubleReal charge_mz_tol = mz_tol / f_t.getCharge();
+          double charge_mz_tol = mz_tol / f_t.getCharge();
           //Exact m/z match
           if (fabs(f_i.getMZ() - f_t.getMZ()) < charge_mz_tol)
           {
@@ -237,7 +237,7 @@ protected:
         {
           f_t.setMetaValue("correct_charge", String("true"));
           f_t.setMetaValue("intensity_ratio", features_in[last_match_index].getIntensity() / f_t.getIntensity());
-          features_in[last_match_index].setMetaValue("correct_hit", "true");           //flag the feature for ROC curve
+          features_in[last_match_index].setMetaValue("correct_hit", "true"); //flag the feature for ROC curve
         }
         else
         {
@@ -265,15 +265,15 @@ protected:
         ints_missed.push_back(f_t.getIntensity());
 
         //look up the abort reason of the nearest seed
-        DoubleReal best_score_ab = 0;
+        double best_score_ab = 0;
         String reason = "";
         for (Size b = 0; b < abort_reasons.size(); ++b)
         {
-          const Feature & f_ab =  abort_reasons[b];
+          const Feature& f_ab =  abort_reasons[b];
           if (fabs(f_ab.getRT() - f_t.getRT()) <= rt_tol
              && fabs(f_ab.getMZ() - f_t.getMZ()) <= mz_tol)
           {
-            DoubleReal score = (1.0 - fabs(f_ab.getMZ() - f_t.getMZ()) / mz_tol) * (1.0 - fabs(f_ab.getRT() - f_t.getRT()) / rt_tol);
+            double score = (1.0 - fabs(f_ab.getMZ() - f_t.getMZ()) / mz_tol) * (1.0 - fabs(f_ab.getRT() - f_t.getRT()) / rt_tol);
             if (score > best_score_ab)
             {
               best_score_ab = score;
@@ -385,13 +385,13 @@ protected:
     if (getStringOption_("out_roc") != "")
     {
       TextFile tf;
-      tf.push_back("false\tcorrect\tFDR\tTPR");
+      tf.addLine("false\tcorrect\tFDR\tTPR");
 
       features_in.sortByIntensity(true);
       UInt f_correct = 0;
       UInt f_false = 0;
-      DoubleReal found = features_in.size();
-      DoubleReal correct = features_truth.size();
+      double found = features_in.size();
+      double correct = features_truth.size();
       for (Size i = 0; i < features_in.size(); ++i)
       {
         if (features_in[i].metaValueExists("correct_hit"))
@@ -402,7 +402,7 @@ protected:
         {
           ++f_false;
         }
-        tf.push_back(String(f_false) + "\t"+ f_correct + "\t"+ String::number(f_false / found, 3) + "\t"+ String::number(f_correct / correct, 3));
+        tf.addLine(String(f_false) + "\t" + f_correct + "\t" + String::number(f_false / found, 3) + "\t" + String::number(f_correct / correct, 3));
       }
       tf.store(getStringOption_("out_roc"));
     }
@@ -412,7 +412,7 @@ protected:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPFFEval tool;
   return tool.main(argc, argv);

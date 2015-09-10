@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,18 +45,15 @@ namespace OpenMS
 {
 
   MapAlignmentAlgorithmPoseClustering::MapAlignmentAlgorithmPoseClustering() :
-    MapAlignmentAlgorithm(),
-    max_num_peaks_considered_(0)
+    DefaultParamHandler("MapAlignmentAlgorithmPoseClustering"), 
+    ProgressLogger(), max_num_peaks_considered_(0)
   {
-    setName("MapAlignmentAlgorithmPoseClustering");
-
     defaults_.insert("superimposer:", PoseClusteringAffineSuperimposer().getParameters());
     defaults_.insert("pairfinder:", StablePairFinder().getParameters());
     defaults_.setValue("max_num_peaks_considered", 1000, "The maximal number of peaks/features to be considered per map. To use all, set to '-1'.");
     defaults_.setMinInt("max_num_peaks_considered", -1);
 
     defaultsToParam_();
-
   }
 
   void MapAlignmentAlgorithmPoseClustering::updateMembers_()
@@ -74,24 +71,24 @@ namespace OpenMS
   {
   }
 
-  void MapAlignmentAlgorithmPoseClustering::align(const FeatureMap<> & map, TransformationDescription & trafo)
+  void MapAlignmentAlgorithmPoseClustering::align(const FeatureMap& map, TransformationDescription& trafo)
   {
     ConsensusMap map_scene;
-    ConsensusMap::convert(1, map, map_scene, max_num_peaks_considered_);
+    MapConversion::convert(1, map, map_scene, max_num_peaks_considered_);
     align(map_scene, trafo);
   }
 
-  void MapAlignmentAlgorithmPoseClustering::align(const MSExperiment<> & map, TransformationDescription & trafo)
+  void MapAlignmentAlgorithmPoseClustering::align(const MSExperiment<>& map, TransformationDescription& trafo)
   {
     ConsensusMap map_scene;
     MSExperiment<> map2(map);
-    ConsensusMap::convert(1, map2, map_scene, max_num_peaks_considered_); // copy MSExperiment here, since it is sorted internally by intensity
+    MapConversion::convert(1, map2, map_scene, max_num_peaks_considered_); // copy MSExperiment here, since it is sorted internally by intensity
     align(map_scene, trafo);
   }
 
-  void MapAlignmentAlgorithmPoseClustering::align(const ConsensusMap & map, TransformationDescription & trafo)
+  void MapAlignmentAlgorithmPoseClustering::align(const ConsensusMap& map, TransformationDescription& trafo)
   {
-    // TODO: move this to updateMembers_? (if consensusMap prevails)
+    // TODO: move this to updateMembers_? (if ConsensusMap prevails)
     // TODO: why does superimposer work on consensus map???
     const ConsensusMap & map_model = reference_;
     ConsensusMap map_scene = map;
@@ -104,34 +101,33 @@ namespace OpenMS
     // handles
     for (Size j = 0; j < map_scene.size(); ++j)
     {
-      //Calculate new RT
-      DoubleReal rt = map_scene[j].getRT();
+      // Calculate new RT
+      double rt = map_scene[j].getRT();
       rt = si_trafo.apply(rt);
-      //Set RT of consensus feature centroid
+      // Set RT of consensus feature centroid
       map_scene[j].setRT(rt);
-      //Set RT of consensus feature handles
+      // Set RT of consensus feature handles
       map_scene[j].begin()->asMutable().setRT(rt);
     }
 
-    //run pairfinder to find pairs
+    // run pairfinder to find pairs
     ConsensusMap result;
-    //TODO: add another 2map interface to pairfinder?
+    // TODO: add another 2-map interface to pairfinder?
     std::vector<ConsensusMap> input(2);
     input[0] = map_model;
     input[1] = map_scene;
     pairfinder_.run(input, result);
 
     // calculate the local transformation
-    si_trafo.invert();         // to undo the transformation applied above
+    si_trafo.invert(); // to undo the transformation applied above
     TransformationDescription::DataPoints data;
-    for (ConsensusMap::Iterator it = result.begin(); it != result.end();
-         ++it)
+    for (ConsensusMap::Iterator it = result.begin(); it != result.end(); ++it)
     {
-      if (it->size() == 2)           // two matching features
+      if (it->size() == 2) // two matching features
       {
         ConsensusFeature::iterator feat_it = it->begin();
-        DoubleReal y = feat_it->getRT();
-        DoubleReal x = si_trafo.apply((++feat_it)->getRT());
+        double y = feat_it->getRT();
+        double x = si_trafo.apply((++feat_it)->getRT());
         // one feature should be from the reference map:
         if (feat_it->getMapIndex() != 0)
         {
@@ -147,4 +143,4 @@ namespace OpenMS
     trafo.fitModel("linear");
   }
 
-} //namespace
+} // namespace

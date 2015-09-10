@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2012.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -59,7 +59,7 @@
 		- @b idXML The %OpenMS format for protein and peptide identification.
 
 		Documented schemas of the %OpenMS formats can be found at
-		<tt>http://open-ms.sourceforge.net/schemas/</tt> .
+		<tt>http://www.openms.de/schemas/</tt> .
 
 		@em idXML files and @em consensusXML files created by %OpenMS can be visualized in a web browser directly.
 		XSLT stylesheets are used to transform the XML to HTML code. The stylesheets are contained
@@ -529,74 +529,7 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 		</TD>
 	</TR>
 	</TABLE>
-<!--
-	<TABLE border=1>
-	<TR>
-		<TD> <b>Algorithm:</b> simple &nbsp;&nbsp; <b>Input data:</b> profile data </TD>
-	</TR>
-		<TR>
-			<TD>
-				@b Description: <br>
-				
-				This is another algorithm for feature detection in profile data.
-				It is similar to the "simplest" algorithm, except for the modeling.
-				
-				@b Seeding: see "simplest"
-				
-				@b Extension: see "simplest"
-				
-				@b Modelling: <br>
-				like in "simplest", but an exponentially modified Gaussian (EMG) is used for the elution profile.
-				The least-squares fitting is done by the Levenberg-Marquardt algorithm.
-				(class EMGFitter1D, class LmaGaussFitter1D)
-				
-				See the FeatureFinderAlgorithmSimple class documentation for a parameter list.
-			</TD>
-		</TR>
-	</TABLE>
-	
-	<TABLE border=1>
-		<TR>
-			<TD> <b>Algorithm:</b> simplest &nbsp;&nbsp; <b>Input data:</b> profile data </TD>
-		</TR>
-		<TR>
-			<TD>
-				@b Description: <br>
-				This is an algorithm for feature detection in profile data.
-				The following components are used:
-				
-				@b Seeding: <br> A "seed" is a starting point for finding a feature.  In this
-				 algorithm, all data points above the noise threshold are sorted with respect
-				 to intensity.  The strongest unused data point is used as a seed.  (class
-				 SimpleSeeder)
-				
-				@b Extension: <br> A "region" is extended around the seed.  The region grows
-				in RT and m/z simultaneously.  These data points are marked as used.  (class
-				SimpleExtender)
-				
-				@b Modelling: <br> A theoretical "model" is fitted to the data points of the
-				region.  Both dimensions (RT, m/z) are considered separately.  This algorithm
-				uses a bi-Gaussian model for the elution profile, i.e., two "half" Gaussians
-				are chosen to represent the data points to the left and right of the maximum
-				intensity.  This is done by maximum likelihood estimation (class
-				BiGaussModel).  The m/z dimension is represented by an isotope model, which is
-				essentially a mixture of Gaussians, one for each isotopic peak, whose relative
-				intensities are fixed according to the "averagine" atomic composition.  All
-				isotopic peaks have the same width.  As a special case, charge zero represents
-				a single Gaussian.  This is useful as a null hypothesis or if isotopic peaks
-				cannot be resolved.  The MZ model is fitted by a simple enumeration scheme.
-				(class IsotopeFitter1D)
-				
-				If the model fits well to the data, we report a feature.  Otherwise, the seed
-				and the whole region is discarded, and its data points are marked as unused
-				again.  (class ModelFitter)
-				
-				See the FeatureFinderAlgorithmSimplest class documentation for a parameter list.
-			</TD>
-		</TR>
-	</TABLE>
--->	
-	
+
 */
 //##############################################################################
 

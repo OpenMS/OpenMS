@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,9 +39,14 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/MzXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/IBSpectraFile.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/KERNEL/ConversionHelper.h>
+
+#include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -78,7 +83,7 @@ using namespace std;
   supports traceability of analysis steps.)
 
   Many different format conversions are supported, and some may be more useful than others. Depending on the
-  file formats involved, information can be lost during conversion, e.g. when converting	featureXML to mzData.
+  file formats involved, information can be lost during conversion, e.g. when converting featureXML to mzData.
   In such cases a warning is shown.
 
   The input and output file types are determined from	the file extensions or from the first few lines of the
@@ -104,7 +109,7 @@ using namespace std;
   @ref OpenMS::KroenikFile "kroenik"
   @ref OpenMS::EDTAFile "edta"
 
-  See @ref TOPP_IDFileConverter for similar functionality for protein/peptide identification file formats.
+  @note See @ref TOPP_IDFileConverter for similar functionality for protein/peptide identification file formats.
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_FileConverter.cli
@@ -134,6 +139,10 @@ protected:
     String formats("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,ms2,fid,tsv,peplist,kroenik,edta");
     setValidFormats_("in", ListUtils::create<String>(formats));
     setValidStrings_("in_type", ListUtils::create<String>(formats));
+    
+    registerStringOption_("UID_postprocessing", "<method>", "ensure", "unique ID post-processing for output data.\n'none' keeps current IDs even if invalid.\n'ensure' keeps current IDs but reassigns invalid ones.\n'reassign' assigns new unique IDs.", false);
+    String method("none,ensure,reassign");
+    setValidStrings_("UID_postprocessing", ListUtils::create<String>(method));
 
     formats = "mzData,mzXML,mzML,dta2d,mgf,featureXML,consensusXML,edta,csv";
     registerOutputFile_("out", "<file>", "", "Output file");
@@ -141,6 +150,11 @@ protected:
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\nNote: that not all conversion paths work or make sense.", false);
     setValidStrings_("out_type", ListUtils::create<String>(formats));
     registerFlag_("TIC_DTA2D", "Export the TIC instead of the entire experiment in mzML/mzData/mzXML -> DTA2D conversions.", true);
+    registerFlag_("MGF_compact", "Use a more compact format when writing MGF (no zero-intensity peaks, limited number of decimal places)", true);
+
+    registerFlag_("write_mzML_index", "Add an index to the file when writing mzML files (default: no index)");
+
+    registerFlag_("process_lowmemory", "Whether to process the file on the fly without loading the whole file into memory first (only for conversions of mzXML/mzML to mzML).\nNote: this flag will prevent conversion from spectra to chromatograms.", true);
   }
 
   ExitCodes main_(int, const char**)
@@ -151,6 +165,7 @@ protected:
 
     //input file names
     String in = getStringOption_("in");
+    bool write_mzML_index = getFlag_("write_mzML_index");
 
     //input file type
     FileHandler fh;
@@ -185,9 +200,11 @@ protected:
     }
 
     bool TIC_DTA2D = getFlag_("TIC_DTA2D");
+    bool process_lowmemory = getFlag_("process_lowmemory");
 
     writeDebug_(String("Output file type: ") + FileTypes::typeToName(out_type), 1);
 
+    String uid_postprocessing = getStringOption_("UID_postprocessing");
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
@@ -196,7 +213,7 @@ protected:
 
     typedef MSExperimentType::SpectrumType SpectrumType;
 
-    typedef FeatureMap<> FeatureMapType;
+    typedef FeatureMap FeatureMapType;
 
     FeatureMapType fm;
     ConsensusMap cm;
@@ -242,6 +259,38 @@ protected:
         exp.set2DData<true>(fm);
       }
     }
+    else if (process_lowmemory)
+    {
+      // Special switch for the low memory options:
+      // We can transform the complete experiment directly without first
+      // loading the complete data into memory. PlainMSDataWritingConsumer will
+      // write out mzML to disk as they are read from the input.
+      if (in_type == FileTypes::MZML && out_type == FileTypes::MZML)
+      {
+        PlainMSDataWritingConsumer consumer(out);
+        consumer.getOptions().setWriteIndex(write_mzML_index);
+        consumer.addDataProcessing(getProcessingInfo_(DataProcessing::CONVERSION_MZML));
+        MzMLFile mzmlfile; 
+        mzmlfile.setLogType(log_type_);
+        mzmlfile.transform(in, &consumer);
+        return EXECUTION_OK;
+      }
+      else if (in_type == FileTypes::MZXML && out_type == FileTypes::MZML)
+      {
+        PlainMSDataWritingConsumer consumer(out);
+        consumer.getOptions().setWriteIndex(write_mzML_index);
+        consumer.addDataProcessing(getProcessingInfo_(DataProcessing::CONVERSION_MZML));
+        MzXMLFile mzxmlfile; 
+        mzxmlfile.setLogType(log_type_);
+        mzxmlfile.transform(in, &consumer);
+        return EXECUTION_OK;
+      }
+      else
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+          "Process_lowmemory option can only be used with mzML / mzXML input and mzML output data types.");
+      }
+    }
     else
     {
       fh.loadExperiment(in, exp, in_type, log_type_);
@@ -260,6 +309,7 @@ protected:
                                                  CONVERSION_MZML));
       MzMLFile f;
       f.setLogType(log_type_);
+      f.getOptions().setWriteIndex(write_mzML_index);
       ChromatogramTools().convertSpectraToChromatograms(exp, true);
       f.store(out, exp);
     }
@@ -311,18 +361,24 @@ protected:
                                                  FORMAT_CONVERSION));
       MascotGenericFile f;
       f.setLogType(log_type_);
-      f.store(out, exp);
+      f.store(out, exp, getFlag_("MGF_compact"));
     }
     else if (out_type == FileTypes::FEATUREXML)
     {
       if ((in_type == FileTypes::FEATUREXML) || (in_type == FileTypes::TSV) ||
           (in_type == FileTypes::PEPLIST) || (in_type == FileTypes::KROENIK))
       {
-        fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+        if (uid_postprocessing == "ensure")
+        {
+          fm.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
+        } else if (uid_postprocessing == "reassign")
+        {
+          fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+        }
       }
       else if (in_type == FileTypes::CONSENSUSXML || in_type == FileTypes::EDTA)
       {
-        ConsensusMap::convert(cm, true, fm);
+        MapConversion::convert(cm, true, fm);
       }
       else // not loaded as feature map or consensus map
       {
@@ -364,8 +420,14 @@ protected:
       if ((in_type == FileTypes::FEATUREXML) || (in_type == FileTypes::TSV) ||
           (in_type == FileTypes::PEPLIST) || (in_type == FileTypes::KROENIK))
       {
-        fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
-        ConsensusMap::convert(0, fm, cm);
+        if (uid_postprocessing == "ensure")
+        {
+          fm.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
+        } else if (uid_postprocessing == "reassign")
+        {
+          fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+        }
+        MapConversion::convert(0, fm, cm);
       }
       // nothing to do for consensus input
       else if (in_type == FileTypes::CONSENSUSXML || in_type == FileTypes::EDTA)
@@ -373,7 +435,7 @@ protected:
       }
       else // experimental data
       {
-        ConsensusMap::convert(0, exp, cm, exp.size());
+        MapConversion::convert(0, exp, cm, exp.size());
       }
 
       addDataProcessing_(cm, getProcessingInfo_(DataProcessing::

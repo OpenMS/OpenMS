@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -211,6 +211,38 @@ START_SECTION (  bool hasChromatogram(String key))
   mrmtrgroup.addChromatogram(chrom1, "dummy1");
   TEST_EQUAL(mrmtrgroup.hasChromatogram("dummy1"), true)
   TEST_EQUAL(mrmtrgroup.hasChromatogram("dummy2"), false)
+}
+END_SECTION
+
+START_SECTION (  void addPrecusorChromatogram(SpectrumType &chromatogram, String key)) 
+{
+  // tested below
+  NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION (  SpectrumType& getPrecursorChromatogram(String key))
+{
+  MRMTransitionGroupType mrmtrgroup;
+  chrom1.setMetaValue("some_value", 1);
+  mrmtrgroup.addPrecursorChromatogram(chrom1, "dummy1");
+  TEST_EQUAL(mrmtrgroup.getPrecursorChromatogram("dummy1").getMetaValue("some_value"), 1)
+
+  // Add a few feature chromatograms and then add a precursor chromatogram -> it should still work
+  mrmtrgroup.addChromatogram(chrom1, "feature1");
+  mrmtrgroup.addChromatogram(chrom1, "feature2");
+  mrmtrgroup.addChromatogram(chrom1, "feature3");
+  mrmtrgroup.addPrecursorChromatogram(chrom1, "dummy2");
+  TEST_EQUAL(mrmtrgroup.getPrecursorChromatogram("dummy2").getMetaValue("some_value"), 1)
+}
+END_SECTION
+
+START_SECTION (  bool hasPrecursorChromatogram(String key))
+{
+  MRMTransitionGroupType mrmtrgroup;
+  mrmtrgroup.addPrecursorChromatogram(chrom1, "dummy1");
+  TEST_EQUAL(mrmtrgroup.hasPrecursorChromatogram("dummy1"), true)
+  TEST_EQUAL(mrmtrgroup.hasPrecursorChromatogram("dummy2"), false)
 }
 END_SECTION
 

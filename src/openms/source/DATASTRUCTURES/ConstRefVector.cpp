@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,7 +37,7 @@
 
 namespace OpenMS
 {
-  ConstRefVector<FeatureMap<Feature> > default_constrefvector;
-  ConstRefVector<FeatureMap<Feature> >::Iterator default_constrefvector_iterator;
-  ConstRefVector<FeatureMap<Feature> >::ConstIterator default_constrefvector_constiterator;
+  ConstRefVector<FeatureMap > default_constrefvector;
+  ConstRefVector<FeatureMap >::Iterator default_constrefvector_iterator;
+  ConstRefVector<FeatureMap >::ConstIterator default_constrefvector_constiterator;
 }

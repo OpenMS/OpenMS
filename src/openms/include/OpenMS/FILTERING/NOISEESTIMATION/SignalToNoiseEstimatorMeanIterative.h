@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -355,7 +355,7 @@ protected:
             hist_stdev = 0;
             for (int bin = 0; bin < hist_rightmost_bin; ++bin)
             {
-              DoubleReal tmp(bin_value[bin] - hist_mean);
+              double tmp(bin_value[bin] - hist_mean);
               hist_stdev += histogram[bin] / (double) elements_in_window * tmp * tmp;
             }
             hist_stdev = std::sqrt(hist_stdev);

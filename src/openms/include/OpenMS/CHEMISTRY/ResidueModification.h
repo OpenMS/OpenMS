@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,6 +54,13 @@ namespace OpenMS
           be applied to. A residue modification can be represented by its UniMod name
           identifier, e.g. "Oxidation (M)" or "Oxidation". This is a unique key which
           only occurs once in an OpenMS instance stored in the ModificationsDB.
+
+          Example: methionine sulfoxide formation by oxidation of methionine
+
+          getFullId()           = "Oxidation (M)"
+          getId()               = "Oxidation"
+          getFullName()         = "Oxidation or Hydroxylation"
+          getUniModAccession()  = "UniMod:312"
   */
   class OPENMS_DLLAPI ResidueModification
   {
@@ -65,9 +72,9 @@ public:
     /** @brief Position where the modification is allowed to occur
 
             The allowed sites are
+            Anywhere
             Any C-term
             Any N-term
-            Anywhere
             Protein C-term
             Protein N-term
 
@@ -80,6 +87,8 @@ public:
       ANYWHERE = 0,
       C_TERM = 1,
       N_TERM = 2,
+      PROTEIN_C_TERM = 3,
+      PROTEIN_N_TERM = 4,
       NUMBER_OF_TERM_SPECIFICITY
     };
 
@@ -200,28 +209,28 @@ public:
     String getSourceClassificationName(Source_Classification classification = NUMBER_OF_SOURCE_CLASSIFICATIONS) const;
 
     /// sets the average mass
-    void setAverageMass(DoubleReal mass);
+    void setAverageMass(double mass);
 
     /// returns the average mass if set
-    DoubleReal getAverageMass() const;
+    double getAverageMass() const;
 
     /// sets the monoisotopic mass
-    void setMonoMass(DoubleReal mass);
+    void setMonoMass(double mass);
 
     /// return the monoisotopic mass, if set
-    DoubleReal getMonoMass() const;
+    double getMonoMass() const;
 
     /// set the difference average mass
-    void setDiffAverageMass(DoubleReal mass);
+    void setDiffAverageMass(double mass);
 
     /// returns the difference average mass if set
-    DoubleReal getDiffAverageMass() const;
+    double getDiffAverageMass() const;
 
     /// sets the difference monoisotopic mass
-    void setDiffMonoMass(DoubleReal mass);
+    void setDiffMonoMass(double mass);
 
     /// returns the diff monoisotopic mass if set
-    DoubleReal getDiffMonoMass() const;
+    double getDiffMonoMass() const;
 
     /// set the formula
     void setFormula(const String & composition);
@@ -251,16 +260,16 @@ public:
     const EmpiricalFormula & getNeutralLossDiffFormula() const;
 
     /// set the neutral loss mono weight
-    void setNeutralLossMonoMass(DoubleReal mono_mass);
+    void setNeutralLossMonoMass(double mono_mass);
 
     /// returns the neutral loss mono weight
-    DoubleReal getNeutralLossMonoMass() const;
+    double getNeutralLossMonoMass() const;
 
     /// set the neutral loss average weight
-    void setNeutralLossAverageMass(DoubleReal average_mass);
+    void setNeutralLossAverageMass(double average_mass);
 
     /// returns the neutral loss average weight
-    DoubleReal getNeutralLossAverageMass() const;
+    double getNeutralLossAverageMass() const;
     //@}
 
     /** @name Predicates
@@ -296,13 +305,13 @@ protected:
 
     Source_Classification classification_;
 
-    DoubleReal average_mass_;
+    double average_mass_;
 
-    DoubleReal mono_mass_;
+    double mono_mass_;
 
-    DoubleReal diff_average_mass_;
+    double diff_average_mass_;
 
-    DoubleReal diff_mono_mass_;
+    double diff_mono_mass_;
 
     String formula_;
 
@@ -312,9 +321,9 @@ protected:
 
     EmpiricalFormula neutral_loss_diff_formula_;
 
-    DoubleReal neutral_loss_mono_mass_;
+    double neutral_loss_mono_mass_;
 
-    DoubleReal neutral_loss_average_mass_;
+    double neutral_loss_average_mass_;
   };
 }
 

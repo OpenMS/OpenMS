@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -62,11 +62,11 @@ public:
     /// Dimension
     enum {DIMENSION = 1};
     /// Intensity type
-    typedef DoubleReal IntensityType;
+    typedef double IntensityType;
     /// Position type
     typedef DPosition<1> PositionType;
     /// Coordinate type
-    typedef DoubleReal CoordinateType;
+    typedef double CoordinateType;
     //@}
 
     /**
@@ -177,7 +177,10 @@ public:
     /// Equality operator
     inline bool operator==(const ChromatogramPeak & rhs) const
     {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wfloat-equal"
       return intensity_ == rhs.intensity_ && position_ == rhs.position_;
+#pragma clang diagnostic pop
     }
 
     /// Equality operator

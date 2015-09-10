@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -73,24 +73,24 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  void InclusionExclusionList::mergeOverlappingWindows_(WindowList & list) const
+  void InclusionExclusionList::mergeOverlappingWindows_(WindowList& list) const
   {
     bool rt_in_seconds = (param_.getValue("RT:unit") == "seconds");
 
     std::vector<BinaryTreeNode> tree;
     // local scope to save memory - we do not need the clustering stuff later
     {
-      DoubleReal min_to_s_factor = rt_in_seconds ? 1.0 : (1.0 / 60.0);
+      double min_to_s_factor = rt_in_seconds ? 1.0 : (1.0 / 60.0);
 
       bool mz_as_ppm = (param_.getValue("merge:mz_tol_unit") == "ppm");
 
-      WindowDistance_ llc(DoubleReal(param_.getValue("merge:rt_tol")) * min_to_s_factor, DoubleReal(param_.getValue("merge:mz_tol")), mz_as_ppm);
+      WindowDistance_ llc(double(param_.getValue("merge:rt_tol")) * min_to_s_factor, double(param_.getValue("merge:mz_tol")), mz_as_ppm);
       SingleLinkage sl;
-      DistanceMatrix<Real> dist;       // will be filled
+      DistanceMatrix<float> dist; // will be filled
       ClusterHierarchical ch;
 
       //ch.setThreshold(0.99);
-      // clustering ; threshold is implicitly at 1.0, i.e. distances of 1.0 (== similiarity 0) will not be clustered
+      // clustering ; threshold is implicitly at 1.0, i.e. distances of 1.0 (== similarity 0) will not be clustered
       ch.cluster<IEWindow, WindowDistance_>(list, llc, sl, tree, dist);
     }
 
@@ -102,7 +102,7 @@ namespace OpenMS
     for (Size ii = 0; ii < tree.size(); ++ii)
     {
       if (tree[ii].distance >= 1)
-        tree[ii].distance = -1;                               // manually set to disconnect, as SingleLinkage does not support it
+        tree[ii].distance = -1; // manually set to disconnect, as SingleLinkage does not support it
       if (tree[ii].distance != -1)
         ++node_count;
     }
@@ -116,7 +116,7 @@ namespace OpenMS
     for (Size i_outer = 0; i_outer < clusters.size(); ++i_outer)
     {
       // for each cluster: create one new entry
-      IEWindow w_new = list[clusters[i_outer][0]];   // init with 0th element
+      IEWindow w_new = list[clusters[i_outer][0]]; // init with 0th element
       // add all other elements
       for (Size i_inner = 1; i_inner < clusters[i_outer].size(); ++i_inner)
       {
@@ -128,7 +128,7 @@ namespace OpenMS
       w_new.MZ_ /= clusters[i_outer].size(); // average m/z value
       list_new.push_back(w_new);
 
-      ++cluster_sizes[clusters[i_outer].size()];   // for stats
+      ++cluster_sizes[clusters[i_outer].size()]; // for stats
     }
 
     LOG_INFO << "Clustered overlapping windows\nCluster sizes:\n";
@@ -143,7 +143,7 @@ namespace OpenMS
     list = list_new;
   }
 
-//   void InclusionExclusionList::loadTargets(FeatureMap<>& map, std::vector<IncludeExcludeTarget>& targets,TargetedExperiment& exp)
+//   void InclusionExclusionList::loadTargets(FeatureMap& map, std::vector<IncludeExcludeTarget>& targets,TargetedExperiment& exp)
 //   {
 
 //   }
@@ -153,9 +153,9 @@ namespace OpenMS
 
 //   }
 
-  void InclusionExclusionList::writeTargets(const std::vector<FASTAFile::FASTAEntry> & fasta_entries,
-                                            const String & out_path,
-                                            const IntList & charges,
+  void InclusionExclusionList::writeTargets(const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
+                                            const String& out_path,
+                                            const IntList& charges,
                                             const String rt_model_path)
   {
     WindowList result;
@@ -164,8 +164,7 @@ namespace OpenMS
 
     digest.setMissedCleavages(param_.getValue("missed_cleavages"));
 
-    SimRandomNumberGenerator rnd_gen;
-    RTSimulation rt_sim(rnd_gen);
+    RTSimulation rt_sim;
     Param rt_param;
     rt_param.setValue("HPLC:model_file", rt_model_path);
     rt_sim.setParameters(rt_param);
@@ -174,7 +173,7 @@ namespace OpenMS
     for (; entry_iter != fasta_entries.end(); ++entry_iter)
     {
       // digest sequence
-      AASequence aa_seq(entry_iter->sequence);
+      AASequence aa_seq = AASequence::fromString(entry_iter->sequence);
       std::vector<AASequence> vec;
       digest.digest(aa_seq, vec);
 
@@ -209,23 +208,23 @@ namespace OpenMS
 //            }
 
     }
-    std::vector<DoubleReal> rts;
+    std::vector<double> rts;
     rt_sim.wrapSVM(pep_seqs, rts);
-    DoubleReal min_to_s_factor = (param_.getValue("RT:unit") == "seconds") ? 1.0 : (1.0 / 60.0);
+    double min_to_s_factor = (param_.getValue("RT:unit") == "seconds") ? 1.0 : (1.0 / 60.0);
 
     bool relative_rt = (param_.getValue("RT:use_relative") == "true");
 
-    DoubleReal rel_rt_window_size = param_.getValue("RT:window_relative");
-    DoubleReal abs_rt_window_size = param_.getValue("RT:window_absolute");
+    double rel_rt_window_size = param_.getValue("RT:window_relative");
+    double abs_rt_window_size = param_.getValue("RT:window_absolute");
 
     for (Size i = 0; i < pep_seqs.size(); ++i)
     {
       for (Size c = 0; c < charges.size(); ++c)
       {
         // calculate exclusion window
-        DoubleReal mz = pep_seqs[i].getMonoWeight(Residue::Full, charges[c]) / (DoubleReal)charges[c];
-        DoubleReal rt_start = std::max(0.0, relative_rt ? (rts[i] - rel_rt_window_size * rts[i]) : rts[i] - abs_rt_window_size);
-        DoubleReal rt_stop =                relative_rt ? (rts[i] + rel_rt_window_size * rts[i]) : rts[i] + abs_rt_window_size;
+        double mz = pep_seqs[i].getMonoWeight(Residue::Full, charges[c]) / (double)charges[c];
+        double rt_start = std::max(0.0, relative_rt ? (rts[i] - rel_rt_window_size * rts[i]) : rts[i] - abs_rt_window_size);
+        double rt_stop =                relative_rt ? (rts[i] + rel_rt_window_size * rts[i]) : rts[i] + abs_rt_window_size;
 
         rt_start *= min_to_s_factor;
         rt_stop *= min_to_s_factor;
@@ -238,21 +237,21 @@ namespace OpenMS
     writeToFile_(out_path, result);
   }
 
-  void InclusionExclusionList::writeTargets(const FeatureMap<> & map,
-                                            const String & out_path)
+  void InclusionExclusionList::writeTargets(const FeatureMap& map,
+                                            const String& out_path)
   {
     WindowList result;
 
     bool relative_rt = (param_.getValue("RT:use_relative") == "true");
 
-    DoubleReal rel_rt_window_size = param_.getValue("RT:window_relative");
-    DoubleReal abs_rt_window_size = param_.getValue("RT:window_absolute");
+    double rel_rt_window_size = param_.getValue("RT:window_relative");
+    double abs_rt_window_size = param_.getValue("RT:window_absolute");
 
-    DoubleReal min_to_s_factor = (param_.getValue("RT:unit") == "seconds") ? 1.0 : (1.0 / 60.0);
+    double min_to_s_factor = (param_.getValue("RT:unit") == "seconds") ? 1.0 : (1.0 / 60.0);
     for (Size f = 0; f < map.size(); ++f)
     {
-      DoubleReal rt_start = std::max(0.0, relative_rt ? (map[f].getRT() - map[f].getRT() * rel_rt_window_size) : map[f].getRT() - abs_rt_window_size);
-      DoubleReal rt_stop =                relative_rt ? (map[f].getRT() + map[f].getRT() * rel_rt_window_size) : map[f].getRT() + abs_rt_window_size;
+      double rt_start = std::max(0.0, relative_rt ? (map[f].getRT() - map[f].getRT() * rel_rt_window_size) : map[f].getRT() - abs_rt_window_size);
+      double rt_stop =                relative_rt ? (map[f].getRT() + map[f].getRT() * rel_rt_window_size) : map[f].getRT() + abs_rt_window_size;
 
       rt_start *= min_to_s_factor;
       rt_stop *= min_to_s_factor;
@@ -264,18 +263,18 @@ namespace OpenMS
     writeToFile_(out_path, result);
   }
 
-  void InclusionExclusionList::writeTargets(const std::vector<PeptideIdentification> & pep_ids,
-                                            const String & out_path,
-                                            const IntList & charges)
+  void InclusionExclusionList::writeTargets(const std::vector<PeptideIdentification>& pep_ids,
+                                            const String& out_path,
+                                            const IntList& charges)
   {
     WindowList result;
 
     Size charge_invalid_count(0);
 
-    DoubleReal min_to_s_factor = (param_.getValue("RT:unit") == "seconds") ? 1.0 : (1.0 / 60.0);
+    double min_to_s_factor = (param_.getValue("RT:unit") == "seconds") ? 1.0 : (1.0 / 60.0);
     bool relative_rt = (param_.getValue("RT:use_relative") == "true");
-    DoubleReal rel_rt_window_size = param_.getValue("RT:window_relative");
-    DoubleReal abs_rt_window_size = param_.getValue("RT:window_absolute");
+    double rel_rt_window_size = param_.getValue("RT:window_relative");
+    double abs_rt_window_size = param_.getValue("RT:window_absolute");
 
     std::vector<PeptideIdentification>::const_iterator pep_id_iter = pep_ids.begin();
     for (; pep_id_iter != pep_ids.end(); ++pep_id_iter)
@@ -284,14 +283,14 @@ namespace OpenMS
       {
         throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, pep_id_iter->getHits().size());
       }
-      if (!pep_id_iter->metaValueExists("RT"))
+      if (!pep_id_iter->hasRT())
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Peptide identification contains no RT information.");
       }
-      DoubleReal rt = pep_id_iter->getMetaValue("RT");
+      double rt = pep_id_iter->getRT();
 
-      DoubleReal rt_start = std::max(0.0, relative_rt ? (rt - rt * rel_rt_window_size) : rt - abs_rt_window_size);
-      DoubleReal rt_stop =                relative_rt ? (rt + rt * rel_rt_window_size) : rt + abs_rt_window_size;
+      double rt_start = std::max(0.0, relative_rt ? (rt - rt * rel_rt_window_size) : rt - abs_rt_window_size);
+      double rt_stop =                relative_rt ? (rt + rt * rel_rt_window_size) : rt + abs_rt_window_size;
 
       rt_start *= min_to_s_factor;
       rt_stop *= min_to_s_factor;
@@ -310,7 +309,7 @@ namespace OpenMS
         bool charge_found = false;
         for (Size c = 0; c < charges.size(); ++c)
         {
-          DoubleReal mz = pep_hit_iter->getSequence().getMonoWeight(Residue::Full, charges[c]) / (DoubleReal)charges[c];
+          double mz = pep_hit_iter->getSequence().getMonoWeight(Residue::Full, charges[c]) / (double)charges[c];
           result.push_back(IEWindow(rt_start, rt_stop, mz));
           if (charges[c] == charge)
           {
@@ -319,7 +318,7 @@ namespace OpenMS
         }
         if (!charge_found) // if not already done, consider annotated charge of peptide (unless its 0)
         {
-          DoubleReal mz = pep_hit_iter->getSequence().getMonoWeight(Residue::Full, charge) / (DoubleReal)charge;
+          double mz = pep_hit_iter->getSequence().getMonoWeight(Residue::Full, charge) / (double)charge;
           result.push_back(IEWindow(rt_start, rt_stop, mz));
         }
       }
@@ -332,8 +331,8 @@ namespace OpenMS
     writeToFile_(out_path, result);
   }
 
-  void InclusionExclusionList::writeToFile_(const String & out_path,
-                                            const WindowList & windows) const
+  void InclusionExclusionList::writeToFile_(const String& out_path,
+                                            const WindowList& windows) const
   {
 
     std::ofstream outs(out_path.c_str());

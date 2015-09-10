@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,7 +65,7 @@ START_SECTION((virtual ~CompNovoIonScoringBase()))
 }
 END_SECTION
 
-START_SECTION((DoubleReal scoreIsotopes(const PeakSpectrum &CID_spec, PeakSpectrum::ConstIterator it, Size charge)))
+START_SECTION((double scoreIsotopes(const PeakSpectrum &CID_spec, PeakSpectrum::ConstIterator it, Size charge)))
 {
 	NOT_TESTABLE
 }

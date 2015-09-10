@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -55,6 +55,8 @@ using namespace std;
     @brief Splits protein/peptide identifications off of annotated data files.
 
     This performs the reverse operation as IDMapper.
+
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_IDSplitter.cli
@@ -151,10 +153,10 @@ protected:
     }
     else if (in_type == FileTypes::FEATUREXML)
     {
-      FeatureMap<> features;
+      FeatureMap features;
       FeatureXMLFile().load(in, features);
       features.getUnassignedPeptideIdentifications().swap(peptides);
-      for (FeatureMap<>::Iterator feat_it = features.begin();
+      for (FeatureMap::Iterator feat_it = features.begin();
            feat_it != features.end(); ++feat_it)
       {
         peptides.insert(peptides.end(),

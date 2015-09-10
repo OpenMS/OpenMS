@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricNormalizer.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
+
+#include <OpenMS/KERNEL/ConsensusMap.h>
 
 namespace OpenMS
 {
@@ -66,7 +69,7 @@ namespace OpenMS
          it_elements != cf.end();
          ++it_elements)
     {
-      if ((Int) consensus_map.getFileDescriptions()[it_elements->getMapIndex()].getMetaValue("channel_name") == reference_channel_name_)
+      if (consensus_map.getFileDescriptions().find(it_elements->getMapIndex())->second.getMetaValue("channel_name") == reference_channel_name_)
       {
         return it_elements;
       }
@@ -86,7 +89,7 @@ namespace OpenMS
          file_it != consensus_map.getFileDescriptions().end();
          ++file_it)
     {
-      if ((Int) file_it->second.getMetaValue("channel_name") == reference_channel_name_)
+      if (file_it->second.getMetaValue("channel_name") == reference_channel_name_)
       {
         ref_map_id_ = file_it->first;
       }

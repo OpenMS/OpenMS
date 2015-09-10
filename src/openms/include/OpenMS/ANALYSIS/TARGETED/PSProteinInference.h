@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -63,12 +63,12 @@ public:
 
     void calculateProteinProbabilities(const std::vector<PeptideIdentification> & ids);
 
-//     DoubleReal getProteinProbability(const String& acc,const std::vector<String>& accessions, const std::vector<DoubleReal>& probabilities);
+//     double getProteinProbability(const String& acc,const std::vector<String>& accessions, const std::vector<double>& probabilities);
 
-    DoubleReal getProteinProbability(const String & acc);
+    double getProteinProbability(const String & acc);
 
     bool isProteinInMinimalList(const String & acc);
-    Int getNumberOfProtIds(DoubleReal protein_id_threshold);
+    Int getNumberOfProtIds(double protein_id_threshold);
     Int getNumberOfProtIdsPeptideRule(Int min_peptides, std::map<String, std::set<String> > & prot_id_counter);
 
     void setSolver(LPWrapper::SOLVER solver)
@@ -84,7 +84,7 @@ public:
 private:
     std::vector<String> minimal_protein_list_accessions_;
     std::vector<String> accessions_;
-    std::vector<DoubleReal> probabilities_;
+    std::vector<double> probabilities_;
     LPWrapper::SOLVER solver_;
   };
 

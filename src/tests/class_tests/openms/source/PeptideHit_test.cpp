@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -52,9 +52,9 @@ START_TEST(PeptideHit, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-DoubleReal score = 4.4;
+double score = 4.4;
 uint rank = 3;
-AASequence sequence = AASequence("ARRAY");
+AASequence sequence = AASequence::fromString("ARRAY");
 std::string sequence2 = "  ARRAY  ";
 Int charge = 2;
 
@@ -69,7 +69,7 @@ START_SECTION((virtual ~PeptideHit()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((PeptideHit(DoubleReal score, UInt rank, Int charge, const AASequence &sequence)))
+START_SECTION((PeptideHit(double score, UInt rank, Int charge, const AASequence &sequence)))
 	PeptideHit hit(score, rank, charge, sequence);
 	TEST_EQUAL(hit.getScore(), score)
 	TEST_EQUAL(hit.getRank(), rank)
@@ -148,7 +148,7 @@ START_SECTION((bool operator != (const PeptideHit& rhs) const))
 	hit=hit2;
 END_SECTION
 
-START_SECTION((DoubleReal getScore() const ))
+START_SECTION((double getScore() const ))
 	PeptideHit hit(score, rank, charge, sequence);
 	TEST_EQUAL(hit.getScore(), score)
 END_SECTION
@@ -169,7 +169,7 @@ START_SECTION((void setRank(UInt newrank)))
 	TEST_EQUAL(hit.getRank(), rank)
 END_SECTION
 
-START_SECTION((void setScore(DoubleReal score)))
+START_SECTION((void setScore(double score)))
 	PeptideHit hit;
 	hit.setScore(score);
 	TEST_EQUAL(hit.getScore(), score)
@@ -184,38 +184,28 @@ START_SECTION((void setSequence(const AASequence& sequence)))
 	TEST_EQUAL(hit.getSequence(), sequence)	
 END_SECTION
 
-START_SECTION((void addProteinAccession(const String& accession)))
-	String date;
-	vector<String> indices;
-
-	date = "2006-12-12 11:59:59";
-	PeptideHit hit;
-
-	hit.addProteinAccession("ACC392");
-	hit.addProteinAccession("ACD392");
-	indices = hit.getProteinAccessions();
-	TEST_EQUAL(indices.size(), 2)
-	TEST_EQUAL(indices[0] == String("ACC392"), true)
-	TEST_EQUAL(indices[1] == String("ACD392"), true)
+        ;
+START_SECTION((void setPeptideEvidences(const vector<PeptideEvidence> & peptide_evidences)))
+     PeptideHit hit;
+     vector<PeptideEvidence> pes(2, PeptideEvidence());
+     pes[0].setProteinAccession("ACC392");
+     pes[1].setProteinAccession("ACD392");
+     hit.setPeptideEvidences(pes);
+    TEST_EQUAL(hit.getPeptideEvidences().size(), 2)
+    TEST_EQUAL(hit.getPeptideEvidences()[0].getProteinAccession() == String("ACC392"), true)
+    TEST_EQUAL(hit.getPeptideEvidences()[1].getProteinAccession() == String("ACD392"), true)
 END_SECTION
 
-START_SECTION((void setProteinAccessions(const std::vector< String > &accessions)))
-	vector<String> vec;
-	vec.push_back("ACC392");
-	vec.push_back("ACD392");
-	PeptideHit hit;
-	hit.addProteinAccession("ACC392");
-	hit.addProteinAccession("ACD392");
-	TEST_EQUAL(vec == hit.getProteinAccessions(), true)
-END_SECTION
 
-START_SECTION((const std::vector<String>& getProteinAccessions() const))
-	PeptideHit hit;
-	hit.addProteinAccession("ACC392");
-	hit.addProteinAccession("ACD392");
-	TEST_EQUAL(hit.getProteinAccessions().size(), 2)
-	TEST_EQUAL(hit.getProteinAccessions()[0], "ACC392")
-	TEST_EQUAL(hit.getProteinAccessions()[1], "ACD392")
+START_SECTION((const std::set<String>& extractProteinAccessions() const))
+     PeptideHit hit;
+     vector<PeptideEvidence> pes(2, PeptideEvidence());
+     pes[0].setProteinAccession("ACC392");
+     pes[1].setProteinAccession("ACD392");
+     hit.setPeptideEvidences(pes);
+     TEST_EQUAL(hit.extractProteinAccessions().size(), 2)
+     TEST_EQUAL(*hit.extractProteinAccessions().begin(), "ACC392")
+     TEST_EQUAL(*hit.extractProteinAccessions().rbegin(), "ACD392")
 END_SECTION
 
 START_SECTION((Int getCharge() const))
@@ -231,7 +221,7 @@ START_SECTION((void setCharge(Int charge)))
 	hit.setCharge(-43);
 	TEST_EQUAL(-43, hit.getCharge())
 END_SECTION
-
+/*
 START_SECTION((void setAABefore(char acid)))
 	PeptideHit hit;
 	
@@ -256,7 +246,7 @@ START_SECTION((char getAAAfter() const))
 	hit.setAAAfter('R');
 	TEST_EQUAL(hit.getAAAfter(), 'R')
 END_SECTION
-
+*/
 START_SECTION(([PeptideHit::ScoreLess] template < typename Arg > bool operator()(const Arg &a, const Arg &b)))
 {
   PeptideHit a,b;

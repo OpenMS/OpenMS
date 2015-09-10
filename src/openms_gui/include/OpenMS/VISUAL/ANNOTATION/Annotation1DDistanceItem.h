@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -69,14 +69,14 @@ public:
     /// Returns the end point as (MZ,intensity)
     const PointType & getEndPoint() const;
     /// Set tick lines for the distance item
-    void setTicks(const std::vector<DoubleReal> & ticks);
+    void setTicks(const std::vector<double> & ticks);
 protected:
     /// The start point of the measured distance line
     PointType start_point_;
     /// The end point of the measured distance line
     PointType end_point_;
     /// Additional tick lines for the distance item
-    std::vector<DoubleReal> ticks_;
+    std::vector<double> ticks_;
 
   };
 } // namespace OpenMS

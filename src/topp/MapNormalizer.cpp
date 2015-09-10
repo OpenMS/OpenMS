@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -114,7 +114,7 @@ protected:
 
     //determine maximum peak
     exp.updateRanges();
-    DoubleReal max = exp.getMaxInt() / 100.0;
+    double max = exp.getMaxInt() / 100.0;
 
     for (MSExperiment<Peak1D>::Iterator it = exp.begin(); it != exp.end(); ++it)
     {
@@ -131,7 +131,7 @@ protected:
     /// @todo add chromatogram support for normalization, e.g. for MRM stuff (Andreas)
     /*
       vector<MSChromatogram<> > chroms = exp.getChromatograms();
-      DoubleReal sum(0);
+      double sum(0);
 for (vector<MSChromatogram<> >::iterator it = chroms.begin(); it != chroms.end(); ++it)
 {
   for (MSChromatogram<>::Iterator it2 = it->begin(); it2 != it->end(); ++it2)

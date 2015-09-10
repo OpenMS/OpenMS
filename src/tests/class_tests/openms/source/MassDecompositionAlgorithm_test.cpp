@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -52,36 +52,36 @@ MassDecompositionAlgorithm* ptr = 0;
 MassDecompositionAlgorithm* nullPointer = 0;
 START_SECTION(MassDecompositionAlgorithm())
 {
-	ptr = new MassDecompositionAlgorithm();
-	TEST_NOT_EQUAL(ptr, nullPointer)
+  ptr = new MassDecompositionAlgorithm();
+  TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 
 START_SECTION(virtual ~MassDecompositionAlgorithm())
 {
-	delete ptr;
+  delete ptr;
 }
 END_SECTION
 
-START_SECTION((void getDecompositions(std::vector<MassDecomposition>& decomps, DoubleReal weight)))
+START_SECTION((void getDecompositions(std::vector<MassDecomposition>& decomps, double weight)))
 {
   vector<MassDecomposition> decomps;
-	DoubleReal mass = AASequence("DFPIANGER").getMonoWeight(Residue::Internal);
-	cerr << mass << endl;
+  double mass = AASequence::fromString("DFPIANGER").getMonoWeight(Residue::Internal);
+  cerr << mass << endl;
 
-	MassDecompositionAlgorithm mda;
-	Param p(mda.getParameters());
-	p.setValue("tolerance", 0.0001);
-	mda.setParameters(p);
+  MassDecompositionAlgorithm mda;
+  Param p(mda.getParameters());
+  p.setValue("tolerance", 0.0001);
+  mda.setParameters(p);
 
-	mda.getDecompositions(decomps, mass);
-	TEST_EQUAL(decomps.size(), 842)
+  mda.getDecompositions(decomps, mass);
+  TEST_EQUAL(decomps.size(), 842)
 
-	p.setValue("tolerance", 0.001);
-	mda.setParameters(p);
-	decomps.clear();
-	mda.getDecompositions(decomps, mass);
-	TEST_EQUAL(decomps.size(), 911);
+  p.setValue("tolerance", 0.001);
+  mda.setParameters(p);
+  decomps.clear();
+  mda.getDecompositions(decomps, mass);
+  TEST_EQUAL(decomps.size(), 911);
 }
 END_SECTION
 

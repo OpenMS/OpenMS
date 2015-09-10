@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -104,26 +104,26 @@ public:
     @param t tolerance
     @throw InvalidValue if tolerance is negative
     */
-    virtual void setTolerance(DoubleReal t);
+    virtual void setTolerance(double t);
 
     /**
     @brief getter for tolerance
     @return tolerance
     */
-    virtual DoubleReal getTolerance();
+    virtual double getTolerance();
 
     /**
     @brief setter for spectrum
-    @param s spectrum as a vector of DoubleReals
+    @param s spectrum as a vector of doubles
     @throw InvalidValue if spectrum is not sorted
     */
-    virtual void setSpectrum(const std::vector<DoubleReal> & s);
+    virtual void setSpectrum(const std::vector<double> & s);
 
     /**
     @brief getter for spectrum
     @return the used spectrum
     */
-    virtual const std::vector<DoubleReal> & getSpectrum();
+    virtual const std::vector<double> & getSpectrum();
 
     /**
     @brief initializing iterator
@@ -164,6 +164,7 @@ public:
     }
 
 protected:
+
     /**
     @brief getting the next candidate
     @return string with next sequence
@@ -185,17 +186,17 @@ protected:
     @brief indicates if a mass is in spectrum
     @return true if a given mass is in spectrum
     */
-    virtual bool isInSpectrum_(DoubleReal & mass);
+    virtual bool isInSpectrum_(double & mass);
 
     String f_file_;         ///< fasta file location
 
     std::string actual_pep_;         ///< actual peptide
 
-    std::vector<DoubleReal> spec_;         ///< given spectrum
+    std::vector<double> spec_;         ///< given spectrum
 
-    DoubleReal tol_;         ///< tolerance
+    double tol_;         ///< tolerance
 
-    DoubleReal masse_[255];         ///< mass table
+    double masse_[255];         ///< mass table
 
     bool is_at_end_;         ///< indicates if iterator is at end
 
@@ -205,7 +206,7 @@ protected:
 
     unsigned int b_, e_;        ///< to ints representing a position within the actual string (b = begin, e = end)
 
-    DoubleReal m_, massMax_;         ///< mass and maximum masse
+    double m_, massMax_;         ///< mass and maximum masse
 
 
   };

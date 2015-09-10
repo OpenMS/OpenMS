@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,8 +35,6 @@
 #ifndef OPENMS_METADATA_METAINFO_H
 #define OPENMS_METADATA_METAINFO_H
 
-#include <map>
-#include <string>
 #include <vector>
 
 #include <OpenMS/CONCEPT/Types.h>
@@ -50,7 +48,7 @@ namespace OpenMS
   /**
       @brief A Type-Name-Value tuple class.
 
-      MetaInfo maps an index ( an integer corresponding to a string ) to DataValue objects.
+      MetaInfo maps an index (an integer corresponding to a string) to DataValue objects.
       The mapping of strings to the index is performed by the MetaInfoRegistry,
       which can be accessed by the method registry().
 
@@ -67,62 +65,62 @@ namespace OpenMS
   class OPENMS_DLLAPI MetaInfo
   {
 public:
-    ///constructor
+    /// Constructor
     MetaInfo();
 
-    ///copy constructor
-    MetaInfo(const MetaInfo & rhs);
+    /// Copy constructor
+    MetaInfo(const MetaInfo& rhs);
 
-    ///destructor
+    /// Destructor
     ~MetaInfo();
 
-    ///assignment operator
-    MetaInfo & operator=(const MetaInfo & rhs);
+    /// Assignment operator
+    MetaInfo& operator=(const MetaInfo& rhs);
 
     /// Equality operator
-    bool operator==(const MetaInfo & rhs) const;
+    bool operator==(const MetaInfo& rhs) const;
     /// Equality operator
-    bool operator!=(const MetaInfo & rhs) const;
+    bool operator!=(const MetaInfo& rhs) const;
 
-    /// returns the value corresponding to a string
-    const DataValue & getValue(const String & name) const;
-    /// returns the value corresponding to an index
-    const DataValue & getValue(UInt index) const;
+    /// Returns the value corresponding to a string (or DataValue::EMPTY if not found)
+    const DataValue& getValue(const String& name) const;
+    /// Returns the value corresponding to an index (or DataValue::EMPTY if not found)
+    const DataValue& getValue(UInt index) const;
 
-    /// returns if this MetaInfo is set
-    bool exists(const String & name) const;
-    /// returns if this MetaInfo is set
+    /// Returns whether an entry with the given name exists
+    bool exists(const String& name) const;
+    /// Returns whether an entry with the given index exists
     bool exists(UInt index) const;
 
-    /// sets the DataValue corresponding to a name
-    void setValue(const String & name, const DataValue & value);
-    ///  sets the DataValue corresponding to an index
-    void setValue(UInt index, const DataValue & value);
+    /// Sets the DataValue corresponding to a name
+    void setValue(const String& name, const DataValue& value);
+    /// Sets the DataValue corresponding to an index
+    void setValue(UInt index, const DataValue& value);
 
     /// Removes the DataValue corresponding to @p name if it exists
-    void removeValue(const String & name);
+    void removeValue(const String& name);
     /// Removes the DataValue corresponding to @p index if it exists
     void removeValue(UInt index);
 
-    /// returns a reference to the MetaInfoRegistry
-    static MetaInfoRegistry & registry();
+    /// Returns a reference to the MetaInfoRegistry
+    static MetaInfoRegistry& registry();
 
-    /// fills the given vector with a list of all keys for which a value is set
-    void getKeys(std::vector<String> & keys) const;
+    /// Fills the given vector with a list of all keys for which a value is set
+    void getKeys(std::vector<String>& keys) const;
 
-    /// fills the given vector with a list of all keys for which a value is set
-    void getKeys(std::vector<UInt> & keys) const;
+    /// Fills the given vector with a list of all keys for which a value is set
+    void getKeys(std::vector<UInt>& keys) const;
 
-    /// returns if the MetaInfo is empty
+    /// Returns if the MetaInfo is empty
     bool empty() const;
 
-    /// removes all meta values
+    /// Removes all meta values
     void clear();
 
 private:
-    /// static MetaInfoRegistry
+    /// Static MetaInfoRegistry
     static MetaInfoRegistry registry_;
-    /// the actual mapping of index to the DataValue
+    /// The actual mapping of indexes to values
     std::map<UInt, DataValue> index_to_value_;
 
   };

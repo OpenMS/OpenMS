@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/StablePairFinder.h>
 
+#include <OpenMS/KERNEL/ConversionHelper.h>
 
 namespace OpenMS
 {
@@ -53,7 +54,7 @@ namespace OpenMS
   {
   }
 
-  void FeatureGroupingAlgorithmUnlabeled::group(const std::vector<FeatureMap<> > & maps, ConsensusMap & out)
+  void FeatureGroupingAlgorithmUnlabeled::group(const std::vector<FeatureMap> & maps, ConsensusMap & out)
   {
     // check that the number of maps is ok
     if (maps.size() < 2)
@@ -76,7 +77,7 @@ namespace OpenMS
     std::vector<ConsensusMap> input(2);
 
     // build a consensus map of the elements of the reference map (contains only singleton consensus elements)
-    ConsensusMap::convert(reference_map_index, maps[reference_map_index],
+    MapConversion::convert(reference_map_index, maps[reference_map_index],
                           input[0]);
 
     // loop over all other maps, extend the groups
@@ -87,7 +88,7 @@ namespace OpenMS
     {
       if (i != reference_map_index)
       {
-        ConsensusMap::convert(i, maps[i], input[1]);
+        MapConversion::convert(i, maps[i], input[1]);
         // compute the consensus of the reference map and map i
         ConsensusMap result;
         pair_finder.run(input, result);
@@ -102,7 +103,7 @@ namespace OpenMS
 
     // add protein IDs and unassigned peptide IDs to the result map here,
     // to keep the same order as the input maps (useful for output later)
-    for (std::vector<FeatureMap<> >::const_iterator map_it = maps.begin();
+    for (std::vector<FeatureMap>::const_iterator map_it = maps.begin();
          map_it != maps.end(); ++map_it)
     {
       // add protein identifications to result map
@@ -130,7 +131,7 @@ namespace OpenMS
     return;
   }
 
-  void FeatureGroupingAlgorithmUnlabeled::addToGroup(int map_id, const FeatureMap<> & feature_map)
+  void FeatureGroupingAlgorithmUnlabeled::addToGroup(int map_id, const FeatureMap& feature_map)
   {
     // create new PairFinder
     StablePairFinder pair_finder;
@@ -138,7 +139,7 @@ namespace OpenMS
 
     // Convert the input map to a consensus map (using the given map_id) and
     // replace the second element in the pairfinder_input_ vector.
-    ConsensusMap::convert(map_id, feature_map, pairfinder_input_[1]);
+    MapConversion::convert(map_id, feature_map, pairfinder_input_[1]);
 
     // compute the consensus of the reference map and map map_id
     ConsensusMap result;

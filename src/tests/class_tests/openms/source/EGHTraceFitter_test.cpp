@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
-// 
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche$
 // $Authors: Stephan Aiche$
@@ -37,22 +37,27 @@
 
 ///////////////////////////
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
-#include <OpenMS/KERNEL/Peak1D.h>
 ///////////////////////////
+
+#include <OpenMS/KERNEL/Peak1D.h>
+
+#include <cmath>
 
 using namespace OpenMS;
 using namespace std;
+
+#define PI 3.14159265358979323846
 
 // TODO: include a more asymmetric trace in the test
 
 START_TEST(EGHTraceFitter, "$Id$")
 
-FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D> mts;
+FeatureFinderAlgorithmPickedHelperStructs::MassTraces mts;
 
-FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> mt1;
+FeatureFinderAlgorithmPickedHelperStructs::MassTrace mt1;
 mt1.theoretical_int = 0.8;
 
-FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> mt2;
+FeatureFinderAlgorithmPickedHelperStructs::MassTrace mt2;
 mt2.theoretical_int = 0.2;
 
 /////////////////////////////////////////////////////////////
@@ -245,26 +250,24 @@ mts.max_trace = 0;
 
 Param p;
 p.setValue("max_iteration", 500);
-p.setValue("epsilon_abs", 0.000001);
-p.setValue("epsilon_rel", 0.000001);
 
-EGHTraceFitter<Peak1D> egh_trace_fitter;
+EGHTraceFitter egh_trace_fitter;
 egh_trace_fitter.setParameters(p);
 egh_trace_fitter.fit(mts);
 
-DoubleReal expected_sigma = 1.5;
-DoubleReal expected_H = 10.0;
-DoubleReal expected_x0 = 680.1;
-DoubleReal expected_tau = 0.0;
+double expected_sigma = 1.5;
+double expected_H = 10.0;
+double expected_x0 = 680.1;
+double expected_tau = 0.0;
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-EGHTraceFitter<Peak1D>* ptr = 0;
-EGHTraceFitter<Peak1D>* nullPointer = 0;
+EGHTraceFitter* ptr = 0;
+EGHTraceFitter* nullPointer = 0;
 START_SECTION(EGHTraceFitter())
 {
-	ptr = new EGHTraceFitter<Peak1D>();
+  ptr = new EGHTraceFitter();
 	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
@@ -277,7 +280,7 @@ END_SECTION
 
 START_SECTION((EGHTraceFitter(const EGHTraceFitter& other)))
 {
-  EGHTraceFitter<Peak1D> egh1(egh_trace_fitter);
+  EGHTraceFitter egh1(egh_trace_fitter);
 
   TEST_EQUAL(egh1.getCenter(),egh_trace_fitter.getCenter())
   TEST_EQUAL(egh1.getHeight(),egh_trace_fitter.getHeight())
@@ -288,7 +291,7 @@ END_SECTION
 
 START_SECTION((EGHTraceFitter& operator=(const EGHTraceFitter& source)))
 {
-  EGHTraceFitter<Peak1D> egh1;
+  EGHTraceFitter egh1;
 
   egh1 = egh_trace_fitter;
 
@@ -299,12 +302,12 @@ START_SECTION((EGHTraceFitter& operator=(const EGHTraceFitter& source)))
 }
 END_SECTION
 
-START_SECTION((void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>& traces)))
+START_SECTION((void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces& traces)))
 {
   // fit was already done before
   TEST_REAL_SIMILAR(egh_trace_fitter.getCenter(), expected_x0)
   TEST_REAL_SIMILAR(egh_trace_fitter.getHeight(), expected_H)
-  EGHTraceFitter<Peak1D> weighted_fitter;
+  EGHTraceFitter weighted_fitter;
   Param params = weighted_fitter.getDefaults();
   params.setValue("weighted", "true");
   weighted_fitter.setParameters(params);
@@ -315,74 +318,74 @@ START_SECTION((void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Pe
   mts[1].theoretical_int = 0.6;
   weighted_fitter.fit(mts);
   TEST_REAL_SIMILAR(weighted_fitter.getCenter(), expected_x0)
-  TEST_REAL_SIMILAR(weighted_fitter.getHeight(), 6.0825)  
+  TEST_REAL_SIMILAR(weighted_fitter.getHeight(), 6.0825)
 }
 END_SECTION
 
-START_SECTION((DoubleReal getLowerRTBound() const))
+START_SECTION((double getLowerRTBound() const))
 {
   TEST_REAL_SIMILAR(egh_trace_fitter.getLowerRTBound(), expected_x0 - 2.5 * expected_sigma)
 }
 END_SECTION
 
-START_SECTION((DoubleReal getUpperRTBound() const))
+START_SECTION((double getUpperRTBound() const))
 {
   TEST_REAL_SIMILAR(egh_trace_fitter.getUpperRTBound(), expected_x0 + 2.5 * expected_sigma)
 }
 END_SECTION
 
-START_SECTION((DoubleReal getHeight() const))
+START_SECTION((double getHeight() const))
 {
   TEST_REAL_SIMILAR(egh_trace_fitter.getHeight(), expected_H)
 }
 END_SECTION
 
-START_SECTION((DoubleReal getCenter() const))
+START_SECTION((double getCenter() const))
 {
   TEST_REAL_SIMILAR(egh_trace_fitter.getCenter(), expected_x0)
 }
 END_SECTION
 
-START_SECTION((DoubleReal getTau() const))
+START_SECTION((double getTau() const))
 {
   TEST_REAL_SIMILAR(egh_trace_fitter.getTau(), expected_tau)
 }
 END_SECTION
 
-START_SECTION((DoubleReal getSigma() const))
+START_SECTION((double getSigma() const))
 {
   TEST_REAL_SIMILAR(egh_trace_fitter.getSigma(), expected_sigma)
 }
 END_SECTION
 
-START_SECTION((DoubleReal getValue(DoubleReal rt) const))
+START_SECTION((double getValue(double rt) const))
 {
   TEST_REAL_SIMILAR(egh_trace_fitter.getValue(expected_x0), expected_H)
 }
 END_SECTION
 
-START_SECTION((DoubleReal computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, Size k)))
+START_SECTION((double computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, Size k)))
 {
-  FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> mt;
+  FeatureFinderAlgorithmPickedHelperStructs::MassTrace mt;
   mt.theoretical_int = 0.8;
 
-  Peak1D p;
-  p.setIntensity(8.0);
+  Peak1D peak;
+  peak.setIntensity(8.0);
 
-  mt.peaks.push_back(make_pair(expected_x0, &p));
+  mt.peaks.push_back(make_pair(expected_x0, &peak));
 
   // theoretical should be expected_H * theoretical_int at position expected_x0
   TEST_REAL_SIMILAR(egh_trace_fitter.computeTheoretical(mt, 0), mt.theoretical_int * expected_H)
 }
 END_SECTION
 
-START_SECTION((bool checkMaximalRTSpan(const DoubleReal max_rt_span)))
+START_SECTION((bool checkMaximalRTSpan(const double max_rt_span)))
 {
   // Maximum RT span in relation to extended area that the model is allowed to have
   // 5.0 * sigma_ > max_rt_span * region_rt_span_
 
-  DoubleReal region_rt_span = mt1.peaks[mt1.peaks.size() - 1].first - mt1.peaks[0].first;
-  DoubleReal max_rt_span = 5.0 * expected_sigma/ region_rt_span;
+  double region_rt_span = mt1.peaks[mt1.peaks.size() - 1].first - mt1.peaks[0].first;
+  double max_rt_span = 5.0 * expected_sigma/ region_rt_span;
 
   TEST_EQUAL(egh_trace_fitter.checkMaximalRTSpan(max_rt_span), false);
   max_rt_span -= 0.1; // accept only smaller regions
@@ -390,14 +393,14 @@ START_SECTION((bool checkMaximalRTSpan(const DoubleReal max_rt_span)))
 }
 END_SECTION
 
-START_SECTION((bool checkMinimalRTSpan(const std::pair<DoubleReal, DoubleReal>& rt_bounds, const DoubleReal min_rt_span)))
+START_SECTION((bool checkMinimalRTSpan(const std::pair<double, double>& rt_bounds, const double min_rt_span)))
 {
   // is
   // (rt_bounds.second-rt_bounds.first) < min_rt_span * 5.0 * sigma_;
   // Minimum RT span in relation to extended area that has to remain after model fitting.
 
-  pair<DoubleReal, DoubleReal> rt_bounds = make_pair(0.0,4.0);
-  DoubleReal min_rt_span = 0.5;
+  pair<double, double> rt_bounds = make_pair(0.0,4.0);
+  double min_rt_span = 0.5;
 
   TEST_EQUAL(egh_trace_fitter.checkMinimalRTSpan(rt_bounds, min_rt_span), false)
   min_rt_span += 0.5;
@@ -405,13 +408,13 @@ START_SECTION((bool checkMinimalRTSpan(const std::pair<DoubleReal, DoubleReal>& 
 }
 END_SECTION
 
-START_SECTION((virtual DoubleReal getArea()))
+START_SECTION((virtual double getArea()))
 {
-  TEST_REAL_SIMILAR(egh_trace_fitter.getArea(), sqrt(2 * M_PI) * expected_sigma * expected_H)
+  TEST_REAL_SIMILAR(egh_trace_fitter.getArea(), sqrt(2 * PI) * expected_sigma * expected_H)
 }
 END_SECTION
 
-START_SECTION((virtual String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, const char function_name, const DoubleReal baseline, const DoubleReal rt_shift)))
+START_SECTION((virtual String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, const char function_name, const double baseline, const double rt_shift)))
 {
   String formula = egh_trace_fitter.getGnuplotFormula(mts[0], 'f', 0.0, 0.0);
   // should look like -- f(x)= 0 + (((4.5 + 3.93096e-15 * (x - 680.1 )) > 0) ? 8 * exp(-1 * (x - 680.1)**2 / ( 4.5 + 3.93096e-15 * (x - 680.1 ))) : 0) --
@@ -423,7 +426,7 @@ START_SECTION((virtual String getGnuplotFormula(const FeatureFinderAlgorithmPick
 }
 END_SECTION
 
-START_SECTION((DoubleReal getFWHM() const))
+START_SECTION((double getFWHM() const))
 {
   TEST_REAL_SIMILAR(egh_trace_fitter.getFWHM(), 3.53223007592464)
 }

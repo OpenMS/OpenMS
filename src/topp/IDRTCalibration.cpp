@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -72,6 +72,8 @@ using namespace std;
     be at the same RT as calibrant_2_reference. This only applies if calibrant_1* has a smaller RT than calibrant_2*.
     Otherwise the values are swapped.
 
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_IDRTCalibration.cli
     <B>INI file documentation of this tool:</B>
@@ -113,10 +115,10 @@ protected:
     String in_file = getStringOption_("in");
     String out_file = getStringOption_("out");
 
-    DoubleReal rt_calibrant_1_input = getDoubleOption_("calibrant_1_input");
-    DoubleReal rt_calibrant_2_input =  getDoubleOption_("calibrant_2_input");
-    DoubleReal rt_calibrant_1_reference =  getDoubleOption_("calibrant_1_reference");
-    DoubleReal rt_calibrant_2_reference =  getDoubleOption_("calibrant_2_reference");
+    double rt_calibrant_1_input = getDoubleOption_("calibrant_1_input");
+    double rt_calibrant_2_input =  getDoubleOption_("calibrant_2_input");
+    double rt_calibrant_1_reference =  getDoubleOption_("calibrant_1_reference");
+    double rt_calibrant_2_reference =  getDoubleOption_("calibrant_2_reference");
 
     if (rt_calibrant_1_input == rt_calibrant_2_input)
     {
@@ -140,13 +142,13 @@ protected:
 
     if (rt_calibrant_1_input > rt_calibrant_2_input)
     {
-      DoubleReal temp = rt_calibrant_1_input;
+      double temp = rt_calibrant_1_input;
       rt_calibrant_1_input = rt_calibrant_2_input;
       rt_calibrant_2_input = temp;
     }
     if (rt_calibrant_1_reference > rt_calibrant_2_reference)
     {
-      DoubleReal temp = rt_calibrant_1_reference;
+      double temp = rt_calibrant_1_reference;
       rt_calibrant_1_reference = rt_calibrant_2_reference;
       rt_calibrant_2_reference = temp;
     }
@@ -162,12 +164,12 @@ protected:
 
     for (Size i = 0; i < identifications.size(); ++i)
     {
-      if (identifications[i].metaValueExists("RT"))
+      if (identifications[i].hasRT())
       {
-        DoubleReal temp_rt = identifications[i].getMetaValue("RT");
+        double temp_rt = identifications[i].getRT();
         temp_rt = (temp_rt - rt_calibrant_1_input) / (rt_calibrant_2_input - rt_calibrant_1_input)
                   * (rt_calibrant_2_reference - rt_calibrant_1_reference) + rt_calibrant_1_reference;
-        identifications[i].setMetaValue("RT", temp_rt);
+        identifications[i].setRT(temp_rt);
       }
     }
 

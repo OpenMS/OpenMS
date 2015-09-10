@@ -16,13 +16,9 @@ FeaFiModule.cpp
 FeatureFinder.cpp
 FeatureFinderAlgorithm.cpp
 FeatureFinderAlgorithmIsotopeWavelet.cpp
+FeatureFinderAlgorithmMRM.cpp
 FeatureFinderAlgorithmPicked.cpp
 FeatureFinderAlgorithmPickedHelperStructs.cpp
-FeatureFinderAlgorithmSH.cpp
-FeatureFinderAlgorithmSHCtrl.cpp
-FeatureFinderAlgorithmSimple.cpp
-FeatureFinderAlgorithmSimplest.cpp
-FeatureFinderAlgorithmMRM.cpp
 Fitter1D.cpp
 GaussFitter1D.cpp
 GaussModel.cpp
@@ -33,18 +29,20 @@ IsotopeModel.cpp
 IsotopeWavelet.cpp
 IsotopeWaveletTransform.cpp
 LevMarqFitter1D.cpp
-LmaGaussFitter1D.cpp
-LmaGaussModel.cpp
-LmaIsotopeFitter1D.cpp
-LmaIsotopeModel.cpp
 MaxLikeliFitter1D.cpp
 ModelDescription.cpp
-ModelFitter.cpp
+MultiplexClustering.cpp
+MultiplexFiltering.cpp
+MultiplexFilteringCentroided.cpp
+MultiplexFilteringProfile.cpp
+MultiplexFilterResult.cpp
+MultiplexFilterResultPeak.cpp
+MultiplexFilterResultRaw.cpp
+MultiplexPeakPattern.cpp
 PeakWidthEstimator.cpp
 ProductModel.cpp
 SeedListGenerator.cpp
-SimpleExtender.cpp
-SimpleSeeder.cpp
+TraceFitter.cpp
 )
 
 ### add path to the filenames
@@ -58,15 +56,3 @@ set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
 source_group("Source Files\\TRANSFORMATIONS\\FEATUREFINDER" FILES ${sources})
-
-set(sources_list_cu
-IsotopeWaveletCudaKernel.cu
-)
-
-set(sources_cu)
-foreach(i ${sources_list_cu})
-        list(APPEND sources_cu ${directory}/${i})
-endforeach(i)
-
-### 
-set(Cuda_sources ${Cuda_sources} ${sources_cu})

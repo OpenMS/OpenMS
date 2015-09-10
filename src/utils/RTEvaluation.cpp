@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -59,10 +59,12 @@ using namespace std;
     the second RT dimension as well as for the IDs filtered in both dimensions. The output is a table with
     either csv format (can be imported by Excel) or latex format (to include in tables in your latex manuscripts).
 
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_IdXMLEvaluation.cli
+    @verbinclude UTILS_RTEvaluation.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_IdXMLEvaluation.html
+    @htmlinclude UTILS_RTEvaluation.html
 */
 
 // We do not want this class to show up in the docu:
@@ -114,12 +116,12 @@ protected:
     PeptideIdentification filtered_identification_both;
     IDFilter filter;
     bool no_protein_identifiers = true;
-    DoubleReal p_value_dim_1 = getDoubleOption_("p_value_dim_1");
-    DoubleReal p_value_dim_2 = getDoubleOption_("p_value_dim_2");
+    double p_value_dim_1 = getDoubleOption_("p_value_dim_1");
+    double p_value_dim_2 = getDoubleOption_("p_value_dim_2");
     State state = TP;
     State state_rt1 = TP;
     State state_rt2 = TP;
-    vector<DoubleReal> fdrs;
+    vector<double> fdrs;
     fdrs.push_back(0.);
     fdrs.push_back(0.01);
     fdrs.push_back(0.02);
@@ -429,7 +431,7 @@ protected:
 
         if (j % 5 == 4)
         {
-          output_file << " " << (performances[i][j - 4] / ((DoubleReal) performances[i][j - 4] + performances[i][j - 3]));
+          output_file << " " << (performances[i][j - 4] / ((double) performances[i][j - 4] + performances[i][j - 3]));
         }
         else
         {

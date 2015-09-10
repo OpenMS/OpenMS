@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,39 +49,43 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-        @page TOPP_FeatureFinderMetabo FeatureFinderMetabo
+  @page TOPP_FeatureFinderMetabo FeatureFinderMetabo
 
-        @brief FeatureFinderMetabo assembles metabolite features from singleton mass traces.
+  @brief FeatureFinderMetabo assembles metabolite features from singleton mass traces.
 
-        <CENTER>
-        <table>
-        <tr>
-        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-        <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ FeatureFinderMetabo \f$ \longrightarrow \f$</td>
-        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-        </tr>
-        <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_TextExporter</td>
-        </tr>
-        <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet </td>
-        </tr>
-        </table>
-        </CENTER>
+  <CENTER>
+  <table>
+  <tr>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+  <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ FeatureFinderMetabo \f$ \longrightarrow \f$</td>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+  </tr>
+  <tr>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_TextExporter</td>
+  </tr>
+  <tr>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet </td>
+  </tr>
+  </table>
+  </CENTER>
 
-        Mass traces alone would allow for further analyzes such as metabolite ID or statistical
-        evaluation. However, in general, monoisotopic mass traces are accompanied with satellite
-        C13 peaks and thus may render the analysis more difficult. @ref FeatureFinderMetabo fulfills
-        a further data reduction step by assembling compatible mass traces to metabolite features
-        (that is, mass traces all stemming from one metabolite). To this end, multiple metabolite
-        hypotheses are formulated and scored according to how well differences in RT and m/z or
-        intensity ratios match to those of theoretical isotope patterns.
+  Mass traces alone would allow for further analysis such as metabolite ID or
+  statistical evaluation. However, in general, monoisotopic mass traces are
+  accompanied by satellite C13 peaks and thus may render the analysis more
+  difficult. @ref FeatureFinderMetabo fulfills a further data reduction step by
+  assembling compatible mass traces to metabolite features (that is, all mass
+  traces originating from one metabolite). To this end, multiple metabolite
+  hypotheses are formulated and scored according to how well differences in RT
+  and m/z or intensity ratios match to those of theoretical isotope patterns.
 
-        If the raw data scans contain the scan polarity information, it is stored as meta value "scan_polarity" in the output file.
+  If the raw data scans contain the scan polarity information, it is stored as
+  meta value "scan_polarity" in the output file.
 
-        <B>The command line parameters of this tool are:</B>
-        @verbinclude TOPP_FeatureFinderMetabo.cli
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude TOPP_FeatureFinderMetabo.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_FeatureFinderMetabo.html
 */
 
 // We do not want this class to show up in the docu:
@@ -100,9 +104,9 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "input centroided mzML file");
+    registerInputFile_("in", "<file>", "", "Centroided mzML file");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
-    registerOutputFile_("out", "<file>", "", "output featureXML file with metabolite features");
+    registerOutputFile_("out", "<file>", "", "FeatureXML file with metabolite features");
     setValidFormats_("out", ListUtils::create<String>("featureXML"));
 
     addEmptyLine_();
@@ -116,28 +120,30 @@ protected:
     p_com.setValue("noise_threshold_int", 10.0, "Intensity threshold below which peaks are regarded as noise.");
     p_com.setValue("chrom_peak_snr", 3.0, "Minimum signal-to-noise a mass trace should have.");
     p_com.setValue("chrom_fwhm", 5.0, "Expected chromatographic peak width (in seconds).");
-
     combined.insert("common:", p_com);
+    combined.setSectionDescription("common", "Common parameters for all other subsections");
 
     Param p_mtd = MassTraceDetection().getDefaults();
     p_mtd.remove("noise_threshold_int");
     p_mtd.remove("chrom_peak_snr");
-
     combined.insert("mtd:", p_mtd);
+    combined.setSectionDescription("mtd", "Mass Trace Detection parameters");
 
-    Param p_epd = ElutionPeakDetection().getDefaults();
-    p_epd.remove("noise_threshold_int");
+    Param p_epd;
+    p_epd.setValue("enabled", "true", "Enable splitting of isobaric mass traces by chromatographic peak detection. Disable for direct injection.");
+    p_epd.setValidStrings("enabled", ListUtils::create<String>("true,false"));
+    p_epd.insert("", ElutionPeakDetection().getDefaults());
     p_epd.remove("chrom_peak_snr");
     p_epd.remove("chrom_fwhm");
 
-    // p_epd.setValue("enabled", "true", "Enables/disables the chromatographic peak detection of mass traces");
-    // p_epd.setValidStrings("enabled", ListUtils::create<String>("true,false"));
     combined.insert("epd:", p_epd);
+    combined.insert("epd:", p_epd);
+    combined.setSectionDescription("epd", "Elution Profile Detection (to separate isobaric Mass Traces by elution time).");
 
     Param p_ffm = FeatureFindingMetabo().getDefaults();
     p_ffm.remove("chrom_fwhm");
-
     combined.insert("ffm:", p_ffm);
+    combined.setSectionDescription("ffm", "FeatureFinder parameters (assembling mass traces to charged features)");
 
     return combined;
   }
@@ -159,7 +165,7 @@ protected:
     mz_data_file.setLogType(log_type_);
     MSExperiment<Peak1D> ms_peakmap;
     std::vector<Int> ms_level(1, 1);
-    (mz_data_file.getOptions()).setMSLevels(ms_level);
+    mz_data_file.getOptions().setMSLevels(ms_level);
     mz_data_file.load(in, ms_peakmap);
 
     if (ms_peakmap.empty())
@@ -167,6 +173,18 @@ protected:
       LOG_WARN << "The given file does not contain any conventional peak data, but might"
                   " contain chromatograms. This tool currently cannot handle them, sorry.";
       return INCOMPATIBLE_INPUT_DATA;
+    }
+
+    // determine type of spectral data (profile or centroided)
+    SpectrumSettings::SpectrumType spectrum_type = ms_peakmap[0].getType();
+
+    if (spectrum_type == SpectrumSettings::RAWDATA)
+    {
+      if (!getFlag_("force"))
+      {
+        throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__,
+            "Error: Profile data provided but centroided spectra expected. To enforce processing of the data set the -force flag.");
+      }
     }
 
     // make sure the spectra are sorted by m/z
@@ -179,7 +197,7 @@ protected:
     //-------------------------------------------------------------
 
     Param common_param = getParam_().copy("algorithm:common:", true);
-    writeDebug_("Common parameters passed to subalgorithms (mtd and ffm)", common_param, 3);
+    writeDebug_("Common parameters passed to sub-algorithms (mtd and ffm)", common_param, 3);
 
     Param mtd_param = getParam_().copy("algorithm:mtd:", true);
     writeDebug_("Parameters passed to MassTraceDetection", mtd_param, 3);
@@ -206,34 +224,40 @@ protected:
     // configure and run elution peak detection
     //-------------------------------------------------------------
 
-    // bool use_epd = epd_param.getValue("enabled").toBool();
-
-    std::vector<MassTrace> m_traces_final = m_traces;
-
-    // DoubleReal pw_est(epd_param.getValue("chrom_fwhm"));
-    // DoubleReal scan_time(std::fabs(ms_peakmap[ms_peakmap.size() - 1].getRT() - ms_peakmap[0].getRT()) / ms_peakmap.size());
-
-    ElutionPeakDetection epdet;
-    // epd_param.remove("enabled"); // artificially added above
-    epd_param.insert("", common_param);
-    epdet.setParameters(epd_param);
-
-    std::vector<MassTrace> splitted_mtraces;
-
-    // epdet.setScanTime(scan_time);
-
-    epdet.detectPeaks(m_traces, splitted_mtraces);
-
-
-    if (epdet.getParameters().getValue("width_filtering") == "auto")
+    std::vector<MassTrace> m_traces_final;
+    if (epd_param.getValue("enabled").toBool())
     {
-      m_traces_final.clear();
-      epdet.filterByPeakWidth(splitted_mtraces, m_traces_final);
+      std::vector<MassTrace> splitted_mtraces;
+      epd_param.remove("enabled"); // artificially added above
+      epd_param.insert("", common_param);
+      ElutionPeakDetection epdet;
+      epdet.setParameters(epd_param);
+      // fill mass traces with smoothed data as well .. bad design..
+      epdet.detectPeaks(m_traces, splitted_mtraces);
+      if (epdet.getParameters().getValue("width_filtering") == "auto")
+      {
+        m_traces_final.clear();
+        epdet.filterByPeakWidth(splitted_mtraces, m_traces_final);
+      }
+      else
+      {
+        m_traces_final = splitted_mtraces;
+      }
     }
-    else
+    else // no elution peak detection
     {
-      m_traces_final = splitted_mtraces;
+      m_traces_final = m_traces;
+      for (Size i = 0; i < m_traces_final.size(); ++i) // estimate FWHM, so .getIntensity() can be called later
+      {
+        m_traces_final[i].estimateFWHM(false);
+      }
+      if (ffm_param.getValue("use_smoothed_intensities").toBool())
+      {
+        LOG_WARN << "Without EPD, smoothing is not supported. Setting 'use_smoothed_intensities' to false!" << std::endl;
+        ffm_param.setValue("use_smoothed_intensities", "false");
+      }
     }
+
 
 //    std::cout << "m_traces: " << m_traces_final.size() << std::endl;
 
@@ -241,46 +265,65 @@ protected:
     // configure and run feature finding
     //-------------------------------------------------------------
 
-    FeatureFindingMetabo ffmet;
     ffm_param.insert("", common_param);
     ffm_param.remove("noise_threshold_int");
     ffm_param.remove("chrom_peak_snr");
 
-    FeatureMap<> ms_feat_map;
+    FeatureMap feat_map;
+    FeatureFindingMetabo ffmet;
     ffmet.setParameters(ffm_param);
-    ffmet.run(m_traces_final, ms_feat_map);
+    ffmet.run(m_traces_final, feat_map);
 
-    ms_feat_map.sortByMZ();
-    ms_feat_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+    Size trace_count(0);
+    for (Size i = 0; i < feat_map.size(); ++i)
+    {
+      OPENMS_PRECONDITION(feat_map[i].metaValueExists("num_of_masstraces"),
+          "MetaValue 'num_of_masstraces' missing from FFMetabo output!");
+      trace_count += (Size) feat_map[i].getMetaValue("num_of_masstraces");
+    }
 
-    // store ionization mode of spectra (useful for postprocessing by AccurateMassSearch tool)
-    if (ms_feat_map.size() > 0)
+    LOG_INFO << "-- FF-Metabo stats --\n"
+             << "Input traces:    " << m_traces_final.size() << "\n"
+             << "Output features: " << feat_map.size() << " (total trace count: " << trace_count << ")" << std::endl;
+
+    if (trace_count != m_traces_final.size())
+    {
+      LOG_ERROR << "FF-Metabo: Internal error. Not all mass traces have been assembled to features! Aborting." << std::endl;
+      return UNEXPECTED_RESULT;
+    }
+
+    feat_map.sortByMZ();
+    feat_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+
+    // store ionization mode of spectra (useful for post-processing by AccurateMassSearch tool)
+    if (feat_map.size() > 0)
     {
       set<IonSource::Polarity> pols;
-      for (Size i=0; i < ms_peakmap.size(); ++i)
+      for (Size i = 0; i < ms_peakmap.size(); ++i)
       {
         pols.insert(ms_peakmap[i].getInstrumentSettings().getPolarity());
       }
       // concat to single string
       StringList sl_pols;
       for (set<IonSource::Polarity>::const_iterator it = pols.begin();
-                                                    it !=pols.end();
-                                                    ++it)
+           it != pols.end();
+           ++it)
       {
         sl_pols.push_back(String(IonSource::NamesOfPolarity[*it]));
       }
-      ms_feat_map[0].setMetaValue("scan_polarity", ListUtils::concatenate(sl_pols, ";"));
+      feat_map[0].setMetaValue("scan_polarity", ListUtils::concatenate(sl_pols, ";"));
     }
-
 
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
 
     // annotate output with data processing info
-    addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::QUANTITATION));
+    addDataProcessing_(feat_map, getProcessingInfo_(DataProcessing::QUANTITATION));
 
-    FeatureXMLFile().store(out, ms_feat_map);
+    FeatureXMLFile feature_xml_file;
+    feature_xml_file.setLogType(log_type_);
+    feature_xml_file.store(out, feat_map);
 
     return EXECUTION_OK;
   }

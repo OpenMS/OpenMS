@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,11 +32,12 @@
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-
 #ifndef OPENMS_VISUAL_DIALOGS_TOPPASINPUTFILEDIALOG_H
 #define OPENMS_VISUAL_DIALOGS_TOPPASINPUTFILEDIALOG_H
 
-#include <OpenMS/config.h>
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
 #include <OpenMS/VISUAL/DIALOGS/UIC/ui_TOPPASInputFileDialog.h>
 
 namespace OpenMS
@@ -77,7 +78,7 @@ protected slots:
 protected:
 
     /// The parent
-    QObject * parent_;
+    QObject* parent_;
   };
 
 }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -124,32 +124,32 @@ SpectralMatch& SpectralMatch::operator=(const SpectralMatch& rhs)
     return *this;
 }
 
-DoubleReal SpectralMatch::getObservedPrecursorMass() const
+double SpectralMatch::getObservedPrecursorMass() const
 {
     return observed_precursor_mass_;
 }
 
-void SpectralMatch::setObservedPrecursorMass(const DoubleReal& qmass)
+void SpectralMatch::setObservedPrecursorMass(const double& qmass)
 {
     observed_precursor_mass_ = qmass;
 }
 
-DoubleReal SpectralMatch::getObservedPrecursorRT() const
+double SpectralMatch::getObservedPrecursorRT() const
 {
     return observed_precursor_rt_;
 }
 
-void SpectralMatch::setObservedPrecursorRT(const DoubleReal& prt)
+void SpectralMatch::setObservedPrecursorRT(const double& prt)
 {
     observed_precursor_rt_ = prt;
 }
 
-DoubleReal SpectralMatch::getFoundPrecursorMass() const
+double SpectralMatch::getFoundPrecursorMass() const
 {
     return found_precursor_mass_;
 }
 
-void SpectralMatch::setFoundPrecursorMass(const DoubleReal& fmass)
+void SpectralMatch::setFoundPrecursorMass(const double& fmass)
 {
     found_precursor_mass_ = fmass;
 }
@@ -164,12 +164,12 @@ void SpectralMatch::setFoundPrecursorCharge(const Int& pch)
     found_precursor_charge_ = pch;
 }
 
-DoubleReal SpectralMatch::getMatchingScore() const
+double SpectralMatch::getMatchingScore() const
 {
     return matching_score_;
 }
 
-void SpectralMatch::setMatchingScore(const DoubleReal& mscore)
+void SpectralMatch::setMatchingScore(const double& mscore)
 {
     matching_score_ = mscore;
 }
@@ -294,19 +294,19 @@ MetaboliteSpectralMatching::~MetaboliteSpectralMatching()
 
 /// public methods
 
-DoubleReal MetaboliteSpectralMatching::computeHyperScore(MSSpectrum<Peak1D> exp_spectrum, MSSpectrum<Peak1D> db_spectrum,
-                                                         const DoubleReal& fragment_mass_error, const DoubleReal& mz_lower_bound)
+double MetaboliteSpectralMatching::computeHyperScore(MSSpectrum<Peak1D> exp_spectrum, MSSpectrum<Peak1D> db_spectrum,
+                                                         const double& fragment_mass_error, const double& mz_lower_bound)
 {
 
-    DoubleReal dot_product(0.0);
+    double dot_product(0.0);
     Size matched_ions_count(0);
 
     // scan for matching peaks between observed and DB stored spectra
     for (MSSpectrum<Peak1D>::iterator frag_it = exp_spectrum.MZBegin(mz_lower_bound); frag_it != exp_spectrum.end(); ++frag_it)
     {
-        DoubleReal frag_mz = frag_it->getMZ();
+        double frag_mz = frag_it->getMZ();
 
-        DoubleReal mz_offset = fragment_mass_error;
+        double mz_offset = fragment_mass_error;
 
         if (mz_error_unit_ == "ppm")
         {
@@ -316,13 +316,13 @@ DoubleReal MetaboliteSpectralMatching::computeHyperScore(MSSpectrum<Peak1D> exp_
         MSSpectrum<Peak1D>::iterator db_mass_it = db_spectrum.MZBegin(frag_mz - mz_offset);
         MSSpectrum<Peak1D>::iterator db_mass_end = db_spectrum.MZEnd(frag_mz + mz_offset);
 
-        std::pair<DoubleReal, Peak1D> nearest_peak(mz_offset + 1.0, Peak1D());
+        std::pair<double, Peak1D> nearest_peak(mz_offset + 1.0, Peak1D());
 
         // linear search for peak nearest to observed fragment peak
         for (; db_mass_it != db_mass_end; ++db_mass_it)
         {
-            DoubleReal db_mz(db_mass_it->getMZ());
-            DoubleReal abs_mass_diff(std::abs(frag_mz - db_mz));
+            double db_mz(db_mass_it->getMZ());
+            double abs_mass_diff(std::abs(frag_mz - db_mz));
 
             if (abs_mass_diff < nearest_peak.first) {
                 nearest_peak.first = abs_mass_diff;
@@ -338,7 +338,7 @@ DoubleReal MetaboliteSpectralMatching::computeHyperScore(MSSpectrum<Peak1D> exp_
         }
     }
 
-    DoubleReal matched_ions_term(0.0);
+    double matched_ions_term(0.0);
 
     // return score 0 if too few matched ions
     if (matched_ions_count < 3)
@@ -347,16 +347,16 @@ DoubleReal MetaboliteSpectralMatching::computeHyperScore(MSSpectrum<Peak1D> exp_
     }
 
 
-    if (matched_ions_count <= boost::math::max_factorial<DoubleReal>::value)
+    if (matched_ions_count <= boost::math::max_factorial<double>::value)
     {
-        matched_ions_term = std::log(boost::math::factorial<DoubleReal>((DoubleReal)matched_ions_count));
+        matched_ions_term = std::log(boost::math::factorial<double>((double)matched_ions_count));
     }
     else
     {
-        matched_ions_term = std::log(boost::math::factorial<DoubleReal>(boost::math::max_factorial<DoubleReal>::value));
+        matched_ions_term = std::log(boost::math::factorial<double>(boost::math::max_factorial<double>::value));
     }
 
-    DoubleReal hyperscore(std::log(dot_product) + matched_ions_term);
+    double hyperscore(std::log(dot_product) + matched_ions_term);
 
 
     if (hyperscore < 0)
@@ -378,7 +378,7 @@ void MetaboliteSpectralMatching::run(MSExperiment<> & msexp, MzTab& mztab_out)
 
     std::sort(spec_db.begin(), spec_db.end(), PrecursorMZLess);
 
-    std::vector<DoubleReal> mz_keys;
+    std::vector<double> mz_keys;
 
     // copy precursor m/z values to vector for searching
     for (Size spec_idx = 0; spec_idx < spec_db.size(); ++spec_idx)
@@ -415,11 +415,11 @@ void MetaboliteSpectralMatching::run(MSExperiment<> & msexp, MzTab& mztab_out)
         for (Size prec_idx = 0; prec_idx < msexp[spec_idx].getPrecursors().size(); ++prec_idx)
         {
             // get precursor m/z
-            DoubleReal precursor_mz(msexp[spec_idx].getPrecursors()[prec_idx].getMZ());
+            double precursor_mz(msexp[spec_idx].getPrecursors()[prec_idx].getMZ());
 
             // std::cout << "precursor no. " << prec_idx << ": mz " << precursor_mz << " ";
 
-            DoubleReal prec_mz_lowerbound, prec_mz_upperbound;
+            double prec_mz_lowerbound, prec_mz_upperbound;
 
             if (mz_error_unit_ == "Da")
             {
@@ -428,7 +428,7 @@ void MetaboliteSpectralMatching::run(MSExperiment<> & msexp, MzTab& mztab_out)
             }
             else
             {
-                DoubleReal ppm_offset(precursor_mz * 1e-6 * precursor_mz_error_);
+                double ppm_offset(precursor_mz * 1e-6 * precursor_mz_error_);
                 prec_mz_lowerbound = precursor_mz - ppm_offset;
                 prec_mz_upperbound = precursor_mz + ppm_offset;
             }
@@ -437,14 +437,11 @@ void MetaboliteSpectralMatching::run(MSExperiment<> & msexp, MzTab& mztab_out)
             // std::cout << "lower mz: " << prec_mz_lowerbound << " ";
             // std::cout << "upper mz: " << prec_mz_upperbound << std::endl;
 
-            std::vector<DoubleReal>::const_iterator lower_it = std::lower_bound(mz_keys.begin(), mz_keys.end(), prec_mz_lowerbound);
-            std::vector<DoubleReal>::const_iterator upper_it = std::upper_bound(mz_keys.begin(), mz_keys.end(), prec_mz_upperbound);
+            std::vector<double>::const_iterator lower_it = std::lower_bound(mz_keys.begin(), mz_keys.end(), prec_mz_lowerbound);
+            std::vector<double>::const_iterator upper_it = std::upper_bound(mz_keys.begin(), mz_keys.end(), prec_mz_upperbound);
 
             Size start_idx(lower_it - mz_keys.begin());
             Size end_idx(upper_it - mz_keys.begin());
-
-            DoubleReal max_hyper_score(0.0);
-            Size best_idx(start_idx);
 
             //std::cout << "identifying " << msexp[spec_idx].getMetaValue("Massbank_Accession_ID") << std::endl;
 
@@ -461,7 +458,7 @@ void MetaboliteSpectralMatching::run(MSExperiment<> & msexp, MzTab& mztab_out)
                     continue;
                 }
 
-                DoubleReal hyperscore(computeHyperScore(msexp[spec_idx], spec_db[search_idx], fragment_mz_error_, 0.0));
+                double hyperscore(computeHyperScore(msexp[spec_idx], spec_db[search_idx], fragment_mz_error_, 0.0));
 
                 // std::cout << " scored with " << hyperScore << std::endl;
                 if (hyperscore > 0)
@@ -472,7 +469,7 @@ void MetaboliteSpectralMatching::run(MSExperiment<> & msexp, MzTab& mztab_out)
                     SpectralMatch tmp_match;
                     tmp_match.setObservedPrecursorMass(precursor_mz);
                     tmp_match.setFoundPrecursorMass(spec_db[search_idx].getPrecursors()[0].getMZ());
-                    DoubleReal obs_rt = std::floor(msexp[spec_idx].getRT() * 10)/10.0;
+                    double obs_rt = std::floor(msexp[spec_idx].getRT() * 10)/10.0;
                     tmp_match.setObservedPrecursorRT(obs_rt);
                     tmp_match.setFoundPrecursorCharge(spec_db[search_idx].getPrecursors()[0].getCharge());
                     tmp_match.setMatchingScore(hyperscore);
@@ -529,8 +526,8 @@ void MetaboliteSpectralMatching::run(MSExperiment<> & msexp, MzTab& mztab_out)
 
 void MetaboliteSpectralMatching::updateMembers_()
 {
-    precursor_mz_error_ = (DoubleReal)param_.getValue("prec_mass_error_value");
-    fragment_mz_error_ = (DoubleReal)param_.getValue("frag_mass_error_value");
+    precursor_mz_error_ = (double)param_.getValue("prec_mass_error_value");
+    fragment_mz_error_ = (double)param_.getValue("frag_mass_error_value");
     ion_mode_ = (String)param_.getValue("ionization_mode");
 
     mz_error_unit_ = (String)param_.getValue("mass_error_unit");
@@ -543,13 +540,7 @@ void MetaboliteSpectralMatching::updateMembers_()
 void MetaboliteSpectralMatching::exportMzTab_(const std::vector<SpectralMatch>& overall_results, MzTab& mztab_out)
 {
     // iterate the overall results table
-
-    String unit_id("MetSpecMatch");
-    MzTabSmallMoleculeSectionData sm_data_section;
     MzTabSmallMoleculeSectionRows all_sm_rows;
-
-    Size id_group(1);
-
 
     for (Size id_idx = 0; id_idx < overall_results.size(); ++id_idx)
     {
@@ -598,11 +589,11 @@ void MetaboliteSpectralMatching::exportMzTab_(const std::vector<SpectralMatch>& 
 
 
         // set mass_to_charge field (precursor mass here)
-        DoubleReal mz_temp = current_id.getFoundPrecursorMass();
+        double mz_temp = current_id.getFoundPrecursorMass();
         MzTabDouble mass_to_charge;
         mass_to_charge.set(mz_temp);
 
-        mztab_row_record.mass_to_charge = mass_to_charge;
+        mztab_row_record.exp_mass_to_charge = mass_to_charge;  //TODO: distinguish the experimental precursor mass and spectral library precursor mass (later should probably go into cv_opt_ column)
 
 
         // set charge field
@@ -614,7 +605,7 @@ void MetaboliteSpectralMatching::exportMzTab_(const std::vector<SpectralMatch>& 
 
 
         // set RT field
-        DoubleReal rt_temp = current_id.getObservedPrecursorRT();
+        double rt_temp = current_id.getObservedPrecursorRT();
         MzTabDouble rt_temp2;
         rt_temp2.set(rt_temp);
         std::vector<MzTabDouble> rt_temp3;
@@ -645,41 +636,47 @@ void MetaboliteSpectralMatching::exportMzTab_(const std::vector<SpectralMatch>& 
         // check if we deal with a feature or consensus feature
         std::vector<MzTabDouble> int_temp3;
 
-        DoubleReal int_temp(0.0);
+        double int_temp(0.0);
         MzTabDouble int_temp2;
         int_temp2.set(int_temp);
         int_temp3.push_back(int_temp2);
 
-        mztab_row_record.smallmolecule_abundance_sub = int_temp3;
-
+        for (Size i = 0; i != int_temp3.size(); ++i)
+        {
+          mztab_row_record.smallmolecule_abundance_study_variable[i + 1] = int_temp3[i];
+        }
 
         // set smallmolecule_abundance_stdev_sub; not applicable for a single feature intensity, however must be filled. Otherwise, the mzTab export fails.
-        DoubleReal stdev_temp(0.0);
+        double stdev_temp(0.0);
         MzTabDouble stdev_temp2;
         stdev_temp2.set(stdev_temp);
         std::vector<MzTabDouble> stdev_temp3;
 
         stdev_temp3.push_back(stdev_temp2);
 
-        mztab_row_record.smallmolecule_abundance_stdev_sub = stdev_temp3;
-
+        for (Size i = 0; i != stdev_temp3.size(); ++i)
+        {
+          mztab_row_record.smallmolecule_abundance_stdev_study_variable[i + 1] = stdev_temp3[i];
+        }
 
         // set smallmolecule_abundance_std_error_sub; not applicable for a single feature intensity, however must be filled. Otherwise, the mzTab export fails.
-        DoubleReal stderr_temp(0.0);
+        double stderr_temp(0.0);
         MzTabDouble stderr_temp2;
         stderr_temp2.set(stderr_temp);
         std::vector<MzTabDouble> stderr_temp3;
 
         stderr_temp3.push_back(stderr_temp2);
 
-        mztab_row_record.smallmolecule_abundance_std_error_sub = stderr_temp3;
-
+        for (Size i = 0; i != stderr_temp3.size(); ++i)
+        {
+          mztab_row_record.smallmolecule_abundance_std_error_study_variable[i + 1] = stderr_temp3[i];
+        }
 
         // optional columns:
         std::vector<MzTabOptionalColumnEntry> optionals;
 
         // ppm error
-        DoubleReal error_ppm(((current_id.getFoundPrecursorMass() - current_id.getObservedPrecursorMass())/current_id.getFoundPrecursorMass())*1e6);
+        double error_ppm(((current_id.getFoundPrecursorMass() - current_id.getObservedPrecursorMass())/current_id.getFoundPrecursorMass())*1e6);
         error_ppm = std::floor(error_ppm*100)/100;
 
         MzTabString ppmerr;
@@ -699,7 +696,7 @@ void MetaboliteSpectralMatching::exportMzTab_(const std::vector<SpectralMatch>& 
         optionals.push_back(col1);
 
         // set isotope similarity score
-        DoubleReal sim_score_temp = current_id.getMatchingScore();
+        double sim_score_temp = current_id.getMatchingScore();
         std::stringstream read_in;
         read_in << sim_score_temp;
         String sim_score_temp2(read_in.str());
@@ -721,6 +718,7 @@ void MetaboliteSpectralMatching::exportMzTab_(const std::vector<SpectralMatch>& 
         optionals.push_back(col3);
 
         // set source spectra index
+        // TODO: this should use spectra_ref column
         String source_idx = String(current_id.getObservedSpectrumIndex());
         MzTabString source_idx_str;
         source_idx_str.set(source_idx);
@@ -734,8 +732,7 @@ void MetaboliteSpectralMatching::exportMzTab_(const std::vector<SpectralMatch>& 
         all_sm_rows.push_back(mztab_row_record);
     }
 
-    sm_data_section[unit_id] = all_sm_rows;
-    mztab_out.setSmallMoleculeSectionData(sm_data_section);
+  mztab_out.setSmallMoleculeSectionRows(all_sm_rows);
 
 }
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,7 +38,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 
-#include <ostream>
+#include <iosfwd>
 #include <functional>
 
 namespace OpenMS
@@ -61,11 +61,11 @@ public:
     /// Dimension
     enum {DIMENSION = 1};
     /// Intensity type
-    typedef Real IntensityType;
+    typedef float IntensityType;
     /// Position type
     typedef DPosition<1> PositionType;
     /// Coordinate type
-    typedef DoubleReal CoordinateType;
+    typedef double CoordinateType;
     ///@}
 
     ///@name Constructors and Destructor
@@ -74,6 +74,12 @@ public:
     inline Peak1D() :
       position_(),
       intensity_(0)
+    {}
+
+    /// construct with position and intensity
+    inline Peak1D(PositionType a, IntensityType b) :
+      position_(a),
+      intensity_(b)
     {}
 
     /// Copy constructor
@@ -162,7 +168,10 @@ public:
     /// Equality operator
     inline bool operator==(const Peak1D & rhs) const
     {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wfloat-equal"
       return intensity_ == rhs.intensity_ && position_ == rhs.position_;
+#pragma clang diagnostic pop
     }
 
     /// Equality operator
