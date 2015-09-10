@@ -351,6 +351,49 @@ void inline update_neighborhood(const std::vector<double>& x,
   }
 }
 
+/// Update the counters of the local regression.
+void update_indices(const std::vector<double>& x,
+                    const size_t n,
+                    const double delta,
+                    size_t& i, size_t& last, 
+                    std::vector<double>& ys)
+{
+  // For most points within delta of the current point, we skip the
+  // weighted linear regression (which save much computation of
+  // weights and fitted points). Instead, we'll jump to the last
+  // point within delta, fit the weighted regression at that point,
+  // and linearly interpolate in between.
+
+  // the last point actually estimated
+  last = i;
+
+  // This loop increments until we fall just outside of delta distance,
+  // copying the results for any repeated x's along the way.
+  double cut = x[last] + delta;
+  for (i=last + 1; i < n; i++) 
+  { 
+    // find close points 
+    if (x[i] > cut) break;
+
+    // i one beyond last pt within cut
+    if (x[i] == x[last]) 
+    {
+      // exact match in x
+      // if tied with previous x-value, just use the already
+      // fitted y, and update the last-fit counter.
+      ys[i] = ys[last];
+      last = i;
+    }
+  }
+
+
+  // the next point to fit the regression at is either one prior to i (since i
+  // should be the first point outside of delta) or it is "last + 1" in the
+  // case that i never got incremented. This insures we always step forward.
+  // -> back 1 point so interpolation within delta, but always go forward
+  i = std::max(last + 1,i - 1);
+}
+
 /// Calculate smoothed/fitted y by linear interpolation between the current /
 //and previous y fitted by weighted regression.
 void interpolate_skipped_fits(const std::vector<double>& x,
@@ -428,31 +471,13 @@ lowess(const std::vector<double>& x, const std::vector<double>& y,
         interpolate_skipped_fits(x, i, last, ys);
       }
         
-      // last point actually estimated
-      last = i;
-
-      // x coord of close points
-      cut = x[last] + delta;
-      for (i=last + 1; i < n; i++) 
-      { 
-        // find close points 
-        if (x[i] > cut) break;
-
-        // i one beyond last pt within cut
-        if (x[i] == x[last]) 
-        {
-          // exact match in x
-          ys[i] = ys[last];
-          last = i;
-        }
-      }
-
-      // back 1 point so interpolation within delta, but always go forward
-      i = std::max(last + 1,i - 1);
+      // Update the last fit counter to indicate we've now fit this point.
+      // Find the next i for which we'll run a regression.
+      update_indices(x, n, delta, i, last, ys);
 
     } while (last < n - 1);
 
-    // residuals
+    // compute current residuals
     for (i = 0; i < n; i++)
     {
       weights[i] = y[i] - ys[i];
