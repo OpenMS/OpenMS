@@ -410,26 +410,63 @@ void interpolate_skipped_fits(const std::vector<double>& x,
     ys[j] = alpha * ys[i] + (1.0 - alpha) * ys[last];
   }
 }
+
+// ///Return the median of a sequence of numbers defined by the random
+// ///access iterators begin and end.  The sequence must not be empty
+// ///(median is undefined for an empty set).
+// ///
+// ///The numbers must be convertible to double.
+// template<class RandAccessIter>
+// double median(RandAccessIter begin, RandAccessIter end) 
+// {
+//   std::size_t size = end - begin;
+//   std::size_t middleIdx = size/2;
+//   RandAccessIter target = begin + middleIdx;
+//   std::nth_element(begin, target, end);
+// 
+//   if(size % 2 != 0){ 
+//     //Odd number of elements
+//     return *target;
+//   }
+//   else
+//   {            
+//     //Even number of elements
+//     double a = *target;
+//     RandAccessIter targetNeighbor= target-1;
+//     targetNeighbor = std::max_element(begin, target);
+//     return (a+*targetNeighbor)/2.0;
+//   }
+// }
         
 /// Calculate residual weights for the next `robustifying` iteration.
 void calculate_residual_weights(const size_t n, 
                                 const std::vector<double>& weights, 
                                 std::vector<double>& resid_weights)
 {
-  double m1, m2, cmad, c9, c1, r;
+  double r;
 
   for (size_t i = 0; i < n; i++) 
   {
     resid_weights[i] = fabs(weights[i]);
   }
 
-  std::sort(resid_weights.begin(), resid_weights.end());
-  m1 = 1 + n / 2;
-  m2 = n - m1 + 1;
+  // Compute pseudo-median (average even if we have an odd number of elements) 
+
+  double m1 = 1 + n / 2;
+  // double m2 = n - m1 + 1;
+  // Use nth element to find element m1, which produces a partially sorted
+  // vector. This means we can get element m2 by looking for the maximum in the
+  // remainder.
+  std::vector<double>::iterator it_m1 = resid_weights.begin() + m1;
+  std::nth_element(resid_weights.begin(), it_m1, resid_weights.end());
+  std::vector<double>::iterator it_m2 = std::max_element(resid_weights.begin(), it_m1);
   // cmad = 6 * median abs resid
-  cmad = 3.0 * (resid_weights[m1] + resid_weights[m2]);
-  c9 = .999 * cmad; 
-  c1 = .001 * cmad;
+  // true median -> does not work numerically
+  // cmad = 6.0 * median(resid_weights.begin(), resid_weights.end());
+  // double cmad = 3.0 * (resid_weights[m1] + resid_weights[m2]);
+  double cmad = 3.0 * (*it_m1 + *it_m2);
+  double c9 = .999 * cmad; 
+  double c1 = .001 * cmad;
 
   for (size_t i = 0; i < n; i++) 
   {
