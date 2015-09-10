@@ -46,12 +46,17 @@ namespace OpenMS
   /**
     @brief LOWESS (locally weighted scatterplot smoothing).
 
-    A non-parametric smoothing technique that fits simple regression models to
-    localized subsets of the data, point by point. This is often used for
-    retention time alignments.
+    A non-parametric smoothing technique that fits a simple linear regression
+    model to localized subsets of the data, point by point. This is often used
+    for retention time alignments.
 
-    The implementation here is optimized for speed and many datapoints.  It is
+    The implementation here is optimized for speed and many datapoints.  Note
+    that it performs a linear fit, it does not implement quadratic fits. It is
     based on the initial FORTRAN code by W. S. Cleveland published at NETLIB. 
+
+    Note that this should work best for for large datasets with mostly linear
+    behavior. For small datasets with non-linear behavior, use the
+    LowessSmoothing class.
 
     @ingroup SignalProcessing
   */
