@@ -348,8 +348,9 @@ add_test("TOPP_FileConverter_20_out" ${DIFF} -in1 FileConverter_20.tmp -in2 ${DA
 set_tests_properties("TOPP_FileConverter_20_out" PROPERTIES DEPENDS "TOPP_FileConverter_20")
 add_test("TOPP_FileConverter_21" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_4_input.mzXML -out FileConverter_21.tmp -out_type mzML -process_lowmemory)
 # TODO sourceFile does not seem to be handled correctly, we should fix this! 
-add_test("TOPP_FileConverter_2l_out1" ${DIFF} -whitelist "location=" "MS:100056" "SHA-1" -in1 FileConverter_22.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_4_output.mzML)
-add_test("TOPP_FileConverter_22" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_8_input.mzML -out FileConverter_8.tmp -out_type mzData -process_lowmemory)
+add_test("TOPP_FileConverter_21_out" ${DIFF} -whitelist "location=" "MS:100056" "SHA-1" -in1 FileConverter_21.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_4_output.mzML)
+set_tests_properties("TOPP_FileConverter_21_out" PROPERTIES DEPENDS "TOPP_FileConverter_21")
+add_test("TOPP_FileConverter_22" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_8_input.mzML -out FileConverter_22.tmp -out_type mzData -process_lowmemory)
 set_tests_properties("TOPP_FileConverter_22" PROPERTIES WILL_FAIL 1) ## low memory not implemented yet
 
 #------------------------------------------------------------------------------
