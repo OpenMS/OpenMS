@@ -253,6 +253,7 @@ set(math_executables_list
   PosteriorErrorProbabilityModel_test
   #QuadraticRegression_test
   #RegressionUtils_test
+  RANSAC_test
   ROCCurve_test
   StatisticFunctions_test
   #Spline2d_test

@@ -46,23 +46,23 @@ namespace OpenMS
     DefaultParamHandler("MapAlignmentAlgorithmSpectrumAlignment"),
     ProgressLogger(), c1_(0)
   {
-    defaults_.setValue("gapcost", 1.0, " This Parameter stands for the cost of opining a gap in the Alignment. A Gap means that one Spectrum can not be aligned directly to another Spectrum in the Map. This happens, when the similarity of both spectra a too low or even not present. Imagen as a insert or delete of the spectrum in the map. The gap is necessary for aligning, if we open a gap there is a possibility that an another spectrum can be correct aligned with a higher score as before without gap. But to open a gap is a negative event and has to be punished a bit, so such only in case  it 's a good choice to open a gap, if the score is bad enough. The Parameter is to giving as a positive number, the implementation convert it to a negative number.");
+    defaults_.setValue("gapcost", 1.0, "This Parameter stands for the cost of opining a gap in the Alignment. A gap means that one spectrum can not be aligned directly to another spectrum in the Map. This happens, when the similarity of both spectra a too low or even not present. Imagine it as a insert or delete of the spectrum in the map (similar to sequence alignment). The gap is necessary for aligning, if we open a gap there is a possibility that an another spectrum can be correct aligned with a higher score as before without gap. But to open a gap is a negative event and needs to carry a punishment, so a gap should only be opened if the benefits outweigh the downsides. The Parameter is to giving as a positive number, the implementation convert it to a negative number.");
     defaults_.setMinFloat("gapcost", 0.0);
-    defaults_.setValue("affinegapcost", 0.5, " This Parameter controls the cost of extension a already open gap. The idea behind the affine gapcost lies under the assumption, that it is better to get a long distance of connected gaps than to have a structure gap match gap match.  There for the punishment for the extension of a gap has to be lower than the normal gapcost. If the the result of the alignment show high compression, it is a good idea to lower the affine gapcost or the normal gapcost.");
+    defaults_.setValue("affinegapcost", 0.5, "This Parameter controls the cost of extension a already open gap. The idea behind the affine gapcost lies under the assumption, that it is better to get a long distance of connected gaps than to have a structure of gaps interspersed with matches (gap match gap match etc.).  Therefor the punishment for the extension of a gap generally should be lower than the normal gapcost. If the result of the alignment shows high compression, it is a good idea to lower either the affine gapcost or gap opening cost.");
     defaults_.setMinFloat("affinegapcost", 0.0);
-    defaults_.setValue("cutoff_score", 0.70, "The Parameter defines the threshold which filtered Spectra, these Spectra are high potential candidate for deciding the interval of a sub-alignment.  Only those pair of Spectra are selected, which has a score higher or same of the threshold.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("cutoff_score", 0.70, "The Parameter defines the threshold which filtered spectra, these spectra are high potential candidate for deciding the interval of a sub-alignment.  Only those pair of spectra are selected, which has a score higher or same of the threshold.", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("cutoff_score", 0.0);
     defaults_.setMaxFloat("cutoff_score", 1.0);
-    defaults_.setValue("bucketsize", 100, "Defines the numbers of buckets. It is a quantize of the interval of those points, which defines the main alignment(match points). These points have to filtered, to reduce the amount of points for the calculating a smoother spline curve.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("bucketsize", 100, "Defines the numbers of buckets. It is a quantize of the interval of those points, which defines the main alignment (match points). These points have to filtered, to reduce the amount of points for the calculating a smoother spline curve.", ListUtils::create<String>("advanced"));
     defaults_.setMinInt("bucketsize", 1);
     defaults_.setValue("anchorpoints", 100, "Defines the percent of numbers of match points which a selected from one bucket. The high score pairs are previously selected. The reduction of match points helps to get a smoother spline curve.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("debug", "false", "active the debug mode, there a files written starting with debug prefix.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("debug", "false", "Activate the debug mode, there a files written starting with debug prefix.", ListUtils::create<String>("advanced"));
     defaults_.setMinInt("anchorpoints", 1);
     defaults_.setMaxInt("anchorpoints", 100);
     defaults_.setValidStrings("debug", ListUtils::create<String>("true,false"));
-    defaults_.setValue("mismatchscore", -5.0, "Defines the score of two Spectra if they have no similarity to each other. ", ListUtils::create<String>("advanced"));
+    defaults_.setValue("mismatchscore", -5.0, "Defines the score of two spectra if they have no similarity to each other. ", ListUtils::create<String>("advanced"));
     defaults_.setMaxFloat("mismatchscore", 0.0);
-    defaults_.setValue("scorefunction", "SteinScottImproveScore", " The score function is the core of an alignment. The success of an alignment depends mostly of the elected score function. The score function return the similarity of two Spectrum back. The score influence defines later the way of possible traceback. There exist many way of algorithm to calculate the score.");
+    defaults_.setValue("scorefunction", "SteinScottImproveScore", "The score function is the core of an alignment. The success of an alignment depends mostly of the elected score function. The score function return the similarity of two spectra. The score influence defines later the way of possible traceback. There are multiple spectra similarity scores available..");
     defaults_.setValidStrings("scorefunction", ListUtils::create<String>("SteinScottImproveScore,ZhangSimilarityScore")); //Factory<PeakSpectrumCompareFunctor>::registeredProducts());
     defaultsToParam_();
     setLogType(CMD);
@@ -437,7 +437,7 @@ namespace OpenMS
     }
   }
 
-  inline bool  MapAlignmentAlgorithmSpectrumAlignment::insideBand_(Size i, Size j, Size n, Size m, Int k_)
+  inline bool MapAlignmentAlgorithmSpectrumAlignment::insideBand_(Size i, Size j, Size n, Size m, Int k_)
   {
     if ((Int)(m - n - k_) <= (Int)(i - j) && (Int) (i - j) <= k_) //  if((Int)(-k_)<=(Int)(i-j) &&(Int) (i-j) <=(Int)(k_+n-m))
     {
@@ -451,7 +451,7 @@ namespace OpenMS
     }
   }
 
-  inline Int  MapAlignmentAlgorithmSpectrumAlignment::bestk_(const std::vector<MSSpectrum<>*>& pattern, std::vector<MSSpectrum<>*>& aligned, std::map<Size, std::map<Size, float> >& buffer, bool column_row_orientation, Size xbegin, Size xend, Size ybegin, Size yend)
+  inline Int MapAlignmentAlgorithmSpectrumAlignment::bestk_(const std::vector<MSSpectrum<>*>& pattern, std::vector<MSSpectrum<>*>& aligned, std::map<Size, std::map<Size, float> >& buffer, bool column_row_orientation, Size xbegin, Size xend, Size ybegin, Size yend)
   {
     Int ktemp = 2;
     for (float i = 0.25; i <= 0.75; i += 0.25)
@@ -488,7 +488,7 @@ namespace OpenMS
     return ktemp;
   }
 
-  inline  float MapAlignmentAlgorithmSpectrumAlignment::scoreCalculation_(Size i, Size j, Size patternbegin, Size alignbegin, const std::vector<MSSpectrum<>*>& pattern, std::vector<MSSpectrum<>*>& aligned, std::map<Size, std::map<Size, float> >& buffer, bool column_row_orientation)
+  inline float MapAlignmentAlgorithmSpectrumAlignment::scoreCalculation_(Size i, Size j, Size patternbegin, Size alignbegin, const std::vector<MSSpectrum<>*>& pattern, std::vector<MSSpectrum<>*>& aligned, std::map<Size, std::map<Size, float> >& buffer, bool column_row_orientation)
   {
     if (!column_row_orientation)
     {
@@ -530,7 +530,7 @@ namespace OpenMS
     }
   }
 
-  inline  float MapAlignmentAlgorithmSpectrumAlignment::scoring_(const MSSpectrum<>& a, MSSpectrum<>& b)
+  inline float MapAlignmentAlgorithmSpectrumAlignment::scoring_(const MSSpectrum<>& a, MSSpectrum<>& b)
   {
     return c1_->operator()(a, b);
   }
@@ -812,6 +812,8 @@ namespace OpenMS
   {
     gap_    = (float)param_.getValue("gapcost");
     e_      = (float)param_.getValue("affinegapcost");
+
+    // create spectrum compare functor if it does not yet exist
     if (c1_ == NULL || c1_->getName() != (String)param_.getValue("scorefunction"))
     {
       c1_ = Factory<PeakSpectrumCompareFunctor>::create((String)param_.getValue("scorefunction"));
@@ -821,8 +823,13 @@ namespace OpenMS
     bucketsize_ = (Int)param_.getValue("bucketsize");
     mismatchscore_ = (float)param_.getValue("mismatchscore");
     anchorPoints_ = (Int)param_.getValue("anchorpoints");
+
+    // this is a percentage, should always be between 0 and 100
     if (anchorPoints_ > 100)
+    {
       anchorPoints_ = 100;
+    }
+
     String tmp = (String)param_.getValue("debug");
     if (tmp == "true")
     {

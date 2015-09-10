@@ -2,7 +2,9 @@
 
   @page install_linux Building OpenMS on GNU/Linux
 
-  This document describes how to build OpenMS on a GNU/Linux system from source.
+  This document describes how to build OpenMS on a GNU/Linux system from
+  source. If you do not have root privileges on your system, make sure you 
+  read the section @ref build_linux_noroot.
 
   We are working on adding %OpenMS to the repositories of the most popular
   distributions, but for now the toolkit needs to be manually compiled on your
@@ -32,7 +34,7 @@
   For the libraries/versions often not found in those repositories, we provide
   sources and build scripts.  The Release tar.gz archive contains the libraries
   in the contrib/ folder, if you build the Development (git) version, you'll
-  have to check them out separately (see below in @ref build_linux_contrib).
+  have to check them out separately (see below in @ref build_linux_contrib and in @ref build_linux_noroot).
 
   <b>Required packages and libraries</b>
 
@@ -40,7 +42,7 @@
   patch, autoconf > 2.60, automake > 1.9, libtool (libtoolize/glibtoolize).
 
   For the complete feature set to be enabled, %OpenMS needs recent versions of
-  Boost (1.46 or higher works), Eigen3, WildMagic5
+  Boost (1.46 or higher works), Eigen3, WildMagic5,
   libSVM (2.91 or higher and 3.x for x <= 14 works), SeqAn (1.4.0 or higher needed),
   glpk (4.45 or higher works), zlib, libbz2, and Xerces-C (3.1.1 or higher works).
 
@@ -78,7 +80,6 @@
 
   </tr>
   </table>
-
 
   @section build_linux_contrib Building remaining dependencies
 
@@ -131,6 +132,38 @@
   package, the path to your contrib-build directory should not have any spaces
   in it.
 
+  @section build_linux_noroot Building without root privileges
+
+  If you are on a system without root access (e.g. a shared cluster), there are
+  some additional considerations, especially regarding dependencies.
+  Specifically, some older Red Hat systems have older libraries installed that
+  may interfere with the newer versions that %OpenMS requires. The recommended
+  installation procedure is to use the contrib package to compile <b>all</b>
+  dependencies from source:
+
+  \code
+  cmake -DBUILD_TYPE=LIST ../contrib
+  cmake -DBUILD_TYPE=ALL ../contrib
+  \endcode
+
+  Alternatively, you can build one package after the other by providing
+  <tt>-DBUILD_TYPE=...</tt> with the appropriate argument. In addition, you
+  may have to compile Qt yourself which you can get from <a
+  href="http://download.qt.io/official_releases/qt">http://download.qt.io/official_releases/qt</a>
+  (use a 4.x version), if it is not provided on your server or the version on
+  your environment is too old. Then you can use the traditional 
+  <tt>./configure --prefix=/path && gmake && gmake install</tt> sequence to compile
+  and install Qt (note that you should set the <tt>--prefix=/path</tt> to a local directory assuming 
+  you don't have root privileges).
+  
+  When configuring %OpenMS (see next section), consider setting <tt>WITH_GUI=Off</tt> and
+  <tt>HAS_XSERVER=Off</tt>, especially as you may not have compiled Qt with
+  OpenGL and you may not have an X server. If you want to use your own qt
+  installation, be sure to set the <tt>QT_QMAKE_EXECUTABLE=/path/to/qmake</tt>
+  flag when using cmake to configure %OpenMS. Finally, you may have to remove
+  any system libraries from the <tt>CMAKE_PREFIX_PATH</tt> to ensure that the
+  correct version of each library is used.
+
   @section install_linux_openms Configuring and building OpenMS/TOPP
 
   It is assumed that you have successfully built and installed all dependencies
@@ -151,7 +184,9 @@
   In the %OpenMS build directory we execute %CMake to \a configure %OpenMS. You
   should substitute \c /PATH/TO/contrib/ with the above path to the build
   contrib. Make sure you use the \a absolute (and not relative) path for the
-  contrib to avoid any potential issues. 
+  contrib to avoid any potential issues. If you encounter problems with
+  previously installed system libraries, consider removing the
+  <tt>/usr;/usr/local</tt> part of the path:
 
   \code
   cmake -DCMAKE_PREFIX_PATH="/PATH/TO/contrib-build;/usr;/usr/local" -DBOOST_USE_STATIC=OFF ../OpenMS
@@ -210,7 +245,6 @@
   <br/>
 
 <hr/>
-
   @section advanced_linux_openms Advanced Options
 
   Advanced users can list the separate make targets by calling:

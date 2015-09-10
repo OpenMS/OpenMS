@@ -111,20 +111,25 @@ namespace OpenMS
   {
     // manually querying for ^1 and ^2, since pow(x,2.0) is REALLY expensive and ^1 and ^2 are the defaults (so are likely to be used)
     if (params.exponent == 1)
+    {
       return diff * params.norm_factor * params.weight;
+    }
     else if (params.exponent == 2)
     {
       double tmp(diff * params.norm_factor);
       return tmp * tmp * params.weight;
     }
-    else // this pow() is REALLY expensive, since it uses a 'double' as exponent, using 'int' will make it faster,
-    { // but we will loose fractional exponents (might be useful?)
+    else 
+    { 
+      // this pow() is REALLY expensive, since it uses a 'double' as exponent,
+      // using 'int' will make it faster, but we will loose fractional
+      // exponents (might be useful?).
       return pow(diff * params.norm_factor, params.exponent) * params.weight;
     }
   }
 
   pair<bool, double> FeatureDistance::operator()(const BaseFeature & left,
-                                                     const BaseFeature & right)
+                                                 const BaseFeature & right)
   {
     if (!ignore_charge_)
     {

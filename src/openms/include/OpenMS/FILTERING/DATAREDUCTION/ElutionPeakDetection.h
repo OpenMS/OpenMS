@@ -78,7 +78,7 @@ public:
     */
     void detectPeaks(MassTrace& mt, std::vector<MassTrace>& single_mtraces);
 
-    /** @brief Applies the aforementioned detection method on a series of mass traces as input
+    /** @brief Extracts chromatographic peaks from multiple MassTraces and stores the splits into a vector of new mass traces.
      *
      * @note Smoothed intensities are added to @p mt_vec
      *
@@ -105,7 +105,7 @@ public:
      * This function computes local extrema on a given input mass trace
      *
      * @param tr Input mass trace
-     * @param num_neighboring_peaks How many data points are expected to belong to a peak
+     * @param num_neighboring_peaks How many data points are expected to belong to a peak (used to split traces and find maxima)
      * @param chrom_maxes Output of maxima (gets cleared)
      * @param chrom_mins Output of minima (gets cleared)
      *
@@ -123,7 +123,7 @@ private:
     double chrom_fwhm_;
     // double scan_time_;
     double chrom_peak_snr_;
-    double noise_threshold_int_;
+    //double noise_threshold_int_;
     //double sample_rate_;
 
     double min_fwhm_;

@@ -51,29 +51,46 @@ namespace OpenMS
 /**
    @brief A variant of QT clustering for the detection of feature groups.
 
-     The algorithm accumulates all features from all input maps, then applies a variant of QT clustering to find groups of corresponding features. In more detail, every feature from every input map is considered as a potential cluster center. For every center, its nearest neighbors from the other input maps are detected and added to the potential cluster. Iteratively, the cluster with the highest quality is extracted and the clustering is updated.
+   The algorithm accumulates all features from all input maps, then applies a
+   variant of QT clustering to find groups of corresponding features. In more
+   detail, every feature from every input map is considered as a potential
+   cluster center. For every center, its nearest neighbors from the other input
+   maps are detected and added to the potential cluster. Iteratively, the
+   cluster with the highest quality is extracted and the clustering is updated.
 
-     <b>Properties affecting the grouping</b>
+   <b>Properties affecting the grouping</b>
 
-     To be included in a particular cluster, a feature has to fulfill the following conditions:
-     @li differences in RT and m/z from the cluster center must be below user-defined thresholds (@p distance_RT:max_difference and @p distance_MZ:max_difference),
-     @li the charge state must match that of the cluster center (unless @p ignore_charge is set),
-     @li if @p use_identifications is set and both the feature and the cluster center are annotated with peptide identifications, the identifications have to match.
+   To be included in a particular cluster, a feature has to fulfill the following conditions:
 
-     Every cluster contains at most one feature from each input map - namely the feature closest to the cluster center that meets the criteria and does not belong to a better cluster.
+   @li differences in RT and m/z from the cluster center must be below
+       user-defined thresholds (@p distance_RT:max_difference and @p distance_MZ:max_difference),
 
-     The notion of "closeness" for features is defined by the distance function implemented in @ref FeatureDistance, the parameters of which can be set by the user.
+   @li the charge state must match that of the cluster center (unless @p
+       ignore_charge is set),
 
-     The quality of a cluster is computed from the number of elements in it and their distances to the cluster center. For more details see QTCluster.
+   @li if @p use_identifications is set and both the feature and the cluster
+       center are annotated with peptide identifications, the identifications have
+       to match.
 
-     <b>Optimization</b>
+   Every cluster contains at most one feature from each input map - namely the
+   feature closest to the cluster center that meets the criteria and does not
+   belong to a better cluster.
 
-     This algorithm includes a number of optimizations to reduce run-time:
-     @li two-dimensional hashing of features,
-     @li a look-up table for feature distances,
-     @li a variant of QT clustering that requires only one round of clustering.
+   The notion of "closeness" for features is defined by the distance function
+   implemented in @ref FeatureDistance, the parameters of which can be set by
+   the user.
 
-     @see FeatureGroupingAlgorithmQT
+   The quality of a cluster is computed from the number of elements in it and
+   their distances to the cluster center. For more details see QTCluster.
+
+   <b>Optimization</b>
+
+   This algorithm includes a number of optimizations to reduce run-time:
+   @li two-dimensional hashing of features,
+   @li a look-up table for feature distances,
+   @li a variant of QT clustering that requires only one round of clustering.
+
+   @see FeatureGroupingAlgorithmQT
 
    @htmlinclude OpenMS_QTClusterFinder.parameters
 
@@ -111,23 +128,29 @@ private:
     FeatureDistance feature_distance_;
 
     /**
-         @brief Distance map.
+       @brief Distance map.
 
-         To compute it only once, the distance between two features is accessible by searching for a pair where the first position is the smaller pointer value.
+       To compute it only once, the distance between two features is
+       accessible by searching for a pair where the first position is the
+       smaller pointer value.
     */
     PairDistances distances_;
 
     /**
-         @brief Calculates the distance between two grid features.
+       @brief Calculates the distance between two grid features.
 
-         The distance is looked up in the distance map and only computed (and stored) if it's not already available.
+       The distance is looked up in the distance map and only computed (and
+       stored) if it's not already available.
     */
     double getDistance_(GridFeature* left, GridFeature* right);
 
     /**
-         @brief Checks whether the peptide IDs of a cluster and a neighboring feature are compatible.
+       @brief Checks whether the peptide IDs of a cluster and a neighboring
+       feature are compatible.
 
-         A neighboring feature without identification is always compatible. Otherwise, the cluster and feature are compatible if the best peptide hits of each of their identifications have the same sequences.
+       A neighboring feature without identification is always compatible.
+       Otherwise, the cluster and feature are compatible if the best peptide
+       hits of each of their identifications have the same sequences.
     */
     bool compatibleIDs_(QTCluster& cluster, const GridFeature* neighbor);
 
@@ -167,21 +190,21 @@ public:
     }
 
     /**
-         @brief Runs the algorithm on consensus maps
+       @brief Runs the algorithm on consensus maps
 
-         @pre The data ranges of the input maps have to be up-to-date (use ConsensusMap::updateRanges).
+       @pre The data ranges of the input maps have to be up-to-date (use ConsensusMap::updateRanges).
 
-         @exception Exception::IllegalArgument is thrown if the input data is not valid.
+       @exception Exception::IllegalArgument is thrown if the input data is not valid.
     */
     void run(const std::vector<ConsensusMap>& input_maps,
              ConsensusMap& result_map);
 
     /**
-         @brief Runs the algorithm on feature maps
+       @brief Runs the algorithm on feature maps
 
-         @pre The data ranges of the input maps have to be up-to-date (use FeatureMap::updateRanges).
+       @pre The data ranges of the input maps have to be up-to-date (use FeatureMap::updateRanges).
 
-         @exception Exception::IllegalArgument is thrown if the input data is not valid.
+       @exception Exception::IllegalArgument is thrown if the input data is not valid.
     */
     void run(const std::vector<FeatureMap>& input_maps,
              ConsensusMap& result_map);
