@@ -181,6 +181,8 @@ namespace c_lowess
 
   */
 
+  /// Templated lowess class, call with template container (can be anything
+  /// that supports random access)
   template <typename ContainerType>
   class TemplatedLowess 
   {
