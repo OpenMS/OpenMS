@@ -64,13 +64,14 @@ namespace c_lowess
 static double pow2(double x) { return(x * x); }
 static double pow3(double x) { return(x * x * x); }
 
+/// Calculate weights for weighted regression.
 bool calculate_weights(const std::vector<double>& x,
                        const size_t n, const double xs, 
                        const bool use_resid_weights, 
                        const size_t nleft, 
                        const std::vector<double>& resid_weights, 
                        std::vector<double>& weights, 
-                       size_t& nrt, double& h)
+                       size_t& nrt, const double h)
 {
   double r;
   size_t j;
@@ -80,7 +81,7 @@ bool calculate_weights(const std::vector<double>& x,
   double a = 0.0; // sum of weights
 
   // compute weights (pick up all ties on right)
-  for (j = nleft; j < (long)n; j++) 
+  for (j = nleft; j < n; j++) 
   {
 
     // Compute the distance measure, then apply the tricube
@@ -135,6 +136,52 @@ bool calculate_weights(const std::vector<double>& x,
 
   }
 }
+
+/// Calculate smoothed/fitted y-value by weighted regression.
+void calculate_y_fit (const std::vector<double>& x,
+                      const std::vector<double>& y,
+                      const double xs, const double range,
+                      const size_t nleft, const size_t nrt, const double h,
+                      double *ys, std::vector<double>& weights)
+{
+
+  double b, c;
+  if (h > 0.0) 
+  {
+    // use linear fit
+
+    // find weighted center of x values
+    double a = 0.0;
+    for (size_t j = nleft; j <= nrt; j++) 
+    {
+      a += weights[j] * x[j];
+    }
+
+    b = xs - a;
+    c = 0.0;
+    for (size_t j = nleft; j <= nrt; j++) 
+    {
+      c += weights[j] * (x[j] - a) * (x[j] - a);
+    }
+
+    if (sqrt(c) > .001 * range) 
+    {
+      // points are spread out enough to compute slope
+      b = b/c;
+      for (size_t j = nleft; j <= nrt; j++) 
+      {
+        weights[j] = weights[j] * (1.0 + b*(x[j] - a));
+      }
+    }
+  }
+
+  *ys = 0.0;
+  for (size_t j = nleft; j <= nrt; j++)
+  {
+    *ys += weights[j] * y[j];
+  }
+}
+
 
 /* ratfor code:
 *
@@ -194,7 +241,7 @@ lowest(const std::vector<double>& x, const std::vector<double>& y, size_t n,
        const std::vector<double>& resid_weights,
        bool *ok)
 {
-  double range, h, b, c;
+  double range, h;
   size_t nrt; // rightmost pt (may be greater than nright because of ties)
 
   range = x[n - 1] - x[0];
@@ -206,39 +253,7 @@ lowest(const std::vector<double>& x, const std::vector<double>& y, size_t n,
   if (ok)
   { 
     // weighted least squares
-    
-    if (h > 0.0) 
-    {
-      // use linear fit
-
-      // find weighted center of x values
-      double a = 0.0;
-      for (size_t j = nleft; j <= nrt; j++) a += weights[j] * x[j];
-
-      b = xs - a;
-      c = 0.0;
-      for (size_t j = nleft; j <= nrt; j++) 
-      {
-        c += weights[j] * (x[j] - a) * (x[j] - a);
-      }
-
-      if (sqrt(c) > .001 * range) 
-      {
-        // points are spread out enough to compute slope
-        b = b/c;
-        for (size_t j = nleft; j <= nrt; j++) 
-        {
-          weights[j] = weights[j] * (1.0 + b*(x[j] - a));
-        }
-      }
-    }
-
-    *ys = 0.0;
-    for (size_t j = nleft; j <= nrt; j++)
-    {
-      *ys += weights[j] * y[j];
-    }
-
+    calculate_y_fit (x, y, xs, range, nleft, nrt, h, ys, weights);
   }
 }
 
@@ -336,6 +351,24 @@ void inline update_neighborhood(const std::vector<double>& x,
   }
 }
 
+/// Calculate smoothed/fitted y by linear interpolation between the current /
+//and previous y fitted by weighted regression.
+void interpolate_skipped_fits(const std::vector<double>& x,
+                              const size_t i, const size_t last, 
+                              std::vector<double>& ys)
+{
+  // skipped points -- interpolate
+  // non-zero - proof?
+  double alpha;
+  double denom = x[i] - x[last];
+  for (size_t j = last + 1; j < i; j = j + 1)
+  {
+    alpha = (x[j] - x[last]) / denom;
+    ys[j] = alpha * ys[i] + (1.0 - alpha) * ys[last];
+  }
+}
+        
+
 int
 lowess(const std::vector<double>& x, const std::vector<double>& y,
        double frac,  // parameter f
@@ -347,8 +380,8 @@ lowess(const std::vector<double>& x, const std::vector<double>& y,
        )
 {
   bool ok;
-  size_t i, j, last, m1, m2, nleft, nright, ns;
-  double denom, alpha, cut, cmad, c9, c1, r;
+  size_t i, last, m1, m2, nleft, nright, ns;
+  double cut, cmad, c9, c1, r;
   
   size_t n = x.size();
   if (n < 2)
@@ -378,6 +411,7 @@ lowess(const std::vector<double>& x, const std::vector<double>& y,
       // -> get the nearest ns points
       update_neighborhood(x, n, i, nleft, nright);
 
+      // Calculate weights and apply fit
       lowest(x, y,
              n, x[i],
              &ys[i],
@@ -387,17 +421,11 @@ lowess(const std::vector<double>& x, const std::vector<double>& y,
       // fitted value at x[i]
       if (! ok) ys[i] = y[i];
 
-      // all weights zero - copy over value (all resid_weights==0)
+      // If we skipped some points (because of how delta was set), go back
+      // and fit them by linear interpolation.
       if (last < i - 1) 
       {
-        // skipped points -- interpolate
-        // non-zero - proof?
-        denom = x[i] - x[last];
-        for (j = last + 1; j < i; j = j + 1)
-        {
-          alpha = (x[j] - x[last]) / denom;
-          ys[j] = alpha * ys[i] + (1.0 - alpha) * ys[last];
-        }
+        interpolate_skipped_fits(x, i, last, ys);
       }
         
       // last point actually estimated
