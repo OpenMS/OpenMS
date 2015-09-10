@@ -195,7 +195,7 @@ lowest(double *x, double *y, size_t n, double xs, double *ys, long nleft, long n
         c += w[j] * (x[j] - a) * (x[j] - a);
       }
 
-      if(sqrt(c) > .001 * range) 
+      if (sqrt(c) > .001 * range) 
       {
         // points are spread out enough to compute slope
         b = b/c;
@@ -359,7 +359,7 @@ lowess(double *x, double *y, long n,
 
       // x coord of close points
       cut = x[last] + delta;
-      for(i=last + 1; i < n; i++) 
+      for (i=last + 1; i < n; i++) 
       { 
         // find close points 
         if (x[i] > cut) break;

@@ -103,11 +103,9 @@ END_SECTION
 TOLERANCE_RELATIVE(1.06);
 START_SECTION([FastLowessSmoothing]void smoothData(const DoubleVector&, const DoubleVector&, DoubleVector&))
 {
-#if 1
   std::vector<double> x, y, y_noisy, out, expect;
 
   //exact data
-  // for (double i = 1.0; i <= 20.0; i += 1.0)
   for (Size i = 1; i <= 10000; ++i)
   {
       x.push_back(i/500.0);
@@ -124,7 +122,6 @@ START_SECTION([FastLowessSmoothing]void smoothData(const DoubleVector&, const Do
     y_noisy.push_back( udist(rnd_gen_) );
   }
 
-  Size idx = 1;
   FastLowessSmoothing::lowess(x, y, 0.02, 3, 0.2, out);
   for (Size i = 0; i < out.size(); ++i)
   {
@@ -138,8 +135,6 @@ START_SECTION([FastLowessSmoothing]void smoothData(const DoubleVector&, const Do
   {
       TEST_REAL_SIMILAR(out[i], expect[i]);
   }
-
-#endif
 }
 END_SECTION
 
