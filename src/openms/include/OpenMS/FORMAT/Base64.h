@@ -185,7 +185,7 @@ private:
   };
 
   /// Endianizes a 32 bit type from big endian to little endian and vice versa
-  inline UInt32 endianize32(UInt32 & n)
+  inline UInt32 endianize32(const UInt32& n)
   {
     return ((n & 0x000000ff) << 24) | 
            ((n & 0x0000ff00) <<  8) |
@@ -194,7 +194,7 @@ private:
   }
 
   /// Endianizes a 64 bit type from  big endian to little endian and vice versa
-  inline UInt64 endianize64(UInt64 & n)
+  inline UInt64 endianize64(const UInt64& n)
   {
     return ((n >> 56) & 0x00000000000000FF) |
            ((n >> 40) & 0x000000000000FF00) | 
