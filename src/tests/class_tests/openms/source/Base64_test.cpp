@@ -494,6 +494,28 @@ START_SECTION((template <typename FromType> void encodeIntegers(std::vector<From
 }
 END_SECTION
 
+START_SECTION(inline UInt32 endianize32(UInt32 & n))
+  TEST_EQUAL(0, endianize32(0))  // swapping 0 should do nothing
+  TEST_EQUAL(std::numeric_limits<UInt32>::max(), endianize32(std::numeric_limits<UInt32>::max()))  // swapping MAX should do nothing
+  TEST_EQUAL(0x000000FF, endianize32(0xFF000000)) 
+  TEST_EQUAL(0x0000FF00, endianize32(0x00FF0000)) 
+  TEST_EQUAL(0x00FF0000, endianize32(0x0000FF00)) 
+  TEST_EQUAL(0xFF000000, endianize32(0x000000FF)) 
+END_SECTION
+
+START_SECTION(inline UInt64 endianize64(UInt64 & n))
+  TEST_EQUAL(0, endianize32(0))  // swapping 0 should do nothing
+  TEST_EQUAL(std::numeric_limits<UInt64>::max(), endianize32(std::numeric_limits<UInt64>::max()))  // swapping MAX should do nothing
+  TEST_EQUAL(0x00000000000000FF, endianize64(0xFF00000000000000)) 
+  TEST_EQUAL(0x000000000000FF00, endianize64(0x00FF000000000000)) 
+  TEST_EQUAL(0x0000000000FF0000, endianize64(0x0000FF0000000000)) 
+  TEST_EQUAL(0x00000000FF000000, endianize64(0x000000FF00000000)) 
+  TEST_EQUAL(0x000000FF00000000, endianize64(0x00000000FF000000)) 
+  TEST_EQUAL(0x0000FF0000000000, endianize64(0x0000000000FF0000)) 
+  TEST_EQUAL(0x00FF000000000000, endianize64(0x000000000000FF00)) 
+  TEST_EQUAL(0xFF00000000000000, endianize64(0x00000000000000FF)) 
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
