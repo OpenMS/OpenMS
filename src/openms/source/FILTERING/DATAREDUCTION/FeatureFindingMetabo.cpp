@@ -859,9 +859,8 @@ namespace OpenMS
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-    for (Size i = 0; i < input_mtraces.size(); ++i)
+    for (SignedSize i = 0; i < (SignedSize)input_mtraces.size(); ++i)
     {
-
       IF_MASTERTHREAD this->setProgress(progress);
 #ifdef _OPENMP
 #pragma omp atomic
