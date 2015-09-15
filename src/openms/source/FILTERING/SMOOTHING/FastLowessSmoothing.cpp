@@ -58,7 +58,8 @@ namespace c_lowess
 {
 
   /*
-    Translated from RATFOR lowess code of W. S. Cleveland as obtained from NETLIB
+    The lowess code below is Translated from RATFOR lowess code of W. S.
+    Cleveland as obtained from NETLIB.
 
     It is based on two functions written in ratfor (see below), namely lowest
     and lowess. The code has since been refactored and commented further.
@@ -183,15 +184,12 @@ namespace c_lowess
 
   /// Templated lowess class, call with template container (can be anything
   /// that supports random access)
-  template <typename ContainerType>
+  template <typename ContainerType, typename ValueType>
   class TemplatedLowess 
   {
 
-    typedef typename ContainerType::value_type ValueType;
-
     inline ValueType pow2(ValueType x) { return(x * x); }
     inline ValueType pow3(ValueType x) { return(x * x * x); }
-
 
     ///Return the median of a sequence of numbers defined by the random
     ///access iterators begin and end.  The sequence must not be empty
@@ -639,7 +637,7 @@ namespace OpenMS
       std::vector<double> resid_weights(n);
       std::vector<double> weights(n);
 
-      c_lowess::TemplatedLowess< std::vector<double> > clowess; 
+      c_lowess::TemplatedLowess< std::vector<double>, double > clowess; 
 
       int retval = clowess.lowess(x, y, f, nsteps, delta, result,
                                   resid_weights, weights);
