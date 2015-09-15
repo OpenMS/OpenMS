@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 /*
- * This code below is C code, obtained from the common lisp stat project under the BSD licence: 
+ * This code below is C code, obtained from the common lisp stat project under the BSD licence:
  * https://raw.githubusercontent.com/blindglobe/common-lisp-stat/3bdd28c4ae3de28dce32d8b9158c1f8d1b2e3924/lib/lowess.c
  *
  * Like much lowess code, it is derived from the initial FORTRAN code by W. S.
@@ -185,48 +185,48 @@ namespace c_lowess
   /// Templated lowess class, call with template container (can be anything
   /// that supports random access)
   template <typename ContainerType, typename ValueType>
-  class TemplatedLowess 
+  class TemplatedLowess
   {
 
-    inline ValueType pow2(ValueType x) { return(x * x); }
-    inline ValueType pow3(ValueType x) { return(x * x * x); }
+    inline ValueType pow2(ValueType x) { return x * x;  }
+    inline ValueType pow3(ValueType x) { return x * x * x;  }
 
     ///Return the median of a sequence of numbers defined by the random
     ///access iterators begin and end.  The sequence must not be empty
     ///(median is undefined for an empty set).
     ///
     ///The numbers must be convertible to double.
-    template<class RandAccessIter>
-    ValueType median(RandAccessIter begin, RandAccessIter end) 
+    template <class RandAccessIter>
+    ValueType median(RandAccessIter begin, RandAccessIter end)
     {
       std::size_t size = end - begin;
-      std::size_t middleIdx = size/2;
+      std::size_t middleIdx = size / 2;
       RandAccessIter target = begin + middleIdx;
       std::nth_element(begin, target, end);
 
-      if(size % 2 != 0)
-      { 
+      if (size % 2 != 0)
+      {
         //Odd number of elements
         return *target;
       }
       else
-      {            
+      {
         //Even number of elements
         double a = *target;
-        RandAccessIter targetNeighbor= target-1;
+        RandAccessIter targetNeighbor = target - 1;
         targetNeighbor = std::max_element(begin, target);
-        return (a+*targetNeighbor)/2.0;
+        return (a + *targetNeighbor) / 2.0;
       }
     }
 
     /// Calculate weights for weighted regression.
     bool calculate_weights(const ContainerType& x,
-                           const size_t n, 
-                           const ValueType current_x, 
-                           const bool use_resid_weights, 
-                           const size_t nleft, 
-                           const ContainerType& resid_weights, 
-                           ContainerType& weights, 
+                           const size_t n,
+                           const ValueType current_x,
+                           const bool use_resid_weights,
+                           const size_t nleft,
+                           const ContainerType& resid_weights,
+                           ContainerType& weights,
                            size_t& nrt,
                            const ValueType h)
     {
@@ -238,7 +238,7 @@ namespace c_lowess
       ValueType a = 0.0; // sum of weights
 
       // compute weights (pick up all ties on right)
-      for (j = nleft; j < n; j++) 
+      for (j = nleft; j < n; j++)
       {
 
         // Compute the distance measure, then apply the tricube
@@ -248,26 +248,26 @@ namespace c_lowess
         weights[j] = 0.0;
         r = std::abs(x[j] - current_x);
         if (r <= h9)
-        {  
-          if (r > h1) 
+        {
+          if (r > h1)
           {
             // small enough for non-zero weight
             // compute tricube function: ( 1 - (r/h)^3 )^3
-            weights[j] = pow3(1.0-pow3(r/h));
+            weights[j] = pow3(1.0 - pow3(r / h));
           }
-          else 
+          else
           {
             weights[j] = 1.0;
           }
 
-          if (use_resid_weights) 
+          if (use_resid_weights)
           {
             weights[j] = resid_weights[j] * weights[j];
           }
 
           a += weights[j];
         }
-        else if (x[j] > current_x) 
+        else if (x[j] > current_x)
         {
           // get out at first zero wt on right
           break;
@@ -276,20 +276,20 @@ namespace c_lowess
 
       // rightmost pt (may be greater than nright because of ties)
       nrt = j - 1;
-      if (a <= 0.0) 
+      if (a <= 0.0)
       {
-        return (false);
+        return false;
       }
-      else 
+      else
       {
 
         // normalize weights (make sum of w[j] == 1)
-        for (j = nleft; j <= nrt; j++) 
+        for (j = nleft; j <= nrt; j++)
         {
           weights[j] = weights[j] / a;
         }
 
-        return (true);
+        return true;
 
       }
     }
@@ -307,7 +307,7 @@ namespace c_lowess
     {
       ValueType range = x[n - 1] - x[0];
 
-      if (h > 0.0) 
+      if (h > 0.0)
       {
         // use linear fit
 
@@ -319,27 +319,27 @@ namespace c_lowess
 
         // find weighted center of x values
         ValueType sum_weighted_x = 0.0; // originally variable a
-        for (size_t j = nleft; j <= nrt; j++) 
+        for (size_t j = nleft; j <= nrt; j++)
         {
           sum_weighted_x += weights[j] * x[j];
         }
 
         ValueType b = current_x - sum_weighted_x; // originally variable b
         ValueType weighted_sqdev = 0.0; // originally variable c
-        for (size_t j = nleft; j <= nrt; j++) 
+        for (size_t j = nleft; j <= nrt; j++)
         {
-          weighted_sqdev += weights[j] * 
+          weighted_sqdev += weights[j] *
                             (x[j] - sum_weighted_x) * (x[j] - sum_weighted_x);
         }
 
-        if (sqrt(weighted_sqdev) > .001 * range) 
+        if (sqrt(weighted_sqdev) > .001 * range)
         {
           // points are spread out enough to compute slope
-          b = b/weighted_sqdev;
-          for (size_t j = nleft; j <= nrt; j++) 
+          b = b / weighted_sqdev;
+          for (size_t j = nleft; j <= nrt; j++)
           {
             // Compute p_i_j in place
-            weights[j] = weights[j] * (1.0 + b*(x[j] - sum_weighted_x));
+            weights[j] = weights[j] * (1.0 + b * (x[j] - sum_weighted_x));
           }
         }
       }
@@ -351,14 +351,13 @@ namespace c_lowess
       }
     }
 
-
     bool lowest(const ContainerType& x,
                 const ContainerType& y,
                 size_t n,
-                ValueType current_x, //xs 
+                ValueType current_x, //xs
                 ValueType& ys,
                 size_t nleft,
-                size_t nright, 
+                size_t nright,
                 ContainerType& weights, // vector w
                 bool use_resid_weights,  // userw
                 const ContainerType& resid_weights)
@@ -371,20 +370,19 @@ namespace c_lowess
       // Calculate the weights for the regression in this neighborhood.
       // Determine if at least some weights are positive, so a regression
       // is ok.
-      bool fit_ok = calculate_weights(x, n, current_x, use_resid_weights, 
-                                      nleft, resid_weights, 
+      bool fit_ok = calculate_weights(x, n, current_x, use_resid_weights,
+                                      nleft, resid_weights,
                                       weights, nrt, h);
-      if (!fit_ok) 
+      if (!fit_ok)
       {
-        return (fit_ok);
+        return fit_ok;
       }
 
       // If it is ok to fit, run the weighted least squares regression
-      calculate_y_fit (x, y, current_x, n, nleft, nrt, h, ys, weights);
+      calculate_y_fit(x, y, current_x, n, nleft, nrt, h, ys, weights);
 
-      return (fit_ok);
+      return fit_ok;
     }
-
 
     /// Find the indices bounding the k-nearest-neighbors of the current point.
     void update_neighborhood(const ContainerType& x,
@@ -393,7 +391,7 @@ namespace c_lowess
                              size_t& nleft,
                              size_t& nright)
     {
-      ValueType d1,d2;
+      ValueType d1, d2;
       // A subtle loop. Start from the current neighborhood range:
       // [nleft, nright). Shift both ends rightwards by one
       // (so that the neighborhood still contains ns points), until
@@ -420,8 +418,8 @@ namespace c_lowess
     void update_indices(const ContainerType& x,
                         const size_t n,
                         const ValueType delta,
-                        size_t& i, 
-                        size_t& last, 
+                        size_t& i,
+                        size_t& last,
                         ContainerType& ys)
     {
       // For most points within delta of the current point, we skip the
@@ -436,13 +434,13 @@ namespace c_lowess
       // This loop increments until we fall just outside of delta distance,
       // copying the results for any repeated x's along the way.
       ValueType cut = x[last] + delta;
-      for (i=last + 1; i < n; i++) 
-      { 
-        // find close points 
+      for (i = last + 1; i < n; i++)
+      {
+        // find close points
         if (x[i] > cut) break;
 
         // i one beyond last pt within cut
-        if (x[i] == x[last]) 
+        if (x[i] == x[last])
         {
           // exact match in x
           // if tied with previous x-value, just use the already
@@ -453,18 +451,18 @@ namespace c_lowess
       }
 
 
-      // the next point to fit the regression at is either one prior to i (since 
+      // the next point to fit the regression at is either one prior to i (since
       // i should be the first point outside of delta) or it is "last + 1" in the
       // case that i never got incremented. This insures we always step forward.
       // -> back 1 point so interpolation within delta, but always go forward
-      i = std::max(last + 1,i - 1);
+      i = std::max(last + 1, i - 1);
     }
 
     /// Calculate smoothed/fitted y by linear interpolation between the current
     /// and previous y fitted by weighted regression.
     void interpolate_skipped_fits(const ContainerType& x,
                                   const size_t i,
-                                  const size_t last, 
+                                  const size_t last,
                                   ContainerType& ys)
     {
       // skipped points -- interpolate
@@ -476,25 +474,25 @@ namespace c_lowess
         ys[j] = alpha * ys[i] + (1.0 - alpha) * ys[last];
       }
     }
-          
+
     /// Calculate residual weights for the next `robustifying` iteration.
-    void calculate_residual_weights(const size_t n, 
-                                    const ContainerType& weights, 
+    void calculate_residual_weights(const size_t n,
+                                    const ContainerType& weights,
                                     ContainerType& resid_weights)
     {
       ValueType r;
 
-      for (size_t i = 0; i < n; i++) 
+      for (size_t i = 0; i < n; i++)
       {
         resid_weights[i] = std::abs(weights[i]);
       }
 
-      // *********************************** 
+      // ***********************************
       // Compute pseudo-median (take average even if we have an odd number of
       // elements), following the original implementation. We could also use a
       // true median calculation here:
       // ValueType cmad = 6.0 * median(resid_weights.begin(), resid_weights.end());
-      // *********************************** 
+      // ***********************************
 
       size_t m1 = n / 2; // FORTRAN starts with one, CPP with zero
       // size_t m1 = 1 + n / 2; // original FORTRAN code
@@ -506,113 +504,115 @@ namespace c_lowess
       typename ContainerType::iterator it_m1 = resid_weights.begin() + m1;
       std::nth_element(resid_weights.begin(), it_m1, resid_weights.end());
       typename ContainerType::iterator it_m2 = std::max_element(
-                                                    resid_weights.begin(), it_m1);
+        resid_weights.begin(), it_m1);
       ValueType cmad = 3.0 * (*it_m1 + *it_m2);
-      ValueType c9 = .999 * cmad; 
+      ValueType c9 = .999 * cmad;
       ValueType c1 = .001 * cmad;
 
-      for (size_t i = 0; i < n; i++) 
+      for (size_t i = 0; i < n; i++)
       {
         r = std::abs(weights[i]);
-        if (r <= c1) 
+        if (r <= c1)
         {
           // near 0, avoid underflow
           resid_weights[i] = 1.0;
         }
-        else if (r > c9) 
+        else if (r > c9)
         {
           // near 1, avoid underflow
           resid_weights[i] = 0.0;
         }
-        else 
+        else
         {
           resid_weights[i] = pow2(1.0 - pow2(r / cmad));
         }
       }
     }
 
-  public:
+public:
 
-      int lowess(const ContainerType& x,
-                 const ContainerType& y,
-                 double frac,  // parameter f
-                 int nsteps, 
-                 ValueType delta,
-                 ContainerType& ys,
-                 ContainerType& resid_weights, // vector rw
-                 ContainerType& weights // vector res
-                )
+    int lowess(const ContainerType& x,
+               const ContainerType& y,
+               double frac,    // parameter f
+               int nsteps,
+               ValueType delta,
+               ContainerType& ys,
+               ContainerType& resid_weights,   // vector rw
+               ContainerType& weights   // vector res
+               )
+    {
+      bool fit_ok;
+      size_t i, last, nleft, nright, ns;
+
+      size_t n = x.size();
+      if (n < 2)
       {
-        bool fit_ok;
-        size_t i, last, nleft, nright, ns;
-        
-        size_t n = x.size();
-        if (n < 2)
-        { 
-          ys[0] = y[0]; 
-          return (1);
-        }
+        ys[0] = y[0];
+        return 1;
+      }
 
-        // how many points around estimation point should be used for regression:
-        // at least two, at most n points
-        size_t tmp = (size_t)(frac * (double)n);
-        ns = std::max(std::min(tmp, n), (size_t)2); 
+      // how many points around estimation point should be used for regression:
+      // at least two, at most n points
+      size_t tmp = (size_t)(frac * (double)n);
+      ns = std::max(std::min(tmp, n), (size_t)2);
 
-        // robustness iterations
-        for (int iter = 1; iter <= nsteps + 1; iter++)
+      // robustness iterations
+      for (int iter = 1; iter <= nsteps + 1; iter++)
+      {
+
+        // start of array in C++ at 0 / in FORTRAN at 1
+        nleft = 0;
+        nright = ns - 1;
+        last = -1;          // index of prev estimated point
+        i = 0;              // index of current point
+
+        // Fit all data points y[i] until the end of the array
+        do
         {
+          // Identify the neighborhood around the current x[i]
+          // -> get the nearest ns points
+          update_neighborhood(x, n, i, nleft, nright);
 
-          // start of array in C++ at 0 / in FORTRAN at 1
-          nleft = 0;
-          nright = ns - 1;
-          last = -1;        // index of prev estimated point
-          i = 0;            // index of current point
+          // Calculate weights and apply fit (original lowest function)
+          fit_ok = lowest(x, y, n, x[i], ys[i], nleft, nright,
+                          weights, (iter > 1), resid_weights);
 
-          // Fit all data points y[i] until the end of the array
-          do 
+          // if something went wrong during the fit, use y[i] as the
+          // fitted value at x[i]
+          if (!fit_ok) ys[i] = y[i];
+
+          // If we skipped some points (because of how delta was set), go back
+          // and fit them by linear interpolation.
+          if (last < i - 1)
           {
-            // Identify the neighborhood around the current x[i] 
-            // -> get the nearest ns points
-            update_neighborhood(x, n, i, nleft, nright);
-
-            // Calculate weights and apply fit (original lowest function)
-            fit_ok = lowest(x, y, n, x[i], ys[i], nleft, nright,
-                            weights, (iter > 1), resid_weights);
-
-            // if something went wrong during the fit, use y[i] as the
-            // fitted value at x[i]
-            if (! fit_ok) ys[i] = y[i];
-
-            // If we skipped some points (because of how delta was set), go back
-            // and fit them by linear interpolation.
-            if (last < i - 1) 
-            {
-              interpolate_skipped_fits(x, i, last, ys);
-            }
-              
-            // Update the last fit counter to indicate we've now fit this point.
-            // Find the next i for which we'll run a regression.
-            update_indices(x, n, delta, i, last, ys);
-
-          } while (last < n - 1);
-
-          // compute current residuals
-          for (i = 0; i < n; i++)
-          {
-            weights[i] = y[i] - ys[i];
+            interpolate_skipped_fits(x, i, last, ys);
           }
 
-          // compute robustness weights except last time
-          if (iter > nsteps) break;
+          // Update the last fit counter to indicate we've now fit this point.
+          // Find the next i for which we'll run a regression.
+          update_indices(x, n, delta, i, last, ys);
 
-          calculate_residual_weights(n, weights, resid_weights);
         }
-        return (0);
+        while (last < n - 1);
+
+        // compute current residuals
+        for (i = 0; i < n; i++)
+        {
+          weights[i] = y[i] - ys[i];
+        }
+
+        // compute robustness weights except last time
+        if (iter > nsteps) break;
+
+        calculate_residual_weights(n, weights, resid_weights);
       }
+      return 0;
+    }
+
   };
 }
 
-namespace OpenMS 
+namespace OpenMS
 {
 
   namespace FastLowessSmoothing
@@ -629,7 +629,7 @@ namespace OpenMS
       OPENMS_PRECONDITION(x.size() == y.size(), "Vectors x and y must have the same length")
       OPENMS_PRECONDITION(x.size() >= 2, "Need at least two points for smoothing")
       OPENMS_PRECONDITION(std::adjacent_find(x.begin(), x.end(), std::greater<double>()) == x.end(),
-          "The vector x needs to be sorted")
+                          "The vector x needs to be sorted")
 
       size_t n = x.size();
 
@@ -639,14 +639,15 @@ namespace OpenMS
       std::vector<double> resid_weights(n);
       std::vector<double> weights(n);
 
-      c_lowess::TemplatedLowess< std::vector<double>, double > clowess; 
+      c_lowess::TemplatedLowess<std::vector<double>, double> clowess;
 
       int retval = clowess.lowess(x, y, f, nsteps, delta, result,
                                   resid_weights, weights);
 
       return retval;
     }
+
   }
- 
+
 
 }
