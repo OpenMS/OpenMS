@@ -496,8 +496,9 @@ namespace c_lowess
       // ValueType cmad = 6.0 * median(resid_weights.begin(), resid_weights.end());
       // *********************************** 
 
-      ValueType m1 = 1 + n / 2;
-      // ValueType m2 = n - m1 + 1;
+      size_t m1 = n / 2; // FORTRAN starts with one, CPP with zero
+      // size_t m1 = 1 + n / 2; // original FORTRAN code
+      // size_t m2 = n - m1 + 1; // see below, we don't explicitly sort but use max_element
 
       // Use nth element to find element m1, which produces a partially sorted
       // vector. This means we can get element m2 by looking for the maximum in the
@@ -554,7 +555,8 @@ namespace c_lowess
 
         // how many points around estimation point should be used for regression:
         // at least two, at most n points
-        ns = std::max(std::min( (size_t) (frac * n), n), (size_t)2); 
+        size_t tmp = (size_t)(frac * (double)n);
+        ns = std::max(std::min(tmp, n), (size_t)2); 
 
         // robustness iterations
         for (int iter = 1; iter <= nsteps + 1; iter++)
@@ -620,10 +622,10 @@ namespace OpenMS
                double f, int nsteps,
                double delta, std::vector<double>& result)
     {
-      OPENMS_PRECONDITION(delta > 0.0, "lowess: parameter delta must be larger than 0")
+      OPENMS_PRECONDITION(delta >= 0.0, "lowess: parameter delta must be zero or lager")
       OPENMS_PRECONDITION(f > 0.0, "lowess: parameter f must be larger than 0")
       OPENMS_PRECONDITION(f <= 1.0, "lowess: parameter f must be smaller or equal to 1")
-      OPENMS_PRECONDITION(nsteps > 0, "lowess: parameter nstesp must be larger than zero")
+      OPENMS_PRECONDITION(nsteps >= 0, "lowess: parameter nstesp must be zero or larger")
       OPENMS_PRECONDITION(x.size() == y.size(), "Vectors x and y must have the same length")
       OPENMS_PRECONDITION(x.size() >= 2, "Need at least two points for smoothing")
       OPENMS_PRECONDITION(std::adjacent_find(x.begin(), x.end(), std::greater<double>()) == x.end(),
