@@ -267,6 +267,15 @@ START_SECTION(void estimateFromPeptideWeight(double average_weight))
 	TEST_REAL_SIMILAR(iso.begin()->second, 0.00291426)
 END_SECTION
 
+START_SECTION(void estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P))
+    // We are testing that the parameterized version matches the hardcoded version.
+    IsotopeDistribution iso(3);
+    IsotopeDistribution iso2(3);
+    iso.estimateFromWeightAndComp(1000.0, 4.9384, 7.7583, 1.3577, 1.4773, 0.0417, 0.0);
+    iso2.estimateFromPeptideWeight(1000.0);
+    TEST_EQUAL(iso.begin()->second,iso2.begin()->second);
+END_SECTION
+
 START_SECTION(void trimRight(double cutoff))
 	IsotopeDistribution iso(EmpiricalFormula("C160").getIsotopeDistribution(10));
 	TEST_NOT_EQUAL(iso.size(),3)
