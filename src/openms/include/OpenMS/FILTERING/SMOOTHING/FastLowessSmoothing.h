@@ -98,7 +98,7 @@ namespace OpenMS
       fit is returned). A value of 2 or 3 should be sufficient for most purposes.
 
     */
-    int OPENMS_DLLAPI lowess(std::vector<double>& x, std::vector<double>& y,
+    int OPENMS_DLLAPI lowess(const std::vector<double>& x, const std::vector<double>& y,
                double f, int nsteps, double delta, std::vector<double>& result);
 
     /**
@@ -113,7 +113,7 @@ namespace OpenMS
       \pre The vector x needs to be sorted
       
     */
-    inline int OPENMS_DLLAPI lowess(std::vector<double>& x, std::vector<double>& y,
+    inline int OPENMS_DLLAPI lowess(const std::vector<double>& x, const std::vector<double>& y,
                std::vector<double>& result)
     {
       OPENMS_PRECONDITION(x.size() == y.size(), "Vectors x and y must have the same length")
