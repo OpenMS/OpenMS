@@ -618,7 +618,7 @@ namespace OpenMS
   namespace FastLowessSmoothing
   {
 
-    int lowess(std::vector<double>& x, std::vector<double>& y,
+    int lowess(const std::vector<double>& x, const std::vector<double>& y,
                double f, int nsteps,
                double delta, std::vector<double>& result)
     {
