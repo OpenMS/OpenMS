@@ -201,7 +201,7 @@ namespace OpenMS
           Size index = lookup.findByNativeID(spectrum_id);
           it->setRT(exp[index].getRT());
         }
-        catch(Exception::ElementNotFound& e)
+        catch(Exception::ElementNotFound&)
         {
           LOG_ERROR << "Error: Failed to look up retention time for peptide ID with spectrum reference '" + spectrum_id + "' - no spectrum with corresponding native ID found." << endl;
           success = false;

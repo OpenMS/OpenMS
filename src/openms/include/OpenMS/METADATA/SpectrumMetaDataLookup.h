@@ -53,9 +53,9 @@ namespace OpenMS
     One example of this is in the function addMissingRTsToPeptideIDs().
 
     Meta data of a spectra is stored in SpectrumMetaDataLookup::SpectrumMetaData structures.
-    In order to control which meta data to extract/look-up, the type SpectrumMetaDataLookup::MetaDataFlags is used.
-    The meta data can be extracted from spectra or from spectrum reference strings.
-    The format of a spectrum reference is defined via a regular expression containing named groups (format "(?<GROUP>...)"for the different data items.
+    In order to control which meta data to extract/look-up, flags (SpectrumMetaDataLookup::MetaDataFlags) are used.
+    Meta data can be extracted from spectra or from spectrum reference strings.
+    The format of a spectrum reference is defined via a regular expression containing named groups (format "(?<GROUP>...)" for the different data items.
     The table below illustrates the different meta data types and how they are represented.
 
     <CENTER>
@@ -64,7 +64,7 @@ namespace OpenMS
                 <td ALIGN="center" BGCOLOR="#EBEBEB"> @p SpectrumMetaData member </td>
                 <td ALIGN="center" BGCOLOR="#EBEBEB"> @p MetaDataFlags flag </td>
                 <td ALIGN="center" BGCOLOR="#EBEBEB"> Reg. exp. group </td>
-                <td ALIGN="center" BGCOLOR="#EBEBEB"> Comment </td>
+                <td ALIGN="center" BGCOLOR="#EBEBEB"> Comment (*: undefined for MS1 spectra)</td>
             </tr>
             <tr>
                 <td ALIGN="center"> @p rt </td>
@@ -128,8 +128,6 @@ namespace OpenMS
             </tr>
         </table>
     </CENTER>
-    
-    *: undefined for MS1 spectra
 
     @see OpenMS::SpectrumLookup
   */
@@ -167,10 +165,10 @@ namespace OpenMS
     };
 
     /// Constructor
-    SpectrumMetaDataLookup(): SpectrumLookup() {};
+    SpectrumMetaDataLookup(): SpectrumLookup() {}
 
     /// Destructor
-    virtual ~SpectrumMetaDataLookup() {};
+    virtual ~SpectrumMetaDataLookup() {}
 
     /**
        @brief Read spectra and store their meta data
@@ -228,7 +226,7 @@ namespace OpenMS
     static void getSpectrumMetaData(
       const MSSpectrum<>& spectrum, SpectrumMetaData& meta, 
       const boost::regex& scan_regexp = boost::regex(),
-      const std::map<Size, double>& precursor_rts = std::map<Size, double>());
+      const std::map<Size, double>& precursor_rts = (std::map<Size, double>()));
 
     /**
        @brief Extract meta data via a spectrum reference
