@@ -209,7 +209,6 @@ namespace OpenMS
           break;
         case SIZE_OF_SCORETYPE:
           throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "'output_score' must not be 'SIZE_OF_SCORETYPE'!");
-          break;
       }
 
       AASequence seq;

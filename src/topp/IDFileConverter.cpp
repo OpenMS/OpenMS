@@ -29,7 +29,8 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl $
-// $Authors: Katharina Albers, Clemens Groepl, Chris Bielow, Mathias Walzer $
+// $Authors: Katharina Albers, Clemens Groepl, Chris Bielow, Mathias Walzer,
+// Hendrik Weisser
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -58,7 +59,7 @@ using namespace std;
 /**
     @page TOPP_IDFileConverter IDFileConverter
 
-    @brief Converts identification engine file formats.
+    @brief Converts peptide/protein identification engine file formats.
 
 <CENTER>
     <table>
@@ -102,21 +103,22 @@ Some search engine output files (like pepXML, mascotXML, Sequest .out files) may
 pepXML files can contain results from multiple experiments. However, the idXML format does not support this. The @p mz_name parameter (or @p mz_file, if given) thus serves to define what parts to extract from the pepXML.
 
 @p scan_regex:@n
-This advanced parameter defines a spectrum reference format via a Perl-style regular expression. The reference format connects search hits to the MS2 spectra that were searched, and may be needed to look up e.g. retention times in the raw data (@p mz_file). See the documentation of @ref OpenMS::SpectrumLookup for details on how to specify spectrum reference formats. Note that it is not necessary to look up any information in the raw data if that information can be extracted directly from the spectrum reference, in which case @p mz_file is not needed.@n
+This advanced parameter defines a spectrum reference format via a Perl-style regular expression. The reference format connects search hits to the MS2 spectra that were searched, and may be needed to look up e.g. retention times in the raw data (@p mz_file). See the documentation of class @ref OpenMS::SpectrumLookup "SpectrumLookup" for details on how to specify spectrum reference formats. Note that it is not necessary to look up any information in the raw data if that information can be extracted directly from the spectrum reference, in which case @p mz_file is not needed.@n
 For Mascot results exported to (Mascot) XML, scan numbers that can be used to look up retention times (via @p mz_file) should be given in the "pep_scan_title" XML elements, but the format can vary. Some default formats are defined in the Mascot XML reader, but if those fail to extract the scan numbers, @p scan_regex can be used to overwrite the defaults.@n
 For pepXML, supplying @p scan_regex may be necessary for files exported from Mascot, but only if the default reference formats (same as for Mascot XML) do not match. The spectrum references to which @p scan_regex is applied are read from the "spectrum" attribute of the "spectrum_query" elements.@n
 For Percolator tab-delimited output, information is extracted from the "PSMId" column. By default, extraction of scan numbers and charge states is supported for MS-GF+ Percolator results (retention times and precursor m/z values can then be looked up in the raw data via @p mz_file).@n
 
 Some information about the supported input types:
-  @ref OpenMS::MzIdentMLFile "mzIdentML"
-  @ref OpenMS::PepXMLFile "pepXML"
-  @ref OpenMS::ProtXMLFile "protXML"
-  @ref OpenMS::IdXMLFile "idXML"
-  @ref OpenMS::MascotXMLFile "mascotXML"
-  @ref OpenMS::OMSSAXMLFile "omssaXML"
-  @ref OpenMS::XTandemXMLFile "XTandem.xml"
-  @ref OpenMS::SequestOutfile "Sequest .out directory"
-  @ref OpenMS::PercolatorOutfile "Percolator tab-delimited output"
+@li @ref OpenMS::MzIdentMLFile "mzIdentML"
+@li @ref OpenMS::IdXMLFile "idXML"
+@li @ref OpenMS::PepXMLFile "pepXML"
+@li @ref OpenMS::ProtXMLFile "protXML"
+@li @ref OpenMS::MascotXMLFile "Mascot XML"
+@li @ref OpenMS::OMSSAXMLFile "OMSSA XML"
+@li @ref OpenMS::XTandemXMLFile "X! Tandem XML"
+@li @ref OpenMS::SequestOutfile "Sequest .out directory"
+@li @ref OpenMS::PercolatorOutfile "Percolator tab-delimited output"
+
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_IDFileConverter.cli

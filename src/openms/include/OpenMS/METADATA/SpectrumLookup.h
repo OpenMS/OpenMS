@@ -45,7 +45,7 @@ namespace OpenMS
   /**
     @brief Helper class for looking up spectra on different attributes
 
-    This class provides functions for looking up spectra that are stored in a vector (e.g. MSExperiment::getSpectra()) by index, retention time, native ID, scan number (extracted from the native ID), or by a reference string ("spectrum reference") containing any of the previous information.
+    This class provides functions for looking up spectra that are stored in a vector (e.g. MSExperiment::getSpectra()) by index, retention time, native ID, scan number (extracted from the native ID), or by a reference string containing any of the previous information ("spectrum reference").
 
     @par Spectrum reference formats
     Formats for spectrum references are defined by regular expressions, that must contain certain fields (named groups, i.e. "(?<GROUP>...)") referring to usable information. The following named groups are recognized:
@@ -127,7 +127,7 @@ namespace OpenMS
     }
 
     /**
-       @brief Look up spectrum by retention time (RT)
+       @brief Look up spectrum by retention time (RT).
 
        @param rt Retention time to look up
 
@@ -140,7 +140,7 @@ namespace OpenMS
     Size findByRT(double rt) const;
 
     /**
-       @brief Look up spectrum by native ID
+       @brief Look up spectrum by native ID.
 
        @param native_id Native ID to look up
 
@@ -151,7 +151,7 @@ namespace OpenMS
     Size findByNativeID(const String& native_id) const;
     
     /**
-       @brief Look up spectrum by index (position in the vector of spectra)
+       @brief Look up spectrum by index (position in the vector of spectra).
 
        @param index Index to look up
        @param count_from_one Do indexes start counting at one (default: zero)?
@@ -163,7 +163,7 @@ namespace OpenMS
     Size findByIndex(Size index, bool count_from_one = false) const;
 
     /**
-       @brief Look up spectrum by scan number (extracted from the native ID)
+       @brief Look up spectrum by scan number (extracted from the native ID).
 
        @param scan_number Scan number to look up
 
@@ -174,7 +174,7 @@ namespace OpenMS
     Size findByScanNumber(Size scan_number) const;
 
     /**
-       @brief Look up spectrum by reference
+       @brief Look up spectrum by reference.
 
        @param spectrum_ref Spectrum reference to parse
 
@@ -261,10 +261,11 @@ namespace OpenMS
     void setScanRegExp_(const String& scan_regexp);
 
   private:
-    /// Copy constructor (not implemented)
-    SpectrumLookup(const SpectrumLookup& other);
 
-    /// Assignment operator (not implemented)
+    /// Copy constructor (not implemented)
+    SpectrumLookup(const SpectrumLookup&);
+
+    /// Assignment operator (not implemented).
     SpectrumLookup& operator=(const SpectrumLookup&);
 
   };
