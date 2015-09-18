@@ -75,19 +75,19 @@ START_SECTION((MascotXMLFile()))
   TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
-START_SECTION((static void initializeSpectrumLookup(SpectrumLookup& lookup, MSExperiment<>& experiment, const String& scan_regex = "")))
+START_SECTION((static void initializeLookup(SpectrumMetaDataLookup& lookup, MSExperiment<>& experiment, const String& scan_regex = "")))
 {
   MSExperiment<> exp;
   exp.getSpectra().resize(1);
-  SpectrumLookup lookup;
-  xml_file.initializeSpectrumLookup(lookup, exp);
+  SpectrumMetaDataLookup lookup;
+  xml_file.initializeLookup(lookup, exp);
   TEST_EQUAL(lookup.empty(), false);
 }
 END_SECTION
 
-START_SECTION((void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data, SpectrumLookup& lookup)))
+START_SECTION((void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data, SpectrumMetaDataLookup& lookup)))
 {
-  SpectrumLookup lookup;
+  SpectrumMetaDataLookup lookup;
   xml_file.load(OPENMS_GET_TEST_DATA_PATH("MascotXMLFile_test_1.mascotXML"),
                 protein_identification, peptide_identifications, lookup);
 
@@ -254,7 +254,7 @@ START_SECTION((void load(const String& filename, ProteinIdentification& protein_
 }
 END_SECTION
 
-START_SECTION((void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data, std::map<String, std::vector<AASequence> >& peptides, SpectrumLookup& lookup)))
+START_SECTION((void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data, std::map<String, std::vector<AASequence> >& peptides, SpectrumMetaDataLookup& lookup)))
   std::map<String, vector<AASequence> > modified_peptides;
   AASequence aa_sequence_1;
   AASequence aa_sequence_2;
@@ -274,7 +274,7 @@ START_SECTION((void load(const String& filename, ProteinIdentification& protein_
   temp.push_back(aa_sequence_3);
   modified_peptides.insert(make_pair("135.29", temp));
 
-  SpectrumLookup lookup;
+  SpectrumMetaDataLookup lookup;
   xml_file.load(OPENMS_GET_TEST_DATA_PATH("MascotXMLFile_test_1.mascotXML"),
                 protein_identification, peptide_identifications, 
                 modified_peptides, lookup);

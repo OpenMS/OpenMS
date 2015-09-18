@@ -106,12 +106,13 @@ namespace OpenMS
   void PercolatorOutfile::load(const String& filename,
                                ProteinIdentification& proteins, 
                                vector<PeptideIdentification>& peptides,
-                               SpectrumLookup& lookup,
+                               SpectrumMetaDataLookup& lookup,
                                enum ScoreType output_score)
   {
-    SpectrumLookup::MetaDataFlags lookup_flags = 
-      (SpectrumLookup::METADATA_RT | SpectrumLookup::METADATA_MZ |
-       SpectrumLookup::METADATA_CHARGE);
+    SpectrumMetaDataLookup::MetaDataFlags lookup_flags = 
+      (SpectrumMetaDataLookup::MDF_RT |
+       SpectrumMetaDataLookup::MDF_PRECURSORMZ |
+       SpectrumMetaDataLookup::MDF_PRECURSORCHARGE);
 
     if (lookup.reference_formats.empty())
     {
@@ -142,11 +143,10 @@ namespace OpenMS
     {
       source.getRow(row, items);
 
-      SpectrumLookup::SpectrumMetaData meta_data;
+      SpectrumMetaDataLookup::SpectrumMetaData meta_data;
       try
       {
-        lookup.getSpectrumMetaDataByReference(items[0], meta_data,
-                                                       lookup_flags);
+        lookup.getSpectrumMetaData(items[0], meta_data, lookup_flags);
       }
       catch(...)
       {
@@ -156,9 +156,9 @@ namespace OpenMS
       }
       
       PeptideHit hit;
-      if (meta_data.charge != 0)
+      if (meta_data.precursor_charge != 0)
       {
-        hit.setCharge(meta_data.charge);
+        hit.setCharge(meta_data.precursor_charge);
       }
       else
       {
@@ -175,9 +175,9 @@ namespace OpenMS
       {
         ++no_rt;
       }
-      if (!boost::math::isnan(meta_data.mz))
+      if (!boost::math::isnan(meta_data.precursor_mz))
       {
-        peptide.setMZ(meta_data.mz);
+        peptide.setMZ(meta_data.precursor_mz);
       }
       else
       {

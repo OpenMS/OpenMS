@@ -463,12 +463,13 @@ namespace OpenMS
 
       // assume only one scan, i.e. ignore "end_scan":
       Size scan = attributeAsInt_(attributes, "start_scan");
-      const MSSpectrum<>& spec = (scan != 0) ? 
-        lookup_->findByScanNumber(scan) :
+      Size index = (scan != 0) ? lookup_->findByScanNumber(scan) :
         lookup_->findByReference(attributeAsString_(attributes, "spectrum"));
-      if (spec.getMSLevel() == 2)
+      SpectrumMetaDataLookup::SpectrumMetaData meta;
+      lookup_->getSpectrumMetaData(index, meta);
+      if (meta.ms_level == 2)
       {
-        rt_ = spec.getRT();
+        rt_ = meta.rt;
       }
       else
       {
@@ -481,13 +482,14 @@ namespace OpenMS
                         proteins, vector<PeptideIdentification>& peptides,
                         const String& experiment_name)
   {
-    SpectrumLookup lookup;
+    SpectrumMetaDataLookup lookup;
     load(filename, proteins, peptides, experiment_name, lookup);
   }
 
   void PepXMLFile::load(const String& filename, vector<ProteinIdentification>&
                         proteins, vector<PeptideIdentification>& peptides,
-                        const String& experiment_name, SpectrumLookup& lookup)
+                        const String& experiment_name,
+                        const SpectrumMetaDataLookup& lookup)
   {
     // initialize here, since "load" could be called several times:
     exp_name_ = "";
@@ -758,7 +760,7 @@ namespace OpenMS
       double mod_nterm_mass;
       if (optionalAttributeAsDouble_(mod_nterm_mass, attributes, "mod_nterm_mass")) // this specifies a terminal modification
       {
-        // lookup the modification in the search_summary by mass
+        // look up the modification in the search_summary by mass
         for (vector<AminoAcidModification>::const_iterator it = variable_modifications_.begin(); it != variable_modifications_.end(); ++it)
         {
           if (mod_nterm_mass == it->mass && it->terminus == "n")
@@ -783,7 +785,7 @@ namespace OpenMS
       double mod_cterm_mass;
       if (optionalAttributeAsDouble_(mod_cterm_mass, attributes, "mod_cterm_mass")) // this specifies a terminal modification
       {
-        // lookup the modification in the search_summary by mass
+        // look up the modification in the search_summary by mass
         for (vector<AminoAcidModification>::const_iterator it = variable_modifications_.begin(); it != variable_modifications_.end(); ++it)
         {
           if (mod_cterm_mass == it->mass && it->terminus == "c")

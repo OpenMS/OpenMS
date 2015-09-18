@@ -319,10 +319,10 @@ protected:
           {
             exp_name = orig_name;
           }
-          SpectrumLookup lookup;
+          SpectrumMetaDataLookup lookup;
           String scan_regex = getStringOption_("scan_regex");
           // we may have to parse Mascot spectrum references in pepXML, too:
-          MascotXMLFile::initializeSpectrumLookup(lookup, exp, scan_regex);
+          MascotXMLFile::initializeLookup(lookup, exp, scan_regex);
           PepXMLFile().load(in, protein_identifications,
                             peptide_identifications, exp_name, lookup);
         }
@@ -343,8 +343,8 @@ protected:
         String exp_name = getStringOption_("mz_file");
         if (!exp_name.empty())
         {
-          SpectrumLookup::addMissingRTsToPeptideIDs(peptide_identifications,
-                                                    exp_name, false);
+          SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(
+            peptide_identifications, exp_name, false);
         }
       }
 
@@ -367,14 +367,14 @@ protected:
       {
         String scan_regex = getStringOption_("scan_regex");
         String exp_name = getStringOption_("mz_file");
-        SpectrumLookup lookup;
+        SpectrumMetaDataLookup lookup;
         PeakMap exp;
         if (!exp_name.empty())
         {
           // load only MS2 spectra:
           fh.getOptions().addMSLevel(2);
           fh.loadExperiment(exp_name, exp, FileTypes::MZML, log_type_);
-          MascotXMLFile::initializeSpectrumLookup(lookup, exp, scan_regex);
+          MascotXMLFile::initializeLookup(lookup, exp, scan_regex);
         }
         protein_identifications.resize(1);
         MascotXMLFile().load(in, protein_identifications[0], 
@@ -420,12 +420,12 @@ protected:
         enum PercolatorOutfile::ScoreType perc_score =
           PercolatorOutfile::getScoreType(score_type);
         String mz_file = getStringOption_("mz_file");
-        SpectrumLookup lookup;
+        SpectrumMetaDataLookup lookup;
         MSExperiment<> experiment;
         if (!mz_file.empty())
         {
           fh.loadExperiment(mz_file, experiment);
-          lookup.setSpectra(experiment.getSpectra());
+          lookup.readSpectra(experiment.getSpectra());
         }
         String scan_regex = getStringOption_("scan_regex");
         if (!scan_regex.empty()) lookup.addReferenceFormat(scan_regex);

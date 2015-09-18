@@ -588,7 +588,7 @@ protected:
     }         // from if(!mascot_out)
     if (!mascot_in)
     {
-      SpectrumLookup lookup;
+      SpectrumMetaDataLookup lookup;
       if (mascot_out)
       {
         mascotXML_file.load(mascotXML_file_name, protein_identification,

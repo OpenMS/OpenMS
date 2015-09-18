@@ -38,7 +38,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/METADATA/SpectrumLookup.h>
+#include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
 
 #include <vector>
 
@@ -69,7 +69,8 @@ namespace OpenMS
     /// Loads a Percolator output file
     void load(const String& filename, ProteinIdentification& proteins, 
               std::vector<PeptideIdentification>& peptides,
-              SpectrumLookup& lookup, enum ScoreType output_score = QVALUE);
+              SpectrumMetaDataLookup& lookup,
+              enum ScoreType output_score = QVALUE);
 
   private:
 

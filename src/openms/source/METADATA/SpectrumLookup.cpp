@@ -34,13 +34,12 @@
 
 #include <OpenMS/METADATA/SpectrumLookup.h>
 
-#include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/FORMAT/FileHandler.h>
-
 using namespace std;
 
 namespace OpenMS
 {
+  const String& SpectrumLookup::default_scan_regexp = "=(?<SCAN>\\d+)$";
+
   const String& SpectrumLookup::regexp_names_ = "INDEX0 INDEX1 SCAN ID RT";
 
   SpectrumLookup::SpectrumLookup(): 
@@ -59,54 +58,6 @@ namespace OpenMS
   }
   
 
-  template <typename SpectrumContainer>
-  void SpectrumLookup::readSpectra(const SpectrumContainer& spectra, 
-                                   const String& scan_regexp)
-  {
-    n_spectra_ = spectra.size();
-    rts_.clear();
-    ids_.clear();
-    scans_.clear();
-    boost::regex re;
-    if (!scan_regexp.empty())
-    {
-      if (!scan_regexp.hasSubstring("?<SCAN>"))
-      {
-        String msg = "The regular expression for extracting scan numbers from native IDs must contain a named group '?<SCAN>'.";
-        throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                         __PRETTY_FUNCTION__, msg);
-      }
-      re.assign(scan_regexp);
-    }
-    for (Size i = 0; i < n_spectra_; ++i)
-    {
-      const MSSpectrum<>& spec = spectra[i];
-      String native_id = spec.getNativeID();
-      rts_[spec.getRT()] = i;
-      ids_[native_id] = i;
-      if (!scan_regexp.empty())
-      {
-        boost::smatch match;
-        bool found = boost::regex_search(native_id, match, re);
-        if (found && match["SCAN"].matched)
-        {
-          String value = match["SCAN"].str();
-          try
-          {
-            Size scan_no = value.toInt();
-            scans_[scan_no] = i;
-            continue;
-          }
-          catch(Exception::ConversionError& e)
-          {
-          }
-        }
-        LOG_WARN << "Warning: Could not extract scan number from spectrum native ID '" + native_id + "' using regular expression '" + scan_regexp + "'. Look-up by scan number may not work properly." << endl;
-      }
-    }
-  }
-
-  
   Size SpectrumLookup::findByRT(double rt) const
   {
     double upper_diff = numeric_limits<double>::infinity();
@@ -174,31 +125,6 @@ namespace OpenMS
   }
 
   
-  void SpectrumLookup::getSpectrumMetaData(const MSSpectrum<>& spectrum,
-                                           SpectrumMetaData& metadata,
-                                           MetaDataFlags flags)
-  {
-    if ((flags & METADATA_RT) == METADATA_RT)
-    {
-      metadata.rt = spectrum.getRT();
-    }
-    if ((flags & METADATA_MZ) == METADATA_MZ)
-    {
-      if (spectrum.getPrecursors().empty()) metadata.mz = 0.0;
-      else metadata.mz = spectrum.getPrecursors()[0].getMZ();
-    }
-    if ((flags & METADATA_CHARGE) == METADATA_CHARGE)
-    {
-      if (spectrum.getPrecursors().empty()) metadata.charge = 0;
-      else metadata.charge = spectrum.getPrecursors()[0].getCharge();
-    }
-    if ((flags & METADATA_NATIVEID) == METADATA_NATIVEID)
-    {
-      metadata.native_ID = spectrum.getNativeID();
-    }
-  }
-
-
   void SpectrumLookup::addReferenceFormat(const String& regexp)
   {
     // does the reg. exp. contain any of the recognized group names?
@@ -298,99 +224,53 @@ namespace OpenMS
   }
 
 
-  template <typename SpectrumContainer>
-  void SpectrumLookup::getSpectrumMetaDataByReference(
-    const SpectrumContainer& spectra, const String& spectrum_ref,
-    SpectrumMetaData& metadata, MetaDataFlags flags) const
+  Int SpectrumLookup::extractScanNumber(const String& native_id,
+                                        const boost::regex& scan_regexp, 
+                                        bool no_error)
   {
-    for (vector<boost::regex>::const_iterator it = reference_formats.begin();
-         it != reference_formats.end(); ++it)
+    boost::smatch match;
+    bool found = boost::regex_search(native_id, match, scan_regexp);
+    if (found && match["SCAN"].matched)
     {
-      boost::smatch match;
-      bool found = boost::regex_search(spectrum_ref, match, *it);
-      if (found)
+      String value = match["SCAN"].str();
+      try
       {
-        // first try to extract the requested meta data from the reference:
-        if (((flags & METADATA_RT) == METADATA_RT) && match["RT"].matched)
-        {
-          String value = match["RT"].str();
-          if (!value.empty())
-          {
-            metadata.rt = value.toDouble();
-            flags &= ~METADATA_RT; // unset flag
-          }
-        }
-        if (((flags & METADATA_MZ) == METADATA_MZ) && match["MZ"].matched)
-        {
-          String value = match["MZ"].str();
-          if (!value.empty())
-          {
-            metadata.mz = value.toDouble();
-            flags &= ~METADATA_MZ; // unset flag
-          }
-        }
-        if (((flags & METADATA_CHARGE) == METADATA_CHARGE) &&
-            match["CHARGE"].matched)
-        {
-          String value = match["CHARGE"].str();
-          if (!value.empty())
-          {
-            metadata.charge = value.toDouble();
-            flags &= ~METADATA_CHARGE; // unset flag
-          }
-        }
-        if (((flags & METADATA_NATIVEID) == METADATA_NATIVEID) &&
-            match["ID"].matched)
-        {
-          metadata.native_ID = match["ID"].str();
-          if (!metadata.native_ID.empty())
-          {
-            flags &= ~METADATA_NATIVEID; // unset flag
-          }
-        }
-        if (flags) // not all requested values have been found -> look them up
-        {
-          Size index = findByRegExpMatch_(spectrum_ref, it->str(), match);
-          const MSSpectrum<>& spectrum = spectra[index];
-          getSpectrumMetaData(spectrum, metadata, flags);
-        }
+        return value.toInt();
+      }
+      catch(Exception::ConversionError& e)
+      {
       }
     }
+    if (!no_error)
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+                                  native_id, "Could not extract scan number");
+    }
+    return -1;
   }
 
 
-  bool SpectrumLookup::addMissingRTsToPeptideIDs(
-    vector<PeptideIdentification>& peptides, const String& filename,
-    bool stop_on_error)
+  void SpectrumLookup::addEntry_(Size index, double rt, Int scan_number,
+                                 const String& native_id)
   {
-    SpectrumLookup lookup;
-    MSExperiment<> exp;
-    bool success = true;
-    for (vector<PeptideIdentification>::iterator it = peptides.begin();
-         it != peptides.end(); ++it)
+    rts_[rt] = index;
+    ids_[native_id] = index;
+    if (scan_number != -1) scans_[scan_number] = index;
+  }
+
+
+  void SpectrumLookup::setScanRegExp_(const String& scan_regexp)
+  {
+    if (!scan_regexp.empty())
     {
-      if (boost::math::isnan(it->getRT()))
+      if (!scan_regexp.hasSubstring("?<SCAN>"))
       {
-        if (lookup.empty()) // load raw data only if we have to
-        {
-          FileHandler().loadExperiment(filename, exp);
-          lookup.readSpectra(exp);
-        }
-        String spectrum_id = it->getMetaValue("spectrum_reference");
-        try
-        {
-          Size index = lookup.findByNativeID(spectrum_id);
-          it->setRT(exp[index].getRT());
-        }
-        catch(Exception::ElementNotFound& e)
-        {
-          LOG_ERROR << "Error: Failed to look up retention time for peptide ID with spectrum reference '" + spectrum_id + "' - no spectrum with corresponding native ID found." << endl;
-          success = false;
-          if (stop_on_error) break;
-        }
+        String msg = "The regular expression for extracting scan numbers from native IDs must contain a named group '?<SCAN>'.";
+        throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                         __PRETTY_FUNCTION__, msg);
       }
+      scan_regexp_.assign(scan_regexp);
     }
-    return success;
   }
 
 } // namespace OpenMS

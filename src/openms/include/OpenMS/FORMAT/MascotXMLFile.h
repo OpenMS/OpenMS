@@ -76,7 +76,7 @@ public:
     void load(const String& filename,
               ProteinIdentification& protein_identification,
               std::vector<PeptideIdentification>& id_data,
-              SpectrumLookup& lookup);
+              const SpectrumMetaDataLookup& lookup);
 
     /**
       @brief Loads data from a Mascot XML file
@@ -94,18 +94,16 @@ public:
               ProteinIdentification& protein_identification,
               std::vector<PeptideIdentification>& id_data, 
               std::map<String, std::vector<AASequence> >& peptides, 
-              SpectrumLookup& lookup);
+              const SpectrumMetaDataLookup& lookup);
 
     /**
       @brief Initializes a helper object for looking up spectrum meta data (RT, m/z)
 
-      @param experiment Experiment containing the spectra
       @param lookup Helper object to initialize
+      @param experiment Experiment containing the spectra
       @param scan_regex Optional regular expression for extracting information from references to spectra
     */  
-    static void initializeSpectrumLookup(SpectrumLookup& lookup, 
-                                         MSExperiment<>& experiment, 
-                                         const String& scan_regex = "");
+    static void initializeLookup(SpectrumMetaDataLookup& lookup, const MSExperiment<>& experiment, const String& scan_regex = "");
 
   };
 

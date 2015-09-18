@@ -245,8 +245,8 @@ protected:
       mascot_tmp_file.close();
 
       // set up helper object for looking up spectrum meta data:
-      SpectrumLookup lookup;
-      MascotXMLFile::initializeSpectrumLookup(lookup, exp);
+      SpectrumMetaDataLookup lookup;
+      MascotXMLFile::initializeLookup(lookup, exp);
 
       // read the response
       MascotXMLFile().load(mascot_tmp_file_name, prot_id, pep_ids, lookup);

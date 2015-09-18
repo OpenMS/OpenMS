@@ -43,6 +43,7 @@ Software.cpp
 SourceFile.cpp
 SpectrumIdentification.cpp
 SpectrumLookup.cpp
+SpectrumMetaDataLookup.cpp
 SpectrumSettings.cpp
 Tagging.cpp
 )

@@ -50,7 +50,7 @@ namespace OpenMS
   void MascotXMLFile::load(const String& filename,
                            ProteinIdentification& protein_identification,
                            vector<PeptideIdentification>& id_data,
-                           SpectrumLookup& lookup)
+                           const SpectrumMetaDataLookup& lookup)
   {
     map<String, vector<AASequence> > peptides;
 
@@ -61,7 +61,7 @@ namespace OpenMS
                            ProteinIdentification& protein_identification,
                            vector<PeptideIdentification>& id_data,
                            map<String, vector<AASequence> >& peptides,
-                           SpectrumLookup& lookup)
+                           const SpectrumMetaDataLookup& lookup)
   {
     //clear
     protein_identification = ProteinIdentification();
@@ -136,13 +136,11 @@ namespace OpenMS
   }
 
 
-  void MascotXMLFile::initializeSpectrumLookup(SpectrumLookup& lookup,
-                                               MSExperiment<>& exp,
-                                               const String& scan_regex)
+  void MascotXMLFile::initializeLookup(SpectrumMetaDataLookup& lookup, const MSExperiment<>& exp, const String& scan_regex)
   {
     // load spectra and extract scan numbers from the native IDs
     // (expected format: "... scan=#"):
-    lookup.setSpectra(exp.getSpectra());
+    lookup.readSpectra(exp.getSpectra());
     if (scan_regex.empty()) // use default formats
     {
       if (!lookup.empty()) // raw data given -> spectrum look-up possible

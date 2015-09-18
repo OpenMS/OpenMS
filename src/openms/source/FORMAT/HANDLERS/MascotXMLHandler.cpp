@@ -43,7 +43,7 @@ namespace OpenMS
 {
   namespace Internal
   {
-    MascotXMLHandler::MascotXMLHandler(ProteinIdentification& protein_identification, vector<PeptideIdentification>& id_data, const String& filename, map<String, vector<AASequence> >& modified_peptides, SpectrumLookup& lookup):
+    MascotXMLHandler::MascotXMLHandler(ProteinIdentification& protein_identification, vector<PeptideIdentification>& id_data, const String& filename, map<String, vector<AASequence> >& modified_peptides, const SpectrumMetaDataLookup& lookup):
       XMLHandler(filename, ""), protein_identification_(protein_identification),
       id_data_(id_data), peptide_identification_index_(0), actual_title_(""),
       modified_peptides_(modified_peptides), lookup_(lookup),
@@ -55,7 +55,7 @@ namespace OpenMS
     {
     }
 
-    void MascotXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
+    void MascotXMLHandler::startElement(const XMLCh* /*uri*/, const XMLCh* /*local_name*/, const XMLCh* qname, const Attributes& attributes)
     {
       static const XMLCh* s_protein_accession = xercesc::XMLString::transcode("accession");
       static const XMLCh* s_queries_query_number = xercesc::XMLString::transcode("number");
@@ -93,7 +93,7 @@ namespace OpenMS
       }
     }
 
-    void MascotXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
+    void MascotXMLHandler::endElement(const XMLCh* /*uri*/, const XMLCh* /*local_name*/, const XMLCh* qname)
     {
       tag_ = String(sm_.convert(qname)).trim();
       // cerr << "close: " << tag_ << endl;
@@ -122,20 +122,20 @@ namespace OpenMS
       {
         // extract RT (and possibly m/z, if not already set) from title:
         String title = character_buffer_.trim();
-        SpectrumLookup::SpectrumMetaData meta;
-        SpectrumLookup::MetaDataFlags flags = SpectrumLookup::METADATA_RT;
+        SpectrumMetaDataLookup::SpectrumMetaData meta;
+        SpectrumMetaDataLookup::MetaDataFlags flags = SpectrumMetaDataLookup::MDF_RT;
         if (!id_data_[peptide_identification_index_].hasMZ())
         {
-          flags |= SpectrumLookup::METADATA_MZ;
+          flags |= SpectrumMetaDataLookup::MDF_PRECURSORMZ;
         }
         try
         {
-          lookup_.getSpectrumMetaDataByReference(title, meta, flags);
+          lookup_.getSpectrumMetaData(title, meta, flags);
           id_data_[peptide_identification_index_].setRT(meta.rt);
           // have we looked up the m/z value?
-          if ((flags & SpectrumLookup::METADATA_MZ) == SpectrumLookup::METADATA_MZ)
+          if ((flags & SpectrumMetaDataLookup::MDF_PRECURSORMZ) == SpectrumMetaDataLookup::MDF_PRECURSORMZ)
           {
-            id_data_[peptide_identification_index_].setMZ(meta.mz);
+            id_data_[peptide_identification_index_].setMZ(meta.precursor_mz);
           }
         }
         catch(...)
@@ -149,7 +149,7 @@ namespace OpenMS
           if (!no_rt_error_) // report the error only the first time
           {
             String msg = "Could not extract RT value ";
-            if (!lookup_.empty()) msg += "or a matching scan number ";
+            if (!lookup_.empty()) msg += "or a matching spectrum reference ";
             msg += "from <pep_scan_title> element with format '" + title + "'. Try adjusting the 'scan_regex' parameter.";
             error(LOAD, msg);
           }
@@ -559,7 +559,7 @@ namespace OpenMS
       character_buffer_.clear();
     }
 
-    void MascotXMLHandler::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
+    void MascotXMLHandler::characters(const XMLCh* chars, const XMLSize_t /*length*/)
     {
       // do not care about chars after internal tags, e.g.
       // <header>

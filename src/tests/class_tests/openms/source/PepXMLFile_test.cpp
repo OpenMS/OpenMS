@@ -62,7 +62,7 @@ START_SECTION(~PepXMLFile())
 delete ptr;
 END_SECTION
 
-START_SECTION(void load(const String& filename, std::vector<ProteinIdentification>& proteins, std::vector<PeptideIdentification>& peptides, const String& experiment_name, SpectrumLookup& lookup))
+START_SECTION(void load(const String& filename, std::vector<ProteinIdentification>& proteins, std::vector<PeptideIdentification>& peptides, const String& experiment_name, SpectrumMetaDataLookup& lookup))
 {
   vector<ProteinIdentification> proteins;
   vector<PeptideIdentification> peptides;
@@ -71,8 +71,8 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   String exp_name = "PepXMLFile_test";
   MSExperiment<> experiment;
   MzMLFile().load(mz_file, experiment);
-  SpectrumLookup lookup;
-  lookup.setSpectra(experiment.getSpectra());
+  SpectrumMetaDataLookup lookup;
+  lookup.readSpectra(experiment.getSpectra());
   file.load(pep_file, proteins, peptides, exp_name, lookup);
   TEST_EQUAL(peptides.size(), 18);
   TEST_EQUAL(proteins.size(), 2);

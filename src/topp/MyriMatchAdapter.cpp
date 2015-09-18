@@ -463,8 +463,8 @@ protected:
       MSExperiment<> exp;
       fh.loadExperiment(inputfile_name, exp);
 
-      SpectrumLookup lookup;
-      lookup.setSpectra(exp.getSpectra());
+      SpectrumMetaDataLookup lookup;
+      lookup.readSpectra(exp.getSpectra());
       PepXMLFile().load(pep_file, protein_identifications,
                         peptide_identifications, exp_name, lookup);
     }

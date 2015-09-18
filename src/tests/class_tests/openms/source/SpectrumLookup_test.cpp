@@ -131,33 +131,6 @@ START_SECTION((Size findByScanNumber(Size) const))
 END_SECTION
 
 
-START_SECTION((void getSpectrumMetaData(const MSSpectrum<>&, SpectrumMetaData&, MetaDataFlags) const))
-{
-  Precursor prec;
-  prec.setMZ(1000.0);
-  prec.setCharge(2);
-  spectrum.getPrecursors().push_back(prec);
-
-  SpectrumLookup::SpectrumMetaData meta;
-  SpectrumLookup::getSpectrumMetaData(spectrum, meta);
-  TEST_EQUAL(meta.rt, 3.0);
-  TEST_EQUAL(meta.mz, 1000.0);
-  TEST_EQUAL(meta.charge, 2);
-  TEST_EQUAL(meta.native_ID, "spectrum=2");
-
-  SpectrumLookup::SpectrumMetaData meta2;
-  SpectrumLookup::MetaDataFlags flags = (SpectrumLookup::METADATA_RT | 
-                                         SpectrumLookup::METADATA_MZ);
-  SpectrumLookup::getSpectrumMetaData(spectrum, meta2, flags);
-  TEST_EQUAL(meta2.rt, 3.0);
-  TEST_EQUAL(meta2.mz, 1000.0);
-  // these values stay empty:
-  TEST_EQUAL(meta2.charge, 0);
-  TEST_EQUAL(meta2.native_ID, "");
-}
-END_SECTION
-
-
 START_SECTION((void addReferenceFormat(const String&)))
 {
   TEST_EXCEPTION(Exception::IllegalArgument, lookup.addReferenceFormat("XXX"));
@@ -179,57 +152,14 @@ START_SECTION((Size findByReference(const String&) const))
 END_SECTION
 
 
-START_SECTION((template <typename SpectrumContainer> void getSpectrumMetaDataByReference(const SpectrumContainer&, const String&, SpectrumMetaData&, MetaDataFlags) const))
+START_SECTION((static Int extractScanNumber(const String&,
+                                            const boost::regex&)))
 {
-  SpectrumLookup::SpectrumMetaData meta;
-  lookup.getSpectrumMetaDataByReference(spectra, "scan_number=1", meta);
-  TEST_EQUAL(meta.rt, 2.0);
-  TEST_EQUAL(meta.native_ID, "spectrum=1");
-  // precursor information is empty:
-  TEST_EQUAL(meta.mz, 0.0);
-  TEST_EQUAL(meta.charge, 0);
+  boost::regex re("spectrum=(?<SCAN>\\d+)");
+  TEST_EQUAL(SpectrumLookup::extractScanNumber("spectrum=42", re), 42);
+  TEST_EQUAL(SpectrumLookup::extractScanNumber("scan=42", re, true), -1);
 
-  lookup.addReferenceFormat("rt=(?<RT>\\d+(\\.\\d+)?),mz=(?<MZ>\\d+(\\.\\d+)?)");
-  SpectrumLookup::SpectrumMetaData meta2;
-  SpectrumLookup::MetaDataFlags flags = (SpectrumLookup::METADATA_RT | 
-                                         SpectrumLookup::METADATA_MZ);
-  // no actual look-up of the spectrum necessary:
-  lookup.getSpectrumMetaDataByReference(spectra, "rt=5.0,mz=1000.0", meta2,
-                                        flags);
-  TEST_EQUAL(meta2.rt, 5.0);
-  TEST_EQUAL(meta2.mz, 1000.0);
-  TEST_EQUAL(meta2.charge, 0);
-  TEST_EQUAL(meta2.native_ID, "");
-
-  // look-up of the spectrum necessary:
-  SpectrumLookup::SpectrumMetaData meta3;
-  lookup.getSpectrumMetaDataByReference(spectra, "rt=2.0,mz=1000.0", meta3);
-  TEST_EQUAL(meta3.rt, 2.0);
-  TEST_EQUAL(meta3.mz, 1000.0);
-  TEST_EQUAL(meta3.charge, 0);
-  TEST_EQUAL(meta3.native_ID, "spectrum=1");
-
-  TEST_EXCEPTION(Exception::ElementNotFound, lookup.getSpectrumMetaDataByReference(spectra, "rt=5.0,mz=1000.0", meta3));
-}
-END_SECTION
-
-
-START_SECTION((bool addMissingRTsToPeptideIDs(vector<PeptideIdentification>&, const String&, bool)))
-{
-  vector<PeptideIdentification> peptides(1);
-  peptides[0].setRT(1.0);
-  String filename = "this_file_does_not_exist.mzML";
-  // no missing RTs -> no attempt to load mzML file:
-  SpectrumLookup::addMissingRTsToPeptideIDs(peptides, filename);
-  TEST_EQUAL(peptides[0].getRT(), 1.0);
-
-  peptides.resize(2);
-  peptides[0].setMetaValue("spectrum_reference", "index=0");
-  peptides[1].setMetaValue("spectrum_reference", "index=2");
-  filename = OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML");
-  SpectrumLookup::addMissingRTsToPeptideIDs(peptides, filename);
-  TEST_EQUAL(peptides[0].getRT(), 1.0); // this doesn't get overwritten
-  TEST_REAL_SIMILAR(peptides[1].getRT(), 5.3);
+  TEST_EXCEPTION(Exception::ParseError, SpectrumLookup::extractScanNumber("scan=42", re));
 }
 END_SECTION
 

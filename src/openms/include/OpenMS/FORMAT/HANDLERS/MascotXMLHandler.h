@@ -41,7 +41,7 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/METADATA/SpectrumLookup.h>
+#include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
 
 #include <vector>
 
@@ -61,19 +61,19 @@ public:
                        std::vector<PeptideIdentification>& identifications,
                        const String& filename,
                        std::map<String, std::vector<AASequence> >& peptides,
-                       SpectrumLookup& lookup);
+                       const SpectrumMetaDataLookup& lookup);
 
       /// Destructor
       virtual ~MascotXMLHandler();
 
       // Docu in base class
-      virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
+      virtual void endElement(const XMLCh* /*uri*/, const XMLCh* /*local_name*/, const XMLCh* qname);
 
       // Docu in base class
-      virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
+      virtual void startElement(const XMLCh* /*uri*/, const XMLCh* /*local_name*/, const XMLCh* qname, const xercesc::Attributes& attributes);
 
       // Docu in base class
-      virtual void characters(const XMLCh* const chars, const XMLSize_t /*length*/);
+      virtual void characters(const XMLCh* chars, const XMLSize_t /*length*/);
 
 private:
 
@@ -97,7 +97,8 @@ private:
       String major_version_;
       String minor_version_;
 
-      SpectrumLookup& lookup_; ///< helper object for looking up RT information
+      /// Helper object for looking up RT information
+      const SpectrumMetaDataLookup& lookup_;
 
       /// Error for missing RT information already reported?
       bool no_rt_error_;

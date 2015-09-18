@@ -35,22 +35,17 @@
 #ifndef OPENMS_METADATA_SPECTRUMLOOKUP_H
 #define OPENMS_METADATA_SPECTRUMLOOKUP_H
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
 #include <boost/regex.hpp>
 
-#include <limits> // for "quiet_NaN"
-
 namespace OpenMS
 {
   /**
-    @brief Helper class for looking up spectra or spectrum meta data based on different attributes
+    @brief Helper class for looking up spectra on different attributes
 
     This class provides functions for looking up spectra that are stored in a vector (e.g. MSExperiment::getSpectra()) by index, retention time, native ID, scan number (extracted from the native ID), or by a reference string ("spectrum reference") containing any of the previous information.
-
-    The class further includes functions for extracting specific meta data (retention time, precursor m/z, precursor charge, native ID) from spectra or from spectrum references.
-
-    A common use case for this functionality is importing peptide/protein identification results from search engine-specific file formats, where some meta information may have to be looked up in the raw data (primarily retention times). One example of this is in the function addMissingRTsToPeptideIDs().
 
     @par Spectrum reference formats
     Formats for spectrum references are defined by regular expressions, that must contain certain fields (named groups, i.e. "(?<GROUP>...)") referring to usable information. The following named groups are recognized:
@@ -67,34 +62,15 @@ namespace OpenMS
     @p CHARGE and @p MZ cannot be used for spectrum look-up, but are useful (together with @p RT) when meta data is encoded directly in the reference.
 
     @par
-    Reference formats are registered via addReferenceFormat(). Several possible formats can be added and will be tried in order by the functions findByReference() and getSpectrumMetaDataByReference().
+    Reference formats are registered via addReferenceFormat().
+    Several possible formats can be added and will be tried in order by the functions findByReference() and getSpectrumMetaDataByReference().
   */
   class OPENMS_DLLAPI SpectrumLookup
   {
   public:
 
-    /// Bit mask for which meta data to extract from a spectrum
-    typedef unsigned char MetaDataFlags;
-
-    /// Possible meta data to extract from a spectrum
-    static const MetaDataFlags METADATA_RT = 1, METADATA_MZ = 2,
-      METADATA_CHARGE = 4, METADATA_NATIVEID = 8, METADATA_ALL = 15;
-
-    /// Meta data of a spectrum
-    struct SpectrumMetaData
-    {
-      double rt; ///< Retention time
-      double mz; ///< Precursor mass-to-charge ratio
-      Int charge; ///< Precursor charge
-      String native_ID; ///< Native ID
-
-      /// Constructor
-      SpectrumMetaData():
-        rt(std::numeric_limits<double>::quiet_NaN()), 
-        mz(std::numeric_limits<double>::quiet_NaN()), charge(0), native_ID("")
-      {
-      }
-    };
+    /// Default regular expression for extracting scan numbers from spectrum native IDs
+    static const String& default_scan_regexp;
 
     /// Possible formats of spectrum references, defined as regular expressions
     std::vector<boost::regex> reference_formats;
@@ -126,7 +102,29 @@ namespace OpenMS
     */
     template <typename SpectrumContainer>
     void readSpectra(const SpectrumContainer& spectra, 
-                     const String& scan_regexp = "=(?<SCAN>\\d+)$");
+                     const String& scan_regexp = default_scan_regexp)
+    {
+      rts_.clear();
+      ids_.clear();
+      scans_.clear();
+      n_spectra_ = spectra.size();
+      setScanRegExp_(scan_regexp);
+      for (Size i = 0; i < n_spectra_; ++i)
+      {
+        const MSSpectrum<>& spectrum = spectra[i];
+        String native_id = spectrum.getNativeID();
+        Int scan_no = -1;
+        if (!scan_regexp.empty())
+        {
+          scan_no = extractScanNumber(native_id, scan_regexp_, true);
+          if (scan_no < 0)
+          {
+            LOG_WARN << "Warning: Could not extract scan number from spectrum native ID '" + native_id + "' using regular expression '" + scan_regexp + "'. Look-up by scan number may not work properly." << std::endl;
+          }
+        }
+        addEntry_(i, spectrum.getRT(), scan_no, native_id);
+      }
+    }
 
     /**
        @brief Look up spectrum by retention time (RT)
@@ -176,30 +174,6 @@ namespace OpenMS
     Size findByScanNumber(Size scan_number) const;
 
     /**
-       @brief Extract meta data from a spectrum
-
-       @param spectrum Spectrum input
-       @param metadata Meta data output
-       @param flags What meta data to extract
-
-       Only meta data requested via @p flags is extracted, and only the corresponding fields of @p metadata are updated.
-    */
-    static void getSpectrumMetaData(const MSSpectrum<>& spectrum,
-                                    SpectrumMetaData& metadata,
-                                    MetaDataFlags flags = METADATA_ALL);
-
-    /**
-       @brief Register a possible format for a spectrum reference
-
-       @param regexp Regular expression defining the format
-
-       @throw Exception::IllegalArgument if @p regexp does not contain any of the recognized named groups
-
-       The regular expression defining the reference format must contain one or more of the recognized named groups defined in SpectrumLookup::regexp_names_.
-    */
-    void addReferenceFormat(const String& regexp);
-
-    /**
        @brief Look up spectrum by reference
 
        @param spectrum_ref Spectrum reference to parse
@@ -214,39 +188,30 @@ namespace OpenMS
     Size findByReference(const String& spectrum_ref) const;
 
     /**
-       @brief Extract meta data via a spectrum reference
+       @brief Register a possible format for a spectrum reference
 
-       @tparam SpectrumContainer Spectrum container class, must support @p operator[]
+       @param regexp Regular expression defining the format
 
-       @param spectrum_ref Spectrum reference to parse
-       @param metadata Meta data output
-       @param flags What meta data to extract
+       @throw Exception::IllegalArgument if @p regexp does not contain any of the recognized named groups
 
-       @throw Exception::ElementNotFound if a spectrum look-up was necessary, but no matching spectrum was found
-
-       This function is a combination of getSpectrumMetaData() and findByReference(). However, the spectrum is only looked up if necessary, i.e. if the required meta data cannot be extracted from the spectrum reference itself.
+       The regular expression defining the reference format must contain one or more of the recognized named groups defined in SpectrumLookup::regexp_names_.
     */
-    template <typename SpectrumContainer>
-    void getSpectrumMetaDataByReference(
-      const SpectrumContainer& spectra, const String& spectrum_ref,
-      SpectrumMetaData& metadata, MetaDataFlags flags = METADATA_ALL) const;
+    void addReferenceFormat(const String& regexp);
 
     /**
-       @brief Add missing retention time values to peptide identifications based on raw data
+       @brief Extract the scan number from the native ID of a spectrum
        
-       @param peptides Peptide IDs with or without RT values
-       @param filename Name of a raw data file (e.g. mzML) for looking up RTs
-       @param stop_on_error Stop when an ID could not be matched to a spectrum (or keep going)?
+       @param native_id Spectrum native ID
+       @param scan_regexp Regular expression to use (must contain the named group "?<SCAN>")
+       @param no_error Suppress the exception on failure
 
-       @return True if all peptide IDs could be annotated successfully (including if all already had RT values), false otherwise.
+       @throw Exception::ParseError if the scan number could not be extracted (unless @p no_error is set)
 
-       Look-up works by matching the "spectrum_reference" (meta value) of a peptide ID to the native ID of a spectrum. Only peptide IDs without RT (where PeptideIdentification::getRT() returns "NaN") are looked up; the RT is set to that of the corresponding spectrum.
-
-       The raw data is only loaded from @p filename if necessary, i.e. if there are any peptide IDs with missing RTs.
+       @return Scan number of the spectrum (or -1 on failure to extract)
     */
-    static bool addMissingRTsToPeptideIDs(
-      std::vector<PeptideIdentification>& peptides, const String& filename,
-      bool stop_on_error = false);
+    static Int extractScanNumber(const String& native_id,
+                                 const boost::regex& scan_regexp,
+                                 bool no_error = false);
 
   protected:
 
@@ -255,11 +220,24 @@ namespace OpenMS
 
     Size n_spectra_; ///< Number of spectra
 
+    boost::regex scan_regexp_; ///< Regular expression to extract scan numbers
+
     std::vector<String> regexp_name_list_; ///< Named groups in vector format
 
     std::map<double, Size> rts_; ///< Mapping: RT -> spectrum index
     std::map<String, Size> ids_; ///< Mapping: native ID -> spectrum index
     std::map<Size, Size> scans_; ///< Mapping: scan number -> spectrum index
+
+    /**
+       @brief Add a look-up entry for a spectrum
+
+       @param index Spectrum index (position in the vector)
+       @param rt Retention time
+       @param scan_number Scan number
+       @param native_id Native ID
+    */
+    void addEntry_(Size index, double rt, Int scan_number,
+                   const String& native_id);
 
     /**
        @brief Look up spectrum by regular expression match
@@ -275,9 +253,16 @@ namespace OpenMS
     Size findByRegExpMatch_(const String& spectrum_ref, const String& regexp, 
                             const boost::smatch& match) const;
 
+    /**
+       @brief Set the regular expression for extracting scan numbers from spectrum native IDs
+
+       @param scan_regexp Regular expression to use (must contain the named group "?<SCAN>")
+    */
+    void setScanRegExp_(const String& scan_regexp);
+
   private:
     /// Copy constructor (not implemented)
-    SpectrumLookup(const SpectrumLookup&);
+    SpectrumLookup(const SpectrumLookup& other);
 
     /// Assignment operator (not implemented)
     SpectrumLookup& operator=(const SpectrumLookup&);

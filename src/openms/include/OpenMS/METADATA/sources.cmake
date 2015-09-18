@@ -44,6 +44,7 @@ Software.h
 SourceFile.h
 SpectrumIdentification.h
 SpectrumLookup.h
+SpectrumMetaDataLookup.h
 SpectrumSettings.h
 Tagging.h
 )

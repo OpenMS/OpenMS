@@ -41,7 +41,7 @@
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/METADATA/SpectrumLookup.h>
+#include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
 
 #include <vector>
 #include <map>
@@ -76,13 +76,12 @@ public:
         @param proteins Protein identification output
         @param peptides Peptide identification output
         @param experiment_name Experiment file name, which is used to extract the corresponding search results from the PepXML file.
-        @param experiment MS run to extract the retention times from (PepXML may contain only scan numbers).
-        @param use_precursor_data Use m/z and RT of the precursor (instead of the RT of the MS2 spectrum) for the peptide?
+        @param lookup Helper for looking up retention times (PepXML may contain only scan numbers).
 
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String& filename, std::vector<ProteinIdentification>& proteins, std::vector<PeptideIdentification>& peptides, const String& experiment_name, SpectrumLookup& lookup);
+    void load(const String& filename, std::vector<ProteinIdentification>& proteins, std::vector<PeptideIdentification>& peptides, const String& experiment_name, const SpectrumMetaDataLookup& lookup);
 
     /**
         @brief @a load function with empty defaults for some parameters (see above)
@@ -181,7 +180,7 @@ private:
     std::vector<PeptideIdentification>* peptides_;
 
     /// Pointer to wrapper for looking up spectrum meta data
-    SpectrumLookup* lookup_;
+    const SpectrumMetaDataLookup* lookup_;
 
     /// Name of the associated experiment (filename of the data file, extension will be removed)
     String exp_name_;
