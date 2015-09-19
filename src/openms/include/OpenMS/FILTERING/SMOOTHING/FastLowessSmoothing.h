@@ -80,8 +80,8 @@ namespace OpenMS
       \pre The vector needs to have at least 2 elements
       \pre The vector x needs to be sorted
       \pre The f value needs to be between 0 and 1
-      \pre The nsteps parameter needs to be larger than zero
-      \pre The delta parameter needs to be larger than zero
+      \pre The nsteps parameter needs to be zero or larger
+      \pre The delta parameter needs to be zero or larger
 
       The delta parameter allows the algorithm to not perform the regression at
       every data point, as it assumes that points that are close to each other
@@ -93,8 +93,12 @@ namespace OpenMS
       fraction of points used to compute each fitted value. Choosing F in the
       range .2 to .8 usually results in a good fit
 
+      The nsteps parameter controls how many iterations are performed in the
+      robust fit (setting it to zero turns off the robust fit and the nonrobust
+      fit is returned). A value of 2 or 3 should be sufficient for most purposes.
+
     */
-    int OPENMS_DLLAPI lowess(std::vector<double>& x, std::vector<double>& y,
+    int OPENMS_DLLAPI lowess(const std::vector<double>& x, const std::vector<double>& y,
                double f, int nsteps, double delta, std::vector<double>& result);
 
     /**
@@ -109,7 +113,7 @@ namespace OpenMS
       \pre The vector x needs to be sorted
       
     */
-    int OPENMS_DLLAPI lowess(std::vector<double>& x, std::vector<double>& y,
+    inline int OPENMS_DLLAPI lowess(const std::vector<double>& x, const std::vector<double>& y,
                std::vector<double>& result)
     {
       OPENMS_PRECONDITION(x.size() == y.size(), "Vectors x and y must have the same length")
