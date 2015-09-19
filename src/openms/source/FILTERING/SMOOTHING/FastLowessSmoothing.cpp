@@ -622,7 +622,7 @@ namespace OpenMS
                double f, int nsteps,
                double delta, std::vector<double>& result)
     {
-      OPENMS_PRECONDITION(delta >= 0.0, "lowess: parameter delta must be zero or lager")
+      OPENMS_PRECONDITION(delta >= 0.0, "lowess: parameter delta must be zero or larger")
       OPENMS_PRECONDITION(f > 0.0, "lowess: parameter f must be larger than 0")
       OPENMS_PRECONDITION(f <= 1.0, "lowess: parameter f must be smaller or equal to 1")
       OPENMS_PRECONDITION(nsteps >= 0, "lowess: parameter nstesp must be zero or larger")
