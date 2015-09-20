@@ -295,6 +295,7 @@ namespace OpenMS
               // consider only "real" neighbors, not the element itself:
               if (center_feature != neighbor_feature)
               {
+                // NOTE: this actually caches the distance in memory (potential memory issue)
                 double dist = getDistance_(center_feature, neighbor_feature);
                 if (dist == FeatureDistance::infinity)
                 {
@@ -313,6 +314,8 @@ namespace OpenMS
           }
         }
       }
+
+      distances_.clear(); // to reduce memory usage
       clustering.push_back(cluster);
     }
   }
