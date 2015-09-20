@@ -120,6 +120,12 @@ protected:
     {
       vector<FeatureMap > maps(ins.size());
       FeatureXMLFile f;
+      FeatureFileOptions param = f.getOptions();
+      // to save memory don't load convex hulls and subordinates
+      param.setLoadSubordinates(false);
+      param.setLoadConvexHull(false);
+      f.setOptions(param);
+
       for (Size i = 0; i < ins.size(); ++i)
       {
         f.load(ins[i], maps[i]);
