@@ -35,7 +35,5 @@ matrix:
     - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON DISABLE_PPWAVELET3=OFF
       os: osx
       compiler: clang
-# trying to exclude gcc / clang only builds without env set
-exclude:
- - compiler: clang
- - compiler: gcc
+## There are two builds created that contain "no language set" in the configuration. This is a bug in travis. See:  
+## https://github.com/travis-ci/travis-ci/issues/3655
