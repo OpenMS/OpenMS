@@ -39,6 +39,8 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
+#include <OpenMS/KERNEL/ConversionHelper.h>
+
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
@@ -118,7 +120,7 @@ protected:
     ConsensusMap out_map;
     if (file_type == FileTypes::FEATUREXML)
     {
-      vector<FeatureMap > maps(ins.size());
+      vector<ConsensusMap > maps(ins.size());
       FeatureXMLFile f;
       FeatureFileOptions param = f.getOptions();
       // to save memory don't load convex hulls and subordinates
@@ -128,17 +130,22 @@ protected:
 
       for (Size i = 0; i < ins.size(); ++i)
       {
-        f.load(ins[i], maps[i]);
+        FeatureMap tmp;
+        f.load(ins[i], tmp);
         out_map.getFileDescriptions()[i].filename = ins[i];
-        out_map.getFileDescriptions()[i].size = maps[i].size();
-        out_map.getFileDescriptions()[i].unique_id = maps[i].getUniqueId();
-        // to save memory, remove convex hulls and subordinates:
-        for (FeatureMap::Iterator it = maps[i].begin(); it != maps[i].end();
+        out_map.getFileDescriptions()[i].size = tmp.size();
+        out_map.getFileDescriptions()[i].unique_id = tmp.getUniqueId();
+        // to save memory, remove convex hulls, subordinates and meta info:
+        for (FeatureMap::Iterator it = tmp.begin(); it != tmp.end();
              ++it)
         {
           it->getSubordinates().clear();
           it->getConvexHulls().clear();
+          it->clearMetaInfo();
         }
+
+        MapConversion::convert(i, tmp, maps[i]);
+
         maps[i].updateRanges();
       }
       // exception for "labeled" algorithms: copy file descriptions
