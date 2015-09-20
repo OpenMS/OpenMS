@@ -35,4 +35,7 @@ matrix:
     - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON DISABLE_PPWAVELET3=OFF
       os: osx
       compiler: clang
-
+# trying to exclude gcc / clang only builds without env set
+exclude:
+ - compiler: clang
+ - compiler: gcc
