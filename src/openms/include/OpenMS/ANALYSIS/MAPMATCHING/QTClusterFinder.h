@@ -103,14 +103,14 @@ namespace OpenMS
 private:
 
     /// Distances between pairs of grid features
-    typedef OpenMSBoost::unordered_map<std::pair<GridFeature*, GridFeature*>,
+    typedef OpenMSBoost::unordered_map<std::pair<OpenMS::GridFeature*, OpenMS::GridFeature*>,
                                        double> PairDistances;
 
     /// Map to store which grid features are next to which clusters
-    typedef OpenMSBoost::unordered_map<GridFeature*, 
+    typedef OpenMSBoost::unordered_map<OpenMS::GridFeature*, 
                                        std::vector<QTCluster*> > ElementMapping;
 
-    typedef HashGrid<GridFeature*> Grid;
+    typedef HashGrid<OpenMS::GridFeature*> Grid;
 
     /// Number of input maps
     Size num_maps_;
@@ -127,6 +127,9 @@ private:
     /// Feature distance functor
     FeatureDistance feature_distance_;
 
+    /// Set of features already used
+    std::set<OpenMS::GridFeature*> already_used_;
+
     /**
        @brief Distance map.
 
@@ -142,7 +145,7 @@ private:
        The distance is looked up in the distance map and only computed (and
        stored) if it's not already available.
     */
-    double getDistance_(GridFeature* left, GridFeature* right);
+    double getDistance_(OpenMS::GridFeature* left, OpenMS::GridFeature* right);
 
     /**
        @brief Checks whether the peptide IDs of a cluster and a neighboring
@@ -152,7 +155,7 @@ private:
        Otherwise, the cluster and feature are compatible if the best peptide
        hits of each of their identifications have the same sequences.
     */
-    bool compatibleIDs_(QTCluster& cluster, const GridFeature* neighbor);
+    bool compatibleIDs_(QTCluster& cluster, const OpenMS::GridFeature* neighbor);
 
     /// Sets algorithm parameters
     void setParameters_(double max_intensity, double max_mz);
@@ -160,7 +163,7 @@ private:
     /// Generates a consensus feature from the best cluster and updates the clustering
     void makeConsensusFeature_(std::list<QTCluster>& clustering,
                                ConsensusFeature& feature,
-                               ElementMapping& element_mapping);
+                               ElementMapping& element_mapping, Grid&);
 
     /// Computes an initial QT clustering of the points in the hash grid
     void computeClustering_(Grid& grid, std::list<QTCluster>& clustering);
@@ -216,7 +219,6 @@ public:
     }
 
   };
-
 }
 
 #endif /* OPENMS_ANALYSIS_MAPMATCHING_QTCLUSTERFINDER_H */

@@ -49,12 +49,13 @@ namespace OpenMS
   {
   }
 
-  QTCluster::QTCluster(GridFeature* center_point, Size num_maps,
-                       double max_distance, bool use_IDs) :
+  QTCluster::QTCluster(OpenMS::GridFeature* center_point, Size num_maps,
+                       double max_distance, bool use_IDs, Int x_coord, Int y_coord) :
     center_point_(center_point), neighbors_(), max_distance_(max_distance),
     num_maps_(num_maps), quality_(0.0), changed_(false), use_IDs_(use_IDs),
     annotations_(),
-    valid_(true)
+    valid_(true),
+    x_coord_(x_coord), y_coord_(y_coord)
   {
     if (use_IDs)
       annotations_ = center_point->getAnnotations();
@@ -84,7 +85,7 @@ namespace OpenMS
     return this->getQuality() < cluster.getQuality();
   }
 
-  void QTCluster::add(GridFeature* element, double distance)
+  void QTCluster::add(OpenMS::GridFeature* element, double distance)
   {
     // maybe TODO: check here if distance is smaller than max. distance?
     // maybe TODO: check here if peptide annotations are compatible?
@@ -92,12 +93,19 @@ namespace OpenMS
     Size map_index = element->getMapIndex();
     if (map_index != center_point_->getMapIndex())
     {
-      neighbors_[map_index].insert(make_pair(distance, element));
-      changed_ = true;
+      // only store the new entry if it is closer (better) than the previous entry
+      if (neighbors_[map_index].empty() ||
+          distance < neighbors_[map_index].begin()->first
+         )
+      {
+        neighbors_[map_index].clear();
+        neighbors_[map_index].insert(make_pair(distance, element));
+        changed_ = true;
+      }
     }
   }
 
-  void QTCluster::getElements(OpenMSBoost::unordered_map<Size, GridFeature*>& elements)
+  void QTCluster::getElements(OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*>& elements)
   {
     elements.clear();
     elements[center_point_->getMapIndex()] = center_point_;
@@ -116,6 +124,7 @@ namespace OpenMS
     if (annotations_.empty() || !center_point_->getAnnotations().empty())
     {
       // no need to take annotations into account:
+      // simply take the best (closest) of all elements
       for (NeighborMap::const_iterator it = neighbors_.begin();
            it != neighbors_.end(); ++it)
       {
@@ -127,7 +136,7 @@ namespace OpenMS
       for (NeighborMap::const_iterator n_it = neighbors_.begin();
            n_it != neighbors_.end(); ++n_it)
       {
-        for (std::multimap<double, GridFeature*>::const_iterator df_it =
+        for (NeighborListType::const_iterator df_it =
                n_it->second.begin(); df_it != n_it->second.end(); ++df_it)
         {
           const set<AASequence>& current = df_it->second->getAnnotations();
@@ -141,23 +150,28 @@ namespace OpenMS
     }
   }
 
-  bool QTCluster::update(const OpenMSBoost::unordered_map<Size, GridFeature*>& removed)
+  bool QTCluster::update(const OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*>& removed)
   {
     // check if the cluster center was removed:
-    for (OpenMSBoost::unordered_map<Size, GridFeature*>::const_iterator rm_it = removed.begin();
+    for (OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*>::const_iterator rm_it = removed.begin();
          rm_it != removed.end(); ++rm_it)
     {
+      // If cluster point was removed, then we are done and no more work is required
       if (rm_it->second == center_point_)
+      {
+        this->setInvalid();
         return false;
+      }
     }
+    bool needs_work = false;
     // update the cluster contents:
-    for (OpenMSBoost::unordered_map<Size, GridFeature*>::const_iterator rm_it = removed.begin();
+    for (OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*>::const_iterator rm_it = removed.begin();
          rm_it != removed.end(); ++rm_it)
     {
       NeighborMap::iterator pos = neighbors_.find(rm_it->first);
       if (pos == neighbors_.end())
         continue; // no points from this map
-      for (std::multimap<double, GridFeature*>::iterator feat_it =
+      for (NeighborListType::iterator feat_it =
              pos->second.begin(); feat_it != pos->second.end(); ++feat_it)
       {
         if (feat_it->second == rm_it->second) // remove this neighbor
@@ -165,6 +179,7 @@ namespace OpenMS
           if (!use_IDs_ || (annotations_ == rm_it->second->getAnnotations()))
           {
             changed_ = true;
+            needs_work = true;
           }
           // else: removed neighbor doesn't have optimal annotation, so it can't
           // be a "true" cluster element => no need to recompute the quality
@@ -177,7 +192,7 @@ namespace OpenMS
         neighbors_.erase(pos);
       }
     }
-    return true;
+    return needs_work;
   }
 
   double QTCluster::getQuality()
@@ -237,7 +252,7 @@ namespace OpenMS
          n_it != neighbors_.end(); ++n_it)
     {
       Size map_index = n_it->first;
-      for (std::multimap<double, GridFeature*>::iterator df_it =
+      for (NeighborListType::iterator df_it =
              n_it->second.begin(); df_it != n_it->second.end(); ++df_it)
       {
         double dist = df_it->first;
@@ -286,7 +301,7 @@ namespace OpenMS
     for (map<set<AASequence>, vector<double> >::iterator it =
            seq_table.begin(); it != seq_table.end(); ++it)
     {
-      double total = accumulate(it->second.begin(), it->second.end(), 0.0);
+      double total = std::accumulate(it->second.begin(), it->second.end(), 0.0);
       if (total < best_total)
       {
         best_pos = it;

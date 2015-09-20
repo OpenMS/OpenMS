@@ -81,13 +81,20 @@ namespace OpenMS
 
   class OPENMS_DLLAPI QTCluster
   {
+public:
+    typedef std::multimap<double, GridFeature*> NeighborListType;
+    typedef OpenMSBoost::unordered_map<Size, NeighborListType> NeighborMap;
+
 private:
 
     /**
      * @brief Mapping: input map -> distance to center (ordered!) -> neighboring point
      * @note There should never be an empty sub-map! (When a sub-map becomes empty, it should be removed from the overall map.)
+     *
+     * For each input run, a multimap which contains pointers to all
+     * neighboring elements and the respective distance.
+     *
      */
-    typedef OpenMSBoost::unordered_map<Size, std::multimap<double, GridFeature*> > NeighborMap;
 
     /// Pointer to the cluster center
     GridFeature* center_point_;
@@ -138,6 +145,10 @@ private:
 
     bool valid_;
 public:
+
+    Int x_coord_;
+    Int y_coord_;
+
     /**
      * @brief Detailed constructor
      * @param center_point Pointer to the center point
@@ -146,10 +157,13 @@ public:
      * @param use_IDs Use peptide annotations?
      */
     QTCluster(GridFeature* center_point, Size num_maps,
-              double max_distance, bool use_IDs);
+              double max_distance, bool use_IDs, 
+              Int x_coord, Int y_coord);
 
     /// Destructor
     virtual ~QTCluster();
+
+    GridFeature* getCenterPoint() {return center_point_;}
 
     /// Returns the RT value of the cluster
     double getCenterRT() const;
@@ -175,8 +189,11 @@ public:
     void getElements(OpenMSBoost::unordered_map<Size, GridFeature*>& elements);
 
     /**
-     * @brief Updates the cluster after data points were removed
-     * @return Whether the cluster is still valid (it's not if the cluster center is among the removed points).
+     * @brief Updates the cluster after the indicated data points are removed
+     *
+     * @param removed The datapoints to be removed from the cluster
+     *
+     * @return Whether the cluster composition has changed due to the update
      */
     bool update(const OpenMSBoost::unordered_map<Size, GridFeature*>& removed);
 
@@ -186,7 +203,14 @@ public:
     /// Return the set of peptide sequences annotated to the cluster center
     const std::set<AASequence>& getAnnotations();
 
-    inline void setInvalid() {valid_ = false; }
+    inline void setInvalid() 
+    {
+      // this cluster is considered invalid, it will never be used again in the
+      // algorithm. This means we can clean up a bit and save some memory.
+      valid_ = false;
+      neighbors_.clear();
+      annotations_.clear();
+    }
 
     inline bool isInvalid() {return !valid_; }
 
