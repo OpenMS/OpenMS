@@ -143,14 +143,14 @@ namespace OpenMS
     for (list<QTCluster>::iterator it = clustering.begin();
          it != clustering.end(); ++it)
     {
-      QTCluster::NeighborMap neigh = it->getNeighbors();
-      for (QTCluster::NeighborMap::iterator n_it = neigh.begin(); n_it != neigh.end(); 
-           ++n_it)
+      typedef OpenMSBoost::unordered_map<Size, std::vector<GridFeature*> > NeighborMap;
+      OpenMSBoost::unordered_map<Size, std::vector<GridFeature*> > neigh = it->getAllNeighbors();
+      for (NeighborMap::iterator n_it = neigh.begin(); n_it != neigh.end(); ++n_it)
       {
-        QTCluster::NeighborListType* i_it = &n_it->second;
+        for (std::vector<GridFeature*>::iterator i_it = n_it->second.begin(); i_it != n_it->second.end(); ++i_it)
         {
           // remember for each feature (gridfeature) all the cluster elements it belongs to
-          element_mapping[i_it->second].push_back(&(*it));
+          element_mapping[*i_it].push_back(&(*it));
         }
       }
     }
@@ -325,13 +325,14 @@ namespace OpenMS
             ////////////////////////////////////////
             // Step 2: update element_mapping as the best feature for each
             // cluster may have changed
-            QTCluster::NeighborMap neigh = (*cluster)->getNeighbors();
-            for (QTCluster::NeighborMap::iterator n_it = neigh.begin(); n_it != neigh.end(); ++n_it)
+            typedef OpenMSBoost::unordered_map<Size, std::vector<GridFeature*> > NeighborMap;
+            OpenMSBoost::unordered_map<Size, std::vector<GridFeature*> > neigh = (*cluster)->getAllNeighbors();
+            for (NeighborMap::iterator n_it = neigh.begin(); n_it != neigh.end(); ++n_it)
             {
-              QTCluster::NeighborListType* i_it = &n_it->second;
+              for (std::vector<GridFeature*>::iterator i_it = n_it->second.begin(); i_it != n_it->second.end(); ++i_it)
               {
                 // remember for each feature (gridfeature) all the cluster elements it belongs to
-                tmp_element_mapping[i_it->second].push_back(*cluster);
+                tmp_element_mapping[*i_it].push_back(*cluster);
               }
             }
 

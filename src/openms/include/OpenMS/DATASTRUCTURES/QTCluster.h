@@ -213,7 +213,7 @@ public:
 
     inline bool isInvalid() {return !valid_; }
 
-    NeighborMap getNeighbors() {return neighbors_; }
+    OpenMSBoost::unordered_map<Size, std::vector<GridFeature*> > getAllNeighbors();
 
   };
 }

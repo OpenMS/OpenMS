@@ -231,6 +231,16 @@ namespace OpenMS
     quality_ = (max_distance_ - internal_distance) / max_distance_;
   }
 
+  OpenMSBoost::unordered_map<Size, std::vector<GridFeature*> > QTCluster::getAllNeighbors() 
+  {
+    OpenMSBoost::unordered_map<Size, std::vector<GridFeature*> > tmp;
+    for (NeighborMap::iterator it = neighbors_.begin(); it != neighbors_.end(); ++it)
+    {
+      tmp[ it->first ].push_back( it->second.second );
+    }
+    return tmp;
+  }
+
   const set<AASequence>& QTCluster::getAnnotations()
   {
     if (changed_ && use_IDs_ && center_point_->getAnnotations().empty() && !neighbors_.empty())
