@@ -35,7 +35,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
-
+#include <OpenMS/DATASTRUCTURES/Matrix.h>
 
 
 using namespace std;
@@ -89,6 +89,36 @@ class Histogram : public RefBase {
     countT _numBuckets;
 };
 
+
+
+void savitskyGolayCoeffs(vector<double>& c, int numLeft, int numRight, int deriv, int smoothOrder) {
+
+    if (numLeft < 0 || numRight < 0 || deriv > smoothOrder || numLeft + numRight < smoothOrder) {
+        throw InvalidArgumentException("invalid argument in savitskyGolay()");
+    }
+
+    vector<int> indx;
+    Matrix a(smoothOrder + 1, smoothOrder + 1); // We use OpenMS' matrix definition as opposed to newmat10
+    for(int ipj = 0; ipj <= (smoothOrder << 1); ++ipj) {
+        double sum = (ipj ? 0. : 1.);
+        for (int k = 1; k <= numRight; ++k) sum += pow(double(k), double(ipj));
+        for (int k = 1; k <= numLeft; ++k) sum += pow(double(-k), double(ipj));
+        int mm = min(ipj, 2 * smoothOrder - ipj);
+        for(int imj = -mm; imj <= mm; imj += 2) a[(ipj+imj)/2][(ipj-imj)/2] = sum;
+    }
+    ColumnVector b(smoothOrder + 1);
+    b = 0.;
+    b[deriv] = 1.;
+    b = a.i() * b;
+    int np = numRight + numLeft + 1;
+    c.resize(np);
+    for(int k = -numLeft; k <= numRight; ++k) {
+        double sum = b[0];
+        double fac = 1.;
+        for (int mm = 1; mm <= smoothOrder; ++mm) sum += b[mm] * (fac *= k);
+        c[(np - k) % np] = sum;
+    }
+}
 
 
 struct HornBaseline {
