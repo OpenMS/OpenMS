@@ -75,37 +75,36 @@ namespace OpenMS
   GaussFitter1D::QualityType GaussFitter1D::fit1d(const RawDataArrayType& set, InterpolationModel*& model)
   {
     // Calculate bounding box
-    min_ = max_ = set[0].getPos();
+    CoordinateType min_bb = set[0].getPos(), max_bb = set[0].getPos();
     for (UInt pos = 1; pos < set.size(); ++pos)
     {
       CoordinateType tmp = set[pos].getPos();
-      if (min_ > tmp)
-        min_ = tmp;
-      if (max_ < tmp)
-        max_ = tmp;
+      if (min_bb > tmp)
+        min_bb = tmp;
+      if (max_bb < tmp)
+        max_bb = tmp;
     }
 
     // Enlarge the bounding box by a few multiples of the standard deviation
-    {
-      stdev1_ = sqrt(statistics_.variance()) * tolerance_stdev_box_;
-      min_ -= stdev1_;
-      max_ += stdev1_;
-    }
+    const CoordinateType stdev = sqrt(statistics_.variance()) * tolerance_stdev_box_;
+    min_bb -= stdev;
+    max_bb += stdev;
+
 
     // build model
     model = static_cast<InterpolationModel*>(Factory<BaseModel<1> >::create("GaussModel"));
     model->setInterpolationStep(interpolation_step_);
 
     Param tmp;
-    tmp.setValue("bounding_box:min", min_);
-    tmp.setValue("bounding_box:max", max_);
+    tmp.setValue("bounding_box:min", min_bb);
+    tmp.setValue("bounding_box:max", max_bb);
     tmp.setValue("statistics:mean", statistics_.mean());
     tmp.setValue("statistics:variance", statistics_.variance());
     model->setParameters(tmp);
 
     // fit offset
     QualityType quality;
-    quality = fitOffset_(model, set, stdev1_, stdev2_, interpolation_step_);
+    quality = fitOffset_(model, set, stdev, stdev, interpolation_step_);
     if (boost::math::isnan(quality))
       quality = -1.0;
 

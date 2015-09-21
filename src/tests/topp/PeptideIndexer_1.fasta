@@ -32,3 +32,33 @@ DFIANGER
 
 >tryptic_cleavage_test_protein1
 MBCDEFGKABCRAAAKAARPBBBB
+
+>MismatchProt0  (original protein)
+SVGSMTVDMQR
+STEMPYEVPTQRPNATSASAQK
+GWFD
+>IndelProt1 (1 Del/Ins per peptide; should not be found)
+SVGSMTVDQR
+STEMPYEVPTQRPNATSASAQQK
+GWWFD
+>MismatchProt1  (one mismatch in every peptide)
+SAGSMTVDMQR
+SAEMPYEVPTQRPNATSASAQK
+GAFD
+>MismatchProt2 (...)
+SVAAMTVDMQR
+STAAPYEVPTQRPNATSASAQK
+GWAA
+>MismatchProt3 (...)
+SVGAAAVDMQR
+STEAAAEVPTQRPNATSASAQK
+GAAA
+
+
+
+
+
+
+
+
+

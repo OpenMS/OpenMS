@@ -270,6 +270,7 @@ namespace OpenMS
   found_adduct_(),
   empirical_formula_(),
   matching_hmdb_ids_(),
+  mass_trace_intensities_(),
   isotopes_sim_score_(-1.0)
   {
   }
@@ -295,6 +296,7 @@ namespace OpenMS
     found_adduct_(source.found_adduct_),
     empirical_formula_(source.empirical_formula_),
     matching_hmdb_ids_(source.matching_hmdb_ids_),
+    mass_trace_intensities_(source.mass_trace_intensities_),
     isotopes_sim_score_(source.isotopes_sim_score_)
   {
   }
@@ -318,6 +320,7 @@ namespace OpenMS
     found_adduct_ = rhs.found_adduct_;
     empirical_formula_ = rhs.empirical_formula_;
     matching_hmdb_ids_ = rhs.matching_hmdb_ids_;
+    mass_trace_intensities_ = rhs.mass_trace_intensities_;
     isotopes_sim_score_ = rhs.isotopes_sim_score_;
 
     return *this;
@@ -463,6 +466,16 @@ namespace OpenMS
     matching_hmdb_ids_ = match_ids;
   }
 
+  const std::vector<double>& AccurateMassSearchResult::getMasstraceIntensities() const
+  {
+    return mass_trace_intensities_;  
+  }
+
+  void AccurateMassSearchResult::setMasstraceIntensities(const std::vector<double>& mti)
+  {
+    mass_trace_intensities_ = mti;
+  }
+
   double AccurateMassSearchResult::getIsotopesSimScore() const
   {
     return isotopes_sim_score_;
@@ -516,9 +529,6 @@ namespace OpenMS
     defaults_.setValue("isotopic_similarity", "false", "Computes a similarity score for each hit (only if the feature exhibits at least two isotopic mass traces).");
     defaults_.setValidStrings("isotopic_similarity", ListUtils::create<String>(("false,true")));
 
-    defaults_.setValue("report_mode", "all", "Results are reported in one of several modes: Either (all) matching hits, the (top3) scoring hits, or the (best) scoring hit.");
-    defaults_.setValidStrings("report_mode", ListUtils::create<String>(("all,top3,best")));
-
     defaults_.setValue("db:mapping", "CHEMISTRY/HMDBMappingFile.tsv", "Database input file, containing three tab-separated columns of mass, formula, identifier. "
                                                                       "If 'mass' is 0, it is re-computed from the molecular sum formula. "
                                                                       "By default CHEMISTRY/HMDBMappingFile.tsv in OpenMS/share is used! If empty, the default will be used.");
@@ -533,6 +543,10 @@ namespace OpenMS
                                                                                  "By default CHEMISTRY/NegativeAdducts.tsv in OpenMS/share is used! If empty, the default will be used.", ListUtils::create<String>("advanced"));
     defaults_.setValue("keep_unidentified_masses", "false", "Keep features that did not yield any DB hit.");
     defaults_.setValidStrings("keep_unidentified_masses", ListUtils::create<String>(("false,true")));
+
+    defaults_.setValue("mzTab:exportIsotopeIntensities", 0, "[featureXML input only] Number of extra columns in mzTab output, which provide intensities up to the x'th isotope. '0' to deactivate, '1' for monoisotopic peak, etc. If a feature does not have a certain isotope, 'null' will be reported.");
+    defaults_.setMinInt("mzTab:exportIsotopeIntensities", 0);
+
 
     defaultsToParam_();
   }
@@ -672,11 +686,27 @@ namespace OpenMS
 
     queryByMZ(feature.getMZ(), feature.getCharge(), ion_mode, results_part);
 
+    Size isotope_export = (Size)param_.getValue("mzTab:exportIsotopeIntensities");
+
     for (Size hit_idx = 0; hit_idx < results_part.size(); ++hit_idx)
     {
       results_part[hit_idx].setObservedRT(feature.getRT());
       results_part[hit_idx].setSourceFeatureIndex(feature_index);
       results_part[hit_idx].setObservedIntensity(feature.getIntensity());
+      
+      std::vector<double> mti;
+      if (isotope_export > 0)
+      {
+        for (Size i = 0; i < isotope_export; ++i)
+        {
+          if (feature.metaValueExists("masstrace_intensity_" + String(i)))
+          {
+            mti.push_back( feature.getMetaValue("masstrace_intensity_" + String(i)));
+          }
+        }
+        results_part[hit_idx].setMasstraceIntensities(mti);
+      }
+      
       // append
       results.push_back(results_part[hit_idx]);
     }
@@ -942,6 +972,8 @@ namespace OpenMS
     std::map<String, UInt> adduct_stats; // adduct --> # occurences
     std::map<String, std::set<Size> > adduct_stats_unique; // adduct --> # occurences (count each feature only once)
 
+    Size isotope_export = (Size)param_.getValue("mzTab:exportIsotopeIntensities");
+
     for (QueryResultsTable::const_iterator tab_it = overall_results.begin(); tab_it != overall_results.end(); ++tab_it)
     {
       // std::cout << tab_it->first << std::endl;
@@ -1160,6 +1192,26 @@ namespace OpenMS
           col2.first = "opt_global_isosim_score";
           col2.second = sim_score;
           optionals.push_back(col2);
+
+          // mass trace intensities (use NULL if not present)
+          if (isotope_export > 0)
+          {
+            for (Size int_idx = 0; int_idx < isotope_export; ++int_idx)
+            {
+              MzTabString trace_int; // implicitly NULL
+
+              if ((*tab_it)[hit_idx].getMasstraceIntensities().size() > int_idx)
+              {
+                double mt_int = (double)(*tab_it)[hit_idx].getMasstraceIntensities()[int_idx];
+                trace_int.set(mt_int);
+              }
+
+              MzTabOptionalColumnEntry col_mt;
+              col_mt.first = String("opt_global_MTint_") + int_idx;
+              col_mt.second = trace_int;
+              optionals.push_back(col_mt);
+            }    
+          }
 
           // set neutral mass
           MzTabString neutral_mass_string;
@@ -1447,22 +1499,6 @@ namespace OpenMS
     return (denom > 0.0) ? mixed_sum / denom : 0.0;
   }
 
-  double AccurateMassSearchEngine::computeEuclideanDist_( const std::vector<double>& x, const std::vector<double>& y ) const
-  {
-    if (x.size() != y.size())
-    {
-      return -100.0;
-    }
-
-    double sum_of_squares(0.0);
-
-    for (Size i = 0; i < x.size(); ++i)
-    {
-      sum_of_squares += (x[i] - y[i]) * (x[i] - y[i]);
-    }
-
-    return std::sqrt(sum_of_squares);
-  }
 
   double AccurateMassSearchEngine::computeIsotopePatternSimilarity_(const Feature& feat, const EmpiricalFormula& form) const
   {
@@ -1471,42 +1507,23 @@ namespace OpenMS
 
     Size common_size = std::min(num_traces, MAX_THEORET_ISOS);
 
+    // compute theoretical isotope distribution
     IsotopeDistribution iso_dist(form.getIsotopeDistribution((UInt)common_size));
-
-    // scale available peaks to 1
-    iso_dist.renormalize();
-    std::vector<double> normed_iso_ratios;
-    // std::cout << "theoret. iso: ";
-    for (IsotopeDistribution::ConstIterator iso_it = iso_dist.begin(); iso_it != (iso_dist.begin() + common_size); ++iso_it)
+    std::vector<double> theoretical_iso_dist;
+    for (IsotopeDistribution::ConstIterator iso_it = iso_dist.begin(); iso_it != iso_dist.end(); ++iso_it)
     {
-      normed_iso_ratios.push_back(iso_it->second);
-      // std::cout << temp_ratio << " ";
+      theoretical_iso_dist.push_back(iso_it->second);
     }
-
-    // std::cout << "\nact. iso: ";
     
     // same for observed isotope distribution
-    double max_feat_int((double)feat.getMetaValue("masstrace_intensity_0"));
-    std::vector<double> normed_feat_ratios;
+    std::vector<double> observed_iso_dist;
     for (Size int_idx = 0; int_idx < common_size; ++int_idx)
     {
       double mt_int = (double)feat.getMetaValue("masstrace_intensity_" + String(int_idx));
-      normed_feat_ratios.push_back(mt_int);
-
-      if (mt_int > max_feat_int)
-      {
-        max_feat_int = mt_int;
-      }
+      observed_iso_dist.push_back(mt_int);
     }
 
-    // normalize with max isotope intensity
-    for (Size int_idx = 0; int_idx < common_size; ++int_idx)
-    {
-      normed_feat_ratios[int_idx] /= max_feat_int;
-    }
-
-    return computeCosineSim_(normed_iso_ratios, normed_feat_ratios);
-    // return computeEuclideanDist_(normed_iso_ratios, normed_feat_ratios);
+    return computeCosineSim_(theoretical_iso_dist, observed_iso_dist);
   }
 
 } // closing namespace OpenMS

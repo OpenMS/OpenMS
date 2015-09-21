@@ -508,6 +508,11 @@ protected:
         return interpretation_list_.push_back(interpretation);
       }
 
+      void resetInterpretations()
+      {
+        return interpretation_list_.clear();
+      }
+
 private:
       int charge_;
       std::vector<Configuration> configuration_list_;

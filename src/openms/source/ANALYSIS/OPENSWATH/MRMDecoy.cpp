@@ -140,6 +140,8 @@ namespace OpenMS
         bionseries_loss["b" + String(i) + "-34" + "^" + String(charge)] = pos - neutralloss_nh3nh3.getMonoWeight()/charge;
         bionseries_loss["b" + String(i) + "-35" + "^" + String(charge)] = pos - neutralloss_h2onh3.getMonoWeight()/charge;
         bionseries_loss["b" + String(i) + "-36" + "^" + String(charge)] = pos - neutralloss_h2oh2o.getMonoWeight()/charge;
+        bionseries_loss["b" + String(i) + "-44" + "^" + String(charge)] = pos - neutralloss_co2.getMonoWeight()/charge;
+        bionseries_loss["b" + String(i) + "-46" + "^" + String(charge)] = pos - neutralloss_hccoh.getMonoWeight()/charge;
         if (sequence.toString().find("N")!=std::string::npos || sequence.toString().find("Q")!=std::string::npos)
         // This hack is implemented to enable the annotation of residue specific modifications in the decoy fragments.
         // If the function is used for generic annotation, use ion.toString() instead of sequence.toString().
@@ -535,9 +537,9 @@ namespace OpenMS
     // Go through all peptides and apply the decoy method to the sequence
     // (pseudo-reverse, reverse or shuffle). Then set the peptides and proteins of the decoy
     // experiment.
-    for (Size i = 0; i < exp.getPeptides().size(); i++)
+    for (Size pep_idx = 0; pep_idx < exp.getPeptides().size(); ++pep_idx)
     {
-      OpenMS::TargetedExperiment::Peptide peptide = exp.getPeptides()[i];
+      OpenMS::TargetedExperiment::Peptide peptide = exp.getPeptides()[pep_idx];
       // continue if the peptide has C/N terminal modifications and we should exclude them
       if (remove_CNterminal_mods && MRMDecoy::has_CNterminal_mods(peptide)) {continue;}
       peptide.id = decoy_tag + peptide.id;
@@ -559,9 +561,9 @@ namespace OpenMS
       {
         peptide = MRMDecoy::shufflePeptide(peptide, identity_threshold, -1, max_attempts);
       }
-      for (Size i = 0; i < peptide.protein_refs.size(); i++)
+      for (Size prot_idx = 0; prot_idx < peptide.protein_refs.size(); ++prot_idx)
       {
-        peptide.protein_refs[i] = decoy_tag + peptide.protein_refs[i];
+        peptide.protein_refs[prot_idx] = decoy_tag + peptide.protein_refs[prot_idx];
       }
 
       if (MRMDecoy::AASequenceIdentity(original_sequence, peptide.sequence) > identity_threshold)
@@ -610,6 +612,12 @@ namespace OpenMS
       {
         setProgress(++progress);
         const ReactionMonitoringTransition tr = *(pep_it->second[i]);
+
+        if (tr.getDecoyTransitionType() == ReactionMonitoringTransition::DECOY)
+        {
+          continue;
+        }
+
         ReactionMonitoringTransition decoy_tr = tr; // copy the target transition
 
         decoy_tr.setNativeID(decoy_tag + tr.getNativeID());

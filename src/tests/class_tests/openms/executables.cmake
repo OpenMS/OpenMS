@@ -86,6 +86,7 @@ set(metadata_executables_list
   MassAnalyzer_test
   MetaInfoDescription_test
   MetaInfoInterface_test
+  MetaInfoInterfaceUtils_test
   MetaInfoRegistry_test
   MetaInfo_test
   Modification_test
@@ -206,6 +207,7 @@ set(format_executables_list
   PepNovoOutfile_test
   PepXMLFileMascot_test
   PepXMLFile_test
+  PercolatorOutfile_test
   ProtXMLFile_test
   SVOutStream_test
   SemanticValidator_test
@@ -251,6 +253,7 @@ set(math_executables_list
   PosteriorErrorProbabilityModel_test
   #QuadraticRegression_test
   #RegressionUtils_test
+  RANSAC_test
   ROCCurve_test
   StatisticFunctions_test
   #Spline2d_test
@@ -264,6 +267,7 @@ set(filtering_executables_list
   ElutionPeakDetection_test
   FeatureFindingMetabo_test
   FilterFunctor_test
+  FastLowessSmoothing_test
   GaussFilter_test
   GaussFilterAlgorithm_test
   GoodDiffFilter_test
@@ -341,7 +345,10 @@ set(chemistry_executables_list
   ElementDB_test
   Element_test
   EmpiricalFormula_test
+  EnzymaticDigestionLogModel_test
   EnzymaticDigestion_test
+  Enzyme_test
+  EnzymesDB_test
   FastaIteratorIntern_test
   FastaIterator_test
   IsotopeDistribution_test
@@ -383,7 +390,12 @@ set(analysis_executables_list
   CompNovoIonScoringCID_test
   CompNovoIonScoring_test
   ConfidenceScoring_test
-  ConsensusID_test
+  ConsensusIDAlgorithmAverage_test
+  ConsensusIDAlgorithmBest_test
+  ConsensusIDAlgorithmPEPIons_test
+  ConsensusIDAlgorithmPEPMatrix_test
+  ConsensusIDAlgorithmRanks_test
+  ConsensusIDAlgorithmWorst_test
   ConsensusMapNormalizerAlgorithmThreshold_test
   ConsensusMapNormalizerAlgorithmMedian_test
   ConsensusMapNormalizerAlgorithmQuantile_test
@@ -427,7 +439,6 @@ set(analysis_executables_list
   MapAlignmentAlgorithmIdentification_test
   MapAlignmentAlgorithmPoseClustering_test
   MapAlignmentAlgorithmSpectrumAlignment_test
-  MapAlignmentAlgorithm_test
   MapAlignmentEvaluationAlgorithmPrecision_test
   MapAlignmentEvaluationAlgorithmRecall_test
   MapAlignmentEvaluationAlgorithm_test
@@ -550,7 +561,9 @@ set(simulation_executables_list
 
 if(NOT DISABLE_OPENSWATH)
   set(swath_executables_list
+    MRMAssay_test
     MRMDecoy_test
+    MRMIonSeries_test
     MRMRTNormalizer_test
     TransitionTSVReader_test
     ChromatogramExtractor_test

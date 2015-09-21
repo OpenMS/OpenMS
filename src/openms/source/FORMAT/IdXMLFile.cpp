@@ -37,7 +37,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
-
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 #include <iostream>
 #include <fstream>
 #include <limits>
@@ -159,7 +159,7 @@ namespace OpenMS
       }
       else if (params[i].enzyme == ProteinIdentification::UNKNOWN_ENZYME)
       {
-        os << "enzyme=\"unknown_enzyme\" ";
+        os << "enzyme=\"" << params[i].digestion_enzyme.getName() << "\" "; // os << "enzyme=\"unknown_enzyme\" ";
       }
       os << "missed_cleavages=\"" << params[i].missed_cleavages << "\" "
          << "precursor_peak_tolerance=\"" << params[i].precursor_tolerance << "\" "
@@ -456,6 +456,10 @@ namespace OpenMS
       //enzyme
       String enzyme;
       optionalAttributeAsString_(enzyme, attributes, "enzyme");
+      if (EnzymesDB::getInstance()->hasEnzyme(enzyme))
+      {
+        param_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme);
+      }
       if (enzyme == "trypsin")
       {
         param_.enzyme = ProteinIdentification::TRYPSIN;

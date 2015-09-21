@@ -6,6 +6,7 @@ set(sources_list
 GaussFilter.cpp
 GaussFilterAlgorithm.cpp
 LowessSmoothing.cpp
+FastLowessSmoothing.cpp
 SavitzkyGolayFilter.cpp
 )
 

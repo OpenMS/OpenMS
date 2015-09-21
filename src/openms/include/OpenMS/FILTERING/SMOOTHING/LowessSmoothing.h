@@ -43,9 +43,16 @@ namespace OpenMS
   /**
     @brief LOWESS (locally weighted scatterplot smoothing).
 
-    A smoothing technique that fits simple models (linear, quadratic) to localized subsets of the data, point by point.
-    This is particularly useful for smoothing intensities in spectra or chromatograms. In this case, the window size for the smoothing
+    A smoothing technique that a quadratic model to localized subsets of the
+    data, point by point.
+
+    This is particularly useful for smoothing intensities in spectra or
+    chromatograms. In this case, the window size for the smoothing
     should be set proportional to the peak width (see LowessSmoothing parameters).
+
+    Note that this should work best for few datapoints that have strong
+    non-linear behavior. For large datasets with mostly linear behavior, use
+    FastLowessSmoothing
 
     @htmlinclude OpenMS_LowessSmoothing.parameters
 

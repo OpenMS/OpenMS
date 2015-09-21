@@ -59,6 +59,7 @@ NoiseFilterGaussian
 NoiseFilterSGolay
 OMSSAAdapter
 OpenSwathAnalyzer
+OpenSwathAssayGenerator
 OpenSwathChromatogramExtractor
 OpenSwathConfidenceScoring
 OpenSwathDecoyGenerator

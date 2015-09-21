@@ -28,30 +28,38 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Sven Nahnsen $
-// $Authors: Sven Nahnsen and others$
+// $Maintainer: Hendrik Weisser $
+// $Authors: Sven Nahnsen, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+
+#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPMatrix.h>
+#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPIons.h>
+#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmBest.h>
+#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmWorst.h>
+#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmAverage.h>
+#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmRanks.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/ANALYSIS/ID/ConsensusID.h>
 
 using namespace OpenMS;
 using namespace std;
 
 //-------------------------------------------------------------
-//Doxygen docu
+// Doxygen docu
 //-------------------------------------------------------------
 
 /**
     @page TOPP_ConsensusID ConsensusID
 
-    @brief Computes a consensus identification from peptide identification engines.
+    @brief Computes a consensus from results of multiple peptide identification engines.
 
     <CENTER>
     <table>
@@ -61,11 +69,11 @@ using namespace std;
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
         </tr>
         <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=3> @ref TOPP_FalseDiscoveryRate </td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDPosteriorErrorProbability </td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=3> @ref TOPP_PeptideIndexer </td>
         </tr>
         <tr>
-          <td VALIGN="middle" ALIGN="center" ROWSPAN=1> @ref TOPP_IDPosteriorErrorProbability </td>
+          <td VALIGN="middle" ALIGN="center" ROWSPAN=1> @ref TOPP_IDFilter </td>
         </tr>
         <tr>
           <td VALIGN="middle" ALIGN="center" ROWSPAN=1> @ref TOPP_IDMapper </td>
@@ -73,61 +81,65 @@ using namespace std;
     </table>
     </CENTER>
 
-    This implementation (for PEPMatrix and PEPIons) is described in
-    <p>
-    Nahnsen S, Bertsch A, Rahnenfuehrer J, Nordheim A, Kohlbacher O<br>
-    Probabilistic Consensus Scoring Improves Tandem Mass Spectrometry Peptide Identification<br>
-    Journal of Proteome Research (2011), DOI: 10.1021/pr2002879<br>
-    </p>
+    <B>Reference:</B>
 
-    The input file can contain several searches, e.g., from several identification engines. In order
-    to use the PEPMatrix or the PEPIons algorithm, posterior
-    error probabilities (PEPs) need to be calculated using the @ref TOPP_IDPosteriorErrorProbability tool
-    for all individual search engines. After PEP calculation, the different search engine results
-    have to be combined using @ref TOPP_IDMerger. Identification runs can be mapped
-    to featureXML and consensusXML with the @ref TOPP_IDMapper tool. The merged file can now be fed into
-    into the @ref TOPP_ConsensusID tool. For the statistical assessment of the results it is recommended
-    to use target-decoy databases for peptide identifications. The false discovery rates (FDRs) can be
-    calculated using the @ref TOPP_FalseDiscoveryRate tool.
+    Nahnsen <em>et al.</em>: <a href="http://dx.doi.org/10.1021/pr2002879">Probabilistic consensus scoring improves tandem mass spectrometry peptide identification</a> (J. Proteome Res., 2011, PMID: 21644507).
+
+    <B>Algorithms:</B>
+
+    ConsensusID offers several algorithms that can aggregate results from multiple peptide identification engines ("search engines") into consensus identifications - typically one per MS2 spectrum. This works especially well for search engines that provide more than one peptide hit per spectrum, i.e. that report not just the best hit, but also a list of runner-up candidates with corresponding scores.
+
+    The available algorithms are (see also @ref OpenMS::ConsensusIDAlgorithm and its subclasses):
+    @li @p PEPMatrix: Scoring based on posterior error probabilities (PEPs) and peptide sequence similarities. This algorithm uses a substitution matrix to score the similarity of sequences not listed by all search engines. It requires PEPs as the scores for all peptide hits.
+    @li @p PEPIons: Scoring based on posterior error probabilities (PEPs) and fragment ion similarities ("shared peak count"). This algorithm, too, requires PEPs as scores.
+    @li @p best: For each peptide ID, this uses the best score of any search engine as the consensus score. All peptide IDs must have the same score type.
+    @li @p worst: For each peptide ID, this uses the worst score of any search engine as the consensus score. All peptide IDs must have the same score type.
+    @li @p average: For each peptide ID, this uses the average score of all search engines as the consensus score. Again, all peptide IDs must have the same score type.
+    @li @p ranks: Calculates a consensus score based on the ranks of peptide IDs in the results of different search engines. The final score is in the range (0, 1], with 1 being the best score. The input peptide IDs do not need to have the same score type.
+
+    PEPs for search results can be calculated using the @ref TOPP_IDPosteriorErrorProbability tool, which supports a variety of search engines.
+
+    @note Important: All protein-level identification results will be lost by applying ConsensusID. (It is unclear how potentially conflicting protein-level results from different search engines should be combined.) If necessary, run the @ref TOPP_PeptideIndexer tool to add protein references for peptides again.
+
+    @note Peptides with different post-translational modifications (PTMs), or with different site localizations of the same PTMs, are treated as different peptides by all algorithms. However, a qualification applies for the @p PEPMatrix algorithm: The similarity scoring method used there can only take unmodified peptide sequences into account, so PTMs are ignored during that step. However, the PTMs are not removed from the peptides, and there will be separate results for differently-modified peptides.
+
+    <B>File types:</B>
+
+    Different input files types are supported:
+    @li idXML: A file containing multiple identification runs, typically from different search engines. Use @ref TOPP_IDMerger to merge individual idXML files from different search runs into one. During the ConsensusID analysis, the identification results will be grouped according to their originating MS2 spectra, based on retention time and precursor m/z information (see parameters @p rt_delta and @p mz_delta). One consensus identification will be generated for each group.
+    @li featureXML or consensusXML: Given (consensus) features annotated with peptide identifications from multiple search runs, one consensus identification is created for every annotated feature. Peptide identifications not assigned to features are not considered and will be removed. See @ref TOPP_IDMapper for the task of mapping peptide identifications to feature maps or consensus maps.
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
+    <B>Filtering:</B>
+
+    Generally, search results can be filtered according to various criteria using @ref TOPP_IDFilter before (or after) applying this tool. ConsensusID itself offers only a limited number of filtering options that are especially useful in its context (see the @p filter parameter section):
+    @li @p considered_hits: Limits the number of alternative peptide hits considered per spectrum/feature for each identification run. This helps to reduce runtime, especially for the @p PEPMatrix and @p PEPIons algorithms, which involve costly "all vs. all" comparisons of peptide hits.
+    @li @p min_support: This allows filtering of peptide hits based on agreement between search engines. Every peptide sequence in the analysis has been identified by at least one search run. This parameter defines which fraction (between 0 and 1) of the remaining search runs must "support" a peptide identification that should be kept. The meaning of "support" differs slightly between algorithms: For @p best, @p worst, @p average and @p rank, each search run supports peptides that it has also identified among its top @p considered_hits candidates. So @p min_support simply gives the fraction of additional search engines that must have identified a peptide. (For example, if there are three search runs, and only peptides identified by at least two of them should be kept, set @p min_support to 0.5.) For the similarity-based algorithms @p PEPMatrix and @p PEPIons, the "support" for a peptide is the average similarity of the most-similar peptide from each (other) search run. (In the context of the JPR publication, this is the average of the similarity scores used in the consensus score calculation for a peptide.)
+    @li @p count_empty: Typically not all search engines will provide results for all searched MS2 spectra. This parameter determines whether search runs that provided no results should be counted in the "support" calculation; by default, they are ignored.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_ConsensusID.cli
     <B>INI file documentation of this tool:</B>
     @htmlinclude TOPP_ConsensusID.html
 
-    For the parameters of the algorithm section see the algorithms documentation: @n
-    @ref OpenMS::ConsensusID "Consensus algorithm" @n
 */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
-
-//Helper class
-struct IDData
-{
-  double mz;
-  double rt;
-  String sourcefile;
-  vector<PeptideIdentification> ids;
-};
 
 class TOPPConsensusID :
   public TOPPBase
 {
 public:
   TOPPConsensusID() :
-    TOPPBase("ConsensusID", "Computes a consensus identification from peptide identifications of several identification engines.")
+    TOPPBase("ConsensusID", "Computes a consensus of peptide identifications of several identification engines.")
   {
   }
 
 protected:
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
-  {
-    return ConsensusID().getDefaults();
-  }
+  String algorithm_; // algorithm for consensus calculation (input parameter)
 
   void registerOptionsAndFlags_()
   {
@@ -137,39 +149,149 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("idXML,featureXML,consensusXML"));
 
     addEmptyLine_();
-    registerDoubleOption_("rt_delta", "<value>", 0.1, "Maximum allowed precursor RT deviation between identifications.", false);
+    registerDoubleOption_("rt_delta", "<value>", 0.1, "[idXML input only] Maximum allowed retention time deviation between identifications belonging to the same spectrum.", false);
     setMinFloat_("rt_delta", 0.0);
-    registerDoubleOption_("mz_delta", "<value>", 0.1, "Maximum allowed precursor m/z deviation between identifications.", false);
+    registerDoubleOption_("mz_delta", "<value>", 0.1, "[idXML input only] Maximum allowed precursor m/z deviation between identifications belonging to the same spectrum.", false);
     setMinFloat_("mz_delta", 0.0);
-    registerIntOption_("min_length", "<value>", 6, "Minimum of length of peptides for final consensus list", false);
-    setMinInt_("min_length", 1);
-    registerFlag_("use_all_hits", "If 'true' not only the first hit, but all are used (peptides only)");
 
-    registerSubsection_("algorithm", "Consensus algorithm section");
+    // General algorithm parameters are defined in the abstract base class
+    // "ConsensusIDAlgorithm", but we can't get them from there because we can't
+    // instantiate the class. So we get those parameters from a subclass that
+    // doesn't add any other parameters:
+    registerTOPPSubsection_("filter", "Options for filtering peptide hits");
+    registerFullParam_(ConsensusIDAlgorithmBest().getDefaults());
+
+    registerStringOption_("algorithm", "<choice>", "PEPMatrix",
+                          "Algorithm used for consensus scoring.\n"
+                          "* PEPMatrix: Scoring based on posterior error probabilities (PEPs) and peptide sequence similarities (scored by a substitution matrix). Requires PEPs as scores.\n"
+                          "* PEPIons: Scoring based on posterior error probabilities (PEPs) and fragment ion similarities ('shared peak count'). Requires PEPs as scores.\n"
+                          "* best: For each peptide ID, use the best score of any search engine as the consensus score. Requires the same score type in all ID runs.\n"
+                          "* worst: For each peptide ID, use the worst score of any search engine as the consensus score. Requires the same score type in all ID runs.\n"
+                          "* average:  For each peptide ID, use the average score of all search engines as the consensus. Requires the same score type in all ID runs.\n"
+                          "* ranks: Calculates a consensus score based on the ranks of peptide IDs in the results of different search engines. The final score is in the range (0, 1], with 1 being the best score. No requirements about score types.", false);
+    setValidStrings_("algorithm", ListUtils::create<String>("PEPMatrix,PEPIons,best,worst,average,ranks"));
+
+    // subsections appear in alphabetical (?) order, independent of the order
+    // in which they were registered:
+    registerSubsection_("PEPIons", "PEPIons algorithm parameters");
+    registerSubsection_("PEPMatrix", "PEPMatrix algorithm parameters");
   }
 
-  ExitCodes main_(int, const char **)
+
+  Param getSubsectionDefaults_(const String& section) const
+  {
+    Param algo_params;
+    if (section == "PEPMatrix")
+    {
+      algo_params = ConsensusIDAlgorithmPEPMatrix().getDefaults();
+    }
+    else // section == "PEPIons"
+    {
+      algo_params = ConsensusIDAlgorithmPEPIons().getDefaults();
+    }
+    // remove parameters defined in the base class (to avoid duplicates):
+    algo_params.remove("filter:");
+    return algo_params;
+  }
+
+
+  void setProteinIdentifications_(vector<ProteinIdentification>& prot_ids)
+  {
+    prot_ids.clear();
+    prot_ids.resize(1);
+    prot_ids[0].setDateTime(DateTime::now());
+    prot_ids[0].setSearchEngine("OpenMS/ConsensusID_" + algorithm_);
+    prot_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
+  }
+
+  
+  template <typename MapType>
+  void processFeatureOrConsensusMap_(MapType& input_map,
+                                     ConsensusIDAlgorithm* consensus)
+  {
+    // Problem with feature data: IDs from multiple spectra may be attached to
+    // a (consensus) feature, so we may have multiple IDs from the same search
+    // engine. This means that we can't just use the number of search runs as
+    // our "baseline" for the number of identifications (parameter
+    // "number_of_runs")! To work around this, we multiply the number of
+    // different ID runs with the max. number of times we see the same ID run
+    // in the annotations of a feature.
+
+    map<String, Size> id_mapping; // mapping: run ID -> index
+    Size number_of_runs = input_map.getProteinIdentifications().size();
+    for (Size i = 0; i < number_of_runs; ++i)
+    {
+      id_mapping[input_map.getProteinIdentifications()[i].getIdentifier()] = i;
+    }
+
+    // compute consensus:
+    for (typename MapType::Iterator map_it = input_map.begin();
+         map_it != input_map.end(); ++map_it)
+    {
+      vector<PeptideIdentification>& ids = map_it->getPeptideIdentifications();
+      vector<Size> times_seen(number_of_runs);
+      for (vector<PeptideIdentification>::iterator pep_it = ids.begin(); 
+           pep_it != ids.end(); ++pep_it)
+      {
+        ++times_seen[id_mapping[pep_it->getIdentifier()]];
+      }
+      Size n_repeats = *max_element(times_seen.begin(), times_seen.end());
+
+      consensus->apply(ids, number_of_runs * n_repeats);
+    }
+
+    // create new identification run:
+    setProteinIdentifications_(input_map.getProteinIdentifications());
+    // remove outdated information (protein references will be broken):
+    input_map.getUnassignedPeptideIdentifications().clear();
+  }
+
+
+  ExitCodes main_(int, const char**)
   {
     String in = getStringOption_("in");
     FileTypes::Type in_type = FileHandler::getType(in);
     String out = getStringOption_("out");
-    bool use_all_hits(getFlag_("use_all_hits"));
-
     double rt_delta = getDoubleOption_("rt_delta");
     double mz_delta = getDoubleOption_("mz_delta");
-    UInt min_length = getIntOption_("min_length");
 
     //----------------------------------------------------------------
-    //set up ConsensusID
+    // set up ConsensusID
     //----------------------------------------------------------------
-    ConsensusID consensus;
-    Param alg_param = getParam_().copy("algorithm:", true);
-    if (alg_param.empty())
+    ConsensusIDAlgorithm* consensus;
+    // general algorithm parameters:
+    Param algo_params = ConsensusIDAlgorithmBest().getDefaults();
+    algorithm_ = getStringOption_("algorithm");
+    if (algorithm_ == "PEPMatrix")
     {
-      writeLog_("No parameters for ConsensusID given. Aborting!");
-      return ILLEGAL_PARAMETERS;
+      consensus = new ConsensusIDAlgorithmPEPMatrix();
+      // add algorithm-specific parameters:
+      algo_params.merge(getParam_().copy("PEPMatrix:", true));
     }
-    writeDebug_("Parameters passed to ConsensusID (without number of runs)", alg_param, 3);
+    else if (algorithm_ == "PEPIons")
+    {
+      consensus = new ConsensusIDAlgorithmPEPIons();
+      // add algorithm-specific parameters:
+      algo_params.merge(getParam_().copy("PEPIons:", true));
+    }
+    else if (algorithm_ == "best")
+    {
+      consensus = new ConsensusIDAlgorithmBest();
+    }
+    else if (algorithm_ == "worst")
+    {
+      consensus = new ConsensusIDAlgorithmWorst();
+    }
+    else if (algorithm_ == "average")
+    {
+      consensus = new ConsensusIDAlgorithmAverage();
+    }
+    else // algorithm_ == "ranks"
+    {
+      consensus = new ConsensusIDAlgorithmRanks();
+    }
+    algo_params.update(getParam_(), false, Log_debug); // update general params.
+    consensus->setParameters(algo_params);
 
     //----------------------------------------------------------------
     // idXML
@@ -181,177 +303,90 @@ protected:
       String document_id;
       IdXMLFile().load(in, prot_ids, pep_ids, document_id);
 
-      // merge peptide ids by precursor position
-      // Sven: Ideally one should merge all peptide hits from the different peptide identifications and keep the the information on the identification runs as a meta value
-      vector<IDData> prec_data, final;
-      for (vector<PeptideIdentification>::iterator pep_id_it = pep_ids.begin(); pep_id_it != pep_ids.end(); ++pep_id_it)
+      // merge peptide IDs by precursor position - this is equivalent to a
+      // feature linking problem (peptide IDs from different ID runs <-> 
+      // features from different maps), so we bring the data into a format
+      // suitable for a feature grouping algorithm:
+      vector<FeatureMap> maps(prot_ids.size());
+      map<String, Size> id_mapping; // mapping: run ID -> index (of feature map)
+      for (Size i = 0; i < prot_ids.size(); ++i)
       {
-        pep_id_it->assignRanks();
-        PeptideIdentification pep_copy = *pep_id_it;             // copy, for modifying it later
-        String file_origin = (String)pep_id_it->getMetaValue("file_origin");
-        String scoring = (String)pep_id_it->getIdentifier();
+        id_mapping[prot_ids[i].getIdentifier()] = i;
+      }
 
-        if (!pep_id_it->hasRT() || !pep_id_it->hasMZ())
+      for (vector<PeptideIdentification>::iterator pep_it = pep_ids.begin();
+           pep_it != pep_ids.end(); ++pep_it)
+      {
+        String run_id = pep_it->getIdentifier();
+        if (!pep_it->hasRT() || !pep_it->hasMZ())
         {
-          LOG_ERROR << "Peptide  " << pep_id_it->getIdentifier() << " with first hit of score:" << pep_id_it->getHits()[0].getScore() << ", seq:" << pep_id_it->getHits()[0].getSequence() << " does NOT have ("
-                    << (!pep_id_it->hasRT() ? " RT " : "") << (!pep_id_it->hasMZ() ? " MZ " : "") << ") information!\n"
-                    << "Check the tool that generated the input-idXML. Did you use a new (unsupported) version of a search-engine (in e.g. OMSSAAdapter)? Aborting!" << std::endl;
+          LOG_FATAL_ERROR << "Peptide ID without RT and/or m/z information found in identification run '" + run_id + "'.\nMake sure that this information is included for all IDs when generating/converting search results. Aborting!" << endl;
           return INCOMPATIBLE_INPUT_DATA;
         }
 
-        double rt = pep_id_it->getRT();
-        double mz = pep_id_it->getMZ();
-        writeDebug_(String("  ID: ") + rt + " / " + mz, 4);
-        vector<IDData>::iterator pos = prec_data.begin();
-        while (pos != prec_data.end())
-        {
-          if (fabs(pos->rt - rt) < rt_delta && fabs(pos->mz - mz) < mz_delta && pos->sourcefile == file_origin)
-          {
-            break;
-          }
-          ++pos;
-        }
-        // correct position was found => append ids
-        if (pos != prec_data.end())
-        {
-          writeDebug_(String("    Appending IDs to precursor: ") + pos->rt + " / " + pos->mz, 4);
-          //write information on search engine
-          vector<PeptideHit> hits;
-          for (vector<PeptideHit>::const_iterator pit = pep_copy.getHits().begin(); pit != pep_copy.getHits().end(); ++pit)
-          {
-            PeptideHit hit = *pit;
-            if (hit.getSequence().size() >= min_length)
-            {
-              if (hit.metaValueExists("scoring"))
-              {
-                String meta_value = (String)hit.getMetaValue("scoring");
-              }
-              hit.setMetaValue("scoring", pep_id_it->getIdentifier());
-              hits.push_back(hit);
-              if (!use_all_hits || pit->getScore() > 0.98)
-              {
-                break;
-              }
-            }
-          }
-          pep_copy.setHits(hits);
-          pos->sourcefile = file_origin;
-          pos->ids.push_back(pep_copy);
-        }
-        //insert new entry
-        else
-        {
-          IDData tmp;
-          tmp.mz = mz;
-          tmp.rt = rt;
-          tmp.sourcefile = file_origin;
-          vector<PeptideHit> hits;
-          for (vector<PeptideHit>::const_iterator pit = pep_copy.getHits().begin(); pit != pep_copy.getHits().end(); ++pit)
-          {
-            PeptideHit hit = *pit;
-            if (hit.getSequence().size() >= min_length)
-            {
-              /*if (hit.metaValueExists("scoring"))
-              {
-                String meta_value = (String)hit.getMetaValue("scoring");
-              }*/
-              hit.setMetaValue("scoring", pep_id_it->getIdentifier());
-              hits.push_back(hit);
-              if (!use_all_hits || pit->getScore() > 0.98)
-              {
-                break;
-              }
-            }
-            //cout << pep_id_it->getIdentifier() << endl;
-          }
-          if (hits.size()==0) continue; // hit did not pass the filter
-          pep_copy.setHits(hits);
-          tmp.ids.push_back(pep_copy);
-          prec_data.push_back(tmp);
-          writeDebug_(String("    Inserting new precursor: ") + tmp.rt + " / " + tmp.mz, 4);
-        }
+        Feature feature;
+        feature.setRT(pep_it->getRT());
+        feature.setMZ(pep_it->getMZ());
+        feature.getPeptideIdentifications().push_back(*pep_it);
+        maps[id_mapping[run_id]].push_back(feature);
       }
-      //iterate over prec_data and write to final only one peptide identification per rt mz
-
-      for (vector<IDData>::iterator fin = prec_data.begin(); fin != prec_data.end(); ++fin)
+      // precondition for "FeatureGroupingAlgorithmQT::group":
+      for (vector<FeatureMap>::iterator map_it = maps.begin();
+           map_it != maps.end(); ++map_it)
       {
-        IDData tmp;
-        tmp.mz = fin->mz;
-        tmp.rt = fin->rt;
-        tmp.sourcefile = fin->sourcefile;
-        vector<PeptideHit> P;
-        PeptideIdentification t;
-        vector<PeptideIdentification>::iterator tt = fin->ids.begin();
-        t.setScoreType(tt->getScoreType());
-        t.setHigherScoreBetter(tt->isHigherScoreBetter());
-
-        for (; tt != fin->ids.end(); ++tt)
-        {
-          for (vector<PeptideHit>::const_iterator pit = tt->getHits().begin(); pit != tt->getHits().end(); ++pit)
-          {
-            P.push_back(*pit);
-          }
-        }
-        t.setHits(P);
-        tmp.ids.push_back(t);
-        final.push_back(tmp);
+        map_it->updateRanges();
       }
 
+      FeatureGroupingAlgorithmQT linker;
+      Param linker_params = linker.getDefaults();
+      linker_params.setValue("use_identifications", "false");
+      linker_params.setValue("ignore_charge", "true");
+      linker_params.setValue("distance_RT:max_difference", rt_delta);
+      linker_params.setValue("distance_MZ:max_difference", mz_delta);
+      linker_params.setValue("distance_MZ:unit", "Da");
+      linker.setParameters(linker_params);
+
+      ConsensusMap grouping;
+      linker.group(maps, grouping);
 
       // compute consensus
-      alg_param.setValue("number_of_runs", (UInt)prot_ids.size());
-      consensus.setParameters(alg_param);
-      for (vector<IDData>::iterator it = final.begin(); it != final.end(); ++it)
-      {
-        writeDebug_(String("Calculating consensus for : ") + it->rt + " / " + it->mz + " #peptide ids: " + it->ids.size(), 4);
-        consensus.apply(it->ids);
-      }
-
-      // writing output
       pep_ids.clear();
-      for (vector<IDData>::iterator it = final.begin(); it != final.end(); ++it)
+      for (ConsensusMap::Iterator it = grouping.begin(); it != grouping.end();
+           ++it)
       {
-        pep_ids.push_back(it->ids[0]);
-        pep_ids.back().setRT(it->rt);
-        pep_ids.back().setMZ(it->mz);
-        pep_ids.back().setMetaValue("file_origin", it->sourcefile);
+        consensus->apply(it->getPeptideIdentifications(), prot_ids.size());
+        if (!it->getPeptideIdentifications().empty())
+        {
+          PeptideIdentification& pep_id = it->getPeptideIdentifications()[0];
+          // hits may be empty due to filtering (parameter "min_support");
+          // in that case skip to avoid a warning from "IDXMLFile::store":
+          if (!pep_id.getHits().empty())
+          {
+            pep_id.setRT(it->getRT());
+            pep_id.setMZ(it->getMZ());
+            pep_ids.push_back(pep_id);
+          }
+        }
       }
 
       // create new identification run
-      vector<ProteinIdentification> prot_id_out(1);
-      prot_id_out[0].setDateTime(DateTime::now());
-      prot_id_out[0].setSearchEngine("OpenMS/ConsensusID");
-      prot_id_out[0].setSearchEngineVersion(VersionInfo::getVersion());
+      setProteinIdentifications_(prot_ids);
 
       // store consensus
-      IdXMLFile().store(out, prot_id_out, pep_ids);
+      IdXMLFile().store(out, prot_ids, pep_ids);
     }
+
 
     //----------------------------------------------------------------
     // featureXML
     //----------------------------------------------------------------
     if (in_type == FileTypes::FEATUREXML)
     {
-      //load map
       FeatureMap map;
       FeatureXMLFile().load(in, map);
 
-      //compute consensus
-      alg_param.setValue("number_of_runs", (UInt)map.getProteinIdentifications().size());
-      consensus.setParameters(alg_param);
-      for (Size i = 0; i < map.size(); ++i)
-      {
-        consensus.apply(map[i].getPeptideIdentifications());
-      }
+      processFeatureOrConsensusMap_(map, consensus);
 
-      //create new identification run
-      map.getProteinIdentifications().clear();
-      map.getProteinIdentifications().resize(1);
-      map.getProteinIdentifications()[0].setDateTime(DateTime::now());
-      map.getProteinIdentifications()[0].setSearchEngine("OpenMS/ConsensusID");
-      map.getProteinIdentifications()[0].setSearchEngineVersion(VersionInfo::getVersion());
-
-      //store consensus
       FeatureXMLFile().store(out, map);
     }
 
@@ -360,28 +395,15 @@ protected:
     //----------------------------------------------------------------
     if (in_type == FileTypes::CONSENSUSXML)
     {
-      //load map
       ConsensusMap map;
       ConsensusXMLFile().load(in, map);
 
-      //compute consensus
-      alg_param.setValue("number_of_runs", (UInt)map.getProteinIdentifications().size());
-      consensus.setParameters(alg_param);
-      for (Size i = 0; i < map.size(); ++i)
-      {
-        consensus.apply(map[i].getPeptideIdentifications());
-      }
+      processFeatureOrConsensusMap_(map, consensus);
 
-      //create new identification run
-      map.getProteinIdentifications().clear();
-      map.getProteinIdentifications().resize(1);
-      map.getProteinIdentifications()[0].setDateTime(DateTime::now());
-      map.getProteinIdentifications()[0].setSearchEngine("OpenMS/ConsensusID");
-      map.getProteinIdentifications()[0].setSearchEngineVersion(VersionInfo::getVersion());
-
-      //store consensus
       ConsensusXMLFile().store(out, map);
     }
+
+    delete consensus;
 
     return EXECUTION_OK;
   }
@@ -389,7 +411,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPConsensusID tool;
   return tool.main(argc, argv);

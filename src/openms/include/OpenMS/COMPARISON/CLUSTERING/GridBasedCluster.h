@@ -78,17 +78,17 @@ class OPENMS_DLLAPI GridBasedCluster
     /**
      * @brief returns cluster centre
      */
-    Point getCentre() const;
+    const Point& getCentre() const;
 
     /**
      * @brief returns bounding box
      */
-    Rectangle getBoundingBox() const;
+    const Rectangle& getBoundingBox() const;
 
     /**
      * @brief returns indices of points in cluster
      */
-    std::vector<int> getPoints() const;
+    const std::vector<int>& getPoints() const;
 
     /**
      * @brief returns property A
@@ -98,7 +98,7 @@ class OPENMS_DLLAPI GridBasedCluster
     /**
      * @brief returns properties B of all points
      */
-    std::vector<int> getPropertiesB() const;
+    const std::vector<int>& getPropertiesB() const;
     
     /**
      * @brief operators for comparisons

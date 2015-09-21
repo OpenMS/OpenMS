@@ -16,6 +16,7 @@ FuzzyDiff
 IDDecoyProbability
 IDExtractor
 IDMassAccuracy
+IDScoreSwitcher
 IDSplitter
 LabeledEval
 LowMemPeakPickerHiRes
@@ -23,6 +24,7 @@ LowMemPeakPickerHiRes_RandomAccess
 MapAlignmentEvaluation
 MassCalculator
 MetaboliteSpectralMatcher
+MetaProSIP
 MRMPairFinder
 MSSimulator
 OpenMSInfo

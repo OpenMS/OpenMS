@@ -29,13 +29,15 @@
 #
 # --------------------------------------------------------------------------
 # $Maintainer: Stephan Aiche $
-# $Authors: Stephan Aiche $
+# $Authors: Stephan Aiche, Chris Bielow $
 # --------------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
 project("OpenMS_tests")
 
 option(ENABLE_STYLE_TESTING "Enables checking of code convention violations (cpplint) and static code analysis (cppchecker). Note that this will disable the regular test system." OFF)
+option(ENABLE_TOPP_TESTING "Enables tests for TOPP/UTILS. Should be disabled only on time constraints (e.g. chunking during continuous integration)." ON)
+option(ENABLE_CLASS_TESTING "Enables tests for library classes. Should be disabled only on time constraints (e.g. chunking during continuous integration)." ON)
 option(ENABLE_PIPELINE_TESTING "Enables the additional testing of various TOPPAS pipelines when 'make test' is called." OFF)
 
 #------------------------------------------------------------------------------
@@ -45,10 +47,14 @@ if("${PACKAGE_TYPE}" STREQUAL "none")
     add_subdirectory(coding)
   else()
     ## configure the regular class ..
-    add_subdirectory(class_tests)
+    if(ENABLE_CLASS_TESTING)
+      add_subdirectory(class_tests)
+    endif()  
     # TOPP Test project ..
-    add_subdirectory(topp)
-    # and if requested also toppas pipeline tests
+    if(ENABLE_TOPP_TESTING)
+      add_subdirectory(topp)
+    endif()
+    # and if requested also TOPPAS pipeline tests
     if(ENABLE_PIPELINE_TESTING)
       add_subdirectory(toppas)
     endif()

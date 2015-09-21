@@ -140,7 +140,7 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerOutputFile_("mzid_out", "<file>", "", "Alternative output file (MS-GF+ parameter '-o')\nEither 'out' or 'mzid_out' are required. They can be used together.", false);
     setValidFormats_("mzid_out", ListUtils::create<String>("mzid"));
-    registerInputFile_("executable", "<file>", "", "MS-GF+ .jar file, e.g. 'c:\\program files\\MSGFPlus.jar'");
+    registerInputFile_("executable", "<file>", "MSGFPlus.jar", "MS-GF+ .jar file, e.g. 'c:\\program files\\MSGFPlus.jar'", true, false, ListUtils::create<String>("skipexists"));
     registerInputFile_("database", "<file>", "", "Protein sequence database (FASTA file; MS-GF+ parameter '-d'). Non-existing relative filenames are looked up via 'OpenMS.ini:id_db_dir'.", true, false, ListUtils::create<String>("skipexists"));
     setValidFormats_("database", ListUtils::create<String>("FASTA"));
 
@@ -180,7 +180,7 @@ protected:
     registerIntOption_("matches_per_spec", "<num>", 1, "Number of matches per spectrum to be reported (MS-GF+ parameter '-n')", false);
     setMinInt_("matches_per_spec", 1);
 
-    registerFlag_("add_features", "Output additional features (default: basic scores only; MS-GF+ parameter '-addFeatures')?", false);
+    registerFlag_("add_features", "Output additional features - needed e.g. by Percolator (default: basic scores only; MS-GF+ parameter '-addFeatures')", false);
 
     registerIntOption_("max_mods", "<num>", 2, "Maximum number of modifications per peptide. If this value is large, the search may take very long.", false);
     setMinInt_("max_mods", 0);
@@ -417,10 +417,17 @@ protected:
       writeLog_("Warning: Modifications are defined ('fixed_modifications'/'variable_modifications'), but the number of allowed modifications is zero ('max_mods'). Is that intended?");
     }
 
-    if (!JavaInfo::canRun("java"))
+    if (!getFlag_("force"))
     {
-      writeLog_("Fatal error: Java not found. Java is needed to run MS-GF+. Make sure that it can be executed by calling 'java', e.g. add the directory containing the Java binary to your PATH variable.");
-      return EXTERNAL_PROGRAM_ERROR;
+      if (!JavaInfo::canRun("java"))
+      {
+        writeLog_("Fatal error: Java not found, or the Java process timed out. Java is needed to run MS-GF+. Make sure that it can be executed by calling 'java', e.g. add the directory containing the Java binary to your PATH variable. If you are certain java is installed, please set the 'force' flag in order to avoid this error message.");
+        return EXTERNAL_PROGRAM_ERROR;
+      }
+    }
+    else
+    {
+      writeLog_("The installation of Java was not checked.");
     }
 
     // create temporary directory (and modifications file, if necessary):
@@ -455,6 +462,16 @@ protected:
     Int protocol_code = ListUtils::getIndex<String>(protocols_, getStringOption_("protocol"));
     Int tryptic_code = ListUtils::getIndex<String>(tryptic_, getStringOption_("tryptic"));
 
+    // Hack for KNIME. Looks for MSGFPLUS_PATH in the environment which is set in binaries.ini
+    QProcessEnvironment env;
+    String msgfpath = "MSGFPLUS_PATH";
+    QString qmsgfpath = env.systemEnvironment().value(msgfpath.toQString());
+
+    if (!qmsgfpath.isEmpty())
+    {
+      executable = qmsgfpath;
+    }
+
     QStringList process_params; // the actual process is Java, not MS-GF+!
     process_params << java_memory
                    << "-jar" << executable
@@ -487,6 +504,7 @@ protected:
     //-------------------------------------------------------------
 
     // run MS-GF+ process and create the .mzid file
+
     int status = QProcess::execute("java", process_params);
     if (status != 0)
     {

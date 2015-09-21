@@ -552,12 +552,12 @@ namespace OpenMS
           sip_ids.insert(std::pair<String, UInt64>(swcn, spid));
           sip_sdb.insert(std::make_pair(spid, dbid));
           sip_dates.insert(std::make_pair(spid, String(it->getDateTime().getDate() + "T" + it->getDateTime().getTime())));
-          String sdst(it->getMetaValue("spectra_data"));
-          if (sdst.empty())
+          String sdst_tmp(it->getMetaValue("spectra_data"));
+          if (sdst_tmp.empty())
           {
-            sdst = String("UNKNOWN");
+            sdst_tmp = String("UNKNOWN");
           }
-          spd_ref.insert(make_pair(spid, spd_ids[sdst])); //this part ist strongly connected to AnalysisCollection write part
+          spd_ref.insert(make_pair(spid, spd_ids[sdst_tmp])); //this part ist strongly connected to AnalysisCollection write part
         }
 
         for (std::vector<ProteinHit>::const_iterator jt = it->getHits().begin(); jt != it->getHits().end(); ++jt)

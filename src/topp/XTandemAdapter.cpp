@@ -44,6 +44,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 
 #include <QtCore/QFile>
 #include <QtCore/QProcess>
@@ -168,7 +169,10 @@ protected:
                        "X!Tandem executable of the installation e.g. 'tandem.exe'", true, false, ListUtils::create<String>("skipexists"));
     registerInputFile_("default_input_file", "<file>", "", "Default parameters input file, if not given default parameters are used", false);
     registerDoubleOption_("minimum_fragment_mz", "<num>", 150.0, "Minimum fragment mz", false);
-    registerStringOption_("cleavage_site", "<cleavage site>", "[RK]|{P}", "Cleavage site of the used enzyme as regular expression ([RK]|{P} (i.e. tryptic clevage) is default, [X]|[X] (i.e. every site, \"...reset the scoring, maximum missed cleavage site parameter to something like 50\" - from the xtandem documentation).", false);
+    vector<String> all_enzymes;
+    EnzymesDB::getInstance()->getAllXTandemNames(all_enzymes);
+    registerStringOption_("cleavage_site", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false);
+    setValidStrings_("cleavage_site", all_enzymes);
     registerStringOption_("output_results", "<result reporting>", "all", "Which hits should be reported. All, valid ones (passing the E-Ealue threshold), or stochastic (failing the threshold)", false);
     valid_strings.clear();
     valid_strings.push_back("all");
@@ -178,6 +182,7 @@ protected:
 
     registerDoubleOption_("max_valid_expect", "<E-Value>", 0.1, "Maximal E-Value of a hit to be reported (only evaluated if 'output_result' is 'valid' or 'stochastic'", false);
     registerFlag_("refinement", "Enable the refinement. For most applications (especially when using FDR, PEP approaches) it is NOT recommended to set this flag.");
+    registerFlag_("use_noise_suppression", "Enable the use of the noise suppression routines.");
     registerFlag_("semi_cleavage", "If set, both termini must NOT follow the cutting rule. For most applications it is NOT recommended to set this flag.");
   }
 
@@ -346,9 +351,11 @@ protected:
     infile.setTaxon("OpenMS_dummy_taxonomy");
     infile.setOutputResults(getStringOption_("output_results"));
     infile.setMaxValidEValue(getDoubleOption_("max_valid_expect"));
-    infile.setCleavageSite(getStringOption_("cleavage_site"));
+    String enzyme_name = getStringOption_("cleavage_site");
+    infile.setCleavageSite(EnzymesDB::getInstance()->getEnzyme(enzyme_name)->getXTANDEMid());
     infile.setNumberOfMissedCleavages(getIntOption_("missed_cleavages"));
     infile.setRefine(getFlag_("refinement"));
+    infile.setNoiseSuppression(getFlag_("use_noise_suppression"));
     infile.setSemiCleavage(getFlag_("semi_cleavage"));
     bool allow_isotope_error = getStringOption_("allow_isotope_error") == "yes" ? true : false;
     infile.setAllowIsotopeError(allow_isotope_error);
@@ -427,7 +434,7 @@ protected:
     search_parameters.missed_cleavages = getIntOption_("missed_cleavages");
     search_parameters.peak_mass_tolerance = getDoubleOption_("fragment_mass_tolerance");
     search_parameters.precursor_tolerance = getDoubleOption_("precursor_mass_tolerance");
-
+    search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_name);
     protein_id.setSearchParameters(search_parameters);
     protein_id.setSearchEngineVersion("");
     protein_id.setSearchEngine("XTandem");

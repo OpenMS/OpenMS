@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl, Andreas Bertsch $
-// $Authors: Clemens Groepl, Andreas Bertsch $
+// $Maintainer: Chris Bielow $
+// $Authors: Clemens Groepl, Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_H
@@ -201,6 +201,9 @@ protected:
 
     /// convolves the distribution @p input with itself and stores the result in @p result
     void convolveSquare_(ContainerType & result, const ContainerType & input) const;
+
+    /// fill a gapped isotope pattern (i.e. certain masses are missing), with zero probability masses
+    ContainerType fillGaps_(const ContainerType& id) const;
 
     /// maximal isotopes which is used to calculate the distribution
     Size max_isotope_;

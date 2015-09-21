@@ -197,7 +197,8 @@ public:
           }
 
           // checking signal-to-noise?
-          if ((i + 2 < input.size()) &&
+          if ((i > 1) &&
+              (i + 2 < input.size()) &&
               (left_neighbor_int < input[i - 2].getIntensity()) &&
               (right_neighbor_int < input[i + 2].getIntensity()) &&
               (act_snt_l2 >= signal_to_noise_) &&
@@ -414,7 +415,7 @@ public:
      *
      * @param input  input map in profile mode
      * @param output  output map with picked peaks
-     * @param check_spectrum_type  if set, checks spectrum type and throws an exception if a centoided spectrum is passed 
+     * @param check_spectrum_type  if set, checks spectrum type and throws an exception if a centroided spectrum is passed 
      */
     template <typename PeakType, typename ChromatogramPeakT>
     void pickExperiment(const MSExperiment<PeakType, ChromatogramPeakT>& input, MSExperiment<PeakType, ChromatogramPeakT>& output, const bool check_spectrum_type = true) const

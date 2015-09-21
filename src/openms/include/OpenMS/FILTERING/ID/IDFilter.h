@@ -82,6 +82,7 @@ public:
 
       Size best_i_index(0), best_h_index(0);
       Size max_h(-1);
+      bool hit_found(false);
       // determine best scoring hit
       for (Size i = 0; i != identifications.size(); ++i)
       {
@@ -89,6 +90,7 @@ public:
         
         is_higher_score_better = identifications[i].isHigherScoreBetter();
         max_h = (assume_sorted ? 1 : identifications[i].getHits().size());        
+        hit_found = true;
         for (Size h = 0; h < max_h; ++h)
         {
           double score = identifications[i].getHits()[h].getScore();
@@ -102,7 +104,10 @@ public:
         }
       }
 
-      if (max_h == -1) return false;// all hits were empty 
+      if (!hit_found)
+      {
+        return false;// all hits were empty 
+      }
 
       best_hit = identifications[best_i_index].getHits()[best_h_index];
       return true;
@@ -322,6 +327,14 @@ public:
     /// ProteinHits with no matching proteins are removed.
     /// Matching is done based on accessions only
     static void filterIdentificationsByProteins(const ProteinIdentification& identification, const std::vector<FASTAFile::FASTAEntry>& proteins, ProteinIdentification& filtered_identification);
+
+    /// filters a PeptideIdentification corresponding to the given proteins
+    /// PeptideHits with no matching @p proteins are removed.
+    static void filterIdentificationsByProteinAccessions(const PeptideIdentification& identification, const StringList& proteins, PeptideIdentification& filtered_identification);
+
+    /// filters a ProteinIdentification corresponding to the given @p proteins
+    /// ProteinHits with no matching proteins are removed.
+    static void filterIdentificationsByProteinAccessions(const ProteinIdentification& identification, const StringList& proteins, ProteinIdentification& filtered_identification);
 
     /// removes all peptide hits having a sequence equal to a String in @p peptides. If @p ignore_modifications is set, the unmodified versions are generated and compared to the set of Strings.
     static void filterIdentificationsByExclusionPeptides(const PeptideIdentification& identification, const std::set<String>& peptides, bool ignore_modifications, PeptideIdentification& filtered_identification);

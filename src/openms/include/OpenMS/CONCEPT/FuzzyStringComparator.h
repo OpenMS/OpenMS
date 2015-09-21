@@ -129,6 +129,12 @@ public:
     /// White list.  If both lines contain the same element from this list, they are skipped over.
     void setWhitelist(const StringList & rhs);
 
+    /// Matched white list. If file 1 contains element 1 and file 2 contains element 2, they are skipped over.
+    void setMatchedWhitelist(const std::vector< std::pair<std::string, std::string> >& rhs); 
+
+    /// Matched white list. If file 1 contains element 1 and file 2 contains element 2, they are skipped over.
+    const std::vector< std::pair<std::string, std::string> >& getMatchedWhitelist() const; 
+
     /**
       @brief verbose level
 
@@ -385,6 +391,8 @@ protected:
     /// Occurences of whitelist entries
     std::map<String, UInt> whitelist_cases_;
 
+    /// Alternative Whitelist
+    std::vector< std::pair<std::string, std::string> > matched_whitelist_; 
   }; // class FuzzyStringComparator
 
 } //namespace OpenMS

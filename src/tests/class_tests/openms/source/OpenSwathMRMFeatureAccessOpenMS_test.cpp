@@ -120,7 +120,7 @@ SignalToNoiseOpenMS<Peak1D>* nullPointer = 0;
 START_SECTION(SignalToNoiseOpenMS())
 {
   OpenMS::MSSpectrum<> chromat;
-  ptr = new SignalToNoiseOpenMS<Peak1D>(chromat, 1.0, 3.0);
+  ptr = new SignalToNoiseOpenMS<Peak1D>(chromat, 1.0, 3.0, true);
   TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
@@ -157,7 +157,7 @@ START_SECTION(double getValueAtRT(double RT))
     p.setIntensity(intensity[i]);
     s.push_back(p);
   }
-  SignalToNoiseOpenMS<Peak1D> ff(s, 200, 50);
+  SignalToNoiseOpenMS<Peak1D> ff(s, 200, 50, true);
 
   double value200 = 0.987854524;
   double value210 = 1.02162;
