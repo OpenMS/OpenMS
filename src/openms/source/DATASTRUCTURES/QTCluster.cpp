@@ -90,16 +90,16 @@ namespace OpenMS
     // maybe TODO: check here if distance is smaller than max. distance?
     // maybe TODO: check here if peptide annotations are compatible?
     // (currently, both is done in QTClusterFinder)
+
+    // Only add the element if either no element is present for the map or if
+    // the element is closer than the current element for that map
     Size map_index = element->getMapIndex();
     if (map_index != center_point_->getMapIndex())
     {
-      // only store the new entry if it is closer (better) than the previous entry
-      if (neighbors_[map_index].empty() ||
-          distance < neighbors_[map_index].begin()->first
-         )
+      if (neighbors_.find(map_index) == neighbors_.end() ||
+          distance < neighbors_[map_index].first)
       {
-        neighbors_[map_index].clear();
-        neighbors_[map_index].insert(make_pair(distance, element));
+        neighbors_[map_index] = make_pair(distance, element);
         changed_ = true;
       }
     }
@@ -125,10 +125,9 @@ namespace OpenMS
     {
       // no need to take annotations into account:
       // simply take the best (closest) of all elements
-      for (NeighborMap::const_iterator it = neighbors_.begin();
-           it != neighbors_.end(); ++it)
+      for (NeighborMap::const_iterator it = neighbors_.begin(); it != neighbors_.end(); ++it)
       {
-        elements[it->first] = it->second.begin()->second;
+        elements[it->first] = it->second.second;
       }
     }
     else // find elements that are compatible with the optimal annotation:
@@ -136,14 +135,12 @@ namespace OpenMS
       for (NeighborMap::const_iterator n_it = neighbors_.begin();
            n_it != neighbors_.end(); ++n_it)
       {
-        for (NeighborListType::const_iterator df_it =
-               n_it->second.begin(); df_it != n_it->second.end(); ++df_it)
+        const NeighborListType* df_it = &n_it->second;
         {
           const set<AASequence>& current = df_it->second->getAnnotations();
           if (current.empty() || (current == annotations_))
           {
             elements[n_it->first] = df_it->second;
-            break; // found the best element for this input map
           }
         }
       }
@@ -171,8 +168,9 @@ namespace OpenMS
       NeighborMap::iterator pos = neighbors_.find(rm_it->first);
       if (pos == neighbors_.end())
         continue; // no points from this map
-      for (NeighborListType::iterator feat_it =
-             pos->second.begin(); feat_it != pos->second.end(); ++feat_it)
+
+      bool delete_from_map = false;
+      NeighborListType* feat_it = &pos->second;
       {
         if (feat_it->second == rm_it->second) // remove this neighbor
         {
@@ -183,11 +181,10 @@ namespace OpenMS
           }
           // else: removed neighbor doesn't have optimal annotation, so it can't
           // be a "true" cluster element => no need to recompute the quality
-          pos->second.erase(feat_it);
-          break;
+          delete_from_map = true;
         }
       }
-      if (pos->second.empty()) // only neighbor from this map was just removed
+      if (delete_from_map) // only neighbor from this map was just removed
       {
         neighbors_.erase(pos);
       }
@@ -216,10 +213,9 @@ namespace OpenMS
       // consist only of features with compatible IDs, so we don't need to check
       // again here
       Size counter = 0;
-      for (NeighborMap::iterator it = neighbors_.begin();
-           it != neighbors_.end(); ++it)
+      for (NeighborMap::iterator it = neighbors_.begin(); it != neighbors_.end(); ++it)
       {
-        internal_distance += it->second.begin()->first;
+        internal_distance += it->second.first;
         counter++;
       }
       // add max. distance for missing cluster elements:
@@ -237,12 +233,14 @@ namespace OpenMS
 
   const set<AASequence>& QTCluster::getAnnotations()
   {
-    if (changed_ && use_IDs_ && center_point_->getAnnotations().empty() &&
-        !neighbors_.empty())
+    if (changed_ && use_IDs_ && center_point_->getAnnotations().empty() && !neighbors_.empty())
       optimizeAnnotations_();
     return annotations_;
   }
 
+  // this is only for the case where the center point does not have an
+  // identification but identification should be used -> we need to figure out
+  // what is the best identification for the current cluster from all cluster members
   double QTCluster::optimizeAnnotations_()
   {
     // mapping: peptides -> best distance per input map
@@ -252,14 +250,14 @@ namespace OpenMS
          n_it != neighbors_.end(); ++n_it)
     {
       Size map_index = n_it->first;
-      for (NeighborListType::iterator df_it =
-             n_it->second.begin(); df_it != n_it->second.end(); ++df_it)
+      // We simply take the current best feature for the map
+      NeighborListType* df_it = &n_it->second;
       {
         double dist = df_it->first;
         const set<AASequence>& current = df_it->second->getAnnotations();
         map<set<AASequence>, vector<double> >::iterator pos =
           seq_table.find(current);
-        if (pos == seq_table.end()) // new set of annotations
+        if (pos == seq_table.end()) // new set of annotations, fill vector with max distance for all maps
         {
           seq_table[current].resize(num_maps_, max_distance_);
           seq_table[current][map_index] = dist;
@@ -272,12 +270,13 @@ namespace OpenMS
         {
           // no need to check further (annotation-specific distances are worse
           // than this unspecific one):
-          break;
+          // break;
         }
       }
     }
 
-    // combine annotation-specific and unspecific distances:
+    // combine annotation-specific and unspecific distances 
+    // (all unspecific ones are grouped as empty set<AASequence>):
     map<set<AASequence>, vector<double> >::iterator unspecific =
       seq_table.find(set<AASequence>());
     if (unspecific != seq_table.end())

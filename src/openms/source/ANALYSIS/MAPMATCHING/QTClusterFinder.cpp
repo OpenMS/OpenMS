@@ -143,13 +143,11 @@ namespace OpenMS
     for (list<QTCluster>::iterator it = clustering.begin();
          it != clustering.end(); ++it)
     {
-      OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*> elements;
       QTCluster::NeighborMap neigh = it->getNeighbors();
       for (QTCluster::NeighborMap::iterator n_it = neigh.begin(); n_it != neigh.end(); 
            ++n_it)
       {
-        for (QTCluster::NeighborListType::iterator i_it = n_it->second.begin();
-             i_it != n_it->second.end(); ++i_it)
+        QTCluster::NeighborListType* i_it = &n_it->second;
         {
           // remember for each feature (gridfeature) all the cluster elements it belongs to
           element_mapping[i_it->second].push_back(&(*it));
@@ -328,11 +326,9 @@ namespace OpenMS
             // Step 2: update element_mapping as the best feature for each
             // cluster may have changed
             QTCluster::NeighborMap neigh = (*cluster)->getNeighbors();
-            for (QTCluster::NeighborListType::iterator n_it = neigh.begin(); n_it != neigh.end(); 
-                 ++n_it)
+            for (QTCluster::NeighborMap::iterator n_it = neigh.begin(); n_it != neigh.end(); ++n_it)
             {
-              for (InnerNeighborMap::iterator i_it = n_it->second.begin();
-                   i_it != n_it->second.end(); ++i_it)
+              QTCluster::NeighborListType* i_it = &n_it->second;
               {
                 // remember for each feature (gridfeature) all the cluster elements it belongs to
                 tmp_element_mapping[i_it->second].push_back(*cluster);

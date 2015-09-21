@@ -78,15 +78,15 @@ namespace OpenMS
 
      @ingroup Datastructures
 */
-
   class OPENMS_DLLAPI QTCluster
   {
 public:
-    typedef std::multimap<double, GridFeature*> NeighborListType;
+
+    typedef std::pair<double, GridFeature*> NeighborListType;
     typedef OpenMSBoost::unordered_map<Size, NeighborListType> NeighborMap;
 
-private:
 
+private:
     /**
      * @brief Mapping: input map -> distance to center (ordered!) -> neighboring point
      * @note There should never be an empty sub-map! (When a sub-map becomes empty, it should be removed from the overall map.)
@@ -145,7 +145,6 @@ private:
 
     bool valid_;
 public:
-
     Int x_coord_;
     Int y_coord_;
 
