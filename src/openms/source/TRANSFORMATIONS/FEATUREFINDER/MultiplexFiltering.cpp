@@ -464,6 +464,7 @@ namespace OpenMS
     distribution.setMaxIsotope(pattern.size());
     if (type_m=="peptide") distribution.estimateFromPeptideWeight(m);
     else if (type_m=="RNA") distribution.estimateFromRNAWeight(m);
+    else if (type_m=="DNA") distribution.estimateFromDNAWeight(m);
     else distribution.estimateFromPeptideWeight(m); //TODO: Deal with this intelligently
     for (IsotopeDistribution::Iterator it = distribution.begin(); it != distribution.end(); ++it)
     {

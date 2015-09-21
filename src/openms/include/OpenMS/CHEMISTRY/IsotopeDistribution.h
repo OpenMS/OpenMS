@@ -129,14 +129,17 @@ public:
     void estimateFromPeptideWeight(double average_weight);
 
     /**
-<<<<<<< HEAD
         @brief Estimate Nucleotide Isotopedistribution from weight and number of isotopes that should be reported
     */
     void estimateFromRNAWeight(double average_weight);
 
     /**
-=======
->>>>>>> 6d4f859... Added estimateFromWeightAndComp method to IsotopeDistribution, to generate isotope distributions for compounds with arbitrary composition. Also added basic tests.
+        @brief Estimate Nucleotide Isotopedistribution from weight and number of isotopes that should be reported
+    */
+    void estimateFromDNAWeight(double average_weight);
+
+    /**
+
         @brief Estimate Isotopedistribution from weight, average composition, and number of isotopes that should be reported
 
     */

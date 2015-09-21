@@ -199,13 +199,16 @@ namespace OpenMS
     }
   }
 
-<<<<<<< HEAD
+
   void IsotopeDistribution::estimateFromRNAWeight(double average_weight){
       estimateFromWeightAndComp(average_weight,9.75,12.25,3.75,7,0,1);
   }
 
-=======
->>>>>>> 6d4f859... Added estimateFromWeightAndComp method to IsotopeDistribution, to generate isotope distributions for compounds with arbitrary composition. Also added basic tests.
+
+  void IsotopeDistribution::estimateFromDNAWeight(double average_weight){
+      estimateFromWeightAndComp(average_weight,9.75,12.25,3.75,6,0,1);
+  }
+
   void IsotopeDistribution::estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P)
   {
       const ElementDB * db = ElementDB::getInstance();
