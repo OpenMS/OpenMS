@@ -435,6 +435,7 @@ namespace OpenMS
 =======
     if (type_m=="peptide") distribution.estimateFromPeptideWeight(m);
     else if (type_m=="RNA") distribution.estimateFromRNAWeight(m);
+    else if (type_m=="DNA") distribution.estimateFromDNAWeight(m);
     else distribution.estimateFromPeptideWeight(m); //TODO: Deal with this intelligently
 >>>>>>> Added parameter to FeatureFinderMultiplex for alternative averagine composition
     for (IsotopeDistribution::Iterator it = distribution.begin(); it != distribution.end(); ++it)
