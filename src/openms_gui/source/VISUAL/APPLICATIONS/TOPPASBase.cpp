@@ -43,16 +43,17 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/VISUAL/TOPPASScene.h>
-#include <OpenMS/VISUAL/TOPPASWidget.h>
+#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASLogWindow.h>
 #include <OpenMS/VISUAL/TOPPASMergerVertex.h>
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASResources.h>
+#include <OpenMS/VISUAL/TOPPASScene.h>
+#include <OpenMS/VISUAL/TOPPASSplitterVertex.h>
 #include <OpenMS/VISUAL/TOPPASTabBar.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
-#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
+#include <OpenMS/VISUAL/TOPPASWidget.h>
 
 //Qt
 #include <QtCore/QDir>
@@ -438,6 +439,9 @@ namespace OpenMS
     item = new QTreeWidgetItem((QTreeWidget*)0);
     item->setText(0, "<Collector>");
     tools_tree_view->addTopLevelItem(item);
+    item = new QTreeWidgetItem((QTreeWidget*)0);
+    item->setText(0, "<Splitter>");
+    tools_tree_view->addTopLevelItem(item);
 
     //Param category_param = param_.copy("tool_categories:", true);
 
@@ -527,8 +531,7 @@ namespace OpenMS
 
   void TOPPASBase::addTOPPASFile(const String& file_name, bool in_new_window)
   {
-    if (file_name == "")
-      return;
+    if (file_name == "") return;
 
     if (!file_name.toQString().endsWith(".toppas", Qt::CaseInsensitive))
     {
@@ -552,10 +555,8 @@ namespace OpenMS
     }
     else
     {
-      if (!activeWindow_())
-      {
-        return;
-      }
+      if (!activeWindow_()) return;
+
       TOPPASScene* tmp_scene = new TOPPASScene(0, this->tmp_path_.toQString(), false);
       tmp_scene->load(file_name);
       scene = activeWindow_()->getScene();
@@ -1288,6 +1289,10 @@ namespace OpenMS
     {
       tv = new TOPPASMergerVertex(false);
       connect(tv, SIGNAL(mergeFailed(const QString)), this, SLOT(updateTOPPOutputLog(const QString &)));
+    }
+    else if (tool_name == "<Splitter>")
+    {
+      tv = new TOPPASSplitterVertex();
     }
     else // node is a TOPP tool
     {
