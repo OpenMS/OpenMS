@@ -513,15 +513,7 @@ namespace OpenMS
       TOPPASMergerVertex* mv = qobject_cast<TOPPASMergerVertex*>(u);
       if (mv && !mv->roundBasedMode())
       {      
-        bool any_list = false;
-        for (QVector<TOPPASToolVertex::IOInfo>::iterator it = input_infos.begin(); it != input_infos.end(); ++it)
-        {
-          if (it->type == TOPPASToolVertex::IOInfo::IOT_LIST)
-          {
-            any_list = true;
-            break;
-          }
-        }
+        bool any_list = TOPPASToolVertex::IOInfo::isAnyList(input_infos);
         if (!any_list) return false;
       }
     }
@@ -533,15 +525,7 @@ namespace OpenMS
       {
         QVector<TOPPASToolVertex::IOInfo> output_infos;
         tv->getOutputParameters(output_infos);
-        bool any_list = false;
-        for (QVector<TOPPASToolVertex::IOInfo>::iterator it = output_infos.begin(); it != output_infos.end(); ++it)
-        {
-          if (it->type == TOPPASToolVertex::IOInfo::IOT_LIST)
-          {
-            any_list = true;
-            break;
-          }
-        }
+        bool any_list = TOPPASToolVertex::IOInfo::isAnyList(output_infos);
         if (!any_list) return false;
       }
     }

@@ -67,7 +67,7 @@ public:
     /// Stores the information for input/output files/lists
     struct IOInfo
     {
-      ///Standard constructor
+      /// Standard constructor
       IOInfo() :
         type(IOT_FILE),
         param_name(),
@@ -75,7 +75,7 @@ public:
       {
       }
 
-      ///Copy constructor
+      /// Copy constructor
       IOInfo(const IOInfo& rhs) :
         type(rhs.type),
         param_name(rhs.param_name),
@@ -83,14 +83,14 @@ public:
       {
       }
 
-      ///The type
+      /// The type
       enum IOType
       {
         IOT_FILE,
         IOT_LIST
       };
 
-      ///Comparison operator
+      /// Comparison operator
       bool operator<(const IOInfo& rhs) const
       {
         if (type != rhs.type)
@@ -103,7 +103,7 @@ public:
         }
       }
 
-      ///Assignment operator
+      /// Assignment operator
       IOInfo& operator=(const IOInfo& rhs)
       {
         type = rhs.type;
@@ -111,6 +111,17 @@ public:
         valid_types = rhs.valid_types;
 
         return *this;
+      }
+
+      /// Is any of the input/output parameters a list?
+      static bool isAnyList(const QVector<IOInfo>& params)
+      {
+        for (QVector<IOInfo>::const_iterator it = params.begin();
+             it != params.end(); ++it)
+        {
+          if (it->type == IOT_LIST) return true;
+        }
+        return false;
       }
 
       ///The type of the parameter
