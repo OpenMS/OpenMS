@@ -304,12 +304,6 @@ void TheoreticalSpectrumGenerator::addPeaks(RichPeakSpectrum & spectrum, const A
     double intensity(0);
     bool add_first_prefix_ion(param_.getValue("add_first_prefix_ion").toBool());
 
-<<<<<<< HEAD
-    // Generate the ion peaks:
-    // Does not generate peaks of full peptide (therefore "<").
-    // They are added via precursor mass (and neutral losses).
-    // Could be changed in the future.
-=======
     //int sign = 1;
     char chargeSign = '+';
     if (charge<0){
@@ -318,7 +312,6 @@ void TheoreticalSpectrumGenerator::addPeaks(RichPeakSpectrum & spectrum, const A
     }
 
     // generate the ion peaks
->>>>>>> Forcing commit
     switch (res_type)
     {
     case Residue::AIon:
