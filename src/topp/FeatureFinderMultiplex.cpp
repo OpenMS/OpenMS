@@ -163,6 +163,7 @@ private:
   double averagine_similarity_;
   double averagine_similarity_scaling_;
   bool knock_out_;
+  String type_m_;
 
   // section "labels"
   map<String, double> label_massshift_;
@@ -226,6 +227,8 @@ public:
       defaults.setMinInt("missed_cleavages", 0);
       defaults.setValue("knock_out", "false", "Is it likely that knock-outs are present? (Supported for doublex, triplex and quadruplex experiments only.)", ListUtils::create<String>("advanced"));
       defaults.setValidStrings("knock_out", ListUtils::create<String>("true,false"));
+      defaults.setValue("type_m","peptide","The type of averagine to use, currently either RNA or peptide");
+      defaults.setValidStrings("type_m", ListUtils::create<String>("RNA,peptide"));
     }
 
     if (section == "labels")
@@ -316,6 +319,7 @@ public:
     averagine_similarity_scaling_ = getParam_().getValue("algorithm:averagine_similarity_scaling");
     missed_cleavages_ = getParam_().getValue("algorithm:missed_cleavages");
     knock_out_ = (getParam_().getValue("algorithm:knock_out") == "true");
+    type_m_ = getParam_().getValue("algorithm:type_m");
   }
 
   /**
@@ -1255,14 +1259,14 @@ private:
       // centroided data
       MultiplexFilteringCentroided filtering(exp, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, missing_peaks_, intensity_cutoff_, mz_tolerance_, mz_unit_, peptide_similarity_, averagine_similarity_, averagine_similarity_scaling_);
       filtering.setLogType(log_type_);
-      filter_results = filtering.filter();
+      filter_results = filtering.filter(type_m_);
     }
     else
     {
       // profile data
       MultiplexFilteringProfile filtering(exp, exp_picked, boundaries_exp_s, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, missing_peaks_, intensity_cutoff_, mz_tolerance_, mz_unit_, peptide_similarity_, averagine_similarity_, averagine_similarity_scaling_);
       filtering.setLogType(log_type_);
-      filter_results = filtering.filter();
+      filter_results = filtering.filter(type_m_);
     }
 
     /**

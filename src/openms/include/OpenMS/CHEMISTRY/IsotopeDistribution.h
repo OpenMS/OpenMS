@@ -129,6 +129,11 @@ public:
     void estimateFromPeptideWeight(double average_weight);
 
     /**
+        @brief Estimate Nucleotide Isotopedistribution from weight and number of isotopes that should be reported
+    */
+    void estimateFromRNAWeight(double average_weight);
+
+    /**
         @brief Estimate Isotopedistribution from weight, average composition, and number of isotopes that should be reported
 
     */

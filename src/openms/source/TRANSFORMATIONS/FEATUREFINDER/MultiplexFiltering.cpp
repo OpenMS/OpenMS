@@ -250,7 +250,7 @@ namespace OpenMS
     return true;
   }
 
-  bool MultiplexFiltering::averagineSimilarityFilter(const MultiplexPeakPattern& pattern, const vector<double>& intensities_actual, int peaks_found_in_all_peptides_spline, double mz) const
+  bool MultiplexFiltering::averagineSimilarityFilter(const MultiplexPeakPattern& pattern, const vector<double>& intensities_actual, int peaks_found_in_all_peptides_spline, double mz, String type_m) const
   {
     // Use a more restrictive averagine similarity when we are searching for peptide singlets.
     double similarity;
@@ -280,7 +280,7 @@ namespace OpenMS
           isotope_pattern.push_back(intensities_actual[peptide * (peaks_per_peptide_max_ + 1) + isotope + 1]);
         }
       }
-      if (getAveragineSimilarity(isotope_pattern, mz * pattern.getCharge()) < similarity)
+      if (getAveragineSimilarity(isotope_pattern, mz * pattern.getCharge(),type_m) < similarity)
       {
         return false;
       }
@@ -452,13 +452,19 @@ namespace OpenMS
     return OpenMS::Math::pearsonCorrelationCoefficient(pattern1.begin(), pattern1.end(), pattern2.begin(), pattern2.end());
   }
 
+<<<<<<< HEAD
   double MultiplexFiltering::getAveragineSimilarity(const vector<double>& pattern, double m) const
+=======
+  double MultiplexFiltering::getAveragineSimilarity(vector<double> pattern, double m, String type_m) const
+>>>>>>> 6efcc95... Added parameter to FeatureFinderMultiplex for alternative averagine composition
   {
     // construct averagine distribution
     IsotopeDistribution distribution;
     vector<double> averagine_pattern;
     distribution.setMaxIsotope(pattern.size());
-    distribution.estimateFromPeptideWeight(m);
+    if (type_m=="peptide") distribution.estimateFromPeptideWeight(m);
+    else if (type_m=="RNA") distribution.estimateFromRNAWeight(m);
+    else distribution.estimateFromPeptideWeight(m); //TODO: Deal with this intelligently
     for (IsotopeDistribution::Iterator it = distribution.begin(); it != distribution.end(); ++it)
     {
       averagine_pattern.push_back(it->second);

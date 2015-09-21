@@ -90,7 +90,7 @@ public:
      *
      * @see MultiplexPeakPattern, MultiplexFilterResult
      */
-    std::vector<MultiplexFilterResult> filter();
+    std::vector<MultiplexFilterResult> filter(std::string type_m="peptide");
 
 private:
     /**

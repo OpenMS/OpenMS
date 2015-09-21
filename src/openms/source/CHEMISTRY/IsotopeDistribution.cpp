@@ -199,6 +199,10 @@ namespace OpenMS
     }
   }
 
+  void IsotopeDistribution::estimateFromRNAWeight(double average_weight){
+      estimateFromWeightAndComp(average_weight,9.75,12.25,3.75,7,0,1);
+  }
+
   void IsotopeDistribution::estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P)
   {
       const ElementDB * db = ElementDB::getInstance();

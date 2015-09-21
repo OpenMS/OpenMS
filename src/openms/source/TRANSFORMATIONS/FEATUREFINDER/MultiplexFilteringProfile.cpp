@@ -125,7 +125,7 @@ namespace OpenMS
 
   }
 
-  vector<MultiplexFilterResult> MultiplexFilteringProfile::filter()
+  vector<MultiplexFilterResult> MultiplexFilteringProfile::filter(String type_m)
   {
     // progress logger
     unsigned progress = 0;
@@ -252,7 +252,7 @@ namespace OpenMS
              * Filter (6): averagine similarity filter
              * Does each individual isotope pattern resemble a peptide?
              */
-            bool averagine_similarity = averagineSimilarityFilter(patterns_[pattern], intensities_actual, peaks_found_in_all_peptides_spline, mz);
+            bool averagine_similarity = averagineSimilarityFilter(patterns_[pattern], intensities_actual, peaks_found_in_all_peptides_spline, mz,type_m);
             if (!averagine_similarity)
             {
               continue;
