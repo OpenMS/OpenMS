@@ -85,7 +85,7 @@ public:
     //@}
 
     /// Analysis Result (containing search engine / prophet results)
-    class OPENMS_DLLAPI AnalysisResult
+    class OPENMS_DLLAPI PepXMLAnalysisResult
     {
 public:
       String score_type; // e.g. peptideprophet / interprophet
@@ -93,11 +93,22 @@ public:
       double main_score; // posterior probability for example
       std::map<String, double> sub_scores; /// additional scores attached to the original, aggregated score
 
-      bool operator==(const AnalysisResult& rhs) const
+      bool operator==(const PepXMLAnalysisResult& rhs) const
       {
         return score_type == rhs.score_type 
+          && higher_is_better == rhs.higher_is_better
           && main_score == rhs.main_score
           && sub_scores == rhs.sub_scores;
+      }
+
+      PepXMLAnalysisResult& operator=(const PepXMLAnalysisResult& source)
+      {
+        if (this == &source) return *this;
+        score_type = source.score_type;
+        higher_is_better = source.higher_is_better;
+        main_score = source.main_score;
+        sub_scores = source.sub_scores;
+        return *this;
       }
 
     };
@@ -160,13 +171,13 @@ public:
     void setScore(double score);
 
     /// set information on (search engine) sub scores associated with this PSM
-    void setAnalysisResults(std::vector<AnalysisResult> aresult);
+    void setAnalysisResults(std::vector<PepXMLAnalysisResult> aresult);
 
     /// add information on (search engine) sub scores associated with this PSM
-    void addAnalysisResults(AnalysisResult aresult);
+    void addAnalysisResults(PepXMLAnalysisResult aresult);
 
     /// returns information on (search engine) sub scores associated with this PSM
-    const std::vector<AnalysisResult>& getAnalysisResults() const;
+    const std::vector<PepXMLAnalysisResult>& getAnalysisResults() const;
 
     /// returns the PSM rank
     UInt getRank() const;
@@ -185,7 +196,7 @@ protected:
     double score_;
 
     /// additional scores attached to the original, aggregated score
-    std::vector<AnalysisResult> analysis_results_;
+    std::vector<PepXMLAnalysisResult>* analysis_results_;
 
     /// the position(rank) where the hit appeared in the hit list
     UInt rank_;

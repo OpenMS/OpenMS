@@ -411,7 +411,7 @@ namespace OpenMS
           //   </peptideprophet_result>
           // </analysis_result>
 
-          for (std::vector<PeptideHit::AnalysisResult>::const_iterator ar_it = h.getAnalysisResults().begin();
+          for (std::vector<PeptideHit::PepXMLAnalysisResult>::const_iterator ar_it = h.getAnalysisResults().begin();
               ar_it != h.getAnalysisResults().end(); ++ar_it)
           {
             f << "\t\t\t<analysis_result analysis=\"" << ar_it->score_type << "\">" << "\n";
@@ -953,7 +953,7 @@ namespace OpenMS
     }
     else if (element == "analysis_result") // parent: "search_hit" 
     {
-      current_analysis_result_ = PeptideHit::AnalysisResult();
+      current_analysis_result_ = PeptideHit::PepXMLAnalysisResult();
       current_analysis_result_.score_type = attributeAsString_(attributes, "analysis");
     }
     else if (element == "search_score_summary")
