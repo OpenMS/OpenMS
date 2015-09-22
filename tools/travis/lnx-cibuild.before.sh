@@ -31,10 +31,6 @@ build_contrib EIGEN
 # leave contrib
 popd
 
-# add alternative repo for newer boost version
-sudo add-apt-repository --yes ppa:boost-latest/ppa
-sudo apt-get update
-
 # build custom cppcheck if we want to perform style tests
 if [ $ENABLE_STYLE_TESTING == "On" ]; then
   git clone git://github.com/danmar/cppcheck.git
