@@ -124,6 +124,9 @@ private:
     /// Maximum m/z difference
     double max_diff_mz_;
 
+    /// Maximum m/z difference
+    int nr_partitions_;
+
     /// Feature distance functor
     FeatureDistance feature_distance_;
 
@@ -159,6 +162,10 @@ private:
     /// Runs the algorithm on feature maps or consensus maps
     template <typename MapType>
     void run_(const std::vector<MapType>& input_maps, ConsensusMap& result_map);
+
+    /// Runs the algorithm on feature maps or consensus maps (internal)
+    template <typename MapType>
+    void run_internal_(const std::vector<MapType>& input_maps, ConsensusMap& result_map, bool do_progress);
 
     /// Adds elements to the cluster based on the elements hashed in the grid
     void addClusterElements_(int x, int y, const Grid& grid, QTCluster& cluster,

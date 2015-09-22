@@ -50,6 +50,9 @@ namespace OpenMS
 
     defaults_.setValue("use_identifications", "false", "Never link features that are annotated with different peptides (only the best hit per peptide identification is taken into account).");
     defaults_.setValidStrings("use_identifications", ListUtils::create<String>("true,false"));
+    defaults_.setValue("nr_partitions", 1, "How many partitions in m/z space should be used for the algorithm (more partitions means faster runtime and more memory efficient execution )");
+    defaults_.setMinInt("nr_partitions", 1);
+
 
     defaults_.insert("", feature_distance_.getDefaults());
 
@@ -69,6 +72,7 @@ namespace OpenMS
                                        msg);
     }
     use_IDs_ = String(param_.getValue("use_identifications")) == "true";
+    nr_partitions_ = param_.getValue("nr_partitions");
     max_diff_rt_ = param_.getValue("distance_RT:max_difference");
     max_diff_mz_ = param_.getValue("distance_MZ:max_difference");
     // compute m/z tolerance in Da (if given in ppm; for the hash grid):
@@ -78,6 +82,7 @@ namespace OpenMS
     }
     Param distance_params = param_.copy("");
     distance_params.remove("use_identifications");
+    distance_params.remove("nr_partitions");
     feature_distance_ = FeatureDistance(max_intensity, true);
     feature_distance_.setParameters(distance_params);
   }
@@ -86,6 +91,84 @@ namespace OpenMS
   void QTClusterFinder::run_(const vector<MapType>& input_maps,
                              ConsensusMap& result_map)
   {
+    // update parameters (dummy)
+    setParameters_(1, 1); 
+
+    result_map.clear(false);
+
+    std::vector< double > massrange; 
+    for (typename vector<MapType>::const_iterator map_it = input_maps.begin(); 
+         map_it != input_maps.end(); ++map_it)
+    {
+      for (typename MapType::const_iterator feat_it = map_it->begin(); feat_it != map_it->end(); feat_it++)
+      {
+        massrange.push_back( feat_it->getMZ() );
+      }
+    }
+    std::sort(massrange.begin(), massrange.end());
+
+    if (nr_partitions_ == 1)
+    {
+      // Only one partition 
+      run_internal_(input_maps, result_map, true);
+    }
+    else
+    {
+      // partition at boundaries -> this should be safe because there cannot be
+      // any cluster reaching across boundaries
+
+      double massrange_diff = max_diff_mz_; // minimal differences between two m/z values 
+      int pts_per_partition = massrange.size() / nr_partitions_;
+
+      // compute partition boundaries
+      std::vector< double > partition_boundaries; 
+      partition_boundaries.push_back( massrange.front() );
+      for (size_t j = 0; j < massrange.size()-1; j++)
+      {
+        if (fabs(massrange[j] - massrange[j+1]) > massrange_diff)
+        {
+          if (j >= (partition_boundaries.size() ) * pts_per_partition  )
+          {
+            partition_boundaries.push_back((massrange[j] + massrange[j+1])/2.0);
+          }
+        }
+      }
+      partition_boundaries.push_back( massrange.back() + 1.0 ); // add last partition (a bit more since we use "smaller than" below)
+
+      for (size_t j = 0; j < partition_boundaries.size()-1; j++)
+      {
+        double partition_start = partition_boundaries[j];
+        double partition_end = partition_boundaries[j+1];
+
+        std::vector<MapType> tmp_input_maps(input_maps.size());
+        for (size_t k = 0; k < input_maps.size(); k++)
+        {
+          // iterate over all features in the current input map and append
+          // matching features (within the current partition) to the temporary
+          // map
+          for (size_t m = 0; m < input_maps[k].size(); m++)
+          {
+            if ( input_maps[k][m].getMZ() >= partition_start && input_maps[k][m].getMZ() < partition_end)
+            {
+              tmp_input_maps[k].push_back( input_maps[k][m] );
+            }
+          }
+          tmp_input_maps[k].updateRanges();
+        }
+
+        // run algo on current partition
+        run_internal_(tmp_input_maps, result_map, false);
+      }
+    }
+  }
+
+  template <typename MapType>
+  void QTClusterFinder::run_internal_(const vector<MapType>& input_maps,
+                             ConsensusMap& result_map, bool do_progress)
+  {
+    // clear temporary data structures
+    already_used_.clear();
+
     num_maps_ = input_maps.size();
     if (num_maps_ < 2)
     {
@@ -164,10 +247,12 @@ namespace OpenMS
     }
 
     ProgressLogger logger;
-    logger.setLogType(ProgressLogger::CMD);
-    logger.startProgress(0, size, "linking features");
     Size progress = 0;
-    result_map.clear(false);
+    if (do_progress)
+    {
+      logger.setLogType(ProgressLogger::CMD);
+      logger.startProgress(0, size, "linking features");
+    }
 
     while (!clustering.empty())
     {
@@ -178,10 +263,10 @@ namespace OpenMS
       {
         result_map.push_back(consensus_feature);
       }
-      logger.setProgress(progress++);
+      if (do_progress) logger.setProgress(progress++);
     }
 
-    logger.endProgress();
+    if (do_progress) logger.endProgress();
   }
 
   void QTClusterFinder::makeConsensusFeature_(list<QTCluster>& clustering,
@@ -303,7 +388,6 @@ namespace OpenMS
         }
       }
     }
-
   }
 
   void QTClusterFinder::addClusterElements_(int x, int y, const Grid& grid, QTCluster& cluster,
