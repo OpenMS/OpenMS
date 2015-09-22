@@ -135,6 +135,10 @@ namespace OpenMS
       }
       partition_boundaries.push_back( massrange.back() + 1.0 ); // add last partition (a bit more since we use "smaller than" below)
 
+      ProgressLogger logger;
+      Size progress = 0;
+      logger.setLogType(ProgressLogger::CMD);
+      logger.startProgress(0, partition_boundaries.size(), "linking features");
       for (size_t j = 0; j < partition_boundaries.size()-1; j++)
       {
         double partition_start = partition_boundaries[j];
@@ -158,7 +162,9 @@ namespace OpenMS
 
         // run algo on current partition
         run_internal_(tmp_input_maps, result_map, false);
+        logger.setProgress(progress++);
       }
+      logger.endProgress();
     }
   }
 
