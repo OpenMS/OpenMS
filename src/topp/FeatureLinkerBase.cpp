@@ -38,6 +38,7 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <OpenMS/KERNEL/ConversionHelper.h>
 
@@ -61,7 +62,7 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPFeatureLinkerBase :
-  public TOPPBase
+  public TOPPBase, public ProgressLogger
 {
 
 public:
@@ -128,6 +129,9 @@ protected:
       param.setLoadConvexHull(false);
       f.setOptions(param);
 
+      Size progress = 0;
+      setLogType(ProgressLogger::CMD);
+      startProgress(0, ins.size(), "reading input");
       for (Size i = 0; i < ins.size(); ++i)
       {
         FeatureMap tmp;
@@ -147,7 +151,10 @@ protected:
         MapConversion::convert(i, tmp, maps[i]);
 
         maps[i].updateRanges();
+        setProgress(progress++);
       }
+      endProgress();
+
       // exception for "labeled" algorithms: copy file descriptions
       if (labeled)
       {
