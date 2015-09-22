@@ -60,8 +60,8 @@ using namespace boost::math;
 namespace OpenMS
 {
 
-  MultiplexFiltering::MultiplexFiltering(const MSExperiment<Peak1D>& exp_picked, const std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling) :
-    exp_picked_(exp_picked), patterns_(patterns), peaks_per_peptide_min_(peaks_per_peptide_min), peaks_per_peptide_max_(peaks_per_peptide_max), missing_peaks_(missing_peaks), intensity_cutoff_(intensity_cutoff), mz_tolerance_(mz_tolerance), mz_tolerance_unit_(mz_tolerance_unit), peptide_similarity_(peptide_similarity), averagine_similarity_(averagine_similarity), averagine_similarity_scaling_(averagine_similarity_scaling)
+  MultiplexFiltering::MultiplexFiltering(const MSExperiment<Peak1D>& exp_picked, const std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String type_m) :
+    exp_picked_(exp_picked), patterns_(patterns), peaks_per_peptide_min_(peaks_per_peptide_min), peaks_per_peptide_max_(peaks_per_peptide_max), missing_peaks_(missing_peaks), intensity_cutoff_(intensity_cutoff), mz_tolerance_(mz_tolerance), mz_tolerance_unit_(mz_tolerance_unit), peptide_similarity_(peptide_similarity), averagine_similarity_(averagine_similarity), averagine_similarity_scaling_(averagine_similarity_scaling), type_m_(type_m)
   {
   }
 
@@ -280,7 +280,7 @@ namespace OpenMS
           isotope_pattern.push_back(intensities_actual[peptide * (peaks_per_peptide_max_ + 1) + isotope + 1]);
         }
       }
-      if (getAveragineSimilarity(isotope_pattern, mz * pattern.getCharge(),type_m) < similarity)
+      if (getAveragineSimilarity(isotope_pattern, mz * pattern.getCharge()) < similarity)
       {
         return false;
       }
@@ -452,19 +452,17 @@ namespace OpenMS
     return OpenMS::Math::pearsonCorrelationCoefficient(pattern1.begin(), pattern1.end(), pattern2.begin(), pattern2.end());
   }
 
-<<<<<<< HEAD
-  double MultiplexFiltering::getAveragineSimilarity(const vector<double>& pattern, double m) const
-=======
-  double MultiplexFiltering::getAveragineSimilarity(vector<double> pattern, double m, String type_m) const
->>>>>>> 6efcc95... Added parameter to FeatureFinderMultiplex for alternative averagine composition
+
+  double MultiplexFiltering::getAveragineSimilarity(const vector<double>& pattern, double m, String type_m) const
+
   {
     // construct averagine distribution
     IsotopeDistribution distribution;
     vector<double> averagine_pattern;
     distribution.setMaxIsotope(pattern.size());
-    if (type_m=="peptide") distribution.estimateFromPeptideWeight(m);
-    else if (type_m=="RNA") distribution.estimateFromRNAWeight(m);
-    else if (type_m=="DNA") distribution.estimateFromDNAWeight(m);
+    if (type_m_=="peptide") distribution.estimateFromPeptideWeight(m);
+    else if (type_m_=="RNA") distribution.estimateFromRNAWeight(m);
+    else if (type_m_=="DNA") distribution.estimateFromDNAWeight(m);
     else distribution.estimateFromPeptideWeight(m); //TODO: Deal with this intelligently
     for (IsotopeDistribution::Iterator it = distribution.begin(); it != distribution.end(); ++it)
     {

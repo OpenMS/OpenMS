@@ -82,7 +82,7 @@ public:
      * @param averagine_similarity    similarity score for peptide isotope pattern and averagine model
      * @param averagine_similarity_scaling    scaling factor x for the averagine similarity parameter p when detecting peptide singlets. With p' = p + x(1-p). 
      */
-    MultiplexFilteringCentroided(const MSExperiment<Peak1D>& exp_picked, const std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling);
+    MultiplexFilteringCentroided(const MSExperiment<Peak1D>& exp_picked, const std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String type_m="peptide");
 
     /**
      * @brief filter for patterns
@@ -90,7 +90,7 @@ public:
      *
      * @see MultiplexPeakPattern, MultiplexFilterResult
      */
-    std::vector<MultiplexFilterResult> filter(std::string type_m="peptide");
+    std::vector<MultiplexFilterResult> filter();
 
 private:
     /**
