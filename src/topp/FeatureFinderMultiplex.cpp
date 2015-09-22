@@ -295,7 +295,7 @@ public:
     charge_max_ = charge_max_temp;
     if (charge_min_ > charge_max_)
     {
-      swap(charge_min_, charge_max_);
+      swap(charge_min_, charge_max_); //TODO warn the user about this
     }
 
     // get isotopes per peptide range
@@ -917,7 +917,7 @@ public:
           feature_handle.setMZ(sum_intensity_mz[peptide] / sum_intensity[peptide]);
           feature_handle.setRT(sum_intensity_rt[peptide] / sum_intensity[peptide]);
           feature_handle.setIntensity(peptide_intensities[peptide]);
-          feature_handle.setCharge(patterns[pattern].getCharge());
+          feature_handle.setCharge(patterns[pattern].getCharge() * unit_charge_);
           feature_handle.setMapIndex(peptide);
           //feature_handle.setUniqueId(&UniqueIdInterface::setUniqueId);    // TODO: Do we need to set unique ID?
           consensus_map.getFileDescriptions()[peptide].size++;
@@ -927,7 +927,7 @@ public:
           feature.setMZ(sum_intensity_mz[peptide] / sum_intensity[peptide]);
           feature.setRT(sum_intensity_rt[peptide] / sum_intensity[peptide]);
           feature.setIntensity(peptide_intensities[peptide]);
-          feature.setCharge(patterns[pattern].getCharge());
+          feature.setCharge(patterns[pattern].getCharge() * unit_charge_);
           feature.setOverallQuality(1 - 1 / points.size());
           for (unsigned peak = 0; peak < isotopes_per_peptide_max_; ++peak)
           {
