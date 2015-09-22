@@ -88,6 +88,16 @@ namespace OpenMS
     return center_point_->getMZ();
   }
 
+  Int QTCluster::getXCoord() const
+  {
+    return x_coord_;
+  }
+
+  Int QTCluster::getYCoord() const
+  {
+    return y_coord_;
+  }
+
   Size QTCluster::size() const
   {
     OPENMS_PRECONDITION(finalized_,

@@ -108,14 +108,7 @@ namespace OpenMS
   {
 
 private:
-    /**
-     * @brief Mapping: input map -> distance to center (ordered!) -> neighboring point
-     * @note There should never be an empty sub-map! (When a sub-map becomes empty, it should be removed from the overall map.)
-     *
-     * For each input run, a multimap which contains pointers to all
-     * neighboring elements and the respective distance.
-     *
-     */
+
     typedef std::multimap<double, GridFeature*> NeighborListType; // need to store more than one
     typedef OpenMSBoost::unordered_map<Size, NeighborListType> NeighborMapMulti;
 
@@ -125,8 +118,19 @@ private:
     /// Pointer to the cluster center
     GridFeature* center_point_;
 
+    /**
+     * @brief Map that keeps track of the best current feature for each map
+     *
+     */
     NeighborMap neighbors_;
 
+    /**
+     * @brief Temporary map tracking *all* neighbors
+     *
+     * For each input run, a multimap which contains pointers to all
+     * neighboring elements and the respective distance.
+     *
+     */
     NeighborMapMulti* tmp_neighbors_;
 
     /// Maximum distance of a point that can still belong to the cluster
@@ -144,10 +148,35 @@ private:
     /// Keep track of peptide IDs and use them for matching?
     bool use_IDs_;
 
+    /// Whether current cluster is valid
+    bool valid_;
+
+    /** 
+     * @brief Whether initial collection of all neighbors is needed
+     *
+     * This variable stores whether we need to collect all annotations first
+     * before we can decide upon the best set of cluster points. This is
+     * usually only necessary if the center point does not have an annotation
+     * but we want to use ids.
+     *
+    */
+    bool collect_annotations_;
+
+    /// Whether current cluster is accepting new elements or not (if true, no more new elements allowed)
+    bool finalized_;
+
+    /// x coordinate in the grid cell
+    Int x_coord_;
+
+    /// y coordinate in the grid cell
+    Int y_coord_;
+
+
     /**
      * @brief Set of annotations of the cluster
      *
-     * The set of peptide sequences that is compatible to the cluster center and results in the best cluster quality.
+     * The set of peptide sequences that is compatible to the cluster center
+     * and results in the best cluster quality.
      */
     std::set<AASequence> annotations_;
 
@@ -178,24 +207,7 @@ private:
      */
     double optimizeAnnotations_();
 
-    bool valid_;
-
-    /** 
-     * @brief Whether initial collection of all neighbors is needed
-     *
-     * This variable stores whether we need to collect all annotations first
-     * before we can decide upon the best set of cluster points. This is
-     * usually only necessary if the center point does not have an annotation
-     * but we want to use ids.
-     *
-    */
-    bool collect_annotations_;
-
-    bool finalized_;
-
 public:
-    Int x_coord_;
-    Int y_coord_;
 
     /**
      * @brief Detailed constructor
@@ -218,6 +230,12 @@ public:
 
     /// Returns the m/z value of the cluster center
     double getCenterMZ() const;
+
+    /// Returns the x coordinate in the grid
+    Int getXCoord() const;
+
+    /// Returns the y coordinate in the grid
+    Int getYCoord() const;
 
     /// Returns the size of the cluster (number of elements, incl. center)
     Size size() const;
