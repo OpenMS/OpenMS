@@ -1316,6 +1316,9 @@ set_tests_properties("TOPP_FeatureLinkerUnlabeledQT_3_out1" PROPERTIES DEPENDS "
 add_test("TOPP_FeatureLinkerUnlabeledQT_4" ${TOPP_BIN_PATH}/FeatureLinkerUnlabeledQT -test -ini ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledQT_1_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_1_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_1_input2.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_1_input3.featureXML -out FeatureLinkerUnlabeledQT_4_output.tmp -algorithm:use_identifications)
 add_test("TOPP_FeatureLinkerUnlabeledQT_4_out1" ${DIFF} -whitelist "id=" "href=" -in1 FeatureLinkerUnlabeledQT_4_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledQT_4_output.consensusXML )
 set_tests_properties("TOPP_FeatureLinkerUnlabeledQT_4_out1" PROPERTIES DEPENDS "TOPP_FeatureLinkerUnlabeledQT_4")
+add_test("TOPP_FeatureLinkerUnlabeledQT_5" ${TOPP_BIN_PATH}/FeatureLinkerUnlabeledQT -test -ini ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledQT_1_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_5_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_5_input2.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_5_input3.featureXML -out FeatureLinkerUnlabeledQT_5_output.tmp -algorithm:use_identifications)
+add_test("TOPP_FeatureLinkerUnlabeledQT_5_out1" ${DIFF} -whitelist "id=" "href=" -in1 FeatureLinkerUnlabeledQT_5_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledQT_5_output.consensusXML )
+set_tests_properties("TOPP_FeatureLinkerUnlabeledQT_5_out1" PROPERTIES DEPENDS "TOPP_FeatureLinkerUnlabeledQT_5")
 
 #------------------------------------------------------------------------------
 # IDMapper tests
