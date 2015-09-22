@@ -131,21 +131,9 @@ private:
     std::set<OpenMS::GridFeature*> already_used_;
 
     /**
-       @brief Distance map.
-
-       To compute it only once, the distance between two features is
-       accessible by searching for a pair where the first position is the
-       smaller pointer value.
-    */
-    PairDistances distances_;
-
-    /**
        @brief Calculates the distance between two grid features.
-
-       The distance is looked up in the distance map and only computed (and
-       stored) if it's not already available.
     */
-    double getDistance_(OpenMS::GridFeature* left, OpenMS::GridFeature* right);
+    double getDistance_(const OpenMS::GridFeature* left, const OpenMS::GridFeature* right);
 
     /**
        @brief Checks whether the peptide IDs of a cluster and a neighboring
@@ -171,6 +159,10 @@ private:
     /// Runs the algorithm on feature maps or consensus maps
     template <typename MapType>
     void run_(const std::vector<MapType>& input_maps, ConsensusMap& result_map);
+
+    /// Adds elements to the cluster based on the elements hashed in the grid
+    void addClusterElements_(int x, int y, const Grid& grid, QTCluster& cluster,
+      const OpenMS::GridFeature* center_feature);
 
 protected:
     enum
