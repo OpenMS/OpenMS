@@ -98,6 +98,15 @@ namespace OpenMS
     return y_coord_;
   }
 
+  void QTCluster::setInvalid()
+  {
+    // this cluster is considered invalid, it will never be used again in the
+    // algorithm. This means we can clean up a bit and save some memory.
+    valid_ = false;
+    neighbors_.clear();
+    annotations_.clear();
+  }
+
   Size QTCluster::size() const
   {
     OPENMS_PRECONDITION(finalized_,
@@ -183,7 +192,7 @@ namespace OpenMS
     for (OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*>::const_iterator rm_it = removed.begin();
          rm_it != removed.end(); ++rm_it)
     {
-      // If cluster point was removed, then we are done and no more work is
+      // If center point was removed, then we are done and no more work is
       // required
       if (rm_it->second == center_point_)
       {
@@ -191,36 +200,25 @@ namespace OpenMS
         return false;
       }
     }
-    bool needs_work = false;
-    // update the cluster contents:
+
+    // update the cluster contents, remove those elements we find in our cluster
     for (OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*>::const_iterator rm_it = removed.begin();
          rm_it != removed.end(); ++rm_it)
     {
       NeighborMap::iterator pos = neighbors_.find(rm_it->first);
       if (pos == neighbors_.end())
+      {
         continue; // no points from this map
-
-      bool delete_from_map = false;
-      NeighborPairType* feat_it = &pos->second;
-      {
-        if (feat_it->second == rm_it->second) // remove this neighbor
-        {
-          if (!use_IDs_ || (annotations_ == rm_it->second->getAnnotations()))
-          {
-            changed_ = true;
-            needs_work = true;
-          }
-          // else: removed neighbor doesn't have optimal annotation, so it can't
-          // be a "true" cluster element => no need to recompute the quality
-          delete_from_map = true;
-        }
       }
-      if (delete_from_map) // only neighbor from this map was just removed
+
+      const NeighborPairType current_feature = pos->second;
+      if (current_feature.second == rm_it->second) // remove this neighbor
       {
+        changed_ = true;
         neighbors_.erase(pos);
       }
     }
-    return needs_work;
+    return changed_;
   }
 
   double QTCluster::getQuality()

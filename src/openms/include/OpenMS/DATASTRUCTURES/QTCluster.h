@@ -269,16 +269,14 @@ public:
     /// Return the set of peptide sequences annotated to the cluster center
     const std::set<AASequence>& getAnnotations();
 
-    inline void setInvalid() 
-    {
-      // this cluster is considered invalid, it will never be used again in the
-      // algorithm. This means we can clean up a bit and save some memory.
-      valid_ = false;
-      neighbors_.clear();
-      annotations_.clear();
-    }
+    /// Sets current cluster as invalid (also frees some memory)
+    void setInvalid();
 
-    inline bool isInvalid() {return !valid_;}
+    /// Whether current cluster is invalid
+    inline bool isInvalid() const
+    {
+      return !valid_;
+    }
 
     /// Has to be called after all elements have been added
     void finalizeCluster();
@@ -286,6 +284,7 @@ public:
     /// Has to be called before adding elements
     void initializeCluster();
 
+    /// Get all current neighbors
     OpenMSBoost::unordered_map<Size, std::vector<GridFeature*> > getAllNeighbors();
 
   };
