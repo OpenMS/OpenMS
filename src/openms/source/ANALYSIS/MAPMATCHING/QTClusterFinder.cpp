@@ -267,64 +267,15 @@ namespace OpenMS
             // removed from the cluster and we need to update that cluster
 
             // Get the coordinates of the current cluster
-            const Int x = (*cluster)->x_coord_; 
-            const Int y = (*cluster)->y_coord_;
-
-            (*cluster)->initializeCluster();
+            const Int x = (*cluster)->getXCoord(); 
+            const Int y = (*cluster)->getYCoord();
 
             ////////////////////////////////////////
             // Step 1: Iterate through all neighboring grid features and try to
             // add elements to the current cluster to replace the ones we just
             // removed
             OpenMS::GridFeature* center_feature = (*cluster)->getCenterPoint();
-            // iterate over neighboring grid cells (1st dimension):
-            for (int i = x - 1; i <= x + 1; ++i)
-            {
-              // iterate over neighboring grid cells (2nd dimension):
-              for (int j = y - 1; j <= y + 1; ++j)
-              {
-                try
-                {
-                  const Grid::CellContent& act_pos = grid.grid_at(Grid::CellIndex(i, j));
-
-                  for (Grid::const_cell_iterator it_cell = act_pos.begin();
-                       it_cell != act_pos.end(); ++it_cell)
-                  {
-
-                    OpenMS::GridFeature* neighbor_feature = it_cell->second;
-
-                    // Skip features that we have already used -> we cannot add them to be neighbors any more
-                    // remember the ones we already used, we need to skip those 
-                    if (already_used_.find(neighbor_feature) != already_used_.end() )
-                    {
-                      continue;
-                    }
-
-                    // consider only "real" neighbors, not the element itself:
-                    if (center_feature != neighbor_feature)
-                    {
-                      // NOTE: this actually caches the distance -> memory problem
-                      double dist = getDistance_(center_feature, neighbor_feature);
-
-                      if (dist == FeatureDistance::infinity)
-                      {
-                        continue; // conditions not satisfied
-                      }
-                      // if neighbor point is a possible cluster point, add it:
-                      if (!use_IDs_ || compatibleIDs_(*(*cluster), neighbor_feature))
-                      {
-                        (*cluster)->add(neighbor_feature, dist);
-                      }
-                    }
-                  }
-                }
-                catch (std::out_of_range&)
-                {
-                }
-              }
-            }
-
-            (*cluster)->finalizeCluster();
+            addClusterElements_(x, y, grid, (**cluster), center_feature);
 
             ////////////////////////////////////////
             // Step 2: update element_mapping as the best feature for each
@@ -356,6 +307,61 @@ namespace OpenMS
 
   }
 
+  void QTClusterFinder::addClusterElements_(int x, int y, const Grid& grid, QTCluster& cluster,
+    const OpenMS::GridFeature* center_feature)
+  {
+    cluster.initializeCluster();
+
+    // iterate over neighboring grid cells (1st dimension):
+    for (int i = x - 1; i <= x + 1; ++i)
+    {
+      // iterate over neighboring grid cells (2nd dimension):
+      for (int j = y - 1; j <= y + 1; ++j)
+      {
+        try
+        {
+          const Grid::CellContent& act_pos = grid.grid_at(Grid::CellIndex(i, j));
+
+          for (Grid::const_cell_iterator it_cell = act_pos.begin();
+               it_cell != act_pos.end(); ++it_cell)
+          {
+
+            OpenMS::GridFeature* neighbor_feature = it_cell->second;
+
+            // Skip features that we have already used -> we cannot add them to be neighbors any more
+            // remember the ones we already used, we need to skip those 
+            if (already_used_.find(neighbor_feature) != already_used_.end() )
+            {
+              continue;
+            }
+
+            // consider only "real" neighbors, not the element itself:
+            if (center_feature != neighbor_feature)
+            {
+              // NOTE: this actually caches the distance -> memory problem
+              double dist = getDistance_(center_feature, neighbor_feature);
+
+              if (dist == FeatureDistance::infinity)
+              {
+                continue; // conditions not satisfied
+              }
+              // if neighbor point is a possible cluster point, add it:
+              if (!use_IDs_ || compatibleIDs_(cluster, neighbor_feature))
+              {
+                cluster.add(neighbor_feature, dist);
+              }
+            }
+          }
+        }
+        catch (std::out_of_range&)
+        {
+        }
+      }
+    }
+
+    cluster.finalizeCluster();
+  }
+
   void QTClusterFinder::run(const vector<ConsensusMap>& input_maps,
                             ConsensusMap& result_map)
   {
@@ -373,6 +379,8 @@ namespace OpenMS
   {
     clustering.clear();
     distances_.clear();
+    already_used_.clear();
+
     // FeatureDistance produces normalized distances (between 0 and 1):
     const double max_distance = 1.0;
 
@@ -381,59 +389,20 @@ namespace OpenMS
     {
       const Grid::CellIndex& act_coords = it.index();
       const Int x = act_coords[0], y = act_coords[1];
-      //cout << x << " " << y << endl;
 
       OpenMS::GridFeature* center_feature = it->second;
       QTCluster cluster(center_feature, num_maps_, max_distance, use_IDs_, x, y);
 
-      cluster.initializeCluster();
+      addClusterElements_(x, y, grid, cluster, center_feature);
 
-      // iterate over neighboring grid cells (1st dimension):
-      for (int i = x - 1; i <= x + 1; ++i)
-      {
-        // iterate over neighboring grid cells (2nd dimension):
-        for (int j = y - 1; j <= y + 1; ++j)
-        {
-          try
-          {
-            const Grid::CellContent& act_pos = grid.grid_at(Grid::CellIndex(i, j));
-
-            for (Grid::const_cell_iterator it_cell = act_pos.begin();
-                 it_cell != act_pos.end(); ++it_cell)
-            {
-              OpenMS::GridFeature* neighbor_feature = it_cell->second;
-              // consider only "real" neighbors, not the element itself:
-              if (center_feature != neighbor_feature)
-              {
-                // NOTE: this actually caches the distance in memory (potential memory issue)
-                double dist = getDistance_(center_feature, neighbor_feature);
-                if (dist == FeatureDistance::infinity)
-                {
-                  continue; // conditions not satisfied
-                }
-                // if neighbor point is a possible cluster point, add it:
-                if (!use_IDs_ || compatibleIDs_(cluster, neighbor_feature))
-                {
-                  cluster.add(neighbor_feature, dist);
-                }
-              }
-            }
-          }
-          catch (std::out_of_range&)
-          {
-          }
-        }
-      }
-
-      cluster.finalizeCluster();
       distances_.clear(); // reduces memory from 550 MB to ca 350 MB
       clustering.push_back(cluster);
     }
 
   }
 
-  double QTClusterFinder::getDistance_(OpenMS::GridFeature* left,
-                                       OpenMS::GridFeature* right)
+  double QTClusterFinder::getDistance_(const OpenMS::GridFeature* left,
+                                       const OpenMS::GridFeature* right)
   {
     // look-up in the distance map:
     const pair<OpenMS::GridFeature*, OpenMS::GridFeature*> key = make_pair(min(left, right),
