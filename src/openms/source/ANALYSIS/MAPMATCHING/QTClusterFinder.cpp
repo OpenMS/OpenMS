@@ -270,6 +270,8 @@ namespace OpenMS
             const Int x = (*cluster)->x_coord_; 
             const Int y = (*cluster)->y_coord_;
 
+            (*cluster)->initializeCluster();
+
             ////////////////////////////////////////
             // Step 1: Iterate through all neighboring grid features and try to
             // add elements to the current cluster to replace the ones we just
@@ -321,6 +323,8 @@ namespace OpenMS
                 }
               }
             }
+
+            (*cluster)->finalizeCluster();
 
             ////////////////////////////////////////
             // Step 2: update element_mapping as the best feature for each
@@ -382,6 +386,8 @@ namespace OpenMS
       OpenMS::GridFeature* center_feature = it->second;
       QTCluster cluster(center_feature, num_maps_, max_distance, use_IDs_, x, y);
 
+      cluster.initializeCluster();
+
       // iterate over neighboring grid cells (1st dimension):
       for (int i = x - 1; i <= x + 1; ++i)
       {
@@ -419,6 +425,7 @@ namespace OpenMS
         }
       }
 
+      cluster.finalizeCluster();
       distances_.clear(); // reduces memory from 550 MB to ca 350 MB
       clustering.push_back(cluster);
     }
