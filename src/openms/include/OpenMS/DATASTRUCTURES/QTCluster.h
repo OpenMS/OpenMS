@@ -63,16 +63,42 @@ namespace OpenMS
 /**
      @brief A representation of a QT cluster used for feature grouping.
 
-     Ultimately, a cluster represents a group of corresponding features (or consensus features) from different input maps (feature maps or consensus maps).
+     Ultimately, a cluster represents a group of corresponding features (or
+     consensus features) from different input maps (feature maps or consensus
+     maps).
 
-     Clusters are defined by their center points (one feature each). A cluster also stores a number of potential cluster elements (other features) from different input maps, together with their distances to the cluster center.
-     Every feature that satisfies certain constraints with respect to the cluster center is a @e potential cluster element. However, since a feature group can only contain one feature from each input map, only the "best" (i.e. closest to the cluster center) such feature is considered a true cluster element.
+     Clusters are defined by their center points (one feature each). A cluster
+     also stores a number of potential cluster elements (other features) from
+     different input maps, together with their distances to the cluster center.
+     Every feature that satisfies certain constraints with respect to the
+     cluster center is a @e potential cluster element. However, since a feature
+     group can only contain one feature from each input map, only the "best"
+     (i.e. closest to the cluster center) such feature is considered a true
+     cluster element. To save memory, only the "best" element for each map is
+     stored inside a cluster.
 
-     The QT clustering algorithm has the characteristic of initially producing all possible, overlapping clusters. Iteratively, the best cluster is then extracted and the clustering is recomputed for the remaining points.
+     The QT clustering algorithm has the characteristic of initially producing
+     all possible, overlapping clusters. Iteratively, the best cluster is then
+     extracted and the clustering is recomputed for the remaining points.
 
-     In our implementation, multiple rounds of clustering are not necessary. Instead, the clustering is updated in each iteration. This is the reason for storing all potential cluster elements: When a certain cluster is finalized, its elements have to be removed from the remaining clusters, and affected clusters change their composition. (Note that clusters can also be invalidated by this, if the cluster center is being removed.)
+     In our implementation, multiple rounds of clustering are not necessary.
+     Instead, the clustering is updated in each iteration. This is the reason
+     for storing all potential cluster elements: When a certain cluster is
+     finalized, its elements have to be removed from the remaining clusters,
+     and affected clusters change their composition. (Note that clusters can
+     also be invalidated by this, if the cluster center is being removed.)
 
-     The quality of a cluster is the normalized average distance to the cluster center for present and missing cluster elements. The distance value for missing elements (if the cluster contains no feature from a certain input map) is the user-defined threshold that marks the maximum allowed radius of a cluster.
+     The quality of a cluster is the normalized average distance to the cluster
+     center for present and missing cluster elements. The distance value for
+     missing elements (if the cluster contains no feature from a certain input
+     map) is the user-defined threshold that marks the maximum allowed radius
+     of a cluster.
+
+     When adding elements to the cluster, the client needs to call
+     initializeCluster first and the client needs to call finalizeCluster after
+     adding the last element.  After finalizeCluster, the client may not add
+     any more elements through the add function (the client must call
+     initializeCluster again before adding new elements).
 
      @see QTClusterFinder
 
@@ -80,11 +106,6 @@ namespace OpenMS
 */
   class OPENMS_DLLAPI QTCluster
   {
-public:
-
-    typedef std::pair<double, GridFeature*> NeighborListType;
-    typedef OpenMSBoost::unordered_map<Size, NeighborListType> NeighborMap;
-
 
 private:
     /**
@@ -95,16 +116,18 @@ private:
      * neighboring elements and the respective distance.
      *
      */
+    typedef std::multimap<double, GridFeature*> NeighborListType; // need to store more than one
+    typedef OpenMSBoost::unordered_map<Size, NeighborListType> NeighborMapMulti;
+
+    typedef std::pair<double, GridFeature*> NeighborPairType;
+    typedef OpenMSBoost::unordered_map<Size, NeighborPairType> NeighborMap;
 
     /// Pointer to the cluster center
     GridFeature* center_point_;
 
-    /**
-     * @brief Neighbors of the cluster center, sorted by distance, for different input maps.
-     *
-     * The first (best) point in each sub-map is considered a cluster element.
-     */
     NeighborMap neighbors_;
+
+    NeighborMapMulti* tmp_neighbors_;
 
     /// Maximum distance of a point that can still belong to the cluster
     double max_distance_;
@@ -137,13 +160,39 @@ private:
     /**
      * @brief Finds the optimal annotation (peptide sequences) for the cluster
      *
-     * The optimal annotation is the one that results in the best quality. It is stored in @p annotations_;
+     * The optimal annotation is the one that results in the best quality. It
+     * is stored in @p annotations_;
+     *
+     * This function is only needed when peptide ids are used and the current
+     * center point does not have any peptide id associated with it. In this
+     * case, it is not clear which peptide id the current cluster should use.
+     * The function thus iterates through all possible peptide ids and selects
+     * the one producing the best cluster.
+     *
+     * This function needs access to all possible neighbors for this cluster
+     * and thus can only be run when tmp_neighbors_ is filled (which is during
+     * the filling of a cluster). The function thus cannot be called after
+     * finalizing the cluster.
      *
      * @returns The total distance between cluster elements and the center.
      */
     double optimizeAnnotations_();
 
     bool valid_;
+
+    /** 
+     * @brief Whether initial collection of all neighbors is needed
+     *
+     * This variable stores whether we need to collect all annotations first
+     * before we can decide upon the best set of cluster points. This is
+     * usually only necessary if the center point does not have an annotation
+     * but we want to use ids.
+     *
+    */
+    bool collect_annotations_;
+
+    bool finalized_;
+
 public:
     Int x_coord_;
     Int y_coord_;
@@ -211,11 +260,18 @@ public:
       annotations_.clear();
     }
 
-    inline bool isInvalid() {return !valid_; }
+    inline bool isInvalid() {return !valid_;}
+
+    /// Has to be called after all elements have been added
+    void finalizeCluster();
+
+    /// Has to be called before adding elements
+    void initializeCluster();
 
     OpenMSBoost::unordered_map<Size, std::vector<GridFeature*> > getAllNeighbors();
 
   };
+
 }
 
 #endif // OPENMS_DATASTRUCTURES_QTCLUSTER_H
