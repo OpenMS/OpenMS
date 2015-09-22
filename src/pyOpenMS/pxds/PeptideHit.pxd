@@ -1,6 +1,3 @@
-from libcpp cimport bool
-from libcpp.vector cimport vector as libcpp_vector
-from libcpp.set cimport set as libcpp_set
 from Types cimport *
 from DataValue cimport *
 from Feature cimport *
@@ -61,11 +58,13 @@ cdef extern from "<OpenMS/METADATA/PeptideHit.h>" namespace "OpenMS":
         void removeMetaValue(unsigned int) nogil except +
 
 
-    cdef cppclass PeptideHit_AnalysisResult "OpenMS::PeptideHit::AnalysisResult":
+    cdef cppclass PeptideHit_AnalysisResult "OpenMS::PeptideHit::PepXMLAnalysisResult":
+
         PeptideHit_AnalysisResult() nogil except +
         PeptideHit_AnalysisResult(PeptideHit_AnalysisResult) nogil except + #wrap-ignore
 
         String score_type
+        bool higher_is_better
         double main_score
         libcpp_map[String, double] sub_scores
 
