@@ -171,7 +171,6 @@ private:
     /// y coordinate in the grid cell
     Int y_coord_;
 
-
     /**
      * @brief Set of annotations of the cluster
      *
@@ -223,7 +222,8 @@ public:
     /// Destructor
     virtual ~QTCluster();
 
-    GridFeature* getCenterPoint() {return center_point_;}
+    /// Returns the cluster center
+    GridFeature* getCenterPoint();
 
     /// Returns the RT value of the cluster
     double getCenterRT() const;

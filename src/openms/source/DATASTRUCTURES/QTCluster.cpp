@@ -61,12 +61,12 @@ namespace OpenMS
     quality_(0.0),
     changed_(false),
     use_IDs_(use_IDs),
-    annotations_(),
     valid_(true),
     collect_annotations_(false),
     finalized_(true),
     x_coord_(x_coord),
-    y_coord_(y_coord)
+    y_coord_(y_coord),
+    annotations_()
   {
     if (use_IDs)
     {
@@ -76,6 +76,11 @@ namespace OpenMS
     { 
       collect_annotations_ = true;
     }
+  }
+
+  GridFeature* QTCluster::getCenterPoint() 
+  {
+    return center_point_;
   }
 
   double QTCluster::getCenterRT() const
