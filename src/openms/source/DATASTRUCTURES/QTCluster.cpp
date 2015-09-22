@@ -39,9 +39,18 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/Macros.h>
 
-#include <numeric>
+#include <vector>
+#include <set>
+#include <map> // for multimap<>
+#include <algorithm> // for min
+#include <numeric> // for make_pair
 
-using namespace std;
+using std::map;
+using std::vector;
+using std::make_pair;
+using std::min;
+using std::set;
+using std::iterator;
 
 namespace OpenMS
 {
@@ -133,10 +142,9 @@ namespace OpenMS
     // ensure we only add compatible peptide annotations
     OPENMS_PRECONDITION(
         !use_IDs_ ||
-        ( element->getAnnotations().empty() || 
-          center_point_->getAnnotations().empty() ||
-          element->getAnnotations() == center_point_->getAnnotations()
-        ),
+        (element->getAnnotations().empty() || 
+         center_point_->getAnnotations().empty() ||
+         element->getAnnotations() == center_point_->getAnnotations()),
         "Annotations need to be compatible")
     OPENMS_PRECONDITION(distance <= max_distance_,
         "Distance cannot be larger than max_distance")
@@ -188,14 +196,15 @@ namespace OpenMS
     }
   }
 
-  bool QTCluster::update(const OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*>& removed)
+  bool QTCluster::update(const OpenMSBoost::unordered_map<Size,
+      OpenMS::GridFeature*>& removed)
   {
     OPENMS_PRECONDITION(finalized_,
         "Cannot perform operation on cluster that is not finalized")
 
     // check if the cluster center was removed:
-    for (OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*>::const_iterator rm_it = removed.begin();
-         rm_it != removed.end(); ++rm_it)
+    for (OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*>::const_iterator
+        rm_it = removed.begin(); rm_it != removed.end(); ++rm_it)
     {
       // If center point was removed, then we are done and no more work is
       // required
@@ -206,9 +215,9 @@ namespace OpenMS
       }
     }
 
-    // update the cluster contents, remove those elements we find in our cluster
-    for (OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*>::const_iterator rm_it = removed.begin();
-         rm_it != removed.end(); ++rm_it)
+    // update cluster contents, remove those elements we find in our cluster
+    for (OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*>::const_iterator
+        rm_it = removed.begin(); rm_it != removed.end(); ++rm_it)
     {
       NeighborMap::iterator pos = neighbors_.find(rm_it->first);
       if (pos == neighbors_.end())
@@ -279,7 +288,7 @@ namespace OpenMS
     OpenMSBoost::unordered_map<Size, std::vector<GridFeature*> > tmp;
     for (NeighborMap::iterator it = neighbors_.begin(); it != neighbors_.end(); ++it)
     {
-      tmp[ it->first ].push_back( it->second.second );
+      tmp[ it->first ].push_back(it->second.second);
     }
     return tmp;
   }
@@ -305,22 +314,26 @@ namespace OpenMS
     // mapping: peptides -> best distance per input map
     map<set<AASequence>, vector<double> > seq_table;
 
-    for (NeighborMapMulti::iterator n_it = tmp_neighbors_->begin(); n_it != tmp_neighbors_->end(); ++n_it)
+    for (NeighborMapMulti::iterator n_it = tmp_neighbors_->begin();
+        n_it != tmp_neighbors_->end(); ++n_it)
     {
       Size map_index = n_it->first;
-      for (NeighborListType::iterator df_it = n_it->second.begin(); df_it != n_it->second.end(); ++df_it)
+      for (NeighborListType::iterator df_it = n_it->second.begin(); 
+          df_it != n_it->second.end(); ++df_it)
       {
         double dist = df_it->first;
         const set<AASequence>& current = df_it->second->getAnnotations();
         map<set<AASequence>, vector<double> >::iterator pos =
           seq_table.find(current);
-        if (pos == seq_table.end()) // new set of annotations, fill vector with max distance for all maps
+        if (pos == seq_table.end())
         {
+          // new set of annotations, fill vector with max distance for all maps
           seq_table[current].resize(num_maps_, max_distance_);
           seq_table[current][map_index] = dist;
         }
-        else // new dist. value for this input map
+        else 
         {
+          // new dist. value for this input map
           pos->second[map_index] = min(dist, pos->second[map_index]);
         }
         if (current.empty()) // unannotated feature
@@ -441,4 +454,4 @@ namespace OpenMS
     }
   }
 
-}
+} // namespace OpenMS

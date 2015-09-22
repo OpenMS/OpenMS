@@ -42,7 +42,12 @@
 #include <OpenMS/config.h>
 
 #include <boost/unordered_map.hpp>
-#include <set>
+
+#include <map> // for multimap<>
+#include <vector> // for vector<>
+#include <set> // for set<>
+#include <utility> // for pair<>
+
 
 namespace OpenMS
 {
@@ -106,10 +111,10 @@ namespace OpenMS
 */
   class OPENMS_DLLAPI QTCluster
   {
-
 private:
 
-    typedef std::multimap<double, GridFeature*> NeighborListType; // need to store more than one
+    // need to store more than one
+    typedef std::multimap<double, GridFeature*> NeighborListType;
     typedef OpenMSBoost::unordered_map<Size, NeighborListType> NeighborMapMulti;
 
     typedef std::pair<double, GridFeature*> NeighborPairType;
@@ -269,7 +274,13 @@ public:
     /// Return the set of peptide sequences annotated to the cluster center
     const std::set<AASequence>& getAnnotations();
 
-    /// Sets current cluster as invalid (also frees some memory)
+    /**
+     * @brief Sets current cluster as invalid (also frees some memory)
+     *
+     * @note Do not attempt to use the cluster again once it is invalid, some
+     * internal data structures have now been cleared
+     *
+     */
     void setInvalid();
 
     /// Whether current cluster is invalid
@@ -278,17 +289,15 @@ public:
       return !valid_;
     }
 
-    /// Has to be called after all elements have been added
-    void finalizeCluster();
-
-    /// Has to be called before adding elements
+    /// Has to be called before adding elements (calling QTCluster::add)
     void initializeCluster();
+
+    /// Has to be called after adding elements (after calling QTCluster::add one or multiple times)
+    void finalizeCluster();
 
     /// Get all current neighbors
     OpenMSBoost::unordered_map<Size, std::vector<GridFeature*> > getAllNeighbors();
-
   };
-
-}
+} // namespace OpenMS
 
 #endif // OPENMS_DATASTRUCTURES_QTCLUSTER_H

@@ -32,7 +32,6 @@
 // $Authors: Steffen Sass, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_QTCLUSTERFINDER_H
 #define OPENMS_ANALYSIS_MAPMATCHING_QTCLUSTERFINDER_H
 
@@ -44,6 +43,11 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureDistance.h>
 
 #include <boost/unordered_map.hpp>
+
+#include <list>
+#include <vector>
+#include <set>
+#include <utility> // for pair<>
 
 namespace OpenMS
 {
@@ -103,12 +107,13 @@ namespace OpenMS
 private:
 
     /// Distances between pairs of grid features
-    typedef OpenMSBoost::unordered_map<std::pair<OpenMS::GridFeature*, OpenMS::GridFeature*>,
-                                       double> PairDistances;
+    typedef OpenMSBoost::unordered_map< 
+              std::pair<OpenMS::GridFeature*, OpenMS::GridFeature*>,
+              double> PairDistances;
 
     /// Map to store which grid features are next to which clusters
-    typedef OpenMSBoost::unordered_map<OpenMS::GridFeature*, 
-                                       std::vector<QTCluster*> > ElementMapping;
+    typedef OpenMSBoost::unordered_map<
+              OpenMS::GridFeature*, std::vector<QTCluster*> > ElementMapping;
 
     typedef HashGrid<OpenMS::GridFeature*> Grid;
 
@@ -136,7 +141,8 @@ private:
     /**
        @brief Calculates the distance between two grid features.
     */
-    double getDistance_(const OpenMS::GridFeature* left, const OpenMS::GridFeature* right);
+    double getDistance_(const OpenMS::GridFeature* left, const
+        OpenMS::GridFeature* right);
 
     /**
        @brief Checks whether the peptide IDs of a cluster and a neighboring
@@ -146,7 +152,8 @@ private:
        Otherwise, the cluster and feature are compatible if the best peptide
        hits of each of their identifications have the same sequences.
     */
-    bool compatibleIDs_(QTCluster& cluster, const OpenMS::GridFeature* neighbor);
+    bool compatibleIDs_(QTCluster& cluster, 
+        const OpenMS::GridFeature* neighbor);
 
     /// Sets algorithm parameters
     void setParameters_(double max_intensity, double max_mz);
@@ -165,13 +172,15 @@ private:
 
     /// Runs the algorithm on feature maps or consensus maps (internal)
     template <typename MapType>
-    void run_internal_(const std::vector<MapType>& input_maps, ConsensusMap& result_map, bool do_progress);
+    void run_internal_(const std::vector<MapType>& input_maps,
+                       ConsensusMap& result_map, bool do_progress);
 
     /// Adds elements to the cluster based on the elements hashed in the grid
     void addClusterElements_(int x, int y, const Grid& grid, QTCluster& cluster,
       const OpenMS::GridFeature* center_feature);
 
 protected:
+
     enum
     {
       RT = Peak2D::RT,
@@ -179,6 +188,7 @@ protected:
     };
 
 public:
+
     /// Constructor
     QTClusterFinder();
 
@@ -216,8 +226,7 @@ public:
     {
       return new QTClusterFinder();
     }
-
   };
-}
+} // namespace OpenMS
 
 #endif /* OPENMS_ANALYSIS_MAPMATCHING_QTCLUSTERFINDER_H */
