@@ -104,6 +104,8 @@ set(metadata_executables_list
   Software_test
   SourceFile_test
   SpectrumIdentification_test
+  SpectrumLookup_test
+  SpectrumMetaDataLookup_test
   SpectrumSettings_test
   Tagging_test
 )
