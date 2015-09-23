@@ -297,74 +297,74 @@ namespace OpenMS
     }
   }
 
-  void EnzymaticDigestion::digestUnmodifiedString(const String& sequence, vector<pair<String::const_iterator, String::const_iterator> >& output, Size min_length = 0) const
-  {
-    // initialization
-    SignedSize count = 1;
-    output.clear();
+////  void EnzymaticDigestion::digestUnmodifiedString(const String& sequence, vector<pair<String::const_iterator, String::const_iterator> >& output, Size min_length = 0) const
+//  {
+//    // initialization
+//    SignedSize count = 1;
+//    output.clear();
 
-    SignedSize missed_cleavages = missed_cleavages_;
+//    SignedSize missed_cleavages = missed_cleavages_;
 
-    // missed cleavage iterators
-    vector<String::ConstIterator> mc_iterators;
+//    // missed cleavage iterators
+//    vector<String::ConstIterator> mc_iterators;
 
-    if (missed_cleavages != 0)
-    {
-      mc_iterators.push_back(sequence.begin());
-    }
+//    if (missed_cleavages != 0)
+//    {
+//      mc_iterators.push_back(sequence.begin());
+//    }
 
-    String::const_iterator begin = sequence.begin();
-    String::const_iterator end = sequence.begin();
-    while (nextCleavageSiteInString_(sequence, end), end != sequence.end())
-    {
-      ++count;
-      if (missed_cleavages != 0)
-      {
-        mc_iterators.push_back(end);
-      }
-      // store begin and (one after) end position of subsequence
-      if (static_cast<Size>(end - begin) >= min_length)
-        output.push_back(make_pair(begin, end));
-      begin = end;
-    }
-    // add last sequence
-    if (static_cast<Size>(end - begin) >= min_length)
-      output.push_back(make_pair(begin, end));
+//    String::const_iterator begin = sequence.begin();
+//    String::const_iterator end = sequence.begin();
+//    while (nextCleavageSiteInString_(sequence, end), end != sequence.end())
+//    {
+//      ++count;
+//      if (missed_cleavages != 0)
+//      {
+//        mc_iterators.push_back(end);
+//      }
+//      // store begin and (one after) end position of subsequence
+//      if (static_cast<Size>(end - begin) >= min_length)
+//        output.push_back(make_pair(begin, end));
+//      begin = end;
+//    }
+//    // add last sequence
+//    if (static_cast<Size>(end - begin) >= min_length)
+//      output.push_back(make_pair(begin, end));
 
-    if (missed_cleavages != 0)
-    {
-      mc_iterators.push_back(end);
-    }
+//    if (missed_cleavages != 0)
+//    {
+//      mc_iterators.push_back(end);
+//    }
 
-    // missed cleavages
-    if (mc_iterators.size() > 2) //there is at least one cleavage site!
-    {
-      // resize to number of fragments
-      Size sum = count;
+//    // missed cleavages
+//    if (mc_iterators.size() > 2) //there is at least one cleavage site!
+//    {
+//      // resize to number of fragments
+//      Size sum = count;
 
-      for (SignedSize i = 1; i < count; ++i)
-      {
-        if (i > missed_cleavages_)
-        {
-          break;
-        }
-        sum += count - i;
-      }
+//      for (SignedSize i = 1; i < count; ++i)
+//      {
+//        if (i > missed_cleavages_)
+//        {
+//          break;
+//        }
+//        sum += count - i;
+//      }
 
-      // generate fragments with missed cleavages
-      for (SignedSize i = 1; ((i <= missed_cleavages_) && (count > i)); ++i)
-      {
-        vector<String::const_iterator>::const_iterator b = mc_iterators.begin();
-        vector<String::const_iterator>::const_iterator e = b + (i + 1);
-        while (e != mc_iterators.end())
-        {
-          if (static_cast<Size>(*e - *b) >= min_length)
-            output.push_back(make_pair(*b, *e));
-          ++b;
-          ++e;
-        }
-      }
-    }
-  }
+//      // generate fragments with missed cleavages
+//      for (SignedSize i = 1; ((i <= missed_cleavages_) && (count > i)); ++i)
+//      {
+//        vector<String::const_iterator>::const_iterator b = mc_iterators.begin();
+//        vector<String::const_iterator>::const_iterator e = b + (i + 1);
+//        while (e != mc_iterators.end())
+//        {
+//          if (static_cast<Size>(*e - *b) >= min_length)
+//            output.push_back(make_pair(*b, *e));
+//          ++b;
+//          ++e;
+//        }
+//      }
+//    }
+//  }
 
 } //namespace
