@@ -404,6 +404,12 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
       return FileTypes::KROENIK;
     }
 
+    // Percolator tab-delimited output (PSM level, .psms)
+    if (first_line.hasPrefix("PSMId\tscore\tq-value\tposterior_error_prob\tpeptide\tproteinIds"))
+    {
+      return FileTypes::PSMS;
+    }
+
     // EDTA file
     // hard to tell... so we don't even try...
 

@@ -20,6 +20,7 @@
 	<note type="input" label="protein, cleavage site">[RK]|{P}</note>
 	<note type="input" label="protein, cleavage semi">yes</note>
 	<note type="input" label="refine">yes</note>
+	<note type="input" label="spectrum, use noise suppression">no</note>
 	<note type="input" label="scoring, maximum missed cleavage sites">18</note>
 	<note type="input" label="output, sort results by">spectrum</note>
 	<note type="input" label="output, results">all</note>

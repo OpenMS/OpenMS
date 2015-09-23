@@ -196,6 +196,8 @@ protected:
     setValidFormats_("whitelist:proteins", ListUtils::create<String>("fasta"));
     registerFlag_("whitelist:by_seq_only", "Match peptides with FASTA file by sequence instead of accession and disable protein filtering.");
 
+    registerStringList_("whitelist:protein_accessions", "<accessions>", ListUtils::create<String>(""), "All peptides that are not referencing at least one of the provided protein accession are removed.\nOnly proteins of the provided list are retained.", false);
+
     registerTOPPSubsection_("blacklist", "Filtering by blacklisting (only instances not present in a blacklist file can pass)");
     registerInputFile_("blacklist:peptides", "<file>", "", "Peptides having the same sequence and modification assignment as any peptide in this file will be filtered out. Use with blacklist:ignore_modification flag to only compare by sequence.\n", false);
     setValidFormats_("blacklist:peptides", ListUtils::create<String>("idXML"));
@@ -307,6 +309,8 @@ protected:
 
     String sequences_file_name = getStringOption_("whitelist:proteins").trim();
     bool no_protein_identifiers = getFlag_("whitelist:by_seq_only");
+
+    StringList protein_accessions = getStringList_("whitelist:protein_accessions");
 
     String exclusion_peptides_file_name = getStringOption_("blacklist:peptides").trim();
     bool exlusion_peptides_ignore_modifications = getFlag_("blacklist:ignore_modifications");
@@ -422,6 +426,13 @@ protected:
         applied_filters.insert("Filtering by peptide sequence whitelisting ...\n");
         PeptideIdentification temp_identification = filtered_identification;
         IDFilter::filterIdentificationsByProteins(temp_identification, sequences, filtered_identification, no_protein_identifiers);
+      }
+
+      if (!protein_accessions.empty())
+      {
+        applied_filters.insert("Filtering by protein accession whitelisting ...\n");
+        PeptideIdentification temp_identification = filtered_identification;
+        IDFilter::filterIdentificationsByProteinAccessions(temp_identification, protein_accessions, filtered_identification);
       }
 
       if (pv_rt_filtering > 0)
@@ -556,6 +567,13 @@ protected:
           applied_filters.insert("Filtering by whitelisting protein accession from FASTA file ...\n");
           ProteinIdentification temp_identification = filtered_protein_identification;
           IDFilter::filterIdentificationsByProteins(temp_identification, sequences, filtered_protein_identification);
+        }
+
+        if (!protein_accessions.empty())
+        {
+          applied_filters.insert("Filtering of proteins by protein accession whitelisting ...\n");
+          ProteinIdentification temp_identification = filtered_protein_identification;
+          IDFilter::filterIdentificationsByProteinAccessions(temp_identification, protein_accessions, filtered_protein_identification);
         }
 
         if (protein_threshold_score != 0)

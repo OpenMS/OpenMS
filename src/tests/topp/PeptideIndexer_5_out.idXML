@@ -6,17 +6,23 @@
 	<IdentificationRun date="2005-01-27T17:47:41" search_engine="" search_engine_version="" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="test" score="0" sequence="" >
+                <UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
 			<ProteinHit id="PH_1" accession="BSA2" score="3.33299994468689" sequence="" >
 				<UserParam type="string" name="my_user_param" value="veryimportant"/>
+                <UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
 			<ProteinHit id="PH_2" accession="test2_rev" score="0" sequence="" >
+                <UserParam type="string" name="target_decoy" value="decoy"/>
 			</ProteinHit>
 			<ProteinHit id="PH_3" accession="Thyroglo" score="0" sequence="" >
+                <UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
 			<ProteinHit id="PH_4" accession="Thyroglo_rev" score="0" sequence="" >
+                <UserParam type="string" name="target_decoy" value="decoy"/>
 			</ProteinHit>
 			<ProteinHit id="PH_5" accession="revonly_rev" score="0" sequence="" >
+                <UserParam type="string" name="target_decoy" value="decoy"/>
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >

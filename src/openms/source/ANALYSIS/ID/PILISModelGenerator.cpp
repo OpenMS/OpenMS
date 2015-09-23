@@ -42,9 +42,6 @@
 
 using namespace std;
 
-#define PRECURSOR_MODEL_DEBUG
-#undef  PRECURSOR_MODEL_DEBUG
-
 namespace OpenMS
 {
   PILISModelGenerator::PILISModelGenerator() :

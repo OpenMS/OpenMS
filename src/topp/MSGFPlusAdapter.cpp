@@ -180,7 +180,7 @@ protected:
     registerIntOption_("matches_per_spec", "<num>", 1, "Number of matches per spectrum to be reported (MS-GF+ parameter '-n')", false);
     setMinInt_("matches_per_spec", 1);
 
-    registerFlag_("add_features", "Output additional features (default: basic scores only; MS-GF+ parameter '-addFeatures')?", false);
+    registerFlag_("add_features", "Output additional features - needed e.g. by Percolator (default: basic scores only; MS-GF+ parameter '-addFeatures')", false);
 
     registerIntOption_("max_mods", "<num>", 2, "Maximum number of modifications per peptide. If this value is large, the search may take very long.", false);
     setMinInt_("max_mods", 0);
@@ -417,10 +417,17 @@ protected:
       writeLog_("Warning: Modifications are defined ('fixed_modifications'/'variable_modifications'), but the number of allowed modifications is zero ('max_mods'). Is that intended?");
     }
 
-    if (!JavaInfo::canRun("java"))
+    if (!getFlag_("force"))
     {
-      writeLog_("Fatal error: Java not found. Java is needed to run MS-GF+. Make sure that it can be executed by calling 'java', e.g. add the directory containing the Java binary to your PATH variable.");
-      return EXTERNAL_PROGRAM_ERROR;
+      if (!JavaInfo::canRun("java"))
+      {
+        writeLog_("Fatal error: Java not found, or the Java process timed out. Java is needed to run MS-GF+. Make sure that it can be executed by calling 'java', e.g. add the directory containing the Java binary to your PATH variable. If you are certain java is installed, please set the 'force' flag in order to avoid this error message.");
+        return EXTERNAL_PROGRAM_ERROR;
+      }
+    }
+    else
+    {
+      writeLog_("The installation of Java was not checked.");
     }
 
     // create temporary directory (and modifications file, if necessary):

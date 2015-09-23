@@ -88,6 +88,8 @@ protected:
 
     registerStringList_("whitelist", "<string list>", ListUtils::create<String>("<?xml-stylesheet"), "Lines containing one of these strings are skipped", false, true);
 
+    registerStringList_("matched_whitelist", "<string list>", ListUtils::create<String>(""), "Lines where one file contains one string and the other file another string are skipped. Input is given as list of colon separated tuples, e.g. String1:String2 String3:String4", false, true);
+
     registerIntOption_("verbose", "<int>", 2, "set verbose level:\n"
                                               "0 = very quiet mode (absolutely no output)\n"
                                               "1 = quiet mode (no output unless differences detected)\n"
@@ -115,18 +117,38 @@ protected:
     double acceptable_ratio = getDoubleOption_("ratio");
     double acceptable_absdiff = getDoubleOption_("absdiff");
     StringList whitelist = getStringList_("whitelist");
+    StringList raw_matched_whitelist = getStringList_("matched_whitelist");
     int verbose_level = getIntOption_("verbose");
     int tab_width = getIntOption_("tab_width");
     int first_column = getIntOption_("first_column");
 
     // This is for debugging the parsing of whitelist_ from cmdline or ini file.  Converting StringList back to String is intentional.
     writeDebug_(String("whitelist: ") + String(whitelist) + " (size: " + whitelist.size() + ")", 1);
+    writeDebug_(String("matched_whitelist: ") + String(raw_matched_whitelist) + " (size: " + raw_matched_whitelist.size() + ")", 1);
 
     OpenMS::FuzzyStringComparator fsc;
+
+    std::vector< std::pair<std::string, std::string> > parsed_matched_whitelist; 
+    for (Size i = 0; i < raw_matched_whitelist.size(); i++)
+    {
+
+      // Split each entry at the colon to produce a pair of strings
+      std::vector<String> tmp;
+      raw_matched_whitelist[i].split(":", tmp);
+      if (tmp.size() != 2)
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+          String(raw_matched_whitelist[i]) + " does not have the format String1:String2");
+      }
+
+      std::pair<std::string, std::string> tmp_tuple(tmp[0], tmp[1]);
+      parsed_matched_whitelist.push_back(tmp_tuple);
+    }
 
     fsc.setAcceptableRelative(acceptable_ratio);
     fsc.setAcceptableAbsolute(acceptable_absdiff);
     fsc.setWhitelist(whitelist);
+    fsc.setMatchedWhitelist(parsed_matched_whitelist);
     fsc.setVerboseLevel(verbose_level);
     fsc.setTabWidth(tab_width);
     fsc.setFirstColumn(first_column);

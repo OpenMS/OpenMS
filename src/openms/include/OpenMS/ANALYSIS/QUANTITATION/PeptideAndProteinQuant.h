@@ -44,7 +44,7 @@
 namespace OpenMS
 {
   /**
-      @brief Helper class for peptide and protein quantification based on feature data annotated with IDs
+      @brief Helper class for peptide and protein quantification based on feature data annotated with IDs.
 
       This class is used by @ref TOPP_ProteinQuantifier. See there for further documentation.
 
@@ -130,43 +130,56 @@ public:
     ~PeptideAndProteinQuant() {}
 
     /**
-         @brief Compute peptide abundances from data in a feature map
+         @brief Read quantitative data from a feature map.
 
          Parameters should be set before using this method, as setting parameters will clear all results.
     */
-    void quantifyPeptides(FeatureMap& features);
+    void readQuantData(FeatureMap& features);
 
     /**
-         @brief Compute peptide abundances from data in a consensus map
+         @brief Read quantitative data from a consensus map.
 
          Parameters should be set before using this method, as setting parameters will clear all results.
     */
-    void quantifyPeptides(ConsensusMap& consensus);
+    void readQuantData(ConsensusMap& consensus);
 
     /**
-         @brief Compute peptide abundances from identification data (spectral counting)
+         @brief Read quantitative data from identification results (for quantification via spectral counting).
 
          Parameters should be set before using this method, as setting parameters will clear all results.
     */
-    void quantifyPeptides(std::vector<ProteinIdentification>& proteins,
-                          std::vector<PeptideIdentification>& peptides);
+    void readQuantData(std::vector<ProteinIdentification>& proteins,
+                       std::vector<PeptideIdentification>& peptides);
+
+    /**
+         @brief Compute peptide abundances.
+
+         Based on quantitative data for individual charge states (in member @p pep_quant_), overall abundances for peptides are computed (and stored again in @p pep_quant_).
+
+         Quantitative data must first be read via readQuantData().
+
+         Optional (peptide-level) protein inference information (e.g. from Fido or ProteinProphet) can be supplied via @p peptides. In that case, peptide-to-protein associations - the basis for protein-level quantification - will also be read from @p peptides!
+    */
+    void quantifyPeptides(const std::vector<PeptideIdentification>& peptides =
+                          std::vector<PeptideIdentification>());
+
 
     /**
          @brief Compute protein abundances.
 
-         Peptide abundances must be computed first with @p quantifyPeptides. Optional information about groups of indistinguishable proteins (from ProteinProphet) can be supplied via @p proteins.
+         Peptide abundances must be computed first with quantifyPeptides(). Optional protein inference information (e.g. from Fido or ProteinProphet) can be supplied via @p proteins.
     */
-    void quantifyProteins(const ProteinIdentification & proteins =
-                            ProteinIdentification());
+    void quantifyProteins(const ProteinIdentification& proteins = 
+                          ProteinIdentification());
 
     /// Get summary statistics
-    const Statistics & getStatistics();
+    const Statistics& getStatistics();
 
     /// Get peptide abundance data
-    const PeptideQuant & getPeptideResults();
+    const PeptideQuant& getPeptideResults();
 
     /// Get protein abundance data
-    const ProteinQuant & getProteinResults();
+    const ProteinQuant& getProteinResults();
 
 private:
 
@@ -186,14 +199,14 @@ private:
          Only the best-scoring peptide hit of each ID in @p peptides is taken into account. The hits of each ID must already be sorted! If there's more than one ID and the best hits are not identical by sequence, or if there's no peptide ID, an empty peptide hit (for "ambiguous/no annotation") is returned.
          Protein accessions from identical peptide hits are accumulated.
     */
-    PeptideHit getAnnotation_(std::vector<PeptideIdentification> & peptides);
+    PeptideHit getAnnotation_(std::vector<PeptideIdentification>& peptides);
 
     /**
          @brief Gather quantitative information from a feature.
 
          Store quantitative information from @p feature in member @p pep_quant_, based on the peptide annotation in @p hit. If @p hit is empty ("ambiguous/no annotation"), nothing is stored.
     */
-    void quantifyFeature_(const FeatureHandle & feature, const PeptideHit & hit);
+    void quantifyFeature_(const FeatureHandle& feature, const PeptideHit& hit);
 
     /**
          @brief Order keys (charges/peptides for peptide/protein quantification) according to how many samples they allow to quantify, breaking ties by total abundance.
@@ -202,7 +215,7 @@ private:
     */
     template <typename T>
     void orderBest_(const std::map<T, SampleAbundances> abundances,
-                    std::vector<T> & result)
+                    std::vector<T>& result)
     {
       typedef std::pair<Size, double> PairType;
       std::multimap<PairType, T, std::greater<PairType> > order;
@@ -228,13 +241,6 @@ private:
     }
 
     /**
-         @brief Compute overall peptide abundances.
-
-         Based on quantitative data for individual charge states (derived from annotated features) in member @p pep_quant_, compute overall abundances for all peptides and store them also in @p pep_quant_.
-    */
-    void quantifyPeptides_();
-
-    /**
          @brief Normalize peptide abundances across samples by (multiplicative) scaling to equal medians.
     */
     void normalizePeptides_();
@@ -251,15 +257,15 @@ private:
 
          If there is no canonical accession, the empty string is returned.
     */
-    String getAccession_(const std::set<String> & pep_accessions,
-                         std::map<String, String> & accession_to_leader);
+    String getAccession_(const std::set<String>& pep_accessions,
+                         std::map<String, String>& accession_to_leader);
 
     /**
          @brief Count the number of identifications (best hits only) of each peptide sequence.
 
          The peptide hits in @p peptides are sorted by score in the process.
     */
-    void countPeptides_(std::vector<PeptideIdentification> & peptides);
+    void countPeptides_(std::vector<PeptideIdentification>& peptides);
 
     /// Clear all data when parameters are set
     void updateMembers_();

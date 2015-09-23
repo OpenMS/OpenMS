@@ -36,6 +36,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -309,7 +310,11 @@ protected:
     //-no <Integer> minimum size of peptides for no-enzyme and semi-tryptic searches
     //-nox <Integer> maximum size of peptides for no-enzyme and semi-tryptic searches
     registerIntOption_("v", "<Integer>", 1, "number of missed cleavages allowed", false);
-    registerIntOption_("e", "<Integer>", 0, "id number of enzyme to use (0 (i.e. trypsin) is the default, 17 would be no enzyme (i.e. unspecific digestion). Please refer to 'omssacl -el' for a listing.", false);
+    vector<String> all_enzymes;
+    EnzymesDB::getInstance()->getAllOMSSANames(all_enzymes);
+    registerStringOption_("enzyme", "<enzyme>", "Trypsin", "The enzyme used for peptide digestion.", false);
+    setValidStrings_("enzyme", all_enzymes);
+    //registerIntOption_("e", "<Integer>", 0, "id number of enzyme to use (0 (i.e. trypsin) is the default, 17 would be no enzyme (i.e. unspecific digestion). Please refer to 'omssacl -el' for a listing.", false);
     registerIntOption_("no", "<Integer>", 4, "minimum size of peptides for no-enzyme and semi-tryptic searches", false, true);
     registerIntOption_("nox", "<Integer>", 40, "maximum size of peptides for no-enzyme and semi-tryptic searches", false, true);
 
@@ -515,7 +520,7 @@ protected:
     parameters << "-i" << getStringOption_("i");
     parameters << "-z1" << String(getDoubleOption_("z1"));
     parameters << "-v" << String(getIntOption_("v"));
-    parameters << "-e" << String(getIntOption_("e"));
+    parameters << "-e" << String(EnzymesDB::getInstance()->getEnzyme(getStringOption_("enzyme"))->getOMSSAid());
     parameters << "-tez" << String(getIntOption_("tez"));
 
 
@@ -937,6 +942,17 @@ protected:
              ++it_pep)
         {
           it_pep->setIdentifier(protein_identification.getIdentifier());
+
+          // clear peptide evidences
+          vector<PeptideHit> pep_hits = it_pep->getHits();
+          for (vector<PeptideHit>::iterator it_pep_hit = pep_hits.begin();
+             it_pep_hit != pep_hits.end();
+             ++it_pep_hit)
+          {
+            it_pep_hit->setPeptideEvidences(std::vector<PeptideEvidence>());
+          }
+          it_pep->setHits(pep_hits);
+
           peptide_ids.push_back(*it_pep);
         }
       }
@@ -987,15 +1003,7 @@ protected:
     search_parameters.mass_type = mass_type;
     search_parameters.fixed_modifications = getStringList_("fixed_modifications");
     search_parameters.variable_modifications = getStringList_("variable_modifications");
-
-    ProteinIdentification::DigestionEnzyme enzyme = ProteinIdentification::TRYPSIN;
-    UInt e(getIntOption_("e"));
-    if (e != 0)
-    {
-      writeLog_("Warning: cannot handle enzyme: " + String(getIntOption_("e")));
-    }
-
-    search_parameters.enzyme = enzyme;
+    search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(getStringOption_("enzyme"));
     search_parameters.missed_cleavages = getIntOption_("v");
     search_parameters.peak_mass_tolerance = getDoubleOption_("fragment_mass_tolerance");
     search_parameters.precursor_tolerance = getDoubleOption_("precursor_mass_tolerance");

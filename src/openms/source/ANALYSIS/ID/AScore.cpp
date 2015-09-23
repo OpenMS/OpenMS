@@ -97,7 +97,7 @@ namespace OpenMS
     // determine all phospho sites
     vector<Size> sites(getSites(without_phospho));
 
-    vector<vector<Size> > permutations(computePermutations(sites, number_of_phosphorylation_events));
+    vector<vector<Size> > permutations(computePermutations(sites, (Int)number_of_phosphorylation_events));
 
     th_spectra.resize(permutations.size());
     for (Size i = 0; i < permutations.size(); ++i)
@@ -171,7 +171,7 @@ namespace OpenMS
       site_score->resize(10);
       for (Size i = 1; i <= 10; ++i)
       {
-        UInt n = 0;
+        Size n = 0;
         for (Size depth = 0; depth < windows_top10.size(); ++depth) // count matched ions over all 100 Da windows
         {
           n += numberOfMatchedIons(*it, windows_top10[depth], i, fragment_mass_tolerance, fragment_mass_unit_ppm);
@@ -256,7 +256,7 @@ namespace OpenMS
     // score = sum_{k=n..N}(\choose{N}{k}p^k(1-p)^{N-k})
     for (Size k = n; k <= N; ++k)
     {
-      double coeff = boost::math::binomial_coefficient<double>((double)N, k);
+      double coeff = boost::math::binomial_coefficient<double>((unsigned int)N, (unsigned int)k);
       double pow1 = pow((double)p, (int)k);
       double pow2 = pow(double(1 - p), double(N - k));
       score += coeff * pow1 * pow2;
