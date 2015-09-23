@@ -148,7 +148,7 @@ namespace OpenMS
       {
         lookup.getSpectrumMetaData(items[0], meta_data, lookup_flags);
       }
-      catch(...)
+      catch (...)
       {
         String msg = "Error: Could not extract data for spectrum reference '" +
           items[0] + "' from row " + String(row);

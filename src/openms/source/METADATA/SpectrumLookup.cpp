@@ -237,7 +237,7 @@ namespace OpenMS
       {
         return value.toInt();
       }
-      catch(Exception::ConversionError&)
+      catch (Exception::ConversionError&)
       {
       }
     }

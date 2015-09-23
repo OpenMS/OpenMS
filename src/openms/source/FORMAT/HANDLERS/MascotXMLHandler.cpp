@@ -138,7 +138,7 @@ namespace OpenMS
             id_data_[peptide_identification_index_].setMZ(meta.precursor_mz);
           }
         }
-        catch(...)
+        catch (...)
         {
           String msg = "<pep_scan_title> element has unexpected format '" + title + "'. Could not extract spectrum meta data.";
           error(LOAD, msg);
