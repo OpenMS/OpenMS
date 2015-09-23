@@ -234,7 +234,11 @@ namespace OpenMS
 
   void PeptideIdentification::setExperimentLabel(const String& label)
   {
-    setMetaValue("experiment_label", label);
+    // do not store empty label (default value)
+    if (!label.empty())
+    {
+      setMetaValue("experiment_label", label);
+    }
   }
 
   void PeptideIdentification::assignRanks()
