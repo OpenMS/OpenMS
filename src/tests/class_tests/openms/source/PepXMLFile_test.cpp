@@ -239,7 +239,7 @@ START_SECTION([EXTRA] void load(const String& filename, std::vector<ProteinIdent
   // check the analysis scores
   TEST_EQUAL(pep_hit.getAnalysisResults().size(), 2);
 
-  PeptideHit::AnalysisResult a = pep_hit.getAnalysisResults()[0];
+  PeptideHit::PepXMLAnalysisResult a = pep_hit.getAnalysisResults()[0];
   TEST_EQUAL(a.score_type, "peptideprophet");
   TEST_REAL_SIMILAR(a.main_score, 0.0660);
 
@@ -395,7 +395,7 @@ START_SECTION([EXTRA] void store(const String& filename, std::vector<ProteinIden
     // check the analysis scores
     TEST_EQUAL(pep_hit.getAnalysisResults().size(), 2);
 
-    PeptideHit::AnalysisResult a = pep_hit.getAnalysisResults()[0];
+    PeptideHit::PepXMLAnalysisResult a = pep_hit.getAnalysisResults()[0];
     TEST_EQUAL(a.score_type, "peptideprophet");
     TEST_REAL_SIMILAR(a.main_score, 0.0660);
 
