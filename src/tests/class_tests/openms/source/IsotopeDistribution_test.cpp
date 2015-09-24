@@ -267,6 +267,35 @@ START_SECTION(void estimateFromPeptideWeight(double average_weight))
 	TEST_REAL_SIMILAR(iso.begin()->second, 0.00291426)
 END_SECTION
 
+START_SECTION(void estimateFromRNAWeight(double average_weight))
+    // hard to test as this is an rough estimate
+    IsotopeDistribution iso(3);
+    iso.estimateFromRNAWeight(100.0);
+    iso.renormalize();
+    TEST_REAL_SIMILAR(iso.begin()->second, 0.959704)
+
+    iso.estimateFromRNAWeight(1000.0);
+    TEST_REAL_SIMILAR(iso.begin()->second, 0.653857)
+
+    iso.estimateFromRNAWeight(10000.0);
+    TEST_REAL_SIMILAR(iso.begin()->second, 0.014696)
+END_SECTION
+
+
+START_SECTION(void estimateFromDNAWeight(double average_weight))
+    // hard to test as this is an rough estimate
+    IsotopeDistribution iso(3);
+    iso.estimateFromDNAWeight(100.0);
+    iso.renormalize();
+    TEST_REAL_SIMILAR(iso.begin()->second, 0.959704)
+
+    iso.estimateFromDNAWeight(1000.0);
+    TEST_REAL_SIMILAR(iso.begin()->second, 0.644479)
+
+    iso.estimateFromDNAWeight(10000.0);
+    TEST_REAL_SIMILAR(iso.begin()->second, 0.012738)
+END_SECTION
+
 START_SECTION(void estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P))
     // We are testing that the parameterized version matches the hardcoded version.
     IsotopeDistribution iso(3);

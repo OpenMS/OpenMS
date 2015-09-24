@@ -200,13 +200,15 @@ namespace OpenMS
   }
 
 
-  void IsotopeDistribution::estimateFromRNAWeight(double average_weight){
-      estimateFromWeightAndComp(average_weight,9.75,12.25,3.75,7,0,1);
+  void IsotopeDistribution::estimateFromRNAWeight(double average_weight)
+  {
+      estimateFromWeightAndComp(average_weight, 9.75, 12.25, 3.75, 7, 0, 1);
   }
 
 
-  void IsotopeDistribution::estimateFromDNAWeight(double average_weight){
-      estimateFromWeightAndComp(average_weight,9.75,12.25,3.75,6,0,1);
+  void IsotopeDistribution::estimateFromDNAWeight(double average_weight)
+  {
+      estimateFromWeightAndComp(average_weight, 9.75, 12.25, 3.75, 6, 0, 1);
   }
 
   void IsotopeDistribution::estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P)
@@ -223,11 +225,11 @@ namespace OpenMS
 
       //Averagine element count divided by averagine weight
       vector<double> factors;
-      double monoTotal= (C*db->getElement("C")->getMonoWeight()+
-                         H*db->getElement("H")->getMonoWeight()+
-                         N*db->getElement("N")->getMonoWeight()+
-                         O*db->getElement("O")->getMonoWeight()+
-                         S*db->getElement("S")->getMonoWeight()+
+      double monoTotal = (C*db->getElement("C")->getMonoWeight() +
+                         H*db->getElement("H")->getMonoWeight() +
+                         N*db->getElement("N")->getMonoWeight() +
+                         O*db->getElement("O")->getMonoWeight() +
+                         S*db->getElement("S")->getMonoWeight() +
                          P*db->getElement("P")->getMonoWeight());
       factors.push_back(C / monoTotal);
       factors.push_back(H / monoTotal);

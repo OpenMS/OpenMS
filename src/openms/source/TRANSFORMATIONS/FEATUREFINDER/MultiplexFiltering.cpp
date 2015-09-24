@@ -60,8 +60,8 @@ using namespace boost::math;
 namespace OpenMS
 {
 
-  MultiplexFiltering::MultiplexFiltering(const MSExperiment<Peak1D>& exp_picked, const std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String type_m) :
-    exp_picked_(exp_picked), patterns_(patterns), peaks_per_peptide_min_(peaks_per_peptide_min), peaks_per_peptide_max_(peaks_per_peptide_max), missing_peaks_(missing_peaks), intensity_cutoff_(intensity_cutoff), mz_tolerance_(mz_tolerance), mz_tolerance_unit_(mz_tolerance_unit), peptide_similarity_(peptide_similarity), averagine_similarity_(averagine_similarity), averagine_similarity_scaling_(averagine_similarity_scaling), type_m_(type_m)
+  MultiplexFiltering::MultiplexFiltering(const MSExperiment<Peak1D>& exp_picked, const std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averigine_type) :
+    exp_picked_(exp_picked), patterns_(patterns), peaks_per_peptide_min_(peaks_per_peptide_min), peaks_per_peptide_max_(peaks_per_peptide_max), missing_peaks_(missing_peaks), intensity_cutoff_(intensity_cutoff), mz_tolerance_(mz_tolerance), mz_tolerance_unit_(mz_tolerance_unit), peptide_similarity_(peptide_similarity), averagine_similarity_(averagine_similarity), averagine_similarity_scaling_(averagine_similarity_scaling), averagine_type_(averigine_type)
   {
   }
 
@@ -460,10 +460,23 @@ namespace OpenMS
     IsotopeDistribution distribution;
     vector<double> averagine_pattern;
     distribution.setMaxIsotope(pattern.size());
-    if (type_m_=="peptide") distribution.estimateFromPeptideWeight(m);
-    else if (type_m_=="RNA") distribution.estimateFromRNAWeight(m);
-    else if (type_m_=="DNA") distribution.estimateFromDNAWeight(m);
-    else distribution.estimateFromPeptideWeight(m); //TODO: Deal with this intelligently
+    if (averagine_type_ == "peptide")
+    {
+        distribution.estimateFromPeptideWeight(m);
+    }
+    else if (averagine_type_ == "RNA")
+    {
+        distribution.estimateFromRNAWeight(m);
+    }
+    else if (averagine_type_ == "DNA")
+    {
+        distribution.estimateFromDNAWeight(m);
+    }
+    else
+    {
+        distribution.estimateFromPeptideWeight(m); //TODO: Deal with this intelligently
+    }
+
     for (IsotopeDistribution::Iterator it = distribution.begin(); it != distribution.end(); ++it)
     {
       averagine_pattern.push_back(it->second);
