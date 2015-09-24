@@ -252,7 +252,7 @@ namespace OpenMS
              * Filter (6): averagine similarity filter
              * Does each individual isotope pattern resemble a peptide?
              */
-            bool averagine_similarity = averagineSimilarityFilter(patterns_[pattern], intensities_actual, peaks_found_in_all_peptides_spline, mz,type_m_);
+            bool averagine_similarity = averagineSimilarityFilter(patterns_[pattern], intensities_actual, peaks_found_in_all_peptides_spline, mz);
             if (!averagine_similarity)
             {
               continue;

@@ -250,7 +250,7 @@ namespace OpenMS
     return true;
   }
 
-  bool MultiplexFiltering::averagineSimilarityFilter(const MultiplexPeakPattern& pattern, const vector<double>& intensities_actual, int peaks_found_in_all_peptides_spline, double mz, String type_m) const
+  bool MultiplexFiltering::averagineSimilarityFilter(const MultiplexPeakPattern& pattern, const vector<double>& intensities_actual, int peaks_found_in_all_peptides_spline, double mz) const
   {
     // Use a more restrictive averagine similarity when we are searching for peptide singlets.
     double similarity;
@@ -453,7 +453,7 @@ namespace OpenMS
   }
 
 
-  double MultiplexFiltering::getAveragineSimilarity(const vector<double>& pattern, double m, String type_m) const
+  double MultiplexFiltering::getAveragineSimilarity(const vector<double>& pattern, double m) const
 
   {
     // construct averagine distribution
