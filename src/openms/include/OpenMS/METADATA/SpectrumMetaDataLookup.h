@@ -138,10 +138,16 @@ namespace OpenMS
     /// Bit mask for which meta data to extract from a spectrum
     typedef unsigned char MetaDataFlags;
 
-    /// Possible meta data to extract from a spectrum
-    static const MetaDataFlags MDF_RT = 1, MDF_PRECURSORRT = 2,
-      MDF_PRECURSORMZ = 4, MDF_PRECURSORCHARGE = 8, MDF_MSLEVEL = 16,
-      MDF_SCANNUMBER = 32, MDF_NATIVEID = 64, MDF_ALL = 127;
+    /// Possible meta data to extract from a spectrum. 
+    /// Note that the static vaiables need to be put on separate lines due to a compiler bug in VS
+    static const MetaDataFlags MDF_RT = 1;
+    static const MetaDataFlags MDF_PRECURSORRT = 2;
+    static const MetaDataFlags MDF_PRECURSORMZ = 4;
+    static const MetaDataFlags MDF_PRECURSORCHARGE = 8;
+    static const MetaDataFlags MDF_MSLEVEL = 16;
+    static const MetaDataFlags MDF_SCANNUMBER = 32;
+    static const MetaDataFlags MDF_NATIVEID = 64;
+    static const MetaDataFlags MDF_ALL = 127;
 
     /// Meta data of a spectrum
     struct SpectrumMetaData
