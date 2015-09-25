@@ -50,24 +50,24 @@ export BUILD_NAME=${_build_name}
 
 # we need an X-server for building the documentation and some tests
 # so we start xvfb
-export DISPLAY=:99.0
-sh -e /etc/init.d/xvfb start
+#export DISPLAY=:99.0
+
+#sh -e /usr/X11/bin/xvfb start
 
 # add third-party binaries (e.g. search engines) to PATH
-export PATH=${SOURCE_DIRECTORY}/_thirdparty/MyriMatch:$PATH
-export PATH=${SOURCE_DIRECTORY}/_thirdparty/OMSSA:$PATH
-export PATH=${SOURCE_DIRECTORY}/_thirdparty/XTandem:$PATH
-export PATH=${SOURCE_DIRECTORY}/_thirdparty/MSGFPlus:$PATH
-export PATH=${SOURCE_DIRECTORY}/_thirdparty/Fido:$PATH
+#export PATH=${SOURCE_DIRECTORY}/_thirdparty/MyriMatch:$PATH
+#export PATH=${SOURCE_DIRECTORY}/_thirdparty/OMSSA:$PATH
+#export PATH=${SOURCE_DIRECTORY}/_thirdparty/XTandem:$PATH
+#export PATH=${SOURCE_DIRECTORY}/_thirdparty/MSGFPlus:$PATH
+#export PATH=${SOURCE_DIRECTORY}/_thirdparty/Fido:$PATH
 
 # if we perform style tests, add cppcheck to path
-if [ $ENABLE_STYLE_TESTING == "ON" ]; then
-  export PATH=${SOURCE_DIRECTORY}/cppcheck:$PATH
-fi
+#if [ $ENABLE_STYLE_TESTING == "ON" ]; then
+#  export PATH=${SOURCE_DIRECTORY}/cppcheck:$PATH
+#fi
 
-
-# set os dependent folder for preinstalled libraries
-export OS_PREFIX_PATH=/usr
+# set os dependent folder for preinstalled libraries (in this case to homebrew libraries)
+export OS_PREFIX_PATH=/usr/local
 ctest -V -S tools/travis/cibuild.cmake
 
 # tell the user where he can find the results
