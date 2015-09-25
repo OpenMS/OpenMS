@@ -62,32 +62,24 @@ START_SECTION(~PepXMLFile())
 delete ptr;
 END_SECTION
 
-START_SECTION(void load(const String& filename, std::vector<ProteinIdentification>& proteins, std::vector<PeptideIdentification>& peptides, const String& experiment_name, const MSExperiment<>& experiment, bool use_precursor_data = false))
+START_SECTION(void load(const String& filename, std::vector<ProteinIdentification>& proteins, std::vector<PeptideIdentification>& peptides, const String& experiment_name, SpectrumMetaDataLookup& lookup))
 {
-  vector<ProteinIdentification> proteins, proteins2;
-  vector<PeptideIdentification> peptides, peptides2;
+  vector<ProteinIdentification> proteins;
+  vector<PeptideIdentification> peptides;
   String pep_file = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test.pepxml");
   String mz_file = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test.mzML");
   String exp_name = "PepXMLFile_test";
   MSExperiment<> experiment;
   MzMLFile().load(mz_file, experiment);
-  // load with precursor information:
-  file.load(pep_file, proteins, peptides, exp_name, experiment, true);
+  SpectrumMetaDataLookup lookup;
+  lookup.readSpectra(experiment.getSpectra());
+  file.load(pep_file, proteins, peptides, exp_name, lookup);
+  TEST_EQUAL(peptides.size(), 18);
+  TEST_EQUAL(proteins.size(), 2);
   PeptideIdentification first = peptides[0];
-  TEST_EQUAL(first.getRT(), 0.5927);
-  TEST_EQUAL(first.getMZ(), 538.605);
-  // load without precursor information (tested more thoroughly below):
-  file.load(pep_file, proteins2, peptides2);
-  TEST_EQUAL(peptides.size(), peptides2.size());
-  TEST_EQUAL(proteins.size(), proteins2.size());
-  // check that only m/z and RT differ between "load" methods:
-  for (Size i = 0; i < peptides.size(); ++i)
-  {
-    peptides[i].setRT(peptides2[i].getRT());
-    peptides[i].setMZ(peptides2[i].getMZ());
-  }
-  TEST_EQUAL(peptides == peptides2, true);
-  TEST_EQUAL(proteins == proteins2, true);
+  TEST_REAL_SIMILAR(first.getRT(), 1.3653);
+  TEST_REAL_SIMILAR(first.getMZ(), 538.605);
+  // more checks below
 }
 
 END_SECTION
@@ -117,8 +109,8 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   }
   TEST_EQUAL(accu_result, true);
 
-  TEST_EQUAL(first.getRT(), 1.3653);   // RT of MS2 spectrum
-  TEST_REAL_SIMILAR(first.getMZ(), 538.605);   // recomputed
+  TEST_REAL_SIMILAR(first.getRT(), 1.3653); // RT of MS2 spectrum
+  TEST_REAL_SIMILAR(first.getMZ(), 538.605); // recomputed
   TEST_EQUAL(first.getHits().size(), 1);
   PeptideHit pep_hit = first.getHits()[0];
   TEST_EQUAL(pep_hit.getSequence().toString(), "(Glu->pyro-Glu)ELNKEMAAEKAKAAAG");
@@ -202,7 +194,6 @@ END_SECTION
 
 START_SECTION(void store(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, const String& mz_file = "", const String& mz_name = "", bool peptideprophet_analyzed = false))
 {
-  // PepXMLFile file; // shadow
   vector<ProteinIdentification> proteins;
   vector<PeptideIdentification> peptides;
   String filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_store.pepxml");

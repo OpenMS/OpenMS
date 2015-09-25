@@ -1,8 +1,41 @@
+sudo: false
 language: cpp
 os:
  - linux
  - osx
 cache: apt
+addons:
+   apt:
+      sources:
+         - ubuntu-toolchain-r-test
+         - boost-latest
+      packages:
+         - g++-4.8
+         - libboost-chrono1.55-dev
+         - libboost-date-time1.55-dev
+         - libboost-filesystem1.55-dev
+         - libboost-iostreams1.55-dev
+         - libboost-math1.55-dev
+         - libboost-python1.55-dev
+         - libboost-regex1.55-dev
+         - libboost-serialization1.55-dev
+         - libboost-system1.55-dev
+         - libboost-thread1.55-dev
+         - libxerces-c3.1
+         - libxerces-c-dev
+         - libicu-dev
+         - qt4-dev-tools
+         - libqt4-dev
+         - libqt4-core
+         - libqt4-gui
+         - libsvm-dev
+         - libsvm3
+         - glpk
+         - subversion
+         - doxygen 
+         - graphviz
+         - libpcre3-dev
+         
 before_script:
   ./tools/travis/cibuild.before.sh
 script:

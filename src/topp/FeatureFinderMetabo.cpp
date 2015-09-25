@@ -133,7 +133,6 @@ protected:
     p_epd.setValue("enabled", "true", "Enable splitting of isobaric mass traces by chromatographic peak detection. Disable for direct injection.");
     p_epd.setValidStrings("enabled", ListUtils::create<String>("true,false"));
     p_epd.insert("", ElutionPeakDetection().getDefaults());
-    p_epd.remove("noise_threshold_int");
     p_epd.remove("chrom_peak_snr");
     p_epd.remove("chrom_fwhm");
 
@@ -322,7 +321,9 @@ protected:
     // annotate output with data processing info
     addDataProcessing_(feat_map, getProcessingInfo_(DataProcessing::QUANTITATION));
 
-    FeatureXMLFile().store(out, feat_map);
+    FeatureXMLFile feature_xml_file;
+    feature_xml_file.setLogType(log_type_);
+    feature_xml_file.store(out, feat_map);
 
     return EXECUTION_OK;
   }

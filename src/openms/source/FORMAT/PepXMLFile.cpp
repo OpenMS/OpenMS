@@ -39,7 +39,6 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
-#include <OpenMS/FORMAT/HANDLERS/MascotXMLHandler.h> // for "primary_scan_regex"
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <fstream>
@@ -56,10 +55,7 @@ namespace OpenMS
     XMLFile("/SCHEMAS/pepXML_v114.xsd", "1.14"),
     proteins_(0),
     peptides_(0),
-    experiment_(0),
-    scan_map_(),
-    rt_tol_(10.0),
-    mz_tol_(10.0)
+    lookup_(0)
   {
     const ElementDB* db = ElementDB::getInstance();
     hydrogen_ = *db->getElement("Hydrogen");
@@ -448,39 +444,6 @@ namespace OpenMS
     if (!mods.empty()) modification_description = mods[0];
   }
 
-  void PepXMLFile::makeScanMap_()
-  {
-    scan_map_.clear();
-    Size scan = 0;
-    for (MSExperiment<>::ConstIterator e_it = experiment_->begin(); e_it != experiment_->end(); ++e_it, ++scan)
-    {
-      String id = e_it->getNativeID();
-      bool failed = false;
-      try
-      {
-        // expected format: "spectrum=#" (mzData) or "scan=#" (mzXML)
-        Int num_id = id.suffix('=').toInt();
-        if (num_id >= 0)
-        {
-          scan_map_.insert(scan_map_.end(), pair<Size, Size>(num_id, scan));
-        }
-        else
-        {
-          failed = true;
-        }
-      }
-      catch (Exception::ConversionError)
-      {
-        failed = true;
-      }
-      if (failed)
-      {
-        scan_map_.clear();
-        error(LOAD, "Could not construct mapping of native scan numbers to indexes");
-      }
-    }
-  }
-
   void PepXMLFile::readRTMZCharge_(const xercesc::Attributes& attributes)
   {
     double mass = attributeAsDouble_(attributes, "precursor_neutral_mass");
@@ -490,72 +453,27 @@ namespace OpenMS
 
     bool rt_present = optionalAttributeAsDouble_(rt_, attributes, "retention_time_sec");
 
-    if (!rt_present || use_precursor_data_) // get RT from experiment
+    if (!rt_present) // get RT from experiment
     {
-      if (!experiment_)
+      if (lookup_->empty())
       {
-        error(LOAD, "Cannot get precursor information - no experiment given");
+        error(LOAD, "Cannot get RT information - no spectra given");
         return;
       }
 
       // assume only one scan, i.e. ignore "end_scan":
       Size scan = attributeAsInt_(attributes, "start_scan");
-      if (scan == 0) // work-around for pepXMLs exported from Mascot
+      Size index = (scan != 0) ? lookup_->findByScanNumber(scan) :
+        lookup_->findByReference(attributeAsString_(attributes, "spectrum"));
+      SpectrumMetaDataLookup::SpectrumMetaData meta;
+      lookup_->getSpectrumMetaData(index, meta);
+      if (meta.ms_level == 2)
       {
-        String spectrum = attributeAsString_(attributes, "spectrum");
-        boost::regex re(Internal::MascotXMLHandler::primary_scan_regex,
-                        boost::regex::perl | boost::regex::icase);
-        boost::smatch match;
-        if (boost::regex_search(spectrum, match, re))
-        {
-          scan = String(match["SCAN"].str()).toInt();
-        }
+        rt_ = meta.rt;
       }
-
-      if (!scan_map_.empty()) scan = scan_map_[scan];
-      const MSSpectrum<>& spec = (*experiment_)[scan];
-      bool success = false;
-      if (spec.getMSLevel() == 2)
+      else
       {
-        if (!use_precursor_data_)
-        {
-          rt_ = spec.getRT();
-          success = true;
-        }
-        else if (!rt_present || Math::approximatelyEqual(spec.getRT(), rt_, 0.001))
-        {
-          double prec_mz = 0, prec_rt = 0;
-          vector<Precursor> precursors = spec.getPrecursors();
-          if (!precursors.empty())
-          {
-            prec_mz = precursors[0].getMZ(); // assume only one precursor
-          }
-          MSExperiment<>::ConstIterator it = experiment_->getPrecursorSpectrum(experiment_->begin() + scan);
-          if (it != experiment_->end())
-          {
-            prec_rt = it->getRT();
-          }
-
-          // check if "rt"/"mz" are similar to "prec_rt"/"prec_mz"
-          // (otherwise, precursor mapping is wrong)
-          if ((prec_mz > 0) && Math::approximatelyEqual(prec_mz, mz_, mz_tol_)    && (prec_rt > 0) && (!rt_present || Math::approximatelyEqual(prec_rt, rt_, rt_tol_)))
-          {
-            // double diff;
-            // diff = mz_ - prec_mz;
-            // cout << "m/z difference: " << diff << " ("
-            //       << diff / max(mz_, prec_mz) * 100 << "%)\n";
-            // diff = rt_ - prec_rt;
-            // cout << "RT difference: " << diff << " ("
-            //       << diff / max(rt_, prec_rt) * 100 << "%)\n" << "\n";
-            mz_ = prec_mz;
-            rt_ = prec_rt;
-            success = true;
-          }
-        }
-      }
-      if (!success)
-      {
-        error(LOAD, "Cannot get precursor information - scan mapping is incorrect");
+        error(LOAD, "Cannot get RT information - scan mapping is incorrect");
       }
     }
   }
@@ -564,23 +482,19 @@ namespace OpenMS
                         proteins, vector<PeptideIdentification>& peptides,
                         const String& experiment_name)
   {
-    MSExperiment<> exp;
-    load(filename, proteins, peptides, experiment_name, exp, false);
+    SpectrumMetaDataLookup lookup;
+    load(filename, proteins, peptides, experiment_name, lookup);
   }
 
   void PepXMLFile::load(const String& filename, vector<ProteinIdentification>&
                         proteins, vector<PeptideIdentification>& peptides,
-                        const String& experiment_name, const MSExperiment<>&
-                        experiment, bool use_precursor_data)
+                        const String& experiment_name,
+                        const SpectrumMetaDataLookup& lookup)
   {
     // initialize here, since "load" could be called several times:
     exp_name_ = "";
-    experiment_ = 0;
-    use_precursor_data_ = use_precursor_data;
     prot_id_ = "";
     charge_ = 0;
-    rt_tol_ = 10.0;
-    mz_tol_ = 10.0;
     peptides.clear();
     peptides_ = &peptides;
     proteins.clear();
@@ -593,16 +507,7 @@ namespace OpenMS
     if (experiment_name != "")
     {
       exp_name_ = File::removeExtension(experiment_name);
-
-      if (!experiment.empty()) // use experiment only if we know the name
-      {
-        experiment_ = &experiment;
-        MSExperiment<>::AreaType area = experiment_->getDataRange();
-        // set tolerance to 1% of data range (if above a sensible minimum):
-        rt_tol_ = max((area.maxX() - area.minX()) * 0.01, rt_tol_);
-        mz_tol_ = max((area.maxY() - area.minY()) * 0.01, mz_tol_);
-        makeScanMap_();
-      }
+      lookup_ = &lookup;
     }
 
     analysis_summary_ = false;
@@ -644,7 +549,7 @@ namespace OpenMS
     date_.clear();
     proteins_ = 0;
     peptides_ = 0;
-    experiment_ = 0;
+    lookup_ = 0;
     scan_map_.clear();
   }
 
@@ -855,7 +760,7 @@ namespace OpenMS
       double mod_nterm_mass;
       if (optionalAttributeAsDouble_(mod_nterm_mass, attributes, "mod_nterm_mass")) // this specifies a terminal modification
       {
-        // lookup the modification in the search_summary by mass
+        // look up the modification in the search_summary by mass
         for (vector<AminoAcidModification>::const_iterator it = variable_modifications_.begin(); it != variable_modifications_.end(); ++it)
         {
           if (mod_nterm_mass == it->mass && it->terminus == "n")
@@ -880,7 +785,7 @@ namespace OpenMS
       double mod_cterm_mass;
       if (optionalAttributeAsDouble_(mod_cterm_mass, attributes, "mod_cterm_mass")) // this specifies a terminal modification
       {
-        // lookup the modification in the search_summary by mass
+        // look up the modification in the search_summary by mass
         for (vector<AminoAcidModification>::const_iterator it = variable_modifications_.begin(); it != variable_modifications_.end(); ++it)
         {
           if (mod_cterm_mass == it->mass && it->terminus == "c")
