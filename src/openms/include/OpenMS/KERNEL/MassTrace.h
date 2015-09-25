@@ -231,7 +231,8 @@ public:
     {
       if (trace_peaks_.size() != db_vec.size())
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Number of smoothed intensities deviates from mass trace size! Aborting...", String(db_vec.size()));
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+            "Number of smoothed intensities deviates from mass trace size! Aborting...", String(db_vec.size()));
       }
 
       smoothed_intensities_ = db_vec;

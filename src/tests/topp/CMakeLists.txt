@@ -338,7 +338,7 @@ set_tests_properties("TOPP_FileConverter_17_out1" PROPERTIES DEPENDS "TOPP_FileC
 add_test("TOPP_FileConverter_18" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_17_input.consensusXML -no_progress -out FileConverter_18.tmp -out_type csv)
 add_test("TOPP_FileConverter_18_out1" ${DIFF} -in1 FileConverter_18.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_17_output.ibspectra.csv )
 set_tests_properties("TOPP_FileConverter_18_out1" PROPERTIES DEPENDS "TOPP_FileConverter_18")
-# Purpose: test the -write_mzML_index and the -process_lowmemory options 
+# Purpose: test the -write_mzML_index and the -process_lowmemory options (for mzML and mzXML)
 add_test("TOPP_FileConverter_19" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileConverter_19.tmp  -write_mzML_index -process_lowmemory -in_type mzML -out_type mzML)
 add_test("TOPP_FileConverter_19_out" ${DIFF} -in1 FileConverter_19.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_19_output.mzML )
 set_tests_properties("TOPP_FileConverter_19_out" PROPERTIES DEPENDS "TOPP_FileConverter_19")
@@ -346,6 +346,12 @@ set_tests_properties("TOPP_FileConverter_19_out" PROPERTIES DEPENDS "TOPP_FileCo
 add_test("TOPP_FileConverter_20" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_20_input.featureXML -out FileConverter_20.tmp -in_type featureXML -out_type featureXML)
 add_test("TOPP_FileConverter_20_out" ${DIFF} -in1 FileConverter_20.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_20_output.featureXML )
 set_tests_properties("TOPP_FileConverter_20_out" PROPERTIES DEPENDS "TOPP_FileConverter_20")
+add_test("TOPP_FileConverter_21" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_4_input.mzXML -out FileConverter_21.tmp -out_type mzML -process_lowmemory)
+# TODO sourceFile does not seem to be handled correctly, we should fix this! 
+add_test("TOPP_FileConverter_21_out" ${DIFF} -whitelist "location=" "MS:100056" "SHA-1" -in1 FileConverter_21.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_4_output.mzML)
+set_tests_properties("TOPP_FileConverter_21_out" PROPERTIES DEPENDS "TOPP_FileConverter_21")
+add_test("TOPP_FileConverter_22" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_8_input.mzML -out FileConverter_22.tmp -out_type mzData -process_lowmemory)
+set_tests_properties("TOPP_FileConverter_22" PROPERTIES WILL_FAIL 1) ## low memory not implemented yet
 
 #------------------------------------------------------------------------------
 # FileFilter tests
@@ -637,7 +643,7 @@ add_test("TOPP_IDFileConverter_1" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${D
 add_test("TOPP_IDFileConverter_1_out1" ${DIFF} -in1 IDFileConverter_1_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_1_output.idXML )
 set_tests_properties("TOPP_IDFileConverter_1_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_1")
 # pepXML to idXML (using precursor RTs):
-add_test("TOPP_IDFileConverter_2" ${TOPP_BIN_PATH}/IDFileConverter -in ${DATA_DIR_TOPP}/PepXMLFile_test.pepxml -mz_file ${DATA_DIR_TOPP}/PepXMLFile_test.mzML -mz_name PepXMLFile_test -use_precursor_data -out IDFileConverter_2_output.tmp -out_type idXML)
+add_test("TOPP_IDFileConverter_2" ${TOPP_BIN_PATH}/IDFileConverter -in ${DATA_DIR_TOPP}/PepXMLFile_test.pepxml -mz_file ${DATA_DIR_TOPP}/PepXMLFile_test.mzML -mz_name PepXMLFile_test -out IDFileConverter_2_output.tmp -out_type idXML)
 add_test("TOPP_IDFileConverter_2_out1" ${DIFF} -in1 IDFileConverter_2_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_2_output.idXML )
 set_tests_properties("TOPP_IDFileConverter_2_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_2")
 # protXML to idXML:
@@ -688,6 +694,10 @@ set_tests_properties("TOPP_IDFileConverter_13_out1" PROPERTIES DEPENDS "TOPP_IDF
 add_test("TOPP_IDFileConverter_14" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_12_input.psms -out IDFileConverter_14_output.tmp -out_type idXML -score_type score)
 add_test("TOPP_IDFileConverter_14_out1" ${DIFF} -in1 IDFileConverter_14_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_14_output.idXML -whitelist "IdentificationRun date")
 set_tests_properties("TOPP_IDFileConverter_14_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_14")
+# mzIdentML to idXML with RT look-up in mzML:
+add_test("TOPP_IDFileConverter_15" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.mzid -out IDFileConverter_15_output.tmp -out_type idXML -mz_file ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML)
+add_test("TOPP_IDFileConverter_15_out1" ${DIFF} -in1 IDFileConverter_15_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_15_output.idXML -whitelist "IdentificationRun date" )
+set_tests_properties("TOPP_IDFileConverter_15_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_15")
 
 #------------------------------------------------------------------------------
 # IDFilter tests
