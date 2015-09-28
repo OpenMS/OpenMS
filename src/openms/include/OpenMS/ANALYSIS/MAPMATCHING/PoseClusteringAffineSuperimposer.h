@@ -37,6 +37,7 @@
 #define OPENMS_ANALYSIS_MAPMATCHING_POSECLUSTERINGAFFINESUPERIMPOSER_H
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/BaseSuperimposer.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/Peak2D.h>
 
 namespace OpenMS
