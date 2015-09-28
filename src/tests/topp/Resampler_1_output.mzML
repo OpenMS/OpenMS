@@ -182,7 +182,6 @@
 </mzML>
 <indexList count="1">
 	<index name="spectrum">
-		<offset idRef="spectrum=0">8</offset>
 		<offset idRef="spectrum=1">1</offset>
 		<offset idRef="spectrum=2">1</offset>
 		<offset idRef="spectrum=3">1</offset>
