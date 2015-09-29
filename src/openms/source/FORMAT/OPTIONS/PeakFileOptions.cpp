@@ -60,7 +60,7 @@ namespace OpenMS
     sort_spectra_by_mz_(true),
     sort_chromatograms_by_rt_(true),
     fill_data_(true),
-    write_index_(false),
+    write_index_(true),
     np_config_mz_(),
     np_config_int_(),
     maximal_data_pool_size_(100)
