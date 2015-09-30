@@ -474,7 +474,8 @@ namespace OpenMS
     }
     else
     {
-        distribution.estimateFromPeptideWeight(m); //TODO: Deal with this intelligently
+        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+          "Averagine type unrecognized.");;
     }
 
     for (IsotopeDistribution::Iterator it = distribution.begin(); it != distribution.end(); ++it)

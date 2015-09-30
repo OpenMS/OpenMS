@@ -130,11 +130,16 @@ public:
 
     /**
         @brief Estimate Nucleotide Isotopedistribution from weight and number of isotopes that should be reported
+
+        averagine model from Zubarev, R. A.; Demirev, P. A. in
+        "Isotope  depletion  of  large biomolecules: Implications for molecular mass measurements."
     */
     void estimateFromRNAWeight(double average_weight);
 
     /**
         @brief Estimate Nucleotide Isotopedistribution from weight and number of isotopes that should be reported
+        averagine model from Zubarev, R. A.; Demirev, P. A. in
+        "Isotope  depletion  of  large biomolecules: Implications for molecular mass measurements."
     */
     void estimateFromDNAWeight(double average_weight);
 
