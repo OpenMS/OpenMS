@@ -56,39 +56,39 @@
 			<ProteinHit id="PH_19" accession="rev000459115" score="0" sequence="" >
 			</ProteinHit>
 		</ProteinIdentification>
-		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="538.605" RT="0.5927" >
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="538.605" RT="1.3653" >
 			<PeptideHit score="8" sequence="(Glu->pyro-Glu)ELNKEMAAEKAKAAAG" charge="3" aa_before="R" aa_after="E" protein_refs="PH_0 PH_1 PH_2" >
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="637.885" RT="0.5927" >
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="637.885" RT="1.719" >
 			<PeptideHit score="7.7" sequence="(Gln->pyro-Glu)QLPGVNIKPVVK" charge="2" aa_before="R" aa_after="V" protein_refs="PH_3" >
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="678.384" RT="0.5927" >
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="678.384" RT="2.0436" >
 			<PeptideHit score="4.9" sequence="IFQAALYAAPYK" charge="2" aa_before="K" aa_after="S" protein_refs="PH_4" >
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="762.728" RT="2.3364" >
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="762.728" RT="2.7843" >
 			<PeptideHit score="0.00091" sequence="EISPDTTLLDLQNNDISELR" charge="3" aa_before="K" aa_after="K" protein_refs="PH_5 PH_6 PH_7 PH_8" >
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="1143.59" RT="2.3364" >
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="1143.59" RT="3.085" >
 			<PeptideHit score="7.9e-05" sequence="EISPDTTLLDLQNNDISELR" charge="2" aa_before="K" aa_after="K" protein_refs="PH_5 PH_6 PH_7 PH_8" >
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="770.055" RT="2.3364" >
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="770.055" RT="3.4018" >
 			<PeptideHit score="14" sequence="RSHTILNSSQSFAKGC(Carbamidomethyl)VQC(Carbamidomethyl)K" charge="3" aa_before="K" aa_after="H" protein_refs="PH_9 PH_10 PH_11" >
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="757.412" RT="3.7572" >
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="757.412" RT="4.4573" >
 			<PeptideHit score="0.65" sequence="VSLPNYPAIPSDATLEVQSLR" charge="3" aa_before="K" aa_after="S" protein_refs="PH_12 PH_13 PH_14" >
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="807.394" RT="3.7572" >
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="807.394" RT="4.8288" >
 			<PeptideHit score="0.0046" sequence="NALWHTGDTESQVR" charge="2" aa_before="R" aa_after="L" protein_refs="PH_15 PH_16 PH_17" >
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="512.784" RT="3.7572" >
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="512.784" RT="5.1785" >
 			<PeptideHit score="1.1" sequence="SSLKNYANK" charge="2" aa_before="R" aa_after="I" protein_refs="PH_18 PH_19" >
 			</PeptideHit>
 		</PeptideIdentification>

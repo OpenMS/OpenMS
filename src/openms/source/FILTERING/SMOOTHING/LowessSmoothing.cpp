@@ -57,7 +57,8 @@ namespace OpenMS
   {
     if (input_x.size() != input_y.size())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Sizes of x and y values not equal! Aborting... ", String(input_x.size()));
+      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+          "Sizes of x and y values not equal! Aborting... ", String(input_x.size()));
     }
 
     // unable to smooth over 2 or less data points (we need at least 3)
@@ -113,7 +114,8 @@ namespace OpenMS
     // In our case, u represents a distance and hence should be strictly positive.
     if (u < 0)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Value of u must be strictly positive! Aborting...", String(u));
+      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+          "Value of u must be strictly positive! Aborting...", String(u));
     }
 
     // 0 <= u < t; u is regarded as 0.0 if fabs(u) falls below epsilon

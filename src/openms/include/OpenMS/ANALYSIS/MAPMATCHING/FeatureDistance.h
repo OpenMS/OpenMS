@@ -95,10 +95,10 @@ public:
     static const double infinity;
 
     /**
-         @brief Constructor
+       @brief Constructor
 
-         @param max_intensity Maximum intensity of features (for normalization)
-         @param force_constraints Check "max. difference" constraints given in the parameters and return @ref infinity if violated?
+       @param max_intensity Maximum intensity of features (for normalization)
+       @param force_constraints Check "max. difference" constraints given in the parameters and return @ref infinity if violated?
     */
     FeatureDistance(double max_intensity = 1.0,
                     bool force_constraints = false);
@@ -110,14 +110,17 @@ public:
     FeatureDistance & operator=(const FeatureDistance & other);
 
     /**
-         @brief Evaluation operator - checks constraints and computes the distance between two features
+       @brief Evaluation operator - checks constraints and computes the distance between two features
 
-         @returns In the first element, whether constraints were satisfied; in the second element, the distance (@ref infinity if constraints were violated and @ref force_constraints_ is true).
+       @returns In the first element, whether constraints were satisfied; in
+       the second element, the distance (@ref infinity if constraints were
+       violated and @ref force_constraints_ is true).
     */
     std::pair<bool, double> operator()(const BaseFeature & left,
                                            const BaseFeature & right);
 
 protected:
+
     /// Structure for storing distance parameters
     struct DistanceParams_
     {
@@ -126,14 +129,25 @@ protected:
       DistanceParams_(const String & what, const Param & global)
       {
         Param param = global.copy("distance_" + what + ":", true);
-        if (what == "MZ") max_diff_ppm = param.getValue("unit") == "ppm";
-        else max_diff_ppm = false;
+        if (what == "MZ") 
+        {
+          max_diff_ppm = (param.getValue("unit") == "ppm");
+        }
+        else 
+        {
+          max_diff_ppm = false;
+        }
+
         max_difference = param.getValue("max_difference");
         exponent = param.getValue("exponent");
         weight = param.getValue("weight");
         norm_factor = 1 / max_difference;
+
         relevant = (weight != 0.0) && (exponent != 0.0);
-        if (!relevant) weight = 0.0;
+        if (!relevant) 
+        {
+            weight = 0.0;
+        }
       }
 
       double max_difference, exponent, weight, norm_factor;

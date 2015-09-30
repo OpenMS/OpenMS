@@ -69,6 +69,7 @@ namespace OpenMS
     mz_(rhs.mz_),
     rt_(rhs.rt_)
   {
+    setExperimentLabel( rhs.getExperimentLabel() );
   }
 
   PeptideIdentification::~PeptideIdentification()
@@ -84,13 +85,14 @@ namespace OpenMS
 
     MetaInfoInterface::operator=(rhs);
     id_ = rhs.id_;
-    rt_ = rhs.rt_;
-    mz_ = rhs.mz_;
     hits_ = rhs.hits_;
     significance_threshold_ = rhs.significance_threshold_;
     score_type_ = rhs.score_type_;
     higher_score_better_ = rhs.higher_score_better_;
+    setExperimentLabel( rhs.getExperimentLabel() );
     base_name_ = rhs.base_name_;
+    mz_ = rhs.mz_;
+    rt_ = rhs.rt_;
 
     return *this;
   }
@@ -100,13 +102,14 @@ namespace OpenMS
   {
     return MetaInfoInterface::operator==(rhs)
            && id_ == rhs.id_
-           && (rt_ == rhs.rt_ || (!this->hasRT() && !rhs.hasRT())) // might be NaN, so comparing == will always be false
-           && (mz_ == rhs.mz_ || (!this->hasMZ() && !rhs.hasMZ())) // might be NaN, so comparing == will always be false
            && hits_ == rhs.getHits()
            && significance_threshold_ == rhs.getSignificanceThreshold()
            && score_type_ == rhs.score_type_
            && higher_score_better_ == rhs.higher_score_better_
-           && base_name_ == rhs.base_name_;
+           && getExperimentLabel() == rhs.getExperimentLabel()
+           && base_name_ == rhs.base_name_
+           && (mz_ == rhs.mz_ || (!this->hasMZ() && !rhs.hasMZ())) // might be NaN, so comparing == will always be false
+           && (rt_ == rhs.rt_ || (!this->hasRT() && !rhs.hasRT()));// might be NaN, so comparing == will always be false
   }
 
   // Inequality operator
@@ -213,6 +216,29 @@ namespace OpenMS
   void PeptideIdentification::setBaseName(const String& base_name)
   {
     base_name_ = base_name;
+  }
+
+  const String PeptideIdentification::getExperimentLabel() const
+  {
+    // implement as meta value in order to reduce bloat of PeptideIdentification object
+    //  -> this is mostly used for pepxml at the moment which allows each peptide id to belong to a different experiment
+    if (metaValueExists("experiment_label"))
+    {
+      return getMetaValue("experiment_label").toString();
+    }
+    else
+    {
+      return "";
+    }
+  }
+
+  void PeptideIdentification::setExperimentLabel(const String& label)
+  {
+    // do not store empty label (default value)
+    if (!label.empty())
+    {
+      setMetaValue("experiment_label", label);
+    }
   }
 
   void PeptideIdentification::assignRanks()

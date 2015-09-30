@@ -43,16 +43,17 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/VISUAL/TOPPASScene.h>
-#include <OpenMS/VISUAL/TOPPASWidget.h>
+#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASLogWindow.h>
 #include <OpenMS/VISUAL/TOPPASMergerVertex.h>
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASResources.h>
+#include <OpenMS/VISUAL/TOPPASScene.h>
+#include <OpenMS/VISUAL/TOPPASSplitterVertex.h>
 #include <OpenMS/VISUAL/TOPPASTabBar.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
-#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
+#include <OpenMS/VISUAL/TOPPASWidget.h>
 
 //Qt
 #include <QtCore/QDir>
@@ -249,10 +250,10 @@ namespace OpenMS
     windows->addAction(description_bar->toggleViewAction());
     connect(desc_, SIGNAL(textChanged()), this, SLOT(descriptionUpdated_()));
 
-    //set current path
+    // set current path
     current_path_ = param_.getValue("preferences:default_path");
 
-    //set & create temporary path -- make sure its a new subdirectory, as it will be deleted later
+    // set & create temporary path -- make sure its a new subdirectory, as it will be deleted later
     QString new_tmp_dir = File::getUniqueName().toQString();
     QDir qd(File::getTempDirectory().toQString());
     qd.mkdir(new_tmp_dir);
@@ -268,9 +269,10 @@ namespace OpenMS
     network_manager_ = new QNetworkAccessManager(this);
     connect(network_manager_, SIGNAL(finished(QNetworkReply*)), this, SLOT(toppasFileDownloaded_(QNetworkReply*)));
 
-    //update the menu
-    updateMenu();
+    // update the menu
+    updateMenu(); 
   }
+
 
   TOPPASBase::~TOPPASBase()
   {
@@ -296,8 +298,14 @@ namespace OpenMS
 
   void TOPPASBase::toppasFileDownloaded_(QNetworkReply* r)
   {
-    QByteArray data = r->readAll();
     r->deleteLater();
+    if (r->error() != QNetworkReply::NoError)
+    {
+      showLogMessage_(LS_ERROR, "Download failed", "Error '" + r->errorString() + "' while downloading TOPPAS file: '" + r->url().toString() + "'");
+      return;
+    }
+
+    QByteArray data = r->readAll();
 
     QString proposed_filename;
     if (r->url().hasQueryItem("file"))
@@ -319,7 +327,9 @@ namespace OpenMS
     }
 
     if (!filename.endsWith(".toppas", Qt::CaseInsensitive))
+    {
       filename += ".toppas";
+    }
 
     QFile file(filename);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
@@ -335,12 +345,29 @@ namespace OpenMS
     this->addTOPPASFile(filename);
     showLogMessage_(LS_NOTICE, "File successfully saved to '" + filename + "'.", "");
   }
+  
+  void TOPPASBase::TOPPASreadyRead()
+  {
+    QNetworkReply::NetworkError ne = network_reply_->error();
+    qint64 ba = network_reply_->bytesAvailable();
+    LOG_DEBUG << "Error code (QNetworkReply::NetworkError): " << ne << "  bytes available: " << ba << std::endl;
+    return;
+  }
 
   void TOPPASBase::downloadTOPPASfromHomepage_(const QUrl& url)
   {
     if (url.toString().endsWith(QString(".toppas"), Qt::CaseInsensitive))
     {
-      network_manager_->get(QNetworkRequest(url));
+      network_reply_ = network_manager_->get(QNetworkRequest(url));
+
+      // debug
+      connect(network_reply_, SIGNAL(readyRead()), this, SLOT(TOPPASreadyRead()));
+      connect(network_reply_, SIGNAL(error(QNetworkReply::NetworkError code)), this, SLOT(TOPPASreadyRead()));
+      connect(network_reply_, SIGNAL(finished()), this, SLOT(TOPPASreadyRead()));
+      connect(network_reply_, SIGNAL(metaDataChanged()), this, SLOT(TOPPASreadyRead()));
+      connect(network_reply_, SIGNAL(sslErrors(const QList<QSslError> & errors)), this, SLOT(TOPPASreadyRead()));
+      // .. end debug
+
       showLogMessage_(LS_NOTICE, "Downloading file '" + url.toString() + "'. You will be notified once the download finished.", "");
       webview_->close();
     }
@@ -383,8 +410,11 @@ namespace OpenMS
       proxy_settings_checked = true;
     }
 
-    webview_->load(url);
+    // show something immediately, so the user does not stare at white screen while the URL is fetched
+    webview_->setHtml("loading content ... ");
     webview_->show();
+    // ... load the page in background
+    webview_->load(url);
   }
 
   //static
@@ -408,6 +438,9 @@ namespace OpenMS
     tools_tree_view->addTopLevelItem(item);
     item = new QTreeWidgetItem((QTreeWidget*)0);
     item->setText(0, "<Collector>");
+    tools_tree_view->addTopLevelItem(item);
+    item = new QTreeWidgetItem((QTreeWidget*)0);
+    item->setText(0, "<Splitter>");
     tools_tree_view->addTopLevelItem(item);
 
     //Param category_param = param_.copy("tool_categories:", true);
@@ -498,8 +531,7 @@ namespace OpenMS
 
   void TOPPASBase::addTOPPASFile(const String& file_name, bool in_new_window)
   {
-    if (file_name == "")
-      return;
+    if (file_name == "") return;
 
     if (!file_name.toQString().endsWith(".toppas", Qt::CaseInsensitive))
     {
@@ -523,10 +555,8 @@ namespace OpenMS
     }
     else
     {
-      if (!activeWindow_())
-      {
-        return;
-      }
+      if (!activeWindow_()) return;
+
       TOPPASScene* tmp_scene = new TOPPASScene(0, this->tmp_path_.toQString(), false);
       tmp_scene->load(file_name);
       scene = activeWindow_()->getScene();
@@ -1259,6 +1289,10 @@ namespace OpenMS
     {
       tv = new TOPPASMergerVertex(false);
       connect(tv, SIGNAL(mergeFailed(const QString)), this, SLOT(updateTOPPOutputLog(const QString &)));
+    }
+    else if (tool_name == "<Splitter>")
+    {
+      tv = new TOPPASSplitterVertex();
     }
     else // node is a TOPP tool
     {

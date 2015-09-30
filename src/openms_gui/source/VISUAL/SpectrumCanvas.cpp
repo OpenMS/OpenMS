@@ -546,13 +546,11 @@ namespace OpenMS
         }
       }
     }
-    //Add 1% margin to RT in order to display all the data
-    double margin = 0.01 * max(1.0, m_max[rt_dim] - m_min[rt_dim]);
-    m_min[rt_dim] -= margin;
-    m_max[rt_dim] += margin;
-
     overall_data_range_.setMin(m_min);
     overall_data_range_.setMax(m_max);
+
+    // add 4% margin (2% left, 2% right) to RT, m/z and intensity
+    overall_data_range_.extend(1.04);
   }
 
   double SpectrumCanvas::getSnapFactor()
