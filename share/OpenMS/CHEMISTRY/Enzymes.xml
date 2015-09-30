@@ -189,6 +189,7 @@
       <ITEM name="NTermGain" value="H" type="string" />
       <ITEM name="CTermGain" value="OH" type="string" />
       <ITEM name="PSIid" value="MS:1001955" type="string" />
+      <ITEM name="XTANDEMid" value="" type="string" />
       <ITEM name="OMSSAid" value="11" type="int" />
     </NODE>
     <NODE name="unspecific cleavage">

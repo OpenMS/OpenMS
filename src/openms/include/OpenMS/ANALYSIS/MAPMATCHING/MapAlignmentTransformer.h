@@ -41,6 +41,7 @@
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
 
 namespace OpenMS
 {
@@ -99,10 +100,11 @@ namespace OpenMS
 
        @returns True if the meta value was written, false if it already exists.
     */
-    static bool storeOriginalRT_(MetaInfoInterface& interface,
+    static bool storeOriginalRT_(MetaInfoInterface& meta_info,
                                  double original_rt);
 
   };
 } // namespace OpenMS
 
 #endif // OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTTRANSFORMER_H
+

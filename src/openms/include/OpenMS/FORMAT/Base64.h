@@ -155,14 +155,14 @@ private:
     union Reinterpreter64_
     {
       double f;
-      Int64 i;
+      UInt64 i;
     };
 
     ///Internal class needed for type-punning
     union Reinterpreter32_
     {
       float f;
-      Int32 i;
+      UInt32 i;
     };
 
     static const char encoder_[];
@@ -184,23 +184,26 @@ private:
     void decodeIntegersCompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out);
   };
 
-  ///Endianizes a 32 bit type from big endian to little endian and vice versa
-  inline Int32 endianize32(Int32 & n)
+  /// Endianizes a 32 bit type from big endian to little endian and vice versa
+  inline UInt32 endianize32(const UInt32& n)
   {
-    return ((n & 0xff) << 24) | ((n & 0xff00) << 8) | ((n & 0xff0000) >> 8) | ((n & 0xff000000) >> 24);
+    return ((n & 0x000000ff) << 24) | 
+           ((n & 0x0000ff00) <<  8) |
+           ((n & 0x00ff0000) >>  8) |
+           ((n & 0xff000000) >> 24);
   }
 
-  ///Endianizes a 64 bit type from  big endian to little endian and vice versa
-  inline Int64 endianize64(Int64 & n)
+  /// Endianizes a 64 bit type from  big endian to little endian and vice versa
+  inline UInt64 endianize64(const UInt64& n)
   {
-    return ((n & 0x00000000000000ffll) << 56) |
-           ((n & 0x000000000000ff00ll) << 40) |
-           ((n & 0x0000000000ff0000ll) << 24) |
-           ((n & 0x00000000ff000000ll) << 8)  |
-           ((n & 0x000000ff00000000ll) >> 8)  |
-           ((n & 0x0000ff0000000000ll) >> 24) |
-           ((n & 0x00ff000000000000ll) >> 40) |
-           ((n & 0xff00000000000000ll) >> 56);
+    return ((n >> 56) & 0x00000000000000FF) |
+           ((n >> 40) & 0x000000000000FF00) | 
+           ((n >> 24) & 0x0000000000FF0000) | 
+           ((n >>  8) & 0x00000000FF000000) |
+           ((n <<  8) & 0x000000FF00000000) |
+           ((n << 24) & 0x0000FF0000000000) |
+           ((n << 40) & 0x00FF000000000000) | 
+           ((n << 56) & 0xFF00000000000000);
   }
 
   template <typename FromType>
@@ -347,12 +350,8 @@ private:
   void Base64::decodeCompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out)
   {
     out.clear();
-    if (in == "")
-      return;
+    if (in == "") return;
 
-    void * byte_buffer;
-    Size buffer_size;
-    std::vector<unsigned char> binary;
     const Size element_size = sizeof(ToType);
 
     String decompressed;
@@ -376,72 +375,34 @@ private:
 
     std::copy(base64_uncompressed.begin(), base64_uncompressed.end(), decompressed.begin());
 
-    byte_buffer = reinterpret_cast<void *>(&decompressed[0]);
-    buffer_size = decompressed.size();
+    void* byte_buffer = reinterpret_cast<void *>(&decompressed[0]);
+    Size buffer_size = decompressed.size();
 
-    //change endianness if necessary
+    const ToType * float_buffer = reinterpret_cast<const ToType *>(byte_buffer);
+    if (buffer_size % element_size != 0)
+    {
+      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Bad BufferCount?");
+    }
+    
+    Size float_count = buffer_size / element_size;
+    
+    // change endianness if necessary
     if ((OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_LITTLEENDIAN) || (!OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_BIGENDIAN))
     {
-      if (element_size == 4)
+      if (element_size == 4) // 32 bit
       {
-        const float * float_buffer = reinterpret_cast<const float *>(byte_buffer);
-        if (buffer_size % element_size != 0)
-          throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Bad BufferCount?");
-        Size float_count = buffer_size / element_size;
-        Int32 * p = reinterpret_cast<Int32 *>(byte_buffer);
+        UInt32 * p = reinterpret_cast<UInt32 *>(byte_buffer);
         std::transform(p, p + float_count, p, endianize32);
-        out.assign(float_buffer, float_buffer + float_count);
       }
-      else
+      else // 64 bit
       {
-        const double * float_buffer = reinterpret_cast<const double *>(byte_buffer);
-
-        if (buffer_size % element_size != 0)
-          throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Bad BufferCount?");
-
-        Size float_count = buffer_size / element_size;
-
-        Int64 * p = reinterpret_cast<Int64 *>(byte_buffer);
+        UInt64 * p = reinterpret_cast<UInt64 *>(byte_buffer);
         std::transform(p, p + float_count, p, endianize64);
-
-        out.resize(float_count);
-        // do NOT use assign here, as it will give a lot of type conversion warnings on VS compiler
-        for (Size i = 0; i < float_count; ++i)
-        {
-          out[i] = (ToType) * float_buffer;
-          ++float_buffer;
-        }
-      }
-    }
-    else
-    {
-      if (element_size == 4)
-      {
-        const float * float_buffer = reinterpret_cast<const float *>(byte_buffer);
-        if (buffer_size % element_size != 0)
-          throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Bad BufferCount while decoding?");
-
-        Size float_count = buffer_size / element_size;
-        out.assign(float_buffer, float_buffer + float_count);
-      }
-      else
-      {
-        const double * float_buffer = reinterpret_cast<const double *>(byte_buffer);
-
-        if (buffer_size % element_size != 0)
-          throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Bad BufferCount while decoding?");
-
-        Size float_count = buffer_size / element_size;
-        out.resize(float_count);
-        // do NOT use assign here, as it will give a lot of type conversion warnings on VS compiler
-        for (Size i = 0; i < float_count; ++i)
-        {
-          out[i] = (ToType) * float_buffer;
-          ++float_buffer;
-        }
       }
     }
 
+    // copy values
+    out.assign(float_buffer, float_buffer + float_count);
   }
 
   template <typename ToType>
@@ -574,7 +535,7 @@ private:
       {
         for (Size i = 0; i < in.size(); ++i)
         {
-          Int32 tmp = in[i];
+          UInt32 tmp = in[i];
           tmp = endianize32(tmp);
           in[i] = tmp;
         }
@@ -583,7 +544,7 @@ private:
       {
         for (Size i = 0; i < in.size(); ++i)
         {
-          Int64 tmp = in[i];
+          UInt64 tmp = in[i];
           tmp = endianize64(tmp);
           in[i] = tmp;
         }
@@ -683,7 +644,6 @@ private:
 
     void * byte_buffer;
     Size buffer_size;
-    std::vector<unsigned char> binary;
     const Size element_size = sizeof(ToType);
 
     String decompressed;
@@ -718,7 +678,7 @@ private:
         if (buffer_size % element_size != 0)
           throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Bad BufferCount?");
         Size float_count = buffer_size / element_size;
-        Int32 * p = reinterpret_cast<Int32 *>(byte_buffer);
+        UInt32 * p = reinterpret_cast<UInt32 *>(byte_buffer);
         std::transform(p, p + float_count, p, endianize32);
 
         out.resize(float_count);
@@ -738,7 +698,7 @@ private:
 
         Size float_count = buffer_size / element_size;
 
-        Int64 * p = reinterpret_cast<Int64 *>(byte_buffer);
+        UInt64 * p = reinterpret_cast<UInt64 *>(byte_buffer);
         std::transform(p, p + float_count, p, endianize64);
 
         out.resize(float_count);

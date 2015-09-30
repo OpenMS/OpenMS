@@ -43,6 +43,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
@@ -149,6 +150,11 @@ class SimpleSearchEngine :
       registerStringList_("modifications:variable", "<mods>", ListUtils::create<String>(""), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'", false);
       setValidStrings_("modifications:variable", all_mods);
       registerIntOption_("modifications:variable_max_per_peptide", "<num>", 2, "Maximum number of residues carrying a variable modification per candidate peptide", false, false);
+
+      vector<String> all_enzymes;
+      EnzymesDB::getInstance()->getAllNames(all_enzymes);
+      registerStringOption_("enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false);
+      setValidStrings_("enzyme", all_enzymes);
 
       registerTOPPSubsection_("peptide", "Peptide Options");
       registerIntOption_("peptide:min_size", "<num>", 7, "Minimum size a peptide must have after digestion to be considered in the search.", false, true);
@@ -554,7 +560,7 @@ class SimpleSearchEngine :
 
       const Size missed_cleavages = getIntOption_("peptide:missed_cleavages");
       EnzymaticDigestion digestor;
-      digestor.setEnzyme(EnzymaticDigestion::ENZYME_TRYPSIN);
+      digestor.setEnzyme(getStringOption_("enzyme"));
       digestor.setMissedCleavages(missed_cleavages);
 
       progresslogger.startProgress(0, (Size)(fasta_db.end() - fasta_db.begin()), "Scoring peptide models against spectra...");

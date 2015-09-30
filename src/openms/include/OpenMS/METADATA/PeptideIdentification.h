@@ -84,9 +84,9 @@ public:
     bool operator!=(const PeptideIdentification& rhs) const;
     //@}
 
-    /// returns the RT of the MS2 spectrum
+    /// returns the RT of the MS2 spectrum where the identification occurred
     double getRT() const;
-    /// sets the RT of the MS2 spectrum
+    /// sets the RT of the MS2 spectrum where the identification occurred
     void setRT(double rt);
     /// shortcut for isnan(getRT())
     bool hasRT() const;
@@ -132,6 +132,11 @@ public:
     /// sets the base name which links to underlying peak map
     void setBaseName(const String& base_name);
 
+    /// returns the experiment label for this identification 
+    const String getExperimentLabel() const;
+    /// sets the experiment label for this identification
+    void setExperimentLabel(const String& type);
+
     /// Sorts the hits by score and assigns ranks according to the scores
     void assignRanks();
 
@@ -156,6 +161,7 @@ public:
 
 
 protected:
+
     String id_; ///< Identifier by which ProteinIdentification and PeptideIdentification are matched
     std::vector<PeptideHit> hits_; ///< A list containing the peptide hits
     double significance_threshold_; ///< the peptide significance threshold

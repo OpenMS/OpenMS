@@ -66,6 +66,7 @@
 
 //Contrib includes
 #include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/classification.hpp>
 
 #include <QDir>
@@ -375,7 +376,7 @@ public:
     }
 
     // check if the labels are included in advanced section "labels"
-    String all_labels = "Arg6 Arg10 Lys4 Lys6 Lys8 Dimethyl0 Dimethyl4 Dimethyl6 Dimethyl8 ICPL0 ICPL4 ICPL6 ICPL10";
+    String all_labels = "Arg6 Arg10 Lys4 Lys6 Lys8 Dimethyl0 Dimethyl4 Dimethyl6 Dimethyl8 ICPL0 ICPL4 ICPL6 ICPL10 no_label";
     for (unsigned i = 0; i < samples_labels_.size(); i++)
     {
       for (unsigned j = 0; j < samples_labels_[i].size(); ++j)
@@ -594,15 +595,37 @@ public:
   {
     std::vector<std::vector<String> > samples_labels;
     std::vector<String> temp_samples;
-    boost::split(temp_samples, labels_, boost::is_any_of("[](){}")); // any bracket allowed to separate samples
+    
+    String labels(labels_);
+    boost::replace_all(labels, "[]", "no_label");
+    boost::replace_all(labels, "()", "no_label");
+    boost::replace_all(labels, "{}", "no_label");
+    boost::split(temp_samples, labels, boost::is_any_of("[](){}")); // any bracket allowed to separate samples
+    
     for (unsigned i = 0; i < temp_samples.size(); ++i)
     {
       if (!temp_samples[i].empty())
       {
-        vector<String> temp_labels;
-        boost::split(temp_labels, temp_samples[i], boost::is_any_of(",;: ")); // various separators allowed to separate labels
-        samples_labels.push_back(temp_labels);
+        if (temp_samples[i]=="no_label")
+        {
+          vector<String> temp_labels;
+          temp_labels.push_back("no_label");
+          samples_labels.push_back(temp_labels);
+        }
+        else
+        {
+          vector<String> temp_labels;
+          boost::split(temp_labels, temp_samples[i], boost::is_any_of(",;: ")); // various separators allowed to separate labels
+          samples_labels.push_back(temp_labels);
+        }
       }
+    }
+    
+    if (samples_labels.empty())
+    {
+      vector<String> temp_labels;
+      temp_labels.push_back("no_label");
+      samples_labels.push_back(temp_labels);
     }
 
     return samples_labels;
@@ -929,6 +952,7 @@ public:
   /**
    * @brief generates the data structure for mzQuantML output
    *
+   * @param exp    experimental data
    * @param consensus_map    consensus map with complete quantitative information
    * @param quantifications    MSQuantifications data structure for writing mzQuantML (mzq)
    */
@@ -938,6 +962,7 @@ public:
     // (for each sample a list of (label string, mass shift) pairs)
     // for example triple-SILAC: [(none,0)][(Lys4,4.0251),(Arg6,6.0201)][Lys8,8.0141)(Arg10,10.0082)]
     std::vector<std::vector<std::pair<String, double> > > labels;
+    
     for (unsigned sample = 0; sample < samples_labels_.size(); ++sample)
     {
       // The labels are required to be ordered in mass shift.
@@ -976,6 +1001,7 @@ public:
     // add results from  analysis
     LOG_DEBUG << "Generating output mzQuantML file..." << endl;
     ConsensusMap numap(consensus_map);
+    
     //calculate ratios
     for (ConsensusMap::iterator cit = numap.begin(); cit != numap.end(); ++cit)
     {

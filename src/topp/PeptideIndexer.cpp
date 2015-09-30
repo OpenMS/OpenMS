@@ -42,6 +42,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 
 #include <algorithm>
 
@@ -80,7 +81,7 @@ using namespace std;
         using prefix annotation or not.<br>
         This tool will also report some helpful target/decoy statistics when it is done.
 
-  PeptideIndexer supports relative database filenames, which (when not found in the current working directory) are looked up in the directories specified 
+  PeptideIndexer supports relative database filenames, which (when not found in the current working directory) are looked up in the directories specified
   by @p OpenMS.ini:id_db_dir (see @subpage TOPP_advanced).
 
   By default this tool will fail if an unmatched peptide occurs, i.e. if the database does not contain the corresponding protein.
@@ -108,12 +109,12 @@ using namespace std;
   Independent of whether exact or tolerant search is used, we require ambiguous amino acids in peptide sequences to match exactly in the protein DB (i.e. 'X' in a peptide only matches 'X' in the database).
 
   Leucine/Isoleucine:
-  Further complications can arise due to the presence of the isobaric amino acids isoleucine ('I') and leucine ('L') in protein sequences. 
-  Since the two have the exact same chemical composition and mass, they generally cannot be distinguished by mass spectrometry. 
-  If a peptide containing 'I' was reported as a match for a spectrum, a peptide containing 'L' instead would be an equally good match (and vice versa). 
+  Further complications can arise due to the presence of the isobaric amino acids isoleucine ('I') and leucine ('L') in protein sequences.
+  Since the two have the exact same chemical composition and mass, they generally cannot be distinguished by mass spectrometry.
+  If a peptide containing 'I' was reported as a match for a spectrum, a peptide containing 'L' instead would be an equally good match (and vice versa).
   To account for this inherent ambiguity, setting the flag @p IL_equivalent causes 'I' and 'L' to be considered as indistinguishable.@n
-  For example, if the sequence "PEPTIDE" (matching "Protein1") was identified as a search hit, 
-  but the database additionally contained "PEPTLDE" (matching "Protein2"), running PeptideIndexer with the @p IL_equivalent option would 
+  For example, if the sequence "PEPTIDE" (matching "Protein1") was identified as a search hit,
+  but the database additionally contained "PEPTLDE" (matching "Protein2"), running PeptideIndexer with the @p IL_equivalent option would
   report both "Protein1" and "Protein2" as accessions for "PEPTIDE".
   (This is independent of the error-tolerant search controlled by @p full_tolerant_search and @p aaa_max.)
 
@@ -121,9 +122,9 @@ using namespace std;
   Once a peptide sequence is found in a protein sequence, this does <b>not</b> imply that the hit is valid! This is where enzyme specificity comes into play.
   By default, we demand that the peptide is fully tryptic (i.e. the enzyme parameter is set to "trypsin" and specificity is "full").
   So unless the peptide coincides with C- and/or N-terminus of the protein, the peptide's cleavage pattern should fulfill the trypsin cleavage rule [KR][^P].
-  We make one exception for peptides starting at the second amino acid of a protein if the first amino acid of that protein is methionine (M), 
+  We make one exception for peptides starting at the second amino acid of a protein if the first amino acid of that protein is methionine (M),
   which is usually cleaved off in vivo. For example, the two peptides AAAR and MAAAR would both match a protein starting with MAAAR.
-  You can relax the requirements further by choosing <tt>semi-tryptic</tt> (only one of two "internal" termini must match requirements) 
+  You can relax the requirements further by choosing <tt>semi-tryptic</tt> (only one of two "internal" termini must match requirements)
   or <tt>none</tt> (essentially allowing all hits, no matter their context).
 
   @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
@@ -238,7 +239,7 @@ public:
                 OpenMS::Size position)
     {
       if (enzyme_.isValidProduct(AASequence::fromString(protein), position,
-                                 seq_pep.length()))
+                                 seq_pep.length(), true))
       {
         PeptideProteinMatchInformation match;
         match.protein_index = idx_prot;
@@ -336,9 +337,9 @@ public:
     262144, // 18 Tyr Tyrosine (Y)
     524288, // 19 Val Valine (V)
     // ambiguous AA's
-    4+8, //  Aspartic Acid (D), Asparagine(N) == (B)
-    32+64, // Glutamic Acid(E), Glutamine(Q) == (Z)
-     static_cast<unsigned>(-1), // 22 Unknown (matches ALL)
+    4 + 8, //  Aspartic Acid (D), Asparagine(N) == (B)
+    32 + 64, // Glutamic Acid(E), Glutamine(Q) == (Z)
+    static_cast<unsigned>(-1),  // 22 Unknown (matches ALL)
     static_cast<unsigned>(-1), // 23 Terminator (dummy)
   };
 
@@ -423,8 +424,8 @@ public:
               if (x_pep != x_prot) break;
             }
           }
-          else
-          { // real mismatches (e.g., when checking for SNP's)
+          else // real mismatches (e.g., when checking for SNP's)
+          {
             if (e == 0) break;
             --e;
           }
@@ -479,15 +480,15 @@ protected:
 
     registerTOPPSubsection_("enzyme", "The enzyme determines valid cleavage sites; cleavage specificity determines to what extent validity is enforced.");
 
-    registerStringOption_("enzyme:name", "", EnzymaticDigestion::NamesOfEnzymes[0], "Enzyme which determines valid cleavage sites - e.g. trypsin cleaves after lysine (K) or arginine (R), but not before proline (P).", false);
+    registerStringOption_("enzyme:name", "", "Trypsin", "Enzyme which determines valid cleavage sites - e.g. trypsin cleaves after lysine (K) or arginine (R), but not before proline (P).", false);
     StringList enzymes;
-    enzymes.assign(EnzymaticDigestion::NamesOfEnzymes, EnzymaticDigestion::NamesOfEnzymes + EnzymaticDigestion::SIZE_OF_ENZYMES);
+    EnzymesDB::getInstance()->getAllNames(enzymes);
     setValidStrings_("enzyme:name", enzymes);
 
     registerStringOption_("enzyme:specificity", "", EnzymaticDigestion::NamesOfSpecificity[0], "Specificity of the enzyme."
-                          "\n  '" + EnzymaticDigestion::NamesOfSpecificity[0] + "': both internal cleavage sites must match."
-                          "\n  '" + EnzymaticDigestion::NamesOfSpecificity[1] + "': one of two internal cleavage sites must match."
-                          "\n  '" + EnzymaticDigestion::NamesOfSpecificity[2] + "': allow all peptide hits no matter their context. Therefore, the enzyme chosen does not play a role here", false);
+                                                                                               "\n  '" + EnzymaticDigestion::NamesOfSpecificity[0] + "': both internal cleavage sites must match."
+                                                                                                                                                     "\n  '" + EnzymaticDigestion::NamesOfSpecificity[1] + "': one of two internal cleavage sites must match."
+                                                                                                                                                                                                           "\n  '" + EnzymaticDigestion::NamesOfSpecificity[2] + "': allow all peptide hits no matter their context. Therefore, the enzyme chosen does not play a role here", false);
     StringList spec;
     spec.assign(EnzymaticDigestion::NamesOfSpecificity, EnzymaticDigestion::NamesOfSpecificity + EnzymaticDigestion::SIZE_OF_SPECIFICITY);
     setValidStrings_("enzyme:specificity", spec);
@@ -537,7 +538,7 @@ protected:
     }
 
     EnzymaticDigestion enzyme;
-    enzyme.setEnzyme(enzyme.getEnzymeByName(getStringOption_("enzyme:name")));
+    enzyme.setEnzyme(getStringOption_("enzyme:name"));
     enzyme.setSpecificity(enzyme.getSpecificityByName(getStringOption_("enzyme:specificity")));
 
 
@@ -592,12 +593,12 @@ protected:
       for (Size i = 0; i != proteins.size(); ++i)
       {
         String seq = proteins[i].sequence.remove('*');
-        if (il_equivalent)
-        { // convert  L to I; warning: do not use 'J', since Seqan does not know about it and will convert 'J' to 'X'
+        if (il_equivalent) // convert  L to I; warning: do not use 'J', since Seqan does not know about it and will convert 'J' to 'X'
+        {
           seq.substitute('L', 'I');
         }
 
-        
+
         String acc = proteins[i].identifier;
         // check for duplicate proteins
         if (acc_to_prot.has(acc))
@@ -608,24 +609,24 @@ protected:
           const seqan::Peptide& tmp_prot = prot_DB[acc_to_prot[acc]];
           if (String(begin(tmp_prot), end(tmp_prot)) != seq)
           {
-            LOG_ERROR << "PeptideIndexer: protein identifier '" << acc << "' found multiple times with different sequences" << (il_equivalent ? " (I/L substituted)" : "") 
+            LOG_ERROR << "PeptideIndexer: protein identifier '" << acc << "' found multiple times with different sequences" << (il_equivalent ? " (I/L substituted)" : "")
                       << ":\n" << tmp_prot << "\nvs.\n" << seq << "\n! Please fix the database and run PeptideIndexer again!" << std::endl;
             return INPUT_FILE_CORRUPT;
           }
           // remove duplicate sequence from 'proteins', since 'prot_DB' and 'proteins' need to correspond 1:1 (later indexing depends on it)
           // The other option would be to allow two identical entries, but later on, only the last one will be reported (making the first protein an orphan; implementation details below)
           // Thus, the only safe option is to remove the duplicate from 'proteins' and not to add it to 'prot_DB'
-          proteins.erase(proteins.begin()+i);
+          proteins.erase(proteins.begin() + i);
           // try this index again in the next loop (--i is save since this condition is met only when i>0)
           --i;
-        } 
+        }
         else
         {
           // extend protein DB
           seqan::appendValue(prot_DB, seq.c_str());
           acc_to_prot[acc] = i;
         }
-        
+
       }
       // make sure the warnings above are printed to screen
       if (has_DB_duplicates) LOG_WARN << std::endl;
@@ -641,8 +642,8 @@ protected:
         for (vector<PeptideHit>::iterator it2 = hits.begin(); it2 != hits.end(); ++it2)
         {
           String seq = it2->getSequence().toUnmodifiedString().remove('*');
-          if (il_equivalent)
-          { // convert  L to I; warning: do not use 'J', since Seqan does not know about it and will convert 'J' to 'X'
+          if (il_equivalent) // convert  L to I; warning: do not use 'J', since Seqan does not know about it and will convert 'J' to 'X'
+          {
             seq.substitute('L', 'I');
           }
           appendValue(pep_DB, seq.c_str());
@@ -654,14 +655,14 @@ protected:
       /** first, try Aho Corasick (fast) -- using exact matching only */
       bool SA_only = getFlag_("full_tolerant_search");
       UInt max_mismatches = getIntOption_("mismatches_max");
-      
-      if (!SA_only && (max_mismatches > 0))
-      { // this combination is not allowed, and we want the user to make a conscious decision about it
+
+      if (!SA_only && (max_mismatches > 0)) // this combination is not allowed, and we want the user to make a conscious decision about it
+      {
         LOG_ERROR << "Error: Exact matching in combination with #mismatches > 0 is not allowed.\n"
                   << "       Either use full tolerant search ('full_tolerant_search') or set 'mismatches_max' back to '0'."
                   << "       Aborting..." << std::endl;
         return ILLEGAL_PARAMETERS;
-      };
+      }
 
       if (!SA_only)
       {
@@ -940,22 +941,22 @@ protected:
       {
         const String& acc = p_hit->getAccession();
         if (acc_to_prot.has(acc) // accession needs to exist in new FASTA file
-            && masterset.find(acc_to_prot[acc]) != masterset.end())
+           && masterset.find(acc_to_prot[acc]) != masterset.end())
         { // this accession was there already
           String seq;
-          if (write_protein_sequence) 
+          if (write_protein_sequence)
           {
             seq = proteins[acc_to_prot[acc]].sequence;
           }
           p_hit->setSequence(seq);
-          
+
           if (write_protein_description)
           {
             const String& description = proteins[acc_to_prot[acc]].description;
             //std::cout << "Description = " << description << "\n";
             p_hit->setDescription(description);
           }
-          
+
           new_protein_hits.push_back(*p_hit);
           masterset.erase(acc_to_prot[acc]); // remove from master (at the end only new proteins remain)
         }
@@ -977,13 +978,13 @@ protected:
         {
           hit.setSequence(proteins[*it].sequence);
         }
-        
+
         if (write_protein_description)
         {
           //std::cout << "Description = " << proteins[*it].description << "\n";
           hit.setDescription(proteins[*it].description);
         }
-        
+
         new_protein_hits.push_back(hit);
         ++stats_new_proteins;
       }

@@ -16,7 +16,7 @@ cdef extern from "<OpenMS/FORMAT/PepXMLFile.h>" namespace "OpenMS":
         PepXMLFile() nogil except +
 
         # Since PepXML may not store the complete information, it may be
-        # neessary to also pass an experiment file name and an experiment MS
+        # necessary to also pass an experiment file name and an experiment MS
         # run from which retention times can be extracted.
         void load(String filename,
                   libcpp_vector[ProteinIdentification] & protein_ids,
@@ -49,4 +49,6 @@ cdef extern from "<OpenMS/FORMAT/PepXMLFile.h>" namespace "OpenMS":
                   String mz_name,
                   bool peptideprophet_analyzed
                   ) nogil except +
+
+        void keepNativeSpectrumName(bool keep) nogil except +
 

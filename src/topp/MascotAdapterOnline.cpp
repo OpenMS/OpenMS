@@ -244,12 +244,12 @@ protected:
       mascot_tmp_file.write(mascot_query->getMascotXMLResponse());
       mascot_tmp_file.close();
 
-      // set up mapping between scan numbers and retention times:
-      MascotXMLFile::RTMapping rt_mapping;
-      MascotXMLFile::generateRTMapping(exp.begin(), exp.end(), rt_mapping);
+      // set up helper object for looking up spectrum meta data:
+      SpectrumMetaDataLookup lookup;
+      MascotXMLFile::initializeLookup(lookup, exp);
 
       // read the response
-      MascotXMLFile().load(mascot_tmp_file_name, prot_id, pep_ids, rt_mapping);
+      MascotXMLFile().load(mascot_tmp_file_name, prot_id, pep_ids, lookup);
       writeDebug_("Read " + String(pep_ids.size()) + " peptide ids and " + String(prot_id.getHits().size()) + " protein identifications from Mascot", 5);
 
       // for debugging errors relating to unexpected response files

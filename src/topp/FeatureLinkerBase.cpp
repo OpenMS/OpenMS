@@ -38,6 +38,9 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
+
+#include <OpenMS/KERNEL/ConversionHelper.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -59,7 +62,7 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPFeatureLinkerBase :
-  public TOPPBase
+  public TOPPBase, public ProgressLogger
 {
 
 public:
@@ -119,26 +122,45 @@ protected:
     StringList ms_run_locations;
     if (file_type == FileTypes::FEATUREXML)
     {
-      vector<FeatureMap > maps(ins.size());
+      vector<ConsensusMap > maps(ins.size());
       FeatureXMLFile f;
+      FeatureFileOptions param = f.getOptions();
+      // to save memory don't load convex hulls and subordinates
+      param.setLoadSubordinates(false);
+      param.setLoadConvexHull(false);
+      f.setOptions(param);
+
+      Size progress = 0;
+      setLogType(ProgressLogger::CMD);
+      startProgress(0, ins.size(), "reading input");
       for (Size i = 0; i < ins.size(); ++i)
       {
-        f.load(ins[i], maps[i]);
+        FeatureMap tmp;
+        f.load(ins[i], tmp);
         out_map.getFileDescriptions()[i].filename = ins[i];
-        out_map.getFileDescriptions()[i].size = maps[i].size();
-        out_map.getFileDescriptions()[i].unique_id = maps[i].getUniqueId();
-        // to save memory, remove convex hulls and subordinates:
-        for (FeatureMap::Iterator it = maps[i].begin(); it != maps[i].end();
+        out_map.getFileDescriptions()[i].size = tmp.size();
+        out_map.getFileDescriptions()[i].unique_id = tmp.getUniqueId();
+        // to save memory, remove convex hulls, subordinates and meta info:
+        for (FeatureMap::Iterator it = tmp.begin(); it != tmp.end();
              ++it)
         {
           it->getSubordinates().clear();
           it->getConvexHulls().clear();
+          it->clearMetaInfo();
         }
+
+        MapConversion::convert(i, tmp, maps[i]);
+
         maps[i].updateRanges();
+
         // copy over information on the primary MS run
         const StringList& ms_runs = maps[i].getPrimaryMSRunPath();
         ms_run_locations.insert(ms_run_locations.end(), ms_runs.begin(), ms_runs.end());
+
+        setProgress(progress++);
       }
+      endProgress();
+
       // exception for "labeled" algorithms: copy file descriptions
       if (labeled)
       {

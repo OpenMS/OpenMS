@@ -111,7 +111,7 @@ protected:
 
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const
   {
     Param combined;
     Param p_com;
@@ -139,7 +139,7 @@ protected:
     return combined;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
 
     //-------------------------------------------------------------
@@ -169,7 +169,7 @@ protected:
 
     // make sure that the spectra are sorted by m/z
     ms_peakmap.sortSpectra(true);
-    
+
     //-------------------------------------------------------------
     // get params for MTD and EPD algorithms
     //-------------------------------------------------------------
@@ -219,7 +219,8 @@ protected:
         m_traces_final.clear();
         ep_det.filterByPeakWidth(split_mtraces, m_traces_final);
 
-        LOG_INFO << "Notice: " << split_mtraces.size() - m_traces_final.size() << " of total " << split_mtraces.size() << " were dropped because of too low peak width." << std::endl;
+        LOG_INFO << "Notice: " << split_mtraces.size() - m_traces_final.size() <<
+        " of total " << split_mtraces.size() << " were dropped because of too low peak width." << std::endl;
       }
       else
       {
@@ -253,7 +254,7 @@ protected:
         fcons.setMetaValue(3, m_traces_final[i].getLabel());
         fcons.setCharge(0);
         fcons.setWidth(m_traces_final[i].estimateFWHM(use_epd));
-        fcons.setQuality(1 - (1.0/m_traces_final[i].getSize()));
+        fcons.setQuality(1 - (1.0 / m_traces_final[i].getSize()));
 
         fcons.setRT(m_traces_final[i].getCentroidRT());
         fcons.setMZ(m_traces_final[i].getCentroidMZ());
@@ -302,9 +303,9 @@ protected:
       {
         std::sort(stats_sd.begin(), stats_sd.end());
         LOG_INFO << "Mass trace m/z s.d.\n"
-                 << "    low quartile: " << stats_sd[stats_sd.size()*1/4] << "\n"
-                 << "          median: " << stats_sd[stats_sd.size()*1/2] << "\n"
-                 << "    upp quartile: " << stats_sd[stats_sd.size()*3/4] << std::endl;
+                 << "    low quartile: " << stats_sd[stats_sd.size() * 1 / 4] << "\n"
+                 << "          median: " << stats_sd[stats_sd.size() * 1 / 2] << "\n"
+                 << "    upp quartile: " << stats_sd[stats_sd.size() * 3 / 4] << std::endl;
       }
 
 
@@ -327,7 +328,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPMassTraceExtractor tool;
   return tool.main(argc, argv);

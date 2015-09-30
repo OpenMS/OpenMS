@@ -78,6 +78,9 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, stream.str());
     }
 
+    blacklist_.reserve(exp_picked_.getNrSpectra());
+    registry_.reserve(exp_picked_.getNrSpectra());
+
     // fill peak registry and initialise blacklist
     MSExperiment<Peak1D>::Iterator it_rt;
     for (it_rt = exp_picked_.begin(); it_rt < exp_picked_.end(); ++it_rt)

@@ -39,17 +39,18 @@
 
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
 
 using std::vector;
 
 namespace OpenMS
 {
 
-  bool MapAlignmentTransformer::storeOriginalRT_(MetaInfoInterface& interface,
+  bool MapAlignmentTransformer::storeOriginalRT_(MetaInfoInterface& meta_info,
                                                  double original_rt)
   {
-    if (interface.metaValueExists("original_RT")) return false;
-    interface.setMetaValue("original_RT", original_rt);
+    if (meta_info.metaValueExists("original_RT")) return false;
+    meta_info.setMetaValue("original_RT", original_rt);
     return true;
   }
 

@@ -539,17 +539,24 @@ private:
     {
       int A1 = c1.getPropertyA();
       int A2 = c2.getPropertyA();
-      std::vector<int> B1 = c1.getPropertiesB();
-      std::vector<int> B2 = c2.getPropertiesB();
 
-      // check if any of the properties A and B is not set i.e. =-1
-      if (A1 == -1 || A2 == -1 || std::find(B1.begin(), B1.end(), -1) != B1.end() || std::find(B2.begin(), B2.end(), -1) != B2.end())
+      // check if properties A of both clusters is set or not (not set := -1)
+      if (A1 == -1 || A2 == -1)
       {
         return false;
       }
 
       // Will the merged cluster have the same properties A?
-      bool vetoA = !(A1 == A2);
+      if (A1 != A2) return true;
+
+      std::vector<int> B1 = c1.getPropertiesB();
+      std::vector<int> B2 = c2.getPropertiesB();
+
+      // check if properties B of both clusters is set or not (not set := -1)
+      if (std::find(B1.begin(), B1.end(), -1) != B1.end() || std::find(B2.begin(), B2.end(), -1) != B2.end())
+      {
+        return false;
+      }
 
       // Will the merged cluster have different properties B?
       // (Hence the intersection of properties B of cluster 1 and cluster 2 should be empty.)
@@ -557,9 +564,8 @@ private:
       sort(B1.begin(), B1.end());
       sort(B2.begin(), B2.end());
       set_intersection(B1.begin(), B1.end(), B2.begin(), B2.end(), back_inserter(B_intersection));
-      bool vetoB = !B_intersection.empty();
 
-      return vetoA || vetoB;
+      return !B_intersection.empty();
     }
 
     /**
@@ -575,10 +581,10 @@ private:
      *
      * @param Should the cluster be removed from the cluster list?
      */
-    bool findNearestNeighbour_(GridBasedCluster cluster, int cluster_index)
+    bool findNearestNeighbour_(const GridBasedCluster& cluster, int cluster_index)
     {
-      Point centre = cluster.getCentre();
-      CellIndex cell_index = grid_.getIndex(centre);
+      const Point& centre = cluster.getCentre();
+      const CellIndex& cell_index = grid_.getIndex(centre);
 
       double min_dist = 0;
       int nearest_neighbour = -1;
@@ -593,19 +599,23 @@ private:
           cell_index2.second += j;
           if (grid_.isNonEmptyCell(cell_index2))
           {
-            std::list<int> cluster_indices = grid_.getClusters(cell_index2);
+            const std::list<int>& cluster_indices = grid_.getClusters(cell_index2);
             for (std::list<int>::const_iterator cluster_index2 = cluster_indices.begin(); cluster_index2 != cluster_indices.end(); ++cluster_index2)
             {
               if (*cluster_index2 != cluster_index)
               {
-                GridBasedCluster cluster2 = clusters_.find(*cluster_index2)->second;
-                Point centre2 = cluster2.getCentre();
+                const GridBasedCluster& cluster2 = clusters_.find(*cluster_index2)->second;
+                const Point& centre2 = cluster2.getCentre();
                 double distance = metric_(centre, centre2);
-                bool veto = mergeVeto_(cluster, cluster2);                // If clusters cannot be merged anyhow, they are no nearest neighbours.
-                if (!veto && (distance < min_dist || nearest_neighbour == -1))
+
+                if (distance < min_dist || nearest_neighbour == -1)
                 {
-                  min_dist = distance;
-                  nearest_neighbour = *cluster_index2;
+                  bool veto = mergeVeto_(cluster, cluster2); // If clusters cannot be merged anyhow, they are no nearest neighbours.
+                  if (!veto)
+                  {
+                      min_dist = distance;
+                      nearest_neighbour = *cluster_index2;
+                  }
                 }
               }
             }

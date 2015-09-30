@@ -36,7 +36,9 @@
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CHEMISTRY/EnzymaticDigestionLogModel.h>
 #include <OpenMS/KERNEL/Feature.h>
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 
 namespace OpenMS
 {
@@ -69,11 +71,8 @@ namespace OpenMS
   {
     // supported enzymes
     StringList enzymes;
-    enzymes.resize(EnzymaticDigestion::SIZE_OF_ENZYMES + 1);
-    for (UInt i = 0; i < EnzymaticDigestion::SIZE_OF_ENZYMES; ++i)
-      enzymes[i] = EnzymaticDigestion::NamesOfEnzymes[i];
-    enzymes[EnzymaticDigestion::SIZE_OF_ENZYMES] = "none";
-    defaults_.setValue("enzyme", enzymes[0], "Enzyme to use for digestion (select 'none' to skip digestion)");
+    EnzymesDB::getInstance()->getAllNames(enzymes);
+    defaults_.setValue("enzyme", "Trypsin", "Enzyme to use for digestion (select 'no cleavage' to skip digestion)");
     defaults_.setValidStrings("enzyme", enzymes);
 
     // cleavages
@@ -98,7 +97,7 @@ namespace OpenMS
   {
     LOG_INFO << "Digest Simulation ... started" << std::endl;
 
-    if ((String)param_.getValue("enzyme") == String("none"))
+    if ((String)param_.getValue("enzyme") == String("no cleavage"))
     {
       //peptides = proteins;
       // convert all proteins into peptides
@@ -143,11 +142,16 @@ namespace OpenMS
     bool use_log_model = param_.getValue("model") == "trained" ? true : false;
     UInt missed_cleavages = param_.getValue("model_naive:missed_cleavages");
     double cleave_threshold = param_.getValue("model_trained:threshold");
-
-    EnzymaticDigestion digestion;
-    digestion.setEnzyme(digestion.getEnzymeByName((String)param_.getValue("enzyme")));
-    digestion.setLogModelEnabled(use_log_model);
-    digestion.setLogThreshold(cleave_threshold);
+    if (use_log_model)
+    {
+      EnzymaticDigestionLogModel digestion;
+      digestion.setLogThreshold(cleave_threshold);
+    }
+    else
+    {
+      EnzymaticDigestion digestion;
+      digestion.setEnzyme((String)param_.getValue("enzyme"));
+    }
 
     std::vector<AASequence> digestion_products;
 
@@ -164,8 +168,21 @@ namespace OpenMS
       // note: missed cleavages reduce overall abundance as they combine two (or more) single peptides
 
       // how many "atomic"(i.e. non-cleavable) peptides are created?
-      digestion.setMissedCleavages(0);
-      Size complete_digest_count = digestion.peptideCount(AASequence::fromString(protein_hit->getSequence()));
+      Size complete_digest_count;
+      if (use_log_model)
+      {
+        EnzymaticDigestionLogModel digestion;
+        digestion.setLogThreshold(cleave_threshold);
+        complete_digest_count = digestion.peptideCount(AASequence::fromString(protein_hit->getSequence()));
+      }
+      else
+      {
+        EnzymaticDigestion digestion;
+        digestion.setEnzyme((String)param_.getValue("enzyme"));
+        digestion.setMissedCleavages(0);
+        complete_digest_count = digestion.peptideCount(AASequence::fromString(protein_hit->getSequence()));
+      }
+
       // compute average number of "atomic" peptides summed from all digestion products
       Size number_atomic_whole = 0;
       Size number_of_digestion_products = 0;
@@ -192,8 +209,19 @@ namespace OpenMS
       }
 
       // do real digest
-      digestion.setMissedCleavages(missed_cleavages);
-      digestion.digest(AASequence::fromString(protein_hit->getSequence()), digestion_products);
+      if (use_log_model)
+      {
+        EnzymaticDigestionLogModel digestion;
+        digestion.setLogThreshold(cleave_threshold);
+        digestion.digest(AASequence::fromString(protein_hit->getSequence()), digestion_products);
+      }
+      else
+      {
+        EnzymaticDigestion digestion;
+        digestion.setEnzyme((String)param_.getValue("enzyme"));
+        digestion.setMissedCleavages(missed_cleavages);
+        digestion.digest(AASequence::fromString(protein_hit->getSequence()), digestion_products);
+      }
 
       for (std::vector<AASequence>::const_iterator dp_it = digestion_products.begin();
            dp_it != digestion_products.end();

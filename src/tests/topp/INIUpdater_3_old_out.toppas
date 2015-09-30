@@ -147,23 +147,23 @@
         <ITEM name="force" value="false" type="string" description="Overwrite tool specific checks." required="false" advanced="true" restrictions="true,false" />
         <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for internal use only)" required="false" advanced="true" restrictions="true,false" />
         <NODE name="algorithm" description="Algorithm parameters section">
-          <ITEM name="second_nearest_gap" value="2" type="double" description="The distance to the second nearest neighbors must be larger by this factor than the distance to the matching element itself." required="false" advanced="false" restrictions="1:" />
-          <ITEM name="use_identifications" value="false" type="string" description="Never link features that are annotated with different peptides (only the best hit per peptide identification is taken into account)." required="false" advanced="false" restrictions="true,false" />
-          <ITEM name="ignore_charge" value="false" type="string" description="Compare features normally even if their charge states are different" required="false" advanced="false" restrictions="true,false" />
+          <ITEM name="second_nearest_gap" value="2" type="double" description="Only link features whose distance to the second nearest neighbors (for both sides) is larger by &apos;second_nearest_gap&apos; than the distance between the matched pair itself." required="false" advanced="false" restrictions="1:" />
+          <ITEM name="use_identifications" value="false" type="string" description="Never link features that are annotated with different peptides (features without ID&apos;s always match; only the best hit per peptide identification is considered)." required="false" advanced="false" restrictions="true,false" />
+          <ITEM name="ignore_charge" value="false" type="string" description="false [default]: pairing requires equal charge state (or at least one unknown charge &apos;0&apos;); true: Pairing irrespective of charge state" required="false" advanced="false" restrictions="true,false" />
           <NODE name="distance_RT" description="Distance component based on RT differences">
-            <ITEM name="max_difference" value="100" type="double" description="Maximum allowed difference in RT in seconds" required="false" advanced="false" restrictions="0:" />
-            <ITEM name="exponent" value="1" type="double" description="Normalized RT differences are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)" required="false" advanced="true" restrictions="0:" />
-            <ITEM name="weight" value="1" type="double" description="RT distances are weighted by this factor" required="false" advanced="true" restrictions="0:" />
+            <ITEM name="max_difference" value="100" type="double" description="Never pair features with a larger RT distance (in seconds)." required="false" advanced="false" restrictions="0:" />
+            <ITEM name="exponent" value="1" type="double" description="Normalized RT differences ([0-1], relative to &apos;max_difference&apos;) are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)" required="false" advanced="true" restrictions="0:" />
+            <ITEM name="weight" value="1" type="double" description="Final RT distances are weighted by this factor" required="false" advanced="true" restrictions="0:" />
           </NODE>
           <NODE name="distance_MZ" description="Distance component based on m/z differences">
-            <ITEM name="max_difference" value="0.3" type="double" description="Maximum allowed difference in m/z (unit defined by &apos;unit&apos;)" required="false" advanced="false" restrictions="0:" />
+            <ITEM name="max_difference" value="0.3" type="double" description="Never pair features with larger m/z distance (unit defined by &apos;unit&apos;)" required="false" advanced="false" restrictions="0:" />
             <ITEM name="unit" value="Da" type="string" description="Unit of the &apos;max_difference&apos; parameter" required="false" advanced="false" restrictions="Da,ppm" />
-            <ITEM name="exponent" value="2" type="double" description="Normalized m/z differences are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)" required="false" advanced="true" restrictions="0:" />
-            <ITEM name="weight" value="1" type="double" description="m/z distances are weighted by this factor" required="false" advanced="true" restrictions="0:" />
+            <ITEM name="exponent" value="2" type="double" description="Normalized ([0-1], relative to &apos;max_difference&apos;) m/z differences are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)" required="false" advanced="true" restrictions="0:" />
+            <ITEM name="weight" value="1" type="double" description="Final m/z distances are weighted by this factor" required="false" advanced="true" restrictions="0:" />
           </NODE>
-          <NODE name="distance_intensity" description="Distance component based on differences in relative intensity">
-            <ITEM name="exponent" value="1" type="double" description="Differences in relative intensity are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)" required="false" advanced="true" restrictions="0:" />
-            <ITEM name="weight" value="0" type="double" description="Distances based on relative intensity are weighted by this factor" required="false" advanced="true" restrictions="0:" />
+          <NODE name="distance_intensity" description="Distance component based on differences in relative intensity (usually relative to highest peak in the whole data set)">
+            <ITEM name="exponent" value="1" type="double" description="Differences in relative intensity ([0-1]) are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)" required="false" advanced="true" restrictions="0:" />
+            <ITEM name="weight" value="0" type="double" description="Final intensity distances are weighted by this factor" required="false" advanced="true" restrictions="0:" />
           </NODE>
         </NODE>
       </NODE>
