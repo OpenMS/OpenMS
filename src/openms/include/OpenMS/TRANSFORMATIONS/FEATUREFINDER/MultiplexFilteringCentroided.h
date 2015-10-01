@@ -109,7 +109,7 @@ private:
      *
      * @return number of isotopic peaks seen for each peptide (profile)
      */
-    int nonLocalIntensityFilter(MultiplexPeakPattern pattern, int spectrum_index, const std::vector<int>& mz_shifts_actual_indices, std::vector<double>& intensities_actual, int peaks_found_in_all_peptides) const;
+    int nonLocalIntensityFilter(const MultiplexPeakPattern& pattern, int spectrum_index, const std::vector<int>& mz_shifts_actual_indices, std::vector<double>& intensities_actual, int peaks_found_in_all_peptides) const;
 
     /**
      * @brief returns the index of a peak at m/z
