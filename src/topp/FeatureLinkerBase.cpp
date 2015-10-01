@@ -140,7 +140,12 @@ protected:
         out_map.getFileDescriptions()[i].filename = ins[i];
         out_map.getFileDescriptions()[i].size = tmp.size();
         out_map.getFileDescriptions()[i].unique_id = tmp.getUniqueId();
-        // to save memory, remove convex hulls, subordinates and meta info:
+
+        // copy over information on the primary MS run
+        const StringList& ms_runs = tmp.getPrimaryMSRunPath();
+        ms_run_locations.insert(ms_run_locations.end(), ms_runs.begin(), ms_runs.end());
+
+        // to save memory, remove convex hulls, subordinates:
         for (FeatureMap::Iterator it = tmp.begin(); it != tmp.end();
              ++it)
         {
@@ -152,10 +157,6 @@ protected:
         MapConversion::convert(i, tmp, maps[i]);
 
         maps[i].updateRanges();
-
-        // copy over information on the primary MS run
-        const StringList& ms_runs = maps[i].getPrimaryMSRunPath();
-        ms_run_locations.insert(ms_run_locations.end(), ms_runs.begin(), ms_runs.end());
 
         setProgress(progress++);
       }
