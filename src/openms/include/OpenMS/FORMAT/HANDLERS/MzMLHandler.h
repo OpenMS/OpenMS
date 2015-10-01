@@ -55,6 +55,7 @@
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
+#include <OpenMS/CONCEPT/Helpers.h>
 
 #include <OpenMS/SYSTEM/File.h>
 
@@ -4215,14 +4216,25 @@ protected:
       os << "\t</sampleList>\n";
 
       //--------------------------------------------------------------------------------------------
-      // software
+      // Software
       //--------------------------------------------------------------------------------------------
 
-      // create a list of all different data processings
-      Size num_software(2); // instrument software is always written
+      // instrument software and fallback software is always written (see below)
+      Size num_software(2);
+
+      // Create a list of all different data processings: check if the
+      // DataProcessing of the current spectra/chromatogram is already present
+      // and if not, append it to the dps vector
       for (Size s = 0; s < exp.size(); ++s)
       {
-        if (find(dps.begin(), dps.end(), exp[s].getDataProcessing()) == dps.end())
+        bool already_present = false;
+        for (Size j = 0; j < dps.size(); j++)
+        {
+          already_present = OpenMS::Helpers::cmpPtrContainer(
+              exp[s].getDataProcessing(), dps[j]);
+          if (already_present) break;
+        }
+        if (!already_present)
         {
           dps.push_back(exp[s].getDataProcessing());
           num_software += exp[s].getDataProcessing().size();
@@ -4230,7 +4242,14 @@ protected:
       }
       for (Size s = 0; s < exp.getChromatograms().size(); ++s)
       {
-        if (find(dps.begin(), dps.end(), exp.getChromatograms()[s].getDataProcessing()) == dps.end())
+        bool already_present = false;
+        for (Size j = 0; j < dps.size(); j++)
+        {
+          already_present = OpenMS::Helpers::cmpPtrContainer(
+              exp.getChromatograms()[s].getDataProcessing(), dps[j]);
+          if (already_present) break;
+        }
+        if (!already_present)
         {
           dps.push_back(exp.getChromatograms()[s].getDataProcessing());
           num_software += exp.getChromatograms()[s].getDataProcessing().size();
@@ -4252,10 +4271,11 @@ protected:
       }
 
       os << "\t<softwareList count=\"" << num_software + num_bi_software << "\">\n";
-      //write instrument software
+
+      // write instrument software
       writeSoftware_(os, "so_in_0", exp.getInstrument().getSoftware(), validator);
 
-      //write fallback software
+      // write fallback software
       writeSoftware_(os, "so_default", Software(), validator);
 
       // write the software of the dps
