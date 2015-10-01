@@ -14,7 +14,7 @@
 		<sourceFileList count="1">
 			<sourceFile id="sf_ru_0" name="file://C:/Program Files/pwiz-bin-windows-x86-vc90-release-2_2_2815/../../Documents and Settings/thermo/Desktop/Hannes/weisserh_L110812_004_SW.wiff" location="">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="a577061a82721858070fef755537e7e03e4740db" />
-				<cvParam cvRef="MS" accession="MS:1000564" name="PSI mzData file" />
+				<cvParam cvRef="MS" accession="MS:1000564" name="PSI mzData format" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
 			</sourceFile>
 		</sourceFileList>
@@ -34,7 +34,7 @@
 			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="" />
 		</software>
 		<software id="so_dp_sp_0_pm_0" version="2.2.2814" >
-			<cvParam cvRef="MS" accession="MS:1000615" name="ProteoWizard" />
+			<cvParam cvRef="MS" accession="MS:1000615" name="ProteoWizard software" />
 		</software>
 		<software id="so_dp_sp_0_pm_1" version="1.9.0" >
 			<cvParam cvRef="MS" accession="MS:1000756" name="FileConverter" />
