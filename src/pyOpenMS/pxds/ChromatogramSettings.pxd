@@ -58,9 +58,9 @@ cdef extern from "<OpenMS/METADATA/ChromatogramSettings.h>" namespace "OpenMS":
         void setPrecursor(Precursor precursor) nogil except +
 
         # returns a reference to the description of the applied processing
-        libcpp_vector[DataProcessing] getDataProcessing() nogil except +
+        libcpp_vector[DataProcessingPtr] getDataProcessing() nogil except +
         # sets the description of the applied processing
-        void setDataProcessing(libcpp_vector[DataProcessing]) nogil except +
+        void setDataProcessing(libcpp_vector[DataProcessingPtr])   nogil except +
 
         # returns the chromatogram type, e.g. a SRM chromatogram
         ChromatogramType getChromatogramType() nogil except +
