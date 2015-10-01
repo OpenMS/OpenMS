@@ -13,7 +13,7 @@
 			<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
 		</fileContent>
 		<sourceFileList count="1">
-			<sourceFile id="sf_ru_0" name="file://C:/Program Files/pwiz-bin-windows-x86-vc90-release-2_2_2815/../../Documents and Settings/thermo/Desktop/Hannes/weisserh_L110812_004_SW.wiff" location="">
+			<sourceFile id="sf_ru_0" name="weisserh_L110812_004_SW.wiff" location="file://C:/Program Files/pwiz-bin-windows-x86-vc90-release-2_2_2815/../../Documents and Settings/thermo/Desktop/Hannes">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="a577061a82721858070fef755537e7e03e4740db" />
 				<cvParam cvRef="MS" accession="MS:1000564" name="PSI mzData format" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
@@ -368,11 +368,11 @@
 </mzML>
 <indexList count="1">
 	<index name="chromatogram">
-		<offset idRef="tr3">17295</offset>
-		<offset idRef="tr1">20237</offset>
-		<offset idRef="tr2">23289</offset>
+		<offset idRef="tr3">17294</offset>
+		<offset idRef="tr1">20236</offset>
+		<offset idRef="tr2">23288</offset>
 	</index>
 </indexList>
-<indexListOffset>26372</indexListOffset>
+<indexListOffset>26371</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

@@ -13,7 +13,7 @@
 			<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
 		</fileContent>
 		<sourceFileList count="1">
-			<sourceFile id="sf_ru_0" name="file://Z:/html/tripletof_workflow/wiff/hroest_L120309/hroest_L120309_002_SW.wiff" location="">
+			<sourceFile id="sf_ru_0" name="hroest_L120309_002_SW.wiff" location="file://Z:/html/tripletof_workflow/wiff/hroest_L120309">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="1660c3f5021c93e7a5ffda118b5cc5c2a80be5fc" />
 				<cvParam cvRef="MS" accession="MS:1000564" name="PSI mzData format" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
@@ -283,9 +283,9 @@
 </mzML>
 <indexList count="1">
 	<index name="spectrum">
-		<offset idRef="scan=21913">17655</offset>
+		<offset idRef="scan=21913">17654</offset>
 	</index>
 </indexList>
-<indexListOffset>20550</indexListOffset>
+<indexListOffset>20549</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

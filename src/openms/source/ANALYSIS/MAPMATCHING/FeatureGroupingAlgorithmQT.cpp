@@ -70,11 +70,17 @@ namespace OpenMS
 
     cluster_finder.run(maps, out);
 
+    StringList ms_run_locations;
+
     // add protein IDs and unassigned peptide IDs to the result map here,
     // to keep the same order as the input maps (useful for output later):
     for (typename vector<MapType>::const_iterator map_it = maps.begin();
          map_it != maps.end(); ++map_it)
-    {
+    {      
+      // copy over information on the primary MS run
+      const StringList& ms_runs = map_it->getPrimaryMSRunPath();
+      ms_run_locations.insert(ms_run_locations.end(), ms_runs.begin(), ms_runs.end());
+
       // add protein identifications to result map:
       out.getProteinIdentifications().insert(
         out.getProteinIdentifications().end(),
@@ -86,7 +92,15 @@ namespace OpenMS
         out.getUnassignedPeptideIdentifications().end(),
         map_it->getUnassignedPeptideIdentifications().begin(),
         map_it->getUnassignedPeptideIdentifications().end());
+
+      std::cout << "DEBUG:--------------------------------------- " << ms_runs.size() << std::endl;
+      for (Size i = 0; i != ms_run_locations.size(); ++i)
+      {
+        std::cout << "DEBUG: " << ms_run_locations[i] << std::endl;
+      }
     }
+
+    out.setPrimaryMSRunPath(ms_run_locations);
 
     // canonical ordering for checking the results:
     out.sortByQuality();

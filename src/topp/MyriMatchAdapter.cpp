@@ -457,10 +457,10 @@ protected:
     vector<ProteinIdentification> protein_identifications;
     vector<PeptideIdentification> peptide_identifications;
 
+    MSExperiment<> exp;
     if (File::exists(pep_file))
     {
       FileHandler fh;
-      MSExperiment<> exp;
       fh.loadExperiment(inputfile_name, exp);
 
       SpectrumMetaDataLookup lookup;

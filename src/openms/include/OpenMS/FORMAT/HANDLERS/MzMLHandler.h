@@ -1248,8 +1248,48 @@ protected:
       else if (tag == "sourceFile")
       {
         current_id_ = attributeAsString_(attributes, s_id);
-        source_files_[current_id_].setNameOfFile(attributeAsString_(attributes, s_name));
-        source_files_[current_id_].setPathToFile(attributeAsString_(attributes, s_location));
+        // Name of the source file, without reference to location (either URI or local path). e.g. "control.mzML"
+        String name_of_file = attributeAsString_(attributes, s_name); 
+
+        //URI-formatted location where the file was retrieved.
+        String path_to_file = attributeAsString_(attributes, s_location);
+
+        // mzML files often deviate from the specification by storing e.g. the full path in the name attribute etc.
+        // error: whole path is stored in file name. fix: split into path and file name
+        if (path_to_file.empty() && !name_of_file.empty())
+        {
+          path_to_file = File::path(name_of_file);
+          name_of_file = File::basename(name_of_file);
+          if (path_to_file == ".") path_to_file = "file://./";
+        }
+
+        // format URI prefix as in mzML spec.
+        if (path_to_file.hasPrefix("File://")) path_to_file.substitute("File://", "file://");
+        if (path_to_file.hasPrefix("FILE://")) path_to_file.substitute("FILE://", "file://");
+
+        bool is_relative_path = path_to_file.hasPrefix("file://./") || path_to_file.hasPrefix("file://../");
+
+        // ill formed absolute or relative path
+        if (!is_relative_path && path_to_file.hasPrefix("file://") && !path_to_file.hasPrefix("file:///"))
+        {
+          warning(LOAD, "Ill formed absolute or relative sourceFile path: " + path_to_file);
+        }
+
+        // if possible convert relative path to absolute path
+        if (is_relative_path && File::isDirectory(path_to_file))
+        {
+          String normal_path = String(path_to_file).substitute("file://", ""); // remove URI prefix
+          path_to_file = String("file://") + File::absolutePath(normal_path); // on linux this e.g. file:///home... on win: file://C:/...
+        }
+
+        // absolute path to the root: remove additional / otherwise we will get file://// on concatenation
+        if (!is_relative_path && path_to_file == "file:///")
+        {
+          path_to_file = "file://";
+        }
+
+        source_files_[current_id_].setNameOfFile(name_of_file);
+        source_files_[current_id_].setPathToFile(path_to_file);
       }
       else if (tag == "referenceableParamGroupRef")
       {

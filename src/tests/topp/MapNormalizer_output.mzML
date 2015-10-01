@@ -13,7 +13,7 @@
 			<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
 		</fileContent>
 		<sourceFileList count="1">
-			<sourceFile id="sf_ru_0" name="File_test_1.raw" location="">
+			<sourceFile id="sf_ru_0" name="File_test_1.raw" location="file://./">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="" />
 				<cvParam cvRef="MS" accession="MS:1000564" name="PSI mzData format" />
 				<cvParam cvRef="MS" accession="MS:1000824" name="no nativeID format" />
@@ -737,28 +737,28 @@
 </mzML>
 <indexList count="1">
 	<index name="spectrum">
-		<offset idRef="spectrum=1">6435</offset>
-		<offset idRef="spectrum=2">12964</offset>
-		<offset idRef="spectrum=3">19300</offset>
-		<offset idRef="spectrum=4">25608</offset>
-		<offset idRef="spectrum=5">31628</offset>
-		<offset idRef="spectrum=6">37520</offset>
-		<offset idRef="spectrum=7">43328</offset>
-		<offset idRef="spectrum=8">49364</offset>
-		<offset idRef="spectrum=9">55064</offset>
-		<offset idRef="spectrum=10">60795</offset>
-		<offset idRef="spectrum=11">66960</offset>
-		<offset idRef="spectrum=12">78550</offset>
-		<offset idRef="spectrum=13">95209</offset>
-		<offset idRef="spectrum=14">99015</offset>
-		<offset idRef="spectrum=15">117307</offset>
-		<offset idRef="spectrum=16">121049</offset>
-		<offset idRef="spectrum=17">125048</offset>
-		<offset idRef="spectrum=18">128807</offset>
-		<offset idRef="spectrum=19">144925</offset>
-		<offset idRef="spectrum=20">149262</offset>
+		<offset idRef="spectrum=1">6444</offset>
+		<offset idRef="spectrum=2">12973</offset>
+		<offset idRef="spectrum=3">19309</offset>
+		<offset idRef="spectrum=4">25617</offset>
+		<offset idRef="spectrum=5">31637</offset>
+		<offset idRef="spectrum=6">37529</offset>
+		<offset idRef="spectrum=7">43337</offset>
+		<offset idRef="spectrum=8">49373</offset>
+		<offset idRef="spectrum=9">55073</offset>
+		<offset idRef="spectrum=10">60804</offset>
+		<offset idRef="spectrum=11">66969</offset>
+		<offset idRef="spectrum=12">78559</offset>
+		<offset idRef="spectrum=13">95218</offset>
+		<offset idRef="spectrum=14">99024</offset>
+		<offset idRef="spectrum=15">117316</offset>
+		<offset idRef="spectrum=16">121058</offset>
+		<offset idRef="spectrum=17">125057</offset>
+		<offset idRef="spectrum=18">128816</offset>
+		<offset idRef="spectrum=19">144934</offset>
+		<offset idRef="spectrum=20">149271</offset>
 	</index>
 </indexList>
-<indexListOffset>153514</indexListOffset>
+<indexListOffset>153523</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

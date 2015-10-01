@@ -36,16 +36,17 @@
 #define OPENMS_KERNEL_MSEXPERIMENT_H
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/KERNEL/AreaIterator.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <vector>
 #include <algorithm>
 #include <limits>
-#include <OpenMS/SYSTEM/File.h>
 
 namespace OpenMS
 {
@@ -711,9 +712,11 @@ public:
 
         if (path.empty() || filename.empty())
         {
-          LOG_ERROR << "Path or file name of primary MS run is empty. This might be the result of incomplete conversion. This might make tracing back results to the original file more difficult." << std::endl;
-        }
-        else
+          LOG_WARN << "Path or file name of primary MS run is empty. "
+                   << "This might be the result of incomplete conversion. "
+                   << "Not that tracing back e.g. identification results to the original file might more difficult." << std::endl;
+	}
+	else
         {
           String ms_run_location = path + "/" + filename;
           ms_run_paths.push_back(ms_run_location);
