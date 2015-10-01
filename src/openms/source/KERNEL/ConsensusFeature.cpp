@@ -128,6 +128,16 @@ namespace OpenMS
     return handles_;
   }
 
+  std::vector<FeatureHandle> ConsensusFeature::getFeatureList() const
+  {
+    std::vector<FeatureHandle> tmp;
+    for (ConsensusFeature::HandleSetType::const_iterator it = handles_.begin(); it != handles_.end(); ++it)
+    {
+      tmp.push_back(*it);
+    }
+    return tmp;
+  }
+
   DRange<2> ConsensusFeature::getPositionRange() const
   {
     DPosition<2> min = DPosition<2>::maxPositive();
