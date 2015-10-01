@@ -42,6 +42,25 @@ using namespace std;
 namespace OpenMS
 {
 
+  bool dataProcessingPtrEqual(DataProcessingPtr a, DataProcessingPtr b)
+  {
+     // We are not interested whether the pointers are equal but whether the
+     // contents are equal
+    if (a == NULL && b == NULL)
+    {
+      return true;
+    }
+    else if (a != NULL || b != NULL)
+    {
+      return false; // one is null the other isnt
+    }
+    else
+    {
+      // compare the internal object
+      return (*a == *b);
+    }
+  }
+
   const std::string SpectrumSettings::NamesOfSpectrumType[] = {"Unknown", "Peak data", "Raw data"};
 
   SpectrumSettings::SpectrumSettings() :
@@ -110,13 +129,10 @@ namespace OpenMS
            precursors_ == rhs.precursors_ &&
            products_ == rhs.products_ &&
            identification_ == rhs.identification_ &&
-           // We are not interested whether the pointers are equal but whether
-           // the contents are equal
-           // -- note this segfaults is somebody foolishly calls resize on the array ...
            ( data_processing_.size() == rhs.data_processing_.size() &&
-           std::equal( boost::make_indirect_iterator(data_processing_.begin()),
-                       boost::make_indirect_iterator(data_processing_.end()),
-                       boost::make_indirect_iterator(rhs.data_processing_.begin()) ) );
+           std::equal(data_processing_.begin(),
+                      data_processing_.end(),
+                      rhs.data_processing_.begin(), dataProcessingPtrEqual) );
   }
 
   bool SpectrumSettings::operator!=(const SpectrumSettings & rhs) const
