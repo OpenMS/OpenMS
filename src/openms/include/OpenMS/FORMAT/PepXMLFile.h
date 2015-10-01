@@ -96,7 +96,21 @@ public:
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be opened for writing
     */
-    void store(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, const String& mz_file = "", const String& mz_name = "", bool peptideprophet_analyzed = false);
+    void store(const String& filename, std::vector<ProteinIdentification>& protein_ids, 
+               std::vector<PeptideIdentification>& peptide_ids, const String& mz_file = "",
+               const String& mz_name = "", bool peptideprophet_analyzed = false);
+
+    /**
+        @brief Whether we should keep the native spectrum name of the pepXML
+
+        @note This will lead to a "pepxml_spectrum_name" meta value being added
+        to each PeptideIdentification containing the original name of the
+        spectrum in TPP format.
+    */
+    void keepNativeSpectrumName(bool keep) 
+    {
+      keep_native_name_ = keep;
+    }
 
 protected:
 
@@ -188,6 +202,15 @@ private:
     /// Set name of search engine
     String search_engine_;
 
+    /// Several optional attributes of spectrum_query
+    String native_spectrum_name_;
+    String experiment_label_;
+    String swath_assay_;
+    String status_;
+
+    /// Get RT and m/z for peptide ID from precursor scan (should only matter for RT)?
+    bool use_precursor_data_;
+
     /// Mapping between scan number in the pepXML file and index in the corresponding MSExperiment
     std::map<Size, Size> scan_map_;
 
@@ -196,6 +219,12 @@ private:
 
     /// Are we currently in an "analysis_summary" element (should be skipped)?
     bool analysis_summary_;
+
+    /// Whether we should keep the native spectrum name of the pepXML
+    bool keep_native_name_;
+
+    /// Are we currently in an "search_score_summary" element (should be skipped)?
+    bool search_score_summary_;
 
     /// Do current entries belong to the experiment of interest (for pepXML files that bundle results from different experiments)?
     bool wrong_experiment_;
@@ -220,6 +249,9 @@ private:
 
     /// PeptideIdentification instance currently being processed
     PeptideIdentification current_peptide_;
+
+    /// Analysis result instance currently being processed
+    PeptideHit::PepXMLAnalysisResult current_analysis_result_;
 
     /// PeptideHit instance currently being processed
     PeptideHit peptide_hit_;
