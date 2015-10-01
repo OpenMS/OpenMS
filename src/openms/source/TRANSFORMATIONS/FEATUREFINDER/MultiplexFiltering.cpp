@@ -97,7 +97,7 @@ namespace OpenMS
       }
     }
 
-    // early-out: not peaks found 
+    // early out: Need to find at least (peaks_per_peptide * number_of_peptides) isotopic peaks.
     if (found_peaks < peaks_per_peptide_min_) return -1;
 
     // remove peaks which run into the next peptide

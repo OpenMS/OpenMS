@@ -77,17 +77,17 @@ const std::vector<int>& GridBasedCluster::getPropertiesB() const
   return properties_B_;
 }
 
-bool GridBasedCluster::operator<(GridBasedCluster other) const
+bool GridBasedCluster::operator<(const GridBasedCluster& other) const
 {
   return centre_.getY() < other.centre_.getY();
 }
 
-bool GridBasedCluster::operator>(GridBasedCluster other) const
+bool GridBasedCluster::operator>(const GridBasedCluster& other) const
 {
   return centre_.getY() > other.centre_.getY();
 }
 
-bool GridBasedCluster::operator==(GridBasedCluster other) const
+bool GridBasedCluster::operator==(const GridBasedCluster& other) const
 {
   return centre_.getY() == other.centre_.getY();
 }
