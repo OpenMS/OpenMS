@@ -730,10 +730,10 @@ namespace OpenMS
   }
 
   //Visualizing DataProcessing object
-  void MetaDataBrowser::visualize_(DataProcessing & meta, QTreeWidgetItem * parent)
+  void MetaDataBrowser::visualize_(DataProcessingPtr & meta, QTreeWidgetItem * parent)
   {
     DataProcessingVisualizer * visualizer = new DataProcessingVisualizer(isEditable(), this);
-    visualizer->load(meta);
+    visualizer->load(*meta);
 
     QStringList labels;
     labels << "DataProcessing" << QString::number(ws_->addWidget(visualizer));
@@ -749,9 +749,9 @@ namespace OpenMS
     }
 
     //Software object
-    visualize_(meta.getSoftware(), item);
+    visualize_(meta->getSoftware(), item);
 
-    visualize_(dynamic_cast<MetaInfoInterface &>(meta), item);
+    visualize_(dynamic_cast<MetaInfoInterface &>(*meta), item);
 
     connectVisualizer_(visualizer);
   }
@@ -926,13 +926,8 @@ namespace OpenMS
     //check for InstrumentSettings
     visualize_(meta.getInstrumentSettings(), item);
 
-    std::vector<DataProcessing> tmp;
-    for (Size i = 0; i < meta.getDataProcessing().size(); i++)
-    {
-      tmp.push_back(*meta.getDataProcessing()[i].get());
-    }
     //check for DataProcessing
-    visualizeAll_(tmp, item);
+    visualizeAll_(meta.getDataProcessing(), item);
 
     //check for Precursors
     for (Size i = 0; i < meta.getPrecursors().size(); ++i)

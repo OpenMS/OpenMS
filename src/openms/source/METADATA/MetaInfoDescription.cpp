@@ -34,6 +34,8 @@
 
 #include <OpenMS/METADATA/MetaInfoDescription.h>
 
+#include <OpenMS/CONCEPT/Helpers.h>
+
 using namespace std;
 
 namespace OpenMS
@@ -93,17 +95,17 @@ namespace OpenMS
     return name_;
   }
 
-  const vector<DataProcessing> & MetaInfoDescription::getDataProcessing() const
+  const vector<ConstDataProcessingPtr> & MetaInfoDescription::getDataProcessing() const
+  {
+    return OpenMS::Helpers::constifyPointerVector(data_processing_);
+  }
+
+  vector<DataProcessingPtr> & MetaInfoDescription::getDataProcessing()
   {
     return data_processing_;
   }
 
-  vector<DataProcessing> & MetaInfoDescription::getDataProcessing()
-  {
-    return data_processing_;
-  }
-
-  void MetaInfoDescription::setDataProcessing(const vector<DataProcessing> & processing_method)
+  void MetaInfoDescription::setDataProcessing(const vector<DataProcessingPtr> & processing_method)
   {
     data_processing_ = processing_method;
   }

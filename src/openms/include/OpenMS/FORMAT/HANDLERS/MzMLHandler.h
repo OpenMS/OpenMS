@@ -1224,13 +1224,7 @@ protected:
         String data_processing_ref;
         if (optionalAttributeAsString_(data_processing_ref, attributes, s_data_processing_ref))
         {
-          // TODO also switch to shared ptr to hold DataProcessing ...
-          std::vector<DataProcessing> tmp;
-          for (Size i = 0; i < processing_[data_processing_ref].size(); i++)
-          {
-            tmp.push_back( *processing_[data_processing_ref][i].get() );
-          }
-          data_.back().meta.setDataProcessing(tmp);
+          data_.back().meta.setDataProcessing(processing_[data_processing_ref]);
         }
       }
       else if (tag == "cvParam")
@@ -4294,7 +4288,8 @@ protected:
         {
           for (Size i = 0; i < exp[s].getFloatDataArrays()[m].getDataProcessing().size(); ++i)
           {
-            writeSoftware_(os, String("so_dp_sp_") + s + "_bi_" + m + "_pm_" + i, exp[s].getFloatDataArrays()[m].getDataProcessing()[i].getSoftware(), validator);
+            writeSoftware_(os, String("so_dp_sp_") + s + "_bi_" + m + "_pm_" + i, 
+                exp[s].getFloatDataArrays()[m].getDataProcessing()[i]->getSoftware(), validator);
           }
         }
       }
@@ -4903,14 +4898,8 @@ protected:
       {
         for (Size m = 0; m < exp[s].getFloatDataArrays().size(); ++m)
         {
-          // TODO switch to shared ptr here
-          std::vector< ConstDataProcessingPtr > tmp;
-          const std::vector< DataProcessing> tmp_ = exp[s].getFloatDataArrays()[m].getDataProcessing();
-          for (Size i = 0; i < tmp_.size(); i++)
-          {
-            tmp.push_back( ConstDataProcessingPtr (new DataProcessing(tmp_[i] ) ) );
-          }
-          writeDataProcessing_(os, String("dp_sp_") + s + "_bi_" + m, tmp, validator);
+          writeDataProcessing_(os, String("dp_sp_") + s + "_bi_" + m, 
+              exp[s].getFloatDataArrays()[m].getDataProcessing(), validator);
         }
       }
 
