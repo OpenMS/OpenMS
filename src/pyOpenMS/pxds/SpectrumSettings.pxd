@@ -46,8 +46,8 @@ cdef extern from "<OpenMS/METADATA/SpectrumSettings.h>" namespace "OpenMS":
         libcpp_vector[PeptideIdentification] getPeptideIdentifications() nogil except +
         void setPeptideIdentifications(libcpp_vector[PeptideIdentification])   nogil except +
 
-        libcpp_vector[DataProcessingPtr] getDataProcessing() nogil except +
-        void setDataProcessing(libcpp_vector[DataProcessingPtr])   nogil except +
+        libcpp_vector[ shared_ptr[DataProcessing] ] getDataProcessing() nogil except +
+        void setDataProcessing(libcpp_vector[ shared_ptr[DataProcessing] ])   nogil except +
 
 cdef extern from "<OpenMS/METADATA/SpectrumSettings.h>" namespace "OpenMS::SpectrumSettings":
 
