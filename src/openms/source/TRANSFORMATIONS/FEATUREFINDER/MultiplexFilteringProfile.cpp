@@ -195,6 +195,10 @@ namespace OpenMS
            */
           vector<double> mz_shifts_actual; // actual m/z shifts (differ slightly from expected m/z shifts)
           vector<int> mz_shifts_actual_indices; // peak indices in the spectrum corresponding to the actual m/z shifts
+          
+          mz_shifts_actual.reserve(patterns_[pattern].getMZShiftCount());
+          mz_shifts_actual_indices.reserve(patterns_[pattern].getMZShiftCount());
+          
           int peaks_found_in_all_peptides = positionsAndBlacklistFilter(patterns_[pattern], spectrum, peak_position, peak, mz_shifts_actual, mz_shifts_actual_indices);
           if (peaks_found_in_all_peptides < peaks_per_peptide_min_)
           {
@@ -308,7 +312,7 @@ namespace OpenMS
     return filter_results;
   }
 
-  int MultiplexFilteringProfile::nonLocalIntensityFilter(MultiplexPeakPattern pattern, const vector<double>& mz_shifts_actual, const vector<int>& mz_shifts_actual_indices, SplineSpectrum::Navigator nav, std::vector<double>& intensities_actual, int peaks_found_in_all_peptides, double mz) const
+  int MultiplexFilteringProfile::nonLocalIntensityFilter(const MultiplexPeakPattern& pattern, const vector<double>& mz_shifts_actual, const vector<int>& mz_shifts_actual_indices, SplineSpectrum::Navigator nav, std::vector<double>& intensities_actual, int peaks_found_in_all_peptides, double mz) const
   {
     // calculate intensities
     for (int i = 0; i < (int) mz_shifts_actual_indices.size(); ++i)
