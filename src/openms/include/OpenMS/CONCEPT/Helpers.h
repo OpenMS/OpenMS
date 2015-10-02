@@ -53,20 +53,46 @@ namespace OpenMS
       return reinterpret_cast<const std::vector<boost::shared_ptr<const T> >&>(vec);
     }
 
+
     /**
-        @brief Helper function compare two pointer-containers for equality of all elements
+      * @brief Helper comparing two pointers for equality (taking NULL into account)
+    */
+    template <class PtrType>
+    inline bool cmpPtrSafe(const PtrType& a, const PtrType& b)
+    {
+       // We are not interested whether the pointers are equal but whether the
+       // contents are equal
+      if (a == NULL && b == NULL)
+      {
+        return true;
+      }
+      else if (a == NULL || b == NULL)
+      {
+        return false; // one is null the other is not
+      }
+      else
+      {
+        // compare the internal object
+        return (*a == *b);
+      }
+    }
+
+    /**
+      * @brief Helper function to compare two pointer-containers for equality of all elements
     */
     template <class ContainerType>
     inline bool cmpPtrContainer(const ContainerType& a, const ContainerType& b)
     {
       if (a.size() != b.size()) return false;
 
-      // check that all elements of a and b are equal
+      // check that all elements of a and b are equal using safe comparison
+      // (taking NULL into account)
       for (Size i = 0; i < a.size(); i++)
       {
-        if (a[i] == NULL && b[i] == NULL) {} // both are null, we are good
-        else if (a[i] == NULL || b[i] == NULL) {return false;} // one is null, the other isnt
-        else if (*a[i] != *b[i]) {return false;}
+        if (!cmpPtrSafe(a[i], b[i]))
+        {
+          return false;
+        }
       }
       return true;
     }

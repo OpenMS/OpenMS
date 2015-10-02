@@ -79,10 +79,14 @@ namespace OpenMS
 
   bool MetaInfoDescription::operator==(const MetaInfoDescription & rhs) const
   {
-    return comment_ == rhs.comment_ &&
+    return MetaInfoInterface::operator==(rhs) &&
+           comment_ == rhs.comment_ &&
            name_ == rhs.name_ &&
-           data_processing_ == rhs.data_processing_ &&
-           MetaInfoInterface::operator==(rhs);
+           ( data_processing_.size() == rhs.data_processing_.size() &&
+           std::equal(data_processing_.begin(),
+                      data_processing_.end(),
+                      rhs.data_processing_.begin(),
+                      OpenMS::Helpers::cmpPtrSafe<DataProcessingPtr>) );
   }
 
   void MetaInfoDescription::setName(const String & name)
