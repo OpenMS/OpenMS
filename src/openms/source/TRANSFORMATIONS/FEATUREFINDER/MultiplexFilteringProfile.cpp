@@ -89,13 +89,17 @@ namespace OpenMS
 
       vector<PeakReference> registry_spec;
       vector<BlackListEntry> blacklist_spec;
+      registry_spec.reserve(it_rt->size());
+      blacklist_spec.reserve(it_rt->size());      
       for (MSSpectrum<Peak1D>::Iterator it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
       {
         // peak registry
+        const double scaling = 3.0; // some magic constant...  why three?
+        const double tolerance_th = mz_tolerance_unit_ ? (scaling * mz_tolerance_ / 1000000) * it_mz->getMZ() : scaling * mz_tolerance_;
         PeakReference reference;
         if (index > 0)
         {
-          reference.index_in_previous_spectrum = getPeakIndex(index - 1, it_mz->getMZ(), 1.0);
+          reference.index_in_previous_spectrum = exp_picked_[index - 1].findNearest(it_mz->getMZ(), tolerance_th);
         }
         else
         {
@@ -103,7 +107,7 @@ namespace OpenMS
         }
         if (index + 1 < (int) exp_picked_.size())
         {
-          reference.index_in_next_spectrum = getPeakIndex(index + 1, it_mz->getMZ(), 1.0);
+          reference.index_in_next_spectrum = exp_picked_[index + 1].findNearest(it_mz->getMZ(), tolerance_th);
         }
         else
         {
@@ -354,31 +358,6 @@ namespace OpenMS
     }
 
     return peaks_found_in_all_peptides;
-  }
-
-  int MultiplexFilteringProfile::getPeakIndex(int spectrum_index, double mz, double scaling) const
-  {
-    MSExperiment<Peak1D>::ConstIterator it_rt = exp_picked_.begin() + spectrum_index;
-    vector<vector<PeakPickerHiRes::PeakBoundary> >::const_iterator it_rt_boundaries = boundaries_.begin() + spectrum_index;
-
-    MSSpectrum<Peak1D>::ConstIterator it_mz;
-    vector<PeakPickerHiRes::PeakBoundary>::const_iterator it_mz_boundaries;
-    for (it_mz = it_rt->begin(), it_mz_boundaries = it_rt_boundaries->begin();
-         it_mz < it_rt->end() && it_mz_boundaries < it_rt_boundaries->end();
-         ++it_mz, ++it_mz_boundaries)
-    {
-      if (mz >= scaling * (*it_mz_boundaries).mz_min + (1 - scaling) * it_mz->getMZ() &&
-          mz <= scaling * (*it_mz_boundaries).mz_max + (1 - scaling) * it_mz->getMZ())
-      {
-        return it_mz - it_rt->begin();
-      }
-      if (mz < scaling * (*it_mz_boundaries).mz_min + (1 - scaling) * it_mz->getMZ())
-      {
-        return -1;
-      }
-    }
-
-    return -1;
   }
 
 }
