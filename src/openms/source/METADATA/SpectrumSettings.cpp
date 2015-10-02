@@ -50,7 +50,7 @@ namespace OpenMS
     {
       return true;
     }
-    else if (a != NULL || b != NULL)
+    else if (a == NULL || b == NULL)
     {
       return false; // one is null the other isnt
     }
