@@ -98,7 +98,7 @@ namespace OpenMS
     }
 
     // early out: Need to find at least (peaks_per_peptide * number_of_peptides) isotopic peaks.
-    if (found_peaks < peaks_per_peptide_min_) return -1;
+    if (found_peaks < peaks_per_peptide_min_ * pattern.getMassShiftCount()) return -1;
 
     // remove peaks which run into the next peptide
     // i.e. the isotopic peak of one peptide lies to the right of the mono-isotopic peak of the next one
