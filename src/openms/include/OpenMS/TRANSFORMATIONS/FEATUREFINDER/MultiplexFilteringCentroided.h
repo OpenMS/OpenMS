@@ -111,18 +111,6 @@ private:
      */
     int nonLocalIntensityFilter(const MultiplexPeakPattern& pattern, int spectrum_index, const std::vector<int>& mz_shifts_actual_indices, std::vector<double>& intensities_actual, int peaks_found_in_all_peptides) const;
 
-    /**
-     * @brief returns the index of a peak at m/z
-     * (for initialisation of peak registry)
-     *
-     * @param spectrum_index    index of the spectrum in exp_picked_ and boundaries_
-     * @param mz    m/z position of the peak
-     * @param scaling    rescaling of the peak boundaries
-     *
-     * @return index of the peak in spectrum
-     */
-    int getPeakIndex(int spectrum_index, double mz, double scaling) const;
-
   };
 
 }
