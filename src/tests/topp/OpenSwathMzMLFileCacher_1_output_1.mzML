@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
+<indexedmzML xmlns="http://psi.hupo.org/ms/mzml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0_idx.xsd">
 <mzML xmlns="http://psi.hupo.org/ms/mzml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd" accession="" version="1.1.0">
 	<cvList count="5">
 		<cv id="MS" fullName="Proteomics Standards Initiative Mass Spectrometry Ontology" URI="http://psidev.cvs.sourceforge.net/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo"/>
@@ -2055,3 +2056,69 @@
 		</spectrumList>
 	</run>
 </mzML>
+<indexList count="1">
+	<index name="spectrum">
+		<offset idRef="scan=876">16398</offset>
+		<offset idRef="scan=877">18317</offset>
+		<offset idRef="scan=878">20208</offset>
+		<offset idRef="scan=879">22099</offset>
+		<offset idRef="scan=880">23990</offset>
+		<offset idRef="scan=881">25881</offset>
+		<offset idRef="scan=882">27772</offset>
+		<offset idRef="scan=883">29662</offset>
+		<offset idRef="scan=884">31553</offset>
+		<offset idRef="scan=885">33444</offset>
+		<offset idRef="scan=886">35335</offset>
+		<offset idRef="scan=887">37226</offset>
+		<offset idRef="scan=888">39118</offset>
+		<offset idRef="scan=889">41010</offset>
+		<offset idRef="scan=890">42902</offset>
+		<offset idRef="scan=891">44794</offset>
+		<offset idRef="scan=892">46686</offset>
+		<offset idRef="scan=893">48578</offset>
+		<offset idRef="scan=894">50470</offset>
+		<offset idRef="scan=895">52362</offset>
+		<offset idRef="scan=896">54254</offset>
+		<offset idRef="scan=897">56146</offset>
+		<offset idRef="scan=898">58038</offset>
+		<offset idRef="scan=899">59930</offset>
+		<offset idRef="scan=900">61822</offset>
+		<offset idRef="scan=901">63714</offset>
+		<offset idRef="scan=902">65603</offset>
+		<offset idRef="scan=903">67495</offset>
+		<offset idRef="scan=904">69387</offset>
+		<offset idRef="scan=905">71279</offset>
+		<offset idRef="scan=906">73170</offset>
+		<offset idRef="scan=907">75062</offset>
+		<offset idRef="scan=908">76954</offset>
+		<offset idRef="scan=909">78846</offset>
+		<offset idRef="scan=910">80738</offset>
+		<offset idRef="scan=911">82630</offset>
+		<offset idRef="scan=912">84522</offset>
+		<offset idRef="scan=913">86414</offset>
+		<offset idRef="scan=914">88306</offset>
+		<offset idRef="scan=915">90198</offset>
+		<offset idRef="scan=916">92090</offset>
+		<offset idRef="scan=917">93981</offset>
+		<offset idRef="scan=918">95873</offset>
+		<offset idRef="scan=919">97765</offset>
+		<offset idRef="scan=920">99657</offset>
+		<offset idRef="scan=921">101548</offset>
+		<offset idRef="scan=922">103440</offset>
+		<offset idRef="scan=923">105332</offset>
+		<offset idRef="scan=924">107224</offset>
+		<offset idRef="scan=925">109116</offset>
+		<offset idRef="scan=926">111008</offset>
+		<offset idRef="scan=927">112900</offset>
+		<offset idRef="scan=928">114792</offset>
+		<offset idRef="scan=929">116684</offset>
+		<offset idRef="scan=930">118576</offset>
+		<offset idRef="scan=931">120468</offset>
+		<offset idRef="scan=932">122360</offset>
+		<offset idRef="scan=933">124252</offset>
+		<offset idRef="scan=934">126144</offset>
+	</index>
+</indexList>
+<indexListOffset>128066</indexListOffset>
+<fileChecksum>0</fileChecksum>
+</indexedmzML>
