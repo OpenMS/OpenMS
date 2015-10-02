@@ -351,7 +351,7 @@ public:
     {
       for (SizeType j = 1; j < init_size_; j++)
       {
-        delete matrix_[j];
+        delete[] matrix_[j];
       }
       delete[] matrix_;
       dimensionsize_ = dimensionsize;
