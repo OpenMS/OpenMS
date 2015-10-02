@@ -72,6 +72,7 @@ namespace OpenMS
   {
     // Try to find peaks at the expected m/z positions
     // loop over expected m/z shifts of a peak pattern
+    int found_peaks(0);
     for (unsigned mz_position = 0; mz_position < pattern.getMZShiftCount(); ++mz_position)
     {
       double scaling = 1;
@@ -85,6 +86,7 @@ namespace OpenMS
       int index = getPeakIndex(peak_position, peak, peak_position[peak] + pattern.getMZShiftAt(mz_position), scaling);
       if (index != -1)
       {
+        ++found_peaks;
         mz_shifts_actual.push_back(peak_position[index] - peak_position[peak]);
         mz_shifts_actual_indices.push_back(index);
       }
@@ -93,8 +95,10 @@ namespace OpenMS
         mz_shifts_actual.push_back(std::numeric_limits<double>::quiet_NaN());
         mz_shifts_actual_indices.push_back(-1);
       }
-
     }
+
+    // early out: Need to find at least (peaks_per_peptide * number_of_peptides) isotopic peaks.
+    if (found_peaks < peaks_per_peptide_min_ * pattern.getMassShiftCount()) return -1;
 
     // remove peaks which run into the next peptide
     // i.e. the isotopic peak of one peptide lies to the right of the mono-isotopic peak of the next one
@@ -360,86 +364,27 @@ namespace OpenMS
 
   int MultiplexFiltering::getPeakIndex(const std::vector<double>& peak_position, int start, double mz, double scaling) const
   {
-    vector<int> valid_index; // indices of valid peaks that lie within the ppm range of the expected peak
-    vector<double> valid_deviation; // ppm deviations between expected and (valid) actual peaks
+    const double tolerance_th = mz_tolerance_unit_ ? (scaling * mz_tolerance_ / 1000000) * peak_position[start] : scaling * mz_tolerance_;
+    const double mz_min = mz - tolerance_th;
+    const double mz_max = mz + tolerance_th;
 
-    if (peak_position[start] < mz)
+    std::vector<double>::const_iterator lb = std::lower_bound(peak_position.begin(), peak_position.end(), mz_min);
+    std::vector<double>::const_iterator ub = std::upper_bound(lb, peak_position.end(), mz_max);
+
+    double smallest_error = scaling * mz_tolerance_; // initialize to the maximum  allowed error 
+    int smallest_error_index = -1;
+
+    for (; lb != ub; ++lb)
     {
-      for (unsigned i = start; i < peak_position.size(); ++i)
+      const double error = abs(*lb - mz);
+      if (error <= smallest_error)
       {
-        double mz_min;
-        double mz_max;
-        if (mz_tolerance_unit_)
-        {
-          mz_min = (1 - scaling * mz_tolerance_ / 1000000) * peak_position[i];
-          mz_max = (1 + scaling * mz_tolerance_ / 1000000) * peak_position[i];
-        }
-        else
-        {
-          mz_min = peak_position[i] - scaling * mz_tolerance_;
-          mz_max = peak_position[i] + scaling * mz_tolerance_;
-        }
-
-        if (mz >= mz_min && mz <= mz_max)
-        {
-          valid_index.push_back(i);
-          valid_deviation.push_back(abs(mz - peak_position[i]) / mz * 1000000);
-        }
-        if (mz < peak_position[i])
-        {
-          break;
-        }
+        smallest_error = error;
+        smallest_error_index = lb - peak_position.begin();
       }
-    }
-    else
-    {
-      for (int i = start; i >= 0; --i)
-      {
-        double mz_min;
-        double mz_max;
-        if (mz_tolerance_unit_)
-        {
-          mz_min = (1 - scaling * mz_tolerance_ / 1000000) * peak_position[i];
-          mz_max = (1 + scaling * mz_tolerance_ / 1000000) * peak_position[i];
-        }
-        else
-        {
-          mz_min = peak_position[i] - scaling * mz_tolerance_;
-          mz_max = peak_position[i] + scaling * mz_tolerance_;
-        }
+    }    
 
-        if (mz >= mz_min && mz <= mz_max)
-        {
-          valid_index.push_back(i);
-          valid_deviation.push_back(abs(mz - peak_position[i]) / mz * 1000000);
-        }
-        if (mz > peak_position[i])
-        {
-          break;
-        }
-      }
-    }
-
-    if (valid_index.size() == 0)
-    {
-      return -1;
-    }
-    else
-    {
-      // find best index
-      int best_index = valid_index[0];
-      double best_deviation = valid_deviation[0];
-      for (unsigned i = 1; i < valid_index.size(); ++i)
-      {
-        if (valid_deviation[i] < best_deviation)
-        {
-          best_index = valid_index[i];
-          best_deviation = valid_deviation[i];
-        }
-      }
-
-      return best_index;
-    }
+    return smallest_error_index;
   }
 
   double MultiplexFiltering::getPatternSimilarity(const vector<double>& pattern1, const vector<double>& pattern2) const
