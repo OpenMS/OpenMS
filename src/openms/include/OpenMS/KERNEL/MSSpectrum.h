@@ -528,6 +528,46 @@ public:
       }
     }
 
+    ///@name Searching a peak or peak range
+    ///@{
+    /**
+      @brief Binary search for the peak nearest to a specific m/z given a +/- tolerance window in Th
+
+      @param mz The searched for mass-to-charge ratio searched
+      @param tolerance The non-negative tolerance applied left and right of mz
+
+      @return Returns the index of the peak or -1 if no peak present in tolerance window
+
+      @note Make sure the spectrum is sorted with respect to m/z! Otherwise the result is undefined.
+
+    */
+    Int findNearest(CoordinateType mz, CoordinateType tolerance) const
+    {
+      // no peak => no search
+      if (ContainerType::size() == 0) return -1;
+
+      // search for first peak in left window boundaries
+      ConstIterator it = MZBegin(mz - tolerance);
+
+      if (it == ContainerType::end()) return -1;
+
+      Int best_index = -1;
+      double best_dist = 2.0 * tolerance; // max dist will be at most 1.0 * tolerance so this is safe
+
+      for ( ; it != ContainerType::end() && (it->getMZ() < mz + tolerance); ++it)
+      {
+        double dist = std::abs(it->getMZ() - mz);
+        if (dist < best_dist)
+        {
+          best_dist = dist;
+          best_index = it - ContainerType::begin();
+        }
+      }
+
+      return best_index;
+    }
+
+
     /**
       @brief Binary search for peak range begin
 

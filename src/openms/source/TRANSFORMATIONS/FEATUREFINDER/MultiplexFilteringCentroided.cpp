@@ -74,13 +74,17 @@ namespace OpenMS
 
       vector<PeakReference> registry_spec;
       vector<BlackListEntry> blacklist_spec;
+      registry_spec.reserve(it_rt->size());
+      blacklist_spec.reserve(it_rt->size());
       for (MSSpectrum<Peak1D>::Iterator it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
       {
+        const double scaling = 3.0; // some magic constant...  why three?
+        const double tolerance_th = mz_tolerance_unit_ ? (scaling * mz_tolerance_ / 1000000) * it_mz->getMZ() : scaling * mz_tolerance_;
         // peak registry
         PeakReference reference;
         if (index > 0)
         {
-          reference.index_in_previous_spectrum = getPeakIndex(index - 1, it_mz->getMZ(), 3.0);
+          reference.index_in_previous_spectrum = exp_picked_[index - 1].findNearest(it_mz->getMZ(), tolerance_th);
         }
         else
         {
@@ -88,7 +92,7 @@ namespace OpenMS
         }
         if (index + 1 < (int) exp_picked_.size())
         {
-          reference.index_in_next_spectrum = getPeakIndex(index + 1, it_mz->getMZ(), 3.0);
+          reference.index_in_next_spectrum = exp_picked_[index + 1].findNearest(it_mz->getMZ(), tolerance_th);
         }
         else
         {
@@ -290,38 +294,4 @@ namespace OpenMS
 
     return peaks_found_in_all_peptides;
   }
-
-  int MultiplexFilteringCentroided::getPeakIndex(int spectrum_index, double mz, double scaling) const
-  {
-    MSExperiment<Peak1D>::ConstIterator it_rt = exp_picked_.begin() + spectrum_index;
-    MSSpectrum<Peak1D>::ConstIterator it_mz;
-    for (it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
-    {
-      double mz_min;
-      double mz_max;
-      if (mz_tolerance_unit_)
-      {
-        mz_min = (1 - scaling * mz_tolerance_ / 1000000) * it_mz->getMZ();
-        mz_max = (1 + scaling * mz_tolerance_ / 1000000) * it_mz->getMZ();
-      }
-      else
-      {
-        mz_min = it_mz->getMZ() - scaling * mz_tolerance_;
-        mz_max = it_mz->getMZ() + scaling * mz_tolerance_;
-      }
-
-      if (mz >= mz_min && mz <= mz_max)
-      {
-        return it_mz - it_rt->begin();
-      }
-
-      if (mz < mz_min)
-      {
-        return -1;
-      }
-    }
-
-    return -1;
-  }
-
 }
