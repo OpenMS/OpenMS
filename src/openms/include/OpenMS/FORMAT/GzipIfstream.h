@@ -48,27 +48,33 @@ namespace OpenMS
 public:
     ///Default Constructor
     GzipIfstream();
+
     /// Detailed constructor with filename
     explicit GzipIfstream(const char * filename);
+
     ///Destructor
     virtual ~GzipIfstream();
 
     /**
-            @brief reads n bytes from the gzip compressed file into buffer s
+      @brief Reads n bytes from the bzip2 compressed file into buffer s
 
-            @param s will be filled with bytes
-            @param n is the size of the buffer s
-            @return the number of actually read bytes. If it is 0 the end of the file was reached and the stream is closed
+      @param s Buffer to be filled with the output 
+      @param n The size of the buffer s
+      @return The number of actually read bytes. If it is less than n, the end of the file was reached and the stream is closed
 
-            @exception Exception::ConversionError is thrown if decompression fails
-            @exception Exception::IllegalArgument is thrown if no file for decompression is given. This can happen even happen if a file was already open but read until the end.
+      @note This returns a raw byte stream that is *not* null-terminated. Be careful here.
+      @note The length of the buffer needs to at least n
+      @note Closes the stream if the end of file is reached. Check isOpen before reading from the file again
+
+      @exception Exception::ConversionError is thrown if decompression fails
+      @exception Exception::IllegalArgument is thrown if no file for decompression is given. This can happen even happen if a file was already open but read until the end.
     */
     size_t read(char * s, size_t n);
 
     /**
-        @brief indicates whether the read function can be used safely
+      @brief indicates whether the read function can be used safely
 
-        @return true if end of file was reached. Otherwise false.
+      @return true if end of file was reached. Otherwise false.
     */
     bool streamEnd() const;
 
