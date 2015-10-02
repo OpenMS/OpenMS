@@ -76,7 +76,7 @@ END_SECTION
 
 START_SECTION((void setDataProcessing(const std::vector< DataProcessing > &data_processing)))
   MetaInfoDescription tmp;
-  std::vector<DataProcessing> dummy;
+  std::vector<DataProcessingPtr> dummy;
   dummy.resize(1);
   tmp.setDataProcessing(dummy);
   TEST_EQUAL(tmp.getDataProcessing().size(),1);

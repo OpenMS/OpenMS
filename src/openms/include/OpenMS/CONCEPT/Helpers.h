@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,86 +28,51 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: Marc Sturm $
+// $Maintainer: Hannes Roest $
+// $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/METADATA/MetaInfoDescription.h>
+#ifndef OPENMS_CONCEPT_HELPERS_H
+#define OPENMS_CONCEPT_HELPERS_H
 
-#include <OpenMS/CONCEPT/Helpers.h>
-
-using namespace std;
+#include <vector>
+#include <boost/shared_ptr.hpp>
 
 namespace OpenMS
 {
-
-  MetaInfoDescription::MetaInfoDescription() :
-    MetaInfoInterface(),
-    comment_(),
-    name_(),
-    data_processing_()
+  namespace Helpers 
   {
 
+    /**
+        @brief Helper function to add constness to a vector of shared pointers
+    */
+    template <class T>
+    const std::vector<boost::shared_ptr<const T> >&
+    constifyPointerVector(const std::vector<boost::shared_ptr<T> >& vec) 
+    {
+      return reinterpret_cast<const std::vector<boost::shared_ptr<const T> >&>(vec);
+    }
+
+    /**
+        @brief Helper function compare two pointer-containers for equality of all elements
+    */
+    template <class ContainerType>
+    inline bool cmpPtrContainer(const ContainerType& a, const ContainerType& b)
+    {
+      if (a.size() != b.size()) return false;
+
+      // check that all elements of a and b are equal
+      for (Size i = 0; i < a.size(); i++)
+      {
+        if (a[i] == NULL && b[i] == NULL) {} // both are null, we are good
+        else if (a[i] == NULL || b[i] == NULL) {return false;} // one is null, the other isnt
+        else if (*a[i] != *b[i]) {return false;}
+      }
+      return true;
+    }
+
   }
-
-  MetaInfoDescription::MetaInfoDescription(const MetaInfoDescription & source) :
-    MetaInfoInterface(source),
-    comment_(source.comment_),
-    name_(source.name_),
-    data_processing_(source.data_processing_)
-  {
-
-  }
-
-  MetaInfoDescription::~MetaInfoDescription()
-  {
-
-  }
-
-  MetaInfoDescription & MetaInfoDescription::operator=(const MetaInfoDescription & source)
-  {
-    if (&source == this)
-      return *this;
-
-    MetaInfoInterface::operator=(source);
-    comment_ = source.comment_;
-    name_ = source.name_;
-    data_processing_ = source.data_processing_;
-
-    return *this;
-  }
-
-  bool MetaInfoDescription::operator==(const MetaInfoDescription & rhs) const
-  {
-    return comment_ == rhs.comment_ &&
-           name_ == rhs.name_ &&
-           data_processing_ == rhs.data_processing_ &&
-           MetaInfoInterface::operator==(rhs);
-  }
-
-  void MetaInfoDescription::setName(const String & name)
-  {
-    name_ = name;
-  }
-
-  const String & MetaInfoDescription::getName() const
-  {
-    return name_;
-  }
-
-  const vector<ConstDataProcessingPtr> & MetaInfoDescription::getDataProcessing() const
-  {
-    return OpenMS::Helpers::constifyPointerVector(data_processing_);
-  }
-
-  vector<DataProcessingPtr> & MetaInfoDescription::getDataProcessing()
-  {
-    return data_processing_;
-  }
-
-  void MetaInfoDescription::setDataProcessing(const vector<DataProcessingPtr> & processing_method)
-  {
-    data_processing_ = processing_method;
-  }
-
 }
+
+
+#endif //OPENMS_CONCEPT_HELPERS_H
