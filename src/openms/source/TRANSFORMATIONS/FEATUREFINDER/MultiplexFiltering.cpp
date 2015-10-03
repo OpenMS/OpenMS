@@ -72,7 +72,7 @@ namespace OpenMS
   {
     // Try to find peaks at the expected m/z positions
     // loop over expected m/z shifts of a peak pattern
-    int found_peaks(0);
+    unsigned found_peaks(0);
     for (unsigned mz_position = 0; mz_position < pattern.getMZShiftCount(); ++mz_position)
     {
       double scaling = 1;
