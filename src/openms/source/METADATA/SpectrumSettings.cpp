@@ -42,25 +42,6 @@ using namespace std;
 namespace OpenMS
 {
 
-  bool dataProcessingPtrEqual(DataProcessingPtr a, DataProcessingPtr b)
-  {
-     // We are not interested whether the pointers are equal but whether the
-     // contents are equal
-    if (a == NULL && b == NULL)
-    {
-      return true;
-    }
-    else if (a != NULL || b != NULL)
-    {
-      return false; // one is null the other isnt
-    }
-    else
-    {
-      // compare the internal object
-      return (*a == *b);
-    }
-  }
-
   const std::string SpectrumSettings::NamesOfSpectrumType[] = {"Unknown", "Peak data", "Raw data"};
 
   SpectrumSettings::SpectrumSettings() :
@@ -132,7 +113,8 @@ namespace OpenMS
            ( data_processing_.size() == rhs.data_processing_.size() &&
            std::equal(data_processing_.begin(),
                       data_processing_.end(),
-                      rhs.data_processing_.begin(), dataProcessingPtrEqual) );
+                      rhs.data_processing_.begin(), 
+                      OpenMS::Helpers::cmpPtrSafe<DataProcessingPtr>) );
   }
 
   bool SpectrumSettings::operator!=(const SpectrumSettings & rhs) const
