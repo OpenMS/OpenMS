@@ -84,7 +84,7 @@ namespace OpenMS
         PeakReference reference;
         if (index > 0)
         {
-          reference.index_in_previous_spectrum = exp_picked_[index - 1].findNearest(it_mz->getMZ(), tolerance_th);
+          reference.index_in_previous_spectrum = exp_picked_[index - 1].findNearest(it_mz->getMZ(), tolerance_th, tolerance_th);
         }
         else
         {
@@ -92,7 +92,7 @@ namespace OpenMS
         }
         if (index + 1 < (int) exp_picked_.size())
         {
-          reference.index_in_next_spectrum = exp_picked_[index + 1].findNearest(it_mz->getMZ(), tolerance_th);
+          reference.index_in_next_spectrum = exp_picked_[index + 1].findNearest(it_mz->getMZ(), tolerance_th, tolerance_th);
         }
         else
         {

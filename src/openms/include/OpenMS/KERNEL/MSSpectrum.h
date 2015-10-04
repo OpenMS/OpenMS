@@ -528,45 +528,32 @@ public:
       }
     }
 
-    ///@name Searching a peak or peak range
-    ///@{
     /**
-      @brief Binary search for the peak nearest to a specific m/z given a +/- tolerance window in Th
+      @brief Binary search for the peak nearest to a specific m/z given a +/- tolerance windows in Th
 
       @param mz The searched for mass-to-charge ratio searched
-      @param tolerance The non-negative tolerance applied left and right of mz
+      @param tolerance_left The non-negative tolerance applied left of mz
+      @param tolerance_right The non-negative tolerance applied right of mz
 
-      @return Returns the index of the peak or -1 if no peak present in tolerance window
+      @return Returns the index of the peak or -1 if no peak present in tolerance window or if spectrum is empty
 
       @note Make sure the spectrum is sorted with respect to m/z! Otherwise the result is undefined.
-
+      @note Peaks exactly on borders are considered in tolerance window.
     */
-    Int findNearest(CoordinateType mz, CoordinateType tolerance) const
+    Int findNearest(CoordinateType mz, CoordinateType left_tolerance, CoordinateType right_tolerance) const
     {
-      // no peak => no search
-      if (ContainerType::size() == 0) return -1;
-
-      // search for first peak in left window boundaries
-      ConstIterator it = MZBegin(mz - tolerance);
-
-      if (it == ContainerType::end()) return -1;
-
-      Int best_index = -1;
-      double best_dist = 2.0 * tolerance; // max dist will be at most 1.0 * tolerance so this is safe
-
-      for ( ; it != ContainerType::end() && (it->getMZ() < mz + tolerance); ++it)
+      if (ContainerType::empty()) return -1; 
+      Size i = findNearest(mz);
+      const double found_mz = this->operator[](i).getMZ();
+      if (found_mz >= mz - left_tolerance && found_mz <= mz + right_tolerance)
       {
-        double dist = std::abs(it->getMZ() - mz);
-        if (dist < best_dist)
-        {
-          best_dist = dist;
-          best_index = it - ContainerType::begin();
-        }
+        return static_cast<Int>(i);
       }
-
-      return best_index;
+      else
+      {
+        return -1;
+      }
     }
-
 
     /**
       @brief Binary search for peak range begin

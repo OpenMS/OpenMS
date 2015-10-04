@@ -822,7 +822,7 @@ START_SECTION((Size findNearest(CoordinateType mz) const))
 	TEST_PRECONDITION_VIOLATED(tmp2.findNearest(427.3));
 END_SECTION
 
-START_SECTION((Size findNearest(CoordinateType mz) const))
+START_SECTION((Size findNearest(CoordinateType mz, CoordinateType left_tolerance, CoordinateType right_tolerance) const))
 	MSSpectrum<> tmp;
 	Peak1D p;
 	p.setIntensity(29.0f); p.setMZ(412.321); tmp.push_back(p); //0
@@ -848,25 +848,25 @@ START_SECTION((Size findNearest(CoordinateType mz) const))
 	p.setIntensity(23.0f); p.setMZ(441.224); tmp.push_back(p); //20
 
 	//test outside mass range
-	TEST_EQUAL(tmp.findNearest(400.0, 1.0), -1);
-	TEST_EQUAL(tmp.findNearest(500.0, 1.0), -1);
+	TEST_EQUAL(tmp.findNearest(400.0, 1.0, 1.0), -1);
+	TEST_EQUAL(tmp.findNearest(500.0, 1.0, 1.0), -1);
 
 	//test mass range borders
-	TEST_EQUAL(tmp.findNearest(412.4, 0.01), -1);
-	TEST_EQUAL(tmp.findNearest(412.4, 0.1), 0);
-	TEST_EQUAL(tmp.findNearest(441.3, 0.01),-1);
-	TEST_EQUAL(tmp.findNearest(441.3, 0.1), 20);
+	TEST_EQUAL(tmp.findNearest(412.4, 0.01, 0.01), -1);
+	TEST_EQUAL(tmp.findNearest(412.4, 0.1, 0.1), 0);
+	TEST_EQUAL(tmp.findNearest(441.3, 0.01, 0.01),-1);
+	TEST_EQUAL(tmp.findNearest(441.3, 0.1, 0.1), 20);
 
 	//test inside scan
-	TEST_EQUAL(tmp.findNearest(426.29, 0.1), 10);
-	TEST_EQUAL(tmp.findNearest(426.3, 0.1), 10);
-	TEST_EQUAL(tmp.findNearest(427.2, 0.1), 11);
-	TEST_EQUAL(tmp.findNearest(427.3, 0.1), 11);
-	TEST_EQUAL(tmp.findNearest(427.3, 0.001), -1);
+	TEST_EQUAL(tmp.findNearest(426.29, 0.1, 0.1), 10);
+	TEST_EQUAL(tmp.findNearest(426.3, 0.1, 0.1), 10);
+	TEST_EQUAL(tmp.findNearest(427.2, 0.1, 0.1), 11);
+	TEST_EQUAL(tmp.findNearest(427.3, 0.1, 0.1), 11);
+	TEST_EQUAL(tmp.findNearest(427.3, 0.001, 0.001), -1);
 
 	//empty spectrum
 	MSSpectrum<> tmp2;
-	TEST_EQUAL(tmp2.findNearest(427.3, 1.0), -1);
+	TEST_EQUAL(tmp2.findNearest(427.3, 1.0, 1.0), -1);
 END_SECTION
 
 START_SECTION(void clear(bool clear_meta_data))
