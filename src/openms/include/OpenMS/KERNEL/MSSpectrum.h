@@ -532,20 +532,19 @@ public:
       @brief Binary search for the peak nearest to a specific m/z given a +/- tolerance windows in Th
 
       @param mz The searched for mass-to-charge ratio searched
-      @param tolerance_left The non-negative tolerance applied left of mz
-      @param tolerance_right The non-negative tolerance applied right of mz
+      @param tolerance The non-negative tolerance applied to both sides of mz
 
       @return Returns the index of the peak or -1 if no peak present in tolerance window or if spectrum is empty
 
       @note Make sure the spectrum is sorted with respect to m/z! Otherwise the result is undefined.
       @note Peaks exactly on borders are considered in tolerance window.
     */
-    Int findNearest(CoordinateType mz, CoordinateType left_tolerance, CoordinateType right_tolerance) const
+    Int findNearest(CoordinateType mz, CoordinateType tolerance) const
     {
       if (ContainerType::empty()) return -1; 
       Size i = findNearest(mz);
       const double found_mz = this->operator[](i).getMZ();
-      if (found_mz >= mz - left_tolerance && found_mz <= mz + right_tolerance)
+      if (found_mz >= mz - tolerance && found_mz <= mz + tolerance)
       {
         return static_cast<Int>(i);
       }
@@ -553,6 +552,63 @@ public:
       {
         return -1;
       }
+    }
+
+    /**
+      @brief Ssearch for the peak nearest to a specific m/z given two +/- tolerance windows in Th
+
+      @param mz The searched for mass-to-charge ratio searched
+      @param tolerance_left The non-negative tolerance applied left of mz
+      @param tolerance_right The non-negative tolerance applied right of mz
+
+      @return Returns the index of the peak or -1 if no peak present in tolerance window or if spectrum is empty
+
+      @note Make sure the spectrum is sorted with respect to m/z! Otherwise the result is undefined.
+      @note Peaks exactly on borders are considered in tolerance window.
+      @note Search for the left border is done using a binary search followed by a linear scan
+    */
+    Int findNearest(CoordinateType mz, CoordinateType tolerance_left, CoordinateType tolerance_right) const
+    {
+      if (ContainerType::empty()) return -1; 
+      
+      // do a binary search for nearest peak first
+      Size i = findNearest(mz);
+
+      const double nearest_mz = this->operator[](i).getMZ();
+
+      if (nearest_mz < mz)
+      {
+        if (nearest_mz >= mz - tolerance_left) 
+        {
+          return i; // success: nearest peak is in left tolerance window
+        }
+        else
+        {
+          if (i == this->size() - 1) return -1; // we are at the last peak which is too far left
+          // Nearest peak is to far left so there can't be a closer peak in the left window.
+          // There still might be a peak to the right of mz that falls in the right window
+          ++i;  // now we are at a peak exactly on or to the right of mz
+          const double next_mz = this->operator[](i).getMZ();
+          if (next_mz <= mz + tolerance_right) return i; 
+        }
+      }
+      else
+      {
+        if (nearest_mz <= mz + tolerance_right) 
+        {
+          return i; // success: nearest peak is in right tolerance window
+        }
+        else
+        {
+          if (i == 0) return -1; // we are at the first peak which is too far right
+          --i;  // now we are at a peak exactly on or to the right of mz
+          const double next_mz = this->operator[](i).getMZ();
+          if (next_mz >= mz - tolerance_left) return i; 
+        }
+      }
+
+      // neither in the left nor the right tolerance window
+      return -1;
     }
 
     /**
