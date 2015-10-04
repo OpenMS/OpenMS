@@ -121,6 +121,18 @@ private:
     int nonLocalIntensityFilter(const MultiplexPeakPattern& pattern, const std::vector<double>& mz_shifts_actual, const std::vector<int>& mz_shifts_actual_indices, SplineSpectrum::Navigator nav, std::vector<double>& intensities_actual, int peaks_found_in_all_peptides, double mz) const;
 
     /**
+     * @brief returns the index of a peak which is nearest m/z
+     * (for initialisation of peak registry)
+     *
+     * @param spectrum_index    index of the spectrum in exp_picked_ and boundaries_
+     * @param mz    m/z position of the peak
+     * @param scaling    rescaling of the peak boundaries
+     *
+     * @return index of the peak in spectrum or -1 if no peak is present within this tolerance
+     */
+    int findNearest(int spectrum_index, double mz, double scaling) const;
+
+    /**
      * @brief profile experimental data and peak boundaries
      */
     MSExperiment<Peak1D> exp_profile_;
