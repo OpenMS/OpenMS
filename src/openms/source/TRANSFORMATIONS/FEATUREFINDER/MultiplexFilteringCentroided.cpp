@@ -78,7 +78,7 @@ namespace OpenMS
       blacklist_spec.reserve(it_rt->size());
       for (MSSpectrum<Peak1D>::Iterator it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
       {
-        const double scaling = 3.0; // some magic constant...  why three?
+        const double scaling = 3.0; // mz_tolerance_ is the tolerance when searching for peak patterns. Let's be more generous when searching for corresponding peaks in neighbouring spectra.
         const double tolerance_th = mz_tolerance_unit_ ? (scaling * mz_tolerance_ / 1000000) * it_mz->getMZ() : scaling * mz_tolerance_;
         // peak registry
         PeakReference reference;

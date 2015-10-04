@@ -95,7 +95,7 @@ namespace OpenMS
         PeakReference reference;
         if (index > 0)
         {
-          reference.index_in_previous_spectrum = getPeakIndex(index - 1, it_mz->getMZ(), 1.0);
+          reference.index_in_previous_spectrum = findNearest(index - 1, it_mz->getMZ(), 1.0);
         }
         else
         {
@@ -103,7 +103,7 @@ namespace OpenMS
         }
         if (index + 1 < (int) exp_picked_.size())
         {
-          reference.index_in_next_spectrum = getPeakIndex(index + 1, it_mz->getMZ(), 1.0);
+          reference.index_in_next_spectrum = findNearest(index + 1, it_mz->getMZ(), 1.0);
         }
         else
         {
@@ -356,7 +356,7 @@ namespace OpenMS
     return peaks_found_in_all_peptides;
   }
 
-  int MultiplexFilteringProfile::getPeakIndex(int spectrum_index, double mz, double scaling) const
+  int MultiplexFilteringProfile::findNearest(int spectrum_index, double mz, double scaling) const
   {
     MSExperiment<Peak1D>::ConstIterator it_rt = exp_picked_.begin() + spectrum_index;
     vector<vector<PeakPickerHiRes::PeakBoundary> >::const_iterator it_rt_boundaries = boundaries_.begin() + spectrum_index;
