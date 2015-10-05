@@ -38,6 +38,7 @@ MultiplexFilteringProfile.cpp
 MultiplexFilterResult.cpp
 MultiplexFilterResultPeak.cpp
 MultiplexFilterResultRaw.cpp
+MultiplexMassPattern.cpp
 MultiplexPeakPattern.cpp
 PeakWidthEstimator.cpp
 ProductModel.cpp
