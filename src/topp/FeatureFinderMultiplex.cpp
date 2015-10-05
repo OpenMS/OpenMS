@@ -227,8 +227,8 @@ public:
       defaults.setMinInt("missed_cleavages", 0);
       defaults.setValue("knock_out", "false", "Is it likely that knock-outs are present? (Supported for doublex, triplex and quadruplex experiments only.)", ListUtils::create<String>("advanced"));
       defaults.setValidStrings("knock_out", ListUtils::create<String>("true,false"));
-      defaults.setValue("averagine_type","peptide","The type of averagine to use, currently RNA, DNA or peptide");
-      defaults.setValidStrings("averagine_type", ListUtils::create<String>("RNA,peptide,DNA"));
+      defaults.setValue("averagine_type","peptide","The type of averagine to use, currently RNA, DNA or peptide", ListUtils::create<String>("advanced"));
+      defaults.setValidStrings("averagine_type", ListUtils::create<String>("peptide,RNA,DNA"));
     }
 
     if (section == "labels")
