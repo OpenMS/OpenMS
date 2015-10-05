@@ -57,6 +57,7 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/MzQuantMLFile.h>
 
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexMassPattern.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexPeakPattern.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringCentroided.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringProfile.h>
@@ -683,7 +684,7 @@ public:
    * @param peaks_per_peptide_max    maximum number of isotopes in peptide
    * @param mass_pattern_list    mass shifts due to labelling
    *
-   * @return list of mass shifts
+   * @return list of m/z shifts
    */
   std::vector<MultiplexPeakPattern> generatePeakPatterns_(int charge_min, int charge_max, int peaks_per_peptide_max, std::vector<MassPattern> mass_pattern_list)
   {

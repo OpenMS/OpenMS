@@ -48,23 +48,19 @@ mass_shifts.push_back(6.031817);
 MultiplexMassPattern* nullPointer = 0;
 MultiplexMassPattern* ptr;
 
-START_SECTION(MultiplexMassPattern(std::vector<double> ms, int msi))
-    MultiplexMassPattern pattern(mass_shifts, 3);
-    TEST_EQUAL(pattern.getMassShiftIndex(), 3);
-    ptr = new MultiplexMassPattern(mass_shifts, 3);
+START_SECTION(MultiplexMassPattern(std::vector<double> ms))
+    MultiplexMassPattern pattern(mass_shifts);
+    TEST_EQUAL(pattern.getMassShiftCount(), 2);
+    ptr = new MultiplexMassPattern(mass_shifts);
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;
 END_SECTION
 
-MultiplexMassPattern pattern(mass_shifts, 3);
+MultiplexMassPattern pattern(mass_shifts);
 
 START_SECTION(std::vector<double> getMassShifts() const)
   TEST_EQUAL(pattern.getMassShifts()[0], 0);
   TEST_EQUAL(pattern.getMassShifts()[1], 6.031817);
-END_SECTION
-
-START_SECTION(int getMassShiftIndex() const)
-  TEST_EQUAL(pattern.getMassShiftIndex(), 3);
 END_SECTION
 
 START_SECTION(unsigned getMassShiftCount() const)

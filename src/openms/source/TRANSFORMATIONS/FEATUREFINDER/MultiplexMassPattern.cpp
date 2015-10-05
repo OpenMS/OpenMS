@@ -45,19 +45,14 @@ using namespace std;
 namespace OpenMS
 {
 
-  MultiplexMassPattern::MultiplexMassPattern(vector<double> ms, int msi) :
-    mass_shifts_(ms), mass_shift_index_(msi)
+  MultiplexMassPattern::MultiplexMassPattern(vector<double> ms) :
+    mass_shifts_(ms)
   {
   }
 
   std::vector<double> MultiplexMassPattern::getMassShifts() const
   {
     return mass_shifts_;
-  }
-
-  int MultiplexMassPattern::getMassShiftIndex() const
-  {
-    return mass_shift_index_;
   }
 
   unsigned MultiplexMassPattern::getMassShiftCount() const

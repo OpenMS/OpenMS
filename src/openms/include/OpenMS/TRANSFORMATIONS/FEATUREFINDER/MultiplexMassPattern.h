@@ -61,17 +61,12 @@ namespace OpenMS
     /**
      * @brief constructor
      */
-    MultiplexMassPattern(std::vector<double> ms, int msi);
+    MultiplexMassPattern(std::vector<double> ms);
     
     /**
      * @brief returns mass shifts
      */
     std::vector<double> getMassShifts() const;
-    
-    /**
-     * @brief returns mass shift index
-     */
-    int getMassShiftIndex() const;
     
     /**
      * @brief returns number of mass shifts
@@ -90,11 +85,6 @@ namespace OpenMS
      * (including zero mass shift for first peptide)
      */
     std::vector<double> mass_shifts_;
-      
-    /**
-     * @brief index in mass shift list
-     */
-    int mass_shift_index_;
       
  };
   
