@@ -44,12 +44,15 @@
 namespace OpenMS
 {
   /**
-   * @brief data structure for pattern of mass shifts
+   * @brief data structure for mass shift pattern
    * 
-   * TODO: Groups of peptides appear as characteristic patterns of isotopic peaks
-   * in MS1 spectra. For example, for an Arg6 labeled SILAC peptide pair
-   * of charge 2+ with three isotopic peaks we expect peaks
-   * at relative m/z shifts of 0, 0.5, 1, 3, 3.5 and 4 Th.
+   * Groups of labelled peptides appear with characteristic mass shifts.
+   * For example, for an Arg6 labeled SILAC peptide pair we expect to see
+   * mass shifts of 0 and 6 Da. Or as second example, for a 
+   * peptide pair of a dimethyl labelled sample with a single lysine
+   * we will see mass shifts of 56 Da and 64 Da.
+   * 28 Da (N-term) + 28 Da (K) and 34 Da (N-term) + 34 Da (K)
+   * for light and heavy partners respectively.
    */
   class OPENMS_DLLAPI MultiplexMassPattern
   {

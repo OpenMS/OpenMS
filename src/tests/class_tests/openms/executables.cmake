@@ -292,6 +292,7 @@ set(filtering_executables_list
   MultiplexFilterResult_test
   MultiplexFilterResultPeak_test
   MultiplexFilterResultRaw_test
+  MultiplexMassPattern_test
   MultiplexPeakPattern_test
   NLargest_test
   NeutralLossDiffFilter_test
