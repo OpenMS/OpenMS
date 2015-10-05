@@ -298,6 +298,7 @@ protected:
 
     vector<ProteinIdentification> prot_ids;
     prot_ids.push_back(prot_id);
+    prot_id.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
     IdXMLFile().store(out, prot_ids, pep_ids);
     
     return EXECUTION_OK;

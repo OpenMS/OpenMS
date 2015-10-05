@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <featureMap version="1.7" id="fm_5233264595117471314" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<userParam type="stringList" name="ms_run-location" value="[file://DECYDER2/D/Frederic/UNI/MRM_Daten/BSA200fmolZeitreihe/QTrap5054.wiff]"/>
 	<dataProcessing completion_time="1999-12-31T23:59:59">
 		<software name="FeatureFinderMRM" version="version_string" />
 		<processingAction name="Quantitation" />
@@ -9,7 +10,7 @@
 		<feature id="f_4835329514588776807">
 			<position dim="0">1617.00720212926</position>
 			<position dim="1">656.356994628906</position>
-			<intensity>3.91214e+006</intensity>
+			<intensity>3.91214e+06</intensity>
 			<quality dim="0">0.994226</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.994226</overallquality>
@@ -23,7 +24,7 @@
 		<feature id="f_17749660155506638460">
 			<position dim="0">2152.26561482692</position>
 			<position dim="1">722.403991699219</position>
-			<intensity>1.57211e+007</intensity>
+			<intensity>1.57211e+07</intensity>
 			<quality dim="0">0.996325</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.996325</overallquality>
@@ -51,7 +52,7 @@
 		<feature id="f_15004869347769368353">
 			<position dim="0">2299.806153561</position>
 			<position dim="1">600.330993652344</position>
-			<intensity>3.27738e+006</intensity>
+			<intensity>3.27738e+06</intensity>
 			<quality dim="0">0.994916</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.994916</overallquality>

@@ -36,11 +36,13 @@
 #define OPENMS_KERNEL_MSEXPERIMENT_H
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/KERNEL/AreaIterator.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <vector>
 #include <algorithm>
@@ -695,6 +697,32 @@ public:
     ExperimentalSettings & getExperimentalSettings()
     {
       return *this;
+    }
+
+    /// get the file path to the first MS run
+    StringList getPrimaryMSRunPath() const
+    {
+      StringList ms_run_paths;
+      std::vector<SourceFile> sfs(this->getSourceFiles());
+      for (std::vector<SourceFile>::const_iterator it = sfs.begin(); it != sfs.end(); ++it)
+      {
+        // assemble a single location string from the URI (path to file) and file name
+        String path = it->getPathToFile();
+        String filename = it->getNameOfFile();
+
+        if (path.empty() || filename.empty())
+        {
+          LOG_WARN << "Path or file name of primary MS run is empty. "
+                   << "This might be the result of incomplete conversion. "
+                   << "Not that tracing back e.g. identification results to the original file might more difficult." << std::endl;
+	}
+	else
+        {
+          String ms_run_location = path + "/" + filename;
+          ms_run_paths.push_back(ms_run_location);
+        }
+      }
+      return ms_run_paths;
     }
 
     /**

@@ -37,7 +37,6 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/PeptideHit.h>
-
 #include <sstream>
 #include <algorithm>
 
@@ -238,6 +237,25 @@ namespace OpenMS
   void ProteinIdentification::insertHit(const ProteinHit& protein_hit)
   {
     protein_hits_.push_back(protein_hit);
+  }
+
+  void ProteinIdentification::setPrimaryMSRunPath(const StringList& s)
+  {
+    if (!s.empty())
+    {
+      this->setMetaValue("ms_run-location", DataValue(s));
+    }
+  }
+
+  /// get the file path to the first MS run
+  StringList ProteinIdentification::getPrimaryMSRunPath() const
+  {
+    StringList ret;
+    if (this->metaValueExists("ms_run-location"))
+    {
+      ret = this->getMetaValue("ms_run-location");
+    }
+    return ret;
   }
 
   ProteinIdentification& ProteinIdentification::operator=(const ProteinIdentification& source)

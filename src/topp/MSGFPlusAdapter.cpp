@@ -132,6 +132,9 @@ protected:
   // lists of allowed parameter values:
   vector<String> fragment_methods_, instruments_, enzymes_, protocols_, tryptic_;
 
+  // primary MS run referenced in the mzML file
+  StringList primary_ms_run_path_;
+
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "Input file (MS-GF+ parameter '-s')");
@@ -293,6 +296,7 @@ protected:
       MzMLFile f;
       f.getOptions().addMSLevel(2);
       f.load(exp_name, exp);
+      primary_ms_run_path_ = exp.getPrimaryMSRunPath();
 
       if (exp.getSpectra().empty())
       {
@@ -575,6 +579,7 @@ protected:
       // create idXML file
       vector<ProteinIdentification> protein_ids;
       ProteinIdentification protein_id;
+      protein_id.setPrimaryMSRunPath(primary_ms_run_path_);
 
       DateTime now = DateTime::now();
       String date_string = now.getDate();
@@ -738,6 +743,8 @@ protected:
 
     return EXECUTION_OK;
   }
+
+
 };
 
 

@@ -965,6 +965,7 @@ protected:
     //-------------------------------------------------------------
     LOG_INFO << "Finding chromatographic peaks..." << endl;
     FeatureMap features;
+    features.setPrimaryMSRunPath(ms_data_.getPrimaryMSRunPath());
     MRMFeatureFinderScoring mrm_finder;
     Param params = mrm_finder.getParameters();
     params.setValue("stop_report_after_feature",

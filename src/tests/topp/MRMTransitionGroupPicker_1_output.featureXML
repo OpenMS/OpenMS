@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <featureMap version="1.7" id="fm_11399299100673837381" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<userParam type="stringList" name="ms_run-location" value="[file://X:/html/tripletof_workflow/wiff/olgas_disk/hroest_K120808_Strep0PlasmaBiolRepl1_R02_SW.wiff]"/>
 	<featureList count="72">
 		<feature id="f_5233264595117471314">
 			<position dim="0">4003.6575404948</position>
@@ -30,7 +31,7 @@
 			<userParam type="float" name="peak_apices_sum" value="7687"/>
 		</feature>
 		<feature id="f_17749660155506638460">
-			<position dim="0">4110.70485367417</position>
+			<position dim="0">4110.70403497577</position>
 			<position dim="1">0</position>
 			<intensity>11391</intensity>
 			<quality dim="0">0</quality>
@@ -44,7 +45,7 @@
 			<userParam type="float" name="peak_apices_sum" value="1430"/>
 		</feature>
 		<feature id="f_7804704400743266335">
-			<position dim="0">4158.43013015866</position>
+			<position dim="0">4158.41934642911</position>
 			<position dim="1">0</position>
 			<intensity>2610</intensity>
 			<quality dim="0">0</quality>
@@ -58,7 +59,7 @@
 			<userParam type="float" name="peak_apices_sum" value="500"/>
 		</feature>
 		<feature id="f_15004869347769368353">
-			<position dim="0">4237.44424422085</position>
+			<position dim="0">4237.44354482353</position>
 			<position dim="1">0</position>
 			<intensity>2481</intensity>
 			<quality dim="0">0</quality>
@@ -72,7 +73,7 @@
 			<userParam type="float" name="peak_apices_sum" value="400"/>
 		</feature>
 		<feature id="f_3332699010107892018">
-			<position dim="0">4187.4614243573</position>
+			<position dim="0">4187.45739895523</position>
 			<position dim="1">0</position>
 			<intensity>1970</intensity>
 			<quality dim="0">0</quality>
@@ -86,7 +87,7 @@
 			<userParam type="float" name="peak_apices_sum" value="530"/>
 		</feature>
 		<feature id="f_13440783915218733453">
-			<position dim="0">4223.463842085</position>
+			<position dim="0">4223.4701895839</position>
 			<position dim="1">0</position>
 			<intensity>731</intensity>
 			<quality dim="0">0</quality>
@@ -114,7 +115,7 @@
 			<userParam type="float" name="peak_apices_sum" value="611"/>
 		</feature>
 		<feature id="f_15157403601844400700">
-			<position dim="0">3882.91504058242</position>
+			<position dim="0">3882.9155031836</position>
 			<position dim="1">0</position>
 			<intensity>870</intensity>
 			<quality dim="0">0</quality>
@@ -142,7 +143,7 @@
 			<userParam type="float" name="peak_apices_sum" value="260"/>
 		</feature>
 		<feature id="f_474525871221756682">
-			<position dim="0">3892.4467870158</position>
+			<position dim="0">3892.44847973645</position>
 			<position dim="1">0</position>
 			<intensity>220</intensity>
 			<quality dim="0">0</quality>
@@ -156,7 +157,7 @@
 			<userParam type="float" name="peak_apices_sum" value="220"/>
 		</feature>
 		<feature id="f_12999979801269632061">
-			<position dim="0">4192.23069043934</position>
+			<position dim="0">4192.23036557376</position>
 			<position dim="1">0</position>
 			<intensity>5013</intensity>
 			<quality dim="0">0</quality>
@@ -170,7 +171,7 @@
 			<userParam type="float" name="peak_apices_sum" value="410"/>
 		</feature>
 		<feature id="f_17413765565443951891">
-			<position dim="0">3758.94877330661</position>
+			<position dim="0">3758.9484074533</position>
 			<position dim="1">0</position>
 			<intensity>610</intensity>
 			<quality dim="0">0</quality>
@@ -184,7 +185,7 @@
 			<userParam type="float" name="peak_apices_sum" value="230"/>
 		</feature>
 		<feature id="f_2927519776102075938">
-			<position dim="0">3716.75142263115</position>
+			<position dim="0">3716.75143972933</position>
 			<position dim="1">0</position>
 			<intensity>200</intensity>
 			<quality dim="0">0</quality>
@@ -198,7 +199,7 @@
 			<userParam type="float" name="peak_apices_sum" value="200"/>
 		</feature>
 		<feature id="f_16907355690727166316">
-			<position dim="0">4174.31959065616</position>
+			<position dim="0">4174.30767647564</position>
 			<position dim="1">0</position>
 			<intensity>1300</intensity>
 			<quality dim="0">0</quality>
@@ -212,7 +213,7 @@
 			<userParam type="float" name="peak_apices_sum" value="490"/>
 		</feature>
 		<feature id="f_10306100746905639127">
-			<position dim="0">3793.20370653033</position>
+			<position dim="0">3793.21125530362</position>
 			<position dim="1">0</position>
 			<intensity>140</intensity>
 			<quality dim="0">0</quality>
@@ -226,7 +227,7 @@
 			<userParam type="float" name="peak_apices_sum" value="140"/>
 		</feature>
 		<feature id="f_12524258085768770586">
-			<position dim="0">3845.37453150928</position>
+			<position dim="0">3845.39480670393</position>
 			<position dim="1">0</position>
 			<intensity>190</intensity>
 			<quality dim="0">0</quality>
@@ -240,7 +241,7 @@
 			<userParam type="float" name="peak_apices_sum" value="190"/>
 		</feature>
 		<feature id="f_1755235105885170967">
-			<position dim="0">3775.82430276036</position>
+			<position dim="0">3775.82373121619</position>
 			<position dim="1">0</position>
 			<intensity>270</intensity>
 			<quality dim="0">0</quality>
@@ -254,7 +255,7 @@
 			<userParam type="float" name="peak_apices_sum" value="190"/>
 		</feature>
 		<feature id="f_14811341817612382122">
-			<position dim="0">3768.31719115078</position>
+			<position dim="0">3768.31720417798</position>
 			<position dim="1">0</position>
 			<intensity>290</intensity>
 			<quality dim="0">0</quality>
@@ -268,7 +269,7 @@
 			<userParam type="float" name="peak_apices_sum" value="110"/>
 		</feature>
 		<feature id="f_2684106197423007927">
-			<position dim="0">3740.00762047231</position>
+			<position dim="0">3740.02667029679</position>
 			<position dim="1">0</position>
 			<intensity>640</intensity>
 			<quality dim="0">0</quality>
@@ -282,7 +283,7 @@
 			<userParam type="float" name="peak_apices_sum" value="170"/>
 		</feature>
 		<feature id="f_8119044117483804262">
-			<position dim="0">3723.36943522036</position>
+			<position dim="0">3723.36829859793</position>
 			<position dim="1">0</position>
 			<intensity>380</intensity>
 			<quality dim="0">0</quality>
@@ -296,7 +297,7 @@
 			<userParam type="float" name="peak_apices_sum" value="230"/>
 		</feature>
 		<feature id="f_17314619952666245179">
-			<position dim="0">3939.02804768622</position>
+			<position dim="0">3939.01914115846</position>
 			<position dim="1">0</position>
 			<intensity>770</intensity>
 			<quality dim="0">0</quality>
@@ -310,7 +311,7 @@
 			<userParam type="float" name="peak_apices_sum" value="290"/>
 		</feature>
 		<feature id="f_3023658190814908261">
-			<position dim="0">3832.15893608451</position>
+			<position dim="0">3832.17474094749</position>
 			<position dim="1">0</position>
 			<intensity>290</intensity>
 			<quality dim="0">0</quality>
@@ -324,7 +325,7 @@
 			<userParam type="float" name="peak_apices_sum" value="170"/>
 		</feature>
 		<feature id="f_7898004582401008768">
-			<position dim="0">3912.21662404895</position>
+			<position dim="0">3912.21431023002</position>
 			<position dim="1">0</position>
 			<intensity>750</intensity>
 			<quality dim="0">0</quality>
@@ -338,7 +339,7 @@
 			<userParam type="float" name="peak_apices_sum" value="140"/>
 		</feature>
 		<feature id="f_15050004366391181853">
-			<position dim="0">6961.73848134577</position>
+			<position dim="0">6961.73848297417</position>
 			<position dim="1">0</position>
 			<intensity>11500</intensity>
 			<quality dim="0">0</quality>
@@ -352,7 +353,7 @@
 			<userParam type="float" name="peak_apices_sum" value="1166"/>
 		</feature>
 		<feature id="f_17716858074023296841">
-			<position dim="0">6622.25539100587</position>
+			<position dim="0">6622.25541706026</position>
 			<position dim="1">0</position>
 			<intensity>1710</intensity>
 			<quality dim="0">0</quality>
@@ -366,7 +367,7 @@
 			<userParam type="float" name="peak_apices_sum" value="280"/>
 		</feature>
 		<feature id="f_16250062551099875712">
-			<position dim="0">6821.98528556049</position>
+			<position dim="0">6821.98524810731</position>
 			<position dim="1">0</position>
 			<intensity>2280</intensity>
 			<quality dim="0">0</quality>
@@ -380,7 +381,7 @@
 			<userParam type="float" name="peak_apices_sum" value="280"/>
 		</feature>
 		<feature id="f_16177748921272733768">
-			<position dim="0">6696.41076304555</position>
+			<position dim="0">6696.4107573545</position>
 			<position dim="1">0</position>
 			<intensity>1790</intensity>
 			<quality dim="0">0</quality>
@@ -394,7 +395,7 @@
 			<userParam type="float" name="peak_apices_sum" value="240"/>
 		</feature>
 		<feature id="f_7276556891837796968">
-			<position dim="0">7111.37483712494</position>
+			<position dim="0">7111.37473046482</position>
 			<position dim="1">0</position>
 			<intensity>490</intensity>
 			<quality dim="0">0</quality>
@@ -408,7 +409,7 @@
 			<userParam type="float" name="peak_apices_sum" value="90"/>
 		</feature>
 		<feature id="f_1147219038608936718">
-			<position dim="0">6741.88763653219</position>
+			<position dim="0">6741.88287753642</position>
 			<position dim="1">0</position>
 			<intensity>400</intensity>
 			<quality dim="0">0</quality>
@@ -422,7 +423,7 @@
 			<userParam type="float" name="peak_apices_sum" value="120"/>
 		</feature>
 		<feature id="f_11115414975438642789">
-			<position dim="0">6731.93482747495</position>
+			<position dim="0">6731.93089896262</position>
 			<position dim="1">0</position>
 			<intensity>290</intensity>
 			<quality dim="0">0</quality>
@@ -436,7 +437,7 @@
 			<userParam type="float" name="peak_apices_sum" value="90"/>
 		</feature>
 		<feature id="f_14509930621887606273">
-			<position dim="0">6658.53469679654</position>
+			<position dim="0">6658.59750251353</position>
 			<position dim="1">0</position>
 			<intensity>430</intensity>
 			<quality dim="0">0</quality>
@@ -450,7 +451,7 @@
 			<userParam type="float" name="peak_apices_sum" value="110"/>
 		</feature>
 		<feature id="f_13424404046998308790">
-			<position dim="0">6892.69220730722</position>
+			<position dim="0">6892.68804674804</position>
 			<position dim="1">0</position>
 			<intensity>150</intensity>
 			<quality dim="0">0</quality>
@@ -464,7 +465,7 @@
 			<userParam type="float" name="peak_apices_sum" value="110"/>
 		</feature>
 		<feature id="f_12665713047548007769">
-			<position dim="0">7029.39226426661</position>
+			<position dim="0">7029.39336669266</position>
 			<position dim="1">0</position>
 			<intensity>350</intensity>
 			<quality dim="0">0</quality>
@@ -492,7 +493,7 @@
 			<userParam type="float" name="peak_apices_sum" value="70"/>
 		</feature>
 		<feature id="f_3491056946625602141">
-			<position dim="0">6865.46383975804</position>
+			<position dim="0">6865.46173179567</position>
 			<position dim="1">0</position>
 			<intensity>673</intensity>
 			<quality dim="0">0</quality>
@@ -506,7 +507,7 @@
 			<userParam type="float" name="peak_apices_sum" value="80"/>
 		</feature>
 		<feature id="f_10627069796380146481">
-			<position dim="0">6643.67374528587</position>
+			<position dim="0">6643.67312893689</position>
 			<position dim="1">0</position>
 			<intensity>400</intensity>
 			<quality dim="0">0</quality>
@@ -520,7 +521,7 @@
 			<userParam type="float" name="peak_apices_sum" value="150"/>
 		</feature>
 		<feature id="f_10052793688680741109">
-			<position dim="0">7094.48773318946</position>
+			<position dim="0">7094.47244496643</position>
 			<position dim="1">0</position>
 			<intensity>180</intensity>
 			<quality dim="0">0</quality>
@@ -534,7 +535,7 @@
 			<userParam type="float" name="peak_apices_sum" value="100"/>
 		</feature>
 		<feature id="f_15166508592180818156">
-			<position dim="0">7072.81201534927</position>
+			<position dim="0">7072.81274568617</position>
 			<position dim="1">0</position>
 			<intensity>270</intensity>
 			<quality dim="0">0</quality>
@@ -548,7 +549,7 @@
 			<userParam type="float" name="peak_apices_sum" value="90"/>
 		</feature>
 		<feature id="f_14768204679546465715">
-			<position dim="0">7135.89955007434</position>
+			<position dim="0">7135.89829804301</position>
 			<position dim="1">0</position>
 			<intensity>140</intensity>
 			<quality dim="0">0</quality>
@@ -562,7 +563,7 @@
 			<userParam type="float" name="peak_apices_sum" value="40"/>
 		</feature>
 		<feature id="f_12156709473159629610">
-			<position dim="0">7061.91012900651</position>
+			<position dim="0">7061.90418290794</position>
 			<position dim="1">0</position>
 			<intensity>140</intensity>
 			<quality dim="0">0</quality>
@@ -576,7 +577,7 @@
 			<userParam type="float" name="peak_apices_sum" value="50"/>
 		</feature>
 		<feature id="f_15885522598119108466">
-			<position dim="0">7012.86141655624</position>
+			<position dim="0">7012.86329654276</position>
 			<position dim="1">0</position>
 			<intensity>350</intensity>
 			<quality dim="0">0</quality>
@@ -590,7 +591,7 @@
 			<userParam type="float" name="peak_apices_sum" value="40"/>
 		</feature>
 		<feature id="f_3823858840059792698">
-			<position dim="0">6900.92693340004</position>
+			<position dim="0">6900.92443055093</position>
 			<position dim="1">0</position>
 			<intensity>260</intensity>
 			<quality dim="0">0</quality>
@@ -604,7 +605,7 @@
 			<userParam type="float" name="peak_apices_sum" value="60"/>
 		</feature>
 		<feature id="f_893904610286969204">
-			<position dim="0">6785.39021856844</position>
+			<position dim="0">6785.40681602418</position>
 			<position dim="1">0</position>
 			<intensity>130</intensity>
 			<quality dim="0">0</quality>
@@ -618,7 +619,7 @@
 			<userParam type="float" name="peak_apices_sum" value="70"/>
 		</feature>
 		<feature id="f_14851350658635457156">
-			<position dim="0">7124.88021901906</position>
+			<position dim="0">7124.88024100244</position>
 			<position dim="1">0</position>
 			<intensity>120</intensity>
 			<quality dim="0">0</quality>
@@ -632,7 +633,7 @@
 			<userParam type="float" name="peak_apices_sum" value="80"/>
 		</feature>
 		<feature id="f_17447818880105247092">
-			<position dim="0">6583.39764257967</position>
+			<position dim="0">6583.39081144631</position>
 			<position dim="1">0</position>
 			<intensity>150</intensity>
 			<quality dim="0">0</quality>
@@ -660,7 +661,7 @@
 			<userParam type="float" name="peak_apices_sum" value="3692"/>
 		</feature>
 		<feature id="f_15120290131060441429">
-			<position dim="0">3101.01831143498</position>
+			<position dim="0">3101.01831062198</position>
 			<position dim="1">0</position>
 			<intensity>45170</intensity>
 			<quality dim="0">0</quality>
@@ -674,7 +675,7 @@
 			<userParam type="float" name="peak_apices_sum" value="8035"/>
 		</feature>
 		<feature id="f_11275867043381640475">
-			<position dim="0">3267.87490861714</position>
+			<position dim="0">3267.87488907635</position>
 			<position dim="1">0</position>
 			<intensity>6442</intensity>
 			<quality dim="0">0</quality>
@@ -688,7 +689,7 @@
 			<userParam type="float" name="peak_apices_sum" value="1038"/>
 		</feature>
 		<feature id="f_3713543811689521337">
-			<position dim="0">2888.30301738441</position>
+			<position dim="0">2888.30293107927</position>
 			<position dim="1">0</position>
 			<intensity>6345</intensity>
 			<quality dim="0">0</quality>
@@ -702,7 +703,7 @@
 			<userParam type="float" name="peak_apices_sum" value="511"/>
 		</feature>
 		<feature id="f_8666254306116808202">
-			<position dim="0">2975.30825229347</position>
+			<position dim="0">2975.29595788181</position>
 			<position dim="1">0</position>
 			<intensity>2680</intensity>
 			<quality dim="0">0</quality>
@@ -716,7 +717,7 @@
 			<userParam type="float" name="peak_apices_sum" value="660"/>
 		</feature>
 		<feature id="f_3246735940528705071">
-			<position dim="0">3295.45978556037</position>
+			<position dim="0">3295.45973759294</position>
 			<position dim="1">0</position>
 			<intensity>2160</intensity>
 			<quality dim="0">0</quality>
@@ -730,7 +731,7 @@
 			<userParam type="float" name="peak_apices_sum" value="540"/>
 		</feature>
 		<feature id="f_4584897071539917580">
-			<position dim="0">3340.03029687941</position>
+			<position dim="0">3340.03058673442</position>
 			<position dim="1">0</position>
 			<intensity>3850</intensity>
 			<quality dim="0">0</quality>
@@ -744,7 +745,7 @@
 			<userParam type="float" name="peak_apices_sum" value="520"/>
 		</feature>
 		<feature id="f_260132145239717571">
-			<position dim="0">3167.26325536311</position>
+			<position dim="0">3167.2572180742</position>
 			<position dim="1">0</position>
 			<intensity>1741</intensity>
 			<quality dim="0">0</quality>
@@ -758,7 +759,7 @@
 			<userParam type="float" name="peak_apices_sum" value="710"/>
 		</feature>
 		<feature id="f_17569764383250687096">
-			<position dim="0">3211.85707716525</position>
+			<position dim="0">3211.85582818329</position>
 			<position dim="1">0</position>
 			<intensity>1190</intensity>
 			<quality dim="0">0</quality>
@@ -772,7 +773,7 @@
 			<userParam type="float" name="peak_apices_sum" value="460"/>
 		</feature>
 		<feature id="f_14317784148091680644">
-			<position dim="0">3199.15630914748</position>
+			<position dim="0">3199.15637265503</position>
 			<position dim="1">0</position>
 			<intensity>1862</intensity>
 			<quality dim="0">0</quality>
@@ -786,7 +787,7 @@
 			<userParam type="float" name="peak_apices_sum" value="400"/>
 		</feature>
 		<feature id="f_17671779025680303814">
-			<position dim="0">3408.86540666401</position>
+			<position dim="0">3408.86628518522</position>
 			<position dim="1">0</position>
 			<intensity>1130</intensity>
 			<quality dim="0">0</quality>
@@ -800,7 +801,7 @@
 			<userParam type="float" name="peak_apices_sum" value="520"/>
 		</feature>
 		<feature id="f_1196373166564353753">
-			<position dim="0">3162.08014961183</position>
+			<position dim="0">3162.06879071534</position>
 			<position dim="1">0</position>
 			<intensity>1741</intensity>
 			<quality dim="0">0</quality>
@@ -814,7 +815,7 @@
 			<userParam type="float" name="peak_apices_sum" value="580"/>
 		</feature>
 		<feature id="f_7539502987715517688">
-			<position dim="0">3424.08512457669</position>
+			<position dim="0">3424.08507328212</position>
 			<position dim="1">0</position>
 			<intensity>1380</intensity>
 			<quality dim="0">0</quality>
@@ -828,7 +829,7 @@
 			<userParam type="float" name="peak_apices_sum" value="240"/>
 		</feature>
 		<feature id="f_9126387050458671424">
-			<position dim="0">2853.14327735841</position>
+			<position dim="0">2853.13354686081</position>
 			<position dim="1">0</position>
 			<intensity>350</intensity>
 			<quality dim="0">0</quality>
@@ -842,7 +843,7 @@
 			<userParam type="float" name="peak_apices_sum" value="150"/>
 		</feature>
 		<feature id="f_13113514917555180171">
-			<position dim="0">2942.19722778499</position>
+			<position dim="0">2942.18739225566</position>
 			<position dim="1">0</position>
 			<intensity>1930</intensity>
 			<quality dim="0">0</quality>
@@ -870,7 +871,7 @@
 			<userParam type="float" name="peak_apices_sum" value="170"/>
 		</feature>
 		<feature id="f_6182960951962378739">
-			<position dim="0">3910.79387111008</position>
+			<position dim="0">3910.79391344845</position>
 			<position dim="1">0</position>
 			<intensity>2247</intensity>
 			<quality dim="0">0</quality>
@@ -898,7 +899,7 @@
 			<userParam type="float" name="peak_apices_sum" value="1122"/>
 		</feature>
 		<feature id="f_5860084234476467938">
-			<position dim="0">3791.73454714656</position>
+			<position dim="0">3791.73442844749</position>
 			<position dim="1">0</position>
 			<intensity>1730</intensity>
 			<quality dim="0">0</quality>
@@ -912,7 +913,7 @@
 			<userParam type="float" name="peak_apices_sum" value="220"/>
 		</feature>
 		<feature id="f_12758854762884412659">
-			<position dim="0">3884.87996831834</position>
+			<position dim="0">3884.88111389697</position>
 			<position dim="1">0</position>
 			<intensity>1030</intensity>
 			<quality dim="0">0</quality>
@@ -926,7 +927,7 @@
 			<userParam type="float" name="peak_apices_sum" value="210"/>
 		</feature>
 		<feature id="f_17287849381738438716">
-			<position dim="0">3947.53631064475</position>
+			<position dim="0">3947.54216636717</position>
 			<position dim="1">0</position>
 			<intensity>200</intensity>
 			<quality dim="0">0</quality>
@@ -940,7 +941,7 @@
 			<userParam type="float" name="peak_apices_sum" value="120"/>
 		</feature>
 		<feature id="f_2660422259164526995">
-			<position dim="0">3961.34655975401</position>
+			<position dim="0">3961.34656056821</position>
 			<position dim="1">0</position>
 			<intensity>310</intensity>
 			<quality dim="0">0</quality>
@@ -954,7 +955,7 @@
 			<userParam type="float" name="peak_apices_sum" value="130"/>
 		</feature>
 		<feature id="f_5495827884756377090">
-			<position dim="0">3755.59744742513</position>
+			<position dim="0">3755.59744905114</position>
 			<position dim="1">0</position>
 			<intensity>270</intensity>
 			<quality dim="0">0</quality>
@@ -968,7 +969,7 @@
 			<userParam type="float" name="peak_apices_sum" value="70"/>
 		</feature>
 		<feature id="f_4143272592559840046">
-			<position dim="0">3986.55915673554</position>
+			<position dim="0">3986.55794113576</position>
 			<position dim="1">0</position>
 			<intensity>170</intensity>
 			<quality dim="0">0</quality>
@@ -982,7 +983,7 @@
 			<userParam type="float" name="peak_apices_sum" value="60"/>
 		</feature>
 		<feature id="f_7870901012988979006">
-			<position dim="0">3737.60152355373</position>
+			<position dim="0">3737.60081601441</position>
 			<position dim="1">0</position>
 			<intensity>120</intensity>
 			<quality dim="0">0</quality>

@@ -457,10 +457,10 @@ protected:
     vector<ProteinIdentification> protein_identifications;
     vector<PeptideIdentification> peptide_identifications;
 
+    MSExperiment<> exp;
     if (File::exists(pep_file))
     {
       FileHandler fh;
-      MSExperiment<> exp;
       fh.loadExperiment(inputfile_name, exp);
 
       SpectrumMetaDataLookup lookup;
@@ -490,6 +490,10 @@ protected:
     // writing results
     //-------------------------------------------------------------
 
+    if (!protein_identifications.empty())
+    {
+      protein_identifications[0].setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
+    }
     IdXMLFile().store(outputfile_name, protein_identifications, peptide_identifications);
     return EXECUTION_OK;
   }

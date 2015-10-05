@@ -34,11 +34,6 @@
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 
-#include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
-
-#include <OpenMS/METADATA/DocumentIdentifier.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -356,6 +351,26 @@ namespace OpenMS
   void FeatureMap::setDataProcessing(const std::vector<DataProcessing>& processing_method)
   {
     data_processing_ = processing_method;
+  }
+
+  /// set the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)
+  void FeatureMap::setPrimaryMSRunPath(const StringList& s)
+  {
+    if (!s.empty())
+    {
+      this->setMetaValue("ms_run-location", DataValue(s));
+    }
+  }
+
+  /// get the file path to the first MS run
+  StringList FeatureMap::getPrimaryMSRunPath() const
+  {
+    StringList ret;
+    if (this->metaValueExists("ms_run-location"))
+    {
+      ret = this->getMetaValue("ms_run-location");
+    }
+    return ret;
   }
 
   void FeatureMap::clear(bool clear_meta_data)

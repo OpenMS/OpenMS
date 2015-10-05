@@ -1292,7 +1292,11 @@ private:
      * write to output
      */
     ConsensusMap consensus_map;
+    consensus_map.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
+
     FeatureMap feature_map;
+    feature_map.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
+
     generateMaps_(centroided, patterns, filter_results, cluster_results, consensus_map, feature_map);
     if (out_ != "")
     {
