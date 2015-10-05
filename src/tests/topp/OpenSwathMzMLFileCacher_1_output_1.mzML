@@ -13,7 +13,7 @@
 			<cvParam cvRef="MS" accession="MS:1000582" name="SIM spectrum" />
 		</fileContent>
 		<sourceFileList count="1">
-			<sourceFile id="sf_ru_0" name="file://C:/Program Files/pwiz-bin-windows-x86-vc90-release-2_2_2815/../../Documents and Settings/thermo/Desktop/Hannes/weisserh_L110812_004_SW.wiff" location="">
+			<sourceFile id="sf_ru_0" name="weisserh_L110812_004_SW.wiff" location="file://C:/Program Files/pwiz-bin-windows-x86-vc90-release-2_2_2815/../../Documents and Settings/thermo/Desktop/Hannes">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="a577061a82721858070fef755537e7e03e4740db" />
 				<cvParam cvRef="MS" accession="MS:1000564" name="PSI mzData format" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
@@ -2058,67 +2058,67 @@
 </mzML>
 <indexList count="1">
 	<index name="spectrum">
-		<offset idRef="scan=876">16398</offset>
-		<offset idRef="scan=877">18317</offset>
-		<offset idRef="scan=878">20208</offset>
-		<offset idRef="scan=879">22099</offset>
-		<offset idRef="scan=880">23990</offset>
-		<offset idRef="scan=881">25881</offset>
-		<offset idRef="scan=882">27772</offset>
-		<offset idRef="scan=883">29662</offset>
-		<offset idRef="scan=884">31553</offset>
-		<offset idRef="scan=885">33444</offset>
-		<offset idRef="scan=886">35335</offset>
-		<offset idRef="scan=887">37226</offset>
-		<offset idRef="scan=888">39118</offset>
-		<offset idRef="scan=889">41010</offset>
-		<offset idRef="scan=890">42902</offset>
-		<offset idRef="scan=891">44794</offset>
-		<offset idRef="scan=892">46686</offset>
-		<offset idRef="scan=893">48578</offset>
-		<offset idRef="scan=894">50470</offset>
-		<offset idRef="scan=895">52362</offset>
-		<offset idRef="scan=896">54254</offset>
-		<offset idRef="scan=897">56146</offset>
-		<offset idRef="scan=898">58038</offset>
-		<offset idRef="scan=899">59930</offset>
-		<offset idRef="scan=900">61822</offset>
-		<offset idRef="scan=901">63714</offset>
-		<offset idRef="scan=902">65603</offset>
-		<offset idRef="scan=903">67495</offset>
-		<offset idRef="scan=904">69387</offset>
-		<offset idRef="scan=905">71279</offset>
-		<offset idRef="scan=906">73170</offset>
-		<offset idRef="scan=907">75062</offset>
-		<offset idRef="scan=908">76954</offset>
-		<offset idRef="scan=909">78846</offset>
-		<offset idRef="scan=910">80738</offset>
-		<offset idRef="scan=911">82630</offset>
-		<offset idRef="scan=912">84522</offset>
-		<offset idRef="scan=913">86414</offset>
-		<offset idRef="scan=914">88306</offset>
-		<offset idRef="scan=915">90198</offset>
-		<offset idRef="scan=916">92090</offset>
-		<offset idRef="scan=917">93981</offset>
-		<offset idRef="scan=918">95873</offset>
-		<offset idRef="scan=919">97765</offset>
-		<offset idRef="scan=920">99657</offset>
-		<offset idRef="scan=921">101548</offset>
-		<offset idRef="scan=922">103440</offset>
-		<offset idRef="scan=923">105332</offset>
-		<offset idRef="scan=924">107224</offset>
-		<offset idRef="scan=925">109116</offset>
-		<offset idRef="scan=926">111008</offset>
-		<offset idRef="scan=927">112900</offset>
-		<offset idRef="scan=928">114792</offset>
-		<offset idRef="scan=929">116684</offset>
-		<offset idRef="scan=930">118576</offset>
-		<offset idRef="scan=931">120468</offset>
-		<offset idRef="scan=932">122360</offset>
-		<offset idRef="scan=933">124252</offset>
-		<offset idRef="scan=934">126144</offset>
+		<offset idRef="scan=876">16397</offset>
+		<offset idRef="scan=877">18316</offset>
+		<offset idRef="scan=878">20207</offset>
+		<offset idRef="scan=879">22098</offset>
+		<offset idRef="scan=880">23989</offset>
+		<offset idRef="scan=881">25880</offset>
+		<offset idRef="scan=882">27771</offset>
+		<offset idRef="scan=883">29661</offset>
+		<offset idRef="scan=884">31552</offset>
+		<offset idRef="scan=885">33443</offset>
+		<offset idRef="scan=886">35334</offset>
+		<offset idRef="scan=887">37225</offset>
+		<offset idRef="scan=888">39117</offset>
+		<offset idRef="scan=889">41009</offset>
+		<offset idRef="scan=890">42901</offset>
+		<offset idRef="scan=891">44793</offset>
+		<offset idRef="scan=892">46685</offset>
+		<offset idRef="scan=893">48577</offset>
+		<offset idRef="scan=894">50469</offset>
+		<offset idRef="scan=895">52361</offset>
+		<offset idRef="scan=896">54253</offset>
+		<offset idRef="scan=897">56145</offset>
+		<offset idRef="scan=898">58037</offset>
+		<offset idRef="scan=899">59929</offset>
+		<offset idRef="scan=900">61821</offset>
+		<offset idRef="scan=901">63713</offset>
+		<offset idRef="scan=902">65602</offset>
+		<offset idRef="scan=903">67494</offset>
+		<offset idRef="scan=904">69386</offset>
+		<offset idRef="scan=905">71278</offset>
+		<offset idRef="scan=906">73169</offset>
+		<offset idRef="scan=907">75061</offset>
+		<offset idRef="scan=908">76953</offset>
+		<offset idRef="scan=909">78845</offset>
+		<offset idRef="scan=910">80737</offset>
+		<offset idRef="scan=911">82629</offset>
+		<offset idRef="scan=912">84521</offset>
+		<offset idRef="scan=913">86413</offset>
+		<offset idRef="scan=914">88305</offset>
+		<offset idRef="scan=915">90197</offset>
+		<offset idRef="scan=916">92089</offset>
+		<offset idRef="scan=917">93980</offset>
+		<offset idRef="scan=918">95872</offset>
+		<offset idRef="scan=919">97764</offset>
+		<offset idRef="scan=920">99656</offset>
+		<offset idRef="scan=921">101547</offset>
+		<offset idRef="scan=922">103439</offset>
+		<offset idRef="scan=923">105331</offset>
+		<offset idRef="scan=924">107223</offset>
+		<offset idRef="scan=925">109115</offset>
+		<offset idRef="scan=926">111007</offset>
+		<offset idRef="scan=927">112899</offset>
+		<offset idRef="scan=928">114791</offset>
+		<offset idRef="scan=929">116683</offset>
+		<offset idRef="scan=930">118575</offset>
+		<offset idRef="scan=931">120467</offset>
+		<offset idRef="scan=932">122359</offset>
+		<offset idRef="scan=933">124251</offset>
+		<offset idRef="scan=934">126143</offset>
 	</index>
 </indexList>
-<indexListOffset>128066</indexListOffset>
+<indexListOffset>128065</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>
