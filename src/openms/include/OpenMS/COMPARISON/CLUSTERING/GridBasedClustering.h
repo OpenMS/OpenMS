@@ -78,9 +78,9 @@ public:
      * @brief operators for comparisons
      * (for multiset)
      */
-    bool operator<(MinimumDistance other) const;
-    bool operator>(MinimumDistance other) const;
-    bool operator==(MinimumDistance other) const;
+    bool operator<(const MinimumDistance& other) const;
+    bool operator>(const MinimumDistance& other) const;
+    bool operator==(const MinimumDistance& other) const;
 
 private:
 
@@ -506,7 +506,7 @@ private:
       while (iterator != clusters_.end())
       {
         int cluster_index = iterator->first;
-        GridBasedCluster cluster = iterator->second;
+        const GridBasedCluster& cluster = iterator->second;
 
         if (findNearestNeighbour_(cluster, cluster_index))
         {
@@ -535,7 +535,7 @@ private:
     * true -> clusters can be merged
     * false -> clusters cannot be merged
     */
-    bool mergeVeto_(GridBasedCluster c1, GridBasedCluster c2) const
+    bool mergeVeto_(const GridBasedCluster& c1, const GridBasedCluster& c2) const
     {
       int A1 = c1.getPropertyA();
       int A2 = c2.getPropertyA();

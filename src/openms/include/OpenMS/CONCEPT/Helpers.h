@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,68 +28,77 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Lars Nilse $
-// $Authors: Lars Nilse $
+// $Maintainer: Hannes Roest $
+// $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
-//
 
-#include <OpenMS/COMPARISON/CLUSTERING/GridBasedCluster.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
+#ifndef OPENMS_CONCEPT_HELPERS_H
+#define OPENMS_CONCEPT_HELPERS_H
+
 #include <vector>
-#include <algorithm>
-#include <iostream>
+#include <boost/shared_ptr.hpp>
 
 namespace OpenMS
 {
+  namespace Helpers 
+  {
 
-GridBasedCluster::GridBasedCluster(const Point &centre, const Rectangle &bounding_box, const std::vector<int> &point_indices, const int &property_A, const std::vector<int> &properties_B)
-: centre_(centre), bounding_box_(bounding_box), point_indices_(point_indices), property_A_(property_A), properties_B_(properties_B)
-{
+    /**
+        @brief Helper function to add constness to a vector of shared pointers
+    */
+    template <class T>
+    const std::vector<boost::shared_ptr<const T> >&
+    constifyPointerVector(const std::vector<boost::shared_ptr<T> >& vec) 
+    {
+      return reinterpret_cast<const std::vector<boost::shared_ptr<const T> >&>(vec);
+    }
+
+
+    /**
+      * @brief Helper comparing two pointers for equality (taking NULL into account)
+    */
+    template <class PtrType>
+    inline bool cmpPtrSafe(const PtrType& a, const PtrType& b)
+    {
+       // We are not interested whether the pointers are equal but whether the
+       // contents are equal
+      if (a == NULL && b == NULL)
+      {
+        return true;
+      }
+      else if (a == NULL || b == NULL)
+      {
+        return false; // one is null the other is not
+      }
+      else
+      {
+        // compare the internal object
+        return (*a == *b);
+      }
+    }
+
+    /**
+      * @brief Helper function to compare two pointer-containers for equality of all elements
+    */
+    template <class ContainerType>
+    inline bool cmpPtrContainer(const ContainerType& a, const ContainerType& b)
+    {
+      if (a.size() != b.size()) return false;
+
+      // check that all elements of a and b are equal using safe comparison
+      // (taking NULL into account)
+      for (Size i = 0; i < a.size(); i++)
+      {
+        if (!cmpPtrSafe(a[i], b[i]))
+        {
+          return false;
+        }
+      }
+      return true;
+    }
+
+  }
 }
 
-GridBasedCluster::GridBasedCluster(const Point &centre, const Rectangle &bounding_box, const std::vector<int> &point_indices)
-: centre_(centre), bounding_box_(bounding_box), point_indices_(point_indices), property_A_(-1), properties_B_(point_indices.size(),-1)
-{
-}
 
-const GridBasedCluster::Point& GridBasedCluster::getCentre() const
-{
-  return centre_;
-}
-
-const GridBasedCluster::Rectangle& GridBasedCluster::getBoundingBox() const
-{
-  return bounding_box_;
-}
-
-const std::vector<int>& GridBasedCluster::getPoints() const
-{
-  return point_indices_;
-}
-
-int GridBasedCluster::getPropertyA() const
-{
-  return property_A_;
-}
-
-const std::vector<int>& GridBasedCluster::getPropertiesB() const
-{
-  return properties_B_;
-}
-
-bool GridBasedCluster::operator<(const GridBasedCluster& other) const
-{
-  return centre_.getY() < other.centre_.getY();
-}
-
-bool GridBasedCluster::operator>(const GridBasedCluster& other) const
-{
-  return centre_.getY() > other.centre_.getY();
-}
-
-bool GridBasedCluster::operator==(const GridBasedCluster& other) const
-{
-  return centre_.getY() == other.centre_.getY();
-}
-
-}
+#endif //OPENMS_CONCEPT_HELPERS_H

@@ -267,11 +267,11 @@ namespace OpenMS
   {
     if (higher_score_better_)
     {
-      std::sort(hits_.begin(), hits_.end(), PeptideHit::ScoreMore());
+      std::stable_sort(hits_.begin(), hits_.end(), PeptideHit::ScoreMore());
     }
     else
     {
-      std::sort(hits_.begin(), hits_.end(), PeptideHit::ScoreLess());
+      std::stable_sort(hits_.begin(), hits_.end(), PeptideHit::ScoreLess());
     }
   }
 
