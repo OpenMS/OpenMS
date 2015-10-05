@@ -47,25 +47,22 @@ matrix:
     - env: ENABLE_STYLE_TESTING=ON WITH_GUI=ON
       os: linux
       compiler: gcc
-## split class vs. TOPP tests for GCC (otherwise it will run into time limit of 50min)
-    - env: ENABLE_STYLE_TESTING=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=OFF WITH_GUI=ON DISABLE_PPWAVELET3=ON
+## gcc tests class and TOPP tests (if we run into a time limit, we can split it)
+## PP Wavelet is turned off due to unstable behavior ... 
+    - env: ENABLE_STYLE_TESTING=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON WITH_GUI=ON DISABLE_PPWAVELET3=ON ADDRESS_SANITIZER=Off
       os: linux
       compiler: gcc
-
-    - env: ENABLE_STYLE_TESTING=OFF ENABLE_TOPP_TESTING=OFF ENABLE_CLASS_TESTING=ON  WITH_GUI=ON DISABLE_PPWAVELET3=OFF
+## clang tests class and TOPP tests: with gui
+    - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON DISABLE_PPWAVELET3=OFF ADDRESS_SANITIZER=On
       os: linux
-      compiler: gcc
-## clang can run both class+TOPP tests since it's faster
-
-    - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON DISABLE_PPWAVELET3=OFF
+      compiler: clang
+## clang tests class and TOPP tests: without gui
+    - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=ON ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON DISABLE_PPWAVELET3=OFF ADDRESS_SANITIZER=Off
       os: linux
       compiler: clang
 
-    - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=ON ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON DISABLE_PPWAVELET3=OFF
-      os: linux
-      compiler: clang
-
-    - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON DISABLE_PPWAVELET3=OFF
+## OS X tests
+    - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON DISABLE_PPWAVELET3=OFF ADDRESS_SANITIZER=Off
       os: osx
       compiler: clang
 
