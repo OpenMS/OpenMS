@@ -675,7 +675,7 @@ public:
   }
 
   /**
-   * @brief generate list of mass shifts
+   * @brief generate list of m/z shifts
    *
    * @param charge_min    minimum charge
    * @param charge_max    maximum charge
