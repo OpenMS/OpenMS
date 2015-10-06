@@ -75,6 +75,7 @@ include(Dart)
 # CMAKE_FIND_ROOT_PATH
 # CMAKE_BUILD_TYPE
 # STL_DEBUG
+# ADDRESS_SANITIZER
 #------------------------------------------------------------------------------
 option(MT_ENABLE_OPENMP "Enable OpenMP support" ON)
 option(BOOST_USE_STATIC "Use Boost static libraries." ON)
@@ -179,6 +180,14 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CF_OPENMS_ADDCXX_FLAGS}")
 option(STL_DEBUG "[GCC only] Enable STL-DEBUG mode (very slow)." OFF)
 if(STL_DEBUG)
   include(cmake/stl_debug.cmake)
+endif()
+
+#------------------------------------------------------------------------------
+# Enable AddressSanitizer
+#------------------------------------------------------------------------------
+option(ADDRESS_SANITIZER "[Clang/GCC only] Enable AddressSanitizer mode (quite slow)." OFF)
+if(ADDRESS_SANITIZER)
+  include(cmake/AddressSanitizer.cmake)
 endif()
 
 #------------------------------------------------------------------------------
