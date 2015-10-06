@@ -79,13 +79,14 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input file");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
-    registerStringOption_("out", "<file>", "", "Prefix for output files ('part1' etc. will be appended before the file extension; default: same as 'in')", false);
+    registerStringOption_("out", "<file>", "", "Prefix for output files ('_part1.mzML' etc. will be appended; default: same as 'in' without the file extension)", false);
     registerIntOption_("parts", "<num>", 1, "Number of parts to split into (takes precedence over 'size' if set)", false);
     setMinInt_("parts", 1);
     registerIntOption_("size", "<num>", 0, "Approximate upper limit for resulting file sizes (in 'unit')", false);
     setMinInt_("size", 0);
     registerStringOption_("unit", "<choice>", "MB", "Unit for 'size' (base 1024)", false);
     setValidStrings_("unit", ListUtils::create<String>("KB,MB,GB"));
+    // @TODO:
     // registerFlag_("precursor", "Make sure precursor spectra end up in the same part as their fragment spectra");
     registerFlag_("no_chrom", "Remove chromatograms, keep only spectra.");
     registerFlag_("no_spec", "Remove spectra, keep only chromatograms.");
@@ -95,9 +96,7 @@ protected:
   {
     String in = getStringOption_("in"), out = getStringOption_("out");
 
-    if (out.empty()) out = in;
-    String suffix = out.suffix(5).toLower();
-    if (suffix == ".mzml") out = out.prefix(out.size() - 5);
+    if (out.empty()) out = File::removeExtension(in);
 
     bool no_chrom = getFlag_("no_chrom"), no_spec = getFlag_("no_spec");
     if (no_chrom && no_spec)
