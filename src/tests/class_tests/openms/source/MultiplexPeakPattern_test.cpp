@@ -35,20 +35,22 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexMassPattern.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexPeakPattern.h>
 
 using namespace OpenMS;
 
 START_TEST(MultiplexPeakPattern, "$Id$")
 
-std::vector<double> mass_shifts;
-mass_shifts.push_back(0);
-mass_shifts.push_back(6.031817);
+std::vector<double> m;
+m.push_back(0);
+m.push_back(6.031817);
+MultiplexMassPattern mass_shifts(m);
 
 MultiplexPeakPattern* nullPointer = 0;
 MultiplexPeakPattern* ptr;
 
-START_SECTION(MultiplexPeakPattern(int c, int ppp, std::vector<double> ms, int msi))
+START_SECTION(MultiplexPeakPattern(int c, int ppp, MultiplexMassPattern ms, int msi))
     MultiplexPeakPattern pattern(2, 4, mass_shifts, 3);
     TEST_EQUAL(pattern.getCharge(), 2);
     ptr = new MultiplexPeakPattern(2, 4, mass_shifts, 3);
@@ -67,8 +69,8 @@ START_SECTION(int getPeaksPerPeptide() const)
 END_SECTION
 
 START_SECTION(std::vector<double> getMassShifts() const)
-  TEST_EQUAL(pattern.getMassShifts()[0], 0);
-  TEST_EQUAL(pattern.getMassShifts()[1], 6.031817);
+  TEST_EQUAL(pattern.getMassShifts().getMassShiftAt(0), 0);
+  TEST_EQUAL(pattern.getMassShifts().getMassShiftAt(1), 6.031817);
 END_SECTION
 
 START_SECTION(int getMassShiftIndex() const)

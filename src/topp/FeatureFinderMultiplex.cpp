@@ -350,7 +350,7 @@ public:
    *
    * @return list of mass patterns
    */
-  std::vector<MassPattern> generateMassPatterns_()
+  std::vector<MultiplexMassPattern> generateMassPatterns_()
   {
     // SILAC, Dimethyl, ICPL or no labelling ??
 
@@ -503,7 +503,13 @@ public:
     }
     std::cout << "\n";
 
-    return list;
+    std::vector<MultiplexMassPattern> patterns;
+    for (unsigned i = 0; i < list.size(); ++i)
+    {
+      patterns.push_back(MultiplexMassPattern(list[i]));
+    }
+
+    return patterns;
   }
 
   /**
@@ -686,7 +692,7 @@ public:
    *
    * @return list of m/z shifts
    */
-  std::vector<MultiplexPeakPattern> generatePeakPatterns_(int charge_min, int charge_max, int peaks_per_peptide_max, std::vector<MassPattern> mass_pattern_list)
+  std::vector<MultiplexPeakPattern> generatePeakPatterns_(int charge_min, int charge_max, int peaks_per_peptide_max, std::vector<MultiplexMassPattern> mass_pattern_list)
   {
     std::vector<MultiplexPeakPattern> list;
 
@@ -1252,7 +1258,7 @@ private:
      * filter for peak patterns
      */
     bool missing_peaks_ = false;
-    std::vector<MassPattern> masses = generateMassPatterns_();
+    std::vector<MultiplexMassPattern> masses = generateMassPatterns_();
     std::vector<MultiplexPeakPattern> patterns = generatePeakPatterns_(charge_min_, charge_max_, isotopes_per_peptide_max_, masses);
 
     std::vector<MultiplexFilterResult> filter_results;
