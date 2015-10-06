@@ -64,6 +64,11 @@ namespace OpenMS
     MultiplexMassPattern(std::vector<double> ms);
     
     /**
+     * @brief add a mass shift
+     */
+    void addMassShift(double ms);
+    
+    /**
      * @brief returns mass shifts
      */
     std::vector<double> getMassShifts() const;

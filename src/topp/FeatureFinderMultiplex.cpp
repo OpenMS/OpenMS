@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Lars Nilse $
-// $Authors: Lars Nilse, Mathias Walzer $
+// $Authors: Lars Nilse, Timo Sachsenberg, Samuel Wein, Mathias Walzer $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/config.h>

@@ -58,18 +58,24 @@ END_SECTION
 
 MultiplexMassPattern pattern(mass_shifts);
 
+START_SECTION(void addMassShifts(double ms) const)
+  pattern.addMassShift(12.063634);
+  TEST_EQUAL(pattern.getMassShifts()[2], 12.063634);
+END_SECTION
+
 START_SECTION(std::vector<double> getMassShifts() const)
   TEST_EQUAL(pattern.getMassShifts()[0], 0);
   TEST_EQUAL(pattern.getMassShifts()[1], 6.031817);
 END_SECTION
 
 START_SECTION(unsigned getMassShiftCount() const)
-  TEST_EQUAL(pattern.getMassShiftCount(), 2);
+  TEST_EQUAL(pattern.getMassShiftCount(), 3);
 END_SECTION
 
 START_SECTION(double getMassShiftAt(int i) const)
   TEST_EQUAL(pattern.getMassShiftAt(0), 0);
   TEST_EQUAL(pattern.getMassShiftAt(1), 6.031817);
+  TEST_EQUAL(pattern.getMassShiftAt(2), 12.063634);
 END_SECTION
 
 END_TEST
