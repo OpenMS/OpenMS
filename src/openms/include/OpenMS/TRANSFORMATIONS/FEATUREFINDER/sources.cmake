@@ -41,6 +41,8 @@ MultiplexFilteringProfile.h
 MultiplexFilterResult.h
 MultiplexFilterResultPeak.h
 MultiplexFilterResultRaw.h
+MultiplexMassPattern.h
+MultiplexMassPatternList.h
 MultiplexPeakPattern.h
 PeakWidthEstimator.h
 ProductModel.h
