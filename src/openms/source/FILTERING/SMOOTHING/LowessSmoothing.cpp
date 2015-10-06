@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,11 +35,10 @@
 
 #include <OpenMS/FILTERING/SMOOTHING/LowessSmoothing.h>
 
-#include <algorithm>
-#include <cstdlib>
-
 #include <OpenMS/MATH/STATISTICS/QuadraticRegression.h>
 
+#include <algorithm>
+#include <cstdlib>
 
 namespace OpenMS
 {
@@ -54,11 +53,12 @@ namespace OpenMS
   {
   }
 
-  void LowessSmoothing::smoothData(const DoubleVector & input_x, const DoubleVector & input_y, DoubleVector & smoothed_output)
+  void LowessSmoothing::smoothData(const DoubleVector& input_x, const DoubleVector& input_y, DoubleVector& smoothed_output)
   {
     if (input_x.size() != input_y.size())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Sizes of x and y values not equal! Aborting... ", String(input_x.size()));
+      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+          "Sizes of x and y values not equal! Aborting... ", String(input_x.size()));
     }
 
     // unable to smooth over 2 or less data points (we need at least 3)
@@ -71,7 +71,7 @@ namespace OpenMS
     Size input_size = input_y.size();
 
     // const Size q = floor( input_size * alpha );
-    const Size q = (window_size_ < input_size) ? window_size_ : input_size - 1;
+    const Size q = (window_size_ < input_size) ? static_cast<Size>(window_size_) : input_size - 1;
 
     DoubleVector distances(input_size, 0.0);
     DoubleVector sortedDistances(input_size, 0.0);
@@ -90,7 +90,7 @@ namespace OpenMS
       std::sort(sortedDistances.begin(), sortedDistances.end());
 
       // Compute weigths.
-      std::vector<double> weigths (input_size, 0);
+      std::vector<double> weigths(input_size, 0);
       for (Size inner_idx = 0; inner_idx < input_size; ++inner_idx)
       {
         weigths.at(inner_idx) = tricube_(distances[inner_idx], sortedDistances[q]);
@@ -114,7 +114,8 @@ namespace OpenMS
     // In our case, u represents a distance and hence should be strictly positive.
     if (u < 0)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Value of u must be strictly positive! Aborting...", String(u));
+      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+          "Value of u must be strictly positive! Aborting...", String(u));
     }
 
     // 0 <= u < t; u is regarded as 0.0 if fabs(u) falls below epsilon

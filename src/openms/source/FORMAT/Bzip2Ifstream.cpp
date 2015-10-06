@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -31,11 +31,14 @@
 // $Maintainer: David Wojnar $
 // $Authors: David Wojnar $
 // --------------------------------------------------------------------------
+
 #include <iostream>
 #include <OpenMS/FORMAT/Bzip2Ifstream.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <cstdlib>
+
 using namespace std;
+
 namespace OpenMS
 {
   Bzip2Ifstream::Bzip2Ifstream(const char * filename) :

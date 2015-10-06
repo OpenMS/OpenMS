@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -79,12 +79,12 @@ using namespace std;
       </table>
     </CENTER>
 
-    The two or more given files (see parameter @p in) are merged. If a run/set exisits in several files, the qp of these are merged as well.
+    The two or more given files (see parameter @p in) are merged. If a run/set exisits in several files, the quality parameters of these are merged as well.
     Several runs from qcml files can be comprised in a set.
     
     - @p setname If the runs of the given input files are to be comprised in a set, this will be the name of the set.
 
-    Output is in qcML format (see parameter @p out) which can be viewed directly in a modern browser (chromium, firefox). 
+    Output is in qcML format (see parameter @p out) which can be viewed directly in a modern browser (chromium, firefox, safari).
     
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_QCMerger.cli
@@ -130,7 +130,6 @@ protected:
 
   ExitCodes main_(int, const char **)
   {
-    String plot_file = "";
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
@@ -142,6 +141,10 @@ protected:
     // reading input
     //-------------------------------------------------------------
     QcMLFile qcmlfile;
+    if (!setname.empty())
+    {
+      qcmlfile.registerSet(setname,setname,std::set< String >());
+    }
     for (Size i = 0; i < in_files.size(); ++i)
     {
       QcMLFile tmpfile;
@@ -149,65 +152,68 @@ protected:
       qcmlfile.merge(tmpfile,setname);
     }
 
-    // make #ms2 set stats
-    std::vector<String> ms2nums_strings;
-    qcmlfile.collectSetParameter(setname,"QC:0000015", ms2nums_strings);
-    std::vector<Int> ms2nums;
-    for (std::vector<String>::iterator it = ms2nums_strings.begin(); it != ms2nums_strings.end(); ++it) //transform is too ugly and errorprone
+    if (!setname.empty())
     {
-      ms2nums.push_back(it->toInt());
-    }
+//        // make #ms2 set stats
+//        std::vector<String> ms2nums_strings;
+//        qcmlfile.collectSetParameter(setname,"QC:0000007", ms2nums_strings);
+//        std::vector<Int> ms2nums;
+//        for (std::vector<String>::iterator it = ms2nums_strings.begin(); it != ms2nums_strings.end(); ++it) //transform is too ugly and errorprone
+//        {
+//          ms2nums.push_back(it->toInt());
+//        }
 
-    std::sort(ms2nums.begin(), ms2nums.end());
+//        std::sort(ms2nums.begin(), ms2nums.end());
 
-    if (ms2nums.size()>0)
-    {
-      std::map<String,String> nums;
-      std::map<String,String> nams;
-      //~ min,q1,q2,q3,max
-      nums["QC:0000043"] = String(ms2nums.front());
-      nams["QC:0000043"] = "min ms2 number";
-      nums["QC:0000044"] = String(OpenMS::Math::quantile1st(ms2nums.begin(), ms2nums.end(),true));
-      nams["QC:0000044"] = "Q1 ms2 number";
-      nums["QC:0000045"] = String(OpenMS::Math::median(ms2nums.begin(), ms2nums.end(), true));
-      nams["QC:0000045"] = "Q2 ms2 number";
-      nums["QC:0000046"] = String(OpenMS::Math::quantile3rd(ms2nums.begin(), ms2nums.end(),true));
-      nams["QC:0000046"] = "Q3 ms2 number";
-      nums["QC:0000047"] = String(ms2nums.back());
-      nams["QC:0000047"] = "max ms2 number";
+//        if (ms2nums.size()>0)
+//        {
+//          std::map<String,String> nums;
+//          std::map<String,String> nams;
+//          //~ min,q1,q2,q3,max
+//          nums["QC:0000043"] = String(ms2nums.front());
+//          nams["QC:0000043"] = "min ms2 number";
+//          nums["QC:0000044"] = String(OpenMS::Math::quantile1st(ms2nums.begin(), ms2nums.end(),true));
+//          nams["QC:0000044"] = "Q1 ms2 number";
+//          nums["QC:0000045"] = String(OpenMS::Math::median(ms2nums.begin(), ms2nums.end(), true));
+//          nams["QC:0000045"] = "Q2 ms2 number";
+//          nums["QC:0000046"] = String(OpenMS::Math::quantile3rd(ms2nums.begin(), ms2nums.end(),true));
+//          nams["QC:0000046"] = "Q3 ms2 number";
+//          nums["QC:0000047"] = String(ms2nums.back());
+//          nams["QC:0000047"] = "max ms2 number";
 
-      addBoxPlotQPs(nums, nams, setname, qcmlfile);
-    }
+//          addBoxPlotQPs(nums, nams, setname, qcmlfile);
+//        }
 
-    // make #id set stats
-    std::vector<String> idnums_strings;
-    qcmlfile.collectSetParameter(setname,"QC:0000020", idnums_strings);
-    std::vector<Int> idnums;
-    for (std::vector<String>::iterator it = idnums_strings.begin(); it != idnums_strings.end(); ++it) //transform is too ugly and errorprone
-    {
-      idnums.push_back(it->toInt());
-    }
+//        // make #id-psm set stats
+//        std::vector<String> idnums_strings;
+//        qcmlfile.collectSetParameter(setname,"QC:0000029", idnums_strings);
+//        std::vector<Int> idnums;
+//        for (std::vector<String>::iterator it = idnums_strings.begin(); it != idnums_strings.end(); ++it) //transform is too ugly and errorprone
+//        {
+//          idnums.push_back(it->toInt());
+//        }
 
-    std::sort(idnums.begin(), idnums.end());
+//        std::sort(idnums.begin(), idnums.end());
 
-    if (idnums.size()>0)
-    {
-      std::map<String,String> nums;
-      std::map<String,String> nams;
-      //~ min,q1,q2,q3,max
+//        if (idnums.size()>0)
+//        {
+//          std::map<String,String> nums;
+//          std::map<String,String> nams;
+//          //~ min,q1,q2,q3,max
 
-      nums["QC:0000053"] = String(idnums.front());
-      nams["QC:0000053"] = "min id numbers";
-      nums["QC:0000054"] = String(OpenMS::Math::quantile1st(idnums.begin(), idnums.end()));
-      nams["QC:0000054"] = "Q1 id numbers";
-      nums["QC:0000055"] = String(OpenMS::Math::median(idnums.begin(), idnums.end()));
-      nams["QC:0000055"] = "Q2 id numbers";
-      nums["QC:0000056"] = String(OpenMS::Math::quantile3rd(idnums.begin(), idnums.end()));
-      nams["QC:0000056"] = "Q3 id numbers";
-      nums["QC:0000057"] = String(idnums.back());
-      nams["QC:0000057"] = "max id number";
+//          nums["QC:0000053"] = String(idnums.front());
+//          nams["QC:0000053"] = "min id numbers";
+//          nums["QC:0000054"] = String(OpenMS::Math::quantile1st(idnums.begin(), idnums.end()));
+//          nams["QC:0000054"] = "Q1 id numbers";
+//          nums["QC:0000055"] = String(OpenMS::Math::median(idnums.begin(), idnums.end()));
+//          nams["QC:0000055"] = "Q2 id numbers";
+//          nums["QC:0000056"] = String(OpenMS::Math::quantile3rd(idnums.begin(), idnums.end()));
+//          nams["QC:0000056"] = "Q3 id numbers";
+//          nums["QC:0000057"] = String(idnums.back());
+//          nams["QC:0000057"] = "max id number";
 
-      addBoxPlotQPs(nums, nams, setname, qcmlfile);
+//          addBoxPlotQPs(nums, nams, setname, qcmlfile);
+//        }
     }
 
     qcmlfile.store(out);

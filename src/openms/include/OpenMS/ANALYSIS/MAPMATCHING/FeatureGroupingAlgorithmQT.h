@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -62,20 +62,25 @@ public:
 
     /**
         @brief Applies the algorithm to feature maps
+
+        @pre The data ranges of the input maps have to be up-to-date (use FeatureMap::updateRanges).
+
         @exception IllegalArgument is thrown if less than two input maps are given.
     */
-    virtual void group(const std::vector<FeatureMap > & maps,
-                       ConsensusMap & out);
+    virtual void group(const std::vector<FeatureMap>& maps, ConsensusMap& out);
 
     /**
         @brief Applies the algorithm to consensus maps
+
+         @pre The data ranges of the input maps have to be up-to-date (use ConsensusMap::updateRanges).
+
         @exception IllegalArgument is thrown if less than two input maps are given.
     */
-    virtual void group(const std::vector<ConsensusMap> & maps,
-                       ConsensusMap & out);
+    virtual void group(const std::vector<ConsensusMap>& maps, 
+                       ConsensusMap& out);
 
     /// Creates a new instance of this class (for Factory)
-    static FeatureGroupingAlgorithm * create()
+    static FeatureGroupingAlgorithm* create()
     {
       return new FeatureGroupingAlgorithmQT();
     }
@@ -89,18 +94,20 @@ public:
 private:
 
     /// Copy constructor intentionally not implemented -> private
-    FeatureGroupingAlgorithmQT(const FeatureGroupingAlgorithmQT &);
+    FeatureGroupingAlgorithmQT(const FeatureGroupingAlgorithmQT&);
 
     /// Assignment operator intentionally not implemented -> private
-    FeatureGroupingAlgorithmQT & operator=(const FeatureGroupingAlgorithmQT &);
+    FeatureGroupingAlgorithmQT& operator=(const FeatureGroupingAlgorithmQT&);
 
     /**
         @brief Applies the algorithm to feature or consensus maps
+
+        @pre The data ranges of the input maps have to be up-to-date (use MapType::updateRanges).
+
         @exception IllegalArgument is thrown if less than two input maps are given.
     */
     template <typename MapType>
-    void group_(const std::vector<MapType> & maps,
-                ConsensusMap & out);
+    void group_(const std::vector<MapType>& maps, ConsensusMap& out);
   };
 
 } // namespace OpenMS

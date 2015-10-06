@@ -23,3 +23,5 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/MRMScoring.h>" n
         double calcRTScore(LightPeptide & peptide, double normalized_experimental_rt) nogil except +
         # NAMESPACE # # POINTER # double calcSNScore(OpenSwath::IMRMFeature * mrmfeature, libcpp_vector[ OpenSwath::ISignalToNoisePtr ] & signal_noise_estimators) nogil except +
 
+        double calcMS1XcorrCoelutionScore() nogil except +
+        double calcMS1XcorrShape_score() nogil except +

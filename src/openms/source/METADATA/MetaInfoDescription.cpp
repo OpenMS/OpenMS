@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/MetaInfoDescription.h>
+
+#include <OpenMS/CONCEPT/Helpers.h>
 
 using namespace std;
 
@@ -77,10 +79,14 @@ namespace OpenMS
 
   bool MetaInfoDescription::operator==(const MetaInfoDescription & rhs) const
   {
-    return comment_ == rhs.comment_ &&
+    return MetaInfoInterface::operator==(rhs) &&
+           comment_ == rhs.comment_ &&
            name_ == rhs.name_ &&
-           data_processing_ == rhs.data_processing_ &&
-           MetaInfoInterface::operator==(rhs);
+           ( data_processing_.size() == rhs.data_processing_.size() &&
+           std::equal(data_processing_.begin(),
+                      data_processing_.end(),
+                      rhs.data_processing_.begin(),
+                      OpenMS::Helpers::cmpPtrSafe<DataProcessingPtr>) );
   }
 
   void MetaInfoDescription::setName(const String & name)
@@ -93,17 +99,17 @@ namespace OpenMS
     return name_;
   }
 
-  const vector<DataProcessing> & MetaInfoDescription::getDataProcessing() const
+  const vector<ConstDataProcessingPtr> & MetaInfoDescription::getDataProcessing() const
+  {
+    return OpenMS::Helpers::constifyPointerVector(data_processing_);
+  }
+
+  vector<DataProcessingPtr> & MetaInfoDescription::getDataProcessing()
   {
     return data_processing_;
   }
 
-  vector<DataProcessing> & MetaInfoDescription::getDataProcessing()
-  {
-    return data_processing_;
-  }
-
-  void MetaInfoDescription::setDataProcessing(const vector<DataProcessing> & processing_method)
+  void MetaInfoDescription::setDataProcessing(const vector<DataProcessingPtr> & processing_method)
   {
     data_processing_ = processing_method;
   }

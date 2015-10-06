@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -89,6 +89,8 @@ using namespace std;
     The following parameters control the modeling of RT transformations (they can be set in the "model" section of the INI file):
     @htmlinclude OpenMS_MapAlignerIdentificationModel.parameters @n
 
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
     <B>The command line parameters of this tool are:</B> @n
     @verbinclude TOPP_MapAlignerIdentification.cli
     <B>INI file documentation of this tool:</B>
@@ -110,13 +112,13 @@ public:
   }
 
 private:
-  template <typename TMapType, typename TFileType>
-  void loadInitialMaps_(vector<TMapType>& maps, StringList& ins, 
-                        TFileType& input_file)
+  template <typename MapType, typename FileType>
+  void loadInitialMaps_(vector<MapType>& maps, StringList& ins, 
+                        FileType& input_file)
   {
     // custom progress logger for this task:
     ProgressLogger progresslogger;
-    progresslogger.setLogType(log_type_);
+    progresslogger.setLogType(TOPPMapAlignerBase::log_type_);
     progresslogger.startProgress(0, ins.size(), "loading input files");
     for (Size i = 0; i < ins.size(); ++i)
     {
@@ -128,9 +130,9 @@ private:
 
   // helper function to avoid code duplication between consensusXML and
   // featureXML storage operations:
-  template <typename TMapType, typename TFileType>
-  void storeTransformedMaps_(vector<TMapType>& maps, StringList& outs, 
-                            TFileType& output_file)
+  template <typename MapType, typename FileType>
+  void storeTransformedMaps_(vector<MapType>& maps, StringList& outs, 
+                             FileType& output_file)
   {
     // custom progress logger for this task:
     ProgressLogger progresslogger;
@@ -139,12 +141,39 @@ private:
     for (Size i = 0; i < outs.size(); ++i)
     {
       progresslogger.setProgress(i);
-      //annotate output with data processing info:
+      // annotate output with data processing info:
       addDataProcessing_(maps[i], 
                          getProcessingInfo_(DataProcessing::ALIGNMENT));
       output_file.store(outs[i], maps[i]);
     }
     progresslogger.endProgress();
+  }
+
+  template <typename DataType>
+  void performAlignment_(MapAlignmentAlgorithmIdentification& algorithm,
+                         vector<DataType>& data,
+                         vector<TransformationDescription>& transformations,
+                         Int reference_index)
+  {
+    algorithm.align(data, transformations, reference_index);
+
+    // find model parameters:
+    Param model_params = getParam_().copy("model:", true);
+    String model_type = model_params.getValue("type");
+    if (model_type != "none")
+    {
+      model_params = model_params.copy(model_type + ":", true);
+      for (vector<TransformationDescription>::iterator it =
+             transformations.begin(); it != transformations.end(); ++it)
+      {
+        it->fitModel(model_type, model_params);
+      }
+    }
+    for (Size i = 0; i < data.size(); ++i)
+    {
+      MapAlignmentTransformer::transformRetentionTimes(data[i], 
+                                                       transformations[i]);
+    }
   }
 
   void storeTransformationDescriptions_(const vector<TransformationDescription>&
@@ -162,10 +191,52 @@ private:
     progresslogger.endProgress();
   }
 
+  Int getReference_(MapAlignmentAlgorithmIdentification& algorithm)
+  {
+    // consistency of reference parameters has already been checked via
+    // "TOPPMapAlignerBase::checkParameters_"
+
+    Size reference_index = getIntOption_("reference:index");
+    String reference_file = getStringOption_("reference:file");
+
+    if (!reference_file.empty())
+    {
+      FileTypes::Type filetype = FileHandler::getType(reference_file);
+      if (filetype == FileTypes::MZML)
+      {
+        MSExperiment<> experiment;
+        MzMLFile().load(reference_file, experiment);
+        algorithm.setReference(experiment);
+      }
+      else if (filetype == FileTypes::FEATUREXML)
+      {
+        FeatureMap features;
+        FeatureXMLFile().load(reference_file, features);
+        algorithm.setReference(features);
+      }
+      else if (filetype == FileTypes::CONSENSUSXML)
+      {
+        ConsensusMap consensus;
+        ConsensusXMLFile().load(reference_file, consensus);
+        algorithm.setReference(consensus);
+      }
+      else if (filetype == FileTypes::IDXML)
+      {
+        vector<ProteinIdentification> proteins;
+        vector<PeptideIdentification> peptides;
+        IdXMLFile().load(reference_file, proteins, peptides);
+        algorithm.setReference(peptides);
+      }
+    }
+
+    return Int(reference_index) - 1; // internally, we count from zero
+  }
+
   void registerOptionsAndFlags_()
   {
     String formats = "featureXML,consensusXML,idXML";
-    TOPPMapAlignerBase::registerOptionsAndFlags_(formats, true);
+    TOPPMapAlignerBase::registerOptionsAndFlags_(formats, REF_FLEXIBLE);
+
     registerSubsection_("algorithm", "Algorithm parameters section");
     registerSubsection_("model", "Options to control the modeling of retention time transformations from data");
   }
@@ -179,30 +250,30 @@ private:
     }
     if (section == "model")
     {
-      return getModelDefaults("b_spline");
+      return TOPPMapAlignerBase::getModelDefaults("b_spline");
     }
-    
+
     return Param(); // this shouldn't happen
   }
 
   ExitCodes main_(int, const char**)
   {
-    MapAlignmentAlgorithmIdentification algorithm;
-    handleReference_(&algorithm);
-
-    ExitCodes return_code = initialize_(&algorithm);
+    ExitCodes return_code = TOPPMapAlignerBase::checkParameters_();
     if (return_code != EXECUTION_OK) return return_code;
+
+    // set up alignment algorithm:
+    MapAlignmentAlgorithmIdentification algorithm;
+    Param algo_params = getParam_().copy("algorithm:", true);
+    algorithm.setParameters(algo_params);
+    algorithm.setLogType(log_type_);
+
+    Int reference_index = getReference_(algorithm);
 
     // handle in- and output files:
     StringList input_files = getStringList_("in");
     StringList output_files = getStringList_("out");
     StringList trafo_files = getStringList_("trafo_out");
     FileTypes::Type in_type = FileHandler::getType(input_files[0]);
-
-    // find model parameters:
-    Param model_params = getParam_().copy("model:", true);
-    String model_type = model_params.getValue("type");
-    model_params = model_params.copy(model_type + ":", true);
 
     vector<TransformationDescription> transformations;
 
@@ -222,13 +293,9 @@ private:
       }
       loadInitialMaps_(feature_maps, input_files, fxml_file);
 
-      algorithm.alignFeatureMaps(feature_maps, transformations);
-      if (model_type != "none")
-      {
-        algorithm.fitModel(model_type, model_params, transformations);
-      }
-      MapAlignmentTransformer::transformFeatureMaps(feature_maps, 
-                                                    transformations);
+      performAlignment_(algorithm, feature_maps, transformations,
+                        reference_index);
+
       if (!output_files.empty())
       {
         storeTransformedMaps_(feature_maps, output_files, fxml_file);
@@ -244,18 +311,15 @@ private:
       ConsensusXMLFile cxml_file;
       loadInitialMaps_(consensus_maps, input_files, cxml_file);
 
-      algorithm.alignConsensusMaps(consensus_maps, transformations);
-      if (model_type != "none")
-      {
-        algorithm.fitModel(model_type, model_params, transformations);
-      }
-      MapAlignmentTransformer::transformConsensusMaps(consensus_maps, 
-                                                      transformations);
+      performAlignment_(algorithm, consensus_maps, transformations,
+                        reference_index);
+
       if (!output_files.empty())
       {
         storeTransformedMaps_(consensus_maps, output_files, cxml_file);
       }
     }
+
     //-------------------------------------------------------------
     // perform peptide alignment
     //-------------------------------------------------------------
@@ -275,17 +339,12 @@ private:
       }
       progresslogger.endProgress();
 
-      algorithm.alignPeptideIdentifications(peptide_ids, transformations);
-      if (model_type != "none")
-      {
-        algorithm.fitModel(model_type, model_params, transformations);
-      }
-      MapAlignmentTransformer::transformPeptideIdentifications(peptide_ids,
-                                                               transformations);
+      performAlignment_(algorithm, peptide_ids, transformations,
+                        reference_index);
 
       if (!output_files.empty())
       {
-        progresslogger.startProgress(0, output_files.size(),
+        progresslogger.startProgress(0, output_files.size(), 
                                      "writing output files");
         for (Size i = 0; i < output_files.size(); ++i)
         {

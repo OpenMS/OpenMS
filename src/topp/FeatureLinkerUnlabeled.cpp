@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -151,6 +151,7 @@ protected:
     //-------------------------------------------------------------
     // load input
     ConsensusMap out_map;
+    StringList ms_run_locations;
     if (file_type == FileTypes::FEATUREXML)
     {
       // use map with highest number of features as reference:
@@ -194,6 +195,10 @@ protected:
         f_fxml_tmp.getOptions().setLoadConvexHull(false);
         f_fxml_tmp.getOptions().setLoadSubordinates(false);
         f_fxml_tmp.load(ins[i], tmp_map);
+
+        // copy over information on the primary MS run
+        const StringList& ms_runs = tmp_map.getPrimaryMSRunPath();
+        ms_run_locations.insert(ms_run_locations.end(), ms_runs.begin(), ms_runs.end());
 
         if (i != reference_index)
         {
@@ -274,6 +279,8 @@ protected:
       for (Size i = 0; i < ins.size(); ++i)
       {
         f.load(ins[i], maps[i]);
+        const StringList& ms_runs = maps[i].getPrimaryMSRunPath();
+        ms_run_locations.insert(ms_run_locations.end(), ms_runs.begin(), ms_runs.end());
       }
       // group
       algorithm->FeatureGroupingAlgorithm::group(maps, out_map);
@@ -303,6 +310,7 @@ protected:
     // annotate output with data processing info
     addDataProcessing_(out_map, getProcessingInfo_(DataProcessing::FEATURE_GROUPING));
 
+    out_map.setPrimaryMSRunPath(ms_run_locations);
     // write output
     ConsensusXMLFile().store(out, out_map);
 

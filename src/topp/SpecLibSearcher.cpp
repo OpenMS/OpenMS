@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -75,6 +75,8 @@ using namespace std;
 </CENTER>
 
     @experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested.
+
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_SpecLibSearcher.cli
@@ -190,12 +192,12 @@ protected:
 
     map<Size, vector<PeakSpectrum> > MSLibrary;
     {
-      RichPeakMap::iterator s;
-      vector<PeptideIdentification>::iterator i;
+      RichPeakMap::iterator s_it;
+      vector<PeptideIdentification>::iterator it;
       ModificationsDB* mdb = ModificationsDB::getInstance();
-      for (s = library.begin(), i = ids.begin(); s < library.end(); ++s, ++i)
+      for (s_it = library.begin(), it = ids.begin(); s_it < library.end(); ++s_it, ++it)
       {
-        double precursor_MZ = (*s).getPrecursors()[0].getMZ();
+        double precursor_MZ = (*s_it).getPrecursors()[0].getMZ();
         Size MZ_multi = (Size)precursor_MZ * precursor_mass_multiplier;
         map<Size, vector<PeakSpectrum> >::iterator found;
         found = MSLibrary.find(MZ_multi);
@@ -203,16 +205,16 @@ protected:
         PeakSpectrum librar;
         bool variable_modifications_ok = true;
         bool fixed_modifications_ok = true;
-        const AASequence& aaseq = i->getHits()[0].getSequence();
+        const AASequence& aaseq = it->getHits()[0].getSequence();
         //variable fixed modifications
         if (!fixed_modifications.empty())
         {
-          for (Size i = 0; i < aaseq.size(); ++i)
+          for (Size j = 0; j < aaseq.size(); ++j)
           {
-            const   Residue& mod  = aaseq.getResidue(i);
-            for (Size s = 0; s < fixed_modifications.size(); ++s)
+            const Residue& mod = aaseq.getResidue(j);
+            for (Size k = 0; k < fixed_modifications.size(); ++k)
             {
-              if (mod.getOneLetterCode() == mdb->getModification(fixed_modifications[s]).getOrigin() && fixed_modifications[s] != mod.getModification())
+              if (mod.getOneLetterCode() == mdb->getModification(fixed_modifications[k]).getOrigin() && fixed_modifications[k] != mod.getModification())
               {
                 fixed_modifications_ok = false;
                 break;
@@ -223,14 +225,14 @@ protected:
         //variable modifications
         if (aaseq.isModified() && (!variable_modifications.empty()))
         {
-          for (Size i = 0; i < aaseq.size(); ++i)
+          for (Size j = 0; j < aaseq.size(); ++j)
           {
-            if (aaseq.isModified(i))
+            if (aaseq.isModified(j))
             {
-              const   Residue& mod  = aaseq.getResidue(i);
-              for (Size s = 0; s < variable_modifications.size(); ++s)
+              const Residue& mod = aaseq.getResidue(j);
+              for (Size k = 0; k < variable_modifications.size(); ++k)
               {
-                if (mod.getOneLetterCode() == mdb->getModification(variable_modifications[s]).getOrigin() && variable_modifications[s] != mod.getModification())
+                if (mod.getOneLetterCode() == mdb->getModification(variable_modifications[k]).getOrigin() && variable_modifications[k] != mod.getModification())
                 {
                   variable_modifications_ok = false;
                   break;
@@ -241,27 +243,27 @@ protected:
         }
         if (variable_modifications_ok && fixed_modifications_ok)
         {
-          PeptideIdentification& translocate_pid = *i;
+          PeptideIdentification& translocate_pid = *it;
           librar.getPeptideIdentifications().push_back(translocate_pid);
-          librar.setPrecursors(s->getPrecursors());
+          librar.setPrecursors(s_it->getPrecursors());
           //library entry transformation
-          for (UInt l = 0; l < s->size(); ++l)
+          for (UInt l = 0; l < s_it->size(); ++l)
           {
             Peak1D peak;
-            if ((*s)[l].getIntensity() >  remove_peaks_below_threshold)
+            if ((*s_it)[l].getIntensity() >  remove_peaks_below_threshold)
             {
-              const String& info = (*s)[l].getMetaValue("MSPPeakInfo");
+              const String& info = (*s_it)[l].getMetaValue("MSPPeakInfo");
               if (info[0] == '?')
               {
-                peak.setIntensity(sqrt(0.2 * (*s)[l].getIntensity()));
+                peak.setIntensity(sqrt(0.2 * (*s_it)[l].getIntensity()));
               }
               else
               {
-                peak.setIntensity(sqrt((*s)[l].getIntensity()));
+                peak.setIntensity(sqrt((*s_it)[l].getIntensity()));
               }
 
-              peak.setMZ((*s)[l].getMZ());
-              peak.setPosition((*s)[l].getPosition());
+              peak.setMZ((*s_it)[l].getMZ());
+              peak.setPosition((*s_it)[l].getPosition());
               librar.push_back(peak);
             }
           }

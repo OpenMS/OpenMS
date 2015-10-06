@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,20 +48,29 @@ namespace OpenMS
   /**
     @brief Estimates the signal/noise (S/N) ratio of each data point in a scan by using the median (histogram based)
 
-    For each datapoint in the given scan, we collect a range of data points around it (param: <i>win_len</i>).
-    The noise for a datapoint is estimated to be the median of the intensities of the current window.
-    If the number of elements in the current window is not sufficient (param: <i>MinReqElements</i>),
-    the noise level is set to a default value (param: <i>noise_for_empty_window</i>).
-    The whole computation is histogram based, so the user will need to supply a number of bins (param: <i>bin_count</i>), which determines
-    the level of error and runtime. The maximal intensity for a datapoint to be included in the histogram can be either determined
-    automatically (params: <i>AutoMaxIntensity</i>, <i>auto_mode</i>) by two different methods or can be set directly by the user (param: <i>max_intensity</i>).
-    If the (estimated) <i>max_intensity</i> value is too low and the median is found to be in the last (&highest) bin, a warning to std:err will be given. In this case you should increase
-    <i>max_intensity</i> (and optionally the <i>bin_count</i>).
+    For each datapoint in the given scan, we collect a range of data points
+    around it (param: <i>win_len</i>).  The noise for a datapoint is estimated
+    to be the median of the intensities of the current window.  If the number
+    of elements in the current window is not sufficient (param:
+    <i>MinReqElements</i>), the noise level is set to a default value (param:
+    <i>noise_for_empty_window</i>).  The whole computation is histogram based,
+    so the user will need to supply a number of bins (param: <i>bin_count</i>),
+    which determines the level of error and runtime. The maximal intensity for
+    a datapoint to be included in the histogram can be either determined
+    automatically (params: <i>AutoMaxIntensity</i>, <i>auto_mode</i>) by two
+    different methods or can be set directly by the user (param:
+    <i>max_intensity</i>).
+    If the (estimated) <i>max_intensity</i> value is too low and the median is
+    found to be in the last (&highest) bin, a warning will be given.  In this
+    case you should increase <i>max_intensity</i> (and optionally the
+    <i>bin_count</i>).
 
     Changing any of the parameters will invalidate the S/N values (which will invoke a recomputation on the next request).
 
-    @note If more than 20 percent of windows have less than <i>min_required_elements</i> of elements, a warning is issued to <i>stderr</i> and noise estimates in those windows are set to the constant <i>noise_for_empty_window</i>.
-    @note If more than 1 percent of median estimations had to rely on the last(=rightmost) bin (which gives an unreliable result), a warning is issued to <i>stderr</i>.
+    @note If more than 20 percent of windows have less than <i>min_required_elements</i> of elements, a warning is issued to <i>LOG_WARN</i> and noise estimates in those windows are set to the constant <i>noise_for_empty_window</i>.
+    @note If more than 1 percent of median estimations had to rely on the last(=rightmost) bin (which gives an unreliable result), a warning is issued to <i>LOG_WARN</i>.  In this case you should increase <i>max_intensity</i> (and optionally the <i>bin_count</i>). 
+    @note You can disable logging this error by setting <i>write_log_messages</i> and read out the values 
+
 
         @htmlinclude OpenMS_SignalToNoiseEstimatorMedian.parameters
 
@@ -127,6 +136,8 @@ public:
 
       defaults_.setValue("noise_for_empty_window", std::pow(10.0, 20), "noise value used for sparse windows", ListUtils::create<String>("advanced"));
 
+      defaults_.setValue("write_log_messages", "true", "Write out log messages in case of sparse windows or median in rightmost histogram bin");
+      defaults_.setValidStrings("write_log_messages", ListUtils::create<String>("true,false"));
 
       SignalToNoiseEstimator<Container>::defaultsToParam_();
     }
@@ -153,26 +164,37 @@ public:
 
     //@}
 
-
     /// Destructor
     virtual ~SignalToNoiseEstimatorMedian()
     {}
 
+    /// Returns how many percent of the windows were sparse
+    double getSparseWindowPercent() const
+    {
+      return sparse_window_percent_;
+    }
+
+    /// Returns the percentage where the median was found in the rightmost bin
+    double getHistogramRightmostPercent() const
+    {
+      return histogram_oob_percent_;
+    }
 
 protected:
 
 
-    /** calculate StN values for all datapoints given, by using a sliding window approach
-            @param scan_first_ first element in the scan
-            @param scan_last_ last element in the scan (disregarded)
-            @exception Throws Exception::InvalidValue
-  */
+    /** Calculate signal-to-noise values for all data points given, by using a sliding window approach
+     
+        @param scan_first_ first element in the scan
+        @param scan_last_ last element in the scan (disregarded)
+        @exception Throws Exception::InvalidValue
+    */
     void computeSTN_(const PeakIterator & scan_first_, const PeakIterator & scan_last_)
     {
       // reset counter for sparse windows
-      double sparse_window_percent = 0;
+      sparse_window_percent_ = 0;
       // reset counter for histogram overflow
-      double histogram_oob_percent = 0;
+      histogram_oob_percent_ = 0;
 
       // reset the results
       stn_estimates_.clear();
@@ -326,7 +348,7 @@ protected:
         if (elements_in_window < min_required_elements_)
         {
           noise = noise_for_empty_window_;
-          ++sparse_window_percent;
+          ++sparse_window_percent_;
         }
         else
         {
@@ -341,7 +363,7 @@ protected:
           }
 
           // increase the error count
-          if (median_bin == bin_count_minus_1) {++histogram_oob_percent; }
+          if (median_bin == bin_count_minus_1) {++histogram_oob_percent_; }
 
           // just avoid division by 0
           noise = std::max(1.0, bin_value[median_bin]);
@@ -361,23 +383,23 @@ protected:
 
       SignalToNoiseEstimator<Container>::endProgress();
 
-      sparse_window_percent = sparse_window_percent * 100 / window_count;
-      histogram_oob_percent = histogram_oob_percent * 100 / window_count;
+      sparse_window_percent_ = sparse_window_percent_ * 100 / window_count;
+      histogram_oob_percent_ = histogram_oob_percent_ * 100 / window_count;
 
       // warn if percentage of sparse windows is above 20%
-      if (sparse_window_percent > 20)
+      if (sparse_window_percent_ > 20 && write_log_messages_)
       {
         LOG_WARN << "WARNING in SignalToNoiseEstimatorMedian: "
-                 << sparse_window_percent
+                 << sparse_window_percent_
                  << "% of all windows were sparse. You should consider increasing 'win_len' or decreasing 'min_required_elements'"
                  << std::endl;
       }
 
       // warn if percentage of possibly wrong median estimates is above 1%
-      if (histogram_oob_percent > 1)
+      if (histogram_oob_percent_ > 1 && write_log_messages_)
       {
         LOG_WARN << "WARNING in SignalToNoiseEstimatorMedian: "
-                 << histogram_oob_percent
+                 << histogram_oob_percent_
                  << "% of all Signal-to-Noise estimates are too high, because the median was found in the rightmost histogram-bin. "
                  << "You should consider increasing 'max_intensity' (and maybe 'bin_count' with it, to keep bin width reasonable)"
                  << std::endl;
@@ -388,15 +410,16 @@ protected:
     /// overridden function from DefaultParamHandler to keep members up to date, when a parameter is changed
     void updateMembers_()
     {
-      max_intensity_         = (double)param_.getValue("max_intensity");
-      auto_max_stdev_Factor_ = (double)param_.getValue("auto_max_stdev_factor");
-      auto_max_percentile_   = param_.getValue("auto_max_percentile");
-      auto_mode_             = param_.getValue("auto_mode");
-      win_len_               = (double)param_.getValue("win_len");
-      bin_count_             = param_.getValue("bin_count");
-      min_required_elements_ = param_.getValue("min_required_elements");
-      noise_for_empty_window_ = (double)param_.getValue("noise_for_empty_window");
-      is_result_valid_ = false;
+      max_intensity_           = (double)param_.getValue("max_intensity");
+      auto_max_stdev_Factor_   = (double)param_.getValue("auto_max_stdev_factor");
+      auto_max_percentile_     = param_.getValue("auto_max_percentile");
+      auto_mode_               = param_.getValue("auto_mode");
+      win_len_                 = (double)param_.getValue("win_len");
+      bin_count_               = param_.getValue("bin_count");
+      min_required_elements_   = param_.getValue("min_required_elements");
+      noise_for_empty_window_  = (double)param_.getValue("noise_for_empty_window");
+      write_log_messages_      = (bool)param_.getValue("write_log_messages").toBool();
+      is_result_valid_         = false;
     }
 
     /// maximal intensity considered during binning (values above get discarded)
@@ -417,6 +440,13 @@ protected:
     /// use a very high value if you want to get a low S/N result
     double noise_for_empty_window_;
 
+    // whether to write out log messages in the case of failure
+    bool write_log_messages_;
+
+    // counter for sparse windows
+    double sparse_window_percent_;
+    // counter for histogram overflow
+    double histogram_oob_percent_;
 
 
   };

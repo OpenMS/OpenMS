@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,31 +50,31 @@ namespace OpenMS
     params_rt_(), params_mz_(), params_intensity_(),
     max_intensity_(max_intensity), force_constraints_(force_constraints)
   {
-    defaults_.setValue("distance_RT:max_difference", 100.0, "Maximum allowed difference in RT in seconds");
+    defaults_.setValue("distance_RT:max_difference", 100.0, "Never pair features with a larger RT distance (in seconds).");
     defaults_.setMinFloat("distance_RT:max_difference", 0.0);
-    defaults_.setValue("distance_RT:exponent", 1.0, "Normalized RT differences are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)", ListUtils::create<String>("advanced"));
+    defaults_.setValue("distance_RT:exponent", 1.0, "Normalized RT differences ([0-1], relative to 'max_difference') are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("distance_RT:exponent", 0.0);
-    defaults_.setValue("distance_RT:weight", 1.0, "RT distances are weighted by this factor", ListUtils::create<String>("advanced"));
+    defaults_.setValue("distance_RT:weight", 1.0, "Final RT distances are weighted by this factor", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("distance_RT:weight", 0.0);
     defaults_.setSectionDescription("distance_RT", "Distance component based on RT differences");
 
-    defaults_.setValue("distance_MZ:max_difference", 0.3, "Maximum allowed difference in m/z (unit defined by 'unit')");
+    defaults_.setValue("distance_MZ:max_difference", 0.3, "Never pair features with larger m/z distance (unit defined by 'unit')");
     defaults_.setMinFloat("distance_MZ:max_difference", 0.0);
     defaults_.setValue("distance_MZ:unit", "Da", "Unit of the 'max_difference' parameter");
     defaults_.setValidStrings("distance_MZ:unit", ListUtils::create<String>("Da,ppm"));
-    defaults_.setValue("distance_MZ:exponent", 2.0, "Normalized m/z differences are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)", ListUtils::create<String>("advanced"));
+    defaults_.setValue("distance_MZ:exponent", 2.0, "Normalized ([0-1], relative to 'max_difference') m/z differences are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("distance_MZ:exponent", 0.0);
-    defaults_.setValue("distance_MZ:weight", 1.0, "m/z distances are weighted by this factor", ListUtils::create<String>("advanced"));
+    defaults_.setValue("distance_MZ:weight", 1.0, "Final m/z distances are weighted by this factor", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("distance_MZ:weight", 0.0);
     defaults_.setSectionDescription("distance_MZ", "Distance component based on m/z differences");
 
-    defaults_.setValue("distance_intensity:exponent", 1.0, "Differences in relative intensity are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)", ListUtils::create<String>("advanced"));
+    defaults_.setValue("distance_intensity:exponent", 1.0, "Differences in relative intensity ([0-1]) are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("distance_intensity:exponent", 0.0);
-    defaults_.setValue("distance_intensity:weight", 0.0, "Distances based on relative intensity are weighted by this factor", ListUtils::create<String>("advanced"));
+    defaults_.setValue("distance_intensity:weight", 0.0, "Final intensity distances are weighted by this factor", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("distance_intensity:weight", 0.0);
-    defaults_.setSectionDescription("distance_intensity", "Distance component based on differences in relative intensity");
+    defaults_.setSectionDescription("distance_intensity", "Distance component based on differences in relative intensity (usually relative to highest peak in the whole data set)");
 
-    defaults_.setValue("ignore_charge", "false", "Compare features normally even if their charge states are different");
+    defaults_.setValue("ignore_charge", "false", "false [default]: pairing requires equal charge state (or at least one unknown charge '0'); true: Pairing irrespective of charge state");
     defaults_.setValidStrings("ignore_charge", ListUtils::create<String>("true,false"));
 
     defaultsToParam_();
@@ -111,20 +111,25 @@ namespace OpenMS
   {
     // manually querying for ^1 and ^2, since pow(x,2.0) is REALLY expensive and ^1 and ^2 are the defaults (so are likely to be used)
     if (params.exponent == 1)
+    {
       return diff * params.norm_factor * params.weight;
+    }
     else if (params.exponent == 2)
     {
       double tmp(diff * params.norm_factor);
       return tmp * tmp * params.weight;
     }
-    else // this pow() is REALLY expensive, since it uses a 'double' as exponent, using 'int' will make it faster,
-    { // but we will loose fractional exponents (might be useful?)
+    else 
+    { 
+      // this pow() is REALLY expensive, since it uses a 'double' as exponent,
+      // using 'int' will make it faster, but we will loose fractional
+      // exponents (might be useful?).
       return pow(diff * params.norm_factor, params.exponent) * params.weight;
     }
   }
 
   pair<bool, double> FeatureDistance::operator()(const BaseFeature & left,
-                                                     const BaseFeature & right)
+                                                 const BaseFeature & right)
   {
     if (!ignore_charge_)
     {

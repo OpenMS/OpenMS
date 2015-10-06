@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -111,7 +111,7 @@ public:
     /// checks whether the term has a value
     bool hasCVTerm(const String& accession) const;
 
-    /// checks whether the stored terms fulfil a given CVMappingRule
+    /// checks whether the stored terms fulfill a given CVMappingRule
     /// TODO : implement
     //bool checkCVTerms(const CVMappingRule & rule, const ControlledVocabulary & cv) const;
 

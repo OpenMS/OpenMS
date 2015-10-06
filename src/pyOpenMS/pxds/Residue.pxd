@@ -18,110 +18,16 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS":
                 String one_letter_code,
                 EmpiricalFormula formula) nogil except +
 
-        # Internal
+        # Conversions
         EmpiricalFormula getInternalToFull() nogil except +
-
-        double getInternalToFullAverageWeight() nogil except +
-
-        double getInternalToFullMonoWeight() nogil except +
-
-        # N-terminal
-        EmpiricalFormula getNTerminalToFull() nogil except +
-
-        double getNTerminalToFullAverageWeight() nogil except +
-
-        double getNTerminalToFullMonoWeight() nogil except +
-
-        # C-terminal
-        EmpiricalFormula getCTerminalToFull() nogil except +
-
-        double getCTerminalToFullAverageWeight() nogil except +
-
-        double getCTerminalToFullMonoWeight() nogil except +
-
-        # b ion
-        EmpiricalFormula getBIonToFull() nogil except +
-
-        double getBIonToFullAverageWeight() nogil except +
-
-        double getBIonToFullMonoWeight() nogil except +
-
-        # a ion
-        EmpiricalFormula getAIonToFull() nogil except +
-
-        double getAIonToFullAverageWeight() nogil except +
-
-        double getAIonToFullMonoWeight() nogil except +
-
-        # y ion
-        EmpiricalFormula getYIonToFull() nogil except +
-
-        double getYIonToFullAverageWeight() nogil except +
-
-        double getYIonToFullMonoWeight() nogil except +
-
-        # c ion
-        EmpiricalFormula getCIonToFull() nogil except +
-
-        double getCIonToFullAverageWeight() nogil except +
-
-        double getCIonToFullMonoWeight() nogil except +
-
-        # c-1 ion
-        EmpiricalFormula getCIonMinusOneToFull() nogil except +
-
-        double getCIonMinusOneToFullAverageWeight() nogil except +
-
-        double getCIonMinusOneToFullMonoWeight() nogil except +
-
-        # c+1 ion
-        EmpiricalFormula getCIonPlusOneToFull() nogil except +
-
-        double getCIonPlusOneToFullAverageWeight() nogil except +
-
-        double getCIonPlusOneToFullMonoWeight() nogil except +
-
-        # c+2 ion
-        EmpiricalFormula getCIonPlusTwoToFull() nogil except +
-
-        double getCIonPlusTwoToFullAverageWeight() nogil except +
-
-        double getCIonPlusTwoToFullMonoWeight() nogil except +
-
-        # x ion
-        EmpiricalFormula getXIonToFull() nogil except +
-
-        double getXIonToFullAverageWeight() nogil except +
-
-        double getXIonToFullMonoWeight() nogil except +
-
-        # z ion
-        EmpiricalFormula getZIonToFull() nogil except +
-
-        double getZIonToFullAverageWeight() nogil except +
-
-        double getZIonToFullMonoWeight() nogil except +
-
-        # z-1 ion
-        EmpiricalFormula getZIonMinusOneToFull() nogil except +
-
-        double getZIonMinusOneToFullAverageWeight() nogil except +
-
-        double getZIonMinusOneToFullMonoWeight() nogil except +
-
-        # z+1 ion
-        EmpiricalFormula getZIonPlusOneToFull() nogil except +
-
-        double getZIonPlusOneToFullAverageWeight() nogil except +
-
-        double getZIonPlusOneToFullMonoWeight() nogil except +
-
-        # z+2 ion
-        EmpiricalFormula getZIonPlusTwoToFull() nogil except +
-
-        double getZIonPlusTwoToFullAverageWeight() nogil except +
-
-        double getZIonPlusTwoToFullMonoWeight() nogil except +
+        EmpiricalFormula getInternalToNTerm() nogil except +
+        EmpiricalFormula getInternalToCTerm() nogil except +
+        EmpiricalFormula getInternalToAIon() nogil except +
+        EmpiricalFormula getInternalToBIon() nogil except +
+        EmpiricalFormula getInternalToCIon() nogil except +
+        EmpiricalFormula getInternalToXIon() nogil except +
+        EmpiricalFormula getInternalToYIon() nogil except +
+        EmpiricalFormula getInternalToZIon() nogil except +
 
         # returns the ion name given as a residue type
         String getResidueTypeName(ResidueType res_type) nogil except +

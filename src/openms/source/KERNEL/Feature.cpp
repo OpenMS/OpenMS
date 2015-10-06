@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,10 @@
 
 #include <OpenMS/KERNEL/Feature.h>
 
+#include <OpenMS/CONCEPT/Macros.h> // for OPENMS_PRECONDITION
+#include <OpenMS/DATASTRUCTURES/ConvexHull2D.h> // for ConvexHull2D, etc
+#include <OpenMS/KERNEL/BaseFeature.h> // for BaseFeature::QualityType, etc
+
 using namespace std;
 
 namespace OpenMS
@@ -48,7 +52,7 @@ namespace OpenMS
     std::fill(qualities_, qualities_ + 2, QualityType(0.0));
   }
 
-  Feature::Feature(const Feature & feature) :
+  Feature::Feature(const Feature& feature) :
     BaseFeature(feature),
     convex_hulls_(feature.convex_hulls_),
     convex_hulls_modified_(feature.convex_hulls_modified_),
@@ -84,25 +88,24 @@ namespace OpenMS
     qualities_[index] = q;
   }
 
-
-  const std::vector<ConvexHull2D> & Feature::getConvexHulls() const
+  const std::vector<ConvexHull2D>& Feature::getConvexHulls() const
   {
     return convex_hulls_;
   }
 
-  std::vector<ConvexHull2D> & Feature::getConvexHulls()
+  std::vector<ConvexHull2D>& Feature::getConvexHulls()
   {
     convex_hulls_modified_ = true;
     return convex_hulls_;
   }
 
-  void Feature::setConvexHulls(const std::vector<ConvexHull2D> & hulls)
+  void Feature::setConvexHulls(const std::vector<ConvexHull2D>& hulls)
   {
     convex_hulls_modified_ = true;
     convex_hulls_ = hulls;
   }
 
-  ConvexHull2D & Feature::getConvexHull() const
+  ConvexHull2D& Feature::getConvexHull() const
   {
     //recalculate convex hull if necessary
     if (convex_hulls_modified_)
@@ -158,7 +161,7 @@ namespace OpenMS
     return false;
   }
 
-  Feature & Feature::operator=(const Feature & rhs)
+  Feature& Feature::operator=(const Feature& rhs)
   {
     if (this == &rhs)
       return *this;
@@ -173,7 +176,7 @@ namespace OpenMS
     return *this;
   }
 
-  bool Feature::operator==(const Feature & rhs) const
+  bool Feature::operator==(const Feature& rhs) const
   {
     return BaseFeature::operator==(rhs)
            && equal(qualities_, qualities_ + 2, rhs.qualities_)
@@ -181,17 +184,17 @@ namespace OpenMS
            && (subordinates_  == rhs.subordinates_);
   }
 
-  const std::vector<Feature> & Feature::getSubordinates() const
+  const std::vector<Feature>& Feature::getSubordinates() const
   {
     return subordinates_;
   }
 
-  std::vector<Feature> & Feature::getSubordinates()
+  std::vector<Feature>& Feature::getSubordinates()
   {
     return subordinates_;
   }
 
-  void Feature::setSubordinates(const std::vector<Feature> & rhs)
+  void Feature::setSubordinates(const std::vector<Feature>& rhs)
   {
     subordinates_ = rhs;
   }

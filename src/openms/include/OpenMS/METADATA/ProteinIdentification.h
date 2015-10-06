@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,7 +38,7 @@
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
-
+#include <OpenMS/CHEMISTRY/Enzyme.h>
 #include <set>
 
 namespace OpenMS
@@ -128,7 +128,8 @@ public:
       UInt missed_cleavages;           ///< The number of allowed missed cleavages
       double peak_mass_tolerance;           ///< Mass tolerance of fragment ions (Dalton)
       double precursor_tolerance;           ///< Mass tolerance of precursor ions (Dalton)
-
+      Enzyme digestion_enzyme;           ///< The cleavage site information in details (from EnzymesDB)
+      
       SearchParameters();
 
       bool operator==(const SearchParameters & rhs) const;
@@ -235,6 +236,10 @@ public:
     const String & getIdentifier() const;
     /// Sets the identifier
     void setIdentifier(const String & id);
+    /// set the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)
+    void setPrimaryMSRunPath(const StringList& s);
+    /// get the file path to the first MS run
+    StringList getPrimaryMSRunPath() const;
     //@}
 
 protected:

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -79,9 +79,14 @@ namespace OpenMS
     connect(canvas_, SIGNAL(recalculateAxes()), this, SLOT(updateAxes()));
     connect(canvas_, SIGNAL(changeLegendVisibility()), this, SLOT(changeLegendVisibility()));
     //scrollbars
-    x_scrollbar_ = new QScrollBar(Qt::Horizontal, this);
-    y_scrollbar_ = new QScrollBar(Qt::Vertical, this);
-    y_scrollbar_->setInvertedAppearance(true);
+    x_scrollbar_ = new QScrollBar(Qt::Horizontal, this); // left is small value, right is high value
+    y_scrollbar_ = new QScrollBar(Qt::Vertical, this); // top is low value, bottom is high value (however, our coordinate system is inverse for the y-Axis!)
+    // We achieve the desired behavior by setting negative min/max ranges within the scrollbar when updateVScrollbar() is called.
+    // Thus, y_scrollbar_->valueChanged() will report negative values (which you need to multiply by -1 to get the correct value).
+    // Remember this when implementing verticalScrollBarChange() in your canvas class (currently only used in Spectrum2DCanvas)
+    // Do NOT use the build-in functions to invert a scrollbar, since implementation can be incomplete depending on style and platform
+    //y_scrollbar_->setInvertedAppearance(true);
+    //y_scrollbar_->setInvertedControls(true);
     grid_->addWidget(y_scrollbar_, row, col - 2);
     grid_->addWidget(x_scrollbar_, row + 2, col);
     x_scrollbar_->hide();
@@ -288,9 +293,11 @@ namespace OpenMS
       int local_max = max(f_max, disp_max);
       y_scrollbar_->blockSignals(true);
       y_scrollbar_->show();
-      y_scrollbar_->setMinimum(static_cast<int>(local_min));
-      y_scrollbar_->setMaximum(static_cast<int>(std::ceil(local_max - disp_max + disp_min)));
-      y_scrollbar_->setValue(static_cast<int>(disp_min));
+      // we use negative min/max here, because our coordinate system is inverted (small values are the bottom, higher values at the top)
+      // and we want the scrollbar to move correctly when clicking it
+      y_scrollbar_->setMaximum(static_cast<int>(-local_min));
+      y_scrollbar_->setMinimum(static_cast<int>(-std::ceil(local_max - (disp_max - disp_min))));
+      y_scrollbar_->setValue(static_cast<int>(-disp_min)); // 'disp_min' would be expected, but we invert, since our coordinate system is bottom to top
       y_scrollbar_->setPageStep(static_cast<int>(disp_max - disp_min));
       y_scrollbar_->blockSignals(false);
     }

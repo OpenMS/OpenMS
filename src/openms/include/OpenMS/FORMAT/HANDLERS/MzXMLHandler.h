@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -241,7 +241,7 @@ protected:
       }
 
       /// data processing auxiliary variable
-      std::vector<DataProcessing> data_processing_;
+      std::vector< boost::shared_ptr< DataProcessing> > data_processing_;
 
       /**
           @brief Fill a single spectrum with data from input
@@ -583,13 +583,13 @@ private:
         String& parent_tag = *(open_tags_.end() - 2);
         if (parent_tag == "dataProcessing")
         {
-          data_processing_.back().getSoftware().setVersion(attributeAsString_(attributes, s_version_));
-          data_processing_.back().getSoftware().setName(attributeAsString_(attributes, s_name_));
-          data_processing_.back().setMetaValue("#type", String(attributeAsString_(attributes, s_type_)));
+          data_processing_.back()->getSoftware().setVersion(attributeAsString_(attributes, s_version_));
+          data_processing_.back()->getSoftware().setName(attributeAsString_(attributes, s_name_));
+          data_processing_.back()->setMetaValue("#type", String(attributeAsString_(attributes, s_type_)));
 
           String time;
           optionalAttributeAsString_(time, attributes, s_completiontime_);
-          data_processing_.back().setCompletionTime(asDateTime_(time));
+          data_processing_.back()->setCompletionTime(asDateTime_(time));
         }
         else if (parent_tag == "msInstrument")
         {
@@ -854,34 +854,34 @@ private:
       }
       else if (tag == "dataProcessing")
       {
-        data_processing_.push_back(DataProcessing());
+        data_processing_.push_back( DataProcessingPtr(new DataProcessing));
 
         String boolean = "";
         optionalAttributeAsString_(boolean, attributes, s_deisotoped_);
         if (boolean == "true" || boolean == "1")
         {
-          data_processing_.back().getProcessingActions().insert(DataProcessing::DEISOTOPING);
+          data_processing_.back()->getProcessingActions().insert(DataProcessing::DEISOTOPING);
         }
 
         boolean = "";
         optionalAttributeAsString_(boolean, attributes, s_chargedeconvoluted_);
         if (boolean == "true" || boolean == "1")
         {
-          data_processing_.back().getProcessingActions().insert(DataProcessing::CHARGE_DECONVOLUTION);
+          data_processing_.back()->getProcessingActions().insert(DataProcessing::CHARGE_DECONVOLUTION);
         }
 
         double cutoff = 0.0;
         optionalAttributeAsDouble_(cutoff, attributes, s_intensitycutoff_);
         if (cutoff != 0.0)
         {
-          data_processing_.back().setMetaValue("#intensity_cutoff", cutoff);
+          data_processing_.back()->setMetaValue("#intensity_cutoff", cutoff);
         }
 
         boolean = "";
         optionalAttributeAsString_(boolean, attributes, s_centroided_);
         if (boolean == "true" || boolean == "1")
         {
-          data_processing_.back().getProcessingActions().insert(DataProcessing::PEAK_PICKING);
+          data_processing_.back()->getProcessingActions().insert(DataProcessing::PEAK_PICKING);
         }
       }
       else if (tag == "nameValue")
@@ -919,7 +919,7 @@ private:
         String value = "";
         optionalAttributeAsString_(value, attributes, s_value_);
 
-        data_processing_.back().setMetaValue(name, value);
+        data_processing_.back()->setMetaValue(name, value);
       }
 
       //std::cout << " -- !Start -- " << "\n";
@@ -1177,7 +1177,7 @@ private:
       {
         for (Size i = 0; i < (*cexp_)[0].getDataProcessing().size(); ++i)
         {
-          const DataProcessing& data_processing = (*cexp_)[0].getDataProcessing()[i];
+          const DataProcessing& data_processing = * (*cexp_)[0].getDataProcessing()[i].get();
           os << "\t\t<dataProcessing deisotoped=\""
              << data_processing.getProcessingActions().count(DataProcessing::DEISOTOPING)
              << "\" chargeDeconvoluted=\""

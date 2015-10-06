@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -422,7 +422,7 @@ namespace OpenMS
     }
 
     // set the apex ms peak:
-    MSPeak * APEX = find_true_peak((float) apexScan);
+    MSPeak * APEX = find_true_peak((float) apexScan); // TODO : this may be a bug, maybe this should not declare a new APEX
     if (!APEX->getExtraPeakInfo().empty())
     {
       setElutionPeakExtraInfo(APEX->getExtraPeakInfo());

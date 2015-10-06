@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -66,6 +66,7 @@
 
 //Contrib includes
 #include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/classification.hpp>
 
 #include <QDir>
@@ -90,7 +91,7 @@ using namespace boost::math;
 /**
   @page TOPP_FeatureFinderMultiplex FeatureFinderMultiplex
 
-  @brief Identifies peptide pairs in LC-MS data and determines their relative abundance.
+  @brief Detects peptide pairs in LC-MS data and determines their relative abundance.
 
 <CENTER>
   <table>
@@ -109,7 +110,7 @@ using namespace boost::math;
   </table>
 </CENTER>
 
-  FeatureFinderMultiplex is a tool for the fully automated analysis of quantitative proteomics data. It identifies pairs of isotopic envelopes with fixed m/z separation. It requires no prior sequence identification of the peptides. In what follows we first explain the algorithm and then discuss the tuning of its parameters.
+  FeatureFinderMultiplex is a tool for the fully automated analysis of quantitative proteomics data. It detects pairs of isotopic envelopes with fixed m/z separation. It requires no prior sequence identification of the peptides. In what follows we outline the algorithm.
 
   <b>Algorithm</b>
 
@@ -129,40 +130,6 @@ using namespace boost::math;
     <B>INI file documentation of this tool:</B>
     @htmlinclude TOPP_FeatureFinderMultiplex.html
 
-  <b>Parameter Tuning</b>
-
-  FeatureFinderMultiplex can detect isotope patterns of any number of peptides, i.e. doublets (pairs), triplets, quadruplets et cetera.
-
-  <i>input:</i>
-  - in [*.mzML] - LC-MS dataset to be analyzed
-  - ini [*.ini] - file containing all parameters (see discussion below)
-
-  <i>output:</i>
-  - out [*.consensusXML] - contains the list of identified peptide multiples (retention time and m/z of the lightest peptide, ratios)
-  - out_features [*.featureXML] - contains the list of individual peptides
-  - out_mzq [*.mzq] - contains the results in mzQuantML format
-
-  The results of an analysis can easily visualized within TOPPView. Simply load *.consensusXML and *.featureXML as layers over the original *.mzML.
-
-  Parameters in section <i>algorithm:</i>
-  - <i>allow_missing_peaks</i> - Low intensity peaks might be missing from the isotopic pattern of some of the peptides. Specify if such peptides should be included in the analysis.
-  - <i>rt_typical</i> - Upper bound for the retention time [s] over which a characteristic peptide elutes.
-  - <i>rt_min</i> - Lower bound for the retentions time [s].
-  - <i>intensity_cutoff</i> - Lower bound for the intensity of isotopic peaks in a peptide pattern.
-  - <i>peptide_similarity</i> - Lower bound for the Pearson correlation coefficient, which measures how well intensity profiles of different isotopic peaks correlate.
-  - <i>averagine_similarity</i> - Lower bound for the Pearson correlation coefficient, which measures how well the isotope patterns match the theoretical averagine model.
-
-  Parameters in section <i>algorithm:</i>
-  - <i>labels</i> - Labels used for labelling the sample. [...] specifies the labels for a single sample. For example, [][Lys4,Arg6][Lys8,Arg10] describes a mixtures of three samples. One of them unlabelled, one labelled with Lys4 and Arg6 and a third one with Lys8 and Arg10. For permitted labels see section <i>labels</i>.
-  - <i>charge</i> - Range of charge states in the sample, i.e. min charge : max charge.
-  - <i>missed_cleavages</i> - Maximum number of missed cleavages.
-  - <i>isotopes_per_peptide</i> - Range of peaks per peptide in the sample, i.e. min peaks per peptide : max peaks per peptide.
-
- Parameters in section <i>labels:</i>
- This section contains a list of all isotopic labels currently available for analysis with FeatureFinderMultiplex.
-
- <b>References:</b>
-  @n L. Nilse, M. Sturm, D. Trudgian, M. Salek, P. Sims, K. Carroll, S. Hubbard,  <a href="http://www.springerlink.com/content/u40057754100v71t">SILACAnalyzer - a tool for differential quantitation of stable isotope derived data</a>, in F. Masulli, L. Peterson, and R. Tagliaferri (Eds.): CIBB 2009, LNBI 6160, pp. 4555, 2010.
 */
 
 // We do not want this class to show up in the docu:
@@ -178,8 +145,6 @@ private:
   String out_;
   String out_features_;
   String out_mzq_;
-  String out_debug_;
-  bool debug_;
 
   // section "algorithm"
   String labels_;
@@ -198,6 +163,7 @@ private:
   double averagine_similarity_;
   double averagine_similarity_scaling_;
   bool knock_out_;
+  String averagine_type_;
 
   // section "labels"
   map<String, double> label_massshift_;
@@ -205,7 +171,7 @@ private:
 public:
   TOPPFeatureFinderMultiplex() :
     TOPPBase("FeatureFinderMultiplex", "Determination of peak ratios in LC-MS data", true),
-    debug_(false), charge_min_(1), charge_max_(1), missed_cleavages_(0), isotopes_per_peptide_min_(1), isotopes_per_peptide_max_(1), rt_typical_(0.0), rt_min_(0.0),
+    charge_min_(1), charge_max_(1), missed_cleavages_(0), isotopes_per_peptide_min_(1), isotopes_per_peptide_max_(1), rt_typical_(0.0), rt_min_(0.0),
     mz_tolerance_(0.0), mz_unit_(true), intensity_cutoff_(0.0), peptide_similarity_(0.0), averagine_similarity_(0.0), averagine_similarity_scaling_(0.0), knock_out_(false)
   {
   }
@@ -214,7 +180,7 @@ public:
 
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "Raw LC-MS data to be analyzed. (Profile data required. Will not work with centroided data!)");
+    registerInputFile_("in", "<file>", "", "LC-MS dataset in centroid or profile mode");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "Set of all identified peptide groups (i.e. peptide pairs or triplets or singlets or ..). The m/z-RT positions correspond to the lightest peptide in each group.", false);
     setValidFormats_("out", ListUtils::create<String>("consensusXML"));
@@ -222,7 +188,6 @@ public:
     setValidFormats_("out_features", ListUtils::create<String>("featureXML"));
     registerOutputFile_("out_mzq", "<file>", "", "Optional output file of MzQuantML.", false, true);
     setValidFormats_("out_mzq", ListUtils::create<String>("mzq"));
-    registerStringOption_("out_debug", "<out_dir>", "", "Directory for debug output.", false, true);
 
     registerSubsection_("algorithm", "Parameters for the algorithm.");
     registerSubsection_("labels", "Isotopic labels that can be specified in section \'algorithm:labels\'.");
@@ -250,10 +215,10 @@ public:
       defaults.setValue("intensity_cutoff", 1000.0, "Lower bound for the intensity of isotopic peaks.");
       defaults.setMinFloat("intensity_cutoff", 0.0);
       defaults.setValue("peptide_similarity", 0.5, "Two peptides in a multiplet are expected to have the same isotopic pattern. This parameter is a lower bound on their similarity.");
-      defaults.setMinFloat("peptide_similarity", 0.0);
+      defaults.setMinFloat("peptide_similarity", -1.0);
       defaults.setMaxFloat("peptide_similarity", 1.0);
       defaults.setValue("averagine_similarity", 0.4, "The isotopic pattern of a peptide should resemble the averagine model at this m/z position. This parameter is a lower bound on similarity between measured isotopic pattern and the averagine model.");
-      defaults.setMinFloat("averagine_similarity", 0.0);
+      defaults.setMinFloat("averagine_similarity", -1.0);
       defaults.setMaxFloat("averagine_similarity", 1.0);
       defaults.setValue("averagine_similarity_scaling", 0.75, "Let x denote this scaling factor, and p the averagine similarity parameter. For the detection of single peptides, the averagine parameter p is replaced by p' = p + x(1-p), i.e. x = 0 -> p' = p and x = 1 -> p' = 1. (For knock_out = true, peptide doublets and singlets are detected simulataneously. For singlets, the peptide similarity filter is irreleavant. In order to compensate for this 'missing filter', the averagine parameter p is replaced by the more restrictive p' when searching for singlets.)", ListUtils::create<String>("advanced"));
       defaults.setMinFloat("averagine_similarity_scaling", 0.0);
@@ -262,6 +227,8 @@ public:
       defaults.setMinInt("missed_cleavages", 0);
       defaults.setValue("knock_out", "false", "Is it likely that knock-outs are present? (Supported for doublex, triplex and quadruplex experiments only.)", ListUtils::create<String>("advanced"));
       defaults.setValidStrings("knock_out", ListUtils::create<String>("true,false"));
+      defaults.setValue("averagine_type","peptide","The type of averagine to use, currently RNA, DNA or peptide");
+      defaults.setValidStrings("averagine_type", ListUtils::create<String>("RNA,peptide,DNA"));
     }
 
     if (section == "labels")
@@ -309,8 +276,6 @@ public:
     out_ = getStringOption_("out");
     out_features_ = getStringOption_("out_features");
     out_mzq_ = getStringOption_("out_mzq");
-    out_debug_ = getStringOption_("out_debug");
-    debug_ = !out_debug_.empty();
   }
 
   /**
@@ -354,6 +319,7 @@ public:
     averagine_similarity_scaling_ = getParam_().getValue("algorithm:averagine_similarity_scaling");
     missed_cleavages_ = getParam_().getValue("algorithm:missed_cleavages");
     knock_out_ = (getParam_().getValue("algorithm:knock_out") == "true");
+    averagine_type_ = getParam_().getValue("algorithm:averagine_type");
   }
 
   /**
@@ -414,7 +380,7 @@ public:
     }
 
     // check if the labels are included in advanced section "labels"
-    String all_labels = "Arg6 Arg10 Lys4 Lys6 Lys8 Dimethyl0 Dimethyl4 Dimethyl6 Dimethyl8 ICPL0 ICPL4 ICPL6 ICPL10";
+    String all_labels = "Arg6 Arg10 Lys4 Lys6 Lys8 Dimethyl0 Dimethyl4 Dimethyl6 Dimethyl8 ICPL0 ICPL4 ICPL6 ICPL10 no_label";
     for (unsigned i = 0; i < samples_labels_.size(); i++)
     {
       for (unsigned j = 0; j < samples_labels_[i].size(); ++j)
@@ -633,15 +599,37 @@ public:
   {
     std::vector<std::vector<String> > samples_labels;
     std::vector<String> temp_samples;
-    boost::split(temp_samples, labels_, boost::is_any_of("[](){}")); // any bracket allowed to separate samples
+    
+    String labels(labels_);
+    boost::replace_all(labels, "[]", "no_label");
+    boost::replace_all(labels, "()", "no_label");
+    boost::replace_all(labels, "{}", "no_label");
+    boost::split(temp_samples, labels, boost::is_any_of("[](){}")); // any bracket allowed to separate samples
+    
     for (unsigned i = 0; i < temp_samples.size(); ++i)
     {
       if (!temp_samples[i].empty())
       {
-        vector<String> temp_labels;
-        boost::split(temp_labels, temp_samples[i], boost::is_any_of(",;: ")); // various separators allowed to separate labels
-        samples_labels.push_back(temp_labels);
+        if (temp_samples[i]=="no_label")
+        {
+          vector<String> temp_labels;
+          temp_labels.push_back("no_label");
+          samples_labels.push_back(temp_labels);
+        }
+        else
+        {
+          vector<String> temp_labels;
+          boost::split(temp_labels, temp_samples[i], boost::is_any_of(",;: ")); // various separators allowed to separate labels
+          samples_labels.push_back(temp_labels);
+        }
       }
+    }
+    
+    if (samples_labels.empty())
+    {
+      vector<String> temp_labels;
+      temp_labels.push_back("no_label");
+      samples_labels.push_back(temp_labels);
     }
 
     return samples_labels;
@@ -713,17 +701,6 @@ public:
     
     sort(list.begin(),list.end(),less_pattern);
     
-    // debug output
-    /*for (size_t i = 0; i < list.size(); ++i)
-    {
-      std::cout << list[i].getCharge() << "+  ";
-      for (size_t j = 0; j < list[i].getMassShiftCount(); ++j)
-      {
-        std::cout << list[i].getMassShiftAt(j) << "  ";
-      }
-      std::cout << "\n";
-    }*/
-
     return list;
   }
 
@@ -979,6 +956,7 @@ public:
   /**
    * @brief generates the data structure for mzQuantML output
    *
+   * @param exp    experimental data
    * @param consensus_map    consensus map with complete quantitative information
    * @param quantifications    MSQuantifications data structure for writing mzQuantML (mzq)
    */
@@ -988,6 +966,7 @@ public:
     // (for each sample a list of (label string, mass shift) pairs)
     // for example triple-SILAC: [(none,0)][(Lys4,4.0251),(Arg6,6.0201)][Lys8,8.0141)(Arg10,10.0082)]
     std::vector<std::vector<std::pair<String, double> > > labels;
+    
     for (unsigned sample = 0; sample < samples_labels_.size(); ++sample)
     {
       // The labels are required to be ordered in mass shift.
@@ -1026,6 +1005,7 @@ public:
     // add results from  analysis
     LOG_DEBUG << "Generating output mzQuantML file..." << endl;
     ConsensusMap numap(consensus_map);
+    
     //calculate ratios
     for (ConsensusMap::iterator cit = numap.begin(); cit != numap.end(); ++cit)
     {
@@ -1069,7 +1049,7 @@ public:
   {
     map.sortByPosition();
     map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
-    map.setExperimentType("multiplex");
+    map.setExperimentType("labeled_MS1");
 
     // annotate maps
     for (unsigned i = 0; i < samples_labels_.size(); ++i)
@@ -1080,7 +1060,10 @@ public:
       if (knock_out_)
       {
         // With knock-outs present, the correct labels can only be determined during ID mapping.
-        desc.label = "";
+        // For now, we simply store a unique identifier.
+        std::stringstream stream;
+        stream << "label " << i;
+        desc.label = stream.str();
       }
       else
       {
@@ -1224,6 +1207,11 @@ private:
     file.setLogType(log_type_);
     file.load(in_, exp);
 
+    if (exp.getSpectra().empty())
+    {
+      throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS1 spectra in input file.");
+    }
+
     // update m/z and RT ranges
     exp.updateRanges();
 
@@ -1231,7 +1219,13 @@ private:
     exp.sortSpectra();
 
     // determine type of spectral data (profile or centroided)
-    bool centroided = (PeakTypeEstimator().estimateType(exp[0].begin(), exp[0].end()) == SpectrumSettings::PEAKS);
+    SpectrumSettings::SpectrumType spectrum_type = exp[0].getType();
+    if (spectrum_type == SpectrumSettings::UNKNOWN)
+    {
+      spectrum_type = PeakTypeEstimator().estimateType(exp[0].begin(), exp[0].end());
+    }
+
+    bool centroided = spectrum_type == SpectrumSettings::PEAKS;
 
     /**
      * pick peaks
@@ -1239,6 +1233,7 @@ private:
     MSExperiment<Peak1D> exp_picked;
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_s; // peak boundaries for spectra
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_c; // peak boundaries for chromatograms
+
     if (!centroided)
     {
       PeakPickerHiRes picker;
@@ -1262,14 +1257,14 @@ private:
     if (centroided)
     {
       // centroided data
-      MultiplexFilteringCentroided filtering(exp, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, missing_peaks_, intensity_cutoff_, mz_tolerance_, mz_unit_, peptide_similarity_, averagine_similarity_, averagine_similarity_scaling_, out_debug_);
+      MultiplexFilteringCentroided filtering(exp, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, missing_peaks_, intensity_cutoff_, mz_tolerance_, mz_unit_, peptide_similarity_, averagine_similarity_, averagine_similarity_scaling_, averagine_type_);
       filtering.setLogType(log_type_);
       filter_results = filtering.filter();
     }
     else
     {
       // profile data
-      MultiplexFilteringProfile filtering(exp, exp_picked, boundaries_exp_s, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, missing_peaks_, intensity_cutoff_, mz_tolerance_, mz_unit_, peptide_similarity_, averagine_similarity_, averagine_similarity_scaling_, out_debug_);
+      MultiplexFilteringProfile filtering(exp, exp_picked, boundaries_exp_s, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, missing_peaks_, intensity_cutoff_, mz_tolerance_, mz_unit_, peptide_similarity_, averagine_similarity_, averagine_similarity_scaling_, averagine_type_);
       filtering.setLogType(log_type_);
       filter_results = filtering.filter();
     }
@@ -1281,14 +1276,14 @@ private:
     if (centroided)
     {
       // centroided data
-      MultiplexClustering clustering(exp, mz_tolerance_, mz_unit_, rt_typical_, rt_min_, out_debug_);
+      MultiplexClustering clustering(exp, mz_tolerance_, mz_unit_, rt_typical_, rt_min_);
       clustering.setLogType(log_type_);
       cluster_results = clustering.cluster(filter_results);
     }
     else
     {
       // profile data
-      MultiplexClustering clustering(exp, exp_picked, boundaries_exp_s, rt_typical_, rt_min_, out_debug_);
+      MultiplexClustering clustering(exp, exp_picked, boundaries_exp_s, rt_typical_, rt_min_);
       clustering.setLogType(log_type_);
       cluster_results = clustering.cluster(filter_results);
     }
@@ -1297,7 +1292,11 @@ private:
      * write to output
      */
     ConsensusMap consensus_map;
+    consensus_map.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
+
     FeatureMap feature_map;
+    feature_map.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
+
     generateMaps_(centroided, patterns, filter_results, cluster_results, consensus_map, feature_map);
     if (out_ != "")
     {

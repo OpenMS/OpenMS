@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -79,7 +79,8 @@ START_SECTION((template < typename InputPeakType > void makePrecursorSelectionFo
 	charges_set.insert(1);
 	bool feature_based = true;
 	Param param;
-	param.setValue("ms2_spectra_per_rt_bin",1);
+	param.setValue("ms2_spectra_per_rt_bin", 1);
+  param.setValue("min_mz_peak_distance", 3.0);
 	ptr->setParameters(param);
 	ptr->makePrecursorSelectionForKnownLCMSMap(map,raw_data,ms2,charges_set,feature_based);
 	TEST_EQUAL(ms2.size(),3)
@@ -104,7 +105,7 @@ START_SECTION((template < typename InputPeakType > void makePrecursorSelectionFo
 	ms2.clear(true);
 	feature_based = true;
 	param.setValue("exclude_overlapping_peaks","true");
-	param.setValue("min_peak_distance",40.);
+	param.setValue("min_mz_peak_distance", 40.);
 	ptr->setParameters(param);
 	ptr->makePrecursorSelectionForKnownLCMSMap(map,raw_data,ms2,charges_set,feature_based);
 	TEST_EQUAL(ms2.size(),2)

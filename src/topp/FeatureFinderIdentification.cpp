@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -94,7 +94,7 @@ using namespace std;
 
         For every distinct peptide ion (defined by sequence and charge) in the input (parameter @p id), an assay is generated, incorporating the retention time (RT), mass-to-charge ratio (m/z), and isotopic distribution of the peptide. The parameter @p reference_rt controls how the RT of the assay is determined if the peptide has been observed multiple times. The relative intensities of the isotopes together with their m/z values are calculated from the sequence and charge.
 
-        The assays are used to perform targeted data analysis on the MS1 level using OpenSWATH algorithms, in several steps: 
+        The assays are used to perform targeted data analysis on the MS1 level using OpenSWATH algorithms, in several steps:
 
         <B>1. Ion chromatogram extraction</B>
 
@@ -103,21 +103,26 @@ using namespace std;
         @see @ref TOPP_OpenSwathChromatogramExtractor
 
         <B>2. Feature detection</B>
-        
+
         Next feature candidates are detected in the XICs and scored. The best candidate per assay according to the OpenSWATH scoring is turned into a feature.
 
-        @see @ref TOPP_OpenSwathAnalyzer 
+        @see @ref TOPP_OpenSwathAnalyzer
 
         <B>3. Elution model fitting</B>
 
         Elution models can be fitted to every feature to improve the quantification. For robustness, one model is fitted to all isotopic mass traces of a feature in parallel. A symmetric (Gaussian) and an asymmetric (exponential-Gaussian hybrid) model type are available. The fitted models are checked for plausibility before they are accepted.
-        
+
         Finally the results (feature maps, parameter @p out) are returned.
 
         @note This tool aims to report a feature for every distinct peptide ion given in the @p id input. Currently no attempt is made to filter out false-positives (although this may be possible in post-processing based on the OpenSWATH scores). If only high-confidence peptide IDs are used, that come from the same LC-MS/MS run that is being quantified, this should not be a problem. However, if e.g. inferred IDs from different runs (see @ref TOPP_MapAlignerIdentification) are included, false-positive features with arbitrary intensities may result for peptides that cannot be detected in the present data.
 
+        @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
         <B>The command line parameters of this tool are:</B>
         @verbinclude TOPP_FeatureFinderIdentification.cli
+        <B>INI file documentation of this tool:</B>
+        @htmlinclude TOPP_FeatureFinderIdentification.html
+
 */
 
 // We do not want this class to show up in the docu:
@@ -190,7 +195,6 @@ protected:
     registerDoubleOption_("model:check:asymmetry", "<value>", 10.0, "Upper limit for acceptable asymmetry of elution models (EGH only), expressed in terms of modified (median-based) z-scores; '0' to disable", false, true);
     setMinFloat_("model:check:asymmetry", 0.0);
   }
-
 
   typedef MSExperiment<Peak1D> PeakMap;
 
@@ -399,7 +403,6 @@ protected:
     }
   }
 
-
   // fit models of elution profiles to all features:
   void fitElutionModels_(FeatureMap& features, bool asymmetric = true)
   {
@@ -423,12 +426,12 @@ protected:
       trans_ids[trans_it->getNativeID()] = &(*trans_it);
     }
 
-    TraceFitter<Peak1D>* fitter;
+    TraceFitter* fitter;
     if (asymmetric)
     {
-      fitter = new EGHTraceFitter<Peak1D>();
+      fitter = new EGHTraceFitter();
     }
-    else fitter = new GaussTraceFitter<Peak1D>();
+    else fitter = new GaussTraceFitter();
     if (weighted)
     {
       Param params = fitter->getDefaults();
@@ -438,7 +441,7 @@ protected:
 
     // store model parameters to find outliers later:
     double width_limit = getDoubleOption_("model:check:width");
-    double asym_limit = (asymmetric ? 
+    double asym_limit = (asymmetric ?
                          getDoubleOption_("model:check:asymmetry") : 0.0);
     // store values redundantly - once aligned with the features in the map,
     // once only for successful models:
@@ -468,10 +471,10 @@ protected:
       vector<Peak1D> peaks;
       // reserve space once, to avoid copying and invalidating pointers:
       Size points_per_hull = feat_it->
-        getSubordinates()[0].getConvexHulls()[0].getHullPoints().size();
+                             getSubordinates()[0].getConvexHulls()[0].getHullPoints().size();
       peaks.reserve(feat_it->getSubordinates().size() * points_per_hull +
                     (add_zeros > 0.0)); // don't forget additional zero point
-      FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D> traces;
+      FeatureFinderAlgorithmPickedHelperStructs::MassTraces traces;
       traces.max_trace = 0;
       // need a mass trace for every transition, plus maybe one for add. zeros:
       traces.reserve(feat_it->getSubordinates().size() + (add_zeros > 0.0));
@@ -479,7 +482,7 @@ protected:
              feat_it->getSubordinates().begin(); sub_it !=
            feat_it->getSubordinates().end(); ++sub_it)
       {
-        FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> trace;
+        FeatureFinderAlgorithmPickedHelperStructs::MassTrace trace;
         trace.peaks.reserve(points_per_hull);
         if (sub_it->metaValueExists("isotope_probability"))
         {
@@ -528,7 +531,7 @@ protected:
 
       if (add_zeros > 0.0)
       {
-        FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> trace;
+        FeatureFinderAlgorithmPickedHelperStructs::MassTrace trace;
         trace.peaks.reserve(2);
         trace.theoretical_int = add_zeros;
         Peak1D peak;
@@ -564,15 +567,15 @@ protected:
       feat_it->setMetaValue("model_upper", fitter->getUpperRTBound());
       if (asymmetric)
       {
-        EGHTraceFitter<Peak1D>* egh =
-          static_cast<EGHTraceFitter<Peak1D>*>(fitter);
+        EGHTraceFitter* egh =
+          static_cast<EGHTraceFitter*>(fitter);
         feat_it->setMetaValue("model_EGH_tau", egh->getTau());
         feat_it->setMetaValue("model_EGH_sigma", egh->getSigma());
       }
       else
       {
-        GaussTraceFitter<Peak1D>* gauss =
-          static_cast<GaussTraceFitter<Peak1D>*>(fitter);
+        GaussTraceFitter* gauss =
+          static_cast<GaussTraceFitter*>(fitter);
         feat_it->setMetaValue("model_Gauss_sigma", gauss->getSigma());
       }
 
@@ -587,7 +590,7 @@ protected:
         double rt_end = min(fitter->getUpperRTBound(),
                             traces[0].peaks.rbegin()->first);
 
-        for (FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D>::
+        for (FeatureFinderAlgorithmPickedHelperStructs::MassTraces::
              iterator tr_it = traces.begin(); tr_it != traces.end(); ++tr_it)
         {
           for (vector<pair<double, const Peak1D*> >::iterator p_it =
@@ -665,14 +668,10 @@ protected:
     {
       double median_width = Math::median(widths_good.begin(),
                                          widths_good.end());
-      vector<double> abs_diffs(widths_good.size());
-      for (Size i = 0; i < widths_good.size(); ++i)
-      {
-        abs_diffs[i] = fabs(widths_good[i] - median_width);
-      }
       // median absolute deviation (constant factor to approximate std. dev.):
-      double mad_width = 1.4826 * Math::median(abs_diffs.begin(),
-                                               abs_diffs.end());
+      double mad_width = 1.4826 * Math::MAD(widths_good.begin(),
+                                            widths_good.end(),
+                                            median_width);
 
       for (Size i = 0; i < features.size(); ++i)
       {
@@ -700,14 +699,10 @@ protected:
     if (asym_limit > 0)
     {
       double median_asym = Math::median(asym_good.begin(), asym_good.end());
-      vector<double> abs_diffs(asym_good.size());
-      for (Size i = 0; i < asym_good.size(); ++i)
-      {
-        abs_diffs[i] = fabs(asym_good[i] - median_asym);
-      }
       // median absolute deviation (constant factor to approximate std. dev.):
-      double mad_asym = 1.4826 * Math::median(abs_diffs.begin(),
-                                              abs_diffs.end());
+      double mad_asym = 1.4826 * Math::MAD(asym_good.begin(),
+                                           asym_good.end(),
+                                           median_asym);
 
       for (Size i = 0; i < features.size(); ++i)
       {
@@ -970,15 +965,16 @@ protected:
     //-------------------------------------------------------------
     LOG_INFO << "Finding chromatographic peaks..." << endl;
     FeatureMap features;
+    features.setPrimaryMSRunPath(ms_data_.getPrimaryMSRunPath());
     MRMFeatureFinderScoring mrm_finder;
     Param params = mrm_finder.getParameters();
-    params.setValue("stop_report_after_feature", 
+    params.setValue("stop_report_after_feature",
                     all_features ? -1 : 1);
     if (elution_model != "none") params.setValue("write_convex_hull", "true");
     params.setValue("TransitionGroupPicker:min_peak_width", peak_width / 4.0);
     params.setValue("TransitionGroupPicker:recalculate_peaks", "true");
     params.setValue("TransitionGroupPicker:compute_peak_quality", "true");
-    params.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width", 
+    params.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width",
                     peak_width);
     params.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", -1.0);
     params.setValue("TransitionGroupPicker:PeakPickerMRM:method", "corrected");

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -97,22 +97,22 @@ namespace OpenMS
 
 
     //initial values for interdis_i and cluster_with_interdist
-    std::set<Size>::iterator it = leafs.begin();
-    ++it;
-    for (; it != leafs.end(); ++it)
+    std::set<Size>::iterator leafs_it = leafs.begin();
+    ++leafs_it;
+    for (; leafs_it != leafs.end(); ++leafs_it)
     {
       std::set<Size>::iterator jt = leafs.begin();
-      for (; *jt < *it; ++jt)
+      for (; *jt < *leafs_it; ++jt)
       {
-        if (original.getValue(*it, *jt) < interdist_i[*it])
+        if (original.getValue(*leafs_it, *jt) < interdist_i[*leafs_it])
         {
-          interdist_i[*it] = original.getValue(*it, *jt);
-          cluster_with_interdist[*it] = *jt;
+          interdist_i[*leafs_it] = original.getValue(*leafs_it, *jt);
+          cluster_with_interdist[*leafs_it] = *jt;
         }
-        if (original.getValue(*it, *jt) < interdist_i[*jt])
+        if (original.getValue(*leafs_it, *jt) < interdist_i[*jt])
         {
-          interdist_i[*jt] = original.getValue(*it, *jt);
-          cluster_with_interdist[*jt] = *it;
+          interdist_i[*jt] = original.getValue(*leafs_it, *jt);
+          cluster_with_interdist[*jt] = *leafs_it;
         }
       }
     }

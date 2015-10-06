@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,8 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/CONCEPT/Factory.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 
 #include <numeric>
 #include <boost/math/special_functions/fpclassify.hpp>
@@ -56,7 +58,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  IsotopeFitter1D::IsotopeFitter1D(const IsotopeFitter1D & source) :
+  IsotopeFitter1D::IsotopeFitter1D(const IsotopeFitter1D& source) :
     MaxLikeliFitter1D(source)
   {
     updateMembers_();
@@ -66,7 +68,7 @@ namespace OpenMS
   {
   }
 
-  IsotopeFitter1D & IsotopeFitter1D::operator=(const IsotopeFitter1D & source)
+  IsotopeFitter1D& IsotopeFitter1D::operator=(const IsotopeFitter1D& source)
   {
     if (&source == this)
       return *this;
@@ -77,42 +79,41 @@ namespace OpenMS
     return *this;
   }
 
-  IsotopeFitter1D::QualityType IsotopeFitter1D::fit1d(const RawDataArrayType & set, InterpolationModel * & model)
+  IsotopeFitter1D::QualityType IsotopeFitter1D::fit1d(const RawDataArrayType& set, InterpolationModel*& model)
   {
     // Calculate bounding box
-    min_ = max_ = set[0].getPos();
+    CoordinateType min_bb = set[0].getPos(), max_bb = set[0].getPos();
     for (UInt pos = 1; pos < set.size(); ++pos)
     {
       CoordinateType tmp = set[pos].getPos();
-      if (min_ > tmp)
-        min_ = tmp;
-      if (max_ < tmp)
-        max_ = tmp;
+      if (min_bb > tmp)
+        min_bb = tmp;
+      if (max_bb < tmp)
+        max_bb = tmp;
     }
 
     // Enlarge the bounding box by a few multiples of the standard deviation
-    {
-      stdev1_ = sqrt(statistics_.variance()) * tolerance_stdev_box_;
-      min_ -= stdev1_;
-      max_ += stdev1_;
-    }
+    const CoordinateType stdev = sqrt(statistics_.variance()) * tolerance_stdev_box_;
+    min_bb -= stdev;
+    max_bb += stdev;
+
 
     // build model
     if (charge_ == 0)
     {
-      model = static_cast<InterpolationModel *>(Factory<BaseModel<1> >::create("GaussModel"));
+      model = static_cast<InterpolationModel*>(Factory<BaseModel<1> >::create("GaussModel"));
       model->setInterpolationStep(interpolation_step_);
 
       Param tmp;
-      tmp.setValue("bounding_box:min", min_);
-      tmp.setValue("bounding_box:max", max_);
+      tmp.setValue("bounding_box:min", min_bb);
+      tmp.setValue("bounding_box:max", max_bb);
       tmp.setValue("statistics:variance", statistics_.variance());
       tmp.setValue("statistics:mean", statistics_.mean());
       model->setParameters(tmp);
     }
     else
     {
-      model = static_cast<InterpolationModel *>(Factory<BaseModel<1> >::create("IsotopeModel"));
+      model = static_cast<InterpolationModel*>(Factory<BaseModel<1> >::create("IsotopeModel"));
 
       Param iso_param = this->param_.copy("isotope_model:", true);
       iso_param.removeAll("stdev");
@@ -126,12 +127,12 @@ namespace OpenMS
       tmp.setValue("isotope:maximum", max_isotope_);
 
       model->setParameters(tmp);
-      (static_cast<IsotopeModel *>(model))->setSamples((static_cast<IsotopeModel *>(model))->getFormula());
+      (static_cast<IsotopeModel*>(model))->setSamples((static_cast<IsotopeModel*>(model))->getFormula());
     }
 
     // fit offset
     QualityType quality;
-    quality = fitOffset_(model, set, stdev1_, stdev1_, interpolation_step_);
+    quality = fitOffset_(model, set, stdev, stdev, interpolation_step_);
     if (boost::math::isnan(quality))
       quality = -1.0;
 

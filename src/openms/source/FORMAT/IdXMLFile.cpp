@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,7 +37,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
-
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 #include <iostream>
 #include <fstream>
 #include <limits>
@@ -159,7 +159,7 @@ namespace OpenMS
       }
       else if (params[i].enzyme == ProteinIdentification::UNKNOWN_ENZYME)
       {
-        os << "enzyme=\"unknown_enzyme\" ";
+        os << "enzyme=\"" << params[i].digestion_enzyme.getName() << "\" "; // os << "enzyme=\"unknown_enzyme\" ";
       }
       os << "missed_cleavages=\"" << params[i].missed_cleavages << "\" "
          << "precursor_peak_tolerance=\"" << params[i].precursor_tolerance << "\" "
@@ -456,6 +456,10 @@ namespace OpenMS
       //enzyme
       String enzyme;
       optionalAttributeAsString_(enzyme, attributes, "enzyme");
+      if (EnzymesDB::getInstance()->hasEnzyme(enzyme))
+      {
+        param_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme);
+      }
       if (enzyme == "trypsin")
       {
         param_.enzyme = ProteinIdentification::TRYPSIN;
@@ -795,7 +799,7 @@ namespace OpenMS
     groups.clear();
     Size g_id = 0;
     String current_meta = group_name + "_" + String(g_id);
-    while (last_meta_->metaValueExists(current_meta))
+    while (last_meta_->metaValueExists(current_meta)) // assumes groups have incremental g_IDs
     {
       // convert to proper ProteinGroup
       ProteinIdentification::ProteinGroup g;

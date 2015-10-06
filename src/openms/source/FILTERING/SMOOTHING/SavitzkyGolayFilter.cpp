@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -68,24 +68,23 @@ namespace OpenMS
     {
       frame_size_ += 1;
     }
-    coeffs_.resize(frame_size_ * (frame_size_ / 2 + 1));
-
     if (frame_size_ <= order_)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The degree of the polynomial has to be less than the frame length.", String(order_));
     }
+    coeffs_.resize(frame_size_ * (frame_size_ / 2 + 1));
 
     for (int nl = 0; nl <= (int) (frame_size_ / 2); ++nl)
     {
       int nr = frame_size_ - 1 - nl;
 
-      // compute a vandermonde matrix whose columns are powers of the vector [-nL,...,nR]
+      // compute a Vandermonde matrix whose columns are powers of the vector [-nL,...,nR]
       Eigen::MatrixXd A (frame_size_, order_ + 1);
       for (int i = -nl; i <= nr; i++)
       {
         for (int j = 0; j <= static_cast<int>(order_); j++)
         {
-          A(i + nl, j) = std::pow((float)i, j);//pow(int, int) is not defined
+          A(i + nl, j) = std::pow((float)i, j); // pow(int, int) is not defined
         }
       }
 

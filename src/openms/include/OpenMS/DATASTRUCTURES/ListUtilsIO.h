@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,10 +35,12 @@
 #ifndef OPENMS_DATASTRUCTURES_LISTUTILSIO_H
 #define OPENMS_DATASTRUCTURES_LISTUTILSIO_H
 
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <ostream>
 #include <iomanip>
+#include <iterator>
+#include <ostream>
+#include <vector>
 
 // This header collects io relevant parts of ListUtils. Separating the from the
 // rest avoids inclusion of ostream headers in a lot of classes.
@@ -79,6 +81,7 @@ namespace OpenMS
     sl.push_back(string);
     return sl;
   }
+
 }
 
 #endif // #ifndef

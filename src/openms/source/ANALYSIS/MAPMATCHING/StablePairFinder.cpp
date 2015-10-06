@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,13 +39,14 @@
 #include <OpenMS/KERNEL/FeatureHandle.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
 #ifdef Debug_StablePairFinder
 #define V_(bla) std::cout << __FILE__ ":" << __LINE__ << ": " << bla << std::endl;
 #else
 #define V_(bla) {};
 #endif
-#define VV_(bla) V_("" # bla ": " << bla);
+// #define VV_(bla) V_("" # bla ": " << bla);
 
 using namespace std;
 
@@ -58,10 +59,10 @@ namespace OpenMS
     //set the name for DefaultParamHandler error messages
     Base::setName(getProductName());
 
-    defaults_.setValue("second_nearest_gap", 2.0, "The distance to the second nearest neighbors must be larger by this factor than the distance to the matching element itself.");
+    defaults_.setValue("second_nearest_gap", 2.0, "Only link features whose distance to the second nearest neighbors (for both sides) is larger by 'second_nearest_gap' than the distance between the matched pair itself.");
     defaults_.setMinFloat("second_nearest_gap", 1.0);
 
-    defaults_.setValue("use_identifications", "false", "Never link features that are annotated with different peptides (only the best hit per peptide identification is taken into account).");
+    defaults_.setValue("use_identifications", "false", "Never link features that are annotated with different peptides (features without ID's always match; only the best hit per peptide identification is considered).");
     defaults_.setValidStrings("use_identifications", ListUtils::create<String>("true,false"));
 
     defaults_.insert("", FeatureDistance().getDefaults());
@@ -93,7 +94,7 @@ namespace OpenMS
 
     // set up the distance functor:
     double max_intensity = max(input_maps[0].getMaxInt(),
-                                   input_maps[1].getMaxInt());
+                               input_maps[1].getMaxInt());
     Param distance_params = param_.copy("");
     distance_params.remove("use_identifications");
     distance_params.remove("second_nearest_gap");
@@ -124,7 +125,7 @@ namespace OpenMS
     // iterate over all feature pairs, find nearest neighbors:
     // TODO: iterate over SENSIBLE RT (and m/z) window -- sort the maps beforehand
     //       to save a lot of processing time...
-    //       Once done, remove the warning in the description of the 'use_idenfications' parameter 
+    //       Once done, remove the warning in the description of the 'use_identifications' parameter
     for (UInt fi0 = 0; fi0 < input_maps[0].size(); ++fi0)
     {
       const ConsensusFeature& feat0 = input_maps[0][fi0];
@@ -142,7 +143,8 @@ namespace OpenMS
         double distance = result.second;
         // we only care if distance constraints are satisfied for "best
         // matches", not for second-best; this means that second-best distances
-        // can become smaller than best distances!
+        // can become smaller than best distances
+        // (e.g. the RT is larger than allowed (->invalid pair), but m/z is perfect and has the most weight --> better score!)
         bool valid = result.first;
 
         // update entries for map 0:
@@ -155,7 +157,9 @@ namespace OpenMS
             nn_index_0[fi0] = fi1;
           }
           else
+          {
             nn_distance_0[fi0].second = distance;
+          }
         }
         // update entries for map 1:
         if (distance < nn_distance_1[fi1].second)
@@ -167,7 +171,9 @@ namespace OpenMS
             nn_index_1[fi1] = fi0;
           }
           else
+          {
             nn_distance_1[fi1].second = distance;
+          }
         }
       }
     }

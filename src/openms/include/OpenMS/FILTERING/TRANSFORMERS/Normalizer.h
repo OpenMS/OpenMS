@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Mathias Walzer $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
 #ifndef OPENMS_FILTERING_TRANSFORMERS_NORMALIZER_H
@@ -44,11 +44,13 @@
 namespace OpenMS
 {
   /**
-    @brief Normalizer normalizes the peak intensities
+    @brief Normalizes the peak intensities spectrum-wise.
 
-        @htmlinclude OpenMS_Normalizer.parameters
+    Either to a total intensity-sum of one (i.e. to total-ion-count; TIC) or to a maximum intensity of one.
 
-        @ingroup SpectraPreprocessers
+    @htmlinclude OpenMS_Normalizer.parameters
+
+    @ingroup SpectraPreprocessers
   */
   class OPENMS_DLLAPI Normalizer :
     public DefaultParamHandler
@@ -72,43 +74,35 @@ public:
     // @name Accessors
     // @{
 
-    ///
+    /**
+      Workhorse of this class.
+
+      @param spectrum Input/output spectrum containing peaks
+      @throws Exception::InvalidValue if 'method_' has unknown value
+    */
     template <typename SpectrumType>
-    void filterSpectrum(SpectrumType & spectrum)
+    void filterSpectrum(SpectrumType& spectrum) const
     {
+      if (spectrum.empty()) return;
+
       typedef typename SpectrumType::Iterator Iterator;
       typedef typename SpectrumType::ConstIterator ConstIterator;
 
-      method_ = param_.getValue("method");
-
-      // normalizes the max peak to 1 and the rest of the peaks to values relative to max
+      double divisor(0);
+      // find divisor      
       if (method_ == "to_one")
-      {
-        double max(0);
+      { // normalizes the max peak to 1 and the remaining peaks to values relative to max
+        divisor = spectrum.begin()->getIntensity(); // safety measure: if all intensities are negative, divisor would stay 0 (as constructed)
         for (ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it)
         {
-          if (max < it->getIntensity())
-          {
-            max = it->getIntensity();
-          }
-        }
-        for (Iterator it = spectrum.begin(); it != spectrum.end(); ++it)
-        {
-          it->setIntensity(it->getIntensity() / max);
+          if (divisor < it->getIntensity()) divisor = it->getIntensity();
         }
       }
-      // normalizes the peak intensities to the TIC
       else if (method_ == "to_TIC")
-      {
-        double sum(0);
+      { // normalizes the peak intensities to the TIC
         for (ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it)
         {
-          sum += it->getIntensity();
-        }
-
-        for (Iterator it = spectrum.begin(); it != spectrum.end(); ++it)
-        {
-          it->setIntensity(it->getIntensity() / sum);
+          divisor += it->getIntensity();
         }
       }
       // method unknown
@@ -116,22 +110,28 @@ public:
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Method not known", method_);
       }
+
+      // normalize
+      for (Iterator it = spectrum.begin(); it != spectrum.end(); ++it)
+      {
+        it->setIntensity(it->getIntensity() / divisor);
+      }
+
       return;
 
     }
 
     ///
-    void filterPeakSpectrum(PeakSpectrum & spectrum);
+    void filterPeakSpectrum(PeakSpectrum & spectrum) const;
     ///
-    void filterPeakMap(PeakMap & exp);
+    void filterPeakMap(PeakMap & exp) const;
 
-    //TODO reimplement DefaultParamHandler::updateMembers_()
+    virtual void updateMembers_();
 
     // @}
 
 private:
     String method_;
-
   };
 
 

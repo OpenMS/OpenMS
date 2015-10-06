@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,6 +36,10 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
+#include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+
 #include <set>
 #include <string>
 #include <iostream>
@@ -46,10 +50,6 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <boost/lexical_cast.hpp>
-
-#include <OpenMS/CHEMISTRY/Residue.h>
-#include <OpenMS/CHEMISTRY/ResidueModification.h>
-#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 using namespace std;
 using namespace xercesc;
@@ -76,7 +76,7 @@ namespace OpenMS
 
       try
       {
-        XMLPlatformUtils::Initialize();   // Initialize Xerces infrastructure
+        XMLPlatformUtils::Initialize(); // Initialize Xerces infrastructure
       }
       catch (XMLException& e)
       {
@@ -109,7 +109,7 @@ namespace OpenMS
 
       try
       {
-        XMLPlatformUtils::Initialize();   // Initialize Xerces infrastructure
+        XMLPlatformUtils::Initialize(); // Initialize Xerces infrastructure
       }
       catch (XMLException& e)
       {
@@ -148,7 +148,7 @@ namespace OpenMS
       // Terminate Xerces
       try
       {
-        XMLPlatformUtils::Terminate();   // Terminate after release of memory
+        XMLPlatformUtils::Terminate(); // Terminate after release of memory
       }
       catch (xercesc::XMLException& e)
       {
@@ -161,8 +161,7 @@ namespace OpenMS
     /*
      * reads a mzid file into handlers pro_id_ & pep_id_ members
      */
-    void MzIdentMLDOMHandler::readMzIdentMLFile(const string& mzid_file)
-    throw(runtime_error)
+    void MzIdentMLDOMHandler::readMzIdentMLFile(const std::string& mzid_file)
     {
       // Test to see if the file is ok.
       struct stat fileStatus;
@@ -170,7 +169,7 @@ namespace OpenMS
       errno = 0;
       if (stat(mzid_file.c_str(), &fileStatus) == -1) // ==0 ok; ==-1 error
       {
-        if (errno == ENOENT)          // errno declared by include file errno.h
+        if (errno == ENOENT) // errno declared by include file errno.h
           throw (runtime_error("Path file_name does not exist, or path is an empty string."));
         else if (errno == ENOTDIR)
           throw (runtime_error("A component of the path is not a directory."));
@@ -179,7 +178,7 @@ namespace OpenMS
         else if (errno == EACCES)
           throw (runtime_error("Permission denied."));
         else if (errno == ENAMETOOLONG)
-          throw (runtime_error("File can not be read\n"));
+          throw (runtime_error("File can not be read."));
       }
 
       // Configure DOM parser.
@@ -268,8 +267,7 @@ namespace OpenMS
       }
     }
 
-    void MzIdentMLDOMHandler::writeMzIdentMLFile(const string& mzid_file)
-    throw(runtime_error)
+    void MzIdentMLDOMHandler::writeMzIdentMLFile(const std::string& mzid_file)
     {
       DOMImplementation* impl =  DOMImplementationRegistry::getDOMImplementation(XMLString::transcode("XML 1.0")); //XML 3?!
       if (impl != NULL)
@@ -278,8 +276,8 @@ namespace OpenMS
         {
           xercesc::DOMDocument* xmlDoc = impl->createDocument(
             XMLString::transcode("http://psidev.info/psi/pi/mzIdentML/1.1"),
-            XMLString::transcode("MzIdentML"),             // root element name
-            0);                       // document type object (DTD).
+            XMLString::transcode("MzIdentML"), // root element name
+            0); // document type object (DTD).
 
           DOMElement* rootElem = xmlDoc->getDocumentElement();
           rootElem->setAttribute(XMLString::transcode("version"),
@@ -290,7 +288,7 @@ namespace OpenMS
                                  XMLString::transcode(String(DateTime::now().getDate() + "T" + DateTime::now().getTime()).c_str()));
 
           // * cvList *
-          DOMElement* cvl_p = xmlDoc->createElement(XMLString::transcode("cvList"));     // TODO add generically
+          DOMElement* cvl_p = xmlDoc->createElement(XMLString::transcode("cvList")); // TODO add generically
           buildCvList_(cvl_p);
           rootElem->appendChild(cvl_p);
 
@@ -314,7 +312,7 @@ namespace OpenMS
 
           for (vector<ProteinIdentification>::const_iterator pi = cpro_id_->begin(); pi != cpro_id_->end(); ++pi)
           {
-            String dbref = pi->getSearchParameters().db +  pi->getSearchParameters().db_version + pi->getSearchParameters().taxonomy;       //TODO @mths : this needs to be more unique, btw add tax etc. as cv to DBSequence
+            String dbref = pi->getSearchParameters().db +  pi->getSearchParameters().db_version + pi->getSearchParameters().taxonomy; //TODO @mths : this needs to be more unique, btw add tax etc. as cv to DBSequence
             for (vector<ProteinHit>::const_iterator ph = pi->getHits().begin(); ph != pi->getHits().end(); ++ph)
             {
               CVTermList cvs;
@@ -336,7 +334,7 @@ namespace OpenMS
                 pepevs.push_back(pepevref);
                 bool idec = (String(ph->getMetaValue("target_decoy"))).hasSubstring("decoy");
                 PeptideEvidence temp_struct = {pev->getStart(), pev->getEnd(), pev->getAABefore(), pev->getAAAfter(), idec}; //TODO @ mths : completely switch to PeptideEvidence
-                pe_ev_map_.insert(make_pair(pepevref, temp_struct));           // TODO @ mths : double check start & end & chars for before & after
+                pe_ev_map_.insert(make_pair(pepevref, temp_struct)); // TODO @ mths : double check start & end & chars for before & after
               }
               hit_pev_.push_back(pepevs);
 
@@ -456,23 +454,23 @@ namespace OpenMS
             current_cv->getNodeType() == DOMNode::ELEMENT_NODE) // is element - possibly not necessary after getElementsByTagName
         {
           DOMElement* element_param = dynamic_cast<xercesc::DOMElement*>(current_cv);
-          if ((string)XMLString::transcode(element_param->getTagName()) == "cvParam")
+          if ((std::string)XMLString::transcode(element_param->getTagName()) == "cvParam")
           {
             ret_cv.addCVTerm(parseCvParam_(element_param));
           }
-          else if ((string)XMLString::transcode(element_param->getTagName()) == "userParam")
+          else if ((std::string)XMLString::transcode(element_param->getTagName()) == "userParam")
           {
             ret_up.insert(parseUserParam_(element_param));
           }
-          else if ((string)XMLString::transcode(element_param->getTagName()) == "PeptideEvidence"
-                  || (string)XMLString::transcode(element_param->getTagName()) == "PeptideEvidenceRef"
-                  || (string)XMLString::transcode(element_param->getTagName()) == "SpectrumIdentificationItem")
+          else if ((std::string)XMLString::transcode(element_param->getTagName()) == "PeptideEvidence"
+                  || (std::string)XMLString::transcode(element_param->getTagName()) == "PeptideEvidenceRef"
+                  || (std::string)XMLString::transcode(element_param->getTagName()) == "SpectrumIdentificationItem")
           {
             //here it's okay to do nothing
           }
           else
           {
-            LOG_WARN << "Misplaced elements ignored in 'ParamGroup' in " << (string)XMLString::transcode(element_param->getTagName()) << endl;
+            LOG_WARN << "Misplaced elements ignored in 'ParamGroup' in " << (std::string)XMLString::transcode(element_param->getTagName()) << endl;
           }
         }
       }
@@ -568,7 +566,7 @@ namespace OpenMS
           String swname, swversion;
           while (child)
           {
-            if ((string)XMLString::transcode(child->getTagName()) == "SoftwareName") //must have exactly one SoftwareName
+            if ((std::string)XMLString::transcode(child->getTagName()) == "SoftwareName") //must have exactly one SoftwareName
             {
               DOMNodeList* element_pg = child->getChildNodes();
 
@@ -599,7 +597,6 @@ namespace OpenMS
                   else
                   {
                     swname = up->first;
-                    break;
                   }
                 }
               }
@@ -641,11 +638,11 @@ namespace OpenMS
           DOMElement* child = element_dbs->getFirstElementChild();
           while (child)
           {
-            if ((string)XMLString::transcode(child->getTagName()) == "Seq")
+            if ((std::string)XMLString::transcode(child->getTagName()) == "Seq")
             {
-              seq = (string)XMLString::transcode(child->getTextContent());
+              seq = (std::string)XMLString::transcode(child->getTextContent());
             }
-            else if ((string)XMLString::transcode(child->getTagName()) == "cvParam")
+            else if ((std::string)XMLString::transcode(child->getTagName()) == "cvParam")
             {
               cvs.addCVTerm(parseCvParam_(child));
             }
@@ -776,11 +773,11 @@ namespace OpenMS
           DOMElement* child = element_si->getFirstElementChild();
           while (child)
           {
-            if ((string)XMLString::transcode(child->getTagName()) == "InputSpectra")
+            if ((std::string)XMLString::transcode(child->getTagName()) == "InputSpectra")
             {
               spectra_data_ref = XMLString::transcode(child->getAttribute(XMLString::transcode("spectraData_ref")));
             }
-            else if ((string)XMLString::transcode(child->getTagName()) == "SearchDatabaseRef")
+            else if ((std::string)XMLString::transcode(child->getTagName()) == "SearchDatabaseRef")
             {
               searchDatabase_ref = XMLString::transcode(child->getAttribute(XMLString::transcode("searchDatabase_ref")));
             }
@@ -839,16 +836,16 @@ namespace OpenMS
           DOMElement* child = element_sip->getFirstElementChild();
           while (child)
           {
-            if ((string)XMLString::transcode(child->getTagName()) == "SearchType")
+            if ((std::string)XMLString::transcode(child->getTagName()) == "SearchType")
             {
               searchtype = parseCvParam_(child->getFirstElementChild());
             }
-            else if ((string)XMLString::transcode(child->getTagName()) == "AdditionalSearchParams")
+            else if ((std::string)XMLString::transcode(child->getTagName()) == "AdditionalSearchParams")
             {
               pair<CVTermList, map<String, DataValue> > as_params = parseParamGroup_(child->getChildNodes());
               sp = findSearchParameters_(as_params); // this must be renamed!!
             }
-            else if ((string)XMLString::transcode(child->getTagName()) == "ModificationParams") // TODO @all where to store the specificities?
+            else if ((std::string)XMLString::transcode(child->getTagName()) == "ModificationParams") // TODO @all where to store the specificities?
             {
               vector<String> fix, var;
               DOMElement* sm = child->getFirstElementChild();
@@ -878,7 +875,7 @@ namespace OpenMS
                 DOMElement* sub = sm->getFirstElementChild();
                 while (sub)
                 {
-                  if ((string)XMLString::transcode(sub->getTagName()) == "cvParam")
+                  if ((std::string)XMLString::transcode(sub->getTagName()) == "cvParam")
                   {
                     String mname = XMLString::transcode(sub->getAttribute(XMLString::transcode("name")));
 //                    ResidueModification m = ModificationsDB::getInstance()->getModification(mname);
@@ -898,7 +895,7 @@ namespace OpenMS
                       var.push_back(mod);
                     }
                   }
-                  else if ((string)XMLString::transcode(sub->getTagName()) == "SpecificityRules")
+                  else if ((std::string)XMLString::transcode(sub->getTagName()) == "SpecificityRules")
                   {
                     specificity_rules.consumeCVTerms(parseParamGroup_(sub->getChildNodes()).first.getCVTerms());
                     // this is further ignored for now - nowhere to store
@@ -914,7 +911,7 @@ namespace OpenMS
               sp.fixed_modifications = fix;
               sp.variable_modifications = var;
             }
-            else if ((string)XMLString::transcode(child->getTagName()) == "Enzymes") // TODO @all : where store multiple enzymes for one identificationrun?
+            else if ((std::string)XMLString::transcode(child->getTagName()) == "Enzymes") // TODO @all : where store multiple enzymes for one identificationrun?
             {
               DOMElement* enzyme = child->getFirstElementChild(); //Enzyme elements
               while (enzyme)
@@ -922,7 +919,7 @@ namespace OpenMS
                 int missedCleavages = -1;
                 try
                 {
-                  missedCleavages = boost::lexical_cast<int>(string(XMLString::transcode(enzyme->getAttribute(XMLString::transcode("missedCleavages")))));
+                  missedCleavages = boost::lexical_cast<int>(std::string(XMLString::transcode(enzyme->getAttribute(XMLString::transcode("missedCleavages")))));
                 }
                 catch (exception& e)
                 {
@@ -947,7 +944,7 @@ namespace OpenMS
                 while (sub)
                 {
                   //SiteRegex unstorable just now
-                  if ((string)XMLString::transcode(sub->getTagName()) == "EnzymeName")
+                  if ((std::string)XMLString::transcode(sub->getTagName()) == "EnzymeName")
                   {
                     set<String> enzymes_terms;
                     cv_.getAllChildTerms(enzymes_terms, "MS:1001045"); // cleavage agent name
@@ -989,7 +986,7 @@ namespace OpenMS
                 enzyme = enzyme->getNextElementSibling();
               }
             }
-            else if ((string)XMLString::transcode(child->getTagName()) == "FragmentTolerance")
+            else if ((std::string)XMLString::transcode(child->getTagName()) == "FragmentTolerance")
             {
               pair<CVTermList, map<String, DataValue> > params = parseParamGroup_(child->getChildNodes());
               //+- take the numerically greater
@@ -999,7 +996,7 @@ namespace OpenMS
                 sp.peak_mass_tolerance = f_tol;
               }
             }
-            else if ((string)XMLString::transcode(child->getTagName()) == "ParentTolerance")
+            else if ((std::string)XMLString::transcode(child->getTagName()) == "ParentTolerance")
             {
               pair<CVTermList, map<String, DataValue> > params = parseParamGroup_(child->getChildNodes());
               //+- take the numerically greater
@@ -1009,7 +1006,7 @@ namespace OpenMS
                 sp.precursor_tolerance = p_tol;
               }
             }
-            else if ((string)XMLString::transcode(child->getTagName()) == "Threshold")
+            else if ((std::string)XMLString::transcode(child->getTagName()) == "Threshold")
             {
               pair<CVTermList, map<String, DataValue> > params = parseParamGroup_(child->getChildNodes());
               tcv = params.first;
@@ -1061,18 +1058,18 @@ namespace OpenMS
           String id = XMLString::transcode(element_in->getAttribute(XMLString::transcode("id")));
           String location = XMLString::transcode(element_in->getAttribute(XMLString::transcode("location")));
 
-          if ((string)XMLString::transcode(element_in->getTagName()) == "SpectraData")
+          if ((std::string)XMLString::transcode(element_in->getTagName()) == "SpectraData")
           {
             //      <FileFormat> omitted for now, not reflectable by our member structures
             //      <SpectrumIDFormat> omitted for now, not reflectable by our member structures
             sd_map_.insert(make_pair(id, location));
           }
-          else if ((string)XMLString::transcode(element_in->getTagName()) == "SourceFile")
+          else if ((std::string)XMLString::transcode(element_in->getTagName()) == "SourceFile")
           {
             //      <FileFormat> omitted for now, not reflectable by our member structures
             sr_map_.insert(make_pair(id, location));
           }
-          else if ((string)XMLString::transcode(element_in->getTagName()) == "SearchDatabase")
+          else if ((std::string)XMLString::transcode(element_in->getTagName()) == "SearchDatabase")
           {
             //      <FileFormat> omitted for now, not reflectable by our member structures
             DateTime releaseDate;
@@ -1081,12 +1078,12 @@ namespace OpenMS
             //assumed that <DatabaseName> is the first child, following cv omitted for now
             String dbname = "";
             DOMElement* pren = element_in->getFirstElementChild();
-            if ((string)XMLString::transcode(pren->getTagName()) == "userParam")
+            if ((std::string)XMLString::transcode(pren->getTagName()) == "userParam")
             {
               CVTerm param = parseCvParam_(pren->getFirstElementChild());
               dbname = param.getValue();
             }
-            else if ((string)XMLString::transcode(pren->getTagName()) == "cvParam")
+            else if ((std::string)XMLString::transcode(pren->getTagName()) == "cvParam")
             {
               pair<String, DataValue> param = parseUserParam_(pren->getFirstElementChild());
               dbname = param.second.toString();
@@ -1117,7 +1114,7 @@ namespace OpenMS
           DOMElement* element_res = element_lis->getFirstElementChild();
           while (element_res)
           {
-            if ((string)XMLString::transcode(element_res->getTagName()) == "SpectrumIdentificationResult")
+            if ((std::string)XMLString::transcode(element_res->getTagName()) == "SpectrumIdentificationResult")
             {
               String spectra_data_ref = XMLString::transcode(element_res->getAttribute(XMLString::transcode("spectraData_ref"))); //ref to the sourcefile, could be useful but now nowhere to store
               String spectrumID = XMLString::transcode(element_res->getAttribute(XMLString::transcode("spectrumID")));
@@ -1133,7 +1130,7 @@ namespace OpenMS
               DOMElement* child = element_res->getFirstElementChild();
               while (child)
               {
-                if ((string)XMLString::transcode(child->getTagName()) == "SpectrumIdentificationItem")
+                if ((std::string)XMLString::transcode(child->getTagName()) == "SpectrumIdentificationItem")
                 {
                   parseSpectrumIdentificationItemElement_(child, pep_id_->back(), sil);
                 }
@@ -1153,11 +1150,11 @@ namespace OpenMS
               {
                 if (cvit->first == "MS:1000894") //TODO use subordinate terms which define units
                 {
-                  pep_id_->back().setRT(boost::lexical_cast<double>(cvit->second.front().getValue()));   // TODO convert if unit is minutes
+                  pep_id_->back().setRT(boost::lexical_cast<double>(cvit->second.front().getValue())); // TODO convert if unit is minutes
                 }
                 else
                 {
-                  pep_id_->back().setMetaValue(cvit->first, cvit->second.front().getValue());  // TODO? all DataValues - are there more then one, my guess is this is overdesigned
+                  pep_id_->back().setMetaValue(cvit->first, cvit->second.front().getValue()); // TODO? all DataValues - are there more then one, my guess is this is overdesigned
                 }
               }
               //adopt up s
@@ -1231,26 +1228,26 @@ namespace OpenMS
       {
         if (q_score_terms.find(scoreit->first) != q_score_terms.end() || scoreit->first == "MS:1002354")
         {
-          if (scoreit->first != "MS:1002055")   // do not use peptide-level q-values for now
+          if (scoreit->first != "MS:1002055") // do not use peptide-level q-values for now
           {
-            score = scoreit->second.front().getValue().toString().toDouble();   // cast fix needed as DataValue is init with XercesString
+            score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
             spectrum_identification.setHigherScoreBetter(false);
-            spectrum_identification.setScoreType("q-value");   //higherIsBetter = false
+            spectrum_identification.setScoreType("q-value"); //higherIsBetter = false
             scoretype = true;
             break;
           }
         }
         else if (e_score_terms.find(scoreit->first) != e_score_terms.end())
         {
-          score = scoreit->second.front().getValue().toString().toDouble();     // cast fix needed as DataValue is init with XercesString
+          score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
           spectrum_identification.setHigherScoreBetter(false);
-          spectrum_identification.setScoreType("E-value");     //higherIsBetter = false
+          spectrum_identification.setScoreType("E-value"); //higherIsBetter = false
           scoretype = true;
           break;
         }
         else if (specific_score_terms.find(scoreit->first) != specific_score_terms.end() || scoreit->first == "MS:1001143")
         {
-          score = scoreit->second.front().getValue().toString().toDouble();     // cast fix needed as DataValue is init with XercesString
+          score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
           spectrum_identification.setHigherScoreBetter(true);
           spectrum_identification.setScoreType(scoreit->second.front().getName());
           scoretype = true;
@@ -1272,7 +1269,7 @@ namespace OpenMS
           hit.setMetaValue(up->first, up->second);
         }
         hit.setMetaValue("calcMZ", calculatedMassToCharge);
-        spectrum_identification.setMZ(experimentalMassToCharge);   // TODO @ mths: why is this not in SpectrumIdentificationResult? exp. m/z for one spec should not change from one id for it to the next!
+        spectrum_identification.setMZ(experimentalMassToCharge); // TODO @ mths: why is this not in SpectrumIdentificationResult? exp. m/z for one spec should not change from one id for it to the next!
 
         //connect the PeptideHit with PeptideEvidences (for AABefore/After) and subsequently with DBSequence (for ProteinAccession)
         pair<multimap<String, String>::iterator, multimap<String, String>::iterator> pev_its;
@@ -1282,7 +1279,7 @@ namespace OpenMS
           bool idec = false;
           OpenMS::PeptideEvidence pev;
           if (pe_ev_map_.find(pev_it->second) != pe_ev_map_.end())
-          {            
+          {
             MzIdentMLDOMHandler::PeptideEvidence& pv = pe_ev_map_[pev_it->second];
             pev.setAABefore(pv.pre);
             pev.setAAAfter(pv.post);
@@ -1366,7 +1363,7 @@ namespace OpenMS
         //      DOMElement* child = spectrumIdentificationItemElement->getFirstElementChild();
         //      while ( child )
         //      {
-        //        if ((string)XMLString::transcode(child->getTagName()) == "PeptideEvidenceRef")
+        //        if ((std::string)XMLString::transcode(child->getTagName()) == "PeptideEvidenceRef")
         //        {
         //          ref = XMLString::transcode(element_si->getAttribute(XMLString::transcode("peptideEvidence_ref")));
         //          //...
@@ -1411,7 +1408,7 @@ namespace OpenMS
           DOMElement* child = element_pr->getFirstElementChild();
           while (child)
           {
-            if ((string)XMLString::transcode(child->getTagName()) == "ProteinAmbiguityGroup")
+            if ((std::string)XMLString::transcode(child->getTagName()) == "ProteinAmbiguityGroup")
             {
               parseProteinAmbiguityGroupElement_(child, pro_id_->back());
             }
@@ -1431,7 +1428,7 @@ namespace OpenMS
       DOMElement* child = proteinAmbiguityGroupElement->getFirstElementChild();
       while (child)
       {
-        if ((string)XMLString::transcode(child->getTagName()) == "ProteinDetectionHypothesis")
+        if ((std::string)XMLString::transcode(child->getTagName()) == "ProteinDetectionHypothesis")
         {
           parseProteinDetectionHypothesisElement_(child, protein_identification);
         }
@@ -1466,7 +1463,7 @@ namespace OpenMS
             current_sib->getNodeType() == DOMNode::ELEMENT_NODE)
         {
           DOMElement* element_sib = dynamic_cast<xercesc::DOMElement*>(current_sib);
-          if ((string)XMLString::transcode(element_sib->getTagName()) == "PeptideSequence")
+          if ((std::string)XMLString::transcode(element_sib->getTagName()) == "PeptideSequence")
           {
             DOMNode* tn = element_sib->getFirstChild();
             if (tn->getNodeType() == DOMNode::TEXT_NODE)
@@ -1490,12 +1487,12 @@ namespace OpenMS
             current_sib->getNodeType() == DOMNode::ELEMENT_NODE)
         {
           DOMElement* element_sib = dynamic_cast<xercesc::DOMElement*>(current_sib);
-          if ((string)XMLString::transcode(element_sib->getTagName()) == "SubstitutionModification")
+          if ((std::string)XMLString::transcode(element_sib->getTagName()) == "SubstitutionModification")
           {
 
             String location = XMLString::transcode(element_sib->getAttribute(XMLString::transcode("location")));
-            char originalResidue = string(XMLString::transcode(element_sib->getAttribute(XMLString::transcode("originalResidue"))))[0];
-            char replacementResidue = string(XMLString::transcode(element_sib->getAttribute(XMLString::transcode("replacementResidue"))))[0];
+            char originalResidue = std::string(XMLString::transcode(element_sib->getAttribute(XMLString::transcode("originalResidue"))))[0];
+            char replacementResidue = std::string(XMLString::transcode(element_sib->getAttribute(XMLString::transcode("replacementResidue"))))[0];
 
             if (!location.empty())
             {
@@ -1521,7 +1518,7 @@ namespace OpenMS
             current_sib->getNodeType() == DOMNode::ELEMENT_NODE)
         {
           DOMElement* element_sib = dynamic_cast<xercesc::DOMElement*>(current_sib);
-          if ((string)XMLString::transcode(element_sib->getTagName()) == "Modification")
+          if ((std::string)XMLString::transcode(element_sib->getTagName()) == "Modification")
           {
             int index = -1;
             try
@@ -1558,7 +1555,7 @@ namespace OpenMS
                 {
                   aas.setModification(index - 1, cv.getName()); //TODO @mths,Timo : do this via UNIMOD accessions
                 }
-                catch (int e)
+                catch (...)
                 {
                   LOG_WARN << "Found unusable modification" << " @residue: " << aas.getResidue((SignedSize)index).getName() << String(index) << " mod: " << cv.getName() << endl;
                 }
@@ -1610,7 +1607,7 @@ namespace OpenMS
       DOMElement* current_cv = current_sw->getOwnerDocument()->createElement(XMLString::transcode("cvParam"));
       current_cv->setAttribute(XMLString::transcode("name"), XMLString::transcode("search_engine_"));
       current_cv->setAttribute(XMLString::transcode("cvRef"), XMLString::transcode("PSI-MS"));
-        
+
       //TODO this needs error handling
       current_cv->setAttribute(XMLString::transcode("accession"), XMLString::transcode(cv_.getTermByName("search_engine_").id.c_str()));
       current_sw->appendChild(current_cv);

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -166,6 +166,7 @@ protected:
     ItraqChannelExtractor itraq_ce(itraq_type, extract_param);
 
     ConsensusMap consensus_map_raw, consensus_map_quant;
+    consensus_map_quant.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
     // extract raw signals
     itraq_ce.run(exp, consensus_map_raw);
 

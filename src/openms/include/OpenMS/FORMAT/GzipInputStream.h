@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,9 +43,10 @@
 namespace OpenMS
 {
   class String;
-  /**
-      @brief Implements the BinInputStream class of the xerces-c library in order to read gzip compressed XML files.
 
+  /**
+    * @brief Implements the BinInputStream class of the xerces-c library in order to read gzip compressed XML files.
+    * 
   */
   class OPENMS_DLLAPI GzipInputStream :
     public xercesc::BinInputStream
@@ -56,31 +57,41 @@ public:
 
     explicit GzipInputStream(const char* const file_name);
 
-
     ///Destructor
     virtual ~GzipInputStream();
+
     ///returns true if file is open
     bool getIsOpen() const;
+
     /**
-    @brief returns the current position in the file
-    @note Implementation of the xerces-c input stream interface
+      * @brief returns the current position in the file
+      *
+      * @note Implementation of the xerces-c input stream interface
     */
     virtual XMLFilePos curPos() const;
 
     /**
-        @brief writes bytes into buffer from file
-        @note Implementation of the xerces-c input stream interface
-
-        @param to_fill is the buffer which is written to
-        @param max_to_read is the size of the buffer
-
-        @return returns the number of bytes which were actually read
-
+      * @brief writes bytes into buffer from file
+      *
+      * @note Implementation of the xerces-c input stream interface
+      *
+      * @param to_fill is the buffer which is written to
+      * @param max_to_read is the size of the buffer
+      *
+      * @return returns the number of bytes which were actually read
+      *
     */
     virtual XMLSize_t readBytes(XMLByte* const  to_fill, const XMLSize_t max_to_read);
+
     /**
-        @brief returns 0
-    @note Implementation of the xerces-c input stream interface
+      * @brief returns 0
+      *
+      * @note Implementation of the xerces-c input stream interface
+      *
+      * If no content type is provided for the data, 0 is returned (as is the
+      * case here, see xerces docs).
+      *
+      *
     */
     virtual const XMLCh* getContentType() const;
 

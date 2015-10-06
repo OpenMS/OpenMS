@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -75,11 +75,21 @@ START_SECTION((MascotXMLFile()))
   TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
-START_SECTION((void load(const String &filename, ProteinIdentification &protein_identification, std::vector< PeptideIdentification > &id_data)))
+START_SECTION((static void initializeLookup(SpectrumMetaDataLookup& lookup, MSExperiment<>& experiment, const String& scan_regex = "")))
 {
+  MSExperiment<> exp;
+  exp.getSpectra().resize(1);
+  SpectrumMetaDataLookup lookup;
+  xml_file.initializeLookup(lookup, exp);
+  TEST_EQUAL(lookup.empty(), false);
+}
+END_SECTION
+
+START_SECTION((void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data, SpectrumMetaDataLookup& lookup)))
+{
+  SpectrumMetaDataLookup lookup;
   xml_file.load(OPENMS_GET_TEST_DATA_PATH("MascotXMLFile_test_1.mascotXML"),
-              protein_identification,
-              peptide_identifications);
+                protein_identification, peptide_identifications, lookup);
 
   {
     ProteinIdentification::SearchParameters search_parameters = protein_identification.getSearchParameters();
@@ -156,8 +166,7 @@ START_SECTION((void load(const String &filename, ProteinIdentification &protein_
 
   /// for new MascotXML 2.1 as used by Mascot Server 2.3
   xml_file.load(OPENMS_GET_TEST_DATA_PATH("MascotXMLFile_test_2.mascotXML"),
-              protein_identification,
-              peptide_identifications);
+                protein_identification, peptide_identifications, lookup);
   {
     ProteinIdentification::SearchParameters search_parameters = protein_identification.getSearchParameters();
     TEST_EQUAL(search_parameters.missed_cleavages, 7);
@@ -229,8 +238,7 @@ START_SECTION((void load(const String &filename, ProteinIdentification &protein_
   }
 
   xml_file.load(OPENMS_GET_TEST_DATA_PATH("MascotXMLFile_test_3.mascotXML"),
-    protein_identification,
-    peptide_identifications);
+                protein_identification, peptide_identifications, lookup);
   {
     std::vector<ProteinIdentification> pids;
     pids.push_back(protein_identification);
@@ -246,7 +254,7 @@ START_SECTION((void load(const String &filename, ProteinIdentification &protein_
 }
 END_SECTION
 
-START_SECTION((void load(const String &filename, ProteinIdentification &protein_identification, std::vector< PeptideIdentification > &id_data, std::map< String, std::vector< AASequence > > &peptides)))
+START_SECTION((void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data, std::map<String, std::vector<AASequence> >& peptides, SpectrumMetaDataLookup& lookup)))
   std::map<String, vector<AASequence> > modified_peptides;
   AASequence aa_sequence_1;
   AASequence aa_sequence_2;
@@ -266,10 +274,10 @@ START_SECTION((void load(const String &filename, ProteinIdentification &protein_
   temp.push_back(aa_sequence_3);
   modified_peptides.insert(make_pair("135.29", temp));
 
+  SpectrumMetaDataLookup lookup;
   xml_file.load(OPENMS_GET_TEST_DATA_PATH("MascotXMLFile_test_1.mascotXML"),
-                protein_identification,
-                peptide_identifications,
-                modified_peptides);
+                protein_identification, peptide_identifications, 
+                modified_peptides, lookup);
 
   TEST_EQUAL(peptide_identifications.size(), 3)
   TOLERANCE_ABSOLUTE(0.0001)

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -158,7 +158,7 @@ START_SECTION((void encodeLibSVMVectors(const std::vector< std::vector< std::pai
 	TEST_EQUAL(nodes[1].index, 2)
 	TEST_REAL_SIMILAR(nodes[1].value, 0.5)
 	TEST_EQUAL(nodes[2].index, -1)
-	delete nodes;
+	delete[] nodes;
 	
 END_SECTION
 
@@ -224,7 +224,8 @@ START_SECTION((svm_problem* encodeLibSVMProblem(const std::vector< svm_node * > 
 	TEST_EQUAL(nodes[1].index, 2)
 	TEST_REAL_SIMILAR(nodes[1].value, 0.5)
 	TEST_EQUAL(nodes[2].index, -1)
-	delete nodes;
+	delete[] problem->x;
+	delete[] problem->y;
 	delete problem;
 
 END_SECTION
@@ -266,7 +267,8 @@ START_SECTION((svm_problem* encodeLibSVMProblemWithCompositionAndLengthVectors(c
 	TEST_EQUAL(nodes[2].index, 6)
 	TEST_REAL_SIMILAR(nodes[2].value, 0.4)
 	TEST_EQUAL(nodes[3].index, -1)
-	delete nodes;
+	delete[] problem->x;
+	delete[] problem->y;
 	delete problem;
 END_SECTION
 
@@ -311,7 +313,8 @@ START_SECTION((svm_problem* encodeLibSVMProblemWithCompositionLengthAndWeightVec
 	TEST_EQUAL(nodes[3].index, 7)
 	TEST_REAL_SIMILAR(nodes[3].value, 366.45688)
 	TEST_EQUAL(nodes[4].index, -1)
-	delete nodes;
+	delete[] problem->x;
+	delete[] problem->y;
 	delete problem;
 END_SECTION
 
@@ -348,6 +351,8 @@ START_SECTION((svm_problem* encodeLibSVMProblemWithCompositionVectors(const std:
 	TEST_EQUAL(nodes[1].index, 2)
 	TEST_REAL_SIMILAR(nodes[1].value, 0.5)
 	TEST_EQUAL(nodes[2].index, -1)
+	delete[] problem->x;
+	delete[] problem->y;
 	delete problem;
 END_SECTION
 

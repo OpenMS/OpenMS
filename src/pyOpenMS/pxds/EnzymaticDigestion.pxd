@@ -12,18 +12,13 @@ cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestion.h>" namespace "OpenMS":
       SignedSize getMissedCleavages() nogil except +
       void setMissedCleavages(SignedSize missed_cleavages) nogil except +
 
-      Enzyme getEnzyme()  nogil except +
-      void setEnzyme(Enzyme enzyme) nogil except +
-      Enzyme getEnzymeByName(String & name) nogil except +
+      # not wrapped due to name clash with Enzyme.h
+      # Enzyme getEnzyme()  nogil except +
+      # void setEnzyme(Enzyme enzyme) nogil except +
+      # Enzyme getEnzymeByName(String & name) nogil except +
 
       void digest(AASequence & protein, libcpp_vector[AASequence] & output) nogil except +
       Size peptideCount(AASequence & protein) nogil except +
-
-      bool isLogModelEnabled() nogil except +
-      void setLogModelEnabled(bool enabled) nogil except +
-
-      double getLogThreshold() nogil except +
-      void setLogThreshold(double threshold) nogil except +
 
       # Returns the specificity for the digestion
       Specificity getSpecificity() nogil except +
@@ -49,11 +44,12 @@ cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestion.h>" namespace "OpenMS::En
     #   double p_cleave
     #   double p_miss
 
-    cdef enum Enzyme:
-        # wrap-attach:
-        #    EnzymaticDigestion
-        TRYPSIN,
-        SIZE_OF_TRYPSIN
+    # not wrapped due to name clash with Enzyme.h
+    #cdef enum Enzyme:
+    #    # wrap-attach:
+    #    #    EnzymaticDigestion
+    #    TRYPSIN,
+    #    SIZE_OF_TRYPSIN
 
     cdef enum Specificity:
         # wrap-attach:

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -126,12 +126,18 @@ namespace OpenMS
     if (bz[0] == 'B' && bz[1] == 'Z') // bzip2
     {
       Bzip2Ifstream bzip2_file(filename.c_str());
+
+      // read in 1024 bytes (keep last byte for zero to end string)
       char buffer[1024];
-      bzip2_file.read(buffer, 1024);
+      size_t bytes_read = bzip2_file.read(buffer, 1024-1);
+      buffer[bytes_read] = '\0';
+
+      // get first five lines
       String buffer_str(buffer);
       vector<String> split;
       buffer_str.split('\n', split);
       split.resize(5);
+
       first_line = split[0];
       two_five = split[1] + ' ' + split[2] + ' ' + split[3] + ' ' + split[4];
       all_simple = first_line + ' ' + two_five;
@@ -140,12 +146,18 @@ namespace OpenMS
     else if (bz[0] == g1 && bz[1] == g2) // gzip
     {
       GzipIfstream gzip_file(filename.c_str());
+
+      // read in 1024 bytes (keep last byte for zero to end string)
       char buffer[1024];
-      gzip_file.read(buffer, 1024);
+      size_t bytes_read = gzip_file.read(buffer, 1024-1);
+      buffer[bytes_read] = '\0';
+
+      // get first five lines
       String buffer_str(buffer);
       vector<String> split;
       buffer_str.split('\n', split);
       split.resize(5);
+
       first_line = split[0];
       two_five = split[1] + ' ' + split[2] + ' ' + split[3] + ' ' + split[4];
       all_simple = first_line + ' ' + two_five;
@@ -402,6 +414,12 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     if (first_line.hasSubstring("File\tFirst Scan\tLast Scan\tNum of Scans\tCharge\tMonoisotopic Mass\tBase Isotope Peak\tBest Intensity\tSummed Intensity\tFirst RTime\tLast RTime\tBest RTime\tBest Correlation\tModifications"))
     {
       return FileTypes::KROENIK;
+    }
+
+    // Percolator tab-delimited output (PSM level, .psms)
+    if (first_line.hasPrefix("PSMId\tscore\tq-value\tposterior_error_prob\tpeptide\tproteinIds"))
+    {
+      return FileTypes::PSMS;
     }
 
     // EDTA file

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,8 @@
 
 #include <OpenMS/METADATA/SpectrumSettings.h>
 
+#include <OpenMS/CONCEPT/Helpers.h>
+#include <boost/iterator/indirect_iterator.hpp> // for equality
 
 using namespace std;
 
@@ -108,7 +110,11 @@ namespace OpenMS
            precursors_ == rhs.precursors_ &&
            products_ == rhs.products_ &&
            identification_ == rhs.identification_ &&
-           data_processing_ == rhs.data_processing_;
+           ( data_processing_.size() == rhs.data_processing_.size() &&
+           std::equal(data_processing_.begin(),
+                      data_processing_.end(),
+                      rhs.data_processing_.begin(), 
+                      OpenMS::Helpers::cmpPtrSafe<DataProcessingPtr>) );
   }
 
   bool SpectrumSettings::operator!=(const SpectrumSettings & rhs) const
@@ -265,19 +271,19 @@ namespace OpenMS
     native_id_ = native_id;
   }
 
-  const vector<DataProcessing> & SpectrumSettings::getDataProcessing() const
+  void SpectrumSettings::setDataProcessing(const std::vector< DataProcessingPtr > & data_processing)
+  {
+    data_processing_ = data_processing;
+  }
+
+  std::vector< DataProcessingPtr > & SpectrumSettings::getDataProcessing()
   {
     return data_processing_;
   }
 
-  vector<DataProcessing> & SpectrumSettings::getDataProcessing()
+  const std::vector< boost::shared_ptr<const DataProcessing > > SpectrumSettings::getDataProcessing() const 
   {
-    return data_processing_;
-  }
-
-  void SpectrumSettings::setDataProcessing(const vector<DataProcessing> & processing_method)
-  {
-    data_processing_ = processing_method;
+    return OpenMS::Helpers::constifyPointerVector(data_processing_);
   }
 
 }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,32 +50,28 @@ namespace OpenMS
   void MascotXMLFile::load(const String& filename,
                            ProteinIdentification& protein_identification,
                            vector<PeptideIdentification>& id_data,
-                           const RTMapping& rt_mapping,
-                           const String& scan_regex)
+                           const SpectrumMetaDataLookup& lookup)
   {
     map<String, vector<AASequence> > peptides;
 
-    load(filename, protein_identification, id_data, peptides, rt_mapping, 
-         scan_regex);
+    load(filename, protein_identification, id_data, peptides, lookup);
   }
 
   void MascotXMLFile::load(const String& filename,
                            ProteinIdentification& protein_identification,
                            vector<PeptideIdentification>& id_data,
                            map<String, vector<AASequence> >& peptides,
-                           const RTMapping& rt_mapping, 
-                           const String& scan_regex)
+                           const SpectrumMetaDataLookup& lookup)
   {
     //clear
     protein_identification = ProteinIdentification();
     id_data.clear();
 
     Internal::MascotXMLHandler handler(protein_identification, id_data, 
-                                       filename, peptides, rt_mapping,
-                                       scan_regex);
+                                       filename, peptides, lookup);
     parse_(filename, &handler);
 
-    // since the mascotXML can contain "peptides" without sequences,
+    // since the Mascot XML can contain "peptides" without sequences,
     // the identifications without any real peptide hit are removed
     vector<PeptideIdentification> filtered_hits;
     filtered_hits.reserve(id_data.size());
@@ -113,7 +109,7 @@ namespace OpenMS
                << endl;
     }
     // if we have a mapping, but couldn't find any RT values, that's an error:
-    if (!rt_mapping.empty() && (no_rt_count == id_data.size()))
+    if (!lookup.empty() && (no_rt_count == id_data.size()))
     {
       throw Exception::MissingInformation(
         __FILE__, __LINE__, __PRETTY_FUNCTION__, 
@@ -139,28 +135,38 @@ namespace OpenMS
     }
   }
 
-  
-  void MascotXMLFile::generateRTMapping(
-    const MSExperiment<>::ConstIterator begin,
-    const MSExperiment<>::ConstIterator end, RTMapping& rt_mapping)
+
+  void MascotXMLFile::initializeLookup(SpectrumMetaDataLookup& lookup, const MSExperiment<>& exp, const String& scan_regex)
   {
-    rt_mapping.clear();
-    for (MSExperiment<>::ConstIterator it = begin; it != end; ++it)
+    // load spectra and extract scan numbers from the native IDs
+    // (expected format: "... scan=#"):
+    lookup.readSpectra(exp.getSpectra());
+    if (scan_regex.empty()) // use default formats
     {
-      String id = it->getNativeID(); // expected format: "... scan=#"
-      try
+      if (!lookup.empty()) // raw data given -> spectrum look-up possible
       {
-        Int num_id = id.suffix('=').toInt();
-        if (num_id >= 0) rt_mapping[num_id] = it->getRT();
-        else throw Exception::ConversionError(__FILE__, __LINE__,
-                                              __PRETTY_FUNCTION__, "error");
+        // possible formats and resulting scan numbers:
+        // - Mascot 2.3 (?):
+        // <pep_scan_title>scan=818</pep_scan_title> -> 818
+        // - ProteomeDiscoverer/Mascot 2.3 or 2.4:
+        // <pep_scan_title>Spectrum136 scans:712,</pep_scan_title> -> 712
+        // - other variants:
+        // <pep_scan_title>Spectrum3411 scans: 2975,</pep_scan_title> -> 2975
+        // <...>File773 Spectrum198145 scans: 6094</...> -> 6094
+        // <...>6860: Scan 10668 (rt=5380.57)</...> -> 10668
+        // <pep_scan_title>Scan Number: 1460</pep_scan_title> -> 1460
+        lookup.addReferenceFormat("[Ss]can( [Nn]umber)?s?[=:]? *(?<SCAN>\\d+)");
+        // - with .dta input to Mascot:
+        // <...>/path/to/FTAC05_13.673.673.2.dta</...> -> 673
+        lookup.addReferenceFormat("\\.(?<SCAN>\\d+)\\.\\d+\\.(?<CHARGE>\\d+)(\\.dta)?");
       }
-      catch (Exception::ConversionError)
-      {
-        LOG_ERROR << "Error: Could not create mapping of scan numbers to retention times." << endl;
-        rt_mapping.clear();
-        break;
-      }
+      // title containing RT and MZ instead of scan number:
+      // <...>575.848571777344_5018.0811_controllerType=0 controllerNumber=1 scan=11515_EcoliMS2small</...>
+      lookup.addReferenceFormat("^(?<MZ>\\d+(\\.\\d+)?)_(?<RT>\\d+(\\.\\d+)?)");
+    }
+    else // use only user-defined format
+    {
+      lookup.addReferenceFormat(scan_regex);
     }
   }
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -78,17 +78,17 @@ class OPENMS_DLLAPI GridBasedCluster
     /**
      * @brief returns cluster centre
      */
-    Point getCentre() const;
+    const Point& getCentre() const;
 
     /**
      * @brief returns bounding box
      */
-    Rectangle getBoundingBox() const;
+    const Rectangle& getBoundingBox() const;
 
     /**
      * @brief returns indices of points in cluster
      */
-    std::vector<int> getPoints() const;
+    const std::vector<int>& getPoints() const;
 
     /**
      * @brief returns property A
@@ -98,14 +98,14 @@ class OPENMS_DLLAPI GridBasedCluster
     /**
      * @brief returns properties B of all points
      */
-    std::vector<int> getPropertiesB() const;
+    const std::vector<int>& getPropertiesB() const;
     
     /**
      * @brief operators for comparisons
      */
-    bool operator<(GridBasedCluster other) const;
-    bool operator>(GridBasedCluster other) const;
-    bool operator==(GridBasedCluster other) const;
+    bool operator<(const GridBasedCluster& other) const;
+    bool operator>(const GridBasedCluster& other) const;
+    bool operator==(const GridBasedCluster& other) const;
     
     private:
     /**

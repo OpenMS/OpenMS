@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,19 +35,20 @@
 #ifndef OPENMS_VISUAL_SPECTRAIDENTIFICATIONVIEWWIDGET_H
 #define OPENMS_VISUAL_SPECTRAIDENTIFICATIONVIEWWIDGET_H
 
+#include <OpenMS/VISUAL/LayerData.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+
 #include <QWidget>
 #include <QtGui/QLineEdit>
 #include <QtGui/QComboBox>
 #include <QtGui/QTableWidget>
 #include <QtGui/QCheckBox>
 
-#include <OpenMS/VISUAL/LayerData.h>
-
 namespace OpenMS
 {
   /**
     @brief Tabular visualization / selection of identified spectra.
-  
+
     @htmlinclude OpenMS_DigestSimulation.parameters
   */
   class SpectraIdentificationViewWidget :
@@ -57,11 +58,11 @@ namespace OpenMS
     Q_OBJECT
 public:
     /// Constructor
-    SpectraIdentificationViewWidget(const Param & preferences, QWidget * parent = 0);
+    SpectraIdentificationViewWidget(const Param& preferences, QWidget* parent = 0);
     /// Destructor
     virtual ~SpectraIdentificationViewWidget();
     /// Attach model
-    void attachLayer(LayerData * model);
+    void attachLayer(LayerData* model);
     /// Helper function to block outgoing signals
     bool ignore_update;
 
@@ -78,20 +79,20 @@ signals:
     void showSpectrumMetaData(int);
     void requestVisibleArea1D(double, double);
 private:
-    LayerData * layer_;
-    QCheckBox * hide_no_identification_;
-    QCheckBox * create_rows_for_commmon_metavalue_;
-    QTableWidget * table_widget_;
+    LayerData* layer_;
+    QCheckBox* hide_no_identification_;
+    QCheckBox* create_rows_for_commmon_metavalue_;
+    QTableWidget* table_widget_;
     bool is_ms1_shown_;
 private slots:
     /// Emits spectrumSelected with the current spectrum index
-    void spectrumSelectionChange_(QTableWidgetItem *, QTableWidgetItem *);
+    void spectrumSelectionChange_(QTableWidgetItem*, QTableWidgetItem*);
     /// Export table entries as csv
     void exportEntries_();
     /// Saves the (potentially filtered) idXML
     void saveIdXML_();
     /// Display header context menu
-    void headerContextMenu_(const QPoint &);
+    void headerContextMenu_(const QPoint&);
     /// Cell clicked in table_widget
     void cellClicked_(int row, int column);
   };

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -552,12 +552,12 @@ namespace OpenMS
           sip_ids.insert(std::pair<String, UInt64>(swcn, spid));
           sip_sdb.insert(std::make_pair(spid, dbid));
           sip_dates.insert(std::make_pair(spid, String(it->getDateTime().getDate() + "T" + it->getDateTime().getTime())));
-          String sdst(it->getMetaValue("spectra_data"));
-          if (sdst.empty())
+          String sdst_tmp(it->getMetaValue("spectra_data"));
+          if (sdst_tmp.empty())
           {
-            sdst = String("UNKNOWN");
+            sdst_tmp = String("UNKNOWN");
           }
-          spd_ref.insert(make_pair(spid, spd_ids[sdst])); //this part ist strongly connected to AnalysisCollection write part
+          spd_ref.insert(make_pair(spid, spd_ids[sdst_tmp])); //this part ist strongly connected to AnalysisCollection write part
         }
 
         for (std::vector<ProteinHit>::const_iterator jt = it->getHits().begin(); jt != it->getHits().end(); ++jt)
@@ -614,6 +614,16 @@ namespace OpenMS
           sid = String(it->getMetaValue("spectrum_id"));
           if (sid.empty())
           {
+              if (it->getMZ() != it->getMZ())
+            {
+              emz = "nan";
+              LOG_WARN << "Found no spectrum reference and no mz position of identified spectrum! You are probabliy converting from an old format with insufficient data provision. Setting 'nan' - downstream applications might fail unless you set the references right." << std::endl;
+            }
+            if (it->getRT() != it->getRT())
+            {
+              ert = "nan";
+              LOG_WARN << "Found no spectrum reference and no RT position of identified spectrum! You are probabliy converting from an old format with insufficient data provision. Setting 'nan' - downstream applications might fail unless you set the references right." << std::endl;
+            }
             sid = String("MZ:") + emz + String("@RT:") + ert;
           }
         }

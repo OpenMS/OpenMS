@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,19 +29,24 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Marc Sturm, Chris Bielow $
+// $Authors: Marc Sturm, Chris Bielow, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
+#include <OpenMS/FORMAT/TransformationXMLFile.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+
+#include <boost/regex.hpp>
 
 using namespace OpenMS;
 using namespace std;
@@ -95,11 +100,14 @@ class TOPPFileMerger :
 public:
 
   TOPPFileMerger() :
-    TOPPBase("FileMerger", "Merges several MS files into one file.")
+    TOPPBase("FileMerger", "Merges several MS files into one file."),
+    rt_gap_(0.0), rt_offset_(0.0)
   {
   }
 
 protected:
+
+  double rt_gap_, rt_offset_; // parameters for RT concatenation
 
   void registerOptionsAndFlags_()
   {
@@ -112,17 +120,46 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("mzML,featureXML,consensusXML,traML"));
 
     registerFlag_("annotate_file_origin", "Store the original filename in each feature using meta value \"file_origin\" (for featureXML and consensusXML only).");
+    
+    registerTOPPSubsection_("rt_concat", "Options for concatenating files in the retention time (RT) dimension. The RT ranges of inputs are adjusted so they don't overlap in the merged file (traML input not supported)");
+    registerDoubleOption_("rt_concat:gap", "<sec>", 0.0, "The amount of gap (in seconds) to insert between the RT ranges of different input files. RT concatenation is enabled if a value > 0 is set.", false);
+    registerOutputFileList_("rt_concat:trafo_out", "<files>", vector<String>(), "Output of retention time transformations that were applied to the input files to produce non-overlapping RT ranges. If used, one output file per input file is required.", false);
+    setValidFormats_("rt_concat:trafo_out", ListUtils::create<String>("trafoXML"));
 
-    addEmptyLine_();
-    registerTOPPSubsection_("raw", "Flags for non-featureXML input/output");
+    registerTOPPSubsection_("raw", "Options for raw data input/output (primarily for DTA files)");
     registerFlag_("raw:rt_auto", "Assign retention times automatically (integers starting at 1)");
-    registerDoubleList_("raw:rt_custom", "<rt>", DoubleList(), "List of custom retention times that are assigned to the files. The number of given retention times must be equal to the number of given input file.", false);
-    registerFlag_("raw:rt_filename", "If this flag is set FileMerger tries to guess the rt of the file name.\n"
-                                     "This option is useful for merging DTA file, which should contain the string\n"
-                                     "'rt' directly followed by a floating point number:\n"
-                                     "i.e. my_spectrum_rt2795.15.dta");
-    registerIntOption_("raw:ms_level", "<num>", 2, "This option is useful for use with DTA files which does not contain MS level information. The given level is assigned to the spectra.", false);
-    registerFlag_("raw:user_ms_level", "If this flag is set, the MS level given above is used");
+    registerDoubleList_("raw:rt_custom", "<rts>", DoubleList(), "List of custom retention times that are assigned to the files. The number of given retention times must be equal to the number of input files.", false);
+    registerFlag_("raw:rt_filename", "Try to guess the retention time of a file based on the filename. This option is useful for merging DTA files, where filenames should contain the string 'rt' directly followed by a floating point number, e.g. 'my_spectrum_rt2795.15.dta'");
+    registerIntOption_("raw:ms_level", "<num>", 0, "If 1 or higher, this number is assigned to spectra as the MS level. This option is useful for DTA files which do not contain MS level information.", false);
+  }
+
+  template <class MapType>
+  void adjustRetentionTimes_(MapType& map, const String& trafo_out,
+                             bool first_file)
+  {
+    map.updateRanges();
+    TransformationDescription trafo;
+    if (first_file) // no transformation necessary
+    {
+      rt_offset_ = map.getMax()[0] + rt_gap_;
+      trafo.fitModel("identity");
+    }
+    else // subsequent file -> apply transformation
+    {
+      TransformationDescription::DataPoints points(2);
+      double rt_min = map.getMin()[0], rt_max = map.getMax()[0];
+      points[0] = make_pair(rt_min, rt_offset_);
+      rt_offset_ += rt_max - rt_min;
+      points[1] = make_pair(rt_max, rt_offset_);
+      trafo.setDataPoints(points);
+      trafo.fitModel("linear");
+      MapAlignmentTransformer::transformRetentionTimes(map, trafo, true);
+      rt_offset_ += rt_gap_;
+    }
+    if (!trafo_out.empty())
+    {
+      TransformationXMLFile().store(trafo_out, trafo);
+    }
   }
 
   ExitCodes main_(int, const char**)
@@ -131,11 +168,11 @@ protected:
     //-------------------------------------------------------------
     // parameter handling
     //-------------------------------------------------------------
-    //file list
+    // file list
     StringList file_list = getStringList_("in");
 
-    //file type
-    FileHandler fh;
+    // file type
+    FileHandler file_handler;
     FileTypes::Type force_type;
     if (getStringOption_("in_type").size() > 0)
     {
@@ -143,25 +180,37 @@ protected:
     }
     else
     {
-      force_type = fh.getType(file_list[0]);
+      force_type = file_handler.getType(file_list[0]);
     }
 
-    //output file names and types
+    // output file names and types
     String out_file = getStringOption_("out");
+
+    bool annotate_file_origin =  getFlag_("annotate_file_origin");
+    rt_gap_ = getDoubleOption_("rt_concat:gap");
+    vector<String> trafo_out = getStringList_("rt_concat:trafo_out");
+    if (trafo_out.empty())
+    {
+      // resize now so we don't have to worry about indexing out of bounds:
+      trafo_out.resize(file_list.size());
+    }
+    else if (trafo_out.size() != file_list.size())
+    {
+      writeLog_("Error: Number of transformation output files must equal the number of input files (parameters 'rt_concat:trafo_out'/'in')!");
+      return ILLEGAL_PARAMETERS;
+    }
 
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
 
-    bool annotate_file_origin =  getFlag_("annotate_file_origin");
-
     if (force_type == FileTypes::FEATUREXML)
     {
       FeatureMap out;
+      FeatureXMLFile fh;
       for (Size i = 0; i < file_list.size(); ++i)
       {
         FeatureMap map;
-        FeatureXMLFile fh;
         fh.load(file_list[i], map);
 
         if (annotate_file_origin)
@@ -171,6 +220,12 @@ protected:
             it->setMetaValue("file_origin", DataValue(file_list[i]));
           }
         }
+
+        if (rt_gap_ > 0.0) // concatenate in RT
+        {
+          adjustRetentionTimes_(map, trafo_out[i], i == 0);
+        }
+
         out += map;
       }
 
@@ -178,23 +233,21 @@ protected:
       // writing output
       //-------------------------------------------------------------
 
-      //annotate output with data processing info
+      // annotate output with data processing info
       addDataProcessing_(out, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
 
-      FeatureXMLFile f;
-      f.store(out_file, out);
-
+      fh.store(out_file, out);
     }
+
     else if (force_type == FileTypes::CONSENSUSXML)
     {
       ConsensusMap out;
       ConsensusXMLFile fh;
       fh.load(file_list[0], out);
-      //skip first file
+      // skip first file
       for (Size i = 1; i < file_list.size(); ++i)
       {
         ConsensusMap map;
-        ConsensusXMLFile fh;
         fh.load(file_list[i], map);
 
         if (annotate_file_origin)
@@ -204,6 +257,12 @@ protected:
             it->setMetaValue("file_origin", DataValue(file_list[i]));
           }
         }
+
+        if (rt_gap_ > 0.0) // concatenate in RT
+        {
+          adjustRetentionTimes_(map, trafo_out[i], i == 0);
+        }
+
         out += map;
       }
 
@@ -211,19 +270,19 @@ protected:
       // writing output
       //-------------------------------------------------------------
 
-      //annotate output with data processing info
+      // annotate output with data processing info
       addDataProcessing_(out, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
 
-      ConsensusXMLFile f;
-      f.store(out_file, out);
+      fh.store(out_file, out);
     }
+
     else if (force_type == FileTypes::TRAML)
     {
       TargetedExperiment out;
+      TraMLFile fh;
       for (Size i = 0; i < file_list.size(); ++i)
       {
         TargetedExperiment map;
-        TraMLFile fh;
         fh.load(file_list[i], map);
         out += map;
       }
@@ -232,55 +291,45 @@ protected:
       // writing output
       //-------------------------------------------------------------
 
-      //annotate output with data processing info
+      // annotate output with data processing info
       Software software;
       software.setName("FileMerger");
       software.setVersion(VersionInfo::getVersion());
       out.addSoftware(software);
 
-      TraMLFile f;
-      f.store(out_file, out);
+      fh.store(out_file, out);
     }
-    else
+    else // raw data input (e.g. mzML)
     {
-      // we might want to combine different types, thus we only
-      // query in_type (which applies to all files)
-      // and not the suffix or content of a single file
-      //... well, what was coded here did a) nothing what was not done already in the code and b) nothing what the above comment kind of claims
-      // instead, type assesment for loading has to be done for each file in the list
-
-      //rt
+      // RT
       bool rt_auto_number = getFlag_("raw:rt_auto");
       bool rt_filename = getFlag_("raw:rt_filename");
       bool rt_custom = false;
       DoubleList custom_rts = getDoubleList_("raw:rt_custom");
-      if (custom_rts.size() != 0)
+      if (!custom_rts.empty())
       {
         rt_custom = true;
         if (custom_rts.size() != file_list.size())
         {
-          writeLog_("Custom retention time list must have as many elements as there are input files!");
-          printUsage_();
+          writeLog_("Custom retention time list (parameter 'raw:rt_custom') must have as many elements as there are input files (parameter 'in')!");
           return ILLEGAL_PARAMETERS;
         }
       }
 
-      //ms level
-      bool user_ms_level = getFlag_("raw:user_ms_level");
+      // MS level
+      Int ms_level = getIntOption_("raw:ms_level");
 
       MSExperiment<> out;
-      out.reserve(file_list.size());
       UInt rt_auto = 0;
       UInt native_id = 0;
-      std::vector<MSChromatogram<ChromatogramPeak> > all_chromatograms;
       for (Size i = 0; i < file_list.size(); ++i)
       {
         String filename = file_list[i];
 
-        //load file
-        force_type = fh.getType(file_list[i]);
+        // load file
+        force_type = file_handler.getType(file_list[i]);
         MSExperiment<> in;
-        fh.loadExperiment(filename, in, force_type, log_type_);
+        file_handler.loadExperiment(filename, in, force_type, log_type_);
 
         if (in.empty() && in.getChromatograms().empty())
         {
@@ -289,16 +338,17 @@ protected:
         }
         out.reserve(out.size() + in.size());
 
-        //warn if custom RT and more than one scan in input file
+        // warn if custom RT and more than one scan in input file
         if (rt_custom && in.size() > 1)
         {
           writeLog_(String("Warning: More than one scan in file '") + filename + "'! All scans will have the same retention time!");
         }
 
-        for (MSExperiment<>::const_iterator it2 = in.begin(); it2 != in.end(); ++it2)
+        // handle special raw data options:
+        for (MSExperiment<>::iterator spec_it = in.begin();
+             spec_it != in.end(); ++spec_it)
         {
-          //handle rt
-          float rt_final = it2->getRT();
+          float rt_final = spec_it->getRT();
           if (rt_auto_number)
           {
             rt_final = ++rt_auto;
@@ -309,65 +359,60 @@ protected:
           }
           else if (rt_filename)
           {
-            if (!filename.hasSubstring("rt"))
+            static const boost::regex re("rt(\\d+(\\.\\d+)?)");
+            boost::smatch match;
+            bool found = boost::regex_search(filename, match, re);
+            if (found)
             {
-              writeLog_(String("Warning: cannot guess retention time from filename as it does not contain 'rt'"));
+              rt_final = String(match[1]).toFloat();
             }
-            for (Size i = 0; i < filename.size(); ++i)
+            else
             {
-              if (filename[i] == 'r' && ++i != filename.size() && filename[i] == 't' && ++i != filename.size() && isdigit(filename[i]))
-              {
-                String rt;
-                while (i != filename.size() && (filename[i] == '.' || isdigit(filename[i])))
-                {
-                  rt += filename[i++];
-                }
-                if (rt.size() > 0)
-                {
-                  // remove dot from rt3892.98.dta
-                  //                          ^
-                  if (rt[rt.size() - 1] == '.')
-                  {
-                    // remove last character
-                    rt.erase(rt.end() - 1);
-                  }
-                }
-                try
-                {
-                  float tmp = rt.toFloat();
-                  rt_final = tmp;
-                }
-                catch (Exception::ConversionError)
-                {
-                  writeLog_(String("Warning: cannot convert the found retention time in a value '" + rt + "'."));
-                }
-              }
+              writeLog_("Warning: could not extract retention time from filename '" + filename + "'");
             }
           }
 
           // none of the rt methods were successful
-          if (rt_final == -1)
+          if (rt_final < 0)
           {
             writeLog_(String("Warning: No valid retention time for output scan '") + rt_auto + "' from file '" + filename + "'");
           }
 
-          out.addSpectrum(*it2);
-          out.getSpectra().back().setRT(rt_final);
-          out.getSpectra().back().setNativeID(native_id);
-
-          if (user_ms_level)
+          spec_it->setRT(rt_final);
+          spec_it->setNativeID("spectrum=" + String(native_id));
+          if (ms_level > 0)
           {
-            out.getSpectra().back().setMSLevel((int)getIntOption_("raw:ms_level"));
+            spec_it->setMSLevel(ms_level);
           }
           ++native_id;
         }
 
-        // if we had only one spectrum, we can annotate it directly, for more spectra, we just name the source file leaving the spectra unannotated (to avoid a long and redundant list of sourceFiles)
+        // if we have only one spectrum, we can annotate it directly, for more spectra, we just name the source file leaving the spectra unannotated (to avoid a long and redundant list of sourceFiles)
         if (in.size() == 1)
         {
-          out.getSpectra().back().setSourceFile(in.getSourceFiles()[0]);
-          in.getSourceFiles().clear(); // delete source file annotated from source file (its in the spectrum anyways)
+          in[0].setSourceFile(in.getSourceFiles()[0]);
+          in.getSourceFiles().clear(); // delete source file annotated from source file (it's in the spectrum anyways)
         }
+
+        if (rt_gap_ > 0.0) // concatenate in RT
+        {
+          adjustRetentionTimes_(in, trafo_out[i], i == 0);
+        }
+
+        // add spectra to output
+        for (MSExperiment<>::const_iterator spec_it = in.begin();
+             spec_it != in.end(); ++spec_it)
+        {
+          out.addSpectrum(*spec_it);
+        }
+        // also add the chromatograms
+        for (vector<MSChromatogram<ChromatogramPeak> >::const_iterator
+               chrom_it = in.getChromatograms().begin(); chrom_it != 
+               in.getChromatograms().end(); ++chrom_it)
+        {
+          out.addChromatogram(*chrom_it);
+        }
+
         // copy experimental settings from first file
         if (i == 0)
         {
@@ -377,28 +422,18 @@ protected:
         {
           out.getSourceFiles().insert(out.getSourceFiles().end(), in.getSourceFiles().begin(), in.getSourceFiles().end()); // could be emtpty if spectrum was annotated above, but that's ok then
         }
-
-        // also add the chromatograms
-        for (std::vector<MSChromatogram<ChromatogramPeak> >::const_iterator it2 = in.getChromatograms().begin(); it2 != in.getChromatograms().end(); ++it2)
-        {
-          all_chromatograms.push_back(*it2);
-        }
-
       }
-      // set the chromatograms
-      out.setChromatograms(all_chromatograms);
 
       //-------------------------------------------------------------
       // writing output
       //-------------------------------------------------------------
 
-      //annotate output with data processing info
+      // annotate output with data processing info
       addDataProcessing_(out, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
 
       MzMLFile f;
       f.setLogType(log_type_);
       f.store(out_file, out);
-
     }
 
     return EXECUTION_OK;

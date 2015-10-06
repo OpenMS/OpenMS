@@ -137,6 +137,32 @@ endif ()
 
 ########################################################### SEARCHENGINES
 if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
+  if(EXISTS ${SEARCH_ENGINES_DIRECTORY}/Fido)
+    install(DIRECTORY             ${SEARCH_ENGINES_DIRECTORY}/Fido
+            DESTINATION           OpenMS-${CPACK_PACKAGE_VERSION}/TOPP/SEARCHENGINES
+            COMPONENT             SearchEngine-Fido
+            FILE_PERMISSIONS      OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                                  GROUP_READ GROUP_EXECUTE
+                                  WORLD_READ WORLD_EXECUTE
+            DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                                  GROUP_READ GROUP_EXECUTE
+                                  WORLD_READ WORLD_EXECUTE
+            )
+  endif()
+
+  if(EXISTS ${SEARCH_ENGINES_DIRECTORY}/MSGFPlus)
+    install(DIRECTORY             ${SEARCH_ENGINES_DIRECTORY}/MSGFPlus
+            DESTINATION           OpenMS-${CPACK_PACKAGE_VERSION}/TOPP/SEARCHENGINES
+            COMPONENT             SearchEngine-MSGFPlus
+            FILE_PERMISSIONS      OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                                  GROUP_READ GROUP_EXECUTE
+                                  WORLD_READ WORLD_EXECUTE
+            DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                                  GROUP_READ GROUP_EXECUTE
+                                  WORLD_READ WORLD_EXECUTE
+            )
+  endif()
+
   if(EXISTS ${SEARCH_ENGINES_DIRECTORY}/OMSSA)
     install(DIRECTORY             ${SEARCH_ENGINES_DIRECTORY}/OMSSA
             DESTINATION           OpenMS-${CPACK_PACKAGE_VERSION}/TOPP/SEARCHENGINES

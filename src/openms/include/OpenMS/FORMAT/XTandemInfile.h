@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -176,6 +176,12 @@ public:
     /// returns the number of missed cleavages allowed
     UInt getNumberOfMissedCleavages() const;
 
+    /// sets the output result type ("all", "valid" or "stochastic")
+    void setOutputResults(String result);
+
+    /// returns the output result type ("all", "valid" or "stochastic")
+    String getOutputResults() const;
+
     /// sets the max valid E-value allowed in the list
     void setMaxValidEValue(double value);
 
@@ -185,11 +191,20 @@ public:
     /// get state of refine setting
     bool isRefining() const;
 
+    /// get state of noise suppression
+    bool getNoiseSuppression() const;
+
     /// set state of semi cleavage
     void setSemiCleavage(const bool semi_cleavage);
 
+    /// set if misassignment of precursor to first and second 13C isotopic peak should also be considered
+    void setAllowIsotopeError(const bool allow_isotope_error);
+
     /// set state of refine setting
     void setRefine(const bool refine);
+
+    /// set state of noise suppression
+    void setNoiseSuppression(const bool noise_suppression);
 
     /// set the cleavage site with a xtandem conform regex
     void setCleavageSite(const String& cleavage_site);
@@ -275,8 +290,13 @@ protected:
     /// Enable/disable xtandem refinement
     bool refine_;
 
+    /// Enable/disable xtandem noise suppression routine
+    bool noise_suppression_;
+
     /// semi cleavage
     bool semi_cleavage_;
+
+    bool allow_isotope_error_;
 
     double refine_max_valid_evalue_;
 
@@ -286,6 +306,8 @@ protected:
     String default_parameters_file_;
 
     // output parameters
+    String output_results_;
+
     double max_valid_evalue_;
 
     /** 

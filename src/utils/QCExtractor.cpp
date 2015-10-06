@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -58,7 +58,7 @@ using namespace std;
 /**
     @page UTILS_QCExtractor QCExtractor
 
-    @brief Extracts a table attachment to a given qc parameter.
+    @brief Extracts a table attachment of a given quality parameter from a qcML file as tabular (text) format.
 
     <CENTER>
       <table>
@@ -76,7 +76,7 @@ using namespace std;
       </table>
     </CENTER>
 
-    If there is a table attached to a qp that is needed as a single file. The qcml file to extract from is given with @p in.
+    If there is a table attached to a given qp that is needed as a single file, e.g. for easy input to plotting software, this can be extracted to a tabular (text) format.
     
     - @p qp defines the qp name to which the table is attached;
     - @p run the file that defined the run under which the qp for the attachment is aggregated as mzML file. The file is only used to extract the run name from the file name.

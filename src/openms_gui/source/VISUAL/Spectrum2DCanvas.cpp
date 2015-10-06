@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -63,6 +63,15 @@
 //boost
 #include <boost/math/special_functions/fpclassify.hpp>
 
+#define PEN_SIZE_MAX_LIMIT 100    // maximum size of a rectangle representing a point for raw peak data
+#define PEN_SIZE_MIN_LIMIT 1      // minimum. This should not be changed without adapting the way dots are plotted 
+                                  // (might lead to inconsistencies when switching between drawing modes of
+                                  //  paintMaximumIntensities() vs. paintAllIntensities() )
+
+// the two following constants describe the valid range of the 'canvas_coverage_min_' member (adaptable by the user)
+#define CANVAS_COVERAGE_MIN_LIMITHIGH 0.5
+#define CANVAS_COVERAGE_MIN_LIMITLOW 0.1
+
 
 using namespace std;
 
@@ -71,11 +80,18 @@ namespace OpenMS
   using namespace Internal;
 
   Spectrum2DCanvas::Spectrum2DCanvas(const Param & preferences, QWidget * parent) :
-    SpectrumCanvas(preferences, parent)
+    SpectrumCanvas(preferences, parent),
+    projection_mz_(),
+    projection_rt_(),
+    selected_peak_(),
+    measurement_start_(),
+    pen_size_min_(1),
+    pen_size_max_(20),
+    canvas_coverage_min_(0.2)
   {
     //Parameter handling
     defaults_.setValue("background_color", "#ffffff", "Background color.");
-    defaults_.setValue("interpolation_steps", 1000, "Number of interploation steps for peak gradient precalculation.");
+    defaults_.setValue("interpolation_steps", 1000, "Number of interpolation steps for peak gradient pre-calculation.");
     defaults_.setMinInt("interpolation_steps", 1);
     defaults_.setMaxInt("interpolation_steps", 1000);
     defaults_.setValue("dot:gradient", "Linear|0,#eeeeee;1,#ffea00;6,#ff0000;14,#aa00ff;23,#5500ff;100,#000000", "Multi-color gradient for peaks.");
@@ -326,102 +342,87 @@ namespace OpenMS
       Size mz_pixel_count = image_width;
       if (!isMzToXAxis())
       {
-        rt_pixel_count = image_width;
-        mz_pixel_count = image_height;
+        swap(rt_pixel_count, mz_pixel_count);
       }
 
       //-----------------------------------------------------------------------------------------------
       // Determine number of shown scans (MS1)
-      Size n_ms1_scans = 0;
-      for (ExperimentType::ConstIterator it = peak_map.RTBegin(rt_min); it != peak_map.end() && it != peak_map.RTEnd(rt_max); ++it)
+      std::vector<Size> rt_indices; // list of visible RT scans in MS1 with at least 2 points
+      for (ExperimentType::ConstIterator it = peak_map.RTBegin(rt_min); it != peak_map.RTEnd(rt_max); ++it)
       {
-        if (it->getMSLevel() == 1)
+        if (it->getMSLevel() == 1 && it->size() > 1)
         {
-          ++n_ms1_scans;
+          rt_indices.push_back(std::distance(peak_map.begin(), it));
         }
       }
+      Size n_ms1_scans = rt_indices.size();
 
-      // create iterator on scan in the middle of the visible map
-      Size n_peaks_in_middle_scan(0);
-      ExperimentType::ConstIterator it = peak_map.RTBegin(rt_min) + n_ms1_scans / 2;
-      if (it != peak_map.end())
+      if (n_ms1_scans > 0)
       {
-        for (ExperimentType::SpectrumType::ConstIterator it2 = it->MZBegin(mz_min); it2 != it->end() && it2 != it->MZEnd(mz_max); ++it2)
+        // sample #of points at 3 scan locations (25%, 50%, 75%)
+        // and take the median value
+        Size n_peaks_in_scan(0);
         {
-          ++n_peaks_in_middle_scan;
-        }
-      }
-
-      // determine spacing for whole data
-      double min_spacing_mz = 1.0;
-      double average_spacing_rt = 1.0;
-      Size n_scans = peak_map.size();
-      {
-        vector<float> mz_spacing;
-        for (Size i = 0; i != n_scans; ++i)
-        {
-          // skip non MS1 and empty spectra
-          Size ms_level = peak_map[i].getMSLevel();
-          Size n_peaks = peak_map[i].size();
-          if (ms_level != 1 || n_peaks < 2)
+          double quantiles[] = {0.25, 0.50, 0.75};
+          std::vector<Size> n_s;
+          for (Size i=0; i<sizeof(quantiles)/sizeof(double); ++i)
           {
-            continue;
-          }
-          double current_mz_spacing =  (peak_map[i][n_peaks - 1].getMZ() - peak_map[i][0].getMZ()) / n_peaks;
-          mz_spacing.push_back(current_mz_spacing);
+            const ExperimentType::SpectrumType& spec = peak_map[rt_indices[n_ms1_scans*quantiles[i]]];
+            n_s.push_back(std::distance(spec.MZBegin(mz_min), spec.MZEnd(mz_max)) + 1); // +1 to since distance is 0 if only one m/z is shown
+          } 
+          std::sort(n_s.begin(), n_s.end());
+          n_peaks_in_scan = n_s[1]; // median
         }
-        sort(mz_spacing.begin(), mz_spacing.end());
-        min_spacing_mz = !mz_spacing.empty() ? mz_spacing[0] : 1.0;
+      
+        double ratio_data2pixel_rt = n_ms1_scans / (double)rt_pixel_count;
+        double ratio_data2pixel_mz = n_peaks_in_scan / (double)mz_pixel_count;
 
-#ifdef DEBUG_TOPPVIEW
-        cout << "BEGIN " << __PRETTY_FUNCTION__ << endl;
-        cout << "min spacing mz:" << min_spacing_mz << endl;
-#endif
+  #ifdef DEBUG_TOPPVIEW
+        std::cerr << rt_min << ":" << rt_max <<"   " << mz_min << ":" << mz_max << "\n";
+        std::cerr << n_ms1_scans << "rt " << n_peaks_in_scan << "ms\n";
+        std::cerr << rt_pixel_count << " x " << mz_pixel_count << " px\n";
+        std::cerr << ratio_data2pixel_rt << " " << ratio_data2pixel_mz << " ratio\n";
+  #endif
+        // minimum fraction of image expected to be filled with data
+        // if not reached, we upscale point size
+        bool has_low_pixel_coverage = ratio_data2pixel_rt < canvas_coverage_min_ || ratio_data2pixel_mz < canvas_coverage_min_;
 
+        // Are several peaks expected to be drawn on the same pixel in either RT or m/z?
+        // --> thin out and show only maxima
+        // Also, we cannot upscale in this mode (since we operate on the buffer directly, i.e. '1 data point == 1 pixel'
+        if (!has_low_pixel_coverage && (n_peaks_in_scan > mz_pixel_count || n_ms1_scans > rt_pixel_count))
         {
-          vector<float> rts;
-          for (Size i = 0; i != n_scans; ++i)
-          {
-            // skip non MS1 and empty spectra
-            Size ms_level = peak_map[i].getMSLevel();
-            Size n_peaks = peak_map[i].size();
-            if (ms_level != 1 || n_peaks == 0)
-            {
-              continue;
-            }
-            rts.push_back(peak_map[i].getRT());
-          }
-          sort(rts.begin(), rts.end());
-          if (rts.size() > 2)
-          {
-            average_spacing_rt = (rts[rts.size() - 1] - rts[0]) / (double)rts.size();
-          }
+          paintMaximumIntensities_(layer_index, rt_pixel_count, mz_pixel_count, painter);
         }
-      }
+        else
+        { // this is slower to paint, but allows scaling points
+          // when data is zoomed in to single peaks these are visualized as circles
 
-      // Determine whether several peaks are expected to be drawn on the same pixel
-      if (n_peaks_in_middle_scan > mz_pixel_count || n_ms1_scans > rt_pixel_count)
-      {
-        // overlapping data points expected: draw maximum intensity
-        paintMaximumIntensities_(layer_index, rt_pixel_count, mz_pixel_count, painter);
-      }
-      else
-      {
-        // calculate pixel width and height in rt/mz coordinates
-        QPoint p1, p2;
-        dataToWidget_(1, 1, p1);
-        dataToWidget_(0, 0, p2);
-        double pixel_width = abs(p1.x() - p2.x());
-        double pixel_height = abs(p1.y() - p2.y());
+          // compute ideal pen width (from data);
+          // since points are rectangular, we take the value of the most "crowded" dimension
+          // i.e. so that adjacent points do not overlap      
+          double pen_width = std::min(1/ratio_data2pixel_rt, 1/ratio_data2pixel_mz);
+          // ... and make sure its within our boundaries
+          pen_width = std::max(pen_width, pen_size_min_);
+          pen_width = std::min(pen_width, pen_size_max_);
+  #ifdef DEBUG_TOPPVIEW
+          std::cerr << "pen-width " << pen_width << "\n";
+  #endif
+          // However: if one dimension is sparse (e.g. only a few, but very long scans), we want to
+          //          avoid showing lots of white background by increasing point size
+          // This might lead to 'overplotting', but the paint method below can deal with it since
+          // it will paint high intensities last.
+          adaptPenScaling_(ratio_data2pixel_mz, pen_width);
+          adaptPenScaling_(ratio_data2pixel_rt, pen_width);
+  #ifdef DEBUG_TOPPVIEW
+          std::cerr << "new pen: " << pen_width << "\n";
+  #endif
 
-        // when data is zoomed in to single peaks these are visualized as circles
-        double pen_width = qMax( 1.0, isMzToXAxis()
-            ? min(pixel_width * min_spacing_mz, pixel_height * average_spacing_rt)
-            : min(pixel_width * average_spacing_rt, pixel_height * min_spacing_mz) );
+          // few data points expected: more expensive drawing of all data points (circles or points depending on zoom level)
+          paintAllIntensities_(layer_index, pen_width, painter);
+        }
 
-        // few data points expected: more expensive drawing of all datapoints (circles or points depending on zoom level)
-        paintAllIntensities_(layer_index, pen_width, painter);
-      }
+      } // end of no-scans check
 
       //-----------------------------------------------------------------
       //draw precursor peaks
@@ -509,46 +510,74 @@ namespace OpenMS
     }
   }
 
+  double Spectrum2DCanvas::adaptPenScaling_(double ratio_data2pixel, double& pen_width) const
+  {
+    // is the coverage ok using current pen width?
+    bool has_low_pixel_coverage_withpen = ratio_data2pixel*pen_width < canvas_coverage_min_;
+    int merge_factor(1);
+    if (has_low_pixel_coverage_withpen)
+    { // scale up the sparse dimension until we reach the desired coverage (this will lead to overlap in the crowded dimension)
+      double scale_factor = canvas_coverage_min_ / ratio_data2pixel;
+      // however, within bounds (no need to check the pen_size_min_, because we can only exceed here, not underestimate)
+      scale_factor = std::min(pen_size_max_, scale_factor);
+      // The difference between the original pen_width vs. this scale 
+      // gives the number of peaks to merge in the crowded dimension
+      merge_factor = scale_factor / pen_width;
+      // set pen width to the new scale
+      pen_width = scale_factor;
+    }
+    return merge_factor;
+  }
+
+
   void Spectrum2DCanvas::paintPrecursorPeaks_(Size layer_index, QPainter & painter)
   {
     const LayerData & layer = getLayer(layer_index);
     const ExperimentType & peak_map = *layer.getPeakData();
 
-    for (ExperimentType::ConstIterator i = peak_map.RTBegin(visible_area_.minPosition()[1]);
-         i != peak_map.RTEnd(visible_area_.maxPosition()[1]);
-         ++i)
+    QPoint pos_ms1;
+    QPoint pos_ms2;
+    QPen p;
+    p.setColor(Qt::black);
+    painter.setPen(p);
+
+    ExperimentType::ConstIterator it_prec = peak_map.end();
+    ExperimentType::ConstIterator it_end = peak_map.RTEnd(visible_area_.maxPosition()[1]);
+    for (ExperimentType::ConstIterator it = peak_map.RTBegin(visible_area_.minPosition()[1]);
+         it != it_end;
+         ++it)
     {
-      //this is an MS/MS scan
-      if (i->getMSLevel() == 2 && !i->getPrecursors().empty())
+      // remember last precursor spectrum (do not call it->getPrecursorSpectrum(), since it can be very slow if no MS1 data is present)
+      if (it->getMSLevel() == 1)
       {
-        QPoint pos_ms2;
-        dataToWidget_(i->getPrecursors()[0].getMZ(), i->getRT(), pos_ms2);   // position of precursor in MS2
+        it_prec = it;
+      }
+      else if (it->getMSLevel() == 2 && !it->getPrecursors().empty())
+      { // this is an MS/MS scan
+        dataToWidget_(it->getPrecursors()[0].getMZ(), it->getRT(), pos_ms2);   // position of precursor in MS2
+        const int x2 = pos_ms2.x();
+        const int y2 = pos_ms2.y();
 
-        ExperimentType::ConstIterator prec = peak_map.getPrecursorSpectrum(i);
-
-        if (prec != peak_map.end())
+        if (it_prec != peak_map.end())
         {
-          QPoint pos_ms1;
-          dataToWidget_(i->getPrecursors()[0].getMZ(), prec->getRT(), pos_ms1);  // position of precursor in MS1
-          QPen p;
-          p.setColor(Qt::black);
-          painter.setPen(p);
-
+          dataToWidget_(it->getPrecursors()[0].getMZ(), it_prec->getRT(), pos_ms1);  // position of precursor in MS1
+          const int x = pos_ms1.x();
+          const int y = pos_ms1.y();
           // diamond shape in MS1
-          painter.drawLine(pos_ms1.x(), pos_ms1.y() + 3, pos_ms1.x() + 3, pos_ms1.y());
-          painter.drawLine(pos_ms1.x() + 3, pos_ms1.y(), pos_ms1.x(), pos_ms1.y() - 3);
-          painter.drawLine(pos_ms1.x(), pos_ms1.y() - 3, pos_ms1.x() - 3, pos_ms1.y());
-          painter.drawLine(pos_ms1.x() - 3, pos_ms1.y(), pos_ms1.x(), pos_ms1.y() + 3);
+          painter.drawLine(x, y + 3, x + 3, y);
+          painter.drawLine(x + 3, y, x, y - 3);
+          painter.drawLine(x, y - 3, x - 3, y);
+          painter.drawLine(x - 3, y, x, y + 3);
 
           // rt position of corresponding MS2
-          painter.drawLine(pos_ms2.x() - 3, pos_ms2.y(), pos_ms2.x() + 3, pos_ms2.y());
-          painter.drawLine(pos_ms1.x(), pos_ms1.y(), pos_ms2.x(), pos_ms2.y());
+          painter.drawLine(x2 - 3, y2, x2 + 3, y2);
+          painter.drawLine(x, y, x2, y2);
         }
         else // no preceding MS1
         {
           // rt position of corresponding MS2 (cross)
-          painter.drawLine(pos_ms2.x() - 3, pos_ms2.y(), pos_ms2.x() + 3, pos_ms2.y());
-          painter.drawLine(pos_ms2.x(), pos_ms2.y() - 3, pos_ms2.x(), pos_ms2.y() + 3);
+          painter.drawLine(x2 - 3, y2, x2 + 3, y2);
+          painter.drawLine(x2, y2 - 3, x2, y2 + 3);
         }
       }
     }
@@ -559,7 +588,7 @@ namespace OpenMS
     const LayerData & layer = getLayer(layer_index);
     Int image_width = buffer_.width();
     Int image_height = buffer_.height();
-    QVector<QPolygon> coloredPoints( layer.gradient.precalculatedSize() );
+    QVector<QPolygon> coloredPoints( (int)layer.gradient.precalculatedSize() );
 
     const ExperimentType & map = *layer.getPeakData();
     const double rt_min = visible_area_.minPosition()[1];
@@ -623,13 +652,18 @@ namespace OpenMS
     double rt_step_size = (rt_max - rt_min) / rt_pixel_count;
     double mz_step_size = (mz_max - mz_min) / mz_pixel_count;
 
+    // start at first visible RT scan
+    Size scan_index = std::distance(map.begin(), map.RTBegin(rt_min));
     //iterate over all pixels (RT dimension)
-    Size scan_index = 0;
     for (Size rt = 0; rt < rt_pixel_count; ++rt)
     {
+      // interval in data coordinates for the current pixel
       double rt_start = rt_min + rt_step_size * rt;
       double rt_end = rt_start + rt_step_size;
       //cout << "rt: " << rt << " (" << rt_start << " - " << rt_end << ")" << endl;
+
+      // reached the end of data
+      if (rt_end >= (--map.end())->getRT()) break;
 
       //determine the relevant spectra and reserve an array for the peak indices
       vector<Size> scan_indices, peak_indices;
@@ -645,9 +679,6 @@ namespace OpenMS
           scan_indices.push_back(i);
           peak_indices.push_back(map[i].MZBegin(mz_min) - map[i].begin());
         }
-        //set the scan index past the end. Otherwise the last scan will be repeated for all following RTs
-        if (i == map.size() - 1)
-          scan_index = i + 1;
       }
       //cout << "  scans: " << scan_indices.size() << endl;
 
@@ -1444,43 +1475,41 @@ namespace OpenMS
   void Spectrum2DCanvas::horizontalScrollBarChange(int value)
   {
     AreaType new_area = visible_area_;
-    if (isMzToXAxis())
+    if (!isMzToXAxis())
     {
-      new_area.setMinX(value);
-      new_area.setMaxX(value + (visible_area_.maxX() - visible_area_.minX()));
-      //cout << __PRETTY_FUNCTION__ << endl;
-      changeVisibleArea_(new_area);
-      emit layerZoomChanged(this);
+      new_area.setMinY(value);
+      new_area.setMaxY(value + (visible_area_.height()));
     }
     else
     {
-      new_area.setMinY(value);
-      new_area.setMaxY(value + (visible_area_.maxY() - visible_area_.minY()));
-      //cout << __PRETTY_FUNCTION__ << endl;
-      changeVisibleArea_(new_area);
-      emit layerZoomChanged(this);
+      new_area.setMinX(value);
+      new_area.setMaxX(value + (visible_area_.width()));
     }
+    //cout << __PRETTY_FUNCTION__ << endl;
+    changeVisibleArea_(new_area);
+    emit layerZoomChanged(this);
   }
 
   void Spectrum2DCanvas::verticalScrollBarChange(int value)
   {
+    // invert 'value' (since the VERTICAL(!) scrollbar's range is negative -- see SpectrumWidget::updateVScrollbar())
+    // this is independent on isMzToXAxis()!
+    value *= -1;
+    
     AreaType new_area = visible_area_;
     if (!isMzToXAxis())
     {
       new_area.setMinX(value);
-      new_area.setMaxX(value + (visible_area_.maxX() - visible_area_.minX()));
-      //cout << __PRETTY_FUNCTION__ << endl;
-      changeVisibleArea_(new_area);
-      emit layerZoomChanged(this);
+      new_area.setMaxX(value + visible_area_.width());
     }
     else
     {
       new_area.setMinY(value);
-      new_area.setMaxY(value + (visible_area_.maxY() - visible_area_.minY()));
-      //cout << __PRETTY_FUNCTION__ << endl;
-      changeVisibleArea_(new_area);
-      emit layerZoomChanged(this);
+      new_area.setMaxY(value + (visible_area_.height()));
     }
+    //cout << __PRETTY_FUNCTION__ << endl;
+    changeVisibleArea_(new_area);
+    emit layerZoomChanged(this);
   }
 
   void Spectrum2DCanvas::paintEvent(QPaintEvent * e)
@@ -1943,15 +1972,35 @@ namespace OpenMS
       if (selected_peak_.isValid())
       {
         String status;
-        if (getCurrentLayer().type == LayerData::DT_FEATURE)
+        if (getCurrentLayer().type == LayerData::DT_FEATURE || getCurrentLayer().type == LayerData::DT_CONSENSUS)
         {
           //add meta info
-          const FeatureMapType::FeatureType & f = selected_peak_.getFeature(*getCurrentLayer().getFeatureMap());
+          const BaseFeature* f;
+          if (getCurrentLayer().type == LayerData::DT_FEATURE)
+          {
+            f = &selected_peak_.getFeature(*getCurrentLayer().getFeatureMap());
+          }
+          else
+          {
+            f = &selected_peak_.getFeature(*getCurrentLayer().getConsensusMap());
+          }
           std::vector<String> keys;
-          f.getKeys(keys);
+          f->getKeys(keys);
           for (Size m = 0; m < keys.size(); ++m)
           {
-            status = status + " " + keys[m] + ": " + (String)(f.getMetaValue(keys[m]));
+            status += " " + keys[m] + ": ";
+            DataValue dv = f->getMetaValue(keys[m]);
+            if (dv.valueType() == DataValue::DOUBLE_VALUE)
+            { // use less precision for large numbers, for better readability
+              int precision(2);
+              if ((double)dv < 10) precision = 5;
+              // ... and add 1k separators, e.g. '540,321.99'
+              status += QLocale::c().toString((double)dv, 'f', precision);
+            }
+            else
+            {
+              status += (String)dv;
+            }
           }
         }
         else if (getCurrentLayer().type == LayerData::DT_PEAK)
@@ -1980,23 +2029,14 @@ namespace OpenMS
             }
           }
         }
-        else if (getCurrentLayer().type == LayerData::DT_CONSENSUS)      // ConsensusFeature
-        {
-          //add meta info
-          const ConsensusFeature & f = selected_peak_.getFeature(*getCurrentLayer().getConsensusMap());
-          std::vector<String> keys;
-          f.getKeys(keys);
-          for (Size m = 0; m < keys.size(); ++m)
-          {
-            status = status + " " + keys[m] + ": " + (String)(f.getMetaValue(keys[m]));
-          }
-        }
         else if (getCurrentLayer().type == LayerData::DT_CHROMATOGRAM) // chromatogram
         {
           //TODO CHROM
         }
         if (status != "")
+        {
           emit sendStatusMessage(status, 0);
+        }
       }
     }
     else if (action_mode_ == AM_ZOOM)
@@ -2799,13 +2839,13 @@ namespace OpenMS
     emit layerZoomChanged(this);
   }
 
-  void Spectrum2DCanvas::translateLeft_()
+  void Spectrum2DCanvas::translateLeft_(Qt::KeyboardModifiers /*m*/)
   {
     if ( isMzToXAxis() ) translateVisibleArea_( -0.05, 0.0 );
     else translateVisibleArea_( 0.0, -0.05 );
   }
 
-  void Spectrum2DCanvas::translateRight_()
+  void Spectrum2DCanvas::translateRight_(Qt::KeyboardModifiers /*m*/)
   {
     if ( isMzToXAxis() ) translateVisibleArea_( 0.05, 0.0 );
     else translateVisibleArea_( 0.0, 0.05 );
@@ -2825,55 +2865,58 @@ namespace OpenMS
 
   void Spectrum2DCanvas::keyPressEvent(QKeyEvent * e)
   {
-    // CTRL+ALT+H => hidden action
-    if ((e->modifiers() & Qt::ControlModifier) && (e->modifiers() & Qt::AltModifier) && (e->key() == Qt::Key_H))
+    // CTRL+ALT (exactly, not e.g. CTRL+ALT+KEYPAD<X>|SHIFT...)
+    // note that Qt::KeypadModifier is also a modifier which gets activated when any keypad key is pressed
+    if (e->modifiers() == (Qt::ControlModifier | Qt::AltModifier))
     {
-      /*
-      //Scaling with file size (layers)
-      for (UInt i=0; i<getLayerCount(); ++i)
-      {
-          QTime timer;
-          timer.start();
-          for (UInt j=0; j<10; ++j)
-          {
-              QPainter painter(&buffer_);
-              paintDots_(i, painter);
-          }
-          cout << "peaks: " << getLayer(i).peaks.getSize() << " time: " << timer.elapsed() / 10.0 << endl;
+      String status_changed;
+      // +Home (MacOSX small keyboard: Fn+ArrowLeft) => increase point size
+      if ((e->key() == Qt::Key_Home) && (pen_size_max_ < PEN_SIZE_MAX_LIMIT))
+      { 
+        ++pen_size_max_;
+        status_changed = "Max. dot size increased to '" + String(pen_size_max_) + "'";
       }
-
-      //Scaling with resolution
-      for (UInt i=250; i<3001; i+=250)
+      // +End (MacOSX small keyboard: Fn+ArrowRight) => decrease point size
+      else if ((e->key() == Qt::Key_End) && (pen_size_max_ > PEN_SIZE_MIN_LIMIT))
       {
-          resize(i,i);
-          QTime timer;
-          timer.start();
-          QPainter painter(&buffer_);
-          paintDots_(0, painter);
-          cout << "pixels: " << i << " time: " << timer.elapsed() << endl;
+        --pen_size_max_;
+        status_changed = "Max. dot size decreased to '" + String(pen_size_max_) + "'";
       }
-      */
-
-      e->accept();
-      return;
+      // +PageUp => increase min. coverage threshold
+      else if (e->key() == Qt::Key_PageUp && canvas_coverage_min_ < CANVAS_COVERAGE_MIN_LIMITHIGH)
+      {
+        canvas_coverage_min_ += 0.05; // 5% steps
+        status_changed = "Min. coverage threshold increased to '" + String(canvas_coverage_min_) + "'";
+      }
+      // +PageDown => decrease min. coverage threshold
+      else if (e->key() == Qt::Key_PageDown && canvas_coverage_min_ > CANVAS_COVERAGE_MIN_LIMITLOW)
+      {
+        canvas_coverage_min_ -= 0.05; // 5% steps
+        status_changed = "Min. coverage threshold decreased to '" + String(canvas_coverage_min_) + "'";
+      }
+      if (!status_changed.empty())
+      {
+        emit sendStatusMessage(status_changed, 0);
+        update_buffer_ = true; // full repaint
+        update_(__PRETTY_FUNCTION__); // schedule repaint
+        return;
+      }
     }
 
     // Delete features
-    LayerData & layer = getCurrentLayer_();
-    if (getCurrentLayer().modifiable && layer.type == LayerData::DT_FEATURE && selected_peak_.isValid() && e->key() == Qt::Key_Delete)
+    LayerData& layer = getCurrentLayer_();
+    if (e->key() == Qt::Key_Delete && getCurrentLayer().modifiable && layer.type == LayerData::DT_FEATURE && selected_peak_.isValid())
     {
       layer.getFeatureMap()->erase(layer.getFeatureMap()->begin() + selected_peak_.peak);
       selected_peak_.clear();
       update_buffer_ = true;
       update_(__PRETTY_FUNCTION__);
-      e->accept();
-
       modificationStatus_(activeLayerIndex(), true);
+      return;
     }
-    else
-    {
-      SpectrumCanvas::keyPressEvent(e);
-    }
+
+    // call parent class
+    SpectrumCanvas::keyPressEvent(e);
   }
 
   void Spectrum2DCanvas::keyReleaseEvent(QKeyEvent * e)
@@ -2896,7 +2939,7 @@ namespace OpenMS
       update_(__PRETTY_FUNCTION__);
     }
 
-    //do the normal stuff
+    // do the normal stuff
     SpectrumCanvas::keyReleaseEvent(e);
   }
 
@@ -2930,14 +2973,14 @@ namespace OpenMS
         }
       }
 
-      //update gradient if the min/max intensity changes
+      // update gradient if the min/max intensity changes
       if (tmp.getIntensity() < current_layer.getFeatureMap()->getMinInt() || tmp.getIntensity() > current_layer.getFeatureMap()->getMaxInt())
       {
         current_layer.getFeatureMap()->updateRanges();
         recalculateRanges_(0, 1, 2);
         intensityModeChange_();
       }
-      else       //just repaint to show the changes
+      else // just repaint to show the changes
       {
         update_buffer_ = true;
         update_(__PRETTY_FUNCTION__);

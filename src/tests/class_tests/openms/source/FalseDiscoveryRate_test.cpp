@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -63,7 +63,7 @@ START_SECTION(~FalseDiscoveryRate())
 }
 END_SECTION
 
-START_SECTION((void apply(std::vector< PeptideIdentification > &fwd_ids, std::vector< PeptideIdentification > &rev_ids)))
+START_SECTION((void apply(std::vector<PeptideIdentification> &fwd_ids, std::vector<PeptideIdentification> &rev_ids)))
 {
   ptr = new FalseDiscoveryRate();
   vector<ProteinIdentification> fwd_prot_ids, rev_prot_ids;
@@ -94,7 +94,7 @@ START_SECTION((void apply(std::vector< PeptideIdentification > &fwd_ids, std::ve
 }
 END_SECTION
 
-START_SECTION((void apply(std::vector< ProteinIdentification > &fwd_ids, std::vector< ProteinIdentification > &rev_ids)))
+START_SECTION((void apply(std::vector<ProteinIdentification> &fwd_ids, std::vector<ProteinIdentification> &rev_ids)))
 {
   vector<ProteinIdentification> fwd_prot_ids, rev_prot_ids;
   vector<PeptideIdentification> fwd_pep_ids, rev_pep_ids;
@@ -129,7 +129,7 @@ START_SECTION((void apply(std::vector< ProteinIdentification > &fwd_ids, std::ve
 }
 END_SECTION
 
-START_SECTION((void apply(std::vector< PeptideIdentification > &id)))
+START_SECTION((void apply(std::vector<PeptideIdentification> &id)))
 {
   vector<ProteinIdentification> prot_ids;
   vector<PeptideIdentification> pep_ids;
@@ -188,11 +188,19 @@ START_SECTION((void apply(std::vector<ProteinIdentification>& ids)))
   for (vector<ProteinIdentification>::const_iterator it = fwd_prot_ids.begin(); it != fwd_prot_ids.end(); ++it)
   {
     prot_ids.push_back(*it);
+    for (vector<ProteinHit>::iterator hit_it = prot_ids.back().getHits().begin(); hit_it != prot_ids.back().getHits().end(); ++hit_it)
+    {
+      hit_it->setMetaValue("target_decoy", "target");
+    }
   }
   
   for (vector<ProteinIdentification>::const_iterator it = rev_prot_ids.begin(); it != rev_prot_ids.end(); ++it)
   {
     prot_ids.push_back(*it);
+    for (vector<ProteinHit>::iterator hit_it = prot_ids.back().getHits().begin(); hit_it != prot_ids.back().getHits().end(); ++hit_it)
+    {
+      hit_it->setMetaValue("target_decoy", "decoy");
+    }
   }
 
   ptr->apply(prot_ids);

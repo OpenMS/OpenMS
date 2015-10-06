@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl $
-// $Authors: Clemens Groepl, Johannes Junker, Mathias Walzer$
+// $Authors: Clemens Groepl, Johannes Junker, Mathias Walzer, Chris Bielow $
 // --------------------------------------------------------------------------
 #ifndef OPENMS_MATH_STATISTICS_STATISTICFUNCTIONS_H
 #define OPENMS_MATH_STATISTICS_STATISTICFUNCTIONS_H
@@ -130,7 +130,7 @@ namespace OpenMS
   template <typename IteratorType>
   static double mean(IteratorType begin, IteratorType end)
   {
-  checkIteratorsNotNULL(begin, end);
+    checkIteratorsNotNULL(begin, end);
     return sum(begin, end) / std::distance(begin, end);
   }
 
@@ -140,7 +140,7 @@ namespace OpenMS
     @param begin Start of range
     @param end End of range (past-the-end iterator)
     @param sorted Is the range already sorted? If not, it will be sorted.
-
+    @return Median (as floating point, since we need to support average of middle values)
     @exception Exception::InvalidRange is thrown if the range is NULL
 
     @ingroup MathFunctionsStatistics
@@ -170,6 +170,38 @@ namespace OpenMS
       return *it;
     }
   }
+
+  
+    /** 
+      @brief median absolute deviation (MAD)
+
+      Computes the MAD, defined as 
+
+      MAD = median( | x_i - median(x) | ) for a vector x with indices i in [1,n].
+
+      Sortedness of the input is not required (nor does it provide a speedup).
+      For efficiency, you must provide the median separately, in order to avoid potentially duplicate efforts (usually one
+      computes the median anyway externally).
+      
+      @param begin Start of range
+      @param end End of range (past-the-end iterator)
+      @param median_of_numbers The precomputed median of range @p begin - @p end.
+      @return the MAD
+
+      @ingroup MathFunctionsStatistics
+
+    */
+    template <typename IteratorType>
+    double MAD(IteratorType begin, IteratorType end, double median_of_numbers)
+    {
+      std::vector<double> diffs;
+      diffs.reserve(std::distance(begin, end));
+      for (IteratorType it = begin; it != end; ++it)
+      {
+        diffs.push_back(fabs(*it - median_of_numbers));
+      }
+      return median(diffs.begin(), diffs.end(), false);
+    }
 
   /**
     @brief Calculates the first quantile of a range of values
@@ -233,6 +265,8 @@ namespace OpenMS
   /**
   @brief Calculates the variance of a range of values
 
+  The @p mean can be provided explicitly to save computation time. If left at default, it will be computed internally.
+
   @exception Exception::InvalidRange is thrown if the range is empty
 
   @ingroup MathFunctionsStatistics
@@ -258,6 +292,8 @@ namespace OpenMS
 
   /**
   @brief Calculates the standard deviation of a range of values.
+
+  The @p mean can be provided explicitly to save computation time. If left at default, it will be computed internally.
 
   @exception Exception::InvalidRange is thrown if the range is empty
 
@@ -621,6 +657,42 @@ namespace OpenMS
 
       return sum_model_data / (sqrt(sqsum_data) * sqrt(sqsum_model));
     }
+
+    /// Helper class to gather (and dump) some statistics from a e.g. vector<double>.
+    template<typename T>
+    struct SummaryStatistics
+    {
+      SummaryStatistics()
+        :mean(0), variance(0), min(0), lowerq(0), median(0), upperq(0), max(0)
+      {
+      }
+
+      // Ctor with data
+      SummaryStatistics(T& data)
+      {
+        count = data.size();
+        // Sanity check: avoid core dump if no data points present.
+        if (data.empty())
+        {
+          mean = variance = min = lowerq = median = upperq = max = 0.0;
+        }
+        else
+        {
+          sort(data.begin(), data.end());
+          mean = Math::mean(data.begin(), data.end());
+          variance = Math::variance(data.begin(), data.end(), mean);
+          min = data.front();
+          lowerq = Math::quantile1st(data.begin(), data.end(), true);
+          median = Math::median(data.begin(), data.end(), true);
+          upperq = Math::quantile3rd(data.begin(), data.end(), true);
+          max = data.back();
+        }
+      }
+
+      double mean, variance, lowerq, median, upperq;
+      typename T::value_type min, max;
+      size_t count;
+    };
 
   }   // namespace Math
 } // namespace OpenMS

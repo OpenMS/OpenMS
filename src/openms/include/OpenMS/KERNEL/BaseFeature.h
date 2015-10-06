@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,10 +36,11 @@
 #define OPENMS_KERNEL_BASEFEATURE_H
 
 #include <OpenMS/KERNEL/RichPeak2D.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
 
 namespace OpenMS
 {
+
+  class PeptideIdentification;
 
   /**
     @brief A basic LC-MS feature.
@@ -86,13 +87,13 @@ public:
     BaseFeature();
 
     /// Copy constructor
-    BaseFeature(const BaseFeature & feature);
+    BaseFeature(const BaseFeature& feature);
 
     /// Constructor from raw data point
-    explicit BaseFeature(const Peak2D & point);
+    explicit BaseFeature(const Peak2D& point);
 
     /// Constructor from raw data point with meta information
-    explicit BaseFeature(const RichPeak2D & point);
+    explicit BaseFeature(const RichPeak2D& point);
 
     /// Destructor
     ~BaseFeature();
@@ -108,22 +109,22 @@ public:
     struct QualityLess :
       std::binary_function<BaseFeature, BaseFeature, bool>
     {
-      bool operator()(const BaseFeature & left, const BaseFeature & right) const
+      bool operator()(const BaseFeature& left, const BaseFeature& right) const
       {
         return left.getQuality() < right.getQuality();
       }
 
-      bool operator()(const BaseFeature & left, const QualityType & right) const
+      bool operator()(const BaseFeature& left, const QualityType& right) const
       {
         return left.getQuality() < right;
       }
 
-      bool operator()(const QualityType & left, const BaseFeature & right) const
+      bool operator()(const QualityType& left, const BaseFeature& right) const
       {
         return left < right.getQuality();
       }
 
-      bool operator()(const QualityType & left, const QualityType & right) const
+      bool operator()(const QualityType& left, const QualityType& right) const
       {
         return left < right;
       }
@@ -137,28 +138,28 @@ public:
     void setWidth(WidthType fwhm);
 
     /// Non-mutable access to charge state
-    const ChargeType & getCharge() const;
+    const ChargeType& getCharge() const;
 
     /// Set charge state
-    void setCharge(const ChargeType & ch);
+    void setCharge(const ChargeType& ch);
 
     /// Assignment operator
-    BaseFeature & operator=(const BaseFeature & rhs);
+    BaseFeature& operator=(const BaseFeature& rhs);
 
     /// Equality operator
-    bool operator==(const BaseFeature & rhs) const;
+    bool operator==(const BaseFeature& rhs) const;
 
     /// Inequality operator
-    bool operator!=(const BaseFeature & rhs) const;
+    bool operator!=(const BaseFeature& rhs) const;
 
     /// returns a const reference to the PeptideIdentification vector
-    const std::vector<PeptideIdentification> & getPeptideIdentifications() const;
+    const std::vector<PeptideIdentification>& getPeptideIdentifications() const;
 
     /// returns a mutable reference to the PeptideIdentification vector
-    std::vector<PeptideIdentification> & getPeptideIdentifications();
+    std::vector<PeptideIdentification>& getPeptideIdentifications();
 
     /// sets the PeptideIdentification vector
-    void setPeptideIdentifications(const std::vector<PeptideIdentification> & peptides);
+    void setPeptideIdentifications(const std::vector<PeptideIdentification>& peptides);
 
     /// state of peptide identifications attached to this feature. If one ID has multiple hits, the output depends on the top-hit only
     AnnotationState getAnnotationState() const;

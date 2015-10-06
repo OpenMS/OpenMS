@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,23 +35,26 @@
 #ifndef OPENMS_DATASTRUCTURES_GRIDFEATURE_H
 #define OPENMS_DATASTRUCTURES_GRIDFEATURE_H
 
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/BaseFeature.h>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/OpenMSConfig.h>
+
+#include <set>
 
 namespace OpenMS
 {
+  class BaseFeature;
+  class AASequence;
 
-/**
- * @brief Representation of a feature in a hash grid.
- *
- * A GridFeature can be stored in a HashGrid and points to a BaseFeature (Feature or ConsensusFeature). Used for QT feature grouping (see QTClusterFinder).
- */
-
+  /**
+   * @brief Representation of a feature in a hash grid.
+   *
+   * A GridFeature can be stored in a HashGrid and points to a BaseFeature (Feature or ConsensusFeature). Used for QT feature grouping (see QTClusterFinder).
+   */
   class OPENMS_DLLAPI GridFeature
   {
 private:
     /// Reference to the contained feature
-    const BaseFeature & feature_;
+    const BaseFeature& feature_;
 
     /// Index of the feature map or consensus map
     Size map_index_;
@@ -69,10 +72,10 @@ public:
      * @param map_index Index of the feature map or consensus map
      * @param feature_index Index of the feature in the map
      */
-    GridFeature(const BaseFeature & feature, Size map_index, Size feature_index);
+    GridFeature(const BaseFeature& feature, Size map_index, Size feature_index);
 
     /// Returns the feature
-    const BaseFeature & getFeature() const;
+    const BaseFeature& getFeature() const;
 
     /// Destructor
     virtual ~GridFeature();
@@ -87,7 +90,7 @@ public:
     Int getID() const;
 
     /// Returns the set of peptide sequences annotated to the cluster center
-    const std::set<AASequence> & getAnnotations() const;
+    const std::set<AASequence>& getAnnotations() const;
 
     /// Returns the feature RT
     double getRT() const;

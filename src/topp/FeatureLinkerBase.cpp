@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,9 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
+
+#include <OpenMS/KERNEL/ConversionHelper.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -59,7 +62,7 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPFeatureLinkerBase :
-  public TOPPBase
+  public TOPPBase, public ProgressLogger
 {
 
 public:
@@ -116,24 +119,49 @@ protected:
     //-------------------------------------------------------------
     // load input
     ConsensusMap out_map;
+    StringList ms_run_locations;
     if (file_type == FileTypes::FEATUREXML)
     {
-      vector<FeatureMap > maps(ins.size());
+      vector<ConsensusMap > maps(ins.size());
       FeatureXMLFile f;
+      FeatureFileOptions param = f.getOptions();
+      // to save memory don't load convex hulls and subordinates
+      param.setLoadSubordinates(false);
+      param.setLoadConvexHull(false);
+      f.setOptions(param);
+
+      Size progress = 0;
+      setLogType(ProgressLogger::CMD);
+      startProgress(0, ins.size(), "reading input");
       for (Size i = 0; i < ins.size(); ++i)
       {
-        f.load(ins[i], maps[i]);
+        FeatureMap tmp;
+        f.load(ins[i], tmp);
         out_map.getFileDescriptions()[i].filename = ins[i];
-        out_map.getFileDescriptions()[i].size = maps[i].size();
-        out_map.getFileDescriptions()[i].unique_id = maps[i].getUniqueId();
-        // to save memory, remove convex hulls and subordinates:
-        for (FeatureMap::Iterator it = maps[i].begin(); it != maps[i].end();
+        out_map.getFileDescriptions()[i].size = tmp.size();
+        out_map.getFileDescriptions()[i].unique_id = tmp.getUniqueId();
+
+        // copy over information on the primary MS run
+        const StringList& ms_runs = tmp.getPrimaryMSRunPath();
+        ms_run_locations.insert(ms_run_locations.end(), ms_runs.begin(), ms_runs.end());
+
+        // to save memory, remove convex hulls, subordinates:
+        for (FeatureMap::Iterator it = tmp.begin(); it != tmp.end();
              ++it)
         {
           it->getSubordinates().clear();
           it->getConvexHulls().clear();
+          it->clearMetaInfo();
         }
+
+        MapConversion::convert(i, tmp, maps[i]);
+
+        maps[i].updateRanges();
+
+        setProgress(progress++);
       }
+      endProgress();
+
       // exception for "labeled" algorithms: copy file descriptions
       if (labeled)
       {
@@ -142,7 +170,6 @@ protected:
         out_map.getFileDescriptions()[1].label = "heavy";
       }
 
-      out_map.updateRanges();
       // group
       algorithm->group(maps, out_map);
     }
@@ -153,6 +180,10 @@ protected:
       for (Size i = 0; i < ins.size(); ++i)
       {
         f.load(ins[i], maps[i]);
+        maps[i].updateRanges();
+        // copy over information on the primary MS run
+        const StringList& ms_runs = maps[i].getPrimaryMSRunPath();
+        ms_run_locations.insert(ms_run_locations.end(), ms_runs.begin(), ms_runs.end());
       }
       // group
       algorithm->group(maps, out_map);
@@ -180,22 +211,29 @@ protected:
     out_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
     // annotate output with data processing info
-    addDataProcessing_(out_map, getProcessingInfo_(DataProcessing::FEATURE_GROUPING));
+    addDataProcessing_(out_map,
+                       getProcessingInfo_(DataProcessing::FEATURE_GROUPING));
+
+    // set primary MS runs
+    out_map.setPrimaryMSRunPath(ms_run_locations);
 
     // write output
     ConsensusXMLFile().store(out, out_map);
 
     // some statistics
     map<Size, UInt> num_consfeat_of_size;
-    for (ConsensusMap::const_iterator cmit = out_map.begin(); cmit != out_map.end(); ++cmit)
+    for (ConsensusMap::const_iterator cmit = out_map.begin();
+         cmit != out_map.end(); ++cmit)
     {
       ++num_consfeat_of_size[cmit->size()];
     }
 
     LOG_INFO << "Number of consensus features:" << endl;
-    for (map<Size, UInt>::reverse_iterator i = num_consfeat_of_size.rbegin(); i != num_consfeat_of_size.rend(); ++i)
+    for (map<Size, UInt>::reverse_iterator i = num_consfeat_of_size.rbegin();
+         i != num_consfeat_of_size.rend(); ++i)
     {
-      LOG_INFO << "  of size " << setw(2) << i->first << ": " << setw(6) << i->second << endl;
+      LOG_INFO << "  of size " << setw(2) << i->first << ": " << setw(6) 
+               << i->second << endl;
     }
     LOG_INFO << "  total:      " << setw(6) << out_map.size() << endl;
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Hendrik Weisser $
-// $Authors: Hendrik Weisser $
+// $Maintainer: Hendrik Weisser
+// $Authors: Clemens Groepl, Hendrik Weisser, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -105,6 +105,55 @@ START_SECTION((std::pair<bool, double> operator()(const BaseFeature& left, const
 	result = dist2(left, right);
 	TEST_EQUAL(result.first, false);
 	TEST_EQUAL(result.second, FeatureDistance::infinity);
+
+  // ppm for m/z
+	param.setValue("distance_intensity:weight", 0.0);
+	param.setValue("distance_RT:weight", 0.0);
+	param.setValue("distance_MZ:weight", 1.0);
+  param.setValue("distance_MZ:max_difference", 10.0);
+  param.setValue("distance_MZ:unit", "ppm");
+  dist.setParameters(param);
+  left.setRT(100.0);
+  left.setIntensity(100.0);
+  left.setMZ(100.0);
+  right.setRT(110.0);
+  right.setIntensity(200.0);
+  right.setMZ(100.0 + 100.0/1e6 * 5); // 5ppm off
+  result = dist(left, right);
+  TEST_EQUAL(result.first, true);
+  TEST_REAL_SIMILAR(result.second, 0.5);
+
+  right.setMZ(100.0 + 100.0/1e6 * 20); // 20ppm off
+  result = dist(left, right);
+  TEST_EQUAL(result.first, false);
+  TEST_REAL_SIMILAR(result.second, 2);
+
+  // charge
+  param.setValue("ignore_charge", "false");
+  dist.setParameters(param);
+  right.setMZ(100.0 + 100.0/1e6 * 5); // 5ppm off --> valid in m/z
+  // charges differ
+  right.setCharge(1);
+  left.setCharge(2);
+  result = dist(left, right);
+  TEST_EQUAL(result.first, false); // --> invalid
+  TEST_REAL_SIMILAR(result.second, FeatureDistance::infinity);
+  // one charge 0 -- pass filter
+  right.setCharge(1);
+  left.setCharge(0);
+  result = dist(left, right);
+  TEST_EQUAL(result.first, true); // --> valid
+  TEST_REAL_SIMILAR(result.second, 0.5);
+  // ignore charge
+  param.setValue("ignore_charge", "true");
+  dist.setParameters(param);
+  // charges differ, but we don't care
+  right.setCharge(1);
+  left.setCharge(2);
+  result = dist(left, right);
+  TEST_EQUAL(result.first, true); // --> valid
+  TEST_REAL_SIMILAR(result.second, 0.5);
+
 }
 END_SECTION
 

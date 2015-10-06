@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -214,7 +214,7 @@ public:
 #pragma clang diagnostic ignored "-Wfloat-equal"
       return std::operator==(*this, rhs) &&
              RangeManager<1>::operator==(rhs) &&
-             SpectrumSettings::operator==(rhs)  &&
+             SpectrumSettings::operator==(rhs) &&
              retention_time_ == rhs.retention_time_ &&
              ms_level_ == rhs.ms_level_ &&
              float_data_arrays_ == rhs.float_data_arrays_ &&
@@ -480,6 +480,8 @@ public:
     /// Checks if all peaks are sorted with respect to ascending m/z
     bool isSorted() const
     {
+      if (this->size() < 2) return true;
+
       for (Size i = 1; i < this->size(); ++i)
       {
         if (this->operator[](i - 1).getMZ() > this->operator[](i).getMZ()) return false;
@@ -525,6 +527,46 @@ public:
         return Size(it2 - ContainerType::begin());
       }
     }
+
+    ///@name Searching a peak or peak range
+    ///@{
+    /**
+      @brief Binary search for the peak nearest to a specific m/z given a +/- tolerance window in Th
+
+      @param mz The searched for mass-to-charge ratio searched
+      @param tolerance The non-negative tolerance applied left and right of mz
+
+      @return Returns the index of the peak or -1 if no peak present in tolerance window
+
+      @note Make sure the spectrum is sorted with respect to m/z! Otherwise the result is undefined.
+
+    */
+    Int findNearest(CoordinateType mz, CoordinateType tolerance) const
+    {
+      // no peak => no search
+      if (ContainerType::size() == 0) return -1;
+
+      // search for first peak in left window boundaries
+      ConstIterator it = MZBegin(mz - tolerance);
+
+      if (it == ContainerType::end()) return -1;
+
+      Int best_index = -1;
+      double best_dist = 2.0 * tolerance; // max dist will be at most 1.0 * tolerance so this is safe
+
+      for ( ; it != ContainerType::end() && (it->getMZ() < mz + tolerance); ++it)
+      {
+        double dist = std::abs(it->getMZ() - mz);
+        if (dist < best_dist)
+        {
+          best_dist = dist;
+          best_index = it - ContainerType::begin();
+        }
+      }
+
+      return best_index;
+    }
+
 
     /**
       @brief Binary search for peak range begin

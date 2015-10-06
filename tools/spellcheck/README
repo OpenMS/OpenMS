@@ -13,6 +13,7 @@ find  ./doc/ | grep -v "doxygen.images" | grep -v png | xargs  \
   perl tools/spellcheck/lspell.pl stop2_large.txt  > badwords_doxygen
 
 # Source directory
-find  ./src/openms/source/ | xargs  \
+# GzipIfstream contains many funny crc codes
+find  ./src/openms/source/ | grep -v GzipIfstream |  xargs  \
   perl tools/spellcheck/lspell.pl stop2_large.txt  > badwords_source
 

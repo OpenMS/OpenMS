@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
-// 
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche$
 // $Authors: Stephan Aiche$
@@ -37,10 +37,11 @@
 
 ///////////////////////////
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
+///////////////////////////
+
 #include <OpenMS/KERNEL/Peak1D.h>
 
 #include <cmath>
-///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
@@ -51,12 +52,12 @@ using namespace std;
 
 START_TEST(EGHTraceFitter, "$Id$")
 
-FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D> mts;
+FeatureFinderAlgorithmPickedHelperStructs::MassTraces mts;
 
-FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> mt1;
+FeatureFinderAlgorithmPickedHelperStructs::MassTrace mt1;
 mt1.theoretical_int = 0.8;
 
-FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> mt2;
+FeatureFinderAlgorithmPickedHelperStructs::MassTrace mt2;
 mt2.theoretical_int = 0.2;
 
 /////////////////////////////////////////////////////////////
@@ -250,7 +251,7 @@ mts.max_trace = 0;
 Param p;
 p.setValue("max_iteration", 500);
 
-EGHTraceFitter<Peak1D> egh_trace_fitter;
+EGHTraceFitter egh_trace_fitter;
 egh_trace_fitter.setParameters(p);
 egh_trace_fitter.fit(mts);
 
@@ -262,11 +263,11 @@ double expected_tau = 0.0;
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-EGHTraceFitter<Peak1D>* ptr = 0;
-EGHTraceFitter<Peak1D>* nullPointer = 0;
+EGHTraceFitter* ptr = 0;
+EGHTraceFitter* nullPointer = 0;
 START_SECTION(EGHTraceFitter())
 {
-	ptr = new EGHTraceFitter<Peak1D>();
+  ptr = new EGHTraceFitter();
 	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
@@ -279,7 +280,7 @@ END_SECTION
 
 START_SECTION((EGHTraceFitter(const EGHTraceFitter& other)))
 {
-  EGHTraceFitter<Peak1D> egh1(egh_trace_fitter);
+  EGHTraceFitter egh1(egh_trace_fitter);
 
   TEST_EQUAL(egh1.getCenter(),egh_trace_fitter.getCenter())
   TEST_EQUAL(egh1.getHeight(),egh_trace_fitter.getHeight())
@@ -290,7 +291,7 @@ END_SECTION
 
 START_SECTION((EGHTraceFitter& operator=(const EGHTraceFitter& source)))
 {
-  EGHTraceFitter<Peak1D> egh1;
+  EGHTraceFitter egh1;
 
   egh1 = egh_trace_fitter;
 
@@ -301,12 +302,12 @@ START_SECTION((EGHTraceFitter& operator=(const EGHTraceFitter& source)))
 }
 END_SECTION
 
-START_SECTION((void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>& traces)))
+START_SECTION((void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces& traces)))
 {
   // fit was already done before
   TEST_REAL_SIMILAR(egh_trace_fitter.getCenter(), expected_x0)
   TEST_REAL_SIMILAR(egh_trace_fitter.getHeight(), expected_H)
-  EGHTraceFitter<Peak1D> weighted_fitter;
+  EGHTraceFitter weighted_fitter;
   Param params = weighted_fitter.getDefaults();
   params.setValue("weighted", "true");
   weighted_fitter.setParameters(params);
@@ -317,7 +318,7 @@ START_SECTION((void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Pe
   mts[1].theoretical_int = 0.6;
   weighted_fitter.fit(mts);
   TEST_REAL_SIMILAR(weighted_fitter.getCenter(), expected_x0)
-  TEST_REAL_SIMILAR(weighted_fitter.getHeight(), 6.0825)  
+  TEST_REAL_SIMILAR(weighted_fitter.getHeight(), 6.0825)
 }
 END_SECTION
 
@@ -363,15 +364,15 @@ START_SECTION((double getValue(double rt) const))
 }
 END_SECTION
 
-START_SECTION((double computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, Size k)))
+START_SECTION((double computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, Size k)))
 {
-  FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> mt;
+  FeatureFinderAlgorithmPickedHelperStructs::MassTrace mt;
   mt.theoretical_int = 0.8;
 
-  Peak1D p;
-  p.setIntensity(8.0);
+  Peak1D peak;
+  peak.setIntensity(8.0);
 
-  mt.peaks.push_back(make_pair(expected_x0, &p));
+  mt.peaks.push_back(make_pair(expected_x0, &peak));
 
   // theoretical should be expected_H * theoretical_int at position expected_x0
   TEST_REAL_SIMILAR(egh_trace_fitter.computeTheoretical(mt, 0), mt.theoretical_int * expected_H)
@@ -413,7 +414,7 @@ START_SECTION((virtual double getArea()))
 }
 END_SECTION
 
-START_SECTION((virtual String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, const char function_name, const double baseline, const double rt_shift)))
+START_SECTION((virtual String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, const char function_name, const double baseline, const double rt_shift)))
 {
   String formula = egh_trace_fitter.getGnuplotFormula(mts[0], 'f', 0.0, 0.0);
   // should look like -- f(x)= 0 + (((4.5 + 3.93096e-15 * (x - 680.1 )) > 0) ? 8 * exp(-1 * (x - 680.1)**2 / ( 4.5 + 3.93096e-15 * (x - 680.1 ))) : 0) --

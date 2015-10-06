@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,8 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
 using namespace std;
 
@@ -53,8 +55,8 @@ namespace OpenMS
   }
 
   template <typename MapType>
-  void FeatureGroupingAlgorithmQT::group_(const vector<MapType> & maps,
-                                          ConsensusMap & out)
+  void FeatureGroupingAlgorithmQT::group_(const vector<MapType>& maps,
+                                          ConsensusMap& out)
   {
     // check that the number of maps is ok:
     if (maps.size() < 2)
@@ -68,11 +70,13 @@ namespace OpenMS
 
     cluster_finder.run(maps, out);
 
+    StringList ms_run_locations;
+
     // add protein IDs and unassigned peptide IDs to the result map here,
     // to keep the same order as the input maps (useful for output later):
     for (typename vector<MapType>::const_iterator map_it = maps.begin();
          map_it != maps.end(); ++map_it)
-    {
+    {      
       // add protein identifications to result map:
       out.getProteinIdentifications().insert(
         out.getProteinIdentifications().end(),
@@ -93,14 +97,14 @@ namespace OpenMS
     return;
   }
 
-  void FeatureGroupingAlgorithmQT::group(const std::vector<FeatureMap> & maps,
-                                         ConsensusMap & out)
+  void FeatureGroupingAlgorithmQT::group(const std::vector<FeatureMap>& maps,
+                                         ConsensusMap& out)
   {
     group_(maps, out);
   }
 
-  void FeatureGroupingAlgorithmQT::group(const std::vector<ConsensusMap> & maps,
-                                         ConsensusMap & out)
+  void FeatureGroupingAlgorithmQT::group(const std::vector<ConsensusMap>& maps,
+                                         ConsensusMap& out)
   {
     group_(maps, out);
   }

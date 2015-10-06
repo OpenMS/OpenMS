@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Chris Bielow, Andreas Bertsch $
+// $Authors: Chris Bielow, Andreas Bertsch, Lars Nilse $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -99,8 +99,8 @@ protected:
     registerOutputFile_("out", "<file>", "", "Output mzML file with merged spectra.");
     setValidFormats_("out", ListUtils::create<String>("mzML"));
 
-    registerStringOption_("merging_method", "<method>", "block_method", "Method of merging which should be used.", false);
-    setValidStrings_("merging_method", ListUtils::create<String>("precursor_method,block_method"));
+    registerStringOption_("merging_method", "<method>", "average_gaussian", "Method of merging which should be used.", false);
+    setValidStrings_("merging_method", ListUtils::create<String>("average_gaussian,average_tophat,precursor_method,block_method"));
 
     registerSubsection_("algorithm", "Algorithm section for merging spectra");
   }
@@ -135,6 +135,7 @@ protected:
     //-------------------------------------------------------------
 
     SpectraMerger merger;
+    merger.setLogType(log_type_);
     merger.setParameters(getParam_().copy("algorithm:", true));
     if (merging_method == "precursor_method")
     {
@@ -143,6 +144,14 @@ protected:
     else if (merging_method == "block_method")
     {
       merger.mergeSpectraBlockWise(exp);
+    }
+    else if (merging_method == "average_gaussian")
+    {
+      merger.average(exp, "gaussian");
+    }
+    else if (merging_method == "average_tophat")
+    {
+      merger.average(exp, "tophat");
     }
 
     //-------------------------------------------------------------

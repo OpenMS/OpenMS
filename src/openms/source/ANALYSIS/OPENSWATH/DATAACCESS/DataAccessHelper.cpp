@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -144,6 +144,84 @@ namespace OpenMS
       else if (transition_exp_.getTransitions()[i].getDecoyTransitionType() == ReactionMonitoringTransition::DECOY)
       {
         t.decoy = true;
+      }
+
+      if (transition_exp_.getTransitions()[i].metaValueExists("detecting_transition"))
+      {
+        if (!transition_exp_.getTransitions()[i].getMetaValue("detecting_transition").toBool())
+        {
+          t.detecting_transition = false;
+        }
+        else if (transition_exp_.getTransitions()[i].getMetaValue("detecting_transition").toBool())
+        {
+          t.detecting_transition = true;
+        }
+      }
+      else
+      {
+        t.detecting_transition = true;
+      }
+      if (transition_exp_.getTransitions()[i].metaValueExists("identifying_transition"))
+      {
+        if (!transition_exp_.getTransitions()[i].getMetaValue("identifying_transition").toBool())
+        {
+          t.identifying_transition = false;
+        }
+        else if (transition_exp_.getTransitions()[i].getMetaValue("identifying_transition").toBool())
+        {
+          t.identifying_transition = true;
+        }
+      }
+      else
+      {
+        t.identifying_transition = false;
+      }
+      String sites_data = transition_exp_.getTransitions()[i].getMetaValue("site_identifying_transition").toString();
+      if (sites_data != "")
+      {
+        IntList sites = ListUtils::create<Int>(sites_data);
+        if (sites.size() > 0)
+        {
+          t.site_identifying_transition = sites;
+        }
+        else
+        {
+          t.site_identifying_transition = std::vector<int>();
+        }
+      }
+      String sites_classes_data = transition_exp_.getTransitions()[i].getMetaValue("site_identifying_class").toString();
+      if (sites_classes_data != "")
+      {
+        StringList sites_classes_sl = ListUtils::create<String>(sites_classes_data);
+        std::vector<std::string> sites_classes;
+        for (std::vector<String>::iterator sl_it = sites_classes_sl.begin(); sl_it != sites_classes_sl.end(); ++sl_it)
+        {
+          sites_classes.push_back(*sl_it);
+        }
+
+        if (sites_classes.size() > 0)
+        {
+          t.site_identifying_class = sites_classes;
+        }
+      }
+      else
+      {
+        t.site_identifying_class = std::vector<std::string>();
+      }
+      if (transition_exp_.getTransitions()[i].metaValueExists("quantifying_transition"))
+      {
+        if (!transition_exp_.getTransitions()[i].getMetaValue("quantifying_transition").toBool())
+        {
+          t.quantifying_transition = false;
+        }
+        else if (transition_exp_.getTransitions()[i].getMetaValue("quantifying_transition").toBool())
+        {
+          t.quantifying_transition = true;
+        }
+      }
+      else
+      {
+        t.quantifying_transition = true;
       }
 
       transition_exp.transitions.push_back(t);

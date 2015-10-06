@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,7 +36,6 @@
 #define OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKERCWT_H
 
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>
@@ -48,6 +47,8 @@
 //#define DEBUG_DECONV
 namespace OpenMS
 {
+  class PeakShape;
+
   /**
          @brief This class implements a peak picking algorithm using wavelet techniques
 
@@ -95,7 +96,7 @@ public:
 
                 Picks the peaks in the input spectrum and writes the resulting peaks to the output container.
     */
-    void pick(const MSSpectrum<> & input, MSSpectrum<> & output);
+    void pick(const MSSpectrum<> & input, MSSpectrum<> & output) const;
 
     /**
                 @brief Picks the peaks in an MSExperiment.
@@ -117,6 +118,7 @@ public:
 
     */
     double estimatePeakWidth(const MSExperiment<> & input);
+
 protected:
 
     /// Threshold for the peak height in the MS 1 level
@@ -155,43 +157,30 @@ protected:
 
     void updateMembers_();
 
-    /// Initializes the members and parses the parameter object
-    void init_();
-
-
     /**
-             @brief Class for the internal peak representation
+      @brief Class for the internal peak representation
 
-             A regularData-Object which contents some additional useful information
-             for analysing peaks and their properties
+      A regular Data-Object which contains some additional useful information
+      for analyzing peaks and their properties
+      The left and right iterators delimit a range in the raw data which represents a raw peak.
+      They define the raw peak endpoints. @p max points to the raw data point in [left, right] with the highest intensity, the
+      maximum of the raw peak.
+
     */
     struct OPENMS_DLLAPI PeakArea_
     {
       typedef MSSpectrum<>::iterator PeakIterator;
-
-      /**
-        @brief Iterator defining a raw data peak.
-
-                The left and right iterators delimit a range in the raw data which represents a raw peak.
-                They define the raw peak endpoints. Max points to the raw data point in [left, right] with the highest intensity, the
-                maximum of the raw peak.
-
-                Left_behind_centroid points to the raw data point next to the estimates centroid position.
-      */
-      PeakIterator left;
-      PeakIterator max;
-      PeakIterator right;
-      PeakIterator left_behind_centroid;
-      /// The estimated centroid position.
-      DPosition<1> centroid_position;
+      PeakIterator left;  //< iterator to the leftmost valid point
+      PeakIterator max;   //< iterator to the maximum position
+      PeakIterator right; //< iterator to the rightmost valid point (inclusive)
+      DPosition<1> centroid_position; //< The estimated centroid position in m/z
     };
 
-
     /// Computes the peak's left and right area
-    void getPeakArea_(const PeakArea_ & area, double & area_left, double & area_right);
+    void getPeakArea_(const PeakArea_ & area, double & area_left, double & area_right) const;
 
     /// Returns the best fitting peakshape
-    PeakShape fitPeakShape_(const PeakArea_ & area, bool enable_centroid_fit);
+    PeakShape fitPeakShape_(const PeakArea_ & area) const;
 
     /**
                 @brief Returns the squared Pearson coefficient.
@@ -210,7 +199,9 @@ protected:
                 are relevant. If no peak is detected the method return false.
                 For direction=1, the method runs from first to last given direction=-1 it runs the other way around.
     */
-    bool getMaxPosition_(PeakIterator first, PeakIterator last, const ContinuousWaveletTransform & wt, PeakArea_ & area, Int distance_from_scan_border, Int ms_level, double peak_bound_cwt, double peak_bound_ms2_level_cwt, Int direction = 1);
+    bool getMaxPosition_(const PeakIterator first, const PeakIterator last, const ContinuousWaveletTransform & wt, 
+                         PeakArea_ & area, const Int distance_from_scan_border, 
+                         const double peak_bound_cwt, const double peak_bound_ms2_level_cwt, const Int direction = 1) const;
 
 
     /**
@@ -232,30 +223,35 @@ protected:
                 -	(2) analogous procedure to the right of x_r
                 .
     */
-    bool getPeakEndPoints_(PeakIterator first, PeakIterator last, PeakArea_ & area, Int distance_from_scan_border, Int & peak_left_index, Int & peak_right_index, ContinuousWaveletTransformNumIntegration & wt);
+    bool getPeakEndPoints_(PeakIterator first, PeakIterator last, PeakArea_ & area, Int distance_from_scan_border,
+                           Int & peak_left_index, Int & peak_right_index, ContinuousWaveletTransformNumIntegration & wt) const;
 
 
     /**
                 @brief Estimates a peak's centroid position.
 
                 Computes the centroid position of the peak using all raw data points which are greater than
-                60% of the most intensive raw data point.
+                'centroid_percentage' (user-param) of the most intensive raw data point.
     */
-    void getPeakCentroid_(PeakArea_ & area);
+    void getPeakCentroid_(PeakArea_ & area) const;
 
-    /// Computes the value of a theoretical lorentz peak at position x
-    double lorentz_(double height, double lambda, double pos, double x);
+    /// Computes the value of a theoretical Lorentz peak at position x
+    inline double lorentz_(const double height, const double lambda, const double pos, const double x) const
+    {
+      const double x2 = lambda * (x - pos);
+      return height / (1 + x2*x2);
+    }
 
     /**
                 @brief Computes the threshold for the peak height in the wavelet transform and initializes the wavelet transform.
 
                 Given the threshold for the peak height a corresponding value peak_bound_cwt can be computed
                 for the continuous wavelet transform.
-                Therefore we compute a theoretical lorentzian peakshape with height=peak_bound_ and a width which
+                Therefore we compute a theoretical Lorentzian peakshape with height=peak_bound_ and a width which
                 is similar to the width of the wavelet. Taking the maximum in the wavelet transform of the
-                lorentzian peak we have a peak bound in the wavelet transform.
+                Lorentzian peak we have a peak bound in the wavelet transform.
     */
-    void initializeWT_(ContinuousWaveletTransformNumIntegration & wt, double & peak_bound_cwt, double & peak_bound_ms2_level_cwt);
+    void initializeWT_(ContinuousWaveletTransformNumIntegration& wt, const double peak_bound_in, double& peak_bound_ms_cwt) const;
 
     /** @name Methods needed for separation of overlapping peaks
      */
@@ -267,17 +263,17 @@ protected:
             It determines the number of peaks lying underneath the initial peak using the cwt with different scales.
             Then a nonlinear optimization procedure is applied to optimize the peak parameters.
     */
-    bool deconvolutePeak_(PeakShape & shape, std::vector<PeakShape> & peak_shapes, double peak_bound_cwt);
+    bool deconvolutePeak_(PeakShape & shape, std::vector<PeakShape> & peak_shapes, double peak_bound_cwt) const;
 
     /// Determines the number of peaks in the given mass range using the cwt
     Int getNumberOfPeaks_(ConstPeakIterator first, ConstPeakIterator last, std::vector<double> & peak_values,
-                          Int direction, double resolution, ContinuousWaveletTransformNumIntegration & wt, double peak_bound_cwt);
+                          Int direction, double resolution, ContinuousWaveletTransformNumIntegration & wt, double peak_bound_cwt) const;
 
     /// Estimate the charge state of the peaks
-    Int determineChargeState_(std::vector<double> & peak_values);
+    Int determineChargeState_(std::vector<double> & peak_values) const;
 
     /// Add a peak
-    void addPeak_(std::vector<PeakShape> & peaks_DC, PeakArea_ & area, double left_width, double right_width, OptimizePeakDeconvolution::Data & data);
+    void addPeak_(std::vector<PeakShape> & peaks_DC, PeakArea_ & area, double left_width, double right_width, OptimizePeakDeconvolution::Data & data) const;
     //@}
   };  // end PeakPickerCWT
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,8 @@
 
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/PrecisionWrapper.h>
+#include <OpenMS/METADATA/DataProcessing.h>
 
 #include <fstream>
 
@@ -42,8 +44,8 @@ using namespace std;
 namespace OpenMS
 {
   FeatureXMLFile::FeatureXMLFile() :
-    Internal::XMLHandler("", "1.6"),
-    Internal::XMLFile("/SCHEMAS/FeatureXML_1_6.xsd", "1.6")
+    Internal::XMLHandler("", "1.7"),
+    Internal::XMLFile("/SCHEMAS/FeatureXML_1_7.xsd", "1.7")
   {
     resetMembers_();
   }
@@ -173,7 +175,10 @@ namespace OpenMS
     {
       os << " id=\"fm_" << feature_map.getUniqueId() << "\"";
     }
-    os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/FeatureXML_1_6.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+    os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/FeatureXML_1_7.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+
+    // user param
+    writeUserParam_("userParam", os, feature_map, 1);
 
     //write data processing
     for (Size i = 0; i < feature_map.getDataProcessing().size(); ++i)
@@ -299,11 +304,14 @@ namespace OpenMS
 
     // write features with their corresponding attributes
     os << "\t<featureList count=\"" << feature_map.size() << "\">\n";
+    startProgress(0, feature_map.size(), "Storing featureXML file");
     for (Size s = 0; s < feature_map.size(); s++)
     {
       writeFeature_(filename, os, feature_map[s], "f_", feature_map[s].getUniqueId(), 0);
+      setProgress(s);
       // writeFeature_(filename, os, feature_map[s], "f_", s, 0);
     }
+    endProgress();
 
     os << "\t</featureList>\n";
     os << "</featureMap>\n";
@@ -486,6 +494,7 @@ namespace OpenMS
       {
         map_->setUniqueId(unique_id);
       }
+      last_meta_ = map_;
     }
     else if (tag == "dataProcessing")
     {
@@ -913,7 +922,7 @@ namespace OpenMS
 
       ConvexHull2D current_hull = hulls[i];
       current_hull.compress();
-      Size hull_size  = current_hull.getHullPoints().size();
+      Size hull_size = current_hull.getHullPoints().size();
 
       for (Size j = 0; j < hull_size; j++)
       {

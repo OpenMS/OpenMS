@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -52,44 +52,44 @@ GridBasedCluster::GridBasedCluster(const Point &centre, const Rectangle &boundin
 {
 }
 
-GridBasedCluster::Point GridBasedCluster::getCentre() const
+const GridBasedCluster::Point& GridBasedCluster::getCentre() const
 {
-    return centre_;
+  return centre_;
 }
 
-GridBasedCluster::Rectangle GridBasedCluster::getBoundingBox() const
+const GridBasedCluster::Rectangle& GridBasedCluster::getBoundingBox() const
 {
-    return bounding_box_;
+  return bounding_box_;
 }
 
-std::vector<int> GridBasedCluster::getPoints() const
+const std::vector<int>& GridBasedCluster::getPoints() const
 {
-    return point_indices_;
+  return point_indices_;
 }
 
 int GridBasedCluster::getPropertyA() const
 {
-    return property_A_;
+  return property_A_;
 }
 
-std::vector<int> GridBasedCluster::getPropertiesB() const
+const std::vector<int>& GridBasedCluster::getPropertiesB() const
 {
-    return properties_B_;
+  return properties_B_;
 }
 
-bool GridBasedCluster::operator<(GridBasedCluster other) const
+bool GridBasedCluster::operator<(const GridBasedCluster& other) const
 {
-    return centre_.getY() < other.centre_.getY();
+  return centre_.getY() < other.centre_.getY();
 }
 
-bool GridBasedCluster::operator>(GridBasedCluster other) const
+bool GridBasedCluster::operator>(const GridBasedCluster& other) const
 {
-    return centre_.getY() > other.centre_.getY();
+  return centre_.getY() > other.centre_.getY();
 }
 
-bool GridBasedCluster::operator==(GridBasedCluster other) const
+bool GridBasedCluster::operator==(const GridBasedCluster& other) const
 {
-    return centre_.getY() == other.centre_.getY();
+  return centre_.getY() == other.centre_.getY();
 }
 
 }

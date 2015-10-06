@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -262,12 +262,26 @@ namespace OpenMS
       // and all bytes except the least significant one will be zero. Thus
       // we can convert to char directly (only keeping the least
       // significant byte).
+      const XMLCh* it = chars;
+      const XMLCh* end = it + length;
+
       size_t curr_size = result.size();
       result.resize(curr_size + length);
-      for (size_t i = 0; i < length; i++)
-      {
-        result[curr_size + i] = (char)chars[i];
+      std::string::iterator str_it = result.begin();
+      std::advance(str_it, curr_size);
+      while (it!=end)
+      {   
+        *str_it = (char)*it;
+        ++str_it;
+        ++it;
       }
+
+      // This is ca. 50 % faster than 
+      // for (size_t i = 0; i < length; i++)
+      // {
+      //   result[curr_size + i] = (char)chars[i];
+      // }
+
     }
 
   }   // namespace Internal

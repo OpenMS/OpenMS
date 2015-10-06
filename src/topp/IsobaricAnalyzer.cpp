@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -68,7 +68,7 @@ using namespace std;
 /**
     @page TOPP_IsobaricAnalyzer IsobaricAnalyzer
 
-    @brief Extracts and normalizes isobaric labeling information from an MS experiment.
+    @brief Extracts and normalizes isobaric labeling information from an LC-MS/MS experiment.
 
 <CENTER>
     <table>
@@ -78,7 +78,7 @@ using namespace std;
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
         </tr>
         <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FileConverter </td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_IDMapper</td>
         </tr>
         <tr>
@@ -87,32 +87,23 @@ using namespace std;
     </table>
 </CENTER>
 
-  Extract the isobaric reporter ion intensities (currently iTRAQ 4plex and 8plex and TMT 6plex are supported)
-  from raw MS2 data, does isotope corrections and stores the resulting quantitation as
-  consensusXML, where each consensus centroid corresponds to one isobaric MS2 scan (e.g., HCD).
-  The position of the centroid is the precursor position, its sub-elements are the channels (thus having
-  m/z's of 113-121 for iTRAQ 126-131 for TMT respectively).
+  This tool currently supports iTRAQ 4-plex and 8-plex, and TMT 6-plex and 10-plex as labeling methods.
+  It extracts the isobaric reporter ion intensities from centroided MS2 data, performs isotope correction and stores the resulting quantitation in a consensus map, in which each consensus feature represents one relevant MS2 scan (e.g. HCD; see parameters @p select_activation and @p min_precursor_intensity).
+  The position (RT, m/z) of the consensus centroid is the precursor position; the sub-elements correspond to the channels (with m/z values of 113-121 for iTRAQ and 126-131 for TMT, respectively).
+  
+  @note If none of the reporter ions can be detected in an MS2 scan, a consensus feature will still be generated, but the intensities of the overall feature and of all its sub-elements will be zero. (If desired, such features can be removed by applying an intensity filter in @ref TOPP_FileFilter.)
 
-  Isotope correction is done using non-negative least squares (NNLS), i.e.,
+  The input MS2 spectra have to be in centroid mode for the tool to work properly. Use e.g. @ref TOPP_PeakPickerHiRes to perform centroiding of profile data, if necessary.
+  
+  Isotope correction is done using non-negative least squares (NNLS), i.e.:@n
+  Minimize ||Ax - b||, subject to x >= 0, where b is the vector of observed reporter intensities (with "contaminating" isotope species), A is a correction matrix (as supplied by the manufacturer of the labeling kit) and x is the desired vector of corrected (real) reporter intensities.
+  Other software tools solve this problem by using an inverse matrix multiplication, but this can yield entries in x which are negative. In a real sample, this solution cannot possibly be true, so usually negative values (= negative reporter intensities) are set to zero.
+  However, a negative result usually means that noise was not properly accounted for in the calculation. We thus use NNLS to get a non-negative solution, without the need to truncate negative values. In the (usual) case that inverse matrix multiplication yields only positive values, our NNLS will give the exact same optimal solution.
 
-  Minimize ||Ax - b||, subject to x >= 0, where b is the vector of observed reporter intensities (with 'contaminating'
-  isotope species), A is a correction matrix (as supplied by the manufacturer AB Sciex) and x is the desired vector of corrected (real)
-  reporter intensities.
-  Other software solves this problem using an inverse matrix multiplication, but this can yield entries in x which are negative. In a real sample,
-  this solution cannot possibly be true, so usually negative values (= negative reporter intensities) are set to 0.
-  However, a negative result usually means, that noise was not accounted for thus we use NNLS to get a non-negative solution, without the need to
-  truncate negative values. In (the usual) case that inverse matrix multiplication yields only positive values, our NNLS will give
-  the exact same optimal solution.
+  The correction matrices can be found (and changed) in the INI file (parameter @p correction_matrix of the corresponding labeling method). However, these matrices for both 4-plex and 8-plex iTRAQ are now stable, and every kit delivered should have the same isotope correction values. Thus, there should be no need to change them, but feel free to compare the values in the INI file with your kit's certificate. For TMT (6-plex and 10-plex) the values have to be adapted for each kit.
 
-  The correction matrices can be found (and changed) in the INI file. However, these matrices for both 4plex and 8plex iTRAQ are now stable, and every
-  kit delivered should have the same isotope correction values. Thus, there should be no need to change them, but feel free to compare the values in the
-  INI file with your kit's Certificate.
-  For TMT 6plex the values have to be adapted for each kit.
-
-  After this quantitation step, you might want to annotate the consensus elements with the respective identifications, obtained from
-  an identification pipeline.
-  Note that quantification is solely on peptide level at this stage. In order to obtain protein quantifications, you can try @ref TOPP_TextExporter
-  to obtain a simple text format which you can feed to other software tools (e.g., R), or you can try @ref TOPP_ProteinQuantifier.
+  After the quantitation, you may want to annotate the consensus features with corresponding peptide identifications, obtained from an identification pipeline. Use @ref TOPP_IDMapper to perform the annotation, but make sure to set suitably small RT and m/z tolerances for the mapping, since the identifications will come from the very same MS2 scans that are now represented by consensus features. In general it should be possible to achieve a perfect one-to-one matching of every identification to a single consensus feature.@n
+  Note that quantification will be solely on peptide level after this stage. In order to obtain protein quantities, you can use @ref TOPP_TextExporter to obtain a simple text format which you can feed to other software tools (e.g., R), or you can apply @ref TOPP_ProteinQuantifier.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_IsobaricAnalyzer.cli
@@ -128,6 +119,7 @@ class TOPPIsobaricAnalyzer :
 {
 private:
   std::map<String, IsobaricQuantitationMethod*> quant_methods_;
+  std::map<String, String> quant_method_names_;
 
 public:
   TOPPIsobaricAnalyzer() :
@@ -141,6 +133,10 @@ public:
     quant_methods_[itraq8plex->getName()] = itraq8plex;
     quant_methods_[tmt6plex->getName()] = tmt6plex;
     quant_methods_[tmt10plex->getName()] = tmt10plex;
+    quant_method_names_[itraq4plex->getName()] = "iTRAQ 4-plex";
+    quant_method_names_[itraq8plex->getName()] = "iTRAQ 8-plex";
+    quant_method_names_[tmt6plex->getName()] = "TMT 6-plex";
+    quant_method_names_[tmt10plex->getName()] = "TMT 10-plex";
   }
 
   ~TOPPIsobaricAnalyzer()
@@ -179,7 +175,7 @@ protected:
          it != quant_methods_.end();
          ++it)
     {
-      registerSubsection_(it->second->getName(), String("Algorithm parameters for ") + it->second->getName());
+      registerSubsection_(it->second->getName(), String("Algorithm parameters for ") + quant_method_names_[it->second->getName()]);
     }
   }
 
@@ -253,7 +249,7 @@ protected:
 
     quantifier.quantify(consensus_map_raw, consensus_map_quant);
 
-    // assign unique ID to output file (this might throw an exception.. but thats ok, as we want the program to quit then)
+    // assign unique ID to output file (this might throw an exception... but that's ok, as we want the program to quit then)
     if (getStringOption_("id_pool").trim().length() > 0) getDocumentIDTagger_().tag(consensus_map_quant);
 
     //-------------------------------------------------------------
@@ -271,8 +267,9 @@ protected:
       it->second.filename = in;
     }
 
-    ConsensusXMLFile cm_file;
-    cm_file.store(out, consensus_map_quant);
+    consensus_map_quant.ensureUniqueId();
+    consensus_map_quant.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
+    ConsensusXMLFile().store(out, consensus_map_quant);
 
     return EXECUTION_OK;
   }

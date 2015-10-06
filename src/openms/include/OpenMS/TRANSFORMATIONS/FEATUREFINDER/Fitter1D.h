@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,8 +37,8 @@
 
 #include <OpenMS/DATASTRUCTURES/IsotopeCluster.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/Feature.h>
+#include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderDefs.h>
 
@@ -81,7 +81,7 @@ public:
     Fitter1D();
 
     /// copy constructor
-    Fitter1D(const Fitter1D & source);
+    Fitter1D(const Fitter1D& source);
 
     /// destructor
     virtual ~Fitter1D()
@@ -89,13 +89,10 @@ public:
     }
 
     /// assignment operator
-    virtual Fitter1D & operator=(const Fitter1D & source);
+    virtual Fitter1D& operator=(const Fitter1D& source);
 
     /// return interpolation model
-    virtual QualityType fit1d(const RawDataArrayType & /* range */, InterpolationModel * & /* model */)
-    {
-      throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-    }
+    virtual QualityType fit1d(const RawDataArrayType& /* range */, InterpolationModel*& /* model */);
 
     /// register all derived classes here
     static void registerChildren();
@@ -103,15 +100,7 @@ public:
 protected:
 
     /// standard derivation in bounding box
-    CoordinateType tolerance_stdev_box_;
-    /// minimum of the bounding box
-    CoordinateType min_;
-    /// maximum of the bounding box
-    CoordinateType max_;
-    /// standard derivation
-    CoordinateType stdev1_;
-    /// standard derivation
-    CoordinateType stdev2_;
+    CoordinateType tolerance_stdev_box_;    
     /// basic statistics
     Math::BasicStatistics<> statistics_;
     /// interpolation step size

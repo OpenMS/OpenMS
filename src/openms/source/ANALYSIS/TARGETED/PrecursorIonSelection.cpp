@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -186,63 +186,63 @@ namespace OpenMS
     }
     Feature f;
     f.setRT(rt);
-    FeatureMap::Iterator iter = lower_bound(features.begin(), features.end(), f, Feature::RTLess()); // took this comparator on purpose!
-    if (iter != features.end())
+    FeatureMap::Iterator f_iter = lower_bound(features.begin(), features.end(), f, Feature::RTLess()); // took this comparator on purpose!
+    if (f_iter != features.end())
     {
-      rt = iter->getRT();
-      //std::cout << "getNextPrecsSeq: nach lower bound: "<< rt << " "<<iter->getRT()<<std::endl;
+      rt = f_iter->getRT();
+      //std::cout << "getNextPrecsSeq: nach lower bound: "<< rt << " "<<f_iter->getRT()<<std::endl;
     }
-    while (iter != features.end() && fabs(iter->getRT() - rt) < 0.1 && count < number)
+    while (f_iter != features.end() && fabs(f_iter->getRT() - rt) < 0.1 && count < number)
     {
-      //std::cout << *iter << std::endl;
-      if ((iter->metaValueExists("fragmented") && iter->getMetaValue("fragmented") != "true")
-         || !iter->metaValueExists("fragmented"))
+      //std::cout << *f_iter << std::endl;
+      if ((f_iter->metaValueExists("fragmented") && f_iter->getMetaValue("fragmented") != "true")
+         || !f_iter->metaValueExists("fragmented"))
       {
         if (type_ == DEX)
         {
           // if it matching a mass of an identified protein, continue
-          if (iter->metaValueExists("shifted") && iter->getMetaValue("shifted") == "down")
+          if (f_iter->metaValueExists("shifted") && f_iter->getMetaValue("shifted") == "down")
           {
-            ++iter;
+            ++f_iter;
             continue;
           }
         }
         // get spectrum number
-        Size idx = (Size)(iter->getRT() - min_rt) / rt_step_size;
-        rt = iter->getRT();
+        Size idx = (Size)(f_iter->getRT() - min_rt) / rt_step_size;
+        rt = f_iter->getRT();
         //std::cout << idx <<" "<< fraction_counter_[idx]<<std::endl;
         // if spectrum counter equals spectrum capacity, we proceed with the next spectrum and call getNextPrecsSeq recursively
         if (fraction_counter_[idx] >= (Size)param_.getValue("rt_bin_capacity"))
         {
-          rt = iter->getRT();
-          while (iter != features.end() && fabs(iter->getRT() - rt) < 0.1)
-            ++iter;
-          if (iter != features.end())
+          rt = f_iter->getRT();
+          while (f_iter != features.end() && fabs(f_iter->getRT() - rt) < 0.1)
+            ++f_iter;
+          if (f_iter != features.end())
           {
-            rt = iter->getRT();
+            rt = f_iter->getRT();
             getNextPrecursorsSeq(features, next_features, number - count, rt);
           }
           break;
         }
         else
         {
-          iter->setMetaValue("fragmented", (String)"true");
+          f_iter->setMetaValue("fragmented", (String)"true");
           ++fraction_counter_[idx];
           // store them
-          next_features.push_back(*iter);
+          next_features.push_back(*f_iter);
           ++count;
         }
       }
-      ++iter;
+      ++f_iter;
     }
     //std::cout << "done with while loop"<< std::endl;
     if (count < number)
     {
       f.setRT(rt + 0.1);
-      FeatureMap::Iterator iter = lower_bound(features.begin(), features.end(), f, Feature::RTLess()); // took this comparator on purpose!
-      if (iter != features.end())
+      FeatureMap::Iterator it = lower_bound(features.begin(), features.end(), f, Feature::RTLess()); // took this comparator on purpose!
+      if (it != features.end())
       {
-        rt = iter->getRT();
+        rt = it->getRT();
         getNextPrecursorsSeq(features, next_features, number - count, rt);
       }
     }
@@ -670,8 +670,8 @@ namespace OpenMS
       simulateRun_(features, pep_ids, prot_ids, preprocessed_db, path, precursor_path);
   }
 
-  void PrecursorIonSelection::simulateRun_(FeatureMap& features, std::vector<PeptideIdentification>& pep_ids,
-                                           std::vector<ProteinIdentification>& prot_ids,
+  void PrecursorIonSelection::simulateRun_(FeatureMap& features, std::vector<PeptideIdentification>& param_pep_ids,
+                                           std::vector<ProteinIdentification>& param_prot_ids,
                                            PrecursorIonSelectionPreprocessing& preprocessed_db,
                                            String path, String precursor_path)
   {
@@ -702,7 +702,7 @@ namespace OpenMS
     // check if feature map has required user_params-> else add them
     checkForRequiredUserParams_(features);
 
-    std::vector<PeptideIdentification> filtered_pep_ids = filterPeptideIds_(pep_ids);
+    std::vector<PeptideIdentification> filtered_pep_ids = filterPeptideIds_(param_pep_ids);
 
     // annotate map with ids
     // TODO: wirklich mit deltas? oder lieber ueber convex hulls? Anm v. Chris: IDMapper benutzt CH's + Deltas wenn CH vorhanden sind
@@ -713,7 +713,7 @@ namespace OpenMS
     p.setValue("mz_measure", "Da");
     p.setValue("ignore_charge", "true");
     mapper.setParameters(p);
-    mapper.annotate(features, filtered_pep_ids, prot_ids, true);
+    mapper.annotate(features, filtered_pep_ids, param_prot_ids, true);
     PSProteinInference protein_inference;
     protein_inference.setSolver(solver_);
 
@@ -982,7 +982,7 @@ namespace OpenMS
   }
 
   void PrecursorIonSelection::simulateILPBasedIPSRun_(FeatureMap& features, MSExperiment<>& experiment,
-                                                      std::vector<PeptideIdentification>& pep_ids,
+                                                      std::vector<PeptideIdentification>& param_pep_ids,
                                                       std::vector<ProteinIdentification>& prot_ids,
                                                       PrecursorIonSelectionPreprocessing& preprocessed_db,
                                                       String output_path, String precursor_path)
@@ -994,15 +994,15 @@ namespace OpenMS
 #endif
     bool sequential_order = (param_.getValue("sequential_spectrum_order") == "true") ? true : false;
     Size rt_index_new = 0;
-    if (pep_ids.empty())
+    if (param_pep_ids.empty())
     {
       std::cout << "No peptide ids given." << std::endl;
       return;
     }
 #ifdef PIS_DEBUG
-    std::cout << pep_ids.size() << " ids before filtering\n";
+    std::cout << param_pep_ids.size() << " ids before filtering\n";
 #endif
-    std::vector<PeptideIdentification> filtered_pep_ids = filterPeptideIds_(pep_ids);
+    std::vector<PeptideIdentification> filtered_pep_ids = filterPeptideIds_(param_pep_ids);
 #ifdef PIS_DEBUG
     std::cout << filtered_pep_ids.size() << " ids \n";
 #endif

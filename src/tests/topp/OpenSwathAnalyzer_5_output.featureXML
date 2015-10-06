@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.6" id="fm_12999979801269632061" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_6.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<featureMap version="1.7" id="fm_12999979801269632061" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="1999-12-31T23:59:59">
 		<software name="OpenSwathAnalyzer" version="version_string" />
 		<processingAction name="Quantitation" />
@@ -167,10 +167,10 @@
 			<userParam type="float" name="var_norm_rt_score" value="3055.38448268712"/>
 			<userParam type="float" name="var_intensity_score" value="0.121503684911807"/>
 			<userParam type="float" name="nr_peaks" value="3"/>
-			<userParam type="float" name="sn_ratio" value="3.27205298324225"/>
-			<userParam type="float" name="var_log_sn_score" value="1.18541761153185"/>
+			<userParam type="float" name="sn_ratio" value="3.42378266973528"/>
+			<userParam type="float" name="var_log_sn_score" value="1.23074598364098"/>
 			<userParam type="float" name="var_elution_model_fit_score" value="0.88344943523407"/>
-			<userParam type="float" name="xx_lda_prelim_score" value="-21551.9193145639"/>
+			<userParam type="float" name="xx_lda_prelim_score" value="-21551.8862295746"/>
 			<userParam type="float" name="var_isotope_correlation_score" value="0.972817678336498"/>
 			<userParam type="float" name="var_isotope_overlap_score" value="0"/>
 			<userParam type="float" name="var_massdev_score" value="1.37354439334282"/>
@@ -179,7 +179,7 @@
 			<userParam type="float" name="var_yseries_score" value="0"/>
 			<userParam type="float" name="var_dotprod_score" value="0.819626719315996"/>
 			<userParam type="float" name="var_manhatt_score" value="0.656132040800217"/>
-			<userParam type="float" name="main_var_xx_swath_prelim_score" value="-17227.6239609295"/>
+			<userParam type="float" name="main_var_xx_swath_prelim_score" value="-17227.59598786"/>
 			<userParam type="float" name="PrecursorMZ" value="501"/>
 			<userParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>

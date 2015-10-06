@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -73,6 +73,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
+
   void PeptideAndProteinQuant::countPeptides_(vector<PeptideIdentification>&
                                               peptides)
   {
@@ -93,6 +94,7 @@ namespace OpenMS
     }
   }
 
+
   PeptideHit PeptideAndProteinQuant::getAnnotation_(
     vector<PeptideIdentification>& peptides)
   {
@@ -112,6 +114,7 @@ namespace OpenMS
     return hit;
   }
 
+
   void PeptideAndProteinQuant::quantifyFeature_(const FeatureHandle& feature,
                                                 const PeptideHit& hit)
   {
@@ -125,8 +128,52 @@ namespace OpenMS
       feature.getIntensity(); // new map element is initialized with 0
   }
 
-  void PeptideAndProteinQuant::quantifyPeptides_()
+
+  void PeptideAndProteinQuant::quantifyPeptides(
+    const vector<PeptideIdentification>& peptides)
   {
+    // first, use peptide-level results from protein inference:
+    // - remove peptides not supported by inference results
+    // - update protein accessions according to inference results
+
+    // mapping: peptide seq. (unmodified) -> protein accessions
+    // (in protXML, only unmodified peptides are listed)
+    map<String, set<String> > pep_info;
+    for (vector<PeptideIdentification>::const_iterator pep_it = 
+           peptides.begin(); pep_it != peptides.end(); ++pep_it)
+    {
+      for (vector<PeptideHit>::const_iterator hit_it =
+             pep_it->getHits().begin(); hit_it != pep_it->getHits().end();
+           ++hit_it)
+      {
+        String seq = hit_it->getSequence().toUnmodifiedString();
+        set<String> accessions = hit_it->extractProteinAccessions();
+        // If a peptide is seen multiple times, the protein accessions should
+        // always be the same, so only the first time it should be necessary to
+        // insert them. However, just in case there a differences in the
+        // accessions, we accumulate them all (probably unnecessary work):
+        pep_info[seq].insert(accessions.begin(), accessions.end());
+      }
+    }
+    // if inference results are given, filter quant. data accordingly:
+    if (!pep_info.empty())
+    {
+      PeptideQuant filtered;
+      for (PeptideQuant::iterator q_it = pep_quant_.begin(); 
+           q_it != pep_quant_.end(); ++q_it)
+      {
+        String seq = q_it->first.toUnmodifiedString();
+        map<String, set<String> >::iterator pos = pep_info.find(seq);
+        if (pos != pep_info.end()) // sequence found in protein inference data
+        {
+          q_it->second.accessions = pos->second; // replace accessions
+          filtered.insert(*q_it);
+        }
+      }
+      pep_quant_ = filtered;
+    }
+
+    // now perform the actual peptide quantification:
     for (PeptideQuant::iterator q_it = pep_quant_.begin();
          q_it != pep_quant_.end(); ++q_it)
     {
@@ -171,6 +218,7 @@ namespace OpenMS
       normalizePeptides_();
     }
   }
+
 
   void PeptideAndProteinQuant::normalizePeptides_()
   {
@@ -235,6 +283,7 @@ namespace OpenMS
     }
   }
 
+
   String PeptideAndProteinQuant::getAccession_(
     const set<String>& pep_accessions, map<String, String>& accession_to_leader)
   {
@@ -255,7 +304,7 @@ namespace OpenMS
         if (pos != accession_to_leader.end()) leaders.push_back(pos->second);
         // if the protein accession was not found, this is not an error:
         // if there's not enough evidence for a protein, it won't occur in
-        // the protXML - so we also won't quantify it
+        // the protXML - so we won't quantify it
       }
       if (leaders.empty()) return "";
 
@@ -266,18 +315,18 @@ namespace OpenMS
     return "";
   }
 
+
   void PeptideAndProteinQuant::quantifyProteins(const ProteinIdentification&
                                                 proteins)
   {
-    // if information about indistinguishable proteins is available, map each
-    // accession to the accession of the leader of its group of
-    // indistinguishable proteins:
+    // if information about (indistinguishable) protein groups is available, map
+    // each accession to the accession of the leader of its group of proteins:
     map<String, String> accession_to_leader;
     if (!proteins.getIndistinguishableProteins().empty())
     {
       for (vector<ProteinIdentification::ProteinGroup>::const_iterator pg_it =
              proteins.getIndistinguishableProteins().begin(); pg_it !=
-           proteins.getIndistinguishableProteins().end(); ++pg_it)
+             proteins.getIndistinguishableProteins().end(); ++pg_it)
       {
         for (StringList::const_iterator acc_it = pg_it->accessions.begin();
              acc_it != pg_it->accessions.end(); ++acc_it)
@@ -293,8 +342,6 @@ namespace OpenMS
     {
       String accession = getAccession_(pep_it->second.accessions,
                                        accession_to_leader);
-      // cout << "pep: " << pep_it->first << ", acc: " << accession << ", ids: "
-      //         << pep_it->second.id_count << endl;
       if (!accession.empty()) // proteotypic peptide
       {
         prot_quant_[accession].id_count += pep_it->second.id_count;
@@ -396,7 +443,9 @@ namespace OpenMS
         {
           double sum_intensities = 0;
           double sum_intensities_squared = 0;
-          for (DoubleList::const_iterator it_intensities = ab_it->second.begin(); it_intensities != ab_it->second.end(); ++it_intensities)
+          for (DoubleList::const_iterator it_intensities =
+                 ab_it->second.begin(); it_intensities != ab_it->second.end();
+               ++it_intensities)
           {
             sum_intensities += (*it_intensities);
             sum_intensities_squared += (*it_intensities) * (*it_intensities);
@@ -416,7 +465,8 @@ namespace OpenMS
     }
   }
 
-  void PeptideAndProteinQuant::quantifyPeptides(FeatureMap& features)
+
+  void PeptideAndProteinQuant::readQuantData(FeatureMap& features)
   {
     updateMembers_(); // clear data
     stats_.n_samples = 1;
@@ -439,11 +489,10 @@ namespace OpenMS
     stats_.total_peptides = pep_quant_.size();
     stats_.ambig_features = stats_.total_features - stats_.blank_features -
                             stats_.quant_features;
-
-    quantifyPeptides_();
   }
 
-  void PeptideAndProteinQuant::quantifyPeptides(ConsensusMap& consensus)
+
+  void PeptideAndProteinQuant::readQuantData(ConsensusMap& consensus)
   {
     updateMembers_(); // clear data
     stats_.n_samples = consensus.getFileDescriptions().size();
@@ -470,11 +519,10 @@ namespace OpenMS
     stats_.total_peptides = pep_quant_.size();
     stats_.ambig_features = stats_.total_features - stats_.blank_features -
                             stats_.quant_features;
-
-    quantifyPeptides_();
   }
 
-  void PeptideAndProteinQuant::quantifyPeptides(
+
+  void PeptideAndProteinQuant::readQuantData(
     vector<ProteinIdentification>& proteins,
     vector<PeptideIdentification>& peptides)
   {
@@ -504,9 +552,8 @@ namespace OpenMS
       pep_quant_[seq].abundances[hit.getCharge()][sample] += 1;
     }
     stats_.total_peptides = pep_quant_.size();
-
-    quantifyPeptides_();
   }
+
 
   void PeptideAndProteinQuant::updateMembers_()
   {
@@ -516,17 +563,20 @@ namespace OpenMS
     prot_quant_.clear();
   }
 
+
   const PeptideAndProteinQuant::Statistics&
   PeptideAndProteinQuant::getStatistics()
   {
     return stats_;
   }
 
+
   const PeptideAndProteinQuant::PeptideQuant&
   PeptideAndProteinQuant::getPeptideResults()
   {
     return pep_quant_;
   }
+
 
   const PeptideAndProteinQuant::ProteinQuant&
   PeptideAndProteinQuant::getProteinResults()

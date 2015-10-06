@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,11 +36,13 @@
 #define OPENMS_KERNEL_MSEXPERIMENT_H
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/KERNEL/AreaIterator.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <vector>
 #include <algorithm>
@@ -322,7 +324,7 @@ public:
           spectrum->setMSLevel(1);
         }
 
-        // add either datapoint or mass traces (depending on template argument value)
+        // add either data point or mass traces (depending on template argument value)
         ContainerAdd_<typename Container::const_iterator, add_mass_traces>::addData_(spectrum, iter);
       }
     }
@@ -697,6 +699,32 @@ public:
       return *this;
     }
 
+    /// get the file path to the first MS run
+    StringList getPrimaryMSRunPath() const
+    {
+      StringList ms_run_paths;
+      std::vector<SourceFile> sfs(this->getSourceFiles());
+      for (std::vector<SourceFile>::const_iterator it = sfs.begin(); it != sfs.end(); ++it)
+      {
+        // assemble a single location string from the URI (path to file) and file name
+        String path = it->getPathToFile();
+        String filename = it->getNameOfFile();
+
+        if (path.empty() || filename.empty())
+        {
+          LOG_WARN << "Path or file name of primary MS run is empty. "
+                   << "This might be the result of incomplete conversion. "
+                   << "Not that tracing back e.g. identification results to the original file might more difficult." << std::endl;
+	}
+	else
+        {
+          String ms_run_location = path + "/" + filename;
+          ms_run_paths.push_back(ms_run_location);
+        }
+      }
+      return ms_run_paths;
+    }
+
     /**
       @brief Returns the precursor spectrum of the scan pointed to by @p iterator
 
@@ -912,7 +940,8 @@ private:
         if (iter->metaValueExists("num_of_masstraces"))
         {
           Size mts = iter->getMetaValue("num_of_masstraces");
-          for (Size i=0; i<mts; ++i)
+          int charge = (iter->getCharge()==0 ? 1 : iter->getCharge()); // set to 1 if charge is 0, otherwise div/0 below
+          for (Size i = 0; i < mts; ++i)
           {
             String meta_name = String("masstrace_intensity_") + i;
             if (!iter->metaValueExists(meta_name))
@@ -921,7 +950,7 @@ private:
             }
             spectrum->insert(spectrum->end(), PeakType());
             spectrum->back().setIntensity(iter->getMetaValue(meta_name));
-            spectrum->back().setPosition(iter->getMZ() + Constants::C13C12_MASSDIFF_U/iter->getCharge()*i);
+            spectrum->back().setPosition(iter->getMZ() + Constants::C13C12_MASSDIFF_U / charge * i);
           }
         }
         else ContainerAdd_<ContainerIterator, false>::addData_(spectrum, iter);

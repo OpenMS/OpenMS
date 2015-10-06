@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,7 @@
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASIOMappingDialog.h>
 #include <OpenMS/VISUAL/TOPPASMergerVertex.h>
+#include <OpenMS/VISUAL/TOPPASSplitterVertex.h>
 
 #include <Qt>
 #include <QtGui/QPainter>
@@ -63,7 +64,7 @@ namespace OpenMS
     setFlag(QGraphicsItem::ItemIsSelectable, true);
   }
 
-  TOPPASEdge::TOPPASEdge(TOPPASVertex * from, const QPointF & hover_pos) :
+  TOPPASEdge::TOPPASEdge(TOPPASVertex* from, const QPointF& hover_pos) :
     QObject(),
     QGraphicsItem(),
     from_(from),
@@ -76,7 +77,7 @@ namespace OpenMS
     setFlag(QGraphicsItem::ItemIsSelectable, true);
   }
 
-  TOPPASEdge::TOPPASEdge(const TOPPASEdge & rhs) :
+  TOPPASEdge::TOPPASEdge(const TOPPASEdge& rhs) :
     QObject(),
     QGraphicsItem(),
     from_(rhs.from_),
@@ -89,7 +90,12 @@ namespace OpenMS
     setFlag(QGraphicsItem::ItemIsSelectable, true);
   }
 
-  TOPPASEdge & TOPPASEdge::operator=(const TOPPASEdge & rhs)
+  String TOPPASEdge::toString()
+  {
+    String s = String("Edge: ") + getSourceOutParamName() + " target-in: " + getTargetInParamName() + "\n";
+    return s;
+  }
+  TOPPASEdge& TOPPASEdge::operator=(const TOPPASEdge& rhs)
   {
     from_ = rhs.from_;
     to_ = rhs.to_;
@@ -149,7 +155,7 @@ namespace OpenMS
     return shape_1.united(shape_2);
   }
 
-  void TOPPASEdge::paint(QPainter * painter, const QStyleOptionGraphicsItem * /*option*/, QWidget * /*widget*/)
+  void TOPPASEdge::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/)
   {
     painter->setBrush(Qt::white);
 
@@ -333,29 +339,29 @@ namespace OpenMS
 
   }
 
-  void TOPPASEdge::setHoverPos(const QPointF & pos)
+  void TOPPASEdge::setHoverPos(const QPointF& pos)
   {
     prepareResize();
     hover_pos_ = pos;
     update();
   }
 
-  void TOPPASEdge::setTargetVertex(TOPPASVertex * tv)
+  void TOPPASEdge::setTargetVertex(TOPPASVertex* tv)
   {
     to_ = tv;
   }
 
-  void TOPPASEdge::setSourceVertex(TOPPASVertex * tv)
+  void TOPPASEdge::setSourceVertex(TOPPASVertex* tv)
   {
     from_ = tv;
   }
 
-  TOPPASVertex * TOPPASEdge::getSourceVertex()
+  TOPPASVertex* TOPPASEdge::getSourceVertex()
   {
     return from_;
   }
 
-  TOPPASVertex * TOPPASEdge::getTargetVertex()
+  TOPPASVertex* TOPPASEdge::getTargetVertex()
   {
     return to_;
   }
@@ -365,7 +371,7 @@ namespace OpenMS
     prepareGeometryChange();
   }
 
-  QPointF TOPPASEdge::nearestPoint_(const QPointF & origin, const QList<QPointF> & list) const
+  QPointF TOPPASEdge::nearestPoint_(const QPointF& origin, const QList<QPointF>& list) const
   {
     if (list.empty())
     {
@@ -388,12 +394,12 @@ namespace OpenMS
     return nearest;
   }
 
-  void TOPPASEdge::setColor(const QColor & color)
+  void TOPPASEdge::setColor(const QColor& color)
   {
     color_ = color;
   }
 
-  void TOPPASEdge::mouseDoubleClickEvent(QGraphicsSceneMouseEvent * /*e*/)
+  void TOPPASEdge::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
   {
     showIOMappingDialog();
   }
@@ -407,7 +413,7 @@ namespace OpenMS
     }
   }
 
-  TOPPASEdge::EdgeStatus TOPPASEdge::getToolToolStatus_(TOPPASToolVertex * source_tool, int source_param_index, TOPPASToolVertex * target_tool, int target_param_index)
+  TOPPASEdge::EdgeStatus TOPPASEdge::getToolToolStatus_(TOPPASToolVertex* source_tool, int source_param_index, TOPPASToolVertex* target_tool, int target_param_index)
   {
     if (source_param_index < 0)
     {
@@ -432,10 +438,10 @@ namespace OpenMS
       return ES_TOOL_API_CHANGED;
     }
 
-    const TOPPASToolVertex::IOInfo & source_param = source_output_files[source_param_index];
+    const TOPPASToolVertex::IOInfo& source_param = source_output_files[source_param_index];
     StringList source_param_types = source_param.valid_types;
 
-    const TOPPASToolVertex::IOInfo & target_param = target_input_files[target_param_index];
+    const TOPPASToolVertex::IOInfo& target_param = target_input_files[target_param_index];
     StringList target_param_types = target_param.valid_types;
 
     if (source_param_types.empty() || target_param_types.empty())
@@ -477,7 +483,7 @@ namespace OpenMS
     }
   }
 
-  TOPPASEdge::EdgeStatus TOPPASEdge::getListToolStatus_(TOPPASInputFileListVertex * source_input_list, TOPPASToolVertex * target_tool, int target_param_index)
+  TOPPASEdge::EdgeStatus TOPPASEdge::getListToolStatus_(TOPPASInputFileListVertex* source_input_list, TOPPASToolVertex* target_tool, int target_param_index)
   {
     QVector<TOPPASToolVertex::IOInfo> target_input_files;
     target_tool->getInputParameters(target_input_files);
@@ -486,7 +492,7 @@ namespace OpenMS
       return ES_TOOL_API_CHANGED;
     }
 
-    const QStringList & file_names = source_input_list->getFileNames();
+    const QStringList& file_names = source_input_list->getFileNames();
     if (file_names.empty())
     {
       // file names are not specified yet
@@ -498,7 +504,7 @@ namespace OpenMS
       return ES_NO_TARGET_PARAM;
     }
 
-    const TOPPASToolVertex::IOInfo & target_param = target_input_files[target_param_index];
+    const TOPPASToolVertex::IOInfo& target_param = target_input_files[target_param_index];
     StringList target_param_types = target_param.valid_types;
 
     if (target_param_types.empty())
@@ -508,10 +514,10 @@ namespace OpenMS
     }
 
     // check file type compatibility
-    foreach(const QString &q_file_name, file_names)
+    foreach(const QString& q_file_name, file_names)
     {
       bool type_mismatch = true;
-      const String & file_name = String(q_file_name);
+      const String& file_name = String(q_file_name);
       String::SizeType extension_start_index = file_name.rfind(".");
       if (extension_start_index != String::npos)
       {
@@ -541,14 +547,16 @@ namespace OpenMS
 
   TOPPASEdge::EdgeStatus TOPPASEdge::getEdgeStatus()
   {
-    TOPPASVertex * source = getSourceVertex();
-    TOPPASVertex * target = getTargetVertex();
-    TOPPASMergerVertex * source_merger = qobject_cast<TOPPASMergerVertex *>(source);
-    TOPPASMergerVertex * target_merger = qobject_cast<TOPPASMergerVertex *>(target);
-    TOPPASInputFileListVertex * source_input_list = qobject_cast<TOPPASInputFileListVertex *>(source);
-    TOPPASOutputFileListVertex * target_output_list = qobject_cast<TOPPASOutputFileListVertex *>(target);
-    TOPPASToolVertex * source_tool = qobject_cast<TOPPASToolVertex *>(source);
-    TOPPASToolVertex * target_tool = qobject_cast<TOPPASToolVertex *>(target);
+    TOPPASVertex* source = getSourceVertex();
+    TOPPASVertex* target = getTargetVertex();
+    TOPPASMergerVertex* source_merger = qobject_cast<TOPPASMergerVertex*>(source);
+    TOPPASMergerVertex* target_merger = qobject_cast<TOPPASMergerVertex*>(target);
+    TOPPASSplitterVertex* source_splitter = qobject_cast<TOPPASSplitterVertex*>(source);
+    TOPPASSplitterVertex* target_splitter = qobject_cast<TOPPASSplitterVertex*>(target);
+    TOPPASInputFileListVertex* source_input_list = qobject_cast<TOPPASInputFileListVertex*>(source);
+    TOPPASOutputFileListVertex* target_output_list = qobject_cast<TOPPASOutputFileListVertex*>(target);
+    TOPPASToolVertex* source_tool = qobject_cast<TOPPASToolVertex*>(source);
+    TOPPASToolVertex* target_tool = qobject_cast<TOPPASToolVertex*>(target);
 
     if (source_tool && source_out_param_ < 0)
     {
@@ -560,14 +568,16 @@ namespace OpenMS
       return ES_NO_TARGET_PARAM;
     }
 
-    if (target_output_list) // edges to output vertices are always valid (check source_tool before!)
+    if (source_tool)
     {
-      return ES_VALID;
-    }
-
-    if (source_tool && target_tool)
-    {
-      return getToolToolStatus_(source_tool, source_out_param_, target_tool, target_in_param_);
+      if (target_output_list) // edges to output vertices are always valid
+      {
+        return ES_VALID;
+      }
+      if (target_tool)
+      {
+        return getToolToolStatus_(source_tool, source_out_param_, target_tool, target_in_param_);
+      }
     }
 
     if (source_input_list && target_tool)
@@ -575,14 +585,14 @@ namespace OpenMS
       return getListToolStatus_(source_input_list, target_tool, target_in_param_);
     }
 
-    if (source_merger)
+    if (source_merger || source_splitter)
     {
-      //check compatibility of source with all target nodes of merger
-      for (TOPPASVertex::ConstEdgeIterator e_it = source_merger->inEdgesBegin(); e_it != source_merger->inEdgesEnd(); ++e_it)
+      // check compatibility of source with all target nodes of merger (or splitter)
+      for (TOPPASVertex::ConstEdgeIterator e_it = source->inEdgesBegin(); e_it != source->inEdgesEnd(); ++e_it)
       {
-        TOPPASEdge * merger_in_edge = *e_it;
-        TOPPASToolVertex * merger_in_tool = qobject_cast<TOPPASToolVertex *>(merger_in_edge->getSourceVertex());
-        TOPPASInputFileListVertex * merger_in_list = qobject_cast<TOPPASInputFileListVertex *>(merger_in_edge->getSourceVertex());
+        TOPPASEdge* merger_in_edge = *e_it;
+        TOPPASToolVertex* merger_in_tool = qobject_cast<TOPPASToolVertex*>(merger_in_edge->getSourceVertex());
+        TOPPASInputFileListVertex * merger_in_list = qobject_cast<TOPPASInputFileListVertex*>(merger_in_edge->getSourceVertex());
 
         if (merger_in_tool && target_tool)
         {
@@ -613,14 +623,14 @@ namespace OpenMS
       return ES_VALID;
     }
 
-    if (target_merger)
+    if (target_merger || target_splitter)
     {
-      //check compatibility of source with all target nodes of merger
-      for (TOPPASVertex::ConstEdgeIterator e_it = target_merger->outEdgesBegin(); e_it != target_merger->outEdgesEnd(); ++e_it)
+      // check compatibility of source with all target nodes of merger (or splitter)
+      for (TOPPASVertex::ConstEdgeIterator e_it = target->outEdgesBegin(); e_it != target->outEdgesEnd(); ++e_it)
       {
-        TOPPASEdge * merger_out_edge = *e_it;
-        TOPPASToolVertex * merger_out_tool = qobject_cast<TOPPASToolVertex *>(merger_out_edge->getTargetVertex());
-        TOPPASOutputFileListVertex * merger_out_output = qobject_cast<TOPPASOutputFileListVertex *>(merger_out_edge->getTargetVertex());
+        TOPPASEdge* merger_out_edge = *e_it;
+        TOPPASToolVertex* merger_out_tool = qobject_cast<TOPPASToolVertex*>(merger_out_edge->getTargetVertex());
+        TOPPASOutputFileListVertex* merger_out_output = qobject_cast<TOPPASOutputFileListVertex*>(merger_out_edge->getTargetVertex());
 
         if (source_tool)
         {
@@ -742,9 +752,9 @@ namespace OpenMS
     emit somethingHasChanged();
   }
 
-  void TOPPASEdge::contextMenuEvent(QGraphicsSceneContextMenuEvent * event)
+  void TOPPASEdge::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
   {
-    TOPPASScene * ts = qobject_cast<TOPPASScene *>(scene());
+    TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
     ts->unselectAll();
     setSelected(true);
 
@@ -752,7 +762,7 @@ namespace OpenMS
     menu.addAction("Edit I/O mapping");
     menu.addAction("Remove");
 
-    QAction * selected_action = menu.exec(event->screenPos());
+    QAction* selected_action = menu.exec(event->screenPos());
     if (selected_action)
     {
       QString text = selected_action->text();

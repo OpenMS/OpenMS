@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/CVMappingFile.h>
+#include <OpenMS/DATASTRUCTURES/CVReference.h>
+#include <OpenMS/DATASTRUCTURES/CVMappingTerm.h>
 #include <OpenMS/SYSTEM/File.h>
 
 using namespace xercesc;
@@ -52,7 +54,7 @@ namespace OpenMS
   {
   }
 
-  void CVMappingFile::load(const String & filename, CVMappings & cv_mappings, bool strip_namespaces)
+  void CVMappingFile::load(const String& filename, CVMappings& cv_mappings, bool strip_namespaces)
   {
     //File name for error messages in XMLHandler
     file_ = filename;
@@ -70,7 +72,7 @@ namespace OpenMS
     return;
   }
 
-  void CVMappingFile::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const Attributes & attributes)
+  void CVMappingFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
   {
 
     tag_ = String(sm_.convert(qname));
@@ -222,7 +224,7 @@ namespace OpenMS
     return;
   }
 
-  void CVMappingFile::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname)
+  void CVMappingFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
   {
     tag_ = String(sm_.convert(qname));
 
@@ -236,7 +238,7 @@ namespace OpenMS
     return;
   }
 
-  void CVMappingFile::characters(const XMLCh * const /*chars*/, const XMLSize_t /*length*/)
+  void CVMappingFile::characters(const XMLCh* const /*chars*/, const XMLSize_t /*length*/)
   {
     // good XML format, nothing to do here
   }

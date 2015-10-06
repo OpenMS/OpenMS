@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -85,6 +85,7 @@ input_spectrum[4].setIntensity(1.0f);
 // resampled point gets intensities from raw data points that are at most +/-
 // spacing away.
 double default_spacing = 0.75;
+#if 1
 
 START_SECTION(( template < template< typename > class SpecT, typename PeakType > void raster(SpecT< PeakType > &spectrum)))
 {
@@ -268,7 +269,7 @@ START_SECTION([EXTRA] test_linear_res_align_scaling)
 
   LinearResamplerAlign lr;
   Param param;
-  param.setValue("spacing",5.0);
+  param.setValue("spacing", 5.0);
   lr.setParameters(param);
 	lr.raster_align(spec, -2.5, 12.5);
 
@@ -285,6 +286,79 @@ START_SECTION([EXTRA] test_linear_res_align_scaling)
   TEST_REAL_SIMILAR(spec[3].getIntensity(), 4.0); //+ 0.6);
 }
 END_SECTION
+#endif
+
+// it should work with ppm scaling 
+START_SECTION([EXTRA] test_linear_res_align_7)
+{
+  MSSpectrum< Peak1D > spec = input_spectrum;
+
+  // int = [3,6,8,2,1]
+  // mz = [100, 101, 102, 103, 104]
+  spec[0].setMZ(99 + 0.99/2.0);
+  spec[1].setMZ(99.99 + 0.5);
+  spec[2].setMZ(100.99 + 1.01/2.0);
+  spec[3].setMZ(102 + 1.02 / 2.0);
+  spec[4].setMZ(103.02 + 1.03 / 2.0);
+
+  LinearResamplerAlign lr;
+  Param param;
+  param.setValue("spacing", 10000.0);
+  param.setValue("ppm", "true");
+  lr.setParameters(param);
+	lr.raster_align(spec, 99, 105);
+
+  double sum = 0.0;
+  for (Size i=0; i<spec.size(); ++i)
+  {
+    sum += spec[i].getIntensity();
+    std::cout << spec[i] << std::endl;
+  }
+  TEST_REAL_SIMILAR(sum, 20);
+
+  TEST_REAL_SIMILAR(spec[0].getIntensity(), 1.5);
+  TEST_REAL_SIMILAR(spec[1].getIntensity(), 4.4997); // 3 + 1.5
+  TEST_REAL_SIMILAR(spec[2].getIntensity(), 6.99911); // 3 + 4
+  TEST_REAL_SIMILAR(spec[3].getIntensity(), 5.0008); // 4 + 1
+  TEST_REAL_SIMILAR(spec[5].getIntensity(), 0.500101);
+}
+END_SECTION
+
+START_SECTION([EXTRA] test_linear_res_align_8)
+{
+  MSSpectrum< Peak1D > spec = input_spectrum;
+
+  // int = [3,6,8,2,1]
+  // mz = [100, 101, 102, 103, 104]
+  for (Size i=0; i<spec.size(); ++i)
+  {
+    spec[i].setMZ(100 + i);
+  }
+
+  LinearResamplerAlign lr;
+  Param param;
+  param.setValue("spacing", 10000.0);
+  param.setValue("ppm", "true");
+  lr.setParameters(param);
+	lr.raster_align(spec, 99, 105);
+
+  double sum = 0.0;
+  for (Size i=0; i<spec.size(); ++i)
+  {
+    sum += spec[i].getIntensity();
+    std::cout << spec[i] << std::endl;
+  }
+  TEST_REAL_SIMILAR(sum, 20);
+
+  TEST_REAL_SIMILAR(spec[1].getIntensity(), 2.97);
+  TEST_REAL_SIMILAR(spec[2].getIntensity(), 5.97);
+  TEST_REAL_SIMILAR(spec[3].getIntensity(), 8.09725);
+  TEST_REAL_SIMILAR(spec[4].getIntensity(), 2.01129);
+  TEST_REAL_SIMILAR(spec[5].getIntensity(), 0.951471);
+}
+END_SECTION
+
+#if 1
 
 // also the interpolation should work
 START_SECTION((template < typename PeakTypeIterator > void raster_interpolate(PeakTypeIterator raw_it, PeakTypeIterator raw_end, PeakTypeIterator it, PeakTypeIterator resampled_end)))
@@ -416,6 +490,8 @@ START_SECTION([EXTRA] test_linear_res_align_input)
 
 }                        
 END_SECTION
+
+#endif
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

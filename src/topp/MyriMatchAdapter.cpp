@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -80,12 +80,14 @@
 
   This wrapper has been tested successfully with MyriMatch, version 2.1.x.
 
-  Use debug level >=1 to keep intermediate PepXML and config files for manual inspection.
+  Use debug level >=1 to keep intermediate pepXML and configuration files for manual inspection.
+
+  @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_MyriMatchAdapter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_MyriMatchAdapter.html
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_MyriMatchAdapter.html
 */
 
 // We do not want this class to show up in the docu:
@@ -452,17 +454,19 @@ protected:
     String exp_name = File::basename(inputfile_name);
     String pep_file = tmp_dir + File::removeExtension(exp_name) + ".pepXML";
 
-    FileHandler fh;
-    MSExperiment<> exp;
-    fh.loadExperiment(inputfile_name, exp);
-
     vector<ProteinIdentification> protein_identifications;
     vector<PeptideIdentification> peptide_identifications;
+
+    MSExperiment<> exp;
     if (File::exists(pep_file))
     {
-      const bool use_precursor_data = false;
-      PepXMLFile().load(pep_file, protein_identifications, peptide_identifications,
-                        exp_name, exp, use_precursor_data);
+      FileHandler fh;
+      fh.loadExperiment(inputfile_name, exp);
+
+      SpectrumMetaDataLookup lookup;
+      lookup.readSpectra(exp.getSpectra());
+      PepXMLFile().load(pep_file, protein_identifications,
+                        peptide_identifications, exp_name, lookup);
     }
     else
     {
@@ -486,6 +490,10 @@ protected:
     // writing results
     //-------------------------------------------------------------
 
+    if (!protein_identifications.empty())
+    {
+      protein_identifications[0].setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
+    }
     IdXMLFile().store(outputfile_name, protein_identifications, peptide_identifications);
     return EXECUTION_OK;
   }

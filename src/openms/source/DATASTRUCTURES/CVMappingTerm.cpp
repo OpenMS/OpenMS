@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,8 @@
 
 #include <OpenMS/DATASTRUCTURES/CVMappingTerm.h>
 
+#include <OpenMS/DATASTRUCTURES/String.h>
+
 using namespace std;
 
 namespace OpenMS
@@ -47,7 +49,7 @@ namespace OpenMS
   {
   }
 
-  CVMappingTerm::CVMappingTerm(const CVMappingTerm & rhs) :
+  CVMappingTerm::CVMappingTerm(const CVMappingTerm& rhs) :
     accession_(rhs.accession_),
     use_term_name_(rhs.use_term_name_),
     use_term_(rhs.use_term_),
@@ -62,7 +64,7 @@ namespace OpenMS
   {
   }
 
-  CVMappingTerm & CVMappingTerm::operator=(const CVMappingTerm & rhs)
+  CVMappingTerm& CVMappingTerm::operator=(const CVMappingTerm& rhs)
   {
     if (this != &rhs)
     {
@@ -77,7 +79,7 @@ namespace OpenMS
     return *this;
   }
 
-  bool CVMappingTerm::operator==(const CVMappingTerm & rhs) const
+  bool CVMappingTerm::operator==(const CVMappingTerm& rhs) const
   {
     return accession_ == rhs.accession_ &&
            use_term_name_ == rhs.use_term_name_ &&
@@ -88,17 +90,17 @@ namespace OpenMS
            cv_identifier_ref_ == rhs.cv_identifier_ref_;
   }
 
-  bool CVMappingTerm::operator!=(const CVMappingTerm & rhs) const
+  bool CVMappingTerm::operator!=(const CVMappingTerm& rhs) const
   {
     return !(*this == rhs);
   }
 
-  void CVMappingTerm::setAccession(const String & accession)
+  void CVMappingTerm::setAccession(const String& accession)
   {
     accession_ = accession;
   }
 
-  const String & CVMappingTerm::getAccession() const
+  const String& CVMappingTerm::getAccession() const
   {
     return accession_;
   }
@@ -123,12 +125,12 @@ namespace OpenMS
     return use_term_;
   }
 
-  void CVMappingTerm::setTermName(const String & term_name)
+  void CVMappingTerm::setTermName(const String& term_name)
   {
     term_name_ = term_name;
   }
 
-  const String & CVMappingTerm::getTermName() const
+  const String& CVMappingTerm::getTermName() const
   {
     return term_name_;
   }
@@ -153,12 +155,12 @@ namespace OpenMS
     return allow_children_;
   }
 
-  void CVMappingTerm::setCVIdentifierRef(const String & cv_identifier_ref)
+  void CVMappingTerm::setCVIdentifierRef(const String& cv_identifier_ref)
   {
     cv_identifier_ref_ = cv_identifier_ref;
   }
 
-  const String & CVMappingTerm::getCVIdentifierRef() const
+  const String& CVMappingTerm::getCVIdentifierRef() const
   {
     return cv_identifier_ref_;
   }

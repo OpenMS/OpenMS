@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,8 +34,8 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
 
-#include <WildMagic/Wm5Vector2.h>
-#include <WildMagic/Wm5ApprLineFit2.h>
+#include <Wm5Vector2.h>
+#include <Wm5ApprLineFit2.h>
 
 namespace OpenMS
 {
@@ -75,7 +75,7 @@ namespace OpenMS
         {
           points.push_back(Wm5::Vector2d(data.at(i).first, data.at(i).second));
         }
-        if (!Wm5::HeightLineFit2<double>(size, &points.front(), slope_, intercept_))
+        if (!Wm5::HeightLineFit2<double>(static_cast<int>(size), &points.front(), slope_, intercept_))
         {
           throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "TransformationModelLinear", "Unable to fit linear transformation to data points.");
         }

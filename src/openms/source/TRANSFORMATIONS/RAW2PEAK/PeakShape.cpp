@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,31 +37,48 @@
 
 namespace OpenMS
 {
-  PeakShape::PeakShape(double height, double mz_position, double left_width, double right_width, double area, PeakIterator left, PeakIterator right, Type type) :
-    height(height),
-    mz_position(mz_position),
-    left_width(left_width),
-    right_width(right_width),
-    area(area),
+  PeakShape::PeakShape() 
+    : height(0),
+      mz_position(0),
+      left_width(0),
+      right_width(0),
+      area(0),
+      r_value(0),
+      signal_to_noise(0.),
+      type(UNDEFINED),
+      left_iterator_set_(false),
+      right_iterator_set_(false)
+  {
+    left_endpoint_ = exp_.end();
+    right_endpoint_ = exp_.end();
+  }
+
+  PeakShape::PeakShape(double height_arg, double mz_position_arg, double left_width_arg, 
+      double right_width_arg, double area_arg, PeakIterator left_arg, PeakIterator right_arg, Type type_arg) :
+    height(height_arg),
+    mz_position(mz_position_arg),
+    left_width(left_width_arg),
+    right_width(right_width_arg),
+    area(area_arg),
     r_value(0),
     signal_to_noise(0),
-    type(type),
-    left_endpoint_(left),
-    right_endpoint_(right),
+    type(type_arg),
+    left_endpoint_(left_arg),
+    right_endpoint_(right_arg),
     left_iterator_set_(true),
     right_iterator_set_(true)
   {
   }
 
-  PeakShape::PeakShape(double height, double mz_position, double left_width, double right_width, double area, Type type) :
-    height(height),
-    mz_position(mz_position),
-    left_width(left_width),
-    right_width(right_width),
-    area(area),
+  PeakShape::PeakShape(double height_arg, double mz_position_arg, double left_width_arg, double right_width_arg, double area_arg, Type type_arg) :
+    height(height_arg),
+    mz_position(mz_position_arg),
+    left_width(left_width_arg),
+    right_width(right_width_arg),
+    area(area_arg),
     r_value(0),
     signal_to_noise(0),
-    type(type),
+    type(type_arg),
     left_iterator_set_(false),
     right_iterator_set_(false)
   {
@@ -94,6 +111,10 @@ namespace OpenMS
       right_endpoint_ = exp_.end();
     }
 
+  }
+
+  PeakShape::~PeakShape()
+  {
   }
 
   PeakShape & PeakShape::operator=(const PeakShape & rhs)
@@ -140,14 +161,7 @@ namespace OpenMS
 
   bool PeakShape::operator!=(const PeakShape & rhs) const
   {
-    return height != rhs.height ||
-           mz_position != rhs.mz_position ||
-           left_width != rhs.left_width ||
-           right_width != rhs.right_width ||
-           area != rhs.area ||
-           type != rhs.type ||
-           signal_to_noise != rhs.signal_to_noise ||
-           r_value != rhs.r_value;
+    return !(*this==rhs);
   }
 
   double PeakShape::operator()(double x) const
@@ -158,6 +172,7 @@ namespace OpenMS
     {
     case LORENTZ_PEAK:
       if (x <= mz_position)
+        // see equation 8.7 on p. 72 in Dissertation of Eva Lange
         value = height / (1. + pow(left_width * (x - mz_position), 2));
       else
         value = height / (1. + pow(right_width * (x - mz_position), 2));
@@ -165,6 +180,7 @@ namespace OpenMS
 
     case SECH_PEAK:
       if (x <= mz_position)
+        // see equation 8.8 on p. 72 in Dissertation of Eva Lange
         value = height / pow(cosh(left_width * (x - mz_position)), 2);
       else
         value = height / pow(cosh(right_width * (x - mz_position)), 2);
@@ -180,6 +196,8 @@ namespace OpenMS
 
   double PeakShape::getFWHM() const
   {
+    static double m = log(sqrt(2.0) + 1);
+
     double fwhm = 0;
     if (right_width == 0. || left_width == 0.)
     {
@@ -188,26 +206,21 @@ namespace OpenMS
 
     switch (type)
     {
-    case LORENTZ_PEAK:
-    {
-      fwhm = 1 / right_width;
-      fwhm += 1 / left_width;
-    }
-    break;
+      case LORENTZ_PEAK:
+        // see equation 8.20 on p. 75 in Dissertation of Eva Lange
+        fwhm = 1 / right_width;
+        fwhm += 1 / left_width;
+        break;
 
-    case SECH_PEAK:
-    {
-      double m = log(sqrt(2.0) + 1);
-      fwhm = m / left_width;
-      fwhm += m / right_width;
-    }
-    break;
+      case SECH_PEAK:
+        // see equation 8.22 on p. 75 in Dissertation of Eva Lange
+        fwhm = m / left_width;
+        fwhm += m / right_width;
+        break;
 
-    default:
-    {
-      fwhm = -1.;
-    }
-    break;
+      default:
+        fwhm = -1.;
+        break;
     }
     return fwhm;
   }
@@ -219,7 +232,7 @@ namespace OpenMS
     if (left_width < right_width)
       value = left_width / right_width;
     else
-      value =   right_width / left_width;
+      value = right_width / left_width;
 
     return value;
   }

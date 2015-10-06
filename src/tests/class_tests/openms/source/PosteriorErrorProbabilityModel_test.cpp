@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,8 @@
 ///////////////////////////
 #include <OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/CsvFile.h>
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <vector>
 #include <iostream>
 ///////////////////////////
@@ -75,60 +77,67 @@ END_SECTION
 START_SECTION((void fit( std::vector<double>& search_engine_scores, std::vector<double>& probabilities)))
 	ptr = new PosteriorErrorProbabilityModel();
 {
-	vector<double> score_vector;
 	
-	score_vector.push_back(-0.39);
-	score_vector.push_back(0.06);
-	score_vector.push_back(0.12);
-	score_vector.push_back(0.48);
-	score_vector.push_back(0.94);
-	score_vector.push_back(1.01);
-	score_vector.push_back(1.67);
-	score_vector.push_back(1.68);
-	score_vector.push_back(1.76);
-	score_vector.push_back(1.80);
-	score_vector.push_back(2.44);
-	score_vector.push_back(3.25);
-	score_vector.push_back(3.72);
-	score_vector.push_back(4.12);
-	score_vector.push_back(4.28);
-	score_vector.push_back(4.60);
-	score_vector.push_back(4.92);
-	score_vector.push_back(5.28);
-	score_vector.push_back(5.53);
-	score_vector.push_back(6.22);
-	
+	// ------- This code was used for the test file: ------------
+	// Use actual Gaussian data to see if fitting works
+	//random_device device_random_;
+ 	//default_random_engine generator_(device_random_());
+
+ 	// Gaussian mean and SD, mixture of 2.
+ 	//normal_distribution<> distribution_1_(1.5, 0.5);
+ 	//normal_distribution<> distribution_2_(3.5, 1.0);
+	// ----------------------------------------------------------
+
+ 	vector<double> rand_score_vector;
+
+ 	CsvFile gauss_mix (OPENMS_GET_TEST_DATA_PATH("GaussMix_2_1D.csv"), ';');
+ 	StringList gauss_mix_strings;
+ 	gauss_mix.getRow(0, gauss_mix_strings);
+
+ 	// Load mixture of 2 Gaussians (1D) from provided csv
+ 	for (StringList::const_iterator it = gauss_mix_strings.begin(); it != gauss_mix_strings.end(); ++it)
+ 	{
+ 		if(!it->empty())
+ 		{
+ 			rand_score_vector.push_back(it->toDouble());
+ 		}
+ 	}
+
+ 	TEST_EQUAL(rand_score_vector.size(),2000)
+
+	// Class expects sorted scores
+	sort(rand_score_vector.begin(), rand_score_vector.end());
 	
 	vector<double> probabilities;
 	Param param;
 	param.setValue("number_of_bins", 10);
 	param.setValue("incorrectly_assigned","Gauss");
 	ptr->setParameters(param);
-	ptr->fit(score_vector, probabilities);
+	ptr->fit(rand_score_vector, probabilities);
 	
 	Size i(0),j(1);
 	TOLERANCE_ABSOLUTE(0.5)
-	TEST_REAL_SIMILAR(ptr->getCorrectlyAssignedFitResult().x0 , 4.62)
-	TEST_REAL_SIMILAR(ptr->getCorrectlyAssignedFitResult().sigma, 0.87)
-	TEST_REAL_SIMILAR(ptr->getIncorrectlyAssignedFitResult().x0, 1.06)
-	TEST_REAL_SIMILAR(ptr->getIncorrectlyAssignedFitResult().sigma, 0.77)
-	TEST_REAL_SIMILAR(ptr->getNegativePrior(), 0.546)
+	TEST_REAL_SIMILAR(ptr->getCorrectlyAssignedFitResult().x0 , 3.5)
+	TEST_REAL_SIMILAR(ptr->getCorrectlyAssignedFitResult().sigma, 1.0)
+	TEST_REAL_SIMILAR(ptr->getIncorrectlyAssignedFitResult().x0, 1.5)
+	TEST_REAL_SIMILAR(ptr->getIncorrectlyAssignedFitResult().sigma, 0.5)
+	TEST_REAL_SIMILAR(ptr->getNegativePrior(), 0.5)
 	TOLERANCE_ABSOLUTE(0.001)
-	while(i < score_vector.size() && j < score_vector.size())
+	while(i < rand_score_vector.size() && j < rand_score_vector.size())
 	{
-		cout<<"i: "<<score_vector[i] << ", j: "<<score_vector[j]<<endl;
+		cout<<"i: "<<rand_score_vector[i] << ", j: "<<rand_score_vector[j]<<endl;
 		cout<<"pi:"<<probabilities[i] <<", j: "<<probabilities[j]<<endl;
-		if(score_vector[i] <= score_vector[j])
+		if(rand_score_vector[i] <= rand_score_vector[j])
 		{
 			TEST_EQUAL(probabilities[i] >= probabilities[j],true)
-			TEST_REAL_SIMILAR(ptr->computeProbability(score_vector[i]), probabilities[i])
-			TEST_REAL_SIMILAR(ptr->computeProbability(score_vector[j]), probabilities[j])
+			TEST_REAL_SIMILAR(ptr->computeProbability(rand_score_vector[i]), probabilities[i])
+			TEST_REAL_SIMILAR(ptr->computeProbability(rand_score_vector[j]), probabilities[j])
 		}
 		else
 		{
 			TEST_EQUAL(probabilities[i] >= probabilities[j],true)
-			TEST_REAL_SIMILAR(ptr->computeProbability(score_vector[i]), probabilities[i])
-			TEST_REAL_SIMILAR(ptr->computeProbability(score_vector[j]), probabilities[j])
+			TEST_REAL_SIMILAR(ptr->computeProbability(rand_score_vector[i]), probabilities[i])
+			TEST_REAL_SIMILAR(ptr->computeProbability(rand_score_vector[j]), probabilities[j])
 		}
 	++i;
 	++j;
@@ -262,7 +271,7 @@ String gumbel = ptr->getGumbelGnuplotFormula(ptr->getIncorrectlyAssignedFitResul
 //approx. f(x) = (1/0.907832") * exp(( 1.48185 - x)/0.907832) * exp(-exp(( 1.48185 - x)/0.907832))"
 	cout<<gumbel<<endl;
 	TEST_EQUAL(gumbel.hasSubstring("(1/0.90"), true)
-	TEST_EQUAL(gumbel.hasSubstring("exp(( 1.48"), true)
+	TEST_EQUAL(gumbel.hasSubstring("exp(( 1.47"), true)
 	TEST_EQUAL(gumbel.hasSubstring(") * exp(-exp(("), true)
 END_SECTION
 				

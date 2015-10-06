@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -268,12 +268,12 @@ START_SECTION((bool divideByGCD()))
   // weights are 3, 5, 8 with precision 1.0 (since the gcd of 30, 50, and 80
   //  is 10).
 
-  Weights::alphabet_masses_type masses;
-  masses.push_back(3.0);
-  masses.push_back(5.0);
-  masses.push_back(8.0);
+  Weights::alphabet_masses_type masses_local;
+  masses_local.push_back(3.0);
+  masses_local.push_back(5.0);
+  masses_local.push_back(8.0);
 
-  Weights weights_to_test_gcd(masses, 0.1);
+  Weights weights_to_test_gcd(masses_local, 0.1);
   TEST_EQUAL(weights_to_test_gcd.divideByGCD(), true)
   TEST_EQUAL(weights_to_test_gcd[0],3)
   TEST_EQUAL(weights_to_test_gcd[1],5)

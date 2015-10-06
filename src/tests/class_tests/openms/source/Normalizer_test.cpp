@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -78,19 +78,16 @@ START_SECTION((Normalizer& operator = (const Normalizer& source)))
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 END_SECTION
 
-START_SECTION((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)))
-	DTAFile dta_file;
-	PeakSpectrum spec;
-	dta_file.load(OPENMS_GET_TEST_DATA_PATH("Transformers_tests.dta"), spec);
 
-	spec.sortByIntensity();
+DTAFile dta_file;
+PeakSpectrum spec_ref;
+dta_file.load(OPENMS_GET_TEST_DATA_PATH("Transformers_tests.dta"), spec_ref);
+spec_ref.sortByIntensity();
 
+START_SECTION((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectrum) const))
+	PeakSpectrum spec = spec_ref;
 	TEST_EQUAL(spec.rbegin()->getIntensity(), 46)
-
 	e_ptr->filterSpectrum(spec);
-
-	spec.sortByIntensity();
-	
 	TEST_EQUAL(spec.rbegin()->getIntensity(), 1)
 
 	Param p(e_ptr->getParameters());
@@ -107,24 +104,18 @@ START_SECTION((template<typename SpectrumType> void filterSpectrum(SpectrumType&
 	TEST_REAL_SIMILAR(sum, 1.0);	
 END_SECTION
 	
-START_SECTION((void filterPeakMap(PeakMap& exp)))
+START_SECTION((void filterPeakMap(PeakMap& exp) const))
 	delete e_ptr;
 	e_ptr = new Normalizer();
 
-	DTAFile dta_file;
-  PeakSpectrum spec;
-  dta_file.load(OPENMS_GET_TEST_DATA_PATH("Transformers_tests.dta"), spec);
+  PeakSpectrum spec = spec_ref;
 
 	PeakMap pm;
 	pm.addSpectrum(spec);
 
-  pm.begin()->sortByIntensity();
-
   TEST_EQUAL(pm.begin()->rbegin()->getIntensity(), 46)
 
   e_ptr->filterPeakMap(pm);
-
-  pm.begin()->sortByIntensity();
 
   TEST_EQUAL(pm.begin()->rbegin()->getIntensity(), 1)
 
@@ -138,26 +129,14 @@ START_SECTION((void filterPeakMap(PeakMap& exp)))
   {
     sum += it->getIntensity();
   }
-
   TEST_REAL_SIMILAR(sum, 1.0);	
 END_SECTION
 
-START_SECTION((void filterPeakSpectrum(PeakSpectrum& spectrum)))
+START_SECTION((void filterPeakSpectrum(PeakSpectrum& spectrum) const))
 	delete e_ptr;
 	e_ptr = new Normalizer();
-
-	DTAFile dta_file;
-  PeakSpectrum spec;
-  dta_file.load(OPENMS_GET_TEST_DATA_PATH("Transformers_tests.dta"), spec);
-
-  spec.sortByIntensity();
-
-  TEST_EQUAL(spec.rbegin()->getIntensity(), 46)
-
+  PeakSpectrum spec = spec_ref;
   e_ptr->filterPeakSpectrum(spec);
-
-  spec.sortByIntensity();
-
   TEST_EQUAL(spec.rbegin()->getIntensity(), 1)
 
 	Param p(e_ptr->getParameters());
@@ -170,7 +149,6 @@ START_SECTION((void filterPeakSpectrum(PeakSpectrum& spectrum)))
   {
     sum += it->getIntensity();
   }
-
   TEST_REAL_SIMILAR(sum, 1.0);	
 END_SECTION
 

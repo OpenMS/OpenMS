@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -67,7 +67,7 @@ public:
     /// Stores the information for input/output files/lists
     struct IOInfo
     {
-      ///Standard constructor
+      /// Standard constructor
       IOInfo() :
         type(IOT_FILE),
         param_name(),
@@ -75,23 +75,23 @@ public:
       {
       }
 
-      ///Copy constructor
-      IOInfo(const IOInfo & rhs) :
+      /// Copy constructor
+      IOInfo(const IOInfo& rhs) :
         type(rhs.type),
         param_name(rhs.param_name),
         valid_types(rhs.valid_types)
       {
       }
 
-      ///The type
+      /// The type
       enum IOType
       {
         IOT_FILE,
         IOT_LIST
       };
 
-      ///Comparison operator
-      bool operator<(const IOInfo & rhs) const
+      /// Comparison operator
+      bool operator<(const IOInfo& rhs) const
       {
         if (type != rhs.type)
         {
@@ -103,14 +103,25 @@ public:
         }
       }
 
-      ///Assignment operator
-      IOInfo & operator=(const IOInfo & rhs)
+      /// Assignment operator
+      IOInfo& operator=(const IOInfo& rhs)
       {
         type = rhs.type;
         param_name = rhs.param_name;
         valid_types = rhs.valid_types;
 
         return *this;
+      }
+
+      /// Is any of the input/output parameters a list?
+      static bool isAnyList(const QVector<IOInfo>& params)
+      {
+        for (QVector<IOInfo>::const_iterator it = params.begin();
+             it != params.end(); ++it)
+        {
+          if (it->type == IOT_LIST) return true;
+        }
+        return false;
       }
 
       ///The type of the parameter
@@ -124,24 +135,24 @@ public:
     /// Default constructor
     TOPPASToolVertex();
     /// Constructor
-    TOPPASToolVertex(const String & name, const String & type = "");
+    TOPPASToolVertex(const String& name, const String& type = "");
     /// Copy constructor
-    TOPPASToolVertex(const TOPPASToolVertex & rhs);
+    TOPPASToolVertex(const TOPPASToolVertex& rhs);
     /// Destructor
     virtual ~TOPPASToolVertex();
     /// Assignment operator
-    TOPPASToolVertex & operator=(const TOPPASToolVertex & rhs);
+    TOPPASToolVertex& operator=(const TOPPASToolVertex& rhs);
 
     /// returns the name of the TOPP tool
     virtual String getName() const;
     /// Returns the type of the tool
-    const String & getType() const;
+    const String& getType() const;
     /// Fills @p input_infos with the required input file/list parameters together with their valid types.
-    void getInputParameters(QVector<IOInfo> & input_infos) const;
+    void getInputParameters(QVector<IOInfo>& input_infos) const;
     /// Fills @p output_infos with the required output file/list parameters together with their valid types.
-    void getOutputParameters(QVector<IOInfo> & output_infos) const;
+    void getOutputParameters(QVector<IOInfo>& output_infos) const;
     // documented in base class
-    virtual void paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget);
+    virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
     // documented in base class
     virtual QRectF boundingRect() const;
     // documented in base class
@@ -151,15 +162,15 @@ public:
     // documented in base class
     virtual void reset(bool reset_all_files = false);
     /// Sets the Param object of this tool
-    void setParam(const Param & param);
+    void setParam(const Param& param);
     /// Returns the Param object of this tool
-    const Param & getParam();
+    const Param& getParam();
     /// Checks if all parent nodes have finished the tool execution and, if so, runs the tool
     void run();
     /// Updates the vector containing the lists of current output files for all output parameters
     /// using the input files as guidance
     /// Returns true on success, on failure the error_message is filled
-    bool updateCurrentOutputFileNames(const RoundPackages & pkg, String & error_message);
+    bool updateCurrentOutputFileNames(const RoundPackages& pkg, String& error_message);
     /// return if tool failed or is ready etc.
     TOOLSTATUS getStatus() const;
     /// Lets the user edit the parameters of the tool
@@ -217,15 +228,15 @@ signals:
     /// Emitted when the tool crashes
     void toolCrashed();
     /// Emitted when the tool execution fails
-    void toolFailed(const QString & message = "");
+    void toolFailed(const QString& message = "");
     /// Emitted from forwardTOPPOutput() to forward the signal outside
-    void toppOutputReady(const QString & out);
+    void toppOutputReady(const QString& out);
 
 protected:
 
     ///@name reimplemented Qt events
     //@{
-    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent * e);
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e);
     //@}
 
     /// determines if according to current status_, a parameter change would invalidate the pipeline status (e.g., because this node was already processed)
@@ -233,13 +244,13 @@ protected:
     /// renames SUFFICES of the output files created by the TOPP tool by inspecting file content
     bool renameOutput_();
     /// Initializes the parameters with standard values (from -write_ini), uses the parameters from the old_ini_file if given, returns if parameters have changed (if old_ini_file was given)
-    bool initParam_(const QString & old_ini_file = "");
+    bool initParam_(const QString& old_ini_file = "");
     /// Fills @p io_infos with the required input/output file/list parameters. If @p input_params is true, input params are returned, otherwise output params.
-    void getParameters_(QVector<IOInfo> & io_infos, bool input_params) const;
+    void getParameters_(QVector<IOInfo>& io_infos, bool input_params) const;
     /// Writes @p param to the @p ini_file
-    void writeParam_(const Param & param, const QString & ini_file);
+    void writeParam_(const Param& param, const QString& ini_file);
     /// Helper method for finding good boundaries for wrapping the tool name. Returns a string with whitespaces at the preferred boundaries.
-    QString toolnameWithWhitespacesForFancyWordWrapping_(QPainter * painter, const QString & str);
+    QString toolnameWithWhitespacesForFancyWordWrapping_(QPainter* painter, const QString& str);
 
     /// The name of the tool
     String name_;
@@ -262,7 +273,7 @@ protected:
 
     /// smart naming of round-based filenames
     /// when basename is not unique we take the preceding directory name
-    void smartFileNames_(std::vector< QStringList >& filenames);
+    void smartFileNames_(std::vector<QStringList>& filenames);
 
   };
 }

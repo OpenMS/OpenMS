@@ -57,21 +57,18 @@ cdef extern from "<OpenMS/METADATA/ChromatogramSettings.h>" namespace "OpenMS":
         # sets the precursors
         void setPrecursor(Precursor precursor) nogil except +
 
-        # returns a reference to the description of the applied processing
-        libcpp_vector[DataProcessing] getDataProcessing() nogil except +
-        # sets the description of the applied processing
-        void setDataProcessing(libcpp_vector[DataProcessing]) nogil except +
-
         # returns the chromatogram type, e.g. a SRM chromatogram
-        ChromatogramType getChromatogramType() nogil except +
+        libcpp_vector[ shared_ptr[DataProcessing] ] getDataProcessing() nogil except +
         # sets the chromatogram type
-        void setChromatogramType(ChromatogramType chrom_type) nogil except +
+        void setDataProcessing(libcpp_vector[ shared_ptr[DataProcessing] ])   nogil except +
+
 
 cdef extern from "<OpenMS/METADATA/ChromatogramSettings.h>" namespace "OpenMS::ChromatogramSettings":
 
     cdef enum ChromatogramType:
         # wrap-attach:
         #     ChromatogramSettings
+
         MASS_CHROMATOGRAM,
         TOTAL_ION_CURRENT_CHROMATOGRAM,
         SELECTED_ION_CURRENT_CHROMATOGRAM,
@@ -80,5 +77,6 @@ cdef extern from "<OpenMS/METADATA/ChromatogramSettings.h>" namespace "OpenMS::C
         SELECTED_REACTION_MONITORING_CHROMATOGRAM,
         ELECTROMAGNETIC_RADIATION_CHROMATOGRAM,
         ABSORPTION_CHROMATOGRAM,
-        EMISSION_CHROMATOGRAM
+        EMISSION_CHROMATOGRAM,
+        SIZE_OF_CHROMATOGRAM_TYPE
 

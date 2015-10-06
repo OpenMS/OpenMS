@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -122,8 +122,11 @@ public:
     /**
       @brief Simple method to extract the best Feature for each transition group (e.g. for RT alignment)
 
-      @param transition_group_map Input data
-      @param pairs Output (containing pairs of  mapping  data
+      @param transition_group_map Input data containing the picked and scored map
+      @param useQualCutoff Whether to apply a quality cutoff to the data
+      @param qualCutoff When applying a quality cutoff, what it should be
+
+      @return Result of the best scoring peaks (stored as map of peptide id and RT)
 
     */
     static std::map<std::string, double> simpleFindBestFeature(

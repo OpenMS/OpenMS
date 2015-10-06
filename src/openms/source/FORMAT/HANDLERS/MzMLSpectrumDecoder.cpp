@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -76,9 +76,23 @@ namespace OpenMS
     }
   }
 
+  inline void fillDataArray(const std::vector<Internal::MzMLHandlerHelper::BinaryData>& data_,
+                            OpenMS::Interfaces::BinaryDataArrayPtr array, bool precision_64, SignedSize index)
+  {
+    // This seems to be the fastest method to move the data (faster than copy or assign)
+    if (precision_64)
+    {
+      array->data.insert(array->data.begin(), data_[index].floats_64.begin(), data_[index].floats_64.end());
+    }
+    else 
+    {
+      array->data.insert(array->data.begin(), data_[index].floats_32.begin(), data_[index].floats_32.end());
+    }
+  }
+
   OpenMS::Interfaces::SpectrumPtr MzMLSpectrumDecoder::decodeBinaryDataSpectrum_(std::vector<BinaryData>& data_)
   {
-    Internal::MzMLHandlerHelper::decodeBase64Arrays(data_);
+    Internal::MzMLHandlerHelper::decodeBase64Arrays(data_, skip_xml_checks_); 
     OpenMS::Interfaces::SpectrumPtr sptr(new OpenMS::Interfaces::Spectrum);
 
     //look up the precision and the index of the intensity and m/z array
@@ -110,19 +124,17 @@ namespace OpenMS
 
     // TODO: handle meta data from the binaryDataArray tag -> currently ignored
     // since we have no place to store them
-
+    // TODO: would need to adopt OpenMS::Interfaces::SpectrumPtr to store additional arrays
     OpenMS::Interfaces::BinaryDataArrayPtr intensity_array(new OpenMS::Interfaces::BinaryDataArray);
     OpenMS::Interfaces::BinaryDataArrayPtr x_array(new OpenMS::Interfaces::BinaryDataArray);
-    for (Size n = 0; n < default_array_length_; n++)
-    {
-      double xcoord = x_precision_64 ? data_[x_index].floats_64[n] : data_[x_index].floats_32[n];
-      double intensity = int_precision_64 ? data_[int_index].floats_64[n] : data_[int_index].floats_32[n];
+    x_array->data.reserve(default_array_length_);
+    intensity_array->data.reserve(default_array_length_);
 
-      x_array->data.push_back(xcoord);
-      intensity_array->data.push_back(intensity);
+    fillDataArray(data_, x_array, x_precision_64, x_index);
+    fillDataArray(data_, intensity_array, int_precision_64, int_index);
 
-      // TODO: also handle non-default arrays
-    }
+    // TODO the other arrays
+
     sptr->setMZArray(x_array);
     sptr->setIntensityArray(intensity_array);
     return sptr;
@@ -130,7 +142,7 @@ namespace OpenMS
 
   OpenMS::Interfaces::ChromatogramPtr MzMLSpectrumDecoder::decodeBinaryDataChrom_(std::vector<BinaryData>& data_)
   {
-    Internal::MzMLHandlerHelper::decodeBase64Arrays(data_);
+    Internal::MzMLHandlerHelper::decodeBase64Arrays(data_, skip_xml_checks_);
     OpenMS::Interfaces::ChromatogramPtr sptr(new OpenMS::Interfaces::Chromatogram);
 
     //look up the precision and the index of the intensity and m/z array
@@ -165,16 +177,14 @@ namespace OpenMS
 
     OpenMS::Interfaces::BinaryDataArrayPtr intensity_array(new OpenMS::Interfaces::BinaryDataArray);
     OpenMS::Interfaces::BinaryDataArrayPtr x_array(new OpenMS::Interfaces::BinaryDataArray);
-    for (Size n = 0; n < default_array_length_; n++)
-    {
-      double xcoord = x_precision_64 ? data_[x_index].floats_64[n] : data_[x_index].floats_32[n];
-      double intensity = int_precision_64 ? data_[int_index].floats_64[n] : data_[int_index].floats_32[n];
+    x_array->data.reserve(default_array_length_);
+    intensity_array->data.reserve(default_array_length_);
 
-      x_array->data.push_back(xcoord);
-      intensity_array->data.push_back(intensity);
+    fillDataArray(data_, x_array, x_precision_64, x_index);
+    fillDataArray(data_, intensity_array, int_precision_64, int_index);
 
-      // TODO the other arrays
-    }
+    // TODO the other arrays
+
     sptr->setTimeArray(x_array);
     sptr->setIntensityArray(intensity_array);
     return sptr;
@@ -322,6 +332,11 @@ namespace OpenMS
     std::vector<BinaryData> data_;
     domParseString_(in, data_);
     sptr = decodeBinaryDataChrom_(data_);
+  }
+
+  void MzMLSpectrumDecoder::setSkipXMLChecks(bool skip)
+  {
+    skip_xml_checks_ = skip;
   }
 
 }

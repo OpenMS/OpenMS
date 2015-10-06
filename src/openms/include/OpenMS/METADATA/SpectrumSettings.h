@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -153,12 +153,14 @@ public:
     /// sets the PeptideIdentification vector
     void setPeptideIdentifications(const std::vector<PeptideIdentification> & identifications);
 
-    /// returns a const reference to the description of the applied processing
-    const std::vector<DataProcessing> & getDataProcessing() const;
-    /// returns a mutable reference to the description of the applied processing
-    std::vector<DataProcessing> & getDataProcessing();
     /// sets the description of the applied processing
-    void setDataProcessing(const std::vector<DataProcessing> & data_processing);
+    void setDataProcessing(const std::vector< DataProcessingPtr > & data_processing);
+
+    /// returns a mutable reference to the description of the applied processing
+    std::vector< DataProcessingPtr > & getDataProcessing();
+
+    /// returns a const reference to the description of the applied processing
+    const std::vector< boost::shared_ptr<const DataProcessing > > getDataProcessing() const;
 
 protected:
 
@@ -171,7 +173,7 @@ protected:
     std::vector<Precursor> precursors_;
     std::vector<Product> products_;
     std::vector<PeptideIdentification> identification_;
-    std::vector<DataProcessing> data_processing_;
+    std::vector< DataProcessingPtr > data_processing_;
   };
 
   ///Print the contents to a stream.

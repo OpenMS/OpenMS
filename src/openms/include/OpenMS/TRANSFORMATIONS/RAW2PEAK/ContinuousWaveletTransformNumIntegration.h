@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -94,10 +94,8 @@ public:
     template <typename InputPeakIterator>
     void transform(InputPeakIterator begin_input,
                    InputPeakIterator end_input,
-                   float resolution,
-                   unsigned int zeros = 0)
+                   float resolution)
     {
-
 #ifdef DEBUG_PEAK_PICKING
       std::cout << "ContinuousWaveletTransformNumIntegration::transform: start " << begin_input->getMZ() << " until " << (end_input - 1)->getMZ() << std::endl;
 #endif
@@ -134,27 +132,15 @@ public:
         double origin  = begin_input->getMZ();
         double spacing = ((end_input - 1)->getMZ() - origin) / (n - 1);
 
-        // zero-padding at the ends?
-        if (zeros > 0)
-        {
-          n += (2 * zeros);
-        }
-
-
         std::vector<double> processed_input(n);
         signal_.clear();
         signal_.resize(n);
 
         InputPeakIterator it_help = begin_input;
-        if (zeros > 0)
-        {
-          processed_input[0] = it_help->getMZ() - zeros * spacing;
-          for (unsigned int i = 0; i < zeros; ++i) processed_input[i] = 0;
-        }
-        else processed_input[0] = it_help->getIntensity();
+        processed_input[0] = it_help->getIntensity();
 
         double x;
-        for (SignedSize k = 1; k < n - (int)zeros; ++k)
+        for (SignedSize k = 1; k < n; ++k)
         {
           x = origin + k * spacing;
           // go to the real data point next to x
@@ -164,11 +150,7 @@ public:
           }
           processed_input[k] = getInterpolatedValue_(x, it_help);
         }
-        if (zeros > 0)
-        {
-          for (unsigned int i = 0; i < zeros; ++i) processed_input[n - zeros + i] = 0;
-        }
-
+        
         // TODO avoid to compute the cwt for the zeros in signal
         for (Int i = 0; i < n; ++i)
         {
@@ -176,16 +158,8 @@ public:
           signal_[i].setIntensity((Peak1D::IntensityType)integrate_(processed_input, spacing, i));
         }
 
-        if (zeros == 0)
-        {
-          begin_right_padding_ = n;
-          end_left_padding_ = -1;
-        }
-        else
-        {
-          begin_right_padding_ = n - zeros;
-          end_left_padding_ = zeros - 1;
-        }
+        begin_right_padding_ = n;
+        end_left_padding_ = -1;
       }
     }
 
@@ -212,11 +186,11 @@ protected:
 #endif
 
       double v = 0.;
-      Size middle = wavelet_.size();
+      double middle_spacing = wavelet_.size() * spacing_;
 
-      double start_pos = ((x->getMZ() - (middle * spacing_)) > first->getMZ()) ? (x->getMZ() - (middle * spacing_))
+      double start_pos = ((x->getMZ() - middle_spacing) > first->getMZ()) ? (x->getMZ() - middle_spacing)
                          : first->getMZ();
-      double end_pos = ((x->getMZ() + (middle * spacing_)) < (last - 1)->getMZ()) ? (x->getMZ() + (middle * spacing_))
+      double end_pos = ((x->getMZ() + middle_spacing) < (last - 1)->getMZ()) ? (x->getMZ() + middle_spacing)
                        : (last - 1)->getMZ();
 
       InputPeakIterator help = x;
@@ -228,7 +202,7 @@ protected:
       //integrate from middle to start_pos
       while ((help != first) && ((help - 1)->getMZ() > start_pos))
       {
-        // search for the corresponding datapoint of help in the wavelet (take the left most adjacent point)
+        // search for the corresponding data point of help in the wavelet (take the left most adjacent point)
         double distance = fabs(x->getMZ() - help->getMZ());
         Size index_w_r = (Size) Math::round(distance / spacing_);
         if (index_w_r >= wavelet_.size())
@@ -319,8 +293,8 @@ protected:
     /// Computes the convolution of the wavelet and the raw data at position x with resolution > 1
     double integrate_(const std::vector<double> & processed_input, double spacing_data, int index);
 
-    /// Computes the marr wavelet at position x
-    inline double marr_(double x)
+    /// Computes the Marr wavelet at position x
+    inline double marr_(const double x) const
     {
       return (1 - x * x) * exp(-x * x / 2);
     }

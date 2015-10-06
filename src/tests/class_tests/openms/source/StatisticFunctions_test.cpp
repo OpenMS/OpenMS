@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl $
-// $Authors: $
+// $Authors: Clemens Groepl, Johannes Junker, Mathias Walzer, Chris Bielow $
 // --------------------------------------------------------------------------
 
 ///////////////////////////
@@ -83,10 +83,12 @@ START_SECTION([EXTRA](template <typename IteratorType> static double mean(Iterat
 }
 END_SECTION
 
-START_SECTION([EXTRA](template <typename IteratorType> static double median(IteratorType begin, IteratorType end)))
+START_SECTION([EXTRA](template <typename IteratorType> static double median(IteratorType begin, IteratorType end, bool sorted = false)))
 {
 	int x[] = {-1, 0, 1, 2, 3};
-	TEST_EQUAL(Math::median(x, x + 5, true), 1);
+	TEST_REAL_SIMILAR(Math::median(x, x + 5, true), 1.0);
+  int x2[] = {-1, 0, 1, 2, 3, 4}; // (1+2)/2
+  TEST_REAL_SIMILAR(Math::median(x2, x2 + 6, true), 1.5);
 	TEST_EXCEPTION(Exception::InvalidRange, Math::median(x, x));
 
   // unsorted
@@ -100,6 +102,20 @@ START_SECTION([EXTRA](template <typename IteratorType> static double median(Iter
   TEST_REAL_SIMILAR(Math::median(z_odd.begin(), z_odd.end(), true), 0.5);
   DoubleList z_even = ListUtils::create<double>("-1.5,-1.0,-0.5,0.0,0.5,1.0,1.5,2.0");
   TEST_REAL_SIMILAR(Math::median(z_even.begin(), z_even.end(), true), 0.25);
+}
+END_SECTION
+
+START_SECTION([EXTRA](template <typename IteratorType> double MAD(IteratorType begin, IteratorType end, double median_of_numbers)))
+{
+  int x[] = {-1, 0, 1, 2, 3};
+  TEST_EQUAL(Math::MAD(x, x + 5, 1), 1);   // median{2, 1, 0, 1, 2}
+  int x2[] = {-1, 0, 1, 2, 3, 4}; // median = 1.5 --> median{2.5, 1.5, 0.5, 0.5, 1.5, 2.5}
+  TEST_REAL_SIMILAR(Math::MAD(x2, x2 + 6, true), 1.5);
+  
+  DoubleList z_odd = ListUtils::create<double>("-1.0,-0.5,0.0,0.5,1.0,1.5,2.0"); // median{1.5, 1, 0.5, 0, 0.5, 1, 1.5} == median{0, 0.5, 0.5, 1, 1, 1.5 ,1.5}
+  TEST_REAL_SIMILAR(Math::MAD(z_odd.begin(), z_odd.end(), 0.5), 1);
+  DoubleList z_even = ListUtils::create<double>("-1.5,-1.0,-0.5,0.0,0.5,1.0,1.5,2.0"); // median{2, 1.5, 1, 0.5, 0, 0.5, 1, 1.5} == median{0, 0.5, 0.5, 1, 1, 1.5 , 1.5, 2}
+  TEST_REAL_SIMILAR(Math::MAD(z_even.begin(), z_even.end(), 0.5), 1);
 }
 END_SECTION
 

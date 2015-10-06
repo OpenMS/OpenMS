@@ -7,7 +7,7 @@
 	<note type="input" label="spectrum, fragment monoisotopic mass error">13</note>
 	<note type="input" label="spectrum, parent monoisotopic mass error plus">14</note>
 	<note type="input" label="spectrum, parent monoisotopic mass error minus">15</note>
-	<note type="input" label="spectrum, parent monoisotopic mass isotope error">no</note>
+	<note type="input" label="spectrum, parent monoisotopic mass isotope error">yes</note>
 	<note type="input" label="spectrum, fragment monoisotopic mass error units">ppm</note>
 	<note type="input" label="spectrum, parent monoisotopic mass error units">ppm</note>
 	<note type="input" label="spectrum, fragment mass type">monoisotopic</note>
@@ -20,6 +20,7 @@
 	<note type="input" label="protein, cleavage site">[RK]|{P}</note>
 	<note type="input" label="protein, cleavage semi">yes</note>
 	<note type="input" label="refine">yes</note>
+	<note type="input" label="spectrum, use noise suppression">no</note>
 	<note type="input" label="scoring, maximum missed cleavage sites">18</note>
 	<note type="input" label="output, sort results by">spectrum</note>
 	<note type="input" label="output, results">all</note>
