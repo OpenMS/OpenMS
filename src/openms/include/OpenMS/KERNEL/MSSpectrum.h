@@ -555,7 +555,7 @@ public:
     }
 
     /**
-      @brief Ssearch for the peak nearest to a specific m/z given two +/- tolerance windows in Th
+      @brief Search for the peak nearest to a specific m/z given two +/- tolerance windows in Th
 
       @param mz The searched for mass-to-charge ratio searched
       @param tolerance_left The non-negative tolerance applied left of mz
