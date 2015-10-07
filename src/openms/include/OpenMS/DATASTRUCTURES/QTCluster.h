@@ -150,7 +150,11 @@ private:
     /// Has the cluster changed (if yes, quality needs to be recomputed)?
     bool changed_;
 
+    /// Has the cluster been finalized once in its lifetime?
     bool finalized_once_;
+
+    /// Has the cluster been finalized once in its lifetime?
+    bool emulate_old_behavior_;
 
     /// Keep track of peptide IDs and use them for matching?
     bool use_IDs_;
@@ -224,7 +228,7 @@ public:
      */
     QTCluster(GridFeature* center_point, Size num_maps,
               double max_distance, bool use_IDs, 
-              Int x_coord, Int y_coord);
+              Int x_coord, Int y_coord, bool emulate_old = true);
 
     /// Destructor
     virtual ~QTCluster();

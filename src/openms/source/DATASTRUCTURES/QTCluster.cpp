@@ -61,7 +61,7 @@ namespace OpenMS
 
   QTCluster::QTCluster(OpenMS::GridFeature* center_point, Size num_maps,
                        double max_distance, bool use_IDs, Int x_coord, 
-                       Int y_coord) :
+                       Int y_coord, bool emulate_old) :
     center_point_(center_point),
     neighbors_(),
     tmp_neighbors_(NULL),
@@ -70,6 +70,7 @@ namespace OpenMS
     quality_(0.0),
     changed_(false),
     finalized_once_(false),
+    emulate_old_behavior_(emulate_old),
     use_IDs_(use_IDs),
     valid_(true),
     collect_annotations_(false),
@@ -379,12 +380,12 @@ namespace OpenMS
       }
     }
 
-    // TODO: in the original implementation, the annotation cannot be easily
-    // changed any more once the first neighbor gets added. In the original
-    // implementation, the first GridFeature that got added (note that the order or
-    // addition is important for some reason) determines the annotation for the
-    // rest of the life of the current cluster. This means that from that
-    // timepoint onwards, the annotation_ cannot ever change.
+    // In the original implementation, the annotation cannot be easily changed
+    // any more once the first neighbor gets added. In the original
+    // implementation, the first GridFeature that got added (note that the
+    // order or addition is important for some reason) determines the
+    // annotation for the rest of the life of the current cluster. This means
+    // that from that timepoint onwards, the annotation_ cannot ever change.
     //
     // We can emulate that behavior here if we want to by using a
     // finalized_once_ variable that prevents changing the annotation vector
@@ -393,7 +394,10 @@ namespace OpenMS
     // Also, if we somehow picked in our first round a set of annotations that
     // were empty only then we are now allowed to redo it and settle on a final
     // set of annotations 
-    if (best_pos != seq_table.end() && (!finalized_once_ || annotations_.empty() ))
+    //
+    bool allow_annotation_change = !emulate_old_behavior_ || (!finalized_once_ || annotations_.empty() );
+    // bool allow_annotation_change = !emulate_old_behavior_ || (!finalized_once_  );
+    if (best_pos != seq_table.end() && allow_annotation_change)
     {
       annotations_ = best_pos->first;
     }
