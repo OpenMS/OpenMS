@@ -148,24 +148,21 @@ namespace OpenMS
 
     Size map_index = element->getMapIndex();
 
-    // ensure we only add compatible peptide annotations
-    if (use_IDs_ )
+    // Ensure we only add compatible peptide annotations. If the cluster center
+    // has an annotation, then each added neighbor should have the same
+    // annotation. If the center element has no annotation we add all elements
+    // and select the optimal annotation later, using optimizeAnnotations_ 
+    if (use_IDs_)
     {
-      bool compatible_id = true;
-      if (this->getAnnotations().empty())
+      bool one_empty = (center_point_->getAnnotations().empty() || element->getAnnotations().empty());
+      if (!one_empty) // both are annotated
       {
-        compatible_id = true;
+        if (center_point_->getAnnotations() != element->getAnnotations()) 
+        {
+          // Both annotations are non-empty and are unequal, we dont add
+          return;
+        }
       }
-      else if (element->getAnnotations().empty() )
-      {
-        compatible_id = true;
-      }
-      else 
-      {
-        compatible_id = (getAnnotations() == element->getAnnotations());
-      }
-
-      if (!compatible_id) {return;}
     }
 
     // We have to store annotations in a temporary map first if we collect all
