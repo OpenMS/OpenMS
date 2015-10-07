@@ -177,7 +177,7 @@ private:
 
     /// Adds elements to the cluster based on the elements hashed in the grid
     void addClusterElements_(int x, int y, const Grid& grid, QTCluster& cluster,
-      const OpenMS::GridFeature* center_feature);
+      const OpenMS::GridFeature* center_feature, bool firstPass);
 
 protected:
 

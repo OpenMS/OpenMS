@@ -378,7 +378,7 @@ namespace OpenMS
             // add elements to the current cluster to replace the ones we just
             // removed
             const OpenMS::GridFeature* center_feature = (*cluster)->getCenterPoint();
-            addClusterElements_(x, y, grid, (**cluster), center_feature);
+            addClusterElements_(x, y, grid, (**cluster), center_feature, false);
 
             ////////////////////////////////////////
             // Step 2: update element_mapping as the best feature for each
@@ -413,9 +413,11 @@ namespace OpenMS
   }
 
   void QTClusterFinder::addClusterElements_(int x, int y, const Grid& grid, QTCluster& cluster,
-    const OpenMS::GridFeature* center_feature)
+    const OpenMS::GridFeature* center_feature, bool firstPass)
   {
     cluster.initializeCluster();
+
+    std::vector< std::pair<OpenMS::GridFeature*,  double> > vToAdd;
 
     // iterate over neighboring grid cells (1st dimension):
     for (int i = x - 1; i <= x + 1; ++i)
@@ -452,7 +454,14 @@ namespace OpenMS
               // if neighbor point is a possible cluster point, add it:
               if (!use_IDs_ || compatibleIDs_(cluster, neighbor_feature))
               {
-                cluster.add(neighbor_feature, dist);
+                if (firstPass)
+                {
+                  cluster.add(neighbor_feature, dist);
+                }
+                else
+                {
+                  vToAdd.push_back( make_pair(neighbor_feature, dist) );
+                }
               }
             }
           }
@@ -460,6 +469,14 @@ namespace OpenMS
         catch (std::out_of_range&)
         {
         }
+      }
+    }
+
+    if (!firstPass)
+    {
+      for (Size i = 0; i < vToAdd.size(); i++)
+      {
+        cluster.add( vToAdd[i].first, vToAdd[i].second );
       }
     }
 
@@ -496,7 +513,7 @@ namespace OpenMS
       OpenMS::GridFeature* center_feature = it->second;
       QTCluster cluster(center_feature, num_maps_, max_distance, use_IDs_, x, y);
 
-      addClusterElements_(x, y, grid, cluster, center_feature);
+      addClusterElements_(x, y, grid, cluster, center_feature, true);
 
       clustering.push_back(cluster);
     }
