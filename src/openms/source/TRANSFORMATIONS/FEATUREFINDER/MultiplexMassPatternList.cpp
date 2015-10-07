@@ -45,29 +45,14 @@ using namespace std;
 namespace OpenMS
 {
 
-  MultiplexMassPatternList::MultiplexMassPatternList(vector<double> ms) :
-    mass_shifts_(ms)
+  MultiplexMassPatternList::MultiplexMassPatternList(String labels, int missed_cleavages, bool knock_out) :
+    labels_(labels), missed_cleavages_(missed_cleavages), knock_out_(knock_out)
   {
   }
 
-  void MultiplexMassPatternList::addMassShift(double ms)
+  String MultiplexMassPatternList::getLabels() const
   {
-    mass_shifts_.push_back(ms);
-  }
-
-  std::vector<double> MultiplexMassPatternList::getMassShifts() const
-  {
-    return mass_shifts_;
-  }
-
-  unsigned MultiplexMassPatternList::getMassShiftCount() const
-  {
-    return mass_shifts_.size();
-  }
-
-  double MultiplexMassPatternList::getMassShiftAt(int i) const
-  {
-    return mass_shifts_[i];
+    return labels_;
   }
 
 }

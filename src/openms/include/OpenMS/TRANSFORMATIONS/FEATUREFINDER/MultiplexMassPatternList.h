@@ -36,6 +36,7 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXMASSPATTERNLIST_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexMassPattern.h>
 
 #include <vector>
 #include <algorithm>
@@ -44,15 +45,13 @@
 namespace OpenMS
 {
   /**
-   * @brief data structure for mass shift pattern
+   * @brief complete list of all possible mass shifts due to isotopic labelling
    * 
-   * Groups of labelled peptides appear with characteristic mass shifts.
-   * For example, for an Arg6 labeled SILAC peptide pair we expect to see
-   * mass shifts of 0 and 6 Da. Or as second example, for a 
-   * peptide pair of a dimethyl labelled sample with a single lysine
-   * we will see mass shifts of 56 Da and 64 Da.
-   * 28 Da (N-term) + 28 Da (K) and 34 Da (N-term) + 34 Da (K)
-   * for light and heavy partners respectively.
+   * Isotopic labelling results in the shift of peptide masses. For example
+   * in a Lys8/Arg10 SILAC labelled sample, some peptides (the ones with one
+   * Arg in their sequence) will show a relative mass shift between light and
+   * heavy partners of 10 Da. This class constructs the complete list of all
+   * possible mass shifts that arise from isotopic labelling.
    */
   class OPENMS_DLLAPI MultiplexMassPatternList
   {
@@ -60,36 +59,40 @@ namespace OpenMS
 
     /**
      * @brief constructor
+     * 
+     * @param labels    isotopic labels
+     * @param missed_cleavages    maximum number of missed cleavages due to incomplete digestion
+     * @param knock_out    Do we expect some peptides in the multiplets to be absent?
+     * For example du to knock-outs in one of the samples.
      */
-    MultiplexMassPatternList(std::vector<double> ms);
+    MultiplexMassPatternList(String labels, int missed_cleavages, bool knock_out);
     
-    /**
-     * @brief add a mass shift
-     */
-    void addMassShift(double ms);
-    
-    /**
-     * @brief returns mass shifts
-     */
-    std::vector<double> getMassShifts() const;
-    
-    /**
-     * @brief returns number of mass shifts
-     */
-    unsigned getMassShiftCount() const;
-   
     /**
      * @brief returns mass shift at position i
      */
-    double getMassShiftAt(int i) const;
+    String getLabels() const;
     
     private:
    
     /**
-     * @brief mass shifts between peptides
-     * (including zero mass shift for first peptide)
+     * @brief isotopic labels
      */
-    std::vector<double> mass_shifts_;
+    String labels_;
+
+    /**
+     * @brief maximum number of missed cleavages
+     */
+    int missed_cleavages_;
+
+    /**
+     * @brief Do we expect some peptides to be absent?
+     */
+    bool knock_out_;
+
+    /**
+     * @brief list of all possible mass shift patterns
+     */
+    std::vector<MultiplexMassPattern> mass_pattern_list_;
       
  };
   
