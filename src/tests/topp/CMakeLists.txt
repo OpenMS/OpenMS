@@ -1742,10 +1742,12 @@ set_tests_properties("UTILS_FeatureFinderSuperHirn_2_out1" PROPERTIES DEPENDS "U
 # specify number of parts directly:
 add_test("UTILS_MzMLSplitter_1" ${TOPP_BIN_PATH}/MzMLSplitter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out MzMLSplitter_1_output -parts 2)
 add_test("UTILS_MzMLSplitter_1_out1" ${DIFF} -in1 MzMLSplitter_1_output_part1.mzML -in2 ${DATA_DIR_TOPP}/MzMLSplitter_output_part1.mzML)
-add_test("UTILS_MzMLSplitter_1_out2" ${DIFF} -in1 MzMLSplitter_1_output_part2.mzML -in2 ${DATA_DIR_TOPP}/MzMLSplitter_output_part2.mzML)
 set_tests_properties("UTILS_MzMLSplitter_1_out1" PROPERTIES DEPENDS "UTILS_MzMLSplitter_1")
+add_test("UTILS_MzMLSplitter_1_out2" ${DIFF} -in1 MzMLSplitter_1_output_part2.mzML -in2 ${DATA_DIR_TOPP}/MzMLSplitter_output_part2.mzML)
+set_tests_properties("UTILS_MzMLSplitter_1_out2" PROPERTIES DEPENDS "UTILS_MzMLSplitter_1")
 # specify target file size:
 add_test("UTILS_MzMLSplitter_2" ${TOPP_BIN_PATH}/MzMLSplitter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out MzMLSplitter_2_output -size 40 -unit KB)
 add_test("UTILS_MzMLSplitter_2_out1" ${DIFF} -in1 MzMLSplitter_2_output_part1.mzML -in2 ${DATA_DIR_TOPP}/MzMLSplitter_output_part1.mzML)
-add_test("UTILS_MzMLSplitter_2_out2" ${DIFF} -in1 MzMLSplitter_2_output_part2.mzML -in2 ${DATA_DIR_TOPP}/MzMLSplitter_output_part2.mzML)
 set_tests_properties("UTILS_MzMLSplitter_2_out1" PROPERTIES DEPENDS "UTILS_MzMLSplitter_2")
+add_test("UTILS_MzMLSplitter_2_out2" ${DIFF} -in1 MzMLSplitter_2_output_part2.mzML -in2 ${DATA_DIR_TOPP}/MzMLSplitter_output_part2.mzML)
+set_tests_properties("UTILS_MzMLSplitter_2_out2" PROPERTIES DEPENDS "UTILS_MzMLSplitter_2")
