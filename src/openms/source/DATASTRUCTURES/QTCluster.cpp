@@ -69,6 +69,7 @@ namespace OpenMS
     num_maps_(num_maps),
     quality_(0.0),
     changed_(false),
+    finalized_once_(false),
     use_IDs_(use_IDs),
     valid_(true),
     collect_annotations_(false),
@@ -377,7 +378,22 @@ namespace OpenMS
         best_total = total;
       }
     }
-    if (best_pos != seq_table.end())
+
+    // TODO: in the original implementation, the annotation cannot be easily
+    // changed any more once the first neighbor gets added. In the original
+    // implementation, the first GridFeature that got added (note that the order or
+    // addition is important for some reason) determines the annotation for the
+    // rest of the life of the current cluster. This means that from that
+    // timepoint onwards, the annotation_ cannot ever change.
+    //
+    // We can emulate that behavior here if we want to by using a
+    // finalized_once_ variable that prevents changing the annotation vector
+    // once the feature has been finalized, resulting in the original behavior.
+    // 
+    // Also, if we somehow picked in our first round a set of annotations that
+    // were empty only then we are now allowed to redo it and settle on a final
+    // set of annotations 
+    if (best_pos != seq_table.end() && (!finalized_once_ || annotations_.empty() ))
     {
       annotations_ = best_pos->first;
     }
@@ -413,7 +429,10 @@ namespace OpenMS
     // calls computeQuality_ if something changed since initialization. In
     // turn, computeQuality_ calls optimizeAnnotations_ if necessary which
     // ensures that the neighbors_ hash is populated correctly.
-    getQuality(); 
+    getQuality();
+
+    // this is to emulate old behavior
+    finalized_once_ = true;
 
     finalized_ = true;
 
