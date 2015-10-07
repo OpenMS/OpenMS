@@ -61,7 +61,7 @@ namespace OpenMS
 
   QTCluster::QTCluster(OpenMS::GridFeature* center_point, Size num_maps,
                        double max_distance, bool use_IDs, Int x_coord, 
-                       Int y_coord, bool emulate_old) :
+                       Int y_coord) :
     center_point_(center_point),
     neighbors_(),
     tmp_neighbors_(NULL),
@@ -69,8 +69,6 @@ namespace OpenMS
     num_maps_(num_maps),
     quality_(0.0),
     changed_(false),
-    finalized_once_(false),
-    emulate_old_behavior_(emulate_old),
     use_IDs_(use_IDs),
     valid_(true),
     collect_annotations_(false),
@@ -142,12 +140,6 @@ namespace OpenMS
     OPENMS_PRECONDITION(!finalized_,
         "Cannot perform operation on cluster that is not initialized")
     // ensure we only add compatible peptide annotations
-    OPENMS_PRECONDITION(
-        !use_IDs_ ||
-        (element->getAnnotations().empty() || 
-         center_point_->getAnnotations().empty() ||
-         element->getAnnotations() == center_point_->getAnnotations()),
-        "Annotations need to be compatible")
     OPENMS_PRECONDITION(distance <= max_distance_,
         "Distance cannot be larger than max_distance")
     // collect_annotations_ implies tmp_neighbors_ != NULL, 
@@ -155,6 +147,26 @@ namespace OpenMS
         "Initialize the cluster first before adding elements")
 
     Size map_index = element->getMapIndex();
+
+    // ensure we only add compatible peptide annotations
+    if (use_IDs_ )
+    {
+      bool compatible_id = true;
+      if (this->getAnnotations().empty())
+      {
+        compatible_id = true;
+      }
+      else if (element->getAnnotations().empty() )
+      {
+        compatible_id = true;
+      }
+      else 
+      {
+        compatible_id = (getAnnotations() == element->getAnnotations());
+      }
+
+      if (!compatible_id) {return;}
+    }
 
     // We have to store annotations in a temporary map first if we collect all
     // annotations
@@ -380,24 +392,7 @@ namespace OpenMS
       }
     }
 
-    // In the original implementation, the annotation cannot be easily changed
-    // any more once the first neighbor gets added. In the original
-    // implementation, the first GridFeature that got added (note that the
-    // order or addition is important for some reason) determines the
-    // annotation for the rest of the life of the current cluster. This means
-    // that from that timepoint onwards, the annotation_ cannot ever change.
-    //
-    // We can emulate that behavior here if we want to by using a
-    // finalized_once_ variable that prevents changing the annotation vector
-    // once the feature has been finalized, resulting in the original behavior.
-    // 
-    // Also, if we somehow picked in our first round a set of annotations that
-    // were empty only then we are now allowed to redo it and settle on a final
-    // set of annotations 
-    //
-    bool allow_annotation_change = !emulate_old_behavior_ || (!finalized_once_ || annotations_.empty() );
-    // bool allow_annotation_change = !emulate_old_behavior_ || (!finalized_once_  );
-    if (best_pos != seq_table.end() && allow_annotation_change)
+    if (best_pos != seq_table.end())
     {
       annotations_ = best_pos->first;
     }
@@ -434,9 +429,6 @@ namespace OpenMS
     // turn, computeQuality_ calls optimizeAnnotations_ if necessary which
     // ensures that the neighbors_ hash is populated correctly.
     getQuality();
-
-    // this is to emulate old behavior
-    finalized_once_ = true;
 
     finalized_ = true;
 

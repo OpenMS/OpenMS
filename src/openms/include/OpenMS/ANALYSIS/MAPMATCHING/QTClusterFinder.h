@@ -144,17 +144,6 @@ private:
     double getDistance_(const OpenMS::GridFeature* left, const
         OpenMS::GridFeature* right);
 
-    /**
-       @brief Checks whether the peptide IDs of a cluster and a neighboring
-       feature are compatible.
-
-       A neighboring feature without identification is always compatible.
-       Otherwise, the cluster and feature are compatible if the best peptide
-       hits of each of their identifications have the same sequences.
-    */
-    bool compatibleIDs_(QTCluster& cluster, 
-        const OpenMS::GridFeature* neighbor);
-
     /// Sets algorithm parameters
     void setParameters_(double max_intensity, double max_mz);
 
@@ -177,7 +166,7 @@ private:
 
     /// Adds elements to the cluster based on the elements hashed in the grid
     void addClusterElements_(int x, int y, const Grid& grid, QTCluster& cluster,
-      const OpenMS::GridFeature* center_feature, bool firstPass);
+      const OpenMS::GridFeature* center_feature);
 
 protected:
 
