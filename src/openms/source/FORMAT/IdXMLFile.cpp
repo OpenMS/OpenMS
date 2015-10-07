@@ -673,24 +673,35 @@ namespace OpenMS
 
       String name = attributeAsString_(attributes, "name");
       String type = attributeAsString_(attributes, "type");
-      String value = attributeAsString_(attributes, "value");
 
-      if (type == "string")
-      {
-        last_meta_->setMetaValue(name, value);
-      }
-      else if (type == "float")
-      {
-        last_meta_->setMetaValue(name, value.toDouble());
-      }
-      else if (type == "int")
-      {
-        last_meta_->setMetaValue(name, value.toInt());
-      }
-      else
-      {
-        fatalError(LOAD, String("Invalid UserParam type '") + type + "' of parameter '" + name + "'");
-      }
+      if (type == "int") 
+      { 
+        last_meta_->setMetaValue(name, attributeAsInt_(attributes, "value")); 
+      } 
+      else if (type == "float") 
+      { 
+        last_meta_->setMetaValue(name, attributeAsDouble_(attributes, "value")); 
+      } 
+      else if (type == "string") 
+      { 
+        last_meta_->setMetaValue(name, (String)attributeAsString_(attributes, "value")); 
+      } 
+      else if (type == "intList") 
+      { 
+        last_meta_->setMetaValue(name, attributeAsIntList_(attributes, "value")); 
+      } 
+      else if (type == "floatList") 
+      { 
+        last_meta_->setMetaValue(name, attributeAsDoubleList_(attributes, "value")); 
+      } 
+      else if (type == "stringList") 
+      { 
+        last_meta_->setMetaValue(name, attributeAsStringList_(attributes, "value")); 
+      } 
+      else 
+      { 
+        fatalError(LOAD, String("Invalid userParam type '") + type + "'"); 
+      } 
     }
   }
 
