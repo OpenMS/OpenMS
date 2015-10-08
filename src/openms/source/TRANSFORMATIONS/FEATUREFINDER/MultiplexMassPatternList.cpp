@@ -47,13 +47,12 @@ using namespace std;
 
 namespace OpenMS
 {
+  typedef std::vector<double> MassPattern; // list of mass shifts
 
   MultiplexMassPatternList::MultiplexMassPatternList(String labels, int missed_cleavages, bool knock_out, std::map<String,double> label_mass_shift) :
     labels_(labels), samples_labels_(), missed_cleavages_(missed_cleavages), knock_out_(knock_out), label_mass_shift_(label_mass_shift)
   {
     // split the labels_ string
-    
-    //std::vector<std::vector<String> > samples_labels;
     String temp_labels(labels_);
     std::vector<String> temp_samples;
     
@@ -87,6 +86,128 @@ namespace OpenMS
       temp_labels.push_back("no_label");
       samples_labels_.push_back(temp_labels);
     }
+    
+    
+    // What kind of labelling do we have?
+    // SILAC, Dimethyl, ICPL or no labelling ??
+
+    bool labelling_SILAC = ((labels_.find("Arg") != std::string::npos) || (labels_.find("Lys") != std::string::npos));
+    bool labelling_Dimethyl = (labels_.find("Dimethyl") != std::string::npos);
+    bool labelling_ICPL = (labels_.find("ICPL") != std::string::npos);
+    bool labelling_none = labels_.empty() || (labels_ == "[]") || (labels_ == "()") || (labels_ == "{}");
+
+    bool SILAC = (labelling_SILAC && !labelling_Dimethyl && !labelling_ICPL && !labelling_none);
+    bool Dimethyl = (!labelling_SILAC && labelling_Dimethyl && !labelling_ICPL && !labelling_none);
+    bool ICPL = (!labelling_SILAC && !labelling_Dimethyl && labelling_ICPL && !labelling_none);
+    bool none = (!labelling_SILAC && !labelling_Dimethyl && !labelling_ICPL && labelling_none);
+
+    if (!(SILAC || Dimethyl || ICPL || none))
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unknown labelling. Neither SILAC, Dimethyl nor ICPL.");
+    }
+
+    // debug output labels
+    cout << "\n";
+    for (unsigned i = 0; i < samples_labels_.size(); ++i)
+    {
+      cout << "sample " << (i + 1) << ":   ";
+      for (unsigned j = 0; j < samples_labels_[i].size(); ++j)
+      {
+        cout << samples_labels_[i][j] << " ";
+      }
+      cout << "\n";
+    }
+
+    // check if the labels are included in advanced section "labels"
+    String all_labels = "Arg6 Arg10 Lys4 Lys6 Lys8 Dimethyl0 Dimethyl4 Dimethyl6 Dimethyl8 ICPL0 ICPL4 ICPL6 ICPL10 no_label";
+    for (unsigned i = 0; i < samples_labels_.size(); i++)
+    {
+      for (unsigned j = 0; j < samples_labels_[i].size(); ++j)
+      {
+        if (all_labels.find(samples_labels_[i][j]) == std::string::npos)
+        {
+          std::stringstream stream;
+          stream << "The label " << samples_labels_[i][j] << " is unknown.";
+          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, stream.str());
+        }
+      }
+    }
+
+    // generate mass shift list
+    std::vector<MassPattern> list;
+    if (SILAC)
+    {
+      // SILAC
+      // We assume the first sample to be unlabelled. Even if the "[]" for the first sample in the label string has not been specified.
+
+      for (unsigned ArgPerPeptide = 0; ArgPerPeptide <= sizeof(missed_cleavages_ + 1); ArgPerPeptide++)
+      {
+        for (unsigned LysPerPeptide = 0; LysPerPeptide <= sizeof(missed_cleavages_ + 1); LysPerPeptide++)
+        {
+          if (ArgPerPeptide + LysPerPeptide <= sizeof(missed_cleavages_ + 1))
+          {
+            MassPattern temp;
+            temp.push_back(0);
+            for (unsigned i = 0; i < samples_labels_.size(); i++)
+            {
+              double mass_shift = 0;
+              // Considering the case of an amino acid (e.g. LysPerPeptide != 0) for which no label is present (e.g. Lys4There && Lys6There && Lys8There == false) makes no sense. Therefore each amino acid will have to give its "Go Ahead" before the shift is calculated.
+              bool goAhead_Lys = false;
+              bool goAhead_Arg = false;
+
+              for (unsigned j = 0; j < samples_labels_[i].size(); ++j)
+              {
+                bool Arg6There = (samples_labels_[i][j].find("Arg6") != std::string::npos); // Is Arg6 in the SILAC label?
+                bool Arg10There = (samples_labels_[i][j].find("Arg10") != std::string::npos);
+                bool Lys4There = (samples_labels_[i][j].find("Lys4") != std::string::npos);
+                bool Lys6There = (samples_labels_[i][j].find("Lys6") != std::string::npos);
+                bool Lys8There = (samples_labels_[i][j].find("Lys8") != std::string::npos);
+
+                mass_shift = mass_shift + ArgPerPeptide * (Arg6There * label_mass_shift_["Arg6"] + Arg10There * label_mass_shift_["Arg10"]) + LysPerPeptide * (Lys4There * label_mass_shift_["Lys4"] + Lys6There * label_mass_shift_["Lys6"] + Lys8There * label_mass_shift_["Lys8"]);
+
+                goAhead_Arg = goAhead_Arg || !(ArgPerPeptide != 0 && !Arg6There && !Arg10There);
+                goAhead_Lys = goAhead_Lys || !(LysPerPeptide != 0 && !Lys4There && !Lys6There && !Lys8There);
+              }
+
+              if (goAhead_Arg && goAhead_Lys && (mass_shift != 0))
+              {
+                temp.push_back(mass_shift);
+              }
+            }
+
+            if (temp.size() > 1)
+            {
+              list.push_back(temp);
+            }
+          }
+        }
+      }
+
+    }
+    else if (Dimethyl || ICPL)
+    {
+      // Dimethyl or ICPL
+      // We assume each sample to be labelled only once.
+
+      for (unsigned mc = 0; mc <= sizeof(missed_cleavages_); ++mc)
+      {
+        MassPattern temp;
+        for (unsigned i = 0; i < samples_labels_.size(); i++)
+        {
+          temp.push_back((mc + 1) * (label_mass_shift_[samples_labels_[i][0]] - label_mass_shift_[samples_labels_[0][0]]));
+        }
+        list.push_back(temp);
+      }
+
+    }
+    else
+    {
+      // none (singlet detection)
+      MassPattern temp;
+      temp.push_back(0);
+      list.push_back(temp);
+    }
+
 
   }
 
