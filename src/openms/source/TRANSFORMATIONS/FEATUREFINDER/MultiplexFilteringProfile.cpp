@@ -58,6 +58,7 @@ using namespace boost::math;
 
 namespace OpenMS
 {
+
   MultiplexFilteringProfile::MultiplexFilteringProfile(const MSExperiment<Peak1D>& exp_profile, const MSExperiment<Peak1D>& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, const std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type) :
     MultiplexFiltering(exp_picked, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling, averagine_type), exp_profile_(exp_profile), boundaries_(boundaries)
   {
@@ -152,7 +153,7 @@ namespace OpenMS
         {
           continue;
         }
-        
+
         if ((*it_rt_picked).size() != (*it_rt_boundaries).size())
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Number of peaks and number of peak boundaries differ.");
@@ -194,10 +195,10 @@ namespace OpenMS
            */
           vector<double> mz_shifts_actual; // actual m/z shifts (differ slightly from expected m/z shifts)
           vector<int> mz_shifts_actual_indices; // peak indices in the spectrum corresponding to the actual m/z shifts
-          
+
           mz_shifts_actual.reserve(patterns_[pattern].getMZShiftCount());
           mz_shifts_actual_indices.reserve(patterns_[pattern].getMZShiftCount());
-          
+
           int peaks_found_in_all_peptides = positionsAndBlacklistFilter(patterns_[pattern], spectrum, peak_position, peak, mz_shifts_actual, mz_shifts_actual_indices);
           if (peaks_found_in_all_peptides < peaks_per_peptide_min_)
           {
@@ -255,7 +256,7 @@ namespace OpenMS
              * Filter (6): averagine similarity filter
              * Does each individual isotope pattern resemble a peptide?
              */
-            bool averagine_similarity = averagineSimilarityFilter(patterns_[pattern], intensities_actual, peaks_found_in_all_peptides_spline, mz,type_m_);
+            bool averagine_similarity = averagineSimilarityFilter(patterns_[pattern], intensities_actual, peaks_found_in_all_peptides_spline, mz);
             if (!averagine_similarity)
             {
               continue;
@@ -267,7 +268,7 @@ namespace OpenMS
             // add raw data point to list that passed all filters
             MultiplexFilterResultRaw result_raw(mz, mz_shifts_actual, intensities_actual);
             results_raw.push_back(result_raw);
-            
+
             // blacklist peaks in the current spectrum and the two neighbouring ones
             if (!blacklisted)
             {

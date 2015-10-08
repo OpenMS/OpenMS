@@ -268,7 +268,7 @@ namespace OpenMS
       // We are detecting peptide doublets or triplets or ...
       similarity = averagine_similarity_;
     }
-    
+
     for (unsigned peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
     {
       vector<double> isotope_pattern;
@@ -321,7 +321,7 @@ namespace OpenMS
           blacklist_[spectrum - 1][peak_index].black_exception_charge = pattern.getCharge();
           blacklist_[spectrum - 1][peak_index].black_exception_mz_position = mz_position;
         }
-        
+
         // blacklist peaks in spectrum before previous one
         if (peak_index != -1 && spectrum > 1)
         {
@@ -334,7 +334,7 @@ namespace OpenMS
             blacklist_[spectrum - 2][peak_index_2].black_exception_mz_position = mz_position;
           }
         }
-        
+
         // blacklist peaks in next spectrum
         peak_index = registry_[spectrum][mz_shifts_actual_indices[mz_position]].index_in_next_spectrum;
         if (peak_index != -1 && !blacklist_[spectrum + 1][peak_index].black)
@@ -344,7 +344,7 @@ namespace OpenMS
           blacklist_[spectrum + 1][peak_index].black_exception_charge = pattern.getCharge();
           blacklist_[spectrum + 1][peak_index].black_exception_mz_position = mz_position;
         }
-        
+
         // blacklist peaks in spectrum after next one
         if (peak_index != -1 && spectrum + 2 < (int) blacklist_.size())
         {
@@ -371,7 +371,7 @@ namespace OpenMS
     std::vector<double>::const_iterator lb = std::lower_bound(peak_position.begin(), peak_position.end(), mz_min);
     std::vector<double>::const_iterator ub = std::upper_bound(lb, peak_position.end(), mz_max);
 
-    double smallest_error = scaling * mz_tolerance_; // initialize to the maximum  allowed error 
+    double smallest_error = scaling * mz_tolerance_; // initialize to the maximum  allowed error
     int smallest_error_index = -1;
 
     for (; lb != ub; ++lb)
@@ -382,7 +382,7 @@ namespace OpenMS
         smallest_error = error;
         smallest_error_index = lb - peak_position.begin();
       }
-    }    
+    }
 
     return smallest_error_index;
   }
@@ -399,6 +399,7 @@ namespace OpenMS
 
 
   double MultiplexFiltering::getAveragineSimilarity(const vector<double>& pattern, double m) const
+
   {
     // construct averagine distribution
     IsotopeDistribution distribution;
@@ -421,6 +422,7 @@ namespace OpenMS
         throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
           "Averagine type unrecognized.");;
     }
+
     for (IsotopeDistribution::Iterator it = distribution.begin(); it != distribution.end(); ++it)
     {
       averagine_pattern.push_back(it->second);

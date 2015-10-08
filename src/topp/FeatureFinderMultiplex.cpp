@@ -90,9 +90,7 @@ using namespace boost::math;
 
 /**
   @page TOPP_FeatureFinderMultiplex FeatureFinderMultiplex
-
   @brief Detects peptide pairs in LC-MS data and determines their relative abundance.
-
 <CENTER>
   <table>
     <tr>
@@ -109,27 +107,19 @@ using namespace boost::math;
     </tr>
   </table>
 </CENTER>
-
   FeatureFinderMultiplex is a tool for the fully automated analysis of quantitative proteomics data. It detects pairs of isotopic envelopes with fixed m/z separation. It requires no prior sequence identification of the peptides. In what follows we outline the algorithm.
-
   <b>Algorithm</b>
-
   The algorithm is divided into three parts: filtering, clustering and linear fitting, see Fig. (d), (e) and (f). In the following discussion let us consider a particular mass spectrum at retention time 1350 s, see Fig. (a). It contains a peptide of mass 1492 Da and its 6 Da heavier labelled counterpart. Both are doubly charged in this instance. Their isotopic envelopes therefore appear at 746 and 749 in the spectrum. The isotopic peaks within each envelope are separated by 0.5. The spectrum was recorded at finite intervals. In order to read accurate intensities at arbitrary m/z we spline-fit over the data, see Fig. (b).
-
   We would like to search for such peptide pairs in our LC-MS data set. As a warm-up let us consider a standard intensity cut-off filter, see Fig. (c). Scanning through the entire m/z range (red dot) only data points with intensities above a certain threshold pass the filter. Unlike such a local filter, the filter used in our algorithm takes intensities at a range of m/z positions into account, see Fig. (d). A data point (red dot) passes if
   - all six intensities at m/z, m/z+0.5, m/z+1, m/z+3, m/z+3.5 and m/z+4 lie above a certain threshold,
   - the intensity profiles in neighbourhoods around all six m/z positions show a good correlation and
   - the relative intensity ratios within a peptide agree up to a factor with the ratios of a theoretic averagine model.
-
   Let us now filter not only a single spectrum but all spectra in our data set. Data points that pass the filter form clusters in the t-m/z plane, see Fig. (e). Each cluster corresponds to the mono-isotopic mass trace of the lightest peptide of a SILAC pattern. We now use hierarchical clustering methods to assign each data point to a specific cluster. The optimum number of clusters is determined by maximizing the silhouette width of the partitioning. Each data point in a cluster corresponds to three pairs of intensities (at [m/z, m/z+3], [m/z+0.5, m/z+3.5] and [m/z+1, m/z+4]). A plot of all intensity pairs in a cluster shows a clear linear correlation, see Fig. (f). Using linear regression we can determine the relative amounts of labelled and unlabelled peptides in the sample.
-
   @image html SILACAnalyzer_algorithm.png
-
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_FeatureFinderMultiplex.cli
     <B>INI file documentation of this tool:</B>
     @htmlinclude TOPP_FeatureFinderMultiplex.html
-
 */
 
 // We do not want this class to show up in the docu:
@@ -295,7 +285,7 @@ public:
     charge_max_ = charge_max_temp;
     if (charge_min_ > charge_max_)
     {
-      swap(charge_min_, charge_max_); //TODO warn the user about this
+      swap(charge_min_, charge_max_);
     }
 
     // get isotopes per peptide range
@@ -599,13 +589,13 @@ public:
   {
     std::vector<std::vector<String> > samples_labels;
     std::vector<String> temp_samples;
-    
+
     String labels(labels_);
     boost::replace_all(labels, "[]", "no_label");
     boost::replace_all(labels, "()", "no_label");
     boost::replace_all(labels, "{}", "no_label");
     boost::split(temp_samples, labels, boost::is_any_of("[](){}")); // any bracket allowed to separate samples
-    
+
     for (unsigned i = 0; i < temp_samples.size(); ++i)
     {
       if (!temp_samples[i].empty())
@@ -624,7 +614,7 @@ public:
         }
       }
     }
-    
+
     if (samples_labels.empty())
     {
       vector<String> temp_labels;
@@ -698,9 +688,9 @@ public:
         list.push_back(pattern);
       }
     }
-    
+
     sort(list.begin(),list.end(),less_pattern);
-    
+
     return list;
   }
 
@@ -917,7 +907,7 @@ public:
           feature_handle.setMZ(sum_intensity_mz[peptide] / sum_intensity[peptide]);
           feature_handle.setRT(sum_intensity_rt[peptide] / sum_intensity[peptide]);
           feature_handle.setIntensity(peptide_intensities[peptide]);
-          feature_handle.setCharge(patterns[pattern].getCharge() * unit_charge_);
+          feature_handle.setCharge(patterns[pattern].getCharge());
           feature_handle.setMapIndex(peptide);
           //feature_handle.setUniqueId(&UniqueIdInterface::setUniqueId);    // TODO: Do we need to set unique ID?
           consensus_map.getFileDescriptions()[peptide].size++;
@@ -927,7 +917,7 @@ public:
           feature.setMZ(sum_intensity_mz[peptide] / sum_intensity[peptide]);
           feature.setRT(sum_intensity_rt[peptide] / sum_intensity[peptide]);
           feature.setIntensity(peptide_intensities[peptide]);
-          feature.setCharge(patterns[pattern].getCharge() * unit_charge_);
+          feature.setCharge(patterns[pattern].getCharge());
           feature.setOverallQuality(1 - 1 / points.size());
           for (unsigned peak = 0; peak < isotopes_per_peptide_max_; ++peak)
           {
@@ -966,7 +956,7 @@ public:
     // (for each sample a list of (label string, mass shift) pairs)
     // for example triple-SILAC: [(none,0)][(Lys4,4.0251),(Arg6,6.0201)][Lys8,8.0141)(Arg10,10.0082)]
     std::vector<std::vector<std::pair<String, double> > > labels;
-    
+
     for (unsigned sample = 0; sample < samples_labels_.size(); ++sample)
     {
       // The labels are required to be ordered in mass shift.
@@ -1005,7 +995,7 @@ public:
     // add results from  analysis
     LOG_DEBUG << "Generating output mzQuantML file..." << endl;
     ConsensusMap numap(consensus_map);
-    
+
     //calculate ratios
     for (ConsensusMap::iterator cit = numap.begin(); cit != numap.end(); ++cit)
     {
@@ -1257,18 +1247,14 @@ private:
     if (centroided)
     {
       // centroided data
-
       MultiplexFilteringCentroided filtering(exp, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, missing_peaks_, intensity_cutoff_, mz_tolerance_, mz_unit_, peptide_similarity_, averagine_similarity_, averagine_similarity_scaling_, averagine_type_);
-
       filtering.setLogType(log_type_);
       filter_results = filtering.filter();
     }
     else
     {
       // profile data
-
       MultiplexFilteringProfile filtering(exp, exp_picked, boundaries_exp_s, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, missing_peaks_, intensity_cutoff_, mz_tolerance_, mz_unit_, peptide_similarity_, averagine_similarity_, averagine_similarity_scaling_, averagine_type_);
-
       filtering.setLogType(log_type_);
       filter_results = filtering.filter();
     }

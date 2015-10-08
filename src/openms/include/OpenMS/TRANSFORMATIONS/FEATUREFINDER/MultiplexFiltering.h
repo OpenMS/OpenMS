@@ -117,11 +117,7 @@ public:
      * @param averagine_similarity    similarity score for peptide isotope pattern and averagine model
      * @param averagine_similarity_scaling    scaling factor x for the averagine similarity parameter p when detecting peptide singlets. With p' = p + x(1-p). 
      */
-<<<<<<< HEAD
     MultiplexFiltering(const MSExperiment<Peak1D>& exp_picked, const std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type="peptide");
-=======
-    MultiplexFiltering(const MSExperiment<Peak1D>& exp_picked, const std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String type_m="peptide");
->>>>>>> Moved averagine type to constructor of multiplexfiltering.
 
 protected:
     /**
@@ -201,11 +197,8 @@ protected:
      *
      * @return true if isotope distribution looks like an average peptide
      */
-<<<<<<< HEAD
     bool averagineSimilarityFilter(const MultiplexPeakPattern& pattern, const std::vector<double>& intensities_actual, int peaks_found_in_all_peptides_spline, double mz) const;
-=======
-    bool averagineSimilarityFilter(MultiplexPeakPattern pattern, const std::vector<double>& intensities_actual, int peaks_found_in_all_peptides_spline, double mz, String type_m="peptide") const;
->>>>>>> Added parameter to FeatureFinderMultiplex for alternative averagine composition
+
 
     /**
      * @brief blacklist peaks
