@@ -36,6 +36,9 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexMassPatternList.h>
 
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/replace.hpp>
+
 #include <vector>
 #include <algorithm>
 #include <iostream>
@@ -45,9 +48,46 @@ using namespace std;
 namespace OpenMS
 {
 
-  MultiplexMassPatternList::MultiplexMassPatternList(String labels, int missed_cleavages, bool knock_out) :
-    labels_(labels), missed_cleavages_(missed_cleavages), knock_out_(knock_out)
+  MultiplexMassPatternList::MultiplexMassPatternList(String labels, int missed_cleavages, bool knock_out, std::map<String,double> label_mass_shift) :
+    labels_(labels), samples_labels_(), missed_cleavages_(missed_cleavages), knock_out_(knock_out), label_mass_shift_(label_mass_shift)
   {
+    // split the labels_ string
+    
+    //std::vector<std::vector<String> > samples_labels;
+    String temp_labels(labels_);
+    std::vector<String> temp_samples;
+    
+    boost::replace_all(temp_labels, "[]", "no_label");
+    boost::replace_all(temp_labels, "()", "no_label");
+    boost::replace_all(temp_labels, "{}", "no_label");
+    boost::split(temp_samples, temp_labels, boost::is_any_of("[](){}")); // any bracket allowed to separate samples
+    
+    for (unsigned i = 0; i < temp_samples.size(); ++i)
+    {
+      if (!temp_samples[i].empty())
+      {
+        if (temp_samples[i]=="no_label")
+        {
+          vector<String> temp_labels;
+          temp_labels.push_back("no_label");
+          samples_labels_.push_back(temp_labels);
+        }
+        else
+        {
+          vector<String> temp_labels;
+          boost::split(temp_labels, temp_samples[i], boost::is_any_of(",;: ")); // various separators allowed to separate labels
+          samples_labels_.push_back(temp_labels);
+        }
+      }
+    }
+    
+    if (samples_labels_.empty())
+    {
+      vector<String> temp_labels;
+      temp_labels.push_back("no_label");
+      samples_labels_.push_back(temp_labels);
+    }
+
   }
 
   String MultiplexMassPatternList::getLabels() const

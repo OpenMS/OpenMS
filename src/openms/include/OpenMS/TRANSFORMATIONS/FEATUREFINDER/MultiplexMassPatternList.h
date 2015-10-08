@@ -36,6 +36,7 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXMASSPATTERNLIST_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexMassPattern.h>
 
 #include <vector>
@@ -65,7 +66,7 @@ namespace OpenMS
      * @param knock_out    Do we expect some peptides in the multiplets to be absent?
      * For example du to knock-outs in one of the samples.
      */
-    MultiplexMassPatternList(String labels, int missed_cleavages, bool knock_out);
+    MultiplexMassPatternList(String labels, int missed_cleavages, bool knock_out, std::map<String,double> label_mass_shift);
     
     /**
      * @brief returns mass shift at position i
@@ -78,6 +79,11 @@ namespace OpenMS
      * @brief isotopic labels
      */
     String labels_;
+    
+    /**
+     * @brief list of samples with their corresponding labels
+     */
+    std::vector<std::vector<String> > samples_labels_;
 
     /**
      * @brief maximum number of missed cleavages
@@ -93,6 +99,12 @@ namespace OpenMS
      * @brief list of all possible mass shift patterns
      */
     std::vector<MultiplexMassPattern> mass_pattern_list_;
+    
+    /**
+     * @brief mapping from single label to mass shift
+     * e.g. "Arg10" -> 10.0082686
+     */
+    std::map<String,double> label_mass_shift_;
       
  };
   
