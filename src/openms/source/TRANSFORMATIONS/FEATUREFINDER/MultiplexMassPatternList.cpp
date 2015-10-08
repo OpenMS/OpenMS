@@ -232,19 +232,94 @@ namespace OpenMS
       throw OpenMS::Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 0);
     }
     
-    if (mass_pattern_list_[0].getMassShiftCount() == 1)
+    unsigned n = mass_pattern_list_[0].getMassShiftCount(); // n=1 for singlets, n=2 for doublets, n=3 for triplets, n=4 for quadruplets
+    if (n == 1)
     {
       throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Knock-outs for singlet detection not relevant.");
     }
-    else if (mass_pattern_list_[0].getMassShiftCount() <= 4)
+    else if (n == 2)
     {
-      //generateKnockoutMassShifts(list);
+      // add singlets
+      std::vector<double> singlet(1, 0);
+      mass_pattern_list_.push_back(MultiplexMassPattern(singlet));
     }
-    else if (mass_pattern_list_[0].getMassShiftCount() > 4)
+    else if (n == 3)
+    {
+      for (unsigned i = 0; i < mass_pattern_list_.size(); ++i)
+      {
+        // add doublets
+        std::vector<double> doublet1(1, 0);
+        doublet1.push_back(mass_pattern_list_[i].getMassShiftAt(1) - mass_pattern_list_[i].getMassShiftAt(0));
+        mass_pattern_list_.push_back(MultiplexMassPattern(doublet1));
+
+        std::vector<double> doublet2(1, 0);
+        doublet2.push_back(mass_pattern_list_[i].getMassShiftAt(2) - mass_pattern_list_[i].getMassShiftAt(1));
+        mass_pattern_list_.push_back(MultiplexMassPattern(doublet2));
+
+        std::vector<double> doublet3(1, 0);
+        doublet3.push_back(mass_pattern_list_[i].getMassShiftAt(2) - mass_pattern_list_[i].getMassShiftAt(0));
+        mass_pattern_list_.push_back(MultiplexMassPattern(doublet3));
+      }
+      
+      // add singlets
+      std::vector<double> singlet(1, 0);
+      mass_pattern_list_.push_back(MultiplexMassPattern(singlet));
+    }
+    else if (n == 4)
+    {
+      for (unsigned i = 0; i < mass_pattern_list_.size(); ++i)
+      {
+        // add triplets
+        std::vector<double> triplet1(1, 0);
+        triplet1.push_back(mass_pattern_list_[i].getMassShiftAt(2) - mass_pattern_list_[i].getMassShiftAt(1));
+        triplet1.push_back(mass_pattern_list_[i].getMassShiftAt(3) - mass_pattern_list_[i].getMassShiftAt(1));
+        mass_pattern_list_.push_back(MultiplexMassPattern(triplet1));
+
+        std::vector<double> triplet2(1, 0);
+        triplet2.push_back(mass_pattern_list_[i].getMassShiftAt(2) - mass_pattern_list_[i].getMassShiftAt(0));
+        triplet2.push_back(mass_pattern_list_[i].getMassShiftAt(3) - mass_pattern_list_[i].getMassShiftAt(0));
+        mass_pattern_list_.push_back(MultiplexMassPattern(triplet2));
+
+        std::vector<double> triplet3(1, 0);
+        triplet3.push_back(mass_pattern_list_[i].getMassShiftAt(1) - mass_pattern_list_[i].getMassShiftAt(0));
+        triplet3.push_back(mass_pattern_list_[i].getMassShiftAt(2) - mass_pattern_list_[i].getMassShiftAt(0));
+        mass_pattern_list_.push_back(MultiplexMassPattern(triplet3));
+
+
+        // add doublets
+        std::vector<double> doublet1(1, 0);
+        doublet1.push_back(mass_pattern_list_[i].getMassShiftAt(1) - mass_pattern_list_[i].getMassShiftAt(0));
+        mass_pattern_list_.push_back(MultiplexMassPattern(doublet1));
+
+        std::vector<double> doublet2(1, 0);
+        doublet2.push_back(mass_pattern_list_[i].getMassShiftAt(2) - mass_pattern_list_[i].getMassShiftAt(0));
+        mass_pattern_list_.push_back(MultiplexMassPattern(doublet2));
+
+        std::vector<double> doublet3(1, 0);
+        doublet3.push_back(mass_pattern_list_[i].getMassShiftAt(3) - mass_pattern_list_[i].getMassShiftAt(0));
+        mass_pattern_list_.push_back(MultiplexMassPattern(doublet3));
+
+        std::vector<double> doublet4(1, 0);
+        doublet4.push_back(mass_pattern_list_[i].getMassShiftAt(2) - mass_pattern_list_[i].getMassShiftAt(1));
+        mass_pattern_list_.push_back(MultiplexMassPattern(doublet4));
+
+        std::vector<double> doublet5(1, 0);
+        doublet5.push_back(mass_pattern_list_[i].getMassShiftAt(3) - mass_pattern_list_[i].getMassShiftAt(1));
+        mass_pattern_list_.push_back(MultiplexMassPattern(doublet5));
+
+        std::vector<double> doublet6(1, 0);
+        doublet6.push_back(mass_pattern_list_[i].getMassShiftAt(3) - mass_pattern_list_[i].getMassShiftAt(2));
+        mass_pattern_list_.push_back(MultiplexMassPattern(doublet6));
+      }
+
+      // add singlets
+      std::vector<double> singlet(1, 0);
+      mass_pattern_list_.push_back(MultiplexMassPattern(singlet));
+    }
+    else if (n > 4)
     {
       throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Knock-outs for multiplex experiments with more than 4 samples not supported.");
     }
-        
   }
   
   void MultiplexMassPatternList::printMassPatternList() const
