@@ -434,8 +434,8 @@ namespace OpenMS
 #ifdef DEBUG_QTCLUSTERFINDER
     std::cout << " Compute Clustering: "<< x << " " << y << " with id " << center_feature->getFeature().getUniqueId() << std::endl;
     std::set<AASequence> a = cluster.getAnnotations();
-    std::cout << " with annotations: " ;
-    for( std::set<AASequence>::iterator it = a.begin(); it != a.end(); it++) std::cout << " " << *it;
+    std::cout << " with annotations: ";
+    for (std::set<AASequence>::iterator it = a.begin(); it != a.end(); it++) std::cout << " " << *it;
     std::cout << std::endl;
 #endif
 
@@ -501,8 +501,8 @@ namespace OpenMS
 
     {
       std::set<AASequence> a = cluster.getAnnotations();
-      std::cout << " FINAL with annotations: " ;
-      for( std::set<AASequence>::iterator it = a.begin(); it != a.end(); it++) std::cout << " " << *it;
+      std::cout << " FINAL with annotations: ";
+      for (std::set<AASequence>::iterator it = a.begin(); it != a.end(); it++) std::cout << " " << *it;
       std::cout << std::endl;
     }
 #endif
