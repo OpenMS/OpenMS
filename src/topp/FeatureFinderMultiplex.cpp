@@ -1259,11 +1259,16 @@ private:
      * filter for peak patterns
      */
     bool missing_peaks_ = false;
+    //std::cout << "Start generator test.\n";
     MultiplexMassPatternList generator = MultiplexMassPatternList(labels_, missed_cleavages_, label_massshift_);
-    if (knock_out_)
+    std::vector<MultiplexMassPattern> masses_test = generator.getMassPatternList();
+    //std::cout << "Number of mass shifts = " << masses_test.size() << "\n";
+    //generator.printMassPatternList();
+    //std::cout << "End generator test.\n";
+    /*if (knock_out_)
     {
       generator.generateKnockoutMassShifts();
-    }
+    }*/
     generator.printMassPatternList();
     
     //std::vector<MultiplexMassPattern> masses = generator.getMassPatternList();

@@ -139,12 +139,12 @@ namespace OpenMS
     {
       // SILAC
       // We assume the first sample to be unlabelled. Even if the "[]" for the first sample in the label string has not been specified.
-
-      for (unsigned ArgPerPeptide = 0; ArgPerPeptide <= sizeof(missed_cleavages_ + 1); ArgPerPeptide++)
+      
+      for (unsigned ArgPerPeptide = 0; ArgPerPeptide <= (unsigned) missed_cleavages_ + 1; ArgPerPeptide++)
       {
-        for (unsigned LysPerPeptide = 0; LysPerPeptide <= sizeof(missed_cleavages_ + 1); LysPerPeptide++)
+        for (unsigned LysPerPeptide = 0; LysPerPeptide <= (unsigned) missed_cleavages_ + 1; LysPerPeptide++)
         {
-          if (ArgPerPeptide + LysPerPeptide <= sizeof(missed_cleavages_ + 1))
+          if (ArgPerPeptide + LysPerPeptide <= (unsigned) missed_cleavages_ + 1)
           {
             std::vector<double> temp;
             temp.push_back(0);
@@ -189,7 +189,7 @@ namespace OpenMS
       // Dimethyl or ICPL
       // We assume each sample to be labelled only once.
 
-      for (unsigned mc = 0; mc <= sizeof(missed_cleavages_); ++mc)
+      for (unsigned mc = 0; mc <= (unsigned) missed_cleavages_; ++mc)
       {
         std::vector<double> temp;
         for (unsigned i = 0; i < samples_labels_.size(); i++)
