@@ -1259,6 +1259,14 @@ private:
      * filter for peak patterns
      */
     bool missing_peaks_ = false;
+    MultiplexMassPatternList generator = MultiplexMassPatternList(labels_, missed_cleavages_, label_massshift_);
+    if (knock_out_)
+    {
+      generator.generateKnockoutMassShifts();
+    }
+    generator.printMassPatternList();
+    
+    //std::vector<MultiplexMassPattern> masses = generator.getMassPatternList();
     std::vector<MultiplexMassPattern> masses = generateMassPatterns_();
     std::vector<MultiplexPeakPattern> patterns = generatePeakPatterns_(charge_min_, charge_max_, isotopes_per_peptide_max_, masses);
 

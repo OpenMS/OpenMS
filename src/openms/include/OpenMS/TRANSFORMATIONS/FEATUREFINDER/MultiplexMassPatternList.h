@@ -66,12 +66,7 @@ namespace OpenMS
      * For example du to knock-outs in one of the samples.
      */
     MultiplexMassPatternList(String labels, int missed_cleavages, std::map<String,double> label_mass_shift);
-    
-    /**
-     * @brief returns mass shift at position i
-     */
-    String getLabels() const;
-    
+        
     /**
      * @brief generate all mass shifts that can occur due to the absence of one or multiple peptides
      * (e.g. for a triplet experiment generate the doublets and singlets that might be present)
@@ -82,6 +77,11 @@ namespace OpenMS
      * @brief write the mass pattern list
      */
     void printMassPatternList() const;
+    
+    /**
+     * @brief returns the list of mass shift patterns
+     */
+    std::vector<MultiplexMassPattern> getMassPatternList() const;
     
     private:
    

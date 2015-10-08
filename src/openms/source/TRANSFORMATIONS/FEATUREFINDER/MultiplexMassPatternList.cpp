@@ -34,6 +34,7 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexMassPattern.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexMassPatternList.h>
 
 #include <boost/algorithm/string/split.hpp>
@@ -219,11 +220,6 @@ namespace OpenMS
 
   }
 
-  String MultiplexMassPatternList::getLabels() const
-  {
-    return labels_;
-  }
-  
   void MultiplexMassPatternList::generateKnockoutMassShifts()
   {
     if (mass_pattern_list_.empty())
@@ -335,6 +331,11 @@ namespace OpenMS
       std::cout << "\n";
     }
     std::cout << "\n";
+  }
+  
+  std::vector<MultiplexMassPattern> MultiplexMassPatternList::getMassPatternList() const
+  {
+    return mass_pattern_list_;
   }
 
 }
