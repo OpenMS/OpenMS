@@ -48,8 +48,8 @@ using namespace std;
 namespace OpenMS
 {
 
-  MultiplexMassPatternList::MultiplexMassPatternList(String labels, int missed_cleavages, bool knock_out, std::map<String,double> label_mass_shift) :
-    labels_(labels), samples_labels_(), missed_cleavages_(missed_cleavages), knock_out_(knock_out), label_mass_shift_(label_mass_shift)
+  MultiplexMassPatternList::MultiplexMassPatternList(String labels, int missed_cleavages, std::map<String,double> label_mass_shift) :
+    labels_(labels), samples_labels_(), missed_cleavages_(missed_cleavages), label_mass_shift_(label_mass_shift)
   {
     // split the labels_ string
     String temp_labels(labels_);
@@ -211,34 +211,6 @@ namespace OpenMS
     // (from small mass shifts to larger ones, i.e. few miscleavages = simple explanation first)
     std::sort(list.begin(), list.end());
 
-    // generate additional mass shifts due to knock-outs
-    if (knock_out_ && list[0].size() == 1)
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Knock-outs for singlet detection not relevant.");
-    }
-    else if (knock_out_ && list[0].size() <= 4)
-    {
-      //generateKnockoutMassShifts(list);
-    }
-    else if (knock_out_ && list[0].size() > 4)
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Knock-outs for multiplex experiments with more than 4 samples not supported.");
-    }
-
-    // debug output mass shifts
-    cout << "\n";
-    for (unsigned i = 0; i < list.size(); ++i)
-    {
-      std::cout << "mass shift " << (i + 1) << ":    ";
-      std::vector<double> temp = list[i];
-      for (unsigned j = 0; j < temp.size(); ++j)
-      {
-        std::cout << temp[j] << "  ";
-      }
-      std::cout << "\n";
-    }
-    std::cout << "\n";
-
     //std::vector<MultiplexMassPattern> patterns;
     for (unsigned i = 0; i < list.size(); ++i)
     {
@@ -250,6 +222,44 @@ namespace OpenMS
   String MultiplexMassPatternList::getLabels() const
   {
     return labels_;
+  }
+  
+  void MultiplexMassPatternList::generateKnockoutMassShifts()
+  {
+    if (mass_pattern_list_.empty())
+    {
+      // Even in the case of a singlet search, there should be one mass shift (zero mass shift) in the list.
+      throw OpenMS::Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 0);
+    }
+    
+    if (mass_pattern_list_[0].getMassShiftCount() == 1)
+    {
+      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Knock-outs for singlet detection not relevant.");
+    }
+    else if (mass_pattern_list_[0].getMassShiftCount() <= 4)
+    {
+      //generateKnockoutMassShifts(list);
+    }
+    else if (mass_pattern_list_[0].getMassShiftCount() > 4)
+    {
+      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Knock-outs for multiplex experiments with more than 4 samples not supported.");
+    }
+        
+  }
+  
+  void MultiplexMassPatternList::printMassPatternList() const
+  {
+    cout << "\n";
+    for (unsigned i = 0; i < mass_pattern_list_.size(); ++i)
+    {
+      std::cout << "mass shift " << (i + 1) << ":    ";
+      for (unsigned j = 0; j < mass_pattern_list_[i].getMassShiftCount(); ++j)
+      {
+        std::cout << mass_pattern_list_[i].getMassShiftAt(j) << "  ";
+      }
+      std::cout << "\n";
+    }
+    std::cout << "\n";
   }
 
 }

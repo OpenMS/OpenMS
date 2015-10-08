@@ -63,15 +63,25 @@ namespace OpenMS
      * 
      * @param labels    isotopic labels
      * @param missed_cleavages    maximum number of missed cleavages due to incomplete digestion
-     * @param knock_out    Do we expect some peptides in the multiplets to be absent?
      * For example du to knock-outs in one of the samples.
      */
-    MultiplexMassPatternList(String labels, int missed_cleavages, bool knock_out, std::map<String,double> label_mass_shift);
+    MultiplexMassPatternList(String labels, int missed_cleavages, std::map<String,double> label_mass_shift);
     
     /**
      * @brief returns mass shift at position i
      */
     String getLabels() const;
+    
+    /**
+     * @brief generate all mass shifts that can occur due to the absence of one or multiple peptides
+     * (e.g. for a triplet experiment generate the doublets and singlets that might be present)
+     */
+    void generateKnockoutMassShifts();
+
+    /**
+     * @brief write the mass pattern list
+     */
+    void printMassPatternList() const;
     
     private:
    
@@ -91,11 +101,6 @@ namespace OpenMS
     int missed_cleavages_;
 
     /**
-     * @brief Do we expect some peptides to be absent?
-     */
-    bool knock_out_;
-
-    /**
      * @brief list of all possible mass shift patterns
      */
     std::vector<MultiplexMassPattern> mass_pattern_list_;
@@ -105,7 +110,7 @@ namespace OpenMS
      * e.g. "Arg10" -> 10.0082686
      */
     std::map<String,double> label_mass_shift_;
-
+    
  };
   
 }
