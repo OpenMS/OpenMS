@@ -84,7 +84,7 @@ namespace OpenMS
      * @brief list of samples with their corresponding labels
      */
     std::vector<std::vector<String> > samples_labels_;
-
+    
     /**
      * @brief maximum number of missed cleavages
      */
@@ -99,13 +99,13 @@ namespace OpenMS
      * @brief list of all possible mass shift patterns
      */
     std::vector<MultiplexMassPattern> mass_pattern_list_;
-    
+      
     /**
      * @brief mapping from single label to mass shift
      * e.g. "Arg10" -> 10.0082686
      */
     std::map<String,double> label_mass_shift_;
-      
+
  };
   
 }
