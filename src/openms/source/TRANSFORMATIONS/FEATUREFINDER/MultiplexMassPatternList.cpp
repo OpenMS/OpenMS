@@ -106,18 +106,6 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unknown labelling. Neither SILAC, Dimethyl nor ICPL.");
     }
 
-    // debug output labels
-    cout << "\n";
-    for (unsigned i = 0; i < samples_labels_.size(); ++i)
-    {
-      cout << "sample " << (i + 1) << ":   ";
-      for (unsigned j = 0; j < samples_labels_[i].size(); ++j)
-      {
-        cout << samples_labels_[i][j] << " ";
-      }
-      cout << "\n";
-    }
-
     // check if the labels are included in advanced section "labels"
     String all_labels = "Arg6 Arg10 Lys4 Lys6 Lys8 Dimethyl0 Dimethyl4 Dimethyl6 Dimethyl8 ICPL0 ICPL4 ICPL6 ICPL10 no_label";
     for (unsigned i = 0; i < samples_labels_.size(); i++)
@@ -316,6 +304,20 @@ namespace OpenMS
     else if (n > 4)
     {
       throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Knock-outs for multiplex experiments with more than 4 samples not supported.");
+    }
+  }
+  
+  void MultiplexMassPatternList::printLabelsList() const
+  {
+    cout << "\n";
+    for (unsigned i = 0; i < samples_labels_.size(); ++i)
+    {
+      cout << "sample " << (i + 1) << ":   ";
+      for (unsigned j = 0; j < samples_labels_[i].size(); ++j)
+      {
+        cout << samples_labels_[i][j] << " ";
+      }
+      cout << "\n";
     }
   }
   

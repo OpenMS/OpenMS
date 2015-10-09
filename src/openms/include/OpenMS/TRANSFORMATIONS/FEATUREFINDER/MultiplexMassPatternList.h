@@ -74,7 +74,12 @@ namespace OpenMS
     void generateKnockoutMassShifts();
 
     /**
-     * @brief write the mass pattern list
+     * @brief write the list of labels for each sample
+     */
+    void printLabelsList() const;
+    
+    /**
+     * @brief write the list of all mass patterns
      */
     void printMassPatternList() const;
     

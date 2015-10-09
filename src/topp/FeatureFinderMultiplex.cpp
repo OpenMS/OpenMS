@@ -1011,6 +1011,7 @@ private:
     {
       generator.generateKnockoutMassShifts();
     }
+    generator.printLabelsList();
     generator.printMassPatternList();
     
     std::vector<MultiplexMassPattern> masses = generator.getMassPatternList();
