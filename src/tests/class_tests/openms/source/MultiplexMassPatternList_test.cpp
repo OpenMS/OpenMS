@@ -41,41 +41,43 @@ using namespace OpenMS;
 
 START_TEST(MultiplexMassPatternList, "$Id$")
 
-String labels = "[][Lys8,Arg10]";
-int missed_cleavages = 2;
-bool knock_out = TRUE;
+std::map<String, double> label_mass_shift;
+label_mass_shift.insert(std::make_pair("Arg6", 6.0201290268));
+label_mass_shift.insert(std::make_pair("Arg10", 10.008268600));
+label_mass_shift.insert(std::make_pair("Lys4", 4.0251069836));
+label_mass_shift.insert(std::make_pair("Lys8", 8.0141988132));
+
+// triple SILAC
+String labels = "[][Lys4,Arg6][Lys8,Arg10]";
+int missed_cleavages = 1;
 
 MultiplexMassPatternList* nullPointer = 0;
 MultiplexMassPatternList* ptr;
 
-START_SECTION(String labels, int missed_cleavages, bool knock_out))
-    MultiplexMassPatternList list(labels, missed_cleavages, knock_out);
-    //TEST_EQUAL(pattern.getMassShiftCount(), 2);
-    ptr = new MultiplexMassPatternList(labels, missed_cleavages, knock_out);
+START_SECTION(MultiplexMassPatternList(String labels, int missed_cleavages, std::map<String,double> label_mass_shift))
+    MultiplexMassPatternList list(labels, missed_cleavages, label_mass_shift);
+    TEST_EQUAL(list.getMassPatternList().size(), 5);
+    ptr = new MultiplexMassPatternList(labels, missed_cleavages, label_mass_shift);
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;
 END_SECTION
 
-MultiplexMassPatternList list(labels, missed_cleavages, knock_out);
+MultiplexMassPatternList list(labels, missed_cleavages, label_mass_shift);
 
-/*START_SECTION(void addMassShifts(double ms) const)
-  pattern.addMassShift(12.063634);
-  TEST_EQUAL(pattern.getMassShifts()[2], 12.063634);
+START_SECTION(std::vector<MultiplexMassPattern> getMassPatternList() const)
+  std::vector<MultiplexMassPattern> masses = list.getMassPatternList();
+  TEST_EQUAL(masses.size(), 5);
+  TEST_REAL_SIMILAR(masses[2].getMassShiftAt(1), 8.0502139672);
+  TEST_REAL_SIMILAR(masses[4].getMassShiftAt(2), 20.0165372);
 END_SECTION
 
-START_SECTION(std::vector<double> getMassShifts() const)
-  TEST_EQUAL(pattern.getMassShifts()[0], 0);
-  TEST_EQUAL(pattern.getMassShifts()[1], 6.031817);
+START_SECTION(void generateKnockoutMassShifts())
+  list.generateKnockoutMassShifts();
+  std::vector<MultiplexMassPattern> masses_knockout = list.getMassPatternList();
+  TEST_EQUAL(masses_knockout.size(), 21);
+  TEST_REAL_SIMILAR(masses_knockout[6].getMassShiftAt(1), 3.98909);
+  TEST_REAL_SIMILAR(masses_knockout[19].getMassShiftAt(1), 20.0165372);
+  TEST_EQUAL(masses_knockout[20].getMassShiftCount(), 1);
 END_SECTION
-
-START_SECTION(unsigned getMassShiftCount() const)
-  TEST_EQUAL(pattern.getMassShiftCount(), 3);
-END_SECTION
-
-START_SECTION(double getMassShiftAt(int i) const)
-  TEST_EQUAL(pattern.getMassShiftAt(0), 0);
-  TEST_EQUAL(pattern.getMassShiftAt(1), 6.031817);
-  TEST_EQUAL(pattern.getMassShiftAt(2), 12.063634);
-END_SECTION*/
 
 END_TEST
