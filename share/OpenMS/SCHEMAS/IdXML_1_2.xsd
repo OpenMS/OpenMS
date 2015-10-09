@@ -346,6 +346,9 @@
 			<xs:enumeration value="int"/>
 			<xs:enumeration value="float"/>
 			<xs:enumeration value="string"/>
+			<xs:enumeration value="intList"/>
+			<xs:enumeration value="floatList"/>
+			<xs:enumeration value="stringList"/>
 		</xs:restriction>
 	</xs:simpleType>
 </xs:schema>
