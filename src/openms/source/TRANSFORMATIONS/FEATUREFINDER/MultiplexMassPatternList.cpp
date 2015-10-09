@@ -228,7 +228,8 @@ namespace OpenMS
       throw OpenMS::Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 0);
     }
     
-    unsigned n = mass_pattern_list_[0].getMassShiftCount(); // n=1 for singlets, n=2 for doublets, n=3 for triplets, n=4 for quadruplets
+    unsigned n = mass_pattern_list_[0].getMassShiftCount();    // n=1 for singlets, n=2 for doublets, n=3 for triplets, n=4 for quadruplets
+    unsigned m = mass_pattern_list_.size();    // number of mass shift patterns before extension of the list
     if (n == 1)
     {
       throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Knock-outs for singlet detection not relevant.");
@@ -241,7 +242,7 @@ namespace OpenMS
     }
     else if (n == 3)
     {
-      for (unsigned i = 0; i < mass_pattern_list_.size(); ++i)
+      for (unsigned i = 0; i < m; ++i)
       {
         // add doublets
         std::vector<double> doublet1(1, 0);
@@ -263,7 +264,7 @@ namespace OpenMS
     }
     else if (n == 4)
     {
-      for (unsigned i = 0; i < mass_pattern_list_.size(); ++i)
+      for (unsigned i = 0; i < m; ++i)
       {
         // add triplets
         std::vector<double> triplet1(1, 0);
