@@ -55,6 +55,7 @@
   - @subpage UTILS_ConvertTraMLToTSV - Converts a TraML file to TSV.
   - @subpage UTILS_FuzzyDiff - Compares two files, tolerating numeric differences.
   - @subpage UTILS_IDSplitter - Splits protein/peptide identifications off of annotated data files.
+  - @subpage UTILS_MzMLSplitter - Splits an mzML file into multiple parts
   - @subpage UTILS_OpenSwathMzMLFileCacher - Caching of large mzML files
   - @subpage UTILS_SemanticValidator - SemanticValidator for analysisXML and mzML files.
   - @subpage UTILS_XMLValidator - Validates XML files against an XSD schema.
