@@ -35,11 +35,11 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexMassPatternList.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
 
 using namespace OpenMS;
 
-START_TEST(MultiplexMassPatternList, "$Id$")
+START_TEST(MultiplexDeltaMassesGenerator, "$Id$")
 
 std::map<String, double> label_mass_shift;
 label_mass_shift.insert(std::make_pair("Arg6", 6.0201290268));
@@ -51,18 +51,18 @@ label_mass_shift.insert(std::make_pair("Lys8", 8.0141988132));
 String labels = "[][Lys4,Arg6][Lys8,Arg10]";
 int missed_cleavages = 1;
 
-MultiplexMassPatternList* nullPointer = 0;
-MultiplexMassPatternList* ptr;
+MultiplexDeltaMassesGenerator* nullPointer = 0;
+MultiplexDeltaMassesGenerator* ptr;
 
-START_SECTION(MultiplexMassPatternList(String labels, int missed_cleavages, std::map<String,double> label_mass_shift))
-    MultiplexMassPatternList list(labels, missed_cleavages, label_mass_shift);
+START_SECTION(MultiplexDeltaMassesGenerator(String labels, int missed_cleavages, std::map<String,double> label_mass_shift))
+    MultiplexDeltaMassesGenerator list(labels, missed_cleavages, label_mass_shift);
     TEST_EQUAL(list.getMassPatternList().size(), 5);
-    ptr = new MultiplexMassPatternList(labels, missed_cleavages, label_mass_shift);
+    ptr = new MultiplexDeltaMassesGenerator(labels, missed_cleavages, label_mass_shift);
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;
 END_SECTION
 
-MultiplexMassPatternList list(labels, missed_cleavages, label_mass_shift);
+MultiplexDeltaMassesGenerator list(labels, missed_cleavages, label_mass_shift);
 
 START_SECTION(std::vector<MultiplexDeltaMasses> getMassPatternList() const)
   std::vector<MultiplexDeltaMasses> masses = list.getMassPatternList();

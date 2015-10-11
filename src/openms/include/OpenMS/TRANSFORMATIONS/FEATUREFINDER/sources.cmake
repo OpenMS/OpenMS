@@ -36,13 +36,13 @@ MaxLikeliFitter1D.h
 ModelDescription.h
 MultiplexClustering.h
 MultiplexDeltaMasses.h
+MultiplexDeltaMassesGenerator.h
 MultiplexFiltering.h
 MultiplexFilteringCentroided.h
 MultiplexFilteringProfile.h
 MultiplexFilterResult.h
 MultiplexFilterResultPeak.h
 MultiplexFilterResultRaw.h
-MultiplexMassPatternList.h
 MultiplexPeakPattern.h
 PeakWidthEstimator.h
 ProductModel.h

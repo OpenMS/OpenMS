@@ -32,8 +32,8 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXMASSPATTERNLIST_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXMASSPATTERNLIST_H
+#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXDELTAMASSESGENERATOR_H
+#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXDELTAMASSESGENERATOR_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -46,7 +46,7 @@
 namespace OpenMS
 {
   /**
-   * @brief complete list of all possible mass shifts due to isotopic labelling
+   * @brief generates complete list of all possible mass shifts due to isotopic labelling
    * 
    * Isotopic labelling results in the shift of peptide masses. For example
    * in a Lys8/Arg10 SILAC labelled sample, some peptides (the ones with one
@@ -54,7 +54,7 @@ namespace OpenMS
    * heavy partners of 10 Da. This class constructs the complete list of all
    * possible mass shifts that arise from isotopic labelling.
    */
-  class OPENMS_DLLAPI MultiplexMassPatternList
+  class OPENMS_DLLAPI MultiplexDeltaMassesGenerator
   {
     public:
 
@@ -65,7 +65,7 @@ namespace OpenMS
      * @param missed_cleavages    maximum number of missed cleavages due to incomplete digestion
      * For example du to knock-outs in one of the samples.
      */
-    MultiplexMassPatternList(String labels, int missed_cleavages, std::map<String,double> label_mass_shift);
+    MultiplexDeltaMassesGenerator(String labels, int missed_cleavages, std::map<String,double> label_mass_shift);
         
     /**
      * @brief generate all mass shifts that can occur due to the absence of one or multiple peptides
@@ -120,4 +120,4 @@ namespace OpenMS
   
 }
 
-#endif /* MULTIPLEXMASSPATTERNLIST_H */
+#endif /* MULTIPLEXDELTAMASSESGENERATOR_H */

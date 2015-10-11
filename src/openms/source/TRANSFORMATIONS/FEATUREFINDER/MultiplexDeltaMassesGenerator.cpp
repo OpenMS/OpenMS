@@ -35,7 +35,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexMassPatternList.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
 
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/replace.hpp>
@@ -49,7 +49,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  MultiplexMassPatternList::MultiplexMassPatternList(String labels, int missed_cleavages, std::map<String,double> label_mass_shift) :
+  MultiplexDeltaMassesGenerator::MultiplexDeltaMassesGenerator(String labels, int missed_cleavages, std::map<String,double> label_mass_shift) :
     labels_(labels), samples_labels_(), missed_cleavages_(missed_cleavages), label_mass_shift_(label_mass_shift)
   {
     // split the labels_ string
@@ -207,7 +207,7 @@ namespace OpenMS
 
   }
 
-  void MultiplexMassPatternList::generateKnockoutMassShifts()
+  void MultiplexDeltaMassesGenerator::generateKnockoutMassShifts()
   {
     if (mass_pattern_list_.empty())
     {
@@ -306,7 +306,7 @@ namespace OpenMS
     }
   }
   
-  void MultiplexMassPatternList::printLabelsList() const
+  void MultiplexDeltaMassesGenerator::printLabelsList() const
   {
     cout << "\n";
     for (unsigned i = 0; i < samples_labels_.size(); ++i)
@@ -320,7 +320,7 @@ namespace OpenMS
     }
   }
   
-  void MultiplexMassPatternList::printMassPatternList() const
+  void MultiplexDeltaMassesGenerator::printMassPatternList() const
   {
     cout << "\n";
     for (unsigned i = 0; i < mass_pattern_list_.size(); ++i)
@@ -335,7 +335,7 @@ namespace OpenMS
     std::cout << "\n";
   }
   
-  std::vector<MultiplexDeltaMasses> MultiplexMassPatternList::getMassPatternList() const
+  std::vector<MultiplexDeltaMasses> MultiplexDeltaMassesGenerator::getMassPatternList() const
   {
     return mass_pattern_list_;
   }

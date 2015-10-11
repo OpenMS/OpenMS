@@ -58,7 +58,7 @@
 #include <OpenMS/FORMAT/MzQuantMLFile.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexMassPatternList.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexPeakPattern.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringCentroided.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringProfile.h>
@@ -1005,7 +1005,7 @@ private:
     /**
      * filter for peak patterns
      */
-    MultiplexMassPatternList generator = MultiplexMassPatternList(labels_, missed_cleavages_, label_massshift_);
+    MultiplexDeltaMassesGenerator generator = MultiplexDeltaMassesGenerator(labels_, missed_cleavages_, label_massshift_);
     std::vector<MultiplexDeltaMasses> masses_test = generator.getMassPatternList();
     if (knock_out_)
     {
