@@ -73,8 +73,8 @@ namespace OpenMS
 
   void IDDecoyProbability::apply(vector<PeptideIdentification> & ids)
   {
-    double lower_score_better_default_value_if_zero((double)param_.getValue("lower_score_better_default_value_if_zero"));
-    double lower_score_better_default_value_if_zero_exp = pow((double)10.0, -lower_score_better_default_value_if_zero);
+    double lower_score_better_default_value_if_zero(static_cast<double>(param_.getValue("lower_score_better_default_value_if_zero")));
+    double lower_score_better_default_value_if_zero_exp = pow(10.0, -lower_score_better_default_value_if_zero);
     vector<double> rev_scores, fwd_scores, all_scores;
 
     // get the forward scores
