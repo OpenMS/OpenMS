@@ -40,7 +40,7 @@ MultiplexFilteringProfile.cpp
 MultiplexFilterResult.cpp
 MultiplexFilterResultPeak.cpp
 MultiplexFilterResultRaw.cpp
-MultiplexPeakPattern.cpp
+MultiplexIsotopicPeakPattern.cpp
 PeakWidthEstimator.cpp
 ProductModel.cpp
 SeedListGenerator.cpp

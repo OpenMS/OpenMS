@@ -32,8 +32,8 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXPEAKPATTERN_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXPEAKPATTERN_H
+#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXISOTOPICPEAKPATTERN_H
+#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXISOTOPICPEAKPATTERN_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
@@ -52,14 +52,14 @@ namespace OpenMS
    * of charge 2+ with three isotopic peaks we expect peaks
    * at relative m/z shifts of 0, 0.5, 1, 3, 3.5 and 4 Th.
    */
-  class OPENMS_DLLAPI MultiplexPeakPattern
+  class OPENMS_DLLAPI MultiplexIsotopicPeakPattern
   {
     public:
 
     /**
      * @brief constructor
      */
-    MultiplexPeakPattern(int c, int ppp, MultiplexDeltaMasses ms, int msi);
+    MultiplexIsotopicPeakPattern(int c, int ppp, MultiplexDeltaMasses ms, int msi);
     
     /**
      * @brief returns charge
@@ -134,4 +134,4 @@ namespace OpenMS
   
 }
 
-#endif /* MULTIPLEXPEAKPATTERN_H */
+#endif /* MULTIPLEXISOTOPICPEAKPATTERN_H */

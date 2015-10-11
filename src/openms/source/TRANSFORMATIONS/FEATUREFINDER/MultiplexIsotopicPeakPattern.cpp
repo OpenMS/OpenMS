@@ -34,7 +34,7 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexPeakPattern.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
 
 #include <vector>
 #include <algorithm>
@@ -45,7 +45,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  MultiplexPeakPattern::MultiplexPeakPattern(int c, int ppp, MultiplexDeltaMasses ms, int msi) :
+  MultiplexIsotopicPeakPattern::MultiplexIsotopicPeakPattern(int c, int ppp, MultiplexDeltaMasses ms, int msi) :
     charge_(c), peaks_per_peptide_(ppp), mass_shifts_(ms), mass_shift_index_(msi)
   {
     // generate m/z shifts
@@ -59,42 +59,42 @@ namespace OpenMS
     }
   }
 
-  int MultiplexPeakPattern::getCharge() const
+  int MultiplexIsotopicPeakPattern::getCharge() const
   {
     return charge_;
   }
 
-  int MultiplexPeakPattern::getPeaksPerPeptide() const
+  int MultiplexIsotopicPeakPattern::getPeaksPerPeptide() const
   {
     return peaks_per_peptide_;
   }
 
-  MultiplexDeltaMasses MultiplexPeakPattern::getMassShifts() const
+  MultiplexDeltaMasses MultiplexIsotopicPeakPattern::getMassShifts() const
   {
     return mass_shifts_;
   }
 
-  int MultiplexPeakPattern::getMassShiftIndex() const
+  int MultiplexIsotopicPeakPattern::getMassShiftIndex() const
   {
     return mass_shift_index_;
   }
 
-  unsigned MultiplexPeakPattern::getMassShiftCount() const
+  unsigned MultiplexIsotopicPeakPattern::getMassShiftCount() const
   {
     return mass_shifts_.getMassShiftCount();
   }
 
-  double MultiplexPeakPattern::getMassShiftAt(int i) const
+  double MultiplexIsotopicPeakPattern::getMassShiftAt(int i) const
   {
     return mass_shifts_.getMassShiftAt(i);
   }
 
-  double MultiplexPeakPattern::getMZShiftAt(int i) const
+  double MultiplexIsotopicPeakPattern::getMZShiftAt(int i) const
   {
     return mz_shifts_[i];
   }
 
-  unsigned MultiplexPeakPattern::getMZShiftCount() const
+  unsigned MultiplexIsotopicPeakPattern::getMZShiftCount() const
   {
     return mz_shifts_.size();
   }

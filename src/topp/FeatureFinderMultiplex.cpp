@@ -59,7 +59,7 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexPeakPattern.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringCentroided.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringProfile.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexClustering.h>
@@ -399,7 +399,7 @@ public:
    *
    * @return true if pattern1 should be searched before pattern2
    */
-  static bool less_pattern(const MultiplexPeakPattern& pattern1, const MultiplexPeakPattern& pattern2)
+  static bool less_pattern(const MultiplexIsotopicPeakPattern& pattern1, const MultiplexIsotopicPeakPattern& pattern2)
   {
     if (pattern1.getMassShiftCount() == pattern2.getMassShiftCount())
     {
@@ -440,9 +440,9 @@ public:
    *
    * @return list of m/z shifts
    */
-  std::vector<MultiplexPeakPattern> generatePeakPatterns_(int charge_min, int charge_max, int peaks_per_peptide_max, std::vector<MultiplexDeltaMasses> mass_pattern_list)
+  std::vector<MultiplexIsotopicPeakPattern> generatePeakPatterns_(int charge_min, int charge_max, int peaks_per_peptide_max, std::vector<MultiplexDeltaMasses> mass_pattern_list)
   {
-    std::vector<MultiplexPeakPattern> list;
+    std::vector<MultiplexIsotopicPeakPattern> list;
 
     // iterate over all charge states
     for (int c = charge_max; c >= charge_min; --c)
@@ -450,7 +450,7 @@ public:
       // iterate over all mass shifts
       for (unsigned i = 0; i < mass_pattern_list.size(); ++i)
       {
-        MultiplexPeakPattern pattern(c, peaks_per_peptide_max, mass_pattern_list[i], i);
+        MultiplexIsotopicPeakPattern pattern(c, peaks_per_peptide_max, mass_pattern_list[i], i);
         list.push_back(pattern);
       }
     }
@@ -556,7 +556,7 @@ public:
    * @param consensus_map    consensus map with peptide multiplets (to be filled)
    * @param feature_map    feature map with peptides (to be filled)
    */
-  void generateMaps_(bool centroided, std::vector<MultiplexPeakPattern> patterns, std::vector<MultiplexFilterResult> filter_results, std::vector<std::map<int, GridBasedCluster> > cluster_results, ConsensusMap& consensus_map, FeatureMap& feature_map)
+  void generateMaps_(bool centroided, std::vector<MultiplexIsotopicPeakPattern> patterns, std::vector<MultiplexFilterResult> filter_results, std::vector<std::map<int, GridBasedCluster> > cluster_results, ConsensusMap& consensus_map, FeatureMap& feature_map)
   {
     // loop over peak patterns
     for (unsigned pattern = 0; pattern < patterns.size(); ++pattern)
@@ -1015,7 +1015,7 @@ private:
     generator.printMassPatternList();
     
     std::vector<MultiplexDeltaMasses> masses = generator.getMassPatternList();
-    std::vector<MultiplexPeakPattern> patterns = generatePeakPatterns_(charge_min_, charge_max_, isotopes_per_peptide_max_, masses);
+    std::vector<MultiplexIsotopicPeakPattern> patterns = generatePeakPatterns_(charge_min_, charge_max_, isotopes_per_peptide_max_, masses);
 
     bool missing_peaks_ = false;
     std::vector<MultiplexFilterResult> filter_results;

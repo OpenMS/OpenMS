@@ -36,29 +36,29 @@
 #include <OpenMS/test_config.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexPeakPattern.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
 
 using namespace OpenMS;
 
-START_TEST(MultiplexPeakPattern, "$Id$")
+START_TEST(MultiplexIsotopicPeakPattern, "$Id$")
 
 std::vector<double> m;
 m.push_back(0);
 m.push_back(6.031817);
 MultiplexDeltaMasses mass_shifts(m);
 
-MultiplexPeakPattern* nullPointer = 0;
-MultiplexPeakPattern* ptr;
+MultiplexIsotopicPeakPattern* nullPointer = 0;
+MultiplexIsotopicPeakPattern* ptr;
 
-START_SECTION(MultiplexPeakPattern(int c, int ppp, MultiplexDeltaMasses ms, int msi))
-    MultiplexPeakPattern pattern(2, 4, mass_shifts, 3);
+START_SECTION(MultiplexIsotopicPeakPattern(int c, int ppp, MultiplexDeltaMasses ms, int msi))
+    MultiplexIsotopicPeakPattern pattern(2, 4, mass_shifts, 3);
     TEST_EQUAL(pattern.getCharge(), 2);
-    ptr = new MultiplexPeakPattern(2, 4, mass_shifts, 3);
+    ptr = new MultiplexIsotopicPeakPattern(2, 4, mass_shifts, 3);
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;
 END_SECTION
 
-MultiplexPeakPattern pattern(2, 4, mass_shifts, 3);
+MultiplexIsotopicPeakPattern pattern(2, 4, mass_shifts, 3);
 
 START_SECTION(int getCharge() const)
   TEST_EQUAL(pattern.getCharge(), 2);

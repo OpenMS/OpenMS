@@ -43,7 +43,7 @@ MultiplexFilteringProfile.h
 MultiplexFilterResult.h
 MultiplexFilterResultPeak.h
 MultiplexFilterResultRaw.h
-MultiplexPeakPattern.h
+MultiplexIsotopicPeakPattern.h
 PeakWidthEstimator.h
 ProductModel.h
 SeedListGenerator.h
