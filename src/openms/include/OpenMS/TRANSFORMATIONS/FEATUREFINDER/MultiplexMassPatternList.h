@@ -37,7 +37,7 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexMassPattern.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
 
 #include <vector>
 #include <algorithm>
@@ -86,7 +86,7 @@ namespace OpenMS
     /**
      * @brief returns the list of mass shift patterns
      */
-    std::vector<MultiplexMassPattern> getMassPatternList() const;
+    std::vector<MultiplexDeltaMasses> getMassPatternList() const;
     
     private:
    
@@ -108,7 +108,7 @@ namespace OpenMS
     /**
      * @brief list of all possible mass shift patterns
      */
-    std::vector<MultiplexMassPattern> mass_pattern_list_;
+    std::vector<MultiplexDeltaMasses> mass_pattern_list_;
       
     /**
      * @brief mapping from single label to mass shift

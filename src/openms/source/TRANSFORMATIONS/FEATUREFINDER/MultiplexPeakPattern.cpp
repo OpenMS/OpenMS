@@ -45,7 +45,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  MultiplexPeakPattern::MultiplexPeakPattern(int c, int ppp, MultiplexMassPattern ms, int msi) :
+  MultiplexPeakPattern::MultiplexPeakPattern(int c, int ppp, MultiplexDeltaMasses ms, int msi) :
     charge_(c), peaks_per_peptide_(ppp), mass_shifts_(ms), mass_shift_index_(msi)
   {
     // generate m/z shifts
@@ -69,7 +69,7 @@ namespace OpenMS
     return peaks_per_peptide_;
   }
 
-  MultiplexMassPattern MultiplexPeakPattern::getMassShifts() const
+  MultiplexDeltaMasses MultiplexPeakPattern::getMassShifts() const
   {
     return mass_shifts_;
   }

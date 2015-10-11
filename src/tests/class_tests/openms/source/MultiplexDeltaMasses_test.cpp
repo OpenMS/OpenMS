@@ -35,28 +35,28 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexMassPattern.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
 
 using namespace OpenMS;
 
-START_TEST(MultiplexMassPattern, "$Id$")
+START_TEST(MultiplexDeltaMasses, "$Id$")
 
 std::vector<double> mass_shifts;
 mass_shifts.push_back(0);
 mass_shifts.push_back(6.031817);
 
-MultiplexMassPattern* nullPointer = 0;
-MultiplexMassPattern* ptr;
+MultiplexDeltaMasses* nullPointer = 0;
+MultiplexDeltaMasses* ptr;
 
-START_SECTION(MultiplexMassPattern(std::vector<double> ms))
-    MultiplexMassPattern pattern(mass_shifts);
+START_SECTION(MultiplexDeltaMasses(std::vector<double> ms))
+    MultiplexDeltaMasses pattern(mass_shifts);
     TEST_EQUAL(pattern.getMassShiftCount(), 2);
-    ptr = new MultiplexMassPattern(mass_shifts);
+    ptr = new MultiplexDeltaMasses(mass_shifts);
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;
 END_SECTION
 
-MultiplexMassPattern pattern(mass_shifts);
+MultiplexDeltaMasses pattern(mass_shifts);
 
 START_SECTION(void addMassShifts(double ms) const)
   pattern.addMassShift(12.063634);

@@ -32,13 +32,13 @@ LevMarqFitter1D.cpp
 MaxLikeliFitter1D.cpp
 ModelDescription.cpp
 MultiplexClustering.cpp
+MultiplexDeltaMasses.cpp
 MultiplexFiltering.cpp
 MultiplexFilteringCentroided.cpp
 MultiplexFilteringProfile.cpp
 MultiplexFilterResult.cpp
 MultiplexFilterResultPeak.cpp
 MultiplexFilterResultRaw.cpp
-MultiplexMassPattern.cpp
 MultiplexMassPatternList.cpp
 MultiplexPeakPattern.cpp
 PeakWidthEstimator.cpp

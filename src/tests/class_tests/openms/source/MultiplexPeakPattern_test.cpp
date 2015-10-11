@@ -35,7 +35,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexMassPattern.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexPeakPattern.h>
 
 using namespace OpenMS;
@@ -45,12 +45,12 @@ START_TEST(MultiplexPeakPattern, "$Id$")
 std::vector<double> m;
 m.push_back(0);
 m.push_back(6.031817);
-MultiplexMassPattern mass_shifts(m);
+MultiplexDeltaMasses mass_shifts(m);
 
 MultiplexPeakPattern* nullPointer = 0;
 MultiplexPeakPattern* ptr;
 
-START_SECTION(MultiplexPeakPattern(int c, int ppp, MultiplexMassPattern ms, int msi))
+START_SECTION(MultiplexPeakPattern(int c, int ppp, MultiplexDeltaMasses ms, int msi))
     MultiplexPeakPattern pattern(2, 4, mass_shifts, 3);
     TEST_EQUAL(pattern.getCharge(), 2);
     ptr = new MultiplexPeakPattern(2, 4, mass_shifts, 3);

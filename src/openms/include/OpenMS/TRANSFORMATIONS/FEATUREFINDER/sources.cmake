@@ -35,13 +35,13 @@ LevMarqFitter1D.h
 MaxLikeliFitter1D.h
 ModelDescription.h
 MultiplexClustering.h
+MultiplexDeltaMasses.h
 MultiplexFiltering.h
 MultiplexFilteringCentroided.h
 MultiplexFilteringProfile.h
 MultiplexFilterResult.h
 MultiplexFilterResultPeak.h
 MultiplexFilterResultRaw.h
-MultiplexMassPattern.h
 MultiplexMassPatternList.h
 MultiplexPeakPattern.h
 PeakWidthEstimator.h

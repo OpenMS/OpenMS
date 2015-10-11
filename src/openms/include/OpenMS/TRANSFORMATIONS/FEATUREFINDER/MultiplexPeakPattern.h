@@ -36,7 +36,7 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXPEAKPATTERN_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexMassPattern.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
 
 #include <vector>
 #include <algorithm>
@@ -59,7 +59,7 @@ namespace OpenMS
     /**
      * @brief constructor
      */
-    MultiplexPeakPattern(int c, int ppp, MultiplexMassPattern ms, int msi);
+    MultiplexPeakPattern(int c, int ppp, MultiplexDeltaMasses ms, int msi);
     
     /**
      * @brief returns charge
@@ -74,7 +74,7 @@ namespace OpenMS
     /**
      * @brief returns mass shifts
      */
-    MultiplexMassPattern getMassShifts() const;
+    MultiplexDeltaMasses getMassShifts() const;
     
     /**
      * @brief returns mass shift index
@@ -123,7 +123,7 @@ namespace OpenMS
      * @brief mass shifts between peptides
      * (including zero mass shift for first peptide)
      */
-    MultiplexMassPattern mass_shifts_;
+    MultiplexDeltaMasses mass_shifts_;
 
     /**
      * @brief index in mass shift list

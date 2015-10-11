@@ -32,42 +32,67 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
+#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXDELTAMASSES_H
+#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXDELTAMASSES_H
+
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexMassPattern.h>
 
 #include <vector>
 #include <algorithm>
 #include <iostream>
 
-using namespace std;
-
 namespace OpenMS
 {
-
-  MultiplexMassPattern::MultiplexMassPattern(vector<double> ms) :
-    mass_shifts_(ms)
+  /**
+   * @brief data structure for mass shift pattern
+   * 
+   * Groups of labelled peptides appear with characteristic mass shifts.
+   * For example, for an Arg6 labeled SILAC peptide pair we expect to see
+   * mass shifts of 0 and 6 Da. Or as second example, for a 
+   * peptide pair of a dimethyl labelled sample with a single lysine
+   * we will see mass shifts of 56 Da and 64 Da.
+   * 28 Da (N-term) + 28 Da (K) and 34 Da (N-term) + 34 Da (K)
+   * for light and heavy partners respectively.
+   */
+  class OPENMS_DLLAPI MultiplexDeltaMasses
   {
-  }
+    public:
 
-  void MultiplexMassPattern::addMassShift(double ms)
-  {
-    mass_shifts_.push_back(ms);
-  }
-
-  std::vector<double> MultiplexMassPattern::getMassShifts() const
-  {
-    return mass_shifts_;
-  }
-
-  unsigned MultiplexMassPattern::getMassShiftCount() const
-  {
-    return mass_shifts_.size();
-  }
-
-  double MultiplexMassPattern::getMassShiftAt(int i) const
-  {
-    return mass_shifts_[i];
-  }
-
+    /**
+     * @brief constructor
+     */
+    MultiplexDeltaMasses(std::vector<double> ms);
+    
+    /**
+     * @brief add a mass shift
+     */
+    void addMassShift(double ms);
+    
+    /**
+     * @brief returns mass shifts
+     */
+    std::vector<double> getMassShifts() const;
+    
+    /**
+     * @brief returns number of mass shifts
+     */
+    unsigned getMassShiftCount() const;
+   
+    /**
+     * @brief returns mass shift at position i
+     */
+    double getMassShiftAt(int i) const;
+    
+    private:
+   
+    /**
+     * @brief mass shifts between peptides
+     * (including zero mass shift for first peptide)
+     */
+    std::vector<double> mass_shifts_;
+      
+ };
+  
 }
+
+#endif /* MULTIPLEXDELTAMASSES_H */

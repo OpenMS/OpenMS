@@ -57,7 +57,7 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/MzQuantMLFile.h>
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexMassPattern.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexMassPatternList.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexPeakPattern.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringCentroided.h>
@@ -440,7 +440,7 @@ public:
    *
    * @return list of m/z shifts
    */
-  std::vector<MultiplexPeakPattern> generatePeakPatterns_(int charge_min, int charge_max, int peaks_per_peptide_max, std::vector<MultiplexMassPattern> mass_pattern_list)
+  std::vector<MultiplexPeakPattern> generatePeakPatterns_(int charge_min, int charge_max, int peaks_per_peptide_max, std::vector<MultiplexDeltaMasses> mass_pattern_list)
   {
     std::vector<MultiplexPeakPattern> list;
 
@@ -1006,7 +1006,7 @@ private:
      * filter for peak patterns
      */
     MultiplexMassPatternList generator = MultiplexMassPatternList(labels_, missed_cleavages_, label_massshift_);
-    std::vector<MultiplexMassPattern> masses_test = generator.getMassPatternList();
+    std::vector<MultiplexDeltaMasses> masses_test = generator.getMassPatternList();
     if (knock_out_)
     {
       generator.generateKnockoutMassShifts();
@@ -1014,7 +1014,7 @@ private:
     generator.printLabelsList();
     generator.printMassPatternList();
     
-    std::vector<MultiplexMassPattern> masses = generator.getMassPatternList();
+    std::vector<MultiplexDeltaMasses> masses = generator.getMassPatternList();
     std::vector<MultiplexPeakPattern> patterns = generatePeakPatterns_(charge_min_, charge_max_, isotopes_per_peptide_max_, masses);
 
     bool missing_peaks_ = false;
