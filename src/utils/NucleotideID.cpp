@@ -42,6 +42,8 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h>
+
 
 
 // preprocessing and filtering
@@ -285,7 +287,7 @@ protected:
 
 
     // This code is based on a function in HiResPrecursorMassCorrector, it returns a set of the indexes of peaks that overlap with the feature in question
-    set<Size> correctToNearestFeature(const Feature& feature, PeakMap & exp, double rt_tolerance_s = 0.0, double mz_tolerance = 0.0, bool ppm = true, bool believe_charge = false, bool all_matching_features = false, int max_trace = 2)
+    set<Size> correctToNearestFeature(const Feature& feature, PeakMap & exp, double rt_tolerance_s = 100.0, double mz_tolerance = 20.0, bool ppm = true, bool believe_charge = false, bool all_matching_features = false, int max_trace = 2)
     {
       // for each precursor/MS2 find all features that are in the given tolerance window (bounding box + rt tolerances)
       // if believe_charge is set, only add features that match the precursor charge
@@ -507,6 +509,8 @@ protected:
             //get code from HighResPrecursorMassCorrector
             // for each feature:
                 // Find nearest ms2's
+            set<Size> nearest;
+            nearest=correctToNearestFeature(*fm_it, spectra);
 
             // for each MS2 matching to the feature score candidates
                 // for each peptideIdentification:
@@ -515,41 +519,47 @@ protected:
 
 
             vector<PeptideIdentification> peptide_ids = fm_it->getPeptideIdentifications();
+            MetaboliteSpectralMatching metmatch;
             for (vector<PeptideIdentification>::iterator v_it = peptide_ids.begin(); v_it != peptide_ids.end(); ++v_it)
             {
                 vector<PeptideHit> peptide_hits = v_it->getHits();
-                for (vector<PeptideHit>::iterator h_it=peptide_hits.begin(); h_it != peptide_hits.end(); ++h_it){
+                for (vector<PeptideHit>::iterator h_it=peptide_hits.begin(); h_it != peptide_hits.end(); ++h_it)
+                {
                 // generate theoretical spectrum for current candidate (and optionally for the reversed decoy sequence for FDR calculation later)
                    StringList sequence_list = h_it->getMetaValue("description").toStringList();//get the sequence
                    NASequence sequence = NASequence(sequence_list[0]);
 
-                   StringList identifier_list= h_it->getMetaValue("identifier").toStringList(); //get the identifier
-                   String identifier = identifier_list[0];
+                  // StringList identifier_list= h_it->getMetaValue("identifier").toStringList(); //get the identifier
+                  // String identifier = identifier_list[0];
                    RichPeakSpectrum spec;
-                   test_generator.getSpectrum(spec, sequence, h_it->getCharge());
-                   //candidate_spectra[identifier]=spec;
-                   PeakSpectrum theoretical_spectrum;
-                   for (RichPeakSpectrum::ConstIterator p_it = spec.begin(); p_it != spec.end(); ++p_it)
-                   {
-                     theoretical_spectrum.push_back(*p_it);
-                   }
-                   theoretical_spectrum.setNativeID(identifier);
-                   debug_exp.addSpectrum(theoretical_spectrum);
+                   test_generator.getSpectrum(spec, sequence, h_it->getCharge()); //there should only be one
+
+                     h_it->setScore(metmatch.computeHyperScore(spectra.getSpectra()[*nearest.begin()], spec, 20.0, 100.0));
+
                 }
+                v_it->setHits(peptide_hits);
             }
 
+            fm_it->setPeptideIdentifications(peptide_ids);
+
+
             // extract candidates from feature
+//            const std::vector< MSSpectrum< Peak1D > > overlapping_spectra = debug_exp.getSpectra();
 
             // score theoretical spectrum against experimental spectrum and retain best hit
-            // score = MetaboliteSpectralMatching::computeHyperScore(MSSpectrum<Peak1D> exp_spectrum, MSSpectrum<Peak1D> db_spectrum, const double& fragment_mass_error, const double& mz_lower_bound)
-
+            // Right now we are only keeping the top spectrum, but if we change in the future iterate through all of them.
+//            for (set<Size>::iterator s_it=nearest.begin();s_it!=nearest.end();++s_it){
+//              for (std::vector< MSSpectrum< Peak1D>>::iterator e_it=overlapping_spectra.begin(); e_it != overlapping_spectra.end(); ++e_it){
+//                  double score = MetaboliteSpectralMatching::computeHyperScore(spectra[*s_it], *e_it, 15.0, 200);
+//              }
+//            }
             // TEST writing of MZML file FIXME
-            MzMLFile mtest;
-            mtest.store("/home/samuel/git/OpenMS/spectrumgentest.mzML", debug_exp);
+            //MzMLFile mtest;
+            //mtest.store("/home/samuel/git/OpenMS/spectrumgentest.mzML", debug_exp);
 
 
         }
-
+        FeatureXMLFile().store(out_features_filepath,feature_map); //TODO see if this works
         return EXECUTION_OK;
     }
 

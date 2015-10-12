@@ -164,6 +164,8 @@ namespace OpenMS
 
       /// hyperscore computation
       double computeHyperScore(MSSpectrum<Peak1D>, MSSpectrum<Peak1D>, const double&, const double&);
+      double computeHyperScore(MSSpectrum<Peak1D>, MSSpectrum<RichPeak1D>, const double&, const double&);
+
 
       /// main method of MetaboliteSpectralMatching
       void run(MSExperiment<>&, MzTab&);

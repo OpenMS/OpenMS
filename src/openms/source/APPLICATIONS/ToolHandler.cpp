@@ -212,6 +212,9 @@ namespace OpenMS
     util_map["MRMTransitionGroupPicker"] = Internal::ToolDescription("MRMTransitionGroupPicker", util_category);
     util_map["MRMPairFinder"] = Internal::ToolDescription("MRMPairFinder", util_category);
     util_map["MSSimulator"] = Internal::ToolDescription("MSSimulator", util_category);
+    util_map["NucleotideID"] = Internal::ToolDescription("NucleotideID", util_category);
+    util_map["NucleotideIDAMSDBCreator"] = Internal::ToolDescription("NucleotideIDAMSDBCreator", util_category);
+    util_map["NucSpectrumGen"] = Internal::ToolDescription("NucSpectrumGen", util_category);
     util_map["OpenSwathWorkflow"] = Internal::ToolDescription("OpenSwathWorkflow", util_category);
     util_map["PeakPickerIterative"] = Internal::ToolDescription("PeakPickerIterative", "Signal processing and preprocessing");
     //util_map["PeakPickerRapid"] = Internal::ToolDescription("PeakPickerRapid", "Signal processing and preprocessing");
