@@ -35,35 +35,32 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexPeakPattern.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
 
 using namespace OpenMS;
 
-START_TEST(MultiplexPeakPattern, "$Id$")
+START_TEST(MultiplexDeltaMasses, "$Id$")
 
 std::vector<double> mass_shifts;
 mass_shifts.push_back(0);
 mass_shifts.push_back(6.031817);
 
-MultiplexPeakPattern* nullPointer = 0;
-MultiplexPeakPattern* ptr;
+MultiplexDeltaMasses* nullPointer = 0;
+MultiplexDeltaMasses* ptr;
 
-START_SECTION(MultiplexPeakPattern(int c, int ppp, std::vector<double> ms, int msi))
-    MultiplexPeakPattern pattern(2, 4, mass_shifts, 3);
-    TEST_EQUAL(pattern.getCharge(), 2);
-    ptr = new MultiplexPeakPattern(2, 4, mass_shifts, 3);
+START_SECTION(MultiplexDeltaMasses(std::vector<double> ms))
+    MultiplexDeltaMasses pattern(mass_shifts);
+    TEST_EQUAL(pattern.getMassShiftCount(), 2);
+    ptr = new MultiplexDeltaMasses(mass_shifts);
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;
 END_SECTION
 
-MultiplexPeakPattern pattern(2, 4, mass_shifts, 3);
+MultiplexDeltaMasses pattern(mass_shifts);
 
-START_SECTION(int getCharge() const)
-  TEST_EQUAL(pattern.getCharge(), 2);
-END_SECTION
-
-START_SECTION(int getPeaksPerPeptide() const)
-  TEST_EQUAL(pattern.getPeaksPerPeptide(), 4);
+START_SECTION(void addMassShifts(double ms) const)
+  pattern.addMassShift(12.063634);
+  TEST_EQUAL(pattern.getMassShifts()[2], 12.063634);
 END_SECTION
 
 START_SECTION(std::vector<double> getMassShifts() const)
@@ -71,34 +68,14 @@ START_SECTION(std::vector<double> getMassShifts() const)
   TEST_EQUAL(pattern.getMassShifts()[1], 6.031817);
 END_SECTION
 
-START_SECTION(int getMassShiftIndex() const)
-  TEST_EQUAL(pattern.getMassShiftIndex(), 3);
-END_SECTION
-
 START_SECTION(unsigned getMassShiftCount() const)
-  TEST_EQUAL(pattern.getMassShiftCount(), 2);
+  TEST_EQUAL(pattern.getMassShiftCount(), 3);
 END_SECTION
 
 START_SECTION(double getMassShiftAt(int i) const)
   TEST_EQUAL(pattern.getMassShiftAt(0), 0);
   TEST_EQUAL(pattern.getMassShiftAt(1), 6.031817);
-END_SECTION
-
-START_SECTION(double getMZShiftAt(int i) const)
-  TEST_REAL_SIMILAR(pattern.getMZShiftAt(0), -0.501677);
-  TEST_REAL_SIMILAR(pattern.getMZShiftAt(1), 0);
-  TEST_REAL_SIMILAR(pattern.getMZShiftAt(2), 0.501677);
-  TEST_REAL_SIMILAR(pattern.getMZShiftAt(3), 1.00335);
-  TEST_REAL_SIMILAR(pattern.getMZShiftAt(4), 1.50503);
-  TEST_REAL_SIMILAR(pattern.getMZShiftAt(5), 2.51423);
-  TEST_REAL_SIMILAR(pattern.getMZShiftAt(6), 3.01591);
-  TEST_REAL_SIMILAR(pattern.getMZShiftAt(7), 3.51759);
-  TEST_REAL_SIMILAR(pattern.getMZShiftAt(8), 4.01926);
-  TEST_REAL_SIMILAR(pattern.getMZShiftAt(9), 4.52094);
-END_SECTION
-
-START_SECTION(unsigned getMZShiftCount() const)
-  TEST_EQUAL(pattern.getMZShiftCount(), 10);
+  TEST_EQUAL(pattern.getMassShiftAt(2), 12.063634);
 END_SECTION
 
 END_TEST

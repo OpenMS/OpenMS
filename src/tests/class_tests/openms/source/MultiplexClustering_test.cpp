@@ -78,7 +78,7 @@ double rt_typical = 90;
 double rt_minimum = 5;
 
 // construct list of peak patterns
-std::vector<MultiplexPeakPattern> patterns;
+std::vector<MultiplexIsotopicPeakPattern> patterns;
 std::vector<double> shifts1;
 shifts1.push_back(0);
 shifts1.push_back(8.0443702794);
@@ -87,9 +87,9 @@ shifts2.push_back(0);
 shifts2.push_back(2*8.0443702794);
 for (int c = charge_max; c >= charge_min; --c)
 {
-    MultiplexPeakPattern pattern1(c, peaks_per_peptide_max, shifts1, 0);
+    MultiplexIsotopicPeakPattern pattern1(c, peaks_per_peptide_max, shifts1, 0);
     patterns.push_back(pattern1);
-    MultiplexPeakPattern pattern2(c, peaks_per_peptide_max, shifts2, 1);
+    MultiplexIsotopicPeakPattern pattern2(c, peaks_per_peptide_max, shifts2, 1);
     patterns.push_back(pattern2);
 }
 

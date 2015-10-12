@@ -32,10 +32,12 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXPEAKPATTERN_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXPEAKPATTERN_H
+#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXDELTAMASSESGENERATOR_H
+#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXDELTAMASSESGENERATOR_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
 
 #include <vector>
 #include <algorithm>
@@ -44,93 +46,78 @@
 namespace OpenMS
 {
   /**
-   * @brief data structure for pattern of isotopic peaks
+   * @brief generates complete list of all possible mass shifts due to isotopic labelling
    * 
-   * Groups of peptides appear as characteristic patterns of isotopic peaks
-   * in MS1 spectra. For example, for an Arg6 labeled SILAC peptide pair
-   * of charge 2+ with three isotopic peaks we expect peaks
-   * at relative m/z shifts of 0, 0.5, 1, 3, 3.5 and 4 Th.
+   * Isotopic labelling results in the shift of peptide masses. For example
+   * in a Lys8/Arg10 SILAC labelled sample, some peptides (the ones with one
+   * Arg in their sequence) will show a relative mass shift between light and
+   * heavy partners of 10 Da. This class constructs the complete list of all
+   * possible mass shifts that arise from isotopic labelling.
    */
-  class OPENMS_DLLAPI MultiplexPeakPattern
+  class OPENMS_DLLAPI MultiplexDeltaMassesGenerator
   {
     public:
 
     /**
      * @brief constructor
+     * 
+     * @param labels    isotopic labels
+     * @param missed_cleavages    maximum number of missed cleavages due to incomplete digestion
+     * For example du to knock-outs in one of the samples.
      */
-    MultiplexPeakPattern(int c, int ppp, std::vector<double> ms, int msi);
+    MultiplexDeltaMassesGenerator(String labels, int missed_cleavages, std::map<String,double> label_mass_shift);
+        
+    /**
+     * @brief generate all mass shifts that can occur due to the absence of one or multiple peptides
+     * (e.g. for a triplet experiment generate the doublets and singlets that might be present)
+     */
+    void generateKnockoutMassShifts();
+
+    /**
+     * @brief write the list of labels for each sample
+     */
+    void printLabelsList() const;
     
     /**
-     * @brief returns charge
+     * @brief write the list of all mass patterns
      */
-    int getCharge() const;
-     
-    /**
-     * @brief returns peaks per peptide
-     */
-    int getPeaksPerPeptide() const;
+    void printMassPatternList() const;
     
     /**
-     * @brief returns mass shifts
+     * @brief returns the list of mass shift patterns
      */
-    std::vector<double> getMassShifts() const;
-    
-    /**
-     * @brief returns mass shift index
-     */
-    int getMassShiftIndex() const;
-    
-    /**
-     * @brief returns number of mass shifts
-     */
-    unsigned getMassShiftCount() const;
-   
-    /**
-     * @brief returns mass shift at position i
-     */
-    double getMassShiftAt(int i) const;
-    
-    /**
-     * @brief returns m/z shift at position i
-     */
-    double getMZShiftAt(int i) const;
-    
-    /**
-     * @brief returns number of m/z shifts
-     */
-    unsigned getMZShiftCount() const;
+    std::vector<MultiplexDeltaMasses> getMassPatternList() const;
     
     private:
-
-    /**
-     * @brief m/z shifts between isotopic peaks
-     * (number of mz_shifts_ = peaks_per_peptide_ * number of mass_shifts_)
-     */
-    std::vector<double> mz_shifts_;
-
-    /**
-     * @brief charge
-     */
-    int charge_;
-
-    /**
-     * @brief number of isotopic peaks in each peptide
-     */
-    int peaks_per_peptide_;
    
     /**
-     * @brief mass shifts between peptides
-     * (including zero mass shift for first peptide)
+     * @brief isotopic labels
      */
-    std::vector<double> mass_shifts_;
+    String labels_;
+    
+    /**
+     * @brief list of samples with their corresponding labels
+     */
+    std::vector<std::vector<String> > samples_labels_;
+    
+    /**
+     * @brief maximum number of missed cleavages
+     */
+    int missed_cleavages_;
 
     /**
-     * @brief index in mass shift list
+     * @brief list of all possible mass shift patterns
      */
-    int mass_shift_index_;
+    std::vector<MultiplexDeltaMasses> mass_pattern_list_;
       
+    /**
+     * @brief mapping from single label to mass shift
+     * e.g. "Arg10" -> 10.0082686
+     */
+    std::map<String,double> label_mass_shift_;
+    
  };
   
 }
 
-#endif /* MULTIPLEXPEAKPATTERN_H */
+#endif /* MULTIPLEXDELTAMASSESGENERATOR_H */

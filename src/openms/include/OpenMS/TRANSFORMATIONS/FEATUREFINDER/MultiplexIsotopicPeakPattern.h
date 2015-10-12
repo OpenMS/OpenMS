@@ -32,71 +32,106 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
+#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXISOTOPICPEAKPATTERN_H
+#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXISOTOPICPEAKPATTERN_H
+
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexPeakPattern.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
 
 #include <vector>
 #include <algorithm>
 #include <iostream>
 
-using namespace std;
-
 namespace OpenMS
 {
-
-  MultiplexPeakPattern::MultiplexPeakPattern(int c, int ppp, vector<double> ms, int msi) :
-    charge_(c), peaks_per_peptide_(ppp), mass_shifts_(ms), mass_shift_index_(msi)
+  /**
+   * @brief data structure for pattern of isotopic peaks
+   * 
+   * Groups of peptides appear as characteristic patterns of isotopic peaks
+   * in MS1 spectra. For example, for an Arg6 labeled SILAC peptide pair
+   * of charge 2+ with three isotopic peaks we expect peaks
+   * at relative m/z shifts of 0, 0.5, 1, 3, 3.5 and 4 Th.
+   */
+  class OPENMS_DLLAPI MultiplexIsotopicPeakPattern
   {
-    // generate m/z shifts
-    for (unsigned i = 0; i < mass_shifts_.size(); ++i)
-    {
-      for (int j = -1; j < peaks_per_peptide_; ++j)
-      {
-        // j=-1 shift corresponds to the zeroth peak
-        mz_shifts_.push_back((mass_shifts_[i] + j * Constants::C13C12_MASSDIFF_U) / charge_);
-      }
-    }
-  }
+    public:
 
-  int MultiplexPeakPattern::getCharge() const
-  {
-    return charge_;
-  }
+    /**
+     * @brief constructor
+     */
+    MultiplexIsotopicPeakPattern(int c, int ppp, MultiplexDeltaMasses ms, int msi);
+    
+    /**
+     * @brief returns charge
+     */
+    int getCharge() const;
+     
+    /**
+     * @brief returns peaks per peptide
+     */
+    int getPeaksPerPeptide() const;
+    
+    /**
+     * @brief returns mass shifts
+     */
+    MultiplexDeltaMasses getMassShifts() const;
+    
+    /**
+     * @brief returns mass shift index
+     */
+    int getMassShiftIndex() const;
+    
+    /**
+     * @brief returns number of mass shifts
+     */
+    unsigned getMassShiftCount() const;
+   
+    /**
+     * @brief returns mass shift at position i
+     */
+    double getMassShiftAt(int i) const;
+    
+    /**
+     * @brief returns m/z shift at position i
+     */
+    double getMZShiftAt(int i) const;
+    
+    /**
+     * @brief returns number of m/z shifts
+     */
+    unsigned getMZShiftCount() const;
+    
+    private:
 
-  int MultiplexPeakPattern::getPeaksPerPeptide() const
-  {
-    return peaks_per_peptide_;
-  }
+    /**
+     * @brief m/z shifts between isotopic peaks
+     * (number of mz_shifts_ = peaks_per_peptide_ * number of mass_shifts_)
+     */
+    std::vector<double> mz_shifts_;
 
-  std::vector<double> MultiplexPeakPattern::getMassShifts() const
-  {
-    return mass_shifts_;
-  }
+    /**
+     * @brief charge
+     */
+    int charge_;
 
-  int MultiplexPeakPattern::getMassShiftIndex() const
-  {
-    return mass_shift_index_;
-  }
+    /**
+     * @brief number of isotopic peaks in each peptide
+     */
+    int peaks_per_peptide_;
+   
+    /**
+     * @brief mass shifts between peptides
+     * (including zero mass shift for first peptide)
+     */
+    MultiplexDeltaMasses mass_shifts_;
 
-  unsigned MultiplexPeakPattern::getMassShiftCount() const
-  {
-    return mass_shifts_.size();
-  }
-
-  double MultiplexPeakPattern::getMassShiftAt(int i) const
-  {
-    return mass_shifts_[i];
-  }
-
-  double MultiplexPeakPattern::getMZShiftAt(int i) const
-  {
-    return mz_shifts_[i];
-  }
-
-  unsigned MultiplexPeakPattern::getMZShiftCount() const
-  {
-    return mz_shifts_.size();
-  }
-
+    /**
+     * @brief index in mass shift list
+     */
+    int mass_shift_index_;
+      
+ };
+  
 }
+
+#endif /* MULTIPLEXISOTOPICPEAKPATTERN_H */

@@ -286,13 +286,15 @@ set(filtering_executables_list
   MassTraceDetection_test
   MorphologicalFilter_test
   MultiplexClustering_test
+  MultiplexDeltaMasses_test
+  MultiplexDeltaMassesGenerator_test
   MultiplexFiltering_test
   MultiplexFilteringCentroided_test
   MultiplexFilteringProfile_test
   MultiplexFilterResult_test
   MultiplexFilterResultPeak_test
   MultiplexFilterResultRaw_test
-  MultiplexPeakPattern_test
+  MultiplexIsotopicPeakPattern_test
   NLargest_test
   NeutralLossDiffFilter_test
   NeutralLossMarker_test
