@@ -38,7 +38,7 @@
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFiltering.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexPeakPattern.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultRaw.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultPeak.h>
@@ -60,12 +60,12 @@ using namespace boost::math;
 namespace OpenMS
 {
 
-  MultiplexFiltering::MultiplexFiltering(const MSExperiment<Peak1D>& exp_picked, const std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averigine_type) :
+  MultiplexFiltering::MultiplexFiltering(const MSExperiment<Peak1D>& exp_picked, const std::vector<MultiplexIsotopicPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averigine_type) :
     exp_picked_(exp_picked), patterns_(patterns), peaks_per_peptide_min_(peaks_per_peptide_min), peaks_per_peptide_max_(peaks_per_peptide_max), missing_peaks_(missing_peaks), intensity_cutoff_(intensity_cutoff), mz_tolerance_(mz_tolerance), mz_tolerance_unit_(mz_tolerance_unit), peptide_similarity_(peptide_similarity), averagine_similarity_(averagine_similarity), averagine_similarity_scaling_(averagine_similarity_scaling), averagine_type_(averigine_type)
   {
   }
 
-  int MultiplexFiltering::positionsAndBlacklistFilter(const MultiplexPeakPattern& pattern, int spectrum,
+  int MultiplexFiltering::positionsAndBlacklistFilter(const MultiplexIsotopicPeakPattern& pattern, int spectrum,
                                                       const vector<double>& peak_position, int peak,
                                                       vector<double>& mz_shifts_actual,
                                                       vector<int>& mz_shifts_actual_indices) const
@@ -171,7 +171,7 @@ namespace OpenMS
     return peaks_found_in_all_peptides;
   }
 
-  bool MultiplexFiltering::monoIsotopicPeakIntensityFilter(const MultiplexPeakPattern& pattern, int spectrum_index, const vector<int>& mz_shifts_actual_indices) const
+  bool MultiplexFiltering::monoIsotopicPeakIntensityFilter(const MultiplexIsotopicPeakPattern& pattern, int spectrum_index, const vector<int>& mz_shifts_actual_indices) const
   {
     MSExperiment<Peak1D>::ConstIterator it_rt = exp_picked_.begin() + spectrum_index;
     for (unsigned peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
@@ -192,7 +192,7 @@ namespace OpenMS
     return false;
   }
 
-  bool MultiplexFiltering::zerothPeakFilter(const MultiplexPeakPattern& pattern, const vector<double>& intensities_actual) const
+  bool MultiplexFiltering::zerothPeakFilter(const MultiplexIsotopicPeakPattern& pattern, const vector<double>& intensities_actual) const
   {
     for (unsigned peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
     {
@@ -218,7 +218,7 @@ namespace OpenMS
     return false;
   }
 
-  bool MultiplexFiltering::peptideSimilarityFilter(const MultiplexPeakPattern& pattern, const vector<double>& intensities_actual, int peaks_found_in_all_peptides_spline) const
+  bool MultiplexFiltering::peptideSimilarityFilter(const MultiplexIsotopicPeakPattern& pattern, const vector<double>& intensities_actual, int peaks_found_in_all_peptides_spline) const
   {
     std::vector<double> isotope_pattern_1;
     std::vector<double> isotope_pattern_2;
@@ -254,7 +254,7 @@ namespace OpenMS
     return true;
   }
 
-  bool MultiplexFiltering::averagineSimilarityFilter(const MultiplexPeakPattern& pattern, const vector<double>& intensities_actual, int peaks_found_in_all_peptides_spline, double mz) const
+  bool MultiplexFiltering::averagineSimilarityFilter(const MultiplexIsotopicPeakPattern& pattern, const vector<double>& intensities_actual, int peaks_found_in_all_peptides_spline, double mz) const
   {
     // Use a more restrictive averagine similarity when we are searching for peptide singlets.
     double similarity;
@@ -293,7 +293,7 @@ namespace OpenMS
     return true;
   }
 
-  void MultiplexFiltering::blacklistPeaks(const MultiplexPeakPattern& pattern, int spectrum, const vector<int>& mz_shifts_actual_indices, int peaks_found_in_all_peptides_spline)
+  void MultiplexFiltering::blacklistPeaks(const MultiplexIsotopicPeakPattern& pattern, int spectrum, const vector<int>& mz_shifts_actual_indices, int peaks_found_in_all_peptides_spline)
   {
     for (unsigned peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
     {

@@ -39,7 +39,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexPeakPattern.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFiltering.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
@@ -59,7 +59,7 @@ namespace OpenMS
    * MS1 spectra. We search the centroided data for such patterns.
    * For each peak pattern the algorithm generates a filter result.
    *
-   * @see MultiplexPeakPattern
+   * @see MultiplexIsotopicPeakPattern
    * @see MultiplexFilterResult
    * @see MultiplexFiltering
    */
@@ -83,13 +83,13 @@ public:
      * @param averagine_similarity_scaling    scaling factor x for the averagine similarity parameter p when detecting peptide singlets. With p' = p + x(1-p).
      * @param averagine_type    The averagine model to use, current options are RNA DNA or peptide.
      */
-    MultiplexFilteringCentroided(const MSExperiment<Peak1D>& exp_picked, const std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type="peptide");
+    MultiplexFilteringCentroided(const MSExperiment<Peak1D>& exp_picked, const std::vector<MultiplexIsotopicPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type="peptide");
 
     /**
      * @brief filter for patterns
      * (generates a filter result for each of the patterns)
      *
-     * @see MultiplexPeakPattern, MultiplexFilterResult
+     * @see MultiplexIsotopicPeakPattern, MultiplexFilterResult
      */
     std::vector<MultiplexFilterResult> filter();
 
@@ -110,7 +110,7 @@ private:
      *
      * @return number of isotopic peaks seen for each peptide (profile)
      */
-    int nonLocalIntensityFilter(const MultiplexPeakPattern& pattern, int spectrum_index, const std::vector<int>& mz_shifts_actual_indices, std::vector<double>& intensities_actual, int peaks_found_in_all_peptides) const;
+    int nonLocalIntensityFilter(const MultiplexIsotopicPeakPattern& pattern, int spectrum_index, const std::vector<int>& mz_shifts_actual_indices, std::vector<double>& intensities_actual, int peaks_found_in_all_peptides) const;
 
   };
 
