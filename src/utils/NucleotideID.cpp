@@ -501,6 +501,12 @@ protected:
         FeatureMap feature_map;
         FeatureXMLFile feature_file;
         feature_file.load(in_features_filepath, feature_map);
+        MetaboliteSpectralMatching metmatch;
+        Param met_params = metmatch.getParameters();
+        met_params.setValue("ionization_mode","negative");
+        met_params.setValue("report_mode","best");
+        metmatch.setParameters(met_params);
+        progresslogger.startProgress(0, 1, "Matching spectra...");
         for (FeatureMap::Iterator fm_it = feature_map.begin(); fm_it != feature_map.end(); ++fm_it)
         {
 
@@ -519,7 +525,6 @@ protected:
 
 
             vector<PeptideIdentification> peptide_ids = fm_it->getPeptideIdentifications();
-            MetaboliteSpectralMatching metmatch;
             for (vector<PeptideIdentification>::iterator v_it = peptide_ids.begin(); v_it != peptide_ids.end(); ++v_it)
             {
                 vector<PeptideHit> peptide_hits = v_it->getHits();
@@ -533,8 +538,10 @@ protected:
                   // String identifier = identifier_list[0];
                    RichPeakSpectrum spec;
                    test_generator.getSpectrum(spec, sequence, h_it->getCharge()); //there should only be one
-
-                     h_it->setScore(metmatch.computeHyperScore(spectra.getSpectra()[*nearest.begin()], spec, 20.0, 100.0));
+                   if (nearest.empty() != true)
+                   {
+                   h_it->setScore(metmatch.computeHyperScore(spectra.getSpectra()[*nearest.begin()], spec, 500.0, 100.0));
+                   }
 
                 }
                 v_it->setHits(peptide_hits);
@@ -559,7 +566,9 @@ protected:
 
 
         }
-        FeatureXMLFile().store(out_features_filepath,feature_map); //TODO see if this works
+        FeatureXMLFile().store(out_features_filepath,feature_map);
+        progresslogger.endProgress();
+
         return EXECUTION_OK;
     }
 

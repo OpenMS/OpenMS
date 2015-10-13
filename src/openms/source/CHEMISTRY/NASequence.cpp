@@ -90,9 +90,11 @@ EmpiricalFormula NASequence::getFormula(Residue::ResidueType type, Int charge) c
     std::map<char, EmpiricalFormula> base_to_formula;
     //remove H2O since it gets added in internal_to_full
     base_to_formula['A']=EmpiricalFormula("C5H5N5"); //("C10H12N5O6P");
-    base_to_formula['C']=EmpiricalFormula("C4H5N3O");//("C9H12N3O7P");
-    base_to_formula['G']=EmpiricalFormula("C5H5N5O");//("C10H12N5O7P");
+    base_to_formula['C']=EmpiricalFormula("C4H5N3O"); //("C9H12N3O7P");
+    base_to_formula['G']=EmpiricalFormula("C5H5N5O"); //("C10H12N5O7P");
+    base_to_formula['#']=EmpiricalFormula("C6H7N5O"); // 2'-O-methyl G
     base_to_formula['U']=EmpiricalFormula("C4H4N2O2"); //("C9H11N2O8P");
+    base_to_formula['J']=EmpiricalFormula("C5H6N2O2"); //2'-O-methyl U
     //C5H7O6P= PO4
     EmpiricalFormula mono_formula;
 

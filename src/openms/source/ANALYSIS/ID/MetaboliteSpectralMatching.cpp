@@ -324,7 +324,8 @@ double MetaboliteSpectralMatching::computeHyperScore(MSSpectrum<Peak1D> experime
             double db_mz(db_mass_it->getMZ());
             double abs_mass_diff(std::abs(frag_mz - db_mz));
 
-            if (abs_mass_diff < nearest_peak.first) {
+            if (abs_mass_diff < nearest_peak.first)
+            {
                 nearest_peak.first = abs_mass_diff;
                 nearest_peak.second = *db_mass_it;
             }

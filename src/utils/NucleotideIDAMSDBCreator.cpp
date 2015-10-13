@@ -101,6 +101,8 @@ protected:
     monophosphate_to_formula['C']=EmpiricalFormula("C9H14N3O8P");
     monophosphate_to_formula['G']=EmpiricalFormula("C10H14N5O8P");
     monophosphate_to_formula['U']=EmpiricalFormula("C9H13N2O9P");
+    monophosphate_to_formula['J']=EmpiricalFormula("C10H15N2O9P"); //2'-O-methyl U
+
 
     db_mapping_file.addLine("database_name\tmirna\ndatabase_version\t1.0"); //header for db_mapping file
 
