@@ -699,8 +699,8 @@ namespace OpenMS
         last_meta_->setMetaValue(name, attributeAsStringList_(attributes, "value")); 
       } 
       else 
-      { 
-        fatalError(LOAD, String("Invalid userParam type '") + type + "'"); 
+      {
+        fatalError(LOAD, String("Invalid UserParam type '") + type + "' of parameter '" + name + "'");
       } 
     }
   }
