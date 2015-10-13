@@ -113,6 +113,32 @@ namespace OpenMS
     }
   }
 
+  void OpenSwathScoring::calculateDIAIdScores(OpenSwath::IMRMFeature* imrmfeature, const std::vector<TransitionType> & transitions,
+      OpenSwath::SpectrumAccessPtr swath_map, OpenMS::DIAScoring & diascoring,
+      OpenSwath_Scores & scores)
+  {
+    OPENMS_PRECONDITION(transitions.size() > 0, "There needs to be at least one transition.");
+
+    std::vector<double> normalized_library_intensity;
+    getNormalized_library_intensities_(transitions, normalized_library_intensity);
+
+    // parameters
+    int by_charge_state = 1; // for which charge states should we check b/y series
+    double precursor_mz = transitions[0].precursor_mz;
+
+    // find spectrum that is closest to the apex of the peak using binary search
+    OpenSwath::SpectrumPtr spectrum_ = getAddedSpectra_(swath_map, imrmfeature->getRT(), add_up_spectra_);
+    OpenSwath::SpectrumPtr* spectrum = &spectrum_;
+
+    // Isotope correlation / overlap score: Is this peak part of an
+    // isotopic pattern or is it the monoisotopic peak in an isotopic
+    // pattern?
+    diascoring.dia_isotope_scores(transitions, (*spectrum), imrmfeature, scores.isotope_correlation, scores.isotope_overlap);
+    // Mass deviation score
+    diascoring.dia_massdiff_score(transitions, (*spectrum), normalized_library_intensity,
+        scores.massdev_score, scores.weighted_massdev_score);
+  }
+
   void OpenSwathScoring::calculateChromatographicScores(
         OpenSwath::IMRMFeature* imrmfeature,
         const std::vector<std::string>& native_ids,
@@ -160,6 +186,33 @@ namespace OpenMS
       // everything below S/N 1 can be set to zero (and the log safely applied)
       if (scores.sn_ratio < 1) { scores.log_sn_score = 0; }
       else { scores.log_sn_score = std::log(scores.sn_ratio); }
+    }
+  }
+
+  void OpenSwathScoring::calculateChromatographicIdScores(
+        OpenSwath::IMRMFeature* imrmfeature,
+        const std::vector<std::string>& native_ids_identification,
+        const std::vector<std::string>& native_ids_detection,
+        std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
+        OpenSwath_Scores & idscores)
+  { 
+    OpenSwath::MRMScoring mrmscore_;
+    mrmscore_.initializeXCorrIdMatrix(imrmfeature, native_ids_identification, native_ids_detection);
+
+    if (su_.use_coelution_score_)
+    {
+      idscores.ind_xcorr_coelution_score = mrmscore_.calcIndXcorrIdCoelutionScore();
+    }
+
+    if (su_.use_shape_score_)
+    {
+      idscores.ind_xcorr_shape_score = mrmscore_.calcIndXcorrIdShape_score();
+    }
+
+    // Signal to noise scoring
+    if (su_.use_sn_score_)
+    {
+      idscores.ind_log_sn_score = mrmscore_.calcIndSNScore(imrmfeature, signal_noise_estimators);
     }
   }
 
