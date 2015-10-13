@@ -477,7 +477,7 @@ namespace OpenMS
       {
         OpenSwath_Scores idscores = scoreIdentification_(transition_group_identification_decoy, scorer, feature_idx, native_ids_detection, sn_win_len_, sn_bin_count_, write_log_messages, swath_map);
 
-	mrmfeature->setMetaValue("id_decoy_transition_names", idscores.id_transition_names);
+        mrmfeature->setMetaValue("id_decoy_transition_names", idscores.id_transition_names);
         mrmfeature->addScore("id_decoy_num_transitions", idscores.id_num_transitions);
         mrmfeature->setMetaValue("id_decoy_ind_xcorr_coelution", idscores.ind_xcorr_coelution_score);
         mrmfeature->setMetaValue("id_decoy_ind_xcorr_shape", idscores.ind_xcorr_shape_score);
