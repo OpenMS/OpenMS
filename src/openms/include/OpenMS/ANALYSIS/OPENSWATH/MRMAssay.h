@@ -39,10 +39,13 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMIonSeries.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 #include <boost/bind.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/uniform_int.hpp>
+#include <boost/random/variate_generator.hpp>
 
 // #define DEBUG_MRMASSAY
 
@@ -58,8 +61,7 @@ namespace OpenMS
     Schubert et al., 2015 (PMID: 25675208).
 
     In addition, unique ion signature (UIS) (Sherman et al., 2009 (PMID: 19556279))
-    or site-specific transitions can be generated based on empirically observed
-    or in silico generated ion series.
+    transitions can be generated based on empirically observed or in silico generated ion series.
 
   */
   class OPENMS_DLLAPI MRMAssay :
@@ -83,19 +85,17 @@ public:
       @brief Annotates and filters transitions in a TargetedExperiment
 
       @param exp the input, unfiltered transitions
-      @param mz_threshold the product m/z threshold in Th for annotation
+      @param precursor_mz_threshold the precursor m/z threshold in Th for annotation
+      @param product_mz_threshold the product m/z threshold in Th for annotation
       @param fragment_types the fragment types to consider for annotation
       @param fragment_charges the fragment charges to consider for annotation
-      @param enable_alternative_localizations whether to trust the site-localizations
-      of the transitions or whether alternative options should be generated
       @param enable_reannotation whether the original annotation should be taken
-      or reannotation should be conducted
-      @param enable_losses whether neutral losses for the fragment ion (according to SpectraST)
-      should be enabled
+      @param enable_specific_losses whether specific neutral losses should be considered
+      @param enable_unspecific_losses whether unspecific neutral losses (H2O1, H3N1, C1H2N2, C1H2N1O1) should be considered
       @param round_decPow round product m/z values to decimal power (default: -4)
 
     */
-    void reannotateTransitions(OpenMS::TargetedExperiment& exp, double mz_threshold, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_alternative_localizations, bool enable_reannotation, bool enable_losses, int round_decPow = -4);
+    void reannotateTransitions(OpenMS::TargetedExperiment& exp, double precursor_mz_threshold, double product_mz_threshold, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_reannotation, bool enable_specific_losses, bool enable_unspecific_losses, int round_decPow = -4);
 
     /**
       @brief Restrict and filter transitions in a TargetedExperiment
@@ -123,49 +123,27 @@ public:
       @brief Annotate UIS / site-specific transitions
 
       @param exp the input, unfiltered transitions
-      @param mz_threshold the product m/z threshold in Th for annotation
       @param fragment_types the fragment types to consider for annotation
       @param fragment_charges the fragment charges to consider for annotation
-      @param enable_losses whether neutral losses for the fragment ion (according to SpectraST)
-      should be enabled
-      @param enable_uis_scoring whether UIS transitions should be annotated
-      @param enable_site_scoring whether site-specific transitions should be annotated
+      @param enable_specific_losses whether specific neutral losses should be considered
+      @param enable_unspecific_losses whether unspecific neutral losses (H2O1, H3N1, C1H2N2, C1H2N1O1) should be considered
       @param mz_threshold the product m/z threshold in Th for annotation
       @param swathes the swath window settings (to exclude fragment ions falling
-
-    */
-    void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_losses, bool enable_uis_scoring, bool enable_site_scoring, double mz_threshold, std::vector<std::pair<double, double> > swathes);
-
-    /**
-      @brief Generates in silico transitions
-
-      @param exp the input, unfiltered transitions
-      @param fragment_types the fragment types to consider for annotation
-      @param fragment_charges the fragment charges to consider for annotation
-      @param enable_losses whether neutral losses for the fragment ion (according to SpectraST)
-      should be enabled
       @param round_decPow round product m/z values to decimal power (default: -4)
-
+      @param max_num_alternative_localizations maximum number of allowed peptide sequence permutations
+      @param shuffle_seed set seed for shuffle (-1: select seed based on time)
     */
-    void insilicoTransitions(OpenMS::TargetedExperiment& exp, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_losses, int round_decPow = -4);
+    void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, double mz_threshold, std::vector<std::pair<double, double> > swathes, int round_decPow = -4, size_t max_num_alternative_localizations = 20, int shuffle_seed = -1);
 
 protected:
     /**
       @brief Check whether fragment ion are unique ion signatures in vector within threshold
 
       @param fragment_ion the queried fragment ion
-      @param ions a vector of fragment ions which could interfere with fragment_ion
+      @param ions a vector of pairs of fragment ion m/z and peptide sequences which could interfere with fragment_ion
       @param mz_threshold the threshold within which to search for interferences
     */
-    bool isUIS_(const double fragment_ion, std::vector<double> ions, const double mz_threshold);
-
-    /**
-      @brief Annotate fragment ions with site-specific attributes
-
-      @param sequence the corresponding AASequence including modifications
-      @param tr a reference to the query transition
-    */
-    void isSiteUIS_(const AASequence sequence, ReactionMonitoringTransition& tr);
+    std::vector<std::string> isUIS_(const double fragment_ion, std::vector<std::pair<double, std::string> >& ions, const double mz_threshold);
 
     /**
       @brief Get swath index (precursor isolation window ordinal) for a particular precursor
@@ -180,9 +158,28 @@ protected:
 
       @param swathes the swath window settings
       @param precursor_mz the query precursor m/z
-      @param precursor_mz the query product m/z
+      @param product_mz the query product m/z
     */
     bool isInSwath_(const std::vector<std::pair<double, double> > swathes, const double precursor_mz, const double product_mz);
+
+    /**
+      @brief Adds ResidueModification to vector of modifications
+
+      @param mods a vector of targeted experiment modifications
+      @param location the residue location of the modification
+      @param rmod the residue modification
+
+    */
+    void addModification_(std::vector<TargetedExperiment::Peptide::Modification>& mods, int location, ResidueModification& rmod);
+
+    /**
+      @brief Generates random peptide sequence
+
+      @param sequence_size length of peptide sequence
+      @param pseudoRNG a Boost pseudo RNG
+
+    */
+    std::string getRandomSequence_(size_t sequence_size, boost::variate_generator<boost::mt19937&, boost::uniform_int<> > pseudoRNG);
 
     /**
       @brief Computes all N choose K combinations
@@ -193,6 +190,20 @@ protected:
       @value a vector of all N index combinations
     */
     std::vector<std::vector<size_t> > nchoosekcombinations_(std::vector<size_t> n, size_t k);
+
+    /**
+      @brief Generate modified peptide forms based on all possible combinations
+
+      @param sequences template AASequences
+
+      @param mods_combs all possible combinations (e.g. from nchoosekcombinations)
+
+      @param modification String of the modification
+
+      @value a vector of all modified peptides.
+    */
+    std::vector<OpenMS::AASequence> addModificationsSequences_(std::vector<OpenMS::AASequence> sequences, std::vector<std::vector<
+                                                                                                                        size_t> > mods_combs, OpenMS::String modification);
 
     /**
       @brief Generate alternative modified peptide forms according to ModificationsDB
@@ -208,20 +219,12 @@ protected:
 
       @param sequence template AASequence
 
+      @param decoy_sequence template decoy AASequence
+
       @value a vector of all alternative modified peptides.
-    */
-    std::vector<OpenMS::AASequence> addModificationsSequences_(std::vector<OpenMS::AASequence> sequences, std::vector<std::vector<size_t> > mods_combs, OpenMS::String modification);
-
-    /**
-      @brief Adds ResidueModification to vector of modifications 
-
-      @param mods a vector of targeted experiment modifications
-      @param location the residue location of the modification
-      @param rmod the residue modification
-      @param name the name of the residue modification
 
     */
-    void addModification_(std::vector<TargetedExperiment::Peptide::Modification>& mods, int location, ResidueModification& rmod, const String& name);
+    std::vector<OpenMS::AASequence> combineDecoyModifications_(OpenMS::AASequence sequence, OpenMS::AASequence decoy_sequence);
 
   };
 }
