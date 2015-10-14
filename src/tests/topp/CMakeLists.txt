@@ -1303,6 +1303,11 @@ add_test("TOPP_TextExporter_8" ${TOPP_BIN_PATH}/TextExporter -in ${DATA_DIR_TOPP
 add_test("TOPP_TextExporter_8_out1" ${DIFF} -in1 TextExporter_8_output.tmp -in2 ${DATA_DIR_TOPP}/TextExporter_8_output.txt )
 set_tests_properties("TOPP_TextExporter_8_out1" PROPERTIES DEPENDS "TOPP_TextExporter_8")
 
+add_test("TOPP_TextExporter_9" ${TOPP_BIN_PATH}/TextExporter -in
+${DATA_DIR_TOPP}/TextExporter_9_input.idXML -no_progress -out TextExporter_9_output.tmp -id:add_metavalues 0 -id:add_hit_metavalues 0)
+add_test("TOPP_TextExporter_9_out1" ${DIFF} -in1 TextExporter_9_output.tmp -in2 ${DATA_DIR_TOPP}/TextExporter_9_output.txt )
+set_tests_properties("TOPP_TextExporter_9_out1" PROPERTIES DEPENDS "TOPP_TextExporter_9")
+
 #------------------------------------------------------------------------------
 # FeatureLinker tests
 # "labeled" algorithm:
