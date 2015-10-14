@@ -51,12 +51,10 @@
 namespace OpenMS
 {
   /**
-    @brief Mascot input file adapter.
+    @brief Read/write Mascot generic files (MGF).
 
-    Creates a file that can be used for Mascot search from a peak list or a whole experiment.
-
-    Loading a file supports multi-threading, since conversion from string to double is expensive and takes long using a single thread.
-
+    For details of the format, see http://www.matrixscience.com/help/data_file_help.html#GEN.
+    
     @htmlinclude OpenMS_MascotGenericFile.parameters
 
     @ingroup FileIO
