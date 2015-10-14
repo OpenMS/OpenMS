@@ -37,6 +37,7 @@
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/NASequence.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
@@ -3090,119 +3091,246 @@ namespace OpenMS
       String seq_string(spec_gen_dialog.line_edit->text());
       if (seq_string == "")
       {
-        QMessageBox::warning(this, "Error", "You must enter a peptide sequence!");
-        return;
+          QMessageBox::warning(this, "Error", "You must enter a sequence!");
+          return;
       }
-      AASequence aa_sequence;
-      try
+      if (spec_gen_dialog.comboBox->currentText()=="Peptide") //TODO:Reduce code duplication
       {
-        aa_sequence = AASequence::fromString(seq_string);
+          AASequence poly_sequence;
+          try
+          {
+              poly_sequence = AASequence::fromString(seq_string);
+          }
+          catch (Exception::BaseException& e)
+          {
+              QMessageBox::warning(this, "Error", QString("Spectrum generation failed! (") + e.what() + ")");
+              return;
+          }
+          Int charge = spec_gen_dialog.spin_box->value();
+
+          RichPeakSpectrum rich_spec;
+          TheoreticalSpectrumGenerator generator;
+          Param p;
+
+          p.setValue("add_metainfo", "true", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
+
+          bool losses = (spec_gen_dialog.list_widget->item(10)->checkState() == Qt::Checked); // "Neutral losses"
+          String losses_str = losses ? "true" : "false";
+          p.setValue("add_losses", losses_str, "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
+
+          bool isotopes = (spec_gen_dialog.list_widget->item(11)->checkState() == Qt::Checked); // "Isotope clusters"
+          String iso_str = isotopes ? "true" : "false";
+          p.setValue("add_isotopes", iso_str, "If set to 1 isotope peaks of the product ion peaks are added");
+
+          bool abundant_immonium_ions = (spec_gen_dialog.list_widget->item(12)->checkState() == Qt::Checked); // "abundant immonium-ions"
+          String abundant_immonium_ions_str = abundant_immonium_ions ? "true" : "false";
+          p.setValue("add_abundant_immonium_ions", abundant_immonium_ions_str, "Add most abundant immonium ions");
+
+          Size max_iso_count = (Size)spec_gen_dialog.max_iso_spinbox->value();
+          p.setValue("max_isotope", max_iso_count, "Number of isotopic peaks");
+          p.setValue("a_intensity", spec_gen_dialog.a_intensity->value(), "Intensity of the a-ions");
+          p.setValue("b_intensity", spec_gen_dialog.b_intensity->value(), "Intensity of the b-ions");
+          p.setValue("c_intensity", spec_gen_dialog.c_intensity->value(), "Intensity of the c-ions");
+          p.setValue("x_intensity", spec_gen_dialog.x_intensity->value(), "Intensity of the x-ions");
+          p.setValue("y_intensity", spec_gen_dialog.y_intensity->value(), "Intensity of the y-ions");
+          p.setValue("z_intensity", spec_gen_dialog.z_intensity->value(), "Intensity of the z-ions");
+          double rel_loss_int = (double)(spec_gen_dialog.rel_loss_intensity->value()) / 100.0;
+          p.setValue("relative_loss_intensity", rel_loss_int, "Intensity of loss ions, in relation to the intact ion intensity");
+          generator.setParameters(p);
+
+          try
+          {
+              if (spec_gen_dialog.list_widget->item(0)->checkState() == Qt::Checked) // "A-ions"
+              {
+                  generator.addPeaks(rich_spec, poly_sequence, Residue::AIon, charge);
+              }
+              if (spec_gen_dialog.list_widget->item(2)->checkState() == Qt::Checked) // "B-ions"
+              {
+                  generator.addPeaks(rich_spec, poly_sequence, Residue::BIon, charge);
+              }
+              if (spec_gen_dialog.list_widget->item(3)->checkState() == Qt::Checked) // "C-ions"
+              {
+                  generator.addPeaks(rich_spec, poly_sequence, Residue::CIon, charge);
+              }
+              if (spec_gen_dialog.list_widget->item(6)->checkState() == Qt::Checked) // "X-ions"
+              {
+                  generator.addPeaks(rich_spec, poly_sequence, Residue::XIon, charge);
+              }
+              if (spec_gen_dialog.list_widget->item(7)->checkState() == Qt::Checked) // "Y-ions"
+              {
+                  generator.addPeaks(rich_spec, poly_sequence, Residue::YIon, charge);
+              }
+              if (spec_gen_dialog.list_widget->item(8)->checkState() == Qt::Checked) // "Z-ions"
+              {
+                  generator.addPeaks(rich_spec, poly_sequence, Residue::ZIon, charge);
+              }
+              if (spec_gen_dialog.list_widget->item(9)->checkState() == Qt::Checked) // "Precursor"
+              {
+                  generator.addPrecursorPeaks(rich_spec, poly_sequence, charge);
+              }
+              if (spec_gen_dialog.list_widget->item(12)->checkState() == Qt::Checked) // "abundant Immonium-ions"
+              {
+                  generator.addAbundantImmoniumIons(rich_spec);
+              }
+          }
+          catch (Exception::BaseException& e)
+          {
+              QMessageBox::warning(this, "Error", QString("Spectrum generation failed! (") + e.what() + "). Please report this to the developers (specify what input you used)!");
+              return;
+          }
+
+          // set precursor information
+          PeakSpectrum new_spec;
+          vector<Precursor> precursors;
+          Precursor precursor;
+          precursor.setMZ(poly_sequence.getMonoWeight());
+          precursor.setCharge(charge);
+          precursors.push_back(precursor);
+          new_spec.setPrecursors(precursors);
+          new_spec.setMSLevel(2);
+          // convert rich spectrum to simple spectrum
+          for (RichPeakSpectrum::Iterator it = rich_spec.begin(); it != rich_spec.end(); ++it)
+          {
+              new_spec.push_back(static_cast<Peak1D>(*it));
+          }
+
+          PeakMap new_exp;
+          new_exp.addSpectrum(new_spec);
+          ExperimentSharedPtrType new_exp_sptr(new PeakMap(new_exp));
+          FeatureMapSharedPtrType f_dummy(new FeatureMapType());
+          ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
+          vector<PeptideIdentification> p_dummy;
+          addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, LayerData::DT_CHROMATOGRAM, false, true, true, "", seq_string + QString(" (theoretical)"));
+
+          // ensure spectrum is drawn as sticks
+          draw_group_1d_->button(Spectrum1DCanvas::DM_PEAKS)->setChecked(true);
+          setDrawMode1D(Spectrum1DCanvas::DM_PEAKS);
+
       }
-      catch (Exception::BaseException& e)
+      else //RNA
       {
-        QMessageBox::warning(this, "Error", QString("Spectrum generation failed! (") + e.what() + ")");
-        return;
+          NASequence poly_sequence;
+          try
+          {
+              poly_sequence.setSequence(seq_string);
+          }
+          catch (Exception::BaseException& e)
+          {
+              QMessageBox::warning(this, "Error", QString("Spectrum generation failed! (") + e.what() + ")");
+              return;
+          }
+          Int charge = spec_gen_dialog.spin_box->value();
+
+          RichPeakSpectrum rich_spec;
+          TheoreticalSpectrumGenerator generator;
+          Param p;
+
+          p.setValue("add_metainfo", "true", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
+
+          bool losses = (spec_gen_dialog.list_widget->item(10)->checkState() == Qt::Checked); // "Neutral losses"
+          String losses_str = losses ? "true" : "false";
+          p.setValue("add_losses", losses_str, "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
+
+          bool isotopes = (spec_gen_dialog.list_widget->item(11)->checkState() == Qt::Checked); // "Isotope clusters"
+          String iso_str = isotopes ? "true" : "false";
+          p.setValue("add_isotopes", iso_str, "If set to 1 isotope peaks of the product ion peaks are added");
+
+          bool abundant_immonium_ions = (spec_gen_dialog.list_widget->item(12)->checkState() == Qt::Checked); // "abundant immonium-ions"
+          String abundant_immonium_ions_str = abundant_immonium_ions ? "true" : "false";
+          p.setValue("add_abundant_immonium_ions", abundant_immonium_ions_str, "Add most abundant immonium ions");
+
+          Size max_iso_count = (Size)spec_gen_dialog.max_iso_spinbox->value();
+          p.setValue("max_isotope", max_iso_count, "Number of isotopic peaks"); //FIXME add boxes for other ion types
+          p.setValue("a_intensity", spec_gen_dialog.a_intensity->value(), "Intensity of the a-ions");
+          p.setValue("b_intensity", spec_gen_dialog.b_intensity->value(), "Intensity of the b-ions");
+          p.setValue("c_intensity", spec_gen_dialog.c_intensity->value(), "Intensity of the c-ions");
+          p.setValue("x_intensity", spec_gen_dialog.x_intensity->value(), "Intensity of the x-ions");
+          p.setValue("y_intensity", spec_gen_dialog.y_intensity->value(), "Intensity of the y-ions");
+          p.setValue("z_intensity", spec_gen_dialog.z_intensity->value(), "Intensity of the z-ions");
+          double rel_loss_int = (double)(spec_gen_dialog.rel_loss_intensity->value()) / 100.0;
+          p.setValue("relative_loss_intensity", rel_loss_int, "Intensity of loss ions, in relation to the intact ion intensity");
+          generator.setParameters(p);
+
+          try
+          {
+              if (spec_gen_dialog.list_widget->item(0)->checkState() == Qt::Checked) // "A-ions"
+              {
+                  generator.addPeaks(rich_spec, poly_sequence, Residue::AIon, charge);
+              }
+              if (spec_gen_dialog.list_widget->item(1)->checkState() == Qt::Checked) // "A-b-ions"
+              {
+                  generator.addPeaks(rich_spec, poly_sequence, Residue::AminusB, charge);
+              }
+              if (spec_gen_dialog.list_widget->item(2)->checkState() == Qt::Checked) // "B-ions"
+              {
+                  generator.addPeaks(rich_spec, poly_sequence, Residue::BIon, charge);
+              }
+              if (spec_gen_dialog.list_widget->item(3)->checkState() == Qt::Checked) // "C-ions"
+              {
+                  generator.addPeaks(rich_spec, poly_sequence, Residue::CIon, charge);
+              }
+              if (spec_gen_dialog.list_widget->item(4)->checkState() == Qt::Checked) // "D-ions"
+              {
+                  generator.addPeaks(rich_spec, poly_sequence, Residue::DIon, charge);
+              }
+              if (spec_gen_dialog.list_widget->item(5)->checkState() == Qt::Checked) // "W-ions"
+              {
+                  generator.addPeaks(rich_spec, poly_sequence, Residue::WIon, charge);
+              }
+              if (spec_gen_dialog.list_widget->item(6)->checkState() == Qt::Checked) // "X-ions"
+              {
+                  generator.addPeaks(rich_spec, poly_sequence, Residue::XIon, charge);
+              }
+              if (spec_gen_dialog.list_widget->item(7)->checkState() == Qt::Checked) // "Y-ions"
+              {
+                  generator.addPeaks(rich_spec, poly_sequence, Residue::YIon, charge);
+              }
+              if (spec_gen_dialog.list_widget->item(8)->checkState() == Qt::Checked) // "Z-ions"
+              {
+                  generator.addPeaks(rich_spec, poly_sequence, Residue::ZIon, charge);
+              }
+              //if (spec_gen_dialog.list_widget->item(9)->checkState() == Qt::Checked) // "Precursor" //FIXME
+              //{
+              //    generator.addPrecursorPeaks(rich_spec, poly_sequence, charge);
+              //}
+              if (spec_gen_dialog.list_widget->item(12)->checkState() == Qt::Checked) // "abundant Immonium-ions"
+              {
+                  generator.addAbundantImmoniumIons(rich_spec);
+              }
+          }
+          catch (Exception::BaseException& e)
+          {
+              QMessageBox::warning(this, "Error", QString("Spectrum generation failed! (") + e.what() + "). Please report this to the developers (specify what input you used)!");
+              return;
+          }
+
+          // set precursor information
+          PeakSpectrum new_spec;
+          vector<Precursor> precursors;
+          Precursor precursor;
+          precursor.setMZ(poly_sequence.getMonoWeight());
+          precursor.setCharge(charge);
+          precursors.push_back(precursor);
+          new_spec.setPrecursors(precursors);
+          new_spec.setMSLevel(2);
+          // convert rich spectrum to simple spectrum
+          for (RichPeakSpectrum::Iterator it = rich_spec.begin(); it != rich_spec.end(); ++it)
+          {
+              new_spec.push_back(static_cast<Peak1D>(*it));
+          }
+
+          PeakMap new_exp;
+          new_exp.addSpectrum(new_spec);
+          ExperimentSharedPtrType new_exp_sptr(new PeakMap(new_exp));
+          FeatureMapSharedPtrType f_dummy(new FeatureMapType());
+          ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
+          vector<PeptideIdentification> p_dummy;
+          addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, LayerData::DT_CHROMATOGRAM, false, true, true, "", seq_string + QString(" (theoretical)"));
+
+          // ensure spectrum is drawn as sticks
+          draw_group_1d_->button(Spectrum1DCanvas::DM_PEAKS)->setChecked(true);
+          setDrawMode1D(Spectrum1DCanvas::DM_PEAKS);
       }
-      Int charge = spec_gen_dialog.spin_box->value();
-
-      RichPeakSpectrum rich_spec;
-      TheoreticalSpectrumGenerator generator;
-      Param p;
-
-      p.setValue("add_metainfo", "true", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
-
-      bool losses = (spec_gen_dialog.list_widget->item(7)->checkState() == Qt::Checked); // "Neutral losses"
-      String losses_str = losses ? "true" : "false";
-      p.setValue("add_losses", losses_str, "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
-
-      bool isotopes = (spec_gen_dialog.list_widget->item(8)->checkState() == Qt::Checked); // "Isotope clusters"
-      String iso_str = isotopes ? "true" : "false";
-      p.setValue("add_isotopes", iso_str, "If set to 1 isotope peaks of the product ion peaks are added");
-
-      bool abundant_immonium_ions = (spec_gen_dialog.list_widget->item(9)->checkState() == Qt::Checked); // "abundant immonium-ions"
-      String abundant_immonium_ions_str = abundant_immonium_ions ? "true" : "false";
-      p.setValue("add_abundant_immonium_ions", abundant_immonium_ions_str, "Add most abundant immonium ions");
-
-      Size max_iso_count = (Size)spec_gen_dialog.max_iso_spinbox->value();
-      p.setValue("max_isotope", max_iso_count, "Number of isotopic peaks");
-      p.setValue("a_intensity", spec_gen_dialog.a_intensity->value(), "Intensity of the a-ions");
-      p.setValue("b_intensity", spec_gen_dialog.b_intensity->value(), "Intensity of the b-ions");
-      p.setValue("c_intensity", spec_gen_dialog.c_intensity->value(), "Intensity of the c-ions");
-      p.setValue("x_intensity", spec_gen_dialog.x_intensity->value(), "Intensity of the x-ions");
-      p.setValue("y_intensity", spec_gen_dialog.y_intensity->value(), "Intensity of the y-ions");
-      p.setValue("z_intensity", spec_gen_dialog.z_intensity->value(), "Intensity of the z-ions");
-      double rel_loss_int = (double)(spec_gen_dialog.rel_loss_intensity->value()) / 100.0;
-      p.setValue("relative_loss_intensity", rel_loss_int, "Intensity of loss ions, in relation to the intact ion intensity");
-      generator.setParameters(p);
-
-      try
-      {
-        if (spec_gen_dialog.list_widget->item(0)->checkState() == Qt::Checked) // "A-ions"
-        {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::AIon, charge);
-        }
-        if (spec_gen_dialog.list_widget->item(1)->checkState() == Qt::Checked) // "B-ions"
-        {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::BIon, charge);
-        }
-        if (spec_gen_dialog.list_widget->item(2)->checkState() == Qt::Checked) // "C-ions"
-        {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::CIon, charge);
-        }
-        if (spec_gen_dialog.list_widget->item(3)->checkState() == Qt::Checked) // "X-ions"
-        {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::XIon, charge);
-        }
-        if (spec_gen_dialog.list_widget->item(4)->checkState() == Qt::Checked) // "Y-ions"
-        {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::YIon, charge);
-        }
-        if (spec_gen_dialog.list_widget->item(5)->checkState() == Qt::Checked) // "Z-ions"
-        {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::ZIon, charge);
-        }
-        if (spec_gen_dialog.list_widget->item(6)->checkState() == Qt::Checked) // "Precursor"
-        {
-          generator.addPrecursorPeaks(rich_spec, aa_sequence, charge);
-        }
-        if (spec_gen_dialog.list_widget->item(9)->checkState() == Qt::Checked) // "abundant Immonium-ions"
-        {
-          generator.addAbundantImmoniumIons(rich_spec);
-        }
-      }
-      catch (Exception::BaseException& e)
-      {
-        QMessageBox::warning(this, "Error", QString("Spectrum generation failed! (") + e.what() + "). Please report this to the developers (specify what input you used)!");
-        return;
-      }
-
-      // set precursor information
-      PeakSpectrum new_spec;
-      vector<Precursor> precursors;
-      Precursor precursor;
-      precursor.setMZ(aa_sequence.getMonoWeight());
-      precursor.setCharge(charge);
-      precursors.push_back(precursor);
-      new_spec.setPrecursors(precursors);
-      new_spec.setMSLevel(2);
-      // convert rich spectrum to simple spectrum
-      for (RichPeakSpectrum::Iterator it = rich_spec.begin(); it != rich_spec.end(); ++it)
-      {
-        new_spec.push_back(static_cast<Peak1D>(*it));
-      }
-
-      PeakMap new_exp;
-      new_exp.addSpectrum(new_spec);
-      ExperimentSharedPtrType new_exp_sptr(new PeakMap(new_exp));
-      FeatureMapSharedPtrType f_dummy(new FeatureMapType());
-      ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
-      vector<PeptideIdentification> p_dummy;
-      addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, LayerData::DT_CHROMATOGRAM, false, true, true, "", seq_string + QString(" (theoretical)"));
-
-      // ensure spectrum is drawn as sticks
-      draw_group_1d_->button(Spectrum1DCanvas::DM_PEAKS)->setChecked(true);
-      setDrawMode1D(Spectrum1DCanvas::DM_PEAKS);
-
 
     }
   }

@@ -23,7 +23,7 @@ namespace OpenMS
        void setSequence(const String & s);
        String getSequence() const;
        size_t size() const;
-       double getMonoWeight(Residue::ResidueType type, Int charge) const;
+       double getMonoWeight(Residue::ResidueType type = Residue::Full, Int charge = 0) const;
        NASequence getPrefix(Size index) const;
        NASequence getSuffix(Size index) const;
        bool empty() const;

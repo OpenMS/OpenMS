@@ -44,16 +44,19 @@ namespace OpenMS
     connect(list_widget, SIGNAL(itemChanged(QListWidgetItem *)), this, SLOT(itemChanged(QListWidgetItem *)));
 
     // select b- and y-ions as residue types by default
-    list_widget->item(0)->setCheckState(Qt::Unchecked);
-    list_widget->item(1)->setCheckState(Qt::Checked);
-    list_widget->item(2)->setCheckState(Qt::Unchecked);
-    list_widget->item(3)->setCheckState(Qt::Unchecked);
-    list_widget->item(4)->setCheckState(Qt::Checked);
-    list_widget->item(5)->setCheckState(Qt::Unchecked);
-    list_widget->item(6)->setCheckState(Qt::Unchecked);
-    list_widget->item(7)->setCheckState(Qt::Unchecked);
-    list_widget->item(8)->setCheckState(Qt::Unchecked);
-    list_widget->item(9)->setCheckState(Qt::Unchecked);
+    list_widget->item(0)->setCheckState(Qt::Unchecked);//A
+    list_widget->item(1)->setCheckState(Qt::Unchecked);//A-b
+    list_widget->item(2)->setCheckState(Qt::Checked); //B
+    list_widget->item(3)->setCheckState(Qt::Unchecked); // C
+    list_widget->item(4)->setCheckState(Qt::Unchecked); // D
+    list_widget->item(5)->setCheckState(Qt::Unchecked); // W
+    list_widget->item(6)->setCheckState(Qt::Unchecked); // X
+    list_widget->item(7)->setCheckState(Qt::Checked); // Y
+    list_widget->item(8)->setCheckState(Qt::Unchecked); //Z
+    list_widget->item(9)->setCheckState(Qt::Unchecked); //Precursor
+    list_widget->item(10)->setCheckState(Qt::Unchecked); //Neutral loss
+    list_widget->item(11)->setCheckState(Qt::Unchecked); //Isotope Clusters
+    list_widget->item(12)->setCheckState(Qt::Unchecked); // Abundant Immonium ions
   }
 
   void TheoreticalSpectrumGenerationDialog::itemChanged(QListWidgetItem * item)
