@@ -10,7 +10,7 @@
 			</ProteinHit>
 			<ProteinHit id="PH_1" accession="BSA2 ##2" score="-14.8999996185303" sequence="" >
 			</ProteinHit>
-			<UserParam type="stringList" name="ms_run-location" value="[file://./KKramer_150612_yeastTAP_4_120min.raw]"/>
+			<UserParam type="stringList" name="ms_run-location" value="[file:///C:/testing/test_file_path/test_file_name.raw]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="XTandem" higher_score_better="true" significance_threshold="0" MZ="1063.20983886719" RT="4587.6689453125" >
 			<PeptideHit score="77.9" sequence="IALSRPNVEVVALNDPFITNDYAAYM(Oxidation)FK" charge="3" aa_before="[" aa_after="E" protein_refs="PH_1" >
