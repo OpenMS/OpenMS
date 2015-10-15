@@ -443,7 +443,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     options_ = options;
   }
 
-  String FileHandler::computeFileHash_(const String& filename) const
+  String FileHandler::computeFileHash(const String& filename)
   {
     QCryptographicHash crypto(QCryptographicHash::Sha1);
     QFile file(filename.toQString());
