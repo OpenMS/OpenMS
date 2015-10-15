@@ -185,7 +185,7 @@ START_SECTION((static String computeFileHash(const String& filename)))
 MSExperiment<> exp;
 FileHandler tmp;
 // compute hash
-TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp, ProgressLogger::NONE, true, true), true)
+TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp, FileTypes::UNKNOWN, ProgressLogger::NONE, true, true), true)
 TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "d50d5144cc3805749b9e8d16f3bc8994979d8142")
 END_SECTION
 

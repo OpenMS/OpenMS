@@ -460,8 +460,8 @@ protected:
     MSExperiment<> exp;
     if (File::exists(pep_file))
     {
-      FileHandler fh;
-      fh.loadExperiment(inputfile_name, exp);
+      MzMLFile fh;
+      fh.load(inputfile_name, exp);
 
       SpectrumMetaDataLookup lookup;
       lookup.readSpectra(exp.getSpectra());
