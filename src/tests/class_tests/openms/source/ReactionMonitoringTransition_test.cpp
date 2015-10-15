@@ -49,16 +49,63 @@ START_TEST(ReactionMonitoringTransition, "$Id$")
 
 ReactionMonitoringTransition* ptr = 0;
 ReactionMonitoringTransition* nullPointer = 0;
-START_SECTION(ReactionMonitoringTransition())
+START_SECTION(bool ReactionMonitoringTransition::isDetectingTransition() const)
 {
-	ptr = new ReactionMonitoringTransition();
-	TEST_NOT_EQUAL(ptr, nullPointer)
+	OpenMS::ReactionMonitoringTransition rmt = ReactionMonitoringTransition();
+
+  TEST_EQUAL(rmt.isDetectingTransition(),1)
+
+  rmt.setMetaValue("detecting_transition","false");
+
+  TEST_EQUAL(rmt.isDetectingTransition(),0)
+
+  rmt.setMetaValue("detecting_transition","true");
+
+  TEST_EQUAL(rmt.isDetectingTransition(),1)
+}
+END_SECTION
+
+START_SECTION(bool ReactionMonitoringTransition::isIdentifyingTransition() const)
+{
+  OpenMS::ReactionMonitoringTransition rmt = ReactionMonitoringTransition();
+
+  TEST_EQUAL(rmt.isIdentifyingTransition(),0)
+
+  rmt.setMetaValue("identifying_transition","false");
+
+  TEST_EQUAL(rmt.isIdentifyingTransition(),0)
+
+  rmt.setMetaValue("identifying_transition","true");
+
+  TEST_EQUAL(rmt.isIdentifyingTransition(),1)
+}
+END_SECTION
+
+START_SECTION(bool ReactionMonitoringTransition::isQuantifyingTransition() const)
+{
+  OpenMS::ReactionMonitoringTransition rmt = ReactionMonitoringTransition();
+
+  TEST_EQUAL(rmt.isQuantifyingTransition(),1)
+
+  rmt.setMetaValue("quantifying_transition","false");
+
+  TEST_EQUAL(rmt.isQuantifyingTransition(),0)
+
+  rmt.setMetaValue("quantifying_transition","true");
+
+  TEST_EQUAL(rmt.isQuantifyingTransition(),1)
 }
 END_SECTION
 
 START_SECTION(virtual ~ReactionMonitoringTransition())
 {
 	delete ptr;
+}
+END_SECTION
+
+START_SECTION((ReactionMonitoringTransition(const ReactionMonitoringTransition &rhs)))
+{
+  // TODO
 }
 END_SECTION
 

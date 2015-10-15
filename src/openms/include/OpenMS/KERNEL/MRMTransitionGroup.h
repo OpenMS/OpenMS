@@ -240,8 +240,14 @@ public:
       {
         if (std::find(tr_ids.begin(), tr_ids.end(), tr_it->getNativeID()) != tr_ids.end())
         {
-          transition_group_subset.addTransition(*tr_it, tr_it->getNativeID());
-          transition_group_subset.addChromatogram(chromatograms_[chromatogram_map_[tr_it->getNativeID()]], tr_it->getNativeID());
+          if (this->hasTransition(tr_it->getNativeID()))
+          {
+            transition_group_subset.addTransition(*tr_it, tr_it->getNativeID());
+          }
+          if (this->hasChromatogram(tr_it->getNativeID()))
+          {
+            transition_group_subset.addChromatogram(chromatograms_[chromatogram_map_[tr_it->getNativeID()]], tr_it->getNativeID());
+          }
         }
       }
 

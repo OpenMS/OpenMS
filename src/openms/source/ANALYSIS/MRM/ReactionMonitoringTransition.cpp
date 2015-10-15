@@ -289,12 +289,14 @@ namespace OpenMS
     bool detecting = true;
     if (this->metaValueExists("detecting_transition"))
     {
-    if (!this->getMetaValue("detecting_transition").toBool()) {detecting = false;}
-    else if (this->getMetaValue("detecting_transition").toBool()) {detecting = true;}
-    }
-    else
-    {
-      detecting = true;
+      if (!this->getMetaValue("detecting_transition").toBool())
+      {
+        detecting = false;
+      }
+      else if (this->getMetaValue("detecting_transition").toBool())
+      {
+        detecting = true;
+      }
     }
 
     return detecting;
@@ -302,15 +304,17 @@ namespace OpenMS
 
   bool ReactionMonitoringTransition::isIdentifyingTransition() const
   {
-    bool identifying = true;
+    bool identifying = false;
     if (this->metaValueExists("identifying_transition"))
     {
-    if (!this->getMetaValue("identifying_transition").toBool()) {identifying = false;}
-    else if (this->getMetaValue("identifying_transition").toBool()) {identifying = true;}
-    }
-    else
-    {
-      identifying = false;
+      if (!this->getMetaValue("identifying_transition").toBool())
+      {
+        identifying = false;
+      }
+      else if (this->getMetaValue("identifying_transition").toBool())
+      {
+        identifying = true;
+      }
     }
 
     return identifying;
@@ -321,12 +325,14 @@ namespace OpenMS
     bool quantifying = true;
     if (this->metaValueExists("quantifying_transition"))
     {
-    if (!this->getMetaValue("quantifying_transition").toBool()) {quantifying = false;}
-    else if (this->getMetaValue("quantifying_transition").toBool()) {quantifying = true;}
-    }
-    else
-    {
-      quantifying = true;
+      if (!this->getMetaValue("quantifying_transition").toBool())
+      {
+        quantifying = false;
+      }
+      else if (this->getMetaValue("quantifying_transition").toBool())
+      {
+        quantifying = true;
+      }
     }
 
     return quantifying;
