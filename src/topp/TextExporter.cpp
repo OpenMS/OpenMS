@@ -1208,7 +1208,7 @@ protected:
       else if (in_type == FileTypes::MZML)
       {
         PeakMap exp;
-        FileHandler().loadExperiment(in, exp);
+        FileHandler().loadExperiment(in, exp, FileTypes::MZML, ProgressLogger::NONE, false, false);
 
         if (exp.getSpectra().empty() && exp.getChromatograms().empty())
         {
