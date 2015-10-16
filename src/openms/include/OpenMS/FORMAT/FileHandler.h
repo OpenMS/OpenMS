@@ -114,7 +114,7 @@ public:
       @param force_type Forces to load the file with that file type. If no type is forced, it is determined from the extension (or from the content if that fails).
       @param log Progress logging mode
       @param rewrite_source_file Set's the SourceFile name and path to the current file. Note that this looses the link to the primary MS run the file originated from.
-      @param compute_hash Computes a hash value for the loaded file and stores it in the SourceFile
+      @param compute_hash If source files are rewritten, this flag triggers a recomputation of hash values. A SHA1 string gets stored in the checksum member of SourceFile.
 
       @return true if the file could be loaded, false otherwise
 
@@ -124,6 +124,9 @@ public:
     template <class PeakType>
     bool loadExperiment(const String& filename, MSExperiment<PeakType>& exp, FileTypes::Type force_type = FileTypes::UNKNOWN, ProgressLogger::LogType log = ProgressLogger::NONE, const bool rewrite_source_file = true, const bool compute_hash = true)
     {
+      // setting the flag for hash recomputation only works if source file entries are rewritten 
+      OPENMS_PRECONDITION(rewrite_source_file || !compute_hash);
+
       //determine file type
       FileTypes::Type type;
       if (force_type != FileTypes::UNKNOWN)
