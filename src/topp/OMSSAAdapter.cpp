@@ -769,7 +769,7 @@ protected:
       FileTypes::Type in_type = fh.getType(inputfile_name);
       PeakMap peak_map;
       fh.getOptions().addMSLevel(2);
-      fh.loadExperiment(inputfile_name, peak_map, in_type, log_type_);
+      fh.loadExperiment(inputfile_name, peak_map, in_type, log_type_, false, false);
       primary_ms_runs = peak_map.getPrimaryMSRunPath();
       ms2_spec_count = peak_map.size();
       writeDebug_("Read " + String(ms2_spec_count) + " spectra from file", 5);

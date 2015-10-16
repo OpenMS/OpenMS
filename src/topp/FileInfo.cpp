@@ -552,7 +552,7 @@ protected:
       size_t mem1, mem2;
       SysInfo::getProcessMemoryConsumption(mem1);
 
-      if (!fh.loadExperiment(in, exp, in_type, log_type_))
+      if (!fh.loadExperiment(in, exp, in_type, log_type_, false, false))
       {
         writeLog_("Unsupported or corrupt input file. Aborting!");
         printUsage_();

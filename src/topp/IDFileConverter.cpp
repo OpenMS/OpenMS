@@ -207,7 +207,7 @@ protected:
       if (!mz_file.empty())
       {
         type = fh.getTypeByFileName(mz_file);
-        fh.loadExperiment(mz_file, msexperiment, type);
+        fh.loadExperiment(mz_file, msexperiment, type, log_type_, false, false);
 
         for (MSExperiment<Peak1D>::Iterator spectra_it = msexperiment.begin(); spectra_it != msexperiment.end(); ++spectra_it)
         {
@@ -316,7 +316,7 @@ protected:
         else
         {
           MSExperiment<> exp;
-          fh.loadExperiment(exp_name, exp);
+          fh.loadExperiment(exp_name, exp, FileTypes::UNKNOWN, log_type_, false, false);
           if (!orig_name.empty())
           {
             exp_name = orig_name;
@@ -375,7 +375,7 @@ protected:
         {
           // load only MS2 spectra:
           fh.getOptions().addMSLevel(2);
-          fh.loadExperiment(exp_name, exp, FileTypes::MZML, log_type_);
+          fh.loadExperiment(exp_name, exp, FileTypes::MZML, log_type_, false, false);
           MascotXMLFile::initializeLookup(lookup, exp, scan_regex);
         }
         protein_identifications.resize(1);
@@ -395,7 +395,7 @@ protected:
         {
           PeakMap exp;
           fh.getOptions().addMSLevel(2);
-          fh.loadExperiment(exp_name, exp, FileTypes::MZML, log_type_);
+          fh.loadExperiment(exp_name, exp, FileTypes::MZML, log_type_, false, false);
           for (vector<PeptideIdentification>::iterator it = peptide_identifications.begin(); it != peptide_identifications.end(); ++it)
           {
             UInt id = (Int)it->getMetaValue("spectrum_id");
@@ -426,7 +426,7 @@ protected:
         MSExperiment<> experiment;
         if (!mz_file.empty())
         {
-          fh.loadExperiment(mz_file, experiment);
+          fh.loadExperiment(mz_file, experiment, FileTypes::UNKNOWN, log_type_, false, false);
           lookup.readSpectra(experiment.getSpectra());
         }
         String scan_regex = getStringOption_("scan_regex");

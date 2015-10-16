@@ -13,9 +13,9 @@
 			<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
 		</fileContent>
 		<sourceFileList count="1">
-			<sourceFile id="sf_ru_0" name="PrecursorMassCorrector_1_input.mzML" location="file:////home/hroest/hroest/lib/openms/OpenMS_experimental/src/tests/topp">
-				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="db100deeb781b15573b9387244334b3a24a73df6" />
-				<cvParam cvRef="MS" accession="MS:1000584" name="mzML format" />
+			<sourceFile id="sf_ru_0" name="QStar_BSA_500fmol_2.wiff" location="file://U-096-CPC14/E/mzWiff-4.1.1/DeNovo QStar">
+				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="a0193bfb3701b50465b30c167c515d8b184c5e6e" />
+				<cvParam cvRef="MS" accession="MS:1000564" name="PSI mzData format" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
 			</sourceFile>
 		</sourceFileList>
@@ -489,15 +489,15 @@
 </mzML>
 <indexList count="1">
 	<index name="spectrum">
-		<offset idRef="spectrum=501">12734</offset>
-		<offset idRef="spectrum=502">184990</offset>
-		<offset idRef="spectrum=503">197946</offset>
-		<offset idRef="spectrum=504">429069</offset>
-		<offset idRef="spectrum=505">702309</offset>
-		<offset idRef="spectrum=506">745546</offset>
-		<offset idRef="spectrum=120">774910</offset>
+		<offset idRef="spectrum=501">12702</offset>
+		<offset idRef="spectrum=502">184958</offset>
+		<offset idRef="spectrum=503">197914</offset>
+		<offset idRef="spectrum=504">429037</offset>
+		<offset idRef="spectrum=505">702277</offset>
+		<offset idRef="spectrum=506">745514</offset>
+		<offset idRef="spectrum=120">774878</offset>
 	</index>
 </indexList>
-<indexListOffset>946549</indexListOffset>
+<indexListOffset>946517</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

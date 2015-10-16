@@ -125,7 +125,7 @@ public:
     bool loadExperiment(const String& filename, MSExperiment<PeakType>& exp, FileTypes::Type force_type = FileTypes::UNKNOWN, ProgressLogger::LogType log = ProgressLogger::NONE, const bool rewrite_source_file = true, const bool compute_hash = true)
     {
       // setting the flag for hash recomputation only works if source file entries are rewritten 
-      OPENMS_PRECONDITION(rewrite_source_file || !compute_hash);
+      OPENMS_PRECONDITION(rewrite_source_file || !compute_hash, "Can't compute hash if no SourceFile written");
 
       //determine file type
       FileTypes::Type type;
@@ -229,7 +229,10 @@ public:
       {
         SourceFile src_file;
         src_file.setNameOfFile(File::basename(filename));
-        src_file.setPathToFile(String("file:///") + File::path(filename));
+        String path_to_file = File::path(filename);
+        // make sure we end up with at most 3 forward slashes       
+        String uri = path_to_file.hasPrefix("/") ? String("file://") + path_to_file : String("file:///") + path_to_file;
+        src_file.setPathToFile(uri);
         // this is more complicated since the data formats allowed by mzML are very verbose.
         // this is prone to changing CV's... our writer will fall back to a default if the name given here is invalid.
         src_file.setFileType(FileTypes::typeToMZML(type));
