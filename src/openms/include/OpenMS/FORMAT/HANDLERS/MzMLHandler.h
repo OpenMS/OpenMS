@@ -1268,6 +1268,7 @@ protected:
         // format URI prefix as in mzML spec.
         if (path_to_file.hasPrefix("File://")) path_to_file.substitute("File://", "file://");
         if (path_to_file.hasPrefix("FILE://")) path_to_file.substitute("FILE://", "file://");
+        if (path_to_file.hasPrefix("file:///.")) path_to_file.substitute("file:///.", "file://./");
 
         bool is_relative_path = path_to_file.hasPrefix("file://./") || path_to_file.hasPrefix("file://../");
 

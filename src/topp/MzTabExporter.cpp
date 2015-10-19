@@ -299,6 +299,7 @@ protected:
  
     static MzTab exportFeatureMapToMzTab(const FeatureMap& feature_map, const String& filename)
     {
+      LOG_INFO << "exporting feature map: \"" << filename << "\" to mzTab: " << std::endl;
       MzTab mztab;
       MzTabMetaData meta_data;
 
@@ -456,6 +457,7 @@ protected:
 
     static MzTab exportIdentificationsToMzTab(const vector<ProteinIdentification>& prot_ids, const vector<PeptideIdentification>& peptide_ids, const String& filename)
     {
+      LOG_INFO << "exporting identifications: \"" << filename << "\" to mzTab: " << std::endl;
       vector<PeptideIdentification> pep_ids = peptide_ids;
       MzTab mztab;
       MzTabMetaData meta_data;
@@ -765,6 +767,7 @@ protected:
   
     static MzTab exportConsensusMapToMzTab(const ConsensusMap& consensus_map, const String& filename)
     {
+      LOG_INFO << "exporting consensus map: \"" << filename << "\" to mzTab: " << std::endl;
       MzTab mztab;
       vector<ProteinIdentification> prot_ids = consensus_map.getProteinIdentifications();
       vector<String> var_mods, fixed_mods;
