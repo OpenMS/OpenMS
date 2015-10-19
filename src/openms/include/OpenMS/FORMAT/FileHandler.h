@@ -229,7 +229,8 @@ public:
       {
         SourceFile src_file;
         src_file.setNameOfFile(File::basename(filename));
-        String path_to_file = File::path(filename);
+        String path_to_file = File::path(File::absolutePath(filename)); //convert to absolute path and strip file name
+        
         // make sure we end up with at most 3 forward slashes       
         String uri = path_to_file.hasPrefix("/") ? String("file://") + path_to_file : String("file:///") + path_to_file;
         src_file.setPathToFile(uri);
