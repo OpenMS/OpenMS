@@ -62,6 +62,9 @@ cdef extern from "<OpenMS/METADATA/ChromatogramSettings.h>" namespace "OpenMS":
         # sets the description of the applied processing
         void setDataProcessing(libcpp_vector[ shared_ptr[DataProcessing] ])   nogil except +
 
+        # sets the chromatogram type
+        void setChromatogramType(ChromatogramType type) nogil except +
+
 
 cdef extern from "<OpenMS/METADATA/ChromatogramSettings.h>" namespace "OpenMS::ChromatogramSettings":
 
