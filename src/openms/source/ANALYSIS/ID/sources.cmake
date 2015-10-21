@@ -23,7 +23,7 @@ MetaboliteSpectralMatching.cpp
 PeptideProteinResolution.cpp
 ProtonDistributionModel.cpp
 PeptideIndexing.cpp
-#TopPerc.cpp
+TopPerc.cpp
 )
 
 ### add path to the filenames
