@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
@@ -927,22 +928,8 @@ namespace OpenMS
 
       vector<PeptideEvidence> pes = id.getHits()[j].getPeptideEvidences();
 
-      // do we have peptide evidence information? store information of the first one (consensusXML doesn't support multiple PeptideEvidences except multiple accessions)
-      if (!pes.empty())
-      {
-        if (pes[0].getAABefore() != PeptideEvidence::UNKNOWN_AA)
-        {
-          os << " aa_before=\"" << pes[0].getAABefore() << "\"";
-        }
-      }
-
-      if (!pes.empty())
-      {
-        if (pes[0].getAAAfter() != PeptideEvidence::UNKNOWN_AA)
-        {
-          os << " aa_after=\"" << pes[0].getAAAfter() << "\"";
-        }
-      }
+      os << IdXMLFile::createFlankingAAXMLString(pes);
+      os << IdXMLFile::createPositionXMLString(pes);
 
       set<String> protein_accessions = id.getHits()[j].extractProteinAccessions();
 

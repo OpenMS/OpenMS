@@ -55,7 +55,7 @@ public:
 
     // Note: we use 0 as position of the N-terminus while e.g. mzTab or other formats start counting at 1.
     static const int N_TERMINAL_POSITION;
-    static const char UNKNOWN_AA; // PeptideEvidence::UNKNOWN_AA = ' ';
+    static const char UNKNOWN_AA; // PeptideEvidence::UNKNOWN_AA = 'X';
 
     // Note: we use '[' and ']' instead of  e.g. '-' as in mzTab specification
     static const char N_TERMINAL_AA;

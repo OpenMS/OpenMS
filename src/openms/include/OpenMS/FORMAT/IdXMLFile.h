@@ -99,6 +99,19 @@ public:
         @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
     void store(String filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids, const String& document_id = "");
+  
+    /**
+      * Helper function to create the XML string for the amino acids before and after the peptide position in a protein.
+      * Can be eused by e.g. ConsensusXML, FeatureXML to write PeptideHit elements  
+      */
+    static String createFlankingAAXMLString(const std::vector<PeptideEvidence> & pes);
+
+    /**
+      * Helper function to create the XML string for the position of the peptide in a protein.
+      * Can be eused by e.g. ConsensusXML, FeatureXML to write PeptideHit elements  
+      */
+    static String createPositionXMLString(const std::vector<PeptideEvidence> & pes);
+
 
 protected:
     // Docu in base class
