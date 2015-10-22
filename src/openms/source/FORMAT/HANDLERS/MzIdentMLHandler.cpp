@@ -734,16 +734,13 @@ namespace OpenMS
               String e;
               e += "\t<PeptideEvidence id=\"" + String(pevid) + "\" peptide_ref=\"" + String(pepid) + "\" dBSequence_ref=\"" + dBSequence_ref;
 
-              //~ TODO no '*' allowed!!
-              String po = String(pe->getAAAfter());
-              if (!po.empty() && po != " " && po != "*")
+              if (pe->getAAAfter() != PeptideEvidence::UNKNOWN_AA)
               {
-                e += "\" post=\"" + po;
+                e += "\" post=\"" + String(pe->getAAAfter());
               }
-              String pr = String(pe->getAABefore());
-              if (!pr.empty() && pr != " " && pr != "*")
+              if (pe->getAABefore() != PeptideEvidence::UNKNOWN_AA)
               {
-                e += "\" pre=\"" + pr;
+                e += "\" pre=\"" + String(pe->getAABefore());
               }
               if (pe->getStart() != PeptideEvidence::UNKNOWN_POSITION)
               {

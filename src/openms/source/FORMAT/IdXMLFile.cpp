@@ -47,7 +47,7 @@ namespace OpenMS
 
   IdXMLFile::IdXMLFile() :
     XMLHandler("", "1.2"),
-    XMLFile("/SCHEMAS/IdXML_1_2.xsd", "1.2"),
+    XMLFile("/SCHEMAS/IdXML_1_3.xsd", "1.3"),
     last_meta_(0),
     document_id_(),
     prot_id_in_run_(false)
@@ -107,7 +107,7 @@ namespace OpenMS
     {
       os << " id=\"" << document_id << "\"";
     }
-    os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_2.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+    os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_3.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
 
     //look up different search parameters
@@ -301,10 +301,10 @@ namespace OpenMS
         for (Size j = 0; j < peptide_ids[l].getHits().size(); ++j)
         {
           const PeptideHit& p_hit = peptide_ids[l].getHits()[j];
-          os << "\t\t\t<PeptideHit ";
-          os << "score=\"" << precisionWrapper(p_hit.getScore()) << "\" ";
-          os << "sequence=\"" << p_hit.getSequence() << "\" ";
-          os << "charge=\"" << p_hit.getCharge() << "\" ";
+          os << "\t\t\t<PeptideHit";
+          os << " score=\"" << precisionWrapper(p_hit.getScore()) << "\"";
+          os << " sequence=\"" << p_hit.getSequence() << "\"";
+          os << " charge=\"" << p_hit.getCharge() << "\"";
 
           std::vector<PeptideEvidence> pes = p_hit.getPeptideEvidences();
 
@@ -330,10 +330,10 @@ namespace OpenMS
               accs += "PH_";
               accs += String(*s_it);
             }
-            os << "protein_refs=\"" << accs << "\" ";
+            os << " protein_refs=\"" << accs << "\"";
           }
 
-          os << ">\n";
+          os << " >\n";
           writeUserParam_("UserParam", os, peptide_ids[l].getHits()[j], 4);
           os << "\t\t\t</PeptideHit>\n";
         }
@@ -873,42 +873,51 @@ namespace OpenMS
   String IdXMLFile::createFlankingAAXMLString(const std::vector<PeptideEvidence> & pes)
   {
     // Check if information on previous/following aa available. If not, we will not write it out 
-    bool has_aa_information(false);
+    bool has_aa_before_information(false);
+    bool has_aa_after_information(false);
     String aa_string;
+
     for (std::vector<PeptideEvidence>::const_iterator it = pes.begin(); it != pes.end(); ++it)
     {
-      if (it->getAABefore() != PeptideEvidence::UNKNOWN_AA || it->getAAAfter() != PeptideEvidence::UNKNOWN_AA)
+      if (it->getAABefore() != PeptideEvidence::UNKNOWN_AA)
       {
-        has_aa_information = true;
-        break;
+        has_aa_before_information = true;
+      }
+      if (it->getAAAfter() != PeptideEvidence::UNKNOWN_AA)
+      {
+        has_aa_after_information = true;
       }
     }
 
-    if (has_aa_information)
+    if (has_aa_before_information)
     {
       for (std::vector<PeptideEvidence>::const_iterator it = pes.begin(); it != pes.end(); ++it)
       {
         if (it == pes.begin())
         { 
-          aa_string += "aa_before=\"" + String(it->getAABefore());
+          aa_string += " aa_before=\"" + String(it->getAABefore());
         }
         else
         {
           aa_string += " " + String(it->getAABefore());
         }
-        if (static_cast<Size>(it - pes.begin()) == pes.size() - 1) aa_string += "\" ";
+        if (static_cast<Size>(it - pes.begin()) == pes.size() - 1) aa_string += "\"";
       }
+    }
+
+    if (has_aa_after_information)
+    {
       for (std::vector<PeptideEvidence>::const_iterator it = pes.begin(); it != pes.end(); ++it)
       {
         if (it == pes.begin())
         { 
-          aa_string += "aa_after=\"" + String(it->getAAAfter());
+          aa_string += " aa_after=\"" + String(it->getAAAfter());
         }
         else
         {
           aa_string += " " + String(it->getAAAfter());
         }
-        if (static_cast<Size>(it - pes.begin()) == pes.size() - 1) aa_string += "\" ";
+        if (static_cast<Size>(it - pes.begin()) == pes.size() - 1) aa_string += "\"";
       }
     }
     return aa_string;
@@ -916,43 +925,54 @@ namespace OpenMS
 
   String IdXMLFile::createPositionXMLString(const std::vector<PeptideEvidence> & pes)
   {
-    bool has_pos_information(false);
+    bool has_aa_start_information(false);
+    bool has_aa_end_information(false);
+
     String aa_string;
     for (std::vector<PeptideEvidence>::const_iterator it = pes.begin(); it != pes.end(); ++it)
     {
-      if (it->getStart() != PeptideEvidence::UNKNOWN_POSITION || it->getEnd() != PeptideEvidence::UNKNOWN_POSITION)
+      if (it->getStart() != PeptideEvidence::UNKNOWN_POSITION)
       {
-        has_pos_information = true;
-        break;
+        has_aa_start_information = true;
+      }
+      if (it->getEnd() != PeptideEvidence::UNKNOWN_POSITION)
+      {
+        has_aa_end_information = true;
       }
     }
 
-    if (has_pos_information)
+    if (has_aa_start_information || has_aa_end_information)
     {
-      for (std::vector<PeptideEvidence>::const_iterator it = pes.begin(); it != pes.end(); ++it)
+      if (has_aa_start_information)
       {
-        if (it == pes.begin())
-        { 
-          aa_string += "start=\"" + String(it->getStart());
-        }
-        else
+        for (std::vector<PeptideEvidence>::const_iterator it = pes.begin(); it != pes.end(); ++it)
         {
-          aa_string += " " + String(it->getStart());
+          if (it == pes.begin())
+          { 
+            aa_string += " start=\"" + String(it->getStart());
+          }
+          else
+          {
+            aa_string += " " + String(it->getStart());
+          }
+          if (static_cast<Size>(it - pes.begin()) == pes.size() - 1) aa_string += "\" ";
         }
-        if (static_cast<Size>(it - pes.begin()) == pes.size() - 1) aa_string += "\" ";
       }
 
-      for (std::vector<PeptideEvidence>::const_iterator it = pes.begin(); it != pes.end(); ++it)
+      if (has_aa_end_information)
       {
-        if (it == pes.begin())
-        { 
-          aa_string += "end=\"" + String(it->getEnd());
-        }
-        else
+        for (std::vector<PeptideEvidence>::const_iterator it = pes.begin(); it != pes.end(); ++it)
         {
-          aa_string += " " + String(it->getEnd());
+          if (it == pes.begin())
+          { 
+            aa_string += " end=\"" + String(it->getEnd());
+          }
+          else
+          {
+            aa_string += " " + String(it->getEnd());
+          }
+          if (static_cast<Size>(it - pes.begin()) == pes.size() - 1) aa_string += "\"";
         }
-        if (static_cast<Size>(it - pes.begin()) == pes.size() - 1) aa_string += "\" ";
       }
     }
     return aa_string;
