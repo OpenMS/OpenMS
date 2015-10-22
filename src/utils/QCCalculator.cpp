@@ -392,19 +392,26 @@ protected:
     UInt max = 0;
     Size below_10k = 0;
     std::vector<OpenMS::Chromatogram> chroms = exp.getChromatograms();
-    if (chroms.size() == 1) //real TIC from the mzML
-    { //what if there are more than one? should generally not be though ...
-      for (Size i = 0; i < chroms[0].size(); ++i)
+    if (chroms.size() > 0) //real TIC from the mzML
+    {
+      for (Size t = 0; t < chroms.size(); ++t)
       {
-        double sum = chroms[0][i].getIntensity();
-        if (sum < 10000)
+        if (chroms[t].getChromatogramType() == ChromatogramSettings::TOTAL_ION_CURRENT_CHROMATOGRAM)
         {
-          ++below_10k;
+          for (Size i = 0; i < chroms[t].size(); ++i)
+          {
+            double sum = chroms[t][i].getIntensity();
+            if (sum < 10000)
+            {
+              ++below_10k;
+            }
+            std::vector<String> row;
+            row.push_back(chroms[t][i].getRT()*60);
+            row.push_back(sum);
+            at.tableRows.push_back(row);
+          }
+          break;//what if there are more than one? should generally not be though ...
         }
-        std::vector<String> row;
-        row.push_back(chroms[0][i].getRT()*60);
-        row.push_back(sum);
-        at.tableRows.push_back(row);
       }
     }
     else // reconstructed TIC or RIC from the MS1 intensities
