@@ -1032,15 +1032,18 @@ namespace OpenMS
         try
         {
           desc = ModificationsDB::getInstance()->getModification(aa_mod.description).getName();
-          if (is_variable == "Y")
+          if (desc != "")
           {
-            variable_modifications_.push_back(aa_mod);
-            params_.variable_modifications.push_back(desc);
-          }
-          else
-          {
-            fixed_modifications_.push_back(aa_mod);
-            params_.fixed_modifications.push_back(desc);
+            if (is_variable == "Y")
+            {
+              variable_modifications_.push_back(aa_mod);
+              params_.variable_modifications.push_back(desc);
+            }
+            else
+            {
+              fixed_modifications_.push_back(aa_mod);
+              params_.fixed_modifications.push_back(desc);
+            }
           }
         }
         catch (Exception::ElementNotFound)
@@ -1099,15 +1102,18 @@ namespace OpenMS
           desc = mods[0];
         }
       }
-      if (is_variable == "Y")
+      if (desc != "")
       {
-        variable_modifications_.push_back(aa_mod);
-        params_.variable_modifications.push_back(desc);
-      }
-      else
-      {
-        fixed_modifications_.push_back(aa_mod);
-        params_.fixed_modifications.push_back(desc);
+        if (is_variable == "Y")
+        {
+          variable_modifications_.push_back(aa_mod);
+          params_.variable_modifications.push_back(desc);
+        }
+        else
+        {
+          fixed_modifications_.push_back(aa_mod);
+          params_.fixed_modifications.push_back(desc);
+        }
       }
     }
     else if (element == "search_summary") // parent: "msms_run_summary"
