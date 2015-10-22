@@ -208,13 +208,13 @@ START_SECTION(([ControlledVocabulary::CVTerm] static String getXRefTypeName(XRef
 END_SECTION
 
 
-START_SECTION(([ControlledVocabulary::CVTerm] bool ControlledVocabulary::CVTerm::isHigherBetterScore() const))
+START_SECTION(([ControlledVocabulary::CVTerm] bool ControlledVocabulary::CVTerm::isHigherBetterScore(ControlledVocabulary::CVTerm term)))
 {
   ControlledVocabulary cv;
   cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
-  TEST_EQUAL(cv.getTerm("MS:1001331").isHigherBetterScore(),true)
-  TEST_EQUAL(cv.getTerm("MS:1002265").isHigherBetterScore(),false)
-  TEST_EQUAL(cv.getTerm("MS:1002467").isHigherBetterScore(),true)
+  TEST_EQUAL(ControlledVocabulary::CVTerm::isHigherBetterScore(cv.getTerm("MS:1001331")),true)
+  TEST_EQUAL(ControlledVocabulary::CVTerm::isHigherBetterScore(cv.getTerm("MS:1002265")),false)
+  TEST_EQUAL(ControlledVocabulary::CVTerm::isHigherBetterScore(cv.getTerm("MS:1002467")),true)
 }
 END_SECTION
 

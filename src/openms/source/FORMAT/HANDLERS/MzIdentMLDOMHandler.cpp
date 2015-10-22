@@ -1274,7 +1274,7 @@ namespace OpenMS
         else if (specific_score_terms.find(scoreit->first) != specific_score_terms.end() || scoreit->first == "MS:1001143")
         {
           score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
-          spectrum_identification.setHigherScoreBetter(cv_.getTerm(scoreit->first).isHigherBetterScore());
+          spectrum_identification.setHigherScoreBetter(ControlledVocabulary::CVTerm::isHigherBetterScore(cv_.getTerm(scoreit->first)));
           spectrum_identification.setScoreType(scoreit->second.front().getName());
           scoretype = true;
         }
