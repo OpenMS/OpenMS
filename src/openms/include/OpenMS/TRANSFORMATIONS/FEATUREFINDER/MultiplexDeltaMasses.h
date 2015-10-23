@@ -108,10 +108,25 @@ namespace OpenMS
     std::vector<double> getMassShifts() const;
     
     /**
+     * @brief returns delta masses
+     */
+    std::vector<DeltaMass> getDeltaMasses() const;
+    
+    /**
+     * @brief returns number of delta masses
+     */
+    unsigned getDeltaMassesCount() const;
+   
+    /**
      * @brief returns number of mass shifts
      */
     unsigned getMassShiftCount() const;
    
+    /**
+     * @brief returns delta mass at position i
+     */
+    DeltaMass getDeltaMassAt(int i) const;
+    
     /**
      * @brief returns mass shift at position i
      */
