@@ -453,7 +453,7 @@ namespace OpenMS
         {
           sof_id = "SOF_" + String(UniqueIdGenerator::getUniqueId());
           //~ TODO consider not only searchengine but also version!
-          String sost = String("\t<AnalysisSoftware version=\"") + String(it->getSearchEngineVersion()) + String("\" name=\"") + sof_name +  String("\" id=\"") + sof_id + String("\"> \n") + String("\t\t<SoftwareName> \n ");
+          String sost = String("\t<AnalysisSoftware version=\"") + String(it->getSearchEngineVersion()) + String("\" name=\"") + sof_name +  String("\" id=\"") + String("SOF_") + sof_id + String("\"> \n") + String("\t\t<SoftwareName> \n ");
           sost += "\t\t\t" + cv_.getTermByName(osecv).toXMLString(cv_ns);
           sost += String("\n\t\t</SoftwareName> \n\t</AnalysisSoftware> \n");
           sof_set.insert(sost);
@@ -484,7 +484,7 @@ namespace OpenMS
         String sip_id = "SIP_" + String(UniqueIdGenerator::getUniqueId());
         sil_2_sip_.insert(make_pair(sil_id, sip_id));
 
-        String sip = String("\t<SpectrumIdentificationProtocol id=\"") + String(sip_id) + String("\" analysisSoftware_ref=\"")  + String(sof_id) + String("\">");
+        String sip = String("\t<SpectrumIdentificationProtocol id=\"") + String(sip_id) + String("\" analysisSoftware_ref=\"") + String("SOF_")  + String(sof_id) + String("\">");
         sip += String(" \n\t\t<SearchType>\n\t\t\t") + cv_.getTermByName("ms-ms search").toXMLString(cv_ns) + String(" \n\t\t</SearchType>");
         sip += String("\n\t\t<AdditionalSearchParams>\n");
         writeMetaInfos_(sip, it->getSearchParameters(), 3);
@@ -949,7 +949,7 @@ namespace OpenMS
       std::map<String, String>::iterator soit = sof_ids.find("TOPP software");
       if (soit == sof_ids.end())
       {
-        os << "\t<AnalysisSoftware version=\"OpenMS TOPP v"<< VersionInfo::getVersion() <<"\" name=\"TOPP software\" id=\"" << String(UniqueIdGenerator::getUniqueId()) << "\"> \n"
+        os << "\t<AnalysisSoftware version=\"OpenMS TOPP v"<< VersionInfo::getVersion() <<"\" name=\"TOPP software\" id=\"" << String("SOF_") << String(UniqueIdGenerator::getUniqueId()) << "\"> \n"
            << "\t\t<SoftwareName> \n\t\t\t" << cv_.getTermByName("TOPP software").toXMLString(cv_ns) << " \n\t\t</SoftwareName> \n\t</AnalysisSoftware> \n";
       }
       os << "</AnalysisSoftwareList>\n";
@@ -1066,7 +1066,7 @@ namespace OpenMS
     {
       String cv_ns = cv_.name();
       s += String(indent, '\t') + "<Enzymes independent=\"false\">" + "\n";
-      s += String(indent, '\t') + "\t" + "<Enzyme missedCleavages=\"" + String(miss) + "\" id=\"" + String(UniqueIdGenerator::getUniqueId()) + "\">" + "\n";
+      s += String(indent, '\t') + "\t" + "<Enzyme missedCleavages=\"" + String(miss) + "\" id=\"" + String("ENZ_") + String(UniqueIdGenerator::getUniqueId()) + "\">" + "\n";
       s += String(indent, '\t') + "\t\t" + "<EnzymeName>" + "\n";
       if (enzy == ProteinIdentification::TRYPSIN)
       {
