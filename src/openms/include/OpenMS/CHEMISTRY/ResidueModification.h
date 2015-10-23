@@ -72,9 +72,9 @@ public:
     /** @brief Position where the modification is allowed to occur
 
             The allowed sites are
+            Anywhere
             Any C-term
             Any N-term
-            Anywhere
             Protein C-term
             Protein N-term
 

@@ -417,17 +417,24 @@ protected:
       {
         ++num_consfeat_of_size[cmit->size()];
       }
-      Size field_width = num_consfeat_of_size.rbegin()->first / 10 + 1;
-      os << "\n" << "Number of consensus features:" << "\n";
-      for (map<Size, UInt>::reverse_iterator i = num_consfeat_of_size.rbegin(); i != num_consfeat_of_size.rend(); ++i)
+      if (num_consfeat_of_size.empty() )
       {
-        os << "  of size " << setw(field_width) << i->first << ": " << i->second << "\n";
+        os << "\n" << "Number of consensus features: 0" << "\n";
+        os << "No consensus features found, map is empty!" << "\n\n";
       }
-      os << "  total:    " << string(field_width, ' ') << cons.size() << "\n" << "\n";
+      else
+      {
+        Size field_width = num_consfeat_of_size.rbegin()->first / 10 + 1;
+        os << "\n" << "Number of consensus features:" << "\n";
+        for (map<Size, UInt>::reverse_iterator i = num_consfeat_of_size.rbegin(); i != num_consfeat_of_size.rend(); ++i)
+        {
+          os << "  of size " << setw(field_width) << i->first << ": " << i->second << "\n";
+        }
+        os << "  total:    " << string(field_width, ' ') << cons.size() << "\n" << "\n";
 
-      writeRangesHumanReadable_(cons, os);
-      writeRangesMachineReadable_(cons, os_tsv);
-
+        writeRangesHumanReadable_(cons, os);
+        writeRangesMachineReadable_(cons, os_tsv);
+      }
 
       // file descriptions
       const ConsensusMap::FileDescriptions& descs = cons.getFileDescriptions();
@@ -545,7 +552,7 @@ protected:
       size_t mem1, mem2;
       SysInfo::getProcessMemoryConsumption(mem1);
 
-      if (!fh.loadExperiment(in, exp, in_type, log_type_))
+      if (!fh.loadExperiment(in, exp, in_type, log_type_, false, false))
       {
         writeLog_("Unsupported or corrupt input file. Aborting!");
         printUsage_();
@@ -562,7 +569,7 @@ protected:
       {
         for (Size i = 0; i < exp[0].getDataProcessing().size(); ++i)
         {
-          if (exp[0].getDataProcessing()[i].getProcessingActions().count(DataProcessing::PEAK_PICKING) == 1)
+          if (exp[0].getDataProcessing()[i]->getProcessingActions().count(DataProcessing::PEAK_PICKING) == 1)
           {
             meta_type = SpectrumSettings::PEAKS;
           }
@@ -998,7 +1005,10 @@ protected:
         if (!exp.empty())
         {
           os << "Note: The data is taken from the first spectrum!" << "\n" << "\n";
-          dp = exp[0].getDataProcessing();
+          for (Size i = 0; i < exp[0].getDataProcessing().size(); i++)
+          {
+            dp.push_back( *exp[0].getDataProcessing()[i].get() );
+          }
         }
       }
 

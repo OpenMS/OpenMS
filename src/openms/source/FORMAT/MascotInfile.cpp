@@ -676,6 +676,7 @@ namespace OpenMS
           {
             do
             {
+              line.simplify(); // remove duplicate spaces (allowed by the format)
               line.substitute('\t', ' ');
               vector<String> split;
               line.split(' ', split);

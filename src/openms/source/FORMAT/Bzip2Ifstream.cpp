@@ -31,11 +31,14 @@
 // $Maintainer: David Wojnar $
 // $Authors: David Wojnar $
 // --------------------------------------------------------------------------
+
 #include <iostream>
 #include <OpenMS/FORMAT/Bzip2Ifstream.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <cstdlib>
+
 using namespace std;
+
 namespace OpenMS
 {
   Bzip2Ifstream::Bzip2Ifstream(const char * filename) :

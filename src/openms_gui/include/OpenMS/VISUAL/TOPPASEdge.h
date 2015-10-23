@@ -46,6 +46,7 @@ namespace OpenMS
   class TOPPASToolVertex;
   class TOPPASInputFileListVertex;
 
+  class String;
 
   /**
       @brief An edge representing a data flow in TOPPAS
@@ -88,6 +89,9 @@ public:
     virtual ~TOPPASEdge();
     /// Assignment operator
     TOPPASEdge & operator=(const TOPPASEdge & rhs);
+
+    /// for debug output
+    String toString();
 
     /// Returns the bounding rectangle of this item
     QRectF boundingRect() const;

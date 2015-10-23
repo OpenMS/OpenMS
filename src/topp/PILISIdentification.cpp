@@ -393,6 +393,7 @@ protected:
     protein_identification.setSearchEngineVersion("beta");
     protein_identification.setSearchParameters(search_parameters);
     protein_identification.setIdentifier(identifier);
+    protein_identification.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
 
     vector<ProteinIdentification> protein_identifications;
     protein_identifications.push_back(protein_identification);

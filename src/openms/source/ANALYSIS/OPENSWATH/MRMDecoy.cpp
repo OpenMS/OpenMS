@@ -537,9 +537,9 @@ namespace OpenMS
     // Go through all peptides and apply the decoy method to the sequence
     // (pseudo-reverse, reverse or shuffle). Then set the peptides and proteins of the decoy
     // experiment.
-    for (Size i = 0; i < exp.getPeptides().size(); i++)
+    for (Size pep_idx = 0; pep_idx < exp.getPeptides().size(); ++pep_idx)
     {
-      OpenMS::TargetedExperiment::Peptide peptide = exp.getPeptides()[i];
+      OpenMS::TargetedExperiment::Peptide peptide = exp.getPeptides()[pep_idx];
       // continue if the peptide has C/N terminal modifications and we should exclude them
       if (remove_CNterminal_mods && MRMDecoy::has_CNterminal_mods(peptide)) {continue;}
       peptide.id = decoy_tag + peptide.id;
@@ -561,9 +561,9 @@ namespace OpenMS
       {
         peptide = MRMDecoy::shufflePeptide(peptide, identity_threshold, -1, max_attempts);
       }
-      for (Size i = 0; i < peptide.protein_refs.size(); i++)
+      for (Size prot_idx = 0; prot_idx < peptide.protein_refs.size(); ++prot_idx)
       {
-        peptide.protein_refs[i] = decoy_tag + peptide.protein_refs[i];
+        peptide.protein_refs[prot_idx] = decoy_tag + peptide.protein_refs[prot_idx];
       }
 
       if (MRMDecoy::AASequenceIdentity(original_sequence, peptide.sequence) > identity_threshold)

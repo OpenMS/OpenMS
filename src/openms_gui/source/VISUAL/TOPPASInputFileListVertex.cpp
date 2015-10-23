@@ -37,7 +37,6 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/VISUAL/TOPPASMergerVertex.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASInputFilesDialog.h>
@@ -57,7 +56,7 @@ namespace OpenMS
     brush_color_ = Qt::lightGray;
   }
 
-  TOPPASInputFileListVertex::TOPPASInputFileListVertex(const QStringList & files) :
+  TOPPASInputFileListVertex::TOPPASInputFileListVertex(const QStringList& files) :
     TOPPASVertex(),
     key_()
   {
@@ -66,12 +65,13 @@ namespace OpenMS
     setFilenames(files);
   }
 
-  TOPPASInputFileListVertex::TOPPASInputFileListVertex(const TOPPASInputFileListVertex & rhs) :
+  TOPPASInputFileListVertex::TOPPASInputFileListVertex(const TOPPASInputFileListVertex& rhs) :
     TOPPASVertex(rhs),
     key_()
   {
     pen_color_ = Qt::black;
     brush_color_ = Qt::lightGray;
+    output_files_ = rhs.output_files_; // copy input file paths, too
   }
 
   TOPPASInputFileListVertex::~TOPPASInputFileListVertex()
@@ -79,11 +79,12 @@ namespace OpenMS
 
   }
 
-  TOPPASInputFileListVertex & TOPPASInputFileListVertex::operator=(const TOPPASInputFileListVertex & rhs)
+  TOPPASInputFileListVertex& TOPPASInputFileListVertex::operator=(const TOPPASInputFileListVertex& rhs)
   {
     TOPPASVertex::operator=(rhs);
 
     key_ = rhs.key_;
+    output_files_ = rhs.output_files_; // copy input file paths, too
 
     return *this;
   }
@@ -100,7 +101,7 @@ namespace OpenMS
 
   void TOPPASInputFileListVertex::showFilesDialog()
   {
-    TOPPASInputFilesDialog tifd(getFileNames());
+    TOPPASInputFilesDialog tifd(getFileNames(), cwd_);
     if (tifd.exec())
     {
       QStringList updated_filelist;
@@ -109,12 +110,16 @@ namespace OpenMS
       { // files were changed
         setFilenames(updated_filelist); // to correct filenames (separators etc)
         qobject_cast<TOPPASScene *>(scene())->updateEdgeColors();
+
+        // update cwd
+        cwd_ = tifd.getCWD();
+
         emit parameterChanged(true); // aborts the pipeline (if running) and resets downstream nodes
       }
     }
   }
 
-  void TOPPASInputFileListVertex::paint(QPainter * painter, const QStyleOptionGraphicsItem * /*option*/, QWidget * /*widget*/)
+  void TOPPASInputFileListVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/)
   {
     QPen pen(pen_color_, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
     if (isSelected())
@@ -172,7 +177,7 @@ namespace OpenMS
     if (this->allow_output_recycling_)
     {
       painter->setPen(Qt::green);
-      QSvgRenderer * svg_renderer = new QSvgRenderer(QString(":/Recycling_symbol.svg"), 0);
+      QSvgRenderer* svg_renderer = new QSvgRenderer(QString(":/Recycling_symbol.svg"), 0);
       svg_renderer->render(painter, QRectF(-7, -32, 14, 14));
     }
 
@@ -193,7 +198,7 @@ namespace OpenMS
   bool TOPPASInputFileListVertex::fileNamesValid()
   {
     QStringList fl = getFileNames();
-    foreach(const QString &file, fl)
+    foreach(const QString& file, fl)
     {
       if (!File::exists(file))
       {
@@ -232,8 +237,8 @@ namespace OpenMS
 
     for (ConstEdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
     {
-      TOPPASVertex * tv = (*it)->getTargetVertex();
-      if (tv && !tv->isFinished())       // this tool might have already been called by another path, so do not call it again (as this will throw an error)
+      TOPPASVertex* tv = (*it)->getTargetVertex();
+      if (tv && !tv->isFinished()) // this tool might have already been called by another path, so do not call it again (as this will throw an error)
       {
         tv->run();
       }
@@ -253,6 +258,9 @@ namespace OpenMS
   void TOPPASInputFileListVertex::setFilenames(const QStringList& files)
   {
     output_files_.clear();
+
+    if (files.empty()) return;
+
     output_files_.resize(files.size()); // for now, assume one file per round (we could later extend that)
     for (int f = 0; f < files.size(); ++f)
     {
@@ -260,12 +268,15 @@ namespace OpenMS
     }
 
     setToolTip(files.join("\n"));
+
+    // set current working dir when opening files to the last file
+    cwd_ = File::path(files.back()).toQString();
   }
 
   void TOPPASInputFileListVertex::outEdgeHasChanged()
   {
     reset();
-    qobject_cast<TOPPASScene *>(scene())->updateEdgeColors();
+    qobject_cast<TOPPASScene*>(scene())->updateEdgeColors();
     TOPPASVertex::outEdgeHasChanged();
   }
 

@@ -454,17 +454,19 @@ protected:
     String exp_name = File::basename(inputfile_name);
     String pep_file = tmp_dir + File::removeExtension(exp_name) + ".pepXML";
 
-    FileHandler fh;
-    MSExperiment<> exp;
-    fh.loadExperiment(inputfile_name, exp);
-
     vector<ProteinIdentification> protein_identifications;
     vector<PeptideIdentification> peptide_identifications;
+
+    MSExperiment<> exp;
     if (File::exists(pep_file))
     {
-      const bool use_precursor_data = false;
-      PepXMLFile().load(pep_file, protein_identifications, peptide_identifications,
-                        exp_name, exp, use_precursor_data);
+      MzMLFile fh;
+      fh.load(inputfile_name, exp);
+
+      SpectrumMetaDataLookup lookup;
+      lookup.readSpectra(exp.getSpectra());
+      PepXMLFile().load(pep_file, protein_identifications,
+                        peptide_identifications, exp_name, lookup);
     }
     else
     {
@@ -503,6 +505,10 @@ protected:
     protein_identifications[0].setSearchEngineVersion(myrimatch_version);
     protein_identifications[0].setSearchEngine("MyriMatch");
 
+    if (!protein_identifications.empty())
+    {
+      protein_identifications[0].setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
+    }
     IdXMLFile().store(outputfile_name, protein_identifications, peptide_identifications);
     return EXECUTION_OK;
   }

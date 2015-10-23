@@ -175,6 +175,7 @@ protected:
     ProteinIdentification prot_id;
     prot_id.setIdentifier(identifier);
     prot_id.setDateTime(now);
+    prot_id.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
 
     ProteinIdentification::SearchParameters search_parameters;
     search_parameters.charges = "+2-+3";

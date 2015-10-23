@@ -20,12 +20,6 @@ cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestion.h>" namespace "OpenMS":
       void digest(AASequence & protein, libcpp_vector[AASequence] & output) nogil except +
       Size peptideCount(AASequence & protein) nogil except +
 
-      bool isLogModelEnabled() nogil except +
-      void setLogModelEnabled(bool enabled) nogil except +
-
-      double getLogThreshold() nogil except +
-      void setLogThreshold(double threshold) nogil except +
-
       # Returns the specificity for the digestion
       Specificity getSpecificity() nogil except +
 

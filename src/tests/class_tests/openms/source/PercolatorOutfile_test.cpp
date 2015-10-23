@@ -80,17 +80,15 @@ START_SECTION(enum ScoreType getScoreType(String score_type_name))
 END_SECTION
 
 START_SECTION(void load(const String& filename, ProteinIdentification& proteins,
-                        vector<PeptideIdentification>& peptides,
-                        enum ScoreType output_score, const String& psm_regex,
-                        bool count_from_zero,
-                        const MSExperiment<>* experiment_p))
+                        vector<PeptideIdentification>& peptides, 
+                        SpectrumMetaDataLookup& lookup,
+                        enum ScoreType output_score))
 {
   // mock-up raw data like those used for the search:
-  MSExperiment<> experiment;
-  experiment.getSpectra().resize(3);
+  vector<MSSpectrum<> > spectra(3);
   double rt = 2.0;
-  for (MSExperiment<>::Iterator it = experiment.begin(); it != experiment.end();
-       ++it, rt += 1.0)
+  for (vector<MSSpectrum<> >::iterator it = spectra.begin();
+       it != spectra.end(); ++it, rt += 1.0)
   {
     it->setMSLevel(2);
     it->setRT(rt);
@@ -99,12 +97,13 @@ START_SECTION(void load(const String& filename, ProteinIdentification& proteins,
     precursor.setMZ(rt * 111.1);
     it->getPrecursors().push_back(precursor);
   }
+  SpectrumMetaDataLookup lookup;
+  lookup.readSpectra(spectra, ""); // no native IDs set, so don't parse them
 
   String filename = OPENMS_GET_TEST_DATA_PATH("PercolatorOutfile_test.psms");
   ProteinIdentification proteins;
   vector<PeptideIdentification> peptides;
-  file.load(filename, proteins, peptides, PercolatorOutfile::SCORE, "", false,
-            &experiment);
+  file.load(filename, proteins, peptides, lookup, PercolatorOutfile::SCORE);
 
   TEST_EQUAL(proteins.getHits().size(), 3);
   TEST_STRING_EQUAL(proteins.getHits()[0].getAccession(), "Protein1");

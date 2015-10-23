@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -63,15 +64,18 @@ using namespace std;
    <table>
      <tr>
        <td ALIGN="center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-       <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ FidoAdapter \f$ \longrightarrow \f$</td>
+       <td VALIGN="middle" ROWSPAN=4> \f$ \longrightarrow \f$ FidoAdapter \f$ \longrightarrow \f$</td>
        <td ALIGN="center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
      </tr>
     <tr>
-      <td VALIGN="middle" ALIGN="center" ROWSPAN=1> @ref TOPP_PeptideIndexer\n(with @p annotate_proteins option) </td>
-      <td VALIGN="middle" ALIGN="center" ROWSPAN=2> @ref TOPP_ProteinQuantifier\n(via @p protein_groups parameter) </td>
+      <td VALIGN="middle" ALIGN="center" ROWSPAN=1> @ref TOPP_PeptideIndexer </td>
+      <td VALIGN="middle" ALIGN="center" ROWSPAN=3> @ref TOPP_ProteinQuantifier\n(via @p protein_groups parameter) </td>
     </tr>
     <tr>
       <td VALIGN="middle" ALIGN="center" ROWSPAN=1> @ref TOPP_IDPosteriorErrorProbability\n(with @p prob_correct option) </td>
+    </tr>
+    <tr>
+      <td VALIGN="middle" ALIGN="center" ROWSPAN=1> @ref UTILS_IDScoreSwitcher </td>
     </tr>
    </table>
  </CENTER>
@@ -86,8 +90,9 @@ using namespace std;
  
  <b>Input format:</b>
  
- Care has to be taken to provide suitable input data for this adapter. In the peptide/protein identification results (e.g. coming from a database search engine), the proteins have to be annotated with target/decoy meta data. To achieve this, run @ref TOPP_PeptideIndexer with the @p annotate_proteins option switched on.@n
- In addition, the scores for peptide hits in the input data have to be posterior probabilities - as produced e.g. by PeptideProphet in the TPP or by @ref TOPP_IDPosteriorErrorProbability (with the @p prob_correct option switched on) in OpenMS. Inputs from @ref TOPP_IDPosteriorErrorProbability (without @p prob_correct) or from @ref TOPP_ConsensusID are treated as special cases: Their posterior error probabilities (lower is better) are converted to posterior probabilities (higher is better) for processing.
+ Care has to be taken to provide suitable input data for this adapter. In the peptide/protein identification results (e.g. coming from a database search engine), the proteins have to be annotated with target/decoy meta data. To achieve this, run @ref TOPP_PeptideIndexer.@n
+ In addition, the scores for peptide hits in the input data have to be posterior probabilities - as produced e.g. by PeptideProphet in the TPP or by @ref TOPP_IDPosteriorErrorProbability (with the @p prob_correct option switched on) in OpenMS. If scores are found to be posterior error probabilities (PEPs, lower is better), they are converted to posterior probabilities (higher is better) using "1 - PEP".@n
+ If the posterior (error) probabilities are stored in user parameters ("UserParam") in the idXML instead of in the score fields, @ref UTILS_IDScoreSwitcher can be used to rewrite the scores. (This may be the case e.g. if @ref TOPP_FalseDiscoveryRate and @ref TOPP_IDFilter were applied for FDR filtering prior to protein inference.)
  
  <b>Output format:</b>
  
@@ -132,7 +137,6 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerInputFile_("fido_executable", "<path>", "Fido", "Path to the Fido executable to use; may be empty if the executable is globally available.", true, false, ListUtils::create<String>("skipexists"));
     registerInputFile_("fidocp_executable", "<path>", "FidoChooseParameters", "Path to the FidoChooseParameters executable to use; may be empty if the executable is globally available.", true, false, ListUtils::create<String>("skipexists"));
-    registerStringOption_("prob_param", "<string>", "Posterior Probability_score", "Read the peptide probability from this user parameter ('UserParam') in the input file, instead of from the 'score' field, if available. (Use e.g. for search results that were processed with the TOPP tools IDPosteriorErrorProbability followed by FalseDiscoveryRate.)", false);
     registerFlag_("separate_runs", "Process multiple protein identification runs in the input separately, don't merge them. Merging results in loss of descriptive information of the single protein identification runs.");
     registerFlag_("keep_zero_group", "Keep the group of proteins with estimated probability of zero, which is otherwise removed (it may be very large)", true);
     registerFlag_("greedy_group_resolution", "Post-process Fido output with greedy resolution of shared peptides based on the protein probabilities. Also adds the resolved ambiguity groups to output.");
@@ -157,8 +161,7 @@ protected:
   // write a PSM graph file for Fido based on the given peptide identifications;
   // optionally only use IDs with given identifier (filter by protein ID run):
   void writePSMGraph_(vector<PeptideIdentification>& peptides,
-                      const String& out_path, const String& prob_param = "",
-                      const String& identifier = "")
+                      const String& out_path, const String& identifier = "")
   {
     ofstream graph_out(out_path.c_str());
     bool warned_once = false;
@@ -177,40 +180,35 @@ protected:
         continue;
       }
       
-      double score = 0.0;
-      String error_reason;
-      if (prob_param.empty() || !hit.metaValueExists(prob_param))
+      double score = hit.getScore();
+      String score_type = pep_it->getScoreType();
+      bool higher_better = pep_it->isHigherScoreBetter();
+
+      // workaround for posterior error probabilities (PEPs):
+      if (score_type.hasSuffix("_score"))
       {
-        score = hit.getScore();
-        if (!pep_it->isHigherScoreBetter())
+        score_type.chop(6);
+      }
+      score_type.toLower().remove(' ').remove('_').remove('-');
+      if (score_type == "posteriorerrorprobability")
+      {
+        if (!warned_once)
         {
-          // workaround for important TOPP tools:
-          String score_type = pep_it->getScoreType();
-          score_type.toLower();
-          if ((score_type == "posterior error probability") ||
-              score_type.hasPrefix("consensus_"))
-          {
-            if (!warned_once)
-            {
-              LOG_WARN << "Warning: Scores of peptide hits seem to be posterior"
-                " error probabilities. Converting to (positive) posterior"
-                " probabilities." << endl;
-              warned_once = true;
-            }
-            score = 1.0 - score;
-          }
-          else
-          {
-            error_reason = "lower scores are better";
-          }
+          LOG_WARN << "Warning: Scores of peptide hits seem to be posterior "
+            "error probabilities. Converting to (positive) posterior "
+            "probabilities." << endl;
+          warned_once = true;
         }
+        score = 1.0 - score;
+        higher_better = true;
       }
-      else
+
+      String error_reason;
+      if (!higher_better)
       {
-        score = hit.getMetaValue(prob_param);
-      }
-      
-      if (score < 0.0)
+        error_reason = "lower scores are better";
+      }     
+      else if (score < 0.0)
       {
         error_reason = "score < 0";
       }
@@ -332,8 +330,7 @@ protected:
     current_fido_params.replaceInStrings("INPUT_GRAPH",
                                          input_graph.toQString());
 
-    writePSMGraph_(peptides, input_graph, getStringOption_("prob_param"),
-                   protein.getIdentifier());
+    writePSMGraph_(peptides, input_graph, protein.getIdentifier());
     if (choose_params)
     {
       String input_proteins = temp_dir + "fido_input_proteins" + num + ".txt";
@@ -501,7 +498,6 @@ protected:
     String out = getStringOption_("out");
     String fido_executable = getStringOption_("fido_executable");
     String fidocp_executable = getStringOption_("fidocp_executable");
-    String prob_param = getStringOption_("prob_param");
     bool separate_runs = getFlag_("separate_runs");
     bool keep_zero_group = getFlag_("keep_zero_group");
     bool greedy_flag = getFlag_("greedy_group_resolution");
@@ -535,6 +531,15 @@ protected:
       return INPUT_FILE_EMPTY;
     }
     
+    // remove protein hits that shouldn't be there:
+    for (vector<ProteinIdentification>::iterator prot_it = proteins.begin();
+         prot_it != proteins.end(); ++prot_it)
+    {
+      ProteinIdentification filtered;
+      IDFilter::removeUnreferencedProteinHits(*prot_it, peptides, filtered);
+      *prot_it = filtered;
+    }
+
     // sanitize protein accessions:
     set<String> accessions;
     for (vector<ProteinIdentification>::iterator prot_it = proteins.begin();
@@ -638,6 +643,9 @@ protected:
                prot_it->getHits().rbegin(); hit_it !=
                prot_it->getHits().rend(); ++hit_it)
         {
+          // save original score type:
+          // @TODO: does this make sense if we have potentially different score
+          // types from different search engines?
           hit_it->setMetaValue("old_score_type", prot_it->getScoreType());
           hit_map[hit_it->getAccession()] = &(*hit_it);
         }

@@ -728,7 +728,7 @@ namespace OpenMS
 // check if a feature is matched with this id:
   bool SHFeature::check_match_by_id(int ID)
   {
-    // check if its teh own:
+    // check if its the own:
     if (spectrum_ID == ID)
     {
       return true;
@@ -742,11 +742,10 @@ namespace OpenMS
       }
       else
       {
+        // default is false
         return false;
       }
     }
-
-    return false;
   }
 
 //////////////////////////////////////////////////

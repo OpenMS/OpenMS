@@ -940,15 +940,15 @@ protected:
       std::set<DataProcessing::ProcessingAction> actions;
       actions.insert(action);
 
-      DataProcessing p;
+      DataProcessingPtr p = boost::shared_ptr<DataProcessing>(new DataProcessing);
       //actions
-      p.setProcessingActions(actions);
+      p->setProcessingActions(actions);
       //software
-      p.getSoftware().setName("SpectrumCanvas");
+      p->getSoftware().setName("SpectrumCanvas");
       //version
-      p.getSoftware().setVersion(VersionInfo::getVersion());
+      p->getSoftware().setVersion(VersionInfo::getVersion());
       //time
-      p.setCompletionTime(DateTime::now());
+      p->setCompletionTime(DateTime::now());
 
       for (Size i = 0; i < map.size(); ++i)
       {

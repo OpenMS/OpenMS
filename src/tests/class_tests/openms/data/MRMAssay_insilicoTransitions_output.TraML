@@ -6470,13 +6470,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAAAAVSGSAAAEAK_2_b1-46^2_14.027" peptideRef="1;sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
+    <Transition id="insilico_AAAAAAVSGSAAAEAK_2_b1-46^2_13.5231" peptideRef="1;sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="658.8439" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="14.027"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="13.5231"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -6490,13 +6490,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAAAAVSGSAAAEAK_2_b1-36^2_19.0192" peptideRef="1;sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
+    <Transition id="insilico_AAAAAAVSGSAAAEAK_2_b1-36^2_18.5153" peptideRef="1;sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="658.8439" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.0192"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="18.5153"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -6510,13 +6510,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAAAAVSGSAAAEAK_2_b1-34^2_20.0032" peptideRef="1;sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
+    <Transition id="insilico_AAAAAAVSGSAAAEAK_2_b1-34^2_19.4993" peptideRef="1;sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="658.8439" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="20.0032"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.4993"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -6570,13 +6570,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAAAAVSGSAAAEAK_2_b1-44^2_15.0348" peptideRef="1;sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
+    <Transition id="insilico_AAAAAAVSGSAAAEAK_2_b1-44^2_14.5309" peptideRef="1;sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="658.8439" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="15.0348"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="14.5309"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -6850,13 +6850,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAAAAVSGSAAAEAK_2_b1^2_37.029746062471" peptideRef="1;sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
+    <Transition id="insilico_AAAAAAVSGSAAAEAK_2_b1^2_36.525833546521" peptideRef="1;sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="658.8439" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="37.029746062471"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="36.525833546521"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -6987,13 +6987,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAAAAVSGSAAAEAK_2_b1-17^2_28.5165" peptideRef="1;sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
+    <Transition id="insilico_AAAAAAVSGSAAAEAK_2_b1-17^2_28.0126" peptideRef="1;sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="658.8439" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="28.5165"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="28.0126"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -7882,13 +7882,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAAAAVSGSAAAEAK_2_b1-35^2_19.5112" peptideRef="1;sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
+    <Transition id="insilico_AAAAAAVSGSAAAEAK_2_b1-35^2_19.0073" peptideRef="1;sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="658.8439" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.5112"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.0073"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -8576,13 +8576,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAAAAVSGSAAAEAK_2_b1-18^2_28.0245" peptideRef="1;sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
+    <Transition id="insilico_AAAAAAVSGSAAAEAK_2_b1-18^2_27.5206" peptideRef="1;sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="658.8439" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="28.0245"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="27.5206"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -10347,13 +10347,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAATGTIFTFR_2_b1-46^2_14.027" peptideRef="1;sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
+    <Transition id="insilico_AAAATGTIFTFR_2_b1-46^2_13.5231" peptideRef="1;sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="613.83" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="14.027"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="13.5231"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -10367,13 +10367,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAATGTIFTFR_2_b1-44^2_15.0348" peptideRef="1;sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
+    <Transition id="insilico_AAAATGTIFTFR_2_b1-44^2_14.5309" peptideRef="1;sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="613.83" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="15.0348"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="14.5309"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -10387,13 +10387,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAATGTIFTFR_2_b1-36^2_19.0192" peptideRef="1;sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
+    <Transition id="insilico_AAAATGTIFTFR_2_b1-36^2_18.5153" peptideRef="1;sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="613.83" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.0192"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="18.5153"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -10407,13 +10407,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAATGTIFTFR_2_b1-34^2_20.0032" peptideRef="1;sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
+    <Transition id="insilico_AAAATGTIFTFR_2_b1-34^2_19.4993" peptideRef="1;sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="613.83" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="20.0032"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.4993"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -10427,13 +10427,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAATGTIFTFR_2_b1-17^2_28.5165" peptideRef="1;sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
+    <Transition id="insilico_AAAATGTIFTFR_2_b1-17^2_28.0126" peptideRef="1;sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="613.83" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="28.5165"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="28.0126"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -10447,13 +10447,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAATGTIFTFR_2_b1^2_37.029746062471" peptideRef="1;sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
+    <Transition id="insilico_AAAATGTIFTFR_2_b1^2_36.525833546521" peptideRef="1;sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="613.83" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="37.029746062471"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="36.525833546521"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -11123,13 +11123,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAATGTIFTFR_2_b1-35^2_19.5112" peptideRef="1;sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
+    <Transition id="insilico_AAAATGTIFTFR_2_b1-35^2_19.0073" peptideRef="1;sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="613.83" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.5112"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.0073"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -11660,13 +11660,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAATGTIFTFR_2_b1-18^2_28.0245" peptideRef="1;sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
+    <Transition id="insilico_AAAATGTIFTFR_2_b1-18^2_27.5206" peptideRef="1;sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="613.83" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="28.0245"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="27.5206"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -13372,13 +13372,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_2_b1-46^2_14.027" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_2_b1-46^2_13.5231" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="14.027"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="13.5231"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -13392,13 +13392,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_2_b1-44^2_15.0348" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_2_b1-44^2_14.5309" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="15.0348"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="14.5309"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -13412,13 +13412,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_2_b1-36^2_19.0192" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_2_b1-36^2_18.5153" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.0192"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="18.5153"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -13432,13 +13432,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_2_b1-34^2_20.0032" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_2_b1-34^2_19.4993" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="20.0032"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.4993"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -13452,13 +13452,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_2_b1-17^2_28.5165" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_2_b1-17^2_28.0126" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="28.5165"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="28.0126"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -13472,13 +13472,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_2_b1^2_37.029746062471" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_2_b1^2_36.525833546521" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="37.029746062471"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="36.525833546521"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -14146,13 +14146,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_2_b1-35^2_19.5112" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_2_b1-35^2_19.0073" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.5112"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.0073"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -14662,13 +14662,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_2_b1-18^2_28.0245" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_2_b1-18^2_27.5206" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="28.0245"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="27.5206"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -16137,13 +16137,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_3_b1-35^3_13.3432" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_3_b1-35^3_13.0073" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="13.3432"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="13.0073"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -16157,13 +16157,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_3_b1-34^3_13.6712" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_3_b1-34^3_13.3353" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="13.6712"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="13.3353"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -16177,13 +16177,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_3_b1^3_25.0222561972377" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_3_b1^3_24.6863145199377" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="25.0222561972377"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="24.6863145199377"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -17050,13 +17050,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_3_b1-46^2_14.027" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_3_b1-46^2_13.5231" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="14.027"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="13.5231"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -17070,13 +17070,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_3_b1-36^2_19.0192" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_3_b1-36^2_18.5153" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.0192"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="18.5153"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -17090,13 +17090,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_3_b1-35^2_19.5112" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_3_b1-35^2_19.0073" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.5112"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.0073"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -17110,13 +17110,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_3_b1-34^2_20.0032" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_3_b1-34^2_19.4993" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="20.0032"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.4993"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -17130,13 +17130,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_3_b1-18^2_28.0245" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_3_b1-18^2_27.5206" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="28.0245"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="27.5206"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -17150,13 +17150,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_3_b1-17^2_28.5165" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_3_b1-17^2_28.0126" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="28.5165"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="28.0126"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -17170,13 +17170,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_3_b1-44^2_15.0348" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_3_b1-44^2_14.5309" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="15.0348"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="14.5309"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -17230,13 +17230,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_3_b1^2_37.029746062471" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_3_b1^2_36.525833546521" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="37.029746062471"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="36.525833546521"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -17268,13 +17268,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_3_b1-36^3_13.0152" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_3_b1-36^3_12.6793" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="13.0152"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="12.6793"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -19302,13 +19302,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_3_b1-18^3_19.0187" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_3_b1-18^3_18.6828" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.0187"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="18.6828"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -19978,13 +19978,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_3_b1-17^3_19.3467" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_3_b1-17^3_19.0108" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.3467"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.0108"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -19998,13 +19998,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_3_b1-44^3_10.359" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_3_b1-44^3_10.023" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="10.359"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="10.023"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -20598,13 +20598,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_3_b1-46^3_9.6871" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="insilico_AAADPHEC(Carbamidomethyl)YAK_3_b1-46^3_9.3512" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="9.6871"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="9.3512"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -21852,13 +21852,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAITAYALTLTK_2_b1-46^2_14.027" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
+    <Transition id="insilico_AAAITAYALTLTK_2_b1-46^2_13.5231" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="654.3821" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="14.027"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="13.5231"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -21872,13 +21872,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAITAYALTLTK_2_b1-44^2_15.0348" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
+    <Transition id="insilico_AAAITAYALTLTK_2_b1-44^2_14.5309" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="654.3821" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="15.0348"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="14.5309"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -21892,13 +21892,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAITAYALTLTK_2_b1-36^2_19.0192" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
+    <Transition id="insilico_AAAITAYALTLTK_2_b1-36^2_18.5153" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="654.3821" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.0192"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="18.5153"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -21912,13 +21912,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAITAYALTLTK_2_b1-34^2_20.0032" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
+    <Transition id="insilico_AAAITAYALTLTK_2_b1-34^2_19.4993" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="654.3821" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="20.0032"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.4993"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -21932,13 +21932,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAITAYALTLTK_2_b1^2_37.029746062471" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
+    <Transition id="insilico_AAAITAYALTLTK_2_b1^2_36.525833546521" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="654.3821" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="37.029746062471"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="36.525833546521"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -21991,13 +21991,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAITAYALTLTK_2_b1-17^2_28.5165" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
+    <Transition id="insilico_AAAITAYALTLTK_2_b1-17^2_28.0126" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="654.3821" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="28.5165"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="28.0126"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -22827,13 +22827,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAITAYALTLTK_2_b1-35^2_19.5112" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
+    <Transition id="insilico_AAAITAYALTLTK_2_b1-35^2_19.0073" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="654.3821" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.5112"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.0073"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -23421,13 +23421,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAITAYALTLTK_2_b1-18^2_28.0245" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
+    <Transition id="insilico_AAAITAYALTLTK_2_b1-18^2_27.5206" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="654.3821" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="28.0245"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="27.5206"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -25272,13 +25272,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAITSDILEALGR_2_b1-46^2_14.027" peptideRef="1;sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
+    <Transition id="insilico_AAAITSDILEALGR_2_b1-46^2_13.5231" peptideRef="1;sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="700.8908" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="14.027"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="13.5231"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -25292,13 +25292,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAITSDILEALGR_2_b1-44^2_15.0348" peptideRef="1;sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
+    <Transition id="insilico_AAAITSDILEALGR_2_b1-44^2_14.5309" peptideRef="1;sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="700.8908" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="15.0348"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="14.5309"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -25312,13 +25312,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAITSDILEALGR_2_b1-36^2_19.0192" peptideRef="1;sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
+    <Transition id="insilico_AAAITSDILEALGR_2_b1-36^2_18.5153" peptideRef="1;sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="700.8908" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.0192"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="18.5153"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -25332,13 +25332,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAITSDILEALGR_2_b1-34^2_20.0032" peptideRef="1;sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
+    <Transition id="insilico_AAAITSDILEALGR_2_b1-34^2_19.4993" peptideRef="1;sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="700.8908" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="20.0032"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.4993"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -25551,13 +25551,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAITSDILEALGR_2_b1^2_37.029746062471" peptideRef="1;sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
+    <Transition id="insilico_AAAITSDILEALGR_2_b1^2_36.525833546521" peptideRef="1;sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="700.8908" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="37.029746062471"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="36.525833546521"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -25629,13 +25629,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAITSDILEALGR_2_b1-17^2_28.5165" peptideRef="1;sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
+    <Transition id="insilico_AAAITSDILEALGR_2_b1-17^2_28.0126" peptideRef="1;sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="700.8908" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="28.5165"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="28.0126"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -26643,13 +26643,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAITSDILEALGR_2_b1-35^2_19.5112" peptideRef="1;sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
+    <Transition id="insilico_AAAITSDILEALGR_2_b1-35^2_19.0073" peptideRef="1;sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="700.8908" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.5112"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.0073"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -27280,13 +27280,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAITSDILEALGR_2_b1-18^2_28.0245" peptideRef="1;sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
+    <Transition id="insilico_AAAITSDILEALGR_2_b1-18^2_27.5206" peptideRef="1;sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="700.8908" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="28.0245"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="27.5206"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -28676,13 +28676,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAN(Deamidated)QMR_2_b1-46^2_14.027" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
+    <Transition id="insilico_AAAN(Deamidated)QMR_2_b1-46^2_13.5231" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="381.6818" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="14.027"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="13.5231"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -28696,13 +28696,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAN(Deamidated)QMR_2_b1-36^2_19.0192" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
+    <Transition id="insilico_AAAN(Deamidated)QMR_2_b1-36^2_18.5153" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="381.6818" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.0192"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="18.5153"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -28716,13 +28716,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAN(Deamidated)QMR_2_b1-17^2_28.5165" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
+    <Transition id="insilico_AAAN(Deamidated)QMR_2_b1-17^2_28.0126" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="381.6818" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="28.5165"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="28.0126"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -28856,13 +28856,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAN(Deamidated)QMR_2_b1-35^2_19.5112" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
+    <Transition id="insilico_AAAN(Deamidated)QMR_2_b1-35^2_19.0073" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="381.6818" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.5112"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.0073"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -28896,13 +28896,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAN(Deamidated)QMR_2_b1-34^2_20.0032" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
+    <Transition id="insilico_AAAN(Deamidated)QMR_2_b1-34^2_19.4993" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="381.6818" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="20.0032"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.4993"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -28976,13 +28976,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAN(Deamidated)QMR_2_b1-18^2_28.0245" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
+    <Transition id="insilico_AAAN(Deamidated)QMR_2_b1-18^2_27.5206" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="381.6818" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="28.0245"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="27.5206"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -29036,13 +29036,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAN(Deamidated)QMR_2_b1-44^2_15.0348" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
+    <Transition id="insilico_AAAN(Deamidated)QMR_2_b1-44^2_14.5309" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="381.6818" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="15.0348"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="14.5309"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -29731,13 +29731,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAN(Deamidated)QMR_2_b1^2_37.029746062471" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
+    <Transition id="insilico_AAAN(Deamidated)QMR_2_b1^2_36.525833546521" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="381.6818" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="37.029746062471"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="36.525833546521"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -29750,13 +29750,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAN(Deamidated)QMR_2_b1-45^2_14.519" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
+    <Transition id="insilico_AAAN(Deamidated)QMR_2_b1-45^2_14.0151" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="381.6818" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="14.519"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="14.0151"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -30649,13 +30649,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAANQMR_2_b1-46^2_14.027" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85">
+    <Transition id="insilico_AAANQMR_2_b1-46^2_13.5231" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="381.1898" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="14.027"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="13.5231"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -30669,13 +30669,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAANQMR_2_b1-36^2_19.0192" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85">
+    <Transition id="insilico_AAANQMR_2_b1-36^2_18.5153" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="381.1898" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.0192"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="18.5153"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -30689,13 +30689,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAANQMR_2_b1-17^2_28.5165" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85">
+    <Transition id="insilico_AAANQMR_2_b1-17^2_28.0126" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="381.1898" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="28.5165"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="28.0126"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -30809,13 +30809,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAANQMR_2_b1-35^2_19.5112" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85">
+    <Transition id="insilico_AAANQMR_2_b1-35^2_19.0073" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="381.1898" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.5112"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.0073"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -30849,13 +30849,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAANQMR_2_b1-34^2_20.0032" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85">
+    <Transition id="insilico_AAANQMR_2_b1-34^2_19.4993" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="381.1898" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="20.0032"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.4993"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -30929,13 +30929,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAANQMR_2_b1-18^2_28.0245" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85">
+    <Transition id="insilico_AAANQMR_2_b1-18^2_27.5206" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="381.1898" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="28.0245"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="27.5206"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -30989,13 +30989,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAANQMR_2_b1-44^2_15.0348" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85">
+    <Transition id="insilico_AAANQMR_2_b1-44^2_14.5309" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="381.1898" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="15.0348"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="14.5309"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -31604,13 +31604,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAANQMR_2_b1^2_37.029746062471" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85">
+    <Transition id="insilico_AAANQMR_2_b1^2_36.525833546521" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="381.1898" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="37.029746062471"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="36.525833546521"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -31623,13 +31623,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAANQMR_2_b1-45^2_14.519" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85">
+    <Transition id="insilico_AAANQMR_2_b1-45^2_14.0151" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="381.1898" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="14.519"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="14.0151"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -32541,13 +32541,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAPNTPK_2_b1-46^2_14.027" peptideRef="1;sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
+    <Transition id="insilico_AAAPNTPK_2_b1-46^2_13.5231" peptideRef="1;sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="385.2138" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="14.027"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="13.5231"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -32561,13 +32561,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAPNTPK_2_b1-44^2_15.0348" peptideRef="1;sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
+    <Transition id="insilico_AAAPNTPK_2_b1-44^2_14.5309" peptideRef="1;sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="385.2138" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="15.0348"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="14.5309"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -32581,13 +32581,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAPNTPK_2_b1-36^2_19.0192" peptideRef="1;sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
+    <Transition id="insilico_AAAPNTPK_2_b1-36^2_18.5153" peptideRef="1;sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="385.2138" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.0192"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="18.5153"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -32601,13 +32601,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAPNTPK_2_b1-34^2_20.0032" peptideRef="1;sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
+    <Transition id="insilico_AAAPNTPK_2_b1-34^2_19.4993" peptideRef="1;sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="385.2138" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="20.0032"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.4993"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -32621,13 +32621,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAPNTPK_2_b1-17^2_28.5165" peptideRef="1;sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
+    <Transition id="insilico_AAAPNTPK_2_b1-17^2_28.0126" peptideRef="1;sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="385.2138" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="28.5165"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="28.0126"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -32841,13 +32841,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAPNTPK_2_b1-35^2_19.5112" peptideRef="1;sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
+    <Transition id="insilico_AAAPNTPK_2_b1-35^2_19.0073" peptideRef="1;sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="385.2138" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.5112"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.0073"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -32921,13 +32921,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAPNTPK_2_b1-18^2_28.0245" peptideRef="1;sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
+    <Transition id="insilico_AAAPNTPK_2_b1-18^2_27.5206" peptideRef="1;sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="385.2138" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="28.0245"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="27.5206"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -33678,13 +33678,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAPNTPK_2_b1-45^2_14.519" peptideRef="1;sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
+    <Transition id="insilico_AAAPNTPK_2_b1-45^2_14.0151" peptideRef="1;sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="385.2138" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="14.519"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="14.0151"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
@@ -33698,13 +33698,13 @@
       <userParam name="detecting_transition" type="xsd:string" value="false"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="insilico_AAAPNTPK_2_b1^2_37.029746062471" peptideRef="1;sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
+    <Transition id="insilico_AAAPNTPK_2_b1^2_36.525833546521" peptideRef="1;sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="385.2138" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="37.029746062471"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="36.525833546521"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>

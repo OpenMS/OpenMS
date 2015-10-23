@@ -75,7 +75,7 @@ double mz_tolerance = 40;
 bool mz_tolerance_unit = true;    // ppm (true), Da (false)
 
 // construct list of peak patterns
-std::vector<MultiplexPeakPattern> patterns;
+std::vector<MultiplexIsotopicPeakPattern> patterns;
 std::vector<double> shifts1;
 shifts1.push_back(0);
 shifts1.push_back(8.0443702794);
@@ -84,16 +84,16 @@ shifts2.push_back(0);
 shifts2.push_back(2*8.0443702794);
 for (int c = charge_max; c >= charge_min; --c)
 {
-    MultiplexPeakPattern pattern1(c, peaks_per_peptide_max, shifts1, 0);
+    MultiplexIsotopicPeakPattern pattern1(c, peaks_per_peptide_max, shifts1, 0);
     patterns.push_back(pattern1);
-    MultiplexPeakPattern pattern2(c, peaks_per_peptide_max, shifts2, 1);
+    MultiplexIsotopicPeakPattern pattern2(c, peaks_per_peptide_max, shifts2, 1);
     patterns.push_back(pattern2);
 }
 
 MultiplexFilteringCentroided* nullPointer = 0;
 MultiplexFilteringCentroided* ptr;
 
-START_SECTION(MultiplexFilteringCentroided(const MSExperiment<Peak1D>& exp_picked, const std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling))
+START_SECTION(MultiplexFilteringCentroided(const MSExperiment<Peak1D>& exp_picked, const std::vector<MultiplexIsotopicPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling))
     MultiplexFilteringCentroided filtering(exp_picked, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling);
     ptr = new MultiplexFilteringCentroided(exp_picked, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling);
     TEST_NOT_EQUAL(ptr, nullPointer);

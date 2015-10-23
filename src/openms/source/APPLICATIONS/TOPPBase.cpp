@@ -619,17 +619,17 @@ namespace OpenMS
       }
 
       //NAME + ARGUMENT
-      String tmp = "  -";
-      tmp += it->name + " " + it->argument;
+      String str_tmp = "  -";
+      str_tmp += it->name + " " + it->argument;
       if (it->required)
-        tmp += '*';
+        str_tmp += '*';
       if (it->type == ParameterInformation::NEWLINE)
-        tmp = "";
+        str_tmp = "";
 
       //OFFSET
-      tmp.fillRight(' ', offset);
+      str_tmp.fillRight(' ', offset);
       if (it->type == ParameterInformation::TEXT)
-        tmp = "";
+        str_tmp = "";
 
       //DESCRIPTION
       String desc_tmp = it->description;
@@ -646,10 +646,10 @@ namespace OpenMS
       case ParameterInformation::INTLIST:
       case ParameterInformation::DOUBLELIST:
       {
-        String tmp = it->default_value.toString().substitute(", ", " ");
-        if (tmp != "" && tmp != "[]")
+        String tmp_s = it->default_value.toString().substitute(", ", " ");
+        if (tmp_s != "" && tmp_s != "[]")
         {
-          addons.push_back(String("default: '") + tmp + "'");
+          addons.push_back(String("default: '") + tmp_s + "'");
         }
       }
       break;
@@ -720,9 +720,9 @@ namespace OpenMS
       }
 
       if (it->type == ParameterInformation::TEXT)
-        cerr << ConsoleUtils::breakString(tmp + desc_tmp, 0, 10); // no indentation for text
+        cerr << ConsoleUtils::breakString(str_tmp + desc_tmp, 0, 10); // no indentation for text
       else
-        cerr << ConsoleUtils::breakString(tmp + desc_tmp, offset, 10);
+        cerr << ConsoleUtils::breakString(str_tmp + desc_tmp, offset, 10);
       cerr << "\n";
     }
 

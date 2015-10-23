@@ -10,6 +10,7 @@
 			</ProteinHit>
 			<ProteinHit id="PH_1" accession="BSA3" score="0" sequence="" >
 			</ProteinHit>
+			<UserParam type="stringList" name="ms_run-location" value="[file:///C:/testing/test_file_path/test_file_name.raw]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="SpecEValue" higher_score_better="false" significance_threshold="0" MZ="520.262817382812" RT="2655.095703125" >
 			<PeptideHit score="4.6521305e-19" sequence="DFASSGGYVLHLHR" charge="3" aa_before="-" aa_after="E" >

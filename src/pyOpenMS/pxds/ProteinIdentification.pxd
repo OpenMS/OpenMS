@@ -94,6 +94,9 @@ cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS":
         # Sets the identifier
         void setIdentifier(String id_) nogil except +
 
+        void setPrimaryMSRunPath(StringList& s) nogil except +
+        StringList getPrimaryMSRunPath() nogil except +
+
 cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS::ProteinIdentification":
 
     cdef enum PeakMassType:

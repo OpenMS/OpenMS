@@ -126,12 +126,18 @@ namespace OpenMS
     if (bz[0] == 'B' && bz[1] == 'Z') // bzip2
     {
       Bzip2Ifstream bzip2_file(filename.c_str());
+
+      // read in 1024 bytes (keep last byte for zero to end string)
       char buffer[1024];
-      bzip2_file.read(buffer, 1024);
+      size_t bytes_read = bzip2_file.read(buffer, 1024-1);
+      buffer[bytes_read] = '\0';
+
+      // get first five lines
       String buffer_str(buffer);
       vector<String> split;
       buffer_str.split('\n', split);
       split.resize(5);
+
       first_line = split[0];
       two_five = split[1] + ' ' + split[2] + ' ' + split[3] + ' ' + split[4];
       all_simple = first_line + ' ' + two_five;
@@ -140,12 +146,18 @@ namespace OpenMS
     else if (bz[0] == g1 && bz[1] == g2) // gzip
     {
       GzipIfstream gzip_file(filename.c_str());
+
+      // read in 1024 bytes (keep last byte for zero to end string)
       char buffer[1024];
-      gzip_file.read(buffer, 1024);
+      size_t bytes_read = gzip_file.read(buffer, 1024-1);
+      buffer[bytes_read] = '\0';
+
+      // get first five lines
       String buffer_str(buffer);
       vector<String> split;
       buffer_str.split('\n', split);
       split.resize(5);
+
       first_line = split[0];
       two_five = split[1] + ' ' + split[2] + ' ' + split[3] + ' ' + split[4];
       all_simple = first_line + ' ' + two_five;
@@ -431,7 +443,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     options_ = options;
   }
 
-  String FileHandler::computeFileHash_(const String& filename) const
+  String FileHandler::computeFileHash(const String& filename)
   {
     QCryptographicHash crypto(QCryptographicHash::Sha1);
     QFile file(filename.toQString());

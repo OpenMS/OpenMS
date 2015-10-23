@@ -691,14 +691,14 @@ namespace OpenMS
 
     // TODO add also NTerm loss formulas
     // collect the different possible neutral loss molecules from the residues
-    set<String> losses;
+    set<String> losses_set;
     for (set<const Residue*>::const_iterator it = residues.begin(); it != residues.end(); ++it)
     {
       vector<EmpiricalFormula> res_losses = (*it)->getLossFormulas();
       for (vector<EmpiricalFormula>::const_iterator loss_it = res_losses.begin(); loss_it != res_losses.end(); ++loss_it)
       {
         String loss = loss_it->toString();
-        losses.insert(loss);
+        losses_set.insert(loss);
 #ifdef NEUTRAL_LOSS_MODEL_DEBUG
         cerr << "Loss: " << loss << ", of residue: " << (*it)->getName() << endl;
 #endif
@@ -714,7 +714,7 @@ namespace OpenMS
     hmm_precursor_.addNewState(new HMMState(ion_name, false));
 
     // emitting nodes for single losses
-    for (set<String>::const_iterator it = losses.begin(); it != losses.end(); ++it)
+    for (set<String>::const_iterator it = losses_set.begin(); it != losses_set.end(); ++it)
     {
       hmm_precursor_.addNewState(new HMMState(ion_name + "-" + *it, false));
     }
@@ -724,18 +724,18 @@ namespace OpenMS
     set<String> double_losses;
     if (enable_double_losses)
     {
-      for (set<String>::const_iterator it1 = losses.begin(); it1 != losses.end(); ++it1)
+      for (set<String>::const_iterator it1 = losses_set.begin(); it1 != losses_set.end(); ++it1)
       {
         set<String>::const_iterator it2 = it1;
         ++it2;
-        for (; it2 != losses.end(); ++it2)
+        for (; it2 != losses_set.end(); ++it2)
         {
           double_losses.insert(*it1 + "-" + *it2);
         }
       }
-      for (set<String>::const_iterator it1 = losses.begin(); it1 != losses.end(); ++it1)
+      for (set<String>::const_iterator it1 = losses_set.begin(); it1 != losses_set.end(); ++it1)
       {
-        for (set<String>::const_iterator it2 = it1; it2 != losses.end(); ++it2)
+        for (set<String>::const_iterator it2 = it1; it2 != losses_set.end(); ++it2)
         {
           hmm_precursor_.addNewState(new HMMState(ion_name + "-" + *it1 + "-" + *it2, false));
         }

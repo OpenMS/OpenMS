@@ -54,6 +54,7 @@
 #include <QtCore/QFile>
 #include <QtCore/QProcess>
 #include <QDir>
+#include <qsignalmapper.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -762,22 +763,24 @@ protected:
     // names of temporary files for data chunks
     StringList file_spectra_chunks_in, file_spectra_chunks_out;
     Size ms2_spec_count(0);
+    StringList primary_ms_runs;
     { // local scope to free memory after conversion to MGF format is done
       FileHandler fh;
       FileTypes::Type in_type = fh.getType(inputfile_name);
-      PeakMap map;
+      PeakMap peak_map;
       fh.getOptions().addMSLevel(2);
-      fh.loadExperiment(inputfile_name, map, in_type, log_type_);
-      ms2_spec_count = map.size();
+      fh.loadExperiment(inputfile_name, peak_map, in_type, log_type_, false, false);
+      primary_ms_runs = peak_map.getPrimaryMSRunPath();
+      ms2_spec_count = peak_map.size();
       writeDebug_("Read " + String(ms2_spec_count) + " spectra from file", 5);
 
-      if (map.getSpectra().empty())
+      if (peak_map.getSpectra().empty())
       {
         throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS2 spectra in input file.");
       }
 
       // determine type of spectral data (profile or centroided)
-      SpectrumSettings::SpectrumType spectrum_type = map[0].getType();
+      SpectrumSettings::SpectrumType spectrum_type = peak_map[0].getType();
 
       if (spectrum_type == SpectrumSettings::RAWDATA)
       {
@@ -792,22 +795,23 @@ protected:
       if (chunk_size <= 0)
       {
         writeLog_("Chunk size is <=0; disabling chunking of input! If OMSSA crashes due to memory allocation errors, try setting 'chunk_size' to a value below 30000 (e.g., 10000 is usually ok).");
-        chunk_size = (int)map.getSpectra().size();
+        chunk_size = (int) peak_map.getSpectra().size();
       }
 
-      for (Size i = 0; i < map.size(); i += chunk_size)
+      for (Size i = 0; i < peak_map.size(); i += chunk_size)
       {
         PeakMap map_chunk;
         PeakMap* chunk_ptr = &map_chunk; // points to the current chunk data
         // prepare a chunk
-        if (static_cast<int>(map.size()) <= chunk_size)
+        if (static_cast<int>(peak_map.size()) <= chunk_size)
         { // we have only one chunk; avoid duplicating the whole data (could be a lot)
           // we do not use swap() since someone might want to access 'map' later and would find it empty
-          chunk_ptr = &map;
+          chunk_ptr = &peak_map;
         }
         else
         {
-          map_chunk.getSpectra().insert(map_chunk.getSpectra().begin(), map.getSpectra().begin() + i, map.getSpectra().begin() + std::min(map.size(), i + chunk_size));
+          map_chunk.getSpectra().insert(map_chunk.getSpectra().begin(), peak_map.getSpectra().begin() + i, peak_map.getSpectra().begin() + std::min(
+                  peak_map.size(), i + chunk_size));
         }
         MascotGenericFile omssa_infile;
         String filename_chunk = unique_input_name + String(chunk) + ".mgf";
@@ -823,6 +827,7 @@ protected:
     //-------------------------------------------------------------
 
     ProteinIdentification protein_identification;
+    protein_identification.setPrimaryMSRunPath(primary_ms_runs);
     vector<PeptideIdentification> peptide_ids;
 
     ProgressLogger pl;

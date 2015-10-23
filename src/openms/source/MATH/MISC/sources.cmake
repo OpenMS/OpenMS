@@ -10,6 +10,7 @@ LinearInterpolation.cpp
 MathFunctions.cpp
 NonNegativeLeastSquaresSolver.cpp
 MSNumpress.cpp
+RANSAC.cpp
 )
 
 ### add path to the filenames

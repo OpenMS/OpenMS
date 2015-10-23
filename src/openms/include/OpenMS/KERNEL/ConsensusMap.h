@@ -252,6 +252,12 @@ public:
     /// sets the description of the applied data processing
     OPENMS_DLLAPI void setDataProcessing(const std::vector<DataProcessing>& processing_method);
 
+    /// set the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)
+    OPENMS_DLLAPI void setPrimaryMSRunPath(const StringList& s);
+
+    /// get the file path to the first MS run
+    OPENMS_DLLAPI StringList getPrimaryMSRunPath() const;
+
     /// Equality operator
     OPENMS_DLLAPI bool operator==(const ConsensusMap& rhs) const;
 

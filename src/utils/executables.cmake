@@ -16,6 +16,7 @@ FuzzyDiff
 IDDecoyProbability
 IDExtractor
 IDMassAccuracy
+IDScoreSwitcher
 IDSplitter
 LabeledEval
 LowMemPeakPickerHiRes
@@ -26,6 +27,7 @@ MetaboliteSpectralMatcher
 MetaProSIP
 MRMPairFinder
 MSSimulator
+MzMLSplitter
 OpenMSInfo
 PeakPickerIterative
 QCCalculator
@@ -37,7 +39,6 @@ QCMerger
 QCShrinker
 RNPxl
 RNPxlXICFilter
-RTAnnotator
 RTEvaluation
 SemanticValidator
 SequenceCoverageCalculator

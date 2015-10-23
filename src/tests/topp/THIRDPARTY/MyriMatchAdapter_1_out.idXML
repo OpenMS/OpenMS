@@ -12,6 +12,7 @@
 			</ProteinHit>
 			<ProteinHit id="PH_2" accession="BSA3" score="0" sequence="" >
 			</ProteinHit>
+			<UserParam type="stringList" name="ms_run-location" value="[file:///C:/testing/test_file_path/test_file_name.raw]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="mvh" higher_score_better="true" significance_threshold="0" MZ="520.263365947832" RT="2655.09570312498" >
 			<PeptideHit score="39.267901895785" sequence="DFASSGGYVLHLHR" charge="3" aa_before="-" aa_after="E" protein_refs="PH_0" >
