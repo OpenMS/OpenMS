@@ -342,7 +342,7 @@ namespace OpenMS
       optionalAttributeAsString_(search_param_.taxonomy, attributes, "taxonomy");
       search_param_.charges = attributeAsString_(attributes, "charges");
       optionalAttributeAsUInt_(search_param_.missed_cleavages, attributes, "missed_cleavages");
-      search_param_.peak_mass_tolerance = attributeAsDouble_(attributes, "peak_mass_tolerance");
+      search_param_.fragment_mass_tolerance = attributeAsDouble_(attributes, "peak_mass_tolerance");
       search_param_.precursor_tolerance = attributeAsDouble_(attributes, "precursor_peak_tolerance");
       //mass type
       String mass_type = attributeAsString_(attributes, "mass_type");
@@ -716,7 +716,7 @@ namespace OpenMS
         os << "enzyme=\"unknown_enzyme\" ";
       }
       os << "missed_cleavages=\"" << search_param.missed_cleavages << "\" " << "precursor_peak_tolerance=\"" << search_param.precursor_tolerance << "\" "
-         << "peak_mass_tolerance=\"" << search_param.peak_mass_tolerance << "\" " << ">\n";
+         << "peak_mass_tolerance=\"" << search_param.fragment_mass_tolerance << "\" " << ">\n";
 
       //modifications
       for (Size j = 0; j != search_param.fixed_modifications.size(); ++j)

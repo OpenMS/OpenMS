@@ -368,7 +368,7 @@ namespace OpenMS
       if (line.hasPrefix("Fragment"))
       {
         line.split(' ', substrings);
-        search_param.peak_mass_tolerance = substrings.back().toFloat();
+        search_param.fragment_mass_tolerance = substrings.back().toFloat();
       }
       if (line.hasPrefix("PTM"))
       {

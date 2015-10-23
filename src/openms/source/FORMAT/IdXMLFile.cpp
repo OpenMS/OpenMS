@@ -163,7 +163,7 @@ namespace OpenMS
       }
       os << "missed_cleavages=\"" << params[i].missed_cleavages << "\" "
          << "precursor_peak_tolerance=\"" << params[i].precursor_tolerance << "\" "
-         << "peak_mass_tolerance=\"" << params[i].peak_mass_tolerance << "\" "
+         << "peak_mass_tolerance=\"" << params[i].fragment_mass_tolerance << "\" "
          << ">\n";
 
       //modifications
@@ -427,7 +427,7 @@ namespace OpenMS
       optionalAttributeAsString_(param_.taxonomy, attributes, "taxonomy");
       param_.charges = attributeAsString_(attributes, "charges");
       optionalAttributeAsUInt_(param_.missed_cleavages, attributes, "missed_cleavages");
-      param_.peak_mass_tolerance = attributeAsDouble_(attributes, "peak_mass_tolerance");
+      param_.fragment_mass_tolerance = attributeAsDouble_(attributes, "peak_mass_tolerance");
       param_.precursor_tolerance = attributeAsDouble_(attributes, "precursor_peak_tolerance");
       //mass type
 

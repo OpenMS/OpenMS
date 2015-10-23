@@ -138,6 +138,7 @@ cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS::
       libcpp_vector[String] variable_modifications            #< Allowed variable modifications
       DigestionEnzyme enzyme            #< The enzyme used for cleavage
       UInt missed_cleavages            #< The number of allowed missed cleavages
-      double peak_mass_tolerance            #< Mass tolerance of fragment ions (Dalton)
+      double fragment_mass_tolerance            #< Mass tolerance of fragment ions (Dalton)
+      bool fragment_mass_tolerance_ppm
       double precursor_tolerance            #< Mass tolerance of precursor ions (Dalton)
-
+      bool precursor_mass_tolerance_ppm
