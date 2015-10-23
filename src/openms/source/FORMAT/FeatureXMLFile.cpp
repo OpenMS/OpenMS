@@ -1007,8 +1007,8 @@ namespace OpenMS
 
       vector<PeptideEvidence> pes = id.getHits()[j].getPeptideEvidences();
 
-      os << IdXMLFile::createFlankingAAXMLString(pes);
-      os << IdXMLFile::createPositionXMLString(pes);
+      os << IdXMLFile::createFlankingAAXMLString_(pes);
+      os << IdXMLFile::createPositionXMLString_(pes);
 
       set<String> protein_accessions = id.getHits()[j].extractProteinAccessions();
 

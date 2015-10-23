@@ -308,8 +308,8 @@ namespace OpenMS
 
           std::vector<PeptideEvidence> pes = p_hit.getPeptideEvidences();
 
-          os << createFlankingAAXMLString(pes);
-          os << createPositionXMLString(pes);
+          os << createFlankingAAXMLString_(pes);
+          os << createPositionXMLString_(pes);
 
           std::set<String> protein_accessions = p_hit.extractProteinAccessions();
           std::set<UInt> ids;
@@ -870,7 +870,7 @@ namespace OpenMS
     }
   }
 
-  String IdXMLFile::createFlankingAAXMLString(const std::vector<PeptideEvidence> & pes)
+  String IdXMLFile::createFlankingAAXMLString_(const std::vector<PeptideEvidence> & pes)
   {
     // Check if information on previous/following aa available. If not, we will not write it out 
     bool has_aa_before_information(false);
@@ -923,7 +923,7 @@ namespace OpenMS
     return aa_string;
   }
 
-  String IdXMLFile::createPositionXMLString(const std::vector<PeptideEvidence> & pes)
+  String IdXMLFile::createPositionXMLString_(const std::vector<PeptideEvidence> & pes)
   {
     bool has_aa_start_information(false);
     bool has_aa_end_information(false);
