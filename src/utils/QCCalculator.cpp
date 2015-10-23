@@ -392,7 +392,7 @@ protected:
     UInt max = 0;
     Size below_10k = 0;
     std::vector<OpenMS::Chromatogram> chroms = exp.getChromatograms();
-    if (chroms.size() > 0) //real TIC from the mzML
+    if (!chroms.empty()) //real TIC from the mzML
     {
       for (Size t = 0; t < chroms.size(); ++t)
       {
