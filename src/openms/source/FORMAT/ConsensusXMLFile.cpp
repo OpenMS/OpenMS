@@ -46,7 +46,7 @@ using namespace std;
 namespace OpenMS
 {
   ConsensusXMLFile::ConsensusXMLFile() :
-    XMLHandler("", "1.5"), XMLFile("/SCHEMAS/ConsensusXML_1_5.xsd", "1.5"), ProgressLogger(), consensus_map_(0), act_cons_element_(), last_meta_(0)
+    XMLHandler("", "1.6"), XMLFile("/SCHEMAS/ConsensusXML_1_6.xsd", "1.6"), ProgressLogger(), consensus_map_(0), act_cons_element_(), last_meta_(0)
   {
   }
 
@@ -284,11 +284,11 @@ namespace OpenMS
       }
       last_meta_ = consensus_map_;
     }
-    else if (tag == "userParam")
+    else if (tag == "userParam" || tag == "UserParam") // remain backwards compatible. Correct is "UserParam"
     {
       if (last_meta_ == 0)
       {
-        fatalError(LOAD, String("Unexpected userParam in tag '") + parent_tag + "'");
+        fatalError(LOAD, String("Unexpected UserParam in tag '") + parent_tag + "'");
       }
 
       String name = attributeAsString_(attributes, "name");
@@ -320,7 +320,7 @@ namespace OpenMS
       }
       else
       {
-        fatalError(LOAD, String("Invalid userParam type '") + type + "'");
+        fatalError(LOAD, String("Invalid UserParam type '") + type + "'");
       }
     }
     else if (tag == "IdentificationRun")
@@ -518,28 +518,68 @@ namespace OpenMS
       optionalAttributeAsString_(tmp, attributes, "aa_before");
       if (!tmp.empty())
       {
-        // so far no peptide evidence information -> create an empty one
-        if (peptide_evidences_.empty())
-        {
-          peptide_evidences_.push_back(PeptideEvidence());
+        std::vector<String> splitted;
+        tmp.split(' ', splitted);
+        for (Size i = 0; i != splitted.size(); ++i)
+        { 
+          if (peptide_evidences_.size() < i + 1) 
+          {
+            peptide_evidences_.push_back(PeptideEvidence());
+          }
+          peptide_evidences_[i].setAABefore(splitted[i][0]);
         }
-
-        // for whatever reason consensusXML does support multiple protein accessions but only one amino acid context so we store it in the first one
-        peptide_evidences_[0].setAABefore(tmp[0]);
       }
+
       //aa_after
       tmp = "";
       optionalAttributeAsString_(tmp, attributes, "aa_after");
       if (!tmp.empty())
       {
-        // so far no peptide evidence information -> create an empty one
-        if (peptide_evidences_.empty())
-        {
-          peptide_evidences_.push_back(PeptideEvidence());
+        std::vector<String> splitted;
+        tmp.split(' ', splitted);
+        for (Size i = 0; i != splitted.size(); ++i)
+        { 
+          if (peptide_evidences_.size() < i + 1) 
+          {
+            peptide_evidences_.push_back(PeptideEvidence());
+          }
+          peptide_evidences_[i].setAAAfter(splitted[i][0]);
         }
+      }
 
-        // for whatever reason consensusXML does support multiple protein accessions but only one amino acid context so we store it in the first one
-        peptide_evidences_[0].setAAAfter(tmp[0]);
+      //start
+      tmp = "";
+      optionalAttributeAsString_(tmp, attributes, "start");
+
+      if (!tmp.empty())
+      {
+        std::vector<String> splitted;
+        tmp.split(' ', splitted);
+        for (Size i = 0; i != splitted.size(); ++i)
+        { 
+          if (peptide_evidences_.size() < i + 1) 
+          {
+            peptide_evidences_.push_back(PeptideEvidence());
+          }
+          peptide_evidences_[i].setStart(splitted[i].toInt());
+        }
+      }
+
+      //end
+      tmp = "";
+      optionalAttributeAsString_(tmp, attributes, "end");
+      if (!tmp.empty())
+      {
+        std::vector<String> splitted;
+        tmp.split(' ', splitted);
+        for (Size i = 0; i != splitted.size(); ++i)
+        { 
+          if (peptide_evidences_.size() < i + 1) 
+          {
+            peptide_evidences_.push_back(PeptideEvidence());
+          }
+          peptide_evidences_[i].setEnd(splitted[i].toInt());
+        }
       }
 
       last_meta_ = &pep_hit_;
@@ -643,10 +683,10 @@ namespace OpenMS
       os << " experiment_type=\"" << consensus_map.getExperimentType() << "\"";
     }
     os
-      << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+      << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/ConsensusXML_1_6.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
     // user param
-    writeUserParam_("userParam", os, consensus_map, 1);
+    writeUserParam_("UserParam", os, consensus_map, 1);
     setProgress(++progress_);
 
     // write data processing
@@ -659,7 +699,7 @@ namespace OpenMS
       {
         os << "\t\t<processingAction name=\"" << DataProcessing::NamesOfProcessingAction[*it] << "\" />\n";
       }
-      writeUserParam_("userParam", os, processing, 2);
+      writeUserParam_("UserParam", os, processing, 2);
       os << "\t</dataProcessing>\n";
     }
     setProgress(++progress_);
@@ -754,12 +794,12 @@ namespace OpenMS
         os << " score=\"" << current_prot_id.getHits()[j].getScore() << "\"";
         os << " sequence=\"" << current_prot_id.getHits()[j].getSequence() << "\">\n";
 
-        writeUserParam_("userParam", os, current_prot_id.getHits()[j], 4);
+        writeUserParam_("UserParam", os, current_prot_id.getHits()[j], 4);
 
         os << "\t\t\t</ProteinHit>\n";
       }
 
-      writeUserParam_("userParam", os, current_prot_id, 3);
+      writeUserParam_("UserParam", os, current_prot_id, 3);
       os << "\t\t</ProteinIdentification>\n";
       os << "\t</IdentificationRun>\n";
     }
@@ -784,7 +824,7 @@ namespace OpenMS
       }
       os << "\" label=\"" << it->second.label;
       os << "\" size=\"" << it->second.size << "\">\n";
-      writeUserParam_("userParam", os, it->second, 3);
+      writeUserParam_("UserParam", os, it->second, 3);
       os << "\t\t</map>\n";
     }
     os << "\t</mapList>\n";
@@ -829,7 +869,7 @@ namespace OpenMS
         writePeptideIdentification_(filename, os, elem.getPeptideIdentifications()[j], "PeptideIdentification", 3);
       }
 
-      writeUserParam_("userParam", os, elem, 3);
+      writeUserParam_("UserParam", os, elem, 3);
       os << "\t\t</consensusElement>\n";
     }
     os << "\t</consensusElementList>\n";
@@ -955,14 +995,14 @@ namespace OpenMS
         }
       }
       os << ">\n";
-      writeUserParam_("userParam", os, id.getHits()[j], indentation_level + 2);
+      writeUserParam_("UserParam", os, id.getHits()[j], indentation_level + 2);
       os << indent << "\t</PeptideHit>\n";
     }
 
     // do not write "spectrum_reference" since it is written as attribute already
     MetaInfoInterface tmp = id;
     tmp.removeMetaValue("spectrum_reference");
-    writeUserParam_("userParam", os, tmp, indentation_level + 1);
+    writeUserParam_("UserParam", os, tmp, indentation_level + 1);
     os << indent << "</" << tag_name << ">\n";
   }
 

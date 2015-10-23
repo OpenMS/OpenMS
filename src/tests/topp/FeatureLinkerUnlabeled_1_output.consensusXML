@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <?xml-stylesheet type="text/xsl" href="file:////nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/share/OpenMS/XSL/ConsensusXML.xsl"?>
-<consensusXML version="1.5" id="cm_5233264595117471314" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<consensusXML version="1.6" id="cm_5233264595117471314" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_6.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="1999-12-31T23:59:59">
 		<software name="FeatureLinkerUnlabeled" version="version_string" />
 		<processingAction name="Feature grouping" />
-		<userParam type="string" name="parameter: mode" value="test_mode"/>
+		<UserParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
 	<IdentificationRun id="PI_0" date="2006-03-09T11:11:11" search_engine="Mascot" search_engine_version="">
 		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
@@ -96,7 +96,7 @@
 			<groupedElementList>
 				<element map="2" id="8585306356694916618" rt="1114.9" mz="710.835" it="2.71023e+08" charge="2"/>
 			</groupedElementList>
-			<userParam type="string" name="sequence" value="SLHTLFGDELCK"/>
+			<UserParam type="string" name="sequence" value="SLHTLFGDELCK"/>
 		</consensusElement>
 		<consensusElement id="e_3332699010107892018" quality="0.97278" charge="2">
 			<centroid rt="561.762" mz="733.275" it="2.08168e+08"/>
@@ -125,14 +125,14 @@
 			<groupedElementList>
 				<element map="0" id="15776542383322853081" rt="836.541" mz="876.804" it="4.39745e+08" charge="2"/>
 			</groupedElementList>
-			<userParam type="string" name="sequence" value="ECCHGDLLECADDR"/>
+			<UserParam type="string" name="sequence" value="ECCHGDLLECADDR"/>
 		</consensusElement>
 		<consensusElement id="e_6408859317243173796" quality="0" charge="1">
 			<centroid rt="817.266" mz="922.481" it="2.63046e+08"/>
 			<groupedElementList>
 				<element map="2" id="17198512653051715988" rt="817.266" mz="922.481" it="2.63046e+08" charge="1"/>
 			</groupedElementList>
-			<userParam type="string" name="sequence" value="AEFVEVTK"/>
+			<UserParam type="string" name="sequence" value="AEFVEVTK"/>
 		</consensusElement>
 		<consensusElement id="e_474525871221756682" quality="0.908517" charge="2">
 			<centroid rt="924.713" mz="941.449" it="2.06357e+08"/>
@@ -169,7 +169,7 @@
 			<groupedElementList>
 				<element map="2" id="6004004326366812857" rt="796.474" mz="1108.49" it="6.83877e+07" charge="1"/>
 			</groupedElementList>
-			<userParam type="string" name="sequence" value="EACFAVEGPK"/>
+			<UserParam type="string" name="sequence" value="EACFAVEGPK"/>
 		</consensusElement>
 		<consensusElement id="e_10306100746905639127" quality="0.98962" charge="1">
 			<centroid rt="1035.53" mz="1163.62" it="2.14078e+08"/>
@@ -187,21 +187,21 @@
 			<groupedElementList>
 				<element map="2" id="6589589462220824505" rt="1531.86" mz="1247.12" it="2.34128e+08" charge="2"/>
 			</groupedElementList>
-			<userParam type="string" name="sequence" value="GLVLIAFSQYLQQCPFDEHVK"/>
+			<UserParam type="string" name="sequence" value="GLVLIAFSQYLQQCPFDEHVK"/>
 		</consensusElement>
 		<consensusElement id="e_1755235105885170967" quality="0" charge="1">
 			<centroid rt="979.852" mz="1283.7" it="3.13719e+08"/>
 			<groupedElementList>
 				<element map="0" id="5133610492701656310" rt="979.852" mz="1283.7" it="3.13719e+08" charge="1"/>
 			</groupedElementList>
-			<userParam type="string" name="sequence" value="HPEYAVSVLLR"/>
+			<UserParam type="string" name="sequence" value="HPEYAVSVLLR"/>
 		</consensusElement>
 		<consensusElement id="e_14811341817612382122" quality="0" charge="1">
 			<centroid rt="875.319" mz="1305.71" it="2.96944e+08"/>
 			<groupedElementList>
 				<element map="0" id="13635893658662189107" rt="875.319" mz="1305.71" it="2.96944e+08" charge="1"/>
 			</groupedElementList>
-			<userParam type="string" name="sequence" value="HLVDEPQNLIK"/>
+			<UserParam type="string" name="sequence" value="HLVDEPQNLIK"/>
 		</consensusElement>
 		<consensusElement id="e_2684106197423007927" quality="0.934053" charge="1">
 			<centroid rt="1211.96333333333" mz="1399.69" it="2.24143e+08"/>
@@ -234,7 +234,7 @@
 			<groupedElementList>
 				<element map="1" id="15025931485506509003" rt="542.407" mz="1465.55" it="2.43214e+08" charge="1"/>
 			</groupedElementList>
-			<userParam type="string" name="sequence" value="TCVADESHAGCEK"/>
+			<UserParam type="string" name="sequence" value="TCVADESHAGCEK"/>
 		</consensusElement>
 		<consensusElement id="e_7898004582401008768" quality="0.789499" charge="1">
 			<centroid rt="1197.24" mz="1479.79" it="3.46508e+08"/>
@@ -267,7 +267,7 @@
 				<PeptideHit score="35" sequence="XAA" charge="3" protein_refs="PH_0">
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="string" name="sequence" value="DDPHACYSTVFDK"/>
+			<UserParam type="string" name="sequence" value="DDPHACYSTVFDK"/>
 		</consensusElement>
 		<consensusElement id="e_16177748921272733768" quality="0.719815" charge="1">
 			<centroid rt="1360.13" mz="1567.74" it="2.60468e+08"/>
@@ -304,7 +304,7 @@
 			<groupedElementList>
 				<element map="0" id="3903516670498486088" rt="1196.8" mz="1908.9" it="2.00984e+08" charge="1"/>
 			</groupedElementList>
-			<userParam type="string" name="sequence" value="LFTFHADICTLPDTEK"/>
+			<UserParam type="string" name="sequence" value="LFTFHADICTLPDTEK"/>
 		</consensusElement>
 		<consensusElement id="e_13424404046998308790" quality="0.89488" charge="1">
 			<centroid rt="1081.58" mz="1955.95" it="2.33178e+08"/>
