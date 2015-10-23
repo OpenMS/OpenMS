@@ -57,6 +57,19 @@ namespace OpenMS
   class OPENMS_DLLAPI MultiplexDeltaMasses
   {
     public:
+    
+    /**
+     * @brief set of labels associated with a mass shift
+     * 
+     * For example, a set of SILAC labels [Lys8, Lys8, Arg10] would
+     * result in a +26 Da mass shift.
+     */
+    typedef std::multiset<String> LabelSet;
+
+    /**
+     * @brief mass shift with corresponding label set
+     */
+    typedef std::pair<double,LabelSet> DeltaMass;
 
     /**
      * @brief constructor
@@ -64,9 +77,30 @@ namespace OpenMS
     MultiplexDeltaMasses(std::vector<double> ms);
     
     /**
+     * @brief constructor
+     */
+    MultiplexDeltaMasses(std::vector<DeltaMass> dm);
+    
+    /**
      * @brief add a mass shift
      */
     void addMassShift(double ms);
+    
+    /**
+     * @brief add a delta mass
+     */
+    void addDeltaMass(DeltaMass dm);
+    
+    /**
+     * @brief add a delta mass
+     */
+    void addDeltaMass(double m, std::multiset<String> ls);
+    
+    /**
+     * @brief add a delta mass (with a label set consisting of a
+     * single label)
+     */
+    void addDeltaMass(double m, String l);
     
     /**
      * @brief returns mass shifts
@@ -90,6 +124,12 @@ namespace OpenMS
      * (including zero mass shift for first peptide)
      */
     std::vector<double> mass_shifts_;
+      
+    /**
+     * @brief mass shifts between peptides
+     * (including zero mass shift for first peptide)
+     */
+    std::vector<DeltaMass> delta_masses_;
       
  };
   
