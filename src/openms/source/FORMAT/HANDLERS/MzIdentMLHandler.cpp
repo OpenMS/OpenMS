@@ -453,7 +453,7 @@ namespace OpenMS
         {
           sof_id = "SOF_" + String(UniqueIdGenerator::getUniqueId());
           //~ TODO consider not only searchengine but also version!
-          String sost = String("\t<AnalysisSoftware version=\"") + String(it->getSearchEngineVersion()) + String("\" name=\"") + sof_name +  String("\" id=\"") + String("SOF_") + sof_id + String("\"> \n") + String("\t\t<SoftwareName> \n ");
+          String sost = String("\t<AnalysisSoftware version=\"") + String(it->getSearchEngineVersion()) + String("\" name=\"") + sof_name +  String("\" id=\"") + sof_id + String("\"> \n") + String("\t\t<SoftwareName> \n ");
           sost += "\t\t\t" + cv_.getTermByName(osecv).toXMLString(cv_ns);
           sost += String("\n\t\t</SoftwareName> \n\t</AnalysisSoftware> \n");
           sof_set.insert(sost);
@@ -484,7 +484,7 @@ namespace OpenMS
         String sip_id = "SIP_" + String(UniqueIdGenerator::getUniqueId());
         sil_2_sip_.insert(make_pair(sil_id, sip_id));
 
-        String sip = String("\t<SpectrumIdentificationProtocol id=\"") + String(sip_id) + String("\" analysisSoftware_ref=\"") + String("SOF_")  + String(sof_id) + String("\">");
+        String sip = String("\t<SpectrumIdentificationProtocol id=\"") + String(sip_id) + String("\" analysisSoftware_ref=\"") + String(sof_id) + String("\">");
         sip += String(" \n\t\t<SearchType>\n\t\t\t") + cv_.getTermByName("ms-ms search").toXMLString(cv_ns) + String(" \n\t\t</SearchType>");
         sip += String("\n\t\t<AdditionalSearchParams>\n");
         writeMetaInfos_(sip, it->getSearchParameters(), 3);

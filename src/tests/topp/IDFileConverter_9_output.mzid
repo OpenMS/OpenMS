@@ -16,7 +16,7 @@
  			<cvParam accession="MS:1001207" cvRef="PSI-MS" name="Mascot"/>
 		</SoftwareName> 
 	</AnalysisSoftware> 
-	<AnalysisSoftware version="OpenMS TOPP v2.0.0" name="TOPP software" id="1147219038608936718"> 
+	<AnalysisSoftware version="OpenMS TOPP v2.0.0" name="TOPP software" id="SOF_1147219038608936718"> 
 		<SoftwareName> 
 			<cvParam accession="MS:1000752" cvRef="PSI-MS" name="TOPP software"/> 
 		</SoftwareName> 
@@ -85,7 +85,7 @@
 		<ModificationParams>
 		</ModificationParams>
 		<Enzymes independent="false">
-			<Enzyme missedCleavages="0" id="7804704400743266335">
+			<Enzyme missedCleavages="0" id="ENZ_7804704400743266335">
 				<EnzymeName>
 					<cvParam accession="MS:1001251" cvRef="PSI-MS" name="Trypsin"/>
 				</EnzymeName>
@@ -125,7 +125,7 @@
 			</SearchModification>
 		</ModificationParams>
 		<Enzymes independent="false">
-			<Enzyme missedCleavages="0" id="474525871221756682">
+			<Enzyme missedCleavages="0" id="ENZ_474525871221756682">
 				<EnzymeName>
 					<cvParam accession="MS:1001044" cvRef="PSI-MS" name="cleavage agent details"/>
 				</EnzymeName>
