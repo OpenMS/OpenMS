@@ -357,10 +357,10 @@ namespace OpenMS
     cout << "\n";
     for (unsigned i = 0; i < samples_labels_.size(); ++i)
     {
-      cout << "sample " << (i + 1) << ":   ";
+      cout << "sample " << (i + 1) << ":    ";
       for (unsigned j = 0; j < samples_labels_[i].size(); ++j)
       {
-        cout << samples_labels_[i][j] << " ";
+        cout << samples_labels_[i][j] << "    ";
       }
       cout << "\n";
     }
@@ -374,7 +374,7 @@ namespace OpenMS
       std::cout << "mass shift " << (i + 1) << ":    ";
       for (unsigned j = 0; j < mass_pattern_list_[i].getDeltaMassesCount(); ++j)
       {
-        std::cout << mass_pattern_list_[i].getMassShiftAt(j) << "  ";
+        std::cout << mass_pattern_list_[i].getMassShiftAt(j) << "    ";
       }
       std::cout << "\n";
     }
