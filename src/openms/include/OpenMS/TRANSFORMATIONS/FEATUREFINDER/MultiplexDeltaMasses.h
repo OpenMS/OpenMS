@@ -122,6 +122,11 @@ namespace OpenMS
      */
     double getMassShiftAt(int i) const;
     
+    /**
+     * @brief returns label set at position i
+     */
+    LabelSet getLabelSetAt(int i) const;
+    
     private:
    
     /**

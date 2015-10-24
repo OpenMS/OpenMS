@@ -103,6 +103,11 @@ namespace OpenMS
     return delta_masses_[i].first;
   }
   
+  MultiplexDeltaMasses::LabelSet MultiplexDeltaMasses::getLabelSetAt(int i) const
+  {
+    return delta_masses_[i].second;
+  }
+  
   bool operator<(const MultiplexDeltaMasses &dm1, const MultiplexDeltaMasses &dm2)
   {
     //return (dm1.getMassShifts() < dm2.getMassShifts());

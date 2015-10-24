@@ -374,7 +374,19 @@ namespace OpenMS
       std::cout << "mass shift " << (i + 1) << ":    ";
       for (unsigned j = 0; j < mass_pattern_list_[i].getDeltaMassesCount(); ++j)
       {
-        std::cout << mass_pattern_list_[i].getMassShiftAt(j) << "    ";
+        double mass_shift = mass_pattern_list_[i].getMassShiftAt(j);
+        MultiplexDeltaMasses::LabelSet label_set = mass_pattern_list_[i].getLabelSetAt(j);
+        
+        std::cout << mass_shift << " (";
+        for (std::multiset<String>::iterator it = label_set.begin(); it != label_set.end(); ++it)
+        {
+          if (it != label_set.begin())
+          {
+            std::cout << ",";
+          }
+          std::cout << *it;
+        }
+        std::cout << ")    ";
       }
       std::cout << "\n";
     }
