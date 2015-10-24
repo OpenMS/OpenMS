@@ -992,6 +992,10 @@ namespace OpenMS
               {
                 f_tol = max(f_tol, boost::lexical_cast<double>(it->second.front().getValue().toString()));
                 sp.fragment_mass_tolerance = f_tol;
+                if (it->second.front().getUnit().name == "parts per million" )
+                {
+                  sp.fragment_mass_tolerance_ppm = true;
+                }
               }
             }
             else if ((std::string)XMLString::transcode(child->getTagName()) == "ParentTolerance")
@@ -1002,6 +1006,11 @@ namespace OpenMS
               {
                 p_tol = max(p_tol, boost::lexical_cast<double>(it->second.front().getValue().toString()));
                 sp.precursor_tolerance = p_tol;
+                if (it->second.front().getUnit().name == "parts per million" )
+                {
+                  sp.precursor_mass_tolerance_ppm = true;
+                }
+
               }
             }
             else if ((std::string)XMLString::transcode(child->getTagName()) == "Threshold")
@@ -1263,19 +1272,19 @@ namespace OpenMS
             break;
           }
         }
-        else if (e_score_terms.find(scoreit->first) != e_score_terms.end())
-        {
-          score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
-          spectrum_identification.setHigherScoreBetter(false);
-          spectrum_identification.setScoreType("E-value"); //higherIsBetter = false
-          scoretype = true;
-          break;
-        }
         else if (specific_score_terms.find(scoreit->first) != specific_score_terms.end() || scoreit->first == "MS:1001143")
         {
           score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
           spectrum_identification.setHigherScoreBetter(ControlledVocabulary::CVTerm::isHigherBetterScore(cv_.getTerm(scoreit->first)));
           spectrum_identification.setScoreType(scoreit->second.front().getName());
+          scoretype = true;
+          break;
+        }
+        else if (e_score_terms.find(scoreit->first) != e_score_terms.end())
+        {
+          score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
+          spectrum_identification.setHigherScoreBetter(false);
+          spectrum_identification.setScoreType("E-value"); //higherIsBetter = false
           scoretype = true;
         }
       }

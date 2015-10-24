@@ -72,12 +72,12 @@
 			<userParam name="charges" unitName="xsd:string" value="+1, +2"/>
 		</AdditionalSearchParams>
 		<FragmentTolerance>
-			<cvParam accession="MS:1001412" name="search tolerance plus value" cvRef="PSI-MS" value="0.3"/>
-			<cvParam accession="MS:1001413" name="search tolerance minus value" cvRef="PSI-MS" value="0.3"/>
+			<cvParam accession="MS:1001412" name="search tolerance plus value" unitCvRef="UO" unitName="dalton" unitAccession="UO:0000221" cvRef="PSI-MS" value="0.3"/>
+			<cvParam accession="MS:1001413" name="search tolerance minus value" unitCvRef="UO" unitName="dalton" unitAccession="UO:0000221" cvRef="PSI-MS" value="0.3"/>
 		</FragmentTolerance>
 		<ParentTolerance>
-			<cvParam accession="MS:1001412" name="search tolerance plus value" cvRef="PSI-MS" value="1"/>
-			<cvParam accession="MS:1001413" name="search tolerance minus value" cvRef="PSI-MS" value="1"/>
+			<cvParam accession="MS:1001412" name="search tolerance plus value" unitCvRef="UO" unitName="dalton" unitAccession="UO:0000221" cvRef="PSI-MS" value="1"/>
+			<cvParam accession="MS:1001413" name="search tolerance minus value" unitCvRef="UO" unitName="dalton" unitAccession="UO:0000221" cvRef="PSI-MS" value="1"/>
 		</ParentTolerance>
 		<Threshold>
 			<cvParam accession="MS:1001494" cvRef="PSI-MS" name="no threshold"/>
@@ -100,12 +100,12 @@
 			<userParam name="charges" unitName="xsd:string" value="+1, +2, +3"/>
 		</AdditionalSearchParams>
 		<FragmentTolerance>
-			<cvParam accession="MS:1001412" name="search tolerance plus value" cvRef="PSI-MS" value="0.3"/>
-			<cvParam accession="MS:1001413" name="search tolerance minus value" cvRef="PSI-MS" value="0.3"/>
+			<cvParam accession="MS:1001412" name="search tolerance plus value" unitCvRef="UO" unitName="dalton" unitAccession="UO:0000221" cvRef="PSI-MS" value="0.3"/>
+			<cvParam accession="MS:1001413" name="search tolerance minus value" unitCvRef="UO" unitName="dalton" unitAccession="UO:0000221" cvRef="PSI-MS" value="0.3"/>
 		</FragmentTolerance>
 		<ParentTolerance>
-			<cvParam accession="MS:1001412" name="search tolerance plus value" cvRef="PSI-MS" value="1"/>
-			<cvParam accession="MS:1001413" name="search tolerance minus value" cvRef="PSI-MS" value="1"/>
+			<cvParam accession="MS:1001412" name="search tolerance plus value" unitCvRef="UO" unitName="dalton" unitAccession="UO:0000221" cvRef="PSI-MS" value="1"/>
+			<cvParam accession="MS:1001413" name="search tolerance minus value" unitCvRef="UO" unitName="dalton" unitAccession="UO:0000221" cvRef="PSI-MS" value="1"/>
 		</ParentTolerance>
 		<Threshold>
 			<cvParam accession="MS:1001494" cvRef="PSI-MS" name="no threshold"/>

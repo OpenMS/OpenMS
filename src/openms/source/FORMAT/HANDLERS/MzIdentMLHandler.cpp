@@ -492,12 +492,22 @@ namespace OpenMS
 //        sip += String(3, '\t') + "<userParam name=\"" + "missed_cleavages" + "\" unitName=\"" + "xsd:integer" + "\" value=\"" + String(it->getSearchParameters().missed_cleavages) + "\"/>" + "\n";
         sip += String("\t\t</AdditionalSearchParams>\n");
         sip += String("\t\t<FragmentTolerance>\n");
-        sip += String(3, '\t') + "<cvParam accession=\"MS:1001412\" name=\"search tolerance plus value\" cvRef=\"PSI-MS\" value=\"" + String(it->getSearchParameters().fragment_mass_tolerance) + "\"/>" + "\n";
-        sip += String(3, '\t') + "<cvParam accession=\"MS:1001413\" name=\"search tolerance minus value\" cvRef=\"PSI-MS\" value=\"" + String(it->getSearchParameters().fragment_mass_tolerance) + "\"/>" + "\n";
+        String unit_str = "unitCvRef=\"UO\" unitName=\"dalton\" unitAccession=\"UO:0000221\"";
+        if (it->getSearchParameters().fragment_mass_tolerance_ppm)
+        {
+          unit_str = "unitCvRef=\"UO\" unitName=\"parts per million\" unitAccession=\"UO:0000169\"";
+        }
+        sip += String(3, '\t') + "<cvParam accession=\"MS:1001412\" name=\"search tolerance plus value\" " + unit_str + " cvRef=\"PSI-MS\" value=\"" + String(it->getSearchParameters().fragment_mass_tolerance) + "\"/>" + "\n";
+        sip += String(3, '\t') + "<cvParam accession=\"MS:1001413\" name=\"search tolerance minus value\" " + unit_str + " cvRef=\"PSI-MS\" value=\"" + String(it->getSearchParameters().fragment_mass_tolerance) + "\"/>" + "\n";
         sip += String("\t\t</FragmentTolerance>\n");
         sip += String("\t\t<ParentTolerance>\n");
-        sip += String(3, '\t') + "<cvParam accession=\"MS:1001412\" name=\"search tolerance plus value\" cvRef=\"PSI-MS\" value=\"" + String(it->getSearchParameters().precursor_tolerance) + "\"/>" + "\n";
-        sip += String(3, '\t') + "<cvParam accession=\"MS:1001413\" name=\"search tolerance minus value\" cvRef=\"PSI-MS\" value=\"" + String(it->getSearchParameters().precursor_tolerance) + "\"/>" + "\n";
+        unit_str = "unitCvRef=\"UO\" unitName=\"dalton\" unitAccession=\"UO:0000221\"";
+        if (it->getSearchParameters().precursor_mass_tolerance_ppm)
+        {
+          unit_str = "unitCvRef=\"UO\" unitName=\"parts per million\" unitAccession=\"UO:0000169\"";
+        }
+        sip += String(3, '\t') + "<cvParam accession=\"MS:1001412\" name=\"search tolerance plus value\" " + unit_str + " cvRef=\"PSI-MS\" value=\"" + String(it->getSearchParameters().precursor_tolerance) + "\"/>" + "\n";
+        sip += String(3, '\t') + "<cvParam accession=\"MS:1001413\" name=\"search tolerance minus value\" " + unit_str + " cvRef=\"PSI-MS\" value=\"" + String(it->getSearchParameters().precursor_tolerance) + "\"/>" + "\n";
         sip += String("\t\t</ParentTolerance>\n");
         sip += String("\t\t<Threshold>\n\t\t\t") + thcv + "\n";
         sip += String("\t\t</Threshold>\n");
