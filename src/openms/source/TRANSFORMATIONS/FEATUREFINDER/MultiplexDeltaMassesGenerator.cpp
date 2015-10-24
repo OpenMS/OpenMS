@@ -121,9 +121,7 @@ namespace OpenMS
       }
     }
 
-    // generate mass shift list
-    std::vector<std::vector<double> > list;
-    std::vector<MultiplexDeltaMasses> delta_masses;    // list of all mass shift patterns
+    // generate mass pattern list
     if (SILAC)
     {
       // SILAC
@@ -135,9 +133,7 @@ namespace OpenMS
         {
           if (ArgPerPeptide + LysPerPeptide <= (unsigned) missed_cleavages_ + 1)
           {
-            std::vector<double> temp;
             MultiplexDeltaMasses delta_masses_temp;    // single mass shift pattern
-            temp.push_back(0);
             delta_masses_temp.addDeltaMass(0,"no_label");
             for (unsigned i = 0; i < samples_labels_.size(); i++)
             {
@@ -185,18 +181,13 @@ namespace OpenMS
 
               if (goAhead_Arg && goAhead_Lys && (mass_shift != 0))
               {
-                temp.push_back(mass_shift);
                 delta_masses_temp.addDeltaMass(mass_shift,label_set);
               }
             }
 
-            if (temp.size() > 1)
-            {
-              list.push_back(temp);
-            }
             if (delta_masses_temp.getDeltaMassesCount() > 1)
             {
-              delta_masses.push_back(delta_masses_temp);
+              mass_pattern_list_.push_back(delta_masses_temp);
             }
           }
         }
@@ -210,7 +201,6 @@ namespace OpenMS
 
       for (unsigned mc = 0; mc <= (unsigned) missed_cleavages_; ++mc)
       {
-        std::vector<double> temp;
         MultiplexDeltaMasses delta_masses_temp;    // single mass shift pattern
         for (unsigned i = 0; i < samples_labels_.size(); i++)
         {
@@ -222,34 +212,23 @@ namespace OpenMS
             label_set.insert(samples_labels_[i][0]);
           }
          
-          temp.push_back((mc + 1) * (label_mass_shift_[samples_labels_[i][0]] - label_mass_shift_[samples_labels_[0][0]]));
           delta_masses_temp.addDeltaMass(mass_shift,label_set);
         }
-        list.push_back(temp);
-        delta_masses.push_back(delta_masses_temp);
+        mass_pattern_list_.push_back(delta_masses_temp);
       }
 
     }
     else
     {
       // none (singlet detection)
-      std::vector<double> temp;
-      temp.push_back(0);
-      list.push_back(temp);
-      
       MultiplexDeltaMasses delta_masses_temp;
       delta_masses_temp.addDeltaMass(0,"no_label");
-      delta_masses.push_back(delta_masses_temp);
+      mass_pattern_list_.push_back(delta_masses_temp);
     }
 
     // sort mass patterns
     // (from small mass shifts to larger ones, i.e. few miscleavages = simple explanation first)
-    std::sort(list.begin(), list.end());
-
-    for (unsigned i = 0; i < list.size(); ++i)
-    {
-      mass_pattern_list_.push_back(MultiplexDeltaMasses(list[i]));
-    }
+    std::sort(mass_pattern_list_.begin(), mass_pattern_list_.end());
 
   }
 
@@ -270,81 +249,102 @@ namespace OpenMS
     else if (n == 2)
     {
       // add singlets
-      std::vector<double> singlet(1, 0);
-      mass_pattern_list_.push_back(MultiplexDeltaMasses(singlet));
+      MultiplexDeltaMasses dm;
+      dm.addDeltaMass(0,"any_label");    // There are multiple singlets with different label sets. But only a single singlet with "any_label" is added.
+      mass_pattern_list_.push_back(dm);
     }
     else if (n == 3)
     {
       for (unsigned i = 0; i < m; ++i)
       {
         // add doublets
-        std::vector<double> doublet1(1, 0);
-        doublet1.push_back(mass_pattern_list_[i].getMassShiftAt(1) - mass_pattern_list_[i].getMassShiftAt(0));
-        mass_pattern_list_.push_back(MultiplexDeltaMasses(doublet1));
+        MultiplexDeltaMasses doublet1;
+        doublet1.addDeltaMass(mass_pattern_list_[i].getDeltaMassAt(0));
+        doublet1.addDeltaMass(mass_pattern_list_[i].getDeltaMassAt(1));
+        mass_pattern_list_.push_back(doublet1);
 
-        std::vector<double> doublet2(1, 0);
-        doublet2.push_back(mass_pattern_list_[i].getMassShiftAt(2) - mass_pattern_list_[i].getMassShiftAt(1));
-        mass_pattern_list_.push_back(MultiplexDeltaMasses(doublet2));
+        MultiplexDeltaMasses doublet2;
+        doublet1.addDeltaMass(mass_pattern_list_[i].getDeltaMassAt(1));
+        doublet1.addDeltaMass(mass_pattern_list_[i].getDeltaMassAt(2));
+        mass_pattern_list_.push_back(doublet2);
 
-        std::vector<double> doublet3(1, 0);
-        doublet3.push_back(mass_pattern_list_[i].getMassShiftAt(2) - mass_pattern_list_[i].getMassShiftAt(0));
-        mass_pattern_list_.push_back(MultiplexDeltaMasses(doublet3));
+        MultiplexDeltaMasses doublet3;
+        doublet1.addDeltaMass(mass_pattern_list_[i].getDeltaMassAt(0));
+        doublet1.addDeltaMass(mass_pattern_list_[i].getDeltaMassAt(2));
+        mass_pattern_list_.push_back(doublet3);
       }
       
       // add singlets
-      std::vector<double> singlet(1, 0);
-      mass_pattern_list_.push_back(MultiplexDeltaMasses(singlet));
+      MultiplexDeltaMasses dm;
+      dm.addDeltaMass(0,"any_label");
+      mass_pattern_list_.push_back(dm);
     }
     else if (n == 4)
     {
       for (unsigned i = 0; i < m; ++i)
       {
         // add triplets
-        std::vector<double> triplet1(1, 0);
-        triplet1.push_back(mass_pattern_list_[i].getMassShiftAt(2) - mass_pattern_list_[i].getMassShiftAt(1));
-        triplet1.push_back(mass_pattern_list_[i].getMassShiftAt(3) - mass_pattern_list_[i].getMassShiftAt(1));
-        mass_pattern_list_.push_back(MultiplexDeltaMasses(triplet1));
+        MultiplexDeltaMasses triplet1;
+        triplet1.addDeltaMass(mass_pattern_list_[i].getDeltaMassAt(1));
+        triplet1.addDeltaMass(mass_pattern_list_[i].getDeltaMassAt(2));
+        triplet1.addDeltaMass(mass_pattern_list_[i].getDeltaMassAt(3));
+        mass_pattern_list_.push_back(triplet1);
+        
+        MultiplexDeltaMasses triplet2;
+        triplet2.addDeltaMass(mass_pattern_list_[i].getDeltaMassAt(0));
+        triplet2.addDeltaMass(mass_pattern_list_[i].getDeltaMassAt(2));
+        triplet2.addDeltaMass(mass_pattern_list_[i].getDeltaMassAt(3));
+        mass_pattern_list_.push_back(triplet2);
 
-        std::vector<double> triplet2(1, 0);
-        triplet2.push_back(mass_pattern_list_[i].getMassShiftAt(2) - mass_pattern_list_[i].getMassShiftAt(0));
-        triplet2.push_back(mass_pattern_list_[i].getMassShiftAt(3) - mass_pattern_list_[i].getMassShiftAt(0));
-        mass_pattern_list_.push_back(MultiplexDeltaMasses(triplet2));
-
-        std::vector<double> triplet3(1, 0);
-        triplet3.push_back(mass_pattern_list_[i].getMassShiftAt(1) - mass_pattern_list_[i].getMassShiftAt(0));
-        triplet3.push_back(mass_pattern_list_[i].getMassShiftAt(2) - mass_pattern_list_[i].getMassShiftAt(0));
-        mass_pattern_list_.push_back(MultiplexDeltaMasses(triplet3));
+        /*MultiplexDeltaMasses triplet3;
+        triplet3.addDeltaMass(mass_pattern_list_[i].getDeltaMassAt(0));
+        triplet3.addDeltaMass(mass_pattern_list_[i].getDeltaMassAt(1));
+        triplet3.addDeltaMass(mass_pattern_list_[i].getDeltaMassAt(3));
+        mass_pattern_list_.push_back(triplet3);*/
+        
+        MultiplexDeltaMasses triplet4;
+        triplet4.addDeltaMass(mass_pattern_list_[i].getDeltaMassAt(0));
+        triplet4.addDeltaMass(mass_pattern_list_[i].getDeltaMassAt(1));
+        triplet4.addDeltaMass(mass_pattern_list_[i].getDeltaMassAt(2));
+        mass_pattern_list_.push_back(triplet4);
 
 
         // add doublets
-        std::vector<double> doublet1(1, 0);
-        doublet1.push_back(mass_pattern_list_[i].getMassShiftAt(1) - mass_pattern_list_[i].getMassShiftAt(0));
-        mass_pattern_list_.push_back(MultiplexDeltaMasses(doublet1));
+        MultiplexDeltaMasses doublet1;
+        doublet1.addDeltaMass(mass_pattern_list_[i].getDeltaMassAt(0));
+        doublet1.addDeltaMass(mass_pattern_list_[i].getDeltaMassAt(1));
+        mass_pattern_list_.push_back(doublet1);
 
-        std::vector<double> doublet2(1, 0);
-        doublet2.push_back(mass_pattern_list_[i].getMassShiftAt(2) - mass_pattern_list_[i].getMassShiftAt(0));
-        mass_pattern_list_.push_back(MultiplexDeltaMasses(doublet2));
+        MultiplexDeltaMasses doublet2;
+        doublet2.addDeltaMass(mass_pattern_list_[i].getDeltaMassAt(0));
+        doublet2.addDeltaMass(mass_pattern_list_[i].getDeltaMassAt(2));
+        mass_pattern_list_.push_back(doublet2);
 
-        std::vector<double> doublet3(1, 0);
-        doublet3.push_back(mass_pattern_list_[i].getMassShiftAt(3) - mass_pattern_list_[i].getMassShiftAt(0));
-        mass_pattern_list_.push_back(MultiplexDeltaMasses(doublet3));
+        MultiplexDeltaMasses doublet3;
+        doublet3.addDeltaMass(mass_pattern_list_[i].getDeltaMassAt(0));
+        doublet3.addDeltaMass(mass_pattern_list_[i].getDeltaMassAt(3));
+        mass_pattern_list_.push_back(doublet3);
 
-        std::vector<double> doublet4(1, 0);
-        doublet4.push_back(mass_pattern_list_[i].getMassShiftAt(2) - mass_pattern_list_[i].getMassShiftAt(1));
-        mass_pattern_list_.push_back(MultiplexDeltaMasses(doublet4));
+        MultiplexDeltaMasses doublet4;
+        doublet4.addDeltaMass(mass_pattern_list_[i].getDeltaMassAt(1));
+        doublet4.addDeltaMass(mass_pattern_list_[i].getDeltaMassAt(2));
+        mass_pattern_list_.push_back(doublet4);
 
-        std::vector<double> doublet5(1, 0);
-        doublet5.push_back(mass_pattern_list_[i].getMassShiftAt(3) - mass_pattern_list_[i].getMassShiftAt(1));
-        mass_pattern_list_.push_back(MultiplexDeltaMasses(doublet5));
+        MultiplexDeltaMasses doublet5;
+        doublet5.addDeltaMass(mass_pattern_list_[i].getDeltaMassAt(1));
+        doublet5.addDeltaMass(mass_pattern_list_[i].getDeltaMassAt(3));
+        mass_pattern_list_.push_back(doublet5);
 
-        std::vector<double> doublet6(1, 0);
-        doublet6.push_back(mass_pattern_list_[i].getMassShiftAt(3) - mass_pattern_list_[i].getMassShiftAt(2));
-        mass_pattern_list_.push_back(MultiplexDeltaMasses(doublet6));
+        MultiplexDeltaMasses doublet6;
+        doublet6.addDeltaMass(mass_pattern_list_[i].getDeltaMassAt(2));
+        doublet6.addDeltaMass(mass_pattern_list_[i].getDeltaMassAt(3));
+        mass_pattern_list_.push_back(doublet6);
       }
 
       // add singlets
-      std::vector<double> singlet(1, 0);
-      mass_pattern_list_.push_back(MultiplexDeltaMasses(singlet));
+      MultiplexDeltaMasses dm;
+      dm.addDeltaMass(0,"any_label");
+      mass_pattern_list_.push_back(dm);
     }
     else if (n > 4)
     {
