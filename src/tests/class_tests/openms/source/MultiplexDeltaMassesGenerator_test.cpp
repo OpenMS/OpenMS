@@ -77,7 +77,7 @@ START_SECTION(void generateKnockoutMassShifts())
   TEST_EQUAL(masses_knockout.size(), 21);
   TEST_REAL_SIMILAR(masses_knockout[6].getMassShiftAt(1), 3.98909);
   TEST_REAL_SIMILAR(masses_knockout[19].getMassShiftAt(1), 20.0165372);
-  TEST_EQUAL(masses_knockout[20].getMassShiftCount(), 1);
+  TEST_EQUAL(masses_knockout[20].getDeltaMassesCount(), 1);
 END_SECTION
 
 END_TEST
