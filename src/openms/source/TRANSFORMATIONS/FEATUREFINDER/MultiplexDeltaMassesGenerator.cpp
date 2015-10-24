@@ -211,11 +211,22 @@ namespace OpenMS
       for (unsigned mc = 0; mc <= (unsigned) missed_cleavages_; ++mc)
       {
         std::vector<double> temp;
+        MultiplexDeltaMasses delta_masses_temp;    // single mass shift pattern
         for (unsigned i = 0; i < samples_labels_.size(); i++)
         {
+          double mass_shift = (mc + 1) * (label_mass_shift_[samples_labels_[i][0]] - label_mass_shift_[samples_labels_[0][0]]);
+          MultiplexDeltaMasses::LabelSet label_set;
+          // construct label set
+          for (unsigned k = 1; k < (mc + 2); ++k)
+          {
+            label_set.insert(samples_labels_[i][0]);
+          }
+         
           temp.push_back((mc + 1) * (label_mass_shift_[samples_labels_[i][0]] - label_mass_shift_[samples_labels_[0][0]]));
+          delta_masses_temp.addDeltaMass(mass_shift,label_set);
         }
         list.push_back(temp);
+        delta_masses.push_back(delta_masses_temp);
       }
 
     }
@@ -225,6 +236,10 @@ namespace OpenMS
       std::vector<double> temp;
       temp.push_back(0);
       list.push_back(temp);
+      
+      MultiplexDeltaMasses delta_masses_temp;
+      delta_masses_temp.addDeltaMass(0,"no_label");
+      delta_masses.push_back(delta_masses_temp);
     }
 
     // sort mass patterns
