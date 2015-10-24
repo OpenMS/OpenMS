@@ -74,13 +74,18 @@ namespace OpenMS
     /**
      * @brief constructor
      */
+    MultiplexDeltaMasses();
+    
+    /**
+     * @brief constructor
+     */
     MultiplexDeltaMasses(std::vector<double> ms);
     
     /**
      * @brief constructor
      */
     MultiplexDeltaMasses(std::vector<DeltaMass> dm);
-    
+        
     /**
      * @brief add a mass shift
      */
@@ -94,7 +99,7 @@ namespace OpenMS
     /**
      * @brief add a delta mass
      */
-    void addDeltaMass(double m, std::multiset<String> ls);
+    void addDeltaMass(double m, LabelSet ls);
     
     /**
      * @brief add a delta mass (with a label set consisting of a

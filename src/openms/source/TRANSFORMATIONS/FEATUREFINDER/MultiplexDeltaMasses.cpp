@@ -45,6 +45,10 @@ using namespace std;
 namespace OpenMS
 {
 
+  MultiplexDeltaMasses::MultiplexDeltaMasses()
+  {
+  }
+
   MultiplexDeltaMasses::MultiplexDeltaMasses(vector<double> ms) :
     mass_shifts_(ms)
   {
@@ -65,7 +69,7 @@ namespace OpenMS
     delta_masses_.push_back(dm);
   }
 
-  void MultiplexDeltaMasses::addDeltaMass(double m, std::multiset<String> ls)
+  void MultiplexDeltaMasses::addDeltaMass(double m, MultiplexDeltaMasses::LabelSet ls)
   {
     delta_masses_.push_back(std::make_pair(m,ls));
   }

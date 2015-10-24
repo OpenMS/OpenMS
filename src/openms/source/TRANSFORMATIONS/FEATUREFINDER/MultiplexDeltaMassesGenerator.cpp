@@ -123,6 +123,7 @@ namespace OpenMS
 
     // generate mass shift list
     std::vector<std::vector<double> > list;
+    std::vector<MultiplexDeltaMasses> delta_masses;    // list of all mass shift patterns
     if (SILAC)
     {
       // SILAC
@@ -135,10 +136,13 @@ namespace OpenMS
           if (ArgPerPeptide + LysPerPeptide <= (unsigned) missed_cleavages_ + 1)
           {
             std::vector<double> temp;
+            MultiplexDeltaMasses delta_masses_temp;    // single mass shift pattern
             temp.push_back(0);
+            delta_masses_temp.addDeltaMass(0,"no_label");
             for (unsigned i = 0; i < samples_labels_.size(); i++)
             {
               double mass_shift = 0;
+              MultiplexDeltaMasses::LabelSet label_set;
               // Considering the case of an amino acid (e.g. LysPerPeptide != 0) for which no label is present (e.g. Lys4There && Lys6There && Lys8There == false) makes no sense. Therefore each amino acid will have to give its "Go Ahead" before the shift is calculated.
               bool goAhead_Lys = false;
               bool goAhead_Arg = false;
@@ -151,6 +155,28 @@ namespace OpenMS
                 bool Lys6There = (samples_labels_[i][j].find("Lys6") != std::string::npos);
                 bool Lys8There = (samples_labels_[i][j].find("Lys8") != std::string::npos);
 
+                // construct label set
+                for (unsigned k = 1; k < Arg6There * (ArgPerPeptide + 1); ++k)
+                {
+                  label_set.insert("Arg6");
+                }
+                for (unsigned k = 1; k < Arg10There * (ArgPerPeptide + 1); ++k)
+                {
+                  label_set.insert("Arg10");
+                }
+                for (unsigned k = 1; k < Lys4There * (LysPerPeptide + 1); ++k)
+                {
+                  label_set.insert("Lys4");
+                }
+                for (unsigned k = 1; k < Lys6There * (LysPerPeptide + 1); ++k)
+                {
+                  label_set.insert("Lys6");
+                }
+                for (unsigned k = 1; k < Lys8There * (LysPerPeptide + 1); ++k)
+                {
+                  label_set.insert("Lys8");
+                }
+
                 mass_shift = mass_shift + ArgPerPeptide * (Arg6There * label_mass_shift_["Arg6"] + Arg10There * label_mass_shift_["Arg10"]) + LysPerPeptide * (Lys4There * label_mass_shift_["Lys4"] + Lys6There * label_mass_shift_["Lys6"] + Lys8There * label_mass_shift_["Lys8"]);
 
                 goAhead_Arg = goAhead_Arg || !(ArgPerPeptide != 0 && !Arg6There && !Arg10There);
@@ -160,12 +186,17 @@ namespace OpenMS
               if (goAhead_Arg && goAhead_Lys && (mass_shift != 0))
               {
                 temp.push_back(mass_shift);
+                delta_masses_temp.addDeltaMass(mass_shift,label_set);
               }
             }
 
             if (temp.size() > 1)
             {
               list.push_back(temp);
+            }
+            if (delta_masses_temp.getDeltaMassesCount() > 1)
+            {
+              delta_masses.push_back(delta_masses_temp);
             }
           }
         }
