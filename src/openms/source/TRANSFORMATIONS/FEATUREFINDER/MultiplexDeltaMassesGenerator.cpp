@@ -105,7 +105,7 @@ namespace OpenMS
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unknown labelling. Neither SILAC, Dimethyl nor ICPL.");
     }
-
+    
     // check if the labels are included in advanced section "labels"
     String all_labels = "Arg6 Arg10 Lys4 Lys6 Lys8 Dimethyl0 Dimethyl4 Dimethyl6 Dimethyl8 ICPL0 ICPL4 ICPL6 ICPL10 no_label";
     for (unsigned i = 0; i < samples_labels_.size(); i++)
@@ -240,7 +240,7 @@ namespace OpenMS
       throw OpenMS::Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 0);
     }
     
-    unsigned n = mass_pattern_list_[0].getMassShiftCount();    // n=1 for singlets, n=2 for doublets, n=3 for triplets, n=4 for quadruplets
+    unsigned n = mass_pattern_list_[0].getDeltaMassesCount();    // n=1 for singlets, n=2 for doublets, n=3 for triplets, n=4 for quadruplets
     unsigned m = mass_pattern_list_.size();    // number of mass shift patterns before extension of the list
     if (n == 1)
     {
@@ -250,7 +250,7 @@ namespace OpenMS
     {
       // add singlets
       MultiplexDeltaMasses dm;
-      dm.addDeltaMass(0,"any_label");    // There are multiple singlets with different label sets. But only a single singlet with "any_label" is added.
+      dm.addDeltaMass(0,"any_label");    // There are two singlets with different label sets. But only a single singlet with "any_label" is added.
       mass_pattern_list_.push_back(dm);
     }
     else if (n == 3)
@@ -276,7 +276,7 @@ namespace OpenMS
       
       // add singlets
       MultiplexDeltaMasses dm;
-      dm.addDeltaMass(0,"any_label");
+      dm.addDeltaMass(0,"any_label");    // There are three singlets with different label sets. But only a single singlet with "any_label" is added.
       mass_pattern_list_.push_back(dm);
     }
     else if (n == 4)
@@ -372,7 +372,7 @@ namespace OpenMS
     for (unsigned i = 0; i < mass_pattern_list_.size(); ++i)
     {
       std::cout << "mass shift " << (i + 1) << ":    ";
-      for (unsigned j = 0; j < mass_pattern_list_[i].getMassShiftCount(); ++j)
+      for (unsigned j = 0; j < mass_pattern_list_[i].getDeltaMassesCount(); ++j)
       {
         std::cout << mass_pattern_list_[i].getMassShiftAt(j) << "  ";
       }

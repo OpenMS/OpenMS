@@ -49,19 +49,9 @@ namespace OpenMS
   {
   }
 
-  MultiplexDeltaMasses::MultiplexDeltaMasses(vector<double> ms) :
-    mass_shifts_(ms)
-  {
-  }
-
   MultiplexDeltaMasses::MultiplexDeltaMasses(vector<MultiplexDeltaMasses::DeltaMass> dm) :
     delta_masses_(dm)
   {
-  }
-
-  void MultiplexDeltaMasses::addMassShift(double ms)
-  {
-    mass_shifts_.push_back(ms);
   }
 
   void MultiplexDeltaMasses::addDeltaMass(MultiplexDeltaMasses::DeltaMass dm)
@@ -83,26 +73,19 @@ namespace OpenMS
 
   std::vector<double> MultiplexDeltaMasses::getMassShifts() const
   {
-    /*std::vector<double> ms;
+    std::vector<double> ms;
     
     for (unsigned i = 0; delta_masses_.size(); ++i)
     {
       ms.push_back(delta_masses_[i].first);
     }
     
-    return ms;*/
-    
-    return mass_shifts_;
+    return ms;
   }
   
   std::vector<MultiplexDeltaMasses::DeltaMass> MultiplexDeltaMasses::getDeltaMasses() const
   {
     return delta_masses_;
-  }
-
-  unsigned MultiplexDeltaMasses::getMassShiftCount() const
-  {
-    return mass_shifts_.size();
   }
 
   unsigned MultiplexDeltaMasses::getDeltaMassesCount() const
@@ -117,14 +100,12 @@ namespace OpenMS
 
   double MultiplexDeltaMasses::getMassShiftAt(int i) const
   {
-    //return delta_masses_[i].first;
-    
-    return mass_shifts_[i];
+    return delta_masses_[i].first;
   }
   
   bool operator<(const MultiplexDeltaMasses &dm1, const MultiplexDeltaMasses &dm2)
   {
-    return (dm1.getMassShifts() < dm1.getMassShifts());
+    return (dm1.getMassShifts() < dm2.getMassShifts());
   }
   
 }

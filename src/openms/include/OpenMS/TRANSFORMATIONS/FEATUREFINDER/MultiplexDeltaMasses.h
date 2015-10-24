@@ -79,18 +79,8 @@ namespace OpenMS
     /**
      * @brief constructor
      */
-    MultiplexDeltaMasses(std::vector<double> ms);
-    
-    /**
-     * @brief constructor
-     */
     MultiplexDeltaMasses(std::vector<DeltaMass> dm);
         
-    /**
-     * @brief add a mass shift
-     */
-    void addMassShift(double ms);
-    
     /**
      * @brief add a delta mass
      */
@@ -123,11 +113,6 @@ namespace OpenMS
     unsigned getDeltaMassesCount() const;
    
     /**
-     * @brief returns number of mass shifts
-     */
-    unsigned getMassShiftCount() const;
-   
-    /**
      * @brief returns delta mass at position i
      */
     DeltaMass getDeltaMassAt(int i) const;
@@ -139,12 +124,6 @@ namespace OpenMS
     
     private:
    
-    /**
-     * @brief mass shifts between peptides
-     * (including zero mass shift for first peptide)
-     */
-    std::vector<double> mass_shifts_;
-      
     /**
      * @brief mass shifts between peptides
      * (including zero mass shift for first peptide)
