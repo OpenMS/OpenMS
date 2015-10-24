@@ -225,7 +225,7 @@ namespace OpenMS
       delta_masses_temp.addDeltaMass(0,"no_label");
       mass_pattern_list_.push_back(delta_masses_temp);
     }
-
+    
     // sort mass patterns
     // (from small mass shifts to larger ones, i.e. few miscleavages = simple explanation first)
     std::sort(mass_pattern_list_.begin(), mass_pattern_list_.end());

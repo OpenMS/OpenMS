@@ -105,7 +105,8 @@ namespace OpenMS
   
   bool operator<(const MultiplexDeltaMasses &dm1, const MultiplexDeltaMasses &dm2)
   {
-    return (dm1.getMassShifts() < dm2.getMassShifts());
+    //return (dm1.getMassShifts() < dm2.getMassShifts());
+    return (dm1.getMassShiftAt(0) < dm2.getMassShiftAt(0));
   }
   
 }
