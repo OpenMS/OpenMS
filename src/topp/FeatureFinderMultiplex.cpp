@@ -1009,7 +1009,7 @@ private:
     std::vector<MultiplexDeltaMasses> masses_test = generator.getMassPatternList();
     if (knock_out_)
     {
-      //generator.generateKnockoutMassShifts();
+      generator.generateKnockoutMassShifts();
     }
     generator.printLabelsList();
     generator.printMassPatternList();

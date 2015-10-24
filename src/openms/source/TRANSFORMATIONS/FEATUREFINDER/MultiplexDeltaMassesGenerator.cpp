@@ -264,13 +264,13 @@ namespace OpenMS
         mass_pattern_list_.push_back(doublet1);
 
         MultiplexDeltaMasses doublet2;
-        doublet1.addDeltaMass(mass_pattern_list_[i].getDeltaMassAt(1));
-        doublet1.addDeltaMass(mass_pattern_list_[i].getDeltaMassAt(2));
+        doublet2.addDeltaMass(mass_pattern_list_[i].getDeltaMassAt(1));
+        doublet2.addDeltaMass(mass_pattern_list_[i].getDeltaMassAt(2));
         mass_pattern_list_.push_back(doublet2);
 
         MultiplexDeltaMasses doublet3;
-        doublet1.addDeltaMass(mass_pattern_list_[i].getDeltaMassAt(0));
-        doublet1.addDeltaMass(mass_pattern_list_[i].getDeltaMassAt(2));
+        doublet3.addDeltaMass(mass_pattern_list_[i].getDeltaMassAt(0));
+        doublet3.addDeltaMass(mass_pattern_list_[i].getDeltaMassAt(2));
         mass_pattern_list_.push_back(doublet3);
       }
       
