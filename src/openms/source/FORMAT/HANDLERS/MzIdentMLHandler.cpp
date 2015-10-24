@@ -41,6 +41,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <set>
 
@@ -166,7 +167,7 @@ namespace OpenMS
 
       if (tag_ == "MzIdentML")
       {
-        // TODO handle version
+        // TODO handle version with mzid 1.2 release
         return;
       }
 
@@ -384,14 +385,11 @@ namespace OpenMS
     void MzIdentMLHandler::writeTo(std::ostream& os)
     {
       String cv_ns = cv_.name();
-      String datacollection_element, analysissoftwarelist_element, analysisprotocolcollection_element, analysiscollection_element;
-      String inputs_element, analysisdata_element;
+      String inputs_element;
+      std::map<String,String> /* peps, pepevis, */ sil_map, sil_2_date;
       std::set<String> sen_set, sof_set, sip_set;
-      std::map<String, UInt64> sdb_ids, sen_ids, sof_ids, sip_ids, spd_ids, pep_ids;
-      std::map<String, String> pie_ids, sip_sdb;
-      std::map<UInt64, String> sip_dates;
-      std::map<UInt64, String> spd_ref;
-      std::vector<String> /* peps, pepevis, */ sidlist;
+      std::map<String, String> sdb_ids, sen_ids, sof_ids, sdat_ids, pep_ids;
+      std::map<String, double> pp_identifier_2_thresh;
 
       //TODO if constructed with a msexperiment - not yet implemented
       //~ if(ms_exp_ == 0)
@@ -416,90 +414,33 @@ namespace OpenMS
       1st: iterate over proteinidentification vector
       */
       for (std::vector<ProteinIdentification>::const_iterator it = cpro_id_->begin(); it != cpro_id_->end(); ++it)
-      {
-        UInt64 dbid, sdid;
-
-        // handle SearchDatabase element for each ProteinIdentification
-        String dbst(it->getSearchParameters().db); //TODO @mths for several IdentificationRuns this must be something else, otherwise for two of the same db just one will be created
-        std::map<String, UInt64>::iterator dbit = sdb_ids.find(dbst);
-        if (dbit == sdb_ids.end())
-        {
-          dbid = UniqueIdGenerator::getUniqueId();
-
-          search_database += String("\t\t<SearchDatabase ");
-          search_database += String("location=\"") + dbst + "\" ";
-          if (!String(it->getSearchParameters().db_version).empty())
-          {
-            search_database += String("version=\"") + String(it->getSearchParameters().db_version) + "\" ";
-          }
-          search_database += String("id=\"") + String(dbid) + String("\" > \n\t\t\t<FileFormat> \n ");
-          //TODO Searchdb file format type cvParam handling
-          search_database += String(4, '\t') + cv_.getTermByName("FASTA format").toXMLString(cv_ns);
-          search_database += String("\n\t\t\t</FileFormat>\n\t\t\t<DatabaseName>\n\t\t\t\t<userParam name=\"") + dbst + String("\"/>\n\t\t\t</DatabaseName>\n");
-          search_database += "\t\t</SearchDatabase> \n";
-
-          sdb_ids.insert(std::pair<String, UInt64>(dbst, dbid));
-        }
-        else
-        {
-          dbid = dbit->second;
-        }
-
-        // handle SpectraData element for each ProteinIdentification
-        String sdst(it->getMetaValue("spectra_data"));
-        if (sdst.empty())
-        {
-          sdst = String("UNKNOWN");
-        }
-        std::map<String, UInt64>::iterator sdit = spd_ids.find(sdst); //this part ist strongly connected to AnalysisCollection write part
-        if (sdit == spd_ids.end())
-        {
-          sdid = UniqueIdGenerator::getUniqueId();
-
-          //xml
-          spectra_data += String("\t\t<SpectraData location=\"") + sdst + String("\" id=\"") + String(sdid) + String("\">");
-          spectra_data += String("\n\t\t\t<FileFormat> \n");
-          spectra_data += String(4, '\t') + cv_.getTermByName("mzML format").toXMLString(cv_ns);
-          spectra_data += String("\n\t\t\t</FileFormat>\n\t\t\t<SpectrumIDFormat> \n ");
-          spectra_data += String(4, '\t') + cv_.getTermByName("multiple peak list nativeID format").toXMLString(cv_ns);
-          spectra_data += String("\n\t\t\t</SpectrumIDFormat> \n\t\t</SpectraData>\n");
-
-          spd_ids.insert(std::pair<String, UInt64>(sdst, sdid));
-        }
-        else
-        {
-          sdid = sdit->second;
-        }
-
-        // get a map from identifier to match OpenMS Protein/PeptideIdentification match string;
-        pie_ids.insert(std::pair<String, String>(it->getIdentifier(), it->getSearchEngine()));
-
+      {     
         //~ collect analysissoftware in this loop - does not go into inputelement
-        UInt64 swid;
-        String swcn = String(it->getSearchEngine());
-        std::map<String, UInt64>::iterator soit = sof_ids.find(swcn);
+        String sof_id;
+        String sof_name = String(it->getSearchEngine());
+        std::map<String, String>::iterator soit = sof_ids.find(sof_name);
         String osecv;
-        if (swcn == "OMSSA")
+        if (sof_name == "OMSSA")
         {
           osecv = "OMSSA";
         }
-        else if (swcn == "Mascot")
+        else if (sof_name == "Mascot")
         {
           osecv = "Mascot";
         }
-        else if (swcn == "XTandem")
+        else if (sof_name == "XTandem")
         {
           osecv = "X\\!Tandem";
         }
-        else if (swcn == "SEQUEST")
+        else if (sof_name == "SEQUEST")
         {
           osecv = "Sequest";
         }
-        else if (swcn == "MS-GF+")
+        else if (sof_name == "MS-GF+")
         {
           osecv = "MS-GF+";
         }
-        else if (swcn == "Percolator")
+        else if (sof_name == "Percolator")
         {
           osecv = "Percolator";
         }
@@ -510,68 +451,142 @@ namespace OpenMS
 
         if (soit == sof_ids.end())
         {
-          swid = UniqueIdGenerator::getUniqueId();
+          sof_id = "SOF_" + String(UniqueIdGenerator::getUniqueId());
           //~ TODO consider not only searchengine but also version!
-          String sost = String("\t<AnalysisSoftware version=\"") + String(it->getSearchEngineVersion()) + String("\" name=\"") + swcn +  String("\" id=\"") + String(swid) + String("\"> \n") + String("\t\t<SoftwareName> \n ");
+          String sost = String("\t<AnalysisSoftware version=\"") + String(it->getSearchEngineVersion()) + String("\" name=\"") + sof_name +  String("\" id=\"") + sof_id + String("\"> \n") + String("\t\t<SoftwareName> \n ");
           sost += "\t\t\t" + cv_.getTermByName(osecv).toXMLString(cv_ns);
           sost += String("\n\t\t</SoftwareName> \n\t</AnalysisSoftware> \n");
           sof_set.insert(sost);
-          sof_ids.insert(std::pair<String, UInt64>(swcn, swid));
+          sof_ids.insert(make_pair(sof_name, sof_id));
         }
         else
         {
-          swid = soit->second;
+          sof_id = soit->second;
         }
 
-        //~ collect SpectrumIdentificationProtocol for analysisprotocol in this loop - does not go into inputelement
-        std::map<String, UInt64>::iterator spit = sip_ids.find(swcn);
-        if (spit == sip_ids.end())
+        String thcv;
+        pp_identifier_2_thresh.insert(make_pair(it->getIdentifier(),it->getSignificanceThreshold()));
+        if (it->getSignificanceThreshold() != 0.0)
         {
-          UInt64 spid = UniqueIdGenerator::getUniqueId();
-          String sip = String("\t<SpectrumIdentificationProtocol id=\"") + String(spid) + String("\" analysisSoftware_ref=\"")  + String(swid) + String("\">");
-          sip += String(" \n\t\t<SearchType>\n\t\t\t") + cv_.getTermByName("ms-ms search").toXMLString(cv_ns) + String(" \n\t\t</SearchType>");
-          sip += String("\n\t\t<AdditionalSearchParams>\n");
-          writeMetaInfos_(sip, it->getSearchParameters(), 3);
-          sip += String(3, '\t') + "<userParam name=\"" + "charges" + "\" unitName=\"" + "xsd:string" + "\" value=\"" + it->getSearchParameters().charges + "\"/>" + "\n";
-//          sip += String(3, '\t') + "<userParam name=\"" + "missed_cleavages" + "\" unitName=\"" + "xsd:integer" + "\" value=\"" + String(it->getSearchParameters().missed_cleavages) + "\"/>" + "\n";
-          sip += String("\t\t</AdditionalSearchParams>\n");
-          sip += String("\t\t<FragmentTolerance>\n");
-          sip += String(3, '\t') + "<cvParam accession=\"MS:1001412\" name=\"search tolerance plus value\" cvRef=\"PSI-MS\" value=\"" + String(it->getSearchParameters().fragment_mass_tolerance) + "\"/>" + "\n";
-          sip += String(3, '\t') + "<cvParam accession=\"MS:1001413\" name=\"search tolerance minus value\" cvRef=\"PSI-MS\" value=\"" + String(it->getSearchParameters().fragment_mass_tolerance) + "\"/>" + "\n";
-          sip += String("\t\t</FragmentTolerance>\n");
-          sip += String("\t\t<ParentTolerance>\n");
-          sip += String(3, '\t') + "<cvParam accession=\"MS:1001412\" name=\"search tolerance plus value\" cvRef=\"PSI-MS\" value=\"" + String(it->getSearchParameters().precursor_tolerance) + "\"/>" + "\n";
-          sip += String(3, '\t') + "<cvParam accession=\"MS:1001413\" name=\"search tolerance minus value\" cvRef=\"PSI-MS\" value=\"" + String(it->getSearchParameters().precursor_tolerance) + "\"/>" + "\n";
-          sip += String("\t\t</ParentTolerance>\n");
-          sip += String("\t\t<Threshold>\n\t\t\t") + cv_.getTermByName("no threshold").toXMLString(cv_ns) + "\n";
-          sip += String("\t\t</Threshold>\n");
-          writeModParam_(sip, it->getSearchParameters().fixed_modifications, it->getSearchParameters().variable_modifications, 2);
-          writeEnyzme_(sip, it->getSearchParameters().enzyme, it->getSearchParameters().missed_cleavages, 2);
-          sip += String("\t</SpectrumIdentificationProtocol>\n");
-          sip_set.insert(sip);
-          sip_ids.insert(std::pair<String, UInt64>(swcn, spid));
-          sip_sdb.insert(std::make_pair(spid, dbid));
-          sip_dates.insert(std::make_pair(spid, String(it->getDateTime().getDate() + "T" + it->getDateTime().getTime())));
-          String sdst_tmp(it->getMetaValue("spectra_data"));
-          if (sdst_tmp.empty())
-          {
-            sdst_tmp = String("UNKNOWN");
-          }
-          spd_ref.insert(make_pair(spid, spd_ids[sdst_tmp])); //this part ist strongly connected to AnalysisCollection write part
+          thcv = cv_.getTermByName("PSM-level statistical threshold").toXMLString(cv_ns, String(it->getSignificanceThreshold()));
         }
+        else
+        {
+          thcv = cv_.getTermByName("no threshold").toXMLString(cv_ns);
+        }
+        // TODO add other software than searchengine for evidence trace
+
+        // get a map from identifier to match OpenMS Protein/PeptideIdentification match string;
+        String sil_id =  "SIL_" + String(UniqueIdGenerator::getUniqueId());
+        pp_identifier_2_sil_.insert(make_pair(it->getIdentifier(), sil_id));
+
+        //~ collect SpectrumIdentificationProtocol for analysisprotocol in this loop - does not go into inputelement
+        String sip_id = "SIP_" + String(UniqueIdGenerator::getUniqueId());
+        sil_2_sip_.insert(make_pair(sil_id, sip_id));
+
+        String sip = String("\t<SpectrumIdentificationProtocol id=\"") + String(sip_id) + String("\" analysisSoftware_ref=\"") + String(sof_id) + String("\">");
+        sip += String(" \n\t\t<SearchType>\n\t\t\t") + cv_.getTermByName("ms-ms search").toXMLString(cv_ns) + String(" \n\t\t</SearchType>");
+        sip += String("\n\t\t<AdditionalSearchParams>\n");
+        writeMetaInfos_(sip, it->getSearchParameters(), 3);
+        sip += String(3, '\t') + "<userParam name=\"" + "charges" + "\" unitName=\"" + "xsd:string" + "\" value=\"" + it->getSearchParameters().charges + "\"/>" + "\n";
+//        sip += String(3, '\t') + "<userParam name=\"" + "missed_cleavages" + "\" unitName=\"" + "xsd:integer" + "\" value=\"" + String(it->getSearchParameters().missed_cleavages) + "\"/>" + "\n";
+        sip += String("\t\t</AdditionalSearchParams>\n");
+        sip += String("\t\t<FragmentTolerance>\n");
+        String unit_str = "unitCvRef=\"UO\" unitName=\"dalton\" unitAccession=\"UO:0000221\"";
+        if (it->getSearchParameters().fragment_mass_tolerance_ppm)
+        {
+          unit_str = "unitCvRef=\"UO\" unitName=\"parts per million\" unitAccession=\"UO:0000169\"";
+        }
+        sip += String(3, '\t') + "<cvParam accession=\"MS:1001412\" name=\"search tolerance plus value\" " + unit_str + " cvRef=\"PSI-MS\" value=\"" + String(it->getSearchParameters().fragment_mass_tolerance) + "\"/>" + "\n";
+        sip += String(3, '\t') + "<cvParam accession=\"MS:1001413\" name=\"search tolerance minus value\" " + unit_str + " cvRef=\"PSI-MS\" value=\"" + String(it->getSearchParameters().fragment_mass_tolerance) + "\"/>" + "\n";
+        sip += String("\t\t</FragmentTolerance>\n");
+        sip += String("\t\t<ParentTolerance>\n");
+        unit_str = "unitCvRef=\"UO\" unitName=\"dalton\" unitAccession=\"UO:0000221\"";
+        if (it->getSearchParameters().precursor_mass_tolerance_ppm)
+        {
+          unit_str = "unitCvRef=\"UO\" unitName=\"parts per million\" unitAccession=\"UO:0000169\"";
+        }
+        sip += String(3, '\t') + "<cvParam accession=\"MS:1001412\" name=\"search tolerance plus value\" " + unit_str + " cvRef=\"PSI-MS\" value=\"" + String(it->getSearchParameters().precursor_tolerance) + "\"/>" + "\n";
+        sip += String(3, '\t') + "<cvParam accession=\"MS:1001413\" name=\"search tolerance minus value\" " + unit_str + " cvRef=\"PSI-MS\" value=\"" + String(it->getSearchParameters().precursor_tolerance) + "\"/>" + "\n";
+        sip += String("\t\t</ParentTolerance>\n");
+        sip += String("\t\t<Threshold>\n\t\t\t") + thcv + "\n";
+        sip += String("\t\t</Threshold>\n");
+        writeModParam_(sip, it->getSearchParameters().fixed_modifications, it->getSearchParameters().variable_modifications, 2);
+        writeEnyzme_(sip, it->getSearchParameters().enzyme, it->getSearchParameters().missed_cleavages, 2);
+        sip += String("\t</SpectrumIdentificationProtocol>\n");
+        sip_set.insert(sip);
+        sil_2_date.insert(make_pair(sil_id, String(it->getDateTime().getDate() + "T" + it->getDateTime().getTime())));
+
+
+        //~ collect SpectraData element for each ProteinIdentification
+        String sdat_id;
+        String sdat_file(it->getMetaValue("spectra_data"));
+        if (sdat_file.empty())
+        {
+          sdat_file = String("UNKNOWN");
+        }
+        std::map<String, String>::iterator sdit = sdat_ids.find(sdat_file); //this part is strongly connected to AnalysisCollection write part
+        if (sdit == sdat_ids.end())
+        {
+          sdat_id = "SDAT_" + String(UniqueIdGenerator::getUniqueId());
+
+          //xml
+          spectra_data += String("\t\t<SpectraData location=\"") + sdat_file + String("\" id=\"") + sdat_id + String("\">");
+          spectra_data += String("\n\t\t\t<FileFormat> \n");
+          spectra_data += String(4, '\t') + cv_.getTermByName("mzML format").toXMLString(cv_ns);
+          spectra_data += String("\n\t\t\t</FileFormat>\n\t\t\t<SpectrumIDFormat> \n ");
+          spectra_data += String(4, '\t') + cv_.getTermByName("multiple peak list nativeID format").toXMLString(cv_ns);
+          spectra_data += String("\n\t\t\t</SpectrumIDFormat> \n\t\t</SpectraData>\n");
+
+          sdat_ids.insert(make_pair(sdat_file, sdat_id));
+        }
+        else
+        {
+          sdat_id = sdit->second;
+        }
+        sil_2_sdat_.insert(make_pair(sil_id,  sdat_id));
+
+
+        //~ collect SearchDatabase element for each ProteinIdentification
+        String sdb_id;
+        String sdb_file(it->getSearchParameters().db); //TODO @mths for several IdentificationRuns this must be something else, otherwise for two of the same db just one will be created
+        std::map<String, String>::iterator dbit = sdb_ids.find(sdb_file);
+        if (dbit == sdb_ids.end())
+        {
+          sdb_id = "SDB_"+ String(UniqueIdGenerator::getUniqueId());
+
+          search_database += String("\t\t<SearchDatabase ");
+          search_database += String("location=\"") + sdb_file + "\" ";
+          if (!String(it->getSearchParameters().db_version).empty())
+          {
+            search_database += String("version=\"") + String(it->getSearchParameters().db_version) + "\" ";
+          }
+          search_database += String("id=\"") + sdb_id + String("\" > \n\t\t\t<FileFormat> \n ");
+          //TODO Searchdb file format type cvParam handling
+          search_database += String(4, '\t') + cv_.getTermByName("FASTA format").toXMLString(cv_ns);
+          search_database += String("\n\t\t\t</FileFormat>\n\t\t\t<DatabaseName>\n\t\t\t\t<userParam name=\"") + sdb_file + String("\"/>\n\t\t\t</DatabaseName>\n");
+          search_database += "\t\t</SearchDatabase> \n";
+
+          sdb_ids.insert(make_pair(sdb_file, sdb_id));
+        }
+        else
+        {
+          sdb_id = dbit->second;
+        }
+        sil_2_sdb_.insert(make_pair(sil_id, sdb_id));
 
         for (std::vector<ProteinHit>::const_iterator jt = it->getHits().begin(); jt != it->getHits().end(); ++jt)
         {
-          UInt64 enid;
-          std::map<String, UInt64>::iterator enit = sen_ids.find(String(jt->getAccession()));
+          String enid;
+          std::map<String, String>::iterator enit = sen_ids.find(String(jt->getAccession()));
           if (enit == sen_ids.end())
           {
             String entry;
-            enid = UniqueIdGenerator::getUniqueId(); //TODO IDs from metadata or where its stored at read in;
+            enid = "PROT_" + String(UniqueIdGenerator::getUniqueId()); //TODO IDs from metadata or where its stored at read in;
             String enst(jt->getAccession());
 
             entry += "\t<DBSequence accession=\"" + enst + "\" ";
-            entry += "searchDatabase_ref=\"" + String(dbid) + "\" ";
+            entry += "searchDatabase_ref=\"" + sdb_id + "\" ";
             String s = String(jt->getSequence());
             if (!s.empty())
             {
@@ -585,7 +600,7 @@ namespace OpenMS
             entry += "\t\t" + cv_.getTermByName("protein description").toXMLString(cv_ns, enst);
             entry += "\n\t</DBSequence>\n";
 
-            sen_ids.insert(std::pair<String, UInt64>(enst, enid));
+            sen_ids.insert(std::pair<String, String>(enst, enid));
             sen_set.insert(entry);
 
           }
@@ -602,10 +617,9 @@ namespace OpenMS
       /*
       2nd: iterate over peptideidentification vector
       */
-      std::map<String, std::vector<UInt64> > pep_evis; //maps the sequence to the corresponding evidence elements for the next scope
+      std::map<String, std::vector<String> > pep_evis; //maps the sequence to the corresponding evidence elements for the next scope
       for (std::vector<PeptideIdentification>::const_iterator it = cpep_id_->begin(); it != cpep_id_->end(); ++it)
       {
-        String pro_pep_matchstring = it->getIdentifier(); //~ TODO getIdentifier() lookup in proteinidentification get search db etc
         String emz(it->getMZ());
         String ert(it->getRT());
         String sid = it->getMetaValue("spectrum_reference");
@@ -628,22 +642,22 @@ namespace OpenMS
           }
         }
         String sidres;
-        UInt64 sir =  UniqueIdGenerator::getUniqueId();
+        String sir = "SIR_" + String(UniqueIdGenerator::getUniqueId());
         sidres += String("\t\t\t<SpectrumIdentificationResult spectraData_ref=\"")
-                + String(spd_ids.begin()->second) + String("\" spectrumID=\"")
-                + sid + String("\" id=\"") + String(sir) + String("\"> \n");
-        //map.begin access ok here because make sure at least one "UNKOWN" element is in the spd_ids map
+                + String(sdat_ids.begin()->second) + String("\" spectrumID=\"")
+                + sid + String("\" id=\"") + sir + String("\"> \n");
+        //map.begin access ok here because make sure at least one "UNKOWN" element is in the sdats_ids map
 
         for (std::vector<PeptideHit>::const_iterator jt = it->getHits().begin(); jt != it->getHits().end(); ++jt)
         {
-          UInt64 pepid =  UniqueIdGenerator::getUniqueId();
+          String pepid =  "PEP_" + String(UniqueIdGenerator::getUniqueId());
           String pepi = jt->getSequence().toString();
-          std::map<String, UInt64>::iterator pit = pep_ids.find(pepi);
+          std::map<String, String>::iterator pit = pep_ids.find(pepi);
           if (pit == pep_ids.end())
           {
             String p;
             //~ TODO simplify mod cv param write
-            p += String("\t<Peptide id=\"") + String(pepid) + String("\"> \n\t\t<PeptideSequence>") + jt->getSequence().toUnmodifiedString() + String("</PeptideSequence> \n");
+            p += String("\t<Peptide id=\"") + pepid + String("\"> \n\t\t<PeptideSequence>") + jt->getSequence().toUnmodifiedString() + String("</PeptideSequence> \n");
             if (jt->getSequence().isModified())
             {
               ModificationsDB* mod_db = ModificationsDB::getInstance();
@@ -720,19 +734,19 @@ namespace OpenMS
             pepid = pit->second;
           }
 
-          std::vector<UInt64> pevid_ids;
+          std::vector<String> pevid_ids;
           if (pit == pep_ids.end())
           {        
             std::vector<PeptideEvidence> peptide_evidences = jt->getPeptideEvidences();
             // TODO idXML allows peptide hits without protein references! Fails in that case - run PeptideIndexer first
             for (std::vector<PeptideEvidence>::const_iterator pe = peptide_evidences.begin(); pe != peptide_evidences.end(); ++pe)
             {
-              UInt64 pevid =  UniqueIdGenerator::getUniqueId();
+              String pevid =  "PEV_" + String(UniqueIdGenerator::getUniqueId());
               String dBSequence_ref = String(sen_ids.find(pe->getProteinAccession())->second);
               String idec(boost::lexical_cast<std::string>((String(jt->getMetaValue("target_decoy"))).hasSubstring("decoy")));
 
               String e;
-              e += "\t<PeptideEvidence id=\"" + String(pevid) + "\" peptide_ref=\"" + String(pepid) + "\" dBSequence_ref=\"" + dBSequence_ref;
+              e += "\t<PeptideEvidence id=\"" + pevid + "\" peptide_ref=\"" + pepid + "\" dBSequence_ref=\"" + dBSequence_ref;
 
               //~ TODO no '*' allowed!!
               String po = String(pe->getAAAfter());
@@ -773,7 +787,7 @@ namespace OpenMS
               sen_set.insert(e);
               pevid_ids.push_back(pevid);
             }
-            pep_evis.insert(std::make_pair(pepi, pevid_ids));
+            pep_evis.insert(make_pair(pepi, pevid_ids));
           }
           else
           {
@@ -789,23 +803,41 @@ namespace OpenMS
             LOG_WARN << "No score assigned to this PSM: " /*<< jt->getSequence().toString()*/ << std::endl;
           }
           String c(jt->getCharge()); //charge
-          String pte(boost::lexical_cast<std::string>(it->isHigherScoreBetter() ? jt->getScore() > it->getSignificanceThreshold() : jt->getScore() < it->getSignificanceThreshold())); //passThreshold-eval
 
-          //write SpectrumIdentificationResult elements
-          UInt64 sii =  UniqueIdGenerator::getUniqueId();
+          String pte;
+          if (jt->metaValueExists("pass_threshold"))
+          {
+            pte = boost::lexical_cast<std::string>(jt->getMetaValue("pass_threshold"));
+          }
+          else if (pp_identifier_2_thresh.find(it->getIdentifier())!= pp_identifier_2_thresh.end() && pp_identifier_2_thresh.find(it->getIdentifier())->second != 0.0)
+          {
+            double th = pp_identifier_2_thresh.find(it->getIdentifier())->second;
+            //threshold was 'set' in proteinIdentification (!= default value of member, now check pass
+            pte = boost::lexical_cast<std::string>(it->isHigherScoreBetter() ? jt->getScore() > th : jt->getScore() < th); //passThreshold-eval
+          }
+          else
+          {
+//            if (pp_identifier_2_thresh.find(it->getIdentifier())== pp_identifier_2_thresh.end())
+//            {
+//                warning("Fuuuuuu");
+//            }
+            pte = true;
+          }
+
+          //write SpectrumIdentificationItem elements
+          String sii = "SII_" + String(UniqueIdGenerator::getUniqueId());
           sidres += String("\t\t\t\t<SpectrumIdentificationItem passThreshold=\"")
                   + pte + String("\" rank=\"") + r + String("\" peptide_ref=\"")
-                  + String(pepid) + String("\" calculatedMassToCharge=\"") + cmz
+                  + pepid + String("\" calculatedMassToCharge=\"") + cmz
                   + String("\" experimentalMassToCharge=\"") + emz
                   + String("\" chargeState=\"") + c +  String("\" id=\"")
-                  + String(sii) + String("\"> \n");
+                  + sii + String("\"> \n");
 
-          //TODO @mths: passThreshold attr.
           if (pevid_ids.empty())
           {
             LOG_WARN << "PSM without peptide evidence registered in the given search database found. This will cause an invalid mzIdentML file (which OpenMS can still consume)." << std::endl;
           }
-          for (std::vector<UInt64>::const_iterator pevref = pevid_ids.begin(); pevref != pevid_ids.end(); ++pevref)
+          for (std::vector<String>::const_iterator pevref = pevid_ids.begin(); pevref != pevid_ids.end(); ++pevref)
           {
             sidres += "\t\t\t\t\t<PeptideEvidenceRef peptideEvidence_ref=\"" +  String(*pevref) + "\"/> \n";
           }
@@ -879,7 +911,24 @@ namespace OpenMS
           sidres +=  "\t\t\t\t" + cv_.getTermByName("retention time").toXMLString(cv_ns, ert) + "\n";
         }
         sidres += "\t\t\t</SpectrumIdentificationResult>\n";
-        sidlist.push_back(sidres);
+        std::map<String, String>::const_iterator ps_it = pp_identifier_2_sil_.find(it->getIdentifier());
+        if (ps_it != pp_identifier_2_sil_.end())
+        {
+          std::map<String, String>::iterator sil_it = sil_map.find(ps_it->second);
+          if (sil_it != sil_map.end())
+          {
+            sil_it->second.append(sidres);
+          }
+          else
+          {
+            sil_map.insert(make_pair(ps_it->second,sidres));
+          }
+        }
+        else
+        {
+          //encountered a PeptideIdentification which is not linked to any ProteinIdentification
+          LOG_ERROR << "encountered a PeptideIdentification which is not linked to any ProteinIdentification" << std::endl;
+        }
       }
 
       //--------------------------------------------------------------------------------------------
@@ -907,10 +956,10 @@ namespace OpenMS
         os << *sof;
       }
 
-      std::map<String, UInt64>::iterator soit = sof_ids.find("TOPP software");
+      std::map<String, String>::iterator soit = sof_ids.find("TOPP software");
       if (soit == sof_ids.end())
       {
-        os << "\t<AnalysisSoftware version=\"OpenMS TOPP v1.9\" name=\"TOPP software\" id=\"" << String(UniqueIdGenerator::getUniqueId()) << "\"> \n"
+        os << "\t<AnalysisSoftware version=\"OpenMS TOPP v"<< VersionInfo::getVersion() <<"\" name=\"TOPP software\" id=\"" << String("SOF_") << String(UniqueIdGenerator::getUniqueId()) << "\"> \n"
            << "\t\t<SoftwareName> \n\t\t\t" << cv_.getTermByName("TOPP software").toXMLString(cv_ns) << " \n\t\t</SoftwareName> \n\t</AnalysisSoftware> \n";
       }
       os << "</AnalysisSoftwareList>\n";
@@ -930,32 +979,23 @@ namespace OpenMS
       // + SpectrumIdentification
       // TODO ProteinDetection
       //--------------------------------------------------------------------------------------------
-      UInt64 silly  = UniqueIdGenerator::getUniqueId();
-
       os << "<AnalysisCollection>\n";
-      for (std::map<String, UInt64>::const_iterator sip = sip_ids.begin(); sip != sip_ids.end(); ++sip)
+      for (std::map<String,String>::const_iterator pp2sil_it = pp_identifier_2_sil_.begin(); pp2sil_it != pp_identifier_2_sil_.end(); ++pp2sil_it)
       {
-        //~ TODO unsure when to create several lists instead of one SpectrumIdentificationList - for now only one list
-        //~ for  (std::set<String>::const_iterator sip = sip_set.begin(); sip != sip_set.end(); ++sip)
-        //~ {
-        UInt64 ss  = UniqueIdGenerator::getUniqueId();
-        String entry = String("\t<SpectrumIdentification id=\"") + String(ss) + String("\" spectrumIdentificationProtocol_ref=\"")
-                       + String(sip->second) + String("\" spectrumIdentificationList_ref=\"") + String(silly)
-                       + String("\" activityDate=\"") + sip_dates[sip->second]
-                       + String("\">\n")
-                       + "\t\t<InputSpectra spectraData_ref=\"" + spd_ref[sip->second] + "\"/>\n" // spd_ids.insert(std::pair<String, UInt64>(sdst, sdid));
-                       + "\t\t<SearchDatabaseRef searchDatabase_ref=\"" + sip_sdb[sip->second] + "\"/>\n"
-                       + "\t</SpectrumIdentification>\n";
-        os <<   entry;
-        //~ }
+          String entry = String("\t<SpectrumIdentification id=\"SI_") + pp2sil_it->first + String("\" spectrumIdentificationProtocol_ref=\"")
+                           + sil_2_sip_[pp2sil_it->second] + String("\" spectrumIdentificationList_ref=\"") + pp2sil_it->second
+                           + String("\" activityDate=\"") + sil_2_date[pp2sil_it->second]
+                           + String("\">\n")
+                           + "\t\t<InputSpectra spectraData_ref=\"" + sil_2_sdat_[pp2sil_it->second] + "\"/>\n" // spd_ids.insert(std::pair<String, UInt64>(sdst, sdid));
+                           + "\t\t<SearchDatabaseRef searchDatabase_ref=\"" + sil_2_sdb_[pp2sil_it->second] + "\"/>\n"
+                           + "\t</SpectrumIdentification>\n";
+          os <<   entry;
       }
-
       os << "</AnalysisCollection>\n";
 
       //--------------------------------------------------------------------------------------------
       // AnalysisProtocolCollection
-      //+SpectrumIdentificationProtocol + SearchType
-      //                                                                                                    + Threshold
+      //+ SpectrumIdentificationProtocol + SearchType + Threshold
       //--------------------------------------------------------------------------------------------
       os << "<AnalysisProtocolCollection>\n";
       for (std::set<String>::const_iterator sip = sip_set.begin(); sip != sip_set.end(); ++sip)
@@ -971,19 +1011,19 @@ namespace OpenMS
       //--------------------------------------------------------------------------------------------
       os << "<DataCollection>\n"
          << inputs_element;
-      os << "\t<AnalysisData>\n\t\t<SpectrumIdentificationList id=\""
-         << String(silly)
-         << String("\"> \n");
-      os << "\t\t\t<FragmentationTable>\n"
-         << "\t\t\t\t<Measure id=\"Measure_MZ\">\n"
-         << "\t\t\t\t\t<cvParam accession=\"MS:1001225\" cvRef=\"PSI-MS\" unitCvRef=\"PSI-MS\" unitName=\"m/z\" unitAccession=\"MS:1000040\" name=\"product ion m/z\"/>\n"
-         << "\t\t\t\t</Measure>\n"
-         << "\t\t\t</FragmentationTable>\n";
-      for (std::vector<String>::const_iterator sid = sidlist.begin(); sid != sidlist.end(); ++sid)
+      os << "\t<AnalysisData>\n";
+      for (std::map<String,String>::const_iterator sil_it = sil_map.begin(); sil_it != sil_map.end(); ++sil_it)
       {
-        os << *sid;
+        os << "\t\t<SpectrumIdentificationList id=\"" << sil_it->first << String("\"> \n");
+        os << "\t\t\t<FragmentationTable>\n"
+           << "\t\t\t\t<Measure id=\"Measure_MZ\">\n"
+           << "\t\t\t\t\t<cvParam accession=\"MS:1001225\" cvRef=\"PSI-MS\" unitCvRef=\"PSI-MS\" unitName=\"m/z\" unitAccession=\"MS:1000040\" name=\"product ion m/z\"/>\n"
+           << "\t\t\t\t</Measure>\n"
+           << "\t\t\t</FragmentationTable>\n";
+        os << sil_it->second;
+        os << "\t\t</SpectrumIdentificationList>\n";
       }
-      os << "\t\t</SpectrumIdentificationList>\n\t</AnalysisData>\n</DataCollection>\n";
+      os << "\t</AnalysisData>\n</DataCollection>\n";
 
       //--------------------------------------------------------------------------------------------
       // close XML header
@@ -1036,7 +1076,7 @@ namespace OpenMS
     {
       String cv_ns = cv_.name();
       s += String(indent, '\t') + "<Enzymes independent=\"false\">" + "\n";
-      s += String(indent, '\t') + "\t" + "<Enzyme missedCleavages=\"" + String(miss) + "\" id=\"" + String(UniqueIdGenerator::getUniqueId()) + "\">" + "\n";
+      s += String(indent, '\t') + "\t" + "<Enzyme missedCleavages=\"" + String(miss) + "\" id=\"" + String("ENZ_") + String(UniqueIdGenerator::getUniqueId()) + "\">" + "\n";
       s += String(indent, '\t') + "\t\t" + "<EnzymeName>" + "\n";
       if (enzy == ProteinIdentification::TRYPSIN)
       {

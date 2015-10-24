@@ -82,6 +82,18 @@ public:
       }
 
     };
+
+    /// Lesser predicate for scores of hits
+    class OPENMS_DLLAPI RankLess
+    {
+public:
+      template <typename Arg>
+      bool operator()(const Arg& a, const Arg& b)
+      {
+        return a.getRank() < b.getRank();
+      }
+
+    };
     //@}
 
     /// Analysis Result (containing search engine / prophet results)
