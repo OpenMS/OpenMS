@@ -121,5 +121,13 @@ namespace OpenMS
     
     return mass_shifts_[i];
   }
-
+  
+  bool operator<(const MultiplexDeltaMasses &dm1, const MultiplexDeltaMasses &dm2)
+  {
+    std::vector<double> ms1 = dm1.getMassShifts();
+    std::vector<double> ms2 = dm2.getMassShifts();
+    
+    return ms1<ms2;
+  }
+  
 }

@@ -150,8 +150,10 @@ namespace OpenMS
      * (including zero mass shift for first peptide)
      */
     std::vector<DeltaMass> delta_masses_;
-      
+    
  };
+ 
+ bool operator<(const MultiplexDeltaMasses &dm1, const MultiplexDeltaMasses &dm2);
   
 }
 
