@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/METADATA/DataProcessing.h>
@@ -1006,22 +1007,8 @@ namespace OpenMS
 
       vector<PeptideEvidence> pes = id.getHits()[j].getPeptideEvidences();
 
-      // do we have peptide evidence information? print information of the first one (featureXML only supports one evidence per hit)
-      if (!pes.empty())
-      {
-        if (pes[0].getAABefore() != PeptideEvidence::UNKNOWN_AA)
-        {
-          os << " aa_before=\"" << pes[0].getAABefore() << "\"";
-        }
-      }
-
-      if (!pes.empty())
-      {
-        if (pes[0].getAAAfter() != PeptideEvidence::UNKNOWN_AA)
-        {
-          os << " aa_after=\"" << pes[0].getAAAfter() << "\"";
-        }
-      }
+      os << IdXMLFile::createFlankingAAXMLString_(pes);
+      os << IdXMLFile::createPositionXMLString_(pes);
 
       set<String> protein_accessions = id.getHits()[j].extractProteinAccessions();
 
