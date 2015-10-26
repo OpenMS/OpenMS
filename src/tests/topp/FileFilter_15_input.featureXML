@@ -46,23 +46,23 @@
 	</IdentificationRun>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="317.699279785156" RT="2869.4172" >
 		<PeptideHit score="32.37" sequence="LNFLK" charge="2" aa_before="R" aa_after="K" protein_refs="PH_0">
-			<userParam type="float" name="homology_threshold" value="0"/>
-			<userParam type="float" name="identity_threshold" value="13"/>
-			<userParam type="float" name="EValue" value="0.00058"/>
+			<UserParam type="float" name="homology_threshold" value="0"/>
+			<UserParam type="float" name="identity_threshold" value="13"/>
+			<UserParam type="float" name="EValue" value="0.00058"/>
 		</PeptideHit>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="437.7255859375" RT="1741.1794" >
 		<PeptideHit score="15.74" sequence="NMAINPSK" charge="2" aa_before="K" aa_after="E" protein_refs="PH_0">
-			<userParam type="float" name="homology_threshold" value="0"/>
-			<userParam type="float" name="identity_threshold" value="13"/>
-			<userParam type="float" name="EValue" value="0.027"/>
+			<UserParam type="float" name="homology_threshold" value="0"/>
+			<UserParam type="float" name="identity_threshold" value="13"/>
+			<UserParam type="float" name="EValue" value="0.027"/>
 		</PeptideHit>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="490.283447265625" RT="3723.2741" >
 		<PeptideHit score="10.49" sequence="FALPQYLK" charge="2" aa_before="K" aa_after="T" protein_refs="PH_0">
-			<userParam type="float" name="homology_threshold" value="0"/>
-			<userParam type="float" name="identity_threshold" value="13"/>
-			<userParam type="float" name="EValue" value="0.089"/>
+			<UserParam type="float" name="homology_threshold" value="0"/>
+			<UserParam type="float" name="identity_threshold" value="13"/>
+			<UserParam type="float" name="EValue" value="0.089"/>
 		</PeptideHit>
 	</UnassignedPeptideIdentification>
 	<featureList count="103">
@@ -176,9 +176,9 @@
 				<pt x="2991.1853" y="472.247287440077" />
 				<pt x="2989.9474" y="472.246677350154" />
 			</convexhull>
-			<userParam type="int" name="label" value="16"/>
-			<userParam type="int" name="spectrum_index" value="2317"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=3275"/>
+			<UserParam type="int" name="label" value="16"/>
+			<UserParam type="int" name="spectrum_index" value="2317"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=3275"/>
 		</feature>
 		<feature id="f_3271104848282021923">
 			<position dim="0">3610.68482100247</position>
@@ -342,35 +342,35 @@
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="490.284729003906" RT="3598.1666" >
 				<PeptideHit score="27.57" sequence="FALPQYLK" charge="2" aa_before="K" aa_after="T" protein_refs="PH_0">
-					<userParam type="float" name="homology_threshold" value="0"/>
-					<userParam type="float" name="identity_threshold" value="13"/>
-					<userParam type="float" name="EValue" value="0.0017"/>
+					<UserParam type="float" name="homology_threshold" value="0"/>
+					<UserParam type="float" name="identity_threshold" value="13"/>
+					<UserParam type="float" name="EValue" value="0.0017"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="490.284759521484" RT="3623.1091" >
 				<PeptideHit score="41.94" sequence="FALPQYLK" charge="2" aa_before="K" aa_after="T" protein_refs="PH_0">
-					<userParam type="float" name="homology_threshold" value="0"/>
-					<userParam type="float" name="identity_threshold" value="13"/>
-					<userParam type="float" name="EValue" value="6.4e-05"/>
+					<UserParam type="float" name="homology_threshold" value="0"/>
+					<UserParam type="float" name="identity_threshold" value="13"/>
+					<UserParam type="float" name="EValue" value="6.4e-05"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="18" MZ="490.284729003906" RT="3598.1666" >
 				<PeptideHit score="3.42" sequence="M(Oxidation)EK(Label:13C(6)15N(2))WLLK(Label:13C(6)15N(2))" charge="2">
-					<userParam type="float" name="homology_threshold" value="0"/>
-					<userParam type="float" name="identity_threshold" value="18"/>
-					<userParam type="float" name="EValue" value="1.5"/>
+					<UserParam type="float" name="homology_threshold" value="0"/>
+					<UserParam type="float" name="identity_threshold" value="18"/>
+					<UserParam type="float" name="EValue" value="1.5"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="18" MZ="490.284759521484" RT="3623.1091" >
 				<PeptideHit score="4.7" sequence="M(Oxidation)EK(Label:13C(6)15N(2))WLLK(Label:13C(6)15N(2))" charge="2">
-					<userParam type="float" name="homology_threshold" value="0"/>
-					<userParam type="float" name="identity_threshold" value="18"/>
-					<userParam type="float" name="EValue" value="1.1"/>
+					<UserParam type="float" name="homology_threshold" value="0"/>
+					<UserParam type="float" name="identity_threshold" value="18"/>
+					<UserParam type="float" name="EValue" value="1.1"/>
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="int" name="label" value="22"/>
-			<userParam type="int" name="spectrum_index" value="2789"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4331"/>
+			<UserParam type="int" name="label" value="22"/>
+			<UserParam type="int" name="spectrum_index" value="2789"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4331"/>
 		</feature>
 		<feature id="f_1656348803690650280">
 			<position dim="0">3690.86452063159</position>
@@ -518,9 +518,9 @@
 				<pt x="3678.7663" y="487.255898065451" />
 				<pt x="3676.5814" y="487.250871809336" />
 			</convexhull>
-			<userParam type="int" name="label" value="37"/>
-			<userParam type="int" name="spectrum_index" value="2853"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4461"/>
+			<UserParam type="int" name="label" value="37"/>
+			<UserParam type="int" name="spectrum_index" value="2853"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4461"/>
 		</feature>
 		<feature id="f_1646740055379542295">
 			<position dim="0">3613.13530893922</position>
@@ -632,9 +632,9 @@
 				<pt x="3605.9854" y="636.793446373166" />
 				<pt x="3605.0658" y="636.793959538577" />
 			</convexhull>
-			<userParam type="int" name="label" value="30"/>
-			<userParam type="int" name="spectrum_index" value="2791"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4339"/>
+			<UserParam type="int" name="label" value="30"/>
+			<UserParam type="int" name="spectrum_index" value="2791"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4339"/>
 		</feature>
 		<feature id="f_3773394261086953650">
 			<position dim="0">3359.16757596124</position>
@@ -770,9 +770,9 @@
 				<pt x="3348.938" y="652.325275501543" />
 				<pt x="3347.9765" y="652.323989125329" />
 			</convexhull>
-			<userParam type="int" name="label" value="2360"/>
-			<userParam type="int" name="spectrum_index" value="2596"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=3897"/>
+			<UserParam type="int" name="label" value="2360"/>
+			<UserParam type="int" name="spectrum_index" value="2596"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=3897"/>
 		</feature>
 		<feature id="f_2445361069214013934">
 			<position dim="0">3121.59292163833</position>
@@ -930,9 +930,9 @@
 				<pt x="3122.5739" y="716.786792536416" />
 				<pt x="3121.2259" y="716.789470366514" />
 			</convexhull>
-			<userParam type="int" name="label" value="52"/>
-			<userParam type="int" name="spectrum_index" value="2410"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=3497"/>
+			<UserParam type="int" name="label" value="52"/>
+			<UserParam type="int" name="spectrum_index" value="2410"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=3497"/>
 		</feature>
 		<feature id="f_3178550073756945462">
 			<position dim="0">3140.18301857269</position>
@@ -1054,9 +1054,9 @@
 				<pt x="3136.6234" y="608.825521387096" />
 				<pt x="3134.6359" y="608.826561404709" />
 			</convexhull>
-			<userParam type="int" name="label" value="51"/>
-			<userParam type="int" name="spectrum_index" value="2423"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=3534"/>
+			<UserParam type="int" name="label" value="51"/>
+			<UserParam type="int" name="spectrum_index" value="2423"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=3534"/>
 		</feature>
 		<feature id="f_1616621616186851940">
 			<position dim="0">3250.59926226108</position>
@@ -1240,14 +1240,14 @@
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="15" MZ="554.269592285156" RT="3242.3717" >
 				<PeptideHit score="1.36" sequence="NISFSDNNSR(Label:13C(6)15N(4))IMSR(Label:13C(6)15N(4))" charge="3">
-					<userParam type="float" name="homology_threshold" value="0"/>
-					<userParam type="float" name="identity_threshold" value="15"/>
-					<userParam type="float" name="EValue" value="1.2"/>
+					<UserParam type="float" name="homology_threshold" value="0"/>
+					<UserParam type="float" name="identity_threshold" value="15"/>
+					<UserParam type="float" name="EValue" value="1.2"/>
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="int" name="label" value="2364"/>
-			<userParam type="int" name="spectrum_index" value="2511"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=3712"/>
+			<UserParam type="int" name="label" value="2364"/>
+			<UserParam type="int" name="spectrum_index" value="2511"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=3712"/>
 		</feature>
 		<feature id="f_13383799546376701366">
 			<position dim="0">3474.98219223736</position>
@@ -1421,9 +1421,9 @@
 				<pt x="3471.7761" y="703.663754784087" />
 				<pt x="3470.855" y="703.664544593361" />
 			</convexhull>
-			<userParam type="int" name="label" value="2365"/>
-			<userParam type="int" name="spectrum_index" value="2683"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4092"/>
+			<UserParam type="int" name="label" value="2365"/>
+			<UserParam type="int" name="spectrum_index" value="2683"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4092"/>
 		</feature>
 		<feature id="f_4099130081101102895">
 			<position dim="0">3517.61094115676</position>
@@ -1521,9 +1521,9 @@
 				<pt x="3516.227" y="825.433943217901" />
 				<pt x="3514.8323" y="825.433912376751" />
 			</convexhull>
-			<userParam type="int" name="label" value="48"/>
-			<userParam type="int" name="spectrum_index" value="2716"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4162"/>
+			<UserParam type="int" name="label" value="48"/>
+			<UserParam type="int" name="spectrum_index" value="2716"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4162"/>
 		</feature>
 		<feature id="f_15721297786849622328">
 			<position dim="0">2779.91301099705</position>
@@ -1649,14 +1649,14 @@
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="638.296569824219" RT="2774.4172" >
 				<PeptideHit score="5.25" sequence="NESATINEMMK(Label:13C(6)15N(2))" charge="2">
-					<userParam type="float" name="homology_threshold" value="0"/>
-					<userParam type="float" name="identity_threshold" value="13"/>
-					<userParam type="float" name="EValue" value="0.36"/>
+					<UserParam type="float" name="homology_threshold" value="0"/>
+					<UserParam type="float" name="identity_threshold" value="13"/>
+					<UserParam type="float" name="EValue" value="0.36"/>
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="int" name="label" value="46"/>
-			<userParam type="int" name="spectrum_index" value="2159"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2886"/>
+			<UserParam type="int" name="label" value="46"/>
+			<UserParam type="int" name="spectrum_index" value="2159"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2886"/>
 		</feature>
 		<feature id="f_16084749730379848841">
 			<position dim="0">6040.0715583423</position>
@@ -1810,9 +1810,9 @@
 				<pt x="6027.7087" y="502.849416944914" />
 				<pt x="6026.7681" y="502.849681095481" />
 			</convexhull>
-			<userParam type="int" name="label" value="118"/>
-			<userParam type="int" name="spectrum_index" value="4832"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=7592"/>
+			<UserParam type="int" name="label" value="118"/>
+			<UserParam type="int" name="spectrum_index" value="4832"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=7592"/>
 		</feature>
 		<feature id="f_13311452963145790523">
 			<position dim="0">2183.58461111706</position>
@@ -2124,9 +2124,9 @@
 				<pt x="2168.4167" y="646.297452616296" />
 				<pt x="2167.035" y="646.294090623874" />
 			</convexhull>
-			<userParam type="int" name="label" value="2388"/>
-			<userParam type="int" name="spectrum_index" value="1709"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=1961"/>
+			<UserParam type="int" name="label" value="2388"/>
+			<UserParam type="int" name="spectrum_index" value="1709"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=1961"/>
 		</feature>
 		<feature id="f_10761500194353141160">
 			<position dim="0">1702.22785680258</position>
@@ -2475,33 +2475,33 @@
 						<pt x="1697.4613" y="439.731911504509" />
 						<pt x="1696.5158" y="439.727233255864" />
 					</convexhull>
-					<userParam type="int" name="label" value="1246"/>
+					<UserParam type="int" name="label" value="1246"/>
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="437.724975585938" RT="1689.1384" >
 				<PeptideHit score="21.48" sequence="NMAINPSK" charge="2" aa_before="K" aa_after="E" protein_refs="PH_0">
-					<userParam type="float" name="homology_threshold" value="0"/>
-					<userParam type="float" name="identity_threshold" value="13"/>
-					<userParam type="float" name="EValue" value="0.0071"/>
+					<UserParam type="float" name="homology_threshold" value="0"/>
+					<UserParam type="float" name="identity_threshold" value="13"/>
+					<UserParam type="float" name="EValue" value="0.0071"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="437.726287841797" RT="1715.2281" >
 				<PeptideHit score="35.43" sequence="NMAINPSK" charge="2" aa_before="K" aa_after="E" protein_refs="PH_0">
-					<userParam type="float" name="homology_threshold" value="0"/>
-					<userParam type="float" name="identity_threshold" value="13"/>
-					<userParam type="float" name="EValue" value="0.00029"/>
+					<UserParam type="float" name="homology_threshold" value="0"/>
+					<UserParam type="float" name="identity_threshold" value="13"/>
+					<UserParam type="float" name="EValue" value="0.00029"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="16" MZ="437.724975585938" RT="1689.1384" >
 				<PeptideHit score="4.78" sequence="ASSAASSSAK(Label:13C(6)15N(2))" charge="2">
-					<userParam type="float" name="homology_threshold" value="0"/>
-					<userParam type="float" name="identity_threshold" value="16"/>
-					<userParam type="float" name="EValue" value="0.7"/>
+					<UserParam type="float" name="homology_threshold" value="0"/>
+					<UserParam type="float" name="identity_threshold" value="16"/>
+					<UserParam type="float" name="EValue" value="0.7"/>
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="int" name="label" value="61"/>
-			<userParam type="int" name="spectrum_index" value="1347"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=1440"/>
+			<UserParam type="int" name="label" value="61"/>
+			<UserParam type="int" name="spectrum_index" value="1347"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=1440"/>
 		</feature>
 		<feature id="f_14908715519245189017">
 			<position dim="0">3336.44625692353</position>
@@ -2635,14 +2635,14 @@
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="16" MZ="505.791015625" RT="3327.3795" >
 				<PeptideHit score="3.3" sequence="ALPM(Oxidation)NLSIK(Label:13C(6)15N(2))" charge="2">
-					<userParam type="float" name="homology_threshold" value="0"/>
-					<userParam type="float" name="identity_threshold" value="16"/>
-					<userParam type="float" name="EValue" value="1.1"/>
+					<UserParam type="float" name="homology_threshold" value="0"/>
+					<UserParam type="float" name="identity_threshold" value="16"/>
+					<UserParam type="float" name="EValue" value="1.1"/>
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="int" name="label" value="135"/>
-			<userParam type="int" name="spectrum_index" value="2580"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=3852"/>
+			<UserParam type="int" name="label" value="135"/>
+			<UserParam type="int" name="spectrum_index" value="2580"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=3852"/>
 		</feature>
 		<feature id="f_3050957379723929204">
 			<position dim="0">4047.73839956395</position>
@@ -2790,14 +2790,14 @@
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="15" MZ="423.274871826172" RT="4059.7734" >
 				<PeptideHit score="3.65" sequence="ILVNK(Label:13C(6)15N(2))DK(Label:13C(6)15N(2))" charge="2">
-					<userParam type="float" name="homology_threshold" value="0"/>
-					<userParam type="float" name="identity_threshold" value="15"/>
-					<userParam type="float" name="EValue" value="0.71"/>
+					<UserParam type="float" name="homology_threshold" value="0"/>
+					<UserParam type="float" name="identity_threshold" value="15"/>
+					<UserParam type="float" name="EValue" value="0.71"/>
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="int" name="label" value="102"/>
-			<userParam type="int" name="spectrum_index" value="3146"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4924"/>
+			<UserParam type="int" name="label" value="102"/>
+			<UserParam type="int" name="spectrum_index" value="3146"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4924"/>
 		</feature>
 		<feature id="f_4031756029079820320">
 			<position dim="0">6050.08158499237</position>
@@ -2879,9 +2879,9 @@
 				<pt x="6044.144" y="472.32327258883" />
 				<pt x="6042.8397" y="472.322984964778" />
 			</convexhull>
-			<userParam type="int" name="label" value="222"/>
-			<userParam type="int" name="spectrum_index" value="4840"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=7602"/>
+			<UserParam type="int" name="label" value="222"/>
+			<UserParam type="int" name="spectrum_index" value="4840"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=7602"/>
 		</feature>
 		<feature id="f_17460649691512291993">
 			<position dim="0">2640.88731524639</position>
@@ -3049,14 +3049,14 @@
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="617.939697265625" RT="2633.874" >
 				<PeptideHit score="1.42" sequence="YSFSHDSC(Carbamidomethyl)M(Oxidation)PVPIC(Carbamidomethyl)K(Label:13C(6)15N(2))" charge="3">
-					<userParam type="float" name="homology_threshold" value="0"/>
-					<userParam type="float" name="identity_threshold" value="13"/>
-					<userParam type="float" name="EValue" value="0.72"/>
+					<UserParam type="float" name="homology_threshold" value="0"/>
+					<UserParam type="float" name="identity_threshold" value="13"/>
+					<UserParam type="float" name="EValue" value="0.72"/>
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="int" name="label" value="2395"/>
-			<userParam type="int" name="spectrum_index" value="2057"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2640"/>
+			<UserParam type="int" name="label" value="2395"/>
+			<UserParam type="int" name="spectrum_index" value="2057"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2640"/>
 		</feature>
 		<feature id="f_427278873217430008">
 			<position dim="0">2599.06676494943</position>
@@ -3220,9 +3220,9 @@
 				<pt x="2593.6808" y="839.872681587607" />
 				<pt x="2592.7045" y="839.872180844497" />
 			</convexhull>
-			<userParam type="int" name="label" value="174"/>
-			<userParam type="int" name="spectrum_index" value="2025"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2570"/>
+			<UserParam type="int" name="label" value="174"/>
+			<UserParam type="int" name="spectrum_index" value="2025"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2570"/>
 		</feature>
 		<feature id="f_13055607695809626429">
 			<position dim="0">3607.46675835296</position>
@@ -3316,14 +3316,14 @@
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="426.774658203125" RT="3597.3431" >
 				<PeptideHit score="26.47" sequence="IIINIMK(Label:13C(6)15N(2))" charge="2" aa_before="R" aa_after="S" protein_refs="PH_10">
-					<userParam type="float" name="homology_threshold" value="0"/>
-					<userParam type="float" name="identity_threshold" value="13"/>
-					<userParam type="float" name="EValue" value="0.0026"/>
+					<UserParam type="float" name="homology_threshold" value="0"/>
+					<UserParam type="float" name="identity_threshold" value="13"/>
+					<UserParam type="float" name="EValue" value="0.0026"/>
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="int" name="label" value="169"/>
-			<userParam type="int" name="spectrum_index" value="2787"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4324"/>
+			<UserParam type="int" name="label" value="169"/>
+			<UserParam type="int" name="spectrum_index" value="2787"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4324"/>
 		</feature>
 		<feature id="f_17283102581322321564">
 			<position dim="0">2508.39762809468</position>
@@ -3433,9 +3433,9 @@
 				<pt x="2504.2964" y="744.381043140003" />
 				<pt x="2503.2682" y="744.381430847408" />
 			</convexhull>
-			<userParam type="int" name="label" value="192"/>
-			<userParam type="int" name="spectrum_index" value="1953"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2415"/>
+			<UserParam type="int" name="label" value="192"/>
+			<UserParam type="int" name="spectrum_index" value="1953"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2415"/>
 		</feature>
 		<feature id="f_7698585908152258004">
 			<position dim="0">1988.70596513941</position>
@@ -3567,9 +3567,9 @@
 				<pt x="1980.2246" y="524.28816239015" />
 				<pt x="1979.0805" y="524.287553238473" />
 			</convexhull>
-			<userParam type="int" name="label" value="212"/>
-			<userParam type="int" name="spectrum_index" value="1565"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=1730"/>
+			<UserParam type="int" name="label" value="212"/>
+			<UserParam type="int" name="spectrum_index" value="1565"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=1730"/>
 		</feature>
 		<feature id="f_5596163686849263167">
 			<position dim="0">2623.44512713939</position>
@@ -3797,9 +3797,9 @@
 				<pt x="2612.5084" y="640.629244427098" />
 				<pt x="2611.5057" y="640.63199175929" />
 			</convexhull>
-			<userParam type="int" name="label" value="2435"/>
-			<userParam type="int" name="spectrum_index" value="2045"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2612"/>
+			<UserParam type="int" name="label" value="2435"/>
+			<UserParam type="int" name="spectrum_index" value="2045"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2612"/>
 		</feature>
 		<feature id="f_2646156037797860185">
 			<position dim="0">3591.88779276551</position>
@@ -3927,14 +3927,14 @@
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="17" MZ="663.357604980469" RT="3584.4877" >
 				<PeptideHit score="1.38" sequence="TQAR(Label:13C(6)15N(4))FFHATTK(Label:13C(6)15N(2))" charge="2">
-					<userParam type="float" name="homology_threshold" value="0"/>
-					<userParam type="float" name="identity_threshold" value="17"/>
-					<userParam type="float" name="EValue" value="2"/>
+					<UserParam type="float" name="homology_threshold" value="0"/>
+					<UserParam type="float" name="identity_threshold" value="17"/>
+					<UserParam type="float" name="EValue" value="2"/>
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="int" name="label" value="199"/>
-			<userParam type="int" name="spectrum_index" value="2773"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4299"/>
+			<UserParam type="int" name="label" value="199"/>
+			<UserParam type="int" name="spectrum_index" value="2773"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4299"/>
 		</feature>
 		<feature id="f_14350819274911776913">
 			<position dim="0">3121.49165763521</position>
@@ -4034,9 +4034,9 @@
 				<pt x="3119.4397" y="700.80720001876" />
 				<pt x="3117.5536" y="700.808893668373" />
 			</convexhull>
-			<userParam type="int" name="label" value="136"/>
-			<userParam type="int" name="spectrum_index" value="2410"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=3497"/>
+			<UserParam type="int" name="label" value="136"/>
+			<UserParam type="int" name="spectrum_index" value="2410"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=3497"/>
 		</feature>
 		<feature id="f_8771463914585223058">
 			<position dim="0">2981.96933434702</position>
@@ -4174,9 +4174,9 @@
 				<pt x="2982.9573" y="565.247226756964" />
 				<pt x="2981.705" y="565.245653271177" />
 			</convexhull>
-			<userParam type="int" name="label" value="2415"/>
-			<userParam type="int" name="spectrum_index" value="2306"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=3247"/>
+			<UserParam type="int" name="label" value="2415"/>
+			<UserParam type="int" name="spectrum_index" value="2306"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=3247"/>
 		</feature>
 		<feature id="f_9972787737943532302">
 			<position dim="0">2475.62461585998</position>
@@ -4310,9 +4310,9 @@
 				<pt x="2472.0538" y="686.868552117036" />
 				<pt x="2470.5003" y="686.868261795787" />
 			</convexhull>
-			<userParam type="int" name="label" value="193"/>
-			<userParam type="int" name="spectrum_index" value="1929"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2361"/>
+			<UserParam type="int" name="label" value="193"/>
+			<UserParam type="int" name="spectrum_index" value="1929"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2361"/>
 		</feature>
 		<feature id="f_8832098981898035075">
 			<position dim="0">4084.56842643404</position>
@@ -4683,12 +4683,12 @@
 						<pt x="4081.0407" y="1016.8287048214" />
 						<pt x="4078.2527" y="1016.82921058374" />
 					</convexhull>
-					<userParam type="int" name="label" value="2668"/>
+					<UserParam type="int" name="label" value="2668"/>
 				</feature>
 			</subordinate>
-			<userParam type="int" name="label" value="2398"/>
-			<userParam type="int" name="spectrum_index" value="3176"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4975"/>
+			<UserParam type="int" name="label" value="2398"/>
+			<UserParam type="int" name="spectrum_index" value="3176"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4975"/>
 		</feature>
 		<feature id="f_6436958336867405421">
 			<position dim="0">2886.65917413014</position>
@@ -4868,9 +4868,9 @@
 				<pt x="2883.0472" y="635.288805328762" />
 				<pt x="2882.0417" y="635.287188927552" />
 			</convexhull>
-			<userParam type="int" name="label" value="2411"/>
-			<userParam type="int" name="spectrum_index" value="2234"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=3087"/>
+			<UserParam type="int" name="label" value="2411"/>
+			<UserParam type="int" name="spectrum_index" value="2234"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=3087"/>
 		</feature>
 		<feature id="f_10774629940328129980">
 			<position dim="0">3140.9180677138</position>
@@ -4952,14 +4952,14 @@
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="16" MZ="490.250885009766" RT="3132.1286" >
 				<PeptideHit score="5.25" sequence="M(Oxidation)SNITYVK(Label:13C(6)15N(2))" charge="2">
-					<userParam type="float" name="homology_threshold" value="0"/>
-					<userParam type="float" name="identity_threshold" value="16"/>
-					<userParam type="float" name="EValue" value="0.67"/>
+					<UserParam type="float" name="homology_threshold" value="0"/>
+					<UserParam type="float" name="identity_threshold" value="16"/>
+					<UserParam type="float" name="EValue" value="0.67"/>
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="int" name="label" value="206"/>
-			<userParam type="int" name="spectrum_index" value="2424"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=3536"/>
+			<UserParam type="int" name="label" value="206"/>
+			<UserParam type="int" name="spectrum_index" value="2424"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=3536"/>
 		</feature>
 		<feature id="f_5871774223226241703">
 			<position dim="0">2847.62557472925</position>
@@ -5083,9 +5083,9 @@
 				<pt x="2842.1606" y="822.863930456919" />
 				<pt x="2839.3677" y="822.862743820841" />
 			</convexhull>
-			<userParam type="int" name="label" value="1413"/>
-			<userParam type="int" name="spectrum_index" value="2207"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=3009"/>
+			<UserParam type="int" name="label" value="1413"/>
+			<UserParam type="int" name="spectrum_index" value="2207"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=3009"/>
 		</feature>
 		<feature id="f_7616499591581489156">
 			<position dim="0">3598.10682269431</position>
@@ -5201,9 +5201,9 @@
 				<pt x="3591.9933" y="505.792940201284" />
 				<pt x="3590.5688" y="505.793331712418" />
 			</convexhull>
-			<userParam type="int" name="label" value="185"/>
-			<userParam type="int" name="spectrum_index" value="2778"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4308"/>
+			<UserParam type="int" name="label" value="185"/>
+			<UserParam type="int" name="spectrum_index" value="2778"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4308"/>
 		</feature>
 		<feature id="f_13072469243012652981">
 			<position dim="0">2155.10177532738</position>
@@ -5371,9 +5371,9 @@
 				<pt x="2149.8702" y="646.296264064307" />
 				<pt x="2148.3756" y="646.296574355369" />
 			</convexhull>
-			<userParam type="int" name="label" value="2401"/>
-			<userParam type="int" name="spectrum_index" value="1687"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=1927"/>
+			<UserParam type="int" name="label" value="2401"/>
+			<UserParam type="int" name="spectrum_index" value="1687"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=1927"/>
 		</feature>
 		<feature id="f_16543445416425252509">
 			<position dim="0">2624.49886536313</position>
@@ -5575,9 +5575,9 @@
 				<pt x="2612.5084" y="641.961686012933" />
 				<pt x="2611.5057" y="641.961823106158" />
 			</convexhull>
-			<userParam type="int" name="label" value="2433"/>
-			<userParam type="int" name="spectrum_index" value="2045"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2612"/>
+			<UserParam type="int" name="label" value="2433"/>
+			<UserParam type="int" name="spectrum_index" value="2045"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2612"/>
 		</feature>
 		<feature id="f_2991494774572705204">
 			<position dim="0">2268.927373707</position>
@@ -5871,9 +5871,9 @@
 				<pt x="2248.6775" y="968.439755187854" />
 				<pt x="2247.6667" y="968.437369670792" />
 			</convexhull>
-			<userParam type="int" name="label" value="530"/>
-			<userParam type="int" name="spectrum_index" value="1775"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2070"/>
+			<UserParam type="int" name="label" value="530"/>
+			<UserParam type="int" name="spectrum_index" value="1775"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2070"/>
 		</feature>
 		<feature id="f_4794893045026460536">
 			<position dim="0">3083.97824075714</position>
@@ -5995,14 +5995,14 @@
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="16" MZ="529.305114746094" RT="3075.8902" >
 				<PeptideHit score="2.92" sequence="LSIINNFTK(Label:13C(6)15N(2))" charge="2">
-					<userParam type="float" name="homology_threshold" value="0"/>
-					<userParam type="float" name="identity_threshold" value="16"/>
-					<userParam type="float" name="EValue" value="1.3"/>
+					<UserParam type="float" name="homology_threshold" value="0"/>
+					<UserParam type="float" name="identity_threshold" value="16"/>
+					<UserParam type="float" name="EValue" value="1.3"/>
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="int" name="label" value="230"/>
-			<userParam type="int" name="spectrum_index" value="2383"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=3426"/>
+			<UserParam type="int" name="label" value="230"/>
+			<UserParam type="int" name="spectrum_index" value="2383"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=3426"/>
 		</feature>
 		<feature id="f_16224129673458375681">
 			<position dim="0">2675.84202974108</position>
@@ -6176,9 +6176,9 @@
 				<pt x="2669.2091" y="831.874804313968" />
 				<pt x="2668.1653" y="831.875190884448" />
 			</convexhull>
-			<userParam type="int" name="label" value="276"/>
-			<userParam type="int" name="spectrum_index" value="2084"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2694"/>
+			<UserParam type="int" name="label" value="276"/>
+			<UserParam type="int" name="spectrum_index" value="2084"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2694"/>
 		</feature>
 		<feature id="f_11382677277660479431">
 			<position dim="0">2477.62922192468</position>
@@ -6238,9 +6238,9 @@
 				<pt x="2475.5008" y="778.898918058853" />
 				<pt x="2474.0361" y="778.898627765333" />
 			</convexhull>
-			<userParam type="int" name="label" value="1452"/>
-			<userParam type="int" name="spectrum_index" value="1930"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2363"/>
+			<UserParam type="int" name="label" value="1452"/>
+			<UserParam type="int" name="spectrum_index" value="1930"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2363"/>
 		</feature>
 		<feature id="f_6477982685177026870">
 			<position dim="0">4090.74265547536</position>
@@ -6306,9 +6306,9 @@
 				<pt x="4089.8268" y="969.467782041924" />
 				<pt x="4088.0415" y="969.467632513947" />
 			</convexhull>
-			<userParam type="int" name="label" value="1180"/>
-			<userParam type="int" name="spectrum_index" value="3181"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4987"/>
+			<UserParam type="int" name="label" value="1180"/>
+			<UserParam type="int" name="spectrum_index" value="3181"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4987"/>
 		</feature>
 		<feature id="f_4916186670326195571">
 			<position dim="0">3944.34290032321</position>
@@ -6376,9 +6376,9 @@
 				<pt x="3942.395" y="835.081668474465" />
 				<pt x="3941.1237" y="835.080009674916" />
 			</convexhull>
-			<userParam type="int" name="label" value="2632"/>
-			<userParam type="int" name="spectrum_index" value="3062"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4794"/>
+			<UserParam type="int" name="label" value="2632"/>
+			<UserParam type="int" name="spectrum_index" value="3062"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4794"/>
 		</feature>
 		<feature id="f_2043309927645461132">
 			<position dim="0">4648.35873470576</position>
@@ -6428,9 +6428,9 @@
 				<pt x="4644.8378" y="495.812690314776" />
 				<pt x="4643.3784" y="495.811443955939" />
 			</convexhull>
-			<userParam type="int" name="label" value="1629"/>
-			<userParam type="int" name="spectrum_index" value="3638"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=5734"/>
+			<UserParam type="int" name="label" value="1629"/>
+			<UserParam type="int" name="spectrum_index" value="3638"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=5734"/>
 		</feature>
 		<feature id="f_951768560955361773">
 			<position dim="0">4283.93814851816</position>
@@ -6492,9 +6492,9 @@
 				<pt x="4277.7903" y="617.8015195921" />
 				<pt x="4275.9386" y="617.800402106656" />
 			</convexhull>
-			<userParam type="int" name="label" value="2103"/>
-			<userParam type="int" name="spectrum_index" value="3340"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=5237"/>
+			<UserParam type="int" name="label" value="2103"/>
+			<UserParam type="int" name="spectrum_index" value="3340"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=5237"/>
 		</feature>
 		<feature id="f_3030131198378781759">
 			<position dim="0">4079.64105891759</position>
@@ -6566,9 +6566,9 @@
 				<pt x="4077.2446" y="974.512318286172" />
 				<pt x="4076.265" y="974.509273042173" />
 			</convexhull>
-			<userParam type="int" name="label" value="1104"/>
-			<userParam type="int" name="spectrum_index" value="3173"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4970"/>
+			<UserParam type="int" name="label" value="1104"/>
+			<UserParam type="int" name="spectrum_index" value="3173"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4970"/>
 		</feature>
 		<feature id="f_3164161922470770778">
 			<position dim="0">2809.67691439899</position>
@@ -6612,9 +6612,9 @@
 				<pt x="2815.255" y="391.185366380658" />
 				<pt x="2813.8256" y="391.185004286787" />
 			</convexhull>
-			<userParam type="int" name="label" value="1621"/>
-			<userParam type="int" name="spectrum_index" value="2182"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2938"/>
+			<UserParam type="int" name="label" value="1621"/>
+			<UserParam type="int" name="spectrum_index" value="2182"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2938"/>
 		</feature>
 		<feature id="f_10992816323610406137">
 			<position dim="0">2811.24084143988</position>
@@ -6662,9 +6662,9 @@
 				<pt x="2809.3442" y="951.934390651634" />
 				<pt x="2807.8969" y="951.931148581565" />
 			</convexhull>
-			<userParam type="int" name="label" value="1300"/>
-			<userParam type="int" name="spectrum_index" value="2183"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2939"/>
+			<UserParam type="int" name="label" value="1300"/>
+			<UserParam type="int" name="spectrum_index" value="2183"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2939"/>
 		</feature>
 		<feature id="f_9249240467006841960">
 			<position dim="0">1721.82384148154</position>
@@ -6770,9 +6770,9 @@
 				<pt x="1717.0959" y="394.869387815814" />
 				<pt x="1715.629" y="394.868319695151" />
 			</convexhull>
-			<userParam type="int" name="label" value="2703"/>
-			<userParam type="int" name="spectrum_index" value="1362"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=1462"/>
+			<UserParam type="int" name="label" value="2703"/>
+			<UserParam type="int" name="spectrum_index" value="1362"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=1462"/>
 		</feature>
 		<feature id="f_14303279611066526743">
 			<position dim="0">1781.22727344931</position>
@@ -6832,9 +6832,9 @@
 				<pt x="1783.415" y="549.755647597689" />
 				<pt x="1780.5407" y="549.755803832317" />
 			</convexhull>
-			<userParam type="int" name="label" value="1635"/>
-			<userParam type="int" name="spectrum_index" value="1408"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=1523"/>
+			<UserParam type="int" name="label" value="1635"/>
+			<UserParam type="int" name="spectrum_index" value="1408"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=1523"/>
 		</feature>
 		<feature id="f_6562113171446879244">
 			<position dim="0">2078.14245698055</position>
@@ -6908,9 +6908,9 @@
 				<pt x="2075.3798" y="612.792105960328" />
 				<pt x="2074.2592" y="612.792067440145" />
 			</convexhull>
-			<userParam type="int" name="label" value="1192"/>
-			<userParam type="int" name="spectrum_index" value="1630"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=1839"/>
+			<UserParam type="int" name="label" value="1192"/>
+			<UserParam type="int" name="spectrum_index" value="1630"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=1839"/>
 		</feature>
 		<feature id="f_14273230595622513264">
 			<position dim="0">4213.849318475</position>
@@ -6988,9 +6988,9 @@
 				<pt x="4212.268" y="1000.56890583702" />
 				<pt x="4210.8336" y="1000.56886142877" />
 			</convexhull>
-			<userParam type="int" name="label" value="1394"/>
-			<userParam type="int" name="spectrum_index" value="3283"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=5140"/>
+			<UserParam type="int" name="label" value="1394"/>
+			<UserParam type="int" name="spectrum_index" value="3283"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=5140"/>
 		</feature>
 		<feature id="f_16995512746745212482">
 			<position dim="0">4135.85045276261</position>
@@ -7048,14 +7048,14 @@
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="381.678283691406" RT="4133.228" >
 				<PeptideHit score="0.4" sequence="SNNEYK(Label:13C(6)15N(2))" charge="2">
-					<userParam type="float" name="homology_threshold" value="0"/>
-					<userParam type="float" name="identity_threshold" value="13"/>
-					<userParam type="float" name="EValue" value="0.91"/>
+					<UserParam type="float" name="homology_threshold" value="0"/>
+					<UserParam type="float" name="identity_threshold" value="13"/>
+					<UserParam type="float" name="EValue" value="0.91"/>
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="int" name="label" value="1032"/>
-			<userParam type="int" name="spectrum_index" value="3218"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=5035"/>
+			<UserParam type="int" name="label" value="1032"/>
+			<UserParam type="int" name="spectrum_index" value="3218"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=5035"/>
 		</feature>
 		<feature id="f_395384286344215679">
 			<position dim="0">4205.74417726348</position>
@@ -7135,14 +7135,14 @@
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="17" MZ="650.670288085938" RT="4203.076" >
 				<PeptideHit score="0.86" sequence="LQGENIQINDIMPWLR(Label:13C(6)15N(4))" charge="3">
-					<userParam type="float" name="homology_threshold" value="0"/>
-					<userParam type="float" name="identity_threshold" value="17"/>
-					<userParam type="float" name="EValue" value="2.5"/>
+					<UserParam type="float" name="homology_threshold" value="0"/>
+					<UserParam type="float" name="identity_threshold" value="17"/>
+					<UserParam type="float" name="EValue" value="2.5"/>
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="int" name="label" value="2688"/>
-			<userParam type="int" name="spectrum_index" value="3276"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=5128"/>
+			<UserParam type="int" name="label" value="2688"/>
+			<UserParam type="int" name="spectrum_index" value="3276"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=5128"/>
 		</feature>
 		<feature id="f_8197515451770757236">
 			<position dim="0">2138.33643283229</position>
@@ -7216,9 +7216,9 @@
 				<pt x="2135.018" y="454.736982084271" />
 				<pt x="2133.9968" y="454.736598064422" />
 			</convexhull>
-			<userParam type="int" name="label" value="1550"/>
-			<userParam type="int" name="spectrum_index" value="1675"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=1908"/>
+			<UserParam type="int" name="label" value="1550"/>
+			<UserParam type="int" name="spectrum_index" value="1675"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=1908"/>
 		</feature>
 		<feature id="f_5700469247547974546">
 			<position dim="0">4192.97608888888</position>
@@ -7264,9 +7264,9 @@
 				<pt x="4189.8243" y="514.308418976465" />
 				<pt x="4188.875" y="514.309119478532" />
 			</convexhull>
-			<userParam type="int" name="label" value="2164"/>
-			<userParam type="int" name="spectrum_index" value="3266"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=5115"/>
+			<UserParam type="int" name="label" value="2164"/>
+			<UserParam type="int" name="spectrum_index" value="3266"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=5115"/>
 		</feature>
 		<feature id="f_7925035893266321059">
 			<position dim="0">5203.51879933725</position>
@@ -7314,14 +7314,14 @@
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="16" MZ="657.359497070312" RT="5209.7721" >
 				<PeptideHit score="38.62" sequence="TVQQISDLPFR(Label:13C(6)15N(4))" charge="2" aa_before="R" aa_after="Q" protein_refs="PH_3">
-					<userParam type="float" name="homology_threshold" value="0"/>
-					<userParam type="float" name="identity_threshold" value="16"/>
-					<userParam type="float" name="EValue" value="0.00034"/>
+					<UserParam type="float" name="homology_threshold" value="0"/>
+					<UserParam type="float" name="identity_threshold" value="16"/>
+					<UserParam type="float" name="EValue" value="0.00034"/>
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="int" name="label" value="1401"/>
-			<userParam type="int" name="spectrum_index" value="4098"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=6550"/>
+			<UserParam type="int" name="label" value="1401"/>
+			<UserParam type="int" name="spectrum_index" value="4098"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=6550"/>
 		</feature>
 		<feature id="f_17140650748622526088">
 			<position dim="0">4482.32270314242</position>
@@ -7375,9 +7375,9 @@
 				<pt x="4478.9256" y="856.964398228767" />
 				<pt x="4477.647" y="856.963141811564" />
 			</convexhull>
-			<userParam type="int" name="label" value="1396"/>
-			<userParam type="int" name="spectrum_index" value="3501"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=5508"/>
+			<UserParam type="int" name="label" value="1396"/>
+			<UserParam type="int" name="spectrum_index" value="3501"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=5508"/>
 		</feature>
 		<feature id="f_18019827206546291856">
 			<position dim="0">4169.49169712581</position>
@@ -7431,9 +7431,9 @@
 				<pt x="4175.7867" y="652.27249175933" />
 				<pt x="4174.4769" y="652.27325191012" />
 			</convexhull>
-			<userParam type="int" name="label" value="1305"/>
-			<userParam type="int" name="spectrum_index" value="3247"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=5084"/>
+			<UserParam type="int" name="label" value="1305"/>
+			<UserParam type="int" name="spectrum_index" value="3247"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=5084"/>
 		</feature>
 		<feature id="f_16788911229026962646">
 			<position dim="0">4057.14793812384</position>
@@ -7487,9 +7487,9 @@
 				<pt x="4053.5436" y="413.740382490892" />
 				<pt x="4052.5968" y="413.739606969645" />
 			</convexhull>
-			<userParam type="int" name="label" value="1457"/>
-			<userParam type="int" name="spectrum_index" value="3155"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4939"/>
+			<UserParam type="int" name="label" value="1457"/>
+			<UserParam type="int" name="spectrum_index" value="3155"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4939"/>
 		</feature>
 		<feature id="f_16583733872517016998">
 			<position dim="0">3812.49962230508</position>
@@ -7583,9 +7583,9 @@
 				<pt x="3810.6871" y="706.337274573161" />
 				<pt x="3808.4062" y="706.338466278002" />
 			</convexhull>
-			<userParam type="int" name="label" value="2595"/>
-			<userParam type="int" name="spectrum_index" value="2951"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4623"/>
+			<UserParam type="int" name="label" value="2595"/>
+			<UserParam type="int" name="spectrum_index" value="2951"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4623"/>
 		</feature>
 		<feature id="f_13897649010889937448">
 			<position dim="0">2581.10750117102</position>
@@ -7647,9 +7647,9 @@
 				<pt x="2583.1152" y="686.860446867622" />
 				<pt x="2580.3328" y="686.857979813536" />
 			</convexhull>
-			<userParam type="int" name="label" value="1258"/>
-			<userParam type="int" name="spectrum_index" value="2011"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2545"/>
+			<UserParam type="int" name="label" value="1258"/>
+			<UserParam type="int" name="spectrum_index" value="2011"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2545"/>
 		</feature>
 		<feature id="f_13456957485841834239">
 			<position dim="0">3527.35948437997</position>
@@ -7703,9 +7703,9 @@
 				<pt x="3528.7271" y="334.200187326917" />
 				<pt x="3527.4389" y="334.200736770632" />
 			</convexhull>
-			<userParam type="int" name="label" value="1106"/>
-			<userParam type="int" name="spectrum_index" value="2722"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4180"/>
+			<UserParam type="int" name="label" value="1106"/>
+			<UserParam type="int" name="spectrum_index" value="2722"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4180"/>
 		</feature>
 		<feature id="f_4587515763706290750">
 			<position dim="0">2471.74638575564</position>
@@ -7775,9 +7775,9 @@
 				<pt x="2462.7449" y="500.928728595069" />
 				<pt x="2461.2872" y="500.927993335923" />
 			</convexhull>
-			<userParam type="int" name="label" value="2717"/>
-			<userParam type="int" name="spectrum_index" value="1926"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2352"/>
+			<UserParam type="int" name="label" value="2717"/>
+			<UserParam type="int" name="spectrum_index" value="1926"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2352"/>
 		</feature>
 		<feature id="f_9999945875968956447">
 			<position dim="0">3566.76114572103</position>
@@ -7835,9 +7835,9 @@
 				<pt x="3566.5466" y="858.736029476435" />
 				<pt x="3565.2441" y="858.73722705692" />
 			</convexhull>
-			<userParam type="int" name="label" value="2661"/>
-			<userParam type="int" name="spectrum_index" value="2754"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4250"/>
+			<UserParam type="int" name="label" value="2661"/>
+			<UserParam type="int" name="spectrum_index" value="2754"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4250"/>
 		</feature>
 		<feature id="f_2082300442600192494">
 			<position dim="0">3840.07665150972</position>
@@ -7899,9 +7899,9 @@
 				<pt x="3836.8323" y="768.060495291193" />
 				<pt x="3835.5553" y="768.059534755844" />
 			</convexhull>
-			<userParam type="int" name="label" value="2674"/>
-			<userParam type="int" name="spectrum_index" value="2974"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4660"/>
+			<UserParam type="int" name="label" value="2674"/>
+			<UserParam type="int" name="spectrum_index" value="2974"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4660"/>
 		</feature>
 		<feature id="f_6584448327604368754">
 			<position dim="0">4042.64888403689</position>
@@ -7961,9 +7961,9 @@
 				<pt x="4039.9867" y="500.264653951837" />
 				<pt x="4039.0277" y="500.264685886871" />
 			</convexhull>
-			<userParam type="int" name="label" value="1010"/>
-			<userParam type="int" name="spectrum_index" value="3142"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4917"/>
+			<UserParam type="int" name="label" value="1010"/>
+			<UserParam type="int" name="spectrum_index" value="3142"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4917"/>
 		</feature>
 		<feature id="f_10705437161786346831">
 			<position dim="0">4018.23475748385</position>
@@ -8043,9 +8043,9 @@
 				<pt x="4011.2229" y="383.188741818325" />
 				<pt x="4010.2667" y="383.188476484373" />
 			</convexhull>
-			<userParam type="int" name="label" value="1028"/>
-			<userParam type="int" name="spectrum_index" value="3122"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4886"/>
+			<UserParam type="int" name="label" value="1028"/>
+			<UserParam type="int" name="spectrum_index" value="3122"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4886"/>
 		</feature>
 		<feature id="f_1931792554934160636">
 			<position dim="0">2312.01469450538</position>
@@ -8119,9 +8119,9 @@
 				<pt x="2310.3124" y="737.316951710456" />
 				<pt x="2309.2406" y="737.314841395808" />
 			</convexhull>
-			<userParam type="int" name="label" value="1675"/>
-			<userParam type="int" name="spectrum_index" value="1808"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2127"/>
+			<UserParam type="int" name="label" value="1675"/>
+			<UserParam type="int" name="spectrum_index" value="1808"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2127"/>
 		</feature>
 		<feature id="f_7475171298740260946">
 			<position dim="0">4172.79897898623</position>
@@ -8195,9 +8195,9 @@
 				<pt x="4173.1213" y="698.872825064593" />
 				<pt x="4170.3554" y="698.870599327933" />
 			</convexhull>
-			<userParam type="int" name="label" value="1784"/>
-			<userParam type="int" name="spectrum_index" value="3249"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=5090"/>
+			<UserParam type="int" name="label" value="1784"/>
+			<UserParam type="int" name="spectrum_index" value="3249"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=5090"/>
 		</feature>
 		<feature id="f_13822121934639178344">
 			<position dim="0">4280.09135608739</position>
@@ -8291,9 +8291,9 @@
 				<pt x="4280.1202" y="591.660562053035" />
 				<pt x="4277.7903" y="591.661048906712" />
 			</convexhull>
-			<userParam type="int" name="label" value="2671"/>
-			<userParam type="int" name="spectrum_index" value="3336"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=5230"/>
+			<UserParam type="int" name="label" value="2671"/>
+			<UserParam type="int" name="spectrum_index" value="3336"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=5230"/>
 		</feature>
 		<feature id="f_1120516797767721641">
 			<position dim="0">5585.94578691664</position>
@@ -8331,9 +8331,9 @@
 				<pt x="5583.3433" y="987.504345891143" />
 				<pt x="5582.2142" y="987.502458381331" />
 			</convexhull>
-			<userParam type="int" name="label" value="1566"/>
-			<userParam type="int" name="spectrum_index" value="4430"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=7130"/>
+			<UserParam type="int" name="label" value="1566"/>
+			<UserParam type="int" name="spectrum_index" value="4430"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=7130"/>
 		</feature>
 		<feature id="f_5991030150013980209">
 			<position dim="0">4395.31198247971</position>
@@ -8385,9 +8385,9 @@
 				<pt x="4391.4071" y="563.772579842984" />
 				<pt x="4390.1259" y="563.771521756208" />
 			</convexhull>
-			<userParam type="int" name="label" value="1737"/>
-			<userParam type="int" name="spectrum_index" value="3430"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=5390"/>
+			<UserParam type="int" name="label" value="1737"/>
+			<UserParam type="int" name="spectrum_index" value="3430"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=5390"/>
 		</feature>
 		<feature id="f_16013091398855397432">
 			<position dim="0">2364.14245830276</position>
@@ -8457,9 +8457,9 @@
 				<pt x="2359.089" y="461.228105311913" />
 				<pt x="2358.0677" y="461.229430984623" />
 			</convexhull>
-			<userParam type="int" name="label" value="1310"/>
-			<userParam type="int" name="spectrum_index" value="1847"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2193"/>
+			<UserParam type="int" name="label" value="1310"/>
+			<UserParam type="int" name="spectrum_index" value="1847"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2193"/>
 		</feature>
 		<feature id="f_3479986009556252712">
 			<position dim="0">5076.23620994633</position>
@@ -8523,9 +8523,9 @@
 				<pt x="5068.4271" y="709.358755841639" />
 				<pt x="5067.1656" y="709.355276012506" />
 			</convexhull>
-			<userParam type="int" name="label" value="1762"/>
-			<userParam type="int" name="spectrum_index" value="3990"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=6365"/>
+			<UserParam type="int" name="label" value="1762"/>
+			<UserParam type="int" name="spectrum_index" value="3990"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=6365"/>
 		</feature>
 		<feature id="f_263940908098058531">
 			<position dim="0">3799.74354615418</position>
@@ -8593,9 +8593,9 @@
 				<pt x="3799.0737" y="607.288035326038" />
 				<pt x="3796.8653" y="607.288972386172" />
 			</convexhull>
-			<userParam type="int" name="label" value="2794"/>
-			<userParam type="int" name="spectrum_index" value="2941"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4605"/>
+			<UserParam type="int" name="label" value="2794"/>
+			<UserParam type="int" name="spectrum_index" value="2941"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4605"/>
 		</feature>
 		<feature id="f_9668016275473132500">
 			<position dim="0">2689.23446375558</position>
@@ -8647,9 +8647,9 @@
 				<pt x="2686.9864" y="707.287532253419" />
 				<pt x="2685.9659" y="707.286900427733" />
 			</convexhull>
-			<userParam type="int" name="label" value="1506"/>
-			<userParam type="int" name="spectrum_index" value="2094"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2714"/>
+			<UserParam type="int" name="label" value="1506"/>
+			<UserParam type="int" name="spectrum_index" value="2094"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2714"/>
 		</feature>
 		<feature id="f_15471107659459122677">
 			<position dim="0">2446.16096796113</position>
@@ -8705,9 +8705,9 @@
 				<pt x="2442.6159" y="519.600311687149" />
 				<pt x="2441.287" y="519.600390369434" />
 			</convexhull>
-			<userParam type="int" name="label" value="2702"/>
-			<userParam type="int" name="spectrum_index" value="1908"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2314"/>
+			<UserParam type="int" name="label" value="2702"/>
+			<UserParam type="int" name="spectrum_index" value="1908"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2314"/>
 		</feature>
 		<feature id="f_17470980850938711063">
 			<position dim="0">4767.80224264487</position>
@@ -8757,9 +8757,9 @@
 				<pt x="4765.9075" y="640.837580473711" />
 				<pt x="4763.3567" y="640.837870350337" />
 			</convexhull>
-			<userParam type="int" name="label" value="1666"/>
-			<userParam type="int" name="spectrum_index" value="3735"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=5908"/>
+			<UserParam type="int" name="label" value="1666"/>
+			<UserParam type="int" name="spectrum_index" value="3735"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=5908"/>
 		</feature>
 		<feature id="f_5647173447931331456">
 			<position dim="0">3813.60172181478</position>
@@ -8827,9 +8827,9 @@
 				<pt x="3811.616" y="756.384915362429" />
 				<pt x="3810.6871" y="756.386399636908" />
 			</convexhull>
-			<userParam type="int" name="label" value="1321"/>
-			<userParam type="int" name="spectrum_index" value="2952"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4624"/>
+			<UserParam type="int" name="label" value="1321"/>
+			<UserParam type="int" name="spectrum_index" value="2952"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4624"/>
 		</feature>
 		<feature id="f_14789163721748406701">
 			<position dim="0">3705.40522955543</position>
@@ -8883,9 +8883,9 @@
 				<pt x="3703.7876" y="419.695812308719" />
 				<pt x="3702.0573" y="419.696121568813" />
 			</convexhull>
-			<userParam type="int" name="label" value="981"/>
-			<userParam type="int" name="spectrum_index" value="2864"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4478"/>
+			<UserParam type="int" name="label" value="981"/>
+			<UserParam type="int" name="spectrum_index" value="2864"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4478"/>
 		</feature>
 		<feature id="f_10431192216281679732">
 			<position dim="0">2771.27186878939</position>
@@ -8955,9 +8955,9 @@
 				<pt x="2761.8997" y="903.858713049024" />
 				<pt x="2760.8952" y="903.85671316811" />
 			</convexhull>
-			<userParam type="int" name="label" value="1547"/>
-			<userParam type="int" name="spectrum_index" value="2152"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2870"/>
+			<UserParam type="int" name="label" value="1547"/>
+			<UserParam type="int" name="spectrum_index" value="2152"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2870"/>
 		</feature>
 		<feature id="f_17055903529879934791">
 			<position dim="0">3229.04068704184</position>
@@ -9017,14 +9017,14 @@
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="527.612731933594" RT="3226.5384" >
 				<PeptideHit score="8.15" sequence="VPQLEIVPNSAEER" charge="3" aa_before="K" aa_after="L" protein_refs="PH_1">
-					<userParam type="float" name="homology_threshold" value="0"/>
-					<userParam type="float" name="identity_threshold" value="13"/>
-					<userParam type="float" name="EValue" value="0.15"/>
+					<UserParam type="float" name="homology_threshold" value="0"/>
+					<UserParam type="float" name="identity_threshold" value="13"/>
+					<UserParam type="float" name="EValue" value="0.15"/>
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="int" name="label" value="2665"/>
-			<userParam type="int" name="spectrum_index" value="2495"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=3679"/>
+			<UserParam type="int" name="label" value="2665"/>
+			<UserParam type="int" name="spectrum_index" value="2495"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=3679"/>
 		</feature>
 		<feature id="f_16475870177122533820">
 			<position dim="0">2699.39767157105</position>
@@ -9112,9 +9112,9 @@
 				<pt x="2695.775" y="592.275375717937" />
 				<pt x="2694.4774" y="592.277027120712" />
 			</convexhull>
-			<userParam type="int" name="label" value="2675"/>
-			<userParam type="int" name="spectrum_index" value="2102"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2730"/>
+			<UserParam type="int" name="label" value="2675"/>
+			<UserParam type="int" name="spectrum_index" value="2102"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2730"/>
 		</feature>
 		<feature id="f_17006831490776682500">
 			<position dim="0">3594.01893502239</position>
@@ -9160,9 +9160,9 @@
 				<pt x="3589.598" y="649.830139589465" />
 				<pt x="3588.6016" y="649.83100100273" />
 			</convexhull>
-			<userParam type="int" name="label" value="1342"/>
-			<userParam type="int" name="spectrum_index" value="2775"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4301"/>
+			<UserParam type="int" name="label" value="1342"/>
+			<UserParam type="int" name="spectrum_index" value="2775"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4301"/>
 		</feature>
 		<feature id="f_1591574827902897892">
 			<position dim="0">5152.13865873933</position>
@@ -9226,9 +9226,9 @@
 				<pt x="5156.3171" y="788.946964473418" />
 				<pt x="5154.988" y="788.946983418546" />
 			</convexhull>
-			<userParam type="int" name="label" value="1613"/>
-			<userParam type="int" name="spectrum_index" value="4054"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=6475"/>
+			<UserParam type="int" name="label" value="1613"/>
+			<UserParam type="int" name="spectrum_index" value="4054"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=6475"/>
 		</feature>
 		<feature id="f_17314973808128382095">
 			<position dim="0">2262.5746493821</position>
@@ -9292,9 +9292,9 @@
 				<pt x="2261.1957" y="742.810000401736" />
 				<pt x="2259.8227" y="742.808024926371" />
 			</convexhull>
-			<userParam type="int" name="label" value="1888"/>
-			<userParam type="int" name="spectrum_index" value="1769"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2058"/>
+			<UserParam type="int" name="label" value="1888"/>
+			<UserParam type="int" name="spectrum_index" value="1769"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2058"/>
 		</feature>
 		<feature id="f_5483730175217111057">
 			<position dim="0">2754.43949921958</position>
@@ -9352,9 +9352,9 @@
 				<pt x="2754.4554" y="554.582904125784" />
 				<pt x="2753.1124" y="554.582884129524" />
 			</convexhull>
-			<userParam type="int" name="label" value="2704"/>
-			<userParam type="int" name="spectrum_index" value="2140"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2838"/>
+			<UserParam type="int" name="label" value="2704"/>
+			<UserParam type="int" name="spectrum_index" value="2140"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2838"/>
 		</feature>
 		<feature id="f_3734110282444222289">
 			<position dim="0">5017.21256826544</position>
@@ -9416,9 +9416,9 @@
 				<pt x="5013.2617" y="390.724981225443" />
 				<pt x="5011.8651" y="390.723690030865" />
 			</convexhull>
-			<userParam type="int" name="label" value="1436"/>
-			<userParam type="int" name="spectrum_index" value="3941"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=6271"/>
+			<UserParam type="int" name="label" value="1436"/>
+			<UserParam type="int" name="spectrum_index" value="3941"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=6271"/>
 		</feature>
 		<feature id="f_12246478352342026895">
 			<position dim="0">4293.30027975574</position>
@@ -9486,9 +9486,9 @@
 				<pt x="4292.3675" y="846.85301883188" />
 				<pt x="4291.085" y="846.851692004417" />
 			</convexhull>
-			<userParam type="int" name="label" value="1205"/>
-			<userParam type="int" name="spectrum_index" value="3347"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=5251"/>
+			<UserParam type="int" name="label" value="1205"/>
+			<UserParam type="int" name="spectrum_index" value="3347"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=5251"/>
 		</feature>
 		<feature id="f_11919611662641793673">
 			<position dim="0">1966.21892747415</position>
@@ -9596,9 +9596,9 @@
 				<pt x="1962.5112" y="650.959426804137" />
 				<pt x="1961.1175" y="650.959715775938" />
 			</convexhull>
-			<userParam type="int" name="label" value="2730"/>
-			<userParam type="int" name="spectrum_index" value="1548"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=1703"/>
+			<UserParam type="int" name="label" value="2730"/>
+			<UserParam type="int" name="spectrum_index" value="1548"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=1703"/>
 		</feature>
 		<feature id="f_4139103473158000445">
 			<position dim="0">1974.23393655027</position>
@@ -9662,9 +9662,9 @@
 				<pt x="1970.685" y="763.324716940267" />
 				<pt x="1969.2416" y="763.323956779542" />
 			</convexhull>
-			<userParam type="int" name="label" value="1549"/>
-			<userParam type="int" name="spectrum_index" value="1554"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=1716"/>
+			<UserParam type="int" name="label" value="1549"/>
+			<UserParam type="int" name="spectrum_index" value="1554"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=1716"/>
 		</feature>
 		<feature id="f_11568779939306518147">
 			<position dim="0">4378.37092908421</position>
@@ -9722,9 +9722,9 @@
 				<pt x="4372.6567" y="488.292100349951" />
 				<pt x="4371.3208" y="488.292228813924" />
 			</convexhull>
-			<userParam type="int" name="label" value="1397"/>
-			<userParam type="int" name="spectrum_index" value="3416"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=5365"/>
+			<UserParam type="int" name="label" value="1397"/>
+			<UserParam type="int" name="spectrum_index" value="3416"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=5365"/>
 		</feature>
 		<feature id="f_1187580571957610460">
 			<position dim="0">4213.85462541121</position>
@@ -9899,19 +9899,19 @@
 						<pt x="4212.268" y="667.714792082186" />
 						<pt x="4210.8336" y="667.715662450035" />
 					</convexhull>
-					<userParam type="int" name="label" value="2778"/>
+					<UserParam type="int" name="label" value="2778"/>
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="17" MZ="666.713195800781" RT="4212.8137" >
 				<PeptideHit score="1.15" sequence="ASLYVPM(Oxidation)TGK(Label:13C(6)15N(2))VTIAMLLR(Label:13C(6)15N(4))" charge="3">
-					<userParam type="float" name="homology_threshold" value="0"/>
-					<userParam type="float" name="identity_threshold" value="17"/>
-					<userParam type="float" name="EValue" value="2"/>
+					<UserParam type="float" name="homology_threshold" value="0"/>
+					<UserParam type="float" name="identity_threshold" value="17"/>
+					<UserParam type="float" name="EValue" value="2"/>
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="int" name="label" value="2710"/>
-			<userParam type="int" name="spectrum_index" value="3283"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=5140"/>
+			<UserParam type="int" name="label" value="2710"/>
+			<UserParam type="int" name="spectrum_index" value="3283"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=5140"/>
 		</feature>
 		<feature id="f_1072863454761098051">
 			<position dim="0">2870.65787231654</position>
@@ -9959,9 +9959,9 @@
 				<pt x="2868.8586" y="509.274893287103" />
 				<pt x="2867.0467" y="509.274945205655" />
 			</convexhull>
-			<userParam type="int" name="label" value="1545"/>
-			<userParam type="int" name="spectrum_index" value="2223"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=3059"/>
+			<UserParam type="int" name="label" value="1545"/>
+			<UserParam type="int" name="spectrum_index" value="2223"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=3059"/>
 		</feature>
 		<feature id="f_1665575980348219084">
 			<position dim="0">2770.01745276909</position>
@@ -10015,9 +10015,9 @@
 				<pt x="2770.334" y="742.372324571507" />
 				<pt x="2769.3471" y="742.376751490165" />
 			</convexhull>
-			<userParam type="int" name="label" value="1918"/>
-			<userParam type="int" name="spectrum_index" value="2151"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2868"/>
+			<UserParam type="int" name="label" value="1918"/>
+			<UserParam type="int" name="spectrum_index" value="2151"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2868"/>
 		</feature>
 		<feature id="f_10982534165233301601">
 			<position dim="0">3936.90531398656</position>
@@ -10073,9 +10073,9 @@
 				<pt x="3934.685" y="391.727691507871" />
 				<pt x="3933.4074" y="391.727041756365" />
 			</convexhull>
-			<userParam type="int" name="label" value="1211"/>
-			<userParam type="int" name="spectrum_index" value="3056"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4785"/>
+			<UserParam type="int" name="label" value="1211"/>
+			<UserParam type="int" name="spectrum_index" value="3056"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4785"/>
 		</feature>
 		<feature id="f_17668190608670616088">
 			<position dim="0">5027.10940031274</position>
@@ -10161,14 +10161,14 @@
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="17" MZ="649.019348144531" RT="5027.1863" >
 				<PeptideHit score="1.45" sequence="NM(Oxidation)NIIK(Label:13C(6)15N(2))R(Label:13C(6)15N(4))GYHTSLNNK(Label:13C(6)15N(2))" charge="3">
-					<userParam type="float" name="homology_threshold" value="0"/>
-					<userParam type="float" name="identity_threshold" value="17"/>
-					<userParam type="float" name="EValue" value="1.9"/>
+					<UserParam type="float" name="homology_threshold" value="0"/>
+					<UserParam type="float" name="identity_threshold" value="17"/>
+					<UserParam type="float" name="EValue" value="1.9"/>
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="int" name="label" value="2712"/>
-			<userParam type="int" name="spectrum_index" value="3949"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=6288"/>
+			<UserParam type="int" name="label" value="2712"/>
+			<UserParam type="int" name="spectrum_index" value="3949"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=6288"/>
 		</feature>
 		<feature id="f_2448305435028036088">
 			<position dim="0">4274.85589562269</position>
@@ -10232,14 +10232,14 @@
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="17" MZ="474.290405273438" RT="4276.9455" >
 				<PeptideHit score="0.25" sequence="STLIPPPSK(Label:13C(6)15N(2))" charge="2">
-					<userParam type="float" name="homology_threshold" value="0"/>
-					<userParam type="float" name="identity_threshold" value="17"/>
-					<userParam type="float" name="EValue" value="2.7"/>
+					<UserParam type="float" name="homology_threshold" value="0"/>
+					<UserParam type="float" name="identity_threshold" value="17"/>
+					<UserParam type="float" name="EValue" value="2.7"/>
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="int" name="label" value="1501"/>
-			<userParam type="int" name="spectrum_index" value="3333"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=5221"/>
+			<UserParam type="int" name="label" value="1501"/>
+			<UserParam type="int" name="spectrum_index" value="3333"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=5221"/>
 		</feature>
 		<feature id="f_15430128435075848732">
 			<position dim="0">2471.93979461707</position>
@@ -10307,9 +10307,9 @@
 				<pt x="2465.4554" y="785.905815267355" />
 				<pt x="2464.107" y="785.906793466337" />
 			</convexhull>
-			<userParam type="int" name="label" value="1949"/>
-			<userParam type="int" name="spectrum_index" value="1926"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2352"/>
+			<UserParam type="int" name="label" value="1949"/>
+			<UserParam type="int" name="spectrum_index" value="1926"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2352"/>
 		</feature>
 		<feature id="f_15295892325585925980">
 			<position dim="0">5647.23235920622</position>
@@ -10331,9 +10331,9 @@
 				<pt x="5648.2548" y="1111.06596981817" />
 				<pt x="5647.3273" y="1111.06430696515" />
 			</convexhull>
-			<userParam type="int" name="label" value="913"/>
-			<userParam type="int" name="spectrum_index" value="4484"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=7198"/>
+			<UserParam type="int" name="label" value="913"/>
+			<UserParam type="int" name="spectrum_index" value="4484"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=7198"/>
 		</feature>
 		<feature id="f_477727613313744288">
 			<position dim="0">3980.93317056358</position>
@@ -10373,9 +10373,9 @@
 				<pt x="3980.785" y="393.249977103297" />
 				<pt x="3979.4972" y="393.249654164331" />
 			</convexhull>
-			<userParam type="int" name="label" value="2242"/>
-			<userParam type="int" name="spectrum_index" value="3093"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4839"/>
+			<UserParam type="int" name="label" value="2242"/>
+			<UserParam type="int" name="spectrum_index" value="3093"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4839"/>
 		</feature>
 		<feature id="f_14851342570844236056">
 			<position dim="0">1820.11768518874</position>
@@ -10417,9 +10417,9 @@
 				<pt x="1817.882" y="332.1535194786" />
 				<pt x="1815.3757" y="332.153575009522" />
 			</convexhull>
-			<userParam type="int" name="label" value="2333"/>
-			<userParam type="int" name="spectrum_index" value="1438"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=1558"/>
+			<UserParam type="int" name="label" value="2333"/>
+			<UserParam type="int" name="spectrum_index" value="1438"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=1558"/>
 		</feature>
 		<feature id="f_16135632154960006827">
 			<position dim="0">1861.60604005333</position>
@@ -10475,9 +10475,9 @@
 				<pt x="1864.4667" y="597.27440093261" />
 				<pt x="1863.0425" y="597.275582619687" />
 			</convexhull>
-			<userParam type="int" name="label" value="2825"/>
-			<userParam type="int" name="spectrum_index" value="1470"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=1594"/>
+			<UserParam type="int" name="label" value="2825"/>
+			<UserParam type="int" name="spectrum_index" value="1470"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=1594"/>
 		</feature>
 		<feature id="f_12452825512876444226">
 			<position dim="0">2630.66874611753</position>
@@ -10511,9 +10511,9 @@
 				<pt x="2630.517" y="502.74509699237" />
 				<pt x="2629.1926" y="502.744343650965" />
 			</convexhull>
-			<userParam type="int" name="label" value="2202"/>
-			<userParam type="int" name="spectrum_index" value="2050"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2624"/>
+			<UserParam type="int" name="label" value="2202"/>
+			<UserParam type="int" name="spectrum_index" value="2050"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2624"/>
 		</feature>
 		<feature id="f_599036806287602679">
 			<position dim="0">2160.37144269099</position>
@@ -10535,9 +10535,9 @@
 				<pt x="2161.7751" y="843.851019635438" />
 				<pt x="2160.397" y="843.854563272021" />
 			</convexhull>
-			<userParam type="int" name="label" value="2246"/>
-			<userParam type="int" name="spectrum_index" value="1691"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=1935"/>
+			<UserParam type="int" name="label" value="2246"/>
+			<UserParam type="int" name="spectrum_index" value="1691"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=1935"/>
 		</feature>
 	</featureList>
 </featureMap>
