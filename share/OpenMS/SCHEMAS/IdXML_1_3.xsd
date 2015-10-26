@@ -174,56 +174,7 @@
 								</xs:annotation>
 								<xs:complexType>
 									<xs:sequence>
-										<xs:element name="PeptideHit" minOccurs="0" maxOccurs="unbounded">
-											<xs:annotation>
-												<xs:documentation>single reported peptide hit</xs:documentation>
-											</xs:annotation>
-											<xs:complexType>
-												<xs:sequence minOccurs="0">
-													<xs:element name="UserParam" type="UserParam" minOccurs="0" maxOccurs="unbounded"/>
-												</xs:sequence>
-												<xs:attribute name="sequence" type="xs:string" use="required">
-													<xs:annotation>
-														<xs:documentation>peptide sequence</xs:documentation>
-													</xs:annotation>
-												</xs:attribute>
-												<xs:attribute name="charge" type="xs:integer" use="required">
-													<xs:annotation>
-														<xs:documentation>charge of the peptide</xs:documentation>
-													</xs:annotation>
-												</xs:attribute>
-												<xs:attribute name="score" type="xs:float" use="required">
-													<xs:annotation>
-														<xs:documentation>score of the hit</xs:documentation>
-													</xs:annotation>
-												</xs:attribute>
-												<xs:attribute name="aa_before" type="CharListType">
-													<xs:annotation>
-														<xs:documentation>amino acid before the sequence (for DB search)</xs:documentation>
-													</xs:annotation>
-												</xs:attribute>
-												<xs:attribute name="aa_after" type="CharListType">
-													<xs:annotation>
-														<xs:documentation>amino acid after the sequence (for DB search)</xs:documentation>
-													</xs:annotation>
-												</xs:attribute>
-												<xs:attribute name="start" type="IntListType">
-													<xs:annotation>
-														<xs:documentation>start positions in protein</xs:documentation>
-													</xs:annotation>
-												</xs:attribute>
-												<xs:attribute name="end" type="IntListType">
-													<xs:annotation>
-														<xs:documentation>end positions in protein</xs:documentation>
-													</xs:annotation>
-												</xs:attribute>
-												<xs:attribute name="protein_refs" type="xs:IDREFS">
-													<xs:annotation>
-														<xs:documentation>References to proteins hits, this peptide occurs in.</xs:documentation>
-													</xs:annotation>
-												</xs:attribute>
-											</xs:complexType>
-										</xs:element>
+										<xs:element name="PeptideHit" type="PeptideHitType" minOccurs="0" maxOccurs="unbounded"/>
 										<xs:element name="UserParam" type="UserParam" minOccurs="0" maxOccurs="unbounded"/>
 									</xs:sequence>
 									<xs:attribute name="score_type" type="xs:string" use="required">
@@ -294,6 +245,56 @@
 			</xs:attribute>
 		</xs:complexType>
 	</xs:element>
+
+	<xs:complexType name="PeptideHitType">
+		<xs:annotation>
+			<xs:documentation>single reported peptide hit</xs:documentation>
+		</xs:annotation>
+		<xs:sequence minOccurs="0">
+			<xs:element name="UserParam" type="UserParam" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="sequence" type="xs:string" use="required">
+			<xs:annotation>
+				<xs:documentation>peptide sequence</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="charge" type="xs:integer" use="required">
+			<xs:annotation>
+				<xs:documentation>charge of the peptide</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="score" type="xs:float" use="required">
+			<xs:annotation>
+				<xs:documentation>score of the hit</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="aa_before" type="CharListType">
+			<xs:annotation>
+				<xs:documentation>amino acid before the sequence (for DB search)</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="aa_after" type="CharListType">
+			<xs:annotation>
+				<xs:documentation>amino acid after the sequence (for DB search)</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="start" type="IntListType">
+			<xs:annotation>
+				<xs:documentation>start positions in protein</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="end" type="IntListType">
+			<xs:annotation>
+				<xs:documentation>end positions in protein</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="protein_refs" type="xs:IDREFS">
+			<xs:annotation>
+				<xs:documentation>References to proteins hits, this peptide occurs in.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+
 	<xs:complexType name="UserParam">
 		<xs:annotation>
 			<xs:documentation>Type-Name-Value type for annotations</xs:documentation>

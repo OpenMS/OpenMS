@@ -45,8 +45,8 @@ using namespace std;
 namespace OpenMS
 {
   FeatureXMLFile::FeatureXMLFile() :
-    Internal::XMLHandler("", "1.7"),
-    Internal::XMLFile("/SCHEMAS/FeatureXML_1_7.xsd", "1.7")
+    Internal::XMLHandler("", "1.8"),
+    Internal::XMLFile("/SCHEMAS/FeatureXML_1_8.xsd", "1.8")
   {
     resetMembers_();
   }
@@ -176,10 +176,10 @@ namespace OpenMS
     {
       os << " id=\"fm_" << feature_map.getUniqueId() << "\"";
     }
-    os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/FeatureXML_1_7.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+    os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/FeatureXML_1_8.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
     // user param
-    writeUserParam_("userParam", os, feature_map, 1);
+    writeUserParam_("UserParam", os, feature_map, 1);
 
     //write data processing
     for (Size i = 0; i < feature_map.getDataProcessing().size(); ++i)
@@ -191,7 +191,7 @@ namespace OpenMS
       {
         os << "\t\t<processingAction name=\"" << DataProcessing::NamesOfProcessingAction[*it] << "\" />\n";
       }
-      writeUserParam_("userParam", os, processing, 2);
+      writeUserParam_("UserParam", os, processing, 2);
       os << "\t</dataProcessing>\n";
     }
 
@@ -287,12 +287,12 @@ namespace OpenMS
         os << " score=\"" << current_prot_id.getHits()[j].getScore() << "\"";
         os << " sequence=\"" << current_prot_id.getHits()[j].getSequence() << "\">\n";
 
-        writeUserParam_("userParam", os, current_prot_id.getHits()[j], 4);
+        writeUserParam_("UserParam", os, current_prot_id.getHits()[j], 4);
 
         os << "\t\t\t</ProteinHit>\n";
       }
 
-      writeUserParam_("userParam", os, current_prot_id, 3);
+      writeUserParam_("UserParam", os, current_prot_id, 3);
       os << "\t\t</ProteinIdentification>\n";
       os << "\t</IdentificationRun>\n";
     }
@@ -426,11 +426,11 @@ namespace OpenMS
       if (name != "" && value != "")
         param_.setValue(name, value);
     }
-    else if (tag == "userParam")
+    else if (tag == "userParam" || tag == "UserParam") // correct: "UserParam". Test for backwards compatibility.
     {
       if (last_meta_ == 0)
       {
-        fatalError(LOAD, String("Unexpected userParam in tag '") + parent_tag + "'");
+        fatalError(LOAD, String("Unexpected UserParam in tag '") + parent_tag + "'");
       }
 
       String name = attributeAsString_(attributes, s_name);
@@ -462,7 +462,7 @@ namespace OpenMS
       }
       else
       {
-        fatalError(LOAD, String("Invalid userParam type '") + type + "'");
+        fatalError(LOAD, String("Invalid UserParam type '") + type + "'");
       }
     }
     else if (tag == "featureMap")
@@ -710,19 +710,70 @@ namespace OpenMS
       //aa_before
       String tmp = "";
       optionalAttributeAsString_(tmp, attributes, "aa_before");
-
-      // store this information in first peptide evidence object
-      if (!tmp.empty() && !peptide_evidences_.empty())
+      if (!tmp.empty())
       {
-        peptide_evidences_[0].setAABefore(tmp[0]);
+        std::vector<String> splitted;
+        tmp.split(' ', splitted);
+        for (Size i = 0; i != splitted.size(); ++i)
+        { 
+          if (peptide_evidences_.size() < i + 1) 
+          {
+            peptide_evidences_.push_back(PeptideEvidence());
+          }
+          peptide_evidences_[i].setAABefore(splitted[i][0]);
+        }
       }
 
       //aa_after
       tmp = "";
       optionalAttributeAsString_(tmp, attributes, "aa_after");
-      if (!tmp.empty() && !peptide_evidences_.empty())
+      if (!tmp.empty())
       {
-        peptide_evidences_[0].setAAAfter(tmp[0]);
+        std::vector<String> splitted;
+        tmp.split(' ', splitted);
+        for (Size i = 0; i != splitted.size(); ++i)
+        { 
+          if (peptide_evidences_.size() < i + 1) 
+          {
+            peptide_evidences_.push_back(PeptideEvidence());
+          }
+          peptide_evidences_[i].setAAAfter(splitted[i][0]);
+        }
+      }
+
+      //start
+      tmp = "";
+      optionalAttributeAsString_(tmp, attributes, "start");
+
+      if (!tmp.empty())
+      {
+        std::vector<String> splitted;
+        tmp.split(' ', splitted);
+        for (Size i = 0; i != splitted.size(); ++i)
+        { 
+          if (peptide_evidences_.size() < i + 1) 
+          {
+            peptide_evidences_.push_back(PeptideEvidence());
+          }
+          peptide_evidences_[i].setStart(splitted[i].toInt());
+        }
+      }
+
+      //end
+      tmp = "";
+      optionalAttributeAsString_(tmp, attributes, "end");
+      if (!tmp.empty())
+      {
+        std::vector<String> splitted;
+        tmp.split(' ', splitted);
+        for (Size i = 0; i != splitted.size(); ++i)
+        { 
+          if (peptide_evidences_.size() < i + 1) 
+          {
+            peptide_evidences_.push_back(PeptideEvidence());
+          }
+          peptide_evidences_[i].setEnd(splitted[i].toInt());
+        }
       }
 
       pep_hit_.setPeptideEvidences(peptide_evidences_);
@@ -960,7 +1011,7 @@ namespace OpenMS
       writePeptideIdentification_(filename, os, feat.getPeptideIdentifications()[i], "PeptideIdentification", 3);
     }
 
-    writeUserParam_("userParam", os, feat, indentation_level + 3);
+    writeUserParam_("UserParam", os, feat, indentation_level + 3);
 
     os << indent << "\t\t</feature>\n";
   }
@@ -1027,14 +1078,14 @@ namespace OpenMS
         os << " protein_refs=\"" << accs << "\"";
       }
       os << ">\n";
-      writeUserParam_("userParam", os, id.getHits()[j], indentation_level + 2);
+      writeUserParam_("UserParam", os, id.getHits()[j], indentation_level + 2);
       os << indent << "\t</PeptideHit>\n";
     }
 
     //do not write "spectrum_reference" since it is written as attribute already
     MetaInfoInterface tmp = id;
     tmp.removeMetaValue("spectrum_reference");
-    writeUserParam_("userParam", os, tmp, indentation_level + 1);
+    writeUserParam_("UserParam", os, tmp, indentation_level + 1);
     os << indent << "</" << tag_name << ">\n";
   }
 

@@ -634,7 +634,7 @@ namespace OpenMS
       String tmp;
       optionalAttributeAsString_(tmp, attributes, "aa_before");
 
-      if (!tmp.empty() && !peptide_evidences_.empty())
+      if (!tmp.empty())
       {
         std::vector<String> splitted;
         tmp.split(' ', splitted);
@@ -651,7 +651,7 @@ namespace OpenMS
       //aa_after
       tmp = "";
       optionalAttributeAsString_(tmp, attributes, "aa_after");
-      if (!tmp.empty() && !peptide_evidences_.empty())
+      if (!tmp.empty())
       {
         std::vector<String> splitted;
         tmp.split(' ', splitted);
@@ -669,7 +669,7 @@ namespace OpenMS
       tmp = "";
       optionalAttributeAsString_(tmp, attributes, "start");
 
-      if (!tmp.empty() && !peptide_evidences_.empty())
+      if (!tmp.empty())
       {
         std::vector<String> splitted;
         tmp.split(' ', splitted);
@@ -686,7 +686,7 @@ namespace OpenMS
       //end
       tmp = "";
       optionalAttributeAsString_(tmp, attributes, "end");
-      if (!tmp.empty() && !peptide_evidences_.empty())
+      if (!tmp.empty())
       {
         std::vector<String> splitted;
         tmp.split(' ', splitted);
