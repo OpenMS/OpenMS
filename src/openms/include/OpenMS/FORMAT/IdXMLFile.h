@@ -65,7 +65,7 @@ namespace OpenMS
     public Internal::XMLFile
   {
 public:
-    // both ConsensusXMLFile and FeatureXMLFile use some protected IdXML helpfer functions to parse identifications without code duplication
+    // both ConsensusXMLFile and FeatureXMLFile use some protected IdXML helper functions to parse identifications without code duplication
     friend class ConsensusXMLFile;
     friend class FeatureXMLFile;
 
@@ -119,13 +119,13 @@ protected:
 
     /**
       * Helper function to create the XML string for the amino acids before and after the peptide position in a protein.
-      * Can be eused by e.g. ConsensusXML, FeatureXML to write PeptideHit elements  
+      * Can be reused by e.g. ConsensusXML, FeatureXML to write PeptideHit elements  
       */
     static String createFlankingAAXMLString_(const std::vector<PeptideEvidence> & pes);
 
     /**
       * Helper function to create the XML string for the position of the peptide in a protein.
-      * Can be eused by e.g. ConsensusXML, FeatureXML to write PeptideHit elements  
+      * Can be reused by e.g. ConsensusXML, FeatureXML to write PeptideHit elements  
       */
     static String createPositionXMLString_(const std::vector<PeptideEvidence> & pes);
 
