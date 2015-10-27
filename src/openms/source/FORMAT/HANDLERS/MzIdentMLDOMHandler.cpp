@@ -1556,10 +1556,10 @@ namespace OpenMS
           DOMElement* element_sib = dynamic_cast<xercesc::DOMElement*>(current_sib);
           if ((std::string)XMLString::transcode(element_sib->getTagName()) == "Modification")
           {
-            int index = -1;
+            SignedSize index = -1;
             try
             {
-              index = String(XMLString::transcode(element_sib->getAttribute(XMLString::transcode("location")))).toInt();
+              index = static_cast<SignedSize>(String(XMLString::transcode(element_sib->getAttribute(XMLString::transcode("location")))).toInt());
             }
             catch (...)
             {
@@ -1581,7 +1581,7 @@ namespace OpenMS
               {
                 aas.setNTerminalModification(cv.getName());
               }
-              else if (index == int(aas.size()) + 1)
+              else if (index == static_cast<SignedSize>(aas.size() + 1))
               {
                 aas.setCTerminalModification(cv.getName());
               }
@@ -1591,9 +1591,9 @@ namespace OpenMS
                 {
                   aas.setModification(index - 1, cv.getName()); //TODO @mths,Timo : do this via UNIMOD accessions
                 }
-                catch (...)
+                catch (Exception::BaseException& e)
                 {
-                  LOG_WARN << "Found unusable modification" << " @residue: " << aas.getResidue((SignedSize)index).getName() << String(index) << " mod: " << cv.getName() << endl;
+                  LOG_WARN << e.getName() << ": " << e.getMessage() << " Sequence: " << aas.toUnmodifiedString() << ", residue " << aas.getResidue(index - 1).getName() << "@" << String(index) << "\n";
                 }
               }
               cvp = cvp->getNextElementSibling();
