@@ -392,7 +392,7 @@ namespace OpenMS
           if (seq.hasCTerminalModification())
           {
             const ResidueModification& mod = ModificationsDB::getInstance()->getTerminalModification(seq.getCTerminalModification(), ResidueModification::C_TERM);
-            f << "mod_cterm_mass=\"" <<
+            f << " mod_cterm_mass=\"" <<
               precisionWrapper(mod.getMonoMass() + seq[seq.size() - 1].getMonoWeight(Residue::Internal)) << "\"";
           }
 
