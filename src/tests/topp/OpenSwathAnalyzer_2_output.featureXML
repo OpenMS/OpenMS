@@ -6,7 +6,7 @@
 		<UserParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
 	<IdentificationRun id="PI_0" date="0000-00-00T00:00:00" search_engine="" search_engine_version="">
-		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
 			<ProteinHit id="PH_0" accession="" score="0" sequence="">
@@ -86,8 +86,8 @@
 			<UserParam type="float" name="var_massdev_score_weighted" value="0.666143770195331"/>
 			<UserParam type="float" name="var_bseries_score" value="0"/>
 			<UserParam type="float" name="var_yseries_score" value="0"/>
-			<UserParam type="float" name="var_dotprod_score" value="0.748525353691781"/>
-			<UserParam type="float" name="var_manhatt_score" value="0.79154758288722"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.748542632054415"/>
+			<UserParam type="float" name="var_manhatt_score" value="0.791518893486007"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="-17581.8917952773"/>
 			<UserParam type="float" name="PrecursorMZ" value="500"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
@@ -177,8 +177,8 @@
 			<UserParam type="float" name="var_massdev_score_weighted" value="1.18664964107839"/>
 			<UserParam type="float" name="var_bseries_score" value="0"/>
 			<UserParam type="float" name="var_yseries_score" value="0"/>
-			<UserParam type="float" name="var_dotprod_score" value="0.819626719315996"/>
-			<UserParam type="float" name="var_manhatt_score" value="0.656132040800217"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.819626333845356"/>
+			<UserParam type="float" name="var_manhatt_score" value="0.656134199265353"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="-17227.59598786"/>
 			<UserParam type="float" name="PrecursorMZ" value="501"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
@@ -268,8 +268,8 @@
 			<UserParam type="float" name="var_massdev_score_weighted" value="1.08854278297821"/>
 			<UserParam type="float" name="var_bseries_score" value="0"/>
 			<UserParam type="float" name="var_yseries_score" value="0"/>
-			<UserParam type="float" name="var_dotprod_score" value="0.647934002663614"/>
-			<UserParam type="float" name="var_manhatt_score" value="0.880419233774317"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.647937650544969"/>
+			<UserParam type="float" name="var_manhatt_score" value="0.880407119820194"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="-17585.6606976253"/>
 			<UserParam type="float" name="PrecursorMZ" value="501"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <featureMap version="1.8" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_8.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<IdentificationRun id="PI_0" date="2015-02-04T16:32:07" search_engine="AccurateMassSearch" search_engine_version="">
-		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+	<IdentificationRun id="PI_0" date="2015-10-28T15:49:28" search_engine="AccurateMassSearch" search_engine_version="">
+		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
 		</ProteinIdentification>
@@ -13,7 +13,7 @@
 			<intensity>36310.2</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>2.09303e-005</overallquality>
+			<overallquality>2.09303e-05</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="275.25" y="160.074747981592" />
@@ -94,7 +94,7 @@
 					<UserParam type="stringList" name="description" value="[Methionyl-Serine,Serinyl-Methionine]"/>
 					<UserParam type="string" name="modifications" value="M+2CH3CN+2H;2+"/>
 					<UserParam type="string" name="chemical_formula" value="C8H16N2O4S"/>
-					<UserParam type="float" name="ppm_mz_error" value="2.24180926936209"/>
+					<UserParam type="float" name="ppm_mz_error" value="2.24180926953964"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB01190]"/>
@@ -119,7 +119,7 @@
 		<feature id="f_12112469906802307848">
 			<position dim="0">308.25</position>
 			<position dim="1">160.075018056482</position>
-			<intensity>3.02411e+007</intensity>
+			<intensity>3.02411e+07</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.0183443</overallquality>
@@ -426,7 +426,7 @@
 		<feature id="f_5576845964105266947">
 			<position dim="0">316.5</position>
 			<position dim="1">160.134470512512</position>
-			<intensity>2.15267e+006</intensity>
+			<intensity>2.15267e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.00129416</overallquality>
@@ -712,7 +712,7 @@
 		<feature id="f_2737147212367465006">
 			<position dim="0">284.75</position>
 			<position dim="1">161.060231720537</position>
-			<intensity>1.76241e+008</intensity>
+			<intensity>1.76241e+08</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.106575</overallquality>
@@ -1115,7 +1115,7 @@
 			<intensity>18965.9</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>1.09325e-005</overallquality>
+			<overallquality>1.09325e-05</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="256.75" y="161.132153124789" />
@@ -1182,7 +1182,7 @@
 		<feature id="f_10893964381505000125">
 			<position dim="0">284.5</position>
 			<position dim="1">163.039965127824</position>
-			<intensity>1.94672e+006</intensity>
+			<intensity>1.94672e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.00113951</overallquality>
@@ -1548,7 +1548,7 @@
 		<feature id="f_3062115439946092212">
 			<position dim="0">267.25</position>
 			<position dim="1">163.077368733932</position>
-			<intensity>1.81771e+008</intensity>
+			<intensity>1.81771e+08</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.110367</overallquality>
@@ -2545,7 +2545,7 @@
 			<intensity>35837.5</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>2.06578e-005</overallquality>
+			<overallquality>2.06578e-05</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="252.75" y="165.05608834397" />

@@ -12,7 +12,7 @@
 		<UserParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
 	<IdentificationRun id="PI_0" date="2011-08-08T17:36:22" search_engine="X! Tandem (k-score)" search_engine_version="">
-		<SearchParameters db="test.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+		<SearchParameters db="test.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 			<FixedModification name="C+57.0215" />
 			<VariableModification name="C-17.0265" />
 			<VariableModification name="E-18.0106" />
@@ -26,7 +26,7 @@
 		</ProteinIdentification>
 	</IdentificationRun>
 	<IdentificationRun id="PI_1" date="2011-08-08T17:36:22" search_engine="OMSSA" search_engine_version="">
-		<SearchParameters db="test.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+		<SearchParameters db="test.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 			<FixedModification name="Carbamidomethyl" />
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">

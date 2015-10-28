@@ -161,10 +161,15 @@ namespace OpenMS
       {
         os << "enzyme=\"" << params[i].digestion_enzyme.getName() << "\" "; // os << "enzyme=\"unknown_enzyme\" ";
       }
+      String precursor_unit = params[i].precursor_mass_tolerance_ppm ? "true" : "false";
+      String peak_unit = params[i].fragment_mass_tolerance_ppm ? "true" : "false";
+
       os << "missed_cleavages=\"" << params[i].missed_cleavages << "\" "
-         << "precursor_peak_tolerance=\"" << params[i].precursor_tolerance << "\" "
-         << "peak_mass_tolerance=\"" << params[i].fragment_mass_tolerance << "\" "
-         << ">\n";
+         << "precursor_peak_tolerance=\"" << params[i].precursor_tolerance << "\" ";
+      os << "precursor_peak_tolerance_ppm=\"" << precursor_unit << "\" ";
+      os << "peak_mass_tolerance=\"" << params[i].fragment_mass_tolerance << "\" ";
+      os << "peak_mass_tolerance_ppm=\"" << peak_unit << "\" ";
+      os << ">\n";
 
       //modifications
       for (Size j = 0; j != params[i].fixed_modifications.size(); ++j)
@@ -428,9 +433,17 @@ namespace OpenMS
       param_.charges = attributeAsString_(attributes, "charges");
       optionalAttributeAsUInt_(param_.missed_cleavages, attributes, "missed_cleavages");
       param_.fragment_mass_tolerance = attributeAsDouble_(attributes, "peak_mass_tolerance");
-      param_.precursor_tolerance = attributeAsDouble_(attributes, "precursor_peak_tolerance");
-      //mass type
 
+      String peak_unit;
+      optionalAttributeAsString_(peak_unit, attributes, "peak_mass_tolerance_ppm");
+      param_.fragment_mass_tolerance_ppm = peak_unit == "true" ? true : false;
+
+      param_.precursor_tolerance = attributeAsDouble_(attributes, "precursor_peak_tolerance");
+      String precursor_unit;
+      optionalAttributeAsString_(precursor_unit, attributes, "precursor_peak_tolerance_ppm");
+      param_.precursor_mass_tolerance_ppm = precursor_unit == "true" ? true : false;
+
+      //mass type
       String mass_type = attributeAsString_(attributes, "mass_type");
       if (mass_type == "monoisotopic")
       {
@@ -955,7 +968,7 @@ namespace OpenMS
           {
             aa_string += " " + String(it->getStart());
           }
-          if (static_cast<Size>(it - pes.begin()) == pes.size() - 1) aa_string += "\" ";
+          if (static_cast<Size>(it - pes.begin()) == pes.size() - 1) aa_string += "\"";
         }
       }
 
