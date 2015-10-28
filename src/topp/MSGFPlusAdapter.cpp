@@ -388,6 +388,10 @@ protected:
       File::removeDirRecursively(temp_dir);
     }
   }
+  
+  void tsv_conversion_()
+  {
+  }
 
   ExitCodes main_(int, const char**)
   {
@@ -529,12 +533,21 @@ protected:
     // create idXML output
     //-------------------------------------------------------------
     
-    vector<ProteinIdentification> protein_ids;
-    vector<PeptideIdentification> peptide_ids;
-    MzIdentMLFile().load(mzid_temp, protein_ids, peptide_ids);
-    SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptide_ids, in, false);
-    IdXMLFile().store(out, protein_ids, peptide_ids);
-    
+    if (!out.empty())
+    {
+      if (legacy_conversion_)
+      {
+        tsv_conversion_();
+      }
+      else
+      {
+        vector<ProteinIdentification> protein_ids;
+        vector<PeptideIdentification> peptide_ids;
+        MzIdentMLFile().load(mzid_temp, protein_ids, peptide_ids);
+        SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptide_ids, in, false);
+        IdXMLFile().store(out, protein_ids, peptide_ids);
+      }
+    }
 
     //-------------------------------------------------------------
     // create (move) mzid output
