@@ -523,7 +523,9 @@ protected:
     vector<ProteinIdentification> protein_ids;
     vector<PeptideIdentification> peptide_ids;
     MzIdentMLFile().load(mzid_temp, protein_ids, peptide_ids);
+    SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptide_ids, in, false);
     IdXMLFile().store(out, protein_ids, peptide_ids);
+    
 
     //-------------------------------------------------------------
     // create (move) mzid output
