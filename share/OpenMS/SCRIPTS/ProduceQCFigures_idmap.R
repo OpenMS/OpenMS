@@ -27,10 +27,13 @@ spec<-cbind(precs[])
 id<-cbind(ids[,1:2])
 spec$color<-"is_recorded"
 id$color<-"is_identified"
-#spec$RT<-spec$RT/60
-#id$RT<-id$RT/60
+spec$rt<-as.POSIXct(as.character(0),format="%S")+spec$RT
+id$rt<-as.POSIXct(as.character(0),format="%S")+id$RT
 
-ggplot(spec, aes(RT, MZ, color=color)) + geom_point() + geom_point(data=id, aes(RT, MZ, color=color))
+ggplot(spec, aes(rt, MZ, color=color)) + 
+  geom_point() + 
+  geom_point(data=id, aes(rt, MZ, color=color)) +
+  xlab("RT (HH:MM)") 
 ######################################
 garbage<-dev.off()
 
