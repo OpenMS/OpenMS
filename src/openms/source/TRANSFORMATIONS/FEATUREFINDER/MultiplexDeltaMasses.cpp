@@ -61,7 +61,7 @@ namespace OpenMS
 
   void MultiplexDeltaMasses::addDeltaMass(double m, MultiplexDeltaMasses::LabelSet ls)
   {
-    delta_masses_.push_back(std::make_pair(m,ls));
+    delta_masses_.push_back(MultiplexDeltaMasses::DeltaMass(m,ls));
   }
 
   void MultiplexDeltaMasses::addDeltaMass(double m, String l)

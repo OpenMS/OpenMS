@@ -69,7 +69,11 @@ namespace OpenMS
     /**
      * @brief mass shift with corresponding label set
      */
-    typedef std::pair<double,LabelSet> DeltaMass;
+    //typedef std::pair<double,LabelSet> DeltaMass;
+    struct DeltaMass {
+      double mass_shift;
+      LabelSet label_set;
+    };
 
     /**
      * @brief constructor
