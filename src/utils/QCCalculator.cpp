@@ -480,14 +480,14 @@ protected:
     at.colTypes.push_back("MS:1000927");
     for (Size i = 0; i < exp.size(); ++i)
     {
-      if (exp[i].getMSLevel() > 1 && exp[i].getAcquisitionInfo().size() > 0)
+      if (exp[i].getMSLevel() > 1 && !exp[i].getAcquisitionInfo().empty())
       {
         for (Size j = 0; j < exp[i].getAcquisitionInfo().size(); ++j)
         {
           if (exp[i].getAcquisitionInfo()[j].metaValueExists("MS:1000927"))
           {
             std::vector<String> row;
-            row.push_back(exp[i].getRT());
+            row.push_back(String(exp[i].getRT()));
             row.push_back(exp[i].getAcquisitionInfo()[j].getMetaValue("MS:1000927"));
             at.tableRows.push_back(row);
           }
@@ -729,7 +729,7 @@ protected:
       //~ prot_ids[0].getSearchParameters();
       for (vector<PeptideIdentification>::iterator it = pep_ids.begin(); it != pep_ids.end(); ++it)
       {
-        if (it->getHits().size() > 0)
+        if (!it->getHits().empty())
         {
           std::vector<String> row;
           row.push_back(it->getRT());
@@ -744,7 +744,7 @@ protected:
           {
             Residue res = *z;
             String temp;
-            if (res.getModification().size() > 0 && res.getModification() != "Carbamidomethyl")
+            if (!res.getModification().empty() && res.getModification() != "Carbamidomethyl")
             {
               temp = res.getModification() + " (" + res.getOneLetterCode()  + ")";
               //cout<<res.getModification()<<endl;
