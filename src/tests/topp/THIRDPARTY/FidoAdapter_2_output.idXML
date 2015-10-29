@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="http://open-ms.sourceforge.net/XSL/IdXML.xsl" ?>
 <IdXML version="1.3" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="SwissProtHuman554TD_20080526.fasta" db_version="" taxonomy="0" mass_type="monoisotopic" charges="+1-+4" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="3" peak_mass_tolerance="0.5" >
+	<SearchParameters id="SP_0" db="SwissProtHuman554TD_20080526.fasta" db_version="" taxonomy="0" mass_type="monoisotopic" charges="+1-+4" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="3" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0.5" peak_mass_tolerance_ppm="false" >
 		<VariableModification name="Oxidation (M)" />
 		<VariableModification name="Carbamidomethyl (C)" />
 	</SearchParameters>
-	<IdentificationRun date="2015-10-29T12:56:10" search_engine="OMSSA" search_engine_version="2.1.4" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2015-10-29T15:11:42" search_engine="OMSSA" search_engine_version="2.1.4" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="Posterior Probability" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="A0FGR8|ESYT2_HUMAN" score="0.862051248550415" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -4453,7 +4453,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>
-	<IdentificationRun date="2015-10-29T12:56:12" search_engine="OMSSA" search_engine_version="2.1.4" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2015-10-29T15:11:43" search_engine="OMSSA" search_engine_version="2.1.4" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="Posterior Probability" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_586" accession="A0PJX2|CT118_HUMAN_rev" score="0.828882038593292" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
@@ -12654,7 +12654,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>
-	<IdentificationRun date="2015-10-29T12:56:12" search_engine="OMSSA" search_engine_version="2.1.4" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2015-10-29T15:11:44" search_engine="OMSSA" search_engine_version="2.1.4" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="Posterior Probability" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_1699" accession="A1KZ92|PXDNL_HUMAN_rev" score="0.110632546246052" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
