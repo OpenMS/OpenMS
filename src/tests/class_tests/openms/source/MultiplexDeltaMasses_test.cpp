@@ -58,12 +58,13 @@ pattern.addDeltaMass(6.031817,"Arg6");
 
 START_SECTION(void addDeltaMass(double m, String l))
   pattern.addDeltaMass(10.008268600,"Arg10");
-  TEST_EQUAL(pattern.getMassShifts()[2], 10.008268600);
+  TEST_REAL_SIMILAR(pattern.getMassShiftAt(2), 10.008268600);
 END_SECTION
 
 START_SECTION(std::vector<double> getMassShifts() const)
-  TEST_EQUAL(pattern.getMassShifts()[0], 0);
-  TEST_EQUAL(pattern.getMassShifts()[1], 6.031817);
+  std::vector<double> ms = pattern.getMassShifts();
+  TEST_REAL_SIMILAR(ms[0], 0);
+  TEST_REAL_SIMILAR(ms[1], 6.031817);
 END_SECTION
 
 START_SECTION(unsigned getDeltaMassesCount() const)
@@ -71,9 +72,9 @@ START_SECTION(unsigned getDeltaMassesCount() const)
 END_SECTION
 
 START_SECTION(double getMassShiftAt(int i) const)
-  TEST_EQUAL(pattern.getMassShiftAt(0), 0);
-  TEST_EQUAL(pattern.getMassShiftAt(1), 6.031817);
-  TEST_EQUAL(pattern.getMassShiftAt(2), 10.008268600);
+  TEST_REAL_SIMILAR(pattern.getMassShiftAt(0), 0);
+  TEST_REAL_SIMILAR(pattern.getMassShiftAt(1), 6.031817);
+  TEST_REAL_SIMILAR(pattern.getMassShiftAt(2), 10.008268600);
 END_SECTION
 
 END_TEST
