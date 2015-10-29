@@ -59,16 +59,18 @@ namespace OpenMS
     delta_masses_.push_back(dm);
   }
 
-  void MultiplexDeltaMasses::addDeltaMass(double m, MultiplexDeltaMasses::LabelSet ls)
+  void MultiplexDeltaMasses::addDeltaMass(double ms, MultiplexDeltaMasses::LabelSet ls)
   {
-    delta_masses_.push_back(MultiplexDeltaMasses::DeltaMass(m,ls));
+    MultiplexDeltaMasses::DeltaMass dm = {ms, ls};
+    delta_masses_.push_back(dm);
   }
 
-  void MultiplexDeltaMasses::addDeltaMass(double m, String l)
+  void MultiplexDeltaMasses::addDeltaMass(double ms, String l)
   {
     MultiplexDeltaMasses::LabelSet ls;
     ls.insert(l);
-    delta_masses_.push_back(std::make_pair(m,ls));
+    MultiplexDeltaMasses::DeltaMass dm = {ms, ls};
+    delta_masses_.push_back(dm);
   }
 
   std::vector<double> MultiplexDeltaMasses::getMassShifts() const
@@ -77,7 +79,7 @@ namespace OpenMS
     
     for (unsigned i = 0; delta_masses_.size(); ++i)
     {
-      ms.push_back(delta_masses_[i].first);
+      ms.push_back(delta_masses_[i].mass_shift);
     }
     
     return ms;
@@ -100,12 +102,12 @@ namespace OpenMS
 
   double MultiplexDeltaMasses::getMassShiftAt(int i) const
   {
-    return delta_masses_[i].first;
+    return delta_masses_[i].mass_shift;
   }
   
   MultiplexDeltaMasses::LabelSet MultiplexDeltaMasses::getLabelSetAt(int i) const
   {
-    return delta_masses_[i].second;
+    return delta_masses_[i].label_set;
   }
   
   bool operator<(const MultiplexDeltaMasses &dm1, const MultiplexDeltaMasses &dm2)
