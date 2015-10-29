@@ -117,8 +117,27 @@ namespace OpenMS
   
   bool operator<(const MultiplexDeltaMasses &dm1, const MultiplexDeltaMasses &dm2)
   {
-    //return (dm1.getMassShifts() < dm2.getMassShifts());
-    return (dm1.getMassShiftAt(0) < dm2.getMassShiftAt(0));
+    if (dm1.getDeltaMassesCount() != dm2.getDeltaMassesCount())
+    {
+      // Search first for complete multiplets, then knock-out cases.
+      return (dm1.getDeltaMassesCount() > dm2.getDeltaMassesCount());
+    }
+    else
+    {
+      for (unsigned i = 0; i < dm1.getDeltaMassesCount(); ++i)
+      {
+        double ms1 = dm1.getMassShiftAt(i) - dm1.getMassShiftAt(0);
+        double ms2 = dm2.getMassShiftAt(i) - dm2.getMassShiftAt(0);
+        
+        if (ms1 != ms2)
+        {
+          // Search first for cases without miscleavages.
+          return (ms1 < ms2);
+        }
+      }
+    }
+
+    return (false);
   }
   
 }

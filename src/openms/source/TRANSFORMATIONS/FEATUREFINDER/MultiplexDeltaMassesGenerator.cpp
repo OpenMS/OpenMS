@@ -350,6 +350,11 @@ namespace OpenMS
     {
       throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Knock-outs for multiplex experiments with more than 4 samples not supported.");
     }
+    
+    // sort mass patterns
+    // (from small mass shifts to larger ones, i.e. few miscleavages = simple explanation first)
+    std::sort(mass_pattern_list_.begin(), mass_pattern_list_.end());
+
   }
   
   void MultiplexDeltaMassesGenerator::printLabelsList() const
