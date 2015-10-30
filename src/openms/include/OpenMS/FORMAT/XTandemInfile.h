@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
-// $Authors: Andreas Bertsch $
+// $Maintainer: Chris Bielow $
+// $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_XTANDEMINFILE_H
@@ -45,7 +45,18 @@ namespace OpenMS
   /**
     @brief XTandem input file.
 
-    This class is able to create a X!Tandem configuration files to be used with Xtandem.
+    This class is able to load/write a X!Tandem configuration file.
+
+    These files store parameters within 'note' tags, e.g.,
+    @verbatim
+      <note type="input" label="spectrum, fragment monoisotopic mass error">0.4</note>
+    	<note type="input" label="output, proteins">yes</note>
+    @endverbatim
+
+    Internally, there is a double book-keeping of parameters obtained from a config-xml file via load()
+    and the member parameters exposed via get/set functions.
+    During write(), member params take precedence over additional note-parameters loaded from a config file.
+    If load() was not called before write(), only member parameters are written.
 
     @ingroup FileIO
   */
@@ -228,6 +239,14 @@ public:
       @throw ParseError is thrown if the given file could not be parsed
     */
     void load(const String& filename);
+
+    /**
+       @brief Returns the number of notes read from external XML file.
+
+       @return Number of &lt;note&gt; tags.
+
+    */
+    Size getNoteCount() const;
 
 protected:
 

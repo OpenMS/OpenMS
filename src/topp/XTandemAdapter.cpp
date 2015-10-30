@@ -80,23 +80,22 @@ using namespace std;
 
     @em X!Tandem must be installed before this wrapper can be used. This wrapper
     has been successfully tested with several versions of X!Tandem.
-  The last known version to work is 2009-04-01. We encountered problems with
-  later versions (namely 2010-01-01).
+    The last known version to work is 2009-04-01. We encountered problems with
+    later versions (namely 2010-01-01).
 
     To speed up computations, FASTA databases can be compressed using the fasta_pro.exe
     tool of @em X!Tandem. It is contained in the "bin" folder of the @em X!Tandem installation.
     Refer to the docu of @em X!Tandem for further information about settings.
 
-  This adapter supports relative database filenames, which (when not found in the current working directory) is looked up in
-  the directories specified by 'OpenMS.ini:id_db_dir' (see @subpage TOPP_advanced).
+    This adapter supports relative database filenames, which (when not found in the current working directory) is looked up in
+    the directories specified by 'OpenMS.ini:id_db_dir' (see @subpage TOPP_advanced).
 
-    The major part of the setting can be directly adjusted using the "default_input.xml" of
-    @em X!Tandem. Parameters set by this wrapper overwrite the default settings given in the
-    "default_input.xml", even those parameters not set explicitly, but defaulting to a value.
-    An example of such a "default_input.xml" is contained in the "bin" folder of the
-    @em X!Tandem installation. The parameter "default_input_file" must point to a valid
-    file. "Masterfiles" for "default_input.xml" parameter importing other xml input files
-    are not recommended, use at own risk.
+    X!Tandem settings not exposed by this adapter can be directly adjusted using an X!Tandem XML configuration file.
+    All (!) parameters available explicitly via this wrapper take precedence over the XML configuration file.
+    The parameter "default_input_file" can be used to specify a custom configuration.
+    An example of a configuration file (named "default_input.xml") is contained in the "bin" folder of the
+    @em X!Tandem installation and the OpenMS installation under OpenMS/share/CHEMISTRY/XTandem_default_input.xml.
+    The latter is loaded by default.
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
@@ -135,19 +134,14 @@ protected:
     registerStringOption_("fragment_error_units", "<unit>", "Da", "Fragment monoisotopic mass error units", false);
     registerInputFile_("database", "<file>", "", "FASTA file or pro file. Non-existing relative file-names are looked up via'OpenMS.ini:id_db_dir'", true, false, ListUtils::create<String>("skipexists"));
     setValidFormats_("database", ListUtils::create<String>("FASTA"));
-    vector<String> valid_strings;
-    valid_strings.push_back("ppm");
-    valid_strings.push_back("Da");
+    vector<String> valid_strings = ListUtils::create<String>("ppm,Da");
     setValidStrings_("precursor_error_units", valid_strings);
     setValidStrings_("fragment_error_units", valid_strings);
     registerIntOption_("min_precursor_charge", "<charge>", 2, "Minimum precursor charge", false);
     registerIntOption_("max_precursor_charge", "<charge>", 4, "Maximum precursor charge", false);
 
     registerStringOption_("allow_isotope_error", "<error>", "yes", "If set, misassignment to the first and second isotopic 13C peak are also considered.", false);
-    valid_strings.clear();
-    valid_strings.push_back("yes");
-    valid_strings.push_back("no");
-    setValidStrings_("allow_isotope_error", valid_strings);
+    setValidStrings_("allow_isotope_error", ListUtils::create<String>("yes,no", ','));
 
     registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>(""), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     vector<String> all_mods;
@@ -159,25 +153,23 @@ protected:
 
     addEmptyLine_();
     registerInputFile_("xtandem_executable", "<executable>",
-// choose the default value according to the platform where it will be executed
-// xtandem compiles as tandem on osx and tandem.exe on any other platform
+    // choose the default value according to the platform where it will be executed
+    // X!Tandem compiles as tandem on OSX and tandem.exe on any other platform
 #if  defined(__APPLE__)
                        "tandem",
 #else
                        "tandem.exe",
 #endif
                        "X!Tandem executable of the installation e.g. 'tandem.exe'", true, false, ListUtils::create<String>("skipexists"));
-    registerInputFile_("default_input_file", "<file>", "", "Default parameters input file, if not given default parameters are used", false);
+    
+    registerInputFile_("default_input_file", "<file>", "CHEMISTRY/XTandem_default_input.xml", "Default parameters input file, defaulting to the ones in the OpenMS/share folder. All parameters of this adapter take precedence over this file! Use it for parameters not available here!", false);
     registerDoubleOption_("minimum_fragment_mz", "<num>", 150.0, "Minimum fragment mz", false);
     vector<String> all_enzymes;
     EnzymesDB::getInstance()->getAllXTandemNames(all_enzymes);
     registerStringOption_("cleavage_site", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false);
     setValidStrings_("cleavage_site", all_enzymes);
-    registerStringOption_("output_results", "<result reporting>", "all", "Which hits should be reported. All, valid ones (passing the E-Ealue threshold), or stochastic (failing the threshold)", false);
-    valid_strings.clear();
-    valid_strings.push_back("all");
-    valid_strings.push_back("valid");
-    valid_strings.push_back("stochastic");
+    registerStringOption_("output_results", "<result reporting>", "all", "Which hits should be reported. All, valid ones (passing the E-Value threshold), or stochastic (failing the threshold)", false);
+    valid_strings = ListUtils::create<String>("all,valid,stochastic", ',');
     setValidStrings_("output_results", valid_strings);
 
     registerDoubleOption_("max_valid_expect", "<E-Value>", 0.1, "Maximal E-Value of a hit to be reported (only evaluated if 'output_result' is 'valid' or 'stochastic'", false);
@@ -330,18 +322,6 @@ protected:
       infile.setFragmentMassErrorUnit(XTandemInfile::PPM);
     }
 
-    if (getStringOption_("default_input_file") != "")
-    {
-      infile.load(getStringOption_("default_input_file"));
-      infile.setDefaultParametersFilename(getStringOption_("default_input_file"));
-    }
-    else
-    {
-      String default_file = File::find("CHEMISTRY/XTandem_default_input.xml");
-      infile.load(default_file);
-      infile.setDefaultParametersFilename(default_file);
-    }
-
     infile.setPrecursorMassTolerancePlus(getDoubleOption_("precursor_mass_tolerance"));
     infile.setPrecursorMassToleranceMinus(getDoubleOption_("precursor_mass_tolerance"));
     infile.setFragmentMassTolerance(getDoubleOption_("fragment_mass_tolerance"));
@@ -359,6 +339,16 @@ protected:
     infile.setSemiCleavage(getFlag_("semi_cleavage"));
     bool allow_isotope_error = getStringOption_("allow_isotope_error") == "yes" ? true : false;
     infile.setAllowIsotopeError(allow_isotope_error);
+
+    // load default config (this will NOT overwrite the parameters already set, but rather augment them)
+    String default_XML_config = getStringOption_("default_input_file");
+    if (!default_XML_config.empty())
+    {
+      // augment with absolute path. If absolute filename is given, this is a no-op
+      default_XML_config = File::find(default_XML_config);
+      infile.load(default_XML_config);
+      infile.setDefaultParametersFilename(default_XML_config);
+    }
 
     infile.write(input_filename);
 

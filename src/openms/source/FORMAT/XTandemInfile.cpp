@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
-// $Authors: Andreas Bertsch $
+// $Maintainer: Chris Bielow $
+// $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/XTandemInfile.h>
@@ -71,7 +71,8 @@ namespace OpenMS
     number_of_missed_cleavages_(1),
     default_parameters_file_(""),
     output_results_("all"),
-    max_valid_evalue_(1000)
+    max_valid_evalue_(1000),
+    notes_()
   {
 
   }
@@ -82,7 +83,8 @@ namespace OpenMS
 
   void XTandemInfile::load(const String& filename)
   {
-    Internal::XTandemInfileXMLHandler handler(filename, notes_, this);
+    // just fills 'notes_' 
+    Internal::XTandemInfileXMLHandler handler(filename, notes_);
     parse_(filename, &handler);
   }
 
@@ -725,6 +727,11 @@ namespace OpenMS
   const String& XTandemInfile::getCleavageSite() const
   {
     return cleavage_site_;
+  }
+
+  Size XTandemInfile::getNoteCount() const
+  {
+    return notes_.size();
   }
 
 } // namespace OpenMS

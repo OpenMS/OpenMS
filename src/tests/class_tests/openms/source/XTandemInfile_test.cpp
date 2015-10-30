@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
-// $Authors: Andreas Bertsch $
+// $Maintainer: Chris Bielow $
+// $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -259,28 +259,17 @@ START_SECTION(void write(const String &filename))
 END_SECTION
 
 START_SECTION(void load(const String &filename))
-{
   XTandemInfile file;
 	file.load(OPENMS_GET_TEST_DATA_PATH("XTandemInfile_test.xml"));
-  NOT_TESTABLE
-  /*
-  TEST_STRING_EQUAL(file.getOutputFilename(), "/tmp/2008-07-29_214248_prejudice_30269_1_tandem_output_file.xml")
-	TEST_EQUAL(file.getNumberOfThreads(), 1)
-  TEST_EQUAL(file.getPrecursorMassToleranceMinus(), 3)
-  TEST_EQUAL(file.getPrecursorMassTolerancePlus(), 3)
-  TEST_EQUAL(file.getFragmentMassTolerance(), 0.3)
-  TEST_STRING_EQUAL(file.getInputFilename(), "/tmp/2008-07-29_214248_prejudice_30269_1_tandem_input_file.mgf")
-  TEST_STRING_EQUAL(file.getTaxonomyFilename(), "/tmp/2008-07-29_214248_prejudice_30269_1_tandem_taxonomy_file.xml")
-  TEST_STRING_EQUAL(file.getDefaultParametersFilename(), "Software/tandem/current/bin/default_input.xml")
-  TEST_STRING_EQUAL(file.getTaxon(), "OpenMS_dummy_taxonomy")
-  TEST_EQUAL(file.getMaxPrecursorCharge(), 4)
-  TEST_EQUAL(file.getNumberOfMissedCleavages(), 2)
-  TEST_EQUAL(file.getMaxValidEValue(), 0.1)
-  TEST_EQUAL(file.getPrecursorErrorType(), XTandemInfile::MONOISOTOPIC)
-  TEST_EQUAL(file.getFragmentMassErrorUnit(), XTandemInfile::DALTONS)
-  */
-}
+  TEST_EQUAL(file.getNoteCount(), 74)
+  // real testing of values is hard, since they are never
+  // exposed (just overwritten by class members during write())
 END_SECTION
+
+START_SECTION(Size getNoteCount() const)
+  NOT_TESTABLE // tested in load()
+END_SECTION
+
 
 START_SECTION(bool isRefining() const )
   XTandemInfile file;
@@ -303,6 +292,7 @@ START_SECTION(void setNoiseSuppression(const bool noise_suppression))
   file.setNoiseSuppression(false);
   TEST_EQUAL(file.getNoiseSuppression()==false, true)
 END_SECTION
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
