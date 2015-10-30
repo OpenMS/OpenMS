@@ -73,6 +73,8 @@ namespace OpenMS
     {
       double delta_mass;
       LabelSet label_set;
+      
+      DeltaMass(double dm, LabelSet ls);
     };
 
     /**
@@ -93,13 +95,13 @@ namespace OpenMS
     /**
      * @brief add a delta mass
      */
-    void addDeltaMass(double m, LabelSet ls);
+    void addDeltaMass(double dm, LabelSet ls);
     
     /**
      * @brief add a delta mass (with a label set consisting of a
      * single label)
      */
-    void addDeltaMass(double m, String l);
+    void addDeltaMass(double dm, String l);
     
     /**
      * @brief returns mass shifts
