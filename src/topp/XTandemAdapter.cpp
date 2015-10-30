@@ -78,24 +78,27 @@ using namespace std;
     </table>
 </CENTER>
 
-    @em X!Tandem must be installed before this wrapper can be used. This wrapper
-    has been successfully tested with several versions of X!Tandem.
+    @em X! Tandem must be installed before this wrapper can be used. This wrapper
+    has been successfully tested with several versions of X! Tandem.
     The last known version to work is 2009-04-01. We encountered problems with
     later versions (namely 2010-01-01).
 
     To speed up computations, FASTA databases can be compressed using the fasta_pro.exe
-    tool of @em X!Tandem. It is contained in the "bin" folder of the @em X!Tandem installation.
-    Refer to the docu of @em X!Tandem for further information about settings.
+    tool of @em X! Tandem. It is contained in the "bin" folder of the @em X! Tandem installation.
+    Refer to the docu of @em X! Tandem for further information about settings.
 
     This adapter supports relative database filenames, which (when not found in the current working directory) is looked up in
     the directories specified by 'OpenMS.ini:id_db_dir' (see @subpage TOPP_advanced).
 
-    X!Tandem settings not exposed by this adapter can be directly adjusted using an X!Tandem XML configuration file.
-    All (!) parameters available explicitly via this wrapper take precedence over the XML configuration file.
-    The parameter "default_input_file" can be used to specify a custom configuration.
+    X! Tandem settings not exposed by this adapter can be directly adjusted using an XML configuration file.
+    By default, all (!) parameters available explicitly via this wrapper take precedence over the XML configuration file.
+    The parameter "default_input_file" can be used to specify such a custom configuration.
     An example of a configuration file (named "default_input.xml") is contained in the "bin" folder of the
-    @em X!Tandem installation and the OpenMS installation under OpenMS/share/CHEMISTRY/XTandem_default_input.xml.
+    @em X! Tandem installation and the OpenMS installation under OpenMS/share/CHEMISTRY/XTandem_default_input.xml.
     The latter is loaded by default.
+    If you want to use the XML configuration file and @em ignore most of the parameters set via this adapter, use the '-ignore_adapter_param'
+    flag. Then, the config given in '-default_input_file' is used exclusively and only '-in', '-out', '-database' and '-xtandem_executable' are
+    taken from this adapter.
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
@@ -126,14 +129,35 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
+    registerInputFile_("database", "<file>", "", "FASTA file or pro file. Non-existing relative file-names are looked up via'OpenMS.ini:id_db_dir'", true, false, ListUtils::create<String>("skipexists"));
+    setValidFormats_("database", ListUtils::create<String>("FASTA"));
+    registerInputFile_("xtandem_executable", "<executable>",
+      // choose the default value according to the platform where it will be executed
+      // X! Tandem compiles as tandem on OSX and tandem.exe on any other platform
+#if  defined(__APPLE__)
+      "tandem",
+#else
+      "tandem.exe",
+#endif
+      "X! Tandem executable of the installation e.g. 'tandem.exe'", true, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_("default_input_file", "<file>",
+                       "CHEMISTRY/XTandem_default_input.xml", 
+                       "Default parameters input file, defaulting to the ones in the OpenMS/share folder. "
+                       "All parameters of this adapter take precedence over this file! Use it for parameters not available here!",
+                       false, false, ListUtils::create<String>("skipexists"));
+    registerFlag_("ignore_adapter_param", "The config given in default_input_file is used exclusively! No matter what other parameters "
+                                          "(apart from -in,-out,-database,-xtandem_executable) are saying.");
+
+
+    addEmptyLine_();
+    //
+    // Optional parameters (if '-ignore_adapter_param' is set)
+    //
     registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 10.0, "Precursor mass tolerance", false);
     registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.3, "Fragment mass error", false);
 
-    addEmptyLine_();
     registerStringOption_("precursor_error_units", "<unit>", "ppm", "Parent monoisotopic mass error units", false);
     registerStringOption_("fragment_error_units", "<unit>", "Da", "Fragment monoisotopic mass error units", false);
-    registerInputFile_("database", "<file>", "", "FASTA file or pro file. Non-existing relative file-names are looked up via'OpenMS.ini:id_db_dir'", true, false, ListUtils::create<String>("skipexists"));
-    setValidFormats_("database", ListUtils::create<String>("FASTA"));
     vector<String> valid_strings = ListUtils::create<String>("ppm,Da");
     setValidStrings_("precursor_error_units", valid_strings);
     setValidStrings_("fragment_error_units", valid_strings);
@@ -152,20 +176,7 @@ protected:
     registerIntOption_("missed_cleavages", "<num>", 1, "Number of possible cleavage sites missed by the enzyme", false);
 
     addEmptyLine_();
-    registerInputFile_("xtandem_executable", "<executable>",
-    // choose the default value according to the platform where it will be executed
-    // X!Tandem compiles as tandem on OSX and tandem.exe on any other platform
-#if  defined(__APPLE__)
-                       "tandem",
-#else
-                       "tandem.exe",
-#endif
-                       "X!Tandem executable of the installation e.g. 'tandem.exe'", true, false, ListUtils::create<String>("skipexists"));
     
-    registerInputFile_("default_input_file", "<file>", "CHEMISTRY/XTandem_default_input.xml", 
-                       "Default parameters input file, defaulting to the ones in the OpenMS/share folder. "
-                       "All parameters of this adapter take precedence over this file! Use it for parameters not available here!",
-                       false, false, ListUtils::create<String>("skipexists"));
     registerDoubleOption_("minimum_fragment_mz", "<num>", 150.0, "Minimum fragment mz", false);
     vector<String> all_enzymes;
     EnzymesDB::getInstance()->getAllXTandemNames(all_enzymes);
@@ -183,19 +194,11 @@ protected:
 
   ExitCodes main_(int, const char**)
   {
-    // instance specific location of settings in INI file (e.g. 'TOPP_Skeleton:1:')
-    String ini_location;
-    // path to the log file
-    String logfile(getStringOption_("log"));
-    String xtandem_executable(getStringOption_("xtandem_executable"));
-    String inputfile_name;
-    String outputfile_name;
-
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
 
-    inputfile_name = getStringOption_("in");
+    String inputfile_name = getStringOption_("in");
     writeDebug_(String("Input file: ") + inputfile_name, 1);
     if (inputfile_name == "")
     {
@@ -204,7 +207,7 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
 
-    outputfile_name = getStringOption_("out");
+    String outputfile_name = getStringOption_("out");
     writeDebug_(String("Output file: ") + outputfile_name, 1);
     if (outputfile_name == "")
     {
@@ -292,10 +295,6 @@ protected:
     MzDataFile mzdata_outfile;
     mzdata_outfile.store(tandem_input_filename, exp);
 
-    XTandemInfile infile;
-    infile.setInputFilename(tandem_input_filename);
-    infile.setOutputFilename(tandem_output_filename);
-
     ofstream tax_out(tandem_taxonomy_filename.c_str());
     tax_out << "<?xml version=\"1.0\"?>" << "\n";
     tax_out << "\t<bioml label=\"x! taxon-to-file matching list\">" << "\n";
@@ -304,8 +303,14 @@ protected:
     tax_out << "\t</taxon>" << "\n";
     tax_out << "</bioml>" << "\n";
     tax_out.close();
-
-    infile.setTaxonomyFilename(tandem_taxonomy_filename);
+    
+    //
+    //  Prepare the XML configuration file
+    //
+    XTandemInfile infile;
+    infile.setInputFilename(tandem_input_filename);
+    infile.setOutputFilename(tandem_output_filename);
+    infile.setTaxonomyFilename(tandem_taxonomy_filename); // contains the FASTA name
 
     if (getStringOption_("precursor_error_units") == "Da")
     {
@@ -353,16 +358,17 @@ protected:
       infile.setDefaultParametersFilename(default_XML_config);
     }
 
-    infile.write(input_filename);
+    infile.write(input_filename, getFlag_("ignore_adapter_param"));
 
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
 
+    String xtandem_executable(getStringOption_("xtandem_executable"));
     int status = QProcess::execute(xtandem_executable.toQString(), QStringList(input_filename.toQString())); // does automatic escaping etc...
     if (status != 0)
     {
-      writeLog_("XTandem problem. Aborting! Calling command was: '" + xtandem_executable + " \"" + input_filename + "\"'.\nDoes the !XTandem executable exist?");
+      writeLog_("X! Tandem problem. Aborting! Calling command was: '" + xtandem_executable + " \"" + input_filename + "\"'.\nDoes the X! Tandem executable exist?");
       // clean temporary files
       if (this->debug_level_ < 2)
       {
@@ -381,7 +387,7 @@ protected:
     protein_id.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
     vector<PeptideIdentification> peptide_ids;
 
-    // read the output of X!Tandem and write it to idXML
+    // read the output of X! Tandem and write it to idXML
     XTandemXMLFile tandem_output;
     tandem_output.setModificationDefinitionsSet(ModificationDefinitionsSet(getStringList_("fixed_modifications"), getStringList_("variable_modifications")));
     // find the file, because XTandem extends the filename with a timestamp we do not know (exactly)

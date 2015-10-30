@@ -247,7 +247,7 @@ START_SECTION(const ModificationDefinitionsSet& getModifications() const)
   TEST_EQUAL(ptr->getModifications() == sets, true)
 END_SECTION
 
-START_SECTION(void write(const String &filename))
+START_SECTION(void write(const String &filename, bool ignore_member_parameters = false))
 	String filename("XTandemInfile_test.tmp");
 	NEW_TMP_FILE(filename);
   ModificationDefinitionsSet sets(ListUtils::create<String>("Oxidation (M),Dimethyl (N-term),Carboxymethyl (C)"), ListUtils::create<String>("Ammonium (C-term),ICDID (C)"));
@@ -256,6 +256,16 @@ START_SECTION(void write(const String &filename))
 	XTandemInfile file;
 	file.load(filename);
   TEST_FILE_SIMILAR(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("XTandemInfile_test_write.xml"))
+  // test writing of a minimal set
+  String filename_minimal("XTandemInfile_test_minimal.tmp");
+  NEW_TMP_FILE(filename_minimal);
+  XTandemInfile file2;
+  file2.write(filename_minimal, true);
+  XTandemInfile file3;
+  file3.load(filename_minimal);
+  TEST_EQUAL(file3.getNoteCount(), 3) // only three notes are written: input, output, taxonomy/database file
+
+
 END_SECTION
 
 START_SECTION(void load(const String &filename))

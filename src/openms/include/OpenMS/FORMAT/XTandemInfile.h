@@ -217,7 +217,7 @@ public:
     /// set state of noise suppression
     void setNoiseSuppression(const bool noise_suppression);
 
-    /// set the cleavage site with a xtandem conform regex
+    /// set the cleavage site with a X! Tandem conform regex
     void setCleavageSite(const String& cleavage_site);
     
     /// returns the cleavage site regex
@@ -226,10 +226,17 @@ public:
     /** 
       @brief Writes the XTandemInfile to the given file
 
+      By default, member variables take precedence over values previously
+      read via load().
+      If ignore_member_parameters is true, only a very limited number of
+      tags fed by member variables (i.e. in, out, database/taxonomy) is written.
+      For everything else, only external tags (from a previous load()) are used.
+      
       @param filename the name of the file which is written
+      @param ignore_member_parameters Do not write tags for class members
       @throw UnableToCreateFile is thrown if the given file could not be created
     */
-    void write(const String& filename);
+    void write(const String& filename, bool ignore_member_parameters = false);
 
     /** 
       @brief Reads the information from the given filename
@@ -254,13 +261,13 @@ protected:
 
     XTandemInfile& operator=(const XTandemInfile& rhs);
 
-    void writeTo_(std::ostream& os);
+    void writeTo_(std::ostream& os, bool ignore_member_parameters);
 
-    void writeNote_(std::ostream& os, const String& type, const String& label, const String& value);
+    const String& writeNote_(std::ostream& os, const String& type, const String& label, const String& value);
 
-    void writeNote_(std::ostream& os, const String& type, const String& label, const char* value);
+    const String& writeNote_(std::ostream& os, const String& type, const String& label, const char* value);
 
-    void writeNote_(std::ostream& os, const String& type, const String& label, bool value);
+    const String& writeNote_(std::ostream& os, const String& type, const String& label, bool value);
 
     /**
       @brief Converts the given set of Modifications into a format compatible to X!Tandem.
