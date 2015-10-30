@@ -428,7 +428,11 @@ namespace OpenMS
   {
     Param p = getSystemParameters();
     String dir;
-    if (p.exists("home_dir") && String(p.getValue("home_dir")).trim() != "")
+    if (getenv("OPENMS_HOME_PATH") != 0)
+    {
+      dir = getenv("OPENMS_HOME_PATH");
+    }
+    else if (p.exists("home_dir") && String(p.getValue("home_dir")).trim() != "")
     {
       dir = p.getValue("home_dir");
     }
