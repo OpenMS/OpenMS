@@ -75,6 +75,8 @@ namespace OpenMS
       LabelSet label_set;
       
       DeltaMass(double dm, LabelSet ls);
+      
+      DeltaMass(double dm, String l);
     };
 
     /**

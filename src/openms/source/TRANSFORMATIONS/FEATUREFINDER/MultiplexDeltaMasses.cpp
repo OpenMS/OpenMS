@@ -49,6 +49,12 @@ namespace OpenMS
     delta_mass(dm), label_set(ls)
   {
   }
+  
+  MultiplexDeltaMasses::DeltaMass::DeltaMass(double dm, String l) :
+    delta_mass(dm), label_set()
+  {
+    label_set.insert(l);
+  }
 
   MultiplexDeltaMasses::MultiplexDeltaMasses()
   {
