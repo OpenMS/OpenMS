@@ -43,8 +43,8 @@ using namespace OpenMS;
 START_TEST(MultiplexIsotopicPeakPattern, "$Id$")
 
 MultiplexDeltaMasses mass_shifts;
-mass_shifts.addDeltaMass(0,"no_label");
-mass_shifts.addDeltaMass(6.031817,"Arg6");
+mass_shifts.addDeltaMass(MultiplexDeltaMasses::DeltaMass(0,"no_label"));
+mass_shifts.addDeltaMass(MultiplexDeltaMasses::DeltaMass(6.031817,"Arg6"));
 
 MultiplexIsotopicPeakPattern* nullPointer = 0;
 MultiplexIsotopicPeakPattern* ptr;

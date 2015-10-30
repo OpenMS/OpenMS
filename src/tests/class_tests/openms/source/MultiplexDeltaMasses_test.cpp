@@ -53,13 +53,8 @@ START_SECTION(MultiplexDeltaMasses())
 END_SECTION
 
 MultiplexDeltaMasses pattern;
-pattern.addDeltaMass(0,"no_label");
-pattern.addDeltaMass(6.031817,"Arg6");
-
-START_SECTION(void addDeltaMass(double m, String l))
-  pattern.addDeltaMass(10.008268600,"Arg10");
-  TEST_REAL_SIMILAR(pattern.getMassShiftAt(2), 10.008268600);
-END_SECTION
+pattern.addDeltaMass(MultiplexDeltaMasses::DeltaMass(0,"no_label"));
+pattern.addDeltaMass(MultiplexDeltaMasses::DeltaMass(6.031817,"Arg6"));
 
 START_SECTION(std::vector<double> getMassShifts() const)
   std::vector<double> ms = pattern.getMassShifts();

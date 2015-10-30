@@ -134,7 +134,7 @@ namespace OpenMS
           if (ArgPerPeptide + LysPerPeptide <= (unsigned) missed_cleavages_ + 1)
           {
             MultiplexDeltaMasses delta_masses_temp;    // single mass shift pattern
-            delta_masses_temp.addDeltaMass(0,"no_label");
+            delta_masses_temp.addDeltaMass(MultiplexDeltaMasses::DeltaMass(0,"no_label"));
             for (unsigned i = 0; i < samples_labels_.size(); i++)
             {
               double mass_shift = 0;
@@ -181,7 +181,7 @@ namespace OpenMS
 
               if (goAhead_Arg && goAhead_Lys && (mass_shift != 0))
               {
-                delta_masses_temp.addDeltaMass(mass_shift,label_set);
+                delta_masses_temp.addDeltaMass(MultiplexDeltaMasses::DeltaMass(mass_shift, label_set));
               }
             }
 
@@ -211,8 +211,8 @@ namespace OpenMS
           {
             label_set.insert(samples_labels_[i][0]);
           }
-         
-          delta_masses_temp.addDeltaMass(mass_shift,label_set);
+
+         delta_masses_temp.addDeltaMass(MultiplexDeltaMasses::DeltaMass(mass_shift, label_set));
         }
         mass_pattern_list_.push_back(delta_masses_temp);
       }
@@ -222,7 +222,7 @@ namespace OpenMS
     {
       // none (singlet detection)
       MultiplexDeltaMasses delta_masses_temp;
-      delta_masses_temp.addDeltaMass(0,"no_label");
+      delta_masses_temp.addDeltaMass(MultiplexDeltaMasses::DeltaMass(0,"no_label"));
       mass_pattern_list_.push_back(delta_masses_temp);
     }
     
@@ -250,7 +250,7 @@ namespace OpenMS
     {
       // add singlets
       MultiplexDeltaMasses dm;
-      dm.addDeltaMass(0,"any_label");    // There are two singlets with different label sets. But only a single singlet with "any_label" is added.
+      dm.addDeltaMass(MultiplexDeltaMasses::DeltaMass(0,"any_label"));    // There are two singlets with different label sets. But only a single singlet with "any_label" is added.
       mass_pattern_list_.push_back(dm);
     }
     else if (n == 3)
@@ -276,7 +276,7 @@ namespace OpenMS
       
       // add singlets
       MultiplexDeltaMasses dm;
-      dm.addDeltaMass(0,"any_label");    // There are three singlets with different label sets. But only a single singlet with "any_label" is added.
+      dm.addDeltaMass(MultiplexDeltaMasses::DeltaMass(0,"any_label"));    // There are three singlets with different label sets. But only a single singlet with "any_label" is added.
       mass_pattern_list_.push_back(dm);
     }
     else if (n == 4)
@@ -343,7 +343,7 @@ namespace OpenMS
 
       // add singlets
       MultiplexDeltaMasses dm;
-      dm.addDeltaMass(0,"any_label");
+      dm.addDeltaMass(MultiplexDeltaMasses::DeltaMass(0,"any_label_set"));
       mass_pattern_list_.push_back(dm);
     }
     else if (n > 4)

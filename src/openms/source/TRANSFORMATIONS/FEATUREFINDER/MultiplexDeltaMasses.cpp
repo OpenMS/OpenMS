@@ -70,18 +70,6 @@ namespace OpenMS
     delta_masses_.push_back(dm);
   }
 
-  void MultiplexDeltaMasses::addDeltaMass(double dm, MultiplexDeltaMasses::LabelSet ls)
-  {
-    delta_masses_.push_back(MultiplexDeltaMasses::DeltaMass(dm,ls));
-  }
-
-  void MultiplexDeltaMasses::addDeltaMass(double dm, String l)
-  {
-    MultiplexDeltaMasses::LabelSet ls;
-    ls.insert(l);
-    delta_masses_.push_back(MultiplexDeltaMasses::DeltaMass(dm,ls));
-  }
-
   std::vector<double> MultiplexDeltaMasses::getMassShifts() const
   {
     std::vector<double> ms;
