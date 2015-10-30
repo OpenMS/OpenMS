@@ -15,14 +15,17 @@ png(post)
 ##########################
 ###Mass accuracy
 ##########################
-ggplot(knime.in, aes(x=DeltaPpm)) + 
-  geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
-                 binwidth=.5,
-                 colour="black", fill="white") +
-  geom_density(alpha=.1, fill="green") + # Overlay with transparent density plot
-  geom_vline(aes(xintercept=median(DeltaPpm, na.rm=T)),   # Ignore NA values for mean
-             color="red", linetype="dashed", size=1) + 
-  xlim(c(-10,10)) + 
-  ylab("Density")
+if(nrow(knime.in) < 2){
+  df <- data.frame()
+  ggplot(df) + geom_point() + xlim(0, 10) + ylim(0, 10)
+}else{
+  knime.in$rt <- as.POSIXct(as.character(0),format="%S")+knime.in$RT
+  ggplot(data=knime.in, aes(x=rt , y=DeltaPpm)) + 
+    geom_point(alpha=0.5) + 
+    ylim(c(-10,10)) + 
+    geom_line(y=0, colour="blue") + 
+    stat_smooth(colour="red", method=loess, span=1/5) +
+    xlab("RT (HH:MM)") 
+}
 ######################################
 garbage<-dev.off()

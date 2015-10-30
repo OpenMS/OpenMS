@@ -382,23 +382,23 @@ control_metric.append("g").selectAll(".dot")
                 Metric plots <xsl:value-of select="@ID"/>
                 <br/>
 
-                <xsl:if test="$set_setting">
-                <table border="1">
-                  <tr>
-                    <td>
-                    TIC
-                        <xsl:apply-templates select="ns:attachment[@accession = 'MS:1000235']"/>
-                    </td>
-                    <td>
-                    Map overview
-                        <xsl:apply-templates select="ns:attachment[@accession = 'QC:0000055']"/>
-                    </td>
-                    <td>
-                    Mass accuracy
-                        <xsl:apply-templates select="ns:attachment[@accession = 'QC:0000053']"/>
-                    </td>
-                  </tr>
-                </table>
+                <xsl:if test="ns:qcML/ns:setQuality">
+                    <table border="1">
+                      <tr>
+                        <td>
+                        TIC
+                            <xsl:apply-templates select="ns:attachment[@accession = 'MS:1000235']"/>
+                        </td>
+                        <td>
+                        Map overview
+                            <xsl:apply-templates select="ns:attachment[@accession = 'QC:0000055']"/>
+                        </td>
+                        <td>
+                        Mass accuracy
+                            <xsl:apply-templates select="ns:attachment[@accession = 'QC:0000053']"/>
+                        </td>
+                      </tr>
+                    </table>
                 </xsl:if>
 
               <table>
@@ -406,7 +406,7 @@ control_metric.append("g").selectAll(".dot")
                       not(@accession = 'QC:0000055') and not(@accession = 'QC:0000053') and not(@accession = 'MS:1000235') and
                       not(@accession = 'QC:0000026') and not(@accession = 'QC:0000009') and not(@accession = 'QC:0000012') and
                       not(@accession = 'QC:0000044') and not(@accession = 'QC:0000022') and not(@accession = 'QC:0000038') and
-                      not(@accession = 'QC:0000047')]"/>
+                      not(@accession = 'QC:0000047') and not(@accession = 'QC:0000018')]"/>
               </table>
            </p>
         </xsl:for-each>
