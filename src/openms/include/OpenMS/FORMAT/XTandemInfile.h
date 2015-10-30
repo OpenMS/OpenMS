@@ -265,10 +265,16 @@ protected:
     /**
       @brief Converts the given set of Modifications into a format compatible to X!Tandem.
 
-      @param mods The modifications to convert.
+      The set affected_origins can be used to avoid duplicate modifications, which are not supported in X!Tandem.
+      Currently, a warning message is printed.
+      Also, if a fixed mod is already given, a corresponding variable mods needs to have its delta mass reduced by the fixed modifications mass.
+      This is also done automatically here.
+
+      @param mods The modifications to convert
+      @param affected_origins Set of origins, which were used previously. Will be augmented with the current mods.
       @return A X!Tandem compatible string representation.
     */
-    String convertModificationSet_(const std::set<ModificationDefinition>& mods) const;
+    String convertModificationSet_(const std::set<ModificationDefinition>& mods, std::map<String, double>& affected_origins) const;
 
     double fragment_mass_tolerance_;
 

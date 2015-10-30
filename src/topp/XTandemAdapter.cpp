@@ -162,7 +162,10 @@ protected:
 #endif
                        "X!Tandem executable of the installation e.g. 'tandem.exe'", true, false, ListUtils::create<String>("skipexists"));
     
-    registerInputFile_("default_input_file", "<file>", "CHEMISTRY/XTandem_default_input.xml", "Default parameters input file, defaulting to the ones in the OpenMS/share folder. All parameters of this adapter take precedence over this file! Use it for parameters not available here!", false);
+    registerInputFile_("default_input_file", "<file>", "CHEMISTRY/XTandem_default_input.xml", 
+                       "Default parameters input file, defaulting to the ones in the OpenMS/share folder. "
+                       "All parameters of this adapter take precedence over this file! Use it for parameters not available here!",
+                       false, false, ListUtils::create<String>("skipexists"));
     registerDoubleOption_("minimum_fragment_mz", "<num>", 150.0, "Minimum fragment mz", false);
     vector<String> all_enzymes;
     EnzymesDB::getInstance()->getAllXTandemNames(all_enzymes);

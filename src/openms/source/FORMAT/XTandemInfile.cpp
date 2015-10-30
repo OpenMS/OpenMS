@@ -36,8 +36,10 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <set>
+#include <map>
 #include <fstream>
 
 using namespace xercesc;
@@ -99,40 +101,61 @@ namespace OpenMS
     return;
   }
 
-  String XTandemInfile::convertModificationSet_(const set<ModificationDefinition>& mods) const
+  String XTandemInfile::convertModificationSet_(const set<ModificationDefinition>& mods, std::map<String, double>& affected_origins) const
   {
+    std::map<String, double> origin_set;
+
     StringList xtandem_mods;
     for (set<ModificationDefinition>::const_iterator it = mods.begin(); it != mods.end(); ++it)
     {
       double mod_mass(ModificationsDB::getInstance()->getModification(it->getModification()).getDiffMonoMass());
-      String mod_string;
-      if (mod_mass >= 0)
-      {
-        mod_string = "+" + String(mod_mass);
-      }
-      else
-      {
-        mod_string = "-" + String(mod_mass);
-      }
 
+      String orig;
       ResidueModification::Term_Specificity ts = ModificationsDB::getInstance()->getModification(it->getModification()).getTermSpecificity();
       if (ts == ResidueModification::ANYWHERE)
       {
-        mod_string += "@" + ModificationsDB::getInstance()->getModification(it->getModification()).getOrigin();
+        orig = ModificationsDB::getInstance()->getModification(it->getModification()).getOrigin();
+      }
+      else if (ts == ResidueModification::C_TERM)
+      {
+        orig = "]";
       }
       else
       {
-        if (ts == ResidueModification::C_TERM)
-        {
-          mod_string += "@]";
-        }
-        else
-        {
-          mod_string += "@[";
-        }
+        orig = "[";
       }
+      // check double usage
+      if (origin_set.find(orig) != origin_set.end())
+      {
+        LOG_WARN << "XTandem config file: Duplicate modification assignment to origin '" << orig << "'. "
+                 << "X!Tandem will ignore the first modification '" << origin_set.find(orig)->second << "'!\n";
+      }
+      // check if already used before (i.e. we are currently looking at variable mods)
+      if (affected_origins.find(orig) != affected_origins.end())
+      {
+        LOG_INFO << "XTandem config file: Fixed modification and variable modification to origin '" << orig << "' detected. "
+                 << "Using corrected mass of " << mod_mass - affected_origins.find(orig)->second << " instead of " << mod_mass << ".\n";
+        mod_mass -= affected_origins.find(orig)->second;
+      }
+      // insert the (corrected) value
+      origin_set.insert(make_pair(orig, mod_mass));
+
+      String mod_string;
+      if (mod_mass >= 0)
+      {
+        mod_string = String("+") + String(mod_mass); // prepend a "+"
+      }
+      else
+      {
+        mod_string = String(mod_mass); // the '-' is implicit
+      }
+      mod_string += "@" + orig;
       xtandem_mods.push_back(mod_string);
     }
+
+    // copy now; above we need an independent set, in case 'affected_origins' was non-empty
+    affected_origins = origin_set;
+
     return ListUtils::concatenate(xtandem_mods, ",");
   }
 
@@ -258,14 +281,15 @@ namespace OpenMS
     //Positive and negative values are allowed.
     //</note>
 
-    writeNote_(os, "input", "residue, modification mass", convertModificationSet_(modifications_.getFixedModifications()));
+    std::map<String, double> affected_origins;
+    writeNote_(os, "input", "residue, modification mass", convertModificationSet_(modifications_.getFixedModifications(), affected_origins));
     used_labels.insert("residue, modification mass");
 
     //<note type="input" label="residue, potential modification mass"></note>
     //<note>The format of this parameter is the same as the format
     //for residue, modification mass (see above).</note>
 
-    writeNote_(os, "input", "residue, potential modification mass", convertModificationSet_(modifications_.getVariableModifications()));
+    writeNote_(os, "input", "residue, potential modification mass", convertModificationSet_(modifications_.getVariableModifications(), affected_origins));
     used_labels.insert("residue, potential modification mass");
 
     writeNote_(os, "input", "protein, taxon", taxon_);

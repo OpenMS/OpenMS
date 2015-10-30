@@ -250,7 +250,7 @@ END_SECTION
 START_SECTION(void write(const String &filename))
 	String filename("XTandemInfile_test.tmp");
 	NEW_TMP_FILE(filename);
-  ModificationDefinitionsSet sets(ListUtils::create<String>("Oxidation (M),Dimethyl (N-term)"), ListUtils::create<String>("Ammonium (C-term),Carboxymethyl (C)"));
+  ModificationDefinitionsSet sets(ListUtils::create<String>("Oxidation (M),Dimethyl (N-term),Carboxymethyl (C)"), ListUtils::create<String>("Ammonium (C-term),ICDID (C)"));
   ptr->setModifications(sets);
 	ptr->write(filename);
 	XTandemInfile file;

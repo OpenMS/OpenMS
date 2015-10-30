@@ -13,8 +13,8 @@
 	<note type="input" label="spectrum, fragment mass type">monoisotopic</note>
 	<note type="input" label="spectrum, maximum parent charge">17</note>
 	<note type="input" label="spectrum, threads">16</note>
-	<note type="input" label="residue, modification mass">+28.0313@[,+15.994915@M</note>
-	<note type="input" label="residue, potential modification mass">+17.026549@],+58.005479@C</note>
+	<note type="input" label="residue, modification mass">+58.005479@C,+28.0313@[,+15.994915@M</note>
+	<note type="input" label="residue, potential modification mass">+17.026549@],+80.062601@C</note>
 	<note type="input" label="protein, taxon">blubb_taxon</note>
 	<note type="input" label="output, path">blubb_new_outputfilename</note>
 	<note type="input" label="protein, cleavage site">[RK]|{P}</note>
