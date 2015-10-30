@@ -69,7 +69,8 @@ namespace OpenMS
     /**
      * @brief mass shift with corresponding label set
      */
-    struct DeltaMass {
+    struct DeltaMass
+    {
       double mass_shift;
       LabelSet label_set;
     };
