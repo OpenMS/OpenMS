@@ -198,9 +198,7 @@ protected:
     registerStringList_("variable_modifications", "<mods>", vector<String>(), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'", false);
     setValidStrings_("variable_modifications", all_mods);
     
-    registerStringOption_("legacy_conversion", "<choice>", "false", "MS-GF+ search results are available as mzid or tsv. With legacy conversion switched on, the tsv are being used instead of the mzid", false, true);
-    setValidStrings_("legacy_conversion", ListUtils::create<String>("true,false"));
-
+    registerFlag_("legacy_conversion","Use the indirect conversion of MS-GF+ results to idXML via export to TSV. Try this only if the default conversion takes too long or uses too much memory.",true);
 
     registerIntOption_("java_memory", "<num>", 3500, "Maximum Java heap size (in MB)", false);
     registerIntOption_("java_permgen", "<num>", 0, "Maximum Java permanent generation space (in MB); only for Java 7 and below", false, true);
@@ -510,7 +508,7 @@ protected:
       process_params << "-mod" << mod_file.toQString();
     }
     
-    legacy_conversion_ = (getStringOption_("legacy_conversion") == "true");
+    legacy_conversion_ = getFlag_("legacy_conversion");
 
     //-------------------------------------------------------------
     // execute MS-GF+
