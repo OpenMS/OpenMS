@@ -63,7 +63,7 @@ pattern.addDeltaMass(MultiplexDeltaMasses::DeltaMass(6.031817,"Arg6"));
 END_SECTION*/
 
 START_SECTION(unsigned size() const)
-  TEST_EQUAL(pattern.size(), 3);
+  TEST_EQUAL(pattern.size(), 2);
 END_SECTION
 
 END_TEST
