@@ -59,11 +59,10 @@ pattern.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(6.031817, "Ar
 START_SECTION(std::vector<DeltaMass>& getDeltaMasses())
   TEST_REAL_SIMILAR(pattern.getDeltaMasses()[0].delta_mass, 0);
   TEST_REAL_SIMILAR(pattern.getDeltaMasses()[1].delta_mass, 6.031817);
-  TEST_REAL_SIMILAR(pattern.getDeltaMasses()[2].delta_mass, 10.008268600);
 END_SECTION
 
 START_SECTION(unsigned size() const)
-  TEST_EQUAL(pattern.size(), 3);
+  TEST_EQUAL(pattern.size(), 2);
 END_SECTION
 
 END_TEST
