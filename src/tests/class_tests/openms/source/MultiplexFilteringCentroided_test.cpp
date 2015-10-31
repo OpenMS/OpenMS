@@ -76,14 +76,14 @@ bool mz_tolerance_unit = true;    // ppm (true), Da (false)
 
 // construct list of peak patterns
 MultiplexDeltaMasses shifts1;
-shifts1.addDeltaMass(MultiplexDeltaMasses::DeltaMass(0,"no_label"));
-shifts1.addDeltaMass(MultiplexDeltaMasses::DeltaMass(8.0443702794,"Arg8"));
+shifts1.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(0,"no_label"));
+shifts1.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(8.0443702794,"Arg8"));
 MultiplexDeltaMasses shifts2;
-shifts2.addDeltaMass(MultiplexDeltaMasses::DeltaMass(0,"no_label"));
+shifts2.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(0,"no_label"));
 MultiplexDeltaMasses::LabelSet label_set;
 label_set.insert("Arg8");
 label_set.insert("Arg8");
-shifts2.addDeltaMass(MultiplexDeltaMasses::DeltaMass(2*8.0443702794,label_set));
+shifts2.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(2*8.0443702794,label_set));
 std::vector<MultiplexIsotopicPeakPattern> patterns;
 for (int c = charge_max; c >= charge_min; --c)
 {

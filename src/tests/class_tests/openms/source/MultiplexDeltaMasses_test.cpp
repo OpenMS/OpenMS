@@ -53,8 +53,8 @@ START_SECTION(MultiplexDeltaMasses())
 END_SECTION
 
 MultiplexDeltaMasses pattern;
-pattern.addDeltaMass(MultiplexDeltaMasses::DeltaMass(0, "no_label"));
-pattern.addDeltaMass(MultiplexDeltaMasses::DeltaMass(6.031817, "Arg6"));
+pattern.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(0, "no_label"));
+pattern.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(6.031817, "Arg6"));
 
 START_SECTION(std::vector<DeltaMass>& getDeltaMasses())
   TEST_REAL_SIMILAR(pattern.getDeltaMasses()[0].delta_mass, 0);
