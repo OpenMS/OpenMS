@@ -105,11 +105,6 @@ namespace OpenMS
     unsigned size() const;
    
     /**
-     * @brief returns delta mass at position i
-     */
-    DeltaMass getDeltaMassAt(int i) const;
-    
-    /**
      * @brief returns mass shift at position i
      */
     double getMassShiftAt(int i) const;

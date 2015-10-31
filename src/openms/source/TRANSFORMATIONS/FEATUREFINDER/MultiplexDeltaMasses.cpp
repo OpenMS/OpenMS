@@ -80,11 +80,6 @@ namespace OpenMS
     return delta_masses_.size();
   }
 
-  MultiplexDeltaMasses::DeltaMass MultiplexDeltaMasses::getDeltaMassAt(int i) const
-  {
-    return delta_masses_[i];
-  }
-
   double MultiplexDeltaMasses::getMassShiftAt(int i) const
   {
     return delta_masses_[i].delta_mass;
