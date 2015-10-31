@@ -184,6 +184,13 @@ END_SECTION
 START_SECTION(static String getUserDirectory())
   TEST_NOT_EQUAL(File::getUserDirectory(), String())
   TEST_EQUAL(File::exists(File::getUserDirectory()), true)
+  // create OpenMS ini in path set by evironmental variable
+  QDir d;
+  String dirname = File::getTempDirectory() + "/" + File::getUniqueName() + "/";
+  TEST_EQUAL(d.mkpath(dirname.toQString()), TRUE);
+  setenv("OPENMS_HOME_PATH", dirname.c_str(), 0);
+  TEST_EQUAL(File::getUserDirectory(), dirname)
+  TEST_EQUAL(File::exists(File::getUserDirectory() + ".OpenMS/OpenMS.ini"), true)
 END_SECTION
 
 START_SECTION(static Param getSystemParameters())
