@@ -70,24 +70,12 @@ namespace OpenMS
     delta_masses_.push_back(dm);
   }
 
-  std::vector<double> MultiplexDeltaMasses::getMassShifts() const
-  {
-    std::vector<double> ms;
-    
-    for (std::vector<MultiplexDeltaMasses::DeltaMass>::const_iterator it = delta_masses_.begin(); it != delta_masses_.end(); ++it)
-    {
-      ms.push_back((*it).delta_mass);
-    }
-    
-    return ms;
-  }
-  
-  std::vector<MultiplexDeltaMasses::DeltaMass> MultiplexDeltaMasses::getDeltaMasses() const
+  std::vector<MultiplexDeltaMasses::DeltaMass> MultiplexDeltaMasses::getDeltaMasses()
   {
     return delta_masses_;
   }
 
-  unsigned MultiplexDeltaMasses::getDeltaMassesCount() const
+  unsigned MultiplexDeltaMasses::size() const
   {
     return delta_masses_.size();
   }
@@ -109,14 +97,14 @@ namespace OpenMS
   
   bool operator<(const MultiplexDeltaMasses &dm1, const MultiplexDeltaMasses &dm2)
   {
-    if (dm1.getDeltaMassesCount() != dm2.getDeltaMassesCount())
+    if (dm1.size() != dm2.size())
     {
       // Search first for complete multiplets, then knock-out cases.
-      return (dm1.getDeltaMassesCount() > dm2.getDeltaMassesCount());
+      return (dm1.size() > dm2.size());
     }
     else
     {
-      for (unsigned i = 0; i < dm1.getDeltaMassesCount(); ++i)
+      for (unsigned i = 0; i < dm1.size(); ++i)
       {
         double ms1 = dm1.getMassShiftAt(i) - dm1.getMassShiftAt(0);
         double ms2 = dm2.getMassShiftAt(i) - dm2.getMassShiftAt(0);

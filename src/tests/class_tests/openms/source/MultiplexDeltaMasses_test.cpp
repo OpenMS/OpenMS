@@ -56,20 +56,14 @@ MultiplexDeltaMasses pattern;
 pattern.addDeltaMass(MultiplexDeltaMasses::DeltaMass(0,"no_label"));
 pattern.addDeltaMass(MultiplexDeltaMasses::DeltaMass(6.031817,"Arg6"));
 
-START_SECTION(std::vector<double> getMassShifts() const)
+/*START_SECTION(std::vector<double> getMassShifts() const)
   std::vector<double> ms = pattern.getMassShifts();
   TEST_REAL_SIMILAR(ms[0], 0);
   TEST_REAL_SIMILAR(ms[1], 6.031817);
-END_SECTION
+END_SECTION*/
 
-START_SECTION(unsigned getDeltaMassesCount() const)
-  TEST_EQUAL(pattern.getDeltaMassesCount(), 3);
-END_SECTION
-
-START_SECTION(double getMassShiftAt(int i) const)
-  TEST_REAL_SIMILAR(pattern.getMassShiftAt(0), 0);
-  TEST_REAL_SIMILAR(pattern.getMassShiftAt(1), 6.031817);
-  TEST_REAL_SIMILAR(pattern.getMassShiftAt(2), 10.008268600);
+START_SECTION(unsigned size() const)
+  TEST_EQUAL(pattern.size(), 3);
 END_SECTION
 
 END_TEST

@@ -95,19 +95,14 @@ namespace OpenMS
     void addDeltaMass(DeltaMass dm);
         
     /**
-     * @brief returns mass shifts
-     */
-    std::vector<double> getMassShifts() const;
-    
-    /**
      * @brief returns delta masses
      */
-    std::vector<DeltaMass> getDeltaMasses() const;
+    std::vector<DeltaMass> getDeltaMasses();
     
     /**
      * @brief returns number of delta masses
      */
-    unsigned getDeltaMassesCount() const;
+    unsigned size() const;
    
     /**
      * @brief returns delta mass at position i
