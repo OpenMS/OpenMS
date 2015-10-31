@@ -71,7 +71,7 @@ namespace OpenMS
      * @brief generate all mass shifts that can occur due to the absence of one or multiple peptides
      * (e.g. for a triplet experiment generate the doublets and singlets that might be present)
      */
-    void generateKnockoutMassShifts();
+    void generateKnockoutDeltaMasses();
 
     /**
      * @brief write the list of labels for each sample

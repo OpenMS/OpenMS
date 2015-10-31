@@ -71,13 +71,13 @@ START_SECTION(std::vector<MultiplexDeltaMasses> getMassPatternList() const)
   TEST_REAL_SIMILAR(masses[4].getMassShiftAt(2), 20.0165372);
 END_SECTION
 
-START_SECTION(void generateKnockoutMassShifts())
-  list.generateKnockoutMassShifts();
+START_SECTION(void generateKnockoutDeltaMasses())
+  list.generateKnockoutDeltaMasses();
   std::vector<MultiplexDeltaMasses> masses_knockout = list.getMassPatternList();
   TEST_EQUAL(masses_knockout.size(), 21);
   TEST_REAL_SIMILAR(masses_knockout[6].getMassShiftAt(1), 8.0141988132);
   TEST_REAL_SIMILAR(masses_knockout[19].getMassShiftAt(1), 20.0165372);
-  TEST_EQUAL(masses_knockout[20].getDeltaMassesCount(), 1);
+  TEST_EQUAL(masses_knockout[20].size(), 1);
 END_SECTION
 
 END_TEST

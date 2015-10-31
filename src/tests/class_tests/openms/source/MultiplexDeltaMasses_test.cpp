@@ -46,7 +46,7 @@ MultiplexDeltaMasses* ptr;
 
 START_SECTION(MultiplexDeltaMasses())
     MultiplexDeltaMasses pattern;
-    TEST_EQUAL(pattern.getDeltaMassesCount(), 0);
+    TEST_EQUAL(pattern.size(), 0);
     ptr = new MultiplexDeltaMasses();
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;

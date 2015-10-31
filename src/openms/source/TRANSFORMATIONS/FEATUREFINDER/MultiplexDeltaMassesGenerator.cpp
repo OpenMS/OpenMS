@@ -232,7 +232,7 @@ namespace OpenMS
 
   }
 
-  void MultiplexDeltaMassesGenerator::generateKnockoutMassShifts()
+  void MultiplexDeltaMassesGenerator::generateKnockoutDeltaMasses()
   {
     if (mass_pattern_list_.empty())
     {
