@@ -53,17 +53,22 @@ START_SECTION(MultiplexDeltaMasses())
 END_SECTION
 
 MultiplexDeltaMasses pattern;
-pattern.addDeltaMass(MultiplexDeltaMasses::DeltaMass(0,"no_label"));
-pattern.addDeltaMass(MultiplexDeltaMasses::DeltaMass(6.031817,"Arg6"));
+pattern.addDeltaMass(MultiplexDeltaMasses::DeltaMass(0, "no_label"));
+pattern.addDeltaMass(MultiplexDeltaMasses::DeltaMass(6.031817, "Arg6"));
 
-/*START_SECTION(std::vector<double> getMassShifts() const)
-  std::vector<double> ms = pattern.getMassShifts();
-  TEST_REAL_SIMILAR(ms[0], 0);
-  TEST_REAL_SIMILAR(ms[1], 6.031817);
-END_SECTION*/
+START_SECTION(void addDeltaMass(DeltaMass dm))
+  pattern.addDeltaMass(MultiplexDeltaMasses::DeltaMass(10.008268600, "Arg10"));
+  TEST_REAL_SIMILAR(pattern.getDeltaMasses()[2].delta_mass, 10.008268600);
+END_SECTION
+
+START_SECTION(std::vector<DeltaMass>& getDeltaMasses())
+  TEST_REAL_SIMILAR(pattern.getDeltaMasses()[0].delta_mass, 0);
+  TEST_REAL_SIMILAR(pattern.getDeltaMasses()[1].delta_mass, 6.031817);
+  TEST_REAL_SIMILAR(pattern.getDeltaMasses()[2].delta_mass, 10.008268600);
+END_SECTION
 
 START_SECTION(unsigned size() const)
-  TEST_EQUAL(pattern.size(), 2);
+  TEST_EQUAL(pattern.size(), 3);
 END_SECTION
 
 END_TEST
