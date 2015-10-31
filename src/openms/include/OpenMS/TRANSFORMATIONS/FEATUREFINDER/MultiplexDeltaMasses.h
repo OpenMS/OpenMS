@@ -91,11 +91,6 @@ namespace OpenMS
     MultiplexDeltaMasses(std::vector<DeltaMass> dm);
         
     /**
-     * @brief add a delta mass
-     */
-    void addDeltaMass(DeltaMass dm);
-        
-    /**
      * @brief returns delta masses
      */
     std::vector<DeltaMass>& getDeltaMasses();

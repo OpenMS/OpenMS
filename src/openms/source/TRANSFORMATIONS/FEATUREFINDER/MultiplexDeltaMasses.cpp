@@ -65,11 +65,6 @@ namespace OpenMS
   {
   }
 
-  void MultiplexDeltaMasses::addDeltaMass(MultiplexDeltaMasses::DeltaMass dm)
-  {
-    delta_masses_.push_back(dm);
-  }
-
   std::vector<MultiplexDeltaMasses::DeltaMass>& MultiplexDeltaMasses::getDeltaMasses()
   {
     return delta_masses_;
