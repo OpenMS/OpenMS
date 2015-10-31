@@ -69,15 +69,23 @@ using namespace std;
  </table>
  </CENTER>
 
-  This tool performs precursor mz correction on picked (=centroided) high resolution data.
+  This tool performs precursor m/z correction on picked (=centroided) high resolution data.
+
+  Two methods are available: 'nearest_peak' and 'feature'. Both can be used in order.
+    - nearest_peak: Use nearest centroided MS1 peak for precursor mass correction.
+    - feature: Use features for precursor mass correction, which allows for charge correction.
+
+  See the corresponding parameter subsection for details.
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_HighResPrecursorMassCorrector.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_HighResPrecursorMassCorrector.html
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_HighResPrecursorMassCorrector.html
 */
 
 /// @cond TOPPCLASSES
+
+const string csv_header = "RT,uncorrectedMZ,correctedMZ,deltaMZ";
 
 class TOPPHiResPrecursorMassCorrector :
     public TOPPBase
@@ -92,28 +100,31 @@ class TOPPHiResPrecursorMassCorrector :
     void registerOptionsAndFlags_()
     {
       // input files
-      registerInputFile_("in", "<file>", "", "input file (centroided data)");
+      registerInputFile_("in", "<file>", "", "Input file (centroided data)");
       setValidFormats_("in", ListUtils::create<String>("mzML"));
+
+      registerOutputFile_("out", "<file>", "", "Output file");
+      setValidFormats_("out", ListUtils::create<String>("mzML"));
+      
       registerTOPPSubsection_("feature", "Use features for precursor mass correction.");
-      registerInputFile_("feature:in", "<file>", "", "features used to correct precursor masses.", false);
+      registerInputFile_("feature:in", "<file>", "", "Features used to correct precursor masses.", false);
       setValidFormats_("feature:in", ListUtils::create<String>("featureXML"));
       registerDoubleOption_("feature:mz_tolerance", "<num>", 5.0, "The precursor mass tolerance. Used to determine matching to feature mass traces.", false);
       registerStringOption_("feature:mz_tolerance_unit", "<choice>", "ppm", "Unit of precursor mass tolerance", false);
       setValidStrings_("feature:mz_tolerance_unit", ListUtils::create<String>("Da,ppm"));
       registerDoubleOption_("feature:rt_tolerance", "<num>", 0.0, "Additional retention time tolerance added to feature boundaries.", false);
       registerIntOption_("feature:max_trace", "<num>", 2, "Maximum isotopic trace considered in matching a precursor to a feature.", false, true);
-      registerFlag_("feature:believe_charge", "Whether precursor charge is assumed correct.");
-      registerFlag_("feature:keep_original", "Whether a copy of the precusor and MS2 should be made (true) or if the original should be discarded (false).");
-      registerFlag_("feature:assign_all_matching", "Whether a precursor should be corrected to all matching features (true) or only the nearest (false). Only evaluated if copies are created (feature:keep_original).");
-      registerOutputFile_("out", "<file>", "", "output file");
-      setValidFormats_("out", ListUtils::create<String>("mzML"));
-      registerOutputFile_("out_csv", "<file>", "", "Optional csv output file containing columns: precursor rt, uncorrected mz, corrected mz, delta mz\n", false);
-      setValidFormats_("out_csv", ListUtils::create<String>("csv"));
+      registerFlag_("feature:believe_charge", "Assume precursor charge to be correct.");
+      registerFlag_("feature:keep_original", "Make a copy of the precursor and MS2 (true) or discard the original (false).");
+      registerFlag_("feature:assign_all_matching", "Correct a precursor using all matching features (true) or only the nearest (false). Only evaluated if copies are created (feature:keep_original).");
 
-      registerTOPPSubsection_("nearest_peak", "Use nearest MS1 peak for precursor mass correction.");
-      registerDoubleOption_("nearest_peak:mz_tolerance", "<num>", 0.0, "The precursor mass tolerance. Used to determine matching to next MS1 peak.", false);
+      registerTOPPSubsection_("nearest_peak", "Use nearest centroided MS1 peak for precursor mass correction.");
+      registerDoubleOption_("nearest_peak:mz_tolerance", "<num>", 0.0, "The precursor mass tolerance to find the closest MS1 peak. Set to 0.0 to disable.", false);
       registerStringOption_("nearest_peak:mz_tolerance_unit", "<choice>", "ppm", "Unit of precursor mass tolerance", false);
       setValidStrings_("nearest_peak:mz_tolerance_unit", ListUtils::create<String>("Da,ppm"));
+
+      registerOutputFile_("out_csv", "<file>", "", "Optional CSV output file for results on 'nearest_peak' algorithm (see corresponding subsection) containing columns: " + ListUtils::concatenate(ListUtils::create<String>(csv_header), ", ") + ".", false);
+      setValidFormats_("out_csv", ListUtils::create<String>("csv"));
     }
 
     void getPrecursors_(const PeakMap & exp, vector<Precursor> & precursors, vector<double> & precursors_rt, vector<Size> precursor_scan_index)
@@ -132,20 +143,20 @@ class TOPPHiResPrecursorMassCorrector :
       }
     }
 
-    void writeHist(String out_csv, const vector<double> & deltaMZs, const vector<double> & mzs, const vector<double> & rts)
+    void writeHist(const String& out_csv, const vector<double> & deltaMZs, const vector<double> & mzs, const vector<double> & rts)
     {
       //cout << "writting data" << endl;
       ofstream csv_file(out_csv.c_str());
       csv_file << setprecision(9);
 
       // header
-      csv_file << "RT\tuncorrectedMZ\tcorrectedMZ\tdeltaMZ" << endl;
+      csv_file << ListUtils::concatenate(ListUtils::create<String>(csv_header), "\t") << "\n";
 
       // entries
       for (vector<double>::const_iterator it = deltaMZs.begin(); it != deltaMZs.end(); ++it)
       {
         UInt index = it - deltaMZs.begin();
-        csv_file << rts[index] << "\t" << mzs[index] << "\t" << mzs[index] + *it  << "\t" << *it << endl;
+        csv_file << rts[index] << "\t" << mzs[index] << "\t" << mzs[index] + *it  << "\t" << *it << "\n";
       }
       csv_file.close();
     }
@@ -226,7 +237,7 @@ class TOPPHiResPrecursorMassCorrector :
 
         if (rt_it->getMSLevel() != 1)
         {
-          cout << "Error: no MS1 spectrum for this precursor" << endl;
+          LOG_WARN << "Error: no MS1 spectrum for this precursor" << endl;
         }
 
         //cout << rt_it->getRT() << " " << rt_it->size() << endl;
@@ -246,7 +257,7 @@ class TOPPHiResPrecursorMassCorrector :
           // sanity check: do we really have the same precursor in the original and the picked spectrum
           if (fabs(exp[precursor_spectrum_idx].getPrecursors()[0].getMZ() - mz) > 0.0001)
           {
-            cout << "Error: index is referencing different precursors in original and picked spectrum." << endl;
+            LOG_WARN << "Error: index is referencing different precursors in original and picked spectrum." << endl;
           }
 
           // cout << mz << " -> " << nearest_peak_mz << endl;
@@ -440,6 +451,12 @@ class TOPPHiResPrecursorMassCorrector :
       vector<double> rts;
       set<Size> corrected_precursors; // spectrum index of corrected precursors
 
+      if ((nearest_peak_mz_tolerance == 0.0) && in_feature.empty())
+      {
+        LOG_ERROR << "No method for PC correction requested. Either provide featureXML input files or set 'nearest_peak:mz_tolerance' > 0." << std::endl;
+        return MISSING_PARAMETERS;
+      }
+
       // perform correction to closest MS1 peak
       set<Size> corrected_to_nearest_peak;
       if (nearest_peak_mz_tolerance > 0.0)
@@ -459,13 +476,17 @@ class TOPPHiResPrecursorMassCorrector :
 
       MzMLFile().store(out_mzml, exp);
 
-      if (nearest_peak_mz_tolerance > 0.0)
+      if (!out_csv.empty())
       {
-        LOG_INFO << "Corrected " << corrected_to_nearest_peak.size() << " precursor to a MS1 peak." << endl;
-        if (out_csv != "")
+        if (nearest_peak_mz_tolerance > 0.0)
         {
-          writeHist(out_csv, deltaMZs, mzs, rts);
+          LOG_INFO << "Corrected " << corrected_to_nearest_peak.size() << " precursor to a MS1 peak." << endl;
         }
+        else
+        {
+          LOG_WARN << "Output file 'out_csv': No data collected since 'nearest_peak:mz_tolerance' was not enabled. CSV will be empty." << endl;
+        }
+        writeHist(out_csv, deltaMZs, mzs, rts);
       }
 
       if (!in_feature.empty())
