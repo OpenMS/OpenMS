@@ -92,12 +92,12 @@ using namespace std;
 
     X! Tandem settings not exposed by this adapter can be directly adjusted using an XML configuration file.
     By default, all (!) parameters available explicitly via this wrapper take precedence over the XML configuration file.
-    The parameter "default_input_file" can be used to specify such a custom configuration.
+    The parameter "default_config_file" can be used to specify such a custom configuration.
     An example of a configuration file (named "default_input.xml") is contained in the "bin" folder of the
     @em X! Tandem installation and the OpenMS installation under OpenMS/share/CHEMISTRY/XTandem_default_input.xml.
     The latter is loaded by default.
     If you want to use the XML configuration file and @em ignore most of the parameters set via this adapter, use the '-ignore_adapter_param'
-    flag. Then, the config given in '-default_input_file' is used exclusively and only '-in', '-out', '-database' and '-xtandem_executable' are
+    flag. Then, the config given in '-default_config_file' is used exclusively and only '-in', '-out', '-database' and '-xtandem_executable' are
     taken from this adapter.
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
@@ -117,7 +117,7 @@ class TOPPXTandemAdapter :
 {
 public:
   TOPPXTandemAdapter() :
-    TOPPBase("XTandemAdapter", "Annotates MS/MS spectra using XTandem.")
+    TOPPBase("XTandemAdapter", "Annotates MS/MS spectra using X! Tandem.")
   {
   }
 
@@ -140,12 +140,12 @@ protected:
       "tandem.exe",
 #endif
       "X! Tandem executable of the installation e.g. 'tandem.exe'", true, false, ListUtils::create<String>("skipexists"));
-    registerInputFile_("default_input_file", "<file>",
+    registerInputFile_("default_config_file", "<file>",
                        "CHEMISTRY/XTandem_default_input.xml", 
-                       "Default parameters input file, defaulting to the ones in the OpenMS/share folder. "
-                       "All parameters of this adapter take precedence over this file! Use it for parameters not available here!",
+                       "Default parameters input file, defaulting to the ones in the OpenMS/share folder."
+                         "All parameters of this adapter take precedence over this file! Use it for parameters not available here!",
                        false, false, ListUtils::create<String>("skipexists"));
-    registerFlag_("ignore_adapter_param", "The config given in default_input_file is used exclusively! No matter what other parameters "
+    registerFlag_("ignore_adapter_param", "The config given in 'default_config_file' is used exclusively! No matter what other parameters "
                                           "(apart from -in,-out,-database,-xtandem_executable) are saying.");
 
 
@@ -349,13 +349,13 @@ protected:
     infile.setAllowIsotopeError(allow_isotope_error);
 
     // load default config (this will NOT overwrite the parameters already set, but rather augment them)
-    String default_XML_config = getStringOption_("default_input_file");
+    String default_XML_config = getStringOption_("default_config_file");
     if (!default_XML_config.empty())
     {
-      // augment with absolute path. If absolute filename is given, this is a no-op
+      // augment with absolute path. If absolute filename is already given, this is a no-op.
       default_XML_config = File::find(default_XML_config);
       infile.load(default_XML_config);
-      infile.setDefaultParametersFilename(default_XML_config);
+      //infile.setDefaultParametersFilename(default_XML_config);
     }
 
     infile.write(input_filename, getFlag_("ignore_adapter_param"));
