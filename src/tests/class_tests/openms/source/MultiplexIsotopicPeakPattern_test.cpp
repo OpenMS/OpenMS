@@ -68,8 +68,8 @@ START_SECTION(int getPeaksPerPeptide() const)
 END_SECTION
 
 START_SECTION(std::vector<double> getMassShifts() const)
-  TEST_EQUAL(pattern.getMassShifts().getMassShiftAt(0), 0);
-  TEST_EQUAL(pattern.getMassShifts().getMassShiftAt(1), 6.031817);
+  TEST_EQUAL(pattern.getMassShifts().getDeltaMasses()[0].delta_mass, 0);
+  TEST_EQUAL(pattern.getMassShifts().getDeltaMasses()[1].delta_mass, 6.031817);
 END_SECTION
 
 START_SECTION(int getMassShiftIndex() const)
