@@ -70,7 +70,12 @@ namespace OpenMS
     delta_masses_.push_back(dm);
   }
 
-  std::vector<MultiplexDeltaMasses::DeltaMass> MultiplexDeltaMasses::getDeltaMasses()
+  std::vector<MultiplexDeltaMasses::DeltaMass>& MultiplexDeltaMasses::getDeltaMasses()
+  {
+    return delta_masses_;
+  }
+
+  const std::vector<MultiplexDeltaMasses::DeltaMass>& MultiplexDeltaMasses::getDeltaMasses() const
   {
     return delta_masses_;
   }
@@ -80,11 +85,6 @@ namespace OpenMS
     return delta_masses_.size();
   }
 
-  double MultiplexDeltaMasses::getMassShiftAt(int i) const
-  {
-    return delta_masses_[i].delta_mass;
-  }
-  
   MultiplexDeltaMasses::LabelSet MultiplexDeltaMasses::getLabelSetAt(int i) const
   {
     return delta_masses_[i].label_set;
@@ -101,8 +101,8 @@ namespace OpenMS
     {
       for (unsigned i = 0; i < dm1.size(); ++i)
       {
-        double ms1 = dm1.getMassShiftAt(i) - dm1.getMassShiftAt(0);
-        double ms2 = dm2.getMassShiftAt(i) - dm2.getMassShiftAt(0);
+        double ms1 = dm1.getDeltaMasses()[i].delta_mass - dm1.getDeltaMasses()[0].delta_mass;
+        double ms2 = dm2.getDeltaMasses()[i].delta_mass - dm2.getDeltaMasses()[0].delta_mass;
         
         if (ms1 != ms2)
         {

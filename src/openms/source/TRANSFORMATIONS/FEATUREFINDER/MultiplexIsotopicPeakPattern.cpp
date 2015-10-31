@@ -54,7 +54,7 @@ namespace OpenMS
       for (int j = -1; j < peaks_per_peptide_; ++j)
       {
         // j=-1 shift corresponds to the zeroth peak
-        mz_shifts_.push_back((mass_shifts_.getMassShiftAt(i) + j * Constants::C13C12_MASSDIFF_U) / charge_);
+        mz_shifts_.push_back((mass_shifts_.getDeltaMasses()[i].delta_mass + j * Constants::C13C12_MASSDIFF_U) / charge_);
       }
     }
   }
@@ -86,7 +86,7 @@ namespace OpenMS
 
   double MultiplexIsotopicPeakPattern::getMassShiftAt(int i) const
   {
-    return mass_shifts_.getMassShiftAt(i);
+    return mass_shifts_.getDeltaMasses()[i].delta_mass;
   }
 
   double MultiplexIsotopicPeakPattern::getMZShiftAt(int i) const

@@ -97,18 +97,18 @@ namespace OpenMS
     /**
      * @brief returns delta masses
      */
-    std::vector<DeltaMass> getDeltaMasses();
+    std::vector<DeltaMass>& getDeltaMasses();
+    
+    /**
+     * @brief returns delta masses
+     */
+    const std::vector<DeltaMass>& getDeltaMasses() const;
     
     /**
      * @brief returns number of delta masses
      */
     unsigned size() const;
    
-    /**
-     * @brief returns mass shift at position i
-     */
-    double getMassShiftAt(int i) const;
-    
     /**
      * @brief returns label set at position i
      */
