@@ -109,11 +109,6 @@ namespace OpenMS
      */
     unsigned size() const;
    
-    /**
-     * @brief returns label set at position i
-     */
-    LabelSet getLabelSetAt(int i) const;
-    
     private:
    
     /**

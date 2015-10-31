@@ -380,7 +380,7 @@ namespace OpenMS
       for (unsigned j = 0; j < mass_pattern_list_[i].size(); ++j)
       {
         double mass_shift = mass_pattern_list_[i].getDeltaMasses()[j].delta_mass;
-        MultiplexDeltaMasses::LabelSet label_set = mass_pattern_list_[i].getLabelSetAt(j);
+        MultiplexDeltaMasses::LabelSet label_set = mass_pattern_list_[i].getDeltaMasses()[j].label_set;
         
         std::cout << mass_shift << " (";
         for (std::multiset<String>::iterator it = label_set.begin(); it != label_set.end(); ++it)

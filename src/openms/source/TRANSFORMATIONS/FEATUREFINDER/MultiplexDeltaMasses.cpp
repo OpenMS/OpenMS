@@ -85,11 +85,6 @@ namespace OpenMS
     return delta_masses_.size();
   }
 
-  MultiplexDeltaMasses::LabelSet MultiplexDeltaMasses::getLabelSetAt(int i) const
-  {
-    return delta_masses_[i].label_set;
-  }
-  
   bool operator<(const MultiplexDeltaMasses &dm1, const MultiplexDeltaMasses &dm2)
   {
     if (dm1.size() != dm2.size())
