@@ -103,7 +103,7 @@ namespace OpenMS
     /**
      * @brief returns number of delta masses
      */
-    unsigned size() const;
+    unsigned size();
    
     private:
    
