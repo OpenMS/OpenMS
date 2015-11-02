@@ -46,7 +46,12 @@ using namespace std;
 namespace OpenMS
 {
   ConsensusXMLFile::ConsensusXMLFile() :
-    XMLHandler("", "1.6"), XMLFile("/SCHEMAS/ConsensusXML_1_6.xsd", "1.6"), ProgressLogger(), consensus_map_(0), act_cons_element_(), last_meta_(0)
+    XMLHandler("", "1.6"), 
+    XMLFile("/SCHEMAS/ConsensusXML_1_6.xsd", "1.6"), 
+    ProgressLogger(), 
+    consensus_map_(0), 
+    act_cons_element_(), 
+    last_meta_(0)
   {
   }
 
