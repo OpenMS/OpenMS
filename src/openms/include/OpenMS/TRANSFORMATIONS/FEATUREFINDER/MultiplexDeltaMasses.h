@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+//// --------------------------------------------------------------------------
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
@@ -103,7 +103,7 @@ namespace OpenMS
     /**
      * @brief returns number of delta masses
      */
-    unsigned size();
+    unsigned size() const;
    
     private:
    

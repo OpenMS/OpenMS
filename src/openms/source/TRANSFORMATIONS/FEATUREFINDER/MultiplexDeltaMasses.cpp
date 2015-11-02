@@ -75,7 +75,7 @@ namespace OpenMS
     return delta_masses_;
   }
 
-  unsigned MultiplexDeltaMasses::size()
+  unsigned MultiplexDeltaMasses::size() const
   {
     return delta_masses_.size();
   }
