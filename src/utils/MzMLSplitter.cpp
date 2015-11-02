@@ -79,7 +79,7 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input file");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
-    registerStringOption_("out", "<file>", "", "Prefix for output files ('_part1.mzML' etc. will be appended; default: same as 'in' without the file extension)", false);
+    registerStringOption_("out", "<file>", "", "Prefix for output files ('_part1of2.mzML' etc. will be appended; default: same as 'in' without the file extension)", false);
     registerIntOption_("parts", "<num>", 1, "Number of parts to split into (takes precedence over 'size' if set)", false);
     setMinInt_("parts", 1);
     registerIntOption_("size", "<num>", 0, "Approximate upper limit for resulting file sizes (in 'unit')", false);
@@ -156,15 +156,16 @@ protected:
 
     Size spec_start = 0, chrom_start = 0;
     Size width = String(parts).size();
-    for (Size counter = 1; parts > 0; --parts, ++counter)
+    for (Size counter = 1; counter <= parts; ++counter)
     {
       ostringstream out_name;
       out_name << out << "_part" << setw(width) << setfill('0') << counter
-               << ".mzML";
+               << "of" << parts << ".mzML";
       MSExperiment<> part = experiment;
       addDataProcessing_(part, getProcessingInfo_(DataProcessing::FILTERING));
 
-      Size n_spec = ceil((spectra.size() - spec_start) / double(parts));
+      Size remaining = parts - counter + 1;
+      Size n_spec = ceil((spectra.size() - spec_start) / double(remaining));
       if (n_spec > 0)
       {
         part.reserveSpaceSpectra(n_spec);
@@ -175,7 +176,8 @@ protected:
       }
       spec_start += n_spec;
 
-      Size n_chrom = ceil((chromatograms.size() - chrom_start) / double(parts));
+      Size n_chrom = ceil((chromatograms.size() - chrom_start) /
+                          double(remaining));
       if (n_chrom > 0)
       {
         part.reserveSpaceChromatograms(n_chrom);

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <featureMap version="1.8" id="fm_7675317259246054802" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_8.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<IdentificationRun id="PI_0" date="2008-08-18T14:30:01" search_engine="Mascot" search_engine_version="2.2.03">
-		<SearchParameters db="SwissProt" db_version="SwissProt_54.5.fasta" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+		<SearchParameters db="SwissProt" db_version="SwissProt_54.5.fasta" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 		</SearchParameters>
 		<ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0">
 			<ProteinHit id="PH_0" accession="P02787" score="841" sequence="">

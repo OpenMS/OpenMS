@@ -246,10 +246,15 @@ namespace OpenMS
       {
         os << "enzyme=\"unknown_enzyme\" ";
       }
+      String precursor_unit = search_param.precursor_mass_tolerance_ppm ? "true" : "false";
+      String peak_unit = search_param.fragment_mass_tolerance_ppm ? "true" : "false";
+
       os << "missed_cleavages=\"" << search_param.missed_cleavages << "\" "
-         << "precursor_peak_tolerance=\"" << search_param.precursor_tolerance << "\" "
-         << "peak_mass_tolerance=\"" << search_param.fragment_mass_tolerance << "\" "
-         << ">\n";
+         << "precursor_peak_tolerance=\"" << search_param.precursor_tolerance << "\" ";
+      os << "precursor_peak_tolerance_ppm=\"" << precursor_unit << "\" ";
+      os << "peak_mass_tolerance=\"" << search_param.fragment_mass_tolerance << "\" ";
+      os << "peak_mass_tolerance_ppm=\"" << peak_unit << "\" ";
+      os << ">\n";
 
       //modifications
       for (Size j = 0; j != search_param.fixed_modifications.size(); ++j)
@@ -539,7 +544,13 @@ namespace OpenMS
       search_param_.charges = attributeAsString_(attributes, "charges");
       optionalAttributeAsUInt_(search_param_.missed_cleavages, attributes, "missed_cleavages");
       search_param_.fragment_mass_tolerance = attributeAsDouble_(attributes, "peak_mass_tolerance");
+      String peak_unit;
+      optionalAttributeAsString_(peak_unit, attributes, "peak_mass_tolerance_ppm");
+      search_param_.fragment_mass_tolerance_ppm = peak_unit == "true" ? true : false;
       search_param_.precursor_tolerance = attributeAsDouble_(attributes, "precursor_peak_tolerance");
+      String precursor_unit;
+      optionalAttributeAsString_(precursor_unit, attributes, "precursor_peak_tolerance_ppm");
+      search_param_.precursor_mass_tolerance_ppm = precursor_unit == "true" ? true : false;
       //mass type
       String mass_type = attributeAsString_(attributes, "mass_type");
       if (mass_type == "monoisotopic")
