@@ -34,6 +34,7 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
 
 #include <vector>
@@ -49,12 +50,13 @@ namespace OpenMS
     charge_(c), peaks_per_peptide_(ppp), mass_shifts_(ms), mass_shift_index_(msi)
   {
     // generate m/z shifts
-    for (unsigned i = 0; i < mass_shifts_.getMassShiftCount(); ++i)
+    for (unsigned i = 0; i < mass_shifts_.getDeltaMasses().size(); ++i)
     {
       for (int j = -1; j < peaks_per_peptide_; ++j)
       {
         // j=-1 shift corresponds to the zeroth peak
-        mz_shifts_.push_back((mass_shifts_.getMassShiftAt(i) + j * Constants::C13C12_MASSDIFF_U) / charge_);
+        const std::vector<MultiplexDeltaMasses::DeltaMass>& delta_masses = mass_shifts_.getDeltaMasses();
+        mz_shifts_.push_back((delta_masses[i].delta_mass + j * Constants::C13C12_MASSDIFF_U) / charge_);
       }
     }
   }
@@ -81,12 +83,12 @@ namespace OpenMS
 
   unsigned MultiplexIsotopicPeakPattern::getMassShiftCount() const
   {
-    return mass_shifts_.getMassShiftCount();
+    return mass_shifts_.getDeltaMasses().size();
   }
 
   double MultiplexIsotopicPeakPattern::getMassShiftAt(int i) const
   {
-    return mass_shifts_.getMassShiftAt(i);
+    return mass_shifts_.getDeltaMasses()[i].delta_mass;
   }
 
   double MultiplexIsotopicPeakPattern::getMZShiftAt(int i) const

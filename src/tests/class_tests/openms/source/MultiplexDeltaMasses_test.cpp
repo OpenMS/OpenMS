@@ -41,41 +41,24 @@ using namespace OpenMS;
 
 START_TEST(MultiplexDeltaMasses, "$Id$")
 
-std::vector<double> mass_shifts;
-mass_shifts.push_back(0);
-mass_shifts.push_back(6.031817);
-
 MultiplexDeltaMasses* nullPointer = 0;
 MultiplexDeltaMasses* ptr;
 
-START_SECTION(MultiplexDeltaMasses(std::vector<double> ms))
-    MultiplexDeltaMasses pattern(mass_shifts);
-    TEST_EQUAL(pattern.getMassShiftCount(), 2);
-    ptr = new MultiplexDeltaMasses(mass_shifts);
+START_SECTION(MultiplexDeltaMasses())
+    MultiplexDeltaMasses pattern;
+    TEST_EQUAL(pattern.getDeltaMasses().size(), 0);
+    ptr = new MultiplexDeltaMasses();
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;
 END_SECTION
 
-MultiplexDeltaMasses pattern(mass_shifts);
+MultiplexDeltaMasses pattern;
+pattern.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(0, "no_label"));
+pattern.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(6.031817, "Arg6"));
 
-START_SECTION(void addMassShifts(double ms) const)
-  pattern.addMassShift(12.063634);
-  TEST_EQUAL(pattern.getMassShifts()[2], 12.063634);
-END_SECTION
-
-START_SECTION(std::vector<double> getMassShifts() const)
-  TEST_EQUAL(pattern.getMassShifts()[0], 0);
-  TEST_EQUAL(pattern.getMassShifts()[1], 6.031817);
-END_SECTION
-
-START_SECTION(unsigned getMassShiftCount() const)
-  TEST_EQUAL(pattern.getMassShiftCount(), 3);
-END_SECTION
-
-START_SECTION(double getMassShiftAt(int i) const)
-  TEST_EQUAL(pattern.getMassShiftAt(0), 0);
-  TEST_EQUAL(pattern.getMassShiftAt(1), 6.031817);
-  TEST_EQUAL(pattern.getMassShiftAt(2), 12.063634);
+START_SECTION(std::vector<DeltaMass>& getDeltaMasses())
+  TEST_REAL_SIMILAR(pattern.getDeltaMasses()[0].delta_mass, 0);
+  TEST_REAL_SIMILAR(pattern.getDeltaMasses()[1].delta_mass, 6.031817);
 END_SECTION
 
 END_TEST

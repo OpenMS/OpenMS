@@ -42,10 +42,9 @@ using namespace OpenMS;
 
 START_TEST(MultiplexIsotopicPeakPattern, "$Id$")
 
-std::vector<double> m;
-m.push_back(0);
-m.push_back(6.031817);
-MultiplexDeltaMasses mass_shifts(m);
+MultiplexDeltaMasses mass_shifts;
+mass_shifts.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(0,"no_label"));
+mass_shifts.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(6.031817,"Arg6"));
 
 MultiplexIsotopicPeakPattern* nullPointer = 0;
 MultiplexIsotopicPeakPattern* ptr;
@@ -69,8 +68,8 @@ START_SECTION(int getPeaksPerPeptide() const)
 END_SECTION
 
 START_SECTION(std::vector<double> getMassShifts() const)
-  TEST_EQUAL(pattern.getMassShifts().getMassShiftAt(0), 0);
-  TEST_EQUAL(pattern.getMassShifts().getMassShiftAt(1), 6.031817);
+  TEST_EQUAL(pattern.getMassShifts().getDeltaMasses()[0].delta_mass, 0);
+  TEST_EQUAL(pattern.getMassShifts().getDeltaMasses()[1].delta_mass, 6.031817);
 END_SECTION
 
 START_SECTION(int getMassShiftIndex() const)
