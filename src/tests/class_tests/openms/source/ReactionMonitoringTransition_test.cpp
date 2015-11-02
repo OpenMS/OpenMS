@@ -49,9 +49,19 @@ START_TEST(ReactionMonitoringTransition, "$Id$")
 
 ReactionMonitoringTransition* ptr = 0;
 ReactionMonitoringTransition* nullPointer = 0;
+
+START_SECTION(ReactionMonitoringTransition())
+  ptr = new ReactionMonitoringTransition();
+  TEST_NOT_EQUAL(ptr, nullPointer)
+END_SECTION
+
+START_SECTION(~ReactionMonitoringTransition())
+  delete ptr;
+END_SECTION
+
 START_SECTION(bool ReactionMonitoringTransition::isDetectingTransition() const)
 {
-	OpenMS::ReactionMonitoringTransition rmt = ReactionMonitoringTransition();
+  OpenMS::ReactionMonitoringTransition rmt = ReactionMonitoringTransition();
 
   TEST_EQUAL(rmt.isDetectingTransition(),1)
 
