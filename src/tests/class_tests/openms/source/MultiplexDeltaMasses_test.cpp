@@ -46,7 +46,7 @@ MultiplexDeltaMasses* ptr;
 
 START_SECTION(MultiplexDeltaMasses())
     MultiplexDeltaMasses pattern;
-    TEST_EQUAL(pattern.size(), 0);
+    TEST_EQUAL(pattern.getDeltaMasses().size(), 0);
     ptr = new MultiplexDeltaMasses();
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;
@@ -59,10 +59,6 @@ pattern.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(6.031817, "Ar
 START_SECTION(std::vector<DeltaMass>& getDeltaMasses())
   TEST_REAL_SIMILAR(pattern.getDeltaMasses()[0].delta_mass, 0);
   TEST_REAL_SIMILAR(pattern.getDeltaMasses()[1].delta_mass, 6.031817);
-END_SECTION
-
-START_SECTION(unsigned size() const)
-  TEST_EQUAL(pattern.size(), 2);
 END_SECTION
 
 END_TEST

@@ -77,7 +77,7 @@ START_SECTION(void generateKnockoutDeltaMasses())
   TEST_EQUAL(masses_knockout.size(), 21);
   TEST_REAL_SIMILAR(masses_knockout[6].getDeltaMasses()[1].delta_mass, 8.0141988132);
   TEST_REAL_SIMILAR(masses_knockout[19].getDeltaMasses()[1].delta_mass, 20.0165372);
-  TEST_EQUAL(masses_knockout[20].size(), 1);
+  TEST_EQUAL(masses_knockout[20].getDeltaMasses().size(), 1);
 END_SECTION
 
 END_TEST

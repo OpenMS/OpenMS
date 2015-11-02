@@ -185,7 +185,7 @@ namespace OpenMS
               }
             }
 
-            if (delta_masses_temp.size() > 1)
+            if (delta_masses_temp.getDeltaMasses().size() > 1)
             {
               mass_pattern_list_.push_back(delta_masses_temp);
             }
@@ -240,7 +240,7 @@ namespace OpenMS
       throw OpenMS::Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 0);
     }
     
-    unsigned n = mass_pattern_list_[0].size();    // n=1 for singlets, n=2 for doublets, n=3 for triplets, n=4 for quadruplets
+    unsigned n = mass_pattern_list_[0].getDeltaMasses().size();    // n=1 for singlets, n=2 for doublets, n=3 for triplets, n=4 for quadruplets
     unsigned m = mass_pattern_list_.size();    // number of mass shift patterns before extension of the list
     if (n == 1)
     {
@@ -377,7 +377,7 @@ namespace OpenMS
     for (unsigned i = 0; i < mass_pattern_list_.size(); ++i)
     {
       std::cout << "mass shift " << (i + 1) << ":    ";
-      for (unsigned j = 0; j < mass_pattern_list_[i].size(); ++j)
+      for (unsigned j = 0; j < mass_pattern_list_[i].getDeltaMasses().size(); ++j)
       {
         double mass_shift = mass_pattern_list_[i].getDeltaMasses()[j].delta_mass;
         MultiplexDeltaMasses::LabelSet label_set = mass_pattern_list_[i].getDeltaMasses()[j].label_set;

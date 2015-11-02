@@ -100,11 +100,6 @@ namespace OpenMS
      */
     const std::vector<DeltaMass>& getDeltaMasses() const;
     
-    /**
-     * @brief returns number of delta masses
-     */
-    unsigned size() const;
-   
     private:
    
     /**

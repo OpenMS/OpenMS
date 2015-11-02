@@ -75,21 +75,16 @@ namespace OpenMS
     return delta_masses_;
   }
 
-  unsigned MultiplexDeltaMasses::size() const
-  {
-    return delta_masses_.size();
-  }
-
   bool operator<(const MultiplexDeltaMasses &dm1, const MultiplexDeltaMasses &dm2)
   {
-    if (dm1.size() != dm2.size())
+    if (dm1.getDeltaMasses().size() != dm2.getDeltaMasses().size())
     {
       // Search first for complete multiplets, then knock-out cases.
-      return (dm1.size() > dm2.size());
+      return (dm1.getDeltaMasses().size() > dm2.getDeltaMasses().size());
     }
     else
     {
-      for (unsigned i = 0; i < dm1.size(); ++i)
+      for (unsigned i = 0; i < dm1.getDeltaMasses().size(); ++i)
       {
         double ms1 = dm1.getDeltaMasses()[i].delta_mass - dm1.getDeltaMasses()[0].delta_mass;
         double ms2 = dm2.getDeltaMasses()[i].delta_mass - dm2.getDeltaMasses()[0].delta_mass;

@@ -49,7 +49,7 @@ namespace OpenMS
     charge_(c), peaks_per_peptide_(ppp), mass_shifts_(ms), mass_shift_index_(msi)
   {
     // generate m/z shifts
-    for (unsigned i = 0; i < mass_shifts_.size(); ++i)
+    for (unsigned i = 0; i < mass_shifts_.getDeltaMasses().size(); ++i)
     {
       for (int j = -1; j < peaks_per_peptide_; ++j)
       {
@@ -81,7 +81,7 @@ namespace OpenMS
 
   unsigned MultiplexIsotopicPeakPattern::getMassShiftCount() const
   {
-    return mass_shifts_.size();
+    return mass_shifts_.getDeltaMasses().size();
   }
 
   double MultiplexIsotopicPeakPattern::getMassShiftAt(int i) const
