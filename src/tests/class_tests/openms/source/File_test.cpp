@@ -188,7 +188,11 @@ START_SECTION(static String getUserDirectory())
   QDir d;
   String dirname = File::getTempDirectory() + "/" + File::getUniqueName() + "/";
   TEST_EQUAL(d.mkpath(dirname.toQString()), TRUE);
-  setenv("OPENMS_HOME_PATH", dirname.c_str(), 0);
+#ifdef OPENMS_WINDOWSPLATFORM
+  _putenv("OPENMS_HOME_PATH", dirname.c_str(), 0);  
+#else
+  setenv("OPENMS_HOME_PATH", dirname.c_str(), 0);  
+#endif
   TEST_EQUAL(File::getUserDirectory(), dirname)
   TEST_EQUAL(File::exists(File::getUserDirectory() + ".OpenMS/OpenMS.ini"), true)
 END_SECTION
