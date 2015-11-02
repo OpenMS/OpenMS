@@ -60,7 +60,7 @@ namespace OpenMS
   {
   }
 
-  MultiplexDeltaMasses::MultiplexDeltaMasses(vector<MultiplexDeltaMasses::DeltaMass> dm) :
+  MultiplexDeltaMasses::MultiplexDeltaMasses(const vector<MultiplexDeltaMasses::DeltaMass>& dm) :
     delta_masses_(dm)
   {
   }

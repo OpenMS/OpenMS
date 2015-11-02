@@ -134,7 +134,7 @@ namespace OpenMS
           if (ArgPerPeptide + LysPerPeptide <= (unsigned) missed_cleavages_ + 1)
           {
             MultiplexDeltaMasses delta_masses_temp;    // single mass shift pattern
-            delta_masses_temp.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(0,"no_label"));
+            delta_masses_temp.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(0, "no_label"));
             for (unsigned i = 0; i < samples_labels_.size(); i++)
             {
               double mass_shift = 0;
@@ -222,7 +222,7 @@ namespace OpenMS
     {
       // none (singlet detection)
       MultiplexDeltaMasses delta_masses_temp;
-      delta_masses_temp.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(0,"no_label"));
+      delta_masses_temp.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(0, "no_label"));
       mass_pattern_list_.push_back(delta_masses_temp);
     }
     
@@ -276,7 +276,7 @@ namespace OpenMS
       
       // add singlets
       MultiplexDeltaMasses dm;
-      dm.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(0,"any_label_set"));    // There are three singlets with different label sets. But only a single singlet with "any_label_set" is added.
+      dm.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(0, "any_label_set"));    // There are three singlets with different label sets. But only a single singlet with "any_label_set" is added.
       mass_pattern_list_.push_back(dm);
     }
     else if (n == 4)
@@ -295,7 +295,8 @@ namespace OpenMS
         triplet2.getDeltaMasses().push_back(mass_pattern_list_[i].getDeltaMasses()[2]);
         triplet2.getDeltaMasses().push_back(mass_pattern_list_[i].getDeltaMasses()[3]);
         mass_pattern_list_.push_back(triplet2);
-
+        
+        // Knockout combination previously forgotten. Will be un-commented in final FFM/MultiplexResolver version.
         /*MultiplexDeltaMasses triplet3;
         triplet3.getDeltaMasses().push_back(mass_pattern_list_[i].getDeltaMasses()[0]);
         triplet3.getDeltaMasses().push_back(mass_pattern_list_[i].getDeltaMasses()[1]);

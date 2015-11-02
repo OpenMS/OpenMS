@@ -88,7 +88,7 @@ namespace OpenMS
     /**
      * @brief constructor
      */
-    MultiplexDeltaMasses(std::vector<DeltaMass> dm);
+    MultiplexDeltaMasses(const std::vector<DeltaMass>& dm);
         
     /**
      * @brief returns delta masses
