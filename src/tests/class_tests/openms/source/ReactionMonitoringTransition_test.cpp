@@ -107,12 +107,6 @@ START_SECTION(bool ReactionMonitoringTransition::isQuantifyingTransition() const
 }
 END_SECTION
 
-START_SECTION(virtual ~ReactionMonitoringTransition())
-{
-	delete ptr;
-}
-END_SECTION
-
 START_SECTION((ReactionMonitoringTransition(const ReactionMonitoringTransition &rhs)))
 {
   // TODO
