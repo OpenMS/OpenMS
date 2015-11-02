@@ -55,7 +55,7 @@ namespace OpenMS
       for (int j = -1; j < peaks_per_peptide_; ++j)
       {
         // j=-1 shift corresponds to the zeroth peak
-        const std::vector<MultiplexDeltaMasses::DeltaMass> delta_masses = mass_shifts_.getDeltaMasses();
+        const std::vector<MultiplexDeltaMasses::DeltaMass>& delta_masses = mass_shifts_.getDeltaMasses();
         mz_shifts_.push_back((delta_masses[i].delta_mass + j * Constants::C13C12_MASSDIFF_U) / charge_);
       }
     }
