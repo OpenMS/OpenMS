@@ -159,12 +159,22 @@
 									</xs:attribute>
 									<xs:attribute name="precursor_peak_tolerance" type="xs:float" use="required">
 										<xs:annotation>
-											<xs:documentation>peak mass tolerance of precursor peak in Da</xs:documentation>
+											<xs:documentation>absolute (default) or relative mass tolerance of precursor peak</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="precursor_peak_tolerance_ppm" type="xs:boolean">
+										<xs:annotation>
+											<xs:documentation>flag to indicate relative mass tolerance of precursor peak</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
 									<xs:attribute name="peak_mass_tolerance" type="xs:float" use="required">
 										<xs:annotation>
-											<xs:documentation>peak mass tolerance of fragment ions in Da</xs:documentation>
+											<xs:documentation>absolute (default) or relative mass tolerance of fragment peak</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="peak_mass_tolerance_ppm" type="xs:boolean">
+										<xs:annotation>
+											<xs:documentation>flag to indicate relative mass tolerance of fragment peak</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
 								</xs:complexType>
