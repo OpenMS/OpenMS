@@ -189,7 +189,7 @@ START_SECTION(static String getUserDirectory())
   String dirname = File::getTempDirectory() + "/" + File::getUniqueName() + "/";
   TEST_EQUAL(d.mkpath(dirname.toQString()), TRUE);
 #ifdef OPENMS_WINDOWSPLATFORM
-  _putenv("OPENMS_HOME_PATH", dirname.c_str(), 0);  
+  _putenv_s("OPENMS_HOME_PATH", dirname.c_str());  
 #else
   setenv("OPENMS_HOME_PATH", dirname.c_str(), 0);  
 #endif
