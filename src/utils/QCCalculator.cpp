@@ -386,7 +386,7 @@ protected:
     {
       at.name = "MS TICs"; ///< Name
     }
-    
+
     at.colTypes.push_back("MS:1000894_[sec]");
     at.colTypes.push_back("MS:1000285");
     UInt max = 0;
@@ -441,7 +441,7 @@ protected:
       }
     }
     qcmlfile.addRunAttachment(base_name, at);
-    
+
 
     qp = QcMLFile::QualityParameter();
     qp.id = base_name + "_ticslump"; ///< Identifier
@@ -459,7 +459,46 @@ protected:
     }
     qcmlfile.addRunQualityParameter(base_name, qp);
 
-    
+
+    //---injection times MSn
+    at = QcMLFile::Attachment();
+    at.cvRef = "QC"; ///< cv reference
+    at.cvAcc = "QC:0000018";
+    at.qualityRef = msaq_ref;
+    at.id = base_name + "_ms2inj"; ///< Identifier
+    try
+    {
+      const ControlledVocabulary::CVTerm& term = cv.getTerm(at.cvAcc);
+      at.name = term.name; ///< Name
+    }
+    catch (...)
+    {
+      at.name = "MS2 injection time"; ///< Name
+    }
+
+    at.colTypes.push_back("MS:1000894_[sec]");
+    at.colTypes.push_back("MS:1000927");
+    for (Size i = 0; i < exp.size(); ++i)
+    {
+      if (exp[i].getMSLevel() > 1 && !exp[i].getAcquisitionInfo().empty())
+      {
+        for (Size j = 0; j < exp[i].getAcquisitionInfo().size(); ++j)
+        {
+          if (exp[i].getAcquisitionInfo()[j].metaValueExists("MS:1000927"))
+          {
+            std::vector<String> row;
+            row.push_back(String(exp[i].getRT()));
+            row.push_back(exp[i].getAcquisitionInfo()[j].getMetaValue("MS:1000927"));
+            at.tableRows.push_back(row);
+          }
+        }
+      }
+    }
+    if (!at.tableRows.empty())
+    {
+      qcmlfile.addRunAttachment(base_name, at);
+    }
+
     //-------------------------------------------------------------
     // MS  id
     //------------------------------------------------------------
@@ -690,7 +729,7 @@ protected:
       //~ prot_ids[0].getSearchParameters();
       for (vector<PeptideIdentification>::iterator it = pep_ids.begin(); it != pep_ids.end(); ++it)
       {
-        if (it->getHits().size() > 0)
+        if (!it->getHits().empty())
         {
           std::vector<String> row;
           row.push_back(it->getRT());
@@ -705,7 +744,7 @@ protected:
           {
             Residue res = *z;
             String temp;
-            if (res.getModification().size() > 0 && res.getModification() != "Carbamidomethyl")
+            if (!res.getModification().empty() && res.getModification() != "Carbamidomethyl")
             {
               temp = res.getModification() + " (" + res.getOneLetterCode()  + ")";
               //cout<<res.getModification()<<endl;

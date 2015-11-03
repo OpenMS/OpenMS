@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="http://open-ms.sourceforge.net/XSL/IdXML.xsl" ?>
 <IdXML version="1.3" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="c:/Inetpub/wwwroot/ISB/data/user-data/proteome-databases/uniprot-human-Nov26-2013-reference-reviewed-canonical-without-isoforms_plus-shuffled.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+	<SearchParameters id="SP_0" db="c:/Inetpub/wwwroot/ISB/data/user-data/proteome-databases/uniprot-human-Nov26-2013-reference-reviewed-canonical-without-isoforms_plus-shuffled.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 		<FixedModification name="C+57.0215" />
 		<FixedModification name="K+34.0631" />
 		<FixedModification name="+34.0632" />
@@ -10,7 +10,7 @@
 		<VariableModification name="Q-17.0265" />
 		<VariableModification name="+42.0106" />
 	</SearchParameters>
-	<SearchParameters id="SP_1" db="c:/Inetpub/wwwroot/ISB/data/user-data/proteome-databases/uniprot-human-Nov26-2013-reference-reviewed-canonical-without-isoforms_plus-shuffled.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+	<SearchParameters id="SP_1" db="c:/Inetpub/wwwroot/ISB/data/user-data/proteome-databases/uniprot-human-Nov26-2013-reference-reviewed-canonical-without-isoforms_plus-shuffled.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 		<FixedModification name="C+57.0215" />
 		<FixedModification name="K+28.0313" />
 		<FixedModification name="+28.0314" />

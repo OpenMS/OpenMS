@@ -45,29 +45,59 @@ using namespace std;
 namespace OpenMS
 {
 
-  MultiplexDeltaMasses::MultiplexDeltaMasses(vector<double> ms) :
-    mass_shifts_(ms)
+  MultiplexDeltaMasses::DeltaMass::DeltaMass(double dm, LabelSet ls) :
+    delta_mass(dm), label_set(ls)
+  {
+  }
+  
+  MultiplexDeltaMasses::DeltaMass::DeltaMass(double dm, String l) :
+    delta_mass(dm), label_set()
+  {
+    label_set.insert(l);
+  }
+
+  MultiplexDeltaMasses::MultiplexDeltaMasses()
   {
   }
 
-  void MultiplexDeltaMasses::addMassShift(double ms)
+  MultiplexDeltaMasses::MultiplexDeltaMasses(const vector<MultiplexDeltaMasses::DeltaMass>& dm) :
+    delta_masses_(dm)
   {
-    mass_shifts_.push_back(ms);
   }
 
-  std::vector<double> MultiplexDeltaMasses::getMassShifts() const
+  std::vector<MultiplexDeltaMasses::DeltaMass>& MultiplexDeltaMasses::getDeltaMasses()
   {
-    return mass_shifts_;
+    return delta_masses_;
   }
 
-  unsigned MultiplexDeltaMasses::getMassShiftCount() const
+  const std::vector<MultiplexDeltaMasses::DeltaMass>& MultiplexDeltaMasses::getDeltaMasses() const
   {
-    return mass_shifts_.size();
+    return delta_masses_;
   }
 
-  double MultiplexDeltaMasses::getMassShiftAt(int i) const
+  bool operator<(const MultiplexDeltaMasses &dm1, const MultiplexDeltaMasses &dm2)
   {
-    return mass_shifts_[i];
-  }
+    if (dm1.getDeltaMasses().size() != dm2.getDeltaMasses().size())
+    {
+      // Search first for complete multiplets, then knock-out cases.
+      return (dm1.getDeltaMasses().size() > dm2.getDeltaMasses().size());
+    }
+    else
+    {
+      for (unsigned i = 0; i < dm1.getDeltaMasses().size(); ++i)
+      {
+        double ms1 = dm1.getDeltaMasses()[i].delta_mass - dm1.getDeltaMasses()[0].delta_mass;
+        double ms2 = dm2.getDeltaMasses()[i].delta_mass - dm2.getDeltaMasses()[0].delta_mass;
+        
+        if (ms1 != ms2)
+        {
+          // Search first for cases without miscleavages.
+          return (ms1 < ms2);
+        }
+      }
+    }
 
+    return (false);
+  }
+  
 }
