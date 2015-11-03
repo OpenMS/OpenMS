@@ -318,7 +318,6 @@ namespace OpenMS
       }
     }
 
-
     OpenSwath_Scores idscores;
 
     if (native_ids_identification.size() > 0)
@@ -326,15 +325,19 @@ namespace OpenMS
       scorer.calculateChromatographicIdScores(idimrmfeature, native_ids_identification, native_ids_detection, signal_noise_estimators_identification, idscores);
 
       std::stringstream id_transition_names;
+      std::stringstream id_aggr_Peak_Area;
       for (size_t i = 0; i < native_ids_identification.size(); i++)
       {
         if (i != 0)
         {
           id_transition_names << ";";
+          id_aggr_Peak_Area << ";";
         }
         id_transition_names << native_ids_identification[i];
+        id_aggr_Peak_Area << idmrmfeature.getFeature(native_ids_identification[i]).getIntensity();
       }
       idscores.id_transition_names = id_transition_names.str();
+      idscores.id_aggr_Peak_Area = id_aggr_Peak_Area.str();
 
       idscores.id_num_transitions = native_ids_identification.size();
       idscores.elution_model_fit_score = emgscoring_.calcElutionFitScore(idmrmfeature, transition_group_identification);
@@ -465,6 +468,7 @@ namespace OpenMS
 
         mrmfeature->setMetaValue("id_target_transition_names", idscores.id_transition_names);
         mrmfeature->addScore("id_target_num_transitions", idscores.id_num_transitions);
+        mrmfeature->setMetaValue("id_target_aggr_Peak_Area", idscores.id_aggr_Peak_Area);
         mrmfeature->setMetaValue("id_target_ind_xcorr_coelution", idscores.ind_xcorr_coelution_score);
         mrmfeature->setMetaValue("id_target_ind_xcorr_shape", idscores.ind_xcorr_shape_score);
         mrmfeature->setMetaValue("id_target_ind_log_sn_score", idscores.ind_log_sn_score);
@@ -479,6 +483,7 @@ namespace OpenMS
 
         mrmfeature->setMetaValue("id_decoy_transition_names", idscores.id_transition_names);
         mrmfeature->addScore("id_decoy_num_transitions", idscores.id_num_transitions);
+        mrmfeature->setMetaValue("id_decoy_aggr_Peak_Area", idscores.id_aggr_Peak_Area);
         mrmfeature->setMetaValue("id_decoy_ind_xcorr_coelution", idscores.ind_xcorr_coelution_score);
         mrmfeature->setMetaValue("id_decoy_ind_xcorr_shape", idscores.ind_xcorr_shape_score);
         mrmfeature->setMetaValue("id_decoy_ind_log_sn_score", idscores.ind_log_sn_score);

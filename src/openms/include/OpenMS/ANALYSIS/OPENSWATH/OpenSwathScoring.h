@@ -118,6 +118,7 @@ namespace OpenMS
     std::string ind_log_sn_score;
     int id_num_transitions;
     std::string id_transition_names;
+    std::string id_aggr_Peak_Area;
 
     double weighted_coelution_score;
     double weighted_xcorr_shape;

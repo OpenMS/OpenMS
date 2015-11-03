@@ -130,12 +130,14 @@ namespace OpenMS
       if (enable_uis_scoring_)
       {
         ofs << "\tuis_target_transition_names"
+            << "\tuis_target_var_ind_aggr_Peak_Area"
             << "\tuis_target_num_transitions"
             << "\tuis_target_var_ind_xcorr_coelution"
             << "\tuis_target_main_var_ind_xcorr_shape"
             << "\tuis_target_var_ind_log_sn_score"
             << "\tuis_target_var_ind_massdev_score"
             << "\tuis_decoy_transition_names"
+            << "\tuis_decoy_var_ind_aggr_Peak_Area"
             << "\tuis_decoy_num_transitions"
             << "\tuis_decoy_var_ind_xcorr_coelution"
             << "\tuis_decoy_main_var_ind_xcorr_shape"
@@ -284,12 +286,14 @@ namespace OpenMS
             if (enable_uis_scoring_)
             {
               line += "\t" + (String)feature_it->getMetaValue("id_target_transition_names")
+              + "\t" + (String)feature_it->getMetaValue("id_target_aggr_Peak_Area")
               + "\t" + (String)feature_it->getMetaValue("id_target_num_transitions")
               + "\t" + (String)feature_it->getMetaValue("id_target_ind_xcorr_coelution")
               + "\t" + (String)feature_it->getMetaValue("id_target_ind_xcorr_shape")
               + "\t" + (String)feature_it->getMetaValue("id_target_ind_log_sn_score")
               + "\t" + (String)feature_it->getMetaValue("id_target_ind_massdev_score")
               + "\t" + (String)feature_it->getMetaValue("id_decoy_transition_names")
+              + "\t" + (String)feature_it->getMetaValue("id_decoy_aggr_Peak_Area")
               + "\t" + (String)feature_it->getMetaValue("id_decoy_num_transitions")
               + "\t" + (String)feature_it->getMetaValue("id_decoy_ind_xcorr_coelution")
               + "\t" + (String)feature_it->getMetaValue("id_decoy_ind_xcorr_shape")
