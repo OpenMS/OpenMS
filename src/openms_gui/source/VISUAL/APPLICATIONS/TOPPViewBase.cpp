@@ -3253,41 +3253,44 @@ namespace OpenMS
 
           try
           {
+              int i=charge;
+
+              while (i!=0){
               if (spec_gen_dialog.list_widget->item(0)->checkState() == Qt::Checked) // "A-ions"
               {
-                  generator.addPeaks(rich_spec, poly_sequence, Residue::AIon, charge);
+                  generator.addPeaks(rich_spec, poly_sequence, Residue::AIon, i);
               }
               if (spec_gen_dialog.list_widget->item(1)->checkState() == Qt::Checked) // "A-b-ions"
               {
-                  generator.addPeaks(rich_spec, poly_sequence, Residue::AminusB, charge);
+                  generator.addPeaks(rich_spec, poly_sequence, Residue::AminusB, i);
               }
               if (spec_gen_dialog.list_widget->item(2)->checkState() == Qt::Checked) // "B-ions"
               {
-                  generator.addPeaks(rich_spec, poly_sequence, Residue::BIon, charge);
+                  generator.addPeaks(rich_spec, poly_sequence, Residue::BIon, i);
               }
               if (spec_gen_dialog.list_widget->item(3)->checkState() == Qt::Checked) // "C-ions"
               {
-                  generator.addPeaks(rich_spec, poly_sequence, Residue::CIon, charge);
+                  generator.addPeaks(rich_spec, poly_sequence, Residue::CIon, i);
               }
               if (spec_gen_dialog.list_widget->item(4)->checkState() == Qt::Checked) // "D-ions"
               {
-                  generator.addPeaks(rich_spec, poly_sequence, Residue::DIon, charge);
+                  generator.addPeaks(rich_spec, poly_sequence, Residue::DIon, i);
               }
               if (spec_gen_dialog.list_widget->item(5)->checkState() == Qt::Checked) // "W-ions"
               {
-                  generator.addPeaks(rich_spec, poly_sequence, Residue::WIon, charge);
+                  generator.addPeaks(rich_spec, poly_sequence, Residue::WIon, i);
               }
               if (spec_gen_dialog.list_widget->item(6)->checkState() == Qt::Checked) // "X-ions"
               {
-                  generator.addPeaks(rich_spec, poly_sequence, Residue::XIon, charge);
+                  generator.addPeaks(rich_spec, poly_sequence, Residue::XIon, i);
               }
               if (spec_gen_dialog.list_widget->item(7)->checkState() == Qt::Checked) // "Y-ions"
               {
-                  generator.addPeaks(rich_spec, poly_sequence, Residue::YIon, charge);
+                  generator.addPeaks(rich_spec, poly_sequence, Residue::YIon, i);
               }
               if (spec_gen_dialog.list_widget->item(8)->checkState() == Qt::Checked) // "Z-ions"
               {
-                  generator.addPeaks(rich_spec, poly_sequence, Residue::ZIon, charge);
+                  generator.addPeaks(rich_spec, poly_sequence, Residue::ZIon, i);
               }
               //if (spec_gen_dialog.list_widget->item(9)->checkState() == Qt::Checked) // "Precursor" //FIXME
               //{
@@ -3296,6 +3299,8 @@ namespace OpenMS
               if (spec_gen_dialog.list_widget->item(12)->checkState() == Qt::Checked) // "abundant Immonium-ions"
               {
                   generator.addAbundantImmoniumIons(rich_spec);
+              }
+              i=i-(charge/abs(charge));
               }
           }
           catch (Exception::BaseException& e)
