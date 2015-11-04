@@ -237,48 +237,49 @@
 			</xs:attribute>
 	</xs:complexType>
 	<xs:complexType name="CompoundHitType"/>
-	<xs:annotation>
-		<xs:documentation>Single reported compound hit</xs:documentation>
-	</xs:annotation>
-	<xs:complexType>
-		<xs:sequence minOccurs="0">
-			<xs:element name="UserParam" type="UserParam" minOccurs="0" maxOccurs="unbounded"/>
-		</xs:sequence>
-		<xs:attribute name="id" type="xs:ID" use="required">
-			<xs:annotation>
-				<xs:documentation>'id' of the compound hit. Is referenced by small molecule hits.</xs:documentation>
-			</xs:annotation>
-		</xs:attribute>
-		<xs:attribute name="accession" type="xs:string" use="required">
-			<xs:annotation>
-				<xs:documentation>accession of the compound in the database.</xs:documentation>
-			</xs:annotation>
-		</xs:attribute>
-		<xs:attribute name="score" type="xs:float" use="required">
-			<xs:annotation>
-				<xs:documentation>score of the hit</xs:documentation>
-			</xs:annotation>
-		</xs:attribute>
-		<xs:attribute name="mass" type="xs:float">
-			<xs:annotation>
-				<xs:documentation>(uncharged, theoretical) mass of the compound</xs:documentation>
-			</xs:annotation>
-		</xs:attribute>
-		<xs:attribute name="formula" type="xs:string">
-			<xs:annotation>
-				<xs:documentation>chemical formula of the compound in hill's notation</xs:documentation>
-			</xs:annotation>
-		</xs:attribute>
-		<xs:attribute name="smiles" type="xs:string">
-			<xs:annotation>
-				<xs:documentation>smiles notation</xs:documentation>
-			</xs:annotation>
-		</xs:attribute>
-		<xs:attribute name="inchi" type="xs:string">
-			<xs:annotation>
-				<xs:documentation>inchi key</xs:documentation>
-			</xs:annotation>
-		</xs:attribute>
+		<xs:annotation>
+			<xs:documentation>Single reported compound hit</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence minOccurs="0">
+				<xs:element name="UserParam" type="UserParam" minOccurs="0" maxOccurs="unbounded"/>
+			</xs:sequence>
+			<xs:attribute name="id" type="xs:ID" use="required">
+				<xs:annotation>
+					<xs:documentation>'id' of the compound hit. Is referenced by small molecule hits.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="accession" type="xs:string" use="required">
+				<xs:annotation>
+					<xs:documentation>accession of the compound in the database.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="score" type="xs:float" use="required">
+				<xs:annotation>
+					<xs:documentation>score of the hit</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="mass" type="xs:float">
+				<xs:annotation>
+					<xs:documentation>(uncharged, theoretical) mass of the compound</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="formula" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>chemical formula of the compound in hill's notation</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="smiles" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>smiles notation</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="inchi" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>inchi key</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
 	</xs:complexType>
 	<xs:complexType name="PeptideIdentificationType">
 		<xs:annotation>
@@ -327,39 +328,40 @@
 		</xs:attribute>
 	</xs:complexType>
 	<xs:complexType name="SmallMoleculeIdentificationType">
-	<xs:annotation>
-		<xs:documentation>Collections of identified small moleclues. Typically one for each spectrum or feature.</xs:documentation>
-	</xs:annotation>
-	<xs:complexType>
-		<xs:sequence>
-		        <xs:element name="SmallMoleculeHit" type="SmallMoleculeHitType" minOccurs="0" maxOccurs="unbounded"/>
-			<xs:element name="UserParam" type="UserParam" minOccurs="0" maxOccurs="unbounded"/>
-		</xs:sequence>
-		<xs:attribute name="score_type" type="xs:string" use="required">
-			<xs:annotation>
-				<xs:documentation>score type</xs:documentation>
-			</xs:annotation>
-		</xs:attribute>
-		<xs:attribute name="higher_score_better" type="xs:boolean" use="required">
-			<xs:annotation>
-				<xs:documentation>if a higher score is better ('true' or false')</xs:documentation>
-			</xs:annotation>
-		</xs:attribute>
-		<xs:attribute name="spectrum_reference" type="xs:unsignedInt">
-			<xs:annotation>
-				<xs:documentation>Integer reference number of the identified spectrum</xs:documentation>
-			</xs:annotation>
-		</xs:attribute>
-		<xs:attribute name="RT" type="xs:float">
-			<xs:annotation>
-				<xs:documentation>Precursor peak retention time of the identified spectrum</xs:documentation>
-			</xs:annotation>
-		</xs:attribute>
-		<xs:attribute name="MZ" type="xs:float">
-			<xs:annotation>
-				<xs:documentation>Precursor peak mass-to-charge ratio of the identified spectrum</xs:documentation>
-			</xs:annotation>
-		</xs:attribute>
+		<xs:annotation>
+			<xs:documentation>Collections of identified small moleclues. Typically one for each spectrum or feature.</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="SmallMoleculeHit" type="SmallMoleculeHitType" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element name="UserParam" type="UserParam" minOccurs="0" maxOccurs="unbounded"/>
+			</xs:sequence>
+			<xs:attribute name="score_type" type="xs:string" use="required">
+				<xs:annotation>
+					<xs:documentation>score type</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="higher_score_better" type="xs:boolean" use="required">
+				<xs:annotation>
+					<xs:documentation>if a higher score is better ('true' or false')</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="spectrum_reference" type="xs:unsignedInt">
+				<xs:annotation>
+					<xs:documentation>Integer reference number of the identified spectrum</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="RT" type="xs:float">
+				<xs:annotation>
+					<xs:documentation>Precursor peak retention time of the identified spectrum</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="MZ" type="xs:float">
+				<xs:annotation>
+					<xs:documentation>Precursor peak mass-to-charge ratio of the identified spectrum</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
 	</xs:complexType>
 	<xs:complexType name="SmallMoleculeHitType">
 		<xs:annotation>
