@@ -94,9 +94,8 @@ namespace OpenMS
     defaults_.setMinInt("add_up_spectra", 1);
     defaults_.setValue("spacing_for_spectra_resampling", 0.005, "If spectra are to be added, use this spacing to add them up", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("spacing_for_spectra_resampling", 0.0);
-    defaults_.setValue("num_uis_transitions", 1024, "Number of UIS transitions used for peptidoform identification scoring.");
-    defaults_.setMinInt("num_uis_transitions", 1);
-    defaults_.setValue("min_sn_uis_transitions", 0, "Minimum S/N threshold to consider identification transition (set to -1 to consider all)");
+    defaults_.setValue("uis_threshold_sn", -1, "S/N threshold to consider identification transition (set to -1 to consider all)");
+    defaults_.setValue("uis_threshold_peak_area", 0, "Peak area threshold to consider identification transition (set to -1 to consider all)");
 
     defaults_.insert("TransitionGroupPicker:", MRMTransitionGroupPicker().getDefaults());
 
@@ -291,27 +290,12 @@ namespace OpenMS
     idimrmfeature = new MRMFeatureOpenMS(idmrmfeature);  
 
     std::vector<std::string> native_ids_identification;
-    std::vector<double> signal_noise_identification;
     std::vector<OpenSwath::ISignalToNoisePtr> signal_noise_estimators_identification;
 
     for (Size i = 0; i < transition_group_identification.size(); i++)
     {
       OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< PeakT >(transition_group_identification.getChromatogram(transition_group_identification.getTransitions()[i].getNativeID()), sn_win_len_, sn_bin_count_, write_log_messages));
-      signal_noise_identification.push_back(snptr->getValueAtRT(idmrmfeature.getRT()));
-    }
-
-    std::sort(signal_noise_identification.begin(), signal_noise_identification.end(), std::greater<double>());
-    if (signal_noise_identification.size() >= num_uis_transitions_)
-    {
-      std::vector<double>::iterator signal_noise_identification_start_delete = signal_noise_identification.begin();
-      std::advance(signal_noise_identification_start_delete, num_uis_transitions_);
-      signal_noise_identification.erase(signal_noise_identification_start_delete, signal_noise_identification.end());
-    }
-
-    for (Size i = 0; i < transition_group_identification.size(); i++)
-    {
-      OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< PeakT >(transition_group_identification.getChromatogram(transition_group_identification.getTransitions()[i].getNativeID()), sn_win_len_, sn_bin_count_, write_log_messages));
-      if (std::find(signal_noise_identification.begin(),signal_noise_identification.end(), snptr->getValueAtRT(idmrmfeature.getRT())) != signal_noise_identification.end() && snptr->getValueAtRT(idmrmfeature.getRT()) > min_sn_uis_transitions_)
+      if ((snptr->getValueAtRT(idmrmfeature.getRT()) > uis_threshold_sn_) && (idmrmfeature.getFeature(transition_group_identification.getTransitions()[i].getNativeID()).getIntensity() > uis_threshold_peak_area_))
       {
         signal_noise_estimators_identification.push_back(snptr);
         native_ids_identification.push_back(transition_group_identification.getTransitions()[i].getNativeID());
@@ -653,8 +637,8 @@ namespace OpenMS
     write_convex_hull_ = param_.getValue("write_convex_hull").toBool();
     add_up_spectra_ = param_.getValue("add_up_spectra");
     spacing_for_spectra_resampling_ = param_.getValue("spacing_for_spectra_resampling");
-    num_uis_transitions_ = param_.getValue("num_uis_transitions");
-    min_sn_uis_transitions_ = param_.getValue("min_sn_uis_transitions");
+    uis_threshold_sn_ = param_.getValue("uis_threshold_sn");
+    uis_threshold_peak_area_ = param_.getValue("uis_threshold_peak_area");
 
     diascoring_.setParameters(param_.copy("DIAScoring:", true));
     emgscoring_.setFitterParam(param_.copy("EmgScoring:", true));

@@ -272,8 +272,8 @@ private:
     double rt_normalization_factor_;
     int add_up_spectra_;
     double spacing_for_spectra_resampling_;
-    size_t num_uis_transitions_;
-    double min_sn_uis_transitions_;
+    double uis_threshold_sn_;
+    double uis_threshold_peak_area_;
 
     // members
     std::map<OpenMS::String, const PeptideType*> PeptideRefMap_;

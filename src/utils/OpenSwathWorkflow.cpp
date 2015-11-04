@@ -1308,6 +1308,8 @@ protected:
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:method", "corrected");
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:signal_to_noise", 0.1);
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width", 30.0);
+      feature_finder_param.setValue("uis_threshold_sn",-1);
+      feature_finder_param.setValue("uis_threshold_peak_area",0);
       feature_finder_param.remove("TransitionGroupPicker:PeakPickerMRM:sn_win_len");
       feature_finder_param.remove("TransitionGroupPicker:PeakPickerMRM:sn_bin_count");
       feature_finder_param.remove("TransitionGroupPicker:PeakPickerMRM:stop_after_feature");
@@ -1322,8 +1324,6 @@ protected:
       // remove these parameters
       feature_finder_param.remove("add_up_spectra");
       feature_finder_param.remove("spacing_for_spectra_resampling");
-      feature_finder_param.remove("num_uis_transitions");
-      feature_finder_param.remove("min_sn_uis_transitions");
       feature_finder_param.remove("EMGScoring:statistics:mean");
       feature_finder_param.remove("EMGScoring:statistics:variance");
       return feature_finder_param;
