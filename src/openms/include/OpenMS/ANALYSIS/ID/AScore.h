@@ -80,48 +80,6 @@ class OPENMS_DLLAPI AScore
     */
     PeptideHit compute(PeptideHit & hit, RichPeakSpectrum &real_spectrum, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const;
 
-    ///Computes the site determining_ions for the given AS and sequences in candidates
-    void computeSiteDeterminingIons(std::vector<RichPeakSpectrum> & th_spectra, ProbablePhosphoSites & candidates, std::vector<RichPeakSpectrum> & site_determining_ions) const;
-
-    /// return all phospho sites
-    std::vector<Size> getSites(AASequence & without_phospho) const;
-
-    /// calculate all n_phosphorylation_events sized sets of phospho sites (all versions of the peptides with exactly n_phosphorylation_events)
-    std::vector<std::vector<Size> > computePermutations(std::vector<Size> sites, Int n_phosphorylation_events) const;
-
-    /// Computes number of matched ions between windows and the given spectrum. All spectra have to be sorted by position!
-    Size numberOfMatchedIons(const RichPeakSpectrum & th, const RichPeakSpectrum & windows, Size depth, double fragment_mass_tolerance, bool fragment_mass_tolerance_ppm = false) const;
-
-    /// Computes the peptide score according to Beausoleil et al. page 1291
-    double peptideScore(const std::vector<double> & scores) const;
-
-    /**
-        @brief Finds the peptides with the highest PeptideScores and outputs all information for computing the AScore
-        @note This function assumes that there are more permutations than the assumed number of phosphorylations!
-    */
-    void determineHighestScoringPermutations(const std::vector<std::vector<double> > & peptide_site_scores, std::vector<ProbablePhosphoSites> & sites, const std::vector<std::vector<Size> > & permutations, std::multimap<double, Size>& ranking) const;
-
-    /// Computes the cumulative binomial probabilities.
-    double computeCumulativeScore(Size N, Size n, double p) const;
-    
-    /// Computes number of phospho events in a sequence
-    Size numberOfPhosphoEvents(const String sequence) const;
-    
-    /// Create variant of the peptide with all phosphorylations removed
-    AASequence removePhosphositesFromSequence(const String sequence) const;
-    
-    /// Create theoretical spectra with all combinations with the number of phosphorylation events
-    std::vector<RichPeakSpectrum> createTheoreticalSpectra(const std::vector<std::vector<Size> > & permutations, const AASequence & seq_without_phospho) const;
-    
-    /// Pick top 10 intensity peaks for each 100 Da windows
-    std::vector<RichPeakSpectrum> peakPickingPerWindowsInSpectrum(RichPeakSpectrum & real_spectrum) const;
-    
-    /// Create 10 scores for each theoretical spectrum (permutation), according to Beausoleil et al. Figure 3 b
-    std::vector<std::vector<double> > calculatePermutationPeptideScores(std::vector<RichPeakSpectrum> & th_spectra, const std::vector<RichPeakSpectrum> & windows_top10, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const;
-    
-    /// Rank weighted permutation scores ascending
-    std::multimap<double, Size> rankWeightedPermutationPeptideScores(const std::vector<std::vector<double> > & peptide_site_scores) const;
-    
   protected:
   
     template <class InputIterator1, class InputIterator2, class OutputIterator>
@@ -148,6 +106,48 @@ class OPENMS_DLLAPI AScore
       }
       return std::copy(first1,last1,result);
     }
+    
+    ///Computes the site determining_ions for the given AS and sequences in candidates
+    void computeSiteDeterminingIons_(std::vector<RichPeakSpectrum> & th_spectra, ProbablePhosphoSites & candidates, std::vector<RichPeakSpectrum> & site_determining_ions) const;
+
+    /// return all phospho sites
+    std::vector<Size> getSites_(AASequence & without_phospho) const;
+
+    /// calculate all n_phosphorylation_events sized sets of phospho sites (all versions of the peptides with exactly n_phosphorylation_events)
+    std::vector<std::vector<Size> > computePermutations_(std::vector<Size> sites, Int n_phosphorylation_events) const;
+
+    /// Computes number of matched ions between windows and the given spectrum. All spectra have to be sorted by position!
+    Size numberOfMatchedIons_(const RichPeakSpectrum & th, const RichPeakSpectrum & windows, Size depth, double fragment_mass_tolerance, bool fragment_mass_tolerance_ppm = false) const;
+
+    /// Computes the peptide score according to Beausoleil et al. page 1291
+    double peptideScore_(const std::vector<double> & scores) const;
+
+    /**
+        @brief Finds the peptides with the highest PeptideScores and outputs all information for computing the AScore
+        @note This function assumes that there are more permutations than the assumed number of phosphorylations!
+    */
+    void determineHighestScoringPermutations_(const std::vector<std::vector<double> > & peptide_site_scores, std::vector<ProbablePhosphoSites> & sites, const std::vector<std::vector<Size> > & permutations, std::multimap<double, Size>& ranking) const;
+
+    /// Computes the cumulative binomial probabilities.
+    double computeCumulativeScore_(Size N, Size n, double p) const;
+    
+    /// Computes number of phospho events in a sequence
+    Size numberOfPhosphoEvents_(const String sequence) const;
+    
+    /// Create variant of the peptide with all phosphorylations removed
+    AASequence removePhosphositesFromSequence_(const String sequence) const;
+    
+    /// Create theoretical spectra with all combinations with the number of phosphorylation events
+    std::vector<RichPeakSpectrum> createTheoreticalSpectra_(const std::vector<std::vector<Size> > & permutations, const AASequence & seq_without_phospho) const;
+    
+    /// Pick top 10 intensity peaks for each 100 Da windows
+    std::vector<RichPeakSpectrum> peakPickingPerWindowsInSpectrum_(RichPeakSpectrum & real_spectrum) const;
+    
+    /// Create 10 scores for each theoretical spectrum (permutation), according to Beausoleil et al. Figure 3 b
+    std::vector<std::vector<double> > calculatePermutationPeptideScores_(std::vector<RichPeakSpectrum> & th_spectra, const std::vector<RichPeakSpectrum> & windows_top10, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const;
+    
+    /// Rank weighted permutation scores ascending
+    std::multimap<double, Size> rankWeightedPermutationPeptideScores_(const std::vector<std::vector<double> > & peptide_site_scores) const;
 };
 
 } // namespace OpenMS
