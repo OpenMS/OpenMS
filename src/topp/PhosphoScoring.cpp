@@ -70,6 +70,9 @@ using namespace std;
 
   For details, see:\n
   Beausoleil <em>et al.</em>: <a href="http://dx.doi.org/10.1038/nbt1240">A probability-based approach for high-throughput protein phosphorylation analysis and site localization</a> (Nat. Biotechnol., 2006, PMID: 16964243).
+  
+  In the output the score of the peptide hit describes the peptide score, which is a weighted average of all ten scores of the selected peptide sequence. 
+  For each phosphorylation site an individual Ascore was calculated and listed as meta value of the peptide hit (e.g. AScore_1, AScore_2).
 
   @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
@@ -308,6 +311,7 @@ protected:
 
         PeptideIdentification new_hits(*hits);
         new_hits.setScoreType("PhosphoScore");
+        new_hits.setHigherScoreBetter(true);
         new_hits.setHits(scored_peptides);
         pep_out.push_back(new_hits);
       }
