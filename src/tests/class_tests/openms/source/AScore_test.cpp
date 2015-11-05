@@ -43,10 +43,83 @@
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(FalseDiscoveryRate, "$Id$")
+START_TEST(AScore, "$Id$")
 
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
+//=============================================================================
+// peak data see Beausoleil et al. Figure 3
+//=============================================================================
+  
+//b3
+RichPeak1D peak6;
+peak6.getPosition()[0] = 303.1;
+peak6.setIntensity(1.0f);
+
+//y3
+RichPeak1D peak;
+peak.getPosition()[0] = 411.1;
+peak.setIntensity(1.0f);
+
+//y4
+RichPeak1D peak2;
+peak2.getPosition()[0] = 539.2;
+peak2.setIntensity(1.0f);
+
+//y5
+RichPeak1D peak3;
+peak3.getPosition()[0] = 668.3;
+peak3.setIntensity(1.0f);
+
+//b9
+RichPeak1D peak4;
+peak4.getPosition()[0] = 960.5;
+peak4.setIntensity(1.0f);
+
+//b10
+RichPeak1D peak5;
+peak5.getPosition()[0] = 1088.5;
+peak5.setIntensity(1.0f);
+
+//=============================================================================
+// create spectrum
+//=============================================================================
+MSSpectrum<RichPeak1D > tmp;  
+tmp.push_back(peak6);
+tmp.push_back(peak);
+tmp.push_back(peak2);
+tmp.push_back(peak3);
+tmp.push_back(peak4);
+tmp.push_back(peak5);
+
+//=============================================================================
+  AASequence seq_without_phospho = AASequence::fromString("QSSVTQVTEQSPK");
+//=============================================================================
+
+//=============================================================================
+// create permutations based on sequence QSSVTQVTEQSPK
+//=============================================================================
+std::vector<std::vector<Size> > permutations;
+std::vector<Size> perm;
+
+perm.clear();
+perm.push_back(1);
+permutations.push_back(perm);
+
+perm.clear();
+perm.push_back(2);
+permutations.push_back(perm);
+
+perm.clear();
+perm.push_back(4);
+permutations.push_back(perm);
+
+perm.clear();
+perm.push_back(7);
+permutations.push_back(perm);
+
+perm.clear();
+perm.push_back(10);
+permutations.push_back(perm);
+//=============================================================================
 
 AScore* ptr = 0;
 AScore* nullPointer = 0;
@@ -63,13 +136,8 @@ START_SECTION(~AScore())
 }
 END_SECTION
 ptr = new AScore();
-START_SECTION((PeptideHit compute(PeptideHit & hit, RichPeakSpectrum &real_spectrum, double fragment_mass_tolerance, bool fragment_mass_unit_ppm)))
-{
 
-}
-END_SECTION
-
-START_SECTION((double computeCumulativeScore(Size N, Size n, double p)))
+START_SECTION(double computeCumulativeScore(Size N, Size n, double p))
 {
   Size n = 5;
   Size N = 1;
@@ -85,8 +153,9 @@ START_SECTION((double computeCumulativeScore(Size N, Size n, double p)))
 }
 END_SECTION
 
-START_SECTION((determineHighestScoringPermutations(const std::vector<std::vector<double> > & peptide_site_scores, std::vector<ProbablePhosphoSites> & sites, const std::vector<std::vector<Size> > & permutations)))
+START_SECTION(determineHighestScoringPermutations(const std::vector<std::vector<double> > & peptide_site_scores, std::vector<ProbablePhosphoSites> & sites, const std::vector<std::vector<Size> > & permutations))
 {
+  std::multimap<double, Size> ranking;
   std::vector< std::vector<double> > peptide_site_scores_1;
   std::vector< std::vector<double> > peptide_site_scores_2;
   std::vector< std::vector<double> > peptide_site_scores_3;
@@ -155,7 +224,8 @@ START_SECTION((determineHighestScoringPermutations(const std::vector<std::vector
 
 
   vector<ProbablePhosphoSites> sites;
-  ptr->determineHighestScoringPermutations(peptide_site_scores_1,sites,permutations);
+  ranking = ptr->rankWeightedPermutationPeptideScores(peptide_site_scores_1);
+  ptr->determineHighestScoringPermutations(peptide_site_scores_1,sites,permutations,ranking);
   TEST_EQUAL(sites.size(),3)
   TEST_EQUAL(sites[0].seq_1, 3);
   TEST_EQUAL(sites[0].seq_2,1);
@@ -173,7 +243,8 @@ START_SECTION((determineHighestScoringPermutations(const std::vector<std::vector
   TEST_EQUAL(sites[2].seq_2,0);
   TEST_EQUAL(sites[2].peak_depth, 1)
 
-  ptr->determineHighestScoringPermutations(peptide_site_scores_3,sites,permutations);
+  ranking = ptr->rankWeightedPermutationPeptideScores(peptide_site_scores_3);
+  ptr->determineHighestScoringPermutations(peptide_site_scores_3,sites,permutations,ranking);
   TEST_EQUAL(sites.size(),3)
   TEST_EQUAL(sites[0].seq_1, 1);
   TEST_EQUAL(sites[0].seq_2,3);
@@ -191,7 +262,8 @@ START_SECTION((determineHighestScoringPermutations(const std::vector<std::vector
   TEST_EQUAL(sites[2].seq_2,0);
   TEST_EQUAL(sites[2].peak_depth, 1)
 
-  ptr->determineHighestScoringPermutations(peptide_site_scores_2,sites,permutations);
+  ranking = ptr->rankWeightedPermutationPeptideScores(peptide_site_scores_2);
+  ptr->determineHighestScoringPermutations(peptide_site_scores_2,sites,permutations,ranking);
   TEST_EQUAL(sites.size(),3)
   TEST_EQUAL(sites[0].seq_1, 2);
   TEST_EQUAL(sites[0].seq_2,1);
@@ -244,7 +316,8 @@ START_SECTION((determineHighestScoringPermutations(const std::vector<std::vector
   per.push_back(6);
   permutations.push_back(per);
 
-  ptr->determineHighestScoringPermutations(peptide_site_scores_1,sites,permutations);
+  ranking = ptr->rankWeightedPermutationPeptideScores(peptide_site_scores_1);
+  ptr->determineHighestScoringPermutations(peptide_site_scores_1,sites,permutations,ranking);
   TEST_EQUAL(sites.size(),1)
   TEST_EQUAL(sites[0].seq_1,0)
   TEST_EQUAL(sites[0].seq_2,1)
@@ -282,7 +355,9 @@ START_SECTION((determineHighestScoringPermutations(const std::vector<std::vector
   peptide_site_scores_1.push_back(temp);
   peptide_site_scores_1.push_back(temp);
   peptide_site_scores_1.push_back(temp);
-  ptr->determineHighestScoringPermutations(peptide_site_scores_1,sites,permutations);
+  
+  ranking = ptr->rankWeightedPermutationPeptideScores(peptide_site_scores_1);
+  ptr->determineHighestScoringPermutations(peptide_site_scores_1,sites,permutations,ranking);
   TEST_EQUAL(sites.size(),2)
   TEST_EQUAL(sites[0].seq_1,0)
   TEST_EQUAL(sites[0].seq_2,4)
@@ -298,35 +373,62 @@ START_SECTION((determineHighestScoringPermutations(const std::vector<std::vector
 }
 END_SECTION
 
-START_SECTION((computeSiteDeterminingIons(std::vector<RichPeakSpectrum> & th_spectra, ProbablePhosphoSites & candidates, Int charge, std::vector<RichPeakSpectrum> & site_determining_ions)))
+START_SECTION(computeSiteDeterminingIons(std::vector<RichPeakSpectrum> & th_spectra, ProbablePhosphoSites & candidates, std::vector<RichPeakSpectrum> & site_determining_ions))
 {
-  vector<RichPeakSpectrum> th_spectra;
-  RichPeakSpectrum temp1,temp2;
-  temp1.setName("VT(Phospho)EQSP");
-  temp2.setName("VTEQS(Phospho)P");
   ProbablePhosphoSites candidates;
+  RichPeakSpectrum temp1,temp2;
+  vector<RichPeakSpectrum> site_determining_ions;
+  
+  RichPeakSpectrum &real_spectrum = tmp;
+  std::vector<RichPeakSpectrum> windows_top10(ptr->peakPickingPerWindowsInSpectrum(real_spectrum));
+  
+  AASequence seq = seq_without_phospho;
+  vector<RichPeakSpectrum> th_s(ptr->createTheoreticalSpectra(permutations, seq));
+  
+  candidates.seq_1 = 3;
+  candidates.seq_2 = 4;
+  candidates.first = 10;
+  candidates.second = 7;
+  ptr->computeSiteDeterminingIons(th_s,candidates,site_determining_ions);
+  TEST_EQUAL(site_determining_ions.size(),2)
+  TEST_EQUAL(site_determining_ions[0].size(),6)
+  TEST_EQUAL(site_determining_ions[1].size(),6)
+  
+  //=============================================================================
+  
+  th_s.clear();
+  seq = AASequence::fromString("VTEQSP");
   candidates.seq_1 = 0;
   candidates.seq_2 = 1;
   candidates.first = 1;
   candidates.second = 4;
-  candidates.peak_depth = 1;
-  th_spectra.push_back(temp1);
-  th_spectra.push_back(temp2);
-  vector<RichPeakSpectrum> site_determining_ions;
-  ptr->computeSiteDeterminingIons(th_spectra,candidates,1,site_determining_ions);
+  
+  vector<vector<Size> > p;
+  perm.clear();
+  perm.push_back(candidates.first);
+  p.push_back(perm);
+
+  perm.clear();
+  perm.push_back(candidates.second);
+  p.push_back(perm);
+  
+  th_s = ptr->createTheoreticalSpectra(p, seq);
+  
+  ptr->computeSiteDeterminingIons(th_s,candidates,site_determining_ions);
   TEST_EQUAL(site_determining_ions.size(),2)
   TEST_EQUAL(site_determining_ions[0].size(),6)
   TEST_EQUAL(site_determining_ions[1].size(),6)
-  candidates.first = 4;
-  candidates.second = 1;
-  candidates.seq_1 = 1;
-  candidates.seq_2 = 0;
   TEST_REAL_SIMILAR(site_determining_ions[0][0].getMZ(),203.102)
   TEST_REAL_SIMILAR(site_determining_ions[0][site_determining_ions[0].size()-1].getMZ(),538.19)
   TEST_REAL_SIMILAR(site_determining_ions[1][0].getMZ(),201.123)
   TEST_REAL_SIMILAR(site_determining_ions[1][site_determining_ions[1].size()-1].getMZ(),540.17)
-
-  ptr->computeSiteDeterminingIons(th_spectra,candidates,1,site_determining_ions);
+  
+  candidates.first = 4;
+  candidates.second = 1;
+  candidates.seq_1 = 1;
+  candidates.seq_2 = 0;
+  
+  ptr->computeSiteDeterminingIons(th_s,candidates,site_determining_ions);
   TEST_EQUAL(site_determining_ions.size(),2)
   TEST_EQUAL(site_determining_ions[0].size(),6)
   TEST_EQUAL(site_determining_ions[1].size(),6)
@@ -335,31 +437,41 @@ START_SECTION((computeSiteDeterminingIons(std::vector<RichPeakSpectrum> & th_spe
   TEST_REAL_SIMILAR(site_determining_ions[1][site_determining_ions[1].size()-1].getMZ(),538.19)
   TEST_REAL_SIMILAR(site_determining_ions[0][0].getMZ(),201.123)
   TEST_REAL_SIMILAR(site_determining_ions[0][site_determining_ions[0].size()-1].getMZ(),540.17)
-
-  temp1.setName("T(Phospho)YQYS");
-  temp2.setName("TYQYS(Phospho)");
-  th_spectra.clear();
-  th_spectra.push_back(temp1);
-  th_spectra.push_back(temp2);
+  
+  //=============================================================================
+  
+  th_s.clear();
+  seq = AASequence::fromString("TYQYS");
   candidates.seq_1 = 0;
   candidates.seq_2 = 1;
   candidates.first = 0;
   candidates.second = 4;
-  ptr->computeSiteDeterminingIons(th_spectra,candidates,1,site_determining_ions);
+  
+  p.clear();
+  perm.clear();
+  perm.push_back(candidates.first);
+  p.push_back(perm);
+
+  perm.clear();
+  perm.push_back(candidates.second);
+  p.push_back(perm);
+  
+  th_s = ptr->createTheoreticalSpectra(p, seq);
+  
+  ptr->computeSiteDeterminingIons(th_s,candidates,site_determining_ions);
   TEST_EQUAL(site_determining_ions.size(),2)
   TEST_EQUAL(site_determining_ions[0].size(),7)
   TEST_EQUAL(site_determining_ions[1].size(),7)
-
   TEST_REAL_SIMILAR(site_determining_ions[0][0].getMZ(),106.05)
   TEST_REAL_SIMILAR(site_determining_ions[0][site_determining_ions[0].size()-1].getMZ(),636.206)
   TEST_REAL_SIMILAR(site_determining_ions[1][0].getMZ(),186.016)
   TEST_REAL_SIMILAR(site_determining_ions[1][site_determining_ions[1].size()-1].getMZ(),640.201)
-
-    candidates.first = 4;
+  
+  candidates.first = 4;
   candidates.second = 0;
   candidates.seq_1 = 1;
   candidates.seq_2 = 0;
-  ptr->computeSiteDeterminingIons(th_spectra,candidates,1,site_determining_ions);
+  ptr->computeSiteDeterminingIons(th_s,candidates,site_determining_ions);
   TEST_EQUAL(site_determining_ions.size(),2)
   TEST_EQUAL(site_determining_ions[0].size(),7)
   TEST_EQUAL(site_determining_ions[1].size(),7)
@@ -368,34 +480,45 @@ START_SECTION((computeSiteDeterminingIons(std::vector<RichPeakSpectrum> & th_spe
   TEST_REAL_SIMILAR(site_determining_ions[1][site_determining_ions[1].size()-1].getMZ(),636.206)
   TEST_REAL_SIMILAR(site_determining_ions[0][0].getMZ(),186.016)
   TEST_REAL_SIMILAR(site_determining_ions[0][site_determining_ions[0].size()-1].getMZ(),640.201)
-
-  temp1.setName("TST(Phospho)YQYSYPP");
-  temp2.setName("TSTYQYS(Phospho)YPP");
-  th_spectra.clear();
-  th_spectra.push_back(temp1);
-  th_spectra.push_back(temp2);
+  
+  //=============================================================================
+  
+  th_s.clear();
+  seq = AASequence::fromString("TSTYQYSYPP");
   candidates.seq_1 = 0;
   candidates.seq_2 = 1;
   candidates.first = 2;
   candidates.second = 6;
-  ptr->computeSiteDeterminingIons(th_spectra,candidates,1,site_determining_ions);
+  
+  p.clear();
+  perm.clear();
+  perm.push_back(candidates.first);
+  p.push_back(perm);
+
+  perm.clear();
+  perm.push_back(candidates.second);
+  p.push_back(perm);
+  
+  th_s = ptr->createTheoreticalSpectra(p, seq);
+  
+  ptr->computeSiteDeterminingIons(th_s,candidates,site_determining_ions);
   TEST_EQUAL(site_determining_ions.size(),2)
-  TEST_EQUAL(site_determining_ions[0].size(),9)
-  TEST_EQUAL(site_determining_ions[1].size(),9)
+  TEST_EQUAL(site_determining_ions[0].size(),8)
+  TEST_EQUAL(site_determining_ions[1].size(),8)
 
   TEST_REAL_SIMILAR(site_determining_ions[0][0].getMZ(),370.101)
   TEST_REAL_SIMILAR(site_determining_ions[0][site_determining_ions[0].size()-1].getMZ(),917.403)
   TEST_REAL_SIMILAR(site_determining_ions[1][0].getMZ(),290.135)
   TEST_REAL_SIMILAR(site_determining_ions[1][site_determining_ions[1].size()-1].getMZ(),997.37)
-
+  
   candidates.seq_1 = 1;
   candidates.seq_2 = 0;
   candidates.first = 6;
   candidates.second = 2;
-  ptr->computeSiteDeterminingIons(th_spectra,candidates,1,site_determining_ions);
+  ptr->computeSiteDeterminingIons(th_s,candidates,site_determining_ions);
   TEST_EQUAL(site_determining_ions.size(),2)
-  TEST_EQUAL(site_determining_ions[0].size(),9)
-  TEST_EQUAL(site_determining_ions[1].size(),9)
+  TEST_EQUAL(site_determining_ions[0].size(),8)
+  TEST_EQUAL(site_determining_ions[1].size(),8)
 
   TEST_REAL_SIMILAR(site_determining_ions[1][0].getMZ(),370.101)
   TEST_REAL_SIMILAR(site_determining_ions[1][site_determining_ions[1].size()-1].getMZ(),917.403)
@@ -404,70 +527,171 @@ START_SECTION((computeSiteDeterminingIons(std::vector<RichPeakSpectrum> & th_spe
 }
 END_SECTION
 
-START_SECTION((std::vector<Size> getSites(AASequence& without_phospho)))
-AASequence phospho = AASequence::fromString("VTQSPSSP");
-vector<Size> tupel(ptr->getSites(phospho));
-TEST_EQUAL(4, tupel.size())
-TEST_EQUAL(1, tupel[0])
-TEST_EQUAL(3,tupel[1])
-TEST_EQUAL(5,tupel[2])
-TEST_EQUAL(6,tupel[3])
+START_SECTION(std::vector<Size> getSites(AASequence& without_phospho))
+{
+  AASequence phospho = AASequence::fromString("VTQSPSSP");
+  vector<Size> tupel(ptr->getSites(phospho));
+  TEST_EQUAL(4, tupel.size())
+  TEST_EQUAL(1, tupel[0])
+  TEST_EQUAL(3,tupel[1])
+  TEST_EQUAL(5,tupel[2])
+  TEST_EQUAL(6,tupel[3])
+}
 END_SECTION
 
-START_SECTION((std::vector<std::vector<Size> > computePermutations(std::vector<Size>& tupel,Int number_of_phospho_sites)))
-vector<Size> tupel;
-tupel.push_back(1);
-tupel.push_back(2);
-tupel.push_back(3);
-tupel.push_back(4);
-vector<vector<Size> > permutations;
-permutations = ptr->computePermutations(tupel,1);
-TEST_EQUAL(4,permutations.size())
-TEST_EQUAL(1,permutations[0][0])
-TEST_EQUAL(2,permutations[1][0])
-TEST_EQUAL(3,permutations[2][0])
-TEST_EQUAL(4,permutations[3][0])
+START_SECTION(std::vector<std::vector<Size> > computePermutations(std::vector<Size>& tupel,Int number_of_phospho_sites))
+{
+  vector<Size> tupel;
+  tupel.push_back(1);
+  tupel.push_back(2);
+  tupel.push_back(3);
+  tupel.push_back(4);
+  vector<vector<Size> > permutations;
+  permutations = ptr->computePermutations(tupel,1);
+  TEST_EQUAL(4,permutations.size())
+  TEST_EQUAL(1,permutations[0][0])
+  TEST_EQUAL(2,permutations[1][0])
+  TEST_EQUAL(3,permutations[2][0])
+  TEST_EQUAL(4,permutations[3][0])
 
-permutations = ptr->computePermutations(tupel,2);
-TEST_EQUAL(6,permutations.size())
-TEST_EQUAL(1,permutations[0][0])
-TEST_EQUAL(2,permutations[0][1])
-TEST_EQUAL(1,permutations[1][0])
-TEST_EQUAL(3,permutations[1][1])
-TEST_EQUAL(1,permutations[2][0])
-TEST_EQUAL(4,permutations[2][1])
-TEST_EQUAL(2,permutations[3][0])
-TEST_EQUAL(3,permutations[3][1])
-TEST_EQUAL(2,permutations[4][0])
-TEST_EQUAL(4,permutations[4][1])
-TEST_EQUAL(3,permutations[5][0])
-TEST_EQUAL(4,permutations[5][1])
+  permutations = ptr->computePermutations(tupel,2);
+  TEST_EQUAL(6,permutations.size())
+  TEST_EQUAL(1,permutations[0][0])
+  TEST_EQUAL(2,permutations[0][1])
+  TEST_EQUAL(1,permutations[1][0])
+  TEST_EQUAL(3,permutations[1][1])
+  TEST_EQUAL(1,permutations[2][0])
+  TEST_EQUAL(4,permutations[2][1])
+  TEST_EQUAL(2,permutations[3][0])
+  TEST_EQUAL(3,permutations[3][1])
+  TEST_EQUAL(2,permutations[4][0])
+  TEST_EQUAL(4,permutations[4][1])
+  TEST_EQUAL(3,permutations[5][0])
+  TEST_EQUAL(4,permutations[5][1])
 
-permutations = ptr->computePermutations(tupel,3);
+  permutations = ptr->computePermutations(tupel,3);
 
-TEST_EQUAL(4,permutations.size())
-TEST_EQUAL(1,permutations[0][0])
-TEST_EQUAL(2,permutations[0][1])
-TEST_EQUAL(3,permutations[0][2])
-TEST_EQUAL(1,permutations[1][0])
-TEST_EQUAL(2,permutations[1][1])
-TEST_EQUAL(4,permutations[1][2])
-TEST_EQUAL(1,permutations[2][0])
-TEST_EQUAL(3,permutations[2][1])
-TEST_EQUAL(4,permutations[2][2])
-TEST_EQUAL(2,permutations[3][0])
-TEST_EQUAL(3,permutations[3][1])
-TEST_EQUAL(4,permutations[3][2])
+  TEST_EQUAL(4,permutations.size())
+  TEST_EQUAL(1,permutations[0][0])
+  TEST_EQUAL(2,permutations[0][1])
+  TEST_EQUAL(3,permutations[0][2])
+  TEST_EQUAL(1,permutations[1][0])
+  TEST_EQUAL(2,permutations[1][1])
+  TEST_EQUAL(4,permutations[1][2])
+  TEST_EQUAL(1,permutations[2][0])
+  TEST_EQUAL(3,permutations[2][1])
+  TEST_EQUAL(4,permutations[2][2])
+  TEST_EQUAL(2,permutations[3][0])
+  TEST_EQUAL(3,permutations[3][1])
+  TEST_EQUAL(4,permutations[3][2])
 
 
-permutations = ptr->computePermutations(tupel,4);
-TEST_EQUAL(1,permutations.size())
-TEST_EQUAL(1,permutations[0][0])
-TEST_EQUAL(2,permutations[0][1])
-TEST_EQUAL(3,permutations[0][2])
-TEST_EQUAL(4,permutations[0][3])
-
+  permutations = ptr->computePermutations(tupel,4);
+  TEST_EQUAL(1,permutations.size())
+  TEST_EQUAL(1,permutations[0][0])
+  TEST_EQUAL(2,permutations[0][1])
+  TEST_EQUAL(3,permutations[0][2])
+  TEST_EQUAL(4,permutations[0][3])
+}
 END_SECTION
+
+START_SECTION(AASequence removePhosphositesFromSequence(const String sequence))
+{
+  String sequence = "QSSVTQVTEQS(Phospho)PK";
+  TEST_EQUAL(ptr->removePhosphositesFromSequence(sequence).toString(),"QSSVTQVTEQSPK");
+}
+END_SECTION
+
+START_SECTION(std::vector<RichPeakSpectrum> createTheoreticalSpectra(const std::vector<std::vector<Size> > & permutations, const AASequence & seq_without_phospho))
+{
+  vector<RichPeakSpectrum> th_spectra(ptr->createTheoreticalSpectra(permutations, seq_without_phospho));
+  
+  TEST_EQUAL(th_spectra.size(),5);
+  TEST_EQUAL(th_spectra[0].getName(),"QS(Phospho)SVTQVTEQSPK");
+  TEST_EQUAL(th_spectra[4].getName(),"QSSVTQVTEQS(Phospho)PK");
+}
+END_SECTION
+
+START_SECTION(std::vector<RichPeakSpectrum> peakPickingPerWindowsInSpectrum(RichPeakSpectrum & real_spectrum))
+{
+  // (see Beausoleil et al. Figure 3)
+  MSSpectrum<RichPeak1D > tmp;  
+	tmp.push_back(peak6);
+  tmp.push_back(peak);
+  tmp.push_back(peak2);
+  tmp.push_back(peak3);
+  tmp.push_back(peak4);
+  tmp.push_back(peak5);
+  RichPeakSpectrum &real_spectrum = tmp;
+  
+  std::vector<RichPeakSpectrum> windows_top10(ptr->peakPickingPerWindowsInSpectrum(real_spectrum));
+  TEST_EQUAL(windows_top10.size(),8);
+  TEST_EQUAL(windows_top10[0].size(),1);
+  TEST_EQUAL(windows_top10[1].size(),1);
+  TEST_EQUAL(windows_top10[4].size(),0);
+  TEST_EQUAL(windows_top10[7].size(),1);
+}
+END_SECTION
+
+START_SECTION(Size numberOfMatchedIons(const RichPeakSpectrum & th, const RichPeakSpectrum & windows, Size depth, double fragment_mass_tolerance, bool fragment_mass_tolerance_ppm = false))
+{
+  RichPeakSpectrum &real_spectrum = tmp;
+  double fragment_mass_tolerance = 0.5;
+  bool fragment_mass_tolerance_ppm = false;
+  
+  vector<RichPeakSpectrum> th_spectra(ptr->createTheoreticalSpectra(permutations, seq_without_phospho));
+  std::vector<RichPeakSpectrum> windows_top10(ptr->peakPickingPerWindowsInSpectrum(real_spectrum));
+  
+  //QSSVTQVTEQS(phospho)PK
+  vector<RichPeakSpectrum>::iterator it = th_spectra.end() - 1;
+  TEST_EQUAL(ptr->numberOfMatchedIons(*it, windows_top10[0], 1, fragment_mass_tolerance, fragment_mass_tolerance_ppm), 1);
+  TEST_EQUAL(ptr->numberOfMatchedIons(*it, windows_top10[1], 1, fragment_mass_tolerance, fragment_mass_tolerance_ppm), 1);
+}
+END_SECTION
+
+// of best peptide
+START_SECTION(calculateCumulativeBinominalProbabilityScore)
+{
+  std::cout << std::endl;
+  double fragment_mass_tolerance = 0.5;
+  bool fragment_mass_tolerance_ppm = false;
+  
+  vector<ProbablePhosphoSites> phospho_sites;
+  phospho_sites.clear();
+  phospho_sites.resize(1);
+  
+  phospho_sites[0].seq_1 = 4;
+  phospho_sites[0].seq_2 = 3;
+  phospho_sites[0].peak_depth = 6;
+  phospho_sites[0].first = 10;
+  phospho_sites[0].second = 7;
+  
+  
+  RichPeakSpectrum &real_spectrum = tmp;
+  std::vector<RichPeakSpectrum> windows_top10(ptr->peakPickingPerWindowsInSpectrum(real_spectrum));
+  vector<RichPeakSpectrum> th_spectra(ptr->createTheoreticalSpectra(permutations, seq_without_phospho));
+  
+  for (vector<ProbablePhosphoSites>::iterator s_it = phospho_sites.begin(); s_it < phospho_sites.end(); ++s_it)
+  {
+    vector<RichPeakSpectrum> site_determining_ions;
+    ptr->computeSiteDeterminingIons(th_spectra, *s_it, site_determining_ions);
+    
+    Size N = site_determining_ions[0].size(); // all possibilities have the same number so take the first one
+    double p = static_cast<double>(s_it->peak_depth) / 100.0;
+    
+    Size n_first = 0;
+    for (Size depth = 0; depth != windows_top10.size(); ++depth) // for each 100 m/z window
+    {
+      n_first += ptr->numberOfMatchedIons(site_determining_ions[0], windows_top10[depth], s_it->peak_depth, fragment_mass_tolerance, fragment_mass_tolerance_ppm);
+    }
+    
+    double P_first = ptr->computeCumulativeScore(N, n_first, p);
+    P_first = -10 * log10(P_first);
+    TEST_REAL_SIMILAR(P_first, 53.5336889240929);
+  }
+}
+END_SECTION
+
 delete ptr;
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
