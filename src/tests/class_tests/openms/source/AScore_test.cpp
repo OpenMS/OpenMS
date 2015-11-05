@@ -89,6 +89,11 @@ class AScoreTest : public AScore
       return createTheoreticalSpectra_(permutations, seq_without_phospho);
     }
     
+    std::vector<RichPeakSpectrum> createTheoreticalSpectraTest_(const AASequence & seq_without_phospho) const
+    {
+      return createTheoreticalSpectra_(seq_without_phospho);
+    }
+    
     std::vector<RichPeakSpectrum> peakPickingPerWindowsInSpectrumTest_(RichPeakSpectrum & real_spectrum) const
     {
       return peakPickingPerWindowsInSpectrum_(real_spectrum);
@@ -675,6 +680,12 @@ START_SECTION(std::vector<RichPeakSpectrum> createTheoreticalSpectraTest_(const 
   TEST_EQUAL(th_spectra.size(),5);
   TEST_EQUAL(th_spectra[0].getName(),"QS(Phospho)SVTQVTEQSPK");
   TEST_EQUAL(th_spectra[4].getName(),"QSSVTQVTEQS(Phospho)PK");
+  
+  th_spectra.clear();
+  th_spectra = ptr_test->createTheoreticalSpectraTest_(seq_without_phospho);
+  
+  TEST_EQUAL(th_spectra.size(),1);
+  TEST_EQUAL(th_spectra[0].getName(),seq_without_phospho.toString());
 }
 END_SECTION
 

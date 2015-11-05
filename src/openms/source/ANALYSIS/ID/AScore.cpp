@@ -88,7 +88,6 @@ namespace OpenMS
     vector<RichPeakSpectrum> th_spectra;
     if (permutations.empty())
     {
-      std::cout << "TEST" << std::endl;
       th_spectra = createTheoreticalSpectra_(seq_without_phospho);
     }
     else
