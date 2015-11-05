@@ -79,34 +79,49 @@ namespace OpenMS
       number_of_phosphorylation_events = number_of_STY;
     }
     
-    // if there are as many phosphorylation events as phospho sites than no selection needs to be performed in this case.
-    if (real_spectrum.empty() || number_of_phosphorylation_events == 0 || number_of_STY == 0 || number_of_STY == number_of_phosphorylation_events)
+    if (real_spectrum.empty())
     {
       return phospho;
     }
 
     vector<vector<Size> > permutations(computePermutations_(sites, (Int)number_of_phosphorylation_events));
-    vector<RichPeakSpectrum> th_spectra(createTheoreticalSpectra_(permutations, seq_without_phospho));
-    
+    vector<RichPeakSpectrum> th_spectra;
+    if (permutations.empty())
+    {
+      std::cout << "TEST" << std::endl;
+      th_spectra = createTheoreticalSpectra_(seq_without_phospho);
+    }
+    else
+    {
+      th_spectra = createTheoreticalSpectra_(permutations, seq_without_phospho);
+    }
+        
+    // prepare real spectrum windows
     if (!real_spectrum.isSorted())
     {
       real_spectrum.sortByPosition();
     }
-
     vector<RichPeakSpectrum> windows_top10(peakPickingPerWindowsInSpectrum_(real_spectrum));
     
     // calculate peptide score for each possible phospho site permutation
     vector<vector<double> > peptide_site_scores(calculatePermutationPeptideScores_(th_spectra, windows_top10, fragment_mass_tolerance, fragment_mass_unit_ppm));
+    
     // rank peptide permutations ascending
     multimap<double, Size> ranking(rankWeightedPermutationPeptideScores_(peptide_site_scores));
     
-    vector<ProbablePhosphoSites> phospho_sites;
-    determineHighestScoringPermutations_(peptide_site_scores, phospho_sites, permutations, ranking);
-    
     // initialize score with highest peptide score (aka highest weighted score)
     phospho.setScore(ranking.rbegin()->first);
+    
+    if (number_of_phosphorylation_events == 0 || number_of_STY == 0 || number_of_STY == number_of_phosphorylation_events)
+    {
+      return phospho;
+    }
+    
     phospho.setSequence(AASequence::fromString(th_spectra[ranking.rbegin()->second].getName()));
     phospho.setMetaValue("Search_engine_sequence", hit.getSequence().toString());
+    
+    vector<ProbablePhosphoSites> phospho_sites;
+    determineHighestScoringPermutations_(peptide_site_scores, phospho_sites, permutations, ranking);
     
     Int rank = 1;
     for (vector<ProbablePhosphoSites>::iterator s_it = phospho_sites.begin(); s_it < phospho_sites.end(); ++s_it)
@@ -344,10 +359,14 @@ namespace OpenMS
 
   vector<vector<Size> > AScore::computePermutations_(vector<Size> sites, Int n_phosphorylation_events) const
   {
-    // Only one phosphorylation event? Then return every site is a permutation.
-    if (n_phosphorylation_events == 1)
+    vector<vector<Size>  > permutations;
+    
+    if (n_phosphorylation_events == 0)
     {
-      vector<vector<Size>  > permutations;
+      return permutations;
+    }
+    else if (n_phosphorylation_events == 1)
+    {
       for (Size i = 0; i < sites.size(); ++i)
       {
         vector<Size> temp;
@@ -444,6 +463,20 @@ namespace OpenMS
       spectrum_generator.addPeaks(th_spectra[i], seq, Residue::YIon, 1);
       th_spectra[i].setName(seq.toString());
     }
+    return th_spectra;
+  }
+  
+  vector<RichPeakSpectrum> AScore::createTheoreticalSpectra_(const AASequence & seq_without_phospho) const
+  {
+    vector<RichPeakSpectrum> th_spectra;
+    TheoreticalSpectrumGenerator spectrum_generator;
+    
+    // we mono-charge spectra
+    th_spectra.resize(1);
+    spectrum_generator.addPeaks(th_spectra[0], seq_without_phospho, Residue::BIon, 1);
+    spectrum_generator.addPeaks(th_spectra[0], seq_without_phospho, Residue::YIon, 1);
+    th_spectra[0].setName(seq_without_phospho.toString());
+    
     return th_spectra;
   }
   

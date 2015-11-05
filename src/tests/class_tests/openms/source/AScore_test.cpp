@@ -610,6 +610,7 @@ START_SECTION(std::vector<std::vector<Size> > computePermutationsTest_(std::vect
   tupel.push_back(3);
   tupel.push_back(4);
   vector<vector<Size> > permutations;
+  
   permutations = ptr_test->computePermutationsTest_(tupel,1);
   TEST_EQUAL(4,permutations.size())
   TEST_EQUAL(1,permutations[0][0])
@@ -633,7 +634,6 @@ START_SECTION(std::vector<std::vector<Size> > computePermutationsTest_(std::vect
   TEST_EQUAL(4,permutations[5][1])
 
   permutations = ptr_test->computePermutationsTest_(tupel,3);
-
   TEST_EQUAL(4,permutations.size())
   TEST_EQUAL(1,permutations[0][0])
   TEST_EQUAL(2,permutations[0][1])
@@ -648,13 +648,16 @@ START_SECTION(std::vector<std::vector<Size> > computePermutationsTest_(std::vect
   TEST_EQUAL(3,permutations[3][1])
   TEST_EQUAL(4,permutations[3][2])
 
-
   permutations = ptr_test->computePermutationsTest_(tupel,4);
   TEST_EQUAL(1,permutations.size())
   TEST_EQUAL(1,permutations[0][0])
   TEST_EQUAL(2,permutations[0][1])
   TEST_EQUAL(3,permutations[0][2])
   TEST_EQUAL(4,permutations[0][3])
+  
+  tupel.clear();
+  permutations = ptr_test->computePermutationsTest_(tupel,0);
+  TEST_EQUAL(0,permutations.size())
 }
 END_SECTION
 
