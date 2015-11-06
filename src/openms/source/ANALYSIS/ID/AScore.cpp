@@ -108,16 +108,14 @@ namespace OpenMS
     // rank peptide permutations ascending
     multimap<double, Size> ranking(rankWeightedPermutationPeptideScores_(peptide_site_scores));
     
-    // initialize score with highest peptide score (aka highest weighted score)
-    phospho.setScore(ranking.rbegin()->first);
+    phospho.setScore(ranking.rbegin()->first); // initialize score with highest peptide score (aka highest weighted score)
+    phospho.setSequence(AASequence::fromString(th_spectra[ranking.rbegin()->second].getName()));
+    phospho.setMetaValue("Search_engine_sequence", hit.getSequence().toString());
     
     if (number_of_phosphorylation_events == 0 || number_of_STY == 0 || number_of_STY == number_of_phosphorylation_events)
     {
       return phospho;
     }
-    
-    phospho.setSequence(AASequence::fromString(th_spectra[ranking.rbegin()->second].getName()));
-    phospho.setMetaValue("Search_engine_sequence", hit.getSequence().toString());
     
     vector<ProbablePhosphoSites> phospho_sites;
     determineHighestScoringPermutations_(peptide_site_scores, phospho_sites, permutations, ranking);
@@ -377,14 +375,12 @@ namespace OpenMS
     // All sites are phosphorylated? Return one permutation containing all sites at once.
     else if (sites.size() == (Size)n_phosphorylation_events)
     {
-      vector<vector<Size> > permutations;
       permutations.push_back(sites);
       return permutations;
     }
     else
     // Generate all n_phosphorylation_events sized sets from sites
     {
-      vector<vector<Size> > permutations;
       vector<Size> head;
       vector<vector<Size> > tail;
       

@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: David Wojnar, Timo Sachsenberg $
+// $Authors: David Wojnar, Timo Sachsenberg, Petra Gutenbrunner $
 // --------------------------------------------------------------------------
 
 #ifndef  OPENMS_ANALYSIS_ID_ASCORE_H
