@@ -56,9 +56,9 @@ namespace OpenMS
   PepXMLFile::PepXMLFile() :
     XMLHandler("", "1.12"),
     XMLFile("/SCHEMAS/pepXML_v114.xsd", "1.14"),
-    proteins_(0),
-    peptides_(0),
-    lookup_(0),
+    proteins_(NULL),
+    peptides_(NULL),
+    lookup_(NULL),
     scan_map_(),
     analysis_summary_(false),
     keep_native_name_(false),
@@ -392,7 +392,7 @@ namespace OpenMS
           if (seq.hasCTerminalModification())
           {
             const ResidueModification& mod = ModificationsDB::getInstance()->getTerminalModification(seq.getCTerminalModification(), ResidueModification::C_TERM);
-            f << "mod_cterm_mass=\"" <<
+            f << " mod_cterm_mass=\"" <<
               precisionWrapper(mod.getMonoMass() + seq[seq.size() - 1].getMonoWeight(Residue::Internal)) << "\"";
           }
 
@@ -562,8 +562,9 @@ namespace OpenMS
 
     if (!rt_present) // get RT from experiment
     {
-      if (lookup_->empty())
+      if (lookup_ == NULL || lookup_->empty())
       {
+        // no lookup given, report non-fatal error
         error(LOAD, "Cannot get RT information - no spectra given");
         return;
       }
@@ -654,9 +655,9 @@ namespace OpenMS
     exp_name_.clear();
     prot_id_.clear();
     date_.clear();
-    proteins_ = 0;
-    peptides_ = 0;
-    lookup_ = 0;
+    proteins_ = NULL;
+    peptides_ = NULL;
+    lookup_ = NULL;
     scan_map_.clear();
   }
 

@@ -437,7 +437,9 @@ private:
     // enough for either float or double
     char element[8] = "\x00\x00\x00\x00\x00\x00\x00";
 
-    if ((OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_LITTLEENDIAN) || (!OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_BIGENDIAN))
+    // Parse little endian data in big endian OpenMS (or other way round)
+    if ((OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_LITTLEENDIAN) || 
+       (!OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_BIGENDIAN))
     {
       offset = (element_size - 1);              // other endian
       inc = -1;

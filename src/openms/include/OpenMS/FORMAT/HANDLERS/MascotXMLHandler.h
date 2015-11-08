@@ -67,13 +67,13 @@ public:
       virtual ~MascotXMLHandler();
 
       // Docu in base class
-      virtual void endElement(const XMLCh* /*uri*/, const XMLCh* /*local_name*/, const XMLCh* qname);
+      virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
 
       // Docu in base class
-      virtual void startElement(const XMLCh* /*uri*/, const XMLCh* /*local_name*/, const XMLCh* qname, const xercesc::Attributes& attributes);
+      virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
 
       // Docu in base class
-      virtual void characters(const XMLCh* chars, const XMLSize_t /*length*/);
+      virtual void characters(const XMLCh* const chars, const XMLSize_t /*length*/);
 
 private:
 

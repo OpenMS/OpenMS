@@ -238,7 +238,7 @@ namespace OpenMS
             tmp_spec.push_back(input_exp[scan_idx][peak_idx]);
             if (tmp_peak_int > chrom_peak_snr_ * noise_threshold_int_)
             {
-              chrom_apeces.insert(std::make_pair(tmp_peak_int, std::make_pair(scan_idx, spec_peak_idx)));
+              chrom_apeces.insert(std::make_pair(tmp_peak_int, std::make_pair(spectra_count, spec_peak_idx)));
             }
             ++peak_count;
             ++spec_peak_idx;

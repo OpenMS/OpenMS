@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.7" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<featureMap version="1.8" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_8.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="2001-02-03T04:05:07">
 		<software name="Software1" version="0.91a" />
 		<processingAction name="Deisotoping" />
-		<userParam type="string" name="name" value="dataProcessing"/>
+		<UserParam type="string" name="name" value="dataProcessing"/>
 	</dataProcessing>
 	<dataProcessing completion_time="2001-02-03T04:05:06">
 		<software name="Software2" version="0.92a" />
@@ -13,7 +13,7 @@
 	<dataProcessing completion_time="1999-12-31T23:59:59">
 		<software name="MapRTTransformer" version="version_string" />
 		<processingAction name="Retention time alignment" />
-		<userParam type="string" name="parameter: mode" value="test_mode"/>
+		<UserParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
 	<featureList count="3">
 		<feature id="f_0">
@@ -33,7 +33,7 @@
 					<quality dim="1">0</quality>
 					<overallquality>0.1</overallquality>
 					<charge>1</charge>
-                    <userParam type="float" name="original_RT" value="24"/>
+                    <UserParam type="float" name="original_RT" value="24"/>
 				</feature>
 				<feature id="f_0_1">
 					<position dim="0">2301</position>
@@ -43,13 +43,13 @@
 					<quality dim="1">0</quality>
 					<overallquality>0.1</overallquality>
 					<charge>2</charge>
-                    <userParam type="float" name="original_RT" value="23"/>
+                    <UserParam type="float" name="original_RT" value="23"/>
 				</feature>
 			</subordinate>
-			<userParam type="string" name="stringparametername" value="stringparametervalue"/>
-			<userParam type="int" name="intparametername" value="4"/>
-			<userParam type="float" name="floatparametername" value="4.551"/>
-            <userParam type="float" name="original_RT" value="25"/>
+			<UserParam type="string" name="stringparametername" value="stringparametervalue"/>
+			<UserParam type="int" name="intparametername" value="4"/>
+			<UserParam type="float" name="floatparametername" value="4.551"/>
+            <UserParam type="float" name="original_RT" value="25"/>
 		</feature>
 		<feature id="f_1">
 			<position dim="0">2501</position>
@@ -77,7 +77,7 @@
 							<quality dim="1">0</quality>
 							<overallquality>0.1</overallquality>
 							<charge>1</charge>
-                            <userParam type="float" name="original_RT" value="24"/>
+                            <UserParam type="float" name="original_RT" value="24"/>
 						</feature>
 						<feature id="f_1_0_1">
 							<position dim="0">2401</position>
@@ -87,7 +87,7 @@
 							<quality dim="1">0</quality>
 							<overallquality>0.1</overallquality>
 							<charge>1</charge>
-                            <userParam type="float" name="original_RT" value="24"/>
+                            <UserParam type="float" name="original_RT" value="24"/>
 						</feature>
 						<feature id="f_1_0_2">
 							<position dim="0">2401</position>
@@ -97,7 +97,7 @@
 							<quality dim="1">0</quality>
 							<overallquality>0.1</overallquality>
 							<charge>1</charge>
-                            <userParam type="float" name="original_RT" value="24"/>
+                            <UserParam type="float" name="original_RT" value="24"/>
 						</feature>
 						<feature id="f_1_0_3">
 							<position dim="0">2401</position>
@@ -107,7 +107,7 @@
 							<quality dim="1">0</quality>
 							<overallquality>0.1</overallquality>
 							<charge>1</charge>
-                            <userParam type="float" name="original_RT" value="24"/>
+                            <UserParam type="float" name="original_RT" value="24"/>
 						</feature>
 						<feature id="f_1_0_4">
 							<position dim="0">2301</position>
@@ -129,10 +129,10 @@
 								<pt x="151" y="1.8" />
 								<pt x="251" y="2.8" />
 							</convexhull>
-                            <userParam type="float" name="original_RT" value="23"/>
+                            <UserParam type="float" name="original_RT" value="23"/>
 						</feature>
 					</subordinate>
-                    <userParam type="float" name="original_RT" value="24"/>
+                    <UserParam type="float" name="original_RT" value="24"/>
 				</feature>
 				<feature id="f_1_1">
 					<position dim="0">2301</position>
@@ -155,7 +155,7 @@
 								<pt x="151" y="1.8" />
 								<pt x="251" y="2.8" />
 							</convexhull>
-                            <userParam type="float" name="original_RT" value="24"/>
+                            <UserParam type="float" name="original_RT" value="24"/>
 						</feature>
 						<feature id="f_1_1_1">
 							<position dim="0">2301</position>
@@ -174,7 +174,7 @@
 									<quality dim="1">0</quality>
 									<overallquality>0.1</overallquality>
 									<charge>1</charge>
-                                    <userParam type="float" name="original_RT" value="24"/>
+                                    <UserParam type="float" name="original_RT" value="24"/>
 								</feature>
 								<feature id="f_1_1_1_1">
 									<position dim="0">2301</position>
@@ -197,7 +197,7 @@
 												<pt x="151" y="1.8" />
 												<pt x="251" y="2.8" />
 											</convexhull>
-                                            <userParam type="float" name="original_RT" value="24"/>
+                                            <UserParam type="float" name="original_RT" value="24"/>
 										</feature>
 										<feature id="f_1_1_1_1_1">
 											<position dim="0">2301</position>
@@ -207,22 +207,22 @@
 											<quality dim="1">0</quality>
 											<overallquality>0.1</overallquality>
 											<charge>2</charge>
-                                            <userParam type="float" name="original_RT" value="23"/>
+                                            <UserParam type="float" name="original_RT" value="23"/>
 										</feature>
 									</subordinate>
-                                    <userParam type="float" name="original_RT" value="23"/>
+                                    <UserParam type="float" name="original_RT" value="23"/>
 								</feature>
 							</subordinate>
-                            <userParam type="float" name="original_RT" value="23"/>
+                            <UserParam type="float" name="original_RT" value="23"/>
 						</feature>
 					</subordinate>
-                    <userParam type="float" name="original_RT" value="23"/>
+                    <UserParam type="float" name="original_RT" value="23"/>
 				</feature>
 			</subordinate>
-			<userParam type="string" name="stringparametername" value="stringparametervalue"/>
-			<userParam type="int" name="intparametername" value="4"/>
-			<userParam type="float" name="floatparametername" value="4.551"/>
-            <userParam type="float" name="original_RT" value="25"/>
+			<UserParam type="string" name="stringparametername" value="stringparametervalue"/>
+			<UserParam type="int" name="intparametername" value="4"/>
+			<UserParam type="float" name="floatparametername" value="4.551"/>
+            <UserParam type="float" name="original_RT" value="25"/>
 		</feature>
 		<feature id="f_2">
 			<position dim="0">1</position>
@@ -236,7 +236,7 @@
 				<pt x="151" y="1.8" />
 				<pt x="251" y="2.8" />
 			</convexhull>
-            <userParam type="float" name="original_RT" value="0"/>
+            <UserParam type="float" name="original_RT" value="0"/>
 		</feature>
 	</featureList>
 </featureMap>

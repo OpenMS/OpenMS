@@ -611,6 +611,11 @@ protected:
       }
     }
 
+    if (!pr_tmp.empty())
+    {
+      ProteinIdentification &p_tmp = pr_tmp[0];
+      p_tmp.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
+    }
     IdXMLFile().store(out_idXML, pr_tmp, pt_tmp, "summary");
 
 

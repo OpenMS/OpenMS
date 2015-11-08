@@ -103,9 +103,9 @@ class OPENMS_DLLAPI GridBasedCluster
     /**
      * @brief operators for comparisons
      */
-    bool operator<(GridBasedCluster other) const;
-    bool operator>(GridBasedCluster other) const;
-    bool operator==(GridBasedCluster other) const;
+    bool operator<(const GridBasedCluster& other) const;
+    bool operator>(const GridBasedCluster& other) const;
+    bool operator==(const GridBasedCluster& other) const;
     
     private:
     /**

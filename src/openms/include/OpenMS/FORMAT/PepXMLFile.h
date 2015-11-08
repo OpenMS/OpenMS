@@ -81,7 +81,11 @@ public:
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String& filename, std::vector<ProteinIdentification>& proteins, std::vector<PeptideIdentification>& peptides, const String& experiment_name, const SpectrumMetaDataLookup& lookup);
+    void load(const String& filename,
+              std::vector<ProteinIdentification>& proteins,
+              std::vector<PeptideIdentification>& peptides,
+              const String& experiment_name,
+              const SpectrumMetaDataLookup& lookup);
 
     /**
         @brief @a load function with empty defaults for some parameters (see above)
@@ -89,7 +93,10 @@ public:
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String& filename, std::vector<ProteinIdentification>& proteins, std::vector<PeptideIdentification>& peptides, const String& experiment_name = "");
+    void load(const String& filename,
+              std::vector<ProteinIdentification>& proteins,
+              std::vector<PeptideIdentification>& peptides,
+              const String& experiment_name = "");
 
     /**
         @brief Stores idXML as PepXML file

@@ -13,7 +13,7 @@
 			<cvParam cvRef="MS" accession="MS:1000582" name="SIM spectrum" />
 		</fileContent>
 		<sourceFileList count="1">
-			<sourceFile id="sf_ru_0" name="file://C:/Program Files/pwiz-bin-windows-x86-vc90-release-2_2_2815/../../Documents and Settings/thermo/Desktop/Hannes/weisserh_L110812_004_SW.wiff" location="">
+			<sourceFile id="sf_ru_0" name="weisserh_L110812_004_SW.wiff" location="file://C:/Program Files/pwiz-bin-windows-x86-vc90-release-2_2_2815/../../Documents and Settings/thermo/Desktop/Hannes">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="a577061a82721858070fef755537e7e03e4740db" />
 				<cvParam cvRef="MS" accession="MS:1000564" name="PSI mzData format" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
@@ -2883,67 +2883,67 @@
 </mzML>
 <indexList count="1">
 	<index name="spectrum">
-		<offset idRef="scan=876">16323</offset>
-		<offset idRef="scan=877">47288</offset>
-		<offset idRef="scan=878">75861</offset>
-		<offset idRef="scan=879">107758</offset>
-		<offset idRef="scan=880">136907</offset>
-		<offset idRef="scan=881">162180</offset>
-		<offset idRef="scan=882">188605</offset>
-		<offset idRef="scan=883">213589</offset>
-		<offset idRef="scan=884">238018</offset>
-		<offset idRef="scan=885">259451</offset>
-		<offset idRef="scan=886">281000</offset>
-		<offset idRef="scan=887">301281</offset>
-		<offset idRef="scan=888">321083</offset>
-		<offset idRef="scan=889">340425</offset>
-		<offset idRef="scan=890">363683</offset>
-		<offset idRef="scan=891">384061</offset>
-		<offset idRef="scan=892">411803</offset>
-		<offset idRef="scan=893">439737</offset>
-		<offset idRef="scan=894">469427</offset>
-		<offset idRef="scan=895">493233</offset>
-		<offset idRef="scan=896">516079</offset>
-		<offset idRef="scan=897">539721</offset>
-		<offset idRef="scan=898">561847</offset>
-		<offset idRef="scan=899">583077</offset>
-		<offset idRef="scan=900">605759</offset>
-		<offset idRef="scan=901">627453</offset>
-		<offset idRef="scan=902">651496</offset>
-		<offset idRef="scan=903">677046</offset>
-		<offset idRef="scan=904">706036</offset>
-		<offset idRef="scan=905">734178</offset>
-		<offset idRef="scan=906">765039</offset>
-		<offset idRef="scan=907">799710</offset>
-		<offset idRef="scan=908">829724</offset>
-		<offset idRef="scan=909">858570</offset>
-		<offset idRef="scan=910">888808</offset>
-		<offset idRef="scan=911">919766</offset>
-		<offset idRef="scan=912">955589</offset>
-		<offset idRef="scan=913">989332</offset>
-		<offset idRef="scan=914">1020558</offset>
-		<offset idRef="scan=915">1052204</offset>
-		<offset idRef="scan=916">1081866</offset>
-		<offset idRef="scan=917">1107283</offset>
-		<offset idRef="scan=918">1133985</offset>
-		<offset idRef="scan=919">1159019</offset>
-		<offset idRef="scan=920">1186597</offset>
-		<offset idRef="scan=921">1206514</offset>
-		<offset idRef="scan=922">1233708</offset>
-		<offset idRef="scan=923">1260746</offset>
-		<offset idRef="scan=924">1282824</offset>
-		<offset idRef="scan=925">1308070</offset>
-		<offset idRef="scan=926">1329444</offset>
-		<offset idRef="scan=927">1352866</offset>
-		<offset idRef="scan=928">1380960</offset>
-		<offset idRef="scan=929">1402478</offset>
-		<offset idRef="scan=930">1429528</offset>
-		<offset idRef="scan=931">1454226</offset>
-		<offset idRef="scan=932">1481180</offset>
-		<offset idRef="scan=933">1510602</offset>
-		<offset idRef="scan=934">1543064</offset>
+		<offset idRef="scan=876">16322</offset>
+		<offset idRef="scan=877">47287</offset>
+		<offset idRef="scan=878">75860</offset>
+		<offset idRef="scan=879">107757</offset>
+		<offset idRef="scan=880">136906</offset>
+		<offset idRef="scan=881">162179</offset>
+		<offset idRef="scan=882">188604</offset>
+		<offset idRef="scan=883">213588</offset>
+		<offset idRef="scan=884">238017</offset>
+		<offset idRef="scan=885">259450</offset>
+		<offset idRef="scan=886">280999</offset>
+		<offset idRef="scan=887">301280</offset>
+		<offset idRef="scan=888">321082</offset>
+		<offset idRef="scan=889">340424</offset>
+		<offset idRef="scan=890">363682</offset>
+		<offset idRef="scan=891">384060</offset>
+		<offset idRef="scan=892">411802</offset>
+		<offset idRef="scan=893">439736</offset>
+		<offset idRef="scan=894">469426</offset>
+		<offset idRef="scan=895">493232</offset>
+		<offset idRef="scan=896">516078</offset>
+		<offset idRef="scan=897">539720</offset>
+		<offset idRef="scan=898">561846</offset>
+		<offset idRef="scan=899">583076</offset>
+		<offset idRef="scan=900">605758</offset>
+		<offset idRef="scan=901">627452</offset>
+		<offset idRef="scan=902">651495</offset>
+		<offset idRef="scan=903">677045</offset>
+		<offset idRef="scan=904">706035</offset>
+		<offset idRef="scan=905">734177</offset>
+		<offset idRef="scan=906">765038</offset>
+		<offset idRef="scan=907">799709</offset>
+		<offset idRef="scan=908">829723</offset>
+		<offset idRef="scan=909">858569</offset>
+		<offset idRef="scan=910">888807</offset>
+		<offset idRef="scan=911">919765</offset>
+		<offset idRef="scan=912">955588</offset>
+		<offset idRef="scan=913">989331</offset>
+		<offset idRef="scan=914">1020557</offset>
+		<offset idRef="scan=915">1052203</offset>
+		<offset idRef="scan=916">1081865</offset>
+		<offset idRef="scan=917">1107282</offset>
+		<offset idRef="scan=918">1133984</offset>
+		<offset idRef="scan=919">1159018</offset>
+		<offset idRef="scan=920">1186596</offset>
+		<offset idRef="scan=921">1206513</offset>
+		<offset idRef="scan=922">1233707</offset>
+		<offset idRef="scan=923">1260745</offset>
+		<offset idRef="scan=924">1282823</offset>
+		<offset idRef="scan=925">1308069</offset>
+		<offset idRef="scan=926">1329443</offset>
+		<offset idRef="scan=927">1352865</offset>
+		<offset idRef="scan=928">1380959</offset>
+		<offset idRef="scan=929">1402477</offset>
+		<offset idRef="scan=930">1429527</offset>
+		<offset idRef="scan=931">1454225</offset>
+		<offset idRef="scan=932">1481179</offset>
+		<offset idRef="scan=933">1510601</offset>
+		<offset idRef="scan=934">1543063</offset>
 	</index>
 </indexList>
-<indexListOffset>1576805</indexListOffset>
+<indexListOffset>1576804</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

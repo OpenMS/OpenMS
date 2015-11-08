@@ -234,6 +234,7 @@ protected:
     if (out_type == FileTypes::CONSENSUSXML)
     {
       ConsensusMap consensus_map;
+      consensus_map.setPrimaryMSRunPath(ms_peakmap.getPrimaryMSRunPath());
       for (Size i = 0; i < m_traces_final.size(); ++i)
       {
         if (m_traces_final[i].getSize() == 0) continue;
@@ -275,7 +276,7 @@ protected:
 
       std::vector<double> stats_sd;
       FeatureMap ms_feat_map;
-
+      ms_feat_map.setPrimaryMSRunPath(ms_peakmap.getPrimaryMSRunPath());
       for (Size i = 0; i < m_traces_final.size(); ++i)
       {
         if (m_traces_final[i].getSize() == 0) continue;

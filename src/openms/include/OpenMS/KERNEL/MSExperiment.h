@@ -36,11 +36,13 @@
 #define OPENMS_KERNEL_MSEXPERIMENT_H
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/KERNEL/AreaIterator.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <vector>
 #include <algorithm>
@@ -53,7 +55,7 @@ namespace OpenMS
   /**
     @brief In-Memory representation of a mass spectrometry experiment.
 
-    Contains the data and metadata of an experiment performed with an MS (or HPLC and MS). This representation of an MS experiment is organized as list of spectra and chromatograms and provides an in-memory representation of popular mass-spectrometric file formats such as mzXML or mzML. The meta-data associated with an experiment is contained in ExperimentalSettings (by inheritance) while the raw data (as well as spectra and chromatogram level meta data) is stored in objects of type MSSpectrum and MSChromatogram which are accessible through the getSpectrum and getChromatogam functions.
+    Contains the data and metadata of an experiment performed with an MS (or HPLC and MS). This representation of an MS experiment is organized as list of spectra and chromatograms and provides an in-memory representation of popular mass-spectrometric file formats such as mzXML or mzML. The meta-data associated with an experiment is contained in ExperimentalSettings (by inheritance) while the raw data (as well as spectra and chromatogram level meta data) is stored in objects of type MSSpectrum and MSChromatogram, which are accessible through the getSpectrum and getChromatogram functions.
 
     Be careful when changing the order of contained MSSpectrum instances, if tandem-MS data is
     stored in this class. The only way to find a precursor spectrum of MSSpectrum x is to
@@ -697,6 +699,32 @@ public:
       return *this;
     }
 
+    /// get the file path to the first MS run
+    StringList getPrimaryMSRunPath() const
+    {
+      StringList ms_run_paths;
+      std::vector<SourceFile> sfs(this->getSourceFiles());
+      for (std::vector<SourceFile>::const_iterator it = sfs.begin(); it != sfs.end(); ++it)
+      {
+        // assemble a single location string from the URI (path to file) and file name
+        String path = it->getPathToFile();
+        String filename = it->getNameOfFile();
+
+        if (path.empty() || filename.empty())
+        {
+          LOG_WARN << "Path or file name of primary MS run is empty. "
+                   << "This might be the result of incomplete conversion. "
+                   << "Not that tracing back e.g. identification results to the original file might more difficult." << std::endl;
+	}
+	else
+        {
+          String ms_run_location = path + "/" + filename;
+          ms_run_paths.push_back(ms_run_location);
+        }
+      }
+      return ms_run_paths;
+    }
+
     /**
       @brief Returns the precursor spectrum of the scan pointed to by @p iterator
 
@@ -748,26 +776,26 @@ public:
       std::swap(total_size_, from.total_size_);
     }
 
-    /// sets the spectra list
+    /// sets the spectrum list
     void setSpectra(const std::vector<MSSpectrum<PeakT> > & spectra)
     {
       spectra_ = spectra;
     }
 
-    /// adds a spectra to the list
+    /// adds a spectrum to the list
     void addSpectrum(const MSSpectrum<PeakT> & spectrum)
     {
       spectra_.push_back(spectrum);
     }
 
-    /// returns the spectra list
+    /// returns the spectrum list
     const std::vector<MSSpectrum<PeakT> > & getSpectra() const
     {
       return spectra_;
     }
 
-    /// returns the spectra list
-    std::vector<MSSpectrum<PeakT> > & getSpectra() 
+    /// returns the spectrum list (mutable)
+    std::vector<MSSpectrum<PeakT> > & getSpectra()
     {
       return spectra_;
     }
@@ -786,6 +814,12 @@ public:
 
     /// returns the chromatogram list
     const std::vector<MSChromatogram<ChromatogramPeakType> > & getChromatograms() const
+    {
+      return chromatograms_;
+    }
+
+    /// returns the chromatogram list (mutable)
+    std::vector<MSChromatogram<ChromatogramPeakType> > & getChromatograms()
     {
       return chromatograms_;
     }

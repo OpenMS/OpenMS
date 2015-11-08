@@ -382,8 +382,10 @@ protected:
     search_parameters.fixed_modifications = fixed_mods;
     search_parameters.enzyme = ProteinIdentification::TRYPSIN;
     search_parameters.missed_cleavages = 1;
-    search_parameters.peak_mass_tolerance = getDoubleOption_("peak_mass_tolerance");
+    search_parameters.fragment_mass_tolerance = getDoubleOption_("peak_mass_tolerance");
     search_parameters.precursor_tolerance = getDoubleOption_("precursor_mass_tolerance");
+    search_parameters.fragment_mass_tolerance_ppm = false;
+    search_parameters.precursor_mass_tolerance_ppm = false;
 
     ProteinIdentification protein_identification;
     protein_identification.setDateTime(now);
@@ -391,6 +393,7 @@ protected:
     protein_identification.setSearchEngineVersion("beta");
     protein_identification.setSearchParameters(search_parameters);
     protein_identification.setIdentifier(identifier);
+    protein_identification.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
 
     vector<ProteinIdentification> protein_identifications;
     protein_identifications.push_back(protein_identification);

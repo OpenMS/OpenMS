@@ -154,10 +154,17 @@ public:
     static String getTempDirectory();
 
     /// The current OpenMS user data path (for result files)
+    /// Tries to set the user directory in following order:
+    ///   1. OPENMS_HOME_DIR if environemtal variable set
+    ///   2. "home_dir" entry in OpenMS.ini
+    ///   3. user home directory
     static String getUserDirectory();
 
     /// get the system's default OpenMS.ini file in the users home directory (&lt;home&gt;/OpenMS/OpenMS.ini)
     /// or create/repair it if required
+    /// order:
+    ///   1. &lt;OPENMS_HOME_DIR&gt;/OpenMS/OpenMS.ini if environemtal variable set
+    ///   2. user home directory &lt;home&gt;/OpenMS/OpenMS.ini
     static Param getSystemParameters();
 
     /// uses File::find() to search for a file names @p db_name

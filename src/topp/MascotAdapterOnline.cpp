@@ -166,8 +166,8 @@ protected:
     PeakMap exp;
     // keep only MS2 spectra
     fh.getOptions().addMSLevel(2);
-    fh.loadExperiment(in, exp, in_type, log_type_);
-    writeDebug_(String("Spectra loaded: ") + exp.size(), 2);
+    fh.loadExperiment(in, exp, in_type, log_type_, false, false);
+    writeLog_("Number of spectra loaded: " + String(exp.size()));
 
     if (exp.getSpectra().empty())
     {
@@ -190,12 +190,9 @@ protected:
     //-------------------------------------------------------------
 
     Param mascot_param = getParam_().copy("Mascot_parameters:", true);
+    mascot_param.setValue("search_title", File::removeExtension(File::basename(in)));
+    mascot_param.setValue("internal:HTTP_format", "true");
     MascotGenericFile mgf_file;
-    Param p;
-    // TODO: switch this to mzML (much smaller)
-    p.setValue("internal:format", "Mascot generic", "Sets the format type of the peak list, this should not be changed unless you write the header only.", ListUtils::create<String>("advanced"));
-    p.setValue("internal:HTTP_format", "true", "Write header with MIME boundaries instead of simple key-value pairs. For HTTP submission only.", ListUtils::create<String>("advanced"));
-    p.setValue("internal:content", "all", "Use parameter header + the peak lists with BEGIN IONS... or only one of them.", ListUtils::create<String>("advanced"));
     mgf_file.setParameters(mascot_param);
 
     // get the spectra into string stream
@@ -220,9 +217,9 @@ protected:
 
     QObject::connect(mascot_query, SIGNAL(done()), &event_loop, SLOT(quit()));
     QTimer::singleShot(1000, mascot_query, SLOT(run()));
-    writeDebug_("Fire off Mascot query", 1);
+    writeLog_("Submitting Mascot query (now: " + DateTime::now().get() + ")...");
     event_loop.exec();
-    writeDebug_("Mascot query finished", 1);
+    writeLog_("Mascot query finished");
 
     if (mascot_query->hasError())
     {
@@ -235,7 +232,7 @@ protected:
     ProteinIdentification prot_id;
 
     if (!mascot_query_param.exists("skip_export") ||
-        (mascot_query_param.getValue("skip_export") != "true"))
+        !mascot_query_param.getValue("skip_export").toBool())
     {
       // write Mascot response to file
       String mascot_tmp_file_name(File::getTempDirectory() + "/" + File::getUniqueName() + "_Mascot_response");
@@ -281,7 +278,16 @@ protected:
     }
 
     Int search_number = mascot_query->getSearchNumber();
-    prot_id.setMetaValue("SearchNumber", search_number);
+    if (search_number == 0)
+    {
+      writeLog_("Error: Failed to extract the Mascot search number.");
+      if (mascot_query_param.exists("skip_export") &&
+          mascot_query_param.getValue("skip_export").toBool())
+      {
+        return PARSE_ERROR;
+      }
+    }
+    else prot_id.setMetaValue("SearchNumber", search_number);
 
     // clean up
     delete mascot_query;
@@ -292,6 +298,7 @@ protected:
 
     vector<ProteinIdentification> prot_ids;
     prot_ids.push_back(prot_id);
+    prot_id.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
     IdXMLFile().store(out, prot_ids, pep_ids);
     
     return EXECUTION_OK;

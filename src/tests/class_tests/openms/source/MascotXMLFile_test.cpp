@@ -99,8 +99,10 @@ START_SECTION((void load(const String& filename, ProteinIdentification& protein_
     TEST_EQUAL(search_parameters.enzyme, ProteinIdentification::TRYPSIN);
     TEST_EQUAL(search_parameters.db, "MSDB_chordata");
     TEST_EQUAL(search_parameters.db_version, "MSDB_chordata_20070910.fasta");
-    TEST_EQUAL(search_parameters.peak_mass_tolerance, 0.2);
+    TEST_EQUAL(search_parameters.fragment_mass_tolerance, 0.2);
     TEST_EQUAL(search_parameters.precursor_tolerance, 1.4);
+    TEST_EQUAL(search_parameters.fragment_mass_tolerance_ppm, false);
+    TEST_EQUAL(search_parameters.precursor_mass_tolerance_ppm, false);
     TEST_EQUAL(search_parameters.charges, "1+, 2+ and 3+");
     TEST_EQUAL(search_parameters.fixed_modifications.size(), 3);
     TEST_EQUAL(search_parameters.fixed_modifications[0], "Carboxymethyl (C)");
@@ -175,8 +177,10 @@ START_SECTION((void load(const String& filename, ProteinIdentification& protein_
     TEST_EQUAL(search_parameters.enzyme, ProteinIdentification::TRYPSIN);
     TEST_EQUAL(search_parameters.db, "IPI_human");
     TEST_EQUAL(search_parameters.db_version, "ipi.HUMAN.v3.61.fasta");
-    TEST_EQUAL(search_parameters.peak_mass_tolerance, 0.3);
+    TEST_EQUAL(search_parameters.fragment_mass_tolerance, 0.3);
     TEST_EQUAL(search_parameters.precursor_tolerance, 3);
+    TEST_EQUAL(search_parameters.fragment_mass_tolerance_ppm, false);
+    TEST_EQUAL(search_parameters.precursor_mass_tolerance_ppm, false);
     TEST_EQUAL(search_parameters.charges, "");
     TEST_EQUAL(search_parameters.fixed_modifications.size(), 1);
     TEST_EQUAL(search_parameters.fixed_modifications[0], "Carbamidomethyl (C)");

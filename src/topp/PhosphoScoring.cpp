@@ -226,11 +226,11 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "Input file with MS/MS spectra", false);
+    registerInputFile_("in", "<file>", "", "Input file with MS/MS spectra");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
-    registerInputFile_("id", "<file>", "", "Identification input file which contains a search against a concatenated sequence database", false);
+    registerInputFile_("id", "<file>", "", "Identification input file which contains a search against a concatenated sequence database");
     setValidFormats_("id", ListUtils::create<String>("idXML"));
-    registerOutputFile_("out", "<file>", "", "Identification output with annotated phosphorylation scores");
+    registerOutputFile_("out", "<file>", "", "Identification output annotated with phosphorylation scores");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.05, "Fragment mass error", false);
 
@@ -239,8 +239,6 @@ protected:
     fragment_mass_tolerance_unit_valid_strings.push_back("ppm");
     registerStringOption_("fragment_mass_unit", "<unit>", "Da", "Unit of fragment mass error", false, false);
     setValidStrings_("fragment_mass_unit", fragment_mass_tolerance_unit_valid_strings);
-
-    addEmptyLine_();
   }
 
   ExitCodes main_(int, const char**)

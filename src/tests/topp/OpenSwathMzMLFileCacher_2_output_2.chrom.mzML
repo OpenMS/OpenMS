@@ -61,7 +61,6 @@
 			</processingMethod>
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_2">
 				<cvParam cvRef="MS" accession="MS:1000530" name="file format conversion" />
-				<userParam name="cached_data" type="xsd:string" value="true"/>
 			</processingMethod>
 		</dataProcessing>
 	</dataProcessingList>

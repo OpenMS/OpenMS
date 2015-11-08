@@ -13,7 +13,7 @@
 			<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
 		</fileContent>
 		<sourceFileList count="1">
-			<sourceFile id="sf_ru_0" name="file://IBT-RABEAM/Data/andersm/B08-08318.RAW" location="">
+			<sourceFile id="sf_ru_0" name="B08-08318.RAW" location="file://IBT-RABEAM/Data/andersm">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="8050207fea87c7c97555c6bb83fa50312b24fbbe" />
 				<cvParam cvRef="MS" accession="MS:1000564" name="PSI mzData format" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
@@ -316,13 +316,13 @@
 </mzML>
 <indexList count="1">
 	<index name="spectrum">
-		<offset idRef="scan=12663">8295</offset>
-		<offset idRef="scan=12664">13117</offset>
-		<offset idRef="scan=12665">22483</offset>
-		<offset idRef="scan=12666">39699</offset>
-		<offset idRef="scan=12667">50783</offset>
+		<offset idRef="scan=12663">8294</offset>
+		<offset idRef="scan=12664">13116</offset>
+		<offset idRef="scan=12665">22482</offset>
+		<offset idRef="scan=12666">39698</offset>
+		<offset idRef="scan=12667">50782</offset>
 	</index>
 </indexList>
-<indexListOffset>56203</indexListOffset>
+<indexListOffset>56202</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>
