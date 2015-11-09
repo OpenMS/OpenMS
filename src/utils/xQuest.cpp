@@ -44,19 +44,19 @@ using namespace std;
 using namespace OpenMS;
 
 /**
-    @page UTILS_RNPxl RNPxl
+    @page UTILS_xQuest xQuest
 
-    @brief Perform preotein-RNA cross-linking experiments.
+    @brief Perform protein-protein cross-linking experiments.
 
     <CENTER>
     <table>
         <tr>
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ RNPxl \f$ \longrightarrow \f$</td>
+            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ xQuest \f$ \longrightarrow \f$</td>
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
         </tr>
         <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> RNPxlXICFilter </td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> - </td>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> - </td>
         </tr>
     </table>
@@ -65,9 +65,9 @@ using namespace OpenMS;
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_RNPxl.cli
+    @verbinclude UTILS_xQuest.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_RNPxl.html
+    @htmlinclude UTILS_xQuest.html
 */
 
 class TOPPxQuest :
@@ -100,7 +100,19 @@ protected:
     const string in_fasta(getStringOption_("database"));
     const string out_idxml(getStringOption_("out"));
     
-    cout << in_mzml << "\t" << in_fasta << "\t" << out_idxml << endl;
+    // load MS2 map
+    PeakMap spectra;
+    MzMLFile f;
+    f.setLogType(log_type_);
+
+    PeakFileOptions options;
+    options.clearMSLevels();
+    options.addMSLevel(2);
+    f.getOptions() = options;
+    f.load(in_mzml, spectra);
+    spectra.sortSpectra(true);
+    
+     
  
     return EXECUTION_OK;
   }
