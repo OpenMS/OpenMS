@@ -172,19 +172,19 @@ protected:
     setValidStrings_("modifications:variable", all_mods);
     registerIntOption_("modifications:variable_max_per_peptide", "<num>", 2, "Maximum number of residues carrying a variable modification per candidate peptide", false, false);
 
-    vector<String> all_enzymes;
-    EnzymesDB::getInstance()->getAllNames(all_enzymes);
-    registerStringOption_("enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false);
-    setValidStrings_("enzyme", all_enzymes);
-
     registerTOPPSubsection_("peptide", "Peptide Options");
     registerIntOption_("peptide:min_size", "<num>", 7, "Minimum size a peptide must have after digestion to be considered in the search.", false, true);
     registerIntOption_("peptide:missed_cleavages", "<num>", 1, "Number of missed cleavages.", false, false);
+    vector<String> all_enzymes;
+    EnzymesDB::getInstance()->getAllNames(all_enzymes);
+    registerStringOption_("peptide:enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false);
+    setValidStrings_("peptide:enzyme", all_enzymes);
 
+
+    registerTOPPSubsection_("cross_linker", "Cross Linker Options");
     registerDoubleOption_("cross_linker:mass_light", "<mass>", 156.078644, "Mass of the light cross-linker", false);
     registerDoubleOption_("cross_linker:mass_heavy", "<mass>", 168.153965, "Mass of the heavy cross-linker", false);
     registerDoubleOption_("cross_linker:mass_loss_type2", "<mass>", 18.01056, "Mass difference observed in an intra or inter peptide link", false);
-138.08373
 
     // output file
     registerOutputFile_("out", "<file>", "", "Result file\n");
@@ -490,7 +490,8 @@ protected:
               //                                                                                                                                 ah.peptide_mod_index = mod_pep_idx;
               //                                                                                                                                               ah.score = best_score.second;
               //                                                                                                                                                             ah.rna_mod_index = rna_mod_index;
-          cout << "Pair: " << a->second << ", " << b->second << " matched" << endl;
+          cout << "Pair: " << a->second << ", " << b->second << " matched to spectrum " << scan_index << " with m/z: " << exp_spectrum.getPrecursors()[0].getMZ() <<  endl;
+          cout << a->second.getMonoWeight() << ", " << b->second.getMonoWeight() << " cross_link_mass: " <<  cross_link_mass <<  endl;
         }  
       }     
     }
