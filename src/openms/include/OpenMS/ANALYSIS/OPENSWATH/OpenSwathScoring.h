@@ -548,7 +548,7 @@ var_yseries_score   -0.0327896378737766
      *
     */
     void calculateDIAIdScores(OpenSwath::IMRMFeature* imrmfeature,
-        const std::vector<TransitionType> & transitions,
+        const TransitionType & transition,
         OpenSwath::SpectrumAccessPtr swath_map,
         OpenMS::DIAScoring & diascoring,
         OpenSwath_Scores & scores);

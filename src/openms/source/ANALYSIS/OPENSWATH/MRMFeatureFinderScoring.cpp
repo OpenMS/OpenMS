@@ -334,10 +334,8 @@ namespace OpenMS
       for (size_t i = 0; i < native_ids_identification.size(); i++)
       {
         OpenSwath_Scores tmp_scores;
-        std::vector<TransitionType> id_transitions;
-        id_transitions.push_back(transition_group_identification.getTransition(native_ids_identification[i]));
 
-        scorer.calculateDIAIdScores(idimrmfeature, id_transitions, swath_map, diascoring_, tmp_scores);
+        scorer.calculateDIAIdScores(idimrmfeature, transition_group_identification.getTransition(native_ids_identification[i]), swath_map, diascoring_, tmp_scores);
 
         if (i != 0)
         {

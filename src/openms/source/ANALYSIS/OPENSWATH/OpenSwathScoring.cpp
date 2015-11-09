@@ -113,15 +113,10 @@ namespace OpenMS
     }
   }
 
-  void OpenSwathScoring::calculateDIAIdScores(OpenSwath::IMRMFeature* imrmfeature, const std::vector<TransitionType> & transitions,
+  void OpenSwathScoring::calculateDIAIdScores(OpenSwath::IMRMFeature* imrmfeature, const TransitionType & transition,
       OpenSwath::SpectrumAccessPtr swath_map, OpenMS::DIAScoring & diascoring,
       OpenSwath_Scores & scores)
   {
-    OPENMS_PRECONDITION(transitions.size() > 0, "There needs to be at least one transition.");
-
-    std::vector<double> normalized_library_intensity;
-    getNormalized_library_intensities_(transitions, normalized_library_intensity);
-
     // find spectrum that is closest to the apex of the peak using binary search
     OpenSwath::SpectrumPtr spectrum_ = getAddedSpectra_(swath_map, imrmfeature->getRT(), add_up_spectra_);
     OpenSwath::SpectrumPtr* spectrum = &spectrum_;
@@ -129,10 +124,9 @@ namespace OpenMS
     // Isotope correlation / overlap score: Is this peak part of an
     // isotopic pattern or is it the monoisotopic peak in an isotopic
     // pattern?
-    diascoring.dia_isotope_scores(transitions, (*spectrum), imrmfeature, scores.isotope_correlation, scores.isotope_overlap);
+    diascoring.dia_ms1_isotope_scores(transition.getProductMZ(), (*spectrum), transition.getProductChargeState(), scores.isotope_correlation, scores.isotope_overlap);
     // Mass deviation score
-    diascoring.dia_massdiff_score(transitions, (*spectrum), normalized_library_intensity,
-        scores.massdev_score, scores.weighted_massdev_score);
+    diascoring.dia_ms1_massdiff_score(transition.getProductMZ(), (*spectrum), scores.massdev_score);
   }
 
   void OpenSwathScoring::calculateChromatographicScores(
