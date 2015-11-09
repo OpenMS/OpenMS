@@ -35,6 +35,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -42,6 +43,7 @@
 #include <OpenMS/CHEMISTRY/EnzymesDB.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
+#include <OpenMS/ANALYSIS/ID/IDMapper.h>
 
 // preprocessing and filtering
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
@@ -138,6 +140,9 @@ protected:
     // input files
     registerInputFile_("in", "<file>", "", "Input file containing the spectra.");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
+
+    registerInputFile_("consensus", "<file>", "", "Input file containing the linked mass peaks.");
+    setValidFormats_("consensus", ListUtils::create<String>("consensusXML"));
 
     registerInputFile_("database", "<file>", "", "Input file containing the protein database.");
     setValidFormats_("database", ListUtils::create<String>("fasta"));
@@ -273,6 +278,7 @@ protected:
 
     const string in_mzml(getStringOption_("in"));
     const string in_fasta(getStringOption_("database"));
+    const string in_consensus(getStringOption_("consensus"));
     const string out_idxml(getStringOption_("out"));
 
     Int min_precursor_charge = getIntOption_("precursor:min_charge");
@@ -327,6 +333,11 @@ protected:
     preprocessSpectra_(spectra);
     progresslogger.endProgress();
 
+    // load linked features
+    ConsensusMap cfeatures;
+    ConsensusXMLFile cf;
+    cf.load(in_consensus, cfeatures); 
+
     // load fasta database    
     progresslogger.startProgress(0, 1, "Load database from FASTA file...");
     FASTAFile fastaFile;
@@ -350,6 +361,7 @@ protected:
     // build multimap of precursor mass to scan index
     multimap<double, Size> multimap_mass_2_scan_index;
 
+    vector<PeptideIdentification> pseudo_ids; // used to map precursor positions to consensus features
     for (PeakMap::ConstIterator s_it = spectra.begin(); s_it != spectra.end(); ++s_it)
     {
       int scan_index = s_it - spectra.begin();
@@ -368,6 +380,40 @@ protected:
         double precursor_mass = (double) precursor_charge * precursor_mz - (double) precursor_charge * Constants::PROTON_MASS_U;
     
         multimap_mass_2_scan_index.insert(make_pair(precursor_mass, scan_index));
+        PeptideIdentification temp_pi;
+        temp_pi.setRT(s_it->getRT());
+        temp_pi.setMZ(precursor_mz);
+        temp_pi.setMetaValue("scan_index", scan_index);
+        vector<PeptideHit> temp_hits;
+        temp_hits.push_back(PeptideHit());
+        temp_pi.setHits(temp_hits);
+        pseudo_ids.push_back(temp_pi);
+      }
+    }
+
+    IDMapper idmapper;
+    Param p = idmapper.getParameters();
+    p.setValue("rt_tolerance", 30.0);
+    p.setValue("mz_tolerance", 50.0);
+    p.setValue("mz_measure", "ppm");
+    p.setValue("mz_reference", "precursor");
+    p.setValue("ignore_charge", "true"); // TODO: check why this causes unassigned peptides on test data
+    idmapper.setParameters(p);
+
+    vector<ProteinIdentification> protein_ids;
+    // protein identifications (leave as is...)
+    protein_ids = vector<ProteinIdentification>(1);
+    protein_ids[0].setDateTime(DateTime::now());
+    protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
+    idmapper.annotate(cfeatures, pseudo_ids, protein_ids, true, true);
+
+    // maps the index of a light precursor peptide to its corresponding heavier partner
+    map<Size, Size> map_light_to_heavy;
+    for (ConsensusMap::const_iterator cit = cfeatures.begin(); cit != cfeatures.end(); ++cit)
+    {
+      if (cit->getFeatures().size() == 2)
+      {
+         cout << "Found consensus feature of size 2 with: " << cit->getPeptideIdentifications().size() << " ids." << endl;
       }
     }
     

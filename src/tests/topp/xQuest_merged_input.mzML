@@ -76,7 +76,7 @@
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan>
-						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="-1" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="60" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
 			<precursorList count="1">
@@ -121,7 +121,7 @@
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan>
-						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="-1" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="60" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
 			<precursorList count="1">
@@ -166,7 +166,7 @@
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan>
-						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="-1" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="120" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
 			<precursorList count="1">
@@ -211,7 +211,7 @@
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan>
-						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="-1" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="120" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
 			<precursorList count="1">
@@ -256,7 +256,7 @@
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan>
-						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="-1" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="180" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
 			<precursorList count="1">
@@ -301,7 +301,7 @@
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan>
-						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="-1" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="180" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
 			<precursorList count="1">
@@ -346,7 +346,7 @@
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan>
-						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="-1" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="240" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
 			<precursorList count="1">
@@ -391,7 +391,7 @@
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan>
-						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="-1" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="240" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
 			<precursorList count="1">
