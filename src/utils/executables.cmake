@@ -52,6 +52,7 @@ SvmTheoreticalSpectrumGeneratorTrainer
 TICCalculator
 TransformationEvaluation
 TopPerc
+xQuest
 XMLValidator
 )
 
