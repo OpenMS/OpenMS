@@ -1295,7 +1295,7 @@ private:
     search_parameters.db = getStringOption_("database");
     search_parameters.charges = String(getIntOption_("precursor:min_charge")) + ":" + String(getIntOption_("precursor:max_charge"));
     search_parameters.missed_cleavages = getIntOption_("peptide:missed_cleavages");
-    search_parameters.peak_mass_tolerance = getDoubleOption_("fragment:mass_tolerance");
+    search_parameters.fragment_mass_tolerance = getDoubleOption_("fragment:mass_tolerance");
     search_parameters.precursor_tolerance = getDoubleOption_("precursor:mass_tolerance");
     protein_ids[0].setSearchParameters(search_parameters);
   }
