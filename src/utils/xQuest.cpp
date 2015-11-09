@@ -49,6 +49,8 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 
+#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
+
 #include <iostream>
 
 using namespace std;
@@ -475,6 +477,11 @@ protected:
           const Size& scan_index = low_it->second;
           const PeakSpectrum& exp_spectrum = spectra[scan_index];
 
+          cout << "Pair: " << a->second << ", " << b->second << " matched to spectrum " << scan_index << " with m/z: " << exp_spectrum.getPrecursors()[0].getMZ() <<  endl;
+          cout << a->second.getMonoWeight() << ", " << b->second.getMonoWeight() << " cross_link_mass: " <<  cross_link_mass <<  endl;
+
+          
+
 //          HyperScore::IndexScorePair best_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theoretical_spectra);
 
           // no good hit
@@ -490,8 +497,19 @@ protected:
               //                                                                                                                                 ah.peptide_mod_index = mod_pep_idx;
               //                                                                                                                                               ah.score = best_score.second;
               //                                                                                                                                                             ah.rna_mod_index = rna_mod_index;
-          cout << "Pair: " << a->second << ", " << b->second << " matched to spectrum " << scan_index << " with m/z: " << exp_spectrum.getPrecursors()[0].getMZ() <<  endl;
-          cout << a->second.getMonoWeight() << ", " << b->second.getMonoWeight() << " cross_link_mass: " <<  cross_link_mass <<  endl;
+              //                                                                                                                                                                 SpectrumAlignment spectrum_aligner;
+              //                                                                                                                                                                     Param pa = spectrum_aligner.getParameters();
+              //                                                                                                                                                                         pa.setValue("tolerance", (double)fragment_mass_tolerance, "Defines the absolute (in Da) or relative (in ppm) tolerance in the alignment");
+              //                                                                                                                                                                             if (fragment_mass_tolerance_unit_ppm)
+              //                                                                                                                                                                                 {
+              //                                                                                                                                                                                       pa.setValue("is_relative_tolerance", "true");
+              //                                                                                                                                                                                           } 
+              //                                                                                                                                                                                               else
+              //                                                                                                                                                                                                   {
+              //                                                                                                                                                                                                         pa.setValue("is_relative_tolerance", "false");
+              //                                                                                                                                                                                                             } 
+              //                                                                                                                                                                                                               
+              //                                                                                                                                                                                                                   spectrum_aligner.setParameters(pa);
         }  
       }     
     }
