@@ -109,7 +109,7 @@ namespace OpenMS
     // The mz-File (if given)
     if (!mz_file.empty())
     {
-      base_name = File::basename(mz_file);
+      base_name = File::removeExtension(File::basename(mz_file));
       raw_data = FileTypes::typeToName(FileHandler().getTypeByFileName(mz_file));
     }
     else
@@ -526,6 +526,21 @@ namespace OpenMS
           else if (search_engine_name == "OMSSA")
           {
             f << "\t\t\t<search_score" << " name=\"expect\" value=\"" << h.getScore() << "\"" << "/>\n";
+          }
+          else if (search_engine_name == "MSGFPlus")
+          {
+            f << "\t\t\t<search_score" << " name=\"expect\" value=\"" << h.getScore() << "\"" << "/>\n";
+          }
+          else if (search_engine_name == "Percolator")
+          {
+            double pep_score = static_cast<double>(h.getMetaValue("Percolator_PEP"));
+            f << "\t\t\t<search_score" << " name=\"Percolator_score\" value=\"" << h.getMetaValue("Percolator_score") << "\"" << "/>\n";
+            f << "\t\t\t<search_score" << " name=\"Percolator_qvalue\" value=\"" << h.getMetaValue("Percolator_qvalue") << "\"" << "/>\n";
+            f << "\t\t\t<search_score" << " name=\"Percolator_PEP\" value=\"" << pep_score << "\"" << "/>\n";
+            
+            f << "\t\t\t<analysis_result" << " analysis=\"peptideprophet\">\n";
+            f << "\t\t\t\t<peptideprophet_result" << " probability=\"" << 1.0 - pep_score << "\"" << "/>\n";
+            f << "\t\t\t</analysis_result>" << "\n";
           }
         }
         f << "\t\t</search_hit>" << "\n";
