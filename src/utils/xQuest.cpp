@@ -43,6 +43,12 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
 
+// preprocessing and filtering
+#include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
+
 #include <iostream>
 
 using namespace std;
@@ -175,6 +181,9 @@ protected:
     registerIntOption_("peptide:min_size", "<num>", 7, "Minimum size a peptide must have after digestion to be considered in the search.", false, true);
     registerIntOption_("peptide:missed_cleavages", "<num>", 1, "Number of missed cleavages.", false, false);
 
+    registerDoubleOption_("cross_linker:mass_light", "<mass>", 156.078644, "Mass of the light cross-linker", false);
+    registerDoubleOption_("cross_linker:mass_heavy", "<mass>", 168.153965, "Mass of the heavy cross-linker", false);
+
     // output file
     registerOutputFile_("out", "<file>", "", "Result file\n");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
@@ -211,6 +220,47 @@ protected:
         Size min_size_;
   };
 
+
+
+  void preprocessSpectra_(PeakMap& exp)
+  {
+    // filter MS2 map
+    // remove 0 intensities
+    ThresholdMower threshold_mower_filter;
+    threshold_mower_filter.filterPeakMap(exp);
+ 
+    Normalizer normalizer;
+    normalizer.filterPeakMap(exp);
+
+    // sort by rt
+    exp.sortSpectra(false);
+
+    // filter settings
+    WindowMower window_mower_filter;
+    Param filter_param = window_mower_filter.getParameters();
+    filter_param.setValue("windowsize", 100.0, "The size of the sliding window along the m/z axis.");
+    filter_param.setValue("peakcount", 20, "The number of peaks that should be kept.");
+    filter_param.setValue("movetype", "jump", "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
+    window_mower_filter.setParameters(filter_param);
+    NLargest nlargest_filter = NLargest(400);
+  
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+    for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size(); ++exp_index)
+    {
+      // sort by mz
+      exp[exp_index].sortByPosition();
+  
+      // remove noise
+      window_mower_filter.filterPeakSpectrum(exp[exp_index]);
+      nlargest_filter.filterPeakSpectrum(exp[exp_index]);
+  
+      // sort (nlargest changes order)
+      exp[exp_index].sortByPosition();
+     }
+   }
+     
 
   ExitCodes main_(int, const char**)
   {
@@ -266,6 +316,11 @@ protected:
     f.getOptions() = options;
     f.load(in_mzml, spectra);
     spectra.sortSpectra(true);
+
+    // filter noise
+    progresslogger.startProgress(0, 1, "Filtering spectra...");
+    preprocessSpectra_(spectra);
+    progresslogger.endProgress();
 
     // load fasta database    
     progresslogger.startProgress(0, 1, "Load database from FASTA file...");
