@@ -385,7 +385,9 @@ protected:
         temp_pi.setMZ(precursor_mz);
         temp_pi.setMetaValue("scan_index", scan_index);
         vector<PeptideHit> temp_hits;
-        temp_hits.push_back(PeptideHit());
+        PeptideHit temp_ph;
+        temp_ph.setCharge(precursor_charge);
+        temp_hits.push_back(temp_ph);
         temp_pi.setHits(temp_hits);
         pseudo_ids.push_back(temp_pi);
       }
@@ -394,10 +396,11 @@ protected:
     IDMapper idmapper;
     Param p = idmapper.getParameters();
     p.setValue("rt_tolerance", 30.0);
-    p.setValue("mz_tolerance", 50.0);
-    p.setValue("mz_measure", "ppm");
+    p.setValue("mz_tolerance", precursor_mass_tolerance);
+    String mz_measure = precursor_mass_tolerance_unit_ppm ? "ppm" : "Da";
+    p.setValue("mz_measure", mz_measure);
     p.setValue("mz_reference", "precursor");
-    p.setValue("ignore_charge", "true"); // TODO: check why this causes unassigned peptides on test data
+    p.setValue("ignore_charge", "false");
     idmapper.setParameters(p);
 
     vector<ProteinIdentification> protein_ids;
@@ -411,9 +414,11 @@ protected:
     map<Size, Size> map_light_to_heavy;
     for (ConsensusMap::const_iterator cit = cfeatures.begin(); cit != cfeatures.end(); ++cit)
     {
-      if (cit->getFeatures().size() == 2)
+      if (cit->getFeatures().size() == 2 && cit->getPeptideIdentifications().size() == 2)
       {
-         cout << "Found consensus feature of size 2 with: " << cit->getPeptideIdentifications().size() << " ids." << endl;
+        const PeptideIdentification& pi_0 = cit->getPeptideIdentifications()[0];
+        const PeptideIdentification& pi_1 = cit->getPeptideIdentifications()[1];
+        map_light_to_heavy[pi_0.getMetaValue("scan_index")] = pi_1.getMetaValue("scan_index");
       }
     }
     
@@ -520,12 +525,24 @@ protected:
 
         for (; low_it != up_it; ++low_it)
         {
-          const Size& scan_index = low_it->second;
-          const PeakSpectrum& exp_spectrum = spectra[scan_index];
+          const Size scan_index_light = low_it->second;
+          const PeakSpectrum& spectrum_light = spectra[scan_index_light];
 
-          cout << "Pair: " << a->second << ", " << b->second << " matched to spectrum " << scan_index << " with m/z: " << exp_spectrum.getPrecursors()[0].getMZ() <<  endl;
+          cout << "Pair: " << a->second << ", " << b->second << " matched to light spectrum " << scan_index_light << " with m/z: " << spectrum_light.getPrecursors()[0].getMZ() <<  endl;
           cout << a->second.getMonoWeight() << ", " << b->second.getMonoWeight() << " cross_link_mass: " <<  cross_link_mass <<  endl;
 
+          // map light to heavy
+          map<Size, Size>::const_iterator scan_index_light_it = map_light_to_heavy.find(scan_index_light);
+       
+          if (scan_index_light_it != map_light_to_heavy.end())
+          { 
+            const Size scan_index_heavy = scan_index_light_it->second;
+
+            cout << "light spectrum index: " << scan_index_light << " heavy spectrum index: " << scan_index_heavy << endl;
+            const PeakSpectrum& spectrum_heavy = spectra[scan_index_heavy];
+
+            // TODO: common peaks, align
+          }
           
 
 //          HyperScore::IndexScorePair best_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theoretical_spectra);
