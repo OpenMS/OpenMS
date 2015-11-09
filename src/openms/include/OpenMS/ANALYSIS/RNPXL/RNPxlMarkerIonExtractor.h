@@ -32,35 +32,27 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_RNPXL_RNPXLMODIFICATIONSGENERATOR_H
-#define OPENMS_ANALYSIS_RNPXL_RNPXLMODIFICATIONSGENERATOR_H
+#ifndef OpenMS_ANALYSIS_RNPXL_RNPxlMarkerIonExtractor
+#define OpenMS_ANALYSIS_RNPXL_RNPxlMarkerIonExtractor
 
-#include <vector>
-#include <map>
-#include <set>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
+#include <map>
+#include <vector>
+
 namespace OpenMS
-{  
-  class AASequence;
+{
+  class String;
 
-  struct OPENMS_DLLAPI RNPxlModificationMassesResult
+  struct OPENMS_DLLAPI RNPxlMarkerIonExtractor
   {
-    std::map<String, double> mod_masses; // empirical formula -> mass
-    std::map<String, std::set<String> > mod_combinations; // empirical formula -> nucleotide formula(s) (formulas if modifications lead to ambiguities)
-    std::map<Size, String> mod_formula_idx;
+    // name to mass-intensity pair
+    typedef std::map<String, std::vector<std::pair<double, double> > > MarkerIonsType;
+  
+    // extract an annotate RNA marker ions
+    static MarkerIonsType extractMarkerIons(const PeakSpectrum& s, const double marker_tolerance);
   };
-
-  class OPENMS_DLLAPI RNPxlModificationsGenerator
-  {
-    public:
-      static RNPxlModificationMassesResult initModificationMassesRNA(StringList target_nucleotides, StringList mappings, StringList restrictions, StringList modifications, String sequence_restriction, bool cysteine_adduct, Int max_length = 4);
-      static std::vector<String> getRNAFragmentModificationNames(const String& RNA_precursor_adduct, const AASequence& sequence);
-      static std::vector<ResidueModification> getRNAFragmentModifications(const String& RNA_precursor_adduct, const AASequence& sequence, const bool carbon_is_labeled);
-    private:
-      static bool notInSeq(String res_seq, String query);
-      static void generateTargetSequences(const String& res_seq, Size param_pos, const std::map<char, std::vector<char> >& map_source2target, StringList& target_sequences);
-    };
 }
 
-#endif // OPENMS_ANALYSIS_RNPXL_RNPXLMODIFICATIONSGENERATOR_H
+#endif
+

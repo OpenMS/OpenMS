@@ -32,35 +32,74 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_RNPXL_RNPXLMODIFICATIONSGENERATOR_H
-#define OPENMS_ANALYSIS_RNPXL_RNPXLMODIFICATIONSGENERATOR_H
+#ifndef OPENMS_ANALYSIS_RNPXL_RNPXLREPORT
+#define OPENMS_ANALYSIS_RNPXL_RNPXLREPORT
 
-#include <vector>
-#include <map>
-#include <set>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/ANALYSIS/RNPXL/RNPxlMarkerIonExtractor.h>
+#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
 namespace OpenMS
-{  
-  class AASequence;
+{
 
-  struct OPENMS_DLLAPI RNPxlModificationMassesResult
-  {
-    std::map<String, double> mod_masses; // empirical formula -> mass
-    std::map<String, std::set<String> > mod_combinations; // empirical formula -> nucleotide formula(s) (formulas if modifications lead to ambiguities)
-    std::map<Size, String> mod_formula_idx;
-  };
+struct OPENMS_DLLAPI RNPxlReportRow
+{
+  bool no_id;
+  double rt;
+  double original_mz;
+  String accessions;
+  String RNA;
+  String peptide;
+  double best_localization_score;
+  String localization_scores;
+  String best_localization;
+  Int charge;
+  double score;
+  double peptide_weight;
+  double RNA_weight;
+  double xl_weight;
+  double abs_prec_error;
+  double rel_prec_error;
+  RNPxlMarkerIonExtractor::MarkerIonsType marker_ions;
+  double m_H;
+  double m_2H;
+  double m_3H;
+  double m_4H;
+  String fragment_annotation_string;  
+  String getString(String separator) const;
 
-  class OPENMS_DLLAPI RNPxlModificationsGenerator
+};
+
+struct OPENMS_DLLAPI RNPxlReportRowHeader
+{
+  String getString(String separator)
   {
-    public:
-      static RNPxlModificationMassesResult initModificationMassesRNA(StringList target_nucleotides, StringList mappings, StringList restrictions, StringList modifications, String sequence_restriction, bool cysteine_adduct, Int max_length = 4);
-      static std::vector<String> getRNAFragmentModificationNames(const String& RNA_precursor_adduct, const AASequence& sequence);
-      static std::vector<ResidueModification> getRNAFragmentModifications(const String& RNA_precursor_adduct, const AASequence& sequence, const bool carbon_is_labeled);
-    private:
-      static bool notInSeq(String res_seq, String query);
-      static void generateTargetSequences(const String& res_seq, Size param_pos, const std::map<char, std::vector<char> >& map_source2target, StringList& target_sequences);
-    };
+    StringList sl;
+    sl << "#RT" << "original m/z" << "proteins" << "RNA" << "peptide" << "charge" << "score"
+       << "best localization score" << "localization scores" << "best localization(s)"
+       << "peptide weight" << "RNA weight" << "cross-link weight";
+
+    // marker ion fields
+    RNPxlMarkerIonExtractor::MarkerIonsType marker_ions = RNPxlMarkerIonExtractor::extractMarkerIons(PeakSpectrum(), 0.0); // call only to generate header entries
+    for (RNPxlMarkerIonExtractor::MarkerIonsType::const_iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
+    {
+      for (Size i = 0; i != it->second.size(); ++i)
+      {
+        sl << String(it->first + "_" + it->second[i].first);
+      }
+    }
+    sl << "abs prec. error Da" << "rel. prec. error ppm" << "M+H" << "M+2H" << "M+3H" << "M+4H" << "fragment_annotation";
+    return ListUtils::concatenate(sl, separator);
+  }
+};
+
+// create report
+struct OPENMS_DLLAPI RNPxlReport
+{
+  static std::vector<RNPxlReportRow> annotate(const PeakMap& spectra, std::vector<PeptideIdentification>& peptide_ids, double marker_ions_tolerance);
+};
+
 }
 
-#endif // OPENMS_ANALYSIS_RNPXL_RNPXLMODIFICATIONSGENERATOR_H
+#endif
+

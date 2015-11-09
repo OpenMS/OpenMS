@@ -49,8 +49,7 @@ TransformationEvaluation
 TopPerc
 xQuest
 XMLValidator
-#SimpleSearchEngine
-#RNPxlSearch
+RNPxlSearch
 )
 
 if(NOT DISABLE_OPENSWATH)
