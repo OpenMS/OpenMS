@@ -32,35 +32,30 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_RNPXL_RNPXLMODIFICATIONSGENERATOR_H
-#define OPENMS_ANALYSIS_RNPXL_RNPXLMODIFICATIONSGENERATOR_H
+#ifndef OPENMS_ANALYSIS_RNPXL_HYPERSCORE
+#define OPENMS_ANALYSIS_RNPXL_HYPERSCORE
 
-#include <vector>
-#include <map>
-#include <set>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <vector>
 
 namespace OpenMS
-{  
-  class AASequence;
+{
 
-  struct OPENMS_DLLAPI RNPxlModificationMassesResult
-  {
-    std::map<String, double> mod_masses; // empirical formula -> mass
-    std::map<String, std::set<String> > mod_combinations; // empirical formula -> nucleotide formula(s) (formulas if modifications lead to ambiguities)
-    std::map<Size, String> mod_formula_idx;
-  };
+struct OPENMS_DLLAPI HyperScore
+{
+  typedef std::pair<Size, double> IndexScorePair; 
 
-  class OPENMS_DLLAPI RNPxlModificationsGenerator
-  {
-    public:
-      static RNPxlModificationMassesResult initModificationMassesRNA(StringList target_nucleotides, StringList mappings, StringList restrictions, StringList modifications, String sequence_restriction, bool cysteine_adduct, Int max_length = 4);
-      static std::vector<String> getRNAFragmentModificationNames(const String& RNA_precursor_adduct, const AASequence& sequence);
-      static std::vector<ResidueModification> getRNAFragmentModifications(const String& RNA_precursor_adduct, const AASequence& sequence, const bool carbon_is_labeled);
-    private:
-      static bool notInSeq(String res_seq, String query);
-      static void generateTargetSequences(const String& res_seq, Size param_pos, const std::map<char, std::vector<char> >& map_source2target, StringList& target_sequences);
-    };
+  // compute the X!Tandem HyperScore on single theoretical spectrum
+  static double compute(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const PeakSpectrum& exp_spectrum, const RichPeakSpectrum& theo_spectrum);
+
+  // compute best X!Tandem HyperScore on multiple theoretical spectra (e.g. all neutral loss spectra of a peptide)
+  static IndexScorePair compute(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const PeakSpectrum& exp_spectrum, const std::vector<RichPeakSpectrum>& theo_spectrum);
+
+  // helper to compute the log factorial
+  static double logfactorial(UInt x);
+};
+
 }
 
-#endif // OPENMS_ANALYSIS_RNPXL_RNPXLMODIFICATIONSGENERATOR_H
+#endif
+

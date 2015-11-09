@@ -33,6 +33,10 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>
+#include <OpenMS/CHEMISTRY/ElementDB.h>
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 using namespace std;
 
@@ -497,5 +501,85 @@ void  RNPxlModificationsGenerator::generateTargetSequences(const String& res_seq
     target_sequences.push_back(res_seq);
   }
 }
+
+  vector<String> RNPxlModificationsGenerator::getRNAFragmentModificationNames(const String& RNA_precursor_adduct, const AASequence& sequence)
+  {
+    vector<String> possible_modifications;
+    possible_modifications.push_back("RNA:C3O");
+    possible_modifications.push_back("RNA:U_prime-H2O");
+    possible_modifications.push_back("RNA:U_prime");
+    possible_modifications.push_back("RNA:U-H3PO4");
+
+    // no more losses possible (afawk)
+    if (RNA_precursor_adduct.hasSubstring("-H3PO4"))
+    {
+      return possible_modifications;
+    }
+
+    if (RNA_precursor_adduct.hasSubstring("-H2O")) // precursor has RNA with water loss
+    {
+      if (!RNA_precursor_adduct.hasSubstring("-HPO3")) // no loss of HPO3? then we can loose another water
+      {
+        possible_modifications.push_back("RNA:U-H2O");
+      }
+    }
+    else // no water loss on precursor RNA
+    {
+      possible_modifications.push_back("RNA:U-HPO3"); // can still loose HPO3
+      if (!RNA_precursor_adduct.hasSubstring("-HPO3"))
+      {
+        possible_modifications.push_back("RNA:U-H2O");
+        possible_modifications.push_back("RNA:U");
+      }
+    }
+    return possible_modifications;
+  }
+
+  vector<ResidueModification> RNPxlModificationsGenerator::getRNAFragmentModifications(const String& RNA_precursor_adduct, const AASequence& sequence, const bool carbon_is_labeled)
+  {
+    // determine (unmodified) amino acids present in sequence (as e.g. modified AA might not cross-link) 
+    set<char> unmodified_aa_is_present;
+
+    // all keys present in the map have at least one AA in the sequence
+    for (AASequence::ConstIterator mit = sequence.begin(); mit != sequence.end(); ++mit)
+    {
+      if (!mit->isModified())
+      {
+        unmodified_aa_is_present.insert(mit->getOneLetterCode()[0]);
+      }
+    }
+  
+    // mod names without site (e.g. U-H2O)
+    vector<String> possible_modification_names = getRNAFragmentModificationNames(RNA_precursor_adduct, sequence);
+
+    // construct full id with site
+    vector<String> possible_modifications;    
+    for (set<char>::const_iterator mit = unmodified_aa_is_present.begin(); mit != unmodified_aa_is_present.end(); ++mit)
+    {
+      const String site = String(" (") + *mit + ")";
+      for (vector<String>::const_iterator sit = possible_modification_names.begin(); sit != possible_modification_names.end(); ++sit)
+      {
+        possible_modifications.push_back(*sit + site);
+      }
+    }
+
+    // TODO: there might be a locking issue as the residue needs to be registerd in ResidueDB (see getModifications_ in RNPxlSearch)
+    vector<ResidueModification> modifications;
+    for (vector<String>::const_iterator sit = possible_modifications.begin(); sit != possible_modifications.end(); ++sit)
+    {
+      const String& modification = *sit;
+      ResidueModification rm = ModificationsDB::getInstance()->getModification(modification);
+
+      if (carbon_is_labeled)
+      {
+        const Element* carbon = ElementDB::getInstance()->getElement("Carbon");
+        rm.setDiffMonoMass(rm.getDiffMonoMass() + rm.getDiffFormula().getNumberOf(carbon) * Constants::C13C12_MASSDIFF_U); // replace 12C by 13C
+      }
+
+      modifications.push_back(rm);
+    }
+    return modifications;
+  }
+
 }
 

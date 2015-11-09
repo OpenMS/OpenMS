@@ -4,7 +4,11 @@ set(directory include/OpenMS/ANALYSIS/RNPXL)
 ### list all header files of the directory here
 set(sources_list_h
 RNPxlModificationsGenerator.h
+RNPxlMarkerIonExtractor.h
+RNPxlReport.h
 ModifiedPeptideGenerator.h
+HyperScore.h
+PScore.h
 )
 
 ### add path to the filenames

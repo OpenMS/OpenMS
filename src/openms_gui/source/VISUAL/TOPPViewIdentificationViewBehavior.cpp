@@ -434,7 +434,7 @@ namespace OpenMS
       }
       if (tv_params.getValue("preferences:idview:add_abundant_immonium_ions").toBool()) // "abundant Immonium-ions"
       {
-        generator.addAbundantImmoniumIons(rich_spec);
+        generator.addAbundantImmoniumIons(rich_spec, aa_sequence);
       }
     }
     catch (Exception::BaseException & e)

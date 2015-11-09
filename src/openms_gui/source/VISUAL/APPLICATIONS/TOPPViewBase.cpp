@@ -3167,7 +3167,7 @@ namespace OpenMS
         }
         if (spec_gen_dialog.list_widget->item(9)->checkState() == Qt::Checked) // "abundant Immonium-ions"
         {
-          generator.addAbundantImmoniumIons(rich_spec);
+          generator.addAbundantImmoniumIons(rich_spec, aa_sequence);
         }
       }
       catch (Exception::BaseException& e)
