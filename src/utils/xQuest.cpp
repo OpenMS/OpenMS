@@ -183,6 +183,8 @@ protected:
 
     registerDoubleOption_("cross_linker:mass_light", "<mass>", 156.078644, "Mass of the light cross-linker", false);
     registerDoubleOption_("cross_linker:mass_heavy", "<mass>", 168.153965, "Mass of the heavy cross-linker", false);
+    registerDoubleOption_("cross_linker:mass_loss_type2", "<mass>", 18.01056, "Mass difference observed in an intra or inter peptide link", false);
+138.08373
 
     // output file
     registerOutputFile_("out", "<file>", "", "Result file\n");
@@ -281,6 +283,7 @@ protected:
 
     double cross_link_mass_light = getDoubleOption_("cross_linker:mass_light");
     double cross_link_mass_heavy = getDoubleOption_("cross_linker:mass_heavy");
+    double cross_link_mass_loss_type2 = getDoubleOption_("cross_linker:mass_loss_type2");
 
     StringList fixedModNames = getStringList_("modifications:fixed");
     set<String> fixed_unique(fixedModNames.begin(), fixedModNames.end());
@@ -447,8 +450,8 @@ protected:
     {
       for (map<IndexedString, AASequence>::const_iterator b = a; b != processed_peptides.end(); ++b)
       {
-        const double light_heavy_shift = cross_link_mass_heavy - cross_link_mass_light;
-        double cross_link_mass = a->second.getMonoWeight() + b->second.getMonoWeight() + light_heavy_shift;
+        // mass peptide1 + mass peptide2 + cross linker mass - cross link loss
+        double cross_link_mass = a->second.getMonoWeight() + b->second.getMonoWeight() + cross_link_mass_light - cross_link_mass_loss_type2;
 
         // determine MS2 precursors that match to the current peptide mass
         multimap<double, Size>::const_iterator low_it;
