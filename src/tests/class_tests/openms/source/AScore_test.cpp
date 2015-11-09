@@ -46,16 +46,16 @@ using namespace std;
 class AScoreTest : public AScore
 {
   public:
-    void computeSiteDeterminingIonsTest_(std::vector<RichPeakSpectrum> & th_spectra, ProbablePhosphoSites & candidates, std::vector<RichPeakSpectrum> & site_determining_ions) const
+    void computeSiteDeterminingIonsTest_(const std::vector<RichPeakSpectrum> & th_spectra, const ProbablePhosphoSites & candidates, std::vector<RichPeakSpectrum> & site_determining_ions) const
     {
       return computeSiteDeterminingIons_(th_spectra, candidates, site_determining_ions);
     }
 
-    std::vector<Size> getSitesTest_(AASequence & without_phospho) const {
+    std::vector<Size> getSitesTest_(const AASequence & without_phospho) const {
       return getSites_(without_phospho);
     }
 
-    std::vector<std::vector<Size> > computePermutationsTest_(std::vector<Size> sites, Int n_phosphorylation_events) const
+    std::vector<std::vector<Size> > computePermutationsTest_(const std::vector<Size> & sites, Int n_phosphorylation_events) const
     {
       return computePermutations_(sites, n_phosphorylation_events);
     }
@@ -441,7 +441,7 @@ START_SECTION(determineHighestScoringPermutationsTest_(const std::vector<std::ve
 }
 END_SECTION
 
-START_SECTION(computeSiteDeterminingIonsTest_(std::vector<RichPeakSpectrum> & th_spectra, ProbablePhosphoSites & candidates, std::vector<RichPeakSpectrum> & site_determining_ions))
+START_SECTION(computeSiteDeterminingIonsTest_(const std::vector<RichPeakSpectrum> & th_spectra, const ProbablePhosphoSites & candidates, std::vector<RichPeakSpectrum> & site_determining_ions))
 {
   ProbablePhosphoSites candidates;
   RichPeakSpectrum temp1,temp2;
@@ -595,7 +595,7 @@ START_SECTION(computeSiteDeterminingIonsTest_(std::vector<RichPeakSpectrum> & th
 }
 END_SECTION
 
-START_SECTION(std::vector<Size> getSitesTest_(AASequence& without_phospho))
+START_SECTION(std::vector<Size> getSitesTest_(const AASequence& without_phospho))
 {
   AASequence phospho = AASequence::fromString("VTQSPSSP");
   vector<Size> tupel(ptr_test->getSitesTest_(phospho));
@@ -607,7 +607,7 @@ START_SECTION(std::vector<Size> getSitesTest_(AASequence& without_phospho))
 }
 END_SECTION
 
-START_SECTION(std::vector<std::vector<Size> > computePermutationsTest_(std::vector<Size>& tupel,Int number_of_phospho_sites))
+START_SECTION(std::vector<std::vector<Size> > computePermutationsTest_(const std::vector<Size>& tupel,Int number_of_phospho_sites))
 {
   vector<Size> tupel;
   tupel.push_back(1);

@@ -78,23 +78,25 @@ class OPENMS_DLLAPI AScore
 
         @note the original sequence is saved in the PeptideHits as MetaValue Search_engine_sequence.
     */
-    PeptideHit compute(PeptideHit & hit, RichPeakSpectrum &real_spectrum, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const;
+    PeptideHit compute(const PeptideHit & hit, RichPeakSpectrum &real_spectrum, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const;
 
   protected:
   
+    /// getSpectrumDifference_ works similar as the method std::set_difference (http://en.cppreference.com/w/cpp/algorithm/set_difference). 
+    /// set_difference was reimplemented, because it was necessary to overwrite the compare operator to be able to compare the m/z values.
     template <class InputIterator1, class InputIterator2, class OutputIterator>
     OutputIterator getSpectrumDifference_(InputIterator1 first1, InputIterator1 last1,
       InputIterator2 first2, InputIterator2 last2, OutputIterator result) const
     {
-      while (first1!=last1 && first2!=last2)
+      while (first1 != last1 && first2 != last2)
       { 
-        if ((roundf(first1->getMZ() * 100) / 100) < (roundf(first2->getMZ() * 100) / 100)) 
+        if (round(first1->getMZ()) < round(first2->getMZ())) 
         { 
           *result = *first1; 
           ++result; 
           ++first1; 
         }
-        else if ((roundf(first2->getMZ() * 100) / 100) < (roundf(first1->getMZ() * 100) / 100))
+        else if (round(first2->getMZ()) < round(first1->getMZ()))
         {
           ++first2;
         }
@@ -104,17 +106,17 @@ class OPENMS_DLLAPI AScore
           ++first2; 
         }
       }
-      return std::copy(first1,last1,result);
+      return std::copy(first1, last1, result);
     }
     
     ///Computes the site determining_ions for the given AS and sequences in candidates
-    void computeSiteDeterminingIons_(std::vector<RichPeakSpectrum> & th_spectra, ProbablePhosphoSites & candidates, std::vector<RichPeakSpectrum> & site_determining_ions) const;
+    void computeSiteDeterminingIons_(const std::vector<RichPeakSpectrum> & th_spectra, const ProbablePhosphoSites & candidates, std::vector<RichPeakSpectrum> & site_determining_ions) const;
 
     /// return all phospho sites
-    std::vector<Size> getSites_(AASequence & without_phospho) const;
+    std::vector<Size> getSites_(const AASequence & without_phospho) const;
 
     /// calculate all n_phosphorylation_events sized sets of phospho sites (all versions of the peptides with exactly n_phosphorylation_events)
-    std::vector<std::vector<Size> > computePermutations_(std::vector<Size> sites, Int n_phosphorylation_events) const;
+    std::vector<std::vector<Size> > computePermutations_(const std::vector<Size> & sites, Int n_phosphorylation_events) const;
 
     /// Computes number of matched ions between windows and the given spectrum. All spectra have to be sorted by position!
     Size numberOfMatchedIons_(const RichPeakSpectrum & th, const RichPeakSpectrum & windows, Size depth, double fragment_mass_tolerance, bool fragment_mass_tolerance_ppm = false) const;

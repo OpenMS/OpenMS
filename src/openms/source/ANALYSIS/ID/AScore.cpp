@@ -57,12 +57,16 @@ namespace OpenMS
   {
   }
 
-  PeptideHit AScore::compute(PeptideHit & hit, RichPeakSpectrum & real_spectrum, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const
+  PeptideHit AScore::compute(const PeptideHit & hit, RichPeakSpectrum & real_spectrum, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const
   {
     PeptideHit phospho = hit;
     
     //reset phospho
     phospho.setScore(0);
+    if (real_spectrum.empty())
+    {
+      return phospho;
+    }
     
     //String with_phospho_string = phospho.getSequence().toString();
     String sequence_str = phospho.getSequence().toString();
@@ -74,16 +78,6 @@ namespace OpenMS
     vector<Size> sites(getSites_(seq_without_phospho));
     Size number_of_STY = sites.size();
     
-    if (number_of_STY < number_of_phosphorylation_events)
-    {
-      number_of_phosphorylation_events = number_of_STY;
-    }
-    
-    if (real_spectrum.empty())
-    {
-      return phospho;
-    }
-
     vector<vector<Size> > permutations(computePermutations_(sites, (Int)number_of_phosphorylation_events));
     vector<RichPeakSpectrum> th_spectra;
     if (permutations.empty())
@@ -110,7 +104,7 @@ namespace OpenMS
     
     phospho.setScore(ranking.rbegin()->first); // initialize score with highest peptide score (aka highest weighted score)
     phospho.setSequence(AASequence::fromString(th_spectra[ranking.rbegin()->second].getName()));
-    phospho.setMetaValue("Search_engine_sequence", hit.getSequence().toString());
+    phospho.setMetaValue("search_engine_sequence", hit.getSequence().toString());
     
     if (number_of_phosphorylation_events == 0 || number_of_STY == 0 || number_of_STY == number_of_phosphorylation_events)
     {
@@ -121,7 +115,7 @@ namespace OpenMS
     determineHighestScoringPermutations_(peptide_site_scores, phospho_sites, permutations, ranking);
     
     Int rank = 1;
-    for (vector<ProbablePhosphoSites>::iterator s_it = phospho_sites.begin(); s_it < phospho_sites.end(); ++s_it)
+    for (vector<ProbablePhosphoSites>::iterator s_it = phospho_sites.begin(); s_it != phospho_sites.end(); ++s_it)
     {
       vector<RichPeakSpectrum> site_determining_ions;
       // Previously, the precursor charge was used here. This is clearly wrong and it is better to use charge 1 here.
@@ -253,7 +247,7 @@ namespace OpenMS
       vector<double>::const_iterator first_it = peptide_site_scores[sites[i].seq_1].begin();
       vector<double>::const_iterator second_it = peptide_site_scores[sites[i].seq_2].begin();
       
-      for (Size depth = 1; second_it < peptide_site_scores[sites[i].seq_2].end(); ++second_it, ++first_it, ++depth)
+      for (Size depth = 1; second_it != peptide_site_scores[sites[i].seq_2].end(); ++second_it, ++first_it, ++depth)
       {
         double phospho_at_site_score = *first_it;
         double no_phospho_at_site_score = *second_it;
@@ -269,7 +263,7 @@ namespace OpenMS
   }
   
   // calculation of the number of different speaks between the theoretical spectra of the two best scoring peptide permutations, respectively
-  void AScore::computeSiteDeterminingIons_(vector<RichPeakSpectrum> & th_spectra, ProbablePhosphoSites & candidates, vector<RichPeakSpectrum> & site_determining_ions) const
+  void AScore::computeSiteDeterminingIons_(const vector<RichPeakSpectrum> & th_spectra, const ProbablePhosphoSites & candidates, vector<RichPeakSpectrum> & site_determining_ions) const
   {
     site_determining_ions.clear();
     site_determining_ions.resize(2);
@@ -340,7 +334,7 @@ namespace OpenMS
            / 10.0;
   }
 
-  vector<Size> AScore::getSites_(AASequence& without_phospho) const
+  vector<Size> AScore::getSites_(const AASequence& without_phospho) const
   {
     vector<Size> tupel;
     String unmodified = without_phospho.toUnmodifiedString();
@@ -354,7 +348,7 @@ namespace OpenMS
     return tupel;
   }
 
-  vector<vector<Size> > AScore::computePermutations_(vector<Size> sites, Int n_phosphorylation_events) const
+  vector<vector<Size> > AScore::computePermutations_(const vector<Size> & sites, Int n_phosphorylation_events) const
   {
     vector<vector<Size>  > permutations;
     
@@ -391,7 +385,7 @@ namespace OpenMS
       
       tail = computePermutations_(tupel_left, tail_phospho_sites);
       
-      for (vector<vector<Size> >::iterator it = tail.begin(); it < tail.end(); ++it)
+      for (vector<vector<Size> >::iterator it = tail.begin(); it != tail.end(); ++it)
       {
         vector<Size> temp(head);
         temp.insert(temp.end(), it->begin(), it->end());
@@ -448,7 +442,8 @@ namespace OpenMS
           ++permu;
         }
         
-        if (permu == permutations[i].size()) {
+        if (permu == permutations[i].size()) 
+        {
           break;
         }
       }
@@ -514,7 +509,7 @@ namespace OpenMS
     vector<vector<double> >::iterator site_score = permutation_peptide_scores.begin();
     
     // for each phospho site assignment
-    for (vector<RichPeakSpectrum>::iterator it = th_spectra.begin(); it < th_spectra.end(); ++it, ++site_score)
+    for (vector<RichPeakSpectrum>::iterator it = th_spectra.begin(); it != th_spectra.end(); ++it, ++site_score)
     {
       // the number of theoretical peaks (all b- and y-ions) correspond to the number of trials N
       Size N = it->size();
