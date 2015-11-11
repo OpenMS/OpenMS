@@ -234,7 +234,7 @@ START_SECTION(void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap
 
   // feature identification scores
   TEST_EQUAL(feature.getMetaValue("id_target_transition_names"), "tr5;tr2");
-  TEST_EQUAL(feature.getMetaValue("id_target_aggr_Peak_Area"), "153.472;2771.21");
+  TEST_EQUAL(feature.getMetaValue("id_target_ind_log_intensity"), "5.03352;7.92704");
   TEST_REAL_SIMILAR(feature.getMetaValue("id_target_num_transitions"), 2);
   TEST_EQUAL(feature.getMetaValue("id_target_ind_xcorr_coelution"), "1;1.66667");
   TEST_EQUAL(feature.getMetaValue("id_target_ind_xcorr_shape"), "0.68631;0.690494");

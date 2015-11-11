@@ -308,23 +308,28 @@ namespace OpenMS
     {
       scorer.calculateChromatographicIdScores(idimrmfeature, native_ids_identification, native_ids_detection, signal_noise_estimators_identification, idscores);
 
-      std::stringstream id_transition_names;
-      std::stringstream id_aggr_Peak_Area;
+      std::stringstream ind_transition_names;
+      std::stringstream ind_log_intensity;
       for (size_t i = 0; i < native_ids_identification.size(); i++)
       {
         if (i != 0)
         {
-          id_transition_names << ";";
-          id_aggr_Peak_Area << ";";
+          ind_transition_names << ";";
+          ind_log_intensity << ";";
         }
-        id_transition_names << native_ids_identification[i];
-        id_aggr_Peak_Area << idmrmfeature.getFeature(native_ids_identification[i]).getIntensity();
+        ind_transition_names << native_ids_identification[i];
+        if (idmrmfeature.getFeature(native_ids_identification[i]).getIntensity() > 0)
+        {
+          ind_log_intensity << std::log(idmrmfeature.getFeature(native_ids_identification[i]).getIntensity());
+        }
+        else
+        {
+          ind_log_intensity << 0;
+        }
       }
-      idscores.id_transition_names = id_transition_names.str();
-      idscores.id_aggr_Peak_Area = id_aggr_Peak_Area.str();
-
-      idscores.id_num_transitions = native_ids_identification.size();
-      idscores.elution_model_fit_score = emgscoring_.calcElutionFitScore(idmrmfeature, transition_group_identification);
+      idscores.ind_transition_names = ind_transition_names.str();
+      idscores.ind_log_intensity = ind_log_intensity.str();
+      idscores.ind_num_transitions = native_ids_identification.size();
     }
 
     bool swath_present = (swath_map->getNrSpectra() > 0);
@@ -448,9 +453,9 @@ namespace OpenMS
       {
         OpenSwath_Scores idscores = scoreIdentification_(transition_group_identification, scorer, feature_idx, native_ids_detection, sn_win_len_, sn_bin_count_, write_log_messages, swath_map);
 
-        mrmfeature->setMetaValue("id_target_transition_names", idscores.id_transition_names);
-        mrmfeature->addScore("id_target_num_transitions", idscores.id_num_transitions);
-        mrmfeature->setMetaValue("id_target_aggr_Peak_Area", idscores.id_aggr_Peak_Area);
+        mrmfeature->setMetaValue("id_target_transition_names", idscores.ind_transition_names);
+        mrmfeature->addScore("id_target_num_transitions", idscores.ind_num_transitions);
+        mrmfeature->setMetaValue("id_target_ind_log_intensity", idscores.ind_log_intensity);
         mrmfeature->setMetaValue("id_target_ind_xcorr_coelution", idscores.ind_xcorr_coelution_score);
         mrmfeature->setMetaValue("id_target_ind_xcorr_shape", idscores.ind_xcorr_shape_score);
         mrmfeature->setMetaValue("id_target_ind_log_sn_score", idscores.ind_log_sn_score);
@@ -463,9 +468,9 @@ namespace OpenMS
       {
         OpenSwath_Scores idscores = scoreIdentification_(transition_group_identification_decoy, scorer, feature_idx, native_ids_detection, sn_win_len_, sn_bin_count_, write_log_messages, swath_map);
 
-        mrmfeature->setMetaValue("id_decoy_transition_names", idscores.id_transition_names);
-        mrmfeature->addScore("id_decoy_num_transitions", idscores.id_num_transitions);
-        mrmfeature->setMetaValue("id_decoy_aggr_Peak_Area", idscores.id_aggr_Peak_Area);
+        mrmfeature->setMetaValue("id_decoy_transition_names", idscores.ind_transition_names);
+        mrmfeature->addScore("id_decoy_num_transitions", idscores.ind_num_transitions);
+        mrmfeature->setMetaValue("id_decoy_ind_log_intensity", idscores.ind_log_intensity);
         mrmfeature->setMetaValue("id_decoy_ind_xcorr_coelution", idscores.ind_xcorr_coelution_score);
         mrmfeature->setMetaValue("id_decoy_ind_xcorr_shape", idscores.ind_xcorr_shape_score);
         mrmfeature->setMetaValue("id_decoy_ind_log_sn_score", idscores.ind_log_sn_score);

@@ -116,9 +116,9 @@ namespace OpenMS
     double bseries_score;
     double log_sn_score;
     std::string ind_log_sn_score;
-    int id_num_transitions;
-    std::string id_transition_names;
-    std::string id_aggr_Peak_Area;
+    int ind_num_transitions;
+    std::string ind_transition_names;
+    std::string ind_log_intensity;
 
     double weighted_coelution_score;
     double weighted_xcorr_shape;
@@ -152,8 +152,11 @@ namespace OpenMS
       library_sangle(0),
       norm_rt_score(0),
       isotope_correlation(0),
+      ind_isotope_correlation(""),
       isotope_overlap(0),
+      ind_isotope_overlap(""),
       massdev_score(0),
+      ind_massdev_score(""),
       xcorr_coelution_score(0),
       ind_xcorr_coelution_score(""),
       xcorr_shape_score(0),
@@ -162,7 +165,9 @@ namespace OpenMS
       bseries_score(0),
       log_sn_score(0),
       ind_log_sn_score(""),
-      id_num_transitions(0),
+      ind_num_transitions(0),
+      ind_transition_names(""),
+      ind_log_intensity(""),
       weighted_coelution_score(0),
       weighted_xcorr_shape(0),
       weighted_massdev_score(0),
