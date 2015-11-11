@@ -104,6 +104,7 @@ namespace OpenMS
       else
       {
         search_engine_name = protein_ids.begin()->getSearchEngine();
+        //Comet writes "Comet" in pep.xml, so this is ok
       }
     }
 
@@ -765,6 +766,19 @@ namespace OpenMS
         peptide_hit_.setScore(value);
         current_peptide_.setScoreType(name);
         current_peptide_.setHigherScoreBetter(false);
+        if (search_engine_ == "Comet")
+        {
+          peptide_hit_.setMetaValue("MS:1002257", value);
+        }
+        else if (search_engine_ == "X! Tandem")
+        {
+          peptide_hit_.setMetaValue("MS:1001330", value);
+        }
+        else if (search_engine_ == "Mascot")
+        {
+          peptide_hit_.setMetaValue("MS:1001172", value);
+        }
+        //TODO: there is no generic expect term in the CV right now
       }
       else if (name == "mvh") // MyriMatch score
       {
@@ -780,12 +794,23 @@ namespace OpenMS
       //   current_peptide_.setScoreType(name); // add "X!Tandem" to name?
       //   current_peptide_.setHigherScoreBetter(true);
       // }
-      else if (name == "xcorr" && search_engine_ != "MyriMatch") // Sequest score; MyriMatch has also an xcorr, but we want to ignore it
+      else if (name == "xcorr") // Sequest score
       { // and use the mvh
         value = attributeAsDouble_(attributes, "value");
-        peptide_hit_.setScore(value);
-        current_peptide_.setScoreType(name); // add "Sequest" to name?
-        current_peptide_.setHigherScoreBetter(true);
+        if (search_engine_ != "MyriMatch") //MyriMatch has also an xcorr, but we want to ignore it
+        {
+          peptide_hit_.setScore(value);
+          current_peptide_.setScoreType(name); // add "Sequest" to name?
+          current_peptide_.setHigherScoreBetter(true);
+        }
+        if (search_engine_ == "Comet")
+        {
+          peptide_hit_.setMetaValue("MS:1002252", value);
+        }
+        else
+        {
+          peptide_hit_.setMetaValue("MS:1001155", value); //TODO: no other xcorr in the CV right now, use SEQUEST:xcorr
+        }
       }
       else if (name == "fval") // SpectraST score
       {
@@ -793,6 +818,7 @@ namespace OpenMS
         peptide_hit_.setScore(value);
         current_peptide_.setScoreType(name);
         current_peptide_.setHigherScoreBetter(true);
+        peptide_hit_.setMetaValue("MS:1001419", value);
       }
     }
     else if (element == "search_hit") // parent: "search_result"
@@ -841,6 +867,7 @@ namespace OpenMS
       if (!native_spectrum_name_.empty() && keep_native_name_) 
       {
         current_peptide_.setMetaValue("pepxml_spectrum_name", native_spectrum_name_);
+        current_peptide_.setMetaValue("spectrum_reference", native_spectrum_name_); //TODO: we really need something uniform here, like scan number
       }
       if (!experiment_label_.empty())
       {
@@ -869,6 +896,7 @@ namespace OpenMS
       swath_assay_ = "";
       status_ = "";
       optionalAttributeAsString_(native_spectrum_name_, attributes, "spectrum");
+      optionalAttributeAsString_(native_spectrum_name_, attributes, "spectrumNativeID"); //some engines write that optional attribute - is preferred to spectrum
       optionalAttributeAsString_(experiment_label_, attributes, "experiment_label");
       optionalAttributeAsString_(swath_assay_, attributes, "swath_assay");
       optionalAttributeAsString_(status_, attributes, "status");
