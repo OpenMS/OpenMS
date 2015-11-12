@@ -48,11 +48,9 @@ struct OPENMS_DLLAPI HyperScore
   // compute the X!Tandem HyperScore on single theoretical spectrum
   static double compute(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const PeakSpectrum& exp_spectrum, const RichPeakSpectrum& theo_spectrum);
 
-  // compute best X!Tandem HyperScore on multiple theoretical spectra (e.g. all neutral loss spectra of a peptide)
-  static IndexScorePair compute(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const PeakSpectrum& exp_spectrum, const std::vector<RichPeakSpectrum>& theo_spectrum);
-
-  // helper to compute the log factorial
-  static double logfactorial(UInt x);
+  private:
+    // helper to compute the log factorial
+    static double logfactorial_(UInt x);
 };
 
 }
