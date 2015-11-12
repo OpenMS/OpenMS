@@ -44,12 +44,22 @@
 using namespace OpenMS;
 using namespace std;
 
+class MzTabFile2 : public MzTabFile
+{
+  public:
+    String generateMzTabPSMSectionRow2_(const MzTabPSMSectionRow& row, const vector<String>& optional_columns) const
+    {
+      return generateMzTabPSMSectionRow_(row, optional_columns);
+    }
+};
+
 START_TEST(MzTabFile, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
 MzTabFile* ptr = 0;
 MzTabFile* null_ptr = 0;
+
 START_SECTION(MzTabFile())
 {
   ptr = new MzTabFile();
@@ -117,9 +127,62 @@ START_SECTION(~MzTabFile())
 }
 END_SECTION
 
+START_SECTION(generateMzTabPSMSectionRow_(const MzTabPSMSectionRow& row, const vector<String>& optional_columns) const)
+{
+  MzTabFile2 mzTab;
+  MzTabPSMSectionRow row;
+  MzTabOptionalColumnEntry e;
+  MzTabString s;
+  
+  row.sequence.fromCellString("NDYKAPPQPAPGK");
+  row.PSM_ID.fromCellString("38");
+  row.accession.fromCellString("IPI:B1");
+  row.unique.fromCellString("1");
+  row.database.fromCellString("null");
+  row.database_version.fromCellString("null");
+  row.search_engine.fromCellString("[, , Percolator, ]");
+  row.search_engine_score[0].fromCellString("51.9678841193106");
+  
+  e.first = "Percolator_score";
+  s.fromCellString("0.359083");
+  e.second = s;
+  row.opt_.push_back(e);
+  
+  e.first = "Percolator_qvalue";
+  s.fromCellString("0.00649874");  
+  e.second = s;
+  row.opt_.push_back(e);
+  
+  e.first = "Percolator_PEP";
+  s.fromCellString("0.0420992");  
+  e.second = s;
+  row.opt_.push_back(e);
+  
+  e.first = "search_engine_sequence";
+  s.fromCellString("NDYKAPPQPAPGK");  
+  e.second = s;
+  row.opt_.push_back(e);
+  
+  // Tests ///////////////////////////////  
+  vector<String> optional_columns;
+  optional_columns.push_back("Percolator_score");
+  optional_columns.push_back("Percolator_qvalue");
+  optional_columns.push_back("EMPTY");
+  optional_columns.push_back("Percolator_PEP");
+  optional_columns.push_back("search_engine_sequence");
+  optional_columns.push_back("AScore_1");
+    
+  String strRow(mzTab.generateMzTabPSMSectionRow2_(row, optional_columns));
+  
+  std::vector<String> substrings;
+  strRow.split('\t', substrings);
+  TEST_EQUAL(substrings[substrings.size() - 1],"null")
+  TEST_EQUAL(substrings[substrings.size() - 2],"NDYKAPPQPAPGK")
+  TEST_EQUAL(substrings[substrings.size() - 3],"0.0420992")
+  TEST_EQUAL(substrings[substrings.size() - 4],"null")
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
-
-

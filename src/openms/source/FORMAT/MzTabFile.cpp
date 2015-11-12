@@ -1961,7 +1961,7 @@ String MzTabFile::generateMzTabProteinHeader_(const MzTabProteinSectionRow& refe
   return ListUtils::concatenate(header, "\t");
 }
 
-String MzTabFile::generateMzTabProteinSectionRow_(const MzTabProteinSectionRow& row) const
+String MzTabFile::generateMzTabProteinSectionRow_(const MzTabProteinSectionRow& row, const std::vector<String>& optional_columns) const
 {
   StringList s;
   s.push_back("PRT");
@@ -2043,28 +2043,41 @@ String MzTabFile::generateMzTabProteinSectionRow_(const MzTabProteinSectionRow& 
   }
 
   // print optional columns
-  for (Size i = 0; i != row.opt_.size(); ++i)
+  for (vector<String>::const_iterator it = optional_columns.begin(); it != optional_columns.end(); ++it)
   {
-    s.push_back(row.opt_[i].second.toCellString());
+    bool found = false;
+    for (Size i = 0; i != row.opt_.size(); ++i)
+    {
+      if (row.opt_[i].first.compare(*it) == 0)
+      {
+        s.push_back(row.opt_[i].second.toCellString());
+        found = true;
+        break;
+      }
+    }
+    if(!found)
+    {
+      s.push_back(MzTabString("null").toCellString());
+    }
   }
 
   return ListUtils::concatenate(s, "\t");
 }
 
-void MzTabFile::generateMzTabProteinSection_(const MzTabProteinSectionRows& rows, StringList& sl) const
+void MzTabFile::generateMzTabProteinSection_(const MzTabProteinSectionRows& rows, StringList& sl, const std::vector<String>& optional_columns) const
 {
   for (MzTabProteinSectionRows::const_iterator it = rows.begin(); it != rows.end(); ++it)
   {
-    sl.push_back(generateMzTabProteinSectionRow_(*it));
+    sl.push_back(generateMzTabProteinSectionRow_(*it, optional_columns));
   }
   sl.push_back(String("\n"));
 }
 
-void MzTabFile::generateMzTabPeptideSection_(const MzTabPeptideSectionRows& rows, StringList& sl) const
+void MzTabFile::generateMzTabPeptideSection_(const MzTabPeptideSectionRows& rows, StringList& sl, const vector<String>& optional_columns) const
 {
   for (MzTabPeptideSectionRows::const_iterator it = rows.begin(); it != rows.end(); ++it)
   {
-    sl.push_back(generateMzTabPeptideSectionRow_(*it));
+    sl.push_back(generateMzTabPeptideSectionRow_(*it, optional_columns));
   }
   sl.push_back(String("\n"));
 }
@@ -2180,7 +2193,7 @@ String MzTabFile::generateMzTabPSMHeader_(Size n_search_engine_scores, const vec
   return ListUtils::concatenate(header, "\t");
 }
 
-String MzTabFile::generateMzTabPeptideSectionRow_(const MzTabPeptideSectionRow& row) const
+String MzTabFile::generateMzTabPeptideSectionRow_(const MzTabPeptideSectionRow& row, const vector<String>& optional_columns) const
 {
   StringList s;
   s.push_back("PEP");
@@ -2244,24 +2257,37 @@ String MzTabFile::generateMzTabPeptideSectionRow_(const MzTabPeptideSectionRow& 
   }
 
   // print optional columns
-  for (Size i = 0; i != row.opt_.size(); ++i)
+  for (vector<String>::const_iterator it = optional_columns.begin(); it != optional_columns.end(); ++it)
   {
-    s.push_back(row.opt_[i].second.toCellString());
+    bool found = false;
+    for (Size i = 0; i != row.opt_.size(); ++i)
+    {
+      if (row.opt_[i].first.compare(*it) == 0)
+      {
+        s.push_back(row.opt_[i].second.toCellString());
+        found = true;
+        break;
+      }
+    }
+    if(!found)
+    {
+      s.push_back(MzTabString("null").toCellString());
+    }
   }
 
   return ListUtils::concatenate(s, "\t");
 }
 
-void MzTabFile::generateMzTabPSMSection_(const MzTabPSMSectionRows& rows, StringList& sl) const
+void MzTabFile::generateMzTabPSMSection_(const MzTabPSMSectionRows& rows, StringList& sl, const vector<String>& optional_columns) const
 {
   for (MzTabPSMSectionRows::const_iterator it = rows.begin(); it != rows.end(); ++it)
   {
-    sl.push_back(generateMzTabPSMSectionRow_(*it));
+    sl.push_back(generateMzTabPSMSectionRow_(*it, optional_columns));
   }
   sl.push_back(String("\n"));
 }
 
-String MzTabFile::generateMzTabPSMSectionRow_(const MzTabPSMSectionRow& row) const
+String MzTabFile::generateMzTabPSMSectionRow_(const MzTabPSMSectionRow& row, const vector<String>& optional_columns) const
 {
   StringList s;
   s.push_back("PSM");
@@ -2301,11 +2327,24 @@ String MzTabFile::generateMzTabPSMSectionRow_(const MzTabPSMSectionRow& row) con
   s.push_back(row.end.toCellString());
 
   // print optional columns
-  for (Size i = 0; i != row.opt_.size(); ++i)
+  for (vector<String>::const_iterator it = optional_columns.begin(); it != optional_columns.end(); ++it)
   {
-    s.push_back(row.opt_[i].second.toCellString());
+    bool found = false;
+    for (Size i = 0; i != row.opt_.size(); ++i)
+    {
+      if (row.opt_[i].first.compare(*it) == 0)
+      {
+        s.push_back(row.opt_[i].second.toCellString());
+        found = true;
+        break;
+      }
+    }
+    if(!found)
+    {
+      s.push_back(MzTabString("null").toCellString());
+    }
   }
-
+  
   return ListUtils::concatenate(s, "\t");
 }
 
@@ -2465,7 +2504,7 @@ void MzTabFile::store(const String& filename, const MzTab& mz_tab) const
     out.push_back(generateMzTabProteinHeader_(protein_section[0], n_best_search_engine_score, mz_tab.getProteinOptionalColumnNames()));
 
     // add section
-    generateMzTabProteinSection_(protein_section, out);
+    generateMzTabProteinSection_(protein_section, out, mz_tab.getProteinOptionalColumnNames());
   }
 
   if (!peptide_section.empty())
@@ -2497,7 +2536,7 @@ void MzTabFile::store(const String& filename, const MzTab& mz_tab) const
     Size n_search_engine_score = peptide_section[0].search_engine_score_ms_run.size();
     Size n_best_search_engine_score = mz_tab.getMetaData().peptide_search_engine_score.size();
     out.push_back(generateMzTabPeptideHeader_(search_ms_runs, n_best_search_engine_score, n_search_engine_score, assays, study_variables, mz_tab.getPeptideOptionalColumnNames()));
-    generateMzTabPeptideSection_(mz_tab.getPeptideSectionRows(), out);
+    generateMzTabPeptideSection_(mz_tab.getPeptideSectionRows(), out, mz_tab.getPeptideOptionalColumnNames());
   }
 
   if (!psm_section.empty())
@@ -2509,7 +2548,7 @@ void MzTabFile::store(const String& filename, const MzTab& mz_tab) const
       // TODO warn
     }
     out.push_back(generateMzTabPSMHeader_(n_search_engine_scores, mz_tab.getPSMOptionalColumnNames()));
-    generateMzTabPSMSection_(mz_tab.getPSMSectionRows(), out);
+    generateMzTabPSMSection_(mz_tab.getPSMSectionRows(), out, mz_tab.getPSMOptionalColumnNames());
   }
 
   if (!smallmolecule_section.empty())
@@ -2564,4 +2603,3 @@ void MzTabFile::store(const String& filename, const MzTab& mz_tab) const
 }
 
 #pragma clang diagnostic pop
-
