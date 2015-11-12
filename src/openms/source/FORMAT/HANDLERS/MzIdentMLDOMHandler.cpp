@@ -71,8 +71,8 @@ namespace OpenMS
       schema_version_(version),
       mzid_parser_()
     {
-      cv_.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
       unimod_.loadFromOBO("UNIMOD", File::find("/CV/unimod.obo"));
+      cv_.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
 
       try
       {
@@ -251,10 +251,7 @@ namespace OpenMS
         {
           it->sort();
         }
-        for (vector<PeptideIdentification>::iterator it = pep_id_->begin(); it != pep_id_->end(); ++it)
-        {
-          it->sort();
-        }
+        //note: PeptideIdentification sorting here not necessary any more, due to sorting according to cv in SpectrumIdentificationResult
 
       }
       catch (xercesc::XMLException& e)
@@ -597,7 +594,6 @@ namespace OpenMS
                   else
                   {
                     swname = up->first;
-                    break;
                   }
                 }
               }
@@ -803,6 +799,7 @@ namespace OpenMS
             pro_id_->back().setDateTime(DateTime::now());
           }
           pro_id_->back().setIdentifier(UniqueIdGenerator::getUniqueId()); // no more identification wit engine/date/time!
+          //TODO setIdentifier to xml id?
           si_pro_map_.insert(make_pair(spectrumIdentificationList_ref, pro_id_->size() - 1));
         }
       }
@@ -994,7 +991,11 @@ namespace OpenMS
               for (map<String, vector<CVTerm> >::const_iterator it = params.first.getCVTerms().begin(); it != params.first.getCVTerms().end(); ++it)
               {
                 f_tol = max(f_tol, boost::lexical_cast<double>(it->second.front().getValue().toString()));
-                sp.peak_mass_tolerance = f_tol;
+                sp.fragment_mass_tolerance = f_tol;
+                if (it->second.front().getUnit().name == "parts per million" )
+                {
+                  sp.fragment_mass_tolerance_ppm = true;
+                }
               }
             }
             else if ((std::string)XMLString::transcode(child->getTagName()) == "ParentTolerance")
@@ -1005,6 +1006,11 @@ namespace OpenMS
               {
                 p_tol = max(p_tol, boost::lexical_cast<double>(it->second.front().getValue().toString()));
                 sp.precursor_tolerance = p_tol;
+                if (it->second.front().getUnit().name == "parts per million" )
+                {
+                  sp.precursor_mass_tolerance_ppm = true;
+                }
+
               }
             }
             else if ((std::string)XMLString::transcode(child->getTagName()) == "Threshold")
@@ -1021,6 +1027,27 @@ namespace OpenMS
           SpectrumIdentificationProtocol temp_struct = {searchtype, enzymename, param_cv, param_up, modparam, p_tol, f_tol, tcv, tup};
           sp_map_.insert(make_pair(id, temp_struct));
 
+          double thresh = 0.0;
+          bool use_thresh = false;
+          set<String> threshold_terms;
+          cv_.getAllChildTerms(threshold_terms, "MS:1002482"); //statistical threshold
+          for (map<String, vector<OpenMS::CVTerm> >::const_iterator thit = tcv.getCVTerms().begin(); thit != tcv.getCVTerms().end(); ++thit)
+          {
+            if (threshold_terms.find(thit->first) != threshold_terms.end())
+            {
+              if (thit->first != "MS:1001494") // no threshold
+              {
+                thresh = thit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
+                use_thresh = true;
+                break;
+              }
+              else
+              {
+                break;
+              }
+            }
+          }
+
           String search_engine, search_engine_version;
           for (map<String, SpectrumIdentification>::const_iterator si_it = si_map_.begin(); si_it != si_map_.end(); ++si_it)
           {
@@ -1036,6 +1063,10 @@ namespace OpenMS
               sp.db = pro_id_->at(si_pro_map_[si_it->second.spectrum_identification_list_ref]).getSearchParameters().db; // was previously set, but main parts of sp are set here
               sp.db_version = pro_id_->at(si_pro_map_[si_it->second.spectrum_identification_list_ref]).getSearchParameters().db_version; // was previously set, but main parts of sp are set here
               pro_id_->at(si_pro_map_[si_it->second.spectrum_identification_list_ref]).setSearchParameters(sp);
+              if (use_thresh)
+              {
+                pro_id_->at(si_pro_map_[si_it->second.spectrum_identification_list_ref]).setSignificanceThreshold(thresh);
+              }
             }
           }
         }
@@ -1144,7 +1175,8 @@ namespace OpenMS
 //                      +"T"+si_pro_map_[id]->getDateTime().getTime();
               pep_id_->back().setIdentifier(pro_id_->at(si_pro_map_[id]).getIdentifier());
               pep_id_->back().setMetaValue("spectrum_reference", spectrumID); //String scannr = substrings.back().reverse().chop(5);
-              //pep_id_->back().setScoreType(); #set in parseSpectrumIdentificationItemElement_
+
+              pep_id_->back().sortByRank();
 
               //adopt cv s
               for (map<String, vector<CVTerm> >::const_iterator cvit =  params.first.getCVTerms().begin(); cvit != params.first.getCVTerms().end(); ++cvit)
@@ -1214,15 +1246,17 @@ namespace OpenMS
       }
       delete val;
       LOG_DEBUG << "'passThreshold' value " << pass;
-      // TODO @all: where to store passThreshold value?
+      // TODO @all: where to store passThreshold value? set after score type eval in pass_threshold
 
       long double score = 0;
       pair<CVTermList, map<String, DataValue> > params = parseParamGroup_(spectrumIdentificationItemElement->getChildNodes());
       set<String> q_score_terms;
-      set<String> e_score_terms;
+      set<String> e_score_terms,e_score_tmp;
       set<String> specific_score_terms;
       cv_.getAllChildTerms(q_score_terms, "MS:1002354"); //q-value for peptides
-      cv_.getAllChildTerms(e_score_terms, "MS:1001872"); //E-value for peptides
+      cv_.getAllChildTerms(e_score_terms, "MS:1001872");
+      cv_.getAllChildTerms(e_score_tmp, "MS:1002353");
+      e_score_terms.insert(e_score_tmp.begin(),e_score_tmp.end()); //E-value for peptides
       cv_.getAllChildTerms(specific_score_terms, "MS:1001143"); //search engine specific score for PSMs
       bool scoretype = false;
       for (map<String, vector<OpenMS::CVTerm> >::const_iterator scoreit = params.first.getCVTerms().begin(); scoreit != params.first.getCVTerms().end(); ++scoreit)
@@ -1238,23 +1272,23 @@ namespace OpenMS
             break;
           }
         }
+        else if (specific_score_terms.find(scoreit->first) != specific_score_terms.end() || scoreit->first == "MS:1001143")
+        {
+          score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
+          spectrum_identification.setHigherScoreBetter(ControlledVocabulary::CVTerm::isHigherBetterScore(cv_.getTerm(scoreit->first)));
+          spectrum_identification.setScoreType(scoreit->second.front().getName());
+          scoretype = true;
+          break;
+        }
         else if (e_score_terms.find(scoreit->first) != e_score_terms.end())
         {
           score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
           spectrum_identification.setHigherScoreBetter(false);
           spectrum_identification.setScoreType("E-value"); //higherIsBetter = false
           scoretype = true;
-          break;
-        }
-        else if (specific_score_terms.find(scoreit->first) != specific_score_terms.end() || scoreit->first == "MS:1001143")
-        {
-          score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
-          spectrum_identification.setHigherScoreBetter(true);
-          spectrum_identification.setScoreType(scoreit->second.front().getName());
-          scoretype = true;
         }
       }
-      if (scoretype) //else (i.e. no q/E/raw score) no hit will be read TODO @mths: yielding no peptide hits will be error prone!!! what to do? remove and warn peptideidentifications with no hits inside?!
+      if (scoretype) //else (i.e. no q/E/raw score or threshold not passed) no hit will be read TODO @mths: yielding no peptide hits will be error prone!!! what to do? remove and warn peptideidentifications with no hits inside?!
       {
         //build the PeptideHit from a SpectrumIdentificationItem
         PeptideHit hit(score, rank, chargeState, pep_map_[peptide_ref]);
@@ -1271,6 +1305,7 @@ namespace OpenMS
         }
         hit.setMetaValue("calcMZ", calculatedMassToCharge);
         spectrum_identification.setMZ(experimentalMassToCharge); // TODO @ mths: why is this not in SpectrumIdentificationResult? exp. m/z for one spec should not change from one id for it to the next!
+        hit.setMetaValue("pass_threshold", pass); //TODO @ mths do not write metavalue pass_threshold
 
         //connect the PeptideHit with PeptideEvidences (for AABefore/After) and subsequently with DBSequence (for ProteinAccession)
         pair<multimap<String, String>::iterator, multimap<String, String>::iterator> pev_its;
@@ -1521,10 +1556,10 @@ namespace OpenMS
           DOMElement* element_sib = dynamic_cast<xercesc::DOMElement*>(current_sib);
           if ((std::string)XMLString::transcode(element_sib->getTagName()) == "Modification")
           {
-            int index = -1;
+            SignedSize index = -1;
             try
             {
-              index = String(XMLString::transcode(element_sib->getAttribute(XMLString::transcode("location")))).toInt();
+              index = static_cast<SignedSize>(String(XMLString::transcode(element_sib->getAttribute(XMLString::transcode("location")))).toInt());
             }
             catch (...)
             {
@@ -1546,7 +1581,7 @@ namespace OpenMS
               {
                 aas.setNTerminalModification(cv.getName());
               }
-              else if (index == int(aas.size()) + 1)
+              else if (index == static_cast<SignedSize>(aas.size() + 1))
               {
                 aas.setCTerminalModification(cv.getName());
               }
@@ -1556,9 +1591,9 @@ namespace OpenMS
                 {
                   aas.setModification(index - 1, cv.getName()); //TODO @mths,Timo : do this via UNIMOD accessions
                 }
-                catch (...)
+                catch (Exception::BaseException& e)
                 {
-                  LOG_WARN << "Found unusable modification" << " @residue: " << aas.getResidue((SignedSize)index).getName() << String(index) << " mod: " << cv.getName() << endl;
+                  LOG_WARN << e.getName() << ": " << e.getMessage() << " Sequence: " << aas.toUnmodifiedString() << ", residue " << aas.getResidue(index - 1).getName() << "@" << String(index) << "\n";
                 }
               }
               cvp = cvp->getNextElementSibling();

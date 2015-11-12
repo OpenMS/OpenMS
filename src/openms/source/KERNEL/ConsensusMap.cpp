@@ -394,6 +394,26 @@ namespace OpenMS
     data_processing_ = processing_method;
   }
 
+  /// set the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)
+  void ConsensusMap::setPrimaryMSRunPath(const StringList& s)
+  {
+    if (!s.empty())
+    {
+      this->setMetaValue("ms_run-location", DataValue(s));
+    }
+  }
+
+  /// get the file path to the first MS run
+  StringList ConsensusMap::getPrimaryMSRunPath() const
+  {
+    StringList ret;
+    if (this->metaValueExists("ms_run-location"))
+    {
+      ret = this->getMetaValue("ms_run-location");
+    }
+    return ret;
+  }
+
   /// Equality operator
   bool ConsensusMap::operator==(const ConsensusMap& rhs) const
   {

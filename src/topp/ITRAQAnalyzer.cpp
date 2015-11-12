@@ -209,6 +209,7 @@ protected:
     }
 
     ConsensusXMLFile cm_file;
+    consensus_map_quant.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
     cm_file.store(out, consensus_map_quant);
 
     if (!out_mzq.trim().empty())

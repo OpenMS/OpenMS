@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<?xml-stylesheet type="text/xsl" href="file:////home/lars/Code/git/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
-<consensusXML version="1.5" id="cm_5233264595117471314" experiment_type="multiplex" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<?xml-stylesheet type="text/xsl" href="file:////nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<consensusXML version="1.6" id="cm_5233264595117471314" experiment_type="labeled_MS1" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_6.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<UserParam type="stringList" name="ms_run-location" value="[file:///BM2000.raw]"/>
 	<mapList count="2">
-		<map id="0" name="FeatureFinderMultiplex_1_output.consensusXML" label="Dimethyl0" size="2">
+		<map id="0" name="FeatureFinderMultiplex_1.tmp" label="Dimethyl0" size="2">
 		</map>
-		<map id="1" name="FeatureFinderMultiplex_1_output.consensusXML" label="Dimethyl8" size="2">
+		<map id="1" name="FeatureFinderMultiplex_1.tmp" label="Dimethyl8" size="2">
 		</map>
 	</mapList>
 	<consensusElementList>

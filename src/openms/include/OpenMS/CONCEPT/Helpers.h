@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,75 +28,77 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Lars Nilse $
-// $Authors: Lars Nilse $
+// $Maintainer: Hannes Roest $
+// $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexPeakPattern.h>
+#ifndef OPENMS_CONCEPT_HELPERS_H
+#define OPENMS_CONCEPT_HELPERS_H
 
 #include <vector>
-#include <algorithm>
-#include <iostream>
-
-using namespace std;
+#include <boost/shared_ptr.hpp>
 
 namespace OpenMS
 {
-
-  MultiplexPeakPattern::MultiplexPeakPattern(int c, int ppp, vector<double> ms, int msi) :
-    charge_(c), peaks_per_peptide_(ppp), mass_shifts_(ms), mass_shift_index_(msi)
+  namespace Helpers 
   {
-    // generate m/z shifts
-    for (unsigned i = 0; i < mass_shifts_.size(); ++i)
+
+    /**
+        @brief Helper function to add constness to a vector of shared pointers
+    */
+    template <class T>
+    const std::vector<boost::shared_ptr<const T> >&
+    constifyPointerVector(const std::vector<boost::shared_ptr<T> >& vec) 
     {
-      for (int j = -1; j < peaks_per_peptide_; ++j)
+      return reinterpret_cast<const std::vector<boost::shared_ptr<const T> >&>(vec);
+    }
+
+
+    /**
+      * @brief Helper comparing two pointers for equality (taking NULL into account)
+    */
+    template <class PtrType>
+    inline bool cmpPtrSafe(const PtrType& a, const PtrType& b)
+    {
+       // We are not interested whether the pointers are equal but whether the
+       // contents are equal
+      if (a == NULL && b == NULL)
       {
-        // j=-1 shift corresponds to the zeroth peak
-        mz_shifts_.push_back((mass_shifts_[i] + j * Constants::C13C12_MASSDIFF_U) / charge_);
+        return true;
+      }
+      else if (a == NULL || b == NULL)
+      {
+        return false; // one is null the other is not
+      }
+      else
+      {
+        // compare the internal object
+        return (*a == *b);
       }
     }
-  }
 
-  int MultiplexPeakPattern::getCharge() const
-  {
-    return charge_;
-  }
+    /**
+      * @brief Helper function to compare two pointer-containers for equality of all elements
+    */
+    template <class ContainerType>
+    inline bool cmpPtrContainer(const ContainerType& a, const ContainerType& b)
+    {
+      if (a.size() != b.size()) return false;
 
-  int MultiplexPeakPattern::getPeaksPerPeptide() const
-  {
-    return peaks_per_peptide_;
-  }
+      // check that all elements of a and b are equal using safe comparison
+      // (taking NULL into account)
+      for (Size i = 0; i < a.size(); i++)
+      {
+        if (!cmpPtrSafe(a[i], b[i]))
+        {
+          return false;
+        }
+      }
+      return true;
+    }
 
-  std::vector<double> MultiplexPeakPattern::getMassShifts() const
-  {
-    return mass_shifts_;
   }
-
-  int MultiplexPeakPattern::getMassShiftIndex() const
-  {
-    return mass_shift_index_;
-  }
-
-  unsigned MultiplexPeakPattern::getMassShiftCount() const
-  {
-    return mass_shifts_.size();
-  }
-
-  double MultiplexPeakPattern::getMassShiftAt(int i) const
-  {
-    return mass_shifts_[i];
-  }
-
-  double MultiplexPeakPattern::getMZShiftAt(int i) const
-  {
-    return mz_shifts_[i];
-  }
-
-  unsigned MultiplexPeakPattern::getMZShiftCount() const
-  {
-    return mz_shifts_.size();
-  }
-
 }
+
+
+#endif //OPENMS_CONCEPT_HELPERS_H

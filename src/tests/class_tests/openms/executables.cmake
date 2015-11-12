@@ -104,6 +104,8 @@ set(metadata_executables_list
   Software_test
   SourceFile_test
   SpectrumIdentification_test
+  SpectrumLookup_test
+  SpectrumMetaDataLookup_test
   SpectrumSettings_test
   Tagging_test
 )
@@ -253,6 +255,7 @@ set(math_executables_list
   PosteriorErrorProbabilityModel_test
   #QuadraticRegression_test
   #RegressionUtils_test
+  RANSAC_test
   ROCCurve_test
   StatisticFunctions_test
   #Spline2d_test
@@ -266,6 +269,7 @@ set(filtering_executables_list
   ElutionPeakDetection_test
   FeatureFindingMetabo_test
   FilterFunctor_test
+  FastLowessSmoothing_test
   GaussFilter_test
   GaussFilterAlgorithm_test
   GoodDiffFilter_test
@@ -282,13 +286,15 @@ set(filtering_executables_list
   MassTraceDetection_test
   MorphologicalFilter_test
   MultiplexClustering_test
+  MultiplexDeltaMasses_test
+  MultiplexDeltaMassesGenerator_test
   MultiplexFiltering_test
   MultiplexFilteringCentroided_test
   MultiplexFilteringProfile_test
   MultiplexFilterResult_test
   MultiplexFilterResultPeak_test
   MultiplexFilterResultRaw_test
-  MultiplexPeakPattern_test
+  MultiplexIsotopicPeakPattern_test
   NLargest_test
   NeutralLossDiffFilter_test
   NeutralLossMarker_test

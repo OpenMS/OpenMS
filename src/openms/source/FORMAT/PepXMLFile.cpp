@@ -32,14 +32,16 @@
 // $Authors: Chris Bielow, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/FORMAT/PepXMLFile.h>
+
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/MascotXMLHandler.h> // for "primary_scan_regex"
+#include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <fstream>
@@ -54,12 +56,13 @@ namespace OpenMS
   PepXMLFile::PepXMLFile() :
     XMLHandler("", "1.12"),
     XMLFile("/SCHEMAS/pepXML_v114.xsd", "1.14"),
-    proteins_(0),
-    peptides_(0),
-    experiment_(0),
+    proteins_(NULL),
+    peptides_(NULL),
+    lookup_(NULL),
     scan_map_(),
-    rt_tol_(10.0),
-    mz_tol_(10.0)
+    analysis_summary_(false),
+    keep_native_name_(false),
+    search_score_summary_(false)
   {
     const ElementDB* db = ElementDB::getInstance();
     hydrogen_ = *db->getElement("Hydrogen");
@@ -280,7 +283,22 @@ namespace OpenMS
           scan_index = count;
         }
         // PeptideProphet requires this format for "spectrum" attribute (otherwise TPP parsing error)
-        f << "\t<spectrum_query spectrum=\"" << base_name << ".00000.00000." << h.getCharge() << "\""
+        //  - see also the parser code if iProphet at http://sourceforge.net/p/sashimi/code/HEAD/tree/trunk/trans_proteomic_pipeline/src/Validation/InterProphet/InterProphetParser/InterProphetParser.cxx#l180
+        //  strictly required attributes:
+        //    - spectrum
+        //    - assumed_charge
+        //  optional attributes 
+        //    - retention_time_sec
+        //    - swath_assay
+        //    - experiment_label
+
+        String spectrum_name = base_name + ".00000.00000.";
+        if (it->metaValueExists("pepxml_spectrum_name") && keep_native_name_) 
+        {
+          spectrum_name = it->getMetaValue("pepxml_spectrum_name");
+        }
+
+        f << "\t<spectrum_query spectrum=\"" << spectrum_name << h.getCharge() << "\""
           << " start_scan=\"" << scan_index << "\""
           << " end_scan=\"" << scan_index << "\""
           << " precursor_neutral_mass=\"" << precisionWrapper(precursor_neutral_mass) << "\""
@@ -289,6 +307,26 @@ namespace OpenMS
         if (it->hasRT())
         {
           f << " retention_time_sec=\"" << it->getRT() << "\" ";
+        }
+
+        if (!it->getExperimentLabel().empty())
+        {
+          f << " experiment_label=\"" << it->getExperimentLabel() << "\" ";
+        }
+
+        // "swath_assay" is an optional parameter used for SWATH-MS mostly and
+        // may be set for a PeptideIdentification
+        //   note that according to the parsing rules of TPP, this needs to be
+        //   "xxx:yyy" where xxx is any string and yyy is probably an integer
+        //   indicating the Swath window
+        if (it->metaValueExists("swath_assay"))
+        {
+          f << " swath_assay=\"" << it->getMetaValue("swath_assay") << "\" ";
+        }
+        // "status" is an attribute that may be target or decoy
+        if (it->metaValueExists("status"))
+        {
+          f << " status=\"" << it->getMetaValue("status") << "\" ";
         }
 
         f << ">\n";
@@ -354,7 +392,7 @@ namespace OpenMS
           if (seq.hasCTerminalModification())
           {
             const ResidueModification& mod = ModificationsDB::getInstance()->getTerminalModification(seq.getCTerminalModification(), ResidueModification::C_TERM);
-            f << "mod_cterm_mass=\"" <<
+            f << " mod_cterm_mass=\"" <<
               precisionWrapper(mod.getMonoMass() + seq[seq.size() - 1].getMonoWeight(Residue::Internal)) << "\"";
           }
 
@@ -374,12 +412,77 @@ namespace OpenMS
 
           f << "\t\t\t</modification_info>" << "\n";
         }
-        if (peptideprophet_analyzed)
+
+        // write out the (optional) search_score_summary that may be associated with peptide prophet results
+        bool peptideprophet_written = false;
+        if (!h.getAnalysisResults().empty())
         {
+          // <analysis_result analysis="peptideprophet">
+          //   <peptideprophet_result probability="0.0660" all_ntt_prob="(0.0000,0.0000,0.0660)">
+          //     <search_score_summary>
+          //       <parameter name="fval" value="0.7114"/>
+          //       <parameter name="ntt" value="2"/>
+          //       <parameter name="nmc" value="0"/>
+          //       <parameter name="massd" value="-0.027"/>
+          //       <parameter name="isomassd" value="0"/>
+          //     </search_score_summary>
+          //   </peptideprophet_result>
+          // </analysis_result>
+
+          for (std::vector<PeptideHit::PepXMLAnalysisResult>::const_iterator ar_it = h.getAnalysisResults().begin();
+              ar_it != h.getAnalysisResults().end(); ++ar_it)
+          {
+            f << "\t\t\t<analysis_result analysis=\"" << ar_it->score_type << "\">" << "\n";
+
+            // get name of next tag
+            String tagname = "peptideprophet_result";
+            if (ar_it->score_type == "peptideprophet")
+            {
+              peptideprophet_written = true; // remember that we have now already written peptide prophet results
+              tagname = "peptideprophet_result";
+            }
+            else if (ar_it->score_type == "interprophet")
+            {
+              tagname = "interprophet_result";
+            }
+            else
+            {
+              peptideprophet_written = true; // remember that we have now already written peptide prophet results
+              warning(STORE, "Analysis type " + ar_it->score_type + " not supported, will use peptideprophet_result.");
+            }
+
+            f << "\t\t\t\t<" << tagname <<  " probability=\"" << ar_it->main_score;
+            // TODO
+            f << "\" all_ntt_prob=\"(" << ar_it->main_score << "," << ar_it->main_score
+            << "," << ar_it->main_score << ")\">" << "\n";
+
+            if (!ar_it->sub_scores.empty())
+            {
+              f << "\t\t\t\t\t<search_score_summary>" << "\n";
+              for (std::map<String, double>::const_iterator subscore_it = ar_it->sub_scores.begin();
+                  subscore_it != ar_it->sub_scores.end(); ++subscore_it)
+              {
+                f << "\t\t\t\t\t\t<parameter name=\""<< subscore_it->first << "\" value=\"" << subscore_it->second << "\"/>\n";
+              }
+              f << "\t\t\t\t\t</search_score_summary>" << "\n";
+            }
+            f << "\t\t\t\t</" << tagname << ">" << "\n";
+            
+            f << "\t\t\t</analysis_result>" << "\n";
+          }
+        }
+
+        // deprecated way of writing out peptide prophet results (only if
+        // requested explicitly and if we have not already written out the
+        // peptide prophet results above through AnalysisResults
+        if (peptideprophet_analyzed && !peptideprophet_written)
+        {
+          // if (!h.getAnalysisResults().empty()) { WARNING / } 
           f << "\t\t\t<analysis_result analysis=\"peptideprophet\">" << "\n";
           f << "\t\t\t<peptideprophet_result probability=\"" << h.getScore()
             << "\" all_ntt_prob=\"(" << h.getScore() << "," << h.getScore()
             << "," << h.getScore() << ")\">" << "\n";
+
           f << "\t\t\t</peptideprophet_result>" << "\n";
           f << "\t\t\t</analysis_result>" << "\n";
         }
@@ -448,39 +551,6 @@ namespace OpenMS
     if (!mods.empty()) modification_description = mods[0];
   }
 
-  void PepXMLFile::makeScanMap_()
-  {
-    scan_map_.clear();
-    Size scan = 0;
-    for (MSExperiment<>::ConstIterator e_it = experiment_->begin(); e_it != experiment_->end(); ++e_it, ++scan)
-    {
-      String id = e_it->getNativeID();
-      bool failed = false;
-      try
-      {
-        // expected format: "spectrum=#" (mzData) or "scan=#" (mzXML)
-        Int num_id = id.suffix('=').toInt();
-        if (num_id >= 0)
-        {
-          scan_map_.insert(scan_map_.end(), pair<Size, Size>(num_id, scan));
-        }
-        else
-        {
-          failed = true;
-        }
-      }
-      catch (Exception::ConversionError)
-      {
-        failed = true;
-      }
-      if (failed)
-      {
-        scan_map_.clear();
-        error(LOAD, "Could not construct mapping of native scan numbers to indexes");
-      }
-    }
-  }
-
   void PepXMLFile::readRTMZCharge_(const xercesc::Attributes& attributes)
   {
     double mass = attributeAsDouble_(attributes, "precursor_neutral_mass");
@@ -490,72 +560,28 @@ namespace OpenMS
 
     bool rt_present = optionalAttributeAsDouble_(rt_, attributes, "retention_time_sec");
 
-    if (!rt_present || use_precursor_data_) // get RT from experiment
+    if (!rt_present) // get RT from experiment
     {
-      if (!experiment_)
+      if (lookup_ == NULL || lookup_->empty())
       {
-        error(LOAD, "Cannot get precursor information - no experiment given");
+        // no lookup given, report non-fatal error
+        error(LOAD, "Cannot get RT information - no spectra given");
         return;
       }
 
       // assume only one scan, i.e. ignore "end_scan":
       Size scan = attributeAsInt_(attributes, "start_scan");
-      if (scan == 0) // work-around for pepXMLs exported from Mascot
+      Size index = (scan != 0) ? lookup_->findByScanNumber(scan) :
+        lookup_->findByReference(attributeAsString_(attributes, "spectrum"));
+      SpectrumMetaDataLookup::SpectrumMetaData meta;
+      lookup_->getSpectrumMetaData(index, meta);
+      if (meta.ms_level == 2)
       {
-        String spectrum = attributeAsString_(attributes, "spectrum");
-        boost::regex re(Internal::MascotXMLHandler::primary_scan_regex,
-                        boost::regex::perl | boost::regex::icase);
-        boost::smatch match;
-        if (boost::regex_search(spectrum, match, re))
-        {
-          scan = String(match["SCAN"].str()).toInt();
-        }
+        rt_ = meta.rt;
       }
-
-      if (!scan_map_.empty()) scan = scan_map_[scan];
-      const MSSpectrum<>& spec = (*experiment_)[scan];
-      bool success = false;
-      if (spec.getMSLevel() == 2)
+      else
       {
-        if (!use_precursor_data_)
-        {
-          rt_ = spec.getRT();
-          success = true;
-        }
-        else if (!rt_present || Math::approximatelyEqual(spec.getRT(), rt_, 0.001))
-        {
-          double prec_mz = 0, prec_rt = 0;
-          vector<Precursor> precursors = spec.getPrecursors();
-          if (!precursors.empty())
-          {
-            prec_mz = precursors[0].getMZ(); // assume only one precursor
-          }
-          MSExperiment<>::ConstIterator it = experiment_->getPrecursorSpectrum(experiment_->begin() + scan);
-          if (it != experiment_->end())
-          {
-            prec_rt = it->getRT();
-          }
-
-          // check if "rt"/"mz" are similar to "prec_rt"/"prec_mz"
-          // (otherwise, precursor mapping is wrong)
-          if ((prec_mz > 0) && Math::approximatelyEqual(prec_mz, mz_, mz_tol_)    && (prec_rt > 0) && (!rt_present || Math::approximatelyEqual(prec_rt, rt_, rt_tol_)))
-          {
-            // double diff;
-            // diff = mz_ - prec_mz;
-            // cout << "m/z difference: " << diff << " ("
-            //       << diff / max(mz_, prec_mz) * 100 << "%)\n";
-            // diff = rt_ - prec_rt;
-            // cout << "RT difference: " << diff << " ("
-            //       << diff / max(rt_, prec_rt) * 100 << "%)\n" << "\n";
-            mz_ = prec_mz;
-            rt_ = prec_rt;
-            success = true;
-          }
-        }
-      }
-      if (!success)
-      {
-        error(LOAD, "Cannot get precursor information - scan mapping is incorrect");
+        error(LOAD, "Cannot get RT information - scan mapping is incorrect");
       }
     }
   }
@@ -564,23 +590,19 @@ namespace OpenMS
                         proteins, vector<PeptideIdentification>& peptides,
                         const String& experiment_name)
   {
-    MSExperiment<> exp;
-    load(filename, proteins, peptides, experiment_name, exp, false);
+    SpectrumMetaDataLookup lookup;
+    load(filename, proteins, peptides, experiment_name, lookup);
   }
 
   void PepXMLFile::load(const String& filename, vector<ProteinIdentification>&
                         proteins, vector<PeptideIdentification>& peptides,
-                        const String& experiment_name, const MSExperiment<>&
-                        experiment, bool use_precursor_data)
+                        const String& experiment_name,
+                        const SpectrumMetaDataLookup& lookup)
   {
     // initialize here, since "load" could be called several times:
     exp_name_ = "";
-    experiment_ = 0;
-    use_precursor_data_ = use_precursor_data;
     prot_id_ = "";
     charge_ = 0;
-    rt_tol_ = 10.0;
-    mz_tol_ = 10.0;
     peptides.clear();
     peptides_ = &peptides;
     proteins.clear();
@@ -593,16 +615,7 @@ namespace OpenMS
     if (experiment_name != "")
     {
       exp_name_ = File::removeExtension(experiment_name);
-
-      if (!experiment.empty()) // use experiment only if we know the name
-      {
-        experiment_ = &experiment;
-        MSExperiment<>::AreaType area = experiment_->getDataRange();
-        // set tolerance to 1% of data range (if above a sensible minimum):
-        rt_tol_ = max((area.maxX() - area.minX()) * 0.01, rt_tol_);
-        mz_tol_ = max((area.maxY() - area.minY()) * 0.01, mz_tol_);
-        makeScanMap_();
-      }
+      lookup_ = &lookup;
     }
 
     analysis_summary_ = false;
@@ -642,9 +655,9 @@ namespace OpenMS
     exp_name_.clear();
     prot_id_.clear();
     date_.clear();
-    proteins_ = 0;
-    peptides_ = 0;
-    experiment_ = 0;
+    proteins_ = NULL;
+    peptides_ = NULL;
+    lookup_ = NULL;
     scan_map_.clear();
   }
 
@@ -811,7 +824,8 @@ namespace OpenMS
       current_proteins_[min(UInt(current_proteins_.size()), search_id_) - 1]->insertHit(hit);
     }
     else if (element == "search_result") // parent: "spectrum_query"
-    { // creates a new PeptideIdentification
+    { 
+      // creates a new PeptideIdentification
       current_peptide_ = PeptideIdentification();
       current_peptide_.setRT(rt_);
       current_peptide_.setMZ(mz_);
@@ -823,22 +837,81 @@ namespace OpenMS
       // may appear to be "out of bounds" - see NOTE above:
       String identifier = current_proteins_[min(UInt(current_proteins_.size()), search_id_) - 1]->getIdentifier();
       current_peptide_.setIdentifier(identifier);
+
+      // set optional attributes
+      if (!native_spectrum_name_.empty() && keep_native_name_) 
+      {
+        current_peptide_.setMetaValue("pepxml_spectrum_name", native_spectrum_name_);
+      }
+      if (!experiment_label_.empty())
+      {
+        current_peptide_.setExperimentLabel(experiment_label_);
+      }
+      if (!swath_assay_.empty()) 
+      {
+        current_peptide_.setMetaValue("swath_assay", swath_assay_);
+      }
+      if (!status_.empty()) 
+      {
+        current_peptide_.setMetaValue("status", status_);
+      }
     }
     else if (element == "spectrum_query") // parent: "msms_run_summary"
     {
+      // sample:
+      // <spectrum_query spectrum="foobar.02552.02552.2" start_scan="2552" end_scan="2552" precursor_neutral_mass="1168.6176" assumed_charge="2" 
+      //    index="10" retention_time_sec="488.652" experiment_label="urine" swath_assay="EIVLTQSPGTL2:9" status="target">
+
       readRTMZCharge_(attributes); // sets "rt_", "mz_", "charge_"
+
+      // retrieve optional attributes
+      native_spectrum_name_ = "";
+      experiment_label_ = "";
+      swath_assay_ = "";
+      status_ = "";
+      optionalAttributeAsString_(native_spectrum_name_, attributes, "spectrum");
+      optionalAttributeAsString_(experiment_label_, attributes, "experiment_label");
+      optionalAttributeAsString_(swath_assay_, attributes, "swath_assay");
+      optionalAttributeAsString_(status_, attributes, "status");
+
+
+    }
+    else if (element == "analysis_result") // parent: "search_hit" 
+    {
+      current_analysis_result_ = PeptideHit::PepXMLAnalysisResult();
+      current_analysis_result_.score_type = attributeAsString_(attributes, "analysis");
+    }
+    else if (element == "search_score_summary")
+    {
+      search_score_summary_ = true;
+    }
+    else if (element == "parameter") // parent: "search_score_summary" 
+    {
+      // If we are within a search_score_summary, add the read in values to the current AnalysisResult
+      if (search_score_summary_)
+      {
+        String name = attributeAsString_(attributes, "name");
+        double value = attributeAsDouble_(attributes, "value");
+        current_analysis_result_.sub_scores[name] = value;
+      }
+      else
+      {
+        // currently not handled
+      }
     }
     else if (element == "peptideprophet_result") // parent: "analysis_result" (in "search_hit")
     {
       // PeptideProphet probability overwrites original search score
       // maybe TODO: deal with meta data associated with PeptideProphet search
+      double value = attributeAsDouble_(attributes, "probability");
       if (current_peptide_.getScoreType() != "InterProphet probability")
       {
-        double value = attributeAsDouble_(attributes, "probability");
         peptide_hit_.setScore(value);
         current_peptide_.setScoreType("PeptideProphet probability");
         current_peptide_.setHigherScoreBetter(true);
       }
+      current_analysis_result_.main_score = value;
+      current_analysis_result_.higher_is_better = true;
     }
     else if (element == "interprophet_result") // parent: "analysis_result" (in "search_hit")
     {
@@ -848,6 +921,8 @@ namespace OpenMS
       peptide_hit_.setScore(value);
       current_peptide_.setScoreType("InterProphet probability");
       current_peptide_.setHigherScoreBetter(true);
+      current_analysis_result_.main_score = value;
+      current_analysis_result_.higher_is_better = true;
     }
     else if (element == "modification_info") // parent: "search_hit" (in "search result")
     {
@@ -855,7 +930,7 @@ namespace OpenMS
       double mod_nterm_mass;
       if (optionalAttributeAsDouble_(mod_nterm_mass, attributes, "mod_nterm_mass")) // this specifies a terminal modification
       {
-        // lookup the modification in the search_summary by mass
+        // look up the modification in the search_summary by mass
         for (vector<AminoAcidModification>::const_iterator it = variable_modifications_.begin(); it != variable_modifications_.end(); ++it)
         {
           if (mod_nterm_mass == it->mass && it->terminus == "n")
@@ -880,7 +955,7 @@ namespace OpenMS
       double mod_cterm_mass;
       if (optionalAttributeAsDouble_(mod_cterm_mass, attributes, "mod_cterm_mass")) // this specifies a terminal modification
       {
-        // lookup the modification in the search_summary by mass
+        // look up the modification in the search_summary by mass
         for (vector<AminoAcidModification>::const_iterator it = variable_modifications_.begin(); it != variable_modifications_.end(); ++it)
         {
           if (mod_cterm_mass == it->mass && it->terminus == "c")
@@ -1202,10 +1277,26 @@ namespace OpenMS
     {
       analysis_summary_ = false;
     }
+    else if (element == "search_score_summary")
+    {
+      search_score_summary_ = false;
+    }
+    else if (element == "analysis_result") // parent: "search_hit"
+    {
+      peptide_hit_.addAnalysisResults(current_analysis_result_);
+    }
     else if (wrong_experiment_ || analysis_summary_)
     {
       // do nothing here (skip all elements that belong to the wrong experiment
       // or to an analysis summary)
+    }
+    else if (element == "spectrum_query")
+    {
+      // clear optional attributes
+      native_spectrum_name_ = "";
+      experiment_label_ = "";
+      swath_assay_ = "";
+      status_ = "";
     }
     else if (element == "search_hit")
     {

@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <?xml-stylesheet type="text/xsl" href="file:////cluster/apps/openms/V1.8.0/share/OpenMS/XSL/ConsensusXML.xsl"?>
-<consensusXML version="1.4" id="cm_9095812810053804060" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<consensusXML version="1.4" id="cm_9095812810053804060" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_6.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="2011-08-16T09:41:02">
 		<software name="FeatureLinker" version="1.8.0" />
 		<processingAction name="Feature grouping" />
-		<userParam type="string" name="parameter: in" value="[test1.realligned.annotated.featureXML, test2.realligned.annotated.featureXML]"/>
-		<userParam type="string" name="parameter: out" value="IDConflictResolver_2_input.consensusXML"/>
-		<userParam type="string" name="parameter: ini" value="FeatureLinker_30MZ_120RT.ini"/>
-		<userParam type="string" name="parameter: type" value="unlabeled"/>
-		<userParam type="string" name="parameter: log" value=""/>
-		<userParam type="int" name="parameter: debug" value="0"/>
-		<userParam type="int" name="parameter: threads" value="1"/>
-		<userParam type="string" name="parameter: no_progress" value="false"/>
-		<userParam type="string" name="parameter: test" value="false"/>
-		<userParam type="float" name="parameter: algorithm:second_nearest_gap" value="2"/>
-		<userParam type="string" name="parameter: algorithm:use_identifications" value="false"/>
-		<userParam type="float" name="parameter: algorithm:intensity_exponent" value="0"/>
-		<userParam type="float" name="parameter: algorithm:different_charge_penalty" value="100"/>
-		<userParam type="float" name="parameter: algorithm:diff_exponent:RT" value="1"/>
-		<userParam type="float" name="parameter: algorithm:diff_exponent:MZ" value="2"/>
-		<userParam type="float" name="parameter: algorithm:max_pair_distance:RT" value="120"/>
-		<userParam type="float" name="parameter: algorithm:max_pair_distance:MZ" value="30"/>
-		<userParam type="string" name="parameter: algorithm:max_pair_distance:MZ_unit" value="ppm"/>
+		<UserParam type="string" name="parameter: in" value="[test1.realligned.annotated.featureXML, test2.realligned.annotated.featureXML]"/>
+		<UserParam type="string" name="parameter: out" value="IDConflictResolver_2_input.consensusXML"/>
+		<UserParam type="string" name="parameter: ini" value="FeatureLinker_30MZ_120RT.ini"/>
+		<UserParam type="string" name="parameter: type" value="unlabeled"/>
+		<UserParam type="string" name="parameter: log" value=""/>
+		<UserParam type="int" name="parameter: debug" value="0"/>
+		<UserParam type="int" name="parameter: threads" value="1"/>
+		<UserParam type="string" name="parameter: no_progress" value="false"/>
+		<UserParam type="string" name="parameter: test" value="false"/>
+		<UserParam type="float" name="parameter: algorithm:second_nearest_gap" value="2"/>
+		<UserParam type="string" name="parameter: algorithm:use_identifications" value="false"/>
+		<UserParam type="float" name="parameter: algorithm:intensity_exponent" value="0"/>
+		<UserParam type="float" name="parameter: algorithm:different_charge_penalty" value="100"/>
+		<UserParam type="float" name="parameter: algorithm:diff_exponent:RT" value="1"/>
+		<UserParam type="float" name="parameter: algorithm:diff_exponent:MZ" value="2"/>
+		<UserParam type="float" name="parameter: algorithm:max_pair_distance:RT" value="120"/>
+		<UserParam type="float" name="parameter: algorithm:max_pair_distance:MZ" value="30"/>
+		<UserParam type="string" name="parameter: algorithm:max_pair_distance:MZ_unit" value="ppm"/>
 	</dataProcessing>
 	<IdentificationRun id="PI_0" date="2011-08-15T18:16:06" search_engine="SEQUEST" search_engine_version="">
 		<SearchParameters db="/home/sorcerer/fasta/ex_sp_4932.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
@@ -91,9 +91,9 @@
 				<PeptideHit score="0.6882" sequence="NNNGIHINNK" charge="3" aa_before="R" aa_after="V" protein_refs="PH_0">
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="int" name="label" value="18529"/>
-			<userParam type="int" name="spectrum_index" value="672"/>
-			<userParam type="string" name="spectrum_native_id" value="scan=798"/>
+			<UserParam type="int" name="label" value="18529"/>
+			<UserParam type="int" name="spectrum_index" value="672"/>
+			<UserParam type="string" name="spectrum_native_id" value="scan=798"/>
 		</consensusElement>
 		<consensusElement id="e_10686632238500456877" quality="0" charge="3">
 			<centroid rt="10571.311395646" mz="417.558952983394" it="6.03816e+06"/>
@@ -114,9 +114,9 @@
 				<PeptideHit score="0.7523" sequence="LNNNGIHINNK" charge="3" aa_before="R" aa_after="V" protein_refs="PH_1">
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="int" name="label" value="28606"/>
-			<userParam type="int" name="spectrum_index" value="693"/>
-			<userParam type="string" name="spectrum_native_id" value="scan=1354"/>
+			<UserParam type="int" name="label" value="28606"/>
+			<UserParam type="int" name="spectrum_index" value="693"/>
+			<UserParam type="string" name="spectrum_native_id" value="scan=1354"/>
 		</consensusElement>
 		<consensusElement id="e_17432675259469427420" quality="0.801117" charge="3">
 			<centroid rt="1131.97571942222" mz="417.559141106364" it="5.00001e+06"/>
@@ -241,9 +241,9 @@
 				<PeptideHit score="0.8399" sequence="NNTGDANTEEAAAR" charge="2" aa_before="K" aa_after="S" protein_refs="PH_7">
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="int" name="label" value="18104"/>
-			<userParam type="int" name="spectrum_index" value="352"/>
-			<userParam type="string" name="spectrum_native_id" value="scan=612"/>
+			<UserParam type="int" name="label" value="18104"/>
+			<UserParam type="int" name="spectrum_index" value="352"/>
+			<UserParam type="string" name="spectrum_native_id" value="scan=612"/>
 		</consensusElement>
 	</consensusElementList>
 </consensusXML>

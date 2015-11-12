@@ -71,7 +71,7 @@
 			<cvParam accession="MS:1001413" name="search tolerance minus value" cvRef="PSI-MS" value="1"/>
 		</ParentTolerance>
 		<Threshold>
-			<cvParam accession="MS:1001494" cvRef="PSI-MS" name="no threshold"/>
+			<cvParam accession="MS:1002483" cvRef="PSI-MS" name="PSM-level statistical threshold" value="0.5"/>
 		</Threshold>
 		<ModificationParams>
 			<SearchModification fixedMod="true" massDelta="0" residues="C">
@@ -130,13 +130,13 @@
 				<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="1234.5"/>
 			</SpectrumIdentificationResult>
 			<SpectrumIdentificationResult spectraData_ref="14705575572540028169" spectrumID="45" id="9767063244605939465"> 
-				<SpectrumIdentificationItem passThreshold="1" rank="0" peptide_ref="4943767272410482976" calculatedMassToCharge="634.838928386321" experimentalMassToCharge="0.7" chargeState="2" id="4272689534495877804"> 
-					<PeptideEvidenceRef peptideEvidence_ref="8460469863535845399"/> 
-					<cvParam accession="MS:1001331" cvRef="PSI-MS" name="X\!Tandem:hyperscore" value="44.4"/>
-				</SpectrumIdentificationItem>
-				<SpectrumIdentificationItem passThreshold="1" rank="0" peptide_ref="7485621129914001920" calculatedMassToCharge="712.889484077721" experimentalMassToCharge="0.7" chargeState="2" id="16267378008351021065"> 
+				<SpectrumIdentificationItem passThreshold="1" rank="2" peptide_ref="7485621129914001920" calculatedMassToCharge="712.889484077721" experimentalMassToCharge="0.7" chargeState="2" id="16267378008351021065"> 
 					<PeptideEvidenceRef peptideEvidence_ref="9078722222385889961"/> 
 					<cvParam accession="MS:1001331" cvRef="PSI-MS" name="X\!Tandem:hyperscore" value="33.3"/>
+				</SpectrumIdentificationItem>
+				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="4943767272410482976" calculatedMassToCharge="634.838928386321" experimentalMassToCharge="0.7" chargeState="2" id="4272689534495877804"> 
+					<PeptideEvidenceRef peptideEvidence_ref="8460469863535845399"/> 
+					<cvParam accession="MS:1001331" cvRef="PSI-MS" name="X\!Tandem:hyperscore" value="44.4"/>
 				</SpectrumIdentificationItem>
 				<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="1.6"/>
 			</SpectrumIdentificationResult>
@@ -145,7 +145,7 @@
 					<PeptideEvidenceRef peptideEvidence_ref="8460469863535845399"/> 
 					<cvParam accession="MS:1001171" cvRef="PSI-MS" name="Mascot:score" value="99.4"/>
 				</SpectrumIdentificationItem>
-				<SpectrumIdentificationItem passThreshold="1" rank="0" peptide_ref="7485621129914001920" calculatedMassToCharge="1424.77169168867" experimentalMassToCharge="987.6" chargeState="1" id="5481200184408979228"> 
+				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="7485621129914001920" calculatedMassToCharge="1424.77169168867" experimentalMassToCharge="987.6" chargeState="1" id="5481200184408979228"> 
 					<PeptideEvidenceRef peptideEvidence_ref="9078722222385889961"/> 
 					<cvParam accession="MS:1001171" cvRef="PSI-MS" name="Mascot:score" value="33.3"/>
 				</SpectrumIdentificationItem>

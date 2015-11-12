@@ -1,29 +1,29 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <?xml-stylesheet type="text/xsl" href="file:///C:/dev/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
-<consensusXML version="1.5" id="cm_212306153044943882" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<consensusXML version="1.6" id="cm_212306153044943882" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_6.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="2011-01-04T14:04:25">
 		<software name="FeatureLinker" version="1.8.0" />
 		<processingAction name="Feature grouping" />
-		<userParam type="string" name="parameter: ini" value="inifile"/>
-		<userParam type="string" name="parameter: in" value="infiles"/>
-		<userParam type="string" name="parameter: out" value="outfile"/>
-		<userParam type="string" name="parameter: type" value="unlabeled_qt"/>
-		<userParam type="string" name="parameter: log" value=""/>
-		<userParam type="int" name="parameter: debug" value="0"/>
-		<userParam type="int" name="parameter: threads" value="1"/>
-		<userParam type="string" name="parameter: no_progress" value="false"/>
-		<userParam type="string" name="parameter: test" value="false"/>
-		<userParam type="string" name="parameter: algorithm:keep_subelements" value="false"/>
-		<userParam type="string" name="parameter: algorithm:use_identifications" value="false"/>
-		<userParam type="float" name="parameter: algorithm:diff_exponent:RT" value="1"/>
-		<userParam type="float" name="parameter: algorithm:diff_exponent:MZ" value="2"/>
-		<userParam type="float" name="parameter: algorithm:max_distance:RT" value="50"/>
-		<userParam type="float" name="parameter: algorithm:max_distance:MZ" value="0.002"/>
+		<UserParam type="string" name="parameter: ini" value="inifile"/>
+		<UserParam type="string" name="parameter: in" value="infiles"/>
+		<UserParam type="string" name="parameter: out" value="outfile"/>
+		<UserParam type="string" name="parameter: type" value="unlabeled_qt"/>
+		<UserParam type="string" name="parameter: log" value=""/>
+		<UserParam type="int" name="parameter: debug" value="0"/>
+		<UserParam type="int" name="parameter: threads" value="1"/>
+		<UserParam type="string" name="parameter: no_progress" value="false"/>
+		<UserParam type="string" name="parameter: test" value="false"/>
+		<UserParam type="string" name="parameter: algorithm:keep_subelements" value="false"/>
+		<UserParam type="string" name="parameter: algorithm:use_identifications" value="false"/>
+		<UserParam type="float" name="parameter: algorithm:diff_exponent:RT" value="1"/>
+		<UserParam type="float" name="parameter: algorithm:diff_exponent:MZ" value="2"/>
+		<UserParam type="float" name="parameter: algorithm:max_distance:RT" value="50"/>
+		<UserParam type="float" name="parameter: algorithm:max_distance:MZ" value="0.002"/>
 	</dataProcessing>
 	<dataProcessing completion_time="1999-12-31T23:59:59">
 		<software name="ConsensusMapNormalizer" version="version_string" />
 		<processingAction name="Intensity normalization" />
-		<userParam type="string" name="parameter: mode" value="test_mode"/>
+		<UserParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
 	<mapList count="20">
 		<map id="0" name="file0_3.featureXML" unique_id="9744763932795263903" label="" size="13217">

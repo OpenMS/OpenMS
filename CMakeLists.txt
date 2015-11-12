@@ -75,6 +75,7 @@ include(Dart)
 # CMAKE_FIND_ROOT_PATH
 # CMAKE_BUILD_TYPE
 # STL_DEBUG
+# ADDRESS_SANITIZER
 #------------------------------------------------------------------------------
 option(MT_ENABLE_OPENMP "Enable OpenMP support" ON)
 option(BOOST_USE_STATIC "Use Boost static libraries." ON)
@@ -110,16 +111,19 @@ endif()
 
 message(STATUS "Building OpenMS ${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}")
 if(NOT GIT_TRACKING)
-	set(OPENMS_GIT_SHORT_SHA1 "disabled")
-	set(OPENMS_GIT_SHORT_REFSPEC "disabled")
+  set(OPENMS_GIT_SHORT_SHA1 "disabled")
+  set(OPENMS_GIT_SHORT_REFSPEC "disabled")
+  message(STATUS "  [CMake is not tracking Git commits and branching. To enable use '-D GIT_TRACKING=ON'.]")
 elseif(OPENMS_GIT_SHORT_REFSPEC EQUAL "GIT-NOTFOUND" OR ${OPENMS_GIT_SHORT_REFSPEC} EQUAL "HEAD-HASH-NOTFOUND")
-	set(OPENMS_GIT_SHORT_SHA1 "exported")
-	set(OPENMS_GIT_SHORT_REFSPEC "exported")
+  set(OPENMS_GIT_SHORT_SHA1 "exported")
+  set(OPENMS_GIT_SHORT_REFSPEC "exported")
+  message(STATUS "  [CMake is not tracking Git commits and branching. Git not found.]")
 else()
-	# everything found, print some status information
-	message(STATUS "  - Repository revision ${OPENMS_GIT_SHORT_SHA1}")
-	message(STATUS "  - Repository branch ${OPENMS_GIT_SHORT_REFSPEC}")
-	message(STATUS "  - Repository last change date ${OPENMS_GIT_LC_DATE}")
+  # everything found, print some status information
+  message(STATUS "  - Repository revision ${OPENMS_GIT_SHORT_SHA1}")
+  message(STATUS "  - Repository branch ${OPENMS_GIT_SHORT_REFSPEC}")
+  message(STATUS "  - Repository last change date ${OPENMS_GIT_LC_DATE}")
+  message(STATUS "  [CMake is tracking Git commits and branching. To disable use '-D GIT_TRACKING=OFF'.]")
 endif()
 
 # add some informations used when building packages
@@ -133,7 +137,7 @@ if (MINGW OR MSYS)
 endif()
 
 #------------------------------------------------------------------------------
-# All the multithreading stuff (OpenMP, CUDA, TBB)
+# All the multi-threading stuff (OpenMP, CUDA, TBB)
 #------------------------------------------------------------------------------
 include(cmake/multithreading.cmake)
 
@@ -176,6 +180,14 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CF_OPENMS_ADDCXX_FLAGS}")
 option(STL_DEBUG "[GCC only] Enable STL-DEBUG mode (very slow)." OFF)
 if(STL_DEBUG)
   include(cmake/stl_debug.cmake)
+endif()
+
+#------------------------------------------------------------------------------
+# Enable AddressSanitizer
+#------------------------------------------------------------------------------
+option(ADDRESS_SANITIZER "[Clang/GCC only] Enable AddressSanitizer mode (quite slow)." OFF)
+if(ADDRESS_SANITIZER)
+  include(cmake/AddressSanitizer.cmake)
 endif()
 
 #------------------------------------------------------------------------------

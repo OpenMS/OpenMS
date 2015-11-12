@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="file:////nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<consensusXML version="1.6" id="cm_5233264595117471314" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_6.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="FeatureLinkerUnlabeledQT" version="version_string" />
+		<processingAction name="Feature grouping" />
+		<UserParam type="string" name="parameter: mode" value="test_mode"/>
+	</dataProcessing>
+	<IdentificationRun id="PI_0" date="0000-00-00T00:00:00" search_engine="" search_engine_version="">
+		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+		</SearchParameters>
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_1" date="0000-00-00T00:00:00" search_engine="" search_engine_version="">
+		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+		</SearchParameters>
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_2" date="0000-00-00T00:00:00" search_engine="" search_engine_version="">
+		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+		</SearchParameters>
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
+		</ProteinIdentification>
+	</IdentificationRun>
+	<mapList count="3">
+		<map id="0" name="FeatureLinkerUnlabeledQT_5_input1.featureXML" label="" size="3">
+		</map>
+		<map id="1" name="FeatureLinkerUnlabeledQT_5_input2.featureXML" label="" size="3">
+		</map>
+		<map id="2" name="FeatureLinkerUnlabeledQT_5_input3.featureXML" label="" size="3">
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_4835329514588776807" quality="0.974444">
+			<centroid rt="510" mz="500.012" it="600"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="500" mz="500.002" it="500"/>
+				<element map="1" id="0" rt="510" mz="500.012" it="600"/>
+				<element map="2" id="0" rt="520" mz="500.022" it="700"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_2" score_type="" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="0" sequence="PEPTIDER" charge="0">
+				</PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_2" score_type="" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="0" sequence="PEPTIDEK" charge="0">
+				</PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_2" score_type="" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="0" sequence="PEPTIDEA" charge="0">
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_17749660155506638460" quality="0.974444">
+			<centroid rt="310" mz="500.01" it="600"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="300" mz="500" it="500"/>
+				<element map="1" id="0" rt="310" mz="500.01" it="600"/>
+				<element map="2" id="0" rt="320" mz="500.02" it="700"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_2" score_type="" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="0" sequence="PEPTIDEA" charge="0">
+				</PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_2" score_type="" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="0" sequence="PEPTIDER" charge="0">
+				</PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_2" score_type="" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="0" sequence="PEPTIDEK" charge="0">
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_7804704400743266335" quality="0.974444">
+			<centroid rt="410" mz="500.011" it="600"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="400" mz="500.001" it="500"/>
+				<element map="1" id="0" rt="410" mz="500.011" it="600"/>
+				<element map="2" id="0" rt="420" mz="500.021" it="700"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_2" score_type="" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="0" sequence="PEPTIDEK" charge="0">
+				</PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_2" score_type="" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="0" sequence="PEPTIDEA" charge="0">
+				</PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_2" score_type="" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="0" sequence="PEPTIDER" charge="0">
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>

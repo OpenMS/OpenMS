@@ -1,20 +1,68 @@
+sudo: false
 language: cpp
+os:
+ - linux
+ - osx
 cache: apt
+addons:
+   apt:
+      sources:
+         - ubuntu-toolchain-r-test
+         - boost-latest
+      packages:
+         - g++-4.8
+         - libboost-chrono1.55-dev
+         - libboost-date-time1.55-dev
+         - libboost-filesystem1.55-dev
+         - libboost-iostreams1.55-dev
+         - libboost-math1.55-dev
+         - libboost-python1.55-dev
+         - libboost-regex1.55-dev
+         - libboost-serialization1.55-dev
+         - libboost-system1.55-dev
+         - libboost-thread1.55-dev
+         - libxerces-c3.1
+         - libxerces-c-dev
+         - libicu-dev
+         - qt4-dev-tools
+         - libqt4-dev
+         - libqt4-core
+         - libqt4-gui
+         - libsvm-dev
+         - libsvm3
+         - glpk
+         - subversion
+         - doxygen 
+         - graphviz
+         - libpcre3-dev
+         
 before_script:
-   ./tools/travis/lnx-cibuild.before.sh
+  ./tools/travis/cibuild.before.sh
 script:
-  ./tools/travis/lnx-cibuild.sh
+  ./tools/travis/cibuild.sh
+
+#second we exclude those that are redundant, don't make sense or take too long
 matrix:
   include:
     - env: ENABLE_STYLE_TESTING=ON WITH_GUI=ON
+      os: linux
       compiler: gcc
-## split class vs. TOPP tests for GCC (otherwise it will run into time limit of 50min)
-    - env: ENABLE_STYLE_TESTING=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=OFF WITH_GUI=ON
+## gcc tests class and TOPP tests (if we run into a time limit, we can split it)
+## PP Wavelet is turned off due to unstable behavior ... 
+    - env: ENABLE_STYLE_TESTING=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON WITH_GUI=ON DISABLE_PPWAVELET3=ON ADDRESS_SANITIZER=Off
+      os: linux
       compiler: gcc
-    - env: ENABLE_STYLE_TESTING=OFF ENABLE_TOPP_TESTING=OFF ENABLE_CLASS_TESTING=ON  WITH_GUI=ON
-      compiler: gcc
-## clang can run both class+TOPP tests since it's faster
-    - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON
+## clang tests class and TOPP tests: with gui and address sanitizer
+    - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON DISABLE_PPWAVELET3=ON ADDRESS_SANITIZER=On
+      os: linux
       compiler: clang
-    - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=ON ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON
+## clang tests class and TOPP tests: without gui and without address sanitizer
+    - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=ON ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON DISABLE_PPWAVELET3=OFF ADDRESS_SANITIZER=Off
+      os: linux
       compiler: clang
+
+## OS X tests
+    - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON DISABLE_PPWAVELET3=OFF ADDRESS_SANITIZER=Off
+      os: osx
+      compiler: clang
+

@@ -38,7 +38,7 @@
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFiltering.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexPeakPattern.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultRaw.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultPeak.h>
@@ -60,15 +60,19 @@ using namespace boost::math;
 namespace OpenMS
 {
 
-  MultiplexFiltering::MultiplexFiltering(const MSExperiment<Peak1D>& exp_picked, const std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling) :
-    exp_picked_(exp_picked), patterns_(patterns), peaks_per_peptide_min_(peaks_per_peptide_min), peaks_per_peptide_max_(peaks_per_peptide_max), missing_peaks_(missing_peaks), intensity_cutoff_(intensity_cutoff), mz_tolerance_(mz_tolerance), mz_tolerance_unit_(mz_tolerance_unit), peptide_similarity_(peptide_similarity), averagine_similarity_(averagine_similarity), averagine_similarity_scaling_(averagine_similarity_scaling)
+  MultiplexFiltering::MultiplexFiltering(const MSExperiment<Peak1D>& exp_picked, const std::vector<MultiplexIsotopicPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averigine_type) :
+    exp_picked_(exp_picked), patterns_(patterns), peaks_per_peptide_min_(peaks_per_peptide_min), peaks_per_peptide_max_(peaks_per_peptide_max), missing_peaks_(missing_peaks), intensity_cutoff_(intensity_cutoff), mz_tolerance_(mz_tolerance), mz_tolerance_unit_(mz_tolerance_unit), peptide_similarity_(peptide_similarity), averagine_similarity_(averagine_similarity), averagine_similarity_scaling_(averagine_similarity_scaling), averagine_type_(averigine_type)
   {
   }
 
-  int MultiplexFiltering::positionsAndBlacklistFilter(MultiplexPeakPattern pattern, int spectrum, vector<double> peak_position, int peak, vector<double>& mz_shifts_actual, vector<int>& mz_shifts_actual_indices) const
+  int MultiplexFiltering::positionsAndBlacklistFilter(const MultiplexIsotopicPeakPattern& pattern, int spectrum,
+                                                      const vector<double>& peak_position, int peak,
+                                                      vector<double>& mz_shifts_actual,
+                                                      vector<int>& mz_shifts_actual_indices) const
   {
     // Try to find peaks at the expected m/z positions
     // loop over expected m/z shifts of a peak pattern
+    unsigned found_peaks(0);
     for (unsigned mz_position = 0; mz_position < pattern.getMZShiftCount(); ++mz_position)
     {
       double scaling = 1;
@@ -82,6 +86,7 @@ namespace OpenMS
       int index = getPeakIndex(peak_position, peak, peak_position[peak] + pattern.getMZShiftAt(mz_position), scaling);
       if (index != -1)
       {
+        ++found_peaks;
         mz_shifts_actual.push_back(peak_position[index] - peak_position[peak]);
         mz_shifts_actual_indices.push_back(index);
       }
@@ -90,8 +95,10 @@ namespace OpenMS
         mz_shifts_actual.push_back(std::numeric_limits<double>::quiet_NaN());
         mz_shifts_actual_indices.push_back(-1);
       }
-
     }
+
+    // early out: Need to find at least (peaks_per_peptide * number_of_peptides) isotopic peaks.
+    if (found_peaks < peaks_per_peptide_min_ * pattern.getMassShiftCount()) return -1;
 
     // remove peaks which run into the next peptide
     // i.e. the isotopic peak of one peptide lies to the right of the mono-isotopic peak of the next one
@@ -164,7 +171,7 @@ namespace OpenMS
     return peaks_found_in_all_peptides;
   }
 
-  bool MultiplexFiltering::monoIsotopicPeakIntensityFilter(MultiplexPeakPattern pattern, int spectrum_index, const vector<int>& mz_shifts_actual_indices) const
+  bool MultiplexFiltering::monoIsotopicPeakIntensityFilter(const MultiplexIsotopicPeakPattern& pattern, int spectrum_index, const vector<int>& mz_shifts_actual_indices) const
   {
     MSExperiment<Peak1D>::ConstIterator it_rt = exp_picked_.begin() + spectrum_index;
     for (unsigned peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
@@ -185,7 +192,7 @@ namespace OpenMS
     return false;
   }
 
-  bool MultiplexFiltering::zerothPeakFilter(MultiplexPeakPattern pattern, const vector<double>& intensities_actual) const
+  bool MultiplexFiltering::zerothPeakFilter(const MultiplexIsotopicPeakPattern& pattern, const vector<double>& intensities_actual) const
   {
     for (unsigned peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
     {
@@ -211,7 +218,7 @@ namespace OpenMS
     return false;
   }
 
-  bool MultiplexFiltering::peptideSimilarityFilter(MultiplexPeakPattern pattern, const vector<double>& intensities_actual, int peaks_found_in_all_peptides_spline) const
+  bool MultiplexFiltering::peptideSimilarityFilter(const MultiplexIsotopicPeakPattern& pattern, const vector<double>& intensities_actual, int peaks_found_in_all_peptides_spline) const
   {
     std::vector<double> isotope_pattern_1;
     std::vector<double> isotope_pattern_2;
@@ -247,7 +254,7 @@ namespace OpenMS
     return true;
   }
 
-  bool MultiplexFiltering::averagineSimilarityFilter(MultiplexPeakPattern pattern, const vector<double>& intensities_actual, int peaks_found_in_all_peptides_spline, double mz) const
+  bool MultiplexFiltering::averagineSimilarityFilter(const MultiplexIsotopicPeakPattern& pattern, const vector<double>& intensities_actual, int peaks_found_in_all_peptides_spline, double mz) const
   {
     // Use a more restrictive averagine similarity when we are searching for peptide singlets.
     double similarity;
@@ -286,7 +293,7 @@ namespace OpenMS
     return true;
   }
 
-  void MultiplexFiltering::blacklistPeaks(MultiplexPeakPattern pattern, int spectrum, const vector<int>& mz_shifts_actual_indices, int peaks_found_in_all_peptides_spline)
+  void MultiplexFiltering::blacklistPeaks(const MultiplexIsotopicPeakPattern& pattern, int spectrum, const vector<int>& mz_shifts_actual_indices, int peaks_found_in_all_peptides_spline)
   {
     for (unsigned peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
     {
@@ -355,91 +362,32 @@ namespace OpenMS
     }
   }
 
-  int MultiplexFiltering::getPeakIndex(std::vector<double> peak_position, int start, double mz, double scaling) const
+  int MultiplexFiltering::getPeakIndex(const std::vector<double>& peak_position, int start, double mz, double scaling) const
   {
-    vector<int> valid_index; // indices of valid peaks that lie within the ppm range of the expected peak
-    vector<double> valid_deviation; // ppm deviations between expected and (valid) actual peaks
+    const double tolerance_th = mz_tolerance_unit_ ? (scaling * mz_tolerance_ / 1000000) * peak_position[start] : scaling * mz_tolerance_;
+    const double mz_min = mz - tolerance_th;
+    const double mz_max = mz + tolerance_th;
 
-    if (peak_position[start] < mz)
+    std::vector<double>::const_iterator lb = std::lower_bound(peak_position.begin(), peak_position.end(), mz_min);
+    std::vector<double>::const_iterator ub = std::upper_bound(lb, peak_position.end(), mz_max);
+
+    double smallest_error = scaling * mz_tolerance_; // initialize to the maximum  allowed error 
+    int smallest_error_index = -1;
+
+    for (; lb != ub; ++lb)
     {
-      for (unsigned i = start; i < peak_position.size(); ++i)
+      const double error = abs(*lb - mz);
+      if (error <= smallest_error)
       {
-        double mz_min;
-        double mz_max;
-        if (mz_tolerance_unit_)
-        {
-          mz_min = (1 - scaling * mz_tolerance_ / 1000000) * peak_position[i];
-          mz_max = (1 + scaling * mz_tolerance_ / 1000000) * peak_position[i];
-        }
-        else
-        {
-          mz_min = peak_position[i] - scaling * mz_tolerance_;
-          mz_max = peak_position[i] + scaling * mz_tolerance_;
-        }
-
-        if (mz >= mz_min && mz <= mz_max)
-        {
-          valid_index.push_back(i);
-          valid_deviation.push_back(abs(mz - peak_position[i]) / mz * 1000000);
-        }
-        if (mz < peak_position[i])
-        {
-          break;
-        }
+        smallest_error = error;
+        smallest_error_index = lb - peak_position.begin();
       }
-    }
-    else
-    {
-      for (int i = start; i >= 0; --i)
-      {
-        double mz_min;
-        double mz_max;
-        if (mz_tolerance_unit_)
-        {
-          mz_min = (1 - scaling * mz_tolerance_ / 1000000) * peak_position[i];
-          mz_max = (1 + scaling * mz_tolerance_ / 1000000) * peak_position[i];
-        }
-        else
-        {
-          mz_min = peak_position[i] - scaling * mz_tolerance_;
-          mz_max = peak_position[i] + scaling * mz_tolerance_;
-        }
+    }    
 
-        if (mz >= mz_min && mz <= mz_max)
-        {
-          valid_index.push_back(i);
-          valid_deviation.push_back(abs(mz - peak_position[i]) / mz * 1000000);
-        }
-        if (mz > peak_position[i])
-        {
-          break;
-        }
-      }
-    }
-
-    if (valid_index.size() == 0)
-    {
-      return -1;
-    }
-    else
-    {
-      // find best index
-      int best_index = valid_index[0];
-      double best_deviation = valid_deviation[0];
-      for (unsigned i = 1; i < valid_index.size(); ++i)
-      {
-        if (valid_deviation[i] < best_deviation)
-        {
-          best_index = valid_index[i];
-          best_deviation = valid_deviation[i];
-        }
-      }
-
-      return best_index;
-    }
+    return smallest_error_index;
   }
 
-  double MultiplexFiltering::getPatternSimilarity(vector<double> pattern1, vector<double> pattern2) const
+  double MultiplexFiltering::getPatternSimilarity(const vector<double>& pattern1, const vector<double>& pattern2) const
   {
     if (pattern1.empty() || pattern2.empty())
     {
@@ -449,13 +397,32 @@ namespace OpenMS
     return OpenMS::Math::pearsonCorrelationCoefficient(pattern1.begin(), pattern1.end(), pattern2.begin(), pattern2.end());
   }
 
-  double MultiplexFiltering::getAveragineSimilarity(vector<double> pattern, double m) const
+
+  double MultiplexFiltering::getAveragineSimilarity(const vector<double>& pattern, double m) const
+
   {
     // construct averagine distribution
     IsotopeDistribution distribution;
     vector<double> averagine_pattern;
     distribution.setMaxIsotope(pattern.size());
-    distribution.estimateFromPeptideWeight(m);
+    if (averagine_type_ == "peptide")
+    {
+        distribution.estimateFromPeptideWeight(m);
+    }
+    else if (averagine_type_ == "RNA")
+    {
+        distribution.estimateFromRNAWeight(m);
+    }
+    else if (averagine_type_ == "DNA")
+    {
+        distribution.estimateFromDNAWeight(m);
+    }
+    else
+    {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+          "Averagine type unrecognized.");;
+    }
+
     for (IsotopeDistribution::Iterator it = distribution.begin(); it != distribution.end(); ++it)
     {
       averagine_pattern.push_back(it->second);

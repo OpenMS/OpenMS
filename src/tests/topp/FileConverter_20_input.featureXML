@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.7" id="fm_5233264595117471314" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<userParam type="float" name="test_float" value="1234.5"/>
-	<userParam type="string" name="test_string" value="mystring"/>	
+<featureMap version="1.8" id="fm_5233264595117471314" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_8.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<UserParam type="float" name="test_float" value="1234.5"/>
+	<UserParam type="string" name="test_string" value="mystring"/>	
 	<featureList count="10">
 		<feature id="f_8152">
 			<position dim="0">537.4101</position>

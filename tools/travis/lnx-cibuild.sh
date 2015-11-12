@@ -65,7 +65,10 @@ if [ $ENABLE_STYLE_TESTING == "ON" ]; then
   export PATH=${SOURCE_DIRECTORY}/cppcheck:$PATH
 fi
 
-ctest -V -S tools/travis/lnx-cibuild.cmake
+
+# set os dependent folder for preinstalled libraries
+export OS_PREFIX_PATH=/usr
+ctest -V -S tools/travis/cibuild.cmake
 
 # tell the user where he can find the results
 echo "Please check the build results at: http://cdash.openms.de/index.php?project=OpenMS&date="$(date +"%y-%m-%d")"#Continuous"

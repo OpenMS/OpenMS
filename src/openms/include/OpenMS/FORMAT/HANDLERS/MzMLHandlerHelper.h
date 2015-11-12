@@ -69,6 +69,24 @@ namespace OpenMS
         std::vector<String> decoded_char;
         MetaInfoDescription meta;
         MSNumpressCoder::NumpressCompression np_compression;
+
+        /// Constructor
+        BinaryData() :
+          base64(),
+          precision(PRE_NONE),
+          size(0),
+          compression(false),
+          data_type(DT_NONE),
+          floats_32(),
+          floats_64(),
+          ints_32(),
+          ints_64(),
+          decoded_char(),
+          meta(),
+          np_compression()
+        {
+        }
+
       };
 
       /**

@@ -75,11 +75,21 @@ START_SECTION((MascotXMLFile()))
   TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
-START_SECTION((void load(const String &filename, ProteinIdentification &protein_identification, std::vector< PeptideIdentification > &id_data)))
+START_SECTION((static void initializeLookup(SpectrumMetaDataLookup& lookup, MSExperiment<>& experiment, const String& scan_regex = "")))
 {
+  MSExperiment<> exp;
+  exp.getSpectra().resize(1);
+  SpectrumMetaDataLookup lookup;
+  xml_file.initializeLookup(lookup, exp);
+  TEST_EQUAL(lookup.empty(), false);
+}
+END_SECTION
+
+START_SECTION((void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data, SpectrumMetaDataLookup& lookup)))
+{
+  SpectrumMetaDataLookup lookup;
   xml_file.load(OPENMS_GET_TEST_DATA_PATH("MascotXMLFile_test_1.mascotXML"),
-              protein_identification,
-              peptide_identifications);
+                protein_identification, peptide_identifications, lookup);
 
   {
     ProteinIdentification::SearchParameters search_parameters = protein_identification.getSearchParameters();
@@ -89,8 +99,10 @@ START_SECTION((void load(const String &filename, ProteinIdentification &protein_
     TEST_EQUAL(search_parameters.enzyme, ProteinIdentification::TRYPSIN);
     TEST_EQUAL(search_parameters.db, "MSDB_chordata");
     TEST_EQUAL(search_parameters.db_version, "MSDB_chordata_20070910.fasta");
-    TEST_EQUAL(search_parameters.peak_mass_tolerance, 0.2);
+    TEST_EQUAL(search_parameters.fragment_mass_tolerance, 0.2);
     TEST_EQUAL(search_parameters.precursor_tolerance, 1.4);
+    TEST_EQUAL(search_parameters.fragment_mass_tolerance_ppm, false);
+    TEST_EQUAL(search_parameters.precursor_mass_tolerance_ppm, false);
     TEST_EQUAL(search_parameters.charges, "1+, 2+ and 3+");
     TEST_EQUAL(search_parameters.fixed_modifications.size(), 3);
     TEST_EQUAL(search_parameters.fixed_modifications[0], "Carboxymethyl (C)");
@@ -156,8 +168,7 @@ START_SECTION((void load(const String &filename, ProteinIdentification &protein_
 
   /// for new MascotXML 2.1 as used by Mascot Server 2.3
   xml_file.load(OPENMS_GET_TEST_DATA_PATH("MascotXMLFile_test_2.mascotXML"),
-              protein_identification,
-              peptide_identifications);
+                protein_identification, peptide_identifications, lookup);
   {
     ProteinIdentification::SearchParameters search_parameters = protein_identification.getSearchParameters();
     TEST_EQUAL(search_parameters.missed_cleavages, 7);
@@ -166,8 +177,10 @@ START_SECTION((void load(const String &filename, ProteinIdentification &protein_
     TEST_EQUAL(search_parameters.enzyme, ProteinIdentification::TRYPSIN);
     TEST_EQUAL(search_parameters.db, "IPI_human");
     TEST_EQUAL(search_parameters.db_version, "ipi.HUMAN.v3.61.fasta");
-    TEST_EQUAL(search_parameters.peak_mass_tolerance, 0.3);
+    TEST_EQUAL(search_parameters.fragment_mass_tolerance, 0.3);
     TEST_EQUAL(search_parameters.precursor_tolerance, 3);
+    TEST_EQUAL(search_parameters.fragment_mass_tolerance_ppm, false);
+    TEST_EQUAL(search_parameters.precursor_mass_tolerance_ppm, false);
     TEST_EQUAL(search_parameters.charges, "");
     TEST_EQUAL(search_parameters.fixed_modifications.size(), 1);
     TEST_EQUAL(search_parameters.fixed_modifications[0], "Carbamidomethyl (C)");
@@ -229,8 +242,7 @@ START_SECTION((void load(const String &filename, ProteinIdentification &protein_
   }
 
   xml_file.load(OPENMS_GET_TEST_DATA_PATH("MascotXMLFile_test_3.mascotXML"),
-    protein_identification,
-    peptide_identifications);
+                protein_identification, peptide_identifications, lookup);
   {
     std::vector<ProteinIdentification> pids;
     pids.push_back(protein_identification);
@@ -246,7 +258,7 @@ START_SECTION((void load(const String &filename, ProteinIdentification &protein_
 }
 END_SECTION
 
-START_SECTION((void load(const String &filename, ProteinIdentification &protein_identification, std::vector< PeptideIdentification > &id_data, std::map< String, std::vector< AASequence > > &peptides)))
+START_SECTION((void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data, std::map<String, std::vector<AASequence> >& peptides, SpectrumMetaDataLookup& lookup)))
   std::map<String, vector<AASequence> > modified_peptides;
   AASequence aa_sequence_1;
   AASequence aa_sequence_2;
@@ -266,10 +278,10 @@ START_SECTION((void load(const String &filename, ProteinIdentification &protein_
   temp.push_back(aa_sequence_3);
   modified_peptides.insert(make_pair("135.29", temp));
 
+  SpectrumMetaDataLookup lookup;
   xml_file.load(OPENMS_GET_TEST_DATA_PATH("MascotXMLFile_test_1.mascotXML"),
-                protein_identification,
-                peptide_identifications,
-                modified_peptides);
+                protein_identification, peptide_identifications, 
+                modified_peptides, lookup);
 
   TEST_EQUAL(peptide_identifications.size(), 3)
   TOLERANCE_ABSOLUTE(0.0001)
