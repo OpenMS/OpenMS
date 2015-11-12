@@ -346,9 +346,9 @@
 					<xs:documentation>if a higher score is better ('true' or false')</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
-			<xs:attribute name="spectrum_reference" type="xs:unsignedInt">
+			<xs:attribute name="spectrum_reference" type="xs:string">
 				<xs:annotation>
-					<xs:documentation>Integer reference number of the identified spectrum</xs:documentation>
+					<xs:documentation>Reference to the identified spectrum</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
 			<xs:attribute name="RT" type="xs:float">
