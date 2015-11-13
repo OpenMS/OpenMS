@@ -42,7 +42,7 @@ using std::vector;
 
 namespace OpenMS
 {
-  double HyperScore::logfactorial(UInt x)
+  double HyperScore::logfactorial_(UInt x)
   {
     UInt y;
 
@@ -100,8 +100,8 @@ namespace OpenMS
     // discard very low scoring hits (basically no matching peaks)
     if (dot_product > 1e-1)
     {
-      double yFact = logfactorial(y_ion_count);
-      double bFact = logfactorial(b_ion_count);
+      double yFact = logfactorial_(y_ion_count);
+      double bFact = logfactorial_(b_ion_count);
       double hyperScore = log(dot_product) + yFact + bFact;
       return hyperScore;
     }
@@ -111,22 +111,5 @@ namespace OpenMS
     }
   }
 
-  HyperScore::IndexScorePair HyperScore::compute(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const PeakSpectrum& exp_spectrum, const vector<RichPeakSpectrum>& theo_spectra)
-  {
-    double best_score(0.0);
-    Size best_index(0);
-
-    for (Size i = 0; i != theo_spectra.size(); ++i)
-    {
-      const RichPeakSpectrum& theo_spectrum = theo_spectra[i];
-      const double score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum);
-      if (score > best_score)
-      {
-        best_score = score;
-        best_index = i;
-      }
-    }
-    return std::make_pair(best_index, best_score);
-  }
 }
 

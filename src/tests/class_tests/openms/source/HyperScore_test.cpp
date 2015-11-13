@@ -109,55 +109,6 @@ START_SECTION((static double compute(double fragment_mass_tolerance, bool fragme
 }
 END_SECTION
 
-START_SECTION((static IndexScorePair compute(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const PeakSpectrum &exp_spectrum, const std::vector< RichPeakSpectrum > &theo_spectrum)))
-{
-  vector<RichPeakSpectrum> theo_spectra;
-  PeakSpectrum exp_spectrum;
-  RichPeakSpectrum theo_spectrum;
-  Peak1D p;
-  p.setIntensity(1);
-  RichPeak1D rp;
-  rp.setIntensity(1);
- 
-  // experimental spectrum 
-  for (Size i = 1; i <= 10; ++i)
-  {
-    p.setMZ(i);
-    exp_spectrum.push_back(p);
-  }
-
-  // partial match for theoretical spectrum
-  for (Size i = 1; i != 6; ++i)
-  {
-    rp.setMZ(i);
-    theo_spectrum.push_back(rp);
-  }
-  theo_spectra.push_back(theo_spectrum); 
-  theo_spectrum.clear(true);
-  
-  // full match for theoretical spectrum
-  for (Size i = 1; i <= 10; ++i)
-  {
-    rp.setMZ(i);
-    theo_spectrum.push_back(rp);
-  }
- 
-  theo_spectra.push_back(theo_spectrum);
-  HyperScore::IndexScorePair isp = HyperScore::compute(0.1, false, exp_spectrum, theo_spectra);
-  TEST_REAL_SIMILAR(isp.second, 4.302585);
-}
-END_SECTION
-
-START_SECTION((static double logfactorial(UInt x)))
-{
-  TEST_REAL_SIMILAR(HyperScore::logfactorial(0), 1)
-  TEST_REAL_SIMILAR(HyperScore::logfactorial(1), 1)
-  TEST_REAL_SIMILAR(HyperScore::logfactorial(10), 15.1044)
-  TEST_REAL_SIMILAR(HyperScore::logfactorial(100), 363.739)
-}
-END_SECTION
-
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
