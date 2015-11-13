@@ -62,7 +62,7 @@ START_SECTION(~MzTab())
 }
 END_SECTION
 
-START_SECTION(std::vector<String> getPSMOptionalColumnNames() const)
+START_SECTION(std::set<String> getPSMOptionalColumnNames() const)
 {
   MzTab mztab;
   MzTabPSMSectionRow row;
@@ -141,7 +141,7 @@ START_SECTION(std::vector<String> getPSMOptionalColumnNames() const)
   mztab.setPSMSectionRows(rows);
   
   // Tests ///////////////////////////////  
-  vector<String> optional_columns = mztab.getPSMOptionalColumnNames();
+  set<String> optional_columns = mztab.getPSMOptionalColumnNames();
   
   TEST_EQUAL(mztab.getPSMSectionRows().size(),2)
   TEST_EQUAL(optional_columns.size(),5)

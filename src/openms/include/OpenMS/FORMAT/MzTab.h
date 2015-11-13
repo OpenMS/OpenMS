@@ -735,16 +735,16 @@ public:
     void setSmallMoleculeSectionRows(const MzTabSmallMoleculeSectionRows& smsd);
 
     // Extract opt_ (custom, optional column names)
-    std::vector<String> getProteinOptionalColumnNames() const;
+    std::set<String> getProteinOptionalColumnNames() const;
 
     // Extract opt_ (custom, optional column names)
-    std::vector<String> getPeptideOptionalColumnNames() const;
+    std::set<String> getPeptideOptionalColumnNames() const;
 
     // Extract opt_ (custom, optional column names)
-    std::vector<String> getPSMOptionalColumnNames() const;
+    std::set<String> getPSMOptionalColumnNames() const;
 
     // Extract opt_ (custom, optional column names)
-    std::vector<String> getSmallMoleculeOptionalColumnNames() const;
+    std::set<String> getSmallMoleculeOptionalColumnNames() const;
 
 protected:
     MzTabMetaData meta_data_;

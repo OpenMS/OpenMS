@@ -91,27 +91,27 @@ protected:
 
     void generateMzTabMetaDataSection_(const MzTabMetaData& map, StringList& sl) const;
 
-    void generateMzTabProteinSection_(const MzTabProteinSectionRows& rows, StringList& sl, const std::vector<String>& optional_columns) const;
+    void generateMzTabProteinSection_(const MzTabProteinSectionRows& rows, StringList& sl, const std::set<String>& optional_columns) const;
 
-    String generateMzTabProteinHeader_(const MzTabProteinSectionRow& reference_row, const Size n_best_search_engine_scores, const std::vector<String>& optional_columns) const;
+    String generateMzTabProteinHeader_(const MzTabProteinSectionRow& reference_row, const Size n_best_search_engine_scores, const std::set<String>& optional_columns) const;
 
-    String generateMzTabProteinSectionRow_(const MzTabProteinSectionRow& row, const std::vector<String>& optional_columns) const;
+    String generateMzTabProteinSectionRow_(const MzTabProteinSectionRow& row, const std::set<String>& optional_columns) const;
 
-    void generateMzTabPeptideSection_(const MzTabPeptideSectionRows& rows, StringList& sl, const std::vector<String>& optional_columns) const;
+    void generateMzTabPeptideSection_(const MzTabPeptideSectionRows& rows, StringList& sl, const std::set<String>& optional_columns) const;
 
-    String generateMzTabPeptideHeader_(Size search_ms_runs, Size n_best_search_engine_scores, Size n_search_engine_score, Size assays, Size study_variables, const std::vector<String>& optional_columns) const;
+    String generateMzTabPeptideHeader_(Size search_ms_runs, Size n_best_search_engine_scores, Size n_search_engine_score, Size assays, Size study_variables, const std::set<String>& optional_columns) const;
 
-    String generateMzTabPeptideSectionRow_(const MzTabPeptideSectionRow& row, const std::vector<String>& optional_columns) const;
+    String generateMzTabPeptideSectionRow_(const MzTabPeptideSectionRow& row, const std::set<String>& optional_columns) const;
 
-    void generateMzTabPSMSection_(const MzTabPSMSectionRows& rows, StringList& sl, const std::vector<String>& optional_columns) const;
+    void generateMzTabPSMSection_(const MzTabPSMSectionRows& rows, StringList& sl, const std::set<String>& optional_columns) const;
 
-    String generateMzTabPSMHeader_(Size n_search_engine_scores, const std::vector<String>& optional_columns) const;
+    String generateMzTabPSMHeader_(Size n_search_engine_scores, const std::set<String>& optional_columns) const;
 
-    String generateMzTabPSMSectionRow_(const MzTabPSMSectionRow& row, const std::vector<String>& optional_columns) const;
+    String generateMzTabPSMSectionRow_(const MzTabPSMSectionRow& row, const std::set<String>& optional_columns) const;
 
     void generateMzTabSmallMoleculeSection_(const MzTabSmallMoleculeSectionRows& map, StringList& sl) const;
 
-    String generateMzTabSmallMoleculeHeader_(Size search_ms_runs, Size n_best_search_engine_scores, Size n_search_engine_score, Size assays, Size study_variables, const std::vector<String>& optional_columns) const;
+    String generateMzTabSmallMoleculeHeader_(Size search_ms_runs, Size n_best_search_engine_scores, Size n_search_engine_score, Size assays, Size study_variables, const std::set<String>& optional_columns) const;
 
     String generateMzTabSmallMoleculeSectionRow_(const MzTabSmallMoleculeSectionRow& row) const;
 
