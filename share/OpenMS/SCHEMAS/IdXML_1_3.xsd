@@ -374,12 +374,7 @@
 			</xs:sequence>
 			<xs:attribute name="identifier" type="xs:string" use="required">
 				<xs:annotation>
-					<xs:documentation>database identifier</xs:documentation>
-				</xs:annotation>
-			</xs:attribute>
-			<xs:attribute name="charge" type="xs:integer" use="required">
-				<xs:annotation>
-					<xs:documentation>charge</xs:documentation>
+					<xs:documentation>database identifier. Ideally 'compound with modifications and adducts' if in database. Otherwise fall back to e.g. compound id</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
 			<xs:attribute name="score" type="xs:float" use="required">
@@ -387,14 +382,29 @@
 					<xs:documentation>score of the hit</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
-			<xs:attribute name="calc_mz" type="xs:float">
+			<xs:attribute name="charge" type="xs:integer" use="required">
 				<xs:annotation>
-					<xs:documentation>(uncharged, theoretical) mz of the hit</xs:documentation>
+					<xs:documentation>charge</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
-			<xs:attribute name="formula" type="xs:string">
+			<xs:attribute name="adduct_ions" type="xs:string" use="required">
+				<xs:annotation>
+					<xs:documentation>adduct ion e.g.: 2M+C2H4O2-H </xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="modifications" type="StringListType">
+				<xs:annotation>
+					<xs:documentation>list of: number of groups; name; and delta mass of 1 group in derivatisation - if this information is available e.g.: 2;TMS;72.047348</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="formula" type="xs:string" use="required">
 				<xs:annotation>
 					<xs:documentation>chemical formula in hill's notation</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="theoretical_mass" type="xs:float" use="required">
+				<xs:annotation>
+					<xs:documentation>neutral, calculated mass of the small molecule. e.g. obtained by summing neutral masses: M_compound + M_modifications + M_adduct</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
 			<xs:attribute name="smiles" type="xs:string">
@@ -402,14 +412,14 @@
 					<xs:documentation>SMILES string</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
-			<xs:attribute name="inchi" type="xs:string">
+			<xs:attribute name="inchi_key" type="xs:string">
 				<xs:annotation>
 					<xs:documentation>inchi key</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
 			<xs:attribute name="compound_refs" type="xs:IDREFS">
 				<xs:annotation>
-					<xs:documentation>References to compounds, this small molecule relats to.</xs:documentation>
+					<xs:documentation>References to compounds, this small molecule relates to</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
 		</xs:complexType>
@@ -478,6 +488,12 @@
 		<xs:list itemType="xs:int"/>
 	</xs:simpleType>
 	<xs:simpleType name="CharListType">
+		<xs:annotation>
+			<xs:documentation>list of chars</xs:documentation>
+		</xs:annotation>
+		<xs:list itemType="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="StringListType">
 		<xs:annotation>
 			<xs:documentation>list of strings</xs:documentation>
 		</xs:annotation>
