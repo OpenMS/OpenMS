@@ -38,6 +38,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/ANALYSIS/ID/AScore.h>
+#include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -259,7 +260,10 @@ protected:
     bool fragment_mass_unit_ppm = getStringOption_("fragment_mass_unit") == "Da" ? false : true;
     AScore ascore;
 
-    RichPeakMap exp;
+    //PeakMap exp;
+    //RichPeakMap exp;
+    
+    
     //-------------------------------------------------------------
     // loading input
     //-------------------------------------------------------------
@@ -268,6 +272,7 @@ protected:
     vector<PeptideIdentification> pep_out;
     IdXMLFile().load(id, prot_ids, pep_ids);
 
+    MSExperiment<> exp;
     MzMLFile f;
     f.setLogType(log_type_);
 
@@ -277,45 +282,49 @@ protected:
     f.getOptions() = options;
     f.load(in, exp);
     exp.sortSpectra(true);
+    
+    SpectrumLookup lookup;
+    lookup.readSpectra(exp.getSpectra());
 
-    for (Size i = 0; i != exp.getNrSpectra(); ++i)
+    /* for (Size i = 0; i != exp.getNrSpectra(); ++i)
     {
       deisotopeAndSingleChargeMSSpectrum_(exp.getSpectrum(i), 2, 5, fragment_mass_tolerance, fragment_mass_unit_ppm);
-    }
+    } */
 
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
     // map the ids to the spectra
-    IDMapper id_mapper;
-    id_mapper.annotate(exp, pep_ids, prot_ids);
-    for (RichPeakMap::iterator it = exp.begin(); it != exp.end(); ++it)
+    /* IDMapper id_mapper;
+    id_mapper.annotate(exp, pep_ids, prot_ids); */
+    /* for (RichPeakMap::iterator it = exp.begin(); it != exp.end(); ++it)
     {
       if (it->getPeptideIdentifications().empty())
       {
         continue;
-      }
+      } */
 
-      for (vector<PeptideIdentification>::iterator hits = it->getPeptideIdentifications().begin(); hits < it->getPeptideIdentifications().end(); ++hits)
+      for (vector<PeptideIdentification>::iterator pep_id = pep_ids.begin(); pep_id != pep_ids.end(); ++pep_id)
       {
+        Size scan_id = lookup.findByRT(pep_id->getRT());
+        PeakSpectrum& temp = exp.getSpectrum(scan_id);
+        
         vector<PeptideHit> scored_peptides;
-        for (vector<PeptideHit>::const_iterator hit = hits->getHits().begin(); hit < hits->getHits().end(); ++hit)
+        for (vector<PeptideHit>::const_iterator hit = pep_id->getHits().begin(); hit < pep_id->getHits().end(); ++hit)
         {
           PeptideHit scored_hit = *hit;
-          RichPeakSpectrum& temp  = *it;
-
-          PeptideHit phospho_sites;
+          PeptideHit phospho_sites = scored_hit;
           phospho_sites = ascore.compute(scored_hit, temp, fragment_mass_tolerance, fragment_mass_unit_ppm);
           scored_peptides.push_back(phospho_sites);
         }
 
-        PeptideIdentification new_hits(*hits);
-        new_hits.setScoreType("PhosphoScore");
-        new_hits.setHigherScoreBetter(true);
-        new_hits.setHits(scored_peptides);
-        pep_out.push_back(new_hits);
+        PeptideIdentification new_pep_id(*pep_id);
+        new_pep_id.setScoreType("PhosphoScore");
+        new_pep_id.setHigherScoreBetter(true);
+        new_pep_id.setHits(scored_peptides);
+        pep_out.push_back(new_pep_id);
       }
-    }
+    //}
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------

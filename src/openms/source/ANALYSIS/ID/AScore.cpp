@@ -57,7 +57,7 @@ namespace OpenMS
   {
   }
 
-  PeptideHit AScore::compute(const PeptideHit & hit, RichPeakSpectrum & real_spectrum, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const
+  PeptideHit AScore::compute(const PeptideHit & hit, PeakSpectrum & real_spectrum, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const
   {
     PeptideHit phospho = hit;
     
@@ -94,7 +94,7 @@ namespace OpenMS
     {
       real_spectrum.sortByPosition();
     }
-    vector<RichPeakSpectrum> windows_top10(peakPickingPerWindowsInSpectrum_(real_spectrum));
+    vector<PeakSpectrum> windows_top10(peakPickingPerWindowsInSpectrum_(real_spectrum));
     
     // calculate peptide score for each possible phospho site permutation
     vector<vector<double> > peptide_site_scores(calculatePermutationPeptideScores_(th_spectra, windows_top10, fragment_mass_tolerance, fragment_mass_unit_ppm));
@@ -291,7 +291,7 @@ namespace OpenMS
     site_determining_ions[1].sortByPosition(); 
   }
 
-  Size AScore::numberOfMatchedIons_(const RichPeakSpectrum & th, const RichPeakSpectrum & window, Size depth, double fragment_mass_tolerance, bool fragment_mass_tolerance_ppm) const
+  Size AScore::numberOfMatchedIons_(const RichPeakSpectrum & th, const PeakSpectrum & window, Size depth, double fragment_mass_tolerance, bool fragment_mass_tolerance_ppm) const
   {
     Size n = 0;
     
@@ -470,21 +470,21 @@ namespace OpenMS
     return th_spectra;
   }
   
-  std::vector<RichPeakSpectrum> AScore::peakPickingPerWindowsInSpectrum_(RichPeakSpectrum &real_spectrum) const
+  std::vector<PeakSpectrum> AScore::peakPickingPerWindowsInSpectrum_(PeakSpectrum &real_spectrum) const
   {
-    vector<RichPeakSpectrum> windows_top10;
+    vector<PeakSpectrum> windows_top10;
     
     double spect_lower_bound = floor(real_spectrum.front().getMZ() / 100) * 100;
     double spect_upper_bound = ceil(real_spectrum.back().getMZ() / 100) * 100;
     Size number_of_windows = static_cast<Size>(ceil((spect_upper_bound - spect_lower_bound) / 100));
     windows_top10.resize(number_of_windows);
     
-    RichPeakSpectrum::Iterator it_current_peak = real_spectrum.begin();
+    PeakSpectrum::Iterator it_current_peak = real_spectrum.begin();
     Size window_upper_bound(spect_lower_bound + 100);
     
     for (Size current_window = 0; current_window < number_of_windows; ++current_window)
     {
-      RichPeakSpectrum real_window;
+      PeakSpectrum real_window;
       while (((*it_current_peak).getMZ() <= window_upper_bound) && (it_current_peak < real_spectrum.end()))
       {
         real_window.push_back(*it_current_peak);
@@ -502,7 +502,7 @@ namespace OpenMS
     return windows_top10;
   }
   
-  std::vector<std::vector<double> > AScore::calculatePermutationPeptideScores_(vector<RichPeakSpectrum>& th_spectra, const vector<RichPeakSpectrum>& windows_top10, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const
+  std::vector<std::vector<double> > AScore::calculatePermutationPeptideScores_(vector<RichPeakSpectrum>& th_spectra, const vector<PeakSpectrum>& windows_top10, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const
   {
     //prepare peak depth for all windows in the actual spectrum
     vector<vector<double> > permutation_peptide_scores(th_spectra.size());

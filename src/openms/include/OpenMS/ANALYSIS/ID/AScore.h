@@ -78,7 +78,7 @@ class OPENMS_DLLAPI AScore
 
         @note the original sequence is saved in the PeptideHits as MetaValue Search_engine_sequence.
     */
-    PeptideHit compute(const PeptideHit & hit, RichPeakSpectrum &real_spectrum, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const;
+    PeptideHit compute(const PeptideHit & hit, PeakSpectrum &real_spectrum, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const;
 
   protected:
   
@@ -119,7 +119,7 @@ class OPENMS_DLLAPI AScore
     std::vector<std::vector<Size> > computePermutations_(const std::vector<Size> & sites, Int n_phosphorylation_events) const;
 
     /// Computes number of matched ions between windows and the given spectrum. All spectra have to be sorted by position!
-    Size numberOfMatchedIons_(const RichPeakSpectrum & th, const RichPeakSpectrum & windows, Size depth, double fragment_mass_tolerance, bool fragment_mass_tolerance_ppm = false) const;
+    Size numberOfMatchedIons_(const RichPeakSpectrum & th, const PeakSpectrum & windows, Size depth, double fragment_mass_tolerance, bool fragment_mass_tolerance_ppm = false) const;
 
     /// Computes the peptide score according to Beausoleil et al. page 1291
     double peptideScore_(const std::vector<double> & scores) const;
@@ -146,10 +146,10 @@ class OPENMS_DLLAPI AScore
     std::vector<RichPeakSpectrum> createTheoreticalSpectra_(const AASequence & seq_without_phospho) const;
     
     /// Pick top 10 intensity peaks for each 100 Da windows
-    std::vector<RichPeakSpectrum> peakPickingPerWindowsInSpectrum_(RichPeakSpectrum & real_spectrum) const;
+    std::vector<PeakSpectrum> peakPickingPerWindowsInSpectrum_(PeakSpectrum & real_spectrum) const;
     
     /// Create 10 scores for each theoretical spectrum (permutation), according to Beausoleil et al. Figure 3 b
-    std::vector<std::vector<double> > calculatePermutationPeptideScores_(std::vector<RichPeakSpectrum> & th_spectra, const std::vector<RichPeakSpectrum> & windows_top10, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const;
+    std::vector<std::vector<double> > calculatePermutationPeptideScores_(std::vector<RichPeakSpectrum> & th_spectra, const std::vector<PeakSpectrum> & windows_top10, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const;
     
     /// Rank weighted permutation scores ascending
     std::multimap<double, Size> rankWeightedPermutationPeptideScores_(const std::vector<std::vector<double> > & peptide_site_scores) const;
