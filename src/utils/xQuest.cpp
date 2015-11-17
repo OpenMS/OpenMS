@@ -157,8 +157,8 @@ protected:
     registerStringOption_("precursor:mass_tolerance_unit", "<unit>", "ppm", "Unit of precursor mass tolerance.", false, false);
     setValidStrings_("precursor:mass_tolerance_unit", precursor_mass_tolerance_unit_valid_strings);
 
-    registerIntOption_("precursor:min_charge", "<num>", 2, "Minimum precursor charge to be considered.", false, true);
-    registerIntOption_("precursor:max_charge", "<num>", 5, "Maximum precursor charge to be considered.", false, true);
+    registerIntOption_("precursor:min_charge", "<num>", 4, "Minimum precursor charge to be considered.", false, true);
+    registerIntOption_("precursor:max_charge", "<num>", 8, "Maximum precursor charge to be considered.", false, true);
 
     registerTOPPSubsection_("fragment", "Fragments (Product Ion) Options");
     registerDoubleOption_("fragment:mass_tolerance", "<tolerance>", 10.0, "Fragment mass tolerance", false);
@@ -421,7 +421,9 @@ protected:
         map_light_to_heavy[pi_0.getMetaValue("scan_index")] = pi_1.getMetaValue("scan_index");
       }
     }
-    
+   
+    cout << "Number of MS2 pairs connceted by consensus feature: " << map_light_to_heavy.size() << endl;
+ 
     Size count_proteins = 0;
     Size count_peptides = 0;
     
@@ -528,8 +530,8 @@ protected:
           const Size scan_index_light = low_it->second;
           const PeakSpectrum& spectrum_light = spectra[scan_index_light];
 
-          cout << "Pair: " << a->second << ", " << b->second << " matched to light spectrum " << scan_index_light << " with m/z: " << spectrum_light.getPrecursors()[0].getMZ() <<  endl;
-          cout << a->second.getMonoWeight() << ", " << b->second.getMonoWeight() << " cross_link_mass: " <<  cross_link_mass <<  endl;
+//          cout << "Pair: " << a->second << ", " << b->second << " matched to light spectrum " << scan_index_light << " with m/z: " << spectrum_light.getPrecursors()[0].getMZ() <<  endl;
+//          cout << a->second.getMonoWeight() << ", " << b->second.getMonoWeight() << " cross_link_mass: " <<  cross_link_mass <<  endl;
 
           // map light to heavy
           map<Size, Size>::const_iterator scan_index_light_it = map_light_to_heavy.find(scan_index_light);
@@ -538,41 +540,14 @@ protected:
           { 
             const Size scan_index_heavy = scan_index_light_it->second;
 
-            cout << "light spectrum index: " << scan_index_light << " heavy spectrum index: " << scan_index_heavy << endl;
+//            cout << "Pair: " << a->second << "(" << a->second.getMonoWeight() << ")" << ", " 
+//                 << b->second << "(" << b->second.getMonoWeight() << ") matched to light spectrum " << scan_index_light << " with m/z: " << spectrum_light.getPrecursors()[0].getMZ() << " cross_link_mass: " <<  cross_link_mass <<  endl;
+//            cout << "light spectrum index: " << scan_index_light << " heavy spectrum index: " << scan_index_heavy << endl;
             const PeakSpectrum& spectrum_heavy = spectra[scan_index_heavy];
 
             // TODO: common peaks, align
           }
           
-
-//          HyperScore::IndexScorePair best_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theoretical_spectra);
-
-          // no good hit
-              //               if (best_score.second < 1.0)
-              //                             {
-              //                                             continue;
-              //                                                           }
-              //
-              //                                                                         // add peptide hit
-              //                                                                                       AnnotatedHit ah;
-              //                                                                                                     ah.sequence.begin = cit->first;
-              //                                                                                                                   ah.sequence.end = cit->second;
-              //                                                                                                                                 ah.peptide_mod_index = mod_pep_idx;
-              //                                                                                                                                               ah.score = best_score.second;
-              //                                                                                                                                                             ah.rna_mod_index = rna_mod_index;
-              //                                                                                                                                                                 SpectrumAlignment spectrum_aligner;
-              //                                                                                                                                                                     Param pa = spectrum_aligner.getParameters();
-              //                                                                                                                                                                         pa.setValue("tolerance", (double)fragment_mass_tolerance, "Defines the absolute (in Da) or relative (in ppm) tolerance in the alignment");
-              //                                                                                                                                                                             if (fragment_mass_tolerance_unit_ppm)
-              //                                                                                                                                                                                 {
-              //                                                                                                                                                                                       pa.setValue("is_relative_tolerance", "true");
-              //                                                                                                                                                                                           } 
-              //                                                                                                                                                                                               else
-              //                                                                                                                                                                                                   {
-              //                                                                                                                                                                                                         pa.setValue("is_relative_tolerance", "false");
-              //                                                                                                                                                                                                             } 
-              //                                                                                                                                                                                                               
-              //                                                                                                                                                                                                                   spectrum_aligner.setParameters(pa);
         }  
       }     
     }
