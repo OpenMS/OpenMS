@@ -283,7 +283,9 @@ namespace OpenMS
               }
               else
               {
-                cmap[cm_index].setMetaValue("spectrum_index", i);
+                IntList il;
+                il.push_back(i);
+                cmap[cm_index].setMetaValue("spectrum_index", il);
               }
               ++assigned[i];
             }
@@ -312,7 +314,9 @@ namespace OpenMS
                     }
                     else
                     {
-                      cmap[cm_index].setMetaValue(key, i);
+                      IntList il;
+                      il.push_back(i);
+                      cmap[cm_index].setMetaValue(key, il);
                     }
                   }
                   
