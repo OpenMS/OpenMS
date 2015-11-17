@@ -229,6 +229,142 @@ namespace OpenMS
              << matches_multi << std::endl;
 
   }
+
+  void IDMapper::annotate(ConsensusMap& cmap, const MSExperiment<>& pmap, bool measure_from_subelements, bool annotate_with_subelements)
+  {
+    //keep track of assigned/unassigned precursors
+    std::map<Size, Size> assigned;
+
+    // store which precursor fit which feature (and avoid double entries)
+    // consensusMap -> {spectrum_index}
+    std::vector<std::set<size_t> > mapping(pmap.size());
+
+    DoubleList mz_values;
+    IntList charges;
+
+    //iterate over the precursors
+    for (Size i = 0; i < pmap.size(); ++i)
+    {
+      const vector<Precursor>& precursors = pmap[i].getPrecursors();
+
+      if (precursors.empty()) continue;
+
+      double rt_prec = pmap[i].getRT();
+
+      //iterate over the features
+      for (Size cm_index = 0; cm_index < cmap.size(); ++cm_index)
+      {
+        bool was_added = false; // was current precursor-m/z matched?!
+
+        // iterate over m/z values of precursors
+        for (Size i_p = 0; i_p < precursors.size(); ++i_p)
+        {
+          double mz_prec = precursors[i_p].getMZ();
+
+          // charge states to use for checking:
+          IntList current_charges;
+          if (!ignore_charge_)
+          {
+            current_charges.push_back(precursors[i_p].getCharge());
+            current_charges.push_back(0); // "not specified" always matches
+          }
+
+          //check if we compare distance from centroid or subelements
+          if (!measure_from_subelements)
+          {
+            if (isMatch_(rt_prec - cmap[cm_index].getRT(), mz_prec, cmap[cm_index].getMZ()) && (ignore_charge_ || ListUtils::contains(current_charges, cmap[cm_index].getCharge())))
+            {
+              was_added = true;
+              if (cmap[cm_index].metaValueExists("spectrum_index"))
+              {
+                IntList indices = cmap[cm_index].getMetaValue("spectrum_index").toIntList();
+                indices.push_back(i);
+                cmap[cm_index].setMetaValue("spectrum_index", indices);
+              }
+              else
+              {
+                cmap[cm_index].setMetaValue("spectrum_index", i);
+              }
+              ++assigned[i];
+            }
+          }
+          else
+          {
+            for (ConsensusFeature::HandleSetType::const_iterator it_handle = cmap[cm_index].getFeatures().begin();
+                 it_handle != cmap[cm_index].getFeatures().end();
+                 ++it_handle)
+            {
+              if (isMatch_(rt_prec - it_handle->getRT(), mz_prec, it_handle->getMZ())  && (ignore_charge_ || ListUtils::contains(current_charges, it_handle->getCharge())))
+              {
+                was_added = true;
+                if (mapping[cm_index].count(i) == 0)
+                {
+                  if (annotate_with_subelements)
+                  {
+                    // store the map index the precursor was mapped to
+                    Size map_index = it_handle->getMapIndex();
+                    String key = "spectrum_index_" + String(map_index);
+                    if (cmap[cm_index].metaValueExists(key))
+                    {
+                      IntList indices = cmap[cm_index].getMetaValue(key).toIntList();
+                      indices.push_back(i);
+                      cmap[cm_index].setMetaValue(key, indices);
+                    }
+                    else
+                    {
+                      cmap[cm_index].setMetaValue(key, i);
+                    }
+                  }
+                  
+                  ++assigned[i];
+                  mapping[cm_index].insert(i);
+                }
+                break; // we added this precursor already.. no need to check other handles
+              }
+            }
+            // continue to here
+          }
+
+          if (was_added)
+            break;
+
+        } // m/z values to check
+
+        // break to here
+
+      } // features
+    } // Identifications
+
+
+    Size matches_none(0);
+    Size matches_single(0);
+    Size matches_multi(0);
+
+    for (Size i = 0; i < pmap.size(); ++i)
+    {
+      if (assigned[i] == 0)
+      {
+        ++matches_none;
+      }
+      else if (assigned[i] == 1)
+      {
+        ++matches_single;
+      }
+      else if (assigned[i] > 1)
+      {
+        ++matches_multi;
+      }
+    }
+
+    //some statistics output
+    LOG_INFO << "Unassigned precursors: " << matches_none << "\n"
+             << "Precursors assigned to exactly one feature: "
+             << matches_single << "\n"
+             << "Precursors assigned to multiple features: "
+             << matches_multi << std::endl;
+
+    
+  }
   
   void IDMapper::annotate(FeatureMap & map, const std::vector<PeptideIdentification> & ids, const std::vector<ProteinIdentification> & protein_ids, bool use_centroid_rt, bool use_centroid_mz)
   {
