@@ -289,7 +289,7 @@ namespace OpenMS
             line += "\t" + aggr_Peak_Area + "\t" + aggr_Peak_Apex + "\t" + aggr_Fragment_Annotation;
             if (enable_uis_scoring_)
             {
-              line += "\t" + (String)feature_it->getMetaValue("id_target_ind_transition_names")
+              line += "\t" + (String)feature_it->getMetaValue("id_target_transition_names")
               + "\t" + (String)feature_it->getMetaValue("id_target_ind_log_intensity")
               + "\t" + (String)feature_it->getMetaValue("id_target_ind_num_transitions")
               + "\t" + (String)feature_it->getMetaValue("id_target_ind_xcorr_coelution")
@@ -298,9 +298,9 @@ namespace OpenMS
               + "\t" + (String)feature_it->getMetaValue("id_target_ind_massdev_score")
               + "\t" + (String)feature_it->getMetaValue("id_target_ind_isotope_correlation")
               + "\t" + (String)feature_it->getMetaValue("id_target_ind_isotope_overlap")
-              + "\t" + (String)feature_it->getMetaValue("id_decoy_ind_transition_names")
+              + "\t" + (String)feature_it->getMetaValue("id_decoy_transition_names")
               + "\t" + (String)feature_it->getMetaValue("id_decoy_ind_log_intensity")
-              + "\t" + (String)feature_it->getMetaValue("id_decoy_ind_num_transitions")
+              + "\t" + (String)feature_it->getMetaValue("id_decoy_num_transitions")
               + "\t" + (String)feature_it->getMetaValue("id_decoy_ind_xcorr_coelution")
               + "\t" + (String)feature_it->getMetaValue("id_decoy_ind_xcorr_shape")
               + "\t" + (String)feature_it->getMetaValue("id_decoy_ind_log_sn_score")
