@@ -536,7 +536,8 @@ namespace OpenMS
           }
           else if (search_engine_name == "MASCOT")
           {
-            f << "\t\t\t<search_score" << " name=\"expect\" value=\"" << h.getMetaValue("E-Value") << "\"" << "/>\n";
+            f << "\t\t\t<search_score" << " name=\"expect\" value=\"" << h.getMetaValue("EValue") << "\"" << "/>\n";
+            f << "\t\t\t<search_score" << " name=\"ionscore\" value=\"" << h.getScore() << "\"" << "/>\n";
           }
           else if (search_engine_name == "OMSSA")
           {
