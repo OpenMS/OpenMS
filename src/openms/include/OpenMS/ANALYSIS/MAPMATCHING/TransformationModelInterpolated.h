@@ -75,16 +75,19 @@ public:
     static void getDefaultParameters(Param& params);
 
     /**
-     * @brief The class defines a generic interpolation technique used in the TransformationModelInterpolated.
+     * @brief The class defines a generic interpolation technique used in the
+     * TransformationModelInterpolated.
      *
-     * @note This class is nested in cpp file as we don't want this to be part of the public interface nor
-     *       to be exposed to derived or other classes.
+     * @note This class is nested in cpp file as we don't want this to be part
+     *       of the public interface nor to be exposed to derived or other classes.
      */
     class Interpolator
     {
 public:
+
       /**
        * @brief Initialize the Interpolator.
+       *
        * @param x The x data.
        * @param y The y data.
        */
@@ -111,7 +114,8 @@ private:
     /// Interpolation function
     Interpolator* interp_;
     /// Linear model for extrapolation
-    TransformationModelLinear* lm_;
+    TransformationModelLinear* lm_front_;
+    TransformationModelLinear* lm_back_;
     /// Preprocesses the incoming data and fills the vectors x_ and y_.
     void preprocessDataPoints_(const DataPoints& data);
   };
