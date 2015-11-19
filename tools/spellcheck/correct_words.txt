@@ -19,6 +19,12 @@ MERCHANTABILITY
 ###################################
 # 2. Authors {{{
 ###################################
+Julianus
+Pfeuffer
+Demirev
+Zubarev
+Liang
+Xiao
 Alexandra
 Zerck
 Andreas
@@ -199,10 +205,6 @@ getter
 IMPL
 Longman
 lookup
-mzIdentML
-MzML
-mzQuantML
-PepNovo
 subtree
 TOPPASINPUTFILESDIALOG
 typedefs
@@ -210,7 +212,6 @@ XMass
 Accessor
 ctor
 defgroup
-HUPO
 maxima
 novo
 PeakDetection
@@ -225,11 +226,8 @@ frameSize
 lorentzian
 lowpass
 mapList
-OpenGL
-PeakSpectra
 versa
-XTandem
-XTandemXML
+
 # }}}
 
 ###################################
@@ -450,7 +448,11 @@ Faires
 ###################################
 # Classnames, functions and closely related {{{
 ###################################
+
 # {{{Classnames
+MapAlignmentAlgorithm
+ConvertTSVToTraML
+MultiplexPeakPattern
 SILACAnalyzer
 LowLevelComparator
 IDEvaluatorGUI
@@ -640,6 +642,8 @@ MetaDataBrowser
 #  }}}
 
 # Functions {{{ 
+computeFwhmAreaRobust
+computeFwhmAreaSmoothRobust
 encodeInt
 encodings
 updateCRC
@@ -720,6 +724,23 @@ getChromatogam
 
 #  }}}
 
+AveragineModifications
+FirstScan
+NumOfScans
+
+BFS
+ConnectedComponents
+PepHit
+PeptideIDs
+ProtGroups
+
+JBC
+PEPs
+ScoringMatrix
+PEPIons
+PEPs
+ConsensusID
+PEPs
   
 lastPackage
 AAD
@@ -763,6 +784,12 @@ ltnote
 ###################################
 # common technical words {{{
 ###################################
+FHWM
+datasets
+Fortran
+NETLIB
+nonrobust
+rubstifying
 LLVM
 tokenize
 Wikipedia
@@ -957,11 +984,18 @@ rowspan
 Google
 ol
 Javascript
+BGCOLOR
+EBEBEB
+PRECRT
 # }}}
 
 ###################################
 # common Mass spectrometry and OpenMS words {{{
 ###################################
+dimethyl
+FTICR
+MascotAdapter
+Hydroxylation
 Histidin
 Leucin
 Phenylalanin
@@ -1138,6 +1172,15 @@ Transcodes
 sulfoxide
 codon
 immonium
+PepNovo
+HUPO
+OpenGL
+PeakSpectra
+XTandem
+XTandemXML
+mzIdentML
+MzML
+mzQuantML
 
 Askenazi
 Savitski
@@ -1153,7 +1196,6 @@ silico
 combinatoric
 crosscorrelation
 crosscorrelations
-accessably
 unclustered
 seeked
 online
@@ -1166,7 +1208,6 @@ deviancies
 proto
 cohesions
 agglomerative
-advancedness
 skipexists
 smoothes
 subregion
@@ -1180,7 +1221,6 @@ preincrement
 ascendingly
 syncronicity
 homonymous
-syncronize
 # }}}
 
 ###################################
@@ -1665,7 +1705,7 @@ ttime
 ttotalIntensity
 # }}}
 
-# Almost english words {{{
+# Almost English words {{{
 Coeluting
 decharged
 decharge
