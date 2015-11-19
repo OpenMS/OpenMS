@@ -49,13 +49,19 @@ namespace OpenMS
 
     The class deals with meta data of spectra and provides functions for the extraction and look-up of this data.
 
-    A common use case for this functionality is importing peptide/protein identification results from search engine-specific file formats, where some meta information may have to be looked up in the raw data (primarily retention times).
+    A common use case for this functionality is importing peptide/protein
+    identification results from search engine-specific file formats, where some
+    meta information may have to be looked up in the raw data (primarily
+    retention times).
     One example of this is in the function addMissingRTsToPeptideIDs().
 
     Meta data of a spectra is stored in SpectrumMetaDataLookup::SpectrumMetaData structures.
-    In order to control which meta data to extract/look-up, flags (SpectrumMetaDataLookup::MetaDataFlags) are used.
+    In order to control which meta data to extract/look-up, flags
+    (SpectrumMetaDataLookup::MetaDataFlags) are used.
     Meta data can be extracted from spectra or from spectrum reference strings.
-    The format of a spectrum reference is defined via a regular expression containing named groups (format "(?<GROUP>...)" for the different data items.
+    The format of a spectrum reference is defined via a regular expression
+    containing named groups (format "(?<GROUP>...)" for the different data
+    items.
     The table below illustrates the different meta data types and how they are represented.
 
     <CENTER>
@@ -139,7 +145,7 @@ namespace OpenMS
     typedef unsigned char MetaDataFlags;
 
     /// Possible meta data to extract from a spectrum. 
-    /// Note that the static vaiables need to be put on separate lines due to a compiler bug in VS
+    /// Note that the static variables need to be put on separate lines due to a compiler bug in VS
     static const MetaDataFlags MDF_RT = 1;
     static const MetaDataFlags MDF_PRECURSORRT = 2;
     static const MetaDataFlags MDF_PRECURSORMZ = 4;
