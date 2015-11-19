@@ -72,7 +72,7 @@ namespace OpenMS
       @param x The input vector in the first dimension
       @param y The input vector in the second dimension
       @param f Fraction of datapoints to use for each local regression (the span, recommended value: 2/3) 
-      @param nsteps The number of rubstifying iterations (recommended value: 3)
+      @param nsteps The number of robustifying iterations (recommended value: 3)
       @param delta nonnegative parameter which may be used to save computations (recommended value: 0.01 * range of x)
       @param result Result of fit
 
