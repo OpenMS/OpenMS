@@ -85,6 +85,17 @@ namespace OpenSwath
     return boost::static_pointer_cast<OpenSwath::IFeature>(m_precursor_features[nativeID]);
   }
 
+  std::vector<std::string> MockMRMFeature::getNativeIDs() const
+  {
+    std::vector<std::string> v;
+    for (std::map<std::string, boost::shared_ptr<MockFeature> >::const_iterator
+         it = m_features.begin(); it != m_features.end(); ++it)
+    {
+      v.push_back(it->first);
+    }
+    return v;
+  }
+
   std::vector<std::string> MockMRMFeature::getPrecursorIDs() const
   {
     std::vector<std::string> v;

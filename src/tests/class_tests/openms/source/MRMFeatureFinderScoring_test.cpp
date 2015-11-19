@@ -164,7 +164,88 @@ START_SECTION(void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap
 
 }
 END_SECTION
-    
+
+START_SECTION(void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap< Feature > &output, OpenSwath::LightTargetedExperiment &transition_exp, TransformationDescription trafo, OpenSwath::SpectrumAccessPtr swath_map, TransitionGroupMapType &transition_group_map))
+{ 
+  MRMFeatureFinderScoring ff;
+  Param ff_param = MRMFeatureFinderScoring().getDefaults();
+  Param scores_to_use;
+  scores_to_use.setValue("use_uis_scores", "true", "Use UIS scores for peptidoform identification ", ListUtils::create<String>("advanced"));
+  scores_to_use.setValidStrings("use_uis_scores", ListUtils::create<String>("true,false"));
+  ff_param.insert("Scores:", scores_to_use);
+  ff.setParameters(ff_param);
+
+  MRMFeature feature;
+  FeatureMap featureFile;
+  TransformationDescription trafo;
+  boost::shared_ptr<PeakMap> swath_map (new PeakMap);
+  TransitionGroupMapType transition_group_map;
+  MRMFeatureFinderScoring::MRMTransitionGroupType transition_group;
+
+  // Load the chromatograms (mzML) and the meta-information (TraML)
+  boost::shared_ptr<PeakMap> exp (new PeakMap);
+  OpenSwath::LightTargetedExperiment transitions;
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("OpenSwath_generic_input.mzML"), *exp);
+  { 
+    TargetedExperiment transition_exp_;
+    TraMLFile().load(OPENMS_GET_TEST_DATA_PATH("OpenSwath_identification_input.TraML"), transition_exp_);
+    OpenSwathDataAccessHelper::convertTargetedExp(transition_exp_, transitions);
+  }
+
+  // Pick features in the experiment
+#ifdef USE_SP_INTERFACE
+  OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
+  OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
+  ff.pickExperiment(chromatogram_ptr, featureFile, transitions, trafo, swath_ptr, transition_group_map);
+#else
+  ff.pickExperiment(exp, featureFile, transitions, trafo, *swath_map, transition_group_map);
+#endif
+
+  // Test the number of features found 
+  TEST_EQUAL(transition_group_map.size(), 2)
+
+  ///////////////////////////////////////////////////////////////////////////
+  //// Scores for the second group
+  transition_group = transition_group_map["tr_gr2"];
+  TEST_EQUAL(transition_group.size(), 3)
+  TEST_EQUAL(transition_group.getFeatures().size(), 2)
+  TEST_EQUAL(featureFile.size(), 3)
+
+  // Look closely at the feature we found in the second group
+  feature = transition_group.getFeatures()[0];
+  TOLERANCE_ABSOLUTE(0.1);
+  TEST_REAL_SIMILAR(feature.getRT(), 3119.092);
+  TEST_REAL_SIMILAR(feature.getIntensity(), 1034.55);
+
+  // feature attributes
+  TEST_REAL_SIMILAR(feature.getMetaValue("leftWidth" ), 3099.7);
+  TEST_REAL_SIMILAR(feature.getMetaValue("rightWidth"), 3147.68);
+  TEST_REAL_SIMILAR(feature.getMetaValue("total_xic"), 1610.27);
+
+  // feature scores
+  TEST_REAL_SIMILAR(feature.getMetaValue("var_xcorr_coelution"), 2.265);
+  TEST_REAL_SIMILAR(feature.getMetaValue("var_xcorr_shape"), 0.7245);
+  TEST_REAL_SIMILAR(feature.getMetaValue("var_library_rmsd"), 0.43566);
+  TEST_REAL_SIMILAR(feature.getMetaValue("var_library_corr"), -0.784);
+  TEST_REAL_SIMILAR(feature.getMetaValue("var_elution_model_fit_score"), 0.902);
+  TEST_REAL_SIMILAR(feature.getMetaValue("var_intensity_score"), 0.642);
+  TEST_REAL_SIMILAR(feature.getMetaValue("sn_ratio"), 30.18);
+  TEST_REAL_SIMILAR(feature.getMetaValue("var_log_sn_score"), 3.40718216971789);
+
+  // feature identification scores
+  TEST_EQUAL(feature.getMetaValue("id_target_transition_names"), "tr5;tr2");
+  TEST_EQUAL(feature.getMetaValue("id_target_ind_log_intensity"), "5.03352;7.92704");
+  TEST_REAL_SIMILAR(feature.getMetaValue("id_target_num_transitions"), 2);
+  TEST_EQUAL(feature.getMetaValue("id_target_ind_xcorr_coelution"), "1;1.66667");
+  TEST_EQUAL(feature.getMetaValue("id_target_ind_xcorr_shape"), "0.68631;0.690494");
+  TEST_EQUAL(feature.getMetaValue("id_target_ind_log_sn_score"), "1.16692;4.45008");
+  TEST_EQUAL(feature.getMetaValue("id_target_ind_isotope_correlation"), "");
+  TEST_EQUAL(feature.getMetaValue("id_target_ind_isotope_overlap"), "");
+  TEST_EQUAL(feature.getMetaValue("id_target_ind_massdev_score"), "");
+
+}
+END_SECTION
+
 START_SECTION(void mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr input, OpenSwath::LightTargetedExperiment &transition_exp, TransitionGroupMapType &transition_group_map, TransformationDescription trafo, double rt_extraction_window))
 {
   MRMFeatureFinderScoring ff;
