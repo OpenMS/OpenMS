@@ -267,10 +267,154 @@ START_SECTION((void digest(const AASequence &protein, std::vector<AASequence>&ou
     TEST_EQUAL(out.size(), 2)
     TEST_EQUAL(out[0].toString(), "ACR")
     TEST_EQUAL(out[1].toString(), "PDE")
-
-
 END_SECTION
 
+START_SECTION((bool digestUnmodifiedString(const StringView sequence, std::vector<StringView>& output, Size min_length)))
+    EnzymaticDigestion ed;
+    vector<StringView> out;
+    
+    std::string s = "ACDE";
+    ed.digestUnmodifiedString(s, out);
+    TEST_EQUAL(out.size(), 1)
+    TEST_EQUAL(out[0].getString(), s)
+    
+    s = "ACKDE";
+    ed.digestUnmodifiedString(s, out);
+    TEST_EQUAL(out.size(), 2)
+    TEST_EQUAL(out[0].getString(), "ACK")
+    TEST_EQUAL(out[1].getString(), "DE")
+
+    s = "ACRDE";
+    ed.digestUnmodifiedString(s, out);
+    TEST_EQUAL(out.size(), 2)
+    TEST_EQUAL(out[0].getString(), "ACR")
+    TEST_EQUAL(out[1].getString(), "DE")
+    
+    s = "ACKPDE";
+    ed.digestUnmodifiedString(s, out);
+    TEST_EQUAL(out.size(), 1)
+    TEST_EQUAL(out[0].getString(), "ACKPDE")
+                                    
+    s = "ACRPDE";
+    ed.digestUnmodifiedString(s, out);
+    TEST_EQUAL(out.size(), 1)
+    TEST_EQUAL(out[0].getString(), "ACRPDE")
+    
+    s = "ARCRDRE";
+    ed.digestUnmodifiedString(s, out);
+    TEST_EQUAL(out.size(), 4)
+    TEST_EQUAL(out[0].getString(), "AR")
+    TEST_EQUAL(out[1].getString(), "CR")
+    TEST_EQUAL(out[2].getString(), "DR")
+    TEST_EQUAL(out[3].getString(), "E")
+    
+    s = "RKR";
+    ed.digestUnmodifiedString(s, out);
+    TEST_EQUAL(out.size(), 3)
+    TEST_EQUAL(out[0].getString(), "R")
+    TEST_EQUAL(out[1].getString(), "K")
+    TEST_EQUAL(out[2].getString(), "R")
+    
+    ed.setMissedCleavages(1);
+    
+    s = "ACDE";
+    ed.digestUnmodifiedString(s, out);
+    TEST_EQUAL(out.size(), 1)
+    TEST_EQUAL(out[0].getString(), "ACDE")
+    
+    s = "ACRDE";
+    ed.digestUnmodifiedString(s, out);
+    TEST_EQUAL(out.size(), 3)
+    TEST_EQUAL(out[0].getString(), "ACR")
+    TEST_EQUAL(out[1].getString(), "DE")
+    TEST_EQUAL(out[2].getString(), "ACRDE")
+    
+    s = "ARCDRE";
+    ed.digestUnmodifiedString(s, out);
+    TEST_EQUAL(out.size(), 5)
+    TEST_EQUAL(out[0].getString(), "AR")
+    TEST_EQUAL(out[1].getString(), "CDR")
+    TEST_EQUAL(out[2].getString(), "E")
+    TEST_EQUAL(out[3].getString(), "ARCDR")
+    TEST_EQUAL(out[4].getString(), "CDRE")
+
+    s = "ARCDRER";
+    ed.digestUnmodifiedString(s, out);
+    TEST_EQUAL(out.size(), 5)
+    TEST_EQUAL(out[0].getString(), "AR")
+    TEST_EQUAL(out[1].getString(), "CDR")
+    TEST_EQUAL(out[2].getString(), "ER")
+    TEST_EQUAL(out[3].getString(), "ARCDR")
+    TEST_EQUAL(out[4].getString(), "CDRER")
+
+    s = "RKR";
+    ed.digestUnmodifiedString(s, out);
+    TEST_EQUAL(out.size(), 5)
+    TEST_EQUAL(out[0].getString(), "R")
+    TEST_EQUAL(out[1].getString(), "K")
+    TEST_EQUAL(out[2].getString(), "R")
+    TEST_EQUAL(out[3].getString(), "RK")
+    TEST_EQUAL(out[4].getString(), "KR")
+    
+    
+    s = "(ICPL:2H(4))ARCDRE";
+    ed.digestUnmodifiedString(s, out);
+    TEST_EQUAL(out.size(), 5)
+    TEST_EQUAL(out[0].getString(), "(ICPL:2H(4))AR")
+    TEST_EQUAL(out[1].getString(), "CDR")
+    TEST_EQUAL(out[2].getString(), "E")
+    TEST_EQUAL(out[3].getString(), "(ICPL:2H(4))ARCDR")
+    TEST_EQUAL(out[4].getString(), "CDRE")
+    
+    s = "ARCDRE(Amidated)";
+    ed.digestUnmodifiedString(s, out);
+    TEST_EQUAL(out.size(), 5)
+    TEST_EQUAL(out[0].getString(), "AR")
+    TEST_EQUAL(out[1].getString(), "CDR")
+    TEST_EQUAL(out[2].getString(), "E(Amidated)")
+    TEST_EQUAL(out[3].getString(), "ARCDR")
+    TEST_EQUAL(out[4].getString(), "CDRE(Amidated)")
+    
+    ed.setMissedCleavages(2);
+    s = "RKR";
+    ed.digestUnmodifiedString(s, out);
+    TEST_EQUAL(out.size(), 6)
+    TEST_EQUAL(out[0].getString(), "R")
+    TEST_EQUAL(out[1].getString(), "K")
+    TEST_EQUAL(out[2].getString(), "R")
+    TEST_EQUAL(out[3].getString(), "RK")
+    TEST_EQUAL(out[4].getString(), "KR")
+    TEST_EQUAL(out[5].getString(), "RKR")
+
+    // min size
+    ed.digestUnmodifiedString(s, out, 2);
+    TEST_EQUAL(out.size(), 3)
+    TEST_EQUAL(out[0].getString(), "RK")
+    TEST_EQUAL(out[1].getString(), "KR")
+    TEST_EQUAL(out[2].getString(), "RKR")
+
+    ed.digestUnmodifiedString(s, out, 3);
+    TEST_EQUAL(out.size(), 1)
+    TEST_EQUAL(out[0].getString(), "RKR")
+
+    // ------------------------
+    // Trypsin/P
+    // ------------------------
+    ed.setMissedCleavages(0);
+    ed.setEnzyme("Trypsin/P");
+    s = "ACKPDE";
+    ed.digestUnmodifiedString(s, out);
+    TEST_EQUAL(out.size(), 2)
+    TEST_EQUAL(out[0].getString(), "ACK")
+    TEST_EQUAL(out[1].getString(), "PDE")
+
+    s = "ACRPDE";
+    ed.digestUnmodifiedString(s, out);
+    TEST_EQUAL(out.size(), 2)    
+    TEST_EQUAL(out[0].getString(), "ACR")
+    TEST_EQUAL(out[1].getString(), "PDE")
+
+END_SECTION
 
 START_SECTION((bool isValidProduct(const AASequence &protein, Size pep_pos, Size pep_length, bool methionine_cleavage)))
     EnzymaticDigestion ed;

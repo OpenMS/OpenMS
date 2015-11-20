@@ -103,37 +103,6 @@ public:
   {
   }
 
-  // Slimmer structure to store a string representation
-  struct IndexedString
-  {
-    String::const_iterator begin;
-    String::const_iterator end; // one after last character in substring
-  
-    bool operator<(const IndexedString& other) const
-    {
-      if (end - begin < other.end - other.begin) return true;
-
-      if (end - begin > other.end - other.begin) return false;
-  
-      // same size
-      String::const_iterator b = begin;
-      String::const_iterator bo = other.begin;
-  
-      for (; b != end; ++b, ++bo)
-      {
-        if (*b < *bo) return true;
-        if (*b > *bo) return false;
-      }
-  
-      return false;
-    }
-
-   inline String getString() const
-   {
-     return String(begin, end);
-   }
-  };
-
 protected:
   void registerOptionsAndFlags_()
   {
@@ -353,7 +322,7 @@ protected:
     progresslogger.startProgress(0, (Size)(fasta_db.end() - fasta_db.begin()), "Scoring peptide models against spectra...");
 
     // lookup for processed peptides. must be defined outside of omp section and synchronized
-    multimap<IndexedString, AASequence> processed_peptides;
+    multimap<StringView, AASequence> processed_peptides;
     
     // set minimum size of peptide after digestion
     Size min_peptide_length = getIntOption_("peptide:min_size");
@@ -443,20 +412,17 @@ protected:
       }
 
       // store vector of substrings pointing in fasta database (bounded by pairs of begin, end iterators)    
-      vector<pair<String::const_iterator, String::const_iterator> > current_digest;
+      vector<StringView> current_digest;
       digestor.digestUnmodifiedString(fasta_db[fasta_index].sequence, current_digest, min_peptide_length);
 
-      for (vector<pair<String::const_iterator, String::const_iterator> >::iterator cit = current_digest.begin(); cit != current_digest.end(); ++cit)
+      for (vector<StringView>::iterator cit = current_digest.begin(); cit != current_digest.end(); ++cit)
       {
         bool already_processed = false;
-        IndexedString string_idx;
-        string_idx.begin = cit->first;
-        string_idx.end = cit->second;
 #ifdef _OPENMP
 #pragma omp critical (processed_peptides_access)
 #endif
         {
-          if (processed_peptides.find(string_idx) != processed_peptides.end())
+          if (processed_peptides.find(*cit) != processed_peptides.end())
           {
             // peptide (and all modified variants) already processed so skip it
             already_processed = true;
@@ -481,7 +447,7 @@ protected:
         // Note: no critial section is needed despite ResidueDB not beeing thread sage.
         //       It is only written to on introduction of novel modified residues. These residues have been already added above (single thread context).
         {
-          AASequence aas = AASequence::fromString(String(cit->first, cit->second));
+          AASequence aas = AASequence::fromString(cit->getString());
           ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications.begin(), fixed_modifications.end(), aas);
           ModifiedPeptideGenerator::applyVariableModifications(variable_modifications.begin(), variable_modifications.end(), aas, max_variable_mods_per_peptide, all_modified_peptides);
         }
@@ -494,16 +460,16 @@ protected:
 #pragma omp critical (processed_peptides_access)
 #endif
           {
-            processed_peptides.insert(pair<IndexedString, AASequence>(string_idx, candidate));
+            processed_peptides.insert(pair<StringView, AASequence>(*cit, candidate));
           }
         }
       }
     }
 
     // calculate mass pairs
-    for (map<IndexedString, AASequence>::const_iterator a = processed_peptides.begin(); a != processed_peptides.end(); ++a)
+    for (map<StringView, AASequence>::const_iterator a = processed_peptides.begin(); a != processed_peptides.end(); ++a)
     {
-      for (map<IndexedString, AASequence>::const_iterator b = a; b != processed_peptides.end(); ++b)
+      for (map<StringView, AASequence>::const_iterator b = a; b != processed_peptides.end(); ++b)
       {
         // mass peptide1 + mass peptide2 + cross linker mass - cross link loss
         double cross_link_mass = a->second.getMonoWeight() + b->second.getMonoWeight() + cross_link_mass_light - cross_link_mass_loss_type2;
