@@ -61,7 +61,7 @@ namespace OpenMS
                          non-linear, this may yield better approximations for
                          extrapolation.
     - global-linear: Uses a linear regression to fit a line through all data
-                     points and use it for interpolation. Note that
+                     points and use it for extrapolation. Note that
                      global-linear extrapolation may \b not be continuous with
                      the interpolation at the border.
 
