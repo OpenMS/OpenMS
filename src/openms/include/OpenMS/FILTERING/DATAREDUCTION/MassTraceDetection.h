@@ -93,7 +93,7 @@ private:
     typedef std::multimap<double, std::pair<Size, Size> > MapIdxSortedByInt;
 
     /// The internal run method
-    void run_(const MapIdxSortedByInt& chrom_apeces, Size peak_count, 
+    void run_(const MapIdxSortedByInt& chrom_apices, Size peak_count, 
               const MSExperiment<Peak1D> & work_exp,
               const std::vector<Size>& spec_offsets,
               std::vector<MassTrace> & found_masstraces);
