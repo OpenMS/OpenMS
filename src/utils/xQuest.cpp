@@ -258,6 +258,12 @@ protected:
     double fragment_mass_tolerance = getDoubleOption_("fragment:mass_tolerance");
     bool fragment_mass_tolerance_unit_ppm = (getStringOption_("fragment:mass_tolerance_unit") == "ppm");
 
+    SpectrumAlignment ms2_aligner;
+    Param ms2_alinger_param = ms2_aligner.getParameters();
+    ms2_alinger_param.setValue("is_relative_tolerance", fragment_mass_tolerance_unit_ppm);
+    ms2_alinger_param.setValue("tolerance", fragment_mass_tolerance);
+    ms2_aligner.setParameters(ms2_alinger_param);
+
     double cross_link_mass_light = getDoubleOption_("cross_linker:mass_light");
     double cross_link_mass_heavy = getDoubleOption_("cross_linker:mass_heavy");
     double cross_link_mass_loss_type2 = getDoubleOption_("cross_linker:mass_loss_type2");
@@ -511,7 +517,9 @@ protected:
 //            cout << "light spectrum index: " << scan_index_light << " heavy spectrum index: " << scan_index_heavy << endl;
             const PeakSpectrum& spectrum_heavy = spectra[scan_index_heavy];
 
-            // TODO: common peaks, align
+            std::vector< std::pair< Size, Size > > common_peaks;
+            ms2_aligner.getSpectrumAlignment(common_peaks, spectrum_light, spectrum_heavy);
+            
           }
           
         }  
