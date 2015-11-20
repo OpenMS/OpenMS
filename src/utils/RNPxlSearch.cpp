@@ -228,43 +228,10 @@ protected:
     registerDoubleOption_("RNPxl:marker_ions_tolerance", "<tolerance>", 0.05, "Tolerance used to determine marker ions (Da).", false, true);
   }
 
-  // Slimmer structure to store a string representation
-  struct IndexedString
-  {
-    String::const_iterator begin;
-    String::const_iterator end; // one after last character in substring
-
-    bool operator<(const IndexedString& other) const
-    {
-      if (end - begin < other.end - other.begin) return true;
-
-      if (end - begin > other.end - other.begin) return false;
-
-      // same size
-      String::const_iterator b = begin;
-      String::const_iterator bo = other.begin;
-
-      for (; b != end; ++b, ++bo)
-      {
-        if (*b < *bo) return true;
-
-        if (*b > *bo) return false;
-      }
-
-      return false;
-    }
-
-    inline String getString() const
-    {
-      return String(begin, end);
-    }
-
-  };
-
   // Slimmer structure as storing all scored candidates in PeptideHit objects takes too much space
   struct AnnotatedHit
   {
-    IndexedString sequence;
+    StringView sequence;
     SignedSize peptide_mod_index; // enumeration index of the non-RNA peptide modification
     Size rna_mod_index; // index of the RNA modification
     double score;
@@ -1456,7 +1423,7 @@ private:
     progresslogger.startProgress(0, (Size)(fasta_db.end() - fasta_db.begin()), "Scoring peptide models against spectra...");
 
     // lookup for processed peptides. must be defined outside of omp section and synchronized
-    set<IndexedString> processed_petides;
+    set<StringView> processed_petides;
 
     // set minimum size of peptide after digestion
     Size min_peptide_length = getIntOption_("peptide:min_size");
@@ -1479,20 +1446,17 @@ private:
         progresslogger.setProgress((SignedSize)fasta_index * NUMBER_OF_THREADS);
       }
 
-      vector<pair<String::const_iterator, String::const_iterator> > current_digest;
+      vector<StringView> current_digest;
       digestor.digestUnmodifiedString(fasta_db[fasta_index].sequence, current_digest, min_peptide_length);
 
-      for (vector<pair<String::const_iterator, String::const_iterator> >::iterator cit = current_digest.begin(); cit != current_digest.end(); ++cit)
+      for (vector<StringView>::iterator cit = current_digest.begin(); cit != current_digest.end(); ++cit)
       {
         bool already_processed = false;
-        IndexedString string_idx;
-        string_idx.begin = cit->first;
-        string_idx.end = cit->second;
 #ifdef _OPENMP
 #pragma omp critical (processed_peptides_access)
 #endif
         {
-          if (processed_petides.find(string_idx) != processed_petides.end())
+          if (processed_petides.find(*cit) != processed_petides.end())
           {
             // peptide (and all modified variants) already processed so skip it
             already_processed = true;
@@ -1508,7 +1472,7 @@ private:
 #pragma omp critical (processed_peptides_access)
 #endif
         {
-          processed_petides.insert(string_idx);
+          processed_petides.insert(*cit);
         }
 
 #ifdef _OPENMP
@@ -1520,7 +1484,7 @@ private:
         // no critial section is needed despite ResidueDB not beeing thread sage.
         // It is only written to on introduction of novel modified residues. These residues have been already added above (single thread context).
         {
-          AASequence aas = AASequence::fromString(String(cit->first, cit->second));
+          AASequence aas = AASequence::fromString(cit->getString());
           ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications.begin(), fixed_modifications.end(), aas);
           ModifiedPeptideGenerator::applyVariableModifications(variable_modifications.begin(), variable_modifications.end(), aas, max_variable_mods_per_peptide, all_modified_peptides);
         }
@@ -1578,8 +1542,7 @@ private:
 
               // add peptide hit
               AnnotatedHit ah;
-              ah.sequence.begin = cit->first;
-              ah.sequence.end = cit->second;
+              ah.sequence = *cit;
               ah.peptide_mod_index = mod_pep_idx;
               ah.score = score;
               ah.rna_mod_index = rna_mod_index;

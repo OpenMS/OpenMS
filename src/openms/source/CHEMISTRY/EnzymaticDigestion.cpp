@@ -240,41 +240,32 @@ namespace OpenMS
     }
   }
 
-  void EnzymaticDigestion::digestUnmodifiedString(const String& sequence, vector<pair<String::const_iterator, String::const_iterator> >& output, Size min_length = 0) const
+  void EnzymaticDigestion::digestUnmodifiedString(const StringView sequence, std::vector<StringView>& output, Size min_length) const
   {
     // initialization
     output.clear();
 
     // naive cleavage sites
-    std::vector<Size> pep_positions = tokenize_(sequence);
+    std::vector<Size> pep_positions = tokenize_(sequence.getString());
     Size count = pep_positions.size();
 
     // no cleavage sites? return full string
     if (count == 0) 
     {
-     if (sequence.size() >= min_length)
-     {
-       output.push_back(make_pair(sequence.begin(), sequence.end()));
-     }
-     return;
+      if (sequence.size() >= min_length)
+      {
+        output.push_back(sequence);
+      }
+      return;
     }
 
-    for (Size i = 1; i < count; ++i)
+    for (Size i = 1; i != count; ++i)
     {
       // add if cleavage product larger then min length
       if (pep_positions[i] - pep_positions[i - 1] >= min_length)
       {
-        const String::const_iterator begin_it = sequence.begin() + pep_positions[i - 1];
-        const String::const_iterator end_it = sequence.begin() + pep_positions[i];
-        output.push_back(make_pair(begin_it, end_it));
+        output.push_back(sequence.substr(pep_positions[count - 1], sequence.size() - 1));
       }
-    }
-
-    // add last cleavage product (need to add because end is not a cleavage site) if larger then min length
-    if (sequence.size() - pep_positions[count - 1] >= min_length)
-    {
-      const String::const_iterator begin_it = sequence.begin() + pep_positions[count - 1];
-      output.push_back(make_pair(begin_it, sequence.end()));
     }
 
     // generate fragments with missed cleavages
@@ -284,18 +275,17 @@ namespace OpenMS
       {
         if (pep_positions[j + i] - pep_positions[j - 1] >= min_length)
         {
-          const String::const_iterator begin_it = sequence.begin() + pep_positions[j - 1];
-          const String::const_iterator end_it = sequence.begin() + pep_positions[j + i];
-          output.push_back(make_pair(begin_it, end_it));
+          output.push_back(sequence.substr(pep_positions[j - 1], pep_positions[j + i] - 1));
         }
       }
 
       // add last cleavage product (need to add because end is not a cleavage site)
-      if (sequence.size() - pep_positions[count - 1] >= min_length)
+      if (sequence.size() - pep_positions[count - i - 1] >= min_length)
       {
-        const String::const_iterator begin_it = sequence.begin() + pep_positions[count - 1];
-        output.push_back(make_pair(begin_it, sequence.end()));
+        output.push_back(sequence.substr(pep_positions[count - i - 1], sequence.size() - 1 ));
       }
     }
   }
+
 } //namespace
+
