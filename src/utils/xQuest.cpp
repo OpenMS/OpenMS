@@ -260,7 +260,8 @@ protected:
 
     SpectrumAlignment ms2_aligner;
     Param ms2_alinger_param = ms2_aligner.getParameters();
-    ms2_alinger_param.setValue("is_relative_tolerance", fragment_mass_tolerance_unit_ppm);
+    String ms2_relative_tolerance = fragment_mass_tolerance_unit_ppm ? "true" : "false";
+    ms2_alinger_param.setValue("is_relative_tolerance", ms2_relative_tolerance);
     ms2_alinger_param.setValue("tolerance", fragment_mass_tolerance);
     ms2_aligner.setParameters(ms2_alinger_param);
 
@@ -519,7 +520,11 @@ protected:
 
             std::vector< std::pair< Size, Size > > common_peaks;
             ms2_aligner.getSpectrumAlignment(common_peaks, spectrum_light, spectrum_heavy);
-            
+
+            cout << "Pair: " << a->second << "(" << a->second.getMonoWeight() << ")" << ", " 
+                 << b->second << "(" << b->second.getMonoWeight() << ") matched to light spectrum " << scan_index_light << " with m/z: " << spectrum_light.getPrecursors()[0].getMZ() << " cross_link_mass: " <<  cross_link_mass << endl;
+           cout << common_peaks.size() << endl;
+                        
           }
           
         }  
