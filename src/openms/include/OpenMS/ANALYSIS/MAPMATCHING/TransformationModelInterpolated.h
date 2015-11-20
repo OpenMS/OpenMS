@@ -45,9 +45,25 @@ namespace OpenMS
   /**
     @brief Interpolation model for transformations
 
-    Between the data points, the interpolation uses the neighboring points.
-    Outside the range spanned by the points, we extrapolate using a line through
-    the first and the last point.
+    Between the data points, the interpolation uses the neighboring points to
+    interpolate. The following interpolation methods are available:
+
+    - linear: Linearly interpolate between neighboring points
+    - cspline: Use a cubic spline to interpolate between neighboring points
+    - akima: Use an akima spline to interpolate between neighboring points (less affected by outliers)
+
+    Outside the range spanned by the points, we extrapolate using one of the following methods:
+
+    - two-point-linear: Uses a line through the first and last point to extrapolate 
+    - four-point-linear: Uses a line through the first and second point to
+                         extrapolate in front and and a line through the last
+                         and second-to-last point in the end. If the data is
+                         non-linear, this may yield better approximations for
+                         extrapolation.
+    - global-linear: Uses a linear regression to fit a line through all data
+                     points and use it for interpolation. Note that
+                     global-linear extrapolation may \b not be continuous with
+                     the interpolation at the border.
 
     @ingroup MapAlignment
   */
@@ -55,6 +71,7 @@ namespace OpenMS
     public TransformationModel
   {
 public:
+
     /**
       @brief Constructor
 
@@ -68,7 +85,13 @@ public:
     /// Destructor
     ~TransformationModelInterpolated();
 
-    /// Evaluates the model at the given value
+    /**
+     * @brief Evaluate the interpolation model at the given value
+     *
+     * @param value The position where the interpolation should be evaluated.
+     *
+     * @return The interpolated value.
+     */
     double evaluate(double value) const;
 
     /// Gets the default parameters
@@ -109,14 +132,22 @@ public:
     };
 
 private:
-    /// Data coordinates
-    std::vector<double> x_, y_;
+    /// Data coordinates x
+    std::vector<double> x_;
+
+    /// Data coordinates y
+    std::vector<double> y_;
+
     /// Interpolation function
     Interpolator* interp_;
-    /// Linear model for extrapolation
+
+    /// Linear model for extrapolation (front)
     TransformationModelLinear* lm_front_;
+
+    /// Linear model for extrapolation (back)
     TransformationModelLinear* lm_back_;
-    /// Preprocesses the incoming data and fills the vectors x_ and y_.
+
+    /// Preprocesses the incoming data and fills the (private) vectors x_ and y_
     void preprocessDataPoints_(const DataPoints& data);
   };
 
