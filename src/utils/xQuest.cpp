@@ -126,8 +126,8 @@ protected:
     registerStringOption_("precursor:mass_tolerance_unit", "<unit>", "ppm", "Unit of precursor mass tolerance.", false, false);
     setValidStrings_("precursor:mass_tolerance_unit", precursor_mass_tolerance_unit_valid_strings);
 
-    registerIntOption_("precursor:min_charge", "<num>", 4, "Minimum precursor charge to be considered.", false, true);
-    registerIntOption_("precursor:max_charge", "<num>", 8, "Maximum precursor charge to be considered.", false, true);
+    registerIntOption_("precursor:min_charge", "<num>", 3, "Minimum precursor charge to be considered.", false, true);
+    registerIntOption_("precursor:max_charge", "<num>", 6, "Maximum precursor charge to be considered.", false, true);
 
     registerTOPPSubsection_("fragment", "Fragments (Product Ion) Options");
     registerDoubleOption_("fragment:mass_tolerance", "<tolerance>", 10.0, "Fragment mass tolerance", false);
@@ -441,7 +441,6 @@ protected:
           continue;
         }
             
-
 #ifdef _OPENMP
 #pragma omp atomic
 #endif
@@ -523,8 +522,68 @@ protected:
 
             cout << "Pair: " << a->second << "(" << a->second.getMonoWeight() << ")" << ", " 
                  << b->second << "(" << b->second.getMonoWeight() << ") matched to light spectrum " << scan_index_light << " with m/z: " << spectrum_light.getPrecursors()[0].getMZ() << " cross_link_mass: " <<  cross_link_mass << endl;
-           cout << common_peaks.size() << endl;
-                        
+           cout << "Common peaks: " << common_peaks.size() << " remaining preaks: " << spectrum_light.size() - common_peaks.size() << ", " << spectrum_heavy.size() - common_peaks.size() << endl;
+           
+
+            // remaining fragments may carry light or heavy cross-linker.             
+            PeakSpectrum spectrum_heavy_remaining;
+            PeakSpectrum spectrum_light_remaining;
+            // TODO: speed this up - can be done in linear time
+            // TODO: also this whole spectrum matching and sorting part can be done only once as a preprocessing step
+            for (Size i = 0; i != spectrum_light.size(); ++i)
+            {
+              bool found = false;
+              for (Size j = 0; j != common_peaks.size(); ++j)
+              {
+                if (common_peaks[j].first == i) { found = true; break; }
+              }
+              if (!found)
+              {
+                spectrum_light_remaining.push_back(spectrum_light[i]);
+              }
+            }
+            for (Size i = 0; i != spectrum_heavy.size(); ++i)
+            {
+              bool found = false;
+              for (Size j = 0; j != common_peaks.size(); ++j)
+              {
+                if (common_peaks[j].second == i) { found = true; break; }
+              }
+              if (!found)
+              {
+                spectrum_heavy_remaining.push_back(spectrum_heavy[i]);
+              }
+            }
+
+            // transform by m/z difference between unlabeled and labeled cross-link to make heavy and light comparable to the unlabeled peptide (TODO: check calculation)
+            // TODO: assume different charged MS2 fragments. Now only single charged ones are assumed
+            for (Size i = 0; i != spectrum_heavy_remaining.size(); ++i)
+            {
+              spectrum_heavy_remaining[i].setMZ(spectrum_heavy_remaining[i].getMZ() - cross_link_mass_heavy ); 
+            }
+            for (Size i = 0; i != spectrum_light_remaining.size(); ++i)
+            {
+              spectrum_light_remaining[i].setMZ(spectrum_light_remaining[i].getMZ() - cross_link_mass_light ); 
+            }
+
+            std::vector< std::pair< Size, Size > > matched_shifted_peaks;
+            ms2_aligner.getSpectrumAlignment(matched_shifted_peaks, spectrum_light_remaining, spectrum_heavy_remaining);
+
+            cout << "Matched shifted peaks: " << matched_shifted_peaks.size() << " unexplained peaks: " << spectrum_light_remaining.size() - matched_shifted_peaks.size() << ", " << spectrum_heavy_remaining.size() - matched_shifted_peaks.size() << endl;
+
+            // reconstruct peptide spectrum without any cross-links TODO: doesn't make really sense as this looses information
+            PeakSpectrum spectrum_no_xl;
+            for (Size i = 0; i != common_peaks.size(); ++i)
+            {
+              spectrum_no_xl.push_back(spectrum_light[common_peaks[i].first]);
+            }
+            for (Size i = 0; i != matched_shifted_peaks.size(); ++i)
+            {
+              spectrum_no_xl.push_back(spectrum_light_remaining[matched_shifted_peaks[i].first]);
+            }
+            spectrum_no_xl.sortByPosition();
+            cout << "Peaks to match: " << spectrum_no_xl.size() << endl;
+
           }
           
         }  
