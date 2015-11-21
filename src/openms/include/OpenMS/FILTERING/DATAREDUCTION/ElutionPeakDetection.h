@@ -47,12 +47,28 @@ namespace OpenMS
     @brief Extracts chromatographic peaks from a mass trace.
 
     Mass traces may consist of several consecutively (partly overlapping)
-    eluting peaks, e.g., stemming from isomeric compounds with exactly the
-    same mass but different retentional behaviour. This method first applies
-    smoothing on the mass trace's intensities, then detects local
-    minima/maxima in order to separate the chromatographic peaks from each
-    other. This results in a vector that gathers the split mass traces
-    (see @ref ElutionPeakDetection parameters).
+    eluting peaks, e.g., stemming from (almost) isobaric compounds that are
+    separated by retention time. Especially in metabolomics, isomeric compounds
+    with exactly the same mass but different retentional behaviour may still be
+    contained in the same mass trace.
+    
+    This method first applies smoothing on the mass trace's intensities, then
+    detects local minima/maxima in order to separate the chromatographic peaks
+    from each other. Detection of maxima is performed on the smoothed
+    intensities and uses a fixed peak width (given as parameter chrom_fwhm)
+    within which only a single maximum is expected. Currently smoothing is
+    doing using SavitzkyGolay smoothing with a second order polynomial and a
+    frame length of the fixed peak width.
+
+    Depending on the "width_filtering" parameters, mass traces are filtered by
+    length in seconds ("fixed" filter) or by quantile.
+
+    The output of the algorithm is a set of chromatographic
+    peaks for each mass trace, i.e. a vector of split mass traces (see @ref
+    ElutionPeakDetection parameters).
+
+    In general, a user would want to call the "detectPeaks" functions,
+    potentially followed by the "filterByPeakWidth" function.
 
     @htmlinclude OpenMS_ElutionPeakDetection.parameters
 
@@ -68,7 +84,8 @@ public:
     /// Destructor
     virtual ~ElutionPeakDetection();
 
-    /** @brief Extracts chromatographic peaks from a single MassTrace and stores the splits into a vector of new mass traces.
+    /** @brief Extracts chromatographic peaks from a single MassTrace and
+     *         stores the resulting split traces in a vector of new mass traces.
      *
      * @note Smoothed intensities are added to @p mt_vec
      *
@@ -78,7 +95,8 @@ public:
     */
     void detectPeaks(MassTrace& mt, std::vector<MassTrace>& single_mtraces);
 
-    /** @brief Extracts chromatographic peaks from multiple MassTraces and stores the splits into a vector of new mass traces.
+    /** @brief Extracts chromatographic peaks from multiple MassTraces and
+     *         stores the resulting split traces in a vector of new mass traces.
      *
      * @note Smoothed intensities are added to @p mt_vec
      *
@@ -102,12 +120,26 @@ public:
 
     /** @brief Computes local extrema on a mass trace
      *
-     * This function computes local extrema on a given input mass trace
+     * This function computes local extrema on a given input mass trace. It
+     * works on the smoothed intensities which must be available at this step.
+     * Initially it identifies potential maxima as peaks that have maximum
+     * intensity within a range of peak +/- num_neighboring_peaks.
+     * All such maxima in the smoothed data get added to the list of maxima. 
+     * Minima are found through bisection between the maxima.
      *
      * @param tr Input mass trace
-     * @param num_neighboring_peaks How many data points are expected to belong to a peak (used to split traces and find maxima)
+     * @param num_neighboring_peaks How many data points are expected to belong
+     *                              to a peak, i.e. the expected peak width
+     *                              (this is used to split traces and find
+     *                              maxima)
      * @param chrom_maxes Output of maxima (gets cleared)
      * @param chrom_mins Output of minima (gets cleared)
+     *
+     * Returns a vector of indices where a maxima may occur (chrom_maxes) and a
+     * vector of indices where a minima may occur (chrom_mins).
+     *
+     * @note this expects that the input mass trace has been smoothed before
+     * and the smoothed intensities are available through tr.getSmoothedIntensities().
      *
     */
     void findLocalExtrema(const MassTrace& tr, const Size& num_neighboring_peaks,
@@ -121,19 +153,18 @@ protected:
 
 private:
     double chrom_fwhm_;
-    // double scan_time_;
     double chrom_peak_snr_;
-    //double noise_threshold_int_;
-    //double sample_rate_;
 
     double min_fwhm_;
     double max_fwhm_;
-    // double min_trace_length_;
-    // double max_trace_length_;
 
+    /// Type of width filtering
     String pw_filtering_;
+
+    /// Whether to apply S/N filtering
     bool mt_snr_filtering_;
 
+    /// Main function to do the work
     void detectElutionPeaks_(MassTrace&, std::vector<MassTrace>&);
   };
 
