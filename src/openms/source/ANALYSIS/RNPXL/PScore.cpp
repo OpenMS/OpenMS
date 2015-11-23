@@ -46,7 +46,7 @@ namespace OpenMS
 {
   vector<Size> PScore::calculateIntensityRankInMZWindow(const vector<double>& mz, const vector<double>& intensities, double mz_window = 100)
   {
-    vector<Size> ranks;
+    vector<Size> ranks; // note: ranks are zero based
     if (mz.empty())
     {
       return ranks;
@@ -59,7 +59,6 @@ namespace OpenMS
       const double m = mz[p];
       const double i = intensities[p];
 
-      // determine rank
       Size rank(0);
 
       // count neighbors to the left that have higher intensity
@@ -84,7 +83,7 @@ namespace OpenMS
 
   vector<vector<Size> > PScore::calculateRankMap(const PeakMap& peak_map, double mz_window)
   {
-    vector<std::vector<Size> > rank_map;
+    vector<std::vector<Size> > rank_map; // note: ranks are zero based
     rank_map.reserve(peak_map.size());
     for (Size i = 0; i != peak_map.size(); ++i)
     {
@@ -107,7 +106,7 @@ namespace OpenMS
 
     if (spec.empty()) return peak_level_spectra;
 
-    // loop over all peaks and associated ranks
+    // loop over all peaks and associated (zero-based) ranks
     for (Size i = 0; i != ranks.size(); ++i)
     {
       // start at the highest (less restrictive) level
@@ -213,7 +212,6 @@ namespace OpenMS
       const double p = level / mz_window;
       const double pscore = -10.0 * log10(a_score_algorithm.computeCumulativeScore(N, matched_peaks, p));
 
-      std::cout << "level: " << level << " score: " << pscore << " matched peaks: " << matched_peaks << std::endl;
       if (pscore > best_pscore)
       {
         best_pscore = pscore;
