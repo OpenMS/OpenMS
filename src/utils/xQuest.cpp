@@ -517,12 +517,12 @@ protected:
 //            cout << "light spectrum index: " << scan_index_light << " heavy spectrum index: " << scan_index_heavy << endl;
             const PeakSpectrum& spectrum_heavy = spectra[scan_index_heavy];
 
-            std::vector< std::pair< Size, Size > > common_peaks;
-            ms2_aligner.getSpectrumAlignment(common_peaks, spectrum_light, spectrum_heavy);
+            std::vector< std::pair< Size, Size > > matched_fragments_without_shift;
+            ms2_aligner.getSpectrumAlignment(matched_fragments_without_shift, spectrum_light, spectrum_heavy);
 
             cout << "Pair: " << a->second << "(" << a->second.getMonoWeight() << ")" << ", " 
                  << b->second << "(" << b->second.getMonoWeight() << ") matched to light spectrum " << scan_index_light << " with m/z: " << spectrum_light.getPrecursors()[0].getMZ() << " cross_link_mass: " <<  cross_link_mass << endl;
-           cout << "Common peaks: " << common_peaks.size() << " remaining preaks: " << spectrum_light.size() - common_peaks.size() << ", " << spectrum_heavy.size() - common_peaks.size() << endl;
+           cout << "Common peaks: " << matched_fragments_without_shift.size() << " remaining preaks: " << spectrum_light.size() - matched_fragments_without_shift.size() << ", " << spectrum_heavy.size() - matched_fragments_without_shift.size() << endl;
            
 
             // remaining fragments may carry light or heavy cross-linker.             
@@ -533,9 +533,9 @@ protected:
             for (Size i = 0; i != spectrum_light.size(); ++i)
             {
               bool found = false;
-              for (Size j = 0; j != common_peaks.size(); ++j)
+              for (Size j = 0; j != matched_fragments_without_shift.size(); ++j)
               {
-                if (common_peaks[j].first == i) { found = true; break; }
+                if (matched_fragments_without_shift[j].first == i) { found = true; break; }
               }
               if (!found)
               {
@@ -545,9 +545,9 @@ protected:
             for (Size i = 0; i != spectrum_heavy.size(); ++i)
             {
               bool found = false;
-              for (Size j = 0; j != common_peaks.size(); ++j)
+              for (Size j = 0; j != matched_fragments_without_shift.size(); ++j)
               {
-                if (common_peaks[j].second == i) { found = true; break; }
+                if (matched_fragments_without_shift[j].second == i) { found = true; break; }
               }
               if (!found)
               {
@@ -555,34 +555,55 @@ protected:
               }
             }
 
-            // transform by m/z difference between unlabeled and labeled cross-link to make heavy and light comparable to the unlabeled peptide (TODO: check calculation)
+            // transform by m/z difference between unlabeled and labeled cross-link to make heavy and light comparable.
             // TODO: assume different charged MS2 fragments. Now only single charged ones are assumed
+
+            // transform heavy spectrum to light spectrum
+            PeakSpectrum spectrum_heavy_to_light;
             for (Size i = 0; i != spectrum_heavy_remaining.size(); ++i)
             {
-              spectrum_heavy_remaining[i].setMZ(spectrum_heavy_remaining[i].getMZ() - cross_link_mass_heavy ); 
+              Peak1D p = spectrum_heavy_remaining[i];
+              p.setMZ(p.getMZ() - (cross_link_mass_heavy - cross_link_mass_light));
+              spectrum_heavy_to_light.push_back(p); 
             }
+
+            // transform heavy spectrum to artifical spectrum with cross-linker completely removed
+            PeakSpectrum spectrum_heavy_no_linker;
+            for (Size i = 0; i != spectrum_heavy_remaining.size(); ++i)
+            {
+              Peak1D p = spectrum_heavy_remaining[i];
+              p.setMZ(p.getMZ() - cross_link_mass_heavy);
+              spectrum_heavy_no_linker.push_back(p); 
+            }
+
+            // transform light spectrum to artifical spectrum with cross-linker completely removed
+            PeakSpectrum spectrum_light_no_linker;
             for (Size i = 0; i != spectrum_light_remaining.size(); ++i)
             {
-              spectrum_light_remaining[i].setMZ(spectrum_light_remaining[i].getMZ() - cross_link_mass_light ); 
+              Peak1D p = spectrum_light_remaining[i];
+              p.setMZ(p.getMZ() - cross_link_mass_light);
+              spectrum_light_no_linker.push_back(p); 
             }
 
-            std::vector< std::pair< Size, Size > > matched_shifted_peaks;
-            ms2_aligner.getSpectrumAlignment(matched_shifted_peaks, spectrum_light_remaining, spectrum_heavy_remaining);
+            // align potentially shifted peaks from light MS2 with potentially shifted peaks from heavy (after transformation to resemble the light MS2)
+            // matching fragments are potentially carrying the cross-linker
+            std::vector< std::pair< Size, Size > > matched_fragments_with_shift;
+            ms2_aligner.getSpectrumAlignment(matched_fragments_with_shift, spectrum_light_remaining, spectrum_heavy_to_light);
 
-            cout << "Matched shifted peaks: " << matched_shifted_peaks.size() << " unexplained peaks: " << spectrum_light_remaining.size() - matched_shifted_peaks.size() << ", " << spectrum_heavy_remaining.size() - matched_shifted_peaks.size() << endl;
+            cout << "Matched shifted peaks: " << matched_fragments_with_shift.size() << " unexplained peaks: " << spectrum_light_remaining.size() - matched_fragments_with_shift.size() << ", " << spectrum_heavy_to_light.size() - matched_fragments_with_shift.size() << endl;
 
-            // reconstruct peptide spectrum without any cross-links TODO: doesn't make really sense as this looses information
-            PeakSpectrum spectrum_no_xl;
-            for (Size i = 0; i != common_peaks.size(); ++i)
+            // generate a merged spectrum with artifically removed cross-linker
+            PeakSpectrum spectrum_cross_linker_removed;
+            for (Size i = 0; i != matched_fragments_without_shift.size(); ++i)
             {
-              spectrum_no_xl.push_back(spectrum_light[common_peaks[i].first]);
+              spectrum_cross_linker_removed.push_back(spectrum_light[matched_fragments_without_shift[i].first]);
             }
-            for (Size i = 0; i != matched_shifted_peaks.size(); ++i)
+            for (Size i = 0; i != matched_fragments_with_shift.size(); ++i)
             {
-              spectrum_no_xl.push_back(spectrum_light_remaining[matched_shifted_peaks[i].first]);
+              spectrum_cross_linker_removed.push_back(spectrum_light_no_linker[matched_fragments_with_shift[i].first]);
             }
-            spectrum_no_xl.sortByPosition();
-            cout << "Peaks to match: " << spectrum_no_xl.size() << endl;
+            spectrum_cross_linker_removed.sortByPosition();
+            cout << "Peaks to match: " << spectrum_cross_linker_removed.size() << endl;
 
           }
           
