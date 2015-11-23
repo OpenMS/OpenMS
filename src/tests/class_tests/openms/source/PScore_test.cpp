@@ -63,7 +63,30 @@ END_SECTION
 
 START_SECTION((static std::vector<Size> calculateIntensityRankInMZWindow(const std::vector< double > &mz, const std::vector< double > &intensities, double mz_window)))
 {
-  // TODO
+  std::vector< double > mz;
+  std::vector< double > intensities;
+
+  for (Size m = 0; m < 100; ++m)
+  {
+    mz.push_back(m);
+    intensities.push_back(m);
+  }
+
+  std::vector<Size> ranks = PScore::calculateIntensityRankInMZWindow(mz, intensities, 9.9);
+  TEST_EQUAL(ranks.size(), mz.size());
+
+  for (Size i = 0; i != ranks.size() - 4; ++i)
+  {
+    TEST_EQUAL(ranks[i], 4);
+  }
+
+  ranks = PScore::calculateIntensityRankInMZWindow(mz, intensities, 10.1);
+  TEST_EQUAL(ranks.size(), mz.size());
+
+  for (Size i = 0; i != ranks.size() - 5; ++i)
+  {
+    TEST_EQUAL(ranks[i], 5);
+  }
 }
 END_SECTION
 
