@@ -79,7 +79,7 @@ namespace OpenMS
       // found peak match
       if (std::abs(theo_mz - exp_mz) < max_dist_dalton)
       {
-        dot_product += exp_spectrum[index].getIntensity();
+        dot_product += exp_spectrum[index].getIntensity() * theo_spectrum.getIntensity();
         if (theo_peak_it->getMetaValue("IonName").toString()[0] == 'y')
         {
           #ifdef DEBUG_HYPERSCORE
