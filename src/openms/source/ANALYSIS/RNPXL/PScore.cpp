@@ -110,10 +110,10 @@ namespace OpenMS
     for (Size i = 0; i != ranks.size(); ++i)
     {
       // start at the highest (less restrictive) level
-      for (Size j = max_level; j >= min_level; --j)
+      for (int j = static_cast<int>(max_level); j >= static_cast<int>(min_level); --j)
       {
         // if the current peak is annotated to have lower or equal rank then allowed for this peak level add it
-        if (ranks[i] <= j)
+        if (static_cast<int>(ranks[i]) <= j)
         {
           peak_level_spectra[j].push_back(spec[i]);
         }
@@ -207,9 +207,9 @@ namespace OpenMS
           ++matched_peaks;
         }
       }
-
       // compute p score as e.g. in the AScore implementation or Andromeda
-      const double p = level / mz_window;
+      const double p = (level + 1) / mz_window;
+
       const double pscore = -10.0 * log10(a_score_algorithm.computeCumulativeScore(N, matched_peaks, p));
 
       if (pscore > best_pscore)
@@ -223,7 +223,7 @@ namespace OpenMS
 
    double massCorrectionTerm(double mass)
    {
-     return 0.024*(mass - 600);
+     return 0.024 * (mass - 600.0);
    }
 
    double cleavageCorrectionTerm(Size cleavages, bool consecutive_cleavage)
@@ -233,7 +233,7 @@ namespace OpenMS
        case 0: return 53.2;
        case 1: return consecutive_cleavage ? 42.1 : 31.1;
        case 2: return 17.0;
-       default: return 0;
+       default: return 0.0;
      }
    }
 
@@ -242,21 +242,21 @@ namespace OpenMS
      switch (modifications)
      {
        case 0:
-         return 42;
+         return 42.0;
        case 1:
-         return 28;
+         return 28.0;
        case 2:
-         return 22;
+         return 22.0;
        case 3:
-         return 16;
+         return 16.0;
        case 4:
-         return 9;
+         return 9.0;
        case 5:
-         return 5;
+         return 5.0;
        case 6:
-         return 2;
+         return 2.0;
        default:
-         return 0;
+         return 0.0;
      }
    }
 

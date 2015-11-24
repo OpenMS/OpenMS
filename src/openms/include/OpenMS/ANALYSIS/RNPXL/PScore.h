@@ -45,7 +45,8 @@ namespace OpenMS
 
 struct OPENMS_DLLAPI PScore
 {
-  /* @brief calculate local (windowed) peak ranks. 
+  /* @brief calculate local (windowed) peak ranks.
+   * The peak rank is defined as the number of neighboring peaks in +/- (mz_window/2) that have higher intensity 
    * The result can be used to efficiently filter spectra for top 1..n peaks in mass windows 
    * @note: ranks are zero based (highest intensity peak in window has rank 0)
    * @param mz m/z positions of the peaks
@@ -55,6 +56,7 @@ struct OPENMS_DLLAPI PScore
   static std::vector<Size> calculateIntensityRankInMZWindow(const std::vector<double>& mz, const std::vector<double>& intensities, double mz_window);
 
   /* @brief precalculated, windowed peak ranks for a whole experiment. 
+   * The peak rank is defined as the number of neighboring peaks in +/- (mz_window/2) that have higher intensity 
    * 1. Each spectrum is subdivided into windows of size @param mz_window.
    * 2. For each window, peak ranks are assigned using calculateIntensityRankInMZWindow.
    * 3. A rank map is returned
@@ -65,10 +67,11 @@ struct OPENMS_DLLAPI PScore
   static std::vector<std::vector<Size> > calculateRankMap(const PeakMap& peak_map, double mz_window = 100);
 
   /* @brief Calculates spectra for peak level between min_level to max_level and stores them in the map
-   * A spectrum of peak level n retains the top n intensity peaks in a sliding mz_window centered at each peak.
-   * note: min and max level are taken from the Andromeda publication but are similar to the AScore publication
+   * A spectrum of peak level n retains the (n+1) top intensity peaks in a sliding mz_window centered at each peak.
+   * @note: levels are zero based (level 0 has only the top intensity peaks for each window, level 1 the top and second most intensive one)
+   * @note: min and max level are taken from the Andromeda publication but are similar to the AScore publication
    */ 
-  static std::map<Size, PeakSpectrum > calculatePeakLevelSpectra(const PeakSpectrum& spec, const std::vector<Size>& ranks, Size min_level = 2, Size max_level = 10);
+  static std::map<Size, PeakSpectrum > calculatePeakLevelSpectra(const PeakSpectrum& spec, const std::vector<Size>& ranks, Size min_level = 1, Size max_level = 9);
 
   /* @brief Computes the PScore for a vector of theoretical spectra
    * Similar to Andromeda, a vector of theoretical spectra can be provided that e.g. contain loss spectra or higher charge spectra depending on the sequence.
