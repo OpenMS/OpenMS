@@ -77,7 +77,8 @@ using namespace std;
 </CENTER>
   @experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested!
 
-  TPP PeptideProphet and ProteinProphet should be installed properly before running this tool.
+  TPP PeptideProphet and ProteinProphet should be installed properly before running this tool. Currently the adapter
+  has been successfully tested with TPP v4.7.0 on Linux.
 
   Some information about the supported input types:
   @ref OpenMS::PepXMLFile "pepXML"
