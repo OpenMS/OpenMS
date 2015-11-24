@@ -172,7 +172,7 @@ START_SECTION(template <typename SpectrumType> void getSpectrumAlignment(std::ve
   sas1.getSpectrumAlignment(alignment, s3, s4);
   for (vector<pair<Size, Size > >::const_iterator it = alignment.begin(); it != alignment.end(); ++it)
   {
-    cerr << it->first << " " << it->second << endl;
+    // cerr << it->first << " " << it->second << endl;
   }
   TEST_EQUAL(alignment.size(), 7)
   ABORT_IF(alignment.size()!=7)
