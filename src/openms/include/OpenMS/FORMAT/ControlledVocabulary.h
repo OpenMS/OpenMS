@@ -76,6 +76,8 @@ public:
       };
 
       static String getXRefTypeName(XRefType type);
+      //static bool isSearchEngineSpecificScore();
+      static bool isHigherBetterScore(ControlledVocabulary::CVTerm term); ///if it is a score type, lookup has_order
 
       String name; ///< Text name
       String id; ///< Identifier

@@ -213,6 +213,7 @@ namespace OpenMS
     util_map["MRMTransitionGroupPicker"] = Internal::ToolDescription("MRMTransitionGroupPicker", util_category);
     util_map["MRMPairFinder"] = Internal::ToolDescription("MRMPairFinder", util_category);
     util_map["MSSimulator"] = Internal::ToolDescription("MSSimulator", util_category);
+    util_map["MzMLSplitter"] = Internal::ToolDescription("MzMLSplitter", util_category);
     util_map["OpenSwathWorkflow"] = Internal::ToolDescription("OpenSwathWorkflow", util_category);
     util_map["PeakPickerIterative"] = Internal::ToolDescription("PeakPickerIterative", "Signal processing and preprocessing");
     //util_map["PeakPickerRapid"] = Internal::ToolDescription("PeakPickerRapid", "Signal processing and preprocessing");
@@ -225,7 +226,6 @@ namespace OpenMS
     util_map["QCShrinker"] = Internal::ToolDescription("QCExporter", util_category);
     util_map["RNPxl"] = Internal::ToolDescription("RNPxl", util_category);
     util_map["RNPxlXICFilter"] = Internal::ToolDescription("RNPxlXICFilter", util_category);
-    util_map["RTAnnotator"] = Internal::ToolDescription("post hoc RTAnnotation for mzid", util_category);
     util_map["RTEvaluation"] = Internal::ToolDescription("RTEvaluation", util_category);
     util_map["SemanticValidator"] = Internal::ToolDescription("SemanticValidator", util_category);
     util_map["SequenceCoverageCalculator"] = Internal::ToolDescription("SequenceCoverageCalculator", util_category);
@@ -268,7 +268,7 @@ namespace OpenMS
         return tools[toolname].types;
       }
     }
-    throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Requested toolname '" + toolname + " does not exist!", toolname);
+    throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Requested tool '" + toolname + "' does not exist!", toolname);
   }
 
   std::vector<Internal::ToolDescription> ToolHandler::getInternalTools_()

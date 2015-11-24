@@ -35,28 +35,29 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexPeakPattern.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
 
 using namespace OpenMS;
 
-START_TEST(MultiplexPeakPattern, "$Id$")
+START_TEST(MultiplexIsotopicPeakPattern, "$Id$")
 
-std::vector<double> mass_shifts;
-mass_shifts.push_back(0);
-mass_shifts.push_back(6.031817);
+MultiplexDeltaMasses mass_shifts;
+mass_shifts.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(0,"no_label"));
+mass_shifts.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(6.031817,"Arg6"));
 
-MultiplexPeakPattern* nullPointer = 0;
-MultiplexPeakPattern* ptr;
+MultiplexIsotopicPeakPattern* nullPointer = 0;
+MultiplexIsotopicPeakPattern* ptr;
 
-START_SECTION(MultiplexPeakPattern(int c, int ppp, std::vector<double> ms, int msi))
-    MultiplexPeakPattern pattern(2, 4, mass_shifts, 3);
+START_SECTION(MultiplexIsotopicPeakPattern(int c, int ppp, MultiplexDeltaMasses ms, int msi))
+    MultiplexIsotopicPeakPattern pattern(2, 4, mass_shifts, 3);
     TEST_EQUAL(pattern.getCharge(), 2);
-    ptr = new MultiplexPeakPattern(2, 4, mass_shifts, 3);
+    ptr = new MultiplexIsotopicPeakPattern(2, 4, mass_shifts, 3);
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;
 END_SECTION
 
-MultiplexPeakPattern pattern(2, 4, mass_shifts, 3);
+MultiplexIsotopicPeakPattern pattern(2, 4, mass_shifts, 3);
 
 START_SECTION(int getCharge() const)
   TEST_EQUAL(pattern.getCharge(), 2);
@@ -67,8 +68,8 @@ START_SECTION(int getPeaksPerPeptide() const)
 END_SECTION
 
 START_SECTION(std::vector<double> getMassShifts() const)
-  TEST_EQUAL(pattern.getMassShifts()[0], 0);
-  TEST_EQUAL(pattern.getMassShifts()[1], 6.031817);
+  TEST_EQUAL(pattern.getMassShifts().getDeltaMasses()[0].delta_mass, 0);
+  TEST_EQUAL(pattern.getMassShifts().getDeltaMasses()[1].delta_mass, 6.031817);
 END_SECTION
 
 START_SECTION(int getMassShiftIndex() const)

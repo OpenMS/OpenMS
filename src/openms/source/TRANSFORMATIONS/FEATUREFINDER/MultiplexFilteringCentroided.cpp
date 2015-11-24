@@ -38,7 +38,7 @@
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringCentroided.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexPeakPattern.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultRaw.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultPeak.h>
@@ -60,8 +60,8 @@ using namespace boost::math;
 namespace OpenMS
 {
 
-  MultiplexFilteringCentroided::MultiplexFilteringCentroided(const MSExperiment<Peak1D>& exp_picked, const std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling) :
-    MultiplexFiltering(exp_picked, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling)
+  MultiplexFilteringCentroided::MultiplexFilteringCentroided(const MSExperiment<Peak1D>& exp_picked, const std::vector<MultiplexIsotopicPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type) :
+    MultiplexFiltering(exp_picked, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling, averagine_type)
   {
 
     // fill peak registry and initialise blacklist
@@ -74,13 +74,17 @@ namespace OpenMS
 
       vector<PeakReference> registry_spec;
       vector<BlackListEntry> blacklist_spec;
+      registry_spec.reserve(it_rt->size());
+      blacklist_spec.reserve(it_rt->size());
       for (MSSpectrum<Peak1D>::Iterator it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
       {
+        const double scaling = 3.0; // mz_tolerance_ is the tolerance when searching for peak patterns. Let's be more generous when searching for corresponding peaks in neighbouring spectra.
+        const double tolerance_th = mz_tolerance_unit_ ? (scaling * mz_tolerance_ / 1000000) * it_mz->getMZ() : scaling * mz_tolerance_;
         // peak registry
         PeakReference reference;
         if (index > 0)
         {
-          reference.index_in_previous_spectrum = getPeakIndex(index - 1, it_mz->getMZ(), 3.0);
+          reference.index_in_previous_spectrum = exp_picked_[index - 1].findNearest(it_mz->getMZ(), tolerance_th);
         }
         else
         {
@@ -88,7 +92,7 @@ namespace OpenMS
         }
         if (index + 1 < (int) exp_picked_.size())
         {
-          reference.index_in_next_spectrum = getPeakIndex(index + 1, it_mz->getMZ(), 3.0);
+          reference.index_in_next_spectrum = exp_picked_[index + 1].findNearest(it_mz->getMZ(), tolerance_th);
         }
         else
         {
@@ -160,6 +164,10 @@ namespace OpenMS
            */
           vector<double> mz_shifts_actual; // actual m/z shifts (differ slightly from expected m/z shifts)
           vector<int> mz_shifts_actual_indices; // peak indices in the spectrum corresponding to the actual m/z shifts
+
+          mz_shifts_actual.reserve(patterns_[pattern].getMZShiftCount());
+          mz_shifts_actual_indices.reserve(patterns_[pattern].getMZShiftCount());
+
           int peaks_found_in_all_peptides = positionsAndBlacklistFilter(patterns_[pattern], spectrum, peak_position, peak, mz_shifts_actual, mz_shifts_actual_indices);
           if (peaks_found_in_all_peptides < peaks_per_peptide_min_)
           {
@@ -240,7 +248,7 @@ namespace OpenMS
     return filter_results;
   }
 
-  int MultiplexFilteringCentroided::nonLocalIntensityFilter(MultiplexPeakPattern pattern, int spectrum_index, const std::vector<int>& mz_shifts_actual_indices, std::vector<double>& intensities_actual, int peaks_found_in_all_peptides) const
+  int MultiplexFilteringCentroided::nonLocalIntensityFilter(const MultiplexIsotopicPeakPattern& pattern, int spectrum_index, const std::vector<int>& mz_shifts_actual_indices, std::vector<double>& intensities_actual, int peaks_found_in_all_peptides) const
   {
     MSExperiment<Peak1D>::ConstIterator it_rt = exp_picked_.begin() + spectrum_index;
 
@@ -286,38 +294,4 @@ namespace OpenMS
 
     return peaks_found_in_all_peptides;
   }
-
-  int MultiplexFilteringCentroided::getPeakIndex(int spectrum_index, double mz, double scaling) const
-  {
-    MSExperiment<Peak1D>::ConstIterator it_rt = exp_picked_.begin() + spectrum_index;
-    MSSpectrum<Peak1D>::ConstIterator it_mz;
-    for (it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
-    {
-      double mz_min;
-      double mz_max;
-      if (mz_tolerance_unit_)
-      {
-        mz_min = (1 - scaling * mz_tolerance_ / 1000000) * it_mz->getMZ();
-        mz_max = (1 + scaling * mz_tolerance_ / 1000000) * it_mz->getMZ();
-      }
-      else
-      {
-        mz_min = it_mz->getMZ() - scaling * mz_tolerance_;
-        mz_max = it_mz->getMZ() + scaling * mz_tolerance_;
-      }
-
-      if (mz >= mz_min && mz <= mz_max)
-      {
-        return it_mz - it_rt->begin();
-      }
-
-      if (mz < mz_min)
-      {
-        return -1;
-      }
-    }
-
-    return -1;
-  }
-
 }

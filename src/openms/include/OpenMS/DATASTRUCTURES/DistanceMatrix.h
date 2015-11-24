@@ -351,7 +351,7 @@ public:
     {
       for (SizeType j = 1; j < init_size_; j++)
       {
-        delete matrix_[j];
+        delete[] matrix_[j];
       }
       delete[] matrix_;
       dimensionsize_ = dimensionsize;
@@ -488,7 +488,7 @@ protected:
     ValueType** matrix_;
     /// number of actually stored rows
     SizeType init_size_; // actual size of outer array
-    /// number of accessably stored rows (i.e. number of columns)
+    /// number of accessibly stored rows (i.e. number of columns)
     SizeType dimensionsize_; //number of virtual elements: ((dimensionsize-1)*(dimensionsize))/2
     /// index of minimal element(i.e. number in underlying SparseVector)
     std::pair<SizeType, SizeType> min_element_;

@@ -32,7 +32,6 @@
 // $Authors: Steffen Sass, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_QTCLUSTERFINDER_H
 #define OPENMS_ANALYSIS_MAPMATCHING_QTCLUSTERFINDER_H
 
@@ -44,6 +43,11 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureDistance.h>
 
 #include <boost/unordered_map.hpp>
+
+#include <list>
+#include <vector>
+#include <set>
+#include <utility> // for pair<>
 
 namespace OpenMS
 {
@@ -103,14 +107,15 @@ namespace OpenMS
 private:
 
     /// Distances between pairs of grid features
-    typedef OpenMSBoost::unordered_map<std::pair<GridFeature*, GridFeature*>,
-                                       double> PairDistances;
+    typedef OpenMSBoost::unordered_map< 
+              std::pair<OpenMS::GridFeature*, OpenMS::GridFeature*>,
+              double> PairDistances;
 
     /// Map to store which grid features are next to which clusters
-    typedef OpenMSBoost::unordered_map<GridFeature*, 
-                                       std::vector<QTCluster*> > ElementMapping;
+    typedef OpenMSBoost::unordered_map<
+              OpenMS::GridFeature*, std::vector<QTCluster*> > ElementMapping;
 
-    typedef HashGrid<GridFeature*> Grid;
+    typedef HashGrid<OpenMS::GridFeature*> Grid;
 
     /// Number of input maps
     Size num_maps_;
@@ -124,35 +129,20 @@ private:
     /// Maximum m/z difference
     double max_diff_mz_;
 
+    /// Maximum m/z difference
+    int nr_partitions_;
+
     /// Feature distance functor
     FeatureDistance feature_distance_;
 
-    /**
-       @brief Distance map.
-
-       To compute it only once, the distance between two features is
-       accessible by searching for a pair where the first position is the
-       smaller pointer value.
-    */
-    PairDistances distances_;
+    /// Set of features already used
+    std::set<OpenMS::GridFeature*> already_used_;
 
     /**
        @brief Calculates the distance between two grid features.
-
-       The distance is looked up in the distance map and only computed (and
-       stored) if it's not already available.
     */
-    double getDistance_(GridFeature* left, GridFeature* right);
-
-    /**
-       @brief Checks whether the peptide IDs of a cluster and a neighboring
-       feature are compatible.
-
-       A neighboring feature without identification is always compatible.
-       Otherwise, the cluster and feature are compatible if the best peptide
-       hits of each of their identifications have the same sequences.
-    */
-    bool compatibleIDs_(QTCluster& cluster, const GridFeature* neighbor);
+    double getDistance_(const OpenMS::GridFeature* left, const
+        OpenMS::GridFeature* right);
 
     /// Sets algorithm parameters
     void setParameters_(double max_intensity, double max_mz);
@@ -160,7 +150,7 @@ private:
     /// Generates a consensus feature from the best cluster and updates the clustering
     void makeConsensusFeature_(std::list<QTCluster>& clustering,
                                ConsensusFeature& feature,
-                               ElementMapping& element_mapping);
+                               ElementMapping& element_mapping, Grid&);
 
     /// Computes an initial QT clustering of the points in the hash grid
     void computeClustering_(Grid& grid, std::list<QTCluster>& clustering);
@@ -169,7 +159,17 @@ private:
     template <typename MapType>
     void run_(const std::vector<MapType>& input_maps, ConsensusMap& result_map);
 
+    /// Runs the algorithm on feature maps or consensus maps (internal)
+    template <typename MapType>
+    void run_internal_(const std::vector<MapType>& input_maps,
+                       ConsensusMap& result_map, bool do_progress);
+
+    /// Adds elements to the cluster based on the elements hashed in the grid
+    void addClusterElements_(int x, int y, const Grid& grid, QTCluster& cluster,
+      const OpenMS::GridFeature* center_feature);
+
 protected:
+
     enum
     {
       RT = Peak2D::RT,
@@ -177,6 +177,7 @@ protected:
     };
 
 public:
+
     /// Constructor
     QTClusterFinder();
 
@@ -214,9 +215,7 @@ public:
     {
       return new QTClusterFinder();
     }
-
   };
-
-}
+} // namespace OpenMS
 
 #endif /* OPENMS_ANALYSIS_MAPMATCHING_QTCLUSTERFINDER_H */

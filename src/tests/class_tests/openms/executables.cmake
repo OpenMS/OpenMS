@@ -104,6 +104,8 @@ set(metadata_executables_list
   Software_test
   SourceFile_test
   SpectrumIdentification_test
+  SpectrumLookup_test
+  SpectrumMetaDataLookup_test
   SpectrumSettings_test
   Tagging_test
 )
@@ -284,13 +286,15 @@ set(filtering_executables_list
   MassTraceDetection_test
   MorphologicalFilter_test
   MultiplexClustering_test
+  MultiplexDeltaMasses_test
+  MultiplexDeltaMassesGenerator_test
   MultiplexFiltering_test
   MultiplexFilteringCentroided_test
   MultiplexFilteringProfile_test
   MultiplexFilterResult_test
   MultiplexFilterResultPeak_test
   MultiplexFilterResultRaw_test
-  MultiplexPeakPattern_test
+  MultiplexIsotopicPeakPattern_test
   NLargest_test
   NeutralLossDiffFilter_test
   NeutralLossMarker_test

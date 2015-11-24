@@ -371,6 +371,19 @@ START_SECTION((const HandleSetType& getFeatures() const))
   TEST_EQUAL(it->getIntensity(),200)
 END_SECTION
 
+START_SECTION(( std::vector<FeatureHandle> getFeatureList() const))
+  ConsensusFeature cons;
+  cons.insert(2,tmp_feature);
+  const ConsensusFeature cons_copy(cons);
+
+  std::vector<FeatureHandle> group = cons_copy.getFeatureList();
+
+  TEST_EQUAL(group.size(),1)
+
+  TEST_EQUAL(group[0].getMapIndex(),2)
+  TEST_EQUAL(group[0].getUniqueId(),3)
+  TEST_EQUAL(group[0].getIntensity(),200)
+END_SECTION
 
 
 START_SECTION((void insert(const ConsensusFeature& cf)))

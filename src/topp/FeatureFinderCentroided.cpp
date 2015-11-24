@@ -215,6 +215,7 @@ protected:
 
     // A map for the resulting features
     FeatureMap features;
+    features.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
 
     // get parameters specific for the feature finder
     Param feafi_param = getParam_().copy("algorithm:", true);
@@ -274,7 +275,12 @@ protected:
 
     if (!out_mzq.trim().empty())
     {
-      MSQuantifications msq(features, exp.getExperimentalSettings(), exp[0].getDataProcessing());
+      std::vector<DataProcessing> tmp;
+      for (Size i = 0; i < exp[0].getDataProcessing().size(); i++)
+      {
+        tmp.push_back(*exp[0].getDataProcessing()[i].get());
+      }
+      MSQuantifications msq(features, exp.getExperimentalSettings(), tmp );
       msq.assignUIDs();
       MzQuantMLFile file;
       file.store(out_mzq, msq);

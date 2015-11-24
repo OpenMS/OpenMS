@@ -57,10 +57,10 @@
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="27" MZ="688.04" RT="1182.23" >
 				<PeptideHit score="0" sequence="VVDLM(Oxidation)VHMASKE" charge="2" >
-					<userParam type="float" name="Mascot_score" value="58.12"/>
-					<userParam type="float" name="homology_threshold" value="0"/>
-					<userParam type="float" name="identity_threshold" value="27"/>
-					<userParam type="float" name="EValue" value="4.4e-05"/>
+					<UserParam type="float" name="Mascot_score" value="58.12"/>
+					<UserParam type="float" name="homology_threshold" value="0"/>
+					<UserParam type="float" name="identity_threshold" value="27"/>
+					<UserParam type="float" name="EValue" value="4.4e-05"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			</feature>
@@ -221,9 +221,9 @@
 							<hposition dim="1">721.009384681397</hposition>
 						</hullpoint>
 					</convexhull>
-					<userParam type="int" name="label" value="457"/>
-					<userParam type="float" name="score_fit" value="0.718359488575741"/>
-					<userParam type="float" name="score_correlation" value="0.963672457921651"/>
+					<UserParam type="int" name="label" value="457"/>
+					<UserParam type="float" name="score_fit" value="0.718359488575741"/>
+					<UserParam type="float" name="score_correlation" value="0.963672457921651"/>
 				</feature>
 				<feature id="f_280_1">
 					<position dim="0">1234.02806107856</position>
@@ -295,17 +295,17 @@
 							<hposition dim="1">721.343123489291</hposition>
 						</hullpoint>
 					</convexhull>
-					<userParam type="int" name="label" value="4660"/>
-					<userParam type="float" name="score_fit" value="0.67886597588328"/>
-					<userParam type="float" name="score_correlation" value="0.90015326479026"/>
+					<UserParam type="int" name="label" value="4660"/>
+					<UserParam type="float" name="score_fit" value="0.67886597588328"/>
+					<UserParam type="float" name="score_correlation" value="0.90015326479026"/>
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="24" MZ="720.39" RT="1229.42" >
 				<PeptideHit score="0" sequence="GGADATEDVTAVEVDPADRNR" charge="3" >
-					<userParam type="float" name="Mascot_score" value="41.41"/>
-					<userParam type="float" name="homology_threshold" value="24"/>
-					<userParam type="float" name="identity_threshold" value="28"/>
-					<userParam type="float" name="EValue" value="0.0024"/>
+					<UserParam type="float" name="Mascot_score" value="41.41"/>
+					<UserParam type="float" name="homology_threshold" value="24"/>
+					<UserParam type="float" name="identity_threshold" value="28"/>
+					<UserParam type="float" name="EValue" value="0.0024"/>
 				</PeptideHit>
 			</PeptideIdentification>
 		</feature>
@@ -422,17 +422,17 @@
 							<hposition dim="1">929.503025229477</hposition>
 						</hullpoint>
 					</convexhull>
-					<userParam type="int" name="label" value="1261"/>
-					<userParam type="float" name="score_fit" value="0.69806505171811"/>
-					<userParam type="float" name="score_correlation" value="0.928822558930768"/>
+					<UserParam type="int" name="label" value="1261"/>
+					<UserParam type="float" name="score_fit" value="0.69806505171811"/>
+					<UserParam type="float" name="score_correlation" value="0.928822558930768"/>
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="25" MZ="927.46" RT="1375.28" >
 				<PeptideHit score="0.0101920815366523" sequence="YLYEIAR" charge="1" >
-					<userParam type="float" name="Mascot_score" value="23.57"/>
-					<userParam type="float" name="homology_threshold" value="25"/>
-					<userParam type="float" name="identity_threshold" value="27"/>
-					<userParam type="float" name="EValue" value="0.13"/>
+					<UserParam type="float" name="Mascot_score" value="23.57"/>
+					<UserParam type="float" name="homology_threshold" value="25"/>
+					<UserParam type="float" name="identity_threshold" value="27"/>
+					<UserParam type="float" name="EValue" value="0.13"/>
 				</PeptideHit>
 			</PeptideIdentification>
 		</feature>
@@ -593,17 +593,17 @@
 							<hposition dim="1">1053.07189419373</hposition>
 						</hullpoint>
 					</convexhull>
-					<userParam type="int" name="label" value="902"/>
-					<userParam type="float" name="score_fit" value="0.907440275693975"/>
-					<userParam type="float" name="score_correlation" value="0.953420136415922"/>
+					<UserParam type="int" name="label" value="902"/>
+					<UserParam type="float" name="score_fit" value="0.907440275693975"/>
+					<UserParam type="float" name="score_correlation" value="0.953420136415922"/>
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="15" MZ="1052.28" RT="2126.71" >
 				<PeptideHit score="0" sequence="GIDALPLTGQYTHYALNKK" charge="2" >
-					<userParam type="float" name="Mascot_score" value="37.76"/>
-					<userParam type="float" name="homology_threshold" value="15"/>
-					<userParam type="float" name="identity_threshold" value="25"/>
-					<userParam type="float" name="EValue" value="0.003"/>
+					<UserParam type="float" name="Mascot_score" value="37.76"/>
+					<UserParam type="float" name="homology_threshold" value="15"/>
+					<UserParam type="float" name="identity_threshold" value="25"/>
+					<UserParam type="float" name="EValue" value="0.003"/>
 				</PeptideHit>
 			</PeptideIdentification>
 		</feature>
@@ -794,9 +794,9 @@
 							<hposition dim="1">1226.61017635133</hposition>
 						</hullpoint>
 					</convexhull>
-					<userParam type="int" name="label" value="135"/>
-					<userParam type="float" name="score_fit" value="0.704125205658478"/>
-					<userParam type="float" name="score_correlation" value="0.963550276187227"/>
+					<UserParam type="int" name="label" value="135"/>
+					<UserParam type="float" name="score_fit" value="0.704125205658478"/>
+					<UserParam type="float" name="score_correlation" value="0.963550276187227"/>
 				</feature>
 				<feature id="f_49_1">
 					<position dim="0">2254.34507980921</position>
@@ -858,9 +858,9 @@
 							<hposition dim="1">1226.10939180471</hposition>
 						</hullpoint>
 					</convexhull>
-					<userParam type="int" name="label" value="111"/>
-					<userParam type="float" name="score_fit" value="0.654891225553737"/>
-					<userParam type="float" name="score_correlation" value="0.904890187138429"/>
+					<UserParam type="int" name="label" value="111"/>
+					<UserParam type="float" name="score_fit" value="0.654891225553737"/>
+					<UserParam type="float" name="score_correlation" value="0.904890187138429"/>
 				</feature>
 				<feature id="f_49_2">
 					<position dim="0">2254.26203747174</position>
@@ -936,9 +936,9 @@
 							<hposition dim="1">1226.61017635133</hposition>
 						</hullpoint>
 					</convexhull>
-					<userParam type="int" name="label" value="2310"/>
-					<userParam type="float" name="score_fit" value="0.670071684561897"/>
-					<userParam type="float" name="score_correlation" value="0.92936983873973"/>
+					<UserParam type="int" name="label" value="2310"/>
+					<UserParam type="float" name="score_fit" value="0.670071684561897"/>
+					<UserParam type="float" name="score_correlation" value="0.92936983873973"/>
 				</feature>
 				<feature id="f_49_3">
 					<position dim="0">2254.09174072478</position>
@@ -1018,17 +1018,17 @@
 							<hposition dim="1">1227.11151587738</hposition>
 						</hullpoint>
 					</convexhull>
-					<userParam type="int" name="label" value="2634"/>
-					<userParam type="float" name="score_fit" value="0.581428426823446"/>
-					<userParam type="float" name="score_correlation" value="0.885199724943848"/>
+					<UserParam type="int" name="label" value="2634"/>
+					<UserParam type="float" name="score_fit" value="0.581428426823446"/>
+					<UserParam type="float" name="score_correlation" value="0.885199724943848"/>
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="23" MZ="1224.77" RT="2250.93" >
 				<PeptideHit score="0" sequence="VIPAADLSEQISTAGTEASGTGNMK" charge="2" >
-					<userParam type="float" name="Mascot_score" value="107.02"/>
-					<userParam type="float" name="homology_threshold" value="23"/>
-					<userParam type="float" name="identity_threshold" value="26"/>
-					<userParam type="float" name="EValue" value="4e-10"/>
+					<UserParam type="float" name="Mascot_score" value="107.02"/>
+					<UserParam type="float" name="homology_threshold" value="23"/>
+					<UserParam type="float" name="identity_threshold" value="26"/>
+					<UserParam type="float" name="EValue" value="4e-10"/>
 				</PeptideHit>
 			</PeptideIdentification>
 		</feature>
@@ -1137,17 +1137,17 @@
 							<hposition dim="1">1000.49713855591</hposition>
 						</hullpoint>
 					</convexhull>
-					<userParam type="int" name="label" value="1442"/>
-					<userParam type="float" name="score_fit" value="0.724439828243906"/>
-					<userParam type="float" name="score_correlation" value="0.918490570401506"/>
+					<UserParam type="int" name="label" value="1442"/>
+					<UserParam type="float" name="score_fit" value="0.724439828243906"/>
+					<UserParam type="float" name="score_correlation" value="0.918490570401506"/>
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="17" MZ="998.42" RT="2303.35" >
 				<PeptideHit score="0.00830696202531645" sequence="DLTDYLMK" charge="1" >
-					<userParam type="float" name="Mascot_score" value="23.98"/>
-					<userParam type="float" name="homology_threshold" value="17"/>
-					<userParam type="float" name="identity_threshold" value="26"/>
-					<userParam type="float" name="EValue" value="0.091"/>
+					<UserParam type="float" name="Mascot_score" value="23.98"/>
+					<UserParam type="float" name="homology_threshold" value="17"/>
+					<UserParam type="float" name="identity_threshold" value="26"/>
+					<UserParam type="float" name="EValue" value="0.091"/>
 				</PeptideHit>
 			</PeptideIdentification>
 		</feature>

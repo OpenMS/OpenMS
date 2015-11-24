@@ -42,7 +42,7 @@
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -132,6 +132,12 @@ protected:
   // lists of allowed parameter values:
   vector<String> fragment_methods_, instruments_, enzymes_, protocols_, tryptic_;
 
+  // primary MS run referenced in the mzML file
+  StringList primary_ms_run_path_;
+  
+  // legacy conversion via tsv instead of mzid
+  bool legacy_conversion_;
+
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "Input file (MS-GF+ parameter '-s')");
@@ -191,6 +197,8 @@ protected:
     setValidStrings_("fixed_modifications", all_mods);
     registerStringList_("variable_modifications", "<mods>", vector<String>(), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'", false);
     setValidStrings_("variable_modifications", all_mods);
+    
+    registerFlag_("legacy_conversion", "Use the indirect conversion of MS-GF+ results to idXML via export to TSV. Try this only if the default conversion takes too long or uses too much memory.", true);
 
     registerIntOption_("java_memory", "<num>", 3500, "Maximum Java heap size (in MB)", false);
     registerIntOption_("java_permgen", "<num>", 0, "Maximum Java permanent generation space (in MB); only for Java 7 and below", false, true);
@@ -293,6 +301,7 @@ protected:
       MzMLFile f;
       f.getOptions().addMSLevel(2);
       f.load(exp_name, exp);
+      primary_ms_run_path_ = exp.getPrimaryMSRunPath();
 
       if (exp.getSpectra().empty())
       {
@@ -377,7 +386,7 @@ protected:
       File::removeDirRecursively(temp_dir);
     }
   }
-
+  
   ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
@@ -498,6 +507,8 @@ protected:
     {
       process_params << "-mod" << mod_file.toQString();
     }
+    
+    legacy_conversion_ = getFlag_("legacy_conversion");
 
     //-------------------------------------------------------------
     // execute MS-GF+
@@ -515,203 +526,217 @@ protected:
     //-------------------------------------------------------------
     // create idXML output
     //-------------------------------------------------------------
-   
+    
     if (!out.empty())
     {
-      // run TSV converter
-      String tsv_out = temp_dir + "msgfplus_converted.tsv";
-      int java_permgen = getIntOption_("java_permgen");
-      process_params.clear();
-      process_params << java_memory;
-      if (java_permgen > 0)
+      if (legacy_conversion_)
       {
-        process_params << "-XX:MaxPermSize=" + QString::number(java_permgen) + "m";
-      }
-      process_params << "-cp" << executable << "edu.ucsd.msjava.ui.MzIDToTsv"
-                     << "-i" << mzid_temp.toQString()
-                     << "-o" << tsv_out.toQString()
-                     << "-showQValue" << "1"
-                     << "-showDecoy" << "1"
-                     << "-unroll" << "1";
-      status = QProcess::execute("java", process_params);
-      if (status != 0)
-      {
-        writeLog_("Fatal error: Running MzIDToTSVConverter returned an error code.");
-        return EXTERNAL_PROGRAM_ERROR;
-      }
-
-      // initialize map
-      map<String, vector<float> > rt_mapping;
-      generateInputfileMapping_(rt_mapping);
-
-      // handle the search parameters
-      ProteinIdentification::SearchParameters search_parameters;
-      search_parameters.db = getStringOption_("database");
-      search_parameters.charges = "+" + String(min_precursor_charge) + "-+" + String(max_precursor_charge);
-      search_parameters.mass_type = ProteinIdentification::MONOISOTOPIC;
-      search_parameters.fixed_modifications = fixed_mods;
-      search_parameters.variable_modifications = variable_mods;
-      search_parameters.precursor_tolerance = precursor_mass_tol;
-      if (precursor_error_units == "ppm") // convert to Da (at m/z 666: 0.01 Da ~ 15 ppm)
-      {
-        search_parameters.precursor_tolerance *= 2.0 / 3000.0;
-      }
-
-      ProteinIdentification::DigestionEnzyme enzyme_type = ProteinIdentification::UNKNOWN_ENZYME;
-      if (enzyme == "trypsin")
-      {
-        enzyme_type = ProteinIdentification::TRYPSIN;
-      }
-      else if (enzyme == "chymotrypsin")
-      {
-        enzyme_type = ProteinIdentification::CHYMOTRYPSIN;
-      }
-      else if (enzyme == "no_cleavage")
-      {
-        enzyme_type = ProteinIdentification::NO_ENZYME;
-      }
-      search_parameters.enzyme = enzyme_type;
-
-      // create idXML file
-      vector<ProteinIdentification> protein_ids;
-      ProteinIdentification protein_id;
-
-      DateTime now = DateTime::now();
-      String date_string = now.getDate();
-      String identifier = "MS-GF+_" + date_string;
-
-      protein_id.setIdentifier(identifier);
-      protein_id.setDateTime(now);
-      protein_id.setSearchParameters(search_parameters);
-      protein_id.setSearchEngineVersion("");
-      protein_id.setSearchEngine("MSGFPlus");
-      protein_id.setScoreType(""); // MS-GF+ doesn't assign protein scores
-
-      // store all peptide identifications in a map, the key is the scan number
-      map<int, PeptideIdentification> peptide_identifications;
-      set<String> prot_accessions;
-
-      // iterate over the rows of the TSV file
-      // columns: #SpecFile, SpecID, ScanNum, FragMethod, Precursor, IsotopeError, PrecursorError(ppm), Charge, Peptide, Protein, DeNovoScore, MSGFScore, SpecEValue, EValue, QValue, PepQValue
-      // maybe TODO: replace column indexes ("elements[N]") by something more expressive
-      CsvFile tsvfile(tsv_out, '\t');
-      for (Size row_count = 1; row_count < tsvfile.rowCount(); ++row_count) // skip header line
-      {
-        vector<String> elements;
-        if (!tsvfile.getRow(row_count, elements))
+        // run TSV converter
+        String tsv_out = temp_dir + "msgfplus_converted.tsv";
+        int java_permgen = getIntOption_("java_permgen");
+        process_params.clear();
+        process_params << java_memory;
+        if (java_permgen > 0)
         {
-          writeLog_("Error: could not split row " + String(row_count) + " of file '" + tsv_out + "'");
-          return PARSE_ERROR;
+          process_params << "-XX:MaxPermSize=" + QString::number(java_permgen) + "m";
         }
-
-        int scan_number = 0;
-        if ((elements[2] == "") || (elements[2] == "-1"))
+        process_params << "-cp" << executable << "edu.ucsd.msjava.ui.MzIDToTsv"
+                       << "-i" << mzid_temp.toQString()
+                       << "-o" << tsv_out.toQString()
+                       << "-showQValue" << "1"
+                       << "-showDecoy" << "1"
+                       << "-unroll" << "1";
+        status = QProcess::execute("java", process_params);
+        if (status != 0)
         {
-          scan_number = elements[1].suffix('=').toInt();
+          writeLog_("Fatal error: Running MzIDToTSVConverter returned an error code.");
+          return EXTERNAL_PROGRAM_ERROR;
         }
-        else
+    
+        // initialize map
+        map<String, vector<float> > rt_mapping;
+        generateInputfileMapping_(rt_mapping);
+    
+        // handle the search parameters
+        ProteinIdentification::SearchParameters search_parameters;
+        search_parameters.db = getStringOption_("database");
+        search_parameters.charges = "+" + String(min_precursor_charge) + "-+" + String(max_precursor_charge);
+        search_parameters.mass_type = ProteinIdentification::MONOISOTOPIC;
+        search_parameters.fixed_modifications = fixed_mods;
+        search_parameters.variable_modifications = variable_mods;
+        search_parameters.precursor_tolerance = precursor_mass_tol;
+        search_parameters.precursor_mass_tolerance_ppm = false;
+        if (precursor_error_units == "ppm") // convert to Da (at m/z 666: 0.01 Da ~ 15 ppm)
         {
-          scan_number = elements[2].toInt();
+          search_parameters.precursor_tolerance *= 2.0 / 3000.0;
+          search_parameters.precursor_mass_tolerance_ppm = true;
         }
-
-        struct SequenceParts parts = splitSequence_(elements[8]);
-        parts.peptide.substitute(',', '.'); // decimal separator should be dot, not comma
-        AASequence seq = AASequence::fromString(modifySequence_(modifyNTermAASpecificSequence_(parts.peptide)));
-
-        String accession = elements[9];
-        // @BUG If there's a space before the protein accession in the FASTA file (e.g. "> accession ..."),
-        // the "Protein" field in the TSV file will be empty, leading to an empty accession and no protein
-        // reference in the idXML output file! (The mzIdentML output is not affected by this.)
-        prot_accessions.insert(accession);
-
-        PeptideEvidence evidence;
-        evidence.setProteinAccession(accession);
-        if ((parts.aa_before == 0) && (parts.aa_after == 0))
+    
+        ProteinIdentification::DigestionEnzyme enzyme_type = ProteinIdentification::UNKNOWN_ENZYME;
+        if (enzyme == "trypsin")
         {
-          evidence.setAABefore(PeptideEvidence::UNKNOWN_AA);
-          evidence.setAAAfter(PeptideEvidence::UNKNOWN_AA);
+          enzyme_type = ProteinIdentification::TRYPSIN;
         }
-        else // if one cleavage site is given, assume the other side is terminal
+        else if (enzyme == "chymotrypsin")
         {
-          if (parts.aa_before != 0)
+          enzyme_type = ProteinIdentification::CHYMOTRYPSIN;
+        }
+        else if (enzyme == "no_cleavage")
+        {
+          enzyme_type = ProteinIdentification::NO_ENZYME;
+        }
+        search_parameters.enzyme = enzyme_type;
+    
+        // create idXML file
+        vector<ProteinIdentification> protein_ids;
+        ProteinIdentification protein_id;
+        protein_id.setPrimaryMSRunPath(primary_ms_run_path_);
+    
+        DateTime now = DateTime::now();
+        String date_string = now.getDate();
+        String identifier = "MS-GF+_" + date_string;
+    
+        protein_id.setIdentifier(identifier);
+        protein_id.setDateTime(now);
+        protein_id.setSearchParameters(search_parameters);
+        protein_id.setSearchEngineVersion("");
+        protein_id.setSearchEngine("MSGFPlus");
+        protein_id.setScoreType(""); // MS-GF+ doesn't assign protein scores
+    
+        // store all peptide identifications in a map, the key is the scan number
+        map<int, PeptideIdentification> peptide_identifications;
+        set<String> prot_accessions;
+    
+        // iterate over the rows of the TSV file
+        // columns: #SpecFile, SpecID, ScanNum, FragMethod, Precursor, IsotopeError, PrecursorError(ppm), Charge, Peptide, Protein, DeNovoScore, MSGFScore, SpecEValue, EValue, QValue, PepQValue
+        // maybe TODO: replace column indexes ("elements[N]") by something more expressive
+        CsvFile tsvfile(tsv_out, '\t');
+        for (Size row_count = 1; row_count < tsvfile.rowCount(); ++row_count) // skip header line
+        {
+          vector<String> elements;
+          if (!tsvfile.getRow(row_count, elements))
           {
-            evidence.setAABefore(parts.aa_before);
+            writeLog_("Error: could not split row " + String(row_count) + " of file '" + tsv_out + "'");
+            return PARSE_ERROR;
+          }
+    
+          int scan_number = 0;
+          if ((elements[2] == "") || (elements[2] == "-1"))
+          {
+            scan_number = elements[1].suffix('=').toInt();
           }
           else
           {
-            evidence.setAABefore(PeptideEvidence::N_TERMINAL_AA);
+            scan_number = elements[2].toInt();
           }
-          if (parts.aa_after != 0)
+    
+          struct SequenceParts parts = splitSequence_(elements[8]);
+          parts.peptide.substitute(',', '.'); // decimal separator should be dot, not comma
+          AASequence seq = AASequence::fromString(modifySequence_(modifyNTermAASpecificSequence_(parts.peptide)));
+    
+          String accession = elements[9];
+          // @BUG If there's a space before the protein accession in the FASTA file (e.g. "> accession ..."),
+          // the "Protein" field in the TSV file will be empty, leading to an empty accession and no protein
+          // reference in the idXML output file! (The mzIdentML output is not affected by this.)
+          prot_accessions.insert(accession);
+    
+          PeptideEvidence evidence;
+          evidence.setProteinAccession(accession);
+          if ((parts.aa_before == 0) && (parts.aa_after == 0))
           {
-            evidence.setAAAfter(parts.aa_after);
+            evidence.setAABefore(PeptideEvidence::UNKNOWN_AA);
+            evidence.setAAAfter(PeptideEvidence::UNKNOWN_AA);
           }
-          else
+          else // if one cleavage site is given, assume the other side is terminal
           {
-            evidence.setAAAfter(PeptideEvidence::C_TERMINAL_AA);
-          }
-        }
-
-        bool hit_exists = false;
-        // if the PeptideIdentification doesn't exist yet, a new one will be created:
-        PeptideIdentification& pep_ident = peptide_identifications[scan_number];
-        if (!pep_ident.getHits().empty()) // previously existing PeptideIdentification
-        {
-          // do we have a peptide hit with this sequence already?
-          for (vector<PeptideHit>::iterator hit_it = pep_ident.getHits().begin();
-               hit_it != pep_ident.getHits().end(); ++hit_it)
-          {
-            if (hit_it->getSequence() == seq) // yes!
+            if (parts.aa_before != 0)
             {
-              hit_exists = true;
-              hit_it->addPeptideEvidence(evidence);
-              break;
+              evidence.setAABefore(parts.aa_before);
+            }
+            else
+            {
+              evidence.setAABefore(PeptideEvidence::N_TERMINAL_AA);
+            }
+            if (parts.aa_after != 0)
+            {
+              evidence.setAAAfter(parts.aa_after);
+            }
+            else
+            {
+              evidence.setAAAfter(PeptideEvidence::C_TERMINAL_AA);
             }
           }
+    
+          bool hit_exists = false;
+          // if the PeptideIdentification doesn't exist yet, a new one will be created:
+          PeptideIdentification& pep_ident = peptide_identifications[scan_number];
+          if (!pep_ident.getHits().empty()) // previously existing PeptideIdentification
+          {
+            // do we have a peptide hit with this sequence already?
+            for (vector<PeptideHit>::iterator hit_it = pep_ident.getHits().begin();
+                 hit_it != pep_ident.getHits().end(); ++hit_it)
+            {
+              if (hit_it->getSequence() == seq) // yes!
+              {
+                hit_exists = true;
+                hit_it->addPeptideEvidence(evidence);
+                break;
+              }
+            }
+          }
+          else // new PeptideIdentification
+          {
+            String spec_id = elements[1];       
+            pep_ident.setRT(rt_mapping[spec_id][0]);
+            pep_ident.setMZ(rt_mapping[spec_id][1]);
+            pep_ident.setMetaValue("ScanNumber", scan_number);
+            pep_ident.setScoreType("SpecEValue");
+            pep_ident.setHigherScoreBetter(false);
+            pep_ident.setIdentifier(identifier);
+          }
+          if (!hit_exists) // add new PeptideHit
+          {
+            double score = elements[12].toDouble();
+            UInt rank = 0; // set to 0 at the moment
+            Int charge = elements[7].toInt();
+            PeptideHit hit(score, rank, charge, seq);
+            hit.addPeptideEvidence(evidence);
+            pep_ident.insertHit(hit);
+          }
         }
-        else // new PeptideIdentification
+    
+        vector<ProteinHit> prot_hits;
+        for (set<String>::iterator it = prot_accessions.begin(); it != prot_accessions.end(); ++it)
         {
-          String spec_id = elements[1];       
-          pep_ident.setRT(rt_mapping[spec_id][0]);
-          pep_ident.setMZ(rt_mapping[spec_id][1]);
-          pep_ident.setMetaValue("ScanNumber", scan_number);
-          pep_ident.setScoreType("SpecEValue");
-          pep_ident.setHigherScoreBetter(false);
-          pep_ident.setIdentifier(identifier);
+          if (it->empty()) continue; // don't write a protein hit without accession (see @BUG above)
+          ProteinHit prot_hit = ProteinHit();
+          prot_hit.setAccession(*it);
+          prot_hits.push_back(prot_hit);
         }
-        if (!hit_exists) // add new PeptideHit
+        protein_id.setHits(prot_hits);
+        protein_ids.push_back(protein_id);
+    
+        // iterate over map and create a vector of peptide identifications
+        vector<PeptideIdentification> peptide_ids;
+        PeptideIdentification pep;
+        for (map<int, PeptideIdentification>::iterator it = peptide_identifications.begin();
+             it != peptide_identifications.end(); ++it)
         {
-          double score = elements[12].toDouble();
-          UInt rank = 0; // set to 0 at the moment
-          Int charge = elements[7].toInt();
-          PeptideHit hit(score, rank, charge, seq);
-          hit.addPeptideEvidence(evidence);
-          pep_ident.insertHit(hit);
+          pep = it->second;
+          pep.sort();
+          peptide_ids.push_back(pep);
         }
+    
+        IdXMLFile().store(out, protein_ids, peptide_ids);
       }
-
-      vector<ProteinHit> prot_hits;
-      for (set<String>::iterator it = prot_accessions.begin(); it != prot_accessions.end(); ++it)
+      else
       {
-        if (it->empty()) continue; // don't write a protein hit without accession (see @BUG above)
-        ProteinHit prot_hit = ProteinHit();
-        prot_hit.setAccession(*it);
-        prot_hits.push_back(prot_hit);
+        vector<ProteinIdentification> protein_ids;
+        vector<PeptideIdentification> peptide_ids;
+        MzIdentMLFile().load(mzid_temp, protein_ids, peptide_ids);
+        SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptide_ids, in, false);
+        IdXMLFile().store(out, protein_ids, peptide_ids);
       }
-      protein_id.setHits(prot_hits);
-      protein_ids.push_back(protein_id);
-
-      // iterate over map and create a vector of peptide identifications
-      vector<PeptideIdentification> peptide_ids;
-      PeptideIdentification pep;
-      for (map<int, PeptideIdentification>::iterator it = peptide_identifications.begin();
-           it != peptide_identifications.end(); ++it)
-      {
-        pep = it->second;
-        pep.sort();
-        peptide_ids.push_back(pep);
-      }
-
-      IdXMLFile().store(out, protein_ids, peptide_ids);
     }
 
     //-------------------------------------------------------------
@@ -738,6 +763,8 @@ protected:
 
     return EXECUTION_OK;
   }
+
+
 };
 
 

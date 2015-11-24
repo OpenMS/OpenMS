@@ -428,7 +428,11 @@ namespace OpenMS
   {
     Param p = getSystemParameters();
     String dir;
-    if (p.exists("home_dir") && String(p.getValue("home_dir")).trim() != "")
+    if (getenv("OPENMS_HOME_PATH") != 0)
+    {
+      dir = getenv("OPENMS_HOME_PATH");
+    }
+    else if (p.exists("home_dir") && String(p.getValue("home_dir")).trim() != "")
     {
       dir = p.getValue("home_dir");
     }
@@ -460,20 +464,32 @@ namespace OpenMS
 
   Param File::getSystemParameters()
   {
-    String filename = String(QDir::homePath()) + "/.OpenMS/OpenMS.ini";
+    // set path where OpenMS.ini is found from environment or use default
+    String home_path;
+    if (getenv("OPENMS_HOME_PATH") != 0)
+    {
+      home_path = getenv("OPENMS_HOME_PATH");
+    }
+    else
+    {
+      home_path = String(QDir::homePath());
+    }
+
+    String filename = home_path + "/.OpenMS/OpenMS.ini";
+
     Param p;
     if (!File::readable(filename)) // create file
     {
       p = getSystemParameterDefaults_();
 
-      String dirname = String(QDir::homePath()) + "/.OpenMS";
+      String dirname = home_path + "/.OpenMS";
       QDir dir(dirname.toQString());
       if (!dir.exists())
       {
         if (!File::writable(dirname))
         {
           LOG_WARN << "Warning: Cannot create folder '.OpenMS' in user home directory. Please check your environment!" << std::endl;
-          LOG_WARN << "         Home directory determined is: " << QDir::homePath().toStdString() << "." << std::endl;
+          LOG_WARN << "         Home directory determined is: " << home_path  << "." << std::endl;
           return p;
         }
         dir.mkpath(".");
@@ -482,7 +498,7 @@ namespace OpenMS
       if (!File::writable(filename))
       {
         LOG_WARN << "Warning: Cannot create '.OpenMS/OpenMS.ini' in user home directory. Please check your environment!" << std::endl;
-        LOG_WARN << "         Home directory determined is: " << QDir::homePath().toStdString() << "." << std::endl;
+        LOG_WARN << "         Home directory determined is: " << home_path << "." << std::endl;
         return p;
       }
 

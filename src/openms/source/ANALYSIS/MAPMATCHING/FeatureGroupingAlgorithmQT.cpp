@@ -70,11 +70,13 @@ namespace OpenMS
 
     cluster_finder.run(maps, out);
 
+    StringList ms_run_locations;
+
     // add protein IDs and unassigned peptide IDs to the result map here,
     // to keep the same order as the input maps (useful for output later):
     for (typename vector<MapType>::const_iterator map_it = maps.begin();
          map_it != maps.end(); ++map_it)
-    {
+    {      
       // add protein identifications to result map:
       out.getProteinIdentifications().insert(
         out.getProteinIdentifications().end(),

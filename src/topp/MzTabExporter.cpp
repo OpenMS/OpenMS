@@ -299,6 +299,7 @@ protected:
  
     static MzTab exportFeatureMapToMzTab(const FeatureMap& feature_map, const String& filename)
     {
+      LOG_INFO << "exporting feature map: \"" << filename << "\" to mzTab: " << std::endl;
       MzTab mztab;
       MzTabMetaData meta_data;
 
@@ -324,7 +325,7 @@ protected:
       meta_data.description = MzTabString("Export from featureXML");
 
       MzTabMSRunMetaData ms_run;
-      ms_run.location = MzTabString("null"); // TODO: file origin of ms run (e.g. mzML) not stored in featureXML so far
+      ms_run.location = feature_map.getPrimaryMSRunPath().empty() ? MzTabString("null") : MzTabString(feature_map.getPrimaryMSRunPath()[0]);
       meta_data.ms_run[1] = ms_run;
       meta_data.uri[1] = MzTabString(filename);
       meta_data.psm_search_engine_score[1] = MzTabParameter(); // TODO: we currently only support psm search engine scores annotated to the identification run
@@ -456,6 +457,7 @@ protected:
 
     static MzTab exportIdentificationsToMzTab(const vector<ProteinIdentification>& prot_ids, const vector<PeptideIdentification>& peptide_ids, const String& filename)
     {
+      LOG_INFO << "exporting identifications: \"" << filename << "\" to mzTab: " << std::endl;
       vector<PeptideIdentification> pep_ids = peptide_ids;
       MzTab mztab;
       MzTabMetaData meta_data;
@@ -486,12 +488,18 @@ protected:
         // generate protein section
         MzTabProteinSectionRows protein_rows;
 
+        Size current_run_index(1);
         for (vector<ProteinIdentification>::const_iterator it = prot_ids.begin();
-         it != prot_ids.end(); ++it)
+         it != prot_ids.end(); ++it, ++current_run_index)
         {
           const std::vector<ProteinIdentification::ProteinGroup> protein_groups = it->getProteinGroups();
           const std::vector<ProteinIdentification::ProteinGroup> indist_groups = it->getIndistinguishableProteins();
           const std::vector<ProteinHit> protein_hits = it->getHits();
+
+          MzTabMSRunMetaData ms_run;
+          ms_run.location = it->getPrimaryMSRunPath().empty() ? MzTabString("null") : MzTabString(it->getPrimaryMSRunPath()[0]);
+          // TODO: add processing information that this file has been exported from "filename"
+          meta_data.ms_run[current_run_index] = ms_run;
 
           // pre-analyze data for occuring meta values at protein hit level
           // these are used to build optional columns containing the meta values in internal data structures
@@ -619,9 +627,6 @@ protected:
       psm_search_engine_score.fromCellString("[,," + search_engine + "," + search_engine_version + "]");
       meta_data.psm_search_engine_score[1] = psm_search_engine_score;
 
-      MzTabMSRunMetaData ms_run;
-      ms_run.location = MzTabString(filename);
-      meta_data.ms_run[1] = ms_run;
       mztab.setMetaData(meta_data);
 
       MzTabPSMSectionRows rows;
@@ -762,6 +767,7 @@ protected:
   
     static MzTab exportConsensusMapToMzTab(const ConsensusMap& consensus_map, const String& filename)
     {
+      LOG_INFO << "exporting consensus map: \"" << filename << "\" to mzTab: " << std::endl;
       MzTab mztab;
       vector<ProteinIdentification> prot_ids = consensus_map.getProteinIdentifications();
       vector<String> var_mods, fixed_mods;
@@ -794,8 +800,13 @@ protected:
       meta_data.peptide_search_engine_score[1] = MzTabParameter();
       meta_data.psm_search_engine_score[1] = MzTabParameter(); // TODO insert search engine information
       MzTabMSRunMetaData ms_run;
-      ms_run.location = MzTabString(filename);
-      meta_data.ms_run[1] = ms_run;
+      StringList ms_runs = consensus_map.getPrimaryMSRunPath();
+      for (Size i = 0; i != !ms_runs.size(); ++i)
+      {
+        ms_run.location = MzTabString(ms_runs[i]);
+        meta_data.ms_run[i + 1] = ms_run;
+      }
+
       mztab.setMetaData(meta_data);
 
       // pre-analyze data for occuring meta values at consensus feature and peptide hit level

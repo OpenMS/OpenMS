@@ -2,11 +2,9 @@
 <xsl:stylesheet id="openms-qc-stylesheet" version="1.1" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:ns="https://github.com/qcML/qcml" xmlns="">
     <xsl:template match="/">
         <html>
-                <head>
-
-                        <script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
-
-                        <style>
+            <head>
+                <script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
+                <style>
  <!-- css settings for div elements -->
                 H1 {
                   font-family:Arial; font-size:20pt
@@ -24,54 +22,54 @@
                   border-style: solid;
                 }
 
-                                path { 4
-                                        stroke: steelblue;
-                                        stroke-width: 2;
-                                        fill: none;
-                                }
+                path { 4
+                        stroke: steelblue;
+                        stroke-width: 2;
+                        fill: none;
+                }
 
-                                .axis path,
-                                .axis line {
-                                  fill: none;
-                                  stroke: #000;
-                                  shape-rendering: crispEdges;
-                                }
+                .axis path,
+                .axis line {
+                  fill: none;
+                  stroke: #000;
+                  shape-rendering: crispEdges;
+                }
 
-                                .line {
-                                  fill: none;
-                                  stroke: steelblue;
-                                  stroke-width: 1.5px;
-                                }
+                .line {
+                  fill: none;
+                  stroke: steelblue;
+                  stroke-width: 1.5px;
+                }
 
-                                .grid .tick {
-                                        stroke: lightgrey;
-                                        opacity: 0.7;
-                                }
+                .grid .tick {
+                        stroke: lightgrey;
+                        opacity: 0.7;
+                }
 
-                                .grid path {
-                                          stroke-width: 0;
-                                }
+                .grid path {
+                          stroke-width: 0;
+                }
 
-                                .dot {
-                                        stroke: #000;
-                                        stroke-width: 2;
-                                        radius: 5;
-                                }
+                .dot {
+                        stroke: #000;
+                        stroke-width: 2;
+                        radius: 5;
+                }
 
-                                div.tooltip {
-                                        position: absolute;
-                                        text-align: center;
-                                        width: 80px;
-                                        height: 40px;
-                                        padding: 2px;
-                                        font: 12px sans-serif;
-                                        background: #eee;
-                                        border: 1px solid #ccc;
-                                        border-radius: 8px;
-                                }
-                        </style>
-                </head>
-        <body>
+                div.tooltip {
+                        position: absolute;
+                        text-align: center;
+                        width: 80px;
+                        height: 40px;
+                        padding: 2px;
+                        font: 12px sans-serif;
+                        background: #eee;
+                        border: 1px solid #ccc;
+                        border-radius: 8px;
+                }
+                </style>
+            </head>
+            <body>
 <!-- Document caption-->
                 <xsl:choose>
                         <xsl:when test="ns:qcML/ns:setQuality">
@@ -84,7 +82,7 @@
 
 <!-- MetaData Box-->
                 <p style="border-color:#000000; border-width:2px; border-style:solid; padding:4px">
-        Metadata
+                Metadata
                 <xsl:for-each select="ns:qcML/ns:runQuality">
                         <center><table border="1" rules="none" color="black">
                                 <tr>
@@ -94,7 +92,7 @@
                                 </td>
                 </tr>
                 <tr>
-                                        <td>Instrument</td>
+                                <td>Instrument</td>
                                 <td>
                                         <xsl:apply-templates select="ns:qualityParameter[@accession = 'MS:1000031']"/>
                                 </td>
@@ -112,25 +110,25 @@
 
 <!-- Overview Box-->
                 <xsl:choose>
-                        <xsl:when test="ns:qcML/ns:setQuality">
-                                <p style="border-color:#000000; border-width:2px; border-style:solid; padding:4px">
-                                        Control charts
-                                </p>
-
-                                <div id="control-chart"></div>
-
-                                        <script>
-                                            var data_control_chart = [<xsl:for-each select="ns:qcML/ns:runQuality">
-                                                {
-                                                        idx: "<xsl:value-of select="position()" />" ,
-                                                        MS1count: "<xsl:value-of select="ns:qualityParameter[@accession = 'QC:0000006']/@value"/>" ,
-                                                        MS2count: "<xsl:value-of select="ns:qualityParameter[@accession = 'QC:0000007']/@value"/>" ,
-                                                        PSMcount: "<xsl:value-of select="ns:qualityParameter[@accession = 'QC:0000029']/@value"/>" ,
-                                                        FEATUREcount: "<xsl:value-of select="ns:qualityParameter[@accession = 'QC:0000046']/@value"/>" ,
-                                                },
-                                                </xsl:for-each>];
-                                        </script>
-                                        <script>
+                    <xsl:when test="ns:qcML/ns:setQuality">
+                        <xsl:variable name="set_setting" select="true()"/>
+                        <p style="border-color:#000000; border-width:2px; border-style:solid; padding:4px">
+                            Control charts
+                        </p>
+                        <div id="control-chart"></div>
+    
+                        <script>
+var data_control_chart = [<xsl:for-each select="ns:qcML/ns:runQuality">
+    {
+            idx: "<xsl:value-of select="position()" />" ,
+            MS1count: "<xsl:value-of select="ns:qualityParameter[@accession = 'QC:0000006']/@value"/>" ,
+            MS2count: "<xsl:value-of select="ns:qualityParameter[@accession = 'QC:0000007']/@value"/>" ,
+            PSMcount: "<xsl:value-of select="ns:qualityParameter[@accession = 'QC:0000029']/@value"/>" ,
+            FEATUREcount: "<xsl:value-of select="ns:qualityParameter[@accession = 'QC:0000046']/@value"/>" ,
+    },
+    </xsl:for-each>];
+                        </script>
+                        <script>
 var margin = {top: 20, right: 100, bottom: 30, left: 100},
     width = 960 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom;
@@ -264,37 +262,38 @@ control_metric.append("g").selectAll(".dot")
                                 div.transition().duration(2200).style("opacity", 0)
                                 d3.select(this).attr('r', 2);
                         });
-                </script>
+                        </script>
 
 
-                        </xsl:when>
-                        <xsl:otherwise>
-              <p style="border-color:#000000; border-width:2px; border-style:solid; padding:4px">
-                    Overview Plots
-                <table border="1">
-                  <tr>
-                    <td>
-                    TIC
-                      <xsl:for-each select="ns:qcML/ns:runQuality">
-                        <xsl:apply-templates select="ns:attachment[@accession = 'MS:1000235']"/>
-                      </xsl:for-each>
-                    </td>
-                    <td>
-                    Map overview
-                      <xsl:for-each select="ns:qcML/ns:runQuality">
-                        <xsl:apply-templates select="ns:attachment[@accession = 'QC:0000055']"/>
-                      </xsl:for-each>
-                    </td>
-                    <td>
-                    Mass accuracy
-                      <xsl:for-each select="ns:qcML/ns:runQuality">
-                        <xsl:apply-templates select="ns:attachment[@accession = 'QC:0000053']"/>
-                      </xsl:for-each>
-                    </td>
-                  </tr>
-                </table>
-              </p>
-                        </xsl:otherwise>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:variable name="set_setting" select="false()"/>
+                        <p style="border-color:#000000; border-width:2px; border-style:solid; padding:4px">
+                        Overview Plots
+                        <table border="1">
+                          <tr>
+                            <td>
+                            TIC
+                              <xsl:for-each select="ns:qcML/ns:runQuality">
+                                <xsl:apply-templates select="ns:attachment[@accession = 'MS:1000235']"/>
+                              </xsl:for-each>
+                            </td>
+                            <td>
+                            Map overview
+                              <xsl:for-each select="ns:qcML/ns:runQuality">
+                                <xsl:apply-templates select="ns:attachment[@accession = 'QC:0000055']"/>
+                              </xsl:for-each>
+                            </td>
+                            <td>
+                            Mass accuracy
+                              <xsl:for-each select="ns:qcML/ns:runQuality">
+                                <xsl:apply-templates select="ns:attachment[@accession = 'QC:0000053']"/>
+                              </xsl:for-each>
+                            </td>
+                          </tr>
+                        </table>
+                        </p>
+                    </xsl:otherwise>
                 </xsl:choose>
 
 
@@ -367,7 +366,6 @@ control_metric.append("g").selectAll(".dot")
                 </table>
                 <br/>
 
-
                 <table>
                   <tr>
                     <td rowspan="2" width="200" height="20">Feature Finding</td>
@@ -378,36 +376,37 @@ control_metric.append("g").selectAll(".dot")
                         <xsl:apply-templates select="ns:qualityParameter[@accession = 'QC:0000046']"/>
                   </tr>
                 </table>
-                        </p>
+                </p>
 
-                        <p style="border-color:#000000; border-width:2px; border-style:solid; padding:4px">
+                <p style="border-color:#000000; border-width:2px; border-style:solid; padding:4px">
                 Metric plots <xsl:value-of select="@ID"/>
                 <br/>
 
-                <table border="1">
-                  <tr>
-                    <td>
-                    TIC
-                        <xsl:apply-templates select="ns:attachment[@accession = 'MS:1000235']"/>
-                    </td>
-                    <td>
-                    Map overview
-                        <xsl:apply-templates select="ns:attachment[@accession = 'QC:0000055']"/>
-                    </td>
-                    <td>
-                    Mass accuracy
-                        <xsl:apply-templates select="ns:attachment[@accession = 'QC:0000053']"/>
-                    </td>
-                  </tr>
-                </table>
-
+                <xsl:if test="ns:qcML/ns:setQuality">
+                    <table border="1">
+                      <tr>
+                        <td>
+                        TIC
+                            <xsl:apply-templates select="ns:attachment[@accession = 'MS:1000235']"/>
+                        </td>
+                        <td>
+                        Map overview
+                            <xsl:apply-templates select="ns:attachment[@accession = 'QC:0000055']"/>
+                        </td>
+                        <td>
+                        Mass accuracy
+                            <xsl:apply-templates select="ns:attachment[@accession = 'QC:0000053']"/>
+                        </td>
+                      </tr>
+                    </table>
+                </xsl:if>
 
               <table>
                       <xsl:apply-templates select="ns:attachment[
                       not(@accession = 'QC:0000055') and not(@accession = 'QC:0000053') and not(@accession = 'MS:1000235') and
                       not(@accession = 'QC:0000026') and not(@accession = 'QC:0000009') and not(@accession = 'QC:0000012') and
                       not(@accession = 'QC:0000044') and not(@accession = 'QC:0000022') and not(@accession = 'QC:0000038') and
-                      not(@accession = 'QC:0000047')]"/>
+                      not(@accession = 'QC:0000047') and not(@accession = 'QC:0000018')]"/>
               </table>
            </p>
         </xsl:for-each>
