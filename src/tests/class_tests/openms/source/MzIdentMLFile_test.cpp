@@ -299,7 +299,6 @@ START_SECTION(([EXTRA] thresholds))
   String filename;
   NEW_TMP_FILE(filename)
   MzIdentMLFile().store(filename, protein_ids, peptide_ids);
-  MzIdentMLFile().store("/tmp/test.mzid", protein_ids, peptide_ids);
   protein_ids.clear();
   peptide_ids.clear();
   MzIdentMLFile().load(filename, protein_ids, peptide_ids);
