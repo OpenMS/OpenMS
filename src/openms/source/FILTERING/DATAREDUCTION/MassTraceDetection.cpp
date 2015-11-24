@@ -201,11 +201,11 @@ namespace OpenMS
     // make sure the output vector is empty
     found_masstraces.clear();
 
-    // gather all peaks that are potential chromatographic peak apeces
+    // gather all peaks that are potential chromatographic peak apices
     //   - use work_exp for actual work (remove peaks below noise threshold)
-    //   - store potential apices in chrom_apeces
+    //   - store potential apices in chrom_apices
     MSExperiment<Peak1D> work_exp;
-    MapIdxSortedByInt chrom_apeces;
+    MapIdxSortedByInt chrom_apices;
 
     Size peak_count(0);
     std::vector<Size> spec_offsets;
@@ -238,7 +238,7 @@ namespace OpenMS
             tmp_spec.push_back(input_exp[scan_idx][peak_idx]);
             if (tmp_peak_int > chrom_peak_snr_ * noise_threshold_int_)
             {
-              chrom_apeces.insert(std::make_pair(tmp_peak_int, std::make_pair(spectra_count, spec_peak_idx)));
+              chrom_apices.insert(std::make_pair(tmp_peak_int, std::make_pair(spectra_count, spec_peak_idx)));
             }
             ++peak_count;
             ++spec_peak_idx;
@@ -263,12 +263,12 @@ namespace OpenMS
     // Step 2: start extending mass traces beginning with the apex peak (go
     // through all peaks in order of decreasing intensity)
     // *********************************************************************
-    run_(chrom_apeces, peak_count, work_exp, spec_offsets, found_masstraces);
+    run_(chrom_apices, peak_count, work_exp, spec_offsets, found_masstraces);
 
     return;
   } // end of MassTraceDetection::run
 
-  void MassTraceDetection::run_(const MapIdxSortedByInt& chrom_apeces, Size peak_count, 
+  void MassTraceDetection::run_(const MapIdxSortedByInt& chrom_apices, Size peak_count, 
                                 const MSExperiment<Peak1D> & work_exp, 
                                 const std::vector<Size>& spec_offsets,
                                 std::vector<MassTrace> & found_masstraces)
@@ -280,7 +280,7 @@ namespace OpenMS
     this->startProgress(0, peak_count, "mass trace detection");
     Size peaks_detected(0);
 
-    for (MapIdxSortedByInt::const_reverse_iterator m_it = chrom_apeces.rbegin(); m_it != chrom_apeces.rend(); ++m_it)
+    for (MapIdxSortedByInt::const_reverse_iterator m_it = chrom_apices.rbegin(); m_it != chrom_apices.rend(); ++m_it)
     {
       Size apex_scan_idx(m_it->second.first);
       Size apex_peak_idx(m_it->second.second);

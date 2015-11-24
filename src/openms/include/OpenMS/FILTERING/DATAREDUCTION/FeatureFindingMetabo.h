@@ -47,41 +47,13 @@ namespace OpenMS
 {
 
   /**
-    @brief Method for the assembly of mass traces belonging to the same isotope
-    pattern, i.e., that are compatible in retention times, mass-to-charge ratios,
-    and isotope abundances.
-
-    In @ref FeatureFindingMetabo, mass traces detected by the @ref
-    MassTraceDetection method and afterwards split into individual
-    chromatographic peaks by the @ref ElutionPeakDetection method are assembled
-    to composite features if they are compatible with respect to RTs, m/z ratios,
-    and isotopic intensities. To this end, feature hypotheses are formulated
-    exhaustively based on the set of mass traces detected within a local RT and
-    m/z region. These feature hypotheses are scored by their similarity to real
-    metabolite isotope patterns. The score is derived from independent models for
-    retention time shifts and m/z differences between isotopic mass traces.
-    Hypotheses with correct or false isotopic abundances are distinguished by a
-    SVM model. Mass traces that could not be assembled or low-intensity
-    metabolites with only a monoisotopic mass trace to observe are left in the
-    resulting @ref FeatureMap as singletons with the undefined charge state of 0.
-
-    Reference: Kenar et al., doi: 10.1074/mcp.M113.031278
+    @brief Internal structure used in @ref FeatureFindingMetabo that keeps
+    track of a feature hypothesis (isotope group hypothesis).
 
     @htmlinclude OpenMS_FeatureFindingMetabo.parameters
 
     @ingroup Quantitation
   */
-  class OPENMS_DLLAPI CmpMassTraceByMZ
-  {
-public:
-
-    bool operator()(MassTrace x, MassTrace y) const
-    {
-      return x.getCentroidMZ() < y.getCentroidMZ();
-    }
-
-  };
-
   class OPENMS_DLLAPI FeatureHypothesis
   {
 public:
@@ -210,6 +182,17 @@ private:
     SignedSize charge_;
   };
 
+  class OPENMS_DLLAPI CmpMassTraceByMZ
+  {
+public:
+
+    bool operator()(MassTrace x, MassTrace y) const
+    {
+      return x.getCentroidMZ() < y.getCentroidMZ();
+    }
+
+  };
+
   class OPENMS_DLLAPI CmpHypothesesByScore
   {
 public:
@@ -221,6 +204,31 @@ public:
 
   };
 
+  /**
+    @brief Method for the assembly of mass traces belonging to the same isotope
+    pattern, i.e., that are compatible in retention times, mass-to-charge ratios,
+    and isotope abundances.
+
+    In @ref FeatureFindingMetabo, mass traces detected by the @ref
+    MassTraceDetection method and afterwards split into individual
+    chromatographic peaks by the @ref ElutionPeakDetection method are assembled
+    to composite features if they are compatible with respect to RTs, m/z ratios,
+    and isotopic intensities. To this end, feature hypotheses are formulated
+    exhaustively based on the set of mass traces detected within a local RT and
+    m/z region. These feature hypotheses are scored by their similarity to real
+    metabolite isotope patterns. The score is derived from independent models for
+    retention time shifts and m/z differences between isotopic mass traces.
+    Hypotheses with correct or false isotopic abundances are distinguished by a
+    SVM model. Mass traces that could not be assembled or low-intensity
+    metabolites with only a monoisotopic mass trace to observe are left in the
+    resulting @ref FeatureMap as singletons with the undefined charge state of 0.
+
+    Reference: Kenar et al., doi: 10.1074/mcp.M113.031278
+
+    @htmlinclude OpenMS_FeatureFindingMetabo.parameters
+
+    @ingroup Quantitation
+  */
   class OPENMS_DLLAPI FeatureFindingMetabo :
     public DefaultParamHandler,
     public ProgressLogger

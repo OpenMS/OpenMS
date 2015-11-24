@@ -150,14 +150,12 @@ namespace OpenMS
     chrom_maxes.clear();
     chrom_mins.clear();
 
-    // Extract RTs from the chromatogram and store them into into vectors for index access
-
-    // std::cout << "neighboring peaks: " << num_neighboring_peaks << std::endl;
-
-    // Store indices along with smoothed_ints to keep track of the peak order
-    std::multimap<double, Size> intensity_indices;
+    // Remember which indices we have already used
     boost::dynamic_bitset<> used_idx(mt_length);
 
+    // Extract RTs from the chromatogram and store them into vectors for index access
+    // Store indices along with smoothed_ints to keep track of the peak order
+    std::multimap<double, Size> intensity_indices;
     for (Size idx = 0; idx < mt_length; ++idx)
     {
       intensity_indices.insert(std::make_pair(smoothed_ints_vec[idx], idx));
@@ -186,7 +184,9 @@ namespace OpenMS
         }
 
         // Identify putative peak between start_idx and end_idx, now check if
-        // no other maxima exist within the expected boundaries
+        // no other maxima exist within the expected boundaries (check whether
+        // ref_int is higher than all smoothed intensities within the
+        // boundaries).
         for (Size j = start_idx; j < end_idx; ++j)
         {
           if (used_idx[j])
@@ -206,7 +206,8 @@ namespace OpenMS
           }
         }
 
-        // Continue if no other maxima exists
+        // If no other maxima exists, then add the current one to the list and
+        // mark all indices as used
         if (real_max)
         {
           chrom_maxes.push_back(ref_idx);
@@ -221,7 +222,7 @@ namespace OpenMS
 
     std::sort(chrom_maxes.begin(), chrom_maxes.end());
 
-    // Step 2: Identify minima
+    // Step 2: Identify minima using bisection between two maxima
     if (chrom_maxes.size() > 1)
     {
       // Keep track of two maxima
@@ -391,11 +392,14 @@ namespace OpenMS
 
   void ElutionPeakDetection::detectElutionPeaks_(MassTrace& mt, std::vector<MassTrace>& single_mtraces)
   {
-    //smooth data
-    //std::vector<double> smoothed_data;
-    // Size win_size = mt.getFWHMScansNum();
+
+    // *********************************************************************
+    // Step 1: Smooth data
+    // *********************************************************************
+
     double scan_time(mt.getAverageMS1CycleTime());
     Size win_size = std::ceil(chrom_fwhm_ / scan_time);
+
     // add smoothed data (original data is still accessible)
     smoothData(mt, static_cast<Int>(win_size));
 
@@ -413,6 +417,9 @@ namespace OpenMS
     std::cout << "*****" << std::endl;
 #endif
 
+    // *********************************************************************
+    // Step 2: Identify local maxima and minima
+    // *********************************************************************
     std::vector<Size> maxes, mins;
     findLocalExtrema(mt, win_size / 2, maxes, mins);
 
@@ -420,13 +427,19 @@ namespace OpenMS
     std::cout << "findLocalExtrema returned: maxima " << maxes.size() << " / minima " << mins.size() << std::endl;
 #endif
 
+    // *********************************************************************
+    // Step 3: Split mass trace according to detected peaks
+    // *********************************************************************
+
     // if only one maximum exists: finished!
     if (maxes.size() == 1)
     {
       bool pw_ok = true;
       bool snr_ok = true;
 
-      // check mass trace filter criteria (if fixed filter is enabled)
+      // *********************************************************************
+      // Step 3.1: check mass trace length criteria (if fixed filter is enabled)
+      // *********************************************************************
       if (pw_filtering_ == "fixed")
       {
         double act_fwhm(mt.estimateFWHM(true));
@@ -436,7 +449,9 @@ namespace OpenMS
         }
       }
 
-      // check mass trace signal to noise filter criteria
+      // *********************************************************************
+      // Step 3.2: check mass trace signal to noise filter criteria
+      // *********************************************************************
       if (mt_snr_filtering_)
       {
         if (computeApexSNR(mt) < chrom_peak_snr_)
@@ -454,16 +469,12 @@ namespace OpenMS
           mt.estimateFWHM(true);
         }
 
-        // check for minimum/maximum trace length
-        //          double mt_length(std::fabs(mt.rbegin()->getRT() - mt.begin()->getRT()));
-
-        //        if ((mt_length >= min_trace_length_) && (mt_length <= max_trace_length_))
-        // if (mt_quality >= 1.2)
-        //      {
 #ifdef _OPENMP
 #pragma omp critical (OPENMS_ElutionPeakDetection_mtraces)
 #endif
-        single_mtraces.push_back(mt);
+        {
+          single_mtraces.push_back(mt);
+        }
 
       }
     }
@@ -481,10 +492,12 @@ namespace OpenMS
 
       for (Size min_idx = 0; min_idx < mins.size(); ++min_idx)
       {
-        // copy sub-trace between cp_it and split point
+
+        // *********************************************************************
+        // Step 3.1: Create new mass trace (sub-trace between cp_it and split point)
+        // *********************************************************************
         std::vector<PeakType> tmp_mt;
         std::vector<double> smoothed_tmp;
-
         while (last_idx <= mins[min_idx])
         {
           tmp_mt.push_back(*cp_it);
@@ -493,18 +506,17 @@ namespace OpenMS
           ++last_idx;
         }
 
-//      Old if statement ... 
-//      if (tmp_mt.size() >= win_size / 2)
+        // Create new mass trace, copy smoothed intensities
         MassTrace new_mt(tmp_mt);
-
-        // copy smoothed int's
         new_mt.setSmoothedIntensities(smoothed_tmp);
 
         // check filter criteria
         bool pw_ok = true;
         bool snr_ok = true;
 
-        // check mass trace filter criteria (if fixed filter is enabled)
+        // *********************************************************************
+        // Step 3.2: check mass trace length criteria (if fixed filter is enabled)
+        // *********************************************************************
         if (pw_filtering_ == "fixed")
         {
           double act_fwhm(new_mt.estimateFWHM(true));
@@ -514,7 +526,9 @@ namespace OpenMS
           }
         }
 
-        // check mass trace signal to noise filter criteria
+        // *********************************************************************
+        // Step 3.3: check mass trace signal to noise filter criteria
+        // *********************************************************************
         if (mt_snr_filtering_)
         {
           if (computeApexSNR(mt) < chrom_peak_snr_)
@@ -527,9 +541,7 @@ namespace OpenMS
         {
           // set label of sub-trace
           new_mt.setLabel(mt.getLabel() + "." + String(min_idx + 1));
-          //new_mt.updateWeightedMeanRT();
           new_mt.updateSmoothedMaxRT();
-          //new_mt.updateSmoothedWeightedMeanRT();
           new_mt.updateWeightedMeanMZ();
           new_mt.updateWeightedMZsd();
 
@@ -537,16 +549,13 @@ namespace OpenMS
           {
             new_mt.estimateFWHM(true);
           }
-          // double mt_quality(computeApexSNR(new_mt));
 
-          // double new_mt_length(std::fabs(new_mt.rbegin()->getRT() - new_mt.begin()->getRT()));
-
-          // if ((new_mt_length >= min_trace_length_) && (new_mt_length <= max_trace_length_))
-          //{
 #ifdef _OPENMP
 #pragma omp critical (OPENMS_ElutionPeakDetection_mtraces)
 #endif
-          single_mtraces.push_back(new_mt);
+          {
+            single_mtraces.push_back(new_mt);
+          }
         }
       }
 
@@ -607,9 +616,6 @@ namespace OpenMS
   {
     chrom_fwhm_ = (double)param_.getValue("chrom_fwhm");
     chrom_peak_snr_ = (double)param_.getValue("chrom_peak_snr");
-    // noise_threshold_int_ = (double)param_.getValue("noise_threshold_int");
-    // min_trace_length_ = (double)param_.getValue("min_trace_length");
-    // max_trace_length_ = (double)param_.getValue("max_trace_length");
     min_fwhm_ = (double)param_.getValue("min_fwhm");
     max_fwhm_ = (double)param_.getValue("max_fwhm");
 
