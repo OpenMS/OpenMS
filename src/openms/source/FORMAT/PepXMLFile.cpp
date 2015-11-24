@@ -295,7 +295,7 @@ namespace OpenMS
         }
         else
         {
-          scan_index = lookup.findByRT(it->getRT());
+          scan_index = lookup.findByRT(it->getRT()) + 1;
         }
         // PeptideProphet requires this format for "spectrum" attribute (otherwise TPP parsing error)
         //  - see also the parser code if iProphet at http://sourceforge.net/p/sashimi/code/HEAD/tree/trunk/trans_proteomic_pipeline/src/Validation/InterProphet/InterProphetParser/InterProphetParser.cxx#l180
