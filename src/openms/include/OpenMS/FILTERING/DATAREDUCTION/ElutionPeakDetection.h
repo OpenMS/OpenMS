@@ -57,7 +57,7 @@ namespace OpenMS
     from each other. Detection of maxima is performed on the smoothed
     intensities and uses a fixed peak width (given as parameter chrom_fwhm)
     within which only a single maximum is expected. Currently smoothing is
-    doing using SavitzkyGolay smoothing with a second order polynomial and a
+    done using SavitzkyGolay smoothing with a second order polynomial and a
     frame length of the fixed peak width.
 
     Depending on the "width_filtering" parameters, mass traces are filtered by
