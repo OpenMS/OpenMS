@@ -46,28 +46,6 @@
 namespace OpenMS
 {
 
-  class OPENMS_DLLAPI CmpMassTraceByMZ
-  {
-public:
-
-    bool operator()(MassTrace x, MassTrace y) const
-    {
-      return x.getCentroidMZ() < y.getCentroidMZ();
-    }
-
-  };
-
-  class OPENMS_DLLAPI CmpHypothesesByScore
-  {
-public:
-
-    bool operator()(FeatureHypothesis x, FeatureHypothesis y) const
-    {
-      return x.getScore() > y.getScore();
-    }
-
-  };
-
   /**
     @brief Internal structure used in @ref FeatureFindingMetabo that keeps
     track of a feature hypothesis (isotope group hypothesis).
@@ -202,6 +180,28 @@ private:
     double feat_score_;
 
     SignedSize charge_;
+  };
+
+  class OPENMS_DLLAPI CmpMassTraceByMZ
+  {
+public:
+
+    bool operator()(MassTrace x, MassTrace y) const
+    {
+      return x.getCentroidMZ() < y.getCentroidMZ();
+    }
+
+  };
+
+  class OPENMS_DLLAPI CmpHypothesesByScore
+  {
+public:
+
+    bool operator()(FeatureHypothesis x, FeatureHypothesis y) const
+    {
+      return x.getScore() > y.getScore();
+    }
+
   };
 
   /**
