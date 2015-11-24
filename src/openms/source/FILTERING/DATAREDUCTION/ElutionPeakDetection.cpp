@@ -153,7 +153,7 @@ namespace OpenMS
     // Remember which indices we have already used
     boost::dynamic_bitset<> used_idx(mt_length);
 
-    // Extract RTs from the chromatogram and store them into into vectors for index access
+    // Extract RTs from the chromatogram and store them into vectors for index access
     // Store indices along with smoothed_ints to keep track of the peak order
     std::multimap<double, Size> intensity_indices;
     for (Size idx = 0; idx < mt_length; ++idx)
