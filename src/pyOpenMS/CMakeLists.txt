@@ -229,11 +229,25 @@ else()
     endif()
 endif()
 
+#------------------------------------------------------------------------------
+# Check for python wheel
+execute_process(
+     COMMAND
+     ${PYTHON_EXECUTABLE} -c "import wheel"
+     RESULT_VARIABLE WHEEL_MISSING
+     ERROR_QUIET
+     OUTPUT_QUIET
+)
+
+if(WHEEL_MISSING)
+  message(FATAL_ERROR "Looking for python wheel - not found")
+endif()
 
 #------------------------------------------------------------------------------
 # Handle missing libraries (this should never be reached, as the individual
 #  parts should fire FATAL_ERRORs if something is missing)
-if(NUMPY_MISSING OR CYTHON_MISSING OR NOT AUTOWRAP_VERSION_OK OR NOSE_MISSING OR SETUPTOOLS_MISSING)
+if(NUMPY_MISSING OR CYTHON_MISSING OR NOT AUTOWRAP_VERSION_OK OR NOSE_MISSING
+   OR SETUPTOOLS_MISSING OR WHEEL_MISSING)
   message(FATAL_ERROR "Required Python modules not found or out of date")
 endif()
 
