@@ -325,9 +325,22 @@ START_SECTION(([EXTRA] thresholds))
 
 
 END_SECTION
+START_SECTION(([EXTRA] regression test for file loading on example files))
+  std::vector<ProteinIdentification> protein_ids;
+  std::vector<PeptideIdentification> peptide_ids;
+  String input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_whole.mzid");
+  MzIdentMLFile().load(input_path, protein_ids, peptide_ids);
+  input_path = OPENMS_GET_TEST_DATA_PATH("Mascot_MSMS_example.mzid");
+  MzIdentMLFile().load(input_path, protein_ids, peptide_ids);
+  input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_msgf_mini.mzid");
+  MzIdentMLFile().load(input_path, protein_ids, peptide_ids);
+  input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentML_3runs.mzid");
+  MzIdentMLFile().load(input_path, protein_ids, peptide_ids);
+
+END_SECTION
 
 
-START_SECTION(([EXTRA] compability issues))
+//START_SECTION(([EXTRA] compability issues))
 //  MzIdentMLFile mzidfile;
 //  vector<ProteinIdentification> protein_ids;
 //  vector<PeptideIdentification> peptide_ids;
@@ -359,8 +372,7 @@ START_SECTION(([EXTRA] compability issues))
 //  No MZ #might occurr when reading idxml. no mz to peptidehit
 
 //  PeptideEvidence without reference to the positional in originating sequence found. #will always occurr when reading idxml  no start end positional arguments
-
-END_SECTION
+//END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
