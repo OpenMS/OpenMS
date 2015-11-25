@@ -141,7 +141,7 @@ cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang ~/openms-development
   git clone https://github.com/OpenMS/contrib.git
   mkdir contrib-build
   cd contrib-build
-  cmake -DCMAKE_CXX_COMPILER=clang++ -D CMAKE_C_COMPILER=clang -D BUILD_TYPE=SEQAN ~/openms-development/contrib
+  cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -DBUILD_TYPE=SEQAN ~/openms-development/contrib
   cmake -DBUILD_TYPE=COINOR .
   cmake -DBUILD_TYPE=WILDMAGIC .
 \endcode
@@ -177,7 +177,7 @@ cd <path_to_OpenMS_build>
 cmake -DCMAKE_PREFIX_PATH=<path_to_contrib_build> <path_to_OpenMS>
 @endcode
 
-  You can set CMake variables using the <code>-D VARIABLE=VALUE</code> option.
+  You can set CMake variables using the <code>-DVARIABLE=VALUE</code> option.
   A full list of the CMake variables is shown when you execute
 
 @code
@@ -205,7 +205,7 @@ ccmake ~/openms-development/openms_build
 
           Please keep in mind that macports does not provide all libraries so
           you need to provide also the path to your self-build contrib.
-          <code>-D CMAKE_PREFIX_PATH="/opt/local;~/openms-development/contrib-build"</code>
+          <code>-DCMAKE_PREFIX_PATH="/opt/local;~/openms-development/contrib-build"</code>
       </td>
     </tr>
     <tr>
