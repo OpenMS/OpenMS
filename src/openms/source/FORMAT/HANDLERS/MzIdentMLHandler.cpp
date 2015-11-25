@@ -743,7 +743,11 @@ namespace OpenMS
             {
               String pevid =  "PEV_" + String(UniqueIdGenerator::getUniqueId());
               String dBSequence_ref = String(sen_ids.find(pe->getProteinAccession())->second);
-              String idec(boost::lexical_cast<std::string>((String(jt->getMetaValue("target_decoy"))).hasSubstring("decoy")));
+              String idec;
+              if (jt->metaValueExists("target_decoy"))
+              {
+                idec = String(boost::lexical_cast<std::string>((String(jt->getMetaValue("target_decoy"))).hasSubstring("decoy")));
+              }
 
               String e;
               e += "\t<PeptideEvidence id=\"" + pevid + "\" peptide_ref=\"" + pepid + "\" dBSequence_ref=\"" + dBSequence_ref;
@@ -780,7 +784,11 @@ namespace OpenMS
               {
                 LOG_WARN << "Found no end position of peptide hit in protein sequence." << std::endl;
               }
-              e += "\" isDecoy=\"" + String(idec) + "\"/> \n";
+              if (!idec.empty())
+              {
+                e += "\" isDecoy=\"" + String(idec)+ "\"";
+              }
+              e += "/> \n";
               sen_set.insert(e);
               pevid_ids.push_back(pevid);
             }
