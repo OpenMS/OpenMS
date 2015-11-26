@@ -894,7 +894,7 @@ def testDataValue():
     assert a.toStringList() == [b"1.0"]
     assert a.valueType() == pyopenms.DataType.STRING_LIST
 
-    assert pyopenms.MSSpectrum().getMetaValue("nonexisingkey") is None
+    assert pyopenms.MSSpectrum().getMetaValue(b"nonexisingkey") is None
 
 @report
 def testAdduct():
@@ -3287,9 +3287,9 @@ def testPeptideEvidence():
     assert pe.getProteinAccession() == b"B_id"
 
     pe.setAABefore(b'B')
-    assert pe.getAABefore() == b"B"
+    assert pe.getAABefore() == 'B'
     pe.setAAAfter(b'C')
-    assert pe.getAAAfter() == b'C'
+    assert pe.getAAAfter() == 'C'
 
     pe.setStart(5)
     assert pe.getStart() == 5
