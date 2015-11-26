@@ -40,7 +40,7 @@
 				<element map="2" id="0" rt="306.58" mz="116.1" it="0"/>
 				<element map="3" id="0" rt="306.58" mz="117.1" it="0.6"/>
 			</groupedElementList>
-			<UserParam type="int" name="spectrum_index" value="0"/>
+			<UserParam type="intList" name="spectrum_index" value="[0]"/>
 		</consensusElement>
 		<consensusElement id="e_1" quality="0">
 			<centroid rt="306.58" mz="405.85" it="0"/>
@@ -50,7 +50,7 @@
 				<element map="2" id="1" rt="306.58" mz="116.1" it="4.8"/>
 				<element map="3" id="1" rt="306.58" mz="117.1" it="6.2"/>
 			</groupedElementList>
-			<UserParam type="int" name="spectrum_index" value="1"/>
+			<UserParam type="intList" name="spectrum_index" value="[1]"/>
 		</consensusElement>
 		<consensusElement id="e_2" quality="0">
 			<centroid rt="312.738" mz="506.815" it="0"/>
@@ -60,7 +60,7 @@
 				<element map="2" id="2" rt="312.738" mz="116.1" it="8.4"/>
 				<element map="3" id="2" rt="312.738" mz="117.1" it="2"/>
 			</groupedElementList>
-			<UserParam type="int" name="spectrum_index" value="2"/>
+			<UserParam type="intList" name="spectrum_index" value="[2]"/>
 		</consensusElement>
 		<consensusElement id="e_3" quality="0">
 			<centroid rt="312.738" mz="484.83" it="0"/>
@@ -70,7 +70,7 @@
 				<element map="2" id="3" rt="312.738" mz="116.1" it="8.4"/>
 				<element map="3" id="3" rt="312.738" mz="117.1" it="1.6"/>
 			</groupedElementList>
-			<UserParam type="int" name="spectrum_index" value="3"/>
+			<UserParam type="intList" name="spectrum_index" value="[3]"/>
 		</consensusElement>
 		<consensusElement id="e_4" quality="0">
 			<centroid rt="3112.53" mz="496.244" it="0"/>
@@ -80,7 +80,7 @@
 				<element map="2" id="4" rt="3112.53" mz="116.1" it="13.2"/>
 				<element map="3" id="4" rt="3112.53" mz="117.1" it="7"/>
 			</groupedElementList>
-			<UserParam type="int" name="spectrum_index" value="4"/>
+			<UserParam type="intList" name="spectrum_index" value="[4]"/>
 		</consensusElement>
 		<consensusElement id="e_5" quality="0">
 			<centroid rt="3840.95" mz="430.212" it="0"/>
@@ -90,7 +90,7 @@
 				<element map="2" id="5" rt="3840.95" mz="116.1" it="2.4"/>
 				<element map="3" id="5" rt="3840.95" mz="117.1" it="2.4"/>
 			</groupedElementList>
-			<UserParam type="int" name="spectrum_index" value="5"/>
+			<UserParam type="intList" name="spectrum_index" value="[5]"/>
 		</consensusElement>
 		<consensusElement id="e_6" quality="0">
 			<centroid rt="3849.22" mz="446.081" it="0"/>
@@ -100,7 +100,7 @@
 				<element map="2" id="6" rt="3849.22" mz="116.1" it="2.4"/>
 				<element map="3" id="6" rt="3849.22" mz="117.1" it="3.2"/>
 			</groupedElementList>
-			<UserParam type="int" name="spectrum_index" value="6"/>
+			<UserParam type="intList" name="spectrum_index" value="[6]"/>
 		</consensusElement>
 		<consensusElement id="e_7" quality="0">
 			<centroid rt="3870.67" mz="453.233" it="0"/>
@@ -110,7 +110,7 @@
 				<element map="2" id="7" rt="3870.67" mz="116.1" it="16.8"/>
 				<element map="3" id="7" rt="3870.67" mz="117.1" it="4.8"/>
 			</groupedElementList>
-			<UserParam type="int" name="spectrum_index" value="7"/>
+			<UserParam type="intList" name="spectrum_index" value="[7]"/>
 		</consensusElement>
 		<consensusElement id="e_8" quality="0">
 			<centroid rt="3880.9" mz="400.172" it="0"/>
@@ -120,7 +120,7 @@
 				<element map="2" id="8" rt="3880.9" mz="116.1" it="1.2"/>
 				<element map="3" id="8" rt="3880.9" mz="117.1" it="7"/>
 			</groupedElementList>
-			<UserParam type="int" name="spectrum_index" value="8"/>
+			<UserParam type="intList" name="spectrum_index" value="[8]"/>
 		</consensusElement>
 		<consensusElement id="e_9" quality="0">
 			<centroid rt="3892.26" mz="437.227" it="0"/>
@@ -130,7 +130,7 @@
 				<element map="2" id="9" rt="3892.26" mz="116.1" it="4.8"/>
 				<element map="3" id="9" rt="3892.26" mz="117.1" it="6"/>
 			</groupedElementList>
-			<UserParam type="int" name="spectrum_index" value="9"/>
+			<UserParam type="intList" name="spectrum_index" value="[9]"/>
 		</consensusElement>
 		<consensusElement id="e_10" quality="0">
 			<centroid rt="3892.26" mz="526.264" it="0"/>
