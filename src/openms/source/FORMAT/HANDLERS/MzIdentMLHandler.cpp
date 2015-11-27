@@ -750,23 +750,23 @@ namespace OpenMS
               }
 
               String e;
-              e += "\t<PeptideEvidence id=\"" + pevid + "\" peptide_ref=\"" + pepid + "\" dBSequence_ref=\"" + dBSequence_ref;
+              e += "\t<PeptideEvidence id=\"" + pevid + "\" peptide_ref=\"" + pepid + "\" dBSequence_ref=\"" + dBSequence_ref + "\"";
 
               if (pe->getAAAfter() != PeptideEvidence::UNKNOWN_AA)
               {
-                e += "\" post=\"" + String(pe->getAAAfter());
+                e += " post=\"" + String(pe->getAAAfter()) + "\"";
               }
               if (pe->getAABefore() != PeptideEvidence::UNKNOWN_AA)
               {
-                e += "\" pre=\"" + String(pe->getAABefore());
+                e += " pre=\"" + String(pe->getAABefore()) + "\"";
               }
               if (pe->getStart() != PeptideEvidence::UNKNOWN_POSITION)
               {
-                e += "\" start=\"" + String(pe->getStart());
+                e += " start=\"" + String(pe->getStart()) + "\"";
               }
               else if (jt->metaValueExists("start"))
               {
-                e += "\" start=\"" + String(jt->getMetaValue("start"));
+                e += " start=\"" + String(jt->getMetaValue("start")) + "\"";
               }
               else
               {
@@ -774,11 +774,11 @@ namespace OpenMS
               }
               if (pe->getEnd() != PeptideEvidence::UNKNOWN_POSITION)
               {
-                e += "\" end=\"" + String(pe->getEnd());
+                e += " end=\"" + String(pe->getEnd()) + "\"";
               }
               else if (jt->metaValueExists("end"))
               {
-                e += "\" end=\"" + String(jt->getMetaValue("end"));
+                e += " end=\"" + String(jt->getMetaValue("end")) + "\"";
               }
               else
               {
@@ -786,7 +786,7 @@ namespace OpenMS
               }
               if (!idec.empty())
               {
-                e += "\" isDecoy=\"" + String(idec)+ "\"";
+                e += " isDecoy=\"" + String(idec)+ "\"";
               }
               e += "/> \n";
               sen_set.insert(e);
