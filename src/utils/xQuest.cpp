@@ -238,7 +238,142 @@ protected:
       exp[exp_index].sortByPosition();
      }
    }
-     
+
+  struct PreprocessedPairSpectra_
+  {
+    // pre-initialize so we can simply std::swap the spectra (no synchronization in multi-threading context needed as we get no reallocation of the PeakMaps) 
+    PeakMap spectra_light_different; // peaks in light spectrum after common peaks have been removed
+    PeakMap spectra_heavy_different; // peaks in heavy spectrum after common peaks have been removed
+    PeakMap spectra_heavy_to_light; // heavy peaks transformed to light ones and after common peaks have been removed
+    PeakMap spectra_cross_linker_removed; // merge spectrum of common peaks + shifted peaks present in light transformed as if xlinker was removed
+
+    PreprocessedPairSpectra_(Size size)
+    {
+      for (Size i = 0; i != size; ++i)
+      {
+        spectra_light_different.addSpectrum(PeakSpectrum());
+        spectra_heavy_different.addSpectrum(PeakSpectrum());
+        spectra_heavy_to_light.addSpectrum(PeakSpectrum());
+        spectra_cross_linker_removed.addSpectrum(PeakSpectrum());
+      }
+    }  
+  };
+
+  // create common / shifted peak spectra for all pairs
+  PreprocessedPairSpectra_ preprocessPairs_(const PeakMap& spectra, const map<Size, Size>& map_light_to_heavy, const SpectrumAlignment& ms2_aligner, const double cross_link_mass_light, const double cross_link_mass_heavy)
+  {
+    PreprocessedPairSpectra_ ps(spectra.size());
+ 
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+    for (SignedSize scan_index = 0; scan_index < (SignedSize)spectra.size(); ++scan_index)
+    {
+      // assume that current MS2 corresponds to a light spectrum
+      const PeakSpectrum& spectrum_light = spectra[scan_index];
+
+      // map light to heavy
+      map<Size, Size>::const_iterator scan_index_light_it = map_light_to_heavy.find(scan_index);
+
+      if (scan_index_light_it != map_light_to_heavy.end())
+      {
+        const Size scan_index_heavy = scan_index_light_it->second;
+        const PeakSpectrum& spectrum_heavy = spectra[scan_index_heavy];
+//      cout << "light spectrum index: " << scan_index << " heavy spectrum index: " << scan_index_heavy << endl;
+        std::vector< std::pair< Size, Size > > matched_fragments_without_shift;
+        ms2_aligner.getSpectrumAlignment(matched_fragments_without_shift, spectrum_light, spectrum_heavy);
+
+        // different fragments may carry light or heavy cross-linker.             
+        PeakSpectrum spectrum_heavy_different;
+        PeakSpectrum spectrum_light_different;
+
+        // TODO: maybe speed this up - can be done in linear time
+        for (Size i = 0; i != spectrum_light.size(); ++i)
+        {
+          bool found = false;
+          for (Size j = 0; j != matched_fragments_without_shift.size(); ++j)
+          {
+            if (matched_fragments_without_shift[j].first == i) { found = true; break; }
+          }
+          if (!found)
+          {
+            spectrum_light_different.push_back(spectrum_light[i]);
+          }
+        }
+        for (Size i = 0; i != spectrum_heavy.size(); ++i)
+        {
+          bool found = false;
+          for (Size j = 0; j != matched_fragments_without_shift.size(); ++j)
+          {
+            if (matched_fragments_without_shift[j].second == i) { found = true; break; }
+          }
+          if (!found)
+          {
+            spectrum_heavy_different.push_back(spectrum_heavy[i]);
+          }
+        }
+        std::swap(ps.spectra_light_different[scan_index], spectrum_light_different);
+        std::swap(ps.spectra_heavy_different[scan_index], spectrum_heavy_different);
+
+        // transform by m/z difference between unlabeled and labeled cross-link to make heavy and light comparable.
+        // TODO: important: assume different charged MS2 fragments. Now only single charged ones are assumed
+
+        // transform heavy spectrum to light spectrum
+        PeakSpectrum spectrum_heavy_to_light;
+        for (Size i = 0; i != spectrum_heavy_different.size(); ++i)
+        {
+          Peak1D p = spectrum_heavy_different[i];
+          p.setMZ(p.getMZ() - (cross_link_mass_heavy - cross_link_mass_light));
+          spectrum_heavy_to_light.push_back(p); 
+        }
+        std::swap(ps.spectra_heavy_to_light[scan_index], spectrum_heavy_to_light);
+
+        // transform heavy spectrum to artifical spectrum with cross-linker completely removed
+        PeakSpectrum spectrum_heavy_no_linker;
+        for (Size i = 0; i != spectrum_heavy_different.size(); ++i)
+        {
+          Peak1D p = spectrum_heavy_different[i];
+          p.setMZ(p.getMZ() - cross_link_mass_heavy);
+          spectrum_heavy_no_linker.push_back(p); 
+        }
+
+        // transform light spectrum to artifical spectrum with cross-linker completely removed
+        PeakSpectrum spectrum_light_no_linker;
+        for (Size i = 0; i != spectrum_light_different.size(); ++i)
+        {
+          Peak1D p = spectrum_light_different[i];
+          p.setMZ(p.getMZ() - cross_link_mass_light);
+          spectrum_light_no_linker.push_back(p); 
+        }
+
+        // align potentially shifted peaks from light MS2 with potentially shifted peaks from heavy (after transformation to resemble the light MS2)
+        // matching fragments are potentially carrying the cross-linker
+        std::vector< std::pair< Size, Size > > matched_fragments_with_shift;
+        ms2_aligner.getSpectrumAlignment(matched_fragments_with_shift, spectrum_light_different, spectrum_heavy_to_light);
+#ifdef DEBUG_XQUEST
+        cout << "Common peaks: " << matched_fragments_without_shift.size() << " different peaks: " << spectrum_light.size() - matched_fragments_without_shift.size() << ", " << spectrum_heavy.size() - matched_fragments_without_shift.size() << endl;
+        cout << "Matched shifted peaks: " << matched_fragments_with_shift.size() << " unexplained peaks: " << spectrum_light_different.size() - matched_fragments_with_shift.size() << ", " << spectrum_heavy_to_light.size() - matched_fragments_with_shift.size() << endl;
+#endif
+        // generate a merged spectrum with artifically removed cross-linker
+        PeakSpectrum spectrum_cross_linker_removed;
+        for (Size i = 0; i != matched_fragments_without_shift.size(); ++i)
+        {
+          spectrum_cross_linker_removed.push_back(spectrum_light[matched_fragments_without_shift[i].first]);
+        }
+        for (Size i = 0; i != matched_fragments_with_shift.size(); ++i)
+        {
+          spectrum_cross_linker_removed.push_back(spectrum_light_no_linker[matched_fragments_with_shift[i].first]);
+        }
+        spectrum_cross_linker_removed.sortByPosition();
+#ifdef DEBUG_XQUEST
+        cout << "Peaks to match: " << spectrum_cross_linker_removed.size() << endl;
+#endif
+        std::swap(ps.spectra_cross_linker_removed[scan_index], spectrum_cross_linker_removed);
+      }
+    }
+    return ps;
+  }
+
 
   ExitCodes main_(int, const char**)
   {
@@ -399,6 +534,9 @@ protected:
     }
    
     cout << "Number of MS2 pairs connceted by consensus feature: " << map_light_to_heavy.size() << endl;
+
+    // create common peak / shifted peak spectra for all pairs
+    preprocessPairs_(spectra, map_light_to_heavy, ms2_aligner, cross_link_mass_light, cross_link_mass_heavy);
  
     Size count_proteins = 0;
     Size count_peptides = 0;
@@ -445,7 +583,6 @@ protected:
 #pragma omp atomic
 #endif
         ++count_peptides;
-
 
         vector<AASequence> all_modified_peptides;
 
@@ -516,97 +653,9 @@ protected:
 //                 << b->second << "(" << b->second.getMonoWeight() << ") matched to light spectrum " << scan_index_light << " with m/z: " << spectrum_light.getPrecursors()[0].getMZ() << " cross_link_mass: " <<  cross_link_mass <<  endl;
 //            cout << "light spectrum index: " << scan_index_light << " heavy spectrum index: " << scan_index_heavy << endl;
             const PeakSpectrum& spectrum_heavy = spectra[scan_index_heavy];
-
-            std::vector< std::pair< Size, Size > > matched_fragments_without_shift;
-            ms2_aligner.getSpectrumAlignment(matched_fragments_without_shift, spectrum_light, spectrum_heavy);
-
-            cout << "Pair: " << a->second << "(" << a->second.getMonoWeight() << ")" << ", " 
-                 << b->second << "(" << b->second.getMonoWeight() << ") matched to light spectrum " << scan_index_light << " with m/z: " << spectrum_light.getPrecursors()[0].getMZ() << " cross_link_mass: " <<  cross_link_mass << endl;
-           cout << "Common peaks: " << matched_fragments_without_shift.size() << " remaining preaks: " << spectrum_light.size() - matched_fragments_without_shift.size() << ", " << spectrum_heavy.size() - matched_fragments_without_shift.size() << endl;
-           
-
-            // remaining fragments may carry light or heavy cross-linker.             
-            PeakSpectrum spectrum_heavy_remaining;
-            PeakSpectrum spectrum_light_remaining;
-            // TODO: speed this up - can be done in linear time
-            // TODO: also this whole spectrum matching and sorting part can be done only once as a preprocessing step
-            for (Size i = 0; i != spectrum_light.size(); ++i)
-            {
-              bool found = false;
-              for (Size j = 0; j != matched_fragments_without_shift.size(); ++j)
-              {
-                if (matched_fragments_without_shift[j].first == i) { found = true; break; }
-              }
-              if (!found)
-              {
-                spectrum_light_remaining.push_back(spectrum_light[i]);
-              }
-            }
-            for (Size i = 0; i != spectrum_heavy.size(); ++i)
-            {
-              bool found = false;
-              for (Size j = 0; j != matched_fragments_without_shift.size(); ++j)
-              {
-                if (matched_fragments_without_shift[j].second == i) { found = true; break; }
-              }
-              if (!found)
-              {
-                spectrum_heavy_remaining.push_back(spectrum_heavy[i]);
-              }
-            }
-
-            // transform by m/z difference between unlabeled and labeled cross-link to make heavy and light comparable.
-            // TODO: assume different charged MS2 fragments. Now only single charged ones are assumed
-
-            // transform heavy spectrum to light spectrum
-            PeakSpectrum spectrum_heavy_to_light;
-            for (Size i = 0; i != spectrum_heavy_remaining.size(); ++i)
-            {
-              Peak1D p = spectrum_heavy_remaining[i];
-              p.setMZ(p.getMZ() - (cross_link_mass_heavy - cross_link_mass_light));
-              spectrum_heavy_to_light.push_back(p); 
-            }
-
-            // transform heavy spectrum to artifical spectrum with cross-linker completely removed
-            PeakSpectrum spectrum_heavy_no_linker;
-            for (Size i = 0; i != spectrum_heavy_remaining.size(); ++i)
-            {
-              Peak1D p = spectrum_heavy_remaining[i];
-              p.setMZ(p.getMZ() - cross_link_mass_heavy);
-              spectrum_heavy_no_linker.push_back(p); 
-            }
-
-            // transform light spectrum to artifical spectrum with cross-linker completely removed
-            PeakSpectrum spectrum_light_no_linker;
-            for (Size i = 0; i != spectrum_light_remaining.size(); ++i)
-            {
-              Peak1D p = spectrum_light_remaining[i];
-              p.setMZ(p.getMZ() - cross_link_mass_light);
-              spectrum_light_no_linker.push_back(p); 
-            }
-
-            // align potentially shifted peaks from light MS2 with potentially shifted peaks from heavy (after transformation to resemble the light MS2)
-            // matching fragments are potentially carrying the cross-linker
-            std::vector< std::pair< Size, Size > > matched_fragments_with_shift;
-            ms2_aligner.getSpectrumAlignment(matched_fragments_with_shift, spectrum_light_remaining, spectrum_heavy_to_light);
-
-            cout << "Matched shifted peaks: " << matched_fragments_with_shift.size() << " unexplained peaks: " << spectrum_light_remaining.size() - matched_fragments_with_shift.size() << ", " << spectrum_heavy_to_light.size() - matched_fragments_with_shift.size() << endl;
-
-            // generate a merged spectrum with artifically removed cross-linker
-            PeakSpectrum spectrum_cross_linker_removed;
-            for (Size i = 0; i != matched_fragments_without_shift.size(); ++i)
-            {
-              spectrum_cross_linker_removed.push_back(spectrum_light[matched_fragments_without_shift[i].first]);
-            }
-            for (Size i = 0; i != matched_fragments_with_shift.size(); ++i)
-            {
-              spectrum_cross_linker_removed.push_back(spectrum_light_no_linker[matched_fragments_with_shift[i].first]);
-            }
-            spectrum_cross_linker_removed.sortByPosition();
-            cout << "Peaks to match: " << spectrum_cross_linker_removed.size() << endl;
-
+            cout << "light spectrum index: " << scan_index_light << " heavy spectrum index: " << scan_index_heavy << endl;
+            //TODO: use pair of indices to get to preprocessed spectra
           }
-          
         }  
       }     
     }
