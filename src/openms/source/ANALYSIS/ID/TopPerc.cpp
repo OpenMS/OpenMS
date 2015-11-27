@@ -92,24 +92,24 @@ namespace OpenMS
 
       // Create header for the features
       string featureset = "SpecId, Label,ScanNr, RawScore, DeNovoScore,ScoreRatio, Energy,lnEValue,IsotopeError, lnExplainedIonCurrentRatio,lnNTermIonCurrentRatio,lnCTermIonCurrentRatio,lnMS2IonCurrent,Mass,PepLen,dM,absdM,MeanErrorTop7,sqMeanErrorTop7,StdevErrorTop7," + ss.str() ;
-      StringList txt_header0 = ListUtils::create<String>(featureset);
+      StringList txt_header = ListUtils::create<String>(featureset);
       if (addMHC)
       {
-          txt_header0.push_back("enzN");
-          txt_header0.push_back("enzC");
-          txt_header0.push_back("MHCLct");
-          txt_header0.push_back("Peptide");
-          txt_header0.push_back("Protein");
+          txt_header.push_back("enzN");
+          txt_header.push_back("enzC");
+          txt_header.push_back("MHCLct");
+          txt_header.push_back("Peptide");
+          txt_header.push_back("Protein");
       }
       else
       {
-          txt_header0.push_back("enzN");
-          txt_header0.push_back("enzC");
-          txt_header0.push_back("enzInt");
-          txt_header0.push_back("Peptide");
-          txt_header0.push_back("Protein");
+          txt_header.push_back("enzN");
+          txt_header.push_back("enzC");
+          txt_header.push_back("enzInt");
+          txt_header.push_back("Peptide");
+          txt_header.push_back("Protein");
       }
-      txt.addLine(ListUtils::concatenate(txt_header0, out_sep));
+      txt.addLine(ListUtils::concatenate(txt_header, out_sep));
 
       for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
       {
