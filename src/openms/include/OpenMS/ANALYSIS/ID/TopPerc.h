@@ -50,11 +50,14 @@ namespace OpenMS
     {
     public:
         static bool isEnz(const char& n, const char& c, std::string& enz);
-        static void prepareCUSTOMpin(std::vector<PeptideIdentification>& peptide_ids, std::string& enz, TextFile& txt, std::vector<String>& user_param_features, char out_sep='\t');
+        static void prepareCUSTOMpin(std::vector<PeptideIdentification>& peptide_ids, TextFile& txt, std::vector<String>& user_param_features, char out_sep='\t');
         static void prepareMSGFpin(std::vector<PeptideIdentification>& peptide_ids, std::string& enz, TextFile& txt, int minCharge, int maxCharge, bool addMHC = false, char out_sep='\t');
         static void prepareXTANDEMpin(std::vector<PeptideIdentification>& peptide_ids, std::string& enz, TextFile& txt, int minCharge, int maxCharge, char out_sep='\t');
-        static size_t countEnzymatic(String peptide, std::string enz);
+        static void prepareCOMETpin(std::vector<PeptideIdentification>& peptide_ids, std::string& enz, TextFile& txt, int minCharge, int maxCharge, char out_sep='\t');
+        static void prepareMASCOTpin(std::vector<PeptideIdentification>& peptide_ids, std::string& enz, TextFile& txt, int minCharge, int maxCharge, char out_sep='\t');
+        static size_t countEnzymatic(String peptide, std::string& enz);
         static double rescaleFragmentFeature(double featureValue, int NumMatchedMainIons);
+        static String getScanIdentifier(std::vector<PeptideIdentification>::iterator it, std::vector<PeptideIdentification>::iterator start);
     private:
         TopPerc();
         virtual ~TopPerc();

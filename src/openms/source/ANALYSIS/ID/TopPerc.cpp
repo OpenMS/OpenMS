@@ -39,7 +39,7 @@ using namespace std;
 
 namespace OpenMS
 {
-    void TopPerc::prepareCUSTOMpin(vector<PeptideIdentification>& peptide_ids, string& enz, TextFile& txt, vector<String>& user_param_features, char out_sep)
+    void TopPerc::prepareCUSTOMpin(vector<PeptideIdentification>& peptide_ids, TextFile& txt, vector<String>& user_param_features, char out_sep)
     {
       // Create header for the features
       string min_featureset = "SpecId, Label, ScanNr";
@@ -51,24 +51,18 @@ namespace OpenMS
       {
         for (vector<PeptideHit>::const_iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
         {
-          String spec_ref = it->getMetaValue("spectrum_reference").toString();
-          vector<String> scan_id;
-          spec_ref.split("scan=", scan_id);
-          String sid = scan_id.back();
+          String exp_ref = it->getMetaValue("spectrum_reference").toString();
+          String scannumber = getScanIdentifier(it, peptide_ids.begin());
           int label = 1;
-          String SpecId = "target_SII_";
-          if ((String(hit->getMetaValue("target_decoy"))).hasSubstring("decoy"))
+          if (hit->metaValueExists("target_decoy") && String(hit->getMetaValue("target_decoy")).hasSubstring("decoy"))
           {
-            SpecId = "decoy_SII_";
             label = -1;
           }
 
-          SpecId += sid + "_" + String(hit->getCharge());
-
           StringList collected_feats;
-          collected_feats.push_back(SpecId);
-          collected_feats.push_back(label);
-          collected_feats.push_back(sid);
+          collected_feats.push_back(exp_ref);
+          collected_feats.push_back(String(label));
+          collected_feats.push_back(scannumber);
 
           for (vector<String>::const_iterator feat = user_param_features.begin(); feat != user_param_features.end(); ++feat)
           {
@@ -130,11 +124,7 @@ namespace OpenMS
               int rank = hit->getRank();
               int charge = hit->getCharge();
 
-              String spec_ref = it->getMetaValue("spectrum_reference").toString();
-              vector<String> scan_id;
-              spec_ref.split("scan=", scan_id);
-              String sid = scan_id.back();
-
+              String scannumber = getScanIdentifier(it, peptide_ids.begin());
               int label = 1;
               String SpecId = "target_SII_";
               if ((String(hit->getMetaValue("target_decoy"))).hasSubstring("decoy"))
@@ -143,7 +133,7 @@ namespace OpenMS
                 label = -1;
               }
 
-              SpecId += sid + "_" + String(rank) + "_" + sid + "_" + String(charge) + "_" + String(rank);
+              SpecId += scannumber + "_" + String(rank) + "_" + String(charge);
 
               double rawScore = hit->getMetaValue("MS:1002049").toString().toDouble();
               double denovoScore = hit->getMetaValue("MS:1002050").toString().toDouble();
@@ -222,7 +212,7 @@ namespace OpenMS
               String protein = hit->getPeptideEvidences().front().getProteinAccession();
 
               // One PeptideSpectrumHit with all its features
-              String lis = SpecId + out_sep + String(label) + out_sep + scan_id[1] + out_sep + (String)rawScore + out_sep +
+              String lis = SpecId + out_sep + String(label) + out_sep + scannumber + out_sep + (String)rawScore + out_sep +
                            (String)denovoScore + out_sep + (String)scoreRatio + out_sep + (String)energy + out_sep + (String)ln_eval +
                            out_sep + (String)isotopeError + out_sep + (String)lnExplainedIonCurrentRatio + out_sep +
                            (String)lnNTermIonCurrentRatio + out_sep + (String)lnCTermIonCurrentRatio + out_sep + (String)lnMS2IonCurrent
@@ -306,9 +296,9 @@ namespace OpenMS
       // Create header for the features
       String featureset = "SpecId,Label,ScanNr,hyperscore,deltascore," + ss_ion.str() +
         ",Mass,dM,absdM,PepLen," + ss.str() + "enzN,enzC,enzInt,Peptide,Proteins";
-      StringList txt_header0 = ListUtils::create<String>(featureset);
+      StringList txt_header = ListUtils::create<String>(featureset);
       // Insert the header with the features names to the file
-      txt.addLine(ListUtils::concatenate(txt_header0, out_sep));
+      txt.addLine(ListUtils::concatenate(txt_header, out_sep));
 
       LOG_INFO << "read in target file" << endl;
       // get all the features from the target file
@@ -316,7 +306,7 @@ namespace OpenMS
       {
         if (it->isHigherScoreBetter())
         {
-          String scannumber = String(it->getMetaValue("spectrum_reference"));
+          String scannumber = getScanIdentifier(it, peptide_ids.begin());
           int charge = it->getHits().front().getCharge();
           int label = 1;
           double hyperscore = it->getHits().front().getScore();
@@ -506,7 +496,7 @@ id	label	ScanNr	lnrSp	deltLCn	deltCn	lnExpect	Xcorr	Sp	IonFrac	Mass	PepLen	Charg
         ss << "Charge" << j << ",";
       }
 
-      String featureset = "id,label,ScanNr,lnrSp,deltLCn,deltCn,lnExpect,Xcorr,Sp,IonFrac,Mass,PepLen,
+      String featureset = "id,label,ScanNr,lnrSp,deltLCn,deltCn,lnExpect,Xcorr,Sp,IonFrac,Mass,PepLen,"
               + ss.str()
               + "enzN,enzC,enzInt,lnNumSP,dM,absdM,peptide,proteinId1";
       StringList txt_header = ListUtils::create<String>(featureset);
@@ -519,21 +509,22 @@ id	label	ScanNr	lnrSp	deltLCn	deltCn	lnExpect	Xcorr	Sp	IonFrac	Mass	PepLen	Charg
         double deltaLCn = 0;
         for (vector<PeptideHit>::iterator jt = it->getHits().begin(); jt != it->getHits().end(); ++jt)
         {
-          deltaLCn += jt->getMetaValue("MS:1002253");
+          deltaLCn += double(jt->getMetaValue("MS:1002253"));
         }
         it->sort();
         it->assignRanks();
-        String scannumber = String(it->getMetaValue("spectrum_reference"));
+        String scannumber = getScanIdentifier(it, peptide_ids.begin());
+        std::vector<PeptideHit> hits = it->getHits();
         for (vector<PeptideHit>::iterator jt = hits.begin(); jt != hits.end(); ++jt)
         {
           StringList idents;
-          sid.push_back(it->getBaseName());
-          sid.push_back(scannumber);
-          sid.push_back(String(jt->getRank()));
+          idents.push_back(it->getBaseName());
+          idents.push_back(scannumber);
+          idents.push_back(String(jt->getRank()));
           String sid = ListUtils::concatenate(idents, "_");
           int charge = jt->getCharge();
           int label = 1;
-          if (jt->metaValueExists("target_decoy") && jt->getMetaValue("target_decoy").hasSubstring("decoy"))
+          if (jt->metaValueExists("target_decoy") && String(jt->getMetaValue("target_decoy")).hasSubstring("decoy"))
           {
             label = -1;
           }
@@ -544,14 +535,14 @@ id	label	ScanNr	lnrSp	deltLCn	deltCn	lnExpect	Xcorr	Sp	IonFrac	Mass	PepLen	Charg
           //TODO in comet pep.xml consumption get deltaCn
           //deltLCn deltaCn between first and last, i.e. sum in peptidehit
           //lnExpect
-          String lnExpect = String(log(jt->getMetaValue("MS:1002257")));
+          String lnExpect = String(log(double(jt->getMetaValue("MS:1002257"))));
           //Sp
           String sp = String(jt->getMetaValue("MS:1002255"));
           //lnrSp log n rank Sp
-          String lnrSp = String(log(jt->getMetaValue("MS:1002256")));
+          String lnrSp = String(log(double(jt->getMetaValue("MS:1002256"))));
           //TODO in comet pep.xml consumption get SP rank into MetaValue
           //IonFrac
-          String ionfrac = jt->getMetaValue("MS:1002258")/jt->getMetaValue("MS:1002259");
+          String ionfrac = double(jt->getMetaValue("MS:1002258"))/double(jt->getMetaValue("MS:1002259"));
           //TODO in comet pep.xml consumption get matched ions and total ions
           //Mass
           double mass = jt->getSequence().getMonoWeight(Residue::Full, charge)/charge;
@@ -572,21 +563,21 @@ id	label	ScanNr	lnrSp	deltLCn	deltCn	lnExpect	Xcorr	Sp	IonFrac	Mass	PepLen	Charg
              }
           }
           //enzN
-          bool enzN = isEnz(peptide.at(0), peptide.at(2), enz);
+          bool enzN = isEnz(jt->getPeptideEvidences().front().getAABefore(), jt->getSequence().getPrefix(1).toString().c_str()[0], enz);
           //enzC
-          bool enzC = isEnz(peptide.at(peptide.size() - 3), peptide.at(peptide.size() - 1), enz);
+          bool enzC = isEnz(jt->getSequence().getSuffix(1).toString().c_str()[0], jt->getPeptideEvidences().front().getAAAfter(), enz);
           //enzInt
-          int enzInt = countEnzymatic(sequence, enz);
+          int enzInt = countEnzymatic(jt->getSequence().toUnmodifiedString(), enz);
           //lnNumSP
           //this is practically not obtainable, as this seems to be the logn of the number of
           //internally matched decoy or target hits to that spectrum query depending on the current hit itself
           //is approximated by number of matched peptides
-          String lnNumSP = String(log(jt->getMetaValue("matched_peptides")));
+          String lnNumSP = String(log(double(jt->getMetaValue("matched_peptides"))));
           //TODO in comet pep.xml consumption get matched_peptides into PeptideHit
           //dM
           double dm = it->getMZ() - mass;
           //absdM
-          double absdM = abs(dm);
+          double absdm = abs(dm);
           //peptide
           String sequence = "";
           sequence += String(jt->getPeptideEvidences().front().getAABefore()); // just first peptide evidence
@@ -594,9 +585,9 @@ id	label	ScanNr	lnrSp	deltLCn	deltCn	lnExpect	Xcorr	Sp	IonFrac	Mass	PepLen	Charg
           sequence += String(jt->getPeptideEvidences().front().getAAAfter()); //just first peptide evidence
           //proteinId1
           String pepevid = "";
-          for (vector<PeptideEvidence>::iterator kt = jt->getPeptideEvidences().begin(); kt != jt->getPeptideEvidences().end(); ++kt)
+          for (vector<PeptideEvidence>::const_iterator kt = jt->getPeptideEvidences().begin(); kt != jt->getPeptideEvidences().end(); ++kt)
           {
-            pev +=kt->getProteinAccession();
+            pepevid += kt->getProteinAccession();
           }
 
           StringList row;
@@ -617,8 +608,8 @@ id	label	ScanNr	lnrSp	deltLCn	deltCn	lnExpect	Xcorr	Sp	IonFrac	Mass	PepLen	Charg
           row.push_back(String(enzC));
           row.push_back(String(enzInt));
           row.push_back(lnNumSP);
-          row.push_back(String(dM));
-          row.push_back(String(absdM));
+          row.push_back(String(dm));
+          row.push_back(String(absdm));
           row.push_back(sequence);
           row.push_back(pepevid);
 
@@ -718,7 +709,7 @@ feature abbreviation	feature description
     }
 
     // Function adapted from Enzyme.h in Percolator converter
-    size_t TopPerc::countEnzymatic(String peptide, string enz)
+    size_t TopPerc::countEnzymatic(String peptide, string& enz)
     {
       size_t count = 0;
       for (size_t ix = 1; ix < peptide.size(); ++ix)
@@ -740,5 +731,20 @@ feature abbreviation	feature description
       int denominator = (1 + (min)(NumMatchedMainIons, numMatchedIonLimit)) * (1 + (min)(NumMatchedMainIons, numMatchedIonLimit));
       return featureValue * ((double)numerator / denominator);
     }
+
+    String TopPerc::getScanIdentifier(vector<PeptideIdentification>::iterator it, vector<PeptideIdentification>::iterator start)
+    {
+      String scannumber = it->getMetaValue("spectrum_reference");
+      if (scannumber.empty())
+      {
+        scannumber = String(it->getMetaValue("spectrum_id"));
+        if (scannumber.empty())
+        {
+          scannumber = String(it - start + 1);
+          LOG_WARN << "no known spectrum identifiers, using index [1,n] - use at own risk." << endl;
+        }
+      }
+    }
+
 
 }
