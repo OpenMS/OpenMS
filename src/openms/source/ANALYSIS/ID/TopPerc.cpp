@@ -532,7 +532,6 @@ id	label	ScanNr	lnrSp	deltLCn	deltCn	lnExpect	Xcorr	Sp	IonFrac	Mass	PepLen	Charg
           String xcorr = String(jt->getMetaValue("MS:1002252"));
           //deltCn
           String deltaCn = String(jt->getMetaValue("MS:1002253"));
-          //TODO in comet pep.xml consumption get deltaCn
           //deltLCn deltaCn between first and last, i.e. sum in peptidehit
           //lnExpect
           String lnExpect = String(log(double(jt->getMetaValue("MS:1002257"))));
@@ -540,10 +539,8 @@ id	label	ScanNr	lnrSp	deltLCn	deltCn	lnExpect	Xcorr	Sp	IonFrac	Mass	PepLen	Charg
           String sp = String(jt->getMetaValue("MS:1002255"));
           //lnrSp log n rank Sp
           String lnrSp = String(log(double(jt->getMetaValue("MS:1002256"))));
-          //TODO in comet pep.xml consumption get SP rank into MetaValue
           //IonFrac
           String ionfrac = double(jt->getMetaValue("MS:1002258"))/double(jt->getMetaValue("MS:1002259"));
-          //TODO in comet pep.xml consumption get matched ions and total ions
           //Mass
           double mass = jt->getSequence().getMonoWeight(Residue::Full, charge)/charge;
           //PepLen
@@ -572,8 +569,7 @@ id	label	ScanNr	lnrSp	deltLCn	deltCn	lnExpect	Xcorr	Sp	IonFrac	Mass	PepLen	Charg
           //this is practically not obtainable, as this seems to be the logn of the number of
           //internally matched decoy or target hits to that spectrum query depending on the current hit itself
           //is approximated by number of matched peptides
-          String lnNumSP = String(log(double(jt->getMetaValue("matched_peptides"))));
-          //TODO in comet pep.xml consumption get matched_peptides into PeptideHit
+          String lnNumSP = String(log(double(jt->getMetaValue("num_matched_peptides"))));
           //dM
           double dm = it->getMZ() - mass;
           //absdM
