@@ -51,6 +51,7 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLinks.h>
 
@@ -639,18 +640,65 @@ protected:
       }
     }
 
+    cout << "Peptide " << processed_peptides.size() * processed_peptides.size() / 2 << " candidates." << endl;
+    Size counter(0);
+
+    // create spectrum generator
+    TheoreticalSpectrumGenerator spectrum_generator;
+
+    Size has_aligned_peaks(0);
+    Size no_aligned_peaks(0);
+
+    // filtering peptide candidates
+    for (map<StringView, AASequence>::const_iterator a = processed_peptides.begin(); a != processed_peptides.end(); ++a)
+    {
+      //create theoretical spectrum
+      MSSpectrum<RichPeak1D> theo_spectrum = MSSpectrum<RichPeak1D>();
+
+      //add peaks for b and y ions with charge 1
+      spectrum_generator.getSpectrum(theo_spectrum, a->second, 1);
+      
+      //sort by mz
+      theo_spectrum.sortByPosition();
+
+      Size max_matched(0);
+      for (Size i = 0; i != spectra.size(); ++i)
+      {
+        std::vector<std::pair<Size, Size> > matched_fragments; 
+        ms2_aligner.getSpectrumAlignment(matched_fragments, theo_spectrum, spectra[i]);
+        Size matched_peaks = matched_fragments.size();
+        if (matched_peaks > max_matched) 
+        {
+          max_matched = matched_peaks;
+          if (matched_peaks >= 4) break;
+        }
+      }
+     
+      if (max_matched >= 4) 
+      {
+        ++has_aligned_peaks;
+      }
+      else
+      {
+        ++no_aligned_peaks;
+      }
+      cout << "matched peaks " << max_matched << endl;
+    }
+
+
     // TODO test variable, can be removed
     float pScoreMax =0;
 
     // calculate mass pairs
     for (map<StringView, AASequence>::const_iterator a = processed_peptides.begin(); a != processed_peptides.end(); ++a)
     {
+      if (++counter % 1000 == 0) cout << counter * 100.0 / processed_peptides.size() << endl;
 
       if (a->second.toString().find("K") >= a->second.size()-1)
       {
         continue;
       }
-
+       
       for (map<StringView, AASequence>::const_iterator b = a; b != processed_peptides.end(); ++b)
       {
 
