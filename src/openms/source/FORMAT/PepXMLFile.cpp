@@ -820,6 +820,18 @@ namespace OpenMS
         current_peptide_.setHigherScoreBetter(true);
         peptide_hit_.setMetaValue("MS:1001419", value);
       }
+      else
+      {
+        if (search_engine_ == "Comet")
+        {
+          if (name == "deltacn")
+            peptide_hit_.setMetaValue("MS:1002253", value);
+          if (name == "spscore")
+            peptide_hit_.setMetaValue("MS:1002255", value);
+          if (name == "sprank")
+            peptide_hit_.setMetaValue("MS:1002256", value);
+        }
+      }
     }
     else if (element == "search_hit") // parent: "search_result"
     { // creates a new PeptideHit
@@ -838,6 +850,22 @@ namespace OpenMS
       if (optionalAttributeAsString_(next_aa, attributes, "peptide_next_aa"))
       {
         pe.setAAAfter(next_aa[0]);
+      }
+      if (search_engine_ == "Comet")
+      {
+        String value;
+        if (optionalAttributeAsString_(value, attributes, "num_matched_ions"))
+        {
+          peptide_hit_.setMetaValue("MS:1002258", value);
+        }
+        if (optionalAttributeAsString_(value, attributes, "tot_num_ions"))
+        {
+          peptide_hit_.setMetaValue("MS:1002259", value);
+        }
+        if (optionalAttributeAsString_(value, attributes, "num_matched_peptides"))
+        {
+          peptide_hit_.setMetaValue("num_matched_peptides", value);
+        }
       }
       String protein = attributeAsString_(attributes, "protein");
       pe.setProteinAccession(protein);
@@ -867,7 +895,11 @@ namespace OpenMS
       if (!native_spectrum_name_.empty() && keep_native_name_) 
       {
         current_peptide_.setMetaValue("pepxml_spectrum_name", native_spectrum_name_);
-        current_peptide_.setMetaValue("spectrum_reference", native_spectrum_name_); //TODO: we really need something uniform here, like scan number
+      }
+      if (search_engine_ == "Comet")
+      {
+        current_peptide_.setMetaValue("spectrum_reference", native_spectrum_name_);
+        //TODO: we really need something uniform here, like scan number - and not in metainfointerface
       }
       if (!experiment_label_.empty())
       {
