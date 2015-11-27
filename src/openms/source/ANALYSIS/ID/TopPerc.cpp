@@ -39,68 +39,6 @@ using namespace std;
 
 namespace OpenMS
 {
-
-    bool TopPerc::isEnz(const char& n, const char& c, string& enz)
-    {
-      if (enz == "trypsin")
-      {
-        return ((n == 'K' || n == 'R') && c != 'P') || n == '-' || c == '-';
-      }
-      else if (enz == "chymotrypsin")
-      {
-        return ((n == 'F' || n == 'W' || n == 'Y' || n == 'L') && c != 'P') || n == '-' || c == '-';
-      }
-      else if (enz == "thermolysin")
-      {
-        return ((c == 'A' || c == 'F' || c == 'I' || c == 'L' || c == 'M'
-                || c == 'V' || (n == 'R' && c == 'G')) && n != 'D' && n != 'E') || n == '-' || c == '-';
-      }
-      else if (enz == "proteinasek")
-      {
-        return (n == 'A' || n == 'E' || n == 'F' || n == 'I' || n == 'L'
-               || n == 'T' || n == 'V' || n == 'W' || n == 'Y') || n == '-' || c == '-';
-      }
-      else if (enz == "pepsin")
-      {
-        return ((c == 'F' || c == 'L' || c == 'W' || c == 'Y' || n == 'F'
-                || n == 'L' || n == 'W' || n == 'Y') && n != 'R') || n == '-' || c == '-';
-      }
-      else if (enz == "elastase")
-      {
-        return ((n == 'L' || n == 'V' || n == 'A' || n == 'G') && c != 'P')
-               || n == '-' || c == '-';
-      }
-      else if (enz == "lys-n")
-      {
-        return (c == 'K')
-               || n == '-' || c == '-';
-      }
-      else if (enz == "lys-c")
-      {
-        return ((n == 'K') && c != 'P')
-               || n == '-' || c == '-';
-      }
-      else if (enz == "arg-c")
-      {
-        return ((n == 'R') && c != 'P')
-               || n == '-' || c == '-';
-      }
-      else if (enz == "asp-n")
-      {
-        return (c == 'D')
-               || n == '-' || c == '-';
-      }
-      else if (enz == "glu-c")
-      {
-        return ((n == 'E') && (c != 'P'))
-               || n == '-' || c == '-';
-      }
-      else
-      {
-        return true;
-      }
-    }
-
     void TopPerc::prepareCUSTOMpin(vector<PeptideIdentification>& peptide_ids, string& enz, TextFile& txt, vector<String>& user_param_features, char out_sep)
     {
       // Create header for the features
@@ -552,22 +490,6 @@ namespace OpenMS
 
     void TopPerc::prepareCOMETpin(vector<PeptideIdentification>& peptide_ids, string& enz, TextFile& txt, int minCharge, int maxCharge, char out_sep)
     {
-      /** -no decoy comet search
-id	label	ScanNr	lnrSp	deltLCn	deltCn	lnExpect	Xcorr	Sp	IonFrac	Mass	PepLen	Charge1	Charge2	Charge3	Charge4	Charge5	Charge6	enzN	enzC	enzInt	lnNumSP	dM	absdM	peptide	proteinId1
-/home/.../150209_msms4_45_3_1	1	45	2.564949	0.120106	0.058356	1.58511	0.917335	94.189621	0.1875	1541.939549	13	0	0	1	0	0	0	0	0	2	8.659387	-0.000001	0.000001	H.FVIIIRKQTDLPV.I	XXX_sp|P30307|MPIP3_HUMAN
-/home/.../150209_msms4_55_2_1	1	55	2.484907	0.19764	0.077428	0.919862	0.757954	66.903687	0.375	1087.697313	9	0	1	0	0	0	0	0	0	3	7.689829	0.000002	0.000002	G.TRSLKRLLT.A	XXX_sp|Q8IWD5|MFS6L_HUMAN
-/home/.../150209_msms4_58_2_1	1	58	2.772589	0.304528	0.119574	0.471976	0.875639	44.227581	0.2222	1086.695849	10	0	1	0	0	0	0	1	0	5	8.254269	-0.000003	0.000003	K.KSAKKTPKKA.K	sp|P16403|H12_HUMAN
-/home/.../150209_msms4_70_3_1	1	70	1.609438	0.22949	0.161329	0.194216	1.455887	249.314102	0.2708	1399.760349	13	0	0	1	0	0	0	0	1	1	10.29438	0.000009	0.000009	V.KFNGAHIPGSPFK.I	sp|Q14315|FLNC_HUMAN
-/home/.../150209_msms4_85_3_1	1	85	0	0.330495	0.2621	-1.688895	2.168427	926.547668	0.4545	1412.87949	12	0	0	1	0	0	0	1	0	5	8.278428	-0.000001	0.000001	K.RAKAKTTKKRPQ.R	sp|P24844|MYL9_HUMAN
-/home/.../150209_msms4_89_3_1	1	89	2.995732	0.105586	0.028294	1.622349	1.383884	216.628876	0.2857	1412.88068	15	0	0	1	0	0	0	0	0	0	8.322637	0.000006	0.000006	I.AVVSVTVLLAISLAG.M	sp|P55017|S12A3_HUMAN
-/home/.../150209_msms4_93_3_1	1	93	3.931826	0.247239	0.074946	0.447477	1.304711	117.67543	0.2115	1480.967259	14	0	0	1	0	0	0	0	1	4	6.850126	-0.000001	0.000001	P.AKKPKAAKAKKPSK.A	XXX_sp|P10412|H14_HUMAN
-/home/.../150209_msms4_95_2_1	1	95	0.693147	0.088233	0.011378	1.549132	1.088933	306.906311	0.5	851.43651	8	0	1	0	0	0	0	1	0	0	10.106918	0.000008	0.000008	R.FSPGIPAY.P	sp|Q96MF6|CQ10A_HUMAN
-/home/.../150209_msms4_97_3_1	1	97	4.007333	0.090959	0.061997	1.593871	1.009504	106.411644	0.1538	1569.985447	14	0	0	1	0	0	0	0	1	4	7.784889	-0.000004	0.000004	T.RRSQALKKLVGSVK.S	XXX_sp|P13994|CC130_HUMAN
-/home/.../150209_msms4_99_3_1	1	99	0	0.43843	0.227306	-3.148641	2.312463	637.051819	0.4038	1480.967716	14	0	0	1	0	0	0	1	1	5	6.919684	-0.000001	0.000001	K.KAKSPKKAKAAKPK.K	sp|P10412|H14_HUMAN
-/home/.../150209_msms4_100_3_1	1	100	4.406719	0.091476	0.051751	1.433108	1.358069	157.195969	0.2115	1568.978001	14	0	0	1	0	0	0	0	0	5	7.985484	-0.000007	0.000007	A.KALKGKEPPKKVFV.G	sp|O14979|HNRDL_HUMAN
-/home/.../150209_msms4_103_3_1	1	103	4.094345	0.20423	0.129201	0.77962	0.981422	40.896797	0.1607	1568.984593	15	0	0	1	0	0	0	0	0	0	7.904704	0.00001	0.00001	N.LLGLIEMILLSVGVV.M	sp|P16671|CD36_HUMAN
-/home/.../150209_msms4_104_3_1	1	104	3.970292	0.290208	0.198715	-0.32615	1.332213	89.666199	0.1875	1587.912022	13	0	0	1	0	0	0	0	1	3	9.75022	-0.000004	0.000004	T.QDGLFLRRAISRR.Y	XXX_sp|Q2LD37|K1109_HUMAN
-      */
       /** -with decoy comet search
 id	label	ScanNr	lnrSp	deltLCn	deltCn	lnExpect	Xcorr	Sp	IonFrac	Mass	PepLen	Charge1	Charge2	Charge3	Charge4	Charge5	Charge6	enzN	enzC	enzInt	lnNumSP	dM	absdM	peptide	proteinId1
 /home/.../150209_msms4_45_3_1	1	45	2.890372	0.066992	0.055908	2.212066	0.917335	94.189621	0.1875	1541.939549	13	0	0	1	0	0	0	0	0	2	9.352534	-0.000001	0.000001	H.FVIIIRKQTDLPV.I	XXX_sp|P30307|MPIP3_HUMAN
@@ -579,226 +501,128 @@ id	label	ScanNr	lnrSp	deltLCn	deltCn	lnExpect	Xcorr	Sp	IonFrac	Mass	PepLen	Charg
       // Create String of the charges for the header of the tab file
       stringstream ss;
       ss << "Charge" << minCharge << ", ";
-      for (int j = minCharge + 1; j < maxCharge + 1; j++)
+      for (int j = minCharge+1; j <= maxCharge; j++)
       {
-
         ss << "Charge" << j << ",";
       }
 
-      // Find out which ions are in XTandem-File and take only these as features
-      stringstream ss_ion;
-      if (peptide_ids.front().getHits().front().getMetaValue("a_score").toString() != "" &&
-          peptide_ids.front().getHits().front().getMetaValue("a_ions").toString() != "")
-      {
-        ss_ion << "frac_ion_a" << ",";
-      }
-      if (peptide_ids.front().getHits().front().getMetaValue("b_score").toString() != "" &&
-          peptide_ids.front().getHits().front().getMetaValue("b_ions").toString() != "")
-      {
-        ss_ion << "frac_ion_b" << ",";
-      }
-      if (peptide_ids.front().getHits().front().getMetaValue("c_score").toString() != "" &&
-          peptide_ids.front().getHits().front().getMetaValue("c_ions").toString() != "")
-      {
-        ss_ion << "frac_ion_c" << ",";
-      }
-      if (peptide_ids.front().getHits().front().getMetaValue("x_score").toString() != "" &&
-          peptide_ids.front().getHits().front().getMetaValue("x_ions").toString() != "")
-      {
-        ss_ion << "frac_ion_x" << ",";
-      }
-      if (peptide_ids.front().getHits().front().getMetaValue("y_score").toString() != "" &&
-          peptide_ids.front().getHits().front().getMetaValue("y_ions").toString() != "")
-      {
-        ss_ion << "frac_ion_y" << ",";
-      }
-      if (peptide_ids.front().getHits().front().getMetaValue("z_score").toString() != "" &&
-          peptide_ids.front().getHits().front().getMetaValue("z_ions").toString() != "")
-      {
-        ss_ion << "frac_ion_z" << ",";
-      }
-
-      // Create header for the features
-      String featureset = "SpecId,Label,ScanNr,hyperscore,deltascore," + ss_ion.str() +
-        ",Mass,dM,absdM,PepLen," + ss.str() + "enzN,enzC,enzInt,Peptide,Proteins";
-      StringList txt_header0 = ListUtils::create<String>(featureset);
+      String featureset = "id,label,ScanNr,lnrSp,deltLCn,deltCn,lnExpect,Xcorr,Sp,IonFrac,Mass,PepLen,
+              + ss.str()
+              + "enzN,enzC,enzInt,lnNumSP,dM,absdM,peptide,proteinId1";
+      StringList txt_header = ListUtils::create<String>(featureset);
       // Insert the header with the features names to the file
-      txt.addLine(ListUtils::concatenate(txt_header0, out_sep));
+      txt.addLine(ListUtils::concatenate(txt_header, out_sep));
 
-      LOG_INFO << "read in target file" << endl;
-      // get all the features from the target file
+      // get all the feature values
       for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
       {
-        if (it->isHigherScoreBetter())
+        double deltaLCn = 0;
+        for (vector<PeptideHit>::iterator jt = it->getHits().begin(); jt != it->getHits().end(); ++jt)
         {
-          String scannumber = String(it->getMetaValue("spectrum_reference"));
-          int charge = it->getHits().front().getCharge();
-          int label = 1;
-          double hyperscore = it->getHits().front().getScore();
-          // deltascore = hyperscore - nextscore
-          double deltascore = hyperscore - it->getHits().front().getMetaValue("nextscore").toString().toDouble();
-          String sequence = it->getHits().front().getSequence().toString();
-          int length = sequence.length();
-
-          // Find out correct ion types and get its Values
-          stringstream ss_ion_2;
-
-          if (it->getHits().front().getMetaValue("a_score").toString() != "" &&
-              it->getHits().front().getMetaValue("a_ions").toString() != "")
-          {
-            ss_ion_2 << double(it->getHits().front().getMetaValue("a_ions")) / length << out_sep;
-          }
-          if (it->getHits().front().getMetaValue("b_score").toString() != "" &&
-              it->getHits().front().getMetaValue("b_ions").toString() != "")
-          {
-            ss_ion_2 << double(it->getHits().front().getMetaValue("b_ions")) / length << out_sep;
-          }
-          if (it->getHits().front().getMetaValue("c_score").toString() != "" &&
-              it->getHits().front().getMetaValue("c_ions").toString() != "")
-          {
-            ss_ion_2 << double(it->getHits().front().getMetaValue("c_ions")) / length << out_sep;
-          }
-          if (it->getHits().front().getMetaValue("x_score").toString() != "" &&
-              it->getHits().front().getMetaValue("x_ions").toString() != "")
-          {
-            ss_ion_2 << double(it->getHits().front().getMetaValue("x_ions")) / length << out_sep;
-          }
-          if (it->getHits().front().getMetaValue("y_score").toString() != "" &&
-              it->getHits().front().getMetaValue("y_ions").toString() != "")
-          {
-            ss_ion_2 << double(it->getHits().front().getMetaValue("y_ions")) / length << out_sep;
-          }
-          if (it->getHits().front().getMetaValue("z_score").toString() != "" &&
-              it->getHits().front().getMetaValue("z_ions").toString() != "")
-          {
-            ss_ion_2 << double(it->getHits().front().getMetaValue("z_ions")) / length << out_sep;
-          }
-          double mass = it->getHits().front().getMetaValue("mass");
-          double dm = it->getHits().front().getMetaValue("delta");
-          double mh = mass + dm;
-          double absdM = abs(dm);
-
-          // write 1 for the correct charge, 0 for other charges
-          // i.e.: charge 3 for charges from 2-5: 0 1 0 0
-          stringstream ss;
-          int i = minCharge;
-          while (i <= maxCharge)
-          {
-            if (charge != i)
-            {
-              ss << "0" << out_sep;
-            }
-            if (charge == i)
-            {
-              ss << "1" << out_sep;
-            }
-            i++;
-          }
-
-          char aaBefore = it->getHits().front().getPeptideEvidences().front().getAABefore();
-          char aaAfter = it->getHits().front().getPeptideEvidences().front().getAAAfter();
-
-          String peptide = aaBefore + string(".") + sequence + string(".") + aaAfter;
-
-          // formula taken from percolator converter isEnz(n, c) for trypsin
-          bool enzN = isEnz(peptide.at(0), peptide.at(2), enz);
-          bool enzC = isEnz(peptide.at(peptide.size() - 3), peptide.at(peptide.size() - 1), enz);
-          int enzInt = countEnzymatic(sequence, enz);
-          String protein = it->getHits().front().getPeptideEvidences().front().getProteinAccession();
-
-          // One PeptideSpectrumHit with all its features
-          String lis = "_tandem_output_file_target_" + scannumber + "_" + String(charge) +
-            "_1" + out_sep + String(label) + out_sep + scannumber + out_sep + String(hyperscore) +
-            out_sep + String(deltascore) + out_sep + ss_ion_2.str() + String(mh) + out_sep +
-            String(dm) + out_sep + String(absdM) + out_sep + String(length) + out_sep + String(ss.str()) +
-            String(enzN) + out_sep + String(enzC) + out_sep + String(enzInt) + out_sep + peptide + out_sep + protein;
-
-          // peptide Spectrum Hit pushed to the output file
-          txt.addLine(lis);
+          deltaLCn += jt->getMetaValue("MS:1002253");
         }
-      }
-
-      LOG_INFO << "read in decoy file" << endl;
-      // get all the features from the decoy file
-      for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
-      {
-        if (it->isHigherScoreBetter())
+        it->sort();
+        it->assignRanks();
+        String scannumber = String(it->getMetaValue("spectrum_reference"));
+        for (vector<PeptideHit>::iterator jt = hits.begin(); jt != hits.end(); ++jt)
         {
-          String scannumber = String(it->getMetaValue("spectrum_reference"));
-          int charge = it->getHits().front().getCharge();
-          int label = -1;
-          double hyperscore = it->getHits().front().getScore();
-          // deltascore = hyperscore - nextscore
-          double deltascore = hyperscore - it->getHits().front().getMetaValue("nextscore").toString().toDouble();
-          String sequence = it->getHits().front().getSequence().toString();
-          int length = sequence.length();
-
-          // Find out correct ion types and get its Values
-          stringstream ss_ion_2;
-
-          if (it->getHits().front().getMetaValue("a_score").toString() != "" && it->getHits().front().getMetaValue("a_ions").toString() != "")
+          StringList idents;
+          sid.push_back(it->getBaseName());
+          sid.push_back(scannumber);
+          sid.push_back(String(jt->getRank()));
+          String sid = ListUtils::concatenate(idents, "_");
+          int charge = jt->getCharge();
+          int label = 1;
+          if (jt->metaValueExists("target_decoy") && jt->getMetaValue("target_decoy").hasSubstring("decoy"))
           {
-            ss_ion_2 << double(it->getHits().front().getMetaValue("a_ions")) / length << out_sep;
+            label = -1;
           }
-          if (it->getHits().front().getMetaValue("b_score").toString() != "" && it->getHits().front().getMetaValue("b_ions").toString() != "")
-          {
-            ss_ion_2 << double(it->getHits().front().getMetaValue("b_ions")) / length << out_sep;
-          }
-          if (it->getHits().front().getMetaValue("c_score").toString() != "" && it->getHits().front().getMetaValue("c_ions").toString() != "")
-          {
-            ss_ion_2 << double(it->getHits().front().getMetaValue("c_ions")) / length << out_sep;
-          }
-          if (it->getHits().front().getMetaValue("x_score").toString() != "" && it->getHits().front().getMetaValue("x_ions").toString() != "")
-          {
-            ss_ion_2 << double(it->getHits().front().getMetaValue("x_ions")) / length << out_sep;
-          }
-          if (it->getHits().front().getMetaValue("y_score").toString() != "" && it->getHits().front().getMetaValue("y_ions").toString() != "")
-          {
-            ss_ion_2 << double(it->getHits().front().getMetaValue("y_ions")) / length << out_sep;
-          }
-          if (it->getHits().front().getMetaValue("z_score").toString() != "" && it->getHits().front().getMetaValue("z_ions").toString() != "")
-          {
-            ss_ion_2 << double(it->getHits().front().getMetaValue("z_ions")) / length;
-          }
-          double mass = it->getHits().front().getMetaValue("mass");
-          double dm = double(it->getHits().front().getMetaValue("delta"));
-          double mh = mass + dm;
-          double absdM = abs(dm);
-
+          //Xcorr
+          String xcorr = String(jt->getMetaValue("MS:1002252"));
+          //deltCn
+          String deltaCn = String(jt->getMetaValue("MS:1002253"));
+          //TODO in comet pep.xml consumption get deltaCn
+          //deltLCn deltaCn between first and last, i.e. sum in peptidehit
+          //lnExpect
+          String lnExpect = String(log(jt->getMetaValue("MS:1002257")));
+          //Sp
+          String sp = String(jt->getMetaValue("MS:1002255"));
+          //lnrSp log n rank Sp
+          String lnrSp = String(log(jt->getMetaValue("MS:1002256")));
+          //TODO in comet pep.xml consumption get SP rank into MetaValue
+          //IonFrac
+          String ionfrac = jt->getMetaValue("MS:1002258")/jt->getMetaValue("MS:1002259");
+          //TODO in comet pep.xml consumption get matched ions and total ions
+          //Mass
+          double mass = jt->getSequence().getMonoWeight(Residue::Full, charge)/charge;
+          //PepLen
+          int peplen = jt->getSequence().size(); //NB comet assigns peplen 0 to decoys?
+          //Chargen
+          StringList chargen;
           // write 1 for the correct charge, 0 for other charges
-          // i.e: charge 3 for charges from 2-5: 0 1 0 0
-          stringstream ss;
-          int i = minCharge;
-          while (i <= maxCharge)
+          for (int i = minCharge; i <= maxCharge; ++i)
           {
-            if (charge != i)
-            {
-              ss << "0" << out_sep;
-            }
-            if (charge == i)
-            {
-              ss << "1" << out_sep;
-            }
-            i++;
+             if (charge != i)
+             {
+               chargen.push_back("0");
+             }
+             else
+             {
+               chargen.push_back("1");
+             }
+          }
+          //enzN
+          bool enzN = isEnz(peptide.at(0), peptide.at(2), enz);
+          //enzC
+          bool enzC = isEnz(peptide.at(peptide.size() - 3), peptide.at(peptide.size() - 1), enz);
+          //enzInt
+          int enzInt = countEnzymatic(sequence, enz);
+          //lnNumSP
+          //this is practically not obtainable, as this seems to be the logn of the number of
+          //internally matched decoy or target hits to that spectrum query depending on the current hit itself
+          //is approximated by number of matched peptides
+          String lnNumSP = String(log(jt->getMetaValue("matched_peptides")));
+          //TODO in comet pep.xml consumption get matched_peptides into PeptideHit
+          //dM
+          double dm = it->getMZ() - mass;
+          //absdM
+          double absdM = abs(dm);
+          //peptide
+          String sequence = "";
+          sequence += String(jt->getPeptideEvidences().front().getAABefore()); // just first peptide evidence
+          sequence += jt->getSequence().toString();
+          sequence += String(jt->getPeptideEvidences().front().getAAAfter()); //just first peptide evidence
+          //proteinId1
+          String pepevid = "";
+          for (vector<PeptideEvidence>::iterator kt = jt->getPeptideEvidences().begin(); kt != jt->getPeptideEvidences().end(); ++kt)
+          {
+            pev +=kt->getProteinAccession();
           }
 
-          char aaBefore = it->getHits().front().getPeptideEvidences().front().getAABefore();
-          char aaAfter = it->getHits().front().getPeptideEvidences().front().getAAAfter();
+          StringList row;
+          row.push_back(sid);
+          row.push_back(label);
+          row.push_back(scannumber);
+          row.push_back(lnrSp);
+          row.push_back(deltaLCn);
+          row.push_back(deltaCn);
+          row.push_back(lnExpect);
+          row.push_back(xcorr);
+          row.push_back(sp);
+          row.push_back(ionfrac);
+          row.push_back(String(mass));
+          row.push_back(String(peplen));
+          row.push_back(ListUtils::concatenate(chargen, out_sep));
+          row.push_back(String(enzN));
+          row.push_back(String(enzC));
+          row.push_back(String(enzInt));
+          row.push_back(lnNumSP);
+          row.push_back(String(dM));
+          row.push_back(String(absdM));
+          row.push_back(sequence);
+          row.push_back(pepevid);
 
-          String peptide = aaBefore + string(".") + sequence + string(".") + aaAfter;
-
-          // formula taken from percolator converter isEnz(n, c) for trypsin
-          bool enzN = isEnz(peptide.at(0), peptide.at(2), enz);
-          bool enzC = isEnz(peptide.at(peptide.size() - 3), peptide.at(peptide.size() - 1), enz);
-          int enzInt = countEnzymatic(sequence, enz);
-          String protein = it->getHits().front().getPeptideEvidences().front().getProteinAccession();
-
-          // One PeptideSpectrumHit with all its features
-          String lis = "_tandem_output_file_decoy_" + scannumber + "_" + String(charge) + "_1" + out_sep + String(label) + out_sep + scannumber + out_sep + String(hyperscore) + out_sep + String(deltascore) + out_sep + ss_ion_2.str() + out_sep
-                       + String(mh) + out_sep + String(dm) + out_sep + String(absdM) + out_sep + String(length) + out_sep + ss.str() + out_sep + String(enzN) + out_sep + String(enzC) + out_sep + String(enzInt) + out_sep + peptide + out_sep + protein;
-
-          // peptide Spectrum Hit pushed to the output file
-          txt.addLine(lis);
+          txt.addLine(ListUtils::concatenate(row, out_sep));
         }
       }
     }
@@ -806,7 +630,7 @@ id	label	ScanNr	lnrSp	deltLCn	deltCn	lnExpect	Xcorr	Sp	IonFrac	Mass	PepLen	Charg
     void TopPerc::prepareMASCOTpin(vector<PeptideIdentification>& peptide_ids, string& enz, TextFile& txt, int minCharge, int maxCharge, char out_sep)
     {
       /**
-Features 1-9 Represent the Basic Feature Set and Features 1-18 Represent the Extended Feature Set As Used in Mascot Percolatora
+Features 1-9 Represent the Basic Feature Set and Features 10-18 Represent the Extended Feature Set As Used in Mascot Percolator
 
 feature abbreviation	feature description
 1. mass	Calculated monoisotopic mass of the identified peptide.
@@ -829,236 +653,71 @@ feature abbreviation	feature description
 18. intMatched	Matched ion intensity (per ion series)
       */
 
+    }
 
-      // Create String of the charges for the header of the tab file
-      stringstream ss;
-      ss << "Charge" << minCharge << ", ";
-      for (int j = minCharge + 1; j < maxCharge + 1; j++)
+    // Function adapted from Enzyme.h in Percolator converter
+    bool TopPerc::isEnz(const char& n, const char& c, string& enz)
+    {
+      if (enz == "trypsin")
       {
-
-        ss << "Charge" << j << ",";
+        return ((n == 'K' || n == 'R') && c != 'P') || n == '-' || c == '-';
       }
-
-      // Find out which ions are in XTandem-File and take only these as features
-      stringstream ss_ion;
-      if (peptide_ids.front().getHits().front().getMetaValue("a_score").toString() != "" &&
-          peptide_ids.front().getHits().front().getMetaValue("a_ions").toString() != "")
+      else if (enz == "chymotrypsin")
       {
-        ss_ion << "frac_ion_a" << ",";
+        return ((n == 'F' || n == 'W' || n == 'Y' || n == 'L') && c != 'P') || n == '-' || c == '-';
       }
-      if (peptide_ids.front().getHits().front().getMetaValue("b_score").toString() != "" &&
-          peptide_ids.front().getHits().front().getMetaValue("b_ions").toString() != "")
+      else if (enz == "thermolysin")
       {
-        ss_ion << "frac_ion_b" << ",";
+        return ((c == 'A' || c == 'F' || c == 'I' || c == 'L' || c == 'M'
+                || c == 'V' || (n == 'R' && c == 'G')) && n != 'D' && n != 'E') || n == '-' || c == '-';
       }
-      if (peptide_ids.front().getHits().front().getMetaValue("c_score").toString() != "" &&
-          peptide_ids.front().getHits().front().getMetaValue("c_ions").toString() != "")
+      else if (enz == "proteinasek")
       {
-        ss_ion << "frac_ion_c" << ",";
+        return (n == 'A' || n == 'E' || n == 'F' || n == 'I' || n == 'L'
+               || n == 'T' || n == 'V' || n == 'W' || n == 'Y') || n == '-' || c == '-';
       }
-      if (peptide_ids.front().getHits().front().getMetaValue("x_score").toString() != "" &&
-          peptide_ids.front().getHits().front().getMetaValue("x_ions").toString() != "")
+      else if (enz == "pepsin")
       {
-        ss_ion << "frac_ion_x" << ",";
+        return ((c == 'F' || c == 'L' || c == 'W' || c == 'Y' || n == 'F'
+                || n == 'L' || n == 'W' || n == 'Y') && n != 'R') || n == '-' || c == '-';
       }
-      if (peptide_ids.front().getHits().front().getMetaValue("y_score").toString() != "" &&
-          peptide_ids.front().getHits().front().getMetaValue("y_ions").toString() != "")
+      else if (enz == "elastase")
       {
-        ss_ion << "frac_ion_y" << ",";
+        return ((n == 'L' || n == 'V' || n == 'A' || n == 'G') && c != 'P')
+               || n == '-' || c == '-';
       }
-      if (peptide_ids.front().getHits().front().getMetaValue("z_score").toString() != "" &&
-          peptide_ids.front().getHits().front().getMetaValue("z_ions").toString() != "")
+      else if (enz == "lys-n")
       {
-        ss_ion << "frac_ion_z" << ",";
+        return (c == 'K')
+               || n == '-' || c == '-';
       }
-
-      // Create header for the features
-      String featureset = "SpecId,Label,ScanNr,hyperscore,deltascore," + ss_ion.str() +
-        ",Mass,dM,absdM,PepLen," + ss.str() + "enzN,enzC,enzInt,Peptide,Proteins";
-      StringList txt_header0 = ListUtils::create<String>(featureset);
-      // Insert the header with the features names to the file
-      txt.addLine(ListUtils::concatenate(txt_header0, out_sep));
-
-      LOG_INFO << "read in target file" << endl;
-      // get all the features from the target file
-      for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
+      else if (enz == "lys-c")
       {
-        if (it->isHigherScoreBetter())
-        {
-          String scannumber = String(it->getMetaValue("spectrum_reference"));
-          int charge = it->getHits().front().getCharge();
-          int label = 1;
-          double hyperscore = it->getHits().front().getScore();
-          // deltascore = hyperscore - nextscore
-          double deltascore = hyperscore - it->getHits().front().getMetaValue("nextscore").toString().toDouble();
-          String sequence = it->getHits().front().getSequence().toString();
-          int length = sequence.length();
-
-          // Find out correct ion types and get its Values
-          stringstream ss_ion_2;
-
-          if (it->getHits().front().getMetaValue("a_score").toString() != "" &&
-              it->getHits().front().getMetaValue("a_ions").toString() != "")
-          {
-            ss_ion_2 << double(it->getHits().front().getMetaValue("a_ions")) / length << out_sep;
-          }
-          if (it->getHits().front().getMetaValue("b_score").toString() != "" &&
-              it->getHits().front().getMetaValue("b_ions").toString() != "")
-          {
-            ss_ion_2 << double(it->getHits().front().getMetaValue("b_ions")) / length << out_sep;
-          }
-          if (it->getHits().front().getMetaValue("c_score").toString() != "" &&
-              it->getHits().front().getMetaValue("c_ions").toString() != "")
-          {
-            ss_ion_2 << double(it->getHits().front().getMetaValue("c_ions")) / length << out_sep;
-          }
-          if (it->getHits().front().getMetaValue("x_score").toString() != "" &&
-              it->getHits().front().getMetaValue("x_ions").toString() != "")
-          {
-            ss_ion_2 << double(it->getHits().front().getMetaValue("x_ions")) / length << out_sep;
-          }
-          if (it->getHits().front().getMetaValue("y_score").toString() != "" &&
-              it->getHits().front().getMetaValue("y_ions").toString() != "")
-          {
-            ss_ion_2 << double(it->getHits().front().getMetaValue("y_ions")) / length << out_sep;
-          }
-          if (it->getHits().front().getMetaValue("z_score").toString() != "" &&
-              it->getHits().front().getMetaValue("z_ions").toString() != "")
-          {
-            ss_ion_2 << double(it->getHits().front().getMetaValue("z_ions")) / length << out_sep;
-          }
-          double mass = it->getHits().front().getMetaValue("mass");
-          double dm = it->getHits().front().getMetaValue("delta");
-          double mh = mass + dm;
-          double absdM = abs(dm);
-
-          // write 1 for the correct charge, 0 for other charges
-          // i.e.: charge 3 for charges from 2-5: 0 1 0 0
-          stringstream ss;
-          int i = minCharge;
-          while (i <= maxCharge)
-          {
-            if (charge != i)
-            {
-              ss << "0" << out_sep;
-            }
-            if (charge == i)
-            {
-              ss << "1" << out_sep;
-            }
-            i++;
-          }
-
-          char aaBefore = it->getHits().front().getPeptideEvidences().front().getAABefore();
-          char aaAfter = it->getHits().front().getPeptideEvidences().front().getAAAfter();
-
-          String peptide = aaBefore + string(".") + sequence + string(".") + aaAfter;
-
-          // formula taken from percolator converter isEnz(n, c) for trypsin
-          bool enzN = isEnz(peptide.at(0), peptide.at(2), enz);
-          bool enzC = isEnz(peptide.at(peptide.size() - 3), peptide.at(peptide.size() - 1), enz);
-          int enzInt = countEnzymatic(sequence, enz);
-          String protein = it->getHits().front().getPeptideEvidences().front().getProteinAccession();
-
-          // One PeptideSpectrumHit with all its features
-          String lis = "_tandem_output_file_target_" + scannumber + "_" + String(charge) +
-            "_1" + out_sep + String(label) + out_sep + scannumber + out_sep + String(hyperscore) +
-            out_sep + String(deltascore) + out_sep + ss_ion_2.str() + String(mh) + out_sep +
-            String(dm) + out_sep + String(absdM) + out_sep + String(length) + out_sep + String(ss.str()) +
-            String(enzN) + out_sep + String(enzC) + out_sep + String(enzInt) + out_sep + peptide + out_sep + protein;
-
-          // peptide Spectrum Hit pushed to the output file
-          txt.addLine(lis);
-        }
+        return ((n == 'K') && c != 'P')
+               || n == '-' || c == '-';
       }
-
-      LOG_INFO << "read in decoy file" << endl;
-      // get all the features from the decoy file
-      for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
+      else if (enz == "arg-c")
       {
-        if (it->isHigherScoreBetter())
-        {
-          String scannumber = String(it->getMetaValue("spectrum_reference"));
-          int charge = it->getHits().front().getCharge();
-          int label = -1;
-          double hyperscore = it->getHits().front().getScore();
-          // deltascore = hyperscore - nextscore
-          double deltascore = hyperscore - it->getHits().front().getMetaValue("nextscore").toString().toDouble();
-          String sequence = it->getHits().front().getSequence().toString();
-          int length = sequence.length();
-
-          // Find out correct ion types and get its Values
-          stringstream ss_ion_2;
-
-          if (it->getHits().front().getMetaValue("a_score").toString() != "" && it->getHits().front().getMetaValue("a_ions").toString() != "")
-          {
-            ss_ion_2 << double(it->getHits().front().getMetaValue("a_ions")) / length << out_sep;
-          }
-          if (it->getHits().front().getMetaValue("b_score").toString() != "" && it->getHits().front().getMetaValue("b_ions").toString() != "")
-          {
-            ss_ion_2 << double(it->getHits().front().getMetaValue("b_ions")) / length << out_sep;
-          }
-          if (it->getHits().front().getMetaValue("c_score").toString() != "" && it->getHits().front().getMetaValue("c_ions").toString() != "")
-          {
-            ss_ion_2 << double(it->getHits().front().getMetaValue("c_ions")) / length << out_sep;
-          }
-          if (it->getHits().front().getMetaValue("x_score").toString() != "" && it->getHits().front().getMetaValue("x_ions").toString() != "")
-          {
-            ss_ion_2 << double(it->getHits().front().getMetaValue("x_ions")) / length << out_sep;
-          }
-          if (it->getHits().front().getMetaValue("y_score").toString() != "" && it->getHits().front().getMetaValue("y_ions").toString() != "")
-          {
-            ss_ion_2 << double(it->getHits().front().getMetaValue("y_ions")) / length << out_sep;
-          }
-          if (it->getHits().front().getMetaValue("z_score").toString() != "" && it->getHits().front().getMetaValue("z_ions").toString() != "")
-          {
-            ss_ion_2 << double(it->getHits().front().getMetaValue("z_ions")) / length;
-          }
-          double mass = it->getHits().front().getMetaValue("mass");
-          double dm = double(it->getHits().front().getMetaValue("delta"));
-          double mh = mass + dm;
-          double absdM = abs(dm);
-
-          // write 1 for the correct charge, 0 for other charges
-          // i.e: charge 3 for charges from 2-5: 0 1 0 0
-          stringstream ss;
-          int i = minCharge;
-          while (i <= maxCharge)
-          {
-            if (charge != i)
-            {
-              ss << "0" << out_sep;
-            }
-            if (charge == i)
-            {
-              ss << "1" << out_sep;
-            }
-            i++;
-          }
-
-          char aaBefore = it->getHits().front().getPeptideEvidences().front().getAABefore();
-          char aaAfter = it->getHits().front().getPeptideEvidences().front().getAAAfter();
-
-          String peptide = aaBefore + string(".") + sequence + string(".") + aaAfter;
-
-          // formula taken from percolator converter isEnz(n, c) for trypsin
-          bool enzN = isEnz(peptide.at(0), peptide.at(2), enz);
-          bool enzC = isEnz(peptide.at(peptide.size() - 3), peptide.at(peptide.size() - 1), enz);
-          int enzInt = countEnzymatic(sequence, enz);
-          String protein = it->getHits().front().getPeptideEvidences().front().getProteinAccession();
-
-          // One PeptideSpectrumHit with all its features
-          String lis = "_tandem_output_file_decoy_" + scannumber + "_" + String(charge) + "_1" + out_sep + String(label) + out_sep + scannumber + out_sep + String(hyperscore) + out_sep + String(deltascore) + out_sep + ss_ion_2.str() + out_sep
-                       + String(mh) + out_sep + String(dm) + out_sep + String(absdM) + out_sep + String(length) + out_sep + ss.str() + out_sep + String(enzN) + out_sep + String(enzC) + out_sep + String(enzInt) + out_sep + peptide + out_sep + protein;
-
-          // peptide Spectrum Hit pushed to the output file
-          txt.addLine(lis);
-        }
+        return ((n == 'R') && c != 'P')
+               || n == '-' || c == '-';
+      }
+      else if (enz == "asp-n")
+      {
+        return (c == 'D')
+               || n == '-' || c == '-';
+      }
+      else if (enz == "glu-c")
+      {
+        return ((n == 'E') && (c != 'P'))
+               || n == '-' || c == '-';
+      }
+      else
+      {
+        return true;
       }
     }
 
-
-    // Function taken from Enzyme.h from Percolator
+    // Function adapted from Enzyme.h in Percolator converter
     size_t TopPerc::countEnzymatic(String peptide, string enz)
     {
       size_t count = 0;
@@ -1072,7 +731,7 @@ feature abbreviation	feature description
       return count;
     }
 
-    // Function taken from the percolator converter MsgfplusReader
+    // Function adapted from MsgfplusReader in Percolator converter
     double TopPerc::rescaleFragmentFeature(double featureValue, int NumMatchedMainIons)
     {
       // Rescale the fragment features to penalize features calculated by few ions
