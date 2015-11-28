@@ -639,7 +639,124 @@ feature abbreviation	feature description
 17. seqCov	Sequence coverage of matched ions (per ion series)
 18. intMatched	Matched ion intensity (per ion series)
       */
+      // Create String of the charges for the header of the tab file
+      stringstream ss;
+      ss << "Charge" << minCharge << ", ";
+      for (int j = minCharge+1; j <= maxCharge; j++)
+      {
+        ss << "Charge" << j << ",";
+      }
 
+      String featureset = "id,label,ScanNr,mass,"
+              + ss.str()
+              + "mScore,dScore,deltaMass, absDeltaMass, uniqueToProt, enzN, enzC, enzInt, mod,sequence,protein";
+      StringList txt_header = ListUtils::create<String>(featureset);
+      // Insert the header with the features names to the file
+      txt.addLine(ListUtils::concatenate(txt_header, out_sep));
+
+      // get all the feature values
+      for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
+      {
+        double deltaLCn = 0;
+        for (vector<PeptideHit>::iterator jt = it->getHits().begin(); jt != it->getHits().end(); ++jt)
+        {
+          deltaLCn += double(jt->getMetaValue("MS:1002253"));
+        }
+        it->sort();
+        it->assignRanks();
+        String scannumber = getScanIdentifier(it, peptide_ids.begin());
+        it->sort();
+        it->assignRanks();
+
+        std::vector<PeptideHit> hits = it->getHits();
+        assignDeltaScore(hits, "MS:1001171");
+        for (vector<PeptideHit>::iterator jt = hits.begin(); jt != hits.end(); ++jt)
+        {
+          StringList idents;
+          idents.push_back(it->getBaseName());
+          idents.push_back(scannumber);
+          idents.push_back(String(jt->getRank()));
+          String sid = ListUtils::concatenate(idents, "_");
+          int label = 1;
+          if (jt->metaValueExists("target_decoy") && String(jt->getMetaValue("target_decoy")).hasSubstring("decoy"))
+          {
+            label = -1;
+          }
+          int charge = jt->getCharge();
+          double mass = jt->getSequence().getMonoWeight(Residue::Full, charge)/charge;
+          //Chargen
+          StringList chargen;
+          // write 1 for the correct charge, 0 for other charges
+          for (int i = minCharge; i <= maxCharge; ++i)
+          {
+             if (charge != i)
+             {
+               chargen.push_back("0");
+             }
+             else
+             {
+               chargen.push_back("1");
+             }
+          }
+          double mScore = double(jt->getMetaValue("MS:1001171"));
+          double dScore = double(jt->getMetaValue("delta_score"));
+          double dm = it->getMZ() - mass;
+          double absdm = abs(dm);
+          //no isoDeltaM - no isotope error info available from mascot adapter
+          //no uniquePeps - no info from mascot substitute with sequence to protein uniqueness
+          String uniquePeps = "0";
+          if (String(jt->getMetaValue("protein_references")) == "unique")
+          {
+            uniquePeps = "1";
+          }
+          bool enzN = isEnz(jt->getPeptideEvidences().front().getAABefore(), jt->getSequence().getPrefix(1).toString().c_str()[0], enz);
+          //enzC
+          bool enzC = isEnz(jt->getSequence().getSuffix(1).toString().c_str()[0], jt->getPeptideEvidences().front().getAAAfter(), enz);
+          //enzInt
+          int enzInt = countEnzymatic(jt->getSequence().toUnmodifiedString(), enz);
+          //no totInt info available from mascot adapter
+          //no intMatchedTot info available from mascot adapter
+          //no relIntMatchedTot info available from mascot adapter
+          //no binom info available from mascot adapter
+          //no fragMassError info available from mascot adapter
+          //no absFragMassError	info available from mascot adapter
+          //no fracIonsMatched info available from mascot adapter
+          //no seqCov info available from mascot adapter
+          //no intMatched info available from mascot adapter
+
+          bool mod = jt->getSequence().isModified();
+          String sequence = "";
+          sequence += String(jt->getPeptideEvidences().front().getAABefore()); // just first peptide evidence
+          sequence += jt->getSequence().toString();
+          sequence += String(jt->getPeptideEvidences().front().getAAAfter()); //just first peptide evidence
+          //proteinId1
+          String pepevid = "";
+          for (vector<PeptideEvidence>::const_iterator kt = jt->getPeptideEvidences().begin(); kt != jt->getPeptideEvidences().end(); ++kt)
+          {
+            pepevid += kt->getProteinAccession();
+          }
+
+          StringList row;
+          row.push_back(sid);
+          row.push_back(label);
+          row.push_back(scannumber);
+          row.push_back(String(mass));
+          row.push_back(ListUtils::concatenate(chargen, out_sep));
+          row.push_back(String(mScore));
+          row.push_back(String(dScore));
+          row.push_back(String(dm));
+          row.push_back(String(absdm));
+          row.push_back(String(uniquePeps));
+          row.push_back(String(enzN));
+          row.push_back(String(enzC));
+          row.push_back(String(enzInt));
+          row.push_back(String(mod));
+          row.push_back(sequence);
+          row.push_back(pepevid);
+
+          txt.addLine(ListUtils::concatenate(row, out_sep));
+        }
+      }
     }
 
     // Function adapted from Enzyme.h in Percolator converter
@@ -739,6 +856,23 @@ feature abbreviation	feature description
           scannumber = String(it - start + 1);
           LOG_WARN << "no known spectrum identifiers, using index [1,n] - use at own risk." << endl;
         }
+      }
+    }
+
+    void TopPerc::assignDeltaScore(vector<PeptideHit>& hits, String score_ref)
+    {
+      if (!hits.empty())
+      {
+        vector<PeptideHit>::iterator prev = hits.begin();
+        double prev_score = double(prev->getMetaValue(score_ref));
+        for (vector<PeptideHit>::iterator jt = hits.begin()+1; jt != hits.end(); ++jt)
+        {
+          double cur_score = double(jt->getMetaValue(score_ref));
+          double value = prev_score - cur_score;
+          prev->setMetaValue("delta_score",value);
+          prev = jt;
+        }
+        (hits.end()-1)->setMetaValue("delta_score",0.0); //if last hit or only one hit
       }
     }
 

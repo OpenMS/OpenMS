@@ -58,6 +58,8 @@ namespace OpenMS
         static size_t countEnzymatic(String peptide, std::string& enz);
         static double rescaleFragmentFeature(double featureValue, int NumMatchedMainIons);
         static String getScanIdentifier(std::vector<PeptideIdentification>::iterator it, std::vector<PeptideIdentification>::iterator start);
+        static void assignDeltaScore(std::vector<PeptideHit>& hits, String score_ref);
+
     private:
         TopPerc();
         virtual ~TopPerc();
