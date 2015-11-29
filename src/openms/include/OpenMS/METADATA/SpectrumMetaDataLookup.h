@@ -271,6 +271,22 @@ namespace OpenMS
       std::vector<PeptideIdentification>& peptides, const String& filename,
       bool stop_on_error = false);
 
+    /**
+       @brief Add missing spectrum_reference values to peptide identifications based on raw data
+
+       @param peptides Peptide IDs with or without spectrum_reference s
+       @param filename Name of a raw data file (e.g. mzML) for looking up spectrum_references (nativeID)
+       @param stop_on_error Stop when an ID could not be matched to a spectrum (or keep going)?
+
+       @return True if all peptide IDs could be annotated successfully (including if all already had spectrum_reference values), false otherwise.
+
+       Look-up works by matching the RT of a peptide ID to the RT of a spectrum. Only peptide IDs without spectrum_reference are looked up; the new meta value is set to the native ID of the corresponding spectrum.
+
+       The raw data is only loaded from @p filename if necessary, i.e. if there are any peptide IDs with spectrum_references.
+    */    static bool addMissingSpectrumReferencestoPeptideIDs(
+      std::vector<PeptideIdentification>& peptides, const String& filename,
+      bool stop_on_error);
+
   protected:
 
     std::vector<SpectrumMetaData> metadata_; ///< Meta data for spectra

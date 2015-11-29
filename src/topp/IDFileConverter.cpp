@@ -328,6 +328,13 @@ protected:
       else if (in_type == FileTypes::IDXML)
       {
         IdXMLFile().load(in, protein_identifications, peptide_identifications);
+        // get native id from mz_file:
+        String exp_name = getStringOption_("mz_file");
+        if (!exp_name.empty())
+        {
+          SpectrumMetaDataLookup::addMissingSpectrumReferencestoPeptideIDs(
+                      peptide_identifications, exp_name, false);
+        }
       }
 
       else if (in_type == FileTypes::MZIDENTML)
