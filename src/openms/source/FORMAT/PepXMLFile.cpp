@@ -825,11 +825,20 @@ namespace OpenMS
         if (search_engine_ == "Comet")
         {
           if (name == "deltacn")
+          {
+            value = attributeAsDouble_(attributes, "value");
             peptide_hit_.setMetaValue("MS:1002253", value);
-          if (name == "spscore")
+          }
+          else if (name == "spscore")
+          {
+            value = attributeAsDouble_(attributes, "value");
             peptide_hit_.setMetaValue("MS:1002255", value);
-          if (name == "sprank")
+          }
+          else if (name == "sprank")
+          {
+            value = attributeAsDouble_(attributes, "value");
             peptide_hit_.setMetaValue("MS:1002256", value);
+          }
         }
       }
     }
@@ -1261,6 +1270,31 @@ namespace OpenMS
       {
         params_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_);
       }
+    }
+    else if (element == "enzymatic_search_constraint") // parent: "search_summary"
+    {
+      //<enzymatic_search_constraint enzyme="nonspecific" max_num_internal_cleavages="1" min_number_termini="2"/>
+      String name = attributeAsString_(attributes, "enzyme");
+      name.toLower();
+      if (name.hasPrefix("trypsin"))
+        enzyme_ = ProteinIdentification::TRYPSIN;
+      else if (name.hasPrefix("pepsin"))
+        enzyme_ = ProteinIdentification::PEPSIN_A;
+      else if (name.hasPrefix("protease"))
+        enzyme_ = ProteinIdentification::PROTEASE_K;
+      else if (name.hasPrefix("chymotrypsin"))
+        enzyme_ = ProteinIdentification::CHYMOTRYPSIN;
+      else
+        enzyme_ = ProteinIdentification::UNKNOWN_ENZYME;
+
+      int mc = attributeAsInt_(attributes, "max_num_internal_cleavages");
+
+      ProteinIdentification::SearchParameters params =
+        current_proteins_.front()->getSearchParameters();
+      params.enzyme = enzyme_;
+      params.missed_cleavages = mc;
+
+      current_proteins_.front()->setSearchParameters(params);
     }
     else if (element == "search_database") // parent: "search_summary"
     {
