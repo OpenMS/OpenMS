@@ -1027,12 +1027,12 @@ namespace OpenMS
       }
       String desc = "";
       // check if the modification is uniquely defined:
-      if (aa_mod.description != "")
+      if (!aa_mod.description.empty())
       {
         try
         {
           desc = ModificationsDB::getInstance()->getModification(aa_mod.description).getName();
-          if (desc != "")
+          if (!desc.empty())
           {
             if (is_variable == "Y")
             {
@@ -1055,7 +1055,7 @@ namespace OpenMS
       {
         error(LOAD, "No modification description given. Trying to define by modification mass.");
       }
-      if (desc == "")
+      if (desc.empty())
       {
         vector<String> mods;
         if (aa_mod.terminus != "")
@@ -1073,7 +1073,7 @@ namespace OpenMS
           ModificationsDB::getInstance()->getModificationsByDiffMonoMass(
                       mods, aa_mod.massdiff.toDouble(), 0.001);
         }
-        if (mods.size() < 1)
+        if (mods.empty() && aa_mod.massdiff.toDouble() != 0)
         {
           desc = aa_mod.aminoacid;
           if (aa_mod.massdiff.toDouble() >= 0)
@@ -1087,7 +1087,7 @@ namespace OpenMS
           //Modification unknown, but trying to continue as we want to be able to read the rest despite of the modifications but warning this will fail downstream
           error(LOAD, "Modification '" + String(aa_mod.mass) + "/delta" + String(aa_mod.massdiff) + "' is unknown. Resuming with '" + desc +  "' which will probably fail using the data downstream.");
         }
-        else if (mods.size() > 1)
+        else if (!mods.empty())
         {
           String mod_str = mods[0];
           desc = mods[0];
@@ -1097,12 +1097,8 @@ namespace OpenMS
           }
           error(LOAD, "Modification '" + String(aa_mod.mass) + "' is not uniquely defined by the given data. Using '" + mods[0] +  "' to represent any of '" + mod_str + "'.");
         }
-        else
-        {
-          desc = mods[0];
-        }
       }
-      if (desc != "")
+      if (!desc.empty())
       {
         if (is_variable == "Y")
         {
@@ -1113,6 +1109,7 @@ namespace OpenMS
         {
           fixed_modifications_.push_back(aa_mod);
           params_.fixed_modifications.push_back(desc);
+          LOG_DEBUG << aa_mod.description << desc << std::endl;
         }
       }
     }
