@@ -108,7 +108,7 @@ extra_compile_args = []
 
 if iswin:
     extra_compile_args = ["/EHs", "/bigobj"]
-elif sys.platform == "linux2":
+elif sys.platform.startswith("linux"):
     extra_link_args = ["-Wl,-s"]
 elif sys.platform == "darwin":
     # we need to manually link to the Qt Frameworks
