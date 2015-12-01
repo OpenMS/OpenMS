@@ -736,7 +736,6 @@ namespace OpenMS
       ProteinIdentification protein;
       protein.setDateTime(date_);
       prot_id_ = "unknown_" + date_.getDate();
-      enzyme_ = ProteinIdentification::UNKNOWN_ENZYME;
       // "prot_id_" will be overwritten if elem. "search_summary" is present
       protein.setIdentifier(prot_id_);
       proteins_->push_back(protein);

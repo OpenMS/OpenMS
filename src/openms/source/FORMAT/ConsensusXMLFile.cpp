@@ -38,7 +38,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/METADATA/DataProcessing.h>
-
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 #include <fstream>
 
 using namespace std;
@@ -368,7 +368,7 @@ namespace OpenMS
       //enzyme
       String enzyme;
       optionalAttributeAsString_(enzyme, attributes, "enzyme");
-      search_param_.digestion_enzyme = EnzymesDB::getInstance()->getEnzyme(enzyme);
+      search_param_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme);
       
       last_meta_ = &search_param_;
     }

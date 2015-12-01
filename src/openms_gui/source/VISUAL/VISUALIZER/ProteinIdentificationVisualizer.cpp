@@ -36,7 +36,7 @@
 #include <OpenMS/VISUAL/VISUALIZER/ProteinIdentificationVisualizer.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/VISUAL/MetaDataBrowser.h>
-
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 //QT
 #include <QtGui/QLineEdit>
 #include <QtGui/QValidator>
@@ -76,7 +76,7 @@ namespace OpenMS
     addDoubleLineEdit_(peak_tolerance_, "Fragment ion mass tolerance");
     addDoubleLineEdit_(precursor_tolerance_, "Precursor ion mass tolerance");
     addComboBox_(mass_type_, "Mass type");
-    addComboBox_(enzyme_, "Digestion enzyme");
+    addLineEdit_(enzyme_, "Digestion enzyme");
 
     addSeparator_();
     addLabel_("Show protein hits with score equal or better than a threshold.");
@@ -168,7 +168,7 @@ namespace OpenMS
     tmp.missed_cleavages = missed_cleavages_->text().toInt();
     tmp.fragment_mass_tolerance = peak_tolerance_->text().toFloat();
     tmp.precursor_tolerance = precursor_tolerance_->text().toFloat();
-    tmp.enzyme = enzyme_->text();
+    tmp.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_->text());
     tmp.mass_type = (ProteinIdentification::PeakMassType)(mass_type_->currentIndex());
     ptr_->setSearchParameters(tmp);
 

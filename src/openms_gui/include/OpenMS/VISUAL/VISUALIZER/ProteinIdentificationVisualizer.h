@@ -109,7 +109,7 @@ protected:
     QLineEdit * peak_tolerance_;
     QLineEdit * precursor_tolerance_;
     QComboBox * mass_type_;
-    QComboBox * enzyme_;
+    QLineEdit * enzyme_;
     //@}
 
     /// Threshold for filtering by score

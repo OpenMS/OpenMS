@@ -449,7 +449,7 @@ namespace OpenMS
       else if (tag_ == "CLE")
       {
         String temp_string = (character_buffer_.trim());
-        if (EnzymesDB::getInstance()->hasEnzyme(enzyme))
+        if (EnzymesDB::getInstance()->hasEnzyme(temp_string))
         {
           search_parameters_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(temp_string);
         }

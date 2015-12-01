@@ -1070,7 +1070,7 @@ namespace OpenMS
       }
     }
 
-    void MzIdentMLHandler::writeEnyzme_(String& s, enzyme enzy, UInt miss, UInt indent) const
+    void MzIdentMLHandler::writeEnyzme_(String& s, Enzyme enzy, UInt miss, UInt indent) const
     {
       String cv_ns = cv_.name();
       s += String(indent, '\t') + "<Enzymes independent=\"false\">" + "\n";

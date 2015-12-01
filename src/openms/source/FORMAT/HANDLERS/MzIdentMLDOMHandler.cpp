@@ -961,7 +961,7 @@ namespace OpenMS
                   }
                   sub = sub->getNextElementSibling();
                 }
-                if (EnzymesDB::getInstance()->hasEnzyme(enzyme))
+                if (EnzymesDB::getInstance()->hasEnzyme(enzymename))
                 {
                   sp.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzymename);
                 }
