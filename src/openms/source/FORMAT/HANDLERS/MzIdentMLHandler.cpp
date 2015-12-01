@@ -389,7 +389,7 @@ namespace OpenMS
       String inputs_element;
       std::map<String,String> /* peps, pepevis, */ sil_map, sil_2_date;
       std::set<String> sen_set, sof_set, sip_set;
-      std::map<String, UInt64> sdb_ids, sen_ids, sof_ids, sip_ids, spd_ids, sdat_ids, pep_ids;
+      std::map<String, String> sdb_ids, sen_ids, sof_ids, sip_ids, spd_ids, sdat_ids, pep_ids;
       std::map<String, String> pie_ids, sip_sdb;
       std::map<UInt64, String> sip_dates, pdp_dates;
       std::map<UInt64, String> spd_ref, pdp_ref;
@@ -410,14 +410,14 @@ namespace OpenMS
       */
       for (std::vector<ProteinIdentification>::const_iterator it = cpro_id_->begin(); it != cpro_id_->end(); ++it)
       {
-        UInt64 dbid, sdid;
+        String dbid, sdid;
 
         // handle SearchDatabase element for each ProteinIdentification
         String dbst(it->getSearchParameters().db); //TODO @mths for several IdentificationRuns this must be something else, otherwise for two of the same db just one will be created
-        std::map<String, UInt64>::iterator dbit = sdb_ids.find(dbst);
+        std::map<String, String>::iterator dbit = sdb_ids.find(dbst);
         if (dbit == sdb_ids.end())
         {
-          dbid = UniqueIdGenerator::getUniqueId();
+          dbid = "SDB_" + String(UniqueIdGenerator::getUniqueId());
 
           search_database += String("\t\t<SearchDatabase ");
           search_database += String("location=\"") + dbst + "\" ";
@@ -431,7 +431,7 @@ namespace OpenMS
           search_database += String("\n\t\t\t</FileFormat>\n\t\t\t<DatabaseName>\n\t\t\t\t<userParam name=\"") + dbst + String("\"/>\n\t\t\t</DatabaseName>\n");
           search_database += "\t\t</SearchDatabase> \n";
 
-          sdb_ids.insert(std::pair<String, UInt64>(dbst, dbid));
+          sdb_ids.insert(make_pair(dbst, dbid));
         }
         else
         {
@@ -444,10 +444,10 @@ namespace OpenMS
         {
           sdst = String("UNKNOWN");
         }
-        std::map<String, UInt64>::iterator sdit = spd_ids.find(sdst); //this part ist strongly connected to AnalysisCollection write part
+        std::map<String, String>::iterator sdit = spd_ids.find(sdst); //this part ist strongly connected to AnalysisCollection write part
         if (sdit == spd_ids.end())
         {
-          sdid = UniqueIdGenerator::getUniqueId();
+          sdid = "SD_" + String(UniqueIdGenerator::getUniqueId());
 
           spectra_data += String("\t\t<SpectraData location=\"") + sdst + String("\" id=\"") + String(sdid) + String("\">");
           spectra_data += String("\n\t\t\t<FileFormat> \n");
@@ -456,7 +456,7 @@ namespace OpenMS
           spectra_data += String(4, '\t') + cv_.getTermByName("multiple peak list nativeID format").toXMLString(cv_ns);
           spectra_data += String("\n\t\t\t</SpectrumIDFormat> \n\t\t</SpectraData>\n");
 
-          spd_ids.insert(std::pair<String, UInt64>(sdst, sdid));
+          spd_ids.insert(make_pair(sdst, sdid));
         }
         else
         {
@@ -576,7 +576,7 @@ namespace OpenMS
         {
           sdat_file = String("UNKNOWN");
         }
-        std::map<String, String>::iterator sdit = sdat_ids.find(sdat_file); //this part is strongly connected to AnalysisCollection write part
+        sdit = sdat_ids.find(sdat_file); //this part is strongly connected to AnalysisCollection write part
         if (sdit == sdat_ids.end())
         {
           sdat_id = "SDAT_" + String(UniqueIdGenerator::getUniqueId());
@@ -601,7 +601,7 @@ namespace OpenMS
         //~ collect SearchDatabase element for each ProteinIdentification
         String sdb_id;
         String sdb_file(it->getSearchParameters().db); //TODO @mths for several IdentificationRuns this must be something else, otherwise for two of the same db just one will be created
-        std::map<String, String>::iterator dbit = sdb_ids.find(sdb_file);
+        dbit = sdb_ids.find(sdb_file);
         if (dbit == sdb_ids.end())
         {
           sdb_id = "SDB_"+ String(UniqueIdGenerator::getUniqueId());
@@ -861,7 +861,7 @@ namespace OpenMS
               acc_evis_it->second.push_back(pevid);
 
             }
-            pep_evis.insert(make_pair(pepi, pevid_ids));
+            pep_evis_.insert(make_pair(pepi, pevid_ids));
           }
           else
           {
