@@ -743,26 +743,30 @@ namespace OpenMS
             {
               String pevid =  "PEV_" + String(UniqueIdGenerator::getUniqueId());
               String dBSequence_ref = String(sen_ids.find(pe->getProteinAccession())->second);
-              String idec(boost::lexical_cast<std::string>((String(jt->getMetaValue("target_decoy"))).hasSubstring("decoy")));
+              String idec;
+              if (jt->metaValueExists("target_decoy"))
+              {
+                idec = String(boost::lexical_cast<std::string>((String(jt->getMetaValue("target_decoy"))).hasSubstring("decoy")));
+              }
 
               String e;
-              e += "\t<PeptideEvidence id=\"" + pevid + "\" peptide_ref=\"" + pepid + "\" dBSequence_ref=\"" + dBSequence_ref;
+              e += "\t<PeptideEvidence id=\"" + pevid + "\" peptide_ref=\"" + pepid + "\" dBSequence_ref=\"" + dBSequence_ref + "\"";
 
               if (pe->getAAAfter() != PeptideEvidence::UNKNOWN_AA)
               {
-                e += "\" post=\"" + String(pe->getAAAfter());
+                e += " post=\"" + String(pe->getAAAfter()) + "\"";
               }
               if (pe->getAABefore() != PeptideEvidence::UNKNOWN_AA)
               {
-                e += "\" pre=\"" + String(pe->getAABefore());
+                e += " pre=\"" + String(pe->getAABefore()) + "\"";
               }
               if (pe->getStart() != PeptideEvidence::UNKNOWN_POSITION)
               {
-                e += "\" start=\"" + String(pe->getStart());
+                e += " start=\"" + String(pe->getStart()) + "\"";
               }
               else if (jt->metaValueExists("start"))
               {
-                e += "\" start=\"" + String(jt->getMetaValue("start"));
+                e += " start=\"" + String(jt->getMetaValue("start")) + "\"";
               }
               else
               {
@@ -770,17 +774,21 @@ namespace OpenMS
               }
               if (pe->getEnd() != PeptideEvidence::UNKNOWN_POSITION)
               {
-                e += "\" end=\"" + String(pe->getEnd());
+                e += " end=\"" + String(pe->getEnd()) + "\"";
               }
               else if (jt->metaValueExists("end"))
               {
-                e += "\" end=\"" + String(jt->getMetaValue("end"));
+                e += " end=\"" + String(jt->getMetaValue("end")) + "\"";
               }
               else
               {
                 LOG_WARN << "Found no end position of peptide hit in protein sequence." << std::endl;
               }
-              e += "\" isDecoy=\"" + String(idec) + "\"/> \n";
+              if (!idec.empty())
+              {
+                e += " isDecoy=\"" + String(idec)+ "\"";
+              }
+              e += "/> \n";
               sen_set.insert(e);
               pevid_ids.push_back(pevid);
             }
