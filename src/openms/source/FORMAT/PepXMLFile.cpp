@@ -37,6 +37,7 @@
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
@@ -130,7 +131,7 @@ namespace OpenMS
     f << "<msms_pipeline_analysis date=\"2007-12-05T17:49:46\" xmlns=\"http://regis-web.systemsbiology.net/pepXML\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://sashimi.sourceforge.net/schema_revision/pepXML/pepXML_v117.xsd\" summary_xml=\".xml\">" << "\n";
     f << "<msms_run_summary base_name=\"" << base_name << "\" raw_data_type=\"raw\" raw_data=\"." << raw_data << "\" search_engine=\"" << search_engine_name << "\">" << "\n";
     // If enzyme is not trypsin, skip it here and specify in TPP parser.
-    if (search_params.enzyme == ProteinIdentification::TRYPSIN || search_params.digestion_enzyme.getName() == "Trypsin")
+    if (search_params.digestion_enzyme.getName() == "Trypsin")
     {
       f << "\t<sample_enzyme name=\"" << "trypsin" << "\">" << "\n";
       f << "\t\t<specificity cut=\"KR\" no_cut=\"P\" sense=\"C\"/>" << "\n";
@@ -351,7 +352,7 @@ namespace OpenMS
         f << "\" num_tot_proteins=\"1\" num_matched_ions=\"0\" tot_num_ions=\"0\" calc_neutral_pep_mass=\"" << precisionWrapper(precursor_neutral_mass)
           << "\" massdiff=\"0.0\" num_tol_term=\"";
         Int num_tol_term = 1;
-        if ((pe.getAABefore() == 'R' || pe.getAABefore() == 'K') && search_params.enzyme == ProteinIdentification::TRYPSIN)
+        if ((pe.getAABefore() == 'R' || pe.getAABefore() == 'K') && search_params.digestion_enzyme.getName() == "Trypsin")
         {
           num_tol_term = 2;
         }
@@ -1166,7 +1167,6 @@ namespace OpenMS
       fixed_modifications_.clear();
       variable_modifications_.clear();
       params_ = ProteinIdentification::SearchParameters();
-      params_.enzyme = enzyme_;
       String mass_type = attributeAsString_(attributes, "precursor_mass_type");
       if (mass_type == "monoisotopic")
       {
@@ -1224,23 +1224,7 @@ namespace OpenMS
     else if (element == "sample_enzyme") // parent: "msms_run_summary"
     { // special case: search parameter that occurs *before* "search_summary"!
       String name = attributeAsString_(attributes, "name");
-      name.toLower();
-      // spelling of enzyme names in pepXML?
-      if (name.hasPrefix("trypsin"))
-        enzyme_ = ProteinIdentification::TRYPSIN;
-      else if (name.hasPrefix("pepsin"))
-        enzyme_ = ProteinIdentification::PEPSIN_A;
-      else if (name.hasPrefix("protease"))
-        enzyme_ = ProteinIdentification::PROTEASE_K;
-      else if (name.hasPrefix("chymotrypsin"))
-        enzyme_ = ProteinIdentification::CHYMOTRYPSIN;
-      else
-        enzyme_ = ProteinIdentification::UNKNOWN_ENZYME;
-
-      ProteinIdentification::SearchParameters params =
-        current_proteins_.front()->getSearchParameters();
-      params.enzyme = enzyme_;
-      current_proteins_.front()->setSearchParameters(params);
+      params_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(name);
     }
     else if (element == "search_database") // parent: "search_summary"
     {

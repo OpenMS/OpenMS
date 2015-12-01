@@ -37,6 +37,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/METADATA/DataProcessing.h>
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 
 #include <fstream>
 
@@ -222,30 +223,8 @@ namespace OpenMS
         os << "mass_type=\"average\" ";
       }
       os << "charges=\"" << search_param.charges << "\" ";
-      if (search_param.enzyme == ProteinIdentification::TRYPSIN)
-      {
-        os << "enzyme=\"trypsin\" ";
-      }
-      if (search_param.enzyme == ProteinIdentification::PEPSIN_A)
-      {
-        os << "enzyme=\"pepsin_a\" ";
-      }
-      if (search_param.enzyme == ProteinIdentification::PROTEASE_K)
-      {
-        os << "enzyme=\"protease_k\" ";
-      }
-      if (search_param.enzyme == ProteinIdentification::CHYMOTRYPSIN)
-      {
-        os << "enzyme=\"chymotrypsin\" ";
-      }
-      else if (search_param.enzyme == ProteinIdentification::NO_ENZYME)
-      {
-        os << "enzyme=\"no_enzyme\" ";
-      }
-      else if (search_param.enzyme == ProteinIdentification::UNKNOWN_ENZYME)
-      {
-        os << "enzyme=\"unknown_enzyme\" ";
-      }
+      os << "enzyme=\"" << search_param.digestion_enzyme.getName() << "\" ";
+
       String precursor_unit = search_param.precursor_mass_tolerance_ppm ? "true" : "false";
       String peak_unit = search_param.fragment_mass_tolerance_ppm ? "true" : "false";
 
@@ -564,29 +543,9 @@ namespace OpenMS
       //enzyme
       String enzyme;
       optionalAttributeAsString_(enzyme, attributes, "enzyme");
-      if (enzyme == "trypsin")
+      if (EnzymesDB::getInstance()->hasEnzyme(enzyme))
       {
-        search_param_.enzyme = ProteinIdentification::TRYPSIN;
-      }
-      else if (enzyme == "pepsin_a")
-      {
-        search_param_.enzyme = ProteinIdentification::PEPSIN_A;
-      }
-      else if (enzyme == "protease_k")
-      {
-        search_param_.enzyme = ProteinIdentification::PROTEASE_K;
-      }
-      else if (enzyme == "chymotrypsin")
-      {
-        search_param_.enzyme = ProteinIdentification::CHYMOTRYPSIN;
-      }
-      else if (enzyme == "no_enzyme")
-      {
-        search_param_.enzyme = ProteinIdentification::NO_ENZYME;
-      }
-      else if (enzyme == "unknown_enzyme")
-      {
-        search_param_.enzyme = ProteinIdentification::UNKNOWN_ENZYME;
+        search_param_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme);
       }
       last_meta_ = &search_param_;
     }

@@ -110,18 +110,15 @@ namespace OpenMS
     missed_cleavages_->setText(QString::number(temp_.getSearchParameters().missed_cleavages));
     peak_tolerance_->setText(QString::number(temp_.getSearchParameters().fragment_mass_tolerance));
     precursor_tolerance_->setText(QString::number(temp_.getSearchParameters().precursor_tolerance));
+    enzyme_->setText(temp_.getSearchParameters().digestion_enzyme.getName().toQString());
 
     if (!isEditable())
     {
       fillComboBox_(mass_type_, &ProteinIdentification::NamesOfPeakMassType[temp_.getSearchParameters().mass_type], 1);
-      fillComboBox_(enzyme_, &ProteinIdentification::NamesOfDigestionEnzyme[temp_.getSearchParameters().enzyme], 1);
     }
     else
     {
       fillComboBox_(mass_type_, ProteinIdentification::NamesOfPeakMassType, ProteinIdentification::SIZE_OF_PEAKMASSTYPE);
-      fillComboBox_(enzyme_, ProteinIdentification::NamesOfDigestionEnzyme, ProteinIdentification::SIZE_OF_DIGESTIONENZYME);
-
-      enzyme_->setCurrentIndex(temp_.getSearchParameters().enzyme);
       mass_type_->setCurrentIndex(temp_.getSearchParameters().mass_type);
     }
   }
@@ -171,7 +168,7 @@ namespace OpenMS
     tmp.missed_cleavages = missed_cleavages_->text().toInt();
     tmp.fragment_mass_tolerance = peak_tolerance_->text().toFloat();
     tmp.precursor_tolerance = precursor_tolerance_->text().toFloat();
-    tmp.enzyme = (ProteinIdentification::DigestionEnzyme)(enzyme_->currentIndex());
+    tmp.enzyme = enzyme_->text();
     tmp.mass_type = (ProteinIdentification::PeakMassType)(mass_type_->currentIndex());
     ptr_->setSearchParameters(tmp);
 

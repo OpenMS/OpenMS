@@ -168,7 +168,6 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   ProteinIdentification::SearchParameters params = proteins[0].getSearchParameters();
   TEST_EQUAL(params.db, "./current.fasta");
   TEST_EQUAL(params.mass_type, ProteinIdentification::MONOISOTOPIC);
-  TEST_EQUAL(params.enzyme, ProteinIdentification::TRYPSIN);
 
   vector<String> fix_mods(params.fixed_modifications), var_mods(params.variable_modifications);
   TEST_EQUAL(fix_mods.size(), 1)

@@ -137,30 +137,7 @@ namespace OpenMS
         os << "mass_type=\"average\" ";
       }
       os << "charges=\"" << params[i].charges << "\" ";
-      if (params[i].enzyme == ProteinIdentification::TRYPSIN)
-      {
-        os << "enzyme=\"trypsin\" ";
-      }
-      if (params[i].enzyme == ProteinIdentification::PEPSIN_A)
-      {
-        os << "enzyme=\"pepsin_a\" ";
-      }
-      if (params[i].enzyme == ProteinIdentification::PROTEASE_K)
-      {
-        os << "enzyme=\"protease_k\" ";
-      }
-      if (params[i].enzyme == ProteinIdentification::CHYMOTRYPSIN)
-      {
-        os << "enzyme=\"chymotrypsin\" ";
-      }
-      else if (params[i].enzyme == ProteinIdentification::NO_ENZYME)
-      {
-        os << "enzyme=\"no_enzyme\" ";
-      }
-      else if (params[i].enzyme == ProteinIdentification::UNKNOWN_ENZYME)
-      {
-        os << "enzyme=\"" << params[i].digestion_enzyme.getName() << "\" "; // os << "enzyme=\"unknown_enzyme\" ";
-      }
+      os << "enzyme=\"" << params[i].digestion_enzyme.getName() << "\" ";
       String precursor_unit = params[i].precursor_mass_tolerance_ppm ? "true" : "false";
       String peak_unit = params[i].fragment_mass_tolerance_ppm ? "true" : "false";
 
@@ -459,30 +436,6 @@ namespace OpenMS
       if (EnzymesDB::getInstance()->hasEnzyme(enzyme))
       {
         param_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme);
-      }
-      if (enzyme == "trypsin")
-      {
-        param_.enzyme = ProteinIdentification::TRYPSIN;
-      }
-      else if (enzyme == "pepsin_a")
-      {
-        param_.enzyme = ProteinIdentification::PEPSIN_A;
-      }
-      else if (enzyme == "protease_k")
-      {
-        param_.enzyme = ProteinIdentification::PROTEASE_K;
-      }
-      else if (enzyme == "chymotrypsin")
-      {
-        param_.enzyme = ProteinIdentification::CHYMOTRYPSIN;
-      }
-      else if (enzyme == "no_enzyme")
-      {
-        param_.enzyme = ProteinIdentification::NO_ENZYME;
-      }
-      else if (enzyme == "unknown_enzyme")
-      {
-        param_.enzyme = ProteinIdentification::UNKNOWN_ENZYME;
       }
       last_meta_ = &param_;
     }

@@ -39,7 +39,7 @@
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 #include <set>
 #include <string>
 #include <iostream>
@@ -961,25 +961,9 @@ namespace OpenMS
                   }
                   sub = sub->getNextElementSibling();
                 }
-                if (enzymename == "Trypsin")
+                if (EnzymesDB::getInstance()->hasEnzyme(enzyme))
                 {
-                  sp.enzyme = ProteinIdentification::TRYPSIN;
-                }
-                else if (enzymename == "PepsinA")
-                {
-                  sp.enzyme = ProteinIdentification::PEPSIN_A;
-                }
-                else if (enzymename == "Chymotrypsin")
-                {
-                  sp.enzyme = ProteinIdentification::CHYMOTRYPSIN;
-                }
-                else if (enzymename == "NoEnzyme")
-                {
-                  sp.enzyme = ProteinIdentification::NO_ENZYME;
-                }
-                else // if enzymename ==  || PROTEASE_K
-                {
-                  sp.enzyme = ProteinIdentification::UNKNOWN_ENZYME;
+                  sp.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzymename);
                 }
                 enzyme = enzyme->getNextElementSibling();
               }
