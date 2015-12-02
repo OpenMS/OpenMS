@@ -375,6 +375,93 @@ protected:
     return ps;
   }
 
+  struct OPENMS_DLLAPI MatchedIonCount
+  {
+    // Note: code is optimize for theo_spectrum to contain less peaks than the exp_spectrum
+    static Size compute(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const MSSpectrum<RichPeak1D>& theo_spectrum, const MSSpectrum<Peak1D>& exp_spectrum)
+    {
+      Size matches(0), i(0), j(0);
+      const Size count_exp_spectrum = exp_spectrum.size();
+      const Size count_theo_spectrum = theo_spectrum.size();
+      do
+      { 
+        // advance i until in or right of tolerance window
+        while (i < count_exp_spectrum && j < count_theo_spectrum)
+        {
+          const double tolerance_Th = fragment_mass_tolerance_unit_ppm ? theo_spectrum[j].getMZ() * 1e-6 * fragment_mass_tolerance : fragment_mass_tolerance;
+          if (exp_spectrum[i].getMZ() < (theo_spectrum[j].getMZ() - tolerance_Th)) 
+          {
+            ++i;
+          }
+          else
+          {
+            break;
+          }
+        }
+
+        if (i == count_exp_spectrum || j == count_theo_spectrum) return matches;
+
+        // check if in tolerance window (could also be to the right of it) and count as match
+        const double tolerance_Th = fragment_mass_tolerance_unit_ppm ? theo_spectrum[j].getMZ() * 1e-6 * fragment_mass_tolerance : fragment_mass_tolerance;
+        if (exp_spectrum[i].getMZ() < (theo_spectrum[j].getMZ() + tolerance_Th))
+        {
+          // matched i and j (can't match again)
+          ++matches; 
+          ++j; 
+          ++i; 
+        } 
+
+        if (i == count_exp_spectrum || j == count_theo_spectrum) return matches;
+
+        ++j;
+      } while (true);  
+      return matches;
+    }
+  };
+
+  struct OPENMS_DLLAPI HashGrid1D
+  {
+    // bucket size should be 2.0 * fragment mass tolerance
+    // this ensures that two neighboring buckets cover all position possible given the fragment mass tolerance
+    HashGrid1D(double min, double max, double bucket_size) : 
+      min_(min), 
+      max_(max), 
+      bucket_size_(bucket_size)
+    {
+      Size n_buckets = ((max - min) / bucket_size) + 1;
+      h_.resize(n_buckets);
+    }
+
+    void insert(double position, Size v)
+    {
+      if (position < min_) position = min_;
+      if (position > max_) position = max_;
+
+      double bucket_index = (position - min_) / bucket_size_;
+
+      if (bucket_index - (Size)bucket_index <= 0.5)
+      {
+        h_[bucket_index].push_back(v);
+        if (bucket_index >= 0) h_[bucket_index - 1].push_back(v);
+      } 
+      else
+      {
+        h_[bucket_index].push_back(v);
+        if (bucket_index < h_.size() - 1) h_[bucket_index + 1].push_back(v);
+      }
+    }
+
+    vector<Size>& get(double position)
+    {
+      double bucket_index = (position - min_) / bucket_size_;
+      return h_[bucket_index];
+    }
+
+    std::vector<vector<Size> > h_; 
+    double min_;
+    double max_;
+    double bucket_size_;
+  };
 
   ExitCodes main_(int, const char**)
   {
@@ -613,12 +700,15 @@ protected:
     cout << "Peptide " << processed_peptides.size() * processed_peptides.size() / 2 << " candidates." << endl;
     Size counter(0);
 
+    //TODO remove, adapt to ppm
+    HashGrid1D hg(0.0, 2000.0, fragment_mass_tolerance);
+
     // create spectrum generator
     TheoreticalSpectrumGenerator spectrum_generator;
 
     Size has_aligned_peaks(0);
     Size no_aligned_peaks(0);
-
+ 
     // filtering peptide candidates
     for (map<StringView, AASequence>::const_iterator a = processed_peptides.begin(); a != processed_peptides.end(); ++a)
     {
@@ -631,12 +721,16 @@ protected:
       //sort by mz
       theo_spectrum.sortByPosition();
 
+      for (Size i = 0; i != theo_spectrum.size(); ++i)
+      {
+        hg.insert(theo_spectrum[i].getMZ(), 1); // TODO add real index here
+      }
+/*
       Size max_matched(0);
       for (Size i = 0; i != spectra.size(); ++i)
       {
-        std::vector<std::pair<Size, Size> > matched_fragments; 
-        ms2_aligner.getSpectrumAlignment(matched_fragments, theo_spectrum, spectra[i]);
-        Size matched_peaks = matched_fragments.size();
+        Size matched_peaks = MatchedIonCount::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, theo_spectrum, spectra[i]);
+    
         if (matched_peaks > max_matched) 
         {
           max_matched = matched_peaks;
@@ -652,8 +746,9 @@ protected:
       {
         ++no_aligned_peaks;
       }
-      cout << "matched peaks " << max_matched << endl;
+*/
     }
+    cout << "algined " << has_aligned_peaks << " " << no_aligned_peaks << endl;
 
    
     // calculate mass pairs
