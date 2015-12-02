@@ -88,9 +88,9 @@ namespace OpenMS
       }
     }
 
-    double span = params.getValue("span");
-    int nsteps = params.getValue("num_iterations");
-    double delta = params.getValue("delta");
+    double span = params_.getValue("span");
+    int nsteps = params_.getValue("num_iterations");
+    double delta = params_.getValue("delta");
     
     if (delta < 0.0)
     {
@@ -111,8 +111,8 @@ namespace OpenMS
     TransformationModelInterpolated::getDefaultParameters(p);
     /// p.setValue("interpolation_type", "cspline"); // linear interpolation between lowess pts
     /// p.setValue("extrapolation_type", "four-point-linear");
-    p.setValue("interpolation_type", params.getValue("interpolation_type"));
-    p.setValue("extrapolation_type", params.getValue("extrapolation_type"));
+    p.setValue("interpolation_type", params_.getValue("interpolation_type"));
+    p.setValue("extrapolation_type", params_.getValue("extrapolation_type"));
 
     // create new interpolation model based on the lowess data
     model_ = new TransformationModelInterpolated(data_out, p);
