@@ -240,6 +240,35 @@ protected:
      }
    }
 
+  // xQuest, fast pre-Score for x-links (type 2)
+  // required: numbers of peaks for each chain, and how many of them were matched
+  // TODO type Real did not work ?
+  float preScore(Size matchedAlpha, Size ionsAlpha, Size matchedBeta, Size ionsBeta)
+  {
+    if ( (ionsAlpha > 0) && (ionsBeta > 0) )
+    {
+      float result = sqrt(((float) matchedAlpha / (float) ionsAlpha) * ((float) matchedBeta / (float) ionsBeta));
+      return result;
+    } else
+    {
+      return 0.0;
+    }
+  }
+
+  // xQuest, fast pre-Score for Mono links and Loop links (type 0 and type 1)
+  float preScore(Size matchedAlpha, Size ionsAlpha)
+  {
+    if (ionsAlpha > 0)
+    {
+      float result = (float) matchedAlpha / (float) ionsAlpha;
+      return result;
+    } else
+    {
+      return 0.0;
+    }
+  }
+     
+
   struct PreprocessedPairSpectra_
   {
     // pre-initialize so we can simply std::swap the spectra (no synchronization in multi-threading context needed as we get no reallocation of the PeakMaps) 
@@ -375,34 +404,6 @@ protected:
     return ps;
   }
 
-  // xQuest, fast pre-Score for x-links (type 2)
-  // required: numbers of peaks for each chain, and how many of them were matched
-  // TODO type Real did not work ?
-  float preScore(Size matchedAlpha, Size ionsAlpha, Size matchedBeta, Size ionsBeta)
-  {
-    if ( (ionsAlpha > 0) && (ionsBeta > 0) )
-    {
-      float result = sqrt(((float) matchedAlpha / (float) ionsAlpha) * ((float) matchedBeta / (float) ionsBeta));
-      return result;
-    } else
-    {
-      return 0.0;
-    }
-  }
-
-  // xQuest, fast pre-Score for Mono links and Loop links (type 0 and type 1)
-  float preScore(Size matchedAlpha, Size ionsAlpha)
-  {
-    if (ionsAlpha > 0)
-    {
-      float result = (float) matchedAlpha / (float) ionsAlpha;
-      return result;
-    } else
-    {
-      return 0.0;
-    }
-  }
-     
 
   ExitCodes main_(int, const char**)
   {
@@ -859,7 +860,6 @@ protected:
               }
             }
           }
-          
         }  
       }     
     }
