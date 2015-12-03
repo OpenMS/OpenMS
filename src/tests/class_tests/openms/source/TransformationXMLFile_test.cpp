@@ -160,8 +160,9 @@ START_SECTION(void store(String filename, const TransformationDescription& trans
   trafo_xml.load(tmp_file_pairs, trafo2);
   TEST_STRING_EQUAL(trafo2.getModelType(), "interpolated");
   params = trafo2.getModelParameters();
-  TEST_EQUAL(params.size(), 1);
+  TEST_EQUAL(params.size(), 2);
   TEST_STRING_EQUAL(params.getValue("interpolation_type"), "linear");
+  TEST_STRING_EQUAL(params.getValue("extrapolation_type"), "two-point-linear");
   TEST_EQUAL(trafo2.getDataPoints().size(), 3);
   TEST_REAL_SIMILAR(trafo2.getDataPoints()[0].first, 1.2);
   TEST_REAL_SIMILAR(trafo2.getDataPoints()[1].first, 2.2);

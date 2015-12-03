@@ -202,7 +202,8 @@ private:
     // ensure that we have enough points for an interpolation
     if (x_.size() < 3)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Cubic spline model needs at least 3 data points (with unique x values)");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+          "Cubic spline model needs at least 3 data points (with unique x values)");
     }
   }
 
@@ -232,30 +233,67 @@ private:
     }
     else
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "unknown/unsupported interpolation type '" + interpolation_type + "'");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+          "unknown/unsupported interpolation type '" + interpolation_type + "'");
     }
 
     // assign data
     interp_->init(x_, y_);
 
     // linear model for extrapolation:
-    TransformationModel::DataPoints lm_data(2);
-    lm_data[0] = std::make_pair(x_.front(), y_.front());
-    lm_data[1] = std::make_pair(x_.back(), y_.back());
-    lm_ = new TransformationModelLinear(lm_data, Param());
+    const String extrapolation_type = params_.getValue("extrapolation_type");
+    if (extrapolation_type == "global-linear")
+    {
+      lm_front_ = new TransformationModelLinear(data, Param());
+      lm_back_ = new TransformationModelLinear(data, Param());
+    }
+    else if (extrapolation_type == "two-point-linear")
+    {
+      TransformationModel::DataPoints lm_data(2);
+      lm_data[0] = std::make_pair(x_.front(), y_.front());
+      lm_data[1] = std::make_pair(x_.back(), y_.back()); // last point
+      lm_front_ = new TransformationModelLinear(lm_data, Param());
+      lm_back_ = new TransformationModelLinear(lm_data, Param());
+    }
+    else if (extrapolation_type == "four-point-linear")
+    {
+      TransformationModel::DataPoints lm_data(2);
+      lm_data[0] = std::make_pair(x_[0], y_[0]); 
+      lm_data[1] = std::make_pair(x_[1], y_[1]);
+      lm_front_ = new TransformationModelLinear(lm_data, Param());
+
+      lm_data[0] = std::make_pair(x_[ x_.size()-2 ], y_[ y_.size()-2] ); // second to last point
+      lm_data[1] = std::make_pair(x_.back(), y_.back()); // last point
+      lm_back_ = new TransformationModelLinear(lm_data, Param());
+    }
+    else
+    {
+      if (interp_) 
+      {
+        delete interp_;
+      }
+
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+          "unknown/unsupported extrapolation type '" + extrapolation_type + "'");
+    }
   }
 
   TransformationModelInterpolated::~TransformationModelInterpolated()
   {
-    delete interp_;
-    delete lm_;
+    if (interp_) delete interp_;
+    if (lm_front_) delete lm_front_;
+    if (lm_back_) delete lm_back_;
   }
 
   double TransformationModelInterpolated::evaluate(double value) const
   {
-    if ((value < x_.front()) || (value > x_.back())) // extrapolate
+    if (value < x_.front()) // extrapolate front
     {
-      return lm_->evaluate(value);
+      return lm_front_->evaluate(value);
+    }
+    else if (value > x_.back()) // extrapolate back
+    {
+      return lm_back_->evaluate(value);
     }
     // interpolate:
     return interp_->eval(value);
@@ -267,6 +305,9 @@ private:
     params.setValue("interpolation_type", "cspline", "Type of interpolation to apply.");
     StringList types = ListUtils::create<String>("linear,cspline,akima");
     params.setValidStrings("interpolation_type", types);
+    params.setValue("extrapolation_type", "two-point-linear", "Type of extrapolation to apply: two-point-linear: use the first and last data point to build a single linear model, four-point-linear: build two linear models on both ends using the first two / last two points, global-linear: use all points to build a single linear model. Note that global-linear may not be continuous at the border.");
+    StringList etypes = ListUtils::create<String>("two-point-linear,four-point-linear,global-linear");
+    params.setValidStrings("extrapolation_type", etypes);
   }
 
 } // namespace
