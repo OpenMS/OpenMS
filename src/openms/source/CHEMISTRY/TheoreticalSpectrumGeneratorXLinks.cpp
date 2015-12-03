@@ -286,9 +286,22 @@ namespace OpenMS
     AASequence ion;
     double intensity(0);
     bool add_first_prefix_ion(param_.getValue("add_first_prefix_ion").toBool());
+
     double xlink_mass = param_.getValue("cross_link_type2_mass");
     double peptideA_mass(peptideA.getMonoWeight());
     double peptideB_mass(peptideB.getMonoWeight());
+
+    // Generate new AASequences with cross linked peptide as weight tag modification
+    String new_peptideA = peptideA.getPrefix(xlink_pos_A+2).toString() + "[+" + (xlink_mass + peptideB_mass) + "]" + peptideA.getSuffix(peptideA.size() - xlink_pos_A - 1).toString();
+    String new_peptideB = peptideB.getPrefix(xlink_pos_B+2).toString() + "[+" + (xlink_mass + peptideA_mass) + "]" + peptideB.getSuffix(peptideB.size() - xlink_pos_B - 1).toString();
+
+    AASequence peptideA_xlink = AASequence::fromString(new_peptideA);
+    AASequence peptideB_xlink = AASequence::fromString(new_peptideB);
+
+    cout << "peptideA: " << peptideA.toString() << endl;
+    cout << "peptideX: " << peptideA_xlink.toString() << endl;
+    cout << "peptideB: " << peptideB.toString() << endl;
+    cout << "peptideY: " << peptideB_xlink.toString() << endl;
 
     // Generate the ion peaks:
     // Does not generate peaks of full peptide (therefore "<").
@@ -321,24 +334,22 @@ namespace OpenMS
       {
         i = 2;
       }
-      for (; i < xlink_pos_A; ++i)
+      for (; i < peptideA_xlink.size(); ++i)
       {
-        ion = peptideA.getPrefix(i);
+        ion = peptideA_xlink.getPrefix(i);
         double pos = ion.getMonoWeight(Residue::BIon, charge) / (double)charge;
         ions[pos] = ion;
         names[pos] = "b(alpha)" + String(i) + String(charge, '+');
       }
-      i = 1;
-      if (!add_first_prefix_ion)
+      if (peptideA != peptideB)
       {
-        i = 2;
-      }
-      for (; i < xlink_pos_B; ++i)
-      {
-        ion = peptideB.getPrefix(i);
-        double pos = ion.getMonoWeight(Residue::BIon, charge) / (double)charge;
-        ions[pos] = ion;
-        names[pos] = "b(beta)" + String(i) + String(charge, '+');
+        for (; i < peptideB_xlink.size(); ++i)
+        {
+          ion = peptideB_xlink.getPrefix(i);
+          double pos = ion.getMonoWeight(Residue::BIon, charge) / (double)charge;
+          ions[pos] = ion;
+          names[pos] = "b(beta)" + String(i) + String(charge, '+');
+        }
       }
 
       intensity = (double)param_.getValue("b_intensity");
@@ -378,19 +389,22 @@ namespace OpenMS
 
     case Residue::YIon:
     {
-      for (Size i = peptideA.size()-1; i > xlink_pos_A ; --i)
+      for (Size i = 1;  i < peptideA_xlink.size() ; ++i)
       {
-        ion = peptideA.getSuffix(i);
+        ion = peptideA_xlink.getSuffix(i);
         double pos = ion.getMonoWeight(Residue::YIon, charge) / (double)charge;
         ions[pos] = ion;
         names[pos] = "y(alpha)" + String(i) + String(charge, '+');
       }
-      for (Size i = peptideB.size()-1; i > xlink_pos_B ; --i)
+      if (peptideA != peptideB)
       {
-        ion = peptideB.getSuffix(i);
-        double pos = ion.getMonoWeight(Residue::YIon, charge) / (double)charge;
-        ions[pos] = ion;
-        names[pos] = "y(beta)" + String(i) + String(charge, '+');
+        for (Size i = 1;  i < peptideB_xlink.size()  ; ++i)
+        {
+          ion = peptideB_xlink.getSuffix(i);
+          double pos = ion.getMonoWeight(Residue::YIon, charge) / (double)charge;
+          ions[pos] = ion;
+          names[pos] = "y(beta)" + String(i) + String(charge, '+');
+        }
       }
       intensity = (double)param_.getValue("y_intensity");
       break;
