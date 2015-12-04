@@ -47,7 +47,7 @@ using namespace std;
 class MzTabFile2 : public MzTabFile
 {
   public:
-    String generateMzTabPSMSectionRow2_(const MzTabPSMSectionRow& row, const set<String>& optional_columns) const
+    String generateMzTabPSMSectionRow2_(const MzTabPSMSectionRow& row, const vector<String>& optional_columns) const
     {
       return generateMzTabPSMSectionRow_(row, optional_columns);
     }
@@ -127,7 +127,7 @@ START_SECTION(~MzTabFile())
 }
 END_SECTION
 
-START_SECTION(generateMzTabPSMSectionRow_(const MzTabPSMSectionRow& row, const set<String>& optional_columns) const)
+START_SECTION(generateMzTabPSMSectionRow_(const MzTabPSMSectionRow& row, const vector<String>& optional_columns) const)
 {
   MzTabFile2 mzTab;
   MzTabPSMSectionRow row;
@@ -164,25 +164,22 @@ START_SECTION(generateMzTabPSMSectionRow_(const MzTabPSMSectionRow& row, const s
   row.opt_.push_back(e);
   
   // Tests ///////////////////////////////  
-  set<String> optional_columns;
-  optional_columns.insert("AScore_1");
-  optional_columns.insert("EMPTY");
-  optional_columns.insert("Percolator_PEP");
-  optional_columns.insert("Percolator_qvalue");
-  optional_columns.insert("Percolator_score");
-  optional_columns.insert("search_engine_sequence");
-  
+  vector<String> optional_columns;
+  optional_columns.push_back("Percolator_score");
+  optional_columns.push_back("Percolator_qvalue");
+  optional_columns.push_back("EMPTY");
+  optional_columns.push_back("Percolator_PEP");
+  optional_columns.push_back("search_engine_sequence");
+  optional_columns.push_back("AScore_1");
+ 
     
-  String strRow(mzTab.generateMzTabPSMSectionRow2_(row, optional_columns));
-  
+  String strRow(mzTab.generateMzTabPSMSectionRow2_(row, optional_columns));  
   std::vector<String> substrings;
   strRow.split('\t', substrings);
-  TEST_EQUAL(substrings[substrings.size() - 5],"null")
-  TEST_EQUAL(substrings[substrings.size() - 6],"null")
-  TEST_EQUAL(substrings[substrings.size() - 4],"0.0420992")
-  TEST_EQUAL(substrings[substrings.size() - 3],"0.00649874")
-  TEST_EQUAL(substrings[substrings.size() - 2],"0.359083")
-  TEST_EQUAL(substrings[substrings.size() - 1],"NDYKAPPQPAPGK")
+  TEST_EQUAL(substrings[substrings.size() - 1],"null")
+  TEST_EQUAL(substrings[substrings.size() - 2],"NDYKAPPQPAPGK")
+  TEST_EQUAL(substrings[substrings.size() - 3],"0.0420992")
+  TEST_EQUAL(substrings[substrings.size() - 4],"null")
 }
 END_SECTION
 

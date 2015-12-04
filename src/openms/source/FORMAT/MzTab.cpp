@@ -654,9 +654,9 @@ namespace OpenMS
     small_molecule_data_ = smsd;
   }
 
-  std::set<String> MzTab::getProteinOptionalColumnNames() const
+  std::vector<String> MzTab::getProteinOptionalColumnNames() const
   {
-    std::set<String> names;
+    std::vector<String> names;
     if (!protein_data_.empty())
     {
       for (MzTabProteinSectionRows::const_iterator it = protein_data_.begin(); it != protein_data_.end(); ++it)
@@ -665,7 +665,7 @@ namespace OpenMS
         {
           if(std::find(names.begin(), names.end(), it_opt->first) == names.end())
           {
-            names.insert(it_opt->first);
+            names.push_back(it_opt->first);
           }
         }
       }
@@ -673,9 +673,9 @@ namespace OpenMS
     return names;
   }
 
-  std::set<String> MzTab::getPeptideOptionalColumnNames() const
+  std::vector<String> MzTab::getPeptideOptionalColumnNames() const
   {
-    std::set<String> names;
+    std::vector<String> names;
     if (!peptide_data_.empty())
     {
       for (MzTabPeptideSectionRows::const_iterator it = peptide_data_.begin(); it != peptide_data_.end(); ++it)
@@ -684,7 +684,7 @@ namespace OpenMS
         {
           if(std::find(names.begin(), names.end(), it_opt->first) == names.end())
           {
-            names.insert(it_opt->first);
+            names.push_back(it_opt->first);
           }
         }
       }
@@ -692,9 +692,9 @@ namespace OpenMS
     return names;
   }
 
-  std::set<String> MzTab::getPSMOptionalColumnNames() const
+  std::vector<String> MzTab::getPSMOptionalColumnNames() const
   {
-    std::set<String> names;
+    std::vector<String> names;
     if (!psm_data_.empty())
     {
       for (MzTabPSMSectionRows::const_iterator it = psm_data_.begin(); it != psm_data_.end(); ++it)
@@ -703,7 +703,7 @@ namespace OpenMS
         {
           if(std::find(names.begin(), names.end(), it_opt->first) == names.end())
           {
-            names.insert(it_opt->first);
+            names.push_back(it_opt->first);
           }
         }
       }
@@ -711,15 +711,20 @@ namespace OpenMS
     return names;
   }
 
-  std::set<String> MzTab::getSmallMoleculeOptionalColumnNames() const
+  std::vector<String> MzTab::getSmallMoleculeOptionalColumnNames() const
   {
-    std::set<String> names;
+    std::vector<String> names;
     if (!small_molecule_data_.empty())
     {
-      const std::vector<MzTabOptionalColumnEntry>& opt_ = small_molecule_data_[0].opt_;
-      for (std::vector<MzTabOptionalColumnEntry>::const_iterator it = opt_.begin(); it != opt_.end(); ++it)
+      for (MzTabSmallMoleculeSectionRows::const_iterator it = small_molecule_data_.begin(); it != small_molecule_data_.end(); ++it)
       {
-        names.insert(it->first);
+        for (std::vector<MzTabOptionalColumnEntry>::const_iterator it_opt = it->opt_.begin(); it_opt != it->opt_.end(); ++it_opt)
+        {
+          if(std::find(names.begin(), names.end(), it_opt->first) == names.end())
+          {
+            names.push_back(it_opt->first);
+          }
+        }
       }
     }
     return names;
