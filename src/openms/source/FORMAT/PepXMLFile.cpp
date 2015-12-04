@@ -130,17 +130,12 @@ namespace OpenMS
     f << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << "\n";
     f << "<msms_pipeline_analysis date=\"2007-12-05T17:49:46\" xmlns=\"http://regis-web.systemsbiology.net/pepXML\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://sashimi.sourceforge.net/schema_revision/pepXML/pepXML_v117.xsd\" summary_xml=\".xml\">" << "\n";
     f << "<msms_run_summary base_name=\"" << base_name << "\" raw_data_type=\"raw\" raw_data=\"." << raw_data << "\" search_engine=\"" << search_engine_name << "\">" << "\n";
-    // If enzyme is not trypsin, skip it here and specify in TPP parser.
-    if (search_params.digestion_enzyme.getName() == "Trypsin")
+    String enzyme_name = search_params.digestion_enzyme.getName();
+    f << "\t<sample_enzyme name=\"";
+    f << enzyme_name.toLower() << "\">" << "\n";
+    f << "\t\t<specificity cut=\"";
+    if (search_params.digestion_enzyme.getRegEx() != "")
     {
-      f << "\t<sample_enzyme name=\"" << "trypsin" << "\">" << "\n";
-      f << "\t\t<specificity cut=\"KR\" no_cut=\"P\" sense=\"C\"/>" << "\n";
-      f << "\t</sample_enzyme>" << "\n";
-    }
-    else if (search_params.digestion_enzyme.getRegEx() != "")
-    {
-      f << "\t<sample_enzyme name=\"" << search_params.digestion_enzyme.getName() << "\">" << "\n";
-      f << "\t\t<specificity cut=\"";
       vector<String> sub_regex;
       search_params.digestion_enzyme.getRegEx().split(")",sub_regex);
       boost::match_results<std::string::const_iterator> results;
@@ -153,9 +148,9 @@ namespace OpenMS
       {
         f << "\" no_cut=\"P";
       }
-      f << "\" sense=\"C\"/>" << "\n";
-      f << "\t</sample_enzyme>" << "\n";
     }
+    f << "\" sense=\"C\"/>" << "\n";
+    f << "\t</sample_enzyme>" << "\n";
 
     f << "\t<search_summary base_name=\"" << base_name;
     f << "\" search_engine=\"" << search_engine_name;
@@ -1223,7 +1218,10 @@ namespace OpenMS
     else if (element == "sample_enzyme") // parent: "msms_run_summary"
     { // special case: search parameter that occurs *before* "search_summary"!
       String name = attributeAsString_(attributes, "name");
-      params_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(name);
+      if (EnzymesDB::getInstance()->hasEnzyme(name))
+      {
+        params_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(name);
+      }
     }
     else if (element == "search_database") // parent: "search_summary"
     {
@@ -1231,6 +1229,14 @@ namespace OpenMS
       if (params_.db.empty())
       {
         optionalAttributeAsString_(params_.db, attributes, "database_name");
+      }
+    }
+    else if (element == "enzymatic_search_constraint") // parent: "search_summary"
+    {
+      String enzyme = attributeAsString_(attributes, "enzyme");
+      if (EnzymesDB::getInstance()->hasEnzyme(enzyme))
+      {
+        params_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme);
       }
     }
     else if (element == "msms_pipeline_analysis") // root

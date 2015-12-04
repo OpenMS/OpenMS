@@ -137,7 +137,8 @@ namespace OpenMS
         os << "mass_type=\"average\" ";
       }
       os << "charges=\"" << params[i].charges << "\" ";
-      os << "enzyme=\"" << params[i].digestion_enzyme.getName() << "\" ";
+      String enzyme_name = params[i].digestion_enzyme.getName();
+      os << "enzyme=\"" << enzyme_name.toLower() << "\" ";
       String precursor_unit = params[i].precursor_mass_tolerance_ppm ? "true" : "false";
       String peak_unit = params[i].fragment_mass_tolerance_ppm ? "true" : "false";
 

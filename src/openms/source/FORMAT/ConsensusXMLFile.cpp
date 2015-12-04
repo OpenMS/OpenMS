@@ -368,8 +368,10 @@ namespace OpenMS
       //enzyme
       String enzyme;
       optionalAttributeAsString_(enzyme, attributes, "enzyme");
-      search_param_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme);
-      
+      if (EnzymesDB::getInstance()->hasEnzyme(enzyme))
+      {
+        search_param_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme);
+      }
       last_meta_ = &search_param_;
     }
     else if (tag == "FixedModification")
@@ -720,7 +722,8 @@ setProgress(++progress_);
         os << "mass_type=\"average\" ";
       }
       os << "charges=\"" << search_param.charges << "\" ";
-      os << "enzyme=\"" << search_param.digestion_enzyme.getName() << "\" ";
+      String enzyme_name = search_param.digestion_enzyme.getName();
+      os << "enzyme=\"" << enzyme_name.toLower() << "\" ";
       String precursor_unit = search_param.precursor_mass_tolerance_ppm ? "true" : "false";
       String peak_unit = search_param.fragment_mass_tolerance_ppm ? "true" : "false";
 
