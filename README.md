@@ -1,7 +1,7 @@
 OpenMS
 ====== 
 
-[![Build Status](https://travis-ci.org/OpenMS/OpenMS.svg?branch=develop)](https://travis-ci.org/OpenMS/OpenMS) [![Project Stats](https://www.ohloh.net/p/open-ms/widgets/project_thin_badge.gif)](https://www.ohloh.net/p/open-ms)
+[![Build Status](https://travis-ci.org/OpenMS/OpenMS.svg?branch=develop)](https://travis-ci.org/OpenMS/OpenMS) [![Project Stats](https://www.ohloh.net/p/open-ms/widgets/project_thin_badge.gif)](https://www.ohloh.net/p/open-ms)[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/OpenMS/OpenMS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 
 

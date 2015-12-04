@@ -17,6 +17,7 @@
 			<VariableModification name="E-18.0106" />
 			<VariableModification name="M+15.9949" />
 			<VariableModification name="Q-17.0265" />
+            <UserParam type="string" name="test" value="test"/>
 		</SearchParameters>
 		<ProteinIdentification score_type="score_type" higher_score_better="true" significance_threshold="56.7643013000488">
 			<ProteinHit id="PH_0" accession="urn:lsid:ach0du1schreck2wo3iss4er5denn" score="70.3000030517578" sequence="ABCDEFG">

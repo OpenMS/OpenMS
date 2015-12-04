@@ -298,7 +298,6 @@ START_SECTION(([EXTRA] thresholds))
   String filename;
   NEW_TMP_FILE(filename)
   MzIdentMLFile().store(filename, protein_ids, peptide_ids);
-  MzIdentMLFile().store("/tmp/test.mzid", protein_ids, peptide_ids);
   protein_ids.clear();
   peptide_ids.clear();
   MzIdentMLFile().load(filename, protein_ids, peptide_ids);
@@ -311,7 +310,6 @@ START_SECTION(([EXTRA] thresholds))
       TEST_EQUAL(peptide_ids[i].getHits().size(),3)
       for (size_t j = 0; j < peptide_ids[i].getHits().size(); ++j)
       {
-        std::cout << peptide_ids[i].getHits()[j].getScore() << peptide_ids[i].getHits()[j].getSequence().toString() << peptide_ids[i].getHits()[j].getMetaValue("pass_threshold") << std::endl;
         if (peptide_ids[i].getHits()[j].getScore() > protein_ids[0].getSignificanceThreshold())
         {
           TEST_EQUAL(peptide_ids[i].getHits()[j].getMetaValue("pass_threshold"),false)

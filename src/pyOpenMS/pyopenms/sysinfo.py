@@ -1,6 +1,6 @@
 import sys
 
-if sys.platform == "linux2":
+if sys.platform.startswith("linux"):
     import ctypes as c
     import ctypes.util
 

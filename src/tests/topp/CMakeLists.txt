@@ -693,7 +693,7 @@ add_test("TOPP_IDFileConverter_8_out1" ${DIFF} -in1 IDFileConverter_8_output.tmp
 set_tests_properties("TOPP_IDFileConverter_8_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_8")
 #  idXML to mzIdentML (input file is "IdXMLFile_whole.idXML" from the class test):
 add_test("TOPP_IDFileConverter_9" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_9_input.idXML -out IDFileConverter_9_output.tmp -out_type mzid)
-add_test("TOPP_IDFileConverter_9_out1" ${DIFF} -in1 IDFileConverter_9_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_9_output.mzid -whitelist "creationDate" )
+add_test("TOPP_IDFileConverter_9_out1" ${DIFF} -in1 IDFileConverter_9_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_9_output.mzid -whitelist "creationDate", "id", "spectraData_ref", "searchDatabase_ref" )
 set_tests_properties("TOPP_IDFileConverter_9_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_9")
 # pepXML with very small delta mass as modification (most probably an artefact and removed during parsing)
 add_test("TOPP_IDFileConverter_10" ${TOPP_BIN_PATH}/IDFileConverter -in ${DATA_DIR_TOPP}/IDFileConverter_10_input.pepXML -out IDFileConverter_10_output.tmp -out_type idXML)

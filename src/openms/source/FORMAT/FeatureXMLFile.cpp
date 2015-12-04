@@ -846,6 +846,15 @@ namespace OpenMS
       prot_id_.setSearchParameters(search_param_);
       search_param_ = ProteinIdentification::SearchParameters();
     }
+    else if (tag == "FixedModification")
+    {
+      last_meta_ = &search_param_;
+    }
+    else if (tag == "VariableModification")
+    {
+      last_meta_ = &search_param_;
+    }
+
     else if (tag == "ProteinHit")
     {
       prot_id_.insertHit(prot_hit_);
