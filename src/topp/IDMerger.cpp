@@ -275,10 +275,11 @@ protected:
     else
     {
       bool annotate_file_origin = getFlag_("annotate_file_origin");
-      map<String, ProteinIdentification> proteins_by_id;
+      map<String, ProteinIdentification> proteins_by_id; //id<String> the reference which links PeptideIdentification and ProteinIdentification (must be equal)
       vector<vector<PeptideIdentification> > peptides_by_file;
       StringList add_to_ids; // IDs from the "add_to" file (if any)
 
+      ///make sure add_to at front of the file_names and is not duplicated
       if (!add_to.empty())
       {
         remove(file_names.begin(), file_names.end(), add_to);
@@ -286,6 +287,8 @@ protected:
       }
 
       peptides_by_file.resize(file_names.size());
+      ///reassign ProteinIdentificantion.id if not unique, update all
+      ///corresponding PeptideIdentification.id (links)
       for (Size i = 0; i < file_names.size(); ++i)
       {
         const String& file_name = file_names[i];
@@ -329,7 +332,9 @@ protected:
         }
       }
 
-      if (add_to.empty()) // copy proteins from map into vector for writing
+      /// copy all ProteinIdentification and PeptideIdentification from each file
+      /// into newfrom map into vector for writing
+      if (add_to.empty())
       {
         for (vector<vector<PeptideIdentification> >::iterator pep_it =
                peptides_by_file.begin(); pep_it != peptides_by_file.end();
@@ -343,16 +348,18 @@ protected:
           proteins.push_back(map_it->second);
         }
       }
-      else // add only new IDs to an existing file
+      /// add only new IDs to an existing file
+      else
       {
-        // copy over data from reference file ("add_to"):
+        ///select ProteinIdentifications from reference files ("add_to")
         map<String, ProteinIdentification> selected_proteins;
         for (StringList::iterator ids_it = add_to_ids.begin();
              ids_it != add_to_ids.end(); ++ids_it)
         {
           selected_proteins[*ids_it] = proteins_by_id[*ids_it];
         }
-        // keep track of peptides that shouldn't be duplicated:
+        ///set up set of peptide sequences from only the first reference file ("add_to")
+        ///which will be ignored from here on (coming from all other files)
         set<AASequence> sequences;
         vector<PeptideIdentification>& base_peptides = peptides_by_file[0];
         for (vector<PeptideIdentification>::iterator pep_it =
@@ -364,7 +371,9 @@ protected:
         }
         peptides.insert(peptides.end(), base_peptides.begin(),
                         base_peptides.end());
-        // merge in data from other files:
+        ///cut all other PeptideIdentifications to the first hit after sorting
+        /// and add new sequences, add the first ProteinHits corresponding to
+        /// the new sequence
         for (vector<vector<PeptideIdentification> >::iterator file_it =
                ++peptides_by_file.begin(); file_it != peptides_by_file.end();
              ++file_it)
