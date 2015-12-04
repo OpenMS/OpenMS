@@ -1085,7 +1085,7 @@ namespace OpenMS
             desc += String(aa_mod.massdiff);
           }
           //Modification unknown, but trying to continue as we want to be able to read the rest despite of the modifications but warning this will fail downstream
-          error(LOAD, "Modification '" + String(aa_mod.mass) + "/delta" + String(aa_mod.massdiff) + "' is unknown. Resuming with '" + desc +  "' which will probably fail using the data downstream.");
+          error(LOAD, "Modification '" + String(aa_mod.mass) + "/delta " + String(aa_mod.massdiff) + "' is unknown. Resuming with '" + desc +  "' which will probably fail using the data downstream.");
         }
         else if (!mods.empty())
         {
