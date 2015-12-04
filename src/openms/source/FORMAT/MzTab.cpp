@@ -656,6 +656,7 @@ namespace OpenMS
 
   std::vector<String> MzTab::getProteinOptionalColumnNames() const
   {
+    // vector is used to preserve the column order
     std::vector<String> names;
     if (!protein_data_.empty())
     {
@@ -675,6 +676,7 @@ namespace OpenMS
 
   std::vector<String> MzTab::getPeptideOptionalColumnNames() const
   {
+    // vector is used to preserve the column order
     std::vector<String> names;
     if (!peptide_data_.empty())
     {
@@ -694,6 +696,7 @@ namespace OpenMS
 
   std::vector<String> MzTab::getPSMOptionalColumnNames() const
   {
+    // vector is used to preserve the column order
     std::vector<String> names;
     if (!psm_data_.empty())
     {
@@ -713,6 +716,7 @@ namespace OpenMS
 
   std::vector<String> MzTab::getSmallMoleculeOptionalColumnNames() const
   {
+    // vector is used to preserve the column order
     std::vector<String> names;
     if (!small_molecule_data_.empty())
     {
