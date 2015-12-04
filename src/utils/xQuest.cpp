@@ -812,9 +812,7 @@ protected:
               // TODO for each precursor peak pair in MS1, find 50 a+b combos with highest pre_score
 
               /**  Old Spectrumgenerator
-              //TODO new TheoreticalSpectrumGeneratorXLink, but alpha and beta chain ions have to be tracked for the scoring somehow (is their number enough?)
               TheoreticalSpectrumGenerator specGen;
-
 
               // Common Peaks with old Spectrum Generator
               RichPeakSpectrum theoretical_alpha_chain;
