@@ -292,8 +292,8 @@ namespace OpenMS
     double peptideB_mass(peptideB.getMonoWeight());
 
     // Generate new AASequences with cross linked peptide as weight tag modification
-    String new_peptideA = peptideA.getPrefix(xlink_pos_A+2).toString() + "[+" + (xlink_mass + peptideB_mass) + "]" + peptideA.getSuffix(peptideA.size() - xlink_pos_A - 1).toString();
-    String new_peptideB = peptideB.getPrefix(xlink_pos_B+2).toString() + "[+" + (xlink_mass + peptideA_mass) + "]" + peptideB.getSuffix(peptideB.size() - xlink_pos_B - 1).toString();
+    String new_peptideA = peptideA.getPrefix(xlink_pos_A+1).toString() + "[+" + (xlink_mass + peptideB_mass) + "]" + peptideA.getSuffix(peptideA.size() - xlink_pos_A).toString();
+    String new_peptideB = peptideB.getPrefix(xlink_pos_B+1).toString() + "[+" + (xlink_mass + peptideA_mass) + "]" + peptideB.getSuffix(peptideB.size() - xlink_pos_B).toString();
 
     AASequence peptideA_xlink = AASequence::fromString(new_peptideA);
     AASequence peptideB_xlink = AASequence::fromString(new_peptideB);
@@ -339,7 +339,7 @@ namespace OpenMS
         ion = peptideA_xlink.getPrefix(i);
         double pos = ion.getMonoWeight(Residue::BIon, charge) / (double)charge;
         ions[pos] = ion;
-        names[pos] = "b(alpha)" + String(i) + String(charge, '+');
+        names[pos] = "b(alpha)" + String(i) + "(beta)" + String(charge, '+');
       }
       if (peptideA != peptideB)
       {
@@ -348,7 +348,7 @@ namespace OpenMS
           ion = peptideB_xlink.getPrefix(i);
           double pos = ion.getMonoWeight(Residue::BIon, charge) / (double)charge;
           ions[pos] = ion;
-          names[pos] = "b(beta)" + String(i) + String(charge, '+');
+          names[pos] = "b(beta)" + String(i) + "(alpha)" + String(charge, '+');
         }
       }
 
