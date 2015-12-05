@@ -345,6 +345,7 @@ namespace OpenMS
           }
           ph->setMetaValue("matched_ions", ListUtils::concatenate(ions, ","));
           ph->setMetaValue("matched_intensity", match_intensity);
+          ph->setMetaValue("matched_ion_number", ions.size());
 
           String max_series;
           int series_stretch = 0;
