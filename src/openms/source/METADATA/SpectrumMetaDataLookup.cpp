@@ -332,11 +332,13 @@ namespace OpenMS
             {
               try
               {
-                int i = ion_name.substr(1).remove('+').toInt();
+                int i = ion_name.substr(1).remove('+').toInt() - 1;
                 ion_series[ion_type].at(i) = true;
               }
-              catch (Exception::ConversionError &)
+              catch (std::out_of_range)
               {
+                LOG_WARN << ion_type << ion_name.substr(1).remove('+').toInt() -1
+                         << " ions not foreseen for" << ph->getSequence().toString() << endl;
                 continue;
               }
             }
