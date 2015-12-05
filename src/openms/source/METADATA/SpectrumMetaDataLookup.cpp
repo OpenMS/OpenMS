@@ -36,6 +36,9 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
 
 using namespace std;
 
@@ -180,14 +183,19 @@ namespace OpenMS
 
   bool SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(
     vector<PeptideIdentification>& peptides, const String& filename,
-    bool stop_on_error)
+    bool stop_on_error, bool reset_basename)
   {
     PeakMap exp;
     SpectrumLookup lookup;
     bool success = true;
+    String bn = basename(filename.c_str());
     for (vector<PeptideIdentification>::iterator it = peptides.begin();
          it != peptides.end(); ++it)
     {
+      if (reset_basename)
+      {
+        it->setBaseName(bn);
+      }
       if (boost::math::isnan(it->getRT()))
       {
         if (lookup.empty()) // load raw data only if we have to
@@ -214,14 +222,19 @@ namespace OpenMS
 
   bool SpectrumMetaDataLookup::addMissingSpectrumReferencestoPeptideIDs(
     vector<PeptideIdentification>& peptides, const String& filename,
-    bool stop_on_error)
+    bool stop_on_error, bool add_ionmatches, bool reset_basename)
   {
     MSExperiment<> exp;
     SpectrumLookup lookup;
     bool success = true;
+    String bn = basename(filename.c_str());
     for (vector<PeptideIdentification>::iterator it = peptides.begin();
          it != peptides.end(); ++it)
     {
+      if (reset_basename)
+      {
+        it->setBaseName(bn);
+      }
       if (!it->metaValueExists("spectrum_reference"))
       {
         if (lookup.empty()) // load raw data only if we have to
@@ -233,6 +246,11 @@ namespace OpenMS
         {
           Size index = lookup.findByRT(it->getRT());
           it->setMetaValue("spectrum_reference", exp[index].getNativeID());
+
+          if (add_ionmatches)
+          {
+            addIonMatches_(*it, exp[index]);
+          }
         }
         catch (Exception::ElementNotFound&)
         {
@@ -241,9 +259,172 @@ namespace OpenMS
           if (stop_on_error) break;
         }
       }
+      else
+      {
+        if (add_ionmatches)
+        {
+          if (lookup.empty()) // load raw data only if we have to
+          {
+            FileHandler().loadExperiment(filename, exp);
+            lookup.readSpectra(exp.getSpectra());
+          }
+          Size index = lookup.findByRT(it->getRT());
+          addIonMatches_(*it, exp[index]);
+        }
+      }
     }
     return success;
   }
 
+  void SpectrumMetaDataLookup::addIonMatches_(PeptideIdentification& pi, const MSSpectrum<Peak1D>& spec)
+  {
+    if (!spec.empty())
+    {
+        TheoreticalSpectrumGenerator tg = TheoreticalSpectrumGenerator();
+        Param tgp(tg.getDefaults());
+        tgp.setValue("add_metainfo", "true");
+        tgp.setValue("add_losses", "true");
+        tgp.setValue("add_precursor_peaks", "true");
+        tgp.setValue("add_abundant_immonium_ions", "true");
+        tgp.setValue("add_first_prefix_ion", "true");
+        tgp.setValue("add_y_ions", "true");
+        tgp.setValue("add_b_ions", "true");
+        tgp.setValue("add_a_ions", "true");
+        tgp.setValue("add_c_ions", "true");
+        tgp.setValue("add_x_ions", "true");
+        tgp.setValue("add_z_ions", "true");
+
+        tg.setParameters(tgp);
+        SpectrumAlignment sa;
+        Param sap = sa.getDefaults();
+        sap.setValue("tolerance", 0.5, "...");
+        sa.setParameters(sap);
+        for (vector<PeptideHit>::iterator ph = pi.getHits().begin(); ph != pi.getHits().end(); ++ph)
+        {
+          RichPeakSpectrum rich_spec;
+          vector<pair<Size, Size> > al;
+          tg.getSpectrum(rich_spec, ph->getSequence(), 2); //will get y5++ or b2+
+          // convert rich spectrum to simple spectrum
+          MSSpectrum<Peak1D> gen_spec, new_spec(spec);
+          for (RichPeakSpectrum::Iterator it = rich_spec.begin(); it != rich_spec.end(); ++it)
+          {
+            gen_spec.push_back(static_cast<Peak1D>(*it));
+          }
+          if (!new_spec.isSorted())
+              new_spec.sortByPosition();
+          sa.getSpectrumAlignment(al, gen_spec, new_spec); //peaks from theor. may be matched to none or one in spec!
+          StringList ions;
+          float match_intensity = 0;
+          //TODO ionseries max length
+          StringList allowed_types = ListUtils::create<String>("y,b,a,c,x,z");
+          map<String, vector<bool> > ion_series;
+          for (StringList::iterator st = allowed_types.begin(); st != allowed_types.end(); ++st)
+          {
+            ion_series.insert(make_pair(*st, vector<bool>(ph->getSequence().size()-1, false)));
+          }
+          for (vector<pair<Size, Size > >::const_iterator it = al.begin(); it != al.end(); ++it)
+          {
+            match_intensity += new_spec[it->second].getIntensity();
+            String ion_name = rich_spec[it->first].getMetaValue("IonName");
+            ions.push_back(ion_name);
+            String ion_type = ion_name.prefix(1);
+            if (ListUtils::contains(allowed_types, ion_type))
+            {
+              try
+              {
+                int i = ion_name.substr(1).remove('+').toInt();
+                ion_series[ion_type].at(i) = true;
+              }
+              catch (Exception::ConversionError &)
+              {
+                continue;
+              }
+            }
+          }
+          ph->setMetaValue("matched_ions", ListUtils::concatenate(ions, ","));
+          ph->setMetaValue("matched_intensity", match_intensity);
+
+          String max_series;
+          int series_stretch = 0;
+          for (map<String, vector<bool> >::iterator tt = ion_series.begin(); tt != ion_series.end(); ++tt)
+          {
+            int stretch = 0;
+            for (vector<bool>::iterator it = tt->second.begin(); it != tt->second.end(); ++it)
+            {
+              if (*it)
+              {
+                ++stretch;
+              }
+              else
+              {
+                stretch = 0;
+              }
+            }
+            if (stretch > series_stretch)
+            {
+              series_stretch = stretch;
+              max_series = tt->first;
+            }
+          }
+          ph->setMetaValue("max_series_type", max_series);
+          ph->setMetaValue("max_series_size", series_stretch);
+
+          float sum_intensity = 0;
+          int peak_number = 0;
+          for (MSSpectrum<Peak1D>::const_iterator pt = spec.begin(); pt != spec.end(); ++pt)
+          {
+            sum_intensity += pt->getIntensity();
+            //TODO parent peak intensity complement pairs number
+            ++peak_number;
+          }
+          ph->setMetaValue("peak_number", peak_number);
+          ph->setMetaValue("sum_intensity", sum_intensity);
+
+          float sn_by_matched_intensity = (match_intensity/ions.size())/
+                  ((sum_intensity-match_intensity)/(peak_number-ions.size()));
+          ph->setMetaValue("sn_by_matched_intensity", sn_by_matched_intensity);
+
+          bool precursor = false;
+          Precursor p = spec.getPrecursors().front();
+          new_spec.sortByPosition();
+          //TODO precursor_H2O_loss and precursor_NH3_loss
+          if (new_spec.findNearest(p.getMZ(),sap.getValue("tolerance"),
+                               sap.getValue("tolerance")) > -1)
+          {
+            precursor = true;
+          }
+          ph->setMetaValue("precursor_in_ms2", precursor);
+
+          float median = 0;
+          new_spec.sortByIntensity();
+          if(new_spec.size() % 2 == 0)
+            median = (new_spec[new_spec.size()/2 - 1].getIntensity() + new_spec[new_spec.size()/2].getIntensity()) / 2;
+          else
+            median = new_spec[new_spec.size()/2].getIntensity();
+          float sign_int= 0;
+          float nois_int = 0;
+          size_t sign_cnt= 0;
+          size_t nois_cnt = 0;
+          for (MSSpectrum<Peak1D>::const_iterator pt = spec.begin(); pt != spec.end(); ++pt)
+          {
+            if (pt->getIntensity() <= median)
+            {
+              ++nois_cnt;
+              nois_int += pt->getIntensity();
+            }
+            else
+            {
+              ++sign_cnt;
+              sign_int += pt->getIntensity();
+            }
+          }
+          float sn_by_median_intensity = (sign_int/sign_cnt)/(nois_int/nois_cnt);
+          ph->setMetaValue("sn_by_median_intensity", sn_by_median_intensity);
+
+        }
+
+
+    }
+  }
 
 } // namespace OpenMS

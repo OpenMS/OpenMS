@@ -169,6 +169,8 @@ protected:
     registerFlag_("ignore_proteins_per_peptide", "[Sequest only] Workaround to deal with .out files that contain e.g. \"+1\" in references column,\n"
                                                  "but do not list extra references in subsequent lines (try -debug 3 or 4)", true);
     registerStringOption_("scan_regex", "<expression>", "", "[Mascot, pepXML, Percolator only] Regular expression used to extract the scan number or retention time. See documentation for details.", false, true);
+    registerFlag_("add_ionmatch_annotation", "Adds UserParams to each PeptideHit. Warning: might be time and memory laborious!", true);
+    registerFlag_("reset_basename", "Resets the BaseName of every PeptideIdentification with the basename of the given mzML file.", true);
   }
 
   ExitCodes main_(int, const char**)
@@ -332,9 +334,12 @@ protected:
         String exp_name = getStringOption_("mz_file");
         if (!exp_name.empty())
         {
+          bool add_ions = getFlag_("add_ionmatch_annotation");
+          bool reset_basename = getFlag_("reset_basename");
           SpectrumMetaDataLookup::addMissingSpectrumReferencestoPeptideIDs(
-                      peptide_identifications, exp_name, false);
+                      peptide_identifications, exp_name, false, add_ions, reset_basename);
         }
+
       }
 
       else if (in_type == FileTypes::MZIDENTML)
@@ -344,10 +349,12 @@ protected:
                              peptide_identifications);
 
         // get retention times from the raw data, if necessary:
-        if (!mz_file.empty())
+        String exp_name = getStringOption_("mz_file");
+        bool reset_basename = getFlag_("reset_basename");
+        if (!exp_name.empty())
         {
           SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(
-            peptide_identifications, mz_file, false);
+            peptide_identifications, exp_name, false, reset_basename);
         }
       }
 
