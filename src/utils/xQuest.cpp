@@ -691,6 +691,7 @@ protected:
 #pragma omp critical (processed_peptides_access)
 #endif
           {
+            cout << "h:" << cit->getString() << ":" << candidate.toString() << endl;
             processed_peptides.insert(pair<StringView, AASequence>(*cit, candidate));
           }
         }

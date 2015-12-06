@@ -432,6 +432,12 @@ START_SECTION(ConstIterator begin() const)
   {
     TEST_EQUAL((*it).getOneLetterCode(), result[i])
   }
+  char result_2[] = { 'D', 'F', 'P', 'I', 'A', 'N', 'G', 'E', 'K' };
+  Size i_2 = 0;
+  for (AASequence::ConstIterator it = seq.begin(); it != seq.end(); ++it, ++i_2)
+  {
+    TEST_EQUAL((*it).getOneLetterCode(), result[i_2])
+  }
 END_SECTION
 
 START_SECTION(ConstIterator end() const)

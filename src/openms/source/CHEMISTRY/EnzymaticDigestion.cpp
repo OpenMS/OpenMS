@@ -249,13 +249,9 @@ namespace OpenMS
     std::vector<Size> pep_positions = tokenize_(sequence.getString());
     Size count = pep_positions.size();
 
-    // no cleavage sites? return full string
-    if (count == 0) 
+    if (count == 0 && sequence.size() >= min_length)
     {
-      if (sequence.size() >= min_length)
-      {
-        output.push_back(sequence);
-      }
+      output.push_back(sequence);
       return;
     }
 
@@ -264,8 +260,13 @@ namespace OpenMS
       // add if cleavage product larger then min length
       if (pep_positions[i] - pep_positions[i - 1] >= min_length)
       {
-        output.push_back(sequence.substr(pep_positions[count - 1], sequence.size() - 1));
+        output.push_back(sequence.substr(pep_positions[i - 1], pep_positions[i] - 1));
       }
+    }
+
+    if (sequence.size() - pep_positions[count - 1] >= min_length)
+    {
+      output.push_back(sequence.substr(pep_positions[count - 1], sequence.size() - 1));
     }
 
     // generate fragments with missed cleavages
