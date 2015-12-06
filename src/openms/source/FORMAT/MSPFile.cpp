@@ -325,8 +325,8 @@ namespace OpenMS
         String peptide;
         for (AASequence::ConstIterator pit = hit.getSequence().begin(); pit != hit.getSequence().end(); ++pit)
         {
-          if (pit->isModified() && pit->getOneLetterCode() == "M" &&
-              fabs(ModificationsDB::getInstance()->getModification("M", pit->getModification(), ResidueModification::ANYWHERE).getDiffFormula().getMonoWeight() - 16.0) < 0.01)
+          if (pit->isModified() && pit->getOneLetterCode() == 'M' &&
+              fabs(ModificationsDB::getInstance()->getModification('M', pit->getModification(), ResidueModification::ANYWHERE).getDiffFormula().getMonoWeight() - 16.0) < 0.01)
           {
             peptide += "M(O)";
           }
@@ -347,7 +347,7 @@ namespace OpenMS
         {
           String mod = hit.getSequence().getNTerminalModification();
           ++num_mods;
-          String modification = "0," + hit.getSequence().begin()->getOneLetterCode() + ",";
+          String modification = "0," + String(hit.getSequence().begin()->getOneLetterCode()) + ",";
           modification += ModificationsDB::getInstance()->getTerminalModification(mod, ResidueModification::N_TERM).getId();
           modifications.push_back(modification);
         }

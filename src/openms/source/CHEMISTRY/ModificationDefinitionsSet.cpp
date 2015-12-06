@@ -240,7 +240,7 @@ namespace OpenMS
         }
         for (AASequence::ConstIterator it2 = peptide.begin(); it2 != peptide.end(); ++it2)
         {
-          if (origin == it2->getOneLetterCode())
+          if (origin[0] == it2->getOneLetterCode())
           {
             // check whether the residue is modified (has to be)
             if (!it2->isModified())

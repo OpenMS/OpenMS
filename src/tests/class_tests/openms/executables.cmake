@@ -459,6 +459,8 @@ set(analysis_executables_list
   PILISCrossValidation_test
   PILISNeutralLossModel_test
   PeakIntensityPredictor_test
+  PScore_test
+  HyperScore_test
   PoseClusteringAffineSuperimposer_test
   PoseClusteringShiftSuperimposer_test
   PrecursorIonSelectionPreprocessing_test

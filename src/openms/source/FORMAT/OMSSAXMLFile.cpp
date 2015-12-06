@@ -286,7 +286,7 @@ namespace OpenMS
           UInt position(0);
           for (AASequence::Iterator ait = seq.begin(); ait != seq.end(); ++ait, ++position)
           {
-            if (ait->getOneLetterCode() == origin)
+            if (ait->getOneLetterCode() == origin[0])
             {
               seq.setModification(position, *it);
             }

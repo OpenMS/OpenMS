@@ -209,7 +209,7 @@ END_SECTION
 START_SECTION((const Residue& getResidue(SignedSize index) const))
   AASequence seq = AASequence::fromString("ACDEF");
   SignedSize sint(2);
-  TEST_EQUAL(seq.getResidue(sint).getOneLetterCode(), "D")
+  TEST_EQUAL(seq.getResidue(sint).getOneLetterCode(), 'D')
   TEST_EXCEPTION(Exception::IndexUnderflow, seq.getResidue((SignedSize)-3))
   TEST_EXCEPTION(Exception::IndexOverflow, seq.getResidue((SignedSize)1000))
 END_SECTION
@@ -217,7 +217,7 @@ END_SECTION
 START_SECTION(const Residue& getResidue(Size index) const)
   AASequence seq = AASequence::fromString("ACDEF");
   Size unsignedint(2);
-  TEST_EQUAL(seq.getResidue(unsignedint).getOneLetterCode(), "D")
+  TEST_EQUAL(seq.getResidue(unsignedint).getOneLetterCode(), 'D')
   TEST_EXCEPTION(Exception::IndexOverflow, seq.getResidue((Size)1000))
 END_SECTION
 
@@ -294,7 +294,7 @@ END_SECTION
 START_SECTION(const Residue& operator[](SignedSize index) const)
   AASequence seq = AASequence::fromString("DFPIANGER");
   SignedSize index = 0;
-  TEST_EQUAL(seq[index].getOneLetterCode(), "D")
+  TEST_EQUAL(seq[index].getOneLetterCode(), 'D')
   index = -1;
   TEST_EXCEPTION(Exception::IndexUnderflow, seq[index])
   index = 20;
@@ -304,7 +304,7 @@ END_SECTION
 START_SECTION(const Residue& operator[](Size index) const)
   AASequence seq = AASequence::fromString("DFPIANGER");
   Size index = 0;
-  TEST_EQUAL(seq[index].getOneLetterCode(), "D")
+  TEST_EQUAL(seq[index].getOneLetterCode(), 'D')
   index = 20;
   TEST_EXCEPTION(Exception::IndexOverflow, seq[index])
 END_SECTION
@@ -425,7 +425,7 @@ START_SECTION(bool hasSuffix(const AASequence& peptide) const)
 END_SECTION
 
 START_SECTION(ConstIterator begin() const)
-  String result[] = { "D", "F", "P", "I", "A", "N", "G", "E", "R" };
+  char result[] = { 'D', 'F', 'P', 'I', 'A', 'N', 'G', 'E', 'R' };
   AASequence seq = AASequence::fromString("DFPIANGER");
   Size i = 0;
   for (AASequence::ConstIterator it = seq.begin(); it != seq.end(); ++it, ++i)
@@ -439,7 +439,7 @@ START_SECTION(ConstIterator end() const)
 END_SECTION
 
 START_SECTION(Iterator begin())
-  String result[] = { "D", "F", "P", "I", "A", "N", "G", "E", "R" };
+  char result[] = { 'D', 'F', 'P', 'I', 'A', 'N', 'G', 'E', 'R' };
   AASequence seq = AASequence::fromString("DFPIANGER");
   Size i = 0;
   for (AASequence::ConstIterator it = seq.begin(); it != seq.end(); ++it, ++i)

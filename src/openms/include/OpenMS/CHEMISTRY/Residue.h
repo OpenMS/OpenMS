@@ -171,7 +171,7 @@ public:
     /// detailed constructor
     Residue(const String & name,
             const String & three_letter_code,
-            const String & one_letter_code,
+            const char one_letter_code,
             const EmpiricalFormula & formula);
 
     /// destructor
@@ -216,10 +216,10 @@ public:
     const String & getThreeLetterCode() const;
 
     /// sets the name as one letter code
-    void setOneLetterCode(const String & one_letter_code);
+    void setOneLetterCode(const char one_letter_code);
 
     /// returns the name as one letter code
-    const String & getOneLetterCode() const;
+    char getOneLetterCode() const;
 
     /// adds a neutral loss formula
     void addLossFormula(const EmpiricalFormula &);
@@ -378,7 +378,7 @@ protected:
 
     String three_letter_code_;
 
-    String one_letter_code_;
+    char one_letter_code_;
 
     EmpiricalFormula formula_;
 

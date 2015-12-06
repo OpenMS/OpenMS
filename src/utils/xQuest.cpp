@@ -712,18 +712,12 @@ protected:
     // filtering peptide candidates
     for (map<StringView, AASequence>::const_iterator a = processed_peptides.begin(); a != processed_peptides.end(); ++a)
     {
-      String s = a->second.toString();
-      cout << s << endl;
-    }
- 
-    // filtering peptide candidates
-    for (map<StringView, AASequence>::const_iterator a = processed_peptides.begin(); a != processed_peptides.end(); ++a)
-    {
       //create theoretical spectrum
       MSSpectrum<RichPeak1D> theo_spectrum = MSSpectrum<RichPeak1D>();
 
       const AASequence& seq = a->second;
       //add peaks for b and y ions with charge 1
+      cout << a->first.getString() << ":" << a->second.toString() << endl;
       spectrum_generator.getSpectrum(theo_spectrum, seq, 1);
       
       //sort by mz

@@ -1477,7 +1477,7 @@ namespace OpenMS
     double side_chain_activation(param_.getValue("side_chain_activation"));
     for (Size i = 0; i != ion.size(); ++i)
     {
-      if (ion[i].getOneLetterCode() != "R")
+      if (ion[i].getOneLetterCode() != 'R')
       {
         bb_sum += side_chain_activation * sc_charges[i];
       }
@@ -1535,7 +1535,7 @@ namespace OpenMS
     double side_chain_activation(param_.getValue("side_chain_activation"));
     for (Size i = 0; i != peptide.size(); ++i)
     {
-      if (peptide[i].getOneLetterCode() != "R")
+      if (peptide[i].getOneLetterCode() != 'R')
       {
         bb_sum += side_chain_activation * sc_charges[i];
       }

@@ -644,7 +644,7 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
     set<const Residue *> residues = ResidueDB::getInstance()->getResidues(residue_set);
     for (set<const Residue *>::const_iterator it = residues.begin(); it != residues.end(); ++it)
     {
-      aa_to_weight_[(*it)->getOneLetterCode()[0]] = (*it)->getMonoWeight(Residue::Internal);
+      aa_to_weight_[(*it)->getOneLetterCode()] = (*it)->getMonoWeight(Residue::Internal);
     }
 
     max_number_aa_per_decomp_ = param_.getValue("max_number_aa_per_decomp");

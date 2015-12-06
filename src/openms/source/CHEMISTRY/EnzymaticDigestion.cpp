@@ -168,7 +168,7 @@ namespace OpenMS
         spec_n = true;
       }
       // if allow methionine cleavage at the protein start position
-      if (pep_pos == 1 && methionine_cleavage && protein.getResidue((Size)0).getOneLetterCode() == "M")
+      if (pep_pos == 1 && methionine_cleavage && protein.getResidue((Size)0).getOneLetterCode() == 'M')
       {
         spec_n = true;
       }

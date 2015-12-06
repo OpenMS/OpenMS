@@ -545,7 +545,7 @@ void  RNPxlModificationsGenerator::generateTargetSequences(const String& res_seq
     {
       if (!mit->isModified())
       {
-        unmodified_aa_is_present.insert(mit->getOneLetterCode()[0]);
+        unmodified_aa_is_present.insert((char)mit->getOneLetterCode());
       }
     }
   

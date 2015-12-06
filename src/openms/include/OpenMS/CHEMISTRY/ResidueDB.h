@@ -99,7 +99,7 @@ public:
     const Residue * getResidue(const String & name) const;
 
     /// returns a pointer to the residue with 1 letter code name
-    const Residue * getResidue(const unsigned char & one_letter_code) const;
+    const Residue * getResidue(const char one_letter_code) const;
 
     ///
     const Residue * getModifiedResidue(const String & name);

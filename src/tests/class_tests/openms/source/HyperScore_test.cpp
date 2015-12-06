@@ -28,99 +28,88 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
-// $Authors: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg$
+// $Authors: Timo Sachsenberg$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/RealMassDecomposer.h>
+#include <OpenMS/ANALYSIS/RNPXL/HyperScore.h>
 ///////////////////////////
-
-#include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabet.h>
-
-#include <OpenMS/DATASTRUCTURES/Map.h>
-#include <OpenMS/CHEMISTRY/ResidueDB.h>
-#include <OpenMS/CHEMISTRY/Residue.h>
 
 using namespace OpenMS;
-using namespace ims;
 using namespace std;
 
-Weights createWeights()
-{
-  Map<char, double> aa_to_weight;
-
-  set<const Residue*> residues = ResidueDB::getInstance()->getResidues("Natural19WithoutI");
-
-  for (set<const Residue*>::const_iterator it = residues.begin(); it != residues.end(); ++it)
-  {
-    aa_to_weight[(*it)->getOneLetterCode()] = (*it)->getMonoWeight(Residue::Internal);
-  }
-
-  // init mass decomposer
-  IMSAlphabet alphabet;
-  for (Map<char, double>::ConstIterator it = aa_to_weight.begin(); it != aa_to_weight.end(); ++it)
-  {
-    alphabet.push_back(String(it->first), it->second);
-  }
-
-  // initializes weights
-  Weights weights(alphabet.getMasses(), 0.01);
-
-  // optimize alphabet by dividing by gcd
-  weights.divideByGCD();
-
-  return weights;
-}
-
-START_TEST(RealMassDecomposer, "$Id$")
+START_TEST(HyperScore, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-RealMassDecomposer* ptr = 0;
-RealMassDecomposer* null_ptr = 0;
-
-START_SECTION((RealMassDecomposer(const Weights &weights)))
+HyperScore* ptr = 0;
+HyperScore* null_ptr = 0;
+START_SECTION(HyperScore())
 {
-  ptr = new RealMassDecomposer(createWeights());
+  ptr = new HyperScore();
   TEST_NOT_EQUAL(ptr, null_ptr)
 }
 END_SECTION
 
-
-START_SECTION(~RealMassDecomposer())
+START_SECTION(~HyperScore())
 {
-	delete ptr;
+  delete ptr;
 }
 END_SECTION
 
-
-START_SECTION((decompositions_type getDecompositions(double mass, double error)))
+START_SECTION((static double compute(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const PeakSpectrum &exp_spectrum, const RichPeakSpectrum &theo_spectrum)))
 {
-  // TODO
+  PeakSpectrum exp_spectrum;
+  RichPeakSpectrum theo_spectrum;
+  Peak1D p;
+  p.setIntensity(1);
+  RichPeak1D rp;
+  rp.setIntensity(1);
+  
+  // full match, 5 identical masses, identical intensities (=1)
+  for (Size i = 1; i != 6; ++i)
+  {
+    p.setMZ(i);
+    rp.setMZ(i);
+    exp_spectrum.push_back(p);
+    theo_spectrum.push_back(rp);
+  }
+  TEST_REAL_SIMILAR(HyperScore::compute(0.1, false, exp_spectrum, theo_spectrum), 3.609438);
+  TEST_REAL_SIMILAR(HyperScore::compute(10, true, exp_spectrum, theo_spectrum), 3.609438);
+
+  // full match, 10 identical masses, identical intensities (=1)
+  for (Size i = 6; i <= 10; ++i)
+  {
+    p.setMZ(i);
+    rp.setMZ(i);
+    exp_spectrum.push_back(p);
+    theo_spectrum.push_back(rp);
+  }
+  TEST_REAL_SIMILAR(HyperScore::compute(0.1, false, exp_spectrum, theo_spectrum), 4.302585);
+  TEST_REAL_SIMILAR(HyperScore::compute(10, true, exp_spectrum, theo_spectrum), 4.302585);
+
+  exp_spectrum.clear(true);
+  theo_spectrum.clear(true);
+
+  // full match if ppm tolerance and partial match for Da tolerance
+  for (Size i = 1; i <= 10; ++i)
+  {
+    double mz = pow(10, i);
+    p.setMZ(mz);
+    rp.setMZ(mz + 9 * 1e-6 * mz); // +9 ppm error
+    exp_spectrum.push_back(p);
+    theo_spectrum.push_back(rp);
+  }
+  TEST_REAL_SIMILAR(HyperScore::compute(0.1, false, exp_spectrum, theo_spectrum), 3.386294);
+  TEST_REAL_SIMILAR(HyperScore::compute(10, true, exp_spectrum, theo_spectrum), 4.302585);
 }
 END_SECTION
-
-START_SECTION((decompositions_type getDecompositions(double mass, double error, const constraints_type &constraints)))
-{
-  // TODO
-}
-END_SECTION
-
-START_SECTION((number_of_decompositions_type getNumberOfDecompositions(double mass, double error)))
-{
-  // TODO
-}
-END_SECTION
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
-
 

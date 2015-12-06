@@ -71,7 +71,7 @@ namespace OpenMS
     return 0;
   }
 
-  const Residue * ResidueDB::getResidue(const unsigned char & one_letter_code) const
+  const Residue * ResidueDB::getResidue(const char one_letter_code) const
   {
     return residue_by_one_letter_code_[one_letter_code];
   }
@@ -132,7 +132,7 @@ namespace OpenMS
       for (vector<String>::const_iterator it = names.begin(); it != names.end(); ++it)
       {
         residue_names_[*it] = r;
-        residue_by_one_letter_code_[(unsigned char)(*it)[0]] = r;
+        residue_by_one_letter_code_[(*it)[0]] = r;
       }
       residues_.insert(r);
       const_residues_.insert(r);
@@ -283,7 +283,11 @@ namespace OpenMS
       }
       if (key.hasSuffix(":OneLetterCode"))
       {
-        res_ptr->setOneLetterCode(value);
+        if (value.size() != 1)
+        {
+          cerr << "OneLetterCode entry '" << value << "' in ResidueDB has length: " << value.size() << endl;
+        }
+        res_ptr->setOneLetterCode(value[0]);
         continue;
       }
       if (key.hasSuffix(":Formula"))
@@ -427,10 +431,10 @@ namespace OpenMS
       {
         residue_names_[(*it)->getThreeLetterCode()] = *it;
       }
-      if ((*it)->getOneLetterCode() != "")
+      if ((*it)->getOneLetterCode() != ' ')
       {
         residue_names_[(*it)->getOneLetterCode()] = *it;
-        const unsigned char l = (*it)->getOneLetterCode()[0];
+        const char l = (*it)->getOneLetterCode();
         residue_by_one_letter_code_[l] = *it;
       }
       if ((*it)->getShortName() != "")

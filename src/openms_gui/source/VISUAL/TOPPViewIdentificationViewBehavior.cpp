@@ -539,7 +539,7 @@ namespace OpenMS
           for (Size j = aa_sequence.size() - 1; j >= aa_sequence.size() - ion_number; --j)
           {
             const Residue & r = aa_sequence.getResidue(j);
-            aa_ss.append(r.getOneLetterCode().toQString());
+            aa_ss.append(String(r.getOneLetterCode()).toQString());
             if (r.getModification() != "")
             {
               aa_ss.append("*");

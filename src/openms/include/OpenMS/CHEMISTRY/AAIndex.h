@@ -1000,7 +1000,7 @@ public:
         if (i > 0)
         {
           Residue leftchar = seq[i - 1];
-          left = leftchar.getOneLetterCode()[0];
+          left = leftchar.getOneLetterCode();
         }
 
         // aa right to current one
@@ -1011,7 +1011,7 @@ public:
         else
         {
           Residue rightchar = seq[i];
-          right = rightchar.getOneLetterCode()[0];
+          right = rightchar.getOneLetterCode();
         }
         double contrib = exp((GBleft_(left) + GBdeltaright_(right)) / (R * T));
         if (i > 0 && i < seq.size())
