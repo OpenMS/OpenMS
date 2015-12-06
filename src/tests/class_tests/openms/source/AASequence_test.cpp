@@ -70,6 +70,9 @@ START_SECTION(AASequence(const AASequence& rhs))
   seq = AASequence::fromString("AAA");
   AASequence seq2(seq);
   TEST_EQUAL(seq, seq2)
+  seq = AASequence::fromString("YTTGDDGTTRGDANGQNLYYYEEFGEPVGTANGWLNR");
+  AASequence seq3(seq);
+  TEST_EQUAL(seq, seq3)
 END_SECTION
 
 START_SECTION(AASequence fromString(const String& s, bool permissive = true))

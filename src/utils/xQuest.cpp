@@ -428,7 +428,7 @@ protected:
       max_(max), 
       bucket_size_(bucket_size)
     {
-      Size n_buckets = ((max - min) / bucket_size) + 1;
+      Size n_buckets = ceil((max - min) / bucket_size) + 1;
       h_.resize(n_buckets);
     }
 
@@ -697,7 +697,7 @@ protected:
       }
     }
 
-    cout << "Peptide " << processed_peptides.size() * processed_peptides.size() / 2 << " candidates." << endl;
+    cout << "Peptide " << processed_peptides.size() << " candidates." << endl;
     Size counter(0);
 
     //TODO remove, adapt to ppm
@@ -708,6 +708,13 @@ protected:
 
     Size has_aligned_peaks(0);
     Size no_aligned_peaks(0);
+
+    // filtering peptide candidates
+    for (map<StringView, AASequence>::const_iterator a = processed_peptides.begin(); a != processed_peptides.end(); ++a)
+    {
+      String s = a->second.toString();
+      cout << s << endl;
+    }
  
     // filtering peptide candidates
     for (map<StringView, AASequence>::const_iterator a = processed_peptides.begin(); a != processed_peptides.end(); ++a)
@@ -715,8 +722,9 @@ protected:
       //create theoretical spectrum
       MSSpectrum<RichPeak1D> theo_spectrum = MSSpectrum<RichPeak1D>();
 
+      const AASequence& seq = a->second;
       //add peaks for b and y ions with charge 1
-      spectrum_generator.getSpectrum(theo_spectrum, a->second, 1);
+      spectrum_generator.getSpectrum(theo_spectrum, seq, 1);
       
       //sort by mz
       theo_spectrum.sortByPosition();
