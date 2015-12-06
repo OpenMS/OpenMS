@@ -324,6 +324,7 @@ protected:
           MascotXMLFile::initializeLookup(lookup, exp, scan_regex);
           PepXMLFile().load(in, protein_identifications,
                             peptide_identifications, exp_name, lookup);
+          bool reset_basename = getFlag_("reset_basename");
           bool add_ions = getFlag_("add_ionmatch_annotation");
           if (add_ions)
           {
