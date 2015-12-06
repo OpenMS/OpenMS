@@ -323,7 +323,13 @@ protected:
           // we may have to parse Mascot spectrum references in pepXML, too:
           MascotXMLFile::initializeLookup(lookup, exp, scan_regex);
           PepXMLFile().load(in, protein_identifications,
-                            peptide_identifications, mz_name, lookup);
+                            peptide_identifications, exp_name, lookup);
+          bool add_ions = getFlag_("add_ionmatch_annotation");
+          if (add_ions)
+          {
+            SpectrumMetaDataLookup::addMissingSpectrumReferencestoPeptideIDs(
+                      peptide_identifications, exp_name, false, add_ions, reset_basename);
+          }
         }
       }
 
@@ -355,6 +361,12 @@ protected:
         {
           SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(
             peptide_identifications, exp_name, false, reset_basename);
+          bool add_ions = getFlag_("add_ionmatch_annotation");
+          if (add_ions)
+          {
+            SpectrumMetaDataLookup::addMissingSpectrumReferencestoPeptideIDs(
+                      peptide_identifications, exp_name, false, add_ions, reset_basename);
+          }
         }
       }
 

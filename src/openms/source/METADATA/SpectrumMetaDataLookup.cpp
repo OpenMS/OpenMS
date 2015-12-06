@@ -268,8 +268,18 @@ namespace OpenMS
             FileHandler().loadExperiment(filename, exp);
             lookup.readSpectra(exp.getSpectra());
           }
-          Size index = lookup.findByRT(it->getRT());
-          addIonMatches_(*it, exp[index]);
+          try
+          {
+            String spectrum_id = it->getMetaValue("spectrum_reference");
+            Size index = lookup.findByNativeID(spectrum_id);
+            addIonMatches_(*it, exp[index]);
+          }
+          catch (Exception::ElementNotFound&)
+          {
+            LOG_ERROR << "Error: Failed to look up spectrum reference '" + spectrum_id + "' - for adding IonMatches; no spectrum with corresponding native ID found." << endl;
+            success = false;
+            if (stop_on_error) break;
+          }
         }
       }
     }
