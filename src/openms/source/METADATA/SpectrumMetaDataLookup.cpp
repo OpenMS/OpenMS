@@ -268,9 +268,9 @@ namespace OpenMS
             FileHandler().loadExperiment(filename, exp);
             lookup.readSpectra(exp.getSpectra());
           }
+          String spectrum_id = it->getMetaValue("spectrum_reference");
           try
           {
-            String spectrum_id = it->getMetaValue("spectrum_reference");
             Size index = lookup.findByNativeID(spectrum_id);
             addIonMatches_(*it, exp[index]);
           }
