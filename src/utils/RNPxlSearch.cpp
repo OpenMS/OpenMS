@@ -1527,19 +1527,15 @@ private:
               complete_loss_spectrum.sortByPosition(); //sort by mz
             }
 
-            // add complete loss spectrum (TODO: add a smart pointer instead of copying it all the time)
-            vector<RichPeakSpectrum> theoretical_spectra;
-            theoretical_spectra.push_back(complete_loss_spectrum);
-
             for (; low_it != up_it; ++low_it)
             {
               const Size& scan_index = low_it->second;
               const PeakSpectrum& exp_spectrum = spectra[scan_index];
 
-              HyperScore::IndexScorePair best_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theoretical_spectra);
+              double score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, complete_loss_spectrum);
 
               // no good hit
-              if (best_score.second < 1.0)
+              if (score < 1.0)
               {
                 continue;
               }
@@ -1548,11 +1544,11 @@ private:
               AnnotatedHit ah;
               ah.sequence = *cit;
               ah.peptide_mod_index = mod_pep_idx;
-              ah.score = best_score.second;
+              ah.score = score;
               ah.rna_mod_index = rna_mod_index;
 
               #ifdef DEBUG_RNPXLSEARCH
-                cout << "best score in pre-score: " << best_score.second << endl;
+                cout << "best score in pre-score: " << score << endl;
               #endif
 
 #ifdef _OPENMP
