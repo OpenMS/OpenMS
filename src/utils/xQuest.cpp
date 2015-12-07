@@ -297,6 +297,7 @@ protected:
     }  
   };
 
+
   // create common / shifted peak spectra for all pairs
   PreprocessedPairSpectra_ preprocessPairs_(const PeakMap& spectra, const map<Size, Size>& map_light_to_heavy, const SpectrumAlignment& ms2_aligner, const double cross_link_mass_light, const double cross_link_mass_heavy)
   {
@@ -900,7 +901,13 @@ protected:
               const pair<AASequence, AASequence>& candidate = filtered_candidates[i];
 	      TheoreticalSpectrumGeneratorXLinks specGen;
               RichPeakSpectrum theoretical_spec;
-              specGen.getSpectrum(theoretical_spec, candidate.first, candidate.second, candidate.first.toString().find('K'), candidate.second.toString().find('K'), 1);
+              TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink cross_link_candidate;
+              cross_link_candidate.alpha = candidate.first;
+              cross_link_candidate.beta = candidate.second;
+              cross_link_candidate.cross_link_position.first = candidate.first.toString().find('K');
+              cross_link_candidate.cross_link_position.second = candidate.second.toString().find('K');
+
+              specGen.getSpectrum(theoretical_spec, cross_link_candidate, 1);
 
               std::vector< std::pair< Size, Size > > matched_fragments_theor_spec;
               ms2_aligner.getSpectrumAlignment(matched_fragments_theor_spec, theoretical_spec, spectrum_light);
@@ -940,9 +947,17 @@ protected:
 
 //            cout << "Pair: " << a->second << ", " << b->second << " matched to light spectrum " << scan_index_light << " with m/z: " << spectrum_light.getPrecursors()[0].getMZ() <<  endl;
 //            cout << a->second.getMonoWeight() << ", " << b->second.getMonoWeight() << " cross_link_mass: " <<  cross_link_mass <<  endl;
+
+
 	      TheoreticalSpectrumGeneratorXLinks specGen;
               RichPeakSpectrum theoretical_spec;
-              specGen.getSpectrum(theoretical_spec, candidate.first, candidate.second, candidate.first.toString().find('K'), candidate.second.toString().find('K'), 1);
+              TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink cross_link_candidate;
+              cross_link_candidate.alpha = candidate.first;
+              cross_link_candidate.beta = candidate.second;
+              cross_link_candidate.cross_link_position.first = candidate.first.toString().find('K');
+              cross_link_candidate.cross_link_position.second = candidate.second.toString().find('K');
+
+              specGen.getSpectrum(theoretical_spec, cross_link_candidate, 1);
 
               std::vector< std::pair< Size, Size > > matched_fragments_theor_spec;
               ms2_aligner.getSpectrumAlignment(matched_fragments_theor_spec, theoretical_spec, spectrum_light);

@@ -128,8 +128,11 @@ namespace OpenMS
   {
   }
 
-  void TheoreticalSpectrumGeneratorXLinks::getSpectrum(RichPeakSpectrum & spec, const AASequence & peptideA, const AASequence & peptideB, Size xlink_pos_A, Size xlink_pos_B, Int charge) const
+  void TheoreticalSpectrumGeneratorXLinks::getSpectrum(RichPeakSpectrum & spec, const ProteinProteinCrossLink& cross_link, Int charge) const
   {
+    const AASequence& peptideA = cross_link.alpha;
+    const AASequence& peptideB = cross_link.beta;
+
     bool add_b_ions(param_.getValue("add_b_ions").toBool());
     bool add_y_ions(param_.getValue("add_y_ions").toBool());
     bool add_a_ions(param_.getValue("add_a_ions").toBool());
@@ -140,17 +143,17 @@ namespace OpenMS
     for (Int z = 1; z <= charge; ++z)
     {
       if (add_b_ions)
-        addPeaks(spec, peptideA, peptideB, xlink_pos_A, xlink_pos_B, Residue::BIon, z);
+        addPeaks(spec, cross_link, Residue::BIon, z);
       if (add_y_ions)
-        addPeaks(spec, peptideA, peptideB, xlink_pos_A, xlink_pos_B, Residue::YIon, z);
+        addPeaks(spec, cross_link, Residue::YIon, z);
       if (add_a_ions)
-        addPeaks(spec, peptideA, peptideB, xlink_pos_A, xlink_pos_B, Residue::AIon, z);
+        addPeaks(spec, cross_link, Residue::AIon, z);
       if (add_c_ions)
-        addPeaks(spec, peptideA, peptideB, xlink_pos_A, xlink_pos_B, Residue::CIon, z);
+        addPeaks(spec, cross_link, Residue::CIon, z);
       if (add_x_ions)
-        addPeaks(spec, peptideA, peptideB, xlink_pos_A, xlink_pos_B, Residue::XIon, z);
+        addPeaks(spec, cross_link, Residue::XIon, z);
       if (add_z_ions)
-        addPeaks(spec, peptideA, peptideB, xlink_pos_A, xlink_pos_B, Residue::ZIon, z);
+        addPeaks(spec, cross_link, Residue::ZIon, z);
     }
 
     bool add_precursor_peaks(param_.getValue("add_precursor_peaks").toBool());
@@ -274,8 +277,11 @@ namespace OpenMS
     spec.sortByPosition();
   }
 
-  void TheoreticalSpectrumGeneratorXLinks::addPeaks(RichPeakSpectrum & spectrum, const AASequence & peptideA, const AASequence & peptideB, Size xlink_pos_A, Size xlink_pos_B, Residue::ResidueType res_type, Int charge) const
+  void TheoreticalSpectrumGeneratorXLinks::addPeaks(RichPeakSpectrum & spectrum, const ProteinProteinCrossLink & cross_link, Residue::ResidueType res_type, Int charge) const
   {
+    const AASequence& peptideA = cross_link.alpha;
+    const AASequence& peptideB = cross_link.beta;
+
     if (peptideA.empty() || peptideB.empty())
     {
       return;
@@ -292,6 +298,9 @@ namespace OpenMS
     double peptideB_mass(peptideB.getMonoWeight());
 
     // Generate new AASequences with cross linked peptide as weight tag modification
+    const Size xlink_pos_A = cross_link.cross_link_position.first;
+    const Size xlink_pos_B = cross_link.cross_link_position.second;
+
     String new_peptideA = peptideA.getPrefix(xlink_pos_A + 1).toString() + "[+" + (xlink_mass + peptideB_mass) + "]" + peptideA.getSuffix(peptideA.size() - xlink_pos_A - 1).toString();
     String new_peptideB = peptideB.getPrefix(xlink_pos_B + 1).toString() + "[+" + (xlink_mass + peptideA_mass) + "]" + peptideB.getSuffix(peptideB.size() - xlink_pos_B - 1).toString();
 
