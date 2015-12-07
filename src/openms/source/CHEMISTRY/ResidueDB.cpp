@@ -73,7 +73,7 @@ namespace OpenMS
 
   const Residue * ResidueDB::getResidue(const char one_letter_code) const
   {
-    return residue_by_one_letter_code_[one_letter_code];
+    return residue_by_one_letter_code_[static_cast<int>(one_letter_code) + 128];
   }
 
   Size ResidueDB::getNumberOfResidues() const
@@ -112,11 +112,11 @@ namespace OpenMS
   void ResidueDB::addResidue_(Residue* r)
   {
     vector<String> names;
-    if (r->getName() != "")
+    if (!r->getName().empty())
     {
       names.push_back(r->getName());
     }
-    if (r->getShortName() != "")
+    if (!r->getShortName().empty())
     {
       names.push_back(r->getShortName());
     }
@@ -126,13 +126,12 @@ namespace OpenMS
       names.push_back(*it);
     }
 
-
     if (!r->isModified())
     {
       for (vector<String>::const_iterator it = names.begin(); it != names.end(); ++it)
       {
         residue_names_[*it] = r;
-        residue_by_one_letter_code_[(*it)[0]] = r;
+        residue_by_one_letter_code_[static_cast<int>((*it)[0]) + 128] = r;
       }
       residues_.insert(r);
       const_residues_.insert(r);
@@ -418,10 +417,7 @@ namespace OpenMS
   void ResidueDB::buildResidueNames_()
   {
     // initialize lookup table to null pointer
-    for (Size i = 0; i != sizeof(residue_by_one_letter_code_)/sizeof(residue_by_one_letter_code_[0]); ++i)
-    {
-      residue_by_one_letter_code_[i] = 0;
-    }
+    for (Size i = 0; i != 256; ++i) residue_by_one_letter_code_[i] = 0;
 
     set<Residue*>::iterator it;
     for (it = residues_.begin(); it != residues_.end(); ++it)
@@ -435,7 +431,7 @@ namespace OpenMS
       {
         residue_names_[(*it)->getOneLetterCode()] = *it;
         const char l = (*it)->getOneLetterCode();
-        residue_by_one_letter_code_[l] = *it;
+        residue_by_one_letter_code_[static_cast<int>(l) + 128] = *it;
       }
       if ((*it)->getShortName() != "")
       {
