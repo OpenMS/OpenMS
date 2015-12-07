@@ -168,6 +168,18 @@ START_SECTION(AASequence fromString(const String& s, bool permissive = true))
 
   TEST_EXCEPTION(Exception::ParseError,
                  AASequence::fromString("PEP T*I#D+E", false));
+
+  AASequence seq19 = AASequence::fromString("PEPE[+999.9]TIDEK");
+  TEST_STRING_EQUAL(seq19[(Size)3].getModification(), "")
+
+  AASequence seq20 = AASequence::fromString("PEPE[999.9]TIDEK");
+  TEST_STRING_EQUAL(seq20[(Size)3].getModification(), "")
+
+  AASequence seq21 = AASequence::fromString("ALTC[2169.1092986574]KMPGTLLPGPGK");
+  TEST_STRING_EQUAL(seq21[(Size)3].getModification(), "")
+  TEST_STRING_EQUAL(seq21[(Size)2].getModification(), "")
+  TEST_STRING_EQUAL(seq21[(Size)4].getModification(), "")
+  
 }
 END_SECTION
 

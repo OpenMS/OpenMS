@@ -53,6 +53,7 @@
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLinks.h>
 
 #include <iostream>
 
@@ -131,13 +132,13 @@ protected:
     registerIntOption_("precursor:max_charge", "<num>", 6, "Maximum precursor charge to be considered.", false, true);
 
     registerTOPPSubsection_("fragment", "Fragments (Product Ion) Options");
-    registerDoubleOption_("fragment:mass_tolerance", "<tolerance>", 10.0, "Fragment mass tolerance", false);
+    registerDoubleOption_("fragment:mass_tolerance", "<tolerance>", 0.2, "Fragment mass tolerance", false);
 
     StringList fragment_mass_tolerance_unit_valid_strings;
     fragment_mass_tolerance_unit_valid_strings.push_back("ppm");
     fragment_mass_tolerance_unit_valid_strings.push_back("Da");
 
-    registerStringOption_("fragment:mass_tolerance_unit", "<unit>", "ppm", "Unit of fragment m", false, false);
+    registerStringOption_("fragment:mass_tolerance_unit", "<unit>", "Da", "Unit of fragment m", false, false);
     setValidStrings_("fragment:mass_tolerance_unit", fragment_mass_tolerance_unit_valid_strings);
 
     registerTOPPSubsection_("modifications", "Modifications Options");
@@ -240,13 +241,42 @@ protected:
      }
    }
 
+  // xQuest, fast pre-Score for x-links (type 2)
+  // required: numbers of peaks for each chain, and how many of them were matched
+  // TODO type Real did not work ?
+  float preScore(Size matchedAlpha, Size ionsAlpha, Size matchedBeta, Size ionsBeta)
+  {
+    if ( (ionsAlpha > 0) && (ionsBeta > 0) )
+    {
+      float result = sqrt(((float) matchedAlpha / (float) ionsAlpha) * ((float) matchedBeta / (float) ionsBeta));
+      return result;
+    } else
+    {
+      return 0.0;
+    }
+  }
+
+  // xQuest, fast pre-Score for Mono links and Loop links (type 0 and type 1)
+  float preScore(Size matchedAlpha, Size ionsAlpha)
+  {
+    if (ionsAlpha > 0)
+    {
+      float result = (float) matchedAlpha / (float) ionsAlpha;
+      return result;
+    } else
+    {
+      return 0.0;
+    }
+  }
+     
+
   struct PreprocessedPairSpectra_
   {
     // pre-initialize so we can simply std::swap the spectra (no synchronization in multi-threading context needed as we get no reallocation of the PeakMaps) 
     PeakMap spectra_light_different; // peaks in light spectrum after common peaks have been removed
     PeakMap spectra_heavy_different; // peaks in heavy spectrum after common peaks have been removed
     PeakMap spectra_heavy_to_light; // heavy peaks transformed to light ones and after common peaks have been removed
-    PeakMap spectra_cross_linker_removed; // merge spectrum of common peaks + shifted peaks present in light transformed as if xlinker was removed
+    PeakMap spectra_common_peaks; // merge spectrum of common peaks + shifted peaks present in light transformed as if xlinker was removed
 
     PreprocessedPairSpectra_(Size size)
     {
@@ -255,7 +285,7 @@ protected:
         spectra_light_different.addSpectrum(PeakSpectrum());
         spectra_heavy_different.addSpectrum(PeakSpectrum());
         spectra_heavy_to_light.addSpectrum(PeakSpectrum());
-        spectra_cross_linker_removed.addSpectrum(PeakSpectrum());
+        spectra_common_peaks.addSpectrum(PeakSpectrum());
       }
     }  
   };
@@ -355,21 +385,17 @@ protected:
         cout << "Common peaks: " << matched_fragments_without_shift.size() << " different peaks: " << spectrum_light.size() - matched_fragments_without_shift.size() << ", " << spectrum_heavy.size() - matched_fragments_without_shift.size() << endl;
         cout << "Matched shifted peaks: " << matched_fragments_with_shift.size() << " unexplained peaks: " << spectrum_light_different.size() - matched_fragments_with_shift.size() << ", " << spectrum_heavy_to_light.size() - matched_fragments_with_shift.size() << endl;
 #endif
-        // generate a merged spectrum with artifically removed cross-linker
-        PeakSpectrum spectrum_cross_linker_removed;
+        // generate common peaks spectrum TODO: check if only light / only heavy or e.g. mean of both peaks are used here
+        PeakSpectrum common_peaks;
         for (Size i = 0; i != matched_fragments_without_shift.size(); ++i)
         {
-          spectrum_cross_linker_removed.push_back(spectrum_light[matched_fragments_without_shift[i].first]);
+          common_peaks.push_back(spectrum_light[matched_fragments_without_shift[i].first]);
         }
-        for (Size i = 0; i != matched_fragments_with_shift.size(); ++i)
-        {
-          spectrum_cross_linker_removed.push_back(spectrum_light_no_linker[matched_fragments_with_shift[i].first]);
-        }
-        spectrum_cross_linker_removed.sortByPosition();
+        common_peaks.sortByPosition();
 #ifdef DEBUG_XQUEST
-        cout << "Peaks to match: " << spectrum_cross_linker_removed.size() << endl;
+        cout << "Peaks to match: " << common_peaks.size() << endl;
 #endif
-        std::swap(ps.spectra_cross_linker_removed[scan_index], spectrum_cross_linker_removed);
+        std::swap(ps.spectra_common_peaks[scan_index], common_peaks);
       }
     }
     return ps;
@@ -691,7 +717,6 @@ protected:
 #pragma omp critical (processed_peptides_access)
 #endif
           {
-            cout << "h:" << cit->getString() << ":" << candidate.toString() << endl;
             processed_peptides.insert(pair<StringView, AASequence>(*cit, candidate));
           }
         }
@@ -728,39 +753,41 @@ protected:
       {
         hg.insert(theo_spectrum[i].getMZ(), 1); // TODO add real index here
       }
-/*
-      Size max_matched(0);
-      for (Size i = 0; i != spectra.size(); ++i)
-      {
-        Size matched_peaks = MatchedIonCount::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, theo_spectrum, spectra[i]);
-    
-        if (matched_peaks > max_matched) 
-        {
-          max_matched = matched_peaks;
-          if (matched_peaks >= 4) break;
-        }
-      }
-     
-      if (max_matched >= 4) 
-      {
-        ++has_aligned_peaks;
-      }
-      else
-      {
-        ++no_aligned_peaks;
-      }
-*/
     }
-    cout << "algined " << has_aligned_peaks << " " << no_aligned_peaks << endl;
 
-   
+    // TODO test variable, can be removed
+    float pScoreMax =0;
+
     // calculate mass pairs
     for (map<StringView, AASequence>::const_iterator a = processed_peptides.begin(); a != processed_peptides.end(); ++a)
     {
       if (++counter % 1000 == 0) cout << counter * 100.0 / processed_peptides.size() << endl;
-       
+
+      if (a->second.toString().find("K") >= a->second.size()-1)
+      {
+        continue;
+      }
+
       for (map<StringView, AASequence>::const_iterator b = a; b != processed_peptides.end(); ++b)
       {
+
+        if (b->second.toString().find("K") >= b->second.size()-1)
+        {
+          continue;
+        }
+
+        // Find all positions of lysine (K) in the peptides (possible scross-linking sites)
+        vector <Size> K_pos_a;
+        vector <Size> K_pos_b;
+        for (Size i = 0; i < a->second.size()-1; ++i)
+        {
+          if (a->second.toString()[i] == 'K') K_pos_a.push_back(i);
+        }
+        for (Size i = 0; i < b->second.size()-1; ++i)
+        {
+          if (b->second.toString()[i] == 'K') K_pos_b.push_back(i);
+        }
+
         // mass peptide1 + mass peptide2 + cross linker mass - cross link loss
         double cross_link_mass = a->second.getMonoWeight() + b->second.getMonoWeight() + cross_link_mass_light - cross_link_mass_loss_type2;
 
@@ -800,12 +827,77 @@ protected:
 //                 << b->second << "(" << b->second.getMonoWeight() << ") matched to light spectrum " << scan_index_light << " with m/z: " << spectrum_light.getPrecursors()[0].getMZ() << " cross_link_mass: " <<  cross_link_mass <<  endl;
 //            cout << "light spectrum index: " << scan_index_light << " heavy spectrum index: " << scan_index_heavy << endl;
             const PeakSpectrum& spectrum_heavy = spectra[scan_index_heavy];
-//            cout << "light spectrum index: " << scan_index_light << " heavy spectrum index: " << scan_index_heavy << endl;
-            //TODO: use pair of indices to get to preprocessed spectra
+
+            // Matching of common peaks (done with 0.2 Da tolerance in xQuest)
+            std::vector< std::pair< Size, Size > > matched_fragments_without_shift;
+            ms2_aligner.getSpectrumAlignment(matched_fragments_without_shift, spectrum_light, spectrum_heavy);
+
+            cout << "Pair: " << a->second << "(" << a->second.getMonoWeight() << ")" << ", " 
+                 << b->second << "(" << b->second.getMonoWeight() << ") matched to light spectrum " << scan_index_light << " with m/z: " << spectrum_light.getPrecursors()[0].getMZ() << " cross_link_mass: " <<  cross_link_mass << endl;
+           cout << "Common peaks: " << matched_fragments_without_shift.size() << " remaining preaks: " << spectrum_light.size() - matched_fragments_without_shift.size() << ", " << spectrum_heavy.size() - matched_fragments_without_shift.size() << endl;
+           
+
+            if(matched_fragments_without_shift.size() > 3)
+            {
+              // TODO generate theoretical spectrum for cross link ions (if possible and neccessary)
+              // TODO pre scoring done only with common peaks
+              // TODO Alpha / Beta designation based on order, should be based on length / mass of peptide ?
+              // TODO Charge state is a constant = 1, highest pre_scores without xlink peaks
+              // TODO speed up, alpha chain spectrum can be computed one time for all betas...
+              // TODO for each precursor peak pair in MS1, find 50 a+b combos with highest pre_score
+
+              /**  Old Spectrumgenerator
+              TheoreticalSpectrumGenerator specGen;
+
+              // Common Peaks with old Spectrum Generator
+              RichPeakSpectrum theoretical_alpha_chain;
+              RichPeakSpectrum theoretical_beta_chain;
+              specGen.getSpectrum(theoretical_alpha_chain, a->second, 1);
+              specGen.getSpectrum(theoretical_beta_chain, b->second, 1);
+
+              std::vector< std::pair< Size, Size > > matched_fragments_alpha_chain;
+              std::vector< std::pair< Size, Size > > matched_fragments_beta_chain;
+              ms2_aligner.getSpectrumAlignment(matched_fragments_alpha_chain, theoretical_alpha_chain, spectrum_light);
+              ms2_aligner.getSpectrumAlignment(matched_fragments_beta_chain, theoretical_beta_chain, spectrum_light);
+
+              float pre_score = preScore(matched_fragments_alpha_chain.size(), theoretical_alpha_chain.size(), matched_fragments_beta_chain.size(), theoretical_beta_chain.size());
+              cout << "Numbers of matched peaks to theor. spectra: " << matched_fragments_alpha_chain.size() << "\t" << matched_fragments_beta_chain.size() << endl;
+              cout << "Numbers of theoretical ions: " << theoretical_alpha_chain.size() << "\t" << theoretical_beta_chain.size() << endl;
+              cout << "Pre Score: " << pre_score << endl;
+              cout << "Peptide size: " << a->second.size() << "\t" << b->second.size() << "\t" << "K Pos:" << a->second.toString().find("K") << "\t" << b->second.toString().find("K") << endl;
+              if (pre_score > pScoreMax) pScoreMax = pre_score;
+              **/
+
+              for (Size i = 0; i < K_pos_a.size(); ++i)
+              {
+                for (Size j = 0; j < K_pos_b.size(); ++j)
+                {
+
+                  // New TheoreticalSpectrumGeneratorXLinks
+                  // Common and XLink Peaks with new Spectrum Generator TheoreticalSpectrumGeneratorXLinks
+                  TheoreticalSpectrumGeneratorXLinks specGen;
+                  RichPeakSpectrum theoretical_spec;
+                  specGen.getSpectrum(theoretical_spec, a->second, b->second, K_pos_a[i], K_pos_b[i], 1);
+
+                  std::vector< std::pair< Size, Size > > matched_fragments_theor_spec;
+                  ms2_aligner.getSpectrumAlignment(matched_fragments_theor_spec, theoretical_spec, spectrum_light);
+
+                  // Simplified pre-Score, as Alpha and Beta ions are not yet tracked
+                  float pre_score = preScore(matched_fragments_theor_spec.size(), theoretical_spec.size());
+                  cout << "Number of matched peaks to theor. spectrum: " << matched_fragments_theor_spec.size() << endl;
+                  cout << "Number of theoretical ions: " << theoretical_spec.size() << endl;
+                  cout << "Pre Score: " << pre_score << endl;
+                  cout << "Peptide size: " << a->second.size() << "\t" << b->second.size() << "\t" << "K Pos:" << K_pos_a[i] << "\t" << K_pos_b[i] << endl;
+                  if (pre_score > pScoreMax) pScoreMax = pre_score;
+                }
+              }
+            }
           }
         }  
       }     
     }
+
+    cout << "Pre Score maximum: " << pScoreMax << endl;
  
     return EXECUTION_OK;
   }
