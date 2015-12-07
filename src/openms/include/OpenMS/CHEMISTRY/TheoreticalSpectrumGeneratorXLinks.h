@@ -57,6 +57,50 @@ namespace OpenMS
   {
 public:
 
+    struct ProteinProteinCrossLink
+    {
+      /** Enums
+      */
+      //@{
+      /** @brief type of Protein-Protein cross-link
+      */
+      enum ProteinProteinCrossLinkType
+      {
+        PROTEIN_PROTEIN = 0,
+        MONO = 1,
+        LOOP = 2,
+        NUMBER_OF_TERM_SPECIFICITY
+      };
+
+      AASequence alpha; // longer peptide
+      AASequence beta; // shorter peptide (empty for mono-link), tie bracker: mass then lexicographical
+      std::pair<Size, Size> cross_link_position; // index in alpha, beta or between alpha, alpha in mono-links
+
+      ProteinProteinCrossLinkType getType()
+      {
+        if (!beta.empty()) return PROTEIN_PROTEIN;
+
+        if (cross_link_position.second == 0) return MONO;
+
+        return LOOP;
+      }
+
+      double getMass(double cross_linker_mass)
+      {
+        switch(getType())
+        {
+          case PROTEIN_PROTEIN: return 0; break;
+          case MONO: return 0; break;
+          case LOOP: return 0; break;
+          default: 
+          //TODO: error
+          break;
+        }
+        return cross_linker_mass; // TODO change
+      }
+    };
+
+
     /** @name Constructors and Destructors
     */
     //@{
@@ -77,10 +121,10 @@ public:
      */
     //@{
     /// returns a spectrum with b and y peaks
-    virtual void getSpectrum(RichPeakSpectrum & spec, const AASequence & peptideA, const AASequence & peptideB, Size xlink_pos_A, Size xlink_pos_B, Int charge = 1) const;
+    virtual void getSpectrum(RichPeakSpectrum & spec, const ProteinProteinCrossLink & cross_link, Int charge = 1) const;
 
     /// adds peaks to a spectrum of the given ion-type, peptide, charge, and intensity
-    virtual void addPeaks(RichPeakSpectrum & spectrum, const AASequence & peptideA, const AASequence & peptideB, Size xlink_pos_A, Size xlink_pos_B, Residue::ResidueType res_type, Int charge = 1) const;
+    virtual void addPeaks(RichPeakSpectrum & spectrum, const ProteinProteinCrossLink & cross_link, Residue::ResidueType res_type, Int charge = 1) const;
 
     /// adds the precursor peaks to the spectrum
     virtual void addPrecursorPeaks(RichPeakSpectrum & spec, const AASequence & peptide, Int charge = 1) const;
