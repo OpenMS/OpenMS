@@ -664,7 +664,7 @@ namespace OpenMS
       {
         for (std::vector<MzTabOptionalColumnEntry>::const_iterator it_opt = it->opt_.begin(); it_opt != it->opt_.end(); ++it_opt)
         {
-          if(std::find(names.begin(), names.end(), it_opt->first) == names.end())
+          if (std::find(names.begin(), names.end(), it_opt->first) == names.end())
           {
             names.push_back(it_opt->first);
           }
@@ -684,7 +684,7 @@ namespace OpenMS
       {
         for (std::vector<MzTabOptionalColumnEntry>::const_iterator it_opt = it->opt_.begin(); it_opt != it->opt_.end(); ++it_opt)
         {
-          if(std::find(names.begin(), names.end(), it_opt->first) == names.end())
+          if (std::find(names.begin(), names.end(), it_opt->first) == names.end())
           {
             names.push_back(it_opt->first);
           }
@@ -704,7 +704,7 @@ namespace OpenMS
       {
         for (std::vector<MzTabOptionalColumnEntry>::const_iterator it_opt = it->opt_.begin(); it_opt != it->opt_.end(); ++it_opt)
         {
-          if(std::find(names.begin(), names.end(), it_opt->first) == names.end())
+          if (std::find(names.begin(), names.end(), it_opt->first) == names.end())
           {
             names.push_back(it_opt->first);
           }
@@ -724,7 +724,7 @@ namespace OpenMS
       {
         for (std::vector<MzTabOptionalColumnEntry>::const_iterator it_opt = it->opt_.begin(); it_opt != it->opt_.end(); ++it_opt)
         {
-          if(std::find(names.begin(), names.end(), it_opt->first) == names.end())
+          if (std::find(names.begin(), names.end(), it_opt->first) == names.end())
           {
             names.push_back(it_opt->first);
           }
