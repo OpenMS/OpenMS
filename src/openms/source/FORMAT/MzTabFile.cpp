@@ -2055,7 +2055,7 @@ String MzTabFile::generateMzTabProteinSectionRow_(const MzTabProteinSectionRow& 
         break;
       }
     }
-    if(!found)
+    if (!found)
     {
       s.push_back(MzTabString("null").toCellString());
     }
@@ -2269,7 +2269,7 @@ String MzTabFile::generateMzTabPeptideSectionRow_(const MzTabPeptideSectionRow& 
         break;
       }
     }
-    if(!found)
+    if (!found)
     {
       s.push_back(MzTabString("null").toCellString());
     }
@@ -2339,7 +2339,7 @@ String MzTabFile::generateMzTabPSMSectionRow_(const MzTabPSMSectionRow& row, con
         break;
       }
     }
-    if(!found)
+    if (!found)
     {
       s.push_back(MzTabString("null").toCellString());
     }
@@ -2488,7 +2488,7 @@ String MzTabFile::generateMzTabSmallMoleculeSectionRow_(const MzTabSmallMolecule
         break;
       }
     }
-    if(!found)
+    if (!found)
     {
       s.push_back(MzTabString("null").toCellString());
     }
