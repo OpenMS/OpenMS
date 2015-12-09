@@ -90,7 +90,7 @@ class OPENMS_DLLAPI AScore
     {
       while (first1 != last1 && first2 != last2)
       { 
-        if (round(first1->getMZ()) < round(first2->getMZ())) 
+        if (round(first1->getMZ() * 100) < round(first2->getMZ() * 100)) 
         { 
           *result = *first1; 
           ++result; 
