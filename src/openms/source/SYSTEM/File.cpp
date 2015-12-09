@@ -462,10 +462,10 @@ namespace OpenMS
     return full_db_name;
   }
 
-  Param File::getSystemParameters()
+  String File::getOpenMSHomePath()
   {
-    // set path where OpenMS.ini is found from environment or use default
     String home_path;
+    // set path where OpenMS.ini is found from environment or use default
     if (getenv("OPENMS_HOME_PATH") != 0)
     {
       home_path = getenv("OPENMS_HOME_PATH");
@@ -474,6 +474,12 @@ namespace OpenMS
     {
       home_path = String(QDir::homePath());
     }
+    return home_path;
+  }
+
+  Param File::getSystemParameters()
+  {
+    String home_path = File::getOpenMSHomePath();
 
     String filename = home_path + "/.OpenMS/OpenMS.ini";
 

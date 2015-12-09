@@ -55,8 +55,15 @@
 #include <QDir>
 #include <QFile>
 #include <QCoreApplication>
+#include <QNetworkRequest>
+#include <QNetworkReply>
+#include <QNetworkAccessManager>
 
 #include <boost/math/special_functions/fpclassify.hpp>
+
+#include <sys/stat.h>
+#include <time.h>
+#include <utime.h>
 
 // OpenMP support
 #ifdef _OPENMP
@@ -389,31 +396,99 @@ namespace OpenMS
 
     if (!test_mode_)
     {
-       // if the revision info is meaningful, show it as well
-       String revision("UNKNOWN");
-       if (!VersionInfo::getRevision().empty() && VersionInfo::getRevision() != "exported")
-       {
-         revision = VersionInfo::getRevision();
-       }
-       String platform;
+      // if the revision info is meaningful, show it as well
+      String revision("UNKNOWN");
+      if (!VersionInfo::getRevision().empty() && VersionInfo::getRevision() != "exported")
+      {
+        revision = VersionInfo::getRevision();
+      }
+      String platform;
 
-       #ifdef OPENMS_WINDOWSPLATFORM
-         platform = "Win";
-       #elif __APPLE__
-         platform = "Mac";
-       #else
-         platform = "Linux";
-       #endif
+      #ifdef OPENMS_WINDOWSPLATFORM
+        platform = "Win";
+      #elif __APPLE__
+        platform = "Mac";
+      #else
+        platform = "Linux";
+      #endif
 
-       String architecture = QSysInfo::WordSize == 32 ? "32bit" : "64bit";
+      String architecture = QSysInfo::WordSize == 32 ? "32bit" : "64bit";
 
-       // OpenMS_KNIME_FeatureFinderCentroided_Win_64bit_2.0.0
-       String tool_version_string;
-       tool_version_string =  String("OpenMS") + "_" + "Default_" + tool_name_ + "_" + platform + "_" + architecture + "_"  + version_ + "_" + revision;
+      // OpenMS_KNIME_FeatureFinderCentroided_Win_64bit_2.0.0
+      String tool_version_string;
+      tool_version_string =  String("OpenMS") + "_" + "Default_" + tool_name_ + "_" + platform + "_" + architecture + "_"  + version_ + "_" + revision;
 
-       cerr <<  tool_version_string << endl;
+      String version_file_name = File::getOpenMSHomePath() + "/.OpenMS/" + tool_name_ + ".ver";
+
+      // create version file if it doesn't exist yet
+      if (!File::exists(version_file_name) || !File::readable(version_file_name))
+      {
+        Param p = File::getSystemParameters(); // initializes .OpenMS folder
+
+        // touch file to create it and set initial modification time stamp
+        QFile f;
+        f.setFileName(version_file_name.toQString());
+        f.open(QIODevice::WriteOnly);
+        f.close();
+      }
+      else if (File::readable(version_file_name))
+      {
+        QDateTime last_modified_dt = QFileInfo(version_file_name.toQString()).lastModified();
+        QDateTime current_dt = QDateTime::currentDateTime();
+
+        // check if at least one day passed sincle last request
+        if (current_dt > last_modified_dt.addDays(1))
+        {
+          // update modification time stamp
+          struct stat old_stat;
+          time_t mtime;
+          struct utimbuf new_times;
+          stat(version_file_name.c_str(), &old_stat);
+          mtime = old_stat.st_mtime; 
+          new_times.actime = old_stat.st_atime; // keep accessuib time unchanged 
+          new_times.modtime = time(NULL);  // mod time to current time
+          utime(version_file_name.c_str(), &new_times);          
+
+          cerr << "Checking if update is available: " << endl;             
+          int ncargc = 1;
+          std::vector<char*> ncargv;
+          ncargv.push_back(NULL);
+          QCoreApplication a(ncargc, &(ncargv[0]));
+          QNetworkRequest request;
+          request.setUrl(QUrl(QString("http://openms-update.informatik.uni-tuebingen.de/check/") + tool_version_string.toQString()));
+          //request.setRawHeader("Authorization", "Basic " + QByteArray(QString("%1:%2").arg("user").arg("asas").toAscii()).toBase64());
+          request.setHeader(QNetworkRequest::ContentTypeHeader, "text/plain");
+
+          QNetworkAccessManager * manager = new QNetworkAccessManager();
+          QNetworkReply * reply = manager->get(request);
+
+          StopWatch sw;
+          sw.start();
+
+          bool time_out = false;
+          while (true)
+          {
+            if (reply->isFinished()) break;
+            if (sw.getClockTime() > 5.0)
+            {
+              sw.stop();
+              reply->abort();
+              time_out = true;            
+              break;
+            }
+          }
+          sw.stop();
+
+          if (!time_out && reply->error() == 0) 
+          {
+            QByteArray data = reply->readAll();
+            reply->close();
+            QString response_string = data;
+            cerr << "Response from server: " << response_string.toStdString() << endl;             
+          }
+        }
+      }
     }
-
 
     //-------------------------------------------------------------
     // determine and open the real log file
