@@ -49,6 +49,8 @@
 
 using namespace std;
 
+#define DEBUG_RESIDUEDB 
+
 namespace OpenMS
 {
   ResidueDB::ResidueDB()
@@ -423,20 +425,28 @@ namespace OpenMS
     for (it = residues_.begin(); it != residues_.end(); ++it)
     {
       residue_names_[(*it)->getName()] = *it;
+
       if ((*it)->getThreeLetterCode() != "")
       {
         residue_names_[(*it)->getThreeLetterCode()] = *it;
       }
+      else
+      {
+        cerr << "WARNING: residue: '" << (*it)->getName() << "' has no three letter code assigned." << endl;
+      }
+
       if ((*it)->getOneLetterCode() != ' ')
       {
-        residue_names_[(*it)->getOneLetterCode()] = *it;
         const char l = (*it)->getOneLetterCode();
+        residue_names_[String(l)] = *it;
         residue_by_one_letter_code_[static_cast<int>(l) + 128] = *it;
       }
-      if ((*it)->getShortName() != "")
+
+      if (!(*it)->getShortName().empty())
       {
         residue_names_[(*it)->getShortName()] = *it;
       }
+
       set<String>::iterator sit;
       set<String> syn = (*it)->getSynonyms();
       for (sit = syn.begin(); sit != syn.end(); ++sit)

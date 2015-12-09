@@ -466,7 +466,7 @@ protected:
       h_.resize(n_buckets);
     }
 
-    void insert(double position, AASequence* v)
+    void insert(double position, AASequence*& v)
     {
       if (position < min_) position = min_;
       if (position > max_) position = max_;
@@ -476,7 +476,7 @@ protected:
       if (bucket_index - (Size)bucket_index <= 0.5)
       {
         h_[bucket_index].push_back(v);
-        if (bucket_index >= 0) h_[bucket_index - 1].push_back(v);
+        if (bucket_index > 0) h_[bucket_index - 1].push_back(v);
       } 
       else
       {
@@ -773,45 +773,41 @@ protected:
       }
     }
 
+    // create spectrum generator
+    TheoreticalSpectrumGenerator spectrum_generator;
+
     cout << "Peptide " << processed_peptides.size() << " candidates." << endl;
 
     multimap<double, pair<AASequence, AASequence> > enumerated_cross_link_masses;
 
-    if (!ion_index_mode)
-    {
-      enumerated_cross_link_masses = enumerateCrossLinksAndMasses_(processed_peptides, cross_link_mass_light, cross_link_mass_loss_type2);
-    }
-
-    cout << "Enumerated cross-links: " << enumerated_cross_link_masses.size() << endl;
-
-    Size counter(0);
     //TODO remove, adapt to ppm
     HashGrid1D hg(0.0, 5000.0, fragment_mass_tolerance);
 
-    // create spectrum generator
-    TheoreticalSpectrumGenerator spectrum_generator;
-
-    Size has_aligned_peaks(0);
-    Size no_aligned_peaks(0);
-
-    // filtering peptide candidates
-    for (map<StringView, AASequence>::iterator a = processed_peptides.begin(); a != processed_peptides.end(); ++a)
+    if (!ion_index_mode)
     {
-      //create theoretical spectrum
-      MSSpectrum<RichPeak1D> theo_spectrum = MSSpectrum<RichPeak1D>();
-
-      const AASequence& seq = a->second;
-      //add peaks for b and y ions with charge 1
-      //cout << a->first.getString() << ":" << a->second.toString() << endl;
-      spectrum_generator.getSpectrum(theo_spectrum, seq, 1);
-      
-      //sort by mz
-      theo_spectrum.sortByPosition();
-
-      for (Size i = 0; i != theo_spectrum.size(); ++i)
+      enumerated_cross_link_masses = enumerateCrossLinksAndMasses_(processed_peptides, cross_link_mass_light, cross_link_mass_loss_type2);
+      cout << "Enumerated cross-links: " << enumerated_cross_link_masses.size() << endl;
+    }
+    else
+    {
+      for (map<StringView, AASequence>::iterator a = processed_peptides.begin(); a != processed_peptides.end(); ++a)
       {
-        hg.insert(theo_spectrum[i].getMZ(), &(a->second)); // TODO add real index here
+        //create theoretical spectrum
+        MSSpectrum<RichPeak1D> theo_spectrum = MSSpectrum<RichPeak1D>();
+
+        AASequence * seq = &(a->second);
+        spectrum_generator.getSpectrum(theo_spectrum, *seq, 1);
+      
+        //sort by mz
+        theo_spectrum.sortByPosition();
+
+        for (Size i = 0; i != theo_spectrum.size(); ++i)
+        {
+          hg.insert(theo_spectrum[i].getMZ(), seq);
+        }
       }
+
+      cout << "finished adding peaks to hash map."  << endl;
     }
 
     // TODO test variable, can be removed
