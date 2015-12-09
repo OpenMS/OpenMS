@@ -387,6 +387,34 @@ namespace OpenMS
       UniqueIdGenerator::setSeed(19991231235959);
     }
 
+    if (!test_mode_)
+    {
+       // if the revision info is meaningful, show it as well
+       String revision("UNKNOWN");
+       if (!VersionInfo::getRevision().empty() && VersionInfo::getRevision() != "exported")
+       {
+         revision = VersionInfo::getRevision();
+       }
+       String platform;
+
+       #ifdef OPENMS_WINDOWSPLATFORM
+         platform = "Win";
+       #elif __APPLE__
+         platform = "Mac";
+       #else
+         platform = "Linux";
+       #endif
+
+       String architecture = QSysInfo::WordSize == 32 ? "32bit" : "64bit";
+
+       // OpenMS_KNIME_FeatureFinderCentroided_Win_64bit_2.0.0
+       String tool_version_string;
+       tool_version_string =  String("OpenMS") + "_" + "Default_" + tool_name_ + "_" + platform + "_" + architecture + "_"  + version_ + "_" + revision;
+
+       cerr <<  tool_version_string << endl;
+    }
+
+
     //-------------------------------------------------------------
     // determine and open the real log file
     //-------------------------------------------------------------
