@@ -285,7 +285,7 @@ protected:
     PeakMap spectra_light_different; // peaks in light spectrum after common peaks have been removed
     PeakMap spectra_heavy_different; // peaks in heavy spectrum after common peaks have been removed
     PeakMap spectra_heavy_to_light; // heavy peaks transformed to light ones and after common peaks have been removed
-    PeakMap spectra_cross_linker_removed; // merge spectrum of common peaks + shifted peaks present in light transformed as if xlinker was removed
+    PeakMap spectra_common_peaks; // merge spectrum of common peaks + shifted peaks present in light transformed as if xlinker was removed
 
     PreprocessedPairSpectra_(Size size)
     {
@@ -294,7 +294,7 @@ protected:
         spectra_light_different.addSpectrum(PeakSpectrum());
         spectra_heavy_different.addSpectrum(PeakSpectrum());
         spectra_heavy_to_light.addSpectrum(PeakSpectrum());
-        spectra_cross_linker_removed.addSpectrum(PeakSpectrum());
+        spectra_common_peaks.addSpectrum(PeakSpectrum());
       }
     }  
   };
@@ -782,6 +782,10 @@ protected:
         {
           continue;
         }
+        if (cit->getString().find('K') >= cit->getString().size()-1)
+        {
+          continue;
+        }
             
 #ifdef _OPENMP
 #pragma omp atomic
@@ -826,19 +830,31 @@ protected:
     if (!ion_index_mode)
     {
       enumerated_cross_link_masses = enumerateCrossLinksAndMasses_(processed_peptides, cross_link_mass_light, cross_link_mass_loss_type2);
-      cout << "Enumerated cross-links: " << enumerated_cross_link_masses.size() << endl;
+            cout << "Enumerated cross-links: " << enumerated_cross_link_masses.size() << endl;
     }
-    else
-    {
-      cout << "Adding peaks to hash map ...";
+
+
+      Size counter(0);
+      //TODO remove, adapt to ppm
+      HashGrid1D hg(0.0, 5000.0, fragment_mass_tolerance);
+
+      // create spectrum generator
+      TheoreticalSpectrumGeneratorXLinks spectrum_generator;
+
+      Size has_aligned_peaks(0);
+      Size no_aligned_peaks(0);
+
+      // filtering peptide candidates
       for (map<StringView, AASequence>::iterator a = processed_peptides.begin(); a != processed_peptides.end(); ++a)
       {
         //create theoretical spectrum
         MSSpectrum<RichPeak1D> theo_spectrum = MSSpectrum<RichPeak1D>();
-        // cout << a->second.toString() << endl;
+
         AASequence * seq = &(a->second);
-        spectrum_generator.getSpectrum(theo_spectrum, *seq, 1); // TODO check which charge and which ion series are used for ion index
-      
+        //add peaks for b and y ions with charge 1
+        //cout << a->first.getString() << ":" << a->second.toString() << endl;
+        spectrum_generator.getCommonIonSpectrum(theo_spectrum, seq, 1);
+
         //sort by mz
         theo_spectrum.sortByPosition();
 
