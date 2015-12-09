@@ -457,6 +457,7 @@ protected:
   {
     // bucket size should be 2.0 * fragment mass tolerance
     // this ensures that two neighboring buckets cover all position possible given the fragment mass tolerance
+    // Note: min and max are the absolute boundaries so no (position < min) or (position > max) is allowed
     HashGrid1D(double min, double max, double bucket_size) : 
       min_(min), 
       max_(max), 
@@ -467,9 +468,12 @@ protected:
     }
 
     void insert(double position, AASequence*& v)
-    {
-      if (position < min_) position = min_;
-      if (position > max_) position = max_;
+    {     
+      if (position < min_ || position > max_) 
+      { 
+        std::cerr << "Trying to add element left or right of allowed bounds. (min, max, position): " << min_ << ", " << max_ << ", " << position << std::endl;
+        return;
+      }
 
       double bucket_index = (position - min_) / bucket_size_;
 
@@ -487,6 +491,13 @@ protected:
 
     vector<AASequence*>& get(double position) 
     {
+      if (position < min_ || position > max_) 
+      {
+        std::cerr << "Trying to access element left or right of allowed bounds. (min, max, position): " << min_ << ", " << max_ << ", " << position << std::endl;
+        if (position < min_) return h_.front();
+        if (position > max_) return h_.back();
+      }
+
       double bucket_index = (position - min_) / bucket_size_;
       return h_[bucket_index];
     }
