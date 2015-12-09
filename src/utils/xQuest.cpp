@@ -742,6 +742,10 @@ protected:
         {
           continue;
         }
+        if (cit->getString().find('K') >= cit->getString().size()-1)
+        {
+          continue;
+        }
             
 #ifdef _OPENMP
 #pragma omp atomic
@@ -780,39 +784,40 @@ protected:
     if (!ion_index_mode)
     {
       enumerated_cross_link_masses = enumerateCrossLinksAndMasses_(processed_peptides, cross_link_mass_light, cross_link_mass_loss_type2);
+            cout << "Enumerated cross-links: " << enumerated_cross_link_masses.size() << endl;
     }
 
-    cout << "Enumerated cross-links: " << enumerated_cross_link_masses.size() << endl;
 
-    Size counter(0);
-    //TODO remove, adapt to ppm
-    HashGrid1D hg(0.0, 5000.0, fragment_mass_tolerance);
+      Size counter(0);
+      //TODO remove, adapt to ppm
+      HashGrid1D hg(0.0, 5000.0, fragment_mass_tolerance);
 
-    // create spectrum generator
-    TheoreticalSpectrumGenerator spectrum_generator;
+      // create spectrum generator
+      TheoreticalSpectrumGeneratorXLinks spectrum_generator;
 
-    Size has_aligned_peaks(0);
-    Size no_aligned_peaks(0);
+      Size has_aligned_peaks(0);
+      Size no_aligned_peaks(0);
 
-    // filtering peptide candidates
-    for (map<StringView, AASequence>::iterator a = processed_peptides.begin(); a != processed_peptides.end(); ++a)
-    {
-      //create theoretical spectrum
-      MSSpectrum<RichPeak1D> theo_spectrum = MSSpectrum<RichPeak1D>();
-
-      const AASequence& seq = a->second;
-      //add peaks for b and y ions with charge 1
-      //cout << a->first.getString() << ":" << a->second.toString() << endl;
-      spectrum_generator.getSpectrum(theo_spectrum, seq, 1);
-      
-      //sort by mz
-      theo_spectrum.sortByPosition();
-
-      for (Size i = 0; i != theo_spectrum.size(); ++i)
+      // filtering peptide candidates
+      for (map<StringView, AASequence>::iterator a = processed_peptides.begin(); a != processed_peptides.end(); ++a)
       {
-        hg.insert(theo_spectrum[i].getMZ(), &(a->second)); // TODO add real index here
+        //create theoretical spectrum
+        MSSpectrum<RichPeak1D> theo_spectrum = MSSpectrum<RichPeak1D>();
+
+        const AASequence& seq = a->second;
+        //add peaks for b and y ions with charge 1
+        //cout << a->first.getString() << ":" << a->second.toString() << endl;
+        spectrum_generator.getCommonIonSpectrum(theo_spectrum, seq, 1);
+
+        //sort by mz
+        theo_spectrum.sortByPosition();
+
+        for (Size i = 0; i != theo_spectrum.size(); ++i)
+        {
+          hg.insert(theo_spectrum[i].getMZ(), &(a->second)); // TODO add real index here
+        }
       }
-    }
+
 
     // TODO test variable, can be removed
     float pScoreMax =0;
