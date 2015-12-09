@@ -726,6 +726,8 @@ protected:
 
       for (vector<StringView>::iterator cit = current_digest.begin(); cit != current_digest.end(); ++cit)
       {
+        if (cit->getString().has('X')) continue; // skip peptides with X
+
         bool already_processed = false;
 #ifdef _OPENMP
 #pragma omp critical (processed_peptides_access)
