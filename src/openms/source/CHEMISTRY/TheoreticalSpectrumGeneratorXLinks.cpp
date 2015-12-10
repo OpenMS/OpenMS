@@ -304,17 +304,18 @@ namespace OpenMS
     String new_peptideA = peptideA.getPrefix(xlink_pos_A + 1).toString() + "[+" + (xlink_mass + peptideB_mass) + "]" + peptideA.getSuffix(peptideA.size() - xlink_pos_A - 1).toString();
     String new_peptideB = peptideB.getPrefix(xlink_pos_B + 1).toString() + "[+" + (xlink_mass + peptideA_mass) + "]" + peptideB.getSuffix(peptideB.size() - xlink_pos_B - 1).toString();
 
-    cout << "new_peptideA: " << new_peptideA << endl;
-    cout << "new_peptideX: " << new_peptideB << endl;
+//    cout << "new_peptideA: " << new_peptideA << endl;
+//    cout << "new_peptideX: " << new_peptideB << endl;
 
     AASequence peptideA_xlink = AASequence::fromString(new_peptideA);
     AASequence peptideB_xlink = AASequence::fromString(new_peptideB);
 
+/*
     cout << "peptideA: " << peptideA.toString() << endl;
     cout << "peptideX: " << peptideA_xlink.toString() << endl;
     cout << "peptideB: " << peptideB.toString() << endl;
     cout << "peptideY: " << peptideB_xlink.toString() << endl;
-
+*/
     // Generate the ion peaks:
     // Does not generate peaks of full peptide (therefore "<").
     // They are added via precursor mass (and neutral losses).
