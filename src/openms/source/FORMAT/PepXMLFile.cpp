@@ -731,6 +731,7 @@ namespace OpenMS
       ProteinIdentification protein;
       protein.setDateTime(date_);
       prot_id_ = "unknown_" + date_.getDate();
+      enzyme_ = "unknown_enzyme";
       // "prot_id_" will be overwritten if elem. "search_summary" is present
       protein.setIdentifier(prot_id_);
       proteins_->push_back(protein);
@@ -1161,6 +1162,7 @@ namespace OpenMS
       fixed_modifications_.clear();
       variable_modifications_.clear();
       params_ = ProteinIdentification::SearchParameters();
+      params_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_);
       String mass_type = attributeAsString_(attributes, "precursor_mass_type");
       if (mass_type == "monoisotopic")
       {
@@ -1218,9 +1220,10 @@ namespace OpenMS
     else if (element == "sample_enzyme") // parent: "msms_run_summary"
     { // special case: search parameter that occurs *before* "search_summary"!
       String name = attributeAsString_(attributes, "name");
-      if (EnzymesDB::getInstance()->hasEnzyme(name))
+      enzyme_ = name;
+      if (EnzymesDB::getInstance()->hasEnzyme(enzyme_))
       {
-        params_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(name);
+        params_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_);
       }
     }
     else if (element == "search_database") // parent: "search_summary"

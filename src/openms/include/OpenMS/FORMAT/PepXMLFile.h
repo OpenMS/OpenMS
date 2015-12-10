@@ -251,6 +251,9 @@ private:
     /// Search parameters of the current identification run
     ProteinIdentification::SearchParameters params_;
 
+    /// Enzyme name associated with the current identification run
+    String enzyme_;
+
     /// PeptideIdentification instance currently being processed
     PeptideIdentification current_peptide_;
 

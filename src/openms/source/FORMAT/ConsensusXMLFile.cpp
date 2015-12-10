@@ -666,7 +666,7 @@ namespace OpenMS
     {
     }
 
-setProgress(++progress_);
+    setProgress(++progress_);
     os << "<consensusXML version=\"" << version_ << "\"";
     // file id
     if (consensus_map.getIdentifier() != "")

@@ -1084,7 +1084,19 @@ namespace OpenMS
       s += String(indent, '\t') + "<Enzymes independent=\"false\">" + "\n";
       s += String(indent, '\t') + "\t" + "<Enzyme missedCleavages=\"" + String(miss) + "\" id=\"" + String("ENZ_") + String(UniqueIdGenerator::getUniqueId()) + "\">" + "\n";
       s += String(indent, '\t') + "\t\t" + "<EnzymeName>" + "\n";
-      s += String(indent, '\t') + "\t\t\t" + cv_.getTermByName(enzy.getName()).toXMLString(cv_ns) + "\n";
+      String enzymename = enzy.getName();
+      if (cv_.hasTermWithName(enzymename))
+      {
+        s += String(indent, '\t') + "\t\t\t" + cv_.getTermByName(enzymename).toXMLString(cv_ns) + "\n";
+      }
+      else if (enzymename == "no cleavage")
+      {
+        s += String(indent, '\t') + "\t\t\t" + cv_.getTermByName("NoEnzyme").toXMLString(cv_ns) + "\n";
+      }
+      else
+      {
+        s += String(indent, '\t') + "\t\t\t" + cv_.getTermByName("cleavage agent details").toXMLString(cv_ns) + "\n";
+      }
       s += String(indent, '\t') + "\t\t" + "</EnzymeName>" + "\n";
       s += String(indent, '\t') + '\t' + "</Enzyme>" + "\n";
       s += String(indent, '\t') + "</Enzymes>" + "\n";
