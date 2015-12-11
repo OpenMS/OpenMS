@@ -108,6 +108,15 @@ START_SECTION(void addPeaks(RichPeakSpectrum& spectrum, const AASequence& peptid
   {
     TEST_REAL_SIMILAR(y_spec2[i].getPosition()[0], (y_result[i]+1.0)/2.0)
   }
+
+  for (Size i = 0; i != 1e6; ++i)
+  {
+    RichPeakSpectrum y_spec, b_spec, a_spec;
+    ptr->addPeaks(y_spec, peptide, Residue::YIon, 1);
+    ptr->addPeaks(b_spec, peptide, Residue::BIon, 1);
+    ptr->addPeaks(a_spec, peptide, Residue::AIon, 1);
+  }
+
 END_SECTION
 
 START_SECTION(void addAbundantImmoniumIons(RichPeakSpectrum& spec))
