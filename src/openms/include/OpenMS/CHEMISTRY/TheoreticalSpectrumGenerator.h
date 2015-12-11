@@ -53,7 +53,7 @@ namespace OpenMS
   class OPENMS_DLLAPI TheoreticalSpectrumGenerator :
     public DefaultParamHandler
   {
-public:
+    public:
 
     /** @name Constructors and Destructors
     */
@@ -85,8 +85,37 @@ public:
 
     /// Adds the common, most abundant immonium ions to the theoretical spectra
     void addAbundantImmoniumIons(RichPeakSpectrum & spec) const;
+
+    /// overwrite
+    void updateMembers_();
+
     //@}
+
+    protected:
+      bool add_b_ions_;
+      bool add_y_ions_; 
+      bool add_a_ions_; 
+      bool add_c_ions_;
+      bool add_x_ions_; 
+      bool add_z_ions_; 
+      bool add_first_prefix_ion_;
+      bool add_losses_;
+      bool add_metainfo_;
+      bool add_isotopes_;
+      bool add_precursor_peaks;
+      bool add_abundant_immonium_ions;
+      double a_intensity_;
+      double b_intensity_;
+      double c_intensity_;
+      double x_intensity_;
+      double y_intensity_;
+      double z_intensity_;
+      Int max_isotope_;
+      double rel_loss_intensity_;
+      double pre_int_;
+      double pre_int_H2O_;
+      double pre_int_NH3_;
   };
 }
-
 #endif
+
