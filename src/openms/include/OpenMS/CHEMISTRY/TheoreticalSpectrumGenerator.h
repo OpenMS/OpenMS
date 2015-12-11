@@ -92,6 +92,18 @@ namespace OpenMS
     //@}
 
     protected:
+      /// helper to add an isotope cluster to a spectrum
+      void addIsotopeCluster_(RichPeakSpectrum & spectrum, const AASequence & ion, Residue::ResidueType res_type, Int charge, double intensity) const;
+
+      /// helper to add a single peak to a spectrum
+      void addPeak_(RichPeakSpectrum & spectrum, double pos, double intensity, Residue::ResidueType res_type, Size ion_index, int charge) const;
+   
+      /// helper for mapping residue type to letter
+      char residueTypeToIonLetter_(Residue::ResidueType res_type) const;
+
+      /// helper to add full neutral loss ladders
+      void addLosses_(RichPeakSpectrum & spectrum, const AASequence & ion, double intensity, Residue::ResidueType res_type, int charge) const;
+
       bool add_b_ions_;
       bool add_y_ions_; 
       bool add_a_ions_; 
