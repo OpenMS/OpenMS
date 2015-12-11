@@ -87,7 +87,7 @@ namespace OpenMS
     OpenSwath::SpectrumMeta s;
     s.RT = RT - deltaRT;
     std::vector< OpenSwath::SpectrumMeta >::const_iterator spectrum = std::upper_bound(
-        spectra_meta_.begin(), spectra_meta_.end(), s, typename OpenSwath::SpectrumMeta::RTLess());
+        spectra_meta_.begin(), spectra_meta_.end(), s, OpenSwath::SpectrumMeta::RTLess());
 
     result.push_back(std::distance(spectra_meta_.begin(), spectrum));
     ++spectrum;
