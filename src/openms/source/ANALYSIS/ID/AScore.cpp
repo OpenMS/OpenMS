@@ -57,7 +57,7 @@ namespace OpenMS
   {
   }
 
-  PeptideHit AScore::compute(const PeptideHit & hit, PeakSpectrum & real_spectrum, double fragment_mass_tolerance, bool fragment_mass_unit_ppm, int decimal_places) const
+  PeptideHit AScore::compute(const PeptideHit & hit, PeakSpectrum & real_spectrum, double fragment_mass_tolerance, bool fragment_mass_unit_ppm, double site_determining_ion_tol) const
   {
     PeptideHit phospho = hit;
     
@@ -121,7 +121,7 @@ namespace OpenMS
     {
       vector<RichPeakSpectrum> site_determining_ions;
       
-      computeSiteDeterminingIons_(th_spectra, *s_it, site_determining_ions, decimal_places);
+      computeSiteDeterminingIons_(th_spectra, *s_it, site_determining_ions, site_determining_ion_tol);
       Size N = site_determining_ions[0].size(); // all possibilities have the same number so take the first one
       double p = static_cast<double>(s_it->peak_depth) / 100.0;
       
@@ -271,7 +271,7 @@ namespace OpenMS
   }
   
   // calculation of the number of different speaks between the theoretical spectra of the two best scoring peptide permutations, respectively
-  void AScore::computeSiteDeterminingIons_(const vector<RichPeakSpectrum> & th_spectra, const ProbablePhosphoSites & candidates, vector<RichPeakSpectrum> & site_determining_ions, int decimal_places) const
+  void AScore::computeSiteDeterminingIons_(const vector<RichPeakSpectrum> & th_spectra, const ProbablePhosphoSites & candidates, vector<RichPeakSpectrum> & site_determining_ions, double site_determining_ion_tol) const
   {
     site_determining_ions.clear();
     site_determining_ions.resize(2);
@@ -284,13 +284,13 @@ namespace OpenMS
     AScore::getSpectrumDifference_(
       spectrum_first.begin(), spectrum_first.end(),
       spectrum_second.begin(), spectrum_second.end(),
-      std::inserter(spectrum_first_diff, spectrum_first_diff.begin()), decimal_places);
+      std::inserter(spectrum_first_diff, spectrum_first_diff.begin()), site_determining_ion_tol);
       
     RichPeakSpectrum spectrum_second_diff;
     AScore::getSpectrumDifference_(
       spectrum_second.begin(), spectrum_second.end(),
       spectrum_first.begin(), spectrum_first.end(),
-      std::inserter(spectrum_second_diff, spectrum_second_diff.begin()), decimal_places);
+      std::inserter(spectrum_second_diff, spectrum_second_diff.begin()), site_determining_ion_tol);
       
     LOG_DEBUG << spectrum_first_diff << std::endl;
     LOG_DEBUG << spectrum_second_diff << std::endl;

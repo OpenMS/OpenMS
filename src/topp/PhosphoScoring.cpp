@@ -246,7 +246,8 @@ protected:
     fragment_mass_tolerance_unit_valid_strings.push_back("ppm");
     registerStringOption_("fragment_mass_unit", "<unit>", "Da", "Unit of fragment mass error", false, false);
     setValidStrings_("fragment_mass_unit", fragment_mass_tolerance_unit_valid_strings);    
-    registerIntOption_("determining_ion_mass_decimal_places", "<num>", 2, "Rounding m/z values up to defined decimal places to calculate the site determining ions", false, true);    
+    
+    registerDoubleOption_("site_determining_ion_mass_tolerance", "<tolerance>", 0.01, "Site determining ion mass error in Da", false, true);
   }
 
   ExitCodes main_(int, const char**)
@@ -260,7 +261,9 @@ protected:
     String out(getStringOption_("out"));
     double fragment_mass_tolerance(getDoubleOption_("fragment_mass_tolerance"));
     bool fragment_mass_unit_ppm = getStringOption_("fragment_mass_unit") == "Da" ? false : true;
-    int decimal_places(getIntOption_("determining_ion_mass_decimal_places"));
+    
+    double site_determining_ion_tol(getDoubleOption_("site_determining_ion_mass_tolerance"));
+    
     AScore ascore;
 
     //-------------------------------------------------------------
@@ -299,7 +302,7 @@ protected:
         
         LOG_DEBUG << "starting to compute AScore RT=" << pep_id->getRT() << " SEQUENCE: " << scored_hit.getSequence().toString() << std::endl;
         
-        phospho_sites = ascore.compute(scored_hit, temp, fragment_mass_tolerance, fragment_mass_unit_ppm, decimal_places);
+        phospho_sites = ascore.compute(scored_hit, temp, fragment_mass_tolerance, fragment_mass_unit_ppm, site_determining_ion_tol);
         scored_peptides.push_back(phospho_sites);
       }
 
