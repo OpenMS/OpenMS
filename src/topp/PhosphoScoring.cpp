@@ -245,8 +245,7 @@ protected:
     fragment_mass_tolerance_unit_valid_strings.push_back("Da");
     fragment_mass_tolerance_unit_valid_strings.push_back("ppm");
     registerStringOption_("fragment_mass_unit", "<unit>", "Da", "Unit of fragment mass error", false, false);
-    setValidStrings_("fragment_mass_unit", fragment_mass_tolerance_unit_valid_strings);
-    
+    setValidStrings_("fragment_mass_unit", fragment_mass_tolerance_unit_valid_strings);    
     registerIntOption_("determining_ion_mass_decimal_places", "<num>", 2, "Rounding m/z values up to defined decimal places to calculate the site determining ions", false, true);    
   }
 

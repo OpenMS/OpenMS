@@ -61,9 +61,9 @@ for d in decls:
             break
 
 autowrap_include_dirs = autowrap.Main.create_wrapper_code(decls, instance_map, addons,
-                                                          converters, "pyopenms/pyopenms.pyx",
-                                                          extra_cimports,
-                                                          None)
+                                                          converters, out="pyopenms/pyopenms.pyx",
+                                                          extra_inc_dirs=extra_cimports,
+                                                          extra_opts=None, include_boost=False)
 
 pickle.dump(autowrap_include_dirs, open(persisted_data_path, "wb"))
 
@@ -144,7 +144,7 @@ if iswin:
         shutil.copy(j(OPEN_MS_CONTRIB_BUILD_DIR, "lib", "xerces-c_3_1.dll"),
                     "pyopenms")
 
-elif sys.platform == "linux2":
+elif sys.platform.startswith("linux"):
 
     shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libOpenMS.so"), "pyopenms")
     shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libSuperHirn.so"), "pyopenms")
@@ -155,10 +155,12 @@ elif sys.platform == "darwin":
     shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libOpenMS.dylib"), "pyopenms")
     shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libSuperHirn.dylib"), "pyopenms")
     shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libOpenSwathAlgo.dylib"), "pyopenms")
+    shutil.copy(j(QT_LIBRARY_DIR, "QtCore.framework", "QtCore"), "pyopenms")
+    shutil.copy(j(QT_LIBRARY_DIR, "QtNetwork.framework", "QtNetwork"), "pyopenms")
 
 else:
     print("\n")
-    print("platform ", sys.platform, "not supported yet")
+    print("platform", sys.platform, "not supported yet")
     print("\n")
     exit()
 

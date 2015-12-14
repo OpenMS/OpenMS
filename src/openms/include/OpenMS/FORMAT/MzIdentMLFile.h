@@ -58,6 +58,11 @@ namespace OpenMS
         interface with appropriate structures will be provided.
       @note If a critical error occurs due to the missing functionality, Exception::NotImplemented is thrown.
 
+      @note All PSM will be read into PeptideIdentification, even the passThreshold=false, threshold will be
+        read into ProteinIdentification (i.e. one id run), considered at writing also will only be the
+        threshold set in ProteinIdentification
+      @note All PSM will be read into PeptideIdentification, even the passThreshold=false
+
       @ingroup FileIO
   */
   class OPENMS_DLLAPI MzIdentMLFile :

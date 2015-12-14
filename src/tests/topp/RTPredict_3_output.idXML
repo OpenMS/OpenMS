@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="http://open-ms.sourceforge.net/XSL/IdXML.xsl" ?>
-<IdXML version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+<IdXML version="1.3" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 	</SearchParameters>
 	<IdentificationRun date="2008-06-30T17:22:22" search_engine="File conversion" search_engine_version="" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
@@ -135,7 +135,7 @@
 		<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" RT="0.253" >
 			<PeptideHit score="0" sequence="ADFAQSIDENAAHGSDSLASAER" charge="0" >
 				<UserParam type="float" name="predicted_RT" value="0.346941701613798"/>
-				<UserParam type="float" name="predicted_RT_p_value" value="0.523223753856969"/>
+				<UserParam type="float" name="predicted_RT_p_value" value="0.523223753856968"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" RT="0.26" >

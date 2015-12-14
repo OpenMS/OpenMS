@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+//// --------------------------------------------------------------------------
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
@@ -57,31 +57,48 @@ namespace OpenMS
   class OPENMS_DLLAPI MultiplexDeltaMasses
   {
     public:
+    
+    /**
+     * @brief set of labels associated with a mass shift
+     * 
+     * For example, a set of SILAC labels [Lys8, Lys8, Arg10] would
+     * result in a +26 Da mass shift.
+     */
+    typedef std::multiset<String> LabelSet;
+
+    /**
+     * @brief mass shift with corresponding label set
+     */
+    struct OPENMS_DLLAPI DeltaMass
+    {
+      double delta_mass;
+      LabelSet label_set;
+      
+      DeltaMass(double dm, LabelSet ls);
+      
+      // delta mass with a label set containing a single label
+      DeltaMass(double dm, String l);
+    };
 
     /**
      * @brief constructor
      */
-    MultiplexDeltaMasses(std::vector<double> ms);
+    MultiplexDeltaMasses();
     
     /**
-     * @brief add a mass shift
+     * @brief constructor
      */
-    void addMassShift(double ms);
+    MultiplexDeltaMasses(const std::vector<DeltaMass>& dm);
+        
+    /**
+     * @brief returns delta masses
+     */
+    std::vector<DeltaMass>& getDeltaMasses();
     
     /**
-     * @brief returns mass shifts
+     * @brief returns delta masses
      */
-    std::vector<double> getMassShifts() const;
-    
-    /**
-     * @brief returns number of mass shifts
-     */
-    unsigned getMassShiftCount() const;
-   
-    /**
-     * @brief returns mass shift at position i
-     */
-    double getMassShiftAt(int i) const;
+    const std::vector<DeltaMass>& getDeltaMasses() const;
     
     private:
    
@@ -89,9 +106,11 @@ namespace OpenMS
      * @brief mass shifts between peptides
      * (including zero mass shift for first peptide)
      */
-    std::vector<double> mass_shifts_;
-      
+    std::vector<DeltaMass> delta_masses_;
+    
  };
+ 
+ bool operator<(const MultiplexDeltaMasses &dm1, const MultiplexDeltaMasses &dm2);
   
 }
 

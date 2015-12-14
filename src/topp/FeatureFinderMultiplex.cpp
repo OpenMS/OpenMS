@@ -1006,10 +1006,9 @@ private:
      * filter for peak patterns
      */
     MultiplexDeltaMassesGenerator generator = MultiplexDeltaMassesGenerator(labels_, missed_cleavages_, label_massshift_);
-    std::vector<MultiplexDeltaMasses> masses_test = generator.getMassPatternList();
     if (knock_out_)
     {
-      generator.generateKnockoutMassShifts();
+      generator.generateKnockoutDeltaMasses();
     }
     generator.printLabelsList();
     generator.printMassPatternList();

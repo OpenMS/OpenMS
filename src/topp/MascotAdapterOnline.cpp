@@ -166,8 +166,8 @@ protected:
     PeakMap exp;
     // keep only MS2 spectra
     fh.getOptions().addMSLevel(2);
-    fh.loadExperiment(in, exp, in_type, log_type_);
-    writeDebug_(String("Spectra loaded: ") + exp.size(), 2);
+    fh.loadExperiment(in, exp, in_type, log_type_, false, false);
+    writeLog_("Number of spectra loaded: " + String(exp.size()));
 
     if (exp.getSpectra().empty())
     {

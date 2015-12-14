@@ -311,9 +311,9 @@ namespace OpenMS
       param_line += *mit;
     }
     param_line += ", enzyme=";
-    param_line += ProteinIdentification::NamesOfDigestionEnzyme[sp.enzyme];
+    param_line += sp.digestion_enzyme.getName();
     param_line += ", missed_cleavages=" + String(sp.missed_cleavages) +
-                  ", peak_mass_tolerance=" + String(sp.peak_mass_tolerance) +
+                  ", peak_mass_tolerance=" + String(sp.fragment_mass_tolerance) +
                   ", precursor_mass_tolerance=" + String(sp.precursor_tolerance);
     out << param_line;
     return out;
@@ -1208,7 +1208,7 @@ protected:
       else if (in_type == FileTypes::MZML)
       {
         PeakMap exp;
-        FileHandler().loadExperiment(in, exp);
+        FileHandler().loadExperiment(in, exp, FileTypes::MZML, ProgressLogger::NONE, false, false);
 
         if (exp.getSpectra().empty() && exp.getChromatograms().empty())
         {

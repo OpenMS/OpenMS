@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/MascotXMLHandler.h>
-
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 #include <xercesc/sax2/Attributes.hpp>
 
 using namespace std;
@@ -449,25 +449,9 @@ namespace OpenMS
       else if (tag_ == "CLE")
       {
         String temp_string = (character_buffer_.trim());
-        if (temp_string == "Trypsin")
+        if (EnzymesDB::getInstance()->hasEnzyme(temp_string))
         {
-          search_parameters_.enzyme = ProteinIdentification::TRYPSIN;
-        }
-        else if (temp_string == "PepsinA")
-        {
-          search_parameters_.enzyme = ProteinIdentification::PEPSIN_A;
-        }
-        else if (temp_string == "Chymotrypsin")
-        {
-          search_parameters_.enzyme = ProteinIdentification::CHYMOTRYPSIN;
-        }
-        else if (temp_string == "None")
-        {
-          search_parameters_.enzyme = ProteinIdentification::NO_ENZYME;
-        }
-        else
-        {
-          search_parameters_.enzyme = ProteinIdentification::UNKNOWN_ENZYME;
+          search_parameters_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(temp_string);
         }
       }
       else if (tag_ == "TOL")
@@ -476,7 +460,15 @@ namespace OpenMS
       }
       else if (tag_ == "ITOL")
       {
-        search_parameters_.peak_mass_tolerance = (character_buffer_.trim()).toDouble();
+        search_parameters_.fragment_mass_tolerance = (character_buffer_.trim()).toDouble();
+      }
+      else if (tag_ == "TOLU")
+      {
+        search_parameters_.precursor_mass_tolerance_ppm = (character_buffer_.trim()) == "ppm";
+      }
+      else if (tag_ == "ITOLU")
+      {
+        search_parameters_.fragment_mass_tolerance_ppm = (character_buffer_.trim()) == "ppm";
       }
       else if (tag_ == "name")
       {

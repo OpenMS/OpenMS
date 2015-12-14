@@ -61,7 +61,7 @@ class TestMRMRTNormalizer(unittest.TestCase):
         # get the pairs
         pairs=[]
         simple_find_best_feature(output, pairs, targeted)
-        pairs_corrected = pyopenms.MRMRTNormalizer().removeOutliersIterative(pairs, 0.95, 0.6, True, "iter_jackknife")
+        pairs_corrected = pyopenms.MRMRTNormalizer().removeOutliersIterative(pairs, 0.95, 0.6, True, b"iter_jackknife")
         pairs_corrected = [ list(p) for p in pairs_corrected]
 
         expected = [(1497.56884765625, 1881.0),
@@ -74,7 +74,7 @@ class TestMRMRTNormalizer(unittest.TestCase):
              (799.5291137695312, 1188.0),
              (1397.1541748046875, 1765.0)]
 
-        for exp,res in zip(expected, pairs_corrected):
+        for exp,res in zip(sorted(expected), sorted(pairs_corrected)):
             self.assertAlmostEqual(exp[0], res[0], eps)
             self.assertAlmostEqual(exp[1], res[1], eps)
 

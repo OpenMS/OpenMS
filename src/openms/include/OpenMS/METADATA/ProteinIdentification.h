@@ -99,36 +99,23 @@ public:
     /// Names corresponding to peak mass types
     static const std::string NamesOfPeakMassType[SIZE_OF_PEAKMASSTYPE];
 
-
-    enum DigestionEnzyme
-    {
-      TRYPSIN,
-      PEPSIN_A,
-      PROTEASE_K,
-      CHYMOTRYPSIN,
-      NO_ENZYME,
-      UNKNOWN_ENZYME,
-      SIZE_OF_DIGESTIONENZYME
-    };
-    /// Names corresponding to digestion enzymes
-    static const std::string NamesOfDigestionEnzyme[SIZE_OF_DIGESTIONENZYME];
-
     /// Search parameters of the DB search
     struct OPENMS_DLLAPI SearchParameters :
       public MetaInfoInterface
     {
-      String db;           ///< The used database
-      String db_version;           ///< The database version
-      String taxonomy;           ///< The taxonomy restriction
-      String charges;           ///< The allowed charges for the search
-      PeakMassType mass_type;           ///< Mass type of the peaks
-      std::vector<String> fixed_modifications;           ///< Used fixed modifications
-      std::vector<String> variable_modifications;           ///< Allowed variable modifications
-      DigestionEnzyme enzyme;           ///< The enzyme used for cleavage
-      UInt missed_cleavages;           ///< The number of allowed missed cleavages
-      double peak_mass_tolerance;           ///< Mass tolerance of fragment ions (Dalton)
-      double precursor_tolerance;           ///< Mass tolerance of precursor ions (Dalton)
-      Enzyme digestion_enzyme;           ///< The cleavage site information in details (from EnzymesDB)
+      String db; ///< The used database
+      String db_version; ///< The database version
+      String taxonomy; ///< The taxonomy restriction
+      String charges; ///< The allowed charges for the search
+      PeakMassType mass_type; ///< Mass type of the peaks
+      std::vector<String> fixed_modifications; ///< Used fixed modifications
+      std::vector<String> variable_modifications; ///< Allowed variable modifications
+      UInt missed_cleavages; ///< The number of allowed missed cleavages
+      double fragment_mass_tolerance; ///< Mass tolerance of fragment ions (Dalton or ppm)
+      bool fragment_mass_tolerance_ppm; ///< Mass tolerance unit of fragment ions (true: ppm, false: Dalton)
+      double precursor_tolerance; ///< Mass tolerance of precursor ions (Dalton or ppm)
+      bool precursor_mass_tolerance_ppm; ///< Mass tolerance unit of precursor ions (true: ppm, false: Dalton)
+      Enzyme digestion_enzyme; ///< The cleavage site information in details (from EnzymesDB)
       
       SearchParameters();
 

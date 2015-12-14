@@ -153,7 +153,6 @@ protected:
   {
     vector<ProteinIdentification> prot_ids;
     vector<PeptideIdentification> pep_ids;
-    ProteinHit temp_protein_hit;
 
     //-------------------------------------------------------------
     // parsing parameters
@@ -183,7 +182,6 @@ protected:
     String base_name = QFileInfo(QString::fromStdString(inputfile_raw)).baseName();
 
     cout << "Reading mzML file..." << endl;
-    MzMLFile mz_data_file;
     MSExperiment<Peak1D> exp;
     MzMLFile().load(inputfile_raw, exp);
     
@@ -203,10 +201,7 @@ protected:
     qp.cvAcc = "QC:0000004";
     try
     {
-      //~ const ControlledVocabulary::CVTerm& test = cv.getTermByName("MS aquisition result details");
-      //~ cout << test.name << test.id << endl;
       const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);
-      //~ const ControlledVocabulary::CVTerm& term = cv.getTerm("0000004");
       qp.name = term.name; ///< Name
     }
     catch (...)
@@ -391,36 +386,62 @@ protected:
     {
       at.name = "MS TICs"; ///< Name
     }
-    
+
     at.colTypes.push_back("MS:1000894_[sec]");
     at.colTypes.push_back("MS:1000285");
     UInt max = 0;
     Size below_10k = 0;
-    for (Size i = 0; i < exp.size(); ++i)
+    std::vector<OpenMS::Chromatogram> chroms = exp.getChromatograms();
+    if (!chroms.empty()) //real TIC from the mzML
     {
-      if (exp[i].getMSLevel() == 1)
+      for (Size t = 0; t < chroms.size(); ++t)
       {
-        UInt sum = 0;
-        for (Size j = 0; j < exp[i].size(); ++j)
+        if (chroms[t].getChromatogramType() == ChromatogramSettings::TOTAL_ION_CURRENT_CHROMATOGRAM)
         {
-          sum += exp[i][j].getIntensity();
+          for (Size i = 0; i < chroms[t].size(); ++i)
+          {
+            double sum = chroms[t][i].getIntensity();
+            if (sum < 10000)
+            {
+              ++below_10k;
+            }
+            std::vector<String> row;
+            row.push_back(chroms[t][i].getRT()*60);
+            row.push_back(sum);
+            at.tableRows.push_back(row);
+          }
+          break;//what if there are more than one? should generally not be though ...
         }
-        if (sum > max)
+      }
+    }
+    else // reconstructed TIC or RIC from the MS1 intensities
+    {
+      for (Size i = 0; i < exp.size(); ++i)
+      {
+        if (exp[i].getMSLevel() == 1)
         {
-          max = sum;
+          UInt sum = 0;
+          for (Size j = 0; j < exp[i].size(); ++j)
+          {
+            sum += exp[i][j].getIntensity();
+          }
+          if (sum > max)
+          {
+            max = sum;
+          }
+          if (sum < 10000)
+          {
+            ++below_10k;
+          }
+          std::vector<String> row;
+          row.push_back(exp[i].getRT());
+          row.push_back(sum);
+          at.tableRows.push_back(row);
         }
-        if (sum < 10000)
-        {
-          ++below_10k;
-        }
-        std::vector<String> row;
-        row.push_back(exp[i].getRT());
-        row.push_back(sum);
-        at.tableRows.push_back(row);
       }
     }
     qcmlfile.addRunAttachment(base_name, at);
-    
+
 
     qp = QcMLFile::QualityParameter();
     qp.id = base_name + "_ticslump"; ///< Identifier
@@ -438,7 +459,46 @@ protected:
     }
     qcmlfile.addRunQualityParameter(base_name, qp);
 
-    
+
+    //---injection times MSn
+    at = QcMLFile::Attachment();
+    at.cvRef = "QC"; ///< cv reference
+    at.cvAcc = "QC:0000018";
+    at.qualityRef = msaq_ref;
+    at.id = base_name + "_ms2inj"; ///< Identifier
+    try
+    {
+      const ControlledVocabulary::CVTerm& term = cv.getTerm(at.cvAcc);
+      at.name = term.name; ///< Name
+    }
+    catch (...)
+    {
+      at.name = "MS2 injection time"; ///< Name
+    }
+
+    at.colTypes.push_back("MS:1000894_[sec]");
+    at.colTypes.push_back("MS:1000927");
+    for (Size i = 0; i < exp.size(); ++i)
+    {
+      if (exp[i].getMSLevel() > 1 && !exp[i].getAcquisitionInfo().empty())
+      {
+        for (Size j = 0; j < exp[i].getAcquisitionInfo().size(); ++j)
+        {
+          if (exp[i].getAcquisitionInfo()[j].metaValueExists("MS:1000927"))
+          {
+            std::vector<String> row;
+            row.push_back(String(exp[i].getRT()));
+            row.push_back(exp[i].getAcquisitionInfo()[j].getMetaValue("MS:1000927"));
+            at.tableRows.push_back(row);
+          }
+        }
+      }
+    }
+    if (!at.tableRows.empty())
+    {
+      qcmlfile.addRunAttachment(base_name, at);
+    }
+
     //-------------------------------------------------------------
     // MS  id
     //------------------------------------------------------------
@@ -669,7 +729,7 @@ protected:
       //~ prot_ids[0].getSearchParameters();
       for (vector<PeptideIdentification>::iterator it = pep_ids.begin(); it != pep_ids.end(); ++it)
       {
-        if (it->getHits().size() > 0)
+        if (!it->getHits().empty())
         {
           std::vector<String> row;
           row.push_back(it->getRT());
@@ -684,7 +744,7 @@ protected:
           {
             Residue res = *z;
             String temp;
-            if (res.getModification().size() > 0 && res.getModification() != "Carbamidomethyl")
+            if (!res.getModification().empty() && res.getModification() != "Carbamidomethyl")
             {
               temp = res.getModification() + " (" + res.getOneLetterCode()  + ")";
               //cout<<res.getModification()<<endl;

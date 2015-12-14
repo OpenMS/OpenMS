@@ -46,7 +46,6 @@ namespace OpenMS
 {
 
   const std::string ProteinIdentification::NamesOfPeakMassType[] = {"Monoisotopic", "Average"};
-  const std::string ProteinIdentification::NamesOfDigestionEnzyme[] = {"Trypsin", "Pepsin A", "Protease K", "Chymotrypsin", "No enzyme", "Unknown"};
 
   ProteinIdentification::ProteinGroup::ProteinGroup() :
     probability(0.0), accessions()
@@ -68,7 +67,6 @@ namespace OpenMS
     return accessions < rhs.accessions;
   }
 
-
   ProteinIdentification::SearchParameters::SearchParameters() :
     db(),
     db_version(),
@@ -77,10 +75,11 @@ namespace OpenMS
     mass_type(MONOISOTOPIC),
     fixed_modifications(),
     variable_modifications(),
-    enzyme(UNKNOWN_ENZYME),
     missed_cleavages(0),
-    peak_mass_tolerance(0.0),
+    fragment_mass_tolerance(0.0),
+    fragment_mass_tolerance_ppm(false),
     precursor_tolerance(0.0),
+    precursor_mass_tolerance_ppm(false),
     digestion_enzyme("unknown_enzyme","")
   {
   }
@@ -94,10 +93,11 @@ namespace OpenMS
            mass_type == rhs.mass_type &&
            fixed_modifications == rhs.fixed_modifications &&
            variable_modifications == rhs.variable_modifications &&
-           enzyme == rhs.enzyme &&
            missed_cleavages == rhs.missed_cleavages &&
-           peak_mass_tolerance == rhs.peak_mass_tolerance &&
+           fragment_mass_tolerance == rhs.fragment_mass_tolerance &&
+           fragment_mass_tolerance_ppm == rhs.fragment_mass_tolerance_ppm &&
            precursor_tolerance == rhs.precursor_tolerance &&
+           precursor_mass_tolerance_ppm == rhs.precursor_mass_tolerance_ppm &&
            digestion_enzyme == rhs.digestion_enzyme;
   }
 

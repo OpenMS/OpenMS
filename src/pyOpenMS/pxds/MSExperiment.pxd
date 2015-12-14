@@ -31,7 +31,6 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         bool clearMetaDataArrays() nogil except +
         ExperimentalSettings getExperimentalSettings() nogil except +
         
-        void setPrimaryMSRunPath(StringList& s) nogil except +
         StringList getPrimaryMSRunPath() nogil except +
 
         void swap(MSExperiment[PeakT, ChromoPeakT]) nogil except +

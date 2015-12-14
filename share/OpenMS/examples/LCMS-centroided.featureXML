@@ -3,43 +3,43 @@
 	<dataProcessing completion_time="2011-02-09T11:23:14">
 		<software name="FeatureFinder" version="1.8.0" />
 		<processingAction name="Quantitation" />
-		<userParam type="string" name="parameter: ini" value="/tmp/TOPPView_2011-02-09_112300_vareniclin_3740_1_ini"/>
-		<userParam type="string" name="parameter: in" value="/tmp/TOPPView_2011-02-09_112300_vareniclin_3740_1_in"/>
-		<userParam type="string" name="parameter: no_progress" value="true"/>
-		<userParam type="string" name="parameter: out" value="/tmp/TOPPView_2011-02-09_112300_vareniclin_3740_1_out"/>
-		<userParam type="string" name="parameter: seeds" value=""/>
-		<userParam type="string" name="parameter: type" value="centroided"/>
-		<userParam type="string" name="parameter: log" value=""/>
-		<userParam type="int" name="parameter: debug" value="0"/>
-		<userParam type="int" name="parameter: threads" value="1"/>
-		<userParam type="string" name="parameter: test" value="false"/>
-		<userParam type="string" name="parameter: algorithm:debug" value="false"/>
-		<userParam type="int" name="parameter: algorithm:intensity:bins" value="10"/>
-		<userParam type="float" name="parameter: algorithm:mass_trace:mz_tolerance" value="0.03"/>
-		<userParam type="int" name="parameter: algorithm:mass_trace:min_spectra" value="10"/>
-		<userParam type="int" name="parameter: algorithm:mass_trace:max_missing" value="1"/>
-		<userParam type="float" name="parameter: algorithm:mass_trace:slope_bound" value="0.1"/>
-		<userParam type="int" name="parameter: algorithm:isotopic_pattern:charge_low" value="1"/>
-		<userParam type="int" name="parameter: algorithm:isotopic_pattern:charge_high" value="4"/>
-		<userParam type="float" name="parameter: algorithm:isotopic_pattern:mz_tolerance" value="0.03"/>
-		<userParam type="float" name="parameter: algorithm:isotopic_pattern:intensity_percentage" value="10"/>
-		<userParam type="float" name="parameter: algorithm:isotopic_pattern:intensity_percentage_optional" value="0.1"/>
-		<userParam type="float" name="parameter: algorithm:isotopic_pattern:optional_fit_improvement" value="2"/>
-		<userParam type="float" name="parameter: algorithm:isotopic_pattern:mass_window_width" value="25"/>
-		<userParam type="float" name="parameter: algorithm:seed:min_score" value="0.8"/>
-		<userParam type="int" name="parameter: algorithm:fit:max_iterations" value="500"/>
-		<userParam type="float" name="parameter: algorithm:feature:min_score" value="0.7"/>
-		<userParam type="float" name="parameter: algorithm:feature:min_isotope_fit" value="0.8"/>
-		<userParam type="float" name="parameter: algorithm:feature:min_trace_score" value="0.5"/>
-		<userParam type="float" name="parameter: algorithm:feature:min_rt_span" value="0.333"/>
-		<userParam type="float" name="parameter: algorithm:feature:max_rt_span" value="2.5"/>
-		<userParam type="string" name="parameter: algorithm:feature:rt_shape" value="symmetric"/>
-		<userParam type="float" name="parameter: algorithm:feature:max_intersection" value="0.35"/>
-		<userParam type="string" name="parameter: algorithm:feature:reported_mz" value="monoisotopic"/>
-		<userParam type="float" name="parameter: algorithm:user-seed:rt_tolerance" value="5"/>
-		<userParam type="float" name="parameter: algorithm:user-seed:mz_tolerance" value="1.1"/>
-		<userParam type="float" name="parameter: algorithm:user-seed:min_score" value="0.5"/>
-		<userParam type="float" name="parameter: algorithm:debug:pseudo_rt_shift" value="500"/>
+		<UserParam type="string" name="parameter: ini" value="/tmp/TOPPView_2011-02-09_112300_vareniclin_3740_1_ini"/>
+		<UserParam type="string" name="parameter: in" value="/tmp/TOPPView_2011-02-09_112300_vareniclin_3740_1_in"/>
+		<UserParam type="string" name="parameter: no_progress" value="true"/>
+		<UserParam type="string" name="parameter: out" value="/tmp/TOPPView_2011-02-09_112300_vareniclin_3740_1_out"/>
+		<UserParam type="string" name="parameter: seeds" value=""/>
+		<UserParam type="string" name="parameter: type" value="centroided"/>
+		<UserParam type="string" name="parameter: log" value=""/>
+		<UserParam type="int" name="parameter: debug" value="0"/>
+		<UserParam type="int" name="parameter: threads" value="1"/>
+		<UserParam type="string" name="parameter: test" value="false"/>
+		<UserParam type="string" name="parameter: algorithm:debug" value="false"/>
+		<UserParam type="int" name="parameter: algorithm:intensity:bins" value="10"/>
+		<UserParam type="float" name="parameter: algorithm:mass_trace:mz_tolerance" value="0.03"/>
+		<UserParam type="int" name="parameter: algorithm:mass_trace:min_spectra" value="10"/>
+		<UserParam type="int" name="parameter: algorithm:mass_trace:max_missing" value="1"/>
+		<UserParam type="float" name="parameter: algorithm:mass_trace:slope_bound" value="0.1"/>
+		<UserParam type="int" name="parameter: algorithm:isotopic_pattern:charge_low" value="1"/>
+		<UserParam type="int" name="parameter: algorithm:isotopic_pattern:charge_high" value="4"/>
+		<UserParam type="float" name="parameter: algorithm:isotopic_pattern:mz_tolerance" value="0.03"/>
+		<UserParam type="float" name="parameter: algorithm:isotopic_pattern:intensity_percentage" value="10"/>
+		<UserParam type="float" name="parameter: algorithm:isotopic_pattern:intensity_percentage_optional" value="0.1"/>
+		<UserParam type="float" name="parameter: algorithm:isotopic_pattern:optional_fit_improvement" value="2"/>
+		<UserParam type="float" name="parameter: algorithm:isotopic_pattern:mass_window_width" value="25"/>
+		<UserParam type="float" name="parameter: algorithm:seed:min_score" value="0.8"/>
+		<UserParam type="int" name="parameter: algorithm:fit:max_iterations" value="500"/>
+		<UserParam type="float" name="parameter: algorithm:feature:min_score" value="0.7"/>
+		<UserParam type="float" name="parameter: algorithm:feature:min_isotope_fit" value="0.8"/>
+		<UserParam type="float" name="parameter: algorithm:feature:min_trace_score" value="0.5"/>
+		<UserParam type="float" name="parameter: algorithm:feature:min_rt_span" value="0.333"/>
+		<UserParam type="float" name="parameter: algorithm:feature:max_rt_span" value="2.5"/>
+		<UserParam type="string" name="parameter: algorithm:feature:rt_shape" value="symmetric"/>
+		<UserParam type="float" name="parameter: algorithm:feature:max_intersection" value="0.35"/>
+		<UserParam type="string" name="parameter: algorithm:feature:reported_mz" value="monoisotopic"/>
+		<UserParam type="float" name="parameter: algorithm:user-seed:rt_tolerance" value="5"/>
+		<UserParam type="float" name="parameter: algorithm:user-seed:mz_tolerance" value="1.1"/>
+		<UserParam type="float" name="parameter: algorithm:user-seed:min_score" value="0.5"/>
+		<UserParam type="float" name="parameter: algorithm:debug:pseudo_rt_shift" value="500"/>
 	</dataProcessing>
 	<featureList count="17">
 		<feature id="f_17125733783650982542">
@@ -327,7 +327,7 @@
 						<pt x="4377.6" y="647.233642578125" />
 						<pt x="4374.19" y="647.262512207031" />
 					</convexhull>
-					<userParam type="int" name="label" value="0"/>
+					<UserParam type="int" name="label" value="0"/>
 				</feature>
 				<feature id="f_17125733783650982542_2566633458016935002">
 					<position dim="0">4406.09906637009</position>
@@ -429,12 +429,12 @@
 						<pt x="4374.19" y="647.759094238281" />
 						<pt x="4370.78" y="647.758361816406" />
 					</convexhull>
-					<userParam type="int" name="label" value="2"/>
+					<UserParam type="int" name="label" value="2"/>
 				</feature>
 			</subordinate>
-			<userParam type="int" name="label" value="33"/>
-			<userParam type="int" name="spectrum_index" value="88"/>
-			<userParam type="string" name="spectrum_native_id" value="spectrum=89"/>
+			<UserParam type="int" name="label" value="33"/>
+			<UserParam type="int" name="spectrum_index" value="88"/>
+			<UserParam type="string" name="spectrum_native_id" value="spectrum=89"/>
 		</feature>
 		<feature id="f_4695577755900978758">
 			<position dim="0">4389.16498641852</position>
@@ -771,7 +771,7 @@
 						<pt x="4363.95" y="650.269653320312" />
 						<pt x="4360.55" y="650.267883300781" />
 					</convexhull>
-					<userParam type="int" name="label" value="1"/>
+					<UserParam type="int" name="label" value="1"/>
 				</feature>
 				<feature id="f_4695577755900978758_16914797346320586739">
 					<position dim="0">4388.86087117629</position>
@@ -861,12 +861,12 @@
 						<pt x="4363.95" y="649.72802734375" />
 						<pt x="4360.55" y="649.770324707031" />
 					</convexhull>
-					<userParam type="int" name="label" value="4"/>
+					<UserParam type="int" name="label" value="4"/>
 				</feature>
 			</subordinate>
-			<userParam type="int" name="label" value="34"/>
-			<userParam type="int" name="spectrum_index" value="83"/>
-			<userParam type="string" name="spectrum_native_id" value="spectrum=84"/>
+			<UserParam type="int" name="label" value="34"/>
+			<UserParam type="int" name="spectrum_index" value="83"/>
+			<UserParam type="string" name="spectrum_native_id" value="spectrum=84"/>
 		</feature>
 		<feature id="f_1109797234185235382">
 			<position dim="0">4301.09888900213</position>
@@ -1109,7 +1109,7 @@
 						<pt x="4270.25" y="652.767028808594" />
 						<pt x="4267.04" y="652.780212402344" />
 					</convexhull>
-					<userParam type="int" name="label" value="3"/>
+					<UserParam type="int" name="label" value="3"/>
 				</feature>
 				<feature id="f_1109797234185235382_1448739915887261822">
 					<position dim="0">4300.64974531327</position>
@@ -1211,12 +1211,12 @@
 						<pt x="4270.25" y="653.247924804688" />
 						<pt x="4267.04" y="653.264709472656" />
 					</convexhull>
-					<userParam type="int" name="label" value="5"/>
+					<UserParam type="int" name="label" value="5"/>
 				</feature>
 			</subordinate>
-			<userParam type="int" name="label" value="35"/>
-			<userParam type="int" name="spectrum_index" value="57"/>
-			<userParam type="string" name="spectrum_native_id" value="spectrum=58"/>
+			<UserParam type="int" name="label" value="35"/>
+			<UserParam type="int" name="spectrum_index" value="57"/>
+			<UserParam type="string" name="spectrum_native_id" value="spectrum=58"/>
 		</feature>
 		<feature id="f_15202016013088063751">
 			<position dim="0">4278.31983503585</position>
@@ -1525,7 +1525,7 @@
 						<pt x="4267.04" y="655.769226074219" />
 						<pt x="4263.83" y="655.770568847656" />
 					</convexhull>
-					<userParam type="int" name="label" value="6"/>
+					<UserParam type="int" name="label" value="6"/>
 				</feature>
 				<feature id="f_15202016013088063751_9613417043749631722">
 					<position dim="0">4278.2904425213</position>
@@ -1617,12 +1617,12 @@
 						<pt x="4254.2" y="655.254516601562" />
 						<pt x="4250.98" y="655.256286621094" />
 					</convexhull>
-					<userParam type="int" name="label" value="7"/>
+					<UserParam type="int" name="label" value="7"/>
 				</feature>
 			</subordinate>
-			<userParam type="int" name="label" value="36"/>
-			<userParam type="int" name="spectrum_index" value="50"/>
-			<userParam type="string" name="spectrum_native_id" value="spectrum=51"/>
+			<UserParam type="int" name="label" value="36"/>
+			<UserParam type="int" name="spectrum_index" value="50"/>
+			<UserParam type="string" name="spectrum_native_id" value="spectrum=51"/>
 		</feature>
 		<feature id="f_7673217816198656294">
 			<position dim="0">4201.82380356533</position>
@@ -1887,7 +1887,7 @@
 						<pt x="4178.95" y="653.76171875" />
 						<pt x="4175.73" y="653.791015625" />
 					</convexhull>
-					<userParam type="int" name="label" value="8"/>
+					<UserParam type="int" name="label" value="8"/>
 				</feature>
 				<feature id="f_7673217816198656294_7986448614693393910">
 					<position dim="0">4201.47555500598</position>
@@ -1983,12 +1983,12 @@
 						<pt x="4172.32" y="654.258728027344" />
 						<pt x="4168.9" y="654.258239746094" />
 					</convexhull>
-					<userParam type="int" name="label" value="9"/>
+					<UserParam type="int" name="label" value="9"/>
 				</feature>
 			</subordinate>
-			<userParam type="int" name="label" value="37"/>
-			<userParam type="int" name="spectrum_index" value="26"/>
-			<userParam type="string" name="spectrum_native_id" value="spectrum=27"/>
+			<UserParam type="int" name="label" value="37"/>
+			<UserParam type="int" name="spectrum_index" value="26"/>
+			<UserParam type="string" name="spectrum_native_id" value="spectrum=27"/>
 		</feature>
 		<feature id="f_8930656500797764787">
 			<position dim="0">4321.28910787982</position>
@@ -2166,9 +2166,9 @@
 				<pt x="4316.39" y="655.269714355469" />
 				<pt x="4312.99" y="655.270812988281" />
 			</convexhull>
-			<userParam type="int" name="label" value="41"/>
-			<userParam type="int" name="spectrum_index" value="63"/>
-			<userParam type="string" name="spectrum_native_id" value="spectrum=64"/>
+			<UserParam type="int" name="label" value="41"/>
+			<UserParam type="int" name="spectrum_index" value="63"/>
+			<UserParam type="string" name="spectrum_native_id" value="spectrum=64"/>
 		</feature>
 		<feature id="f_3933630410036601788">
 			<position dim="0">4221.9407234824</position>
@@ -2383,7 +2383,7 @@
 						<pt x="4199.41" y="647.759643554688" />
 						<pt x="4196" y="647.759216308594" />
 					</convexhull>
-					<userParam type="int" name="label" value="10"/>
+					<UserParam type="int" name="label" value="10"/>
 				</feature>
 				<feature id="f_3933630410036601788_451897741616385540">
 					<position dim="0">4221.45053653182</position>
@@ -2481,12 +2481,12 @@
 						<pt x="4206.04" y="648.270812988281" />
 						<pt x="4202.82" y="648.253540039062" />
 					</convexhull>
-					<userParam type="int" name="label" value="12"/>
+					<UserParam type="int" name="label" value="12"/>
 				</feature>
 			</subordinate>
-			<userParam type="int" name="label" value="38"/>
-			<userParam type="int" name="spectrum_index" value="32"/>
-			<userParam type="string" name="spectrum_native_id" value="spectrum=33"/>
+			<UserParam type="int" name="label" value="38"/>
+			<UserParam type="int" name="spectrum_index" value="32"/>
+			<UserParam type="string" name="spectrum_native_id" value="spectrum=33"/>
 		</feature>
 		<feature id="f_6049167713234611221">
 			<position dim="0">4183.27764916366</position>
@@ -2665,7 +2665,7 @@
 						<pt x="4168.9" y="656.764770507812" />
 						<pt x="4165.49" y="656.750183105469" />
 					</convexhull>
-					<userParam type="int" name="label" value="11"/>
+					<UserParam type="int" name="label" value="11"/>
 				</feature>
 				<feature id="f_6049167713234611221_1248243787570864810">
 					<position dim="0">4182.33015889159</position>
@@ -2749,12 +2749,12 @@
 						<pt x="4162.09" y="656.281921386719" />
 						<pt x="4158.68" y="656.281555175781" />
 					</convexhull>
-					<userParam type="int" name="label" value="13"/>
+					<UserParam type="int" name="label" value="13"/>
 				</feature>
 			</subordinate>
-			<userParam type="int" name="label" value="39"/>
-			<userParam type="int" name="spectrum_index" value="21"/>
-			<userParam type="string" name="spectrum_native_id" value="spectrum=22"/>
+			<UserParam type="int" name="label" value="39"/>
+			<UserParam type="int" name="spectrum_index" value="21"/>
+			<UserParam type="string" name="spectrum_native_id" value="spectrum=22"/>
 		</feature>
 		<feature id="f_15713080832074762113">
 			<position dim="0">4393.83070532091</position>
@@ -2898,9 +2898,9 @@
 				<pt x="4343.69" y="644.759338378906" />
 				<pt x="4340.28" y="644.761779785156" />
 			</convexhull>
-			<userParam type="int" name="label" value="43"/>
-			<userParam type="int" name="spectrum_index" value="84"/>
-			<userParam type="string" name="spectrum_native_id" value="spectrum=85"/>
+			<UserParam type="int" name="label" value="43"/>
+			<UserParam type="int" name="spectrum_index" value="84"/>
+			<UserParam type="string" name="spectrum_native_id" value="spectrum=85"/>
 		</feature>
 		<feature id="f_13446684240904094518">
 			<position dim="0">4324.38117680635</position>
@@ -3052,9 +3052,9 @@
 				<pt x="4302.75" y="657.250366210938" />
 				<pt x="4295.93" y="657.250610351562" />
 			</convexhull>
-			<userParam type="int" name="label" value="42"/>
-			<userParam type="int" name="spectrum_index" value="64"/>
-			<userParam type="string" name="spectrum_native_id" value="spectrum=65"/>
+			<UserParam type="int" name="label" value="42"/>
+			<UserParam type="int" name="spectrum_index" value="64"/>
+			<UserParam type="string" name="spectrum_native_id" value="spectrum=65"/>
 		</feature>
 		<feature id="f_17442248336855893540">
 			<position dim="0">4201.95148303836</position>
@@ -3269,7 +3269,7 @@
 						<pt x="4185.76" y="649.769897460938" />
 						<pt x="4178.95" y="649.773498535156" />
 					</convexhull>
-					<userParam type="int" name="label" value="14"/>
+					<UserParam type="int" name="label" value="14"/>
 				</feature>
 				<feature id="f_17442248336855893540_5434860209460769543">
 					<position dim="0">4200.57318741046</position>
@@ -3365,12 +3365,12 @@
 						<pt x="4165.49" y="650.251953125" />
 						<pt x="4162.09" y="650.251159667969" />
 					</convexhull>
-					<userParam type="int" name="label" value="15"/>
+					<UserParam type="int" name="label" value="15"/>
 				</feature>
 			</subordinate>
-			<userParam type="int" name="label" value="40"/>
-			<userParam type="int" name="spectrum_index" value="26"/>
-			<userParam type="string" name="spectrum_native_id" value="spectrum=27"/>
+			<UserParam type="int" name="label" value="40"/>
+			<UserParam type="int" name="spectrum_index" value="26"/>
+			<UserParam type="string" name="spectrum_native_id" value="spectrum=27"/>
 		</feature>
 		<feature id="f_5320012634004943159">
 			<position dim="0">4301.43116549297</position>
@@ -3494,9 +3494,9 @@
 				<pt x="4250.98" y="649.246215820312" />
 				<pt x="4247.77" y="649.290222167969" />
 			</convexhull>
-			<userParam type="int" name="label" value="21"/>
-			<userParam type="int" name="spectrum_index" value="57"/>
-			<userParam type="string" name="spectrum_native_id" value="spectrum=58"/>
+			<UserParam type="int" name="label" value="21"/>
+			<UserParam type="int" name="spectrum_index" value="57"/>
+			<UserParam type="string" name="spectrum_native_id" value="spectrum=58"/>
 		</feature>
 		<feature id="f_7114662571302883434">
 			<position dim="0">4337.05549055774</position>
@@ -3564,9 +3564,9 @@
 				<pt x="4330.04" y="647.757995605469" />
 				<pt x="4326.63" y="647.756469726562" />
 			</convexhull>
-			<userParam type="int" name="label" value="44"/>
-			<userParam type="int" name="spectrum_index" value="68"/>
-			<userParam type="string" name="spectrum_native_id" value="spectrum=69"/>
+			<UserParam type="int" name="label" value="44"/>
+			<UserParam type="int" name="spectrum_index" value="68"/>
+			<UserParam type="string" name="spectrum_native_id" value="spectrum=69"/>
 		</feature>
 		<feature id="f_5773430230331794039">
 			<position dim="0">4225.65781485557</position>
@@ -3765,12 +3765,12 @@
 						<pt x="4206.04" y="644.27978515625" />
 						<pt x="4202.82" y="644.249938964844" />
 					</convexhull>
-					<userParam type="int" name="label" value="18"/>
+					<UserParam type="int" name="label" value="18"/>
 				</feature>
 			</subordinate>
-			<userParam type="int" name="label" value="46"/>
-			<userParam type="int" name="spectrum_index" value="34"/>
-			<userParam type="string" name="spectrum_native_id" value="spectrum=35"/>
+			<UserParam type="int" name="label" value="46"/>
+			<UserParam type="int" name="spectrum_index" value="34"/>
+			<UserParam type="string" name="spectrum_native_id" value="spectrum=35"/>
 		</feature>
 		<feature id="f_8120318437605260598">
 			<position dim="0">4401.95081053541</position>
@@ -4015,12 +4015,12 @@
 						<pt x="4367.37" y="658.26220703125" />
 						<pt x="4363.95" y="658.24609375" />
 					</convexhull>
-					<userParam type="int" name="label" value="25"/>
+					<UserParam type="int" name="label" value="25"/>
 				</feature>
 			</subordinate>
-			<userParam type="int" name="label" value="45"/>
-			<userParam type="int" name="spectrum_index" value="87"/>
-			<userParam type="string" name="spectrum_native_id" value="spectrum=88"/>
+			<UserParam type="int" name="label" value="45"/>
+			<UserParam type="int" name="spectrum_index" value="87"/>
+			<UserParam type="string" name="spectrum_native_id" value="spectrum=88"/>
 		</feature>
 		<feature id="f_161147319091980118">
 			<position dim="0">4182.42552606053</position>
@@ -4142,9 +4142,9 @@
 				<pt x="4158.68" y="656.76708984375" />
 				<pt x="4151.85" y="656.778991699219" />
 			</convexhull>
-			<userParam type="int" name="label" value="47"/>
-			<userParam type="int" name="spectrum_index" value="21"/>
-			<userParam type="string" name="spectrum_native_id" value="spectrum=22"/>
+			<UserParam type="int" name="label" value="47"/>
+			<UserParam type="int" name="spectrum_index" value="21"/>
+			<UserParam type="string" name="spectrum_native_id" value="spectrum=22"/>
 		</feature>
 		<feature id="f_10117744459518041602">
 			<position dim="0">4241.32214825287</position>
@@ -4373,7 +4373,7 @@
 						<pt x="4218.89" y="658.264892578125" />
 						<pt x="4215.67" y="658.261352539062" />
 					</convexhull>
-					<userParam type="int" name="label" value="31"/>
+					<UserParam type="int" name="label" value="31"/>
 				</feature>
 				<feature id="f_10117744459518041602_14585574176748900824">
 					<position dim="0">4239.20805665502</position>
@@ -4445,12 +4445,12 @@
 						<pt x="4218.89" y="658.264892578125" />
 						<pt x="4215.67" y="658.261352539062" />
 					</convexhull>
-					<userParam type="int" name="label" value="22"/>
+					<UserParam type="int" name="label" value="22"/>
 				</feature>
 			</subordinate>
-			<userParam type="int" name="label" value="50"/>
-			<userParam type="int" name="spectrum_index" value="38"/>
-			<userParam type="string" name="spectrum_native_id" value="spectrum=39"/>
+			<UserParam type="int" name="label" value="50"/>
+			<UserParam type="int" name="spectrum_index" value="38"/>
+			<UserParam type="string" name="spectrum_native_id" value="spectrum=39"/>
 		</feature>
 	</featureList>
 </featureMap>
