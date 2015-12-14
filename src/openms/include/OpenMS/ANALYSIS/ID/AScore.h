@@ -78,7 +78,7 @@ class OPENMS_DLLAPI AScore
 
         @note the original sequence is saved in the PeptideHits as MetaValue Search_engine_sequence.
     */
-    PeptideHit compute(const PeptideHit & hit, PeakSpectrum &real_spectrum, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const;
+    PeptideHit compute(const PeptideHit & hit, PeakSpectrum &real_spectrum, double fragment_mass_tolerance, bool fragment_mass_unit_ppm, int decimal_places = 2) const;
 
   protected:
   
@@ -86,17 +86,19 @@ class OPENMS_DLLAPI AScore
     /// set_difference was reimplemented, because it was necessary to overwrite the compare operator to be able to compare the m/z values.
     template <class InputIterator1, class InputIterator2, class OutputIterator>
     OutputIterator getSpectrumDifference_(InputIterator1 first1, InputIterator1 last1,
-      InputIterator2 first2, InputIterator2 last2, OutputIterator result) const
+      InputIterator2 first2, InputIterator2 last2, OutputIterator result, int decimal_places) const
     {
+      int round_factor = pow(10, decimal_places);
+      
       while (first1 != last1 && first2 != last2)
       { 
-        if (round(first1->getMZ() * 100) < round(first2->getMZ() * 100)) 
+        if (round(first1->getMZ() * round_factor) < round(first2->getMZ() * round_factor)) 
         { 
           *result = *first1; 
           ++result; 
           ++first1; 
         }
-        else if (round(first2->getMZ()) < round(first1->getMZ()))
+        else if (round(first2->getMZ() * round_factor) < round(first1->getMZ() * round_factor))
         {
           ++first2;
         }
@@ -110,7 +112,7 @@ class OPENMS_DLLAPI AScore
     }
     
     ///Computes the site determining_ions for the given AS and sequences in candidates
-    void computeSiteDeterminingIons_(const std::vector<RichPeakSpectrum> & th_spectra, const ProbablePhosphoSites & candidates, std::vector<RichPeakSpectrum> & site_determining_ions) const;
+    void computeSiteDeterminingIons_(const std::vector<RichPeakSpectrum> & th_spectra, const ProbablePhosphoSites & candidates, std::vector<RichPeakSpectrum> & site_determining_ions, int decimal_places) const;
 
     /// return all phospho sites
     std::vector<Size> getSites_(const AASequence & without_phospho) const;

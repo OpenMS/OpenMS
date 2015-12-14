@@ -62,8 +62,6 @@ using namespace std;
     </table>
   </CENTER>
 
-  @experimental This TOPP tool is not well tested and some features might not be working correctly.
-
   This tool performs phosphorylation analysis and site localization.
   Input files are an LC-MS/MS data file as well as the corresponding identification file.
   Firstly, the peptide identifications are mapped onto the spectra.
@@ -74,6 +72,11 @@ using namespace std;
   
   In the output the score of the peptide hit describes the peptide score, which is a weighted average of all ten scores of the selected peptide sequence. 
   For each phosphorylation site an individual Ascore was calculated and listed as meta value of the peptide hit (e.g. AScore_1, AScore_2).
+  
+  The Ascore results of this TOPP tool differes with the results of the Ascore calculation provided on the website <a href="http://ascore.med.harvard.edu/ascore.html">,
+  but it seems that the implementation according to Beausoleil <em>et al.</em> has some calculation errors. 
+  It is not possible to recalculate the Ascore using the cumulative binomial probability formula with the given values (see Fig. 3c). 
+  In addition the site determining ions calculation seems not reliable, because in some test cases more site determining ions were calculated than it could be possible.
 
   @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
@@ -230,11 +233,11 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "Input file with MS/MS spectra", false);
+    registerInputFile_("in", "<file>", "", "Input file with MS/MS spectra");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
-    registerInputFile_("id", "<file>", "", "Identification input file which contains a search against a concatenated sequence database", false);
+    registerInputFile_("id", "<file>", "", "Identification input file which contains a search against a concatenated sequence database");
     setValidFormats_("id", ListUtils::create<String>("idXML"));
-    registerOutputFile_("out", "<file>", "", "Identification output with annotated phosphorylation scores");
+    registerOutputFile_("out", "<file>", "", "Identification output annotated with phosphorylation scores");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.05, "Fragment mass error", false);
 
@@ -243,8 +246,8 @@ protected:
     fragment_mass_tolerance_unit_valid_strings.push_back("ppm");
     registerStringOption_("fragment_mass_unit", "<unit>", "Da", "Unit of fragment mass error", false, false);
     setValidStrings_("fragment_mass_unit", fragment_mass_tolerance_unit_valid_strings);
-
-    addEmptyLine_();
+    
+    registerIntOption_("determining_ion_mass_decimal_places", "<num>", 2, "Rounding m/z values up to defined decimal places to calculate the site determining ions", false, true);    
   }
 
   ExitCodes main_(int, const char**)
@@ -258,15 +261,13 @@ protected:
     String out(getStringOption_("out"));
     double fragment_mass_tolerance(getDoubleOption_("fragment_mass_tolerance"));
     bool fragment_mass_unit_ppm = getStringOption_("fragment_mass_unit") == "Da" ? false : true;
+    int decimal_places(getIntOption_("determining_ion_mass_decimal_places"));
     AScore ascore;
 
-    //PeakMap exp;
-    //RichPeakMap exp;
-    
-    
     //-------------------------------------------------------------
     // loading input
     //-------------------------------------------------------------
+    
     vector<PeptideIdentification> pep_ids;
     vector<ProteinIdentification> prot_ids;
     vector<PeptideIdentification> pep_out;
@@ -286,45 +287,30 @@ protected:
     SpectrumLookup lookup;
     lookup.readSpectra(exp.getSpectra());
 
-    /* for (Size i = 0; i != exp.getNrSpectra(); ++i)
+    for (vector<PeptideIdentification>::iterator pep_id = pep_ids.begin(); pep_id != pep_ids.end(); ++pep_id)
     {
-      deisotopeAndSingleChargeMSSpectrum_(exp.getSpectrum(i), 2, 5, fragment_mass_tolerance, fragment_mass_unit_ppm);
-    } */
-
-    //-------------------------------------------------------------
-    // calculations
-    //-------------------------------------------------------------
-    // map the ids to the spectra
-    /* IDMapper id_mapper;
-    id_mapper.annotate(exp, pep_ids, prot_ids); */
-    /* for (RichPeakMap::iterator it = exp.begin(); it != exp.end(); ++it)
-    {
-      if (it->getPeptideIdentifications().empty())
+      Size scan_id = lookup.findByRT(pep_id->getRT());
+      PeakSpectrum& temp = exp.getSpectrum(scan_id);
+      
+      vector<PeptideHit> scored_peptides;
+      for (vector<PeptideHit>::const_iterator hit = pep_id->getHits().begin(); hit < pep_id->getHits().end(); ++hit)
       {
-        continue;
-      } */
-
-      for (vector<PeptideIdentification>::iterator pep_id = pep_ids.begin(); pep_id != pep_ids.end(); ++pep_id)
-      {
-        Size scan_id = lookup.findByRT(pep_id->getRT());
-        PeakSpectrum& temp = exp.getSpectrum(scan_id);
+        PeptideHit scored_hit = *hit;
+        PeptideHit phospho_sites = scored_hit;
         
-        vector<PeptideHit> scored_peptides;
-        for (vector<PeptideHit>::const_iterator hit = pep_id->getHits().begin(); hit < pep_id->getHits().end(); ++hit)
-        {
-          PeptideHit scored_hit = *hit;
-          PeptideHit phospho_sites = scored_hit;
-          phospho_sites = ascore.compute(scored_hit, temp, fragment_mass_tolerance, fragment_mass_unit_ppm);
-          scored_peptides.push_back(phospho_sites);
-        }
-
-        PeptideIdentification new_pep_id(*pep_id);
-        new_pep_id.setScoreType("PhosphoScore");
-        new_pep_id.setHigherScoreBetter(true);
-        new_pep_id.setHits(scored_peptides);
-        pep_out.push_back(new_pep_id);
+        LOG_DEBUG << "starting to compute AScore RT=" << pep_id->getRT() << " SEQUENCE: " << scored_hit.getSequence().toString() << std::endl;
+        
+        phospho_sites = ascore.compute(scored_hit, temp, fragment_mass_tolerance, fragment_mass_unit_ppm, decimal_places);
+        scored_peptides.push_back(phospho_sites);
       }
-    //}
+
+      PeptideIdentification new_pep_id(*pep_id);
+      new_pep_id.setScoreType("PhosphoScore");
+      new_pep_id.setHigherScoreBetter(true);
+      new_pep_id.setHits(scored_peptides);
+      pep_out.push_back(new_pep_id);
+    }
+    
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------

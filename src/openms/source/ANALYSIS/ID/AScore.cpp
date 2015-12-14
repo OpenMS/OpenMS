@@ -50,14 +50,14 @@ namespace OpenMS
 {
 
   AScore::AScore()
-  {
+  {    
   }
 
   AScore::~AScore()
   {
   }
 
-  PeptideHit AScore::compute(const PeptideHit & hit, PeakSpectrum & real_spectrum, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const
+  PeptideHit AScore::compute(const PeptideHit & hit, PeakSpectrum & real_spectrum, double fragment_mass_tolerance, bool fragment_mass_unit_ppm, int decimal_places) const
   {
     PeptideHit phospho = hit;
     
@@ -79,6 +79,8 @@ namespace OpenMS
     Size number_of_STY = sites.size();
     
     vector<vector<Size> > permutations(computePermutations_(sites, (Int)number_of_phosphorylation_events));
+    LOG_DEBUG << "\tnumber of permutations: " << permutations.size() << std::endl;
+    
     vector<RichPeakSpectrum> th_spectra;
     if (permutations.empty())
     {
@@ -118,32 +120,37 @@ namespace OpenMS
     for (vector<ProbablePhosphoSites>::iterator s_it = phospho_sites.begin(); s_it != phospho_sites.end(); ++s_it)
     {
       vector<RichPeakSpectrum> site_determining_ions;
-      // Previously, the precursor charge was used here. This is clearly wrong and it is better to use charge 1 here.
-      computeSiteDeterminingIons_(th_spectra, *s_it, site_determining_ions);
       
+      computeSiteDeterminingIons_(th_spectra, *s_it, site_determining_ions, decimal_places);
       Size N = site_determining_ions[0].size(); // all possibilities have the same number so take the first one
       double p = static_cast<double>(s_it->peak_depth) / 100.0;
       
       Size n_first = 0;
       for (Size depth = 0; depth != windows_top10.size(); ++depth) // for each 100 m/z window
       {
-        n_first += numberOfMatchedIons_(site_determining_ions[0], windows_top10[depth], s_it->peak_depth, fragment_mass_tolerance, fragment_mass_unit_ppm);
+        n_first += numberOfMatchedIons_(site_determining_ions[0], windows_top10[depth], s_it->peak_depth, fragment_mass_tolerance, fragment_mass_unit_ppm);        
       }
-
       double P_first = computeCumulativeScore_(N, n_first, p);
-
+      
       Size n_second = 0;
       for (Size depth = 0; depth <  windows_top10.size(); ++depth) //each 100 m/z window
       {
-        n_second += numberOfMatchedIons_(site_determining_ions[1], windows_top10[depth], s_it->peak_depth, fragment_mass_tolerance, fragment_mass_unit_ppm);
+        n_second += numberOfMatchedIons_(site_determining_ions[1], windows_top10[depth], s_it->peak_depth, fragment_mass_tolerance, fragment_mass_unit_ppm);        
       }
-
       double P_second = computeCumulativeScore_(N, n_second, p);
+      
+      
       
       //abs is used to avoid -0 score values
       double score_first = abs(-10 * log10(P_first));
       double score_second = abs(-10 * log10(P_second));
+      
+      LOG_DEBUG << "\tfirst - N: " << N << ",p: " << p << ",n: " << n_first << ", score: " << score_first << std::endl;
+      LOG_DEBUG << "\tsecond - N: " << N << ",p: " << p << ",n: " << n_second << ", score: " << score_second << std::endl;
+      
       double AScore_first = score_first - score_second;
+      
+      LOG_DEBUG << "\tAscore: " << AScore_first << std::endl;
       
       phospho.setMetaValue("AScore_" + String(rank), AScore_first);
       ++rank;      
@@ -167,6 +174,7 @@ namespace OpenMS
       double coeff = boost::math::binomial_coefficient<double>((unsigned int)N, (unsigned int)k);
       double pow1 = pow((double)p, (int)k);
       double pow2 = pow(double(1 - p), double(N - k));
+      
       score += coeff * pow1 * pow2;
     }
 
@@ -263,7 +271,7 @@ namespace OpenMS
   }
   
   // calculation of the number of different speaks between the theoretical spectra of the two best scoring peptide permutations, respectively
-  void AScore::computeSiteDeterminingIons_(const vector<RichPeakSpectrum> & th_spectra, const ProbablePhosphoSites & candidates, vector<RichPeakSpectrum> & site_determining_ions) const
+  void AScore::computeSiteDeterminingIons_(const vector<RichPeakSpectrum> & th_spectra, const ProbablePhosphoSites & candidates, vector<RichPeakSpectrum> & site_determining_ions, int decimal_places) const
   {
     site_determining_ions.clear();
     site_determining_ions.resize(2);
@@ -276,13 +284,16 @@ namespace OpenMS
     AScore::getSpectrumDifference_(
       spectrum_first.begin(), spectrum_first.end(),
       spectrum_second.begin(), spectrum_second.end(),
-      std::inserter(spectrum_first_diff, spectrum_first_diff.begin()));
+      std::inserter(spectrum_first_diff, spectrum_first_diff.begin()), decimal_places);
       
     RichPeakSpectrum spectrum_second_diff;
     AScore::getSpectrumDifference_(
       spectrum_second.begin(), spectrum_second.end(),
       spectrum_first.begin(), spectrum_first.end(),
-      std::inserter(spectrum_second_diff, spectrum_second_diff.begin()));
+      std::inserter(spectrum_second_diff, spectrum_second_diff.begin()), decimal_places);
+      
+    LOG_DEBUG << spectrum_first_diff << std::endl;
+    LOG_DEBUG << spectrum_second_diff << std::endl;
       
     site_determining_ions[0] = spectrum_first_diff;
     site_determining_ions[1] = spectrum_second_diff;
@@ -303,7 +314,7 @@ namespace OpenMS
       {
         double theo_mz = th[nearest_peak].getMZ();
         double error = abs(theo_mz - window[i].getMZ());
-
+        
         if (fragment_mass_tolerance_ppm)
         {
           error = error / theo_mz * 1e6;
@@ -463,6 +474,8 @@ namespace OpenMS
     
     // we mono-charge spectra
     th_spectra.resize(1);
+    
+    // Previously, the precursor charge was used here. This is clearly wrong and it is better to use charge 1 here.
     spectrum_generator.addPeaks(th_spectra[0], seq_without_phospho, Residue::BIon, 1);
     spectrum_generator.addPeaks(th_spectra[0], seq_without_phospho, Residue::YIon, 1);
     th_spectra[0].setName(seq_without_phospho.toString());
@@ -476,6 +489,7 @@ namespace OpenMS
     
     double spect_lower_bound = floor(real_spectrum.front().getMZ() / 100) * 100;
     double spect_upper_bound = ceil(real_spectrum.back().getMZ() / 100) * 100;
+    
     Size number_of_windows = static_cast<Size>(ceil((spect_upper_bound - spect_lower_bound) / 100));
     windows_top10.resize(number_of_windows);
     
@@ -494,7 +508,7 @@ namespace OpenMS
       real_window.sortByIntensity(true);
       for (Size i = 0; (i < 10) & (i < real_window.size()); ++i)
       {
-        windows_top10[current_window].push_back(real_window[i]);        
+        windows_top10[current_window].push_back(real_window[i]);
       }
       
       window_upper_bound += 100;
@@ -534,6 +548,7 @@ namespace OpenMS
   std::multimap<double, Size> AScore::rankWeightedPermutationPeptideScores_(const vector<vector<double> > & peptide_site_scores) const
   {
     multimap<double, Size> ranking;
+    
     for (Size i = 0; i != peptide_site_scores.size(); ++i)
     {
       double weighted_score = peptideScore_(peptide_site_scores[i]);
