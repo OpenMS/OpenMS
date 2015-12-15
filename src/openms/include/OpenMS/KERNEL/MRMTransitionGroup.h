@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -229,6 +229,78 @@ public:
           result[i] = 0.0;
         }
       }
+    }
+
+    MRMTransitionGroup subset(std::vector<std::string> tr_ids)
+    {
+      MRMTransitionGroup transition_group_subset;
+      transition_group_subset.setTransitionGroupID(tr_gr_id_);
+
+      for (typename TransitionsType::const_iterator tr_it = transitions_.begin(); tr_it != transitions_.end(); ++tr_it)
+      {
+        if (std::find(tr_ids.begin(), tr_ids.end(), tr_it->getNativeID()) != tr_ids.end())
+        {
+          if (this->hasTransition(tr_it->getNativeID()))
+          {
+            transition_group_subset.addTransition(*tr_it, tr_it->getNativeID());
+          }
+          if (this->hasChromatogram(tr_it->getNativeID()))
+          {
+            transition_group_subset.addChromatogram(chromatograms_[chromatogram_map_[tr_it->getNativeID()]], tr_it->getNativeID());
+          }
+        }
+      }
+
+      for (std::vector< MRMFeature >::iterator tgf_it = cons_features_.begin(); tgf_it != cons_features_.end(); ++tgf_it)
+      {
+        MRMFeature mf;
+        mf.setIntensity(tgf_it->getIntensity());
+        mf.setRT(tgf_it->getRT());
+        std::vector<String> metavalues;
+        tgf_it->getKeys(metavalues);
+        for (std::vector<String>::iterator key_it = metavalues.begin(); key_it != metavalues.end(); ++key_it)
+        {
+          mf.setMetaValue(*key_it,tgf_it->getMetaValue(*key_it));
+        }
+        for (typename TransitionsType::const_iterator tr_it = transitions_.begin(); tr_it != transitions_.end(); ++tr_it)
+        {
+          if (std::find(tr_ids.begin(), tr_ids.end(), tr_it->getNativeID()) != tr_ids.end())
+          {
+            mf.addFeature(tgf_it->getFeature(tr_it->getNativeID()),tr_it->getNativeID());
+          }
+        }
+        std::vector<String> pf_ids;
+        tgf_it->getPrecursorFeatureIDs(pf_ids);
+        for (std::vector<String>::iterator pf_ids_it = pf_ids.begin(); pf_ids_it != pf_ids.end(); ++pf_ids_it)
+        {
+          mf.addPrecursorFeature(tgf_it->getPrecursorFeature(*pf_ids_it),*pf_ids_it);
+        }
+        transition_group_subset.addFeature(mf);
+      }
+
+      return transition_group_subset;
+    }
+
+    MRMTransitionGroup subsetDependent(std::vector<std::string> tr_ids)
+    {
+      MRMTransitionGroup transition_group_subset;
+      transition_group_subset.setTransitionGroupID(tr_gr_id_);
+
+      for (typename TransitionsType::const_iterator tr_it = transitions_.begin(); tr_it != transitions_.end(); ++tr_it)
+      {
+        if (std::find(tr_ids.begin(), tr_ids.end(), tr_it->getNativeID()) != tr_ids.end())
+        {
+          transition_group_subset.addTransition(*tr_it, tr_it->getNativeID());
+          transition_group_subset.addChromatogram(chromatograms_[chromatogram_map_[tr_it->getNativeID()]], tr_it->getNativeID());
+        }
+      }
+
+      for (std::vector< MRMFeature >::iterator tgf_it = cons_features_.begin(); tgf_it != cons_features_.end(); ++tgf_it)
+      {
+        transition_group_subset.addFeature(*tgf_it);
+      }
+
+      return transition_group_subset;
     }
 
 protected:

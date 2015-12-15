@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<IdXML version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<IdXML version="1.3" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<SearchParameters charges="+1, +2" id="SP_1" db_version="1.0" mass_type="average" peak_mass_tolerance="0.3" precursor_peak_tolerance="1.0" db="MSDB" enzyme="trypsin" />
 	<SearchParameters charges="+1, +2, +3" id="SP_2" db_version="1.1" mass_type="monoisotopic" peak_mass_tolerance="0.3" precursor_peak_tolerance="1.0" db="MSDB">
 		<FixedModification name="Fixed" />
@@ -10,7 +10,8 @@
 	<IdentificationRun date="2006-01-12T12:13:14" search_engine="Mascot" search_parameters_ref="SP_1" search_engine_version="2.1.0">
 		<ProteinIdentification score_type="MOWSE" higher_score_better="true">
 			<ProteinHit score="34.4" id="PH_3" accession="PROT1" sequence="ABCDEFG" >
-				<UserParam type="string" value="ProteinHit" name="name"/>
+				<UserParam type="string" name="name" value="ProteinHit"/>
+				<UserParam type="string" name="Description" value="14-3-3 protein beta/alpha OS=Homo sapiens GN=YWHAB PE=1 SV=3"/>
 			</ProteinHit>
 			<ProteinHit score="24.4" id="PH_4" accession="PROT2" sequence="DEFGHIGK" />
 			<UserParam type="string" value="ProteinIdentification" name="name"/>
@@ -29,7 +30,9 @@
 	</IdentificationRun>
 	<IdentificationRun date="2007-01-12T12:13:14" search_engine="Mascot" search_parameters_ref="SP_2" search_engine_version="2.1.1">
 		<ProteinIdentification score_type="MOWSE" higher_score_better="true">
-			<ProteinHit score="100.0" id="PH_5" accession="PROT3" />
+			<ProteinHit score="100.0" id="PH_5" accession="PROT3" >
+				<UserParam type="string" name="Description" value="Ankyrin repeat domain-containing protein 20A3 OS=Homo sapiens GN=ANKRD20A3 PE=4 SV=1"/>
+			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="MOWSE" higher_score_better="true">
 			<PeptideHit sequence="PEPTIDERRRRR" score="1.4" charge="1" protein_refs="PH_5"/>

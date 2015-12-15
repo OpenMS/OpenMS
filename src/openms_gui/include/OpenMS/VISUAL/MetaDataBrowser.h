@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -227,7 +227,7 @@ protected:
     void visualize_(IonSource & meta, QTreeWidgetItem * parent = 0);
     void visualize_(IonDetector & meta, QTreeWidgetItem * parent = 0);
     void visualize_(MassAnalyzer & meta, QTreeWidgetItem * parent = 0);
-    void visualize_(DataProcessing & meta, QTreeWidgetItem * parent = 0);
+    void visualize_(DataProcessingPtr & meta, QTreeWidgetItem * parent = 0);
     void visualize_(ProteinIdentification & meta, QTreeWidgetItem * parent = 0);
     void visualize_(ProteinHit & meta, QTreeWidgetItem * parent = 0);
     void visualize_(PeptideHit & meta, QTreeWidgetItem * parent = 0);

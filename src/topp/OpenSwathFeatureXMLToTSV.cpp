@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -52,7 +52,7 @@ using namespace OpenMS;
       <table>
           <tr>
               <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-              <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ FeatureXMLToTSV \f$ \longrightarrow \f$</td>
+              <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ OpenSwathFeatureXMLToTSV \f$ \longrightarrow \f$</td>
               <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
           </tr>
           <tr>

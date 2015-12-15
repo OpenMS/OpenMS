@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -328,7 +328,7 @@ protected:
       }
 
       //Data processing auxiliary variable
-      DataProcessing data_processing_;
+      boost::shared_ptr< DataProcessing > data_processing_;
 
     };
 
@@ -362,7 +362,7 @@ protected:
       }
       else if (current_tag == "version")
       {
-        data_processing_.getSoftware().setVersion(sm_.convert(chars));
+        data_processing_->getSoftware().setVersion(sm_.convert(chars));
       }
       else if (current_tag == "institution")
       {
@@ -378,11 +378,11 @@ protected:
       }
       else if (current_tag == "name" && parent_tag == "software")
       {
-        data_processing_.getSoftware().setName(sm_.convert(chars));
+        data_processing_->getSoftware().setName(sm_.convert(chars));
       }
       else if (current_tag == "comments" && parent_tag == "software")
       {
-        data_processing_.getSoftware().setMetaValue("comment", String(sm_.convert(chars)));
+        data_processing_->getSoftware().setMetaValue("comment", String(sm_.convert(chars)));
       }
       else if (current_tag == "comments" && parent_tag == "spectrumDesc")
       {
@@ -490,10 +490,10 @@ protected:
       }
       else if (tag == "software")
       {
-        data_processing_ = DataProcessing();
+        data_processing_ = DataProcessingPtr(new DataProcessing);
         if (attributes.getIndex(sm_.convert("completionTime")) != -1)
         {
-          data_processing_.setCompletionTime(asDateTime_(sm_.convert(attributes.getValue(sm_.convert("completionTime")))));
+          data_processing_->setCompletionTime(asDateTime_(sm_.convert(attributes.getValue(sm_.convert("completionTime")))));
         }
       }
       else if (tag == "precursor")
@@ -563,7 +563,7 @@ protected:
         }
         else if (parent_tag == "processingMethod")
         {
-          data_processing_.setMetaValue(name, value);
+          data_processing_->setMetaValue(name, value);
         }
         else
         {
@@ -965,7 +965,7 @@ protected:
       }
       else
       {
-        const DataProcessing & data_processing = (*cexp_)[0].getDataProcessing()[0];
+        const DataProcessing & data_processing = * (*cexp_)[0].getDataProcessing()[0].get();
         os << "\t\t<dataProcessing>\n"
            << "\t\t\t<software";
         if (data_processing.getCompletionTime() != DateTime())
@@ -1641,15 +1641,15 @@ protected:
       {
         if (accession == "PSI:1000033")
         {
-          data_processing_.getProcessingActions().insert(DataProcessing::DEISOTOPING);
+          data_processing_->getProcessingActions().insert(DataProcessing::DEISOTOPING);
         }
         else if (accession == "PSI:1000034")
         {
-          data_processing_.getProcessingActions().insert(DataProcessing::CHARGE_DECONVOLUTION);
+          data_processing_->getProcessingActions().insert(DataProcessing::CHARGE_DECONVOLUTION);
         }
         else if (accession == "PSI:1000127")
         {
-          data_processing_.getProcessingActions().insert(DataProcessing::PEAK_PICKING);
+          data_processing_->getProcessingActions().insert(DataProcessing::PEAK_PICKING);
         }
         else if (accession == "PSI:1000035")
         {

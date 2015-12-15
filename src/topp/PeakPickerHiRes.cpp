@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -89,6 +89,9 @@ using namespace std;
   @htmlinclude TOPP_PeakPickerHiRes.html
 
   For the parameters of the algorithm section see the algorithm documentation: @ref OpenMS::PeakPickerHiRes "PeakPickerHiRes"
+
+  Be aware that applying the algorithm to already picked data results in an error message and program exit or corrupted output data.
+  Advanced users may skip the check for already centroided data using the flag "-force" (useful e.g. if spectrum annotations in the data files are wrong).
 
   In the following table you, can find example values of the most important algorithm parameters for
   different instrument types. @n These parameters are not valid for all instruments of that type,
@@ -189,6 +192,7 @@ protected:
     // Create new MSDataReader and set our consumer
     ///////////////////////////////////
     MzMLFile mz_data_file;
+    mz_data_file.setLogType(log_type_);
     mz_data_file.transform(in, &pp_consumer);
 
     return EXECUTION_OK;
@@ -231,12 +235,6 @@ protected:
       return INCOMPATIBLE_INPUT_DATA;
     }
 
-    //check for peak type (profile data required)
-    if (!ms_exp_raw.empty() && PeakTypeEstimator().estimateType(ms_exp_raw[0].begin(), ms_exp_raw[0].end()) == SpectrumSettings::PEAKS)
-    {
-      writeLog_("Warning: OpenMS peak type estimation indicates that this is not profile data!");
-    }
-
     //check if spectra are sorted
     for (Size i = 0; i < ms_exp_raw.size(); ++i)
     {
@@ -257,12 +255,12 @@ protected:
       }
     }
 
-
     //-------------------------------------------------------------
     // pick
     //-------------------------------------------------------------
     MSExperiment<> ms_exp_peaks;
-    pp.pickExperiment(ms_exp_raw, ms_exp_peaks);
+    bool check_spectrum_type = !getFlag_("force");
+    pp.pickExperiment(ms_exp_raw, ms_exp_peaks, check_spectrum_type);
 
     //-------------------------------------------------------------
     // writing output

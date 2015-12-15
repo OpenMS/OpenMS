@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -229,11 +229,11 @@ namespace OpenMS
       String tmp;
       optionalAttributeAsString_(tmp, attributes, "start");
       actual_start_ = tmp.toInt();
-      pe.setStart(actual_start_);
+      pe.setStart(actual_start_ - 1);
       tmp = "";
       optionalAttributeAsString_(tmp, attributes, "end");
       actual_stop_ = tmp.toInt();
-      pe.setEnd(actual_stop_);
+      pe.setEnd(actual_stop_ - 1);
 
       // add the actual protein accession
       pe.setProteinAccession(actual_protein_id_);

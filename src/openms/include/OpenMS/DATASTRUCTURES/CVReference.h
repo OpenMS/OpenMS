@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,8 +35,8 @@
 #ifndef OPENMS_DATASTRUCTURES_CVREFERENCE_H
 #define OPENMS_DATASTRUCTURES_CVREFERENCE_H
 
+#include <OpenMS/OpenMSConfig.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 
 #include <vector>
 
@@ -58,38 +58,38 @@ public:
     CVReference();
 
     /// Copy constructor
-    CVReference(const CVReference & rhs);
+    CVReference(const CVReference& rhs);
 
     /// Destructor
     virtual ~CVReference();
 
     /// Assignment operator
-    CVReference & operator=(const CVReference & rhs);
+    CVReference& operator=(const CVReference& rhs);
 
     /** @name Accessors
     */
     //@{
     /// sets the name of the CV reference
-    void setName(const String & name);
+    void setName(const String& name);
 
     /// returns the name of the CV reference
-    const String & getName() const;
+    const String& getName() const;
 
     /// sets the CV identifier which is referenced
-    void setIdentifier(const String & identifier);
+    void setIdentifier(const String& identifier);
 
     /// returns the CV identifier which is referenced
-    const String & getIdentifier() const;
+    const String& getIdentifier() const;
     //@}
 
     /** @name Predicates
     */
     //@{
     /// equality operator
-    bool operator==(const CVReference & rhs) const;
+    bool operator==(const CVReference& rhs) const;
 
     /// inequality operator
-    bool operator!=(const CVReference & rhs) const;
+    bool operator!=(const CVReference& rhs) const;
     //@}
 
 

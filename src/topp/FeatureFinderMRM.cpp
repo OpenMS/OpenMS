@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,7 +36,8 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder_impl.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMRM.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
@@ -112,12 +113,12 @@ protected:
     registerSubsection_("algorithm", "Algorithm section");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const
   {
-    return FeatureFinder().getParameters(FeatureFinderAlgorithmMRM<Peak1D>::getProductName());
+    return FeatureFinder().getParameters(FeatureFinderAlgorithmMRM::getProductName());
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //input file names and types
     String in = getStringOption_("in");
@@ -148,9 +149,10 @@ protected:
 
     // A map for the resulting features
     FeatureMap features;
+    features.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
 
     // Apply the feature finder
-    ff.run(FeatureFinderAlgorithmMRM<Peak1D>::getProductName(), exp, features, feafi_param, seeds);
+    ff.run(FeatureFinderAlgorithmMRM::getProductName(), exp, features, feafi_param, seeds);
     features.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
     // DEBUG
@@ -187,7 +189,7 @@ protected:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPFeatureFinderMRM tool;
   return tool.main(argc, argv);

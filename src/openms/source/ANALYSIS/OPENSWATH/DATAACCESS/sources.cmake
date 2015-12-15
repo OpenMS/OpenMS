@@ -8,6 +8,7 @@ SpectrumAccessOpenMS.cpp
 SpectrumAccessOpenMSCached.cpp
 SpectrumAccessTransforming.cpp
 SpectrumAccessQuadMZTransforming.cpp
+SpectrumAccessOpenMSInMemory.cpp
 DataAccessHelper.cpp
 SimpleOpenMSSpectraAccessFactory.cpp
 )

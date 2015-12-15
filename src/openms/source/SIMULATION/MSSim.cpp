@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -144,14 +144,21 @@ namespace OpenMS
     for (vector<String>::iterator product_name = products.begin(); product_name != products.end(); ++product_name)
     {
       BaseLabeler* labeler = Factory<BaseLabeler>::create(*product_name);
-      tmp.insert("Labeling:" + *product_name + ":", labeler->getDefaultParameters());
-      if (!tmp.copy("Labeling:" + *product_name).empty())
+      if (labeler)
       {
-        // if parameters of labeler are empty, the section will not exist and
-        // the command below would fail
-        tmp.setSectionDescription("Labeling:" + *product_name, labeler->getDescription());
+        tmp.insert("Labeling:" + *product_name + ":", labeler->getDefaultParameters());
+        if (!tmp.copy("Labeling:" + *product_name).empty())
+        {
+          // if parameters of labeler are empty, the section will not exist and
+          // the command below would fail
+          tmp.setSectionDescription("Labeling:" + *product_name, labeler->getDescription());
+        }
+        delete(labeler);
       }
-      delete(labeler);
+      else
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "This labeler returned by the Factory is invalid!", product_name->c_str()); 
+      }
     }
 
     return tmp;

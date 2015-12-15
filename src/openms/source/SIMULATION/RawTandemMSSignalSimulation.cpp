@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,41 +46,32 @@ namespace OpenMS
     DefaultParamHandler("RawTandemMSSignalSimulation"),
     rnd_gen_(new SimTypes::SimRandomNumberGenerator())
   {
-    // Tandem MS params
-    defaults_.setValue("status", "disabled", "Create Tandem-MS scans?");
-    defaults_.setValidStrings("status", ListUtils::create<String>("disabled,precursor,MS^E"));
-
-    subsections_.push_back("Precursor:");
-    defaults_.insert("Precursor:", OfflinePrecursorIonSelection().getDefaults());
-    defaults_.remove("Precursor:peptides_per_protein");
-    defaults_.setValue("Precursor:charge_filter", ListUtils::create<int>(ListUtils::create<String>("2,3")), "Charges considered for MS2 fragmentation.");
-    defaults_.setMinInt("Precursor:charge_filter", 1);
-    defaults_.setMaxInt("Precursor:charge_filter", 5);
-
-    defaults_.setValue("MS_E:add_single_spectra", "false", "If true, the MS2 spectra for each peptide signal are included in the output (might be a lot). They will have a meta value 'MSE_DebugSpectrum' attached, so they can be filtered out. Native MS_E spectra will have 'MSE_Spectrum' instead.");
-    defaults_.setValidStrings("MS_E:add_single_spectra", ListUtils::create<String>("true,false"));
-    defaults_.setValue("tandem_mode", 0, "Algorithm to generate the tandem-MS spectra. 0 - fixed intensities, 1 - SVC prediction (abundant/missing), 2 - SVR prediction of peak intensity \n");
-    defaults_.setMinInt("tandem_mode", 0);
-    defaults_.setMaxInt("tandem_mode", 2);
-    defaults_.setValue("svm_model_set_file", "examples/simulation/SvmModelSet.model", "File containing the filenames of SVM Models for different charge variants");
-
-    subsections_.push_back("TandemSim:");
-    defaults_.insert("TandemSim:Simple:", TheoreticalSpectrumGenerator().getDefaults());
-    Param svm_par = SvmTheoreticalSpectrumGenerator().getDefaults();
-    svm_par.remove("svm_mode");
-    svm_par.remove("model_file_name");
-    defaults_.insert("TandemSim:SVM:", svm_par);
-
-    // sync'ed Param (also appears in IonizationSimulation)
-    defaults_.setValue("ionization_type", "ESI", "Type of Ionization (MALDI or ESI)");
-    defaults_.setValidStrings("ionization_type", ListUtils::create<String>("MALDI,ESI"));
-
-    defaultsToParam_();
+    initParam_();
   }
 
   RawTandemMSSignalSimulation::RawTandemMSSignalSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr rng) :
     DefaultParamHandler("RawTandemMSSignalSimulation"),
     rnd_gen_(rng)
+  {
+    initParam_();
+  }
+
+  RawTandemMSSignalSimulation::RawTandemMSSignalSimulation(const RawTandemMSSignalSimulation& source) :
+    DefaultParamHandler(source)
+  {
+    setParameters(source.getParameters());
+    rnd_gen_ = source.rnd_gen_;
+  }
+
+  RawTandemMSSignalSimulation& RawTandemMSSignalSimulation::operator=(const RawTandemMSSignalSimulation& source)
+  {
+    DefaultParamHandler::operator=(source);
+    setParameters(source.getParameters());
+    rnd_gen_ = source.rnd_gen_;
+    return *this;
+  }
+
+  void RawTandemMSSignalSimulation::initParam_()
   {
     // Tandem MS params
     defaults_.setValue("status", "disabled", "Create Tandem-MS scans?");
@@ -114,21 +105,6 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  RawTandemMSSignalSimulation::RawTandemMSSignalSimulation(const RawTandemMSSignalSimulation& source) :
-    DefaultParamHandler(source)
-  {
-    setParameters(source.getParameters());
-    rnd_gen_ = source.rnd_gen_;
-  }
-
-  RawTandemMSSignalSimulation& RawTandemMSSignalSimulation::operator=(const RawTandemMSSignalSimulation& source)
-  {
-    DefaultParamHandler::operator=(source);
-    setParameters(source.getParameters());
-    rnd_gen_ = source.rnd_gen_;
-    return *this;
-  }
-
   RawTandemMSSignalSimulation::~RawTandemMSSignalSimulation()
   {
   }
@@ -147,7 +123,7 @@ namespace OpenMS
     //this set will hold the precursor charges that have an Svm model
     std::set<Size> svm_model_charges;
 
-    //if SVR or SVC shall be used
+    // if SVR or SVC shall be used
     if (tandem_mode)
     {
       String svm_filename = param_.getValue("svm_model_set_file");
@@ -161,6 +137,7 @@ namespace OpenMS
 
       //set the parameters for each model
       Param svm_gen_params = param_.copy("TandemSim:SVM:", true);
+      svm_gen_params.setValue("svm_mode", tandem_mode - 1);
       std::set<Size>::iterator it;
       for (it = svm_model_charges.begin(); it != svm_model_charges.end(); ++it)
       {
@@ -334,6 +311,7 @@ namespace OpenMS
     //this set will hold the precursor charges that have an SVM model
     std::set<Size> svm_model_charges;
 
+    // if SVR or SVC shall be used
     if (tandem_mode)
     {
       String svm_filename = param_.getValue("svm_model_set_file");
@@ -347,6 +325,7 @@ namespace OpenMS
 
       //set the parameters for each model
       Param svm_gen_params = param_.copy("TandemSim:SVM:", true);
+      svm_gen_params.setValue("svm_mode", tandem_mode - 1);
       std::set<Size>::iterator it;
       for (it = svm_model_charges.begin(); it != svm_model_charges.end(); ++it)
       {
@@ -357,6 +336,9 @@ namespace OpenMS
     for (Size i = 0; i < ms2.size(); ++i)
     {
       IntList ids = ms2[i].getMetaValue("parent_feature_ids");
+
+      // std::cerr << "precursor: " << i << " (#ids: " << ids.size() << ")\n";
+      // std::cerr << ms2[i].getRT() << " " << ms2[i].getPrecursors()[0].getMZ() << "\n";
 
       OPENMS_POSTCONDITION(ids.size() == ms2[i].getPrecursors().size(), "#parent features should be equal to # of precursors")
 
@@ -380,6 +362,7 @@ namespace OpenMS
           simple_generator.getSpectrum(tmp_spec, seq, prec_charge);
         }
 
+        // scale intensity and copy 
         for (Size peak = 0; peak < tmp_spec.size(); ++peak)
         {
           Peak1D p = tmp_spec[peak];

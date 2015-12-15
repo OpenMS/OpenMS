@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,7 +51,7 @@ using namespace std;
     <table>
         <tr>
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ MapAlignerSpectrumAlignment \f$ \longrightarrow \f$</td>
+            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ MapAlignerSpectrum \f$ \longrightarrow \f$</td>
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
         </tr>
         <tr>
@@ -101,13 +101,13 @@ protected:
   void registerOptionsAndFlags_()
   {
     String formats = "mzML";
-    TOPPMapAlignerBase::registerOptionsAndFlags_(formats);
-    // no support for a reference file yet
+    // no support for a reference file yet:
+    TOPPMapAlignerBase::registerOptionsAndFlags_(formats, REF_NONE);
     registerSubsection_("algorithm", "Algorithm parameters section");
     registerSubsection_("model", "Options to control the modeling of retention time transformations from data");
   }
 
-  Param getSubsectionDefaults_(const String & section) const
+  Param getSubsectionDefaults_(const String& section) const
   {
     if (section == "algorithm")
     {
@@ -118,19 +118,88 @@ protected:
     {
       return getModelDefaults("interpolated");
     }
-    return Param();     // shouldn't happen
+    return Param(); // shouldn't happen
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
+    ExitCodes ret = checkParameters_();
+    if (ret != EXECUTION_OK) return ret;
+
     MapAlignmentAlgorithmSpectrumAlignment algorithm;
-    return TOPPMapAlignerBase::commonMain_(&algorithm);
+    Param algo_params = getParam_().copy("algorithm:", true);
+    algorithm.setParameters(algo_params);
+    algorithm.setLogType(log_type_);
+
+    StringList ins = getStringList_("in");
+    StringList outs = getStringList_("out");
+    StringList trafos = getStringList_("trafo_out");
+    Param model_params = getParam_().copy("model:", true);
+    String model_type = model_params.getValue("type");
+    model_params = model_params.copy(model_type + ":", true);
+    std::vector<TransformationDescription> transformations;
+
+    //-------------------------------------------------------------
+    // perform peak alignment
+    //-------------------------------------------------------------
+    ProgressLogger progresslogger;
+    progresslogger.setLogType(log_type_);
+
+    // load input
+    std::vector<MSExperiment<> > peak_maps(ins.size());
+    MzMLFile f;
+    f.setLogType(log_type_);
+    progresslogger.startProgress(0, ins.size(), "loading input files");
+    for (Size i = 0; i < ins.size(); ++i)
+    {
+      progresslogger.setProgress(i);
+      f.load(ins[i], peak_maps[i]);
+    }
+    progresslogger.endProgress();
+
+    // try to align
+    algorithm.align(peak_maps, transformations);
+    if (model_type != "none")
+    {
+      for (vector<TransformationDescription>::iterator it = 
+             transformations.begin(); it != transformations.end(); ++it)
+      {
+        it->fitModel(model_type, model_params);
+      }
+    }
+
+    // write output
+    progresslogger.startProgress(0, outs.size(), "applying RT transformations and writing output files");
+    for (Size i = 0; i < outs.size(); ++i)
+    {
+      progresslogger.setProgress(i);
+
+      MapAlignmentTransformer::transformRetentionTimes(peak_maps[i], 
+                                                       transformations[i]);
+      // annotate output with data processing info
+      addDataProcessing_(peak_maps[i], 
+                         getProcessingInfo_(DataProcessing::ALIGNMENT));
+
+      f.store(outs[i], peak_maps[i]);
+    }
+    progresslogger.endProgress();
+
+    if (!trafos.empty())
+    {
+      TransformationXMLFile trafo_file;
+      for (Size i = 0; i < transformations.size(); ++i)
+      {
+        trafo_file.store(trafos[i], transformations[i]);
+      }
+    }
+
+    return EXECUTION_OK;
   }
 
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPMapAlignerSpectrum tool;
   return tool.main(argc, argv);

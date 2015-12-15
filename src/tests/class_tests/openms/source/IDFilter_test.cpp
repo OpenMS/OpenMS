@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,6 +50,9 @@
 
 ///////////////////////////
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshadow"
+
 START_TEST(IDFilter, "$Id$")
 
 /////////////////////////////////////////////////////////////
@@ -70,6 +73,10 @@ ProteinIdentification protein_identification = protein_identifications[0];
 vector<FASTAFile::FASTAEntry> proteins;
 proteins.push_back(FASTAFile::FASTAEntry("Q824A5", "test description 1", "LHASGITVTEIPVTATNFK"));
 proteins.push_back(FASTAFile::FASTAEntry("Q872T5", "test description 2", "THPYGHAIVAGIERYPSK"));
+
+StringList protein_accessions;
+protein_accessions.push_back("Q824A5");
+protein_accessions.push_back("Q872T5");
 
 IDFilter* ptr = 0;
 IDFilter* nullPointer = 0;
@@ -105,12 +112,34 @@ START_SECTION((void filterIdentificationsByProteins(const PeptideIdentification&
   TEST_EQUAL(identification2.getHits()[1].getSequence(), AASequence::fromString("MRSLGYVAVISAVATDTDK"))
 END_SECTION
 
+START_SECTION((void filterIdentificationsByProteinAccessions(const ProteinIdentification& identification, const StringList& proteins, ProteinIdentification& filtered_identification)))
+  ProteinIdentification protein_identification2;
+
+  IDFilter::filterIdentificationsByProteinAccessions(protein_identification, protein_accessions, protein_identification2);
+
+  TEST_EQUAL(protein_identification2.getScoreType(), "Mascot")
+  TEST_EQUAL(protein_identification2.getHits().size(), 2)
+  TEST_EQUAL(protein_identification2.getHits()[0].getAccession(), "Q824A5")
+  TEST_EQUAL(protein_identification2.getHits()[1].getAccession(), "Q872T5")
+END_SECTION
+
+START_SECTION((void filterIdentificationsByProteinAccessions(const PeptideIdentification& identification, const StringList& proteins, PeptideIdentification& filtered_identification)))
+  PeptideIdentification identification2;
+
+  IDFilter::filterIdentificationsByProteinAccessions(identification, protein_accessions, identification2);
+
+  TEST_EQUAL(identification2.getScoreType(), "Mascot")
+  TEST_EQUAL(identification2.getHits().size(), 2)
+  TEST_EQUAL(identification2.getHits()[0].getSequence(), AASequence::fromString("LHASGITVTEIPVTATNFK"))
+  TEST_EQUAL(identification2.getHits()[1].getSequence(), AASequence::fromString("MRSLGYVAVISAVATDTDK"))
+END_SECTION
+
 START_SECTION((template <class IdentificationType> void filterIdentificationsByThreshold(const IdentificationType& identification, double threshold_fraction, IdentificationType& filtered_identification)))
   PeptideIdentification identification2;
   vector<PeptideHit> peptide_hits;
   vector<ProteinHit> protein_hits;
 
-  TEST_EQUAL(identification.getHits().size(), 10)
+  TEST_EQUAL(identification.getHits().size(), 11)
   IDFilter::filterIdentificationsByThreshold(identification, 1.3, identification2);
   peptide_hits = identification2.getHits();
   TEST_EQUAL(identification2.getScoreType() , "Mascot")
@@ -140,7 +169,7 @@ START_SECTION((template <class IdentificationType> void filterIdentificationsByS
   PeptideIdentification identification2;
   vector<PeptideHit> peptide_hits;
 
-  TEST_EQUAL(identification.getHits().size(), 10)
+  TEST_EQUAL(identification.getHits().size(), 11)
   IDFilter::filterIdentificationsByScore(identification, 41, identification2);
   peptide_hits = identification2.getHits();
   TEST_EQUAL(identification2.getScoreType(), "Mascot")
@@ -177,10 +206,10 @@ START_SECTION((void filterIdentificationsByLength(const PeptideIdentification& i
   PeptideIdentification identification2;
   vector<PeptideHit> peptide_hits;
 
-  TEST_EQUAL(identification_len.getHits().size(), 13)
+  TEST_EQUAL(identification_len.getHits().size(), 14)
   IDFilter::filterIdentificationsByLength(identification_len,identification2, 10);
   peptide_hits = identification2.getHits();
-  TEST_EQUAL(peptide_hits.size(), 11)
+  TEST_EQUAL(peptide_hits.size(), 12)
   TEST_EQUAL(peptide_hits[0].getRank() , 1)
   for (Size i = 0; i < peptide_hits.size(); ++i)
   {
@@ -204,7 +233,7 @@ START_SECTION((void filterIdentificationsByLength(const PeptideIdentification& i
   PeptideIdentification identification4;
   IDFilter::filterIdentificationsByLength(identification_len, identification4, 9, 8);
   peptide_hits = identification4.getHits();
-  TEST_EQUAL(peptide_hits.size(), 12)
+  TEST_EQUAL(peptide_hits.size(), 13)
   TEST_EQUAL(peptide_hits[0].getRank(), 1)
   for (Size i = 0; i < peptide_hits.size(); ++i)
   {
@@ -228,7 +257,8 @@ START_SECTION((void filterIdentificationsByExclusionPeptides(const PeptideIdenti
   peptides.insert("THPYGHAIVAGIERYPSK");
   peptides.insert("AITSDFANQAKTVLQNFK");
 
-  IDFilter::filterIdentificationsByExclusionPeptides(identification, peptides, identification2);
+  // modification unaware filtering
+  IDFilter::filterIdentificationsByExclusionPeptides(identification, peptides, true, identification2);
   peptide_hits = identification2.getHits();
   TEST_EQUAL(identification2.getScoreType(), "Mascot")
 
@@ -239,6 +269,22 @@ START_SECTION((void filterIdentificationsByExclusionPeptides(const PeptideIdenti
   TEST_EQUAL(peptide_hits[1].getSequence(), AASequence::fromString("TLCHHDATFDNLVWTPK"))
   TEST_REAL_SIMILAR(peptide_hits[1].getScore(), 10.37)
   TEST_EQUAL(peptide_hits[1].getRank(), 2)
+
+  // modification aware filtering
+  IDFilter::filterIdentificationsByExclusionPeptides(identification, peptides, false, identification2);
+  peptide_hits = identification2.getHits();
+  TEST_EQUAL(identification2.getScoreType(), "Mascot")
+
+  TEST_EQUAL(peptide_hits.size(), 3)
+  TEST_EQUAL(peptide_hits[0].getSequence(), AASequence::fromString("TGCDTWGQGTLVTVSSASTK"))
+  TEST_REAL_SIMILAR(peptide_hits[0].getScore(), 10.93)
+  TEST_EQUAL(peptide_hits[0].getRank(), 1)
+  TEST_EQUAL(peptide_hits[1].getSequence(), AASequence::fromString("TLCHHDATFDNLVWTPK"))
+  TEST_REAL_SIMILAR(peptide_hits[1].getScore(), 10.37)
+  TEST_EQUAL(peptide_hits[1].getRank(), 2)
+  TEST_EQUAL(peptide_hits[2].getSequence(), AASequence::fromString("MSLLSNM(Oxidation)ISIVKVGYNAR"))
+  TEST_REAL_SIMILAR(peptide_hits[2].getScore(), 10)
+  TEST_EQUAL(peptide_hits[2].getRank(), 3)
   protein_hits = protein_identification.getHits();
 END_SECTION
 
@@ -574,3 +620,6 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 
 END_TEST
+
+#pragma clang diagnostic pop
+

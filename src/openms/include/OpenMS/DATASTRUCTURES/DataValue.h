@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,9 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/OpenMSConfig.h>
 
 class QString;
 
@@ -117,9 +120,9 @@ public:
     virtual ~DataValue();
     //@}
 
-    ///@name cast operators
+    ///@name Cast operators
     ///These methods are used when the DataType is known.
-    ///If they are applied to a DataValue with the wrong DataType, an exception is thrown.
+    ///If they are applied to a DataValue with the wrong DataType, an exception (Exception::ConversionError) is thrown. In particular, none of these operators will work for an empty DataValue (DataType EMPTY_VALUE) - except toChar(), which will return 0.
     //@{
 
     /**

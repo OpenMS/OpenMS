@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -331,14 +331,14 @@ START_SECTION([EXTRA](pick multiple peaks SN))
     TEST_EQUAL(pc[0].pos, 10)
     TEST_REAL_SIMILAR(pc[0].int_max, 0.07978845608028655*100)
     TEST_REAL_SIMILAR(pc[0].mz_max, 10)
-    TEST_EQUAL(pc[0].left_boundary, 2)
-    TEST_EQUAL(pc[0].right_boundary, 18)
+    TEST_EQUAL(pc[0].left_boundary, 1)
+    TEST_EQUAL(pc[0].right_boundary, 17)
 
     TEST_EQUAL(pc[1].pos, 35)
     TEST_REAL_SIMILAR(pc[1].int_max, 0.07978845608028655*100)
     TEST_REAL_SIMILAR(pc[1].mz_max, 35)
-    TEST_EQUAL(pc[1].left_boundary, 27)
-    TEST_EQUAL(pc[1].right_boundary, 43)
+    TEST_EQUAL(pc[1].left_boundary, 26)
+    TEST_EQUAL(pc[1].right_boundary, 42)
   }
 }
 END_SECTION

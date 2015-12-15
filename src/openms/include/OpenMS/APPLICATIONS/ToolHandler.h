@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,8 @@
 #include <OpenMS/DATASTRUCTURES/ToolDescription.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+
+class QStringList;
 
 namespace OpenMS
 {
@@ -82,11 +84,11 @@ public:
     static ToolListType getUtilList();
 
     /// get all types of a tool (empty if none)
-    static StringList getTypes(const String & toolname);
+    static StringList getTypes(const String& toolname);
 
     /// Returns the category string from TOPP or UTIL tools
     /// @return empty string if tool was not found
-    static String getCategory(const String & toolname);
+    static String getCategory(const String& toolname);
 
     /// get getOpenMSDataPath() + "/TOOLS/EXTERNAL"
     static String getExternalToolsPath();

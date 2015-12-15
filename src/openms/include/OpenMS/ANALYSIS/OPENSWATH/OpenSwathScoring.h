@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -83,6 +83,7 @@ namespace OpenMS
 
     bool use_ms1_correlation;
     bool use_ms1_fullscan;
+    bool use_uis_scores;
   };
 
   /** @brief A structure to hold the different scores computed by OpenSWATH
@@ -102,13 +103,22 @@ namespace OpenMS
     double library_sangle;
     double norm_rt_score;
     double isotope_correlation;
+    std::string ind_isotope_correlation;
     double isotope_overlap;
+    std::string ind_isotope_overlap;
     double massdev_score;
+    std::string ind_massdev_score;
     double xcorr_coelution_score;
+    std::string ind_xcorr_coelution_score;
     double xcorr_shape_score;
+    std::string ind_xcorr_shape_score;
     double yseries_score;
     double bseries_score;
     double log_sn_score;
+    std::string ind_log_sn_score;
+    int ind_num_transitions;
+    std::string ind_transition_names;
+    std::string ind_log_intensity;
 
     double weighted_coelution_score;
     double weighted_xcorr_shape;
@@ -142,13 +152,22 @@ namespace OpenMS
       library_sangle(0),
       norm_rt_score(0),
       isotope_correlation(0),
+      ind_isotope_correlation(""),
       isotope_overlap(0),
+      ind_isotope_overlap(""),
       massdev_score(0),
+      ind_massdev_score(""),
       xcorr_coelution_score(0),
+      ind_xcorr_coelution_score(""),
       xcorr_shape_score(0),
+      ind_xcorr_shape_score(""),
       yseries_score(0),
       bseries_score(0),
       log_sn_score(0),
+      ind_log_sn_score(""),
+      ind_num_transitions(0),
+      ind_transition_names(""),
+      ind_log_intensity(""),
       weighted_coelution_score(0),
       weighted_xcorr_shape(0),
       weighted_massdev_score(0),
@@ -420,15 +439,15 @@ var_yseries_score   -0.0327896378737766
      *
      * Sets the parameters for the scoring.
      *
-     * @param rt_normalization_factor_ Specifies the range of the normalized retention time space
-     * @param add_up_spectra_ How many spectra to add up (default 1)
-     * @param spacing_for_spectra_resampling_ Spacing factor for spectra addition
-     * @param su_ Which scores to actually compute
+     * @param rt_normalization_factor Specifies the range of the normalized retention time space
+     * @param add_up_spectra How many spectra to add up (default 1)
+     * @param spacing_for_spectra_resampling Spacing factor for spectra addition
+     * @param su Which scores to actually compute
      *
     */
-    void initialize(double rt_normalization_factor_,
-      int add_up_spectra_, double spacing_for_spectra_resampling_,
-      OpenSwath_Scores_Usage & su_);
+    void initialize(double rt_normalization_factor,
+      int add_up_spectra, double spacing_for_spectra_resampling,
+      OpenSwath_Scores_Usage & su);
 
     /** @brief Score a single peakgroup in a chromatogram using only chromatographic properties.
      *
@@ -451,6 +470,31 @@ var_yseries_score   -0.0327896378737766
           OpenSwath::IMRMFeature* imrmfeature,
           const std::vector<std::string>& native_ids,
           const std::vector<double>& normalized_library_intensity,
+          std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
+          OpenSwath_Scores & scores);
+
+    /** @brief Score identification transitions against detection transitions of a single peakgroup 
+     * in a chromatogram using only chromatographic properties.
+     *
+     * This function only uses the chromatographic properties (coelution,
+     * signal to noise, etc.) of a peakgroup in a chromatogram to compute
+     * scores. The scores are computed by scoring identification against detection
+     * transitions.
+     *
+     * The scores are returned in the OpenSwath_Scores object. Only those
+     * scores specified in the OpenSwath_Scores_Usage object are computed.
+     *
+     * @param imrmfeature The feature to be scored
+     * @param native_ids_identification The list of identification native ids (giving a canonical ordering of the transitions)
+     * @param native_ids_detection The list of detection native ids (giving a canonical ordering of the transitions)
+     * @param signal_noise_estimators The signal-to-noise estimators for each transition
+     * @param scores The object to store the result
+     *
+    */
+    void calculateChromatographicIdScores(
+          OpenSwath::IMRMFeature* imrmfeature,
+          const std::vector<std::string>& native_ids_identification,
+          const std::vector<std::string>& native_ids_detection,
           std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
           OpenSwath_Scores & scores);
 
@@ -495,6 +539,23 @@ var_yseries_score   -0.0327896378737766
         OpenSwath::SpectrumAccessPtr ms1_map,
         OpenMS::DIAScoring & diascoring,
         const PeptideType& pep,
+        OpenSwath_Scores & scores);
+
+    /** @brief Score a single chromatographic feature using DIA / SWATH scores.
+     *
+     * The scores are returned in the OpenSwath_Scores object. 
+     *
+     * @param imrmfeature The feature to be scored
+     * @param transitions The library transition to score the feature against
+     * @param swath_map The SWATH-MS (DIA map) from which to retrieve full MS/MS spectra at the chromatographic peak apices
+     * @param diascoring DIA Scoring object to use for scoring
+     * @param scores The object to store the result
+     *
+    */
+    void calculateDIAIdScores(OpenSwath::IMRMFeature* imrmfeature,
+        const TransitionType & transition,
+        OpenSwath::SpectrumAccessPtr swath_map,
+        OpenMS::DIAScoring & diascoring,
         OpenSwath_Scores & scores);
 
     /** @brief Computing the normalized library intensities from the transition objects

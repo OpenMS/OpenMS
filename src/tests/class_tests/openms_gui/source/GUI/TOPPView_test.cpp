@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -59,7 +59,6 @@ namespace OpenMS
 
 	@todo document schedule for winXP
 */
-
 class TestTOPPView: public QObject
 {
 	Q_OBJECT
@@ -72,11 +71,14 @@ class TestTOPPView: public QObject
 	*/
 	struct ScheduleInfo
 	{
-		ScheduleInfo():delay(0){};
-		ScheduleInfo(QString p_keys, QString p_title, int p_delay)
-			:keys(p_keys),
-			 title(p_title),
-			 delay(p_delay)
+		ScheduleInfo() :
+      delay(0)
+    {}
+
+		ScheduleInfo(QString p_keys, QString p_title, int p_delay) :
+      keys(p_keys),
+			title(p_title),
+			delay(p_delay)
 		{}
 
 		QString keys; //< key sequence
@@ -85,6 +87,7 @@ class TestTOPPView: public QObject
 	};
 
 public slots:
+
 	/**
 		@brief Slot that tries to process the current event queue for modal dialogs until its empty.
 
@@ -235,3 +238,4 @@ using namespace OpenMS; // this is required to avoid linker errors on Windows
 
 QTEST_MAIN(TestTOPPView)		 // expands to a simple main() method that runs all the test functions
 #include <source/GUI/moc_TOPPView_test.cxx> // for Qt's introspection
+

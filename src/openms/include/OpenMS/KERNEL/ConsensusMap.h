@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,21 +35,29 @@
 #ifndef OPENMS_KERNEL_CONSENSUSMAP_H
 #define OPENMS_KERNEL_CONSENSUSMAP_H
 
-// Base classes
-#include <OpenMS/KERNEL/ConsensusFeature.h>
-#include <OpenMS/METADATA/MetaInfoInterface.h>
-#include <OpenMS/KERNEL/RangeManager.h>
-#include <OpenMS/METADATA/DocumentIdentifier.h>
-#include <OpenMS/CONCEPT/UniqueIdIndexer.h>
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
+#include <OpenMS/CONCEPT/UniqueIdIndexer.h>
+#include <OpenMS/KERNEL/RangeManager.h>
+#include <OpenMS/KERNEL/ConsensusFeature.h>
+#include <OpenMS/METADATA/DocumentIdentifier.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
 
-// Members
-#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/OpenMSConfig.h>
 
 #include <map>
+#include <vector>
 
 namespace OpenMS
 {
+  class ProteinIdentification;
+  class DataProcessing;
+  namespace Logger
+  {
+    class LogStream;
+  }
+
   /**
     @brief A container for consensus elements.
 
@@ -243,6 +251,12 @@ public:
 
     /// sets the description of the applied data processing
     OPENMS_DLLAPI void setDataProcessing(const std::vector<DataProcessing>& processing_method);
+
+    /// set the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)
+    OPENMS_DLLAPI void setPrimaryMSRunPath(const StringList& s);
+
+    /// get the file path to the first MS run
+    OPENMS_DLLAPI StringList getPrimaryMSRunPath() const;
 
     /// Equality operator
     OPENMS_DLLAPI bool operator==(const ConsensusMap& rhs) const;

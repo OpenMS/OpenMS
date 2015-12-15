@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -75,17 +75,20 @@
     </tr>
   </table>
 </CENTER>
-  @em MyriMatch must be installed on the system to be able to use the @em MyriMatchAdapter. See http://fenchurch.mc.vanderbilt.edu/bumbershoot/myrimatch/
+  @em MyriMatch must be installed on the system to be able to use the @em MyriMatchAdapter.
+  MyriMatch is currently available as part of the Bumbershoot package. See http://proteowizard.sourceforge.net/downloads.shtml.
   for further information on how to download and install @em MyriMatch on your system.
 
-  This wrapper has been tested successfully with MyriMatch, version 2.1.x.
+  This wrapper has been tested successfully with MyriMatch, version 2.1.x. and 2.2.x.
 
-  Use debug level >=1 to keep intermediate PepXML and config files for manual inspection.
+  Use debug level >=1 to keep intermediate pepXML and configuration files for manual inspection.
+
+  @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_MyriMatchAdapter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_MyriMatchAdapter.html
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_MyriMatchAdapter.html
 */
 
 // We do not want this class to show up in the docu:
@@ -216,9 +219,9 @@ protected:
   {
     addEmptyLine_();
 
-    registerInputFile_("in", "<file>", "", "Input file ");
+    registerInputFile_("in", "<file>", "", "Input file");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
-    registerOutputFile_("out", "<file>", "", "Output file ");
+    registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 1.5, "Precursor mono mass tolerance.", false);
 
@@ -234,8 +237,6 @@ protected:
     registerInputFile_("database", "<fasta-file>", "", "FASTA protein database.", true, false);
     setValidFormats_("database", ListUtils::create<String>("FASTA"));
 
-    registerIntOption_("min_precursor_charge", "<charge>", 1, "Minimum precursor ion charge", false);
-    registerIntOption_("max_precursor_charge", "<charge>", 3, "Maximum precursor ion charge", false);
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
     registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>(""),
@@ -268,6 +269,10 @@ protected:
     registerIntOption_("NumIntensityClasses", "<num>", 3, "Before scoring any candidates, experimental spectra have their peaks stratified into the number of intensity classes specified by this parameter.", false, true); // Description copied from MM doc
     registerDoubleOption_("ClassSizeMultiplier", "<factor>", 2.0, "When stratifying peaks into a specified, fixed number of intensity classes, this parameter controls the size of each class relative to the class above it (where the peaks are more intense). ", false, true); // Description copied from MM doc
     registerStringOption_("MonoisotopeAdjustmentSet", "<set>", "0", "This parameter defines a set of isotopes (0 being the instrument-called monoisotope) to try as the monoisotopic precursor m/z. To disable this technique, set the value to '0'.", false, true);
+
+    registerStringList_("SpectrumListFilters", "<filterList>", StringList(), "Optional set of filters as described in the MyriMatch documentation.", false, true);
+
+    registerFlag_("ignoreConfigErrors", "Ignore wrong parameter names or values. Use with maximum caution!", true);
 
   }
 
@@ -319,20 +324,13 @@ protected:
       writeLog_("Warning: MyriMatch version output (" + output + ") not formatted as expected!");
       return EXTERNAL_PROGRAM_ERROR;
     }
-    if (myrimatch_version_i.myrimatch_major != 2 && myrimatch_version_i.myrimatch_minor != 1)
+    if (! (   (myrimatch_version_i.myrimatch_major == 2) &&  // major must be 2
+              (myrimatch_version_i.myrimatch_minor == 1 || myrimatch_version_i.myrimatch_minor == 2) // minor .1 or .2
+          ))
     {
-      writeDebug_("Warning: unsupported MyriMatch version (" + myrimatch_version + "). Tested only for MyriMatch 2.1.x", 0);
+      writeLog_("Warning: unsupported MyriMatch version (" + myrimatch_version + "). Tested only for MyriMatch 2.1.x and 2.2.x."
+                "\nIf you encounter parameter errors, you can try the flag 'ignoreConfigErrors', but be aware that MyriMatch might be misconfigured.");
     }
-
-    //-------------------------------------------------------------
-    // Validate user parameters
-    //-------------------------------------------------------------
-    if (getIntOption_("min_precursor_charge") > getIntOption_("max_precursor_charge"))
-    {
-      LOG_ERROR << "Given charge range is invalid: max_precursor_charge needs to be >= min_precursor_charge." << std::endl;
-      return ILLEGAL_PARAMETERS;
-    }
-
 
     //-------------------------------------------------------------
     // parsing parameters
@@ -344,6 +342,8 @@ protected:
 
     // building parameter String
     StringList parameters;
+
+    if (getFlag_("ignoreConfigErrors")) parameters << "-ignoreConfigErrors";
 
     // Common Identification engine options
     StringList static_mod_list;
@@ -374,9 +374,20 @@ protected:
     }
 
     parameters << "-FragmentMzTolerance" << String(getDoubleOption_("fragment_mass_tolerance")) + " " + fragment_mass_tolerance_unit;
-    int min_charge = getIntOption_("min_precursor_charge");
-    int max_charge = getIntOption_("max_precursor_charge");
-    parameters << "-SpectrumListFilters" << "chargeStatePredictor false " +  String(max_charge) + " " +  String(min_charge) + " 0.9";
+
+    StringList slf = getStringList_("SpectrumListFilters");
+    if (slf.size() > 0) 
+    {
+      if (myrimatch_version_i.myrimatch_minor <= 1)
+      { // use quotes around the slf arguments (will be added automatically by Qt during call), i.e. "-SpectrumListFilters" "peakPicking false 2-"
+        parameters << "-SpectrumListFilters" << ListUtils::concatenate(slf, ";") << "";
+      }
+      else
+      { // no quotes -- pass a single argument, i.e. "-SpectrumListFilters peakPicking false 2-"
+        parameters << "-SpectrumListFilters " + ListUtils::concatenate(slf, ";") << "";
+      }
+      
+    }
     //parameters << "-ThreadCountMultiplier" << String(getIntOption_("threads")); // MyriMatch does not recognise this, even though it's in the manual.
 
     // MyriMatch specific parameters
@@ -452,17 +463,19 @@ protected:
     String exp_name = File::basename(inputfile_name);
     String pep_file = tmp_dir + File::removeExtension(exp_name) + ".pepXML";
 
-    FileHandler fh;
-    MSExperiment<> exp;
-    fh.loadExperiment(inputfile_name, exp);
-
     vector<ProteinIdentification> protein_identifications;
     vector<PeptideIdentification> peptide_identifications;
+
+    MSExperiment<> exp;
     if (File::exists(pep_file))
     {
-      const bool use_precursor_data = false;
-      PepXMLFile().load(pep_file, protein_identifications, peptide_identifications,
-                        exp_name, exp, use_precursor_data);
+      MzMLFile fh;
+      fh.load(inputfile_name, exp);
+
+      SpectrumMetaDataLookup lookup;
+      lookup.readSpectra(exp.getSpectra());
+      PepXMLFile().load(pep_file, protein_identifications,
+                        peptide_identifications, exp_name, lookup);
     }
     else
     {
@@ -485,7 +498,25 @@ protected:
     //-------------------------------------------------------------
     // writing results
     //-------------------------------------------------------------
+    ProteinIdentification::SearchParameters search_parameters;
+    search_parameters.db = getStringOption_("database");
+    ProteinIdentification::PeakMassType mass_type = getFlag_("precursor_mass_tolerance_avg") == true ? ProteinIdentification::AVERAGE : ProteinIdentification::MONOISOTOPIC;
+    search_parameters.mass_type = mass_type;
+    search_parameters.fixed_modifications = getStringList_("fixed_modifications");
+    search_parameters.variable_modifications = getStringList_("variable_modifications");
+    search_parameters.missed_cleavages = getIntOption_("MaxMissedCleavages");
+    search_parameters.fragment_mass_tolerance = getDoubleOption_("fragment_mass_tolerance");
+    search_parameters.precursor_tolerance = getDoubleOption_("precursor_mass_tolerance");
+    search_parameters.precursor_mass_tolerance_ppm = getStringOption_("precursor_mass_tolerance_unit") == "ppm" ? true : false;
+    search_parameters.fragment_mass_tolerance_ppm = getStringOption_("fragment_mass_tolerance_unit") == "ppm" ? true : false;
+    protein_identifications[0].setSearchParameters(search_parameters);
+    protein_identifications[0].setSearchEngineVersion(myrimatch_version);
+    protein_identifications[0].setSearchEngine("MyriMatch");
 
+    if (!protein_identifications.empty())
+    {
+      protein_identifications[0].setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
+    }
     IdXMLFile().store(outputfile_name, protein_identifications, peptide_identifications);
     return EXECUTION_OK;
   }

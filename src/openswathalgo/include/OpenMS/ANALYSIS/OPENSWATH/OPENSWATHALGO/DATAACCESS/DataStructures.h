@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -170,6 +170,16 @@ public:
       index(0)
     {
     }
+
+    ///Comparator for the retention time.
+    struct RTLess :
+      public std::binary_function<OSSpectrumMeta, OSSpectrumMeta, bool>
+    {
+      inline bool operator()(const OSSpectrumMeta& a, const OSSpectrumMeta& b) const
+      {
+        return a.RT < b.RT;
+      }
+    };
 
   };
   typedef OSSpectrumMeta SpectrumMeta;

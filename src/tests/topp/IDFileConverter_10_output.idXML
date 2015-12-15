@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="http://open-ms.sourceforge.net/XSL/IdXML.xsl" ?>
+<IdXML version="1.3" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="c:/Inetpub/wwwroot/ISB/data/user-data/proteome-databases/uniprot-human-Nov26-2013-reference-reviewed-canonical-without-isoforms_plus-shuffled.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+		<FixedModification name="C+57.0215" />
+		<FixedModification name="K+34.0631" />
+		<FixedModification name="+34.0632" />
+		<VariableModification name="C-17.0265" />
+		<VariableModification name="E-18.0106" />
+		<VariableModification name="Q-17.0265" />
+		<VariableModification name="+42.0106" />
+	</SearchParameters>
+	<SearchParameters id="SP_1" db="c:/Inetpub/wwwroot/ISB/data/user-data/proteome-databases/uniprot-human-Nov26-2013-reference-reviewed-canonical-without-isoforms_plus-shuffled.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+		<FixedModification name="C+57.0215" />
+		<FixedModification name="K+28.0313" />
+		<FixedModification name="+28.0314" />
+		<VariableModification name="C-17.0265" />
+		<VariableModification name="E-18.0106" />
+		<VariableModification name="Q-17.0265" />
+		<VariableModification name="+42.0106" />
+	</SearchParameters>
+	<IdentificationRun date="2015-01-06T13:43:06" search_engine="X! Tandem" search_engine_version="" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+			<ProteinHit id="PH_0" accession="sp|P23588|IF4B_HUMAN" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="sp|P00338|LDHA_HUMAN" score="0" sequence="" >
+			</ProteinHit>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="804.3831750319" RT="383.877" >
+			<PeptideHit score="0.7911" sequence="(Dimethyl:2H(4)13C(2))TGSESSQTGTSTTSSR" charge="2" aa_before="R" aa_after="N" protein_refs="PH_0" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="863.4929250319" RT="4120.79" >
+			<PeptideHit score="0.9938" sequence="(Dimethyl:2H(4)13C(2))DLADELALVDVIEDK(Dimethyl:2H(4)13C(2))" charge="2" aa_before="K" aa_after="L" protein_refs="PH_1" >
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+	<IdentificationRun date="2015-01-06T13:43:07" search_engine="X! Tandem" search_engine_version="" search_parameters_ref="SP_1" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+			<ProteinHit id="PH_2" accession="sp|O75533|SF3B1_HUMAN" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_3" accession="sp|P19338|NUCL_HUMAN" score="0" sequence="" >
+			</ProteinHit>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="587.947991698567" RT="374.116" >
+			<PeptideHit score="1" sequence="(Dimethyl)GDTPGHATPGHGGATSSAR" charge="3" aa_before="R" aa_after="K" protein_refs="PH_2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="853.116458365233" RT="4131.05" >
+			<PeptideHit score="1" sequence="(Dimethyl)TLVLSNLSYSATEETLQEVFEK(Dimethyl)" charge="3" aa_before="K" aa_after="A" protein_refs="PH_3" >
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>

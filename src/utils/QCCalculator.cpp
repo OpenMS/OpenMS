@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,7 +65,7 @@ using namespace std;
 /**
     @page UTILS_QCCalculator QCCalculator
 
-    @brief Calculates basic quality parameters from MS experiments and subsequent analysis data as identification or feature detection.
+    @brief Calculates basic quality parameters from MS experiments and compiles data for subsequent QC into a qcML file.
 
     <CENTER>
       <table>
@@ -85,8 +85,8 @@ using namespace std;
       </table>
     </CENTER>
 
-    The calculated quality parameters include file origin, spectra distribution, aquisition details, ion current stability ( & tic ), id accuracy statistics and feature statistics.
-    The MS experiments base name is used as name to the qcml element that is comprising all quality parameter values for the given run (including the given downstream analysis data).  
+    The calculated quality parameters or data compiled as attachments for easy plotting input include file origin, spectra distribution, aquisition details, ion current stability ( & TIC ), id accuracy statistics and feature statistics.
+    The MS experiments base name is used as name to the qcML element that is comprising all quality parameter values for the given run (including the given downstream analysis data).
     
     - @p id produces quality parameter values for the identification file;
     - @p feature produces quality parameter values for the feature file;
@@ -94,7 +94,9 @@ using namespace std;
     some quality parameter calculation are only available if both feature and ids are given.
     - @p remove_duplicate_features only needed when you work with a set of merged features. Then considers duplicate features only once.
 
-    Output is in qcML format (see parameter @p out) which can be viewed directly in a modern browser (chromium, firefox). 
+    Output is in qcML format (see parameter @p out) which can be viewed directly in a modern browser (chromium, firefox, safari).
+
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_QCCalculator.cli
@@ -105,6 +107,9 @@ using namespace std;
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshadow"
 
 class TOPPQCCalculator :
   public TOPPBase
@@ -148,7 +153,6 @@ protected:
   {
     vector<ProteinIdentification> prot_ids;
     vector<PeptideIdentification> pep_ids;
-    ProteinHit temp_protein_hit;
 
     //-------------------------------------------------------------
     // parsing parameters
@@ -178,7 +182,6 @@ protected:
     String base_name = QFileInfo(QString::fromStdString(inputfile_raw)).baseName();
 
     cout << "Reading mzML file..." << endl;
-    MzMLFile mz_data_file;
     MSExperiment<Peak1D> exp;
     MzMLFile().load(inputfile_raw, exp);
     
@@ -198,10 +201,7 @@ protected:
     qp.cvAcc = "QC:0000004";
     try
     {
-      //~ const ControlledVocabulary::CVTerm& test = cv.getTermByName("MS aquisition result details");
-      //~ cout << test.name << test.id << endl;
       const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);
-      //~ const ControlledVocabulary::CVTerm& term = cv.getTerm("0000004");
       qp.name = term.name; ///< Name
     }
     catch (...)
@@ -386,36 +386,62 @@ protected:
     {
       at.name = "MS TICs"; ///< Name
     }
-    
+
     at.colTypes.push_back("MS:1000894_[sec]");
     at.colTypes.push_back("MS:1000285");
     UInt max = 0;
     Size below_10k = 0;
-    for (Size i = 0; i < exp.size(); ++i)
+    std::vector<OpenMS::Chromatogram> chroms = exp.getChromatograms();
+    if (!chroms.empty()) //real TIC from the mzML
     {
-      if (exp[i].getMSLevel() == 1)
+      for (Size t = 0; t < chroms.size(); ++t)
       {
-        UInt sum = 0;
-        for (Size j = 0; j < exp[i].size(); ++j)
+        if (chroms[t].getChromatogramType() == ChromatogramSettings::TOTAL_ION_CURRENT_CHROMATOGRAM)
         {
-          sum += exp[i][j].getIntensity();
+          for (Size i = 0; i < chroms[t].size(); ++i)
+          {
+            double sum = chroms[t][i].getIntensity();
+            if (sum < 10000)
+            {
+              ++below_10k;
+            }
+            std::vector<String> row;
+            row.push_back(chroms[t][i].getRT()*60);
+            row.push_back(sum);
+            at.tableRows.push_back(row);
+          }
+          break;//what if there are more than one? should generally not be though ...
         }
-        if (sum > max)
+      }
+    }
+    else // reconstructed TIC or RIC from the MS1 intensities
+    {
+      for (Size i = 0; i < exp.size(); ++i)
+      {
+        if (exp[i].getMSLevel() == 1)
         {
-          max = sum;
+          UInt sum = 0;
+          for (Size j = 0; j < exp[i].size(); ++j)
+          {
+            sum += exp[i][j].getIntensity();
+          }
+          if (sum > max)
+          {
+            max = sum;
+          }
+          if (sum < 10000)
+          {
+            ++below_10k;
+          }
+          std::vector<String> row;
+          row.push_back(exp[i].getRT());
+          row.push_back(sum);
+          at.tableRows.push_back(row);
         }
-        if (sum < 10000)
-        {
-          ++below_10k;
-        }
-        std::vector<String> row;
-        row.push_back(exp[i].getRT());
-        row.push_back(sum);
-        at.tableRows.push_back(row);
       }
     }
     qcmlfile.addRunAttachment(base_name, at);
-    
+
 
     qp = QcMLFile::QualityParameter();
     qp.id = base_name + "_ticslump"; ///< Identifier
@@ -433,7 +459,46 @@ protected:
     }
     qcmlfile.addRunQualityParameter(base_name, qp);
 
-    
+
+    //---injection times MSn
+    at = QcMLFile::Attachment();
+    at.cvRef = "QC"; ///< cv reference
+    at.cvAcc = "QC:0000018";
+    at.qualityRef = msaq_ref;
+    at.id = base_name + "_ms2inj"; ///< Identifier
+    try
+    {
+      const ControlledVocabulary::CVTerm& term = cv.getTerm(at.cvAcc);
+      at.name = term.name; ///< Name
+    }
+    catch (...)
+    {
+      at.name = "MS2 injection time"; ///< Name
+    }
+
+    at.colTypes.push_back("MS:1000894_[sec]");
+    at.colTypes.push_back("MS:1000927");
+    for (Size i = 0; i < exp.size(); ++i)
+    {
+      if (exp[i].getMSLevel() > 1 && !exp[i].getAcquisitionInfo().empty())
+      {
+        for (Size j = 0; j < exp[i].getAcquisitionInfo().size(); ++j)
+        {
+          if (exp[i].getAcquisitionInfo()[j].metaValueExists("MS:1000927"))
+          {
+            std::vector<String> row;
+            row.push_back(String(exp[i].getRT()));
+            row.push_back(exp[i].getAcquisitionInfo()[j].getMetaValue("MS:1000927"));
+            at.tableRows.push_back(row);
+          }
+        }
+      }
+    }
+    if (!at.tableRows.empty())
+    {
+      qcmlfile.addRunAttachment(base_name, at);
+    }
+
     //-------------------------------------------------------------
     // MS  id
     //------------------------------------------------------------
@@ -664,7 +729,7 @@ protected:
       //~ prot_ids[0].getSearchParameters();
       for (vector<PeptideIdentification>::iterator it = pep_ids.begin(); it != pep_ids.end(); ++it)
       {
-        if (it->getHits().size() > 0)
+        if (!it->getHits().empty())
         {
           std::vector<String> row;
           row.push_back(it->getRT());
@@ -679,7 +744,7 @@ protected:
           {
             Residue res = *z;
             String temp;
-            if (res.getModification().size() > 0 && res.getModification() != "Carbamidomethyl")
+            if (!res.getModification().empty() && res.getModification() != "Carbamidomethyl")
             {
               temp = res.getModification() + " (" + res.getOneLetterCode()  + ")";
               //cout<<res.getModification()<<endl;
@@ -963,6 +1028,9 @@ protected:
   }
 
 };
+
+#pragma clang diagnostic pop
+
 int main(int argc, const char** argv)
 {
   TOPPQCCalculator tool;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,11 +35,11 @@
 #ifndef OPENMS_FORMAT_MASCOTXMLFILE_H
 #define OPENMS_FORMAT_MASCOTXMLFILE_H
 
-#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/MascotXMLHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
 
 namespace OpenMS
@@ -47,10 +47,10 @@ namespace OpenMS
   class ProteinIdentification;
 
   /**
-    @brief Used to load MascotXML files
+    @brief Used to load Mascot XML files
 
     This class is used to load documents that implement
-    the schema of MascotXML files.
+    the schema of Mascot XML files.
 
     @ingroup FileIO
   */
@@ -59,67 +59,51 @@ namespace OpenMS
   {
 public:
 
-    typedef Internal::MascotXMLHandler::RTMapping RTMapping;
-
     /// Constructor
     MascotXMLFile();
 
     /**
-      @brief loads data from a Mascot XML file
+      @brief Loads data from a Mascot XML file
 
       @param filename the file to be loaded
       @param protein_identification protein identifications belonging to the whole experiment
       @param id_data the identifications with m/z and RT
-      @param rt_mapping An optional mapping of scan indices to RT, in case the file only contains scan numbers
-      @param scan_regex An optional regular expression used to extract the scan numbers
+      @param lookup helper object for looking up spectrum meta data
 
       @exception Exception::FileNotFound is thrown if the file does not exists.
       @exception Exception::ParseError is thrown if the file does not suit to the standard.
-
-      This method serves to read in a Mascot XML file. The information can be
-      retrieved via the load function.
     */
     void load(const String& filename,
               ProteinIdentification& protein_identification,
               std::vector<PeptideIdentification>& id_data,
-              const RTMapping& rt_mapping = RTMapping(),
-              const String& scan_regex = "");
+              const SpectrumMetaDataLookup& lookup);
 
     /**
-      @brief loads data from a Mascot XML file
+      @brief Loads data from a Mascot XML file
 
       @param filename the file to be loaded
       @param protein_identification protein identifications belonging to the whole experiment
       @param id_data the identifications with m/z and RT
       @param peptides a map of modified peptides identified by the String title
-      @param rt_mapping An optional mapping of scan indices to RT, in case the file only contains scan numbers
-      @param scan_regex An optional regular expression used to extract the scan numbers
+      @param lookup helper object for looking up spectrum meta data
 
       @exception Exception::FileNotFound is thrown if the file does not exists.
       @exception Exception::ParseError is thrown if the file does not suit to the standard.
-
-      This method serves to read in a Mascot XML file. The information can be
-      retrieved via the load function.
     */
     void load(const String& filename,
               ProteinIdentification& protein_identification,
               std::vector<PeptideIdentification>& id_data, 
               std::map<String, std::vector<AASequence> >& peptides, 
-              const RTMapping& rt_mapping = RTMapping(),
-              const String& scan_regex = "");
+              const SpectrumMetaDataLookup& lookup);
 
     /**
-      @brief Generates a mapping between scan numbers and retention times in raw data
+      @brief Initializes a helper object for looking up spectrum meta data (RT, m/z)
 
-      @param begin Iterator to the first spectrum
-      @param end Iterator past the last spectrum
-      @param rt_mapping Output mapping
-
-      The mapping can be used to infer retention times of identifications when a Mascot XML file is loaded.
+      @param lookup Helper object to initialize
+      @param experiment Experiment containing the spectra
+      @param scan_regex Optional regular expression for extracting information from references to spectra
     */  
-    static void generateRTMapping(const MSExperiment<>::ConstIterator begin, 
-                                  const MSExperiment<>::ConstIterator end, 
-                                  RTMapping& rt_mapping);
+    static void initializeLookup(SpectrumMetaDataLookup& lookup, const MSExperiment<>& experiment, const String& scan_regex = "");
 
   };
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
-// $Authors: Andreas Bertsch $
+// $Maintainer: Chris Bielow $
+// $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_XTANDEMINFILE_H
@@ -45,7 +45,18 @@ namespace OpenMS
   /**
     @brief XTandem input file.
 
-    This class is able to create a X!Tandem configuration files to be used with Xtandem.
+    This class is able to load/write a X!Tandem configuration file.
+
+    These files store parameters within 'note' tags, e.g.,
+    @verbatim
+      <note type="input" label="spectrum, fragment monoisotopic mass error">0.4</note>
+    	<note type="input" label="output, proteins">yes</note>
+    @endverbatim
+
+    Internally, there is a double book-keeping of parameters obtained from a config-xml file via load()
+    and the member parameters exposed via get/set functions.
+    During write(), member params take precedence over additional note-parameters loaded from a config file.
+    If load() was not called before write(), only member parameters are written.
 
     @ingroup FileIO
   */
@@ -176,6 +187,12 @@ public:
     /// returns the number of missed cleavages allowed
     UInt getNumberOfMissedCleavages() const;
 
+    /// sets the output result type ("all", "valid" or "stochastic")
+    void setOutputResults(String result);
+
+    /// returns the output result type ("all", "valid" or "stochastic")
+    String getOutputResults() const;
+
     /// sets the max valid E-value allowed in the list
     void setMaxValidEValue(double value);
 
@@ -185,13 +202,22 @@ public:
     /// get state of refine setting
     bool isRefining() const;
 
+    /// get state of noise suppression
+    bool getNoiseSuppression() const;
+
     /// set state of semi cleavage
     void setSemiCleavage(const bool semi_cleavage);
+
+    /// set if misassignment of precursor to first and second 13C isotopic peak should also be considered
+    void setAllowIsotopeError(const bool allow_isotope_error);
 
     /// set state of refine setting
     void setRefine(const bool refine);
 
-    /// set the cleavage site with a xtandem conform regex
+    /// set state of noise suppression
+    void setNoiseSuppression(const bool noise_suppression);
+
+    /// set the cleavage site with a X! Tandem conform regex
     void setCleavageSite(const String& cleavage_site);
     
     /// returns the cleavage site regex
@@ -200,10 +226,17 @@ public:
     /** 
       @brief Writes the XTandemInfile to the given file
 
+      By default, member variables take precedence over values previously
+      read via load().
+      If ignore_member_parameters is true, only a very limited number of
+      tags fed by member variables (i.e. in, out, database/taxonomy) is written.
+      For everything else, only external tags (from a previous load()) are used.
+      
       @param filename the name of the file which is written
+      @param ignore_member_parameters Do not write tags for class members
       @throw UnableToCreateFile is thrown if the given file could not be created
     */
-    void write(const String& filename);
+    void write(const String& filename, bool ignore_member_parameters = false);
 
     /** 
       @brief Reads the information from the given filename
@@ -214,27 +247,41 @@ public:
     */
     void load(const String& filename);
 
+    /**
+       @brief Returns the number of notes read from external XML file.
+
+       @return Number of &lt;note&gt; tags.
+
+    */
+    Size getNoteCount() const;
+
 protected:
 
     XTandemInfile(const XTandemInfile& rhs);
 
     XTandemInfile& operator=(const XTandemInfile& rhs);
 
-    void writeTo_(std::ostream& os);
+    void writeTo_(std::ostream& os, bool ignore_member_parameters);
 
-    void writeNote_(std::ostream& os, const String& type, const String& label, const String& value);
+    const String& writeNote_(std::ostream& os, const String& type, const String& label, const String& value);
 
-    void writeNote_(std::ostream& os, const String& type, const String& label, const char* value);
+    const String& writeNote_(std::ostream& os, const String& type, const String& label, const char* value);
 
-    void writeNote_(std::ostream& os, const String& type, const String& label, bool value);
+    const String& writeNote_(std::ostream& os, const String& type, const String& label, bool value);
 
     /**
       @brief Converts the given set of Modifications into a format compatible to X!Tandem.
 
-      @param mods The modifications to convert.
+      The set affected_origins can be used to avoid duplicate modifications, which are not supported in X!Tandem.
+      Currently, a warning message is printed.
+      Also, if a fixed mod is already given, a corresponding variable mods needs to have its delta mass reduced by the fixed modifications mass.
+      This is also done automatically here.
+
+      @param mods The modifications to convert
+      @param affected_origins Set of origins, which were used previously. Will be augmented with the current mods.
       @return A X!Tandem compatible string representation.
     */
-    String convertModificationSet_(const std::set<ModificationDefinition>& mods) const;
+    String convertModificationSet_(const std::set<ModificationDefinition>& mods, std::map<String, double>& affected_origins) const;
 
     double fragment_mass_tolerance_;
 
@@ -275,8 +322,13 @@ protected:
     /// Enable/disable xtandem refinement
     bool refine_;
 
+    /// Enable/disable xtandem noise suppression routine
+    bool noise_suppression_;
+
     /// semi cleavage
     bool semi_cleavage_;
+
+    bool allow_isotope_error_;
 
     double refine_max_valid_evalue_;
 
@@ -286,6 +338,8 @@ protected:
     String default_parameters_file_;
 
     // output parameters
+    String output_results_;
+
     double max_valid_evalue_;
 
     /** 

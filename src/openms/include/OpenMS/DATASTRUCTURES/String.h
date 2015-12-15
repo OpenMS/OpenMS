@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,6 +36,7 @@
 #define OPENMS_DATASTRUCTURES_STRING_H
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/OpenMSConfig.h>
 
 #include <string>
 #include <vector>
@@ -45,6 +46,7 @@ class QString;
 namespace OpenMS
 {
   class DataValue;
+
   /**
       @brief A more convenient string class.
 
@@ -85,15 +87,15 @@ public:
     /// Default constructor
     OPENMS_DLLAPI String();
     /// Constructor from std::string
-    OPENMS_DLLAPI String(const std::string & s);
+    OPENMS_DLLAPI String(const std::string& s);
     /// Constructor from Qt QString
-    OPENMS_DLLAPI String(const QString & s);
+    OPENMS_DLLAPI String(const QString& s);
     /// Constructor from char*
-    OPENMS_DLLAPI String(const char * s);
+    OPENMS_DLLAPI String(const char* s);
     /// Constructor from a char
     OPENMS_DLLAPI String(const char c);
     /// Constructor from char* (only @p length characters)
-    OPENMS_DLLAPI String(const char * s, SizeType length);
+    OPENMS_DLLAPI String(const char* s, SizeType length);
     /// Constructor from char (repeats the char @p len times)
     OPENMS_DLLAPI String(size_t len, char c);
     /// Constructor from a char range
@@ -127,7 +129,7 @@ public:
     /// Constructor from long double
     OPENMS_DLLAPI String(long double ld);
     /// Constructor from DataValue (casted to String)
-    OPENMS_DLLAPI String(const DataValue & d);
+    OPENMS_DLLAPI String(const DataValue& d);
 
     //@}
 
@@ -135,13 +137,13 @@ public:
     */
     //@{
     /// true if String begins with @p string, false otherwise
-    OPENMS_DLLAPI bool hasPrefix(const String & string) const;
+    OPENMS_DLLAPI bool hasPrefix(const String& string) const;
 
     /// true if String ends with @p string, false otherwise
-    OPENMS_DLLAPI bool hasSuffix(const String & string) const;
+    OPENMS_DLLAPI bool hasSuffix(const String& string) const;
 
     /// true if String contains the @p string, false otherwise
-    OPENMS_DLLAPI bool hasSubstring(const String & string) const;
+    OPENMS_DLLAPI bool hasSubstring(const String& string) const;
 
     /// true if String contains the @p byte, false otherwise
     OPENMS_DLLAPI bool has(Byte byte) const;
@@ -228,10 +230,10 @@ public:
     */
     //@{
     /// inverts the direction of the string
-    OPENMS_DLLAPI String & reverse();
+    OPENMS_DLLAPI String& reverse();
 
     /// removes whitespaces (space, tab, line feed, carriage return) at the beginning and the end of the string
-    OPENMS_DLLAPI String & trim();
+    OPENMS_DLLAPI String& trim();
 
     /**
          @brief Wraps the string in quotation marks
@@ -240,7 +242,7 @@ public:
 
          @see unquote()
     */
-    OPENMS_DLLAPI String & quote(char q = '"', QuotingMethod method = ESCAPE);
+    OPENMS_DLLAPI String& quote(char q = '"', QuotingMethod method = ESCAPE);
 
     /**
          @brief Reverses changes made by the @p quote method
@@ -251,40 +253,40 @@ public:
 
          @see quote()
     */
-    OPENMS_DLLAPI String & unquote(char q = '"', QuotingMethod method = ESCAPE);
+    OPENMS_DLLAPI String& unquote(char q = '"', QuotingMethod method = ESCAPE);
 
     /// merges subsequent whitespaces to one blank character
-    OPENMS_DLLAPI String & simplify();
+    OPENMS_DLLAPI String& simplify();
 
     ///Adds @p c on the left side until the size of the string is @p size
-    OPENMS_DLLAPI String & fillLeft(char c, UInt size);
+    OPENMS_DLLAPI String& fillLeft(char c, UInt size);
 
     ///Adds @p c on the right side until the size of the string is @p size
-    OPENMS_DLLAPI String & fillRight(char c, UInt size);
+    OPENMS_DLLAPI String& fillRight(char c, UInt size);
 
     ///Converts the string to uppercase
-    OPENMS_DLLAPI String & toUpper();
+    OPENMS_DLLAPI String& toUpper();
 
     ///Converts the string to lowercase
-    OPENMS_DLLAPI String & toLower();
+    OPENMS_DLLAPI String& toLower();
 
     ///Converts the first letter of the string to uppercase
-    OPENMS_DLLAPI String & firstToUpper();
+    OPENMS_DLLAPI String& firstToUpper();
 
     ///Replaces all occurrences of the character @p from by the character @p to.
-    OPENMS_DLLAPI String & substitute(char from, char to);
+    OPENMS_DLLAPI String& substitute(char from, char to);
 
     ///Replaces all occurrences of the string @p from by the string @p to.
-    OPENMS_DLLAPI String & substitute(const String & from, const String & to);
+    OPENMS_DLLAPI String& substitute(const String& from, const String& to);
 
     ///Remove all occurrences of the character @p what.
-    OPENMS_DLLAPI String & remove(char what);
+    OPENMS_DLLAPI String& remove(char what);
 
     ///Makes sure the string ends with the character @p end
-    OPENMS_DLLAPI String & ensureLastChar(char end);
+    OPENMS_DLLAPI String& ensureLastChar(char end);
 
     ///removes whitespaces (space, tab, line feed, carriage return)
-    OPENMS_DLLAPI String & removeWhitespaces();
+    OPENMS_DLLAPI String& removeWhitespaces();
     //@}
 
     /** @name Converters
@@ -346,44 +348,44 @@ public:
     /// Sum operator for char
     OPENMS_DLLAPI String operator+(char c) const;
     /// Sum operator for char*
-    OPENMS_DLLAPI String operator+(const char * s) const;
+    OPENMS_DLLAPI String operator+(const char* s) const;
     /// Sum operator for String
-    OPENMS_DLLAPI String operator+(const String & s) const;
+    OPENMS_DLLAPI String operator+(const String& s) const;
     /// Sum operator for std::string
-    OPENMS_DLLAPI String operator+(const std::string & s) const;
+    OPENMS_DLLAPI String operator+(const std::string& s) const;
     //@}
 
     /** @name Append operator overloads
     */
     //@{
     /// Sum operator for an integer
-    OPENMS_DLLAPI String & operator+=(int i);
+    OPENMS_DLLAPI String& operator+=(int i);
     /// Sum operator for an unsigned integer
-    OPENMS_DLLAPI String & operator+=(unsigned int i);
+    OPENMS_DLLAPI String& operator+=(unsigned int i);
     /// Sum operator for an integer
-    OPENMS_DLLAPI String & operator+=(short int i);
+    OPENMS_DLLAPI String& operator+=(short int i);
     /// Sum operator for an unsigned integer
-    OPENMS_DLLAPI String & operator+=(short unsigned int i);
+    OPENMS_DLLAPI String& operator+=(short unsigned int i);
     /// Sum operator for an integer
-    OPENMS_DLLAPI String & operator+=(long int i);
+    OPENMS_DLLAPI String& operator+=(long int i);
     /// Sum operator for an unsigned integer
-    OPENMS_DLLAPI String & operator+=(long unsigned int i);
+    OPENMS_DLLAPI String& operator+=(long unsigned int i);
     /// Sum operator for an unsigned integer
-    OPENMS_DLLAPI String & operator+=(long long unsigned int i);
+    OPENMS_DLLAPI String& operator+=(long long unsigned int i);
     /// Sum operator for float
-    OPENMS_DLLAPI String & operator+=(float f);
+    OPENMS_DLLAPI String& operator+=(float f);
     /// Sum operator for double
-    OPENMS_DLLAPI String & operator+=(double d);
+    OPENMS_DLLAPI String& operator+=(double d);
     /// Sum operator for long double
-    OPENMS_DLLAPI String & operator+=(long double d);
+    OPENMS_DLLAPI String& operator+=(long double d);
     /// Sum operator for char
-    OPENMS_DLLAPI String & operator+=(char c);
+    OPENMS_DLLAPI String& operator+=(char c);
     /// Sum operator for char*
-    OPENMS_DLLAPI String & operator+=(const char * s);
+    OPENMS_DLLAPI String& operator+=(const char* s);
     /// Sum operator for String
-    OPENMS_DLLAPI String & operator+=(const String & s);
+    OPENMS_DLLAPI String& operator+=(const String& s);
     /// Sum operator for std::string
-    OPENMS_DLLAPI String & operator+=(const std::string & s);
+    OPENMS_DLLAPI String& operator+=(const std::string& s);
     //@}
 
     ///returns a random string of the given length. It consists of [0-9a-zA-Z]
@@ -415,7 +417,7 @@ public:
 
         @see concatenate().
     */
-    OPENMS_DLLAPI bool split(const char splitter, std::vector<String> & substrings, bool quote_protect = false) const;
+    OPENMS_DLLAPI bool split(const char splitter, std::vector<String>& substrings, bool quote_protect = false) const;
 
     /**
         @brief Splits a string into @p substrings using @p splitter (the whole string) as delimiter
@@ -428,7 +430,7 @@ public:
 
         @see concatenate().
     */
-    OPENMS_DLLAPI bool split(const String & splitter, std::vector<String> & substrings) const;
+    OPENMS_DLLAPI bool split(const String& splitter, std::vector<String>& substrings) const;
 
     /**
         @brief Splits a string into @p substrings using @p splitter (the whole string) as delimiter, but does not split within quoted substrings
@@ -444,7 +446,7 @@ public:
 
         @see concatenate(), quote().
     */
-    OPENMS_DLLAPI bool split_quoted(const String & splitter, std::vector<String> & substrings,
+    OPENMS_DLLAPI bool split_quoted(const String& splitter, std::vector<String>& substrings,
                                     char q = '"', QuotingMethod method = ESCAPE) const;
 
     /**
@@ -453,7 +455,7 @@ public:
         @see split().
     */
     template <class StringIterator>
-    void concatenate(StringIterator first, StringIterator last, const String & glue = "")
+    void concatenate(StringIterator first, StringIterator last, const String& glue = "")
     {
       //empty container
       if (first == last)
@@ -471,6 +473,78 @@ public:
 
   };
 
-} // namespace OPENMS
+  /**
+    *  Minimal replacement for boost::string_ref or std::experimental::string_view until we increase our min boost version
+    *  @brief StringView provides a non-owning view on an existing string.
+    */ 
+  class OPENMS_DLLAPI StringView
+  {
+    public:
+
+    // create view on string
+    StringView() : begin_(), size_(0) 
+    {
+    }
+
+    // create view on string
+    StringView(const std::string& s) : begin_(s.data()), size_(s.size()) 
+    {
+    }
+
+    // construct from other view
+    StringView(const StringView & s) : begin_(s.begin_), size_(s.size_) 
+    {
+    }
+
+    /// less operator
+    bool operator<(const StringView other) const
+    {
+      if (size_ < other.size_) return true;
+
+      if (size_ > other.size_) return false;
+
+      // same size
+      const char * b = begin_;
+      const char * bo = other.begin_;
+      
+      for (Size i = 0; i != size_; ++i, ++b, ++bo)
+      {
+        if (*b < *bo) return true;
+        if (*b > *bo) return false;
+      }
+ 
+      return false;
+    }
+
+    /// create view that references a substring of the original string
+    inline StringView substr(Size start_index, Size end_index) const
+    {
+      if (!size_) return *this;
+
+      StringView sv(*this);
+      sv.begin_ = begin_ + start_index;
+      sv.size_ = end_index - start_index + 1;
+      return sv;
+    }
+    
+    /// size of view
+    inline Size size() const
+    {
+      return size_;
+    }   
+
+    /// create String object from view
+    inline String getString() const
+    {
+      if (!size_) return String();
+      return String(begin_, begin_ + size_);
+    }
+
+    private:
+      const char * begin_;
+      Size size_;
+  }; 
+
+}// namespace OPENMS
 
 #endif // OPENMS_DATASTRUCTURES_STRING_H

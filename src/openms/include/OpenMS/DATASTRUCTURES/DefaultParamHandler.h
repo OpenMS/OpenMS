@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,6 +36,8 @@
 #define OPENMS_DATASTRUCTURES_DEFAULTPARAMHANDLER_H
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/OpenMSConfig.h>
 
 #include <vector>
 
@@ -52,7 +54,7 @@ namespace OpenMS
         - range restrictions of numeric parameters
         - valid values for string parameters (enum)
       - subsections that are passed to other classes can be excluded from the check (subsections_)
-      - it keeps member variables in syncronicity with the parameters stored in param_
+      - it keeps member variables in synchronicity with the parameters stored in param_
       - it helps to automatically create a doxygen documentation page for the parameters
 
       Extra member variables are needed if getting the value from param_ would be too slow
@@ -65,7 +67,7 @@ namespace OpenMS
       - Call defaultsToParam_() at the end of derived classes' default constructor.
           It copies the defaults to param_ (and calls updateMembers_()).
 
-      If you have extra member variables you need to syncronize with param_, do the following:
+      If you have extra member variables you need to synchronize with param_, do the following:
       - Implement the updateMembers_() method. It is used after each change of param_
           in order to update the extra member variables. If the base class is a DefaultParamHandler as well
           make sure to call the updateMembers_() method of the base class in the updateMembers_() method.
@@ -91,19 +93,19 @@ namespace OpenMS
   {
 public:
     /// Constructor with name that is displayed in error messages
-    DefaultParamHandler(const String & name);
+    DefaultParamHandler(const String& name);
 
     /// Copy constructor
-    DefaultParamHandler(const DefaultParamHandler & rhs);
+    DefaultParamHandler(const DefaultParamHandler& rhs);
 
     /// Destructor
     virtual ~DefaultParamHandler();
 
     /// Assignment operator.
-    virtual DefaultParamHandler & operator=(const DefaultParamHandler & rhs);
+    virtual DefaultParamHandler& operator=(const DefaultParamHandler& rhs);
 
     /// Equality operator
-    virtual bool operator==(const DefaultParamHandler & rhs) const;
+    virtual bool operator==(const DefaultParamHandler& rhs) const;
 
     /**
         @brief Sets the parameters.
@@ -114,22 +116,22 @@ public:
 
         @exception Exception::InvalidParameter is thrown if errors occur during the check.
     */
-    void setParameters(const Param & param);
+    void setParameters(const Param& param);
 
     /// Non-mutable access to the parameters
-    const Param & getParameters() const;
+    const Param& getParameters() const;
 
     /// Non-mutable access to the default parameters
-    const Param & getDefaults() const;
+    const Param& getDefaults() const;
 
     /// Non-mutable access to the name
-    const String & getName() const;
+    const String& getName() const;
 
     /// Mutable access to the name
-    void setName(const String & name);
+    void setName(const String& name);
 
     /// Non-mutable access to the registered subsections
-    const std::vector<String> & getSubsections() const;
+    const std::vector<String>& getSubsections() const;
 
 protected:
     /**
@@ -185,7 +187,7 @@ private:
     /// Hidden default C'tor (class name parameter is required!)
     DefaultParamHandler();
 
-  };   //class
+  }; //class
 
 } // namespace OPENMS
 

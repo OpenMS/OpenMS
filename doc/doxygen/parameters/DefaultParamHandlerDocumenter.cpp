@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2012.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,10 +32,13 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <fstream>
-
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
-#include <OpenMS/ANALYSIS/ID/ConsensusID.h>
+#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmAverage.h>
+#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmBest.h>
+#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPIons.h>
+#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmRanks.h>
+#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmWorst.h>
 #include <OpenMS/ANALYSIS/ID/PILISScoring.h>
 #include <OpenMS/ANALYSIS/ID/PILISModel.h>
 #include <OpenMS/ANALYSIS/ID/PILISModelGenerator.h>
@@ -172,6 +175,14 @@
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 #endif
+
+// include this file after the GUI stuff, or there will be a conflict between
+// "LayerData.h" (via "Spectrum1DCanvas.h") and "SeqanIncludeWrapper.h"!
+// (see https://github.com/OpenMS/OpenMS/issues/1327)
+#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPMatrix.h>
+
+
+#include <fstream>
 
 using namespace std;
 using namespace OpenMS;
@@ -346,7 +357,12 @@ int main(int argc, char** argv)
   DOCME(BinnedSumAgreeingIntensities);
   DOCME(ComplementFilter);
   DOCME(ComplementMarker);
-  DOCME(ConsensusID);
+  DOCME(ConsensusIDAlgorithmAverage);
+  DOCME(ConsensusIDAlgorithmBest);
+  DOCME(ConsensusIDAlgorithmPEPIons);
+  DOCME(ConsensusIDAlgorithmPEPMatrix);
+  DOCME(ConsensusIDAlgorithmRanks);
+  DOCME(ConsensusIDAlgorithmWorst);
   DOCME(DetectabilitySimulation);
   DOCME(DIAScoring);
   DOCME(DigestSimulation);
@@ -457,9 +473,13 @@ int main(int argc, char** argv)
   // More complicated cases
   //////////////////////////////////
 
-  DOCME2(FeatureFinderAlgorithmIsotopeWavelet, (FeatureFinderAlgorithmIsotopeWavelet<Peak1D>()))
-  DOCME2(FeatureFinderAlgorithmPicked, (FeatureFinderAlgorithmPicked<Peak1D>()));
-  DOCME2(FeatureFinderAlgorithmMRM, (FeatureFinderAlgorithmMRM<Peak1D>()))
+  // ConsensusIDAlgorithm...: abstract base classes, get param. from subclass:
+  DOCME2(ConsensusIDAlgorithm, (ConsensusIDAlgorithmBest()));
+  DOCME2(ConsensusIDAlgorithmIdentity, (ConsensusIDAlgorithmBest()));
+  DOCME2(ConsensusIDAlgorithmSimilarity, (ConsensusIDAlgorithmBest()));
+  DOCME2(FeatureFinderAlgorithmIsotopeWavelet, (FeatureFinderAlgorithmIsotopeWavelet()));
+  DOCME2(FeatureFinderAlgorithmPicked, (FeatureFinderAlgorithmPicked()));
+  DOCME2(FeatureFinderAlgorithmMRM, (FeatureFinderAlgorithmMRM()))
   DOCME2(ProductModel, ProductModel<2>());
   DOCME2(SignalToNoiseEstimatorMeanIterative, SignalToNoiseEstimatorMeanIterative<>());
   DOCME2(SignalToNoiseEstimatorMedian, SignalToNoiseEstimatorMedian<>());
@@ -467,8 +487,8 @@ int main(int argc, char** argv)
   DOCME2(RawMSSignalSimulation, RawMSSignalSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr()));
   DOCME2(RawTandemMSSignalSimulation, RawTandemMSSignalSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr()))
   DOCME2(RTSimulation, RTSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr()))
-  DOCME2(GaussTraceFitter, (GaussTraceFitter<Peak1D>()))
-  DOCME2(EGHTraceFitter, (EGHTraceFitter<Peak1D>()))
+  DOCME2(GaussTraceFitter, (GaussTraceFitter()))
+  DOCME2(EGHTraceFitter, (EGHTraceFitter()))
 
   DOCME2(IsobaricChannelExtractor, IsobaricChannelExtractor(new ItraqFourPlexQuantitationMethod()));
   DOCME2(IsobaricQuantifier, IsobaricQuantifier(new ItraqFourPlexQuantitationMethod()));

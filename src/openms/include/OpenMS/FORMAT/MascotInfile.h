@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,14 +47,14 @@
 namespace OpenMS
 {
   /**
-      @brief Mascot input file adapter.
+    @brief Mascot input file adapter.
 
-  @deprecated Use MascotGenericFile.h instead, which uses DefaultParamHandler, is more up to date and avoids weird behaviors of this class (especially in terms of
-              MIME boundaries when writing MGF....
+    @deprecated Use MascotGenericFile.h instead, which uses DefaultParamHandler, is more up to date and avoids weird behaviors of this class (especially in terms of
+              MIME boundaries when writing MGF. This class is currently only used by MascotAdapter.cpp.
 
-      Creates a file that can be used for Mascot search from a peak list or a whole experiment.
+    Creates a file that can be used for Mascot search from a peak list or a whole experiment.
 
-  @ingroup FileIO
+    @ingroup FileIO
   */
   class OPENMS_DLLAPI MascotInfile :
     public ProgressLogger

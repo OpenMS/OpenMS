@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,7 @@
 #include <OpenMS/ANALYSIS/ID/PILISModel.h>
 #include <OpenMS/ANALYSIS/ID/PILISScoring.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/DATASTRUCTURES/SuffixArrayPeptideFinder.h>
@@ -78,6 +79,8 @@ using namespace std;
     peptide in a separate line, either only the sequence or additionally
     with weight and charge in the second and third column.
 
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_PILISIdentification.cli
     <B>INI file documentation of this tool:</B>
@@ -85,7 +88,7 @@ using namespace std;
 
     @todo Check for missing precursors (Hiwi)
 */
-
+//@deprecated Deprecated in OpenMS 2.0
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
@@ -378,10 +381,12 @@ protected:
     vector<String> fixed_mods;
     getStringOption_("fixed_modifications").split(',', fixed_mods);
     search_parameters.fixed_modifications = fixed_mods;
-    search_parameters.enzyme = ProteinIdentification::TRYPSIN;
+    search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme("Trypsin");
     search_parameters.missed_cleavages = 1;
-    search_parameters.peak_mass_tolerance = getDoubleOption_("peak_mass_tolerance");
+    search_parameters.fragment_mass_tolerance = getDoubleOption_("peak_mass_tolerance");
     search_parameters.precursor_tolerance = getDoubleOption_("precursor_mass_tolerance");
+    search_parameters.fragment_mass_tolerance_ppm = false;
+    search_parameters.precursor_mass_tolerance_ppm = false;
 
     ProteinIdentification protein_identification;
     protein_identification.setDateTime(now);
@@ -389,6 +394,7 @@ protected:
     protein_identification.setSearchEngineVersion("beta");
     protein_identification.setSearchParameters(search_parameters);
     protein_identification.setIdentifier(identifier);
+    protein_identification.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
 
     vector<ProteinIdentification> protein_identifications;
     protein_identifications.push_back(protein_identification);

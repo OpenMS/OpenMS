@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -69,7 +69,9 @@ namespace OpenMS
 public:
 
     /// Constructor
-    PeakPickerMaxima(double signal_to_noise, double spacing_difference = 1.5, double sn_window_length = 200);
+    PeakPickerMaxima(double signal_to_noise, double spacing_difference = 1.5,
+        double spacing_difference_gap = 4.0, double sn_window_length = 200,
+        unsigned missing = 2);
 
     /// Destructor
     virtual ~PeakPickerMaxima() {}
@@ -102,6 +104,7 @@ public:
       @param mz_array The array containing m/z values
       @param int_array The array containing intensity values
       @param pc The resulting array containing the peak candidates
+      @param check_spacings check spacing constraints? (recommended settings: yes for spectra, no for chromatograms)
 
       @note This function will directly report peak apices with right and left
       boundaries but will not use any fitting to estimate the true m/z and
@@ -109,7 +112,10 @@ public:
       empty in the result (set to -1).
 
     */
-    void findMaxima(const std::vector<double>& mz_array, const std::vector<double>& int_array, std::vector<PeakCandidate>& pc);
+    void findMaxima(const std::vector<double>& mz_array,
+        const std::vector<double>& int_array,
+        std::vector<PeakCandidate>& pc,
+        bool check_spacings = true);
 
     /**
       @brief Will pick peaks in a spectrum
@@ -117,21 +123,33 @@ public:
       @param mz_array The array containing m/z values
       @param int_array The array containing intensity values
       @param pc The resulting array containing the peak candidates
+      @param check_spacings check spacing constraints? (recommended settings: yes for spectra, no for chromatograms)
 
       @note This function will first find maxima in the intensity domain and
       then use a spline function to estimate the best m/z and intensity for
       each peak candidate.
     */
-    void pick(std::vector<double>& mz_array, std::vector<double>& int_array, std::vector<PeakCandidate>& pc);
+    void pick(std::vector<double>& mz_array, 
+        std::vector<double>& int_array, 
+        std::vector<PeakCandidate>& pc,
+        bool check_spacings = true);
 
 protected:
+
     // signal-to-noise parameter
     double signal_to_noise_;
 
-    // maximal spacing difference
+    // signal-to-noise window length 
+    double sn_window_length_;
+
+    // maximal spacing difference defining a missing data point
     double spacing_difference_;
 
-    double sn_window_length_;
+    // maximal spacing difference defining a large gap
+    double spacing_difference_gap_;
+
+    // maximum number of missing points
+    unsigned missing_;
 
   }; // end PeakPickerMaxima
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,11 +38,10 @@
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringProfile.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexPeakPattern.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultRaw.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultPeak.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
@@ -60,8 +59,8 @@ using namespace boost::math;
 namespace OpenMS
 {
 
-  MultiplexFilteringProfile::MultiplexFilteringProfile(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String out_debug) :
-    MultiplexFiltering(exp_picked, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling, out_debug), exp_profile_(exp_profile), boundaries_(boundaries)
+  MultiplexFilteringProfile::MultiplexFilteringProfile(const MSExperiment<Peak1D>& exp_profile, const MSExperiment<Peak1D>& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, const std::vector<MultiplexIsotopicPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type) :
+    MultiplexFiltering(exp_picked, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling, averagine_type), exp_profile_(exp_profile), boundaries_(boundaries)
   {
     if (exp_profile_.size() != exp_picked_.size())
     {
@@ -79,6 +78,9 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, stream.str());
     }
 
+    blacklist_.reserve(exp_picked_.getNrSpectra());
+    registry_.reserve(exp_picked_.getNrSpectra());
+
     // fill peak registry and initialise blacklist
     MSExperiment<Peak1D>::Iterator it_rt;
     for (it_rt = exp_picked_.begin(); it_rt < exp_picked_.end(); ++it_rt)
@@ -93,7 +95,7 @@ namespace OpenMS
         PeakReference reference;
         if (index > 0)
         {
-          reference.index_in_previous_spectrum = getPeakIndex(index - 1, it_mz->getMZ(), 1.0);
+          reference.index_in_previous_spectrum = findNearest(index - 1, it_mz->getMZ(), 1.0);
         }
         else
         {
@@ -101,7 +103,7 @@ namespace OpenMS
         }
         if (index + 1 < (int) exp_picked_.size())
         {
-          reference.index_in_next_spectrum = getPeakIndex(index + 1, it_mz->getMZ(), 1.0);
+          reference.index_in_next_spectrum = findNearest(index + 1, it_mz->getMZ(), 1.0);
         }
         else
         {
@@ -138,18 +140,20 @@ namespace OpenMS
       // data structure storing peaks which pass all filters
       MultiplexFilterResult result;
 
-      // m/z position is rejected by a particular filter (or passing all of them)
-      vector<Peak2D> debug_rejected;
-      vector<Peak2D> debug_filtered;
-
       // iterate over spectra
       MSExperiment<Peak1D>::Iterator it_rt_profile;
-      MSExperiment<Peak1D>::Iterator it_rt_picked;
+      MSExperiment<Peak1D>::ConstIterator it_rt_picked;
       vector<vector<PeakPickerHiRes::PeakBoundary> >::const_iterator it_rt_boundaries;
       for (it_rt_profile = exp_profile_.begin(), it_rt_picked = exp_picked_.begin(), it_rt_boundaries = boundaries_.begin();
            it_rt_profile < exp_profile_.end() && it_rt_picked < exp_picked_.end() && it_rt_boundaries < boundaries_.end();
            ++it_rt_profile, ++it_rt_picked, ++it_rt_boundaries)
       {
+        // skip empty spectra
+        if ((*it_rt_profile).size() == 0 || (*it_rt_picked).size() == 0 || (*it_rt_boundaries).size() == 0)
+        {
+          continue;
+        }
+        
         if ((*it_rt_picked).size() != (*it_rt_boundaries).size())
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Number of peaks and number of peak boundaries differ.");
@@ -169,10 +173,10 @@ namespace OpenMS
         vector<double> peak_min;
         vector<double> peak_max;
         vector<double> peak_intensity;
-        MSSpectrum<Peak1D>::Iterator it_mz;
+        MSSpectrum<Peak1D>::ConstIterator it_mz;
         vector<PeakPickerHiRes::PeakBoundary>::const_iterator it_mz_boundary;
         for (it_mz = it_rt_picked->begin(), it_mz_boundary = it_rt_boundaries->begin();
-             it_mz < it_rt_picked->end(), it_mz_boundary < it_rt_boundaries->end();
+             it_mz < it_rt_picked->end() && it_mz_boundary < it_rt_boundaries->end();
              ++it_mz, ++it_mz_boundary)
         {
           peak_position.push_back(it_mz->getMZ());
@@ -191,17 +195,13 @@ namespace OpenMS
            */
           vector<double> mz_shifts_actual; // actual m/z shifts (differ slightly from expected m/z shifts)
           vector<int> mz_shifts_actual_indices; // peak indices in the spectrum corresponding to the actual m/z shifts
+          
+          mz_shifts_actual.reserve(patterns_[pattern].getMZShiftCount());
+          mz_shifts_actual_indices.reserve(patterns_[pattern].getMZShiftCount());
+          
           int peaks_found_in_all_peptides = positionsAndBlacklistFilter(patterns_[pattern], spectrum, peak_position, peak, mz_shifts_actual, mz_shifts_actual_indices);
           if (peaks_found_in_all_peptides < peaks_per_peptide_min_)
           {
-            if (debug_)
-            {
-              Peak2D data_point;
-              data_point.setRT(rt_picked);
-              data_point.setMZ(peak_position[peak]);
-              data_point.setIntensity(1); // filter 1 failed
-              debug_rejected.push_back(data_point);
-            }
             continue;
           }
 
@@ -212,14 +212,6 @@ namespace OpenMS
           bool bluntVeto = monoIsotopicPeakIntensityFilter(patterns_[pattern], spectrum, mz_shifts_actual_indices);
           if (bluntVeto)
           {
-            if (debug_)
-            {
-              Peak2D data_point;
-              data_point.setRT(rt_picked);
-              data_point.setMZ(peak_position[peak]);
-              data_point.setIntensity(2); // filter 2 failed
-              debug_rejected.push_back(data_point);
-            }
             continue;
           }
 
@@ -236,14 +228,6 @@ namespace OpenMS
             int peaks_found_in_all_peptides_spline = nonLocalIntensityFilter(patterns_[pattern], mz_shifts_actual, mz_shifts_actual_indices, nav, intensities_actual, peaks_found_in_all_peptides, mz);
             if (peaks_found_in_all_peptides_spline < peaks_per_peptide_min_)
             {
-              if (debug_)
-              {
-                Peak2D data_point;
-                data_point.setRT(rt_picked);
-                data_point.setMZ(mz);
-                data_point.setIntensity(3); // filter 3 failed
-                debug_rejected.push_back(data_point);
-              }
               continue;
             }
 
@@ -255,14 +239,6 @@ namespace OpenMS
             bool zero_peak = zerothPeakFilter(patterns_[pattern], intensities_actual);
             if (zero_peak)
             {
-              if (debug_)
-              {
-                Peak2D data_point;
-                data_point.setRT(rt_picked);
-                data_point.setMZ(mz);
-                data_point.setIntensity(4); // filter 4 failed
-                debug_rejected.push_back(data_point);
-              }
               continue;
             }
 
@@ -273,14 +249,6 @@ namespace OpenMS
             bool peptide_similarity = peptideSimilarityFilter(patterns_[pattern], intensities_actual, peaks_found_in_all_peptides_spline);
             if (!peptide_similarity)
             {
-              if (debug_)
-              {
-                Peak2D data_point;
-                data_point.setRT(rt_picked);
-                data_point.setMZ(mz);
-                data_point.setIntensity(5); // filter 5 failed
-                debug_rejected.push_back(data_point);
-              }
               continue;
             }
 
@@ -291,33 +259,16 @@ namespace OpenMS
             bool averagine_similarity = averagineSimilarityFilter(patterns_[pattern], intensities_actual, peaks_found_in_all_peptides_spline, mz);
             if (!averagine_similarity)
             {
-              if (debug_)
-              {
-                Peak2D data_point;
-                data_point.setRT(rt_picked);
-                data_point.setMZ(mz);
-                data_point.setIntensity(6); // filter 6 failed
-                debug_rejected.push_back(data_point);
-              }
               continue;
             }
 
             /**
              * All filters passed.
              */
-            if (debug_)
-            {
-              Peak2D data_point;
-              data_point.setRT(rt_picked);
-              data_point.setMZ(mz);
-              data_point.setIntensity(intensities_actual[1]); // all filters passed
-              debug_filtered.push_back(data_point);
-            }
-
             // add raw data point to list that passed all filters
             MultiplexFilterResultRaw result_raw(mz, mz_shifts_actual, intensities_actual);
             results_raw.push_back(result_raw);
-
+            
             // blacklist peaks in the current spectrum and the two neighbouring ones
             if (!blacklisted)
             {
@@ -354,16 +305,6 @@ namespace OpenMS
 
       // add results of this pattern to list
       filter_results.push_back(result);
-
-      // write debug output
-      if (debug_)
-      {
-        // Writes for each peak pattern two debug files.
-        // One containing rejected data points. The intensity encodes which of the six filters failed.
-        // The second file containing data points that passed all filters.
-        writeDebug(pattern, true, debug_rejected);
-        writeDebug(pattern, false, debug_filtered);
-      }
     }
 
     endProgress();
@@ -371,7 +312,7 @@ namespace OpenMS
     return filter_results;
   }
 
-  int MultiplexFilteringProfile::nonLocalIntensityFilter(MultiplexPeakPattern pattern, const vector<double>& mz_shifts_actual, const vector<int>& mz_shifts_actual_indices, SplineSpectrum::Navigator nav, std::vector<double>& intensities_actual, int peaks_found_in_all_peptides, double mz) const
+  int MultiplexFilteringProfile::nonLocalIntensityFilter(const MultiplexIsotopicPeakPattern& pattern, const vector<double>& mz_shifts_actual, const vector<int>& mz_shifts_actual_indices, SplineSpectrum::Navigator nav, std::vector<double>& intensities_actual, int peaks_found_in_all_peptides, double mz) const
   {
     // calculate intensities
     for (int i = 0; i < (int) mz_shifts_actual_indices.size(); ++i)
@@ -415,7 +356,7 @@ namespace OpenMS
     return peaks_found_in_all_peptides;
   }
 
-  int MultiplexFilteringProfile::getPeakIndex(int spectrum_index, double mz, double scaling) const
+  int MultiplexFilteringProfile::findNearest(int spectrum_index, double mz, double scaling) const
   {
     MSExperiment<Peak1D>::ConstIterator it_rt = exp_picked_.begin() + spectrum_index;
     vector<vector<PeakPickerHiRes::PeakBoundary> >::const_iterator it_rt_boundaries = boundaries_.begin() + spectrum_index;
@@ -423,7 +364,7 @@ namespace OpenMS
     MSSpectrum<Peak1D>::ConstIterator it_mz;
     vector<PeakPickerHiRes::PeakBoundary>::const_iterator it_mz_boundaries;
     for (it_mz = it_rt->begin(), it_mz_boundaries = it_rt_boundaries->begin();
-         it_mz < it_rt->end(), it_mz_boundaries < it_rt_boundaries->end();
+         it_mz < it_rt->end() && it_mz_boundaries < it_rt_boundaries->end();
          ++it_mz, ++it_mz_boundaries)
     {
       if (mz >= scaling * (*it_mz_boundaries).mz_min + (1 - scaling) * it_mz->getMZ() &&

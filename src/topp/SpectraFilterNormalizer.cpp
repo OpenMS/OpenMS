@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,7 +47,7 @@ using namespace std;
 /**
   @page TOPP_SpectraFilterNormalizer SpectraFilterNormalizer
 
-  @brief Filters the top Peaks in the given spectra according to a given schema/thresholdset
+  @brief Normalizes intensity of peak spectra.
 
   <CENTER>
   <table>
@@ -62,6 +62,8 @@ using namespace std;
   </tr>
   </table>
   </CENTER>
+
+  Normalization is performed for each spectrum independently.
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_SpectraFilterNormalizer.cli
@@ -78,7 +80,7 @@ class TOPPSpectraFilterNormalizer :
 {
 public:
   TOPPSpectraFilterNormalizer() :
-    TOPPBase("SpectraFilterNormalizer", "Applies thresholdfilter to peak spectra.")
+    TOPPBase("SpectraFilterNormalizer", "Normalizes intensity of peak spectra.")
   {
   }
 
@@ -86,9 +88,9 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "input file ");
+    registerInputFile_("in", "<file>", "", "input file");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
-    registerOutputFile_("out", "<file>", "", "output file ");
+    registerOutputFile_("out", "<file>", "", "output file");
     setValidFormats_("out", ListUtils::create<String>("mzML"));
 
     // register one section for each algorithm
@@ -119,14 +121,6 @@ protected:
     MzMLFile f;
     f.setLogType(log_type_);
     f.load(in, exp);
-
-    //-------------------------------------------------------------
-    // if meta data arrays are present, remove them and warn
-    //-------------------------------------------------------------
-    if (exp.clearMetaDataArrays())
-    {
-      writeLog_("Warning: Spectrum meta data arrays cannot be sorted. They are deleted.");
-    }
 
     //-------------------------------------------------------------
     // filter

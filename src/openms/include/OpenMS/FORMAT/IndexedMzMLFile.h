@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -84,6 +84,8 @@ namespace OpenMS
       /// Whether parsing the indexedmzML file was successful
       bool parsing_success_;
 
+      bool skip_xml_checks_;
+
     /**
       @brief Try to parse the footer of the indexedmzML
 
@@ -155,6 +157,13 @@ namespace OpenMS
       @return The chromatogram at position id
     */
     OpenMS::Interfaces::ChromatogramPtr getChromatogramById(int id);
+
+    ///sets whether to skip some XML checks and be fast instead
+    void setSkipXMLChecks(bool skip)
+    {
+      skip_xml_checks_ = skip;
+    }
+
   };
 }
 

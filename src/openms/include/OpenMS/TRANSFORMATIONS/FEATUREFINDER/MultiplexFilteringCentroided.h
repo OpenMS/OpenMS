@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,7 +39,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexPeakPattern.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFiltering.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
@@ -59,7 +59,7 @@ namespace OpenMS
    * MS1 spectra. We search the centroided data for such patterns.
    * For each peak pattern the algorithm generates a filter result.
    *
-   * @see MultiplexPeakPattern
+   * @see MultiplexIsotopicPeakPattern
    * @see MultiplexFilterResult
    * @see MultiplexFiltering
    */
@@ -80,16 +80,16 @@ public:
      * @param mz_tolerance_unit    unit for mz_tolerance, ppm (true), Da (false)
      * @param peptide_similarity    similarity score for two peptides in the same multiplet
      * @param averagine_similarity    similarity score for peptide isotope pattern and averagine model
-     * @param averagine_similarity_scaling    scaling factor x for the averagine similarity parameter p when detecting peptide singlets. With p' = p + x(1-p). 
-      * @param out_debug    directory for debug output
+     * @param averagine_similarity_scaling    scaling factor x for the averagine similarity parameter p when detecting peptide singlets. With p' = p + x(1-p).
+     * @param averagine_type    The averagine model to use, current options are RNA DNA or peptide.
      */
-    MultiplexFilteringCentroided(MSExperiment<Peak1D> exp_picked, std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String out_debug);
+    MultiplexFilteringCentroided(const MSExperiment<Peak1D>& exp_picked, const std::vector<MultiplexIsotopicPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type="peptide");
 
     /**
      * @brief filter for patterns
      * (generates a filter result for each of the patterns)
      *
-     * @see MultiplexPeakPattern, MultiplexFilterResult
+     * @see MultiplexIsotopicPeakPattern, MultiplexFilterResult
      */
     std::vector<MultiplexFilterResult> filter();
 
@@ -110,19 +110,7 @@ private:
      *
      * @return number of isotopic peaks seen for each peptide (profile)
      */
-    int nonLocalIntensityFilter(MultiplexPeakPattern pattern, int spectrum_index, const std::vector<int>& mz_shifts_actual_indices, std::vector<double>& intensities_actual, int peaks_found_in_all_peptides) const;
-
-    /**
-     * @brief returns the index of a peak at m/z
-     * (for initialisation of peak registry)
-     *
-     * @param spectrum_index    index of the spectrum in exp_picked_ and boundaries_
-     * @param mz    m/z position of the peak
-     * @param scaling    rescaling of the peak boundaries
-     *
-     * @return index of the peak in spectrum
-     */
-    int getPeakIndex(int spectrum_index, double mz, double scaling) const;
+    int nonLocalIntensityFilter(const MultiplexIsotopicPeakPattern& pattern, int spectrum_index, const std::vector<int>& mz_shifts_actual_indices, std::vector<double>& intensities_actual, int peaks_found_in_all_peptides) const;
 
   };
 

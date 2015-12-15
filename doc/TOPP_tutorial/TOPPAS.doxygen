@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2012.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -139,11 +139,11 @@
       temporary files that are passed from tool to tool within the pipeline.
 			Both folders contain further sub-directories which are named after the number in the top-left corner of the node they
 			belong to (plus the name of the tool for temporary files). During pipeline execution, the status lights in the top-right corner of the
-			tools indicate if the tool has finished successfully (green), is currently running (yellow), has not done anything so far (gray), or has crashed (red).
+			tools indicate if the tool has finished successfully (green), is currently running (yellow), has not done anything so far (gray), is scheduled to run next (blue), or has crashed (red).
 			The numbers in the bottom-right corner of every tool show how many files have already been processed and
 			the overall number of files to be processed by this tool.
 			When the execution has finished, you can check the generated output files of every node quickly by selecting
-			@a Open @a files @a in @a TOPPView from its context menu (right click on the node).
+			"@a Open @a files @a in @a TOPPView" or "@a Open @a containing @a folder" from the context menu (right click on the node).
 			
 			
 			@section TOPPAS_interface_mk Mouse and keyboard

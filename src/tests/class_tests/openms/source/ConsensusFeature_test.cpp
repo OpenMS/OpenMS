@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
-// 
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Erhan Kenar $
 // $Authors: $
@@ -41,6 +41,9 @@
 
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/Element.h>
+#include <OpenMS/KERNEL/Feature.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -84,12 +87,12 @@ START_SECTION(([ConsensusFeature::SizeLess] bool operator () ( ConsensusFeature 
 	ConsensusFeature c1(tmp_feature);
 	c1.insert(1, tmp_feature);
 	c1.insert(2, tmp_feature3);
-		
+
 	ConsensusFeature c2(tmp_feature2);
 	c2.insert(1,tmp_feature2);
-	
+
 	ConsensusFeature::SizeLess sl;
-	
+
 	TEST_EQUAL(sl(c1,c2), 0);
 	TEST_EQUAL(sl(c2,c1), 1);
 END_SECTION
@@ -98,16 +101,16 @@ START_SECTION(([ConsensusFeature::SizeLess] bool operator () ( ConsensusFeature 
 	ConsensusFeature c1(tmp_feature);
 	c1.insert(1, tmp_feature);
 	c1.insert(2, tmp_feature3);
-	
+
 	ConsensusFeature c2(tmp_feature);
 	c2.insert(1,tmp_feature);
 	c2.insert(2,tmp_feature2);
 	c2.insert(3,tmp_feature3);
-	
+
 	UInt64 rhs_size = c2.size();
-	
+
 	ConsensusFeature::SizeLess sl;
-	
+
 	TEST_EQUAL(sl(c1,rhs_size), 1);
 	TEST_EQUAL(sl(c2,rhs_size), 0);
 END_SECTION
@@ -116,16 +119,16 @@ START_SECTION(([ConsensusFeature::SizeLess] bool operator () ( UInt64 const & le
 	ConsensusFeature c1(tmp_feature);
 	c1.insert(1, tmp_feature);
 	c1.insert(2, tmp_feature3);
-	
+
 	ConsensusFeature c2(tmp_feature);
 	c2.insert(1,tmp_feature);
 	c2.insert(2,tmp_feature2);
 	c2.insert(3,tmp_feature3);
-	
+
 	UInt64 lhs_size = c1.size();
-	
+
 	ConsensusFeature::SizeLess sl;
-	
+
 	TEST_EQUAL(sl(lhs_size, c1), 0);
 	TEST_EQUAL(sl(lhs_size, c2), 1);
 END_SECTION
@@ -134,16 +137,16 @@ START_SECTION(([ConsensusFeature::SizeLess] bool operator () ( const UInt64 & le
 	ConsensusFeature c1(tmp_feature);
 	c1.insert(1, tmp_feature);
 	c1.insert(2, tmp_feature3);
-	
+
 	ConsensusFeature c2(tmp_feature);
 	c2.insert(1,tmp_feature);
 	c2.insert(2,tmp_feature2);
 	c2.insert(3,tmp_feature3);
-	
+
 	UInt64 lhs_size = c1.size(), rhs_size = c2.size();
-	
+
 	ConsensusFeature::SizeLess sl;
-	
+
 	TEST_EQUAL(sl(lhs_size, rhs_size), 1);
 	TEST_EQUAL(sl(rhs_size, lhs_size), 0);
 END_SECTION
@@ -152,14 +155,14 @@ START_SECTION(([ConsensusFeature::MapsLess] bool operator () ( ConsensusFeature 
 	ConsensusFeature c1(tmp_feature);
 	c1.insert(1, tmp_feature);
 	c1.insert(2, tmp_feature3);
-	
+
 	ConsensusFeature c2(tmp_feature);
 	c2.insert(3,tmp_feature);
 	c2.insert(4,tmp_feature2);
 	c2.insert(5,tmp_feature3);
-	
+
 	ConsensusFeature::MapsLess ml;
-	
+
 	TEST_EQUAL(ml(c1,c1), 0);
 	TEST_EQUAL(ml(c1,c2), 1);
 	TEST_EQUAL(ml(c2,c1), 0);
@@ -368,6 +371,19 @@ START_SECTION((const HandleSetType& getFeatures() const))
   TEST_EQUAL(it->getIntensity(),200)
 END_SECTION
 
+START_SECTION(( std::vector<FeatureHandle> getFeatureList() const))
+  ConsensusFeature cons;
+  cons.insert(2,tmp_feature);
+  const ConsensusFeature cons_copy(cons);
+
+  std::vector<FeatureHandle> group = cons_copy.getFeatureList();
+
+  TEST_EQUAL(group.size(),1)
+
+  TEST_EQUAL(group[0].getMapIndex(),2)
+  TEST_EQUAL(group[0].getUniqueId(),3)
+  TEST_EQUAL(group[0].getIntensity(),200)
+END_SECTION
 
 
 START_SECTION((void insert(const ConsensusFeature& cf)))
@@ -472,10 +488,10 @@ START_SECTION((void computeMonoisotopicConsensus()))
 END_SECTION
 
 START_SECTION((void computeDechargeConsensus(const FeatureMap& fm, bool intensity_weighted_averaging=false)))
-  
+
   double proton_mass = ElementDB::getInstance()->getElement("H")->getMonoWeight();
   double natrium_mass = ElementDB::getInstance()->getElement("Na")->getMonoWeight();
-  
+
   double m = 1000;
   double m1_add = 0.5;
   double mz1 = (m+m1_add+3*proton_mass) / 3;
@@ -483,10 +499,10 @@ START_SECTION((void computeDechargeConsensus(const FeatureMap& fm, bool intensit
   double mz2 = (m+m2_add+1*proton_mass + 2*natrium_mass) / 3;
   double m3_add = -0.5;
   double mz3 = (m+m3_add+4*proton_mass + natrium_mass) / 5;
-  
+
   FeatureMap fm;
-  
-  //one point  
+
+  //one point
   ConsensusFeature cons;
   Feature tmp_feature;
 	tmp_feature.setRT(100);
@@ -500,7 +516,7 @@ START_SECTION((void computeDechargeConsensus(const FeatureMap& fm, bool intensit
 	TEST_REAL_SIMILAR(cons.getIntensity(),200.0)
 	TEST_REAL_SIMILAR(cons.getRT(),100)
 	TEST_REAL_SIMILAR(cons.getMZ(), m+m1_add);
-	
+
 	//two points
   Feature tmp_feature2;
 	tmp_feature2.setRT(102);
@@ -520,7 +536,7 @@ START_SECTION((void computeDechargeConsensus(const FeatureMap& fm, bool intensit
 	TEST_REAL_SIMILAR(cons.getIntensity(),600.0)
 	TEST_REAL_SIMILAR(cons.getRT(),(100.0/2 + 102.0/2))
 	TEST_REAL_SIMILAR(cons.getMZ(),((m+m1_add)/2 + (m+m2_add)/2))
-	
+
 	//three points
   Feature tmp_feature3;
 	tmp_feature3.setRT(101);
@@ -552,7 +568,7 @@ START_SECTION((Size size() const))
 	c1.insert(1, tmp_feature);
 	c1.insert(2, tmp_feature3);
   TEST_EQUAL(c1.size(), 2)
-		
+
 	ConsensusFeature c2;
   TEST_EQUAL(c2.size(), 0)
 	c2.insert(1,tmp_feature2);
@@ -562,7 +578,7 @@ END_SECTION
 
 START_SECTION((const_iterator begin() const))
 {
-		
+
 	ConsensusFeature c;
   const ConsensusFeature& c2 = c;
   TEST_EQUAL(c2.begin()==c2.end(), true)
@@ -571,7 +587,7 @@ START_SECTION((const_iterator begin() const))
 	TEST_EQUAL(c3.begin()->getUniqueId(), 5)
 }
 END_SECTION
-  
+
 START_SECTION((iterator begin()))
 {
 	ConsensusFeature c;
@@ -592,7 +608,7 @@ END_SECTION
 
 START_SECTION((const_reverse_iterator rbegin() const))
 {
-		
+
 	ConsensusFeature c;
   const ConsensusFeature& c2 = c;
   TEST_EQUAL(c2.rbegin()==c2.rend(), true)
@@ -618,7 +634,7 @@ END_SECTION
 
 START_SECTION((reverse_iterator rend()))
   NOT_TESTABLE // tested above
-END_SECTION	  
+END_SECTION
 START_SECTION((void clear()))
 {
   ConsensusFeature c1(tmp_feature);
@@ -626,7 +642,7 @@ START_SECTION((void clear()))
 	c1.insert(2, tmp_feature3);
   c1.clear();
   TEST_EQUAL(c1.size(), 0)
-		
+
 	ConsensusFeature c2;
   TEST_EQUAL(c2.size(), 0)
 	c2.insert(1,tmp_feature2);
@@ -643,7 +659,7 @@ START_SECTION((bool empty() const))
   TEST_EQUAL(c1.empty(), false)
   c1.clear();
   TEST_EQUAL(c1.empty(), true)
-		
+
 	ConsensusFeature c2;
   TEST_EQUAL(c2.size(), 0)
 	c2.insert(1,tmp_feature2);
@@ -653,7 +669,7 @@ START_SECTION((bool empty() const))
 }
 END_SECTION
 
-	  
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,16 +32,14 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/MRMScoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/Macros.h>
 //#define MRMSCORING_TESTING
 #include <algorithm>
-#include <algorithm>
-#include <iterator>
 #include <iostream>
+#include <iterator>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/Macros.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/MRMScoring.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h>
 
 namespace OpenSwath
 {
@@ -90,6 +88,29 @@ namespace OpenSwath
     }
   }
 
+  void MRMScoring::initializeXCorrIdMatrix(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> native_ids_identification, std::vector<String> native_ids_detection)
+  { 
+    std::vector<double> intensityi, intensityj;
+    xcorr_matrix_.resize(native_ids_identification.size());
+    for (std::size_t i = 0; i < native_ids_identification.size(); i++)
+    { 
+      String native_id = native_ids_identification[i];
+      FeatureType fi = mrmfeature->getFeature(native_id);
+      xcorr_matrix_[i].resize(native_ids_detection.size());
+      intensityi.clear();
+      fi->getIntensity(intensityi);
+      for (std::size_t j = 0; j < native_ids_detection.size(); j++)
+      {
+        String native_id2 = native_ids_detection[j];
+        FeatureType fj = mrmfeature->getFeature(native_id2);
+        intensityj.clear();
+        fj->getIntensity(intensityj);
+        // compute normalized cross correlation
+        xcorr_matrix_[i][j] = Scoring::normalizedCrossCorrelation(intensityi, intensityj, boost::numeric_cast<int>(intensityi.size()), 1);
+      }
+    }
+  }
+
   // see /IMSB/users/reiterl/bin/code/biognosys/trunk/libs/mrm_libs/MRM_pgroup.pm
   // _calc_xcorr_coelution_score
   //
@@ -120,6 +141,36 @@ namespace OpenSwath
 
     double xcorr_coelution_score = deltas_mean + deltas_stdv;
     return xcorr_coelution_score;
+  }
+
+  std::string MRMScoring::calcIndXcorrIdCoelutionScore()
+  {
+    OPENSWATH_PRECONDITION(xcorr_matrix_.size() > 0 && xcorr_matrix_[0].size() > 1, "Expect cross-correlation matrix of at least 2x1");
+
+    std::vector<double> deltas;
+    for (std::size_t i = 0; i < xcorr_matrix_.size(); i++)
+    {
+      double deltas_id = 0;
+      for (std::size_t  j = 0; j < xcorr_matrix_[0].size(); j++)
+      {
+        // first is the X value (RT), should be an int
+        deltas_id += std::abs(Scoring::xcorrArrayGetMaxPeak(xcorr_matrix_[i][j])->first);
+#ifdef MRMSCORING_TESTING
+        std::cout << "&&_xcoel append " << std::abs(Scoring::xcorrArrayGetMaxPeak(xcorr_matrix_[i][j])->first) << std::endl;
+#endif
+      }
+      deltas.push_back(deltas_id / xcorr_matrix_[0].size());
+    }
+
+    std::stringstream ss;
+    for (size_t i = 0; i < deltas.size(); i++)
+    {
+      if (i != 0)
+        ss << ";";
+      ss << deltas[i];
+    }
+
+    return ss.str();
   }
 
   double MRMScoring::calcXcorrCoelutionScore_weighted(
@@ -187,6 +238,33 @@ namespace OpenSwath
     OpenSwath::mean_and_stddev msc;
     msc = std::for_each(intensities.begin(), intensities.end(), msc);
     return msc.mean();
+  }
+
+  std::string MRMScoring::calcIndXcorrIdShape_score()
+  {
+    OPENSWATH_PRECONDITION(xcorr_matrix_.size() > 0 && xcorr_matrix_[0].size() > 1, "Expect cross-correlation matrix of at least 2x1");
+
+    std::vector<double> intensities;
+    for (std::size_t i = 0; i < xcorr_matrix_.size(); i++)
+    {
+      double intensities_id = 0;
+      for (std::size_t j = 0; j < xcorr_matrix_[0].size(); j++)
+      {
+        // second is the Y value (intensity)
+        intensities_id += Scoring::xcorrArrayGetMaxPeak(xcorr_matrix_[i][j])->second;
+      }
+      intensities.push_back(intensities_id / xcorr_matrix_[0].size());
+    }
+
+    std::stringstream ss;
+    for (size_t i = 0; i <intensities.size(); i++)
+    {
+      if (i != 0)
+        ss << ";";
+      ss << intensities[i];
+    }
+
+    return ss.str();
   }
 
   double MRMScoring::calcXcorrShape_score_weighted(
@@ -325,7 +403,7 @@ namespace OpenSwath
 
   double MRMScoring::calcSNScore(OpenSwath::IMRMFeature* mrmfeature, std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators)
   {
-    OPENSWATH_PRECONDITION(signal_noise_estimators.size() > 1, "Input S/N estimators needs to be larger than 1");
+    OPENSWATH_PRECONDITION(signal_noise_estimators.size() > 0, "Input S/N estimators needs to be larger than 0");
 
     double sn_score = 0;
     if (signal_noise_estimators.size() == 0)
@@ -340,4 +418,37 @@ namespace OpenSwath
     return sn_score / signal_noise_estimators.size();
   }
 
+  std::string MRMScoring::calcIndSNScore(OpenSwath::IMRMFeature* mrmfeature, std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators)
+  {
+    OPENSWATH_PRECONDITION(signal_noise_estimators.size() > 0, "Input S/N estimators needs to be larger than 0");
+
+    std::vector<double> sn_score;
+    if (signal_noise_estimators.size() == 0)
+    {
+      return 0;
+    }
+
+    for (std::size_t k = 0; k < signal_noise_estimators.size(); k++)
+    {
+      sn_score.push_back(signal_noise_estimators[k]->getValueAtRT(mrmfeature->getRT()));
+    }
+
+    std::stringstream ss;
+    for (size_t i = 0; i <sn_score.size(); i++)
+    {
+      if (i != 0)
+        ss << ";";
+
+      if (sn_score[i] < 1) // everything below S/N 1 can be set to zero (and the log safely applied)
+      {
+        ss << 0;
+      }
+      else
+      {
+        ss << std::log(sn_score[i]);
+      }
+    }
+
+    return ss.str();
+  }
 }

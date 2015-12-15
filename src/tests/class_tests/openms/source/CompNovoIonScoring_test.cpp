@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -157,7 +157,11 @@ b8 844.383559313971
         fabs(it->first - 544.276575040171) < 0.001 ||
         fabs(it->first - 658.319502490971) < 0.001 ||
         fabs(it->first - 715.340966216371) < 0.001 ||
-        fabs(it->first - 844.383559313971) < 0.001)
+        fabs(it->first - 844.383559313971) < 0.001 ||
+        //After introducing mass fix, other peaks also match (PR #1440)
+        fabs(it->first - 474.248) < 0.001 ||
+        fabs(it->first - 545.285) < 0.001)
+
     {
       TEST_EQUAL(it->second.score > 1, true)
     }

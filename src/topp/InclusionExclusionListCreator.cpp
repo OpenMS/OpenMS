@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -86,6 +86,8 @@ using namespace std;
 
     The default is RT in minutes, but seconds can also be used (see INI file).
 
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_InclusionExclusionListCreator.cli
     <B>INI file documentation of this tool:</B>
@@ -145,8 +147,8 @@ protected:
     Param tmp;
     tmp.insert("InclusionExclusionList:", fdc.getParameters());
     tmp.insert("PrecursorSelection:", ops.getParameters());
-    tmp.remove("PrecursorSelection:selection_window");
-    tmp.remove("PrecursorSelection:min_peak_distance");
+    tmp.remove("PrecursorSelection:mz_isolation_window");
+    tmp.remove("PrecursorSelection:min_mz_peak_distance");
     tmp.insert("PrecursorSelection:", lp.getParameters().copy("feature_based"));
     return tmp;
   }
@@ -234,8 +236,10 @@ protected:
 
           String raw_data_path = getStringOption_("raw_data");
           MSExperiment<> exp, ms2;
-          FeatureMap out_map;
           MzMLFile().load(raw_data_path, exp);
+          FeatureMap out_map;
+          out_map.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
+
           IntList levels;
           levels.push_back(1);
           exp.getSpectra().erase(remove_if(exp.begin(), exp.end(),

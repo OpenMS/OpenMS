@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,9 +42,9 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoring.h>
 
-#define MIN_DOUBLE_MZ 900.0
+// #define MIN_DOUBLE_MZ 900.0
 
-//#define SELECT_PIVOT_DEBUG
+// #define SELECT_PIVOT_DEBUG
 
 using namespace std;
 

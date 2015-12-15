@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -94,6 +94,8 @@ public:
 
     boost::shared_ptr<OpenSwath::IFeature> getPrecursorFeature(std::string nativeID);
 
+    std::vector<std::string> getNativeIDs() const;
+
     std::vector<std::string> getPrecursorIDs() const;
 
     float getIntensity();
@@ -162,25 +164,63 @@ private:
 public:
 
     SignalToNoiseOpenMS(OpenMS::MSSpectrum<PeakT>& chromat,
-                        double sn_win_len_, unsigned int sn_bin_count_) :
+                        double sn_win_len_, unsigned int sn_bin_count_, bool write_log_messages) :
       chromatogram_(chromat), sn_()
     {
       OpenMS::Param snt_parameters = sn_.getParameters();
       snt_parameters.setValue("win_len", sn_win_len_);
       snt_parameters.setValue("bin_count", sn_bin_count_);
+
+      if (write_log_messages) 
+      {
+        snt_parameters.setValue("write_log_messages", "true");
+      }
+      else
+      {
+        snt_parameters.setValue("write_log_messages", "false");
+      }
+
       sn_.setParameters(snt_parameters);
       sn_.init(chromatogram_);
     }
 
     double getValueAtRT(double RT)
     {
-      typename OpenMS::MSSpectrum<PeakT>::const_iterator it = chromatogram_.MZBegin(RT);
-      return sn_.getSignalToNoise(*it);
+      if (chromatogram_.empty()) {return -1;}
+
+      // Note that MZBegin does not seem to return the same iterator on
+      // different setups, see https://github.com/OpenMS/OpenMS/issues/1163
+      typename OpenMS::MSSpectrum<PeakT>::const_iterator iter = chromatogram_.MZEnd(RT);
+
+      // ensure that iter is valid
+      if (iter == chromatogram_.end()) 
+      {
+        iter--;
+      }
+
+      typename OpenMS::MSSpectrum<PeakT>::const_iterator prev = iter;
+      if (prev != chromatogram_.begin() ) 
+      {
+        prev--;
+      }
+
+      if (std::fabs(prev->getMZ() - RT) < std::fabs(iter->getMZ() - RT) )
+      {
+        // prev is closer to the apex
+        return sn_.getSignalToNoise(*prev);
+      }
+      else
+      {
+        // iter is closer to the apex
+        return sn_.getSignalToNoise(*iter);
+      }
     }
 
 private:
+
     const OpenMS::MSSpectrum<PeakT>& chromatogram_;
     OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSSpectrum<PeakT> > sn_;
+
   };
 
 }

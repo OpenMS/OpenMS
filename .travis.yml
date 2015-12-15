@@ -1,22 +1,68 @@
+sudo: false
 language: cpp
-compiler:
-  - gcc
-  - clang
+os:
+ - linux
+ - osx
 cache: apt
+addons:
+   apt:
+      sources:
+         - ubuntu-toolchain-r-test
+         - boost-latest
+      packages:
+         - g++-4.8
+         - libboost-chrono1.55-dev
+         - libboost-date-time1.55-dev
+         - libboost-filesystem1.55-dev
+         - libboost-iostreams1.55-dev
+         - libboost-math1.55-dev
+         - libboost-python1.55-dev
+         - libboost-regex1.55-dev
+         - libboost-serialization1.55-dev
+         - libboost-system1.55-dev
+         - libboost-thread1.55-dev
+         - libxerces-c3.1
+         - libxerces-c-dev
+         - libicu-dev
+         - qt4-dev-tools
+         - libqt4-dev
+         - libqt4-core
+         - libqt4-gui
+         - libsvm-dev
+         - libsvm3
+         - glpk
+         - subversion
+         - doxygen 
+         - graphviz
+         - libpcre3-dev
+         
 before_script:
-   ./tools/lnx-cibuild.before.sh
+  ./tools/travis/cibuild.before.sh
 script:
-  ./tools/lnx-cibuild.sh
-env:
-  - ENABLE_STYLE_TESTING=On ENABLE_UNITYBUILD=Off WITH_GUI=On
-#- ENABLE_STYLE_TESTING=Off ENABLE_UNITYBUILD=On WITH_GUI=On
-  - ENABLE_STYLE_TESTING=Off ENABLE_UNITYBUILD=Off WITH_GUI=On
-  - ENABLE_STYLE_TESTING=Off ENABLE_UNITYBUILD=Off WITH_GUI=Off
+  ./tools/travis/cibuild.sh
+
+#second we exclude those that are redundant, don't make sense or take too long
 matrix:
-  exclude:
-    - env: ENABLE_STYLE_TESTING=On ENABLE_UNITYBUILD=Off WITH_GUI=On
-      compiler: clang
-#    - env: ENABLE_STYLE_TESTING=Off ENABLE_UNITYBUILD=On WITH_GUI=On
-#      compiler: gcc
-    - env: ENABLE_STYLE_TESTING=Off ENABLE_UNITYBUILD=Off WITH_GUI=Off
+  include:
+    - env: ENABLE_STYLE_TESTING=ON WITH_GUI=ON 
+      os: linux
       compiler: gcc
+## gcc tests class and TOPP tests (if we run into a time limit, we can split it)
+## PP Wavelet is turned off due to unstable behavior ... 
+    - env: ENABLE_STYLE_TESTING=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON WITH_GUI=ON DISABLE_PPWAVELET3=ON ADDRESS_SANITIZER=Off BUILD_TYPE=Release
+      os: linux
+      compiler: gcc
+## clang tests class and TOPP tests: without gui and address sanitizer (needs debug build)
+    - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON DISABLE_PPWAVELET3=ON ADDRESS_SANITIZER=On BUILD_TYPE=Debug
+      os: linux
+      compiler: clang
+## clang tests class and TOPP tests: without gui and without address sanitizer
+    - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=ON ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON DISABLE_PPWAVELET3=OFF ADDRESS_SANITIZER=Off BUILD_TYPE=Release
+      os: linux
+      compiler: clang
+
+## OS X tests
+    - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON DISABLE_PPWAVELET3=OFF ADDRESS_SANITIZER=Off BUILD_TYPE=Release
+      os: osx
+      compiler: clang
+

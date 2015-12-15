@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,7 +32,6 @@
 // $Authors: Steffen Sass, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_QTCLUSTERFINDER_H
 #define OPENMS_ANALYSIS_MAPMATCHING_QTCLUSTERFINDER_H
 
@@ -45,35 +44,57 @@
 
 #include <boost/unordered_map.hpp>
 
+#include <list>
+#include <vector>
+#include <set>
+#include <utility> // for pair<>
+
 namespace OpenMS
 {
 
 /**
    @brief A variant of QT clustering for the detection of feature groups.
 
-     The algorithm accumulates all features from all input maps, then applies a variant of QT clustering to find groups of corresponding features. In more detail, every feature from every input map is considered as a potential cluster center. For every center, its nearest neighbors from the other input maps are detected and added to the potential cluster. Iteratively, the cluster with the highest quality is extracted and the clustering is updated.
+   The algorithm accumulates all features from all input maps, then applies a
+   variant of QT clustering to find groups of corresponding features. In more
+   detail, every feature from every input map is considered as a potential
+   cluster center. For every center, its nearest neighbors from the other input
+   maps are detected and added to the potential cluster. Iteratively, the
+   cluster with the highest quality is extracted and the clustering is updated.
 
-     <b>Properties affecting the grouping</b>
+   <b>Properties affecting the grouping</b>
 
-     To be included in a particular cluster, a feature has to fulfill the following conditions:
-     @li differences in RT and m/z from the cluster center must be below user-defined thresholds (@p distance_RT:max_difference and @p distance_MZ:max_difference),
-     @li the charge state must match that of the cluster center (unless @p ignore_charge is set),
-     @li if @p use_identifications is set and both the feature and the cluster center are annotated with peptide identifications, the identifications have to match.
+   To be included in a particular cluster, a feature has to fulfill the following conditions:
 
-     Every cluster contains at most one feature from each input map - namely the feature closest to the cluster center that meets the criteria and does not belong to a better cluster.
+   @li differences in RT and m/z from the cluster center must be below
+       user-defined thresholds (@p distance_RT:max_difference and @p distance_MZ:max_difference),
 
-     The notion of "closeness" for features is defined by the distance function implemented in @ref FeatureDistance, the parameters of which can be set by the user.
+   @li the charge state must match that of the cluster center (unless @p
+       ignore_charge is set),
 
-     The quality of a cluster is computed from the number of elements in it and their distances to the cluster center. For more details see QTCluster.
+   @li if @p use_identifications is set and both the feature and the cluster
+       center are annotated with peptide identifications, the identifications have
+       to match.
 
-     <b>Optimization</b>
+   Every cluster contains at most one feature from each input map - namely the
+   feature closest to the cluster center that meets the criteria and does not
+   belong to a better cluster.
 
-     This algorithm includes a number of optimizations to reduce run-time:
-     @li two-dimensional hashing of features,
-     @li a look-up table for feature distances,
-     @li a variant of QT clustering that requires only one round of clustering.
+   The notion of "closeness" for features is defined by the distance function
+   implemented in @ref FeatureDistance, the parameters of which can be set by
+   the user.
 
-     @see FeatureGroupingAlgorithmQT
+   The quality of a cluster is computed from the number of elements in it and
+   their distances to the cluster center. For more details see QTCluster.
+
+   <b>Optimization</b>
+
+   This algorithm includes a number of optimizations to reduce run-time:
+   @li two-dimensional hashing of features,
+   @li a look-up table for feature distances,
+   @li a variant of QT clustering that requires only one round of clustering.
+
+   @see FeatureGroupingAlgorithmQT
 
    @htmlinclude OpenMS_QTClusterFinder.parameters
 
@@ -86,9 +107,15 @@ namespace OpenMS
 private:
 
     /// Distances between pairs of grid features
-    typedef OpenMSBoost::unordered_map<std::pair<GridFeature *, GridFeature *>, double> PairDistances;
+    typedef OpenMSBoost::unordered_map< 
+              std::pair<OpenMS::GridFeature*, OpenMS::GridFeature*>,
+              double> PairDistances;
 
-    typedef HashGrid<GridFeature *> Grid;
+    /// Map to store which grid features are next to which clusters
+    typedef OpenMSBoost::unordered_map<
+              OpenMS::GridFeature*, std::vector<QTCluster*> > ElementMapping;
+
+    typedef HashGrid<OpenMS::GridFeature*> Grid;
 
     /// Number of input maps
     Size num_maps_;
@@ -102,47 +129,47 @@ private:
     /// Maximum m/z difference
     double max_diff_mz_;
 
+    /// Maximum m/z difference
+    int nr_partitions_;
+
     /// Feature distance functor
     FeatureDistance feature_distance_;
 
-    /**
-         @brief Distance map.
-
-         To compute it only once, the distance between two features is accessible by searching for a pair where the first position is the smaller pointer value.
-     */
-    PairDistances distances_;
+    /// Set of features already used
+    std::set<OpenMS::GridFeature*> already_used_;
 
     /**
-         @brief Calculates the distance between two grid features.
-
-         The distance is looked up in the distance map and only computed (and stored) if it's not already available.
-     */
-    double getDistance_(GridFeature * left, GridFeature * right);
-
-    /**
-         @brief Checks whether the peptide IDs of a cluster and a neighboring feature are compatible.
-
-         A neighboring feature without identification is always compatible. Otherwise, the cluster and feature are compatible if the best peptide hits of each of their identifications have the same sequences.
+       @brief Calculates the distance between two grid features.
     */
-    bool compatibleIDs_(QTCluster & cluster, const GridFeature * neighbor);
+    double getDistance_(const OpenMS::GridFeature* left, const
+        OpenMS::GridFeature* right);
 
     /// Sets algorithm parameters
     void setParameters_(double max_intensity, double max_mz);
 
     /// Generates a consensus feature from the best cluster and updates the clustering
-    void makeConsensusFeature_(std::list<QTCluster> & clustering,
-           ConsensusFeature & feature, OpenMSBoost::unordered_map<GridFeature *,
-             std::vector< QTCluster * > > & element_mapping);
+    void makeConsensusFeature_(std::list<QTCluster>& clustering,
+                               ConsensusFeature& feature,
+                               ElementMapping& element_mapping, Grid&);
 
     /// Computes an initial QT clustering of the points in the hash grid
-    void computeClustering_(Grid & grid, std::list<QTCluster> & clustering);
+    void computeClustering_(Grid& grid, std::list<QTCluster>& clustering);
 
     /// Runs the algorithm on feature maps or consensus maps
     template <typename MapType>
-    void run_(const std::vector<MapType> &
-              input_maps, ConsensusMap & result_map);
+    void run_(const std::vector<MapType>& input_maps, ConsensusMap& result_map);
+
+    /// Runs the algorithm on feature maps or consensus maps (internal)
+    template <typename MapType>
+    void run_internal_(const std::vector<MapType>& input_maps,
+                       ConsensusMap& result_map, bool do_progress);
+
+    /// Adds elements to the cluster based on the elements hashed in the grid
+    void addClusterElements_(int x, int y, const Grid& grid, QTCluster& cluster,
+      const OpenMS::GridFeature* center_feature);
 
 protected:
+
     enum
     {
       RT = Peak2D::RT,
@@ -150,6 +177,7 @@ protected:
     };
 
 public:
+
     /// Constructor
     QTClusterFinder();
 
@@ -163,29 +191,31 @@ public:
     }
 
     /**
-         @brief Runs the algorithm on consensus maps
+       @brief Runs the algorithm on consensus maps
 
-         @exception Exception::IllegalArgument is thrown if the input data is not valid.
+       @pre The data ranges of the input maps have to be up-to-date (use ConsensusMap::updateRanges).
+
+       @exception Exception::IllegalArgument is thrown if the input data is not valid.
     */
-    void run(const std::vector<ConsensusMap> & input_maps,
-             ConsensusMap & result_map);
+    void run(const std::vector<ConsensusMap>& input_maps,
+             ConsensusMap& result_map);
 
     /**
-         @brief Runs the algorithm on feature maps
+       @brief Runs the algorithm on feature maps
 
-         @exception Exception::IllegalArgument is thrown if the input data is not valid.
+       @pre The data ranges of the input maps have to be up-to-date (use FeatureMap::updateRanges).
+
+       @exception Exception::IllegalArgument is thrown if the input data is not valid.
     */
-    void run(const std::vector<FeatureMap > & input_maps,
-             ConsensusMap & result_map);
+    void run(const std::vector<FeatureMap>& input_maps,
+             ConsensusMap& result_map);
 
     /// Returns an instance of this class
-    static BaseGroupFinder * create()
+    static BaseGroupFinder* create()
     {
       return new QTClusterFinder();
     }
-
   };
-
-}
+} // namespace OpenMS
 
 #endif /* OPENMS_ANALYSIS_MAPMATCHING_QTCLUSTERFINDER_H */

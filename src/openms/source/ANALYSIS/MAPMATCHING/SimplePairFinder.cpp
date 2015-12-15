@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -68,8 +68,8 @@ namespace OpenMS
     Int number_of_considered_element_pairs = 0;
 
     // For each element in map 0, find its best friend in map 1
-    std::vector<UInt>        best_companion_index_0(input_maps[0].size(), UInt(-1));
-    std::vector<double>  best_companion_quality_0(input_maps[0].size(), 0);
+    std::vector<UInt> best_companion_index_0(input_maps[0].size(), UInt(-1));
+    std::vector<double> best_companion_quality_0(input_maps[0].size(), 0);
     for (UInt fi0 = 0; fi0 < input_maps[0].size(); ++fi0)
     {
       double best_quality = -std::numeric_limits<double>::max();
@@ -93,7 +93,7 @@ namespace OpenMS
     }
 
     // For each element in map 1, find its best friend in map 0
-    std::vector<UInt>       best_companion_index_1(input_maps[1].size(), UInt(-1));
+    std::vector<UInt> best_companion_index_1(input_maps[1].size(), UInt(-1));
     std::vector<double> best_companion_quality_1(input_maps[1].size(), 0);
     for (UInt fi1 = 0; fi1 < input_maps[1].size(); ++fi1)
     {
@@ -108,9 +108,7 @@ namespace OpenMS
         }
 
         ++number_of_considered_element_pairs;
-        if (progress_dots &&
-            !(number_of_considered_element_pairs % progress_dots)
-            )
+        if (progress_dots && !(number_of_considered_element_pairs % progress_dots))
         {
           std::cout << '+' << std::flush;
         }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,8 @@
 
 #include <OpenMS/METADATA/ChromatogramSettings.h>
 
+#include <OpenMS/CONCEPT/Helpers.h>
+#include <boost/iterator/indirect_iterator.hpp> // for equality
 
 using namespace std;
 
@@ -106,7 +108,12 @@ namespace OpenMS
            source_file_ == rhs.source_file_ &&
            precursor_ == rhs.precursor_ &&
            product_ == rhs.product_ &&
-           data_processing_ == rhs.data_processing_ &&
+           // We are not interested whether the pointers are equal but whether
+           // the contents are equal
+           ( data_processing_.size() == rhs.data_processing_.size() &&
+           std::equal( boost::make_indirect_iterator(data_processing_.begin()),
+                       boost::make_indirect_iterator(data_processing_.end()),
+                       boost::make_indirect_iterator(rhs.data_processing_.begin()) ) ) &&
            type_ == rhs.type_;
   }
 
@@ -217,21 +224,6 @@ namespace OpenMS
     native_id_ = native_id;
   }
 
-  const vector<DataProcessing> & ChromatogramSettings::getDataProcessing() const
-  {
-    return data_processing_;
-  }
-
-  vector<DataProcessing> & ChromatogramSettings::getDataProcessing()
-  {
-    return data_processing_;
-  }
-
-  void ChromatogramSettings::setDataProcessing(const vector<DataProcessing> & processing_method)
-  {
-    data_processing_ = processing_method;
-  }
-
   ChromatogramSettings::ChromatogramType ChromatogramSettings::getChromatogramType() const
   {
     return type_;
@@ -240,6 +232,21 @@ namespace OpenMS
   void ChromatogramSettings::setChromatogramType(ChromatogramType type)
   {
     type_ = type;
+  }
+
+  void ChromatogramSettings::setDataProcessing(const std::vector< DataProcessingPtr > & data_processing)
+  {
+    data_processing_ = data_processing;
+  }
+
+  std::vector< DataProcessingPtr > & ChromatogramSettings::getDataProcessing()
+  {
+    return data_processing_;
+  }
+
+  const std::vector< boost::shared_ptr<const DataProcessing > > ChromatogramSettings::getDataProcessing() const 
+  {
+    return OpenMS::Helpers::constifyPointerVector(data_processing_);
   }
 
 }

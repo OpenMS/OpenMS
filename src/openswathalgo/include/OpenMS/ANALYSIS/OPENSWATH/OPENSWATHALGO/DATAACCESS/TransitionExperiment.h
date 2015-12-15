@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,6 +54,11 @@ public:
     double precursor_mz;
     int charge;
     bool decoy;
+    bool detecting_transition;
+    bool quantifying_transition;
+    bool identifying_transition;
+    std::vector<int> site_identifying_transition;
+    std::vector<std::string> site_identifying_class;
 
     int getProductChargeState() const
     {
@@ -90,6 +95,55 @@ public:
       return precursor_mz;
     }
 
+    void setDetectingTransition (bool d)
+    {
+      detecting_transition = d;
+    }
+
+    bool isDetectingTransition() const
+    {
+      return detecting_transition;
+    }
+
+    void setQuantifyingTransition (bool q)
+    {
+      quantifying_transition = q;
+    }
+
+    bool isQuantifyingTransition() const
+    {
+      return quantifying_transition;
+    }
+
+    void setIdentifyingTransition (bool i)
+    {
+      identifying_transition = i;
+    }
+
+    bool isIdentifyingTransition() const
+    {
+      return identifying_transition;
+    }
+
+    void setSiteIdentifyingTransition (std::vector<int> i)
+    {
+      site_identifying_transition = i;
+    }
+
+    std::vector<int> getSiteIdentifyingTransition() const
+    {
+      return site_identifying_transition;
+    }
+
+    void setSiteIdentifyingClass (std::vector<std::string> i)
+    {
+      site_identifying_class = i;
+    }
+
+    std::vector<std::string> getSiteIdentifyingClass() const
+    {
+      return site_identifying_class;
+    }
   };
 
   struct OPENSWATHALGO_DLLAPI LightModification

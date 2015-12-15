@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -78,7 +78,7 @@ END_SECTION
 
 START_SECTION((void setDataProcessing(const std::vector< DataProcessing > &data_processing)))
   SpectrumSettings tmp;
-  std::vector<DataProcessing> dummy;
+  std::vector<DataProcessingPtr > dummy;
   dummy.resize(1);
   tmp.setDataProcessing(dummy);
   TEST_EQUAL(tmp.getDataProcessing().size(),1);
@@ -338,7 +338,8 @@ START_SECTION((bool operator== (const SpectrumSettings& rhs) const))
 	TEST_EQUAL(edit==empty, false);
 
 	edit = empty;
-	edit.getDataProcessing().resize(1);
+    DataProcessingPtr dp = boost::shared_ptr<DataProcessing>(new DataProcessing); 
+	edit.getDataProcessing().push_back(dp);
 	TEST_EQUAL(edit==empty, false);
 
 	edit = empty;
@@ -388,7 +389,8 @@ START_SECTION((bool operator!= (const SpectrumSettings& rhs) const))
 	TEST_EQUAL(edit!=empty, true);
 
 	edit = empty;
-	edit.getDataProcessing().resize(1);
+    DataProcessingPtr dp = boost::shared_ptr<DataProcessing>(new DataProcessing); 
+	edit.getDataProcessing().push_back(dp);
 	TEST_EQUAL(edit!=empty, true);
 
 	edit = empty;
@@ -443,16 +445,16 @@ START_SECTION((void unify(const SpectrumSettings &rhs)))
   appended.getPeptideIdentifications().push_back(appended_ident);
 
   // DataProcessings
-  DataProcessing org_processing;
+  DataProcessingPtr org_processing = boost::shared_ptr<DataProcessing>(new DataProcessing);
   Software org_software;
   org_software.setName("org_software");
-  org_processing.setSoftware(org_software);
+  org_processing->setSoftware(org_software);
   org.getDataProcessing().push_back(org_processing);
 
-  DataProcessing appended_processing;
+  DataProcessingPtr appended_processing = boost::shared_ptr<DataProcessing>(new DataProcessing);
   Software appended_software;
   appended_software.setName("appended_software");
-  appended_processing.setSoftware(appended_software);
+  appended_processing->setSoftware(appended_software);
   appended.getDataProcessing().push_back(appended_processing);
 
   org.unify(appended);
@@ -492,8 +494,8 @@ START_SECTION((void unify(const SpectrumSettings &rhs)))
   TEST_EQUAL(org.getDataProcessing().size(), 2)
   ABORT_IF(org.getDataProcessing().size()!=2)
 
-  TEST_EQUAL(org.getDataProcessing()[0].getSoftware().getName(), "org_software")
-  TEST_EQUAL(org.getDataProcessing()[1].getSoftware().getName(), "appended_software")
+  TEST_EQUAL(org.getDataProcessing()[0]->getSoftware().getName(), "org_software")
+  TEST_EQUAL(org.getDataProcessing()[1]->getSoftware().getName(), "appended_software")
 
   // unify should set Type to unknown in case of type mismatch
   SpectrumSettings empty;

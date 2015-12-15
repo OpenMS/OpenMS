@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -55,7 +55,7 @@ public:
 
     // Note: we use 0 as position of the N-terminus while e.g. mzTab or other formats start counting at 1.
     static const int N_TERMINAL_POSITION;
-    static const char UNKNOWN_AA; // PeptideEvidence::UNKNOWN_AA = ' ';
+    static const char UNKNOWN_AA; // PeptideEvidence::UNKNOWN_AA = 'X';
 
     // Note: we use '[' and ']' instead of  e.g. '-' as in mzTab specification
     static const char N_TERMINAL_AA;

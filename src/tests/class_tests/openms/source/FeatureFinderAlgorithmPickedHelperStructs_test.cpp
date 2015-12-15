@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,8 +37,9 @@
 
 ///////////////////////////
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
-#include <OpenMS/KERNEL/Peak1D.h>
 ///////////////////////////
+
+#include <OpenMS/KERNEL/Peak1D.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -62,7 +63,7 @@ START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::IsotopePattern] Isoto
 END_SECTION
 
 // MassTrace for testing
-FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> mt1;
+FeatureFinderAlgorithmPickedHelperStructs::MassTrace mt1;
 mt1.theoretical_int = 0.8;
 
 /////////////////////////////////////////////////////////////
@@ -139,7 +140,7 @@ START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTrace] double get
   // getAvgMZ computes intensity weighted avg of the mass trace
   TEST_EQUAL(mt1.getAvgMZ(), 1000)
 
-  FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> mt_avg;
+  FeatureFinderAlgorithmPickedHelperStructs::MassTrace mt_avg;
 
   Peak1D pAvg1;
   pAvg1.setMZ(10.5);
@@ -163,7 +164,7 @@ END_SECTION
 START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTrace] bool isValid() const ))
 {
   TEST_EQUAL(mt1.isValid(), true)
-  FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> mt_non_valid;
+  FeatureFinderAlgorithmPickedHelperStructs::MassTrace mt_non_valid;
 
   mt_non_valid.peaks.push_back(std::make_pair(679.8 , &p1_10));
   TEST_EQUAL(mt_non_valid.isValid(), false)
@@ -177,8 +178,8 @@ START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTrace] bool isVal
 END_SECTION
 
 // testing mass trace
-FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D> mt;
-FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D> empty_traces;
+FeatureFinderAlgorithmPickedHelperStructs::MassTraces mt;
+FeatureFinderAlgorithmPickedHelperStructs::MassTraces empty_traces;
 
 // add a mass trace
 mt.push_back(mt1);
@@ -196,7 +197,7 @@ START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTraces] Size getP
 }
 END_SECTION
 
-FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> mt2;
+FeatureFinderAlgorithmPickedHelperStructs::MassTrace mt2;
 mt2.theoretical_int = 0.2;
 
 Peak1D p2_4;
@@ -217,7 +218,7 @@ mt.push_back(mt2);
 START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTraces] bool isValid(double seed_mz, double trace_tolerance)))
 {
   // isValid checks if if we have enough traces
-  FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D> invalid_traces;
+  FeatureFinderAlgorithmPickedHelperStructs::MassTraces invalid_traces;
   invalid_traces.push_back(mt1);
 
   TEST_EQUAL(invalid_traces.isValid(600.0, 0.03), false) // contains only one mass trace

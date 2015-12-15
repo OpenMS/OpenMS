@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -90,7 +90,9 @@ public:
      *			the given cutoff wavelength.
      * @pre x and y must be of the same dimensions.
      **/
-    BSpline2d(const std::vector<double>& x, const std::vector<double>& y, double wavelength = 0, BoundaryCondition boundary_condition = BC_ZERO_SECOND, Size num_nodes = 0);
+    BSpline2d(const std::vector<double>& x, const std::vector<double>& y,
+              double wavelength = 0, BoundaryCondition boundary_condition = BC_ZERO_SECOND, 
+              Size num_nodes = 0);
 
     /**
      * Destructor
@@ -108,7 +110,7 @@ public:
 
     /**
      * Return the evaluation of the smoothed curve
-     * at a particular @p x value.  If current state is not ok(), returns zero.
+     * at a particular @p x value. If current state is not ok(), returns zero.
      */
     double eval(const double x) const;
 
@@ -138,4 +140,4 @@ private:
 
 }
 
-#endif
+#endif // OPENMS_MATH_MISC_BSPLINE2D_H

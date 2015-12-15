@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="http://open-ms.sourceforge.net/XSL/IdXML.xsl" ?>
+<IdXML version="1.3" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+	</SearchParameters>
+	<IdentificationRun date="2005-01-27T17:47:41" search_engine="" search_engine_version="" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" >
+		</ProteinIdentification>
+		
+		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
+			<PeptideHit score="0.0001" sequence="EDQSCPSERRRAFSRLRXAAX" charge="2" protein_refs="" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
+			<PeptideHit score="0.0001" sequence="GSMTVDMQEIGSTEMPYEVPTQPNATSASAGRGWFDGPSFK" charge="2" protein_refs="" >
+			</PeptideHit>
+			<PeptideHit score="0.0001" sequence="TSMTVDMQEIGSTEMPYEVPTQPNATSASAGRGWFDGPSFK" charge="2" protein_refs="" >
+			</PeptideHit>
+			<PeptideHit score="0.0001" sequence="TTMTVDMQEIGSTEMPYEVPTQPNATSASAGRGWFDGPSFK" charge="2" protein_refs="" >
+			</PeptideHit>
+			<PeptideHit score="0.0001" sequence="TTTTVDMQEIGSTEMPYEVPTQPNATSASAGRGWFDGPSFK" charge="2" protein_refs="" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
+			<PeptideHit score="0.0001" sequence="TTTTVDMQEIGSTEMPYEVPTQPNATSASAGRGWFDGPSFK" charge="2" protein_refs="" >
+			</PeptideHit>
+		</PeptideIdentification>
+    <PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
+      <PeptideHit score="0.0001" sequence="SVGSMTVDMQR" charge="2" protein_refs="" >
+      </PeptideHit>
+      <PeptideHit score="0.0001" sequence="STEMPYEVPTQRPNATSASAQK" charge="2" protein_refs="" >
+      </PeptideHit>
+      <PeptideHit score="0.0001" sequence="GWFD" charge="2" protein_refs="" >
+      </PeptideHit>
+    </PeptideIdentification>
+     
+	</IdentificationRun>
+</IdXML>

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,35 +33,35 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
-#include <OpenMS/VISUAL/TOPPASToolVertex.h>
-#include <OpenMS/VISUAL/TOPPASMergerVertex.h>
-#include <OpenMS/VISUAL/TOPPASEdge.h>
-#include <OpenMS/VISUAL/TOPPASScene.h>
-#include <OpenMS/SYSTEM/File.h>
+
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/VISUAL/TOPPASEdge.h>
+#include <OpenMS/VISUAL/TOPPASScene.h>
+#include <OpenMS/VISUAL/TOPPASToolVertex.h>
+#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 
 #include <QtCore>
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
 #include <QtCore/QDir>
-#include <QDesktopServices>
-#include <QUrl>
-#include <QMessageBox>
 
 #include <QCoreApplication>
 
 namespace OpenMS
 {
   TOPPASOutputFileListVertex::TOPPASOutputFileListVertex() :
-    TOPPASVertex()
+    TOPPASVertex(),
+    output_folder_name_()
   {
     pen_color_ = Qt::black;
     brush_color_ = Qt::lightGray;
   }
 
   TOPPASOutputFileListVertex::TOPPASOutputFileListVertex(const TOPPASOutputFileListVertex& rhs) :
-    TOPPASVertex(rhs)
+    TOPPASVertex(rhs),
+    output_folder_name_() // leave empty! otherwise we have conflicting output folder names
   {
     pen_color_ = Qt::black;
     brush_color_ = Qt::lightGray;
@@ -69,12 +69,12 @@ namespace OpenMS
 
   TOPPASOutputFileListVertex::~TOPPASOutputFileListVertex()
   {
-
   }
 
   TOPPASOutputFileListVertex& TOPPASOutputFileListVertex::operator=(const TOPPASOutputFileListVertex& rhs)
   {
     TOPPASVertex::operator=(rhs);
+    output_folder_name_ = ""; // leave empty! otherwise we have conflicting output folder names
 
     return *this;
   }
@@ -127,10 +127,26 @@ namespace OpenMS
     text_boundings = painter->boundingRect(QRectF(0, 0, 0, 0), Qt::AlignCenter, text);
     painter->drawText(-(int)(text_boundings.width() / 2.0), 35 - (int)(text_boundings.height() / 4.0), text);
 
-    //topo sort number
-    qreal x_pos = -63.0;
-    qreal y_pos = -19.0;
-    painter->drawText(x_pos, y_pos, QString::number(topo_nr_));
+    // topo sort number
+    painter->drawText(-63.0, -19.0, QString::number(topo_nr_));
+    
+    // output folder name
+    painter->drawText(painter->boundingRect(QRectF(0, 0, 0, 0), Qt::AlignCenter, output_folder_name_).width()/-2, -25, output_folder_name_);
+    
+  }
+
+  void TOPPASOutputFileListVertex::setOutputFolderName(const QString& name)
+  {
+    if (output_folder_name_ != name)
+    {
+      output_folder_name_ = name;
+      emit outputFolderNameChanged(); // enable storing of modified pipeline
+    }
+  }
+
+  const QString& TOPPASOutputFileListVertex::getOutputFolderName() const
+  {
+    return output_folder_name_;
   }
 
   QRectF TOPPASOutputFileListVertex::boundingRect() const
@@ -153,8 +169,7 @@ namespace OpenMS
 
     // get incoming edge and preceding vertex
     TOPPASEdge* e = *inEdgesBegin();
-    TOPPASVertex* tv = e->getSourceVertex();
-    RoundPackages pkg = tv->getOutputFiles();
+    RoundPackages pkg = e->getSourceVertex()->getOutputFiles();
     if (pkg.empty())
     {
       std::cerr << "A problem occurred while grabbing files from the parent tool. This is a bug, please report it!" << std::endl;
@@ -195,7 +210,9 @@ namespace OpenMS
         QRegExp rx("_tmp\\d+$");
         int tmp_index = rx.indexIn(new_file);
         if (tmp_index != -1)
+        {
           new_file = new_file.left(tmp_index);
+        }
 
         // get file type and rename
         FileTypes::Type ft = FileTypes::UNKNOWN;
@@ -211,20 +228,32 @@ namespace OpenMS
               StringList types = source_output_files[e->getSourceOutParam()].valid_types;
               if (types.size() == 1) // if suffix is unambiguous
               {
-                ft = FileHandler::getTypeByFileName(String("prefix.") + types[0]);
+                ft = FileTypes::nameToType(types[0]);
               }
               else
               {
                 ft = FileHandler::getTypeByContent(f); // this will access the file physically
               }
+              // do we know the extension already? 
+              if (ft == FileTypes::UNKNOWN) 
+              { // if not, try param value of '<name>_type' (more generic, supporting more than just 'out_type')
+                const Param& p = ttv->getParam();
+                String out_type = source_output_files[e->getSourceOutParam()].param_name + "_type";
+                // look for <name>_type (more generic, supporting more than just 'out')
+                if (p.exists(out_type))
+                {
+                  ft = FileTypes::nameToType(p.getValue(out_type));
+                }
+              }
+
             }
           }
         }
 
         if (ft != FileTypes::UNKNOWN)
-        {
-          String suffix = String(".") + FileTypes::typeToName(ft);
-          if (!new_file.endsWith(suffix.toQString())) new_file = (File::removeExtension(new_file) + suffix).toQString();
+        { // replace old suffix by new suffix
+          String new_suffix = String(".") + FileTypes::typeToName(ft);
+          if (!new_file.endsWith(new_suffix.toQString())) new_file = (File::removeExtension(new_file) + new_suffix).toQString();
         }
 
         // only scheduled for writing
@@ -301,25 +330,7 @@ namespace OpenMS
   void TOPPASOutputFileListVertex::openContainingFolder()
   {
     QString path = getFullOutputDirectory().toQString();
-#if defined(__APPLE__)
-    QProcess p;
-    p.setProcessChannelMode(QProcess::ForwardedChannels);
-    QStringList app_args;
-    app_args.append(path);
-    p.start("/usr/bin/open", app_args);
-    if (!p.waitForStarted())
-    {
-      // execution failed
-      QMessageBox::warning(0, "Open Folder Error", "The folder '" + path + "' could not be opened!");
-      LOG_ERROR << "Failed to open folder " << path.toStdString() << "\n"
-                << p.errorString().toStdString() << std::endl;
-    }
-#else
-    if (!QDir(path).exists() || (!QDesktopServices::openUrl(QUrl("file:///" + path, QUrl::TolerantMode))))
-    {
-      QMessageBox::warning(0, "Open Folder Error", "The folder '" + path + "' could not be opened!");
-    }
-#endif
+    GUIHelpers::openFolder(path);
   }
 
   String TOPPASOutputFileListVertex::getFullOutputDirectory() const
@@ -338,10 +349,17 @@ namespace OpenMS
   {
     TOPPASEdge* e = *inEdgesBegin();
     TOPPASVertex* tv = e->getSourceVertex();
-    // create meaningful output name using vertex + TOPP name + output parameter, e.g. "010-FileConverter-out"
-    String dir = String("TOPPAS_out") + String(QDir::separator()) + get3CharsNumber_(topo_nr_) + "-"
-                                                                  + tv->getName() + "-" 
-                                                                  + e->getSourceOutParamName().remove(':');
+    String dir;
+    if (output_folder_name_.isEmpty()) {
+      // create meaningful output name using vertex + TOPP name + output parameter, e.g. "010-FileConverter-out"
+      dir = String("TOPPAS_out") + String(QDir::separator()) + get3CharsNumber_(topo_nr_) + "-"
+                                                             + tv->getName() + "-" 
+                                                             + e->getSourceOutParamName().remove(':');
+    }
+    else
+    {
+      dir = String("TOPPAS_out") + String(QDir::separator()) + output_folder_name_;
+    }
     return dir;
   }
 

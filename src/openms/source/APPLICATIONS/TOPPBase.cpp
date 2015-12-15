@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -169,6 +169,7 @@ namespace OpenMS
     registerStringOption_("write_ctd", "<out_dir>", "", "Writes the common tool description file(s) (Toolname(s).ctd) to <out_dir>", false, true);
     registerStringOption_("write_wsdl", "<file>", "", "Writes the default WSDL file", false, true);
     registerFlag_("no_progress", "Disables progress logging to command line", true);
+    registerFlag_("force", "Overwrite tool specific checks.", true);
     if (id_tag_support_)
     {
       registerStringOption_("id_pool", "<file>", "", String("ID pool file to DocumentID's for all generated output files. Disabled by default. (Set to 'main' to use ") + String() + id_tagger_.getPoolFile() + ")", false);
@@ -456,11 +457,7 @@ namespace OpenMS
     sw.start();
     result = main_(argc, argv);
     sw.stop();
-    LOG_INFO << this->tool_name_ << " took "
-             << StopWatch::toString(sw.getClockTime()) << " (wall), "
-             << StopWatch::toString(sw.getCPUTime()) << " (CPU), "
-             << StopWatch::toString(sw.getSystemTime()) << " (system), "
-             << StopWatch::toString(sw.getUserTime()) << " (user)." << std::endl;
+    LOG_INFO << this->tool_name_ << " took " << sw.toString() << "." << std::endl;
 
 #ifndef DEBUG_TOPP
   }
@@ -622,17 +619,17 @@ namespace OpenMS
       }
 
       //NAME + ARGUMENT
-      String tmp = "  -";
-      tmp += it->name + " " + it->argument;
+      String str_tmp = "  -";
+      str_tmp += it->name + " " + it->argument;
       if (it->required)
-        tmp += '*';
+        str_tmp += '*';
       if (it->type == ParameterInformation::NEWLINE)
-        tmp = "";
+        str_tmp = "";
 
       //OFFSET
-      tmp.fillRight(' ', offset);
+      str_tmp.fillRight(' ', offset);
       if (it->type == ParameterInformation::TEXT)
-        tmp = "";
+        str_tmp = "";
 
       //DESCRIPTION
       String desc_tmp = it->description;
@@ -649,10 +646,10 @@ namespace OpenMS
       case ParameterInformation::INTLIST:
       case ParameterInformation::DOUBLELIST:
       {
-        String tmp = it->default_value.toString().substitute(", ", " ");
-        if (tmp != "" && tmp != "[]")
+        String tmp_s = it->default_value.toString().substitute(", ", " ");
+        if (tmp_s != "" && tmp_s != "[]")
         {
-          addons.push_back(String("default: '") + tmp + "'");
+          addons.push_back(String("default: '") + tmp_s + "'");
         }
       }
       break;
@@ -723,9 +720,9 @@ namespace OpenMS
       }
 
       if (it->type == ParameterInformation::TEXT)
-        cerr << ConsoleUtils::breakString(tmp + desc_tmp, 0, 10); // no indentation for text
+        cerr << ConsoleUtils::breakString(str_tmp + desc_tmp, 0, 10); // no indentation for text
       else
-        cerr << ConsoleUtils::breakString(tmp + desc_tmp, offset, 10);
+        cerr << ConsoleUtils::breakString(str_tmp + desc_tmp, offset, 10);
       cerr << "\n";
     }
 
@@ -1386,7 +1383,7 @@ namespace OpenMS
       // if required or set by user, do some validity checks
       if (p.required || (!getParam_(name).isEmpty() && tmp_list != p.default_value))
       {
-        //check if files are readable/writeable
+        //check if files are readable/writable
         if (p.type == ParameterInformation::INPUT_FILE_LIST)
         {
           inputFileReadable_(tmp, name);
@@ -1720,7 +1717,7 @@ namespace OpenMS
   String TOPPBase::getSubsection_(const String& name) const
   {
     size_t pos = name.find_last_of(':');
-    if (pos == string::npos)
+    if (pos == std::string::npos)
       return ""; // delimiter not found
 
     return name.substr(0, pos);

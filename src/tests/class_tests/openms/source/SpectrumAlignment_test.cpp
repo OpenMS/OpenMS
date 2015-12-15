@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -130,12 +130,7 @@ START_SECTION(template <typename SpectrumType> void getSpectrumAlignment(std::ve
   DTAFile().load(OPENMS_GET_TEST_DATA_PATH("SpectrumAlignment_in1.dta"), s3);
   DTAFile().load(OPENMS_GET_TEST_DATA_PATH("SpectrumAlignment_in2.dta"), s4);
 
-	sas1.getSpectrumAlignment(alignment, s3, s4);
-	
-	for (vector<pair<Size, Size > >::const_iterator it = alignment.begin(); it != alignment.end(); ++it)
-	{
-		//cerr << it->first << " " << it->second << endl;
-	}
+  sas1.getSpectrumAlignment(alignment, s3, s4);	
 
   TEST_EQUAL(alignment.size(), 5)
 
@@ -154,6 +149,46 @@ START_SECTION(template <typename SpectrumType> void getSpectrumAlignment(std::ve
     TEST_EQUAL(alignment[i].second, alignment_result[i].second)
   }
 
+  // test relative tolerance alignment
+  alignment.clear();
+  p.setValue("is_relative_tolerance", "true");
+  p.setValue("tolerance", 10.0); // 10 ppm tolerance
+  sas1.setParameters(p);
+  sas1.getSpectrumAlignment(alignment, s3, s4);
+  TEST_EQUAL(alignment.size(), 1)
+  ABORT_IF(alignment.size()!=1)
+  alignment_result.clear();
+  alignment_result.push_back(std::make_pair(6,6));
+  for (Size i=0;i<alignment.size();++i)
+  {
+    TEST_EQUAL(alignment[i].first, alignment_result[i].first)
+    TEST_EQUAL(alignment[i].second, alignment_result[i].second)
+  }
+
+  alignment.clear();
+  p.setValue("is_relative_tolerance", "true");
+  p.setValue("tolerance", 1e4); // one percent tolerance
+  sas1.setParameters(p);
+  sas1.getSpectrumAlignment(alignment, s3, s4);
+  for (vector<pair<Size, Size > >::const_iterator it = alignment.begin(); it != alignment.end(); ++it)
+  {
+    // cerr << it->first << " " << it->second << endl;
+  }
+  TEST_EQUAL(alignment.size(), 7)
+  ABORT_IF(alignment.size()!=7)
+  alignment_result.clear();
+  alignment_result.push_back(std::make_pair(0,0));
+  alignment_result.push_back(std::make_pair(1,1));
+  alignment_result.push_back(std::make_pair(2,2));
+  alignment_result.push_back(std::make_pair(3,3));
+  alignment_result.push_back(std::make_pair(4,5));
+  alignment_result.push_back(std::make_pair(5,5));
+  alignment_result.push_back(std::make_pair(6,6));
+  for (Size i=0;i<7;++i)
+  {
+    TEST_EQUAL(alignment[i].first, alignment_result[i].first)
+    TEST_EQUAL(alignment[i].second, alignment_result[i].second)
+  }
 
 
 END_SECTION

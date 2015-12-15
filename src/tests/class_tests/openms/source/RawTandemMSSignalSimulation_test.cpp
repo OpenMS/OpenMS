@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -110,6 +110,7 @@ START_SECTION((void generateRawTandemSignals(const SimTypes::FeatureMapSim &, Si
     p.setValue("TandemSim:SVM:hide_losses", "true");
     p.setValue("Precursor:Exclusion:use_dynamic_exclusion", "true");
     p.setValue("Precursor:Exclusion:exclusion_time", 50.0);
+    p.setValue("Precursor:min_mz_peak_distance", 3.0);
     sim.setParameters(p);
 
     sim.generateRawTandemSignals(features, exp_no_ms2, peak_map);

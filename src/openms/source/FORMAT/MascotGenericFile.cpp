@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,17 +28,19 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: Andreas Bertsch $
+// $Maintainer: Chris Bielow $
+// $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <QFileInfo>
-#include <QtCore/QRegExp>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/PrecisionWrapper.h>
+
+#include <QFileInfo>
+#include <QtCore/QRegExp>
 
 #define HIGH_PRECISION 8
 #define LOW_PRECISION 6
@@ -142,7 +144,7 @@ namespace OpenMS
   void MascotGenericFile::store(ostream& os, const String& filename, const PeakMap& experiment, bool compact)
   {
     const streamsize precision = os.precision(); // may get changed, so back-up
-    
+
     store_compact_ = compact;
     if (param_.getValue("internal:content") != "peaklist_only")
       writeHeader_(os);
@@ -212,7 +214,7 @@ namespace OpenMS
     }
 
     // format
-    writeParameterHeader_("FORMAT", os);    // make sure this stays within the first 5 lines of the file, since we use it to recognize our own MGF files in case their file suffix is not MGF
+    writeParameterHeader_("FORMAT", os); // make sure this stays within the first 5 lines of the file, since we use it to recognize our own MGF files in case their file suffix is not MGF
     os << param_.getValue("internal:format") << "\n";
 
     // precursor mass tolerance unit : Da
@@ -302,17 +304,17 @@ namespace OpenMS
     if (spec.size() >= 10000)
     {
       throw Exception::InvalidValue(
-        __FILE__, __LINE__, __PRETTY_FUNCTION__, "Spectrum to be written as "
-        "MGF has more than 10.000 peaks, which is the maximum upper limit. "
-        "Only centroided data is allowed. This is most likely raw data.", 
-        String(spec.size()));
+              __FILE__, __LINE__, __PRETTY_FUNCTION__, "Spectrum to be written as "
+                                                       "MGF has more than 10.000 peaks, which is the maximum upper limit. "
+                                                       "Only centroided data is allowed. This is most likely raw data.",
+              String(spec.size()));
     }
     double mz(precursor.getMZ()), rt(spec.getRT());
 
     if (mz == 0)
     {
       //retention time
-      cout << "No precursor m/z information for spectrum with rt " << rt 
+      cout << "No precursor m/z information for spectrum with rt " << rt
            << " present, skipping spectrum!\n";
     }
     else
@@ -321,15 +323,15 @@ namespace OpenMS
       os << "BEGIN IONS\n";
       if (!store_compact_)
       {
-        os << "TITLE=" << precisionWrapper(mz) << "_" << precisionWrapper(rt) 
+        os << "TITLE=" << precisionWrapper(mz) << "_" << precisionWrapper(rt)
            << "_" << spec.getNativeID() << "_" << filename << "\n";
         os << "PEPMASS=" << precisionWrapper(mz) <<  "\n";
         os << "RTINSECONDS=" << precisionWrapper(rt) << "\n";
       }
       else
       {
-        os << "TITLE=" << setprecision(HIGH_PRECISION) << mz << "_" 
-           << setprecision(LOW_PRECISION) << rt << "_" 
+        os << "TITLE=" << setprecision(HIGH_PRECISION) << mz << "_"
+           << setprecision(LOW_PRECISION) << rt << "_"
            << spec.getNativeID() << "_" << filename << "\n";
         os << "PEPMASS=" << setprecision(HIGH_PRECISION) << mz << "\n";
         os << "RTINSECONDS=" << setprecision(LOW_PRECISION) << rt << "\n";
@@ -350,7 +352,7 @@ namespace OpenMS
       {
         for (PeakSpectrum::const_iterator it = spec.begin(); it != spec.end(); ++it)
         {
-          os << precisionWrapper(it->getMZ()) << " " 
+          os << precisionWrapper(it->getMZ()) << " "
              << precisionWrapper(it->getIntensity()) << "\n";
         }
       }
@@ -360,7 +362,7 @@ namespace OpenMS
         {
           PeakSpectrum::PeakType::IntensityType intensity = it->getIntensity();
           if (intensity == 0.0) continue; // skip zero-intensity peaks
-          os << setprecision(HIGH_PRECISION) << it->getMZ() << " " 
+          os << setprecision(HIGH_PRECISION) << it->getMZ() << " "
              << setprecision(LOW_PRECISION) << intensity << "\n";
         }
       }
@@ -408,6 +410,5 @@ namespace OpenMS
     }
     this->endProgress();
   }
-
 
 } // namespace OpenMS

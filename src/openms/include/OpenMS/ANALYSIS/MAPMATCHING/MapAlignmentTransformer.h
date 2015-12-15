@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,59 +41,70 @@
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
 
 namespace OpenMS
 {
-
   class TransformationDescription;
   class ConsensusMap;
   class PeptideIdentification;
   class ConsensusFeature;
 
   /**
-   * @brief The MapAlignmentTransformer class
+   * @brief This class collects functions for applying retention time transformations to data structures.
    */
   class OPENMS_DLLAPI MapAlignmentTransformer
   {
 
-public:
-    /// Applies the <i>given</i> transformations to peak maps
-    static void transformPeakMaps(std::vector<MSExperiment<> > & maps, const std::vector<TransformationDescription> & given_trafos);
+  public:
+    /// Applies the given transformation to a peak map
+    static void transformRetentionTimes(MSExperiment<>& msexp,
+                                        const TransformationDescription& trafo,
+                                        bool store_original_rt = false);
 
-    /// Applies the <i>given</i> transformations to feature maps
-    static void transformFeatureMaps(std::vector<FeatureMap > & maps, const std::vector<TransformationDescription> & given_trafos);
+    /// Applies the given transformation to a feature map
+    static void transformRetentionTimes(
+      FeatureMap& fmap, const TransformationDescription& trafo,
+      bool store_original_rt = false);
 
-    /// Applies the <i>given</i> transformations to consensus maps
-    static void transformConsensusMaps(std::vector<ConsensusMap> & maps, const std::vector<TransformationDescription> & given_trafos);
+    /// Applies the given transformation to a consensus map
+    static void transformRetentionTimes(
+      ConsensusMap& cmap, const TransformationDescription& trafo,
+      bool store_original_rt = false);
 
-    /// Applies the <i>given</i> transformations to peptide identifications
-    static void transformPeptideIdentifications(std::vector<std::vector<PeptideIdentification> > & maps, const std::vector<TransformationDescription> & given_trafos);
+    /// Applies the given transformation to peptide identifications
+    static void transformRetentionTimes(
+      std::vector<PeptideIdentification>& pep_ids,
+      const TransformationDescription& trafo, bool store_original_rt = false);
 
+  private:
+    /// Applies a transformation to a feature
+    static void applyToFeature_(Feature& feature,
+                                const TransformationDescription& trafo,
+                                bool store_original_rt = false);
 
-    /// Applies the <i>given</i> transformations to a single peak map
-    static void transformSinglePeakMap(MSExperiment<> & msexp, const TransformationDescription & trafo);
+    /// Applies a transformation to a basic feature
+    static void applyToBaseFeature_(BaseFeature& feature,
+                                    const TransformationDescription& trafo,
+                                    bool store_original_rt = false);
 
-    /// Applies the <i>given</i> transformations to a single feature map
-    static void transformSingleFeatureMap(FeatureMap & fmap, const TransformationDescription & trafo);
+    /// Applies a transformation to a consensus feature
+    static void applyToConsensusFeature_(
+      ConsensusFeature& feature, const TransformationDescription& trafo,
+      bool store_original_rt = false);
 
-    /// Applies the <i>given</i> transformations to a single consensus map
-    static void transformSingleConsensusMap(ConsensusMap & cmap, const TransformationDescription & trafo);
+    /**
+       @brief Stores the original RT in a meta value
 
-    /// Applies the <i>given</i> transformations to a single peptide identification
-    static void transformSinglePeptideIdentification(std::vector<PeptideIdentification> & pepids, const TransformationDescription & trafo);
+       The original RT is written to a meta value "original_RT", but only if that meta value doesn't already exist.
 
-private:
-
-    /// apply a transformation to a feature
-    static void applyToFeature_(Feature & feature, const TransformationDescription & trafo);
-
-    /// apply a transformation to a basic feature
-    static void applyToBaseFeature_(BaseFeature & feature, const TransformationDescription & trafo);
-
-    /// apply a transformation to a consensus feature
-    static void applyToConsensusFeature_(ConsensusFeature & feature, const TransformationDescription & trafo);
+       @returns True if the meta value was written, false if it already exists.
+    */
+    static bool storeOriginalRT_(MetaInfoInterface& meta_info,
+                                 double original_rt);
 
   };
 } // namespace OpenMS
 
 #endif // OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTTRANSFORMER_H
+

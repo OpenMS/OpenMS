@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -211,8 +211,8 @@ protected:
     }
 
     // add all data processing information to all the chromatograms
-    DataProcessing dp;
-    dp = getProcessingInfo_(DataProcessing::FORMAT_CONVERSION);
+    DataProcessing dp_ = getProcessingInfo_(DataProcessing::FORMAT_CONVERSION);
+    DataProcessingPtr dp = boost::shared_ptr<DataProcessing>(new DataProcessing(dp_));
     std::vector<MSChromatogram<ChromatogramPeak> > chromatograms = output.getChromatograms();
     for (Size i=0; i<chromatograms.size(); ++i)
     {

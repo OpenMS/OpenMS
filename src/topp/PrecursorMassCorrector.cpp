@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,12 +35,10 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIsotopeWavelet.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder_impl.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 
 #include <algorithm>
-
 
 using namespace OpenMS;
 using namespace std;
@@ -133,7 +131,7 @@ protected:
     FileTypes::Type in_type = fh.getType(in);
 
     PeakMap exp;
-    fh.loadExperiment(in, exp, in_type, log_type_);
+    fh.loadExperiment(in, exp, in_type, log_type_, false, false);
     exp.sortSpectra();
 
     FeatureMap feature_map;
@@ -143,7 +141,7 @@ protected:
     }
 
     // calculations
-    FeatureFinderAlgorithmIsotopeWavelet<Peak1D> iso_ff;
+    FeatureFinderAlgorithmIsotopeWavelet iso_ff;
     Param ff_param(iso_ff.getParameters());
     ff_param.setValue("max_charge", getIntOption_("max_charge"));
     ff_param.setValue("intensity_threshold", getDoubleOption_("intensity_threshold"));

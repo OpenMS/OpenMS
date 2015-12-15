@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -100,9 +100,12 @@ START_SECTION((static bool writable(const String &file)))
 END_SECTION
 
 START_SECTION((static String find(const String &filename, StringList directories=StringList())))
-	TEST_EXCEPTION(Exception::FileNotFound,File::find("File.h"))
-  TEST_NOT_EQUAL(File::find("CV/psi-ms.obo"),"");
-  TEST_EXCEPTION(Exception::FileNotFound,File::find(""))
+	TEST_EXCEPTION(Exception::FileNotFound, File::find("File.h"))
+  String s_obo = File::find("CV/psi-ms.obo");
+  TEST_EQUAL(s_obo.empty(), false);
+  TEST_EQUAL(File::find(s_obo), s_obo); // iterative finding should return the identical file
+  
+  TEST_EXCEPTION(Exception::FileNotFound, File::find(""))
 END_SECTION
 
 START_SECTION((static String findDoc(const String& filename)))
@@ -181,6 +184,17 @@ END_SECTION
 START_SECTION(static String getUserDirectory())
   TEST_NOT_EQUAL(File::getUserDirectory(), String())
   TEST_EQUAL(File::exists(File::getUserDirectory()), true)
+  // create OpenMS ini in path set by evironmental variable
+  QDir d;
+  String dirname = File::getTempDirectory() + "/" + File::getUniqueName() + "/";
+  TEST_EQUAL(d.mkpath(dirname.toQString()), TRUE);
+#ifdef OPENMS_WINDOWSPLATFORM
+  _putenv_s("OPENMS_HOME_PATH", dirname.c_str());  
+#else
+  setenv("OPENMS_HOME_PATH", dirname.c_str(), 0);  
+#endif
+  TEST_EQUAL(File::getUserDirectory(), dirname)
+  TEST_EQUAL(File::exists(File::getUserDirectory() + ".OpenMS/OpenMS.ini"), true)
 END_SECTION
 
 START_SECTION(static Param getSystemParameters())

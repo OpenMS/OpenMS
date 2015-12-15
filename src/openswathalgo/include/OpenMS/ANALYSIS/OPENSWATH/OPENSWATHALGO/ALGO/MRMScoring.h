@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -108,11 +108,16 @@ public:
     /// Initialize the cross-correlation vector with the MS1 trace
     void initializeMS1XCorr(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> native_ids, std::string precursor_id);
 
+    /// Initialize the scoring object and building the cross-correlation matrix of identification vs detection chromatograms
+    void initializeXCorrIdMatrix(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> native_ids_identification, std::vector<String> native_ids_detection);
+
     /// calculate the cross-correlation score
     double calcXcorrCoelutionScore();
+    std::string calcIndXcorrIdCoelutionScore();
 
     /// calculate the cross-correlation shape score
     double calcXcorrShape_score();
+    std::string calcIndXcorrIdShape_score();
 
     /// calculate the weighted cross-correlation shape score
     double calcXcorrShape_score_weighted(const std::vector<double>& normalized_library_intensity);
@@ -139,6 +144,8 @@ public:
     //  using a vector of SignalToNoiseEstimatorMedian that were calculated for
     //  each chromatogram of the transition_group.
     static double calcSNScore(OpenSwath::IMRMFeature* mrmfeature, 
+        std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators);
+    static std::string calcIndSNScore(OpenSwath::IMRMFeature* mrmfeature, 
         std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators);
 
     //@}

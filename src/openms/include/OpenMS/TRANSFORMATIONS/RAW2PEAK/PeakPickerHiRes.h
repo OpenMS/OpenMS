@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -197,7 +197,8 @@ public:
           }
 
           // checking signal-to-noise?
-          if ((i + 2 < input.size()) &&
+          if ((i > 1) &&
+              (i + 2 < input.size()) &&
               (left_neighbor_int < input[i - 2].getIntensity()) &&
               (right_neighbor_int < input[i + 2].getIntensity()) &&
               (act_snt_l2 >= signal_to_noise_) &&
@@ -414,13 +415,14 @@ public:
      *
      * @param input  input map in profile mode
      * @param output  output map with picked peaks
+     * @param check_spectrum_type  if set, checks spectrum type and throws an exception if a centroided spectrum is passed 
      */
     template <typename PeakType, typename ChromatogramPeakT>
-    void pickExperiment(const MSExperiment<PeakType, ChromatogramPeakT>& input, MSExperiment<PeakType, ChromatogramPeakT>& output) const
+    void pickExperiment(const MSExperiment<PeakType, ChromatogramPeakT>& input, MSExperiment<PeakType, ChromatogramPeakT>& output, const bool check_spectrum_type = true) const
     {
         std::vector<std::vector<PeakBoundary> > boundaries_spec;
         std::vector<std::vector<PeakBoundary> > boundaries_chrom;
-        pickExperiment(input, output, boundaries_spec, boundaries_chrom);
+        pickExperiment(input, output, boundaries_spec, boundaries_chrom, check_spectrum_type);
     }
 
     /**
@@ -432,9 +434,10 @@ public:
      * @param output  output map with picked peaks
      * @param boundaries_spec  boundaries of the picked peaks in spectra
      * @param boundaries_chrom  boundaries of the picked peaks in chromatograms
+     * @param check_spectrum_type  if set, checks spectrum type and throws an exception if a centroided spectrum is passed 
      */
     template <typename PeakType, typename ChromatogramPeakT>
-    void pickExperiment(const MSExperiment<PeakType, ChromatogramPeakT>& input, MSExperiment<PeakType, ChromatogramPeakT>& output, std::vector<std::vector<PeakBoundary> >& boundaries_spec, std::vector<std::vector<PeakBoundary> >& boundaries_chrom) const
+    void pickExperiment(const MSExperiment<PeakType, ChromatogramPeakT>& input, MSExperiment<PeakType, ChromatogramPeakT>& output, std::vector<std::vector<PeakBoundary> >& boundaries_spec, std::vector<std::vector<PeakBoundary> >& boundaries_chrom, const bool check_spectrum_type = true) const
     {
       // make sure that output is clear
       output.clear(true);
@@ -447,20 +450,35 @@ public:
 
       Size progress = 0;
       startProgress(0, input.size() + input.getChromatograms().size(), "picking peaks");
-      for (Size scan_idx = 0; scan_idx != input.size(); ++scan_idx)
+
+      if (input.getNrSpectra() > 0)
       {
-        if (!ListUtils::contains(ms_levels_, input[scan_idx].getMSLevel()))
+        for (Size scan_idx = 0; scan_idx != input.size(); ++scan_idx)
         {
-          output[scan_idx] = input[scan_idx];
+          if (!ListUtils::contains(ms_levels_, input[scan_idx].getMSLevel()))
+          {
+            output[scan_idx] = input[scan_idx];
+          }
+          else
+          {
+            std::vector<PeakBoundary> boundaries_s; // peak boundaries of a single spectrum
+
+            // determine type of spectral data (profile or centroided)
+            SpectrumSettings::SpectrumType spectrum_type = input[scan_idx].getType();
+
+            if (spectrum_type == SpectrumSettings::PEAKS && check_spectrum_type)
+            {
+              throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Centroided data provided but profile spectra expected.");
+            }
+
+            pick(input[scan_idx], output[scan_idx], boundaries_s);
+            boundaries_spec.push_back(boundaries_s);
+          }
+          setProgress(++progress);
         }
-        else
-        {
-          std::vector<PeakBoundary> boundaries_s; // peak boundaries of a single spectrum
-          pick(input[scan_idx], output[scan_idx], boundaries_s);
-          boundaries_spec.push_back(boundaries_s);
-        }
-        setProgress(++progress);
       }
+
+
       for (Size i = 0; i < input.getChromatograms().size(); ++i)
       {
         MSChromatogram<ChromatogramPeakT> chromatogram;
@@ -483,7 +501,7 @@ public:
       Currently we have to give up const-correctness but we know that everything on disc is constant
     */
     template <typename PeakType, typename ChromatogramPeakT>
-    void pickExperiment(/* const */ OnDiscMSExperiment<PeakType, ChromatogramPeakT>& input, MSExperiment<PeakType, ChromatogramPeakT>& output) const
+    void pickExperiment(/* const */ OnDiscMSExperiment<PeakType, ChromatogramPeakT>& input, MSExperiment<PeakType, ChromatogramPeakT>& output, const bool check_spectrum_type = true) const
     {
       // make sure that output is clear
       output.clear(true);
@@ -491,25 +509,40 @@ public:
       // copy experimental settings
       static_cast<ExperimentalSettings &>(output) = *input.getExperimentalSettings();
 
-      // resize output with respect to input
-      output.resize(input.size());
-
       Size progress = 0;
       startProgress(0, input.size() + input.getNrChromatograms(), "picking peaks");
-      for (Size scan_idx = 0; scan_idx != input.size(); ++scan_idx)
+
+      if (input.getNrSpectra() > 0)
       {
-        if (!ListUtils::contains(ms_levels_, input[scan_idx].getMSLevel()))
+
+        // resize output with respect to input
+        output.resize(input.size());
+
+        for (Size scan_idx = 0; scan_idx != input.size(); ++scan_idx)
         {
-          output[scan_idx] = input[scan_idx];
+          if (!ListUtils::contains(ms_levels_, input[scan_idx].getMSLevel()))
+          {
+            output[scan_idx] = input[scan_idx];
+          }
+          else
+          {
+            MSSpectrum<PeakType> s = input[scan_idx];
+            s.sortByPosition();
+
+            // determine type of spectral data (profile or centroided)
+            SpectrumSettings::SpectrumType spectrum_type = s.getType();
+
+            if (spectrum_type == SpectrumSettings::PEAKS && check_spectrum_type)
+            {
+              throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Centroided data provided but profile spectra expected.");
+            }
+
+            pick(s, output[scan_idx]);
+          }
+          setProgress(++progress);
         }
-        else
-        {
-          MSSpectrum<PeakType> s = input[scan_idx];
-          s.sortByPosition();
-          pick(s, output[scan_idx]);
-        }
-        setProgress(++progress);
       }
+
       for (Size i = 0; i < input.getNrChromatograms(); ++i)
       {
         MSChromatogram<ChromatogramPeakT> chromatogram;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
-// $Authors: Marc Sturm, Timo Sachsenberg $
+// $Authors: Marc Sturm, Timo Sachsenberg, Chris Bielow $
 // --------------------------------------------------------------------------
 
 // Qt
@@ -67,8 +67,6 @@
 #include <boost/math/special_functions/fpclassify.hpp>
 
 using namespace std;
-
-#define DEBUG_TOPPVIEW 0
 
 namespace OpenMS
 {
@@ -1008,7 +1006,7 @@ namespace OpenMS
     current_layer_ = getLayerCount() - 1;
     currentPeakData_()->updateRanges();
 
-    //Abort if no data points are contained
+    // Abort if no data points are contained
     if (getCurrentLayer().getPeakData()->size() == 0 || getCurrentLayer().getPeakData()->getSize() == 0)
     {
       layers_.resize(getLayerCount() - 1);
@@ -1018,7 +1016,7 @@ namespace OpenMS
       return false;
     }
 
-    //add new draw mode and style
+    // add new draw mode and style
     draw_modes_.push_back(DM_PEAKS);
     peak_penstyle_.push_back(Qt::SolidLine);
 
@@ -1630,34 +1628,65 @@ namespace OpenMS
     emit layerZoomChanged(this);
   }
 
-  void Spectrum1DCanvas::translateLeft_()
+  void Spectrum1DCanvas::translateLeft_(Qt::KeyboardModifiers m)
   {
-    double shift = 0.05 * visible_area_.width();
-    double newLo = visible_area_.minX() - shift;
-    double newHi = visible_area_.maxX() - shift;
+    double newLo = visible_area_.minX();
+    double newHi = visible_area_.maxX();
+    if (m == Qt::NoModifier)
+    { // 5% shift
+      double shift = 0.05 * visible_area_.width();
+      newLo -= shift;
+      newHi -= shift;
+    }
+    else if (m == Qt::ShiftModifier) 
+    { // jump to the next peak (useful for sparse data)
+      const LayerData::ExperimentType::SpectrumType& spec = getCurrentLayer_().getCurrentSpectrum();
+      PeakType p_temp(visible_area_.minX(), 0);
+      SpectrumConstIteratorType it_next = lower_bound(spec.begin(), spec.end(), p_temp, PeakType::MZLess()); // find first peak in current range
+      if (it_next != spec.begin()) --it_next; // move one peak left
+      if (it_next == spec.end()) return;
+      newLo = it_next->getMZ() - visible_area_.width() / 2; // center the next peak to the left
+      newHi = it_next->getMZ() + visible_area_.width() / 2;
+    }
+
     // check if we are falling out of bounds
     if (newLo < overall_data_range_.minX())
     {
       newLo = overall_data_range_.minX();
       newHi = newLo + visible_area_.width();
     }
-    //chage data area
+    // change data area
     changeVisibleArea_(newLo, newHi);
     emit layerZoomChanged(this);
   }
 
-  void Spectrum1DCanvas::translateRight_()
+  void Spectrum1DCanvas::translateRight_(Qt::KeyboardModifiers m)
   {
-    double shift = 0.05 * visible_area_.width();
-    double newLo = visible_area_.minX() + shift;
-    double newHi = visible_area_.maxX() + shift;
+    double newLo = visible_area_.minX();
+    double newHi = visible_area_.maxX();
+    if (m == Qt::NoModifier)
+    { // 5% shift
+      double shift = 0.05 * visible_area_.width();
+      newLo += shift;
+      newHi += shift;
+    }
+    else if (m == Qt::ShiftModifier) 
+    { // jump to the next peak (useful for sparse data)
+      const LayerData::ExperimentType::SpectrumType& spec = getCurrentLayer_().getCurrentSpectrum();
+      PeakType p_temp(visible_area_.maxX(), 0);
+      SpectrumConstIteratorType it_next = upper_bound(spec.begin(), spec.end(), p_temp, PeakType::MZLess()); // first right-sided peak outside the current range
+      if (it_next == spec.end()) return;
+      newLo = it_next->getMZ() - visible_area_.width() / 2; // center the next peak to the right
+      newHi = it_next->getMZ() + visible_area_.width() / 2;
+    }
+
     // check if we are falling out of bounds
     if (newHi > overall_data_range_.maxX())
     {
       newHi = overall_data_range_.maxX();
       newLo = newHi - visible_area_.width();
     }
-    //chage data area
+    // change data area
     changeVisibleArea_(newLo, newHi);
     emit layerZoomChanged(this);
   }

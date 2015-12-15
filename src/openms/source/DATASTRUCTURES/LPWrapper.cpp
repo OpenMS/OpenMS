@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -31,9 +31,10 @@
 // $Maintainer: Alexandra Zerck $
 // $Authors: Alexandra Zerck $
 // --------------------------------------------------------------------------
-#include <OpenMS/DATASTRUCTURES/LPWrapper.h>
-#include <OpenMS/CONCEPT/Exception.h>
+
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/LPWrapper.h>
 
 #if COINOR_SOLVER == 1
 #ifdef _MSC_VER //disable some COIN-OR warnings that distract from ours
@@ -62,6 +63,7 @@
 #endif
 
 #include <glpk.h>
+#include <cstddef>
 
 namespace OpenMS
 {
@@ -94,7 +96,7 @@ namespace OpenMS
       row_indices.insert(row_indices.begin(), -1);
       row_values.insert(row_values.begin(), -1);
       for (Size i = 0; i < row_indices.size(); ++i)
-        row_indices[i] += 1;                                        //std::cout << row_indices[i]
+        row_indices[i] += 1; //std::cout << row_indices[i]
       glp_set_mat_row(lp_problem_, index, (int)row_indices.size() - 1, &(row_indices[0]), &(row_values[0]));
       glp_set_row_name(lp_problem_, index, name.c_str());
       return index - 1;
@@ -456,7 +458,7 @@ namespace OpenMS
       if (sense == LPWrapper::MIN)
         model_->setOptimizationDirection(1);
       else
-        model_->setOptimizationDirection(-1);    // -1 maximize
+        model_->setOptimizationDirection(-1); // -1 maximize
     }
 #endif
   }
@@ -621,13 +623,13 @@ namespace OpenMS
 #endif
   }
 
-  Int LPWrapper::solve(SolverParam& solver_param, const Size 
+  Int LPWrapper::solve(SolverParam& solver_param, const Size
 #if COINOR_SOLVER == 1
-    verbose_level
+                       verbose_level
 #else
-    /* verbose_level */
+                       /* verbose_level */
 #endif
-    )
+                       )
   {
     LOG_INFO << "Using solver '" << (solver_ == LPWrapper::SOLVER_GLPK ? "glpk" : "coinor") << "' ...\n";
     if (solver_ == LPWrapper::SOLVER_GLPK)
@@ -656,7 +658,7 @@ namespace OpenMS
       if (solver_param.enable_presolve)
         solver_param_glp.presolve = GLP_ON;
       if (solver_param.enable_binarization)
-        solver_param_glp.binarize = GLP_ON;                                  // only with presolve
+        solver_param_glp.binarize = GLP_ON; // only with presolve
 
       return glp_intopt(lp_problem_, &solver_param_glp);
     }
@@ -757,7 +759,7 @@ namespace OpenMS
     }
 #if COINOR_SOLVER == 1
     else if (solver_ == LPWrapper::SOLVER_COINOR)
-      return LPWrapper::UNDEFINED;                                             // solver lokale Variable, braucht man diese Abfrage
+      return LPWrapper::UNDEFINED; // solver lokale Variable, braucht man diese Abfrage
 
 #endif
     else

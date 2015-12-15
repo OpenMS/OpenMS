@@ -32,17 +32,19 @@ LevMarqFitter1D.cpp
 MaxLikeliFitter1D.cpp
 ModelDescription.cpp
 MultiplexClustering.cpp
+MultiplexDeltaMasses.cpp
+MultiplexDeltaMassesGenerator.cpp
 MultiplexFiltering.cpp
 MultiplexFilteringCentroided.cpp
 MultiplexFilteringProfile.cpp
 MultiplexFilterResult.cpp
 MultiplexFilterResultPeak.cpp
 MultiplexFilterResultRaw.cpp
-MultiplexPeakPattern.cpp
+MultiplexIsotopicPeakPattern.cpp
 PeakWidthEstimator.cpp
 ProductModel.cpp
 SeedListGenerator.cpp
-#TraceFitter.cpp // does not exist
+TraceFitter.cpp
 )
 
 ### add path to the filenames

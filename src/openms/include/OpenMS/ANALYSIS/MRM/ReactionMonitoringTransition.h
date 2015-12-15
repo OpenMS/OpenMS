@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -153,6 +153,37 @@ public:
     double getLibraryIntensity() const;
 
     void setLibraryIntensity(double intensity);
+
+    /** @brief Detecting transitions
+     * 
+     * Detecting transitions represent the set of transitions of an assay that should be used
+     * to enable candidate peak group detection. Ideally they were observed and validated in 
+     * previous experiments and have an associated library intensity.
+     * For an overview, see Schubert OT et al., Building high-quality assay libraries for
+     * targeted analysis of SWATH MS data., Nat Protoc. 2015 Mar;10(3):426-41.
+     * doi: 10.1038/nprot.2015.015. Epub 2015 Feb 12. PMID: 25675208 
+     *
+    */
+    bool isDetectingTransition() const;
+
+    /** @brief Identifying transitions
+     * 
+     * Identifying transitions represent the set of transitions of an assay that should be used
+     * for the independent identification of a candidate peak group. These transitions will
+     * be scored independently of the detecting transitions.
+     *
+    */
+    bool isIdentifyingTransition() const;
+
+    /** @brief Quantifying transitions
+     * 
+     * Quantifing transitions represent the set of transitions of an assay that should be used
+     * for the quantification of the peptide. This includes exclusion of e.g. interferred
+     * transitions (example: light/heavy peptide pairs isolated in the same swath), that
+     * should not be used for quantification of the peptide.
+     *
+    */
+    bool isQuantifyingTransition() const;
 
     //@}
 

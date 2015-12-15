@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,8 +46,7 @@ namespace OpenMS
     {
       for (std::size_t j = 0; j < exp->getSpectra()[i].getDataProcessing().size(); j++)
       {
-        const OpenMS::DataProcessing & dp = exp->getSpectra()[i].getDataProcessing()[j];
-        if (dp.metaValueExists("cached_data"))
+        if (exp->getSpectra()[i].getDataProcessing()[j]->metaValueExists("cached_data"))
         {
           is_cached = true;
         }
@@ -57,8 +56,7 @@ namespace OpenMS
     {
       for (std::size_t j = 0; j < exp->getChromatograms()[i].getDataProcessing().size(); j++)
       {
-        const OpenMS::DataProcessing & dp = exp->getChromatograms()[i].getDataProcessing()[j];
-        if (dp.metaValueExists("cached_data"))
+        if (exp->getChromatograms()[i].getDataProcessing()[j]->metaValueExists("cached_data"))
         {
           is_cached = true;
         }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -262,9 +262,9 @@ private:
         }
       }
       // fills cache variables for i==1
-      value_type d = Math::gcd(smallestMass, secondMass);
-      _lcms[1] = secondMass * smallestMass / d;
-      _mass_in_lcms[1] = smallestMass / d;
+      value_type tmp_d = Math::gcd(smallestMass, secondMass);
+      _lcms[1] = secondMass * smallestMass / tmp_d;
+      _mass_in_lcms[1] = smallestMass / tmp_d;
 
       // fills remaining table. i is the column index.
       for (size_type i = 2; i < _alphabet.size(); ++i)
@@ -272,7 +272,7 @@ private:
         // caches often used i-th alphabet mass
         value_type currentMass = _alphabet.getWeight(i);
 
-        value_type d = Math::gcd(smallestMass, currentMass); // TODO shadows d
+        value_type d = Math::gcd(smallestMass, currentMass);
 
         // fills cache for various variables.
         // note that values for i==0 are never assigned since they're unused anyway.

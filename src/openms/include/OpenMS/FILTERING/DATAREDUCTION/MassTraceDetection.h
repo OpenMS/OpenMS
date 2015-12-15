@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,21 +42,33 @@
 
 namespace OpenMS
 {
-/**
-  @brief A mass trace extraction method that gathers peaks similar in m/z and moving along retention time.
 
-  Peaks of a @ref MSExperiment are sorted by their intensity and stored in a list of potential chromatographic
-  apex positions. Starting with these, mass traces are extended in- and decreasingly in retention
-  time. During this extension phase, the centroid m/z is computed on-line as an intensity-weighted mean of
-  peaks. The extension phase ends when the frequency of gathered peaks drops below a
-  threshold (min_sample_rate, see @ref MassTraceDetection parameters).
+  /**
+    @brief A mass trace extraction method that gathers peaks similar in m/z and moving along retention time.
 
-  @htmlinclude OpenMS_MassTraceDetection.parameters
+    Peaks of a @ref MSExperiment are sorted by their intensity and stored in a
+    list of potential chromatographic apex positions. Only peaks that are above
+    the noise threshold (user-defined) are analyzed and only peaks that are n
+    times above this minimal threshold are considered as apices. This saves
+    computational resources and decreases the noise in the resulting output.
+    
+    Starting with these, mass traces are extended in- and decreasingly in
+    retention time. During this extension phase, the centroid m/z is computed
+    on-line as an intensity-weighted mean of peaks.
+    
+    The extension phase ends when either the frequency of gathered peaks drops
+    below a threshold (min_sample_rate, see @ref MassTraceDetection parameters)
+    or when the number of missed scans exceeds a threshold
+    (trace_termination_outliers, see @ref MassTraceDetection parameters).
 
-  @ingroup Quantitation
-*/
+    Finally, only mass traces that pass a filter (a certain minimal and maximal
+    length as well as having the minimal sample rate criterion fulfilled) get
+    added to the result.
 
+    @htmlinclude OpenMS_MassTraceDetection.parameters
 
+    @ingroup Quantitation
+  */
   class OPENMS_DLLAPI MassTraceDetection :
     public DefaultParamHandler,
     public ProgressLogger
@@ -69,25 +81,35 @@ public:
     virtual ~MassTraceDetection();
 
     /** @name Helper methods
-        */
+    */
+
     /// Allows the iterative computation of the intensity-weighted mean of a mass trace's centroid m/z.
     void updateIterativeWeightedMeanMZ(const double &, const double &, double &, double &, double &);
 
-    /// Computes a rough estimate of the average peak width of the experiment (median) and an estimate of a lower and upper bound for the peak width (+/-2*MAD, median of absolute deviancies).
-    // void filterByPeakWidth(std::vector<MassTrace>&, std::vector<MassTrace>&);
-
     /** @name Main computation methods
-        */
+    */
+
     /// Main method of MassTraceDetection. Extracts mass traces of a @ref MSExperiment and gathers them into a vector container.
     void run(const MSExperiment<Peak1D> &, std::vector<MassTrace> &);
 
     /// Invokes the run method (see above) on merely a subregion of a @ref MSExperiment map.
     void run(MSExperiment<Peak1D>::ConstAreaIterator & begin, MSExperiment<Peak1D>::ConstAreaIterator & end, std::vector<MassTrace> & found_masstraces);
 
+    /** @name Private methods and members 
+    */
 protected:
     virtual void updateMembers_();
 
 private:
+
+    typedef std::multimap<double, std::pair<Size, Size> > MapIdxSortedByInt;
+
+    /// The internal run method
+    void run_(const MapIdxSortedByInt& chrom_apices, Size peak_count, 
+              const MSExperiment<Peak1D> & work_exp,
+              const std::vector<Size>& spec_offsets,
+              std::vector<MassTrace> & found_masstraces);
+
     // parameter stuff
     double mass_error_ppm_;
     double noise_threshold_int_;

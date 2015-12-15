@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,7 +37,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
-
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 #include <iostream>
 #include <fstream>
 #include <limits>
@@ -46,8 +46,8 @@ namespace OpenMS
 {
 
   IdXMLFile::IdXMLFile() :
-    XMLHandler("", "1.2"),
-    XMLFile("/SCHEMAS/IdXML_1_2.xsd", "1.2"),
+    XMLHandler("", "1.3"),
+    XMLFile("/SCHEMAS/IdXML_1_3.xsd", "1.3"),
     last_meta_(0),
     document_id_(),
     prot_id_in_run_(false)
@@ -107,7 +107,7 @@ namespace OpenMS
     {
       os << " id=\"" << document_id << "\"";
     }
-    os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_2.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+    os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_3.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
 
     //look up different search parameters
@@ -137,34 +137,17 @@ namespace OpenMS
         os << "mass_type=\"average\" ";
       }
       os << "charges=\"" << params[i].charges << "\" ";
-      if (params[i].enzyme == ProteinIdentification::TRYPSIN)
-      {
-        os << "enzyme=\"trypsin\" ";
-      }
-      if (params[i].enzyme == ProteinIdentification::PEPSIN_A)
-      {
-        os << "enzyme=\"pepsin_a\" ";
-      }
-      if (params[i].enzyme == ProteinIdentification::PROTEASE_K)
-      {
-        os << "enzyme=\"protease_k\" ";
-      }
-      if (params[i].enzyme == ProteinIdentification::CHYMOTRYPSIN)
-      {
-        os << "enzyme=\"chymotrypsin\" ";
-      }
-      else if (params[i].enzyme == ProteinIdentification::NO_ENZYME)
-      {
-        os << "enzyme=\"no_enzyme\" ";
-      }
-      else if (params[i].enzyme == ProteinIdentification::UNKNOWN_ENZYME)
-      {
-        os << "enzyme=\"unknown_enzyme\" ";
-      }
+      String enzyme_name = params[i].digestion_enzyme.getName();
+      os << "enzyme=\"" << enzyme_name.toLower() << "\" ";
+      String precursor_unit = params[i].precursor_mass_tolerance_ppm ? "true" : "false";
+      String peak_unit = params[i].fragment_mass_tolerance_ppm ? "true" : "false";
+
       os << "missed_cleavages=\"" << params[i].missed_cleavages << "\" "
-         << "precursor_peak_tolerance=\"" << params[i].precursor_tolerance << "\" "
-         << "peak_mass_tolerance=\"" << params[i].peak_mass_tolerance << "\" "
-         << ">\n";
+         << "precursor_peak_tolerance=\"" << params[i].precursor_tolerance << "\" ";
+      os << "precursor_peak_tolerance_ppm=\"" << precursor_unit << "\" ";
+      os << "peak_mass_tolerance=\"" << params[i].fragment_mass_tolerance << "\" ";
+      os << "peak_mass_tolerance_ppm=\"" << peak_unit << "\" ";
+      os << ">\n";
 
       //modifications
       for (Size j = 0; j != params[i].fixed_modifications.size(); ++j)
@@ -301,28 +284,15 @@ namespace OpenMS
         for (Size j = 0; j < peptide_ids[l].getHits().size(); ++j)
         {
           const PeptideHit& p_hit = peptide_ids[l].getHits()[j];
-          os << "\t\t\t<PeptideHit ";
-          os << "score=\"" << precisionWrapper(p_hit.getScore()) << "\" ";
-          os << "sequence=\"" << p_hit.getSequence() << "\" ";
-          os << "charge=\"" << p_hit.getCharge() << "\" ";
+          os << "\t\t\t<PeptideHit";
+          os << " score=\"" << precisionWrapper(p_hit.getScore()) << "\"";
+          os << " sequence=\"" << p_hit.getSequence() << "\"";
+          os << " charge=\"" << p_hit.getCharge() << "\"";
 
           std::vector<PeptideEvidence> pes = p_hit.getPeptideEvidences();
 
-          if (!pes.empty())
-          {
-            if (pes[0].getAABefore() != PeptideEvidence::UNKNOWN_AA)
-            {
-              os << "aa_before=\"" << pes[0].getAABefore() << "\" ";
-            }
-          }
-
-          if (!pes.empty())
-          {
-            if (pes[0].getAAAfter() != PeptideEvidence::UNKNOWN_AA)
-            {
-              os << "aa_after=\"" << pes[0].getAAAfter() << "\" ";
-            }
-          }
+          os << createFlankingAAXMLString_(pes);
+          os << createPositionXMLString_(pes);
 
           std::set<String> protein_accessions = p_hit.extractProteinAccessions();
           std::set<UInt> ids;
@@ -343,10 +313,10 @@ namespace OpenMS
               accs += "PH_";
               accs += String(*s_it);
             }
-            os << "protein_refs=\"" << accs << "\" ";
+            os << " protein_refs=\"" << accs << "\"";
           }
 
-          os << ">\n";
+          os << " >\n";
           writeUserParam_("UserParam", os, peptide_ids[l].getHits()[j], 4);
           os << "\t\t\t</PeptideHit>\n";
         }
@@ -440,10 +410,18 @@ namespace OpenMS
       optionalAttributeAsString_(param_.taxonomy, attributes, "taxonomy");
       param_.charges = attributeAsString_(attributes, "charges");
       optionalAttributeAsUInt_(param_.missed_cleavages, attributes, "missed_cleavages");
-      param_.peak_mass_tolerance = attributeAsDouble_(attributes, "peak_mass_tolerance");
-      param_.precursor_tolerance = attributeAsDouble_(attributes, "precursor_peak_tolerance");
-      //mass type
+      param_.fragment_mass_tolerance = attributeAsDouble_(attributes, "peak_mass_tolerance");
 
+      String peak_unit;
+      optionalAttributeAsString_(peak_unit, attributes, "peak_mass_tolerance_ppm");
+      param_.fragment_mass_tolerance_ppm = peak_unit == "true" ? true : false;
+
+      param_.precursor_tolerance = attributeAsDouble_(attributes, "precursor_peak_tolerance");
+      String precursor_unit;
+      optionalAttributeAsString_(precursor_unit, attributes, "precursor_peak_tolerance_ppm");
+      param_.precursor_mass_tolerance_ppm = precursor_unit == "true" ? true : false;
+
+      //mass type
       String mass_type = attributeAsString_(attributes, "mass_type");
       if (mass_type == "monoisotopic")
       {
@@ -456,29 +434,9 @@ namespace OpenMS
       //enzyme
       String enzyme;
       optionalAttributeAsString_(enzyme, attributes, "enzyme");
-      if (enzyme == "trypsin")
+      if (EnzymesDB::getInstance()->hasEnzyme(enzyme))
       {
-        param_.enzyme = ProteinIdentification::TRYPSIN;
-      }
-      else if (enzyme == "pepsin_a")
-      {
-        param_.enzyme = ProteinIdentification::PEPSIN_A;
-      }
-      else if (enzyme == "protease_k")
-      {
-        param_.enzyme = ProteinIdentification::PROTEASE_K;
-      }
-      else if (enzyme == "chymotrypsin")
-      {
-        param_.enzyme = ProteinIdentification::CHYMOTRYPSIN;
-      }
-      else if (enzyme == "no_enzyme")
-      {
-        param_.enzyme = ProteinIdentification::NO_ENZYME;
-      }
-      else if (enzyme == "unknown_enzyme")
-      {
-        param_.enzyme = ProteinIdentification::UNKNOWN_ENZYME;
+        param_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme);
       }
       last_meta_ = &param_;
     }
@@ -643,18 +601,70 @@ namespace OpenMS
       String tmp;
       optionalAttributeAsString_(tmp, attributes, "aa_before");
 
-      // store this information in first peptide evidence object
-      if (!tmp.empty() && !peptide_evidences_.empty())
+      if (!tmp.empty())
       {
-        peptide_evidences_[0].setAABefore(tmp[0]);
+        std::vector<String> splitted;
+        tmp.split(' ', splitted);
+        for (Size i = 0; i != splitted.size(); ++i)
+        { 
+          if (peptide_evidences_.size() < i + 1) 
+          {
+            peptide_evidences_.push_back(PeptideEvidence());
+          }
+          peptide_evidences_[i].setAABefore(splitted[i][0]);
+        }
       }
 
       //aa_after
       tmp = "";
       optionalAttributeAsString_(tmp, attributes, "aa_after");
-      if (!tmp.empty() && !peptide_evidences_.empty())
+      if (!tmp.empty())
       {
-        peptide_evidences_[0].setAAAfter(tmp[0]);
+        std::vector<String> splitted;
+        tmp.split(' ', splitted);
+        for (Size i = 0; i != splitted.size(); ++i)
+        { 
+          if (peptide_evidences_.size() < i + 1) 
+          {
+            peptide_evidences_.push_back(PeptideEvidence());
+          }
+          peptide_evidences_[i].setAAAfter(splitted[i][0]);
+        }
+      }
+
+      //start
+      tmp = "";
+      optionalAttributeAsString_(tmp, attributes, "start");
+
+      if (!tmp.empty())
+      {
+        std::vector<String> splitted;
+        tmp.split(' ', splitted);
+        for (Size i = 0; i != splitted.size(); ++i)
+        { 
+          if (peptide_evidences_.size() < i + 1) 
+          {
+            peptide_evidences_.push_back(PeptideEvidence());
+          }
+          peptide_evidences_[i].setStart(splitted[i].toInt());
+        }
+      }
+
+      //end
+      tmp = "";
+      optionalAttributeAsString_(tmp, attributes, "end");
+      if (!tmp.empty())
+      {
+        std::vector<String> splitted;
+        tmp.split(' ', splitted);
+        for (Size i = 0; i != splitted.size(); ++i)
+        { 
+          if (peptide_evidences_.size() < i + 1) 
+          {
+            peptide_evidences_.push_back(PeptideEvidence());
+          }
+          peptide_evidences_[i].setEnd(splitted[i].toInt());
+        }
       }
 
       last_meta_ = &pep_hit_;
@@ -669,24 +679,35 @@ namespace OpenMS
 
       String name = attributeAsString_(attributes, "name");
       String type = attributeAsString_(attributes, "type");
-      String value = attributeAsString_(attributes, "value");
 
-      if (type == "string")
-      {
-        last_meta_->setMetaValue(name, value);
-      }
-      else if (type == "float")
-      {
-        last_meta_->setMetaValue(name, value.toDouble());
-      }
-      else if (type == "int")
-      {
-        last_meta_->setMetaValue(name, value.toInt());
-      }
-      else
+      if (type == "int") 
+      { 
+        last_meta_->setMetaValue(name, attributeAsInt_(attributes, "value")); 
+      } 
+      else if (type == "float") 
+      { 
+        last_meta_->setMetaValue(name, attributeAsDouble_(attributes, "value")); 
+      } 
+      else if (type == "string") 
+      { 
+        last_meta_->setMetaValue(name, (String)attributeAsString_(attributes, "value")); 
+      } 
+      else if (type == "intList") 
+      { 
+        last_meta_->setMetaValue(name, attributeAsIntList_(attributes, "value")); 
+      } 
+      else if (type == "floatList") 
+      { 
+        last_meta_->setMetaValue(name, attributeAsDoubleList_(attributes, "value")); 
+      } 
+      else if (type == "stringList") 
+      { 
+        last_meta_->setMetaValue(name, attributeAsStringList_(attributes, "value")); 
+      } 
+      else 
       {
         fatalError(LOAD, String("Invalid UserParam type '") + type + "' of parameter '" + name + "'");
-      }
+      } 
     }
   }
 
@@ -795,7 +816,7 @@ namespace OpenMS
     groups.clear();
     Size g_id = 0;
     String current_meta = group_name + "_" + String(g_id);
-    while (last_meta_->metaValueExists(current_meta))
+    while (last_meta_->metaValueExists(current_meta)) // assumes groups have incremental g_IDs
     {
       // convert to proper ProteinGroup
       ProteinIdentification::ProteinGroup g;
@@ -815,5 +836,114 @@ namespace OpenMS
       current_meta = group_name + "_" + String(++g_id);
     }
   }
+
+  String IdXMLFile::createFlankingAAXMLString_(const std::vector<PeptideEvidence> & pes)
+  {
+    // Check if information on previous/following aa available. If not, we will not write it out 
+    bool has_aa_before_information(false);
+    bool has_aa_after_information(false);
+    String aa_string;
+
+    for (std::vector<PeptideEvidence>::const_iterator it = pes.begin(); it != pes.end(); ++it)
+    {
+      if (it->getAABefore() != PeptideEvidence::UNKNOWN_AA)
+      {
+        has_aa_before_information = true;
+      }
+      if (it->getAAAfter() != PeptideEvidence::UNKNOWN_AA)
+      {
+        has_aa_after_information = true;
+      }
+    }
+
+    if (has_aa_before_information)
+    {
+      for (std::vector<PeptideEvidence>::const_iterator it = pes.begin(); it != pes.end(); ++it)
+      {
+        if (it == pes.begin())
+        { 
+          aa_string += " aa_before=\"" + String(it->getAABefore());
+        }
+        else
+        {
+          aa_string += " " + String(it->getAABefore());
+        }
+        if (static_cast<Size>(it - pes.begin()) == pes.size() - 1) aa_string += "\"";
+      }
+    }
+
+    if (has_aa_after_information)
+    {
+      for (std::vector<PeptideEvidence>::const_iterator it = pes.begin(); it != pes.end(); ++it)
+      {
+        if (it == pes.begin())
+        { 
+          aa_string += " aa_after=\"" + String(it->getAAAfter());
+        }
+        else
+        {
+          aa_string += " " + String(it->getAAAfter());
+        }
+        if (static_cast<Size>(it - pes.begin()) == pes.size() - 1) aa_string += "\"";
+      }
+    }
+    return aa_string;
+  }
+
+  String IdXMLFile::createPositionXMLString_(const std::vector<PeptideEvidence> & pes)
+  {
+    bool has_aa_start_information(false);
+    bool has_aa_end_information(false);
+
+    String aa_string;
+    for (std::vector<PeptideEvidence>::const_iterator it = pes.begin(); it != pes.end(); ++it)
+    {
+      if (it->getStart() != PeptideEvidence::UNKNOWN_POSITION)
+      {
+        has_aa_start_information = true;
+      }
+      if (it->getEnd() != PeptideEvidence::UNKNOWN_POSITION)
+      {
+        has_aa_end_information = true;
+      }
+    }
+
+    if (has_aa_start_information || has_aa_end_information)
+    {
+      if (has_aa_start_information)
+      {
+        for (std::vector<PeptideEvidence>::const_iterator it = pes.begin(); it != pes.end(); ++it)
+        {
+          if (it == pes.begin())
+          { 
+            aa_string += " start=\"" + String(it->getStart());
+          }
+          else
+          {
+            aa_string += " " + String(it->getStart());
+          }
+          if (static_cast<Size>(it - pes.begin()) == pes.size() - 1) aa_string += "\"";
+        }
+      }
+
+      if (has_aa_end_information)
+      {
+        for (std::vector<PeptideEvidence>::const_iterator it = pes.begin(); it != pes.end(); ++it)
+        {
+          if (it == pes.begin())
+          { 
+            aa_string += " end=\"" + String(it->getEnd());
+          }
+          else
+          {
+            aa_string += " " + String(it->getEnd());
+          }
+          if (static_cast<Size>(it - pes.begin()) == pes.size() - 1) aa_string += "\"";
+        }
+      }
+    }
+    return aa_string;
+  }
+
 
 } // namespace OpenMS

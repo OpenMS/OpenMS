@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,6 +46,7 @@ namespace OpenMS
   class TOPPASToolVertex;
   class TOPPASInputFileListVertex;
 
+  class String;
 
   /**
       @brief An edge representing a data flow in TOPPAS
@@ -88,6 +89,9 @@ public:
     virtual ~TOPPASEdge();
     /// Assignment operator
     TOPPASEdge & operator=(const TOPPASEdge & rhs);
+
+    /// for debug output
+    String toString();
 
     /// Returns the bounding rectangle of this item
     QRectF boundingRect() const;

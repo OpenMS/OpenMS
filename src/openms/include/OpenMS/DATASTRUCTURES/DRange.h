@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,6 +36,8 @@
 #define OPENMS_DATASTRUCTURES_DRANGE_H
 
 #include <OpenMS/DATASTRUCTURES/DIntervalBase.h>
+#include <OpenMS/CONCEPT/Macros.h>
+#include <OpenMS/CONCEPT/Types.h>
 
 namespace OpenMS
 {
@@ -51,7 +53,7 @@ namespace OpenMS
       The two limiting points are accessed as minPosition() and maxPosition().
 
       A range denotes a semi-open interval. A lower coordinate of each
-      dimension is part the range, the higher coordinate is not.
+      dimension is part of the range, the higher coordinate is not.
 
       @ingroup Datastructures
   */
@@ -73,12 +75,12 @@ public:
     typedef typename Base::PositionType PositionType;
     /// Coordinate type of the positions
     typedef typename Base::CoordinateType CoordinateType;
-    ///Types that describe the kind of intersection between two ranges
+    /// Types that describe the kind of intersection between two ranges
     enum DRangeIntersection
     {
-      Disjoint,         ///< No intersection
-      Intersects,       ///< Intersection
-      Inside            ///< One contains the other
+      Disjoint, ///< No intersection
+      Intersects, ///< Intersection
+      Inside ///< One contains the other
     };
 
     //@}
@@ -99,24 +101,24 @@ public:
     }
 
     /// Constructor that takes two Points and constructs a range.
-    DRange(const PositionType & lower, const PositionType & upper) :
+    DRange(const PositionType& lower, const PositionType& upper) :
       Base(lower, upper)
     {
     }
 
     /// Copy constructor.
-    DRange(const DRange & range) :
+    DRange(const DRange& range) :
       Base(range)
     {
     }
 
     /// Copy constructor for the base class
-    DRange(const Base & range) :
+    DRange(const Base& range) :
       Base(range)
     {
     }
 
-    ///Convenient constructor for DRange<2>
+    /// Convenient constructor for DRange<2>
     DRange(CoordinateType minx, CoordinateType miny, CoordinateType maxx, CoordinateType maxy)
     {
       OPENMS_PRECONDITION(D == 2, "DRange<D>:DRange(minx, miny, maxx, maxy): index overflow!");
@@ -127,14 +129,14 @@ public:
     }
 
     /// Assignment operator
-    DRange & operator=(const DRange & rhs)
+    DRange& operator=(const DRange& rhs)
     {
       Base::operator=(rhs);
       return *this;
     }
 
     /// Assignment operator for the base class
-    DRange & operator=(const Base & rhs)
+    DRange& operator=(const Base& rhs)
     {
       Base::operator=(rhs);
       return *this;
@@ -150,13 +152,13 @@ public:
     /**@name Predicates */
     //@{
     ///Equality operator
-    bool operator==(const DRange & rhs) const
+    bool operator==(const DRange& rhs) const
     {
       return Base::operator==(rhs);
     }
 
     /// Equality operator
-    bool operator==(const Base & rhs) const
+    bool operator==(const Base& rhs) const
     {
       return Base::operator==(rhs);
     }
@@ -167,7 +169,7 @@ public:
          @param position The point's position.
          @returns true if point lies inside this area.
     */
-    bool encloses(const PositionType & position) const
+    bool encloses(const PositionType& position) const
     {
       for (UInt i = 0; i != D; i++)
       {
@@ -193,7 +195,7 @@ public:
     }
 
     /// Returns the smallest range containing this range and @p other_range
-    DRange united(const DRange<D> & other_range) const
+    DRange united(const DRange<D>& other_range) const
     {
       PositionType united_min;
       PositionType united_max;
@@ -217,7 +219,7 @@ public:
 
          @param range The max_ range.
     */
-    DRangeIntersection intersects(const DRange & range) const
+    DRangeIntersection intersects(const DRange& range) const
     {
       //check if r.min_ is in this area
       if (encloses(range.min_))
@@ -259,7 +261,7 @@ public:
          @param range The max_ range.
          @returns True if the areas intersect (i.e. they intersect or one contains the other).
     */
-    bool isIntersected(const DRange & range) const
+    bool isIntersected(const DRange& range) const
     {
       //check if r.min_ is in this area
       if (encloses(range.min_))
@@ -301,12 +303,39 @@ public:
       return false;
     }
 
+    /**
+         @brief Extends the range in all dimensions by a certain multiplier.
+
+         Extends the range, while maintaining the original center position.
+
+         Examples (for D=1):
+           factor = 1.01 extends the range by 1% in total, i.e. 0.5% left and right.
+           factor = 2.00 doubles the total range, e.g. from [0,100] to [-50,150]
+
+         @param factor Multiplier (allowed is [0, inf)).
+    */
+    void extend(double factor)
+    {
+      if (factor < 0)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "DRange::extend(): factor must not be negative!");
+      }
+
+      for (UInt i = 0; i != D; ++i)
+      {
+        Internal::DIntervalBase<1>::CoordinateType extra = (max_[i] - min_[i]) / 2.0 * (factor - 1);
+        min_[i] -= extra;
+        max_[i] += extra;
+      }
+    }
+
+
     //@}
   };
 
   ///Print the contents to a stream.
   template <UInt D>
-  std::ostream & operator<<(std::ostream & os, const DRange<D> & area)
+  std::ostream& operator<<(std::ostream& os, const DRange<D>& area)
   {
     os << "--DRANGE BEGIN--" << std::endl;
     os << "MIN --> " << area.min_ << std::endl;

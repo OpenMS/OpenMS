@@ -16,6 +16,7 @@ FuzzyDiff
 IDDecoyProbability
 IDExtractor
 IDMassAccuracy
+IDScoreSwitcher
 IDSplitter
 LabeledEval
 LowMemPeakPickerHiRes
@@ -23,8 +24,10 @@ LowMemPeakPickerHiRes_RandomAccess
 MapAlignmentEvaluation
 MassCalculator
 MetaboliteSpectralMatcher
+MetaProSIP
 MRMPairFinder
 MSSimulator
+MzMLSplitter
 OpenMSInfo
 PeakPickerIterative
 QCCalculator
@@ -36,7 +39,6 @@ QCMerger
 QCShrinker
 RNPxl
 RNPxlXICFilter
-RTAnnotator
 RTEvaluation
 SemanticValidator
 SequenceCoverageCalculator
@@ -44,6 +46,7 @@ SimpleSearchEngine
 SpecLibCreator
 SvmTheoreticalSpectrumGeneratorTrainer
 TransformationEvaluation
+TopPerc
 XMLValidator
 #SimpleSearchEngine
 #RNPxlSearch

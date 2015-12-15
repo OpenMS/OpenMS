@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,7 +53,7 @@ DPosition<2> p1,p2,p3,one,two;
 p1[0]=-1.0f;
 p1[1]=-2.0f;
 p2[0]=3.0f;
-p2[1]=4.0f;	
+p2[1]=4.0f;
 p3[0]=-10.0f;
 p3[1]=20.0f;
 one[0]=1;
@@ -420,6 +420,22 @@ START_SECTION(bool isEmpty() const)
 	TEST_EQUAL(tmp.isEmpty(), false);
 END_SECTION
 
+
+START_SECTION(void extend(double factor))
+  DRange<2> r(p1,p2);
+/*
+p1[0]=-1.0f;
+p1[1]=-2.0f;
+p2[0]=3.0f;
+p2[1]=4.0f;
+*/
+  TEST_EXCEPTION(Exception::InvalidParameter, r.extend(-0.01))
+  r.extend(2.0);
+	TEST_REAL_SIMILAR(r.minPosition()[0],-3.0f);
+	TEST_REAL_SIMILAR(r.maxPosition()[0], 5.0f);
+	TEST_REAL_SIMILAR(r.minPosition()[1],-5.0f);
+	TEST_REAL_SIMILAR(r.maxPosition()[1], 7.0f); 
+END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

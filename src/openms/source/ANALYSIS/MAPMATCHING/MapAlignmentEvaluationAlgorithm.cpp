@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,8 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithmPrecision.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithmRecall.h>
 
+#include <OpenMS/CONCEPT/Factory.h>
+
 namespace OpenMS
 {
   //register products here
@@ -48,18 +50,18 @@ namespace OpenMS
   }
 
   // TODO consider using (RT,MZ,IT) as a unique identifier ?
-  bool MapAlignmentEvaluationAlgorithm::isSameHandle(const FeatureHandle & lhs, const FeatureHandle & rhs, const double & rt_dev, const double & mz_dev, const Peak2D::IntensityType & int_dev, const bool use_charge)
+  bool MapAlignmentEvaluationAlgorithm::isSameHandle(const FeatureHandle& lhs, const FeatureHandle& rhs, const double& rt_dev, const double& mz_dev, const Peak2D::IntensityType& int_dev, const bool use_charge)
   {
 #if 1
     // use (RT,MZ,IT) as "unique" identifier
     if (fabs(lhs.getRT() - rhs.getRT()) > rt_dev)
-      return false;                                                       // TODO MAGIC_ALERT
+      return false; // TODO MAGIC_ALERT
 
     if (fabs(lhs.getMZ() - rhs.getMZ()) > mz_dev)
-      return false;                                                       // TODO MAGIC_ALERT
+      return false; // TODO MAGIC_ALERT
 
     if (fabs(lhs.getIntensity() - rhs.getIntensity()) > int_dev)
-      return false;                                                                      // TODO MAGIC_ALERT
+      return false; // TODO MAGIC_ALERT
 
     if (use_charge && (lhs.getCharge() != rhs.getCharge()))
       return false;

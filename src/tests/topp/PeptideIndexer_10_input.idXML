@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="http://open-ms.sourceforge.net/XSL/IdXML.xsl" ?>
-<IdXML version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<IdXML version="1.3" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<SearchParameters id="SP_0" db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
 	</SearchParameters>
 	<IdentificationRun date="2014-08-04T15:32:46" search_engine="" search_engine_version="" search_parameters_ref="SP_0" >
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="0" RT="0" >
-			<PeptideHit score="40" sequence="PEPTIDE" charge="2"/>
+			<PeptideHit score="40" sequence="PEPTIDETTT" charge="2"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="0" RT="0" >
-			<PeptideHit score="30" sequence="PEPTLDE" charge="2"/>
+			<PeptideHit score="30" sequence="PEPTLDETTT" charge="2"/>
         </PeptideIdentification>
 	</IdentificationRun>
 </IdXML>

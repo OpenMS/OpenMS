@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,7 +37,6 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/PeptideHit.h>
-
 #include <sstream>
 #include <algorithm>
 
@@ -47,7 +46,6 @@ namespace OpenMS
 {
 
   const std::string ProteinIdentification::NamesOfPeakMassType[] = {"Monoisotopic", "Average"};
-  const std::string ProteinIdentification::NamesOfDigestionEnzyme[] = {"Trypsin", "Pepsin A", "Protease K", "Chymotrypsin", "No enzyme", "Unknown"};
 
   ProteinIdentification::ProteinGroup::ProteinGroup() :
     probability(0.0), accessions()
@@ -69,7 +67,6 @@ namespace OpenMS
     return accessions < rhs.accessions;
   }
 
-
   ProteinIdentification::SearchParameters::SearchParameters() :
     db(),
     db_version(),
@@ -78,10 +75,12 @@ namespace OpenMS
     mass_type(MONOISOTOPIC),
     fixed_modifications(),
     variable_modifications(),
-    enzyme(UNKNOWN_ENZYME),
     missed_cleavages(0),
-    peak_mass_tolerance(0.0),
-    precursor_tolerance(0.0)
+    fragment_mass_tolerance(0.0),
+    fragment_mass_tolerance_ppm(false),
+    precursor_tolerance(0.0),
+    precursor_mass_tolerance_ppm(false),
+    digestion_enzyme("unknown_enzyme","")
   {
   }
 
@@ -94,10 +93,12 @@ namespace OpenMS
            mass_type == rhs.mass_type &&
            fixed_modifications == rhs.fixed_modifications &&
            variable_modifications == rhs.variable_modifications &&
-           enzyme == rhs.enzyme &&
            missed_cleavages == rhs.missed_cleavages &&
-           peak_mass_tolerance == rhs.peak_mass_tolerance &&
-           precursor_tolerance == rhs.precursor_tolerance;
+           fragment_mass_tolerance == rhs.fragment_mass_tolerance &&
+           fragment_mass_tolerance_ppm == rhs.fragment_mass_tolerance_ppm &&
+           precursor_tolerance == rhs.precursor_tolerance &&
+           precursor_mass_tolerance_ppm == rhs.precursor_mass_tolerance_ppm &&
+           digestion_enzyme == rhs.digestion_enzyme;
   }
 
   bool ProteinIdentification::SearchParameters::operator!=(const SearchParameters& rhs) const
@@ -236,6 +237,25 @@ namespace OpenMS
   void ProteinIdentification::insertHit(const ProteinHit& protein_hit)
   {
     protein_hits_.push_back(protein_hit);
+  }
+
+  void ProteinIdentification::setPrimaryMSRunPath(const StringList& s)
+  {
+    if (!s.empty())
+    {
+      this->setMetaValue("ms_run-location", DataValue(s));
+    }
+  }
+
+  /// get the file path to the first MS run
+  StringList ProteinIdentification::getPrimaryMSRunPath() const
+  {
+    StringList ret;
+    if (this->metaValueExists("ms_run-location"))
+    {
+      ret = this->getMetaValue("ms_run-location");
+    }
+    return ret;
   }
 
   ProteinIdentification& ProteinIdentification::operator=(const ProteinIdentification& source)

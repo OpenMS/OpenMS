@@ -6,6 +6,7 @@ from MSSpectrum cimport *
 cdef extern from "<OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>" namespace "OpenMS":
 
     cdef cppclass BinnedSpectrum:
+
         BinnedSpectrum() nogil except +
         BinnedSpectrum(BinnedSpectrum) nogil except +
         BinnedSpectrum(float size, UInt spread, MSSpectrum[Peak1D] ps) nogil except +
@@ -27,3 +28,5 @@ cdef extern from "<OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>" namespace "OpenM
         void setBinSpread(UInt s) nogil except +
         void setBinning() nogil except +
         bool checkCompliance(BinnedSpectrum & bs) nogil except +
+        MSSpectrum[Peak1D] getRawSpectrum() nogil except +
+

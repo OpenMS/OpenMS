@@ -16,6 +16,8 @@ cdef extern from "<OpenMS/MATH/MISC/BSpline2d.h>" namespace "OpenMS":
 
         bool ok() nogil except +
 
+        void debug(bool enable) nogil except +
+
 cdef extern from "<OpenMS/MATH/MISC/BSpline2d.h>" namespace "OpenMS::BSpline2d":
 
     cdef enum BoundaryCondition:

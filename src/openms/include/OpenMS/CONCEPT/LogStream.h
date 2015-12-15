@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -463,7 +463,7 @@ private:
   OPENMS_DLLAPI extern Logger::LogStream Log_error; ///< Global static instance of a LogStream to capture messages classified as errors. By default it is bound to @b cerr.
   OPENMS_DLLAPI extern Logger::LogStream Log_warn;  ///< Global static instance of a LogStream to capture messages classified as warnings. By default it is bound to @b cout.
   OPENMS_DLLAPI extern Logger::LogStream Log_info;  ///< Global static instance of a LogStream to capture messages classified as information. By default it is bound to @b cout.
-  OPENMS_DLLAPI extern Logger::LogStream Log_debug; ///< Global static instance of a LogStream to capture messages classified as debug output. By default it is not bound to any output stream.
+  OPENMS_DLLAPI extern Logger::LogStream Log_debug; ///< Global static instance of a LogStream to capture messages classified as debug output. By default it is not bound to any output stream. TOPP(AS)Base will connect cout, iff 0 < debug-level
 
 } // namespace OpenMS
 

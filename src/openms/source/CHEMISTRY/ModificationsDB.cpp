@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -329,7 +329,7 @@ namespace OpenMS
       // map to multiple residues), we calculate a monoisotopic mass from the
       // delta mass.
       // First the internal (inside an AA chain) weight of the residue.
-      double internal_weight = residue_->getMonoWeight() - residue_->getInternalToFullMonoWeight(); 
+      double internal_weight = residue_->getMonoWeight() - residue_->getInternalToFull().getMonoWeight(); 
       if ( fabs((*it)->getDiffMonoMass() + internal_weight - mass) < min_error)
       {
         String origin = (*it)->getOrigin();
@@ -399,7 +399,7 @@ namespace OpenMS
       modification_names_[(*it)->getFullId()].insert(*it);
       // e.g. Oxidation
       modification_names_[(*it)->getId()].insert(*it);
-      // e.g. Oxidated
+      // e.g. Oxidized
       modification_names_[(*it)->getFullName()].insert(*it);
       // e.g. UniMod:312
       modification_names_[(*it)->getUniModAccession()].insert(*it);

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2012.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,65 +47,67 @@
 	- @subpage UTILS_INIUpdater - Update INI and TOPPAS files from previous versions of %OpenMS as parameters and storage method might have changed
 
   <b>Signal Processing and Preprocessing</b>
-  - @subpage UTILS_PeakPickerRapid - Finds mass spectrometric peaks in profile mass spectra.
   - @subpage UTILS_RNPxlXICFilter - Remove MS2 spectra from treatment based on the fold change between control and treatment for RNP cross linking experiments.
 
-  <b>File handling</b>
-  - @subpage UTILS_FuzzyDiff - Compares two files, tolerating numeric differences.
-  - @subpage UTILS_XMLValidator - Validates XML files against an XSD schema.
-	- @subpage UTILS_SemanticValidator - SemanticValidator for analysisXML and mzML files.
+  <b>File Handling</b>
   - @subpage UTILS_CVInspector - A tool for visualization and validation of PSI mapping and CV files.
-	- @subpage UTILS_IDSplitter - Splits protein/peptide identifications off of annotated data files.
-	- @subpage UTILS_ConvertTSVToTraML - Converts a tsv file (tab separated) to TraML.
-	- @subpage UTILS_ConvertTraMLToTSV - Converts a TraML file to TSV.
+  - @subpage UTILS_ConvertTSVToTraML - Converts a tsv file (tab separated) to TraML.
+  - @subpage UTILS_ConvertTraMLToTSV - Converts a TraML file to TSV.
+  - @subpage UTILS_FuzzyDiff - Compares two files, tolerating numeric differences.
+  - @subpage UTILS_IDSplitter - Splits protein/peptide identifications off of annotated data files.
+  - @subpage UTILS_MzMLSplitter - Splits an mzML file into multiple parts
   - @subpage UTILS_OpenSwathMzMLFileCacher - Caching of large mzML files
+  - @subpage UTILS_SemanticValidator - SemanticValidator for analysisXML and mzML files.
+  - @subpage UTILS_XMLValidator - Validates XML files against an XSD schema.
 
-  <b>Algorithm evaluation</b>
+  <b>Algorithm Evaluation</b>
   - @subpage UTILS_FFEval - Evaluation tool for feature detection algorithms.
-	- @subpage UTILS_IDEvaluator - Evaluation tool, comparing peptide recovery at different q-value thresholds for multiple search engines (e.g., after ConsensusID). For interactive version use the @subpage UTILS_IDEvaluatorGUI tool.
+  - @subpage UTILS_IDEvaluator - Evaluation tool, comparing peptide recovery at different q-value thresholds for multiple search engines (e.g., after ConsensusID). For interactive version use the @subpage UTILS_IDEvaluatorGUI tool.
   - @subpage UTILS_LabeledEval - Evaluation tool for isotope-labeled quantitation experiments.
-	- @subpage UTILS_MapAlignmentEvaluation - Evaluates alignment results against a ground truth.
-	- @subpage UTILS_RTEvaluation - Application that evaluates TPs (true positives), TNs, FPs, and FNs for an idXML file with predicted RTs.
-	- @subpage UTILS_TransformationEvaluation - Simple evaluation of transformations (e.g. RT transformations produced by a MapAligner tool).
+  - @subpage UTILS_MapAlignmentEvaluation - Evaluates alignment results against a ground truth.
+  - @subpage UTILS_RTEvaluation - Application that evaluates TPs (true positives), TNs, FPs, and FNs for an idXML file with predicted RTs.
+  - @subpage UTILS_TransformationEvaluation - Simple evaluation of transformations (e.g. RT transformations produced by a MapAligner tool).
 
-  <b>Peptide identification</b>
-	- @subpage UTILS_Digestor - Digests a protein database in-silico.
-	- @subpage UTILS_DigestorMotif - Digests a protein database in-silico (optionally allowing only peptides with a specific motif) and produces statistical data for all peptides.
-	- @subpage UTILS_DecoyDatabase - Create decoy peptide databases from normal ones.
-	- @subpage UTILS_SequenceCoverageCalculator - Prints information about idXML files.
+  <b>Protein/Peptide Identification</b>
+  - @subpage UTILS_DecoyDatabase - Create decoy peptide databases from normal ones.
+  - @subpage UTILS_Digestor - Digests a protein database in-silico.
+  - @subpage UTILS_DigestorMotif - Digests a protein database in-silico (optionally allowing only peptides with a specific motif) and produces statistical data for all peptides.
   - @subpage UTILS_IDExtractor - Extracts n peptides randomly or best n from idXML files.
   - @subpage UTILS_IDMassAccuracy - Calculates a distribution of the mass error from given mass spectra and IDs.
-  - @subpage UTILS_SpecLibCreator - Creates an MSP formatted spectral library.
+  - @subpage UTILS_IDScoreSwitcher - Switches between different scores of peptide or protein hits in identification data.
   - @subpage UTILS_RNPxl - Tool for RNP cross linking experiment analysis.
+  - @subpage UTILS_SequenceCoverageCalculator - Prints information about idXML files.
+  - @subpage UTILS_SpecLibCreator - Creates an MSP-formatted spectral library.
 
- <b>Quantitation</b>
+  <b>Quantitation</b>
   - @subpage UTILS_ERPairFinder - Evaluate pair ratios on enhanced resolution (zoom) scans.
+  - @subpage UTILS_FeatureFinderSuperHirn - Find Features using the SuperHirn Algorithm (it can handle centroided or profile data, see .ini file).
   - @subpage UTILS_MRMPairFinder - Evaluate labeled pair ratios on MRM features.
-  - @subpage UTILS_FeatureFinderSuperHirn - Find Features using the SuperHirn Algorithm (it can handle centroided or profile data, see .ini file)
+  - @subpage UTILS_OpenSwathWorkflow - Complete workflow to run OpenSWATH.
 
-	<b>Misc</b>
-  - @subpage UTILS_ImageCreator - Creates images from MS1 data (with MS2 data points indicated as dots).
-	- @subpage UTILS_MassCalculator - Calculates masses and mass-to-charge ratios of peptide sequences.
-	- @subpage UTILS_MSSimulator - A highly configurable simulator for mass spectrometry experiments.
-	- @subpage UTILS_SvmTheoreticalSpectrumGeneratorTrainer - A trainer for svm models as input for SvmTheoreticalSpectrumGenerator.
+  <b>Metabolite Identification</b>
+  - @subpage UTILS_AccurateMassSearch - Find potential HMDB IDs within the given mass error window.
+
+  <b>Quality Control</b>
+  - @subpage UTILS_QCCalculator - Calculates basic quality parameters from MS experiments and compiles data for subsequent QC into a qcML file.
+  - @subpage UTILS_QCEmbedder - This application is used to embed tables or plots generated externally as attachments to existing quality parameters in qcML files.
+  - @subpage UTILS_QCExporter - Will extract several quality parameter from several run/sets from a qcML file into a tabular (text) format - counterpart to QCImporter.
+  - @subpage UTILS_QCExtractor - Extracts a table attachment of a given quality parameter from a qcML file as tabular (text) format.
+  - @subpage UTILS_QCImporter - Will import several quality parameter from a tabular (text) format into a qcML file - counterpart to QCExporter.
+  - @subpage UTILS_QCMerger - Merges two qcML files together.
+  - @subpage UTILS_QCShrinker - This application is used to remove extra verbose table attachments from a qcML file that are not needed anymore, e.g. for a final report.
+
+  <b>Misc</b>
   - @subpage UTILS_DeMeanderize - Orders the spectra of MALDI spotting plates correctly.
-  - @subpage UTILS_OpenSwathDIAPreScoring - SWATH (data independent acquisition) pre-scoring
-  - @subpage UTILS_OpenSwathRewriteToFeatureXML - rewrite results from mProphet back into featureXML
-
-  <b>Metabolite identification</b>
-  - @subpage UTILS_AccurateMassSearch - Find potential HMDB ids within the given mass error window.
-
-  <b>Quality control</b>
-  - @subpage UTILS_QCCalculator -
-  - @subpage UTILS_QCImporter -
-  - @subpage UTILS_QCEmbedder -
-  - @subpage UTILS_QCExporter -
-  - @subpage UTILS_QCExtractor -
-  - @subpage UTILS_QCMerger -
-  - @subpage UTILS_QCShrinker -
+  - @subpage UTILS_ImageCreator - Creates images from MS1 data (with MS2 data points indicated as dots).
+  - @subpage UTILS_MSSimulator - A highly configurable simulator for mass spectrometry experiments.
+  - @subpage UTILS_MassCalculator - Calculates masses and mass-to-charge ratios of peptide sequences.
+  - @subpage UTILS_OpenSwathDIAPreScoring - SWATH (data-independent acquisition) pre-scoring.
+  - @subpage UTILS_OpenSwathRewriteToFeatureXML - Rewrites results from mProphet back into featureXML.
+  - @subpage UTILS_SvmTheoreticalSpectrumGeneratorTrainer - A trainer for SVM models as input for SvmTheoreticalSpectrumGenerator.
 
 
   <b>Deprecated</b>
-  - @subpage UTILS_IDDecoyProbability - Estimates peptide probabilities using a decoy search strategy. <br> WARNING: This util is deprecated.
+  - @subpage UTILS_IDDecoyProbability - Estimates peptide probabilities using a decoy search strategy. <br> WARNING: This utility is deprecated.
 
 */

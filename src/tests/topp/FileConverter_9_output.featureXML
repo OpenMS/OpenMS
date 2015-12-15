@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.6" id="fm_7765414056999294261" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_6.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<featureMap version="1.8" id="fm_7765414056999294261" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_8.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="1999-12-31T23:59:59">
 		<software name="FileConverter" version="version_string" />
 		<processingAction name="File format conversion" />
-		<userParam type="string" name="parameter: mode" value="test_mode"/>
+		<UserParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
 	<IdentificationRun id="PI_0" date="2008-10-29T10:17:55" search_engine="InsPecT" search_engine_version="20080404">
-		<SearchParameters db="" db_version="" taxonomy="" mass_type="average" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="2" peak_mass_tolerance="0.5" >
+		<SearchParameters db="" db_version="" taxonomy="" mass_type="average" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="2" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0.5" peak_mass_tolerance_ppm="false" >
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
 			<ProteinHit id="PH_0" accession="Q9HP81" score="0" sequence="MTIAWARRRYGVKLGLGYIATAGLLVGVGVTTNDVPSTIVAGIAGLLTLGSINAAETVASIKEIAAQTERVANGNLEQEVTSTRTDEFGSLADSIEQMRQSLRGRLNEMERTRADLEETQAEAETAREEAEQAKQEAQAAEREARELAATYQDTAKRYGETMEAAATGDLTQRVDVDTDHEAMETVGTAFNQMMDDLQATVRTVTTVADEIEAKTERMSETSADIEASAGDTVEAVSKIESQANDQRTELDSAADDVQQVSASAEEIAATIDDLASRSEDVATASDAARDSSKSALDEMSSIETEVDDAVGQVEQLRDQVAEITDIVDVITDIGEQTNMLALNASIEAARAGGNADGDGFSVVADEVKDLAEETQDRANEIAAVVEKVTAQTEDVTASIQQTRTRVESGSETVESTLRDIRTIADSIAEVSNSIDEIQRTTSEQAETVQSTATSVERVAGLSDDTTALASDAESAVIGQRESAEEIAASLEQFQNTAVEQLQSRVASFTVATEDSETAGGSVEQPVMRAGADGGGA">

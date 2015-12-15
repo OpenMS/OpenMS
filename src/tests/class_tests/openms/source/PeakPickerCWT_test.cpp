@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -59,28 +59,30 @@ START_SECTION((virtual ~PeakPickerCWT()))
   delete ptr;
 END_SECTION
 
-//load input and output data
+// load input and output data
 MzMLFile mz_ml_file;
 MSExperiment<Peak1D> input, output;
-mz_ml_file.load(OPENMS_GET_TEST_DATA_PATH("PeakPickerCWT_test.mzML"),input);
-mz_ml_file.load(OPENMS_GET_TEST_DATA_PATH("PeakPickerCWT_test_output.mzML"),output);
-//set data type (this is not stored correctly in mzData)
+mz_ml_file.load(OPENMS_GET_TEST_DATA_PATH("PeakPickerCWT_test.mzML"), input);
+mz_ml_file.load(OPENMS_GET_TEST_DATA_PATH("PeakPickerCWT_test_output.mzML"), output);
+
+// set data type (this is not stored correctly in mzData)
 for (Size s=0; s<output.size(); ++s)
 {
   output[s].setType(SpectrumSettings::PEAKS);
 }
 
-//set up PeakPicker
-  PeakPickerCWT pp;
-  Param param;
-  param.setValue("peak_width",0.15);
-  param.setValue("signal_to_noise",3.);
-  pp.setParameters(param);   
+// set up PeakPicker
+PeakPickerCWT pp;
+Param param;
+param.setValue("peak_width", 0.15);
+param.setValue("signal_to_noise", 3.);
+pp.setParameters(param);   
 
-START_SECTION((void pick(const MSSpectrum<> &input, MSSpectrum<> &output)))
+START_SECTION((void pick(const MSSpectrum<> &input, MSSpectrum<> &output) const))
   MSSpectrum<> spec;
   pp.pick(input[0],spec);
-  
+  //updating results: MSExperiment<> sp; sp.addSpectrum(spec); MzMLFile().store(OPENMS_GET_TEST_DATA_PATH("PeakPickerCWT_test_output.mzML"), sp);
+
 // TEST_EQUAL(spec.SpectrumSettings::operator==(output[0]), true)-> are not equal as peak picking step is written to the spectrum settings
   for (Size p=0; p<spec.size(); ++p)
   {
@@ -92,13 +94,13 @@ END_SECTION
 
 START_SECTION((void pickExperiment(const MSExperiment<> &input, MSExperiment<> &output)))
   MSExperiment<> exp;
-  pp.pickExperiment(input,exp);
-
+  pp.pickExperiment(input, exp);
   TEST_EQUAL(exp.ExperimentalSettings::operator==(input), true)
-  for (Size s=0; s<exp.size(); ++s)
+
+  ABORT_IF(exp.size() != output.size())
+  for (Size s = 0; s < exp.size(); ++s)
   {
-		//    TEST_EQUAL(exp[s].SpectrumSettings::operator==(output[s]), true) -> are not equal as peak picking step is written to the spectrum settings
-    for (Size p=0; p<exp[s].size(); ++p)
+    for (Size p = 0; p<exp[s].size(); ++p)
     {
       TEST_REAL_SIMILAR(exp[s][p].getMZ(), output[s][p].getMZ())
       TEST_REAL_SIMILAR(exp[s][p].getIntensity(), output[s][p].getIntensity())
@@ -107,8 +109,19 @@ START_SECTION((void pickExperiment(const MSExperiment<> &input, MSExperiment<> &
 END_SECTION
 
 START_SECTION(double estimatePeakWidth(const MSExperiment<>& input))
+  PeakPickerCWT pp;
+  // add empty spectra.. make sure that the algorithm does not stumble
   double peak_width = pp.estimatePeakWidth(input);
-TEST_REAL_SIMILAR(peak_width,0.15)
+  TEST_REAL_SIMILAR(peak_width, 0.155283369123936)
+  // add empty spectra.. make sure that the algorithm does not stumble
+  input.addSpectrum(MSSpectrum<>());
+  input.addSpectrum(MSSpectrum<>());
+  peak_width = pp.estimatePeakWidth(input);
+  TEST_REAL_SIMILAR(peak_width, 0.155283369123936)
+  // test on empty container
+  input.clear(true);
+  peak_width = pp.estimatePeakWidth(input);
+  TEST_REAL_SIMILAR(peak_width, 0.0)
 END_SECTION
 
 /////////////////////////////////////////////////////////////

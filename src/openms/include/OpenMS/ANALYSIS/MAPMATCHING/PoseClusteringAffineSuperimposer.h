@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,8 @@
 #define OPENMS_ANALYSIS_MAPMATCHING_POSECLUSTERINGAFFINESUPERIMPOSER_H
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/BaseSuperimposer.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/Peak2D.h>
 
 namespace OpenMS
 {
@@ -88,9 +90,16 @@ public:
 
       has been done <i>before</i> calling this.  You have been warned!
 
+      @param map_model The model map (first input map)
+      @param map_scene The scene map (second input map)
+      @param transformation The output affine transformation (linear model transforming the scene map onto the model map)
+
       @exception IllegalArgument is thrown if the input maps are invalid.
     */
     virtual void run(const ConsensusMap & map_model, const ConsensusMap & map_scene, TransformationDescription & transformation);
+
+    /// Perform alignment on vector of 1D peaks
+    virtual void run(const std::vector<Peak2D> & map_model, const std::vector<Peak2D> & map_scene, TransformationDescription & transformation);
 
     /// Returns an instance of this class
     static BaseSuperimposer * create()

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,6 +54,7 @@
 
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
+#include <boost/unordered_map.hpp>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -161,6 +162,43 @@ public:
     void prepareProteinPeptideMaps_(OpenSwath::LightTargetedExperiment& transition_exp);
     //@}
 
+    /** @brief Splits combined transition groups into detection transition groups
+     * 
+     * For standard assays, transition_group_detection is identical to transition_group and the others are empty.
+     *
+     * @param transition_group Containing all detecting, identifying transitions
+     * @param transition_group_detection To be filled with detecting transitions
+    */
+    void splitTransitionGroupsDetection_(MRMTransitionGroupType& transition_group, MRMTransitionGroupType& transition_group_detection);
+
+    /** @brief Splits combined transition groups into identification transition groups
+     * 
+     * For standard assays, transition_group_identification is empty. When UIS scoring
+     * is enabled, it contains the corresponding identification transitions.
+     *
+     * @param transition_group Containing all detecting, identifying transitions
+     * @param transition_group_identification To be filled with identifying transitions
+     * @param transition_group_identification_decoy To be filled with identifying decoy transitions
+    */
+    void splitTransitionGroupsIdentification_(MRMTransitionGroupType& transition_group, MRMTransitionGroupType& transition_group_identification, MRMTransitionGroupType& transition_group_identification_decoy);
+
+    /** @brief Provides scoring for target and decoy identification against detecting transitions
+     * 
+     * The function is used twice, for target and decoy identification transitions. The results are
+     * reported analogously to the ones for detecting transitions but must be stored separately.
+     *
+     * @param transition_group Containing all detecting, identifying transitions
+     * @param transition_group_identification Containing all detecting and identifying transitions
+     * @param scorer An instance of OpenSwathScoring
+     * @param feature_idx The index of the current feature
+     * @param native_ids_detection The native IDs of the detecting transitions
+     * @param sn_win_len_ The signal to noise window length
+     * @param sn_bin_count_ The signal to noise bin count
+     * @param write_log_messages Whether to write signal to noise log messages
+     * @value a struct of type OpenSwath_Scores containing either target or decoy values
+    */
+    OpenSwath_Scores scoreIdentification_(MRMTransitionGroupType& transition_group_identification, OpenSwathScoring& scorer, const size_t feature_idx, const std::vector<std::string> native_ids_detection, const double sn_win_len_, const unsigned int sn_bin_count_, bool write_log_messages, OpenSwath::SpectrumAccessPtr swath_map);
+
     /** @brief Score all peak groups of a transition group
      *
      * Iterate through all features found along the chromatograms of the
@@ -234,6 +272,8 @@ private:
     double rt_normalization_factor_;
     int add_up_spectra_;
     double spacing_for_spectra_resampling_;
+    double uis_threshold_sn_;
+    double uis_threshold_peak_area_;
 
     // members
     std::map<OpenMS::String, const PeptideType*> PeptideRefMap_;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -84,6 +84,11 @@ public:
     virtual void setTopoNr(UInt nr);
     /// Opens the folders of the output files
     void openContainingFolder();
+    /// Sets a custom output folder name, which will be integrated into 'getOutputDir()' and 'getFullOutputDirectory()' calls.
+    /// @note The string is not checked for validity (avoid characters which are not allowed in directories, e.g. '{')
+    void setOutputFolderName(const QString& name);
+    /// return the output folder where results are written
+    const QString& getOutputFolderName() const;
 
 public slots:
 
@@ -92,9 +97,16 @@ public slots:
 
 signals:
     /// Emitted when an output file was written
-    void outputFileWritten(const String & file);
+    void outputFileWritten(const String& file);
+
+    /// Emitted when user has changed the output folder name (i.e. output dir needs to be newly created and packages updates)
+    void outputFolderNameChanged();
 
 protected:
+
+    // custom output folder name
+    QString output_folder_name_;
+
     static bool copy_(const QString & from, const QString & to); //< STATIC(!) function which calls QFile::copy(); needs to be static, since we need to pass a function pointer (which does not work on member functions)
     // convenience members, not required for operation, but for progress during copying
     int files_written_;       //< files that were already written

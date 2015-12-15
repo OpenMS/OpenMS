@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.6" id="fm_5233264595117471314" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_6.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<featureMap version="1.8" id="fm_5233264595117471314" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_8.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<UserParam type="stringList" name="ms_run-location" value="[file://DECYDER2/D/Frederic/UNI/MRM_Daten/BSA200fmolZeitreihe/QTrap5054.wiff]"/>
 	<dataProcessing completion_time="1999-12-31T23:59:59">
 		<software name="FeatureFinderMRM" version="version_string" />
 		<processingAction name="Quantitation" />
-		<userParam type="string" name="parameter: mode" value="test_mode"/>
+		<UserParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
 	<featureList count="5">
 		<feature id="f_4835329514588776807">
 			<position dim="0">1617.00720212926</position>
 			<position dim="1">656.356994628906</position>
-			<intensity>3.91214e+006</intensity>
+			<intensity>3.91214e+06</intensity>
 			<quality dim="0">0.994226</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.994226</overallquality>
@@ -18,12 +19,12 @@
 				<pt x="1553.96" y="656.356994628906" />
 				<pt x="1755.86" y="656.356994628906" />
 			</convexhull>
-			<userParam type="float" name="MZ" value="443.707"/>
+			<UserParam type="float" name="MZ" value="443.707"/>
 		</feature>
 		<feature id="f_17749660155506638460">
 			<position dim="0">2152.26561482692</position>
 			<position dim="1">722.403991699219</position>
-			<intensity>1.57211e+007</intensity>
+			<intensity>1.57211e+07</intensity>
 			<quality dim="0">0.996325</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.996325</overallquality>
@@ -32,7 +33,7 @@
 				<pt x="2130.65" y="722.403991699219" />
 				<pt x="2258.03" y="722.403991699219" />
 			</convexhull>
-			<userParam type="float" name="MZ" value="461.743"/>
+			<UserParam type="float" name="MZ" value="461.743"/>
 		</feature>
 		<feature id="f_7804704400743266335">
 			<position dim="0">2267.94328738189</position>
@@ -46,12 +47,12 @@
 				<pt x="2268.43" y="722.403991699219" />
 				<pt x="2284.45" y="722.403991699219" />
 			</convexhull>
-			<userParam type="float" name="MZ" value="461.743"/>
+			<UserParam type="float" name="MZ" value="461.743"/>
 		</feature>
 		<feature id="f_15004869347769368353">
 			<position dim="0">2299.806153561</position>
 			<position dim="1">600.330993652344</position>
-			<intensity>3.27738e+006</intensity>
+			<intensity>3.27738e+06</intensity>
 			<quality dim="0">0.994916</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.994916</overallquality>
@@ -60,7 +61,7 @@
 				<pt x="2263.37" y="600.330993652344" />
 				<pt x="2455.36" y="600.330993652344" />
 			</convexhull>
-			<userParam type="float" name="MZ" value="554.256"/>
+			<UserParam type="float" name="MZ" value="554.256"/>
 		</feature>
 		<feature id="f_3332699010107892018">
 			<position dim="0">2511.65685668081</position>
@@ -74,7 +75,7 @@
 				<pt x="2499.16" y="600.330993652344" />
 				<pt x="2513.47" y="600.330993652344" />
 			</convexhull>
-			<userParam type="float" name="MZ" value="554.256"/>
+			<UserParam type="float" name="MZ" value="554.256"/>
 		</feature>
 	</featureList>
 </featureMap>

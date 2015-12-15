@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -84,30 +84,29 @@ as this will disturb most algorithms.
 
         Implemented in FeatureFinder_impl.h
     */
-    template <class PeakType>
-    void run(const String & algorithm_name, MSExperiment<PeakType> & input_map, FeatureMap& features, const Param & param, const FeatureMap& seeds);
+    void run(const String& algorithm_name, MSExperiment<>& input_map, FeatureMap& features, const Param& param, const FeatureMap& seeds);
 
     /// Returns a non-mutable reference to a peak flag
-    const Flag & getPeakFlag(const IndexPair & index) const
+    const Flag& getPeakFlag(const IndexPair& index) const
     {
       return flags_[index.first][index.second];
     }
 
     /// Returns mutable reference to a peak flag
-    Flag & getPeakFlag(const IndexPair & index)
+    Flag& getPeakFlag(const IndexPair& index)
     {
       return flags_[index.first][index.second];
     }
 
     /// Returns the default parameters for the algorithm with name @p algorithm_name
-    Param getParameters(const String & algorithm_name) const;
+    Param getParameters(const String& algorithm_name) const;
 
 protected:
 
     /// Container for flags attached to input data
     std::vector<std::vector<Flag> > flags_;
 
-  };   // class FeatureFinder
+  }; // class FeatureFinder
 
 } // namespace OpenMS
 

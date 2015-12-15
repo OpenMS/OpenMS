@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -238,7 +238,7 @@ END_SECTION
 START_SECTION((SimTypes::MSSimExperiment const& getExperiment() const ))
 {
   // test experiment simulated above
-  TEST_EQUAL(mssim.getExperiment().getNrSpectra(), 234)
+  TEST_EQUAL(mssim.getExperiment().getNrSpectra(), 230)
 
   int nr_ms1 = std::count_if(mssim.getExperiment().begin(),
                              mssim.getExperiment().end(),
@@ -249,7 +249,7 @@ START_SECTION((SimTypes::MSSimExperiment const& getExperiment() const ))
                              InMSLevelRange<SimTypes::MSSimExperiment::SpectrumType>(ListUtils::create<Int>("2")));
 
   TEST_EQUAL(nr_ms1, 127)
-  TEST_EQUAL(nr_ms2, 107)
+  TEST_EQUAL(nr_ms2, 103)
 
   TEST_EQUAL(nr_ms2 + nr_ms1, mssim.getExperiment().getNrSpectra())
 

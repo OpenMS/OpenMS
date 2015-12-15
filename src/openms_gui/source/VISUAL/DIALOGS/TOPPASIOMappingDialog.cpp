@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,7 @@
 #include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASMergerVertex.h>
+#include <OpenMS/VISUAL/TOPPASSplitterVertex.h>
 #include <OpenMS/VISUAL/TOPPASEdge.h>
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -49,7 +50,7 @@
 
 namespace OpenMS
 {
-  TOPPASIOMappingDialog::TOPPASIOMappingDialog(TOPPASEdge * parent)
+  TOPPASIOMappingDialog::TOPPASIOMappingDialog(TOPPASEdge* parent)
   {
     edge_ = parent;
     setupUi(this);
@@ -88,15 +89,17 @@ namespace OpenMS
   {
     target_input_param_indices_.clear();
 
-    TOPPASVertex * source = edge_->getSourceVertex();
-    TOPPASVertex * target = edge_->getTargetVertex();
+    TOPPASVertex* source = edge_->getSourceVertex();
+    TOPPASVertex* target = edge_->getTargetVertex();
 
-    TOPPASToolVertex * source_tool = qobject_cast<TOPPASToolVertex *>(source);
-    TOPPASToolVertex * target_tool = qobject_cast<TOPPASToolVertex *>(target);
-    TOPPASMergerVertex * source_merger = qobject_cast<TOPPASMergerVertex *>(source);
-    TOPPASMergerVertex * target_merger = qobject_cast<TOPPASMergerVertex *>(target);
-    TOPPASInputFileListVertex * source_list = qobject_cast<TOPPASInputFileListVertex *>(source);
-    TOPPASOutputFileListVertex * target_list = qobject_cast<TOPPASOutputFileListVertex *>(target);
+    TOPPASToolVertex* source_tool = qobject_cast<TOPPASToolVertex*>(source);
+    TOPPASToolVertex* target_tool = qobject_cast<TOPPASToolVertex*>(target);
+    TOPPASMergerVertex* source_merger = qobject_cast<TOPPASMergerVertex*>(source);
+    TOPPASMergerVertex* target_merger = qobject_cast<TOPPASMergerVertex*>(target);
+    TOPPASSplitterVertex* source_splitter = qobject_cast<TOPPASSplitterVertex*>(source);
+    TOPPASSplitterVertex* target_splitter = qobject_cast<TOPPASSplitterVertex*>(target);
+    TOPPASInputFileListVertex* source_list = qobject_cast<TOPPASInputFileListVertex*>(source);
+    TOPPASOutputFileListVertex* target_list = qobject_cast<TOPPASOutputFileListVertex*>(target);
 
 
     if (source_tool)
@@ -118,6 +121,7 @@ namespace OpenMS
         String item_name;
         if (info.type == TOPPASToolVertex::IOInfo::IOT_FILE)
         {
+          if (target_splitter) continue; // inputs for splitters must be lists
           item_name = "File: ";
         }
         else
@@ -131,12 +135,12 @@ namespace OpenMS
 
         source_combo->addItem(item_name.toQString());
       }
-      if (source_combo->count() == 2)       // only 1 parameter
+      if (source_combo->count() == 2) // only 1 parameter
       {
         source_combo->setCurrentIndex(1);
       }
     }
-    else if (source_list || source_merger)
+    else if (source_list || source_merger || source_splitter)
     {
       if (source_list)
       {
@@ -144,7 +148,11 @@ namespace OpenMS
       }
       else if (source_merger)
       {
-        source_label->setText("Merger");
+        source_label->setText(source_merger->roundBasedMode() ? "Merger" : "Collector");
+      }
+      else if (source_splitter)
+      {
+        source_label->setText("Splitter");
       }
       source_type_label->setVisible(false);
       source_combo->setVisible(false);
@@ -191,6 +199,7 @@ namespace OpenMS
         String item_name;
         if (info.type == TOPPASToolVertex::IOInfo::IOT_FILE)
         {
+          if (source_merger && !source_merger->roundBasedMode()) continue; // collectors produce lists
           item_name = "File: ";
         }
         else
@@ -205,12 +214,12 @@ namespace OpenMS
         target_combo->addItem(item_name.toQString());
         target_input_param_indices_.push_back(param_counter);
       }
-      if (target_combo->count() == 2)       // only 1 parameter
+      if (target_combo->count() == 2) // only 1 parameter
       {
         target_combo->setCurrentIndex(1);
       }
     }
-    else if (target_list || target_merger)
+    else if (target_list || target_merger || target_splitter)
     {
       if (target_list)
       {
@@ -218,7 +227,11 @@ namespace OpenMS
       }
       else if (target_merger)
       {
-        target_label->setText("Merger");
+        target_label->setText(target_merger->roundBasedMode() ? "Merger" : "Collector");
+      }
+      else if (target_splitter)
+      {
+        target_label->setText("Splitter");
       }
       target_type_label->setVisible(false);
       target_combo->setVisible(false);
@@ -242,13 +255,13 @@ namespace OpenMS
 
   void TOPPASIOMappingDialog::checkValidity_()
   {
-    const QString & source_text = source_combo->currentText();
-    const QString & target_text = target_combo->currentText();
+    const QString& source_text = source_combo->currentText();
+    const QString& target_text = target_combo->currentText();
 
-    TOPPASVertex * source = edge_->getSourceVertex();
-    TOPPASVertex * target = edge_->getTargetVertex();
-    TOPPASToolVertex * source_tool = qobject_cast<TOPPASToolVertex *>(source);
-    TOPPASToolVertex * target_tool = qobject_cast<TOPPASToolVertex *>(target);
+    TOPPASVertex* source = edge_->getSourceVertex();
+    TOPPASVertex* target = edge_->getTargetVertex();
+    TOPPASToolVertex* source_tool = qobject_cast<TOPPASToolVertex*>(source);
+    TOPPASToolVertex* target_tool = qobject_cast<TOPPASToolVertex*>(target);
 
     if (source_text == "<select>")
     {
@@ -307,7 +320,8 @@ namespace OpenMS
       }
       else if (es == TOPPASEdge::ES_MERGER_WITHOUT_TOOL)
       {
-        QMessageBox::warning(0, "Invalid selection", "Mergers connecting input and output files directly are not allowed!");
+        // this should be prevented already by "TOPPASScene::isEdgeAllowed_":
+        QMessageBox::warning(0, "Invalid selection", "Mergers or splitters connecting input and output files directly are not allowed!");
       }
       else
       {

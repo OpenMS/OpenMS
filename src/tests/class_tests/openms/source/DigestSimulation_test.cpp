@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -66,7 +66,7 @@ START_SECTION((DigestSimulation(const DigestSimulation &source)))
 {
   DigestSimulation a;
   Param p = a.getParameters();
-  p.setValue("enzyme","none");
+  p.setValue("enzyme","no cleavage");
   a.setParameters(p);
   DigestSimulation b(a);
 
@@ -78,7 +78,7 @@ START_SECTION((DigestSimulation& operator=(const DigestSimulation &source)))
 {
   DigestSimulation a,b;
   Param p = a.getParameters();
-  p.setValue("enzyme","none");
+  p.setValue("enzyme","no cleavage");
   a.setParameters(p);
 
   TEST_NOT_EQUAL(b.getParameters(),a.getParameters());
@@ -149,6 +149,4 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
-
 

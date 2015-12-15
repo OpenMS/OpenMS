@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -96,7 +96,7 @@ public:
 protected:
 
   bool use_avg_mass_;
-  ostream * output_;  // pointer to output stream (stdout or file)
+  ostream* output_;  // pointer to output stream (stdout or file)
   String format_, separator_;
   Residue::ResidueType res_type_;
   map<String, Residue::ResidueType> res_type_names_;
@@ -120,13 +120,13 @@ protected:
     registerStringOption_("separator", "<sep>", "", "Field separator for 'table' output format; by default, the 'tab' character is used", false);
   }
 
-  double computeMass_(const AASequence & seq, Int charge) const
+  double computeMass_(const AASequence& seq, Int charge) const
   {
     if (use_avg_mass_) return seq.getAverageWeight(res_type_, charge);
     else return seq.getMonoWeight(res_type_, charge);
   }
 
-  void writeTable_(const AASequence & seq, const set<Int> & charges)
+  void writeTable_(const AASequence& seq, const set<Int>& charges)
   {
     SVOutStream sv_out(*output_, separator_);
     for (set<Int>::const_iterator it = charges.begin(); it != charges.end();
@@ -139,7 +139,7 @@ protected:
     }
   }
 
-  void writeList_(const AASequence & seq, const set<Int> & charges)
+  void writeList_(const AASequence& seq, const set<Int>& charges)
   {
     *output_ << seq.toString() << ": ";
     for (set<Int>::const_iterator it = charges.begin(); it != charges.end();
@@ -154,7 +154,7 @@ protected:
     *output_ << endl;
   }
 
-  void writeMassOnly_(const AASequence & seq, const set<Int> & charges,
+  void writeMassOnly_(const AASequence& seq, const set<Int>& charges,
                       bool mz = false)
   {
     for (set<Int>::const_iterator it = charges.begin(); it != charges.end();
@@ -169,15 +169,15 @@ protected:
     *output_ << endl;
   }
 
-  void writeLine_(const AASequence & seq, const set<Int> & charges)
+  void writeLine_(const AASequence& seq, const set<Int>& charges)
   {
     if (format_ == "list") writeList_(seq, charges);
     else if (format_ == "table") writeTable_(seq, charges);
     else if (format_ == "mass_only") writeMassOnly_(seq, charges);
-    else writeMassOnly_(seq, charges, true);     // "mz_only"
+    else writeMassOnly_(seq, charges, true); // "mz_only"
   }
 
-  String getItem_(String & line, const String & skip = " \t,;")
+  String getItem_(String& line, const String& skip = " \t,;")
   {
     Size pos = line.find_first_of(skip);
     String prefix = line.substr(0, pos);
@@ -187,7 +187,7 @@ protected:
     return prefix;
   }
 
-  void readFile_(const String & filename, const set<Int> & charges)
+  void readFile_(const String& filename, const set<Int>& charges)
   {
     ifstream input(filename.c_str());
     String line;
@@ -240,7 +240,7 @@ protected:
     input.close();
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     String in = getStringOption_("in");
     StringList in_seq = getStringList_("in_seq");
@@ -273,7 +273,7 @@ protected:
 
     if ((in.size() > 0) && (in_seq.size() > 0))
     {
-      LOG_ERROR << "Specifying and in-file and sequences at the same time is not allowed!";
+      LOG_ERROR << "Specifying an input file and input sequences at the same time is not allowed!";
       return ILLEGAL_PARAMETERS;
     }
 
@@ -313,7 +313,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPMassCalculator tool;
   return tool.main(argc, argv);

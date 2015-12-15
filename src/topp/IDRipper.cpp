@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -84,6 +84,8 @@ using namespace OpenMS;
 
   <B>NOTE: The meta value file origin is removed by the <tt>IDSplitter</tt>!!</B>
 
+  @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_IDRipper.cli
   <B>INI file documentation of this tool:</B>
@@ -107,11 +109,11 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "idXML-file, whereas the protein/peptide identifications must be tagged with file_origin");
+    registerInputFile_("in", "<file>", "", "Input file, in which the protein/peptide identifications must be tagged with 'file_origin'");
     setValidFormats_("in", ListUtils::create<String>("idXML"));
-    registerOutputFile_("out", "<file>", "", "The path to the file is used as the output directory.", false, false);
+    registerOutputFile_("out", "<file>", "", "The path to this file is used as the output directory.", false, false);
     setValidFormats_("out", ListUtils::create<String>("idXML"));
-    registerStringOption_("out_path", "<file>", "", "Directory for the idXML-files after ripping according file_origin tag. If out_path is set, out is ignored.", false, false);
+    registerStringOption_("out_path", "<file>", "", "Directory for the output files after ripping according to 'file_origin'. If 'out_path' is set, 'out' is ignored.", false, false);
   }
 
   ExitCodes main_(int, const char **)
@@ -170,6 +172,18 @@ protected:
       QString output = output_directory.toQString();
       // create full absolute path with filename
       String out = QDir::toNativeSeparators(output.append(QString("/")).append(it->first.toQString())).toStdString();
+      LOG_INFO << "Storing file: '" << out << "'." << std::endl;
+
+      QDir dir(output_directory.toQString());
+      if (!dir.exists())
+      {
+        if (!File::writable(output_directory))
+        {
+          LOG_WARN << "Warning: Cannot create folder: '" << output_directory << "'." << std::endl;
+          return CANNOT_WRITE_OUTPUT_FILE;
+        }
+        dir.mkpath(".");
+      }
       IdXMLFile().store(out, it->second.first, it->second.second);
     }
     return EXECUTION_OK;

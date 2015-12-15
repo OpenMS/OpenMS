@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -270,6 +270,8 @@ public slots:
     void setPipelineRunning(bool b = true);
     /// Invoked by TTV or other vertices if a parameter was edited
     void changedParameter(const bool invalidates_running_pipeline);
+    /// Invoked by OutfilelistVertex of user changed the folder name
+    void changedOutputFolder();
     /// Called by a finished QProcess to indicate that we are free to start a new one
     void processFinished();
     /// dirty solution: when using ExecutePipeline this slot is called when the pipeline crashes. This will quit the app

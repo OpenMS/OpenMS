@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,12 +32,14 @@
 // $Authors: Chris Bauer $
 // --------------------------------------------------------------------------
 
-
-
 #ifndef OPENMS_DATASTRUCTURES_SUFFIXARRAYTRYPTICSEQAN_H
 #define OPENMS_DATASTRUCTURES_SUFFIXARRAYTRYPTICSEQAN_H
 
 #include <OpenMS/DATASTRUCTURES/SuffixArraySeqan.h>
+
+#include <OpenMS/CHEMISTRY/WeightWrapper.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/OpenMSConfig.h>
 
 namespace OpenMS
 {
@@ -63,7 +65,7 @@ public:
             @throw InvalidValue is thrown if string st if invalid
             @throw FileNotFound is thrown if given file is not found
     */
-    SuffixArrayTrypticSeqan(const String & st, const String & filename, const WeightWrapper::WEIGHTMODE weight_mode = WeightWrapper::MONO);
+    SuffixArrayTrypticSeqan(const String& st, const String& filename, const WeightWrapper::WEIGHTMODE weight_mode = WeightWrapper::MONO);
 
     /**
     @brief returns if an enzyme will cut after first character

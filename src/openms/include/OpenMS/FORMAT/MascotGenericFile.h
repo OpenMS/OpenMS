@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: Andreas Bertsch $
+// $Maintainer: Chris Bielow $
+// $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_MASCOTGENERICFILE_H
@@ -51,12 +51,10 @@
 namespace OpenMS
 {
   /**
-    @brief Mascot input file adapter.
+    @brief Read/write Mascot generic files (MGF).
 
-    Creates a file that can be used for Mascot search from a peak list or a whole experiment.
-
-    Loading a file supports multi-threading, since conversion from string to double is expensive and takes long using a single thread.
-
+    For details of the format, see http://www.matrixscience.com/help/data_file_help.html#GEN.
+    
     @htmlinclude OpenMS_MascotGenericFile.parameters
 
     @ingroup FileIO
@@ -198,17 +196,24 @@ protected:
                   continue;
                 }
 
-                //line.substitute('\t', ' ');
-                line.split(' ', split);
-                if (split.size() >= 2)
+                line.simplify(); // merge double spaces (explicitly allowed by MGF), to prevent empty split() chunks and subsequent parse error
+                line.substitute('\t', ' '); // also accept Tab (strictly, only space(s) are allowed)
+                if (line.split(' ', split, false))
                 {
-                  p.setPosition(split[0].toDouble());
-                  p.setIntensity(split[1].toDouble());
+                  try 
+                  {
+                    p.setPosition(split[0].toDouble());
+                    p.setIntensity(split[1].toDouble());
+                  }
+                  catch (Exception::ConversionError& /*e*/)
+                  {
+                    throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The content '" + line + "' at line #" + String(line_number) + " could not be converted to a number! Expected two (m/z int) or three (m/z int charge) numbers separated by whitespace (space or tab).", "");
+                  }
                   spectrum.push_back(p);
                 }
                 else
                 {
-                  throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "the line (" + line + ") should contain m/z and intensity value separated by whitespace!", "");
+                  throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The content '" + line + "' at line #" + String(line_number) + " does not contain m/z and intensity values separated by whitespace (space or tab)!", "");
                 }
               }
               while (getline(is, line, '\n') && ++line_number && line.trim() != "END IONS"); // line.trim() is important here!
@@ -224,7 +229,7 @@ protected:
             }
             else if (line.hasPrefix("PEPMASS")) // parse precursor position
             {
-              String tmp = line.substr(8);
+              String tmp = line.substr(8); // copy since we might need the original line for error reporting later
               tmp.substitute('\t', ' ');
               std::vector<String> split;
               tmp.split(' ', split);
@@ -239,7 +244,7 @@ protected:
               }
               else
               {
-                throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Cannot parse PEPMASS: '" + line + "' in line " + String(line_number) + " (expected 1 or 2 entries, but " + String(split.size()) + " were present!", "");
+                throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Cannot parse PEPMASS in '" + line + "' at line #" + String(line_number) + " (expected 1 or 2 entries, but " + String(split.size()) + " were present)!", "");
               }
             }
             else if (line.hasPrefix("CHARGE"))
@@ -282,8 +287,7 @@ protected:
                 {
                   // just do nothing and write the whole title to spec
                   std::vector<String> split;
-                  line.split('=', split);
-                  if (split.size() >= 2)
+                  if (line.split('=', split))
                   {
                     if (split[1] != "") spectrum.setMetaValue("TITLE", split[1]);
                   }

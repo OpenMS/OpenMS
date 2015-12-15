@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -161,6 +161,7 @@ public:
     // Create new MSDataReader and set our consumer
     ///////////////////////////////////
     MzMLFile mz_data_file;
+    mz_data_file.setLogType(log_type_);
     mz_data_file.transform(in, &sgolayConsumer);
 
     return EXECUTION_OK;

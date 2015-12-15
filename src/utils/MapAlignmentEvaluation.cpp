@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -31,11 +31,13 @@
 // $Maintainer: Clemens Groepl, Chris Bielow $
 // $Authors: Katharina Albers $
 // --------------------------------------------------------------------------
+
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithm.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/CONCEPT/Factory.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -52,7 +54,7 @@ using namespace std;
     <table>
         <tr>
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ MapAlignmentEvaluationAlgorithm \f$ \longrightarrow \f$</td>
+            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ MapAlignmentEvaluation \f$ \longrightarrow \f$</td>
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
         </tr>
         <tr>
@@ -106,7 +108,7 @@ protected:
     registerFlag_("use_charge", "Use charge criterion when assesing if two features are identical.", false);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -160,8 +162,8 @@ protected:
     //-------------------------------------------------------------
     if (type == "F1")
     {
-      MapAlignmentEvaluationAlgorithm * algorithm_p = Factory<MapAlignmentEvaluationAlgorithm>::create("precision");
-      MapAlignmentEvaluationAlgorithm * algorithm_r = Factory<MapAlignmentEvaluationAlgorithm>::create("recall");
+      MapAlignmentEvaluationAlgorithm* algorithm_p = Factory<MapAlignmentEvaluationAlgorithm>::create("precision");
+      MapAlignmentEvaluationAlgorithm* algorithm_r = Factory<MapAlignmentEvaluationAlgorithm>::create("recall");
 
       double precision = 0;
       double recall = 0;
@@ -178,7 +180,7 @@ protected:
     }
     else
     {
-      MapAlignmentEvaluationAlgorithm * algorithm = Factory<MapAlignmentEvaluationAlgorithm>::create(type);
+      MapAlignmentEvaluationAlgorithm* algorithm = Factory<MapAlignmentEvaluationAlgorithm>::create(type);
 
       double result = 0;
 
@@ -195,7 +197,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPMapAlignmentEvaluation tool;
   return tool.main(argc, argv);

@@ -22,9 +22,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPi
 
     # Since this is a templated class, we cannot tell Cython what the C++
     # equivalent would be and we need to name it MassTrace
-    cdef cppclass MassTrace[PeakType]:
-        # wrap-instances:
-        #   MassTrace := MassTrace[Peak1D]
+    cdef cppclass MassTrace:
         MassTrace(MassTrace) nogil except + #wrap-ignore
         # POINTER # PeakType * max_peak
         double max_rt
@@ -37,9 +35,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPi
 
     # Since this is a templated class, we cannot tell Cython what the C++
     # equivalent would be and we need to name it MassTraces
-    cdef cppclass MassTraces[PeakType]:
-        # wrap-instances:
-        #   MassTraces := MassTraces[Peak1D]
+    cdef cppclass MassTraces:
         MassTraces() nogil except +
         MassTraces(MassTraces) nogil except + #wrap-ignore
         Size max_trace

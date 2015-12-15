@@ -94,18 +94,15 @@ cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS":
         # Sets the identifier
         void setIdentifier(String id_) nogil except +
 
+        void setPrimaryMSRunPath(StringList& s) nogil except +
+        StringList getPrimaryMSRunPath() nogil except +
+
 cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS::ProteinIdentification":
 
     cdef enum PeakMassType:
         # wrap-attach:
         #    ProteinIdentification
         MONOISOTOPIC, AVERAGE, SIZE_OF_PEAKMASSTYPE
-
-    cdef enum DigestionEnzyme:
-        # wrap-attach:
-        #    ProteinIdentification
-        TRYPSIN, PEPSIN_A, PROTEASE_K, CHYMOTRYPSIN,
-        NO_ENZYME, UNKNOWN_ENZYME, SIZE_OF_DIGESTIONENZYME 
 
     cdef cppclass ProteinGroup:
 
@@ -133,8 +130,9 @@ cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS::
       PeakMassType mass_type            #< Mass type of the peaks
       libcpp_vector[String] fixed_modifications            #< Used fixed modifications
       libcpp_vector[String] variable_modifications            #< Allowed variable modifications
-      DigestionEnzyme enzyme            #< The enzyme used for cleavage
       UInt missed_cleavages            #< The number of allowed missed cleavages
-      double peak_mass_tolerance            #< Mass tolerance of fragment ions (Dalton)
+      double fragment_mass_tolerance            #< Mass tolerance of fragment ions (Dalton)
+      bool fragment_mass_tolerance_ppm
       double precursor_tolerance            #< Mass tolerance of precursor ions (Dalton)
-
+      bool precursor_mass_tolerance_ppm
+      Enzyme digestion_enzyme            #< The enzyme for cleavage

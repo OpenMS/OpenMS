@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -141,17 +141,51 @@ END_SECTION
 
 START_SECTION(([EXTRA] TransformationModelInterpolated::evaluate() beyond the actual borders))
 {
-  // independent of the actual interpolation beyond the borders a linear extra-polation
-  // based on TransformationModelLinear is performed
-  ptr = new TransformationModelInterpolated(dummy_data, Param());
+  Param p;
+  TransformationModelInterpolated::getDefaultParameters(p);
 
-  // see TransformationModelLinear_test
-  TEST_REAL_SIMILAR(ptr->evaluate(-0.5), 0.0);
-  TEST_REAL_SIMILAR(ptr->evaluate(1.5), 4.0);
+  TransformationModelInterpolated tr(dummy_data, p);
+  TEST_REAL_SIMILAR(tr.evaluate(0.0), 1.0);
+  TEST_REAL_SIMILAR(tr.evaluate(0.5), 4.0);
+  TEST_REAL_SIMILAR(tr.evaluate(1.0), 3.0);
+
+  // using default value, two-point-linear
+  {
+    // Without changing parameters, extrapolation is linear and independent of
+    // the actual interpolation beyond the borders 
+    TransformationModelInterpolated tr(dummy_data, Param());
+
+    // see TransformationModelLinear_test
+    TEST_REAL_SIMILAR(tr.evaluate(-0.5), 0.0);
+    TEST_REAL_SIMILAR(tr.evaluate(1.5), 4.0);
+  }
+
+  {
+    TransformationModelInterpolated::getDefaultParameters(p);
+    p.setValue("extrapolation_type", "two-point-linear");
+    TransformationModelInterpolated tr(dummy_data, p);
+    TEST_REAL_SIMILAR(tr.evaluate(-0.5), 0.0); // slope of 2
+    TEST_REAL_SIMILAR(tr.evaluate(1.5), 4.0); // slope of 2
+  }
+
+  {
+    TransformationModelInterpolated::getDefaultParameters(p);
+    p.setValue("extrapolation_type", "four-point-linear");
+    TransformationModelInterpolated tr(dummy_data, p);
+    TEST_REAL_SIMILAR(tr.evaluate(-0.5), -2.0); // slope of 6
+    TEST_REAL_SIMILAR(tr.evaluate(1.5), 2.0); // slope of -2
+  }
+
+  {
+    TransformationModelInterpolated::getDefaultParameters(p);
+    p.setValue("extrapolation_type", "global-linear");
+    TransformationModelInterpolated tr(dummy_data, p);
+    TEST_REAL_SIMILAR(tr.evaluate(-0.5), 0.909091); // 1.727 + 1.636 * -0.5
+    TEST_REAL_SIMILAR(tr.evaluate(1.5), 4.1818182); // 1.727 + 1.636 * 1.5
+  }
+
 }
-
 END_SECTION
-
 
 START_SECTION((static void getDefaultParameters(Param & params)))
 {
@@ -159,6 +193,7 @@ START_SECTION((static void getDefaultParameters(Param & params)))
   TransformationModelInterpolated::getDefaultParameters(p);
   TEST_EQUAL(!p.empty(), true)
   TEST_EQUAL(p.getValue("interpolation_type"), "cspline")
+  TEST_EQUAL(p.getValue("extrapolation_type"), "two-point-linear")
 }
 END_SECTION
 

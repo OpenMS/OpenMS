@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -114,7 +114,7 @@ namespace OpenMS
       }
     }
 
-    //reimplemented in order to remove the "indexmzML" tag from the front (if present)
+    //reimplemented in order to remove the "indexedmzML" tag from the front (if present)
     String MzMLValidator::getPath_(UInt remove_from_end) const
     {
       String path;

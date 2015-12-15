@@ -51,7 +51,7 @@
 					<hposition dim="1">943.549</hposition>
 				</hullpoint>
 			</convexhull>
-			<userParam type="string" name="sequence" value="RPCFSALTPDETYVPK"/>
+			<UserParam type="string" name="sequence" value="RPCFSALTPDETYVPK"/>
 		</feature>
 		<feature id="f_45">
 			<position dim="0">1005.49</position>
@@ -119,7 +119,7 @@
 					<hposition dim="1">1017.91</hposition>
 				</hullpoint>
 			</convexhull>
-			<userParam type="string" name="sequence" value="QTALVELLK"/>
+			<UserParam type="string" name="sequence" value="QTALVELLK"/>
 		</feature>
 		<feature id="f_46">
 			<position dim="0">1033.52</position>
@@ -163,7 +163,7 @@
 					<hposition dim="1">1168.52</hposition>
 				</hullpoint>
 			</convexhull>
-			<userParam type="string" name="sequence" value="LVNELTEFAK"/>
+			<UserParam type="string" name="sequence" value="LVNELTEFAK"/>
 		</feature>
 		<feature id="f_47">
 			<position dim="0">1192.41</position>
@@ -215,7 +215,7 @@
 					<hposition dim="1">958.449</hposition>
 				</hullpoint>
 			</convexhull>
-			<userParam type="string" name="sequence" value="LFTFHADICTLPDTEK"/>
+			<UserParam type="string" name="sequence" value="LFTFHADICTLPDTEK"/>
 		</feature>
 		<feature id="f_48">
 			<position dim="0">1297.92</position>
@@ -275,7 +275,7 @@
 					<hposition dim="1">948.46</hposition>
 				</hullpoint>
 			</convexhull>
-			<userParam type="string" name="sequence" value="HPYFYAPELLYYANK"/>
+			<UserParam type="string" name="sequence" value="HPYFYAPELLYYANK"/>
 		</feature>
 	</featureList>
 </featureMap>

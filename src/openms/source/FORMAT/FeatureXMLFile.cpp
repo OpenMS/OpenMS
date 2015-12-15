@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,7 +33,11 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/PrecisionWrapper.h>
+#include <OpenMS/METADATA/DataProcessing.h>
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 
 #include <fstream>
 
@@ -42,8 +46,8 @@ using namespace std;
 namespace OpenMS
 {
   FeatureXMLFile::FeatureXMLFile() :
-    Internal::XMLHandler("", "1.6"),
-    Internal::XMLFile("/SCHEMAS/FeatureXML_1_6.xsd", "1.6")
+    Internal::XMLHandler("", "1.8"),
+    Internal::XMLFile("/SCHEMAS/FeatureXML_1_8.xsd", "1.8")
   {
     resetMembers_();
   }
@@ -173,7 +177,10 @@ namespace OpenMS
     {
       os << " id=\"fm_" << feature_map.getUniqueId() << "\"";
     }
-    os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/FeatureXML_1_6.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+    os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/FeatureXML_1_8.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+
+    // user param
+    writeUserParam_("UserParam", os, feature_map, 1);
 
     //write data processing
     for (Size i = 0; i < feature_map.getDataProcessing().size(); ++i)
@@ -185,7 +192,7 @@ namespace OpenMS
       {
         os << "\t\t<processingAction name=\"" << DataProcessing::NamesOfProcessingAction[*it] << "\" />\n";
       }
-      writeUserParam_("userParam", os, processing, 2);
+      writeUserParam_("UserParam", os, processing, 2);
       os << "\t</dataProcessing>\n";
     }
 
@@ -216,34 +223,18 @@ namespace OpenMS
         os << "mass_type=\"average\" ";
       }
       os << "charges=\"" << search_param.charges << "\" ";
-      if (search_param.enzyme == ProteinIdentification::TRYPSIN)
-      {
-        os << "enzyme=\"trypsin\" ";
-      }
-      if (search_param.enzyme == ProteinIdentification::PEPSIN_A)
-      {
-        os << "enzyme=\"pepsin_a\" ";
-      }
-      if (search_param.enzyme == ProteinIdentification::PROTEASE_K)
-      {
-        os << "enzyme=\"protease_k\" ";
-      }
-      if (search_param.enzyme == ProteinIdentification::CHYMOTRYPSIN)
-      {
-        os << "enzyme=\"chymotrypsin\" ";
-      }
-      else if (search_param.enzyme == ProteinIdentification::NO_ENZYME)
-      {
-        os << "enzyme=\"no_enzyme\" ";
-      }
-      else if (search_param.enzyme == ProteinIdentification::UNKNOWN_ENZYME)
-      {
-        os << "enzyme=\"unknown_enzyme\" ";
-      }
+      String enzyme_name = search_param.digestion_enzyme.getName();
+      os << "enzyme=\"" << enzyme_name.toLower() << "\" ";
+
+      String precursor_unit = search_param.precursor_mass_tolerance_ppm ? "true" : "false";
+      String peak_unit = search_param.fragment_mass_tolerance_ppm ? "true" : "false";
+
       os << "missed_cleavages=\"" << search_param.missed_cleavages << "\" "
-         << "precursor_peak_tolerance=\"" << search_param.precursor_tolerance << "\" "
-         << "peak_mass_tolerance=\"" << search_param.peak_mass_tolerance << "\" "
-         << ">\n";
+         << "precursor_peak_tolerance=\"" << search_param.precursor_tolerance << "\" ";
+      os << "precursor_peak_tolerance_ppm=\"" << precursor_unit << "\" ";
+      os << "peak_mass_tolerance=\"" << search_param.fragment_mass_tolerance << "\" ";
+      os << "peak_mass_tolerance_ppm=\"" << peak_unit << "\" ";
+      os << ">\n";
 
       //modifications
       for (Size j = 0; j != search_param.fixed_modifications.size(); ++j)
@@ -281,12 +272,12 @@ namespace OpenMS
         os << " score=\"" << current_prot_id.getHits()[j].getScore() << "\"";
         os << " sequence=\"" << current_prot_id.getHits()[j].getSequence() << "\">\n";
 
-        writeUserParam_("userParam", os, current_prot_id.getHits()[j], 4);
+        writeUserParam_("UserParam", os, current_prot_id.getHits()[j], 4);
 
         os << "\t\t\t</ProteinHit>\n";
       }
 
-      writeUserParam_("userParam", os, current_prot_id, 3);
+      writeUserParam_("UserParam", os, current_prot_id, 3);
       os << "\t\t</ProteinIdentification>\n";
       os << "\t</IdentificationRun>\n";
     }
@@ -299,11 +290,14 @@ namespace OpenMS
 
     // write features with their corresponding attributes
     os << "\t<featureList count=\"" << feature_map.size() << "\">\n";
+    startProgress(0, feature_map.size(), "Storing featureXML file");
     for (Size s = 0; s < feature_map.size(); s++)
     {
       writeFeature_(filename, os, feature_map[s], "f_", feature_map[s].getUniqueId(), 0);
+      setProgress(s);
       // writeFeature_(filename, os, feature_map[s], "f_", s, 0);
     }
+    endProgress();
 
     os << "\t</featureList>\n";
     os << "</featureMap>\n";
@@ -417,11 +411,11 @@ namespace OpenMS
       if (name != "" && value != "")
         param_.setValue(name, value);
     }
-    else if (tag == "userParam")
+    else if (tag == "userParam" || tag == "UserParam") // correct: "UserParam". Test for backwards compatibility.
     {
       if (last_meta_ == 0)
       {
-        fatalError(LOAD, String("Unexpected userParam in tag '") + parent_tag + "'");
+        fatalError(LOAD, String("Unexpected UserParam in tag '") + parent_tag + "'");
       }
 
       String name = attributeAsString_(attributes, s_name);
@@ -453,7 +447,7 @@ namespace OpenMS
       }
       else
       {
-        fatalError(LOAD, String("Invalid userParam type '") + type + "'");
+        fatalError(LOAD, String("Invalid UserParam type '") + type + "'");
       }
     }
     else if (tag == "featureMap")
@@ -486,6 +480,7 @@ namespace OpenMS
       {
         map_->setUniqueId(unique_id);
       }
+      last_meta_ = map_;
     }
     else if (tag == "dataProcessing")
     {
@@ -528,8 +523,14 @@ namespace OpenMS
       optionalAttributeAsString_(search_param_.taxonomy, attributes, "taxonomy");
       search_param_.charges = attributeAsString_(attributes, "charges");
       optionalAttributeAsUInt_(search_param_.missed_cleavages, attributes, "missed_cleavages");
-      search_param_.peak_mass_tolerance = attributeAsDouble_(attributes, "peak_mass_tolerance");
+      search_param_.fragment_mass_tolerance = attributeAsDouble_(attributes, "peak_mass_tolerance");
+      String peak_unit;
+      optionalAttributeAsString_(peak_unit, attributes, "peak_mass_tolerance_ppm");
+      search_param_.fragment_mass_tolerance_ppm = peak_unit == "true" ? true : false;
       search_param_.precursor_tolerance = attributeAsDouble_(attributes, "precursor_peak_tolerance");
+      String precursor_unit;
+      optionalAttributeAsString_(precursor_unit, attributes, "precursor_peak_tolerance_ppm");
+      search_param_.precursor_mass_tolerance_ppm = precursor_unit == "true" ? true : false;
       //mass type
       String mass_type = attributeAsString_(attributes, "mass_type");
       if (mass_type == "monoisotopic")
@@ -543,29 +544,9 @@ namespace OpenMS
       //enzyme
       String enzyme;
       optionalAttributeAsString_(enzyme, attributes, "enzyme");
-      if (enzyme == "trypsin")
+      if (EnzymesDB::getInstance()->hasEnzyme(enzyme))
       {
-        search_param_.enzyme = ProteinIdentification::TRYPSIN;
-      }
-      else if (enzyme == "pepsin_a")
-      {
-        search_param_.enzyme = ProteinIdentification::PEPSIN_A;
-      }
-      else if (enzyme == "protease_k")
-      {
-        search_param_.enzyme = ProteinIdentification::PROTEASE_K;
-      }
-      else if (enzyme == "chymotrypsin")
-      {
-        search_param_.enzyme = ProteinIdentification::CHYMOTRYPSIN;
-      }
-      else if (enzyme == "no_enzyme")
-      {
-        search_param_.enzyme = ProteinIdentification::NO_ENZYME;
-      }
-      else if (enzyme == "unknown_enzyme")
-      {
-        search_param_.enzyme = ProteinIdentification::UNKNOWN_ENZYME;
+        search_param_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme);
       }
       last_meta_ = &search_param_;
     }
@@ -700,19 +681,70 @@ namespace OpenMS
       //aa_before
       String tmp = "";
       optionalAttributeAsString_(tmp, attributes, "aa_before");
-
-      // store this information in first peptide evidence object
-      if (!tmp.empty() && !peptide_evidences_.empty())
+      if (!tmp.empty())
       {
-        peptide_evidences_[0].setAABefore(tmp[0]);
+        std::vector<String> splitted;
+        tmp.split(' ', splitted);
+        for (Size i = 0; i != splitted.size(); ++i)
+        { 
+          if (peptide_evidences_.size() < i + 1) 
+          {
+            peptide_evidences_.push_back(PeptideEvidence());
+          }
+          peptide_evidences_[i].setAABefore(splitted[i][0]);
+        }
       }
 
       //aa_after
       tmp = "";
       optionalAttributeAsString_(tmp, attributes, "aa_after");
-      if (!tmp.empty() && !peptide_evidences_.empty())
+      if (!tmp.empty())
       {
-        peptide_evidences_[0].setAAAfter(tmp[0]);
+        std::vector<String> splitted;
+        tmp.split(' ', splitted);
+        for (Size i = 0; i != splitted.size(); ++i)
+        { 
+          if (peptide_evidences_.size() < i + 1) 
+          {
+            peptide_evidences_.push_back(PeptideEvidence());
+          }
+          peptide_evidences_[i].setAAAfter(splitted[i][0]);
+        }
+      }
+
+      //start
+      tmp = "";
+      optionalAttributeAsString_(tmp, attributes, "start");
+
+      if (!tmp.empty())
+      {
+        std::vector<String> splitted;
+        tmp.split(' ', splitted);
+        for (Size i = 0; i != splitted.size(); ++i)
+        { 
+          if (peptide_evidences_.size() < i + 1) 
+          {
+            peptide_evidences_.push_back(PeptideEvidence());
+          }
+          peptide_evidences_[i].setStart(splitted[i].toInt());
+        }
+      }
+
+      //end
+      tmp = "";
+      optionalAttributeAsString_(tmp, attributes, "end");
+      if (!tmp.empty())
+      {
+        std::vector<String> splitted;
+        tmp.split(' ', splitted);
+        for (Size i = 0; i != splitted.size(); ++i)
+        { 
+          if (peptide_evidences_.size() < i + 1) 
+          {
+            peptide_evidences_.push_back(PeptideEvidence());
+          }
+          peptide_evidences_[i].setEnd(splitted[i].toInt());
+        }
       }
 
       pep_hit_.setPeptideEvidences(peptide_evidences_);
@@ -814,6 +846,15 @@ namespace OpenMS
       prot_id_.setSearchParameters(search_param_);
       search_param_ = ProteinIdentification::SearchParameters();
     }
+    else if (tag == "FixedModification")
+    {
+      last_meta_ = &search_param_;
+    }
+    else if (tag == "VariableModification")
+    {
+      last_meta_ = &search_param_;
+    }
+
     else if (tag == "ProteinHit")
     {
       prot_id_.insertHit(prot_hit_);
@@ -913,7 +954,7 @@ namespace OpenMS
 
       ConvexHull2D current_hull = hulls[i];
       current_hull.compress();
-      Size hull_size  = current_hull.getHullPoints().size();
+      Size hull_size = current_hull.getHullPoints().size();
 
       for (Size j = 0; j < hull_size; j++)
       {
@@ -950,7 +991,7 @@ namespace OpenMS
       writePeptideIdentification_(filename, os, feat.getPeptideIdentifications()[i], "PeptideIdentification", 3);
     }
 
-    writeUserParam_("userParam", os, feat, indentation_level + 3);
+    writeUserParam_("UserParam", os, feat, indentation_level + 3);
 
     os << indent << "\t\t</feature>\n";
   }
@@ -997,22 +1038,8 @@ namespace OpenMS
 
       vector<PeptideEvidence> pes = id.getHits()[j].getPeptideEvidences();
 
-      // do we have peptide evidence information? print information of the first one (featureXML only supports one evidence per hit)
-      if (!pes.empty())
-      {
-        if (pes[0].getAABefore() != PeptideEvidence::UNKNOWN_AA)
-        {
-          os << " aa_before=\"" << pes[0].getAABefore() << "\"";
-        }
-      }
-
-      if (!pes.empty())
-      {
-        if (pes[0].getAAAfter() != PeptideEvidence::UNKNOWN_AA)
-        {
-          os << " aa_after=\"" << pes[0].getAAAfter() << "\"";
-        }
-      }
+      os << IdXMLFile::createFlankingAAXMLString_(pes);
+      os << IdXMLFile::createPositionXMLString_(pes);
 
       set<String> protein_accessions = id.getHits()[j].extractProteinAccessions();
 
@@ -1031,14 +1058,14 @@ namespace OpenMS
         os << " protein_refs=\"" << accs << "\"";
       }
       os << ">\n";
-      writeUserParam_("userParam", os, id.getHits()[j], indentation_level + 2);
+      writeUserParam_("UserParam", os, id.getHits()[j], indentation_level + 2);
       os << indent << "\t</PeptideHit>\n";
     }
 
     //do not write "spectrum_reference" since it is written as attribute already
     MetaInfoInterface tmp = id;
     tmp.removeMetaValue("spectrum_reference");
-    writeUserParam_("userParam", os, tmp, indentation_level + 1);
+    writeUserParam_("UserParam", os, tmp, indentation_level + 1);
     os << indent << "</" << tag_name << ">\n";
   }
 

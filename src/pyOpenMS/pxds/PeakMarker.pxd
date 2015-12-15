@@ -12,6 +12,7 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/PeakMarker.h>" namespace "OpenM
         #  DefaultParamHandler
         PeakMarker() nogil except +
         PeakMarker(PeakMarker) nogil except +
-        # TEMPLATE # void apply(libcpp_map[ double, bool ] & , MSSpectrum[Peak1D] & ) nogil except +
+        # see child classes
+        # void apply(libcpp_map[ double, bool ] & , MSSpectrum[Peak1D] & ) nogil except +
         String getProductName() nogil except +
 

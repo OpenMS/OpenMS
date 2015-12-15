@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,6 +43,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
@@ -150,6 +151,11 @@ class SimpleSearchEngine :
       setValidStrings_("modifications:variable", all_mods);
       registerIntOption_("modifications:variable_max_per_peptide", "<num>", 2, "Maximum number of residues carrying a variable modification per candidate peptide", false, false);
 
+      vector<String> all_enzymes;
+      EnzymesDB::getInstance()->getAllNames(all_enzymes);
+      registerStringOption_("enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false);
+      setValidStrings_("enzyme", all_enzymes);
+
       registerTOPPSubsection_("peptide", "Peptide Options");
       registerIntOption_("peptide:min_size", "<num>", 7, "Minimum size a peptide must have after digestion to be considered in the search.", false, true);
       registerIntOption_("peptide:missed_cleavages", "<num>", 1, "Number of missed cleavages.", false, false);
@@ -191,7 +197,7 @@ class SimpleSearchEngine :
 
     // spectrum must not contain 0 intensity peaks and must be sorted by m/z
     template <typename SpectrumType>
-    void deisotopeAndSingleChargeMSSpectrum(SpectrumType& in, Int min_charge, Int max_charge, double fragment_tolerance, bool fragment_unit_ppm, bool keep_only_deisotoped = false, Size min_isopeaks = 3, Size max_isopeaks = 10, bool make_single_charged = true)
+    static void deisotopeAndSingleChargeMSSpectrum(SpectrumType& in, Int min_charge, Int max_charge, double fragment_tolerance, bool fragment_unit_ppm, bool keep_only_deisotoped = false, Size min_isopeaks = 3, Size max_isopeaks = 10, bool make_single_charged = true)
     {
       if (in.empty())
       {
@@ -554,7 +560,7 @@ class SimpleSearchEngine :
 
       const Size missed_cleavages = getIntOption_("peptide:missed_cleavages");
       EnzymaticDigestion digestor;
-      digestor.setEnzyme(EnzymaticDigestion::ENZYME_TRYPSIN);
+      digestor.setEnzyme(getStringOption_("enzyme"));
       digestor.setMissedCleavages(missed_cleavages);
 
       progresslogger.startProgress(0, (Size)(fasta_db.end() - fasta_db.begin()), "Scoring peptide models against spectra...");
@@ -691,6 +697,7 @@ class SimpleSearchEngine :
       postProcessHits_(spectra, peptide_hits, protein_ids, peptide_ids, report_top_hits);
       progresslogger.endProgress();
 
+      protein_ids[0].setPrimaryMSRunPath(spectra.getPrimaryMSRunPath());
       // write ProteinIdentifications and PeptideIdentifications to IdXML
       IdXMLFile().store(out_idxml, protein_ids, peptide_ids);
 

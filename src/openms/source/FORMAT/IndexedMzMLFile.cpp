@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -71,6 +71,7 @@ namespace OpenMS
     chromatograms_offsets_(source.chromatograms_offsets_),
     index_offset_(source.index_offset_),
     spectra_before_chroms_(source.spectra_before_chroms_),
+    // do not copy the filestream itself but open a new filestream using the same file
     filestream_(source.filename_.c_str()),
     parsing_success_(source.parsing_success_)
   {
@@ -158,7 +159,9 @@ namespace OpenMS
 #endif
 
     OpenMS::Interfaces::SpectrumPtr sptr(new OpenMS::Interfaces::Spectrum);
-    MzMLSpectrumDecoder().domParseSpectrum(text, sptr);
+    MzMLSpectrumDecoder d;
+    d.setSkipXMLChecks(skip_xml_checks_ );
+    d.domParseSpectrum(text, sptr);
 
 #ifdef DEBUG_READER
     std::cout << sptr->getIntensityArray()->data.size() << " int and mz : " << sptr->getMZArray()->data.size() << std::endl;
@@ -219,7 +222,9 @@ namespace OpenMS
 #endif
 
     OpenMS::Interfaces::ChromatogramPtr sptr(new OpenMS::Interfaces::Chromatogram);
-    MzMLSpectrumDecoder().domParseChromatogram(text, sptr);
+    MzMLSpectrumDecoder d;
+    d.setSkipXMLChecks(skip_xml_checks_ );
+    d.domParseChromatogram(text, sptr);
 
 #ifdef DEBUG_READER
     std::cout << sptr->getIntensityArray()->data.size() << " int and time : " << sptr->getTimeArray()->data.size() << std::endl;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/InspectInfile.h>
@@ -122,6 +123,8 @@ using namespace std;
                 This mode is selected by the <b>-inspect_out</b> option in the command line.
                 </li>
     </ol>
+
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_InspectAdapter.cli
@@ -841,12 +844,20 @@ protected:
         {
           // set the parameters
           ProteinIdentification::SearchParameters sp;
-          if (monoisotopic) sp.mass_type = ProteinIdentification::MONOISOTOPIC;
-          else sp.mass_type = ProteinIdentification::AVERAGE;
-          if (inspect_infile.getEnzyme() == "Trypsin") sp.enzyme = ProteinIdentification::TRYPSIN;
-          else if (inspect_infile.getEnzyme() == "No_Enzyme") sp.enzyme = ProteinIdentification::NO_ENZYME;
-          else sp.enzyme = ProteinIdentification::UNKNOWN_ENZYME;
-          sp.peak_mass_tolerance = inspect_infile.getPeakMassTolerance();
+          if (monoisotopic)
+          {
+            sp.mass_type = ProteinIdentification::MONOISOTOPIC;
+          }
+          else 
+          {
+            sp.mass_type = ProteinIdentification::AVERAGE;
+          }
+
+          if (EnzymesDB::getInstance()->hasEnzyme(inspect_infile.getEnzyme())) 
+          {
+            sp.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(inspect_infile.getEnzyme());
+          }
+          sp.fragment_mass_tolerance = inspect_infile.getPeakMassTolerance();
           sp.precursor_tolerance = inspect_infile.getPrecursorMassTolerance();
           protein_identification.setSearchParameters(sp);
 

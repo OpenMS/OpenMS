@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,12 @@
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 
+#include <OpenMS/METADATA/DataProcessing.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+
+#include <OpenMS/KERNEL/ComparatorUtils.h>
+
 namespace OpenMS
 {
   std::ostream& operator<<(std::ostream& os, const AnnotationStatistics& ann)
@@ -54,17 +60,17 @@ namespace OpenMS
     for (FeatureMap::const_iterator iter = map.begin(); iter != map.end(); ++iter)
     {
       os << iter->getPosition() << '\t'
-      << iter->getIntensity() << '\t'
-      << iter->getOverallQuality() << '\t'
-      << iter->getCharge() << '\t'
-      << iter->getUniqueId() << "\n";
+         << iter->getIntensity() << '\t'
+         << iter->getOverallQuality() << '\t'
+         << iter->getCharge() << '\t'
+         << iter->getUniqueId() << "\n";
     }
     os << "# -- DFEATUREMAP END --" << std::endl;
     return os;
   }
 
   AnnotationStatistics::AnnotationStatistics() :
-    states(BaseFeature::SIZE_OF_ANNOTATIONSTATE, 0)     // initialize all with 0
+    states(BaseFeature::SIZE_OF_ANNOTATIONSTATE, 0) // initialize all with 0
   {
   }
 
@@ -94,6 +100,7 @@ namespace OpenMS
 
   FeatureMap::FeatureMap() :
     Base(),
+    MetaInfoInterface(),
     RangeManagerType(),
     DocumentIdentifier(),
     UniqueIdInterface(),
@@ -106,6 +113,7 @@ namespace OpenMS
 
   FeatureMap::FeatureMap(const FeatureMap& source) :
     Base(source),
+    MetaInfoInterface(source),
     RangeManagerType(source),
     DocumentIdentifier(source),
     UniqueIdInterface(source),
@@ -125,6 +133,7 @@ namespace OpenMS
     if (&rhs == this) return *this;
 
     Base::operator=(rhs);
+    MetaInfoInterface::operator=(rhs);
     RangeManagerType::operator=(rhs);
     DocumentIdentifier::operator=(rhs);
     UniqueIdInterface::operator=(rhs);
@@ -138,6 +147,7 @@ namespace OpenMS
   bool FeatureMap::operator==(const FeatureMap& rhs) const
   {
     return std::operator==(*this, rhs) &&
+           MetaInfoInterface::operator==(rhs) &&
            RangeManagerType::operator==(rhs) &&
            DocumentIdentifier::operator==(rhs) &&
            UniqueIdInterface::operator==(rhs) &&
@@ -343,12 +353,33 @@ namespace OpenMS
     data_processing_ = processing_method;
   }
 
+  /// set the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)
+  void FeatureMap::setPrimaryMSRunPath(const StringList& s)
+  {
+    if (!s.empty())
+    {
+      this->setMetaValue("ms_run-location", DataValue(s));
+    }
+  }
+
+  /// get the file path to the first MS run
+  StringList FeatureMap::getPrimaryMSRunPath() const
+  {
+    StringList ret;
+    if (this->metaValueExists("ms_run-location"))
+    {
+      ret = this->getMetaValue("ms_run-location");
+    }
+    return ret;
+  }
+
   void FeatureMap::clear(bool clear_meta_data)
   {
     Base::clear();
 
     if (clear_meta_data)
     {
+      clearMetaInfo();
       clearRanges();
       this->DocumentIdentifier::operator=(DocumentIdentifier()); // no "clear" method
       clearUniqueId();

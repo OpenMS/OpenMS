@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,7 +45,7 @@ namespace OpenMS
 
   /** @brief This class implements a simple point pair finding algorithm.
 
-  It offers a method to find element pairs across two element maps.
+    It offers a method to find element pairs across two element maps.
 
     The similarity value should express our confidence that one element might
     possibly be matched to the other.  Larger quality values are better, the
@@ -105,12 +105,12 @@ public:
     }
 
     /**
-        @brief Run the algorithm
+      @brief Run the algorithm
 
-        @note Exactly two @em input maps must be provided.
-        @note All two @em input maps must be provided.
+      @note Exactly two @em input maps must be provided.
+      @note All two @em input maps must be provided.
 
-        @exception Exception::IllegalArgument is thrown if the input data is not valid.
+      @exception Exception::IllegalArgument is thrown if the input data is not valid.
     */
     virtual void run(const std::vector<ConsensusMap> & input_maps, ConsensusMap & result_map);
 

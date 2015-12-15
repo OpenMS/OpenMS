@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl, Andreas Bertsch $
-// $Authors: Clemens Groepl, Andreas Bertsch $
+// $Maintainer: Chris Bielow $
+// $Authors: Clemens Groepl, Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_H
@@ -128,6 +128,28 @@ public:
     */
     void estimateFromPeptideWeight(double average_weight);
 
+    /**
+        @brief Estimate Nucleotide Isotopedistribution from weight and number of isotopes that should be reported
+
+        averagine model from Zubarev, R. A.; Demirev, P. A. in
+        "Isotope  depletion  of  large biomolecules: Implications for molecular mass measurements."
+    */
+    void estimateFromRNAWeight(double average_weight);
+
+    /**
+        @brief Estimate Nucleotide Isotopedistribution from weight and number of isotopes that should be reported
+        averagine model from Zubarev, R. A.; Demirev, P. A. in
+        "Isotope  depletion  of  large biomolecules: Implications for molecular mass measurements."
+    */
+    void estimateFromDNAWeight(double average_weight);
+
+    /**
+
+        @brief Estimate Isotopedistribution from weight, average composition, and number of isotopes that should be reported
+
+    */
+    void estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P);
+
     /** @brief re-normalizes the sum of the probabilities of the isotopes to 1
 
             The re-normalisation is needed as in distributions with a lot of isotopes (and with high max isotope)
@@ -201,6 +223,9 @@ protected:
 
     /// convolves the distribution @p input with itself and stores the result in @p result
     void convolveSquare_(ContainerType & result, const ContainerType & input) const;
+
+    /// fill a gapped isotope pattern (i.e. certain masses are missing), with zero probability masses
+    ContainerType fillGaps_(const ContainerType& id) const;
 
     /// maximal isotopes which is used to calculate the distribution
     Size max_isotope_;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -58,14 +58,14 @@ namespace OpenMS
   {
   }
 
-  void OpenSwathScoring::initialize(double rt_normalization_factor_,
-    int add_up_spectra_, double spacing_for_spectra_resampling_,
-    OpenSwath_Scores_Usage & su_)
+  void OpenSwathScoring::initialize(double rt_normalization_factor,
+    int add_up_spectra, double spacing_for_spectra_resampling,
+    OpenSwath_Scores_Usage & su)
   {
-    this->rt_normalization_factor_ = rt_normalization_factor_;
-    this->add_up_spectra_ = add_up_spectra_;
-    this->spacing_for_spectra_resampling_ = spacing_for_spectra_resampling_;
-    this->su_ = su_;
+    this->rt_normalization_factor_ = rt_normalization_factor;
+    this->add_up_spectra_ = add_up_spectra;
+    this->spacing_for_spectra_resampling_ = spacing_for_spectra_resampling;
+    this->su_ = su;
   }
 
   void OpenSwathScoring::calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature, const std::vector<TransitionType> & transitions,
@@ -111,6 +111,22 @@ namespace OpenMS
       diascoring.dia_ms1_massdiff_score(precursor_mz, ms1_spectrum, scores.ms1_ppm_score);
       diascoring.dia_ms1_isotope_scores(precursor_mz, ms1_spectrum, pep.getChargeState(), scores.ms1_isotope_correlation, scores.ms1_isotope_overlap);
     }
+  }
+
+  void OpenSwathScoring::calculateDIAIdScores(OpenSwath::IMRMFeature* imrmfeature, const TransitionType & transition,
+      OpenSwath::SpectrumAccessPtr swath_map, OpenMS::DIAScoring & diascoring,
+      OpenSwath_Scores & scores)
+  {
+    // find spectrum that is closest to the apex of the peak using binary search
+    OpenSwath::SpectrumPtr spectrum_ = getAddedSpectra_(swath_map, imrmfeature->getRT(), add_up_spectra_);
+    OpenSwath::SpectrumPtr* spectrum = &spectrum_;
+
+    // Isotope correlation / overlap score: Is this peak part of an
+    // isotopic pattern or is it the monoisotopic peak in an isotopic
+    // pattern?
+    diascoring.dia_ms1_isotope_scores(transition.getProductMZ(), (*spectrum), transition.getProductChargeState(), scores.isotope_correlation, scores.isotope_overlap);
+    // Mass deviation score
+    diascoring.dia_ms1_massdiff_score(transition.getProductMZ(), (*spectrum), scores.massdev_score);
   }
 
   void OpenSwathScoring::calculateChromatographicScores(
@@ -160,6 +176,33 @@ namespace OpenMS
       // everything below S/N 1 can be set to zero (and the log safely applied)
       if (scores.sn_ratio < 1) { scores.log_sn_score = 0; }
       else { scores.log_sn_score = std::log(scores.sn_ratio); }
+    }
+  }
+
+  void OpenSwathScoring::calculateChromatographicIdScores(
+        OpenSwath::IMRMFeature* imrmfeature,
+        const std::vector<std::string>& native_ids_identification,
+        const std::vector<std::string>& native_ids_detection,
+        std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
+        OpenSwath_Scores & idscores)
+  { 
+    OpenSwath::MRMScoring mrmscore_;
+    mrmscore_.initializeXCorrIdMatrix(imrmfeature, native_ids_identification, native_ids_detection);
+
+    if (su_.use_coelution_score_)
+    {
+      idscores.ind_xcorr_coelution_score = mrmscore_.calcIndXcorrIdCoelutionScore();
+    }
+
+    if (su_.use_shape_score_)
+    {
+      idscores.ind_xcorr_shape_score = mrmscore_.calcIndXcorrIdShape_score();
+    }
+
+    // Signal to noise scoring
+    if (su_.use_sn_score_)
+    {
+      idscores.ind_log_sn_score = mrmscore_.calcIndSNScore(imrmfeature, signal_noise_estimators);
     }
   }
 

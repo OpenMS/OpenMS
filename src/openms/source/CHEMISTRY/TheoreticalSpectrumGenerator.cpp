@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -238,7 +238,10 @@ namespace OpenMS
     double intensity(0);
     bool add_first_prefix_ion(param_.getValue("add_first_prefix_ion").toBool());
 
-    // generate the ion peaks
+    // Generate the ion peaks:
+    // Does not generate peaks of full peptide (therefore "<").
+    // They are added via precursor mass (and neutral losses).
+    // Could be changed in the future.
     switch (res_type)
     {
     case Residue::AIon:

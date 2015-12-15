@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,9 +39,9 @@
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/XMLFile.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
 
 #include <vector>
 #include <map>
@@ -76,13 +76,16 @@ public:
         @param proteins Protein identification output
         @param peptides Peptide identification output
         @param experiment_name Experiment file name, which is used to extract the corresponding search results from the PepXML file.
-        @param experiment MS run to extract the retention times from (PepXML may contain only scan numbers).
-        @param use_precursor_data Use m/z and RT of the precursor (instead of the RT of the MS2 spectrum) for the peptide?
+        @param lookup Helper for looking up retention times (PepXML may contain only scan numbers).
 
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String& filename, std::vector<ProteinIdentification>& proteins, std::vector<PeptideIdentification>& peptides, const String& experiment_name, const MSExperiment<>& experiment, bool use_precursor_data = false);
+    void load(const String& filename,
+              std::vector<ProteinIdentification>& proteins,
+              std::vector<PeptideIdentification>& peptides,
+              const String& experiment_name,
+              const SpectrumMetaDataLookup& lookup);
 
     /**
         @brief @a load function with empty defaults for some parameters (see above)
@@ -90,14 +93,31 @@ public:
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String& filename, std::vector<ProteinIdentification>& proteins, std::vector<PeptideIdentification>& peptides, const String& experiment_name = "");
+    void load(const String& filename,
+              std::vector<ProteinIdentification>& proteins,
+              std::vector<PeptideIdentification>& peptides,
+              const String& experiment_name = "");
 
     /**
         @brief Stores idXML as PepXML file
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be opened for writing
     */
-    void store(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, const String& mz_file = "", const String& mz_name = "", bool peptideprophet_analyzed = false);
+    void store(const String& filename, std::vector<ProteinIdentification>& protein_ids, 
+               std::vector<PeptideIdentification>& peptide_ids, const String& mz_file = "",
+               const String& mz_name = "", bool peptideprophet_analyzed = false);
+
+    /**
+        @brief Whether we should keep the native spectrum name of the pepXML
+
+        @note This will lead to a "pepxml_spectrum_name" meta value being added
+        to each PeptideIdentification containing the original name of the
+        spectrum in TPP format.
+    */
+    void keepNativeSpectrumName(bool keep) 
+    {
+      keep_native_name_ = keep;
+    }
 
 protected:
 
@@ -180,8 +200,8 @@ private:
     /// Pointer to the list of identified peptides
     std::vector<PeptideIdentification>* peptides_;
 
-    /// Pointer to the experiment from which the pepXML file was generated
-    const MSExperiment<>* experiment_;
+    /// Pointer to wrapper for looking up spectrum meta data
+    const SpectrumMetaDataLookup* lookup_;
 
     /// Name of the associated experiment (filename of the data file, extension will be removed)
     String exp_name_;
@@ -189,20 +209,29 @@ private:
     /// Set name of search engine
     String search_engine_;
 
+    /// Several optional attributes of spectrum_query
+    String native_spectrum_name_;
+    String experiment_label_;
+    String swath_assay_;
+    String status_;
+
     /// Get RT and m/z for peptide ID from precursor scan (should only matter for RT)?
     bool use_precursor_data_;
 
     /// Mapping between scan number in the pepXML file and index in the corresponding MSExperiment
     std::map<Size, Size> scan_map_;
 
-    /// Retention time and mass-to-charge tolerance
-    double rt_tol_, mz_tol_;
-
     /// Hydrogen data (for mass types)
     Element hydrogen_;
 
     /// Are we currently in an "analysis_summary" element (should be skipped)?
     bool analysis_summary_;
+
+    /// Whether we should keep the native spectrum name of the pepXML
+    bool keep_native_name_;
+
+    /// Are we currently in an "search_score_summary" element (should be skipped)?
+    bool search_score_summary_;
 
     /// Do current entries belong to the experiment of interest (for pepXML files that bundle results from different experiments)?
     bool wrong_experiment_;
@@ -222,11 +251,14 @@ private:
     /// Search parameters of the current identification run
     ProteinIdentification::SearchParameters params_;
 
-    /// Enzyme associated with the current identification run
-    ProteinIdentification::DigestionEnzyme enzyme_;
+    /// Enzyme name associated with the current identification run
+    String enzyme_;
 
     /// PeptideIdentification instance currently being processed
     PeptideIdentification current_peptide_;
+
+    /// Analysis result instance currently being processed
+    PeptideHit::PepXMLAnalysisResult current_analysis_result_;
 
     /// PeptideHit instance currently being processed
     PeptideHit peptide_hit_;

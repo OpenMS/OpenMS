@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -64,7 +64,7 @@ namespace OpenMS
 public:
 
       /// Default constructor
-      XTandemInfileXMLHandler(const String & filename, std::vector<XTandemInfileNote> & notes, XTandemInfile * infile);
+      XTandemInfileXMLHandler(const String & filename, std::vector<XTandemInfileNote> & notes);
 
       /// Destructor
       virtual ~XTandemInfileXMLHandler();
@@ -82,11 +82,9 @@ protected:
 
       std::vector<XTandemInfileNote> & notes_;
 
-      XTandemInfile * infile_;
-
       XTandemInfileNote actual_note_;
 
-      String tag_;
+      StringList tag_;
     };
 
   }   // namespace Internal

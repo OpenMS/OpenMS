@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -57,17 +57,31 @@ namespace OpenMS
 
      @f$ RT_i @f$, @f$ MZ_i @f$, and @f$ int_i @f$ are the RT, m/z, and intensity values of the respective feature.
 
-     @f$ {\Delta RT_{max}} @f$ and @f$ {\Delta MZ_{max}} @f$ are the maximum allowed differences in RT and m/z, respectively. They are specified by the parameters @p distance_RT:max_difference and @p distance_MZ:max_difference, and are used for normalization. If an absolute difference exceeds the specified maximum, the behavior depends on the value used for @p check_constraints in the constructor: If "false", the distance will be computed normally, but may become greater than 1; if "true", the fixed value @ref infinity is returned.
+     Constraints are: @f$ {\Delta RT_{max}}, {\Delta MZ_{max}} @f$ and @f$ int_{max} @f$.
+     If an absolute difference exceeds the specified maximum, the behavior depends on the value used for @p check_constraints in the constructor: 
+     If "false" (i.e., no constraints), the distance in that dimension may become greater than 1; if "true", @ref infinity is returned as overall distance.
 
-     @f$ int_{max} @f$ is the maximum intensity that can occur for features compared by this distance function. It is not a parameter specified by the user, but depends on the data at hand and is thus set in the constructor (via parameter @p max_intensity).
+     @f$ {\Delta RT_{max}} @f$ and @f$ {\Delta MZ_{max}} @f$ are the maximum allowed differences in RT and m/z, respectively. 
+     They are specified by the parameters @p distance_RT:max_difference and @p distance_MZ:max_difference, and are used for normalization,
+     i.e., the observed RT or m/z differences of the feature pair are scaled relative to this value.
+     
+     @f$ int_{max} @f$ is the intensity which yields a normalized intensity of 1. This parameter is not settable via user params,
+     but is set in the constructor (via parameter @p max_intensity), since it depends on the data at hand.
 
-     @f$ w_X @f$ is the weight of distance component X, specified by the parameter @p distance_X:weight. The weights can be used to increase or decrease the contribution of RT, m/z, or intensity in the distance function. (Note that the default weight for the intensity component is zero, i.e. intensity is not considered by default.)
+     @f$ p_X @f$ is the exponent for the distance in dimension X, specified by the parameter @p distance_X:exponent. 
+     Normalized differences (between (0, 1) unless unconstrained) are taken to this power. This makes it possible to compare values using linear, quadratic, etc. distance.
 
-     @f$ p_X @f$ is the exponent for distance component X, specified by the parameter @p distance_X:exponent. Normalized differences are taken to this power. This makes it possible to compare values using linear, quadratic, etc. distance.
+     @f$ w_X @f$ is the weight of final distance in dimension X, specified by the parameter @p distance_X:weight. The weights can be used to increase or decrease 
+     the contribution of RT, m/z, or intensity in the distance function. 
+     (The default weight for the intensity dimension is zero, i.e. intensity is not considered by default. However, @f$ int_{max} @f$ is still a constraint and
+      should be set sensibly in the c'tor.)
 
-     By default, two features are only compared if they have the same charge state (or charge state 0 for "undefined") - otherwise, @ref infinity is returned. This behavior can be changed by the @p ignore_charge parameter.
+     By default, two features are paired only if they have the same charge state (or at least one unknown charge '0') - otherwise, @ref infinity is returned. 
+     This behavior can be changed by the @p ignore_charge parameter.
 
-     @note Peptide identifications annotated to features are not taken into account here, because they are stored in a format that is not suitable for rapid comparison.
+
+     @note Peptide identifications annotated to features are not taken into account here, 
+           because they are stored in a format that is not suitable for rapid comparison.
 
    @htmlinclude OpenMS_FeatureDistance.parameters
 
@@ -81,10 +95,10 @@ public:
     static const double infinity;
 
     /**
-         @brief Constructor
+       @brief Constructor
 
-         @param max_intensity Maximum intensity of features (for normalization)
-         @param force_constraints Check "max. difference" constraints given in the parameters and return @ref infinity if violated?
+       @param max_intensity Maximum intensity of features (for normalization)
+       @param force_constraints Check "max. difference" constraints given in the parameters and return @ref infinity if violated?
     */
     FeatureDistance(double max_intensity = 1.0,
                     bool force_constraints = false);
@@ -96,14 +110,17 @@ public:
     FeatureDistance & operator=(const FeatureDistance & other);
 
     /**
-         @brief Evaluation operator - checks constraints and computes the distance between two features
+       @brief Evaluation operator - checks constraints and computes the distance between two features
 
-         @returns In the first element, whether constraints were satisfied; in the second element, the distance (@ref infinity if constraints were violated and @ref force_constraints_ is true).
+       @returns In the first element, whether constraints were satisfied; in
+       the second element, the distance (@ref infinity if constraints were
+       violated and @ref force_constraints_ is true).
     */
     std::pair<bool, double> operator()(const BaseFeature & left,
                                            const BaseFeature & right);
 
 protected:
+
     /// Structure for storing distance parameters
     struct DistanceParams_
     {
@@ -112,14 +129,25 @@ protected:
       DistanceParams_(const String & what, const Param & global)
       {
         Param param = global.copy("distance_" + what + ":", true);
-        if (what == "MZ") max_diff_ppm = param.getValue("unit") == "ppm";
-        else max_diff_ppm = false;
+        if (what == "MZ") 
+        {
+          max_diff_ppm = (param.getValue("unit") == "ppm");
+        }
+        else 
+        {
+          max_diff_ppm = false;
+        }
+
         max_difference = param.getValue("max_difference");
         exponent = param.getValue("exponent");
         weight = param.getValue("weight");
         norm_factor = 1 / max_difference;
+
         relevant = (weight != 0.0) && (exponent != 0.0);
-        if (!relevant) weight = 0.0;
+        if (!relevant) 
+        {
+            weight = 0.0;
+        }
       }
 
       double max_difference, exponent, weight, norm_factor;

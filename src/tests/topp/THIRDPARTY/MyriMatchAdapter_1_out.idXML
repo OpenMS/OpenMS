@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="http://open-ms.sourceforge.net/XSL/IdXML.xsl" ?>
-<IdXML version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="/raid/sachsenb/open-ms/OpenMSRelease1.10/source/TEST/TOPP/THIRDPARTY/OMSSAAdapter_1.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
-		<VariableModification name="Oxidation" />
+<IdXML version="1.3" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="/nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/src/tests/topp/THIRDPARTY/proteins.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="+1-+3" enzyme="unknown_enzyme" missed_cleavages="4294967295" precursor_peak_tolerance="5" peak_mass_tolerance="0.3" >
+		<VariableModification name="Oxidation (M)" />
 	</SearchParameters>
-	<IdentificationRun date="2013-02-22T16:35:58" search_engine="MyriMatch" search_engine_version="" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2015-10-23T17:00:24" search_engine="MyriMatch" search_engine_version="2.1.132" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="test2_rev" score="0" sequence="" >
 			</ProteinHit>
@@ -12,6 +12,7 @@
 			</ProteinHit>
 			<ProteinHit id="PH_2" accession="BSA3" score="0" sequence="" >
 			</ProteinHit>
+			<UserParam type="stringList" name="ms_run-location" value="[file:///C:/testing/test_file_path/test_file_name.raw]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="mvh" higher_score_better="true" significance_threshold="0" MZ="520.263365947832" RT="2655.09570312498" >
 			<PeptideHit score="39.267901895785" sequence="DFASSGGYVLHLHR" charge="3" aa_before="-" aa_after="E" protein_refs="PH_0" >

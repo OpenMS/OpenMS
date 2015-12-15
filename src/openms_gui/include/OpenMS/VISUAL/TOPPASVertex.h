@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -215,6 +215,7 @@ public:
     /// Sets the topological sort number (overridden in tool and output vertices)
     virtual void setTopoNr(UInt nr);
     /// Resets the status
+    /// @param reset_all_files Not used in this implementation, but in derived classes
     virtual void reset(bool reset_all_files = false);
     /// Marks this node (and everything further downstream) as unreachable. Overridden behavior in mergers.
     virtual void markUnreachable();

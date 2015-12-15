@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -729,9 +729,9 @@ protected:
     ///@name Translation methods, which are called when cursor buttons are pressed
     //@{
     /// Translation bound to the 'Left' key
-    virtual void translateLeft_();
+    virtual void translateLeft_(Qt::KeyboardModifiers m);
     /// Translation bound to the 'Right' key
-    virtual void translateRight_();
+    virtual void translateRight_(Qt::KeyboardModifiers m);
     /// Translation bound to the 'Up' key
     virtual void translateForward_();
     /// Translation bound to the 'Down' key
@@ -940,15 +940,15 @@ protected:
       std::set<DataProcessing::ProcessingAction> actions;
       actions.insert(action);
 
-      DataProcessing p;
+      DataProcessingPtr p = boost::shared_ptr<DataProcessing>(new DataProcessing);
       //actions
-      p.setProcessingActions(actions);
+      p->setProcessingActions(actions);
       //software
-      p.getSoftware().setName("SpectrumCanvas");
+      p->getSoftware().setName("SpectrumCanvas");
       //version
-      p.getSoftware().setVersion(VersionInfo::getVersion());
+      p->getSoftware().setVersion(VersionInfo::getVersion());
       //time
-      p.setCompletionTime(DateTime::now());
+      p->setCompletionTime(DateTime::now());
 
       for (Size i = 0; i < map.size(); ++i)
       {

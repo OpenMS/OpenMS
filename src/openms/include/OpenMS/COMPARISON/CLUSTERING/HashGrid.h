@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -262,20 +262,22 @@ private:
     CellIndex grid_dimension_;
 
 public:
+
     /**
      * @brief Dimension of cells.
      */
     const ClusterCenter cell_dimension;
+
     /**
      * @brief Upper-right corner of key space for cells.
      */
     const CellIndex & grid_dimension;
 
 public:
-    HashGrid(const ClusterCenter & cell_dimension) :
+    HashGrid(const ClusterCenter & c_dimension) :
       cells_(), 
       grid_dimension_(), 
-      cell_dimension(cell_dimension), 
+      cell_dimension(c_dimension), 
       grid_dimension(grid_dimension_)
     {}
 

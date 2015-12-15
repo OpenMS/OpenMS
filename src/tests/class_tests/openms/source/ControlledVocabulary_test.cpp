@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch  $
-// $Authors: Marc Sturm, Andreas Bertsch $
+// $Maintainer: Mathias Walzer  $
+// $Authors: Marc Sturm, Andreas Bertsch, Mathias Walzer$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -204,6 +204,36 @@ START_SECTION(([ControlledVocabulary::CVTerm] static String getXRefTypeName(XRef
   TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_BOOLEAN), "xsd:boolean")
   TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_DATE), "xsd:date")
   TEST_STRING_EQUAL(ControlledVocabulary::CVTerm::getXRefTypeName(ControlledVocabulary::CVTerm::XSD_ANYURI), "xsd:anyURI")
+}
+END_SECTION
+
+
+START_SECTION(([ControlledVocabulary::CVTerm] bool ControlledVocabulary::CVTerm::isHigherBetterScore(ControlledVocabulary::CVTerm term)))
+{
+  ControlledVocabulary cv;
+  cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
+  TEST_EQUAL(ControlledVocabulary::CVTerm::isHigherBetterScore(cv.getTerm("MS:1001331")),true)
+  TEST_EQUAL(ControlledVocabulary::CVTerm::isHigherBetterScore(cv.getTerm("MS:1002265")),false)
+  TEST_EQUAL(ControlledVocabulary::CVTerm::isHigherBetterScore(cv.getTerm("MS:1002467")),true)
+}
+END_SECTION
+
+START_SECTION(([ControlledVocabulary::CVTerm] String ControlledVocabulary::CVTerm::toXMLString(const OpenMS::String& ref, const String& value) const))
+{
+  ControlledVocabulary cv;
+  cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
+  String ref = "<cvParam accession=\"MS:1001331\" cvRef=\"PSI-MS\" name=\"X\\!Tandem:hyperscore\" value=\"44.4\"/>";
+  TEST_STRING_EQUAL(cv.getTerm("MS:1001331").toXMLString("PSI-MS",String("44.4")),ref)
+}
+END_SECTION
+
+START_SECTION(([ControlledVocabulary::CVTerm] String ControlledVocabulary::CVTerm::toXMLString(const OpenMS::String& ref, const OpenMS::DataValue& value) const))
+{
+  ControlledVocabulary cv;
+  cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
+  String ref = "<cvParam accession=\"MS:1001331\" cvRef=\"PSI-MS\" name=\"X\\!Tandem:hyperscore\" value=\"44.4\"/>";
+  OpenMS::DataValue val = 44.4;
+  TEST_STRING_EQUAL(cv.getTerm("MS:1001331").toXMLString("PSI-MS",val),ref)
 }
 END_SECTION
 

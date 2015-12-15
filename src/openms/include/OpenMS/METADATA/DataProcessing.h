@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,6 +40,7 @@
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 
 #include <set>
+#include <boost/shared_ptr.hpp>
 
 namespace OpenMS
 {
@@ -122,6 +123,10 @@ protected:
     std::set<ProcessingAction> processing_actions_;
     DateTime completion_time_;
   };
+
+  typedef boost::shared_ptr<DataProcessing> DataProcessingPtr;
+  typedef boost::shared_ptr<const DataProcessing> ConstDataProcessingPtr;
+
 } // namespace OpenMS
 
 #endif // OPENMS_METADATA_DATAPROCESSING_H

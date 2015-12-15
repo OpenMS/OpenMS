@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Mathias Walzer $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
 
@@ -44,7 +44,7 @@ namespace OpenMS
   Normalizer::Normalizer() :
     DefaultParamHandler("Normalizer")
   {
-    defaults_.setValue("method", "to_one", "Normalize by deviding though the TIC ('to_TIC') or normalize to max intensity of one ('to_one').");
+    defaults_.setValue("method", "to_one", "Normalize via dividing by TIC ('to_TIC') per spectrum or normalize to max. intensity of one ('to_one') per spectrum.");
     defaults_.setValidStrings("method", ListUtils::create<String>("to_one,to_TIC"));
     defaultsToParam_();
   }
@@ -67,17 +67,22 @@ namespace OpenMS
     return *this;
   }
 
-  void Normalizer::filterPeakSpectrum(PeakSpectrum & spectrum)
+  void Normalizer::filterPeakSpectrum(PeakSpectrum& spectrum) const
   {
     filterSpectrum(spectrum);
   }
 
-  void Normalizer::filterPeakMap(PeakMap & exp)
+  void Normalizer::filterPeakMap(PeakMap& exp) const
   {
     for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
     {
       filterSpectrum(*it);
     }
+  }
+
+  void Normalizer::updateMembers_()
+  {
+    method_ = param_.getValue("method");
   }
 
 }

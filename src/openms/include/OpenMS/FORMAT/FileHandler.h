@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -113,7 +113,8 @@ public:
       @param exp The experiment to load the data into.
       @param force_type Forces to load the file with that file type. If no type is forced, it is determined from the extension (or from the content if that fails).
       @param log Progress logging mode
-      @param compute_hash Computes a hash value for the loaded file and stores it in the SourceFile
+      @param rewrite_source_file Set's the SourceFile name and path to the current file. Note that this looses the link to the primary MS run the file originated from.
+      @param compute_hash If source files are rewritten, this flag triggers a recomputation of hash values. A SHA1 string gets stored in the checksum member of SourceFile.
 
       @return true if the file could be loaded, false otherwise
 
@@ -121,8 +122,11 @@ public:
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
     template <class PeakType>
-    bool loadExperiment(const String& filename, MSExperiment<PeakType>& exp, FileTypes::Type force_type = FileTypes::UNKNOWN, ProgressLogger::LogType log = ProgressLogger::NONE, const bool compute_hash = true)
+    bool loadExperiment(const String& filename, MSExperiment<PeakType>& exp, FileTypes::Type force_type = FileTypes::UNKNOWN, ProgressLogger::LogType log = ProgressLogger::NONE, const bool rewrite_source_file = true, const bool compute_hash = true)
     {
+      // setting the flag for hash recomputation only works if source file entries are rewritten 
+      OPENMS_PRECONDITION(rewrite_source_file || !compute_hash, "Can't compute hash if no SourceFile written");
+
       //determine file type
       FileTypes::Type type;
       if (force_type != FileTypes::UNKNOWN)
@@ -221,20 +225,27 @@ public:
         break;
       }
 
-      SourceFile src_file;
-      src_file.setNameOfFile(File::basename(filename));
-      src_file.setPathToFile(String("file:///") + File::path(filename));
-      // this is more complicated since the data formats allowed by mzML are very verbose.
-      // this is prone to changing CV's... our writer will fall back to a default if the name given here is invalid.
-      src_file.setFileType(FileTypes::typeToMZML(type));
-
-      if (compute_hash)
+      if (rewrite_source_file)
       {
-        src_file.setChecksum(computeFileHash_(filename), SourceFile::SHA1);
-      }
+        SourceFile src_file;
+        src_file.setNameOfFile(File::basename(filename));
+        String path_to_file = File::path(File::absolutePath(filename)); //convert to absolute path and strip file name
+        
+        // make sure we end up with at most 3 forward slashes       
+        String uri = path_to_file.hasPrefix("/") ? String("file://") + path_to_file : String("file:///") + path_to_file;
+        src_file.setPathToFile(uri);
+        // this is more complicated since the data formats allowed by mzML are very verbose.
+        // this is prone to changing CV's... our writer will fall back to a default if the name given here is invalid.
+        src_file.setFileType(FileTypes::typeToMZML(type));
 
-      exp.getSourceFiles().clear();
-      exp.getSourceFiles().push_back(src_file);
+        if (compute_hash)
+        {
+          src_file.setChecksum(computeFileHash(filename), SourceFile::SHA1);
+        }
+
+        exp.getSourceFiles().clear();
+        exp.getSourceFiles().push_back(src_file);
+      }
 
       return true;
     }
@@ -326,15 +337,16 @@ public:
     */
     bool loadFeatures(const String& filename, FeatureMap& map, FileTypes::Type force_type = FileTypes::UNKNOWN);
 
-private:
-    PeakFileOptions options_;
-
     /**
       @brief Computes a SHA-1 hash value for the content of the given file.
 
       @return The SHA-1 hash of the given file.
     */
-    String computeFileHash_(const String& filename) const;
+    static String computeFileHash(const String& filename);
+
+private:
+    PeakFileOptions options_;
+
   };
 
 } //namespace

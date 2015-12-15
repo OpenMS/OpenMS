@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -1051,8 +1051,8 @@ START_SECTION((void getSVCProbabilities(struct svm_problem *problem, std::vector
 	TEST_EQUAL(predicted_labels.size() == probabilities.size(), true)
 	for (Size i = 0; i < predicted_labels.size(); ++i)
 	{
-		TEST_EQUAL((predicted_labels[i] < 0 && probabilities[i] <= 0.5)
-							|| (predicted_labels[i] > 0 && probabilities[i] > 0.5), true)
+		TEST_EQUAL((predicted_labels[i] < 0 && probabilities[i] < 0.5)
+							|| (predicted_labels[i] > 0 && probabilities[i] >= 0.5), true)
 	}
 
 END_SECTION

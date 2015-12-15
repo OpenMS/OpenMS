@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -84,6 +84,9 @@ public:
     /// returns the error message, if hasError can be used to check whether an error has occurred
     OPENMS_DLLAPI const String& getErrorMessage() const;
 
+	/// returns the search number
+    OPENMS_DLLAPI Int getSearchNumber() const;
+
 protected:
 
     OPENMS_DLLAPI virtual void updateMembers_();
@@ -157,6 +160,8 @@ private:
     */
     void removeHostName_(QString& url);
 
+    OPENMS_DLLAPI Int getSearchNumberFromFilePath_(const String& path) const;
+
     String query_spectra_;
     QByteArray mascot_xml_;
     QHttp* http_;
@@ -164,6 +169,7 @@ private:
     String error_message_;
     QTimer timeout_;
     Int to_;
+    Int search_number_;
 
     /// Path on mascot server
     String server_path_;

@@ -8,15 +8,23 @@
 Redistributions
 Tuebingen
 Freie
+Eberhard
 Karls
 ETH
 Universitaet
 Lund
+MERCHANTABILITY
 # }}}
 
 ###################################
 # 2. Authors {{{
 ###################################
+Julianus
+Pfeuffer
+Demirev
+Zubarev
+Liang
+Xiao
 Alexandra
 Zerck
 Andreas
@@ -113,6 +121,12 @@ Florian
 Zeller
 Peter
 Kunszt
+Johan
+Helge
+Lennart
+Ralf
+Nicolai
+Ivar
 # }}}
 
 ###################################
@@ -186,13 +200,11 @@ cdot
 ClusterMethod
 Const
 C'Tor
+gnuplot
+getter
 IMPL
 Longman
 lookup
-mzIdentML
-MzML
-mzQuantML
-PepNovo
 subtree
 TOPPASINPUTFILESDIALOG
 typedefs
@@ -200,7 +212,6 @@ XMass
 Accessor
 ctor
 defgroup
-HUPO
 maxima
 novo
 PeakDetection
@@ -215,11 +226,8 @@ frameSize
 lorentzian
 lowpass
 mapList
-OpenGL
-PeakSpectra
 versa
-XTandem
-XTandemXML
+
 # }}}
 
 ###################################
@@ -440,7 +448,12 @@ Faires
 ###################################
 # Classnames, functions and closely related {{{
 ###################################
+
 # {{{Classnames
+MapAlignmentAlgorithm
+ConvertTSVToTraML
+MultiplexPeakPattern
+SILACAnalyzer
 LowLevelComparator
 IDEvaluatorGUI
 AxisWidget
@@ -629,6 +642,8 @@ MetaDataBrowser
 #  }}}
 
 # Functions {{{ 
+computeFwhmAreaRobust
+computeFwhmAreaSmoothRobust
 encodeInt
 encodings
 updateCRC
@@ -709,6 +724,23 @@ getChromatogam
 
 #  }}}
 
+AveragineModifications
+FirstScan
+NumOfScans
+
+BFS
+ConnectedComponents
+PepHit
+PeptideIDs
+ProtGroups
+
+JBC
+PEPs
+ScoringMatrix
+PEPIons
+PEPs
+ConsensusID
+PEPs
   
 lastPackage
 AAD
@@ -720,6 +752,13 @@ maximus
 
 ApprLineFit
 GeometricTools
+DataCollection
+IdentificationRuns
+PeptideEvidences
+SequenceCollection
+spectradata
+XSValue
+
 # }}}
 
 ###################################
@@ -745,6 +784,20 @@ ltnote
 ###################################
 # common technical words {{{
 ###################################
+FHWM
+datasets
+Fortran
+NETLIB
+nonrobust
+LLVM
+tokenize
+Wikipedia
+Exabyte
+Exbibit
+Exbibyte
+subelement
+subdirectory
+NaN
 peaklist
 doi
 pubmed
@@ -930,11 +983,22 @@ rowspan
 Google
 ol
 Javascript
+BGCOLOR
+EBEBEB
+PRECRT
 # }}}
 
 ###################################
 # common Mass spectrometry and OpenMS words {{{
 ###################################
+dimethyl
+FTICR
+MascotAdapter
+Hydroxylation
+Histidin
+Leucin
+Phenylalanin
+PSM’s
 pepID
 Carboxymethyl
 paramXML
@@ -1107,6 +1171,19 @@ Transcodes
 sulfoxide
 codon
 immonium
+PepNovo
+HUPO
+OpenGL
+PeakSpectra
+XTandem
+XTandemXML
+mzIdentML
+MzML
+mzQuantML
+
+Askenazi
+Savitski
+Sweetman
 # }}}
 
 ###################################
@@ -1118,7 +1195,6 @@ silico
 combinatoric
 crosscorrelation
 crosscorrelations
-accessably
 unclustered
 seeked
 online
@@ -1131,7 +1207,6 @@ deviancies
 proto
 cohesions
 agglomerative
-advancedness
 skipexists
 smoothes
 subregion
@@ -1145,7 +1220,6 @@ preincrement
 ascendingly
 syncronicity
 homonymous
-syncronize
 # }}}
 
 ###################################
@@ -1630,7 +1704,7 @@ ttime
 ttotalIntensity
 # }}}
 
-# Almost english words {{{
+# Almost English words {{{
 Coeluting
 decharged
 decharge

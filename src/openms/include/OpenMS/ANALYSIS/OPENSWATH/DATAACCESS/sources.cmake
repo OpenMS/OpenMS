@@ -7,6 +7,7 @@ DataAccessHelper.h
 MRMFeatureAccessOpenMS.h
 SpectrumAccessOpenMS.h
 SpectrumAccessOpenMSCached.h
+SpectrumAccessOpenMSInMemory.h
 SimpleOpenMSSpectraAccessFactory.h
 SpectrumAccessQuadMZTransforming.h
 )

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -71,6 +71,9 @@ namespace OpenMS
     connect(browse_button, SIGNAL(clicked()), this, SLOT(showFileDialog()));
     connect(ok_button, SIGNAL(clicked()), this, SLOT(checkValidity_()));
     connect(cancel_button, SIGNAL(clicked()), this, SLOT(reject()));
+    
+    // make Ok the default (just pressing Enter will run the workflow)
+    ok_button->setFocus();
   }
 
   void TOPPASOutputFilesDialog::showFileDialog()

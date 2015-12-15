@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -68,7 +68,7 @@ public:
     ///Hit type definition
     typedef PeptideHit HitType;
 
-    /// @name constructors,destructors,assignment operator
+    /// @name Constructors, destructor, operators
     //@{
     /// default constructor
     PeptideIdentification();
@@ -84,9 +84,9 @@ public:
     bool operator!=(const PeptideIdentification& rhs) const;
     //@}
 
-    /// returns the RT of the MS2 spectrum
+    /// returns the RT of the MS2 spectrum where the identification occurred
     double getRT() const;
-    /// sets the RT of the MS2 spectrum
+    /// sets the RT of the MS2 spectrum where the identification occurred
     void setRT(double rt);
     /// shortcut for isnan(getRT())
     bool hasRT() const;
@@ -132,6 +132,11 @@ public:
     /// sets the base name which links to underlying peak map
     void setBaseName(const String& base_name);
 
+    /// returns the experiment label for this identification 
+    const String getExperimentLabel() const;
+    /// sets the experiment label for this identification
+    void setExperimentLabel(const String& type);
+
     /// Sorts the hits by score and assigns ranks according to the scores
     void assignRanks();
 
@@ -142,13 +147,17 @@ public:
     */
     void sort();
 
+    /**
+         @brief Sorts the hits by rank
+
+         Sorting hits by rank attribute, i.e. after sorting, the hits will be in ascending order of rank.
+    */
+    void sortByRank();
+
     /// Returns if this PeptideIdentification result is empty
     bool empty() const;
 
-    ///@name Helper methods for linking peptide and protein hits
-    //@{
-
-    /// returns all peptide hits which reference to a given protein accession (aka filter by protein accession)
+    /// returns all peptide hits which reference to a given protein accession (i.e. filter by protein accession)
     static std::vector<PeptideHit> getReferencingHits(const std::vector<PeptideHit>&, const std::set<String>& accession);
 
     /// remove the two helper functions below a some point, when we are sure that we did not miss or merge in deprecated code!
@@ -159,6 +168,7 @@ public:
 
 
 protected:
+
     String id_; ///< Identifier by which ProteinIdentification and PeptideIdentification are matched
     std::vector<PeptideHit> hits_; ///< A list containing the peptide hits
     double significance_threshold_; ///< the peptide significance threshold

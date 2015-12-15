@@ -2,7 +2,9 @@
 
   @page install_linux Building OpenMS on GNU/Linux
 
-  This document describes how to build OpenMS on a GNU/Linux system from source.
+  This document describes how to build OpenMS on a GNU/Linux system from
+  source. If you do not have root privileges on your system, make sure you 
+  read the section @ref build_linux_noroot.
 
   We are working on adding %OpenMS to the repositories of the most popular
   distributions, but for now the toolkit needs to be manually compiled on your
@@ -19,8 +21,8 @@
   by:
 
   \code
+  # Assuming you are in ~/Development
   git clone https://github.com/OpenMS/OpenMS.git
-  cd OpenMS
   \endcode
 
   @section bin_dep Dependencies obtainable in binary form
@@ -32,20 +34,23 @@
   For the libraries/versions often not found in those repositories, we provide
   sources and build scripts.  The Release tar.gz archive contains the libraries
   in the contrib/ folder, if you build the Development (git) version, you'll
-  have to check them out separately (see below in @ref build_linux_contrib).
+  have to check them out separately (see below in @ref build_linux_contrib and in @ref build_linux_noroot).
 
   <b>Required packages and libraries</b>
 
-  Essential are GCC > 4.0 or other ANSI C++ compiler, CMake > 2.8.3, Qt4 > 4.5,
+  Essential are GCC > 4.0 or other ANSI C++ compiler, CMake > 2.8.3, Qt4 > 4.6 (> 4.7 for the GUI),
   patch, autoconf > 2.60, automake > 1.9, libtool (libtoolize/glibtoolize).
 
   For the complete feature set to be enabled, %OpenMS needs recent versions of
-  Boost (1.46 or higher works), Eigen3, WildMagic5
+  Boost (1.46 or higher works), Eigen3, WildMagic5,
   libSVM (2.91 or higher and 3.x for x <= 14 works), SeqAn (1.4.0 or higher needed),
   glpk (4.45 or higher works), zlib, libbz2, and Xerces-C (3.1.1 or higher works).
 
   Building the documentation from the development version requires doxygen > 1.5.4 and
   pdflatex/texlive/texlive-full.
+  
+  Building the Python extensions pyOpenMS requires Python (> 2.6), Cython (>
+  0.19), nose testing and numpy.
 
   For the most common distributions, these commands will install most of the libraries:
 
@@ -68,14 +73,13 @@
   <tr>
     <td><B>Ubuntu/Debian <br/>(10.04/6.0 or later recommended)</B></td>
     <td><pre>
-    sudo apt-get install cmake g++ autoconf qt4-dev-tools patch libtool make
+    sudo apt-get install cmake g++ autoconf qt4-dev-tools patch libtool make git
     sudo apt-get install libboost-regex-dev libboost-iostreams-dev libboost-date-time-dev libboost-math-dev \
-      libsvm-dev libglpk-dev libzip-dev zlib1g-dev libxerces-c-dev
+      libsvm-dev libglpk-dev libzip-dev zlib1g-dev libxerces-c-dev libbz2-dev
     </pre></td>
 
   </tr>
   </table>
-
 
   @section build_linux_contrib Building remaining dependencies
 
@@ -121,23 +125,54 @@
   cmake -DBUILD_TYPE=LIST ../contrib
   cmake -DBUILD_TYPE=SEQAN ../contrib
   cmake -DBUILD_TYPE=WILDMAGIC ../contrib
+  cmake -DBUILD_TYPE=EIGEN ../contrib
   \endcode
 
   To avoid problems while building the libraries contained in the contrib
   package, the path to your contrib-build directory should not have any spaces
   in it.
 
+  @section build_linux_noroot Building without root privileges
+
+  If you are on a system without root access (e.g. a shared cluster), there are
+  some additional considerations, especially regarding dependencies.
+  Specifically, some older Red Hat systems have older libraries installed that
+  may interfere with the newer versions that %OpenMS requires. The recommended
+  installation procedure is to use the contrib package to compile <b>all</b>
+  dependencies from source:
+
+  \code
+  cmake -DBUILD_TYPE=LIST ../contrib
+  cmake -DBUILD_TYPE=ALL ../contrib
+  \endcode
+
+  Alternatively, you can build one package after the other by providing
+  <tt>-DBUILD_TYPE=...</tt> with the appropriate argument. In addition, you
+  may have to compile Qt yourself which you can get from <a
+  href="http://download.qt.io/official_releases/qt">http://download.qt.io/official_releases/qt</a>
+  (use a 4.x version), if it is not provided on your server or the version on
+  your environment is too old. Then you can use the traditional 
+  <tt>./configure --prefix=/path && gmake && gmake install</tt> sequence to compile
+  and install Qt (note that you should set the <tt>--prefix=/path</tt> to a local directory assuming 
+  you don't have root privileges).
+  
+  When configuring %OpenMS (see next section), consider setting <tt>WITH_GUI=Off</tt> and
+  <tt>HAS_XSERVER=Off</tt>, especially as you may not have compiled Qt with
+  OpenGL and you may not have an X server. If you want to use your own qt
+  installation, be sure to set the <tt>QT_QMAKE_EXECUTABLE=/path/to/qmake</tt>
+  flag when using cmake to configure %OpenMS. Finally, you may have to remove
+  any system libraries from the <tt>CMAKE_PREFIX_PATH</tt> to ensure that the
+  correct version of each library is used.
+
   @section install_linux_openms Configuring and building OpenMS/TOPP
 
   It is assumed that you have successfully built and installed all dependencies
   and are in the root folder of the OpenMS tree (see above in @ref
-  checkout_and_build for instructions how to obtain OpenMS sources).
+  checkout_and_build for instructions how to obtain OpenMS sources either from
+  a release version or from the most recent development branch).
 
-  <a href="http://www.cmake.org/">CMake</a> is used to check the system and create the 'Makefile'.
-
-  Create a build directory beside the %OpenMS root directory of the extracted
-  source package (or the cloned git repository of %OpenMS), e.g., OpenMS-build (see
-  above note on out-of-source builds.)
+  The next step is to create a build directory beside the %OpenMS root
+  directory e.g., OpenMS-build (see above note on out-of-source builds).
 
   \code
   # Assuming you are in ~/Development and OpenMS is also located in
@@ -147,10 +182,14 @@
   \endcode
 
   In the %OpenMS build directory we execute %CMake to \a configure %OpenMS. You
-  should substitute \c /PATH/TO/contrib/ with the above path to the build contrib.
+  should substitute \c /PATH/TO/contrib/ with the above path to the build
+  contrib. Make sure you use the \a absolute (and not relative) path for the
+  contrib to avoid any potential issues. If you encounter problems with
+  previously installed system libraries, consider removing the
+  <tt>/usr;/usr/local</tt> part of the path:
 
   \code
-  cmake -DCMAKE_PREFIX_PATH="/PATH/TO/contrib;/usr;/usr/local" -DBOOST_USE_STATIC=OFF ../OpenMS
+  cmake -DCMAKE_PREFIX_PATH="/PATH/TO/contrib-build;/usr;/usr/local" -DBOOST_USE_STATIC=OFF ../OpenMS
   \endcode
 
   In order to <i>build</i> the %OpenMS library, the TOPP tools, tests, and this
@@ -206,7 +245,6 @@
   <br/>
 
 <hr/>
-
   @section advanced_linux_openms Advanced Options
 
   Advanced users can list the separate make targets by calling:
@@ -264,6 +302,13 @@
       As building parts of the documentation and running certain tests requires
       a running X Server, this flag can be used to disable those parts of the
       documentation and the tests that need an X Server. (Default: On)</td>
+    </tr>
+    <tr>
+      <td valign="top">\c WITH_GUI</td>
+      <td>Defines if the OpenMS GUI tools (TOPPView, TOPPAS) should be built or
+      not. These components need Qt > 4.7 which may not be available on some
+      systems (specifically older CentOS / RHEL servers). If you plan to use
+      OpenMS without a GUI, set this flag to "Off" (Default: On)</td>
     </tr>
     <tr>
       <td valign="top">\c ENABLE_TUTORIALS</td>

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,14 +51,14 @@ ChromatogramSettings* ptr = 0;
 ChromatogramSettings* nullPointer = 0;
 START_SECTION(ChromatogramSettings())
 {
-	ptr = new ChromatogramSettings();
-	TEST_NOT_EQUAL(ptr, nullPointer)
+  ptr = new ChromatogramSettings();
+  TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 
 START_SECTION(virtual ~ChromatogramSettings())
 {
-	delete ptr;
+  delete ptr;
 }
 END_SECTION
 
@@ -198,9 +198,9 @@ START_SECTION((bool operator!=(const ChromatogramSettings &rhs) const ))
   edit.getInstrumentSettings().getScanWindows().resize(1);
   TEST_EQUAL(edit!=empty, true);
 
-	edit = empty;
-	edit.setComment("comment");
-	TEST_EQUAL(edit != empty, true)
+  edit = empty;
+  edit.setComment("comment");
+  TEST_EQUAL(edit != empty, true)
 
   edit = empty;
   edit.setChromatogramType(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
@@ -211,14 +211,14 @@ START_SECTION((bool operator!=(const ChromatogramSettings &rhs) const ))
   TEST_EQUAL(edit!=empty, true)
 
   edit = empty;
-	Precursor prec;
-	prec.setMZ(1.3);
+  Precursor prec;
+  prec.setMZ(1.3);
   edit.setPrecursor(prec);
   TEST_EQUAL(edit!=empty, true)
 
   edit = empty;
-	Product prod;
-	prod.setMZ(1.5);
+  Product prod;
+  prod.setMZ(1.5);
   edit.setProduct(prod);
   TEST_EQUAL(edit!=empty, true)
 
@@ -251,15 +251,15 @@ END_SECTION
 START_SECTION((const String& getComment() const ))
 {
   ChromatogramSettings tmp;
-	TEST_STRING_EQUAL(tmp.getComment(), "")
+  TEST_STRING_EQUAL(tmp.getComment(), "")
 }
 END_SECTION
 
 START_SECTION((void setComment(const String &comment)))
 {
   ChromatogramSettings tmp;
-	tmp.setComment("name");
-	TEST_STRING_EQUAL(tmp.getComment(), "name")
+  tmp.setComment("name");
+  TEST_STRING_EQUAL(tmp.getComment(), "name")
 }
 END_SECTION
 
@@ -315,7 +315,7 @@ END_SECTION
 
 START_SECTION((const SourceFile& getSourceFile() const ))
 {
-	ChromatogramSettings tmp;
+  ChromatogramSettings tmp;
   TEST_EQUAL(tmp.getInstrumentSettings()==InstrumentSettings(), true);
 }
 END_SECTION
@@ -339,7 +339,7 @@ END_SECTION
 
 START_SECTION((const Precursor& getPrecursor() const ))
 {
-	ChromatogramSettings tmp;
+  ChromatogramSettings tmp;
   TEST_EQUAL(tmp.getPrecursor() == Precursor(), true)
 }
 END_SECTION
@@ -347,20 +347,20 @@ END_SECTION
 START_SECTION((Precursor& getPrecursor()))
 {
   ChromatogramSettings tmp;
-	tmp.getPrecursor().setMZ(0.3);
-	TEST_EQUAL(tmp.getPrecursor() == Precursor(), false)
-	TEST_REAL_SIMILAR(tmp.getPrecursor().getMZ(), 0.3)
+  tmp.getPrecursor().setMZ(0.3);
+  TEST_EQUAL(tmp.getPrecursor() == Precursor(), false)
+  TEST_REAL_SIMILAR(tmp.getPrecursor().getMZ(), 0.3)
 }
 END_SECTION
 
 START_SECTION((void setPrecursor(const Precursor &precursor)))
 {
   ChromatogramSettings tmp;
-	Precursor prec;
-	prec.setMZ(0.4);
-	tmp.setPrecursor(prec);
-	TEST_EQUAL(tmp.getPrecursor() == Precursor(), false)
-	TEST_REAL_SIMILAR(tmp.getPrecursor().getMZ(), 0.4)
+  Precursor prec;
+  prec.setMZ(0.4);
+  tmp.setPrecursor(prec);
+  TEST_EQUAL(tmp.getPrecursor() == Precursor(), false)
+  TEST_REAL_SIMILAR(tmp.getPrecursor().getMZ(), 0.4)
 }
 END_SECTION
 
@@ -393,7 +393,7 @@ END_SECTION
 
 START_SECTION((const std::vector<DataProcessing>& getDataProcessing() const ))
 {
-	ChromatogramSettings tmp;
+  ChromatogramSettings tmp;
   TEST_EQUAL(tmp.getDataProcessing().size(),0);
 }
 END_SECTION
@@ -401,7 +401,8 @@ END_SECTION
 START_SECTION((std::vector<DataProcessing>& getDataProcessing()))
 {
   ChromatogramSettings tmp;
-  tmp.getDataProcessing().resize(1);
+  DataProcessingPtr dp = boost::shared_ptr<DataProcessing>(new DataProcessing); 
+  tmp.getDataProcessing().push_back(dp);
   TEST_EQUAL(tmp.getDataProcessing().size(),1);
 }
 END_SECTION
@@ -409,7 +410,7 @@ END_SECTION
 START_SECTION((void setDataProcessing(const std::vector< DataProcessing > &data_processing)))
 {
   ChromatogramSettings tmp;
-  std::vector<DataProcessing> dummy;
+  std::vector<DataProcessingPtr > dummy;
   dummy.resize(1);
   tmp.setDataProcessing(dummy);
   TEST_EQUAL(tmp.getDataProcessing().size(),1);
@@ -419,15 +420,15 @@ END_SECTION
 START_SECTION((ChromatogramType getChromatogramType() const ))
 {
   ChromatogramSettings tmp;
-	TEST_EQUAL(tmp.getChromatogramType(), ChromatogramSettings::MASS_CHROMATOGRAM)
+  TEST_EQUAL(tmp.getChromatogramType(), ChromatogramSettings::MASS_CHROMATOGRAM)
 }
 END_SECTION
 
 START_SECTION((void setChromatogramType(ChromatogramType type)))
 {
   ChromatogramSettings tmp;
-	tmp.setChromatogramType(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
-	TEST_EQUAL(tmp.getChromatogramType(), ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM)
+  tmp.setChromatogramType(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
+  TEST_EQUAL(tmp.getChromatogramType(), ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM)
 }
 END_SECTION
 

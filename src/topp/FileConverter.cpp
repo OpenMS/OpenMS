@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,8 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/MzXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/IBSpectraFile.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -107,7 +109,7 @@ using namespace std;
   @ref OpenMS::KroenikFile "kroenik"
   @ref OpenMS::EDTAFile "edta"
 
-  See @ref TOPP_IDFileConverter for similar functionality for protein/peptide identification file formats.
+  @note See @ref TOPP_IDFileConverter for similar functionality for protein/peptide identification file formats.
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_FileConverter.cli
@@ -268,7 +270,9 @@ protected:
         PlainMSDataWritingConsumer consumer(out);
         consumer.getOptions().setWriteIndex(write_mzML_index);
         consumer.addDataProcessing(getProcessingInfo_(DataProcessing::CONVERSION_MZML));
-        MzMLFile().transform(in, &consumer);
+        MzMLFile mzmlfile; 
+        mzmlfile.setLogType(log_type_);
+        mzmlfile.transform(in, &consumer);
         return EXECUTION_OK;
       }
       else if (in_type == FileTypes::MZXML && out_type == FileTypes::MZML)
@@ -276,7 +280,9 @@ protected:
         PlainMSDataWritingConsumer consumer(out);
         consumer.getOptions().setWriteIndex(write_mzML_index);
         consumer.addDataProcessing(getProcessingInfo_(DataProcessing::CONVERSION_MZML));
-        MzXMLFile().transform(in, &consumer);
+        MzXMLFile mzxmlfile; 
+        mzxmlfile.setLogType(log_type_);
+        mzxmlfile.transform(in, &consumer);
         return EXECUTION_OK;
       }
       else
@@ -287,7 +293,7 @@ protected:
     }
     else
     {
-      fh.loadExperiment(in, exp, in_type, log_type_);
+      fh.loadExperiment(in, exp, in_type, log_type_, true, true);
     }
 
     //-------------------------------------------------------------

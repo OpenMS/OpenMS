@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -459,8 +459,8 @@ START_SECTION( void score_with_isotopes(SpectrumType spectrum, const std::vector
   diascoring.set_dia_parameters(0.05, false, 30, 50, 4, 4); // here we use a large enough window so that none of our peaks falls out
   double dotprod, manhattan;
   diascoring.score_with_isotopes(sptr,transitions,dotprod,manhattan);
-  TEST_REAL_SIMILAR (dotprod, 0.729361988632487);
-  TEST_REAL_SIMILAR (manhattan, 0.645059681588373);
+  TEST_REAL_SIMILAR (dotprod, 0.729377020214466);
+  TEST_REAL_SIMILAR (manhattan, 0.645047527406156);
 }
 END_SECTION
 

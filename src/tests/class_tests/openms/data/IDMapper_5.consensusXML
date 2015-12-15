@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="file:////home/lars/Code/git/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<consensusXML version="1.6" id="cm_4980984163608511726" experiment_type="labeled_MS1" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_6.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="2015-01-30T18:13:35">
+		<software name="FileFilter" version="2.0.0" />
+		<processingAction name="Data filtering" />
+		<UserParam type="string" name="parameter: in" value="/home/lars/Dropbox/InstituteMacBook/LN1/LN1.consensusXML"/>
+		<UserParam type="string" name="parameter: in_type" value=""/>
+		<UserParam type="string" name="parameter: out" value="/tmp/2015-01-30_181046_LinuxSchilling_5078_1/TOPPAS_tmp/Untitled_workflow/002_FileFilter/out/LN1.consensusXML_tmp1"/>
+		<UserParam type="string" name="parameter: out_type" value=""/>
+		<UserParam type="string" name="parameter: rt" value="1500:1580"/>
+		<UserParam type="string" name="parameter: mz" value="720:790"/>
+		<UserParam type="string" name="parameter: pc_mz" value=":"/>
+		<UserParam type="string" name="parameter: int" value=":"/>
+		<UserParam type="string" name="parameter: sort" value="false"/>
+		<UserParam type="string" name="parameter: log" value=""/>
+		<UserParam type="int" name="parameter: debug" value="0"/>
+		<UserParam type="int" name="parameter: threads" value="1"/>
+		<UserParam type="string" name="parameter: no_progress" value="true"/>
+		<UserParam type="string" name="parameter: force" value="false"/>
+		<UserParam type="string" name="parameter: test" value="false"/>
+		<UserParam type="string" name="parameter: ini" value="/tmp/2015-01-30_181046_LinuxSchilling_5078_1/TOPPAS_tmp/Untitled_workflow/002_FileFilter/FileFilter.ini"/>
+		<UserParam type="float" name="parameter: peak_options:sn" value="0"/>
+		<UserParam type="intList" name="parameter: peak_options:rm_pc_charge" value="[]"/>
+		<UserParam type="intList" name="parameter: peak_options:level" value="[1, 2, 3]"/>
+		<UserParam type="string" name="parameter: peak_options:sort_peaks" value="false"/>
+		<UserParam type="string" name="parameter: peak_options:no_chromatograms" value="false"/>
+		<UserParam type="string" name="parameter: peak_options:remove_chromatograms" value="false"/>
+		<UserParam type="string" name="parameter: peak_options:mz_precision" value="64"/>
+		<UserParam type="string" name="parameter: peak_options:int_precision" value="32"/>
+		<UserParam type="string" name="parameter: peak_options:indexed_file" value="false"/>
+		<UserParam type="string" name="parameter: peak_options:numpress:masstime" value="none"/>
+		<UserParam type="float" name="parameter: peak_options:numpress:masstime_error" value="0.0001"/>
+		<UserParam type="string" name="parameter: peak_options:numpress:intensity" value="none"/>
+		<UserParam type="float" name="parameter: peak_options:numpress:intensity_error" value="0.0001"/>
+		<UserParam type="string" name="parameter: spectra:remove_zoom" value="false"/>
+		<UserParam type="string" name="parameter: spectra:remove_mode" value=""/>
+		<UserParam type="string" name="parameter: spectra:remove_activation" value=""/>
+		<UserParam type="string" name="parameter: spectra:remove_collision_energy" value=":"/>
+		<UserParam type="string" name="parameter: spectra:remove_isolation_window_width" value=":"/>
+		<UserParam type="string" name="parameter: spectra:select_zoom" value="false"/>
+		<UserParam type="string" name="parameter: spectra:select_mode" value=""/>
+		<UserParam type="string" name="parameter: spectra:select_activation" value=""/>
+		<UserParam type="string" name="parameter: spectra:select_collision_energy" value=":"/>
+		<UserParam type="string" name="parameter: spectra:select_isolation_window_width" value=":"/>
+		<UserParam type="string" name="parameter: spectra:select_polarity" value=""/>
+		<UserParam type="string" name="parameter: feature:q" value=":"/>
+		<UserParam type="intList" name="parameter: consensus:map" value="[]"/>
+		<UserParam type="string" name="parameter: consensus:map_and" value="false"/>
+		<UserParam type="string" name="parameter: consensus:blackorwhitelist:blacklist" value="true"/>
+		<UserParam type="string" name="parameter: consensus:blackorwhitelist:file" value=""/>
+		<UserParam type="intList" name="parameter: consensus:blackorwhitelist:maps" value="[]"/>
+		<UserParam type="float" name="parameter: consensus:blackorwhitelist:rt" value="60"/>
+		<UserParam type="float" name="parameter: consensus:blackorwhitelist:mz" value="0.01"/>
+		<UserParam type="string" name="parameter: consensus:blackorwhitelist:use_ppm_tolerance" value="false"/>
+		<UserParam type="string" name="parameter: f_and_c:charge" value=":"/>
+		<UserParam type="string" name="parameter: f_and_c:size" value=":"/>
+		<UserParam type="stringList" name="parameter: f_and_c:remove_meta" value="[]"/>
+		<UserParam type="string" name="parameter: id:remove_clashes" value="false"/>
+		<UserParam type="string" name="parameter: id:keep_best_score_id" value="false"/>
+		<UserParam type="stringList" name="parameter: id:sequences_whitelist" value="[]"/>
+		<UserParam type="stringList" name="parameter: id:accessions_whitelist" value="[]"/>
+		<UserParam type="string" name="parameter: id:remove_annotated_features" value="false"/>
+		<UserParam type="string" name="parameter: id:remove_unannotated_features" value="false"/>
+		<UserParam type="string" name="parameter: id:remove_unassigned_ids" value="false"/>
+		<UserParam type="string" name="parameter: id:blacklist" value=""/>
+		<UserParam type="float" name="parameter: id:rt" value="0.1"/>
+		<UserParam type="float" name="parameter: id:mz" value="0.001"/>
+		<UserParam type="string" name="parameter: id:blacklist_imperfect" value="false"/>
+		<UserParam type="int" name="parameter: algorithm:SignalToNoise:max_intensity" value="-1"/>
+		<UserParam type="float" name="parameter: algorithm:SignalToNoise:auto_max_stdev_factor" value="3"/>
+		<UserParam type="int" name="parameter: algorithm:SignalToNoise:auto_max_percentile" value="95"/>
+		<UserParam type="int" name="parameter: algorithm:SignalToNoise:auto_mode" value="0"/>
+		<UserParam type="float" name="parameter: algorithm:SignalToNoise:win_len" value="200"/>
+		<UserParam type="int" name="parameter: algorithm:SignalToNoise:bin_count" value="30"/>
+		<UserParam type="int" name="parameter: algorithm:SignalToNoise:min_required_elements" value="10"/>
+		<UserParam type="float" name="parameter: algorithm:SignalToNoise:noise_for_empty_window" value="1e+20"/>
+	</dataProcessing>
+	<mapList count="2">
+		<map id="0" name="/var/folders/1r/lb4bxs4d2gx93zsb18_b65100000gn/T/2015-01-06_132836_rz-10-126-1-95.eduroam-rz.privat_480_1/TOPPAS_tmp/PeptideQuantitation_DimethylDouble/002_FeatureFinderMultiplex/out/LN1.mzML_tmp1" label="Dimethyl0" size="11858">
+		</map>
+		<map id="1" name="/var/folders/1r/lb4bxs4d2gx93zsb18_b65100000gn/T/2015-01-06_132836_rz-10-126-1-95.eduroam-rz.privat_480_1/TOPPAS_tmp/PeptideQuantitation_DimethylDouble/002_FeatureFinderMultiplex/out/LN1.mzML_tmp1" label="Dimethyl6" size="11858">
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_3454562537503588494" quality="1" charge="2">
+			<centroid rt="1509.03386690162" mz="779.356791454538" it="3.89086e+07"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="1509.03386690162" mz="779.356791454538" it="6.00389e+07" charge="2"/>
+				<element map="1" id="0" rt="1508.87896019122" mz="785.389299846218" it="1.77782e+07" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_7925738875140034804" quality="1" charge="3">
+			<centroid rt="1536.59130259305" mz="750.990283434602" it="3.19225e+07"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="1536.59130259305" mz="750.990283434602" it="4.96826e+07" charge="3"/>
+				<element map="1" id="0" rt="1536.33109881307" mz="752.999669720131" it="1.41624e+07" charge="3"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_6145242776607505313" quality="1" charge="2">
+			<centroid rt="1539.13126215133" mz="778.893922979348" it="5.11974e+08"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="1539.13126215133" mz="778.893922979348" it="8.10019e+08" charge="2"/>
+				<element map="1" id="0" rt="1538.02703195531" mz="784.925983557153" it="2.13929e+08" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_7946348917011727310" quality="1" charge="2">
+			<centroid rt="1542.41779811698" mz="728.851136546943" it="6.69981e+07"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="1542.41779811698" mz="728.851136546943" it="1.01554e+08" charge="2"/>
+				<element map="1" id="0" rt="1541.25668031408" mz="734.88296219236" it="3.24422e+07" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_13110074436169186204" quality="1" charge="2">
+			<centroid rt="1552.65545308502" mz="741.367225483565" it="1.06372e+08"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="1552.65545308502" mz="741.367225483565" it="1.64911e+08" charge="2"/>
+				<element map="1" id="0" rt="1551.91710055025" mz="747.399296441175" it="4.78339e+07" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_14852777403791682740" quality="1" charge="2">
+			<centroid rt="1568.67165463052" mz="729.378288105405" it="1.74366e+07"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="1568.67165463052" mz="729.378288105405" it="2.7265e+07" charge="2"/>
+				<element map="1" id="0" rt="1569.1908713663" mz="732.393484772786" it="7.60812e+06" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>

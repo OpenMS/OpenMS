@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,6 +48,7 @@
 #include <QtGui/QButtonGroup>
 #include <QtCore/QProcess>
 #include <QtGui/QSplashScreen>
+#include <QNetworkReply>
 
 class QToolBar;
 class QListWidget;
@@ -59,7 +60,7 @@ class QTreeWidget;
 class QTreeWidgetItem;
 class QWebView;
 class QNetworkAccessManager;
-class QNetworkReply;
+
 
 namespace OpenMS
 {
@@ -196,6 +197,8 @@ protected slots:
     void downloadTOPPASfromHomepage_(const QUrl& url);
     /// triggered when download of .toppas file is finished, so we can store & open it
     void toppasFileDownloaded_(QNetworkReply* r);
+    /// debug...
+    void TOPPASreadyRead();
 
     /// user edited the workflow description
     void descriptionUpdated_();
@@ -220,6 +223,8 @@ protected:
     QWebView* webview_;
     /// download .toppas files from homepage
     QNetworkAccessManager* network_manager_;
+    /// the content of the network request
+    QNetworkReply* network_reply_;
 
     ///Tab bar. The address of the corresponding window to a tab is stored as an int in tabData()
     TOPPASTabBar* tab_bar_;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -730,10 +730,10 @@ namespace OpenMS
   }
 
   //Visualizing DataProcessing object
-  void MetaDataBrowser::visualize_(DataProcessing & meta, QTreeWidgetItem * parent)
+  void MetaDataBrowser::visualize_(DataProcessingPtr & meta, QTreeWidgetItem * parent)
   {
     DataProcessingVisualizer * visualizer = new DataProcessingVisualizer(isEditable(), this);
-    visualizer->load(meta);
+    visualizer->load(*meta);
 
     QStringList labels;
     labels << "DataProcessing" << QString::number(ws_->addWidget(visualizer));
@@ -749,9 +749,9 @@ namespace OpenMS
     }
 
     //Software object
-    visualize_(meta.getSoftware(), item);
+    visualize_(meta->getSoftware(), item);
 
-    visualize_(dynamic_cast<MetaInfoInterface &>(meta), item);
+    visualize_(dynamic_cast<MetaInfoInterface &>(*meta), item);
 
     connectVisualizer_(visualizer);
   }

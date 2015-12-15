@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,19 +36,25 @@
 #define OPENMS_KERNEL_FEATUREMAP_H
 
 #include <OpenMS/KERNEL/Feature.h>
-#include <OpenMS/METADATA/DocumentIdentifier.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/KERNEL/RangeManager.h>
-#include <OpenMS/KERNEL/ComparatorUtils.h>
+#include <OpenMS/METADATA/DocumentIdentifier.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
+
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/UniqueIdInterface.h>
 #include <OpenMS/CONCEPT/UniqueIdIndexer.h>
+#include <OpenMS/KERNEL/BaseFeature.h>
+#include <OpenMS/OpenMSConfig.h>
 
 #include <algorithm>
-#include <vector>
 #include <exception>
+#include <vector>
 
 namespace OpenMS
 {
+  class ProteinIdentification;
+  class PeptideIdentification;
+  class DataProcessing;
 
   /// summary of the peptide identification assigned to each feature of this map.
   /// Each feature contributes one vote (=state)
@@ -87,6 +93,7 @@ namespace OpenMS
   */
   class FeatureMap :
     private std::vector<Feature>,
+    public MetaInfoInterface,
     public RangeManager<2>,
     public DocumentIdentifier,
     public UniqueIdInterface,
@@ -238,6 +245,12 @@ public:
 
     /// sets the description of the applied data processing
     OPENMS_DLLAPI void setDataProcessing(const std::vector<DataProcessing>& processing_method);
+
+    /// set the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)
+    OPENMS_DLLAPI void setPrimaryMSRunPath(const StringList& s);
+
+    /// get the file path to the first MS run
+    OPENMS_DLLAPI StringList getPrimaryMSRunPath() const;
 
     /**
       @brief Clears all data and meta data

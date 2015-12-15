@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.6" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_6.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<IdentificationRun id="PI_0" date="2014-08-01T21:34:24" search_engine="AccurateMassSearchResult" search_engine_version="">
-		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+<featureMap version="1.8" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_8.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<IdentificationRun id="PI_0" date="2015-10-28T15:49:28" search_engine="AccurateMassSearch" search_engine_version="">
+		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
 		</ProteinIdentification>
@@ -13,7 +13,7 @@
 			<intensity>36310.2</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>2.09303e-005</overallquality>
+			<overallquality>2.09303e-05</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="275.25" y="160.074747981592" />
@@ -68,64 +68,58 @@
 				<pt x="275.5" y="160.074746944823" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0" sequence="" charge="0">
-					<userParam type="int" name="charge" value="0"/>
-					<userParam type="stringList" name="identifier" value="[HMDB39534]"/>
-					<userParam type="stringList" name="description" value="[Panaxydol chlorohydrin]"/>
-					<userParam type="string" name="modifications" value="M+H+Na;2+"/>
-					<userParam type="string" name="chemical_formula" value="C17H25ClO2"/>
-					<userParam type="float" name="ppm_error" value="-2.68045265071093"/>
+				<PeptideHit score="0" sequence="" charge="2">
+					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB39534]"/>
+					<UserParam type="stringList" name="description" value="[Panaxydol chlorohydrin]"/>
+					<UserParam type="string" name="modifications" value="M+H+Na;2+"/>
+					<UserParam type="string" name="chemical_formula" value="C17H25ClO2"/>
+					<UserParam type="float" name="ppm_mz_error" value="2.47953607880854"/>
 				</PeptideHit>
-				<PeptideHit score="0" sequence="" charge="0">
-					<userParam type="int" name="charge" value="0"/>
-					<userParam type="stringList" name="identifier" value="[HMDB28803,HMDB28971,HMDB28987,HMDB29155]"/>
-					<userParam type="stringList" name="description" value="[Glutaminyl-Methionine,Methionyl-Glutamine,Methionyl-Gamma-glutamate,Gamma-glutamyl-Methionine]"/>
-					<userParam type="string" name="modifications" value="M+CH3CN+2H;2+"/>
-					<userParam type="string" name="chemical_formula" value="C10H19N3O4S"/>
-					<userParam type="float" name="ppm_error" value="-2.59003643663402"/>
+				<PeptideHit score="0" sequence="" charge="2">
+					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB28803,HMDB:HMDB28971,HMDB:HMDB28987,HMDB:HMDB29155]"/>
+					<UserParam type="stringList" name="description" value="[Glutaminyl-Methionine,Methionyl-Glutamine,Methionyl-Gamma-glutamate,Gamma-glutamyl-Methionine]"/>
+					<UserParam type="string" name="modifications" value="M+CH3CN+2H;2+"/>
+					<UserParam type="string" name="chemical_formula" value="C10H19N3O4S"/>
+					<UserParam type="float" name="ppm_mz_error" value="2.24182582410076"/>
 				</PeptideHit>
-				<PeptideHit score="0" sequence="" charge="0">
-					<userParam type="int" name="charge" value="0"/>
-					<userParam type="stringList" name="identifier" value="[HMDB33355,HMDB34110]"/>
-					<userParam type="stringList" name="description" value="[Dehydroaporheine,Murrayacine]"/>
-					<userParam type="string" name="modifications" value="M+CH3CN+2H;2+"/>
-					<userParam type="string" name="chemical_formula" value="C18H15NO2"/>
-					<userParam type="float" name="ppm_error" value="-4.94264214026128"/>
+				<PeptideHit score="0" sequence="" charge="2">
+					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB33355,HMDB:HMDB34110]"/>
+					<UserParam type="stringList" name="description" value="[Dehydroaporheine,Murrayacine]"/>
+					<UserParam type="string" name="modifications" value="M+CH3CN+2H;2+"/>
+					<UserParam type="string" name="chemical_formula" value="C18H15NO2"/>
+					<UserParam type="float" name="ppm_mz_error" value="4.27813295178491"/>
 				</PeptideHit>
-				<PeptideHit score="0" sequence="" charge="0">
-					<userParam type="int" name="charge" value="0"/>
-					<userParam type="stringList" name="identifier" value="[HMDB28982,HMDB29045]"/>
-					<userParam type="stringList" name="description" value="[Methionyl-Serine,Serinyl-Methionine]"/>
-					<userParam type="string" name="modifications" value="M+2CH3CN+2H;2+"/>
-					<userParam type="string" name="chemical_formula" value="C8H16N2O4S"/>
-					<userParam type="float" name="ppm_error" value="-3.04011223650013"/>
+				<PeptideHit score="0" sequence="" charge="2">
+					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB28982,HMDB:HMDB29045]"/>
+					<UserParam type="stringList" name="description" value="[Methionyl-Serine,Serinyl-Methionine]"/>
+					<UserParam type="string" name="modifications" value="M+2CH3CN+2H;2+"/>
+					<UserParam type="string" name="chemical_formula" value="C8H16N2O4S"/>
+					<UserParam type="float" name="ppm_mz_error" value="2.24180926953964"/>
 				</PeptideHit>
-				<PeptideHit score="0" sequence="" charge="0">
-					<userParam type="int" name="charge" value="0"/>
-					<userParam type="stringList" name="identifier" value="[HMDB01190]"/>
-					<userParam type="stringList" name="description" value="[Indoleacetaldehyde]"/>
-					<userParam type="string" name="modifications" value="M+H;1+"/>
-					<userParam type="string" name="chemical_formula" value="C10H9NO"/>
-					<userParam type="float" name="ppm_error" value="-4.30525877039142"/>
+				<PeptideHit score="0" sequence="" charge="1">
+					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB01190]"/>
+					<UserParam type="stringList" name="description" value="[Indoleacetaldehyde]"/>
+					<UserParam type="string" name="modifications" value="M+H;1+"/>
+					<UserParam type="string" name="chemical_formula" value="C10H9NO"/>
+					<UserParam type="float" name="ppm_mz_error" value="4.27814950645615"/>
 				</PeptideHit>
-				<PeptideHit score="0" sequence="" charge="0">
-					<userParam type="int" name="charge" value="0"/>
-					<userParam type="stringList" name="identifier" value="[HMDB15400]"/>
-					<userParam type="stringList" name="description" value="[Hydralazine]"/>
-					<userParam type="string" name="modifications" value="M;1+"/>
-					<userParam type="string" name="chemical_formula" value="C8H8N4"/>
-					<userParam type="float" name="ppm_error" value="0.682575394067964"/>
+				<PeptideHit score="0" sequence="" charge="1">
+					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB15400]"/>
+					<UserParam type="stringList" name="description" value="[Hydralazine]"/>
+					<UserParam type="string" name="modifications" value="M;1+"/>
+					<UserParam type="string" name="chemical_formula" value="C8H8N4"/>
+					<UserParam type="float" name="ppm_mz_error" value="-4.10961015143698"/>
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="string" name="label" value="T141"/>
-			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="36310.164094607"/>
-			<userParam type="float" name="FWHM" value="6.25"/>
+			<UserParam type="string" name="label" value="T141"/>
+			<UserParam type="int" name="num_of_masstraces" value="1"/>
+			<UserParam type="float" name="masstrace_intensity_0" value="36310.164094607"/>
+			<UserParam type="float" name="FWHM" value="6.25"/>
 		</feature>
 		<feature id="f_12112469906802307848">
 			<position dim="0">308.25</position>
 			<position dim="1">160.075018056482</position>
-			<intensity>3.02411e+007</intensity>
+			<intensity>3.02411e+07</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.0183443</overallquality>
@@ -407,34 +401,32 @@
 				<pt x="301.25" y="162.075141390116" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0" sequence="" charge="0">
-					<userParam type="int" name="charge" value="1"/>
-					<userParam type="stringList" name="identifier" value="[HMDB01190]"/>
-					<userParam type="stringList" name="description" value="[Indoleacetaldehyde]"/>
-					<userParam type="string" name="modifications" value="M+H;1+"/>
-					<userParam type="string" name="chemical_formula" value="C10H9NO"/>
-					<userParam type="float" name="ppm_error" value="-4.22656729101524"/>
+				<PeptideHit score="0" sequence="" charge="1">
+					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB01190]"/>
+					<UserParam type="stringList" name="description" value="[Indoleacetaldehyde]"/>
+					<UserParam type="string" name="modifications" value="M+H;1+"/>
+					<UserParam type="string" name="chemical_formula" value="C10H9NO"/>
+					<UserParam type="float" name="ppm_mz_error" value="4.19995386045077"/>
 				</PeptideHit>
-				<PeptideHit score="0" sequence="" charge="0">
-					<userParam type="int" name="charge" value="1"/>
-					<userParam type="stringList" name="identifier" value="[HMDB15400]"/>
-					<userParam type="stringList" name="description" value="[Hydralazine]"/>
-					<userParam type="string" name="modifications" value="M;1+"/>
-					<userParam type="string" name="chemical_formula" value="C8H8N4"/>
-					<userParam type="float" name="ppm_error" value="0.760771315118182"/>
+				<PeptideHit score="0" sequence="" charge="1">
+					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB15400]"/>
+					<UserParam type="stringList" name="description" value="[Hydralazine]"/>
+					<UserParam type="string" name="modifications" value="M;1+"/>
+					<UserParam type="string" name="chemical_formula" value="C8H8N4"/>
+					<UserParam type="float" name="ppm_mz_error" value="-4.18780645333146"/>
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="string" name="label" value="T10_T33_T94"/>
-			<userParam type="int" name="num_of_masstraces" value="3"/>
-			<userParam type="float" name="masstrace_intensity_0" value="30241147.8621068"/>
-			<userParam type="float" name="masstrace_intensity_1" value="3423697.17701255"/>
-			<userParam type="float" name="masstrace_intensity_2" value="237974.096094367"/>
-			<userParam type="float" name="FWHM" value="8.25"/>
+			<UserParam type="string" name="label" value="T10_T33_T94"/>
+			<UserParam type="int" name="num_of_masstraces" value="3"/>
+			<UserParam type="float" name="masstrace_intensity_0" value="30241147.8621068"/>
+			<UserParam type="float" name="masstrace_intensity_1" value="3423697.17701255"/>
+			<UserParam type="float" name="masstrace_intensity_2" value="237974.096094367"/>
+			<UserParam type="float" name="FWHM" value="8.25"/>
 		</feature>
 		<feature id="f_5576845964105266947">
 			<position dim="0">316.5</position>
 			<position dim="1">160.134470512512</position>
-			<intensity>2.15267e+006</intensity>
+			<intensity>2.15267e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.00129416</overallquality>
@@ -702,26 +694,25 @@
 				<pt x="313" y="162.135512495312" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0" sequence="" charge="0">
-					<userParam type="int" name="charge" value="1"/>
-					<userParam type="stringList" name="identifier" value="[HMDB13305,HMDB15654]"/>
-					<userParam type="stringList" name="description" value="[Propionylcholine,Methacholine]"/>
-					<userParam type="string" name="modifications" value="M;1+"/>
-					<userParam type="string" name="chemical_formula" value="C8H18NO2"/>
-					<userParam type="float" name="ppm_error" value="4.47553552766251"/>
+				<PeptideHit score="0" sequence="" charge="1">
+					<UserParam type="stringList" name="identifier" value="[null]"/>
+					<UserParam type="stringList" name="description" value="[null]"/>
+					<UserParam type="string" name="modifications" value="null"/>
+					<UserParam type="string" name="chemical_formula" value="null"/>
+					<UserParam type="float" name="ppm_mz_error" value="nan"/>
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="string" name="label" value="T43_T106_T170"/>
-			<userParam type="int" name="num_of_masstraces" value="3"/>
-			<userParam type="float" name="masstrace_intensity_0" value="2152674.81468212"/>
-			<userParam type="float" name="masstrace_intensity_1" value="199952.370346936"/>
-			<userParam type="float" name="masstrace_intensity_2" value="13890.8896083682"/>
-			<userParam type="float" name="FWHM" value="9.5"/>
+			<UserParam type="string" name="label" value="T43_T106_T170"/>
+			<UserParam type="int" name="num_of_masstraces" value="3"/>
+			<UserParam type="float" name="masstrace_intensity_0" value="2152674.81468212"/>
+			<UserParam type="float" name="masstrace_intensity_1" value="199952.370346936"/>
+			<UserParam type="float" name="masstrace_intensity_2" value="13890.8896083682"/>
+			<UserParam type="float" name="FWHM" value="9.5"/>
 		</feature>
 		<feature id="f_2737147212367465006">
 			<position dim="0">284.75</position>
 			<position dim="1">161.060231720537</position>
-			<intensity>1.76241e+008</intensity>
+			<intensity>1.76241e+08</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.106575</overallquality>
@@ -1103,21 +1094,20 @@
 				<pt x="281" y="163.061399761246" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0" sequence="" charge="0">
-					<userParam type="int" name="charge" value="1"/>
-					<userParam type="stringList" name="identifier" value="[HMDB32394,HMDB36073,HMDB41009]"/>
-					<userParam type="stringList" name="description" value="[6-Methylcoumarin,Viburtinal,7-Methyl-2-benzofurancarboxaldehyde]"/>
-					<userParam type="string" name="modifications" value="M+H;1+"/>
-					<userParam type="string" name="chemical_formula" value="C10H8O2"/>
-					<userParam type="float" name="ppm_error" value="3.28496615634438"/>
+				<PeptideHit score="0" sequence="" charge="1">
+					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB32394,HMDB:HMDB36073,HMDB:HMDB41009]"/>
+					<UserParam type="stringList" name="description" value="[6-Methylcoumarin,Viburtinal,7-Methyl-2-benzofurancarboxaldehyde]"/>
+					<UserParam type="string" name="modifications" value="M+H;1+"/>
+					<UserParam type="string" name="chemical_formula" value="C10H8O2"/>
+					<UserParam type="float" name="ppm_mz_error" value="-3.26443251694974"/>
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="string" name="label" value="T4_T13_T49"/>
-			<userParam type="int" name="num_of_masstraces" value="3"/>
-			<userParam type="float" name="masstrace_intensity_0" value="176241220.640656"/>
-			<userParam type="float" name="masstrace_intensity_1" value="19346302.6786891"/>
-			<userParam type="float" name="masstrace_intensity_2" value="1662352.7473399"/>
-			<userParam type="float" name="FWHM" value="10"/>
+			<UserParam type="string" name="label" value="T4_T13_T49"/>
+			<UserParam type="int" name="num_of_masstraces" value="3"/>
+			<UserParam type="float" name="masstrace_intensity_0" value="176241220.640656"/>
+			<UserParam type="float" name="masstrace_intensity_1" value="19346302.6786891"/>
+			<UserParam type="float" name="masstrace_intensity_2" value="1662352.7473399"/>
+			<UserParam type="float" name="FWHM" value="10"/>
 		</feature>
 		<feature id="f_12964529961937795257">
 			<position dim="0">261.25</position>
@@ -1125,7 +1115,7 @@
 			<intensity>18965.9</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>1.09325e-005</overallquality>
+			<overallquality>1.09325e-05</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="256.75" y="161.132153124789" />
@@ -1175,15 +1165,24 @@
 				<pt x="257.25" y="161.132490074973" />
 				<pt x="257" y="161.132154679944" />
 			</convexhull>
-			<userParam type="string" name="label" value="T160"/>
-			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="18965.9494716721"/>
-			<userParam type="float" name="FWHM" value="5.75"/>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="0" sequence="" charge="0">
+					<UserParam type="stringList" name="identifier" value="[null]"/>
+					<UserParam type="stringList" name="description" value="[null]"/>
+					<UserParam type="string" name="modifications" value="null"/>
+					<UserParam type="string" name="chemical_formula" value="null"/>
+					<UserParam type="float" name="ppm_mz_error" value="nan"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T160"/>
+			<UserParam type="int" name="num_of_masstraces" value="1"/>
+			<UserParam type="float" name="masstrace_intensity_0" value="18965.9494716721"/>
+			<UserParam type="float" name="FWHM" value="5.75"/>
 		</feature>
 		<feature id="f_10893964381505000125">
 			<position dim="0">284.5</position>
 			<position dim="1">163.039965127824</position>
-			<intensity>1.94672e+006</intensity>
+			<intensity>1.94672e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.00113951</overallquality>
@@ -1366,11 +1365,20 @@
 				<pt x="278.25" y="164.039161803902" />
 				<pt x="278" y="164.039176318679" />
 			</convexhull>
-			<userParam type="string" name="label" value="T41_T102"/>
-			<userParam type="int" name="num_of_masstraces" value="2"/>
-			<userParam type="float" name="masstrace_intensity_0" value="1946719.9301806"/>
-			<userParam type="float" name="masstrace_intensity_1" value="152141.576471626"/>
-			<userParam type="float" name="FWHM" value="8.25"/>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="0" sequence="" charge="1">
+					<UserParam type="stringList" name="identifier" value="[null]"/>
+					<UserParam type="stringList" name="description" value="[null]"/>
+					<UserParam type="string" name="modifications" value="null"/>
+					<UserParam type="string" name="chemical_formula" value="null"/>
+					<UserParam type="float" name="ppm_mz_error" value="nan"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T41_T102"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="float" name="masstrace_intensity_0" value="1946719.9301806"/>
+			<UserParam type="float" name="masstrace_intensity_1" value="152141.576471626"/>
+			<UserParam type="float" name="FWHM" value="8.25"/>
 		</feature>
 		<feature id="f_13275112827998205361">
 			<position dim="0">318.75</position>
@@ -1522,16 +1530,25 @@
 				<pt x="312.75" y="164.077397355578" />
 				<pt x="312.5" y="164.07741135197" />
 			</convexhull>
-			<userParam type="string" name="label" value="T69_T134"/>
-			<userParam type="int" name="num_of_masstraces" value="2"/>
-			<userParam type="float" name="masstrace_intensity_0" value="413215.012682643"/>
-			<userParam type="float" name="masstrace_intensity_1" value="45456.7213020705"/>
-			<userParam type="float" name="FWHM" value="5.5"/>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="0" sequence="" charge="1">
+					<UserParam type="stringList" name="identifier" value="[null]"/>
+					<UserParam type="stringList" name="description" value="[null]"/>
+					<UserParam type="string" name="modifications" value="null"/>
+					<UserParam type="string" name="chemical_formula" value="null"/>
+					<UserParam type="float" name="ppm_mz_error" value="nan"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T69_T134"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="float" name="masstrace_intensity_0" value="413215.012682643"/>
+			<UserParam type="float" name="masstrace_intensity_1" value="45456.7213020705"/>
+			<UserParam type="float" name="FWHM" value="5.5"/>
 		</feature>
 		<feature id="f_3062115439946092212">
 			<position dim="0">267.25</position>
 			<position dim="1">163.077368733932</position>
-			<intensity>1.81771e+008</intensity>
+			<intensity>1.81771e+08</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.110367</overallquality>
@@ -2296,14 +2313,23 @@
 				<pt x="256.75" y="167.07275437282" />
 				<pt x="256.5" y="167.072641883297" />
 			</convexhull>
-			<userParam type="string" name="label" value="T3_T12_T48_T61_T101"/>
-			<userParam type="int" name="num_of_masstraces" value="5"/>
-			<userParam type="float" name="masstrace_intensity_0" value="181771052.539316"/>
-			<userParam type="float" name="masstrace_intensity_1" value="19995164.0161074"/>
-			<userParam type="float" name="masstrace_intensity_2" value="1745862.2245618"/>
-			<userParam type="float" name="FWHM" value="9.5"/>
-			<userParam type="float" name="masstrace_intensity_3" value="1032413.88262815"/>
-			<userParam type="float" name="masstrace_intensity_4" value="230932.968791916"/>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="0" sequence="" charge="1">
+					<UserParam type="stringList" name="identifier" value="[null]"/>
+					<UserParam type="stringList" name="description" value="[null]"/>
+					<UserParam type="string" name="modifications" value="null"/>
+					<UserParam type="string" name="chemical_formula" value="null"/>
+					<UserParam type="float" name="ppm_mz_error" value="nan"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T3_T12_T48_T61_T101"/>
+			<UserParam type="int" name="num_of_masstraces" value="5"/>
+			<UserParam type="float" name="masstrace_intensity_0" value="181771052.539316"/>
+			<UserParam type="float" name="masstrace_intensity_1" value="19995164.0161074"/>
+			<UserParam type="float" name="masstrace_intensity_2" value="1745862.2245618"/>
+			<UserParam type="float" name="FWHM" value="9.5"/>
+			<UserParam type="float" name="masstrace_intensity_3" value="1032413.88262815"/>
+			<UserParam type="float" name="masstrace_intensity_4" value="230932.968791916"/>
 		</feature>
 		<feature id="f_11350671704726741622">
 			<position dim="0">289.25</position>
@@ -2500,19 +2526,18 @@
 				<pt x="279" y="165.056276517688" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0" sequence="" charge="0">
-					<userParam type="int" name="charge" value="0"/>
-					<userParam type="stringList" name="identifier" value="[HMDB14564,HMDB15202]"/>
-					<userParam type="stringList" name="description" value="[Promazine,Promethazine]"/>
-					<userParam type="string" name="modifications" value="M+2Na;2+"/>
-					<userParam type="string" name="chemical_formula" value="C17H20N2S"/>
-					<userParam type="float" name="ppm_error" value="-2.41984173140684"/>
+				<PeptideHit score="0" sequence="" charge="2">
+					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB14564,HMDB:HMDB15202]"/>
+					<UserParam type="stringList" name="description" value="[Promazine,Promethazine]"/>
+					<UserParam type="string" name="modifications" value="M+2Na;2+"/>
+					<UserParam type="string" name="chemical_formula" value="C17H20N2S"/>
+					<UserParam type="float" name="ppm_mz_error" value="2.08288389896333"/>
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="string" name="label" value="T59"/>
-			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="986488.096925674"/>
-			<userParam type="float" name="FWHM" value="9.5"/>
+			<UserParam type="string" name="label" value="T59"/>
+			<UserParam type="int" name="num_of_masstraces" value="1"/>
+			<UserParam type="float" name="masstrace_intensity_0" value="986488.096925674"/>
+			<UserParam type="float" name="FWHM" value="9.5"/>
 		</feature>
 		<feature id="f_425533765783660679">
 			<position dim="0">258.75</position>
@@ -2520,7 +2545,7 @@
 			<intensity>35837.5</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>2.06578e-005</overallquality>
+			<overallquality>2.06578e-05</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="252.75" y="165.05608834397" />
@@ -2573,19 +2598,18 @@
 				<pt x="253" y="165.056428922848" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0" sequence="" charge="0">
-					<userParam type="int" name="charge" value="0"/>
-					<userParam type="stringList" name="identifier" value="[HMDB14564,HMDB15202]"/>
-					<userParam type="stringList" name="description" value="[Promazine,Promethazine]"/>
-					<userParam type="string" name="modifications" value="M+2Na;2+"/>
-					<userParam type="string" name="chemical_formula" value="C17H20N2S"/>
-					<userParam type="float" name="ppm_error" value="4.08900225421709"/>
+				<PeptideHit score="0" sequence="" charge="2">
+					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB14564,HMDB:HMDB15202]"/>
+					<UserParam type="stringList" name="description" value="[Promazine,Promethazine]"/>
+					<UserParam type="string" name="modifications" value="M+2Na;2+"/>
+					<UserParam type="string" name="chemical_formula" value="C17H20N2S"/>
+					<UserParam type="float" name="ppm_mz_error" value="-3.51941211892098"/>
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="string" name="label" value="T121"/>
-			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="35837.4671685804"/>
-			<userParam type="float" name="FWHM" value="3.5"/>
+			<UserParam type="string" name="label" value="T121"/>
+			<UserParam type="int" name="num_of_masstraces" value="1"/>
+			<UserParam type="float" name="masstrace_intensity_0" value="35837.4671685804"/>
+			<UserParam type="float" name="FWHM" value="3.5"/>
 		</feature>
 	</featureList>
 </featureMap>

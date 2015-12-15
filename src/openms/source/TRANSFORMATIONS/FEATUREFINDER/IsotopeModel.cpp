@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -136,14 +136,16 @@ namespace OpenMS
 
     // compute the average mass (-offset)
     CoordinateType isotopes_mean = 0;
-    Int i = 0;
-    for (IsotopeDistribution::iterator iter = isotope_distribution_.begin();
-         iter != isotope_distribution_.end(); ++iter, ++i)
     {
-      isotopes_exact.push_back(iter->second);
-      isotopes_mean += iter->second * i;
+      Int cnt = 0;
+      for (IsotopeDistribution::iterator iter = isotope_distribution_.begin();
+           iter != isotope_distribution_.end(); ++iter, ++cnt)
+      {
+        isotopes_exact.push_back(iter->second);
+        isotopes_mean += iter->second * cnt;
+      }
+      isotopes_mean *= isotope_distance_ / charge_;
     }
-    isotopes_mean *= isotope_distance_ / charge_;
     // (Need not divide by sum of probabilities, which is 1.)
 
     ///

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,6 +43,9 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 ///////////////////////////
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshadow"
 
 using namespace OpenMS;
 using namespace std;
@@ -540,3 +543,7 @@ END_TEST
     - 'std::map<String, std::map<String, double> > getIonSeries(AASequence sequence, int precursor_charge)'
     - 'std::vector<std::pair<std::string::size_type, std::string> > find_all_tryptic(std::string sequence)'
   */
+
+
+#pragma clang diagnostic pop
+

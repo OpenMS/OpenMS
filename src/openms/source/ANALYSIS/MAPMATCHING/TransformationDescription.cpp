@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelBSpline.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLowess.h>
 
 using namespace std;
 
@@ -110,6 +111,10 @@ namespace OpenMS
     {
       model_ = new TransformationModelBSpline(data_, params);
     }
+    else if (model_type == "lowess")
+    {
+      model_ = new TransformationModelLowess(data_, params);
+    }
     else if (model_type == "interpolated")
     {
       model_ = new TransformationModelInterpolated(data_, params);
@@ -133,7 +138,7 @@ namespace OpenMS
 
   void TransformationDescription::getModelTypes(StringList& result)
   {
-    result = ListUtils::create<String>("linear,b_spline,interpolated");
+    result = ListUtils::create<String>("linear,b_spline,interpolated,lowess");
     // "none" and "identity" don't count
   }
 

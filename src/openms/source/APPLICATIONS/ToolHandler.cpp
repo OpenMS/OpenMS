@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -106,6 +106,7 @@ namespace OpenMS
     tools_map["NoiseFilterSGolay"] = Internal::ToolDescription("NoiseFilterSGolay", "Signal processing and preprocessing");
     tools_map["OMSSAAdapter"] = Internal::ToolDescription("OMSSAAdapter", "Identification");
     tools_map["OpenSwathAnalyzer"] = Internal::ToolDescription("OpenSwathAnalyzer", "Targeted Experiments");
+    tools_map["OpenSwathAssayGenerator"] = Internal::ToolDescription("OpenSwathAssayGenerator", "Targeted Experiments");
     tools_map["OpenSwathChromatogramExtractor"] = Internal::ToolDescription("OpenSwathChromatogramExtractor", "Targeted Experiments");
     tools_map["OpenSwathConfidenceScoring"] = Internal::ToolDescription("OpenSwathConfidenceScoring", "Targeted Experiments");
     tools_map["OpenSwathDecoyGenerator"] = Internal::ToolDescription("OpenSwathDecoyGenerator", "Targeted Experiments");
@@ -118,6 +119,7 @@ namespace OpenMS
     tools_map["PeakPickerWavelet"] = Internal::ToolDescription("PeakPickerWavelet", "Signal processing and preprocessing");
     tools_map["PepNovoAdapter"] = Internal::ToolDescription("PepNovoAdapter", "Identification");
     tools_map["PeptideIndexer"] = Internal::ToolDescription("PeptideIndexer", "ID Processing");
+    tools_map["PhosphoScoring"] = Internal::ToolDescription("PhosphoScoring", "ID Processing");
     tools_map["PILISIdentification"] = Internal::ToolDescription("PILISIdentification", "Identification");
     tools_map["PILISModelCV"] = Internal::ToolDescription("PILISModelCV", "ID Processing");
     tools_map["PILISModelTrainer"] = Internal::ToolDescription("PILISModelTrainer", "ID Processing");
@@ -143,11 +145,10 @@ namespace OpenMS
     tools_map["SpectraFilterSqrtMower"] = Internal::ToolDescription("SpectraFilterSqrtMower", "Identification");
     tools_map["SpectraFilterThresholdMower"] = Internal::ToolDescription("SpectraFilterThresholdMower", "Identification");
     tools_map["SpectraFilterWindowMower"] = Internal::ToolDescription("SpectraFilterWindowMower", "Identification");
-    tools_map["SpectraMerger"] = Internal::ToolDescription("SpectraMerger", "File Handling");
+    tools_map["SpectraMerger"] = Internal::ToolDescription("SpectraMerger", "Signal processing and preprocessing");
     tools_map["TextExporter"] = Internal::ToolDescription("TextExporter", "File Handling");
     tools_map["TMTAnalyzer"] = Internal::ToolDescription("TMTAnalyzer", "Quantitation");
     tools_map["TOFCalibration"] = Internal::ToolDescription("TOFCalibration", "Signal processing and preprocessing");
-    tools_map["TopPerc"] = Internal::ToolDescription("TopPerc", "Identification");
     tools_map["XTandemAdapter"] = Internal::ToolDescription("XTandemAdapter", "Identification");
     // STOP! insert your tool in alphabetical order for easier maintenance (only tools requiring the GUI lib should be added below)
 
@@ -199,6 +200,7 @@ namespace OpenMS
     util_map["IDDecoyProbability"] = Internal::ToolDescription("IDDecoyProbability", util_category);
     util_map["IDExtractor"] = Internal::ToolDescription("IDExtractor", util_category);
     util_map["IDMassAccuracy"] = Internal::ToolDescription("IDMassAccuracy", util_category);
+    util_map["IDScoreSwitcher"] = Internal::ToolDescription("IDScoreSwitcher", util_category);
     util_map["IDSplitter"] = Internal::ToolDescription("IDSplitter", util_category);
     util_map["LabeledEval"] = Internal::ToolDescription("LabeledEval", util_category);
     util_map["LowMemPeakPickerHiRes"] = Internal::ToolDescription("LowMemPeakPickerHiRes", util_category);
@@ -206,9 +208,11 @@ namespace OpenMS
     util_map["MapAlignmentEvaluation"] = Internal::ToolDescription("MapAlignmentEvaluation", util_category);
     util_map["MassCalculator"] = Internal::ToolDescription("MassCalculator", util_category);
     util_map["MetaboliteSpectralMatcher"] = Internal::ToolDescription("MetaboliteSpectralMatcher", util_category);
+    util_map["MetaProSIP"] = Internal::ToolDescription("MetaProSIP", util_category);
     util_map["MRMTransitionGroupPicker"] = Internal::ToolDescription("MRMTransitionGroupPicker", util_category);
     util_map["MRMPairFinder"] = Internal::ToolDescription("MRMPairFinder", util_category);
     util_map["MSSimulator"] = Internal::ToolDescription("MSSimulator", util_category);
+    util_map["MzMLSplitter"] = Internal::ToolDescription("MzMLSplitter", util_category);
     util_map["OpenSwathWorkflow"] = Internal::ToolDescription("OpenSwathWorkflow", util_category);
     util_map["PeakPickerIterative"] = Internal::ToolDescription("PeakPickerIterative", "Signal processing and preprocessing");
     //util_map["PeakPickerRapid"] = Internal::ToolDescription("PeakPickerRapid", "Signal processing and preprocessing");
@@ -221,7 +225,6 @@ namespace OpenMS
     util_map["QCShrinker"] = Internal::ToolDescription("QCExporter", util_category);
     util_map["RNPxl"] = Internal::ToolDescription("RNPxl", util_category);
     util_map["RNPxlXICFilter"] = Internal::ToolDescription("RNPxlXICFilter", util_category);
-    util_map["RTAnnotator"] = Internal::ToolDescription("post hoc RTAnnotation for mzid", util_category);
     util_map["RTEvaluation"] = Internal::ToolDescription("RTEvaluation", util_category);
     util_map["SemanticValidator"] = Internal::ToolDescription("SemanticValidator", util_category);
     util_map["SequenceCoverageCalculator"] = Internal::ToolDescription("SequenceCoverageCalculator", util_category);
@@ -229,6 +232,7 @@ namespace OpenMS
     util_map["SimpleSearchEngine"] = Internal::ToolDescription("SimpleSearchEngine", util_category);
     util_map["SvmTheoreticalSpectrumGeneratorTrainer"] = Internal::ToolDescription("SvmTheoreticalSpectrumGeneratorTrainer", util_category);
     util_map["TransformationEvaluation"] = Internal::ToolDescription("TransformationEvaluation", util_category);
+    util_map["TopPerc"] = Internal::ToolDescription("TopPerc", util_category);
     util_map["XMLValidator"] = Internal::ToolDescription("XMLValidator", util_category);
     // STOP! insert your tool in alphabetical order for easier maintenance (only tools requiring the GUI lib should be added below)
 
@@ -263,7 +267,7 @@ namespace OpenMS
         return tools[toolname].types;
       }
     }
-    throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Requested toolname '" + toolname + " does not exist!", toolname);
+    throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Requested tool '" + toolname + "' does not exist!", toolname);
   }
 
   std::vector<Internal::ToolDescription> ToolHandler::getInternalTools_()

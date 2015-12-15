@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -243,8 +243,8 @@ namespace OpenMS
   //accumulated time + the time since the stop_watch was last started.
   double StopWatch::getClockTime() const
   {
-    PointerSizeInt elapsed_seconds;
-    PointerSizeInt elapsed_useconds;
+    PointerSizeInt elapsed_seconds = 0;
+    PointerSizeInt elapsed_useconds = 0;
 
     if (is_running_ == false)
     {
@@ -449,6 +449,52 @@ namespace OpenMS
              (m>0 ?                    s_m + s_s + " m" :
              (                        s_s_single + " s")))));
 
+  }
+
+  String StopWatch::toString() const
+  {
+    return(
+      StopWatch::toString(this->getClockTime()) + " (wall), " +
+      StopWatch::toString(this->getCPUTime()) + " (CPU), " + 
+      StopWatch::toString(this->getSystemTime()) + " (system), " +
+      StopWatch::toString(this->getUserTime()) + " (user)"
+    );
+  }
+
+  double StopWatch::getCPUTime() const
+  {
+    return getUserTime() + getSystemTime();
+  }
+
+  bool StopWatch::isRunning() const
+  {
+    return is_running_;
+  }
+
+  bool StopWatch::operator!=(const StopWatch & stop_watch) const
+  {
+    return !(*this == stop_watch);
+  }
+
+  bool StopWatch::operator<(const StopWatch & stop_watch) const
+  {
+    return getCPUTime() < stop_watch.getCPUTime();
+  }
+
+ 
+  bool StopWatch::operator<=(const StopWatch & stop_watch) const
+  {
+    return !(stop_watch < *this);
+  }
+
+  bool StopWatch::operator>=(const StopWatch & stop_watch) const
+  {
+    return !(*this < stop_watch);
+  }
+
+  bool StopWatch::operator>(const StopWatch & stop_watch) const
+  {
+    return stop_watch < *this;
   }
 
 } // namespace OpenMS

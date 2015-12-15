@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,7 +40,9 @@
 namespace OpenMS
 {
 
-  BSpline2d::BSpline2d(const std::vector<double>& x, const std::vector<double>& y, double wavelength, BoundaryCondition boundary_condition, Size num_nodes)
+  BSpline2d::BSpline2d(const std::vector<double>& x, const std::vector<double>& y, 
+                       double wavelength, BoundaryCondition boundary_condition, 
+                       Size num_nodes)
   {
     OPENMS_PRECONDITION(x.size() == y.size(), "x and y vectors passed to BSpline2d constructor must have the same size.")
     spline_ = new eol_bspline::BSpline<double>(&x[0], x.size(), &y[0], wavelength, boundary_condition, num_nodes);

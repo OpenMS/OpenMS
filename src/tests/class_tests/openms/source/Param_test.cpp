@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -1351,188 +1351,6 @@ START_SECTION((void parseCommandLine(const int argc, const char **argv, const Ma
 
 END_SECTION
 
-START_SECTION((void setValidStrings(const String &key, const std::vector< String > &strings)))
-  vector<String> strings;
-  strings.push_back("bla");
-  Param d;
-  d.setValue("ok","string");
-  d.setValue("dummy",5);
-
-  d.setValidStrings("ok",strings);
-  TEST_EQUAL(d.getEntry("ok").valid_strings==strings, true);
-  TEST_EXCEPTION(Exception::ElementNotFound, d.setValidStrings("dummy",strings))
-  strings.push_back("sdf,sdfd");
-  TEST_EXCEPTION(Exception::InvalidParameter, d.setValidStrings("ok",strings))
-END_SECTION
-
-START_SECTION((void setMinInt(const String &key, Int min)))
-  Param d;
-  d.setValue("ok",4);
-  d.setValue("dummy",5.5);
-
-  d.setMinInt("ok",4);
-  TEST_EQUAL(d.getEntry("ok").min_int,4);
-  TEST_EXCEPTION(Exception::ElementNotFound, d.setMinInt("dummy",4))
-END_SECTION
-
-START_SECTION((void setMaxInt(const String &key, Int max)))
-  Param d;
-  d.setValue("ok",4);
-  d.setValue("dummy",5.5);
-
-  d.setMaxInt("ok",4);
-  TEST_EQUAL(d.getEntry("ok").max_int,4);
-  TEST_EXCEPTION(Exception::ElementNotFound, d.setMaxInt("dummy",4))
-END_SECTION
-
-START_SECTION((void setMinFloat(const String &key, double min)))
-  Param d;
-  d.setValue("ok",4.5);
-  d.setValue("dummy",4);
-
-  d.setMinFloat("ok",4.0);
-  TEST_REAL_SIMILAR(d.getEntry("ok").min_float,4.0);
-  TEST_EXCEPTION(Exception::ElementNotFound, d.setMinFloat("dummy",4.5))
-END_SECTION
-
-START_SECTION((void setMaxFloat(const String &key, double max)))
-  Param d;
-  d.setValue("ok",4.5);
-  d.setValue("dummy",4);
-
-  d.setMaxFloat("ok",4.0);
-  TEST_REAL_SIMILAR(d.getEntry("ok").max_float,4.0);
-  TEST_EXCEPTION(Exception::ElementNotFound, d.setMaxFloat("dummy",4.5))
-END_SECTION
-
-// warnings for unknown parameters
-// keep outside the scope of a single test to avoid destruction, leaving
-// Log_warn in an undefined state
-ostringstream os;
-// checkDefaults sends its warnings to LOG_WARN so we register our own
-// listener here to check the output
-Log_warn.remove(cout);
-Log_warn.insert(os);
-
-START_SECTION((void checkDefaults(const String &name, const Param &defaults, const String& prefix="") const))
-	Param p,d;
-	p.setValue("string",String("bla"),"string");
-	p.setValue("int",5,"int");
-	p.setValue("double",47.11,"double");
-
-	p.checkDefaults("Test",d,"");
-	TEST_EQUAL(os.str()=="",false)
-
-	d.setValue("int",5,"int");
-	d.setValue("double",47.11,"double");
-	os.str("");
-  os.clear();
-	p.checkDefaults("Test",d,"");
-	TEST_EQUAL(os.str()=="",false)
-
-	p.clear();
-	p.setValue("pref:string",String("bla"),"pref:string");
-	p.setValue("pref:int",5,"pref:int");
-	p.setValue("pref:double",47.11,"pref:double");
-	os.str("");
-  os.clear();
-	p.checkDefaults("Test",d,"pref");
-	TEST_EQUAL(os.str()=="",false)
-
-	os.str("");
-  os.clear();
-	p.checkDefaults("Test2",d,"pref:");
-	TEST_EQUAL(os.str()=="",false)
-
-	//check string restrictions
-	vector<String> s_rest;
-	s_rest.push_back("a");
-	s_rest.push_back("b");
-	s_rest.push_back("c");
-	d.setValue("stringv","bla","desc");
-	d.setValidStrings("stringv", s_rest);
-	p.clear();
-	p.setValue("stringv","a");
-	p.checkDefaults("Param_test",d,"");
-	p.setValue("stringv","d");
-	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
-
-	//check int restrictions
-	d.setValue("intv",4,"desc");
-	d.setMinInt("intv",-4);
-	p.clear();
-	p.setValue("intv",-4);
-	p.checkDefaults("Param_test",d,"");
-	p.setValue("intv",700);
-	p.checkDefaults("Param_test",d,"");
-	p.setValue("intv",-5);
-	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
-
-	d.setValue("intv2",4,"desc");
-	d.setMaxInt("intv2",4);
-	p.clear();
-	p.setValue("intv2",4);
-	p.checkDefaults("Param_test",d,"");
-	p.setValue("intv2",-700);
-	p.checkDefaults("Param_test",d,"");
-	p.setValue("intv2",5);
-	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
-
-	//check double restrictions
-	d.setValue("doublev",4.0,"desc");
-	d.setMinFloat("doublev",-4.0);
-	p.clear();
-	p.setValue("doublev",-4.0);
-	p.checkDefaults("Param_test",d,"");
-	p.setValue("doublev",0.0);
-	p.checkDefaults("Param_test",d,"");
-	p.setValue("doublev",7.0);
-	p.checkDefaults("Param_test",d,"");
-	p.setValue("doublev",-4.1);
-	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
-
-	d.setValue("doublev2",4.0,"desc");
-	d.setMaxFloat("doublev2",4.0);
-	p.clear();
-	p.setValue("doublev2",4.0);
-	p.checkDefaults("Param_test",d,"");
-	p.setValue("doublev2",-700.0);
-	p.checkDefaults("Param_test",d,"");
-	p.setValue("doublev2",4.1);
-	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
-
-	//check list restrictions
-	vector<String> s_rest1;
-	s_rest1.push_back("a");
-	s_rest1.push_back("b");
-	s_rest1.push_back("c");
-	d.setValue("stringlist",ListUtils::create<String>("aaa,abc,cab"),"desc");
-	d.setValidStrings("stringlist", s_rest);
-	p.clear();
-	p.setValue("stringlist",ListUtils::create<String>("a,c"));
-	p.checkDefaults("Param_test",d,"");
-	p.setValue("stringlist",ListUtils::create<String>("aa,dd,cc"));
-	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
-
-
-	//wrong type
-	p.clear();
-	p.setValue("doublev",4);
-	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
-	p.clear();
-	p.setValue("intv","bla");
-	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
-	p.clear();
-	p.setValue("stringv",4.5);
-	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
-END_SECTION
-
-START_SECTION((void update(const Param& old_version, const bool add_unknown = false)))
-{
-  NOT_TESTABLE // see full implementation below
-}
-END_SECTION
-
 START_SECTION((void update(const Param& old_version, const bool add_unknown, Logger::LogStream& stream)))
 	Param common;
 	common.setValue("float",1.0f,"float");
@@ -1712,6 +1530,189 @@ START_SECTION((ParamIterator end() const))
 	++it;
 	TEST_EQUAL(it==p.end(),true)
 END_SECTION
+
+START_SECTION((void setValidStrings(const String &key, const std::vector< String > &strings)))
+  vector<String> strings;
+  strings.push_back("bla");
+  Param d;
+  d.setValue("ok","string");
+  d.setValue("dummy",5);
+
+  d.setValidStrings("ok",strings);
+  TEST_EQUAL(d.getEntry("ok").valid_strings==strings, true);
+  TEST_EXCEPTION(Exception::ElementNotFound, d.setValidStrings("dummy",strings))
+  strings.push_back("sdf,sdfd");
+  TEST_EXCEPTION(Exception::InvalidParameter, d.setValidStrings("ok",strings))
+END_SECTION
+
+START_SECTION((void setMinInt(const String &key, Int min)))
+  Param d;
+  d.setValue("ok",4);
+  d.setValue("dummy",5.5);
+
+  d.setMinInt("ok",4);
+  TEST_EQUAL(d.getEntry("ok").min_int,4);
+  TEST_EXCEPTION(Exception::ElementNotFound, d.setMinInt("dummy",4))
+END_SECTION
+
+START_SECTION((void setMaxInt(const String &key, Int max)))
+  Param d;
+  d.setValue("ok",4);
+  d.setValue("dummy",5.5);
+
+  d.setMaxInt("ok",4);
+  TEST_EQUAL(d.getEntry("ok").max_int,4);
+  TEST_EXCEPTION(Exception::ElementNotFound, d.setMaxInt("dummy",4))
+END_SECTION
+
+START_SECTION((void setMinFloat(const String &key, double min)))
+  Param d;
+  d.setValue("ok",4.5);
+  d.setValue("dummy",4);
+
+  d.setMinFloat("ok",4.0);
+  TEST_REAL_SIMILAR(d.getEntry("ok").min_float,4.0);
+  TEST_EXCEPTION(Exception::ElementNotFound, d.setMinFloat("dummy",4.5))
+END_SECTION
+
+START_SECTION((void setMaxFloat(const String &key, double max)))
+  Param d;
+  d.setValue("ok",4.5);
+  d.setValue("dummy",4);
+
+  d.setMaxFloat("ok",4.0);
+  TEST_REAL_SIMILAR(d.getEntry("ok").max_float,4.0);
+  TEST_EXCEPTION(Exception::ElementNotFound, d.setMaxFloat("dummy",4.5))
+END_SECTION
+
+// warnings for unknown parameters
+// keep outside the scope of a single test to avoid destruction, leaving
+// Log_warn in an undefined state
+ostringstream os;
+// checkDefaults sends its warnings to LOG_WARN so we register our own
+// listener here to check the output
+Log_warn.remove(cout);
+Log_warn.insert(os);
+
+START_SECTION((void checkDefaults(const String &name, const Param &defaults, const String& prefix="") const))
+    Param p,d;
+    p.setValue("string",String("bla"),"string");
+    p.setValue("int",5,"int");
+    p.setValue("double",47.11,"double");
+
+    p.checkDefaults("Test",d,"");
+    TEST_EQUAL(os.str()=="",false)
+
+    d.setValue("int",5,"int");
+    d.setValue("double",47.11,"double");
+    os.str("");
+  os.clear();
+    p.checkDefaults("Test",d,"");
+    TEST_EQUAL(os.str()=="",false)
+
+    p.clear();
+    p.setValue("pref:string",String("bla"),"pref:string");
+    p.setValue("pref:int",5,"pref:int");
+    p.setValue("pref:double",47.11,"pref:double");
+    os.str("");
+  os.clear();
+    p.checkDefaults("Test",d,"pref");
+    TEST_EQUAL(os.str()=="",false)
+
+    os.str("");
+  os.clear();
+    p.checkDefaults("Test2",d,"pref:");
+    TEST_EQUAL(os.str()=="",false)
+
+    //check string restrictions
+    vector<String> s_rest;
+    s_rest.push_back("a");
+    s_rest.push_back("b");
+    s_rest.push_back("c");
+    d.setValue("stringv","bla","desc");
+    d.setValidStrings("stringv", s_rest);
+    p.clear();
+    p.setValue("stringv","a");
+    p.checkDefaults("Param_test",d,"");
+    p.setValue("stringv","d");
+    TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
+
+    //check int restrictions
+    d.setValue("intv",4,"desc");
+    d.setMinInt("intv",-4);
+    p.clear();
+    p.setValue("intv",-4);
+    p.checkDefaults("Param_test",d,"");
+    p.setValue("intv",700);
+    p.checkDefaults("Param_test",d,"");
+    p.setValue("intv",-5);
+    TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
+
+    d.setValue("intv2",4,"desc");
+    d.setMaxInt("intv2",4);
+    p.clear();
+    p.setValue("intv2",4);
+    p.checkDefaults("Param_test",d,"");
+    p.setValue("intv2",-700);
+    p.checkDefaults("Param_test",d,"");
+    p.setValue("intv2",5);
+    TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
+
+    //check double restrictions
+    d.setValue("doublev",4.0,"desc");
+    d.setMinFloat("doublev",-4.0);
+    p.clear();
+    p.setValue("doublev",-4.0);
+    p.checkDefaults("Param_test",d,"");
+    p.setValue("doublev",0.0);
+    p.checkDefaults("Param_test",d,"");
+    p.setValue("doublev",7.0);
+    p.checkDefaults("Param_test",d,"");
+    p.setValue("doublev",-4.1);
+    TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
+
+    d.setValue("doublev2",4.0,"desc");
+    d.setMaxFloat("doublev2",4.0);
+    p.clear();
+    p.setValue("doublev2",4.0);
+    p.checkDefaults("Param_test",d,"");
+    p.setValue("doublev2",-700.0);
+    p.checkDefaults("Param_test",d,"");
+    p.setValue("doublev2",4.1);
+    TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
+
+    //check list restrictions
+    vector<String> s_rest1;
+    s_rest1.push_back("a");
+    s_rest1.push_back("b");
+    s_rest1.push_back("c");
+    d.setValue("stringlist",ListUtils::create<String>("aaa,abc,cab"),"desc");
+    d.setValidStrings("stringlist", s_rest);
+    p.clear();
+    p.setValue("stringlist",ListUtils::create<String>("a,c"));
+    p.checkDefaults("Param_test",d,"");
+    p.setValue("stringlist",ListUtils::create<String>("aa,dd,cc"));
+    TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
+
+
+    //wrong type
+    p.clear();
+    p.setValue("doublev",4);
+    TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
+    p.clear();
+    p.setValue("intv","bla");
+    TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
+    p.clear();
+    p.setValue("stringv",4.5);
+    TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
+END_SECTION
+
+START_SECTION((void update(const Param& old_version, const bool add_unknown = false)))
+{
+  NOT_TESTABLE // see full implementation below
+}
+END_SECTION
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

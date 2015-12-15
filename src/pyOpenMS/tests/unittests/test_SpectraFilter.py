@@ -110,20 +110,43 @@ class TestSpectraFilter(unittest.TestCase):
 
     def test_map_ParentPeakMower(self):
         thisfilter = pyopenms.ParentPeakMower();
+        param = thisfilter.getDefaults()
+        param.setValue(b"window_size", 20.0, b"")
+        param.setValue(b"set_to_zero", True, b"")
+        thisfilter.setParameters(param)
 
-        self.exp[0].setMSLevel(2)
+
+        self.assertEqual(self.exp.size(), 5)
+        self.assertEqual(self.exp[0].getMSLevel(), 1)
+
+        map = []
+        for spec in self.exp:
+            if spec.getMSLevel() != 1:
+                map.append(spec)
+
+        self.exp.setSpectra(map)
+
+        self.assertEqual(self.exp.size(), 3)
+        self.assertEqual(self.exp[0].getMSLevel(), 2)
+        self.assertEqual(self.exp[1].getMSLevel(), 2)
+        self.assertEqual(self.exp[2].getMSLevel(), 2)
+
         old_firstspec = self.exp[0]
         old_secondspec = self.exp[1]
+
         thisfilter.filterPeakMap(self.exp)
 
-        # the MS1 should not be processed 
-        self.assertNotEqual(self.exp.size(), 0)
-        self.assertEqual(old_firstspec, self.exp[0])
-        self.assertNotEqual(old_secondspec, self.exp[1])
+        a = old_firstspec
+        b = self.exp[0]
+        self.assertEqual(a[174].getIntensity(), b[174].getIntensity())
+        self.assertNotEqual(a[175].getIntensity(), b[175].getIntensity())
+        self.assertNotEqual(a[201].getIntensity(), b[201].getIntensity())
+        self.assertEqual(a[202].getIntensity(), b[202].getIntensity())
 
-        # TODO
-        self.assertEqual(old_secondspec[10].getMZ(), self.exp[1][10].getMZ())
-        self.assertEqual(old_secondspec[10].getIntensity(), self.exp[1][10].getIntensity())
+        # All peaks between 174 and 202 should be zero
+        for i in range(175, 202, 1):
+            self.assertEqual(b[i].getIntensity(), 0)
+            self.assertEqual(a[i].getMZ(), b[i].getMZ())
 
     def test_spectrum_ParentPeakMower(self):
         thisfilter = pyopenms.ParentPeakMower();

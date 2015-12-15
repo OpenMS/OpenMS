@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,8 +40,8 @@
 #include <cmath>
 #include <fstream>
 
-#define IDDECOYPROBABILITY_DEBUG
-#undef  IDDECOYPROBABILITY_DEBUG
+// #define IDDECOYPROBABILITY_DEBUG
+// #undef  IDDECOYPROBABILITY_DEBUG
 
 using namespace std;
 
@@ -73,8 +73,8 @@ namespace OpenMS
 
   void IDDecoyProbability::apply(vector<PeptideIdentification> & ids)
   {
-    double lower_score_better_default_value_if_zero((double)param_.getValue("lower_score_better_default_value_if_zero"));
-    double lower_score_better_default_value_if_zero_exp = pow((double)10.0, -lower_score_better_default_value_if_zero);
+    double lower_score_better_default_value_if_zero(static_cast<double>(param_.getValue("lower_score_better_default_value_if_zero")));
+    double lower_score_better_default_value_if_zero_exp = pow(10.0, -lower_score_better_default_value_if_zero);
     vector<double> rev_scores, fwd_scores, all_scores;
 
     // get the forward scores

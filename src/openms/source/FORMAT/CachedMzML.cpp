@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -221,11 +221,11 @@ namespace OpenMS
     if (addCacheMetaValue)
     {
       // set dataprocessing on each spectrum/chromatogram
-      DataProcessing dp;
+      boost::shared_ptr< DataProcessing > dp = boost::shared_ptr< DataProcessing >(new DataProcessing);
       std::set<DataProcessing::ProcessingAction> actions;
       actions.insert(DataProcessing::FORMAT_CONVERSION);
-      dp.setProcessingActions(actions);
-      dp.setMetaValue("cached_data", "true");
+      dp->setProcessingActions(actions);
+      dp->setMetaValue("cached_data", "true");
       for (Size i=0; i<exp.size(); ++i)
       {
         exp[i].getDataProcessing().push_back(dp);

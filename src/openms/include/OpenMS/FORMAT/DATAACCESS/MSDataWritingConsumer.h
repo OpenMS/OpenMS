@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -270,7 +270,7 @@ namespace OpenMS
       */
       virtual void addDataProcessing(DataProcessing d)
       {
-        additional_dataprocessing_ = d;
+        additional_dataprocessing_ = DataProcessingPtr( new DataProcessing(d) );
         add_dataprocessing_ = true;
       }
 
@@ -358,9 +358,9 @@ namespace OpenMS
       /// Experimental settings to use for the whole file
       ExperimentalSettings settings_;
       /// Vector of data processing objects -> will be filled by writeHeader_
-      std::vector<std::vector<DataProcessing> > dps_;
+      std::vector<std::vector< ConstDataProcessingPtr > > dps_;
       /// The dataprocessing to be added to each spectrum/chromatogram
-      DataProcessing additional_dataprocessing_;
+      DataProcessingPtr additional_dataprocessing_;
     };
 
     /**

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,6 +43,7 @@
 #include <iostream>
 #include <fstream>
 #include <limits>
+#include <string>
 
 using namespace std;
 
@@ -72,7 +73,7 @@ namespace OpenMS
 
   void
   PepNovoOutfile::load(
-    const string & result_filename,
+    const std::string & result_filename,
     vector<PeptideIdentification> & peptide_identifications,
     ProteinIdentification & protein_identification,
     const double & score_threshold,
@@ -367,7 +368,7 @@ namespace OpenMS
       if (line.hasPrefix("Fragment"))
       {
         line.split(' ', substrings);
-        search_param.peak_mass_tolerance = substrings.back().toFloat();
+        search_param.fragment_mass_tolerance = substrings.back().toFloat();
       }
       if (line.hasPrefix("PTM"))
       {

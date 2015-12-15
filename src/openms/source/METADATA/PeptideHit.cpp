@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,8 +45,10 @@ namespace OpenMS
     MetaInfoInterface(),
     sequence_(),
     score_(0),
+    analysis_results_(NULL),
     rank_(0),
-    charge_(0)
+    charge_(0),
+    peptide_evidences_()
   {
   }
 
@@ -55,8 +57,10 @@ namespace OpenMS
     MetaInfoInterface(),
     sequence_(sequence),
     score_(score),
+    analysis_results_(NULL),
     rank_(rank),
-    charge_(charge)
+    charge_(charge),
+    peptide_evidences_()
   {
   }
 
@@ -65,15 +69,25 @@ namespace OpenMS
     MetaInfoInterface(source),
     sequence_(source.sequence_),
     score_(source.score_),
+    analysis_results_(NULL),
     rank_(source.rank_),
     charge_(source.charge_),
     peptide_evidences_(source.peptide_evidences_)
   {
+    if (source.analysis_results_ != NULL)
+    {
+      analysis_results_ = new std::vector<PepXMLAnalysisResult>(*source.analysis_results_);
+    }
   }
 
   // destructor
   PeptideHit::~PeptideHit()
   {
+    if (analysis_results_ != NULL)
+    {
+      // free memory again
+      delete analysis_results_;
+    }
   }
 
   PeptideHit& PeptideHit::operator=(const PeptideHit& source)
@@ -86,6 +100,16 @@ namespace OpenMS
     MetaInfoInterface::operator=(source);
     sequence_ = source.sequence_;
     score_ = source.score_;
+    analysis_results_ = NULL;
+    if (source.analysis_results_ != NULL)
+    {
+      if (analysis_results_ != NULL)
+      {
+        // free memory first
+        delete analysis_results_;
+      }
+      analysis_results_ = new std::vector<PepXMLAnalysisResult>(*source.analysis_results_);
+    }
     charge_ = source.charge_;
     rank_  = source.rank_;
     peptide_evidences_ = source.peptide_evidences_;
@@ -94,9 +118,18 @@ namespace OpenMS
 
   bool PeptideHit::operator==(const PeptideHit& rhs) const
   {
+    bool ar_equal = false;
+    if (analysis_results_ == NULL && rhs.analysis_results_ == NULL) ar_equal = true;
+    else if (analysis_results_ != NULL && rhs.analysis_results_ != NULL)
+    {
+      ar_equal = (*analysis_results_ == *rhs.analysis_results_);
+    }
+    else return false; // one is null the other isn't
+
     return MetaInfoInterface::operator==(rhs)
            && sequence_ == rhs.sequence_
            && score_ == rhs.score_
+           && ar_equal
            && rank_ == rhs.rank_
            && charge_ == rhs.charge_
            && peptide_evidences_ == rhs.peptide_evidences_;
@@ -159,6 +192,32 @@ namespace OpenMS
   void PeptideHit::setScore(double score)
   {
     score_ = score;
+  }
+
+  void PeptideHit::setAnalysisResults(std::vector<PeptideHit::PepXMLAnalysisResult> aresult)
+  {
+    // delete old results first
+    if (analysis_results_ != NULL) delete analysis_results_;
+    analysis_results_ = new std::vector< PeptideHit::PepXMLAnalysisResult> (aresult);
+  }
+
+  void PeptideHit::addAnalysisResults(PeptideHit::PepXMLAnalysisResult aresult)
+  {
+    if (analysis_results_ == NULL)
+    {
+      analysis_results_ = new std::vector< PeptideHit::PepXMLAnalysisResult>();
+    }
+    analysis_results_->push_back(aresult);
+  }
+  
+  const std::vector<PeptideHit::PepXMLAnalysisResult>& PeptideHit::getAnalysisResults() const
+  {
+    static std::vector<PeptideHit::PepXMLAnalysisResult> empty;
+    if (analysis_results_ == NULL)
+    {
+      return empty;
+    }
+    return (*analysis_results_);
   }
 
   // sets the rank

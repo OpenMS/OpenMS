@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,10 +37,11 @@
 
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/CONCEPT/PrecisionWrapper.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/config.h>
 
-#include <cmath>
 #include <algorithm>
+#include <cmath>
 #include <iomanip>
 #include <iostream>
 
@@ -95,7 +96,7 @@ public:
       @throw Exception::OutOfMemory if requested dimensionsize is to big to fit into memory
     */
     DistanceMatrix(SizeType dimensionsize, Value value = Value()) :
-      matrix_(new ValueType *[dimensionsize]), init_size_(dimensionsize), dimensionsize_(dimensionsize), min_element_(0, 0)
+      matrix_(new ValueType*[dimensionsize]), init_size_(dimensionsize), dimensionsize_(dimensionsize), min_element_(0, 0)
     {
       matrix_[0] = NULL;
       SizeType i = 1;
@@ -135,8 +136,8 @@ public:
       @param source  this DistanceMatrix will be copied
       @throw Exception::OutOfMemory if requested dimensionsize is to big to fit into memory
     */
-    DistanceMatrix(const DistanceMatrix & source) :
-      matrix_(new ValueType *[source.dimensionsize_]),
+    DistanceMatrix(const DistanceMatrix& source) :
+      matrix_(new ValueType*[source.dimensionsize_]),
       init_size_(source.dimensionsize_),
       dimensionsize_(source.dimensionsize_),
       min_element_(source.min_element_)
@@ -276,7 +277,7 @@ public:
         if (i != min_element_.first && j != min_element_.second)
         {
           matrix_[i][j] = value;
-          if (value < matrix_[min_element_.first][min_element_.second])          // keep min_element_ up-to-date
+          if (value < matrix_[min_element_.first][min_element_.second]) // keep min_element_ up-to-date
           {
             min_element_ = std::make_pair(i, j);
           }
@@ -350,13 +351,13 @@ public:
     {
       for (SizeType j = 1; j < init_size_; j++)
       {
-        delete matrix_[j];
+        delete[] matrix_[j];
       }
       delete[] matrix_;
       dimensionsize_ = dimensionsize;
       init_size_ = dimensionsize;
       min_element_ = std::make_pair(0, 0);
-      matrix_ = new ValueType *[dimensionsize_];
+      matrix_ = new ValueType*[dimensionsize_];
       for (SizeType j = 1; j < dimensionsize_; ++j)
       {
         matrix_[j] = new ValueType[j];
@@ -433,9 +434,9 @@ public:
       {
         throw Exception::OutOfRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
       }
-      if (dimensionsize_ != 1)    //else matrix has one element: (1,0)
+      if (dimensionsize_ != 1) //else matrix has one element: (1,0)
       {
-        ValueType * row_min_;
+        ValueType* row_min_;
         for (SizeType r = 2; r < dimensionsize_ && matrix_[r] != NULL; ++r)
         {
           row_min_ = std::min_element(matrix_[r], matrix_[r] + r);
@@ -452,7 +453,7 @@ public:
 
       @throw Exception::Precondition thrown if given DistanceMatrix is not compatible in size
     */
-    bool operator==(DistanceMatrix<ValueType> const & rhs) const
+    bool operator==(DistanceMatrix<ValueType> const& rhs) const
     {
       OPENMS_PRECONDITION(dimensionsize_ == rhs.dimensionsize_, "DistanceMatrices have different sizes.");
       for (Size i = 1; i < rhs.dimensionsize(); ++i)
@@ -484,17 +485,17 @@ public:
 
 protected:
     /// sparse element not to be included in base container
-    ValueType ** matrix_;
+    ValueType** matrix_;
     /// number of actually stored rows
-    SizeType init_size_;     // actual size of outer array
-    /// number of accessably stored rows (i.e. number of columns)
-    SizeType dimensionsize_;     //number of virtual elements: ((dimensionsize-1)*(dimensionsize))/2
+    SizeType init_size_; // actual size of outer array
+    /// number of accessibly stored rows (i.e. number of columns)
+    SizeType dimensionsize_; //number of virtual elements: ((dimensionsize-1)*(dimensionsize))/2
     /// index of minimal element(i.e. number in underlying SparseVector)
     std::pair<SizeType, SizeType> min_element_;
 
 private:
     /// assignment operator (unsafe)
-    DistanceMatrix & operator=(const DistanceMatrix & rhs)
+    DistanceMatrix& operator=(const DistanceMatrix& rhs)
     {
       matrix_ = rhs.matrix_;
       init_size_ = rhs.init_size_;
@@ -504,7 +505,7 @@ private:
       return *this;
     }
 
-  };   // class DistanceMatrix
+  }; // class DistanceMatrix
 
   /**
     @brief Print the contents to a stream.
@@ -512,14 +513,14 @@ private:
     @relatesalso DistanceMatrix
   */
   template <typename Value>
-  std::ostream & operator<<(std::ostream & os, const DistanceMatrix<Value> & matrix)
+  std::ostream& operator<<(std::ostream& os, const DistanceMatrix<Value>& matrix)
   {
     typedef typename DistanceMatrix<Value>::SizeType SizeType;
 
     std::ios_base::fmtflags flag_backup = os.setf(std::ios::scientific);
     std::streamsize precision_backup = os.precision();
     //~ os.precision(15);
-    os.precision(writtenDigits<double>(0.0));     // #include <OpenMS/CONCEPT/Types.h>
+    os.precision(writtenDigits<double>(0.0)); // #include <OpenMS/CONCEPT/Types.h>
 
     //evtl. color lower triangular matrix o.s.l.t.
     for (SizeType i = 0; i < matrix.dimensionsize(); ++i)

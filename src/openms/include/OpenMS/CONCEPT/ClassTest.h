@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,26 +40,22 @@
 // Use the ClassTest class if you need add high-level functionality.
 // Includes in the C-file are ok...
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/OpenMSConfig.h>
+#include <OpenMS/config.h>
 
-#include <vector>
-#include <string>
-#include <cstring>
-#include <list>
-#include <iostream>
-#include <fstream>
-#include <boost/lexical_cast.hpp>
-
-#ifdef OPENMS_HAS_UNISTD_H
-#include <unistd.h> // unlink()
-#endif
-
-#include <cstdio> // tmpnam()
 #include <cmath> // fabs
+#include <cstdio> // tmpnam()
 #include <cstdlib> // getenv()
+#include <cstring>
+#include <fstream>
+#include <iostream>
+#include <list>
+#include <string>
+#include <vector>
 
 // Empty declaration to avoid problems in case the namespace is not
 // yet defined (e.g. TEST/ClassTest_test.cpp)
@@ -403,8 +399,8 @@ namespace TEST = OpenMS::Internal::ClassTest;
     if (argc > 1)                                                                         \
     {                                                                                     \
       std::cerr                                                                           \
-      << "This is " << argv[0] << ", the test program for the\n"                          \
-      << # class_name " class.\n"                                                         \
+        << "This is " << argv[0] << ", the test program for the\n"                          \
+        << # class_name " class.\n"                                                         \
                       "\n"                                                                \
                       "On successful operation it returns PASSED,\n"                      \
                       "otherwise FAILED is printed.\n";                                   \
@@ -860,23 +856,23 @@ namespace TEST = OpenMS::Internal::ClassTest;
       if (TEST::this_test)                                                                \
       {                                                                                   \
         std__cout << " +  line " << __LINE__                                              \
-            << ":  TEST_FILE_SIMILAR(" # a "," # b "):  absolute: "                       \
-            << precisionWrapper(TEST::absdiff)                                            \
-            << " ("                                                                       \
-            << precisionWrapper(TEST::absdiff_max_allowed)                                \
-            << "), relative: "                                                            \
-            << precisionWrapper(TEST::ratio)                                              \
-            << " ("                                                                       \
-            << precisionWrapper(TEST::ratio_max_allowed)                                  \
-            << ")"                                                                        \
-            << std::endl;                                                                 \
+                  << ":  TEST_FILE_SIMILAR(" # a "," # b "):  absolute: "                       \
+                  << precisionWrapper(TEST::absdiff)                                            \
+                  << " ("                                                                       \
+                  << precisionWrapper(TEST::absdiff_max_allowed)                                \
+                  << "), relative: "                                                            \
+                  << precisionWrapper(TEST::ratio)                                              \
+                  << " ("                                                                       \
+                  << precisionWrapper(TEST::ratio_max_allowed)                                  \
+                  << ")"                                                                        \
+                  << std::endl;                                                                 \
         std__cout << "message: \n";                                                       \
         std__cout << TEST::fuzzy_message;                                                 \
       }                                                                                   \
       else                                                                                \
       {                                                                                   \
         std__cout << " -  line " << TEST::test_line <<                                    \
-        ": TEST_FILE_SIMILAR(" # a "," # b ") ...    -\n";                                \
+          ": TEST_FILE_SIMILAR(" # a "," # b ") ...    -\n";                                \
         std__cout << "message: \n";                                                       \
         std__cout << TEST::fuzzy_message;                                                 \
         TEST::failed_lines_list.push_back(TEST::test_line);                               \
@@ -901,8 +897,8 @@ namespace TEST = OpenMS::Internal::ClassTest;
   {                                                                                       \
     TEST::initialNewline();                                                               \
     std__cout << " +  line " << __LINE__ <<                                               \
-    ":  TOLERANCE_RELATIVE(" <<     TEST::ratio_max_allowed <<                            \
-    ")   (\"" # a "\")" << std::endl;                                                     \
+      ":  TOLERANCE_RELATIVE(" <<     TEST::ratio_max_allowed <<                            \
+      ")   (\"" # a "\")" << std::endl;                                                     \
   }
 
 /**	@brief Define the absolute tolerance for floating point comparisons.
@@ -921,8 +917,8 @@ namespace TEST = OpenMS::Internal::ClassTest;
   {                                                                                       \
     TEST::initialNewline();                                                               \
     std__cout << " +  line " << __LINE__ <<                                               \
-    ":  TOLERANCE_ABSOLUTE(" <<     TEST::absdiff_max_allowed   <<                        \
-    ")   (\"" # a "\")" << std::endl;                                                     \
+      ":  TOLERANCE_ABSOLUTE(" <<     TEST::absdiff_max_allowed   <<                        \
+      ")   (\"" # a "\")" << std::endl;                                                     \
   }
 
 /** @brief Define the whitelist_ used by #TEST_STRING_SIMILAR and #TEST_FILE_SIMILAR.
@@ -975,26 +971,26 @@ namespace TEST = OpenMS::Internal::ClassTest;
       {                                                                                   \
       case 0:                                                                             \
         std__cout << " -  line " << TEST::test_line <<                                    \
-        ":  TEST_EXCEPTION(" # exception_type "," # command                               \
-        "): no exception thrown!" << std::endl;                                           \
+          ":  TEST_EXCEPTION(" # exception_type "," # command                               \
+          "): no exception thrown!" << std::endl;                                           \
         TEST::failed_lines_list.push_back(TEST::test_line);                               \
         break;                                                                            \
       case 1:                                                                             \
         std__cout << " +  line " << TEST::test_line <<                                    \
-        ":  TEST_EXCEPTION(" # exception_type "," # command                               \
-        "): OK" << std::endl;                                                             \
+          ":  TEST_EXCEPTION(" # exception_type "," # command                               \
+          "): OK" << std::endl;                                                             \
         break;                                                                            \
       case 2:                                                                             \
         std__cout << " -  line " << TEST::test_line <<                                    \
-        ":  TEST_EXCEPTION(" # exception_type "," # command                               \
-        "): wrong exception thrown!  \""                                                  \
-        << TEST::exception_name << "\"" << std::endl;                                     \
+          ":  TEST_EXCEPTION(" # exception_type "," # command                               \
+          "): wrong exception thrown!  \""                                                  \
+                  << TEST::exception_name << "\"" << std::endl;                                     \
         TEST::failed_lines_list.push_back(TEST::test_line);                               \
         break;                                                                            \
       case 3:                                                                             \
         std__cout << " -  line " << TEST::test_line <<                                    \
-        ":  TEST_EXCEPTION(" # exception_type "," # command                               \
-        "): wrong exception thrown!" << std::endl;                                        \
+          ":  TEST_EXCEPTION(" # exception_type "," # command                               \
+          "): wrong exception thrown!" << std::endl;                                        \
         TEST::failed_lines_list.push_back(TEST::test_line);                               \
         break;                                                                            \
       }                                                                                   \
@@ -1088,37 +1084,37 @@ namespace TEST = OpenMS::Internal::ClassTest;
       {                                                                                   \
       case 0:                                                                             \
         std__cout << " -  line " << TEST::test_line <<                                    \
-        ":  TEST_EXCEPTION_WITH_MESSAGE(" # exception_type "," # command ", " # message   \
-        "): no exception thrown!" << std::endl;                                           \
+          ":  TEST_EXCEPTION_WITH_MESSAGE(" # exception_type "," # command ", " # message   \
+          "): no exception thrown!" << std::endl;                                           \
         TEST::failed_lines_list.push_back(TEST::test_line);                               \
         break;                                                                            \
       case 1:                                                                             \
         /* this is actually what we want to get:  */                                      \
         std__cout << " +  line " << TEST::test_line <<                                    \
-        ":  TEST_EXCEPTION_WITH_MESSAGE(" # exception_type "," # command ", " # message   \
-        "): OK" << std::endl;                                                             \
+          ":  TEST_EXCEPTION_WITH_MESSAGE(" # exception_type "," # command ", " # message   \
+          "): OK" << std::endl;                                                             \
         break;                                                                            \
       case 2:                                                                             \
         std__cout << " -  line " << TEST::test_line <<                                    \
-        ":  TEST_EXCEPTION_WITH_MESSAGE(" # exception_type "," # command ", " # message   \
-        "): wrong exception thrown!  \"" <<                                               \
-        TEST::exception_name << "\"" << std::endl;                                        \
+          ":  TEST_EXCEPTION_WITH_MESSAGE(" # exception_type "," # command ", " # message   \
+          "): wrong exception thrown!  \"" <<                                               \
+          TEST::exception_name << "\"" << std::endl;                                        \
         TEST::failed_lines_list.push_back(TEST::test_line);                               \
         break;                                                                            \
       case 3:                                                                             \
         std__cout << " -  line " << TEST::test_line <<                                    \
-        ":  TEST_EXCEPTION_WITH_MESSAGE(" # exception_type "," # command ", " # message   \
-        "): wrong exception thrown!" << std::endl;                                        \
+          ":  TEST_EXCEPTION_WITH_MESSAGE(" # exception_type "," # command ", " # message   \
+          "): wrong exception thrown!" << std::endl;                                        \
         TEST::failed_lines_list.push_back(TEST::test_line);                               \
         break;                                                                            \
       case 4:                                                                             \
         std__cout << " -  line " << TEST::test_line <<                                    \
-        ":  TEST_EXCEPTION_WITH_MESSAGE(" # exception_type "," # command ", " # message   \
-        "): exception has wrong message: got '" <<                                        \
-        TEST::exception_message <<                                                        \
-        "', expected '" <<                                                                \
-        (message) <<                                                                      \
-        "'" << std::endl;                                                                 \
+          ":  TEST_EXCEPTION_WITH_MESSAGE(" # exception_type "," # command ", " # message   \
+          "): exception has wrong message: got '" <<                                        \
+          TEST::exception_message <<                                                        \
+          "', expected '" <<                                                                \
+          (message) <<                                                                      \
+          "'" << std::endl;                                                                 \
         TEST::failed_lines_list.push_back(TEST::test_line);                               \
         break;                                                                            \
       }                                                                                   \
@@ -1168,8 +1164,8 @@ namespace TEST = OpenMS::Internal::ClassTest;
     {                                                                                     \
       TEST::initialNewline();                                                             \
       std__cout << " -  line " <<  __LINE__ <<                                            \
-      ":  ABORT_IF(" # condition "):  TEST ABORTED" <<                                    \
-      std::endl;                                                                          \
+        ":  ABORT_IF(" # condition "):  TEST ABORTED" <<                                    \
+        std::endl;                                                                          \
       TEST::failed_lines_list.push_back(TEST::test_line);                                 \
     }                                                                                     \
     break;                                                                                \

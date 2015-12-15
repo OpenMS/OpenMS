@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,18 +32,21 @@
 // $Authors: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
-
-#include <iostream>
-#include <fstream>
-#include <limits>
-#include <algorithm>
-#include <cctype> // for "isalpha"
-
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
+
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
+#include <OpenMS/config.h>
 
 #include <QtCore/QString>
+#include <algorithm>
+#include <cctype>
+#include <fstream>
+#include <iostream>
+#include <limits>
 
 namespace OpenMS
 {
@@ -62,7 +65,7 @@ namespace OpenMS
   {
   }
 
-  Param::ParamEntry::ParamEntry(const ParamEntry & other) :
+  Param::ParamEntry::ParamEntry(const ParamEntry& other) :
     name(other.name),
     description(other.description),
     value(other.value),
