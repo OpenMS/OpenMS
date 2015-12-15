@@ -80,26 +80,34 @@ class OPENMS_DLLAPI AScore
 
         @note the original sequence is saved in the PeptideHits as MetaValue Search_engine_sequence.
     */
-    PeptideHit compute(const PeptideHit & hit, PeakSpectrum &real_spectrum, double fragment_mass_tolerance, bool fragment_mass_unit_ppm, double site_determining_ion_tol) const;
+    PeptideHit compute(const PeptideHit & hit, PeakSpectrum &real_spectrum, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const;
 
   protected:
   
     /// getSpectrumDifference_ works similar as the method std::set_difference (http://en.cppreference.com/w/cpp/algorithm/set_difference). 
     /// set_difference was reimplemented, because it was necessary to overwrite the compare operator to be able to compare the m/z values.
+    /// not implemented as "operator<", because using tolerances for comparison does not imply total ordering    
     template <class InputIterator1, class InputIterator2, class OutputIterator>
     OutputIterator getSpectrumDifference_(InputIterator1 first1, InputIterator1 last1,
-      InputIterator2 first2, InputIterator2 last2, OutputIterator result, double site_determining_ion_tol) const
+      InputIterator2 first2, InputIterator2 last2, OutputIterator result, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const
     {
       while (first1 != last1 && first2 != last2)
       {
+        double tolerance = fragment_mass_tolerance;        
         double error = first1->getMZ() - first2->getMZ();
-        if (error < -site_determining_ion_tol)
+        if (fragment_mass_unit_ppm)
+        {
+          double avg_mass = (first1->getMZ() + first2->getMZ()) / 2;
+          tolerance = fragment_mass_tolerance * avg_mass / 1e6;
+        }
+        
+        if (error < -tolerance)
         { 
           *result = *first1; 
           ++result; 
           ++first1; 
         }
-        else if (error > site_determining_ion_tol)
+        else if (error > tolerance)
         {
           ++first2;
         }
@@ -113,7 +121,7 @@ class OPENMS_DLLAPI AScore
     }
     
     ///Computes the site determining_ions for the given AS and sequences in candidates
-    void computeSiteDeterminingIons_(const std::vector<RichPeakSpectrum> & th_spectra, const ProbablePhosphoSites & candidates, std::vector<RichPeakSpectrum> & site_determining_ions, double site_determining_ion_tol) const;
+    void computeSiteDeterminingIons_(const std::vector<RichPeakSpectrum> & th_spectra, const ProbablePhosphoSites & candidates, std::vector<RichPeakSpectrum> & site_determining_ions, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const;
 
     /// return all phospho sites
     std::vector<Size> getSites_(const AASequence & without_phospho) const;
