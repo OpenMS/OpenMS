@@ -145,6 +145,8 @@ START_SECTION( static void correctMZ(OpenMS::MRMFeatureFinderScoring::Transition
     exp->addSpectrum(spec);
   }
 
+  // targets for correction are : 500.00, 600.00, 700.00, 800.00
+  // "measured data" as input   : 500.02, 600.00, 699.97, 800.02
   OpenSwath::SpectrumAccessPtr sptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
 
   std::vector< OpenSwath::SwathMap > swath_maps;
@@ -172,20 +174,20 @@ START_SECTION( static void correctMZ(OpenMS::MRMFeatureFinderScoring::Transition
 
   SwathMapMassCorrection::correctMZ(transition_group_map, swath_maps, "unweighted_regression");
   data = swath_maps[0].sptr->getSpectrumById(0)->getMZArray()->data;
-  TEST_REAL_SIMILAR(data[0], -0.00428216 + 0.999986 * 500.02)
-  TEST_REAL_SIMILAR(data[1], -0.00428216 + 0.999986 * 600.00)
-  TEST_REAL_SIMILAR(data[2], -0.00428216 + 0.999986 * 699.97)
-  TEST_REAL_SIMILAR(data[3], -0.00428216 + 0.999986 * 800.02)
+  TEST_REAL_SIMILAR(data[0], -0.00428216 + 0.999986 * 500.02) // 500.00857204075
+  TEST_REAL_SIMILAR(data[1], -0.00428216 + 0.999986 * 600.00) // 599.987143224553
+  TEST_REAL_SIMILAR(data[2], -0.00428216 + 0.999986 * 699.97) // 699.955714551266
+  TEST_REAL_SIMILAR(data[3], -0.00428216 + 0.999986 * 800.02) // 800.004284734697
 
   {
     std::vector< OpenSwath::SwathMap > new_swath_maps;
     new_swath_maps.push_back(map);
     SwathMapMassCorrection::correctMZ(transition_group_map, new_swath_maps, "quadratic_regression");
     data = new_swath_maps[0].sptr->getSpectrumById(0)->getMZArray()->data;
-    TEST_REAL_SIMILAR(data[0], -0.420066 + 1.0013 * 500.02 -1.0001e-06 * 500.02 * 500.02)
-    TEST_REAL_SIMILAR(data[1], -0.420066 + 1.0013 * 600.00 -1.0001e-06 * 600.00 * 600.00)
-    TEST_REAL_SIMILAR(data[2], -0.420066 + 1.0013 * 699.97 -1.0001e-06 * 699.97 * 699.97)
-    TEST_REAL_SIMILAR(data[3], -0.420066 + 1.0013 * 800.02 -1.0001e-06 * 800.02 * 800.02)
+    TEST_REAL_SIMILAR(data[0], -0.420066 + 1.0013 * 500.02 -1.0001e-06 * 500.02 * 500.02) // 499.999999998741
+    TEST_REAL_SIMILAR(data[1], -0.420066 + 1.0013 * 600.00 -1.0001e-06 * 600.00 * 600.00) // 599.999999998427
+    TEST_REAL_SIMILAR(data[2], -0.420066 + 1.0013 * 699.97 -1.0001e-06 * 699.97 * 699.97) // 699.970006996546
+    TEST_REAL_SIMILAR(data[3], -0.420066 + 1.0013 * 800.02 -1.0001e-06 * 800.02 * 800.02) // 799.999999997298
   }
 
   {
@@ -193,10 +195,10 @@ START_SECTION( static void correctMZ(OpenMS::MRMFeatureFinderScoring::Transition
     new_swath_maps.push_back(map);
     SwathMapMassCorrection::correctMZ(transition_group_map, new_swath_maps, "quadratic_regression_delta_ppm");
     data = new_swath_maps[0].sptr->getSpectrumById(0)->getMZArray()->data;
-    TEST_REAL_SIMILAR(data[0], 499.9999992)
-    TEST_REAL_SIMILAR(data[1], 600)
+    TEST_REAL_SIMILAR(data[0], 500.0)
+    TEST_REAL_SIMILAR(data[1], 600.0)
     TEST_REAL_SIMILAR(data[2], 699.973507373208)
-    TEST_REAL_SIMILAR(data[3], 799.9999995)
+    TEST_REAL_SIMILAR(data[3], 800.0)
   }
 
 }

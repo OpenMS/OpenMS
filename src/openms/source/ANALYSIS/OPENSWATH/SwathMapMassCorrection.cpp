@@ -135,7 +135,7 @@ namespace OpenMS
         exp_mz.push_back( mz );
         // y = target = theoretical
         theo_mz.push_back( tr->product_mz );
-        double diff_ppm = (mz - tr->product_mz) * 1000000 / tr->product_mz;
+        double diff_ppm = (mz - tr->product_mz) * 1000000 / mz;
         // y = target = delta-ppm
         delta_ppm.push_back(diff_ppm);
 
@@ -206,11 +206,11 @@ namespace OpenMS
     {
       double ppm_before = (d->first - d->second) * 1000000 / d->first;
       double predict = d->first*d->first*regression_params[2] + d->first*regression_params[1]+regression_params[0];
-      double ppm_after = ( predict - d->second) * 1000000 / d->second;
+      double ppm_after = ( predict - d->second) * 1000000 / d->first;
       if (is_ppm)
       {
         double new_mz = d->first - predict*d->first/1000000; 
-        ppm_after = ( new_mz - d->second) * 1000000 / d->second;
+        ppm_after = ( new_mz - d->second) * 1000000 / d->first;
       }
       s_ppm_before += std::fabs(ppm_before);
       s_ppm_after += std::fabs(ppm_after);
