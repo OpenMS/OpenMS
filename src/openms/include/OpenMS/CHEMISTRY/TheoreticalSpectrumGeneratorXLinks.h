@@ -124,7 +124,7 @@ public:
     virtual void getSpectrum(RichPeakSpectrum & spec, const ProteinProteinCrossLink & cross_link, Int charge = 1) const;
     virtual void getCommonIonSpectrum(RichPeakSpectrum & spec, const ProteinProteinCrossLink & cross_link, Int charge = 1) const;
     virtual void getCommonIonSpectrum(RichPeakSpectrum & spec, const AASequence & peptide, Int charge = 1) const;
-    virtual void getXLinkIonSpectrum(RichPeakSpectrum & spec_alpha, RichPeakSpectrum & spec_beta, const ProteinProteinCrossLink& cross_link, Int charge = 1) const;
+    virtual void getXLinkIonSpectrum(RichPeakSpectrum & spec_alpha, RichPeakSpectrum & spec_beta, const ProteinProteinCrossLink& cross_link, Int mincharge = 3, Int maxcharge = 5) const;
 
     /// adds peaks to a spectrum of the given ion-type, peptide, charge, and intensity
     virtual void addPeaks(RichPeakSpectrum & spectrum, const ProteinProteinCrossLink & cross_link, Residue::ResidueType res_type, Int charge = 1) const;

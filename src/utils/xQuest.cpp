@@ -56,6 +56,7 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLinks.h>
 
 #include <iostream>
+#include <cmath>
 
 using namespace std;
 using namespace OpenMS;
@@ -273,6 +274,45 @@ protected:
     {
       return 0.0;
     }
+  }
+
+  // Statistics/Combinatorics functions for match-odds score
+  // Standard choose n over k
+  Int choose(Size n, Size k)
+  {
+        Size result = 1;
+        Size j = 1;
+        if ( k > n || k < 0) return 0;
+
+	while (j <= k)
+	{
+		result *= n--;
+		result /= j++;
+	}
+	return result;
+  }
+
+  // Standard cumulative binomial distribution
+  double cumulativeBinomial(Size n, Size k, double p)
+  {
+        double p_cumul = 0.0;
+        if (p < 1e-99) return static_cast<double>(k == 0); //  (not true/false, but 1/0 as probability)
+        if (1 - p < 1e-99) return static_cast<double>(k != n); //
+        if (k > n)  return 1.0;
+
+	for (Size j = 0; j < k; j++)
+	{
+		p_cumul += choose(n, j) * pow(p,  j) * pow((1-p), (n-j));
+	}
+	return p_cumul;
+  }
+
+
+  // A priori probability of a random match given info about the theoretical spectrum, (range = maxmz - minmz)
+  double aPrioriProb(double ms2_tolerance, Size n_peaks, double range, Size n_charges)
+  {
+    double a_priori_probability= (1 - ( pow( (1 - 2 * ms2_tolerance/ (0.5 * range)),  (n_peaks / n_charges))));
+    return a_priori_probability;
   }
      
 
@@ -837,6 +877,7 @@ protected:
     // TODO test variable, can be removed
     float pScoreMax =0;
     double TICMax = 0;
+    double matchOddsMax = 0;
 
     // iterate over all spectra
     for (SignedSize scan_index = 0; scan_index < (SignedSize)spectra.size(); ++scan_index)
@@ -988,9 +1029,9 @@ protected:
 
               //specGen.getSpectrum(theoretical_spec, cross_link_candidate, 1);
               //getXLinkIonSpectrum(theoretical_spec_xlinks , cross_link_candidate, 1)
-              specGen.getCommonIonSpectrum(theoretical_spec_alpha, cross_link_candidate.alpha, 1);
-              specGen.getCommonIonSpectrum(theoretical_spec_beta, cross_link_candidate.beta, 1);
-              specGen.getXLinkIonSpectrum(theoretical_spec_xlinks_alpha, theoretical_spec_xlinks_beta, cross_link_candidate, 1);
+              specGen.getCommonIonSpectrum(theoretical_spec_alpha, cross_link_candidate.alpha, 3);
+              specGen.getCommonIonSpectrum(theoretical_spec_beta, cross_link_candidate.beta, 3);
+              specGen.getXLinkIonSpectrum(theoretical_spec_xlinks_alpha, theoretical_spec_xlinks_beta, cross_link_candidate, 4, 6);
 
               std::vector< std::pair< Size, Size > > matched_spec_alpha;
               std::vector< std::pair< Size, Size > > matched_spec_beta;
@@ -1015,7 +1056,7 @@ protected:
               Size matched_beta_count = matched_spec_beta.size() + matched_spec_xlinks_beta.size();
               Size theor_beta_count = theoretical_spec_beta.size() + theoretical_spec_xlinks_beta.size();
 
-              if (matched_alpha_count + matched_beta_count >= 5)
+              if (matched_alpha_count + matched_beta_count > 0)
               {
                   // Simplified pre-Score
                   //float pre_score = preScore(matched_fragments_theor_spec.size(), theoretical_spec.size());
@@ -1040,6 +1081,26 @@ protected:
                   cout << "matched current: " << matched_current << "\t total_current: " << total_current << endl;
                   cout << "%TIC= " << TIC << "%" << endl;
                   if (TIC > TICMax) TICMax = TIC;
+
+                  // match-odds score
+                  double range_c_alpha = theoretical_spec_alpha[theoretical_spec_alpha.size()-1].getMZ() -  theoretical_spec_alpha[0].getMZ();
+                  double range_x_alpha= theoretical_spec_xlinks_alpha[theoretical_spec_xlinks_alpha.size()-1].getMZ() -  theoretical_spec_xlinks_alpha[0].getMZ();
+                  double range_c_beta = theoretical_spec_beta[theoretical_spec_beta.size()-1].getMZ() -  theoretical_spec_beta[0].getMZ();
+                  double range_x_beta = theoretical_spec_xlinks_beta[theoretical_spec_xlinks_beta.size()-1].getMZ() -  theoretical_spec_xlinks_beta[0].getMZ();
+                  double a_priori_ca = aPrioriProb(fragment_mass_tolerance, theoretical_spec_alpha.size(), range_c_alpha, 3);
+                  double a_priori_xa = aPrioriProb(fragment_mass_tolerance, theoretical_spec_xlinks_alpha.size(), range_x_alpha, 3);
+                  double a_priori_cb = aPrioriProb(fragment_mass_tolerance, theoretical_spec_beta.size(), range_c_beta, 3);
+                  double a_priori_xb = aPrioriProb(fragment_mass_tolerance, theoretical_spec_xlinks_beta.size(), range_x_beta, 3);
+                  double match_odds_c_alpha = -log(1 - cumulativeBinomial(theoretical_spec_alpha.size(), matched_spec_alpha.size(), a_priori_ca) );
+                  double match_odds_x_alpha = -log(1 - cumulativeBinomial(theoretical_spec_xlinks_alpha.size(), matched_spec_xlinks_alpha.size(), a_priori_xa) );
+                  double match_odds_c_beta = -log(1 - cumulativeBinomial(theoretical_spec_beta.size(), matched_spec_beta.size(), a_priori_cb) );
+                  double match_odds_x_beta = -log(1 - cumulativeBinomial(theoretical_spec_xlinks_beta.size(), matched_spec_xlinks_beta.size(), a_priori_xb) );
+
+                  double match_odds = (match_odds_c_alpha + match_odds_x_alpha + match_odds_c_beta + match_odds_x_beta) / 4;
+
+                  cout << "Range Alpha: " << theoretical_spec_alpha[theoretical_spec_alpha.size()-1].getMZ()  << " - " << (double) theoretical_spec_alpha[0].getMZ() << " = " << range_c_alpha << "\t A Priori probaility common alpha: " << a_priori_ca << endl;
+                  cout << "Match-Odds Score Alpha: " << match_odds_c_alpha << "\t Match-Odds Final: " << match_odds << endl;
+                  if (match_odds > matchOddsMax) matchOddsMax = match_odds;
               }
             }              
           }
@@ -1166,7 +1227,7 @@ protected:
       }     
     }
 **/
-    cout << "Pre Score maximum: " << pScoreMax << "\t TIC maximum: " << TICMax << endl;
+    cout << "Pre Score maximum: " << pScoreMax << "\t TIC maximum: " << TICMax << "\t Match-Odds maximum: " << matchOddsMax << endl;
  
     return EXECUTION_OK;
   }
