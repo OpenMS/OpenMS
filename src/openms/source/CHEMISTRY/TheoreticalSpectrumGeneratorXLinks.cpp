@@ -141,15 +141,18 @@ namespace OpenMS
       if (add_y_ions)
         addCommonPeaks(spec, peptide, Residue::YIon, z);
     }
+
+    spec.sortByPosition();
   }
 
   void TheoreticalSpectrumGeneratorXLinks::getCommonIonSpectrum(RichPeakSpectrum & spec, const ProteinProteinCrossLink& cross_link, Int charge) const
   {
     getCommonIonSpectrum(spec, cross_link.alpha, charge);
     getCommonIonSpectrum(spec, cross_link.beta, charge);
+    spec.sortByPosition();
   }
 
-  void TheoreticalSpectrumGeneratorXLinks::getXLinkIonSpectrum(RichPeakSpectrum & spec_alpha, RichPeakSpectrum & spec_beta, const ProteinProteinCrossLink& cross_link, Int charge) const
+  void TheoreticalSpectrumGeneratorXLinks::getXLinkIonSpectrum(RichPeakSpectrum & spec_alpha, RichPeakSpectrum & spec_beta, const ProteinProteinCrossLink& cross_link, Int mincharge, Int maxcharge) const
   {
     //const AASequence& peptideA = cross_link.alpha;
     //const AASequence& peptideB = cross_link.beta;
@@ -157,7 +160,7 @@ namespace OpenMS
     bool add_b_ions(param_.getValue("add_b_ions").toBool());
     bool add_y_ions(param_.getValue("add_y_ions").toBool());
 
-    for (Int z = 1; z <= charge; ++z)
+    for (Int z = mincharge; z <= maxcharge; ++z)
     {
       if (add_b_ions)
         addXLinkIonPeaks(spec_alpha, spec_beta, cross_link, Residue::BIon, z);
