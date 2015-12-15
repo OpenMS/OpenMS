@@ -52,7 +52,8 @@ namespace OpenMS
         transition_group_map, std::vector< OpenSwath::SwathMap > &
         swath_maps, std::string corr_type, double mz_extr_window)
   {
-    bool is_ppm = bool(corr_type == "quadratic_regression_delta_ppm");
+    bool is_ppm = bool(corr_type == "quadratic_regression_delta_ppm" || 
+                       corr_type == "weighted_quadratic_regression_delta_ppm");
 
 #ifdef SWATHMAPMASSCORRECTION_DEBUG
     std::cout.precision(16);
@@ -178,11 +179,29 @@ namespace OpenMS
       regression_params.push_back(qr.getB());
       regression_params.push_back(qr.getC());
     }
+    else if (corr_type == "weighted_quadratic_regression")
+    {
+      // Quadratic fit (weighted)
+      Math::QuadraticRegression qr;
+      qr.computeRegressionWeighted(exp_mz.begin(), exp_mz.end(), theo_mz.begin(), weights.begin());
+      regression_params.push_back(qr.getA());
+      regression_params.push_back(qr.getB());
+      regression_params.push_back(qr.getC());
+    }
     else if (corr_type == "quadratic_regression_delta_ppm")
     {
       // Quadratic fit using ppm differences
       Math::QuadraticRegression qr;
       qr.computeRegression(exp_mz.begin(), exp_mz.end(), delta_ppm.begin());
+      regression_params.push_back(qr.getA());
+      regression_params.push_back(qr.getB());
+      regression_params.push_back(qr.getC());
+    }
+    else if (corr_type == "weighted_quadratic_regression_delta_ppm")
+    {
+      // Quadratic fit using ppm differences
+      Math::QuadraticRegression qr;
+      qr.computeRegressionWeighted(exp_mz.begin(), exp_mz.end(), delta_ppm.begin(), weights.begin());
       regression_params.push_back(qr.getA());
       regression_params.push_back(qr.getB());
       regression_params.push_back(qr.getC());
