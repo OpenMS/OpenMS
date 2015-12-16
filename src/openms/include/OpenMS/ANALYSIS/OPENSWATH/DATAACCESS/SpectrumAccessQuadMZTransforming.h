@@ -60,8 +60,8 @@ public:
      * @param a Regression parameter 0
      * @param b Regression parameter 1
      * @param c Regression parameter 2
-     * @param ppm Whether the should be applied in ppm domain (if false, it is
-     *            applied directly in m/z domain)
+     * @param ppm Whether the transformation should be applied in ppm domain
+     *            (if false, it is applied directly in m/z domain)
      *
     */
     explicit SpectrumAccessQuadMZTransforming(OpenSwath::SpectrumAccessPtr sptr,
