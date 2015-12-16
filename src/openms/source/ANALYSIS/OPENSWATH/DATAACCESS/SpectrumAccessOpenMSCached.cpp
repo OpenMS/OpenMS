@@ -146,9 +146,12 @@ namespace OpenMS
     // further spectra as long as they are below RT + deltaRT.
     std::vector<std::size_t> result;
     MSExperimentType::ConstIterator spectrum = meta_ms_experiment_.RTBegin(RT - deltaRT);
+    if (spectrum == meta_ms_experiment_.end()) return result;
+
     result.push_back(std::distance(meta_ms_experiment_.begin(), spectrum));
     spectrum++;
-    while (spectrum->getRT() < RT + deltaRT && spectrum != meta_ms_experiment_.end())
+
+    while (spectrum != meta_ms_experiment_.end() && spectrum->getRT() < RT + deltaRT)
     {
       result.push_back(spectrum - meta_ms_experiment_.begin());
       spectrum++;
