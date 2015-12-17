@@ -57,6 +57,7 @@
 
 #include <iostream>
 #include <cmath>
+#include <numeric>
 
 using namespace std;
 using namespace OpenMS;
@@ -313,6 +314,74 @@ protected:
   {
     double a_priori_probability= (1 - ( pow( (1 - 2 * ms2_tolerance/ (0.5 * range)),  (n_peaks / n_charges))));
     return a_priori_probability;
+  }
+  
+  //TODO more general spectra types?
+  // Cross-correlation, with shifting the second spectrum from -maxshift to +maxshift of tolerance bins
+  std::vector< double > xCorrelation(const PeakSpectrum & spec1, const RichPeakSpectrum & spec2, Int maxshift, double tolerance)
+  {
+    double maxionsize = std::max(spec1[spec1.size()-1].getMZ(), spec2[spec2.size()-1].getMZ());
+    //cout << "xcorr Maxionssize: " << maxionsize << endl;
+    Int table_size = std::ceil(maxionsize / tolerance)+1;
+    //cout << "xcorr table_size: " << table_size << endl;
+    std::vector< double > ion_table1(table_size, 0);
+    std::vector< double > ion_table2(table_size, 0);
+
+    // Build tables of the same size, each bin has the size of the tolerance
+    for (Size i = 0; i < spec1.size(); ++i)
+    {
+      Size pos = (Size) std::ceil(spec1[i].getMZ() / tolerance);
+      //cout << "xcorr Table1 pos: " << pos << endl;
+      ion_table1[pos] = spec1[i].getIntensity();
+      //cout << "xcorr Table1 Inte: " << spec1[i].getIntensity() << endl;
+    }
+    for (Size i = 0; i < spec2.size(); ++i)
+    {
+      Size pos = (Size) std::ceil(spec2[i].getMZ() / tolerance);
+      //cout << "xcorr Table2 pos: " << pos << endl;
+      ion_table2[pos] = spec2[i].getIntensity();
+      //cout << "xcorr Table2 Inte: " << spec2[i].getIntensity() << endl;
+    }
+    //cout << "xcorr Tables done" << endl;
+
+    // Compute means
+    double mean1 = (std::accumulate(ion_table1.begin(), ion_table1.end(), 0.0)) / table_size;
+    double mean2 = (std::accumulate(ion_table2.begin(), ion_table2.end(), 0.0)) / table_size;
+    //cout << "xcorr means: " << mean1 << "\t" << mean2 << endl;
+
+    // Compute denominator
+    double s1 = 0;
+    double s2 = 0;
+    for (Int i = 0; i < table_size; ++i)
+    {
+      s1 += pow((ion_table1[i] - mean1), 2);
+      s2 += pow((ion_table2[i] - mean2), 2);
+    }
+    double denom = sqrt(s1 * s2);
+    //cout << "xcorr Denominator: " << denom << endl;
+
+    // Calculate correlation for each shift
+    std::vector< double > results(maxshift * 2 + 1, 0);
+    for (Int shift = -maxshift; shift <= maxshift; ++shift)
+    {
+      double s = 0;
+      for (Int i = 0; i < table_size; ++i)
+      {
+        Int j = i + shift;
+        //cout << "xcorr i: " << i << "\t shift: " << shift << "\t j: " << j << endl;
+        if ( (j >= 0) && (j <= table_size))
+        {
+          s += (ion_table1[i] - mean1) * (ion_table2[j] - mean2);
+         // cout << "XCORR S: " << s << endl;
+        }
+      }
+      if (denom > 0)
+      {
+        results[shift + maxshift] = s / denom;
+      }
+    }
+    cout << "xcorr s/denom vector: " << results << endl;
+    return results;
   }
      
 
@@ -878,6 +947,7 @@ protected:
     float pScoreMax =0;
     double TICMax = 0;
     double matchOddsMax = 0;
+    double xcorrMax = 0;
 
     // iterate over all spectra
     for (SignedSize scan_index = 0; scan_index < (SignedSize)spectra.size(); ++scan_index)
@@ -1100,134 +1170,34 @@ protected:
 
                   cout << "Range Alpha: " << theoretical_spec_alpha[theoretical_spec_alpha.size()-1].getMZ()  << " - " << (double) theoretical_spec_alpha[0].getMZ() << " = " << range_c_alpha << "\t A Priori probaility common alpha: " << a_priori_ca << endl;
                   cout << "Match-Odds Score Alpha: " << match_odds_c_alpha << "\t Match-Odds Final: " << match_odds << endl;
-                  if (match_odds > matchOddsMax) matchOddsMax = match_odds;
+                  if (match_odds != INFINITY && match_odds > matchOddsMax) matchOddsMax = match_odds;
+
+                  //Cross-correlation
+                  RichPeakSpectrum theoretical_spec_all;
+                  cout << "Build theor. Spec." << endl;
+                  theoretical_spec_all.reserve(theoretical_spec_alpha.size() + theoretical_spec_beta.size() + theoretical_spec_xlinks_alpha.size() + theoretical_spec_xlinks_beta.size());
+                  theoretical_spec_all.insert(theoretical_spec_all.end(), theoretical_spec_alpha.begin(), theoretical_spec_alpha.end());
+                  theoretical_spec_all.insert(theoretical_spec_all.end(), theoretical_spec_beta.begin(), theoretical_spec_beta.end());
+                  theoretical_spec_all.insert(theoretical_spec_all.end(), theoretical_spec_xlinks_alpha.begin(), theoretical_spec_xlinks_alpha.end());
+                  theoretical_spec_all.insert(theoretical_spec_all.end(), theoretical_spec_xlinks_beta.begin(), theoretical_spec_xlinks_beta.end());
+                  cout << "Compute xCorr" << endl;
+                  std::vector< double > xcorr = xCorrelation(spectrum_light, theoretical_spec_all, 10, fragment_mass_tolerance);
+                  double xcorr_max = *std::max_element(xcorr.begin(), xcorr.end());
+                  cout << "Cross correlation score: " << xcorr_max << endl;
+                  if (xcorr_max > xcorrMax) xcorrMax = xcorr_max;
               }
             }              
           }
 
 
-          // TODO generate theoretical spectrum for cross link ions (if possible and neccessary)
-          // TODO pre scoring done only with common peaks
           // TODO Alpha / Beta designation based on order, should be based on length / mass of peptide ?
-          // TODO Charge state is a constant = 1, highest pre_scores without xlink peaks
-          // TODO speed up, alpha chain spectrum can be computed one time for all betas...
-          // TODO for each precursor peak pair in MS1, find 50 a+b combos with highest pre_score
 
-          /**  Old Spectrumgenerator
-          TheoreticalSpectrumGenerator specGen;
-
-          // Common Peaks with old Spectrum Generator
-          RichPeakSpectrum theoretical_alpha_chain;
-          RichPeakSpectrum theoretical_beta_chain;
-          specGen.getSpectrum(theoretical_alpha_chain, a->second, 1);
-          specGen.getSpectrum(theoretical_beta_chain, b->second, 1);
-
-          std::vector< std::pair< Size, Size > > matched_fragments_alpha_chain;
-          std::vector< std::pair< Size, Size > > matched_fragments_beta_chain;
-          ms2_aligner.getSpectrumAlignment(matched_fragments_alpha_chain, theoretical_alpha_chain, spectrum_light);
-          ms2_aligner.getSpectrumAlignment(matched_fragments_beta_chain, theoretical_beta_chain, spectrum_light);
-
-          float pre_score = preScore(matched_fragments_alpha_chain.size(), theoretical_alpha_chain.size(), matched_fragments_beta_chain.size(), theoretical_beta_chain.size());
-          cout << "Numbers of matched peaks to theor. spectra: " << matched_fragments_alpha_chain.size() << "\t" << matched_fragments_beta_chain.size() << endl;
-          cout << "Numbers of theoretical ions: " << theoretical_alpha_chain.size() << "\t" << theoretical_beta_chain.size() << endl;
-          cout << "Pre Score: " << pre_score << endl;
-          cout << "Peptide size: " << a->second.size() << "\t" << b->second.size() << "\t" << "K Pos:" << a->second.toString().find("K") << "\t" << b->second.toString().find("K") << endl;
-          if (pre_score > pScoreMax) pScoreMax = pre_score;
-          **/
-	  /**
-          for (Size i = 0; i < K_pos_a.size(); ++i)
-          {
-            for (Size j = 0; j < K_pos_b.size(); ++j)
-            {
-
-              // New TheoreticalSpectrumGeneratorXLinks
-              // Common and XLink Peaks with new Spectrum Generator TheoreticalSpectrumGeneratorXLinks
-              TheoreticalSpectrumGeneratorXLinks specGen;
-              RichPeakSpectrum theoretical_spec;
-              specGen.getSpectrum(theoretical_spec, a->second, b->second, K_pos_a[i], K_pos_b[i], 1);
-
-              std::vector< std::pair< Size, Size > > matched_fragments_theor_spec;
-              ms2_aligner.getSpectrumAlignment(matched_fragments_theor_spec, theoretical_spec, spectrum_light);
-
-              // Simplified pre-Score, as Alpha and Beta ions are not yet tracked
-              float pre_score = preScore(matched_fragments_theor_spec.size(), theoretical_spec.size());
-              cout << "Number of matched peaks to theor. spectrum: " << matched_fragments_theor_spec.size() << endl;
-              cout << "Number of theoretical ions: " << theoretical_spec.size() << endl;
-              cout << "Pre Score: " << pre_score << endl;
-              cout << "Peptide size: " << a->second.size() << "\t" << b->second.size() << "\t" << "K Pos:" << K_pos_a[i] << "\t" << K_pos_b[i] << endl;
-              if (pre_score > pScoreMax) pScoreMax = pre_score;
-            }
-          }
-	  **/
         }
       }
 
     }
-/**
 
-    // calculate mass pairs
-    for (map<StringView, AASequence>::const_iterator a = processed_peptides.begin(); a != processed_peptides.end(); ++a)
-    {
-      if (++counter % 1000 == 0) cout << counter * 100.0 / processed_peptides.size() << endl;
-
-      if (a->second.toString().find("K") >= a->second.size()-1)
-      {
-        continue;
-      }
-
-      for (map<StringView, AASequence>::const_iterator b = a; b != processed_peptides.end(); ++b)
-      {
-
-        if (b->second.toString().find("K") >= b->second.size()-1)
-        {
-          continue;
-        }
-
-        // Find all positions of lysine (K) in the peptides (possible scross-linking sites)
-        vector <Size> K_pos_a;
-        vector <Size> K_pos_b;
-        for (Size i = 0; i < a->second.size()-1; ++i)
-        {
-          if (a->second.toString()[i] == 'K') K_pos_a.push_back(i);
-        }
-        for (Size i = 0; i < b->second.size()-1; ++i)
-        {
-          if (b->second.toString()[i] == 'K') K_pos_b.push_back(i);
-        }
-
-        // mass peptide1 + mass peptide2 + cross linker mass - cross link loss
-        double cross_link_mass = a->second.getMonoWeight() + b->second.getMonoWeight() + cross_link_mass_light - cross_link_mass_loss_type2;
-
-        // determine MS2 precursors that match to the current peptide mass
-        multimap<double, Size>::const_iterator low_it;
-        multimap<double, Size>::const_iterator up_it;
-
-        if (precursor_mass_tolerance_unit_ppm) // ppm
-        {
-          low_it = multimap_mass_2_scan_index.lower_bound(cross_link_mass - cross_link_mass * precursor_mass_tolerance * 1e-6);
-          up_it = multimap_mass_2_scan_index.upper_bound(cross_link_mass + cross_link_mass * precursor_mass_tolerance * 1e-6);
-        }
-        else // Dalton
-        {
-          low_it = multimap_mass_2_scan_index.lower_bound(cross_link_mass - precursor_mass_tolerance);
-          up_it = multimap_mass_2_scan_index.upper_bound(cross_link_mass + precursor_mass_tolerance);
-        }
-
-        if (low_it == up_it) continue; // no matching precursor in data
-
-        for (; low_it != up_it; ++low_it)
-        {
-          const Size scan_index_light = low_it->second;
-          const PeakSpectrum& spectrum_light = spectra[scan_index_light];
-
-//          cout << "Pair: " << a->second << ", " << b->second << " matched to light spectrum " << scan_index_light << " with m/z: " << spectrum_light.getPrecursors()[0].getMZ() <<  endl;
-//          cout << a->second.getMonoWeight() << ", " << b->second.getMonoWeight() << " cross_link_mass: " <<  cross_link_mass <<  endl;
-
-        }  
-      }     
-    }
-**/
-    cout << "Pre Score maximum: " << pScoreMax << "\t TIC maximum: " << TICMax << "\t Match-Odds maximum: " << matchOddsMax << endl;
+    cout << "Pre Score maximum: " << pScoreMax << "\t TIC maximum: " << TICMax << "\t Match-Odds maximum: " << matchOddsMax << "\t Cross-correlation maximum: " << xcorrMax << endl;
  
     return EXECUTION_OK;
   }
