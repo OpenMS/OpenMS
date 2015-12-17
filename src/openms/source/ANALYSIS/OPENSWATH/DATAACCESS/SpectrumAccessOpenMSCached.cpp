@@ -79,7 +79,7 @@ namespace OpenMS
   OpenSwath::SpectrumPtr SpectrumAccessOpenMSCached::getSpectrumById(int id) 
   {
     OPENMS_PRECONDITION(id >= 0, "Id needs to be larger than zero");
-    OPENMS_PRECONDITION(id < getNrSpectra(), "Id cannot be larger than number of spectra");
+    OPENMS_PRECONDITION(id < (int)getNrSpectra(), "Id cannot be larger than number of spectra");
 
     OpenSwath::BinaryDataArrayPtr mz_array(new OpenSwath::BinaryDataArray);
     OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
@@ -105,7 +105,7 @@ namespace OpenMS
   OpenSwath::SpectrumMeta SpectrumAccessOpenMSCached::getSpectrumMetaById(int id) const
   {
     OPENMS_PRECONDITION(id >= 0, "Id needs to be larger than zero");
-    OPENMS_PRECONDITION(id < getNrSpectra(), "Id cannot be larger than number of spectra");
+    OPENMS_PRECONDITION(id < (int)getNrSpectra(), "Id cannot be larger than number of spectra");
 
     OpenSwath::SpectrumMeta meta;
     meta.RT = meta_ms_experiment_[id].getRT();
@@ -116,7 +116,7 @@ namespace OpenMS
   OpenSwath::ChromatogramPtr SpectrumAccessOpenMSCached::getChromatogramById(int id) 
   {
     OPENMS_PRECONDITION(id >= 0, "Id needs to be larger than zero");
-    OPENMS_PRECONDITION(id < getNrChromatograms(), "Id cannot be larger than number of chromatograms");
+    OPENMS_PRECONDITION(id < (int)getNrChromatograms(), "Id cannot be larger than number of chromatograms");
 
     OpenSwath::BinaryDataArrayPtr rt_array(new OpenSwath::BinaryDataArray);
     OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
@@ -177,14 +177,14 @@ namespace OpenMS
   ChromatogramSettings SpectrumAccessOpenMSCached::getChromatogramMetaInfo(int id) const
   {
     OPENMS_PRECONDITION(id >= 0, "Id needs to be larger than zero");
-    OPENMS_PRECONDITION(id < getNrChromatograms(), "Id cannot be larger than number of spectra");
+    OPENMS_PRECONDITION(id < (int)getNrChromatograms(), "Id cannot be larger than number of spectra");
     return meta_ms_experiment_.getChromatograms()[id];
   }
 
   std::string SpectrumAccessOpenMSCached::getChromatogramNativeID(int id) const
   {
     OPENMS_PRECONDITION(id >= 0, "Id needs to be larger than zero");
-    OPENMS_PRECONDITION(id < getNrChromatograms(), "Id cannot be larger than number of spectra");
+    OPENMS_PRECONDITION(id < (int)getNrChromatograms(), "Id cannot be larger than number of spectra");
     return meta_ms_experiment_.getChromatograms()[id].getNativeID();
   }
 
