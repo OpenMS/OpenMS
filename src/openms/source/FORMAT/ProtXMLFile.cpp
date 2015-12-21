@@ -34,6 +34,7 @@
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/FORMAT/ProtXMLFile.h>
@@ -52,14 +53,6 @@ namespace OpenMS
     XMLHandler("", "1.2"),
     XMLFile("/SCHEMAS/protXML_v6.xsd", "6.0")
   {
-    cv_terms_.resize(1);
-    // Enzymes
-    std::vector<String> enzyme_names(ProteinIdentification::SIZE_OF_DIGESTIONENZYME);
-    for (Size i = 0; i < ProteinIdentification::SIZE_OF_DIGESTIONENZYME; ++i)
-    {
-      enzyme_names[i] = String(ProteinIdentification::NamesOfDigestionEnzyme[i]).toUpper();
-    }
-    cv_terms_[0] = enzyme_names;
   }
 
   void ProtXMLFile::load(const String& filename, ProteinIdentification& protein_ids, PeptideIdentification& peptide_ids)
@@ -106,7 +99,7 @@ namespace OpenMS
       ProteinIdentification::SearchParameters sp = prot_id_->getSearchParameters();
       sp.db = db;
       // find a matching enzyme name
-      sp.enzyme =  (ProteinIdentification::DigestionEnzyme) cvStringToEnum_(0, enzyme.toUpper(), "sample_enzyme", ProteinIdentification::UNKNOWN_ENZYME);
+      sp.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme);
       prot_id_->setSearchParameters(sp);
       prot_id_->setScoreType("ProteinProphet probability");
       prot_id_->setHigherScoreBetter(true);

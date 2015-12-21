@@ -3,7 +3,7 @@
   <NODE name="Enzymes">
     <NODE name="Trypsin">
       <ITEM name="Name" value="Trypsin" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=[RK])(?!P)" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[KR])(?!P)" type="string" />
       <ITEM name="RegExDescription" value="Trypsin cleaves following a K or R residue unless the next residue is P." type="string" />
       <ITEM name="NTermGain" value="H" type="string" />
       <ITEM name="CTermGain" value="OH" type="string" />
@@ -46,7 +46,7 @@
     </NODE>
     <NODE name="Chymotrypsin">
       <ITEM name="Name" value="Chymotrypsin" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=[FYWL])(?!P)" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[FLWY])(?!P)" type="string" />
       <ITEM name="RegExDescription" value="Chymotrypsin cleaves following F, Y, W or L residue unless the next residue is P." type="string" />
       <ITEM name="NTermGain" value="H" type="string" />
       <ITEM name="CTermGain" value="OH" type="string" />
@@ -106,7 +106,7 @@
     </NODE>
     <NODE name="TrypChymo">
       <ITEM name="Name" value="TrypChymo" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=[FYWLKR])(?!P)" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[KRFLWY])(?!P)" type="string" />
       <ITEM name="RegExDescription" value="TrypChymo cuts after F, Y, W, L, K or R if not followed by P." type="string" />
       <ITEM name="NTermGain" value="H" type="string" />
       <ITEM name="CTermGain" value="OH" type="string" />
@@ -144,7 +144,7 @@
     </NODE>
     <NODE name="leukocyte elastase">
       <ITEM name="Name" value="leukocyte elastase" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=[ALIV])(?!P)" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[AILV])(?!P)" type="string" />
       <ITEM name="RegExDescription" value="leukocyte elastase cuts after A, L, I or V if not followed by P." type="string" />
       <ITEM name="NTermGain" value="H" type="string" />
       <ITEM name="CTermGain" value="OH" type="string" />
