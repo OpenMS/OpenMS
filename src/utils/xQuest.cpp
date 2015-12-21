@@ -317,7 +317,7 @@ protected:
   }
   
   //TODO more general spectra types?
-  // Cross-correlation, with shifting the second spectrum from -maxshift to +maxshift of tolerance bins
+  // Cross-correlation, with shifting the second spectrum from -maxshift to +maxshift of tolerance bins (Tolerance in Da, basically a constant binsize)
   std::vector< double > xCorrelation(const PeakSpectrum & spec1, const RichPeakSpectrum & spec2, Int maxshift, double tolerance)
   {
     double maxionsize = std::max(spec1[spec1.size()-1].getMZ(), spec2[spec2.size()-1].getMZ());
@@ -380,7 +380,7 @@ protected:
         results[shift + maxshift] = s / denom;
       }
     }
-    cout << "xcorr s/denom vector: " << results << endl;
+    //cout << "xcorr s/denom vector: " << results << endl;
     return results;
   }
      
@@ -1081,7 +1081,7 @@ protected:
             {
               const pair<AASequence, AASequence>& candidate = low_it->second;
 
-//            cout << "Pair: " << a->second << ", " << b->second << " matched to light spectrum " << scan_index_light << " with m/z: " << spectrum_light.getPrecursors()[0].getMZ() <<  endl;
+              cout << "Pair: " << candidate.first.toString() << ", " << candidate.second.toString() << " matched to light spectrum " << scan_index << " with m/z: " << spectrum_light.getPrecursors()[0].getMZ() <<  endl;
 //            cout << a->second.getMonoWeight() << ", " << b->second.getMonoWeight() << " cross_link_mass: " <<  cross_link_mass <<  endl;
 
 
@@ -1157,10 +1157,12 @@ protected:
                   double range_x_alpha= theoretical_spec_xlinks_alpha[theoretical_spec_xlinks_alpha.size()-1].getMZ() -  theoretical_spec_xlinks_alpha[0].getMZ();
                   double range_c_beta = theoretical_spec_beta[theoretical_spec_beta.size()-1].getMZ() -  theoretical_spec_beta[0].getMZ();
                   double range_x_beta = theoretical_spec_xlinks_beta[theoretical_spec_xlinks_beta.size()-1].getMZ() -  theoretical_spec_xlinks_beta[0].getMZ();
+
                   double a_priori_ca = aPrioriProb(fragment_mass_tolerance, theoretical_spec_alpha.size(), range_c_alpha, 3);
                   double a_priori_xa = aPrioriProb(fragment_mass_tolerance, theoretical_spec_xlinks_alpha.size(), range_x_alpha, 3);
                   double a_priori_cb = aPrioriProb(fragment_mass_tolerance, theoretical_spec_beta.size(), range_c_beta, 3);
                   double a_priori_xb = aPrioriProb(fragment_mass_tolerance, theoretical_spec_xlinks_beta.size(), range_x_beta, 3);
+
                   double match_odds_c_alpha = -log(1 - cumulativeBinomial(theoretical_spec_alpha.size(), matched_spec_alpha.size(), a_priori_ca) );
                   double match_odds_x_alpha = -log(1 - cumulativeBinomial(theoretical_spec_xlinks_alpha.size(), matched_spec_xlinks_alpha.size(), a_priori_xa) );
                   double match_odds_c_beta = -log(1 - cumulativeBinomial(theoretical_spec_beta.size(), matched_spec_beta.size(), a_priori_cb) );
@@ -1172,6 +1174,7 @@ protected:
                   cout << "Match-Odds Score Alpha: " << match_odds_c_alpha << "\t Match-Odds Final: " << match_odds << endl;
                   if (match_odds != INFINITY && match_odds > matchOddsMax) matchOddsMax = match_odds;
 
+
                   //Cross-correlation
                   RichPeakSpectrum theoretical_spec_all;
                   cout << "Build theor. Spec." << endl;
@@ -1181,10 +1184,11 @@ protected:
                   theoretical_spec_all.insert(theoretical_spec_all.end(), theoretical_spec_xlinks_alpha.begin(), theoretical_spec_xlinks_alpha.end());
                   theoretical_spec_all.insert(theoretical_spec_all.end(), theoretical_spec_xlinks_beta.begin(), theoretical_spec_xlinks_beta.end());
                   cout << "Compute xCorr" << endl;
-                  std::vector< double > xcorr = xCorrelation(spectrum_light, theoretical_spec_all, 10, fragment_mass_tolerance);
-                  double xcorr_max = *std::max_element(xcorr.begin(), xcorr.end());
-                  cout << "Cross correlation score: " << xcorr_max << endl;
-                  if (xcorr_max > xcorrMax) xcorrMax = xcorr_max;
+                  std::vector< double > xcorr = xCorrelation(spectrum_light, theoretical_spec_all, 8, fragment_mass_tolerance);
+                  //double xcorr_max = *std::max_element(xcorr.begin(), xcorr.end());
+                  //cout << "Cross correlation score: " << xcorr_max << endl;
+                  //if (xcorr_max > xcorrMax) xcorrMax = xcorr_max;
+                  cout << "End of loop for one candidate." << endl;
               }
             }              
           }

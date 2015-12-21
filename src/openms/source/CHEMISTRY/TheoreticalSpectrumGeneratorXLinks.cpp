@@ -248,6 +248,8 @@ namespace OpenMS
           names[pos] = "b(beta)" + String(i) + "X" + String(charge, '+');
           //cout << "PepB b ion: " << ion.toString() << "\t" <<  "Name: " << names[pos] << endl;
         }
+      } else {
+        ions_beta = ions_alpha;
       }
 
       intensity = (double)param_.getValue("b_intensity");
@@ -274,6 +276,8 @@ namespace OpenMS
           names[pos] = "y(beta)" + String(i) + "X" + String(charge, '+');
           //cout << "PepA y ion: " << ion.toString() << "\t" <<  "Name: " << names[pos] << endl;
         }
+      } else {
+        ions_beta = ions_alpha;
       }
       intensity = (double)param_.getValue("y_intensity");
       break;
