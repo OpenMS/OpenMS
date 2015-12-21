@@ -317,7 +317,8 @@ namespace OpenMS
           if (add_metainfo_ && j == 0)
           {
             // note: important to construct a string from char. If omitted it will perform pointer arithmetics on the "-" string literal
-            p.setMetaValue("IonName", String(residueTypeToIonLetter_(res_type)) + "-" + loss_name);
+            String ion_name = String(residueTypeToIonLetter_(res_type)) + String(ion.size()) + "-" + loss_name + String(charge, '+');
+            p.setMetaValue("IonName", ion_name);
           }
           spectrum.push_back(p);
         }
@@ -328,7 +329,8 @@ namespace OpenMS
         if (add_metainfo_)
         {
           // note: important to construct a string from char. If omitted it will perform pointer arithmetics on the "-" string literal
-          p.setMetaValue("IonName", String(residueTypeToIonLetter_(res_type)) + "-" + loss_name);
+          String ion_name = String(residueTypeToIonLetter_(res_type)) + String(ion.size()) + "-" + loss_name + String(charge, '+');
+          p.setMetaValue("IonName", ion_name);
         }
         spectrum.push_back(p);
       }
