@@ -556,10 +556,13 @@ namespace OpenMS
 
   void MRMDecoy::generateDecoys(OpenMS::TargetedExperiment& exp, OpenMS::TargetedExperiment& dec,
                                 String method, String decoy_tag, double identity_threshold, int max_attempts,
-                                double mz_threshold, bool theoretical, double mz_shift, bool exclude_similar,
+                                double mz_threshold, double mz_shift, bool exclude_similar,
                                 double similarity_threshold, bool remove_CNterminal_mods, double precursor_mass_shift,
-                                bool enable_losses, bool remove_unannotated)
+                                std::vector<String> fragment_types, std::vector<size_t> fragment_charges,
+                                bool enable_specific_losses, bool enable_unspecific_losses, bool remove_unannotated,
+                                int round_decPow)
   {
+    MRMIonSeries mrmis;
     MRMDecoy::PeptideVectorType peptides;
     MRMDecoy::ProteinVectorType proteins;
     MRMDecoy::TransitionVectorType decoy_transitions;
@@ -642,8 +645,9 @@ namespace OpenMS
       const TargetedExperiment::Peptide decoy_peptide = dec.getPeptideByRef(decoy_peptide_ref);
       OpenMS::AASequence target_peptide_sequence = TargetedExperimentHelper::getAASequence(target_peptide);
       OpenMS::AASequence decoy_peptide_sequence = TargetedExperimentHelper::getAASequence(decoy_peptide);
-      MRMDecoy::IonSeries decoy_ionseries = getIonSeries(decoy_peptide_sequence, decoy_peptide.getChargeState());
-      MRMDecoy::IonSeries target_ionseries = getIonSeries(target_peptide_sequence, target_peptide.getChargeState());
+
+      MRMIonSeries::IonSeries decoy_ionseries = mrmis.getIonSeries(decoy_peptide_sequence, decoy_peptide.getChargeState(), fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, round_decPow);
+      MRMIonSeries::IonSeries target_ionseries = mrmis.getIonSeries(target_peptide_sequence, target_peptide.getChargeState(), fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, round_decPow);
 
       for (Size i = 0; i < pep_it->second.size(); i++)
       {
@@ -663,8 +667,8 @@ namespace OpenMS
 
         // determine the current annotation for the target ion and then select
         // the appropriate decoy ion for this target transition
-        std::pair<String, double> targetion = getTargetIon(tr.getProductMZ(), mz_threshold, target_ionseries, enable_losses);
-        std::pair<String, double> decoyion = getDecoyIon(targetion.first, decoy_ionseries);
+        std::pair<String, double> targetion = mrmis.annotateIon(target_ionseries, tr.getProductMZ(), mz_threshold);
+        std::pair<String, double> decoyion = mrmis.getIon(decoy_ionseries, targetion.first);
 
         if (method == "shift")
         {
@@ -721,58 +725,6 @@ namespace OpenMS
     else
     {
       dec.setTransitions(decoy_transitions);
-    }
-
-    if (theoretical)
-    {
-      correctMasses(exp, mz_threshold, enable_losses);
-    }
-  }
-
-  void MRMDecoy::correctMasses(OpenMS::TargetedExperiment& exp, double mz_threshold, bool enable_losses)
-  {
-    MRMDecoy::TransitionVectorType target_transitions;
-    // hash of the peptide reference containing all transitions
-    MRMDecoy::PeptideTransitionMapType peptide_trans_map;
-    for (Size i = 0; i < exp.getTransitions().size(); i++)
-    {
-      peptide_trans_map[exp.getTransitions()[i].getPeptideRef()].push_back(&exp.getTransitions()[i]);
-    }
-
-    {
-      Size progress = 0;
-      startProgress(0, exp.getTransitions().size(), "Correcting masses (theoretical)");
-      for (MRMDecoy::PeptideTransitionMapType::iterator pep_it = peptide_trans_map.begin();
-           pep_it != peptide_trans_map.end(); ++pep_it)
-      {
-        const TargetedExperiment::Peptide target_peptide = exp.getPeptideByRef(pep_it->first);
-        OpenMS::AASequence target_peptide_sequence = TargetedExperimentHelper::getAASequence(target_peptide);
-        MRMDecoy::IonSeries target_ionseries = getIonSeries(target_peptide_sequence, target_peptide.getChargeState());
-
-        for (Size i = 0; i < pep_it->second.size(); i++)
-        {
-          setProgress(++progress);
-          const ReactionMonitoringTransition tr = *(pep_it->second[i]);
-
-          // determine the current annotation for the target ion
-          std::pair<String, double> targetion = getTargetIon(tr.getProductMZ(), mz_threshold, target_ionseries, enable_losses);
-          if (targetion.second == -1)
-          {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Target fragment ion with m/z " + String(tr.getProductMZ()) + " of peptide " + target_peptide_sequence.toString() + " with precursor charge " + String(target_peptide.getChargeState()) + " could not be mapped. Please check whether it is a valid ion and an appropriate mz_threshold was chosen and enable losses if necessary.");
-          }
-          // correct the masses of the input experiment
-          {
-            ReactionMonitoringTransition transition = *(pep_it->second[i]); // copy the transition
-            if (targetion.second > 0)
-            {
-              transition.setProductMZ(targetion.second);
-              target_transitions.push_back(transition);
-            }
-          }
-        } // end loop over transitions
-      } // end loop over peptides
-      endProgress();
-      exp.setTransitions(target_transitions);
     }
   }
 

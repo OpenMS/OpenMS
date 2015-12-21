@@ -35,6 +35,7 @@
 #ifndef OPENMS_ANALYSIS_OPENSWATH_MRMDECOY_H
 #define OPENMS_ANALYSIS_OPENSWATH_MRMDECOY_H
 
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMIonSeries.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
@@ -109,9 +110,12 @@ public:
     void generateDecoys(OpenMS::TargetedExperiment& exp,
                         OpenMS::TargetedExperiment& dec, String method, String decoy_tag,
                         double identity_threshold, int max_attempts, double mz_threshold,
-                        bool theoretical, double mz_shift, bool exclude_similar,
+                        double mz_shift, bool exclude_similar,
                         double similarity_threshold, bool remove_CNterm_mods,
-                        double precursor_mass_shift, bool enable_losses, bool remove_unannotated);
+                        double precursor_mass_shift, std::vector<String> fragment_types,
+                        std::vector<size_t> fragment_charges, bool enable_specific_losses,
+                        bool enable_unspecific_losses, bool remove_unannotated,
+                        int round_decPow = 4);
     /**
       @brief Remove transitions s.t. all peptides have a defined set of transitions.
 
@@ -176,11 +180,6 @@ public:
       @brief Check if a peptide has C or N terminal modifications
     */
     bool has_CNterminal_mods(const OpenMS::TargetedExperiment::Peptide& peptide);
-
-    /**
-      @brief Correct the masses according to theoretically computed masses
-    */
-    void correctMasses(OpenMS::TargetedExperiment& exp, double mz_threshold, bool enable_losses);
 
     /**
       @brief Shuffle a peptide (with its modifications) sequence
