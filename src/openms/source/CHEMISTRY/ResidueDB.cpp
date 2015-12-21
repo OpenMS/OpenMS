@@ -116,15 +116,18 @@ namespace OpenMS
     vector<String> names;
     if (!r->getName().empty())
     {
+      cout << "r->getName()" << r->getName() << endl;
       names.push_back(r->getName());
     }
     if (!r->getShortName().empty())
     {
+      cout << "r->getShortName()" << r->getShortName() << endl;
       names.push_back(r->getShortName());
     }
     set<String> synonyms = r->getSynonyms();
     for (set<String>::iterator it = synonyms.begin(); it != synonyms.end(); ++it)
     {
+      cout << "r->getSynonyms()" << *it << endl;
       names.push_back(*it);
     }
 
@@ -133,8 +136,10 @@ namespace OpenMS
       for (vector<String>::const_iterator it = names.begin(); it != names.end(); ++it)
       {
         residue_names_[*it] = r;
-        residue_by_one_letter_code_[static_cast<int>((*it)[0]) + 128] = r;
+        const char l = (*it)[0];
+        residue_by_one_letter_code_[static_cast<int>(l) + 128] = r;
       }
+      cout << "adding non-modified residue: " << r->getName() << endl;
       residues_.insert(r);
       const_residues_.insert(r);
     }
@@ -143,6 +148,7 @@ namespace OpenMS
       modified_residues_.insert(r);
       const_modified_residues_.insert(r);
 
+      cout << "adding modified residue: " << r->getName() << endl;
       // get all modification names
       vector<String> mod_names;
       const ResidueModification& mod = ModificationsDB::getInstance()->getModification(r->getOneLetterCode(), r->getModification(), ResidueModification::ANYWHERE);
@@ -432,9 +438,9 @@ namespace OpenMS
         residue_names_[(*it)->getThreeLetterCode()] = *it;
       }
 
-      if ((*it)->getOneLetterCode() != ' ')
+      const char l = (*it)->getOneLetterCode();
+      if (l != ' ' && l != 0)
       {
-        const char l = (*it)->getOneLetterCode();
         residue_names_[String(l)] = *it;
         residue_by_one_letter_code_[static_cast<int>(l) + 128] = *it;
       }
