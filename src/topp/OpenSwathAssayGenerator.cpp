@@ -42,7 +42,6 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
-// #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 #include <iostream>
 
@@ -114,29 +113,23 @@ protected:
     registerIntOption_("max_transitions", "<int>", 6, "maximal number of transitions", false);
     registerStringOption_("allowed_fragment_types", "<type>", "b,y", "allowed fragment types", false);
     registerStringOption_("allowed_fragment_charges", "<type>", "1,2,3,4", "allowed fragment charge states", false);
-    registerFlag_("enable_losses", "set this flag if neutral losses for fragment ions should be allowed");
+    registerFlag_("enable_detection_specific_losses", "set this flag if specific neutral losses for detection fragment ions should be allowed");
+    registerFlag_("enable_detection_unspecific_losses", "set this flag if unspecific neutral losses (H2O1, H3N1, C1H2N2, C1H2N1O1) for detection fragment ions should be allowed");
+    registerFlag_("enable_identification_specific_losses", "set this flag if specific neutral losses for identification fragment ions should be allowed");
+    registerFlag_("enable_identification_unspecific_losses", "set this flag if unspecific neutral losses (H2O1, H3N1, C1H2N2, C1H2N1O1) for identification fragment ions should be allowed");
     registerFlag_("enable_ms1_uis_scoring", "set this flag if MS1-UIS assays for UIS scoring should be generated");
     registerFlag_("enable_ms2_uis_scoring", "set this flag if MS2-UIS assays for UIS scoring should be generated");
-    registerFlag_("enable_site_scoring", "set this flag if site-specific assays for site-specific scoring should be generated");
-    registerFlag_("enable_alternative_localizations", "set this flag if hypotheses for alternative modification localizations should be generated");
-    registerFlag_("enable_insilico", "set this flag if insilico fragment ions for UIS / site-specific scoring should be generated");
+    registerIntOption_("max_num_alternative_localizations", "<int>", 20, "maximum number of site-localization permutations", false);
     registerFlag_("enable_reannotation", "set this flag if reannotation of fragment ions should be allowed.");
-    registerDoubleOption_("precursor_mz_threshold", "<double>", 0.1, "MZ threshold in Thomson for precursor ion selection", false);
+    registerDoubleOption_("precursor_mz_threshold", "<double>", 0.025, "MZ threshold in Thomson for precursor ion selection", false);
     registerDoubleOption_("precursor_lower_mz_limit", "<double>", 400, "lower MZ limit for precursor ions", false);
     registerDoubleOption_("precursor_upper_mz_limit", "<double>", 1200, "upper MZ limit for precursor ions", false);
-    registerDoubleOption_("product_mz_threshold", "<double>", 0.05, "MZ threshold in Thomson for fragment ion annotation", false);
+    registerDoubleOption_("product_mz_threshold", "<double>", 0.025, "MZ threshold in Thomson for fragment ion annotation", false);
     registerDoubleOption_("product_lower_mz_limit", "<double>", 350, "lower MZ limit for fragment ions", false);
     registerDoubleOption_("product_upper_mz_limit", "<double>", 2000, "upper MZ limit for fragment ions", false);
 
     registerInputFile_("swath_windows_file", "<file>", "", "Tab separated file containing the SWATH windows for exclusion of fragment ions falling into the precursor isolation window: lower_offset upper_offset \\newline 400 425 \\newline ... Note that the first line is a header and will be skipped.", false, true);
     setValidFormats_("swath_windows_file", ListUtils::create<String>("txt"));
-
-    // registerInputFile_("in_unimod", "<file>", "", "input UniMod XML file to overwrite default UniMod residue modification specificity ('xml')", false);
-    // setValidFormats_("in_unimod", ListUtils::create<String>("xml"));
-
-    // registerInputFile_("in_psimod", "<file>", "", "input PSI-MOD OBO file to overwrite default PSI-MOD residue modification specificity ('obo')", false);
-    // setValidFormats_("in_psimod", ListUtils::create<String>("obo"));
-
   }
 
   ExitCodes main_(int, const char**)
@@ -147,12 +140,13 @@ protected:
     Int max_transitions = getIntOption_("max_transitions");
     String allowed_fragment_types_string = getStringOption_("allowed_fragment_types");
     String allowed_fragment_charges_string = getStringOption_("allowed_fragment_charges");
-    bool enable_losses = getFlag_("enable_losses");
-    bool enable_alternative_localizations = getFlag_("enable_alternative_localizations");
+    bool enable_detection_specific_losses = getFlag_("enable_detection_specific_losses");
+    bool enable_detection_unspecific_losses = getFlag_("enable_detection_unspecific_losses");
+    bool enable_identification_specific_losses = getFlag_("enable_identification_specific_losses");
+    bool enable_identification_unspecific_losses = getFlag_("enable_identification_unspecific_losses");
     bool enable_ms1_uis_scoring = getFlag_("enable_ms1_uis_scoring");
     bool enable_ms2_uis_scoring = getFlag_("enable_ms2_uis_scoring");
-    bool enable_site_scoring = getFlag_("enable_site_scoring");
-    bool enable_insilico = getFlag_("enable_insilico");
+    size_t max_num_alternative_localizations = getIntOption_("max_num_alternative_localizations");
     double precursor_mz_threshold = getDoubleOption_("precursor_mz_threshold");
     double precursor_lower_mz_limit = getDoubleOption_("precursor_lower_mz_limit");
     double precursor_upper_mz_limit = getDoubleOption_("precursor_upper_mz_limit");
@@ -160,8 +154,6 @@ protected:
     double product_lower_mz_limit = getDoubleOption_("product_lower_mz_limit");
     double product_upper_mz_limit = getDoubleOption_("product_upper_mz_limit");
     String swath_windows_file = getStringOption_("swath_windows_file");
-    // String unimod_file = getStringOption_("in_unimod");
-    // String psimod_file = getStringOption_("in_psimod");
     bool enable_reannotation = getFlag_("enable_reannotation");
 
     std::vector<String> allowed_fragment_types;
@@ -200,39 +192,17 @@ protected:
     traml.load(in, targeted_exp);
 
     MRMAssay assays = MRMAssay();
-
-    // if (unimod_file != "")
-    // {
-    //   LOG_INFO << "Loading UniMod file: " << unimod_file << std::endl;
-    // }
-
-    // if (psimod_file != "")
-    // {
-    //   LOG_INFO << "Loading PSI-MOD file: " << psimod_file << std::endl;
-    // }
+    assays.setLogType(ProgressLogger::CMD);
 
     LOG_INFO << "Annotating transitions" << std::endl;
-    assays.reannotateTransitions(targeted_exp, product_mz_threshold, allowed_fragment_types, allowed_fragment_charges, enable_alternative_localizations, enable_reannotation, enable_losses);
+    assays.reannotateTransitions(targeted_exp, precursor_mz_threshold, product_mz_threshold, allowed_fragment_types, allowed_fragment_charges, enable_reannotation, enable_detection_specific_losses, enable_detection_unspecific_losses);
 
     LOG_INFO << "Annotating detecting transitions" << std::endl;
     assays.restrictTransitions(targeted_exp, product_lower_mz_limit, product_upper_mz_limit, swathes);
     assays.detectingTransitions(targeted_exp, min_transitions, max_transitions);
 
-    if (enable_insilico)
+    if (enable_ms1_uis_scoring || enable_ms2_uis_scoring)
     {
-      LOG_INFO << "Generating in silico transitions" << std::endl;
-      assays.insilicoTransitions(targeted_exp, allowed_fragment_types, allowed_fragment_charges, enable_losses);
-      assays.restrictTransitions(targeted_exp, product_lower_mz_limit, product_upper_mz_limit, swathes);
-    }
-
-    if (enable_ms1_uis_scoring || enable_ms2_uis_scoring || enable_site_scoring)
-    {
-      bool enable_uis_scoring = false;
-      if (enable_ms1_uis_scoring || enable_ms2_uis_scoring)
-      {
-        enable_uis_scoring = true;
-      }
-
       std::vector<std::pair<double, double> > uis_swathes;
 
       if (enable_ms1_uis_scoring)
@@ -245,8 +215,9 @@ protected:
       }
       else {uis_swathes = swathes;}
       
-      std::cout << "Annotating UIS / site-specific transitions" << std::endl;
-      assays.uisTransitions(targeted_exp, allowed_fragment_types, allowed_fragment_charges, enable_losses, enable_uis_scoring, enable_site_scoring, product_mz_threshold, uis_swathes);
+      std::cout << "Generating identifying (UIS) transitions" << std::endl;
+      assays.uisTransitions(targeted_exp, allowed_fragment_types, allowed_fragment_charges, enable_identification_specific_losses, enable_identification_unspecific_losses, product_mz_threshold, uis_swathes, -4, max_num_alternative_localizations, -1);
+      assays.restrictTransitions(targeted_exp, product_lower_mz_limit, product_upper_mz_limit, swathes);
     }
 
     std::cout << "Writing assays " << out << std::endl;

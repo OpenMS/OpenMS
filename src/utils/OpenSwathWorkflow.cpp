@@ -293,7 +293,7 @@ namespace OpenMS
             {
               line += "\t" + (String)feature_it->getMetaValue("id_target_transition_names")
               + "\t" + (String)feature_it->getMetaValue("id_target_ind_log_intensity")
-              + "\t" + (String)feature_it->getMetaValue("id_target_ind_num_transitions")
+              + "\t" + (String)feature_it->getMetaValue("id_target_num_transitions")
               + "\t" + (String)feature_it->getMetaValue("id_target_ind_xcorr_coelution")
               + "\t" + (String)feature_it->getMetaValue("id_target_ind_xcorr_shape")
               + "\t" + (String)feature_it->getMetaValue("id_target_ind_log_sn_score")
