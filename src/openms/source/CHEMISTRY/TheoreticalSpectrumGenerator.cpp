@@ -243,7 +243,7 @@ namespace OpenMS
       p.setIntensity(intensity * it->second);
       if (add_metainfo_ && j == 0)
       {
-        String ion_name = residueTypeToIonLetter_(res_type) + String(ion.size()) + String(charge, '+');
+        String ion_name = String(residueTypeToIonLetter_(res_type)) + String(ion.size()) + String(charge, '+');
         p.setMetaValue("IonName", ion_name);
       }
       spectrum.push_back(p);
@@ -257,7 +257,7 @@ namespace OpenMS
     p.setIntensity(intensity);
     if (add_metainfo_)
     {
-      String ion_name = residueTypeToIonLetter_(res_type) + String(ion_index) + String(charge, '+');
+      String ion_name = String(residueTypeToIonLetter_(res_type)) + String(ion_index) + String(charge, '+');
       p.setMetaValue("IonName", ion_name);
     }
     spectrum.push_back(p);    
@@ -316,7 +316,8 @@ namespace OpenMS
           p.setIntensity(intensity * rel_loss_intensity_ * iso->second);
           if (add_metainfo_ && j == 0)
           {
-            p.setMetaValue("IonName", residueTypeToIonLetter_(res_type) + "-" + loss_name);
+            // note: important to construct a string from char. If omitted it will perform pointer arithmetics on the "-" string literal
+            p.setMetaValue("IonName", String(residueTypeToIonLetter_(res_type)) + "-" + loss_name);
           }
           spectrum.push_back(p);
         }
@@ -326,7 +327,8 @@ namespace OpenMS
         p.setMZ(loss_pos);
         if (add_metainfo_)
         {
-          p.setMetaValue("IonName", residueTypeToIonLetter_(res_type) + "-" + loss_name);
+          // note: important to construct a string from char. If omitted it will perform pointer arithmetics on the "-" string literal
+          p.setMetaValue("IonName", String(residueTypeToIonLetter_(res_type)) + "-" + loss_name);
         }
         spectrum.push_back(p);
       }
