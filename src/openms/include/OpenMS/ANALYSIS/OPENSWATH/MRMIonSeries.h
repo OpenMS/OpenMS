@@ -53,6 +53,18 @@ namespace OpenMS
     ReactionMonitoringTransition objects can be annotated with the corresponding CV
     terms.
 
+    MRMIonSeries uses internally an annotation format that is compatible with SpectraST,
+    which is derived from Roepstoff and Fohlman (1984, PMID: 6525415). An annotation tag
+    starts with ion type (a, b, c, x, y, z) followed by the ordinal (number of amino acids).
+    The caret symbol follows "^" with a positive integer indicating the fragment ion charge.
+    If no caret symbol is present, a charge of 1 is assumed. In case of neutral loss, a
+    negative symbol "-" followed by the integer mass (e.g. 17 for ammonia) OR the molecular
+    composition, compatible with EmpricalFormula (e.g. N1H3 for ammonia) is allowed.
+
+    Valid examples: y3, y3^1, y3^1-18, y3^1-H2O, y3-H2O
+
+    Limitations: Special SpectraST multi-assignments, immonium, precursors are not supported.
+
   */
   class OPENMS_DLLAPI MRMIonSeries
   {

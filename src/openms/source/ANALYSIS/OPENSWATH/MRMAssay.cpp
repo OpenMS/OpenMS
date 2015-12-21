@@ -44,7 +44,7 @@ namespace OpenMS
   {
   }
 
-  std::vector<std::string> MRMAssay::isUIS_(const double fragment_ion, std::vector<std::pair<double, std::string> >& ions, const double mz_threshold)
+  std::vector<std::string> MRMAssay::getMatchingPeptidoforms_(const double fragment_ion, std::vector<std::pair<double, std::string> >& ions, const double mz_threshold)
   {
     std::vector<std::string> isoforms;
 
@@ -746,7 +746,7 @@ namespace OpenMS
       for (std::vector<std::pair<std::string, double> >::iterator tr_it = tr_vec.begin(); tr_it != tr_vec_end; ++tr_it)
       {
         // Check mapping of transitions to other peptidoforms
-        std::vector<std::string> isoforms = isUIS_(tr_it->second, TargetIonMap[target_precursor_swath][peptide_sequence.toUnmodifiedString()], mz_threshold);
+        std::vector<std::string> isoforms = getMatchingPeptidoforms_(tr_it->second, TargetIonMap[target_precursor_swath][peptide_sequence.toUnmodifiedString()], mz_threshold);
 
         // Check that transition maps to at least one peptidoform
         if (isoforms.size() > 0)
@@ -798,7 +798,7 @@ namespace OpenMS
       for (std::vector<std::pair<std::string, double> >::iterator decoy_tr_it = decoy_tr_vec.begin(); decoy_tr_it != decoy_tr_vec_end; ++decoy_tr_it)
       {
         // Check mapping of transitions to other peptidoforms
-        std::vector<std::string> decoy_isoforms = isUIS_(decoy_tr_it->second, DecoyIonMap[target_precursor_swath][decoy_peptide_sequence.toUnmodifiedString()], mz_threshold);
+        std::vector<std::string> decoy_isoforms = getMatchingPeptidoforms_(decoy_tr_it->second, DecoyIonMap[target_precursor_swath][decoy_peptide_sequence.toUnmodifiedString()], mz_threshold);
 
         // Check that transition maps to at least one peptidoform
         if (decoy_isoforms.size() > 0)
@@ -821,7 +821,7 @@ namespace OpenMS
 
 
           // Check if decoy transition is overlapping with target transition
-          std::vector<std::string> target_isoforms_overlap = isUIS_(decoy_tr_it->second, TargetIonMap[target_precursor_swath][target_peptide_sequence.toUnmodifiedString()], mz_threshold);
+          std::vector<std::string> target_isoforms_overlap = getMatchingPeptidoforms_(decoy_tr_it->second, TargetIonMap[target_precursor_swath][target_peptide_sequence.toUnmodifiedString()], mz_threshold);
 
           if (target_isoforms_overlap.size() > 0)
           {

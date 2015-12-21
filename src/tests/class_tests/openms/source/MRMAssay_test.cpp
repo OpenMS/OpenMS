@@ -54,9 +54,9 @@ class MRMAssay_test :
   public MRMAssay
 {
 public:
-  std::vector<std::string> isUIS_test(const double fragment_ion, std::vector<std::pair<double, std::string> > ions, const double mz_threshold)
+  std::vector<std::string> getMatchingPeptidoforms_test(const double fragment_ion, std::vector<std::pair<double, std::string> > ions, const double mz_threshold)
   {
-    return isUIS_(fragment_ion, ions, mz_threshold);
+    return getMatchingPeptidoforms_(fragment_ion, ions, mz_threshold);
   }
 
   int getSwath_test(const std::vector<std::pair<double, double> > swathes, const double precursor_mz)
@@ -110,7 +110,7 @@ START_SECTION(~MRMAssay())
 
 END_SECTION
 
-START_SECTION(std::vector<std::string> MRMAssay::isUIS_(const double fragment_ion, std::vector<std::pair<double, std::string> > ions, const double mz_threshold); )
+START_SECTION(std::vector<std::string> MRMAssay::getMatchingPeptidoforms_(const double fragment_ion, std::vector<std::pair<double, std::string> > ions, const double mz_threshold); )
 {
   MRMAssay_test mrma;
 
@@ -121,8 +121,8 @@ START_SECTION(std::vector<std::string> MRMAssay::isUIS_(const double fragment_io
   ions.push_back(std::make_pair(100.12, "PEPTIDEK"));
   ions.push_back(std::make_pair(100.11, "PEPTIDEK"));
 
-  std::vector<std::string> isoforms1 = mrma.isUIS_test(100.06, ions, 0.03);
-  std::vector<std::string> isoforms2 = mrma.isUIS_test(100.06, ions, 0.06);
+  std::vector<std::string> isoforms1 = mrma.getMatchingPeptidoforms_test(100.06, ions, 0.03);
+  std::vector<std::string> isoforms2 = mrma.getMatchingPeptidoforms_test(100.06, ions, 0.06);
 
   TEST_EQUAL(isoforms1.size(), 0)
 

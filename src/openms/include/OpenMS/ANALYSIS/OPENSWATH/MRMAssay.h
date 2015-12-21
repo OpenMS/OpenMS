@@ -137,19 +137,23 @@ public:
 
 protected:
     /**
-      @brief Check whether fragment ion are unique ion signatures in vector within threshold
+      @brief Check whether fragment ion are unique ion signatures in vector within threshold and return matching peptidoforms
 
       @param fragment_ion the queried fragment ion
       @param ions a vector of pairs of fragment ion m/z and peptide sequences which could interfere with fragment_ion
       @param mz_threshold the threshold within which to search for interferences
+
+      @value a vector of strings containing all peptidoforms with which fragment_ion overlaps
     */
-    std::vector<std::string> isUIS_(const double fragment_ion, std::vector<std::pair<double, std::string> >& ions, const double mz_threshold);
+    std::vector<std::string> getMatchingPeptidoforms_(const double fragment_ion, std::vector<std::pair<double, std::string> >& ions, const double mz_threshold);
 
     /**
       @brief Get swath index (precursor isolation window ordinal) for a particular precursor
 
       @param swathes the swath window settings
       @param precursor_mz the query precursor m/z
+
+      @value index of swath where precursor_mz falls into
     */
     int getSwath_(const std::vector<std::pair<double, double> > swathes, const double precursor_mz);
 
@@ -159,6 +163,8 @@ protected:
       @param swathes the swath window settings
       @param precursor_mz the query precursor m/z
       @param product_mz the query product m/z
+
+      @value whether product m/z falls into precursor isolation window
     */
     bool isInSwath_(const std::vector<std::pair<double, double> > swathes, const double precursor_mz, const double product_mz);
 
@@ -168,7 +174,6 @@ protected:
       @param mods a vector of targeted experiment modifications
       @param location the residue location of the modification
       @param rmod the residue modification
-
     */
     void addModification_(std::vector<TargetedExperiment::Peptide::Modification>& mods, int location, ResidueModification& rmod);
 
@@ -178,6 +183,7 @@ protected:
       @param sequence_size length of peptide sequence
       @param pseudoRNG a Boost pseudo RNG
 
+      @value random peptide sequence
     */
     std::string getRandomSequence_(size_t sequence_size, boost::variate_generator<boost::mt19937&, boost::uniform_int<> > pseudoRNG);
 
@@ -202,11 +208,14 @@ protected:
 
       @value a vector of all modified peptides.
     */
-    std::vector<OpenMS::AASequence> addModificationsSequences_(std::vector<OpenMS::AASequence> sequences, std::vector<std::vector<
-                                                                                                                        size_t> > mods_combs, OpenMS::String modification);
+    std::vector<OpenMS::AASequence> addModificationsSequences_(std::vector<OpenMS::AASequence> sequences, std::vector<std::vector<size_t> > mods_combs, OpenMS::String modification);
 
     /**
       @brief Generate alternative modified peptide forms according to ModificationsDB
+
+      @details An input peptide sequence containing modifications is used as template to generate
+      all modification-carrying residue permutations (n choose k possibilites) that are
+      physicochemically possible according to ModificationsDB.
 
       @param sequence template AASequence
 
@@ -216,6 +225,13 @@ protected:
 
     /**
       @brief Generate alternative modified peptide forms according to ModificationsDB
+
+      @details An input peptide sequence containing modifications is used as template to generate
+      all modification-carrying residue permutations (n choose k possibilites) that are
+      physicochemically possible according to ModificationsDB. Instead of the target sequence, the
+      permutations are transfered to the decoy sequence that might contain additional modifiable
+      residues. E.g. target sequence SAS(Phospho)K could result in [SAS(Phospho)K, S(Phospho)ASK]
+      but the responding set of the decoy sequence SSS(Phospho)K would be [SSS(Phospho)K, S(Phospho)SSK].
 
       @param sequence template AASequence
 

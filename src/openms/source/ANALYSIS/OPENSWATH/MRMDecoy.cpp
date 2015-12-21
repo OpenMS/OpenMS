@@ -362,7 +362,7 @@ namespace OpenMS
           {
             pep_pos = (pseudoRNG() % shuffled_sequence.size());
             pep_pos = 5;
-            if (shuffled_sequence.isModified(pep_pos) || (shuffled_sequence.hasNTerminalModification() && pep_pos == 0) || (shuffled_sequence.hasNTerminalModification() && pep_pos == shuffled_sequence.size() - 1))
+            if (shuffled_sequence.isModified(pep_pos) || (shuffled_sequence.hasNTerminalModification() && pep_pos == 0) || (shuffled_sequence.hasNTerminalModification() && pep_pos == (int)(shuffled_sequence.size() - 1)))
             {
               pep_pos = -1;
             }
@@ -372,7 +372,7 @@ namespace OpenMS
               {
                 shuffled_sequence = AASequence::fromString(aa[res_pos]) + shuffled_sequence.getSuffix(shuffled_sequence.size() - pep_pos - 1);
               }
-              else if (pep_pos == shuffled_sequence.size() - 1)
+              else if (pep_pos == (int)(shuffled_sequence.size() - 1))
               {
                 shuffled_sequence = shuffled_sequence.getPrefix(pep_pos) + AASequence::fromString(aa[res_pos]);
               }

@@ -143,6 +143,34 @@ START_SECTION((boost::unordered_map<String, double> MRMIonSeries::getIonSeries(A
   TEST_REAL_SIMILAR(ionseries4["b1^1"], 130.0499)
   TEST_REAL_SIMILAR(ionseries4["b1^3"], 44.0215)
 
+  MRMIonSeries::IonSeries ionseries5 = mrmis.getIonSeries(AASequence::fromString(String("ES(Phospho)")), 3, fragment_types, fragment_charges, true, false);
+
+  TEST_EQUAL(ionseries5.size(), 9)
+
+  TEST_REAL_SIMILAR(ionseries5["y1^1"], 186.0162)
+  TEST_REAL_SIMILAR(ionseries5["y1-H3O4P1^2"], 44.5233)
+  TEST_REAL_SIMILAR(ionseries5["y1^2"], 93.5117)
+  TEST_REAL_SIMILAR(ionseries5["y1^3"], 62.6769)
+  TEST_REAL_SIMILAR(ionseries5["y1-H3O4P1^1"], 88.0393)                                                                              
+  TEST_REAL_SIMILAR(ionseries5["y1-H3O4P1^3"], 30.018)                                                                               
+  TEST_REAL_SIMILAR(ionseries5["b1^2"], 65.5285)                                                                                     
+  TEST_REAL_SIMILAR(ionseries5["b1^1"], 130.0498)                                                                                    
+  TEST_REAL_SIMILAR(ionseries5["b1^3"], 44.0214)
+
+  MRMIonSeries::IonSeries ionseries6 = mrmis.getIonSeries(AASequence::fromString(String("ES(Phospho)")), 3, fragment_types, fragment_charges, false, true);
+
+  TEST_EQUAL(ionseries6.size(), 9)
+
+  TEST_REAL_SIMILAR(ionseries6["y1^1"], 186.0162)
+  TEST_REAL_SIMILAR(ionseries6["y1^2"], 93.5117)
+  TEST_REAL_SIMILAR(ionseries6["y1^3"], 62.6769)
+  TEST_REAL_SIMILAR(ionseries6["b1-H2O1^1"], 112.0393)
+  TEST_REAL_SIMILAR(ionseries6["b1-H2O1^2"], 56.5233)
+  TEST_REAL_SIMILAR(ionseries6["b1^2"], 65.5285)                                                                                     
+  TEST_REAL_SIMILAR(ionseries6["b1-H2O1^3"], 38.018)                                                                                 
+  TEST_REAL_SIMILAR(ionseries6["b1^1"], 130.0498)                                                                                    
+  TEST_REAL_SIMILAR(ionseries6["b1^3"], 44.0214)
+
 }
 
 END_SECTION
