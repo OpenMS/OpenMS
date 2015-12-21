@@ -207,14 +207,12 @@ namespace OpenMS
     AASequence peptideB_xlink = AASequence::fromString(new_peptideB);
 
     // Debug support output
-    /*
     cout << "peptideA: " << peptideA.toString() << endl;
     cout << "peptideAX_gen_String: " << new_peptideA << endl;
     cout << "peptideAX: " << peptideA_xlink.toString() << endl;
     cout << "peptideB: " << peptideB.toString() << endl;
     cout << "peptideBX_gen_String: " << new_peptideB << endl;
     cout << "peptideBX: " << peptideB_xlink.toString() << endl;
-    */
 
     // Generate the ion peaks:
     // Does not generate peaks of full peptide (therefore "<").
@@ -872,7 +870,6 @@ namespace OpenMS
 
     String new_peptideA = peptideA.getPrefix(xlink_pos_A + 1).toString() + "[+" + (xlink_mass + peptideB_mass) + "]" + peptideA.getSuffix(peptideA.size() - xlink_pos_A - 1).toString();
     String new_peptideB = peptideB.getPrefix(xlink_pos_B + 1).toString() + "[+" + (xlink_mass + peptideA_mass) + "]" + peptideB.getSuffix(peptideB.size() - xlink_pos_B - 1).toString();
-
 
 
     AASequence peptideA_xlink = AASequence::fromString(new_peptideA);
