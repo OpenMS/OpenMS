@@ -58,6 +58,8 @@
 // Kernel and implementations
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSInMemory.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 
 // Helpers
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
@@ -437,7 +439,7 @@ namespace OpenMS
       const OpenSwath::LightTargetedExperiment& transition_exp,
       FeatureMap& out_featureFile, bool store_features,
       OpenSwathTSVWriter & tsv_writer, Interfaces::IMSDataConsumer<> * chromConsumer,
-      int batchSize)
+      int batchSize, bool load_into_memory)
     {
       tsv_writer.writeHeader();
 
@@ -458,6 +460,14 @@ namespace OpenMS
           // store reference to MS1 map for later -> note that this is *not* threadsafe!
           ms1_map_ = swath_maps[i].sptr;
 
+          if (load_into_memory)
+          {
+            // This creates an InMemory object that keeps all data in memory
+            // but provides the same access functionality to the raw data as
+            // any object implementing ISpectrumAccess 
+            ms1_map_ = boost::shared_ptr<SpectrumAccessOpenMSInMemory>( new SpectrumAccessOpenMSInMemory(*ms1_map_) );
+          }
+
           std::vector< OpenSwath::ChromatogramPtr > chrom_list;
           std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
           OpenSwath::LightTargetedExperiment transition_exp_used = transition_exp; // copy for const correctness
@@ -465,7 +475,7 @@ namespace OpenMS
 
           // prepare the extraction coordinates & extract chromatogram
           prepare_coordinates_wrap(chrom_list, coordinates, transition_exp_used, true, trafo_inverse, cp);
-          extractor.extractChromatograms(swath_maps[i].sptr, chrom_list, coordinates, cp.mz_extraction_window,
+          extractor.extractChromatograms(ms1_map_, chrom_list, coordinates, cp.mz_extraction_window,
               cp.ppm, cp.extraction_function);
 
           std::vector< OpenMS::MSChromatogram<> > chromatograms;
@@ -491,6 +501,17 @@ namespace OpenMS
       {
         if (!swath_maps[i].ms1) // skip MS1
         {
+
+          OpenSwath::SpectrumAccessPtr current_swath_map = swath_maps[i].sptr;
+
+          if (load_into_memory)
+          {
+            // This creates an InMemory object that keeps all data in memory
+            // but provides the same access functionality to the raw data as
+            // any object implementing ISpectrumAccess 
+            current_swath_map = boost::shared_ptr<SpectrumAccessOpenMSInMemory>( new SpectrumAccessOpenMSInMemory(*current_swath_map) );
+            std::cout << " loading all data completely into memory !!! " << std::endl;
+          }
 
           // Step 1: select which transitions to extract (proceed in batches)
           OpenSwath::LightTargetedExperiment transition_exp_used_all;
@@ -536,7 +557,7 @@ namespace OpenMS
 
               // Step 2.2: prepare the extraction coordinates & extract chromatograms
               prepare_coordinates_wrap(chrom_list, coordinates, transition_exp_used, false, trafo_inverse, cp);
-              extractor.extractChromatograms(swath_maps[i].sptr, chrom_list, coordinates, cp.mz_extraction_window,
+              extractor.extractChromatograms(current_swath_map, chrom_list, coordinates, cp.mz_extraction_window,
                   cp.ppm, cp.extraction_function);
 
               // Step 2.3: convert chromatograms back and write to output
@@ -547,7 +568,7 @@ namespace OpenMS
 
               // Step 3: score these extracted transitions
               FeatureMap featureFile;
-              scoreAllChromatograms(chromatogram_ptr, swath_maps[i].sptr, transition_exp_used,
+              scoreAllChromatograms(chromatogram_ptr, current_swath_map, transition_exp_used,
                   feature_finder_param, trafo, cp.rt_extraction_window, featureFile, tsv_writer, 
                   ms1_chromatograms);
 
@@ -1271,7 +1292,7 @@ protected:
     registerFlag_("use_elution_model_score", "Turn on elution model score (EMG fit to peak)", true);
 
     registerStringOption_("readOptions", "<name>", "normal", "Whether to run OpenSWATH directly on the input data, cache data to disk first or to perform a datareduction step first. If you choose cache, make sure to also set tempDirectory", false, true);
-    setValidStrings_("readOptions", ListUtils::create<String>("normal,cache"));
+    setValidStrings_("readOptions", ListUtils::create<String>("normal,cache,cacheWorkingInMemory"));
 
     // TODO terminal slash !
     registerStringOption_("tempDirectory", "<tmp>", "/tmp/", "Temporary directory to store cached files for example", false, true);
@@ -1494,6 +1515,13 @@ protected:
     // Parameter validation
     ///////////////////////////////////
 
+    bool load_into_memory = false;
+    if (readoptions == "cacheWorkingInMemory")
+    {
+      readoptions = "cache";
+      load_into_memory = true;
+    }
+
     if (trafo_in.empty() && irt_tr_file.empty())
     {
       std::cout << "Since neither rt_norm nor tr_irt is set, OpenSWATH will " <<
@@ -1624,7 +1652,7 @@ protected:
     wf.setLogType(log_type_);
 
     wf.performExtraction(swath_maps, trafo_rtnorm, cp, feature_finder_param, transition_exp,
-        out_featureFile, !out.empty(), tsvwriter, chromConsumer, batchSize);
+        out_featureFile, !out.empty(), tsvwriter, chromConsumer, batchSize, load_into_memory);
     if (!out.empty())
     {
       addDataProcessing_(out_featureFile, getProcessingInfo_(DataProcessing::QUANTITATION));

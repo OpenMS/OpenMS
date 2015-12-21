@@ -260,6 +260,11 @@ namespace OpenMS
       double RT, int nr_spectra_to_add)
   {
     std::vector<std::size_t> indices = swath_map->getSpectraByRT(RT, 0.0);
+    if (indices.empty() ) 
+    {
+      OpenSwath::SpectrumPtr sptr(new OpenSwath::Spectrum);
+      return sptr;
+    }
     int closest_idx = boost::numeric_cast<int>(indices[0]);
     if (indices[0] != 0 &&
         std::fabs(swath_map->getSpectrumMetaById(boost::numeric_cast<int>(indices[0]) - 1).RT - RT) <
@@ -280,8 +285,14 @@ namespace OpenMS
       all_spectra.push_back(swath_map->getSpectrumById(closest_idx));
       for (int i = 1; i <= nr_spectra_to_add / 2; i++) // cast to int is intended!
       {
-        all_spectra.push_back(swath_map->getSpectrumById(closest_idx - i));
-        all_spectra.push_back(swath_map->getSpectrumById(closest_idx + i));
+        if (closest_idx - i >= 0) 
+        {
+          all_spectra.push_back(swath_map->getSpectrumById(closest_idx - i));
+        }
+        if (closest_idx + i < (int)swath_map->getNrSpectra()) 
+        {
+          all_spectra.push_back(swath_map->getSpectrumById(closest_idx + i));
+        }
       }
       OpenSwath::SpectrumPtr spectrum_ = SpectrumAddition::addUpSpectra(all_spectra, spacing_for_spectra_resampling_, true);
       return spectrum_;
