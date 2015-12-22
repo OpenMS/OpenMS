@@ -90,7 +90,7 @@ START_SECTION((~IDFilter()))
   delete ptr;
 END_SECTION
 
-START_SECTION((void filterIdentificationsByProteins(const ProteinIdentification& identification, const vector<FASTAFile::FASTAEntry>& proteins, ProteinIdentification& filtered_identification)))
+START_SECTION((void filterIdentificationsByProteins(const ProteinIdentification& identification, const vector<FASTAFile::FASTAEntry>& fasta, ProteinIdentification& filtered_identification)))
   ProteinIdentification protein_identification2;
 
   IDFilter::filterIdentificationsByProteins(protein_identification, proteins, protein_identification2);
@@ -101,7 +101,7 @@ START_SECTION((void filterIdentificationsByProteins(const ProteinIdentification&
   TEST_EQUAL(protein_identification2.getHits()[1].getAccession(), "Q872T5")
 END_SECTION
 
-START_SECTION((void filterIdentificationsByProteins(const PeptideIdentification& identification, const vector<FASTAFile::FASTAEntry>& proteins, PeptideIdentification& filtered_identification, bool no_protein_identifiers = false)))
+START_SECTION((void filterIdentificationsByProteins(const PeptideIdentification& identification, const vector<FASTAFile::FASTAEntry>& fasta, PeptideIdentification& filtered_identification)))
   PeptideIdentification identification2;
 
   IDFilter::filterIdentificationsByProteins(identification, proteins, identification2);
@@ -533,6 +533,8 @@ START_SECTION((void removeUnreferencedProteinHits(const ProteinIdentification& i
   TEST_EQUAL(protein_identification.getHits()[2].getAccession(), "Q872T5")
 END_SECTION
 
+// test for "removeUnreferencedPeptideHits" is missing!
+
 START_SECTION((void filterIdentificationsUnique(const PeptideIdentification& identification, PeptideIdentification& filtered_identification)))
   PeptideIdentification id, id2;
   vector<PeptideHit> hits;
@@ -560,17 +562,6 @@ START_SECTION((void filterIdentificationsUnique(const PeptideIdentification& ide
   TEST_EQUAL(id2.getHits()[3].getCharge(), 2)
   TEST_STRING_EQUAL(id2.getHits()[4].getSequence().toString(), "DFPIANGEK")
   TEST_EQUAL(id2.getHits()[4].getCharge(), 5)
-END_SECTION
-
-START_SECTION((bool filterIdentificationsByMetaValueRange(const PeptideIdentification& identification, const String& key, double low, double high, bool missing = false)))
-{
-  PeptideIdentification peptide;
-  peptide.setMetaValue("FOO", 1.23);
-  TEST_EQUAL(IDFilter::filterIdentificationsByMetaValueRange(peptide, "FOO", 1.0, 2.0), true);
-  TEST_EQUAL(IDFilter::filterIdentificationsByMetaValueRange(peptide, "FOO", 2.0, 3.0), false);
-  TEST_EQUAL(IDFilter::filterIdentificationsByMetaValueRange(peptide, "BAR", 1.0, 2.0), false);
-  TEST_EQUAL(IDFilter::filterIdentificationsByMetaValueRange(peptide, "BAR", 1.0, 2.0, true), true);
-}
 END_SECTION
 
 START_SECTION((bool updateProteinGroups(const vector<ProteinIdentification::ProteinGroup>& groups, const vector<ProteinHit>& hits, vector<ProteinIdentification::ProteinGroup>& filtered_groups)))
