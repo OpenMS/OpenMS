@@ -170,6 +170,9 @@ START_SECTION(AASequence fromString(const String& s, bool permissive = true))
                  AASequence::fromString("PEP T*I#D+E", false));
 
   AASequence seq19 = AASequence::fromString("PEPE[+999.9]TIDEK");
+  TEST_EQUAL(seq19.isModified(), true)
+  TEST_STRING_EQUAL(seq19.toUnmodifiedString(), "PEPETIDEK");
+  TEST_STRING_EQUAL(seq19.toString(), "PEPE[+999.9]TIDEK");
   TEST_STRING_EQUAL(seq19[(Size)3].getModification(), "")
 
   AASequence seq20 = AASequence::fromString("PEPE[999.9]TIDEK");
@@ -179,7 +182,10 @@ START_SECTION(AASequence fromString(const String& s, bool permissive = true))
   TEST_STRING_EQUAL(seq21[(Size)3].getModification(), "")
   TEST_STRING_EQUAL(seq21[(Size)2].getModification(), "")
   TEST_STRING_EQUAL(seq21[(Size)4].getModification(), "")
-  
+
+  AASequence seq22 = AASequence::fromString("VSAMMSCACQK[+2250.2358961359]R");
+  TEST_STRING_EQUAL(seq22.toUnmodifiedString(), "VSAMMSCACQKR");
+  TEST_REAL_SIMILAR(seq22.getMonoWeight(), AASequence::fromString("VSAMMSCACQKR").getMonoWeight() + 2250.2358961359);
 }
 END_SECTION
 
