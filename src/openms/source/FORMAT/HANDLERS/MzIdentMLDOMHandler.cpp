@@ -39,7 +39,7 @@
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 #include <set>
 #include <string>
 #include <iostream>
@@ -961,25 +961,9 @@ namespace OpenMS
                   }
                   sub = sub->getNextElementSibling();
                 }
-                if (enzymename == "Trypsin")
+                if (EnzymesDB::getInstance()->hasEnzyme(enzymename))
                 {
-                  sp.enzyme = ProteinIdentification::TRYPSIN;
-                }
-                else if (enzymename == "PepsinA")
-                {
-                  sp.enzyme = ProteinIdentification::PEPSIN_A;
-                }
-                else if (enzymename == "Chymotrypsin")
-                {
-                  sp.enzyme = ProteinIdentification::CHYMOTRYPSIN;
-                }
-                else if (enzymename == "NoEnzyme")
-                {
-                  sp.enzyme = ProteinIdentification::NO_ENZYME;
-                }
-                else // if enzymename ==  || PROTEASE_K
-                {
-                  sp.enzyme = ProteinIdentification::UNKNOWN_ENZYME;
+                  sp.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzymename);
                 }
                 enzyme = enzyme->getNextElementSibling();
               }
@@ -1107,18 +1091,35 @@ namespace OpenMS
             DateTime releaseDate;
 //            releaseDate.set(String(XMLString::transcode(element_in->getAttribute(XMLString::transcode("releaseDate")))));
             String version = XMLString::transcode(element_in->getAttribute(XMLString::transcode("version")));
-            //assumed that <DatabaseName> is the first child, following cv omitted for now
             String dbname = "";
-            DOMElement* pren = element_in->getFirstElementChild();
-            if ((std::string)XMLString::transcode(pren->getTagName()) == "userParam")
+            DOMElement* element_dbn = element_in->getFirstElementChild();
+            while (element_dbn)
             {
-              CVTerm param = parseCvParam_(pren->getFirstElementChild());
-              dbname = param.getValue();
+              if ((std::string)XMLString::transcode(element_dbn->getTagName()) == "DatabaseName")
+              {
+                DOMElement* databasename_param = element_dbn->getFirstElementChild();
+                while (databasename_param)
+                {
+                  if ((std::string)XMLString::transcode(databasename_param->getTagName()) == "userParam")
+                  {
+                    CVTerm param = parseCvParam_(databasename_param);
+                    dbname = param.getValue();
+                  }
+                  else if ((std::string)XMLString::transcode(databasename_param->getTagName()) == "cvParam")
+                  {
+                    pair<String, DataValue> param = parseUserParam_(databasename_param);
+                    dbname = param.second.toString();
+                  }
+                  databasename_param = databasename_param->getNextElementSibling();
+                }
+                //each SearchDatabase element may have one DatabaseName, each DatabaseName only one param
+              }
+              element_dbn = element_dbn->getNextElementSibling();
             }
-            else if ((std::string)XMLString::transcode(pren->getTagName()) == "cvParam")
+            if (dbname.empty())
             {
-              pair<String, DataValue> param = parseUserParam_(pren->getFirstElementChild());
-              dbname = param.second.toString();
+              LOG_WARN << "No DatabaseName element found, use read in results at own risk." << endl;
+              dbname = "unknown";
             }
             DatabaseInput temp_struct = {dbname, location, version, releaseDate};
             db_map_.insert(make_pair(id, temp_struct));

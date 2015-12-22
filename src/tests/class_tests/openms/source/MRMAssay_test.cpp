@@ -50,37 +50,50 @@ START_TEST(MRMAssay, "$Id$")
 MRMAssay * ptr = 0;
 MRMAssay* nullPointer = 0;
 
-class MRMAssay_test : public MRMAssay
+class MRMAssay_test :
+  public MRMAssay
 {
-  public:
-    bool isUIS_test(const double fragment_ion, std::vector<double> ions, const double mz_threshold)
-    {
-      return isUIS_(fragment_ion, ions, mz_threshold);
-    }
-    void isSiteUIS_test(const AASequence sequence, ReactionMonitoringTransition & tr)
-    {
-      isSiteUIS_(sequence, tr);
-    }
-    int getSwath_test(const std::vector<std::pair<double, double> > swathes, const double precursor_mz)
-    {
-      return getSwath_(swathes, precursor_mz);
-    }
-    bool isInSwath_test(const std::vector<std::pair<double, double> > swathes, const double precursor_mz, const double product_mz)
-    {
-      return isInSwath_(swathes, precursor_mz, product_mz);
-    }
-    std::vector<std::vector<size_t> > nchoosekcombinations_test(std::vector<size_t> n, size_t k)
-    {
-      return nchoosekcombinations_(n, k);
-    }
-    std::vector<OpenMS::AASequence> addModificationsSequences_test(std::vector<OpenMS::AASequence> sequences, std::vector<std::vector<size_t> > mods_combs, OpenMS::String modification)
-    {
-      return addModificationsSequences_(sequences, mods_combs, modification);
-    }
-    std::vector<OpenMS::AASequence> combineModifications_test(OpenMS::AASequence sequence)
-    {
-      return combineModifications_(sequence);
-    }
+public:
+  std::vector<std::string> getMatchingPeptidoforms_test(const double fragment_ion, std::vector<std::pair<double, std::string> > ions, const double mz_threshold)
+  {
+    return getMatchingPeptidoforms_(fragment_ion, ions, mz_threshold);
+  }
+
+  int getSwath_test(const std::vector<std::pair<double, double> > swathes, const double precursor_mz)
+  {
+    return getSwath_(swathes, precursor_mz);
+  }
+
+  bool isInSwath_test(const std::vector<std::pair<double, double> > swathes, const double precursor_mz, const double product_mz)
+  {
+    return isInSwath_(swathes, precursor_mz, product_mz);
+  }
+
+  std::string getRandomSequence_test(int sequence_size, boost::variate_generator<boost::mt19937&, boost::uniform_int<> > pseudoRNG)
+  {
+    return getRandomSequence_(sequence_size, pseudoRNG);
+  }
+
+  std::vector<std::vector<size_t> > nchoosekcombinations_test(std::vector<size_t> n, size_t k)
+  {
+    return nchoosekcombinations_(n, k);
+  }
+
+  std::vector<OpenMS::AASequence> addModificationsSequences_test(std::vector<OpenMS::AASequence> sequences, std::vector<std::vector<size_t> > mods_combs, OpenMS::String modification)
+  {
+    return addModificationsSequences_(sequences, mods_combs, modification);
+  }
+
+  std::vector<OpenMS::AASequence> combineModifications_test(OpenMS::AASequence sequence)
+  {
+    return combineModifications_(sequence);
+  }
+
+  std::vector<OpenMS::AASequence> combineDecoyModifications_test(OpenMS::AASequence sequence, OpenMS::AASequence decoy_sequence)
+  {
+    return combineDecoyModifications_(sequence, decoy_sequence);
+  }
+
 };
 
 START_SECTION(MRMAssay())
@@ -94,87 +107,30 @@ START_SECTION(~MRMAssay())
 {
   delete ptr;
 }
+
 END_SECTION
 
-START_SECTION(bool MRMAssay::isUIS_(const double fragment_ion, std::vector<double> ions, const double mz_threshold); )
+START_SECTION(std::vector<std::string> MRMAssay::getMatchingPeptidoforms_(const double fragment_ion, std::vector<std::pair<double, std::string> > ions, const double mz_threshold); )
 {
   MRMAssay_test mrma;
 
-  std::vector<double> ions;
-  ions.push_back(100.00);
-  ions.push_back(100.01);
-  ions.push_back(100.12);
-  ions.push_back(101.11);
+  std::vector<std::pair<double, std::string> > ions;
+  ions.push_back(std::make_pair(100.00, "PEPTIDEK"));
+  ions.push_back(std::make_pair(100.01, "PEPTIDEK"));
+  ions.push_back(std::make_pair(100.10, "PEPT(UniMod:21)IDEK"));
+  ions.push_back(std::make_pair(100.12, "PEPTIDEK"));
+  ions.push_back(std::make_pair(100.11, "PEPTIDEK"));
 
-  TEST_EQUAL(mrma.isUIS_test(100.065, ions, 0.05), true);
-  TEST_EQUAL(mrma.isUIS_test(100.06, ions, 0.06), false);
-}
-END_SECTION
+  std::vector<std::string> isoforms1 = mrma.getMatchingPeptidoforms_test(100.06, ions, 0.03);
+  std::vector<std::string> isoforms2 = mrma.getMatchingPeptidoforms_test(100.06, ions, 0.06);
 
-START_SECTION(void MRMAssay::isSiteUIS_(const AASequence sequence, ReactionMonitoringTransition & tr))
-{
-  MRMAssay_test mrma;
-  MRMIonSeries mrmis;
-  AASequence sequence = AASequence::fromString("PEPT(Phospho)ID(Oxidation)EK");
-  ReactionMonitoringTransition tr1, tr2, tr3, tr4, btr1, btr2, btr3, btr4;
+  TEST_EQUAL(isoforms1.size(), 0)
 
-  mrmis.annotateTransitionCV(tr1, "y5^3");
-  mrma.isSiteUIS_test(sequence, tr1);
-
-  TEST_EQUAL(tr1.getMetaValue("site_identifying_transition"), "4")
-  TEST_EQUAL(tr1.getMetaValue("site_identifying_class"), "revdiag")
-
-  mrmis.annotateTransitionCV(tr2, "y4^3");
-  mrma.isSiteUIS_test(sequence, tr2);
-
-  TEST_EQUAL(tr2.getMetaValue("site_identifying_transition"), "4")
-  TEST_EQUAL(tr2.getMetaValue("site_identifying_class"), "revnext")
-
-  mrmis.annotateTransitionCV(tr3, "b4^3");
-  mrma.isSiteUIS_test(sequence, tr3);
-
-  TEST_EQUAL(tr3.getMetaValue("site_identifying_transition"), "4")
-  TEST_EQUAL(tr3.getMetaValue("site_identifying_class"), "fwddiag")
-
-  mrmis.annotateTransitionCV(tr4, "b3^3");
-  mrma.isSiteUIS_test(sequence, tr4);
-
-  TEST_EQUAL(tr4.getMetaValue("site_identifying_transition"), "4")
-  TEST_EQUAL(tr4.getMetaValue("site_identifying_class"), "fwdnext")
+  TEST_EQUAL(isoforms2.size(), 2)
+  TEST_EQUAL(isoforms2[0], "PEPT(UniMod:21)IDEK")
+  TEST_EQUAL(isoforms2[1], "PEPTIDEK")
 }
 
-END_SECTION
-START_SECTION(void MRMAssay::isSiteUIS_(const AASequence sequence, ReactionMonitoringTransition & tr))
-{
-  MRMAssay_test mrma;
-  MRMIonSeries mrmis;
-  AASequence sequence = AASequence::fromString("PEPT(Phospho)D(Oxidation)IEK");
-  ReactionMonitoringTransition tr1, tr2, tr3, tr4, btr1, btr2, btr3, btr4;
-
-  mrmis.annotateTransitionCV(tr1, "y5^3");
-  mrma.isSiteUIS_test(sequence, tr1);
-
-  TEST_EQUAL(tr1.getMetaValue("site_identifying_transition"), "4")
-  TEST_EQUAL(tr1.getMetaValue("site_identifying_class"), "revdiag")
-
-  mrmis.annotateTransitionCV(tr2, "y4^3");
-  mrma.isSiteUIS_test(sequence, tr2);
-
-  TEST_EQUAL(tr2.getMetaValue("site_identifying_transition"), "4,5")
-  TEST_EQUAL(tr2.getMetaValue("site_identifying_class"), "revnext,revdiag")
-
-  mrmis.annotateTransitionCV(tr3, "b4^3");
-  mrma.isSiteUIS_test(sequence, tr3);
-
-  TEST_EQUAL(tr3.getMetaValue("site_identifying_transition"), "4,5")
-  TEST_EQUAL(tr3.getMetaValue("site_identifying_class"), "fwddiag,fwdnext")
-
-  mrmis.annotateTransitionCV(tr4, "b3^3");
-  mrma.isSiteUIS_test(sequence, tr4);
-
-  TEST_EQUAL(tr4.getMetaValue("site_identifying_transition"), "4")
-  TEST_EQUAL(tr4.getMetaValue("site_identifying_class"), "fwdnext")
-}
 END_SECTION
 
 START_SECTION(int MRMAssay::getSwath_(const std::vector<std::pair<double, double> > swathes, const double precursor_mz))
@@ -215,10 +171,13 @@ START_SECTION(int MRMAssay::getSwath_(const std::vector<std::pair<double, double
   swathes.push_back(std::make_pair(1174, 1200));
 
   TEST_EQUAL(mrma.getSwath_test(swathes, 427.229959), 1)
+  TEST_EQUAL(mrma.getSwath_test(swathes, 449.0), 2)
+  TEST_EQUAL(mrma.getSwath_test(swathes, 449.229959), 2)
   TEST_EQUAL(mrma.getSwath_test(swathes, 685.8547721), 11)
   TEST_EQUAL(mrma.getSwath_test(swathes, 1685.8547721), -1)
   TEST_EQUAL(mrma.getSwath_test(swathes, -41.1), -1)
 }
+
 END_SECTION
 
 START_SECTION(bool MRMAssay::isInSwath_(const std::vector<std::pair<double, double> > swathes, const double precursor_mz, const double product_mz))
@@ -261,6 +220,23 @@ START_SECTION(bool MRMAssay::isInSwath_(const std::vector<std::pair<double, doub
   TEST_EQUAL(mrma.isInSwath_test(swathes, 685.8547721, 427.229959), false)
   TEST_EQUAL(mrma.isInSwath_test(swathes, 685.8547721, 689), true)
 }
+
+END_SECTION
+
+START_SECTION(std::string MRMAssay::getRandomSequence_(int sequence_size, boost::variate_generator<boost::mt19937&, boost::uniform
+                                                                                                   _int<> > pseudoRNG))
+{
+  MRMAssay_test mrma;
+
+  boost::mt19937 generator(42);
+  boost::uniform_int<> uni_dist;
+  boost::variate_generator<boost::mt19937&, boost::uniform_int<> > pseudoRNG(generator, uni_dist);
+
+  std::string sequence1 = mrma.getRandomSequence_test(10, pseudoRNG);
+
+  TEST_EQUAL(sequence1, "CHLNHHQQNE");
+}
+
 END_SECTION
 
 START_SECTION(std::vector<std::vector<size_t> > MRMAssay::nchoosekcombinations_(std::vector<size_t> n, size_t k))
@@ -277,6 +253,7 @@ START_SECTION(std::vector<std::vector<size_t> > MRMAssay::nchoosekcombinations_(
   TEST_EQUAL(mrma.nchoosekcombinations_test(n, k).size(), 4368)
   TEST_EQUAL(mrma.nchoosekcombinations_test(n, k)[0].size(), 5)
 }
+
 END_SECTION
 
 START_SECTION(std::vector<std::vector<size_t> > MRMAssay::nchoosekcombinations_(std::vector<size_t> n, size_t k))
@@ -335,6 +312,7 @@ START_SECTION(std::vector<std::vector<size_t> > MRMAssay::nchoosekcombinations_(
   TEST_EQUAL(res[9][1], 4)
   TEST_EQUAL(res[9][2], 5)
 }
+
 END_SECTION
 
 START_SECTION(std::vector<OpenMS::AASequence> MRMAssay::addModificationsSequences_(std::vector<OpenMS::AASequence> sequences, std::vector<std::vector<size_t> > mods_combs, OpenMS::String modification))
@@ -346,19 +324,19 @@ START_SECTION(std::vector<OpenMS::AASequence> MRMAssay::addModificationsSequence
   sequences.push_back(sequence);
 
   std::vector<size_t> no;
-  no.push_back(0);
-  no.push_back(2);
-  no.push_back(4);
-  no.push_back(7);
+  no.push_back(1);
+  no.push_back(3);
+  no.push_back(5);
+  no.push_back(8);
 
   std::vector<std::vector<size_t> > mods_combs_o = mrma.nchoosekcombinations_test(no, 1);
 
   sequences = mrma.addModificationsSequences_test(sequences, mods_combs_o, String("Oxidation"));
 
   std::vector<size_t> np;
-  np.push_back(3);
   np.push_back(4);
-  np.push_back(7);
+  np.push_back(5);
+  np.push_back(8);
 
   std::vector<std::vector<size_t> > mods_combs_p = mrma.nchoosekcombinations_test(np, 1);
 
@@ -376,22 +354,46 @@ START_SECTION(std::vector<OpenMS::AASequence> MRMAssay::addModificationsSequence
   TEST_EQUAL(sequences[8].toString(), String("PEPT(Phospho)DIEK(Oxidation)"));
   TEST_EQUAL(sequences[9].toString(), String("PEPTD(Phospho)IEK(Oxidation)"));
 }
+
 END_SECTION
 
 START_SECTION(std::vector<OpenMS::AASequence> MRMAssay::combineModifications_(OpenMS::AASequence sequence))
 {
   MRMAssay_test mrma;
 
-  std::vector<AASequence> sequences = mrma.combineModifications_test(AASequence::fromString("PEPT(Phospho)DIEK"));
+  std::vector<AASequence> sequences = mrma.combineModifications_test(AASequence::fromString("(Acetyl)PEPT(Phospho)DIEK"));
 
-  TEST_EQUAL(sequences.size(), 3)
-  TEST_EQUAL(sequences[0], AASequence::fromString("PEPT(Phospho)DIEK"));
-  TEST_EQUAL(sequences[1], AASequence::fromString("PEPTD(Phospho)IEK"));
-  TEST_EQUAL(sequences[2], AASequence::fromString("PEPTDIEK(Phospho)"));
+  TEST_EQUAL(sequences.size(), 7)
+  TEST_EQUAL(sequences[0], AASequence::fromString("(Acetyl)PEPT(Phospho)DIEK"));
+  TEST_EQUAL(sequences[1], AASequence::fromString("(Acetyl)PEPTD(Phospho)IEK"));
+  TEST_EQUAL(sequences[2], AASequence::fromString("(Acetyl)PEPTDIEK(Phospho)"));
+  TEST_EQUAL(sequences[3], AASequence::fromString("PEPT(Acetyl)D(Phospho)IEK"));
+  TEST_EQUAL(sequences[4], AASequence::fromString("PEPT(Acetyl)DIEK(Phospho)"));
+  TEST_EQUAL(sequences[5], AASequence::fromString("PEPT(Phospho)DIEK(Acetyl)"));
+  TEST_EQUAL(sequences[6], AASequence::fromString("PEPTD(Phospho)IEK(Acetyl)"));
 }
+
 END_SECTION
 
-START_SECTION(void reannotateTransitions(OpenMS::TargetedExperiment& exp, double mz_threshold, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_alternative_localizations, bool enable_reannotation, bool enable_losses))
+START_SECTION(std::vector<OpenMS::AASequence> MRMAssay::combineDecoyModifications_(OpenMS::AASequence sequence, OpenMS::AASequence decoy_sequence))
+{
+  MRMAssay_test mrma;
+
+  std::vector<AASequence> sequences = mrma.combineDecoyModifications_test(AASequence::fromString("(Acetyl)PEPT(Phospho)DIEK"), AASequence::fromString("PESTDIEK"));
+
+  TEST_EQUAL(sequences.size(), 7)
+  TEST_EQUAL(sequences[0], AASequence::fromString("(Acetyl)PEST(Phospho)DIEK"));
+  TEST_EQUAL(sequences[1], AASequence::fromString("(Acetyl)PESTD(Phospho)IEK"));
+  TEST_EQUAL(sequences[2], AASequence::fromString("(Acetyl)PESTDIEK(Phospho)"));
+  TEST_EQUAL(sequences[3], AASequence::fromString("PEST(Acetyl)D(Phospho)IEK"));
+  TEST_EQUAL(sequences[4], AASequence::fromString("PEST(Acetyl)DIEK(Phospho)"));
+  TEST_EQUAL(sequences[5], AASequence::fromString("PEST(Phospho)DIEK(Acetyl)"));
+  TEST_EQUAL(sequences[6], AASequence::fromString("PESTD(Phospho)IEK(Acetyl)"));
+}
+
+END_SECTION
+
+START_SECTION(void reannotateTransitions(OpenMS::TargetedExperiment& exp, double precursor_mz_threshold, double product_mz_threshold, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_reannotation, bool enable_specific_losses, bool enable_specific_losses))
 {
   TraMLFile traml;
   TargetedExperiment targeted_exp;
@@ -399,12 +401,12 @@ START_SECTION(void reannotateTransitions(OpenMS::TargetedExperiment& exp, double
   traml.load(OPENMS_GET_TEST_DATA_PATH(in), targeted_exp);
   MRMAssay mrma;
 
+  double precursor_mz_threshold1 = 0.05;
   double product_mz_threshold1 = 0.05;
   std::vector<String> fragment_types1;
   fragment_types1.push_back(String("y"));
   std::vector<size_t> fragment_charges1;
   fragment_charges1.push_back(2);
-  bool enable_alternative_localizations1 = false;
   bool enable_reannotation1 = true;
   bool enable_losses1 = false;
 
@@ -412,7 +414,7 @@ START_SECTION(void reannotateTransitions(OpenMS::TargetedExperiment& exp, double
 
   TargetedExperiment targeted_exp1 = targeted_exp;
 
-  mrma.reannotateTransitions(targeted_exp1, product_mz_threshold1, fragment_types1, fragment_charges1, enable_alternative_localizations1, enable_reannotation1, enable_losses1);
+  mrma.reannotateTransitions(targeted_exp1, precursor_mz_threshold1, product_mz_threshold1, fragment_types1, fragment_charges1, enable_reannotation1, enable_losses1, enable_losses1);
 
   String test1;
   NEW_TMP_FILE(test1);
@@ -420,6 +422,7 @@ START_SECTION(void reannotateTransitions(OpenMS::TargetedExperiment& exp, double
 
   TEST_FILE_EQUAL(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
 
+  double precursor_mz_threshold2 = 0.05;
   double product_mz_threshold2 = 0.05;
   std::vector<String> fragment_types2;
   fragment_types2.push_back(String("y"));
@@ -427,7 +430,6 @@ START_SECTION(void reannotateTransitions(OpenMS::TargetedExperiment& exp, double
   std::vector<size_t> fragment_charges2;
   fragment_charges2.push_back(2);
   fragment_charges2.push_back(3);
-  bool enable_alternative_localizations2 = false;
   bool enable_reannotation2 = true;
   bool enable_losses2 = true;
 
@@ -435,7 +437,7 @@ START_SECTION(void reannotateTransitions(OpenMS::TargetedExperiment& exp, double
 
   TargetedExperiment targeted_exp2 = targeted_exp;
 
-  mrma.reannotateTransitions(targeted_exp2, product_mz_threshold2, fragment_types2, fragment_charges2, enable_alternative_localizations2, enable_reannotation2, enable_losses2);
+  mrma.reannotateTransitions(targeted_exp2, precursor_mz_threshold2, product_mz_threshold2, fragment_types2, fragment_charges2, enable_reannotation2, enable_losses2, enable_losses2);
 
   String test2;
   NEW_TMP_FILE(test2);
@@ -443,20 +445,20 @@ START_SECTION(void reannotateTransitions(OpenMS::TargetedExperiment& exp, double
 
   TEST_FILE_EQUAL(test2.c_str(), OPENMS_GET_TEST_DATA_PATH(out2))
 
+  double precursor_mz_threshold3 = 0.05;
   double product_mz_threshold3 = 0.05;
   std::vector<String> fragment_types3;
   fragment_types3.push_back(String("y"));
   std::vector<size_t> fragment_charges3;
   fragment_charges3.push_back(2);
-  bool enable_alternative_localizations3 = true;
-  bool enable_reannotation3 = true;
+  bool enable_reannotation3 = false; // if no reannotation is conducted, all unannotated transitions will be removed
   bool enable_losses3 = false;
 
   String out3 = "MRMAssay_reannotateTransitions_output_3.TraML";
 
   TargetedExperiment targeted_exp3 = targeted_exp;
 
-  mrma.reannotateTransitions(targeted_exp3, product_mz_threshold3, fragment_types3, fragment_charges3, enable_alternative_localizations3, enable_reannotation3, enable_losses3);
+  mrma.reannotateTransitions(targeted_exp3, precursor_mz_threshold3, product_mz_threshold3, fragment_types3, fragment_charges3, enable_reannotation3, enable_losses3, enable_losses3);
 
   String test3;
   NEW_TMP_FILE(test3);
@@ -464,6 +466,7 @@ START_SECTION(void reannotateTransitions(OpenMS::TargetedExperiment& exp, double
 
   TEST_FILE_EQUAL(test3.c_str(), OPENMS_GET_TEST_DATA_PATH(out3))
 }
+
 END_SECTION
 
 START_SECTION(void restrictTransitions(OpenMS::TargetedExperiment& exp, double lower_mz_limit, double upper_mz_limit, std::vector<std::pair<double, double> > swathes))
@@ -524,6 +527,7 @@ START_SECTION(void restrictTransitions(OpenMS::TargetedExperiment& exp, double l
   TEST_FILE_EQUAL(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
 
 }
+
 END_SECTION
 
 START_SECTION(void detectingTransitions(OpenMS::TargetedExperiment& exp, int min_transitions, int max_transitions))
@@ -550,9 +554,10 @@ START_SECTION(void detectingTransitions(OpenMS::TargetedExperiment& exp, int min
   TEST_FILE_EQUAL(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
 
 }
+
 END_SECTION
 
-START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_losses, bool enable_uis_scoring, bool enable_site_scoring, double mz_threshold, std::vector<std::pair<double, double> > swathes))
+START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, double mz_threshold, std::vector<std::pair<double, double> > swathes, int round_decPow, size_t max_num_alternative_localizations, double shuffle_identity_threshold, int shuffle_max_attempts, int shuffle_seed))
 {
   std::vector<std::pair<double, double> > swathes;
   swathes.push_back(std::make_pair(400, 425));
@@ -598,16 +603,15 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   fragment_types1.push_back(String("y"));
   std::vector<size_t> fragment_charges1;
   fragment_charges1.push_back(2);
-  bool enable_losses1 = false;
-  bool enable_uis_scoring1 = false;
-  bool enable_site_scoring1 = true;
+  bool enable_specific_losses1 = true;
+  bool enable_unspecific_losses1 = false;
   double product_mz_threshold1 = 0.05;
 
   String out1 = "MRMAssay_uisTransitions_output_1.TraML";
 
   TargetedExperiment targeted_exp1 = targeted_exp;
 
-  mrma.uisTransitions(targeted_exp1, fragment_types1, fragment_charges1, enable_losses1, enable_uis_scoring1, enable_site_scoring1, product_mz_threshold1, swathes);
+  mrma.uisTransitions(targeted_exp1, fragment_types1, fragment_charges1, enable_specific_losses1, enable_unspecific_losses1, product_mz_threshold1, swathes, -4, 20, 42);
 
   String test1;
   NEW_TMP_FILE(test1);
@@ -619,16 +623,15 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   fragment_types2.push_back(String("y"));
   std::vector<size_t> fragment_charges2;
   fragment_charges2.push_back(2);
-  bool enable_losses2 = false;
-  bool enable_uis_scoring2 = true;
-  bool enable_site_scoring2 = false;
+  bool enable_specific_losses2 = true;
+  bool enable_unspecific_losses2 = true;
   double product_mz_threshold2 = 0.05;
 
   String out2 = "MRMAssay_uisTransitions_output_2.TraML";
 
   TargetedExperiment targeted_exp2 = targeted_exp;
 
-  mrma.uisTransitions(targeted_exp2, fragment_types2, fragment_charges2, enable_losses2, enable_uis_scoring2, enable_site_scoring2, product_mz_threshold2, swathes);
+  mrma.uisTransitions(targeted_exp2, fragment_types2, fragment_charges2, enable_specific_losses2, enable_unspecific_losses2, product_mz_threshold2, swathes, -4, 20, 42);
 
   String test2;
   NEW_TMP_FILE(test2);
@@ -637,9 +640,10 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   TEST_FILE_EQUAL(test2.c_str(), OPENMS_GET_TEST_DATA_PATH(out2))
 
 }
+
 END_SECTION
 
-START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_losses, bool enable_uis_scoring, bool enable_site_scoring, double mz_threshold, std::vector<std::pair<double, double> > swathes))
+START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, double mz_threshold, std::vector<std::pair<double, double> > swathes, int round_decPow, size_t max_num_alternative_localizations))
 {
   std::vector<std::pair<double, double> > swathes;
   swathes.push_back(std::make_pair(400, 425));
@@ -682,21 +686,17 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   MRMAssay mrma;
 
   std::vector<String> fragment_types1;
-  fragment_types1.push_back(String("y"));
   fragment_types1.push_back(String("b"));
   std::vector<size_t> fragment_charges1;
-  fragment_charges1.push_back(2);
   fragment_charges1.push_back(3);
   bool enable_losses1 = true;
-  bool enable_uis_scoring1 = false;
-  bool enable_site_scoring1 = true;
   double product_mz_threshold1 = 0.05;
 
   String out1 = "MRMAssay_uisTransitions_output_3.TraML";
 
   TargetedExperiment targeted_exp1 = targeted_exp;
 
-  mrma.uisTransitions(targeted_exp1, fragment_types1, fragment_charges1, enable_losses1, enable_uis_scoring1, enable_site_scoring1, product_mz_threshold1, swathes);
+  mrma.uisTransitions(targeted_exp1, fragment_types1, fragment_charges1, enable_losses1, enable_losses1, product_mz_threshold1, swathes, -4, 20, 42);
 
   String test1;
   NEW_TMP_FILE(test1);
@@ -711,15 +711,13 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   fragment_charges2.push_back(2);
   fragment_charges2.push_back(3);
   bool enable_losses2 = true;
-  bool enable_uis_scoring2 = true;
-  bool enable_site_scoring2 = false;
   double product_mz_threshold2 = 0.05;
 
   String out2 = "MRMAssay_uisTransitions_output_4.TraML";
 
   TargetedExperiment targeted_exp2 = targeted_exp;
 
-  mrma.uisTransitions(targeted_exp2, fragment_types2, fragment_charges2, enable_losses2, enable_uis_scoring2, enable_site_scoring2, product_mz_threshold2, swathes);
+  mrma.uisTransitions(targeted_exp2, fragment_types2, fragment_charges2, enable_losses2, enable_losses2, product_mz_threshold2, swathes, -4, 20, 42);
 
   String test2;
   NEW_TMP_FILE(test2);
@@ -728,37 +726,7 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   TEST_FILE_EQUAL(test2.c_str(), OPENMS_GET_TEST_DATA_PATH(out2))
 
 }
-END_SECTION
 
-START_SECTION(void insilicoTransitions(OpenMS::TargetedExperiment& exp, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_losses))
-{
-  TraMLFile traml;
-  TargetedExperiment targeted_exp;
-  String in = "MRMAssay_insilicoTransitions_input.TraML";
-  traml.load(OPENMS_GET_TEST_DATA_PATH(in), targeted_exp);
-  MRMAssay mrma;
-
-  std::vector<String> fragment_types1;
-  fragment_types1.push_back(String("y"));
-  fragment_types1.push_back(String("b"));
-  std::vector<size_t> fragment_charges1;
-  fragment_charges1.push_back(2);
-  fragment_charges1.push_back(3);
-  bool enable_losses1 = true;
-
-  String out1 = "MRMAssay_insilicoTransitions_output.TraML";
-
-  TargetedExperiment targeted_exp1 = targeted_exp;
-
-  mrma.insilicoTransitions(targeted_exp1, fragment_types1, fragment_charges1, enable_losses1);
-
-  String test1;
-  NEW_TMP_FILE(test1);
-  traml.store(test1, targeted_exp1);
-
-  TEST_FILE_EQUAL(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
-
-}
 END_SECTION
 
 END_TEST

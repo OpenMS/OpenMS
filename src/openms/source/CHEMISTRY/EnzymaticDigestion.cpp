@@ -73,12 +73,12 @@ namespace OpenMS
     return *this;
   }
 
-  SignedSize EnzymaticDigestion::getMissedCleavages() const
+  Size EnzymaticDigestion::getMissedCleavages() const
   {
     return missed_cleavages_;
   }
 
-  void EnzymaticDigestion::setMissedCleavages(SignedSize missed_cleavages)
+  void EnzymaticDigestion::setMissedCleavages(Size missed_cleavages)
   {
     missed_cleavages_ = missed_cleavages;
   }
@@ -196,10 +196,10 @@ namespace OpenMS
   Size EnzymaticDigestion::peptideCount(const AASequence& protein)
   {
     std::vector<Size> pep_positions = tokenize_(protein.toUnmodifiedString());
-    SignedSize count = pep_positions.size();
+    Size count = pep_positions.size();
     // missed cleavages
     Size sum = count;
-    for (SignedSize i = 1; i < count; ++i)
+    for (Size i = 1; i < count; ++i)
     {
       if (i > missed_cleavages_) break;
       sum += count - i;
@@ -236,6 +236,59 @@ namespace OpenMS
           begin = pep_positions[j];
         }
         output.push_back(protein.getSubsequence(begin, protein.size() - begin));
+      }
+    }
+  }
+
+  void EnzymaticDigestion::digestUnmodifiedString(const StringView sequence, std::vector<StringView>& output, Size min_length) const
+  {
+    // initialization
+    output.clear();
+
+    // naive cleavage sites
+    std::vector<Size> pep_positions = tokenize_(sequence.getString());
+    Size count = pep_positions.size();
+
+    // no cleavage sites? return full string
+    if (count == 0) 
+    {
+      if (sequence.size() >= min_length)
+      {
+        output.push_back(sequence);
+      }
+      return;
+    }
+
+    for (Size i = 1; i != count; ++i)
+    {
+      // add if cleavage product larger then min length
+      if (pep_positions[i] - pep_positions[i - 1] >= min_length)
+      {
+        output.push_back(sequence.substr(pep_positions[i - 1], pep_positions[i] - 1));
+      }
+    }
+
+    // add last cleavage product (need to add because end is not a cleavage site) if larger then min length
+    if (sequence.size() - pep_positions[count - 1] >= min_length)
+    {
+      output.push_back(sequence.substr(pep_positions[count - 1], sequence.size() - 1));
+    }
+
+    // generate fragments with missed cleavages
+    for (Size i = 1; ((i <= missed_cleavages_) && (i < count)); ++i)
+    {
+      for (Size j = 1; j < count - i; ++j)
+      {
+        if (pep_positions[j + i] - pep_positions[j - 1] >= min_length)
+        {
+          output.push_back(sequence.substr(pep_positions[j - 1], pep_positions[j + i] - 1));
+        }
+      }
+
+      // add last cleavage product (need to add because end is not a cleavage site)
+      if (sequence.size() - pep_positions[count - i - 1] >= min_length)
+      {
+        output.push_back(sequence.substr(pep_positions[count - i - 1], sequence.size() - 1 ));
       }
     }
   }

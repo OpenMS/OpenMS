@@ -45,6 +45,7 @@
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/MzTab.h>
@@ -112,7 +113,7 @@ protected:
     void registerOptionsAndFlags_()
     {
       registerInputFile_("in", "<file>", "", "Input files used to generate the mzTab file.", false);
-      setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,idXML"));
+      setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,idXML,mzid"));
       registerOutputFile_("out", "<file>", "", "Output file (mzTab)", true);
       setValidFormats_("out", ListUtils::create<String>("tsv"));
     }
@@ -1009,13 +1010,23 @@ protected:
         mztab = exportFeatureMapToMzTab(feature_map, in);
       }
 
-      // export identification data
+      // export identification data from idXML
       if (in_type == FileTypes::IDXML)
       {
         String document_id;
         vector<ProteinIdentification> prot_ids;
         vector<PeptideIdentification> pep_ids;
         IdXMLFile().load(in, prot_ids, pep_ids, document_id);
+        mztab = exportIdentificationsToMzTab(prot_ids, pep_ids, in); 
+      }
+
+      // export identification data from mzIdentML
+      if (in_type == FileTypes::MZIDENTML)
+      {
+        String document_id;
+        vector<ProteinIdentification> prot_ids;
+        vector<PeptideIdentification> pep_ids;
+        MzIdentMLFile().load(in, prot_ids, pep_ids);
         mztab = exportIdentificationsToMzTab(prot_ids, pep_ids, in); 
       }
 

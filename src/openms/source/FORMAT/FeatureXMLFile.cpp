@@ -37,6 +37,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/METADATA/DataProcessing.h>
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 
 #include <fstream>
 
@@ -222,34 +223,18 @@ namespace OpenMS
         os << "mass_type=\"average\" ";
       }
       os << "charges=\"" << search_param.charges << "\" ";
-      if (search_param.enzyme == ProteinIdentification::TRYPSIN)
-      {
-        os << "enzyme=\"trypsin\" ";
-      }
-      if (search_param.enzyme == ProteinIdentification::PEPSIN_A)
-      {
-        os << "enzyme=\"pepsin_a\" ";
-      }
-      if (search_param.enzyme == ProteinIdentification::PROTEASE_K)
-      {
-        os << "enzyme=\"protease_k\" ";
-      }
-      if (search_param.enzyme == ProteinIdentification::CHYMOTRYPSIN)
-      {
-        os << "enzyme=\"chymotrypsin\" ";
-      }
-      else if (search_param.enzyme == ProteinIdentification::NO_ENZYME)
-      {
-        os << "enzyme=\"no_enzyme\" ";
-      }
-      else if (search_param.enzyme == ProteinIdentification::UNKNOWN_ENZYME)
-      {
-        os << "enzyme=\"unknown_enzyme\" ";
-      }
+      String enzyme_name = search_param.digestion_enzyme.getName();
+      os << "enzyme=\"" << enzyme_name.toLower() << "\" ";
+
+      String precursor_unit = search_param.precursor_mass_tolerance_ppm ? "true" : "false";
+      String peak_unit = search_param.fragment_mass_tolerance_ppm ? "true" : "false";
+
       os << "missed_cleavages=\"" << search_param.missed_cleavages << "\" "
-         << "precursor_peak_tolerance=\"" << search_param.precursor_tolerance << "\" "
-         << "peak_mass_tolerance=\"" << search_param.fragment_mass_tolerance << "\" "
-         << ">\n";
+         << "precursor_peak_tolerance=\"" << search_param.precursor_tolerance << "\" ";
+      os << "precursor_peak_tolerance_ppm=\"" << precursor_unit << "\" ";
+      os << "peak_mass_tolerance=\"" << search_param.fragment_mass_tolerance << "\" ";
+      os << "peak_mass_tolerance_ppm=\"" << peak_unit << "\" ";
+      os << ">\n";
 
       //modifications
       for (Size j = 0; j != search_param.fixed_modifications.size(); ++j)
@@ -539,7 +524,13 @@ namespace OpenMS
       search_param_.charges = attributeAsString_(attributes, "charges");
       optionalAttributeAsUInt_(search_param_.missed_cleavages, attributes, "missed_cleavages");
       search_param_.fragment_mass_tolerance = attributeAsDouble_(attributes, "peak_mass_tolerance");
+      String peak_unit;
+      optionalAttributeAsString_(peak_unit, attributes, "peak_mass_tolerance_ppm");
+      search_param_.fragment_mass_tolerance_ppm = peak_unit == "true" ? true : false;
       search_param_.precursor_tolerance = attributeAsDouble_(attributes, "precursor_peak_tolerance");
+      String precursor_unit;
+      optionalAttributeAsString_(precursor_unit, attributes, "precursor_peak_tolerance_ppm");
+      search_param_.precursor_mass_tolerance_ppm = precursor_unit == "true" ? true : false;
       //mass type
       String mass_type = attributeAsString_(attributes, "mass_type");
       if (mass_type == "monoisotopic")
@@ -553,29 +544,9 @@ namespace OpenMS
       //enzyme
       String enzyme;
       optionalAttributeAsString_(enzyme, attributes, "enzyme");
-      if (enzyme == "trypsin")
+      if (EnzymesDB::getInstance()->hasEnzyme(enzyme))
       {
-        search_param_.enzyme = ProteinIdentification::TRYPSIN;
-      }
-      else if (enzyme == "pepsin_a")
-      {
-        search_param_.enzyme = ProteinIdentification::PEPSIN_A;
-      }
-      else if (enzyme == "protease_k")
-      {
-        search_param_.enzyme = ProteinIdentification::PROTEASE_K;
-      }
-      else if (enzyme == "chymotrypsin")
-      {
-        search_param_.enzyme = ProteinIdentification::CHYMOTRYPSIN;
-      }
-      else if (enzyme == "no_enzyme")
-      {
-        search_param_.enzyme = ProteinIdentification::NO_ENZYME;
-      }
-      else if (enzyme == "unknown_enzyme")
-      {
-        search_param_.enzyme = ProteinIdentification::UNKNOWN_ENZYME;
+        search_param_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme);
       }
       last_meta_ = &search_param_;
     }
@@ -875,6 +846,15 @@ namespace OpenMS
       prot_id_.setSearchParameters(search_param_);
       search_param_ = ProteinIdentification::SearchParameters();
     }
+    else if (tag == "FixedModification")
+    {
+      last_meta_ = &search_param_;
+    }
+    else if (tag == "VariableModification")
+    {
+      last_meta_ = &search_param_;
+    }
+
     else if (tag == "ProteinHit")
     {
       prot_id_.insertHit(prot_hit_);

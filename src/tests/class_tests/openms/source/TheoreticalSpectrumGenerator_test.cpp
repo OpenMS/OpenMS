@@ -108,6 +108,15 @@ START_SECTION(void addPeaks(RichPeakSpectrum& spectrum, const AASequence& peptid
   {
     TEST_REAL_SIMILAR(y_spec2[i].getPosition()[0], (y_result[i]+1.0)/2.0)
   }
+/* for quick benchmarking of implementation chances
+  for (Size i = 0; i != 1e6; ++i)
+  {
+    RichPeakSpectrum y_spec, b_spec, a_spec;
+    ptr->addPeaks(y_spec, peptide, Residue::YIon, 1);
+    ptr->addPeaks(b_spec, peptide, Residue::BIon, 1);
+    ptr->addPeaks(a_spec, peptide, Residue::AIon, 1);
+  }
+*/
 END_SECTION
 
 START_SECTION(void addAbundantImmoniumIons(RichPeakSpectrum& spec))
@@ -217,9 +226,73 @@ START_SECTION(void getSpectrum(RichPeakSpectrum& spec, const AASequence& peptide
   {
     TEST_REAL_SIMILAR(generated[i], result_all[i])
   }
-  
 
+  // test loss creation and annotation
+  spec.clear(true);
+  param = ptr->getParameters();
+  param.setValue("add_first_prefix_ion", "true");
+  param.setValue("add_a_ions", "false");
+  param.setValue("add_b_ions", "true");
+  param.setValue("add_c_ions", "false");
+  param.setValue("add_x_ions", "true");
+  param.setValue("add_y_ions", "false");
+  param.setValue("add_z_ions", "false");
+  param.setValue("add_precursor_peaks", "true");
+  param.setValue("add_metainfo", "true");
+  param.setValue("add_losses", "true");
+  ptr->setParameters(param);
+  ptr->getSpectrum(spec, peptide, 1);
+  TEST_EQUAL(spec.size(), 30)
+  set<String> ion_names;
+  // ions without losses
+  ion_names.insert("b1+");
+  ion_names.insert("x1+");
+  ion_names.insert("b2+");
+  ion_names.insert("x2+");
+  ion_names.insert("b3+");
+  ion_names.insert("x3+");
+  ion_names.insert("b4+");
+  ion_names.insert("x4+");
+  ion_names.insert("b5+");
+  ion_names.insert("x5+");
+  ion_names.insert("b6+");
+  ion_names.insert("x6+");
 
+  // currently losses are generated independent of ion ladder type (b,y,...)
+  // if an amino acid with potential loss is present in the prefix/suffix, then the loss is applied
+  // if multiple amino acids with the same e.g. water loss are present in the prefix/suffix ion then the loss is only applied once
+  ion_names.insert("x1-H3N1+");
+  ion_names.insert("x2-H3N1+");
+  ion_names.insert("x3-H3N1+");
+  ion_names.insert("b3-H2O1+");
+  ion_names.insert("x4-H3N1+");
+  ion_names.insert("b4-H2O1+");
+  ion_names.insert("b4-H3N1+");
+  ion_names.insert("x5-H2O1+");
+  ion_names.insert("x5-H3N1+");
+  ion_names.insert("b5-H2O1+");
+  ion_names.insert("b5-H3N1+");
+  ion_names.insert("b6-H2O1+");
+  ion_names.insert("b6-H3N1+");
+  ion_names.insert("x6-H2O1+");
+  ion_names.insert("x6-H3N1+");
+
+  // precursors
+  ion_names.insert("[M+H]-H2O+");
+  ion_names.insert("[M+H]-NH3+");
+  ion_names.insert("[M+H]+");
+
+  // check if all losses have been annotated
+  for (Size i = 0; i != spec.size(); ++i)
+  {
+    vector<String> keys;
+    spec[i].getKeys(keys);
+    for (Size j = 0; j != keys.size(); ++j)
+    {
+      String name = spec[i].getMetaValue(keys[j]);
+      TEST_EQUAL(ion_names.find(name) != ion_names.end(), true)
+    }
+  }
 END_SECTION
 
 START_SECTION(([EXTRA] bugfix test where losses lead to formulae with negative element frequencies))
@@ -239,7 +312,6 @@ START_SECTION(([EXTRA] bugfix test where losses lead to formulae with negative e
   TEST_EQUAL(tmp.size(), 212)
 }
 END_SECTION
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

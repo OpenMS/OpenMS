@@ -63,7 +63,7 @@ namespace OpenMS
      * 
      * @param labels    isotopic labels
      * @param missed_cleavages    maximum number of missed cleavages due to incomplete digestion
-     * For example du to knock-outs in one of the samples.
+     * For example due to knock-outs in one of the samples.
      */
     MultiplexDeltaMassesGenerator(String labels, int missed_cleavages, std::map<String,double> label_mass_shift);
         
@@ -71,7 +71,7 @@ namespace OpenMS
      * @brief generate all mass shifts that can occur due to the absence of one or multiple peptides
      * (e.g. for a triplet experiment generate the doublets and singlets that might be present)
      */
-    void generateKnockoutMassShifts();
+    void generateKnockoutDeltaMasses();
 
     /**
      * @brief write the list of labels for each sample

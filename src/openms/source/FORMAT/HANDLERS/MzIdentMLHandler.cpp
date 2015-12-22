@@ -37,6 +37,7 @@
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/Enzyme.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
@@ -512,7 +513,7 @@ namespace OpenMS
         sip += String("\t\t<Threshold>\n\t\t\t") + thcv + "\n";
         sip += String("\t\t</Threshold>\n");
         writeModParam_(sip, it->getSearchParameters().fixed_modifications, it->getSearchParameters().variable_modifications, 2);
-        writeEnyzme_(sip, it->getSearchParameters().enzyme, it->getSearchParameters().missed_cleavages, 2);
+        writeEnyzme_(sip, it->getSearchParameters().digestion_enzyme, it->getSearchParameters().missed_cleavages, 2);
         sip += String("\t</SpectrumIdentificationProtocol>\n");
         sip_set.insert(sip);
         sil_2_date.insert(make_pair(sil_id, String(it->getDateTime().getDate() + "T" + it->getDateTime().getTime())));
@@ -743,26 +744,30 @@ namespace OpenMS
             {
               String pevid =  "PEV_" + String(UniqueIdGenerator::getUniqueId());
               String dBSequence_ref = String(sen_ids.find(pe->getProteinAccession())->second);
-              String idec(boost::lexical_cast<std::string>((String(jt->getMetaValue("target_decoy"))).hasSubstring("decoy")));
+              String idec;
+              if (jt->metaValueExists("target_decoy"))
+              {
+                idec = String(boost::lexical_cast<std::string>((String(jt->getMetaValue("target_decoy"))).hasSubstring("decoy")));
+              }
 
               String e;
-              e += "\t<PeptideEvidence id=\"" + pevid + "\" peptide_ref=\"" + pepid + "\" dBSequence_ref=\"" + dBSequence_ref;
+              e += "\t<PeptideEvidence id=\"" + pevid + "\" peptide_ref=\"" + pepid + "\" dBSequence_ref=\"" + dBSequence_ref + "\"";
 
               if (pe->getAAAfter() != PeptideEvidence::UNKNOWN_AA)
               {
-                e += "\" post=\"" + String(pe->getAAAfter());
+                e += " post=\"" + String(pe->getAAAfter()) + "\"";
               }
               if (pe->getAABefore() != PeptideEvidence::UNKNOWN_AA)
               {
-                e += "\" pre=\"" + String(pe->getAABefore());
+                e += " pre=\"" + String(pe->getAABefore()) + "\"";
               }
               if (pe->getStart() != PeptideEvidence::UNKNOWN_POSITION)
               {
-                e += "\" start=\"" + String(pe->getStart());
+                e += " start=\"" + String(pe->getStart()) + "\"";
               }
               else if (jt->metaValueExists("start"))
               {
-                e += "\" start=\"" + String(jt->getMetaValue("start"));
+                e += " start=\"" + String(jt->getMetaValue("start")) + "\"";
               }
               else
               {
@@ -770,17 +775,21 @@ namespace OpenMS
               }
               if (pe->getEnd() != PeptideEvidence::UNKNOWN_POSITION)
               {
-                e += "\" end=\"" + String(pe->getEnd());
+                e += " end=\"" + String(pe->getEnd()) + "\"";
               }
               else if (jt->metaValueExists("end"))
               {
-                e += "\" end=\"" + String(jt->getMetaValue("end"));
+                e += " end=\"" + String(jt->getMetaValue("end")) + "\"";
               }
               else
               {
                 LOG_WARN << "Found no end position of peptide hit in protein sequence." << std::endl;
               }
-              e += "\" isDecoy=\"" + String(idec) + "\"/> \n";
+              if (!idec.empty())
+              {
+                e += " isDecoy=\"" + String(idec)+ "\"";
+              }
+              e += "/> \n";
               sen_set.insert(e);
               pevid_ids.push_back(pevid);
             }
@@ -1069,29 +1078,22 @@ namespace OpenMS
       }
     }
 
-    void MzIdentMLHandler::writeEnyzme_(String& s, ProteinIdentification::DigestionEnzyme enzy, UInt miss, UInt indent) const
+    void MzIdentMLHandler::writeEnyzme_(String& s, Enzyme enzy, UInt miss, UInt indent) const
     {
       String cv_ns = cv_.name();
       s += String(indent, '\t') + "<Enzymes independent=\"false\">" + "\n";
       s += String(indent, '\t') + "\t" + "<Enzyme missedCleavages=\"" + String(miss) + "\" id=\"" + String("ENZ_") + String(UniqueIdGenerator::getUniqueId()) + "\">" + "\n";
       s += String(indent, '\t') + "\t\t" + "<EnzymeName>" + "\n";
-      if (enzy == ProteinIdentification::TRYPSIN)
+      String enzymename = enzy.getName();
+      if (cv_.hasTermWithName(enzymename))
       {
-        s += String(indent, '\t') + "\t\t\t" + cv_.getTermByName("Trypsin").toXMLString(cv_ns) + "\n";
+        s += String(indent, '\t') + "\t\t\t" + cv_.getTermByName(enzymename).toXMLString(cv_ns) + "\n";
       }
-      else if (enzy == ProteinIdentification::PEPSIN_A)
-      {
-        s += String(indent, '\t') + "\t\t\t" + cv_.getTermByName("PepsinA").toXMLString(cv_ns) + "\n";
-      }
-      else if (enzy == ProteinIdentification::CHYMOTRYPSIN)
-      {
-        s += String(indent, '\t') + "\t\t\t" + cv_.getTermByName("Chymotrypsin").toXMLString(cv_ns) + "\n";
-      }
-      else if (enzy == ProteinIdentification::NO_ENZYME)
+      else if (enzymename == "no cleavage")
       {
         s += String(indent, '\t') + "\t\t\t" + cv_.getTermByName("NoEnzyme").toXMLString(cv_ns) + "\n";
       }
-      else // if enzy == ProteinIdentification::UNKNOWN_ENZYME || PROTEASE_K
+      else
       {
         s += String(indent, '\t') + "\t\t\t" + cv_.getTermByName("cleavage agent details").toXMLString(cv_ns) + "\n";
       }

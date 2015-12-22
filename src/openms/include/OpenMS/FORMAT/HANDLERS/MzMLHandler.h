@@ -2401,7 +2401,10 @@ protected:
           spec_.setMetaValue("scan law", String("quadratic"));
         }
         else
-          warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+        {
+          //warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'."); //of course just pops up with debug flag set ...
+          spec_.getAcquisitionInfo().back().setMetaValue(accession, termValue);
+        }
       }
       //------------------------- contact ----------------------------
       else if (parent_tag == "contact")

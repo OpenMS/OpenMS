@@ -126,7 +126,6 @@ namespace OpenMS
     if (spline_) delete spline_;
   }
 
-
   double TransformationModelBSpline::evaluate(double value) const
   {
     if ((value < xmin_) && (extrapolate_ != EX_BSPLINE)) // extrapolate (left)
@@ -153,7 +152,6 @@ namespace OpenMS
     }
     return spline_->eval(value);
   }
-
 
   void TransformationModelBSpline::getDefaultParameters(Param& params)
   {

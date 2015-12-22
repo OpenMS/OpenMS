@@ -95,7 +95,7 @@ public:
     /**
         @brief Applies the resampling algorithm to an MSSpectrum but it will be aligned between start_pos and end_pos
 
-        This allows the user to specify the grid for alignment explicitely.
+        This allows the user to specify the grid for alignment explicitly.
         This is especially useful if multiple spectra or chromatograms need to
         be resampled according to the same raster.
     */

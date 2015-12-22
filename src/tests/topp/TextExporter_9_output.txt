@@ -1,7 +1,7 @@
 #RUN	run_id	score_type	score_direction	date_time	search_engine_version	parameters
 #PROTEIN	score	rank	accession	protein_description	coverage	sequence
 #PEPTIDE	rt	mz	score	rank	sequence	charge	aa_before	aa_after	score_type	search_identifier	accessions	predicted_rt	predicted_pt	scan_index	A_136.06231	A_330.06033	C_112.05108	C_306.0491	G_152.05723	G_346.05525	RNPxl:Da difference	RNPxl:RNA	RNPxl:RNA_MASS_z0	RNPxl:best_localization	RNPxl:best_localization_score	RNPxl:peptide_mass_z0	RNPxl:ppm difference	RNPxl:xl_mass_z0	RNPxl:z1 mass	RNPxl:z2 mass	RNPxl:z3 mass	RNPxl:z4 mass	U_113.03509	U_307.03311	protein_references	target_decoy
-RUN	RNPxlSearch_2015-09-07T16:15:38		higher-score-better	2015-09-07T16:15:38	2.0.0	db=rnpxl_cas_1.fasta, db_version=, taxonomy=, charges=2:5, mass_type=monoisotopic, fixed_modifications=, variable_modifications=, enzyme=Unknown, missed_cleavages=1, peak_mass_tolerance=20, precursor_mass_tolerance=20
+RUN	RNPxlSearch_2015-09-07T16:15:38		higher-score-better	2015-09-07T16:15:38	2.0.0	db=rnpxl_cas_1.fasta, db_version=, taxonomy=, charges=2:5, mass_type=monoisotopic, fixed_modifications=, variable_modifications=, enzyme=unknown_enzyme, missed_cleavages=1, peak_mass_tolerance=20, precursor_mass_tolerance=20
 PROTEIN	0	0	Cse1		-1	
 PROTEIN	0	0	Cse2		-1	
 PROTEIN	0	0	Cas7		-1	
