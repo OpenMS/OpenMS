@@ -180,7 +180,7 @@ protected:
     registerTOPPSubsection_("precursor", "Filtering by precursor RT or m/z");
     registerStringOption_("precursor:rt", "[min]:[max]", ":", "Retention time range to extract.", false);
     registerStringOption_("precursor:mz", "[min]:[max]", ":", "Mass-to-charge range to extract.", false);
-    registerFlag_("precursor:allow_missing", "When filtering by precursor RT or m/z, keep peptide IDs with missing precursor information ('RT'/'MZ' meta values)?");
+    registerFlag_("precursor:allow_missing", "When filtering by precursor RT or m/z, keep peptide IDs with missing precursor information?");
 
     registerTOPPSubsection_("score", "Filtering by peptide/protein score. To enable any of the filters below, just change their default value. All active filters will be applied in order.");
     registerDoubleOption_("score:pep", "<score>", 0, "The score which should be reached by a peptide hit to be kept. The score is dependent on the most recent(!) preprocessing - it could be Mascot scores (if a MascotAdapter was applied before), or an FDR (if FalseDiscoveryRate was applied before), etc.", false);
@@ -194,7 +194,6 @@ protected:
                                                            "All peptides that are not a substring of a sequence in this file are removed\n"
                                                            "All proteins whose accession is not present in this file are removed.", false);
     setValidFormats_("whitelist:proteins", ListUtils::create<String>("fasta"));
-    registerFlag_("whitelist:by_seq_only", "Match peptides with FASTA file by sequence instead of accession and disable protein filtering.");
 
     registerStringList_("whitelist:protein_accessions", "<accessions>", ListUtils::create<String>(""), "All peptides that are not referencing at least one of the provided protein accession are removed.\nOnly proteins of the provided list are retained.", false);
 
@@ -237,8 +236,6 @@ protected:
     registerFlag_("keep_unreferenced_protein_hits", "Proteins not referenced by a peptide are retained in the ids.");
     registerFlag_("remove_decoys", "Remove proteins according to the information in the user parameters. Usually used in combination with 'delete_unreferenced_peptide_hits'.");
     registerFlag_("delete_unreferenced_peptide_hits", "Peptides not referenced by any protein are deleted in the ids. Usually used in combination with 'score:prot' or 'thresh:prot'.");
-
-    //setSectionDescription("RT", "Filters peptides using meta-data annotated by RT predict. The criterion is always the p-value (for having a deviation between observed and predicted RT equal or bigger than allowed).");
 
   }
 
@@ -308,7 +305,6 @@ protected:
     bool var_mods = getFlag_("var_mods");
 
     String sequences_file_name = getStringOption_("whitelist:proteins").trim();
-    bool no_protein_identifiers = getFlag_("whitelist:by_seq_only");
 
     StringList protein_accessions = getStringList_("whitelist:protein_accessions");
 
@@ -368,9 +364,8 @@ protected:
     // calculations
     //-------------------------------------------------------------
 
-
-    std::set<String> applied_filters;
-
+    set<String> applied_filters;
+    // set<String> fasta_accessions; // for filtering by protein accession
 
     // Filtering peptide identification according to set criteria
     if ((rt_high < double_max) || (rt_low > -double_max))
@@ -425,7 +420,16 @@ protected:
       {
         applied_filters.insert("Filtering by peptide sequence whitelisting ...\n");
         PeptideIdentification temp_identification = filtered_identification;
-        IDFilter::filterIdentificationsByProteins(temp_identification, sequences, filtered_identification, no_protein_identifiers);
+        // if (fasta_accessions.empty()) // first time
+        // {
+        //   for (vector<FASTAFile::FASTAEntry>::const_iterator it =
+        //          sequences.begin(); it != sequences.end(); ++it)
+        //   {
+        //     fasta_accessions.insert(it->identifier);
+        //   }
+        // }
+        // IDFilter::filterIdentificationsByProteins(temp_identification, fasta_accessions, filtered_identification);
+        IDFilter::filterIdentificationsByProteins(temp_identification, sequences, filtered_identification);
       }
 
       if (!protein_accessions.empty())
@@ -562,7 +566,7 @@ protected:
           IDFilter::filterIdentificationsByThreshold(protein_identifications[i], protein_significance_threshold_fraction, filtered_protein_identification);
         }
 
-        if (sequences_file_name != "" && !no_protein_identifiers)
+        if (sequences_file_name != "")
         {
           applied_filters.insert("Filtering by whitelisting protein accession from FASTA file ...\n");
           ProteinIdentification temp_identification = filtered_protein_identification;

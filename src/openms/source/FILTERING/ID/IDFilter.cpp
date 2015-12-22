@@ -29,10 +29,12 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Mathias Walzer $
-// $Authors: Nico Pfeifer, Mathias Walzer$
+// $Authors: Nico Pfeifer, Mathias Walzer, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FILTERING/ID/IDFilter.h>
+
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <cmath>
@@ -50,8 +52,177 @@ namespace OpenMS
   {
   }
 
-  void IDFilter::filterIdentificationsUnique(const PeptideIdentification& identification,
-                                             PeptideIdentification& filtered_identification)
+
+  struct IDFilter::HasMinPeptideLength
+  {
+    typedef PeptideHit argument_type; // for use as a predicate
+
+    Size length;
+
+    HasMinPeptideLength(Size length):
+      length(length)
+    {}
+    
+    bool operator()(const PeptideHit& hit) const
+    {
+      return hit.getSequence().size() >= length;
+    }
+  };
+
+
+  struct IDFilter::HasMinCharge
+  {
+    typedef PeptideHit argument_type; // for use as a predicate
+
+    Int charge;
+
+    HasMinCharge(Int charge):
+      charge(charge)
+    {}
+
+    bool operator()(const PeptideHit& hit) const
+    {
+      return hit.getCharge() >= charge;
+    }
+  };
+
+
+  struct IDFilter::HasLowMZError
+  {
+    typedef PeptideHit argument_type; // for use as a predicate
+
+    double precursor_mz, tolerance;
+
+    HasLowMZError(double precursor_mz, double tolerance, bool unit_ppm):
+      precursor_mz(precursor_mz), tolerance(tolerance)
+    {
+      if (unit_ppm) tolerance *= precursor_mz / 1.0e6;
+    }
+
+    bool operator()(const PeptideHit& hit) const
+    {
+      Int z = hit.getCharge();
+      if (z == 0) z = 1;
+      double peptide_mz = (hit.getSequence().getMonoWeight(Residue::Full, z) /
+                           double(z));
+      return fabs(precursor_mz - peptide_mz) <= tolerance;
+    }
+  };
+
+
+  struct IDFilter::HasMatchingModification
+  {
+    typedef PeptideHit argument_type; // for use as a predicate
+
+    const set<String>& mods;
+
+    HasMatchingModification(const set<String>& mods):
+      mods(mods)
+    {}
+
+    bool operator()(const PeptideHit& hit) const
+    {
+      const AASequence& seq = hit.getSequence();
+      if (mods.empty()) return seq.isModified();
+
+      for (Size i = 0; i < seq.size(); ++i)
+      {
+        if (seq.isModified(i))
+        {
+          String mod_name = seq[i].getModification() + " (" +
+            seq[i].getOneLetterCode() + ")";
+          if (mods.count(mod_name) > 0) return true;
+        }
+      }
+
+      // terminal modifications:
+      if (seq.hasNTerminalModification())
+      {
+        String mod_name = seq.getNTerminalModification() + " (N-term)";
+        if (mods.count(mod_name) > 0) return true;
+      }
+      if (seq.hasCTerminalModification())
+      {
+        String mod_name = seq.getCTerminalModification() + " (C-term)";
+        if (mods.count(mod_name) > 0) return true;
+      }
+
+      return false;
+    }
+  };
+
+
+  struct IDFilter::HasMatchingSequence
+  {
+    typedef PeptideHit argument_type; // for use as a predicate
+
+    const set<String>& sequences;
+    bool ignore_mods;
+
+    HasMatchingSequence(const set<String>& sequences, bool ignore_mods):
+      sequences(sequences), ignore_mods(ignore_mods)
+    {}
+
+    bool operator()(const PeptideHit& hit) const
+    {
+      const String& query = (ignore_mods ? 
+                             hit.getSequence().toUnmodifiedString() :
+                             hit.getSequence().toString());
+      return (sequences.count(query) > 0);
+    }
+  };
+
+
+  struct IDFilter::HasNoEvidence
+  {
+    typedef PeptideHit argument_type; // for use as a predicate
+
+    bool operator()(const PeptideHit& hit) const
+    {
+      return hit.getPeptideEvidences().empty();
+    }
+  };
+
+
+  struct IDFilter::HasRTInRange
+  {
+    typedef PeptideIdentification argument_type; // for use as a predicate
+
+    double rt_min, rt_max;
+
+    HasRTInRange(double rt_min, double rt_max):
+      rt_min(rt_min), rt_max(rt_max)
+    {}
+
+    bool operator()(const PeptideIdentification& id) const
+    {
+      double rt = id.getRT();
+      return (rt >= rt_min) && (rt <= rt_max);
+    }
+  };
+
+
+  struct IDFilter::HasMZInRange
+  {
+    typedef PeptideIdentification argument_type; // for use as a predicate
+
+    double mz_min, mz_max;
+
+    HasMZInRange(double mz_min, double mz_max):
+      mz_min(mz_min), mz_max(mz_max)
+    {}
+
+    bool operator()(const PeptideIdentification& id) const
+    {
+      double mz = id.getMZ();
+      return (mz >= mz_min) && (mz <= mz_max);
+    }
+  };
+
+
+  void IDFilter::filterIdentificationsUnique(
+    const PeptideIdentification& identification,
+    PeptideIdentification& filtered_identification)
   {
     // there's no "PeptideHit::operator<" defined, so we can't use a set nor
     // "sort" + "unique" from the standard library
@@ -60,8 +231,7 @@ namespace OpenMS
     vector<PeptideHit> temp_hits = identification.getHits();
 
     for (vector<PeptideHit>::iterator it = temp_hits.begin();
-         it != temp_hits.end();
-         ++it)
+         it != temp_hits.end(); ++it)
     {
       if (find(hits.begin(), hits.end(), *it) == hits.end())
       {
@@ -71,589 +241,317 @@ namespace OpenMS
     filtered_identification.setHits(hits);
   }
 
-  void IDFilter::filterIdentificationsByMzError(const PeptideIdentification& identification, double mass_error, bool unit_ppm, PeptideIdentification& filtered_identification)
-  {
-    vector<PeptideHit> hits;
-    filtered_identification = identification;
-    vector<PeptideHit> temp_hits = identification.getHits();
 
-    for (vector<PeptideHit>::iterator it = temp_hits.begin(); it != temp_hits.end(); ++it)
-    {
-      Int charge = it->getCharge();
-
-      if (charge == 0)
-      {
-        charge = 1;
-      }
-
-      double exp_mz = identification.getMZ();
-      double theo_mz =  (it->getSequence().getMonoWeight() + (double)charge * Constants::PROTON_MASS_U) / (double)charge;
-      double error(exp_mz - theo_mz);
-
-      if (unit_ppm)
-      {
-        error = error / theo_mz * (double)1e6;
-      }
-
-      if (fabs(error) <= mass_error)
-      {
-        hits.push_back(*it);
-      }
-    }
-    filtered_identification.setHits(hits);
-  }
-
-  void IDFilter::filterIdentificationsByBestHits(const PeptideIdentification& identification,
-                                                 PeptideIdentification& filtered_identification,
-                                                 bool strict)
-  {
-    vector<PeptideHit> filtered_peptide_hits;
-    PeptideHit temp_peptide_hit;
-    vector<Size> new_peptide_indices;
-
-    filtered_identification = identification;
-    filtered_identification.setHits(vector<PeptideHit>());
-
-    if (!identification.getHits().empty())
-    {
-      float optimal_value = identification.getHits()[0].getScore();
-      new_peptide_indices.push_back(0);
-
-      // searching for peptide(s) with maximal score
-      for (Size i = 1; i < identification.getHits().size(); i++)
-      {
-        float temp_score = identification.getHits()[i].getScore();
-        bool new_leader = false;
-        if ((identification.isHigherScoreBetter() && (temp_score > optimal_value))
-           || (!identification.isHigherScoreBetter() && (temp_score < optimal_value)))
-          new_leader = true;
-
-        if (new_leader)
-        {
-          optimal_value = temp_score;
-          new_peptide_indices.clear();
-          new_peptide_indices.push_back(i);
-        }
-        else if (temp_score == optimal_value)
-        {
-          new_peptide_indices.push_back(i);
-        }
-      }
-      if (!strict || new_peptide_indices.size() == 1)
-      {
-        for (Size i = 0; i < new_peptide_indices.size(); i++)
-        {
-          filtered_peptide_hits.push_back(identification.getHits()[new_peptide_indices[i]]);
-        }
-      }
-    }
-
-    if (!filtered_peptide_hits.empty())
-    {
-      filtered_identification.setHits(filtered_peptide_hits);
-      filtered_identification.assignRanks();
-    }
-  }
-
-  void IDFilter::filterIdentificationsByLength(const PeptideIdentification& identification,
-                                               PeptideIdentification& filtered_identification,
-                                               Size min_length,
-                                               Size max_length)
+  void IDFilter::filterIdentificationsByMzError(
+    const PeptideIdentification& identification, double mass_error,
+    bool unit_ppm, PeptideIdentification& filtered_identification)
   {
     filtered_identification = identification;
-    if (max_length < min_length)
-    {
-      max_length = UINT_MAX;
-    }
 
-    const vector<PeptideHit>& temp_peptide_hits = identification.getHits();
-    vector<PeptideHit> filtered_peptide_hits;
-    for (Size i = 0; i < temp_peptide_hits.size(); ++i)
-    {
-      if (min_length <= temp_peptide_hits[i].getSequence().size() && temp_peptide_hits[i].getSequence().size() <= max_length)
-      {
-        filtered_peptide_hits.push_back(temp_peptide_hits[i]);
-      }
-    }
+    struct HasLowMZError error_filter(filtered_identification.getMZ(),
+                                      mass_error, unit_ppm);
+    keepMatchingItems(filtered_identification.getHits(), error_filter);
 
-    filtered_identification.setHits(filtered_peptide_hits);
     filtered_identification.assignRanks();
   }
 
-  void IDFilter::filterIdentificationsByCharge(const PeptideIdentification& identification,
-                                               Int min_charge,
-                                               PeptideIdentification& filtered_identification)
+
+  void IDFilter::filterIdentificationsByBestHits(
+    const PeptideIdentification& identification,
+    PeptideIdentification& filtered_identification, bool strict)
   {
     filtered_identification = identification;
-    const vector<PeptideHit>& temp_peptide_hits = identification.getHits();
-    vector<PeptideHit> filtered_peptide_hits;
-    for (Size i = 0; i < temp_peptide_hits.size(); ++i)
+    vector<PeptideHit>& hits = filtered_identification.getHits();
+    if (hits.size() > 1)
     {
-      if (temp_peptide_hits[i].getCharge() >= min_charge)
+      filtered_identification.sort();
+      double top_score = hits[0].getScore();
+      bool higher_better = filtered_identification.isHigherScoreBetter();
+      struct HasGoodScore<PeptideHit> good_score(top_score, higher_better);
+      if (strict) // only one best score allowed
       {
-        filtered_peptide_hits.push_back(temp_peptide_hits[i]);
-      }
-    }
-
-    filtered_identification.setHits(filtered_peptide_hits);
-    filtered_identification.assignRanks();
-  }
-
-  void IDFilter::filterIdentificationsByVariableModifications(const PeptideIdentification& identification,
-                                                              const vector<String>& fixed_modifications,
-                                                              PeptideIdentification& filtered_identification)
-  {
-    vector<Size> new_peptide_indices;
-    vector<PeptideHit> filtered_peptide_hits;
-
-    filtered_identification = identification;
-    filtered_identification.setHits(vector<PeptideHit>());
-
-    const vector<PeptideHit>& temp_peptide_hits = identification.getHits();
-
-    for (Size i = 0; i < temp_peptide_hits.size(); i++)
-    {
-      const AASequence& aa_seq = temp_peptide_hits[i].getSequence();
-
-      /*
-       TODO: check these cases
-      // check terminal modifications
-      if (aa_seq.hasNTerminalModification())
-      {
-        String unimod_name = aa_seq.getNTerminalModification();
-        if (find(fixed_modifications.begin(), fixed_modifications.end(), unimod_name) == fixed_modifications.end())
+        if (good_score(hits[1])) // two (or more) best-scoring hits
         {
-          new_peptide_indices.push_back(i);
-          continue;
+          hits.clear();
         }
-      }
-
-      if (aa_seq.hasCTerminalModification())
-      {
-        String unimod_name = aa_seq.getCTerminalModification();
-        if (find(fixed_modifications.begin(), fixed_modifications.end(), unimod_name) == fixed_modifications.end())
+        else
         {
-          new_peptide_indices.push_back(i);
-          continue;
-        }
-      }
-      */
-      // check internal modifications
-      for (Size j = 0; j != aa_seq.size(); ++j)
-      {
-        if (aa_seq[j].isModified())
-        {
-          String unimod_name = aa_seq[j].getModification() + " (" + aa_seq[j].getOneLetterCode() + ")";
-          if (find(fixed_modifications.begin(), fixed_modifications.end(), unimod_name) == fixed_modifications.end())
-          {
-            new_peptide_indices.push_back(i);
-            continue;
-          }
-        }
-      }
-    }
-
-    for (Size i = 0; i < new_peptide_indices.size(); i++)
-    {
-      const PeptideHit& ph = temp_peptide_hits[new_peptide_indices[i]];
-      filtered_peptide_hits.push_back(ph);
-    }
-    if (!filtered_peptide_hits.empty())
-    {
-      filtered_identification.setHits(filtered_peptide_hits);
-      filtered_identification.assignRanks();
-    }
-  }
-
-  void IDFilter::filterIdentificationsByProteins(const PeptideIdentification& identification,
-                                                 const vector<FASTAFile::FASTAEntry>& proteins,
-                                                 PeptideIdentification& filtered_identification,
-                                                 bool no_protein_identifiers)
-  {
-    // TODO: this is highly inefficient! the Protein-Index should be build once for all peptide-identifications instead of
-    //       doing this once for every ID. Furthermore the index itself is inefficient (use seqan instead)
-    String protein_sequences;
-    String accession_sequences;
-    vector<PeptideHit> filtered_peptide_hits;
-    PeptideHit temp_peptide_hit;
-
-    filtered_identification = identification;
-    filtered_identification.setHits(vector<PeptideHit>());
-
-    for (Size i = 0; i < proteins.size(); i++)
-    {
-      if (proteins[i].identifier != "")
-      {
-        accession_sequences.append("*" + proteins[i].identifier);
-      }
-      if (proteins[i].sequence != "")
-      {
-        protein_sequences.append("*" + proteins[i].sequence);
-      }
-    }
-    accession_sequences.append("*");
-    protein_sequences.append("*");
-
-    for (Size i = 0; i < identification.getHits().size(); i++)
-    {
-      if (no_protein_identifiers || accession_sequences == "*") // filter by sequence alone if no protein accessions are available
-      {
-        if (protein_sequences.find(identification.getHits()[i].getSequence().toUnmodifiedString()) != String::npos)
-        {
-          filtered_peptide_hits.push_back(identification.getHits()[i]);
-        }
-      }
-      else // filter by protein accessions
-      {
-        std::set<String> protein_accessions = identification.getHits()[i].extractProteinAccessions();
-        for (set<String>::const_iterator ac_it = protein_accessions.begin(); ac_it != protein_accessions.end(); ++ac_it)
-        {
-          if (accession_sequences.find("*" + *ac_it) != String::npos)
-          {
-            filtered_peptide_hits.push_back(identification.getHits()[i]);
-            break; // we found a matching protein, the peptide is valid -> exit
-          }
-        }
-      }
-    }
-
-    filtered_identification.setHits(filtered_peptide_hits);
-    filtered_identification.assignRanks();
-  }
-
-  void IDFilter::filterIdentificationsByProteins(const ProteinIdentification& identification,
-                                                 const vector<FASTAFile::FASTAEntry>& proteins,
-                                                 ProteinIdentification& filtered_identification)
-  {
-    String protein_sequences;
-    String accession_sequences;
-    vector<ProteinHit> filtered_protein_hits;
-    ProteinHit temp_protein_hit;
-
-    filtered_identification = identification;
-    filtered_identification.setHits(vector<ProteinHit>());
-
-    for (Size i = 0; i < proteins.size(); i++)
-    {
-      accession_sequences.append("*" + proteins[i].identifier);
-    }
-    accession_sequences.append("*");
-
-    for (Size i = 0; i < identification.getHits().size(); i++)
-    {
-      if (accession_sequences.find("*" + identification.getHits()[i].getAccession()) != String::npos)
-      {
-        filtered_protein_hits.push_back(identification.getHits()[i]);
-      }
-    }
-
-    filtered_identification.setHits(filtered_protein_hits);
-    filtered_identification.assignRanks();
-  }
-
-  void IDFilter::filterIdentificationsByProteinAccessions(const PeptideIdentification& identification,
-                                                 const StringList& proteins,
-                                                 PeptideIdentification& filtered_identification)
-  {
-    filtered_identification = identification;
-    filtered_identification.setHits(vector<PeptideHit>());
-    vector<PeptideHit> filtered_peptide_hits;
-
-    for (Size i = 0; i < identification.getHits().size(); i++)
-    {
-      std::set<String> protein_accessions = identification.getHits()[i].extractProteinAccessions();
-      for (set<String>::const_iterator ac_it = protein_accessions.begin(); ac_it != protein_accessions.end(); ++ac_it)
-      {
-        if (std::find(proteins.begin(), proteins.end(), *ac_it) != proteins.end())
-        {
-          filtered_peptide_hits.push_back(identification.getHits()[i]);
-          break;
-        }
-      }
-    }
-
-    filtered_identification.setHits(filtered_peptide_hits);
-    filtered_identification.assignRanks();
-  }
-
-  void IDFilter::filterIdentificationsByProteinAccessions(const ProteinIdentification& identification,
-                                                 const StringList& proteins,
-                                                 ProteinIdentification& filtered_identification)
-  {
-    filtered_identification = identification;
-    filtered_identification.setHits(vector<ProteinHit>());
-    vector<ProteinHit> filtered_protein_hits;
-
-    for (Size i = 0; i < identification.getHits().size(); i++)
-    {
-      if (std::find(proteins.begin(), proteins.end(), identification.getHits()[i].getAccession()) != proteins.end())
-      {
-        filtered_protein_hits.push_back(identification.getHits()[i]);
-      }
-    }
-
-    filtered_identification.setHits(filtered_protein_hits);
-    filtered_identification.assignRanks();
-  }
-
-  void IDFilter::filterIdentificationsByExclusionPeptides(const PeptideIdentification& identification,
-                                                          const set<String>& peptides,
-                                                          bool ignore_modifications,
-                                                          PeptideIdentification& filtered_identification)
-  {
-    vector<PeptideHit> filtered_peptide_hits;
-
-    filtered_identification = identification;
-    filtered_identification.setHits(vector<PeptideHit>());
-
-    for (Size i = 0; i < identification.getHits().size(); i++)
-    {
-      String query = ignore_modifications ? identification.getHits()[i].getSequence().toUnmodifiedString() : identification.getHits()[i].getSequence().toString();
-      if (find(peptides.begin(), peptides.end(), query) == peptides.end())
-      {
-        filtered_peptide_hits.push_back(identification.getHits()[i]);
-      }
-    }
-    if (!filtered_peptide_hits.empty())
-    {
-      filtered_identification.setHits(filtered_peptide_hits);
-      filtered_identification.assignRanks();
-    }
-  }
-
-  void IDFilter::filterIdentificationsByRTFirstDimPValues(const PeptideIdentification& identification,
-                                                          PeptideIdentification& filtered_identification,
-                                                          double p_value)
-  {
-    double border = 1 - p_value;
-    vector<PeptideHit> filtered_peptide_hits;
-    PeptideHit temp_peptide_hit;
-
-    filtered_identification = identification;
-    filtered_identification.setHits(vector<PeptideHit>());
-
-    Size missing_meta_value = 0;
-
-    for (Size i = 0; i < identification.getHits().size(); ++i)
-    {
-      if (identification.getHits()[i].metaValueExists("predicted_RT_p_value_first_dim"))
-      {
-        if ((double)(identification.getHits()[i].getMetaValue("predicted_RT_p_value_first_dim")) <= border)
-        {
-          filtered_peptide_hits.push_back(identification.getHits()[i]);
+          hits.resize(1);
         }
       }
       else
-        ++missing_meta_value;
-    }
-    if (missing_meta_value > 0)
-      LOG_WARN << "Filtering identifications by p-value did not work on " << missing_meta_value << " of " << identification.getHits().size() << " hits. Your data is missing a meta-value ('predicted_RT_p_value_first_dim') from RTPredict!\n";
+      {
+        // we could use keepMatchingHits() here, but it would be less efficient
+        // (since the hits are already sorted by score):
+        for (vector<PeptideHit>::iterator it = ++hits.begin(); it != hits.end();
+             ++it)
+        {
+          if (!good_score(*it))
+          {
+            hits.erase(it, hits.end());
+            break;
+          }
+        }
+      }
 
-    if (!filtered_peptide_hits.empty())
-    {
-      filtered_identification.setHits(filtered_peptide_hits);
       filtered_identification.assignRanks();
     }
   }
 
-  void IDFilter::filterIdentificationsByRTPValues(const PeptideIdentification& identification,
-                                                  PeptideIdentification& filtered_identification,
-                                                  double p_value)
+
+  void IDFilter::filterIdentificationsByLength(
+    const PeptideIdentification& identification,
+    PeptideIdentification& filtered_identification, Size min_length,
+    Size max_length)
   {
-    double border = 1 - p_value;
-    vector<PeptideHit> filtered_peptide_hits;
-    PeptideHit temp_peptide_hit;
-
     filtered_identification = identification;
-    filtered_identification.setHits(vector<PeptideHit>());
-
-    Size missing_meta_value = 0;
-
-    for (Size i = 0; i < identification.getHits().size(); i++)
+    if (min_length > 0)
     {
-      if (identification.getHits()[i].metaValueExists("predicted_RT_p_value"))
-      {
-        if ((double)(identification.getHits()[i].getMetaValue("predicted_RT_p_value")) <= border)
-        {
-          filtered_peptide_hits.push_back(identification.getHits()[i]);
-        }
-      }
-      else
-        ++missing_meta_value;
+      struct HasMinPeptideLength length_filter(min_length);
+      keepMatchingItems(filtered_identification.getHits(), length_filter);
     }
-    if (missing_meta_value > 0)
-      LOG_WARN << "Filtering identifications by p-value did not work on " << missing_meta_value << " of " << identification.getHits().size() << " hits. Your data is missing a meta-value ('predicted_RT_p_value') from RTPredict!\n";
-
-    if (!filtered_peptide_hits.empty())
+    ++max_length; // the predicate tests for ">=", we need ">"
+    if (max_length > min_length)
     {
-      filtered_identification.setHits(filtered_peptide_hits);
-      filtered_identification.assignRanks();
+      struct HasMinPeptideLength length_filter(max_length);
+      removeMatchingItems(filtered_identification.getHits(), length_filter);
     }
+
+    filtered_identification.assignRanks();
   }
 
-  void IDFilter::removeUnreferencedProteinHits(const ProteinIdentification& identification, const vector<PeptideIdentification>& peptide_identifications, ProteinIdentification& filtered_identification)
-  {
-    const String& run_identifier = identification.getIdentifier();
 
-    // build set of protein accessions that are referenced by peptides
-    set<String> proteinaccessions_with_peptides;
-    for (Size i = 0; i != peptide_identifications.size(); ++i)
+  void IDFilter::filterIdentificationsByCharge(
+    const PeptideIdentification& identification, Int min_charge,
+    PeptideIdentification& filtered_identification)
+  {
+    filtered_identification = identification;
+
+    struct HasMinCharge charge_filter(min_charge);
+    keepMatchingItems(filtered_identification.getHits(), charge_filter);
+    filtered_identification.assignRanks();
+  }
+
+
+  void IDFilter::filterIdentificationsByVariableModifications(
+    const PeptideIdentification& identification, 
+    vector<String>& fixed_modifications, 
+    PeptideIdentification& filtered_identification)
+  {
+    filtered_identification = identification;
+
+    set<String> selected_mods;
+    if (!fixed_modifications.empty())
     {
-      // run id of protein and peptide identification must match
-      if (run_identifier == peptide_identifications[i].getIdentifier())
+      vector<String> all_mods;
+      ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
+      sort(all_mods.begin(), all_mods.end());
+      sort(fixed_modifications.begin(), fixed_modifications.end());
+    
+      set_difference(all_mods.begin(), all_mods.end(),
+                     fixed_modifications.begin(), fixed_modifications.end(),
+                     inserter(selected_mods, selected_mods.begin()));
+    }
+
+    struct HasMatchingModification mod_filter(selected_mods);
+    keepMatchingItems(filtered_identification.getHits(), mod_filter);
+
+    filtered_identification.assignRanks();
+  }
+
+
+  void IDFilter::filterIdentificationsByExclusionPeptides(
+    const PeptideIdentification& identification,
+    const set<String>& peptides, bool ignore_modifications,
+    PeptideIdentification& filtered_identification)
+  {
+    filtered_identification = identification;
+
+    struct HasMatchingSequence seq_filter(peptides, ignore_modifications);
+    removeMatchingItems(filtered_identification.getHits(), seq_filter);
+
+    filtered_identification.assignRanks();
+  }
+
+
+  void IDFilter::filterIdentificationsByPValues(
+    PeptideIdentification& identification, const String& metavalue_key,
+    double p_value, const String& source_tool)
+  {
+    double cutoff = 1 - p_value;
+
+    // how many hits are missing the meta value?
+    Size n_hits = identification.getHits().size();
+    struct HasMetaValue<PeptideHit> present_filter(metavalue_key, DataValue());
+    keepMatchingItems(identification.getHits(), present_filter);
+    Size n_missing = n_hits - identification.getHits().size();
+    
+    struct HasMaxMetaValue<PeptideHit> max_filter(metavalue_key, 
+                                                  DataValue(cutoff));
+    keepMatchingItems(identification.getHits(), max_filter);
+
+    if (n_missing > 0)
+    {
+      LOG_WARN << "Filtering identifications by p-value did not work for "
+               << n_missing << " of " << n_hits
+               << " hits. Your data is missing a meta-value ('"
+               << metavalue_key << "')";
+      if (!source_tool.empty()) LOG_WARN << " added by " << source_tool;
+      LOG_WARN << "." << endl;
+    }
+
+    identification.assignRanks();
+  }
+
+
+  void IDFilter::filterIdentificationsByRTPValues(
+    const PeptideIdentification& identification,
+    PeptideIdentification& filtered_identification, double p_value)
+  {
+    filtered_identification = identification;
+    filterIdentificationsByPValues(filtered_identification, 
+                                   "predicted_RT_p_value", p_value,
+                                   "RTPredict");
+  }
+
+
+  void IDFilter::filterIdentificationsByRTFirstDimPValues(
+    const PeptideIdentification& identification,
+    PeptideIdentification& filtered_identification, double p_value)
+  {
+    filtered_identification = identification;
+    filterIdentificationsByPValues(filtered_identification, 
+                                   "predicted_RT_p_value_first_dim", p_value,
+                                   "RTPredict");
+  }
+
+
+  void IDFilter::removeUnreferencedProteinHits(
+    const ProteinIdentification& identification,
+    const vector<PeptideIdentification>& peptide_identifications,
+    ProteinIdentification& filtered_identification)
+  {
+    filtered_identification = identification;
+    const String& run_identifier = filtered_identification.getIdentifier();
+
+    // build set of protein accessions that are referenced by peptides:
+    set<String> accessions;
+    for (vector<PeptideIdentification>::const_iterator pep_it = 
+           peptide_identifications.begin(); pep_it != 
+           peptide_identifications.end(); ++pep_it)
+    {
+      // run ID of protein and peptide identification must match:
+      if (pep_it->getIdentifier() == run_identifier)
       {
-        const vector<PeptideHit>& tmp_pep_hits = peptide_identifications[i].getHits();
-        // extract protein accessions of each peptide hit
-        for (Size j = 0; j != tmp_pep_hits.size(); ++j)
+        // extract protein accessions of each peptide hit:
+        for (vector<PeptideHit>::const_iterator hit_it =
+               pep_it->getHits().begin(); hit_it != pep_it->getHits().end();
+             ++hit_it)
         {
-          const std::set<String>& protein_accessions = tmp_pep_hits[j].extractProteinAccessions();
-          proteinaccessions_with_peptides.insert(protein_accessions.begin(), protein_accessions.end());
+          const set<String>& current_accessions = 
+            hit_it->extractProteinAccessions();
+          accessions.insert(current_accessions.begin(),
+                            current_accessions.end());
         }
       }
     }
 
-    // add all protein hits referenced by a peptide
-    const vector<ProteinHit>& temp_protein_hits = identification.getHits();
-    vector<ProteinHit> filtered_protein_hits;
-    for (Size j = 0; j != temp_protein_hits.size(); ++j)
-    {
-      const String& protein_accession = temp_protein_hits[j].getAccession();
-      if (proteinaccessions_with_peptides.find(protein_accession) != proteinaccessions_with_peptides.end())
-      {
-        filtered_protein_hits.push_back(temp_protein_hits[j]);
-      }
-    }
-
-    // copy identification
-    filtered_identification = identification;
-
-    // assign filtered hits to protein identification
-    filtered_identification.setHits(filtered_protein_hits);
+    // remove all protein hits not referenced by a peptide:
+    struct HasMatchingAccession<ProteinHit> acc_filter(accessions);
+    keepMatchingItems(filtered_identification.getHits(), acc_filter);
   }
 
-  void IDFilter::removeUnreferencedPeptideHits(const ProteinIdentification& identification,
-                                               vector<PeptideIdentification>& peptide_identifications,
-                                               bool delete_unreferenced_peptide_hits /* = false */)
+
+  // rename: "removeReferencesToMissingProteins"?
+  void IDFilter::removeUnreferencedPeptideHits(
+    const ProteinIdentification& identification,
+    vector<PeptideIdentification>& peptide_identifications,
+    bool delete_unreferenced_peptide_hits /* = false */)
   {
     const String& run_identifier = identification.getIdentifier();
 
     // build set of protein accessions
-    set<String> all_prots;
-    const vector<ProteinHit>& temp_protein_hits = identification.getHits();
-    for (Size j = 0; j != temp_protein_hits.size(); ++j)
-    {
-      all_prots.insert(temp_protein_hits[j].getAccession());
-    }
-
-    vector<PeptideIdentification> filtered_peptide_identifications;
-    // remove peptides which are not referenced
-    for (Size i = 0; i != peptide_identifications.size(); ++i)
-    {
-      // run id of protein and peptide identification must match
-      if (run_identifier == peptide_identifications[i].getIdentifier())
-      {
-        const vector<PeptideHit>& tmp_pep_hits = peptide_identifications[i].getHits();
-        vector<PeptideHit> filtered_pep_hits;
-        // check protein accessions of each peptide hit
-        for (Size j = 0; j != tmp_pep_hits.size(); ++j)
-        {
-          vector<PeptideEvidence> hit_peptide_evidences = tmp_pep_hits[j].getPeptideEvidences();
-          vector<PeptideEvidence> valid_peptide_evidence;
-
-          for (vector<PeptideEvidence>::const_iterator pe_it = hit_peptide_evidences.begin(); pe_it != hit_peptide_evidences.end(); ++pe_it)
-          {
-            // find valid proteins
-            if (all_prots.find(pe_it->getProteinAccession()) != all_prots.end())
-            {
-              valid_peptide_evidence.push_back(*pe_it);
-            }
-          }
-
-          if (!valid_peptide_evidence.empty() || !delete_unreferenced_peptide_hits)
-          {
-            // if present, copy the hit
-            filtered_pep_hits.push_back(tmp_pep_hits[j]);
-            filtered_pep_hits.back().setPeptideEvidences(valid_peptide_evidence);
-          }
-        }
-        // if the peptide has hits, we use it
-        if (!filtered_pep_hits.empty())
-        {
-          filtered_peptide_identifications.push_back(peptide_identifications[i]);
-          filtered_peptide_identifications.back().setHits(filtered_pep_hits);
-        }
-      }
-      else    // peptide is from another run, let it pass the filter‏
-      {
-        filtered_peptide_identifications.push_back(peptide_identifications[i]);
-      }
-    }
-
-    // exchange with new hits
-    filtered_peptide_identifications.swap(peptide_identifications);
-  }
-
-  bool IDFilter::filterIdentificationsByMetaValueRange(const PeptideIdentification& identification, const String& key, double low, double high, bool missing)
-  {
-    if (!identification.metaValueExists(key)) return missing;
-
-    double value = identification.getMetaValue(key);
-    return (value >= low) && (value <= high);
-  }
-
-  void IDFilter::filterIdentificationsByRT(const vector<PeptideIdentification>& identifications, double min_rt, double max_rt, vector<PeptideIdentification>& filtered_identifications)
-  {
-    filtered_identifications.clear();
-
-    for (Size i = 0; i < identifications.size(); ++i)
-    {
-      if (identifications[i].getRT() >= min_rt && identifications[i].getRT() <= max_rt)
-      {
-        filtered_identifications.push_back(identifications[i]);
-      }
-    }
-  }
-
-  void IDFilter::filterIdentificationsByMZ(const vector<PeptideIdentification>& identifications, double min_mz, double max_mz, vector<PeptideIdentification>& filtered_identifications)
-  {
-    filtered_identifications.clear();
-
-    for (Size i = 0; i < identifications.size(); ++i)
-    {
-      if (identifications[i].getMZ() >= min_mz && identifications[i].getMZ() <= max_mz)
-      {
-        filtered_identifications.push_back(identifications[i]);
-      }
-    }
-  }
-
-  bool IDFilter::updateProteinGroups(const vector<ProteinIdentification::ProteinGroup>& groups, const vector<ProteinHit>& hits, vector<ProteinIdentification::ProteinGroup>& filtered_groups)
-  {
-    bool valid = true;
-
-    // we'll do lots of look-ups, so use a suitable data structure:
     set<String> accessions;
-    for (vector<ProteinHit>::const_iterator hit_it = hits.begin();
-         hit_it != hits.end(); ++hit_it)
+    for (vector<ProteinHit>::const_iterator hit_it = 
+           identification.getHits().begin(); hit_it !=
+           identification.getHits().end(); ++hit_it)
     {
       accessions.insert(hit_it->getAccession());
     }
 
+    struct HasMatchingAccession<PeptideEvidence> acc_filter(accessions);
+
+    // remove peptides which are not referenced
+    for (vector<PeptideIdentification>::iterator pep_it = 
+           peptide_identifications.begin(); pep_it !=
+           peptide_identifications.end(); ++pep_it)
+    {
+      // run id of protein and peptide identification must match
+      if (pep_it->getIdentifier() == run_identifier)
+      {
+        // check protein accessions of each peptide hit
+        for (vector<PeptideHit>::iterator hit_it = pep_it->getHits().begin();
+             hit_it != pep_it->getHits().end(); ++hit_it)
+        {
+          // no non-const "PeptideHit::getPeptideEvidences" implemented, so we
+          // can't use "keepMatchingItems":
+          vector<PeptideEvidence> evidences;
+          remove_copy_if(hit_it->getPeptideEvidences().begin(),
+                         hit_it->getPeptideEvidences().end(),
+                         back_inserter(evidences),
+                         not1(acc_filter));
+          hit_it->setPeptideEvidences(evidences);
+        }
+
+        if (delete_unreferenced_peptide_hits)
+        {
+          removeMatchingItems(pep_it->getHits(), HasNoEvidence());
+        }
+      }
+    }
+  }
+
+
+  void IDFilter::filterIdentificationsByRT(const vector<PeptideIdentification>& identifications, double min_rt, double max_rt, vector<PeptideIdentification>& filtered_identifications)
+  {
+    filtered_identifications = identifications;
+
+    struct HasRTInRange rt_filter(min_rt, max_rt);
+    keepMatchingItems(filtered_identifications, rt_filter);
+  }
+
+  void IDFilter::filterIdentificationsByMZ(const vector<PeptideIdentification>& identifications, double min_mz, double max_mz, vector<PeptideIdentification>& filtered_identifications)
+  {
+    filtered_identifications = identifications;
+
+    struct HasMZInRange mz_filter(min_mz, max_mz);
+    keepMatchingItems(filtered_identifications, mz_filter);
+  }
+
+  bool IDFilter::updateProteinGroups(
+    const vector<ProteinIdentification::ProteinGroup>& groups,
+    const vector<ProteinHit>& hits,
+    vector<ProteinIdentification::ProteinGroup>& filtered_groups)
+  {
+    bool valid = true;
+
+    // we'll do lots of look-ups, so use a suitable data structure:
+    set<String> valid_accessions;
+    for (vector<ProteinHit>::const_iterator hit_it = hits.begin();
+         hit_it != hits.end(); ++hit_it)
+    {
+      valid_accessions.insert(hit_it->getAccession());
+    }
+
     filtered_groups.clear();
-    filtered_groups.reserve(groups.size());
     for (vector<ProteinIdentification::ProteinGroup>::const_iterator group_it =
            groups.begin(); group_it != groups.end(); ++group_it)
     {
       ProteinIdentification::ProteinGroup filtered;
-      filtered.accessions.reserve(group_it->accessions.size());
-      for (vector<String>::const_iterator acc_it = group_it->accessions.begin();
-           acc_it != group_it->accessions.end(); ++acc_it)
-      {
-        if (accessions.count(*acc_it) > 0)
-        {
-          filtered.accessions.push_back(*acc_it);
-        }
-      }
+      set_intersection(group_it->accessions.begin(), group_it->accessions.end(),
+                       valid_accessions.begin(), valid_accessions.end(),
+                       inserter(filtered.accessions,
+                                filtered.accessions.begin()));
       if (!filtered.accessions.empty())
       {
         if (filtered.accessions.size() < group_it->accessions.size())
