@@ -53,11 +53,10 @@ using namespace std;
 
     @brief Application that evaluates TPs (true positives), TNs, FPs, and FNs for an idXML file with predicted RTs.
 
-    The method needs an idXML file with IDs and predicted RTs. The second input file is a file containing
-    the protein sequences which are considered as positive hits. This tool then evaluates the tps, fps, tns,
-    and fns for the unfiltered IDs, for the IDs filtered in first RT dimension, for the IDs filtered in
-    the second RT dimension as well as for the IDs filtered in both dimensions. The output is a table with
-    either csv format (can be imported by Excel) or latex format (to include in tables in your latex manuscripts).
+    The method needs an idXML file with IDs and predicted RTs.
+    The idXML must have been annotated with protein sequences (for the positive hits) using @ref TOPP_PeptideIndexer.
+    This tool then evaluates the true positives, false positives, true negatives, and false negatives for the unfiltered IDs, for the IDs filtered in first RT dimension, for the IDs filtered in the second RT dimension as well as for the IDs filtered in both dimensions.
+    The output is a table with either CSV format (can be imported by Excel) or LaTeX format (to include in tables in your LaTeX manuscripts).
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
@@ -89,9 +88,6 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "output file ");
     setValidFormats_("out", ListUtils::create<String>("csv"));
-    registerInputFile_("sequences_file", "<file>", "", "Filename of a FASTA file containing protein sequences.\n"
-                                                       "All peptides that are not a substring of a sequence in this file are considered as false", false);
-    setValidFormats_("sequences_file", ListUtils::create<String>("fasta"));
     registerFlag_("latex", "indicates whether the output file format of the table should be latex or csv");
     registerDoubleOption_("p_value_dim_1", "<float>", 0.01, "Significance level of first dimension RT filter", false);
     setMinFloat_("p_value_dim_1", 0);
@@ -115,7 +111,6 @@ protected:
     PeptideIdentification filtered_identification_rt2;
     PeptideIdentification filtered_identification_both;
     IDFilter filter;
-    bool no_protein_identifiers = true;
     double p_value_dim_1 = getDoubleOption_("p_value_dim_1");
     double p_value_dim_2 = getDoubleOption_("p_value_dim_2");
     State state = TP;
@@ -228,7 +223,7 @@ protected:
           if (sequences_file_name != "")
           {
             PeptideIdentification temp_identification = filtered_identification;
-            filter.filterIdentificationsByProteins(temp_identification, sequences, filtered_identification, no_protein_identifiers);
+            filter.filterIdentificationsByProteins(temp_identification, sequences, filtered_identification);
           }
           if (filtered_identification.getHits().empty())
           {
@@ -253,7 +248,7 @@ protected:
           if (sequences_file_name != "")
           {
             PeptideIdentification temp_identification = filtered_identification_rt1;
-            filter.filterIdentificationsByProteins(temp_identification, sequences, filtered_identification_rt1, no_protein_identifiers);
+            filter.filterIdentificationsByProteins(temp_identification, sequences, filtered_identification_rt1);
           }
           if (filtered_identification_rt1.getHits().empty())
           {
@@ -288,7 +283,7 @@ protected:
           if (sequences_file_name != "")
           {
             PeptideIdentification temp_identification = filtered_identification_rt2;
-            filter.filterIdentificationsByProteins(temp_identification, sequences, filtered_identification_rt2, no_protein_identifiers);
+            filter.filterIdentificationsByProteins(temp_identification, sequences, filtered_identification_rt2);
           }
           if (filtered_identification_rt2.getHits().empty())
           {
@@ -322,7 +317,7 @@ protected:
           if (sequences_file_name != "")
           {
             PeptideIdentification temp_identification = filtered_identification_both;
-            filter.filterIdentificationsByProteins(temp_identification, sequences, filtered_identification_both, no_protein_identifiers);
+            filter.filterIdentificationsByProteins(temp_identification, sequences, filtered_identification_both);
           }
         }
         if (state_rt1 == TP && state_rt2 == TP)
