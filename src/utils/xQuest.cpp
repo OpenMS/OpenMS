@@ -696,6 +696,31 @@ protected:
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
 
+
+    /*
+    // TEMPORARY TESTCODE ###########
+    AASequence peptideA_xlink = AASequence::fromString("KEVQEAR");
+    AASequence peptideB_xlink = AASequence::fromString("TIPPLTTVKGSDAAPQASK");
+    TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink cross_link_candidate;
+
+     cross_link_candidate.alpha = peptideA_xlink;
+     cross_link_candidate.beta = peptideB_xlink;
+     cross_link_candidate.cross_link_position.first = peptideA_xlink.toString().find('K');
+     cross_link_candidate.cross_link_position.second = peptideB_xlink.toString().find('K');
+
+     TheoreticalSpectrumGeneratorXLinks specGen;
+
+     RichPeakSpectrum theoretical_spec_xlinks_alpha;
+     RichPeakSpectrum theoretical_spec_xlinks_beta;
+     specGen.getXLinkIonSpectrum(theoretical_spec_xlinks_alpha, theoretical_spec_xlinks_beta, cross_link_candidate, 4, 6);
+
+
+
+    return EXECUTION_OK;
+    //##########################
+    */
+
+
     const string in_mzml(getStringOption_("in"));
     const string in_fasta(getStringOption_("database"));
     const string in_consensus(getStringOption_("consensus"));
@@ -1182,17 +1207,20 @@ protected:
 
                   cout << "Range Alpha: " << theoretical_spec_alpha[theoretical_spec_alpha.size()-1].getMZ()  << " - " << (double) theoretical_spec_alpha[0].getMZ() << " = " << range_c_alpha << "\t A Priori probaility common alpha: " << a_priori_ca << endl;
                   cout << "Match-Odds Score Alpha: " << match_odds_c_alpha << "\t Match-Odds Final: " << match_odds << endl;
-                  if (match_odds != INFINITY && match_odds > matchOddsMax) matchOddsMax = match_odds;
+                  if (match_odds > matchOddsMax) matchOddsMax = match_odds;
 
 
                   //Cross-correlation
                   RichPeakSpectrum theoretical_spec_all;
                   cout << "Build theor. Spec." << endl;
+
                   theoretical_spec_all.reserve(theoretical_spec_alpha.size() + theoretical_spec_beta.size() + theoretical_spec_xlinks_alpha.size() + theoretical_spec_xlinks_beta.size());
                   theoretical_spec_all.insert(theoretical_spec_all.end(), theoretical_spec_alpha.begin(), theoretical_spec_alpha.end());
                   theoretical_spec_all.insert(theoretical_spec_all.end(), theoretical_spec_beta.begin(), theoretical_spec_beta.end());
                   theoretical_spec_all.insert(theoretical_spec_all.end(), theoretical_spec_xlinks_alpha.begin(), theoretical_spec_xlinks_alpha.end());
                   theoretical_spec_all.insert(theoretical_spec_all.end(), theoretical_spec_xlinks_beta.begin(), theoretical_spec_xlinks_beta.end());
+                  theoretical_spec_all.sortByPosition();
+
                   cout << "Compute xCorr" << endl;
                   std::vector< double > xcorr = xCorrelation(spectrum_light, theoretical_spec_all, 8, fragment_mass_tolerance);
                   double xcorr_max = *std::max_element(xcorr.begin(), xcorr.end());

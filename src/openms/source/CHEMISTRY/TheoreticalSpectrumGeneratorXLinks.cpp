@@ -199,21 +199,23 @@ namespace OpenMS
 
     // Generate new AASequences with cross linked peptide as weight tag modification
 
-
+    /* Old Method of constructing AASequences with modifications using strings
     String new_peptideA = peptideA.getPrefix(xlink_pos_A + 1).toString() + "[+" + (xlink_mass + peptideB_mass) + "]" + peptideA.getSuffix(peptideA.size() - xlink_pos_A - 1).toString();
     String new_peptideB = peptideB.getPrefix(xlink_pos_B + 1).toString() + "[+" + (xlink_mass + peptideA_mass) + "]" + peptideB.getSuffix(peptideB.size() - xlink_pos_B - 1).toString();
 
     AASequence peptideA_xlink = AASequence::fromString(new_peptideA);
     AASequence peptideB_xlink = AASequence::fromString(new_peptideB);
+    */
 
     // Debug support output
+    /*
     cout << "peptideA: " << peptideA.toString() << endl;
     cout << "peptideAX_gen_String: " << new_peptideA << endl;
     cout << "peptideAX: " << peptideA_xlink.toString() << endl;
     cout << "peptideB: " << peptideB.toString() << endl;
     cout << "peptideBX_gen_String: " << new_peptideB << endl;
     cout << "peptideBX: " << peptideB_xlink.toString() << endl;
-
+    */
     // Generate the ion peaks:
     // Does not generate peaks of full peptide (therefore "<").
     // They are added via precursor mass (and neutral losses).
@@ -227,10 +229,10 @@ namespace OpenMS
       {
         i = 2;
       } */
-      for (; i < peptideA_xlink.size(); ++i)
+      for (; i <= peptideA.size(); ++i)
       {
-        ion = peptideA_xlink.getPrefix(i);
-        double pos = ion.getMonoWeight(Residue::BIon, charge) / (double)charge;
+        ion = peptideA.getPrefix(i);
+        double pos = (ion.getMonoWeight(Residue::BIon, charge) + (xlink_mass + peptideB_mass)) / (double)charge;
         ions_alpha[pos] = ion;
         names[pos] = "b(alpha)" + String(i) + "X" + String(charge, '+');
         //cout << "PepA b ion: " << ion.toString() << "\t" <<  "Name: " << names[pos] << endl;
@@ -238,10 +240,10 @@ namespace OpenMS
       if (peptideA != peptideB)
       {
         i = xlink_pos_B+1;
-        for (; i < peptideB_xlink.size(); ++i)
+        for (; i <= peptideB.size(); ++i)
         {
-          ion = peptideB_xlink.getPrefix(i);
-          double pos = ion.getMonoWeight(Residue::BIon, charge) / (double)charge;
+          ion = peptideB.getPrefix(i);
+          double pos =( ion.getMonoWeight(Residue::BIon, charge) + (xlink_mass + peptideA_mass)) / (double)charge;
           ions_beta[pos] = ion;
           names[pos] = "b(beta)" + String(i) + "X" + String(charge, '+');
           //cout << "PepB b ion: " << ion.toString() << "\t" <<  "Name: " << names[pos] << endl;
@@ -256,20 +258,20 @@ namespace OpenMS
 
     case Residue::YIon:
     {
-      for (Size i = (peptideA_xlink.size() - xlink_pos_A);  i < peptideA_xlink.size() ; ++i)
+      for (Size i = (peptideA.size() - xlink_pos_A);  i < peptideA.size() ; ++i)
       {
-        ion = peptideA_xlink.getSuffix(i);
-        double pos = ion.getMonoWeight(Residue::YIon, charge) / (double)charge;
+        ion = peptideA.getSuffix(i);
+        double pos = (ion.getMonoWeight(Residue::YIon, charge) + (xlink_mass + peptideB_mass)) / (double)charge;
         ions_alpha[pos] = ion;
         names[pos] = "y(alpha)" + String(i) + "X" + String(charge, '+');
         //cout << "PepA y ion: " << ion.toString() << "\t" <<  "Name: " << names[pos] << endl;
       }
       if (peptideA != peptideB)
       {
-        for (Size i = (peptideB_xlink.size() - xlink_pos_B);  i < peptideB_xlink.size()  ; ++i)
+        for (Size i = (peptideB.size() - xlink_pos_B);  i < peptideB.size()  ; ++i)
         {
-          ion = peptideB_xlink.getSuffix(i);
-          double pos = ion.getMonoWeight(Residue::YIon, charge) / (double)charge;
+          ion = peptideB.getSuffix(i);
+          double pos = (ion.getMonoWeight(Residue::YIon, charge) + (xlink_mass + peptideA_mass)) / (double)charge;
           ions_beta[pos] = ion;
           names[pos] = "y(beta)" + String(i) + "X" + String(charge, '+');
           //cout << "PepA y ion: " << ion.toString() << "\t" <<  "Name: " << names[pos] << endl;
@@ -698,7 +700,7 @@ namespace OpenMS
       for (; i < last+1; ++i)
       {
         ion = peptide.getPrefix(i);
-        //cout << "CommonIons, b-ion: " << ion.toString() << endl;
+        cout << "CommonIons, b-ion: " << ion.toString() << endl;
         double pos = ion.getMonoWeight(Residue::BIon, charge) / (double)charge;
         ions[pos] = ion;
         names[pos] = "b" + String(i) + String(charge, '+');
@@ -712,7 +714,7 @@ namespace OpenMS
       for (Size i = 1; i < (peptide.size() - first); ++i)
       {
         ion = peptide.getSuffix(i);
-        //cout << "CommonIons, y-ion: " << ion.toString() << endl;
+        cout << "CommonIons, y-ion: " << ion.toString() << endl;
         double pos = ion.getMonoWeight(Residue::YIon, charge) / (double)charge;
         ions[pos] = ion;
         names[pos] = "y" + String(i) + String(charge, '+');
