@@ -493,11 +493,11 @@ protected:
             search_params.push_back(it->getSearchParameters());
           }
         }
-        for (Size i = 0; i != search_params.size(); ++i)
+        for (Size j = 0; j != search_params.size(); ++j)
         {
-          for (Size j = 0; j != search_params[i].fixed_modifications.size(); ++j)
+          for (Size k = 0; k != search_params[i].fixed_modifications.size(); ++k)
           {
-            fixed_modifications.push_back(search_params[i].fixed_modifications[j]);
+            fixed_modifications.push_back(search_params[j].fixed_modifications[k]);
           }
         }
 
