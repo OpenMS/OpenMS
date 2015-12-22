@@ -170,6 +170,7 @@ START_SECTION(AASequence fromString(const String& s, bool permissive = true))
                  AASequence::fromString("PEP T*I#D+E", false));
 
   AASequence seq19 = AASequence::fromString("PEPE[+999.9]TIDEK");
+  TEST_EQUAL(seq19.isModified(), true)
   TEST_STRING_EQUAL(seq19.toUnmodifiedString(), "PEPETIDEK");
   TEST_STRING_EQUAL(seq19.toString(), "PEPE[+999.9]TIDEK");
   TEST_STRING_EQUAL(seq19[(Size)3].getModification(), "")
