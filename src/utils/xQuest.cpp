@@ -1198,10 +1198,27 @@ protected:
                   double a_priori_cb = aPrioriProb(fragment_mass_tolerance, theoretical_spec_beta.size(), range_c_beta, 3);
                   double a_priori_xb = aPrioriProb(fragment_mass_tolerance, theoretical_spec_xlinks_beta.size(), range_x_beta, 3);
 
-                  double match_odds_c_alpha = -log(1 - cumulativeBinomial(theoretical_spec_alpha.size(), matched_spec_alpha.size(), a_priori_ca) );
-                  double match_odds_x_alpha = -log(1 - cumulativeBinomial(theoretical_spec_xlinks_alpha.size(), matched_spec_xlinks_alpha.size(), a_priori_xa) );
-                  double match_odds_c_beta = -log(1 - cumulativeBinomial(theoretical_spec_beta.size(), matched_spec_beta.size(), a_priori_cb) );
-                  double match_odds_x_beta = -log(1 - cumulativeBinomial(theoretical_spec_xlinks_beta.size(), matched_spec_xlinks_beta.size(), a_priori_xb) );
+                  double match_odds_c_alpha = 0;
+                  double match_odds_x_alpha = 0;
+                  double match_odds_c_beta = 0;
+                  double match_odds_x_beta = 0;
+
+                  if (matched_spec_alpha.size() > 0)
+                  {
+                    match_odds_c_alpha = -log(1 - cumulativeBinomial(theoretical_spec_alpha.size(), matched_spec_alpha.size(), a_priori_ca) );
+                  }
+                  if (matched_spec_beta.size() > 0)
+                  {
+                    match_odds_x_alpha = -log(1 - cumulativeBinomial(theoretical_spec_xlinks_alpha.size(), matched_spec_xlinks_alpha.size(), a_priori_xa) );
+                  }
+                  if (matched_spec_xlinks_alpha.size() > 0)
+                  {
+                    match_odds_c_beta = -log(1 - cumulativeBinomial(theoretical_spec_beta.size(), matched_spec_beta.size(), a_priori_cb) );
+                  }
+                  if (matched_spec_xlinks_beta.size() > 0)
+                  {
+                    match_odds_x_beta = -log(1 - cumulativeBinomial(theoretical_spec_xlinks_beta.size(), matched_spec_xlinks_beta.size(), a_priori_xb) );
+                  }
 
                   double match_odds = (match_odds_c_alpha + match_odds_x_alpha + match_odds_c_beta + match_odds_x_beta) / 4;
 
@@ -1211,21 +1228,27 @@ protected:
 
 
                   //Cross-correlation
-                  RichPeakSpectrum theoretical_spec_all;
+                  RichPeakSpectrum theoretical_spec_common;
+                  RichPeakSpectrum theoretical_spec_xlinks;
                   cout << "Build theor. Spec." << endl;
 
-                  theoretical_spec_all.reserve(theoretical_spec_alpha.size() + theoretical_spec_beta.size() + theoretical_spec_xlinks_alpha.size() + theoretical_spec_xlinks_beta.size());
-                  theoretical_spec_all.insert(theoretical_spec_all.end(), theoretical_spec_alpha.begin(), theoretical_spec_alpha.end());
-                  theoretical_spec_all.insert(theoretical_spec_all.end(), theoretical_spec_beta.begin(), theoretical_spec_beta.end());
-                  theoretical_spec_all.insert(theoretical_spec_all.end(), theoretical_spec_xlinks_alpha.begin(), theoretical_spec_xlinks_alpha.end());
-                  theoretical_spec_all.insert(theoretical_spec_all.end(), theoretical_spec_xlinks_beta.begin(), theoretical_spec_xlinks_beta.end());
-                  theoretical_spec_all.sortByPosition();
+                  theoretical_spec_common.reserve(theoretical_spec_alpha.size() + theoretical_spec_beta.size());
+                  theoretical_spec_xlinks.reserve( theoretical_spec_xlinks_alpha.size() + theoretical_spec_xlinks_beta.size());
+                  theoretical_spec_common.insert(theoretical_spec_common.end(), theoretical_spec_alpha.begin(), theoretical_spec_alpha.end());
+                  theoretical_spec_common.insert(theoretical_spec_common.end(), theoretical_spec_beta.begin(), theoretical_spec_beta.end());
+                  theoretical_spec_xlinks.insert(theoretical_spec_xlinks.end(), theoretical_spec_xlinks_alpha.begin(), theoretical_spec_xlinks_alpha.end());
+                  theoretical_spec_xlinks.insert(theoretical_spec_xlinks.end(), theoretical_spec_xlinks_beta.begin(), theoretical_spec_xlinks_beta.end());
+                  theoretical_spec_common.sortByPosition();
+                  theoretical_spec_xlinks.sortByPosition();
 
                   cout << "Compute xCorr" << endl;
-                  std::vector< double > xcorr = xCorrelation(spectrum_light, theoretical_spec_all, 8, fragment_mass_tolerance);
-                  double xcorr_max = *std::max_element(xcorr.begin(), xcorr.end());
-                  cout << "Cross correlation score: " << xcorr_max << endl;
-                  if (xcorr_max > xcorrMax) xcorrMax = xcorr_max;
+                  std::vector< double > xcorrx = xCorrelation(spectrum_light, theoretical_spec_common, 8, fragment_mass_tolerance);
+                  std::vector< double > xcorrc = xCorrelation(spectrum_light, theoretical_spec_xlinks, 8, fragment_mass_tolerance);
+                  double xcorrx_max = *std::max_element(xcorrx.begin(), xcorrx.end());
+                  double xcorrc_max = *std::max_element(xcorrc.begin(), xcorrc.end());
+                  cout << "XLink Cross correlation score: " << xcorrx_max << "\t Common Cross correlation score: " << xcorrc_max << endl;
+                  if (xcorrx_max > xcorrMax) xcorrMax = xcorrx_max;
+                  if (xcorrc_max > xcorrMax) xcorrMax = xcorrc_max;
                   cout << "End of loop for one candidate." << endl;
               }
             }              

@@ -700,7 +700,7 @@ namespace OpenMS
       for (; i < last+1; ++i)
       {
         ion = peptide.getPrefix(i);
-        cout << "CommonIons, b-ion: " << ion.toString() << endl;
+        //cout << "CommonIons, b-ion: " << ion.toString() << endl;
         double pos = ion.getMonoWeight(Residue::BIon, charge) / (double)charge;
         ions[pos] = ion;
         names[pos] = "b" + String(i) + String(charge, '+');
@@ -714,7 +714,7 @@ namespace OpenMS
       for (Size i = 1; i < (peptide.size() - first); ++i)
       {
         ion = peptide.getSuffix(i);
-        cout << "CommonIons, y-ion: " << ion.toString() << endl;
+        //cout << "CommonIons, y-ion: " << ion.toString() << endl;
         double pos = ion.getMonoWeight(Residue::YIon, charge) / (double)charge;
         ions[pos] = ion;
         names[pos] = "y" + String(i) + String(charge, '+');
