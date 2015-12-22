@@ -893,7 +893,7 @@ namespace OpenMS
         }
       }
       LOG_WARN << "Warning: unknown modification '" + mod + "' of residue '" +
-        residue->getOneLetterCode() + "' - adding it to the database" << std::endl;
+        String(residue->getOneLetterCode()) + "' - adding it to the database" << std::endl;
     }
     // at beginning of peptide:
     else if (delta_mass) // N-terminal mod can only be specified by delta mass
