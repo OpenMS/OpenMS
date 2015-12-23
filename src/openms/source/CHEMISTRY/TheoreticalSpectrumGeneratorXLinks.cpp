@@ -40,6 +40,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <limits.h>
 
 using namespace std;
 
@@ -674,7 +675,7 @@ namespace OpenMS
 
     //find first and last (not C-terminal) 'K'
     //TODO initialize in a way, that makes more sense
-    Size first = 10000;
+    Size first = std::numeric_limits<Size>::max();
     Size last = 0;
     for (Size i = 0; i < peptide.size()-1; ++i)
     {
