@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,45 +28,58 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Timo Sachsenberg $
+// $Maintainer: Hannes Roest $
+// $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_RNPXL_HYPERSCORE
-#define OPENMS_ANALYSIS_RNPXL_HYPERSCORE
-
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <vector>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessQuadMZTransforming.h>
 
 namespace OpenMS
 {
 
+  SpectrumAccessQuadMZTransforming::SpectrumAccessQuadMZTransforming(
+      OpenSwath::SpectrumAccessPtr sptr,
+      double a, double b, double c, bool ppm) :
+        SpectrumAccessTransforming(sptr), 
+        a_(a), 
+        b_(b), 
+        c_(c), 
+        ppm_(ppm)
+    {}
+        
+    SpectrumAccessQuadMZTransforming::~SpectrumAccessQuadMZTransforming() {}
 
-/**
- *  @brief An implementation of the X!Tandem HyperScore PSM scoring function
- */               
+    boost::shared_ptr<OpenSwath::ISpectrumAccess> SpectrumAccessQuadMZTransforming::lightClone() const
+    {
+      // Create a light clone of *this by initializing a new
+      // SpectrumAccessQuadMZTransforming with a light clone of the underlying
+      // SpectrumAccess object and the parameters.
+      return boost::shared_ptr<SpectrumAccessQuadMZTransforming>(
+          new SpectrumAccessQuadMZTransforming(sptr_->lightClone(), a_, b_, c_, ppm_));
+    }
 
-struct OPENMS_DLLAPI HyperScore
-{
-  typedef std::pair<Size, double> IndexScorePair; 
+    OpenSwath::SpectrumPtr SpectrumAccessQuadMZTransforming::getSpectrumById(int id)
+    {
+      OpenSwath::SpectrumPtr s = sptr_->getSpectrumById(id);
+      for (size_t i = 0; i < s->getMZArray()->data.size(); i++)
+      {
+        // mz = a + b * mz + c * mz^2
+        double predict = 
+          a_ + 
+          b_ * s->getMZArray()->data[i] +
+          c_ * s->getMZArray()->data[i] * s->getMZArray()->data[i];
 
-  /* @brief compute the (ln transformed) X!Tandem HyperScore 
-   *  1. the dot product of peak intensities between matching peaks in experimental and theoretical spectrum is calculated
-   *  2. the HyperScore is calculated from the dot product by multiplying by factorials of matching b- and y-ions
-   * @note Peak intensities of the theoretical spectrum are typically 1 or TIC normalized, but can also be e.g. ion probabilities
-   * @param fragment_mass_tolerance mass tolerance applied left and right of the theoretical spectrum peak position
-   * @param fragment_mass_tolerance_unit_ppm Unit of the mass tolerance is: Thomson if false, ppm if true
-   * @param exp_spectrum measured spectrum
-   * @param theo_spectrum theoretical spectrum Peaks need to contain an ion annotation as provided by TheoreticalSpectrumGenerator.
-   */
-  static double compute(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const PeakSpectrum& exp_spectrum, const RichPeakSpectrum& theo_spectrum);
-
-  private:
-    // helper to compute the log factorial
-    static double logfactorial_(UInt x);
-};
+        // If ppm is true, we predicted the ppm deviation, not the actual new mass
+        if (ppm_)
+        {
+          s->getMZArray()->data[i] = s->getMZArray()->data[i] - predict*s->getMZArray()->data[i]/1000000;
+        }
+        else
+        {
+          s->getMZArray()->data[i] = predict;
+        }
+      }
+      return s;
+    }
 
 }
-
-#endif
-

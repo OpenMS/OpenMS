@@ -177,8 +177,8 @@ public:
 
     /** @brief Quantifying transitions
      * 
-     * Quantifing transitions represent the set of transitions of an assay that should be used
-     * for the quantification of the peptide. This includes exclusion of e.g. interferred
+     * Quantifying transitions represent the set of transitions of an assay that should be used
+     * for the quantification of the peptide. This includes exclusion of e.g. interfered
      * transitions (example: light/heavy peptide pairs isolated in the same swath), that
      * should not be used for quantification of the peptide.
      *

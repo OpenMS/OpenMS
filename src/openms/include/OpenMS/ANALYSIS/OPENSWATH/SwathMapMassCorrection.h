@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,45 +28,55 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Timo Sachsenberg $
+// $Maintainer: Hannes Roest$
+// $Authors: Hannes Roest$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_RNPXL_HYPERSCORE
-#define OPENMS_ANALYSIS_RNPXL_HYPERSCORE
+#ifndef OPENMS_ANALYSIS_OPENSWATH_SWATHMAPMASSCORRECTION_H
+#define OPENMS_ANALYSIS_OPENSWATH_SWATHMAPMASSCORRECTION_H
 
-#include <OpenMS/KERNEL/StandardTypes.h>
 #include <vector>
+
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SwathMap.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 
 namespace OpenMS
 {
 
-
-/**
- *  @brief An implementation of the X!Tandem HyperScore PSM scoring function
- */               
-
-struct OPENMS_DLLAPI HyperScore
-{
-  typedef std::pair<Size, double> IndexScorePair; 
-
-  /* @brief compute the (ln transformed) X!Tandem HyperScore 
-   *  1. the dot product of peak intensities between matching peaks in experimental and theoretical spectrum is calculated
-   *  2. the HyperScore is calculated from the dot product by multiplying by factorials of matching b- and y-ions
-   * @note Peak intensities of the theoretical spectrum are typically 1 or TIC normalized, but can also be e.g. ion probabilities
-   * @param fragment_mass_tolerance mass tolerance applied left and right of the theoretical spectrum peak position
-   * @param fragment_mass_tolerance_unit_ppm Unit of the mass tolerance is: Thomson if false, ppm if true
-   * @param exp_spectrum measured spectrum
-   * @param theo_spectrum theoretical spectrum Peaks need to contain an ion annotation as provided by TheoreticalSpectrumGenerator.
+  /**
+   * @brief A class containing correction functions for Swath MS maps
+   *
+   * This class can use a set of pre-determined points in a Swath-MS map to
+   * correct all maps according to the m/z shift found in those fixed points.
+   *
    */
-  static double compute(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const PeakSpectrum& exp_spectrum, const RichPeakSpectrum& theo_spectrum);
+  class OPENMS_DLLAPI SwathMapMassCorrection
+  {
 
-  private:
-    // helper to compute the log factorial
-    static double logfactorial_(UInt x);
-};
+public:
 
+    /**
+     * @brief Correct the m/z values of a SWATH map based on the RT-normalization peptides
+     *
+     * This extracts the full spectra at the most likely elution time of the
+     * calibrant masses and fits a regression curve to correct for a possible
+     * mass shift of the empirical masses vs the theoretically expected masses.
+     * Several types of regressions are available (see below corr_type parameter).
+     *
+     * The function will replace the pointers stored in swath_maps with a
+     * transforming map that will contain corrected m/z values.
+     *
+     * @param transition_group_map A MRMFeatureFinderScoring result map
+     * @param swath_maps The raw swath maps from the current run
+     * @param corr_type Regression type, one of "none", "unweighted_regression", "weighted_regression", "quadratic_regression", "quadratic_regression_delta_ppm"
+     *
+     *
+     */
+    static void correctMZ(OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map,
+            std::vector< OpenSwath::SwathMap > & swath_maps, std::string corr_type, double mz_extr_window = 0.05);
+
+  };
 }
 
-#endif
+#endif // OPENMS_ANALYSIS_OPENSWATH_SWATHMAPMASSCORRECTION_H
 
