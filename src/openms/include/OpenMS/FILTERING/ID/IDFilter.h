@@ -132,8 +132,8 @@ public:
     {
       typedef HitType argument_type; // for use as a predicate
 
-      const String& key;
-      const DataValue& value;
+      String key;
+      DataValue value;
 
       HasMetaValue(const String& key, const DataValue& value):
         key(key), value(value)
@@ -141,11 +141,9 @@ public:
 
       bool operator()(const HitType& hit) const
       {
-        if (!hit.metaValueExists(key)) return false;
-        if (value.isEmpty()) return true; // "key" is set, value doesn't matter
         DataValue found = hit.getMetaValue(key);
-        // if (found.isEmpty()) return false; // meta value "key" not set
-        // if (value.isEmpty()) return true; // "key" is set, value doesn't matter
+        if (found.isEmpty()) return false; // meta value "key" not set
+        if (value.isEmpty()) return true; // "key" is set, value doesn't matter
         return found == value;
       }
     };
@@ -159,8 +157,8 @@ public:
     {
       typedef HitType argument_type; // for use as a predicate
 
-      const String& key;
-      const double& value;
+      String key;
+      double value;
 
       HasMaxMetaValue(const String& key, const double& value):
         key(key), value(value)
