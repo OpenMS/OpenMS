@@ -248,50 +248,56 @@ public:
     }
 
 
-    /// gets the best scoring peptide hit from a vector of peptide identifications
-    /// @param identifications Vector of peptide ids, each containing one or more peptide hits
-    /// @param assume_sorted are hits sorted by score (best score first) already? This allows for faster query, since only the first hit needs to be looked at
-    /// @return true if a hit was present, false otherwise
+    /**
+       @brief Finds the best-scoring hit in a vector of peptide or protein identifications
+       
+       @param identifications Vector of peptide or protein IDs, each containing one or more (peptide/protein) hits
+       @param assume_sorted are hits sorted by score (best score first) already? This allows for faster query, since only the first hit needs to be looked at
+       
+       @except Exception::InvalidValue if the IDs have different score types (i.e. scores cannot be compared)
+       
+       @return true if a hit was present, false otherwise
+    */
     template <class IdentificationType>
-    static bool getBestHit(const std::vector<IdentificationType> identifications, bool assume_sorted, PeptideHit& best_hit)
+    static bool getBestHit(const std::vector<IdentificationType> identifications, bool assume_sorted, typename IdentificationType::HitType& best_hit)
     {
-      if (identifications.size() == 0) return false;
+      if (identifications.empty()) return false;
 
-      bool is_higher_score_better = identifications[0].isHigherScoreBetter();
-      double best_score = (is_higher_score_better ? -1 : 1) * std::numeric_limits<double>::max(); // worst score we can think of
+      typename std::vector<IdentificationType>::const_iterator best_id_it = identifications.end();
+      typename std::vector<typename IdentificationType::HitType>::const_iterator best_hit_it;
 
-      Size best_i_index(0), best_h_index(0);
-      Size max_h(-1);
-      bool hit_found(false);
-      // determine best scoring hit
-      for (Size i = 0; i != identifications.size(); ++i)
+      for (typename std::vector<IdentificationType>::const_iterator id_it = identifications.begin(); id_it != identifications.end(); ++id_it)
       {
-        if (identifications[i].getHits().size() == 0) continue; // empty hits
+        if (id_it->getHits().empty()) continue;
         
-        is_higher_score_better = identifications[i].isHigherScoreBetter();
-        max_h = (assume_sorted ? 1 : identifications[i].getHits().size());
-        hit_found = true;
-        for (Size h = 0; h < max_h; ++h)
+        if (best_id_it == identifications.end()) // no previous "best" hit
         {
-          double score = identifications[i].getHits()[h].getScore();
-          // better score?
-          if (score > best_score * (is_higher_score_better ? 1 : -1))
+          best_id_it = id_it;
+          best_hit_it = id_it->getHits()[0];
+        }
+        else if (best_id_it->getScoreType() != id_it->getScoreType())
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Can't compare scores of different types",
+                                        best_id_it->getScoreType() + "/" + id_it->getScoreType());
+        }
+
+        bool higher_better = best_id_it->isHigherScoreBetter();
+        for (typename std::vector<typename IdentificationType::HitType>::const_iterator hit_it = id_it->getHits().begin();
+             hit_it != id_it->getHits().end(); ++hit_it)
+        {
+          if ((higher_better && (hit_it->getScore() > best_hit_it->getScore())) ||
+              (!higher_better && (hit_it->getScore() < best_hit_it->getScore())))
           {
-            best_score = score;
-            best_i_index = i;
-            best_h_index = h;
+            best_hit_it = hit_it;
           }
+          if (assume_sorted) break; // only consider the first hit
         }
       }
 
-      if (!hit_found)
-      {
-        return false;// all hits were empty 
-      }
+      if (best_id_it == identifications.end()) return false; // no hits in any IDs
 
-      best_hit = identifications[best_i_index].getHits()[best_h_index];
+      best_hit = *best_hit_it;
       return true;
-
     }
 
 
