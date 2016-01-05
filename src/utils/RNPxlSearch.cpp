@@ -1503,8 +1503,6 @@ private:
           {
             double current_peptide_mass = current_peptide_mass_without_RNA + rna_mod_it->second; // add RNA mass
 
-            cout << candidate.toString() << ":" << current_peptide_mass << endl;
-
             // determine MS2 precursors that match to the current peptide mass
             multimap<double, Size>::const_iterator low_it;
             multimap<double, Size>::const_iterator up_it;
@@ -1535,8 +1533,10 @@ private:
               const PeakSpectrum& exp_spectrum = spectra[scan_index];
 
               double score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, complete_loss_spectrum);
-           
-              cout << scan_index << ":" << score << endl;
+            
+              #ifdef DEBUG_RNPXLSEARCH
+                cout << "scan index: " << scan_index << " achieved score: " << score << endl;
+              #endif
 
               // no good hit
               if (score < 0.001)
