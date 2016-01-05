@@ -282,11 +282,18 @@ START_SECTION((bool digestUnmodifiedString(const StringView sequence, std::vecto
     EnzymaticDigestion ed;
     vector<StringView> out;
     
+    // end without cutting site 
     std::string s = "ACDE";
     StringView sv(s);
     ed.digestUnmodifiedString(sv, out);
     TEST_EQUAL(out.size(), 1)
     TEST_EQUAL(out[0].getString(), s)
+
+    // end with cutting site
+    s = "ACDEK";
+    ed.digestUnmodifiedString(s, out);
+    TEST_EQUAL(out.size(), 1)
+    TEST_EQUAL(out[0].getString(), "ACDEK")
     
     s = "ACKDE";
     ed.digestUnmodifiedString(StringView(s), out);

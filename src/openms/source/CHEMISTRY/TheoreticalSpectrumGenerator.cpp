@@ -161,7 +161,10 @@ namespace OpenMS
     RichPeak1D p;
 
     // just in case someone wants the ion names;
-    p.metaRegistry().registerName("IonName", "Name of the ion");
+    if (add_metainfo_)
+    {
+      p.metaRegistry().registerName("IonName", "Name of the ion");
+    }
 
     // Histidin immonium ion (C5H8N3)
     if (peptide.has(*ResidueDB::getInstance()->getResidue('H')))
