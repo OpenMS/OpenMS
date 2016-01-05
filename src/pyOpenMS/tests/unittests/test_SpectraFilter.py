@@ -111,8 +111,8 @@ class TestSpectraFilter(unittest.TestCase):
     def test_map_ParentPeakMower(self):
         thisfilter = pyopenms.ParentPeakMower();
         param = thisfilter.getDefaults()
-        param.setValue("window_size", 20.0, "")
-        param.setValue("set_to_zero", True, "")
+        param.setValue(b"window_size", 20.0, b"")
+        param.setValue(b"set_to_zero", True, b"")
         thisfilter.setParameters(param)
 
 

@@ -39,6 +39,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelBSpline.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLowess.h>
 
 using namespace std;
 
@@ -110,6 +111,10 @@ namespace OpenMS
     {
       model_ = new TransformationModelBSpline(data_, params);
     }
+    else if (model_type == "lowess")
+    {
+      model_ = new TransformationModelLowess(data_, params);
+    }
     else if (model_type == "interpolated")
     {
       model_ = new TransformationModelInterpolated(data_, params);
@@ -133,7 +138,7 @@ namespace OpenMS
 
   void TransformationDescription::getModelTypes(StringList& result)
   {
-    result = ListUtils::create<String>("linear,b_spline,interpolated");
+    result = ListUtils::create<String>("linear,b_spline,interpolated,lowess");
     // "none" and "identity" don't count
   }
 

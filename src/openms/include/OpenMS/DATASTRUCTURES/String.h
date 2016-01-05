@@ -487,27 +487,27 @@ public:
     }
 
     // create view on string
-    StringView(const std::string& s) : begin_(s.begin()), size_(s.size()) 
+    StringView(const std::string& s) : begin_(s.data()), size_(s.size()) 
     {
     }
 
     // construct from other view
-    StringView(const StringView& s) : begin_(s.begin_), size_(s.size_) 
+    StringView(const StringView & s) : begin_(s.begin_), size_(s.size_) 
     {
     }
 
     /// less operator
-    bool operator<(const StringView& other) const
+    bool operator<(const StringView other) const
     {
       if (size_ < other.size_) return true;
 
       if (size_ > other.size_) return false;
 
       // same size
-      String::const_iterator b = begin_;
-      String::const_iterator bo = other.begin_;
+      const char * b = begin_;
+      const char * bo = other.begin_;
       
-      for (Size i = 0; i != size_; ++b, ++bo)
+      for (Size i = 0; i != size_; ++i, ++b, ++bo)
       {
         if (*b < *bo) return true;
         if (*b > *bo) return false;
@@ -541,7 +541,7 @@ public:
     }
 
     private:
-      String::const_iterator begin_;
+      const char * begin_;
       Size size_;
   }; 
 

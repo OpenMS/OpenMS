@@ -68,7 +68,8 @@ namespace OpenMS
 
     for (MSSpectrum<RichPeak1D>::ConstIterator theo_peak_it = theo_spectrum.begin(); theo_peak_it != theo_spectrum.end(); ++theo_peak_it)
     {
-      const double& theo_mz = theo_peak_it->getMZ();
+      const double theo_mz = theo_peak_it->getMZ();
+      const double theo_intensity = theo_peak_it->getIntensity();
 
       double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
 
@@ -79,7 +80,7 @@ namespace OpenMS
       // found peak match
       if (std::abs(theo_mz - exp_mz) < max_dist_dalton)
       {
-        dot_product += exp_spectrum[index].getIntensity();
+        dot_product += exp_spectrum[index].getIntensity() * theo_intensity;
         if (theo_peak_it->getMetaValue("IonName").toString()[0] == 'y')
         {
           #ifdef DEBUG_HYPERSCORE

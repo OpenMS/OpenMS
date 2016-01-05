@@ -131,7 +131,7 @@
 
 @code
 cd <path_to_contrib_build>
-cmake -G "<generator>" "<path_to_contrib>"
+cmake -DBUILD_TYPE=ALL -G "<generator>" "<path_to_contrib>"
 @endcode
 
     The &lt;generator&gt; you use must be one of the Visual Studio Generators. This is because some contrib libs require Visual Studio to build.

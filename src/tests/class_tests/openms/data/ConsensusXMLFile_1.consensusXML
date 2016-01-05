@@ -15,7 +15,9 @@
 	</dataProcessing>
 	<IdentificationRun id="PI_0" date="2008-12-14T11:12:45" search_engine="Mascot" search_engine_version="2.1">
 		<SearchParameters db="RefSeq" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
-		</SearchParameters>
+            <FixedModification name="Carbamidomethyl (C)" />
+            <UserParam type="string" name="test" value="test"/>
+        </SearchParameters>
 		<ProteinIdentification score_type="score_type" higher_score_better="true" significance_threshold="56.7643013000488">
 			<ProteinHit id="PH_0" accession="urn:lsid:ach0du1schreck2wo3iss4er5denn" score="70.3000030517578" sequence="ABCDEFG">
 				<UserParam type="string" name="dadada" value="dududu"/>

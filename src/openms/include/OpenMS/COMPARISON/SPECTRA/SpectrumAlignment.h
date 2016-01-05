@@ -49,15 +49,18 @@ namespace OpenMS
 {
 
   /**
-      @brief Aligns the peaks of two spectra
+      @brief Aligns the peaks of two sorted spectra
+      Method 1: Using a banded (width via 'tolerance' parameter) alignment if absolute tolerances are given.
+                Scoring function is the m/z distance between peaks. Intensity does not play a role!
 
-        Using a banded (width via 'tolerance' parameter) alignment if absolute tolerances are given.
-        Scoring function is the m/z distance between peaks. Intensity does not play a role!
+      Method 2: If relative tolerance (ppm) is specified a simple matching of peaks is performed:
+      Peaks from s1 (usually the theoretical spectrum) are assigned to the closest peak in s2 if it lies in the tolerance window
+      @note: a peak in s2 can be matched to none, one or multiple peaks in s1. Peaks in s1 may be matched to none or one peak in s2.
+      @note: intensity is ignored TODO: improve time complexity, currently O(|s1|*log(|s2|))
 
-        If relative tolerance (ppm) is given simple matching of peaks is performed.
-        @htmlinclude OpenMS_SpectrumAlignment.parameters
+      @htmlinclude OpenMS_SpectrumAlignment.parameters
 
-        @ingroup SpectraComparison
+      @ingroup SpectraComparison
   */
 
   class OPENMS_DLLAPI SpectrumAlignment :
