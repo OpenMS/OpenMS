@@ -264,8 +264,14 @@ namespace OpenMS
       // add if cleavage product larger then min length
       if (pep_positions[i] - pep_positions[i - 1] >= min_length)
       {
-        output.push_back(sequence.substr(pep_positions[count - 1], sequence.size() - 1));
+        output.push_back(sequence.substr(pep_positions[i - 1], pep_positions[i] - 1));
       }
+    }
+
+    // add last cleavage product (if it is larger then min length)
+    if (sequence.size() - pep_positions[count - 1] >= min_length)
+    {
+      output.push_back(sequence.substr(pep_positions[count - 1], sequence.size() - 1));
     }
 
     // generate fragments with missed cleavages
