@@ -56,7 +56,7 @@ using namespace std;
     The method needs an idXML file with IDs and predicted RTs.
     The idXML must have been annotated with protein sequences (for the positive hits) using @ref TOPP_PeptideIndexer.
     This tool then evaluates the true positives, false positives, true negatives, and false negatives for the unfiltered IDs, for the IDs filtered in first RT dimension, for the IDs filtered in the second RT dimension as well as for the IDs filtered in both dimensions.
-    The output is a table with either CSV format (can be imported by Excel) or LaTeX format (to include in tables in your LaTeX manuscripts).
+    The output is a table with either CSV format (can be imported by Excel) or LaTeX format (to include in your LaTeX manuscripts).
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
@@ -84,11 +84,11 @@ public:
 protected:
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "input file");
+    registerInputFile_("in", "<file>", "", "Input file");
     setValidFormats_("in", ListUtils::create<String>("idXML"));
-    registerOutputFile_("out", "<file>", "", "output file ");
+    registerOutputFile_("out", "<file>", "", "Output file ");
     setValidFormats_("out", ListUtils::create<String>("csv"));
-    registerFlag_("latex", "indicates whether the output file format of the table should be latex or csv");
+    registerFlag_("latex", "Indicates whether the output file format of the table should be LaTeX or CSV (default)");
     registerDoubleOption_("p_value_dim_1", "<float>", 0.01, "Significance level of first dimension RT filter", false);
     setMinFloat_("p_value_dim_1", 0);
     setMaxFloat_("p_value_dim_1", 1);
