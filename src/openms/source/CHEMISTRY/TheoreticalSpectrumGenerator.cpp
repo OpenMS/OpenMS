@@ -161,14 +161,17 @@ namespace OpenMS
     RichPeak1D p;
 
     // just in case someone wants the ion names;
-    p.metaRegistry().registerName("IonName", "Name of the ion");
+    if (add_metainfo_)
+    {
+      p.metaRegistry().registerName("IonName", "Name of the ion");
+    }
 
     // Histidin immonium ion (C5H8N3)
     if (peptide.has(*ResidueDB::getInstance()->getResidue('H')))
     {
       p.setMZ(110.0718);
       p.setIntensity(1.0);
-      if (add_metainfo)
+      if (add_metainfo_)
       {
         String name("iH");
         p.setMetaValue("IonName", name);
@@ -181,7 +184,7 @@ namespace OpenMS
     {
       p.setMZ(120.0813);
       p.setIntensity(1.0);
-      if (add_metainfo)
+      if (add_metainfo_)
       {
         String name("iF");
         p.setMetaValue("IonName", name);
@@ -194,7 +197,7 @@ namespace OpenMS
     {
       p.setMZ(136.0762);
       p.setIntensity(1.0);
-      if (add_metainfo)
+      if (add_metainfo_)
       {
         String name("iY");
         p.setMetaValue("IonName", name);
@@ -207,7 +210,7 @@ namespace OpenMS
     {
       p.setMZ(86.09698);
       p.setIntensity(1.0);
-      if (add_metainfo)
+      if (add_metainfo_)
       {
         String name("iL/I");
         p.setMetaValue("IonName", name);
@@ -220,7 +223,7 @@ namespace OpenMS
     {
       p.setMZ(159.0922);
       p.setIntensity(1.0);
-      if (add_metainfo)
+      if (add_metainfo_)
       {
         String name("iW");
         p.setMetaValue("IonName", name);
@@ -233,7 +236,7 @@ namespace OpenMS
     {
       p.setMZ(76.0221);
       p.setIntensity(1.0);
-      if (add_metainfo)
+      if (add_metainfo_)
       {
         String name("iC");
         p.setMetaValue("IonName", name);
@@ -246,7 +249,7 @@ namespace OpenMS
     {
       p.setMZ(70.0656);
       p.setIntensity(1.0);
-      if (add_metainfo)
+      if (add_metainfo_)
       {
         String name("iP");
         p.setMetaValue("IonName", name);
