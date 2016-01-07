@@ -1601,21 +1601,8 @@ private:
     QStringList qparam;
     qparam << "-in" << out_idxml.toQString() << "-out" << out_idxml.toQString() << "-fasta" << in_db.toQString() << "-prefix" << "-enzyme:specificity" << "none" << "-missing_decoy_action" << "warn";
     Int status;
-#ifdef OPENMS_WINDOWSPLATFORM
-    if (db_name_contains_space)
-    {
-      // for some reason QProcess doesn't handle escaped " in arguments properly so we use a system call
-      String call_string = "PeptideIndexer " + ListUtils::concatenate(qparam, " ");
-      writeDebug_(call_string, 5);
-      status = system(call_string.c_str());
-    }
-    else
-    {
-      status = QProcess::execute("PeptideIndexer", qparam);
-    }
-#else
+
     status = QProcess::execute("PeptideIndexer", qparam);
-#endif
 
     if (status != 0)
     {
