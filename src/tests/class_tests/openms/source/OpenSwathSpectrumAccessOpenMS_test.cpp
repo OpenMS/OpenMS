@@ -68,6 +68,224 @@ START_SECTION(~SpectrumAccessOpenMS())
   delete ptr;
 }
 END_SECTION
+
+START_SECTION( size_t getNrSpectra() const)
+{
+  {
+    boost::shared_ptr< MSExperiment<Peak1D> > exp ( new MSExperiment<Peak1D> );
+    SpectrumAccessOpenMS spectrum_acc = SpectrumAccessOpenMS(exp);
+
+    TEST_EQUAL(spectrum_acc.getNrSpectra(), 0);
+    TEST_EQUAL(spectrum_acc.getNrChromatograms(), 0);
+  }
+
+  {
+    MSExperiment<Peak1D>* new_exp = new MSExperiment<Peak1D>;
+    MSSpectrum<Peak1D> s;
+    MSChromatogram<ChromatogramPeak> c;
+    new_exp->addSpectrum(s);
+    new_exp->addSpectrum(s);
+    new_exp->addChromatogram(c);
+    boost::shared_ptr< MSExperiment<Peak1D> > exp (new_exp);
+    SpectrumAccessOpenMS spectrum_acc = SpectrumAccessOpenMS(exp);
+
+    TEST_EQUAL(spectrum_acc.getNrSpectra(), 2);
+    TEST_EQUAL(spectrum_acc.getNrChromatograms(), 1);
+  }
+}
+END_SECTION
+
+START_SECTION ( boost::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const)
+{
+  MSExperiment<Peak1D>* new_exp = new MSExperiment<Peak1D>;
+  MSSpectrum<Peak1D> s;
+  MSChromatogram<ChromatogramPeak> c;
+  new_exp->addSpectrum(s);
+  new_exp->addSpectrum(s);
+  new_exp->addChromatogram(c);
+  boost::shared_ptr< MSExperiment<Peak1D> > exp (new_exp);
+  SpectrumAccessOpenMS spectrum_acc = SpectrumAccessOpenMS(exp);
+
+  TEST_EQUAL(spectrum_acc.getNrSpectra(), 2);
+  TEST_EQUAL(spectrum_acc.getNrChromatograms(), 1);
+
+  boost::shared_ptr<OpenSwath::ISpectrumAccess> sa_clone = spectrum_acc.lightClone();
+  TEST_EQUAL(sa_clone->getNrSpectra(), 2);
+  TEST_EQUAL(sa_clone->getNrChromatograms(), 1);
+}
+END_SECTION
+
+START_SECTION ( OpenSwath::SpectrumPtr getSpectrumById(int id);)
+{
+  {
+    boost::shared_ptr< MSExperiment<Peak1D> > exp ( new MSExperiment<Peak1D> );
+    SpectrumAccessOpenMS spectrum_acc = SpectrumAccessOpenMS(exp);
+
+    TEST_EQUAL(spectrum_acc.getNrSpectra(), 0);
+    // OpenSwath::SpectrumPtr sptr = spectrum_acc.getSpectrumById(0);
+  }
+
+  {
+    MSExperiment<Peak1D>* new_exp = new MSExperiment<Peak1D>;
+    MSSpectrum<Peak1D> s;
+
+    s.setRT(20);
+    Peak1D p;
+    p.setMZ(20.0);
+    s.push_back(p);
+
+    new_exp->addSpectrum(s);
+    boost::shared_ptr< MSExperiment<Peak1D> > exp (new_exp);
+    SpectrumAccessOpenMS spectrum_acc = SpectrumAccessOpenMS(exp);
+
+    TEST_EQUAL(spectrum_acc.getNrSpectra(), 1);
+    OpenSwath::SpectrumPtr sptr = spectrum_acc.getSpectrumById(0);
+    TEST_REAL_SIMILAR (sptr->getMZArray()->data[0], 20.0);
+  }
+}
+END_SECTION
+
+START_SECTION ( OpenSwath::SpectrumMeta getSpectrumMetaById(int id) const)
+{
+  {
+    MSExperiment<Peak1D>* new_exp = new MSExperiment<Peak1D>;
+    MSSpectrum<Peak1D> s;
+    s.setRT(20);
+    new_exp->addSpectrum(s);
+    boost::shared_ptr< MSExperiment<Peak1D> > exp (new_exp);
+    SpectrumAccessOpenMS spectrum_acc = SpectrumAccessOpenMS(exp);
+
+    TEST_EQUAL(spectrum_acc.getNrSpectra(), 1);
+    OpenSwath::SpectrumMeta spmeta = spectrum_acc.getSpectrumMetaById(0);
+    TEST_REAL_SIMILAR(spmeta.RT, 20.0);
+  }
+}
+END_SECTION
+
+START_SECTION ( SpectrumSettings getSpectraMetaInfo(int id) const)
+{
+  {
+    MSExperiment<Peak1D>* new_exp = new MSExperiment<Peak1D>;
+    MSSpectrum<Peak1D> s;
+    s.setComment("remember me");
+    new_exp->addSpectrum(s);
+    boost::shared_ptr< MSExperiment<Peak1D> > exp (new_exp);
+    SpectrumAccessOpenMS spectrum_acc = SpectrumAccessOpenMS(exp);
+
+    TEST_EQUAL(spectrum_acc.getNrSpectra(), 1);
+    SpectrumSettings spmeta = spectrum_acc.getSpectraMetaInfo(0);
+    TEST_EQUAL (spmeta.getComment(), "remember me");
+  }
+}
+END_SECTION
+
+START_SECTION ( std::vector<std::size_t> SpectrumAccessOpenMS::getSpectraByRT(double RT, double deltaRT) const)
+{
+  {
+    MSExperiment<Peak1D>* new_exp = new MSExperiment<Peak1D>;
+    MSSpectrum<Peak1D> s;
+    MSChromatogram<ChromatogramPeak> c;
+    s.setRT(20);
+    new_exp->addSpectrum(s);
+    s.setRT(40);
+    new_exp->addSpectrum(s);
+    new_exp->addChromatogram(c);
+    boost::shared_ptr< MSExperiment<Peak1D> > exp (new_exp);
+    SpectrumAccessOpenMS spectrum_acc = SpectrumAccessOpenMS(exp);
+
+    TEST_EQUAL(spectrum_acc.getNrSpectra(), 2);
+    TEST_EQUAL(spectrum_acc.getNrChromatograms(), 1);
+
+    TEST_EQUAL(spectrum_acc.getSpectraByRT(20, 5.0).size(),  1);
+    TEST_EQUAL(spectrum_acc.getSpectraByRT(20, 25.0).size(), 2);
+    TEST_EQUAL(spectrum_acc.getSpectraByRT(40, 5.0).size(),  1);
+    TEST_EQUAL(spectrum_acc.getSpectraByRT(40, 25.0).size(), 2);
+    TEST_EQUAL(spectrum_acc.getSpectraByRT(50, 5.0).size(),  0);
+  }
+
+}
+END_SECTION
+
+START_SECTION( size_t getNrChromatograms() const)
+{
+  NOT_TESTABLE // see getNrSpectra
+}
+END_SECTION
+
+START_SECTION(OpenSwath::ChromatogramPtr getChromatogramById(int id))
+{
+  {
+    boost::shared_ptr< MSExperiment<Peak1D> > exp ( new MSExperiment<Peak1D> );
+    SpectrumAccessOpenMS spectrum_acc = SpectrumAccessOpenMS(exp);
+
+    TEST_EQUAL(spectrum_acc.getNrSpectra(), 0);
+    TEST_EQUAL(spectrum_acc.getNrChromatograms(), 0);
+  }
+
+  {
+    MSExperiment<Peak1D>* new_exp = new MSExperiment<Peak1D>;
+    MSSpectrum<Peak1D> s;
+    MSChromatogram<ChromatogramPeak> c;
+
+    c.setName("chrom_nr_1");
+    c.setNativeID("native_id_nr_1");
+    ChromatogramPeak p;
+    p.setRT(20.0);
+    c.push_back(p);
+
+    new_exp->addSpectrum(s);
+    new_exp->addSpectrum(s);
+    new_exp->addChromatogram(c);
+    boost::shared_ptr< MSExperiment<Peak1D> > exp (new_exp);
+    SpectrumAccessOpenMS spectrum_acc = SpectrumAccessOpenMS(exp);
+
+    TEST_EQUAL(spectrum_acc.getNrSpectra(), 2);
+    TEST_EQUAL(spectrum_acc.getNrChromatograms(), 1);
+
+    OpenSwath::ChromatogramPtr cptr = spectrum_acc.getChromatogramById(0);
+    TEST_REAL_SIMILAR (cptr->getTimeArray()->data[0], 20.0);
+  }
+}
+END_SECTION
+
+START_SECTION(std::string getChromatogramNativeID(int id) const)
+{
+  MSExperiment<Peak1D>* new_exp = new MSExperiment<Peak1D>;
+  MSSpectrum<Peak1D> s;
+  MSChromatogram<ChromatogramPeak> c;
+
+  c.setName("chrom_nr_1");
+  c.setNativeID("native_id_nr_1");
+  ChromatogramPeak p;
+  p.setRT(20.0);
+  c.push_back(p);
+
+  new_exp->addSpectrum(s);
+  new_exp->addSpectrum(s);
+  new_exp->addChromatogram(c);
+  boost::shared_ptr< MSExperiment<Peak1D> > exp (new_exp);
+  SpectrumAccessOpenMS spectrum_acc = SpectrumAccessOpenMS(exp);
+
+  OpenSwath::ChromatogramPtr cptr = spectrum_acc.getChromatogramById(0);
+  TEST_EQUAL (spectrum_acc.getChromatogramNativeID(0), "native_id_nr_1")
+}
+END_SECTION
+
+START_SECTION (ChromatogramSettings getChromatogramMetaInfo(int id) const)
+{
+  MSExperiment<Peak1D>* new_exp = new MSExperiment<Peak1D>;
+  MSChromatogram<ChromatogramPeak> c;
+  c.setComment("remember me");
+  new_exp->addChromatogram(c);
+  boost::shared_ptr< MSExperiment<Peak1D> > exp (new_exp);
+  SpectrumAccessOpenMS spectrum_acc = SpectrumAccessOpenMS(exp);
+
+  TEST_EQUAL(spectrum_acc.getNrChromatograms(), 1);
+  ChromatogramSettings cpmeta = spectrum_acc.getChromatogramMetaInfo(0);
+  TEST_EQUAL (cpmeta.getComment(), "remember me");
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

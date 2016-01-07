@@ -126,36 +126,27 @@ namespace OpenMS
 
   void TheoreticalSpectrumGenerator::getSpectrum(RichPeakSpectrum & spec, const AASequence & peptide, Int charge) const
   {
-    bool add_b_ions(param_.getValue("add_b_ions").toBool());
-    bool add_y_ions(param_.getValue("add_y_ions").toBool());
-    bool add_a_ions(param_.getValue("add_a_ions").toBool());
-    bool add_c_ions(param_.getValue("add_c_ions").toBool());
-    bool add_x_ions(param_.getValue("add_x_ions").toBool());
-    bool add_z_ions(param_.getValue("add_z_ions").toBool());
-
     for (Int z = 1; z <= charge; ++z)
     {
-      if (add_b_ions)
+      if (add_b_ions_)
         addPeaks(spec, peptide, Residue::BIon, z);
-      if (add_y_ions)
+      if (add_y_ions_)
         addPeaks(spec, peptide, Residue::YIon, z);
-      if (add_a_ions)
+      if (add_a_ions_)
         addPeaks(spec, peptide, Residue::AIon, z);
-      if (add_c_ions)
+      if (add_c_ions_)
         addPeaks(spec, peptide, Residue::CIon, z);
-      if (add_x_ions)
+      if (add_x_ions_)
         addPeaks(spec, peptide, Residue::XIon, z);
-      if (add_z_ions)
+      if (add_z_ions_)
         addPeaks(spec, peptide, Residue::ZIon, z);
     }
 
-    bool add_precursor_peaks(param_.getValue("add_precursor_peaks").toBool());
     if (add_precursor_peaks)
     {
       addPrecursorPeaks(spec, peptide, charge);
     }
 
-    bool add_abundant_immonium_ions(param_.getValue("add_abundant_immonium_ions").toBool());
     if (add_abundant_immonium_ions)
     {
       addAbundantImmoniumIons(spec, peptide);
@@ -167,19 +158,20 @@ namespace OpenMS
 
   void TheoreticalSpectrumGenerator::addAbundantImmoniumIons(RichPeakSpectrum & spec, const AASequence& peptide) const
   {
-    bool add_metainfo(param_.getValue("add_metainfo").toBool());
-
     RichPeak1D p;
 
     // just in case someone wants the ion names;
-    p.metaRegistry().registerName("IonName", "Name of the ion");
+    if (add_metainfo_)
+    {
+      p.metaRegistry().registerName("IonName", "Name of the ion");
+    }
 
     // Histidin immonium ion (C5H8N3)
     if (peptide.has(*ResidueDB::getInstance()->getResidue('H')))
     {
       p.setMZ(110.0718);
       p.setIntensity(1.0);
-      if (add_metainfo)
+      if (add_metainfo_)
       {
         String name("iH");
         p.setMetaValue("IonName", name);
@@ -192,7 +184,7 @@ namespace OpenMS
     {
       p.setMZ(120.0813);
       p.setIntensity(1.0);
-      if (add_metainfo)
+      if (add_metainfo_)
       {
         String name("iF");
         p.setMetaValue("IonName", name);
@@ -205,7 +197,7 @@ namespace OpenMS
     {
       p.setMZ(136.0762);
       p.setIntensity(1.0);
-      if (add_metainfo)
+      if (add_metainfo_)
       {
         String name("iY");
         p.setMetaValue("IonName", name);
@@ -218,7 +210,7 @@ namespace OpenMS
     {
       p.setMZ(86.09698);
       p.setIntensity(1.0);
-      if (add_metainfo)
+      if (add_metainfo_)
       {
         String name("iL/I");
         p.setMetaValue("IonName", name);
@@ -231,7 +223,7 @@ namespace OpenMS
     {
       p.setMZ(159.0922);
       p.setIntensity(1.0);
-      if (add_metainfo)
+      if (add_metainfo_)
       {
         String name("iW");
         p.setMetaValue("IonName", name);
@@ -244,7 +236,7 @@ namespace OpenMS
     {
       p.setMZ(76.0221);
       p.setIntensity(1.0);
-      if (add_metainfo)
+      if (add_metainfo_)
       {
         String name("iC");
         p.setMetaValue("IonName", name);
@@ -257,7 +249,7 @@ namespace OpenMS
     {
       p.setMZ(70.0656);
       p.setIntensity(1.0);
-      if (add_metainfo)
+      if (add_metainfo_)
       {
         String name("iP");
         p.setMetaValue("IonName", name);
@@ -268,6 +260,130 @@ namespace OpenMS
     spec.sortByPosition();
   }
 
+  char TheoreticalSpectrumGenerator::residueTypeToIonLetter_(Residue::ResidueType res_type) const
+  {
+    switch (res_type)
+    {
+      case Residue::AIon: return 'a'; break;
+      case Residue::BIon: return 'b'; break;
+      case Residue::CIon: return 'c'; break;
+      case Residue::XIon: return 'x'; break;
+      case Residue::YIon: return 'y'; break;
+      case Residue::ZIon: return 'z'; break;
+      default:
+       cerr << "Unknown residue type encountered. Can't map to ion letter." << endl;
+    }
+    return ' ';
+  }
+
+  void TheoreticalSpectrumGenerator::addIsotopeCluster_(RichPeakSpectrum & spectrum, const AASequence & ion, Residue::ResidueType res_type, Int charge, double intensity) const
+  {
+    double pos = ion.getMonoWeight(res_type, charge) / (double)charge;
+    RichPeak1D p;
+    IsotopeDistribution dist = ion.getFormula(res_type, charge).getIsotopeDistribution(max_isotope_);
+    UInt j(0);
+    for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
+    {
+      // TODO: this is usually dominated by 13C-12C mass shift which deviates a bit from neutron mass
+      p.setMZ((double)(pos + (double)j * Constants::NEUTRON_MASS_U) / (double)charge); 
+      p.setIntensity(intensity * it->second);
+      if (add_metainfo_ && j == 0)
+      {
+        String ion_name = String(residueTypeToIonLetter_(res_type)) + String(ion.size()) + String(charge, '+');
+        p.setMetaValue("IonName", ion_name);
+      }
+      spectrum.push_back(p);
+    }
+  }
+
+  void TheoreticalSpectrumGenerator::addPeak_(RichPeakSpectrum & spectrum, double pos, double intensity, Residue::ResidueType res_type, Size ion_index, int charge) const 
+  {
+    RichPeak1D p;
+    p.setMZ(pos);
+    p.setIntensity(intensity);
+    if (add_metainfo_)
+    {
+      String ion_name = String(residueTypeToIonLetter_(res_type)) + String(ion_index) + String(charge, '+');
+      p.setMetaValue("IonName", ion_name);
+    }
+    spectrum.push_back(p);    
+  }
+
+  void TheoreticalSpectrumGenerator::addLosses_(RichPeakSpectrum & spectrum, const AASequence & ion, double intensity, Residue::ResidueType res_type, int charge) const 
+  {
+    RichPeak1D p;
+
+    set<String> losses;
+    for (AASequence::ConstIterator it = ion.begin(); it != ion.end(); ++it)
+    {
+      if (it->hasNeutralLoss())
+      {
+        vector<EmpiricalFormula> loss_formulas = it->getLossFormulas();
+        for (Size i = 0; i != loss_formulas.size(); ++i)
+        {
+          losses.insert(loss_formulas[i].toString());
+        }
+      }
+    }
+
+    if (!add_isotopes_)
+    {
+      p.setIntensity(intensity * rel_loss_intensity_);
+    }
+
+    for (set<String>::const_iterator it = losses.begin(); it != losses.end(); ++it)
+    {
+      EmpiricalFormula loss_ion = ion.getFormula(res_type, charge) - EmpiricalFormula(*it);
+      // thanks to Chris and Sandro
+      // check for negative element frequencies (might happen if losses are not allowed for specific ions)
+      bool negative_elements(false);
+      for (EmpiricalFormula::ConstIterator eit = loss_ion.begin(); eit != loss_ion.end(); ++eit)
+      {
+        if (eit->second < 0)
+        {
+          negative_elements = true;
+          break;
+        }
+      }
+      if (negative_elements)
+      {
+        continue;
+      }
+      double loss_pos = loss_ion.getMonoWeight() / (double)charge;
+      const String& loss_name = *it;
+
+      if (add_isotopes_)
+      {
+        IsotopeDistribution dist = loss_ion.getIsotopeDistribution(max_isotope_);
+        UInt j(0);
+        for (IsotopeDistribution::ConstIterator iso = dist.begin(); iso != dist.end(); ++iso)
+        {
+          p.setMZ((double)(loss_pos + j) / (double)charge);
+          p.setIntensity(intensity * rel_loss_intensity_ * iso->second);
+          if (add_metainfo_ && j == 0)
+          {
+            // note: important to construct a string from char. If omitted it will perform pointer arithmetics on the "-" string literal
+            String ion_name = String(residueTypeToIonLetter_(res_type)) + String(ion.size()) + "-" + loss_name + String(charge, '+');
+            p.setMetaValue("IonName", ion_name);
+          }
+          spectrum.push_back(p);
+        }
+      }
+      else
+      {
+        p.setMZ(loss_pos);
+        if (add_metainfo_)
+        {
+          // note: important to construct a string from char. If omitted it will perform pointer arithmetics on the "-" string literal
+          String ion_name = String(residueTypeToIonLetter_(res_type)) + String(ion.size()) + "-" + loss_name + String(charge, '+');
+          p.setMetaValue("IonName", ion_name);
+        }
+        spectrum.push_back(p);
+      }
+    }
+
+  }
+
   void TheoreticalSpectrumGenerator::addPeaks(RichPeakSpectrum & spectrum, const AASequence & peptide, Residue::ResidueType res_type, Int charge) const
   {
     if (peptide.empty())
@@ -275,11 +391,7 @@ namespace OpenMS
       return;
     }
 
-    Map<double, AASequence> ions;
-    Map<double, String> names;
-    AASequence ion;
-    double intensity(0);
-    bool add_first_prefix_ion(param_.getValue("add_first_prefix_ion").toBool());
+    spectrum.reserve(peptide.size());
 
     // Generate the ion peaks:
     // Does not generate peaks of full peptide (therefore "<").
@@ -290,54 +402,85 @@ namespace OpenMS
     case Residue::AIon:
     {
       Size i = 1;
-      if (!add_first_prefix_ion)
+      if (!add_first_prefix_ion_)
       {
         i = 2;
       }
       for (; i < peptide.size(); ++i)
       {
-        ion = peptide.getPrefix(i);
-        double pos = ion.getMonoWeight(Residue::AIon, charge) / (double)charge;
-        ions[pos] = ion;
-        names[pos] = "a" + String(i) + String(charge, '+');
+        AASequence ion = peptide.getPrefix(i);
+
+        if (add_isotopes_) // add isotope cluster
+        {
+          addIsotopeCluster_(spectrum, ion, res_type, charge, a_intensity_);
+        }
+        else  // add single peak
+        {
+          double pos = ion.getMonoWeight(Residue::AIon, charge) / static_cast<double>(charge);
+          addPeak_(spectrum, pos, a_intensity_, res_type, i, charge);
+        }
+
+        if (add_losses_)
+        {
+          addLosses_(spectrum, ion, a_intensity_, res_type, charge);
+        }
       }
-      intensity = (double)param_.getValue("a_intensity");
       break;
     }
 
     case Residue::BIon:
     {
       Size i = 1;
-      if (!add_first_prefix_ion)
+      if (!add_first_prefix_ion_)
       {
         i = 2;
       }
       for (; i < peptide.size(); ++i)
       {
-        ion = peptide.getPrefix(i);
-        double pos = ion.getMonoWeight(Residue::BIon, charge) / (double)charge;
-        ions[pos] = ion;
-        names[pos] = "b" + String(i) + String(charge, '+');
+        AASequence ion = peptide.getPrefix(i);
+        if (add_isotopes_)
+        {
+          addIsotopeCluster_(spectrum, ion, res_type, charge, b_intensity_);
+        }
+        else
+        {
+          double pos = ion.getMonoWeight(Residue::BIon, charge) / static_cast<double>(charge);
+          addPeak_(spectrum, pos, b_intensity_, res_type, i, charge);
+        }
+
+        if (add_losses_)
+        {
+          addLosses_(spectrum, ion, b_intensity_, res_type, charge);
+        }
       }
-      intensity = (double)param_.getValue("b_intensity");
       break;
     }
 
     case Residue::CIon:
     {
       Size i = 1;
-      if (!add_first_prefix_ion)
+      if (!add_first_prefix_ion_)
       {
         i = 2;
       }
       for (; i < peptide.size(); ++i)
       {
-        ion = peptide.getPrefix(i);
-        double pos = ion.getMonoWeight(Residue::CIon, charge) / (double)charge;
-        ions[pos] = ion;
-        names[pos] = "c" + String(i) + String(charge, '+');
+        AASequence ion = peptide.getPrefix(i);
+        if (add_isotopes_)
+        {
+          addIsotopeCluster_(spectrum, ion, res_type, charge, c_intensity_);
+        }
+        else
+        {
+          double pos = ion.getMonoWeight(Residue::CIon, charge) / static_cast<double>(charge);
+          addPeak_(spectrum, pos, c_intensity_, res_type, i, charge);
+        }
+
+        if (add_losses_)
+        {
+          addLosses_(spectrum, ion, c_intensity_, res_type, charge);
+        }
       }
-      intensity = (double)param_.getValue("c_intensity");
       break;
     }
 
@@ -345,12 +488,23 @@ namespace OpenMS
     {
       for (Size i = 1; i < peptide.size(); ++i)
       {
-        ion = peptide.getSuffix(i);
-        double pos = ion.getMonoWeight(Residue::XIon, charge) / (double)charge;
-        ions[pos] = ion;
-        names[pos] = "x" + String(i) + String(charge, '+');
+        AASequence ion = peptide.getSuffix(i);
+        if (add_isotopes_)
+        {
+          addIsotopeCluster_(spectrum, ion, res_type, charge, x_intensity_);
+        }
+        else
+        {
+          double pos = ion.getMonoWeight(Residue::XIon, charge) / static_cast<double>(charge);
+          addPeak_(spectrum, pos, x_intensity_, res_type, i, charge);
+        }
+
+        if (add_losses_)
+        {
+          addLosses_(spectrum, ion, x_intensity_, res_type, charge);
+        }
       }
-      intensity = (double)param_.getValue("x_intensity");
+
       break;
     }
 
@@ -358,12 +512,23 @@ namespace OpenMS
     {
       for (Size i = 1; i < peptide.size(); ++i)
       {
-        ion = peptide.getSuffix(i);
-        double pos = ion.getMonoWeight(Residue::YIon, charge) / (double)charge;
-        ions[pos] = ion;
-        names[pos] = "y" + String(i) + String(charge, '+');
+        AASequence ion = peptide.getSuffix(i);
+        if (add_isotopes_)
+        {
+          addIsotopeCluster_(spectrum, ion, res_type, charge, y_intensity_);
+        }
+        else
+        {
+          double pos = ion.getMonoWeight(Residue::YIon, charge) / static_cast<double>(charge);
+          addPeak_(spectrum, pos, y_intensity_, res_type, i, charge);
+        }
+
+        if (add_losses_)
+        {
+          addLosses_(spectrum, ion, y_intensity_, res_type, charge);
+        }
       }
-      intensity = (double)param_.getValue("y_intensity");
+
       break;
     }
 
@@ -371,131 +536,28 @@ namespace OpenMS
     {
       for (Size i = 1; i < peptide.size(); ++i)
       {
-        ion = peptide.getSuffix(i);
-        double pos = ion.getMonoWeight(Residue::ZIon, charge) / (double)charge;
-        ions[pos] = ion;
-        names[pos] = "z" + String(i) + String(charge, '+');
+        AASequence ion = peptide.getSuffix(i);
+        if (add_isotopes_)
+        {
+          addIsotopeCluster_(spectrum, ion, res_type, charge, z_intensity_);
+        }
+        else
+        {
+          double pos = ion.getMonoWeight(Residue::ZIon, charge) / static_cast<double>(charge);
+          addPeak_(spectrum, pos, z_intensity_, res_type, i, charge);
+        }
+
+        if (add_losses_)
+        {
+          addLosses_(spectrum, ion, z_intensity_, res_type, charge);
+        }
       }
-      intensity = (double)param_.getValue("z_intensity");
+
       break;
     }
 
     default:
       cerr << "Cannot create peaks of that ion type" << endl;
-    }
-
-    // get the params
-    bool add_losses(param_.getValue("add_losses").toBool());
-    bool add_metainfo(param_.getValue("add_metainfo").toBool());
-    bool add_isotopes(param_.getValue("add_isotopes").toBool());
-    Int max_isotope((Int)param_.getValue("max_isotope"));
-    double rel_loss_intensity((double)param_.getValue("relative_loss_intensity"));
-
-    RichPeak1D p;
-    for (Map<double, AASequence>::ConstIterator cit = ions.begin(); cit != ions.end(); ++cit)
-    {
-      ion = cit->second;
-      double pos = cit->first;
-      String ion_name = names[pos];
-      if (add_isotopes)
-      {
-        IsotopeDistribution dist = ion.getFormula(res_type, charge).getIsotopeDistribution(max_isotope);
-        UInt j(0);
-        for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
-        {
-          p.setMZ((double)(pos + (double)j * Constants::NEUTRON_MASS_U) / (double)charge);
-          p.setIntensity(intensity * it->second);
-          if (add_metainfo && j == 0)
-          {
-            p.setMetaValue("IonName", ion_name);
-          }
-          spectrum.push_back(p);
-        }
-      }
-      else
-      {
-        p.setMZ(pos);
-        p.setIntensity(intensity);
-        if (add_metainfo)
-        {
-          p.setMetaValue("IonName", ion_name);
-        }
-        spectrum.push_back(p);
-      }
-
-      if (add_losses)
-      {
-        set<String> losses;
-        for (AASequence::ConstIterator it = cit->second.begin(); it != cit->second.end(); ++it)
-        {
-          if (it->hasNeutralLoss())
-          {
-            vector<EmpiricalFormula> loss_formulas = it->getLossFormulas();
-            for (Size i = 0; i != loss_formulas.size(); ++i)
-            {
-              losses.insert(loss_formulas[i].toString());
-            }
-          }
-        }
-
-
-        if (!add_isotopes)
-        {
-          p.setIntensity(intensity * rel_loss_intensity);
-        }
-
-        for (set<String>::const_iterator it = losses.begin(); it != losses.end(); ++it)
-        {
-          EmpiricalFormula loss_ion = ion.getFormula(res_type, charge) - EmpiricalFormula(*it);
-          // thanks to Chris and Sandro
-          // check for negative element frequencies (might happen if losses are not allowed for specific ions)
-          bool negative_elements(false);
-          for (EmpiricalFormula::ConstIterator eit = loss_ion.begin(); eit != loss_ion.end(); ++eit)
-          {
-            if (eit->second < 0)
-            {
-              negative_elements = true;
-              break;
-            }
-          }
-          if (negative_elements)
-          {
-            continue;
-          }
-          double loss_pos = loss_ion.getMonoWeight() / (double)charge;
-          String loss_name = *it;
-
-          if (add_isotopes)
-          {
-            IsotopeDistribution dist = loss_ion.getIsotopeDistribution(max_isotope);
-            UInt j(0);
-            for (IsotopeDistribution::ConstIterator iso = dist.begin(); iso != dist.end(); ++iso)
-            {
-              p.setMZ((double)(loss_pos + j) / (double)charge);
-              p.setIntensity(intensity * rel_loss_intensity * iso->second);
-              if (add_metainfo && j == 0)
-              {
-                p.setMetaValue("IonName", ion_name + "-" + loss_name);
-              }
-              spectrum.push_back(p);
-            }
-          }
-          else
-          {
-            p.setMZ(loss_pos);
-            if (add_metainfo)
-            {
-              p.setMetaValue("IonName", ion_name + "-" + loss_name);
-            }
-            spectrum.push_back(p);
-          }
-        }
-      }
-    }
-
-    if (add_metainfo)
-    {
-      p.setMetaValue("IonName", String(""));
     }
 
     spectrum.sortByPosition();
@@ -505,26 +567,19 @@ namespace OpenMS
 
   void TheoreticalSpectrumGenerator::addPrecursorPeaks(RichPeakSpectrum & spec, const AASequence & peptide, Int charge) const
   {
-    bool add_metainfo(param_.getValue("add_metainfo").toBool());
-    double pre_int((double)param_.getValue("precursor_intensity"));
-    double pre_int_H2O((double)param_.getValue("precursor_H2O_intensity"));
-    double pre_int_NH3((double)param_.getValue("precursor_NH3_intensity"));
-    bool add_isotopes(param_.getValue("add_isotopes").toBool());
-    int max_isotope((int)param_.getValue("max_isotope"));
-
     RichPeak1D p;
 
     // precursor peak
     double mono_pos = peptide.getMonoWeight(Residue::Full, charge) / double(charge);
-    if (add_isotopes)
+    if (add_isotopes_)
     {
-      IsotopeDistribution dist = peptide.getFormula(Residue::Full, charge).getIsotopeDistribution(max_isotope);
+      IsotopeDistribution dist = peptide.getFormula(Residue::Full, charge).getIsotopeDistribution(max_isotope_);
       UInt j(0);
       for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
       {
         p.setMZ((double)(mono_pos + j * Constants::NEUTRON_MASS_U) / (double)charge);
-        p.setIntensity(pre_int *  it->second);
-        if (add_metainfo)
+        p.setIntensity(pre_int_ *  it->second);
+        if (add_metainfo_)
         {
           String name("[M+H]+");
           if (charge == 2)
@@ -539,8 +594,8 @@ namespace OpenMS
     else
     {
       p.setMZ(mono_pos);
-      p.setIntensity(pre_int);
-      if (add_metainfo)
+      p.setIntensity(pre_int_);
+      if (add_metainfo_)
       {
         String name("[M+H]+");
         if (charge == 2)
@@ -556,15 +611,15 @@ namespace OpenMS
     //loss of water
     EmpiricalFormula ion = peptide.getFormula(Residue::Full, charge) - EmpiricalFormula("H2O");
     mono_pos = ion.getMonoWeight() / double(charge);
-    if (add_isotopes)
+    if (add_isotopes_)
     {
-      IsotopeDistribution dist = ion.getIsotopeDistribution(max_isotope);
+      IsotopeDistribution dist = ion.getIsotopeDistribution(max_isotope_);
       UInt j(0);
       for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
       {
         p.setMZ((double)(mono_pos + j * Constants::NEUTRON_MASS_U) / (double)charge);
-        p.setIntensity(pre_int_H2O *  it->second);
-        if (add_metainfo)
+        p.setIntensity(pre_int_H2O_ *  it->second);
+        if (add_metainfo_)
         {
           String name("[M+H]-H2O+");
           if (charge == 2)
@@ -579,8 +634,8 @@ namespace OpenMS
     else
     {
       p.setMZ(mono_pos);
-      p.setIntensity(pre_int_H2O);
-      if (add_metainfo)
+      p.setIntensity(pre_int_H2O_);
+      if (add_metainfo_)
       {
         String name("[M+H]-H2O+");
         if (charge == 2)
@@ -595,15 +650,15 @@ namespace OpenMS
     //loss of ammonia
     ion = peptide.getFormula(Residue::Full, charge) - EmpiricalFormula("NH3");
     mono_pos = ion.getMonoWeight() / double(charge);
-    if (add_isotopes)
+    if (add_isotopes_)
     {
-      IsotopeDistribution dist = ion.getIsotopeDistribution(max_isotope);
+      IsotopeDistribution dist = ion.getIsotopeDistribution(max_isotope_);
       UInt j(0);
       for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
       {
         p.setMZ((double)(mono_pos + j * Constants::NEUTRON_MASS_U) / (double)charge);
-        p.setIntensity(pre_int_NH3 *  it->second);
-        if (add_metainfo)
+        p.setIntensity(pre_int_NH3_ *  it->second);
+        if (add_metainfo_)
         {
           String name("[M+H]-NH3+");
           if (charge == 2)
@@ -618,8 +673,8 @@ namespace OpenMS
     else
     {
       p.setMZ(mono_pos);
-      p.setIntensity(pre_int_NH3);
-      if (add_metainfo)
+      p.setIntensity(pre_int_NH3_);
+      if (add_metainfo_)
       {
         String name("[M+H]-NH3+");
         if (charge == 2)
@@ -632,6 +687,33 @@ namespace OpenMS
     }
 
     spec.sortByPosition();
+  }
+
+  void TheoreticalSpectrumGenerator::updateMembers_()
+  {
+    add_b_ions_ = param_.getValue("add_b_ions").toBool();
+    add_y_ions_ = param_.getValue("add_y_ions").toBool();
+    add_a_ions_ = param_.getValue("add_a_ions").toBool();
+    add_c_ions_ = param_.getValue("add_c_ions").toBool();
+    add_x_ions_ = param_.getValue("add_x_ions").toBool();
+    add_z_ions_ = param_.getValue("add_z_ions").toBool();
+    add_first_prefix_ion_ = param_.getValue("add_first_prefix_ion").toBool();
+    add_losses_ = param_.getValue("add_losses").toBool();
+    add_metainfo_ = param_.getValue("add_metainfo").toBool();
+    add_isotopes_ = param_.getValue("add_isotopes").toBool();
+    add_precursor_peaks = param_.getValue("add_precursor_peaks").toBool();
+    add_abundant_immonium_ions = param_.getValue("add_abundant_immonium_ions").toBool();
+    a_intensity_ = (double)param_.getValue("a_intensity");
+    b_intensity_ = (double)param_.getValue("b_intensity");
+    c_intensity_ = (double)param_.getValue("c_intensity");
+    x_intensity_ = (double)param_.getValue("x_intensity");
+    y_intensity_ = (double)param_.getValue("y_intensity");
+    z_intensity_ = (double)param_.getValue("z_intensity");
+    max_isotope_ = (Int)param_.getValue("max_isotope");
+    rel_loss_intensity_ = (double)param_.getValue("relative_loss_intensity");
+    pre_int_ = (double)param_.getValue("precursor_intensity");
+    pre_int_H2O_ = (double)param_.getValue("precursor_H2O_intensity");
+    pre_int_NH3_ = (double)param_.getValue("precursor_NH3_intensity");
   }
 
 }

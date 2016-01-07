@@ -47,6 +47,7 @@ SpecLibCreator
 SvmTheoreticalSpectrumGeneratorTrainer
 TransformationEvaluation
 TopPerc
+xQuest
 XMLValidator
 RNPxlSearch
 )

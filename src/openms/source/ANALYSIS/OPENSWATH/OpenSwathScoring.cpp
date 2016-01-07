@@ -113,6 +113,22 @@ namespace OpenMS
     }
   }
 
+  void OpenSwathScoring::calculateDIAIdScores(OpenSwath::IMRMFeature* imrmfeature, const TransitionType & transition,
+      OpenSwath::SpectrumAccessPtr swath_map, OpenMS::DIAScoring & diascoring,
+      OpenSwath_Scores & scores)
+  {
+    // find spectrum that is closest to the apex of the peak using binary search
+    OpenSwath::SpectrumPtr spectrum_ = getAddedSpectra_(swath_map, imrmfeature->getRT(), add_up_spectra_);
+    OpenSwath::SpectrumPtr* spectrum = &spectrum_;
+
+    // Isotope correlation / overlap score: Is this peak part of an
+    // isotopic pattern or is it the monoisotopic peak in an isotopic
+    // pattern?
+    diascoring.dia_ms1_isotope_scores(transition.getProductMZ(), (*spectrum), transition.getProductChargeState(), scores.isotope_correlation, scores.isotope_overlap);
+    // Mass deviation score
+    diascoring.dia_ms1_massdiff_score(transition.getProductMZ(), (*spectrum), scores.massdev_score);
+  }
+
   void OpenSwathScoring::calculateChromatographicScores(
         OpenSwath::IMRMFeature* imrmfeature,
         const std::vector<std::string>& native_ids,
@@ -160,6 +176,33 @@ namespace OpenMS
       // everything below S/N 1 can be set to zero (and the log safely applied)
       if (scores.sn_ratio < 1) { scores.log_sn_score = 0; }
       else { scores.log_sn_score = std::log(scores.sn_ratio); }
+    }
+  }
+
+  void OpenSwathScoring::calculateChromatographicIdScores(
+        OpenSwath::IMRMFeature* imrmfeature,
+        const std::vector<std::string>& native_ids_identification,
+        const std::vector<std::string>& native_ids_detection,
+        std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
+        OpenSwath_Scores & idscores)
+  { 
+    OpenSwath::MRMScoring mrmscore_;
+    mrmscore_.initializeXCorrIdMatrix(imrmfeature, native_ids_identification, native_ids_detection);
+
+    if (su_.use_coelution_score_)
+    {
+      idscores.ind_xcorr_coelution_score = mrmscore_.calcIndXcorrIdCoelutionScore();
+    }
+
+    if (su_.use_shape_score_)
+    {
+      idscores.ind_xcorr_shape_score = mrmscore_.calcIndXcorrIdShape_score();
+    }
+
+    // Signal to noise scoring
+    if (su_.use_sn_score_)
+    {
+      idscores.ind_log_sn_score = mrmscore_.calcIndSNScore(imrmfeature, signal_noise_estimators);
     }
   }
 
@@ -217,6 +260,11 @@ namespace OpenMS
       double RT, int nr_spectra_to_add)
   {
     std::vector<std::size_t> indices = swath_map->getSpectraByRT(RT, 0.0);
+    if (indices.empty() ) 
+    {
+      OpenSwath::SpectrumPtr sptr(new OpenSwath::Spectrum);
+      return sptr;
+    }
     int closest_idx = boost::numeric_cast<int>(indices[0]);
     if (indices[0] != 0 &&
         std::fabs(swath_map->getSpectrumMetaById(boost::numeric_cast<int>(indices[0]) - 1).RT - RT) <
@@ -237,8 +285,14 @@ namespace OpenMS
       all_spectra.push_back(swath_map->getSpectrumById(closest_idx));
       for (int i = 1; i <= nr_spectra_to_add / 2; i++) // cast to int is intended!
       {
-        all_spectra.push_back(swath_map->getSpectrumById(closest_idx - i));
-        all_spectra.push_back(swath_map->getSpectrumById(closest_idx + i));
+        if (closest_idx - i >= 0) 
+        {
+          all_spectra.push_back(swath_map->getSpectrumById(closest_idx - i));
+        }
+        if (closest_idx + i < (int)swath_map->getNrSpectra()) 
+        {
+          all_spectra.push_back(swath_map->getSpectrumById(closest_idx + i));
+        }
       }
       OpenSwath::SpectrumPtr spectrum_ = SpectrumAddition::addUpSpectra(all_spectra, spacing_for_spectra_resampling_, true);
       return spectrum_;

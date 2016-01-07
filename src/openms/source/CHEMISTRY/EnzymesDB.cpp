@@ -96,7 +96,9 @@ namespace OpenMS
     // add to internal storage
     const_enzymes_.insert(r);
     // add to internal indices (by name and its synonyms)
-    enzyme_names_[r->getName()] = r;
+    String name = r->getName();
+    enzyme_names_[name] = r;
+    enzyme_names_[name.toLower()] = r;
     for (set<String>::const_iterator it = r->getSynonyms().begin(); it != r->getSynonyms().end(); ++it)
     {
       enzyme_names_[*it] = r;

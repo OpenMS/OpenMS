@@ -54,7 +54,7 @@ namespace OpenMS
         - range restrictions of numeric parameters
         - valid values for string parameters (enum)
       - subsections that are passed to other classes can be excluded from the check (subsections_)
-      - it keeps member variables in syncronicity with the parameters stored in param_
+      - it keeps member variables in synchronicity with the parameters stored in param_
       - it helps to automatically create a doxygen documentation page for the parameters
 
       Extra member variables are needed if getting the value from param_ would be too slow
@@ -67,7 +67,7 @@ namespace OpenMS
       - Call defaultsToParam_() at the end of derived classes' default constructor.
           It copies the defaults to param_ (and calls updateMembers_()).
 
-      If you have extra member variables you need to syncronize with param_, do the following:
+      If you have extra member variables you need to synchronize with param_, do the following:
       - Implement the updateMembers_() method. It is used after each change of param_
           in order to update the extra member variables. If the base class is a DefaultParamHandler as well
           make sure to call the updateMembers_() method of the base class in the updateMembers_() method.

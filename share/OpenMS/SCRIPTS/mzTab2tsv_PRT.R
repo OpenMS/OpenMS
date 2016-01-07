@@ -17,7 +17,7 @@ protein.data$PRH <- NULL
 columns.to.keep <- which(colnames(protein.data)!="")
 protein.data <- protein.data[,columns.to.keep]
 
-proteins <- protein.data[which(protein.data$opt_global_protein_group_type=="null"),]
+proteins <- protein.data[which(protein.data$opt_global_protein_group_type=="single_protein"),]
 protein.groups <- protein.data[which(protein.data$opt_global_protein_group_type=="protein_group"),]
 indistinguishable.groups <- protein.data[which(protein.data$opt_global_protein_group_type=="indistinguishable_group"),]
 

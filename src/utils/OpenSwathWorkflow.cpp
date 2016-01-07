@@ -58,6 +58,8 @@
 // Kernel and implementations
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSInMemory.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 
 // Helpers
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
@@ -88,14 +90,16 @@ namespace OpenMS
     String input_filename_;
     bool doWrite_;
     bool use_ms1_traces_;
+    bool enable_uis_scoring_;
 
   public:
 
-    OpenSwathTSVWriter(String output_filename, String input_filename = "inputfile", bool ms1_scores = false) :
+    OpenSwathTSVWriter(String output_filename, String input_filename = "inputfile", bool ms1_scores = false, bool uis_scores = false) :
       ofs(output_filename.c_str()),
       input_filename_(input_filename),
       doWrite_(!output_filename.empty()),
-      use_ms1_traces_(ms1_scores)
+      use_ms1_traces_(ms1_scores),
+      enable_uis_scoring_(uis_scores)
       {}
 
     bool isActive() 
@@ -124,7 +128,29 @@ namespace OpenMS
       {
         ofs << "\taggr_prec_Peak_Area\taggr_prec_Peak_Apex\taggr_prec_Fragment_Annotation";
       }
-      ofs << "\taggr_Peak_Area\taggr_Peak_Apex\taggr_Fragment_Annotation\n";
+      ofs << "\taggr_Peak_Area\taggr_Peak_Apex\taggr_Fragment_Annotation";
+      if (enable_uis_scoring_)
+      {
+        ofs << "\tuis_target_transition_names"
+            << "\tuis_target_var_ind_log_intensity"
+            << "\tuis_target_num_transitions"
+            << "\tuis_target_var_ind_xcorr_coelution"
+            << "\tuis_target_main_var_ind_xcorr_shape"
+            << "\tuis_target_var_ind_log_sn_score"
+            << "\tuis_target_var_ind_massdev_score"
+            << "\tuis_target_var_ind_isotope_correlation"
+            << "\tuis_target_var_ind_isotope_overlap"
+            << "\tuis_decoy_transition_names"
+            << "\tuis_decoy_var_ind_log_intensity"
+            << "\tuis_decoy_num_transitions"
+            << "\tuis_decoy_var_ind_xcorr_coelution"
+            << "\tuis_decoy_main_var_ind_xcorr_shape"
+            << "\tuis_decoy_var_ind_log_sn_score"
+            << "\tuis_decoy_var_ind_massdev_score"
+            << "\tuis_decoy_var_ind_isotope_correlation"
+            << "\tuis_decoy_var_ind_isotope_overlap";
+      }
+      ofs << "\n";
     }
 
     String prepareLine(const OpenSwath::LightPeptide& pep,
@@ -262,8 +288,29 @@ namespace OpenMS
             {
               line += "\t" + aggr_prec_Peak_Area + "\t" + aggr_prec_Peak_Apex + "\t" + aggr_prec_Fragment_Annotation;
             }
-            line += "\t" + aggr_Peak_Area + "\t" + aggr_Peak_Apex + "\t" + aggr_Fragment_Annotation + "\n";
-          result += line;
+            line += "\t" + aggr_Peak_Area + "\t" + aggr_Peak_Apex + "\t" + aggr_Fragment_Annotation;
+            if (enable_uis_scoring_)
+            {
+              line += "\t" + (String)feature_it->getMetaValue("id_target_transition_names")
+              + "\t" + (String)feature_it->getMetaValue("id_target_ind_log_intensity")
+              + "\t" + (String)feature_it->getMetaValue("id_target_ind_num_transitions")
+              + "\t" + (String)feature_it->getMetaValue("id_target_ind_xcorr_coelution")
+              + "\t" + (String)feature_it->getMetaValue("id_target_ind_xcorr_shape")
+              + "\t" + (String)feature_it->getMetaValue("id_target_ind_log_sn_score")
+              + "\t" + (String)feature_it->getMetaValue("id_target_ind_massdev_score")
+              + "\t" + (String)feature_it->getMetaValue("id_target_ind_isotope_correlation")
+              + "\t" + (String)feature_it->getMetaValue("id_target_ind_isotope_overlap")
+              + "\t" + (String)feature_it->getMetaValue("id_decoy_transition_names")
+              + "\t" + (String)feature_it->getMetaValue("id_decoy_ind_log_intensity")
+              + "\t" + (String)feature_it->getMetaValue("id_decoy_num_transitions")
+              + "\t" + (String)feature_it->getMetaValue("id_decoy_ind_xcorr_coelution")
+              + "\t" + (String)feature_it->getMetaValue("id_decoy_ind_xcorr_shape")
+              + "\t" + (String)feature_it->getMetaValue("id_decoy_ind_log_sn_score")
+              + "\t" + (String)feature_it->getMetaValue("id_decoy_ind_massdev_score")
+              + "\t" + (String)feature_it->getMetaValue("id_decoy_ind_isotope_correlation")
+              + "\t" + (String)feature_it->getMetaValue("id_decoy_ind_isotope_overlap");
+            }
+            line += "\n";          result += line;
         } // end of iteration
       return result;
     }
@@ -392,7 +439,7 @@ namespace OpenMS
       const OpenSwath::LightTargetedExperiment& transition_exp,
       FeatureMap& out_featureFile, bool store_features,
       OpenSwathTSVWriter & tsv_writer, Interfaces::IMSDataConsumer<> * chromConsumer,
-      int batchSize)
+      int batchSize, bool load_into_memory)
     {
       tsv_writer.writeHeader();
 
@@ -413,6 +460,14 @@ namespace OpenMS
           // store reference to MS1 map for later -> note that this is *not* threadsafe!
           ms1_map_ = swath_maps[i].sptr;
 
+          if (load_into_memory)
+          {
+            // This creates an InMemory object that keeps all data in memory
+            // but provides the same access functionality to the raw data as
+            // any object implementing ISpectrumAccess 
+            ms1_map_ = boost::shared_ptr<SpectrumAccessOpenMSInMemory>( new SpectrumAccessOpenMSInMemory(*ms1_map_) );
+          }
+
           std::vector< OpenSwath::ChromatogramPtr > chrom_list;
           std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
           OpenSwath::LightTargetedExperiment transition_exp_used = transition_exp; // copy for const correctness
@@ -420,7 +475,7 @@ namespace OpenMS
 
           // prepare the extraction coordinates & extract chromatogram
           prepare_coordinates_wrap(chrom_list, coordinates, transition_exp_used, true, trafo_inverse, cp);
-          extractor.extractChromatograms(swath_maps[i].sptr, chrom_list, coordinates, cp.mz_extraction_window,
+          extractor.extractChromatograms(ms1_map_, chrom_list, coordinates, cp.mz_extraction_window,
               cp.ppm, cp.extraction_function);
 
           std::vector< OpenMS::MSChromatogram<> > chromatograms;
@@ -446,6 +501,17 @@ namespace OpenMS
       {
         if (!swath_maps[i].ms1) // skip MS1
         {
+
+          OpenSwath::SpectrumAccessPtr current_swath_map = swath_maps[i].sptr;
+
+          if (load_into_memory)
+          {
+            // This creates an InMemory object that keeps all data in memory
+            // but provides the same access functionality to the raw data as
+            // any object implementing ISpectrumAccess 
+            current_swath_map = boost::shared_ptr<SpectrumAccessOpenMSInMemory>( new SpectrumAccessOpenMSInMemory(*current_swath_map) );
+            std::cout << " loading all data completely into memory !!! " << std::endl;
+          }
 
           // Step 1: select which transitions to extract (proceed in batches)
           OpenSwath::LightTargetedExperiment transition_exp_used_all;
@@ -491,7 +557,7 @@ namespace OpenMS
 
               // Step 2.2: prepare the extraction coordinates & extract chromatograms
               prepare_coordinates_wrap(chrom_list, coordinates, transition_exp_used, false, trafo_inverse, cp);
-              extractor.extractChromatograms(swath_maps[i].sptr, chrom_list, coordinates, cp.mz_extraction_window,
+              extractor.extractChromatograms(current_swath_map, chrom_list, coordinates, cp.mz_extraction_window,
                   cp.ppm, cp.extraction_function);
 
               // Step 2.3: convert chromatograms back and write to output
@@ -502,7 +568,7 @@ namespace OpenMS
 
               // Step 3: score these extracted transitions
               FeatureMap featureFile;
-              scoreAllChromatograms(chromatogram_ptr, swath_maps[i].sptr, transition_exp_used,
+              scoreAllChromatograms(chromatogram_ptr, current_swath_map, transition_exp_used,
                   feature_finder_param, trafo, cp.rt_extraction_window, featureFile, tsv_writer, 
                   ms1_chromatograms);
 
@@ -1200,6 +1266,7 @@ protected:
     registerFlag_("sort_swath_maps", "Sort of input SWATH files when matching to SWATH windows from swath_windows_file", true);
 
     registerFlag_("use_ms1_traces", "Extract the precursor ion trace(s) and use for scoring", true);
+    registerFlag_("enable_uis_scoring", "Enable additional scoring of identification assays", true);
 
     // one of the following two needs to be set
     registerOutputFile_("out_features", "<file>", "", "output file", false);
@@ -1225,7 +1292,7 @@ protected:
     registerFlag_("use_elution_model_score", "Turn on elution model score (EMG fit to peak)", true);
 
     registerStringOption_("readOptions", "<name>", "normal", "Whether to run OpenSWATH directly on the input data, cache data to disk first or to perform a datareduction step first. If you choose cache, make sure to also set tempDirectory", false, true);
-    setValidStrings_("readOptions", ListUtils::create<String>("normal,cache"));
+    setValidStrings_("readOptions", ListUtils::create<String>("normal,cache,cacheWorkingInMemory"));
 
     // TODO terminal slash !
     registerStringOption_("tempDirectory", "<tmp>", "/tmp/", "Temporary directory to store cached files for example", false, true);
@@ -1254,7 +1321,7 @@ protected:
       feature_finder_param.setValue("TransitionGroupPicker:recalculate_peaks", "true");
       feature_finder_param.setValue("TransitionGroupPicker:compute_peak_quality", "true");
       feature_finder_param.setValue("TransitionGroupPicker:minimal_quality", -1.5);
-      feature_finder_param.remove("TransitionGroupPicker:background_subtraction");
+      feature_finder_param.setValue("TransitionGroupPicker:background_subtraction", "none");
       feature_finder_param.remove("TransitionGroupPicker:stop_after_intensity_ratio");
 
       // Peak Picker
@@ -1270,6 +1337,8 @@ protected:
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:method", "corrected");
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:signal_to_noise", 0.1);
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width", 30.0);
+      feature_finder_param.setValue("uis_threshold_sn",-1);
+      feature_finder_param.setValue("uis_threshold_peak_area",0);
       feature_finder_param.remove("TransitionGroupPicker:PeakPickerMRM:sn_win_len");
       feature_finder_param.remove("TransitionGroupPicker:PeakPickerMRM:sn_bin_count");
       feature_finder_param.remove("TransitionGroupPicker:PeakPickerMRM:stop_after_feature");
@@ -1426,6 +1495,7 @@ protected:
     bool use_emg_score = getFlag_("use_elution_model_score");
     bool sort_swath_maps = getFlag_("sort_swath_maps");
     bool use_ms1_traces = getFlag_("use_ms1_traces");
+    bool enable_uis_scoring = getFlag_("enable_uis_scoring");
     double min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
     double mz_extraction_window = getDoubleOption_("mz_extraction_window");
     double rt_extraction_window = getDoubleOption_("rt_extraction_window");
@@ -1444,6 +1514,13 @@ protected:
     ///////////////////////////////////
     // Parameter validation
     ///////////////////////////////////
+
+    bool load_into_memory = false;
+    if (readoptions == "cacheWorkingInMemory")
+    {
+      readoptions = "cache";
+      load_into_memory = true;
+    }
 
     if (trafo_in.empty() && irt_tr_file.empty())
     {
@@ -1495,6 +1572,10 @@ protected:
     {
       feature_finder_param.setValue("Scores:use_ms1_correlation", "true");
       feature_finder_param.setValue("Scores:use_ms1_fullscan", "true");
+    }
+    if (enable_uis_scoring)
+    {
+      feature_finder_param.setValue("Scores:use_uis_scores", "true");
     }
 
     ///////////////////////////////////
@@ -1566,12 +1647,12 @@ protected:
     ///////////////////////////////////
     FeatureMap out_featureFile;
 
-    OpenSwathTSVWriter tsvwriter(out_tsv, file_list[0], use_ms1_traces);
+    OpenSwathTSVWriter tsvwriter(out_tsv, file_list[0], use_ms1_traces, enable_uis_scoring);
     OpenSwathWorkflow wf(use_ms1_traces);
     wf.setLogType(log_type_);
 
     wf.performExtraction(swath_maps, trafo_rtnorm, cp, feature_finder_param, transition_exp,
-        out_featureFile, !out.empty(), tsvwriter, chromConsumer, batchSize);
+        out_featureFile, !out.empty(), tsvwriter, chromConsumer, batchSize, load_into_memory);
     if (!out.empty())
     {
       addDataProcessing_(out_featureFile, getProcessingInfo_(DataProcessing::QUANTITATION));

@@ -13,7 +13,7 @@ data <- read.table(input.file,sep="\t",fill=TRUE, quote="", col.names=1:no.col)
 # extract peptide data
 psm.data <- data[which(data[,1]=="PSM"),]
 colnames(psm.data) <- unlist(data[which(data[,1]=="PSH")[1],])
-psm.data$PEH <- NULL
+psm.data$PSH <- NULL
 
 countOccurrences <- function(char,s) {
 	s2 <- gsub(char,"",s)

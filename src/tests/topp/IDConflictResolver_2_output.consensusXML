@@ -48,7 +48,6 @@
 	<IdentificationRun id="PI_1" date="2011-08-15T18:16:06" search_engine="SEQUEST" search_engine_version="">
 		<SearchParameters db="/home/sorcerer/fasta/ex_sp_4932.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 			<FixedModification name="C+57.0215" />
-			<FixedModification name="C+57.0215" />
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
 			<ProteinHit id="PH_5" accession="P21734" score="0" sequence="">
