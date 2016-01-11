@@ -286,7 +286,7 @@ public:
         if (best_id_it == identifications.end()) // no previous "best" hit
         {
           best_id_it = id_it;
-          best_hit_it = id_it->getHits()[0];
+          best_hit_it = id_it->getHits().begin();
         }
         else if (best_id_it->getScoreType() != id_it->getScoreType())
         {
@@ -618,11 +618,11 @@ public:
       const std::vector<ProteinHit>& hits);
 
 
-    /// filters an MS/MS experiment corresponding to the threshold fractions
+    /// Filters an MS/MS experiment according to fractions of the significance thresholds
     template <class PeakT>
-    static void filterIdentificationsByThresholds(
-      MSExperiment<PeakT>& experiment, double peptide_threshold_fraction,
-      double protein_threshold_fraction)
+    static void filterHitsBySignificance(MSExperiment<PeakT>& experiment,
+                                         double peptide_threshold_fraction,
+                                         double protein_threshold_fraction)
     {
       // filter protein hits:
       filterHitsBySignificance(experiment.getProteinIdentifications(),
@@ -644,11 +644,11 @@ public:
     }
 
 
-    /// Filters an MS/MS experiment corresponding to the threshold scores
+    /// Filters an MS/MS experiment according to score thresholds
     template <class PeakT>
-    static void filterIdentificationsByScores(
-      MSExperiment<PeakT>& experiment, double peptide_threshold_score,
-      double protein_threshold_score)
+    static void filterHitsByScore(MSExperiment<PeakT>& experiment,
+                                  double peptide_threshold_score,
+                                  double protein_threshold_score)
     {
       // filter protein hits:
       filterHitsByScore(experiment.getProteinIdentifications(),
@@ -670,10 +670,9 @@ public:
     }
 
 
-    /// Filters an MS/MS experiment corresponding to the best n hits for every spectrum
+    /// Filters an MS/MS experiment by keeping the N best peptide hits for every spectrum
     template <class PeakT>
-    static void filterIdentificationsByBestNHits(
-      MSExperiment<PeakT>& experiment, Size n)
+    static void keepNBestHits(MSExperiment<PeakT>& experiment, Size n)
     {
       // don't filter the protein hits by "N best" here - filter the peptides
       // and update the protein hits!
@@ -698,10 +697,10 @@ public:
     }
 
 
-    /// Filters an MS/MS experiment corresponding to the given proteins
+    /// Filters an MS/MS experiment according to the given proteins
     template <class PeakT>
-    static void filterIdentificationsByProteins(
-      MSExperiment<PeakT>& experiment,
+    static void keepHitsMatchingProteins(
+      MSExperiment<PeakT>& experiment, 
       const std::vector<FASTAFile::FASTAEntry>& proteins)
     {
       std::set<String> accessions;

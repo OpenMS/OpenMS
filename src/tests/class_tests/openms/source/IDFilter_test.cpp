@@ -250,7 +250,7 @@ START_SECTION((static void removePeptidesWithMatchingSequences(vector<PeptideIde
 }
 END_SECTION
 
-START_SECTION((template<class PeakT> static void filterIdentificationsByProteins(MSExperiment<PeakT>& experiment, const vector<FASTAFile::FASTAEntry>& proteins)))
+START_SECTION((template<class PeakT> static void keepHitsMatchingProteins(MSExperiment<PeakT>& experiment, const vector<FASTAFile::FASTAEntry>& proteins)))
 {
   MSExperiment<> experiment;
   vector<FASTAFile::FASTAEntry> proteins;
@@ -268,7 +268,7 @@ START_SECTION((template<class PeakT> static void filterIdentificationsByProteins
   experiment[3].setMSLevel(2);
   experiment[3].setPeptideIdentifications(peptides_copy);
 
-  IDFilter::filterIdentificationsByProteins(experiment, proteins);
+  IDFilter::keepHitsMatchingProteins(experiment, proteins);
   TEST_EQUAL(experiment[3].getPeptideIdentifications()[0].getScoreType(),
              "Mascot");
 
@@ -309,7 +309,7 @@ START_SECTION((static void keepBestPeptideHits(vector<PeptideIdentification>& pe
 }
 END_SECTION
 
-START_SECTION((template <class PeakT> static void filterIdentificationsByThresholds(MSExperiment<PeakT>& experiment, double peptide_threshold_fraction, double protein_threshold_fraction)))
+START_SECTION((template <class PeakT> static void filterHitsBySignificance(MSExperiment<PeakT>& experiment, double peptide_threshold_fraction, double protein_threshold_fraction)))
 {
   MSExperiment<> experiment;
   vector<PeptideIdentification> ids(1, peptides[0]);
@@ -323,7 +323,7 @@ START_SECTION((template <class PeakT> static void filterIdentificationsByThresho
   experiment[3].setMSLevel(2);
   experiment[3].setPeptideIdentifications(ids);
 
-  IDFilter::filterIdentificationsByThresholds(experiment, 1.0, 1.0);
+  IDFilter::filterHitsBySignificance(experiment, 1.0, 1.0);
   PeptideIdentification& identification = experiment[3].getPeptideIdentifications()[0];
   TEST_EQUAL(identification.getScoreType(), "Mascot")
 
@@ -348,7 +348,7 @@ START_SECTION((template <class PeakT> static void filterIdentificationsByThresho
 }
 END_SECTION
 
-START_SECTION((template <class PeakT> static void filterIdentificationsByScores(MSExperiment<PeakT>& experiment, double peptide_threshold_score, double protein_threshold_score)))
+START_SECTION((template <class PeakT> static void filterHitsByScore(MSExperiment<PeakT>& experiment, double peptide_threshold_score, double protein_threshold_score)))
 {
   MSExperiment<> experiment;
   vector<PeptideIdentification> ids(1, peptides[0]);
@@ -362,7 +362,7 @@ START_SECTION((template <class PeakT> static void filterIdentificationsByScores(
   experiment[3].setMSLevel(2);
   experiment[3].setPeptideIdentifications(ids);
 
-  IDFilter::filterIdentificationsByScores(experiment, 31.8621, 0);
+  IDFilter::filterHitsByScore(experiment, 31.8621, 0);
   PeptideIdentification& identification = experiment[3].getPeptideIdentifications()[0];
   TEST_EQUAL(identification.getScoreType(), "Mascot")
 
@@ -387,7 +387,7 @@ START_SECTION((template <class PeakT> static void filterIdentificationsByScores(
 }
 END_SECTION
 
-START_SECTION((template <class PeakT> static void filterIdentificationsByBestNHits(MSExperiment<PeakT>& experiment, Size n)))
+START_SECTION((template <class PeakT> static void keepNBestHits(MSExperiment<PeakT>& experiment, Size n)))
 {
   MSExperiment<> experiment;
   vector<PeptideIdentification> ids(1, peptides[0]);
@@ -401,7 +401,7 @@ START_SECTION((template <class PeakT> static void filterIdentificationsByBestNHi
   experiment[3].setMSLevel(2);
   experiment[3].setPeptideIdentifications(ids);
 
-  IDFilter::filterIdentificationsByBestNHits(experiment, 3);
+  IDFilter::keepNBestHits(experiment, 3);
   PeptideIdentification& identification = experiment[3].getPeptideIdentifications()[0];
   TEST_EQUAL(identification.getScoreType(), "Mascot")
 
