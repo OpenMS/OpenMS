@@ -132,7 +132,7 @@ namespace OpenMS
 
         data_all.push_back(std::make_pair(mz, tr->product_mz));
         // regression weight is the log2 intensity
-        weights.push_back( log2(intensity) );
+        weights.push_back( log(intensity) / log(2.0) );
         exp_mz.push_back( mz );
         // y = target = theoretical
         theo_mz.push_back( tr->product_mz );
@@ -141,7 +141,7 @@ namespace OpenMS
         delta_ppm.push_back(diff_ppm);
 
 #ifdef SWATHMAPMASSCORRECTION_DEBUG
-        os << mz << "\t" << tr->product_mz << "\t" << diff_ppm << "\t" << log2(intensity) << "\t" << bestRT << std::endl;
+        os << mz << "\t" << tr->product_mz << "\t" << diff_ppm << "\t" << log(intensity) / log(2.0) << "\t" << bestRT << std::endl;
 #endif
       }
     }
