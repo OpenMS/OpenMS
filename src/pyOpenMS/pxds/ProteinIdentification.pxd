@@ -5,6 +5,7 @@ from String cimport *
 from Types cimport *
 from MetaInfoInterface cimport *
 from ProteinHit cimport *
+from Enzyme cimport *
 from PeptideIdentification cimport *
 from DateTime cimport *
 
