@@ -180,7 +180,6 @@ protected:
     registerTOPPSubsection_("precursor", "Filtering by precursor RT or m/z");
     registerStringOption_("precursor:rt", "[min]:[max]", ":", "Retention time range to extract.", false);
     registerStringOption_("precursor:mz", "[min]:[max]", ":", "Mass-to-charge range to extract.", false);
-    registerFlag_("precursor:allow_missing", "When filtering by precursor RT or m/z, keep peptide IDs with missing precursor information?");
 
     registerTOPPSubsection_("score", "Filtering by peptide/protein score. To enable any of the filters below, just change their default value. All active filters will be applied in order.");
     registerDoubleOption_("score:pep", "<score>", 0, "The score which should be reached by a peptide hit to be kept. The score is dependent on the most recent(!) preprocessing - it could be Mascot scores (if a MascotAdapter was applied before), or an FDR (if FalseDiscoveryRate was applied before), etc.", false);
@@ -190,15 +189,15 @@ protected:
     registerDoubleOption_("thresh:prot", "<fraction>", 0.0, "Keep a protein hit only if its score is above this fraction of the protein significance threshold. Use in combination with 'delete_unreferenced_peptide_hits' to remove affected peptides.", false);
 
     registerTOPPSubsection_("whitelist", "Filtering by whitelisting (only instances also present in a whitelist file can pass)");
-    registerInputFile_("whitelist:proteins", "<file>", "", "filename of a FASTA file containing protein sequences.\n"
-                                                           "All peptides that are not a substring of a sequence in this file are removed\n"
+    registerInputFile_("whitelist:proteins", "<file>", "", "Filename of a FASTA file containing protein sequences.\n"
+                                                           "All peptides that are not referencing a protein in the file are removed.\n"
                                                            "All proteins whose accession is not present in this file are removed.", false);
     setValidFormats_("whitelist:proteins", ListUtils::create<String>("fasta"));
 
     registerStringList_("whitelist:protein_accessions", "<accessions>", ListUtils::create<String>(""), "All peptides that are not referencing at least one of the provided protein accession are removed.\nOnly proteins of the provided list are retained.", false);
 
     registerTOPPSubsection_("blacklist", "Filtering by blacklisting (only instances not present in a blacklist file can pass)");
-    registerInputFile_("blacklist:peptides", "<file>", "", "Peptides having the same sequence and modification assignment as any peptide in this file will be filtered out. Use with blacklist:ignore_modification flag to only compare by sequence.\n", false);
+    registerInputFile_("blacklist:peptides", "<file>", "", "Peptides having the same sequence and modification assignment as any peptide in this file will be filtered out. Use with blacklist:ignore_modifications flag to only compare by sequence.\n", false);
     setValidFormats_("blacklist:peptides", ListUtils::create<String>("idXML"));
     registerFlag_("blacklist:ignore_modifications", "Compare blacklisted peptides by sequence only.\n", false);
 
@@ -210,7 +209,7 @@ protected:
     setMinFloat_("rt:p_value_1st_dim", 0);
     setMaxFloat_("rt:p_value_1st_dim", 1);
 
-    registerTOPPSubsection_("mz", "Filtering by mz");
+    registerTOPPSubsection_("mz", "Filtering by mass error");
     registerDoubleOption_("mz:error", "<float>", -1, "Filtering by deviation to theoretical mass (disabled for negative values).", false);
     registerStringOption_("mz:unit", "<String>", "ppm", "Absolute or relative error.", false);
     setValidStrings_("mz:unit", ListUtils::create<String>("Da,ppm"));
@@ -218,451 +217,310 @@ protected:
     registerTOPPSubsection_("best", "Filtering best hits per spectrum (for peptides) or from proteins");
     registerIntOption_("best:n_peptide_hits", "<integer>", 0, "Keep only the 'n' highest scoring peptide hits per spectrum (for n>0).", false);
     setMinInt_("best:n_peptide_hits", 0);
-    registerIntOption_("best:n_protein_hits", "<integer>", 0, "Keep only the 'n' highest scoring protein hits (for n>0).", false);
+    registerIntOption_("best:n_protein_hits", "<integer>", 0, "Keep only the 'n' highest scoring protein hits (for n > 0).", false);
     setMinInt_("best:n_protein_hits", 0);
     registerFlag_("best:strict", "Keep only the highest scoring peptide hit.\n"
                                  "Similar to n_peptide_hits=1, but if there are two or more highest scoring hits, none are kept.");
     registerStringOption_("best:n_to_m_peptide_hits", "[min]:[max]", ":", "peptide hit rank range to extracts", false, true);
-    registerIntOption_("min_length", "<integer>", 0, "Keep only peptide hits with a length greater or equal this value. Value 0 will have no filter effect.", false);
-    setMinInt_("min_length", 0);
-    registerIntOption_("max_length", "<integer>", 0, "Keep only peptide hits with a length less or equal this value. Value 0 will have no filter effect. Value is overridden by min_length, i.e. if max_length < min_length, max_length will be ignored.", false);
-    setMinInt_("max_length", 0);
-    registerIntOption_("min_charge", "<integer>", 1, "Keep only peptide hits for tandem spectra with charge greater or equal this value.", false);
-    setMinInt_("min_charge", 1);
+
+    registerStringOption_("length", "[min]:[max]", ":", "Keep only peptide hits with a sequence length in this range.", false);
+
+    registerStringOption_("charge", "[min]:[max]", ":", "Keep only peptide hits with charge states in this range.", false);
+
     registerFlag_("var_mods", "Keep only peptide hits with variable modifications (fixed modifications from SearchParameters will be ignored).", false);
 
-    registerFlag_("unique", "If a peptide hit occurs more than once per PSM, only one instance is kept.");
+    registerFlag_("unique", "If a peptide hit occurs more than once per peptide ID, only one instance is kept.");
     registerFlag_("unique_per_protein", "Only peptides matching exactly one protein are kept. Remember that isoforms count as different proteins!");
     registerFlag_("keep_unreferenced_protein_hits", "Proteins not referenced by a peptide are retained in the ids.");
     registerFlag_("remove_decoys", "Remove proteins according to the information in the user parameters. Usually used in combination with 'delete_unreferenced_peptide_hits'.");
-    registerFlag_("delete_unreferenced_peptide_hits", "Peptides not referenced by any protein are deleted in the ids. Usually used in combination with 'score:prot' or 'thresh:prot'.");
+    registerFlag_("delete_unreferenced_peptide_hits", "Peptides not referenced by any protein are deleted in the IDs. Usually used in combination with 'score:prot' or 'thresh:prot'.");
 
   }
 
 
   ExitCodes main_(int, const char**)
   {
-
-    //-------------------------------------------------------------
-    // variables
-    //-------------------------------------------------------------
-
-    IdXMLFile idXML_file;
-    vector<ProteinIdentification> protein_identifications;
-    vector<PeptideIdentification> identifications;
-    vector<PeptideIdentification> identifications_exclusion;
-    vector<PeptideIdentification> filtered_peptide_identifications;
-    vector<ProteinIdentification> filtered_protein_identifications;
-    PeptideIdentification filtered_identification;
-    ProteinIdentification filtered_protein_identification;
-    vector<FASTAFile::FASTAEntry> sequences;
-    set<String> exclusion_peptides;
-
-
-    //-------------------------------------------------------------
-    // parsing parameters
-    //-------------------------------------------------------------
-
     String inputfile_name = getStringOption_("in");
     String outputfile_name = getStringOption_("out");
 
-    double peptide_significance_threshold_fraction = getDoubleOption_("thresh:pep");
-    double protein_significance_threshold_fraction = getDoubleOption_("thresh:prot");
-    double peptide_threshold_score = getDoubleOption_("score:pep");
-    double protein_threshold_score = getDoubleOption_("score:prot");
+    vector<ProteinIdentification> proteins;
+    vector<PeptideIdentification> peptides;
+    IdXMLFile().load(inputfile_name, proteins, peptides);
 
-    Int best_n_peptide_hits = getIntOption_("best:n_peptide_hits");
-    Int best_n_protein_hits = getIntOption_("best:n_protein_hits");
+    Size n_prot_ids = proteins.size();
+    Size n_prot_hits = IDFilter::countHits(proteins);
+    Size n_pep_ids = peptides.size();
+    Size n_pep_hits = IDFilter::countHits(peptides);
 
-    Int best_n_to_m_peptide_hits_n = 0;
-    Int best_n_to_m_peptide_hits_m = numeric_limits<Int>::max();
 
-    const double double_max = numeric_limits<double>::max();
-    double rt_low, rt_high, mz_low, mz_high;
-    rt_high = mz_high = double_max;
-    rt_low = mz_low = -double_max;
+    // Filtering peptide identification according to set criteria
 
-    //convert bounds to numbers
-    try
+    double rt_high = numeric_limits<double>::infinity(), rt_low = -rt_high;
+    if (parseRange_(getStringOption_("precursor:rt"), rt_low, rt_high))
     {
-      parseRange_(getStringOption_("best:n_to_m_peptide_hits"), best_n_to_m_peptide_hits_n, best_n_to_m_peptide_hits_m);
-      parseRange_(getStringOption_("precursor:rt"), rt_low, rt_high);
-      parseRange_(getStringOption_("precursor:mz"), mz_low, mz_high);
-    }
-    catch (Exception::ConversionError& ce)
-    {
-      writeLog_(String("Invalid boundary given: ") + ce.what() + ". Aborting!");
-      printUsage_();
-      return ILLEGAL_PARAMETERS;
+      LOG_INFO << "Filtering peptide IDs by precursor RT..." << endl;
+      IDFilter::filterPeptidesByRT(peptides, rt_low, rt_high);
     }
 
-    // bool precursor_missing = getFlag_("precursor:allow_missing");
-    bool best_strict = getFlag_("best:strict");
-    UInt min_length = getIntOption_("min_length");
-    UInt max_length = getIntOption_("max_length");
-    UInt min_charge = getIntOption_("min_charge");
+    double mz_high = numeric_limits<double>::infinity(), mz_low = -mz_high;
+    if (parseRange_(getStringOption_("precursor:mz"), mz_low, mz_high))
+    {
+      LOG_INFO << "Filtering peptide IDs by precursor m/z...";
+      IDFilter::filterPeptidesByMZ(peptides, mz_low, mz_high);
+    }
 
-    bool var_mods = getFlag_("var_mods");
 
-    String sequences_file_name = getStringOption_("whitelist:proteins").trim();
+    // Filtering peptide hits according to set criteria
 
-    StringList protein_accessions = getStringList_("whitelist:protein_accessions");
+    if (getFlag_("unique"))
+    {
+      LOG_INFO << "Filtering by removing duplicate peptide hits..." << endl;
+      IDFilter::removeDuplicatePeptideHits(peptides);
+    }
 
-    String exclusion_peptides_file_name = getStringOption_("blacklist:peptides").trim();
-    bool exlusion_peptides_ignore_modifications = getFlag_("blacklist:ignore_modifications");
+    if (getFlag_("unique_per_protein"))
+    {
+      LOG_INFO << "Filtering peptides by unique match to a protein..." << endl;
+      IDFilter::keepUniquePeptidesPerProtein(peptides);
+    }
 
-    double pv_rt_filtering = getDoubleOption_("rt:p_value");
-    double pv_rt_filtering_1st_dim = getDoubleOption_("rt:p_value_1st_dim");
+    double peptide_significance = getDoubleOption_("thresh:pep");
+    if (peptide_significance > 0)
+    {
+      LOG_INFO << "Filtering by peptide significance threshold..." << endl;
+      IDFilter::filterHitsBySignificance(peptides, peptide_significance);
+    }
 
-    bool unique = getFlag_("unique");
-    bool unique_per_protein = getFlag_("unique_per_protein");
+    double pred_rt_pv = getDoubleOption_("rt:p_value");
+    if (pred_rt_pv > 0)
+    {
+      LOG_INFO << "Filtering by RT prediction p-value..." << endl;
+      IDFilter::filterPeptidesByRTPredictPValue(
+        peptides, "predicted_RT_p_value", pred_rt_pv);
+    }
 
-    bool keep_unreferenced_protein_hits = getFlag_("keep_unreferenced_protein_hits");
-    bool delete_unreferenced_peptide_hits = getFlag_("delete_unreferenced_peptide_hits");
+    double pred_rt_pv_1d = getDoubleOption_("rt:p_value_1st_dim");
+    if (pred_rt_pv_1d > 0)
+    {
+      LOG_INFO << "Filtering by RT prediction p-value (first dim.)..." << endl;
+      IDFilter::filterPeptidesByRTPredictPValue(
+        peptides, "predicted_RT_p_value_first_dim", pred_rt_pv_1d);
+    }
+
+    String fasta_name = getStringOption_("whitelist:proteins").trim();
+    if (!fasta_name.empty())
+    {
+      LOG_INFO << "Filtering by protein whitelisting (FASTA input)..." << endl;
+      // load protein accessions from FASTA file:
+      vector<FASTAFile::FASTAEntry> fasta;
+      FASTAFile().load(fasta_name, fasta);
+      set<String> accessions;
+      for (vector<FASTAFile::FASTAEntry>::iterator it = fasta.begin();
+           it != fasta.end(); ++it)
+      {
+        accessions.insert(it->identifier);
+      }
+      IDFilter::keepHitsMatchingProteins(peptides, accessions);
+      IDFilter::keepHitsMatchingProteins(proteins, accessions);
+    }
+
+    vector<String> whitelist_accessions = 
+      getStringList_("whitelist:protein_accessions");
+    if (!whitelist_accessions.empty())
+    {
+      LOG_INFO << "Filtering by protein whitelisting (accessions input)..."
+               << endl;
+      set<String> accessions(whitelist_accessions.begin(), 
+                             whitelist_accessions.end());
+      IDFilter::keepHitsMatchingProteins(peptides, accessions);
+      IDFilter::keepHitsMatchingProteins(proteins, accessions);
+    }
+
+    String blacklist_name = getStringOption_("blacklist:peptides").trim();
+    if (!blacklist_name.empty())
+    {
+      LOG_INFO << "Filtering by exclusion peptide blacklisting..." << endl;
+      vector<PeptideIdentification> exclusion_peptides;
+      vector<ProteinIdentification> exclusion_proteins; // ignored
+      IdXMLFile().load(blacklist_name, exclusion_proteins, exclusion_peptides);
+      bool ignore_mods = getFlag_("blacklist:ignore_modifications");
+      IDFilter::removePeptidesWithMatchingSequences(
+        peptides, exclusion_peptides, ignore_mods);
+    }
+
+    if (getFlag_("best:strict"))
+    {
+      LOG_INFO << "Filtering by best peptide hits..." << endl;
+      IDFilter::keepBestPeptideHits(peptides, true);
+    }
+
+    Int min_length = 0, max_length = 0;
+    if (parseRange_(getStringOption_("length"), min_length, max_length))
+    {
+      LOG_INFO << "Filtering by peptide length..." << endl;
+      if ((min_length < 0) || (max_length < 0))
+      {
+        LOG_ERROR << "Fatal error: negative values are not allowed for parameter 'length'" << endl;
+        return ILLEGAL_PARAMETERS;
+      }
+      IDFilter::filterPeptidesByLength(peptides, Size(min_length),
+                                       Size(max_length));
+    }
+
+    // vector<String> mods = getStringList_("modifications");
+    // if (!mods.empty())
+    // {
+    //   set<String> good_mods(mods.begin(), mods.end());
+    //   IDFilter::keepPeptidesWithMatchingModifications(peptides, good_mods);
+    // }
+
+    if (getFlag_("var_mods"))
+    {
+      LOG_INFO << "Filtering for variable modifications..." << endl;
+      // gather possible variable modifications from search parameters:
+      set<String> var_mods;
+      for (vector<ProteinIdentification>::iterator prot_it = proteins.begin();
+           prot_it != proteins.end(); ++prot_it)
+      {
+        const ProteinIdentification::SearchParameters& params =
+          prot_it->getSearchParameters();
+        for (vector<String>::const_iterator mod_it =
+               params.variable_modifications.begin(); mod_it != 
+               params.variable_modifications.end(); ++mod_it)
+        {
+          var_mods.insert(*mod_it);
+        }
+      }
+      IDFilter::keepPeptidesWithMatchingModifications(peptides, var_mods);
+    }
+
+    double pep_score = getDoubleOption_("score:pep");
+    // @TODO: what if 0 is a reasonable cut-off for some score?
+    if (pep_score != 0)
+    {
+      LOG_INFO << "Filtering by peptide score..." << endl;
+      IDFilter::filterHitsByScore(peptides, pep_score);
+    }
+
+    Int min_charge = numeric_limits<Int>::min(), max_charge = 
+      numeric_limits<Int>::max();
+    if (parseRange_(getStringOption_("charge"), min_charge, max_charge))
+    {
+      LOG_INFO << "Filtering by peptide charge..." << endl;
+      IDFilter::filterPeptidesByCharge(peptides, min_charge, max_charge);
+    }
+
+    Size best_n_pep = getIntOption_("best:n_peptide_hits");
+    if (best_n_pep > 0)
+    {
+      LOG_INFO << "Filtering by best n peptide hits...\n" << endl;
+      IDFilter::keepNBestHits(peptides, best_n_pep);
+    }
+
+    Int min_rank = 0, max_rank = 0;
+    if (parseRange_(getStringOption_("best:n_to_m_peptide_hits"), min_rank,
+                    max_rank))
+    {
+      LOG_INFO << "Filtering by peptide hit ranks..." << endl;
+      if ((min_rank < 0) || (max_rank < 0))
+      {
+        LOG_ERROR << "Fatal error: negative values are not allowed for parameter 'best:n_to_m_peptide_hits'" << endl;
+        return ILLEGAL_PARAMETERS;
+      }
+      IDFilter::filterHitsByRank(peptides, Size(min_rank), Size(max_rank));
+    }
 
     double mz_error = getDoubleOption_("mz:error");
-    bool mz_error_filtering = (mz_error < 0) ? false : true;
-    bool mz_error_unit_ppm = (getStringOption_("mz:unit") == "ppm") ? true : false;
-
-    bool remove_decoys = getFlag_("remove_decoys");
-
-    //-------------------------------------------------------------
-    // reading input
-    //-------------------------------------------------------------
-    if (sequences_file_name != "")
+    if (mz_error > 0)
     {
-      FASTAFile().load(sequences_file_name, sequences);
+      LOG_INFO << "Filtering by mass error..." << endl;
+      bool unit_ppm = (getStringOption_("mz:unit") == "ppm");
+      IDFilter::filterPeptidesByMZError(peptides, mz_error, unit_ppm);
     }
 
-    // preprocessing
-    if (exclusion_peptides_file_name  != "")
-    {
-      String document_id;
-      IdXMLFile().load(exclusion_peptides_file_name, protein_identifications, identifications_exclusion, document_id);
-      for (Size i = 0; i < identifications_exclusion.size(); i++)
-      {
-        for (vector<PeptideHit>::const_iterator it = identifications_exclusion[i].getHits().begin();
-             it != identifications_exclusion[i].getHits().end();
-             ++it)
-        {
-          if (exlusion_peptides_ignore_modifications)
-          {
-            exclusion_peptides.insert(it->getSequence().toUnmodifiedString());
-          }
-          else
-          {
-            exclusion_peptides.insert(it->getSequence().toString());
-          }
-        }
-      }
-    }
-    String document_id;
-
-    IdXMLFile().load(inputfile_name, protein_identifications, identifications, document_id);
-
-    //-------------------------------------------------------------
-    // calculations
-    //-------------------------------------------------------------
-
-    set<String> applied_filters;
-    // set<String> fasta_accessions; // for filtering by protein accession
-
-    // Filtering peptide identification according to set criteria
-    if ((rt_high < double_max) || (rt_low > -double_max))
-    {
-      std::vector<PeptideIdentification> tmp;
-      applied_filters.insert("Filtering by precursor RT ...\n");
-      IDFilter::filterIdentificationsByRT(identifications, rt_low, rt_high, tmp);
-      identifications.swap(tmp);
-    }
-
-    if ((mz_high < double_max) || (mz_low > -double_max))
-    {
-      std::vector<PeptideIdentification> tmp;
-      applied_filters.insert("Filtering by precursor MZ ...\n");
-      IDFilter::filterIdentificationsByMZ(identifications, mz_low, mz_high, tmp);
-      identifications.swap(tmp);
-    }
-
-    // Filtering peptide identification according to set criteria
-    for (Size i = 0; i < identifications.size(); ++i)
-    {
-      if (unique_per_protein)
-      {
-        applied_filters.insert("Filtering unique per proteins ...\n");
-        vector<PeptideHit> hits;
-        for (vector<PeptideHit>::const_iterator it = identifications[i].getHits().begin(); it != identifications[i].getHits().end(); ++it)
-        {
-          if (!it->metaValueExists("protein_references"))
-          {
-            LOG_ERROR << "Error: Filtering with 'unique_per_protein' can only be done after indexing the file with 'PeptideIndexer'." << std::endl;
-            return INCOMPATIBLE_INPUT_DATA;
-          }
-          else if ((String)it->getMetaValue("protein_references") == "unique")
-          {
-            hits.push_back(*it);
-          }
-        }
-        identifications[i].setHits(hits);
-      }
-
-      if (fabs(peptide_significance_threshold_fraction - 0) < 0.00001)
-      {
-        filtered_identification = identifications[i];
-      }
-      else
-      {
-        IDFilter::filterIdentificationsByThreshold(identifications[i], peptide_significance_threshold_fraction, filtered_identification);
-        applied_filters.insert("Filtering by peptide significance threshold ...\n");
-      }
-
-      if (sequences_file_name != "")
-      {
-        applied_filters.insert("Filtering by peptide sequence whitelisting ...\n");
-        PeptideIdentification temp_identification = filtered_identification;
-        // if (fasta_accessions.empty()) // first time
-        // {
-        //   for (vector<FASTAFile::FASTAEntry>::const_iterator it =
-        //          sequences.begin(); it != sequences.end(); ++it)
-        //   {
-        //     fasta_accessions.insert(it->identifier);
-        //   }
-        // }
-        // IDFilter::filterIdentificationsByProteins(temp_identification, fasta_accessions, filtered_identification);
-        IDFilter::filterIdentificationsByProteins(temp_identification, sequences, filtered_identification);
-      }
-
-      if (!protein_accessions.empty())
-      {
-        applied_filters.insert("Filtering by protein accession whitelisting ...\n");
-        PeptideIdentification temp_identification = filtered_identification;
-        IDFilter::filterIdentificationsByProteinAccessions(temp_identification, protein_accessions, filtered_identification);
-      }
-
-      if (pv_rt_filtering > 0)
-      {
-        applied_filters.insert("Filtering by RT p-value ...\n");
-        PeptideIdentification temp_identification = filtered_identification;
-        IDFilter::filterIdentificationsByRTPValues(temp_identification, filtered_identification, pv_rt_filtering);
-      }
-
-      if (pv_rt_filtering_1st_dim > 0)
-      {
-        applied_filters.insert("Filtering by RT p-value (first dimension) ...\n");
-        PeptideIdentification temp_identification = filtered_identification;
-        IDFilter::filterIdentificationsByRTFirstDimPValues(temp_identification, filtered_identification, pv_rt_filtering_1st_dim);
-      }
-
-      if (exclusion_peptides_file_name != "")
-      {
-        applied_filters.insert("Filtering by exclusion peptide blacklisting ...\n");
-        PeptideIdentification temp_identification = filtered_identification;
-        IDFilter::filterIdentificationsByExclusionPeptides(temp_identification, exclusion_peptides, exlusion_peptides_ignore_modifications, filtered_identification);
-      }
-
-      if (unique)
-      {
-        applied_filters.insert("Filtering by unique peptide ...\n");
-        PeptideIdentification temp_identification = filtered_identification;
-        IDFilter::filterIdentificationsUnique(temp_identification, filtered_identification);
-      }
-
-      if (best_strict)
-      {
-        applied_filters.insert("Filtering by best hits only ...\n");
-        PeptideIdentification temp_identification = filtered_identification;
-        IDFilter::filterIdentificationsByBestHits(temp_identification, filtered_identification, true);
-      }
-
-      if (min_length > 0 || max_length > 0)
-      {
-        applied_filters.insert(String("Filtering peptide length [lower bound, upper bound]") +  min_length + " , " + max_length + "...\n");
-        PeptideIdentification temp_identification = filtered_identification;
-        IDFilter::filterIdentificationsByLength(temp_identification, filtered_identification, min_length, max_length);
-      }
-
-      if (var_mods)
-      {
-        // determine fixed modifications to distinguish variable modifications
-        vector<ProteinIdentification::SearchParameters> search_params;
-        vector<String> fixed_modifications;
-        for (vector<ProteinIdentification>::const_iterator it = protein_identifications.begin(); it != protein_identifications.end(); ++it)
-        {
-          if (find(search_params.begin(), search_params.end(), it->getSearchParameters()) == search_params.end())
-          {
-            search_params.push_back(it->getSearchParameters());
-          }
-        }
-        for (Size j = 0; j != search_params.size(); ++j)
-        {
-          for (Size k = 0; k != search_params[i].fixed_modifications.size(); ++k)
-          {
-            fixed_modifications.push_back(search_params[j].fixed_modifications[k]);
-          }
-        }
-
-        applied_filters.insert(String("Filtering for variable modifications") +  "...\n");
-        PeptideIdentification temp_identification = filtered_identification;
-        IDFilter::filterIdentificationsByVariableModifications(temp_identification, fixed_modifications, filtered_identification);
-      }
-
-      if (peptide_threshold_score != 0)
-      {
-        applied_filters.insert(String("Filtering by peptide score < (or >) ") + peptide_threshold_score + " ...\n");
-        PeptideIdentification temp_identification = filtered_identification;
-        IDFilter::filterIdentificationsByScore(temp_identification, peptide_threshold_score, filtered_identification);
-      }
-
-      if (min_charge > 1)
-      {
-        applied_filters.insert(String("Filtering by charge > ") + min_charge + " ...\n");
-        PeptideIdentification temp_identification = filtered_identification;
-        IDFilter::filterIdentificationsByCharge(temp_identification, min_charge, filtered_identification);
-      }
-
-      if (best_n_peptide_hits != 0)
-      {
-        applied_filters.insert("Filtering by best n peptide hits ...\n");
-        PeptideIdentification temp_identification = filtered_identification;
-        IDFilter::filterIdentificationsByBestNHits(temp_identification, best_n_peptide_hits, filtered_identification);
-      }
-
-      if (best_n_to_m_peptide_hits_m != numeric_limits<Int>::max() || best_n_to_m_peptide_hits_n != 0)
-      {
-        applied_filters.insert("Filtering by best n to m peptide hits ...\n");
-        PeptideIdentification temp_identification = filtered_identification;
-        IDFilter::filterIdentificationsByBestNToMHits(temp_identification, best_n_to_m_peptide_hits_n, best_n_to_m_peptide_hits_m, filtered_identification);
-      }
-
-      if (mz_error_filtering)
-      {
-        applied_filters.insert("Filtering by mass error ...\n");
-        PeptideIdentification temp_identification = filtered_identification;
-        IDFilter::filterIdentificationsByMzError(temp_identification, mz_error, mz_error_unit_ppm, filtered_identification);
-      }
-
-      if (!filtered_identification.getHits().empty())
-      {
-        filtered_identification.setRT(identifications[i].getRT());
-        filtered_identification.setMZ(identifications[i].getMZ());
-        filtered_peptide_identifications.push_back(filtered_identification);
-      }
-
-    }
 
     // Filtering protein identifications according to set criteria
     
-    for (Size i = 0; i < protein_identifications.size(); i++)
+    double protein_significance = getDoubleOption_("thresh:prot");
+    if (protein_significance > 0)
     {
-      if (!protein_identifications[i].getHits().empty())
-      {
-        if (protein_significance_threshold_fraction == 0)
-        {
-          filtered_protein_identification = protein_identifications[i];
-        }
-        else
-        {
-          applied_filters.insert(String("Filtering by protein significance threshold fraction of ") + protein_significance_threshold_fraction + " ...\n");
-          IDFilter::filterIdentificationsByThreshold(protein_identifications[i], protein_significance_threshold_fraction, filtered_protein_identification);
-        }
-
-        if (sequences_file_name != "")
-        {
-          applied_filters.insert("Filtering by whitelisting protein accession from FASTA file ...\n");
-          ProteinIdentification temp_identification = filtered_protein_identification;
-          IDFilter::filterIdentificationsByProteins(temp_identification, sequences, filtered_protein_identification);
-        }
-
-        if (!protein_accessions.empty())
-        {
-          applied_filters.insert("Filtering of proteins by protein accession whitelisting ...\n");
-          ProteinIdentification temp_identification = filtered_protein_identification;
-          IDFilter::filterIdentificationsByProteinAccessions(temp_identification, protein_accessions, filtered_protein_identification);
-        }
-
-        if (protein_threshold_score != 0)
-        {
-          applied_filters.insert(String("Filtering by protein score > ") + protein_threshold_score + " ...\n");
-          ProteinIdentification temp_identification = filtered_protein_identification;
-          IDFilter::filterIdentificationsByScore(temp_identification, protein_threshold_score, filtered_protein_identification);
-        }
-
-        if (best_n_protein_hits > 0)
-        {
-          applied_filters.insert("Filtering by best n protein hits ...\n");
-          ProteinIdentification temp_identification = filtered_protein_identification;
-          IDFilter::filterIdentificationsByBestNHits(temp_identification, best_n_protein_hits, filtered_protein_identification);
-        }
-        
-        if (remove_decoys)
-        {
-          applied_filters.insert("Filtering decoy proteins ...\n");
-          ProteinIdentification temp_identification = filtered_protein_identification;
-          IDFilter::filterIdentificationsByDecoy(temp_identification, filtered_protein_identification);
-        }
-
-        
-        // Clean-up references!
-        
-        if (!keep_unreferenced_protein_hits)
-        {
-          applied_filters.insert("Filtering unreferenced protein hits ...\n");
-          ProteinIdentification temp_identification = filtered_protein_identification;
-          IDFilter::removeUnreferencedProteinHits(temp_identification, filtered_peptide_identifications, filtered_protein_identification);
-        }
-
-        // remove non-existant protein references from peptides (and optionally: remove peptides with no proteins)
-        IDFilter::removeUnreferencedPeptideHits(filtered_protein_identification, filtered_peptide_identifications, delete_unreferenced_peptide_hits);
-
-        // update groupings if necessary:
-        if (!filtered_protein_identification.getProteinGroups().empty())
-        {
-          vector<ProteinIdentification::ProteinGroup> filtered_groups;
-          bool valid = IDFilter::updateProteinGroups(filtered_protein_identification.getProteinGroups(), filtered_protein_identification.getHits(), filtered_groups);
-          if (!valid)
-          {
-            writeLog_("Warning: While updating protein groups, some proteins were removed from groups that are still present. The new grouping (especially the group probabilities) may not be completely valid any more.");
-          }
-          filtered_protein_identification.getProteinGroups() = filtered_groups; // this may be unnecessary (if nothing changed)
-        }
-        if (!filtered_protein_identification.getIndistinguishableProteins().empty())
-        {
-          vector<ProteinIdentification::ProteinGroup> filtered_groups;
-          bool valid = IDFilter::updateProteinGroups(filtered_protein_identification.getIndistinguishableProteins(), filtered_protein_identification.getHits(), filtered_groups);
-          if (!valid)
-          {
-            writeLog_("Warning: While updating indistinguishable proteins, some proteins were removed from groups that are still present. The new grouping (especially the group probabilities) may not be completely valid any more.");
-          }
-          filtered_protein_identification.getIndistinguishableProteins() = filtered_groups; // this may be unnecessary (if nothing changed)
-        }
-
-        // might have empty proteinHits
-        filtered_protein_identifications.push_back(filtered_protein_identification);
-      }
-      else
-      {
-        // copy the identifiers to the filtered protein ids
-        filtered_protein_identifications.push_back(protein_identifications[i]);
-      }
+      LOG_INFO << "Filtering by protein significance threshold..." << endl;
+      IDFilter::filterHitsBySignificance(proteins, protein_significance);
     }
 
-    // print the filters used:
-    for (std::set<String>::const_iterator it = applied_filters.begin(); it != applied_filters.end(); ++it)
+    double prot_score = getDoubleOption_("score:prot");
+    // @TODO: what if 0 is a reasonable cut-off for some score?
+    if (prot_score != 0)
     {
-      LOG_INFO << *it;
+      LOG_INFO << "Filtering by protein score..." << endl;
+      IDFilter::filterHitsByScore(proteins, prot_score);
+    }
+
+    Size best_n_prot = getIntOption_("best:n_protein_hits");
+    if (best_n_prot > 0)
+    {
+      LOG_INFO << "Filtering by best n protein hits...\n" << endl;
+      IDFilter::keepNBestHits(proteins, best_n_prot);
+    }
+        
+    if (getFlag_("remove_decoys"))
+    {
+      IDFilter::removeDecoyHits(peptides);
+      IDFilter::removeDecoyHits(proteins);
+    }
+
+
+    // Clean-up:
+
+    if (!getFlag_("keep_unreferenced_protein_hits"))
+    {
+      LOG_INFO << "Filtering unreferenced protein hits..." << endl;
+      IDFilter::removeUnreferencedProteins(proteins, peptides);
+    }
+
+    IDFilter::updateHitRanks(proteins);
+    IDFilter::updateHitRanks(peptides);
+
+    // remove non-existant protein references from peptides (and optionally:
+    // remove peptides with no proteins):
+    bool rm_pep = getFlag_("delete_unreferenced_peptide_hits");
+    IDFilter::updateProteinReferences(peptides, proteins, rm_pep);
+
+    IDFilter::removeEmptyIdentifications(peptides);
+    // we want to keep "empty" protein IDs because they contain search meta data
+
+    // update protein groupings if necessary:
+    for (vector<ProteinIdentification>::iterator prot_it = proteins.begin();
+         prot_it != proteins.end(); ++prot_it)
+    {
+      bool valid = IDFilter::updateProteinGroups(prot_it->getProteinGroups(),
+                                                 prot_it->getHits());
+      if (!valid)
+      {
+        LOG_WARN << "Warning: While updating protein groups, some proteins were removed from groups that are still present. The new grouping (especially the group probabilities) may not be completely valid any more." << endl;
+      }
+
+      valid = IDFilter::updateProteinGroups(
+        prot_it->getIndistinguishableProteins(), prot_it->getHits());
+      if (!valid)
+      {
+        LOG_WARN << "Warning: While updating indistinguishable proteins, some proteins were removed from groups that are still present. The new grouping (especially the group probabilities) may not be completely valid any more." << endl;
+      }
     }
 
     // some stats
-    LOG_INFO << "Peptide identifications remaining: " << filtered_peptide_identifications.size() << " / " << identifications.size() << "\n";
-    LOG_INFO << "Protein identifications remaining: ";
-    if (filtered_protein_identifications.size() == 0) LOG_INFO << "0 / 0";
-    else LOG_INFO << filtered_protein_identifications[0].getHits().size() << " / " << protein_identifications[0].getHits().size();
-    LOG_INFO << std::endl;
-    
-    //-------------------------------------------------------------
-    // writing output
-    //-------------------------------------------------------------
-    IdXMLFile().store(outputfile_name, filtered_protein_identifications, filtered_peptide_identifications);
+    LOG_INFO << "Before filtering:\n"
+             << n_prot_ids << " protein identification(s) with "
+             << n_prot_hits << " protein hit(s),\n"
+             << n_pep_ids << " peptide identification(s) with "
+             << n_pep_hits << " peptides hit(s).\n"
+             << "After filtering:\n"
+             << proteins.size() << " protein identification(s) with "
+             << IDFilter::countHits(proteins) << " protein hit(s),\n"
+             << peptides.size() << " peptide identification(s) with "
+             << IDFilter::countHits(peptides) << " peptides hit(s)." << endl;
+
+    IdXMLFile().store(outputfile_name, proteins, peptides);
 
     return EXECUTION_OK;
   }
