@@ -450,15 +450,8 @@ class SimpleSearchEngine :
         }
       }
 
-      IDFilter filter;
-
       // only store top n hits
-      for (vector<PeptideIdentification>::iterator pids_it = peptide_ids.begin(); pids_it != peptide_ids.end(); ++pids_it)
-      {
-        PeptideIdentification& pi = *pids_it;
-        PeptideIdentification temp_identification = pi;
-        filter.filterIdentificationsByBestNHits(temp_identification, top_hits, pi);
-      }
+      IDFilter::keepNBestHits(peptide_ids, top_hits);
 
       // protein identifications (leave as is...)
       protein_ids = vector<ProteinIdentification>(1);
