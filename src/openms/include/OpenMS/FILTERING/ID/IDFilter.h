@@ -36,7 +36,7 @@
 #define OPENMS_FILTERING_ID_IDFILTER_H
 
 #include <OpenMS/config.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
@@ -44,21 +44,28 @@
 #include <algorithm>
 #include <climits>
 #include <functional>
-#include <vector>
 
 namespace OpenMS
 {
   /**
-    @brief Used to filter identifications by different criteria.
+    @brief Collection of functions for filtering peptide and protein identifications.
 
-    The identifications are filtered by significance thresholds and
-    by sequences. The filtering by significance thresholds looks for the
-    best ProteinIdentification that fulfills the significance threshold criterion.
-    score > significance-threshold * significance_fraction.
-    The filtering by sequences looks for the best ProteinIdentification that
-    is contained in one of the protein sequences.
+    This class provides functions for filtering collections of peptide or protein identifications according to various criteria.
+    It also contains helper functions and classes (functors that implement predicates) that are used in this context.
 
-    TODO: fix design of filter functions. There will be an error e.g. if input and output points to the same PeptideIdentification.
+    The filter functions modify their inputs, rather than creating filtered copies.
+
+    Most filters work on the hit level, i.e. they remove peptide or protein hits from peptide or protein identifications (IDs).
+    A few filters work on the ID level instead, i.e. they remove peptide or protein IDs from vectors thereof.
+    Independent of this, the inputs for all filter functions are vectors of IDs, because the data most often comes in this form.
+    This design also allows many helper objects to be set up only once per vector, rather than once per ID.
+
+    The filter functions for vectors of peptide/protein IDs do not include clean-up steps (e.g. removal of IDs without hits, reassignment of hit ranks, ...).
+    They only carry out their specific filtering operations.
+    This is so filters can be chained without having to repeat clean-up operations.
+    The group of clean-up functions provides helpers that are useful to ensure data integrity after filters have been applied, but it is up to the individual developer to use them when necessary.
+
+    The filter functions for MS/MS experiments do include clean-up steps, because they filter peptide and protein IDs in conjunction and potential contradictions between the two must be eliminated.
   */
   class OPENMS_DLLAPI IDFilter
   {
