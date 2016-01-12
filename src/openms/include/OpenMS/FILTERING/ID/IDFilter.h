@@ -396,7 +396,7 @@ public:
     */
     static void extractPeptideSequences(
       const std::vector<PeptideIdentification>& peptides, 
-      std::set<String>& sequences, bool ignore_mods);
+      std::set<String>& sequences, bool ignore_mods = false);
 
     ///@}
 
@@ -666,7 +666,8 @@ public:
     */
     static void removePeptidesWithMatchingSequences(
       std::vector<PeptideIdentification>& peptides,
-      const std::vector<PeptideIdentification>& bad_peptides, bool ignore_mods);
+      const std::vector<PeptideIdentification>& bad_peptides,
+      bool ignore_mods = false);
 
    /// Removes all peptides that are not annotated as unique for a protein (by PeptideIndexer)
     static void keepUniquePeptidesPerProtein(std::vector<PeptideIdentification>&
@@ -686,31 +687,6 @@ public:
     /// @name Filter functions for MS/MS experiments
     ///@{
 
-    /// Filters an MS/MS experiment according to fractions of the significance thresholds
-    template <class PeakT>
-    static void filterHitsBySignificance(MSExperiment<PeakT>& experiment,
-                                         double peptide_threshold_fraction,
-                                         double protein_threshold_fraction)
-    {
-      // filter protein hits:
-      filterHitsBySignificance(experiment.getProteinIdentifications(),
-                               protein_threshold_fraction);
-      // don't remove empty protein IDs - they contain search meta data and may
-      // be referenced by peptide IDs (via run ID)
-
-      // filter peptide hits:
-      for (typename MSExperiment<PeakT>::Iterator exp_it = experiment.begin();
-           exp_it != experiment.end(); ++exp_it)
-      {
-        filterHitsBySignificance(exp_it->getPeptideIdentifications(),
-                                 peptide_threshold_fraction);
-        removeEmptyIdentifications(exp_it->getPeptideIdentifications());
-        updateProteinReferences(exp_it->getPeptideIdentifications(), 
-                                experiment.getProteinIdentifications());
-      }
-      // @TODO: remove proteins that aren't referenced by peptides any more?
-    }
-
     /// Filters an MS/MS experiment according to score thresholds
     template <class PeakT>
     static void filterHitsByScore(MSExperiment<PeakT>& experiment,
@@ -729,6 +705,31 @@ public:
       {
         filterHitsByScore(exp_it->getPeptideIdentifications(), 
                           peptide_threshold_score);
+        removeEmptyIdentifications(exp_it->getPeptideIdentifications());
+        updateProteinReferences(exp_it->getPeptideIdentifications(), 
+                                experiment.getProteinIdentifications());
+      }
+      // @TODO: remove proteins that aren't referenced by peptides any more?
+    }
+
+    /// Filters an MS/MS experiment according to fractions of the significance thresholds
+    template <class PeakT>
+    static void filterHitsBySignificance(MSExperiment<PeakT>& experiment,
+                                         double peptide_threshold_fraction,
+                                         double protein_threshold_fraction)
+    {
+      // filter protein hits:
+      filterHitsBySignificance(experiment.getProteinIdentifications(),
+                               protein_threshold_fraction);
+      // don't remove empty protein IDs - they contain search meta data and may
+      // be referenced by peptide IDs (via run ID)
+
+      // filter peptide hits:
+      for (typename MSExperiment<PeakT>::Iterator exp_it = experiment.begin();
+           exp_it != experiment.end(); ++exp_it)
+      {
+        filterHitsBySignificance(exp_it->getPeptideIdentifications(),
+                                 peptide_threshold_fraction);
         removeEmptyIdentifications(exp_it->getPeptideIdentifications());
         updateProteinReferences(exp_it->getPeptideIdentifications(), 
                                 experiment.getProteinIdentifications());

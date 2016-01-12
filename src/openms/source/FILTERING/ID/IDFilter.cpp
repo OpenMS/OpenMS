@@ -159,7 +159,7 @@ namespace OpenMS
     const set<String>& sequences;
     bool ignore_mods;
 
-    HasMatchingSequence(const set<String>& sequences, bool ignore_mods):
+    HasMatchingSequence(const set<String>& sequences, bool ignore_mods = false):
       sequences(sequences), ignore_mods(ignore_mods)
     {}
 
