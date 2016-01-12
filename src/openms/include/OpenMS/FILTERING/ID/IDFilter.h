@@ -70,35 +70,15 @@ public:
     /// Destructor
     virtual ~IDFilter();
 
-    /// Predicate for peptide hits: does the sequence have at least the given length?
-    struct HasMinPeptideLength;
-
-    /// Predicate for peptide hits: does the charge have at least the given value?
-    struct HasMinCharge;
-    
-    /// Predicate for peptide hits: is the m/z error at least this low?
-    struct HasLowMZError;
 
     /**
-       @brief Predicate for peptide hits: given a list of modifications, do any occur in the sequence?
+       @name Predicates for peptide or protein hits
 
-       If the list of modifications is empty, return true if the sequence is modified at all.
+       These functors test for some property of a peptide or protein hit
     */
-    struct HasMatchingModification;
+    ///@{
 
-    /// Predicate for peptide hits: given a list of sequences, does one match?
-    struct HasMatchingSequence;
-
-    /// Predicate for peptide hits: is the list of peptide evidences empty?
-    struct HasNoEvidence;
-
-    /// Predicate for peptide IDs: is the retention time in the given range?
-    struct HasRTInRange;
-
-    /// Predicate for peptide IDs: is the retention time in the given range?
-    struct HasMZInRange;
-
-    /// Predicate for peptide or protein hits: is the score at least as good as the given value?
+    /// Is the score of this hit at least as good as the given value?
     template <class HitType>
     struct HasGoodScore
     {
@@ -121,9 +101,8 @@ public:
       }
     };
 
-
     /**
-       @brief Predicate for peptide or protein hits: is a meta value with given key and value set?
+       @brief Is a meta value with given key and value set on this hit?
 
        If the value is empty (DataValue::EMPTY), only the existence of a meta value with the given key is checked.
     */
@@ -148,10 +127,7 @@ public:
       }
     };
 
-
-    /**
-       @brief Predicate for peptide or protein hits: does a meta value have at most the given value?
-    */
+    /// Does a meta value of this hit have at most the given value?
     template <class HitType>
     struct HasMaxMetaValue
     {
@@ -172,8 +148,7 @@ public:
       }
     };
 
-
-    /// Predicate for peptide or protein hits: is this a decoy hit?
+    /// Is this a decoy hit?
     template <class HitType>
     struct HasDecoyAnnotation
     {
@@ -194,8 +169,11 @@ public:
       }
     };
 
+    /**
+       @brief Given a list of protein accessions, do any occur in the annotation(s) of this hit?
 
-    /// Predicate for peptide/protein hits and peptide evidence: given a list of protein accessions, do any occur in the annotation(s)?
+       @note This predicate also works for peptide evidence (class PeptideEvidence).
+    */
     template <class HitType>
     struct HasMatchingAccession
     {
@@ -229,8 +207,49 @@ public:
       }
     };
 
+    ///@}
 
-    /// Predicate for peptide/protein identifications: is the list of hits empty?
+
+    /**
+       @name Predicates for peptide hits only
+
+       These functors test for some property of peptide hits
+    */
+    ///@{
+
+    /// Does the sequence of this peptide hit have at least the given length?
+    struct HasMinPeptideLength;
+
+    /// Does the charge of this peptide hit have at least the given value?
+    struct HasMinCharge;
+    
+    /// Is the m/z error of this peptide hit below the given value?
+    struct HasLowMZError;
+
+    /**
+       @brief Given a list of modifications, do any occur in the sequence of this peptide hit?
+
+       If the list of modifications is empty, return true if the sequence is modified at all.
+    */
+    struct HasMatchingModification;
+
+    /**
+       @brief Is the sequence of this peptide hit among a list of given sequences?
+
+       With @p ignore_mods, the sequence without modifications is compared.
+    */
+    struct HasMatchingSequence;
+
+    /// Is the list of peptide evidences of this peptide hit empty?
+    struct HasNoEvidence;
+    
+    ///@}
+
+
+    /// @name Predicates for peptide or protein identifications
+    ///@{
+
+    /// Is the list of hits of this peptide/protein ID empty?
     template <class IdentificationType>
     struct HasNoHits
     {
@@ -242,6 +261,27 @@ public:
       }
     };
 
+    ///@}
+
+
+    /// @name Predicates for peptide identifications only
+    ///@{
+
+    /// Is the retention time of this peptide ID in the given range?
+    struct HasRTInRange;
+
+    /// Is the precursor m/z value of this peptide ID in the given range?
+    struct HasMZInRange;
+
+    ///@}
+
+
+    /**
+       @name Higher-order filter functions
+
+       Functions for filtering a container based on a predicate
+    */
+    ///@{
 
     /// Remove items that satisfy a condition from a container (e.g. vector)
     template <class Container, class Predicate>
@@ -251,7 +291,6 @@ public:
                   items.end());
     }
 
-
     /// Keep items that satisfy a condition in a container (e.g. vector), removing all others
     template <class Container, class Predicate>
     static void keepMatchingItems(Container& items, const Predicate& pred)
@@ -260,26 +299,49 @@ public:
                   items.end());
     }
 
+    ///@}
+
+
+    /// @name Helper functions
+    ///@{
+
+    /// Returns the total number of peptide/protein hits in a vector of peptide/protein identifications
+    template <class IdentificationType>
+    static Size countHits(const std::vector<IdentificationType>& ids)
+    {
+      Size counter = 0;
+      for (typename std::vector<IdentificationType>::const_iterator id_it =
+             ids.begin(); id_it != ids.end(); ++id_it)
+      {
+        counter += id_it->getHits().size();
+      }
+      return counter;
+    }
 
     /**
-       @brief Finds the best-scoring hit in a vector of peptide or protein identifications
+       @brief Finds the best-scoring hit in a vector of peptide or protein identifications.
        
        @param identifications Vector of peptide or protein IDs, each containing one or more (peptide/protein) hits
-       @param assume_sorted are hits sorted by score (best score first) already? This allows for faster query, since only the first hit needs to be looked at
+       @param assume_sorted Are hits sorted by score (best score first) already? This allows for faster query, since only the first hit needs to be looked at
        
        @except Exception::InvalidValue if the IDs have different score types (i.e. scores cannot be compared)
        
        @return true if a hit was present, false otherwise
     */
     template <class IdentificationType>
-    static bool getBestHit(const std::vector<IdentificationType> identifications, bool assume_sorted, typename IdentificationType::HitType& best_hit)
+    static bool getBestHit(
+      const std::vector<IdentificationType> identifications, bool assume_sorted,
+      typename IdentificationType::HitType& best_hit)
     {
       if (identifications.empty()) return false;
 
-      typename std::vector<IdentificationType>::const_iterator best_id_it = identifications.end();
-      typename std::vector<typename IdentificationType::HitType>::const_iterator best_hit_it;
+      typename std::vector<IdentificationType>::const_iterator best_id_it = 
+        identifications.end();
+      typename std::vector<typename IdentificationType::HitType>::const_iterator
+        best_hit_it;
 
-      for (typename std::vector<IdentificationType>::const_iterator id_it = identifications.begin(); id_it != identifications.end(); ++id_it)
+      for (typename std::vector<IdentificationType>::const_iterator id_it =
+             identifications.begin(); id_it != identifications.end(); ++id_it)
       {
         if (id_it->getHits().empty()) continue;
         
@@ -290,16 +352,18 @@ public:
         }
         else if (best_id_it->getScoreType() != id_it->getScoreType())
         {
-          throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Can't compare scores of different types",
-                                        best_id_it->getScoreType() + "/" + id_it->getScoreType());
+          throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Can't compare scores of different types", best_id_it->getScoreType() + "/" + id_it->getScoreType());
         }
 
         bool higher_better = best_id_it->isHigherScoreBetter();
-        for (typename std::vector<typename IdentificationType::HitType>::const_iterator hit_it = id_it->getHits().begin();
-             hit_it != id_it->getHits().end(); ++hit_it)
+        for (typename std::vector<typename IdentificationType::HitType>::
+               const_iterator hit_it = id_it->getHits().begin(); hit_it != 
+               id_it->getHits().end(); ++hit_it)
         {
-          if ((higher_better && (hit_it->getScore() > best_hit_it->getScore())) ||
-              (!higher_better && (hit_it->getScore() < best_hit_it->getScore())))
+          if ((higher_better && (hit_it->getScore() > 
+                                 best_hit_it->getScore())) ||
+              (!higher_better && (hit_it->getScore() < 
+                                  best_hit_it->getScore())))
           {
             best_hit_it = hit_it;
           }
@@ -307,38 +371,85 @@ public:
         }
       }
 
-      if (best_id_it == identifications.end()) return false; // no hits in any IDs
+      if (best_id_it == identifications.end())
+      {
+        return false; // no hits in any IDs
+      }
 
       best_hit = *best_hit_it;
       return true;
     }
 
+    /**
+       @brief Extracts all unique peptide sequences from a list of peptide IDs
+       
+       @param peptides Input
+       @param sequences Output
+       @param ignore_mods Extract sequences without modifications?
+    */
+    static void extractPeptideSequences(
+      const std::vector<PeptideIdentification>& peptides, 
+      std::set<String>& sequences, bool ignore_mods);
 
-    /// Filters peptide or protein identifications by only allowing peptide/protein hits which reach a score above (or below, depending on score orientation) @p threshold_fraction * significance_threshold
+    ///@}
+
+
+    /// @name Clean-up functions
+    ///@{
+
+    /// Updates the hit ranks on all peptide or protein IDs
     template <class IdentificationType>
-    static void filterHitsBySignificance(std::vector<IdentificationType>& ids,
-                                         double threshold_fraction = 1.0)
+    static void updateHitRanks(std::vector<IdentificationType>& ids)
     {
-      for (typename std::vector<IdentificationType>::iterator id_it =
-             ids.begin(); id_it != ids.end(); ++id_it)
+      for (typename std::vector<IdentificationType>::iterator it = ids.begin();
+           it != ids.end(); ++it)
       {
-        double threshold_score = (threshold_fraction *
-                                  id_it->getSignificanceThreshold());
-        struct HasGoodScore<typename IdentificationType::HitType> score_filter(
-          threshold_score, id_it->isHigherScoreBetter());
-        keepMatchingItems(id_it->getHits(), score_filter);
+        it->assignRanks();
       }
     }
 
+    /// Removes protein hits from @p proteins that are not referenced by a peptide in @p peptides
+    static void removeUnreferencedProteins(
+      std::vector<ProteinIdentification>& proteins,
+      const std::vector<PeptideIdentification>& peptides);
 
-    /// Remove peptide or protein identifications that have no hits in them
+    /**
+       @brief Removes references to missing proteins
+
+       Only PeptideEvidence entries that reference protein hits in @p proteins are kept in the peptide hits.
+
+       If @p remove_peptides_without_reference is set, peptide hits without any remaining protein reference are removed.
+    */
+    static void updateProteinReferences(
+      std::vector<PeptideIdentification>& peptides,
+      const std::vector<ProteinIdentification>& proteins,
+      bool remove_peptides_without_reference = false);
+
+    /**
+       @brief Update protein groups after protein hits were filtered
+
+       @param groups Input/output protein groups
+       @param hits Available protein hits (all others are removed from the groups)
+
+       @return Returns whether the groups are still valid (which is the case if only whole groups, if any, were removed).
+    */
+    static bool updateProteinGroups(
+      std::vector<ProteinIdentification::ProteinGroup>& groups,
+      const std::vector<ProteinHit>& hits);
+
+    ///@}
+
+
+    /// @name Filter functions for peptide or protein IDs
+    ///@{
+
+    /// Removes peptide or protein identifications that have no hits in them
     template <class IdentificationType>
     static void removeEmptyIdentifications(std::vector<IdentificationType>& ids)
     {
       struct HasNoHits<IdentificationType> empty_filter;
       removeMatchingItems(ids, empty_filter);
     }
-
 
     /**
       @brief Filters peptide or protein identifications according to the score of the hits.
@@ -358,6 +469,25 @@ public:
       }
     }
 
+    /**
+       @brief Filters peptide or protein identifications according to the significance threshold of the hits.
+
+       Only peptide/protein hits which reach a score above (or below, depending on score orientation) @p threshold_fraction * @p significance_threshold (as stored in the ID) are kept.
+    */
+    template <class IdentificationType>
+    static void filterHitsBySignificance(std::vector<IdentificationType>& ids,
+                                         double threshold_fraction = 1.0)
+    {
+      for (typename std::vector<IdentificationType>::iterator id_it =
+             ids.begin(); id_it != ids.end(); ++id_it)
+      {
+        double threshold_score = (threshold_fraction *
+                                  id_it->getSignificanceThreshold());
+        struct HasGoodScore<typename IdentificationType::HitType> score_filter(
+          threshold_score, id_it->isHigherScoreBetter());
+        keepMatchingItems(id_it->getHits(), score_filter);
+      }
+    }
 
     /**
       @brief Filters peptide or protein identifications according to the score of the hits, keeping the @p n best hits per ID.
@@ -375,13 +505,12 @@ public:
       }
     }
 
-
     /**
        @brief Filters peptide or protein identifications according to the ranking of the hits.
 
        The hits between @p min_rank and @p max_rank (both inclusive) in each ID are kept. Counting starts at 1, i.e. the best (highest/lowest scoring) hit has rank 1. The hits are ranked according to their scores, thus the initial values of the "rank" attribute (PeptideHit::getRank or ProteinHit::getRank) are ignored.
 
-       This method is useful if a range of higher hits are used for decoy fairness analysis.
+       This method is useful if a range of higher hits is needed for decoy fairness analysis.
 
        @note The ranks of the hits may be invalidated.
     */
@@ -399,7 +528,6 @@ public:
         if (min_rank > 1) hits.erase(hits.begin(), hits.begin() + min_rank - 1);
       }
     }
-    
     
     /**
        @brief Removes hits annotated as decoys from peptide or protein identifications.
@@ -419,10 +547,9 @@ public:
         removeMatchingItems(id_it->getHits(), decoy_filter);
       }
     }
-
     
     /**
-       @brief Filters peptide or protein identifications according to the given proteins
+       @brief Filters peptide or protein identifications according to the given proteins.
 
        Hits with no matching protein accession in @p accessions are removed.
 
@@ -441,53 +568,52 @@ public:
       }
     }
 
-
-    /// Returns the total number of peptide/protein hits in a vector of peptide/protein identifications
-    template <class IdentificationType>
-    static Size countHits(const std::vector<IdentificationType>& ids)
-    {
-      Size counter = 0;
-      for (typename std::vector<IdentificationType>::const_iterator id_it =
-             ids.begin(); id_it != ids.end(); ++id_it)
-      {
-        counter += id_it->getHits().size();
-      }
-      return counter;
-    }
+    ///@}
 
 
-    /// Updates the hit ranks on all peptide or protein IDs
-    template <class IdentificationType>
-    static void updateHitRanks(std::vector<IdentificationType>& ids)
-    {
-      for (typename std::vector<IdentificationType>::iterator it = ids.begin();
-           it != ids.end(); ++it)
-      {
-        it->assignRanks();
-      }
-    }
-
+    /// @name Filter functions for peptide IDs only
+    ///@{
 
     /**
-       @brief Extracts all unique peptide sequences from a list of peptide IDs
-       
-       @param peptides Input
-       @param sequences Output
-       @param ignore_mods Extract sequences without modifications?
-    */
-    static void extractPeptideSequences(
-      const std::vector<PeptideIdentification>& peptides, 
-      std::set<String>& sequences, bool ignore_mods);
+       @brief Filters peptide identifications keeping only the single best-scoring hit per ID.
 
+       @param peptides Input/output
+       @param strict If set, keep the best hit only if its score is unique - i.e. ties are not allowed. (Otherwise all hits with the best score is kept.)
+    */
+    static void keepBestPeptideHits(
+      std::vector<PeptideIdentification>& peptides, bool strict = false);
 
     /**
-       @brief Remove duplicate peptide hits from a peptide identification, keeping only unique hits.
+       @brief Filters peptide identifications according to peptide sequence length.
 
-       Hits are considered duplicated if they compare as equal using PeptideHit::operator== (i.e. not only the sequences have to match!).
+       Only peptide hits with a sequence length between @p min_length and @p max_length (both inclusive) are kept.
+       @p max_length is ignored if it is smaller than @p min_length.
+
+       @note The ranks of the hits may be invalidated.
     */
-    static void removeDuplicatePeptideHits(std::vector<PeptideIdentification>&
-                                           peptides);
+    static void filterPeptidesByLength(
+      std::vector<PeptideIdentification>& peptides, Size min_length,
+      Size max_length = UINT_MAX);
 
+    /**
+       @brief Filters peptide identifications according to charge state.
+
+       Only peptide hits with a charge state between @p min_charge and @p max_charge (both inclusive) are kept.
+       @p max_charge is ignored if it is smaller than @p min_charge.
+
+       @note The ranks of the hits may be invalidated.
+    */
+    static void filterPeptidesByCharge(
+      std::vector<PeptideIdentification>& peptides, Int min_charge,
+      Int max_charge);
+
+    /// Filters peptide identifications by precursor RT, keeping only IDs in the given range
+    static void filterPeptidesByRT(std::vector<PeptideIdentification>& peptides,
+                                   double min_rt, double max_rt);
+
+    /// Filters peptide identifications by precursor m/z, keeping only IDs in the given range
+    static void filterPeptidesByMZ(std::vector<PeptideIdentification>& peptides,
+                                   double min_mz, double max_mz);
 
     /**
        @brief Filter peptide identifications according to mass deviation.
@@ -504,48 +630,25 @@ public:
       std::vector<PeptideIdentification>& peptides, double mass_error, 
       bool unit_ppm);
 
+	  /**
+       @brief Filters peptide identifications according to p-values from RTPredict.
 
-    /**
-       @brief Filters peptide identifications keeping only the single best-scoring hit per ID.
+       Filters the peptide hits by the probability (p-value) of a correct peptide identification having a deviation between observed and predicted RT equal to or greater than allowed.
 
        @param peptides Input/output
-       @param strict If set, keep the best hit only if its score is unique - i.e. ties are not allowed. (Otherwise the first hit with the best score is kept.)
-    */
-    static void keepBestPeptideHits(
-      std::vector<PeptideIdentification>& peptides, bool strict = false);
-
-
-    /**
-       @brief Filters peptide identifications according to peptide sequence length.
-
-       Only peptide hits with a sequence length between @p min_length and @p max_length (both inclusive) are kept.
-       @p max_length is ignored if it is smaller than @p min_length.
+       @param metavalue_key Name of the meta value that holds the p-value: "predicted_RT_p_value" or "predicted_RT_p_value_first_dim"
+       @param threshold P-value threshold
 
        @note The ranks of the hits may be invalidated.
     */
-    static void filterPeptidesByLength(
-      std::vector<PeptideIdentification>& peptides, Size min_length,
-      Size max_length = UINT_MAX);
-
-
-    /**
-       @brief Filters peptide identifications according to charge state.
-
-       Only peptide hits with a charge state between @p min_charge and @p max_charge (both inclusive) are kept.
-       @p max_charge is ignored if it is smaller than @p min_charge.
-
-       @note The ranks of the hits may be invalidated.
-    */
-    static void filterPeptidesByCharge(
-      std::vector<PeptideIdentification>& peptides, Int min_charge,
-      Int max_charge);
-
+    static void filterPeptidesByRTPredictPValue(
+      std::vector<PeptideIdentification>& peptides,
+      const String& metavalue_key, double threshold = 0.05);
 
     /// Keeps only peptide hits that have at least one of the given modifications
     static void keepPeptidesWithMatchingModifications(
       std::vector<PeptideIdentification>& peptides,
       const std::set<String>& modifications);
-
 
     /**
        @brief Removes all peptide hits with a sequence that matches one in @p bad_peptides.
@@ -558,65 +661,23 @@ public:
       std::vector<PeptideIdentification>& peptides,
       const std::vector<PeptideIdentification>& bad_peptides, bool ignore_mods);
 
-
-	  /**
-       @brief Filters peptide identifications according to p-values from RTPredict.
-
-       Filters the peptide hits by the probability (p-value) of a correct peptide identification having a deviation between observed and predicted RT equal to or greater than allowed.
-
-       @note The ranks of the hits may be invalidated.
-    */
-    static void filterPeptidesByRTPredictPValue(
-      std::vector<PeptideIdentification>& peptides,
-      const String& metavalue_key, double threshold = 0.05);
-
-
-    /// Removes all peptides that are not annotated as unique for a protein (by PeptideIndexer)
+   /// Removes all peptides that are not annotated as unique for a protein (by PeptideIndexer)
     static void keepUniquePeptidesPerProtein(std::vector<PeptideIdentification>&
                                              peptides);
 
-
-    /// Removes protein hits from @p proteins that are not referenced by a peptide in @p peptides
-    static void removeUnreferencedProteins(
-      std::vector<ProteinIdentification>& proteins,
-      const std::vector<PeptideIdentification>& peptides);
-
-
     /**
-       @brief Removes references to missing proteins
+       @brief Removes duplicate peptide hits from each peptide identification, keeping only unique hits (per ID).
 
-       Only PeptideEvidence entries that reference protein hits in @p proteins are kept in the peptide hits.
-
-       If @p remove_peptides_without_reference is set, peptide hits without any remaining protein reference are removed.
+       Hits are considered duplicated if they compare as equal using PeptideHit::operator== (i.e. not only the sequences have to match!).
     */
-    static void updateProteinReferences(
-      std::vector<PeptideIdentification>& peptides,
-      const std::vector<ProteinIdentification>& proteins,
-      bool remove_peptides_without_reference = false);
+    static void removeDuplicatePeptideHits(std::vector<PeptideIdentification>&
+                                           peptides);
+
+    ///@}
 
 
-    /// Filters peptide identifications by precursor RT, keeping only IDs in the given range
-    static void filterPeptidesByRT(std::vector<PeptideIdentification>& peptides,
-                                   double min_rt, double max_rt);
-
-
-    /// Filters peptide identifications by precursor m/z, keeping only IDs in the given range
-    static void filterPeptidesByMZ(std::vector<PeptideIdentification>& peptides,
-                                   double min_mz, double max_mz);
-
-
-    /**
-       @brief Update protein groups after protein hits were filtered
-
-       @param groups Input/output protein groups
-       @param hits Available protein hits (all others are removed from the groups)
-
-       @return Returns whether the groups are still valid (which is the case if only whole groups, if any, were removed).
-    */
-    static bool updateProteinGroups(
-      std::vector<ProteinIdentification::ProteinGroup>& groups,
-      const std::vector<ProteinHit>& hits);
-
+    /// @name Filter functions for MS/MS experiments
+    ///@{
 
     /// Filters an MS/MS experiment according to fractions of the significance thresholds
     template <class PeakT>
@@ -643,7 +704,6 @@ public:
       // @TODO: remove proteins that aren't referenced by peptides any more?
     }
 
-
     /// Filters an MS/MS experiment according to score thresholds
     template <class PeakT>
     static void filterHitsByScore(MSExperiment<PeakT>& experiment,
@@ -668,7 +728,6 @@ public:
       }
       // @TODO: remove proteins that aren't referenced by peptides any more?
     }
-
 
     /// Filters an MS/MS experiment by keeping the N best peptide hits for every spectrum
     template <class PeakT>
@@ -695,7 +754,6 @@ public:
       removeUnreferencedProteins(experiment.getProteinIdentifications(),
                                  all_peptides);
     }
-
 
     /// Filters an MS/MS experiment according to the given proteins
     template <class PeakT>
@@ -728,6 +786,8 @@ public:
         }
       }
     }
+
+    ///@}
 
   };
 
