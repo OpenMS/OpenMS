@@ -342,7 +342,7 @@ double MetaboliteSpectralMatching::computeHyperScore(MSSpectrum<Peak1D> experime
     double matched_ions_term(0.0);
 
     // return score 0 if too few matched ions
-    if (matched_ions_count < 3)
+    if (matched_ions_count < 3) //TODO Unhardcode this
     {
         return matched_ions_term;
     }
@@ -531,7 +531,7 @@ void MetaboliteSpectralMatching::run(MSExperiment<> & msexp, MzTab& mztab_out)
                 // check for charge state of precursor ions: do they match?
                 if ( (ion_mode_ == "positive" && spec_db[search_idx].getPrecursors()[0].getCharge() < 0) || (ion_mode_ == "negative" && spec_db[search_idx].getPrecursors()[0].getCharge() > 0))
                 {
-                    continue;
+                    continue; //FIXME this should throw an error
                 }
 
                 double hyperscore(computeHyperScore(msexp[spec_idx], spec_db[search_idx], fragment_mz_error_, 0.0));

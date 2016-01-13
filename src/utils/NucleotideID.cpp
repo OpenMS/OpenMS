@@ -321,7 +321,7 @@ protected:
       {
           return scan_idx_to_feature_idx;
       }
-      // if precursor_mz = feature_mz + n * feature_charge (+/- mz_tolerance) a feature is compatible, others are removed from the set
+      // if precursor_mz = feature_mz + n * feature_charge (+/- mz_tolerance) a feature is compatible, if not, it is removed from the set
       for (set<Size>::iterator it = scan_idx_to_feature_idx.begin(); it != scan_idx_to_feature_idx.end();)
       {
 
