@@ -109,6 +109,38 @@ public:
     };
 
     /**
+       @brief Is the rank of this hit below or at the given cut-off?
+
+       Ranks are counted from one (best), so zero is not a valid cut-off.
+    */
+    template <class HitType>
+    struct HasMaxRank
+    {
+      typedef HitType argument_type; // for use as a predicate
+
+      Size rank;
+
+      HasMaxRank(Size rank):
+        rank(rank)
+      {
+        if (rank == 0)
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The cut-off value for rank filtering must not be zero!");
+        }
+      }
+
+      bool operator()(const HitType& hit) const
+      {
+        Size hit_rank = hit.getRank();
+        if (hit_rank == 0)
+        {
+          throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No rank assigned to peptide or protein hit");
+        }
+        return hit_rank <= rank;
+      }
+    };
+
+    /**
        @brief Is a meta value with given key and value set on this hit?
 
        If the value is empty (DataValue::EMPTY), only the existence of a meta value with the given key is checked.
@@ -517,7 +549,12 @@ public:
     /**
        @brief Filters peptide or protein identifications according to the ranking of the hits.
 
-       The hits between @p min_rank and @p max_rank (both inclusive) in each ID are kept. Counting starts at 1, i.e. the best (highest/lowest scoring) hit has rank 1. The hits are ranked according to their scores, thus the initial values of the "rank" attribute (PeptideHit::getRank or ProteinHit::getRank) are ignored.
+       The hits between @p min_rank and @p max_rank (both inclusive) in each ID are kept.
+       Counting starts at 1, i.e. the best (highest/lowest scoring) hit has rank 1.
+       The ranks are (re-)computed before filtering.
+       @p max_rank is ignored if it is smaller than @p min_rank.
+
+       Note that there may be several hits with the same rank in a peptide or protein ID (if the scores are the same).
 
        This method is useful if a range of higher hits is needed for decoy fairness analysis.
 
@@ -527,14 +564,26 @@ public:
     static void filterHitsByRank(std::vector<IdentificationType>& ids,
                                  Size min_rank, Size max_rank)
     {
-      for (typename std::vector<IdentificationType>::iterator id_it =
-             ids.begin(); id_it != ids.end(); ++id_it)
+      updateHitRanks(ids);
+      if (min_rank > 1)
       {
-        id_it->sort();
-        std::vector<typename IdentificationType::HitType>& hits = 
-          id_it->getHits();
-        if ((max_rank > 0) && (max_rank < hits.size())) hits.resize(max_rank);
-        if (min_rank > 1) hits.erase(hits.begin(), hits.begin() + min_rank - 1);
+        struct HasMaxRank<typename IdentificationType::HitType>
+          rank_filter(min_rank - 1);
+        for (typename std::vector<IdentificationType>::iterator id_it =
+               ids.begin(); id_it != ids.end(); ++id_it)
+        {
+          removeMatchingItems(id_it->getHits(), rank_filter);
+        }
+      }
+      if (max_rank >= min_rank)
+      {
+        struct HasMaxRank<typename IdentificationType::HitType>
+          rank_filter(max_rank);
+        for (typename std::vector<IdentificationType>::iterator id_it =
+               ids.begin(); id_it != ids.end(); ++id_it)
+        {
+          keepMatchingItems(id_it->getHits(), rank_filter);
+        }
       }
     }
     
