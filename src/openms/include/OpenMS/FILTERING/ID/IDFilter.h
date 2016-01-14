@@ -327,6 +327,8 @@ public:
 
     /**
        @brief Finds the best-scoring hit in a vector of peptide or protein identifications.
+
+       If there are several hits with the best score, the first one is taken.
        
        @param identifications Vector of peptide or protein IDs, each containing one or more (peptide/protein) hits
        @param assume_sorted Are hits sorted by score (best score first) already? This allows for faster query, since only the first hit needs to be looked at
