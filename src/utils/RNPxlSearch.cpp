@@ -596,6 +596,7 @@ private:
 
     Param ps = spectrum_generator.getParameters();
     ps.setValue("add_metainfo", "true", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
+    ps.setValue("add_first_prefix_ion", "true");
     spectrum_generator.setParameters(ps);
 
     SpectrumAlignment spectrum_aligner;
@@ -1406,6 +1407,10 @@ private:
 
     // create spectrum generator
     TheoreticalSpectrumGenerator spectrum_generator;
+    Param param(spectrum_generator.getParameters());
+    param.setValue("add_first_prefix_ion", "true");
+    param.setValue("add_metainfo", "true");
+    spectrum_generator.setParameters(param);
 
     vector<vector<AnnotatedHit> > annotated_hits(spectra.size(), vector<AnnotatedHit>());
 
