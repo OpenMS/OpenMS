@@ -96,7 +96,7 @@ namespace OpenMS
     HasLowMZError(double precursor_mz, double tolerance, bool unit_ppm):
       precursor_mz(precursor_mz), tolerance(tolerance)
     {
-      if (unit_ppm) tolerance *= precursor_mz / 1.0e6;
+      if (unit_ppm) this->tolerance *= precursor_mz / 1.0e6;
     }
 
     bool operator()(const PeptideHit& hit) const
