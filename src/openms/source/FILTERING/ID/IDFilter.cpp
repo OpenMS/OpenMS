@@ -140,10 +140,18 @@ namespace OpenMS
       {
         String mod_name = seq.getNTerminalModification() + " (N-term)";
         if (mods.count(mod_name) > 0) return true;
+        // amino acid-specific terminal mod. (e.g. "Ammonia-loss (N-term C"):
+        mod_name[mod_name.size() - 1] = ' ';
+        mod_name += seq[Size(0)].getOneLetterCode() + ")";
+        if (mods.count(mod_name) > 0) return true;
       }
       if (seq.hasCTerminalModification())
       {
         String mod_name = seq.getCTerminalModification() + " (C-term)";
+        if (mods.count(mod_name) > 0) return true;
+        // amino acid-specific terminal mod. (e.g. "Arg-loss (C-term R)"):
+        mod_name[mod_name.size() - 1] = ' ';
+        mod_name += seq[seq.size() - 1].getOneLetterCode() + ")";
         if (mods.count(mod_name) > 0) return true;
       }
 
