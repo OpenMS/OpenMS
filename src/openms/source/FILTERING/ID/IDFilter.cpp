@@ -546,6 +546,21 @@ namespace OpenMS
   }
 
 
+  void IDFilter::keepPeptidesWithMatchingSequences(
+    vector<PeptideIdentification>& peptides,
+    const vector<PeptideIdentification>& good_peptides, bool ignore_mods)
+  {
+    set<String> good_seqs;
+    extractPeptideSequences(good_peptides, good_seqs, ignore_mods);
+    struct HasMatchingSequence seq_filter(good_seqs, ignore_mods);
+    for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
+         pep_it != peptides.end(); ++pep_it)
+    {
+      keepMatchingItems(pep_it->getHits(), seq_filter);
+    }
+  }
+
+
   void IDFilter::keepUniquePeptidesPerProtein(vector<PeptideIdentification>&
                                               peptides)
   {

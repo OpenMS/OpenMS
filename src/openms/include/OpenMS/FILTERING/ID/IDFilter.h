@@ -607,7 +607,7 @@ public:
     }
     
     /**
-       @brief Filters peptide or protein identifications according to the given proteins.
+       @brief Filters peptide or protein identifications according to the given proteins (positive).
 
        Hits with no matching protein accession in @p accessions are removed.
 
@@ -623,6 +623,26 @@ public:
              ids.begin(); id_it != ids.end(); ++id_it)
       {
         keepMatchingItems(id_it->getHits(), acc_filter);
+      }
+    }
+
+    /**
+       @brief Filters peptide or protein identifications according to the given proteins (negative).
+
+       Hits with a matching protein accession in @p accessions are removed.
+
+       @note The ranks of the hits may be invalidated.
+    */
+    template <class IdentificationType>
+    static void removeHitsMatchingProteins(std::vector<IdentificationType>& ids,
+                                           const std::set<String> accessions)
+    {
+      struct HasMatchingAccession<typename IdentificationType::HitType>
+        acc_filter(accessions);
+      for (typename std::vector<IdentificationType>::iterator id_it =
+             ids.begin(); id_it != ids.end(); ++id_it)
+      {
+        removeMatchingItems(id_it->getHits(), acc_filter);
       }
     }
 
@@ -718,6 +738,18 @@ public:
     static void removePeptidesWithMatchingSequences(
       std::vector<PeptideIdentification>& peptides,
       const std::vector<PeptideIdentification>& bad_peptides,
+      bool ignore_mods = false);
+
+    /**
+       @brief Removes all peptide hits with a sequence that does not match one in @p good_peptides.
+
+       If @p ignore_mods is set, unmodified sequences are generated and compared to the given ones.
+
+       @note The ranks of the hits may be invalidated.
+    */
+    static void keepPeptidesWithMatchingSequences(
+      std::vector<PeptideIdentification>& peptides,
+      const std::vector<PeptideIdentification>& good_peptides,
       bool ignore_mods = false);
 
    /// Removes all peptides that are not annotated as unique for a protein (by PeptideIndexer)
