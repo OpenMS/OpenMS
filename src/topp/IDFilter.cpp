@@ -32,17 +32,16 @@
 // $Authors: Nico Pfeifer, Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/FORMAT/FASTAFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
-#include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FORMAT/FileHandler.h>
 
 #include <limits>
-#include <cmath>
-#include <set>
 
 using namespace OpenMS;
 using namespace std;
@@ -172,6 +171,9 @@ protected:
 
   void registerOptionsAndFlags_()
   {
+    vector<String> all_mods;
+    ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
+
     registerInputFile_("in", "<file>", "", "input file ");
     setValidFormats_("in", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "output file ");
@@ -193,20 +195,24 @@ protected:
                                                            "All peptides that are not referencing a protein in this file are removed.\n"
                                                            "All proteins whose accessions are not present in this file are removed.", false);
     setValidFormats_("whitelist:proteins", ListUtils::create<String>("fasta"));
-    registerStringList_("whitelist:protein_accessions", "<accessions>", ListUtils::create<String>(""), "All peptides that do not reference at least one of the provided protein accession are removed.\nOnly proteins of the provided list are retained.", false);
+    registerStringList_("whitelist:protein_accessions", "<accessions>", vector<String>(), "All peptides that do not reference at least one of the provided protein accession are removed.\nOnly proteins of the provided list are retained.", false);
     registerInputFile_("whitelist:peptides", "<file>", "", "Only peptides with the same sequence and modification assignment as any peptide in this file are kept. Use with 'whitelist:ignore_modifications' to only compare by sequence.\n", false);
     setValidFormats_("whitelist:peptides", ListUtils::create<String>("idXML"));
-    registerFlag_("whitelist:ignore_modifications", "Compare whitelisted peptides by sequence only.\n", false);
+    registerFlag_("whitelist:ignore_modifications", "Compare whitelisted peptides by sequence only.", false);
+    registerStringList_("whitelist:modifications", "<selection>", vector<String>(), "Keep only peptides with sequences that contain (any of) the selected modification(s)", false);
+    setValidStrings_("whitelist:modifications", all_mods);
 
     registerTOPPSubsection_("blacklist", "Filtering by blacklisting (only peptides/proteins NOT present in a given set can pass)");
     registerInputFile_("blacklist:proteins", "<file>", "", "Filename of a FASTA file containing protein sequences.\n"
                                                            "All peptides that are referencing a protein in this file are removed.\n"
                                                            "All proteins whose accessions are present in this file are removed.", false);
     setValidFormats_("blacklist:proteins", ListUtils::create<String>("fasta"));
-    registerStringList_("blacklist:protein_accessions", "<accessions>", ListUtils::create<String>(""), "All peptides that reference at least one of the provided protein accession are removed.\nOnly proteins not in the provided list are retained.", false);
+    registerStringList_("blacklist:protein_accessions", "<accessions>", vector<String>(), "All peptides that reference at least one of the provided protein accession are removed.\nOnly proteins not in the provided list are retained.", false);
     registerInputFile_("blacklist:peptides", "<file>", "", "Peptides with the same sequence and modification assignment as any peptide in this file are filtered out. Use with 'blacklist:ignore_modifications' to only compare by sequence.\n", false);
     setValidFormats_("blacklist:peptides", ListUtils::create<String>("idXML"));
-    registerFlag_("blacklist:ignore_modifications", "Compare blacklisted peptides by sequence only.\n", false);
+    registerFlag_("blacklist:ignore_modifications", "Compare blacklisted peptides by sequence only.", false);
+    registerStringList_("blacklist:modifications", "<selection>", vector<String>(), "Remove all peptides with sequences that contain (any of) the selected modification(s)", false);
+    setValidStrings_("blacklist:modifications", all_mods);
 
     registerTOPPSubsection_("rt", "Filtering by RT predicted by 'RTPredict'");
     registerDoubleOption_("rt:p_value", "<float>", 0.0, "Retention time filtering by the p-value predicted by RTPredict.", false);
@@ -356,6 +362,13 @@ protected:
                                                   ignore_mods);
     }
 
+    vector<String> whitelist_mods = getStringList_("whitelist:modifications");
+    if (!whitelist_mods.empty())
+    {
+      set<String> good_mods(whitelist_mods.begin(), whitelist_mods.end());
+      IDFilter::keepPeptidesWithMatchingModifications(peptides, good_mods);
+    }
+
     String blacklist_fasta = getStringOption_("blacklist:proteins").trim();
     if (!blacklist_fasta.empty())
     {
@@ -398,6 +411,13 @@ protected:
         peptides, exclusion_peptides, ignore_mods);
     }
 
+    vector<String> blacklist_mods = getStringList_("blacklist:modifications");
+    if (!blacklist_mods.empty())
+    {
+      set<String> bad_mods(blacklist_mods.begin(), blacklist_mods.end());
+      IDFilter::removePeptidesWithMatchingModifications(peptides, bad_mods);
+    }
+
     if (getFlag_("best:strict"))
     {
       LOG_INFO << "Filtering by best peptide hits..." << endl;
@@ -416,13 +436,6 @@ protected:
       IDFilter::filterPeptidesByLength(peptides, Size(min_length),
                                        Size(max_length));
     }
-
-    // vector<String> mods = getStringList_("modifications");
-    // if (!mods.empty())
-    // {
-    //   set<String> good_mods(mods.begin(), mods.end());
-    //   IDFilter::keepPeptidesWithMatchingModifications(peptides, good_mods);
-    // }
 
     if (getFlag_("var_mods"))
     {

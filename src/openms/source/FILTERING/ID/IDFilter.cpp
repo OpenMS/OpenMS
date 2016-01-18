@@ -518,6 +518,19 @@ namespace OpenMS
   }
 
 
+  void IDFilter::removePeptidesWithMatchingModifications(
+    vector<PeptideIdentification>& peptides, 
+    const set<String>& modifications)
+  {
+    struct HasMatchingModification mod_filter(modifications);
+    for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
+         pep_it != peptides.end(); ++pep_it)
+    {
+      removeMatchingItems(pep_it->getHits(), mod_filter);
+    }
+  }
+
+
   void IDFilter::keepPeptidesWithMatchingModifications(
     vector<PeptideIdentification>& peptides, 
     const set<String>& modifications)

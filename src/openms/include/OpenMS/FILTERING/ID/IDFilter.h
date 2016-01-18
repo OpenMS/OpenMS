@@ -723,6 +723,11 @@ public:
       std::vector<PeptideIdentification>& peptides,
       const String& metavalue_key, double threshold = 0.05);
 
+    /// Removes all peptide hits that have at least one of the given modifications
+    static void removePeptidesWithMatchingModifications(
+      std::vector<PeptideIdentification>& peptides,
+      const std::set<String>& modifications);
+
     /// Keeps only peptide hits that have at least one of the given modifications
     static void keepPeptidesWithMatchingModifications(
       std::vector<PeptideIdentification>& peptides,
