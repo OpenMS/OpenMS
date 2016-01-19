@@ -489,6 +489,7 @@ namespace OpenMS
 
           for (Size j = 0; j < coordinates.size(); j++)
           {
+            if ( chromatograms[j].empty() ) {continue;} // skip empty chromatograms
             ms1_chromatograms [ coordinates[j].id ] = chrom_list[j];
             // write MS1 chromatograms to disk
             chromConsumer->consumeChromatogram( chromatograms[j] );
@@ -1141,7 +1142,7 @@ namespace OpenMS
           {
             LOG_INFO << "Warning: no transitions found for peptide " << pep.id << std::endl;
             coord.rt_start = -1;
-            coord.rt_end = -1;
+            coord.rt_end = -2; // create negative range
             coord.id = pep.id;
             coordinates.push_back(coord);
             continue;
