@@ -62,7 +62,7 @@ using namespace std;
    <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
   </tr>
   <tr>
-   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_XTandemAdapter (or other ID engines) </td>
+   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapterOnline (or other ID engines) </td>
    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeptideIndexer </td>
   </tr>
   <tr>
@@ -97,13 +97,13 @@ using namespace std;
  For example, it could be a Mascot score (if MascotAdapterOnline was applied) or an FDR (if FalseDiscoveryRate was applied), etc.
  @ref UTILS_IDScoreSwitcher is useful to switch to a particular score before filtering.
 
- An example to illustrate the significance threshold filters (@p thresh:pep, @thresh:prot):
- If a peptide hit has a score of 30, the significance threshold is 40, and higher scores are better, then the hit will be kept if the cut-off value is set to 0.75 or lower.
+ An example to illustrate the significance threshold filters (@p thresh:pep, @p thresh:prot):
+ Assume a peptide hit has a score of 30, the significance threshold is 40, and higher scores are better. Then the hit will be kept if the cut-off value is set to 0.75 or lower, and removed for higher cut-offs.
 
  <b>Protein accession filters</b> (@p whitelist:proteins, @p whitelist:protein_accessions, @p blacklist:proteins, @p blacklist:protein_accessions):
 
- These filters retain only peptide and protein hits that @e do (whitelist) or <em>do not<\em> (blacklist) match any of the proteins from a given set.
- This set of proteins can be given through a FASTA file (@p ...:proteins) or as a list of accessions (@p ...:protein_accessions).
+ These filters retain only peptide and protein hits that @e do (whitelist) or <em>do not</em> (blacklist) match any of the proteins from a given set.
+ This set of proteins can be given through a FASTA file (<tt>...:proteins</tt>) or as a list of accessions (<tt>...:protein_accessions</tt>).
  
  Note that even in the case of a FASTA file, matching is only done by protein accession, not by sequence.
  If necessary, use @ref TOPP_PeptideIndexer to generate protein references for peptide hits via sequence look-up.
