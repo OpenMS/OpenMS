@@ -215,8 +215,8 @@ protected:
     setValidStrings_("blacklist:modifications", all_mods);
 
     registerTOPPSubsection_("rt", "Filtering by RT predicted by 'RTPredict'");
-    registerDoubleOption_("rt:p_value", "<float>", 0.0, "Retention time filtering by the p-value predicted by RTPredict.", false);
-    registerDoubleOption_("rt:p_value_1st_dim", "<float>", 0.0, "Retention time filtering by the p-value predicted by RTPredict for first dimension.", false);
+    registerDoubleOption_("rt:p_value", "<float>", 0.0, "Retention time filtering by the p-value predicted by RTPredict.", false, true);
+    registerDoubleOption_("rt:p_value_1st_dim", "<float>", 0.0, "Retention time filtering by the p-value predicted by RTPredict for first dimension.", false, true);
     setMinFloat_("rt:p_value", 0);
     setMaxFloat_("rt:p_value", 1);
     setMinFloat_("rt:p_value_1st_dim", 0);
