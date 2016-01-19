@@ -607,26 +607,6 @@ public:
     }
     
     /**
-       @brief Filters peptide or protein identifications according to the given proteins (positive).
-
-       Hits with no matching protein accession in @p accessions are removed.
-
-       @note The ranks of the hits may be invalidated.
-    */
-    template <class IdentificationType>
-    static void keepHitsMatchingProteins(std::vector<IdentificationType>& ids,
-                                         const std::set<String> accessions)
-    {
-      struct HasMatchingAccession<typename IdentificationType::HitType>
-        acc_filter(accessions);
-      for (typename std::vector<IdentificationType>::iterator id_it =
-             ids.begin(); id_it != ids.end(); ++id_it)
-      {
-        keepMatchingItems(id_it->getHits(), acc_filter);
-      }
-    }
-
-    /**
        @brief Filters peptide or protein identifications according to the given proteins (negative).
 
        Hits with a matching protein accession in @p accessions are removed.
@@ -643,6 +623,26 @@ public:
              ids.begin(); id_it != ids.end(); ++id_it)
       {
         removeMatchingItems(id_it->getHits(), acc_filter);
+      }
+    }
+
+    /**
+       @brief Filters peptide or protein identifications according to the given proteins (positive).
+
+       Hits with no matching protein accession in @p accessions are removed.
+
+       @note The ranks of the hits may be invalidated.
+    */
+    template <class IdentificationType>
+    static void keepHitsMatchingProteins(std::vector<IdentificationType>& ids,
+                                         const std::set<String> accessions)
+    {
+      struct HasMatchingAccession<typename IdentificationType::HitType>
+        acc_filter(accessions);
+      for (typename std::vector<IdentificationType>::iterator id_it =
+             ids.begin(); id_it != ids.end(); ++id_it)
+      {
+        keepMatchingItems(id_it->getHits(), acc_filter);
       }
     }
 
