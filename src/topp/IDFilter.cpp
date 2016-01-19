@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Nico Pfeifer, Chris Bielow $
+// $Authors: Nico Pfeifer, Chris Bielow, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -53,7 +53,7 @@ using namespace std;
 /**
  @page TOPP_IDFilter IDFilter
 
- @brief Filters protein identification engine results by different criteria.
+ @brief Filters peptide/protein identification results by different criteria.
 <CENTER>
  <table>
   <tr>
@@ -62,7 +62,7 @@ using namespace std;
    <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
   </tr>
   <tr>
-   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
+   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_XTandemAdapter (or other ID engines) </td>
    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeptideIndexer </td>
   </tr>
   <tr>
@@ -71,79 +71,42 @@ using namespace std;
   </tr>
   <tr>
    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FalseDiscoveryRate </td>
-   <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_IDMapper </td>
+   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDMapper </td>
   </tr>
   <tr>
    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_ConsensusID </td>
+   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_ProteinQuantifier (for spectral counting) </td>
   </tr>
  </table>
 </CENTER>
 
- This tool is used to filter the identifications found by
- a peptide/protein identification tool like Mascot. Different filters can be applied:
+ This tool is used to filter the identifications found by a peptide/protein identification engine like Mascot.
+ Different filters can be applied.
+ To enable any of them, just change their default value.
+ All active filters are applied in order.
 
- To enable any of the filters, just change their default value.
- All active filters will be applied in order.
+ Most filtering options should be straight-forward - see the documentation of the different parameters.
+ For some filters that warrent further discussion, see below.
 
- <ul>
+ <b>Score filters</b> (@p score:pep, @p score:prot, @p thresh:pep, @p thresh:prot):
 
-  <li>
-   <b>precursor:rt</b>:<br> Precursor RT range for the peptide identification to be kept.
-  </li>
-  <li>
-   <b>precursor:mz</b>:<br> Precursor m/z range for the peptide identification to be kept.
-  </li>
-  <li>
-   <b>score:pep</b>:<br> The score a peptide hit should have to be kept.
-  </li>
-  <li>
-   <b>score:prot</b>:<br> The score a protein hit should have to be kept.
-  </li>
-  <li>
-   <b>thresh:pep</b>:<br> The fraction of the significance threshold that should
-   be reached by a peptide hit to be kept. If for example a peptide
-   has score 30 and the significance threshold is 40, the
-   peptide will only be kept by the filter if the significance
-   threshold fraction is set to 0.75 or lower.
-  </li>
-  <li>
-   <b>thresh:prot</b>:<br> This parameter
-   behaves in the same way as the peptide significance threshold
-   fraction parameter. The only difference is that it is used
-   to filter protein hits.
-  </li>
-  <li>
-   <b>whitelist:proteins</b>:<br> If you know which proteins
-   are in the measured sample you can specify a FASTA file
-   which contains the protein sequences of those proteins. All
-   peptides which are not a substring of a protein contained
-   in the sequences file will be filtered out. The filtering is based on the
-      protein identifiers attached to the peptide hits. Protein Hits not matching
-      any FASTA protein are also removed.<br>
-      If you want filtering using the sequence alone, then use the flag @em WhiteList:by_seq_only.
-  </li>
-  <li>
-   <b>blacklist:peptides</b>:<br> For this option you specify an idXML file.
-   All peptides that are present in both files (in-file and exclusion peptides
-   file) will be dropped. Protein Hits are not affected.
-  </li>
-  <li><b>rt</b>:<br> To filter identifications according to their
-   predicted retention times you have to set 'rt:p_value' and/or 'rt:p_value_1st_dim' larger than 0, depending which RT
-      dimension you want to filter.
-   This filter can only be applied to idXML files produced by @ref TOPP_RTPredict.
-  </li>
-  <li>
-   <b>best:n_peptide_hits</b>:<br> Only the best n peptide hits of a spectrum are kept. If two hits have the same score, their order is random.
-  </li>
-  <li>
-   <b>best:n_protein_hits</b>:<br> Only the best n protein hits of a spectrum are kept. If two hits have the same score, their order is random.
-  </li>
-  <li>
-   <b>best:strict</b>:<br> Only the best hit of a spectrum is kept.
-   If there is more than one hit for a spectrum with the maximum score, then
-   none of the hits will be kept. This is similar to n_peptide_hits=1, but if there are two or more highest scoring hits, none are kept.
-  </li>
- </ul>
+ Peptide or protein hits with scores at least as good as the given cut-off are retained by the filter; hits with worse scores are removed.
+ Whether scores should be higher or lower than the cut-off depends on the type/orientation of the score.
+
+ The score that was most recently set by a processing step is considered for filtering.
+ For example, it could be a Mascot score (if MascotAdapterOnline was applied) or an FDR (if FalseDiscoveryRate was applied), etc.
+ @ref UTILS_IDScoreSwitcher is useful to switch to a particular score before filtering.
+
+ An example to illustrate the significance threshold filters (@p thresh:pep, @thresh:prot):
+ If a peptide hit has a score of 30, the significance threshold is 40, and higher scores are better, then the hit will be kept if the cut-off value is set to 0.75 or lower.
+
+ <b>Protein accession filters</b> (@p whitelist:proteins, @p whitelist:protein_accessions, @p blacklist:proteins, @p blacklist:protein_accessions):
+
+ These filters retain only peptide and protein hits that @e do (whitelist) or <em>do not<\em> (blacklist) match any of the proteins from a given set.
+ This set of proteins can be given through a FASTA file (@p ...:proteins) or as a list of accessions (@p ...:protein_accessions).
+ 
+ Note that even in the case of a FASTA file, matching is only done by protein accession, not by sequence.
+ If necessary, use @ref TOPP_PeptideIndexer to generate protein references for peptide hits via sequence look-up.
 
  @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
@@ -183,8 +146,8 @@ protected:
     registerStringOption_("precursor:rt", "[min]:[max]", ":", "Retention time range to extract.", false);
     registerStringOption_("precursor:mz", "[min]:[max]", ":", "Mass-to-charge range to extract.", false);
 
-    registerTOPPSubsection_("score", "Filtering by peptide/protein score. To enable any of the filters below, just change their default value. All active filters will be applied in order.");
-    registerDoubleOption_("score:pep", "<score>", 0, "The score which should be reached by a peptide hit to be kept. The score is dependent on the most recent(!) preprocessing - it could be Mascot scores (if a MascotAdapter was applied before), or an FDR (if FalseDiscoveryRate was applied before), etc.", false);
+    registerTOPPSubsection_("score", "Filtering by peptide/protein score.");
+    registerDoubleOption_("score:pep", "<score>", 0, "The score which should be reached by a peptide hit to be kept.", false);
     registerDoubleOption_("score:prot", "<score>", 0, "The score which should be reached by a protein hit to be kept. Use in combination with 'delete_unreferenced_peptide_hits' to remove affected peptides.", false);
     registerTOPPSubsection_("thresh", "Filtering by significance threshold");
     registerDoubleOption_("thresh:pep", "<fraction>", 0.0, "Keep a peptide hit only if its score is above this fraction of the peptide significance threshold.", false);
@@ -228,13 +191,13 @@ protected:
     setValidStrings_("mz:unit", ListUtils::create<String>("Da,ppm"));
 
     registerTOPPSubsection_("best", "Filtering best hits per spectrum (for peptides) or from proteins");
-    registerIntOption_("best:n_peptide_hits", "<integer>", 0, "Keep only the 'n' highest scoring peptide hits per spectrum (for n>0).", false);
+    registerIntOption_("best:n_peptide_hits", "<integer>", 0, "Keep only the 'n' highest scoring peptide hits per spectrum (for n > 0).", false);
     setMinInt_("best:n_peptide_hits", 0);
     registerIntOption_("best:n_protein_hits", "<integer>", 0, "Keep only the 'n' highest scoring protein hits (for n > 0).", false);
     setMinInt_("best:n_protein_hits", 0);
     registerFlag_("best:strict", "Keep only the highest scoring peptide hit.\n"
-                                 "Similar to n_peptide_hits=1, but if there are two or more highest scoring hits, none are kept.");
-    registerStringOption_("best:n_to_m_peptide_hits", "[min]:[max]", ":", "peptide hit rank range to extracts", false, true);
+                                 "Similar to n_peptide_hits=1, but if there are ties between two or more highest scoring hits, none are kept.");
+    registerStringOption_("best:n_to_m_peptide_hits", "[min]:[max]", ":", "Peptide hit rank range to extracts", false, true);
 
     registerStringOption_("length", "[min]:[max]", ":", "Keep only peptide hits with a sequence length in this range.", false);
 
@@ -244,7 +207,7 @@ protected:
 
     registerFlag_("unique", "If a peptide hit occurs more than once per peptide ID, only one instance is kept.");
     registerFlag_("unique_per_protein", "Only peptides matching exactly one protein are kept. Remember that isoforms count as different proteins!");
-    registerFlag_("keep_unreferenced_protein_hits", "Proteins not referenced by a peptide are retained in the ids.");
+    registerFlag_("keep_unreferenced_protein_hits", "Proteins not referenced by a peptide are retained in the IDs.");
     registerFlag_("remove_decoys", "Remove proteins according to the information in the user parameters. Usually used in combination with 'delete_unreferenced_peptide_hits'.");
     registerFlag_("delete_unreferenced_peptide_hits", "Peptides not referenced by any protein are deleted in the IDs. Usually used in combination with 'score:prot' or 'thresh:prot'.");
 
