@@ -140,19 +140,18 @@ START_SECTION((template <class IdentificationType> static bool getBestHit(const 
   PeptideHit best_hit;
   IDFilter::getBestHit(peptides, true, best_hit);
   TEST_REAL_SIMILAR(best_hit.getScore(), 40);
-  TEST_EQUAL(best_hit.getSequence(), 
-             AASequence::fromString("FINFGVNVEVLSRFQTK"));
+  TEST_EQUAL(best_hit.getSequence().toString(), "FINFGVNVEVLSRFQTK");
 
   peptides[0].setHigherScoreBetter(false);
   IDFilter::getBestHit(peptides, false, best_hit);
   TEST_REAL_SIMILAR(best_hit.getScore(), 10);
-  TEST_EQUAL(best_hit.getSequence(), 
-             AASequence::fromString("MSLLSNM(Oxidation)ISIVKVGYNAR"));
+  TEST_EQUAL(best_hit.getSequence().toString(),
+                    "MSLLSNM(Oxidation)ISIVKVGYNAR");
   
   ProteinHit best_hit2;
   IDFilter::getBestHit(global_proteins, false, best_hit2);
   TEST_REAL_SIMILAR(best_hit2.getScore(), 32.3);
-  TEST_STRING_EQUAL(best_hit2.getAccession(), "Q824A5");
+  TEST_EQUAL(best_hit2.getAccession(), "Q824A5");
 }
 END_SECTION
 
@@ -166,7 +165,7 @@ START_SECTION((static void extractPeptideSequences(const vector<PeptideIdentific
   for (set<String>::iterator it = seqs.begin(); it != seqs.end(); ++it,
          ++counter)
   {  
-    TEST_STRING_EQUAL(*it, expected[counter]);
+    TEST_EQUAL(*it, expected[counter]);
   }
 
   seqs.clear();
@@ -177,7 +176,7 @@ START_SECTION((static void extractPeptideSequences(const vector<PeptideIdentific
          ++counter)
   {  
     if (counter == 6) counter++; // skip the modified sequence
-    TEST_STRING_EQUAL(*it, expected[counter]);
+    TEST_EQUAL(*it, expected[counter]);
   }
 }
 END_SECTION
@@ -236,7 +235,7 @@ START_SECTION((static void updateProteinReferences(vector<PeptideIdentification>
     if ((i == 3) || (i == 4))
     {
       TEST_EQUAL(peptide_hits[i].getPeptideEvidences().size(), 1);
-      TEST_STRING_EQUAL(peptide_hits[i].getPeptideEvidences()[0].
+      TEST_EQUAL(peptide_hits[i].getPeptideEvidences()[0].
                         getProteinAccession(), "Q824A5");
     }
     else
@@ -319,20 +318,20 @@ START_SECTION((template <class IdentificationType> static void filterHitsByScore
   IDFilter::filterHitsByScore(peptides, 33);
   TEST_EQUAL(peptide_hits.size(), 5);
   TEST_REAL_SIMILAR(peptide_hits[0].getScore(), 40);
-  TEST_EQUAL(peptide_hits[0].getSequence(),
-             AASequence::fromString("FINFGVNVEVLSRFQTK"));
+  TEST_EQUAL(peptide_hits[0].getSequence().toString(), 
+                    "FINFGVNVEVLSRFQTK");
   TEST_REAL_SIMILAR(peptide_hits[1].getScore(), 40);
-  TEST_EQUAL(peptide_hits[1].getSequence(),
-             AASequence::fromString("MSLLSNMISIVKVGYNAR"));
+  TEST_EQUAL(peptide_hits[1].getSequence().toString(),
+                    "MSLLSNMISIVKVGYNAR");
   TEST_REAL_SIMILAR(peptide_hits[2].getScore(), 39);
-  TEST_EQUAL(peptide_hits[2].getSequence(),
-             AASequence::fromString("THPYGHAIVAGIERYPSK"));
+  TEST_EQUAL(peptide_hits[2].getSequence().toString(),
+                    "THPYGHAIVAGIERYPSK");
   TEST_REAL_SIMILAR(peptide_hits[3].getScore(), 34.85);
-  TEST_EQUAL(peptide_hits[3].getSequence(),
-             AASequence::fromString("LHASGITVTEIPVTATNFK"));
+  TEST_EQUAL(peptide_hits[3].getSequence().toString(),
+                    "LHASGITVTEIPVTATNFK");
   TEST_REAL_SIMILAR(peptide_hits[4].getScore(), 33.85);
-  TEST_EQUAL(peptide_hits[4].getSequence(),
-             AASequence::fromString("MRSLGYVAVISAVATDTDK"));
+  TEST_EQUAL(peptide_hits[4].getSequence().toString(),
+                    "MRSLGYVAVISAVATDTDK");
 
   IDFilter::filterHitsByScore(peptides, 41);
   TEST_EQUAL(peptides[0].getScoreType(), "Mascot");
@@ -349,20 +348,20 @@ START_SECTION((template <class IdentificationType> static void filterHitsBySigni
   IDFilter::filterHitsBySignificance(peptides, 1.0);
   TEST_EQUAL(peptide_hits.size(), 5);
   TEST_REAL_SIMILAR(peptide_hits[0].getScore(), 40);
-  TEST_EQUAL(peptide_hits[0].getSequence(),
-             AASequence::fromString("FINFGVNVEVLSRFQTK"));
+  TEST_EQUAL(peptide_hits[0].getSequence().toString(), 
+                    "FINFGVNVEVLSRFQTK");
   TEST_REAL_SIMILAR(peptide_hits[1].getScore(), 40);
-  TEST_EQUAL(peptide_hits[1].getSequence(),
-             AASequence::fromString("MSLLSNMISIVKVGYNAR"));
+  TEST_EQUAL(peptide_hits[1].getSequence().toString(),
+                    "MSLLSNMISIVKVGYNAR");
   TEST_REAL_SIMILAR(peptide_hits[2].getScore(), 39);
-  TEST_EQUAL(peptide_hits[2].getSequence(),
-             AASequence::fromString("THPYGHAIVAGIERYPSK"));
+  TEST_EQUAL(peptide_hits[2].getSequence().toString(),
+                    "THPYGHAIVAGIERYPSK");
   TEST_REAL_SIMILAR(peptide_hits[3].getScore(), 34.85);
-  TEST_EQUAL(peptide_hits[3].getSequence(),
-             AASequence::fromString("LHASGITVTEIPVTATNFK"));
+  TEST_EQUAL(peptide_hits[3].getSequence().toString(),
+                    "LHASGITVTEIPVTATNFK");
   TEST_REAL_SIMILAR(peptide_hits[4].getScore(), 33.85);
-  TEST_EQUAL(peptide_hits[4].getSequence(),
-             AASequence::fromString("MRSLGYVAVISAVATDTDK"));
+  TEST_EQUAL(peptide_hits[4].getSequence().toString(),
+                    "MRSLGYVAVISAVATDTDK");
 
   IDFilter::filterHitsBySignificance(peptides, 1.3);
   TEST_EQUAL(peptides[0].getScoreType() , "Mascot")
@@ -380,14 +379,14 @@ START_SECTION((template <class IdentificationType> static void keepNBestHits(vec
 
   TEST_EQUAL(peptide_hits.size(), 3);
   TEST_REAL_SIMILAR(peptide_hits[0].getScore(), 40);
-  TEST_EQUAL(peptide_hits[0].getSequence(),
-             AASequence::fromString("FINFGVNVEVLSRFQTK"));
+  TEST_EQUAL(peptide_hits[0].getSequence().toString(), 
+                    "FINFGVNVEVLSRFQTK");
   TEST_REAL_SIMILAR(peptide_hits[1].getScore(), 40);
-  TEST_EQUAL(peptide_hits[1].getSequence(),
-             AASequence::fromString("MSLLSNMISIVKVGYNAR"));
+  TEST_EQUAL(peptide_hits[1].getSequence().toString(),
+                    "MSLLSNMISIVKVGYNAR");
   TEST_REAL_SIMILAR(peptide_hits[2].getScore(), 39);
-  TEST_EQUAL(peptide_hits[2].getSequence(),
-             AASequence::fromString("THPYGHAIVAGIERYPSK"));
+  TEST_EQUAL(peptide_hits[2].getSequence().toString(),
+                    "THPYGHAIVAGIERYPSK");
 }
 END_SECTION
 
@@ -415,11 +414,11 @@ START_SECTION((template <class IdentificationType> static void removeDecoyHits(v
   proteins[0].getHits()[4].setMetaValue("isDecoy", "false");
   IDFilter::removeDecoyHits(proteins);
   TEST_EQUAL(proteins[0].getHits().size(), 3);
-  TEST_STRING_EQUAL(proteins[0].getHits()[0].getMetaValue("target_decoy"),
+  TEST_EQUAL(proteins[0].getHits()[0].getMetaValue("target_decoy"),
                     "target");
   TEST_EQUAL(proteins[0].getHits()[1].metaValueExists("target_decoy"), false);
   TEST_EQUAL(proteins[0].getHits()[1].metaValueExists("isDecoy"), false);
-  TEST_STRING_EQUAL(proteins[0].getHits()[2].getMetaValue("isDecoy"), "false");
+  TEST_EQUAL(proteins[0].getHits()[2].getMetaValue("isDecoy"), "false");
 
   vector<PeptideIdentification> peptides(1);
   peptides[0].getHits().resize(6);
@@ -431,13 +430,13 @@ START_SECTION((template <class IdentificationType> static void removeDecoyHits(v
   peptides[0].getHits()[5].setMetaValue("isDecoy", "false");
   IDFilter::removeDecoyHits(peptides);
   TEST_EQUAL(peptides[0].getHits().size(), 4);
-  TEST_STRING_EQUAL(peptides[0].getHits()[0].getMetaValue("target_decoy"),
+  TEST_EQUAL(peptides[0].getHits()[0].getMetaValue("target_decoy"),
                     "target");
-  TEST_STRING_EQUAL(peptides[0].getHits()[1].getMetaValue("target_decoy"),
+  TEST_EQUAL(peptides[0].getHits()[1].getMetaValue("target_decoy"),
                     "target+decoy");
   TEST_EQUAL(peptides[0].getHits()[2].metaValueExists("target_decoy"), false);
   TEST_EQUAL(peptides[0].getHits()[2].metaValueExists("isDecoy"), false);
-  TEST_STRING_EQUAL(peptides[0].getHits()[3].getMetaValue("isDecoy"), "false");
+  TEST_EQUAL(peptides[0].getHits()[3].getMetaValue("isDecoy"), "false");
 }
 END_SECTION
 
@@ -461,11 +460,11 @@ START_SECTION((template <class IdentificationType> static void removeHitsMatchin
   TEST_EQUAL(peptides[0].getScoreType(), "Mascot");
   TEST_EQUAL(peptides[0].getHits().size(), 9);
   // check some examples:
-  TEST_STRING_EQUAL(peptides[0].getHits()[0].getSequence().toString(),
+  TEST_EQUAL(peptides[0].getHits()[0].getSequence().toString(),
                     "FINFGVNVEVLSRFQTK");
-  TEST_STRING_EQUAL(peptides[0].getHits()[3].getSequence().toString(),
+  TEST_EQUAL(peptides[0].getHits()[3].getSequence().toString(),
                     "EGASTDFAALRTFLAEDGK");
-  TEST_STRING_EQUAL(peptides[0].getHits()[8].getSequence().toString(),
+  TEST_EQUAL(peptides[0].getHits()[8].getSequence().toString(),
                     "MSLLSNM(Oxidation)ISIVKVGYNAR");
 }
 END_SECTION
@@ -489,9 +488,9 @@ START_SECTION((template <class IdentificationType> static void keepHitsMatchingP
 
   TEST_EQUAL(peptides[0].getScoreType(), "Mascot");
   TEST_EQUAL(peptides[0].getHits().size(), 2);
-  TEST_STRING_EQUAL(peptides[0].getHits()[0].getSequence().toString(),
+  TEST_EQUAL(peptides[0].getHits()[0].getSequence().toString(),
                     "LHASGITVTEIPVTATNFK");
-  TEST_STRING_EQUAL(peptides[0].getHits()[1].getSequence().toString(),
+  TEST_EQUAL(peptides[0].getHits()[1].getSequence().toString(),
                     "MRSLGYVAVISAVATDTDK");
 }
 END_SECTION
@@ -506,11 +505,11 @@ START_SECTION((static void keepBestPeptideHits(vector<PeptideIdentification>& pe
   TEST_EQUAL(peptides[0].getScoreType(), "Mascot");
   TEST_EQUAL(peptide_hits.size(), 2);
   TEST_REAL_SIMILAR(peptide_hits[0].getScore(), 40);
-  TEST_EQUAL(peptide_hits[0].getSequence(),
-             AASequence::fromString("FINFGVNVEVLSRFQTK"));
+  TEST_EQUAL(peptide_hits[0].getSequence().toString(),
+                    "FINFGVNVEVLSRFQTK");
   TEST_REAL_SIMILAR(peptide_hits[1].getScore(), 40);
-  TEST_EQUAL(peptide_hits[1].getSequence(),
-             AASequence::fromString("MSLLSNMISIVKVGYNAR"));
+  TEST_EQUAL(peptide_hits[1].getSequence().toString(),
+                    "MSLLSNMISIVKVGYNAR");
 
   // strict:
   IDFilter::keepBestPeptideHits(peptides, true);
@@ -637,14 +636,10 @@ START_SECTION((static void filterPeptidesByRTPredictPValue(vector<PeptideIdentif
     vector<PeptideHit>& hits = peptides[0].getHits();
 
     TEST_EQUAL(hits.size(), 4);
-    TEST_EQUAL(hits[0].getSequence(),
-               AASequence::fromString("LHASGITVTEIPVTATNFK"));
-    TEST_EQUAL(hits[1].getSequence(),
-               AASequence::fromString("DLEPGTDYEVTVSTLFGR"));
-    TEST_EQUAL(hits[2].getSequence(),
-               AASequence::fromString("FINFGVNVEVLSRFQTK"));
-    TEST_EQUAL(hits[3].getSequence(),
-               AASequence::fromString("MSLLSNMISIVKVGYNAR"));
+    TEST_EQUAL(hits[0].getSequence().toString(), "LHASGITVTEIPVTATNFK");
+    TEST_EQUAL(hits[1].getSequence().toString(), "DLEPGTDYEVTVSTLFGR");
+    TEST_EQUAL(hits[2].getSequence().toString(), "FINFGVNVEVLSRFQTK");
+    TEST_EQUAL(hits[3].getSequence().toString(), "MSLLSNMISIVKVGYNAR");
   }
   { // first dim. RT prediction:
     IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDFilter_test3.idXML"),
@@ -655,14 +650,10 @@ START_SECTION((static void filterPeptidesByRTPredictPValue(vector<PeptideIdentif
     vector<PeptideHit>& hits = peptides[0].getHits();
 
     TEST_EQUAL(hits.size(), 4);
-    TEST_EQUAL(hits[0].getSequence(),
-               AASequence::fromString("LHASGITVTEIPVTATNFK"));
-    TEST_EQUAL(hits[1].getSequence(),
-               AASequence::fromString("DLEPGTDYEVTVSTLFGR"));
-    TEST_EQUAL(hits[2].getSequence(),
-               AASequence::fromString("FINFGVNVEVLSRFQTK"));
-    TEST_EQUAL(hits[3].getSequence(),
-               AASequence::fromString("MSLLSNMISIVKVGYNAR"));
+    TEST_EQUAL(hits[0].getSequence().toString(), "LHASGITVTEIPVTATNFK");
+    TEST_EQUAL(hits[1].getSequence().toString(), "DLEPGTDYEVTVSTLFGR");
+    TEST_EQUAL(hits[2].getSequence().toString(), "FINFGVNVEVLSRFQTK");
+    TEST_EQUAL(hits[3].getSequence().toString(), "MSLLSNMISIVKVGYNAR");
   }
 }
 END_SECTION
@@ -703,7 +694,7 @@ START_SECTION((static void keepPeptidesWithMatchingModifications(vector<PeptideI
   mods.insert("Oxidation (M)");
   IDFilter::keepPeptidesWithMatchingModifications(peptides, mods);
   TEST_EQUAL(peptides[0].getHits().size(), 1);
-  TEST_STRING_EQUAL(peptides[0].getHits()[0].getSequence().toString(),
+  TEST_EQUAL(peptides[0].getHits()[0].getSequence().toString(),
                     "MSLLSNM(Oxidation)ISIVKVGYNAR");
 
   // terminal mods:
@@ -761,11 +752,11 @@ START_SECTION((static void removePeptidesWithMatchingSequences(vector<PeptideIde
   IDFilter::removePeptidesWithMatchingSequences(peptides, bad_peptides, true);
   TEST_EQUAL(peptides[0].getScoreType(), "Mascot");
   TEST_EQUAL(peptide_hits.size(), 2);
-  TEST_EQUAL(peptide_hits[0].getSequence(),
-             AASequence::fromString("TGCDTWGQGTLVTVSSASTK"));
+  TEST_EQUAL(peptide_hits[0].getSequence().toString(), 
+                    "TGCDTWGQGTLVTVSSASTK");
   TEST_REAL_SIMILAR(peptide_hits[0].getScore(), 10.93);
-  TEST_EQUAL(peptide_hits[1].getSequence(),
-             AASequence::fromString("TLCHHDATFDNLVWTPK"));
+  TEST_EQUAL(peptide_hits[1].getSequence().toString(), 
+                    "TLCHHDATFDNLVWTPK");
   TEST_REAL_SIMILAR(peptide_hits[1].getScore(), 10.37);
 }
 END_SECTION
@@ -785,31 +776,31 @@ START_SECTION((static void keepPeptidesWithMatchingSequences(vector<PeptideIdent
   IDFilter::keepPeptidesWithMatchingSequences(peptides, good_peptides, true);
   TEST_EQUAL(peptides[0].getScoreType(), "Mascot");
   TEST_EQUAL(peptide_hits.size(), 4);
-  TEST_EQUAL(peptide_hits[0].getSequence(),
-             AASequence::fromString("MSLLSNMISIVKVGYNAR"));
+  TEST_EQUAL(peptide_hits[0].getSequence().toString(), 
+                    "MSLLSNMISIVKVGYNAR");
   TEST_REAL_SIMILAR(peptide_hits[0].getScore(), 40);
-  TEST_EQUAL(peptide_hits[1].getSequence(),
-             AASequence::fromString("TGCDTWGQGTLVTVSSASTK"));
+  TEST_EQUAL(peptide_hits[1].getSequence().toString(),
+                    "TGCDTWGQGTLVTVSSASTK");
   TEST_REAL_SIMILAR(peptide_hits[1].getScore(), 10.93);
-  TEST_EQUAL(peptide_hits[2].getSequence(),
-             AASequence::fromString("TLCHHDATFDNLVWTPK"));
+  TEST_EQUAL(peptide_hits[2].getSequence().toString(),
+                    "TLCHHDATFDNLVWTPK");
   TEST_REAL_SIMILAR(peptide_hits[2].getScore(), 10.37);
-  TEST_EQUAL(peptide_hits[3].getSequence(),
-             AASequence::fromString("MSLLSNM(Oxidation)ISIVKVGYNAR"));
+  TEST_EQUAL(peptide_hits[3].getSequence().toString(),
+                    "MSLLSNM(Oxidation)ISIVKVGYNAR");
   TEST_REAL_SIMILAR(peptide_hits[3].getScore(), 10);
 
   // modification-aware filtering:
   IDFilter::keepPeptidesWithMatchingSequences(peptides, good_peptides, false);
   TEST_EQUAL(peptides[0].getScoreType(), "Mascot");
   TEST_EQUAL(peptide_hits.size(), 3);
-  TEST_EQUAL(peptide_hits[0].getSequence(),
-             AASequence::fromString("TGCDTWGQGTLVTVSSASTK"));
+  TEST_EQUAL(peptide_hits[0].getSequence().toString(),
+                    "TGCDTWGQGTLVTVSSASTK");
   TEST_REAL_SIMILAR(peptide_hits[0].getScore(), 10.93);
-  TEST_EQUAL(peptide_hits[1].getSequence(),
-             AASequence::fromString("TLCHHDATFDNLVWTPK"));
+  TEST_EQUAL(peptide_hits[1].getSequence().toString(),
+                    "TLCHHDATFDNLVWTPK");
   TEST_REAL_SIMILAR(peptide_hits[1].getScore(), 10.37);
-  TEST_EQUAL(peptide_hits[2].getSequence(),
-             AASequence::fromString("MSLLSNM(Oxidation)ISIVKVGYNAR"));
+  TEST_EQUAL(peptide_hits[2].getSequence().toString(),
+                    "MSLLSNM(Oxidation)ISIVKVGYNAR");
   TEST_REAL_SIMILAR(peptide_hits[2].getScore(), 10);
 }
 END_SECTION
@@ -825,7 +816,7 @@ START_SECTION((static void keepUniquePeptidesPerProtein(vector<PeptideIdentifica
   hits[3].setMetaValue("protein_references", "unique");
   IDFilter::keepUniquePeptidesPerProtein(peptides);
   TEST_EQUAL(hits.size(), 1);
-  TEST_STRING_EQUAL(hits[0].getMetaValue("protein_references"), "unique");
+  TEST_EQUAL(hits[0].getMetaValue("protein_references"), "unique");
 }
 END_SECTION
 
@@ -853,9 +844,9 @@ START_SECTION((static void removeDuplicatePeptideHits(vector<PeptideIdentificati
 
   IDFilter::removeDuplicatePeptideHits(peptides);
   TEST_EQUAL(hits.size(), 5);
-  TEST_STRING_EQUAL(hits[3].getSequence().toString(), "DFPIANGEK");
+  TEST_EQUAL(hits[3].getSequence().toString(), "DFPIANGEK");
   TEST_EQUAL(hits[3].getCharge(), 2);
-  TEST_STRING_EQUAL(hits[4].getSequence().toString(), "DFPIANGEK");
+  TEST_EQUAL(hits[4].getSequence().toString(), "DFPIANGEK");
   TEST_EQUAL(hits[4].getCharge(), 5);
 }
 END_SECTION
@@ -876,26 +867,30 @@ START_SECTION((template <class PeakT> static void filterHitsByScore(MSExperiment
 
   IDFilter::filterHitsByScore(experiment, 31.8621, 0);
   PeptideIdentification& identification = experiment[3].getPeptideIdentifications()[0];
-  TEST_EQUAL(identification.getScoreType(), "Mascot")
+  TEST_EQUAL(identification.getScoreType(), "Mascot");
 
   vector<PeptideHit>& peptide_hits = identification.getHits();
-  TEST_EQUAL(peptide_hits.size(), 5)
-  TEST_REAL_SIMILAR(peptide_hits[0].getScore(), 40)
-  TEST_EQUAL(peptide_hits[0].getRank(), 1)
-  TEST_EQUAL((peptide_hits[0].getSequence() == AASequence::fromString("FINFGVNVEVLSRFQTK") && peptide_hits[1].getSequence() == AASequence::fromString("MSLLSNMISIVKVGYNAR")) ||
-             (peptide_hits[0].getSequence() == AASequence::fromString("MSLLSNMISIVKVGYNAR") && peptide_hits[1].getSequence() == AASequence::fromString("FINFGVNVEVLSRFQTK")), true)
-
-  TEST_REAL_SIMILAR(peptide_hits[1].getScore(), 40)
-  TEST_EQUAL(peptide_hits[1].getRank(), 1)
-  TEST_EQUAL(peptide_hits[2].getSequence(), AASequence::fromString("THPYGHAIVAGIERYPSK"))
-  TEST_REAL_SIMILAR(peptide_hits[2].getScore(), 39)
-  TEST_EQUAL(peptide_hits[2].getRank(), 2)
-  TEST_EQUAL(peptide_hits[3].getSequence(), AASequence::fromString("LHASGITVTEIPVTATNFK"))
-  TEST_REAL_SIMILAR(peptide_hits[3].getScore(), 34.85)
-  TEST_EQUAL(peptide_hits[3].getRank(), 3)
-  TEST_EQUAL(peptide_hits[4].getSequence(), AASequence::fromString("MRSLGYVAVISAVATDTDK"))
-  TEST_REAL_SIMILAR(peptide_hits[4].getScore(), 33.85)
-  TEST_EQUAL(peptide_hits[4].getRank(), 4)
+  TEST_EQUAL(peptide_hits.size(), 5);
+  TEST_EQUAL(peptide_hits[0].getSequence().toString(),
+                    "FINFGVNVEVLSRFQTK");
+  TEST_REAL_SIMILAR(peptide_hits[0].getScore(), 40);
+  TEST_EQUAL(peptide_hits[0].getRank(), 1);
+  TEST_EQUAL(peptide_hits[1].getSequence().toString(),
+                    "MSLLSNMISIVKVGYNAR");
+  TEST_REAL_SIMILAR(peptide_hits[1].getScore(), 40);
+  TEST_EQUAL(peptide_hits[1].getRank(), 1);
+  TEST_EQUAL(peptide_hits[2].getSequence().toString(),
+                    "THPYGHAIVAGIERYPSK");
+  TEST_REAL_SIMILAR(peptide_hits[2].getScore(), 39);
+  TEST_EQUAL(peptide_hits[2].getRank(), 2);
+  TEST_EQUAL(peptide_hits[3].getSequence().toString(),
+                    "LHASGITVTEIPVTATNFK");
+  TEST_REAL_SIMILAR(peptide_hits[3].getScore(), 34.85);
+  TEST_EQUAL(peptide_hits[3].getRank(), 3);
+  TEST_EQUAL(peptide_hits[4].getSequence().toString(),
+                    "MRSLGYVAVISAVATDTDK");
+  TEST_REAL_SIMILAR(peptide_hits[4].getScore(), 33.85);
+  TEST_EQUAL(peptide_hits[4].getRank(), 4);
 }
 END_SECTION
 
@@ -915,26 +910,30 @@ START_SECTION((template <class PeakT> static void filterHitsBySignificance(MSExp
 
   IDFilter::filterHitsBySignificance(experiment, 1.0, 1.0);
   PeptideIdentification& identification = experiment[3].getPeptideIdentifications()[0];
-  TEST_EQUAL(identification.getScoreType(), "Mascot")
+  TEST_EQUAL(identification.getScoreType(), "Mascot");
 
   vector<PeptideHit>& peptide_hits = identification.getHits();
-  TEST_EQUAL(peptide_hits.size(), 5)
-  TEST_REAL_SIMILAR(peptide_hits[0].getScore(), 40)
-  TEST_EQUAL(peptide_hits[0].getRank(), 1)
-  TEST_EQUAL((peptide_hits[0].getSequence() == AASequence::fromString("FINFGVNVEVLSRFQTK") && peptide_hits[1].getSequence() == AASequence::fromString("MSLLSNMISIVKVGYNAR")) || 
-             (peptide_hits[0].getSequence() == AASequence::fromString("MSLLSNMISIVKVGYNAR") && peptide_hits[1].getSequence() == AASequence::fromString("FINFGVNVEVLSRFQTK")), true)
-
-  TEST_REAL_SIMILAR(peptide_hits[1].getScore(), 40)
-  TEST_EQUAL(peptide_hits[1].getRank(), 1)
-  TEST_EQUAL(peptide_hits[2].getSequence(), AASequence::fromString("THPYGHAIVAGIERYPSK"))
-  TEST_REAL_SIMILAR(peptide_hits[2].getScore(), 39)
-  TEST_EQUAL(peptide_hits[2].getRank(), 2)
-  TEST_EQUAL(peptide_hits[3].getSequence(), AASequence::fromString("LHASGITVTEIPVTATNFK"))
-  TEST_REAL_SIMILAR(peptide_hits[3].getScore() , 34.85)
-  TEST_EQUAL(peptide_hits[3].getRank(), 3)
-  TEST_EQUAL(peptide_hits[4].getSequence(), AASequence::fromString("MRSLGYVAVISAVATDTDK"))
-  TEST_REAL_SIMILAR(peptide_hits[4].getScore(), 33.85)
-  TEST_EQUAL(peptide_hits[4].getRank(), 4)
+  TEST_EQUAL(peptide_hits.size(), 5);
+  TEST_EQUAL(peptide_hits[0].getSequence().toString(),
+                    "FINFGVNVEVLSRFQTK");
+  TEST_REAL_SIMILAR(peptide_hits[0].getScore(), 40);
+  TEST_EQUAL(peptide_hits[0].getRank(), 1);
+  TEST_EQUAL(peptide_hits[1].getSequence().toString(),
+                    "MSLLSNMISIVKVGYNAR");
+  TEST_REAL_SIMILAR(peptide_hits[1].getScore(), 40);
+  TEST_EQUAL(peptide_hits[1].getRank(), 1);
+  TEST_EQUAL(peptide_hits[2].getSequence().toString(),
+                    "THPYGHAIVAGIERYPSK");
+  TEST_REAL_SIMILAR(peptide_hits[2].getScore(), 39);
+  TEST_EQUAL(peptide_hits[2].getRank(), 2);
+  TEST_EQUAL(peptide_hits[3].getSequence().toString(),
+                    "LHASGITVTEIPVTATNFK");
+  TEST_REAL_SIMILAR(peptide_hits[3].getScore(), 34.85);
+  TEST_EQUAL(peptide_hits[3].getRank(), 3);
+  TEST_EQUAL(peptide_hits[4].getSequence().toString(),
+                    "MRSLGYVAVISAVATDTDK");
+  TEST_REAL_SIMILAR(peptide_hits[4].getScore(), 33.85);
+  TEST_EQUAL(peptide_hits[4].getRank(), 4);
 }
 END_SECTION
 
@@ -954,19 +953,22 @@ START_SECTION((template <class PeakT> static void keepNBestHits(MSExperiment<Pea
 
   IDFilter::keepNBestHits(experiment, 3);
   PeptideIdentification& identification = experiment[3].getPeptideIdentifications()[0];
-  TEST_EQUAL(identification.getScoreType(), "Mascot")
+  TEST_EQUAL(identification.getScoreType(), "Mascot");
 
   vector<PeptideHit>& peptide_hits = identification.getHits();
-  TEST_EQUAL(peptide_hits.size(), 3)
-  TEST_REAL_SIMILAR(peptide_hits[0].getScore(), 40)
-  TEST_EQUAL(peptide_hits[0].getRank(), 1)
-  TEST_EQUAL((peptide_hits[0].getSequence() == AASequence::fromString("FINFGVNVEVLSRFQTK") && peptide_hits[1].getSequence() == AASequence::fromString("MSLLSNMISIVKVGYNAR")) ||
-             (peptide_hits[0].getSequence() == AASequence::fromString("MSLLSNMISIVKVGYNAR") && peptide_hits[1].getSequence() == AASequence::fromString("FINFGVNVEVLSRFQTK")), true)
-  TEST_REAL_SIMILAR(peptide_hits[1].getScore(), 40)
-  TEST_EQUAL(peptide_hits[1].getRank(), 1)
-  TEST_EQUAL(peptide_hits[2].getSequence(), AASequence::fromString("THPYGHAIVAGIERYPSK"))
-  TEST_REAL_SIMILAR(peptide_hits[2].getScore(), 39)
-  TEST_EQUAL(peptide_hits[2].getRank(), 2)
+  TEST_EQUAL(peptide_hits.size(), 3);
+  TEST_EQUAL(peptide_hits[0].getSequence().toString(),
+                    "FINFGVNVEVLSRFQTK");
+  TEST_REAL_SIMILAR(peptide_hits[0].getScore(), 40);
+  TEST_EQUAL(peptide_hits[0].getRank(), 1);
+  TEST_EQUAL(peptide_hits[1].getSequence().toString(),
+                    "MSLLSNMISIVKVGYNAR");
+  TEST_REAL_SIMILAR(peptide_hits[1].getScore(), 40);
+  TEST_EQUAL(peptide_hits[1].getRank(), 1);
+  TEST_EQUAL(peptide_hits[2].getSequence().toString(),
+                    "THPYGHAIVAGIERYPSK");
+  TEST_REAL_SIMILAR(peptide_hits[2].getScore(), 39);
+  TEST_EQUAL(peptide_hits[2].getRank(), 2);
 }
 END_SECTION
 
@@ -995,12 +997,12 @@ START_SECTION((template<class PeakT> static void keepHitsMatchingProteins(MSExpe
   vector<PeptideHit>& peptide_hits =
     experiment[3].getPeptideIdentifications()[0].getHits();
   TEST_EQUAL(peptide_hits.size(), 2);
-  TEST_EQUAL(peptide_hits[0].getSequence(),
-             AASequence::fromString("LHASGITVTEIPVTATNFK"));
+  TEST_EQUAL(peptide_hits[0].getSequence().toString(), 
+                    "LHASGITVTEIPVTATNFK");
   TEST_REAL_SIMILAR(peptide_hits[0].getScore(), 34.85);
   TEST_EQUAL(peptide_hits[0].getRank(), 1);
-  TEST_EQUAL(peptide_hits[1].getSequence(),
-             AASequence::fromString("MRSLGYVAVISAVATDTDK"));
+  TEST_EQUAL(peptide_hits[1].getSequence().toString(),
+                    "MRSLGYVAVISAVATDTDK");
   TEST_REAL_SIMILAR(peptide_hits[1].getScore(), 33.85);
   TEST_EQUAL(peptide_hits[1].getRank(), 2);
 }
