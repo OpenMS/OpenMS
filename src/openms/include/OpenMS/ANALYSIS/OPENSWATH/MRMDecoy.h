@@ -115,7 +115,7 @@ public:
                         double precursor_mass_shift, std::vector<String> fragment_types,
                         std::vector<size_t> fragment_charges, bool enable_specific_losses,
                         bool enable_unspecific_losses, bool remove_unannotated,
-                        int round_decPow = 4);
+                        int round_decPow = -4);
     /**
       @brief Remove transitions s.t. all peptides have a defined set of transitions.
 

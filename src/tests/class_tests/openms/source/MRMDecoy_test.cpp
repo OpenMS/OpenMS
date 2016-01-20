@@ -387,7 +387,7 @@ START_SECTION((void generateDecoys(OpenMS::TargetedExperiment & exp,
                                    bool enable_specific_losses, bool enable_unspecific_losses, bool skip_unannotated); ))
 {
   String method = "pseudo-reverse";
-  double identity_threshold = 1.0;
+  double identity_threshold = 0.7;
   Int max_attempts = 5;
   double mz_threshold = 0.8;
   double mz_shift = 20;
