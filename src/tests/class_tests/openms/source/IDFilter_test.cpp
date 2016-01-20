@@ -134,7 +134,7 @@ START_SECTION((template <class IdentificationType> static Size countHits(const v
 }
 END_SECTION
 
-START_SECTION((template <class IdentificationType> static bool getBestHit(const vector<IdentificationType> identifications, bool assume_sorted, typename IdentificationType::HitType& best_hit)))
+START_SECTION((template <class IdentificationType> static bool getBestHit(const vector<IdentificationType>& identifications, bool assume_sorted, typename IdentificationType::HitType& best_hit)))
 {
   vector<PeptideIdentification> peptides = global_peptides;
   PeptideHit best_hit;

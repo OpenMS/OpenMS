@@ -371,8 +371,8 @@ public:
     */
     template <class IdentificationType>
     static bool getBestHit(
-      const std::vector<IdentificationType> identifications, bool assume_sorted,
-      typename IdentificationType::HitType& best_hit)
+      const std::vector<IdentificationType>& identifications,
+      bool assume_sorted, typename IdentificationType::HitType& best_hit)
     {
       if (identifications.empty()) return false;
 
