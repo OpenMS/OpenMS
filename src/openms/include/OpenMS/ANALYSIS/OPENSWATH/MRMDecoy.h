@@ -116,54 +116,12 @@ public:
                         std::vector<size_t> fragment_charges, bool enable_specific_losses,
                         bool enable_unspecific_losses, bool remove_unannotated,
                         int round_decPow = -4);
-    /**
-      @brief Remove transitions s.t. all peptides have a defined set of transitions.
-
-      All transitions of a peptide above max_transitions get deleted, all
-      peptides with less than min_transitions also get deleted.
-
-    */
-    void restrictTransitions(OpenMS::TargetedExperiment& exp, int min_transitions,
-                             int max_transitions);
 
     typedef std::vector<OpenMS::TargetedExperiment::Protein> ProteinVectorType;
     typedef std::vector<OpenMS::TargetedExperiment::Peptide> PeptideVectorType;
     typedef std::vector<OpenMS::ReactionMonitoringTransition> TransitionVectorType;
 
-    typedef boost::unordered_map<String, boost::unordered_map<String, double> > IonSeries;
-    typedef boost::unordered_map<String, IonSeries> IonSeriesMapType;
-
     typedef std::map<String, std::vector<const ReactionMonitoringTransition*> > PeptideTransitionMapType;
-
-    /**
-      @brief Selects a decoy ion from a set of ions.
-    */
-    std::pair<String, double> getDecoyIon(String ionid,
-                                          boost::unordered_map<String, boost::unordered_map<String, double> >& decoy_ionseries);
-
-    /**
-      @brief Selects a target ion from a set of ions.
-    */
-    std::pair<String, double> getTargetIon(double ProductMZ, double mz_threshold,
-                                           boost::unordered_map<String, boost::unordered_map<String, double> > target_ionseries,
-                                           bool enable_losses);
-    /**
-      @brief Generate all ion series for an input AASequence
-
-      Currently generated are:
-
-      bionseries, bionseries_loss,
-      yionseries, yionseries_loss,
-      aionseries
-
-      for each of these, the following neutral losses are calculated:
-        -17, -18, -34, -35, -36, -44, -45, -46, -64, -98.
-
-      FEATURE (george): a more generic mechanism to specify which series and losses should be
-      generated. possible integration with TheoreticalSpectrumGenerator?
-    */
-    boost::unordered_map<String, boost::unordered_map<String, double> > getIonSeries(
-      AASequence sequence, int precursor_charge);
 
     /**
       @brief Find all tryptic sites in a sequence
