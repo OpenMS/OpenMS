@@ -155,8 +155,11 @@ elif sys.platform == "darwin":
     shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libOpenMS.dylib"), "pyopenms")
     shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libSuperHirn.dylib"), "pyopenms")
     shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libOpenSwathAlgo.dylib"), "pyopenms")
+    # copy and set correct permissions (needs to be writeable for next copy)
     shutil.copy(j(QT_LIBRARY_DIR, "QtCore.framework", "QtCore"), "pyopenms")
     shutil.copy(j(QT_LIBRARY_DIR, "QtNetwork.framework", "QtNetwork"), "pyopenms")
+    os.chmod("pyopenms/QtCore", 0744)
+    os.chmod("pyopenms/QtNetwork", 0744)
 
 else:
     print("\n")
