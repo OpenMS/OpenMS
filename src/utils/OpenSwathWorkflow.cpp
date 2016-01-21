@@ -80,6 +80,11 @@
 
 using namespace OpenMS;
 
+static bool SortPairDoubleByFirst(const std::pair<double,double> & left, const std::pair<double,double> & right)
+{
+  return left.first < right.first;
+}
+
 // The workflow class and the TSV writer
 namespace OpenMS
 {
@@ -1539,6 +1544,7 @@ protected:
     bool ppm = getFlag_("ppm");
     bool split_file = getFlag_("split_file_input");
     bool use_emg_score = getFlag_("use_elution_model_score");
+    bool force = getFlag_("force");
     bool sort_swath_maps = getFlag_("sort_swath_maps");
     bool use_ms1_traces = getFlag_("use_ms1_traces");
     bool enable_uis_scoring = getFlag_("enable_uis_scoring");
@@ -1628,11 +1634,13 @@ protected:
     ///////////////////////////////////
     // Load the SWATH files
     ///////////////////////////////////
+
+    // (i) Load files
     boost::shared_ptr<ExperimentalSettings> exp_meta(new ExperimentalSettings);
     std::vector< OpenSwath::SwathMap > swath_maps;
     loadSwathFiles(file_list, split_file, tmp, readoptions, exp_meta, swath_maps);
 
-    // Allow the user to specify the SWATH windows
+    // (ii) Allow the user to specify the SWATH windows
     if (!swath_windows_file.empty())
     {
       SwathWindowLoader::annotateSwathMapsFromFile(swath_windows_file, swath_maps, sort_swath_maps);
@@ -1643,6 +1651,47 @@ protected:
       LOG_DEBUG << "Found swath map " << i << " with lower " << swath_maps[i].lower
         << " and upper " << swath_maps[i].upper << " and " << swath_maps[i].sptr->getNrSpectra()
         << " spectra." << std::endl;
+    }
+
+    // (iii) Sanity check: there should be no overlap between the windows:
+    std::vector<std::pair<double, double> > sw_windows;
+    for (Size i = 0; i < swath_maps.size(); i++)
+    {
+      if (!swath_maps[i].ms1)
+      {
+        sw_windows.push_back(std::make_pair(swath_maps[i].lower, swath_maps[i].upper));
+      }
+    }
+    std::sort(sw_windows.begin(), sw_windows.end(), SortPairDoubleByFirst);
+
+    for (Size i = 1; i < sw_windows.size(); i++)
+    {
+      double lower_map_end = sw_windows[i-1].second - min_upper_edge_dist;
+      double upper_map_start = sw_windows[i].first;
+      LOG_DEBUG << "Extraction will go up to " << lower_map_end << " and continue at " << upper_map_start << std::endl;
+
+      if (upper_map_start - lower_map_end > 0.01)
+      {
+        LOG_INFO << "Extraction will have a gap between " << lower_map_end << " and " << upper_map_start << std::endl;
+        if (!force)
+        {
+          LOG_INFO << "Will abort (override with -force)" << std::endl;
+          return PARSE_ERROR;
+        }
+      }
+
+      if (lower_map_end - upper_map_start > 0.01)
+      {
+        LOG_INFO << "Extraction will overlap between " << lower_map_end << " and " << upper_map_start << std::endl;
+        LOG_INFO << "This will lead to multiple extraction of the transitions in this region which should be avoided." << std::endl;
+        LOG_INFO << "Please fix this by providing an appropriate extraction file with -swath_windows_file" << std::endl;
+        if (!force)
+        {
+          LOG_INFO << "Will abort (override with -force)" << std::endl;
+          return PARSE_ERROR;
+        }
+      }
+
     }
 
     ///////////////////////////////////
