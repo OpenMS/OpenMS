@@ -38,6 +38,8 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/JavaInfo.h>
@@ -99,7 +101,7 @@ public:
     // parameter choices (the order of the values must be the same as in the LuciPHOr2 parameters!):
     fragment_methods_(ListUtils::create<String>("CID,HCD")),
     fragment_error_units_(ListUtils::create<String>("Daltons,ppm")),
-    input_types_(ListUtils::create<String>("pepXML"))
+    input_types_(ListUtils::create<String>("pepXML,idXML"))
   {
   }
 
@@ -110,7 +112,7 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("spectrum_in", "<file>", "", "Input spectrum file");	
-    setValidFormats_("spectrum_in", ListUtils::create<String>("mzML,mgf,mzXML"));
+    setValidFormats_("spectrum_in", ListUtils::create<String>("mzML"));
     
     registerInputFile_("in", "<file>", "", "Input file");	
     setValidFormats_("in", input_types_);
@@ -179,16 +181,14 @@ protected:
     return String(residue +  " " + mod.getDiffMonoMass());    
   }
  
-  ExitCodes parseParameters_(map<String, vector<String> >& config_map)
+  ExitCodes parseParameters_(map<String, vector<String> >& config_map, const String& in)
   {
     FileHandler fh;
     
     String spectrum_in = getStringOption_("spectrum_in");    
     config_map["SPECTRUM_PATH"].push_back(File::path(File::absolutePath(spectrum_in)));
     config_map["SPECTRUM_SUFFIX"].push_back(FileTypes::typeToName(fh.getTypeByFileName(spectrum_in)));
-    
-    String in = getStringOption_("in");
-    config_map["INPUT_DATA"].push_back(getStringOption_("in"));
+    config_map["INPUT_DATA"].push_back(in);
     
     String type = FileTypes::typeToName(fh.getTypeByFileName(in));
     config_map["INPUT_TYPE"].push_back(ListUtils::getIndex<String>(input_types_, type));
@@ -285,8 +285,12 @@ protected:
     }
   }
   
+  
   ExitCodes main_(int, const char**)
   {
+    vector<PeptideIdentification> peptide_identifications;
+    vector<ProteinIdentification> protein_identifications;
+    
     if (!getFlag_("force"))
     {
       if (!JavaInfo::canRun("java"))
@@ -309,10 +313,33 @@ protected:
 	
     // create a temporary config file for LuciPHOr2 parameters
     conf_file = temp_dir + "luciphor2_input_template.txt";
-	
+    
+    String in = getStringOption_("in");
+    FileHandler fh;
+    FileTypes::Type in_type = fh.getType(in);
+    
+    // convert input to pepXML if necessary
+    if (in_type == FileTypes::IDXML)
+    {
+      IdXMLFile().load(in, protein_identifications, peptide_identifications);
+      String spectrum_file = getStringOption_("spectrum_in");
+      
+      // create a tempory pepXML file for LuciPHOR2 input
+      String in_file_name = File::removeExtension(File::basename(in));
+      in = temp_dir + in_file_name + ".pepXML";
+      
+      PepXMLFile().store(in, protein_identifications, peptide_identifications, spectrum_file, "", false);
+    }
+    else if (!in_type == FileTypes::PEPXML)
+    {
+      writeLog_("Error: Unknown input file type given. Aborting!");
+      printUsage_();
+      return ILLEGAL_PARAMETERS;
+    }
+    
     // initialize map
     map<String, vector<String> > config_map;	
-    ExitCodes ret = parseParameters_(config_map);
+    ExitCodes ret = parseParameters_(config_map, in);
     if (ret != EXECUTION_OK)
     {
       return ret;
@@ -347,7 +374,6 @@ protected:
     return EXECUTION_OK;
   }
 };
-
 
 int main(int argc, const char** argv)
 {
