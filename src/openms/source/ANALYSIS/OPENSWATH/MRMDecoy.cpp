@@ -473,23 +473,13 @@ namespace OpenMS
       dec.setTransitions(decoy_transitions);
     }
 
-    std::vector<String> peptide_ids;
-    for (Size i = 0; i < dec.getTransitions().size(); ++i)
-    {
-      // Append transition_group_id to index
-      if (std::find(peptide_ids.begin(), peptide_ids.end(), dec.getTransitions()[i].getPeptideRef()) == peptide_ids.end())
-      {
-        peptide_ids.push_back(dec.getTransitions()[i].getPeptideRef());
-      }
-    }
-
     std::vector<String> protein_ids;
     for (Size i = 0; i < peptides.size(); ++i)
     {
       TargetedExperiment::Peptide peptide = peptides[i];
 
       // Check if peptide has any transitions left
-      if (std::find(peptide_ids.begin(), peptide_ids.end(), peptide.id) != peptide_ids.end())
+      if (std::find(exclusion_peptides.begin(), exclusion_peptides.end(), peptide.id) == exclusion_peptides.end())
       {
         decoy_peptides.push_back(peptide);
         for (Size j = 0; j < peptide.protein_refs.size(); ++j)
