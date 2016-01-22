@@ -98,7 +98,7 @@ public:
     TOPPBase("LuciphorAdapter", "Modification site localisation using LuciPHOr2.", true),
     // parameter choices (the order of the values must be the same as in the LuciPHOr2 parameters!):
     fragment_methods_(ListUtils::create<String>("CID,HCD")),
-    fragment_error_units_(ListUtils::create<String>("Daltons,PPM")),
+    fragment_error_units_(ListUtils::create<String>("Daltons,ppm")),
     input_types_(ListUtils::create<String>("pepXML"))
   {
   }
@@ -124,21 +124,21 @@ protected:
     setValidStrings_("fragment_method", fragment_methods_);
     
     registerDoubleOption_("fragment_mass_tol", "<value>", 0.5, "Tolerance of the peaks in the fragment spectrum", false);
-    registerStringOption_("fragment_error_units", "<choice>", fragment_error_units_[1], "Unit of fragment mass tolerance", false);
+    registerStringOption_("fragment_error_units", "<choice>", fragment_error_units_[0], "Unit of fragment mass tolerance", false);
     setValidStrings_("fragment_error_units", fragment_error_units_);
 	
-    registerDoubleOption_("min_mz", "<value>", 100.0, "Do not consider peaks below this value for matching fragment ions", false);
+    registerDoubleOption_("min_mz", "<value>", 150.0, "Do not consider peaks below this value for matching fragment ions", false);
     
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
-    registerStringList_("target_modifications", "<mods>", vector<String>(), "List the amino acids to be searched for and their mass modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'", false);
+    registerStringList_("target_modifications", "<mods>", ListUtils::create<String>("Phospho (S),Phospho (T),Phospho (Y)"), "List the amino acids to be searched for and their mass modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'", false);
     setValidStrings_("target_modifications", all_mods);
     
-    registerStringList_("neutral_losses", "<value>", vector<String>(), "List the types of neutral losses that you want to consider. The residue field is case sensitive. For example: lower case 'sty' implies that the neutral loss can only occur if the specified modification is present. Syntax: NL = <RESDIUES> -<NEUTRAL_LOSS_MOLECULAR_FORMULA> <MASS_LOST>", false);
+    registerStringList_("neutral_losses", "<value>", ListUtils::create<String>("sty -H3PO4 -97.97690"), "List the types of neutral losses that you want to consider. The residue field is case sensitive. For example: lower case 'sty' implies that the neutral loss can only occur if the specified modification is present. Syntax: NL = <RESDIUES> -<NEUTRAL_LOSS_MOLECULAR_FORMULA> <MASS_LOST>", false);
     
     registerDoubleOption_("decoy_mass", "<value>", 79.966331, "How much to add to an amino acid to make it a decoy", false);
     setMinFloat_("decoy_mass", 1.0);
-    registerStringList_("decoy_neutral_losses", "<value>", vector<String>(), "For handling the neutral loss from a decoy sequence. The syntax for this is identical to that of the normal neutral losses given above except that the residue is always 'X'. Syntax: DECOY_NL = X -<NEUTRAL_LOSS_MOLECULAR_FORMULA> <MASS_LOST>", false);
+    registerStringList_("decoy_neutral_losses", "<value>", ListUtils::create<String>("X -H3PO4 -97.97690"), "For handling the neutral loss from a decoy sequence. The syntax for this is identical to that of the normal neutral losses given above except that the residue is always 'X'. Syntax: DECOY_NL = X -<NEUTRAL_LOSS_MOLECULAR_FORMULA> <MASS_LOST>", false);
     
     registerIntOption_("max_charge_state", "<num>", 5, "Do not consider PSMs with a charge state above this value", false);
     setMinInt_("max_charge_state", 1);
@@ -161,7 +161,7 @@ protected:
     registerIntOption_("min_num_psms_model", "<num>", 50, "The minimum number of PSMs you need for any charge state in order to build a model for it", false);
     setMinInt_("min_num_psms_model", 1);
 
-    registerIntOption_("num_threads", "<num>", 6, "For multi-threading, zero = use all CPU found by JAVA", false);
+    registerIntOption_("num_threads", "<num>", 6, "For multi-threading, 0 = use all CPU found by JAVA", false);
     setMinInt_("num_threads", 0);
 
     registerStringOption_("run_mode", "<choice>", "0", "Determines how Luciphor will run: 0 = calculate FLR then rerun scoring without decoys (two iterations), 1 = Report Decoys: calculate FLR but don't rescore PSMs, all decoy hits will be reported", false);
