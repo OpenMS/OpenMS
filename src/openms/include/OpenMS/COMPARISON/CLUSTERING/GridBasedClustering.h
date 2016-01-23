@@ -45,6 +45,7 @@
 #include <vector>
 #include <algorithm>
 #include <iostream>
+#include <boost/unordered_map.hpp>
 
 #ifndef OPENMS_COMPARISON_CLUSTERING_GRIDBASEDCLUSTERING_H
 #define OPENMS_COMPARISON_CLUSTERING_GRIDBASEDCLUSTERING_H
@@ -130,6 +131,8 @@ public:
     typedef GridBasedCluster::Point Point; // DPosition<2>
     typedef GridBasedCluster::Rectangle Rectangle; // DBoundingBox<2>
     typedef ClusteringGrid::CellIndex CellIndex; // std::pair<int,int>
+    typedef std::multiset<MinimumDistance>::iterator MultisetIterator;
+    typedef boost::unordered::unordered_multimap<int, MultisetIterator>::iterator NNIterator;
 
     /**
      * @brief initialises all data structures
@@ -182,7 +185,6 @@ public:
       startProgress(0, clusters_start, "clustering");
 
       MinimumDistance zero_distance(-1, -1, 0);
-      typedef std::multiset<MinimumDistance>::iterator MultisetIterator;
 
       // combine clusters until all have been moved to the final list
       while (clusters_.size() > 0)
@@ -191,9 +193,11 @@ public:
 
         MultisetIterator smallest_distance_it = distances_.lower_bound(zero_distance);
         MinimumDistance smallest_distance(*smallest_distance_it);
-        distances_.erase(smallest_distance_it);
+
         int cluster_index1 = smallest_distance.getClusterIndex();
         int cluster_index2 = smallest_distance.getNearestNeighbourIndex();
+
+        eraseMinDistance_(smallest_distance_it);
 
         // update cluster list
         GridBasedCluster cluster1 = clusters_.find(cluster_index1)->second;
@@ -244,32 +248,30 @@ public:
         grid_.removeCluster(cell_for_cluster2, cluster_index2);
         grid_.addCluster(cell_for_new_cluster, cluster_index1);
 
-        // update minimum distance list
-        std::vector<int> clusters_to_be_updated;
-        clusters_to_be_updated.push_back(cluster_index1);      // index of the new cluster
+        std::set<int> clusters_to_be_updated;
+        clusters_to_be_updated.insert(cluster_index1);
 
-        MultisetIterator it = distances_.begin();
-        while (it != distances_.end())
+        // erase distance object of cluster with cluster_index2 without updating (does not exist anymore!)
+        // (the one with cluster_index1 has already been erased at the top of the while loop)
+        eraseMinDistance_(distance_it_for_cluster_idx_[cluster_index2]);
+
+        // find out which clusters need to be updated
+        std::pair<NNIterator, NNIterator> nn_range = reverse_nns_.equal_range(cluster_index1);
+        for (NNIterator nn_it = nn_range.first; nn_it != nn_range.second;)
         {
-          MinimumDistance distance(*it);
-          if (distance.getClusterIndex() == cluster_index2)
-          {
-            // distance.getClusterIndex() == cluster_index1 should never happen since this entry has already been erased.
-            // Cluster 2 no longer exists. Hence only remove the entry from the list of minimum distances.
-            distances_.erase(it++);
-          }
-          else if (distance.getNearestNeighbourIndex() == cluster_index1 || distance.getNearestNeighbourIndex() == cluster_index2)
-          {
-            clusters_to_be_updated.push_back(distance.getClusterIndex());
-            distances_.erase(it++);
-          }
-          else
-          {
-            ++it;
-          }
+          clusters_to_be_updated.insert(nn_it->second->getClusterIndex());
+          eraseMinDistance_((nn_it++)->second);
         }
 
-        for (std::vector<int>::const_iterator cluster_index = clusters_to_be_updated.begin(); cluster_index != clusters_to_be_updated.end(); ++cluster_index)
+        nn_range = reverse_nns_.equal_range(cluster_index2);
+        for (NNIterator nn_it = nn_range.first; nn_it != nn_range.second;)
+        {
+          clusters_to_be_updated.insert(nn_it->second->getClusterIndex());
+          eraseMinDistance_((nn_it++)->second);
+        }
+
+        // update clusters
+        for (std::set<int>::const_iterator cluster_index = clusters_to_be_updated.begin(); cluster_index != clusters_to_be_updated.end(); ++cluster_index)
         {
           if (findNearestNeighbour_(clusters_.find(*cluster_index)->second, *cluster_index))
           {
@@ -278,7 +280,6 @@ public:
             clusters_.erase(clusters_.find(*cluster_index));          // remove from cluster list
           }
         }
-
       }
 
       endProgress();
@@ -472,6 +473,18 @@ private:
     std::multiset<MinimumDistance> distances_;
 
     /**
+     * @brief reverse nearest neighbor lookup table
+     * for finding out which clusters need to be updated faster
+     */
+    boost::unordered::unordered_multimap<int, std::multiset<MinimumDistance>::iterator> reverse_nns_;
+
+    /**
+     * @brief cluster index to distance iterator lookup table
+     * for finding out which clusters need to be updated faster
+     */
+    boost::unordered::unordered_map<int, std::multiset<MinimumDistance>::iterator> distance_it_for_cluster_idx_;
+
+    /**
      * @brief initialises all data structures
      *
      * @param data_x    x-coordinates of points to be clustered
@@ -585,7 +598,6 @@ private:
     {
       const Point& centre = cluster.getCentre();
       const CellIndex& cell_index = grid_.getIndex(centre);
-
       double min_dist = 0;
       int nearest_neighbour = -1;
 
@@ -631,11 +643,34 @@ private:
       }
 
       // add to the list of minimal distances
-      distances_.insert(MinimumDistance(cluster_index, nearest_neighbour, min_dist));
+      std::multiset<MinimumDistance>::iterator it = distances_.insert(MinimumDistance(cluster_index, nearest_neighbour, min_dist));
+      // add to reverse nearest neighbor lookup table
+      reverse_nns_.insert(std::make_pair(nearest_neighbour, it));
+      // add to cluster index -> distance lookup table
+      distance_it_for_cluster_idx_[cluster_index] = it;
+
       return false;
     }
 
-  };
+    void eraseMinDistance_(std::multiset<MinimumDistance>::iterator it)
+    {
+      // remove corresponding entries from nearest neighbor lookup table
+      std::pair<NNIterator, NNIterator> nn_range = reverse_nns_.equal_range(it->getNearestNeighbourIndex());
+      for (NNIterator nn_it = nn_range.first; nn_it != nn_range.second; ++nn_it)
+      {
+        if (nn_it->second == it)
+        {
+          reverse_nns_.erase(nn_it);
+          break;
+        }
+      }
 
+      // remove corresponding entry from cluster index -> distance lookup table
+      distance_it_for_cluster_idx_.erase(it->getClusterIndex());
+
+      // remove from distances_
+      distances_.erase(it);
+    }
+  };
 }
 #endif /* OPENMS_COMPARISON_CLUSTERING_GRIDBASEDCLUSTERING_H */
