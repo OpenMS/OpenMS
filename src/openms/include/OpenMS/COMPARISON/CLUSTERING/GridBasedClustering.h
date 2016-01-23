@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Lars Nilse $
-// $Authors: Lars Nilse $
+// $Authors: Lars Nilse, Johannes Veit $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -262,7 +262,6 @@ public:
           clusters_to_be_updated.insert(nn_it->second->getClusterIndex());
           eraseMinDistance_((nn_it++)->second);
         }
-
         nn_range = reverse_nns_.equal_range(cluster_index2);
         for (NNIterator nn_it = nn_range.first; nn_it != nn_range.second;)
         {
@@ -652,6 +651,15 @@ private:
       return false;
     }
 
+    /**
+     * @brief remove minimum distance object and its related data
+     *
+     * Remove the distance object behind @p it from distances_ and remove all
+     * corresponding data from the auxiliary data structures reverse_nns_ and
+     * distance_it_for_cluster_idx_.
+     *
+     * @param it    Iterator of distance to be removed from distances_
+     */
     void eraseMinDistance_(std::multiset<MinimumDistance>::iterator it)
     {
       // remove corresponding entries from nearest neighbor lookup table
