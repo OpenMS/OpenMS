@@ -489,6 +489,7 @@ namespace OpenMS
 
           for (Size j = 0; j < coordinates.size(); j++)
           {
+            if ( chromatograms[j].empty() ) {continue;} // skip empty chromatograms
             ms1_chromatograms [ coordinates[j].id ] = chrom_list[j];
             // write MS1 chromatograms to disk
             chromConsumer->consumeChromatogram( chromatograms[j] );
@@ -1135,6 +1136,21 @@ namespace OpenMS
         if (ms1)
         {
           pep = transition_exp_used.getPeptides()[i];
+
+          // Catch cases where a peptide has no transitions
+          if (peptide_trans_map.count(pep.id) == 0 )
+          {
+            LOG_INFO << "Warning: no transitions found for peptide " << pep.id << std::endl;
+            coord.rt_start = -1;
+            coord.rt_end = -2; // create negative range
+            coord.id = pep.id;
+            coordinates.push_back(coord);
+            continue;
+          }
+
+          // This is slightly awkward but the m/z of the precursor is *not*
+          // stored in the precursor object but only in the transition object
+          // itself.
           transition = (*peptide_trans_map[pep.id][0]);
           coord.mz = transition.getPrecursorMZ();
           coord.id = pep.id;
