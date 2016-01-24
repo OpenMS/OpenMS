@@ -32,6 +32,9 @@
 // $Authors: Lars Nilse, Johannes Veit $
 // --------------------------------------------------------------------------
 
+#ifndef OPENMS_COMPARISON_CLUSTERING_GRIDBASEDCLUSTERING_H
+#define OPENMS_COMPARISON_CLUSTERING_GRIDBASEDCLUSTERING_H
+
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -46,9 +49,6 @@
 #include <algorithm>
 #include <iostream>
 #include <boost/unordered_map.hpp>
-
-#ifndef OPENMS_COMPARISON_CLUSTERING_GRIDBASEDCLUSTERING_H
-#define OPENMS_COMPARISON_CLUSTERING_GRIDBASEDCLUSTERING_H
 
 namespace OpenMS
 {
