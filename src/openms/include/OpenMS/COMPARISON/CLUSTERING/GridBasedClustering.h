@@ -131,8 +131,8 @@ public:
     typedef GridBasedCluster::Point Point; // DPosition<2>
     typedef GridBasedCluster::Rectangle Rectangle; // DBoundingBox<2>
     typedef ClusteringGrid::CellIndex CellIndex; // std::pair<int,int>
-    typedef std::multiset<MinimumDistance>::iterator MultisetIterator;
-    typedef boost::unordered::unordered_multimap<int, MultisetIterator>::iterator NNIterator;
+    typedef std::multiset<MinimumDistance>::const_iterator MultisetIterator;
+    typedef boost::unordered::unordered_multimap<int, MultisetIterator>::const_iterator NNIterator;
 
     /**
      * @brief initialises all data structures
@@ -192,10 +192,9 @@ public:
         setProgress(clusters_start - clusters_.size());
 
         MultisetIterator smallest_distance_it = distances_.lower_bound(zero_distance);
-        MinimumDistance smallest_distance(*smallest_distance_it);
 
-        int cluster_index1 = smallest_distance.getClusterIndex();
-        int cluster_index2 = smallest_distance.getNearestNeighbourIndex();
+        int cluster_index1 = smallest_distance_it->getClusterIndex();
+        int cluster_index2 = smallest_distance_it->getNearestNeighbourIndex();
 
         eraseMinDistance_(smallest_distance_it);
 
@@ -300,7 +299,7 @@ public:
       ClusteringGrid grid_x_only(grid_spacing_x, grid_spacing_y_new);
 
       // register final clusters on the new grid
-      for (std::map<int, GridBasedCluster>::iterator it = clusters_final_.begin(); it != clusters_final_.end(); ++it)
+      for (std::map<int, GridBasedCluster>::const_iterator it = clusters_final_.begin(); it != clusters_final_.end(); ++it)
       {
         int cluster_index = it->first;
         GridBasedCluster cluster = it->second;
@@ -320,7 +319,7 @@ public:
             // First, order the clusters in ascending y.
             std::list<GridBasedCluster> cluster_list;            // list to order clusters in y
             std::map<GridBasedCluster, int> index_list;           // allows us to keep track of cluster indices after sorting
-            for (std::list<int>::iterator it = cluster_indices.begin(); it != cluster_indices.end(); ++it)
+            for (std::list<int>::const_iterator it = cluster_indices.begin(); it != cluster_indices.end(); ++it)
             {
               cluster_list.push_back(clusters_final_.find(*it)->second);
               index_list.insert(std::make_pair(clusters_final_.find(*it)->second, *it));
@@ -328,8 +327,8 @@ public:
             cluster_list.sort();
 
             // Now check if two adjacent clusters c1 and c2 can be merged.
-            std::list<GridBasedCluster>::iterator c1 = cluster_list.begin();
-            std::list<GridBasedCluster>::iterator c2 = cluster_list.begin();
+            std::list<GridBasedCluster>::const_iterator c1 = cluster_list.begin();
+            std::list<GridBasedCluster>::const_iterator c2 = cluster_list.begin();
             ++c1;
             while (c1 != cluster_list.end())
             {
@@ -475,13 +474,13 @@ private:
      * @brief reverse nearest neighbor lookup table
      * for finding out which clusters need to be updated faster
      */
-    boost::unordered::unordered_multimap<int, std::multiset<MinimumDistance>::iterator> reverse_nns_;
+    boost::unordered::unordered_multimap<int, std::multiset<MinimumDistance>::const_iterator> reverse_nns_;
 
     /**
      * @brief cluster index to distance iterator lookup table
      * for finding out which clusters need to be updated faster
      */
-    boost::unordered::unordered_map<int, std::multiset<MinimumDistance>::iterator> distance_it_for_cluster_idx_;
+    boost::unordered::unordered_map<int, std::multiset<MinimumDistance>::const_iterator> distance_it_for_cluster_idx_;
 
     /**
      * @brief initialises all data structures
@@ -642,7 +641,7 @@ private:
       }
 
       // add to the list of minimal distances
-      std::multiset<MinimumDistance>::iterator it = distances_.insert(MinimumDistance(cluster_index, nearest_neighbour, min_dist));
+      std::multiset<MinimumDistance>::const_iterator it = distances_.insert(MinimumDistance(cluster_index, nearest_neighbour, min_dist));
       // add to reverse nearest neighbor lookup table
       reverse_nns_.insert(std::make_pair(nearest_neighbour, it));
       // add to cluster index -> distance lookup table
@@ -660,7 +659,7 @@ private:
      *
      * @param it    Iterator of distance to be removed from distances_
      */
-    void eraseMinDistance_(std::multiset<MinimumDistance>::iterator it)
+    void eraseMinDistance_(const std::multiset<MinimumDistance>::const_iterator it)
     {
       // remove corresponding entries from nearest neighbor lookup table
       std::pair<NNIterator, NNIterator> nn_range = reverse_nns_.equal_range(it->getNearestNeighbourIndex());
