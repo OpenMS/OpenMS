@@ -103,7 +103,7 @@ namespace OpenMS
   {
     boost::unordered_map<String, boost::unordered_map<String, double> > ionseries;
     boost::unordered_map<String, double> bionseries, bionseries_loss,
-                             yionseries, yionseries_loss, aionseries;
+                                         yionseries, yionseries_loss, aionseries;
 
     // Neutral losses of all ion series
     static const EmpiricalFormula neutralloss_h2o("H2O"); // -18 H2O loss
@@ -135,31 +135,31 @@ namespace OpenMS
         double pos = ion.getMonoWeight(Residue::BIon, charge) / (double) charge;
 
         bionseries["b" + String(i) + "^" + String(charge)] = pos;
-        bionseries_loss["b" + String(i) + "-17" + "^" + String(charge)] = pos - neutralloss_nh3.getMonoWeight()/charge;
-        bionseries_loss["b" + String(i) + "-18" + "^" + String(charge)] = pos - neutralloss_h2o.getMonoWeight()/charge;
-        bionseries_loss["b" + String(i) + "-34" + "^" + String(charge)] = pos - neutralloss_nh3nh3.getMonoWeight()/charge;
-        bionseries_loss["b" + String(i) + "-35" + "^" + String(charge)] = pos - neutralloss_h2onh3.getMonoWeight()/charge;
-        bionseries_loss["b" + String(i) + "-36" + "^" + String(charge)] = pos - neutralloss_h2oh2o.getMonoWeight()/charge;
-        bionseries_loss["b" + String(i) + "-44" + "^" + String(charge)] = pos - neutralloss_co2.getMonoWeight()/charge;
-        bionseries_loss["b" + String(i) + "-46" + "^" + String(charge)] = pos - neutralloss_hccoh.getMonoWeight()/charge;
-        if (sequence.toString().find("N")!=std::string::npos || sequence.toString().find("Q")!=std::string::npos)
+        bionseries_loss["b" + String(i) + "-17" + "^" + String(charge)] = pos - neutralloss_nh3.getMonoWeight() / charge;
+        bionseries_loss["b" + String(i) + "-18" + "^" + String(charge)] = pos - neutralloss_h2o.getMonoWeight() / charge;
+        bionseries_loss["b" + String(i) + "-34" + "^" + String(charge)] = pos - neutralloss_nh3nh3.getMonoWeight() / charge;
+        bionseries_loss["b" + String(i) + "-35" + "^" + String(charge)] = pos - neutralloss_h2onh3.getMonoWeight() / charge;
+        bionseries_loss["b" + String(i) + "-36" + "^" + String(charge)] = pos - neutralloss_h2oh2o.getMonoWeight() / charge;
+        bionseries_loss["b" + String(i) + "-44" + "^" + String(charge)] = pos - neutralloss_co2.getMonoWeight() / charge;
+        bionseries_loss["b" + String(i) + "-46" + "^" + String(charge)] = pos - neutralloss_hccoh.getMonoWeight() / charge;
+        if (sequence.toString().find("N") != std::string::npos || sequence.toString().find("Q") != std::string::npos)
         // This hack is implemented to enable the annotation of residue specific modifications in the decoy fragments.
         // If the function is used for generic annotation, use ion.toString() instead of sequence.toString().
         {
-          bionseries_loss["b" + String(i) + "-45" + "^" + String(charge)] = pos - neutralloss_ch3no.getMonoWeight()/charge;
+          bionseries_loss["b" + String(i) + "-45" + "^" + String(charge)] = pos - neutralloss_ch3no.getMonoWeight() / charge;
         }
-        if (sequence.toString().find("M(Oxidation)")!=std::string::npos)
+        if (sequence.toString().find("M(Oxidation)") != std::string::npos)
         // This hack is implemented to enable the annotation of residue specific modifications in the decoy fragments.
         // If the function is used for generic annotation, use ion.toString() instead of sequence.toString().
         {
-          bionseries_loss["b" + String(i) + "-64" + "^" + String(charge)] = pos - neutralloss_ch4so.getMonoWeight()/charge;
+          bionseries_loss["b" + String(i) + "-64" + "^" + String(charge)] = pos - neutralloss_ch4so.getMonoWeight() / charge;
         }
-        if (sequence.toString().find("S(Phospho)")!=std::string::npos || sequence.toString().find("T(Phospho)")!=std::string::npos)
+        if (sequence.toString().find("S(Phospho)") != std::string::npos || sequence.toString().find("T(Phospho)") != std::string::npos)
         // This hack is implemented to enable the annotation of residue specific modifications in the decoy fragments.
         // If the function is used for generic annotation, use ion.toString() instead of sequence.toString().
         {
-          bionseries_loss["b" + String(i) + "-80" + "^" + String(charge)] = pos - neutralloss_hpo3.getMonoWeight()/charge;
-          bionseries_loss["b" + String(i) + "-98" + "^" + String(charge)] = pos - neutralloss_hpo3h2o.getMonoWeight()/charge;
+          bionseries_loss["b" + String(i) + "-80" + "^" + String(charge)] = pos - neutralloss_hpo3.getMonoWeight() / charge;
+          bionseries_loss["b" + String(i) + "-98" + "^" + String(charge)] = pos - neutralloss_hpo3h2o.getMonoWeight() / charge;
         }
       }
     }
@@ -174,31 +174,31 @@ namespace OpenMS
         double pos = ion.getMonoWeight(Residue::YIon, charge) / (double) charge;
 
         yionseries["y" + String(i) + "^" + String(charge)] = pos;
-        yionseries_loss["y" + String(i) + "-17" + "^" + String(charge)] = pos - neutralloss_nh3.getMonoWeight()/charge;
-        yionseries_loss["y" + String(i) + "-18" + "^" + String(charge)] = pos - neutralloss_h2o.getMonoWeight()/charge;
-        yionseries_loss["y" + String(i) + "-34" + "^" + String(charge)] = pos - neutralloss_nh3nh3.getMonoWeight()/charge;
-        yionseries_loss["y" + String(i) + "-35" + "^" + String(charge)] = pos - neutralloss_h2onh3.getMonoWeight()/charge;
-        yionseries_loss["y" + String(i) + "-36" + "^" + String(charge)] = pos - neutralloss_h2oh2o.getMonoWeight()/charge;
-        yionseries_loss["y" + String(i) + "-44" + "^" + String(charge)] = pos - neutralloss_co2.getMonoWeight()/charge;
-        yionseries_loss["y" + String(i) + "-46" + "^" + String(charge)] = pos - neutralloss_hccoh.getMonoWeight()/charge;
-        if (sequence.toString().find("N")!=std::string::npos || sequence.toString().find("Q")!=std::string::npos)
+        yionseries_loss["y" + String(i) + "-17" + "^" + String(charge)] = pos - neutralloss_nh3.getMonoWeight() / charge;
+        yionseries_loss["y" + String(i) + "-18" + "^" + String(charge)] = pos - neutralloss_h2o.getMonoWeight() / charge;
+        yionseries_loss["y" + String(i) + "-34" + "^" + String(charge)] = pos - neutralloss_nh3nh3.getMonoWeight() / charge;
+        yionseries_loss["y" + String(i) + "-35" + "^" + String(charge)] = pos - neutralloss_h2onh3.getMonoWeight() / charge;
+        yionseries_loss["y" + String(i) + "-36" + "^" + String(charge)] = pos - neutralloss_h2oh2o.getMonoWeight() / charge;
+        yionseries_loss["y" + String(i) + "-44" + "^" + String(charge)] = pos - neutralloss_co2.getMonoWeight() / charge;
+        yionseries_loss["y" + String(i) + "-46" + "^" + String(charge)] = pos - neutralloss_hccoh.getMonoWeight() / charge;
+        if (sequence.toString().find("N") != std::string::npos || sequence.toString().find("Q") != std::string::npos)
         // This hack is implemented to enable the annotation of residue specific modifications in the decoy fragments.
         // If the function is used for generic annotation, use ion.toString() instead of sequence.toString().
         {
-          yionseries_loss["y" + String(i) + "-45" + "^" + String(charge)] = pos - neutralloss_ch3no.getMonoWeight()/charge;
+          yionseries_loss["y" + String(i) + "-45" + "^" + String(charge)] = pos - neutralloss_ch3no.getMonoWeight() / charge;
         }
-        if (sequence.toString().find("M(Oxidation)")!=std::string::npos)
+        if (sequence.toString().find("M(Oxidation)") != std::string::npos)
         // This hack is implemented to enable the annotation of residue specific modifications in the decoy fragments.
         // If the function is used for generic annotation, use ion.toString() instead of sequence.toString().
         {
-          yionseries_loss["y" + String(i) + "-64" + "^" + String(charge)] = pos - neutralloss_ch4so.getMonoWeight()/charge;
+          yionseries_loss["y" + String(i) + "-64" + "^" + String(charge)] = pos - neutralloss_ch4so.getMonoWeight() / charge;
         }
-        if (sequence.toString().find("S(Phospho)")!=std::string::npos || sequence.toString().find("T(Phospho)")!=std::string::npos)
+        if (sequence.toString().find("S(Phospho)") != std::string::npos || sequence.toString().find("T(Phospho)") != std::string::npos)
         // This hack is implemented to enable the annotation of residue specific modifications in the decoy fragments.
         // If the function is used for generic annotation, use ion.toString() instead of sequence.toString().
         {
-          yionseries_loss["y" + String(i) + "-80" + "^" + String(charge)] = pos - neutralloss_hpo3.getMonoWeight()/charge;
-          yionseries_loss["y" + String(i) + "-98" + "^" + String(charge)] = pos - neutralloss_hpo3h2o.getMonoWeight()/charge;
+          yionseries_loss["y" + String(i) + "-80" + "^" + String(charge)] = pos - neutralloss_hpo3.getMonoWeight() / charge;
+          yionseries_loss["y" + String(i) + "-98" + "^" + String(charge)] = pos - neutralloss_hpo3h2o.getMonoWeight() / charge;
         }
       }
     }
@@ -250,7 +250,7 @@ namespace OpenMS
 
   OpenMS::TargetedExperiment::Peptide MRMDecoy::shufflePeptide(
     OpenMS::TargetedExperiment::Peptide peptide, double identity_threshold, int seed,
-    int max_attempts)
+    int max_attempts, bool replace_aa_instead_append)
   {
 #ifdef DEBUG_MRMDECOY
     std::cout << " shuffle peptide " << peptide.sequence << std::endl;
@@ -278,7 +278,7 @@ namespace OpenMS
     int attempts = 0;
     // loop: copy the original peptide, attempt to shuffle it and check whether difference is large enough
     while (MRMDecoy::AASequenceIdentity(peptide.sequence, shuffled.sequence) > identity_threshold &&
-        attempts < max_attempts)
+           attempts < max_attempts)
     {
       shuffled = peptide;
       std::vector<Size> peptide_index;
@@ -307,8 +307,8 @@ namespace OpenMS
         {
           // swap current position with random element from vector
           // swapping positions are random in range [0, current_position + 1)
-          // which can be at most [0, n) 
-          std::iter_swap(pI_it, peptide_index.begin() + pseudoRNG( (pI_it - peptide_index.begin() ) + 1 ) );
+          // which can be at most [0, n)
+          std::iter_swap(pI_it, peptide_index.begin() + pseudoRNG((pI_it - peptide_index.begin()) + 1));
         }
       }
 
@@ -352,13 +352,49 @@ namespace OpenMS
       // these additional AA added to the sequence.
       if (attempts % 10 == 9)
       {
-        int pos = (pseudoRNG() % aa_size);
-        peptide.sequence.append(aa[pos]);
-        pos = (pseudoRNG() % aa_size);
-        peptide.sequence.append(aa[pos]);
-
-        // now make the shuffled peptide the same length as the new peptide
-        shuffled = peptide;
+        if (replace_aa_instead_append)
+        {
+          OpenMS::AASequence shuffled_sequence = TargetedExperimentHelper::getAASequence(shuffled);
+          int res_pos = (pseudoRNG() % aa_size);
+          int pep_pos = -1;
+          size_t pos_trials = 0;
+          while (pep_pos < 0 && pos_trials < shuffled_sequence.size())
+          {
+            pep_pos = (pseudoRNG() % shuffled_sequence.size());
+            pep_pos = 5;
+            if (shuffled_sequence.isModified(pep_pos) || (shuffled_sequence.hasNTerminalModification() && pep_pos == 0) || (shuffled_sequence.hasNTerminalModification() && pep_pos == (int)(shuffled_sequence.size() - 1)))
+            {
+              pep_pos = -1;
+            }
+            else
+            {
+              if (pep_pos == 0)
+              {
+                shuffled_sequence = AASequence::fromString(aa[res_pos]) + shuffled_sequence.getSuffix(shuffled_sequence.size() - pep_pos - 1);
+              }
+              else if (pep_pos == (int)(shuffled_sequence.size() - 1))
+              {
+                shuffled_sequence = shuffled_sequence.getPrefix(pep_pos) + AASequence::fromString(aa[res_pos]);
+              }
+              else
+              {
+                shuffled_sequence = shuffled_sequence.getPrefix(pep_pos) + AASequence::fromString(aa[res_pos]) + shuffled_sequence.getSuffix(shuffled_sequence.size() - pep_pos - 1);
+              }
+            }
+            ++pos_trials;
+          }
+          shuffled.sequence = shuffled_sequence.toUnmodifiedString();
+          peptide = shuffled;
+        }
+        else
+        {
+          int pos = (pseudoRNG() % aa_size);
+          peptide.sequence.append(aa[pos]);
+          pos = (pseudoRNG() % aa_size);
+          peptide.sequence.append(aa[pos]);
+          // now make the shuffled peptide the same length as the new peptide
+          shuffled = peptide;
+        }
       }
     }
 
@@ -422,11 +458,11 @@ namespace OpenMS
     return peptide;
   }
 
-  bool MRMDecoy::has_CNterminal_mods(const OpenMS::TargetedExperiment::Peptide & peptide)
+  bool MRMDecoy::has_CNterminal_mods(const OpenMS::TargetedExperiment::Peptide& peptide)
   {
     for (Size j = 0; j < peptide.mods.size(); j++)
     {
-      if (peptide.mods[j].location == -1 || peptide.mods[j].location == boost::numeric_cast<int>(peptide.sequence.size()) )
+      if (peptide.mods[j].location == -1 || peptide.mods[j].location == boost::numeric_cast<int>(peptide.sequence.size()))
       {
         return true;
       }
@@ -469,18 +505,18 @@ namespace OpenMS
         // sort by intensity, reverse and delete all elements after max_transitions
         sort(LibraryIntensity.begin(), LibraryIntensity.end());
         reverse(LibraryIntensity.begin(), LibraryIntensity.end());
-        if ((Size)max_transitions < LibraryIntensity.size() )
+        if ((Size)max_transitions < LibraryIntensity.size())
         {
           std::vector<double>::iterator start_delete = LibraryIntensity.begin();
           std::advance(start_delete, max_transitions);
-          LibraryIntensity.erase(start_delete, LibraryIntensity.end() );
+          LibraryIntensity.erase(start_delete, LibraryIntensity.end());
         }
 
         for (MRMDecoy::TransitionVectorType::iterator tr_it = m->second.begin(); tr_it != m->second.end(); ++tr_it)
         {
           ReactionMonitoringTransition tr = *tr_it;
-          if (std::find( LibraryIntensity.begin(), LibraryIntensity.end(),
-                boost::lexical_cast<double>(tr.getLibraryIntensity()) ) != LibraryIntensity.end())
+          if (std::find(LibraryIntensity.begin(), LibraryIntensity.end(),
+                        boost::lexical_cast<double>(tr.getLibraryIntensity())) != LibraryIntensity.end())
           {
             transitions.push_back(tr);
           }
@@ -522,7 +558,8 @@ namespace OpenMS
                                 String method, String decoy_tag, double identity_threshold, int max_attempts,
                                 double mz_threshold, bool theoretical, double mz_shift, bool exclude_similar,
                                 double similarity_threshold, bool remove_CNterminal_mods, double precursor_mass_shift,
-                                bool enable_losses, bool remove_unannotated)  {
+                                bool enable_losses, bool remove_unannotated)
+  {
     MRMDecoy::PeptideVectorType peptides;
     MRMDecoy::ProteinVectorType proteins;
     MRMDecoy::TransitionVectorType decoy_transitions;
@@ -541,12 +578,12 @@ namespace OpenMS
     {
       OpenMS::TargetedExperiment::Peptide peptide = exp.getPeptides()[pep_idx];
       // continue if the peptide has C/N terminal modifications and we should exclude them
-      if (remove_CNterminal_mods && MRMDecoy::has_CNterminal_mods(peptide)) {continue;}
+      if (remove_CNterminal_mods && MRMDecoy::has_CNterminal_mods(peptide)) {continue; }
       peptide.id = decoy_tag + peptide.id;
       OpenMS::String original_sequence = peptide.sequence;
-      if (!peptide.getPeptideGroupLabel().empty()) 
+      if (!peptide.getPeptideGroupLabel().empty())
       {
-          peptide.setPeptideGroupLabel(decoy_tag + peptide.getPeptideGroupLabel());
+        peptide.setPeptideGroupLabel(decoy_tag + peptide.getPeptideGroupLabel());
       }
 
       if (method == "pseudo-reverse")
@@ -600,7 +637,7 @@ namespace OpenMS
       String decoy_peptide_ref = decoy_tag + pep_it->first; // see above, the decoy peptide id is computed deterministically from the target id
       const TargetedExperiment::Peptide target_peptide = exp.getPeptideByRef(peptide_ref);
       // continue if the peptide has C/N terminal modifications and we should exclude them
-      if (remove_CNterminal_mods && MRMDecoy::has_CNterminal_mods(target_peptide)) {continue;}
+      if (remove_CNterminal_mods && MRMDecoy::has_CNterminal_mods(target_peptide)) {continue; }
 
       const TargetedExperiment::Peptide decoy_peptide = dec.getPeptideByRef(decoy_peptide_ref);
       OpenMS::AASequence target_peptide_sequence = TargetedExperimentHelper::getAASequence(target_peptide);
@@ -613,7 +650,7 @@ namespace OpenMS
         setProgress(++progress);
         const ReactionMonitoringTransition tr = *(pep_it->second[i]);
 
-        if (tr.getDecoyTransitionType() == ReactionMonitoringTransition::DECOY)
+        if (!tr.isDetectingTransition() || tr.getDecoyTransitionType() == ReactionMonitoringTransition::DECOY)
         {
           continue;
         }
@@ -641,14 +678,14 @@ namespace OpenMS
 
         if (decoyion.second > 0)
         {
-          if (similarity_threshold >=0)
+          if (similarity_threshold >= 0)
           {
             if (std::fabs(tr.getProductMZ() - decoy_tr.getProductMZ()) < similarity_threshold)
             {
               exclusion_peptides.push_back(decoy_tr.getPeptideRef());
             }
           }
-         decoy_transitions.push_back(decoy_tr);
+          decoy_transitions.push_back(decoy_tr);
         }
         else
         {
@@ -668,9 +705,9 @@ namespace OpenMS
     if (exclude_similar)
     {
       MRMDecoy::TransitionVectorType filtered_decoy_transitions;
-      for ( MRMDecoy::TransitionVectorType::iterator tr_it = decoy_transitions.begin(); tr_it != decoy_transitions.end(); ++tr_it)
+      for (MRMDecoy::TransitionVectorType::iterator tr_it = decoy_transitions.begin(); tr_it != decoy_transitions.end(); ++tr_it)
       {
-        if (std::find(exclusion_peptides.begin(), exclusion_peptides.end(), tr_it->getPeptideRef())==exclusion_peptides.end())
+        if (std::find(exclusion_peptides.begin(), exclusion_peptides.end(), tr_it->getPeptideRef()) == exclusion_peptides.end())
         {
           filtered_decoy_transitions.push_back(*tr_it);
         }
