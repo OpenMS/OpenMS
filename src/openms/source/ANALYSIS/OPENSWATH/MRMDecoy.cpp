@@ -436,8 +436,15 @@ namespace OpenMS
           {
             if (std::fabs(tr.getProductMZ() - decoy_tr.getProductMZ()) < similarity_threshold)
             {
-              exclusion_peptides.push_back(decoy_tr.getPeptideRef());
-            }
+              if (!exclude_similar)
+              {
+                throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Fragment ions are too similar. Either decrease similarity_threshold or set flag exclude_similar.");
+              }
+              else
+              {
+                exclusion_peptides.push_back(decoy_tr.getPeptideRef());
+              } 
+           }
           }
           decoy_transitions.push_back(decoy_tr);
         }
