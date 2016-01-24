@@ -199,10 +199,12 @@ public:
         eraseMinDistance_(smallest_distance_it);
 
         // update cluster list
-        GridBasedCluster cluster1 = clusters_.find(cluster_index1)->second;
-        GridBasedCluster cluster2 = clusters_.find(cluster_index2)->second;
-        std::vector<int> points1 = cluster1.getPoints();
-        std::vector<int> points2 = cluster2.getPoints();
+        std::map<int, GridBasedCluster>::iterator cluster1_it = clusters_.find(cluster_index1);
+        std::map<int, GridBasedCluster>::iterator cluster2_it = clusters_.find(cluster_index2);
+        const GridBasedCluster& cluster1 = cluster1_it->second;
+        const GridBasedCluster& cluster2 = cluster2_it->second;
+        const std::vector<int>& points1 = cluster1.getPoints();
+        const std::vector<int>& points2 = cluster2.getPoints();
         std::vector<int> new_points;
         new_points.reserve(points1.size() + points2.size());
         new_points.insert(new_points.end(), points1.begin(), points1.end());
@@ -211,8 +213,17 @@ public:
         double new_x = (cluster1.getCentre().getX() * points1.size() + cluster2.getCentre().getX() * points2.size()) / (points1.size() + points2.size());
         double new_y = (cluster1.getCentre().getY() * points1.size() + cluster2.getCentre().getY() * points2.size()) / (points1.size() + points2.size());
 
-        Rectangle box1 = cluster1.getBoundingBox();
-        Rectangle box2 = cluster2.getBoundingBox();
+        // update grid
+        CellIndex cell_for_cluster1 = grid_.getIndex(cluster1.getCentre());
+        CellIndex cell_for_cluster2 = grid_.getIndex(cluster2.getCentre());
+        CellIndex cell_for_new_cluster = grid_.getIndex(DPosition<2>(new_x, new_y));
+        grid_.removeCluster(cell_for_cluster1, cluster_index1);
+        grid_.removeCluster(cell_for_cluster2, cluster_index2);
+        grid_.addCluster(cell_for_new_cluster, cluster_index1);
+
+        // merge clusters
+        const Rectangle& box1 = cluster1.getBoundingBox();
+        const Rectangle& box2 = cluster2.getBoundingBox();
         Rectangle new_box(box1);
         new_box.enlarge(box2.minPosition());
         new_box.enlarge(box2.maxPosition());
@@ -225,8 +236,8 @@ public:
         }
         int new_A = cluster1.getPropertyA();
 
-        std::vector<int> B1 = cluster1.getPropertiesB();
-        std::vector<int> B2 = cluster2.getPropertiesB();
+        const std::vector<int>& B1 = cluster1.getPropertiesB();
+        const std::vector<int>& B2 = cluster2.getPropertiesB();
         std::vector<int> new_B;
         new_B.reserve(B1.size() + B2.size());
         new_B.insert(new_B.end(), B1.begin(), B1.end());
@@ -234,18 +245,9 @@ public:
 
         GridBasedCluster new_cluster(DPosition<2>(new_x, new_y), new_box, new_points, new_A, new_B);
 
-        clusters_.erase(clusters_.find(cluster_index1));
-        clusters_.erase(clusters_.find(cluster_index2));
+        clusters_.erase(cluster1_it);
+        clusters_.erase(cluster2_it);
         clusters_.insert(std::make_pair(cluster_index1, new_cluster));
-
-        // update grid
-        CellIndex cell_for_cluster1 = grid_.getIndex(cluster1.getCentre());
-        CellIndex cell_for_cluster2 = grid_.getIndex(cluster2.getCentre());
-        CellIndex cell_for_new_cluster = grid_.getIndex(DPosition<2>(new_x, new_y));
-
-        grid_.removeCluster(cell_for_cluster1, cluster_index1);
-        grid_.removeCluster(cell_for_cluster2, cluster_index2);
-        grid_.addCluster(cell_for_new_cluster, cluster_index1);
 
         std::set<int> clusters_to_be_updated;
         clusters_to_be_updated.insert(cluster_index1);
@@ -271,11 +273,12 @@ public:
         // update clusters
         for (std::set<int>::const_iterator cluster_index = clusters_to_be_updated.begin(); cluster_index != clusters_to_be_updated.end(); ++cluster_index)
         {
-          if (findNearestNeighbour_(clusters_.find(*cluster_index)->second, *cluster_index))
+          std::map<int, GridBasedCluster>::iterator c_it = clusters_.find(*cluster_index);
+          const GridBasedCluster& c = c_it->second;
+          if (findNearestNeighbour_(c, *cluster_index))
           {
-            GridBasedCluster c = clusters_.find(*cluster_index)->second;
             grid_.removeCluster(grid_.getIndex(c.getCentre()), *cluster_index);          // remove from grid
-            clusters_.erase(clusters_.find(*cluster_index));          // remove from cluster list
+            clusters_.erase(c_it);          // remove from cluster list
           }
         }
       }
