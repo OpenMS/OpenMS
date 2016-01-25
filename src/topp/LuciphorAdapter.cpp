@@ -102,7 +102,8 @@ public:
     // parameter choices (the order of the values must be the same as in the LuciPHOr2 parameters!):
     fragment_methods_(ListUtils::create<String>("CID,HCD")),
     fragment_error_units_(ListUtils::create<String>("Daltons,ppm")),
-    input_types_(ListUtils::create<String>("pepXML,idXML"))
+    input_types_(ListUtils::create<String>("idXML")),
+    score_selection_method_(ListUtils::create<String>("Peptide Prophet probability,Mascot Ion Score,-log(E-value),X!Tandem Hyperscore,Sequest Xcorr"))
   {
   }
 
@@ -110,10 +111,11 @@ protected:
   struct LuciphorPSM
   {
     String spec_id;
-    int scan_id;
+    int scan_nr;
+    int scan_idx;
     int charge;
-    String peptide;
-    String predicted_pep;
+    AASequence peptide;
+    AASequence predicted_pep;
     double delta_score;
     double predicted_pep_score;
     
@@ -121,7 +123,7 @@ protected:
   };
 
   // lists of allowed parameter values:
-  vector<String> fragment_methods_, fragment_error_units_, input_types_;
+  vector<String> fragment_methods_, fragment_error_units_, input_types_, score_selection_method_;
 
   void registerOptionsAndFlags_()
   {
@@ -132,8 +134,8 @@ protected:
     setValidFormats_("in", input_types_);
 	
     registerOutputFile_("out", "<file>", "", "Output file", false);
-    setValidFormats_("out", ListUtils::create<String>("tsv"));
-	
+    setValidFormats_("out", ListUtils::create<String>("idXML"));
+    
     registerInputFile_("executable", "<file>", "luciphor2.jar", "LuciPHOr2 .jar file, e.g. 'c:\\program files\\luciphor2.jar'", true, false, ListUtils::create<String>("skipexists"));
 
     registerStringOption_("fragment_method", "<choice>", fragment_methods_[0], "Fragmentation method", false);
@@ -165,8 +167,8 @@ protected:
     registerIntOption_("max_num_perm", "<num>", 16384, "Maximum number of permutations a sequence can have", false);
     setMinInt_("max_num_perm", 1);
 
-    registerStringOption_("selection_method", "<choice>", "0", "Score selection method: 0 = Peptide Prophet probability (default), 1 = Mascot Ion Score, 2 = -log(E-value), 3 = X!Tandem Hyperscore, 4 = Sequest Xcorr", false);
-    setValidStrings_("selection_method", ListUtils::create<String>("0,1,2,3,4"));
+    registerStringOption_("selection_method", "<choice>", score_selection_method_[0], "Score selection method", false);
+    setValidStrings_("selection_method", score_selection_method_);
 	
     registerDoubleOption_("modeling_score_threshold", "<value>", 0.95, "Minimum score a PSM needs to be considered for modeling", false);
     setMinFloat_("modeling_score_threshold", 0.0);
@@ -204,7 +206,7 @@ protected:
     config_map["INPUT_DATA"].push_back(in);
     
     String type = FileTypes::typeToName(fh.getTypeByFileName(in));
-    config_map["INPUT_TYPE"].push_back(ListUtils::getIndex<String>(input_types_, type));
+    config_map["INPUT_TYPE"].push_back(0);
     
     config_map["ALGORITHM"].push_back(ListUtils::getIndex<String>(fragment_methods_, getStringOption_("fragment_method")));
     config_map["MS2_TOL"].push_back(getDoubleOption_("fragment_mass_tol"));
@@ -215,7 +217,7 @@ protected:
     config_map["MAX_CHARGE_STATE"].push_back(getIntOption_("max_charge_state"));
     config_map["MAX_PEP_LEN"].push_back(getIntOption_("max_peptide_length"));
     config_map["MAX_NUM_PERM"].push_back(getIntOption_("max_num_perm"));
-    config_map["SELECTION_METHOD"].push_back(getStringOption_("selection_method"));
+    config_map["SELECTION_METHOD"].push_back(ListUtils::getIndex<String>(score_selection_method_, getStringOption_("selection_method")));
     config_map["MODELING_SCORE_THRESHOLD"].push_back(getDoubleOption_("modeling_score_threshold"));
     config_map["SCORING_THRESHOLD"].push_back(getDoubleOption_("scoring_threshold"));
     config_map["MIN_NUM_PSMS_MODEL"].push_back(getIntOption_("min_num_psms_model"));
@@ -305,13 +307,25 @@ protected:
     
     vector<String> parts;
     spec_id.split(".", parts);
-    l_psm.scan_id = parts[1].toInt();
+    l_psm.scan_nr = parts[1].toInt();
     l_psm.charge = parts[3].toInt();
     
     return l_psm;
   }
   
-  ExitCodes parseLuciphorOutput_(const String& l_out, map<int, LuciphorPSM>& l_psms)
+  //TODO: add conversion for other modifications
+  String convertLuciphorSeq_(const String& seq)
+  {
+    String conv_seq(seq);
+    conv_seq.substitute("s","S(Phospho)");
+    conv_seq.substitute("t","T(Phospho)");
+    conv_seq.substitute("y","Y(Phospho)");
+    conv_seq.substitute("m","M(Oxidation)");
+    
+    return conv_seq;
+  }
+  
+  ExitCodes parseLuciphorOutput_(const String& l_out, map<int, LuciphorPSM>& l_psms, const SpectrumLookup& lookup)
   {
     CsvFile tsvfile(l_out, '\t');
         
@@ -327,17 +341,18 @@ protected:
       String spec_id = elements[0];
       struct LuciphorPSM l_psm = splitSpecId_(spec_id);
       
-      l_psm.peptide = elements[1];
-      l_psm.predicted_pep = elements[2];
+      l_psm.scan_idx = lookup.findByScanNumber(l_psm.scan_nr);
+      l_psm.peptide = AASequence::fromString(convertLuciphorSeq_(elements[1]));
+      l_psm.predicted_pep = AASequence::fromString(convertLuciphorSeq_(elements[2]));
       l_psm.delta_score = elements[7].toDouble();
       l_psm.predicted_pep_score = elements[8].toDouble();
       
-      if (l_psms.count(l_psm.scan_id) > 0)
+      if (l_psms.count(l_psm.scan_idx) > 0)
       {
-        writeLog_("Error: duplicate scannr existing " + l_psm.scan_id);
+        writeLog_("Error: duplicate scannr existing " + l_psm.scan_idx);
         return PARSE_ERROR;
       }
-      l_psms[l_psm.scan_id] = l_psm;
+      l_psms[l_psm.scan_idx] = l_psm;
     }
     
     return EXECUTION_OK;
@@ -347,7 +362,6 @@ protected:
   {
     vector<PeptideIdentification> pep_ids;
     vector<ProteinIdentification> prot_ids;
-    vector<PeptideIdentification> pep_out;
     
     if (!getFlag_("force"))
     {
@@ -390,7 +404,7 @@ protected:
       
       PepXMLFile().store(in, prot_ids, pep_ids, spectrum_in, "", false);
     }
-    else if (!in_type == FileTypes::PEPXML)
+    else
     {
       writeLog_("Error: Unknown input file type given. Aborting!");
       printUsage_();
@@ -429,62 +443,83 @@ protected:
       return EXTERNAL_PROGRAM_ERROR;
     }
     
+    MSExperiment<> exp;
+    MzMLFile f;
+    f.setLogType(log_type_);
+
+    PeakFileOptions options;
+    options.clearMSLevels();
+    options.addMSLevel(2);
+    f.getOptions() = options;
+    f.load(spectrum_in, exp);
+    exp.sortSpectra(true);
+    
+    SpectrumLookup lookup;
+    lookup.readSpectra(exp.getSpectra());
+      
     map<int, LuciphorPSM> l_psms;
-    ret = parseLuciphorOutput_(out, l_psms);
+    ret = parseLuciphorOutput_(out, l_psms, lookup);
     if (ret != EXECUTION_OK)
     {
       writeLog_("Error: LuciPHOr2 output is not correctly formated.");
       return ret;
     }
     
-    // merge LuciPHOr2 result to idXML
-    if (in_type == FileTypes::IDXML)
-    {
-      MSExperiment<> exp;
-      MzMLFile f;
-      f.setLogType(log_type_);
-
-      PeakFileOptions options;
-      options.clearMSLevels();
-      options.addMSLevel(2);
-      f.getOptions() = options;
-      f.load(spectrum_in, exp);
-      exp.sortSpectra(true);
+    //-------------------------------------------------------------
+    // writing output - merge LuciPHOr2 result to idXML
+    //-------------------------------------------------------------
+    vector<PeptideIdentification> pep_out;
       
-      SpectrumLookup lookup;
-      lookup.readSpectra(exp.getSpectra());
-    
-      for (vector<PeptideIdentification>::iterator pep_id = pep_ids.begin(); pep_id != pep_ids.end(); ++pep_id)
+    String search_engine_name = "";
+    if (!prot_ids.empty())
+    {
+      search_engine_name = prot_ids.begin()->getSearchEngine();
+    }
+  
+    for (vector<PeptideIdentification>::iterator pep_id = pep_ids.begin(); pep_id != pep_ids.end(); ++pep_id)
+    {
+      Size scan_idx = lookup.findByRT(pep_id->getRT());
+      bool found = false;
+      
+      struct LuciphorPSM l_psm;
+      if (l_psms.count(scan_idx) > 0)
       {
-        Size scan_id = lookup.findByRT(pep_id->getRT());
-        struct LuciphorPSM l_psm = l_psms[scan_id];
-        
-        vector<PeptideHit> scored_peptides;
-        for (vector<PeptideHit>::const_iterator hit = pep_id->getHits().begin(); hit < pep_id->getHits().end(); ++hit)
-        {
-          PeptideHit scored_hit = *hit;
-          scored_hit.setScore(l_psm.predicted_pep_score);
-          scored_hit.setSequence(AASequence::fromString(l_psm.predicted_pep));
-          scored_hit.setMetaValue("search_engine_sequence", hit->getSequence().toString());          
-          scored_hit.setMetaValue("Luciphor_deltaScore", l_psm.delta_score);
-          
-          scored_peptides.push_back(scored_hit);
-        }
-        PeptideIdentification new_pep_id(*pep_id);
-        new_pep_id.setScoreType("LuciphorScore");
-        new_pep_id.setHigherScoreBetter(true);
-        new_pep_id.setHits(scored_peptides);
-        pep_out.push_back(new_pep_id);
+        l_psm = l_psms.at(scan_idx);
+        found = true;
       }
-    }      
-    
-    removeTempDir_(temp_dir);
-    
-    //-------------------------------------------------------------
-    // writing output
-    //-------------------------------------------------------------
+      
+      vector<PeptideHit> scored_peptides;
+      for (vector<PeptideHit>::const_iterator hit = pep_id->getHits().begin(); hit < pep_id->getHits().end(); ++hit)
+      {
+        PeptideHit scored_hit = *hit;
+        
+        if (search_engine_name != "Percolator")
+        {
+          scored_hit.setMetaValue(search_engine_name + "_score", hit->getScore());
+        }          
+        if (found) {
+          scored_hit.setScore(l_psm.predicted_pep_score);
+          scored_hit.setSequence(l_psm.predicted_pep);
+          scored_hit.setMetaValue("search_engine_sequence", hit->getSequence().toString());
+          scored_hit.setMetaValue("Luciphor_deltaScore", l_psm.delta_score);
+        }
+        else
+        {
+          scored_hit.setScore(-1);
+        }
+        scored_peptides.push_back(scored_hit);
+      }
+      
+      PeptideIdentification new_pep_id(*pep_id);
+      new_pep_id.setScoreType("LuciphorScore");
+      new_pep_id.setHigherScoreBetter(true);
+      new_pep_id.setHits(scored_peptides);
+      pep_out.push_back(new_pep_id);
+    }    
     IdXMLFile().store(out, prot_ids, pep_out);
 
+    removeTempDir_(temp_dir);
+    
     return EXECUTION_OK;
   }
 };
