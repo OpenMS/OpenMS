@@ -59,7 +59,7 @@ namespace OpenMS
 
     Size length;
 
-    HasMinPeptideLength(Size length):
+    explicit HasMinPeptideLength(Size length):
       length(length)
     {}
     
@@ -76,7 +76,7 @@ namespace OpenMS
 
     Int charge;
 
-    HasMinCharge(Int charge):
+    explicit HasMinCharge(Int charge):
       charge(charge)
     {}
 
@@ -116,7 +116,7 @@ namespace OpenMS
 
     const set<String>& mods;
 
-    HasMatchingModification(const set<String>& mods):
+    explicit HasMatchingModification(const set<String>& mods):
       mods(mods)
     {}
 
