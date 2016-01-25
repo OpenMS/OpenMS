@@ -40,8 +40,10 @@ if [ $ENABLE_STYLE_TESTING == "On" ]; then
   popd
 else
   # regular builds .. get the search engine executables via githubs SVN interface (as git doesn't allow single folder checkouts)
-  svn checkout http://github.com/OpenMS/THIRDPARTY/trunk/Linux/64bit/ _thirdparty || true
+  svn checkout https://github.com/OpenMS/THIRDPARTY/trunk/Linux/64bit/ _thirdparty
   # remove .svn otherwise we can't check out the other search engines into the same directory
   rm _thirdparty/.svn -R -f || true
-  svn checkout http://github.com/OpenMS/THIRDPARTY/trunk/All/ _thirdparty || true
+  svn checkout https://github.com/OpenMS/THIRDPARTY/trunk/All/ _thirdparty
 fi
+
+
