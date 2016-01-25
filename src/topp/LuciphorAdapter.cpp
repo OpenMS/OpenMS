@@ -36,6 +36,7 @@
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -106,6 +107,19 @@ public:
   }
 
 protected:
+  struct LuciphorPSM
+  {
+    String spec_id;
+    int scan_id;
+    int charge;
+    String peptide;
+    String predicted_pep;
+    double delta_score;
+    double predicted_pep_score;
+    
+    LuciphorPSM() {}
+  };
+
   // lists of allowed parameter values:
   vector<String> fragment_methods_, fragment_error_units_, input_types_;
 
@@ -181,11 +195,10 @@ protected:
     return String(residue +  " " + mod.getDiffMonoMass());    
   }
  
-  ExitCodes parseParameters_(map<String, vector<String> >& config_map, const String& in)
+  ExitCodes parseParameters_(map<String, vector<String> >& config_map, const String& in, const String& spectrum_in, const String& out)
   {
     FileHandler fh;
     
-    String spectrum_in = getStringOption_("spectrum_in");    
     config_map["SPECTRUM_PATH"].push_back(File::path(File::absolutePath(spectrum_in)));
     config_map["SPECTRUM_SUFFIX"].push_back(FileTypes::typeToName(fh.getTypeByFileName(spectrum_in)));
     config_map["INPUT_DATA"].push_back(in);
@@ -197,7 +210,7 @@ protected:
     config_map["MS2_TOL"].push_back(getDoubleOption_("fragment_mass_tol"));
     config_map["MS2_TOL_UNITS"].push_back(ListUtils::getIndex<String>(fragment_error_units_, getStringOption_("fragment_error_units")));
     config_map["MIN_MZ"].push_back(getDoubleOption_("min_mz"));
-    config_map["OUTPUT_FILE"].push_back(getStringOption_("out"));
+    config_map["OUTPUT_FILE"].push_back(out);
     config_map["DECOY_MASS"].push_back(getDoubleOption_("decoy_mass"));
     config_map["MAX_CHARGE_STATE"].push_back(getIntOption_("max_charge_state"));
     config_map["MAX_PEP_LEN"].push_back(getIntOption_("max_peptide_length"));
@@ -285,11 +298,56 @@ protected:
     }
   }
   
+  struct LuciphorPSM splitSpecId_(const String& spec_id)
+  {
+    struct LuciphorPSM l_psm;
+    l_psm.spec_id = spec_id;
+    
+    vector<String> parts;
+    spec_id.split(".", parts);
+    l_psm.scan_id = parts[1].toInt();
+    l_psm.charge = parts[3].toInt();
+    
+    return l_psm;
+  }
+  
+  ExitCodes parseLuciphorOutput_(const String& l_out, map<int, LuciphorPSM>& l_psms)
+  {
+    CsvFile tsvfile(l_out, '\t');
+        
+    for (Size row_count = 1; row_count < tsvfile.rowCount(); ++row_count) // skip header line
+    {
+      vector<String> elements;
+      if (!tsvfile.getRow(row_count, elements))
+      {
+        writeLog_("Error: could not split row " + String(row_count) + " of file '" + l_out + "'");
+        return PARSE_ERROR;
+      }
+      
+      String spec_id = elements[0];
+      struct LuciphorPSM l_psm = splitSpecId_(spec_id);
+      
+      l_psm.peptide = elements[1];
+      l_psm.predicted_pep = elements[2];
+      l_psm.delta_score = elements[7].toDouble();
+      l_psm.predicted_pep_score = elements[8].toDouble();
+      
+      if (l_psms.count(l_psm.scan_id) > 0)
+      {
+        writeLog_("Error: duplicate scannr existing " + l_psm.scan_id);
+        return PARSE_ERROR;
+      }
+      l_psms[l_psm.scan_id] = l_psm;
+    }
+    
+    return EXECUTION_OK;
+  }
   
   ExitCodes main_(int, const char**)
   {
-    vector<PeptideIdentification> peptide_identifications;
-    vector<ProteinIdentification> protein_identifications;
+    vector<PeptideIdentification> pep_ids;
+    vector<ProteinIdentification> prot_ids;
+    vector<PeptideIdentification> pep_out;
     
     if (!getFlag_("force"))
     {
@@ -315,20 +373,22 @@ protected:
     conf_file = temp_dir + "luciphor2_input_template.txt";
     
     String in = getStringOption_("in");
+    String spectrum_in = getStringOption_("spectrum_in");
+    String out = getStringOption_("out");
+    
     FileHandler fh;
     FileTypes::Type in_type = fh.getType(in);
     
     // convert input to pepXML if necessary
     if (in_type == FileTypes::IDXML)
     {
-      IdXMLFile().load(in, protein_identifications, peptide_identifications);
-      String spectrum_file = getStringOption_("spectrum_in");
+      IdXMLFile().load(in, prot_ids, pep_ids);
       
       // create a tempory pepXML file for LuciPHOR2 input
       String in_file_name = File::removeExtension(File::basename(in));
       in = temp_dir + in_file_name + ".pepXML";
       
-      PepXMLFile().store(in, protein_identifications, peptide_identifications, spectrum_file, "", false);
+      PepXMLFile().store(in, prot_ids, pep_ids, spectrum_in, "", false);
     }
     else if (!in_type == FileTypes::PEPXML)
     {
@@ -339,7 +399,7 @@ protected:
     
     // initialize map
     map<String, vector<String> > config_map;	
-    ExitCodes ret = parseParameters_(config_map, in);
+    ExitCodes ret = parseParameters_(config_map, in, spectrum_in, out);
     if (ret != EXECUTION_OK)
     {
       return ret;
@@ -368,8 +428,62 @@ protected:
       writeLog_("Fatal error: Running LuciPHOr2 returned an error code. Does the LuciPHOr2 executable (.jar file) exist?");
       return EXTERNAL_PROGRAM_ERROR;
     }
+    
+    map<int, LuciphorPSM> l_psms;
+    ret = parseLuciphorOutput_(out, l_psms);
+    if (ret != EXECUTION_OK)
+    {
+      writeLog_("Error: LuciPHOr2 output is not correctly formated.");
+      return ret;
+    }
+    
+    // merge LuciPHOr2 result to idXML
+    if (in_type == FileTypes::IDXML)
+    {
+      MSExperiment<> exp;
+      MzMLFile f;
+      f.setLogType(log_type_);
 
+      PeakFileOptions options;
+      options.clearMSLevels();
+      options.addMSLevel(2);
+      f.getOptions() = options;
+      f.load(spectrum_in, exp);
+      exp.sortSpectra(true);
+      
+      SpectrumLookup lookup;
+      lookup.readSpectra(exp.getSpectra());
+    
+      for (vector<PeptideIdentification>::iterator pep_id = pep_ids.begin(); pep_id != pep_ids.end(); ++pep_id)
+      {
+        Size scan_id = lookup.findByRT(pep_id->getRT());
+        struct LuciphorPSM l_psm = l_psms[scan_id];
+        
+        vector<PeptideHit> scored_peptides;
+        for (vector<PeptideHit>::const_iterator hit = pep_id->getHits().begin(); hit < pep_id->getHits().end(); ++hit)
+        {
+          PeptideHit scored_hit = *hit;
+          scored_hit.setScore(l_psm.predicted_pep_score);
+          scored_hit.setSequence(AASequence::fromString(l_psm.predicted_pep));
+          scored_hit.setMetaValue("search_engine_sequence", hit->getSequence().toString());          
+          scored_hit.setMetaValue("Luciphor_deltaScore", l_psm.delta_score);
+          
+          scored_peptides.push_back(scored_hit);
+        }
+        PeptideIdentification new_pep_id(*pep_id);
+        new_pep_id.setScoreType("LuciphorScore");
+        new_pep_id.setHigherScoreBetter(true);
+        new_pep_id.setHits(scored_peptides);
+        pep_out.push_back(new_pep_id);
+      }
+    }      
+    
     removeTempDir_(temp_dir);
+    
+    //-------------------------------------------------------------
+    // writing output
+    //-------------------------------------------------------------
+    IdXMLFile().store(out, prot_ids, pep_out);
 
     return EXECUTION_OK;
   }
