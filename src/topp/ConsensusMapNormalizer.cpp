@@ -107,7 +107,7 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("consensusXML"));
     addEmptyLine_();
     registerStringOption_("algorithm_type", "<type>", "robust_regression", "The normalization algorithm that is applied.", false, false);
-    setValidStrings_("algorithm_type", ListUtils::create<String>("robust_regression,median,quantile"));
+    setValidStrings_("algorithm_type", ListUtils::create<String>("robust_regression,median,median_shift,quantile"));
     registerDoubleOption_("ratio_threshold", "<ratio>", 0.67, "Only for 'robust_regression': the parameter is used to distinguish between non-outliers (ratio_threshold < intensity ratio < 1/ratio_threshold) and outliers.", false);
     setMinFloat_("ratio_threshold", 0.001);
     setMaxFloat_("ratio_threshold", 1.0);
@@ -134,7 +134,11 @@ protected:
     }
     else if (algo_type == "median")
     {
-      ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(map);
+      ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(map, false);
+    }
+    else if (algo_type == "median_shift")
+    {
+      ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(map, true);
     }
     else if (algo_type == "quantile")
     {

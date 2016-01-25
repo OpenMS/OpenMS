@@ -50,7 +50,7 @@ namespace OpenMS
 
   }
 
-  vector<double> ConsensusMapNormalizerAlgorithmMedian::computeNormalizationFactors(const ConsensusMap& map)
+  Size ConsensusMapNormalizerAlgorithmMedian::computeMedians(const ConsensusMap & map, vector<double>& medians)
   {
     Size number_of_maps = map.getFileDescriptions().size();
     vector<vector<double> > feature_int(number_of_maps);
@@ -79,37 +79,54 @@ namespace OpenMS
         feature_int[f_it->getMapIndex()].push_back(f_it->getIntensity());
       }
     }
-    //compute medians factors
-    vector<double> medians(number_of_maps);
+    //compute medians
+    medians.resize(number_of_maps);
     for (UInt j = 0; j < number_of_maps; j++)
     {
       vector<double>& ints_j = feature_int[j];
       medians[j] = Math::median(ints_j.begin(), ints_j.end());
     }
-    //compute normalization factors
-    vector<double> normalization_factors(number_of_maps);
-    for (UInt j = 0; j < number_of_maps; ++j)
-    {
-      normalization_factors[j] = medians[map_with_most_features_idx] / medians[j];
-    }
 
-    return normalization_factors;
+    return map_with_most_features_idx;
   }
 
-  void ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(ConsensusMap& map)
+  void ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(ConsensusMap & map, bool shift)
   {
     ConsensusMap::Iterator cf_it;
     ProgressLogger progresslogger;
     progresslogger.setLogType(ProgressLogger::CMD);
     progresslogger.startProgress(0, map.size(), "normalizing maps");
-    vector<double> factors = computeNormalizationFactors(map);
+
+    vector<double> medians;
+    Size index_of_largest_map = computeMedians(map, medians);
+
     for (cf_it = map.begin(); cf_it != map.end(); ++cf_it)
     {
       progresslogger.setProgress(cf_it - map.begin());
       ConsensusFeature::HandleSetType::const_iterator f_it;
       for (f_it = cf_it->getFeatures().begin(); f_it != cf_it->getFeatures().end(); ++f_it)
       {
-        f_it->asMutable().setIntensity(f_it->getIntensity() * factors[f_it->getMapIndex()]);
+        Size map_index = f_it->getMapIndex();
+        if (shift)
+        {
+          // shift to median of map with largest median in order to avoid negative intensities
+          double max_median(numeric_limits<double>::min());
+          Size max_median_index(0);
+          for (Size i = 0; i < medians.size(); ++i)
+          {
+            if (medians[i] > max_median)
+            {
+              max_median = medians[i];
+              max_median_index = i;
+            }
+          }
+          f_it->asMutable().setIntensity(f_it->getIntensity() + medians[max_median_index] - medians[map_index]);
+        }
+        else
+        {
+          // scale to median of map with largest number of features
+          f_it->asMutable().setIntensity(f_it->getIntensity() * medians[index_of_largest_map] / medians[map_index]);
+        }
       }
     }
     progresslogger.endProgress();

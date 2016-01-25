@@ -63,14 +63,19 @@ public:
     /**
  * @brief normalizes the maps of the consensusMap
      * @param map ConsensusMap
+     * @param shift whether to shift to same median instead of scaling
      */
-    static void normalizeMaps(ConsensusMap & map);
+    static void normalizeMaps(ConsensusMap & map, bool shift);
 
     /**
-     * @brief computes the normalization factors for all maps
+
+    /**
+     * @brief computes medians of all maps and returns index of map with most features
      * @param map ConsensusMap
+     * @param medians vector of medians to be filled
+     * @return index of map with largest number of features
      */
-    static std::vector<double> computeNormalizationFactors(const ConsensusMap & map);
+    static Size computeMedians(const ConsensusMap & map, std::vector<double> & medians);
   };
 
 } // namespace OpenMS
