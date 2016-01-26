@@ -235,18 +235,18 @@ protected:
     filter_param.setValue("peakcount", 20, "The number of peaks that should be kept.");
     filter_param.setValue("movetype", "jump", "Whether sliding window (one peak steps or jumping window window size steps) should be used.");
     window_mower_filter.setParameters(filter_param);
-    NLargest nlargest_filter = NLargest(400);
+    NLargest nlargest_filter = NLargest(250);   // De-noising in xQuest: Dynamic range = 1000, 250 most intense peaks
   
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
     for (SignedSize exp_index = 0; exp_index < static_cast<SignedSize>(exp.size()); ++exp_index)
     {
-      // sort by mz
-      exp[exp_index].sortByPosition();
+      // sort by mz, for window_mower
+      //exp[exp_index].sortByPosition();
   
-      // remove noise
-      window_mower_filter.filterPeakSpectrum(exp[exp_index]);
+      // remove noise, TODO window_mower not used in xQuest, is it necessary?
+      //window_mower_filter.filterPeakSpectrum(exp[exp_index]);
       nlargest_filter.filterPeakSpectrum(exp[exp_index]);
   
       // sort (nlargest changes order)
@@ -329,14 +329,14 @@ protected:
     {
       Size pos = static_cast<Size>(std::ceil(spec1[i].getMZ() / tolerance));
       //cout << "xcorr Table1 pos: " << pos << endl;
-      ion_table1[pos] = spec1[i].getIntensity();
+      ion_table1[pos] = spec1[i].getIntensity() * 1000;
       //cout << "xcorr Table1 Inte: " << spec1[i].getIntensity() << endl;
     }
     for (Size i = 0; i < spec2.size(); ++i)
     {
       Size pos =static_cast<Size>(std::ceil(spec2[i].getMZ() / tolerance));
       //cout << "xcorr Table2 pos: " << pos << endl;
-      ion_table2[pos] = spec2[i].getIntensity();
+      ion_table2[pos] = spec2[i].getIntensity() * 1000;
       //cout << "xcorr Table2 Inte: " << spec2[i].getIntensity() << endl;
     }
     //cout << "xcorr Tables done" << endl;
@@ -1306,14 +1306,14 @@ protected:
                   // %TIC score calculations
                   double matched_current_alpha = 0;
                   double matched_current_beta = 0;
-                  for (SignedSize j = 0; j < static_cast<SignedSize>(matched_spec_alpha.size()); ++j) matched_current_alpha += preprocessed_pair_spectra.spectra_common_peaks[scan_index][matched_spec_alpha[j].second].getIntensity();
-                  for (SignedSize j = 0; j < static_cast<SignedSize>(matched_spec_beta.size()); ++j) matched_current_beta += preprocessed_pair_spectra.spectra_common_peaks[scan_index][matched_spec_beta[j].second].getIntensity();
-                  for (SignedSize j = 0; j < static_cast<SignedSize>(matched_spec_xlinks_alpha.size()); ++j) matched_current_alpha += preprocessed_pair_spectra.spectra_xlink_peaks[scan_index][matched_spec_xlinks_alpha[j].second].getIntensity();
-                  for (SignedSize j = 0; j < static_cast<SignedSize>(matched_spec_xlinks_beta.size()); ++j) matched_current_beta += preprocessed_pair_spectra.spectra_xlink_peaks[scan_index][matched_spec_xlinks_beta[j].second].getIntensity();
+                  for (SignedSize j = 0; j < static_cast<SignedSize>(matched_spec_alpha.size()); ++j) matched_current_alpha += preprocessed_pair_spectra.spectra_common_peaks[scan_index][matched_spec_alpha[j].second].getIntensity() * 1000;
+                  for (SignedSize j = 0; j < static_cast<SignedSize>(matched_spec_beta.size()); ++j) matched_current_beta += preprocessed_pair_spectra.spectra_common_peaks[scan_index][matched_spec_beta[j].second].getIntensity() * 1000;
+                  for (SignedSize j = 0; j < static_cast<SignedSize>(matched_spec_xlinks_alpha.size()); ++j) matched_current_alpha += preprocessed_pair_spectra.spectra_xlink_peaks[scan_index][matched_spec_xlinks_alpha[j].second].getIntensity() * 1000;
+                  for (SignedSize j = 0; j < static_cast<SignedSize>(matched_spec_xlinks_beta.size()); ++j) matched_current_beta += preprocessed_pair_spectra.spectra_xlink_peaks[scan_index][matched_spec_xlinks_beta[j].second].getIntensity() * 1000;
                   double matched_current = matched_current_alpha + matched_current_beta;
 
                   double total_current = 0;
-                  for (SignedSize j = 0; j < static_cast<SignedSize>(spectrum_light.size()); ++j) total_current += spectrum_light[j].getIntensity();
+                  for (SignedSize j = 0; j < static_cast<SignedSize>(spectrum_light.size()); ++j) total_current += spectrum_light[j].getIntensity() * 1000;
 
                   double TIC = matched_current / total_current;
                   //cout << "matched current: " << matched_current << "\t total_current: " << total_current << endl;
