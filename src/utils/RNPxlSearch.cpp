@@ -596,6 +596,7 @@ private:
 
     Param ps = spectrum_generator.getParameters();
     ps.setValue("add_metainfo", "true", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
+    ps.setValue("add_first_prefix_ion", "true");
     spectrum_generator.setParameters(ps);
 
     SpectrumAlignment spectrum_aligner;
@@ -1406,6 +1407,10 @@ private:
 
     // create spectrum generator
     TheoreticalSpectrumGenerator spectrum_generator;
+    Param param(spectrum_generator.getParameters());
+    param.setValue("add_first_prefix_ion", "true");
+    param.setValue("add_metainfo", "true");
+    spectrum_generator.setParameters(param);
 
     vector<vector<AnnotatedHit> > annotated_hits(spectra.size(), vector<AnnotatedHit>());
 
@@ -1533,9 +1538,13 @@ private:
               const PeakSpectrum& exp_spectrum = spectra[scan_index];
 
               double score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, complete_loss_spectrum);
+            
+              #ifdef DEBUG_RNPXLSEARCH
+                cout << "scan index: " << scan_index << " achieved score: " << score << endl;
+              #endif
 
               // no good hit
-              if (score < 1.0)
+              if (score < 0.001)
               {
                 continue;
               }
@@ -1597,21 +1606,8 @@ private:
     QStringList qparam;
     qparam << "-in" << out_idxml.toQString() << "-out" << out_idxml.toQString() << "-fasta" << in_db.toQString() << "-prefix" << "-enzyme:specificity" << "none" << "-missing_decoy_action" << "warn";
     Int status;
-#ifdef OPENMS_WINDOWSPLATFORM
-    if (db_name_contains_space)
-    {
-      // for some reason QProcess doesn't handle escaped " in arguments properly so we use a system call
-      String call_string = "PeptideIndexer " + ListUtils::concatenate(qparam, " ");
-      writeDebug_(call_string, 5);
-      status = system(call_string.c_str());
-    }
-    else
-    {
-      status = QProcess::execute("PeptideIndexer", qparam);
-    }
-#else
+
     status = QProcess::execute("PeptideIndexer", qparam);
-#endif
 
     if (status != 0)
     {
