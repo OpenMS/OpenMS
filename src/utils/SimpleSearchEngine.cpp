@@ -47,6 +47,7 @@
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
+#include <OpenMS/ANALYSIS/RNPXL/HyperScore.h>
 
 // preprocessing and filtering
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
@@ -549,6 +550,10 @@ class SimpleSearchEngine :
 
       // create spectrum generator
       TheoreticalSpectrumGenerator spectrum_generator;
+      Param param(spectrum_generator.getParameters());
+      param.setValue("add_first_prefix_ion", "true");
+      param.setValue("add_metainfo", "true");
+      spectrum_generator.setParameters(param);
 
       vector<vector<PeptideHit> > peptide_hits(spectra.size(), vector<PeptideHit>());
 
@@ -667,7 +672,8 @@ class SimpleSearchEngine :
               const Size& scan_index = low_it->second;
               const MSSpectrum<Peak1D>& exp_spectrum = spectra[scan_index];
 
-              double score = computeHyperScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum);
+              double score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum);
+              //double score = computeHyperScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum);
 
               // no hit
               if (score < 1e-16)

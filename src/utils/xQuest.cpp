@@ -44,6 +44,7 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
+#include <OpenMS/FORMAT/Base64.h>
 
 // preprocessing and filtering
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
@@ -108,6 +109,69 @@ public:
   TOPPxQuest() :
     TOPPBase("xQuest", "Tool for protein-protein cross linking using the xQuest algorithm.", false)
   {
+  }
+  //TODO: make protected
+  static void wrap_(const String& input, Size width, String & output)
+  { 
+    Size start = 0;
+
+    while (start + width < input.size())
+    {
+      output += input.substr(start, width) + "\n";
+      start += width;
+    }
+    
+    if (start < input.size())
+    {
+      output += input.substr(start, input.size() - start) + "\n";
+    }
+  }
+  // TODO: make protected
+  static String getxQuestBase64EncodedSpectrum_(const RichPeakSpectrum& spec, String header)
+  {
+    vector<String> in_strings;
+    StringList sl;
+
+    double precursor_mz = spec.getPrecursors()[0].getMZ();
+    double precursor_z = spec.getPrecursors()[0].getCharge();
+
+    // header lines
+    if (!header.empty()) // common or xlinker spectrum will be reported
+    {
+      sl.push_back(header + "\n"); // e.g. GUA1372-S14-A-LRRK2_DSS_1A3.03873.03873.3.dta,GUA1372-S14-A-LRRK2_DSS_1A3.03863.03863.3.dta
+      sl.push_back(String(precursor_mz) + "\n");
+      sl.push_back(String(precursor_z) + "\n");
+    }
+    else // light or heavy spectrum will be reported
+    {
+      sl.push_back(String(precursor_mz) + "\t" + String(precursor_z) + "\n");
+    }
+
+    // write peaks
+    for (Size i = 0; i != spec.size(); ++i)
+    {
+      String s;
+      s += String(spec[i].getMZ()) + "\t";
+      s += String(spec[i].getIntensity()) + "\t";
+
+      // add fragment charge if meta value exists (must be present for 'common' and 'xlinker'.
+      if (spec[i].metaValueExists("z"))
+      {
+        s += String(spec[i].getMetaValue("z"));
+      }
+      s += "\n"; 
+
+      sl.push_back(s);
+    }
+    
+    String out;
+    out.concatenate(sl.begin(), sl.end(), "");
+    in_strings.push_back(out);
+    String out_encoded;
+    Base64().encodeStrings(in_strings, out_encoded, false, false);   
+    String out_wrapped;
+    wrap_(out_encoded, 76, out_wrapped);
+    return out_wrapped;
   }
 
 protected:
@@ -1524,11 +1588,42 @@ protected:
  
     return EXECUTION_OK;
   }
+
+
 };
 
 int main(int argc, const char** argv)
 {
+/*
+    in_strings.push_back("GUA1372-S14-A-LRRK2_DSS_1A3.03873.03873.3.dta,GUA1372-S14-A-LRRK2_DSS_1A3.03863.03863.3.dta\n712.0402832\n3\n202.067596435547\t1.00478214074753\t0\n225.138473510742\t10.5088150882632\t0\n240.306930541992\t1.97429014972974\t0\n246.150848388672\t2.11073807368531\t0\n253.116088867188\t0.788884157284357\t0\n254.077026367188\t1.28374306224133\t0\n302.334899902344\t1.01611426130302\t0\n363.247711181641\t1.21699536030682\t0\n364.359741210938\t3.07224448353778\t0\n365.233764648438\t1.41221257514478\t0\n382.492919921875\t1.44150675140929\t0\n454.173889160156\t1.55469310937435\t0\n468.17431640625\t1.25361597022867\t0\n476.370422363281\t1.18878053554465\t0\n478.18017578125\t1.37806417103704\t0\n503.177612304688\t1.00284247589148\t0\n505.511840820312\t5.09655338578696\t0\n508.137390136719\t2.11522771360041\t0\n511.180541992188\t2.15057904382722\t0\n571.420043945312\t6.90119656302518\t0\n583.662292480469\t4.66461443760661\t0\n587.343444824219\t2.87846978117167\t0\n589.50537109375\t7.13272916133555\t0\n594.251281738281\t4.93514552968795\t0\n595.426513671875\t3.44382536510506\t0\n596.37744140625\t11.9700389831397\t0\n610.205810546875\t4.63570482669097\t0\n661.512268066406\t2.14856175242209\t0\n666.367126464844\t4.27393999349033\t0\n669.846130371094\t3.10418295682631\t0\n673.281494140625\t1.31777402765441\t0\n675.322631835938\t3.47432917419416\t0\n716.352233886719\t8.67972468511475\t0\n725.564880371094\t12.897237882998\t0\n727.754760742188\t2.45193672303815\t0\n773.124877929688\t14.9709238344739\t0\n783.431457519531\t1.8729551112151\t0\n790.326721191406\t0.925976281710217\t0\n807.462829589844\t2.61764400546783\t0\n814.522888183594\t2.61683748845419\t0\n838.480285644531\t5.61032298854543\t0\n899.440734863281\t1.11527454352849\t0\n935.585876464844\t5.27870693712852\t0\n936.455749511719\t6.41740507779915\t0\n953.285339355469\t9.95025553746705\t0\n954.578002929688\t4.59257243378958\t0\n963.523315429688\t1.12443797236897\t0\n995.837219238281\t18.0752277973914\t0\n1025.43994140625\t3.67398836852921\t0\n1032.45239257812\t1.3500013173682\t0\n1050.49426269531\t19.376810410944\t0\n1051.4091796875\t5.43402852930932\t0\n1068.53137207031\t14.0416735388994\t0\n1069.45922851562\t8.71293686167004\t0\n1093.45495605469\t0.981511228178035\t0\n1105.52648925781\t1.47770612314566\t0\n1111.71630859375\t1.59983951167604\t0\n1226.41040039062\t1.80091881523256\t0\n1323.61682128906\t2.26763131809332\t0\n1520.763671875\t1.19462550075974\t0\n");
+    cout << out << endl;
+  */  
+/*
+  RichPeakSpectrum s;
+  vector<Precursor> precursors;
+  Precursor pc;
+  pc.setMZ(712.0402832);
+  pc.setCharge(3);
+  precursors.push_back(pc);
+  s.setPrecursors(precursors);
+  String header = "GUA1372-S14-A-LRRK2_DSS_1A3.03873.03873.3.dta,GUA1372-S14-A-LRRK2_DSS_1A3.03863.03863.3.dta";  // needs to be provided for common and xlinker spectra
+  RichPeak1D p;
+  p.setMZ(202.067596435547);  
+  p.setIntensity(1.00478214074753);
+  p.setMetaValue("z", 0); // only set this metavalue for common and xlinker spectra (not for heavy or light)
+  s.push_back(p);
+  p.setMZ(225.138473510742);  
+  p.setIntensity(10.5088150882632);
+  p.setMetaValue("z", 0);
+  s.push_back(p);
+  p.setMZ(240.306930541992);  
+  p.setIntensity(1.97429014972974);
+  p.setMetaValue("z", 0);
+  s.push_back(p);
+  cout << TOPPxQuest::getxQuestBase64EncodedSpectrum_(s, header) << endl;
+*/
   TOPPxQuest tool;
+  
   return tool.main(argc, argv);
 }
 
