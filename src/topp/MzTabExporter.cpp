@@ -802,7 +802,7 @@ protected:
       meta_data.psm_search_engine_score[1] = MzTabParameter(); // TODO insert search engine information
       MzTabMSRunMetaData ms_run;
       StringList ms_runs = consensus_map.getPrimaryMSRunPath();
-      for (Size i = 0; i != !ms_runs.size(); ++i)
+      for (Size i = 0; i != ms_runs.size(); ++i)
       {
         ms_run.location = MzTabString(ms_runs[i]);
         meta_data.ms_run[i + 1] = ms_run;
