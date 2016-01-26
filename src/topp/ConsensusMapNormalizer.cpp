@@ -111,6 +111,8 @@ protected:
     registerDoubleOption_("ratio_threshold", "<ratio>", 0.67, "Only for 'robust_regression': the parameter is used to distinguish between non-outliers (ratio_threshold < intensity ratio < 1/ratio_threshold) and outliers.", false);
     setMinFloat_("ratio_threshold", 0.001);
     setMaxFloat_("ratio_threshold", 1.0);
+    registerStringOption_("accession_filter", "<regexp>", "", "Use only features with accessions (partially) matching this regular expression for computing the normalization factors. Useful, e.g., if you have known house keeping proteins in your samples. When empty, all features are used (even those without an ID). When set to \".*\", any identified feature is used. No effect if quantile normalization is used.", false, true);
+    registerStringOption_("description_filter", "<regexp>", "", "Use only features with description (partially) matching this regular expression for computing the normalization factors. Useful, e.g., if you have known house keeping proteins in your samples. When empty, all features are used (even those without an ID). When set to \".*\", any identified feature is used. No effect if quantile normalization is used.", false, true);
   }
 
   ExitCodes main_(int, const char **)
@@ -118,6 +120,8 @@ protected:
     String in = getStringOption_("in");
     String out = getStringOption_("out");
     String algo_type = getStringOption_("algorithm_type");
+    String acc_filter = getStringOption_("accession_filter");
+    String desc_filter = getStringOption_("description_filter");
     double ratio_threshold = getDoubleOption_("ratio_threshold");
 
     ConsensusXMLFile infile;
@@ -129,19 +133,23 @@ protected:
     if (algo_type == "robust_regression")
     {
       map.sortBySize();
-      vector<double> results = ConsensusMapNormalizerAlgorithmThreshold::computeCorrelation(map, ratio_threshold);
+      vector<double> results = ConsensusMapNormalizerAlgorithmThreshold::computeCorrelation(map, ratio_threshold, acc_filter, desc_filter);
       ConsensusMapNormalizerAlgorithmThreshold::normalizeMaps(map, results);
     }
     else if (algo_type == "median")
     {
-      ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(map, false);
+      ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(map, ConsensusMapNormalizerAlgorithmMedian::NM_SCALE, acc_filter, desc_filter);
     }
     else if (algo_type == "median_shift")
     {
-      ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(map, true);
+      ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(map, ConsensusMapNormalizerAlgorithmMedian::NM_SHIFT, acc_filter, desc_filter);
     }
     else if (algo_type == "quantile")
     {
+      if (acc_filter != "" || desc_filter != "")
+      {
+        LOG_WARN << endl << "NOTE: Accession / description filtering is not supported in quantile normalization mode. Ignoring filters." << endl << endl;
+      }
       ConsensusMapNormalizerAlgorithmQuantile::normalizeMaps(map);
     }
     else
@@ -156,7 +164,6 @@ protected:
 
     return EXECUTION_OK;
   }
-
 };
 
 
