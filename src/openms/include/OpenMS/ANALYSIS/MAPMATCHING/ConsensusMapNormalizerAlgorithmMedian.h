@@ -61,13 +61,11 @@ public:
     virtual ~ConsensusMapNormalizerAlgorithmMedian();
 
     /**
- * @brief normalizes the maps of the consensusMap
+     * @brief normalizes the maps of the consensusMap
      * @param map ConsensusMap
      * @param shift whether to shift to same median instead of scaling
      */
     static void normalizeMaps(ConsensusMap & map, bool shift);
-
-    /**
 
     /**
      * @brief computes medians of all maps and returns index of map with most features
