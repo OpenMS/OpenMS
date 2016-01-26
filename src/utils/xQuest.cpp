@@ -329,14 +329,14 @@ protected:
     {
       Size pos = static_cast<Size>(std::ceil(spec1[i].getMZ() / tolerance));
       //cout << "xcorr Table1 pos: " << pos << endl;
-      ion_table1[pos] = spec1[i].getIntensity() * 1000;
+      ion_table1[pos] = spec1[i].getIntensity() * 100;
       //cout << "xcorr Table1 Inte: " << spec1[i].getIntensity() << endl;
     }
     for (Size i = 0; i < spec2.size(); ++i)
     {
       Size pos =static_cast<Size>(std::ceil(spec2[i].getMZ() / tolerance));
       //cout << "xcorr Table2 pos: " << pos << endl;
-      ion_table2[pos] = spec2[i].getIntensity() * 1000;
+      ion_table2[pos] = spec2[i].getIntensity() * 100;
       //cout << "xcorr Table2 Inte: " << spec2[i].getIntensity() << endl;
     }
     //cout << "xcorr Tables done" << endl;
@@ -615,24 +615,24 @@ protected:
       }
 
       // add elements from neighboring buckets
-      if (bucket_pos - bucket_index <= 0.5)
-      {
-        it = h_.find(bucket_index - 1);
-        while (it != h_.end() && it->first == (bucket_index - 1) && elements.size() < max_elements)
-        {
-          elements.push_back(it->second);
-          ++it;
-        }
-      } 
-      else
-      {
-        it = h_.find(bucket_index + 1);
-        while (it != h_.end() && it->first == (bucket_index + 1) && elements.size() < max_elements)
-        {
-          elements.push_back(it->second);
-          ++it;
-        }
-      }
+//      if (bucket_pos - bucket_index <= 0.5)
+//      {
+//        it = h_.find(bucket_index - 1);
+//        while (it != h_.end() && it->first == (bucket_index - 1) && elements.size() < max_elements)
+//        {
+//          elements.push_back(it->second);
+//          ++it;
+//        }
+//      }
+//      else
+//      {
+//        it = h_.find(bucket_index + 1);
+//        while (it != h_.end() && it->first == (bucket_index + 1) && elements.size() < max_elements)
+//        {
+//          elements.push_back(it->second);
+//          ++it;
+//        }
+//      }
       return elements;
     }
 
@@ -1123,10 +1123,10 @@ protected:
           } else // enumeration mode
           {
             //cout << "Number of common peaks, xlink peaks: " << preprocessed_pair_spectra.spectra_common_peaks[scan_index].size() << "\t" << preprocessed_pair_spectra.spectra_xlink_peaks[scan_index].size();
-            if (preprocessed_pair_spectra.spectra_common_peaks[scan_index].size() < 1 || preprocessed_pair_spectra.spectra_xlink_peaks[scan_index].size() < 1)
-            {
-              continue;
-            }
+//            if (preprocessed_pair_spectra.spectra_common_peaks[scan_index].size() < 1 || preprocessed_pair_spectra.spectra_xlink_peaks[scan_index].size() < 1)
+//            {
+//              continue;
+//            }
             // determine MS2 precursors that match to the current peptide mass
             multimap<double, pair<AASequence, AASequence> >::const_iterator low_it;
             multimap<double, pair<AASequence, AASequence> >::const_iterator up_it;
@@ -1142,11 +1142,12 @@ protected:
               up_it =  enumerated_cross_link_masses.upper_bound(precursor_mass + precursor_mass_tolerance);
             }
 
-            if (low_it == up_it) continue; // no matching precursor in data
-
-            for (; low_it != up_it; ++low_it)
+            if (!(low_it == up_it)) // no matching precursor in data
             {
-              candidates.push_back(low_it->second);
+              for (; low_it != up_it; ++low_it)
+              {
+                candidates.push_back(low_it->second);
+              }
             }
           }
 
@@ -1301,14 +1302,14 @@ protected:
                   // %TIC score calculations
                   double matched_current_alpha = 0;
                   double matched_current_beta = 0;
-                  for (SignedSize j = 0; j < static_cast<SignedSize>(matched_spec_alpha.size()); ++j) matched_current_alpha += preprocessed_pair_spectra.spectra_common_peaks[scan_index][matched_spec_alpha[j].second].getIntensity() * 1000;
-                  for (SignedSize j = 0; j < static_cast<SignedSize>(matched_spec_beta.size()); ++j) matched_current_beta += preprocessed_pair_spectra.spectra_common_peaks[scan_index][matched_spec_beta[j].second].getIntensity() * 1000;
-                  for (SignedSize j = 0; j < static_cast<SignedSize>(matched_spec_xlinks_alpha.size()); ++j) matched_current_alpha += preprocessed_pair_spectra.spectra_xlink_peaks[scan_index][matched_spec_xlinks_alpha[j].second].getIntensity() * 1000;
-                  for (SignedSize j = 0; j < static_cast<SignedSize>(matched_spec_xlinks_beta.size()); ++j) matched_current_beta += preprocessed_pair_spectra.spectra_xlink_peaks[scan_index][matched_spec_xlinks_beta[j].second].getIntensity() * 1000;
+                  for (SignedSize j = 0; j < static_cast<SignedSize>(matched_spec_alpha.size()); ++j) matched_current_alpha += preprocessed_pair_spectra.spectra_common_peaks[scan_index][matched_spec_alpha[j].second].getIntensity() * 100;
+                  for (SignedSize j = 0; j < static_cast<SignedSize>(matched_spec_beta.size()); ++j) matched_current_beta += preprocessed_pair_spectra.spectra_common_peaks[scan_index][matched_spec_beta[j].second].getIntensity() * 100;
+                  for (SignedSize j = 0; j < static_cast<SignedSize>(matched_spec_xlinks_alpha.size()); ++j) matched_current_alpha += preprocessed_pair_spectra.spectra_xlink_peaks[scan_index][matched_spec_xlinks_alpha[j].second].getIntensity() * 100;
+                  for (SignedSize j = 0; j < static_cast<SignedSize>(matched_spec_xlinks_beta.size()); ++j) matched_current_beta += preprocessed_pair_spectra.spectra_xlink_peaks[scan_index][matched_spec_xlinks_beta[j].second].getIntensity() * 100;
                   double matched_current = matched_current_alpha + matched_current_beta;
 
                   double total_current = 0;
-                  for (SignedSize j = 0; j < static_cast<SignedSize>(spectrum_light.size()); ++j) total_current += spectrum_light[j].getIntensity() * 1000;
+                  for (SignedSize j = 0; j < static_cast<SignedSize>(spectrum_light.size()); ++j) total_current += spectrum_light[j].getIntensity() * 100;
 
                   double TIC = matched_current / total_current;
                   //cout << "matched current: " << matched_current << "\t total_current: " << total_current << endl;
