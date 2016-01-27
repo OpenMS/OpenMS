@@ -90,7 +90,7 @@ namespace OpenMS
       }
     }
 
-    LOG_INFO << endl << "Using " << pass_counter << "/" << (map.end() - map.begin()) <<  " consensus features for computing normalization coefficients" << endl << endl;
+    LOG_INFO << endl << "Using " << pass_counter << "/" << map.size() <<  " consensus features for computing normalization coefficients" << endl << endl;
 
     //determine ratio
     vector<double> ratio_vector(number_of_maps);

@@ -93,7 +93,7 @@ namespace OpenMS
       }
     }
 
-    LOG_INFO << endl << "Using " << pass_counter << "/" << (map.end() - map.begin()) <<  " consensus features for computing normalization coefficients" << endl << endl;
+    LOG_INFO << endl << "Using " << pass_counter << "/" << map.size() <<  " consensus features for computing normalization coefficients" << endl << endl;
 
     // do we have enough features passing the filters to compute the median for every map?
     bool enough_features_left = true;
@@ -193,7 +193,7 @@ namespace OpenMS
         for (set<String>::const_iterator acc_it = accs.begin(); acc_it != accs.end(); ++acc_it)
         {
           // does accession match?
-          if(!(acc_filter == "" || boost::regex_search(acc_it->c_str(), m, acc_regexp)))
+          if (!(acc_filter == "" || boost::regex_search(acc_it->c_str(), m, acc_regexp)))
           {
             continue;
           }
@@ -208,7 +208,7 @@ namespace OpenMS
             if (pr_hit != pr_it->getHits().end())
             {
               const char* desc = pr_hit->getDescription().c_str();
-              if(boost::regex_search(desc, m, desc_regexp))
+              if (boost::regex_search(desc, m, desc_regexp))
               {
                 return true;
               }
