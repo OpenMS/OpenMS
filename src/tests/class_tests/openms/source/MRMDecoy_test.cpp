@@ -72,31 +72,6 @@ START_SECTION(~MRMDecoy())
 
 END_SECTION
 
-START_SECTION((std::pair<String, double> getDecoyIon(String ionid, std::map<String, std::map<String, double> >&decoy_ionseries)))
-{
-  MRMDecoy gen;
-
-  OpenMS::TargetedExperiment::Peptide peptide;
-  peptide.sequence = "TESTPEPTIDE";
-
-  OpenMS::AASequence aas = TargetedExperimentHelper::getAASequence(peptide);
-
-  double ProductMZ = 371.66692;
-  double mz_threshold = 0.8;
-  int precursor_charge = 2;
-
-  MRMDecoy::IonSeries reference_ionseries = gen.getIonSeries(aas, precursor_charge);
-  std::pair<String, double> targetion = gen.getTargetIon(ProductMZ, mz_threshold, reference_ionseries, 1);
-  std::pair<String, double> decoyion = gen.getDecoyIon("b7^2", reference_ionseries);
-  std::pair<String, double> decoyion_missing = gen.getDecoyIon("b17^2", reference_ionseries);
-
-  TEST_EQUAL(targetion.first, "b7^2")
-  TEST_REAL_SIMILAR(targetion.second, decoyion.second)
-  TEST_REAL_SIMILAR(decoyion_missing.second, -1)
-}
-
-END_SECTION
-
 START_SECTION((std::vector<std::pair<std::string::size_type, std::string> > find_all_tryptic(std::string sequence)))
 {
   MRMDecoy gen;
@@ -383,20 +358,32 @@ START_SECTION((void generateDecoys(OpenMS::TargetedExperiment & exp,
                                    double identity_threshold, int max_attempts, double mz_threshold,
                                    bool theoretical, double mz_shift, bool exclude_similar,
                                    double similarity_threshold, bool remove_CNterm_mods, double precursor_mass_shift,
-                                   bool enable_losses, bool skip_unannotated); ))
+                                   std::vector<String> fragment_types, std::vector<size_t> fragment_charges,
+                                   bool enable_specific_losses, bool enable_unspecific_losses, bool skip_unannotated); ))
 {
   String method = "pseudo-reverse";
-  double identity_threshold = 1.0;
+  double identity_threshold = 0.7;
   Int max_attempts = 5;
   double mz_threshold = 0.8;
   double mz_shift = 20;
   String decoy_tag = "DECOY_";
-  Int min_transitions = 2;
-  Int max_transitions = 6;
-  bool theoretical = 1;
-  bool exclude_similar = 1;
+  bool exclude_similar = true;
   bool remove_CNterminal_mods = false;
   double similarity_threshold = 0.1;
+  std::vector<String> fragment_types;
+  fragment_types.push_back(String("b"));
+  fragment_types.push_back(String("y"));
+  fragment_types.push_back(String("a"));
+  std::vector<size_t> fragment_charges;
+  fragment_charges.push_back(1);
+  fragment_charges.push_back(2);
+  fragment_charges.push_back(3);
+  fragment_charges.push_back(4);
+  fragment_charges.push_back(5);
+  bool enable_unspecific_losses = false;
+  bool enable_specific_losses = true;
+  bool skip_unannotated = true;
+
   String in = "MRMDecoyGenerator_input.TraML";
   String out = "MRMDecoyGenerator_output.TraML";
   String test;
@@ -409,168 +396,17 @@ START_SECTION((void generateDecoys(OpenMS::TargetedExperiment & exp,
   traml.load(OPENMS_GET_TEST_DATA_PATH(in), targeted_exp);
 
   MRMDecoy decoys = MRMDecoy();
-  decoys.restrictTransitions(targeted_exp, min_transitions, max_transitions);
   TEST_EQUAL(targeted_exp.getPeptides().size(), 13)
-  TEST_EQUAL(targeted_exp.getTransitions().size(), 33)
-  decoys.generateDecoys(targeted_exp, targeted_decoy, method, decoy_tag, identity_threshold, max_attempts, mz_threshold, theoretical, mz_shift, exclude_similar, similarity_threshold, remove_CNterminal_mods, 0.1, 1, 0);  traml.store(test, targeted_decoy);
+  TEST_EQUAL(targeted_exp.getTransitions().size(), 36)
+  decoys.generateDecoys(targeted_exp, targeted_decoy, method, decoy_tag, identity_threshold, max_attempts, mz_threshold, mz_shift, exclude_similar, similarity_threshold, remove_CNterminal_mods, 0.1, fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, skip_unannotated);  traml.store(test, targeted_decoy);
 
   TEST_FILE_EQUAL(test.c_str(), OPENMS_GET_TEST_DATA_PATH(out))
 }
 
 END_SECTION
 
-START_SECTION(void restrictTransitions(OpenMS::TargetedExperiment& exp, int min_transitions, int max_transitions))
-{
-  // see above
-  NOT_TESTABLE
-}
-
-END_SECTION
-
-START_SECTION((extra))
-{
-  MRMDecoy gen;
-
-  AASequence target_sequence = AASequence::fromString("ADSTGTLVITDPTR(UniMod:267)");
-  AASequence decoy_sequence = AASequence::fromString("ALDSTTGVDTTPIR(UniMod:267)");
-  MRMDecoy::IonSeries target_ionseries = gen.getIonSeries(target_sequence, 2);
-  MRMDecoy::IonSeries decoy_ionseries = gen.getIonSeries(decoy_sequence, 2);
-
-  {
-    double target_mz = 924.539;
-    double mz_threshold = 0.1;
-
-    std::pair<String, double> targetion = gen.getTargetIon(target_mz, mz_threshold, target_ionseries, 1);
-    std::pair<String, double> decoyion = gen.getDecoyIon(targetion.first, decoy_ionseries);
-
-    TEST_EQUAL(targetion.first, "y8^1")
-    TEST_REAL_SIMILAR(targetion.second, 924.539)
-
-    TEST_EQUAL(decoyion.first, "y8^1")
-    TEST_REAL_SIMILAR(decoyion.second, 868.47682)
-  }
-
-  {
-    double target_mz = 1082.608;
-    double mz_threshold = 0.8;
-
-    std::pair<String, double> targetion = gen.getTargetIon(target_mz, mz_threshold, target_ionseries, 1);
-    std::pair<String, double> decoyion = gen.getDecoyIon(targetion.first, decoy_ionseries);
-
-    TEST_EQUAL(targetion.first, "y10^1")
-    TEST_REAL_SIMILAR(targetion.second, 1082.60856)
-
-    TEST_EQUAL(decoyion.first, "y10^1")
-    TEST_REAL_SIMILAR(decoyion.second, 1070.57217)
-  }
-
-  {
-    AASequence peptide = AASequence::fromString("KVGLDPSQLPVGENGIV");
-    MRMDecoy::IonSeries target_ionseries = gen.getIonSeries(peptide, 2);
-
-    double target_mz_1 = 737.394;
-    double target_mz_2 = 793.936;
-    double mz_threshold = 0.8;
-
-    std::pair<String, double> targetion1 = gen.getTargetIon(target_mz_1, mz_threshold, target_ionseries, 1);
-
-    TEST_EQUAL(targetion1.first, "b15-18^2")
-
-    std::pair<String, double> targetion2 = gen.getTargetIon(target_mz_2, mz_threshold, target_ionseries, 1);
-
-    TEST_EQUAL(targetion2.first, "b16-18^2")
-  }
-  {
-    // Neutral loss of H2ONH3, H2OH2O, CH3NO, HCOOH
-    AASequence peptide = AASequence::fromString("AAAAAAAAAPAAAATAPTTAATTAATAAQ");
-    MRMDecoy::IonSeries target_ionseries = gen.getIonSeries(peptide, 3);
-
-    double mz_threshold = 0.05;
-
-    std::pair<String, double> targetion3 = gen.getTargetIon(510.2660, mz_threshold, target_ionseries, 1);
-
-    TEST_EQUAL(targetion3.first, "b20-35^3")
-
-    std::pair<String, double> targetion4 = gen.getTargetIon(678.3557, mz_threshold, target_ionseries, 1);
-
-    TEST_EQUAL(targetion4.first, "b18-36^2")
-  }
-  {
-    // Neutral loss of H2O, NH3
-    AASequence peptide = AASequence::fromString("AAAAAAALQAK");
-    MRMDecoy::IonSeries target_ionseries = gen.getIonSeries(peptide, 2);
-
-    double mz_threshold = 0.05;
-
-    std::pair<String, double> targetion1 = gen.getTargetIon(328.1980, mz_threshold, target_ionseries, 1);
-
-    TEST_EQUAL(targetion1.first, "y3-18^1")
-
-    std::pair<String, double> targetion2 = gen.getTargetIon(329.1833, mz_threshold, target_ionseries, 1);
-
-    TEST_EQUAL(targetion2.first, "y3-17^1")
-
-    std::pair<String, double> targetion3 = gen.getTargetIon(885.5169, mz_threshold, target_ionseries, 1);
-
-    TEST_EQUAL(targetion3.first, "y10^1")
-  }
-  {
-    // Neutral loss of NH3NH3
-    AASequence peptide = AASequence::fromString("AALQEELQLC(UniMod:4)K");
-    MRMDecoy::IonSeries target_ionseries = gen.getIonSeries(peptide, 2);
-
-    double mz_threshold = 0.05;
-
-    std::pair<String, double> targetion1 = gen.getTargetIon(240.0975, mz_threshold, target_ionseries, 1);
-
-    TEST_EQUAL(targetion1.first, "b5-34^2")
-  }
-  {
-    // Neutral loss (oxidation) of methionine only
-    AASequence peptide = AASequence::fromString("AFADALEVIPMALSENSGM(UniMod:35)NPIQTMTEVR");
-    MRMDecoy::IonSeries target_ionseries = gen.getIonSeries(peptide, 3);
-
-    double mz_threshold = 0.05;
-
-    std::pair<String, double> targetion1 = gen.getTargetIon(933.4456, mz_threshold, target_ionseries, 1);
-
-    TEST_EQUAL(targetion1.first, "y26-64^3")
-
-    std::pair<String, double> targetion2 = gen.getTargetIon(1112.5415, mz_threshold, target_ionseries, 1);
-
-    TEST_EQUAL(targetion2.first, "b22-64^2")
-  }
-  {
-    // Neutral losses (phospho) of serine and threonine only
-    AASequence peptide = AASequence::fromString("AFADALEVIPMALSENS(Phospho)GM(UniMod:35)NPIQTMTEVR");
-    MRMDecoy::IonSeries target_ionseries = gen.getIonSeries(peptide, 3);
-
-    double mz_threshold = 0.05;
-
-    std::pair<String, double> targetion3 = gen.getTargetIon(1144.541, mz_threshold, target_ionseries, 1);
-
-    TEST_EQUAL(targetion3.first, "b22-80^2")
-
-    std::pair<String, double> targetion4 = gen.getTargetIon(1135.535, mz_threshold, target_ionseries, 1);
-    TEST_EQUAL(targetion4.first, "b22-98^2")
-  }
-}
-
-END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
-  END_TEST
-
-
-
-/*
-Tests of unknown methods:
-  - 'vector find_all_tryptic(string sequence)'
-Missing tests:
-  - 'std::pair<String, double> getTargetIon(double ProductMZ, double mz_threshold, std::map< String, std::map< String, double > > target_ionseries)'
-  - 'std::map<String, std::map<String, double> > getIonSeries(AASequence sequence, int precursor_charge)'
-  - 'std::vector<std::pair<std::string::size_type, std::string> > find_all_tryptic(std::string sequence)'
-*/
-
+END_TEST
 
 #pragma clang diagnostic pop
