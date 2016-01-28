@@ -40,6 +40,9 @@
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
+#include <algorithm>
+#include <cmath>
+
 using namespace std;
 
 namespace OpenMS
@@ -332,11 +335,13 @@ namespace OpenMS
           {
             ion_series.insert(make_pair(*st, vector<bool>(ph->getSequence().size()-1, false)));
           }
+          vector<double> fragmenterrors;
           for (vector<pair<Size, Size > >::const_iterator it = al.begin(); it != al.end(); ++it)
           {
             match_intensity += new_spec[it->second].getIntensity();
             String ion_name = rich_spec[it->first].getMetaValue("IonName");
             ions.push_back(ion_name);
+            fragmenterrors.push_back(std::fabs(new_spec[it->second].getMZ() - rich_spec[it->first].getMZ()));
             String ion_type = ion_name.prefix(1);
             if (ListUtils::contains(allowed_types, ion_type))
             {
@@ -353,6 +358,34 @@ namespace OpenMS
               }
             }
           }
+
+          if(fragmenterrors.empty())
+          {
+              ph->setMetaValue("median_fragment_error", 0);
+              ph->setMetaValue("IQR_fragment_error", 0);
+          }
+          else
+          {
+            std::size_t mid = fragmenterrors.size()/2;
+            std::size_t lq = fragmenterrors.size()/4;
+            std::size_t uq = lq + mid;
+            std::nth_element(fragmenterrors.begin(), fragmenterrors.begin()+mid, fragmenterrors.end());
+            if(fragmenterrors.size() % 2 != 0)
+            {
+              ph->setMetaValue("median_fragment_error", fragmenterrors[mid]);
+            }
+            else
+            {
+              double right2mid = fragmenterrors[mid];
+              std::nth_element(fragmenterrors.begin(), fragmenterrors.begin()+mid-1, fragmenterrors.end());
+              ph->setMetaValue("median_fragment_error", (right2mid+fragmenterrors[mid-1])/2.0);
+            }
+            std::nth_element(fragmenterrors.begin(),          fragmenterrors.begin() + lq, fragmenterrors.end());
+            std::nth_element(fragmenterrors.begin() + lq + 1, fragmenterrors.begin() + mid, fragmenterrors.end());
+            std::nth_element(fragmenterrors.begin() + mid + 1, fragmenterrors.begin() + uq, fragmenterrors.end());
+            ph->setMetaValue("IQR_fragment_error", fragmenterrors[uq]-fragmenterrors[lq]);
+          }
+
           ph->setMetaValue("matched_ions", ListUtils::concatenate(ions, ","));
           ph->setMetaValue("matched_intensity", match_intensity);
           ph->setMetaValue("matched_ion_number", ions.size());
