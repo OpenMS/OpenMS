@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
+// $Maintainer: Timo Sachsenberg, Petra Gutenbrunner $
 // $Authors: David Wojnar, Timo Sachsenberg, Petra Gutenbrunner $
 // --------------------------------------------------------------------------
 #include <OpenMS/ANALYSIS/ID/AScore.h>
@@ -62,7 +62,7 @@ namespace OpenMS
     PeptideHit phospho = hit;
     
     //reset phospho
-    phospho.setScore(0);
+    phospho.setScore(-1);
     if (real_spectrum.empty())
     {
       return phospho;
@@ -77,19 +77,16 @@ namespace OpenMS
     vector<Size> sites(getSites_(seq_without_phospho));
     Size number_of_STY = sites.size();
     
+    if (number_of_phosphorylation_events == 0 || number_of_STY == 0 || number_of_STY == number_of_phosphorylation_events)
+    {
+      return phospho;
+    }
+    
     vector<vector<Size> > permutations(computePermutations_(sites, (Int)number_of_phosphorylation_events));
     LOG_DEBUG << "\tnumber of permutations: " << permutations.size() << std::endl;
     
-    vector<RichPeakSpectrum> th_spectra;
-    if (permutations.empty())
-    {
-      th_spectra = createTheoreticalSpectra_(seq_without_phospho);
-    }
-    else
-    {
-      th_spectra = createTheoreticalSpectra_(permutations, seq_without_phospho);
-    }
-        
+    vector<RichPeakSpectrum> th_spectra(createTheoreticalSpectra_(permutations, seq_without_phospho));
+    
     // prepare real spectrum windows
     if (!real_spectrum.isSorted())
     {
@@ -103,19 +100,15 @@ namespace OpenMS
     // rank peptide permutations ascending
     multimap<double, Size> ranking(rankWeightedPermutationPeptideScores_(peptide_site_scores));
     
-    phospho.setScore(ranking.rbegin()->first); // initialize score with highest peptide score (aka highest weighted score)
     phospho.setSequence(AASequence::fromString(th_spectra[ranking.rbegin()->second].getName()));
     phospho.setMetaValue("search_engine_sequence", hit.getSequence().toString());
-    
-    if (number_of_phosphorylation_events == 0 || number_of_STY == 0 || number_of_STY == number_of_phosphorylation_events)
-    {
-      return phospho;
-    }
+    phospho.setMetaValue("AScore_pep_score", ranking.rbegin()->first); // initialize score with highest peptide score (aka highest weighted score)
     
     vector<ProbablePhosphoSites> phospho_sites;
     determineHighestScoringPermutations_(peptide_site_scores, phospho_sites, permutations, ranking);
     
     Int rank = 1;
+    double best_Ascore = std::numeric_limits<double>::max(); // the lower the better
     for (vector<ProbablePhosphoSites>::iterator s_it = phospho_sites.begin(); s_it != phospho_sites.end(); ++s_it)
     {
       vector<RichPeakSpectrum> site_determining_ions;
@@ -138,8 +131,6 @@ namespace OpenMS
       }
       double P_second = computeCumulativeScore_(N, n_second, p);
       
-      
-      
       //abs is used to avoid -0 score values
       double score_first = abs(-10 * log10(P_first));
       double score_second = abs(-10 * log10(P_second));
@@ -147,14 +138,17 @@ namespace OpenMS
       LOG_DEBUG << "\tfirst - N: " << N << ",p: " << p << ",n: " << n_first << ", score: " << score_first << std::endl;
       LOG_DEBUG << "\tsecond - N: " << N << ",p: " << p << ",n: " << n_second << ", score: " << score_second << std::endl;
       
-      double AScore_first = score_first - score_second;
-      
-      LOG_DEBUG << "\tAscore: " << AScore_first << std::endl;
-      
+      double AScore_first = score_first - score_second;      
       phospho.setMetaValue("AScore_" + String(rank), AScore_first);
+      LOG_DEBUG << "\tAscore_" << rank << ": " << AScore_first << std::endl;
+      
+      if (AScore_first < best_Ascore)
+      {
+        best_Ascore = AScore_first;
+        phospho.setScore(AScore_first);        
+      }
       ++rank;      
     }
-    
     return phospho;
   }
 
@@ -465,23 +459,7 @@ namespace OpenMS
     }
     return th_spectra;
   }
-  
-  vector<RichPeakSpectrum> AScore::createTheoreticalSpectra_(const AASequence & seq_without_phospho) const
-  {
-    vector<RichPeakSpectrum> th_spectra;
-    TheoreticalSpectrumGenerator spectrum_generator;
     
-    // we mono-charge spectra
-    th_spectra.resize(1);
-    
-    // Previously, the precursor charge was used here. This is clearly wrong and it is better to use charge 1 here.
-    spectrum_generator.addPeaks(th_spectra[0], seq_without_phospho, Residue::BIon, 1);
-    spectrum_generator.addPeaks(th_spectra[0], seq_without_phospho, Residue::YIon, 1);
-    th_spectra[0].setName(seq_without_phospho.toString());
-    
-    return th_spectra;
-  }
-  
   std::vector<PeakSpectrum> AScore::peakPickingPerWindowsInSpectrum_(PeakSpectrum &real_spectrum) const
   {
     vector<PeakSpectrum> windows_top10;

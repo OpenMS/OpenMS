@@ -38,6 +38,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/ANALYSIS/RNPXL/PScore.h>
+#include <limits>
 #include <vector>
 
 namespace OpenMS
@@ -152,9 +153,6 @@ class OPENMS_DLLAPI AScore
     
     /// Create theoretical spectra with all combinations with the number of phosphorylation events
     std::vector<RichPeakSpectrum> createTheoreticalSpectra_(const std::vector<std::vector<Size> > & permutations, const AASequence & seq_without_phospho) const;
-    
-    /// Create theoretical spectrum for sequence without phospho event
-    std::vector<RichPeakSpectrum> createTheoreticalSpectra_(const AASequence & seq_without_phospho) const;
     
     /// Pick top 10 intensity peaks for each 100 Da windows
     std::vector<PeakSpectrum> peakPickingPerWindowsInSpectrum_(PeakSpectrum & real_spectrum) const;

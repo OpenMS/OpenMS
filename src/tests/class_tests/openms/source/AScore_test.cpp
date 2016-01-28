@@ -90,11 +90,6 @@ class AScoreTest : public AScore
       return createTheoreticalSpectra_(permutations, seq_without_phospho);
     }
     
-    std::vector<RichPeakSpectrum> createTheoreticalSpectraTest_(const AASequence & seq_without_phospho) const
-    {
-      return createTheoreticalSpectra_(seq_without_phospho);
-    }
-    
     std::vector<PeakSpectrum> peakPickingPerWindowsInSpectrumTest_(PeakSpectrum & real_spectrum) const
     {
       return peakPickingPerWindowsInSpectrum_(real_spectrum);
@@ -723,18 +718,6 @@ START_SECTION(std::vector<RichPeakSpectrum> createTheoreticalSpectraTest_(const 
   TEST_REAL_SIMILAR(th_spectra[4][21].getMZ(), 1352.57723);
   
   th_spectra.clear();
-  
-  // create theoretical spectra with phospho event
-  th_spectra = ptr_test->createTheoreticalSpectraTest_(seq_without_phospho);
-  TEST_EQUAL(th_spectra.size(),1);
-  TEST_EQUAL(th_spectra[0].getName(),seq_without_phospho.toString());
-  
-  // without phospho event
-  vector<RichPeakSpectrum> th_spectra2(ptr_test->createTheoreticalSpectraTest_(AASequence::fromString("QSSVTQSK")));
-  TEST_EQUAL(th_spectra2[0].getName(),"QSSVTQSK");
-  TEST_REAL_SIMILAR(th_spectra2[0][2].getMZ(), 234.14543);
-  TEST_REAL_SIMILAR(th_spectra2[0][11].getMZ(), 718.33720);
-  TEST_REAL_SIMILAR(th_spectra2[0][12].getMZ(), 736.38415);
 }
 END_SECTION 
 
