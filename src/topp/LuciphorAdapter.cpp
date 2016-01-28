@@ -118,6 +118,7 @@ protected:
     AASequence predicted_pep;
     double delta_score;
     double predicted_pep_score;
+    double origin_score;
     
     LuciphorPSM() {}
   };
@@ -313,19 +314,80 @@ protected:
     return l_psm;
   }
   
-  //TODO: add conversion for other modifications
-  String convertLuciphorSeq_(const String& seq)
+  void getModificationParams_(const ProteinIdentification::SearchParameters& search_params, map<String, String>& modifications)
   {
-    String conv_seq(seq);
-    conv_seq.substitute("s","S(Phospho)");
-    conv_seq.substitute("t","T(Phospho)");
-    conv_seq.substitute("y","Y(Phospho)");
-    conv_seq.substitute("m","M(Oxidation)");
+    modifications.clear();
+    boost::regex r(".*\\((.*)\\).*"); // get AA between brackets
     
+    vector<String> mods(search_params.fixed_modifications);
+    mods.insert(mods.end(), search_params.variable_modifications.begin(), search_params.variable_modifications.end());
+    
+    if(!mods.empty())
+    {
+      for (vector<String>::iterator it = mods.begin(); it != mods.end(); ++it)
+      {
+        String mod_param_value = *it;
+        boost::smatch match;        
+        bool found = boost::regex_search(mod_param_value, match, r);
+        String mod;
+        
+        if(found)
+        {
+          vector<String> parts;
+          if (mod_param_value.split(" ", parts))
+          {
+            mod = parts[0];
+          }
+          String AAs = match[1].str();
+          for (String::iterator aa = AAs.begin(); aa != AAs.end(); ++aa)
+          {
+            std::cout << "AA: " << *aa << " , mod: " << mod << std::endl;
+            modifications[*aa] = mod;
+          }
+        }
+      }
+    }
+  }
+  
+  // explicit parsing necessary, because of inner brackets (e.g. (AEC-MAEC:2H(4))
+  String replaceLowerChaseSite_(const String& seq, const String& aa_site, const String& aa_with_mod)
+  {
+    int open_brac = 0;
+    int close_brac = 0;
+    String conv_seq;
+    
+    for (String::const_iterator it = seq.begin(); it != seq.end(); ++it)
+    {
+      String aa = *it;
+      if (aa == "(")
+      {
+        ++open_brac;
+      }
+      if (aa == ")")
+      {
+        ++close_brac;
+      }
+      if ((aa == aa_site) && (open_brac == close_brac))
+      {
+        aa = aa_with_mod;
+      }
+      conv_seq += aa;
+    }
     return conv_seq;
   }
   
-  ExitCodes parseLuciphorOutput_(const String& l_out, map<int, LuciphorPSM>& l_psms, const SpectrumLookup& lookup)
+  String convertLuciphorSeq_(const String& seq, const map<String, String>& modifications)
+  {
+    String conv_seq(seq);
+    for (map<String, String>::const_iterator mod = modifications.begin(); mod != modifications.end(); ++mod)
+    {
+      String aa = mod->first;
+      conv_seq = replaceLowerChaseSite_(conv_seq, aa.toLower(), aa.toUpper() + "(" + mod->second + ")");
+    }
+    return conv_seq;
+  }
+  
+  ExitCodes parseLuciphorOutput_(const String& l_out, map<int, LuciphorPSM>& l_psms, const SpectrumLookup& lookup, const map<String, String>& modifications)
   {
     CsvFile tsvfile(l_out, '\t');
         
@@ -342,8 +404,9 @@ protected:
       struct LuciphorPSM l_psm = splitSpecId_(spec_id);
       
       l_psm.scan_idx = lookup.findByScanNumber(l_psm.scan_nr);
-      l_psm.peptide = AASequence::fromString(convertLuciphorSeq_(elements[1]));
-      l_psm.predicted_pep = AASequence::fromString(convertLuciphorSeq_(elements[2]));
+      l_psm.peptide = AASequence::fromString(convertLuciphorSeq_(elements[1], modifications));
+      l_psm.predicted_pep = AASequence::fromString(convertLuciphorSeq_(elements[2], modifications));
+      l_psm.origin_score = elements[6].toDouble();
       l_psm.delta_score = elements[7].toDouble();
       l_psm.predicted_pep_score = elements[8].toDouble();
       
@@ -358,9 +421,49 @@ protected:
     return EXECUTION_OK;
   }
   
+  // Luciphor only calculated scores for the top hit, even if the scores were equal. Filter input to first top hit
+  void filterPeptideIdentificationsByBestHit_(const vector<PeptideIdentification>& pep_ids, vector<PeptideIdentification>& filtered_pep_ids)
+  {
+    filtered_pep_ids.clear();
+    
+    for (vector<PeptideIdentification>::const_iterator pep_id = pep_ids.begin(); pep_id != pep_ids.end(); ++pep_id)
+    {
+      PeptideIdentification filtered_identification = *pep_id;
+      
+      if (!pep_id->getHits().empty())
+      {        
+        filtered_identification.sort();
+        
+        vector<PeptideHit> filtered_peptide_hits;
+        filtered_peptide_hits.push_back(filtered_identification.getHits()[0]);
+        
+        filtered_identification.setHits(filtered_peptide_hits);
+        filtered_identification.assignRanks();
+      }
+      
+      filtered_pep_ids.push_back(filtered_identification);
+    }
+  }
+  
+  void addScoreToMetaValues_(PeptideHit& hit, const String score_type)
+  {
+    if (!hit.metaValueExists(score_type) && !hit.metaValueExists(score_type + "_score"))
+    {
+      if (score_type.hasSubstring("score"))
+      {
+        hit.setMetaValue(score_type, hit.getScore());
+      }
+      else
+      {
+        hit.setMetaValue(score_type + "_score", hit.getScore());
+      }
+    }
+  }
+  
   ExitCodes main_(int, const char**)
   {
     vector<PeptideIdentification> pep_ids;
+    vector<PeptideIdentification> filtered_pep_ids;
     vector<ProteinIdentification> prot_ids;
     
     if (!getFlag_("force"))
@@ -397,12 +500,13 @@ protected:
     if (in_type == FileTypes::IDXML)
     {
       IdXMLFile().load(in, prot_ids, pep_ids);
+      filterPeptideIdentificationsByBestHit_(pep_ids, filtered_pep_ids);      
       
       // create a tempory pepXML file for LuciPHOR2 input
       String in_file_name = File::removeExtension(File::basename(in));
       in = temp_dir + in_file_name + ".pepXML";
       
-      PepXMLFile().store(in, prot_ids, pep_ids, spectrum_in, "", false);
+      PepXMLFile().store(in, prot_ids, filtered_pep_ids, spectrum_in, "", false);
     }
     else
     {
@@ -457,11 +561,18 @@ protected:
     SpectrumLookup lookup;
     lookup.readSpectra(exp.getSpectra());
       
-    map<int, LuciphorPSM> l_psms;
-    ret = parseLuciphorOutput_(out, l_psms, lookup);
+    map<int, LuciphorPSM> l_psms;    
+    ProteinIdentification::SearchParameters search_params;
+    map<String, String> modifications;    
+    if(!prot_ids.empty())
+    {
+      search_params = prot_ids.begin()->getSearchParameters();
+      getModificationParams_(search_params, modifications);
+    }
+    ret = parseLuciphorOutput_(out, l_psms, lookup, modifications);
     if (ret != EXECUTION_OK)
     {
-      writeLog_("Error: LuciPHOr2 output is not correctly formated.");
+      writeLog_("Error: LuciPHOr2 output is not correctly formated. Filter only top hit.");
       return ret;
     }
     
@@ -469,39 +580,25 @@ protected:
     // writing output - merge LuciPHOr2 result to idXML
     //-------------------------------------------------------------
     vector<PeptideIdentification> pep_out;
-      
-    String search_engine_name = "";
-    if (!prot_ids.empty())
-    {
-      search_engine_name = prot_ids.begin()->getSearchEngine();
-    }
-  
-    for (vector<PeptideIdentification>::iterator pep_id = pep_ids.begin(); pep_id != pep_ids.end(); ++pep_id)
+    
+    for (vector<PeptideIdentification>::iterator pep_id = filtered_pep_ids.begin(); pep_id != filtered_pep_ids.end(); ++pep_id)
     {
       Size scan_idx = lookup.findByRT(pep_id->getRT());
-      bool found = false;
-      
-      struct LuciphorPSM l_psm;
-      if (l_psms.count(scan_idx) > 0)
-      {
-        l_psm = l_psms.at(scan_idx);
-        found = true;
-      }
       
       vector<PeptideHit> scored_peptides;
-      for (vector<PeptideHit>::const_iterator hit = pep_id->getHits().begin(); hit < pep_id->getHits().end(); ++hit)
+      if (!pep_id->getHits().empty())
       {
-        PeptideHit scored_hit = *hit;
+        PeptideHit scored_hit = pep_id->getHits()[0];
+        addScoreToMetaValues_(scored_hit, pep_id->getScoreType());
         
-        if (search_engine_name != "Percolator")
+        struct LuciphorPSM l_psm;
+        if (l_psms.count(scan_idx) > 0)
         {
-          scored_hit.setMetaValue(search_engine_name + "_score", hit->getScore());
-        }          
-        if (found) {
-          scored_hit.setScore(l_psm.predicted_pep_score);
+          l_psm = l_psms.at(scan_idx);
+          scored_hit.setScore(l_psm.delta_score);
           scored_hit.setSequence(l_psm.predicted_pep);
-          scored_hit.setMetaValue("search_engine_sequence", hit->getSequence().toString());
-          scored_hit.setMetaValue("Luciphor_deltaScore", l_psm.delta_score);
+          scored_hit.setMetaValue("search_engine_sequence", scored_hit.getSequence().toString());
+          scored_hit.setMetaValue("Luciphor_pep_score", l_psm.predicted_pep_score);
         }
         else
         {
@@ -509,11 +606,17 @@ protected:
         }
         scored_peptides.push_back(scored_hit);
       }
+      else
+      {
+        writeLog_("Error: LuciPHOr2 output does not match with idXML.");
+        return PARSE_ERROR;
+      }
       
       PeptideIdentification new_pep_id(*pep_id);
-      new_pep_id.setScoreType("LuciphorScore");
+      new_pep_id.setScoreType("Luciphor_delta_score");
       new_pep_id.setHigherScoreBetter(true);
       new_pep_id.setHits(scored_peptides);
+      new_pep_id.assignRanks();
       pep_out.push_back(new_pep_id);
     }    
     IdXMLFile().store(out, prot_ids, pep_out);
