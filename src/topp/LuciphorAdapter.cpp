@@ -363,11 +363,11 @@ protected:
       {
         ++open_brac;
       }
-      if (aa == ")")
+      else if (aa == ")")
       {
         ++close_brac;
       }
-      if ((aa == aa_site) && (open_brac == close_brac))
+      else if ((aa == aa_site) && (open_brac == close_brac))
       {
         aa = aa_with_mod;
       }
