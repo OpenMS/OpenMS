@@ -185,9 +185,9 @@ namespace seqan
 
   struct FoundProteinFunctor
   {
-public:
+  public:
     typedef OpenMS::Map<OpenMS::Size, std::set<PeptideProteinMatchInformation> > MapType;
-
+    
     /// peptide index --> protein indices
     MapType pep_to_prot;
 
@@ -197,10 +197,10 @@ public:
     /// number of rejected hits (not passing addHit())
     OpenMS::Size filter_rejected;
 
-private:
+  private:
     EnzymaticDigestion enzyme_;
 
-public:
+  public:
     explicit FoundProteinFunctor(const EnzymaticDigestion& enzyme) :
       pep_to_prot(), filter_passed(0), filter_rejected(0), enzyme_(enzyme)
     {
@@ -339,7 +339,7 @@ public:
     // ambiguous AA's
     4 + 8, //  Aspartic Acid (D), Asparagine(N) == (B)
     32 + 64, // Glutamic Acid(E), Glutamine(Q) == (Z)
-    static_cast<unsigned>(-1),  // 22 Unknown (matches ALL)
+    static_cast<unsigned>(-1), // 22 Unknown (matches ALL)
     static_cast<unsigned>(-1), // 23 Terminator (dummy)
   };
 
@@ -593,11 +593,10 @@ protected:
       for (Size i = 0; i != proteins.size(); ++i)
       {
         String seq = proteins[i].sequence.remove('*');
-        if (il_equivalent) // convert  L to I; warning: do not use 'J', since Seqan does not know about it and will convert 'J' to 'X'
+        if (il_equivalent) // convert I to L; warning: do not use 'J', since Seqan does not know about it and will convert 'J' to 'X'
         {
-          seq.substitute('L', 'I');
+          seq.substitute('I', 'L');
         }
-
 
         String acc = proteins[i].identifier;
         // check for duplicate proteins
@@ -642,9 +641,9 @@ protected:
         for (vector<PeptideHit>::iterator it2 = hits.begin(); it2 != hits.end(); ++it2)
         {
           String seq = it2->getSequence().toUnmodifiedString().remove('*');
-          if (il_equivalent) // convert  L to I; warning: do not use 'J', since Seqan does not know about it and will convert 'J' to 'X'
+          if (il_equivalent) // convert I to L; warning: do not use 'J', since Seqan does not know about it and will convert 'J' to 'X'
           {
-            seq.substitute('L', 'I');
+            seq.substitute('I', 'L');
           }
           appendValue(pep_DB, seq.c_str());
         }
