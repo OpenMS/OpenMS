@@ -1250,6 +1250,7 @@ namespace OpenMS
       if (search_id_ <= proteins_->size()) // ProteinIdent. was already created for "msms_run_summary" -> add to it
       {
         prot_it = current_proteins_.back();
+        LOG_DEBUG << "adding into current_proteins_";
       }
       else // create a new ProteinIdentification
       {
@@ -1258,6 +1259,7 @@ namespace OpenMS
         proteins_->push_back(protein);
         prot_it = --proteins_->end();
         prot_id_ = prot_id_ + "_" + search_id_; // make sure the ID is unique
+        LOG_DEBUG << "adding into new_created in proteins_";
       }
       prot_it->setSearchEngine(search_engine_);
       prot_it->setIdentifier(prot_id_);
@@ -1284,17 +1286,18 @@ namespace OpenMS
         enzyme_ = ProteinIdentification::PROTEASE_K;
       else if (name.hasPrefix("chymotrypsin"))
         enzyme_ = ProteinIdentification::CHYMOTRYPSIN;
+      else if (name.hasPrefix("no_enzyme") || name.hasPrefix("nonspecific"))
+        enzyme_ = ProteinIdentification::NO_ENZYME;
       else
         enzyme_ = ProteinIdentification::UNKNOWN_ENZYME;
 
       int mc = attributeAsInt_(attributes, "max_num_internal_cleavages");
 
-      ProteinIdentification::SearchParameters params =
-        current_proteins_.front()->getSearchParameters();
-      params.enzyme = enzyme_;
-      params.missed_cleavages = mc;
+      params_.enzyme = enzyme_;
+      //params_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(name);
+      params_.missed_cleavages = mc;
 
-      current_proteins_.front()->setSearchParameters(params);
+      LOG_DEBUG << "set " << enzyme_ << std::endl;
     }
     else if (element == "search_database") // parent: "search_summary"
     {
