@@ -559,16 +559,16 @@ protected:
     // calculations
     //-------------------------------------------------------------
 
-    if (proteins.size() == 0) // we do not allow an empty database
+    if (proteins.empty()) // we do not allow an empty database
     {
       LOG_ERROR << "Error: An empty FASTA file was provided. Mapping makes no sense. Aborting..." << std::endl;
       return INPUT_FILE_EMPTY;
     }
 
-    if (pep_ids.size() == 0) // Aho-Corasick requires non-empty input
+    if (pep_ids.empty()) // Aho-Corasick requires non-empty input
     {
       LOG_WARN << "Warning: An empty idXML file was provided. Output will be empty as well." << std::endl;
-      if (!getFlag_("keep_unreferenced_proteins"))
+      if (!keep_unreferenced_proteins)
       {
         prot_ids.clear();
       }
