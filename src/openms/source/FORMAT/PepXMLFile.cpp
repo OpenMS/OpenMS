@@ -1250,7 +1250,6 @@ namespace OpenMS
       if (search_id_ <= proteins_->size()) // ProteinIdent. was already created for "msms_run_summary" -> add to it
       {
         prot_it = current_proteins_.back();
-        LOG_DEBUG << "adding into current_proteins_";
       }
       else // create a new ProteinIdentification
       {
@@ -1259,7 +1258,6 @@ namespace OpenMS
         proteins_->push_back(protein);
         prot_it = --proteins_->end();
         prot_id_ = prot_id_ + "_" + search_id_; // make sure the ID is unique
-        LOG_DEBUG << "adding into new_created in proteins_";
       }
       prot_it->setSearchEngine(search_engine_);
       prot_it->setIdentifier(prot_id_);
@@ -1296,8 +1294,6 @@ namespace OpenMS
       params_.enzyme = enzyme_;
       //params_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(name);
       params_.missed_cleavages = mc;
-
-      LOG_DEBUG << "set " << enzyme_ << std::endl;
     }
     else if (element == "search_database") // parent: "search_summary"
     {
