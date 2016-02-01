@@ -341,7 +341,6 @@ protected:
           String AAs = match[1].str();
           for (String::iterator aa = AAs.begin(); aa != AAs.end(); ++aa)
           {
-            std::cout << "AA: " << *aa << " , mod: " << mod << std::endl;
             modifications[*aa] = mod;
           }
         }

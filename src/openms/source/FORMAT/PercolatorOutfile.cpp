@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
-// $Authors: Hendrik Weisser $
+// $Authors: Hendrik Weisser, Petra Gutenbrunner $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/PercolatorOutfile.h>
@@ -101,8 +101,66 @@ namespace OpenMS
     peptide = boost::regex_replace(peptide, re, replacement);
     seq = AASequence::fromString(peptide);
   }
-
-
+  
+  void PercolatorOutfile::saveModInfosOfPeptide_(const AASequence& seq)
+  {
+    for (AASequence::ConstIterator aa = seq.begin(); aa != seq.end(); ++aa)
+    {
+      String aa_name = aa->getOneLetterCode();      
+      AAModificationInfo info;
+      
+      if (aa_mods_.count(aa_name) > 0)
+      {
+        info = aa_mods_[aa_name];
+      }
+      
+      if (!aa->isModified())
+      {
+        info.all_modified = false;
+      }
+      else
+      {
+        info.mods.insert(aa->getModification());
+      }    
+      aa_mods_[aa_name] = info;
+    }
+  }
+  
+  ProteinIdentification::SearchParameters PercolatorOutfile::createModificationSearchParameters_() const
+  {
+    ProteinIdentification::SearchParameters search_params;
+    vector<String> fixed_mods;
+    vector<String> variable_mods;
+    
+    if (aa_mods_.empty())
+    {
+      return search_params;
+    }
+    
+    for (map<String, AAModificationInfo>::const_iterator it = aa_mods_.begin(); it != aa_mods_.end(); ++it)
+    {
+      String aa = it->first;
+      AAModificationInfo info = it->second;
+      
+      if (info.all_modified && info.mods.size() == 1) // fixed modification
+      {
+        fixed_mods.push_back((*info.mods.begin()) + " (" + aa + ")");
+      }
+      else if (!info.all_modified && info.mods.size() > 0) // variable modification
+      {
+        for (set<String>::iterator var_mod = info.mods.begin(); var_mod != info.mods.end(); ++var_mod)
+        {
+          variable_mods.push_back((*var_mod) + " (" + aa + ")");
+        }
+      }
+    }
+    
+    search_params.fixed_modifications = fixed_mods;
+    search_params.variable_modifications = variable_mods;
+    
+    return search_params;
+  }
+  
   void PercolatorOutfile::load(const String& filename,
                                ProteinIdentification& proteins, 
                                vector<PeptideIdentification>& peptides,
@@ -214,6 +272,9 @@ namespace OpenMS
       AASequence seq;
       getPeptideSequence_(items[4], seq);
       hit.setSequence(seq);
+      
+      // store modification information for each amino acid to recreate the modification search params
+      saveModInfosOfPeptide_(seq);
 
       for (Size pos = 5; pos < items.size(); ++pos)
       {
@@ -231,6 +292,10 @@ namespace OpenMS
     proteins.setIdentifier("id");
     proteins.setDateTime(DateTime::now());
     proteins.setSearchEngine("Percolator");
+    
+    ProteinIdentification::SearchParameters search_params(createModificationSearchParameters_());
+    proteins.setSearchParameters(search_params);
+    
     for (set<String>::const_iterator it = accessions.begin();
          it != accessions.end(); ++it)
     {
