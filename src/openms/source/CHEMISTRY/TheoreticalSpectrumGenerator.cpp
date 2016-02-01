@@ -412,11 +412,7 @@ namespace OpenMS
 
     case Residue::CIon:
     {
-      Size i = 1;
-      if (!add_first_prefix_ion_)
-      {
-        i = 2;
-      }
+      Size i = 2;
       for (; i < peptide.size(); ++i)
       {
         AASequence ion = peptide.getPrefix(i);
@@ -440,7 +436,7 @@ namespace OpenMS
 
     case Residue::XIon:
     {
-      for (Size i = 1; i < peptide.size(); ++i)
+      for (Size i = 2; i < peptide.size(); ++i)
       {
         AASequence ion = peptide.getSuffix(i);
         if (add_isotopes_)
