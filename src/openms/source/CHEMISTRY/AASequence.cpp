@@ -182,13 +182,6 @@ namespace OpenMS
 
     if (peptide_.size() >= 1)
     {
-    // // x/c-ion for a single residue is not defined
-    // if ((peptide_.size() == 1) && (type == Residue::XIon ||
-    //  type == Residue::CIon))
-    // {
-    //   LOG_WARN << "AASequence::getFormula: Mass for ResidueType " << type << " not defined for sequences of length 1." << std::endl;
-    // }
-
       // Initialize with the missing/additional protons
       EmpiricalFormula ef; // = EmpiricalFormula("H") * charge; ??
       ef.setCharge(charge);
@@ -282,13 +275,6 @@ namespace OpenMS
     
     if (peptide_.size() >= 1)
     {
-    // // x/c-ion for a monomer is not defined, so we might warn
-    // if ((peptide_.size() == 1) && (type == Residue::XIon ||
-    //                                type == Residue::CIon))
-    // {
-    //   LOG_WARN << "AASequence::getMonoWeight: Mass for ResidueType " << type << " not defined for sequences of length 1." << std::endl;
-    // }
-
       double mono_weight(Constants::PROTON_MASS_U * charge);
 
       // terminal modifications
