@@ -197,11 +197,15 @@ protected:
 
   void setProteinIdentifications_(vector<ProteinIdentification>& prot_ids)
   {
+    ProteinIdentification::SearchParameters search_params;
+    search_params = prot_ids[0].getSearchParameters();
+    
     prot_ids.clear();
     prot_ids.resize(1);
     prot_ids[0].setDateTime(DateTime::now());
     prot_ids[0].setSearchEngine("OpenMS/ConsensusID_" + algorithm_);
     prot_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
+    prot_ids[0].setSearchParameters(search_params);
   }
 
   
