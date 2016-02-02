@@ -1264,8 +1264,8 @@ namespace OpenMS
     }
     else if (element == "sample_enzyme") // parent: "msms_run_summary"
     { // special case: search parameter that occurs *before* "search_summary"!
-      String name = attributeAsString_(attributes, "name");
-      enzyme_ = name;
+      enzyme_ = attributeAsString_(attributes, "name");
+      if (enzyme_ == "nonspecific") enzyme_ = "unspecific cleavage";
       if (EnzymesDB::getInstance()->hasEnzyme(enzyme_))
       {
         params_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_);
@@ -1274,25 +1274,14 @@ namespace OpenMS
     else if (element == "enzymatic_search_constraint") // parent: "search_summary"
     {
       //<enzymatic_search_constraint enzyme="nonspecific" max_num_internal_cleavages="1" min_number_termini="2"/>
-      String name = attributeAsString_(attributes, "enzyme");
-      name.toLower();
-      if (name.hasPrefix("trypsin"))
-        enzyme_ = ProteinIdentification::TRYPSIN;
-      else if (name.hasPrefix("pepsin"))
-        enzyme_ = ProteinIdentification::PEPSIN_A;
-      else if (name.hasPrefix("protease"))
-        enzyme_ = ProteinIdentification::PROTEASE_K;
-      else if (name.hasPrefix("chymotrypsin"))
-        enzyme_ = ProteinIdentification::CHYMOTRYPSIN;
-      else if (name.hasPrefix("no_enzyme") || name.hasPrefix("nonspecific"))
-        enzyme_ = ProteinIdentification::NO_ENZYME;
-      else
-        enzyme_ = ProteinIdentification::UNKNOWN_ENZYME;
+      enzyme_ = attributeAsString_(attributes, "enzyme");
+      if (enzyme_ == "nonspecific") enzyme_ = "unspecific cleavage";
+      if (EnzymesDB::getInstance()->hasEnzyme(enzyme_))
+      {
+        params_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_);
+      }
 
       int mc = attributeAsInt_(attributes, "max_num_internal_cleavages");
-
-      params_.enzyme = enzyme_;
-      //params_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(name);
       params_.missed_cleavages = mc;
     }
     else if (element == "search_database") // parent: "search_summary"
@@ -1301,14 +1290,6 @@ namespace OpenMS
       if (params_.db.empty())
       {
         optionalAttributeAsString_(params_.db, attributes, "database_name");
-      }
-    }
-    else if (element == "enzymatic_search_constraint") // parent: "search_summary"
-    {
-      String enzyme = attributeAsString_(attributes, "enzyme");
-      if (EnzymesDB::getInstance()->hasEnzyme(enzyme))
-      {
-        params_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme);
       }
     }
     else if (element == "msms_pipeline_analysis") // root
