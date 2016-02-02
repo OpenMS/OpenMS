@@ -456,7 +456,6 @@ START_SECTION(([EXTRA] checking pepxml transformation to reusable identification
   ProteinIdentification::SearchParameters reread_params = reread_proteins[0].getSearchParameters();
   TEST_EQUAL(params.db, reread_params.db);
   TEST_EQUAL(params.mass_type, reread_params.mass_type);
-  TEST_EQUAL(params.enzyme, reread_params.enzyme);
 
   vector<String> fix_mods(params.fixed_modifications), var_mods(params.variable_modifications);
   vector<String> reread_fix_mods(reread_params.fixed_modifications), reread_var_mods(reread_params.variable_modifications);
