@@ -73,7 +73,7 @@ namespace OpenMS
     Size number_of_phosphorylation_events = numberOfPhosphoEvents_(sequence_str);
     AASequence seq_without_phospho = removePhosphositesFromSequence_(sequence_str);
     
-    if (seq_without_phospho.toString().size() > max_peptide_len)
+    if (seq_without_phospho.toUnmodifiedString().size() > max_peptide_len)
     {
       LOG_DEBUG << "\tcalculation aborted: peptide too long: " << seq_without_phospho.toString() << std::endl;
       return phospho;
