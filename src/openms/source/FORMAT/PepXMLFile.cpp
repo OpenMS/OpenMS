@@ -1266,7 +1266,7 @@ namespace OpenMS
     { // special case: search parameter that occurs *before* "search_summary"!
       enzyme_ = attributeAsString_(attributes, "name");
       if (enzyme_ == "nonspecific") enzyme_ = "unspecific cleavage";
-      if (EnzymesDB::getInstance()->hasEnzyme(enzyme_))
+      if (EnzymesDB::getInstance()->hasEnzyme(enzyme_.toLower()))
       {
         params_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_);
       }
@@ -1278,7 +1278,7 @@ namespace OpenMS
       if (enzyme_ == "nonspecific") enzyme_ = "unspecific cleavage";
       if (EnzymesDB::getInstance()->hasEnzyme(enzyme_))
       {
-        params_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_);
+        params_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_.toLower());
       }
 
       int mc = attributeAsInt_(attributes, "max_num_internal_cleavages");
