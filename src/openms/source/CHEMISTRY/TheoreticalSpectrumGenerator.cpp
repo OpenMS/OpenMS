@@ -412,7 +412,16 @@ namespace OpenMS
 
     case Residue::CIon:
     {
-      Size i = 2;
+      Size i = 1;
+      if (!add_first_prefix_ion_)
+      {
+        i = 2;
+      }
+      if (peptide.size() < 2)
+      {
+        //"Cannot create c ions of a monomer."
+        throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 1);
+      }
       for (; i < peptide.size(); ++i)
       {
         AASequence ion = peptide.getPrefix(i);
@@ -436,7 +445,17 @@ namespace OpenMS
 
     case Residue::XIon:
     {
-      for (Size i = 2; i < peptide.size(); ++i)
+      Size i = 1;
+      if (!add_first_prefix_ion_)
+      {
+        i = 2;
+      }
+      if (peptide.size() < 2)
+      {
+        // "Cannot create c ions of a monomer."
+        throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 1);
+      }
+      for (; i < peptide.size(); ++i)
       {
         AASequence ion = peptide.getSuffix(i);
         if (add_isotopes_)
