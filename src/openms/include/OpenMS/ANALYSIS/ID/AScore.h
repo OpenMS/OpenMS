@@ -81,7 +81,7 @@ class OPENMS_DLLAPI AScore
 
         @note the original sequence is saved in the PeptideHits as MetaValue Search_engine_sequence.
     */
-    PeptideHit compute(const PeptideHit & hit, PeakSpectrum &real_spectrum, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const;
+    PeptideHit compute(const PeptideHit & hit, PeakSpectrum &real_spectrum, double fragment_mass_tolerance, bool fragment_mass_unit_ppm, Size max_peptide_len = 60, Size max_num_perm = 16384);
 
   protected:
   

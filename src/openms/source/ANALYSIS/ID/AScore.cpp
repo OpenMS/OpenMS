@@ -57,7 +57,7 @@ namespace OpenMS
   {
   }
 
-  PeptideHit AScore::compute(const PeptideHit & hit, PeakSpectrum & real_spectrum, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const
+  PeptideHit AScore::compute(const PeptideHit & hit, PeakSpectrum & real_spectrum, double fragment_mass_tolerance, bool fragment_mass_unit_ppm, Size max_peptide_len, Size max_num_perm)
   {
     PeptideHit phospho = hit;
     
@@ -72,7 +72,13 @@ namespace OpenMS
     
     Size number_of_phosphorylation_events = numberOfPhosphoEvents_(sequence_str);
     AASequence seq_without_phospho = removePhosphositesFromSequence_(sequence_str);
-  
+    
+    if (seq_without_phospho.toString().size() > max_peptide_len)
+    {
+      LOG_DEBUG << "\tcalculation aborted: peptide too long: " << seq_without_phospho.toString() << std::endl;
+      return phospho;
+    }
+    
     // determine all phospho sites
     vector<Size> sites(getSites_(seq_without_phospho));
     Size number_of_STY = sites.size();
@@ -85,6 +91,12 @@ namespace OpenMS
     vector<vector<Size> > permutations(computePermutations_(sites, (Int)number_of_phosphorylation_events));
     LOG_DEBUG << "\tnumber of permutations: " << permutations.size() << std::endl;
     
+    if (permutations.size() > max_num_perm)
+    {
+      LOG_DEBUG << "\tcalculation aborted: number of permutations exceeded" << std::endl;
+      return phospho;
+    }
+      
     vector<RichPeakSpectrum> th_spectra(createTheoreticalSpectra_(permutations, seq_without_phospho));
     
     // prepare real spectrum windows
