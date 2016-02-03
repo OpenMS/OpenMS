@@ -233,7 +233,7 @@ namespace OpenMS
       for (; i <= peptideA.size(); ++i)
       {
         ion = peptideA.getPrefix(i);
-        double pos = (ion.getMonoWeight(Residue::BIon, charge) + (xlink_mass + peptideB_mass)) / (double)charge;
+        double pos = (ion.getMonoWeight(Residue::BIon, charge) + (xlink_mass + peptideB_mass)) / static_cast<double>(charge);
         ions_alpha[pos] = ion;
         names[pos] = "b(alpha)" + String(i) + "X" + String(charge, '+');
         //cout << "PepA b ion: " << ion.toString() << "\t" <<  "Name: " << names[pos] << endl;
@@ -244,7 +244,7 @@ namespace OpenMS
         for (; i <= peptideB.size(); ++i)
         {
           ion = peptideB.getPrefix(i);
-          double pos =( ion.getMonoWeight(Residue::BIon, charge) + (xlink_mass + peptideA_mass)) / (double)charge;
+          double pos =( ion.getMonoWeight(Residue::BIon, charge) + (xlink_mass + peptideA_mass)) / static_cast<double>(charge);
           ions_beta[pos] = ion;
           names[pos] = "b(beta)" + String(i) + "X" + String(charge, '+');
           //cout << "PepB b ion: " << ion.toString() << "\t" <<  "Name: " << names[pos] << endl;
@@ -262,7 +262,7 @@ namespace OpenMS
       for (Size i = (peptideA.size() - xlink_pos_A);  i < peptideA.size() ; ++i)
       {
         ion = peptideA.getSuffix(i);
-        double pos = (ion.getMonoWeight(Residue::YIon, charge) + (xlink_mass + peptideB_mass)) / (double)charge;
+        double pos = (ion.getMonoWeight(Residue::YIon, charge) + (xlink_mass + peptideB_mass)) / static_cast<double>(charge);
         ions_alpha[pos] = ion;
         names[pos] = "y(alpha)" + String(i) + "X" + String(charge, '+');
         //cout << "PepA y ion: " << ion.toString() << "\t" <<  "Name: " << names[pos] << endl;
@@ -272,7 +272,7 @@ namespace OpenMS
         for (Size i = (peptideB.size() - xlink_pos_B);  i < peptideB.size()  ; ++i)
         {
           ion = peptideB.getSuffix(i);
-          double pos = (ion.getMonoWeight(Residue::YIon, charge) + (xlink_mass + peptideA_mass)) / (double)charge;
+          double pos = (ion.getMonoWeight(Residue::YIon, charge) + (xlink_mass + peptideA_mass)) / static_cast<double>(charge);
           ions_beta[pos] = ion;
           names[pos] = "y(beta)" + String(i) + "X" + String(charge, '+');
           //cout << "PepA y ion: " << ion.toString() << "\t" <<  "Name: " << names[pos] << endl;
