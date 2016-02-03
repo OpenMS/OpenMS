@@ -152,6 +152,9 @@ protected:
       /// Helper method that writes the modification search params
       void writeModParam_(String& s, const std::vector<String>& fixed, const std::vector<String>& variable, UInt indent) const;
 
+      /// Helper method that writes the protein groups
+      void writeProteinGroups_(String& s, const std::vector<ProteinIdentification::ProteinGroup>& pg, bool indistinguishable, UInt indent) const;
+
 private:
       MzIdentMLHandler();
       MzIdentMLHandler(const MzIdentMLHandler& rhs);
@@ -164,6 +167,11 @@ private:
       AASequence actual_peptide_;
       Int current_mod_location_;
       ProteinHit actual_protein_;
+
+      std::map<String, std::vector<String> > pep_evis_; //maps the sequence to the corresponding evidence elements for the next scope
+      std::map<String, std::vector<String> > acc_evis_; //maps the accession to the corresponding evidence elements
+      std::map<String, String > acc_dbs_; //maps the accession to the assigned dbsequence reference
+      std::map<String, std::vector<String> > evis_sii_; //maps each evidence element to the corresponding spectrum identification item
 
     };
   } // namespace Internal

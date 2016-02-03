@@ -37,6 +37,7 @@
 
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/METADATA/CVTermList.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/CHEMISTRY/Enzyme.h>
 #include <set>
@@ -219,6 +220,10 @@ public:
     void setSearchParameters(const SearchParameters & search_parameters);
     /// Returns the search parameters
     const SearchParameters & getSearchParameters() const;
+    /// Sets the grouping parameters
+    void setGroupingParameters(const CVTermList & grouping_parameters);
+    /// Returns the grouping parameters
+    const CVTermList & getGroupingParameters() const;
     /// Returns the identifier
     const String & getIdentifier() const;
     /// Sets the identifier
@@ -236,6 +241,7 @@ protected:
     String search_engine_;
     String search_engine_version_;
     SearchParameters search_parameters_;
+    CVTermList grouping_parameters_;
     DateTime date_;
     //@}
 
