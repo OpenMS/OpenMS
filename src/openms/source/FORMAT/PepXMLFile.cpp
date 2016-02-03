@@ -768,17 +768,17 @@ namespace OpenMS
         current_peptide_.setHigherScoreBetter(false);
         if (search_engine_ == "Comet")
         {
-          peptide_hit_.setMetaValue("MS:1002257", value);
+          peptide_hit_.setMetaValue("MS:1002257", value); // name: Comet:expectation value
         }
         else if (search_engine_ == "X! Tandem")
         {
-          peptide_hit_.setMetaValue("MS:1001330", value);
+          peptide_hit_.setMetaValue("MS:1001330", value); // name: X\!Tandem:expect
         }
         else if (search_engine_ == "Mascot")
         {
-          peptide_hit_.setMetaValue("MS:1001172", value);
+          peptide_hit_.setMetaValue("MS:1001172", value); // name: Mascot:expectation value
         }
-        //TODO: there is no generic expect term in the CV right now
+        //TODO: there is no (generic) umbrella term for expect val in the CV right now
       }
       else if (name == "mvh") // MyriMatch score
       {
@@ -805,12 +805,13 @@ namespace OpenMS
         }
         if (search_engine_ == "Comet")
         {
-          peptide_hit_.setMetaValue("MS:1002252", value);
+          peptide_hit_.setMetaValue("MS:1002252", value); // name: Comet:xcorr
         }
         else
         {
-          peptide_hit_.setMetaValue("MS:1001155", value); //TODO: no other xcorr in the CV right now, use SEQUEST:xcorr
+          peptide_hit_.setMetaValue("MS:1001155", value); // name: SEQUEST:xcorr
         }
+        //TODO: no other xcorr or generic xcorr in the CV right now, use SEQUEST:xcorr
       }
       else if (name == "fval") // SpectraST score
       {
@@ -818,7 +819,7 @@ namespace OpenMS
         peptide_hit_.setScore(value);
         current_peptide_.setScoreType(name);
         current_peptide_.setHigherScoreBetter(true);
-        peptide_hit_.setMetaValue("MS:1001419", value);
+        peptide_hit_.setMetaValue("MS:1001419", value); // def: "SpectraST spectrum score.
       }
       else
       {
@@ -827,17 +828,17 @@ namespace OpenMS
           if (name == "deltacn")
           {
             value = attributeAsDouble_(attributes, "value");
-            peptide_hit_.setMetaValue("MS:1002253", value);
+            peptide_hit_.setMetaValue("MS:1002253", value); // name: Comet:deltacn
           }
           else if (name == "spscore")
           {
             value = attributeAsDouble_(attributes, "value");
-            peptide_hit_.setMetaValue("MS:1002255", value);
+            peptide_hit_.setMetaValue("MS:1002255", value); // name: Comet:spscore
           }
           else if (name == "sprank")
           {
             value = attributeAsDouble_(attributes, "value");
-            peptide_hit_.setMetaValue("MS:1002256", value);
+            peptide_hit_.setMetaValue("MS:1002256", value); // name: Comet:sprank
           }
         }
       }
@@ -865,11 +866,12 @@ namespace OpenMS
         String value;
         if (optionalAttributeAsString_(value, attributes, "num_matched_ions"))
         {
-          peptide_hit_.setMetaValue("MS:1002258", value);
+          peptide_hit_.setMetaValue("MS:1002258", value); // name: Comet:matched ions
+
         }
         if (optionalAttributeAsString_(value, attributes, "tot_num_ions"))
         {
-          peptide_hit_.setMetaValue("MS:1002259", value);
+          peptide_hit_.setMetaValue("MS:1002259", value); // name: Comet:total ions
         }
         if (optionalAttributeAsString_(value, attributes, "num_matched_peptides"))
         {

@@ -194,7 +194,7 @@ protected:
     }
     else if ((engine == "MSGFPlus") || (engine == "MS-GF+"))
     {
-      if (hit.metaValueExists("MS:1002053"))
+      if (hit.metaValueExists("MS:1002053"))  // name: MS-GF:EValue
       {
         return (-1) * log10(max((double)hit.getMetaValue("MS:1002053"), smallest_e_value_));
       }
@@ -205,7 +205,7 @@ protected:
     }
     else if (engine == "Comet")
     {
-      if (hit.metaValueExists("MS:1002257"))
+      if (hit.metaValueExists("MS:1002257")) // name: Comet:expectation value
       {
         return (-1) * log10(max((double)hit.getMetaValue("MS:1002257"), smallest_e_value_));
       }
