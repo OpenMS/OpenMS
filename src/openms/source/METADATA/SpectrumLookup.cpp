@@ -43,7 +43,7 @@ namespace OpenMS
   const String& SpectrumLookup::regexp_names_ = "INDEX0 INDEX1 SCAN ID RT";
 
   SpectrumLookup::SpectrumLookup(): 
-    rt_tolerance(0.01), n_spectra_(0),
+    rt_tolerance(0.05), n_spectra_(0),
     regexp_name_list_(ListUtils::create<String>(regexp_names_, ' '))
   {}
 
