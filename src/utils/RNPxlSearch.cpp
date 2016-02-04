@@ -84,7 +84,7 @@
 #define NUMBER_OF_THREADS (1)
 #endif
 
-//#define DEBUG_RNPXLSEARCH 
+#define DEBUG_RNPXLSEARCH 
 
 using namespace OpenMS;
 using namespace std;
@@ -217,6 +217,22 @@ protected:
     modifications.push_back("-HPO3");
     modifications.push_back("-H2O+HPO3");
     modifications.push_back("+HPO3");
+
+    // fragment adducts that may occur for every precursor adduct
+    StringList fragment_adducts;
+    fragment_adducts.push_back("C9H10N2O5,U-H3PO4");
+    fragment_adducts.push_back("C4H4N2O2,U'");
+    fragment_adducts.push_back("C4H2N2O1,U'-H2O");
+    fragment_adducts.push_back("C3O,C3O"); 
+
+    // fragment adducts that only occur for a specific precursor adduct
+    fragment_adducts.push_back("U->C9H13N2O9P1,U");
+    fragment_adducts.push_back("U->C9H11N2O8P1,U-H2O");
+    fragment_adducts.push_back("U->C9H12N2O6,U-HPO3");
+    fragment_adducts.push_back("U-H2O->C9H11N2O8P1,U-H2O");
+    fragment_adducts.push_back("U-HPO3->C9H12N2O6,U-HPO3");
+
+    registerStringList_("RNPxl:fragment_adducts", "", fragment_adducts, "format: [formula] or [precursor adduct]->[fragment adduct formula],[name]: e.g 'C9H10N2O5,U-H3PO4' or 'U-H2O->C9H11N2O8P1,U-H2O',", false, false);
 
     registerStringList_("RNPxl:modifications", "", modifications, "format: empirical formula e.g -H2O, ..., H2O+PO3", false, false);
 
@@ -588,8 +604,93 @@ private:
     return fas;
   }
 
+  typedef multimap<String, pair<EmpiricalFormula, String> > PrecursorToFragmentAdductMapType;
 
-  void postScoreHits_(const PeakMap& exp, vector<vector<AnnotatedHit> >& annotated_hits, Size top_hits, const RNPxlModificationMassesResult& mm, const vector<ResidueModification>& fixed_modifications, const vector<ResidueModification>& variable_modifications, Size max_variable_mods_per_peptide, TheoreticalSpectrumGenerator spectrum_generator, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool carbon_is_labeled)
+  vector<pair<EmpiricalFormula, String> > getFeasibleFragmentAdducts_(const String& exp_pc_adduct, const PrecursorToFragmentAdductMapType& precursor_to_fragment_adducts)
+  {
+    vector<pair<EmpiricalFormula, String> > feasible_fragment_adducts;
+    for (PrecursorToFragmentAdductMapType::const_iterator mit = precursor_to_fragment_adducts.begin(); mit != precursor_to_fragment_adducts.end(); ++mit)
+    {
+      const String& pc_adduct = mit->first;
+
+      if (pc_adduct.empty()) // extract all fragment adducts not restricted by precursor adduct
+      {
+        feasible_fragment_adducts.push_back(mit->second);        
+      }
+      else // extract those that depend on precursor adduct
+      {
+        // check if number of losses match
+        Size pc_adduct_nlosses = std::count(pc_adduct.begin(), pc_adduct.end(), '+') + std::count(pc_adduct.begin(), pc_adduct.end(), '-');
+        Size exp_pc_adduct_nlosses = std::count(exp_pc_adduct.begin(), exp_pc_adduct.end(), '+') + std::count(exp_pc_adduct.begin(), exp_pc_adduct.end(), '-');
+
+        if (pc_adduct_nlosses != exp_pc_adduct_nlosses) continue;
+
+        // Same number of losses. Now check if nucleotides in map is at least as often present as in experimental precursor
+        map<char, Size> pc_nucleotide_count;
+        String::const_iterator pc_it = pc_adduct.begin();
+        for (; pc_it != pc_adduct.end(); ++pc_it)
+        {          
+          if (*pc_it == '+' || *pc_it == '-') break;
+          if (pc_nucleotide_count.find(*pc_it) == pc_nucleotide_count.end())
+          {
+            pc_nucleotide_count[*pc_it] = 1;
+          }
+          else
+          {
+            ++pc_nucleotide_count[*pc_it];
+          }
+        }
+        String pc_loss_string(pc_it, pc_adduct.end());
+
+        map<char, Size> exp_pc_nucleotide_count;
+        String::const_iterator exp_pc_it = exp_pc_adduct.begin();
+        for (; exp_pc_it != exp_pc_adduct.end(); ++exp_pc_it)
+        {
+          if (*exp_pc_it == '+' || *exp_pc_it == '-') break;
+          if (exp_pc_nucleotide_count.find(*exp_pc_it) == exp_pc_nucleotide_count.end())
+          {
+            exp_pc_nucleotide_count[*exp_pc_it] = 1;
+          }
+          else
+          {
+            ++exp_pc_nucleotide_count[*exp_pc_it];
+          }
+        }
+        String exp_pc_loss_string(exp_pc_it, exp_pc_adduct.end());
+
+        bool all_present = true;
+        for (map<char, Size>::const_iterator pcn_it = pc_nucleotide_count.begin(); pcn_it == pc_nucleotide_count.end(); ++pcn_it)
+        {
+          if (exp_pc_nucleotide_count.find(pcn_it->first) == exp_pc_nucleotide_count.end()) 
+          {
+            all_present = false;
+            break; // not present at all? -> not applicable
+          }
+
+          if (exp_pc_nucleotide_count[pcn_it->first] < pcn_it->second) 
+          {
+            all_present = false;
+            break; // present but to low occurance? -> not applicable
+          }
+        }
+ 
+        // continue if some nucleotides needed to perform the mapping are missing for the experimental precursor adduct
+        if (!all_present) continue;
+
+        // now we need to check if all losses match exactly (ignoring the order) 
+        // TODO: to achieve this we only check if string approximatly match by sorting all characters and then comparing the sorted strings
+        std::sort(exp_pc_loss_string.end(), exp_pc_loss_string.end());
+        std::sort(pc_loss_string.end(), pc_loss_string.end());
+        if (exp_pc_loss_string == pc_loss_string)
+        {
+          feasible_fragment_adducts.push_back(mit->second);
+        }
+      }
+    }
+    return feasible_fragment_adducts; 
+  }
+
+  void postScoreHits_(const PeakMap& exp, vector<vector<AnnotatedHit> >& annotated_hits, Size top_hits, const RNPxlModificationMassesResult& mm, const vector<ResidueModification>& fixed_modifications, const vector<ResidueModification>& variable_modifications, Size max_variable_mods_per_peptide, TheoreticalSpectrumGenerator spectrum_generator, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const PrecursorToFragmentAdductMapType & precursor_to_fragment_adducts)
   {
     // for pscore calculation only
     vector<vector<Size> > rank_map = PScore::calculateRankMap(exp);
@@ -654,8 +755,8 @@ private:
           String precursor_rna_adduct = *mod_combinations_it->second.begin();
 
           // generate all partial loss spectra (excluding the complete loss spectrum) merged into one spectrum
-          // First get all possible RNA fragment shifts in the MS2 (based on the precursor RNA)
-          vector<String> partial_loss_modification_names = RNPxlModificationsGenerator::getRNAFragmentModificationNames(precursor_rna_adduct, aas);
+          // first get all possible RNA fragment shifts in the MS2 (based on the precursor RNA)
+          vector<pair<EmpiricalFormula, String> > partial_loss_modification = getFeasibleFragmentAdducts_(precursor_rna_adduct, precursor_to_fragment_adducts);
 
           RichPeakSpectrum partial_loss_spectrum;
 
@@ -696,20 +797,11 @@ private:
             partial_loss_spectrum.push_back(RNA_fragment_peak);
           }
 
-          for (Size i = 0; i != partial_loss_modification_names.size(); ++i)
+          for (Size i = 0; i != partial_loss_modification.size(); ++i)
           {
-            const String& fragment_shift_name = partial_loss_modification_names[i]; // e.g. U-H2O
-
-            ResidueModification fragment_modification = ModificationsDB::getInstance()->getTerminalModification(fragment_shift_name, ResidueModification::N_TERM);
-
-            // full labeling of nucleotide if flag is set
-            if (carbon_is_labeled)
-            {
-              const Element* carbon = ElementDB::getInstance()->getElement("Carbon");
-              fragment_modification.setDiffMonoMass(fragment_modification.getDiffMonoMass() + fragment_modification.getDiffFormula().getNumberOf(carbon) * Constants::C13C12_MASSDIFF_U); // replace 12C by 13C
-            }
-
-            const double fragment_shift_mass = fragment_modification.getDiffMonoMass();
+            // get name and mass of fragment adduct
+            const String& fragment_shift_name = partial_loss_modification[i].second; // e.g. U-H2O
+            const double fragment_shift_mass = partial_loss_modification[i].first.getMonoWeight();
 
             // RNA mass peak
             RichPeak1D RNA_fragment_peak;
@@ -1268,6 +1360,80 @@ private:
     protein_ids[0].setSearchParameters(search_parameters);
   }
 
+  multimap<String, std::pair<EmpiricalFormula, String> > getPrecursorToFragmentAdducts_(StringList fragment_adducts)
+  {
+    multimap<String, pair<EmpiricalFormula, String> > precursor_to_fragment_adducts;
+    for (StringList::const_iterator sit = fragment_adducts.begin(); sit != fragment_adducts.end(); ++sit)
+    {
+      String t = *sit;
+      t.removeWhitespaces();
+       
+      String key;
+      EmpiricalFormula formula;
+      String name;
+
+      vector<String> ss;
+      t.split("->", ss);
+      if (ss.size() == 1)  // no -> contained, format is: formula,name
+      {
+        vector<String> fs;
+        ss[0].split(",", fs);
+        if (fs.size() == 1) // no name provided so we just take the formula as name
+        {
+          formula = EmpiricalFormula(fs[0]);
+          name = fs[0];
+        }
+        else if (fs.size() == 2)
+        {
+          formula = EmpiricalFormula(fs[0]);
+          name = fs[1];
+        }
+        else
+        {
+          LOG_WARN << "Wrong format of fragment_adduct string: " << t << endl;
+          return multimap<String, pair<EmpiricalFormula, String> >();
+        }
+      }
+      else if (ss.size() == 2) // we map: precursor adduct -> formula,name
+      {
+        key = ss[0];
+        vector<String> fs;
+        ss[1].split(",", fs);
+        if (fs.size() == 1) // no name provided so we just take the formula as name
+        {
+          formula = EmpiricalFormula(fs[0]);
+          name = fs[0];
+        }
+        else if (fs.size() == 2)
+        {
+          formula = EmpiricalFormula(fs[0]);
+          name = fs[1];
+        }
+        else
+        {
+          LOG_WARN << "Wrong format of fragment_adduct string: " << t << endl;
+          return multimap<String, pair<EmpiricalFormula, String> >();
+        }
+ 
+      }
+      else
+      {
+        LOG_WARN << "Wrong format of fragment_adduct string: " << t << endl;
+        return multimap<String, pair<EmpiricalFormula, String> >();
+      }
+
+      precursor_to_fragment_adducts.insert(make_pair(key, make_pair(formula, name)));
+    }
+
+    #ifdef DEBUG_RNPXLSEARCH
+      for (multimap<String, pair<EmpiricalFormula, String> >::const_iterator mit =  precursor_to_fragment_adducts.begin(); mit != precursor_to_fragment_adducts.end(); ++mit)
+      {
+        cout << "precursor adduct:" << mit->first << " fragment adduct:" << mit->second.first.toString() << " name:" <<  mit->second.second << endl;
+      }
+    #endif
+
+    return precursor_to_fragment_adducts;
+  }
 
   ExitCodes main_(int, const char**)
   {
@@ -1335,7 +1501,7 @@ private:
 
     bool localization = getFlag_("RNPxl:localization");
 
-    bool carbon_is_labeled = getFlag_("RNPxl:carbon_labeled_fragments");
+    multimap<String, pair<EmpiricalFormula, String> > precursor_to_fragment_adducts = getPrecursorToFragmentAdducts_(getStringList_("RNPxl:fragment_adducts"));
 
     RNPxlModificationMassesResult mm;
 
@@ -1590,7 +1756,7 @@ private:
       spectra.sortSpectra(true);    
       preprocessSpectra_(spectra, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false); // for post scoring don't convert fragments to single charge as we need this information
       progresslogger.startProgress(0, 1, "localization...");
-      postScoreHits_(spectra, annotated_hits, report_top_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, spectrum_generator, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, carbon_is_labeled);
+      postScoreHits_(spectra, annotated_hits, report_top_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, spectrum_generator, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, precursor_to_fragment_adducts);
     }
 
     progresslogger.startProgress(0, 1, "annotation...");
