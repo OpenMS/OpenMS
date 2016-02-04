@@ -104,6 +104,7 @@ namespace OpenMS
       else
       {
         search_engine_name = protein_ids.begin()->getSearchEngine();
+        //Comet writes "Comet" in pep.xml, so this is ok
       }
     }
 
@@ -765,6 +766,19 @@ namespace OpenMS
         peptide_hit_.setScore(value);
         current_peptide_.setScoreType(name);
         current_peptide_.setHigherScoreBetter(false);
+        if (search_engine_ == "Comet")
+        {
+          peptide_hit_.setMetaValue("MS:1002257", value); // name: Comet:expectation value
+        }
+        else if (search_engine_ == "X! Tandem")
+        {
+          peptide_hit_.setMetaValue("MS:1001330", value); // name: X\!Tandem:expect
+        }
+        else if (search_engine_ == "Mascot")
+        {
+          peptide_hit_.setMetaValue("MS:1001172", value); // name: Mascot:expectation value
+        }
+        //TODO: there is no (generic) umbrella term for expect val in the CV right now
       }
       else if (name == "mvh") // MyriMatch score
       {
@@ -780,12 +794,24 @@ namespace OpenMS
       //   current_peptide_.setScoreType(name); // add "X!Tandem" to name?
       //   current_peptide_.setHigherScoreBetter(true);
       // }
-      else if (name == "xcorr" && search_engine_ != "MyriMatch") // Sequest score; MyriMatch has also an xcorr, but we want to ignore it
+      else if (name == "xcorr") // Sequest score
       { // and use the mvh
         value = attributeAsDouble_(attributes, "value");
-        peptide_hit_.setScore(value);
-        current_peptide_.setScoreType(name); // add "Sequest" to name?
-        current_peptide_.setHigherScoreBetter(true);
+        if (search_engine_ != "MyriMatch") //MyriMatch has also an xcorr, but we want to ignore it
+        {
+          peptide_hit_.setScore(value);
+          current_peptide_.setScoreType(name); // add "Sequest" to name?
+          current_peptide_.setHigherScoreBetter(true);
+        }
+        if (search_engine_ == "Comet")
+        {
+          peptide_hit_.setMetaValue("MS:1002252", value); // name: Comet:xcorr
+        }
+        else
+        {
+          peptide_hit_.setMetaValue("MS:1001155", value); // name: SEQUEST:xcorr
+        }
+        //TODO: no other xcorr or generic xcorr in the CV right now, use SEQUEST:xcorr
       }
       else if (name == "fval") // SpectraST score
       {
@@ -793,6 +819,28 @@ namespace OpenMS
         peptide_hit_.setScore(value);
         current_peptide_.setScoreType(name);
         current_peptide_.setHigherScoreBetter(true);
+        peptide_hit_.setMetaValue("MS:1001419", value); // def: "SpectraST spectrum score.
+      }
+      else
+      {
+        if (search_engine_ == "Comet")
+        {
+          if (name == "deltacn")
+          {
+            value = attributeAsDouble_(attributes, "value");
+            peptide_hit_.setMetaValue("MS:1002253", value); // name: Comet:deltacn
+          }
+          else if (name == "spscore")
+          {
+            value = attributeAsDouble_(attributes, "value");
+            peptide_hit_.setMetaValue("MS:1002255", value); // name: Comet:spscore
+          }
+          else if (name == "sprank")
+          {
+            value = attributeAsDouble_(attributes, "value");
+            peptide_hit_.setMetaValue("MS:1002256", value); // name: Comet:sprank
+          }
+        }
       }
     }
     else if (element == "search_hit") // parent: "search_result"
@@ -812,6 +860,23 @@ namespace OpenMS
       if (optionalAttributeAsString_(next_aa, attributes, "peptide_next_aa"))
       {
         pe.setAAAfter(next_aa[0]);
+      }
+      if (search_engine_ == "Comet")
+      {
+        String value;
+        if (optionalAttributeAsString_(value, attributes, "num_matched_ions"))
+        {
+          peptide_hit_.setMetaValue("MS:1002258", value); // name: Comet:matched ions
+
+        }
+        if (optionalAttributeAsString_(value, attributes, "tot_num_ions"))
+        {
+          peptide_hit_.setMetaValue("MS:1002259", value); // name: Comet:total ions
+        }
+        if (optionalAttributeAsString_(value, attributes, "num_matched_peptides"))
+        {
+          peptide_hit_.setMetaValue("num_matched_peptides", value);
+        }
       }
       String protein = attributeAsString_(attributes, "protein");
       pe.setProteinAccession(protein);
@@ -842,6 +907,11 @@ namespace OpenMS
       {
         current_peptide_.setMetaValue("pepxml_spectrum_name", native_spectrum_name_);
       }
+      if (search_engine_ == "Comet")
+      {
+        current_peptide_.setMetaValue("spectrum_reference", native_spectrum_name_);
+        //TODO: we really need something uniform here, like scan number - and not in metainfointerface
+      }
       if (!experiment_label_.empty())
       {
         current_peptide_.setExperimentLabel(experiment_label_);
@@ -869,6 +939,7 @@ namespace OpenMS
       swath_assay_ = "";
       status_ = "";
       optionalAttributeAsString_(native_spectrum_name_, attributes, "spectrum");
+      optionalAttributeAsString_(native_spectrum_name_, attributes, "spectrumNativeID"); //some engines write that optional attribute - is preferred to spectrum
       optionalAttributeAsString_(experiment_label_, attributes, "experiment_label");
       optionalAttributeAsString_(swath_assay_, attributes, "swath_assay");
       optionalAttributeAsString_(status_, attributes, "status");
@@ -1195,12 +1266,25 @@ namespace OpenMS
     }
     else if (element == "sample_enzyme") // parent: "msms_run_summary"
     { // special case: search parameter that occurs *before* "search_summary"!
-      String name = attributeAsString_(attributes, "name");
-      enzyme_ = name;
-      if (EnzymesDB::getInstance()->hasEnzyme(enzyme_))
+      enzyme_ = attributeAsString_(attributes, "name");
+      if (enzyme_ == "nonspecific") enzyme_ = "unspecific cleavage";
+      if (EnzymesDB::getInstance()->hasEnzyme(enzyme_.toLower()))
       {
         params_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_);
       }
+    }
+    else if (element == "enzymatic_search_constraint") // parent: "search_summary"
+    {
+      //<enzymatic_search_constraint enzyme="nonspecific" max_num_internal_cleavages="1" min_number_termini="2"/>
+      enzyme_ = attributeAsString_(attributes, "enzyme");
+      if (enzyme_ == "nonspecific") enzyme_ = "unspecific cleavage";
+      if (EnzymesDB::getInstance()->hasEnzyme(enzyme_))
+      {
+        params_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_.toLower());
+      }
+
+      int mc = attributeAsInt_(attributes, "max_num_internal_cleavages");
+      params_.missed_cleavages = mc;
     }
     else if (element == "search_database") // parent: "search_summary"
     {
@@ -1208,14 +1292,6 @@ namespace OpenMS
       if (params_.db.empty())
       {
         optionalAttributeAsString_(params_.db, attributes, "database_name");
-      }
-    }
-    else if (element == "enzymatic_search_constraint") // parent: "search_summary"
-    {
-      String enzyme = attributeAsString_(attributes, "enzyme");
-      if (EnzymesDB::getInstance()->hasEnzyme(enzyme))
-      {
-        params_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme);
       }
     }
     else if (element == "msms_pipeline_analysis") // root
