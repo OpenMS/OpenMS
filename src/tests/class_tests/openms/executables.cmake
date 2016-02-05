@@ -216,6 +216,7 @@ set(format_executables_list
   SequestInfile_test
   SequestOutfile_test
   SpecArrayFile_test
+  SwathMapMassCorrection_test
   SwathFile_test
   SwathFileConsumer_test
   SwathWindowLoader_test
@@ -233,6 +234,7 @@ set(format_executables_list
   MSDataCachedConsumer_test
   MSDataTransformingConsumer_test
   MSDataChainingConsumer_test
+  SpectrumAccessQuadMZTransforming_test
 )
 
 set(math_executables_list
@@ -537,9 +539,16 @@ set(transformations_executables_list
   PeakShape_test
   ProductModel_test
   SeedListGenerator_test
-  TwoDOptimization_test
   TraceFitter_test
 )
+
+if(NOT DISABLE_WAVELET2DTEST)
+set(transformations_executables_list
+  ${transformations_executables_list}
+  TwoDOptimization_test
+)
+endif(NOT DISABLE_WAVELET2DTEST)
+
 
 if(NOT DISABLE_OPENSWATH)
 set(transformations_executables_list

@@ -13,7 +13,8 @@
       <aminoacid_modification aminoacid="E" massdiff="-18.0106" mass="111.0320" variable="Y" symbol="^" /><!--X! Tandem n-terminal AA variable modification-->
       <aminoacid_modification aminoacid="M" massdiff="15.9949" mass="147.0354" variable="Y" />
       <aminoacid_modification aminoacid="Q" massdiff="-17.0265" mass="111.0321" variable="Y" symbol="^" /><!--X! Tandem n-terminal AA variable modification-->
-      
+      <aminoacid_modification aminoacid="M" massdiff="1" mass="123.456" variable="Y" /> <!--bogus for test...-->
+
       <!-- Input parameters -->
       <parameter name="list path, default parameters" value="/usr/local/bin/default_input.xml"/>
       <parameter name="list path, taxonomy information" value="./taxonomy.xml"/>

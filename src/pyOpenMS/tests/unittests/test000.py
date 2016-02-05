@@ -1678,10 +1678,10 @@ def testAScore():
     ff = pyopenms.AScore()
 
     hit = pyopenms.PeptideHit()
-    richspectrum = pyopenms.RichMSSpectrum()
+    spectrum = pyopenms.MSSpectrum()
 
-    ff.compute(hit, richspectrum, 5.0, 1)
-    ff.computeCumulativeScore(1,1,0.5)
+    ff.compute(hit, spectrum, 5.0, 1)
+    # ff.computeCumulativeScore(1,1,0.5)
 
 @report
 def testIDRipper():
@@ -2889,7 +2889,6 @@ def testMRMDecoy():
     mrmdecoy = pyopenms.MRMDecoy()
     assert mrmdecoy is not None
 
-    assert pyopenms.MRMDecoy().restrictTransitions is not None
     assert pyopenms.MRMDecoy().generateDecoys is not None
 
 @report
@@ -3556,7 +3555,6 @@ def testProteinHit():
 def testProteinIdentification():
     """
     @tests:
-     ProteinIdentification.DigestionEnzyme
      ProteinIdentification.PeakMassType
      ProteinIdentification.__init__
      ProteinIdentification.clearMetaInfo
@@ -3593,18 +3591,6 @@ def testProteinIdentification():
 
     assert isinstance(pyopenms.ProteinIdentification.PeakMassType.MONOISOTOPIC, int)
     assert isinstance(pyopenms.ProteinIdentification.PeakMassType.AVERAGE, int)
-
-    assert isinstance(pyopenms.ProteinIdentification.DigestionEnzyme.TRYPSIN,
-            int)
-    assert isinstance(pyopenms.ProteinIdentification.DigestionEnzyme.PEPSIN_A, int)
-    assert isinstance(pyopenms.ProteinIdentification.DigestionEnzyme.PROTEASE_K,
-            int)
-    assert isinstance(pyopenms.ProteinIdentification.DigestionEnzyme.CHYMOTRYPSIN,
-            int)
-    assert isinstance(pyopenms.ProteinIdentification.DigestionEnzyme.NO_ENZYME, int)
-    assert isinstance(pyopenms.ProteinIdentification.DigestionEnzyme.UNKNOWN_ENZYME,
-            int)
-
 
 @report
 def testRichPeak():

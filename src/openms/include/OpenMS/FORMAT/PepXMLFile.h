@@ -295,6 +295,8 @@ private:
 
     //@}
 
+    static const double mod_tol_;
+    static const double xtandem_artificial_mod_tol_;
   };
 
 } // namespace OpenMS

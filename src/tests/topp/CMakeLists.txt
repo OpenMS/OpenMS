@@ -888,14 +888,14 @@ set_tests_properties("TOPP_MascotAdapter_2_out1" PROPERTIES DEPENDS "TOPP_Mascot
 if(NOT DISABLE_OPENSWATH)
   #------------------------------------------------------------------------------
   # MRM / SWATH tests (from OpenSWATH)
-  add_test("TOPP_OpenSwathAssayGenerator_test_1" ${TOPP_BIN_PATH}/OpenSwathAssayGenerator -in ${DATA_DIR_TOPP}/OpenSwathAssayGenerator_input.TraML -out OpenSwathAssayGenerator_output.TraML.tmp -min_transitions 6 -max_transitions 6 -allowed_fragment_types b,y -allowed_fragment_charges 2,3 -enable_losses -enable_ms1_uis_scoring -enable_site_scoring -enable_alternative_localizations -enable_insilico -enable_reannotation)
+  add_test("TOPP_OpenSwathAssayGenerator_test_1" ${TOPP_BIN_PATH}/OpenSwathAssayGenerator -in ${DATA_DIR_TOPP}/OpenSwathAssayGenerator_input.TraML -out OpenSwathAssayGenerator_output.TraML.tmp -min_transitions 6 -max_transitions 6 -allowed_fragment_types b,y -allowed_fragment_charges 2,3 -enable_detection_specific_losses -enable_reannotation)
   add_test("TOPP_OpenSwathAssayGenerator_test_1_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathAssayGenerator_output.TraML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathAssayGenerator_output.TraML)
   set_tests_properties("TOPP_OpenSwathAssayGenerator_test_1_out1" PROPERTIES DEPENDS "TOPP_OpenSwathAssayGenerator_test_1")
   
   add_test("TOPP_OpenSwathDecoyGenerator_test_1" ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input.TraML -out OpenSwathDecoyGenerator.TraML.tmp -method pseudo-reverse -remove_CNterm_mods -test)
   add_test("TOPP_OpenSwathDecoyGenerator_test_1_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathDecoyGenerator.TraML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_output.TraML)
   set_tests_properties("TOPP_OpenSwathDecoyGenerator_test_1_out1" PROPERTIES DEPENDS "TOPP_OpenSwathDecoyGenerator_test_1")
-  add_test("TOPP_OpenSwathDecoyGenerator_test_2" ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input_2.TraML -out OpenSwathDecoyGenerator_2.TraML.tmp -append -method pseudo-reverse -test -theoretical -remove_CNterm_mods -remove_unannotated -mz_threshold 0.8)
+  add_test("TOPP_OpenSwathDecoyGenerator_test_2" ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input_2.TraML -out OpenSwathDecoyGenerator_2.TraML.tmp -append -method pseudo-reverse -test -remove_CNterm_mods -remove_unannotated -mz_threshold 0.8)
   add_test("TOPP_OpenSwathDecoyGenerator_test_2_out1" ${DIFF} -in1 OpenSwathDecoyGenerator_2.TraML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_output_2.TraML)
   set_tests_properties("TOPP_OpenSwathDecoyGenerator_test_2_out1" PROPERTIES DEPENDS "TOPP_OpenSwathDecoyGenerator_test_2")
   add_test("TOPP_OpenSwathDecoyGenerator_test_3" ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input_3.TraML -out OpenSwathDecoyGenerator_3.TraML.tmp -method pseudo-reverse -test -remove_CNterm_mods)
@@ -1039,19 +1039,38 @@ if(NOT DISABLE_OPENSWATH)
   add_test("TOPP_OpenSwathWorkflow_4" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_4.chrom.mzML.tmp -out_tsv OpenSwathWorkflow_4.tsv.tmp -test -use_ms1_traces)
   add_test("TOPP_OpenSwathWorkflow_4_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_4.chrom.mzML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_3_output.chrom.mzML)
   set_tests_properties("TOPP_OpenSwathWorkflow_4_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_4")
-  # We cannot currently test csv output
+  # We cannot currently test the correctness of the csv output
 
+  # Also test with readoptions cache
   add_test("TOPP_OpenSwathWorkflow_5" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_5.chrom.mzML.tmp -out_features OpenSwathWorkflow_5.featureXML.tmp -test -use_ms1_traces -readOptions cache -tempDirectory "")
   add_test("TOPP_OpenSwathWorkflow_5_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_5.featureXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_3_output.featureXML)
   add_test("TOPP_OpenSwathWorkflow_5_out2" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_5.chrom.mzML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_3_output.chrom.mzML)
   set_tests_properties("TOPP_OpenSwathWorkflow_5_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_5")
   set_tests_properties("TOPP_OpenSwathWorkflow_5_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_5")
 
+  # Also test with readoptions cacheWorkingInMemory
   add_test("TOPP_OpenSwathWorkflow_6" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_6.chrom.mzML.tmp -out_features OpenSwathWorkflow_6.featureXML.tmp -test -use_ms1_traces -readOptions cacheWorkingInMemory -tempDirectory "")
   add_test("TOPP_OpenSwathWorkflow_6_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_6.featureXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_3_output.featureXML)
   add_test("TOPP_OpenSwathWorkflow_6_out2" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_6.chrom.mzML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_3_output.chrom.mzML)
   set_tests_properties("TOPP_OpenSwathWorkflow_6_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_6")
   set_tests_properties("TOPP_OpenSwathWorkflow_6_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_6")
+
+  # Test with input swath windows file
+  add_test("TOPP_OpenSwathWorkflow_7" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_7.chrom.mzML.tmp -out_features OpenSwathWorkflow_7.featureXML.tmp -test -use_ms1_traces -swath_windows_file ${DATA_DIR_TOPP}/swath_windows.txt)
+  add_test("TOPP_OpenSwathWorkflow_7_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_7.featureXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_3_output.featureXML)
+  add_test("TOPP_OpenSwathWorkflow_7_out2" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_7.chrom.mzML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_3_output.chrom.mzML)
+  set_tests_properties("TOPP_OpenSwathWorkflow_7_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_7")
+  set_tests_properties("TOPP_OpenSwathWorkflow_7_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_7")
+
+  # Test with faulty swath windows file
+  add_test("TOPP_OpenSwathWorkflow_8" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_7.chrom.mzML.tmp -out_features OpenSwathWorkflow_7.featureXML.tmp -test -use_ms1_traces -swath_windows_file ${DATA_DIR_TOPP}/swath_windows_overlap.txt)
+  set_tests_properties("TOPP_OpenSwathWorkflow_8" PROPERTIES WILL_FAIL 1) # file contains overlaps
+  add_test("TOPP_OpenSwathWorkflow_9" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_7.chrom.mzML.tmp -out_features OpenSwathWorkflow_7.featureXML.tmp -test -use_ms1_traces -swath_windows_file ${DATA_DIR_TOPP}/swath_windows_tooshort.txt)
+  set_tests_properties("TOPP_OpenSwathWorkflow_9" PROPERTIES WILL_FAIL 1) # file does not have enough entries
+  # works with force
+  add_test("TOPP_OpenSwathWorkflow_10" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_7.chrom.mzML.tmp -out_features OpenSwathWorkflow_7.featureXML.tmp -test -use_ms1_traces -swath_windows_file ${DATA_DIR_TOPP}/swath_windows_overlap.txt -force)
+
+
 endif(NOT DISABLE_OPENSWATH)
 
 #------------------------------------------------------------------------------
@@ -1095,7 +1114,7 @@ add_test("TOPP_PeakPickerWavelet_2" ${TOPP_BIN_PATH}/PeakPickerWavelet  -test -i
 add_test("TOPP_PeakPickerWavelet_2_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 PeakPickerWavelet_2.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerWavelet_deconv_output.mzML)
 set_tests_properties("TOPP_PeakPickerWavelet_2_out1" PROPERTIES DEPENDS "TOPP_PeakPickerWavelet_2")
 add_test("TOPP_PeakPickerWavelet_3" ${TOPP_BIN_PATH}/PeakPickerWavelet  -test -ini ${DATA_DIR_TOPP}/PeakPickerWavelet_2Dopt_parameters.ini -in ${DATA_DIR_TOPP}/PeakPickerWavelet_2Dopt_input.mzML -out PeakPickerWavelet_3.tmp)
-if(NOT DISABLE_PPWAVELET3)
+if(NOT DISABLE_WAVELET2DTEST)
   #  
   # See https://github.com/OpenMS/OpenMS/issues/1202
   # On Ubuntu 14.04 in Release mode only (not Debug mode), the output of this
@@ -1106,7 +1125,7 @@ if(NOT DISABLE_PPWAVELET3)
   # For travis, PPWavelet_3 does not work, so we disable it
   add_test("TOPP_PeakPickerWavelet_3_out1" ${DIFF} -in1 PeakPickerWavelet_3.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerWavelet_2Dopt_output.mzML -whitelist ${INDEX_WHITELIST} "3bAxk01KjUAAAACgmVGNQIvf6JpEWo1Ah")
   set_tests_properties("TOPP_PeakPickerWavelet_3_out1" PROPERTIES DEPENDS "TOPP_PeakPickerWavelet_3")
-endif(NOT DISABLE_PPWAVELET3)
+endif(NOT DISABLE_WAVELET2DTEST)
 add_test("TOPP_PeakPickerWavelet_4" ${TOPP_BIN_PATH}/PeakPickerWavelet  -test -ini ${DATA_DIR_TOPP}/PeakPickerWavelet_parameters.ini -in ${DATA_DIR_TOPP}/PeakPickerWavelet_input.mzML -out PeakPickerWavelet_4.tmp -threads 2)
 add_test("TOPP_PeakPickerWavelet_4_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 PeakPickerWavelet_4.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerWavelet_output.mzML)
 set_tests_properties("TOPP_PeakPickerWavelet_4_out1" PROPERTIES DEPENDS "TOPP_PeakPickerWavelet_4")

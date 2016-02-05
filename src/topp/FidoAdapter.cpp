@@ -532,13 +532,7 @@ protected:
     }
     
     // remove protein hits that shouldn't be there:
-    for (vector<ProteinIdentification>::iterator prot_it = proteins.begin();
-         prot_it != proteins.end(); ++prot_it)
-    {
-      ProteinIdentification filtered;
-      IDFilter::removeUnreferencedProteinHits(*prot_it, peptides, filtered);
-      *prot_it = filtered;
-    }
+    IDFilter::removeUnreferencedProteins(proteins, peptides);
 
     // sanitize protein accessions:
     set<String> accessions;
