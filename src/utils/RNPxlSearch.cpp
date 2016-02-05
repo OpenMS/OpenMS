@@ -1034,7 +1034,7 @@ private:
 
             vector<String> f;
 
-            ion_name.split(' ', f);  // e.g. "y3+ RNA:C3O" or just "y2"
+            ion_name.split(' ', f);  // e.g. "y3+ C3O" or just "y2"
             String fragment_shift_name;
             if (f.size() == 2) 
             {
@@ -1481,7 +1481,6 @@ private:
         cout << "precursor adduct:" << mit->first << " fragment adduct:" << mit->second.formula.toString() << " name:" <<  mit->second.name << endl;
         cout << ModificationsDB::getInstance()->hasModification(mit->second.name) << endl;
       }
-
     #endif
 
     return precursor_to_fragment_adducts;
