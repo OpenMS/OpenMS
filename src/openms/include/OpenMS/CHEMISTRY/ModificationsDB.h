@@ -111,6 +111,11 @@ public:
 
     const ResidueModification & getModification(const String & modification) const;
 
+    bool hasModification(const String & modification) const;
+ 
+    // add a new modification to the database 
+    void addModification(ResidueModification * new_mod);
+
     /// returns the index of the modification in the mods_ vector; a unique name must be given
     Size findModificationIndex(const String & mod_name) const;
 

@@ -716,6 +716,7 @@ private:
       }
     }
 
+
     #ifdef DEBUG_RNPXLSEARCH
       for (map<String, vector<FragmentAdductDefinition_> >::const_iterator mit = all_pc_all_feasible_adducts.begin(); mit != all_pc_all_feasible_adducts.end(); ++mit)
       {
@@ -841,14 +842,14 @@ private:
           {
             // get name and mass of fragment adduct
             const String& fragment_shift_name = partial_loss_modification[i].name; // e.g. U-H2O
-            cout << fragment_shift_name << "\t" << partial_loss_modification[i].formula.toString() << endl;
+            //cout << fragment_shift_name << "\t" << partial_loss_modification[i].formula.toString() << endl;
             const double fragment_shift_mass = partial_loss_modification[i].formula.getMonoWeight();
 
             // RNA mass peak
             RichPeak1D RNA_fragment_peak;
             RNA_fragment_peak.setIntensity(1.0);
             RNA_fragment_peak.setMZ(fragment_shift_mass + Constants::PROTON_MASS_U); // there is exactly one RNA fragment modification that we added to this partial loss spectrum. So get the modification and mass to calculate the RNA peak mass.
-            RNA_fragment_peak.setMetaValue("IonName", fragment_shift_name);  // add name (e.g. RNA:U-H2O)
+            RNA_fragment_peak.setMetaValue("IonName", "RNA:" + fragment_shift_name);  // add name (e.g. RNA:U-H2O)
             partial_loss_spectrum.push_back(RNA_fragment_peak);
 
             // Add shifted immonium ion peaks if the amino acid is present in the sequence
@@ -900,6 +901,7 @@ private:
 
             // generate all possible shifted ion a,b,y ion peaks by putting a modification on the N or C terminus
             AASequence c_term_shifted = aas;
+
             c_term_shifted.setCTerminalModification(fragment_shift_name);
 
             AASequence n_term_shifted = aas;
@@ -1050,12 +1052,8 @@ private:
               #ifdef DEBUG_RNPXLSEARCH
                 cout << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << " intensity: " << fragment_intensity << endl;
               #endif
-              // remove RNA: substring for nicer annotation of ion
-              String annotation = fragment_shift_name;
-              annotation.substitute("RNA:", "");
-
               FragmentAnnotationDetail_ d;
-              d.shift = annotation;
+              d.shift = fragment_shift_name;
               d.charge = charge;
               d.mz = fragment_mz;
               d.intensity = fragment_intensity;
@@ -1071,12 +1069,8 @@ private:
               #ifdef DEBUG_RNPXLSEARCH
                 cout << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << " intensity: " << fragment_intensity << endl;
               #endif
-              // remove RNA: substring for nicer annotation of ion
-              String annotation = fragment_shift_name;
-              annotation.substitute("RNA:", "");
-
               FragmentAnnotationDetail_ d;
-              d.shift = annotation;
+              d.shift = fragment_shift_name;
               d.charge = charge;
               d.mz = fragment_mz;
               d.intensity = fragment_intensity;
@@ -1092,11 +1086,8 @@ private:
               #ifdef DEBUG_RNPXLSEARCH
                 cout << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << " intensity: " << fragment_intensity << endl;
               #endif
-              // remove RNA: substring for nicer annotation of ion
-              String annotation = fragment_shift_name;
-              annotation.substitute("RNA:", "");
               FragmentAnnotationDetail_ d;
-              d.shift = annotation;
+              d.shift = fragment_shift_name;
               d.charge = charge;
               d.mz = fragment_mz;
               d.intensity = fragment_intensity;
@@ -1107,10 +1098,7 @@ private:
               #ifdef DEBUG_RNPXLSEARCH
                 cout << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " intensity: " << fragment_intensity << endl;                
               #endif
-              // remove RNA prefix from string and annotate ion
-              String annotation = ion_name;
-              annotation.substitute("RNA:", "");
-              annotated_marker_ions[annotation].insert("(" + String::number(fragment_mz, 3) + "," + String::number(100.0 * fragment_intensity, 1) + ",\"" + annotation + "\")");
+              annotated_marker_ions[ion_name].insert("(" + String::number(fragment_mz, 3) + "," + String::number(100.0 * fragment_intensity, 1) + ",\"" + ion_name + "\")");
             }
             else if (ion_name.hasPrefix("i"))
             {
@@ -1120,10 +1108,7 @@ private:
             #ifdef DEBUG_RNPXLSEARCH
               cout << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " intensity: " << fragment_intensity << endl;                
             #endif
-              // remove RNA: substring for nicer annotation of ion
-              String annotation = ion_name;
-              annotation.substitute("RNA:", "");
-              shifted_immonium_ions[origin].insert(make_pair("(" + String::number(fragment_mz, 3) + "," + String::number(100.0 * fragment_intensity, 1) + ",\"" + annotation + "\")", fragment_intensity));
+              shifted_immonium_ions[origin].insert(make_pair("(" + String::number(fragment_mz, 3) + "," + String::number(100.0 * fragment_intensity, 1) + ",\"" + ion_name + "\")", fragment_intensity));
             }
           }
 
@@ -1468,6 +1453,16 @@ private:
       fad.name = name;
       fad.formula = formula;
       precursor_to_fragment_adducts.insert(make_pair(key, fad));
+
+      // register all fragment adducts as modification (if not already registered)
+      if (!ModificationsDB::getInstance()->hasModification(name))
+      {
+        ResidueModification * r = new ResidueModification();
+        r->setId(name);
+        r->setFullId(name);
+        r->setDiffMonoMass(formula.getMonoWeight());
+        ModificationsDB::getInstance()->addModification(r);
+      }
     }
 
     #ifdef DEBUG_RNPXLSEARCH
