@@ -112,7 +112,7 @@ public:
     const ResidueModification & getModification(const String & modification) const;
 
     bool hasModification(const String & modification) const;
- 
+
     // add a new modification to the database 
     void addModification(ResidueModification * new_mod);
 
