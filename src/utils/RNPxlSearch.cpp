@@ -604,11 +604,17 @@ private:
     return fas;
   }
 
-  typedef multimap<String, pair<EmpiricalFormula, String> > PrecursorToFragmentAdductMapType;
-
-  vector<pair<EmpiricalFormula, String> > getFeasibleFragmentAdducts_(const String& exp_pc_adduct, const PrecursorToFragmentAdductMapType& precursor_to_fragment_adducts)
+  struct FragmentAdductDefinition_
   {
-    vector<pair<EmpiricalFormula, String> > feasible_fragment_adducts;
+    EmpiricalFormula formula; // formula
+    String name;  // name used in annotation
+  };
+
+  typedef multimap<String, FragmentAdductDefinition_> PrecursorToFragmentAdductMapType; // map a precursor adduct (e.g. AU-H2O to all possible fragment adducts)
+
+  vector<FragmentAdductDefinition_> getFeasibleFragmentAdducts_(const String& exp_pc_adduct, const PrecursorToFragmentAdductMapType& precursor_to_fragment_adducts)
+  {
+    vector<FragmentAdductDefinition_> feasible_fragment_adducts;
     for (PrecursorToFragmentAdductMapType::const_iterator mit = precursor_to_fragment_adducts.begin(); mit != precursor_to_fragment_adducts.end(); ++mit)
     {
       const String& pc_adduct = mit->first;
@@ -690,7 +696,41 @@ private:
     return feasible_fragment_adducts; 
   }
 
-  void postScoreHits_(const PeakMap& exp, vector<vector<AnnotatedHit> >& annotated_hits, Size top_hits, const RNPxlModificationMassesResult& mm, const vector<ResidueModification>& fixed_modifications, const vector<ResidueModification>& variable_modifications, Size max_variable_mods_per_peptide, TheoreticalSpectrumGenerator spectrum_generator, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const PrecursorToFragmentAdductMapType & precursor_to_fragment_adducts)
+  // calculate all feasible fragment adducts from precursor adducts
+  map<String, vector<FragmentAdductDefinition_> > getAllFeasibleFragmentAdducts_(const RNPxlModificationMassesResult& precursor_adducts, const PrecursorToFragmentAdductMapType& precursor_to_fragment_adducts)
+  {
+    map<String, vector<FragmentAdductDefinition_> > all_pc_all_feasible_adducts;
+
+    // for all possible precursor adducts
+
+    for (Map<String, double>::ConstIterator mit = precursor_adducts.mod_masses.begin(); mit != precursor_adducts.mod_masses.end(); ++mit)
+    {
+      const set<String>& ambiguities = precursor_adducts.mod_combinations.at(mit->first);
+      for (set<String>::const_iterator sit = ambiguities.begin(); sit != ambiguities.end(); ++sit)
+      {
+        const String& pc_adduct = *sit;  // nucleotide formula e.g. "AU-H2O"
+
+        // calculate feasible fragment adducts and store them for lookup
+        vector<FragmentAdductDefinition_> feasible_adducts = getFeasibleFragmentAdducts_(pc_adduct, precursor_to_fragment_adducts);
+        all_pc_all_feasible_adducts[pc_adduct] = feasible_adducts;
+      }
+    }
+
+    #ifdef DEBUG_RNPXLSEARCH
+      for (map<String, vector<FragmentAdductDefinition_> >::const_iterator mit = all_pc_all_feasible_adducts.begin(); mit != all_pc_all_feasible_adducts.end(); ++mit)
+      {
+        cout << "Precursor adduct: '" << mit->first << "'" << endl;
+        for (vector<FragmentAdductDefinition_>::const_iterator fit = mit->second.begin(); fit != mit->second.end(); ++fit)
+        {
+          cout << fit->name << "\t" << fit->formula.toString() << endl;
+        }
+      } 
+    #endif
+
+    return all_pc_all_feasible_adducts;
+  }
+
+  void postScoreHits_(const PeakMap& exp, vector<vector<AnnotatedHit> >& annotated_hits, Size top_hits, const RNPxlModificationMassesResult& mm, const vector<ResidueModification>& fixed_modifications, const vector<ResidueModification>& variable_modifications, Size max_variable_mods_per_peptide, TheoreticalSpectrumGenerator spectrum_generator, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const map<String, vector<FragmentAdductDefinition_> > & all_feasible_fragment_adducts)
   {
     // for pscore calculation only
     vector<vector<Size> > rank_map = PScore::calculateRankMap(exp);
@@ -755,8 +795,8 @@ private:
           String precursor_rna_adduct = *mod_combinations_it->second.begin();
 
           // generate all partial loss spectra (excluding the complete loss spectrum) merged into one spectrum
-          // first get all possible RNA fragment shifts in the MS2 (based on the precursor RNA)
-          vector<pair<EmpiricalFormula, String> > partial_loss_modification = getFeasibleFragmentAdducts_(precursor_rna_adduct, precursor_to_fragment_adducts);
+          // first get all possible RNA fragment shifts in the MS2 (based on the precursor RNA/DNA)
+          const vector<FragmentAdductDefinition_>& partial_loss_modification = all_feasible_fragment_adducts.at(precursor_rna_adduct);
 
           RichPeakSpectrum partial_loss_spectrum;
 
@@ -800,8 +840,9 @@ private:
           for (Size i = 0; i != partial_loss_modification.size(); ++i)
           {
             // get name and mass of fragment adduct
-            const String& fragment_shift_name = partial_loss_modification[i].second; // e.g. U-H2O
-            const double fragment_shift_mass = partial_loss_modification[i].first.getMonoWeight();
+            const String& fragment_shift_name = partial_loss_modification[i].name; // e.g. U-H2O
+            cout << fragment_shift_name << "\t" << partial_loss_modification[i].formula.toString() << endl;
+            const double fragment_shift_mass = partial_loss_modification[i].formula.getMonoWeight();
 
             // RNA mass peak
             RichPeak1D RNA_fragment_peak;
@@ -1360,9 +1401,10 @@ private:
     protein_ids[0].setSearchParameters(search_parameters);
   }
 
-  multimap<String, std::pair<EmpiricalFormula, String> > getPrecursorToFragmentAdducts_(StringList fragment_adducts)
+  // parse tool parameter to create map from precursor adduct (potentially "" for all precursors) to all fragment adducts
+  multimap<String, FragmentAdductDefinition_ > getPrecursorToFragmentAdducts_(StringList fragment_adducts)
   {
-    multimap<String, pair<EmpiricalFormula, String> > precursor_to_fragment_adducts;
+    multimap<String, FragmentAdductDefinition_ > precursor_to_fragment_adducts;
     for (StringList::const_iterator sit = fragment_adducts.begin(); sit != fragment_adducts.end(); ++sit)
     {
       String t = *sit;
@@ -1391,7 +1433,7 @@ private:
         else
         {
           LOG_WARN << "Wrong format of fragment_adduct string: " << t << endl;
-          return multimap<String, pair<EmpiricalFormula, String> >();
+          return multimap<String, FragmentAdductDefinition_ >();
         }
       }
       else if (ss.size() == 2) // we map: precursor adduct -> formula,name
@@ -1412,23 +1454,26 @@ private:
         else
         {
           LOG_WARN << "Wrong format of fragment_adduct string: " << t << endl;
-          return multimap<String, pair<EmpiricalFormula, String> >();
+          return multimap<String, FragmentAdductDefinition_ >();
         }
  
       }
       else
       {
         LOG_WARN << "Wrong format of fragment_adduct string: " << t << endl;
-        return multimap<String, pair<EmpiricalFormula, String> >();
+        return multimap<String, FragmentAdductDefinition_ >();
       }
 
-      precursor_to_fragment_adducts.insert(make_pair(key, make_pair(formula, name)));
+      FragmentAdductDefinition_ fad;
+      fad.name = name;
+      fad.formula = formula;
+      precursor_to_fragment_adducts.insert(make_pair(key, fad));
     }
 
     #ifdef DEBUG_RNPXLSEARCH
-      for (multimap<String, pair<EmpiricalFormula, String> >::const_iterator mit =  precursor_to_fragment_adducts.begin(); mit != precursor_to_fragment_adducts.end(); ++mit)
+      for (multimap<String, FragmentAdductDefinition_ >::const_iterator mit =  precursor_to_fragment_adducts.begin(); mit != precursor_to_fragment_adducts.end(); ++mit)
       {
-        cout << "precursor adduct:" << mit->first << " fragment adduct:" << mit->second.first.toString() << " name:" <<  mit->second.second << endl;
+        cout << "precursor adduct:" << mit->first << " fragment adduct:" << mit->second.formula.toString() << " name:" <<  mit->second.name << endl;
       }
     #endif
 
@@ -1501,10 +1546,8 @@ private:
 
     bool localization = getFlag_("RNPxl:localization");
 
-    multimap<String, pair<EmpiricalFormula, String> > precursor_to_fragment_adducts = getPrecursorToFragmentAdducts_(getStringList_("RNPxl:fragment_adducts"));
-
+    // generate all precursor adducts
     RNPxlModificationMassesResult mm;
-
     if (max_nucleotide_length != 0)
     {
       mm = RNPxlModificationsGenerator::initModificationMassesRNA(target_nucleotides, mappings, restrictions, modifications, sequence_restriction, cysteine_adduct, max_nucleotide_length);
@@ -1512,6 +1555,10 @@ private:
 
     mm.mod_masses[""] = 0; // insert "null" modification otherwise peptides without RNA will not be searched
     mm.mod_combinations[""].insert("none");
+
+    // parse tool parameter and generate all fragment adducts
+    multimap<String, FragmentAdductDefinition_> precursor_to_fragment_adducts = getPrecursorToFragmentAdducts_(getStringList_("RNPxl:fragment_adducts"));
+    map<String, vector<FragmentAdductDefinition_> > all_feasible_fragment_adducts = getAllFeasibleFragmentAdducts_(mm, precursor_to_fragment_adducts);
 
     // load MS2 map
     PeakMap spectra;
@@ -1756,7 +1803,7 @@ private:
       spectra.sortSpectra(true);    
       preprocessSpectra_(spectra, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false); // for post scoring don't convert fragments to single charge as we need this information
       progresslogger.startProgress(0, 1, "localization...");
-      postScoreHits_(spectra, annotated_hits, report_top_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, spectrum_generator, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, precursor_to_fragment_adducts);
+      postScoreHits_(spectra, annotated_hits, report_top_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, spectrum_generator, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, all_feasible_fragment_adducts);
     }
 
     progresslogger.startProgress(0, 1, "annotation...");

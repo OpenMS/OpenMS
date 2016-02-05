@@ -398,6 +398,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
 
   // output index  -> empirical formula -> (ambiguous) nucleotide formulas
   // nucleotide formulas which only differ in nucleotide ordering are only printed once
+  // e.g. 5 C19H24N7O12P1 573.122 ( AU-H1O3P1 )
   double pseudo_rt = 1;
   for (Map<String, double>::ConstIterator mit = result.mod_masses.begin(); mit != result.mod_masses.end(); ++mit)
   {
