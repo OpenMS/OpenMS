@@ -70,6 +70,8 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 
+#include <boost/regex.hpp>
+
 #include <QtCore/QProcess>
 
 #include <OpenMS/FILTERING/ID/IDFilter.h>
@@ -1386,6 +1388,56 @@ private:
     protein_ids[0].setSearchParameters(search_parameters);
   }
 
+   void normalizeAdductName_(String& name)
+   {
+     if (!(name.hasSubstring("+") || name.hasSubstring("-"))) // no loss formula contained? only nucleotides (e.g. "AU")
+     {
+       bool alpha_only = true;
+       for (Size i = 0; i != name.size(); ++i)
+       {
+         if (!isalpha(name[i])) alpha_only = false;
+       }
+
+       if (alpha_only) // sort nucleotides alphabetically (if no special characters like "'" are contained)
+       {
+         std::sort(name.begin(), name.end());  // just sort nucleotides
+       }
+       return;
+     }
+
+    // name has at least one loss formula. Tokenize left of +/- sign
+    boost::regex re("(?=[\\+\\-])");
+    boost::sregex_token_iterator begin(name.begin(), name.end(), re, -1);
+    boost::sregex_token_iterator end;
+    vector<string> ss;
+    ss.insert(ss.end(), begin, end);
+
+    bool alpha_only = true;
+    for (Size i = 0; i != ss[0].size(); ++i)
+    {
+      if (!isalpha(ss[0][i])) alpha_only = false;
+    }
+
+    if (alpha_only) // sort nucleotides alphabetically (if no special characters are contained)
+    {
+      std::sort(ss[0].begin(), ss[0].end());
+    }
+
+    String new_name;
+    new_name += ss[0];
+
+    // sort loss formulas
+    std::sort(ss.begin() + 1, ss.end());
+
+    for (Size i = 1; i < ss.size(); ++i)
+    {
+      String without_sign(ss[i].begin() + 1, ss[i].end());
+      EmpiricalFormula loss_formula(without_sign);
+      new_name += ss[i][0] + loss_formula.toString(); // readd sign
+    }
+     name = new_name;
+   }
+
   // parse tool parameter to create map from precursor adduct (potentially "" for all precursors) to all fragment adducts
   multimap<String, FragmentAdductDefinition_ > getPrecursorToFragmentAdducts_(StringList fragment_adducts)
   {
@@ -1401,6 +1453,13 @@ private:
 
       vector<String> ss;
       t.split("->", ss);
+
+      // sort and normalize precursor adduct name to OpenMS Hill's notation (e.g. "UA-H2O->..." "AU-H2O1")
+      if (ss.size() == 2) 
+      {
+        normalizeAdductName_(ss[0]);
+      }
+
       if (ss.size() == 1)  // no -> contained, format is: formula,name
       {
         vector<String> fs;
@@ -1408,12 +1467,13 @@ private:
         if (fs.size() == 1) // no name provided so we just take the formula as name
         {
           formula = EmpiricalFormula(fs[0]);
-          name = fs[0];
+          name = formula.toString();
         }
         else if (fs.size() == 2)
         {
           formula = EmpiricalFormula(fs[0]);
           name = fs[1];
+          normalizeAdductName_(name);         
         }
         else
         {
