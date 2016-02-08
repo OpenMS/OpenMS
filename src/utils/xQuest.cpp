@@ -197,7 +197,7 @@ protected:
     registerStringOption_("precursor:mass_tolerance_unit", "<unit>", "ppm", "Unit of precursor mass tolerance.", false, false);
     setValidStrings_("precursor:mass_tolerance_unit", precursor_mass_tolerance_unit_valid_strings);
 
-    registerIntOption_("precursor:min_charge", "<num>", 2, "Minimum precursor charge to be considered.", false, true);
+    registerIntOption_("precursor:min_charge", "<num>", 3, "Minimum precursor charge to be considered.", false, true);
     registerIntOption_("precursor:max_charge", "<num>", 7, "Maximum precursor charge to be considered.", false, true);
 
     registerTOPPSubsection_("fragment", "Fragments (Product Ion) Options");
@@ -308,7 +308,7 @@ protected:
 //    filter_param.setValue("peakcount", 20, "The number of peaks that should be kept.");
 //    filter_param.setValue("movetype", "jump", "Whether sliding window (one peak steps or jumping window window size steps) should be used.");
 //    window_mower_filter.setParameters(filter_param);
-//    NLargest nlargest_filter = NLargest(250);   // De-noising in xQuest: Dynamic range = 1000, 250 most intense peaks
+    NLargest nlargest_filter = NLargest(250);   // De-noising in xQuest: Dynamic range = 1000, 250 most intense peaks
   
 #ifdef _OPENMP
 #pragma omp parallel for
@@ -316,19 +316,22 @@ protected:
     for (SignedSize exp_index = 0; exp_index < static_cast<SignedSize>(exp.size()); ++exp_index)
     {
       // sort by mz, for deisotoping and window_mower
-      exp[exp_index].sortByPosition();
+      exp[exp_index].sortByPosition();     
+      nlargest_filter.filterSpectrum(exp[exp_index]);
 
       // Deisotope, compute charges here (no 0 intensities, sorted by mz)
-      rich_exp.addSpectrum(deisotopeAndSingleChargeMSSpectrum(exp[exp_index], 1, 6, 0.3, true));
+      //rich_exp.addSpectrum(deisotopeAndSingleChargeMSSpectrum(exp[exp_index], 1, 6, 0.3, true));
       //Params: spectrum, Int min_charge, Int max_charge, double fragment_tolerance, bool fragment_unit_ppm, bool keep_only_deisotoped = false, Size min_isopeaks = 3, Size max_isopeaks = 10, bool make_single_charged = true
   
-      // TODO Except deisotoping, no filtering applied
       // remove noise, TODO window_mower not used in xQuest, is it necessary?
       //window_mower_filter.filterPeakSpectrum(exp[exp_index]);
-      nlargest_filter_rich(rich_exp[exp_index], 250);
+      //nlargest_filter_rich(rich_exp[exp_index], 250);
+      //nlargest_filter.filterSpectrum(exp[exp_index]);
   
       // sort (nlargest changes order)
-      //exp[exp_index].sortByPosition();
+//      exp[exp_index].sortByPosition();
+      rich_exp.addSpectrum(makeRichPeakSpectrum(exp[exp_index], true));
+//      cout << "WHY? Exp Spec: " << exp[exp_index][50].getMZ() << "\t" << rich_exp[exp_index][50].getMZ() << endl;
       rich_exp[exp_index].sortByPosition();
      }
    }
@@ -770,33 +773,36 @@ protected:
     return mass_to_candidates;
   }
 
-//  RichPeakSpectrum makeRichPeakSpectrum(PeakSpectrum spectrum, bool is_common_or_xlink_spectrum)
-//  {
-//    RichPeakSpectrum rich_spectrum;
-//    vector<Precursor> precursors;
-//    Precursor pc = spectrum.getPrecursors()[0];
-//    //pc.setMZ(spectrum.getPrecursors()[0].getMZ());
-//    //pc.setIntensity(spectrum.getPrecursors()[0].getIntensity());
-//    //pc.setCharge(getPrecursors()[0].getCharge());
-//    //pc.setMZ(15);
-//    //pc.setIntensity(30);
-//    precursors.push_back(pc);
-//    rich_spectrum.setPrecursors(precursors);
+  RichPeakSpectrum makeRichPeakSpectrum(PeakSpectrum spectrum, bool is_common_or_xlink_spectrum)
+  {
+    RichPeakSpectrum rich_spectrum;
+    //vector<Precursor> precursors;
+    //Precursor pc = spectrum.getPrecursors()[0];
+    //pc.setMZ(spectrum.getPrecursors()[0].getMZ());
+    //pc.setIntensity(spectrum.getPrecursors()[0].getIntensity());
+    //pc.setCharge(getPrecursors()[0].getCharge());
+    //pc.setMZ(15);
+    //pc.setIntensity(30);
+    //precursors.push_back(pc);
+    //rich_spectrum.setPrecursors(precursors);
 
-//    for(Size i = 0; i < spectrum.size(); ++i)
-//    {
-//      Peak1D peak = spectrum[i];
-//      RichPeak1D p;
-//      p.setMZ(peak.getMZ());
-//      p.setIntensity(peak.getIntensity());
-//      if (is_common_or_xlink_spectrum)
-//      {
-//        p.setMetaValue("z", 1); // TODO Where to get the actual charge?
-//      }
-//      rich_spectrum.push_back(p);
-//    }
-//    return rich_spectrum;
-//  }
+    rich_spectrum.setPrecursors(spectrum.getPrecursors());
+    rich_spectrum.setRT(spectrum.getRT());
+
+    for(Size i = 0; i < spectrum.size(); ++i)
+    {
+      Peak1D peak = spectrum[i];
+      RichPeak1D p;
+      p.setMZ(peak.getMZ());
+      p.setIntensity(peak.getIntensity());
+      if (is_common_or_xlink_spectrum)
+      {
+        p.setMetaValue("z", 0); // TODO Where to get the actual charge?
+      }
+      rich_spectrum.push_back(p);
+    }
+    return rich_spectrum;
+  }
 
     // spectrum must not contain 0 intensity peaks and must be sorted by m/z
     RichPeakSpectrum deisotopeAndSingleChargeMSSpectrum(PeakSpectrum& old_spectrum, Int min_charge, Int max_charge, double fragment_tolerance, bool fragment_unit_ppm, bool keep_only_deisotoped = false, Size min_isopeaks = 3, Size max_isopeaks = 10, bool make_single_charged = false)
@@ -1007,7 +1013,7 @@ protected:
     }
 
     // Spectrum Alignment function adapted from SpectrumAlignment.h, intensity_cutoff: 0 for not considering, 0.7 = lower intentity has to be at least 70% of higher intensity
-    // TODO Copy spectra, so that nearest peaks with dissimilar intensity can be removed to try with 2. nearest until out of tolerance range
+    // TODO Copies spectra, so that nearest peaks with dissimilar intensity can be removed to try with 2. nearest until out of tolerance range, make more efficient?
     void getSpectrumAlignment(std::vector<std::pair<Size, Size> > & alignment, const RichPeakSpectrum & s1, RichPeakSpectrum s2, double tolerance, bool relative_tolerance, double intensity_cutoff = 0.0) const
     {
       if (!s1.isSorted() || !s2.isSorted())
@@ -1370,22 +1376,22 @@ protected:
     map<Size, Size> map_light_to_heavy;
     for (ConsensusMap::const_iterator cit = cfeatures.begin(); cit != cfeatures.end(); ++cit)
     {
-      if (cit->getFeatures().size() > 2 || cit->getPeptideIdentifications().size() > 2)
-      {
-        cout << "Multiple PeptideIDs, Features: " << cit->getFeatures().size() << "\t PeptideIDs: " << cit->getPeptideIdentifications().size() << endl;
-      }
+//      if (cit->getFeatures().size() > 2 || cit->getPeptideIdentifications().size() > 2)
+//      {
+//        cout << "Multiple PeptideIDs, Features: " << cit->getFeatures().size() << "\t PeptideIDs: " << cit->getPeptideIdentifications().size() << endl;
+//      }
 
       // if x == light && y == heavy, then make pair
       if (cit->getFeatures().size() == 2 && cit->getPeptideIdentifications().size() >= 2)
       {
         for (Size x = 0; x < cit->getPeptideIdentifications().size(); ++x)
         {
-          cout << "MetaValue map index: " <<  cit->getPeptideIdentifications()[x].getMetaValue("map index") << endl;
-          cout << "Scan index 1: " << cit->getPeptideIdentifications()[x].getMetaValue("scan_index") << endl;
+//          cout << "MetaValue map index: " <<  cit->getPeptideIdentifications()[x].getMetaValue("map index") << endl;
+//          cout << "Scan index 1: " << cit->getPeptideIdentifications()[x].getMetaValue("scan_index") << endl;
           if (static_cast<int>(cit->getPeptideIdentifications()[x].getMetaValue("map index")) == 0)
           {
             for (Size y = 0; y < cit->getPeptideIdentifications().size(); ++y)  {
-            cout << "Scan index 2: " << cit->getPeptideIdentifications()[y].getMetaValue("scan_index") << endl;
+//            cout << "Scan index 2: " << cit->getPeptideIdentifications()[y].getMetaValue("scan_index") << endl;
               if (static_cast<int>(cit->getPeptideIdentifications()[y].getMetaValue("map index")) == 1)
               {
                 const PeptideIdentification& pi_0 = cit->getPeptideIdentifications()[x];
@@ -1650,7 +1656,7 @@ protected:
           if (ion_index_mode)
           {
             // TODO Use 50 most intense common peaks of exp. spectrum, consider all peptides that produce any of these as theor. common ions
-            NLargest nlargest_filter = NLargest(50);
+            //NLargest nlargest_filter = NLargest(50);
             RichPeakSpectrum common_peaks_50 = common_peaks;
 
             //TODO 50 largest for Ion Tag Mode, use nlargest_filer_rich on RichPeakSpectrum
@@ -1829,7 +1835,6 @@ protected:
 
             //specGen.getSpectrum(theoretical_spec, cross_link_candidate, 1);
             //getXLinkIonSpectrum(theoretical_spec_xlinks , cross_link_candidate, 1)
-            // TODO Charges: 3; 3; 2, 5
             specGen.getCommonIonSpectrum(theoretical_spec_alpha, cross_link_candidate.alpha, 3);
             specGen.getCommonIonSpectrum(theoretical_spec_beta, cross_link_candidate.beta, 3);
             specGen.getXLinkIonSpectrum(theoretical_spec_xlinks_alpha, theoretical_spec_xlinks_beta, cross_link_candidate, 2, 6);
@@ -2116,34 +2121,7 @@ protected:
 
 int main(int argc, const char** argv)
 {
-/*
-    in_strings.push_back("GUA1372-S14-A-LRRK2_DSS_1A3.03873.03873.3.dta,GUA1372-S14-A-LRRK2_DSS_1A3.03863.03863.3.dta\n712.0402832\n3\n202.067596435547\t1.00478214074753\t0\n225.138473510742\t10.5088150882632\t0\n240.306930541992\t1.97429014972974\t0\n246.150848388672\t2.11073807368531\t0\n253.116088867188\t0.788884157284357\t0\n254.077026367188\t1.28374306224133\t0\n302.334899902344\t1.01611426130302\t0\n363.247711181641\t1.21699536030682\t0\n364.359741210938\t3.07224448353778\t0\n365.233764648438\t1.41221257514478\t0\n382.492919921875\t1.44150675140929\t0\n454.173889160156\t1.55469310937435\t0\n468.17431640625\t1.25361597022867\t0\n476.370422363281\t1.18878053554465\t0\n478.18017578125\t1.37806417103704\t0\n503.177612304688\t1.00284247589148\t0\n505.511840820312\t5.09655338578696\t0\n508.137390136719\t2.11522771360041\t0\n511.180541992188\t2.15057904382722\t0\n571.420043945312\t6.90119656302518\t0\n583.662292480469\t4.66461443760661\t0\n587.343444824219\t2.87846978117167\t0\n589.50537109375\t7.13272916133555\t0\n594.251281738281\t4.93514552968795\t0\n595.426513671875\t3.44382536510506\t0\n596.37744140625\t11.9700389831397\t0\n610.205810546875\t4.63570482669097\t0\n661.512268066406\t2.14856175242209\t0\n666.367126464844\t4.27393999349033\t0\n669.846130371094\t3.10418295682631\t0\n673.281494140625\t1.31777402765441\t0\n675.322631835938\t3.47432917419416\t0\n716.352233886719\t8.67972468511475\t0\n725.564880371094\t12.897237882998\t0\n727.754760742188\t2.45193672303815\t0\n773.124877929688\t14.9709238344739\t0\n783.431457519531\t1.8729551112151\t0\n790.326721191406\t0.925976281710217\t0\n807.462829589844\t2.61764400546783\t0\n814.522888183594\t2.61683748845419\t0\n838.480285644531\t5.61032298854543\t0\n899.440734863281\t1.11527454352849\t0\n935.585876464844\t5.27870693712852\t0\n936.455749511719\t6.41740507779915\t0\n953.285339355469\t9.95025553746705\t0\n954.578002929688\t4.59257243378958\t0\n963.523315429688\t1.12443797236897\t0\n995.837219238281\t18.0752277973914\t0\n1025.43994140625\t3.67398836852921\t0\n1032.45239257812\t1.3500013173682\t0\n1050.49426269531\t19.376810410944\t0\n1051.4091796875\t5.43402852930932\t0\n1068.53137207031\t14.0416735388994\t0\n1069.45922851562\t8.71293686167004\t0\n1093.45495605469\t0.981511228178035\t0\n1105.52648925781\t1.47770612314566\t0\n1111.71630859375\t1.59983951167604\t0\n1226.41040039062\t1.80091881523256\t0\n1323.61682128906\t2.26763131809332\t0\n1520.763671875\t1.19462550075974\t0\n");
-    cout << out << endl;
-  */  
-/*
-  RichPeakSpectrum s;
-  vector<Precursor> precursors;
-  Precursor pc;
-  pc.setMZ(712.0402832);
-  pc.setCharge(3);
-  precursors.push_back(pc);
-  s.setPrecursors(precursors);
-  String header = "GUA1372-S14-A-LRRK2_DSS_1A3.03873.03873.3.dta,GUA1372-S14-A-LRRK2_DSS_1A3.03863.03863.3.dta";  // needs to be provided for common and xlinker spectra
-  RichPeak1D p;
-  p.setMZ(202.067596435547);  
-  p.setIntensity(1.00478214074753);
-  p.setMetaValue("z", 0); // only set this metavalue for common and xlinker spectra (not for heavy or light)
-  s.push_back(p);
-  p.setMZ(225.138473510742);  
-  p.setIntensity(10.5088150882632);
-  p.setMetaValue("z", 0);
-  s.push_back(p);
-  p.setMZ(240.306930541992);  
-  p.setIntensity(1.97429014972974);
-  p.setMetaValue("z", 0);
-  s.push_back(p);
-  cout << TOPPxQuest::getxQuestBase64EncodedSpectrum_(s, header) << endl;
-*/
+
   TOPPxQuest tool;
   
   return tool.main(argc, argv);
