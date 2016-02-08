@@ -556,6 +556,19 @@ namespace OpenMS
             f << " all_ntt_prob=\"(0.0000,0.0000," << probability << ")\"/>\n";
             f << "\t\t\t</analysis_result>" << "\n";            
           }
+          else 
+          {
+            f << "\t\t\t<search_score" << " name=\"" << it->getScoreType() << "\" value=\"" << h.getScore() << "\"" << "/>\n";
+            
+            if( it->getScoreType() == "Posterior Error Probability")
+            {
+              double probability = 1.0 - h.getScore();
+              f << "\t\t\t<analysis_result" << " analysis=\"peptideprophet\">\n";
+              f << "\t\t\t\t<peptideprophet_result" << " probability=\"" << probability << "\"";
+              f << " all_ntt_prob=\"(0.0000,0.0000," << probability << ")\"/>\n";
+              f << "\t\t\t</analysis_result>" << "\n";
+            }          
+          }
         }
         f << "\t\t</search_hit>" << "\n";
         f << "\t</search_result>" << "\n";

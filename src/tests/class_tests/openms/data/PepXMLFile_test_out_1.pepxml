@@ -17,6 +17,7 @@
 		<alternative_protein protein="ddb000015734" num_tol_term="2"/>
 			<modification_info modified_peptide="(Glu->pyro-Glu)ELNKEMAAEKAKAAAG" mod_nterm_mass="129.0425942233">
 			</modification_info>
+			<search_score name="expect" value="8"/>
 		</search_hit>
 	</search_result>
 	</spectrum_query>
@@ -25,12 +26,14 @@
 		<search_hit hit_rank="1" peptide="QLPGVNIKPVVK" peptide_prev_aa="R" peptide_next_aa="V" protein="ddb000014286" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1273.7758133814" massdiff="0.0" num_tol_term="2" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 			<modification_info modified_peptide="(Gln->pyro-Glu)QLPGVNIKPVVK" mod_nterm_mass="128.0585782552">
 			</modification_info>
+			<search_score name="expect" value="7.7"/>
 		</search_hit>
 	</search_result>
 	</spectrum_query>
 	<spectrum_query spectrum="test.3.3.2" start_scan="3" end_scan="3" precursor_neutral_mass="1354.7285291262" assumed_charge="2" index="3" retention_time_sec="2.0436" >
 	<search_result>
 		<search_hit hit_rank="1" peptide="IFQAALYAAPYK" peptide_prev_aa="K" peptide_next_aa="S" protein="ddb000517740" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1354.7285291262" massdiff="0.0" num_tol_term="2" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<search_score name="expect" value="4.9"/>
 		</search_hit>
 	</search_result>
 	</spectrum_query>
@@ -40,6 +43,7 @@
 		<alternative_protein protein="ddb000626345" num_tol_term="2"/>
 		<alternative_protein protein="ddb000626346" num_tol_term="2"/>
 		<alternative_protein protein="ddb005168372" num_tol_term="2"/>
+			<search_score name="expect" value="0.00091"/>
 		</search_hit>
 	</search_result>
 	</spectrum_query>
@@ -49,6 +53,7 @@
 		<alternative_protein protein="ddb000626345" num_tol_term="2"/>
 		<alternative_protein protein="ddb000626346" num_tol_term="2"/>
 		<alternative_protein protein="ddb005168372" num_tol_term="2"/>
+			<search_score name="expect" value="7.9e-05"/>
 		</search_hit>
 	</search_result>
 	</spectrum_query>
@@ -61,6 +66,7 @@
 				<mod_aminoacid_mass position="16" mass="160.0306489852"/>
 				<mod_aminoacid_mass position="19" mass="160.0306489852"/>
 			</modification_info>
+			<search_score name="expect" value="14"/>
 		</search_hit>
 	</search_result>
 	</spectrum_query>
@@ -69,6 +75,7 @@
 		<search_hit hit_rank="1" peptide="VSLPNYPAIPSDATLEVQSLR" peptide_prev_aa="K" peptide_next_aa="S" protein="ddb000622429" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="2269.1954242316" massdiff="0.0" num_tol_term="2" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="ddb000622428" num_tol_term="2"/>
 		<alternative_protein protein="ddb000450900" num_tol_term="2"/>
+			<search_score name="expect" value="0.65"/>
 		</search_hit>
 	</search_result>
 	</spectrum_query>
@@ -77,6 +84,7 @@
 		<search_hit hit_rank="1" peptide="NALWHTGDTESQVR" peptide_prev_aa="R" peptide_next_aa="L" protein="ddb000409092" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1612.7593913176" massdiff="0.0" num_tol_term="2" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="ddb000394916" num_tol_term="2"/>
 		<alternative_protein protein="ddb000012684" num_tol_term="2"/>
+			<search_score name="expect" value="0.0046"/>
 		</search_hit>
 	</search_result>
 	</spectrum_query>
@@ -84,6 +92,7 @@
 	<search_result>
 		<search_hit hit_rank="1" peptide="SSLKNYANK" peptide_prev_aa="R" peptide_next_aa="I" protein="rev000409159" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1023.5349143287" massdiff="0.0" num_tol_term="2" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="rev000459115" num_tol_term="2"/>
+			<search_score name="expect" value="1.1"/>
 		</search_hit>
 	</search_result>
 	</spectrum_query>

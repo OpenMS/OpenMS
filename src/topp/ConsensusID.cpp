@@ -197,8 +197,20 @@ protected:
 
   void setProteinIdentifications_(vector<ProteinIdentification>& prot_ids)
   {
+    // modification params are neccessary for further analysis tools (e.g. LuciPHOr2)
+    set<String> fixed_mods_set;
+    set<String> var_mods_set;    
+    for (vector<ProteinIdentification>::iterator it_prot_ids = prot_ids.begin(); it_prot_ids != prot_ids.end(); ++it_prot_ids)
+    {
+      ProteinIdentification::SearchParameters search_params(it_prot_ids->getSearchParameters());
+      std::copy(search_params.fixed_modifications.begin(), search_params.fixed_modifications.end(), std::inserter(fixed_mods_set, fixed_mods_set.end()));
+      std::copy(search_params.variable_modifications.begin(), search_params.variable_modifications.end(), std::inserter(var_mods_set, var_mods_set.end()));
+    }    
     ProteinIdentification::SearchParameters search_params;
-    search_params = prot_ids[0].getSearchParameters();
+    std::vector<String> fixed_mods(fixed_mods_set.begin(), fixed_mods_set.end());
+    std::vector<String> var_mods(var_mods_set.begin(), var_mods_set.end());
+    search_params.fixed_modifications    = fixed_mods;
+    search_params.variable_modifications = var_mods;
     
     prot_ids.clear();
     prot_ids.resize(1);
