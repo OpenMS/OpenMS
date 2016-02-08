@@ -217,8 +217,6 @@ protected:
     modifications.push_back("-H2O");
     modifications.push_back("-H2O-HPO3");
     modifications.push_back("-HPO3");
-    modifications.push_back("-H2O+HPO3");
-    modifications.push_back("+HPO3");
 
     // fragment adducts that may occur for every precursor adduct
     StringList fragment_adducts;
@@ -233,6 +231,47 @@ protected:
     fragment_adducts.push_back("U->C9H12N2O6,U-HPO3");
     fragment_adducts.push_back("U-H2O->C9H11N2O8P1,U-H2O");
     fragment_adducts.push_back("U-HPO3->C9H12N2O6,U-HPO3");
+
+    // match to standard uracil fragments
+    fragment_adducts.push_back("AU-H2O->C9H13N2O9P1,U");
+    fragment_adducts.push_back("AU-H2O->C9H11N2O8P1,U-H2O");
+    fragment_adducts.push_back("AU-H2O->C9H12N2O6,U-HPO3");
+    fragment_adducts.push_back("AU-HPO3->C9H13N2O9P1,U");
+    fragment_adducts.push_back("AU-HPO3->C9H11N2O8P1,U-H2O");
+    fragment_adducts.push_back("AU-HPO3->C9H12N2O6,U-HPO3");
+    fragment_adducts.push_back("AU-H2O-HPO3->C9H13N2O9P1,U");
+    fragment_adducts.push_back("AU-H2O-HPO3->C9H11N2O8P1,U-H2O");
+    fragment_adducts.push_back("AU-H2O-HPO3->C9H12N2O6,U-HPO3");
+
+    fragment_adducts.push_back("GU-H2O->C9H13N2O9P1,U");
+    fragment_adducts.push_back("GU-H2O->C9H11N2O8P1,U-H2O");
+    fragment_adducts.push_back("GU-H2O->C9H12N2O6,U-HPO3");
+    fragment_adducts.push_back("GU-HPO3->C9H13N2O9P1,U");
+    fragment_adducts.push_back("GU-HPO3->C9H11N2O8P1,U-H2O");
+    fragment_adducts.push_back("GU-HPO3->C9H12N2O6,U-HPO3");
+    fragment_adducts.push_back("GU-H2O-HPO3->C9H13N2O9P1,U");
+    fragment_adducts.push_back("GU-H2O-HPO3->C9H11N2O8P1,U-H2O");
+    fragment_adducts.push_back("GU-H2O-HPO3->C9H12N2O6,U-HPO3");
+
+    fragment_adducts.push_back("CU-H2O->C9H13N2O9P1,U");
+    fragment_adducts.push_back("CU-H2O->C9H11N2O8P1,U-H2O");
+    fragment_adducts.push_back("CU-H2O->C9H12N2O6,U-HPO3");
+    fragment_adducts.push_back("CU-HPO3->C9H13N2O9P1,U");
+    fragment_adducts.push_back("CU-HPO3->C9H11N2O8P1,U-H2O");
+    fragment_adducts.push_back("CU-HPO3->C9H12N2O6,U-HPO3");
+    fragment_adducts.push_back("CU-H2O-HPO3->C9H13N2O9P1,U");
+    fragment_adducts.push_back("CU-H2O-HPO3->C9H11N2O8P1,U-H2O");
+    fragment_adducts.push_back("CU-H2O-HPO3->C9H12N2O6,U-HPO3");
+
+    fragment_adducts.push_back("UU-H2O->C9H13N2O9P1,U");
+    fragment_adducts.push_back("UU-H2O->C9H11N2O8P1,U-H2O");
+    fragment_adducts.push_back("UU-H2O->C9H12N2O6,U-HPO3");
+    fragment_adducts.push_back("UU-HPO3->C9H13N2O9P1,U");
+    fragment_adducts.push_back("UU-HPO3->C9H11N2O8P1,U-H2O");
+    fragment_adducts.push_back("UU-HPO3->C9H12N2O6,U-HPO3");
+    fragment_adducts.push_back("UU-H2O-HO3P->C9H13N2O9P1,U");
+    fragment_adducts.push_back("UU-H2O-HO3P->C9H11N2O8P1,U-H2O");
+    fragment_adducts.push_back("UU-H2O-HO3P->C9H12N2O6,U-HPO3");
 
     registerStringList_("RNPxl:fragment_adducts", "", fragment_adducts, "format: [formula] or [precursor adduct]->[fragment adduct formula],[name]: e.g 'C9H10N2O5,U-H3PO4' or 'U-H2O->C9H11N2O8P1,U-H2O',", false, false);
 
@@ -312,6 +351,52 @@ public:
 private:
     Size min_size_;
   };
+
+
+  // return a vector with estimated charges assigned for each peak. 0 if charge is unknown
+  template <typename SpectrumType>
+  vector<Size> estimatePeptideFragmentCharges(SpectrumType& in, double fragment_tolerance, bool fragment_unit_ppm, int min_charge = 1, int max_charge = 3, Size min_isopeaks = 2, Size max_isopeaks = 10)
+  {
+    vector<Size> charges(in.size(), 0);
+    for (Size i = 0; i != in.size(); ++i)
+    {
+      const double mz = in[i].getPosition()[0];
+
+      if (charges[i]) continue; // only process peaks with no charge assigned
+
+      for (int q = max_charge; q >= min_charge; --q) // important: test charge hypothesis from high to low (e.g. charge 1 would otherwise annotate half of the double charged fragments)
+      {
+        vector<Size> extensions;
+        extensions.reserve(10);
+
+        for (Size k = 0; k < max_isopeaks; ++k)
+        {
+          const double expected_mz = mz + k * Constants::C13C12_MASSDIFF_U / q;
+          Size p = in.findNearest(expected_mz);
+
+          const double tolerance_dalton = fragment_unit_ppm ? fragment_tolerance * expected_mz * 1e-6 : fragment_tolerance;
+
+          if (fabs(in[p] - expected_mz) > tolerance_dalton) // peak is missing, stop extending
+          {
+            break;
+          }
+          else  // peak is present, save index
+          {
+            extensions.push_back(p);
+          }
+        }
+        
+        if (extensions.size() < min_isopeaks) continue;
+
+        // annotate charge of all peaks in extension
+        for (Size k = 0; k != extensions.size(); ++k)
+        {
+          charges[extensions[k]] = q;   
+        }
+      }
+    }
+    return charges;
+  }
 
   // spectrum must not contain 0 intensity peaks and must be sorted by m/z
   template <typename SpectrumType>
@@ -610,20 +695,46 @@ private:
   {
     EmpiricalFormula formula; // formula
     String name;  // name used in annotation
+
+    bool operator<(const FragmentAdductDefinition_& other) const
+    {
+      if (formula.toString() < other.formula.toString()) return true;
+      if (formula.toString() > other.formula.toString()) return false;
+      if (name < other.name) return true;
+      return false;
+    }
+
+    bool operator==(const FragmentAdductDefinition_& other) const
+    {
+      if (formula != other.formula) return false;
+      if (name != other.name) return false;
+      return false;
+    }
   };
 
-  typedef multimap<String, FragmentAdductDefinition_> PrecursorToFragmentAdductMapType; // map a precursor adduct (e.g. AU-H2O to all possible fragment adducts)
+  typedef map<String, set<FragmentAdductDefinition_> > PrecursorToFragmentAdductMapType; // map a precursor adduct (e.g. AU-H2O to all possible fragment adducts)
 
   vector<FragmentAdductDefinition_> getFeasibleFragmentAdducts_(const String& exp_pc_adduct, const PrecursorToFragmentAdductMapType& precursor_to_fragment_adducts)
   {
-    vector<FragmentAdductDefinition_> feasible_fragment_adducts;
+    #ifdef DEBUG_RNPXLSEARCH
+      cout << "Generating fragment adducts for precursor adduct: '" << exp_pc_adduct << "'" << endl;
+    #endif
+    set<FragmentAdductDefinition_> feasible_fragment_adducts;
+
     for (PrecursorToFragmentAdductMapType::const_iterator mit = precursor_to_fragment_adducts.begin(); mit != precursor_to_fragment_adducts.end(); ++mit)
     {
       const String& pc_adduct = mit->first;
+      const set<FragmentAdductDefinition_>& fragment_adducts = mit->second;
 
       if (pc_adduct.empty()) // extract all fragment adducts not restricted by precursor adduct
       {
-        feasible_fragment_adducts.push_back(mit->second);        
+        feasible_fragment_adducts.insert(fragment_adducts.begin(), fragment_adducts.end());
+        for (set<FragmentAdductDefinition_>::const_iterator cit = fragment_adducts.begin(); cit != fragment_adducts.end(); ++cit)
+        {
+    #ifdef DEBUG_RNPXLSEARCH
+          cout << "constitutive fragment adducts: " << cit->name << "\t" << cit->formula.toString() << endl;
+    #endif
+        }
       }
       else // extract those that depend on precursor adduct
       {
@@ -648,6 +759,7 @@ private:
             ++pc_nucleotide_count[*pc_it];
           }
         }
+
         String pc_loss_string(pc_it, pc_adduct.end());
 
         map<char, Size> exp_pc_nucleotide_count;
@@ -667,7 +779,7 @@ private:
         String exp_pc_loss_string(exp_pc_it, exp_pc_adduct.end());
 
         bool all_present = true;
-        for (map<char, Size>::const_iterator pcn_it = pc_nucleotide_count.begin(); pcn_it == pc_nucleotide_count.end(); ++pcn_it)
+        for (map<char, Size>::const_iterator pcn_it = pc_nucleotide_count.begin(); pcn_it != pc_nucleotide_count.end(); ++pcn_it)
         {
           if (exp_pc_nucleotide_count.find(pcn_it->first) == exp_pc_nucleotide_count.end()) 
           {
@@ -691,11 +803,16 @@ private:
         std::sort(pc_loss_string.end(), pc_loss_string.end());
         if (exp_pc_loss_string == pc_loss_string)
         {
-          feasible_fragment_adducts.push_back(mit->second);
+          feasible_fragment_adducts.insert(fragment_adducts.begin(), fragment_adducts.end());
+    #ifdef DEBUG_RNPXLSEARCH
+          cout << "Rule: " << pc_adduct << " matches to: " << exp_pc_adduct << endl;
+    #endif
         }
       }
     }
-    return feasible_fragment_adducts; 
+    std::vector<FragmentAdductDefinition_> ret;
+    std::copy(feasible_fragment_adducts.begin(), feasible_fragment_adducts.end(), back_inserter(ret));
+    return ret; 
   }
 
   // calculate all feasible fragment adducts from precursor adducts
@@ -715,9 +832,9 @@ private:
         // calculate feasible fragment adducts and store them for lookup
         vector<FragmentAdductDefinition_> feasible_adducts = getFeasibleFragmentAdducts_(pc_adduct, precursor_to_fragment_adducts);
         all_pc_all_feasible_adducts[pc_adduct] = feasible_adducts;
+        break; // we only want to store one precursor adduct for multiple ambiguities (e.g. AUG, AGU, UAG..)
       }
     }
-
 
     #ifdef DEBUG_RNPXLSEARCH
       for (map<String, vector<FragmentAdductDefinition_> >::const_iterator mit = all_pc_all_feasible_adducts.begin(); mit != all_pc_all_feasible_adducts.end(); ++mit)
@@ -1405,43 +1522,43 @@ private:
        return;
      }
 
-    // name has at least one loss formula. Tokenize left of +/- sign
-    boost::regex re("(?=[\\+\\-])");
-    boost::sregex_token_iterator begin(name.begin(), name.end(), re, -1);
-    boost::sregex_token_iterator end;
-    vector<string> ss;
-    ss.insert(ss.end(), begin, end);
+      // name has at least one loss formula. Tokenize left of +/- sign
+      boost::regex re("(?=[\\+\\-])");
+      boost::sregex_token_iterator begin(name.begin(), name.end(), re, -1);
+      boost::sregex_token_iterator end;
+      vector<string> ss;
+      ss.insert(ss.end(), begin, end);
 
-    bool alpha_only = true;
-    for (Size i = 0; i != ss[0].size(); ++i)
-    {
-      if (!isalpha(ss[0][i])) alpha_only = false;
-    }
+      bool alpha_only = true;
+      for (Size i = 0; i != ss[0].size(); ++i)
+      {
+        if (!isalpha(ss[0][i])) alpha_only = false;
+      }
 
-    if (alpha_only) // sort nucleotides alphabetically (if no special characters are contained)
-    {
-      std::sort(ss[0].begin(), ss[0].end());
-    }
+      if (alpha_only) // sort nucleotides alphabetically (if no special characters are contained)
+      {
+        std::sort(ss[0].begin(), ss[0].end());
+      }
 
-    String new_name;
-    new_name += ss[0];
+      String new_name;
+      new_name += ss[0];
 
-    // sort loss formulas
-    std::sort(ss.begin() + 1, ss.end());
+      // sort loss formulas
+      std::sort(ss.begin() + 1, ss.end());
 
-    for (Size i = 1; i < ss.size(); ++i)
-    {
-      String without_sign(ss[i].begin() + 1, ss[i].end());
-      EmpiricalFormula loss_formula(without_sign);
-      new_name += ss[i][0] + loss_formula.toString(); // readd sign
-    }
-     name = new_name;
+      for (Size i = 1; i < ss.size(); ++i)
+      {
+        String without_sign(ss[i].begin() + 1, ss[i].end());
+        EmpiricalFormula loss_formula(without_sign);
+        new_name += ss[i][0] + loss_formula.toString(); // readd sign
+      }
+      name = new_name;
    }
 
   // parse tool parameter to create map from precursor adduct (potentially "" for all precursors) to all fragment adducts
-  multimap<String, FragmentAdductDefinition_ > getPrecursorToFragmentAdducts_(StringList fragment_adducts)
+  map<String, set<FragmentAdductDefinition_> > getPrecursorToFragmentAdducts_(StringList fragment_adducts)
   {
-    multimap<String, FragmentAdductDefinition_ > precursor_to_fragment_adducts;
+    map<String, set<FragmentAdductDefinition_> > precursor_to_fragment_adducts;
     for (StringList::const_iterator sit = fragment_adducts.begin(); sit != fragment_adducts.end(); ++sit)
     {
       String t = *sit;
@@ -1478,7 +1595,7 @@ private:
         else
         {
           LOG_WARN << "Wrong format of fragment_adduct string: " << t << endl;
-          return multimap<String, FragmentAdductDefinition_ >();
+          return map<String, set<FragmentAdductDefinition_> >();
         }
       }
       else if (ss.size() == 2) // we map: precursor adduct -> formula,name
@@ -1495,24 +1612,26 @@ private:
         {
           formula = EmpiricalFormula(fs[0]);
           name = fs[1];
+          normalizeAdductName_(name);
         }
         else
         {
           LOG_WARN << "Wrong format of fragment_adduct string: " << t << endl;
-          return multimap<String, FragmentAdductDefinition_ >();
+          return map<String, set<FragmentAdductDefinition_> >();
         }
  
       }
       else
       {
         LOG_WARN << "Wrong format of fragment_adduct string: " << t << endl;
-        return multimap<String, FragmentAdductDefinition_ >();
+        return map<String, set<FragmentAdductDefinition_> >();
       }
 
       FragmentAdductDefinition_ fad;
       fad.name = name;
       fad.formula = formula;
-      precursor_to_fragment_adducts.insert(make_pair(key, fad));
+
+      precursor_to_fragment_adducts[key].insert(fad);
 
       // register all fragment adducts as N- and C-terminal modification (if not already registered)
       if (!ModificationsDB::getInstance()->hasModification(name))
@@ -1535,14 +1654,15 @@ private:
       }
     }
 
+/*
     #ifdef DEBUG_RNPXLSEARCH
-      for (multimap<String, FragmentAdductDefinition_ >::const_iterator mit =  precursor_to_fragment_adducts.begin(); mit != precursor_to_fragment_adducts.end(); ++mit)
+      for (map<String, set<FragmentAdductDefinition_> >::const_iterator mit =  precursor_to_fragment_adducts.begin(); mit != precursor_to_fragment_adducts.end(); ++mit)
       {
         cout << "precursor adduct:" << mit->first << " fragment adduct:" << mit->second.formula.toString() << " name:" <<  mit->second.name << endl;
         cout << ModificationsDB::getInstance()->hasModification(mit->second.name) << endl;
       }
     #endif
-
+*/
     return precursor_to_fragment_adducts;
   }
 
@@ -1623,7 +1743,7 @@ private:
     mm.mod_combinations[""].insert("none");
 
     // parse tool parameter and generate all fragment adducts
-    multimap<String, FragmentAdductDefinition_> precursor_to_fragment_adducts = getPrecursorToFragmentAdducts_(getStringList_("RNPxl:fragment_adducts"));
+    map<String, set<FragmentAdductDefinition_> > precursor_to_fragment_adducts = getPrecursorToFragmentAdducts_(getStringList_("RNPxl:fragment_adducts"));
     map<String, vector<FragmentAdductDefinition_> > all_feasible_fragment_adducts = getAllFeasibleFragmentAdducts_(mm, precursor_to_fragment_adducts);
 
     // load MS2 map
