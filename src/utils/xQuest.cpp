@@ -1370,11 +1370,32 @@ protected:
     map<Size, Size> map_light_to_heavy;
     for (ConsensusMap::const_iterator cit = cfeatures.begin(); cit != cfeatures.end(); ++cit)
     {
-      if (cit->getFeatures().size() == 2 && cit->getPeptideIdentifications().size() == 2)
+      if (cit->getFeatures().size() > 2 || cit->getPeptideIdentifications().size() > 2)
       {
-        const PeptideIdentification& pi_0 = cit->getPeptideIdentifications()[0];
-        const PeptideIdentification& pi_1 = cit->getPeptideIdentifications()[1];
-        map_light_to_heavy[pi_0.getMetaValue("scan_index")] = pi_1.getMetaValue("scan_index");
+        cout << "Multiple PeptideIDs, Features: " << cit->getFeatures().size() << "\t PeptideIDs: " << cit->getPeptideIdentifications().size() << endl;
+      }
+
+      // if x == light && y == heavy, then make pair
+      if (cit->getFeatures().size() == 2 && cit->getPeptideIdentifications().size() >= 2)
+      {
+        for (Size x = 0; x < cit->getPeptideIdentifications().size(); ++x)
+        {
+          cout << "MetaValue map index: " <<  cit->getPeptideIdentifications()[x].getMetaValue("map index") << endl;
+          cout << "Scan index 1: " << cit->getPeptideIdentifications()[x].getMetaValue("scan_index") << endl;
+          if (static_cast<int>(cit->getPeptideIdentifications()[x].getMetaValue("map index")) == 0)
+          {
+            for (Size y = 0; y < cit->getPeptideIdentifications().size(); ++y)  {
+            cout << "Scan index 2: " << cit->getPeptideIdentifications()[y].getMetaValue("scan_index") << endl;
+              if (static_cast<int>(cit->getPeptideIdentifications()[y].getMetaValue("map index")) == 1)
+              {
+                const PeptideIdentification& pi_0 = cit->getPeptideIdentifications()[x];
+                const PeptideIdentification& pi_1 = cit->getPeptideIdentifications()[y];
+                map_light_to_heavy[pi_0.getMetaValue("scan_index")] = pi_1.getMetaValue("scan_index");
+
+              }
+            }
+          }
+        }
       }
     }
    
