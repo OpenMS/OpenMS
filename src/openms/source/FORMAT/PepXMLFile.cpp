@@ -978,18 +978,18 @@ namespace OpenMS
           double value = attributeAsDouble_(attributes, "value");
           params_.precursor_tolerance = value;
         }
-        // this is quite comet specific, but so is parameter name peptide_mass_units
+        // this is quite comet specific, but so is parameter name peptide_mass_units, see comet configuration file documentation
         if (name == "peptide_mass_units")
         {
           int value = attributeAsDouble_(attributes, "value");
           switch (value) {
-          case 0:
+          case 0: // comet value 0 type amu
               params_.precursor_mass_tolerance_ppm = false;
               break;
-          case 1:
+          case 1: // comet value 1 type mmu
               params_.precursor_mass_tolerance_ppm = false;
               break;
-          case 2:
+          case 2: // comet value 1 type ppm
               params_.precursor_mass_tolerance_ppm = true;
               break;
           default:
