@@ -186,8 +186,7 @@ protected:
     registerStringOption_("run_mode", "<choice>", "0", "Determines how Luciphor will run: 0 = calculate FLR then rerun scoring without decoys (two iterations), 1 = Report Decoys: calculate FLR but don't rescore PSMs, all decoy hits will be reported", false);
     setValidStrings_("run_mode", ListUtils::create<String>("0,1")); 
     
-    //registerIntOption_("java_memory", "<num>", 3500, "Maximum Java heap size (in MB)", false);
-    //registerIntOption_("java_permgen", "<num>", 0, "Maximum Java permanent generation space (in MB); only for Java 7 and below", false, true);
+    registerIntOption_("java_memory", "<num>", 3500, "Maximum Java heap size (in MB)", false);
   }
   
   String makeModString_(const String& mod_name)
@@ -386,9 +385,10 @@ protected:
     return conv_seq;
   }
   
-  ExitCodes parseLuciphorOutput_(const String& l_out, map<int, LuciphorPSM>& l_psms, const SpectrumLookup& lookup, const map<String, String>& modifications)
+  String parseLuciphorOutput_(const String& l_out, map<int, LuciphorPSM>& l_psms, const SpectrumLookup& lookup, const map<String, String>& modifications)
   {
     CsvFile tsvfile(l_out, '\t');
+    String spec_id = "";
         
     for (Size row_count = 1; row_count < tsvfile.rowCount(); ++row_count) // skip header line
     {
@@ -399,7 +399,7 @@ protected:
         return PARSE_ERROR;
       }
       
-      String spec_id = elements[0];
+      spec_id = elements[0];
       struct LuciphorPSM l_psm = splitSpecId_(spec_id);
       
       l_psm.scan_idx = lookup.findByScanNumber(l_psm.scan_nr);
@@ -411,13 +411,14 @@ protected:
       
       if (l_psms.count(l_psm.scan_idx) > 0)
       {
-        writeLog_("Error: duplicate scannr existing " + l_psm.scan_idx);
-        return PARSE_ERROR;
+        return "Error: duplicate scannr existing " + String(l_psm.scan_idx);
       }
       l_psms[l_psm.scan_idx] = l_psm;
-    }
+    }    
+    return "";
     
-    return EXECUTION_OK;
+    String msg = "Spectrum could not be parsed";
+    throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, spec_id, msg);
   }
   
   // Luciphor only calculated scores for the top hit, even if the scores were equal. Filter input to first top hit
@@ -524,6 +525,7 @@ protected:
     
     writeConfigurationFile_(conf_file, config_map);    
     QString executable = getStringOption_("executable").toQString();
+    QString java_memory = "-Xmx" + QString::number(getIntOption_("java_memory")) + "m";
     
     // Hack for KNIME. Looks for LUCIPHOR_PATH in the environment which is set in binaries.ini
     QProcessEnvironment env;
@@ -536,7 +538,8 @@ protected:
     }
 
     QStringList process_params; // the actual process is Java, not LuciPHOr2!
-    process_params << "-jar" << executable << conf_file.toQString();
+    process_params << java_memory
+                   << "-jar" << executable << conf_file.toQString();
 
     // execute LuciPHOr2    
     int status = QProcess::execute("java", process_params);
@@ -568,10 +571,12 @@ protected:
       search_params = prot_ids.begin()->getSearchParameters();
       getModificationParams_(search_params, modifications);
     }
-    ret = parseLuciphorOutput_(out, l_psms, lookup, modifications);
-    if (ret != EXECUTION_OK)
+    
+    String error = parseLuciphorOutput_(out, l_psms, lookup, modifications);
+    if (error != "")
     {
-      writeLog_("Error: LuciPHOr2 output is not correctly formated. Filter only top hit.");
+      error = "Error: LuciPHOr2 output is not correctly formated. " + error;
+      writeLog_(error);
       return ret;
     }
     
