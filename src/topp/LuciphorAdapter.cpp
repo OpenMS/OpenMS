@@ -36,6 +36,7 @@
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
@@ -421,30 +422,6 @@ protected:
     throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, spec_id, msg);
   }
   
-  // Luciphor only calculated scores for the top hit, even if the scores were equal. Filter input to first top hit
-  void filterPeptideIdentificationsByBestHit_(const vector<PeptideIdentification>& pep_ids, vector<PeptideIdentification>& filtered_pep_ids)
-  {
-    filtered_pep_ids.clear();
-    
-    for (vector<PeptideIdentification>::const_iterator pep_id = pep_ids.begin(); pep_id != pep_ids.end(); ++pep_id)
-    {
-      PeptideIdentification filtered_identification = *pep_id;
-      
-      if (!pep_id->getHits().empty())
-      {        
-        filtered_identification.sort();
-        
-        vector<PeptideHit> filtered_peptide_hits;
-        filtered_peptide_hits.push_back(filtered_identification.getHits()[0]);
-        
-        filtered_identification.setHits(filtered_peptide_hits);
-        filtered_identification.assignRanks();
-      }
-      
-      filtered_pep_ids.push_back(filtered_identification);
-    }
-  }
-  
   void addScoreToMetaValues_(PeptideHit& hit, const String score_type)
   {
     if (!hit.metaValueExists(score_type) && !hit.metaValueExists(score_type + "_score"))
@@ -500,13 +477,13 @@ protected:
     if (in_type == FileTypes::IDXML)
     {
       IdXMLFile().load(in, prot_ids, pep_ids);
-      filterPeptideIdentificationsByBestHit_(pep_ids, filtered_pep_ids);      
+      IDFilter::keepNBestHits(pep_ids, 1); // Luciphor only calculates the best hit
       
       // create a tempory pepXML file for LuciPHOR2 input
       String in_file_name = File::removeExtension(File::basename(in));
       in = temp_dir + in_file_name + ".pepXML";
       
-      PepXMLFile().store(in, prot_ids, filtered_pep_ids, spectrum_in, "", false);
+      PepXMLFile().store(in, prot_ids, pep_ids, spectrum_in, "", false);
     }
     else
     {
@@ -585,7 +562,7 @@ protected:
     //-------------------------------------------------------------
     vector<PeptideIdentification> pep_out;
     
-    for (vector<PeptideIdentification>::iterator pep_id = filtered_pep_ids.begin(); pep_id != filtered_pep_ids.end(); ++pep_id)
+    for (vector<PeptideIdentification>::iterator pep_id = pep_ids.begin(); pep_id != pep_ids.end(); ++pep_id)
     {
       Size scan_idx = lookup.findByRT(pep_id->getRT());
       
