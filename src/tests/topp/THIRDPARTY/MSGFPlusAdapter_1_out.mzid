@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<MzIdentML id="MS-GF+" version="1.1.0" xmlns="http://psidev.info/psi/pi/mzIdentML/1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psidev.info/psi/pi/mzIdentML/1.1 http://www.psidev.info/files/mzIdentML1.1.0.xsd" creationDate="2014-11-13T15:47:49" >
+<MzIdentML id="MS-GF+" version="1.1.0" xmlns="http://psidev.info/psi/pi/mzIdentML/1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psidev.info/psi/pi/mzIdentML/1.1 http://www.psidev.info/files/mzIdentML1.1.0.xsd" creationDate="2016-02-09T17:53:00" >
 <cvList xmlns="http://psidev.info/psi/pi/mzIdentML/1.1">
     <cv id="PSI-MS" uri="http://psidev.cvs.sourceforge.net/viewvc/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo" version="3.30.0" fullName="PSI-MS"/>
     <cv id="UNIMOD" uri="http://www.unimod.org/obo/unimod.obo" fullName="UNIMOD"/>
@@ -24,7 +24,7 @@
     </DBSequence>
     <Peptide id="Pep1">
         <PeptideSequence>IALSRPNVEVVALNDPFITNDYAAYMFK</PeptideSequence>
-        <Modification monoisotopicMassDelta="15.99491463" location="26">
+        <Modification monoisotopicMassDelta="15.994915" location="26">
             <cvParam accession="UNIMOD:35" cvRef="UNIMOD" name="Oxidation"/>
         </Modification>
     </Peptide>
@@ -89,7 +89,7 @@
 </AnalysisProtocolCollection>
 <DataCollection xmlns="http://psidev.info/psi/pi/mzIdentML/1.1">
     <Inputs>
-        <SearchDatabase numDatabaseSequences="10" location="/nfs/t17_project/OpenMS/src/tests/topp/SEARCHENGINES/proteins.fasta" id="SearchDB_1">
+        <SearchDatabase numDatabaseSequences="10" location="/home/lars/Desktop/tests/THIRDPARTY/proteins.fasta" id="SearchDB_1">
             <FileFormat>
                 <cvParam accession="MS:1001348" cvRef="PSI-MS" name="FASTA format"/>
             </FileFormat>
@@ -97,7 +97,7 @@
                 <userParam name="proteins.fasta"/>
             </DatabaseName>
         </SearchDatabase>
-        <SpectraData location="/nfs/t17_project/OpenMS/src/tests/topp/SEARCHENGINES/spectra.mzML" name="spectra.mzML" id="SID_1">
+        <SpectraData location="/home/lars/Desktop/tests/THIRDPARTY/spectra.mzML" name="spectra.mzML" id="SID_1">
             <FileFormat>
                 <cvParam accession="MS:1000584" cvRef="PSI-MS" name="mzML file"/>
             </FileFormat>
