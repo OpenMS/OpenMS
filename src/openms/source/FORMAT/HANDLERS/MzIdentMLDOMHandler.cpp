@@ -1297,7 +1297,7 @@ namespace OpenMS
         {
           for (vector<CVTerm>::const_iterator cv = cvs->second.begin(); cv != cvs->second.end(); ++cv)
           {
-            hit.setMetaValue(cvs->first, ((cv->getValue()).toString()).toDouble());
+            hit.setMetaValue(cvs->first, cv->getValue().toString().toDouble());
           }
         }
         for (map<String, DataValue>::const_iterator up = params.second.begin(); up != params.second.end(); ++up)
