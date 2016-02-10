@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<MzIdentML id="MS-GF+" version="1.1.0" xmlns="http://psidev.info/psi/pi/mzIdentML/1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psidev.info/psi/pi/mzIdentML/1.1 http://www.psidev.info/files/mzIdentML1.1.0.xsd" creationDate="2016-02-09T17:53:00" >
+<MzIdentML id="MS-GF+" version="1.1.0" xmlns="http://psidev.info/psi/pi/mzIdentML/1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psidev.info/psi/pi/mzIdentML/1.1 http://www.psidev.info/files/mzIdentML1.1.0.xsd" creationDate="2016-02-10T16:21:06" >
 <cvList xmlns="http://psidev.info/psi/pi/mzIdentML/1.1">
     <cv id="PSI-MS" uri="http://psidev.cvs.sourceforge.net/viewvc/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo" version="3.30.0" fullName="PSI-MS"/>
     <cv id="UNIMOD" uri="http://www.unimod.org/obo/unimod.obo" fullName="UNIMOD"/>
