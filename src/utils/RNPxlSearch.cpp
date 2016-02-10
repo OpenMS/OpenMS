@@ -218,60 +218,15 @@ protected:
     modifications.push_back("-H2O-HPO3");
     modifications.push_back("-HPO3");
 
-    // fragment adducts that may occur for every precursor adduct
+    // fragment adducts that may occur for every precursor adduct (if chemically feasible in terms of elements may not be negative)
     StringList fragment_adducts;
     fragment_adducts.push_back("C9H10N2O5,U-H3PO4");
     fragment_adducts.push_back("C4H4N2O2,U'");
     fragment_adducts.push_back("C4H2N2O1,U'-H2O");
-    fragment_adducts.push_back("C3O,C3O"); 
-
-    // fragment adducts that only occur for a specific precursor adduct
-    fragment_adducts.push_back("U->C9H13N2O9P1,U");
-    fragment_adducts.push_back("U->C9H11N2O8P1,U-H2O");
-    fragment_adducts.push_back("U->C9H12N2O6,U-HPO3");
-    fragment_adducts.push_back("U-H2O->C9H11N2O8P1,U-H2O");
-    fragment_adducts.push_back("U-HPO3->C9H12N2O6,U-HPO3");
-
-    // match to standard uracil fragments
-    fragment_adducts.push_back("AU-H2O->C9H13N2O9P1,U");
-    fragment_adducts.push_back("AU-H2O->C9H11N2O8P1,U-H2O");
-    fragment_adducts.push_back("AU-H2O->C9H12N2O6,U-HPO3");
-    fragment_adducts.push_back("AU-HPO3->C9H13N2O9P1,U");
-    fragment_adducts.push_back("AU-HPO3->C9H11N2O8P1,U-H2O");
-    fragment_adducts.push_back("AU-HPO3->C9H12N2O6,U-HPO3");
-    fragment_adducts.push_back("AU-H2O-HPO3->C9H13N2O9P1,U");
-    fragment_adducts.push_back("AU-H2O-HPO3->C9H11N2O8P1,U-H2O");
-    fragment_adducts.push_back("AU-H2O-HPO3->C9H12N2O6,U-HPO3");
-
-    fragment_adducts.push_back("GU-H2O->C9H13N2O9P1,U");
-    fragment_adducts.push_back("GU-H2O->C9H11N2O8P1,U-H2O");
-    fragment_adducts.push_back("GU-H2O->C9H12N2O6,U-HPO3");
-    fragment_adducts.push_back("GU-HPO3->C9H13N2O9P1,U");
-    fragment_adducts.push_back("GU-HPO3->C9H11N2O8P1,U-H2O");
-    fragment_adducts.push_back("GU-HPO3->C9H12N2O6,U-HPO3");
-    fragment_adducts.push_back("GU-H2O-HPO3->C9H13N2O9P1,U");
-    fragment_adducts.push_back("GU-H2O-HPO3->C9H11N2O8P1,U-H2O");
-    fragment_adducts.push_back("GU-H2O-HPO3->C9H12N2O6,U-HPO3");
-
-    fragment_adducts.push_back("CU-H2O->C9H13N2O9P1,U");
-    fragment_adducts.push_back("CU-H2O->C9H11N2O8P1,U-H2O");
-    fragment_adducts.push_back("CU-H2O->C9H12N2O6,U-HPO3");
-    fragment_adducts.push_back("CU-HPO3->C9H13N2O9P1,U");
-    fragment_adducts.push_back("CU-HPO3->C9H11N2O8P1,U-H2O");
-    fragment_adducts.push_back("CU-HPO3->C9H12N2O6,U-HPO3");
-    fragment_adducts.push_back("CU-H2O-HPO3->C9H13N2O9P1,U");
-    fragment_adducts.push_back("CU-H2O-HPO3->C9H11N2O8P1,U-H2O");
-    fragment_adducts.push_back("CU-H2O-HPO3->C9H12N2O6,U-HPO3");
-
-    fragment_adducts.push_back("UU-H2O->C9H13N2O9P1,U");
-    fragment_adducts.push_back("UU-H2O->C9H11N2O8P1,U-H2O");
-    fragment_adducts.push_back("UU-H2O->C9H12N2O6,U-HPO3");
-    fragment_adducts.push_back("UU-HPO3->C9H13N2O9P1,U");
-    fragment_adducts.push_back("UU-HPO3->C9H11N2O8P1,U-H2O");
-    fragment_adducts.push_back("UU-HPO3->C9H12N2O6,U-HPO3");
-    fragment_adducts.push_back("UU-H2O-HO3P->C9H13N2O9P1,U");
-    fragment_adducts.push_back("UU-H2O-HO3P->C9H11N2O8P1,U-H2O");
-    fragment_adducts.push_back("UU-H2O-HO3P->C9H12N2O6,U-HPO3");
+    fragment_adducts.push_back("C3O,C3O");
+    fragment_adducts.push_back("C9H13N2O9P1,U");
+    fragment_adducts.push_back("C9H11N2O8P1,U-H2O");
+    fragment_adducts.push_back("C9H12N2O6,U-HPO3");    
 
     registerStringList_("RNPxl:fragment_adducts", "", fragment_adducts, "format: [formula] or [precursor adduct]->[fragment adduct formula],[name]: e.g 'C9H10N2O5,U-H3PO4' or 'U-H2O->C9H11N2O8P1,U-H2O',", false, false);
 
@@ -714,8 +669,11 @@ private:
 
   typedef map<String, set<FragmentAdductDefinition_> > PrecursorToFragmentAdductMapType; // map a precursor adduct (e.g. AU-H2O to all possible fragment adducts)
 
-  vector<FragmentAdductDefinition_> getFeasibleFragmentAdducts_(const String& exp_pc_adduct, const PrecursorToFragmentAdductMapType& precursor_to_fragment_adducts)
+  vector<FragmentAdductDefinition_> getFeasibleFragmentAdducts_(const String& exp_pc_adduct, const String& exp_pc_formula, const PrecursorToFragmentAdductMapType& precursor_to_fragment_adducts)
   {
+    // no precursor adduct? no fragment adducts are expected!
+    if (exp_pc_formula.empty()) return vector<FragmentAdductDefinition_>(); 
+
     #ifdef DEBUG_RNPXLSEARCH
       cout << "Generating fragment adducts for precursor adduct: '" << exp_pc_adduct << "'" << endl;
     #endif
@@ -726,14 +684,20 @@ private:
       const String& pc_adduct = mit->first;
       const set<FragmentAdductDefinition_>& fragment_adducts = mit->second;
 
-      if (pc_adduct.empty()) // extract all fragment adducts not restricted by precursor adduct
+      // if fragment adducts are not restricted on precursor adduct only check if composition makes sense 
+      if (pc_adduct.empty())
       {
-        feasible_fragment_adducts.insert(fragment_adducts.begin(), fragment_adducts.end());
         for (set<FragmentAdductDefinition_>::const_iterator cit = fragment_adducts.begin(); cit != fragment_adducts.end(); ++cit)
         {
+          // rough check for chemical feasibility: fragment adduct may not contain more of each element than present its precursor
+          EmpiricalFormula diff_formula = EmpiricalFormula(exp_pc_formula) - cit->formula; 
+          if (!diff_formula.toString().hasSubstring("-")) // difference my not contain negative element counts
+          {
+            feasible_fragment_adducts.insert(*cit);
     #ifdef DEBUG_RNPXLSEARCH
-          cout << "constitutive fragment adducts: " << cit->name << "\t" << cit->formula.toString() << endl;
+          cout << "feasible fragment adduct: " << cit->name << "\t" << cit->formula.toString() << endl;
     #endif
+          }
         }
       }
       else // extract those that depend on precursor adduct
@@ -824,14 +788,17 @@ private:
 
     for (Map<String, double>::ConstIterator mit = precursor_adducts.mod_masses.begin(); mit != precursor_adducts.mod_masses.end(); ++mit)
     {
-      const set<String>& ambiguities = precursor_adducts.mod_combinations.at(mit->first);
+      const String& ef = mit->first;
+      const set<String>& ambiguities = precursor_adducts.mod_combinations.at(ef);
+
       for (set<String>::const_iterator sit = ambiguities.begin(); sit != ambiguities.end(); ++sit)
       {
         const String& pc_adduct = *sit;  // nucleotide formula e.g. "AU-H2O"
 
         // calculate feasible fragment adducts and store them for lookup
-        vector<FragmentAdductDefinition_> feasible_adducts = getFeasibleFragmentAdducts_(pc_adduct, precursor_to_fragment_adducts);
+        vector<FragmentAdductDefinition_> feasible_adducts = getFeasibleFragmentAdducts_(pc_adduct, ef, precursor_to_fragment_adducts);
         all_pc_all_feasible_adducts[pc_adduct] = feasible_adducts;
+
         break; // we only want to store one precursor adduct for multiple ambiguities (e.g. AUG, AGU, UAG..)
       }
     }
