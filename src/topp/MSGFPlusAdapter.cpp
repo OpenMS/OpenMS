@@ -398,7 +398,7 @@ protected:
   // Set the MS-GF+ e-value (MS:1002052) as new peptide identification score.
   void switchScores_(PeptideIdentification& id)
   {
-    for (vector<PeptideIdentification::HitType>::iterator hit_it = id.getHits().begin(); hit_it != id.getHits().end(); ++hit_it)
+    for (vector<PeptideHit>::iterator hit_it = id.getHits().begin(); hit_it != id.getHits().end(); ++hit_it)
     {
       // MS:1002052 == MS-GF spectral E-value
       if (!hit_it->metaValueExists("MS:1002052"))
@@ -409,7 +409,7 @@ protected:
       
       hit_it->setScore(hit_it->getMetaValue("MS:1002052"));
     }
-    id.setScoreType("MSGFPlus");
+    id.setScoreType("SpecEValue");
     id.setHigherScoreBetter(false);
   }
   
@@ -747,7 +747,7 @@ protected:
         vector<ProteinIdentification> protein_ids;
         vector<PeptideIdentification> peptide_ids;
         MzIdentMLFile().load(mzid_temp, protein_ids, peptide_ids);
-        // set the MS-GF+ e-value as new peptide identification score
+        // set the MS-GF+ spectral e-value as new peptide identification score
         for (vector<PeptideIdentification>::iterator pep_it = peptide_ids.begin(); pep_it != peptide_ids.end(); ++pep_it)
         {
           switchScores_(*pep_it);
