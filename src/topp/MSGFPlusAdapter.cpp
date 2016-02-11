@@ -388,6 +388,31 @@ protected:
     }
   }
   
+  String describeHit_(const PeptideHit& hit)
+  {
+    return "peptide hit with sequence '" + hit.getSequence().toString() +
+      "', charge " + String(hit.getCharge()) + ", score " + 
+      String(hit.getScore());
+  }
+
+  // Set the MS-GF+ e-value (MS:1002052) as new peptide identification score.
+  void switchScores_(PeptideIdentification& id)
+  {
+    for (vector<PeptideHit>::iterator hit_it = id.getHits().begin(); hit_it != id.getHits().end(); ++hit_it)
+    {
+      // MS:1002052 == MS-GF spectral E-value
+      if (!hit_it->metaValueExists("MS:1002052"))
+      {
+        String msg = "Meta value 'MS:1002052' not found for " + describeHit_(*hit_it);
+        throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, msg);
+      }
+      
+      hit_it->setScore(hit_it->getMetaValue("MS:1002052"));
+    }
+    id.setScoreType("SpecEValue");
+    id.setHigherScoreBetter(false);
+  }
+  
   ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
@@ -722,6 +747,11 @@ protected:
         vector<ProteinIdentification> protein_ids;
         vector<PeptideIdentification> peptide_ids;
         MzIdentMLFile().load(mzid_temp, protein_ids, peptide_ids);
+        // set the MS-GF+ spectral e-value as new peptide identification score
+        for (vector<PeptideIdentification>::iterator pep_it = peptide_ids.begin(); pep_it != peptide_ids.end(); ++pep_it)
+        {
+          switchScores_(*pep_it);
+        }
         SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptide_ids, in, false);
         IdXMLFile().store(out, protein_ids, peptide_ids);
       }

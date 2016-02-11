@@ -358,7 +358,7 @@ namespace OpenMS
   {
     if (!s.empty())
     {
-      this->setMetaValue("ms_run-location", DataValue(s));
+      this->setMetaValue("spectra_data", DataValue(s));
     }
   }
 
@@ -366,9 +366,9 @@ namespace OpenMS
   StringList FeatureMap::getPrimaryMSRunPath() const
   {
     StringList ret;
-    if (this->metaValueExists("ms_run-location"))
+    if (this->metaValueExists("spectra_data"))
     {
-      ret = this->getMetaValue("ms_run-location");
+      ret = this->getMetaValue("spectra_data");
     }
     return ret;
   }
