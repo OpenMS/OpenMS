@@ -179,23 +179,6 @@ class SimpleSearchEngine :
       return modifications;
     }
 
-    // check if for minimum size
-    class HasInvalidPeptideLengthPredicate
-    {
-        public:
-          explicit HasInvalidPeptideLengthPredicate(Size min_size)
-            :min_size_(min_size)
-          {
-          }
-
-          bool operator()(const AASequence& aas)
-          {
-            return (aas.size() < min_size_);
-          }
-      private:
-          Size min_size_;
-    };
-
     // spectrum must not contain 0 intensity peaks and must be sorted by m/z
     template <typename SpectrumType>
     static void deisotopeAndSingleChargeMSSpectrum(SpectrumType& in, Int min_charge, Int max_charge, double fragment_tolerance, bool fragment_unit_ppm, bool keep_only_deisotoped = false, Size min_isopeaks = 3, Size max_isopeaks = 10, bool make_single_charged = true)
