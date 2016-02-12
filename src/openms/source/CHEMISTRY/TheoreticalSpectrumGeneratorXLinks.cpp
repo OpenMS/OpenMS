@@ -231,8 +231,12 @@ namespace OpenMS
       {
         ion = peptideA.getPrefix(i);
         double pos = (ion.getMonoWeight(Residue::BIon, charge) + (xlink_mass + peptideB_mass)) / static_cast<double>(charge);
+        // Adding a second isotopic peak, as it is the most intense one in many cases for cross-links
+        double pos2 = (ion.getMonoWeight(Residue::BIon, charge) + (xlink_mass + peptideB_mass) + Constants::NEUTRON_MASS_U) / static_cast<double>(charge);
         ions_alpha[pos] = ion;
+        ions_alpha[pos2] = ion;
         names[pos] = "b(alpha)" + String(i) + "X" + String(charge, '+');
+        names[pos2] = "b(alpha)" + String(i) + "X" + String(charge, '+');
 //        cout << "XLink PepA, b-ion: " << ion.toString() << "\t Charge: " << charge << "\t Mono: " << (ion.getMonoWeight(Residue::BIon, charge) + (xlink_mass + peptideB_mass)) << "\t MZ: " << pos << endl;
       }
 
@@ -241,8 +245,12 @@ namespace OpenMS
       {
         ion = peptideB.getPrefix(i);
         double pos =(ion.getMonoWeight(Residue::BIon, charge) + (xlink_mass + peptideA_mass)) / static_cast<double>(charge);
+        // Adding a second isotopic peak, as it is the most intense one in many cases for cross-links
+        double pos2 = (ion.getMonoWeight(Residue::BIon, charge) + (xlink_mass + peptideA_mass) + Constants::NEUTRON_MASS_U) / static_cast<double>(charge);
         ions_beta[pos] = ion;
+        ions_beta[pos2] = ion;
         names[pos] = "b(beta)" + String(i) + "X" + String(charge, '+');
+        names[pos2] = "b(beta)" + String(i) + "X" + String(charge, '+');
 //        cout << "XLink PepB, b-ion: " << ion.toString() << "\t Charge: " << charge << "\t Mono: " << (ion.getMonoWeight(Residue::BIon, charge) + (xlink_mass + peptideA_mass)) << "\t MZ: " << pos << endl;
       }
 
@@ -256,8 +264,12 @@ namespace OpenMS
       {
         ion = peptideA.getSuffix(i);
         double pos = (ion.getMonoWeight(Residue::YIon, charge) + (xlink_mass + peptideB_mass)) / static_cast<double>(charge);
+        // Adding a second isotopic peak, as it is the most intense one in many cases for cross-links
+        double pos2 = (ion.getMonoWeight(Residue::BIon, charge) + (xlink_mass + peptideB_mass) + Constants::NEUTRON_MASS_U) / static_cast<double>(charge);
         ions_alpha[pos] = ion;
+        ions_alpha[pos2] = ion;
         names[pos] = "y(alpha)" + String(i) + "X" + String(charge, '+');
+        names[pos2] = "y(alpha)" + String(i) + "X" + String(charge, '+');
 //        cout << "XLink PepA, y-ion: " << ion.toString() << "\t Charge: " << charge << "\t Mono: " << (ion.getMonoWeight(Residue::BIon, charge) + (xlink_mass + peptideB_mass)) << "\t MZ: " << pos << endl;
       }
 
@@ -265,8 +277,12 @@ namespace OpenMS
       {
         ion = peptideB.getSuffix(i);
         double pos = (ion.getMonoWeight(Residue::YIon, charge) + (xlink_mass + peptideA_mass)) / static_cast<double>(charge);
+        // Adding a second isotopic peak, as it is the most intense one in many cases for cross-links
+        double pos2 = (ion.getMonoWeight(Residue::BIon, charge) + (xlink_mass + peptideA_mass) + Constants::NEUTRON_MASS_U) / static_cast<double>(charge);
         ions_beta[pos] = ion;
+        ions_beta[pos2] = ion;
         names[pos] = "y(beta)" + String(i) + "X" + String(charge, '+');
+        names[pos2] = "y(beta)" + String(i) + "X" + String(charge, '+');
 //        cout << "XLink PepB, y-ion: " << ion.toString() << "\t Charge: " << charge << "\t Mono: " << (ion.getMonoWeight(Residue::BIon, charge) + (xlink_mass + peptideA_mass)) << "\t MZ: " << pos << endl;
       }
 
