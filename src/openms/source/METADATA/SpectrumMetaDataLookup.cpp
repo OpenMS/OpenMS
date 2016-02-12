@@ -42,6 +42,9 @@
 
 #include <algorithm>
 #include <cmath>
+#include <list>
+#include <numeric>
+#include <boost/regex.hpp>
 
 using namespace std;
 
@@ -327,7 +330,7 @@ namespace OpenMS
               new_spec.sortByPosition();
           sa.getSpectrumAlignment(al, gen_spec, new_spec); //peaks from theor. may be matched to none or one in spec!
           StringList ions;
-          float match_intensity = 0;
+          double match_intensity = 0;
           //TODO ionseries max length
           StringList allowed_types = ListUtils::create<String>("y,b,a,c,x,z");
           map<String, vector<bool> > ion_series;
@@ -335,13 +338,26 @@ namespace OpenMS
           {
             ion_series.insert(make_pair(*st, vector<bool>(ph->getSequence().size()-1, false)));
           }
-          vector<double> fragmenterrors;
+          map<double,double> fragmenterrors; // mapped from intensity to error for topN statistics
+          double nint = 0;
+          double cint = 0;
           for (vector<pair<Size, Size > >::const_iterator it = al.begin(); it != al.end(); ++it)
           {
             match_intensity += new_spec[it->second].getIntensity();
             String ion_name = rich_spec[it->first].getMetaValue("IonName");
+            const boost::regex nt_regex("[a,b,c][[:digit:]]+[+]+");
+            const boost::regex ct_regex("[x,y,z][[:digit:]]+[+]+");
+            if (boost::regex_match(ion_name, nt_regex))
+            {
+              nint += new_spec[it->second].getIntensity();
+            }
+            else if (boost::regex_match(ion_name, ct_regex))
+            {
+              cint += new_spec[it->second].getIntensity();
+            }
+
             ions.push_back(ion_name);
-            fragmenterrors.push_back(std::fabs(new_spec[it->second].getMZ() - rich_spec[it->first].getMZ()));
+            fragmenterrors.insert(make_pair(new_spec[it->second].getIntensity(),std::fabs(new_spec[it->second].getMZ() - rich_spec[it->first].getMZ())));
             String ion_type = ion_name.prefix(1);
             if (ListUtils::contains(allowed_types, ion_type))
             {
@@ -358,32 +374,64 @@ namespace OpenMS
               }
             }
           }
+          ph->setMetaValue("NTermIonCurrentRatio", nint/match_intensity);
+          ph->setMetaValue("CTermIonCurrentRatio", cint/match_intensity);
 
           if(fragmenterrors.empty())
           {
               ph->setMetaValue("median_fragment_error", 0);
               ph->setMetaValue("IQR_fragment_error", 0);
+              ph->setMetaValue("top7_meanfragmenterror", 0);
+              ph->setMetaValue("top7_MSEfragmenterror", 0);
+              ph->setMetaValue("top7_stddevfragmenterror", 0);
           }
           else
           {
-            std::size_t mid = fragmenterrors.size()/2;
-            std::size_t lq = fragmenterrors.size()/4;
-            std::size_t uq = lq + mid;
-            std::nth_element(fragmenterrors.begin(), fragmenterrors.begin()+mid, fragmenterrors.end());
-            if(fragmenterrors.size() % 2 != 0)
+            vector<double> fe;
+            fe.reserve(fragmenterrors.size());
+            for (map<double,double>::const_iterator fit = fragmenterrors.begin(); fit != fragmenterrors.end(); ++fit)
             {
-              ph->setMetaValue("median_fragment_error", fragmenterrors[mid]);
+              fe.push_back(fit->second);
+            }
+            std::size_t mid = fe.size()/2;
+            std::size_t lq = fe.size()/4;
+            std::size_t uq = lq + mid;
+            std::nth_element(fe.begin(), fe.begin()+mid, fe.end());
+            if(fe.size() % 2 != 0)
+            {
+              ph->setMetaValue("median_fragment_error", fe[mid]);
             }
             else
             {
-              double right2mid = fragmenterrors[mid];
-              std::nth_element(fragmenterrors.begin(), fragmenterrors.begin()+mid-1, fragmenterrors.end());
-              ph->setMetaValue("median_fragment_error", (right2mid+fragmenterrors[mid-1])/2.0);
+              double right2mid = fe[mid];
+              std::nth_element(fe.begin(), fe.begin()+mid-1, fe.end());
+              ph->setMetaValue("median_fragment_error", (right2mid+fe[mid-1])/2.0);
             }
-            std::nth_element(fragmenterrors.begin(),          fragmenterrors.begin() + lq, fragmenterrors.end());
-            std::nth_element(fragmenterrors.begin() + lq + 1, fragmenterrors.begin() + mid, fragmenterrors.end());
-            std::nth_element(fragmenterrors.begin() + mid + 1, fragmenterrors.begin() + uq, fragmenterrors.end());
-            ph->setMetaValue("IQR_fragment_error", fragmenterrors[uq]-fragmenterrors[lq]);
+            std::nth_element(fe.begin(),          fe.begin() + lq, fe.end());
+            std::nth_element(fe.begin() + lq + 1, fe.begin() + mid, fe.end());
+            std::nth_element(fe.begin() + mid + 1, fe.begin() + uq, fe.end());
+            ph->setMetaValue("IQR_fragment_error", fe[uq]-fe[lq]);
+
+            vector<double> topn_fe;
+            topn_fe.reserve(7);
+            //apparently i cannot do this: map<double,double>::reverse_iterator rtop7 = fragmenterrors.rbegin() + 8;
+            for (map<double,double>::reverse_iterator fit = fragmenterrors.rbegin(); fit != fragmenterrors.rend() && topn_fe.size() < 7; ++fit)
+            {
+              topn_fe.push_back(fit->second);
+            }
+            double sum = std::accumulate(topn_fe.begin(), topn_fe.end(), 0.0);
+            double mean = sum / topn_fe.size();
+
+            std::vector<double> diff(topn_fe.size());
+            std::transform(topn_fe.begin(), topn_fe.end(), diff.begin(),
+                           std::bind2nd(std::minus<double>(), mean));
+            double sq_sum = std::inner_product(diff.begin(), diff.end(), diff.begin(), 0.0);
+            double m_sq_sum = (sq_sum / topn_fe.size());
+            double stdev = std::sqrt(sq_sum / topn_fe.size());
+
+            ph->setMetaValue("top7_meanfragmenterror", mean);
+            ph->setMetaValue("top7_MSEfragmenterror", m_sq_sum);
+            ph->setMetaValue("top7_stddevfragmenterror", stdev);
           }
 
           ph->setMetaValue("matched_ions", ListUtils::concatenate(ions, ","));
