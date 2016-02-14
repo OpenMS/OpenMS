@@ -47,7 +47,13 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
+#include <OpenMS/CHEMISTRY/SpectrumAnnotator.h>
+
 #include <boost/math/special_functions/fpclassify.hpp> // for "isnan"
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 using namespace OpenMS;
 using namespace std;
@@ -341,10 +347,68 @@ protected:
         String exp_name = getStringOption_("mz_file");
         if (!exp_name.empty())
         {
-          bool add_ions = getFlag_("add_ionmatch_annotation");
           bool reset_basename = getFlag_("reset_basename");
           SpectrumMetaDataLookup::addMissingSpectrumReferencestoPeptideIDs(
                       peptide_identifications, exp_name, false, reset_basename);
+        }
+        bool add_ions = getFlag_("add_ionmatch_annotation");
+        if (add_ions && !exp_name.empty())
+        {
+            TheoreticalSpectrumGenerator tg = TheoreticalSpectrumGenerator();
+            Param tgp(tg.getDefaults());
+            tgp.setValue("add_metainfo", "true");
+            tgp.setValue("add_losses", "true");
+            tgp.setValue("add_precursor_peaks", "true");
+            tgp.setValue("add_abundant_immonium_ions", "true");
+            tgp.setValue("add_first_prefix_ion", "true");
+            tgp.setValue("add_y_ions", "true");
+            tgp.setValue("add_b_ions", "true");
+            tgp.setValue("add_a_ions", "true");
+            tgp.setValue("add_c_ions", "true");
+            tgp.setValue("add_x_ions", "true");
+            tgp.setValue("add_z_ions", "true");
+            tg.setParameters(tgp);
+
+            SpectrumAlignment sa;
+            Param sap = sa.getDefaults();
+            sap.setValue("tolerance", 0.5, "...");
+            sa.setParameters(sap);
+
+            SpectrumAnnotator annot;
+
+
+            MSExperiment<> exp;
+            SpectrumLookup lookup;
+            if (lookup.empty()) // load raw data only if we have to
+            {
+              FileHandler().loadExperiment(exp_name, exp);
+              lookup.readSpectra(exp.getSpectra());
+            }
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+            for (SignedSize i = 0; i < (SignedSize)peptide_identifications.size(); ++i)
+//                for (std::vector<PeptideIdentification>::iterator pit = peptide_identifications.begin(); pit != peptide_identifications.end(); ++pit)
+            {
+              try
+              {
+                String ref = peptide_identifications[i].getMetaValue("spectrum_reference");
+//                    String ref = pit->getMetaValue("spectrum_reference");
+                Size index = lookup.findByNativeID(ref);
+                LOG_WARN << "annotating" << ref << std::endl;
+                annot.addIonMatches(peptide_identifications[i], exp[index], tg, sa);
+//                    annot.addIonMatches(*pit, exp[index], tg, sa);
+              }
+              catch (Exception::ElementNotFound&)
+              {
+#ifdef _OPENMP
+#pragma omp critical (IDFileConverter_ERROR)
+#endif
+                {
+                  LOG_ERROR << "Error: Failed to look up spectrum - none with corresponding native ID found." << endl;
+                }
+              }
+            }
         }
 
       }

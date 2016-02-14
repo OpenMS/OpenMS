@@ -40,6 +40,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
+#include <boost/regex.hpp>
 
 namespace OpenMS
 {
@@ -88,9 +89,13 @@ namespace OpenMS
       bool max_series_;
       bool SN_statistics_;
       bool precursor_statistics_;
-      int topNmatch_fragmenterrors_;
+      uint topNmatch_fragmenterrors_;
       bool fragmenterror_statistics_;
       bool terminal_series_match_ratio_;
+
+      static const boost::regex nt_regex_;
+      static const boost::regex ct_regex_;
+
   };
 }
 #endif
