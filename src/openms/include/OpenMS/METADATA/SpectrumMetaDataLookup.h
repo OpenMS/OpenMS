@@ -284,7 +284,7 @@ namespace OpenMS
        The raw data is only loaded from @p filename if necessary, i.e. if there are any peptide IDs with spectrum_references.
     */
     static bool addMissingSpectrumReferencestoPeptideIDs(std::vector<PeptideIdentification>& peptides, const String& filename,
-      bool stop_on_error, bool add_ionmatches, bool reset_basename);
+      bool stop_on_error, bool reset_basename);
 
   protected:
 
@@ -298,8 +298,6 @@ namespace OpenMS
     /// Assignment operator (not implemented)
     SpectrumMetaDataLookup& operator=(const SpectrumMetaDataLookup&);
 
-    /// adds Ion matches to identifcations
-    static void addIonMatches_(PeptideIdentification& pi, const MSSpectrum<Peak1D> &spec);
   };
 
 } //namespace OpenMS

@@ -329,7 +329,7 @@ protected:
           if (add_ions)
           {
             SpectrumMetaDataLookup::addMissingSpectrumReferencestoPeptideIDs(
-                      peptide_identifications, exp_name, false, add_ions, reset_basename);
+                      peptide_identifications, exp_name, false, reset_basename);
           }
         }
       }
@@ -344,7 +344,7 @@ protected:
           bool add_ions = getFlag_("add_ionmatch_annotation");
           bool reset_basename = getFlag_("reset_basename");
           SpectrumMetaDataLookup::addMissingSpectrumReferencestoPeptideIDs(
-                      peptide_identifications, exp_name, false, add_ions, reset_basename);
+                      peptide_identifications, exp_name, false, reset_basename);
         }
 
       }
@@ -366,7 +366,7 @@ protected:
           if (add_ions)
           {
             SpectrumMetaDataLookup::addMissingSpectrumReferencestoPeptideIDs(
-                      peptide_identifications, exp_name, false, add_ions, reset_basename);
+                      peptide_identifications, exp_name, false, reset_basename);
           }
         }
       }
