@@ -805,11 +805,23 @@ protected:
     void outputFileWritable_(const String& filename, const String& param_name) const;
     //@}
 
-    /// Helper function that parses a range string ([a]:[b]) into two variables
-    void parseRange_(const String& text, double& low, double& high) const;
+    /**
+       @brief Parses a range string ([a]:[b]) into two variables (doubles)
 
-    /// Helper function that parses a range string ([a]:[b]) into two variables
-    void parseRange_(const String& text, Int& low, Int& high) const;
+       The variables are only overwritten if a value is set for the respective boundary.
+
+       @return True if a value was set for either of the two boundaries
+    */
+    bool parseRange_(const String& text, double& low, double& high) const;
+
+    /**
+       @brief Parses a range string ([a]:[b]) into two variables (integers)
+
+       The variables are only overwritten if a value is set for the respective boundary.
+
+       @return True if a value was set for either of the two boundaries
+    */
+    bool parseRange_(const String& text, Int& low, Int& high) const;
 
     ///Type of progress logging
     ProgressLogger::LogType log_type_;

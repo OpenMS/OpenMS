@@ -38,6 +38,7 @@
 #include <OpenMS/ANALYSIS/ID/PILISModel.h>
 #include <OpenMS/ANALYSIS/ID/PILISScoring.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/DATASTRUCTURES/SuffixArrayPeptideFinder.h>
@@ -380,7 +381,7 @@ protected:
     vector<String> fixed_mods;
     getStringOption_("fixed_modifications").split(',', fixed_mods);
     search_parameters.fixed_modifications = fixed_mods;
-    search_parameters.enzyme = ProteinIdentification::TRYPSIN;
+    search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme("Trypsin");
     search_parameters.missed_cleavages = 1;
     search_parameters.fragment_mass_tolerance = getDoubleOption_("peak_mass_tolerance");
     search_parameters.precursor_tolerance = getDoubleOption_("precursor_mass_tolerance");

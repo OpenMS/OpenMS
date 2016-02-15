@@ -108,6 +108,15 @@ START_SECTION(void addPeaks(RichPeakSpectrum& spectrum, const AASequence& peptid
   {
     TEST_REAL_SIMILAR(y_spec2[i].getPosition()[0], (y_result[i]+1.0)/2.0)
   }
+/* for quick benchmarking of implementation chances
+  for (Size i = 0; i != 1e6; ++i)
+  {
+    RichPeakSpectrum y_spec, b_spec, a_spec;
+    ptr->addPeaks(y_spec, peptide, Residue::YIon, 1);
+    ptr->addPeaks(b_spec, peptide, Residue::BIon, 1);
+    ptr->addPeaks(a_spec, peptide, Residue::AIon, 1);
+  }
+*/
 END_SECTION
 
 START_SECTION(void addAbundantImmoniumIons(RichPeakSpectrum& spec))
@@ -185,13 +194,15 @@ START_SECTION(void getSpectrum(RichPeakSpectrum& spec, const AASequence& peptide
     E     8    816.38924    844.38415    861.41070    330.14140    304.16214    287.13559    2 
     R     9    972.49035   1000.48526       -         201.09881    175.11955    158.09300    1 
   **/
-
-  double result_all[Size(52)] = { 88.03990,116.03481,133.06136,1018.49583,1001.46928,235.10831,263.10323,280.12978,929.44815,903.46888,886.44233,
-    332.16108,360.15599,377.18254,782.37973,756.40047,739.37392, 445.24514,473.24005,490.26660,685.32697,659.34771,642.32116,
-    516.28225,544.27717,561.30372,572.24291,546.26364,529.23709, 630.32518,658.32009,675.34664,501.20579,475.22653,458.19998,
-    687.34664,715.34156,732.36811,387.16287,361.18360,344.15705, 816.38924,844.38415,861.41070,330.14140,304.16214,287.13559,
-    /*972.49035 basically neutral loss of prec,*/1000.48526,201.09881,175.11955,158.09300};
-  std::sort(result_all,result_all+Size(51));
+  double result_all[52-1] = {
+   88.03990, 235.10831, 332.16108, 445.24514, 516.28225, 630.32518, 687.34664, 816.38924, /*972.49035, because TSG does not do A-ions of the full peptide*/
+   116.03481,  263.10323,  360.15599,  473.24005,  544.27717,  658.32009,  715.34156,  844.38415, 1000.48526,
+   133.06136, 280.12978, 377.18254, 490.26660, 561.30372, 675.34664, 732.36811, 861.41070,
+   929.44815, 782.37973, 685.32697, 572.24291, 501.20579, 387.16287, 330.14140, 201.09881,
+   1018.49583,  903.46888,  756.40047,  659.34771,  546.26364,  475.22653,  361.18360,  304.16214,  175.11955,
+   1001.46928,  886.44233,  739.37392,  642.32116,  529.23709,  458.19998,  344.15705,  287.13559,  158.09300
+  };
+  std::sort(result_all,result_all+52-1);
   spec.clear(true);
 
   param.setValue("add_first_prefix_ion", "true");
@@ -204,7 +215,7 @@ START_SECTION(void getSpectrum(RichPeakSpectrum& spec, const AASequence& peptide
   param.setValue("add_precursor_peaks", "true");
   ptr->setParameters(param);
   ptr->getSpectrum(spec, new_peptide, 1);
-  TEST_EQUAL(spec.size(), 51)
+  TEST_EQUAL(spec.size(), 52-1)
 
   vector<double> generated;
   for (Size i = 0; i != spec.size(); ++i)
@@ -217,9 +228,73 @@ START_SECTION(void getSpectrum(RichPeakSpectrum& spec, const AASequence& peptide
   {
     TEST_REAL_SIMILAR(generated[i], result_all[i])
   }
-  
 
+  // test loss creation and annotation
+  spec.clear(true);
+  param = ptr->getParameters();
+  param.setValue("add_first_prefix_ion", "true");
+  param.setValue("add_a_ions", "false");
+  param.setValue("add_b_ions", "true");
+  param.setValue("add_c_ions", "false");
+  param.setValue("add_x_ions", "true");
+  param.setValue("add_y_ions", "false");
+  param.setValue("add_z_ions", "false");
+  param.setValue("add_precursor_peaks", "true");
+  param.setValue("add_metainfo", "true");
+  param.setValue("add_losses", "true");
+  ptr->setParameters(param);
+  ptr->getSpectrum(spec, peptide, 1);
+  TEST_EQUAL(spec.size(), 30)
+  set<String> ion_names;
+  // ions without losses
+  ion_names.insert("b1+");
+  ion_names.insert("x1+");
+  ion_names.insert("b2+");
+  ion_names.insert("x2+");
+  ion_names.insert("b3+");
+  ion_names.insert("x3+");
+  ion_names.insert("b4+");
+  ion_names.insert("x4+");
+  ion_names.insert("b5+");
+  ion_names.insert("x5+");
+  ion_names.insert("b6+");
+  ion_names.insert("x6+");
 
+  // currently losses are generated independent of ion ladder type (b,y,...)
+  // if an amino acid with potential loss is present in the prefix/suffix, then the loss is applied
+  // if multiple amino acids with the same e.g. water loss are present in the prefix/suffix ion then the loss is only applied once
+  ion_names.insert("x1-H3N1+");
+  ion_names.insert("x2-H3N1+");
+  ion_names.insert("x3-H3N1+");
+  ion_names.insert("b3-H2O1+");
+  ion_names.insert("x4-H3N1+");
+  ion_names.insert("b4-H2O1+");
+  ion_names.insert("b4-H3N1+");
+  ion_names.insert("x5-H2O1+");
+  ion_names.insert("x5-H3N1+");
+  ion_names.insert("b5-H2O1+");
+  ion_names.insert("b5-H3N1+");
+  ion_names.insert("b6-H2O1+");
+  ion_names.insert("b6-H3N1+");
+  ion_names.insert("x6-H2O1+");
+  ion_names.insert("x6-H3N1+");
+
+  // precursors
+  ion_names.insert("[M+H]-H2O+");
+  ion_names.insert("[M+H]-NH3+");
+  ion_names.insert("[M+H]+");
+
+  // check if all losses have been annotated
+  for (Size i = 0; i != spec.size(); ++i)
+  {
+    vector<String> keys;
+    spec[i].getKeys(keys);
+    for (Size j = 0; j != keys.size(); ++j)
+    {
+      String name = spec[i].getMetaValue(keys[j]);
+      TEST_EQUAL(ion_names.find(name) != ion_names.end(), true)
+    }
+  }
 END_SECTION
 
 START_SECTION(([EXTRA] bugfix test where losses lead to formulae with negative element frequencies))
@@ -240,6 +315,32 @@ START_SECTION(([EXTRA] bugfix test where losses lead to formulae with negative e
 }
 END_SECTION
 
+START_SECTION(([EXTRA] test monomer extreme case))
+{
+  AASequence tmp_aa = AASequence::fromString("R");
+  RichPeakSpectrum tmp;
+  TheoreticalSpectrumGenerator t_gen;
+  Param params;
+
+  params.setValue("add_first_prefix_ion", "true");
+  params.setValue("add_x_ions", "true");
+  t_gen.setParameters(params);
+  TEST_EXCEPTION(Exception::InvalidSize, t_gen.getSpectrum(tmp, tmp_aa,1));
+
+  params.setValue("add_first_prefix_ion", "true");
+  params.setValue("add_x_ions", "false");
+  params.setValue("add_c_ions", "true");
+  t_gen.setParameters(params);
+  TEST_EXCEPTION(Exception::InvalidSize, t_gen.getSpectrum(tmp, tmp_aa,1));
+
+  params.setValue("add_x_ions", "false");
+  params.setValue("add_c_ions", "false");
+  params.setValue("add_precursor_peaks", "true");
+  t_gen.setParameters(params);
+  t_gen.getSpectrum(tmp, tmp_aa,1);
+  TEST_EQUAL(tmp.size(), 3)
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

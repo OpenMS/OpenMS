@@ -37,6 +37,7 @@
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
@@ -67,6 +68,9 @@ namespace OpenMS
     const ElementDB* db = ElementDB::getInstance();
     hydrogen_ = *db->getElement("Hydrogen");
   }
+
+  const double PepXMLFile::mod_tol_ = 0.0001;
+  const double PepXMLFile::xtandem_artificial_mod_tol_ = 0.0005; // according to cpp in some old version of xtandem somehow very small fixed modification (electron mass?) gets annotated by X!Tandem. Don't add them as they interfere with other modifications.
 
   PepXMLFile::~PepXMLFile()
   {
@@ -100,6 +104,7 @@ namespace OpenMS
       else
       {
         search_engine_name = protein_ids.begin()->getSearchEngine();
+        //Comet writes "Comet" in pep.xml, so this is ok
       }
     }
 
@@ -129,17 +134,12 @@ namespace OpenMS
     f << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << "\n";
     f << "<msms_pipeline_analysis date=\"2007-12-05T17:49:46\" xmlns=\"http://regis-web.systemsbiology.net/pepXML\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://sashimi.sourceforge.net/schema_revision/pepXML/pepXML_v117.xsd\" summary_xml=\".xml\">" << "\n";
     f << "<msms_run_summary base_name=\"" << base_name << "\" raw_data_type=\"raw\" raw_data=\"." << raw_data << "\" search_engine=\"" << search_engine_name << "\">" << "\n";
-    // If enzyme is not trypsin, skip it here and specify in TPP parser.
-    if (search_params.enzyme == ProteinIdentification::TRYPSIN || search_params.digestion_enzyme.getName() == "Trypsin")
+    String enzyme_name = search_params.digestion_enzyme.getName();
+    f << "\t<sample_enzyme name=\"";
+    f << enzyme_name.toLower() << "\">" << "\n";
+    f << "\t\t<specificity cut=\"";
+    if (search_params.digestion_enzyme.getRegEx() != "")
     {
-      f << "\t<sample_enzyme name=\"" << "trypsin" << "\">" << "\n";
-      f << "\t\t<specificity cut=\"KR\" no_cut=\"P\" sense=\"C\"/>" << "\n";
-      f << "\t</sample_enzyme>" << "\n";
-    }
-    else if (search_params.digestion_enzyme.getRegEx() != "")
-    {
-      f << "\t<sample_enzyme name=\"" << search_params.digestion_enzyme.getName() << "\">" << "\n";
-      f << "\t\t<specificity cut=\"";
       vector<String> sub_regex;
       search_params.digestion_enzyme.getRegEx().split(")",sub_regex);
       boost::match_results<std::string::const_iterator> results;
@@ -152,9 +152,9 @@ namespace OpenMS
       {
         f << "\" no_cut=\"P";
       }
-      f << "\" sense=\"C\"/>" << "\n";
-      f << "\t</sample_enzyme>" << "\n";
     }
+    f << "\" sense=\"C\"/>" << "\n";
+    f << "\t</sample_enzyme>" << "\n";
 
     f << "\t<search_summary base_name=\"" << base_name;
     f << "\" search_engine=\"" << search_engine_name;
@@ -351,7 +351,7 @@ namespace OpenMS
         f << "\" num_tot_proteins=\"1\" num_matched_ions=\"0\" tot_num_ions=\"0\" calc_neutral_pep_mass=\"" << precisionWrapper(precursor_neutral_mass)
           << "\" massdiff=\"0.0\" num_tol_term=\"";
         Int num_tol_term = 1;
-        if ((pe.getAABefore() == 'R' || pe.getAABefore() == 'K') && search_params.enzyme == ProteinIdentification::TRYPSIN)
+        if ((pe.getAABefore() == 'R' || pe.getAABefore() == 'K') && search_params.digestion_enzyme.getName() == "Trypsin")
         {
           num_tol_term = 2;
         }
@@ -543,7 +543,7 @@ namespace OpenMS
   {
     double mod_mass = mass - ResidueDB::getInstance()->getResidue(origin)->getMonoWeight(Residue::Internal);
     vector<String> mods;
-    ModificationsDB::getInstance()->getModificationsByDiffMonoMass(mods, origin, mod_mass, 0.001);
+    ModificationsDB::getInstance()->getModificationsByDiffMonoMass(mods, origin, mod_mass, mod_tol_);
 
     // no notification about ambiguities here - that was done when the
     // modification definitions were parsed ("aminoacid_modification" and
@@ -735,7 +735,7 @@ namespace OpenMS
       ProteinIdentification protein;
       protein.setDateTime(date_);
       prot_id_ = "unknown_" + date_.getDate();
-      enzyme_ = ProteinIdentification::UNKNOWN_ENZYME;
+      enzyme_ = "unknown_enzyme";
       // "prot_id_" will be overwritten if elem. "search_summary" is present
       protein.setIdentifier(prot_id_);
       proteins_->push_back(protein);
@@ -766,6 +766,19 @@ namespace OpenMS
         peptide_hit_.setScore(value);
         current_peptide_.setScoreType(name);
         current_peptide_.setHigherScoreBetter(false);
+        if (search_engine_ == "Comet")
+        {
+          peptide_hit_.setMetaValue("MS:1002257", value); // name: Comet:expectation value
+        }
+        else if (search_engine_ == "X! Tandem")
+        {
+          peptide_hit_.setMetaValue("MS:1001330", value); // name: X\!Tandem:expect
+        }
+        else if (search_engine_ == "Mascot")
+        {
+          peptide_hit_.setMetaValue("MS:1001172", value); // name: Mascot:expectation value
+        }
+        //TODO: there is no (generic) umbrella term for expect val in the CV right now
       }
       else if (name == "mvh") // MyriMatch score
       {
@@ -781,12 +794,24 @@ namespace OpenMS
       //   current_peptide_.setScoreType(name); // add "X!Tandem" to name?
       //   current_peptide_.setHigherScoreBetter(true);
       // }
-      else if (name == "xcorr" && search_engine_ != "MyriMatch") // Sequest score; MyriMatch has also an xcorr, but we want to ignore it
+      else if (name == "xcorr") // Sequest score
       { // and use the mvh
         value = attributeAsDouble_(attributes, "value");
-        peptide_hit_.setScore(value);
-        current_peptide_.setScoreType(name); // add "Sequest" to name?
-        current_peptide_.setHigherScoreBetter(true);
+        if (search_engine_ != "MyriMatch") //MyriMatch has also an xcorr, but we want to ignore it
+        {
+          peptide_hit_.setScore(value);
+          current_peptide_.setScoreType(name); // add "Sequest" to name?
+          current_peptide_.setHigherScoreBetter(true);
+        }
+        if (search_engine_ == "Comet")
+        {
+          peptide_hit_.setMetaValue("MS:1002252", value); // name: Comet:xcorr
+        }
+        else
+        {
+          peptide_hit_.setMetaValue("MS:1001155", value); // name: SEQUEST:xcorr
+        }
+        //TODO: no other xcorr or generic xcorr in the CV right now, use SEQUEST:xcorr
       }
       else if (name == "fval") // SpectraST score
       {
@@ -794,6 +819,28 @@ namespace OpenMS
         peptide_hit_.setScore(value);
         current_peptide_.setScoreType(name);
         current_peptide_.setHigherScoreBetter(true);
+        peptide_hit_.setMetaValue("MS:1001419", value); // def: "SpectraST spectrum score.
+      }
+      else
+      {
+        if (search_engine_ == "Comet")
+        {
+          if (name == "deltacn")
+          {
+            value = attributeAsDouble_(attributes, "value");
+            peptide_hit_.setMetaValue("MS:1002253", value); // name: Comet:deltacn
+          }
+          else if (name == "spscore")
+          {
+            value = attributeAsDouble_(attributes, "value");
+            peptide_hit_.setMetaValue("MS:1002255", value); // name: Comet:spscore
+          }
+          else if (name == "sprank")
+          {
+            value = attributeAsDouble_(attributes, "value");
+            peptide_hit_.setMetaValue("MS:1002256", value); // name: Comet:sprank
+          }
+        }
       }
     }
     else if (element == "search_hit") // parent: "search_result"
@@ -813,6 +860,23 @@ namespace OpenMS
       if (optionalAttributeAsString_(next_aa, attributes, "peptide_next_aa"))
       {
         pe.setAAAfter(next_aa[0]);
+      }
+      if (search_engine_ == "Comet")
+      {
+        String value;
+        if (optionalAttributeAsString_(value, attributes, "num_matched_ions"))
+        {
+          peptide_hit_.setMetaValue("MS:1002258", value); // name: Comet:matched ions
+
+        }
+        if (optionalAttributeAsString_(value, attributes, "tot_num_ions"))
+        {
+          peptide_hit_.setMetaValue("MS:1002259", value); // name: Comet:total ions
+        }
+        if (optionalAttributeAsString_(value, attributes, "num_matched_peptides"))
+        {
+          peptide_hit_.setMetaValue("num_matched_peptides", value);
+        }
       }
       String protein = attributeAsString_(attributes, "protein");
       pe.setProteinAccession(protein);
@@ -843,6 +907,11 @@ namespace OpenMS
       {
         current_peptide_.setMetaValue("pepxml_spectrum_name", native_spectrum_name_);
       }
+      if (search_engine_ == "Comet")
+      {
+        current_peptide_.setMetaValue("spectrum_reference", native_spectrum_name_);
+        //TODO: we really need something uniform here, like scan number - and not in metainfointerface
+      }
       if (!experiment_label_.empty())
       {
         current_peptide_.setExperimentLabel(experiment_label_);
@@ -870,6 +939,7 @@ namespace OpenMS
       swath_assay_ = "";
       status_ = "";
       optionalAttributeAsString_(native_spectrum_name_, attributes, "spectrum");
+      optionalAttributeAsString_(native_spectrum_name_, attributes, "spectrumNativeID"); //some engines write that optional attribute - is preferred to spectrum
       optionalAttributeAsString_(experiment_label_, attributes, "experiment_label");
       optionalAttributeAsString_(swath_assay_, attributes, "swath_assay");
       optionalAttributeAsString_(status_, attributes, "status");
@@ -893,6 +963,39 @@ namespace OpenMS
         String name = attributeAsString_(attributes, "name");
         double value = attributeAsDouble_(attributes, "value");
         current_analysis_result_.sub_scores[name] = value;
+      }
+      else if (search_summary_)
+      {
+        String name = attributeAsString_(attributes, "name");
+        if (name == "fragment_bin_tol")
+        {
+          double value = attributeAsDouble_(attributes, "value");
+          params_.fragment_mass_tolerance = value/2.0;
+          params_.fragment_mass_tolerance_ppm = false;
+        }
+        if (name == "peptide_mass_tolerance")
+        {
+          double value = attributeAsDouble_(attributes, "value");
+          params_.precursor_tolerance = value;
+        }
+        // this is quite comet specific, but so is parameter name peptide_mass_units, see comet configuration file documentation
+        if (name == "peptide_mass_units")
+        {
+          int value = attributeAsDouble_(attributes, "value");
+          switch (value) {
+          case 0: // comet value 0 type amu
+              params_.precursor_mass_tolerance_ppm = false;
+              break;
+          case 1: // comet value 1 type mmu
+              params_.precursor_mass_tolerance_ppm = false;
+              break;
+          case 2: // comet value 1 type ppm
+              params_.precursor_mass_tolerance_ppm = true;
+              break;
+          default:
+              break;
+          }
+        }
       }
       else
       {
@@ -937,7 +1040,7 @@ namespace OpenMS
           {
             double massdiff = (it->massdiff).toDouble();
             vector<String> mods;
-            ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(mods, massdiff, 0.001, ResidueModification::N_TERM);
+            ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(mods, massdiff, mod_tol_, ResidueModification::N_TERM);
             if (!mods.empty())
             {
               current_modifications_.push_back(make_pair(mods[0], 42)); // 42, because position does not matter
@@ -962,7 +1065,7 @@ namespace OpenMS
           {
             double massdiff = (it->massdiff).toDouble();
             vector<String> mods;
-            ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(mods, massdiff, 0.001, ResidueModification::C_TERM);
+            ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(mods, massdiff, mod_tol_, ResidueModification::C_TERM);
             if (!mods.empty())
             {
               current_modifications_.push_back(make_pair(mods[0], 42)); // 42, because position does not matter
@@ -1008,23 +1111,78 @@ namespace OpenMS
         error(LOAD, String("Cannot find modification '") + String(modification_mass) + "' of residue " + String(origin) + " at position " + String(modification_position) + " in '" + current_sequence_ + "'");
       }
     }
-    else if (element == "aminoacid_modification") // parent: "search_summary"
+    else if (element == "aminoacid_modification" || element == "terminal_modification") // parent: "search_summary"
     {
       AminoAcidModification aa_mod;
       optionalAttributeAsString_(aa_mod.description, attributes, "description");
       aa_mod.massdiff = attributeAsString_(attributes, "massdiff");
-      aa_mod.aminoacid = attributeAsString_(attributes, "aminoacid");
       aa_mod.mass = attributeAsDouble_(attributes, "mass");
       String is_variable = attributeAsString_(attributes, "variable");
-      if (is_variable == "Y")
+      if (element == "aminoacid_modification")
       {
-        if (aa_mod.description != "")
+        aa_mod.aminoacid = attributeAsString_(attributes, "aminoacid");
+      }
+      else
+      {
+        optionalAttributeAsString_(aa_mod.aminoacid, attributes, "aminoacid");
+        aa_mod.terminus = attributeAsString_(attributes, "terminus");
+        // somehow very small fixed modification (electron mass?) gets annotated by X!Tandem. Don't add them as they interfere with other modifications.
+        if (fabs(aa_mod.massdiff.toDouble()) < xtandem_artificial_mod_tol_)
         {
-          params_.variable_modifications.push_back(aa_mod.description); // TODO
+          return;
+        }
+      }
+      String desc = "";
+      // check if the modification is uniquely defined:
+      if (!aa_mod.description.empty())
+      {
+        try
+        {
+          desc = ModificationsDB::getInstance()->getModification(aa_mod.description).getName();
+          if (!desc.empty())
+          {
+            if (is_variable == "Y")
+            {
+              variable_modifications_.push_back(aa_mod);
+              params_.variable_modifications.push_back(desc);
+            }
+            else
+            {
+              fixed_modifications_.push_back(aa_mod);
+              params_.fixed_modifications.push_back(desc);
+            }
+          }
+        }
+        catch (Exception::ElementNotFound)
+        {
+          error(LOAD, "Modification '" + String(aa_mod.description) + "' is not uniquely defined by the given data. Trying by modification mass.");
+        }
+      }
+      else
+      {
+        error(LOAD, "No modification description given. Trying to define by modification mass.");
+      }
+      if (desc.empty())
+      {
+        vector<String> mods;
+        if (aa_mod.terminus != "")
+        {
+          ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(
+                        mods, aa_mod.massdiff.toDouble(), mod_tol_, ResidueModification::ANYWHERE);
+        }
+        else if (aa_mod.aminoacid != "")
+        {
+          ModificationsDB::getInstance()->getModificationsByDiffMonoMass(
+                      mods, aa_mod.aminoacid, aa_mod.massdiff.toDouble(), mod_tol_);
         }
         else
         {
-          String desc = aa_mod.aminoacid;
+          ModificationsDB::getInstance()->getModificationsByDiffMonoMass(
+                      mods, aa_mod.massdiff.toDouble(), mod_tol_);
+        }
+        if (mods.empty() && aa_mod.massdiff.toDouble() != 0)
+        {
+          desc = aa_mod.aminoacid;
           if (aa_mod.massdiff.toDouble() >= 0)
           {
             desc += "+" + String(aa_mod.massdiff);
@@ -1033,119 +1191,38 @@ namespace OpenMS
           {
             desc += String(aa_mod.massdiff);
           }
+          //Modification unknown, but trying to continue as we want to be able to read the rest despite of the modifications but warning this will fail downstream
+          error(LOAD, "Modification '" + String(aa_mod.mass) + "/delta " + String(aa_mod.massdiff) + "' is unknown. Resuming with '" + desc +  "' which will probably fail using the data downstream.");
+        }
+        else if (!mods.empty())
+        {
+          String mod_str = mods[0];
+          desc = mods[0];
+          for (vector<String>::const_iterator mit = ++mods.begin(); mit != mods.end(); ++mit)
+          {
+            mod_str += ", " + *mit;
+          }
+          error(LOAD, "Modification '" + String(aa_mod.mass) + "' is not uniquely defined by the given data. Using '" + mods[0] +  "' to represent any of '" + mod_str + "'.");
+        }
+      }
+      if (!desc.empty())
+      {
+        if (is_variable == "Y")
+        {
+          variable_modifications_.push_back(aa_mod);
           params_.variable_modifications.push_back(desc);
         }
-      }
-      else
-      {
-        fixed_modifications_.push_back(aa_mod);
-        if (aa_mod.description != "")
-        {
-          params_.fixed_modifications.push_back(aa_mod.description); // TODO
-        }
         else
         {
-          String desc = aa_mod.aminoacid;
-          if (aa_mod.massdiff.toDouble() >= 0)
-          {
-            desc += "+" + String(aa_mod.massdiff);
-          }
-          else
-          {
-            desc += String(aa_mod.massdiff);
-          }
+          fixed_modifications_.push_back(aa_mod);
           params_.fixed_modifications.push_back(desc);
+          LOG_DEBUG << aa_mod.description << desc << std::endl;
         }
-      }
-      // check if the modification is uniquely defined:
-      vector<String> mods;
-      ModificationsDB::getInstance()->getModificationsByDiffMonoMass(
-        mods, aa_mod.aminoacid, aa_mod.massdiff.toDouble(), 0.001);
-      if (mods.size() > 1)
-      {
-        String mod_str = mods[0];
-        for (vector<String>::const_iterator mit = ++mods.begin(); mit != mods.end(); ++mit)
-        {
-          mod_str += ", " + *mit;
-        }
-        error(LOAD, "Modification '" + String(aa_mod.mass) + "' is not uniquely defined by the given data. Using '" + mods[0] +  "' to represent any of '" + mod_str + "'.");
-      }
-    }
-    else if (element == "terminal_modification") // parent: "search_summary"
-    {
-      // <terminal_modification terminus="n" massdiff="+108.05" mass="109.06" variable="N" protein_terminus="" description="dNIC (N-term)"/>
-      AminoAcidModification aa_mod;
-      optionalAttributeAsString_(aa_mod.description, attributes, "description");
-      aa_mod.massdiff = attributeAsString_(attributes, "massdiff");
-
-      // somehow very small fixed modification (electron mass?) gets annotated by X!Tandem. Don't add them as they interfere with other modifications.
-      if (fabs(aa_mod.massdiff.toDouble()) < 0.0005)
-      {
-        return;
-      }
-      optionalAttributeAsString_(aa_mod.aminoacid, attributes, "aminoacid");
-      aa_mod.mass = attributeAsDouble_(attributes, "mass");
-      aa_mod.terminus = attributeAsString_(attributes, "terminus");
-      String is_variable = attributeAsString_(attributes, "variable");
-
-      if (is_variable == "Y")
-      {
-        variable_modifications_.push_back(aa_mod);
-        if (aa_mod.description != "")
-        {
-          params_.variable_modifications.push_back(aa_mod.description); // TODO
-        }
-        else
-        {
-          String desc = aa_mod.aminoacid;
-          if (aa_mod.massdiff.toDouble() > 0)
-          {
-            desc += "+" + String(aa_mod.massdiff);
-          }
-          else
-          {
-            desc += String(aa_mod.massdiff);
-          }
-          params_.variable_modifications.push_back(desc);
-        }
-      }
-      else
-      {
-        fixed_modifications_.push_back(aa_mod);
-        if (aa_mod.description != "")
-        {
-          params_.fixed_modifications.push_back(aa_mod.description); // TODO
-        }
-        else
-        {
-          String desc = aa_mod.aminoacid;
-          if (aa_mod.massdiff.toDouble() > 0)
-          {
-            desc += "+" + String(aa_mod.massdiff);
-          }
-          else
-          {
-            desc += String(aa_mod.massdiff);
-          }
-          params_.fixed_modifications.push_back(desc);
-        }
-      }
-      // check if the modification is uniquely defined:
-      vector<String> mods;
-      ModificationsDB::getInstance()->getModificationsByDiffMonoMass(
-        mods, aa_mod.aminoacid, aa_mod.massdiff.toDouble(), 0.001);
-      if (mods.size() > 1)
-      {
-        String mod_str = mods[0];
-        for (vector<String>::const_iterator mit = ++mods.begin(); mit != mods.end(); ++mit)
-        {
-          mod_str += ", " + *mit;
-        }
-        error(LOAD, "Modification '" + String(aa_mod.mass) + "' is not uniquely defined by the given data. Using '" + mods[0] +  "' to represent any of '" + mod_str + "'.");
       }
     }
     else if (element == "search_summary") // parent: "msms_run_summary"
     { // creates a new ProteinIdentification (usually)
+      search_summary_ = true;
       current_base_name_ = "";
       optionalAttributeAsString_(current_base_name_, attributes, "base_name");
       if (!checked_base_name_) // work-around for files exported by Mascot
@@ -1166,7 +1243,7 @@ namespace OpenMS
       fixed_modifications_.clear();
       variable_modifications_.clear();
       params_ = ProteinIdentification::SearchParameters();
-      params_.enzyme = enzyme_;
+      params_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_);
       String mass_type = attributeAsString_(attributes, "precursor_mass_type");
       if (mass_type == "monoisotopic")
       {
@@ -1223,24 +1300,25 @@ namespace OpenMS
     }
     else if (element == "sample_enzyme") // parent: "msms_run_summary"
     { // special case: search parameter that occurs *before* "search_summary"!
-      String name = attributeAsString_(attributes, "name");
-      name.toLower();
-      // spelling of enzyme names in pepXML?
-      if (name.hasPrefix("trypsin"))
-        enzyme_ = ProteinIdentification::TRYPSIN;
-      else if (name.hasPrefix("pepsin"))
-        enzyme_ = ProteinIdentification::PEPSIN_A;
-      else if (name.hasPrefix("protease"))
-        enzyme_ = ProteinIdentification::PROTEASE_K;
-      else if (name.hasPrefix("chymotrypsin"))
-        enzyme_ = ProteinIdentification::CHYMOTRYPSIN;
-      else
-        enzyme_ = ProteinIdentification::UNKNOWN_ENZYME;
+      enzyme_ = attributeAsString_(attributes, "name");
+      if (enzyme_ == "nonspecific") enzyme_ = "unspecific cleavage";
+      if (EnzymesDB::getInstance()->hasEnzyme(enzyme_.toLower()))
+      {
+        params_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_);
+      }
+    }
+    else if (element == "enzymatic_search_constraint") // parent: "search_summary"
+    {
+      //<enzymatic_search_constraint enzyme="nonspecific" max_num_internal_cleavages="1" min_number_termini="2"/>
+      enzyme_ = attributeAsString_(attributes, "enzyme");
+      if (enzyme_ == "nonspecific") enzyme_ = "unspecific cleavage";
+      if (EnzymesDB::getInstance()->hasEnzyme(enzyme_))
+      {
+        params_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_.toLower());
+      }
 
-      ProteinIdentification::SearchParameters params =
-        current_proteins_.front()->getSearchParameters();
-      params.enzyme = enzyme_;
-      current_proteins_.front()->setSearchParameters(params);
+      int mc = attributeAsInt_(attributes, "max_num_internal_cleavages");
+      params_.missed_cleavages = mc;
     }
     else if (element == "search_database") // parent: "search_summary"
     {
@@ -1337,7 +1415,7 @@ namespace OpenMS
           if (it->aminoacid == "" && it->terminus =="n")
           {
             vector<String> mods;
-            ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(mods, new_mass, 0.001, ResidueModification::N_TERM);
+            ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(mods, new_mass, mod_tol_, ResidueModification::N_TERM);
             if (!mods.empty())
             {
               if (!temp_aa_sequence.hasNTerminalModification())
@@ -1359,7 +1437,7 @@ namespace OpenMS
           else if (it->aminoacid == "" && it->terminus =="c")
           {
             vector<String> mods;
-            ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(mods, new_mass, 0.001, ResidueModification::C_TERM);
+            ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(mods, new_mass, mod_tol_, ResidueModification::C_TERM);
             if (!mods.empty())
             {
               if (!temp_aa_sequence.hasCTerminalModification())
@@ -1388,7 +1466,7 @@ namespace OpenMS
         {
           double new_mass = it->mass - residue->getMonoWeight(Residue::Internal);
           vector<String> mods;
-          ModificationsDB::getInstance()->getModificationsByDiffMonoMass(mods, it->aminoacid, new_mass, 0.001);
+          ModificationsDB::getInstance()->getModificationsByDiffMonoMass(mods, it->aminoacid, new_mass, mod_tol_);
           if (!mods.empty())
           {
             for (Size i = 0; i < temp_aa_sequence.size(); ++i)
@@ -1425,6 +1503,7 @@ namespace OpenMS
       date_.setTime(hour, minute, second);
 
       current_proteins_.back()->setSearchParameters(params_);
+      search_summary_ = false;
     }
   }
 

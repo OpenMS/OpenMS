@@ -46,7 +46,6 @@ namespace OpenMS
 {
 
   const std::string ProteinIdentification::NamesOfPeakMassType[] = {"Monoisotopic", "Average"};
-  const std::string ProteinIdentification::NamesOfDigestionEnzyme[] = {"Trypsin", "Pepsin A", "Protease K", "Chymotrypsin", "No enzyme", "Unknown"};
 
   ProteinIdentification::ProteinGroup::ProteinGroup() :
     probability(0.0), accessions()
@@ -76,7 +75,6 @@ namespace OpenMS
     mass_type(MONOISOTOPIC),
     fixed_modifications(),
     variable_modifications(),
-    enzyme(UNKNOWN_ENZYME),
     missed_cleavages(0),
     fragment_mass_tolerance(0.0),
     fragment_mass_tolerance_ppm(false),
@@ -95,7 +93,6 @@ namespace OpenMS
            mass_type == rhs.mass_type &&
            fixed_modifications == rhs.fixed_modifications &&
            variable_modifications == rhs.variable_modifications &&
-           enzyme == rhs.enzyme &&
            missed_cleavages == rhs.missed_cleavages &&
            fragment_mass_tolerance == rhs.fragment_mass_tolerance &&
            fragment_mass_tolerance_ppm == rhs.fragment_mass_tolerance_ppm &&
@@ -246,7 +243,7 @@ namespace OpenMS
   {
     if (!s.empty())
     {
-      this->setMetaValue("ms_run-location", DataValue(s));
+      this->setMetaValue("spectra_data", DataValue(s));
     }
   }
 
@@ -254,9 +251,9 @@ namespace OpenMS
   StringList ProteinIdentification::getPrimaryMSRunPath() const
   {
     StringList ret;
-    if (this->metaValueExists("ms_run-location"))
+    if (this->metaValueExists("spectra_data"))
     {
-      ret = this->getMetaValue("ms_run-location");
+      ret = this->getMetaValue("spectra_data");
     }
     return ret;
   }

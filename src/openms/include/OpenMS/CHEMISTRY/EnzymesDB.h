@@ -87,6 +87,7 @@ public:
     //@{
     /// returns a pointer to the enzyme with name (supports synonym names)
     /// @throw Exception::ElementNotFound if enzyme is unknown
+    /// @note enzymes are registered in regular and in toLowercase() style, if unsure use toLowercase
     const Enzyme* getEnzyme(const String & name) const;
 
     /// returns a pointer to the enzyme with cleavage regex
@@ -97,6 +98,7 @@ public:
     void setEnzymes(const String& filename);
 
     /// adds a new enzyme, e.g. a new enzyme, where only the cleavage regex is known
+    /// @note name of enzyme is registered also in a toLowercase() variant
     void addEnzyme(const Enzyme& enzyme);
 
     /// deletes all enzymes, resulting in an empty database

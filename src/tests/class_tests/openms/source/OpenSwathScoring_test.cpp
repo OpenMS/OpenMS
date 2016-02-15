@@ -47,6 +47,9 @@ ThisShouldFailAtCompileTime = 0
 ThisShouldFailAtCompileTime = 0
 #endif
 
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -118,8 +121,99 @@ END_SECTION
 
 START_SECTION((OpenSwath::SpectrumPtr getAddedSpectra_(OpenSwath::SpectrumAccessPtr swath_map, double RT, int nr_spectra_to_add)))
 {
-  NOT_TESTABLE // see MRMFeatureFinderScoring_test.cpp
-  // - the OpenSwathScoring is a facade and thus does not need testing on its own
+
+  // test result for empty map
+  {
+    boost::shared_ptr<MSExperiment<> > swath_map (new MSExperiment<>);
+    OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
+
+    OpenSwathScoring sc;
+    OpenSwath::SpectrumPtr sp = sc.getAddedSpectra_(swath_ptr, 20.0, 1);
+
+    TEST_EQUAL(sp->getMZArray()->data.empty(), true);
+  }
+
+  // test result for map with single spectrum
+  {
+    MSExperiment<>* eptr = new MSExperiment<>;
+    MSSpectrum<> s;
+    Peak1D p;
+    p.setMZ(20.0);
+    p.setIntensity(200.0);
+    s.push_back(p);
+    s.setRT(20.0);
+    eptr->addSpectrum(s);
+    boost::shared_ptr<MSExperiment<> > swath_map (eptr);
+    OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
+
+    TEST_EQUAL(swath_ptr->getNrSpectra(), 1)
+    OpenSwathScoring sc;
+    OpenSwath::SpectrumPtr sp = sc.getAddedSpectra_(swath_ptr, 20.0, 1);
+
+    TEST_EQUAL(sp->getMZArray()->data.size(), 1);
+    TEST_EQUAL(sp->getIntensityArray()->data.size(), 1);
+
+    TEST_REAL_SIMILAR(sp->getMZArray()->data[0], 20.0);
+    TEST_REAL_SIMILAR(sp->getIntensityArray()->data[0], 200.0);
+  }
+
+  // test result for map with three spectra
+  {
+    MSExperiment<>* eptr = new MSExperiment<>;
+    MSSpectrum<> s;
+    Peak1D p;
+    p.setMZ(20.0);
+    p.setIntensity(200.0);
+    s.push_back(p);
+    s.setRT(10.0);
+    eptr->addSpectrum(s);
+    s.setRT(20.0);
+    eptr->addSpectrum(s);
+    s.setRT(30.0);
+    eptr->addSpectrum(s);
+    boost::shared_ptr<MSExperiment<> > swath_map (eptr);
+    OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
+
+    TEST_EQUAL(swath_ptr->getNrSpectra(), 3)
+    OpenSwathScoring sc;
+    OpenSwath::SpectrumPtr sp = sc.getAddedSpectra_(swath_ptr, 20.0, 3);
+
+    TEST_EQUAL(sp->getMZArray()->data.size(), 1);
+    TEST_EQUAL(sp->getIntensityArray()->data.size(), 1);
+
+    TEST_REAL_SIMILAR(sp->getMZArray()->data[0], 20.0);
+    TEST_REAL_SIMILAR(sp->getIntensityArray()->data[0], 600.0);
+  }
+
+  // test result for map with uneven number of spectra
+  {
+    MSExperiment<>* eptr = new MSExperiment<>;
+    MSSpectrum<> s;
+    Peak1D p;
+    p.setMZ(20.0);
+    p.setIntensity(200.0);
+    s.push_back(p);
+    s.setRT(10.0);
+    eptr->addSpectrum(s);
+    s.setRT(20.0);
+    eptr->addSpectrum(s);
+    /*
+    s.setRT(30.0);
+    eptr->addSpectrum(s);
+    */
+    boost::shared_ptr<MSExperiment<> > swath_map (eptr);
+    OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
+
+    TEST_EQUAL(swath_ptr->getNrSpectra(), 2)
+    OpenSwathScoring sc;
+    OpenSwath::SpectrumPtr sp = sc.getAddedSpectra_(swath_ptr, 20.0, 3);
+
+    TEST_EQUAL(sp->getMZArray()->data.size(), 1);
+    TEST_EQUAL(sp->getIntensityArray()->data.size(), 1);
+
+    TEST_REAL_SIMILAR(sp->getMZArray()->data[0], 20.0);
+    TEST_REAL_SIMILAR(sp->getIntensityArray()->data[0], 400.0);
+  }
 }
 END_SECTION
 

@@ -74,8 +74,6 @@ namespace OpenMS
       LabelType (free text, optional description of which label was used, e.g. heavy or light)
       detecting_transition (bool, should this transition be used for peak-picking (detection) of the peak group?)
       identifying_transition (bool, should this transition be used for UIS identification together with the detecting transitions?)
-      site_identifying_transition (String contains the information for which sites the transition is diagnostic)
-      site_identifying_class (String, contains the diagnostic class for each site)
       quantifying_transition (bool, should this transition be used for quantification?)
 
   @htmlinclude OpenMS_TransitionTSVReader.parameters
@@ -127,8 +125,6 @@ private:
       String uniprot_id;
       bool detecting_transition;
       bool identifying_transition;
-      String site_identifying_transition;
-      String site_identifying_class;
       bool quantifying_transition;
     };
 

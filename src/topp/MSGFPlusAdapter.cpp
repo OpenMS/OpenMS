@@ -35,6 +35,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -113,7 +114,7 @@ public:
     // parameter choices (the order of the values must be the same as in the MS-GF+ parameters!):
     fragment_methods_(ListUtils::create<String>("from_spectrum,CID,ETD,HCD")),
     instruments_(ListUtils::create<String>("low_res,high_res,TOF,Q_Exactive")),
-    enzymes_(ListUtils::create<String>("unspecific,trypsin,chymotrypsin,LysC,LysN,GluC,ArgC,AspN,alphaLP,no_cleavage")),
+    enzymes_(ListUtils::create<String>("unspecific,trypsin,chymotrypsin,LysC,LysN,GluC,ArgC,AspN,alphaLP,no_cleavage")),  // EnzymesDB::getInstance()->getAllNames()
     protocols_(ListUtils::create<String>("none,phospho,iTRAQ,iTRAQ_phospho,TMT")),
     tryptic_(ListUtils::create<String>("non,semi,fully"))
   {
@@ -387,6 +388,31 @@ protected:
     }
   }
   
+  String describeHit_(const PeptideHit& hit)
+  {
+    return "peptide hit with sequence '" + hit.getSequence().toString() +
+      "', charge " + String(hit.getCharge()) + ", score " + 
+      String(hit.getScore());
+  }
+
+  // Set the MS-GF+ e-value (MS:1002052) as new peptide identification score.
+  void switchScores_(PeptideIdentification& id)
+  {
+    for (vector<PeptideHit>::iterator hit_it = id.getHits().begin(); hit_it != id.getHits().end(); ++hit_it)
+    {
+      // MS:1002052 == MS-GF spectral E-value
+      if (!hit_it->metaValueExists("MS:1002052"))
+      {
+        String msg = "Meta value 'MS:1002052' not found for " + describeHit_(*hit_it);
+        throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, msg);
+      }
+      
+      hit_it->setScore(hit_it->getMetaValue("MS:1002052"));
+    }
+    id.setScoreType("SpecEValue");
+    id.setHigherScoreBetter(false);
+  }
+  
   ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
@@ -572,20 +598,7 @@ protected:
           search_parameters.precursor_mass_tolerance_ppm = true;
         }
     
-        ProteinIdentification::DigestionEnzyme enzyme_type = ProteinIdentification::UNKNOWN_ENZYME;
-        if (enzyme == "trypsin")
-        {
-          enzyme_type = ProteinIdentification::TRYPSIN;
-        }
-        else if (enzyme == "chymotrypsin")
-        {
-          enzyme_type = ProteinIdentification::CHYMOTRYPSIN;
-        }
-        else if (enzyme == "no_cleavage")
-        {
-          enzyme_type = ProteinIdentification::NO_ENZYME;
-        }
-        search_parameters.enzyme = enzyme_type;
+        search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme);
     
         // create idXML file
         vector<ProteinIdentification> protein_ids;
@@ -734,6 +747,11 @@ protected:
         vector<ProteinIdentification> protein_ids;
         vector<PeptideIdentification> peptide_ids;
         MzIdentMLFile().load(mzid_temp, protein_ids, peptide_ids);
+        // set the MS-GF+ spectral e-value as new peptide identification score
+        for (vector<PeptideIdentification>::iterator pep_it = peptide_ids.begin(); pep_it != peptide_ids.end(); ++pep_it)
+        {
+          switchScores_(*pep_it);
+        }
         SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptide_ids, in, false);
         IdXMLFile().store(out, protein_ids, peptide_ids);
       }

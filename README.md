@@ -1,7 +1,7 @@
 OpenMS
 ====== 
 
-[![Build Status](https://travis-ci.org/OpenMS/OpenMS.svg?branch=develop)](https://travis-ci.org/OpenMS/OpenMS) [![Project Stats](https://www.ohloh.net/p/open-ms/widgets/project_thin_badge.gif)](https://www.ohloh.net/p/open-ms)[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/OpenMS/OpenMS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+[![Build Status](https://travis-ci.org/OpenMS/OpenMS.svg?branch=develop)](https://travis-ci.org/OpenMS/OpenMS) [![Project Stats](https://www.openhub.net/p/open-ms/widgets/project_thin_badge.gif)](https://www.ohloh.net/p/open-ms) [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/OpenMS/OpenMS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 
 
@@ -37,12 +37,13 @@ Features
 
 Licence
 -------
-OpenMS is released under the three clause BSD licence.
+OpenMS is released under the [three clause BSD licence](LICENSE).
 
 Authors
 -------
-The file AUTHORS contains a full list of all authors who worked on OpenMS
+The file [AUTHORS](AUTHORS) contains a full list of all authors who worked on OpenMS
 
-Wiki
+Documentation
 -------------
-Users and developers should start by reading the OpenMS wiki:  https://github.com/OpenMS/OpenMS/wiki
+Users and developers should start by reading the [OpenMS wiki](https://github.com/OpenMS/OpenMS/wiki) and consult the [current documentation](http://www.openms.de/current_doxygen/).
+

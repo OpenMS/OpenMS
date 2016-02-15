@@ -50,7 +50,7 @@ struct OPENMS_DLLAPI HyperScore
 {
   typedef std::pair<Size, double> IndexScorePair; 
 
-  /* @brief compute the (ln tranformed) X!Tandem HyperScore 
+  /* @brief compute the (ln transformed) X!Tandem HyperScore 
    *  1. the dot product of peak intensities between matching peaks in experimental and theoretical spectrum is calculated
    *  2. the HyperScore is calculated from the dot product by multiplying by factorials of matching b- and y-ions
    * @note Peak intensities of the theoretical spectrum are typically 1 or TIC normalized, but can also be e.g. ion probabilities

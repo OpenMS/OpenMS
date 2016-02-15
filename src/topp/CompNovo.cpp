@@ -37,6 +37,7 @@
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIdentification.h>
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIdentificationCID.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 
@@ -181,11 +182,11 @@ protected:
     search_parameters.charges = "+2-+3";
     if (algorithm_param.getValue("tryptic_only").toBool())
     {
-      search_parameters.enzyme = ProteinIdentification::TRYPSIN;
+      search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme("Trypsin");
     }
     else
     {
-      search_parameters.enzyme = ProteinIdentification::NO_ENZYME;
+      search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme("no cleavage");
     }
     search_parameters.mass_type = ProteinIdentification::MONOISOTOPIC;
     search_parameters.fixed_modifications = algorithm_param.getValue("fixed_modifications");
