@@ -588,8 +588,6 @@ protected:
       */
       seqan::StringSet<seqan::Peptide> prot_DB;
 
-      bool has_DB_duplicates(false);
-
       for (Size i = 0; i != proteins.size(); ++i)
       {
         String seq = proteins[i].sequence.remove('*');
@@ -600,10 +598,10 @@ protected:
 
         String acc = proteins[i].identifier;
         // check for duplicate proteins
+        // @TODO: what happens if there are duplicate sequences with different accessions?
         if (acc_to_prot.has(acc))
         {
-          LOG_WARN << "PeptideIndexer: Warning, protein identifiers should be unique to a database. Identifier '" << acc << "' found multiple times.\n";
-          has_DB_duplicates = true;
+          LOG_WARN << "PeptideIndexer: Warning, protein identifiers should be unique to a database. Identifier '" << acc << "' found multiple times." << endl;
           // check if sequence is identical
           const seqan::Peptide& tmp_prot = prot_DB[acc_to_prot[acc]];
           if (String(begin(tmp_prot), end(tmp_prot)) != seq)
@@ -625,10 +623,7 @@ protected:
           seqan::appendValue(prot_DB, seq.c_str());
           acc_to_prot[acc] = i;
         }
-
       }
-      // make sure the warnings above are printed to screen
-      if (has_DB_duplicates) LOG_WARN << std::endl;
 
       /**
         BUILD Peptide DB
@@ -651,7 +646,6 @@ protected:
 
       writeLog_(String("Mapping ") + length(pep_DB) + " peptides to " + length(prot_DB) + " proteins.");
 
-      /** first, try Aho Corasick (fast) -- using exact matching only */
       bool SA_only = getFlag_("full_tolerant_search");
       UInt max_mismatches = getIntOption_("mismatches_max");
 
@@ -663,6 +657,7 @@ protected:
         return ILLEGAL_PARAMETERS;
       }
 
+      // first, try Aho Corasick (fast) -- using exact matching only:
       if (!SA_only)
       {
         StopWatch sw;
@@ -714,21 +709,25 @@ protected:
         writeLog_(String("Aho-Corasick done. Found ") + func.filter_passed + " hits in " + func.pep_to_prot.size() + " of " + length(pep_DB) + " peptides (time: " + sw.getClockTime() + " s (wall), " + sw.getCPUTime() + " s (CPU)).");
       }
 
+      // now, search using a suffix array -- allows approximate matching:
+      UInt max_aaa = getIntOption_("aaa_max");
       /// check if every peptide was found:
-      if (func.pep_to_prot.size() != length(pep_DB))
+      if ((func.pep_to_prot.size() != length(pep_DB)) && 
+          ((max_aaa > 0) || (max_mismatches > 0)))
       {
         // search using SA, which supports mismatches (introduced by resolving ambiguous AA's by e.g. Mascot) -- expensive!
         writeLog_(String("Using suffix array to find ambiguous matches..."));
 
         // search peptides which remained unidentified during Aho-Corasick (might be all if 'full_tolerant_search' is enabled)
-        seqan::StringSet<seqan::Peptide> pep_DB_SA;
-        Map<Size, Size> missed_pep;
+        seqan::StringSet<seqan::Peptide, seqan::Dependent<seqan::Tight> > pep_DB_SA;
+        // Map<Size, Size> missed_pep;
         for (Size p = 0; p < length(pep_DB); ++p)
         {
           if (!func.pep_to_prot.has(p))
           {
-            missed_pep[length(pep_DB_SA)] = p;
-            appendValue(pep_DB_SA, pep_DB[p]);
+            // missed_pep[length(pep_DB_SA)] = p;
+            // appendValue(pep_DB_SA, pep_DB[p]);
+            assignValueById(pep_DB_SA, pep_DB, p);
           }
         }
 
@@ -736,7 +735,8 @@ protected:
 
         seqan::FoundProteinFunctor func_SA(enzyme);
 
-        typedef seqan::Index<seqan::StringSet<seqan::Peptide>, seqan::IndexWotd<> > TIndex;
+        typedef seqan::Index<seqan::StringSet<seqan::Peptide, seqan::Dependent<seqan::Tight> >,
+                                              seqan::IndexWotd<> > TIndex;
         TIndex prot_Index(prot_DB);
         TIndex pep_Index(pep_DB_SA);
 
@@ -757,7 +757,6 @@ protected:
         TTreeIter prot_Iter(prot_Index);
         TTreeIter pep_Iter(pep_Index);
 
-        UInt max_aaa = getIntOption_("aaa_max");
         seqan::_approximateAminoAcidTreeSearch<true, true>(func_SA, pep_Iter, 0u, prot_Iter, 0u, max_mismatches, max_aaa);
 
         // augment results with SA hits
@@ -765,7 +764,8 @@ protected:
         func.filter_rejected += func_SA.filter_rejected;
         for (seqan::FoundProteinFunctor::MapType::const_iterator it = func_SA.pep_to_prot.begin(); it != func_SA.pep_to_prot.end(); ++it)
         {
-          func.pep_to_prot[missed_pep[it->first]] = it->second;
+          // func.pep_to_prot[missed_pep[it->first]] = it->second;
+          func.pep_to_prot[it->first] = it->second;
         }
 
       }
@@ -804,7 +804,7 @@ protected:
       // which ProteinIdentification does the peptide belong to?
       Size run_idx = runid_to_runidx[it1->getIdentifier()];
 
-      vector<PeptideHit> hits = it1->getHits();
+      vector<PeptideHit>& hits = it1->getHits();
 
       for (vector<PeptideHit>::iterator it2 = hits.begin(); it2 != hits.end(); ++it2)
       {
@@ -894,7 +894,6 @@ protected:
 
         ++pep_idx; // next hit
       }
-      it1->setHits(hits);
     }
 
     LOG_INFO << "Statistics of peptides (target/decoy):\n";
