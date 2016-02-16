@@ -103,6 +103,7 @@
 					<charge>0</charge>
 					<UserParam type="float" name="MZ" value="628.435"/>
 					<UserParam type="string" name="native_id" value="tr4"/>
+					<UserParam type="float" name="peak_apex_int" value="506.435"/>
 				</feature>
 				<feature id="f_7884611628099393896_9966137807867549783">
 					<position dim="0">3119.06301134765</position>
