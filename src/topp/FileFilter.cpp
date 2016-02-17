@@ -246,19 +246,19 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-    String formats("mzML,featureXML,consensusXML");
+    std::vector<String> formats = ListUtils::create<String>("mzML,featureXML,consensusXML");
 
     registerInputFile_("in", "<file>", "", "Input file");
-    setValidFormats_("in", ListUtils::create<String>(formats));
+    setValidFormats_("in", formats);
 
     registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content", false);
-    setValidStrings_("in_type", ListUtils::create<String>(formats));
+    setValidStrings_("in_type", formats);
 
     registerOutputFile_("out", "<file>", "", "Output file");
-    setValidFormats_("out", ListUtils::create<String>(formats));
+    setValidFormats_("out", formats);
 
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content", false);
-    setValidStrings_("out_type", ListUtils::create<String>(formats));
+    setValidStrings_("out_type", formats);
 
     registerStringOption_("rt", "[min]:[max]", ":", "Retention time range to extract", false);
     registerStringOption_("mz", "[min]:[max]", ":", "m/z range to extract (applies to ALL ms levels!)", false);
@@ -283,51 +283,37 @@ protected:
 
     registerTOPPSubsection_("peak_options:numpress", "Numpress compression for peak data");
     registerStringOption_("peak_options:numpress:masstime", "<compression_scheme>", "none", "Apply MS Numpress compression algorithms in m/z or rt dimension (recommended: linear)", false);
-    setValidStrings_("peak_options:numpress:masstime", ListUtils::create<String>("none,linear,pic,slof"));
+    setValidStrings_("peak_options:numpress:masstime", MSNumpressCoder::NamesOfNumpressCompression, (int)MSNumpressCoder::SIZE_OF_NUMPRESSCOMPRESSION);
     registerDoubleOption_("peak_options:numpress:masstime_error", "<error>", 0.0001, "Maximal allowable error in m/z or rt dimension (set to 0.5 for pic)", false);
     registerStringOption_("peak_options:numpress:intensity", "<compression_scheme>", "none", "Apply MS Numpress compression algorithms in intensity dimension (recommended: slof or pic)", false);
-    setValidStrings_("peak_options:numpress:intensity", ListUtils::create<String>("none,linear,pic,slof"));
+    setValidStrings_("peak_options:numpress:intensity", MSNumpressCoder::NamesOfNumpressCompression, (int)MSNumpressCoder::SIZE_OF_NUMPRESSCOMPRESSION);
     registerDoubleOption_("peak_options:numpress:intensity_error", "<error>", 0.0001, "Maximal allowable error in intensity dimension (set to 0.5 for pic)", false);
 
     registerTOPPSubsection_("spectra", "Remove spectra or select spectra (removing all others) with certain properties");
     registerFlag_("spectra:remove_zoom", "Remove zoom (enhanced resolution) scans");
 
     registerStringOption_("spectra:remove_mode", "<mode>", "", "Remove scans by scan mode", false);
-    StringList mode_list;
-    for (Size i = 0; i < InstrumentSettings::SIZE_OF_SCANMODE; ++i)
-    {
-      mode_list.push_back(InstrumentSettings::NamesOfScanMode[i]);
-    }
-    setValidStrings_("spectra:remove_mode", mode_list);
+    setValidStrings_("spectra:remove_mode", InstrumentSettings::NamesOfScanMode, (int)InstrumentSettings::SIZE_OF_SCANMODE);
 
     addEmptyLine_();
     registerStringOption_("spectra:remove_activation", "<activation>", "", "Remove MSn scans where any of its precursors features a certain activation method", false);
-    StringList activation_list;
-    for (Size i = 0; i < Precursor::SIZE_OF_ACTIVATIONMETHOD; ++i)
-    {
-      activation_list.push_back(Precursor::NamesOfActivationMethod[i]);
-    }
-    setValidStrings_("spectra:remove_activation", activation_list);
+    setValidStrings_("spectra:remove_activation", Precursor::NamesOfActivationMethod, (int)Precursor::SIZE_OF_ACTIVATIONMETHOD);
+
     registerStringOption_("spectra:remove_collision_energy", "[min]:[max]", ":", "Remove MSn scans with a collision energy in the given interval", false);
     registerStringOption_("spectra:remove_isolation_window_width", "[min]:[max]", ":", "Remove MSn scans whose isolation window width is in the given interval", false);
 
     addEmptyLine_();
     registerFlag_("spectra:select_zoom", "Select zoom (enhanced resolution) scans");
     registerStringOption_("spectra:select_mode", "<mode>", "", "Selects scans by scan mode\n", false);
-    setValidStrings_("spectra:select_mode", mode_list);
+    setValidStrings_("spectra:select_mode", InstrumentSettings::NamesOfScanMode, (int)InstrumentSettings::SIZE_OF_SCANMODE);
     registerStringOption_("spectra:select_activation", "<activation>", "", "Retain MSn scans where any of its precursors features a certain activation method", false);
-    setValidStrings_("spectra:select_activation", activation_list);
+    setValidStrings_("spectra:select_activation", Precursor::NamesOfActivationMethod, (int)Precursor::SIZE_OF_ACTIVATIONMETHOD);
     registerStringOption_("spectra:select_collision_energy", "[min]:[max]", ":", "Select MSn scans with a collision energy in the given interval", false);
     registerStringOption_("spectra:select_isolation_window_width", "[min]:[max]", ":", "Select MSn scans whose isolation window width is in the given interval", false);
 
     addEmptyLine_();
     registerStringOption_("spectra:select_polarity", "<polarity>", "", "Retain MSn scans with a certain scan polarity", false);
-    StringList polarity_list;
-    for (Size i = 0; i < IonSource::SIZE_OF_POLARITY; ++i)
-    {
-      polarity_list.push_back(IonSource::NamesOfPolarity[i]);
-    }
-    setValidStrings_("spectra:select_polarity", polarity_list);
+    setValidStrings_("spectra:select_polarity", IonSource::NamesOfPolarity, (int)IonSource::SIZE_OF_POLARITY);
 
 
     addEmptyLine_();
@@ -503,30 +489,9 @@ protected:
     npconfig_int.estimate_fixed_point = true; // critical
     npconfig_mz.numpressErrorTolerance = getDoubleOption_("peak_options:numpress:masstime_error");
     npconfig_int.numpressErrorTolerance = getDoubleOption_("peak_options:numpress:intensity_error");
-    if (getStringOption_("peak_options:numpress:masstime") == "linear")
-    {
-      npconfig_mz.np_compression = MSNumpressCoder::LINEAR;
-    }
-    else if (getStringOption_("peak_options:numpress:masstime") == "pic")
-    {
-      npconfig_mz.np_compression = MSNumpressCoder::PIC;
-    }
-    else if (getStringOption_("peak_options:numpress:masstime") == "slof")
-    {
-      npconfig_mz.np_compression = MSNumpressCoder::SLOF;
-    }
-    if (getStringOption_("peak_options:numpress:intensity") == "linear")
-    {
-      npconfig_int.np_compression = MSNumpressCoder::LINEAR;
-    }
-    else if (getStringOption_("peak_options:numpress:intensity") == "pic")
-    {
-      npconfig_int.np_compression = MSNumpressCoder::PIC;
-    }
-    else if (getStringOption_("peak_options:numpress:intensity") == "slof")
-    {
-      npconfig_int.np_compression = MSNumpressCoder::SLOF;
-    }
+    npconfig_mz.setCompression(getStringOption_("peak_options:numpress:masstime"));
+    npconfig_int.setCompression(getStringOption_("peak_options:numpress:intensity"));
+    
 
     //id-filtering parameters
     bool remove_annotated_features = getFlag_("id:remove_annotated_features");

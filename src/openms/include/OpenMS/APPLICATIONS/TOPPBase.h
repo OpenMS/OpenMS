@@ -454,6 +454,17 @@ protected:
     void setValidStrings_(const String& name, const std::vector<String>& strings);
 
     /**
+      @brief Sets the valid strings for a string option or a whole string list
+
+      This overload should be used for options which are 1:1 with Enums + their static string representations.
+      E.g. MSNumpressCoder::NamesOfNumpressCompression[]
+
+      @exception Exception::ElementNotFound is thrown if the parameter is unset or not a string parameter
+      @exception Exception::InvalidParameter is thrown if the valid strings contain comma characters
+    */
+    void setValidStrings_(const String& name, const std::string vstrings[], int count);
+
+    /**
       @brief Registers an input file option.
 
       Input files behave like string options, but are automatically checked with inputFileReadable_()
