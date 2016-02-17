@@ -29,12 +29,14 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
-// $Authors: Hendrik Weisser $
+// $Authors: Hendrik Weisser, Petra Gutenbrunner $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_PERCOLATOROUTFILE_H
 #define OPENMS_FORMAT_PERCOLATOROUTFILE_H
 
+//#include <OpenMS/CHEMISTRY/AASequence.h>
+//#include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -44,6 +46,14 @@
 
 namespace OpenMS
 {
+  /// Struct to collect modification information per amino acid
+  struct AAModificationInfo {
+    std::set<String> mods;
+    bool all_modified;
+    
+    AAModificationInfo() : all_modified(true) {}
+  };
+    
   /**
      @brief Class for reading Percolator tab-delimited output files.
 
@@ -73,10 +83,19 @@ namespace OpenMS
               enum ScoreType output_score = QVALUE);
 
   private:
-
+  
+    // Map for all existing AAs and their modification information
+    std::map<String, AAModificationInfo> aa_mods_;
+    
     /// Converts the peptide string to an 'AASequence' instance
     void getPeptideSequence_(String peptide, AASequence& seq) const;
-
+    
+    /// Saves the modification information for each AA of a Peptide
+    void saveModInfosOfPeptide_(const AASequence& seq);
+    
+    /// Create search parameters based on the modifications of each amino acid per peptide identification
+    ProteinIdentification::SearchParameters createModificationSearchParameters_() const;
+    
   };
 
 } // namespace OpenMS

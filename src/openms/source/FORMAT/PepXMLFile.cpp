@@ -111,15 +111,22 @@ namespace OpenMS
     f.precision(writtenDigits<double>(0.0));
     String raw_data;
     String base_name;
+    SpectrumLookup lookup;
+    
     // The mz-File (if given)
     if (!mz_file.empty())
     {
-      base_name = File::basename(mz_file);
+      base_name = File::removeExtension(File::basename(mz_file));
       raw_data = FileTypes::typeToName(FileHandler().getTypeByFileName(mz_file));
+      
+      MSExperiment<> experiment;
+      FileHandler fh;      
+      fh.loadExperiment(mz_file, experiment, FileTypes::UNKNOWN, ProgressLogger::NONE, false, false);
+      lookup.readSpectra(experiment.getSpectra());
     }
     else
     {
-      base_name = File::basename(filename);
+      base_name = File::removeExtension(File::basename(filename));
       raw_data = "mzML";
     }
     // mz_name is input from IDFileConverter for 'base_name' attribute, only necessary if different from 'mz_file'.
@@ -131,6 +138,7 @@ namespace OpenMS
     {
       replace(base_name.begin(), base_name.end(), '.', '_');
     }
+    
     f << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << "\n";
     f << "<msms_pipeline_analysis date=\"2007-12-05T17:49:46\" xmlns=\"http://regis-web.systemsbiology.net/pepXML\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://sashimi.sourceforge.net/schema_revision/pepXML/pepXML_v117.xsd\" summary_xml=\".xml\">" << "\n";
     f << "<msms_run_summary base_name=\"" << base_name << "\" raw_data_type=\"raw\" raw_data=\"." << raw_data << "\" search_engine=\"" << search_engine_name << "\">" << "\n";
@@ -274,13 +282,20 @@ namespace OpenMS
         double precursor_neutral_mass = seq.getMonoWeight();
 
         Int scan_index;
-        if (it->metaValueExists("RT_index")) // Setting metaValue "RT_index" in XTandemXMLFile in the case of X! Tandem.
+        if (lookup.empty())
         {
-          scan_index = it->getMetaValue("RT_index");
+          if (it->metaValueExists("RT_index")) // Setting metaValue "RT_index" in XTandemXMLFile in the case of X! Tandem.
+          {
+            scan_index = it->getMetaValue("RT_index");
+          }
+          else
+          {
+            scan_index = count;
+          }
         }
         else
         {
-          scan_index = count;
+          scan_index = lookup.findByRT(it->getRT()) + 1;
         }
         // PeptideProphet requires this format for "spectrum" attribute (otherwise TPP parsing error)
         //  - see also the parser code if iProphet at http://sourceforge.net/p/sashimi/code/HEAD/tree/trunk/trans_proteomic_pipeline/src/Validation/InterProphet/InterProphetParser/InterProphetParser.cxx#l180
@@ -292,7 +307,7 @@ namespace OpenMS
         //    - swath_assay
         //    - experiment_label
 
-        String spectrum_name = base_name + ".00000.00000.";
+        String spectrum_name = base_name + "." + scan_index + "." + scan_index + ".";
         if (it->metaValueExists("pepxml_spectrum_name") && keep_native_name_) 
         {
           spectrum_name = it->getMetaValue("pepxml_spectrum_name");
@@ -521,11 +536,42 @@ namespace OpenMS
           }
           else if (search_engine_name == "MASCOT")
           {
-            f << "\t\t\t<search_score" << " name=\"expect\" value=\"" << h.getMetaValue("E-Value") << "\"" << "/>\n";
+            f << "\t\t\t<search_score" << " name=\"expect\" value=\"" << h.getMetaValue("EValue") << "\"" << "/>\n";
+            f << "\t\t\t<search_score" << " name=\"ionscore\" value=\"" << h.getScore() << "\"" << "/>\n";
           }
           else if (search_engine_name == "OMSSA")
           {
             f << "\t\t\t<search_score" << " name=\"expect\" value=\"" << h.getScore() << "\"" << "/>\n";
+          }
+          else if (search_engine_name == "MSGFPlus")
+          {
+            f << "\t\t\t<search_score" << " name=\"expect\" value=\"" << h.getScore() << "\"" << "/>\n";
+          }
+          else if (search_engine_name == "Percolator")
+          {
+            double pep_score = static_cast<double>(h.getMetaValue("Percolator_PEP"));
+            f << "\t\t\t<search_score" << " name=\"Percolator_score\" value=\"" << h.getMetaValue("Percolator_score") << "\"" << "/>\n";
+            f << "\t\t\t<search_score" << " name=\"Percolator_qvalue\" value=\"" << h.getMetaValue("Percolator_qvalue") << "\"" << "/>\n";
+            f << "\t\t\t<search_score" << " name=\"Percolator_PEP\" value=\"" << pep_score << "\"" << "/>\n";
+            
+            double probability = 1.0 - pep_score;
+            f << "\t\t\t<analysis_result" << " analysis=\"peptideprophet\">\n";
+            f << "\t\t\t\t<peptideprophet_result" << " probability=\"" << probability << "\"";
+            f << " all_ntt_prob=\"(0.0000,0.0000," << probability << ")\"/>\n";
+            f << "\t\t\t</analysis_result>" << "\n";            
+          }
+          else 
+          {
+            f << "\t\t\t<search_score" << " name=\"" << it->getScoreType() << "\" value=\"" << h.getScore() << "\"" << "/>\n";
+            
+            if( it->getScoreType() == "Posterior Error Probability")
+            {
+              double probability = 1.0 - h.getScore();
+              f << "\t\t\t<analysis_result" << " analysis=\"peptideprophet\">\n";
+              f << "\t\t\t\t<peptideprophet_result" << " probability=\"" << probability << "\"";
+              f << " all_ntt_prob=\"(0.0000,0.0000," << probability << ")\"/>\n";
+              f << "\t\t\t</analysis_result>" << "\n";
+            }          
           }
         }
         f << "\t\t</search_hit>" << "\n";
