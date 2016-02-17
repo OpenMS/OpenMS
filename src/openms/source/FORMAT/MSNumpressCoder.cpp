@@ -81,6 +81,9 @@ namespace OpenMS
 
       case NONE:
         break;
+
+      default:
+        break;
       }
 
       // 2. Convert the data
@@ -127,6 +130,9 @@ namespace OpenMS
         // already checked above ...
         break;
       }
+
+      default:
+        break;
       }
 
 #ifdef NUMPRESS_DEBUG
@@ -276,6 +282,9 @@ namespace OpenMS
       {
         return;
       }
+
+      default:
+        break;
       }
 
     }
