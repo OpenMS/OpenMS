@@ -41,6 +41,8 @@
 
 namespace OpenMS
 {
+  const std::string MSNumpressCoder::NamesOfNumpressCompression[] = {"none", "linear", "pic", "slof"};
+
   using namespace ms; // numpress namespace
 
   void MSNumpressCoder::encodeNP_(const std::vector<double>& in, String& result, const NumpressConfig & config)
