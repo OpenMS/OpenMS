@@ -62,7 +62,7 @@ struct ProbablePhosphoSites
   */
 class OPENMS_DLLAPI AScore
 {
-  friend class PScore;
+  friend struct PScore;
   public:
     ///Default constructor
     AScore();

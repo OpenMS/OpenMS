@@ -681,10 +681,15 @@ public:
 
       // boost::spirit::qi was found to be vastly superior to boost::lexical_cast or stringstream extraction (especially for VisualStudio),
       // so don't change this unless you have benchmarks for all platforms!
-      if (!qi::phrase_parse(this_s.begin(), this_s.end(),
-          qi::int_, ascii::space, ret))
+      String::ConstIterator it = this_s.begin();
+      if (!qi::phrase_parse(it, this_s.end(), qi::int_, ascii::space, ret))
       {
         throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert string '") + this_s + "' to an integer value");
+      }
+      // was the string parsed (white spaces are skipped automatically!) completely? If not, we have a problem because a previous split might have used the wrong split char
+      if (it != this_s.end())
+      {
+        throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Prefix of string '") + this_s + "' successfully converted to an integer value. Additional characters found at position " + (int)(distance(this_s.begin(), it) + 1));
       }
       return ret;
     }
@@ -698,10 +703,15 @@ public:
 
       // boost::spirit::qi was found to be vastly superior to boost::lexical_cast or stringstream extraction (especially for VisualStudio),
       // so don't change this unless you have benchmarks for all platforms!
-      if (!qi::phrase_parse(this_s.begin(), this_s.end(),
-          qi::float_, ascii::space, ret))
+      String::ConstIterator it = this_s.begin();
+      if (!qi::phrase_parse(it, this_s.end(), qi::float_, ascii::space, ret))
       {
         throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert string '") + this_s + "' to a float value");
+      }
+      // was the string parsed (white spaces are skipped automatically!) completely? If not, we have a problem because a previous split might have used the wrong split char
+      if (it != this_s.end())
+      {
+        throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Prefix of string '") + this_s + "' successfully converted to a float value. Additional characters found at position " + (int)(distance(this_s.begin(), it) + 1));
       }
       return ret;
     }
@@ -714,9 +724,15 @@ public:
       double ret;
       // boost::spirit::qi was found to be vastly superior to boost::lexical_cast or stringstream extraction (especially for VisualStudio),
       // so don't change this unless you have benchmarks for all platforms!
-      if (!qi::phrase_parse(this_s.begin(), this_s.end(), qi::double_, ascii::space, ret))
+      String::ConstIterator it = this_s.begin();
+      if (!qi::phrase_parse(it, this_s.end(), qi::double_, ascii::space, ret))
       {
         throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert string '") + this_s + "' to a double value");
+      }
+      // was the string parsed (white spaces are skipped automatically!) completely? If not, we have a problem because a previous split might have used the wrong split char
+      if (it != this_s.end())
+      {
+        throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Prefix of string '") + this_s + "' successfully converted to a double value. Additional characters found at position " + (int)(distance(this_s.begin(), it) + 1));
       }
       return ret;
     }
