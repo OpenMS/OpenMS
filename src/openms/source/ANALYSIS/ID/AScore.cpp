@@ -129,17 +129,17 @@ namespace OpenMS
       Size N = site_determining_ions[0].size(); // all possibilities have the same number so take the first one
       double p = static_cast<double>(s_it->peak_depth) / 100.0;
       
-      Size n_first = 0;
-      for (Size depth = 0; depth != windows_top10.size(); ++depth) // for each 100 m/z window
+      Size n_first = 0; // number of matching peaks for first peptide
+      for (Size window_idx = 0; window_idx != windows_top10.size(); ++window_idx) // for each 100 m/z window
       {
-        n_first += numberOfMatchedIons_(site_determining_ions[0], windows_top10[depth], s_it->peak_depth, fragment_mass_tolerance, fragment_mass_unit_ppm);        
+        n_first += numberOfMatchedIons_(site_determining_ions[0], windows_top10[window_idx], s_it->peak_depth, fragment_mass_tolerance, fragment_mass_unit_ppm);        
       }
       double P_first = computeCumulativeScore_(N, n_first, p);
       
-      Size n_second = 0;
-      for (Size depth = 0; depth <  windows_top10.size(); ++depth) //each 100 m/z window
+      Size n_second = 0; // number of matching peaks for second peptide
+      for (Size window_idx = 0; window_idx <  windows_top10.size(); ++window_idx) //each 100 m/z window
       {
-        n_second += numberOfMatchedIons_(site_determining_ions[1], windows_top10[depth], s_it->peak_depth, fragment_mass_tolerance, fragment_mass_unit_ppm);        
+        n_second += numberOfMatchedIons_(site_determining_ions[1], windows_top10[window_idx], s_it->peak_depth, fragment_mass_tolerance, fragment_mass_unit_ppm);        
       }
       double P_second = computeCumulativeScore_(N, n_second, p);
       
@@ -310,10 +310,16 @@ namespace OpenMS
   Size AScore::numberOfMatchedIons_(const RichPeakSpectrum & th, const PeakSpectrum & window, Size depth, double fragment_mass_tolerance, bool fragment_mass_tolerance_ppm) const
   {
     Size n = 0;
+    set<Size> th_peaks_matches; // only one match to the same theoretical peak allowed
     
     for (Size i = 0; i < window.size() && i <= depth; ++i)
     {
-      Size nearest_peak = th.findNearest(window[i].getMZ());
+      Size nearest_peak = -1;
+      try
+      {
+        nearest_peak = th.findNearest(window[i].getMZ());
+      }
+      catch(Exception::Precondition) {}
       
       if (nearest_peak < th.size())
       {
@@ -327,11 +333,13 @@ namespace OpenMS
 
         if (error < fragment_mass_tolerance)
         {
+          th_peaks_matches.insert(nearest_peak);
           ++n;
         }
       }
     }
-    return n;
+    //return n;
+    return th_peaks_matches.size();
   }
 
   double AScore::peptideScore_(const std::vector<double> & scores) const
