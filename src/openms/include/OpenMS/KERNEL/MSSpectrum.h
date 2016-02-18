@@ -44,7 +44,7 @@
 
 namespace OpenMS
 {
-  class Peak1D;
+class Peak1D;
 
   /**
     @brief The representation of a 1D spectrum.
@@ -70,6 +70,7 @@ namespace OpenMS
     public RangeManager<1>,
     public SpectrumSettings
   {
+     friend class MSSpectrumHelper;
 public:
 
     ///Comparator for the retention time.
@@ -516,7 +517,7 @@ public:
     */
     Int findNearest(CoordinateType mz, CoordinateType tolerance) const
     {
-      if (ContainerType::empty()) return -1; 
+      if (ContainerType::empty()) return -1;
       Size i = findNearest(mz);
       const double found_mz = this->operator[](i).getMZ();
       if (found_mz >= mz - tolerance && found_mz <= mz + tolerance)
@@ -544,8 +545,8 @@ public:
     */
     Int findNearest(CoordinateType mz, CoordinateType tolerance_left, CoordinateType tolerance_right) const
     {
-      if (ContainerType::empty()) return -1; 
-      
+      if (ContainerType::empty()) return -1;
+
       // do a binary search for nearest peak first
       Size i = findNearest(mz);
 
@@ -553,7 +554,7 @@ public:
 
       if (nearest_mz < mz)
       {
-        if (nearest_mz >= mz - tolerance_left) 
+        if (nearest_mz >= mz - tolerance_left)
         {
           return i; // success: nearest peak is in left tolerance window
         }
@@ -564,12 +565,12 @@ public:
           // There still might be a peak to the right of mz that falls in the right window
           ++i;  // now we are at a peak exactly on or to the right of mz
           const double next_mz = this->operator[](i).getMZ();
-          if (next_mz <= mz + tolerance_right) return i; 
+          if (next_mz <= mz + tolerance_right) return i;
         }
       }
       else
       {
-        if (nearest_mz <= mz + tolerance_right) 
+        if (nearest_mz <= mz + tolerance_right)
         {
           return i; // success: nearest peak is in right tolerance window
         }
@@ -578,7 +579,7 @@ public:
           if (i == 0) return -1; // we are at the first peak which is too far right
           --i;  // now we are at a peak exactly on or to the right of mz
           const double next_mz = this->operator[](i).getMZ();
-          if (next_mz >= mz - tolerance_left) return i; 
+          if (next_mz >= mz - tolerance_left) return i;
         }
       }
 
