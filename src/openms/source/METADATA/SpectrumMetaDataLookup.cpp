@@ -230,7 +230,7 @@ namespace OpenMS
     MSExperiment<> exp;
     SpectrumLookup lookup;
     bool success = true;
-    String bn = basename(filename.c_str());
+    String bn = File::basename(filename);
     for (vector<PeptideIdentification>::iterator it = peptides.begin();
          it != peptides.end(); ++it)
     {
