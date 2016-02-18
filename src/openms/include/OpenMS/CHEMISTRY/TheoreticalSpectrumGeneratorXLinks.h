@@ -74,13 +74,13 @@ public:
 
       AASequence alpha; // longer peptide
       AASequence beta; // shorter peptide (empty for mono-link), tie bracker: mass then lexicographical
-      std::pair<Size, Size> cross_link_position; // index in alpha, beta or between alpha, alpha in mono-links
+      std::pair<SignedSize, SignedSize> cross_link_position; // index in alpha, beta or between alpha, alpha in loop-links
 
       ProteinProteinCrossLinkType getType()
       {
         if (!beta.empty()) return PROTEIN_PROTEIN;
 
-        if (cross_link_position.second == 0) return MONO;
+        if (cross_link_position.second == -1) return MONO;
 
         return LOOP;
       }
@@ -124,12 +124,12 @@ public:
     virtual void getSpectrum(RichPeakSpectrum & spec, const ProteinProteinCrossLink & cross_link, Int charge = 1) const;
     virtual void getCommonIonSpectrum(RichPeakSpectrum & spec, const ProteinProteinCrossLink & cross_link, Int charge = 1) const;
     virtual void getCommonIonSpectrum(RichPeakSpectrum & spec, const AASequence & peptide, Int charge = 1) const;
-    virtual void getXLinkIonSpectrum(RichPeakSpectrum & spec_alpha, RichPeakSpectrum & spec_beta, const ProteinProteinCrossLink& cross_link, Int mincharge = 3, Int maxcharge = 5) const;
+    virtual void getXLinkIonSpectrum(RichPeakSpectrum & spec_alpha, RichPeakSpectrum & spec_beta, const ProteinProteinCrossLink& cross_link, Int mincharge, Int maxcharge, double cross_link_mass) const;
 
     /// adds peaks to a spectrum of the given ion-type, peptide, charge, and intensity
     virtual void addPeaks(RichPeakSpectrum & spectrum, const ProteinProteinCrossLink & cross_link, Residue::ResidueType res_type, Int charge = 1) const;
     virtual void addCommonPeaks(RichPeakSpectrum & spectrum, const AASequence & peptide, Residue::ResidueType res_type, Int charge = 1) const;
-    virtual void addXLinkIonPeaks(RichPeakSpectrum & spec_alpha, RichPeakSpectrum & spec_beta, const ProteinProteinCrossLink & cross_link, Residue::ResidueType res_type, Int charge) const;
+    virtual void addXLinkIonPeaks(RichPeakSpectrum & spec_alpha, RichPeakSpectrum & spec_beta, const ProteinProteinCrossLink & cross_link, Residue::ResidueType res_type, Int charge, double cross_link_mass) const;
 
     /// adds the precursor peaks to the spectrum
     virtual void addPrecursorPeaks(RichPeakSpectrum & spec, const AASequence & peptide, Int charge = 1) const;
