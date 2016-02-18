@@ -190,8 +190,7 @@ protected:
     registerInputFile_("database", "<file>", "", "Input file containing the protein database.");
     setValidFormats_("database", ListUtils::create<String>("fasta"));
 
-    // TODO make this into an optional parameter
-    registerInputFile_("decoy_database", "<file>", "", "Input file containing the decoy protein database.");
+    registerInputFile_("decoy_database", "<file>", "", "Input file containing the decoy protein database.", false);
     setValidFormats_("decoy_database", ListUtils::create<String>("fasta"));
 
     registerTOPPSubsection_("precursor", "Precursor (Parent Ion) Options");
@@ -255,6 +254,9 @@ protected:
     // output file
     registerOutputFile_("out", "<file>", "", "Result file\n");
     setValidFormats_("out", ListUtils::create<String>("xml"));
+
+    registerOutputFile_("out_idXML", "<file>", "", "output file ");
+    setValidFormats_("out_idXML", ListUtils::create<String>("idXML"));
   }
 
   vector<ResidueModification> getModifications_(StringList modNames)
@@ -1351,7 +1353,7 @@ protected:
     const string in_fasta(getStringOption_("database"));
     const string in_decoy_fasta(getStringOption_("decoy_database"));
     const string in_consensus(getStringOption_("consensus"));
-    const string out_idxml(getStringOption_("out"));
+    const string out_idxml(getStringOption_("out_idXML"));
 
     Int min_precursor_charge = getIntOption_("precursor:min_charge");
     Int max_precursor_charge = getIntOption_("precursor:max_charge");
@@ -1495,48 +1497,52 @@ protected:
     p.setValue("ignore_charge", "false");
     idmapper.setParameters(p);
 
-    vector<ProteinIdentification> protein_ids;
-    // protein identifications (leave as is...)
-    protein_ids = vector<ProteinIdentification>(1);
-    protein_ids[0].setDateTime(DateTime::now());
-    protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
-    idmapper.annotate(cfeatures, pseudo_ids, protein_ids, true, true);
+    vector< pair<Size, Size> > spectrum_pairs;
+    {
+      vector<ProteinIdentification> protein_ids;
+      // protein identifications (leave as is...)
+      protein_ids = vector<ProteinIdentification>(1);
+      protein_ids[0].setDateTime(DateTime::now());
+      protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
+      protein_ids[0].setMetaValue("SpectrumIdentificationProtocol", DataValue("MS:1002494")); // cross-linking search = MS:1002494
+
+      idmapper.annotate(cfeatures, pseudo_ids, protein_ids, true, true);
 
     // maps the index of a light precursor peptide to its corresponding heavier partner
 //    map<Size, Size> map_light_to_heavy;
-    vector< pair<Size, Size> > spectrum_pairs;
-    for (ConsensusMap::const_iterator cit = cfeatures.begin(); cit != cfeatures.end(); ++cit)
-    {
+      for (ConsensusMap::const_iterator cit = cfeatures.begin(); cit != cfeatures.end(); ++cit)
+      {
 //      if (cit->getFeatures().size() > 2 || cit->getPeptideIdentifications().size() > 2)
 //      {
 //        cout << "Multiple PeptideIDs, Features: " << cit->getFeatures().size() << "\t PeptideIDs: " << cit->getPeptideIdentifications().size() << endl;
 //      }
 
       // if x == light && y == heavy, then make pair
-      if (cit->getFeatures().size() == 2 && cit->getPeptideIdentifications().size() >= 2)
-      {
-        for (Size x = 0; x < cit->getPeptideIdentifications().size(); ++x)
+        if (cit->getFeatures().size() == 2 && cit->getPeptideIdentifications().size() >= 2)
         {
+          for (Size x = 0; x < cit->getPeptideIdentifications().size(); ++x)
+          {
 //          cout << "MetaValue map index: " <<  cit->getPeptideIdentifications()[x].getMetaValue("map index") << endl;
 //          cout << "Scan index 1: " << cit->getPeptideIdentifications()[x].getMetaValue("scan_index") << endl;
-          if (static_cast<int>(cit->getPeptideIdentifications()[x].getMetaValue("map index")) == 0)
-          {
-            for (Size y = 0; y < cit->getPeptideIdentifications().size(); ++y)  {
+            if (static_cast<int>(cit->getPeptideIdentifications()[x].getMetaValue("map index")) == 0)
+            {
+              for (Size y = 0; y < cit->getPeptideIdentifications().size(); ++y)  {
 //            cout << "Scan index 2: " << cit->getPeptideIdentifications()[y].getMetaValue("scan_index") << endl;
-              if (static_cast<int>(cit->getPeptideIdentifications()[y].getMetaValue("map index")) == 1)
-              {
-                const PeptideIdentification& pi_0 = cit->getPeptideIdentifications()[x];
-                const PeptideIdentification& pi_1 = cit->getPeptideIdentifications()[y];
+                if (static_cast<int>(cit->getPeptideIdentifications()[y].getMetaValue("map index")) == 1)
+                {
+                  const PeptideIdentification& pi_0 = cit->getPeptideIdentifications()[x];
+                  const PeptideIdentification& pi_1 = cit->getPeptideIdentifications()[y];
 //                map_light_to_heavy[pi_0.getMetaValue("scan_index")] = pi_1.getMetaValue("scan_index");
-                spectrum_pairs.push_back(make_pair(pi_0.getMetaValue("scan_index"), pi_1.getMetaValue("scan_index")));
+                  spectrum_pairs.push_back(make_pair(pi_0.getMetaValue("scan_index"), pi_1.getMetaValue("scan_index")));
 
+                }
               }
             }
           }
         }
       }
     }
-   
+
     //cout << "Number of MS2 pairs connceted by consensus feature: " << map_light_to_heavy.size() << endl;
 
     // create common peak / shifted peak spectra for all pairs
@@ -1547,7 +1553,17 @@ protected:
  
     Size count_proteins = 0;
     Size count_peptides = 0;
-    
+
+
+    // one identification run
+    vector<ProteinIdentification> protein_ids(1);
+    protein_ids[0].setDateTime(DateTime::now());
+    protein_ids[0].setSearchEngine("OpenMSxQuest");
+    protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
+    protein_ids[0].setPrimaryMSRunPath(spectra.getPrimaryMSRunPath());
+
+    vector<PeptideIdentification> peptide_ids;
+
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
@@ -2350,11 +2366,11 @@ protected:
             cout << "Peak matched ions calpha , cbeta , xalpha , xbeta: " << peak_matched_spec_common_alpha << "\t" << peak_matched_spec_common_beta <<
               "\t" << peak_matched_spec_xlink_alpha << "\t" << peak_matched_spec_xlink_beta << endl;
 
-
-
             // Write top 5 hits to file
             for (Size i = 0; i < peak_score.size(); ++i)
             {
+              PeptideIdentification peptide_id;
+
               String xltype = "monolink";
               String structure = peak_candidate_data[i].alpha.toUnmodifiedString();
               String topology = String("K") + (peak_candidate_data[i].cross_link_position.first+1);
@@ -2362,15 +2378,46 @@ protected:
               // TODO track or otherwise find out, which kind of mono-link it was (if there are several possibilities for the weigths)
               double weight = peak_candidate_data[i].alpha.getMonoWeight() + cross_link_mass_mono_link[1];
 
-              if (peak_candidate_data[i].cross_link_position.second != -1)
+              bool is_monolink = (peak_candidate_data[i].cross_link_position.second == -1);
+              int alpha_pos = peak_candidate_data[i].cross_link_position.first + 1;
+              int beta_pos = peak_candidate_data[i].cross_link_position.second + 1;
+
+              if (!is_monolink)
               {
                 xltype = "xlink";
                 structure = peak_candidate_data[i].alpha.toUnmodifiedString() + "-" + peak_candidate_data[i].beta.toUnmodifiedString();
-                topology = String("a") +  (peak_candidate_data[i].cross_link_position.first+1) + String("-b") + (peak_candidate_data[i].cross_link_position.second+1);
+                topology = String("a") +  alpha_pos + String("-b") + beta_pos;
                 weight = peak_candidate_data[i].alpha.getMonoWeight() + peak_candidate_data[i].beta.getMonoWeight() + cross_link_mass_light;
               }
               String id = structure + "-" + topology;
 
+              vector<PeptideHit> phs;
+              PeptideHit ph_alpha, ph_beta;
+              ph_alpha.setSequence(peak_candidate_data[i].alpha);
+              ph_alpha.setCharge(precursor_charge);
+              ph_alpha.setScore(peak_score[i]);
+              ph_alpha.setMetaValue("xl_chain", "MS:1002510");  // receiver
+              ph_alpha.setMetaValue("xl_pos", DataValue(alpha_pos));
+              phs.push_back(ph_alpha);
+
+              if (!is_monolink)
+              {
+                ph_beta.setSequence(peak_candidate_data[i].beta);
+                ph_beta.setCharge(precursor_charge);
+                ph_beta.setScore(peak_score[i]);
+                ph_beta.setMetaValue("xl_chain", "MS:1002509"); // donor 
+                ph_alpha.setMetaValue("xl_pos", DataValue(beta_pos));
+                phs.push_back(ph_beta);
+              }
+
+              peptide_id.setRT(spectrum_light.getRT());
+              peptide_id.setMZ(precursor_mz);
+              peptide_id.setMetaValue("xl_type", xltype); // TODO: needs CV term
+              peptide_id.setMetaValue("xl_rank", DataValue(i + 1)); 
+
+//            peptide_id.setMetaValue("xl_relation", ); //TODO: needs CV term
+              peptide_id.setHits(phs);
+              peptide_ids.push_back(peptide_id);
 
               xml_file << "<search_hit search_hit_rank=\"" << i+1 << "\" id=\"" << id << "\" type=\"" << xltype << "\" structure=\"" << structure << "\" seq1=\"" << peak_candidate_data[i].alpha.toUnmodifiedString() << "\" seq2=\"" << peak_candidate_data[i].beta.toUnmodifiedString()
                 << "\" prot1=\"" << "TODO" << "\" prot2=\"" << "TODO" << "\" topology=\"" << topology << "\" xlinkposition=\"" << (peak_candidate_data[i].cross_link_position.first+1) << "," << (peak_candidate_data[i].cross_link_position.second+1)
@@ -2406,6 +2453,9 @@ protected:
     cout << "XLink Cross-correlation maximum: " << xcorrxMax << "\t Common Cross-correlation maximum: " << xcorrcMax << "\t Intsum maximum: " << intsumMax << endl;
     cout << "Total number of matched candidates: " << sumMatchCount << "\t Maximum number of matched candidates to one spectrum pair: " << maxMatchCount << "\t Average: " << sumMatchCount / spectra.size() << endl;
     //cout << "Random Charge: " << spectra[10][15].getMetaValue("z") << endl;
+
+    // write cross-links to IdXML
+    IdXMLFile().store(out_idxml, protein_ids, peptide_ids);    
  
     return EXECUTION_OK;
   }
