@@ -393,11 +393,8 @@ protected:
               try
               {
                 String ref = peptide_identifications[i].getMetaValue("spectrum_reference");
-//                    String ref = pit->getMetaValue("spectrum_reference");
                 Size index = lookup.findByNativeID(ref);
-                LOG_WARN << "annotating" << ref << std::endl;
                 annot.addIonMatchStatistics(peptide_identifications[i], exp[index], tg, sa);
-//                    annot.addIonMatches(*pit, exp[index], tg, sa);
               }
               catch (Exception::ElementNotFound&)
               {
