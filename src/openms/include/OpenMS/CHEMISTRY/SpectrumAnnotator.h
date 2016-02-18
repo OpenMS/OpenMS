@@ -76,10 +76,32 @@ namespace OpenMS
      */
     //@{
 
-    /// adds Ion match annotations to a spectrum (MetaValues IonName and IonMatchError)
-    RichPeakSpectrum annotateMatches(const PeptideHit& ph, const MSSpectrum<Peak1D>& spec, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const;
+    /**
+      @brief Generates an ion match annotated version of the @p spec input spectrum
 
-    /// adds Ion matches to peptide identifcations
+      @param ph A spectrums identifications to be used for the annotation, looking up matches from a spectrum and the theoretical spectrum inferred from the identifications sequence
+      @param spec A PeakSpectrum containing the peaks from which the @p pi identifications are made
+      @param tg A TheoreticalSpectrumGenerator to infer the theoretical spectrum. Its own parameters define which ion types are referred
+      @param sa A SpectrumAlignment to match the theoretical spectrum with the measured. Its own parameters define the match tolerance
+
+      The matches are added as UserParams to the peaks (MetaValues IonName and IonMatchError). The parameters of the TheoreticalSpectrumGenerator define the comprehensiveness of the available matching. The parameters of SpectrumAlignment define the matching tolerance.
+      See the parameter section of this class for the available options.
+      @htmlinclude OpenMS_SpectrumAnnotator.parameters
+    */
+    MSSpectrum<RichPeak1D> annotateMatches(const PeptideHit& ph, const MSSpectrum<Peak1D>& spec, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const;
+
+    /**
+      @brief Adds ion match statistics to @p pi PeptideIdentifcation
+
+      @param pi A spectrums identifications to be annotated, looking up matches from a spectrum and the theoretical spectrum inferred from the identifications sequence
+      @param spec A PeakSpectrum containing the peaks from which the @p pi identifications are made
+      @param tg A TheoreticalSpectrumGenerator to infer the theoretical spectrum. Its own parameters define which ion types are referred
+      @param sa A SpectrumAlignment to match the theoretical spectrum with the measured. Its own parameters define the match tolerance
+
+      The ion match statistics are added as UserParams to either the PeptideIdentification (parameters of the matching) and PeptideHit. The parameters of the TheoreticalSpectrumGenerator define the comprehensiveness of the available matching. The parameters of SpectrumAlignment define the matching tolerance.
+      See the parameter section of this class for the available statistics.
+      @htmlinclude OpenMS_SpectrumAnnotator.parameters
+    */
     void addIonMatchStatistics(PeptideIdentification& pi, const MSSpectrum<Peak1D>& spec, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const;
 
     /// overwrite
@@ -99,6 +121,7 @@ namespace OpenMS
 
       static const boost::regex nt_regex_;
       static const boost::regex ct_regex_;
+      static const boost::regex noloss_regex_;
 
   };
 }

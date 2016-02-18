@@ -281,7 +281,7 @@ namespace OpenMS
 
        Look-up works by matching the RT of a peptide ID to the RT of a spectrum. Only peptide IDs without spectrum_reference are looked up; the new meta value is set to the native ID of the corresponding spectrum.
 
-       The raw data is only loaded from @p filename if necessary, i.e. if there are any peptide IDs with spectrum_references.
+       The raw data is only loaded from @p filename if necessary, i.e. if there are any peptide IDs without spectrum_references.
     */
     static bool addMissingSpectrumReferencestoPeptideIDs(std::vector<PeptideIdentification>& peptides, const String& filename,
       bool stop_on_error, bool reset_basename);

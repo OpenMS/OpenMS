@@ -40,6 +40,8 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSSpectrumHelper.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/ComparatorUtils.h>
 
 #include <algorithm>
 #include <numeric>
@@ -50,6 +52,7 @@ namespace OpenMS
 {
   const boost::regex SpectrumAnnotator::nt_regex_("[a,b,c][[:digit:]]+[+]+");
   const boost::regex SpectrumAnnotator::ct_regex_("[x,y,z][[:digit:]]+[+]+");
+  const boost::regex SpectrumAnnotator::noloss_regex_("[a,b,c,x,y,z][[:digit:]]+[+]+");
 
   SpectrumAnnotator::SpectrumAnnotator() :
     DefaultParamHandler("SpectrumAnnotator")
@@ -126,7 +129,7 @@ namespace OpenMS
   {
   }
 
-  RichPeakSpectrum SpectrumAnnotator::annotateMatches(const PeptideHit& ph, const MSSpectrum<Peak1D>& spec, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const
+  MSSpectrum<RichPeak1D> SpectrumAnnotator::annotateMatches(const PeptideHit& ph, const MSSpectrum<Peak1D>& spec, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const
   {
     MSSpectrum<RichPeak1D> rich_theoretical_spec;
     MSSpectrum<RichPeak1D> rich_input_spectrum = MSSpectrumHelper::clone(spec);
@@ -137,10 +140,15 @@ namespace OpenMS
     {
       rich_theoretical_spec.sortByPosition();
     }
+    if (!rich_input_spectrum.isSorted())
+    {
+      rich_input_spectrum.sortByPosition();
+    }
     sa.getSpectrumAlignment(al, rich_theoretical_spec, rich_input_spectrum); //peaks from theor. may be matched to none or one in spec!
     for (vector<pair<Size, Size > >::const_iterator it = al.begin(); it != al.end(); ++it)
     {
-      rich_input_spectrum[it->second].setMetaValue("IonMatchError", std::fabs(rich_input_spectrum[it->second].getMZ() - rich_theoretical_spec[it->first].getMZ()));
+        rich_input_spectrum[it->second].setMetaValue("IonMatchError", std::fabs(rich_input_spectrum[it->second].getMZ() - rich_theoretical_spec[it->first].getMZ()));
+        rich_input_spectrum[it->second].setMetaValue("IonName", rich_theoretical_spec[it->first].getMetaValue("IonName"));
     }
     Param sap = sa.getParameters();
     rich_input_spectrum.setMetaValue("fragment_match_tolerance", sap.getValue("tolerance"));
@@ -183,35 +191,36 @@ namespace OpenMS
             intensities.push_back(it->getIntensity());
             match_intensity += it->getIntensity();
             mzs.push_back(it->getMZ());
-
             String ion_name = it->getMetaValue("IonName");
-            ions.push_back(ion_name);
-            if (terminal_series_match_ratio_)
             {
-              if (boost::regex_match(ion_name, nt_regex_))
+              ions.push_back(ion_name);
+              if (terminal_series_match_ratio_)
               {
-                nint += it->getIntensity();
-              }
-              else if (boost::regex_match(ion_name, ct_regex_))
-              {
-                cint += it->getIntensity();
-              }
-            }
-            if (max_series_)
-            {
-              String ion_type = ion_name.prefix(1);
-              if (ListUtils::contains(allowed_types, ion_type)) //case sensitive?
-              {
-                try
+                if (boost::regex_match(ion_name, nt_regex_))
                 {
-                  int i = ion_name.substr(1).remove('+').toInt() - 1;
-                  ion_series[ion_type].at(i) = true;
+                  nint += it->getIntensity();
                 }
-                catch (std::out_of_range)
+                else if (boost::regex_match(ion_name, ct_regex_))
                 {
-                  LOG_WARN << ion_type << ion_name.substr(1).remove('+').toInt() -1
-                           << " ions not foreseen for" << ph->getSequence().toString() << endl;
-                  continue;
+                  cint += it->getIntensity();
+                }
+              }
+              if (max_series_ && boost::regex_match(ion_name, noloss_regex_))
+              {
+                String ion_type = ion_name.prefix(1);
+                if (ListUtils::contains(allowed_types, ion_type)) //case sensitive?
+                {
+                  try
+                  {
+                    int i = ion_name.substr(1).remove('+').toInt() - 1; //do not care about charge
+                    ion_series[ion_type].at(i) = true;
+                  }
+                  catch (std::out_of_range)
+                  {
+                    LOG_WARN << ion_type << ion_name.substr(1).remove('+').toInt() -1
+                             << " ions not foreseen for" << ph->getSequence().toString() << endl;
+                    continue;
+                  }
                 }
               }
             }
@@ -243,7 +252,6 @@ namespace OpenMS
           else
           {
             vector<double> fe(fragmenterrors);
-            fe.reserve(fragmenterrors.size());
             std::size_t mid = fe.size()/2;
             std::size_t lq = fe.size()/4;
             std::size_t uq = lq + mid;
@@ -264,8 +272,10 @@ namespace OpenMS
             ph->setMetaValue("IQR_fragment_error", fe[uq]-fe[lq]);
 
             vector<double> topn_fe;
-            std::reverse_copy(fragmenterrors.begin(), fragmenterrors.end(), topn_fe.begin());
+            topn_fe.resize(fragmenterrors.size());
+            std::reverse_copy(fragmenterrors.begin(), fragmenterrors.end(), topn_fe.begin()); //possible due to the sortByIntensity
             topn_fe.resize(topNmatch_fragmenterrors_);
+
             double sum = std::accumulate(topn_fe.begin(), topn_fe.end(), 0.0);
             double mean = sum / topn_fe.size();
 
