@@ -66,6 +66,12 @@ public:
       Peak1D(p),
       MetaInfoInterface(p)
     {}
+        
+    /// Peak1D "c'tor"
+    inline RichPeak1D(const Peak1D & p) :
+      Peak1D(p),
+      MetaInfoInterface()
+    {}
 
     /// construct with position and intensity
     inline explicit RichPeak1D(PositionType a, IntensityType b) :
