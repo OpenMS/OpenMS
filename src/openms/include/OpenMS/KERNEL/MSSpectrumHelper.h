@@ -28,79 +28,33 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Mathias Walzer $
-// $Authors: Mathias Walzer $
+// $Maintainer: $
+// $Authors: Mathias Walzer$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_SPECTRUMANNOTATOR_H
-#define OPENMS_CHEMISTRY_SPECTRUMANNOTATOR_H
+#ifndef OPENMS_KERNEL_MSSPECTRUMHELPER_H
+#define OPENMS_KERNEL_MSSPECTRUMHELPER_H
 
-#include <OpenMS/CHEMISTRY/Residue.h>
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
-#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
-#include <boost/regex.hpp>
 
 namespace OpenMS
 {
-  /**
-      @brief Generates theoretical spectra with various options
 
-  @htmlinclude OpenMS_SpectrumAnnotator.parameters
-
-      @ingroup Chemistry
-  */
-  class OPENMS_DLLAPI SpectrumAnnotator :
-    public DefaultParamHandler
+  class OPENMS_DLLAPI MSSpectrumHelper
   {
     public:
 
-    /** @name Constructors and Destructors
-    */
-    //@{
-    /// default constructor
-    SpectrumAnnotator();
+      /**
+        @brief bla
 
-    /// copy constructor
-    SpectrumAnnotator(const SpectrumAnnotator & source);
+        blub
 
-    /// destructor
-    virtual ~SpectrumAnnotator();
-    //@}
-
-    /// assignment operator
-    SpectrumAnnotator & operator=(const SpectrumAnnotator & tsg);
-
-    /** @name Available annotators
-     */
-    //@{
-
-    /// adds Ion match annotations to a spectrum (MetaValues IonName and IonMatchError)
-    RichPeakSpectrum annotateMatches(const PeptideHit& ph, const MSSpectrum<Peak1D>& spec, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const;
-
-    /// adds Ion matches to peptide identifcations
-    void addIonMatchStatistics(PeptideIdentification& pi, const MSSpectrum<Peak1D>& spec, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const;
-
-    /// overwrite
-    void updateMembers_();
-
-    //@}
-
-    protected:
-      bool basic_statistics_;
-      bool list_of_ions_matched_;
-      bool max_series_;
-      bool SN_statistics_;
-      bool precursor_statistics_;
-      uint topNmatch_fragmenterrors_;
-      bool fragmenterror_statistics_;
-      bool terminal_series_match_ratio_;
-
-      static const boost::regex nt_regex_;
-      static const boost::regex ct_regex_;
+        @param whee.
+      */
+    static MSSpectrum<RichPeak1D> clone(const MSSpectrum<Peak1D> &p);
 
   };
-}
-#endif
+} // namespace OpenMS
 
+#endif // OPENMS_KERNEL_CONSENSUSMAP_H

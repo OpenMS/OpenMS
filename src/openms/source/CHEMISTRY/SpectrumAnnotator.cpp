@@ -38,6 +38,8 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/MSSpectrumHelper.h>
 
 #include <algorithm>
 #include <numeric>
@@ -124,30 +126,47 @@ namespace OpenMS
   {
   }
 
-  void SpectrumAnnotator::addIonMatches(PeptideIdentification& pi, const MSSpectrum<Peak1D>& spec, const TheoreticalSpectrumGenerator tg, const SpectrumAlignment sa) const
+  RichPeakSpectrum SpectrumAnnotator::annotateMatches(const PeptideHit& ph, const MSSpectrum<Peak1D>& spec, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const
+  {
+    MSSpectrum<RichPeak1D> rich_theoretical_spec;
+    MSSpectrum<RichPeak1D> rich_input_spectrum = MSSpectrumHelper::clone(spec);
+
+    vector<pair<Size, Size> > al;
+    tg.getSpectrum(rich_theoretical_spec, ph.getSequence(), ph.getCharge()-1); //will get y5++, b2+, ... for precursor+++
+    if (!rich_theoretical_spec.isSorted())
+    {
+      rich_theoretical_spec.sortByPosition();
+    }
+    sa.getSpectrumAlignment(al, rich_theoretical_spec, rich_input_spectrum); //peaks from theor. may be matched to none or one in spec!
+    for (vector<pair<Size, Size > >::const_iterator it = al.begin(); it != al.end(); ++it)
+    {
+      rich_input_spectrum[it->second].setMetaValue("IonMatchError", std::fabs(rich_input_spectrum[it->second].getMZ() - rich_theoretical_spec[it->first].getMZ()));
+    }
+    Param sap = sa.getParameters();
+    rich_input_spectrum.setMetaValue("fragment_match_tolerance", sap.getValue("tolerance"));
+    return rich_input_spectrum;
+  }
+
+  void SpectrumAnnotator::addIonMatchStatistics(PeptideIdentification& pi, const MSSpectrum<Peak1D>& spec, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const
   {
     if (!spec.empty())
     {
-      Param sap = sa.getParameters();
-      pi.setMetaValue("fragment_match_tolerance", sap.getValue("tolerance"));
-
       for (vector<PeptideHit>::iterator ph = pi.getHits().begin(); ph != pi.getHits().end(); ++ph)
       {
-        RichPeakSpectrum rich_spec;
-        vector<pair<Size, Size> > al;
-        tg.getSpectrum(rich_spec, ph->getSequence(), ph->getCharge()-1); //will get y5++, b2+, ... for precursor+++
-        // convert rich spectrum to simple spectrum
-        MSSpectrum<Peak1D> gen_spec, new_spec(spec);
-        for (RichPeakSpectrum::Iterator it = rich_spec.begin(); it != rich_spec.end(); ++it)
-        {
-          gen_spec.push_back(static_cast<Peak1D>(*it));
-        }
-        if (!new_spec.isSorted())
-            new_spec.sortByPosition();
-        sa.getSpectrumAlignment(al, gen_spec, new_spec); //peaks from theor. may be matched to none or one in spec!
+        RichPeakSpectrum rich_spec = annotateMatches(*ph, spec, tg, sa);
+        rich_spec.sortByIntensity();
+
         StringList ions;
+        double sum_intensity = 0;
         double match_intensity = 0;
-        //TODO ionseries max length
+        vector<double> fragmenterrors, intensities, mzs; // sorted by ascending intensity via rich_spec.sortByIntensity for topN statistics
+        fragmenterrors.reserve(rich_spec.size());
+        intensities.reserve(rich_spec.size());
+        mzs.reserve(rich_spec.size());
+
+        double nint = 0;
+        double cint = 0;
+
         StringList allowed_types = ListUtils::create<String>("y,b,a,c,x,z");
         map<String, vector<bool> > ion_series;
         for (StringList::iterator st = allowed_types.begin(); st != allowed_types.end(); ++st)
@@ -155,42 +174,56 @@ namespace OpenMS
           ion_series.insert(make_pair(*st, vector<bool>(ph->getSequence().size()-1, false)));
         }
 
-        map<double,double> fragmenterrors; // mapped from intensity to error for topN statistics
-        double nint = 0;
-        double cint = 0;
-        for (vector<pair<Size, Size > >::const_iterator it = al.begin(); it != al.end(); ++it)
+        for (RichPeakSpectrum::Iterator it = rich_spec.begin(); it != rich_spec.end(); ++it)
         {
-          match_intensity += new_spec[it->second].getIntensity();
-          String ion_name = rich_spec[it->first].getMetaValue("IonName");
-          ions.push_back(ion_name);
+          sum_intensity += it->getIntensity();
+          if (it->metaValueExists("IonMatchError"))
+          {
+            fragmenterrors.push_back(it->getMetaValue("IonMatchError"));
+            intensities.push_back(it->getIntensity());
+            match_intensity += it->getIntensity();
+            mzs.push_back(it->getMZ());
 
-          if (terminal_series_match_ratio_)
-          {
-            if (boost::regex_match(ion_name, nt_regex_))
+            String ion_name = it->getMetaValue("IonName");
+            ions.push_back(ion_name);
+            if (terminal_series_match_ratio_)
             {
-              nint += new_spec[it->second].getIntensity();
+              if (boost::regex_match(ion_name, nt_regex_))
+              {
+                nint += it->getIntensity();
+              }
+              else if (boost::regex_match(ion_name, ct_regex_))
+              {
+                cint += it->getIntensity();
+              }
             }
-            else if (boost::regex_match(ion_name, ct_regex_))
+            if (max_series_)
             {
-              cint += new_spec[it->second].getIntensity();
+              String ion_type = ion_name.prefix(1);
+              if (ListUtils::contains(allowed_types, ion_type)) //case sensitive?
+              {
+                try
+                {
+                  int i = ion_name.substr(1).remove('+').toInt() - 1;
+                  ion_series[ion_type].at(i) = true;
+                }
+                catch (std::out_of_range)
+                {
+                  LOG_WARN << ion_type << ion_name.substr(1).remove('+').toInt() -1
+                           << " ions not foreseen for" << ph->getSequence().toString() << endl;
+                  continue;
+                }
+              }
             }
           }
-          fragmenterrors.insert(make_pair(new_spec[it->second].getIntensity(),std::fabs(new_spec[it->second].getMZ() - rich_spec[it->first].getMZ())));
-          String ion_type = ion_name.prefix(1);
-          if (ListUtils::contains(allowed_types, ion_type))
-          {
-            try
-            {
-              int i = ion_name.substr(1).remove('+').toInt() - 1;
-              ion_series[ion_type].at(i) = true;
-            }
-            catch (std::out_of_range)
-            {
-              LOG_WARN << ion_type << ion_name.substr(1).remove('+').toInt() -1
-                       << " ions not foreseen for" << ph->getSequence().toString() << endl;
-              continue;
-            }
-          }
+        }
+        if (basic_statistics_)
+        {
+          ph->setMetaValue("matched_ions", ListUtils::concatenate(ions, ","));
+          ph->setMetaValue("matched_intensity", match_intensity);
+          ph->setMetaValue("matched_ion_number", ions.size());
+          ph->setMetaValue("peak_number", spec.size());
+          ph->setMetaValue("sum_intensity", sum_intensity);
         }
         if (terminal_series_match_ratio_)
         {
@@ -199,7 +232,7 @@ namespace OpenMS
         }
         if (topNmatch_fragmenterrors_)
         {
-          if(fragmenterrors.empty())
+          if (fragmenterrors.empty())
           {
             ph->setMetaValue("median_fragment_error", 0);
             ph->setMetaValue("IQR_fragment_error", 0);
@@ -209,17 +242,13 @@ namespace OpenMS
           }
           else
           {
-            vector<double> fe;
+            vector<double> fe(fragmenterrors);
             fe.reserve(fragmenterrors.size());
-            for (map<double,double>::const_iterator fit = fragmenterrors.begin(); fit != fragmenterrors.end(); ++fit)
-            {
-              fe.push_back(fit->second);
-            }
             std::size_t mid = fe.size()/2;
             std::size_t lq = fe.size()/4;
             std::size_t uq = lq + mid;
             std::nth_element(fe.begin(), fe.begin()+mid, fe.end());
-            if(fe.size() % 2 != 0)
+            if (fe.size() % 2 != 0)
             {
               ph->setMetaValue("median_fragment_error", fe[mid]);
             }
@@ -235,12 +264,8 @@ namespace OpenMS
             ph->setMetaValue("IQR_fragment_error", fe[uq]-fe[lq]);
 
             vector<double> topn_fe;
-            topn_fe.reserve(topNmatch_fragmenterrors_);
-            //apparently i cannot do this: map<double,double>::reverse_iterator rtop7 = fragmenterrors.rbegin() + 8;
-            for (map<double,double>::reverse_iterator fit = fragmenterrors.rbegin(); fit != fragmenterrors.rend() && topn_fe.size() < topNmatch_fragmenterrors_; ++fit)
-            {
-              topn_fe.push_back(fit->second);
-            }
+            std::reverse_copy(fragmenterrors.begin(), fragmenterrors.end(), topn_fe.begin());
+            topn_fe.resize(topNmatch_fragmenterrors_);
             double sum = std::accumulate(topn_fe.begin(), topn_fe.end(), 0.0);
             double mean = sum / topn_fe.size();
 
@@ -256,106 +281,83 @@ namespace OpenMS
             ph->setMetaValue("topN_stddevfragmenterror", stdev);
           }
         }
-        if (basic_statistics_)
-        {
-          ph->setMetaValue("matched_ions", ListUtils::concatenate(ions, ","));
-          ph->setMetaValue("matched_intensity", match_intensity);
-          ph->setMetaValue("matched_ion_number", ions.size());
-        }
-
-        String max_series;
-        int series_stretch = 0;
-        for (map<String, vector<bool> >::iterator tt = ion_series.begin(); tt != ion_series.end(); ++tt)
-        {
-          int stretch = 0;
-          for (vector<bool>::iterator it = tt->second.begin(); it != tt->second.end(); ++it)
-          {
-            if (*it)
-            {
-              ++stretch;
-            }
-            else
-            {
-              stretch = 0;
-            }
-          }
-          if (stretch > series_stretch)
-          {
-            series_stretch = stretch;
-            max_series = tt->first;
-          }
-        }
         if (max_series_)
         {
+          String max_series;
+          int series_stretch = 0;
+          for (map<String, vector<bool> >::iterator tt = ion_series.begin(); tt != ion_series.end(); ++tt)
+          {
+            int stretch = 0;
+            for (vector<bool>::iterator it = tt->second.begin(); it != tt->second.end(); ++it)
+            {
+              if (*it)
+              {
+                ++stretch;
+              }
+              else
+              {
+                stretch = 0;
+              }
+            }
+            if (stretch > series_stretch)
+            {
+              series_stretch = stretch;
+              max_series = tt->first;
+            }
+          }
           ph->setMetaValue("max_series_type", max_series);
           ph->setMetaValue("max_series_size", series_stretch);
         }
-
-        float sum_intensity = 0;
-        int peak_number = 0;
-        for (MSSpectrum<Peak1D>::const_iterator pt = spec.begin(); pt != spec.end(); ++pt)
-        {
-          sum_intensity += pt->getIntensity();
-          //TODO parent peak intensity complement pairs number
-          ++peak_number;
-        }
-        if (basic_statistics_)
-        {
-          ph->setMetaValue("peak_number", peak_number);
-          ph->setMetaValue("sum_intensity", sum_intensity);
-        }
+        //TODO parent peak intensity complement pairs number
         if (SN_statistics_)
         {
           float sn_by_matched_intensity = (match_intensity/ions.size())/
-                  ((sum_intensity-match_intensity)/(peak_number-ions.size()));
+                  ((sum_intensity-match_intensity)/(spec.size()-ions.size()));
           ph->setMetaValue("sn_by_matched_intensity", sn_by_matched_intensity);
-        }
 
+          float median = 0;
+          //rich_spec is already in sorted order of intensity
+          if (rich_spec.size() % 2 == 0)
+            median = (rich_spec[rich_spec.size()/2 - 1].getIntensity() + rich_spec[rich_spec.size()/2].getIntensity()) / 2;
+          else
+            median = rich_spec[rich_spec.size()/2].getIntensity();
+          float sign_int= 0;
+          float nois_int = 0;
+          size_t sign_count= 0;
+          size_t nois_count = 0;
+          for (MSSpectrum<Peak1D>::const_iterator pt = spec.begin(); pt != spec.end(); ++pt)
+          {
+            if (pt->getIntensity() <= median)
+            {
+              ++nois_count;
+              nois_int += pt->getIntensity();
+            }
+            else
+            {
+              ++sign_count;
+              sign_int += pt->getIntensity();
+            }
+          }
+          float sn_by_median_intensity = (sign_int/sign_count)/(nois_int/nois_count);
+
+          ph->setMetaValue("sn_by_median_intensity", sn_by_median_intensity);
+        }
         if (precursor_statistics_)
         {
           bool precursor = false;
           for (std::vector<Precursor>::const_iterator pit = spec.getPrecursors().begin(); pit != spec.getPrecursors().end(); ++pit)
           {
-            new_spec.sortByPosition();
-            //TODO precursor_H2O_loss and precursor_NH3_loss
-            if (new_spec.findNearest(pit->getMZ(),sap.getValue("tolerance"),
-                                 sap.getValue("tolerance")) > -1)
+            rich_spec.sortByPosition();
+            //TODO what about precursor_H2O_loss and precursor_NH3_loss
+            if (rich_spec.findNearest(pit->getMZ(),sa.getParameters().getValue("tolerance"),
+                                 sa.getParameters().getValue("tolerance")) > -1)
             {
               precursor = true;
             }
           }
           ph->setMetaValue("precursor_in_ms2", precursor);
         }
-
-        if (SN_statistics_)
-        {
-          float median = 0;
-          new_spec.sortByIntensity();
-          if(new_spec.size() % 2 == 0)
-            median = (new_spec[new_spec.size()/2 - 1].getIntensity() + new_spec[new_spec.size()/2].getIntensity()) / 2;
-          else
-            median = new_spec[new_spec.size()/2].getIntensity();
-          float sign_int= 0;
-          float nois_int = 0;
-          size_t sign_cnt= 0;
-          size_t nois_cnt = 0;
-          for (MSSpectrum<Peak1D>::const_iterator pt = spec.begin(); pt != spec.end(); ++pt)
-          {
-            if (pt->getIntensity() <= median)
-            {
-              ++nois_cnt;
-              nois_int += pt->getIntensity();
-            }
-            else
-            {
-              ++sign_cnt;
-              sign_int += pt->getIntensity();
-            }
-          }
-          float sn_by_median_intensity = (sign_int/sign_cnt)/(nois_int/nois_cnt);
-
-          ph->setMetaValue("sn_by_median_intensity", sn_by_median_intensity);
-        }
+        //TODO add "FragmentArray"s
       }
     }
   }

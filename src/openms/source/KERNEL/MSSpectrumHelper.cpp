@@ -28,79 +28,56 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Mathias Walzer $
+// $Maintainer: $
 // $Authors: Mathias Walzer $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_SPECTRUMANNOTATOR_H
-#define OPENMS_CHEMISTRY_SPECTRUMANNOTATOR_H
+#include <OpenMS/KERNEL/MSSpectrumHelper.h>
 
-#include <OpenMS/CHEMISTRY/Residue.h>
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
-#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
-#include <boost/regex.hpp>
+#include <algorithm>
 
 namespace OpenMS
 {
-  /**
-      @brief Generates theoretical spectra with various options
-
-  @htmlinclude OpenMS_SpectrumAnnotator.parameters
-
-      @ingroup Chemistry
-  */
-  class OPENMS_DLLAPI SpectrumAnnotator :
-    public DefaultParamHandler
+  MSSpectrum<RichPeak1D> MSSpectrumHelper::clone(const MSSpectrum<Peak1D>& p)
   {
-    public:
+    MSSpectrum<RichPeak1D> rp;
+    rp.retention_time_ = p.retention_time_;
+    rp.ms_level_ = p.ms_level_;
+    rp.name_ = p.name_;
+    rp.float_data_arrays_.clear();
 
-    /** @name Constructors and Destructors
-    */
-    //@{
-    /// default constructor
-    SpectrumAnnotator();
+    //ugly stuff from MSSpectrum
+    for (MSSpectrum<Peak1D>::FloatDataArrays::const_iterator fit = p.float_data_arrays_.begin(); fit!= p.float_data_arrays_.end(); ++fit)
+    {
+      MSSpectrum<RichPeak1D>::FloatDataArray f;
+      f.MetaInfoInterface::operator=(*fit);
+      std::copy(fit->begin(),fit->end(),f.begin());
+      rp.float_data_arrays_.push_back(f);
+    }
+    for (MSSpectrum<Peak1D>::StringDataArrays::const_iterator fit = p.string_data_arrays_.begin(); fit!= p.string_data_arrays_.end(); ++fit)
+    {
+      MSSpectrum<RichPeak1D>::StringDataArray f;
+      f.MetaInfoInterface::operator=(*fit);
+      std::copy(fit->begin(),fit->end(),f.begin());
+      rp.string_data_arrays_.push_back(f);
+    }
+    for (MSSpectrum<Peak1D>::IntegerDataArrays::const_iterator fit = p.integer_data_arrays_.begin(); fit!= p.integer_data_arrays_.end(); ++fit)
+    {
+      MSSpectrum<RichPeak1D>::IntegerDataArray f;
+      f.MetaInfoInterface::operator=(*fit);
+      std::copy(fit->begin(),fit->end(),f.begin());
+      rp.integer_data_arrays_.push_back(f);
+    }
 
-    /// copy constructor
-    SpectrumAnnotator(const SpectrumAnnotator & source);
+    //grab SpectrumSettings
+    rp.SpectrumSettings::operator=(p);
+    //grab MetaInfoInterface
+    rp.MetaInfoInterface::operator=(p);
 
-    /// destructor
-    virtual ~SpectrumAnnotator();
-    //@}
+    //copy cast peaks to riches
+    std::copy(p.begin(), p.end(), std::back_inserter(rp));
+    return rp;
+  }
 
-    /// assignment operator
-    SpectrumAnnotator & operator=(const SpectrumAnnotator & tsg);
 
-    /** @name Available annotators
-     */
-    //@{
-
-    /// adds Ion match annotations to a spectrum (MetaValues IonName and IonMatchError)
-    RichPeakSpectrum annotateMatches(const PeptideHit& ph, const MSSpectrum<Peak1D>& spec, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const;
-
-    /// adds Ion matches to peptide identifcations
-    void addIonMatchStatistics(PeptideIdentification& pi, const MSSpectrum<Peak1D>& spec, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const;
-
-    /// overwrite
-    void updateMembers_();
-
-    //@}
-
-    protected:
-      bool basic_statistics_;
-      bool list_of_ions_matched_;
-      bool max_series_;
-      bool SN_statistics_;
-      bool precursor_statistics_;
-      uint topNmatch_fragmenterrors_;
-      bool fragmenterror_statistics_;
-      bool terminal_series_match_ratio_;
-
-      static const boost::regex nt_regex_;
-      static const boost::regex ct_regex_;
-
-  };
-}
-#endif
-
+} // namespace OpenMS
