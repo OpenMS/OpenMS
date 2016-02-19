@@ -194,7 +194,7 @@ namespace OpenMS
             intensities.push_back(it->getIntensity());
             match_intensity += it->getIntensity();
             mzs.push_back(it->getMZ());
-            String ion_name = it->getMetaValue("IonName");
+            const String& ion_name = it->getMetaValue("IonName");
             {
               ions.push_back(ion_name);
               if (terminal_series_match_ratio_)
@@ -210,7 +210,7 @@ namespace OpenMS
               }
               if (max_series_ && boost::regex_match(ion_name, noloss_regex_))
               {
-                String ion_type = ion_name.prefix(1);
+                const String& ion_type = ion_name.prefix(1);
                 if (ListUtils::contains(allowed_types, ion_type)) //case sensitive?
                 {
                   try
