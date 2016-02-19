@@ -151,7 +151,8 @@ namespace OpenMS
         rich_input_spectrum[it->second].setMetaValue("IonName", rich_theoretical_spec[it->first].getMetaValue("IonName"));
     }
     Param sap = sa.getParameters();
-    rich_input_spectrum.setMetaValue("fragment_match_tolerance", sap.getValue("tolerance"));
+    rich_input_spectrum.setMetaValue("fragment_mass_tolerance", sap.getValue("tolerance"));
+    rich_input_spectrum.setMetaValue("fragment_mass_tolerance_ppm", false);
     return rich_input_spectrum;
   }
 
@@ -352,6 +353,7 @@ namespace OpenMS
 
           ph->setMetaValue("sn_by_median_intensity", sn_by_median_intensity);
         }
+        //TODO charge related features might be worth looking at in the future
         if (precursor_statistics_)
         {
           bool precursor = false;
