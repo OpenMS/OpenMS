@@ -175,9 +175,9 @@ protected:
     registerFlag_("ignore_proteins_per_peptide", "[Sequest only] Workaround to deal with .out files that contain e.g. \"+1\" in references column,\n"
                                                  "but do not list extra references in subsequent lines (try -debug 3 or 4)", true);
     registerStringOption_("scan_regex", "<expression>", "", "[Mascot, pepXML, Percolator only] Regular expression used to extract the scan number or retention time. See documentation for details.", false, true);
-    registerFlag_("add_spectrum_references", "Adds the spectrum files spectrum ID reference to each PeptideIdentification. Warning: works only with mz_file set", true);
-    registerDoubleOption_("add_ionmatch_annotation", "<tolerance value in Da>", 0, "Adds IonMatch statistics to each PeptideHit if tolerance value > 0 e.g. 0.5. Warning: works only with mz_file set, might be time and memory laborious!", false, true);
-    registerFlag_("reset_basename", "Resets the BaseName of every PeptideIdentification with the basename of the given mzML file.", true);
+    registerFlag_("add_spectrum_references", "Adds a reference to the spectrum file's spectrum ID to each peptide identification. This requires 'mz_file' to be set.", true);
+    registerDoubleOption_("add_ionmatch_annotation", "<tolerance value in Da>", 0, "Tolerance in Da for ion match annotation. If set to a positive value, ion match statistics are added to each peptide hit. This also requires 'mz_file' to be set. Warning: might be time and memory laborious!", false, true);
+    registerFlag_("reset_basename", "Sets the 'basename' attribute of every peptide identification to the base name of the mzML file given via 'mz_file'.", true);
   }
 
   ExitCodes main_(int, const char**)
