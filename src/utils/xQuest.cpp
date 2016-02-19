@@ -2140,26 +2140,26 @@ protected:
                   double matched_current_beta = 0;
                   for (SignedSize j = 0; j < static_cast<SignedSize>(matched_spec_alpha.size()); ++j)
                   {
-                    matched_current_alpha += preprocessed_pair_spectra.spectra_common_peaks[pair_index][matched_spec_alpha[j].second].getIntensity() * 100;
+                    matched_current_alpha += preprocessed_pair_spectra.spectra_common_peaks[pair_index][matched_spec_alpha[j].second].getIntensity();
                    }
                   for (SignedSize j = 0; j < static_cast<SignedSize>(matched_spec_beta.size()); ++j)
                   {
-                    matched_current_beta += preprocessed_pair_spectra.spectra_common_peaks[pair_index][matched_spec_beta[j].second].getIntensity() * 100;
+                    matched_current_beta += preprocessed_pair_spectra.spectra_common_peaks[pair_index][matched_spec_beta[j].second].getIntensity();
                   }
                   for (SignedSize j = 0; j < static_cast<SignedSize>(matched_spec_xlinks_alpha.size()); ++j)
                   {
-                    matched_current_alpha += preprocessed_pair_spectra.spectra_xlink_peaks[pair_index][matched_spec_xlinks_alpha[j].second].getIntensity() * 100;
+                    matched_current_alpha += preprocessed_pair_spectra.spectra_xlink_peaks[pair_index][matched_spec_xlinks_alpha[j].second].getIntensity();
                   }
                   for (SignedSize j = 0; j < static_cast<SignedSize>(matched_spec_xlinks_beta.size()); ++j)
                   {
-                    matched_current_beta += preprocessed_pair_spectra.spectra_xlink_peaks[pair_index][matched_spec_xlinks_beta[j].second].getIntensity() * 100;
+                    matched_current_beta += preprocessed_pair_spectra.spectra_xlink_peaks[pair_index][matched_spec_xlinks_beta[j].second].getIntensity();
                   }
                   double matched_current = matched_current_alpha + matched_current_beta;
 
                   double total_current = 0;
                   for (SignedSize j = 0; j < static_cast<SignedSize>(spectrum_light.size()); ++j)
                   {
-                    total_current += spectrum_light[j].getIntensity() * 100;
+                    total_current += spectrum_light[j].getIntensity();
                    }
 
                   double TIC = matched_current / total_current;
@@ -2406,7 +2406,7 @@ protected:
                 ph_beta.setCharge(precursor_charge);
                 ph_beta.setScore(peak_score[i]);
                 ph_beta.setMetaValue("xl_chain", "MS:1002509"); // donor 
-                ph_alpha.setMetaValue("xl_pos", DataValue(beta_pos));
+                ph_beta.setMetaValue("xl_pos", DataValue(beta_pos));
                 phs.push_back(ph_beta);
               }
 
