@@ -368,6 +368,9 @@ namespace OpenMS
           ph->setMetaValue("precursor_in_ms2", precursor);
         }
         //TODO add "FragmentArray"s
+
+        Param sap = sa.getParameters();
+        pi.setMetaValue("fragment_match_tolerance", sap.getValue("tolerance"));
       }
     }
   }
