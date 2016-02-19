@@ -176,7 +176,7 @@ protected:
                                                  "but do not list extra references in subsequent lines (try -debug 3 or 4)", true);
     registerStringOption_("scan_regex", "<expression>", "", "[Mascot, pepXML, Percolator only] Regular expression used to extract the scan number or retention time. See documentation for details.", false, true);
     registerFlag_("add_spectrum_references", "Adds the spectrum files spectrum ID reference to each PeptideIdentification. Warning: works only with mz_file set", true);
-    registerDoubleOption_("add_ionmatch_annotation", "<tolerance value>", 0.5, "Adds IonMatch statistics to each PeptideHit if tolerance value > 0. Warning: works only with mz_file set, might be time and memory laborious!", false, true);
+    registerDoubleOption_("add_ionmatch_annotation", "<tolerance value in Da>", 0, "Adds IonMatch statistics to each PeptideHit if tolerance value > 0 e.g. 0.5. Warning: works only with mz_file set, might be time and memory laborious!", false, true);
     registerFlag_("reset_basename", "Resets the BaseName of every PeptideIdentification with the basename of the given mzML file.", true);
   }
 
