@@ -83,8 +83,6 @@
       <userParam name="annotation" type="xsd:string" value="y5"/>
       <userParam name="detecting_transition" type="xsd:string" value="true"/>
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="site_identifying_transition" type="xsd:string" value=""/>
-      <userParam name="site_identifying_class" type="xsd:string" value=""/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="tr2" peptideRef="tr_gr1">
@@ -108,8 +106,6 @@
       <userParam name="annotation" type="xsd:string" value="y6"/>
       <userParam name="detecting_transition" type="xsd:string" value="true"/>
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="site_identifying_transition" type="xsd:string" value=""/>
-      <userParam name="site_identifying_class" type="xsd:string" value=""/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="tr3" peptideRef="tr_gr2">
@@ -133,8 +129,6 @@
       <userParam name="annotation" type="xsd:string" value="y4"/>
       <userParam name="detecting_transition" type="xsd:string" value="true"/>
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="site_identifying_transition" type="xsd:string" value=""/>
-      <userParam name="site_identifying_class" type="xsd:string" value=""/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="tr4" peptideRef="tr_gr2">
@@ -158,8 +152,6 @@
       <userParam name="annotation" type="xsd:string" value="y5"/>
       <userParam name="detecting_transition" type="xsd:string" value="true"/>
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="site_identifying_transition" type="xsd:string" value=""/>
-      <userParam name="site_identifying_class" type="xsd:string" value=""/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="tr5" peptideRef="tr_gr2">
@@ -183,8 +175,6 @@
       <userParam name="annotation" type="xsd:string" value="y6"/>
       <userParam name="detecting_transition" type="xsd:string" value="true"/>
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="site_identifying_transition" type="xsd:string" value=""/>
-      <userParam name="site_identifying_class" type="xsd:string" value=""/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="454" peptideRef="78">
@@ -207,8 +197,6 @@
       <userParam name="annotation" type="xsd:string" value="b3"/>
       <userParam name="detecting_transition" type="xsd:string" value="true"/>
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="site_identifying_transition" type="xsd:string" value=""/>
-      <userParam name="site_identifying_class" type="xsd:string" value=""/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
   </TransitionList>

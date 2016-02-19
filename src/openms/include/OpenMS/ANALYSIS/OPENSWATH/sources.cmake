@@ -19,6 +19,7 @@ set(sources_list_h
   OpenSwathScoring.h
   SpectrumAddition.h
   TransitionTSVReader.h
+  SwathMapMassCorrection.h
 )
 
 ### add path to the filenames

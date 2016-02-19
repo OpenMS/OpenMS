@@ -106,8 +106,8 @@ public:
     /// Performs the enzymatic digestion of a protein.
     void digest(const AASequence& protein, std::vector<AASequence>& output) const;
 
-    /// Performs the enzymatic digestion of a unmodified protein String. By returning only references into the original string it is much faster.
-    void digestUnmodifiedString(const StringView sequence, std::vector<StringView>& output, Size min_length = 1) const;
+    /// Performs the enzymatic digestion of a unmodified protein String. By returning only references into the original string it is much faster. max_length restricts the maximum length of reported peptides (0 = no restriction)
+    void digestUnmodifiedString(const StringView sequence, std::vector<StringView>& output, Size min_length = 1, Size max_length = 0) const;
 
     /// Returns the number of peptides a digestion of @p protein would yield under the current enzyme and missed cleavage settings.
     Size peptideCount(const AASequence& protein);

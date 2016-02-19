@@ -165,9 +165,9 @@ class TOPPBaseTest
       addDataProcessing_(c_map, dp);
     }
 
-    void parseRange(const String& text, double& low, double& high) const
+    bool parseRange(const String& text, double& low, double& high) const
     {
-      parseRange_(text, low, high);
+      return parseRange_(text, low, high);
     }
 
 };
@@ -630,30 +630,35 @@ START_SECTION(([EXTRA]void outputFileWritable_(const String& filename, const Str
 END_SECTION
 
 START_SECTION(([EXTRA]void parseRange_(const String& text, double& low, double& high) const))
+{
 	TOPPBaseTest topp;
 	double a = -1.0;
 	double b = -1.0;
-	String s;
 
-	s = ":";
-	topp.parseRange(s,a,b);
-	TEST_REAL_SIMILAR(a,-1.0);
-	TEST_REAL_SIMILAR(b,-1.0);
+	String s = ":";
+	bool result = topp.parseRange(s, a, b);
+	TEST_REAL_SIMILAR(a, -1.0);
+	TEST_REAL_SIMILAR(b, -1.0);
+  TEST_EQUAL(result, false);
 
 	s = "4.5:";
-	topp.parseRange(s,a,b);
-	TEST_REAL_SIMILAR(a,4.5);
-	TEST_REAL_SIMILAR(b,-1.0);
+	result = topp.parseRange(s, a, b);
+	TEST_REAL_SIMILAR(a, 4.5);
+	TEST_REAL_SIMILAR(b, -1.0);
+  TEST_EQUAL(result, true);
 
 	s = ":5.5";
-	topp.parseRange(s,a,b);
-	TEST_REAL_SIMILAR(a,4.5);
-	TEST_REAL_SIMILAR(b,5.5);
+	result = topp.parseRange(s, a, b);
+	TEST_REAL_SIMILAR(a, 4.5);
+	TEST_REAL_SIMILAR(b, 5.5);
+  TEST_EQUAL(result, true);
 
 	s = "6.5:7.5";
-	topp.parseRange(s,a,b);
-	TEST_REAL_SIMILAR(a,6.5);
-	TEST_REAL_SIMILAR(b,7.5);
+	result = topp.parseRange(s, a, b);
+	TEST_REAL_SIMILAR(a, 6.5);
+	TEST_REAL_SIMILAR(b, 7.5);
+  TEST_EQUAL(result, true);
+}
 END_SECTION
 
 START_SECTION(([EXTRA]Param getParam_( const std::string& prefix ) const))

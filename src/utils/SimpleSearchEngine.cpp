@@ -159,6 +159,7 @@ class SimpleSearchEngine :
 
       registerTOPPSubsection_("peptide", "Peptide Options");
       registerIntOption_("peptide:min_size", "<num>", 7, "Minimum size a peptide must have after digestion to be considered in the search.", false, true);
+      registerIntOption_("peptide:max_size", "<num>", 40, "Maximum size a peptide must have after digestion to be considered in the search (0 = disabled).", false, true);
       registerIntOption_("peptide:missed_cleavages", "<num>", 1, "Number of missed cleavages.", false, false);
 
       registerTOPPSubsection_("report", "Reporting Options");
@@ -178,23 +179,6 @@ class SimpleSearchEngine :
 
       return modifications;
     }
-
-    // check if for minimum size
-    class HasInvalidPeptideLengthPredicate
-    {
-        public:
-          explicit HasInvalidPeptideLengthPredicate(Size min_size)
-            :min_size_(min_size)
-          {
-          }
-
-          bool operator()(const AASequence& aas)
-          {
-            return (aas.size() < min_size_);
-          }
-      private:
-          Size min_size_;
-    };
 
     // spectrum must not contain 0 intensity peaks and must be sorted by m/z
     template <typename SpectrumType>
@@ -451,15 +435,8 @@ class SimpleSearchEngine :
         }
       }
 
-      IDFilter filter;
-
       // only store top n hits
-      for (vector<PeptideIdentification>::iterator pids_it = peptide_ids.begin(); pids_it != peptide_ids.end(); ++pids_it)
-      {
-        PeptideIdentification& pi = *pids_it;
-        PeptideIdentification temp_identification = pi;
-        filter.filterIdentificationsByBestNHits(temp_identification, top_hits, pi);
-      }
+      IDFilter::keepNBestHits(peptide_ids, top_hits);
 
       // protein identifications (leave as is...)
       protein_ids = vector<ProteinIdentification>(1);
@@ -571,10 +548,11 @@ class SimpleSearchEngine :
       progresslogger.startProgress(0, (Size)(fasta_db.end() - fasta_db.begin()), "Scoring peptide models against spectra...");
 
       // lookup for processed peptides. must be defined outside of omp section and synchronized
-      set<std::string> processed_petides;
+      set<StringView> processed_petides;
 
-      // set minimum size of peptide after digestion
-      HasInvalidPeptideLengthPredicate has_invalid_length(getIntOption_("peptide:min_size"));
+      // set minimum / maximum size of peptide after digestion
+      Size min_peptide_length = getIntOption_("peptide:min_size");
+      Size max_peptide_length = getIntOption_("peptide:max_size");
 
 #ifdef _OPENMP
 #pragma omp parallel for
@@ -586,24 +564,17 @@ class SimpleSearchEngine :
           progresslogger.setProgress((SignedSize)fasta_index * NUMBER_OF_THREADS);
         }
 
-        const AASequence& seq = AASequence::fromString(fasta_db[fasta_index].sequence);
+        vector<StringView> current_digest;
+        digestor.digestUnmodifiedString(fasta_db[fasta_index].sequence, current_digest, min_peptide_length, max_peptide_length);
 
-        vector<AASequence> current_digest;
-        digestor.digest(seq, current_digest);
-
-        // c++ STL pattern for deleting entries from vector based on predicate evaluation
-        current_digest.erase(std::remove_if(current_digest.begin(), current_digest.end(), has_invalid_length), current_digest.end());
-
-        for (vector<AASequence>::iterator cit = current_digest.begin(); cit != current_digest.end(); ++cit)
+        for (vector<StringView>::iterator cit = current_digest.begin(); cit != current_digest.end(); ++cit)
         {
-          const std::string& s = cit->toUnmodifiedString();
-
           bool already_processed = false;
 #ifdef _OPENMP
 #pragma omp critical (processed_peptides_access)
 #endif
           {
-            if (processed_petides.find(s) != processed_petides.end())
+            if (processed_petides.find(*cit) != processed_petides.end())
             {
               // peptide (and all modified variants) already processed so skip it
               already_processed = true;
@@ -619,7 +590,7 @@ class SimpleSearchEngine :
 #pragma omp critical (processed_peptides_access)
 #endif
           {
-            processed_petides.insert(s);
+            processed_petides.insert(*cit);
           }
 
           vector<AASequence> all_modified_peptides;
@@ -629,8 +600,9 @@ class SimpleSearchEngine :
 #pragma omp critical (residuedb_access)
 #endif
           {
-            ModifiedPeptideGenerator::applyFixedModifications(fixedMods.begin(), fixedMods.end(), *cit);
-            ModifiedPeptideGenerator::applyVariableModifications(varMods.begin(), varMods.end(), *cit, max_variable_mods_per_peptide, all_modified_peptides);
+            AASequence aas = AASequence::fromString(cit->getString());
+            ModifiedPeptideGenerator::applyFixedModifications(fixedMods.begin(), fixedMods.end(), aas);
+            ModifiedPeptideGenerator::applyVariableModifications(varMods.begin(), varMods.end(), aas, max_variable_mods_per_peptide, all_modified_peptides);
           }
 
           for (SignedSize mod_pep_idx = 0; mod_pep_idx < (SignedSize)all_modified_peptides.size(); ++mod_pep_idx)

@@ -414,6 +414,12 @@ START_SECTION((bool digestUnmodifiedString(const StringView sequence, std::vecto
     TEST_EQUAL(out.size(), 1)
     TEST_EQUAL(out[0].getString(), "RKR")
 
+    // max size
+    ed.digestUnmodifiedString(s, out, 2,2);
+    TEST_EQUAL(out.size(), 2)
+    TEST_EQUAL(out[0].getString(), "RK")
+    TEST_EQUAL(out[1].getString(), "KR")
+
     // ------------------------
     // Trypsin/P
     // ------------------------
