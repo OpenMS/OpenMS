@@ -45,6 +45,7 @@
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/FORMAT/Base64.h>
+#include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 
 // preprocessing and filtering
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
@@ -1645,8 +1646,8 @@ protected:
 
 
     // digest and filter decoy database
-//    if (!in_decoy_fasta.empty())
-//    {
+    if (!in_decoy_fasta.empty())
+    {
       vector<FASTAFile::FASTAEntry> fasta_decoys;
       fastaFile.load(in_decoy_fasta, fasta_decoys);
 
@@ -1720,11 +1721,16 @@ protected:
   #endif
             {
               processed_peptides.insert(pair<StringView, AASequence>(*cit, candidate));
+              fasta_db.reserve(fasta_db.size() + fasta_decoys.size());
+              fasta_db.insert(fasta_db.end(), fasta_decoys.begin(), fasta_decoys.end());
+
+              // TODO doeas this actually save space or something? or is the object removed automatically, since it is not used after this
+              fasta_decoys.clear();
             }
           }
         }
       }
-//    }
+    }
 
     // TODO Initialize output to file
     String out_file = getStringOption_("out");
@@ -2453,6 +2459,15 @@ protected:
     cout << "XLink Cross-correlation maximum: " << xcorrxMax << "\t Common Cross-correlation maximum: " << xcorrcMax << "\t Intsum maximum: " << intsumMax << endl;
     cout << "Total number of matched candidates: " << sumMatchCount << "\t Maximum number of matched candidates to one spectrum pair: " << maxMatchCount << "\t Average: " << sumMatchCount / spectra.size() << endl;
     //cout << "Random Charge: " << spectra[10][15].getMetaValue("z") << endl;
+
+    // Add protein identifications
+    PeptideIndexing pep_indexing;
+    Param indexing_param = pep_indexing.getParameters();
+    indexing_param.setValue("prefix", "true", "If set, protein accessions in the database contain 'decoy_string' as prefix.");
+    indexing_param.setValue("decoy_string", "decoy_", "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.");
+    pep_indexing.setParameters(indexing_param);
+
+    pep_indexing.run(fasta_db,protein_ids, peptide_ids);
 
     // write cross-links to IdXML
     IdXMLFile().store(out_idxml, protein_ids, peptide_ids);    
