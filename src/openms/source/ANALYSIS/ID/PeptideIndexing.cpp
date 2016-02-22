@@ -467,7 +467,7 @@ DefaultParamHandler("PeptideIndexing"), ProgressLogger()
     mismatches_max_ = static_cast<Size>(param_.getValue("mismatches_max"));
   }
 
-  void PeptideIndexing::run(vector<FASTAFile::FASTAEntry>& proteins, vector<ProteinIdentification>& prot_ids, vector<PeptideIdentification>& pep_ids)
+ PeptideIndexing::ExitCodes PeptideIndexing::run(vector<FASTAFile::FASTAEntry>& proteins, vector<ProteinIdentification>& prot_ids, vector<PeptideIdentification>& pep_ids)
   {
     //-------------------------------------------------------------
     // parsing parameters
@@ -505,26 +505,13 @@ DefaultParamHandler("PeptideIndexing"), ProgressLogger()
 
 
     //-------------------------------------------------------------
-    // reading input (Here through input parameters of run function
-    //-------------------------------------------------------------
-
-    // we stream the Fasta file
-//    vector<FASTAFile::FASTAEntry> proteins;
-//    FASTAFile().load(db_name, proteins);
-
-//    vector<ProteinIdentification> prot_ids;
-//    vector<PeptideIdentification> pep_ids;
-
-//    IdXMLFile().load(in, prot_ids, pep_ids);
-
-    //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
 
     if (proteins.size() == 0) // we do not allow an empty database
     {
-      LOG_ERROR << "Error: An empty FASTA file was provided. Mapping makes no sense. Aborting..." << std::endl;
-      return;
+      LOG_ERROR << "Error: An empty database was provided. Mapping makes no sense. Aborting..." << std::endl;
+      return DATABASE_EMPTY;
     }
 
     if (pep_ids.size() == 0) // Aho-Corasick requires non-empty input
@@ -535,7 +522,7 @@ DefaultParamHandler("PeptideIndexing"), ProgressLogger()
         prot_ids.clear();
       }
 //      IdXMLFile().store(out, prot_ids, pep_ids);
-      return;
+      return PEPTIDE_IDS_EMPTY;
     }
 
 //    writeDebug_("Collecting peptides...", 1);
@@ -573,7 +560,7 @@ DefaultParamHandler("PeptideIndexing"), ProgressLogger()
           {
             LOG_ERROR << "PeptideIndexer: protein identifier '" << acc << "' found multiple times with different sequences" << (il_equivalent ? " (I/L substituted)" : "")
                       << ":\n" << tmp_prot << "\nvs.\n" << seq << "\n! Please fix the database and run PeptideIndexer again!" << std::endl;
-            return;
+            return DATABASE_CONTAINS_MULTIPLES;
           }
           // remove duplicate sequence from 'proteins', since 'prot_DB' and 'proteins' need to correspond 1:1 (later indexing depends on it)
           // The other option would be to allow two identical entries, but later on, only the last one will be reported (making the first protein an orphan; implementation details below)
@@ -623,7 +610,7 @@ DefaultParamHandler("PeptideIndexing"), ProgressLogger()
         LOG_ERROR << "Error: Exact matching in combination with #mismatches > 0 is not allowed.\n"
                   << "       Either use full tolerant search ('full_tolerant_search') or set 'mismatches_max' back to '0'."
                   << "       Aborting..." << std::endl;
-        return;
+        return ILLEGAL_PARAMETERS;
       }
 
       if (!SA_only)
@@ -878,7 +865,7 @@ DefaultParamHandler("PeptideIndexing"), ProgressLogger()
       if (param_.getValue("missing_decoy_action") == "error")
       {
         LOG_ERROR << "Error: " << msg << "\nSet 'missing_decoy_action' to 'warn' if you are sure this is ok!\nAborting ..." << std::endl;
-        return;
+        return UNEXPECTED_RESULT;
       }
       else
       {
@@ -987,10 +974,10 @@ DefaultParamHandler("PeptideIndexing"), ProgressLogger()
                << "     (note that unmatched peptides cannot be used for FDR calculation or quantification)\n";
 
       LOG_WARN << "Result files were written, but PeptideIndexer will exit with an error code." << std::endl;
-      return;
+      return UNEXPECTED_RESULT;
     }
 
-    return;
+    return EXECUTION_OK;
 }
 
 /// @endcond
