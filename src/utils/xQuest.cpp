@@ -194,6 +194,9 @@ protected:
     registerInputFile_("decoy_database", "<file>", "", "Input file containing the decoy protein database.", false);
     setValidFormats_("decoy_database", ListUtils::create<String>("fasta"));
 
+    registerStringOption_("decoy_string", "<string>", "decoy", "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.", false);
+    registerFlag_("decoy_prefix", "Set flag, if the decoy_string is a prefix of accessions in the protein database. Otherwise it is a suffix.");
+
     registerTOPPSubsection_("precursor", "Precursor (Parent Ion) Options");
     registerDoubleOption_("precursor:mass_tolerance", "<tolerance>", 10.0, "Width of precursor mass tolerance window", false);
 
@@ -1356,6 +1359,9 @@ protected:
     const string in_consensus(getStringOption_("consensus"));
     const string out_idxml(getStringOption_("out_idXML"));
 
+    const bool decoy_prefix(getFlag("decoy_prefix"));
+    const string decoy_string(getStringOption("decoy_string"));
+
     Int min_precursor_charge = getIntOption_("precursor:min_charge");
     Int max_precursor_charge = getIntOption_("precursor:max_charge");
     double precursor_mass_tolerance = getDoubleOption_("precursor:mass_tolerance");
@@ -2294,7 +2300,7 @@ protected:
                   double xcorrc_weight = 21.279;
                   double match_odds_weight = 1.973;
                   double wTIC_weight = 12.829;
-                  double intsum_weight = 0.018;
+                  double intsum_weight = 18;
 
                   double score = xcorrx_weight * xcorrx_max + xcorrc_weight * xcorrc_max + match_odds_weight * match_odds + wTIC_weight * wTIC + intsum_weight * matched_current;
 
@@ -2463,8 +2469,11 @@ protected:
     // Add protein identifications
     PeptideIndexing pep_indexing;
     Param indexing_param = pep_indexing.getParameters();
-    indexing_param.setValue("prefix", "true", "If set, protein accessions in the database contain 'decoy_string' as prefix.");
-    indexing_param.setValue("decoy_string", "decoy_", "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.");
+
+    // TODO add additional parameters of PeptideIndexing to this tool (enzyme etc.)
+    String d_prefix = decoy_prefix ? "true" : "false";
+    indexing_param.setValue("prefix", d_prefix, "If set, protein accessions in the database contain 'decoy_string' as prefix.");
+    indexing_param.setValue("decoy_string", decoy_string, "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.");
     pep_indexing.setParameters(indexing_param);
 
     pep_indexing.run(fasta_db,protein_ids, peptide_ids);
