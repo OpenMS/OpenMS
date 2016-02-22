@@ -34,6 +34,7 @@ QTCluster.cpp
 SparseVector.cpp
 String.cpp
 StringListUtils.cpp
+StringUtils.cpp
 SuffixArray.cpp
 SuffixArrayPeptideFinder.cpp
 SuffixArraySeqan.cpp
