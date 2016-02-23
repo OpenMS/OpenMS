@@ -36,14 +36,9 @@
 
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-//#include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/DATASTRUCTURES/SeqanIncludeWrapper.h>
-//#include <OpenMS/FORMAT/IdXMLFile.h>
-//#include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-//#include <OpenMS/SYSTEM/File.h>
-//#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/CHEMISTRY/EnzymesDB.h>
@@ -374,71 +369,51 @@ DefaultParamHandler("PeptideIndexing"), ProgressLogger()
   {
 
     defaults_.setValue("decoy_string", "_rev", "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.");
-//    registerStringOption_("decoy_string", "<string>", "_rev", "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.", false);
 
     defaults_.setValue("prefix", "false", "If set, protein accessions in the database contain 'decoy_string' as prefix.");
-//    registerFlag_("prefix", "If set, protein accessions in the database contain 'decoy_string' as prefix.");
+    defaults_.setValidStrings("prefix", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("missing_decoy_action", "error", "Action to take if NO peptide was assigned to a decoy protein (which indicates wrong database or decoy string): 'error' (exit with error, no output), 'warn' (exit with success, warning message)");
-//    registerStringOption_("missing_decoy_action", "<action>", "error", "Action to take if NO peptide was assigned to a decoy protein (which indicates wrong database or decoy string): 'error' (exit with error, no output), 'warn' (exit with success, warning message)", false);
     defaults_.setValidStrings("missing_decoy_action", ListUtils::create<String>("error,warn"));
 
     defaults_.setValue("enzyme:name", "Trypsin", "Enzyme which determines valid cleavage sites - e.g. trypsin cleaves after lysine (K) or arginine (R), but not before proline (P).");
-//    registerTOPPSubsection_("enzyme", "The enzyme determines valid cleavage sites; cleavage specificity determines to what extent validity is enforced.");
-//    registerStringOption_("enzyme:name", "", "Trypsin", "Enzyme which determines valid cleavage sites - e.g. trypsin cleaves after lysine (K) or arginine (R), but not before proline (P).", false);
 
     StringList enzymes;
     EnzymesDB::getInstance()->getAllNames(enzymes);
     defaults_.setValidStrings("enzyme:name", enzymes);
-//    setValidStrings_("enzyme:name", enzymes);
 
     defaults_.setValue("enzyme:specificity", EnzymaticDigestion::NamesOfSpecificity[0], "Specificity of the enzyme."
                                                                                                "\n  '" + EnzymaticDigestion::NamesOfSpecificity[0] + "': both internal cleavage sites must match."
                                                                                                                                                      "\n  '" + EnzymaticDigestion::NamesOfSpecificity[1] + "': one of two internal cleavage sites must match."
                                                                                                                                                                                                            "\n  '" + EnzymaticDigestion::NamesOfSpecificity[2] + "': allow all peptide hits no matter their context. Therefore, the enzyme chosen does not play a role here");
-//    registerStringOption_("enzyme:specificity", "", EnzymaticDigestion::NamesOfSpecificity[0], "Specificity of the enzyme."
-//                                                                                               "\n  '" + EnzymaticDigestion::NamesOfSpecificity[0] + "': both internal cleavage sites must match."
-//                                                                                                                                                     "\n  '" + EnzymaticDigestion::NamesOfSpecificity[1] + "': one of two internal cleavage sites must match."
-//                                                                                                                                                                                                           "\n  '" + EnzymaticDigestion::NamesOfSpecificity[2] + "': allow all peptide hits no matter their context. Therefore, the enzyme chosen does not play a role here", false);
 
     StringList spec;
     spec.assign(EnzymaticDigestion::NamesOfSpecificity, EnzymaticDigestion::NamesOfSpecificity + EnzymaticDigestion::SIZE_OF_SPECIFICITY);
     defaults_.setValidStrings("enzyme:specificity", spec);
-//    setValidStrings_("enzyme:specificity", spec);
 
     defaults_.setValue("write_protein_sequence", "false", "If set, the protein sequences are stored as well.");
-    defaults_.setValidStrings("write_protein_sequence", ListUtils::create<String>("false,true"));
-//    registerFlag_("write_protein_sequence", "If set, the protein sequences are stored as well.");
+    defaults_.setValidStrings("write_protein_sequence", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("write_protein_description", "false", "If set, the protein description is stored as well.");
-    defaults_.setValidStrings("write_protein_description", ListUtils::create<String>("false,true"));
-//    registerFlag_("write_protein_description", "If set, the protein description is stored as well.");
+    defaults_.setValidStrings("write_protein_description", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("keep_unreferenced_proteins", "false", "If set, protein hits which are not referenced by any peptide are kept.");
-    defaults_.setValidStrings("keep_unreferenced_proteins", ListUtils::create<String>("false,true"));
-//    registerFlag_("keep_unreferenced_proteins", "If set, protein hits which are not referenced by any peptide are kept.");
+    defaults_.setValidStrings("keep_unreferenced_proteins", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("allow_unmatched", "false", "If set, unmatched peptide sequences are allowed. By default (i.e. if this flag is not set) the program terminates with an error on unmatched peptides.");
-    defaults_.setValidStrings("allow_unmatched", ListUtils::create<String>("false,true"));
-//    registerFlag_("allow_unmatched", "If set, unmatched peptide sequences are allowed. By default (i.e. if this flag is not set) the program terminates with an error on unmatched peptides.");
+    defaults_.setValidStrings("allow_unmatched", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("full_tolerant_search", "false", "If set, all peptide sequences are matched using tolerant search. Thus potentially more proteins (containing ambiguous amino acids) are associated. This is much slower!");
-    defaults_.setValidStrings("full_tolerant_search", ListUtils::create<String>("false,true"));
-//    registerFlag_("full_tolerant_search", "If set, all peptide sequences are matched using tolerant search. Thus potentially more proteins (containing ambiguous amino acids) are associated. This is much slower!");
+    defaults_.setValidStrings("full_tolerant_search", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("aaa_max", 4, "[tolerant search only] Maximal number of ambiguous amino acids (AAA) allowed when matching to a protein database with AAA's. AAA's are 'B', 'Z' and 'X'");
     defaults_.setMinInt("aaa_max", 0);
-//    registerIntOption_("aaa_max", "<number>", 4, "[tolerant search only] Maximal number of ambiguous amino acids (AAA) allowed when matching to a protein database with AAA's. AAA's are 'B', 'Z' and 'X'", false);
-//    setMinInt_("aaa_max", 0);
 
     defaults_.setValue("mismatches_max", 0, "[tolerant search only] Maximal number of real mismatches (will be used after checking for ambiguous AA's (see 'aaa_max' option). In general this param should only be changed if you want to look for other potential origins of a peptide which might have unknown SNPs or alike.");
     defaults_.setMinInt("mismatches_max", 0);
-//    registerIntOption_("mismatches_max", "<number>", 0, "[tolerant search only] Maximal number of real mismatches (will be used after checking for ambiguous AA's (see 'aaa_max' option). In general this param should only be changed if you want to look for other potential origins of a peptide which might have unknown SNPs or alike.", false);
-//    setMinInt_("mismatches_max", 0);
 
     defaults_.setValue("IL_equivalent", "false", "Treat the isobaric amino acids isoleucine ('I') and leucine ('L') as equivalent (indistinguishable)");
-    defaults_.setValidStrings("IL_equivalent", ListUtils::create<String>("false,true"));
-//    registerFlag_("IL_equivalent", "Treat the isobaric amino acids isoleucine ('I') and leucine ('L') as equivalent (indistinguishable)");
+    defaults_.setValidStrings("IL_equivalent", ListUtils::create<String>("true,false"));
 
     defaultsToParam_();
   }
@@ -467,13 +442,11 @@ DefaultParamHandler("PeptideIndexing"), ProgressLogger()
     mismatches_max_ = static_cast<Size>(param_.getValue("mismatches_max"));
   }
 
-  void PeptideIndexing::run(vector<FASTAFile::FASTAEntry>& proteins, vector<ProteinIdentification>& prot_ids, vector<PeptideIdentification>& pep_ids)
+ PeptideIndexing::ExitCodes PeptideIndexing::run(vector<FASTAFile::FASTAEntry>& proteins, vector<ProteinIdentification>& prot_ids, vector<PeptideIdentification>& pep_ids)
   {
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-//    String in = getStringOption_("in");
-//    String out = getStringOption_("out");
     bool write_protein_sequence = param_.getValue("write_protein_sequence").toBool();
     bool write_protein_description = param_.getValue("write_protein_description").toBool();
     bool keep_unreferenced_proteins = param_.getValue("keep_unreferenced_proteins").toBool();
@@ -483,39 +456,10 @@ DefaultParamHandler("PeptideIndexing"), ProgressLogger()
     String decoy_string = static_cast<String>(param_.getValue("decoy_string"));
     bool prefix = param_.getValue("prefix").toBool();
 
-//    String db_name = getStringOption_("fasta");
-//    if (!File::readable(db_name))
-//    {
-//      String full_db_name;
-//      try
-//      {
-//        full_db_name = File::findDatabase(db_name);
-//      }
-//      catch (...)
-//      {
-//        printUsage_();
-//        return ILLEGAL_PARAMETERS;
-//      }
-//      db_name = full_db_name;
-//    }
-
     EnzymaticDigestion enzyme;
     enzyme.setEnzyme(static_cast<String>(param_.getValue("enzyme:name")));
     enzyme.setSpecificity(enzyme.getSpecificityByName(static_cast<String>(param_.getValue(("enzyme:specificity")))));
 
-
-    //-------------------------------------------------------------
-    // reading input (Here through input parameters of run function
-    //-------------------------------------------------------------
-
-    // we stream the Fasta file
-//    vector<FASTAFile::FASTAEntry> proteins;
-//    FASTAFile().load(db_name, proteins);
-
-//    vector<ProteinIdentification> prot_ids;
-//    vector<PeptideIdentification> pep_ids;
-
-//    IdXMLFile().load(in, prot_ids, pep_ids);
 
     //-------------------------------------------------------------
     // calculations
@@ -523,8 +467,8 @@ DefaultParamHandler("PeptideIndexing"), ProgressLogger()
 
     if (proteins.size() == 0) // we do not allow an empty database
     {
-      LOG_ERROR << "Error: An empty FASTA file was provided. Mapping makes no sense. Aborting..." << std::endl;
-      return;
+      LOG_ERROR << "Error: An empty database was provided. Mapping makes no sense. Aborting..." << std::endl;
+      return DATABASE_EMPTY;
     }
 
     if (pep_ids.size() == 0) // Aho-Corasick requires non-empty input
@@ -534,8 +478,7 @@ DefaultParamHandler("PeptideIndexing"), ProgressLogger()
       {
         prot_ids.clear();
       }
-//      IdXMLFile().store(out, prot_ids, pep_ids);
-      return;
+      return PEPTIDE_IDS_EMPTY;
     }
 
 //    writeDebug_("Collecting peptides...", 1);
@@ -573,7 +516,7 @@ DefaultParamHandler("PeptideIndexing"), ProgressLogger()
           {
             LOG_ERROR << "PeptideIndexer: protein identifier '" << acc << "' found multiple times with different sequences" << (il_equivalent ? " (I/L substituted)" : "")
                       << ":\n" << tmp_prot << "\nvs.\n" << seq << "\n! Please fix the database and run PeptideIndexer again!" << std::endl;
-            return;
+            return DATABASE_CONTAINS_MULTIPLES;
           }
           // remove duplicate sequence from 'proteins', since 'prot_DB' and 'proteins' need to correspond 1:1 (later indexing depends on it)
           // The other option would be to allow two identical entries, but later on, only the last one will be reported (making the first protein an orphan; implementation details below)
@@ -623,7 +566,7 @@ DefaultParamHandler("PeptideIndexing"), ProgressLogger()
         LOG_ERROR << "Error: Exact matching in combination with #mismatches > 0 is not allowed.\n"
                   << "       Either use full tolerant search ('full_tolerant_search') or set 'mismatches_max' back to '0'."
                   << "       Aborting..." << std::endl;
-        return;
+        return ILLEGAL_PARAMETERS;
       }
 
       if (!SA_only)
@@ -878,7 +821,7 @@ DefaultParamHandler("PeptideIndexing"), ProgressLogger()
       if (param_.getValue("missing_decoy_action") == "error")
       {
         LOG_ERROR << "Error: " << msg << "\nSet 'missing_decoy_action' to 'warn' if you are sure this is ok!\nAborting ..." << std::endl;
-        return;
+        return UNEXPECTED_RESULT;
       }
       else
       {
@@ -969,11 +912,6 @@ DefaultParamHandler("PeptideIndexing"), ProgressLogger()
 
 //    writeDebug_("Reindexing finished!", 1);
 
-    //-------------------------------------------------------------
-    // writing output
-    //-------------------------------------------------------------
-//    IdXMLFile().store(out, prot_ids, pep_ids);
-
     if ((!allow_unmatched) && (stats_unmatched > 0))
     {
       LOG_WARN << "PeptideIndexer found unmatched peptides, which could not be associated to a protein.\n"
@@ -987,10 +925,10 @@ DefaultParamHandler("PeptideIndexing"), ProgressLogger()
                << "     (note that unmatched peptides cannot be used for FDR calculation or quantification)\n";
 
       LOG_WARN << "Result files were written, but PeptideIndexer will exit with an error code." << std::endl;
-      return;
+      return UNEXPECTED_RESULT;
     }
 
-    return;
+    return EXECUTION_OK;
 }
 
 /// @endcond

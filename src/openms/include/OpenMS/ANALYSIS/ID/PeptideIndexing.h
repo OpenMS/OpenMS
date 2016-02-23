@@ -45,6 +45,18 @@ namespace OpenMS
     public ProgressLogger
   {
 public:
+
+    /// Exit codes
+    enum ExitCodes
+    {
+      EXECUTION_OK,
+      DATABASE_EMPTY,
+      PEPTIDE_IDS_EMPTY,
+      DATABASE_CONTAINS_MULTIPLES,
+      ILLEGAL_PARAMETERS,
+      UNEXPECTED_RESULT
+    };
+
     /// Default constructor
     PeptideIndexing();
 
@@ -52,7 +64,7 @@ public:
     virtual ~PeptideIndexing();
 
     /// main method of FeatureFindingMetabo
-    void run(std::vector<FASTAFile::FASTAEntry>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids);
+    ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids);
 
 protected:
     virtual void updateMembers_();
