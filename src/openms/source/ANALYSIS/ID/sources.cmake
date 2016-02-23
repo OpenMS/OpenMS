@@ -28,6 +28,7 @@ PILISNeutralLossModel.cpp
 PILISScoring.cpp
 PILISCrossValidation.cpp
 ProtonDistributionModel.cpp
+PeptideIndexing.cpp
 )
 
 ### add path to the filenames
