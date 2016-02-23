@@ -377,6 +377,7 @@ DefaultParamHandler("PeptideIndexing"), ProgressLogger()
 //    registerStringOption_("decoy_string", "<string>", "_rev", "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.", false);
 
     defaults_.setValue("prefix", "false", "If set, protein accessions in the database contain 'decoy_string' as prefix.");
+    defaults_.setValidStrings("prefix", ListUtils::create<String>("true,false"));
 //    registerFlag_("prefix", "If set, protein accessions in the database contain 'decoy_string' as prefix.");
 
     defaults_.setValue("missing_decoy_action", "error", "Action to take if NO peptide was assigned to a decoy protein (which indicates wrong database or decoy string): 'error' (exit with error, no output), 'warn' (exit with success, warning message)");
@@ -407,23 +408,23 @@ DefaultParamHandler("PeptideIndexing"), ProgressLogger()
 //    setValidStrings_("enzyme:specificity", spec);
 
     defaults_.setValue("write_protein_sequence", "false", "If set, the protein sequences are stored as well.");
-    defaults_.setValidStrings("write_protein_sequence", ListUtils::create<String>("false,true"));
+    defaults_.setValidStrings("write_protein_sequence", ListUtils::create<String>("true,false"));
 //    registerFlag_("write_protein_sequence", "If set, the protein sequences are stored as well.");
 
     defaults_.setValue("write_protein_description", "false", "If set, the protein description is stored as well.");
-    defaults_.setValidStrings("write_protein_description", ListUtils::create<String>("false,true"));
+    defaults_.setValidStrings("write_protein_description", ListUtils::create<String>("true,false"));
 //    registerFlag_("write_protein_description", "If set, the protein description is stored as well.");
 
     defaults_.setValue("keep_unreferenced_proteins", "false", "If set, protein hits which are not referenced by any peptide are kept.");
-    defaults_.setValidStrings("keep_unreferenced_proteins", ListUtils::create<String>("false,true"));
+    defaults_.setValidStrings("keep_unreferenced_proteins", ListUtils::create<String>("true,false"));
 //    registerFlag_("keep_unreferenced_proteins", "If set, protein hits which are not referenced by any peptide are kept.");
 
     defaults_.setValue("allow_unmatched", "false", "If set, unmatched peptide sequences are allowed. By default (i.e. if this flag is not set) the program terminates with an error on unmatched peptides.");
-    defaults_.setValidStrings("allow_unmatched", ListUtils::create<String>("false,true"));
+    defaults_.setValidStrings("allow_unmatched", ListUtils::create<String>("true,false"));
 //    registerFlag_("allow_unmatched", "If set, unmatched peptide sequences are allowed. By default (i.e. if this flag is not set) the program terminates with an error on unmatched peptides.");
 
     defaults_.setValue("full_tolerant_search", "false", "If set, all peptide sequences are matched using tolerant search. Thus potentially more proteins (containing ambiguous amino acids) are associated. This is much slower!");
-    defaults_.setValidStrings("full_tolerant_search", ListUtils::create<String>("false,true"));
+    defaults_.setValidStrings("full_tolerant_search", ListUtils::create<String>("true,false"));
 //    registerFlag_("full_tolerant_search", "If set, all peptide sequences are matched using tolerant search. Thus potentially more proteins (containing ambiguous amino acids) are associated. This is much slower!");
 
     defaults_.setValue("aaa_max", 4, "[tolerant search only] Maximal number of ambiguous amino acids (AAA) allowed when matching to a protein database with AAA's. AAA's are 'B', 'Z' and 'X'");
@@ -437,7 +438,7 @@ DefaultParamHandler("PeptideIndexing"), ProgressLogger()
 //    setMinInt_("mismatches_max", 0);
 
     defaults_.setValue("IL_equivalent", "false", "Treat the isobaric amino acids isoleucine ('I') and leucine ('L') as equivalent (indistinguishable)");
-    defaults_.setValidStrings("IL_equivalent", ListUtils::create<String>("false,true"));
+    defaults_.setValidStrings("IL_equivalent", ListUtils::create<String>("true,false"));
 //    registerFlag_("IL_equivalent", "Treat the isobaric amino acids isoleucine ('I') and leucine ('L') as equivalent (indistinguishable)");
 
     defaultsToParam_();

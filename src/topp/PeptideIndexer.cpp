@@ -476,36 +476,39 @@ protected:
     registerOutputFile_("out", "<file>", "", "Output idXML file.");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
 
-    registerStringOption_("decoy_string", "<string>", "_rev", "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.", false);
-    registerFlag_("prefix", "If set, protein accessions in the database contain 'decoy_string' as prefix.");
-    registerStringOption_("missing_decoy_action", "<action>", "error", "Action to take if NO peptide was assigned to a decoy protein (which indicates wrong database or decoy string): 'error' (exit with error, no output), 'warn' (exit with success, warning message)", false);
-    setValidStrings_("missing_decoy_action", ListUtils::create<String>("error,warn"));
+//    registerStringOption_("decoy_string", "<string>", "_rev", "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.", false);
+//    registerFlag_("prefix", "If set, protein accessions in the database contain 'decoy_string' as prefix.");
+//    registerStringOption_("missing_decoy_action", "<action>", "error", "Action to take if NO peptide was assigned to a decoy protein (which indicates wrong database or decoy string): 'error' (exit with error, no output), 'warn' (exit with success, warning message)", false);
+//    setValidStrings_("missing_decoy_action", ListUtils::create<String>("error,warn"));
 
-    registerFlag_("write_protein_sequence", "If set, the protein sequences are stored as well.");
-    registerFlag_("write_protein_description", "If set, the protein description is stored as well.");
-    registerFlag_("keep_unreferenced_proteins", "If set, protein hits which are not referenced by any peptide are kept.");
-    registerFlag_("allow_unmatched", "If set, unmatched peptide sequences are allowed. By default (i.e. if this flag is not set) the program terminates with an error on unmatched peptides.");
-    registerFlag_("full_tolerant_search", "If set, all peptide sequences are matched using tolerant search. Thus potentially more proteins (containing ambiguous amino acids) are associated. This is much slower!");
-    registerFlag_("IL_equivalent", "Treat the isobaric amino acids isoleucine ('I') and leucine ('L') as equivalent (indistinguishable)");
+//    registerFlag_("write_protein_sequence", "If set, the protein sequences are stored as well.");
+//    registerFlag_("write_protein_description", "If set, the protein description is stored as well.");
+//    registerFlag_("keep_unreferenced_proteins", "If set, protein hits which are not referenced by any peptide are kept.");
+//    registerFlag_("allow_unmatched", "If set, unmatched peptide sequences are allowed. By default (i.e. if this flag is not set) the program terminates with an error on unmatched peptides.");
+//    registerFlag_("full_tolerant_search", "If set, all peptide sequences are matched using tolerant search. Thus potentially more proteins (containing ambiguous amino acids) are associated. This is much slower!");
+//    registerFlag_("IL_equivalent", "Treat the isobaric amino acids isoleucine ('I') and leucine ('L') as equivalent (indistinguishable)");
 
-    registerIntOption_("aaa_max", "<number>", 4, "[tolerant search only] Maximal number of ambiguous amino acids (AAA) allowed when matching to a protein database with AAA's. AAA's are 'B', 'Z' and 'X'", false);
-    setMinInt_("aaa_max", 0);
-    registerIntOption_("mismatches_max", "<number>", 0, "[tolerant search only] Maximal number of real mismatches (will be used after checking for ambiguous AA's (see 'aaa_max' option). In general this param should only be changed if you want to look for other potential origins of a peptide which might have unknown SNPs or alike.", false);
-    setMinInt_("mismatches_max", 0);
+//    registerIntOption_("aaa_max", "<number>", 4, "[tolerant search only] Maximal number of ambiguous amino acids (AAA) allowed when matching to a protein database with AAA's. AAA's are 'B', 'Z' and 'X'", false);
+//    setMinInt_("aaa_max", 0);
+//    registerIntOption_("mismatches_max", "<number>", 0, "[tolerant search only] Maximal number of real mismatches (will be used after checking for ambiguous AA's (see 'aaa_max' option). In general this param should only be changed if you want to look for other potential origins of a peptide which might have unknown SNPs or alike.", false);
+//    setMinInt_("mismatches_max", 0);
 
-    registerTOPPSubsection_("enzyme", "The enzyme determines valid cleavage sites; cleavage specificity determines to what extent validity is enforced.");
-    StringList enzymes;
-    EnzymesDB::getInstance()->getAllNames(enzymes);
-    registerStringOption_("enzyme:name", "", "Trypsin", "Enzyme which determines valid cleavage sites - e.g. trypsin cleaves after lysine (K) or arginine (R), but not before proline (P).", false);
-    setValidStrings_("enzyme:name", enzymes);
-    registerStringOption_("enzyme:specificity", "", EnzymaticDigestion::NamesOfSpecificity[0], "Specificity of the enzyme."
-                                                                                               "\n  '" + EnzymaticDigestion::NamesOfSpecificity[0] + "': both internal cleavage sites must match."
-                                                                                                                                                     "\n  '" + EnzymaticDigestion::NamesOfSpecificity[1] + "': one of two internal cleavage sites must match."
-                                                                                                                                                                                                           "\n  '" + EnzymaticDigestion::NamesOfSpecificity[2] + "': allow all peptide hits no matter their context. Therefore, the enzyme chosen does not play a role here", false);
+//    registerTOPPSubsection_("enzyme", "The enzyme determines valid cleavage sites; cleavage specificity determines to what extent validity is enforced.");
+//    StringList enzymes;
+//    EnzymesDB::getInstance()->getAllNames(enzymes);
+//    registerStringOption_("enzyme:name", "", "Trypsin", "Enzyme which determines valid cleavage sites - e.g. trypsin cleaves after lysine (K) or arginine (R), but not before proline (P).", false);
+//    setValidStrings_("enzyme:name", enzymes);
+//    registerStringOption_("enzyme:specificity", "", EnzymaticDigestion::NamesOfSpecificity[0], "Specificity of the enzyme."
+//                                                                                               "\n  '" + EnzymaticDigestion::NamesOfSpecificity[0] + "': both internal cleavage sites must match."
+//                                                                                                                                                     "\n  '" + EnzymaticDigestion::NamesOfSpecificity[1] + "': one of two internal cleavage sites must match."
+//                                                                                                                                                                                                           "\n  '" + EnzymaticDigestion::NamesOfSpecificity[2] + "': allow all peptide hits no matter their context. Therefore, the enzyme chosen does not play a role here", false);
 
-    StringList spec;
-    spec.assign(EnzymaticDigestion::NamesOfSpecificity, EnzymaticDigestion::NamesOfSpecificity + EnzymaticDigestion::SIZE_OF_SPECIFICITY);
-    setValidStrings_("enzyme:specificity", spec);
+//    StringList spec;
+//    spec.assign(EnzymaticDigestion::NamesOfSpecificity, EnzymaticDigestion::NamesOfSpecificity + EnzymaticDigestion::SIZE_OF_SPECIFICITY);
+//    setValidStrings_("enzyme:specificity", spec);
+
+    Param temp = PeptideIndexing().getParameters();
+    registerFullParam_(temp);
 
 //    registerSubsection_("algorithm", "Algorithm parameters section");
    }
@@ -544,7 +547,7 @@ protected:
 
 //    bool write_protein_sequence = getFlag_("write_protein_sequence");
 //    bool write_protein_description = getFlag_("write_protein_description");
-//    bool keep_unreferenced_proteins = getFlag_("keep_unreferenced_proteins");
+    bool keep_unreferenced_proteins = param.getValue("keep_unreferenced_proteins").toBool();
 //    bool allow_unmatched = getFlag_("allow_unmatched");
 //    bool il_equivalent = getFlag_("IL_equivalent");
 
@@ -589,28 +592,30 @@ protected:
     // calculations
     //-------------------------------------------------------------
 
-   PeptideIndexing::ExitCodes indexer_exit = indexer.run(proteins, prot_ids, pep_ids);
-   if (indexer_exit != PeptideIndexing::EXECUTION_OK)
-   {
-    return UNKNOWN_ERROR;
-   }
 
-//    if (proteins.empty()) // we do not allow an empty database
-//    {
-//      LOG_ERROR << "Error: An empty FASTA file was provided. Mapping makes no sense. Aborting..." << std::endl;
-//      return INPUT_FILE_EMPTY;
-//    }
 
-//    if (pep_ids.empty()) // Aho-Corasick requires non-empty input
-//    {
-//      LOG_WARN << "Warning: An empty idXML file was provided. Output will be empty as well." << std::endl;
-//      if (!keep_unreferenced_proteins)
-//      {
-//        prot_ids.clear();
-//      }
-//      IdXMLFile().store(out, prot_ids, pep_ids);
-//      return EXECUTION_OK;
-//    }
+    if (proteins.empty()) // we do not allow an empty database
+    {
+      LOG_ERROR << "Error: An empty FASTA file was provided. Mapping makes no sense. Aborting..." << std::endl;
+      return INPUT_FILE_EMPTY;
+    }
+
+    if (pep_ids.empty()) // Aho-Corasick requires non-empty input
+    {
+      LOG_WARN << "Warning: An empty idXML file was provided. Output will be empty as well." << std::endl;
+      if (!keep_unreferenced_proteins)
+      {
+        prot_ids.clear();
+      }
+      IdXMLFile().store(out, prot_ids, pep_ids);
+      return EXECUTION_OK;
+    }
+
+    PeptideIndexing::ExitCodes indexer_exit = indexer.run(proteins, prot_ids, pep_ids);
+    if ( (indexer_exit != PeptideIndexing::EXECUTION_OK) )
+    {
+      return UNKNOWN_ERROR;
+    }
 
 //    writeDebug_("Collecting peptides...", 1);
 
