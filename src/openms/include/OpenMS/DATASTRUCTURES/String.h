@@ -516,6 +516,13 @@ public:
       return false;
     }
 
+    StringView& operator=(const StringView& rhs)
+    {
+      begin_ = rhs.begin_;
+      size_ = rhs.size_;
+      return *this;
+    }
+
     /// create view that references a substring of the original string
     inline StringView substr(Size start_index, Size end_index) const
     {

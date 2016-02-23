@@ -173,7 +173,7 @@ namespace OpenMS
       }
       else
       {
-        unmodified_sequence.append(residue->getOneLetterCode());
+        unmodified_sequence.append(String(residue->getOneLetterCode()));
       }
     }
     return unmodified_sequence;

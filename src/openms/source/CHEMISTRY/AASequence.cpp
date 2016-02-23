@@ -261,7 +261,7 @@ namespace OpenMS
     double tag_offset(0);
     for (ConstIterator it = this->begin(); it != this->end(); ++it)
     {
-      if (it->getOneLetterCode() == "")
+      if (it->getOneLetterCode() == ' ')
       {
         tag_offset += it->getAverageWeight(Residue::Internal);
       }
@@ -702,7 +702,7 @@ namespace OpenMS
     {
       if (peptide.peptide_[i]->isModified())
       {
-        if (peptide.peptide_[i]->getOneLetterCode() != "")
+        if (peptide.peptide_[i]->getOneLetterCode() != ' ')
         {
           os << peptide.peptide_[i]->getOneLetterCode();
         }
@@ -728,7 +728,7 @@ namespace OpenMS
       }
       else
       {
-        if (peptide.peptide_[i]->getOneLetterCode() != "")
+        if (peptide.peptide_[i]->getOneLetterCode() != ' ')
         {
           os << peptide.peptide_[i]->getOneLetterCode();
         }
@@ -834,8 +834,8 @@ namespace OpenMS
       if (delta_mass && (residue->getMonoWeight() <= 0.0)) // not allowed
       {
         throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, str,
-            "Using a mass difference to specify a modification on a residue of unknown mass is not supported in '" + \
-            residue->getOneLetterCode() + "[" + mod +  "]'");
+            "Using a mass difference to specify a modification on a residue of unknown mass is not supported in '" + 
+            String(residue->getOneLetterCode()) + "[" + mod +  "]'");
       }
       if (integer_mass) // use first modification that matches approximately
       {
@@ -879,7 +879,7 @@ namespace OpenMS
         }
       }
       LOG_WARN << "Warning: unknown modification '" + mod + "' of residue '" +
-        residue->getOneLetterCode() + "' - adding it to the database" << std::endl;
+        String(residue->getOneLetterCode()) + "' - adding it to the database" << std::endl;
     }
     // at beginning of peptide:
     else if (delta_mass) // N-terminal mod can only be specified by delta mass

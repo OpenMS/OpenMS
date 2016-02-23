@@ -214,7 +214,7 @@ protected:
             const Residue& mod = aaseq.getResidue(j);
             for (Size k = 0; k < fixed_modifications.size(); ++k)
             {
-              if (mod.getOneLetterCode() == mdb->getModification(fixed_modifications[k]).getOrigin() && fixed_modifications[k] != mod.getModification())
+              if (mod.getOneLetterCode() == mdb->getModification(fixed_modifications[k]).getOrigin()[0] && fixed_modifications[k] != mod.getModification())
               {
                 fixed_modifications_ok = false;
                 break;
@@ -232,7 +232,7 @@ protected:
               const Residue& mod = aaseq.getResidue(j);
               for (Size k = 0; k < variable_modifications.size(); ++k)
               {
-                if (mod.getOneLetterCode() == mdb->getModification(variable_modifications[k]).getOrigin() && variable_modifications[k] != mod.getModification())
+                if (mod.getOneLetterCode() == mdb->getModification(variable_modifications[k]).getOrigin()[0] && variable_modifications[k] != mod.getModification())
                 {
                   variable_modifications_ok = false;
                   break;

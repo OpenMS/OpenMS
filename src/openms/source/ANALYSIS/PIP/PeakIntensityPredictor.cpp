@@ -209,7 +209,7 @@ namespace OpenMS
     //for each element in sequence = residue
     for (Size pos = 0; pos < sequence.size(); pos++)
     {
-      char amino = sequence[pos].getOneLetterCode()[0];
+      char amino = sequence[pos].getOneLetterCode();
 
       // numResidues of R
       out[0] += (amino == 'R' ? 1.0 : 0.0);

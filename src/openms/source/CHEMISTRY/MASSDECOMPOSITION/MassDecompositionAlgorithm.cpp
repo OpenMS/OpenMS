@@ -109,7 +109,7 @@ namespace OpenMS
 
     for (set<const Residue *>::const_iterator it = residues.begin(); it != residues.end(); ++it)
     {
-      aa_to_weight[(*it)->getOneLetterCode()[0]] = (*it)->getMonoWeight(Residue::Internal);
+      aa_to_weight[(*it)->getOneLetterCode()] = (*it)->getMonoWeight(Residue::Internal);
     }
 
     // now handle the modifications

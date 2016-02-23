@@ -47,6 +47,7 @@ namespace OpenMS
   vector<Size> PScore::calculateIntensityRankInMZWindow(const vector<double>& mz, const vector<double>& intensities, double mz_window = 100)
   {
     vector<Size> ranks; // note: ranks are zero based
+
     if (mz.empty())
     {
       return ranks;
@@ -59,6 +60,7 @@ namespace OpenMS
       const double m = mz[p];
       const double i = intensities[p];
 
+      // determine rank
       Size rank(0);
 
       // count neighbors to the left that have higher intensity
@@ -209,7 +211,6 @@ namespace OpenMS
       }
       // compute p score as e.g. in the AScore implementation or Andromeda
       const double p = (level + 1) / mz_window;
-
       const double pscore = -10.0 * log10(a_score_algorithm.computeCumulativeScore_(N, matched_peaks, p));
 
       if (pscore > best_pscore)

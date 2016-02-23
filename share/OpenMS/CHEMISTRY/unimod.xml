@@ -24193,7 +24193,7 @@ M. Zimnicka, et al.  "Tunable Charge Tags for Electron-Based Methods of Peptide 
             <umod:element symbol="N" number="3"/>
          </umod:delta>
       </umod:mod>	  
-      <umod:mod title="RNPXlink2" full_name="U-H20 loss of C5H9O7P" username_of_poster="Timo"
+      <umod:mod title="RNPXlink2" full_name="U-H2O loss of C5H9O7P" username_of_poster="Timo"
                 group_of_poster="admin"
                 date_time_posted="2002-08-19 19:17:11"
                 date_time_modified="2008-02-15 05:20:02"
@@ -24237,7 +24237,7 @@ M. Zimnicka, et al.  "Tunable Charge Tags for Electron-Based Methods of Peptide 
             <umod:element symbol="P" number="1"/>
          </umod:delta>
       </umod:mod>
-      <umod:mod title="RNPXlink3" full_name="U-H20 loss of H2PO3" username_of_poster="Timo"
+      <umod:mod title="RNPXlink3" full_name="U-H2O loss of H2PO3" username_of_poster="Timo"
                 group_of_poster="admin"
                 date_time_posted="2002-08-19 19:17:11"
                 date_time_modified="2008-02-15 05:20:02"
@@ -24261,7 +24261,7 @@ M. Zimnicka, et al.  "Tunable Charge Tags for Electron-Based Methods of Peptide 
             <umod:element symbol="P" number="1"/>
          </umod:delta>
       </umod:mod>	
-      <umod:mod title="RNPXlink4" full_name="U-H20 gain of 152" username_of_poster="Timo"
+      <umod:mod title="RNPXlink4" full_name="U-H2O gain of 152" username_of_poster="Timo"
                 group_of_poster="admin"
                 date_time_posted="2002-08-19 19:17:11"
                 date_time_modified="2008-02-15 05:20:02"
@@ -24301,7 +24301,259 @@ M. Zimnicka, et al.  "Tunable Charge Tags for Electron-Based Methods of Peptide 
             <umod:element symbol="O" number="9"/>
             <umod:element symbol="P" number="1"/>
          </umod:delta>
-      </umod:mod>	
+      </umod:mod>
+	<umod:mod title="RNA:C3O" full_name="C3O" username_of_poster="Timo"
+		group_of_poster="admin"
+		date_time_posted="2002-08-19 19:17:11"
+		date_time_modified="2008-02-15 05:20:02"
+		approved="0"
+		record_id="100000">
+         <umod:specificity hidden="0" site="A" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="B" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="C" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="D" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="E" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="F" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="G" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="H" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="I" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="K" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="L" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="M" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="N" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="P" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="Q" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="R" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="S" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="T" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="V" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="W" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="Y" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="N-term" position="Any N-term" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="C-term" position="Any C-term" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:delta mono_mass="51.9949" avge_mass="52.03150" composition="C(3) O(1)">
+            <umod:element symbol="C" number="3"/>
+            <umod:element symbol="O" number="1"/>
+         </umod:delta>
+      </umod:mod>
+	<umod:mod title="RNA:U" full_name="U" username_of_poster="Timo"
+		group_of_poster="admin"
+		date_time_posted="2002-08-19 19:17:11"
+		date_time_modified="2008-02-15 05:20:02"
+		approved="0"
+		record_id="100001">
+         <umod:specificity hidden="0" site="A" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="B" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="C" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="D" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="E" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="F" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="G" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="H" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="I" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="K" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="L" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="M" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="N" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="P" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="Q" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="R" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="S" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="T" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="V" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="W" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="Y" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="N-term" position="Any N-term" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="C-term" position="Any C-term" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:delta mono_mass="324.0359" avge_mass="324.18405" composition="C(9) H(13) N(2) O(9) P(1)">
+            <umod:element symbol="C" number="9"/>
+            <umod:element symbol="H" number="13"/>
+            <umod:element symbol="N" number="2"/>
+            <umod:element symbol="O" number="9"/>
+            <umod:element symbol="P" number="1"/>
+         </umod:delta>
+      </umod:mod>
+	<umod:mod title="RNA:U-H2O" full_name="U-H2O" username_of_poster="Timo"
+		group_of_poster="admin"
+		date_time_posted="2002-08-19 19:17:11"
+		date_time_modified="2008-02-15 05:20:02"
+		approved="0"
+		record_id="100002">
+         <umod:specificity hidden="0" site="A" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="B" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="C" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="D" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="E" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="F" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="G" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="H" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="I" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="K" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="L" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="M" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="N" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="P" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="Q" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="R" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="S" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="T" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="V" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="W" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="Y" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="N-term" position="Any N-term" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="C-term" position="Any C-term" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:delta mono_mass="306.0253" avge_mass="306.1660" composition="C(9) H(11) N(2) O(8) P(1)">
+            <umod:element symbol="C" number="9"/>
+            <umod:element symbol="H" number="11"/>
+            <umod:element symbol="N" number="2"/>
+            <umod:element symbol="O" number="8"/>
+            <umod:element symbol="P" number="1"/>
+         </umod:delta>
+      </umod:mod>
+	<umod:mod title="RNA:U-HPO3" full_name="U-HPO3" username_of_poster="Timo"
+		group_of_poster="admin"
+		date_time_posted="2002-08-19 19:17:11"
+		date_time_modified="2008-02-15 05:20:02"
+		approved="0"
+		record_id="100003">
+         <umod:specificity hidden="0" site="A" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="B" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="C" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="D" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="E" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="F" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="G" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="H" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="I" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="K" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="L" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="M" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="N" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="P" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="Q" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="R" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="S" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="T" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="V" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="W" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="Y" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="N-term" position="Any N-term" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="C-term" position="Any C-term" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:delta mono_mass="244.0695" avge_mass="244.2014" composition="C(9) H(12) N(2) O(6)">
+            <umod:element symbol="C" number="9"/>
+            <umod:element symbol="H" number="12"/>
+            <umod:element symbol="N" number="2"/>
+            <umod:element symbol="O" number="6"/>
+         </umod:delta>
+      </umod:mod>
+	<umod:mod title="RNA:U-H3PO4" full_name="U-H3PO4" username_of_poster="Timo"
+		group_of_poster="admin"
+		date_time_posted="2002-08-19 19:17:11"
+		date_time_modified="2008-02-15 05:20:02"
+		approved="0"
+		record_id="100004">
+         <umod:specificity hidden="0" site="A" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="B" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="C" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="D" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="E" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="F" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="G" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="H" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="I" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="K" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="L" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="M" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="N" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="P" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="Q" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="R" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="S" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="T" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="V" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="W" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="Y" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="N-term" position="Any N-term" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="C-term" position="Any C-term" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:delta mono_mass="226.0590" avge_mass="226.1861" composition="C(9) H(10) N(2) O(5)">
+            <umod:element symbol="C" number="9"/>
+            <umod:element symbol="H" number="10"/>
+            <umod:element symbol="N" number="2"/>
+            <umod:element symbol="O" number="5"/>
+         </umod:delta>
+      </umod:mod>
+	<umod:mod title="RNA:U_prime" full_name="U_prime" username_of_poster="Timo"
+		group_of_poster="admin"
+		date_time_posted="2002-08-19 19:17:11"
+		date_time_modified="2008-02-15 05:20:02"
+		approved="0"
+		record_id="100005">
+         <umod:specificity hidden="0" site="A" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="B" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="C" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="D" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="E" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="F" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="G" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="H" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="I" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="K" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="L" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="M" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="N" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="P" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="Q" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="R" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="S" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="T" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="V" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="W" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="Y" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="N-term" position="Any N-term" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="C-term" position="Any C-term" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:delta mono_mass="112.0273" avge_mass="112.0868" composition="C(4) H(4) N(2) O(2)">
+            <umod:element symbol="C" number="4"/>
+            <umod:element symbol="H" number="4"/>
+            <umod:element symbol="N" number="2"/>
+            <umod:element symbol="O" number="2"/>
+         </umod:delta>
+      </umod:mod>
+	<umod:mod title="RNA:U_prime-H2O" full_name="U_prime-H2O" username_of_poster="Timo"
+		group_of_poster="admin"
+		date_time_posted="2002-08-19 19:17:11"
+		date_time_modified="2008-02-15 05:20:02"
+		approved="0"
+		record_id="100006">
+         <umod:specificity hidden="0" site="A" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="B" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="C" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="D" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="E" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="F" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="G" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="H" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="I" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="K" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="L" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="M" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="N" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="P" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="Q" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="R" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="S" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="T" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="V" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="W" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="Y" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="N-term" position="Any N-term" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="C-term" position="Any C-term" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:delta mono_mass="94.0167" avge_mass="94.07148" composition="C(4) H(2) N(2) O(1)">
+            <umod:element symbol="C" number="4"/>
+            <umod:element symbol="H" number="2"/>
+            <umod:element symbol="N" number="2"/>
+            <umod:element symbol="O" number="1"/>
+         </umod:delta>
+      </umod:mod>
    </umod:modifications>
    <umod:amino_acids>
       <umod:aa title="-" three_letter="" full_name="" mono_mass="0.0" avge_mass="0.0"/>

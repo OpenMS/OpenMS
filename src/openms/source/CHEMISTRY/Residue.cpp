@@ -46,6 +46,8 @@ namespace OpenMS
   // residue
   Residue::Residue() :
     name_("unknown"),
+    three_letter_code_("UKN"),
+    one_letter_code_(' '),
     average_weight_(0.0f),
     mono_weight_(0.0f),
     is_modified_(false),
@@ -60,7 +62,7 @@ namespace OpenMS
 
   Residue::Residue(const String & name,
                    const String & three_letter_code,
-                   const String & one_letter_code,
+                   const char one_letter_code,
                    const EmpiricalFormula & formula) :
     name_(name),
     three_letter_code_(three_letter_code),
@@ -239,12 +241,12 @@ namespace OpenMS
     return three_letter_code_;
   }
 
-  void Residue::setOneLetterCode(const String & one_letter_code)
+  void Residue::setOneLetterCode(const char one_letter_code)
   {
     one_letter_code_ = one_letter_code;
   }
 
-  const String & Residue::getOneLetterCode() const
+  char Residue::getOneLetterCode() const
   {
     return one_letter_code_;
   }
@@ -668,12 +670,12 @@ namespace OpenMS
 
   bool Residue::operator==(char one_letter_code) const
   {
-    return one_letter_code_[0] == one_letter_code;
+    return one_letter_code_ == one_letter_code;
   }
 
   bool Residue::operator!=(char one_letter_code) const
   {
-    return one_letter_code_[0] != one_letter_code;
+    return one_letter_code_ != one_letter_code;
   }
 
   bool Residue::operator!=(const Residue & residue) const

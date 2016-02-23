@@ -168,7 +168,7 @@ namespace OpenMS
         spec_n = true;
       }
       // if allow methionine cleavage at the protein start position
-      if (pep_pos == 1 && methionine_cleavage && protein.getResidue((Size)0).getOneLetterCode() == "M")
+      if (pep_pos == 1 && methionine_cleavage && protein.getResidue((Size)0).getOneLetterCode() == 'M')
       {
         spec_n = true;
       }
@@ -249,6 +249,7 @@ namespace OpenMS
     std::vector<Size> pep_positions = tokenize_(sequence.getString());
     Size count = pep_positions.size();
 
+
     // disable max length filter by setting to maximum length
     if (max_length == 0)
     {
@@ -262,6 +263,7 @@ namespace OpenMS
       {
         output.push_back(sequence);
       }
+
       return;
     }
 

@@ -44,19 +44,40 @@ namespace OpenMS
 {
   class OPENMS_DLLAPI ModifiedPeptideGenerator
   {
+   /*
+    * @brief Modifications can be generated and applied to AASequences. 
+    * Alternativly, only position are calculated which in many cases is more convinient and faster.
+    * Possible applications are quicker mass calculations.
+    */
+
   public:
+    typedef std::pair<int, ResidueModification> PositionModificationPair;
+
+    typedef std::vector<PositionModificationPair> PositionModificationPairs; 
+
     // Applies fixed modifications to a single peptide
     static void applyFixedModifications(const std::vector<ResidueModification>::const_iterator& fixed_mods_begin, const std::vector<ResidueModification>::const_iterator& fixed_mods_end, AASequence& peptide);
 
-    // Applies variable modifications to a single peptide.
-    static void applyVariableModifications(const std::vector<ResidueModification>::const_iterator& var_mods_begin, const std::vector<ResidueModification>::const_iterator& var_mods_end, const AASequence& peptide, Size max_variable_mods_per_peptide, std::vector<AASequence>& all_modified_peptides, bool keep_unmodified=true);
+    static void getFixedModificationsIndices_(const std::vector<ResidueModification>::const_iterator& fixed_mods_begin, const std::vector<ResidueModification>::const_iterator& fixed_mods_end, const AASequence& peptide, PositionModificationPairs& modified_peptide);
+
+    // Applies variable modifications to a single peptide. If keep_original is set the original (e.g. unmodified version) is also returned
+    static void applyVariableModifications(const std::vector<ResidueModification>::const_iterator& var_mods_begin, const std::vector<ResidueModification>::const_iterator& var_mods_end, const AASequence& peptide, Size max_variable_mods_per_peptide, std::vector<AASequence>& all_modified_peptides, bool keep_original=true);
+
+    // See above but only position and modification pairs are returned instead of generating the whole AASequence.
+    static void getVariableModificationsIndices(const std::vector<ResidueModification>::const_iterator& var_mods_begin, const std::vector<ResidueModification>::const_iterator& var_mods_end, const AASequence& peptide, Size max_variable_mods_per_peptide, std::vector<PositionModificationPairs>& all_modified_peptides, bool keep_original=true);
 
   protected:
     // Recursively generate all combinatoric placements at compatible sites
     static void recurseAndGenerateVariableModifiedPeptides_(const std::vector<int>& subset_indices, const std::map<int, std::vector<ResidueModification> >& map_compatibility, int depth, const AASequence& current_peptide, std::vector<AASequence>& modified_peptides);
 
-    // Fast implementation of modification placement. No combinatoric placement is needed in this case - just every site is modified once by each compatible modification
-    static void applyAtMostOneVariableModification_(const std::vector<ResidueModification>::const_iterator& var_mods_begin, const std::vector<ResidueModification>::const_iterator& var_mods_end, const AASequence& peptide, std::vector<AASequence>& all_modified_peptides, bool keep_unmodified=true);
+    // See above but only position and modification pairs are returned instead of generating the whole AASequence.
+    static void recurseAndGenerateVariableModifiedPeptidesIndices_(const std::vector<int>& subset_indices, const std::map<int, std::vector<ResidueModification> >& map_compatibility, int depth, const PositionModificationPairs& current_pm_pairs, std::vector<PositionModificationPairs>& modified_peptides);
+
+    // Fast implementation of modification placement. No combinatoric placement is needed in this case - just every site is modified once by each compatible modification. Already modified residues are skipped
+    static void applyAtMostOneVariableModification_(const std::vector<ResidueModification>::const_iterator& var_mods_begin, const std::vector<ResidueModification>::const_iterator& var_mods_end, const AASequence& peptide, std::vector<AASequence>& all_modified_peptides, bool keep_original=true);
+
+    // See above but only position and modification pairs are returned instead of generating the whole AASequence.
+    static void getAtMostOneVariableModificationIndex_(const std::vector<ResidueModification>::const_iterator& var_mods_begin, const std::vector<ResidueModification>::const_iterator& var_mods_end, const AASequence& peptide, std::vector<PositionModificationPairs>& all_modified_peptides, bool keep_original);
   };
 }
 

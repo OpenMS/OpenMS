@@ -499,17 +499,17 @@ namespace OpenMS
 
     while (bas_dist_left > 0)
     {
-      if (peptide.getResidue(bas_dist_left).getOneLetterCode() == "H" ||
-          peptide.getResidue(bas_dist_left).getOneLetterCode() == "R" ||
-          peptide.getResidue(bas_dist_left).getOneLetterCode() == "K")
+      if (peptide.getResidue(bas_dist_left).getOneLetterCode() == 'H' ||
+          peptide.getResidue(bas_dist_left).getOneLetterCode() == 'R' ||
+          peptide.getResidue(bas_dist_left).getOneLetterCode() == 'K')
         break;
       --bas_dist_left;
     }
     while (bas_dist_right < peptide.size())
     {
-      if (peptide.getResidue(bas_dist_right).getOneLetterCode() == "H" ||
-          peptide.getResidue(bas_dist_right).getOneLetterCode() == "R" ||
-          peptide.getResidue(bas_dist_right).getOneLetterCode() == "K")
+      if (peptide.getResidue(bas_dist_right).getOneLetterCode() == 'H' ||
+          peptide.getResidue(bas_dist_right).getOneLetterCode() == 'R' ||
+          peptide.getResidue(bas_dist_right).getOneLetterCode() == 'K')
         break;
       ++bas_dist_right;
     }

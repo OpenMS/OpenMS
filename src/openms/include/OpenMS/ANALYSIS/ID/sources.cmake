@@ -28,6 +28,7 @@ PILISNeutralLossModel.h
 PILISScoring.h
 PILISCrossValidation.h
 ProtonDistributionModel.h
+PeptideIndexing.h
 )
 
 ### add path to the filenames

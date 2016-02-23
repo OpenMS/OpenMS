@@ -434,7 +434,7 @@ namespace OpenMS
       }
       if (tv_params.getValue("preferences:idview:add_abundant_immonium_ions").toBool()) // "abundant Immonium-ions"
       {
-        generator.addAbundantImmoniumIons(rich_spec);
+        generator.addAbundantImmoniumIons(rich_spec, aa_sequence);
       }
     }
     catch (Exception::BaseException & e)
@@ -539,7 +539,7 @@ namespace OpenMS
           for (Size j = aa_sequence.size() - 1; j >= aa_sequence.size() - ion_number; --j)
           {
             const Residue & r = aa_sequence.getResidue(j);
-            aa_ss.append(r.getOneLetterCode().toQString());
+            aa_ss.append(String(r.getOneLetterCode()).toQString());
             if (r.getModification() != "")
             {
               aa_ss.append("*");

@@ -174,12 +174,12 @@ END_SECTION
 
 START_SECTION(void setOneLetterCode(const String &one_letter_code))
 	Residue copy(*e_ptr);
-	e_ptr->setOneLetterCode("B");
+	e_ptr->setOneLetterCode('B');
 	TEST_NOT_EQUAL(*e_ptr, copy)
 END_SECTION
 
 START_SECTION(const String& getOneLetterCode() const)
-	TEST_EQUAL(e_ptr->getOneLetterCode(), "B")
+	TEST_EQUAL(e_ptr->getOneLetterCode(), 'B')
 END_SECTION
 
 START_SECTION(void addLossFormula(const EmpiricalFormula&))
@@ -310,10 +310,10 @@ END_SECTION
  
 
 START_SECTION(void setModification(const String& name))
-	e_ptr->setOneLetterCode("M"); // we need M for this mod
+	e_ptr->setOneLetterCode('M'); // we need M for this mod
 	e_ptr->setModification("Oxidation");
 	TEST_EQUAL(e_ptr->getModification(), "Oxidation")
-	e_ptr->setOneLetterCode("B");
+	e_ptr->setOneLetterCode('B');
 END_SECTION
 
 
@@ -367,11 +367,6 @@ START_SECTION(bool operator==(const Residue &residue) const)
 	
 	r = *e_ptr;
 	TEST_EQUAL(r == *e_ptr, true)
-	r.setOneLetterCode("new_1lc");
-	TEST_EQUAL(r == *e_ptr, false)
-	
-	r = *e_ptr;
-	TEST_EQUAL(r == *e_ptr, true)
 	r.addLossFormula(EmpiricalFormula("C1H3"));
 	TEST_EQUAL(r == *e_ptr, false)
 	
@@ -395,12 +390,12 @@ START_SECTION(bool operator==(const Residue &residue) const)
 	r.setMonoWeight(12345.6789);
 	TEST_EQUAL(r == *e_ptr, false)
 				
-	e_ptr->setOneLetterCode("M");
+	e_ptr->setOneLetterCode('M');
 	r = *e_ptr;
 	TEST_EQUAL(r == *e_ptr, true)
 	r.setModification("Oxidation");
 	TEST_EQUAL(r == *e_ptr, false)
-	e_ptr->setOneLetterCode("B");
+	e_ptr->setOneLetterCode('B');
 
 	r = *e_ptr;
 	TEST_EQUAL(r == *e_ptr, true);
@@ -464,12 +459,8 @@ START_SECTION(bool operator!=(const Residue &residue) const)
   r.setThreeLetterCode("new_3lc");
   TEST_EQUAL(r != *e_ptr, true)
 
-  r = *e_ptr;
-  TEST_EQUAL(r != *e_ptr, false)
-  r.setOneLetterCode("new_1lc");
-  TEST_EQUAL(r != *e_ptr, true)
 
-	r = *e_ptr;
+  r = *e_ptr;
   TEST_EQUAL(r != *e_ptr, false)
   r.addLossFormula(EmpiricalFormula("C1H3"));
   TEST_EQUAL(r != *e_ptr, true)
@@ -611,7 +602,7 @@ END_SECTION
 
 START_SECTION(bool isModified() const)
 	Residue res;
-	res.setOneLetterCode("M"); // we need M for this mod
+	res.setOneLetterCode('M'); // we need M for this mod
 	TEST_EQUAL(res.isModified(), false)
 	res.setModification("Oxidation");
 	TEST_EQUAL(res.isModified(), true)

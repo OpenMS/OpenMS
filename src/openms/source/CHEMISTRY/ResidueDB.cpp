@@ -49,6 +49,8 @@
 
 using namespace std;
 
+#define DEBUG_RESIDUEDB 
+
 namespace OpenMS
 {
   ResidueDB::ResidueDB()
@@ -71,9 +73,9 @@ namespace OpenMS
     return 0;
   }
 
-  const Residue * ResidueDB::getResidue(const unsigned char & one_letter_code) const
+  const Residue * ResidueDB::getResidue(const char one_letter_code) const
   {
-    return residue_by_one_letter_code_[one_letter_code];
+    return residue_by_one_letter_code_[static_cast<int>(one_letter_code) + 128];
   }
 
   Size ResidueDB::getNumberOfResidues() const
@@ -112,28 +114,32 @@ namespace OpenMS
   void ResidueDB::addResidue_(Residue* r)
   {
     vector<String> names;
-    if (r->getName() != "")
+    if (!r->getName().empty())
     {
+      cout << "r->getName()" << r->getName() << endl;
       names.push_back(r->getName());
     }
-    if (r->getShortName() != "")
+    if (!r->getShortName().empty())
     {
+      cout << "r->getShortName()" << r->getShortName() << endl;
       names.push_back(r->getShortName());
     }
     set<String> synonyms = r->getSynonyms();
     for (set<String>::iterator it = synonyms.begin(); it != synonyms.end(); ++it)
     {
+      cout << "r->getSynonyms()" << *it << endl;
       names.push_back(*it);
     }
-
 
     if (!r->isModified())
     {
       for (vector<String>::const_iterator it = names.begin(); it != names.end(); ++it)
       {
         residue_names_[*it] = r;
-        residue_by_one_letter_code_[(unsigned char)(*it)[0]] = r;
+        const char l = (*it)[0];
+        residue_by_one_letter_code_[static_cast<int>(l) + 128] = r;
       }
+      cout << "adding non-modified residue: " << r->getName() << endl;
       residues_.insert(r);
       const_residues_.insert(r);
     }
@@ -142,6 +148,7 @@ namespace OpenMS
       modified_residues_.insert(r);
       const_modified_residues_.insert(r);
 
+      cout << "adding modified residue: " << r->getName() << endl;
       // get all modification names
       vector<String> mod_names;
       const ResidueModification& mod = ModificationsDB::getInstance()->getModification(r->getOneLetterCode(), r->getModification(), ResidueModification::ANYWHERE);
@@ -283,7 +290,11 @@ namespace OpenMS
       }
       if (key.hasSuffix(":OneLetterCode"))
       {
-        res_ptr->setOneLetterCode(value);
+        if (value.size() != 1)
+        {
+          cerr << "OneLetterCode entry '" << value << "' in ResidueDB has length: " << value.size() << endl;
+        }
+        res_ptr->setOneLetterCode(value[0]);
         continue;
       }
       if (key.hasSuffix(":Formula"))
@@ -414,29 +425,31 @@ namespace OpenMS
   void ResidueDB::buildResidueNames_()
   {
     // initialize lookup table to null pointer
-    for (Size i = 0; i != sizeof(residue_by_one_letter_code_)/sizeof(residue_by_one_letter_code_[0]); ++i)
-    {
-      residue_by_one_letter_code_[i] = 0;
-    }
+    for (Size i = 0; i != 256; ++i) residue_by_one_letter_code_[i] = 0;
 
     set<Residue*>::iterator it;
     for (it = residues_.begin(); it != residues_.end(); ++it)
     {
       residue_names_[(*it)->getName()] = *it;
-      if ((*it)->getThreeLetterCode() != "")
+
+      // only add non-empty and known three letter codes (e.g. not from ignore mass tags)
+      if (!(*it)->getThreeLetterCode().empty() && (*it)->getThreeLetterCode() != "UKN")
       {
         residue_names_[(*it)->getThreeLetterCode()] = *it;
       }
-      if ((*it)->getOneLetterCode() != "")
+
+      const char l = (*it)->getOneLetterCode();
+      if (l != ' ' && l != 0)
       {
-        residue_names_[(*it)->getOneLetterCode()] = *it;
-        const unsigned char l = (*it)->getOneLetterCode()[0];
-        residue_by_one_letter_code_[l] = *it;
+        residue_names_[String(l)] = *it;
+        residue_by_one_letter_code_[static_cast<int>(l) + 128] = *it;
       }
-      if ((*it)->getShortName() != "")
+
+      if (!(*it)->getShortName().empty())
       {
         residue_names_[(*it)->getShortName()] = *it;
       }
+
       set<String>::iterator sit;
       set<String> syn = (*it)->getSynonyms();
       for (sit = syn.begin(); sit != syn.end(); ++sit)

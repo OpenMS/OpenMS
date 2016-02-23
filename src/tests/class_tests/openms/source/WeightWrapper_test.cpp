@@ -119,7 +119,7 @@ END_SECTION
 START_SECTION((double getWeight(const Residue &r, Residue::ResidueType res_type=Residue::Full) const ))
 {
   WeightWrapper ww;
-  Residue aa("L", "LEU", "L", EmpiricalFormula("C454H33"));
+  Residue aa("L", "LEU", 'L', EmpiricalFormula("C454H33"));
   TEST_EQUAL(ww.getWeight(aa), aa.getMonoWeight())
   WeightWrapper ww2(WeightWrapper::AVERAGE);
   TEST_EQUAL(ww2.getWeight(aa), aa.getAverageWeight())

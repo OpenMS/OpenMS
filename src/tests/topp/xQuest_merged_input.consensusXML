@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="file:////nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<consensusXML version="1.6" id="cm_5605301557977884552" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_6.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="2015-11-09T15:41:56">
+		<software name="FeatureLinkerLabeled" version="2.0.0" />
+		<processingAction name="Feature grouping" />
+		<UserParam type="string" name="parameter: in" value="xQuest_merged_input.featureXML"/>
+		<UserParam type="string" name="parameter: out" value="xQuest_merged_input.consensusXML"/>
+		<UserParam type="string" name="parameter: log" value=""/>
+		<UserParam type="int" name="parameter: debug" value="0"/>
+		<UserParam type="int" name="parameter: threads" value="1"/>
+		<UserParam type="string" name="parameter: no_progress" value="false"/>
+		<UserParam type="string" name="parameter: force" value="false"/>
+		<UserParam type="string" name="parameter: test" value="false"/>
+		<UserParam type="string" name="parameter: algorithm:rt_estimate" value="false"/>
+		<UserParam type="float" name="parameter: algorithm:rt_pair_dist" value="0"/>
+		<UserParam type="float" name="parameter: algorithm:rt_dev_low" value="15"/>
+		<UserParam type="float" name="parameter: algorithm:rt_dev_high" value="15"/>
+		<UserParam type="floatList" name="parameter: algorithm:mz_pair_dists" value="[12.02]"/>
+		<UserParam type="float" name="parameter: algorithm:mz_dev" value="0.05"/>
+		<UserParam type="string" name="parameter: algorithm:mrm" value="false"/>
+	</dataProcessing>
+	<mapList count="2">
+		<map id="0" name="xQuest_merged_input.featureXML" label="light" size="8">
+		</map>
+		<map id="1" name="xQuest_merged_input.featureXML" label="heavy" size="8">
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_2245922702239452113" quality="0.693255" charge="3">
+			<centroid rt="120" mz="571.314817333333" it="8.5"/>
+			<groupedElementList>
+				<element map="0" id="8411065050693278223" rt="120" mz="571.314817333333" it="16" charge="3"/>
+				<element map="1" id="7447921869851484023" rt="120" mz="575.339117333333" it="1" charge="3"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_5328708026382147265" quality="0.81593" charge="5">
+			<centroid rt="240" mz="627.1628008" it="29"/>
+			<groupedElementList>
+				<element map="0" id="8042419301937759351" rt="240" mz="627.1628008" it="51" charge="5"/>
+				<element map="1" id="17636350625608260055" rt="240" mz="629.5776008" it="7" charge="5"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_17414956687438876723" quality="0.819491" charge="5">
+			<centroid rt="180" mz="771.7841808" it="6.5"/>
+			<groupedElementList>
+				<element map="0" id="17270033199988300214" rt="180" mz="771.7841808" it="4" charge="5"/>
+				<element map="1" id="3226118413950909275" rt="180" mz="774.1987808" it="9" charge="5"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_329216205112005536" quality="0.510894" charge="2">
+			<centroid rt="60" mz="970.052588" it="2.5"/>
+			<groupedElementList>
+				<element map="0" id="2285984423239708451" rt="60" mz="970.052588" it="2" charge="2"/>
+				<element map="1" id="16251212109156325527" rt="60" mz="976.090688" it="3" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>

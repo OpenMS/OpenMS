@@ -62,11 +62,11 @@ START_SECTION(virtual ~ResidueDB())
 END_SECTION
 
 START_SECTION((const Residue* getResidue(const String &name) const))
-  TEST_EQUAL(ptr->getResidue("C")->getOneLetterCode(), "C")
+  TEST_EQUAL(ptr->getResidue("C")->getOneLetterCode(), 'C')
 END_SECTION
 
 START_SECTION((const Residue* getResidue(const unsigned char & one_letter_code) const))
-  TEST_EQUAL(ptr->getResidue('C')->getOneLetterCode(), "C")
+  TEST_EQUAL(ptr->getResidue('C')->getOneLetterCode(), 'C')
 END_SECTION
 
 START_SECTION((bool hasResidue(const String &name) const))
@@ -87,13 +87,13 @@ END_SECTION
 
 START_SECTION(const Residue* getModifiedResidue(const String &name))
 	const Residue* mod_res = ptr->getModifiedResidue("Oxidation (M)"); // ox methionine
-	TEST_STRING_EQUAL(mod_res->getOneLetterCode(), "M")
+	TEST_EQUAL(mod_res->getOneLetterCode(), 'M')
 	TEST_STRING_EQUAL(mod_res->getModification(), "Oxidation")
 END_SECTION
 
 START_SECTION(const Residue* getModifiedResidue(const Residue *residue, const String &name))
 	const Residue* mod_res = ptr->getModifiedResidue(ptr->getResidue("M"), "Oxidation (M)");
-	TEST_STRING_EQUAL(mod_res->getOneLetterCode(), "M")
+	TEST_EQUAL(mod_res->getOneLetterCode(), 'M')
 	TEST_STRING_EQUAL(mod_res->getModification(), "Oxidation")
 END_SECTION
 
@@ -126,7 +126,7 @@ START_SECTION(void addResidue(const Residue &residue))
 	TEST_EQUAL(ptr->hasResidue("MyLittleUGUResidue"), false)
 	Residue res;
 	res.setShortName("$hortName");
-	res.setOneLetterCode("$");
+	res.setOneLetterCode('$');
 	res.setThreeLetterCode("UGU");
 	res.setName("MyLittleUGUResidue");
 	res.setFormula(EmpiricalFormula("C3H4O4"));

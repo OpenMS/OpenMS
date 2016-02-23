@@ -28,39 +28,62 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Timo Sachsenberg $
+// $Maintainer: Chris Bielow $
+// $Authors: Andreas Bertsch, Chris Bielow, Knut Reinert $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_RNPXL_RNPXLMODIFICATIONSGENERATOR_H
-#define OPENMS_ANALYSIS_RNPXL_RNPXLMODIFICATIONSGENERATOR_H
-
-#include <vector>
-#include <map>
-#include <set>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/FORMAT/FASTAFile.h>
 
 namespace OpenMS
-{  
-  class AASequence;
+{
 
-  struct OPENMS_DLLAPI RNPxlModificationMassesResult
+ class OPENMS_DLLAPI PeptideIndexing :
+    public DefaultParamHandler,
+    public ProgressLogger
   {
-    std::map<String, double> mod_masses; // empirical formula -> mass
-    std::map<String, std::set<String> > mod_combinations; // empirical formula -> nucleotide formula(s) (formulas if modifications lead to ambiguities)
-    std::map<Size, String> mod_formula_idx;
-  };
+public:
 
-  class OPENMS_DLLAPI RNPxlModificationsGenerator
-  {
-    public:
-      static RNPxlModificationMassesResult initModificationMassesRNA(StringList target_nucleotides, StringList mappings, StringList restrictions, StringList modifications, String sequence_restriction, bool cysteine_adduct, Int max_length = 4);
-      static std::vector<String> getRNAFragmentModificationNames(const String& RNA_precursor_adduct, const AASequence& sequence);
-      static std::vector<ResidueModification> getRNAFragmentModifications(const String& RNA_precursor_adduct, const AASequence& sequence, const bool carbon_is_labeled);
-    private:
-      static bool notInSeq(String res_seq, String query);
-      static void generateTargetSequences(const String& res_seq, Size param_pos, const std::map<char, std::vector<char> >& map_source2target, StringList& target_sequences);
+    /// Exit codes
+    enum ExitCodes
+    {
+      EXECUTION_OK,
+      DATABASE_EMPTY,
+      PEPTIDE_IDS_EMPTY,
+      DATABASE_CONTAINS_MULTIPLES,
+      ILLEGAL_PARAMETERS,
+      UNEXPECTED_RESULT
     };
-}
 
-#endif // OPENMS_ANALYSIS_RNPXL_RNPXLMODIFICATIONSGENERATOR_H
+    /// Default constructor
+    PeptideIndexing();
+
+    /// Default destructor
+    virtual ~PeptideIndexing();
+
+    /// main method of FeatureFindingMetabo
+    ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids);
+
+protected:
+    virtual void updateMembers_();
+
+    String decoy_string_;
+    String prefix_;
+    String missing_decoy_action_;
+    String enzyme_name_;
+    String enzyme_specificity_;
+
+    bool write_protein_sequence_;
+    bool write_protein_description_;
+    bool keep_unreferenced_proteins_;
+    bool allow_unmatched_;
+    bool full_tolerant_search_;
+    bool IL_equivalent_;
+
+    Size aaa_max_;
+    Size mismatches_max_;
+
+  };
+}

@@ -70,6 +70,9 @@ START_SECTION(AASequence(const AASequence& rhs))
   seq = AASequence::fromString("AAA");
   AASequence seq2(seq);
   TEST_EQUAL(seq, seq2)
+  seq = AASequence::fromString("YTTGDDGTTRGDANGQNLYYYEEFGEPVGTANGWLNR");
+  AASequence seq3(seq);
+  TEST_EQUAL(seq, seq3)
 END_SECTION
 
 START_SECTION(AASequence fromString(const String& s, bool permissive = true))
@@ -165,6 +168,24 @@ START_SECTION(AASequence fromString(const String& s, bool permissive = true))
 
   TEST_EXCEPTION(Exception::ParseError,
                  AASequence::fromString("PEP T*I#D+E", false));
+
+  AASequence seq19 = AASequence::fromString("PEPE[+999.9]TIDEK");
+  TEST_EQUAL(seq19.isModified(), true)
+  TEST_STRING_EQUAL(seq19.toUnmodifiedString(), "PEPETIDEK");
+  TEST_STRING_EQUAL(seq19.toString(), "PEPE[+999.9]TIDEK");
+  TEST_STRING_EQUAL(seq19[(Size)3].getModification(), "")
+
+  AASequence seq20 = AASequence::fromString("PEPE[999.9]TIDEK");
+  TEST_STRING_EQUAL(seq20[(Size)3].getModification(), "")
+
+  AASequence seq21 = AASequence::fromString("ALTC[2169.1092986574]KMPGTLLPGPGK");
+  TEST_STRING_EQUAL(seq21[(Size)3].getModification(), "")
+  TEST_STRING_EQUAL(seq21[(Size)2].getModification(), "")
+  TEST_STRING_EQUAL(seq21[(Size)4].getModification(), "")
+
+  AASequence seq22 = AASequence::fromString("VSAMMSCACQK[+2250.2358961359]R");
+  TEST_STRING_EQUAL(seq22.toUnmodifiedString(), "VSAMMSCACQKR");
+  TEST_REAL_SIMILAR(seq22.getMonoWeight(), AASequence::fromString("VSAMMSCACQKR").getMonoWeight() + 2250.2358961359);
 }
 END_SECTION
 
@@ -206,7 +227,7 @@ END_SECTION
 START_SECTION((const Residue& getResidue(SignedSize index) const))
   AASequence seq = AASequence::fromString("ACDEF");
   SignedSize sint(2);
-  TEST_EQUAL(seq.getResidue(sint).getOneLetterCode(), "D")
+  TEST_EQUAL(seq.getResidue(sint).getOneLetterCode(), 'D')
   TEST_EXCEPTION(Exception::IndexUnderflow, seq.getResidue((SignedSize)-3))
   TEST_EXCEPTION(Exception::IndexOverflow, seq.getResidue((SignedSize)1000))
 END_SECTION
@@ -214,7 +235,7 @@ END_SECTION
 START_SECTION(const Residue& getResidue(Size index) const)
   AASequence seq = AASequence::fromString("ACDEF");
   Size unsignedint(2);
-  TEST_EQUAL(seq.getResidue(unsignedint).getOneLetterCode(), "D")
+  TEST_EQUAL(seq.getResidue(unsignedint).getOneLetterCode(), 'D')
   TEST_EXCEPTION(Exception::IndexOverflow, seq.getResidue((Size)1000))
 END_SECTION
 
@@ -291,7 +312,7 @@ END_SECTION
 START_SECTION(const Residue& operator[](SignedSize index) const)
   AASequence seq = AASequence::fromString("DFPIANGER");
   SignedSize index = 0;
-  TEST_EQUAL(seq[index].getOneLetterCode(), "D")
+  TEST_EQUAL(seq[index].getOneLetterCode(), 'D')
   index = -1;
   TEST_EXCEPTION(Exception::IndexUnderflow, seq[index])
   index = 20;
@@ -301,7 +322,7 @@ END_SECTION
 START_SECTION(const Residue& operator[](Size index) const)
   AASequence seq = AASequence::fromString("DFPIANGER");
   Size index = 0;
-  TEST_EQUAL(seq[index].getOneLetterCode(), "D")
+  TEST_EQUAL(seq[index].getOneLetterCode(), 'D')
   index = 20;
   TEST_EXCEPTION(Exception::IndexOverflow, seq[index])
 END_SECTION
@@ -422,12 +443,18 @@ START_SECTION(bool hasSuffix(const AASequence& peptide) const)
 END_SECTION
 
 START_SECTION(ConstIterator begin() const)
-  String result[] = { "D", "F", "P", "I", "A", "N", "G", "E", "R" };
+  char result[] = { 'D', 'F', 'P', 'I', 'A', 'N', 'G', 'E', 'R' };
   AASequence seq = AASequence::fromString("DFPIANGER");
   Size i = 0;
   for (AASequence::ConstIterator it = seq.begin(); it != seq.end(); ++it, ++i)
   {
     TEST_EQUAL((*it).getOneLetterCode(), result[i])
+  }
+  char result_2[] = { 'D', 'F', 'P', 'I', 'A', 'N', 'G', 'E', 'K' };
+  Size i_2 = 0;
+  for (AASequence::ConstIterator it = seq.begin(); it != seq.end(); ++it, ++i_2)
+  {
+    TEST_EQUAL((*it).getOneLetterCode(), result[i_2])
   }
 END_SECTION
 
@@ -436,7 +463,7 @@ START_SECTION(ConstIterator end() const)
 END_SECTION
 
 START_SECTION(Iterator begin())
-  String result[] = { "D", "F", "P", "I", "A", "N", "G", "E", "R" };
+  char result[] = { 'D', 'F', 'P', 'I', 'A', 'N', 'G', 'E', 'R' };
   AASequence seq = AASequence::fromString("DFPIANGER");
   Size i = 0;
   for (AASequence::ConstIterator it = seq.begin(); it != seq.end(); ++it, ++i)
