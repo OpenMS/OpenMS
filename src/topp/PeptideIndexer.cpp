@@ -476,78 +476,44 @@ protected:
     registerOutputFile_("out", "<file>", "", "Output idXML file.");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
 
-//    registerTOPPSubsection_("enzyme", "The enzyme determines valid cleavage sites; cleavage specificity determines to what extent validity is enforced.");
-    registerSubsection_("algorithm", "Algorithm parameters section");
-   }
+    registerStringOption_("decoy_string", "<string>", "_rev", "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.", false);
+    registerFlag_("prefix", "If set, protein accessions in the database contain 'decoy_string' as prefix.");
+    registerStringOption_("missing_decoy_action", "<action>", "error", "Action to take if NO peptide was assigned to a decoy protein (which indicates wrong database or decoy string): 'error' (exit with error, no output), 'warn' (exit with success, warning message)", false);
+    setValidStrings_("missing_decoy_action", ListUtils::create<String>("error,warn"));
 
-   Param getSubsectionDefaults_(const String& /*section*/) const
-   {
-    Param param;
-    param.setValue("decoy_string", "_rev", "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.");
-//    registerStringOption_("decoy_string", "<string>", "_rev", "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.", false);
+    registerFlag_("write_protein_sequence", "If set, the protein sequences are stored as well.");
+    registerFlag_("write_protein_description", "If set, the protein description is stored as well.");
+    registerFlag_("keep_unreferenced_proteins", "If set, protein hits which are not referenced by any peptide are kept.");
+    registerFlag_("allow_unmatched", "If set, unmatched peptide sequences are allowed. By default (i.e. if this flag is not set) the program terminates with an error on unmatched peptides.");
+    registerFlag_("full_tolerant_search", "If set, all peptide sequences are matched using tolerant search. Thus potentially more proteins (containing ambiguous amino acids) are associated. This is much slower!");
+    registerFlag_("IL_equivalent", "Treat the isobaric amino acids isoleucine ('I') and leucine ('L') as equivalent (indistinguishable)");
 
-    param.setValue("prefix", "false", "If true, protein accessions in the database contain 'decoy_string' as prefix.");
-    param.setValidStrings("prefix", ListUtils::create<String>("false,true"));
-//    registerFlag_("prefix", "If set, protein accessions in the database contain 'decoy_string' as prefix.");
+    registerIntOption_("aaa_max", "<number>", 4, "[tolerant search only] Maximal number of ambiguous amino acids (AAA) allowed when matching to a protein database with AAA's. AAA's are 'B', 'Z' and 'X'", false);
+    setMinInt_("aaa_max", 0);
+    registerIntOption_("mismatches_max", "<number>", 0, "[tolerant search only] Maximal number of real mismatches (will be used after checking for ambiguous AA's (see 'aaa_max' option). In general this param should only be changed if you want to look for other potential origins of a peptide which might have unknown SNPs or alike.", false);
+    setMinInt_("mismatches_max", 0);
 
-    param.setValue("missing_decoy_action", "error", "Action to take if NO peptide was assigned to a decoy protein (which indicates wrong database or decoy string): 'error' (exit with error, no output), 'warn' (exit with success, warning message)");
-    param.setValidStrings("missing_decoy_action", ListUtils::create<String>("error,warn"));
-//    registerStringOption_("missing_decoy_action", "<action>", "error", "Action to take if NO peptide was assigned to a decoy protein (which indicates wrong database or decoy string): 'error' (exit with error, no output), 'warn' (exit with success, warning message)", false);
-//    setValidStrings_("missing_decoy_action", ListUtils::create<String>("error,warn"));
-
-    param.setValue("write_protein_sequence", "false", "If true, the protein sequences are stored as well.");
-    param.setValue("write_protein_description", "false", "If true, the protein description is stored as well.");
-    param.setValue("keep_unreferenced_proteins", "false", "If true, protein hits which are not referenced by any peptide are kept.");
-    param.setValue("allow_unmatched", "false", "If true, unmatched peptide sequences are allowed. By default (i.e. if this flag is not set) the program terminates with an error on unmatched peptides.");
-    param.setValue("full_tolerant_search", "false", "If true, all peptide sequences are matched using tolerant search. Thus potentially more proteins (containing ambiguous amino acids) are associated. This is much slower!");
-    param.setValue("IL_equivalent", "false", "Treat the isobaric amino acids isoleucine ('I') and leucine ('L') as equivalent (indistinguishable)");
-    param.setValidStrings("write_protein_sequence",         ListUtils::create<String>("false,true"));
-    param.setValidStrings("write_protein_description",       ListUtils::create<String>("false,true"));
-    param.setValidStrings("keep_unreferenced_proteins",  ListUtils::create<String>("false,true"));
-    param.setValidStrings("allow_unmatched",                   ListUtils::create<String>("false,true"));
-    param.setValidStrings("full_tolerant_search",                ListUtils::create<String>("false,true"));
-    param.setValidStrings("IL_equivalent",                          ListUtils::create<String>("false,true"));
-//    registerFlag_("write_protein_sequence", "If set, the protein sequences are stored as well.");
-//    registerFlag_("write_protein_description", "If set, the protein description is stored as well.");
-//    registerFlag_("keep_unreferenced_proteins", "If set, protein hits which are not referenced by any peptide are kept.");
-//    registerFlag_("allow_unmatched", "If set, unmatched peptide sequences are allowed. By default (i.e. if this flag is not set) the program terminates with an error on unmatched peptides.");
-//    registerFlag_("full_tolerant_search", "If set, all peptide sequences are matched using tolerant search. Thus potentially more proteins (containing ambiguous amino acids) are associated. This is much slower!");
-//    registerFlag_("IL_equivalent", "Treat the isobaric amino acids isoleucine ('I') and leucine ('L') as equivalent (indistinguishable)");
-
-    param.setValue("aaa_max", 4, "[tolerant search only] Maximal number of ambiguous amino acids (AAA) allowed when matching to a protein database with AAA's. AAA's are 'B', 'Z' and 'X'");
-    param.setMinInt("aaa_max", 0);
-//    registerIntOption_("aaa_max", "<number>", 4, "[tolerant search only] Maximal number of ambiguous amino acids (AAA) allowed when matching to a protein database with AAA's. AAA's are 'B', 'Z' and 'X'", false);
-//    setMinInt_("aaa_max", 0);
-
-    param.setValue("mismatches_max", 0, "[tolerant search only] Maximal number of real mismatches (will be used after checking for ambiguous AA's (see 'aaa_max' option). In general this param should only be changed if you want to look for other potential origins of a peptide which might have unknown SNPs or alike.");
-    param.setMinInt("mismatches_max", 0);
-//    registerIntOption_("mismatches_max", "<number>", 0, "[tolerant search only] Maximal number of real mismatches (will be used after checking for ambiguous AA's (see 'aaa_max' option). In general this param should only be changed if you want to look for other potential origins of a peptide which might have unknown SNPs or alike.", false);
-//    setMinInt_("mismatches_max", 0);
-
-//    registerTOPPSubsection_("enzyme", "The enzyme determines valid cleavage sites; cleavage specificity determines to what extent validity is enforced.");
-    Param p_enz;
-    param.setValue("enzyme:name", "Trypsin", "Enzyme which determines valid cleavage sites - e.g. trypsin cleaves after lysine (K) or arginine (R), but not before proline (P).");
-//    registerStringOption_("enzyme:name", "", "Trypsin", "Enzyme which determines valid cleavage sites - e.g. trypsin cleaves after lysine (K) or arginine (R), but not before proline (P).", false);
+    registerTOPPSubsection_("enzyme", "The enzyme determines valid cleavage sites; cleavage specificity determines to what extent validity is enforced.");
     StringList enzymes;
     EnzymesDB::getInstance()->getAllNames(enzymes);
-    param.setValidStrings("enzyme:name", enzymes);
-//    setValidStrings_("enzyme:name", enzymes);
-
-    param.setValue("enzyme:specificity", EnzymaticDigestion::NamesOfSpecificity[0], "Specificity of the enzyme."
+    registerStringOption_("enzyme:name", "", "Trypsin", "Enzyme which determines valid cleavage sites - e.g. trypsin cleaves after lysine (K) or arginine (R), but not before proline (P).", false);
+    setValidStrings_("enzyme:name", enzymes);
+    registerStringOption_("enzyme:specificity", "", EnzymaticDigestion::NamesOfSpecificity[0], "Specificity of the enzyme."
                                                                                                "\n  '" + EnzymaticDigestion::NamesOfSpecificity[0] + "': both internal cleavage sites must match."
                                                                                                                                                      "\n  '" + EnzymaticDigestion::NamesOfSpecificity[1] + "': one of two internal cleavage sites must match."
-                                                                                                                                                                                                           "\n  '" + EnzymaticDigestion::NamesOfSpecificity[2] + "': allow all peptide hits no matter their context. Therefore, the enzyme chosen does not play a role here");
-//    registerStringOption_("enzyme:specificity", "", EnzymaticDigestion::NamesOfSpecificity[0], "Specificity of the enzyme."
-//                                                                                               "\n  '" + EnzymaticDigestion::NamesOfSpecificity[0] + "': both internal cleavage sites must match."
-//                                                                                                                                                     "\n  '" + EnzymaticDigestion::NamesOfSpecificity[1] + "': one of two internal cleavage sites must match."
-//                                                                                                                                                                                                           "\n  '" + EnzymaticDigestion::NamesOfSpecificity[2] + "': allow all peptide hits no matter their context. Therefore, the enzyme chosen does not play a role here", false);
+                                                                                                                                                                                                           "\n  '" + EnzymaticDigestion::NamesOfSpecificity[2] + "': allow all peptide hits no matter their context. Therefore, the enzyme chosen does not play a role here", false);
+
     StringList spec;
     spec.assign(EnzymaticDigestion::NamesOfSpecificity, EnzymaticDigestion::NamesOfSpecificity + EnzymaticDigestion::SIZE_OF_SPECIFICITY);
-    param.setValidStrings("enzyme:specificity", spec);
-//    setValidStrings_("enzyme:specificity", spec);
+    setValidStrings_("enzyme:specificity", spec);
 
-    return param;
-  }
+//    registerSubsection_("algorithm", "Algorithm parameters section");
+   }
+
+//   Param getSubsectionDefaults_(const String& /*section*/) const
+//   {
+//    return PeptideIndexing().getDefaults();
+//   }
 
   ExitCodes main_(int, const char**)
   {
@@ -557,9 +523,22 @@ protected:
     String in = getStringOption_("in");
     String out = getStringOption_("out");
 
+
     PeptideIndexing indexer;
 
-    Param param = getParam_().copy("algorithm:", true);
+    Param param = getParam_().copy("", true);
+
+    // These parameters are not used by the PeptideIndexing class
+    param.remove("in");
+    param.remove("fasta");
+    param.remove("out");
+
+    param.remove("log");
+    param.remove("debug");
+    param.remove("threads");
+    param.remove("no_progress");
+    param.remove("force");
+    param.remove("test");
 
     indexer.setParameters(param);
 
