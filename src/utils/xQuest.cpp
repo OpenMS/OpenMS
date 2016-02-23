@@ -114,6 +114,55 @@ public:
     TOPPBase("xQuest", "Tool for protein-protein cross linking using the xQuest algorithm.", false)
   {
   }
+
+//  struct CrossLinkToSpectrumHit
+//  {
+//    /// structure of the cross-link
+//    TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink cross_link;
+
+//    /// final score
+//    OpenMS::Size protein_index;
+
+//    /// the amino acid after the peptide in the protein
+//    char AABefore;
+
+//    /// the amino acid before the peptide in the protein
+//    char AAAfter;
+
+//    /// the position of the peptide in the protein
+//    OpenMS::Int position;
+
+//    bool operator<(const CrossLinkToSpectrumHit& other) const
+//    {
+//      if (protein_index != other.protein_index)
+//      {
+//        return protein_index < other.protein_index;
+//      }
+//      else if (position != other.position)
+//      {
+//        return position < other.position;
+//      }
+//      else if (AABefore != other.AABefore)
+//      {
+//        return AABefore < other.AABefore;
+//      }
+//      else if (AAAfter != other.AAAfter)
+//      {
+//        return AAAfter < other.AAAfter;
+//      }
+//      return false;
+//    }
+
+//    bool operator==(const CrossLinkToSpectrumHit& other) const
+//    {
+//      return protein_index == other.protein_index &&
+//           position == other.position &&
+//           AABefore == other.AABefore &&
+//           AAAfter == other.AAAfter;
+//    }
+
+//  };
+
   //TODO: make protected
   static void wrap_(const String& input, Size width, String & output)
   { 
