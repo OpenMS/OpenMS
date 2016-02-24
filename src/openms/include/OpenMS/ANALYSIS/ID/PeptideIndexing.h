@@ -63,7 +63,7 @@ public:
     /// Default destructor
     virtual ~PeptideIndexing();
 
-    /// main method of FeatureFindingMetabo
+    /// main method of PeptideIndexing
     ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids);
 
 protected:

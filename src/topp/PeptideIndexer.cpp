@@ -158,13 +158,7 @@ protected:
     Param temp = PeptideIndexing().getParameters();
     registerFullParam_(temp);
 
-//    registerSubsection_("algorithm", "Algorithm parameters section");
    }
-
-//   Param getSubsectionDefaults_(const String& /*section*/) const
-//   {
-//    return PeptideIndexing().getDefaults();
-//   }
 
   ExitCodes main_(int, const char**)
   {
@@ -179,17 +173,20 @@ protected:
 
     Param param = getParam_().copy("", true);
 
-    // These parameters are not used by the PeptideIndexing class
-    param.remove("in");
-    param.remove("fasta");
-    param.remove("out");
+    Param param_pi = indexer.getParameters();
+    param_pi.update(param);
 
-    param.remove("log");
-    param.remove("debug");
-    param.remove("threads");
-    param.remove("no_progress");
-    param.remove("force");
-    param.remove("test");
+    // These parameters are not used by the PeptideIndexing class
+//    param.remove("in");
+//    param.remove("fasta");
+//    param.remove("out");
+
+//    param.remove("log");
+//    param.remove("debug");
+//    param.remove("threads");
+//    param.remove("no_progress");
+//    param.remove("force");
+//    param.remove("test");
 
     indexer.setParameters(param);
 
@@ -251,7 +248,13 @@ protected:
     PeptideIndexing::ExitCodes indexer_exit = indexer.run(proteins, prot_ids, pep_ids);
     if ( (indexer_exit != PeptideIndexing::EXECUTION_OK) )
     {
-      return UNKNOWN_ERROR;
+      if (indexer_exit == PeptideIndexing::UNEXPECTED_RESULT)
+      {
+        return UNEXPECTED_RESULT;
+      } else
+      {
+        return UNKNOWN_ERROR;
+      }
     }
 
     //-------------------------------------------------------------
