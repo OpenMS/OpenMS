@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
+// $Maintainer: Petra Gutenbrunner $
 // $Authors: David Wojnar, Timo Sachsenberg, Petra Gutenbrunner $
 // --------------------------------------------------------------------------
 
@@ -84,7 +84,8 @@ class OPENMS_DLLAPI AScore
     PeptideHit compute(const PeptideHit & hit, PeakSpectrum &real_spectrum, double fragment_mass_tolerance, bool fragment_mass_unit_ppm, Size max_peptide_len = 60, Size max_num_perm = 16384);
 
   protected:
-  
+    int compareMZ_(double mz1, double mz2, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const;
+    
     /// getSpectrumDifference_ works similar as the method std::set_difference (http://en.cppreference.com/w/cpp/algorithm/set_difference). 
     /// set_difference was reimplemented, because it was necessary to overwrite the compare operator to be able to compare the m/z values.
     /// not implemented as "operator<", because using tolerances for comparison does not imply total ordering    
@@ -94,28 +95,39 @@ class OPENMS_DLLAPI AScore
     {
       while (first1 != last1 && first2 != last2)
       {
-        double tolerance = fragment_mass_tolerance;        
-        double error = first1->getMZ() - first2->getMZ();
-        if (fragment_mass_unit_ppm)
-        {
-          double avg_mass = (first1->getMZ() + first2->getMZ()) / 2;
-          tolerance = fragment_mass_tolerance * avg_mass / 1e6;
-        }
+        double mz1 = first1->getMZ();
+        double mz2 = first2->getMZ();
+        int val = compareMZ_(mz1, mz2, fragment_mass_tolerance, fragment_mass_unit_ppm);
         
-        if (error < -tolerance)
+        if (val == -1)
         { 
           *result = *first1; 
           ++result; 
           ++first1; 
         }
-        else if (error > tolerance)
+        else if (val == 1)
         {
           ++first2;
         }
-        else 
-        { 
-          ++first1; 
-          ++first2; 
+        else // check if more ions are within the same tolerance. If so, these can not be site determining ions
+        {
+          //check mz2 until no match
+          ++first2;
+          int ret = compareMZ_(mz1, first2->getMZ(), fragment_mass_tolerance, fragment_mass_unit_ppm);
+          while (ret == 0)
+          {
+            ++first2;
+            ret = compareMZ_(mz1, first2->getMZ(), fragment_mass_tolerance, fragment_mass_unit_ppm);
+          }
+          
+          //check mz1 until no match
+          ++first1;
+          ret = compareMZ_(first1->getMZ(), mz2, fragment_mass_tolerance, fragment_mass_unit_ppm);
+          while (ret == 0)
+          {
+            ++first1;
+            ret = compareMZ_(first1->getMZ(), mz2, fragment_mass_tolerance, fragment_mass_unit_ppm);
+          }          
         }
       }
       return std::copy(first1, last1, result);
