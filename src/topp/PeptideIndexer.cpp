@@ -718,57 +718,50 @@ protected:
         // search using SA, which supports mismatches (introduced by resolving ambiguous AA's by e.g. Mascot) -- expensive!
         writeLog_(String("Using suffix array to find ambiguous matches..."));
 
+        seqan::StringSet<seqan::Peptide> pep_DB_SA, prot_DB_SA;
         vector<Size> prot_DB_indexes; // store indexes that pass the filtering
         if (!SA_only)
         {
           // search peptides which remained unidentified during Aho-Corasick:
           for (Size i = 0; i < length(pep_DB); ++i)
           {
-            if (func.pep_to_prot.has(i))
+            if (!func.pep_to_prot.has(i))
             {
-              removeValueById(pep_DB, i);
-              --i;
+              appendValue(pep_DB_SA, pep_DB[i]);
             }
           }
-          writeLog_("... for " + String(length(pep_DB)) + " unmatched peptide(s)...");
+          clear(pep_DB); // no longer needed
+          writeLog_("... for " + String(length(pep_DB_SA)) + " unmatched peptide(s)...");
 
           // only look for ambiguous matches, so only consider proteins with
           // ambiguous amino acids:
-          for (Size i = 0, counter = 0; i < length(prot_DB); ++i, ++counter)
+          for (Size i = 0; i < length(prot_DB); ++i)
           {
             // check if the protein contains ambiguous amino acids:
-            bool any_aaa = false;
             Size length_prot = length(prot_DB[i]);
             for (Size j = 0; j < length_prot; ++j)
             {
               if ((prot_DB[i][j] == 'B') || (prot_DB[i][j] == 'X') ||
                   (prot_DB[i][j] == 'Z'))
               {
-                any_aaa = true;
+                appendValue(prot_DB_SA, prot_DB[i]);
+                prot_DB_indexes.push_back(i);
                 break;
               }
             }
-            if (!any_aaa)
-            {
-              removeValueById(prot_DB, i);
-              --i;
-            }
-            else
-            {
-              prot_DB_indexes.push_back(counter);
-            }
           }
-          writeLog_("... in " + String(length(prot_DB)) + " ambiguous protein(s).");
+          clear(prot_DB); // no longer needed
+          writeLog_("... in " + String(length(prot_DB_SA)) + " ambiguous protein(s).");
         }
 
         seqan::FoundProteinFunctor func_SA(enzyme);
 
         typedef seqan::Index<seqan::StringSet<seqan::Peptide>, seqan::IndexWotd<> > TIndex;
-        TIndex prot_Index(prot_DB);
-        TIndex pep_Index(pep_DB);
+        TIndex prot_Index = (SA_only ? TIndex(prot_DB) : TIndex(prot_DB_SA));
+        TIndex pep_Index = (SA_only ? TIndex(pep_DB) : TIndex(pep_DB_SA));
 
         // use only full peptides in Suffix Array
-        const Size length_SA = length(pep_DB);
+        const Size length_SA = (SA_only ? length(pep_DB) : length(pep_DB_SA));
         resize(indexSA(pep_Index), length_SA);
         for (Size i = 0; i < length_SA; ++i)
         {
@@ -792,7 +785,7 @@ protected:
         if (!SA_only)
         {
           // correct the indexes that reference the proteins
-          // (because "prot_DB" does not contain all proteins any more):
+          // (because "prot_DB_SA" does not contain all proteins):
           for (seqan::FoundProteinFunctor::MapType::iterator it = 
                  func_SA.pep_to_prot.begin(); it != func_SA.pep_to_prot.end();
                ++it)
