@@ -722,6 +722,11 @@ protected:
         vector<Size> prot_DB_indexes; // store indexes that pass the filtering
         if (!SA_only)
         {
+          // Note for future developers: Creating a new StringSet is much faster
+          // than either filtering an existing one (via "removeValueById") or
+          // creating a Dependent StringSet (via "assignValueById"), at least
+          // with SeqAn 1.4!
+
           // search peptides which remained unidentified during Aho-Corasick:
           for (Size i = 0; i < length(pep_DB); ++i)
           {
