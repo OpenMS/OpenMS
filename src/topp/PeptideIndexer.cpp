@@ -718,58 +718,57 @@ protected:
         // search using SA, which supports mismatches (introduced by resolving ambiguous AA's by e.g. Mascot) -- expensive!
         writeLog_(String("Using suffix array to find ambiguous matches..."));
 
-        seqan::StringSet<seqan::Peptide, seqan::Dependent<seqan::Generous> >
-          prot_DB_SA;
-        if (SA_only) // implied if "max_mismatches" > 0
+        vector<Size> prot_DB_indexes; // store indexes that pass the filtering
+        if (!SA_only)
         {
-          // use all proteins:
-          reserve(prot_DB_SA, length(prot_DB));
-          for (Size i = 0; i < length(prot_DB); ++i)
+          // search peptides which remained unidentified during Aho-Corasick:
+          for (Size i = 0; i < length(pep_DB); ++i)
           {
-            assignValueById(prot_DB_SA, prot_DB, i);
+            if (func.pep_to_prot.has(i))
+            {
+              removeValueById(pep_DB, i);
+              --i;
+            }
           }
-        }
-        else
-        {
+          writeLog_("... for " + String(length(pep_DB)) + " unmatched peptide(s)...");
+
           // only look for ambiguous matches, so only consider proteins with
           // ambiguous amino acids:
-          for (Size i = 0; i < length(prot_DB); ++i)
+          for (Size i = 0, counter = 0; i < length(prot_DB); ++i, ++counter)
           {
             // check if the protein contains ambiguous amino acids:
-            for (Size j = 0; j < length(prot_DB[i]); ++j)
+            bool any_aaa = false;
+            Size length_prot = length(prot_DB[i]);
+            for (Size j = 0; j < length_prot; ++j)
             {
               if ((prot_DB[i][j] == 'B') || (prot_DB[i][j] == 'X') ||
                   (prot_DB[i][j] == 'Z'))
               {
-                assignValueById(prot_DB_SA, prot_DB, i);
+                any_aaa = true;
                 break;
               }
             }
+            if (!any_aaa)
+            {
+              removeValueById(prot_DB, i);
+              --i;
+            }
+            else
+            {
+              prot_DB_indexes.push_back(counter);
+            }
           }
-          writeLog_("... in " + String(length(prot_DB_SA)) + " ambiguous protein(s)...");
+          writeLog_("... in " + String(length(prot_DB)) + " ambiguous protein(s).");
         }
-
-        // search peptides which remained unidentified during Aho-Corasick (might be all if 'full_tolerant_search' is enabled)
-        seqan::StringSet<seqan::Peptide, seqan::Dependent<seqan::Generous> >
-          pep_DB_SA;
-        for (Size p = 0; p < length(pep_DB); ++p)
-        {
-          if (!func.pep_to_prot.has(p))
-          {
-            assignValueById(pep_DB_SA, pep_DB, p);
-          }
-        }
-
-        writeLog_(String("... for ") + length(pep_DB_SA) + " peptide(s).");
 
         seqan::FoundProteinFunctor func_SA(enzyme);
 
-        typedef seqan::Index<seqan::StringSet<seqan::Peptide, seqan::Dependent<seqan::Generous> >, seqan::IndexWotd<> > TIndex;
-        TIndex prot_Index(prot_DB_SA);
-        TIndex pep_Index(pep_DB_SA);
+        typedef seqan::Index<seqan::StringSet<seqan::Peptide>, seqan::IndexWotd<> > TIndex;
+        TIndex prot_Index(prot_DB);
+        TIndex pep_Index(pep_DB);
 
         // use only full peptides in Suffix Array
-        const Size length_SA = length(pep_DB_SA);
+        const Size length_SA = length(pep_DB);
         resize(indexSA(pep_Index), length_SA);
         for (Size i = 0; i < length_SA; ++i)
         {
@@ -792,8 +791,8 @@ protected:
         func.filter_rejected += func_SA.filter_rejected;
         if (!SA_only)
         {
-          // correct the indexes that references the proteins
-          // (because "prot_DB_SA" does not contain all proteins):
+          // correct the indexes that reference the proteins
+          // (because "prot_DB" does not contain all proteins any more):
           for (seqan::FoundProteinFunctor::MapType::iterator it = 
                  func_SA.pep_to_prot.begin(); it != func_SA.pep_to_prot.end();
                ++it)
@@ -804,8 +803,7 @@ protected:
             for (vector<PeptideProteinMatchInformation>::iterator ppmi_it =
                    temp.begin(); ppmi_it != temp.end(); ++ppmi_it)
             {
-              ppmi_it->protein_index = positionToId(prot_DB_SA,
-                                                    ppmi_it->protein_index);
+              ppmi_it->protein_index = prot_DB_indexes[ppmi_it->protein_index];
             }
             it->second.clear();
             it->second.insert(temp.begin(), temp.end());
