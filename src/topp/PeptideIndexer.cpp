@@ -176,18 +176,6 @@ protected:
     Param param_pi = indexer.getParameters();
     param_pi.update(param);
 
-    // These parameters are not used by the PeptideIndexing class
-//    param.remove("in");
-//    param.remove("fasta");
-//    param.remove("out");
-
-//    param.remove("log");
-//    param.remove("debug");
-//    param.remove("threads");
-//    param.remove("no_progress");
-//    param.remove("force");
-//    param.remove("test");
-
     indexer.setParameters(param);
 
     bool keep_unreferenced_proteins = param.getValue("keep_unreferenced_proteins").toBool();
