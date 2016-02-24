@@ -176,7 +176,7 @@ protected:
     Param param_pi = indexer.getParameters();
     param_pi.update(param);
 
-    indexer.setParameters(param);
+    indexer.setParameters(param_pi);
 
     bool keep_unreferenced_proteins = param.getValue("keep_unreferenced_proteins").toBool();
 
