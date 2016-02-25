@@ -711,7 +711,6 @@ END_SECTION
 // of best peptide
 START_SECTION(calculateCumulativeBinominalProbabilityScore)
 {
-  std::cout << std::endl;
   double fragment_mass_tolerance = 0.5;
   bool fragment_mass_unit_ppm = false;
   

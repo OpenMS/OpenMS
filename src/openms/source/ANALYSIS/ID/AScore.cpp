@@ -122,12 +122,10 @@ namespace OpenMS
     
     double peptide1_score = rev->first;
     phospho.setMetaValue("AScore_pep_score", peptide1_score); // initialize score with highest peptide score (aka highest weighted score)
-    //std::cout << "SEQ1: " << th_spectra[rev->second].getName() << ", score: " << peptide1_score << std::endl;
     
     rev++;
     String seq2 = th_spectra[rev->second].getName();
     double peptide2_score = rev->first;
-    //std::cout << "SEQ2: " << th_spectra[rev->second].getName() << ", score: " << peptide2_score << std::endl;
     
     vector<ProbablePhosphoSites> phospho_sites;
     determineHighestScoringPermutations_(peptide_site_scores, phospho_sites, permutations, ranking);
@@ -152,7 +150,6 @@ namespace OpenMS
         Size n_first = 0; // number of matching peaks for first peptide
         for (Size window_idx = 0; window_idx != windows_top10.size(); ++window_idx) // for each 100 m/z window
         {
-          //std::cout << "window idx = " << window_idx << std::endl;
           n_first += numberOfMatchedIons_(site_determining_ions[0], windows_top10[window_idx], s_it->peak_depth, fragment_mass_tolerance, fragment_mass_unit_ppm);        
         }
         double P_first = computeCumulativeScore_(N, n_first, p);
@@ -160,7 +157,6 @@ namespace OpenMS
         Size n_second = 0; // number of matching peaks for second peptide
         for (Size window_idx = 0; window_idx <  windows_top10.size(); ++window_idx) //each 100 m/z window
         {
-          //std::cout << "window idx = " << window_idx << std::endl;
           n_second += numberOfMatchedIons_(site_determining_ions[1], windows_top10[window_idx], s_it->peak_depth, fragment_mass_tolerance, fragment_mass_unit_ppm);        
         }
         Size N2 = site_determining_ions[1].size(); // all possibilities have the same number so take the first one
