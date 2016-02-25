@@ -13,17 +13,17 @@
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
-			<PeptideHit score="40" sequence="DFIANGER" charge="2" aa_before="[" aa_after="]" start="0"  end="7" protein_refs="PH_0" >
+			<PeptideHit score="40" sequence="DFIANGER" charge="2" aa_before="-" aa_after="-" start="0"  end="7" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
-			<PeptideHit score="40" sequence="MBCDEFGK" charge="2" aa_before="[" aa_after="A" start="0"  end="7" protein_refs="PH_1" >
+			<PeptideHit score="40" sequence="MBCDEFGK" charge="2" aa_before="-" aa_after="A" start="0"  end="7" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
-			<PeptideHit score="40" sequence="MBCDEFGKABCR" charge="2" aa_before="[" aa_after="A" start="0"  end="11" protein_refs="PH_1" >
+			<PeptideHit score="40" sequence="MBCDEFGKABCR" charge="2" aa_before="-" aa_after="A" start="0"  end="11" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
@@ -35,7 +35,7 @@
 				<UserParam type="string" name="target_decoy" value=""/>
 				<UserParam type="string" name="protein_references" value="unmatched"/>
 			</PeptideHit>
-			<PeptideHit score="40" sequence="MBCDEFGKABCRAAAKAARPBBBB" charge="2" aa_before="[" aa_after="]" start="0"  end="23" protein_refs="PH_1" >
+			<PeptideHit score="40" sequence="MBCDEFGKABCRAAAKAARPBBBB" charge="2" aa_before="-" aa_after="-" start="0"  end="23" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
@@ -57,7 +57,7 @@
 				<UserParam type="string" name="target_decoy" value=""/>
 				<UserParam type="string" name="protein_references" value="unmatched"/>
 			</PeptideHit>
-			<PeptideHit score="40" sequence="BCDEFGKABCRAAAKAARPBBBB" charge="2" aa_before="M" aa_after="]" start="1"  end="23" protein_refs="PH_1" >
+			<PeptideHit score="40" sequence="BCDEFGKABCRAAAKAARPBBBB" charge="2" aa_before="M" aa_after="-" start="1"  end="23" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>

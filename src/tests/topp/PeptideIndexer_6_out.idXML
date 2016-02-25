@@ -32,13 +32,13 @@
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
-			<PeptideHit score="0.0001" sequence="EDQSCPSERRRAFSRLRXAAX" charge="2" aa_before="[ [" aa_after="] ]" start="0 0"  end="20 20" protein_refs="PH_3 PH_5" >
+			<PeptideHit score="0.0001" sequence="EDQSCPSERRRAFSRLRXAAX" charge="2" aa_before="- -" aa_after="- -" start="0 0"  end="20 20" protein_refs="PH_3 PH_5" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
-			<PeptideHit score="0.0001" sequence="SERRRAFSRLRXAAX" charge="2" aa_before="P P" aa_after="] ]" start="6 6"  end="20 20" protein_refs="PH_3 PH_5" >
+			<PeptideHit score="0.0001" sequence="SERRRAFSRLRXAAX" charge="2" aa_before="P P" aa_after="- -" start="6 6"  end="20 20" protein_refs="PH_3 PH_5" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 			</PeptideHit>
@@ -48,17 +48,17 @@
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
-			<PeptideHit score="40" sequence="EDQSCPSERRRAFSRLRFGPS" charge="2" aa_before="[" aa_after="]" start="0"  end="20" protein_refs="PH_2" >
+			<PeptideHit score="40" sequence="EDQSCPSERRRAFSRLRFGPS" charge="2" aa_before="-" aa_after="-" start="0"  end="20" protein_refs="PH_2" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
-			<PeptideHit score="40" sequence="EWATYTCVLGFHVYVPVR" charge="2" aa_before="[ A A" aa_after="] ] ]" start="0 5 5"  end="17 22 22" protein_refs="PH_1 PH_4 PH_6" >
+			<PeptideHit score="40" sequence="EWATYTCVLGFHVYVPVR" charge="2" aa_before="- A A" aa_after="- - -" start="0 5 5"  end="17 22 22" protein_refs="PH_1 PH_4 PH_6" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
-			<PeptideHit score="40" sequence="EWATYTCVLGFHVYVPVR" charge="2" aa_before="[ A A" aa_after="] ] ]" start="0 5 5"  end="17 22 22" protein_refs="PH_1 PH_4 PH_6" >
+			<PeptideHit score="40" sequence="EWATYTCVLGFHVYVPVR" charge="2" aa_before="- A A" aa_after="- - -" start="0 5 5"  end="17 22 22" protein_refs="PH_1 PH_4 PH_6" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 			</PeptideHit>
