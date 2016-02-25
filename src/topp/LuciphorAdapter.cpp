@@ -186,8 +186,6 @@ protected:
 
     registerStringOption_("run_mode", "<choice>", "0", "Determines how Luciphor will run: 0 = calculate FLR then rerun scoring without decoys (two iterations), 1 = Report Decoys: calculate FLR but don't rescore PSMs, all decoy hits will be reported", false);
     setValidStrings_("run_mode", ListUtils::create<String>("0,1")); 
-    
-    registerIntOption_("java_memory", "<num>", 3500, "Maximum Java heap size (in MB)", false);
   }
   
   String makeModString_(const String& mod_name)
@@ -502,7 +500,6 @@ protected:
     
     writeConfigurationFile_(conf_file, config_map);    
     QString executable = getStringOption_("executable").toQString();
-    QString java_memory = "-Xmx" + QString::number(getIntOption_("java_memory")) + "m";
     
     // Hack for KNIME. Looks for LUCIPHOR_PATH in the environment which is set in binaries.ini
     QProcessEnvironment env;
@@ -515,8 +512,7 @@ protected:
     }
 
     QStringList process_params; // the actual process is Java, not LuciPHOr2!
-    process_params << java_memory
-                   << "-jar" << executable << conf_file.toQString();
+    process_params << "-jar" << executable << conf_file.toQString();                   
 
     // execute LuciPHOr2    
     int status = QProcess::execute("java", process_params);
