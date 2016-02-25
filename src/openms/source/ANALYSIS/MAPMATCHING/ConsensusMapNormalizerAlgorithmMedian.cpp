@@ -131,7 +131,7 @@ namespace OpenMS
   {
     if (method == NM_SHIFT)
     {
-      LOG_WARN << "WARNING: normalization using median shifting is not recommended for regular log-normal MS data. Use this only if you know exactly what you're doing!" << endl;
+      LOG_WARN << endl << "WARNING: normalization using median shifting is not recommended for regular log-normal MS data. Use this only if you know exactly what you're doing!" << endl << endl;
     }
 
     ConsensusMap::Iterator cf_it;
@@ -176,15 +176,16 @@ namespace OpenMS
 
   bool ConsensusMapNormalizerAlgorithmMedian::passesFilters_(ConsensusMap::ConstIterator cf_it, const ConsensusMap& map, const String& acc_filter, const String& desc_filter)
   {
-    if (acc_filter == "" && desc_filter == "")
+    boost::regex acc_regexp(acc_filter);
+    boost::regex desc_regexp(desc_filter);
+    boost::cmatch m;
+
+    if ((acc_filter == "" || boost::regex_search("", m, acc_regexp)) &&
+        (desc_filter == "" || boost::regex_search("", m, desc_regexp)))
     {
       // feature passes (even if it has no identification!)
       return true;
     }
-
-    boost::regex acc_regexp(acc_filter);
-    boost::regex desc_regexp(desc_filter);
-    boost::cmatch m;
 
     const vector<ProteinIdentification>& prot_ids = map.getProteinIdentifications();
     const vector<PeptideIdentification>& pep_ids = cf_it->getPeptideIdentifications();
@@ -198,12 +199,16 @@ namespace OpenMS
         for (set<String>::const_iterator acc_it = accs.begin(); acc_it != accs.end(); ++acc_it)
         {
           // does accession match?
-          if (!(acc_filter == "" || boost::regex_search(acc_it->c_str(), m, acc_regexp)))
+          if (!(acc_filter == "" ||
+                boost::regex_search("", m, acc_regexp) ||
+                boost::regex_search(acc_it->c_str(), m, acc_regexp)))
           {
+            //no
             continue;
           }
+
           // yes. does description match, too?
-          if (desc_filter == "")
+          if (desc_filter == "" || boost::regex_search("", m, desc_regexp))
           {
             return true;
           }
