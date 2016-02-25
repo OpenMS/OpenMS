@@ -588,6 +588,7 @@ protected:
       */
       seqan::StringSet<seqan::Peptide> prot_DB;
 
+      vector<String> duplicate_accessions;
       for (Size i = 0; i != proteins.size(); ++i)
       {
         String seq = proteins[i].sequence.remove('*');
@@ -601,21 +602,21 @@ protected:
         // @TODO: what happens if there are duplicate sequences with different accessions?
         if (acc_to_prot.has(acc))
         {
-          LOG_WARN << "PeptideIndexer: Warning, protein identifiers should be unique to a database. Identifier '" << acc << "' found multiple times." << endl;
+          duplicate_accessions.push_back(acc);
           // check if sequence is identical
           const seqan::Peptide& tmp_prot = prot_DB[acc_to_prot[acc]];
           if (String(begin(tmp_prot), end(tmp_prot)) != seq)
           {
-            LOG_ERROR << "PeptideIndexer: protein identifier '" << acc << "' found multiple times with different sequences" << (il_equivalent ? " (I/L substituted)" : "")
-                      << ":\n" << tmp_prot << "\nvs.\n" << seq << "\n! Please fix the database and run PeptideIndexer again!" << std::endl;
+            LOG_ERROR << "Fatal error: Protein identifier '" << acc << "' found multiple times with different sequences"
+                      << (il_equivalent ? " (I/L substituted)" : "") << ":\n"
+                      << tmp_prot << "\nvs.\n" << seq << "\nPlease fix the database and run PeptideIndexer again." << std::endl;
             return INPUT_FILE_CORRUPT;
           }
-          // remove duplicate sequence from 'proteins', since 'prot_DB' and 'proteins' need to correspond 1:1 (later indexing depends on it)
+          // Remove duplicate entry from 'proteins', since 'prot_DB' and 'proteins' need to correspond 1:1 (later indexing depends on it)
           // The other option would be to allow two identical entries, but later on, only the last one will be reported (making the first protein an orphan; implementation details below)
           // Thus, the only safe option is to remove the duplicate from 'proteins' and not to add it to 'prot_DB'
           proteins.erase(proteins.begin() + i);
-          // try this index again in the next loop (--i is save since this condition is met only when i>0)
-          --i;
+          --i; // try this index again
         }
         else
         {
@@ -623,6 +624,11 @@ protected:
           seqan::appendValue(prot_DB, seq.c_str());
           acc_to_prot[acc] = i;
         }
+      }
+      if (!duplicate_accessions.empty())
+      {
+        LOG_WARN << "Warning: For the following protein identifiers, duplicate entries were found in the sequence database:\n"
+                 << ListUtils::concatenate(duplicate_accessions, "\n") << endl;
       }
 
       /**
@@ -651,9 +657,8 @@ protected:
 
       if (!SA_only && (max_mismatches > 0)) // this combination is not allowed, and we want the user to make a conscious decision about it
       {
-        LOG_ERROR << "Error: Exact matching in combination with #mismatches > 0 is not allowed.\n"
-                  << "       Either use full tolerant search ('full_tolerant_search') or set 'mismatches_max' back to '0'."
-                  << "       Aborting..." << std::endl;
+        LOG_ERROR << "Fatal error: Allowing mismatches ('mismatches_max' > 0) requires a full tolerant search ('full_tolerant_search').\n" 
+                  << "Please adapt your settings." << endl;
         return ILLEGAL_PARAMETERS;
       }
 
