@@ -169,9 +169,7 @@ namespace OpenMS
         LOG_DEBUG << "\tfirst - N: " << N << ",p: " << p << ",n: " << n_first << ", score: " << score_first << std::endl;
         LOG_DEBUG << "\tsecond - N: " << N2 << ",p: " << p << ",n: " << n_second << ", score: " << score_second << std::endl;
         
-        //double AScore_first = score_first - score_second;      
         Ascore = score_first - score_second;
-        //phospho.setMetaValue("AScore_" + String(rank), AScore_first);
         LOG_DEBUG << "\tAscore_" << rank << ": " << Ascore << std::endl;
         
         if (Ascore < best_Ascore)
@@ -360,7 +358,6 @@ namespace OpenMS
         }
       }
     }
-    //return n;
     return th_peaks_matches.size();
   }
 
