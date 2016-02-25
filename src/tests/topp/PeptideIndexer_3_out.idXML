@@ -41,21 +41,21 @@
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
-			<PeptideHit score="40" sequence="STFDFYQRRLVTLAESPRAPSP" charge="2" aa_after="G ]" start="227 4"  end="248 25" protein_refs="PH_0 PH_3" >
+			<PeptideHit score="40" sequence="STFDFYQRRLVTLAESPRAPSP" charge="2" aa_after="G -" start="227 4"  end="248 25" protein_refs="PH_0 PH_3" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 			</PeptideHit>
-			<PeptideHit score="40" sequence="EDQSC(Carboxymethyl)PSERRRAFSRLRFGPS" charge="2" aa_before="[ [ [" aa_after="] ] ]" start="0 0 0"  end="20 20 20" protein_refs="PH_5 PH_6 PH_8" >
+			<PeptideHit score="40" sequence="EDQSC(Carboxymethyl)PSERRRAFSRLRFGPS" charge="2" aa_before="- - -" aa_after="- - -" start="0 0 0"  end="20 20 20" protein_refs="PH_5 PH_6 PH_8" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 			</PeptideHit>
-			<PeptideHit score="40" sequence="EWATYTC(Carboxymethyl)VLGFHVYVPVR" charge="2" aa_before="[ A A" aa_after="] ] ]" start="0 5 5"  end="17 22 22" protein_refs="PH_2 PH_7 PH_9" >
+			<PeptideHit score="40" sequence="EWATYTC(Carboxymethyl)VLGFHVYVPVR" charge="2" aa_before="- A A" aa_after="- - -" start="0 5 5"  end="17 22 22" protein_refs="PH_2 PH_7 PH_9" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
-			<PeptideHit score="40" sequence="EWATYTCVLGFHVYVPVR" charge="2" aa_before="[ A A" aa_after="] ] ]" start="0 5 5"  end="17 22 22" protein_refs="PH_2 PH_7 PH_9" >
+			<PeptideHit score="40" sequence="EWATYTCVLGFHVYVPVR" charge="2" aa_before="- A A" aa_after="- - -" start="0 5 5"  end="17 22 22" protein_refs="PH_2 PH_7 PH_9" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 			</PeptideHit>
