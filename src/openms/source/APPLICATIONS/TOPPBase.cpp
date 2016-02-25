@@ -922,6 +922,13 @@ namespace OpenMS
     throw UnregisteredParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
   }
 
+  void TOPPBase::setValidStrings_(const String& name, const std::string vstrings[], int count)
+  {
+    std::vector<String> vec;
+    vec.assign(vstrings, vstrings + count);
+    setValidStrings_(name, vec);
+  }
+
   void TOPPBase::setValidStrings_(const String& name, const std::vector<String>& strings)
   {
     //check for commas
@@ -1894,21 +1901,23 @@ namespace OpenMS
     subsections_TOPP_[name] = description;
   }
 
-  void TOPPBase::parseRange_(const String& text, double& low, double& high) const
+  bool TOPPBase::parseRange_(const String& text, double& low, double& high) const
   {
+    bool any_set = false;
     try
     {
       String tmp = text.prefix(':');
-      if (tmp != "")
+      if (!tmp.empty())
       {
         low = tmp.toDouble();
+        any_set = true;
       }
 
       tmp = text.suffix(':');
-
-      if (tmp != "")
+      if (!tmp.empty())
       {
         high = tmp.toDouble();
+        any_set = true;
       }
     }
     catch (Exception::ConversionError&)
@@ -1917,23 +1926,26 @@ namespace OpenMS
                                        "Could not convert string '" + text +
                                        "' to a range of floating point values");
     }
+    return any_set;
   }
 
-  void TOPPBase::parseRange_(const String& text, Int& low, Int& high) const
+  bool TOPPBase::parseRange_(const String& text, Int& low, Int& high) const
   {
+    bool any_set = false;
     try
     {
       String tmp = text.prefix(':');
-      if (tmp != "")
+      if (!tmp.empty())
       {
         low = tmp.toInt();
+        any_set = true;
       }
 
       tmp = text.suffix(':');
-
-      if (tmp != "")
+      if (!tmp.empty())
       {
         high = tmp.toInt();
+        any_set = true;
       }
     }
     catch (Exception::ConversionError&)
@@ -1942,6 +1954,7 @@ namespace OpenMS
                                        "Could not convert string '" + text +
                                        "' to a range of integer values");
     }
+    return any_set;
   }
 
   Param TOPPBase::getSubsectionDefaults_(const String& /*section*/) const

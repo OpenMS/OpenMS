@@ -39,6 +39,7 @@
 #include <OpenMS/CONCEPT/Macros.h>
 #include <vector>
 #include <algorithm>    // std::min, std::max
+#include <functional>
 
 namespace OpenMS
 {

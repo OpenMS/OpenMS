@@ -2889,7 +2889,6 @@ def testMRMDecoy():
     mrmdecoy = pyopenms.MRMDecoy()
     assert mrmdecoy is not None
 
-    assert pyopenms.MRMDecoy().restrictTransitions is not None
     assert pyopenms.MRMDecoy().generateDecoys is not None
 
 @report

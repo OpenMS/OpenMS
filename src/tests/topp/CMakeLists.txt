@@ -456,15 +456,15 @@ set_tests_properties("TOPP_FileFilter_26_out1" PROPERTIES DEPENDS "TOPP_FileFilt
 add_test("TOPP_FileFilter_27" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_25_input.mzML.gz -id:blacklist ${DATA_DIR_TOPP}/FileFilter_25_input.idXML -out FileFilter_27.tmp  -id:mz 0.05 -id:rt 1 )
 set_tests_properties("TOPP_FileFilter_27" PROPERTIES WILL_FAIL 1) ## has 2 imperfect matches
 
-add_test("TOPP_FileFilter_28" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_28_input.mzML.gz -pc_mz 832:836 -out FileFilter_28.tmp -peak_options:level 2) ## only one MS2 remaining
+add_test("TOPP_FileFilter_28" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_28_input.mzML.gz -peak_options:pc_mz_range 832:836 -out FileFilter_28.tmp -peak_options:level 2) ## only one MS2 remaining
 add_test("TOPP_FileFilter_28_out1" ${DIFF} -whitelist "id=" "href=" -in1 FileFilter_28.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_28_output.mzML )
 set_tests_properties("TOPP_FileFilter_28_out1" PROPERTIES DEPENDS "TOPP_FileFilter_28")
 
-add_test("TOPP_FileFilter_29" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_28_input.mzML.gz -pc_mz 832:836 -out FileFilter_29.tmp -peak_options:level 1 2) ## only one MS2 remaining, and lots of MS1
+add_test("TOPP_FileFilter_29" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_28_input.mzML.gz -peak_options:pc_mz_range 832:836 -out FileFilter_29.tmp -peak_options:level 1 2) ## only one MS2 remaining, and lots of MS1
 add_test("TOPP_FileFilter_29_out1" ${DIFF} -whitelist "id=" "href=" -in1 FileFilter_29.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_29_output.mzML )
 set_tests_properties("TOPP_FileFilter_29_out1" PROPERTIES DEPENDS "TOPP_FileFilter_29")
 
-add_test("TOPP_FileFilter_30" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_28_input.mzML.gz -pc_mz 832:836 -out FileFilter_30.tmp -peak_options:level 1 2) ## no MS2 remaining since -mz filter empties it and it will be deleted, and lots of MS1
+add_test("TOPP_FileFilter_30" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_28_input.mzML.gz -peak_options:pc_mz_range 832:836 -out FileFilter_30.tmp -peak_options:level 1 2) ## no MS2 remaining since -mz filter empties it and it will be deleted, and lots of MS1
 add_test("TOPP_FileFilter_30_out1" ${DIFF} -whitelist "id=" "href=" -in1 FileFilter_30.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_30_output.mzML )
 set_tests_properties("TOPP_FileFilter_30_out1" PROPERTIES DEPENDS "TOPP_FileFilter_30")
 
@@ -895,7 +895,7 @@ if(NOT DISABLE_OPENSWATH)
   add_test("TOPP_OpenSwathDecoyGenerator_test_1" ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input.TraML -out OpenSwathDecoyGenerator.TraML.tmp -method pseudo-reverse -remove_CNterm_mods -test)
   add_test("TOPP_OpenSwathDecoyGenerator_test_1_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathDecoyGenerator.TraML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_output.TraML)
   set_tests_properties("TOPP_OpenSwathDecoyGenerator_test_1_out1" PROPERTIES DEPENDS "TOPP_OpenSwathDecoyGenerator_test_1")
-  add_test("TOPP_OpenSwathDecoyGenerator_test_2" ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input_2.TraML -out OpenSwathDecoyGenerator_2.TraML.tmp -append -method pseudo-reverse -test -theoretical -remove_CNterm_mods -remove_unannotated -mz_threshold 0.8)
+  add_test("TOPP_OpenSwathDecoyGenerator_test_2" ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input_2.TraML -out OpenSwathDecoyGenerator_2.TraML.tmp -append -method pseudo-reverse -test -remove_CNterm_mods -remove_unannotated -mz_threshold 0.8)
   add_test("TOPP_OpenSwathDecoyGenerator_test_2_out1" ${DIFF} -in1 OpenSwathDecoyGenerator_2.TraML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_output_2.TraML)
   set_tests_properties("TOPP_OpenSwathDecoyGenerator_test_2_out1" PROPERTIES DEPENDS "TOPP_OpenSwathDecoyGenerator_test_2")
   add_test("TOPP_OpenSwathDecoyGenerator_test_3" ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input_3.TraML -out OpenSwathDecoyGenerator_3.TraML.tmp -method pseudo-reverse -test -remove_CNterm_mods)
@@ -1039,19 +1039,38 @@ if(NOT DISABLE_OPENSWATH)
   add_test("TOPP_OpenSwathWorkflow_4" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_4.chrom.mzML.tmp -out_tsv OpenSwathWorkflow_4.tsv.tmp -test -use_ms1_traces)
   add_test("TOPP_OpenSwathWorkflow_4_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_4.chrom.mzML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_3_output.chrom.mzML)
   set_tests_properties("TOPP_OpenSwathWorkflow_4_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_4")
-  # We cannot currently test csv output
+  # We cannot currently test the correctness of the csv output
 
+  # Also test with readoptions cache
   add_test("TOPP_OpenSwathWorkflow_5" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_5.chrom.mzML.tmp -out_features OpenSwathWorkflow_5.featureXML.tmp -test -use_ms1_traces -readOptions cache -tempDirectory "")
   add_test("TOPP_OpenSwathWorkflow_5_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_5.featureXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_3_output.featureXML)
   add_test("TOPP_OpenSwathWorkflow_5_out2" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_5.chrom.mzML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_3_output.chrom.mzML)
   set_tests_properties("TOPP_OpenSwathWorkflow_5_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_5")
   set_tests_properties("TOPP_OpenSwathWorkflow_5_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_5")
 
+  # Also test with readoptions cacheWorkingInMemory
   add_test("TOPP_OpenSwathWorkflow_6" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_6.chrom.mzML.tmp -out_features OpenSwathWorkflow_6.featureXML.tmp -test -use_ms1_traces -readOptions cacheWorkingInMemory -tempDirectory "")
   add_test("TOPP_OpenSwathWorkflow_6_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_6.featureXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_3_output.featureXML)
   add_test("TOPP_OpenSwathWorkflow_6_out2" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_6.chrom.mzML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_3_output.chrom.mzML)
   set_tests_properties("TOPP_OpenSwathWorkflow_6_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_6")
   set_tests_properties("TOPP_OpenSwathWorkflow_6_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_6")
+
+  # Test with input swath windows file
+  add_test("TOPP_OpenSwathWorkflow_7" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_7.chrom.mzML.tmp -out_features OpenSwathWorkflow_7.featureXML.tmp -test -use_ms1_traces -swath_windows_file ${DATA_DIR_TOPP}/swath_windows.txt)
+  add_test("TOPP_OpenSwathWorkflow_7_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_7.featureXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_3_output.featureXML)
+  add_test("TOPP_OpenSwathWorkflow_7_out2" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_7.chrom.mzML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_3_output.chrom.mzML)
+  set_tests_properties("TOPP_OpenSwathWorkflow_7_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_7")
+  set_tests_properties("TOPP_OpenSwathWorkflow_7_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_7")
+
+  # Test with faulty swath windows file
+  add_test("TOPP_OpenSwathWorkflow_8" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_7.chrom.mzML.tmp -out_features OpenSwathWorkflow_7.featureXML.tmp -test -use_ms1_traces -swath_windows_file ${DATA_DIR_TOPP}/swath_windows_overlap.txt)
+  set_tests_properties("TOPP_OpenSwathWorkflow_8" PROPERTIES WILL_FAIL 1) # file contains overlaps
+  add_test("TOPP_OpenSwathWorkflow_9" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_7.chrom.mzML.tmp -out_features OpenSwathWorkflow_7.featureXML.tmp -test -use_ms1_traces -swath_windows_file ${DATA_DIR_TOPP}/swath_windows_tooshort.txt)
+  set_tests_properties("TOPP_OpenSwathWorkflow_9" PROPERTIES WILL_FAIL 1) # file does not have enough entries
+  # works with force
+  add_test("TOPP_OpenSwathWorkflow_10" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_7.chrom.mzML.tmp -out_features OpenSwathWorkflow_7.featureXML.tmp -test -use_ms1_traces -swath_windows_file ${DATA_DIR_TOPP}/swath_windows_overlap.txt -force)
+
+
 endif(NOT DISABLE_OPENSWATH)
 
 #------------------------------------------------------------------------------
