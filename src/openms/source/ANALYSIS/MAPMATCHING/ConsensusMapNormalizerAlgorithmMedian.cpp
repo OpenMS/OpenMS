@@ -129,6 +129,11 @@ namespace OpenMS
 
   void ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(ConsensusMap & map, NormalizationMethod method, const String& acc_filter, const String& desc_filter)
   {
+    if (method == NM_SHIFT)
+    {
+      LOG_WARN << "WARNING: normalization using median shifting is not recommended for regular log-normal MS data. Use this only if you know exactly what you're doing!" << endl;
+    }
+
     ConsensusMap::Iterator cf_it;
     ProgressLogger progresslogger;
     progresslogger.setLogType(ProgressLogger::CMD);

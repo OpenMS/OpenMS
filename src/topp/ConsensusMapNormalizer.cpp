@@ -106,7 +106,7 @@ protected:
     registerOutputFile_("out", "<file>", "", "output file");
     setValidFormats_("out", ListUtils::create<String>("consensusXML"));
     addEmptyLine_();
-    registerStringOption_("algorithm_type", "<type>", "robust_regression", "The normalization algorithm that is applied.", false, false);
+    registerStringOption_("algorithm_type", "<type>", "robust_regression", "The normalization algorithm that is applied. 'robust_regression' scales each map by a fator computed from the ratios of non-differential background features (as determined by the ratio_threshold parameter), 'quantile' performs quantile normalization, 'median' scales all maps to the same median intensity, 'median_shift' shifts the median instead of scaling (WARNING: if you have regular, log-normal MS data, 'median_shift' is probably the wrong choice. Use only if you know what you're doing!)", false, false);
     setValidStrings_("algorithm_type", ListUtils::create<String>("robust_regression,median,median_shift,quantile"));
     registerDoubleOption_("ratio_threshold", "<ratio>", 0.67, "Only for 'robust_regression': the parameter is used to distinguish between non-outliers (ratio_threshold < intensity ratio < 1/ratio_threshold) and outliers.", false);
     setMinFloat_("ratio_threshold", 0.001);
