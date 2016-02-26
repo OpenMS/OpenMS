@@ -134,7 +134,7 @@ protected:
     
     registerInputFile_("in", "<file>", "", "Input file");	
     setValidFormats_("in", input_types_);
-	
+
     registerOutputFile_("out", "<file>", "", "Output file", false);
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     
@@ -146,7 +146,7 @@ protected:
     registerDoubleOption_("fragment_mass_tol", "<value>", 0.5, "Tolerance of the peaks in the fragment spectrum", false);
     registerStringOption_("fragment_error_units", "<choice>", fragment_error_units_[0], "Unit of fragment mass tolerance", false);
     setValidStrings_("fragment_error_units", fragment_error_units_);
-	
+
     registerDoubleOption_("min_mz", "<value>", 150.0, "Do not consider peaks below this value for matching fragment ions", false);
     
     vector<String> all_mods;
@@ -162,16 +162,16 @@ protected:
     
     registerIntOption_("max_charge_state", "<num>", 5, "Do not consider PSMs with a charge state above this value", false);
     setMinInt_("max_charge_state", 1);
-	
+
     registerIntOption_("max_peptide_length", "<num>", 40, "Restrict scoring to peptides with a length shorter than this value", false);
     setMinInt_("max_peptide_length", 1);
-	
+
     registerIntOption_("max_num_perm", "<num>", 16384, "Maximum number of permutations a sequence can have", false);
     setMinInt_("max_num_perm", 1);
 
     registerStringOption_("selection_method", "<choice>", score_selection_method_[0], "Score selection method", false);
     setValidStrings_("selection_method", score_selection_method_);
-	
+
     registerDoubleOption_("modeling_score_threshold", "<value>", 0.95, "Minimum score a PSM needs to be considered for modeling", false);
     setMinFloat_("modeling_score_threshold", 0.0);
     
@@ -255,7 +255,7 @@ protected:
   {
     ofstream output(out_path.c_str());
     output << "## Input file for Luciphor2 (aka: LucXor). (part of OpenMS)\n\n";
-	
+
     for (std::map<String, vector<String> >::iterator it = config_map.begin(); it != config_map.end(); ++it)
     {
       String key = it->first;
@@ -267,7 +267,7 @@ protected:
         }        
       }
     }
-	
+
     //------------------------------------------------------------------
     // static parameter definition
     //------------------------------------------------------------------
@@ -320,7 +320,7 @@ protected:
     vector<String> mods(search_params.fixed_modifications);
     mods.insert(mods.end(), search_params.variable_modifications.begin(), search_params.variable_modifications.end());
     
-    if(!mods.empty())
+    if (!mods.empty())
     {
       for (vector<String>::iterator it = mods.begin(); it != mods.end(); ++it)
       {
@@ -329,7 +329,7 @@ protected:
         bool found = boost::regex_search(mod_param_value, match, r);
         String mod;
         
-        if(found)
+        if (found)
         {
           vector<String> parts;
           if (mod_param_value.split(" ", parts))
@@ -453,14 +453,14 @@ protected:
     {
       writeLog_("The installation of Java was not checked.");
     }
-	
+
     // create temporary directory
     String temp_dir, conf_file;
     temp_dir = QDir::toNativeSeparators((File::getTempDirectory() + "/" + File::getUniqueName() + "/").toQString());
     writeDebug_("Creating temporary directory '" + temp_dir + "'", 1);
     QDir d;
     d.mkpath(temp_dir.toQString());
-	
+
     // create a temporary config file for LuciPHOr2 parameters
     conf_file = temp_dir + "luciphor2_input_template.txt";
     
@@ -539,7 +539,7 @@ protected:
     map<int, LuciphorPSM> l_psms;    
     ProteinIdentification::SearchParameters search_params;
     map<String, String> modifications;    
-    if(!prot_ids.empty())
+    if (!prot_ids.empty())
     {
       search_params = prot_ids.begin()->getSearchParameters();
       getModificationParams_(search_params, modifications);
