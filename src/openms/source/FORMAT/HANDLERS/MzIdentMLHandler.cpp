@@ -494,6 +494,7 @@ namespace OpenMS
         sip += String("\t\t</AdditionalSearchParams>\n");
         writeModParam_(sip, it->getSearchParameters().fixed_modifications, it->getSearchParameters().variable_modifications, 2);
         writeEnzyme_(sip, it->getSearchParameters().digestion_enzyme, it->getSearchParameters().missed_cleavages, 2);
+        // TODO MassTable section
         sip += String("\t\t<FragmentTolerance>\n");
         String unit_str = "unitCvRef=\"UO\" unitName=\"dalton\" unitAccession=\"UO:0000221\"";
         if (it->getSearchParameters().fragment_mass_tolerance_ppm)
