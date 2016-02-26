@@ -115,53 +115,67 @@ public:
   {
   }
 
-//  struct CrossLinkToSpectrumHit
-//  {
-//    /// structure of the cross-link
-//    TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink cross_link;
+  struct CrossLinkSpectrumMatch
+  {
+    /// structure of the cross-link
+    TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink cross_link;
 
-//    /// final score
-//    OpenMS::Size protein_index;
+    /// reference to pair of spectra
+    Size scan_index_light;
+    Size scan_index_heavy;
 
-//    /// the amino acid after the peptide in the protein
-//    char AABefore;
+    /// final score
+    double score;
 
-//    /// the amino acid before the peptide in the protein
-//    char AAAfter;
+    /// rank among the matches to the same spectrum
+    Size rank;
 
-//    /// the position of the peptide in the protein
-//    OpenMS::Int position;
+    /// counts, scores and other data for xQuest-like output
+    double pre_score;
+    double percTIC;
+    double wTIC;
+    double int_sum;
+    double match_odds;
+    vector< double > xcorrx;
+    double xcorrx_max;
+    vector< double > xcorrc;
+    double xcorrc_max;
+    Size matched_common_alpha;
+    Size matched_common_beta;
+    Size matched_xlink_alpha;
+    Size matched_xlink_beta;
 
-//    bool operator<(const CrossLinkToSpectrumHit& other) const
-//    {
-//      if (protein_index != other.protein_index)
-//      {
-//        return protein_index < other.protein_index;
-//      }
-//      else if (position != other.position)
-//      {
-//        return position < other.position;
-//      }
-//      else if (AABefore != other.AABefore)
-//      {
-//        return AABefore < other.AABefore;
-//      }
-//      else if (AAAfter != other.AAAfter)
-//      {
-//        return AAAfter < other.AAAfter;
-//      }
-//      return false;
-//    }
+    Size peptide_id_index;
+    PeptideIdentification *peptide_id;
 
-//    bool operator==(const CrossLinkToSpectrumHit& other) const
-//    {
-//      return protein_index == other.protein_index &&
-//           position == other.position &&
-//           AABefore == other.AABefore &&
-//           AAAfter == other.AAAfter;
-//    }
+    bool operator<(const CrossLinkSpectrumMatch& other) const
+    {
+      return score < other.score;
+    }
 
-//  };
+    bool operator==(const CrossLinkSpectrumMatch& other) const
+    {
+      return cross_link.alpha == other.cross_link.alpha &&
+           cross_link.beta == other.cross_link.beta &&
+           cross_link.cross_link_position == other.cross_link.cross_link_position &&
+           score == other.score &&
+           pre_score == other.pre_score &&
+           percTIC == other.percTIC &&
+           wTIC == other.wTIC &&
+           int_sum == other.int_sum &&
+           match_odds == other.match_odds &&
+           xcorrx == other.xcorrx &&
+           xcorrx_max == other.xcorrx_max &&
+           xcorrc == other.xcorrc &&
+           xcorrc_max == other.xcorrc_max &&
+           matched_common_alpha == other.matched_common_alpha &&
+           matched_common_beta == other.matched_common_beta &&
+           matched_xlink_alpha == other.matched_xlink_alpha &&
+           matched_xlink_beta == other.matched_xlink_beta &&
+           rank == other.rank;
+    }
+
+  };
 
   //TODO: make protected
   static void wrap_(const String& input, Size width, String & output)
@@ -1373,83 +1387,164 @@ protected:
 //        s2.clear(true);
     }
 
-    void writeXQuestXML(String out_file, vector<PeptideIdentification> peptide_ids)
+    // Write xQuest.xml output
+    void writeXQuestXML(const String& out_file, const vector< vector< CrossLinkSpectrumMatch > >& all_top_csms, vector< PeptideIdentification > peptide_ids, const RichPeakMap& spectra, String spec_xml_name, double cross_link_mass_light, vector< double > cross_link_mass_mono_link)
     {
 
-//      // TODO Missing Parameters/Information :
+      // TODO Missing Parameters/Information :
 
-//      ofstream xml_file;
-//      xml_file.open(out_file.c_str(), ios::trunc);
-//      // XML Header
-//      xml_file << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << endl;
-//      xml_file << "<?xml-stylesheet type=\"text/xsl\" href=\"\"?>" << endl;
-//      xml_file << "<xquest_results xquest_version=\"xquest 2.1.1\" date=\"Fri Dec 18 12:28:23 2015\" author=\"Thomas Walzthoeni,Oliver Rinner\" homepage=\"http://proteomics.ethz.ch\" deffile=\"xquest.def\" tolerancemeasure_ms2=\"Da\" crosslinkername=\"DSS\" commonlossxcorrweigth=\"3\" poolisotopes=\"0\" xcorr_tolerance_window=\"0\" redundant_peps=\"0\" picktolerance=\"500\" monolinkmw=\"156.0786442,155.0964278\" search_maxcandidate_peps=\"250\" requiredmissed_cleavages=\"0\" picktolerance_measure=\"ppm\" database=\"/home/eugen/MSData/26S_testdataset/db/26Syeast.fasta\" fragmentresiduals=\"HASH(0x37998e0)\" xlinktypes=\"1111\" maxiontaghits=\"0\" AArequired=\"K\" miniontaghits=\"1\" cp_minpeaknumber=\"25\" cp_isotopediff=\"12.075321\" xkinkerID=\"DSS\" maxdigestlength=\"50\" y_ion=\"19.0183888\" cp_nhighest=\"100\" uselossionsformatching=\"0\" mindigestlength=\"5\" indexcharges_common=\"ARRAY(0x378c600)\" enzyme_num=\"1\" testionspick=\"intensity\" xlink_ms2tolerance=\"0.3\" waterloss=\"0\" database_dc=\"/home/eugen/MSData/26S_testdataset/db/26Syeast_decoy.fasta\" iontag_match_xlinkions=\"1\" averageMS2=\"0\" wTICweight=\"12.829\" minionsize=\"200\" x_ion=\"44.9976546\" commonxcorrweigth=\"10\" a_ion=\"-26.9870904\" drawlogscale=\"0\" fwd_ions=\"a|b|c\" experiment=\"BSAtest\" matchoddsweight=\"1.973\" nh3loss=\"0\" verbose=\"0\" enumeration_index_mode=\"smarthash\" maxionsize=\"2000\" outputpath=\"" << spec_xml_name << "\" search_intercrosslinks=\"1\" cp_tolerancemeasure=\"ppm\" reportnbesthits=\"5\" cp_dynamic_range=\"1000\" xlinkermw=\"138.0680796\" ms1tol_maxborder=\"10\" enumerate=\"0\" ionindexintprecision=\"10\" writetodiskaftern=\"100000000\" intsumweight=\"0.018\" xlinkxcorrweigth=\"10\" search_monolinks=\"1\" cp_peakratio=\"0.3\" rev_ions=\"x|y|z\" xcorrprecision=\"0.2\" RuntimeDecoys=\"1\" intprecision=\"10\" Iontag_charges_for_index=\"1\" Iontag_writeaftern=\"1200\" z_ion=\"2.9998388\" tryptic_termini=\"2\" cp_tolerance=\"400\" printpeptides=\"1\" ntestions=\"100\" b_ion=\"1.0078246\" normxcorr=\"1\" ioncharge_xlink=\"ARRAY(0x378c8d0)\" ionseries_array=\"ARRAY(0x378cd68)\" cp_scaleby=\"max\" printdigestpeps=\"0\" cp_tolerancexl=\"500\" search_intralinks=\"1\" minionintensity=\"1\" nvariable_mod=\"1\" missed_cleavages=\"2\" ntermxlinkable=\"0\" cp_threshold=\"1\" tolerancemeasure=\"ppm\" CID_match2ndisotope=\"1\" variable_mod=\"M,15.99491\" nocutatxlink=\"1\" minpepmr=\"550\" realintensities4xcorr=\"0\" printcandidatepeps=\"0\" xcorrdelay=\"5\" xcorrxweight=\"2.488\" minhits=\"1\" ms1tol_minborder=\"-10\" drawspectra=\"0\" cp_scaleintensity=\"1\" ms2tolerance=\"0.2\" maxpepmr=\"5500\" printtables=\"0\" ionseries=\"HASH(0x378cc00)\" usenprescores=\"100\" search_intracrosslinks=\"1\" Iontagmode=\"1\" ms1tolerance=\"10\" ioncharge_common=\"ARRAY(0x378c720)\" xcorrbweight=\"21.279\" c_ion=\"18.0343724\" copydb2resdir=\"1\" Hatom=\"1.007825032\" >" << endl;
+      ofstream xml_file;
+      xml_file.open(out_file.c_str(), ios::trunc);
+      // XML Header
+      xml_file << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << endl;
+      xml_file << "<?xml-stylesheet type=\"text/xsl\" href=\"\"?>" << endl;
 
-
-
-//      for (PeptideIdentification::ConstIterator peptide_id = peptide_ids.begin(); peptide_id != peptide_ids.end(); ++peptide_id)
-//      {
-
-//        // peptide_id info is redundant, 5 times the same for 5 hits.  Need to make sure it is written only one time.
-//        peptide_id.getRT();
-//        peptide_id.getMZ();
-//        peptide_id.getMetaValue("xl_type");
-//        peptide_id.getMetaValue("xl_rank");
-
-//        peptide_id.getMetaValue("spec_heavy_RT");
-//        peptide_id.getMetaValue("spec_heavy_MZ");
+      // TODO write actual experiment data (from protein_ids[0] ?)
+      xml_file << "<xquest_results xquest_version=\"xquest 2.1.1\" date=\"Fri Dec 18 12:28:23 2015\" author=\"Thomas Walzthoeni,Oliver Rinner\" homepage=\"http://proteomics.ethz.ch\" deffile=\"xquest.def\" tolerancemeasure_ms2=\"Da\" crosslinkername=\"DSS\" commonlossxcorrweigth=\"3\" poolisotopes=\"0\" xcorr_tolerance_window=\"0\" redundant_peps=\"0\" picktolerance=\"500\" monolinkmw=\"156.0786442,155.0964278\" search_maxcandidate_peps=\"250\" requiredmissed_cleavages=\"0\" picktolerance_measure=\"ppm\" database=\"/home/eugen/MSData/26S_testdataset/db/26Syeast.fasta\" fragmentresiduals=\"HASH(0x37998e0)\" xlinktypes=\"1111\" maxiontaghits=\"0\" AArequired=\"K\" miniontaghits=\"1\" cp_minpeaknumber=\"25\" cp_isotopediff=\"12.075321\" xkinkerID=\"DSS\" maxdigestlength=\"50\" y_ion=\"19.0183888\" cp_nhighest=\"100\" uselossionsformatching=\"0\" mindigestlength=\"5\" indexcharges_common=\"ARRAY(0x378c600)\" enzyme_num=\"1\" testionspick=\"intensity\" xlink_ms2tolerance=\"0.3\" waterloss=\"0\" database_dc=\"/home/eugen/MSData/26S_testdataset/db/26Syeast_decoy.fasta\" iontag_match_xlinkions=\"1\" averageMS2=\"0\" wTICweight=\"12.829\" minionsize=\"200\" x_ion=\"44.9976546\" commonxcorrweigth=\"10\" a_ion=\"-26.9870904\" drawlogscale=\"0\" fwd_ions=\"a|b|c\" experiment=\"BSAtest\" matchoddsweight=\"1.973\" nh3loss=\"0\" verbose=\"0\" enumeration_index_mode=\"smarthash\" maxionsize=\"2000\" outputpath=\"" << spec_xml_name << "\" search_intercrosslinks=\"1\" cp_tolerancemeasure=\"ppm\" reportnbesthits=\"5\" cp_dynamic_range=\"1000\" xlinkermw=\"138.0680796\" ms1tol_maxborder=\"10\" enumerate=\"0\" ionindexintprecision=\"10\" writetodiskaftern=\"100000000\" intsumweight=\"0.018\" xlinkxcorrweigth=\"10\" search_monolinks=\"1\" cp_peakratio=\"0.3\" rev_ions=\"x|y|z\" xcorrprecision=\"0.2\" RuntimeDecoys=\"1\" intprecision=\"10\" Iontag_charges_for_index=\"1\" Iontag_writeaftern=\"1200\" z_ion=\"2.9998388\" tryptic_termini=\"2\" cp_tolerance=\"400\" printpeptides=\"1\" ntestions=\"100\" b_ion=\"1.0078246\" normxcorr=\"1\" ioncharge_xlink=\"ARRAY(0x378c8d0)\" ionseries_array=\"ARRAY(0x378cd68)\" cp_scaleby=\"max\" printdigestpeps=\"0\" cp_tolerancexl=\"500\" search_intralinks=\"1\" minionintensity=\"1\" nvariable_mod=\"1\" missed_cleavages=\"2\" ntermxlinkable=\"0\" cp_threshold=\"1\" tolerancemeasure=\"ppm\" CID_match2ndisotope=\"1\" variable_mod=\"M,15.99491\" nocutatxlink=\"1\" minpepmr=\"550\" realintensities4xcorr=\"0\" printcandidatepeps=\"0\" xcorrdelay=\"5\" xcorrxweight=\"2.488\" minhits=\"1\" ms1tol_minborder=\"-10\" drawspectra=\"0\" cp_scaleintensity=\"1\" ms2tolerance=\"0.2\" maxpepmr=\"5500\" printtables=\"0\" ionseries=\"HASH(0x378cc00)\" usenprescores=\"100\" search_intracrosslinks=\"1\" Iontagmode=\"1\" ms1tolerance=\"10\" ioncharge_common=\"ARRAY(0x378c720)\" xcorrbweight=\"21.279\" c_ion=\"18.0343724\" copydb2resdir=\"1\" Hatom=\"1.007825032\" >" << endl;
 
 
-//        // Spectrum Data, for each spectrum
-//        xml_file << "<spectrum_search spectrum=\"" << spectrum_name << "\" mean_ionintensity=\"" << mean_intensity << "\" ionintensity_stdev=\"" << "TODO" << "\" addedMass=\"" << "TODO" << "\" iontag_ncandidates=\"" << "TODO"
-//          << "\"  apriori_pmatch_common=\"" << "TODO" << "\" apriori_pmatch_xlink=\"" << "TODO" << "\" ncommonions=\"" << "TODO" << "\" nxlinkions=\"" << "TODO" << "\" mz_precursor=\"" << precursor_mz
-//          << "\" scantype=\"" << "light_heavy" << "\" charge_precursor=\"" << precursor_charge << "\" Mr_precursor=\"" << precursor_mass <<  "\" rtsecscans=\"" << "TODO" << "\" mzscans=\"" << "0:1" << "\" >" << endl;
+
+      for (vector< vector< CrossLinkSpectrumMatch > >::const_iterator top_csms_spectrum = all_top_csms.begin(); top_csms_spectrum != all_top_csms.end(); ++top_csms_spectrum)
+      {
+
+        vector< CrossLinkSpectrumMatch > top_vector = (*top_csms_spectrum);
+
+        if (!top_vector.empty())
+        {
+        // Spectrum Data, for each spectrum
+        Size scan_index_light = top_vector[0].scan_index_light;
+        Size scan_index_heavy = top_vector[0].scan_index_heavy;
+        cout << "Scan indices: " << scan_index_light << "\t" << scan_index_heavy << endl;
+        const RichPeakSpectrum& spectrum_light = spectra[scan_index_light];
+        double precursor_charge = spectrum_light.getPrecursors()[0].getCharge();
+
+        double precursor_mz = spectrum_light.getPrecursors()[0].getMZ();
+        double precursor_rt = spectrum_light.getRT();
+        double precursor_mass = precursor_mz * static_cast<double>(precursor_charge) - static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U;
+
+//        double precursor_charge_heavy = spectra[scan_index_heavy].getPrecursors()[0].getCharge();
+        double precursor_mz_heavy = spectra[scan_index_heavy].getPrecursors()[0].getMZ();
+        double precursor_rt_heavy = spectra[scan_index_heavy].getRT();
+
+        // print information about new peak to file (starts with <spectrum_search..., ends with </spectrum_search>
+        // TODO what to do with useless information? leave =0 or delete?
+        String spectrum_light_name = String("spectrumlight") + scan_index_light;
+        String spectrum_heavy_name = String("spectrumheavy") + scan_index_heavy;
+        String spectrum_name = spectrum_light_name + String("_") + spectrum_heavy_name;
+        String rt_scans = String(precursor_rt) + ":" + String(precursor_rt_heavy);
+        String mz_scans = String(precursor_mz) + ":" + String(precursor_mz_heavy);
+
+        // Mean ion intensity (light spectrum, TODO add heavy spectrum?)
+        double mean_intensity= 0;
+        for (SignedSize j = 0; j < static_cast<SignedSize>(spectrum_light.size()); ++j) mean_intensity += spectrum_light[j].getIntensity();
+        for (SignedSize j = 0; j < static_cast<SignedSize>(spectra[scan_index_heavy].size()); ++j) mean_intensity += spectra[scan_index_heavy][j].getIntensity();
+        mean_intensity = mean_intensity / (spectrum_light.size() + spectra[scan_index_heavy].size());
+
+        xml_file << "<spectrum_search spectrum=\"" << spectrum_name << "\" mean_ionintensity=\"" << mean_intensity << "\" ionintensity_stdev=\"" << "TODO" << "\" addedMass=\"" << "TODO" << "\" iontag_ncandidates=\"" << "TODO"
+          << "\"  apriori_pmatch_common=\"" << "TODO" << "\" apriori_pmatch_xlink=\"" << "TODO" << "\" ncommonions=\"" << "TODO" << "\" nxlinkions=\"" << "TODO" << "\" mz_precursor=\"" << precursor_mz
+          << "\" scantype=\"" << "light_heavy" << "\" charge_precursor=\"" << precursor_charge << "\" Mr_precursor=\"" << precursor_mass <<  "\" rtsecscans=\"" << rt_scans << "\" mzscans=\"" << mz_scans << "\" >" << endl;
 
 
-//        for ()
-//              PeptideHit ph_alpha, ph_beta;
-//              ph_alpha.setSequence(peak_candidate_data[i].alpha);
-//              ph_alpha.setCharge(precursor_charge);
-//              ph_alpha.setScore(peak_score[i]);
-//              ph_alpha.setMetaValue("xl_chain", "MS:1002510");  // receiver
-//              ph_alpha.setMetaValue("xl_pos", DataValue(alpha_pos));
-//              phs.push_back(ph_alpha);
+        for (vector< CrossLinkSpectrumMatch>::const_iterator top_csm = top_csms_spectrum->begin(); top_csm != top_csms_spectrum->end(); ++top_csm)
+        {
+          String xltype = "monolink";
+          String structure = top_csm->cross_link.alpha.toUnmodifiedString();
+          String topology = String("K") + (top_csm->cross_link.cross_link_position.first+1);
 
-//              if (!is_monolink)
-//              {
-//                ph_beta.setSequence(peak_candidate_data[i].beta);
-//                ph_beta.setCharge(precursor_charge);
-//                ph_beta.setScore(peak_score[i]);
-//                ph_beta.setMetaValue("xl_chain", "MS:1002509"); // donor
-//                ph_beta.setMetaValue("xl_pos", DataValue(beta_pos));
-//                phs.push_back(ph_beta);
-//              }
+           // TODO track or otherwise find out, which kind of mono-link it was (if there are several possibilities for the weigths)
+           double weight = top_csm->cross_link.alpha.getMonoWeight() + cross_link_mass_mono_link[1];
 
-//       // Hit Data, for each cross-link to Spectrum Hit (e.g. top 5 per spectrum)
-//      xml_file << "<search_hit search_hit_rank=\"" << i+1 << "\" id=\"" << id << "\" type=\"" << xltype << "\" structure=\"" << structure << "\" seq1=\"" << peak_candidate_data[i].alpha.toUnmodifiedString() << "\" seq2=\"" << peak_candidate_data[i].beta.toUnmodifiedString()
-//                << "\" prot1=\"" << "TODO" << "\" prot2=\"" << "TODO" << "\" topology=\"" << topology << "\" xlinkposition=\"" << (peak_candidate_data[i].cross_link_position.first+1) << "," << (peak_candidate_data[i].cross_link_position.second+1)
-//                << "\" Mr=\"" << weight << "\" mz=\"" << precursor_mz << "\" charge=\"" << precursor_charge << "\" xlinkermass=\"" << cross_link_mass_light << "\" measured_mass=\"" << precursor_mass << "\" error=\"" << "TODO"
-//                << "\" error_rel=\"" << "TODO" << "\" xlinkions_matched=\"" << (peak_matched_spec_xlink_alpha[i] + peak_matched_spec_xlink_beta[i]) << "\" backboneions_matched=\"" << (peak_matched_spec_common_alpha[i] + peak_matched_spec_common_beta[i])
-//                << "\" weighted_matchodds_mean=\"" << "TODO" << "\" weighted_matchodds_sum=\"" << "TODO" << "\" match_error_mean=\"" << "TODO" << "\" match_error_stdev=\"" << "TODO" << "\" xcorrx=\"" << peak_xcorrx_max[i] << "\" xcorrb=\"" << peak_xcorrc_max[i] << "\" match_odds=\"" << peak_matchOdds[i] << "\" prescore=\"" << peak_preScore[i]
-//                << "\" prescore_alpha=\"" << "TODO" << "\" prescore_beta=\"" << "TODO" << "\" match_odds_alphacommon=\"" << "TODO" << "\" match_odds_betacommon=\"" << "TODO" << "\" match_odds_alphaxlink=\"" << "TODO"
-//                << "\" match_odds_betaxlink=\"" << "TODO" << "\" num_of_matched_ions_alpha=\"" << (peak_matched_spec_common_alpha[i] + peak_matched_spec_xlink_alpha[i]) << "\" num_of_matched_ions_beta=\"" << (peak_matched_spec_common_beta[i] + peak_matched_spec_xlink_beta[i]) << "\" num_of_matched_common_ions_alpha=\"" << peak_matched_spec_common_alpha[i]
-//                << "\" num_of_matched_common_ions_beta=\"" << peak_matched_spec_common_beta[i] << "\" num_of_matched_xlink_ions_alpha=\"" << peak_matched_spec_xlink_alpha[i] << "\" num_of_matched_xlink_ions_beta=\"" << peak_matched_spec_xlink_beta[i] << "\" xcorrall=\"" << "TODO" << "\" TIC=\"" << peak_TIC[i]
-//                << "\" TIC_alpha=\"" << "TODO" << "\" TIC_beta=\"" << "TODO" << "\" wTIC=\"" << peak_wTIC[i] << "\" intsum=\"" << peak_intSum[i] << "\" apriori_match_probs=\"" << "TODO" << "\" apriori_match_probs_log=\"" << "TODO"
-//                << "\" series_score_mean=\"" << "TODO" << "\" annotated_spec=\"" << "" << "\" score=\"" << peak_score[i] << "\" >" << endl;
-//      xml_file << "</search_hit>" << endl;
+           bool is_monolink = (top_csm->cross_link.cross_link_position.second == -1);
+           int alpha_pos = top_csm->cross_link.cross_link_position.first + 1;
+           int beta_pos = top_csm->cross_link.cross_link_position.second + 1;
 
-//      // Closing tag for Spectrum
-//      xml_file << "</spectrum_search>" << endl;
-//      }
+           if (!is_monolink)
+           {
+            xltype = "xlink";
+            structure =top_csm->cross_link.alpha.toUnmodifiedString() + "-" + top_csm->cross_link.beta.toUnmodifiedString();
+            topology = String("a") +  alpha_pos + String("-b") + beta_pos;
+            weight = top_csm->cross_link.alpha.getMonoWeight() + top_csm->cross_link.beta.getMonoWeight() + cross_link_mass_light;
+           }
+           String id = structure + "-" + topology;
 
-//      // Closing tag for results (end of file)
-//     xml_file << "</xquest_results>" << endl;
-//     xml_file.close();
+           // Error calculation
+           double cl_mz = (weight + static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U) / static_cast<double>(precursor_charge);
+           double error = abs(cl_mz - precursor_mz);
+           double rel_error = error / precursor_mz / 1e-6;
+           cout << "Relative error (ppm): " << rel_error << endl;
+
+           // Protein Accessions
+           String prot_alpha;
+
+           cout << peptide_ids.size() << "\t | \t" << top_csm->peptide_id_index << endl;
+
+           PeptideIdentification pep_id = peptide_ids[top_csm->peptide_id_index];
+           PeptideIdentification *pep_id_test = top_csm->peptide_id;
+
+           cout << pep_id.getMZ() << "\t | \t" << pep_id_test << endl;
+
+           vector< PeptideHit > pep_hits = pep_id.getHits();
+           vector< PeptideHit > pep_hits_test = pep_id_test->getHits();
+
+           cout << pep_hits.size() << "\t | \t" << pep_hits_test.size() << endl;
+
+           PeptideHit pep_hit_alpha = pep_hits[0];
+
+           cout << pep_hit_alpha.getSequence() << endl;
+
+           vector< PeptideEvidence > evidences = pep_hit_alpha.getPeptideEvidences();
+
+           cout << evidences.size() << endl;
+
+           PeptideEvidence evi = evidences[0];
+
+           cout << evi.getStart() << endl;
+
+           prot_alpha = evi.getProteinAccession();
+
+           cout << prot_alpha << endl;
+
+
+           String prot_beta = "-";
+//           PeptideHit ph_beta = *(top_csm->beta_hit);
+//           const vector< PeptideEvidence > &evidences_beta =ph_beta.getPeptideEvidences();
+//           if (evidences_beta.empty())
+//           {
+//            prot_beta= "-";
+//           }
+//           else {
+//            prot_beta = evidences_beta[0].getProteinAccession();
+//           }
+
+              // Hit Data, for each cross-link to Spectrum Hit (e.g. top 5 per spectrum)
+           xml_file << "<search_hit search_hit_rank=\"" <<top_csm->rank << "\" id=\"" << id << "\" type=\"" << xltype << "\" structure=\"" << structure << "\" seq1=\"" << top_csm->cross_link.alpha.toUnmodifiedString() << "\" seq2=\"" << top_csm->cross_link.beta.toUnmodifiedString()
+                << "\" prot1=\"" << prot_alpha << "\" prot2=\"" << prot_beta << "\" topology=\"" << topology << "\" xlinkposition=\"" << (top_csm->cross_link.cross_link_position.first+1) << "," << (top_csm->cross_link.cross_link_position.second+1)
+                << "\" Mr=\"" << weight << "\" mz=\"" << precursor_mz << "\" charge=\"" << precursor_charge << "\" xlinkermass=\"" << cross_link_mass_light << "\" measured_mass=\"" << precursor_mass << "\" error=\"" << "TODO"
+                << "\" error_rel=\"" << "TODO" << "\" xlinkions_matched=\"" << (top_csm->matched_xlink_alpha + top_csm->matched_xlink_beta) << "\" backboneions_matched=\"" << (top_csm->matched_common_alpha + top_csm->matched_common_beta)
+                << "\" weighted_matchodds_mean=\"" << "TODO" << "\" weighted_matchodds_sum=\"" << "TODO" << "\" match_error_mean=\"" << "TODO" << "\" match_error_stdev=\"" << "TODO" << "\" xcorrx=\"" << top_csm->xcorrx_max << "\" xcorrb=\"" << top_csm->xcorrc_max << "\" match_odds=\"" <<top_csm->match_odds << "\" prescore=\"" << top_csm->pre_score
+                << "\" prescore_alpha=\"" << "TODO" << "\" prescore_beta=\"" << "TODO" << "\" match_odds_alphacommon=\"" << "TODO" << "\" match_odds_betacommon=\"" << "TODO" << "\" match_odds_alphaxlink=\"" << "TODO"
+                << "\" match_odds_betaxlink=\"" << "TODO" << "\" num_of_matched_ions_alpha=\"" << (top_csm->matched_common_alpha + top_csm->matched_xlink_alpha) << "\" num_of_matched_ions_beta=\"" << (top_csm->matched_common_beta + top_csm->matched_xlink_beta) << "\" num_of_matched_common_ions_alpha=\"" << top_csm->matched_common_alpha
+                << "\" num_of_matched_common_ions_beta=\"" << top_csm->matched_common_beta << "\" num_of_matched_xlink_ions_alpha=\"" << top_csm->matched_xlink_alpha << "\" num_of_matched_xlink_ions_beta=\"" << top_csm->matched_xlink_beta << "\" xcorrall=\"" << "TODO" << "\" TIC=\"" << top_csm->percTIC
+                << "\" TIC_alpha=\"" << "TODO" << "\" TIC_beta=\"" << "TODO" << "\" wTIC=\"" << top_csm->wTIC << "\" intsum=\"" << top_csm->int_sum << "\" apriori_match_probs=\"" << "TODO" << "\" apriori_match_probs_log=\"" << "TODO"
+                << "\" series_score_mean=\"" << "TODO" << "\" annotated_spec=\"" << "" << "\" score=\"" << top_csm->score << "\" >" << endl;
+           xml_file << "</search_hit>" << endl;
+          }
+          // Closing tag for Spectrum
+          xml_file << "</spectrum_search>" << endl;
+
+
+        }
+
+      }
+
+       // Closing tag for results (end of file)
+      xml_file << "</xquest_results>" << endl;
+      xml_file.close();
 
       return;
     }
 
-    void writeXQuestXMLSpec(String spec_xml_filename)
+    void writeXQuestXMLSpec(String spec_xml_filename, RichPeakMap& spectra, PreprocessedPairSpectra_& preprocessed_pair_spectra)
     {
 
 //      // TODO Missing Parameters/Information : Spectra and Pair info (light to heavy map or something), as well as preprocessed pairs.
@@ -1978,6 +2073,8 @@ protected:
 
     // iterate over all spectra
     progresslogger.startProgress(0, 1, "Matching to theoretical spectra and scoring...");
+    vector< vector< CrossLinkSpectrumMatch > > all_top_csms;
+
 //    for (SignedSize scan_index = 0; scan_index < static_cast<SignedSize>(spectra.size()); ++scan_index)
     for (Size pair_index = 0; pair_index < spectrum_pairs.size(); ++pair_index)
     {
@@ -2053,22 +2150,24 @@ protected:
 
         const RichPeakSpectrum& common_peaks = preprocessed_pair_spectra.spectra_common_peaks[pair_index];
 
-        vector< double > peak_preScore;
-        vector< double > peak_TIC;
-        vector< double > peak_wTIC;
-        vector< double > peak_intSum;
-        vector< double > peak_matchOdds;
-        vector< vector< double > > peak_xcorrx;
-        vector< double > peak_xcorrx_max;
-        vector< vector< double > > peak_xcorrc;
-        vector< double > peak_xcorrc_max;
-        vector< double > peak_score;
-        vector< TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink > peak_candidate_data;
-        vector< Size > peak_matched_spec_common_alpha;
-        vector< Size > peak_matched_spec_common_beta;
-        vector< Size > peak_matched_spec_xlink_alpha;
-        vector< Size > peak_matched_spec_xlink_beta;
-        vector< Size > peak_index;
+        vector< CrossLinkSpectrumMatch > top_csms_spectrum;
+
+        vector< double > top_preScore;
+        vector< double > top_TIC;
+        vector< double > top_wTIC;
+        vector< double > top_intSum;
+        vector< double > top_matchOdds;
+        vector< vector< double > > top_xcorrx;
+        vector< double > top_xcorrx_max;
+        vector< vector< double > > top_xcorrc;
+        vector< double > top_xcorrc_max;
+        vector< double > top_score;
+        vector< TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink > top_candidate_data;
+        vector< Size > top_matched_spec_common_alpha;
+        vector< Size > top_matched_spec_common_beta;
+        vector< Size > top_matched_spec_xlink_alpha;
+        vector< Size > top_matched_spec_xlink_beta;
+        vector< Size > top_index;
 
         if(common_peaks.size() > 0 || preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].size() > 0) // TODO: check if this is done in xQuest?
         {
@@ -2223,7 +2322,9 @@ protected:
             }
           }
 
-          // lists for one peak, to determine best match to the peak
+          // lists for one spectrum, to determine best match to the spectrum
+          vector< CrossLinkSpectrumMatch > all_csms_spectrum;
+
           vector< double > candidate_preScore;
           vector< double > candidate_TIC;
           vector< double > candidate_wTIC;
@@ -2253,6 +2354,9 @@ protected:
             cout << "Pair: " << cross_link_candidate.alpha.toUnmodifiedString() << "-" << cross_link_candidate.beta.toUnmodifiedString() << " matched to light spectrum " << scan_index << "\t and heavy spectrum " << scan_index_heavy
               << " with m/z: " << spectrum_light.getPrecursors()[0].getMZ() << "\t" << "and candidate m/z: " << candidate_mz << "\tK Positions: " << cross_link_candidate.cross_link_position.first << "\t" << cross_link_candidate.cross_link_position.second << endl;
 //          cout << a->second.getMonoWeight() << ", " << b->second.getMonoWeight() << " cross_link_mass_light: " <<  cross_link_mass_light <<  endl;
+
+	    CrossLinkSpectrumMatch csm;
+	    csm.cross_link = cross_link_candidate;
 
 	    RichPeakSpectrum theoretical_spec_beta;
 	    RichPeakSpectrum theoretical_spec_alpha;
@@ -2464,6 +2568,24 @@ protected:
 
                   double score = xcorrx_weight * xcorrx_max + xcorrc_weight * xcorrc_max + match_odds_weight * match_odds + wTIC_weight * wTIC + intsum_weight * matched_current;
 
+                  csm.score = score;
+                  csm.pre_score = pre_score;
+                  csm.percTIC = TIC;
+                  csm.wTIC = wTIC;
+                  csm.int_sum = matched_current;
+                  csm.match_odds = match_odds;
+                  csm.xcorrx = xcorrx;
+                  csm.xcorrx_max = xcorrx_max;
+                  csm.xcorrc = xcorrc;
+                  csm.xcorrc_max = xcorrc_max;
+                  csm.matched_common_alpha = matched_spec_alpha.size();
+                  csm.matched_common_beta = matched_spec_beta.size();
+                  csm.matched_xlink_alpha = matched_spec_xlinks_alpha.size();
+                  csm.matched_xlink_beta = matched_spec_xlinks_beta.size();
+                  csm.scan_index_light = scan_index;
+                  csm.scan_index_heavy = scan_index_heavy;
+                  all_csms_spectrum.push_back(csm);
+
                   candidate_preScore.push_back(pre_score);
                   candidate_TIC.push_back(TIC);
                   candidate_wTIC.push_back(wTIC);
@@ -2486,29 +2608,36 @@ protected:
             } // candidates for peak finished, determine best matching candidate
 
             Int top = 0;
-            while(!candidate_score.empty() && top < 5)
+
+            // collect top 5 matches to spectrum
+            while(!all_csms_spectrum.empty() && top < 5)
             {
               top++;
 
               //double max_score = *max_element(candidate_score.begin(), candidate_score.end());
-              Int max_position = distance(candidate_score.begin(), max_element(candidate_score.begin(), candidate_score.end()));
+              Int max_position = distance(all_csms_spectrum.begin(), max_element(all_csms_spectrum.begin(), all_csms_spectrum.end()));
+//              Int max_position = distance(candidate_score.begin(), max_element(candidate_score.begin(), candidate_score.end()));
 
-              peak_preScore.push_back(candidate_preScore[max_position]);
-              peak_TIC.push_back(candidate_TIC[max_position]);
-              peak_wTIC.push_back(candidate_wTIC[max_position]);
-              peak_intSum.push_back(candidate_intSum[max_position]);
-              peak_matchOdds.push_back(candidate_matchOdds[max_position]);
-              peak_xcorrx.push_back(candidate_xcorrx[max_position]);
-              peak_xcorrx_max.push_back(candidate_xcorrx_max[max_position]);
-              peak_xcorrc.push_back(candidate_xcorrc[max_position]);
-              peak_xcorrc_max.push_back(candidate_xcorrc_max[max_position]);
-              peak_score.push_back(candidate_score[max_position]);
-              peak_candidate_data.push_back(candidate_data[max_position]);
-              peak_matched_spec_common_alpha.push_back(candidate_matched_spec_common_alpha[max_position]);
-              peak_matched_spec_common_beta.push_back(candidate_matched_spec_common_beta[max_position]);
-              peak_matched_spec_xlink_alpha.push_back(candidate_matched_spec_xlink_alpha[max_position]);
-              peak_matched_spec_xlink_beta.push_back(candidate_matched_spec_xlink_beta[max_position]);
-              peak_index.push_back(candidate_index[max_position]);
+              all_csms_spectrum[max_position].rank = top;
+              top_csms_spectrum.push_back(all_csms_spectrum[max_position]);
+              all_csms_spectrum.erase(all_csms_spectrum.begin() + max_position);
+
+              top_preScore.push_back(candidate_preScore[max_position]);
+              top_TIC.push_back(candidate_TIC[max_position]);
+              top_wTIC.push_back(candidate_wTIC[max_position]);
+              top_intSum.push_back(candidate_intSum[max_position]);
+              top_matchOdds.push_back(candidate_matchOdds[max_position]);
+              top_xcorrx.push_back(candidate_xcorrx[max_position]);
+              top_xcorrx_max.push_back(candidate_xcorrx_max[max_position]);
+              top_xcorrc.push_back(candidate_xcorrc[max_position]);
+              top_xcorrc_max.push_back(candidate_xcorrc_max[max_position]);
+              top_score.push_back(candidate_score[max_position]);
+              top_candidate_data.push_back(candidate_data[max_position]);
+              top_matched_spec_common_alpha.push_back(candidate_matched_spec_common_alpha[max_position]);
+              top_matched_spec_common_beta.push_back(candidate_matched_spec_common_beta[max_position]);
+              top_matched_spec_xlink_alpha.push_back(candidate_matched_spec_xlink_alpha[max_position]);
+              top_matched_spec_xlink_beta.push_back(candidate_matched_spec_xlink_beta[max_position]);
+              top_index.push_back(candidate_index[max_position]);
 
               candidate_preScore.erase(candidate_preScore.begin() + max_position);
               candidate_TIC.erase(candidate_TIC.begin() + max_position);
@@ -2527,56 +2656,57 @@ protected:
               candidate_matched_spec_xlink_beta.erase(candidate_matched_spec_xlink_beta.begin() + max_position);
               candidate_index.erase(candidate_index.begin() + max_position);
             }
+            all_top_csms.push_back(top_csms_spectrum);
 
-            cout << "Peak scores: " << peak_score << endl;
-            cout << "Peak preScores: " << peak_preScore << endl;
-            cout << "Peak wTICs: " << peak_wTIC << endl;
-            cout << "Peak xcorrx: " << peak_xcorrx_max << endl;
-            cout << "Peak xcorrc: " << peak_xcorrc_max << endl;
-            cout << "Peak match-odds: " << peak_matchOdds << endl;
-            cout << "Peak Intsum: " << peak_intSum << endl;
-            cout << "Peak matched ions calpha , cbeta , xalpha , xbeta: " << peak_matched_spec_common_alpha << "\t" << peak_matched_spec_common_beta <<
-              "\t" << peak_matched_spec_xlink_alpha << "\t" << peak_matched_spec_xlink_beta << endl;
+            cout << "Spectrum scores: " << top_score << endl;
+            cout << "Spectrum preScores: " << top_preScore << endl;
+            cout << "Spectrum wTICs: " << top_wTIC << endl;
+            cout << "Spectrum xcorrx: " << top_xcorrx_max << endl;
+            cout << "Spectrum xcorrc: " << top_xcorrc_max << endl;
+            cout << "Spectrum match-odds: " << top_matchOdds << endl;
+            cout << "Spectrum Intsum: " << top_intSum << endl;
+            cout << "Spectrum matched ions calpha , cbeta , xalpha , xbeta: " << top_matched_spec_common_alpha << "\t" << top_matched_spec_common_beta <<
+              "\t" << top_matched_spec_xlink_alpha << "\t" << top_matched_spec_xlink_beta << endl;
 
             // Write top 5 hits to file
-            for (Size i = 0; i < peak_score.size(); ++i)
+            for (Size i = 0; i < top_csms_spectrum.size(); ++i)
             {
               PeptideIdentification peptide_id;
 
               String xltype = "monolink";
-              String structure = peak_candidate_data[i].alpha.toUnmodifiedString();
-              String topology = String("K") + (peak_candidate_data[i].cross_link_position.first+1);
+              String structure = top_csms_spectrum[i].cross_link.alpha.toUnmodifiedString();
+              String topology = String("K") + (top_csms_spectrum[i].cross_link.cross_link_position.first+1);
 
               // TODO track or otherwise find out, which kind of mono-link it was (if there are several possibilities for the weigths)
-              double weight = peak_candidate_data[i].alpha.getMonoWeight() + cross_link_mass_mono_link[1];
+              double weight = top_csms_spectrum[i].cross_link.alpha.getMonoWeight() + cross_link_mass_mono_link[1];
 
-              bool is_monolink = (peak_candidate_data[i].cross_link_position.second == -1);
-              int alpha_pos = peak_candidate_data[i].cross_link_position.first + 1;
-              int beta_pos = peak_candidate_data[i].cross_link_position.second + 1;
+              bool is_monolink = (top_csms_spectrum[i].cross_link.cross_link_position.second == -1);
+              int alpha_pos = top_csms_spectrum[i].cross_link.cross_link_position.first + 1;
+              int beta_pos = top_csms_spectrum[i].cross_link.cross_link_position.second + 1;
 
               if (!is_monolink)
               {
                 xltype = "xlink";
-                structure = peak_candidate_data[i].alpha.toUnmodifiedString() + "-" + peak_candidate_data[i].beta.toUnmodifiedString();
+                structure = top_csms_spectrum[i].cross_link.alpha.toUnmodifiedString() + "-" + top_csms_spectrum[i].cross_link.beta.toUnmodifiedString();
                 topology = String("a") +  alpha_pos + String("-b") + beta_pos;
-                weight = peak_candidate_data[i].alpha.getMonoWeight() + peak_candidate_data[i].beta.getMonoWeight() + cross_link_mass_light;
+                weight = top_csms_spectrum[i].cross_link.alpha.getMonoWeight() + top_csms_spectrum[i].cross_link.beta.getMonoWeight() + cross_link_mass_light;
               }
               String id = structure + "-" + topology;
 
               vector<PeptideHit> phs;
               PeptideHit ph_alpha, ph_beta;
-              ph_alpha.setSequence(peak_candidate_data[i].alpha);
+              ph_alpha.setSequence(top_csms_spectrum[i].cross_link.alpha);
               ph_alpha.setCharge(precursor_charge);
-              ph_alpha.setScore(peak_score[i]);
+              ph_alpha.setScore(top_csms_spectrum[i].score);
               ph_alpha.setMetaValue("xl_chain", "MS:1002510");  // receiver
               ph_alpha.setMetaValue("xl_pos", DataValue(alpha_pos));
               phs.push_back(ph_alpha);
 
               if (!is_monolink)
               {
-                ph_beta.setSequence(peak_candidate_data[i].beta);
+                ph_beta.setSequence(top_csms_spectrum[i].cross_link.beta);
                 ph_beta.setCharge(precursor_charge);
-                ph_beta.setScore(peak_score[i]);
+                ph_beta.setScore(top_csms_spectrum[i].score);
                 ph_beta.setMetaValue("xl_chain", "MS:1002509"); // donor 
                 ph_beta.setMetaValue("xl_pos", DataValue(beta_pos));
                 phs.push_back(ph_beta);
@@ -2585,35 +2715,48 @@ protected:
               peptide_id.setRT(spectrum_light.getRT());
               peptide_id.setMZ(precursor_mz);
               peptide_id.setMetaValue("spec_heavy_RT", spectra[scan_index_heavy].getRT());
-              peptide_id.setMetaValue("spec_heavy_MZ", spectra[scan_index_heavy].getMZ());
+              peptide_id.setMetaValue("spec_heavy_MZ", spectra[scan_index_heavy].getPrecursors()[0].getMZ());
               peptide_id.setMetaValue("xl_type", xltype); // TODO: needs CV term
               peptide_id.setMetaValue("xl_rank", DataValue(i + 1)); 
 
 //            peptide_id.setMetaValue("xl_relation", ); //TODO: needs CV term
               peptide_id.setHits(phs);
+              cout << "peptide_ids size 0 : " << peptide_ids.size() << endl;
+              top_csms_spectrum[i].peptide_id_index = peptide_ids.size();
               peptide_ids.push_back(peptide_id);
+              top_csms_spectrum[i].peptide_id = &peptide_id;
 
-              xml_file << "<search_hit search_hit_rank=\"" << i+1 << "\" id=\"" << id << "\" type=\"" << xltype << "\" structure=\"" << structure << "\" seq1=\"" << peak_candidate_data[i].alpha.toUnmodifiedString() << "\" seq2=\"" << peak_candidate_data[i].beta.toUnmodifiedString()
-                << "\" prot1=\"" << "TODO" << "\" prot2=\"" << "TODO" << "\" topology=\"" << topology << "\" xlinkposition=\"" << (peak_candidate_data[i].cross_link_position.first+1) << "," << (peak_candidate_data[i].cross_link_position.second+1)
+
+              xml_file << "<search_hit search_hit_rank=\"" << i+1 << "\" id=\"" << id << "\" type=\"" << xltype << "\" structure=\"" << structure << "\" seq1=\"" << top_csms_spectrum[i].cross_link.alpha.toUnmodifiedString() << "\" seq2=\"" << top_csms_spectrum[i].cross_link.beta.toUnmodifiedString()
+                << "\" prot1=\"" << "TODO" << "\" prot2=\"" << "TODO" << "\" topology=\"" << topology << "\" xlinkposition=\"" << (top_csms_spectrum[i].cross_link.cross_link_position.first+1) << "," << (top_csms_spectrum[i].cross_link.cross_link_position.second+1)
                 << "\" Mr=\"" << weight << "\" mz=\"" << precursor_mz << "\" charge=\"" << precursor_charge << "\" xlinkermass=\"" << cross_link_mass_light << "\" measured_mass=\"" << precursor_mass << "\" error=\"" << "TODO"
-                << "\" error_rel=\"" << "TODO" << "\" xlinkions_matched=\"" << (peak_matched_spec_xlink_alpha[i] + peak_matched_spec_xlink_beta[i]) << "\" backboneions_matched=\"" << (peak_matched_spec_common_alpha[i] + peak_matched_spec_common_beta[i])
-                << "\" weighted_matchodds_mean=\"" << "TODO" << "\" weighted_matchodds_sum=\"" << "TODO" << "\" match_error_mean=\"" << "TODO" << "\" match_error_stdev=\"" << "TODO" << "\" xcorrx=\"" << peak_xcorrx_max[i] << "\" xcorrb=\"" << peak_xcorrc_max[i] << "\" match_odds=\"" << peak_matchOdds[i] << "\" prescore=\"" << peak_preScore[i]
+                << "\" error_rel=\"" << "TODO" << "\" xlinkions_matched=\"" << (top_csms_spectrum[i].matched_xlink_alpha + top_csms_spectrum[i].matched_xlink_beta) << "\" backboneions_matched=\"" << (top_csms_spectrum[i].matched_common_alpha + top_csms_spectrum[i].matched_common_beta)
+                << "\" weighted_matchodds_mean=\"" << "TODO" << "\" weighted_matchodds_sum=\"" << "TODO" << "\" match_error_mean=\"" << "TODO" << "\" match_error_stdev=\"" << "TODO" << "\" xcorrx=\"" << top_csms_spectrum[i].xcorrx_max << "\" xcorrb=\"" << top_csms_spectrum[i].xcorrc_max << "\" match_odds=\"" << top_csms_spectrum[i].match_odds << "\" prescore=\"" << top_csms_spectrum[i].pre_score
                 << "\" prescore_alpha=\"" << "TODO" << "\" prescore_beta=\"" << "TODO" << "\" match_odds_alphacommon=\"" << "TODO" << "\" match_odds_betacommon=\"" << "TODO" << "\" match_odds_alphaxlink=\"" << "TODO"
-                << "\" match_odds_betaxlink=\"" << "TODO" << "\" num_of_matched_ions_alpha=\"" << (peak_matched_spec_common_alpha[i] + peak_matched_spec_xlink_alpha[i]) << "\" num_of_matched_ions_beta=\"" << (peak_matched_spec_common_beta[i] + peak_matched_spec_xlink_beta[i]) << "\" num_of_matched_common_ions_alpha=\"" << peak_matched_spec_common_alpha[i]
-                << "\" num_of_matched_common_ions_beta=\"" << peak_matched_spec_common_beta[i] << "\" num_of_matched_xlink_ions_alpha=\"" << peak_matched_spec_xlink_alpha[i] << "\" num_of_matched_xlink_ions_beta=\"" << peak_matched_spec_xlink_beta[i] << "\" xcorrall=\"" << "TODO" << "\" TIC=\"" << peak_TIC[i]
-                << "\" TIC_alpha=\"" << "TODO" << "\" TIC_beta=\"" << "TODO" << "\" wTIC=\"" << peak_wTIC[i] << "\" intsum=\"" << peak_intSum[i] << "\" apriori_match_probs=\"" << "TODO" << "\" apriori_match_probs_log=\"" << "TODO"
-                << "\" series_score_mean=\"" << "TODO" << "\" annotated_spec=\"" << "" << "\" score=\"" << peak_score[i] << "\" >" << endl;
+                << "\" match_odds_betaxlink=\"" << "TODO" << "\" num_of_matched_ions_alpha=\"" << (top_csms_spectrum[i].matched_common_alpha + top_csms_spectrum[i].matched_xlink_alpha) << "\" num_of_matched_ions_beta=\"" << (top_csms_spectrum[i].matched_common_beta + top_csms_spectrum[i].matched_xlink_beta) << "\" num_of_matched_common_ions_alpha=\"" << top_csms_spectrum[i].matched_common_alpha
+                << "\" num_of_matched_common_ions_beta=\"" << top_csms_spectrum[i].matched_common_beta << "\" num_of_matched_xlink_ions_alpha=\"" << top_matched_spec_xlink_alpha[i] << "\" num_of_matched_xlink_ions_beta=\"" << top_csms_spectrum[i].matched_xlink_beta << "\" xcorrall=\"" << "TODO" << "\" TIC=\"" << top_csms_spectrum[i].percTIC
+                << "\" TIC_alpha=\"" << "TODO" << "\" TIC_beta=\"" << "TODO" << "\" wTIC=\"" << top_csms_spectrum[i].wTIC << "\" intsum=\"" << top_csms_spectrum[i].int_sum << "\" apriori_match_probs=\"" << "TODO" << "\" apriori_match_probs_log=\"" << "TODO"
+                << "\" series_score_mean=\"" << "TODO" << "\" annotated_spec=\"" << "" << "\" score=\"" << top_csms_spectrum[i].score << "\" >" << endl;
               xml_file << "</search_hit>" << endl;
 
             }
 
 
-            cout << "Next Peak ################################## \n";
+            cout << "Next Spectrum ################################## \n";
           }
 
         }
       xml_file << "</spectrum_search>" << endl;
     }
+    for (Size i = 0; i < all_top_csms.size(); ++i)
+    {
+      for (Size k = 0; k < all_top_csms[i].size(); ++i)
+      {
+        cout << "Peptide_index: " << all_top_csms[i][k].peptide_id_index << "\t vector pos: " << i << "\t" << k << endl;
+        cout << "Peptide_mz: " << all_top_csms[i][k].peptide_id->getMZ() << "\t vector pos: " << i << "\t" << k << endl;
+      }
+    }
+
     // end of matching / scoring
     progresslogger.endProgress();
 
@@ -2638,14 +2781,20 @@ protected:
     indexing_param.setValue("decoy_string", decoy_string, "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.");
     pep_indexing.setParameters(indexing_param);
 
-    pep_indexing.run(fasta_db,protein_ids, peptide_ids);
+    cout << "peptide_ids size 1 : " << peptide_ids.size() << endl;
+    pep_indexing.run(fasta_db, protein_ids, peptide_ids);
 
+    cout << "peptide_ids size 2 : " << peptide_ids.size() << endl;
     // write cross-links to IdXML
-    IdXMLFile().store(out_idxml, protein_ids, peptide_ids);    
+    progresslogger.startProgress(0, 1, "Writing output...");
+    IdXMLFile().store(out_idxml, protein_ids, peptide_ids);
+    cout << "peptide_ids size 3 : " << peptide_ids.size() << endl;
+    writeXQuestXML(String("xquest_new.xml"), all_top_csms, peptide_ids, spectra, spec_xml_name, cross_link_mass_light, cross_link_mass_mono_link);
+    progresslogger.endProgress();
+
  
     return EXECUTION_OK;
   }
-
 
 };
 
