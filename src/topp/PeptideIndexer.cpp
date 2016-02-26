@@ -498,11 +498,12 @@ protected:
     registerFlag_("keep_unreferenced_proteins", "If set, protein hits which are not referenced by any peptide are kept.");
     registerFlag_("allow_unmatched", "If set, unmatched peptide sequences are allowed. By default (i.e. if this flag is not set) the program terminates with an error on unmatched peptides.");
     registerFlag_("full_tolerant_search", "If set, all peptide sequences are matched using tolerant search. Thus potentially more proteins (containing ambiguous amino acids) are associated. This is much slower!");
-    registerIntOption_("aaa_max", "<number>", 4, "[tolerant search only] Maximal number of ambiguous amino acids (AAA) allowed when matching to a protein database with AAA's. AAA's are 'B', 'Z' and 'X'", false);
+    registerIntOption_("aaa_max", "<number>", 4, "[tolerant search only] Maximal number of ambiguous amino acids (AAAs) allowed when matching to a protein database with AAAs. AAAs are 'B', 'Z' and 'X'", false);
     setMinInt_("aaa_max", 0);
-    registerIntOption_("mismatches_max", "<number>", 0, "[tolerant search only] Maximal number of real mismatches (will be used after checking for ambiguous AA's (see 'aaa_max' option). In general this param should only be changed if you want to look for other potential origins of a peptide which might have unknown SNPs or alike.", false);
+    registerIntOption_("mismatches_max", "<number>", 0, "[tolerant search only] Maximal number of real mismatches (will be used after checking for ambiguous AA's (see 'aaa_max' option). In general this param should only be changed if you want to look for other potential origins of a peptide which might have unknown SNPs or the like.", false);
     setMinInt_("mismatches_max", 0);
     registerFlag_("IL_equivalent", "Treat the isobaric amino acids isoleucine ('I') and leucine ('L') as equivalent (indistinguishable)");
+    registerFlag_("filter_aaa_proteins", "In the tolerant search for matches to proteins with ambiguous amino acids (AAAs), rebuild the search database to only consider proteins with AAAs. This may save time if most proteins don't contain AAAs and if there is a significant number of peptides that enter the tolerant search.", true);
   }
 
   ExitCodes main_(int, const char**)
@@ -723,6 +724,8 @@ protected:
         // search using SA, which supports mismatches (introduced by resolving ambiguous AA's by e.g. Mascot) -- expensive!
         writeLog_(String("Using suffix array to find ambiguous matches..."));
 
+        bool filter_aaa_proteins = getFlag_("filter_aaa_proteins");
+
         seqan::StringSet<seqan::Peptide> pep_DB_SA, prot_DB_SA;
         vector<Size> prot_DB_indexes; // store indexes that pass the filtering
         if (!SA_only)
@@ -743,31 +746,39 @@ protected:
           clear(pep_DB); // no longer needed
           writeLog_("... for " + String(length(pep_DB_SA)) + " unmatched peptide(s)...");
 
-          // only look for ambiguous matches, so only consider proteins with
-          // ambiguous amino acids:
-          for (Size i = 0; i < length(prot_DB); ++i)
+          if (filter_aaa_proteins)
           {
-            // check if the protein contains ambiguous amino acids:
-            Size length_prot = length(prot_DB[i]);
-            for (Size j = 0; j < length_prot; ++j)
+            // only look for ambiguous matches, so only consider proteins with
+            // ambiguous amino acids:
+            for (Size i = 0; i < length(prot_DB); ++i)
             {
-              if ((prot_DB[i][j] == 'B') || (prot_DB[i][j] == 'X') ||
-                  (prot_DB[i][j] == 'Z'))
+              // check if the protein contains ambiguous amino acids:
+              Size length_prot = length(prot_DB[i]);
+              for (Size j = 0; j < length_prot; ++j)
               {
-                appendValue(prot_DB_SA, prot_DB[i]);
-                prot_DB_indexes.push_back(i);
-                break;
+                if ((prot_DB[i][j] == 'B') || (prot_DB[i][j] == 'X') ||
+                    (prot_DB[i][j] == 'Z'))
+                {
+                  appendValue(prot_DB_SA, prot_DB[i]);
+                  prot_DB_indexes.push_back(i);
+                  break;
+                }
               }
             }
+            clear(prot_DB); // no longer needed
+            writeLog_("... in " + String(length(prot_DB_SA)) + " ambiguous protein(s).");
           }
-          clear(prot_DB); // no longer needed
-          writeLog_("... in " + String(length(prot_DB_SA)) + " ambiguous protein(s).");
+          else
+          {
+            writeLog_("... in all " + String(length(prot_DB)) + " protein(s).");
+          }
         }
 
         seqan::FoundProteinFunctor func_SA(enzyme);
 
         typedef seqan::Index<seqan::StringSet<seqan::Peptide>, seqan::IndexWotd<> > TIndex;
-        TIndex prot_Index = (SA_only ? TIndex(prot_DB) : TIndex(prot_DB_SA));
+        TIndex prot_Index = ((SA_only || !filter_aaa_proteins) ?
+                             TIndex(prot_DB) : TIndex(prot_DB_SA));
         TIndex pep_Index = (SA_only ? TIndex(pep_DB) : TIndex(pep_DB_SA));
 
         // use only full peptides in Suffix Array
@@ -792,7 +803,7 @@ protected:
         // augment results with SA hits
         func.filter_passed += func_SA.filter_passed;
         func.filter_rejected += func_SA.filter_rejected;
-        if (!SA_only)
+        if (!SA_only && filter_aaa_proteins)
         {
           // correct the indexes that reference the proteins
           // (because "prot_DB_SA" does not contain all proteins):
