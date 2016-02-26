@@ -129,10 +129,10 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("spectrum_in", "<file>", "", "Input spectrum file");	
+    registerInputFile_("spectrum_in", "<file>", "", "Input spectrum file");
     setValidFormats_("spectrum_in", ListUtils::create<String>("mzML"));
     
-    registerInputFile_("in", "<file>", "", "Input file");	
+    registerInputFile_("in", "<file>", "", "Input file");
     setValidFormats_("in", input_types_);
 
     registerOutputFile_("out", "<file>", "", "Output file", false);
@@ -491,7 +491,7 @@ protected:
     }
     
     // initialize map
-    map<String, vector<String> > config_map;	
+    map<String, vector<String> > config_map;
     ExitCodes ret = parseParameters_(config_map, in, spectrum_in, out);
     if (ret != EXECUTION_OK)
     {
