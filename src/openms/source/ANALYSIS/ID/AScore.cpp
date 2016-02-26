@@ -329,36 +329,39 @@ namespace OpenMS
 
   Size AScore::numberOfMatchedIons_(const RichPeakSpectrum & th, const PeakSpectrum & window, Size depth, double fragment_mass_tolerance, bool fragment_mass_tolerance_ppm) const
   {
-    Size n = 0;
-    set<Size> th_peaks_matches; // only one match to the same theoretical peak allowed
+    PeakSpectrum window_reduced = window;
+    if (window_reduced.size() > depth)
+    {
+      window_reduced.resize(depth);
+    }
     
-    for (Size i = 0; i < window.size() && i < depth; ++i)
+    window_reduced.sortByPosition();
+    Size n = 0;
+    for (Size i = 0; i < th.size(); ++i)
     {
       Size nearest_peak = -1;
       try
       {
-        nearest_peak = th.findNearest(window[i].getMZ());
+        nearest_peak = window_reduced.findNearest(th[i].getMZ());
       }
-      catch(Exception::Precondition) {}
+      catch (Exception::Precondition) {}
       
-      if (nearest_peak < th.size())
+      if (nearest_peak < window_reduced.size())
       {
-        double theo_mz = th[nearest_peak].getMZ();
-        double error = abs(theo_mz - window[i].getMZ());
+        double window_mz = window_reduced[nearest_peak].getMZ();
+        double error = abs(window_mz - th[i].getMZ());
         
         if (fragment_mass_tolerance_ppm)
         {
-          error = error / theo_mz * 1e6;
+          error = error / window_mz * 1e6;
         }
-
         if (error < fragment_mass_tolerance)
         {
-          th_peaks_matches.insert(nearest_peak);
           ++n;
         }
-      }
+      }      
     }
-    return th_peaks_matches.size();
+    return n;
   }
 
   double AScore::peptideScore_(const std::vector<double> & scores) const
