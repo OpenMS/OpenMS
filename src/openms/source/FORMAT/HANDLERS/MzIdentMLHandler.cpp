@@ -755,11 +755,11 @@ namespace OpenMS
 
               if (pe->getAAAfter() != PeptideEvidence::UNKNOWN_AA)
               {
-                e += " post=\"" + String(pe->getAAAfter()) + "\"";
+                e += " post=\"" + (pe->getAAAfter() == ']' ? "-" : String(pe->getAAAfter())) + "\"";
               }
               if (pe->getAABefore() != PeptideEvidence::UNKNOWN_AA)
               {
-                e += " pre=\"" + String(pe->getAABefore()) + "\"";
+                e += " pre=\"" + (pe->getAABefore() == '[' ? "-" : String(pe->getAABefore())) + "\"";
               }
               if (pe->getStart() != PeptideEvidence::UNKNOWN_POSITION)
               {
