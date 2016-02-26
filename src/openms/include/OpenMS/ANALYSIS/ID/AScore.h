@@ -113,21 +113,27 @@ class OPENMS_DLLAPI AScore
         {
           //check mz2 until no match
           ++first2;
-          int ret = compareMZ_(mz1, first2->getMZ(), fragment_mass_tolerance, fragment_mass_unit_ppm);
-          while (ret == 0)
+          if (first2 != last2)
           {
-            ++first2;
-            ret = compareMZ_(mz1, first2->getMZ(), fragment_mass_tolerance, fragment_mass_unit_ppm);
+            int ret = compareMZ_(mz1, first2->getMZ(), fragment_mass_tolerance, fragment_mass_unit_ppm);
+            while (ret == 0 && first2 != last2)
+            {
+              ++first2;
+              ret = compareMZ_(mz1, first2->getMZ(), fragment_mass_tolerance, fragment_mass_unit_ppm);
+            }
           }
           
           //check mz1 until no match
           ++first1;
-          ret = compareMZ_(first1->getMZ(), mz2, fragment_mass_tolerance, fragment_mass_unit_ppm);
-          while (ret == 0)
+          if (first1 != last1)
           {
-            ++first1;
-            ret = compareMZ_(first1->getMZ(), mz2, fragment_mass_tolerance, fragment_mass_unit_ppm);
-          }          
+            int ret = compareMZ_(first1->getMZ(), mz2, fragment_mass_tolerance, fragment_mass_unit_ppm);
+            while (ret == 0 && first1 != last1)
+            {
+              ++first1;
+              ret = compareMZ_(first1->getMZ(), mz2, fragment_mass_tolerance, fragment_mass_unit_ppm);
+            }
+          }
         }
       }
       return std::copy(first1, last1, result);
