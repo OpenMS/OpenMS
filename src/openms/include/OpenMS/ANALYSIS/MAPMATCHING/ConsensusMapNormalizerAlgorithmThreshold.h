@@ -61,11 +61,13 @@ public:
     virtual ~ConsensusMapNormalizerAlgorithmThreshold();
 
     /**
-         * @brief determines the ratio of all maps to the map with the most features
-         * @param map ConsensusMap
-         * @param ratio_threshold threshold for the ratio
-         */
-    static std::vector<double> computeCorrelation(const ConsensusMap & map, const double & ratio_threshold);
+     * @brief determines the ratio of all maps to the map with the most features
+     * @param map ConsensusMap
+     * @param ratio_threshold threshold for the ratio
+     * @param acc_filter string describing the regular expression for filtering accessions
+     * @param desc_filter string describing the regular expression for filtering descriptions
+     */
+    static std::vector<double> computeCorrelation(const ConsensusMap & map, const double & ratio_threshold, const String & acc_filter, const String & desc_filter);
 
     /**
      * @brief applies the given ratio to the maps of the consensusMap
