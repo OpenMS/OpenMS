@@ -751,16 +751,16 @@ namespace OpenMS
               }
 
               String e;
-              String nc_termini = "-";
+              String nc_termini = "-";    // character for N- and C-termini as specified in mzIdentML
               e += "\t<PeptideEvidence id=\"" + pevid + "\" peptide_ref=\"" + pepid + "\" dBSequence_ref=\"" + dBSequence_ref + "\"";
 
               if (pe->getAAAfter() != PeptideEvidence::UNKNOWN_AA)
               {
-                e += " post=\"" + (pe->getAAAfter() == ']' ? nc_termini : String(pe->getAAAfter())) + "\"";
+                e += " post=\"" + (pe->getAAAfter() == PeptideEvidence::C_TERMINAL_AA ? nc_termini : String(pe->getAAAfter())) + "\"";
               }
               if (pe->getAABefore() != PeptideEvidence::UNKNOWN_AA)
               {
-                e += " pre=\"" + (pe->getAABefore() == '[' ? nc_termini : String(pe->getAABefore())) + "\"";
+                e += " pre=\"" + (pe->getAABefore() == PeptideEvidence::N_TERMINAL_AA ? nc_termini : String(pe->getAABefore())) + "\"";
               }
               if (pe->getStart() != PeptideEvidence::UNKNOWN_POSITION)
               {
