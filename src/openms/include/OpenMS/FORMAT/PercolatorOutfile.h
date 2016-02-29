@@ -85,6 +85,7 @@ namespace OpenMS
   private:
   
     // Map for all existing AAs and their modification information
+    // AAs are encoded in one letter code.
     std::map<String, AAModificationInfo> aa_mods_;
     
     /// Converts the peptide string to an 'AASequence' instance
