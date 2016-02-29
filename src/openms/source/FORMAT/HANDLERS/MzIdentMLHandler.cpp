@@ -492,6 +492,9 @@ namespace OpenMS
         sip += String(3, '\t') + "<userParam name=\"" + "charges" + "\" unitName=\"" + "xsd:string" + "\" value=\"" + it->getSearchParameters().charges + "\"/>" + "\n";
 //        sip += String(3, '\t') + "<userParam name=\"" + "missed_cleavages" + "\" unitName=\"" + "xsd:integer" + "\" value=\"" + String(it->getSearchParameters().missed_cleavages) + "\"/>" + "\n";
         sip += String("\t\t</AdditionalSearchParams>\n");
+        writeModParam_(sip, it->getSearchParameters().fixed_modifications, it->getSearchParameters().variable_modifications, 2);
+        writeEnzyme_(sip, it->getSearchParameters().digestion_enzyme, it->getSearchParameters().missed_cleavages, 2);
+        // TODO MassTable section
         sip += String("\t\t<FragmentTolerance>\n");
         String unit_str = "unitCvRef=\"UO\" unitName=\"dalton\" unitAccession=\"UO:0000221\"";
         if (it->getSearchParameters().fragment_mass_tolerance_ppm)
@@ -512,8 +515,6 @@ namespace OpenMS
         sip += String("\t\t</ParentTolerance>\n");
         sip += String("\t\t<Threshold>\n\t\t\t") + thcv + "\n";
         sip += String("\t\t</Threshold>\n");
-        writeModParam_(sip, it->getSearchParameters().fixed_modifications, it->getSearchParameters().variable_modifications, 2);
-        writeEnyzme_(sip, it->getSearchParameters().digestion_enzyme, it->getSearchParameters().missed_cleavages, 2);
         sip += String("\t</SpectrumIdentificationProtocol>\n");
         sip_set.insert(sip);
         sil_2_date.insert(make_pair(sil_id, String(it->getDateTime().getDate() + "T" + it->getDateTime().getTime())));
@@ -1078,7 +1079,7 @@ namespace OpenMS
       }
     }
 
-    void MzIdentMLHandler::writeEnyzme_(String& s, Enzyme enzy, UInt miss, UInt indent) const
+    void MzIdentMLHandler::writeEnzyme_(String& s, Enzyme enzy, UInt miss, UInt indent) const
     {
       String cv_ns = cv_.name();
       s += String(indent, '\t') + "<Enzymes independent=\"false\">" + "\n";
