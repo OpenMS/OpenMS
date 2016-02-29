@@ -1023,7 +1023,8 @@ namespace OpenMS
       {
         os << "\t\t<SpectrumIdentificationList id=\"" << sil_it->first << String("\"> \n");
         os << "\t\t\t<FragmentationTable>\n"
-           << "\t\t\t\t<Measure id=\"Measure_MZ\">\n"
+           << "\t\t\t\t<Measure id=\"Measure_" << sil_it->first << "\">\n"
+              // TODO as soon as fragmentation table is reflectable by our internal structures, this has to be mapped separately from spectrumidentificationlist
            << "\t\t\t\t\t<cvParam accession=\"MS:1001225\" cvRef=\"PSI-MS\" unitCvRef=\"PSI-MS\" unitName=\"m/z\" unitAccession=\"MS:1000040\" name=\"product ion m/z\"/>\n"
            << "\t\t\t\t</Measure>\n"
            << "\t\t\t</FragmentationTable>\n";
