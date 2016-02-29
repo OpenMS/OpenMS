@@ -35,8 +35,6 @@
 #ifndef OPENMS_FORMAT_PERCOLATOROUTFILE_H
 #define OPENMS_FORMAT_PERCOLATOROUTFILE_H
 
-//#include <OpenMS/CHEMISTRY/AASequence.h>
-//#include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -47,8 +45,10 @@
 namespace OpenMS
 {
   /// Struct to collect modification information per amino acid
-  struct AAModificationInfo {
+  struct AAModificationInfo 
+  {
     std::set<String> mods;
+    // check if a certain amino of the identified peptides acid occurs only as modified
     bool all_modified;
     
     AAModificationInfo() : all_modified(true) {}

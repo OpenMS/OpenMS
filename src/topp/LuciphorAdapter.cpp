@@ -103,7 +103,6 @@ public:
     // parameter choices (the order of the values must be the same as in the LuciPHOr2 parameters!):
     fragment_methods_(ListUtils::create<String>("CID,HCD")),
     fragment_error_units_(ListUtils::create<String>("Daltons,ppm")),
-    input_types_(ListUtils::create<String>("idXML")),
     score_selection_method_(ListUtils::create<String>("Peptide Prophet probability,Mascot Ion Score,-log(E-value),X!Tandem Hyperscore,Sequest Xcorr"))
   {
   }
@@ -125,15 +124,15 @@ protected:
   };
 
   // lists of allowed parameter values:
-  vector<String> fragment_methods_, fragment_error_units_, input_types_, score_selection_method_;
+  vector<String> fragment_methods_, fragment_error_units_, score_selection_method_;
 
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("spectrum_in", "<file>", "", "Input spectrum file");
-    setValidFormats_("spectrum_in", ListUtils::create<String>("mzML"));
+    registerInputFile_("in", "<file>", "", "Input spectrum file");
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
     
-    registerInputFile_("in", "<file>", "", "Input file");
-    setValidFormats_("in", input_types_);
+    registerInputFile_("id", "<file>", "", "Protein/peptide identifications file");
+    setValidFormats_("id", ListUtils::create<String>("idXML"));
 
     registerOutputFile_("out", "<file>", "", "Output file", false);
     setValidFormats_("out", ListUtils::create<String>("idXML"));
@@ -196,15 +195,15 @@ protected:
     return String(residue +  " " + mod.getDiffMonoMass());    
   }
  
-  ExitCodes parseParameters_(map<String, vector<String> >& config_map, const String& in, const String& spectrum_in, const String& out)
+  ExitCodes parseParameters_(map<String, vector<String> >& config_map, const String& id, const String& in, const String& out)
   {
     FileHandler fh;
     
-    config_map["SPECTRUM_PATH"].push_back(File::path(File::absolutePath(spectrum_in)));
-    config_map["SPECTRUM_SUFFIX"].push_back(FileTypes::typeToName(fh.getTypeByFileName(spectrum_in)));
-    config_map["INPUT_DATA"].push_back(in);
+    config_map["SPECTRUM_PATH"].push_back(File::path(File::absolutePath(in)));
+    config_map["SPECTRUM_SUFFIX"].push_back(FileTypes::typeToName(fh.getTypeByFileName(in)));
+    config_map["INPUT_DATA"].push_back(id);
     
-    String type = FileTypes::typeToName(fh.getTypeByFileName(in));
+    String type = FileTypes::typeToName(fh.getTypeByFileName(id));
     config_map["INPUT_TYPE"].push_back(0);
     
     config_map["ALGORITHM"].push_back(ListUtils::getIndex<String>(fragment_methods_, getStringOption_("fragment_method")));
@@ -312,11 +311,9 @@ protected:
     return l_psm;
   }
   
-  void getModificationParams_(const ProteinIdentification::SearchParameters& search_params, map<String, String>& modifications)
+  ExitCodes getModificationParams_(const ProteinIdentification::SearchParameters& search_params, map<String, String>& modifications)
   {
     modifications.clear();
-    boost::regex r(".*\\((.*)\\).*"); // get AA between brackets
-    
     vector<String> mods(search_params.fixed_modifications);
     mods.insert(mods.end(), search_params.variable_modifications.begin(), search_params.variable_modifications.end());
     
@@ -325,29 +322,39 @@ protected:
       for (vector<String>::iterator it = mods.begin(); it != mods.end(); ++it)
       {
         String mod_param_value = *it;
-        boost::smatch match;        
-        bool found = boost::regex_search(mod_param_value, match, r);
         String mod;
         
-        if (found)
+        vector<String> parts;
+        mod_param_value.split(' ', parts);
+        if (parts.size() != 2)
         {
-          vector<String> parts;
-          if (mod_param_value.split(" ", parts))
+          writeLog_("Error: cannot parse modification '" + mod_param_value + "'");
+          return PARSE_ERROR;
+        }
+        else
+        {
+          mod = parts[0];
+          String AAs = parts[1];
+          
+          // LuciPHOr2 discards C-term and N-term modifications in the sequence. The modifications must be added based on the original sequence.
+          if (!AAs.hasPrefix("(C-term") && !AAs.hasPrefix("(N-term"))
           {
-            mod = parts[0];
-          }
-          String AAs = match[1].str();
-          for (String::iterator aa = AAs.begin(); aa != AAs.end(); ++aa)
-          {
-            modifications[*aa] = mod;
-          }
+            AAs.remove(')');
+            AAs.remove('(');
+            // because origin can be e.g. (STY)
+            for (String::iterator aa = AAs.begin(); aa != AAs.end(); ++aa)
+            {
+              modifications[*aa] = mod;
+            }
+          }          
         }
       }
     }
+    return EXECUTION_OK;
   }
   
   // explicit parsing necessary, because of inner brackets (e.g. (AEC-MAEC:2H(4))
-  String replaceLowerChaseSite_(const String& seq, const String& aa_site, const String& aa_with_mod)
+  String replaceLowerCaseSite_(const String& seq, const String& aa_site, const String& aa_with_mod)
   {
     int open_brac = 0;
     int close_brac = 0;
@@ -379,7 +386,7 @@ protected:
     for (map<String, String>::const_iterator mod = modifications.begin(); mod != modifications.end(); ++mod)
     {
       String aa = mod->first;
-      conv_seq = replaceLowerChaseSite_(conv_seq, aa.toLower(), aa.toUpper() + "(" + mod->second + ")");
+      conv_seq = replaceLowerCaseSite_(conv_seq, aa.toLower(), aa.toUpper() + "(" + mod->second + ")");
     }
     return conv_seq;
   }
@@ -410,7 +417,7 @@ protected:
       
       if (l_psms.count(l_psm.scan_idx) > 0)
       {
-        return "Error: duplicate scannr existing " + String(l_psm.scan_idx);
+        return "Duplicate scannr existing " + String(l_psm.scan_nr) + ".";
       }
       l_psms[l_psm.scan_idx] = l_psm;
     }    
@@ -464,24 +471,24 @@ protected:
     // create a temporary config file for LuciPHOr2 parameters
     conf_file = temp_dir + "luciphor2_input_template.txt";
     
+    String id = getStringOption_("id");
     String in = getStringOption_("in");
-    String spectrum_in = getStringOption_("spectrum_in");
     String out = getStringOption_("out");
     
     FileHandler fh;
-    FileTypes::Type in_type = fh.getType(in);
+    FileTypes::Type in_type = fh.getType(id);
     
     // convert input to pepXML if necessary
     if (in_type == FileTypes::IDXML)
     {
-      IdXMLFile().load(in, prot_ids, pep_ids);
+      IdXMLFile().load(id, prot_ids, pep_ids);
       IDFilter::keepNBestHits(pep_ids, 1); // Luciphor only calculates the best hit
       
       // create a tempory pepXML file for LuciPHOR2 input
-      String in_file_name = File::removeExtension(File::basename(in));
-      in = temp_dir + in_file_name + ".pepXML";
+      String in_file_name = File::removeExtension(File::basename(id));
+      id = temp_dir + in_file_name + ".pepXML";
       
-      PepXMLFile().store(in, prot_ids, pep_ids, spectrum_in, "", false);
+      PepXMLFile().store(id, prot_ids, pep_ids, in, "", false);
     }
     else
     {
@@ -492,7 +499,7 @@ protected:
     
     // initialize map
     map<String, vector<String> > config_map;
-    ExitCodes ret = parseParameters_(config_map, in, spectrum_in, out);
+    ExitCodes ret = parseParameters_(config_map, id, in, out);
     if (ret != EXECUTION_OK)
     {
       return ret;
@@ -530,7 +537,7 @@ protected:
     options.clearMSLevels();
     options.addMSLevel(2);
     f.getOptions() = options;
-    f.load(spectrum_in, exp);
+    f.load(in, exp);
     exp.sortSpectra(true);
     
     SpectrumLookup lookup;
@@ -542,7 +549,11 @@ protected:
     if (!prot_ids.empty())
     {
       search_params = prot_ids.begin()->getSearchParameters();
-      getModificationParams_(search_params, modifications);
+      ret = getModificationParams_(search_params, modifications);
+      if (ret != EXECUTION_OK)
+      {
+        return ret;
+      }
     }
     
     String error = parseLuciphorOutput_(out, l_psms, lookup, modifications);
@@ -550,7 +561,7 @@ protected:
     {
       error = "Error: LuciPHOr2 output is not correctly formated. " + error;
       writeLog_(error);
-      return ret;
+      return PARSE_ERROR;
     }
     
     //-------------------------------------------------------------
@@ -572,10 +583,20 @@ protected:
         if (l_psms.count(scan_idx) > 0)
         {
           l_psm = l_psms.at(scan_idx);
-          scored_hit.setScore(l_psm.delta_score);
-          scored_hit.setSequence(l_psm.predicted_pep);
+          AASequence original_seq = scored_hit.getSequence();
+          if (original_seq.hasNTerminalModification())
+          {
+            l_psm.predicted_pep.setNTerminalModification(original_seq.getNTerminalModification());
+          }
+          if (original_seq.hasCTerminalModification())
+          {
+            l_psm.predicted_pep.setCTerminalModification(original_seq.getCTerminalModification());
+          }
+          
           scored_hit.setMetaValue("search_engine_sequence", scored_hit.getSequence().toString());
           scored_hit.setMetaValue("Luciphor_pep_score", l_psm.predicted_pep_score);
+          scored_hit.setScore(l_psm.delta_score);
+          scored_hit.setSequence(l_psm.predicted_pep);          
         }
         else
         {
