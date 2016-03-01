@@ -838,9 +838,9 @@ protected:
   };
 
   // TODO MEMORY, use different method to save those AASequences? (Strings, Indices?)
-  static multimap<double, pair<String, String> > enumerateCrossLinksAndMasses_(const multimap<StringView, AASequence>&  peptides, double cross_link_mass_light, DoubleList cross_link_mass_mono_link)
+  static multimap<double, pair<const AASequence*, const AASequence*> > enumerateCrossLinksAndMasses_(const multimap<StringView, AASequence>&  peptides, double cross_link_mass_light, DoubleList cross_link_mass_mono_link)
   {
-    multimap<double, pair<String, String> > mass_to_candidates;
+    multimap<double, pair<const AASequence*, const AASequence*> > mass_to_candidates;
     for (map<StringView, AASequence>::const_iterator a = peptides.begin(); a != peptides.end(); ++a)
     {
       if (a->second.toUnmodifiedString().find("K") >= a->second.size()-1)
@@ -852,7 +852,8 @@ protected:
       for (Size i = 0; i < cross_link_mass_mono_link.size(); i++)
       {
         double cross_link_mass = a->second.getMonoWeight() + cross_link_mass_mono_link[i];
-        mass_to_candidates.insert(make_pair(cross_link_mass, make_pair<String, String>(a->second.toString(), "")));
+        // Make sure it is clear this is a monolink, (is an empty pointer an option?)
+//        mass_to_candidates.insert(make_pair(cross_link_mass, make_pair<const AASequence*, const AASequence*>(&(a->second), ???)));
       }
 
       for (map<StringView, AASequence>::const_iterator b = a; b != peptides.end(); ++b)
@@ -865,7 +866,8 @@ protected:
 
         // mass peptide1 + mass peptide2 + cross linker mass - cross link loss
         double cross_link_mass = a->second.getMonoWeight() + b->second.getMonoWeight() + cross_link_mass_light;
-        mass_to_candidates.insert(make_pair(cross_link_mass, make_pair<String, String>(a->second.toString(), b->second.toString())));
+        mass_to_candidates.insert(make_pair(cross_link_mass, make_pair<const AASequence*, const AASequence*>(&(a->second), &(b->second))));
+//        mass_to_candidates.insert(make_pair(cross_link_mass, make_pair<String, String>(a->second.toString(), b->second.toString())));
       }
     }
 
@@ -2014,7 +2016,7 @@ protected:
 
     //TODO refactor, so that only the used mode is initialized and the pre-scoring code only appears once
     // Initialize enumeration mode
-    multimap<double, pair<String, String> > enumerated_cross_link_masses;
+    multimap<double, pair<const AASequence*, const AASequence*> > enumerated_cross_link_masses;
 
     //TODO remove, adapt to ppm
     HashGrid1D hg(0.0, 20000.0, tolerance_binsize);
@@ -2035,11 +2037,11 @@ protected:
         MSSpectrum<RichPeak1D> theo_spectrum = MSSpectrum<RichPeak1D>();
         // cout << a->second.toString() << endl;
         AASequence * seq = &(a->second);
-        // TODO Spectra should be: a until last K, b from first K
+        // generate common ions
         specGen.getCommonIonSpectrum(theo_spectrum, *seq, 3); // TODO check which charge and which ion series are used for ion index
       
-        //sort by mz
-        theo_spectrum.sortByPosition();
+        //sort by mz (is done in getCommonIonSpectrum)
+//        theo_spectrum.sortByPosition();
 
         for (Size i = 0; i != theo_spectrum.size(); ++i)
         {
@@ -2162,14 +2164,12 @@ protected:
         if(common_peaks.size() > 0 || preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].size() > 0) // TODO: check if this is done in xQuest?
         {
           // determine candidates
-          vector<pair<String, String> > candidates;
+          vector<pair<const AASequence*, const AASequence*> > candidates;
           if (ion_index_mode)
           {
-            // TODO Use 50 most intense common peaks of exp. spectrum, consider all peptides that produce any of these as theor. common ions
+            // Use 50 most intense common peaks of exp. spectrum, consider all peptides that produce any of these as theor. common ions
             //NLargest nlargest_filter = NLargest(50);
             RichPeakSpectrum common_peaks_50 = common_peaks;
-
-            //TODO 50 largest for Ion Tag Mode, use nlargest_filer_rich on RichPeakSpectrum
             nlargest_filter_rich(common_peaks_50, 50);
 
             // old version with one most intensive peak
@@ -2214,7 +2214,7 @@ protected:
                 if (error_Da < precursor_mass_tolerance)
                 {
                   // TODO adapt to new candidates structure
-//                  candidates.push_back(make_pair(*peptide_a, *peptide_b));
+                  candidates.push_back(make_pair(peptide_a, peptide_b));
                 }                
               } 
             } 
@@ -2227,8 +2227,8 @@ protected:
 //              continue;
 //            }
             // determine MS2 precursors that match to the current peptide mass
-            multimap<double, pair<String, String> >::const_iterator low_it;
-            multimap<double, pair<String, String> >::const_iterator up_it;
+            multimap<double, pair<const AASequence*, const AASequence*> >::const_iterator low_it;
+            multimap<double, pair<const AASequence*, const AASequence*> >::const_iterator up_it;
 
             if (precursor_mass_tolerance_unit_ppm) // ppm
             {
@@ -2254,13 +2254,17 @@ protected:
           vector <TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink> cross_link_candidates;
           for (Size i = 0; i != candidates.size(); ++i)
           {
-            pair<String, String> candidate = candidates[i];
+            pair<const AASequence*, const AASequence*> candidate = candidates[i];
             vector <SignedSize> K_pos_first;
             vector <SignedSize> K_pos_second;
-            AASequence peptide_first = AASequence::fromString(candidate.first);
-            AASequence peptide_second = AASequence::fromString(candidate.second);
+            AASequence peptide_first = *candidate.first;
+            AASequence peptide_second = *candidate.second;
+//            AASequence peptide_first = AASequence::fromString(candidate.first);
+//            AASequence peptide_second = AASequence::fromString(candidate.second);
             String seq_first = peptide_first.toUnmodifiedString();
             String seq_second =  peptide_second.toUnmodifiedString();
+
+
 
 
             for (Size k = 0; k < seq_first.size()-1; ++k)
