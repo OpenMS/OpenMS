@@ -86,7 +86,7 @@
 #define NUMBER_OF_THREADS (1)
 #endif
 
-#define DEBUG_RNPXLSEARCH 
+//#define DEBUG_RNPXLSEARCH 
 
 using namespace OpenMS;
 using namespace std;
@@ -220,15 +220,15 @@ protected:
 
     // fragment adducts that may occur for every precursor adduct (if chemically feasible in terms of elements may not be negative)
     StringList fragment_adducts;
-    fragment_adducts.push_back("C9H10N2O5,U-H3PO4");
-    fragment_adducts.push_back("C4H4N2O2,U'");
-    fragment_adducts.push_back("C4H2N2O1,U'-H2O");
-    fragment_adducts.push_back("C3O,C3O");
-    fragment_adducts.push_back("C9H13N2O9P1,U");
-    fragment_adducts.push_back("C9H11N2O8P1,U-H2O");
-    fragment_adducts.push_back("C9H12N2O6,U-HPO3");    
+    fragment_adducts.push_back("C9H10N2O5;U-H3PO4");
+    fragment_adducts.push_back("C4H4N2O2;U'");
+    fragment_adducts.push_back("C4H2N2O1;U'-H2O");
+    fragment_adducts.push_back("C3O;C3O");
+    fragment_adducts.push_back("C9H13N2O9P1;U");
+    fragment_adducts.push_back("C9H11N2O8P1;U-H2O");
+    fragment_adducts.push_back("C9H12N2O6;U-HPO3");    
 
-    registerStringList_("RNPxl:fragment_adducts", "", fragment_adducts, "format: [formula] or [precursor adduct]->[fragment adduct formula],[name]: e.g 'C9H10N2O5,U-H3PO4' or 'U-H2O->C9H11N2O8P1,U-H2O',", false, false);
+    registerStringList_("RNPxl:fragment_adducts", "", fragment_adducts, "format: [formula] or [precursor adduct]->[fragment adduct formula];[name]: e.g 'C9H10N2O5;U-H3PO4' or 'U-H2O->C9H11N2O8P1;U-H2O',", false, false);
 
     registerStringList_("RNPxl:modifications", "", modifications, "format: empirical formula e.g -H2O, ..., H2O+PO3", false, false);
 
@@ -1544,10 +1544,10 @@ private:
         normalizeAdductName_(ss[0]);
       }
 
-      if (ss.size() == 1)  // no -> contained, format is: formula,name
+      if (ss.size() == 1)  // no -> contained, format is: formula;name
       {
         vector<String> fs;
-        ss[0].split(",", fs);
+        ss[0].split(";", fs);
         if (fs.size() == 1) // no name provided so we just take the formula as name
         {
           formula = EmpiricalFormula(fs[0]);
@@ -1565,11 +1565,11 @@ private:
           return map<String, set<FragmentAdductDefinition_> >();
         }
       }
-      else if (ss.size() == 2) // we map: precursor adduct -> formula,name
+      else if (ss.size() == 2) // we map: precursor adduct -> formula;name
       {
         key = ss[0];
         vector<String> fs;
-        ss[1].split(",", fs);
+        ss[1].split(";", fs);
         if (fs.size() == 1) // no name provided so we just take the formula as name
         {
           formula = EmpiricalFormula(fs[0]);
