@@ -522,21 +522,18 @@ namespace OpenMS
 
         //~ collect SpectraData element for each ProteinIdentification
         String sdat_id;
-        StringList sdat_files = it->getMetaValue("spectra_data");
-        String sdat_file;
-        if (sdat_files.empty())
+        StringList sdat_files;
+        String sdat_file("UNKNOWN");
+        
+        if (it->metaValueExists("spectra_data"))
         {
-          sdat_file = String("UNKNOWN");
-        } 
-        else
-        {
-          sdat_file = sdat_files[0];
-          if (sdat_file.empty())
+          sdat_files = it->getMetaValue("spectra_data");
+          if (!sdat_files.empty() && !sdat_files[0].empty())
           {
-            sdat_file = String("UNKNOWN");
+            sdat_file = sdat_files[0];
           }
-          // todo: warn or notify if several files were contained in the metavalue
         }
+
         std::map<String, String>::iterator sdit = sdat_ids.find(sdat_file); //this part is strongly connected to AnalysisCollection write part
         if (sdit == sdat_ids.end())
         {
