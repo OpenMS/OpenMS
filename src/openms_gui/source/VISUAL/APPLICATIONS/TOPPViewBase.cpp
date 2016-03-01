@@ -354,7 +354,7 @@ namespace OpenMS
     b->setToolTip("Peak mode");
     b->setShortcut(Qt::Key_I);
     b->setCheckable(true);
-    b->setWhatsThis("1D Draw mode: Peaks<BR><BR>Peaks are diplayed as sticks.");
+    b->setWhatsThis("1D Draw mode: Peaks<BR><BR>Peaks are displayed as sticks.");
     draw_group_1d_->addButton(b, Spectrum1DCanvas::DM_PEAKS);
     tool_bar_1d_->addWidget(b);
 
@@ -363,7 +363,7 @@ namespace OpenMS
     b->setToolTip("Raw data mode");
     b->setShortcut(Qt::Key_R);
     b->setCheckable(true);
-    b->setWhatsThis("1D Draw mode: Raw data<BR><BR>Peaks are diplayed as a continuous line.");
+    b->setWhatsThis("1D Draw mode: Raw data<BR><BR>Peaks are displayed as a continuous line.");
     draw_group_1d_->addButton(b, Spectrum1DCanvas::DM_CONNECTEDLINES);
     tool_bar_1d_->addWidget(b);
 
@@ -684,14 +684,13 @@ namespace OpenMS
   }
 
   // static
-  UInt TOPPViewBase::countMS1Zeros(const ExperimentType& exp)
+  bool TOPPViewBase::hasMS1Zeros( const ExperimentType& exp )
   {
     if (!TOPPViewBase::containsMS1Scans(exp))
     {
-      return 0;
+      return false;
     }
 
-    UInt zeros = 0;
     for (Size i = 0; i != exp.size(); ++i)
     {
       if (exp[i].getMSLevel() != 1) // skip non MS1-level scans
@@ -700,14 +699,13 @@ namespace OpenMS
       }
       for (Size j = 0; j != exp[i].size(); ++j)
       {
-        double intensity = exp[i][j].getIntensity();
-        if (intensity == 0.0)
+        if (exp[i][j].getIntensity() == 0.0)
         {
-          zeros++;
+          return true;
         }
       }
     }
-    return zeros;
+    return false;
   }
 
   // static
@@ -1310,8 +1308,7 @@ namespace OpenMS
         }
         else // no mower, hide zeros if wanted
         {
-          Int n_zeros = TOPPViewBase::countMS1Zeros(*(target_window->canvas()->getCurrentLayer().getPeakData()));
-          if (n_zeros > 0)
+          if (TOPPViewBase::hasMS1Zeros(*(target_window->canvas()->getCurrentLayer().getPeakData())))
           {
             //create filter
             DataFilters::DataFilter filter;
@@ -1975,7 +1972,7 @@ namespace OpenMS
       //rename layer
       else if (selected != 0 && selected->text() == "Rename")
       {
-        QString name = QInputDialog::getText(this, "Rename layer", "Name:");
+        QString name = QInputDialog::getText(this, "Rename layer", "Name:", QLineEdit::Normal, getActiveCanvas()->getLayerName(layer).toQString());
         if (name != "")
         {
           getActiveCanvas()->setLayerName(layer, name);
@@ -3426,7 +3423,7 @@ namespace OpenMS
                            "Version: %1%2<BR>"
                            "<BR>"
                            "OpenMS and TOPP is free software available under the<BR>"
-                           "BSD 3-Clause Licence (BSD-new)<BR>"
+                           "BSD 3-Clause License (BSD-new)<BR>"
                            "<BR>"
                            "<BR>"
                            "<BR>"

@@ -103,8 +103,8 @@ using namespace std;
 
     The priority of the id-flags is (decreasing order): remove_annotated_features / remove_unannotated_features -> remove_clashes -> keep_best_score_id -> sequences_whitelist / accessions_whitelist
 
-    MS2 and higher spectra can be filtered according to precursor m/z (see 'pc_mz'). This flag can be combined with 'rt' range to filter precursors by RT and m/z.
-    If you want to extract an MS1 region with untouched MS2 spectra included, you will need to split the dataset by MS level, then use the 'mz' option for MS1 data and 'pc_mz' for MS2 data. Afterwards merge the two files again. RT can be filtered at any step.
+    MS2 and higher spectra can be filtered according to precursor m/z (see 'peak_options:pc_mz_range'). This flag can be combined with 'rt' range to filter precursors by RT and m/z.
+    If you want to extract an MS1 region with untouched MS2 spectra included, you will need to split the dataset by MS level, then use the 'mz' option for MS1 data and 'peak_options:pc_mz_range' for MS2 data. Afterwards merge the two files again. RT can be filtered at any step.
 
     @note For filtering peptide/protein identification data, see the @ref TOPP_IDFilter tool.
 
@@ -262,7 +262,6 @@ protected:
 
     registerStringOption_("rt", "[min]:[max]", ":", "Retention time range to extract", false);
     registerStringOption_("mz", "[min]:[max]", ":", "m/z range to extract (applies to ALL ms levels!)", false);
-    registerStringOption_("pc_mz", "[min]:[max]", ":", "MSn (n>=2) precursor filtering according to their m/z value. Do not use this flag in conjunction with 'mz', unless you want to actually remove peaks in spectra (see 'mz'). RT filtering is covered by 'rt' and compatible with this flag.", false);
     registerStringOption_("int", "[min]:[max]", ":", "Intensity range to extract", false);
 
     registerFlag_("sort", "Sorts the output according to RT and m/z.");
@@ -270,6 +269,8 @@ protected:
     registerTOPPSubsection_("peak_options", "Peak data options");
     registerDoubleOption_("peak_options:sn", "<s/n ratio>", 0, "Write peaks with S/N > 'sn' values only", false);
     registerIntList_("peak_options:rm_pc_charge", "i j ...", IntList(), "Remove MS(2) spectra with these precursor charges. All spectra without precursor are kept!", false);
+    registerStringOption_("peak_options:pc_mz_range", "[min]:[max]", ":", "MSn (n>=2) precursor filtering according to their m/z value. Do not use this flag in conjunction with 'mz', unless you want to actually remove peaks in spectra (see 'mz'). RT filtering is covered by 'rt' and compatible with this flag.", false);
+    registerDoubleList_("peak_options:pc_mz_list", "mz_1 mz_2 ...", DoubleList(), "List of m/z values. If a precursor window covers ANY of these values, the corresponding MS/MS spectrum will be kept.", false);
     registerIntList_("peak_options:level", "i j ...", ListUtils::create<Int>("1,2,3"), "MS levels to extract", false);
     registerFlag_("peak_options:sort_peaks", "Sorts the peaks according to m/z");
     registerFlag_("peak_options:no_chromatograms", "No conversion to space-saving real chromatograms, e.g. from SRM scans");
@@ -464,7 +465,7 @@ protected:
 
     String rt = getStringOption_("rt");
     String mz = getStringOption_("mz");
-    String pc_mz = getStringOption_("pc_mz");
+    String pc_mz_range = getStringOption_("peak_options:pc_mz_range");
     String it = getStringOption_("int");
     IntList levels = getIntList_("peak_options:level");
     IntList maps = getIntList_("consensus:map");
@@ -510,7 +511,7 @@ protected:
       //mz
       parseRange_(mz, mz_l, mz_u);
       //mz precursor
-      parseRange_(pc_mz, pc_left, pc_right);
+      parseRange_(pc_mz_range, pc_left, pc_right);
       //int
       parseRange_(it, it_l, it_u);
       //charge (features only)
@@ -617,10 +618,18 @@ protected:
 
 
       // remove precursors out of certain m/z range for all spectra with a precursor (MS2 and above)
-      if (!pc_mz.empty())
+      if (!pc_mz_range.empty())
       {
         exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), InPrecursorMZRange<MapType::SpectrumType>(pc_left, pc_right, true)), exp.end());
       }
+
+      // keep MS/MS spectra whose precursors cover at least of the given m/z values
+      std::vector<double> vec_mz = getDoubleList_("peak_options:pc_mz_list");
+      if (!vec_mz.empty())
+      {
+        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInIsolationWindow<MapType::SpectrumType>(vec_mz, true)), exp.end());
+      }
+      
 
       // remove by scan mode (might be a lot of spectra)
       String remove_mode = getStringOption_("spectra:remove_mode");
