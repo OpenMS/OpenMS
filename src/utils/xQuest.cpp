@@ -388,7 +388,7 @@ protected:
 //    filter_param.setValue("peakcount", 20, "The number of peaks that should be kept.");
 //    filter_param.setValue("movetype", "jump", "Whether sliding window (one peak steps or jumping window window size steps) should be used.");
 //    window_mower_filter.setParameters(filter_param);
-    NLargest nlargest_filter = NLargest(250);   // De-noising in xQuest: Dynamic range = 1000, 250 most intense peaks?
+//    NLargest nlargest_filter = NLargest(250);   // De-noising in xQuest: Dynamic range = 1000, 250 most intense peaks?
   
 #ifdef _OPENMP
 #pragma omp parallel for
@@ -396,7 +396,7 @@ protected:
     for (SignedSize exp_index = 0; exp_index < static_cast<SignedSize>(exp.size()); ++exp_index)
     {
       // sort by mz, for deisotoping and window_mower
-      exp[exp_index].sortByPosition();     
+//      exp[exp_index].sortByPosition();
 //      nlargest_filter.filterSpectrum(exp[exp_index]);
 
       // Deisotope, compute charges here (no 0 intensities, sorted by mz)
@@ -406,7 +406,7 @@ protected:
       // remove noise, TODO window_mower not used in xQuest, is it necessary?
 //      window_mower_filter.filterPeakSpectrum(exp[exp_index]);
       //nlargest_filter_rich(rich_exp[exp_index], 250);
-      nlargest_filter.filterSpectrum(exp[exp_index]);
+//      nlargest_filter.filterSpectrum(exp[exp_index]);
   
       // sort (nlargest changes order)
 //      exp[exp_index].sortByPosition();
@@ -555,9 +555,9 @@ protected:
   struct PreprocessedPairSpectra_
   {
     // pre-initialize so we can simply std::swap the spectra (no synchronization in multi-threading context needed as we get no reallocation of the PeakMapreprocessed_pair_spectra. 
-    RichPeakMap spectra_light_different; // peaks in light spectrum after common peaks have been removed
-    RichPeakMap spectra_heavy_different; // peaks in heavy spectrum after common peaks have been removed
-    RichPeakMap spectra_heavy_to_light; // heavy peaks transformed to light ones and after common peaks have been removed
+//    RichPeakMap spectra_light_different; // peaks in light spectrum after common peaks have been removed
+//    RichPeakMap spectra_heavy_different; // peaks in heavy spectrum after common peaks have been removed
+//    RichPeakMap spectra_heavy_to_light; // heavy peaks transformed to light ones and after common peaks have been removed
     RichPeakMap spectra_common_peaks; // merge spectrum of common peaks (present in both spectra)
     RichPeakMap spectra_xlink_peaks; // Xlink peaks in the light spectrum (common peaks between spectra_light_different and spectra heavy_to_light)
 
@@ -565,9 +565,9 @@ protected:
     {
       for (Size i = 0; i != size; ++i)
       {
-        spectra_light_different.addSpectrum(RichPeakSpectrum());
-        spectra_heavy_different.addSpectrum(RichPeakSpectrum());
-        spectra_heavy_to_light.addSpectrum(RichPeakSpectrum());
+//        spectra_light_different.addSpectrum(RichPeakSpectrum());
+//        spectra_heavy_different.addSpectrum(RichPeakSpectrum());
+//        spectra_heavy_to_light.addSpectrum(RichPeakSpectrum());
         spectra_common_peaks.addSpectrum(RichPeakSpectrum());
         spectra_xlink_peaks.addSpectrum(RichPeakSpectrum());
       }
@@ -688,19 +688,22 @@ protected:
 #ifdef DEBUG_XQUEST
         cout << "Peaks to match: " << common_peaks.size() << endl;
 #endif
-
-        swap(preprocessed_pair_spectra.spectra_light_different[pair_index], spectrum_light_different);
-        swap(preprocessed_pair_spectra.spectra_heavy_different[pair_index], spectrum_heavy_different);
-        swap(preprocessed_pair_spectra.spectra_heavy_to_light[pair_index], spectrum_heavy_to_light);
+        // TODO make this a tool parameter
+        Size max_peak_number = 250;
+        nlargest_filter_rich(common_peaks, max_peak_number);
+        nlargest_filter_rich(xlink_peaks, max_peak_number);
+//        swap(preprocessed_pair_spectra.spectra_light_different[pair_index], spectrum_light_different);
+//        swap(preprocessed_pair_spectra.spectra_heavy_different[pair_index], spectrum_heavy_different);
+//        swap(preprocessed_pair_spectra.spectra_heavy_to_light[pair_index], spectrum_heavy_to_light);
         swap(preprocessed_pair_spectra.spectra_common_peaks[pair_index], common_peaks);
         swap(preprocessed_pair_spectra.spectra_xlink_peaks[pair_index], xlink_peaks);
 
         preprocessed_pair_spectra.spectra_common_peaks[pair_index].setPrecursors(spectrum_light.getPrecursors());
         preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].setPrecursors(spectrum_light.getPrecursors());
 
-        preprocessed_pair_spectra.spectra_light_different[pair_index].sortByPosition();
-        preprocessed_pair_spectra.spectra_heavy_different[pair_index].sortByPosition();
-        preprocessed_pair_spectra.spectra_heavy_to_light[pair_index].sortByPosition();
+//        preprocessed_pair_spectra.spectra_light_different[pair_index].sortByPosition();
+//        preprocessed_pair_spectra.spectra_heavy_different[pair_index].sortByPosition();
+//        preprocessed_pair_spectra.spectra_heavy_to_light[pair_index].sortByPosition();
         preprocessed_pair_spectra.spectra_common_peaks[pair_index].sortByPosition();
         preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].sortByPosition();
 
