@@ -37,6 +37,8 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 
+#include <fstream>
+
 namespace OpenMS
 {
 
@@ -124,8 +126,18 @@ public:
 protected:
     virtual void updateMembers_();
 
+    void writeLog_(const String& text) const;
+
+    void writeDebug_(const String& text, const Size min_level) const;
+
+    /// Output stream for log/debug info
+    String log_file_;
+    mutable std::ofstream log_;
+    /// debug flag
+    bool debug_;
+
     String decoy_string_;
-    String prefix_;
+    bool prefix_;
     String missing_decoy_action_;
     String enzyme_name_;
     String enzyme_specificity_;
@@ -138,7 +150,8 @@ protected:
     bool IL_equivalent_;
 
     Size aaa_max_;
-    Size mismatches_max_;
+    UInt mismatches_max_;
+    bool filter_aaa_proteins_;
 
   };
 }
