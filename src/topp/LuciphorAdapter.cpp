@@ -102,7 +102,7 @@ public:
     TOPPBase("LuciphorAdapter", "Modification site localisation using LuciPHOr2.", true),
     // parameter choices (the order of the values must be the same as in the LuciPHOr2 parameters!):
     fragment_methods_(ListUtils::create<String>("CID,HCD")),
-    fragment_error_units_(ListUtils::create<String>("Daltons,ppm")),
+    fragment_error_units_(ListUtils::create<String>("Da,ppm")),
     score_selection_method_(ListUtils::create<String>("Peptide Prophet probability,Mascot Ion Score,-log(E-value),X!Tandem Hyperscore,Sequest Xcorr"))
   {
   }
@@ -114,11 +114,9 @@ protected:
     int scan_nr;
     int scan_idx;
     int charge;
-    AASequence peptide;
-    AASequence predicted_pep;
+    String predicted_pep;
     double delta_score;
     double predicted_pep_score;
-    double origin_score;
     
     LuciphorPSM() {}
   };
@@ -142,7 +140,7 @@ protected:
     registerStringOption_("fragment_method", "<choice>", fragment_methods_[0], "Fragmentation method", false);
     setValidStrings_("fragment_method", fragment_methods_);
     
-    registerDoubleOption_("fragment_mass_tol", "<value>", 0.5, "Tolerance of the peaks in the fragment spectrum", false);
+    registerDoubleOption_("fragment_mass_tolerance", "<value>", 0.5, "Tolerance of the peaks in the fragment spectrum", false);
     registerStringOption_("fragment_error_units", "<choice>", fragment_error_units_[0], "Unit of fragment mass tolerance", false);
     setValidStrings_("fragment_error_units", fragment_error_units_);
 
@@ -195,7 +193,7 @@ protected:
     return String(residue +  " " + mod.getDiffMonoMass());    
   }
  
-  ExitCodes parseParameters_(map<String, vector<String> >& config_map, const String& id, const String& in, const String& out)
+  ExitCodes parseParameters_(map<String, vector<String> >& config_map, const String& id, const String& in, const String& out, const vector<String>& target_mods)
   {
     FileHandler fh;
     
@@ -207,7 +205,7 @@ protected:
     config_map["INPUT_TYPE"].push_back(0);
     
     config_map["ALGORITHM"].push_back(ListUtils::getIndex<String>(fragment_methods_, getStringOption_("fragment_method")));
-    config_map["MS2_TOL"].push_back(getDoubleOption_("fragment_mass_tol"));
+    config_map["MS2_TOL"].push_back(getDoubleOption_("fragment_mass_tolerance"));
     config_map["MS2_TOL_UNITS"].push_back(ListUtils::getIndex<String>(fragment_error_units_, getStringOption_("fragment_error_units")));
     config_map["MIN_MZ"].push_back(getDoubleOption_("min_mz"));
     config_map["OUTPUT_FILE"].push_back(out);
@@ -221,14 +219,6 @@ protected:
     config_map["MIN_NUM_PSMS_MODEL"].push_back(getIntOption_("min_num_psms_model"));
     config_map["NUM_THREADS"].push_back(getIntOption_("num_threads"));
     config_map["RUN_MODE"].push_back(getStringOption_("run_mode"));
-    
-    // list values
-    vector<String> target_mods = getStringList_("target_modifications");
-    if (target_mods.empty())
-    {
-      writeLog_("Error: No target modification existing.");
-      return ILLEGAL_PARAMETERS;
-    }
     
     for (vector<String>::const_iterator it = target_mods.begin(); it != target_mods.end(); ++it)
     {
@@ -311,87 +301,44 @@ protected:
     return l_psm;
   }
   
-  ExitCodes getModificationParams_(const ProteinIdentification::SearchParameters& search_params, map<String, String>& modifications)
+  ExitCodes convertTargetModification_(const vector<String>& target_mods, map<String, String>& modifications)
   {
     modifications.clear();
-    vector<String> mods(search_params.fixed_modifications);
-    mods.insert(mods.end(), search_params.variable_modifications.begin(), search_params.variable_modifications.end());
-    
-    if (!mods.empty())
+    for (vector<String>::const_iterator it = target_mods.begin(); it !=target_mods.end(); ++it)
     {
-      for (vector<String>::iterator it = mods.begin(); it != mods.end(); ++it)
+      String mod_param_value = *it;
+      String mod;
+      
+      vector<String> parts;
+      mod_param_value.split(' ', parts);
+      if (parts.size() != 2)
       {
-        String mod_param_value = *it;
-        String mod;
+        writeLog_("Error: cannot parse modification '" + mod_param_value + "'");
+        return PARSE_ERROR;
+      }
+      else
+      {
+        mod = parts[0];
+        String AAs = parts[1];
         
-        vector<String> parts;
-        mod_param_value.split(' ', parts);
-        if (parts.size() != 2)
+        // LuciPHOr2 discards C-term and N-term modifications in the sequence. The modifications must be added based on the original sequence.
+        if (!AAs.hasPrefix("(C-term") && !AAs.hasPrefix("(N-term"))
         {
-          writeLog_("Error: cannot parse modification '" + mod_param_value + "'");
-          return PARSE_ERROR;
-        }
-        else
-        {
-          mod = parts[0];
-          String AAs = parts[1];
-          
-          // LuciPHOr2 discards C-term and N-term modifications in the sequence. The modifications must be added based on the original sequence.
-          if (!AAs.hasPrefix("(C-term") && !AAs.hasPrefix("(N-term"))
+          AAs.remove(')');
+          AAs.remove('(');
+          // because origin can be e.g. (STY)
+          for (String::iterator aa = AAs.begin(); aa != AAs.end(); ++aa)
           {
-            AAs.remove(')');
-            AAs.remove('(');
-            // because origin can be e.g. (STY)
-            for (String::iterator aa = AAs.begin(); aa != AAs.end(); ++aa)
-            {
-              modifications[*aa] = mod;
-            }
-          }          
-        }
+            modifications[*aa] = mod;
+            std::cout << "AA: " << *aa << ", Mod: " << mod << std::endl;
+          }
+        }          
       }
     }
     return EXECUTION_OK;
   }
   
-  // explicit parsing necessary, because of inner brackets (e.g. (AEC-MAEC:2H(4))
-  String replaceLowerCaseSite_(const String& seq, const String& aa_site, const String& aa_with_mod)
-  {
-    int open_brac = 0;
-    int close_brac = 0;
-    String conv_seq;
-    
-    for (String::const_iterator it = seq.begin(); it != seq.end(); ++it)
-    {
-      String aa = *it;
-      if (aa == "(")
-      {
-        ++open_brac;
-      }
-      else if (aa == ")")
-      {
-        ++close_brac;
-      }
-      else if ((aa == aa_site) && (open_brac == close_brac))
-      {
-        aa = aa_with_mod;
-      }
-      conv_seq += aa;
-    }
-    return conv_seq;
-  }
-  
-  String convertLuciphorSeq_(const String& seq, const map<String, String>& modifications)
-  {
-    String conv_seq(seq);
-    for (map<String, String>::const_iterator mod = modifications.begin(); mod != modifications.end(); ++mod)
-    {
-      String aa = mod->first;
-      conv_seq = replaceLowerCaseSite_(conv_seq, aa.toLower(), aa.toUpper() + "(" + mod->second + ")");
-    }
-    return conv_seq;
-  }
-  
-  String parseLuciphorOutput_(const String& l_out, map<int, LuciphorPSM>& l_psms, const SpectrumLookup& lookup, const map<String, String>& modifications)
+  String parseLuciphorOutput_(const String& l_out, map<int, LuciphorPSM>& l_psms, const SpectrumLookup& lookup)
   {
     CsvFile tsvfile(l_out, '\t');
     String spec_id = "";
@@ -406,12 +353,9 @@ protected:
       }
       
       spec_id = elements[0];
-      struct LuciphorPSM l_psm = splitSpecId_(spec_id);
-      
+      struct LuciphorPSM l_psm = splitSpecId_(spec_id);      
       l_psm.scan_idx = lookup.findByScanNumber(l_psm.scan_nr);
-      l_psm.peptide = AASequence::fromString(convertLuciphorSeq_(elements[1], modifications));
-      l_psm.predicted_pep = AASequence::fromString(convertLuciphorSeq_(elements[2], modifications));
-      l_psm.origin_score = elements[6].toDouble();
+      l_psm.predicted_pep = elements[2];
       l_psm.delta_score = elements[7].toDouble();
       l_psm.predicted_pep_score = elements[8].toDouble();
       
@@ -425,6 +369,77 @@ protected:
     
     String msg = "Spectrum could not be parsed";
     throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, spec_id, msg);
+  }
+  
+  // remove all modifications which are LuciPHOr2 target modifications,
+  // because for these LuciPHOr2 could predict a different position.
+  AASequence removeLuciphorTargetMods_(const AASequence& original_seq, const map<String, String>& target_mods_conv)
+  {
+    if (!original_seq.isModified()) {
+      return original_seq;
+    }
+    
+    AASequence seq_converted = AASequence::fromString(original_seq.toUnmodifiedString());
+    
+    // set C-term/N-term modification
+    if (original_seq.hasNTerminalModification())
+    {
+      seq_converted.setNTerminalModification(original_seq.getNTerminalModification());
+    }
+    if (original_seq.hasCTerminalModification())
+    {
+      seq_converted.setCTerminalModification(original_seq.getCTerminalModification());
+    }
+    
+    // set all modifications, which were not changed by LuciPHOr2
+    for (Size i = 0; i < original_seq.size(); ++i)
+    {
+      if (original_seq.getResidue(i).isModified())
+      {
+        String mod = original_seq.getResidue(i).getModification();
+        
+        // no target modification, modification can be set
+        bool found = false;
+        for (map<String, String>::const_iterator iter = target_mods_conv.begin(); iter != target_mods_conv.end() && !found; ++iter)
+        {
+          if (mod == iter->second)
+          {
+            found = true;
+          }
+        }
+        if (!found)
+        {
+          seq_converted.setModification(i, mod);
+        }
+      }
+    }
+    return seq_converted;    
+  }
+  
+  // set modifications changed by LuciPHOr2
+  ExitCodes setLuciphorTargetMods_(AASequence& seq, String seq_luciphor, const map<String, String>& target_mods_conv)
+  {
+    for (Size i = 0; i < seq_luciphor.length(); ++i)
+    {
+      char aa = seq_luciphor[i];
+      if (std::islower(aa))
+      {
+        map<String, String>::const_iterator iter = target_mods_conv.find(String(aa).toUpper());
+        if (iter != target_mods_conv.end())
+        {
+          if (seq.getResidue(i).isModified())
+          {
+            writeLog_("Error: ambiguous modifications on AA '" + iter->first + "' (" + seq.getResidue(i).getModification() + ", " + iter->second + ")");
+            return PARSE_ERROR;
+          }
+          else 
+          {
+            seq.setModification(i, iter->second);
+          }
+        }
+      }
+    }
+    return EXECUTION_OK;
   }
   
   void addScoreToMetaValues_(PeptideHit& hit, const String score_type)
@@ -497,9 +512,16 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
     
+    vector<String> target_mods = getStringList_("target_modifications");
+    if (target_mods.empty())
+    {
+      writeLog_("Error: No target modification existing.");
+      return ILLEGAL_PARAMETERS;
+    }
+    
     // initialize map
     map<String, vector<String> > config_map;
-    ExitCodes ret = parseParameters_(config_map, id, in, out);
+    ExitCodes ret = parseParameters_(config_map, id, in, out, target_mods);
     if (ret != EXECUTION_OK)
     {
       return ret;
@@ -541,22 +563,13 @@ protected:
     exp.sortSpectra(true);
     
     SpectrumLookup lookup;
+    lookup.rt_tolerance = 0.05;
     lookup.readSpectra(exp.getSpectra());
       
     map<int, LuciphorPSM> l_psms;    
     ProteinIdentification::SearchParameters search_params;
-    map<String, String> modifications;    
-    if (!prot_ids.empty())
-    {
-      search_params = prot_ids.begin()->getSearchParameters();
-      ret = getModificationParams_(search_params, modifications);
-      if (ret != EXECUTION_OK)
-      {
-        return ret;
-      }
-    }
     
-    String error = parseLuciphorOutput_(out, l_psms, lookup, modifications);
+    String error = parseLuciphorOutput_(out, l_psms, lookup);
     if (error != "")
     {
       error = "Error: LuciPHOr2 output is not correctly formated. " + error;
@@ -568,6 +581,12 @@ protected:
     // writing output - merge LuciPHOr2 result to idXML
     //-------------------------------------------------------------
     vector<PeptideIdentification> pep_out;
+    map<String, String> target_mods_conv;
+    ret = convertTargetModification_(target_mods, target_mods_conv);
+    if (ret != EXECUTION_OK)
+    {
+      return ret;
+    }
     
     for (vector<PeptideIdentification>::iterator pep_id = pep_ids.begin(); pep_id != pep_ids.end(); ++pep_id)
     {
@@ -584,19 +603,17 @@ protected:
         {
           l_psm = l_psms.at(scan_idx);
           AASequence original_seq = scored_hit.getSequence();
-          if (original_seq.hasNTerminalModification())
-          {
-            l_psm.predicted_pep.setNTerminalModification(original_seq.getNTerminalModification());
-          }
-          if (original_seq.hasCTerminalModification())
-          {
-            l_psm.predicted_pep.setCTerminalModification(original_seq.getCTerminalModification());
-          }
           
+          AASequence predicted_seq = removeLuciphorTargetMods_(original_seq, target_mods_conv);          
+          ret = setLuciphorTargetMods_(predicted_seq, l_psm.predicted_pep, target_mods_conv);
+          if (ret != EXECUTION_OK)
+          {
+            return ret;
+          }
           scored_hit.setMetaValue("search_engine_sequence", scored_hit.getSequence().toString());
           scored_hit.setMetaValue("Luciphor_pep_score", l_psm.predicted_pep_score);
           scored_hit.setScore(l_psm.delta_score);
-          scored_hit.setSequence(l_psm.predicted_pep);          
+          scored_hit.setSequence(predicted_seq);
         }
         else
         {
@@ -616,7 +633,7 @@ protected:
       new_pep_id.setHits(scored_peptides);
       new_pep_id.assignRanks();
       pep_out.push_back(new_pep_id);
-    }    
+    }
     IdXMLFile().store(out, prot_ids, pep_out);
 
     removeTempDir_(temp_dir);
