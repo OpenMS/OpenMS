@@ -30,7 +30,7 @@
 			<ProteinHit id="PH_2" accession="" score="0" sequence="" >
 				<UserParam type="string" name="isDecoy" value="false"/>
 			</ProteinHit>
-			<UserParam type="string" name="spectra_data" value="/home/lars/Desktop/tests/THIRDPARTY/spectra.mzML"/>
+			<UserParam type="stringList" name="spectra_data" value="[/home/lars/Desktop/tests/THIRDPARTY/spectra.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="SpecEValue" higher_score_better="false" significance_threshold="0" MZ="1063.20983886719" RT="4587.6689453125" spectrum_reference="spectrum=1" >
 			<PeptideHit score="3.864406e-26" sequence="IALSRPNVEVVALNDPFITNDYAAYM(Oxidation)FK" charge="3" aa_before="-" aa_after="E" protein_refs="PH_1" >
