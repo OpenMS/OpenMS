@@ -1351,7 +1351,10 @@ protected:
         const double& s1_mz = s1[i].getMZ();
 //        cout << "Search peak: " << s1_mz << "\t with Intensity: " << s1[i].getIntensity() << endl;
         RichPeakSpectrum peaks = getToleranceWindowPeaks(s2, s1_mz, tolerance, relative_tolerance);
-//        cout << "NOP: " << peaks.size() << endl;
+        if (peaks.size() > 1)
+        {
+          cout << "SpectrumIntensityMatch: Peaks in tolerance window: " << peaks.size() << endl;
+        }
 
         if (peaks.size() > 0)
         {
@@ -2147,22 +2150,22 @@ protected:
 
         vector< CrossLinkSpectrumMatch > top_csms_spectrum;
 
-        vector< double > top_preScore;
-        vector< double > top_TIC;
-        vector< double > top_wTIC;
-        vector< double > top_intSum;
-        vector< double > top_matchOdds;
-        vector< vector< double > > top_xcorrx;
-        vector< double > top_xcorrx_max;
-        vector< vector< double > > top_xcorrc;
-        vector< double > top_xcorrc_max;
-        vector< double > top_score;
-        vector< TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink > top_candidate_data;
-        vector< Size > top_matched_spec_common_alpha;
-        vector< Size > top_matched_spec_common_beta;
-        vector< Size > top_matched_spec_xlink_alpha;
-        vector< Size > top_matched_spec_xlink_beta;
-        vector< Size > top_index;
+//        vector< double > top_preScore;
+//        vector< double > top_TIC;
+//        vector< double > top_wTIC;
+//        vector< double > top_intSum;
+//        vector< double > top_matchOdds;
+//        vector< vector< double > > top_xcorrx;
+//        vector< double > top_xcorrx_max;
+//        vector< vector< double > > top_xcorrc;
+//        vector< double > top_xcorrc_max;
+//        vector< double > top_score;
+//        vector< TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink > top_candidate_data;
+//        vector< Size > top_matched_spec_common_alpha;
+//        vector< Size > top_matched_spec_common_beta;
+//        vector< Size > top_matched_spec_xlink_alpha;
+//        vector< Size > top_matched_spec_xlink_beta;
+//        vector< Size > top_index;
 
         if(common_peaks.size() > 0 || preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].size() > 0) // TODO: check if this is done in xQuest?
         {
@@ -2322,22 +2325,22 @@ protected:
           // lists for one spectrum, to determine best match to the spectrum
           vector< CrossLinkSpectrumMatch > all_csms_spectrum;
 
-          vector< double > candidate_preScore;
-          vector< double > candidate_TIC;
-          vector< double > candidate_wTIC;
-          vector< double > candidate_intSum;
-          vector< double > candidate_matchOdds;
-          vector< vector< double > > candidate_xcorrx;
-          vector< double > candidate_xcorrx_max;
-          vector< vector< double > > candidate_xcorrc;
-          vector< double > candidate_xcorrc_max;
-          vector< double > candidate_score;
-          vector< TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink > candidate_data;
-          vector< Size > candidate_matched_spec_common_alpha;
-          vector< Size > candidate_matched_spec_common_beta;
-          vector< Size > candidate_matched_spec_xlink_alpha;
-          vector< Size > candidate_matched_spec_xlink_beta;
-          vector< Size > candidate_index;
+//          vector< double > candidate_preScore;
+//          vector< double > candidate_TIC;
+//          vector< double > candidate_wTIC;
+//          vector< double > candidate_intSum;
+//          vector< double > candidate_matchOdds;
+//          vector< vector< double > > candidate_xcorrx;
+//          vector< double > candidate_xcorrx_max;
+//          vector< vector< double > > candidate_xcorrc;
+//          vector< double > candidate_xcorrc_max;
+//          vector< double > candidate_score;
+//          vector< TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink > candidate_data;
+//          vector< Size > candidate_matched_spec_common_alpha;
+//          vector< Size > candidate_matched_spec_common_beta;
+//          vector< Size > candidate_matched_spec_xlink_alpha;
+//          vector< Size > candidate_matched_spec_xlink_beta;
+//          vector< Size > candidate_index;
 
           // TODO variables for benchmarking and testing purposes
           if (cross_link_candidates.size() > maxMatchCount) maxMatchCount = cross_link_candidates.size();
@@ -2550,8 +2553,11 @@ protected:
                   // xCorr parameters: spec1, spec2, max_shift, binsize
                   vector< double > xcorrx = xCorrelation(spectrum_light, theoretical_spec_xlinks, 5, 0.3);
                   vector< double > xcorrc = xCorrelation(spectrum_light, theoretical_spec_common, 5, 0.2);
-                  double xcorrx_max = *max_element(xcorrx.begin(), xcorrx.end());
-                  double xcorrc_max = *max_element(xcorrc.begin(), xcorrc.end());
+                  vector< double > aucorr = xCorrelation(spectrum_light, spectrum_light, 1, 0.2);
+                  double xcorrx_max = accumulate(xcorrx.begin(), xcorrx.end(), 0.0) / accumulate(aucorr.begin(), aucorr.end(), 0.0);
+                  double xcorrc_max = accumulate(xcorrc.begin(), xcorrc.end(), 0.0) / accumulate(aucorr.begin(), aucorr.end(), 0.0);
+//                  double xcorrx_max = *max_element(xcorrx.begin(), xcorrx.end());
+//                  double xcorrc_max = *max_element(xcorrc.begin(), xcorrc.end());
                   //cout << "XLink Cross correlation score: " << xcorrx_max << "\t Common Cross correlation score: " << xcorrc_max << endl;
                   if (xcorrx_max > xcorrxMax) xcorrxMax = xcorrx_max;
                   if (xcorrc_max > xcorrcMax) xcorrcMax = xcorrc_max;
@@ -2561,7 +2567,7 @@ protected:
                   double xcorrc_weight = 21.279;
                   double match_odds_weight = 1.973;
                   double wTIC_weight = 12.829;
-                  double intsum_weight = 18;
+                  double intsum_weight = 1.8;
 
                   double score = xcorrx_weight * xcorrx_max + xcorrc_weight * xcorrc_max + match_odds_weight * match_odds + wTIC_weight * wTIC + intsum_weight * matched_current;
 
@@ -2571,9 +2577,9 @@ protected:
                   csm.wTIC = wTIC;
                   csm.int_sum = matched_current;
                   csm.match_odds = match_odds;
-                  csm.xcorrx = xcorrx;
+//                  csm.xcorrx = xcorrx;
                   csm.xcorrx_max = xcorrx_max;
-                  csm.xcorrc = xcorrc;
+//                  csm.xcorrc = xcorrc;
                   csm.xcorrc_max = xcorrc_max;
                   csm.matched_common_alpha = matched_spec_alpha.size();
                   csm.matched_common_beta = matched_spec_beta.size();
@@ -2583,22 +2589,22 @@ protected:
                   csm.scan_index_heavy = scan_index_heavy;
                   all_csms_spectrum.push_back(csm);
 
-                  candidate_preScore.push_back(pre_score);
-                  candidate_TIC.push_back(TIC);
-                  candidate_wTIC.push_back(wTIC);
-                  candidate_intSum.push_back(matched_current);
-                  candidate_matchOdds.push_back(match_odds);
-                  candidate_xcorrx.push_back(xcorrx);
-                  candidate_xcorrx_max.push_back((xcorrx_max));
-                  candidate_xcorrc.push_back(xcorrc);
-                  candidate_xcorrc_max.push_back((xcorrc_max));
-                  candidate_score.push_back(score);
-                  candidate_data.push_back(cross_link_candidate);
-                  candidate_matched_spec_common_alpha.push_back(matched_spec_alpha.size());
-                  candidate_matched_spec_common_beta.push_back(matched_spec_beta.size());
-                  candidate_matched_spec_xlink_alpha.push_back(matched_spec_xlinks_alpha.size());
-                  candidate_matched_spec_xlink_beta.push_back(matched_spec_xlinks_beta.size());
-                  candidate_index.push_back(scan_index);
+//                  candidate_preScore.push_back(pre_score);
+//                  candidate_TIC.push_back(TIC);
+//                  candidate_wTIC.push_back(wTIC);
+//                  candidate_intSum.push_back(matched_current);
+//                  candidate_matchOdds.push_back(match_odds);
+//                  candidate_xcorrx.push_back(xcorrx);
+//                  candidate_xcorrx_max.push_back((xcorrx_max));
+//                  candidate_xcorrc.push_back(xcorrc);
+//                  candidate_xcorrc_max.push_back((xcorrc_max));
+//                  candidate_score.push_back(score);
+//                  candidate_data.push_back(cross_link_candidate);
+//                  candidate_matched_spec_common_alpha.push_back(matched_spec_alpha.size());
+//                  candidate_matched_spec_common_beta.push_back(matched_spec_beta.size());
+//                  candidate_matched_spec_xlink_alpha.push_back(matched_spec_xlinks_alpha.size());
+//                  candidate_matched_spec_xlink_beta.push_back(matched_spec_xlinks_beta.size());
+//                  candidate_index.push_back(scan_index);
 
                   //cout << "Next candidate: " << endl;
               }
@@ -2618,59 +2624,64 @@ protected:
 //              cout << "Max_position_vectors: " << max_position << endl;
 
               all_csms_spectrum[max_position].rank = top;
-              cout << "all_csms_spectrum[max] score: " << all_csms_spectrum[max_position].score << endl;
+//              cout << "all_csms_spectrum[max] score: " << all_csms_spectrum[max_position].score << endl;
               top_csms_spectrum.push_back(all_csms_spectrum[max_position]);
               all_csms_spectrum.erase(all_csms_spectrum.begin() + max_position);
 
-              top_preScore.push_back(candidate_preScore[max_position]);
-              top_TIC.push_back(candidate_TIC[max_position]);
-              top_wTIC.push_back(candidate_wTIC[max_position]);
-              top_intSum.push_back(candidate_intSum[max_position]);
-              top_matchOdds.push_back(candidate_matchOdds[max_position]);
-              top_xcorrx.push_back(candidate_xcorrx[max_position]);
-              top_xcorrx_max.push_back(candidate_xcorrx_max[max_position]);
-              top_xcorrc.push_back(candidate_xcorrc[max_position]);
-              top_xcorrc_max.push_back(candidate_xcorrc_max[max_position]);
-              top_score.push_back(candidate_score[max_position]);
-              top_candidate_data.push_back(candidate_data[max_position]);
-              top_matched_spec_common_alpha.push_back(candidate_matched_spec_common_alpha[max_position]);
-              top_matched_spec_common_beta.push_back(candidate_matched_spec_common_beta[max_position]);
-              top_matched_spec_xlink_alpha.push_back(candidate_matched_spec_xlink_alpha[max_position]);
-              top_matched_spec_xlink_beta.push_back(candidate_matched_spec_xlink_beta[max_position]);
-              top_index.push_back(candidate_index[max_position]);
+              cout << "Score: " << all_csms_spectrum[max_position].score << "\t wTIC: " << all_csms_spectrum[max_position].wTIC << "\t xcorrx: " << all_csms_spectrum[max_position].xcorrx_max
+                      << "\t xcorrc: " << all_csms_spectrum[max_position].xcorrc_max << "\t match-odds: " << all_csms_spectrum[max_position].match_odds << "\t Intsum: " << all_csms_spectrum[max_position].int_sum << endl;
+              cout << "Matched ions calpha , cbeta , xalpha , xbeta" << all_csms_spectrum[max_position].matched_common_alpha << "\t" << all_csms_spectrum[max_position].matched_common_beta
+                      << "\t" << all_csms_spectrum[max_position].matched_xlink_alpha <<  "\t" << all_csms_spectrum[max_position].matched_xlink_beta << endl;
 
-              candidate_preScore.erase(candidate_preScore.begin() + max_position);
-              candidate_TIC.erase(candidate_TIC.begin() + max_position);
-              candidate_wTIC.erase(candidate_wTIC.begin() + max_position);
-              candidate_intSum.erase(candidate_intSum.begin() + max_position);
-              candidate_matchOdds.erase(candidate_matchOdds.begin() + max_position);
-              candidate_xcorrx.erase(candidate_xcorrx.begin() + max_position);
-              candidate_xcorrx_max.erase(candidate_xcorrx_max.begin() + max_position);
-              candidate_xcorrc.erase(candidate_xcorrc.begin() + max_position);
-              candidate_xcorrc_max.erase(candidate_xcorrc_max.begin() + max_position);
-              candidate_score.erase(candidate_score.begin() + max_position);
-              candidate_data.erase(candidate_data.begin() + max_position);
-              candidate_matched_spec_common_alpha.erase(candidate_matched_spec_common_alpha.begin() + max_position);
-              candidate_matched_spec_common_beta.erase(candidate_matched_spec_common_beta.begin() + max_position);
-              candidate_matched_spec_xlink_alpha.erase(candidate_matched_spec_xlink_alpha.begin() + max_position);
-              candidate_matched_spec_xlink_beta.erase(candidate_matched_spec_xlink_beta.begin() + max_position);
-              candidate_index.erase(candidate_index.begin() + max_position);
+//              top_preScore.push_back(candidate_preScore[max_position]);
+//              top_TIC.push_back(candidate_TIC[max_position]);
+//              top_wTIC.push_back(candidate_wTIC[max_position]);
+//              top_intSum.push_back(candidate_intSum[max_position]);
+//              top_matchOdds.push_back(candidate_matchOdds[max_position]);
+//              top_xcorrx.push_back(candidate_xcorrx[max_position]);
+//              top_xcorrx_max.push_back(candidate_xcorrx_max[max_position]);
+//              top_xcorrc.push_back(candidate_xcorrc[max_position]);
+//              top_xcorrc_max.push_back(candidate_xcorrc_max[max_position]);
+//              top_score.push_back(candidate_score[max_position]);
+//              top_candidate_data.push_back(candidate_data[max_position]);
+//              top_matched_spec_common_alpha.push_back(candidate_matched_spec_common_alpha[max_position]);
+//              top_matched_spec_common_beta.push_back(candidate_matched_spec_common_beta[max_position]);
+//              top_matched_spec_xlink_alpha.push_back(candidate_matched_spec_xlink_alpha[max_position]);
+//              top_matched_spec_xlink_beta.push_back(candidate_matched_spec_xlink_beta[max_position]);
+//              top_index.push_back(candidate_index[max_position]);
+
+//              candidate_preScore.erase(candidate_preScore.begin() + max_position);
+//              candidate_TIC.erase(candidate_TIC.begin() + max_position);
+//              candidate_wTIC.erase(candidate_wTIC.begin() + max_position);
+//              candidate_intSum.erase(candidate_intSum.begin() + max_position);
+//              candidate_matchOdds.erase(candidate_matchOdds.begin() + max_position);
+//              candidate_xcorrx.erase(candidate_xcorrx.begin() + max_position);
+//              candidate_xcorrx_max.erase(candidate_xcorrx_max.begin() + max_position);
+//              candidate_xcorrc.erase(candidate_xcorrc.begin() + max_position);
+//              candidate_xcorrc_max.erase(candidate_xcorrc_max.begin() + max_position);
+//              candidate_score.erase(candidate_score.begin() + max_position);
+//              candidate_data.erase(candidate_data.begin() + max_position);
+//              candidate_matched_spec_common_alpha.erase(candidate_matched_spec_common_alpha.begin() + max_position);
+//              candidate_matched_spec_common_beta.erase(candidate_matched_spec_common_beta.begin() + max_position);
+//              candidate_matched_spec_xlink_alpha.erase(candidate_matched_spec_xlink_alpha.begin() + max_position);
+//              candidate_matched_spec_xlink_beta.erase(candidate_matched_spec_xlink_beta.begin() + max_position);
+//              candidate_index.erase(candidate_index.begin() + max_position);
             }
             all_top_csms.push_back(top_csms_spectrum);
-            if (top_csms_spectrum.size() > 0)
-            {
-              cout << "Spectrum top score (csm):  " << top_csms_spectrum[0].score << "\t" << all_top_csms[all_top_csms.size()-1][0].score << endl;
-            }
+//            if (top_csms_spectrum.size() > 0)
+//            {
+//              cout << "Spectrum top score (csm):  " << top_csms_spectrum[0].score << "\t" << all_top_csms[all_top_csms.size()-1][0].score << endl;
+//            }
 
-            cout << "Spectrum scores: " << top_score << endl;
-            cout << "Spectrum preScores: " << top_preScore << endl;
-            cout << "Spectrum wTICs: " << top_wTIC << endl;
-            cout << "Spectrum xcorrx: " << top_xcorrx_max << endl;
-            cout << "Spectrum xcorrc: " << top_xcorrc_max << endl;
-            cout << "Spectrum match-odds: " << top_matchOdds << endl;
-            cout << "Spectrum Intsum: " << top_intSum << endl;
-            cout << "Spectrum matched ions calpha , cbeta , xalpha , xbeta: " << top_matched_spec_common_alpha << "\t" << top_matched_spec_common_beta <<
-              "\t" << top_matched_spec_xlink_alpha << "\t" << top_matched_spec_xlink_beta << endl;
+//            cout << "Spectrum scores: " << top_score << endl;
+//            cout << "Spectrum preScores: " << top_preScore << endl;
+//            cout << "Spectrum wTICs: " << top_wTIC << endl;
+//            cout << "Spectrum xcorrx: " << top_xcorrx_max << endl;
+//            cout << "Spectrum xcorrc: " << top_xcorrc_max << endl;
+//            cout << "Spectrum match-odds: " << top_matchOdds << endl;
+//            cout << "Spectrum Intsum: " << top_intSum << endl;
+//            cout << "Spectrum matched ions calpha , cbeta , xalpha , xbeta: " << top_matched_spec_common_alpha << "\t" << top_matched_spec_common_beta <<
+//              "\t" << top_matched_spec_xlink_alpha << "\t" << top_matched_spec_xlink_beta << endl;
 
             // Write top 5 hits to file
             for (Size i = 0; i < top_csms_spectrum.size(); ++i)
@@ -2678,11 +2689,11 @@ protected:
               PeptideIdentification peptide_id;
 
               String xltype = "monolink";
-              String structure = top_csms_spectrum[i].cross_link.alpha.toUnmodifiedString();
-              String topology = String("K") + (top_csms_spectrum[i].cross_link.cross_link_position.first+1);
+//              String structure = top_csms_spectrum[i].cross_link.alpha.toUnmodifiedString();
+//              String topology = String("K") + (top_csms_spectrum[i].cross_link.cross_link_position.first+1);
 
               // TODO track or otherwise find out, which kind of mono-link it was (if there are several possibilities for the weigths)
-              double weight = top_csms_spectrum[i].cross_link.alpha.getMonoWeight() + cross_link_mass_mono_link[1];
+//              double weight = top_csms_spectrum[i].cross_link.alpha.getMonoWeight() + cross_link_mass_mono_link[1];
 
               bool is_monolink = (top_csms_spectrum[i].cross_link.cross_link_position.second == -1);
               int alpha_pos = top_csms_spectrum[i].cross_link.cross_link_position.first + 1;
@@ -2691,11 +2702,11 @@ protected:
               if (!is_monolink)
               {
                 xltype = "xlink";
-                structure = top_csms_spectrum[i].cross_link.alpha.toUnmodifiedString() + "-" + top_csms_spectrum[i].cross_link.beta.toUnmodifiedString();
-                topology = String("a") +  alpha_pos + String("-b") + beta_pos;
-                weight = top_csms_spectrum[i].cross_link.alpha.getMonoWeight() + top_csms_spectrum[i].cross_link.beta.getMonoWeight() + cross_link_mass_light;
+//                structure = top_csms_spectrum[i].cross_link.alpha.toUnmodifiedString() + "-" + top_csms_spectrum[i].cross_link.beta.toUnmodifiedString();
+//                topology = String("a") +  alpha_pos + String("-b") + beta_pos;
+//                weight = top_csms_spectrum[i].cross_link.alpha.getMonoWeight() + top_csms_spectrum[i].cross_link.beta.getMonoWeight() + cross_link_mass_light;
               }
-              String id = structure + "-" + topology;
+//              String id = structure + "-" + topology;
 
               vector<PeptideHit> phs;
               PeptideHit ph_alpha, ph_beta;
@@ -2725,10 +2736,10 @@ protected:
 
 //            peptide_id.setMetaValue("xl_relation", ); //TODO: needs CV term
               peptide_id.setHits(phs);
-              cout << "peptide_ids number: " << peptide_ids.size() << endl;
+//              cout << "peptide_ids number: " << peptide_ids.size() << endl;
               peptide_ids.push_back(peptide_id);
               all_top_csms[all_top_csms.size()-1][i].peptide_id_index = peptide_ids.size()-1;
-              all_top_csms[all_top_csms.size()-1][i].peptide_id = &peptide_ids[peptide_ids.size()-1];
+//              all_top_csms[all_top_csms.size()-1][i].peptide_id = &peptide_ids[peptide_ids.size()-1];
 
 //              xml_file << "<search_hit search_hit_rank=\"" << i+1 << "\" id=\"" << id << "\" type=\"" << xltype << "\" structure=\"" << structure << "\" seq1=\"" << top_csms_spectrum[i].cross_link.alpha.toUnmodifiedString() << "\" seq2=\"" << top_csms_spectrum[i].cross_link.beta.toUnmodifiedString()
 //                << "\" prot1=\"" << "TODO" << "\" prot2=\"" << "TODO" << "\" topology=\"" << topology << "\" xlinkposition=\"" << (top_csms_spectrum[i].cross_link.cross_link_position.first+1) << "," << (top_csms_spectrum[i].cross_link.cross_link_position.second+1)
@@ -2749,18 +2760,18 @@ protected:
           }
 //      xml_file << "</spectrum_search>" << endl;
     }
-    for (Size i = 0; i < all_top_csms.size(); ++i)
-    {
-      vector< CrossLinkSpectrumMatch > top5 = all_top_csms[i];
-      cout << "Pair Index: " << i << endl;
-        for (Size k = 0; k < top5.size(); ++k)
-        {
-          cout << "Peptide_index: " << all_top_csms[i][k].peptide_id_index <<  "\t vector pos: " << i << "\t" << k << endl;
-          cout << "Peptide_mz: " << all_top_csms[i][k].peptide_id->getMZ() << endl;
-          cout << "Peptide_index: " << top5[k].peptide_id_index << endl;
-          cout << "Peptide_mz: " << top5[k].peptide_id->getMZ() << endl;
-        }
-    }
+//    for (Size i = 0; i < all_top_csms.size(); ++i)
+//    {
+//      vector< CrossLinkSpectrumMatch > top5 = all_top_csms[i];
+//      cout << "Pair Index: " << i << endl;
+//        for (Size k = 0; k < top5.size(); ++k)
+//        {
+//          cout << "Peptide_index: " << all_top_csms[i][k].peptide_id_index <<  "\t vector pos: " << i << "\t" << k << endl;
+//          cout << "Peptide_mz: " << all_top_csms[i][k].peptide_id->getMZ() << endl;
+//          cout << "Peptide_index: " << top5[k].peptide_id_index << endl;
+//          cout << "Peptide_mz: " << top5[k].peptide_id->getMZ() << endl;
+//        }
+//    }
 
     // end of matching / scoring
     progresslogger.endProgress();
