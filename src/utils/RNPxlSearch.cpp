@@ -281,9 +281,6 @@ protected:
         rm = ModificationsDB::getInstance()->getModification(modification);
       }
       modifications.push_back(rm);
-
-      // attempt to register modified residue in the single thread context (no locking required) and obtain thread safety this way
-      ResidueDB::getInstance()->getModifiedResidue(modification);
     }
 
     return modifications;
@@ -1127,11 +1124,13 @@ private:
               fragment_shift_name = f[1];
             }
 
+            String fragment_ion_name = f[0]; // e.g. y3+
+
             // define which ion names are annotated 
-            if (ion_name.hasPrefix("y"))
+            if (fragment_ion_name.hasPrefix("y"))
             { 
-              Size charge = std::count(ion_name.begin(), ion_name.end(), '+');
-              String ion_nr_string = ion_name;
+              Size charge = std::count(fragment_ion_name.begin(), fragment_ion_name.end(), '+');
+              String ion_nr_string = fragment_ion_name;
               ion_nr_string.substitute("y", "");
               ion_nr_string.substitute("+", "");
               Size ion_number = (Size)ion_nr_string.toInt();
@@ -1145,10 +1144,10 @@ private:
               d.intensity = fragment_intensity;
               shifted_y_ions[ion_number].push_back(d);
             }
-            else if (ion_name.hasPrefix("b"))
+            else if (fragment_ion_name.hasPrefix("b"))
             { 
-              Size charge = std::count(ion_name.begin(), ion_name.end(), '+');
-              String ion_nr_string = ion_name;
+              Size charge = std::count(fragment_ion_name.begin(), fragment_ion_name.end(), '+');
+              String ion_nr_string = fragment_ion_name;
               ion_nr_string.substitute("b", "");
               ion_nr_string.substitute("+", "");
               Size ion_number = (Size)ion_nr_string.toInt();
@@ -1162,10 +1161,10 @@ private:
               d.intensity = fragment_intensity;
               shifted_b_ions[ion_number].push_back(d);
             }
-            else if (ion_name.hasPrefix("a"))
+            else if (fragment_ion_name.hasPrefix("a"))
             { 
-              Size charge = std::count(ion_name.begin(), ion_name.end(), '+');
-              String ion_nr_string = ion_name;
+              Size charge = std::count(fragment_ion_name.begin(), fragment_ion_name.end(), '+');
+              String ion_nr_string = fragment_ion_name;
               ion_nr_string.substitute("a", "");
               ion_nr_string.substitute("+", "");
               Size ion_number = (Size)ion_nr_string.toInt();
@@ -1539,6 +1538,7 @@ private:
       t.split("->", ss);
 
       // sort and normalize precursor adduct name to OpenMS Hill's notation (e.g. "UA-H2O->..." "AU-H2O1")
+      // this is required to determine if the precursor adduct observed matches to a precursor adduct rule
       if (ss.size() == 2) 
       {
         normalizeAdductName_(ss[0]);
@@ -1556,8 +1556,7 @@ private:
         else if (fs.size() == 2)
         {
           formula = EmpiricalFormula(fs[0]);
-          name = fs[1];
-          normalizeAdductName_(name);         
+          name = fs[1];         
         }
         else
         {
@@ -1579,14 +1578,12 @@ private:
         {
           formula = EmpiricalFormula(fs[0]);
           name = fs[1];
-          normalizeAdductName_(name);
         }
         else
         {
           LOG_WARN << "Wrong format of fragment_adduct string: " << t << endl;
           return map<String, set<FragmentAdductDefinition_> >();
         }
- 
       }
       else
       {
