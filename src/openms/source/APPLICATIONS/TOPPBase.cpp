@@ -922,6 +922,13 @@ namespace OpenMS
     throw UnregisteredParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
   }
 
+  void TOPPBase::setValidStrings_(const String& name, const std::string vstrings[], int count)
+  {
+    std::vector<String> vec;
+    vec.assign(vstrings, vstrings + count);
+    setValidStrings_(name, vec);
+  }
+
   void TOPPBase::setValidStrings_(const String& name, const std::vector<String>& strings)
   {
     //check for commas

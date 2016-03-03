@@ -964,6 +964,39 @@ namespace OpenMS
         double value = attributeAsDouble_(attributes, "value");
         current_analysis_result_.sub_scores[name] = value;
       }
+      else if (search_summary_)
+      {
+        String name = attributeAsString_(attributes, "name");
+        if (name == "fragment_bin_tol")
+        {
+          double value = attributeAsDouble_(attributes, "value");
+          params_.fragment_mass_tolerance = value/2.0;
+          params_.fragment_mass_tolerance_ppm = false;
+        }
+        if (name == "peptide_mass_tolerance")
+        {
+          double value = attributeAsDouble_(attributes, "value");
+          params_.precursor_tolerance = value;
+        }
+        // this is quite comet specific, but so is parameter name peptide_mass_units, see comet configuration file documentation
+        if (name == "peptide_mass_units")
+        {
+          int value = attributeAsDouble_(attributes, "value");
+          switch (value) {
+          case 0: // comet value 0 type amu
+              params_.precursor_mass_tolerance_ppm = false;
+              break;
+          case 1: // comet value 1 type mmu
+              params_.precursor_mass_tolerance_ppm = false;
+              break;
+          case 2: // comet value 1 type ppm
+              params_.precursor_mass_tolerance_ppm = true;
+              break;
+          default:
+              break;
+          }
+        }
+      }
       else
       {
         // currently not handled
@@ -1189,6 +1222,7 @@ namespace OpenMS
     }
     else if (element == "search_summary") // parent: "msms_run_summary"
     { // creates a new ProteinIdentification (usually)
+      search_summary_ = true;
       current_base_name_ = "";
       optionalAttributeAsString_(current_base_name_, attributes, "base_name");
       if (!checked_base_name_) // work-around for files exported by Mascot
@@ -1469,6 +1503,7 @@ namespace OpenMS
       date_.setTime(hour, minute, second);
 
       current_proteins_.back()->setSearchParameters(params_);
+      search_summary_ = false;
     }
   }
 

@@ -240,7 +240,7 @@ namespace OpenMS
     }
   }
 
-  void EnzymaticDigestion::digestUnmodifiedString(const StringView sequence, std::vector<StringView>& output, Size min_length) const
+  void EnzymaticDigestion::digestUnmodifiedString(const StringView sequence, std::vector<StringView>& output, Size min_length, Size max_length) const
   {
     // initialization
     output.clear();
@@ -249,10 +249,16 @@ namespace OpenMS
     std::vector<Size> pep_positions = tokenize_(sequence.getString());
     Size count = pep_positions.size();
 
+    // disable max length filter by setting to maximum length
+    if (max_length == 0)
+    {
+      max_length = sequence.size();
+    }
+
     // no cleavage sites? return full string
     if (count == 0) 
     {
-      if (sequence.size() >= min_length)
+      if (sequence.size() >= min_length && sequence.size() <= max_length)
       {
         output.push_back(sequence);
       }
@@ -262,14 +268,15 @@ namespace OpenMS
     for (Size i = 1; i != count; ++i)
     {
       // add if cleavage product larger then min length
-      if (pep_positions[i] - pep_positions[i - 1] >= min_length)
+      Size l = pep_positions[i] - pep_positions[i - 1];
+      if (l >= min_length && l <= max_length)
       {
         output.push_back(sequence.substr(pep_positions[i - 1], pep_positions[i] - 1));
       }
     }
-
-    // add last cleavage product (if it is larger then min length)
-    if (sequence.size() - pep_positions[count - 1] >= min_length)
+    // add last cleavage product (need to add because end is not a cleavage site) if larger then min length
+    Size l = sequence.size() - pep_positions[count - 1];
+    if (l >= min_length && l <= max_length)
     {
       output.push_back(sequence.substr(pep_positions[count - 1], sequence.size() - 1));
     }
@@ -279,19 +286,20 @@ namespace OpenMS
     {
       for (Size j = 1; j < count - i; ++j)
       {
-        if (pep_positions[j + i] - pep_positions[j - 1] >= min_length)
+        Size l = pep_positions[j + i] - pep_positions[j - 1];
+        if (l >= min_length && l <= max_length)
         {
           output.push_back(sequence.substr(pep_positions[j - 1], pep_positions[j + i] - 1));
         }
       }
 
       // add last cleavage product (need to add because end is not a cleavage site)
-      if (sequence.size() - pep_positions[count - i - 1] >= min_length)
+      Size l = sequence.size() - pep_positions[count - i - 1];
+      if (l >= min_length && l <= max_length)
       {
         output.push_back(sequence.substr(pep_positions[count - i - 1], sequence.size() - 1 ));
       }
     }
   }
-
 } //namespace
 

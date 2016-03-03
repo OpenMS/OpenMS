@@ -177,6 +177,7 @@ namespace OpenMS
         {
 
           char intensity_char[40];
+          char intensity_apex_char[40];
           String aggr_Peak_Area = "";
           String aggr_Peak_Apex = "";
           String aggr_Fragment_Annotation = "";
@@ -186,16 +187,17 @@ namespace OpenMS
           for (std::vector<Feature>::iterator sub_it = feature_it->getSubordinates().begin(); sub_it != feature_it->getSubordinates().end(); ++sub_it)
           {
             sprintf(intensity_char, "%f", sub_it->getIntensity());
+            sprintf(intensity_apex_char, "%f", (double)sub_it->getMetaValue("peak_apex_int"));
             if (sub_it->metaValueExists("FeatureLevel") && sub_it->getMetaValue("FeatureLevel") == "MS2")
             {
               aggr_Peak_Area += (String)intensity_char + ";";
-              aggr_Peak_Apex +=  "NA;";
+              aggr_Peak_Apex += (String)intensity_apex_char + ";";
               aggr_Fragment_Annotation += (String)sub_it->getMetaValue("native_id") + ";";
             }
             else if (sub_it->metaValueExists("FeatureLevel") && sub_it->getMetaValue("FeatureLevel") == "MS1")
             {
               aggr_prec_Peak_Area += (String)intensity_char + ";";
-              aggr_prec_Peak_Apex +=  "NA;";
+              aggr_Peak_Apex += (String)intensity_apex_char + ";";
               aggr_prec_Fragment_Annotation += (String)sub_it->getMetaValue("native_id") + ";";
             }
           }

@@ -102,10 +102,10 @@ namespace OpenMS
     //set the intensities of feature_ints to the normalized intensities
     for (Size i = 0; i < number_of_maps; ++i)
     {
-      //we do not want to change the order in feature_ints[i] but normalized_sorted_ints
-      //comes sorted, so we transfer the values in feature_ints[i] into pairs that store
-      //the value and the index in feature_ints[i]. than we sort the vector of pair and as
-      //a result store the indexes of feature_ints[i] in a sorted order in sort_indices.
+      // We do not want to change the order in feature_ints[i] but normalized_sorted_ints
+      // comes sorted, so we transfer the values in feature_ints[i] into pairs that store
+      // the value and the index in feature_ints[i]. Then we sort the vector of pair and as
+      // a result store the indexes of feature_ints[i] in a sorted order in sort_indices.
       std::vector<std::pair<double, UInt> > sort_pairs;
       sort_pairs.reserve(feature_ints[i].size());
       for (Size j = 0; j < feature_ints[i].size(); ++j)
@@ -113,7 +113,8 @@ namespace OpenMS
         sort_pairs.push_back(std::make_pair(feature_ints[i][j], j));
       }
       std::sort(sort_pairs.begin(), sort_pairs.end());
-      vector<Size> sort_indices(sort_pairs.size());
+      vector<Size> sort_indices;
+      sort_indices.reserve(sort_pairs.size());
       for (Size j = 0; j < sort_pairs.size(); ++j)
       {
         sort_indices.push_back(sort_pairs.at(j).second);

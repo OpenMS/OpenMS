@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: David Wojnar $
-// $Authors: David Wojnar, Timo Sachsenberg $
+// $Maintainer: David Wojnar, Petra Gutenbrunner $
+// $Authors: David Wojnar, Timo Sachsenberg, Petra Gutenbrunner $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -245,7 +245,32 @@ protected:
     fragment_mass_tolerance_unit_valid_strings.push_back("Da");
     fragment_mass_tolerance_unit_valid_strings.push_back("ppm");
     registerStringOption_("fragment_mass_unit", "<unit>", "Da", "Unit of fragment mass error", false, false);
-    setValidStrings_("fragment_mass_unit", fragment_mass_tolerance_unit_valid_strings);    
+    setValidStrings_("fragment_mass_unit", fragment_mass_tolerance_unit_valid_strings);  
+
+    registerIntOption_("max_peptide_length", "<num>", 40, "Restrict scoring to peptides with a length shorter than this value", false);
+    setMinInt_("max_peptide_length", 1);
+    
+    registerIntOption_("max_num_perm", "<num>", 16384, "Maximum number of permutations a sequence can have", false);
+    setMinInt_("max_num_perm", 1);
+  }
+  
+  // If the score_type has a different name in the meta_values, it is not possible to find it.
+  // E.g. Percolator_qvalue <-> q-value.
+  // Improvement for the future would be to have unique names for the score_types
+  // LuciphorAdapter uses the same stragety to backup previous scores.
+  void addScoreToMetaValues_(PeptideHit& hit, const String score_type)
+  {
+    if (!hit.metaValueExists(score_type) && !hit.metaValueExists(score_type + "_score"))
+    {
+      if (score_type.hasSubstring("score"))
+      {
+        hit.setMetaValue(score_type, hit.getScore());
+      }
+      else
+      {
+        hit.setMetaValue(score_type + "_score", hit.getScore());
+      }
+    }
   }
 
   ExitCodes main_(int, const char**)
@@ -259,6 +284,8 @@ protected:
     String out(getStringOption_("out"));
     double fragment_mass_tolerance(getDoubleOption_("fragment_mass_tolerance"));
     bool fragment_mass_unit_ppm = getStringOption_("fragment_mass_unit") == "Da" ? false : true;
+    Size max_peptide_len = getIntOption_("max_peptide_length");
+    Size max_num_perm = getIntOption_("max_num_perm");
     
     AScore ascore;
 
@@ -294,11 +321,12 @@ protected:
       for (vector<PeptideHit>::const_iterator hit = pep_id->getHits().begin(); hit < pep_id->getHits().end(); ++hit)
       {
         PeptideHit scored_hit = *hit;
-        PeptideHit phospho_sites = scored_hit;
+        addScoreToMetaValues_(scored_hit, pep_id->getScoreType()); // backup score value
         
         LOG_DEBUG << "starting to compute AScore RT=" << pep_id->getRT() << " SEQUENCE: " << scored_hit.getSequence().toString() << std::endl;
         
-        phospho_sites = ascore.compute(scored_hit, temp, fragment_mass_tolerance, fragment_mass_unit_ppm);
+        PeptideHit phospho_sites = scored_hit;
+        phospho_sites = ascore.compute(scored_hit, temp, fragment_mass_tolerance, fragment_mass_unit_ppm, max_peptide_len, max_num_perm);
         scored_peptides.push_back(phospho_sites);
       }
 
@@ -316,7 +344,6 @@ protected:
     IdXMLFile().store(out, prot_ids, pep_out);
     return EXECUTION_OK;
   }
-
 };
 
 int main(int argc, const char** argv)
