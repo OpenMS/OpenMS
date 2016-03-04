@@ -325,8 +325,7 @@ protected:
         
         LOG_DEBUG << "starting to compute AScore RT=" << pep_id->getRT() << " SEQUENCE: " << scored_hit.getSequence().toString() << std::endl;
         
-        PeptideHit phospho_sites = scored_hit;
-        phospho_sites = ascore.compute(scored_hit, temp, fragment_mass_tolerance, fragment_mass_unit_ppm, max_peptide_len, max_num_perm);
+        PeptideHit phospho_sites = ascore.compute(scored_hit, temp, fragment_mass_tolerance, fragment_mass_unit_ppm, max_peptide_len, max_num_perm);
         scored_peptides.push_back(phospho_sites);
       }
 
