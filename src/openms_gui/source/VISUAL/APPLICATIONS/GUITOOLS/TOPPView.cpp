@@ -48,7 +48,6 @@
 */
 
 //QT
-#include <QtGui/QStyleFactory>
 #include <QtGui/QSplashScreen>
 #include <QMessageBox>
 
@@ -141,20 +140,6 @@ int main(int argc, const char** argv)
   {
     QApplicationTOPP a(argc, const_cast<char**>(argv));
     a.connect(&a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()));
-
-    //set plastique style unless windows / mac style is available
-    if (QStyleFactory::keys().contains("windowsxp", Qt::CaseInsensitive))
-    {
-      a.setStyle("windowsxp");
-    }
-    else if (QStyleFactory::keys().contains("macintosh", Qt::CaseInsensitive))
-    {
-      a.setStyle("macintosh");
-    }
-    else if (QStyleFactory::keys().contains("plastique", Qt::CaseInsensitive))
-    {
-      a.setStyle("plastique");
-    }
 
     TOPPViewBase* mw = new TOPPViewBase();
     a.connect(&a, SIGNAL(fileOpen(QString)), mw, SLOT(loadFile(QString)));
