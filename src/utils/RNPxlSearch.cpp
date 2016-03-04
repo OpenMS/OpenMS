@@ -800,24 +800,25 @@ private:
       }
     }
 
-    #ifdef DEBUG_RNPXLSEARCH
-      for (map<String, vector<FragmentAdductDefinition_> >::const_iterator mit = all_pc_all_feasible_adducts.begin(); mit != all_pc_all_feasible_adducts.end(); ++mit)
+    for (map<String, vector<FragmentAdductDefinition_> >::const_iterator mit = all_pc_all_feasible_adducts.begin(); mit != all_pc_all_feasible_adducts.end(); ++mit)
+    {
+      cout << "Precursor adduct: '" << mit->first << "' and feasible fragment adducts:" << endl;
+      for (vector<FragmentAdductDefinition_>::const_iterator fit = mit->second.begin(); fit != mit->second.end(); ++fit)
       {
-        cout << "Precursor adduct: '" << mit->first << "'" << endl;
-        for (vector<FragmentAdductDefinition_>::const_iterator fit = mit->second.begin(); fit != mit->second.end(); ++fit)
-        {
-          cout << fit->name << "\t" << fit->formula.toString() << endl;
-        }
-      } 
-    #endif
+        cout << fit->name << "\t" << fit->formula.toString() << endl;
+      }
+    } 
 
     return all_pc_all_feasible_adducts;
   }
 
   void postScoreHits_(const PeakMap& exp, vector<vector<AnnotatedHit> >& annotated_hits, Size top_hits, const RNPxlModificationMassesResult& mm, const vector<ResidueModification>& fixed_modifications, const vector<ResidueModification>& variable_modifications, Size max_variable_mods_per_peptide, TheoreticalSpectrumGenerator spectrum_generator, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const map<String, vector<FragmentAdductDefinition_> > & all_feasible_fragment_adducts)
   {
-    // for pscore calculation only
-    vector<vector<Size> > rank_map = PScore::calculateRankMap(exp);
+    assert(exp.size() == annotated_hits.size());
+
+    #ifdef DEBUG_RNPXLSEARCH
+      cout << exp.size() << " : " << annotated_hits.size() << endl;
+    #endif
 
     Param ps = spectrum_generator.getParameters();
     ps.setValue("add_metainfo", "true", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
@@ -884,13 +885,13 @@ private:
 
           RichPeakSpectrum partial_loss_spectrum;
 
-          // generate total loss spectrum
+          // generate total loss spectrum for the fixed and variable modified peptide
           RichPeakSpectrum total_loss_spectrum;
           for (Size z = 1; z <= precursor_charge; ++z)
           {
-            spectrum_generator.addPeaks(total_loss_spectrum, aas, Residue::AIon, z);
-            spectrum_generator.addPeaks(total_loss_spectrum, aas, Residue::BIon, z);
-            spectrum_generator.addPeaks(total_loss_spectrum, aas, Residue::YIon, z);
+            spectrum_generator.addPeaks(total_loss_spectrum, fixed_and_variable_modified_peptide, Residue::AIon, z);
+            spectrum_generator.addPeaks(total_loss_spectrum, fixed_and_variable_modified_peptide, Residue::BIon, z);
+            spectrum_generator.addPeaks(total_loss_spectrum, fixed_and_variable_modified_peptide, Residue::YIon, z);
           }
 
           total_loss_spectrum.sortByPosition();
@@ -983,11 +984,11 @@ private:
             }
 
             // generate all possible shifted ion a,b,y ion peaks by putting a modification on the N or C terminus
-            AASequence c_term_shifted = aas;
+            AASequence c_term_shifted = fixed_and_variable_modified_peptide;
 
             c_term_shifted.setCTerminalModification(fragment_shift_name);
 
-            AASequence n_term_shifted = aas;
+            AASequence n_term_shifted = fixed_and_variable_modified_peptide;
             n_term_shifted.setNTerminalModification(fragment_shift_name);
  
             RichPeakSpectrum shifted_series_peaks;
@@ -1022,7 +1023,7 @@ private:
 
           // first annotate total loss peaks (these give no information where the actual shift occured)
           #ifdef DEBUG_RNPXLSEARCH
-            cout << "Annotating ion (total loss spectrum): " << aas.toString()  << endl;
+            cout << "Annotating ion (total loss spectrum): " << fixed_and_variable_modified_peptide.toString()  << endl;
           #endif
           std::vector<std::pair<Size, Size> > alignment;
           spectrum_aligner.getSpectrumAlignment(alignment, total_loss_spectrum, exp_spectrum);
@@ -1040,7 +1041,7 @@ private:
                 ion_nr_string.substitute("+", "");
                 Size ion_number = (Size)ion_nr_string.toInt();
               #ifdef DEBUG_RNPXLSEARCH
-                const AASequence& peptide_sequence = aas.getSuffix(ion_number);
+                const AASequence& peptide_sequence = fixed_and_variable_modified_peptide.getSuffix(ion_number);
                 cout << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
               #endif
               peak_is_annotated.insert(pair_it->second);                  
@@ -1092,14 +1093,29 @@ private:
             }
           }
 
+          // generate fragment annotation strings for unshifted ions
+          StringList fragment_annotations;
+          String ub = fragmentAnnotationDetailsToString_("b", unshifted_b_ions);
+          if (!ub.empty()) fragment_annotations.push_back(ub);
+          String uy = fragmentAnnotationDetailsToString_("y", unshifted_y_ions);
+          if (!uy.empty()) fragment_annotations.push_back(uy);
+          String ua = fragmentAnnotationDetailsToString_("a", unshifted_a_ions);
+          if (!ua.empty()) fragment_annotations.push_back(ua);
+
+
           vector<double> sites_sum_score(aas.size(), 0);
 
           // loss spectrum to the experimental measured one
           alignment.clear();
+
           spectrum_aligner.getSpectrumAlignment(alignment, partial_loss_spectrum, exp_spectrum);
 
-          if (alignment.empty()) continue;
-          
+          if (alignment.empty()) 
+          {
+            a_it->fragment_annotation_string = ListUtils::concatenate(fragment_annotations, "|");
+            continue;
+          }
+
           set<String> observed_immonium_ions;
 
           for (vector<std::pair<Size, Size> >::const_iterator pair_it = alignment.begin(); pair_it != alignment.end(); ++pair_it)
@@ -1329,13 +1345,6 @@ private:
           a_it->best_localization = best_localization;
           a_it->best_localization_score = best_localization_score;
 
-          StringList fragment_annotations;
-          String ub = fragmentAnnotationDetailsToString_("b", unshifted_b_ions);
-          if (!ub.empty()) fragment_annotations.push_back(ub);
-          String uy = fragmentAnnotationDetailsToString_("y", unshifted_y_ions);
-          if (!uy.empty()) fragment_annotations.push_back(uy);
-          String ua = fragmentAnnotationDetailsToString_("a", unshifted_a_ions);
-          if (!ua.empty()) fragment_annotations.push_back(ua);
           String sb = fragmentAnnotationDetailsToString_("b", shifted_b_ions);
           if (!sb.empty()) fragment_annotations.push_back(sb);
           String sy = fragmentAnnotationDetailsToString_("y", shifted_y_ions);
@@ -1947,7 +1956,7 @@ private:
 
     if (localization)
     {
-      // reload spectra from disc
+      // reload spectra from disc with same settings as before (important to keep same spectrum indices)
       spectra.clear(true);
       f.load(in_mzml, spectra);
       spectra.sortSpectra(true);    
