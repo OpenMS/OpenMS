@@ -558,8 +558,8 @@ add_test("TOPP_FileInfo_12" ${TOPP_BIN_PATH}/FileInfo -in ${DATA_DIR_TOPP}/FileI
 set_tests_properties("TOPP_FileInfo_12" PROPERTIES WILL_FAIL 0) ## this mzML has an index, should succeed
 add_test("TOPP_FileInfo_13" ${TOPP_BIN_PATH}/FileInfo -in ${DATA_DIR_TOPP}/FileInfo_13_input.consensusXML -no_progress) # empty file should not crash
 add_test("TOPP_FileInfo_14" ${TOPP_BIN_PATH}/FileInfo -in ${DATA_DIR_TOPP}/FileInfo_14_input.mzid -v -no_progress -out FileInfo_14.tmp)
-set_tests_properties("TOPP_FileInfo_14_out1" PROPERTIES DEPENDS "TOPP_FileInfo_14")
 add_test("TOPP_FileInfo_14_out1" ${DIFF} -whitelist "File name" -in1 FileInfo_14.tmp -in2 ${DATA_DIR_TOPP}/FileInfo_14_output.txt )
+set_tests_properties("TOPP_FileInfo_14_out1" PROPERTIES DEPENDS "TOPP_FileInfo_14")
 add_test("TOPP_FileInfo_15" ${TOPP_BIN_PATH}/FileInfo -in ${DATA_DIR_TOPP}/FileInfo_15_input.mzid -v -no_progress -out FileInfo_15.tmp)
 add_test("TOPP_FileInfo_15_out1" ${DIFF} -whitelist "File name" "line 327 column 183" -in1 FileInfo_15.tmp -in2 ${DATA_DIR_TOPP}/FileInfo_15_output.txt )
 set_tests_properties("TOPP_FileInfo_15_out1" PROPERTIES DEPENDS "TOPP_FileInfo_15")
