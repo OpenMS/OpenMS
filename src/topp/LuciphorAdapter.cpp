@@ -330,7 +330,6 @@ protected:
           for (String::iterator aa = AAs.begin(); aa != AAs.end(); ++aa)
           {
             modifications[*aa] = mod;
-            std::cout << "AA: " << *aa << ", Mod: " << mod << std::endl;
           }
         }          
       }
