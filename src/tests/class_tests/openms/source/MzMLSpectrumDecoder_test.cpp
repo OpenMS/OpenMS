@@ -411,10 +411,7 @@ START_SECTION(([EXTRA] void domParseSpectrum(std::string& in, OpenMS::Interfaces
   );
 
   OpenMS::Interfaces::SpectrumPtr cptr(new OpenMS::Interfaces::Spectrum);
-  ptr->domParseSpectrum(testString, cptr);
-
-  TEST_EQUAL(cptr->getMZArray()->data.size(), 0)
-  TEST_EQUAL(cptr->getIntensityArray()->data.size(), 0)
+  TEST_EXCEPTION(Exception::ConversionError, ptr->domParseSpectrum(testString, cptr) );
 }
 END_SECTION
 
