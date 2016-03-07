@@ -433,20 +433,19 @@ END_SECTION
 
 START_SECTION((Int toInt() const))
 	String s;
-	s = "123.456";
+	s = "123";
 	TEST_EQUAL(s.toInt(),123);
-	s = "-123.456";
+	s = "-123";
 	TEST_EQUAL(s.toInt(),-123);
-	s = "123.9";
-	TEST_EQUAL(s.toInt(),123);
-	s = "73629.00";
-	TEST_EQUAL(s.toInt(),73629);
-	s = "73629.50";
-	TEST_EQUAL(s.toInt(),73629);
-	s = "73629.99";
-	TEST_EQUAL(s.toInt(),73629);
+  s = "  -123";
+  TEST_EQUAL(s.toInt(),-123);
+  s = "-123  ";
+  TEST_EQUAL(s.toInt(),-123);
+  s = "  -123  ";
+  TEST_EQUAL(s.toInt(),-123);
+  // expect errors:
   s = "524 starts with an int";
-  TEST_EQUAL(s.toInt(), 524)
+  TEST_EXCEPTION(Exception::ConversionError, s.toInt())
   s = "not an int";
   TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, s.toInt(), String("Could not convert string '") + s + "' to an integer value")
   s = "contains an 13135 int";
@@ -467,7 +466,7 @@ START_SECTION((float toFloat() const))
 	TEST_EQUAL(String(s.toFloat()),"73629.9");
 	s = "47218.8";
 	TEST_EQUAL(String(s.toFloat()),"47218.8");
-  s = "nan";
+  s = String("nan");
   TEST_EQUAL(boost::math::isnan(s.toFloat()),true);
   s = "NaN";
   TEST_EQUAL(boost::math::isnan(s.toFloat()),true);

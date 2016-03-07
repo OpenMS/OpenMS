@@ -43,6 +43,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
+#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/IndexedMzMLFile.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
@@ -242,6 +243,11 @@ protected:
       case FileTypes::IDXML:
         os << " against XML schema version " << IdXMLFile().getVersion() << "\n";
         valid = IdXMLFile().isValid(in, os);
+        break;
+
+      case FileTypes::MZIDENTML:
+        os << " against XML schema version " << MzIdentMLFile().getVersion() << "\n";
+        valid = MzIdentMLFile().isValid(in, os);
         break;
 
       case FileTypes::CONSENSUSXML:

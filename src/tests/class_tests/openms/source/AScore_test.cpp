@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer:	David Wojnar $
+// $Maintainer:	Petra Gutenbrunner $
 // $Authors: David Wojnar, Petra Gutenbrunner $
 // --------------------------------------------------------------------------
 
@@ -88,11 +88,6 @@ class AScoreTest : public AScore
     std::vector<RichPeakSpectrum> createTheoreticalSpectraTest_(const std::vector<std::vector<Size> > & permutations, const AASequence & seq_without_phospho) const
     {
       return createTheoreticalSpectra_(permutations, seq_without_phospho);
-    }
-    
-    std::vector<RichPeakSpectrum> createTheoreticalSpectraTest_(const AASequence & seq_without_phospho) const
-    {
-      return createTheoreticalSpectra_(seq_without_phospho);
     }
     
     std::vector<PeakSpectrum> peakPickingPerWindowsInSpectrumTest_(PeakSpectrum & real_spectrum) const
@@ -558,6 +553,51 @@ START_SECTION(computeSiteDeterminingIonsTest_(const std::vector<RichPeakSpectrum
   TEST_REAL_SIMILAR(site_determining_ions[1][site_determining_ions[1].size()-1].getMZ(),917.403)
   TEST_REAL_SIMILAR(site_determining_ions[0][0].getMZ(),290.135)
   TEST_REAL_SIMILAR(site_determining_ions[0][site_determining_ions[0].size()-1].getMZ(),997.37)
+  
+  //=============================================================================
+  
+  //ATPGNLGSSVLMY(Phospho)K; ATPGNLGSS(Phospho)VLMYK
+  th_s.clear();
+  seq = AASequence::fromString("ATPGNLGSSVLMYK");
+  candidates.seq_1 = 0;
+  candidates.seq_2 = 1;
+  candidates.first = 12;
+  candidates.second = 8;
+  
+  p.clear();
+  perm.clear();
+  perm.push_back(candidates.first);
+  p.push_back(perm);
+
+  perm.clear();
+  perm.push_back(candidates.second);
+  p.push_back(perm);
+  
+  th_s = ptr_test->createTheoreticalSpectraTest_(p, seq);
+  
+  ptr_test->computeSiteDeterminingIonsTest_(th_s,candidates,site_determining_ions, fragment_mass_tolerance, fragment_mass_unit_ppm);
+  TEST_EQUAL(site_determining_ions.size(),2)
+  TEST_EQUAL(site_determining_ions[0].size(),8)
+  TEST_EQUAL(site_determining_ions[1].size(),4)
+  
+  TEST_REAL_SIMILAR(site_determining_ions[0][0].getMZ(),390.142)
+  TEST_REAL_SIMILAR(site_determining_ions[0][site_determining_ions[0].size()-1].getMZ(),1128.57 )
+  TEST_REAL_SIMILAR(site_determining_ions[1][0].getMZ(),310.176)
+  TEST_REAL_SIMILAR(site_determining_ions[1][site_determining_ions[1].size()-1].getMZ(),1208.54)
+    
+  candidates.seq_1 = 1;
+  candidates.seq_2 = 0;
+  candidates.first = 8;
+  candidates.second = 12;
+  ptr_test->computeSiteDeterminingIonsTest_(th_s,candidates,site_determining_ions, fragment_mass_tolerance, fragment_mass_unit_ppm);
+  TEST_EQUAL(site_determining_ions.size(),2)
+  TEST_EQUAL(site_determining_ions[0].size(),4)
+  TEST_EQUAL(site_determining_ions[1].size(),8)
+
+  TEST_REAL_SIMILAR(site_determining_ions[1][0].getMZ(),390.142)
+  TEST_REAL_SIMILAR(site_determining_ions[1][site_determining_ions[1].size()-1].getMZ(),1128.57 )
+  TEST_REAL_SIMILAR(site_determining_ions[0][0].getMZ(),310.176)
+  TEST_REAL_SIMILAR(site_determining_ions[0][site_determining_ions[0].size()-1].getMZ(),1208.54)
 }
 END_SECTION
 
@@ -671,7 +711,6 @@ END_SECTION
 // of best peptide
 START_SECTION(calculateCumulativeBinominalProbabilityScore)
 {
-  std::cout << std::endl;
   double fragment_mass_tolerance = 0.5;
   bool fragment_mass_unit_ppm = false;
   
@@ -723,18 +762,6 @@ START_SECTION(std::vector<RichPeakSpectrum> createTheoreticalSpectraTest_(const 
   TEST_REAL_SIMILAR(th_spectra[4][21].getMZ(), 1352.57723);
   
   th_spectra.clear();
-  
-  // create theoretical spectra with phospho event
-  th_spectra = ptr_test->createTheoreticalSpectraTest_(seq_without_phospho);
-  TEST_EQUAL(th_spectra.size(),1);
-  TEST_EQUAL(th_spectra[0].getName(),seq_without_phospho.toString());
-  
-  // without phospho event
-  vector<RichPeakSpectrum> th_spectra2(ptr_test->createTheoreticalSpectraTest_(AASequence::fromString("QSSVTQSK")));
-  TEST_EQUAL(th_spectra2[0].getName(),"QSSVTQSK");
-  TEST_REAL_SIMILAR(th_spectra2[0][2].getMZ(), 234.14543);
-  TEST_REAL_SIMILAR(th_spectra2[0][11].getMZ(), 718.33720);
-  TEST_REAL_SIMILAR(th_spectra2[0][12].getMZ(), 736.38415);
 }
 END_SECTION 
 
@@ -760,7 +787,7 @@ START_SECTION(PeptideHit AScore::compute(const PeptideHit & hit, PeakSpectrum & 
   hit1 = ptr_test->compute(hit1, real_spectrum, fragment_mass_tolerance, fragment_mass_unit_ppm);
   
   // http://ascore.med.harvard.edu/ascore.html result=3.51, sequence=QSSVT*QSK
-  TEST_REAL_SIMILAR(static_cast<double>(hit1.getMetaValue("AScore_1")), 11.099601202339);
+  TEST_REAL_SIMILAR(static_cast<double>(hit1.getMetaValue("AScore_1")), 9.40409359086883);
   TEST_EQUAL(hit1.getSequence().toString(),"QSS(Phospho)VTQSK");
   
   // ===========================================================================
@@ -770,7 +797,7 @@ START_SECTION(PeptideHit AScore::compute(const PeptideHit & hit, PeakSpectrum & 
   hit2 = ptr_test->compute(hit2, real_spectrum, fragment_mass_tolerance, fragment_mass_unit_ppm);
   
   // http://ascore.med.harvard.edu/ascore.html result=21.3
-  TEST_REAL_SIMILAR(static_cast<double>(hit2.getMetaValue("AScore_1")), 22.8513147929718);
+  TEST_REAL_SIMILAR(static_cast<double>(hit2.getMetaValue("AScore_1")), 20.4116482719882);
   TEST_EQUAL(hit2.getSequence().toString(),"RIRLT(Phospho)ATTR");
   
   // ===========================================================================
@@ -794,7 +821,7 @@ START_SECTION(PeptideHit AScore::compute(const PeptideHit & hit, PeakSpectrum & 
   hit4 = ptr_test->compute(hit4, real_spectrum, fragment_mass_tolerance, fragment_mass_unit_ppm);
   
   // http://ascore.med.harvard.edu/ascore.html result=88.3
-  TEST_REAL_SIMILAR(static_cast<double>(hit4.getMetaValue("AScore_1")), 22.3745512581164);
+  TEST_REAL_SIMILAR(static_cast<double>(hit4.getMetaValue("AScore_1")), 20.1669211754322);
   TEST_EQUAL(hit4.getSequence().toString(),"ATPGNLGSSVLHS(Phospho)K");
   
   // ===========================================================================
@@ -809,7 +836,7 @@ START_SECTION(PeptideHit AScore::compute(const PeptideHit & hit, PeakSpectrum & 
   hit5 = ptr_test->compute(hit5, real_spectrum, fragment_mass_tolerance, fragment_mass_unit_ppm);
   
   // http://ascore.med.harvard.edu/ascore.html result=3.51, sequence=QSSVT*QSK
-  TEST_REAL_SIMILAR(static_cast<double>(hit5.getMetaValue("AScore_1")), 11.099601202339);
+  TEST_REAL_SIMILAR(static_cast<double>(hit5.getMetaValue("AScore_1")), 9.40409359086883);
   TEST_EQUAL(hit5.getSequence().toString(),"QSS(Phospho)VTQSK");
   
   fragment_mass_tolerance = 70; // 0.05 Da were converted to ppm based on a small peptide
@@ -821,7 +848,7 @@ START_SECTION(PeptideHit AScore::compute(const PeptideHit & hit, PeakSpectrum & 
   hit6 = ptr_test->compute(hit6, real_spectrum, fragment_mass_tolerance, fragment_mass_unit_ppm);
   
   // http://ascore.med.harvard.edu/ascore.html result=88.3
-  TEST_REAL_SIMILAR(static_cast<double>(hit6.getMetaValue("AScore_1")), 22.3745512581164);
+  TEST_REAL_SIMILAR(static_cast<double>(hit6.getMetaValue("AScore_1")), 20.1669211754322);
   TEST_EQUAL(hit6.getSequence().toString(),"ATPGNLGSSVLHS(Phospho)K");  
 }
 END_SECTION 

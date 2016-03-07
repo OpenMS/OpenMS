@@ -8,6 +8,12 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMe
         ConsensusMapNormalizerAlgorithmMedian() nogil except +
         ConsensusMapNormalizerAlgorithmMedian(ConsensusMapNormalizerAlgorithmMedian) nogil except + #wrap-ignore
 
-        libcpp_vector[double] computeNormalizationFactors(ConsensusMap & input_map) nogil except +
-        void normalizeMaps(ConsensusMap & input_map) nogil except +
+        Size computeMedians(ConsensusMap & input_map, libcpp_vector[double] & medians, const String & acc_filter, const String & desc_filter) nogil except +
+        void normalizeMaps(ConsensusMap & input_map, NormalizationMethod method, const String & acc_filter, const String & desc_filter) nogil except +
+
+cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMedian.h>" namespace "OpenMS::ConsensusMapNormalizerAlgorithmMedian":
+
+    cdef enum NormalizationMethod:
+        NM_SCALE,
+        NM_SHIFT
 

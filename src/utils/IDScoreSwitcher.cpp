@@ -116,10 +116,10 @@ protected:
   }
 
 
-  template <typename IDType, typename HitType>
+  template <typename IDType>
   void switchScores_(IDType& id, Size& counter)
   {
-    for (typename vector<HitType>::iterator hit_it = id.getHits().begin();
+    for (typename vector<typename IDType::HitType>::iterator hit_it = id.getHits().begin();
          hit_it != id.getHits().end(); ++hit_it, ++counter)
     {
       if (!hit_it->metaValueExists(new_score_))
@@ -178,7 +178,7 @@ protected:
       for (vector<ProteinIdentification>::iterator prot_it = proteins.begin();
            prot_it != proteins.end(); ++prot_it)
       {
-        switchScores_<ProteinIdentification, ProteinHit>(*prot_it, counter);
+        switchScores_<ProteinIdentification>(*prot_it, counter);
       }
     }
     else
@@ -186,7 +186,7 @@ protected:
       for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
            pep_it != peptides.end(); ++pep_it)
       {
-        switchScores_<PeptideIdentification, PeptideHit>(*pep_it, counter);
+        switchScores_<PeptideIdentification>(*pep_it, counter);
       }
     }
 
