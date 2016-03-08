@@ -43,7 +43,7 @@ int main(int argc, const char** argv)
   String tutorial_data_path(argv[1]);
 
   InternalCalibration ic;
-  PeakMap exp, exp_calibrated;
+  PeakMap exp;
   MzMLFile mzml_file;
   mzml_file.load(tutorial_data_path + "/data/Tutorial_InternalCalibration.mzML", exp);
 
@@ -51,7 +51,7 @@ int main(int argc, const char** argv)
   ref_masses.push_back(1296.68476942);
   ref_masses.push_back(2465.19833942);
 
-  ic.calibrateMapSpectrumwise(exp, exp_calibrated, ref_masses);
+  ic.calibrateMapSpectrumwise(exp, ref_masses);
 
   return 0;
 } //end of main
