@@ -1119,7 +1119,6 @@ private:
           String ua = fragmentAnnotationDetailsToString_("a", unshifted_a_ions);
           if (!ua.empty()) fragment_annotations.push_back(ua);
 
-
           vector<double> sites_sum_score(aas.size(), 0);
 
           // loss spectrum to the experimental measured one
@@ -1137,7 +1136,7 @@ private:
 
           for (vector<std::pair<Size, Size> >::const_iterator pair_it = alignment.begin(); pair_it != alignment.end(); ++pair_it)
           {
-            // only annotate experimental peak if not annotated as complete loss peak (e.g. b and y ions without shift)
+            // only annotate experimental peaks with shift - i.e. do not annotated complete loss peaks again
             if (peak_is_annotated.find(pair_it->second) != peak_is_annotated.end())
             {
               continue;
@@ -1344,6 +1343,10 @@ private:
 
           for (Size i = 0; i != sites_sum_score.size(); ++i)
           {
+            #ifdef DEBUG_RNPXLSEARCH
+              cout << String::number(100.0 * sites_sum_score[i], 2);
+            #endif
+
             if (i != 0) localization_scores += ' ';
             if (sites_sum_score[i] > 0 )
             {
@@ -1356,6 +1359,9 @@ private:
 
             if (best_localization_score > 0.0 && sites_sum_score[i] >= best_localization_score - 1e-6) best_localization[i] = tolower(best_localization[i]);
           }
+          #ifdef DEBUG_RNPXLSEARCH
+            cout << endl;
+          #endif
 
           // store score of best localization(s)
           a_it->localization_scores = localization_scores;
