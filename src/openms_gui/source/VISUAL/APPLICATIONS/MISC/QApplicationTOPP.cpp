@@ -46,6 +46,7 @@
 #include <QtGui/QApplication>
 #include <QtGui/QStyleFactory>
 #include <QMessageBox>
+#include <QFile>
 #include <QFileOpenEvent>
 
 
