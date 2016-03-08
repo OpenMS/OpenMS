@@ -195,7 +195,7 @@ namespace OpenMS
           size_t pos_trials = 0;
           while (pep_pos < 0 && pos_trials < shuffled_sequence.size())
           {
-            //pep_pos = (pseudoRNG() % shuffled_sequence.size());
+            pseudoRNG(); // TODO: remove debug code
             pep_pos = 5; //TODO: remove debug code
             if (shuffled_sequence.isModified(pep_pos) || (shuffled_sequence.hasNTerminalModification() && pep_pos == 0) || (shuffled_sequence.hasNTerminalModification() && pep_pos == (int)(shuffled_sequence.size() - 1)))
             {
