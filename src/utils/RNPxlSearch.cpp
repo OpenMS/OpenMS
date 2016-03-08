@@ -885,14 +885,18 @@ private:
 
           RichPeakSpectrum partial_loss_spectrum;
 
-          // generate total loss spectrum for the fixed and variable modified peptide
-          RichPeakSpectrum total_loss_spectrum;
+          // generate total loss spectrum for the fixed and variable modified peptide (without RNA)
+          RichPeakSpectrum total_loss_spectrum, a_ions, b_ions, y_ions;
+
           for (Size z = 1; z <= precursor_charge; ++z)
           {
-            spectrum_generator.addPeaks(total_loss_spectrum, fixed_and_variable_modified_peptide, Residue::AIon, z);
-            spectrum_generator.addPeaks(total_loss_spectrum, fixed_and_variable_modified_peptide, Residue::BIon, z);
-            spectrum_generator.addPeaks(total_loss_spectrum, fixed_and_variable_modified_peptide, Residue::YIon, z);
+            spectrum_generator.addPeaks(a_ions, fixed_and_variable_modified_peptide, Residue::AIon, z);
+            spectrum_generator.addPeaks(b_ions, fixed_and_variable_modified_peptide, Residue::BIon, z);
+            spectrum_generator.addPeaks(y_ions, fixed_and_variable_modified_peptide, Residue::YIon, z);
           }
+          total_loss_spectrum.insert(total_loss_spectrum.end(), a_ions.begin(), a_ions.end());
+          total_loss_spectrum.insert(total_loss_spectrum.end(), b_ions.begin(), b_ions.end());
+          total_loss_spectrum.insert(total_loss_spectrum.end(), y_ions.begin(), y_ions.end());
 
           total_loss_spectrum.sortByPosition();
 
@@ -983,20 +987,34 @@ private:
               partial_loss_spectrum.push_back(getAnnotatedImmoniumIon_('M', immonium_ion_mz, fragment_shift_name));
             }
 
-            // generate all possible shifted ion a,b,y ion peaks by putting a modification on the N or C terminus
-            AASequence c_term_shifted = fixed_and_variable_modified_peptide;
-
-            c_term_shifted.setCTerminalModification(fragment_shift_name);
-
-            AASequence n_term_shifted = fixed_and_variable_modified_peptide;
-            n_term_shifted.setNTerminalModification(fragment_shift_name);
+            // generate all possible shifted ion a,b,y ion peaks by putting the RNA adduct on them
+            double shift = ModificationsDB::getInstance()->getTerminalModification(fragment_shift_name, ResidueModification::N_TERM).getDiffMonoMass();
  
             RichPeakSpectrum shifted_series_peaks;
+
             for (Size z = 1; z <= precursor_charge; ++z)
             {
-              spectrum_generator.addPeaks(shifted_series_peaks, n_term_shifted, Residue::AIon, z); // N-term
-              spectrum_generator.addPeaks(shifted_series_peaks, n_term_shifted, Residue::BIon, z); // N-term
-              spectrum_generator.addPeaks(shifted_series_peaks, c_term_shifted, Residue::YIon, z); // C-term
+              RichPeakSpectrum a_ions, b_ions, y_ions;
+              spectrum_generator.addPeaks(a_ions, fixed_and_variable_modified_peptide, Residue::AIon, z);
+              spectrum_generator.addPeaks(b_ions, fixed_and_variable_modified_peptide, Residue::BIon, z);
+              spectrum_generator.addPeaks(y_ions, fixed_and_variable_modified_peptide, Residue::YIon, z);
+
+              for (Size j = 0; j != a_ions.size(); ++j)
+              {
+                a_ions[j].setMZ(a_ions[j].getMZ() + shift / static_cast<double>(z));
+              }
+              for (Size j = 0; j != b_ions.size(); ++j)
+              {
+                b_ions[j].setMZ(b_ions[j].getMZ() + shift / static_cast<double>(z));
+              }
+              for (Size j = 0; j != y_ions.size(); ++j)
+              {
+                y_ions[j].setMZ(y_ions[j].getMZ() + shift / static_cast<double>(z));
+              }
+
+              shifted_series_peaks.insert(shifted_series_peaks.end(), a_ions.begin(), a_ions.end());
+              shifted_series_peaks.insert(shifted_series_peaks.end(), b_ions.begin(), b_ions.end());
+              shifted_series_peaks.insert(shifted_series_peaks.end(), y_ions.begin(), y_ions.end());
             }
 
             // annotate generated a,b,y ions with fragment shift name
@@ -1008,7 +1026,6 @@ private:
             
             // add shifted and annotated ion series to partial loss spectrum
             partial_loss_spectrum.insert(partial_loss_spectrum.end(), shifted_series_peaks.begin(), shifted_series_peaks.end());            
-
           }
 
           partial_loss_spectrum.sortByPosition();
