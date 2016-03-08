@@ -561,7 +561,7 @@ public:
         // start of array in C++ at 0 / in FORTRAN at 1
         // last: index of prev estimated point
         // i: index of current point
-        size_t i(0), last(-1), nleft(0), nright(ns -1)
+        size_t i(0), last(-1), nleft(0), nright(ns -1);
 
         // Fit all data points y[i] until the end of the array
         do
