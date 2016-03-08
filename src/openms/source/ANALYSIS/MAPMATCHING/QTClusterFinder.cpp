@@ -415,10 +415,10 @@ namespace OpenMS
       }
 
       for (ElementMapping::iterator it = tmp_element_mapping.begin(); 
-          it != tmp_element_mapping.end(); it++ )
+          it != tmp_element_mapping.end(); ++it )
       {
         for (std::vector<QTCluster*>::iterator it2 = it->second.begin();
-            it2 != it->second.end(); it2++)
+            it2 != it->second.end(); ++it2)
         {
           element_mapping[ it->first ].push_back(*it2);
         }
@@ -435,7 +435,7 @@ namespace OpenMS
     std::cout << " Compute Clustering: "<< x << " " << y << " with id " << center_feature->getFeature().getUniqueId() << std::endl;
     std::set<AASequence> a = cluster.getAnnotations();
     std::cout << " with annotations: ";
-    for (std::set<AASequence>::iterator it = a.begin(); it != a.end(); it++) std::cout << " " << *it;
+    for (std::set<AASequence>::iterator it = a.begin(); it != a.end(); ++it) std::cout << " " << *it;
     std::cout << std::endl;
 #endif
 
@@ -502,7 +502,7 @@ namespace OpenMS
     {
       std::set<AASequence> a = cluster.getAnnotations();
       std::cout << " FINAL with annotations: ";
-      for (std::set<AASequence>::iterator it = a.begin(); it != a.end(); it++) std::cout << " " << *it;
+      for (std::set<AASequence>::iterator it = a.begin(); it != a.end(); ++it) std::cout << " " << *it;
       std::cout << std::endl;
     }
 #endif
