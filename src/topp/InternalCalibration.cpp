@@ -117,8 +117,10 @@ protected:
     // transformation
     registerInputFile_("ref_peaks", "<file>", "", "Input file containing reference m/z values (either as text file with one m/z per line and no header or as idXML file)", false);
     setValidFormats_("ref_peaks", ListUtils::create<String>("csv,idXML"));
-    registerStringOption_("type", "<calibration type>", "spectrumwise", "The kind of internal calibration that should be applied.", false);
-    setValidStrings_("type", ListUtils::create<String>("spectrumwise,global"));
+    
+       
+    registerStringOption_("scope", "<calibration type>", "spectrum", "The kind of internal calibration that should be applied.", false);
+    setValidStrings_("scope", ListUtils::create<String>("spectrum,global"));
 
     registerOutputFile_("out_trafo", "<file>", "", "Output transformation file (only for global calibration)", false);
     setValidFormats_("out_trafo", ListUtils::create<String>("trafoXML"));
@@ -141,7 +143,7 @@ protected:
     String in = getStringOption_("in");
     String out = getStringOption_("out");
     String ref = getStringOption_("ref_peaks");
-    String type = getStringOption_("type");
+    String scope = getStringOption_("scope");
     String out_trafo = getStringOption_("out_trafo");
     
     //-------------------------------------------------------------
@@ -158,7 +160,7 @@ protected:
     // featureXML input
     if (FileHandler().getTypeByContent(in) == FileTypes::FEATUREXML)
     {
-      if (type == "spectrumwise")
+      if (scope == "spectrum")
       {
         LOG_ERROR << "Can't perform a spectrum-wise calibration on a feature map!" << std::endl;
         return ILLEGAL_PARAMETERS;
@@ -219,7 +221,7 @@ protected:
       {
         ref_masses.push_back(String(iter->c_str()).toDouble());
       }
-      if (type == "spectrumwise") calib.calibrateMapSpectrumwise(ms_exp_raw, ref_masses);
+      if (scope == "spectrum") calib.calibrateMapSpectrumwise(ms_exp_raw, ref_masses);
       else calib.calibrateMapGlobally(ms_exp_raw, ref_masses, out_trafo);
     }
 
