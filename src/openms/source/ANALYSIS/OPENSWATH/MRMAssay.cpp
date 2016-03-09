@@ -347,7 +347,8 @@ namespace OpenMS
 
       TargetedExperiment::Peptide peptide = exp.getPeptides()[i];
       OpenMS::AASequence peptide_sequence = TargetedExperimentHelper::getAASequence(peptide);
-      int precursor_swath = getSwath_(swathes, peptide_sequence.getMonoWeight(Residue::Full, peptide.getChargeState()) / peptide.getChargeState());
+      double precursor_mz = peptide_sequence.getMonoWeight(Residue::Full, peptide.getChargeState()) / peptide.getChargeState();
+      int precursor_swath = getSwath_(swathes, precursor_mz);
 
       // Compute all alternative peptidoforms compatible with ModificationsDB
       std::vector<OpenMS::AASequence> alternative_peptide_sequences = combineModifications_(peptide_sequence);  
@@ -366,6 +367,10 @@ namespace OpenMS
         TargetSequenceMap[precursor_swath][alt_aa->toUnmodifiedString()].insert(alt_aa->toString());
         // Generate theoretical ion series
         MRMIonSeries::IonSeries ionseries = mrmis.getIonSeries(*alt_aa, peptide.getChargeState(), fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses);
+
+        // Add precursor to theoretical transitions
+        TargetIonMap[precursor_swath][alt_aa->toUnmodifiedString()].push_back(std::make_pair(Math::roundDecimal(precursor_mz, round_decPow), alt_aa->toString()));
+        TargetPeptideMap[peptide.id].push_back(std::make_pair("Precursor_i0", Math::roundDecimal(precursor_mz, round_decPow)));
 
         // Iterate over all theoretical transitions
         for (boost::unordered_map<String, double>::iterator im_it = ionseries.begin(); im_it != ionseries.end(); ++im_it)
@@ -461,7 +466,8 @@ namespace OpenMS
       }
 
       OpenMS::AASequence peptide_sequence = TargetedExperimentHelper::getAASequence(peptide);
-      int precursor_swath = getSwath_(swathes, peptide_sequence.getMonoWeight(Residue::Full, peptide.getChargeState()) / peptide.getChargeState());
+      double precursor_mz = peptide_sequence.getMonoWeight(Residue::Full, peptide.getChargeState()) / peptide.getChargeState();
+      int precursor_swath = getSwath_(swathes, precursor_mz);
 
       // Copy properties of target peptide to decoy and get sequence from map
       TargetedExperiment::Peptide decoy_peptide = peptide;
@@ -479,6 +485,10 @@ namespace OpenMS
       {
         // Generate theoretical ion series
         MRMIonSeries::IonSeries ionseries = mrmis.getIonSeries(*alt_aa, decoy_peptide.getChargeState(), fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses);  
+
+        // Add precursor to theoretical transitions
+        DecoyIonMap[precursor_swath][alt_aa->toUnmodifiedString()].push_back(std::make_pair(Math::roundDecimal(precursor_mz, round_decPow), alt_aa->toString()));
+        DecoyPeptideMap[peptide.id].push_back(std::make_pair("Precursor_i0", Math::roundDecimal(precursor_mz, round_decPow)));
 
         // Iterate over all theoretical transitions
         for (boost::unordered_map<String, double>::iterator im_it = ionseries.begin(); im_it != ionseries.end(); ++im_it)

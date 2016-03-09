@@ -217,7 +217,8 @@ protected:
       
       std::cout << "Generating identifying (UIS) transitions" << std::endl;
       assays.uisTransitions(targeted_exp, allowed_fragment_types, allowed_fragment_charges, enable_identification_specific_losses, enable_identification_unspecific_losses, product_mz_threshold, uis_swathes, -4, max_num_alternative_localizations, -1);
-      assays.restrictTransitions(targeted_exp, product_lower_mz_limit, product_upper_mz_limit, swathes);
+      std::vector<std::pair<double, double> > empty_swathes;
+      assays.restrictTransitions(targeted_exp, product_lower_mz_limit, product_upper_mz_limit, empty_swathes);
     }
 
     std::cout << "Writing assays " << out << std::endl;

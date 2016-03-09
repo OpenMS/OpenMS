@@ -91,7 +91,11 @@ namespace OpenMS
     std::vector<String> best_annotation;
     annotation.split("/", best_annotation);
 
-    if (best_annotation[0].find("-") != std::string::npos)
+    if (best_annotation[0] == "Precursor_i0")
+    {
+      return interpretation;
+    }
+    else if (best_annotation[0].find("-") != std::string::npos)
     {
       std::vector<String> best_annotation_loss;
       best_annotation[0].split("-", best_annotation_loss);
