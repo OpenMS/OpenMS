@@ -5,7 +5,7 @@
 		<FixedModification name="Carbamidomethyl (C)" />
 		<VariableModification name="Oxidation (M)" />
 		<VariableModification name="Deamidated (N)" />
-    <VariableModification name="Deamidated (Q)" />
+		<VariableModification name="Deamidated (Q)" />		
 		<VariableModification name="Label:13C(6)15N(2) (K)" />
 		<VariableModification name="Label:13C(6)15N(4) (R)" />
 	</SearchParameters>

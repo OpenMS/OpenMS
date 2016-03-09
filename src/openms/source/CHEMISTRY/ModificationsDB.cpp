@@ -202,7 +202,7 @@ namespace OpenMS
   
   bool ModificationsDB::has(String modification) const
   {
-    return (modification_names_.has(modification)) ? true : false;
+    return modification_names_.has(modification);
   }
 
   const ResidueModification & ModificationsDB::getModification(const String & modification) const
