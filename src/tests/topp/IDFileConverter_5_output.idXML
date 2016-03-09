@@ -4,7 +4,7 @@
 	<SearchParameters id="SP_0" db="UPEcoli_SpikeIn" db_version="UPEcoli_SpikeIn_Jun13.fasta" taxonomy="All entries" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.5" peak_mass_tolerance_ppm="false" >
 		<FixedModification name="Carbamidomethyl (C)" />
 		<VariableModification name="Deamidated (N)" />
-    <VariableModification name="Deamidated (Q)" />
+		<VariableModification name="Deamidated (Q)" />		
 		<VariableModification name="Oxidation (M)" />
 	</SearchParameters>
 	<IdentificationRun date="2013-06-06T13:59:50" search_engine="Mascot" search_engine_version="2.4.0" search_parameters_ref="SP_0" >
