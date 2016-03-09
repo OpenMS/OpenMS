@@ -199,6 +199,11 @@ namespace OpenMS
     }
     return **mods.begin();
   }
+  
+  bool ModificationsDB::has(String modification) const
+  {
+    return (modification_names_.has(modification)) ? true : false;
+  }
 
   const ResidueModification & ModificationsDB::getModification(const String & modification) const
   {
