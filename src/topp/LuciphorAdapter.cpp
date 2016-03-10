@@ -118,7 +118,7 @@ protected:
     double delta_score;
     double predicted_pep_score;
     
-    LuciphorPSM() {}
+    LuciphorPSM() : scan_nr(-1), scan_idx(-1), charge(-1), delta_score(-1), predicted_pep_score(-1) {}
   };
 
   // lists of allowed parameter values:
@@ -459,7 +459,6 @@ protected:
   ExitCodes main_(int, const char**)
   {
     vector<PeptideIdentification> pep_ids;
-    vector<PeptideIdentification> filtered_pep_ids;
     vector<ProteinIdentification> prot_ids;
     
     if (!getFlag_("force"))
