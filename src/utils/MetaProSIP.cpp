@@ -1399,24 +1399,43 @@ public:
 
   static Size getNumberOfLabelingElements(String labeling_element, const AASequence& peptide)
   {
-    AASequence unmodified_peptide = AASequence::fromString(peptide.toUnmodifiedString());
-    EmpiricalFormula unmodified_peptide_ef = unmodified_peptide.getFormula();
-
+    const Element * e;
     if (labeling_element == "N")
     {
-      const Element* e = ElementDB::getInstance()->getElement("Nitrogen");
-      return (Size)unmodified_peptide_ef.getNumberOf(e);
+      e = ElementDB::getInstance()->getElement("Nitrogen");
     }
     else if (labeling_element == "C")
     {
-      const Element* e = ElementDB::getInstance()->getElement("Carbon");
-      return (Size)unmodified_peptide_ef.getNumberOf(e);
+      e = ElementDB::getInstance()->getElement("Carbon");
     } else if (labeling_element == "H")
     {
-      const Element* e = ElementDB::getInstance()->getElement("Hydrogen");
-      return (Size)unmodified_peptide_ef.getNumberOf(e);
+      e = ElementDB::getInstance()->getElement("Hydrogen");
+    } else if (labeling_element == "O")
+    {
+      e = ElementDB::getInstance()->getElement("Oxygen");
+    } else
+    {
+      return 0;
     }
-    return 0;
+
+    // try to determine if modification adds or removes elements
+    AASequence unmodified_peptide = AASequence::fromString(peptide.toUnmodifiedString());
+    EmpiricalFormula unmodified_peptide_ef = unmodified_peptide.getFormula();
+    int labeling_element_mods_excluded = unmodified_peptide_ef.getNumberOf(e);
+
+    EmpiricalFormula peptide_ef = peptide.getFormula();
+    int labeling_element_mods_included = peptide_ef.getNumberOf(e);
+
+    int diff = labeling_element_mods_included - labeling_element_mods_excluded;
+
+    if (diff >= 0) // common case, mod added unlabeled elements
+    {
+      return labeling_element_mods_excluded;
+    } 
+    else // special case, mod results in loss of labeling element
+    {
+      return labeling_element_mods_included;
+    }
   }
 
   ///> Given a peptide sequence calculate the theoretical isotopic patterns given all incorporations rate (15C Version)
@@ -1574,8 +1593,7 @@ public:
     Element* e2 = const_cast<Element*>(e1);
 
     EmpiricalFormula peptide_ef = peptide.getFormula();
-    Size MAXISOTOPES = (Size)peptide_ef.getNumberOf(e1);
-
+    Size MAXISOTOPES = (Size)peptide_ef.getNumberOf(e1); 
     // calculate empirical formula of modifications - these can not be labeled via substrate feeding and must be taken care of in pattern calculation
     AASequence unmodified_peptide = AASequence::fromString(peptide.toUnmodifiedString());
     EmpiricalFormula unmodified_peptide_ef = unmodified_peptide.getFormula();
@@ -1585,7 +1603,7 @@ public:
     if (modifications_ef.getNumberOf(e1) > 0) // modification adds additional (unlabeled) atoms
     {
       IsotopeDistribution modification_dist = modifications_ef.getIsotopeDistribution(max_labeling_element + additional_isotopes);
-      for (double abundance = 0.0; abundance < 100.0 - 1e-8; abundance += 100.0 / (double)max_labeling_element)
+      for (double abundance = 0.0; abundance < 100.0 - 1e-8; abundance += 100.0 / static_cast<double>(max_labeling_element * 2.0))
       {
         double a = abundance / 100.0;
         IsotopeDistribution isotopes;
@@ -1595,7 +1613,7 @@ public:
         container.push_back(make_pair(3, a));
         isotopes.set(container);
         e2->setIsotopeDistribution(isotopes);
-        IsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(max_labeling_element + additional_isotopes);
+        IsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(max_labeling_element * 2 + additional_isotopes); // 2 * isotopic traces
         dist += modification_dist; // convole with modification distribution (which follows the natural distribution)
         container = dist.getContainer();
         vector<double> intensities;
@@ -1610,7 +1628,7 @@ public:
     {
       // calculate isotope distribution for a given peptide and varying incoperation rates
       // modification of isotope distribution in static ElementDB
-      for (double abundance = 0.0; abundance < 100.0 - 1e-8; abundance += 100.0 / (double)MAXISOTOPES)
+      for (double abundance = 0.0; abundance < 100.0 - 1e-8; abundance += 100.0 / static_cast<double>(MAXISOTOPES * 2.0))
       {
         double a = abundance / 100.0;
         IsotopeDistribution isotopes;
@@ -1620,7 +1638,7 @@ public:
         container.push_back(make_pair(3, a));
         isotopes.set(container);
         e2->setIsotopeDistribution(isotopes);
-        IsotopeDistribution dist = peptide_ef.getIsotopeDistribution(MAXISOTOPES + additional_isotopes);
+        IsotopeDistribution dist = peptide_ef.getIsotopeDistribution(MAXISOTOPES * 2 + additional_isotopes); // 2 * isotopic traces
         container = dist.getContainer();
         vector<double> intensities;
         for (Size i = 0; i != container.size(); ++i)
@@ -1769,7 +1787,7 @@ public:
 
     const Element* e1 = ElementDB::getInstance()->getElement("Oxygen");
     Element* e2 = const_cast<Element*>(e1);
-    Size element_count = mass * 0.01329399039;
+    Size element_count = mass * 0.01329399039;  
 
     // calculate isotope distribution for a given peptide and varying incoperation rates
     // modification of isotope distribution in static ElementDB
@@ -1783,7 +1801,7 @@ public:
       container.push_back(make_pair(3, a));
       isotopes.set(container);
       e2->setIsotopeDistribution(isotopes);
-      IsotopeDistribution dist(element_count);
+      IsotopeDistribution dist(element_count * 2); // spaces are 2 Da between 18O and 16O but we observe isotopic peaks at every (approx.) nominal mass
       dist.estimateFromPeptideWeight(mass);
       container = dist.getContainer();
       vector<double> intensities;
@@ -2191,7 +2209,7 @@ protected:
       TIC_threshold = getDoubleOption_("pattern_2H_TIC_threshold");
     } else if (labeling_element == "O")
     {
-      TIC_threshold = getDoubleOption_("pattern_18OC_TIC_threshold");
+      TIC_threshold = getDoubleOption_("pattern_18O_TIC_threshold");
     }
     double max_incorporation_rate = 100.0;
     double incorporation_step = max_incorporation_rate / (double)n_element;
@@ -3244,6 +3262,7 @@ protected:
       }
 
       Size element_count(0);
+      Size isotopic_trace_count(0);
       if (sip_peptide.feature_type == FEATURE_STRING || sip_peptide.feature_type == UNASSIGNED_ID_STRING)
       {
         element_count = MetaProSIPDecomposition::getNumberOfLabelingElements(labeling_element, feature_hit_aaseq);
@@ -3266,13 +3285,15 @@ protected:
         }
       }
 
+      isotopic_trace_count = labeling_element != "O" ? element_count : element_count * 2; 
+
       // collect 13C / 15N peaks
       if (debug_level_ >= 10)
       {
         LOG_DEBUG << "Extract XICs" << endl;
       }
 
-      vector<double> isotopic_intensities = MetaProSIPXICExtraction::extractXICsOfIsotopeTraces(element_count + ADDITIONAL_ISOTOPES, sip_peptide.mass_diff, mz_tolerance_ppm_, rt_tolerance_s, max_trace_int_rt, feature_hit_theoretical_mz, feature_hit_charge, peak_map, xic_threshold);
+      vector<double> isotopic_intensities = MetaProSIPXICExtraction::extractXICsOfIsotopeTraces(isotopic_trace_count + ADDITIONAL_ISOTOPES, sip_peptide.mass_diff, mz_tolerance_ppm_, rt_tolerance_s, max_trace_int_rt, feature_hit_theoretical_mz, feature_hit_charge, peak_map, xic_threshold);
 
       // set intensity to zero if not enough neighboring isotopic peaks are present
       for (Size i = 0; i != isotopic_intensities.size(); ++i)
@@ -3409,14 +3430,14 @@ protected:
 
       // calculate decomposition into isotopic patterns
       MapRateToScoreType map_rate_to_decomposition_weight;
-      MetaProSIPDecomposition::calculateDecompositionWeightsIsotopicPatterns(element_count, isotopic_intensities, patterns, map_rate_to_decomposition_weight, sip_peptide);
+      MetaProSIPDecomposition::calculateDecompositionWeightsIsotopicPatterns(isotopic_trace_count, isotopic_intensities, patterns, map_rate_to_decomposition_weight, sip_peptide);
 
       // set first intensity to zero and remove first 2 possible RIAs (0% and e.g. 1.07% for carbon)
       MapRateToScoreType tmp_map_rate_to_correlation_score;
       if (getFlag_("filter_monoisotopic"))
       {
         // calculate correlation of natural RIAs (for later reporting) before we subtract the intensities. This is somewhat redundant but no speed bottleneck.
-        calculateCorrelation(element_count, isotopic_intensities, patterns, tmp_map_rate_to_correlation_score, labeling_element, sip_peptide.mass_theo, -1.0);
+        calculateCorrelation(isotopic_trace_count, isotopic_intensities, patterns, tmp_map_rate_to_correlation_score, labeling_element, sip_peptide.mass_theo, -1.0);
         for (Size i = 0; i != sip_peptide.reconstruction_monoistopic.size(); ++i)
         {
           if (i == 0)
@@ -3435,7 +3456,7 @@ protected:
       sip_peptide.decomposition_map = map_rate_to_decomposition_weight;
 
       // calculate Pearson correlation coefficients
-      calculateCorrelation(element_count, isotopic_intensities, patterns, map_rate_to_correlation_score, labeling_element, sip_peptide.mass_theo, min_correlation_distance_to_averagine);
+      calculateCorrelation(isotopic_trace_count, isotopic_intensities, patterns, map_rate_to_correlation_score, labeling_element, sip_peptide.mass_theo, min_correlation_distance_to_averagine);
 
       // restore original correlation of natural RIAs (take maximum of observed correlations)
       if (getFlag_("filter_monoisotopic"))
