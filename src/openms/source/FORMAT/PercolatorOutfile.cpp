@@ -101,8 +101,8 @@ namespace OpenMS
     peptide = boost::regex_replace(peptide, re, replacement);
     seq = AASequence::fromString(peptide);
   }
-
-
+  
+  
   void PercolatorOutfile::load(const String& filename,
                                ProteinIdentification& proteins, 
                                vector<PeptideIdentification>& peptides,
@@ -214,7 +214,7 @@ namespace OpenMS
       AASequence seq;
       getPeptideSequence_(items[4], seq);
       hit.setSequence(seq);
-
+      
       for (Size pos = 5; pos < items.size(); ++pos)
       {
         accessions.insert(items[pos]);
@@ -231,6 +231,7 @@ namespace OpenMS
     proteins.setIdentifier("id");
     proteins.setDateTime(DateTime::now());
     proteins.setSearchEngine("Percolator");
+    
     for (set<String>::const_iterator it = accessions.begin();
          it != accessions.end(); ++it)
     {
