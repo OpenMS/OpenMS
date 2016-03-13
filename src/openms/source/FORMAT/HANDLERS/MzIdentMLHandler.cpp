@@ -649,7 +649,6 @@ namespace OpenMS
         if (pfo != ph_2_sdat_.end())
         {
           sdr = pfo->second;
-          LOG_INFO << "success" << std::endl;
         }
         else
         {
