@@ -41,7 +41,6 @@
 namespace OpenMS
 {
 
-
 /**
  *  @brief An implementation of the X!Tandem HyperScore PSM scoring function
  */               

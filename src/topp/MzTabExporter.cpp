@@ -884,7 +884,11 @@ protected:
           row.peptide_abundance_stdev_study_variable[study_variable] = MzTabDouble();
           row.peptide_abundance_std_error_study_variable[study_variable] = MzTabDouble();
           row.peptide_abundance_study_variable[study_variable] = MzTabDouble();
-          row.search_engine_score_ms_run[1][study_variable] = MzTabDouble();
+        }
+
+        for (Size ms_run = 1; ms_run <= ms_runs.size(); ++ms_run)
+        {
+          row.search_engine_score_ms_run[1][ms_run] = MzTabDouble();
         }
 
         ConsensusFeature::HandleSetType fs = c.getFeatures();
@@ -919,6 +923,12 @@ protected:
           row.accession = peptide_evidences.empty() ? MzTabString("null") : MzTabString(peptide_evidences[0].getProteinAccession());
 
           row.best_search_engine_score[1] = MzTabDouble(best_ph.getScore());
+
+          // TODO: support run level scores - for now we assume we got the same score from every ms run
+          for (Size ms_run = 1; ms_run <= ms_runs.size(); ++ms_run)
+          {
+            row.search_engine_score_ms_run[1][ms_run] = MzTabDouble(best_ph.getScore());
+          }
 
           // fill opt_ columns
 

@@ -553,8 +553,8 @@ public:
     /// Estimates the noise by evaluating n_scans random scans of MS level 1. Assumes that 4/5 of intensities is noise.
     float estimateNoiseFromRandomMS1Scans(const ExperimentType& exp, UInt n_scans = 10);
 
-    /// Counts the number of exact zero valued intensities in all MS1 spectra
-    static UInt countMS1Zeros(const ExperimentType& exp);
+    /// Returns true of experiment has at least one exact zero valued peak in any of its MS1 spectra
+    static bool hasMS1Zeros(const ExperimentType& exp);
 
     /// Returns true if the experiment map contains peptide identifications
     static bool hasPeptideIdentifications(const ExperimentType& map);

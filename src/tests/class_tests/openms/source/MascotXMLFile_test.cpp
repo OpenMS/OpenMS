@@ -103,10 +103,11 @@ START_SECTION((void load(const String& filename, ProteinIdentification& protein_
     TEST_EQUAL(search_parameters.fragment_mass_tolerance_ppm, false);
     TEST_EQUAL(search_parameters.precursor_mass_tolerance_ppm, false);
     TEST_EQUAL(search_parameters.charges, "1+, 2+ and 3+");
-    TEST_EQUAL(search_parameters.fixed_modifications.size(), 3);
+    TEST_EQUAL(search_parameters.fixed_modifications.size(), 4);
     TEST_EQUAL(search_parameters.fixed_modifications[0], "Carboxymethyl (C)");
-    TEST_EQUAL(search_parameters.fixed_modifications[1], "Deamidated (NQ)");
-    TEST_EQUAL(search_parameters.fixed_modifications[2], "Guanidinyl (K)");
+    TEST_EQUAL(search_parameters.fixed_modifications[1], "Deamidated (N)");
+    TEST_EQUAL(search_parameters.fixed_modifications[2], "Deamidated (Q)");
+    TEST_EQUAL(search_parameters.fixed_modifications[3], "Guanidinyl (K)");
     TEST_EQUAL(search_parameters.variable_modifications.size(), 3);
     TEST_EQUAL(search_parameters.variable_modifications[0], "Acetyl (Protein N-term)");
     TEST_EQUAL(search_parameters.variable_modifications[1], "Biotin (K)");

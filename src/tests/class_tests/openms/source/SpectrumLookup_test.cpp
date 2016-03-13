@@ -54,7 +54,7 @@ START_SECTION((SpectrumLookup()))
 {
 	ptr = new SpectrumLookup();
 	TEST_NOT_EQUAL(ptr, null_ptr);
-  TEST_REAL_SIMILAR(ptr->rt_tolerance, 0.05);
+  TEST_REAL_SIMILAR(ptr->rt_tolerance, 0.01);
 }
 END_SECTION
 

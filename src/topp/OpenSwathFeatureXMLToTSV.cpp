@@ -254,6 +254,7 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
 
   // Write out the individual transition
   char intensity_char[40];
+  char intensity_apex_char[40];
   if (short_format)
   {
     String aggr_Peak_Area = "";
@@ -263,9 +264,21 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
     {
       sprintf(intensity_char, "%f", sub_it->getIntensity());
       aggr_Peak_Area += (String)intensity_char + ";";
-      aggr_Peak_Apex +=  "NA;";
+
+      if (sub_it->metaValueExists("peak_apex_int"))
+      {
+        sprintf(intensity_apex_char, "%f", (double)sub_it->getMetaValue("peak_apex_int"));
+        aggr_Peak_Apex += (String)intensity_apex_char + ";";
+      }
+      else
+      {
+        aggr_Peak_Apex += "NA;";
+      }
+
       aggr_Fragment_Annotation += (String)sub_it->getMetaValue("native_id") + ";";
     }
+
+    // remove the last semicolon
     if (!feature_it->getSubordinates().empty())
     {
       aggr_Peak_Area = aggr_Peak_Area.substr(0, aggr_Peak_Area.size() - 1);
@@ -279,11 +292,16 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
     char mz_char[40];
     for (std::vector<Feature>::iterator sub_it = feature_it->getSubordinates().begin(); sub_it != feature_it->getSubordinates().end(); ++sub_it)
     {
-      String Peak_Apex = "NA";
       os.precision(writtenDigits(double()));
       sprintf(intensity_char, "%f", sub_it->getIntensity());
       sprintf(mz_char, "%f", sub_it->getMZ());
-      os << line << meta_values << (String)intensity_char << "\t" << Peak_Apex << "\t" << (String)sub_it->getMetaValue("native_id") << "\t" << (String)mz_char << std::endl;
+      String apex = "NA";
+      if (sub_it->metaValueExists("peak_apex_int"))
+      {
+        sprintf(intensity_apex_char, "%f", (double)sub_it->getMetaValue("peak_apex_int"));
+        apex = (String) intensity_apex_char;
+      }
+      os << line << meta_values << (String)intensity_char << "\t" << apex << "\t" << (String)sub_it->getMetaValue("native_id") << "\t" << (String)mz_char << std::endl;
     }
   }
 }

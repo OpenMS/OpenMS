@@ -898,7 +898,7 @@ namespace OpenMS
     // output all hypotheses:
     for (Size hypo_idx = 0; hypo_idx < feat_hypos.size(); ++ hypo_idx)
     {
-      bool legal;
+      bool legal(false);
       if (feat_hypos[hypo_idx].getSize() > 1)
       {
         legal = isLegalIsotopePattern_(feat_hypos[hypo_idx]);
