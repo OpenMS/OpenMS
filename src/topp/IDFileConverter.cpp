@@ -423,9 +423,9 @@ protected:
           PercolatorOutfile::getScoreType(score_type);
         String mz_file = getStringOption_("mz_file");
         SpectrumMetaDataLookup lookup;
-        MSExperiment<> experiment;
         if (!mz_file.empty())
         {
+          MSExperiment<> experiment;
           fh.loadExperiment(mz_file, experiment, FileTypes::UNKNOWN, log_type_, false, false);
           lookup.readSpectra(experiment.getSpectra());
         }

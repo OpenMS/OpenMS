@@ -44,6 +44,7 @@
 
 namespace OpenMS
 {
+  
   /**
      @brief Class for reading Percolator tab-delimited output files.
 
@@ -73,10 +74,9 @@ namespace OpenMS
               enum ScoreType output_score = QVALUE);
 
   private:
-
     /// Converts the peptide string to an 'AASequence' instance
     void getPeptideSequence_(String peptide, AASequence& seq) const;
-
+    
   };
 
 } // namespace OpenMS

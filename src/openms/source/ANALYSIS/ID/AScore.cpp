@@ -123,7 +123,7 @@ namespace OpenMS
     double peptide1_score = rev->first;
     phospho.setMetaValue("AScore_pep_score", peptide1_score); // initialize score with highest peptide score (aka highest weighted score)
     
-    rev++;
+    ++rev;
     String seq2 = th_spectra[rev->second].getName();
     double peptide2_score = rev->first;
     

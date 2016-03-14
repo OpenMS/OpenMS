@@ -42,6 +42,7 @@ InspectAdapter
 InternalCalibration
 IsobaricAnalyzer
 ITRAQAnalyzer
+LuciphorAdapter
 MapAlignerIdentification
 MapAlignerPoseClustering
 MapAlignerSpectrum

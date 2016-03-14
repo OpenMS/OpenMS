@@ -34,22 +34,16 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
-//#include <OpenMS/DATASTRUCTURES/SeqanIncludeWrapper.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-//#include <OpenMS/SYSTEM/StopWatch.h>
-//#include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/CHEMISTRY/EnzymesDB.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
-//#include <algorithm>
-
 using namespace OpenMS;
-//using namespace std;
 
 //-------------------------------------------------------------
 //Doxygen docu
@@ -76,60 +70,12 @@ using namespace OpenMS;
 
   All peptide and protein hits are annotated with target/decoy information, using the meta value "target_decoy". For proteins the possible values are "target" and "decoy", depending on whether the protein accession contains the decoy pattern (parameter @p decoy_string) as a suffix or prefix, respectively (see parameter @p prefix). For peptides, the possible values are "target", "decoy" and "target+decoy", depending on whether the peptide sequence is found only in target proteins, only in decoy proteins, or in both. The target/decoy information is crucial for the @ref TOPP_FalseDiscoveryRate tool. (For FDR calculations, "target+decoy" peptide hits count as target hits.)
 
-  @note Make sure that your protein names in the database contain a correctly formatted decoy string. This can be ensured by using @ref UTILS_DecoyDatabase.
-        If the decoy identifier is not recognized successfully all proteins will be assumed to stem from the target-part of the query.<br>
-        E.g., "sw|P33354_REV|YEHR_ECOLI Uncharacterized lipop..." is <b>invalid</b>, since the tool has no knowledge of how SwissProt entries are build up.
-        A correct identifier could be "rev_sw|P33354|YEHR_ECOLI Uncharacterized li ..." or "sw|P33354|YEHR_ECOLI_rev Uncharacterized li", depending on whether you are
-        using prefix annotation or not.<br>
-        This tool will also report some helpful target/decoy statistics when it is done.
-
-  PeptideIndexer supports relative database filenames, which (when not found in the current working directory) are looked up in the directories specified
+   PeptideIndexer supports relative database filenames, which (when not found in the current working directory) are looked up in the directories specified
   by @p OpenMS.ini:id_db_dir (see @subpage TOPP_advanced).
 
-  By default this tool will fail if an unmatched peptide occurs, i.e. if the database does not contain the corresponding protein.
-  You can force it to return successfully in this case by using the flag @p allow_unmatched.
-
-  Some search engines (such as Mascot) will replace ambiguous amino acids ('B', 'Z', and 'X') in the protein database with unambiguous amino acids in the reported peptides, e.g. exchange 'X' with 'H'.
-  This will cause such peptides to not be found by exactly matching their sequences to the database. However, we can recover these cases by using tolerant search (done automatically).
-
-  Two search modes are available:
-    - exact: [default mode] Peptide sequences require exact match in protein database.
-             If at least one protein hit is found, no tolerant search is used for this peptide.
-             If no protein for this peptide can be found, tolerant matching is automatically used for this peptide.
-    - tolerant:
-             Allow ambiguous amino acids in protein sequence, e.g., 'M' in peptide will match 'X' in protein.
-             This mode might yield more protein hits for some peptides (those that contain ambiguous amino acids).
-             Tolerant search also allows for real sequence mismatches (see 'mismatches_max'), in case you want to find related proteins which
-             might be the origin of a peptide if it had a SNP for example. Runtime increase is moderate when allowing a single
-             mismatch, but rises drastically for two or more.
-
-  The exact mode is much faster (about 10 times) and consumes less memory (about 2.5 times),
-  but might fail to report a few protein hits with ambiguous amino acids for some peptides. Usually these proteins are putative, however.
-  The exact mode also supports usage of multiple threads (@p threads option) to speed up computation even further, at the cost of some memory.
-  If tolerant searching needs to be done for unassigned peptides,
-  the latter will consume the major share of the runtime.
-  Independent of whether exact or tolerant search is used, we require ambiguous amino acids in peptide sequences to match exactly in the protein DB (i.e. 'X' in a peptide only matches 'X' in the database).
-
-  Leucine/Isoleucine:
-  Further complications can arise due to the presence of the isobaric amino acids isoleucine ('I') and leucine ('L') in protein sequences.
-  Since the two have the exact same chemical composition and mass, they generally cannot be distinguished by mass spectrometry.
-  If a peptide containing 'I' was reported as a match for a spectrum, a peptide containing 'L' instead would be an equally good match (and vice versa).
-  To account for this inherent ambiguity, setting the flag @p IL_equivalent causes 'I' and 'L' to be considered as indistinguishable.@n
-  For example, if the sequence "PEPTIDE" (matching "Protein1") was identified as a search hit,
-  but the database additionally contained "PEPTLDE" (matching "Protein2"), running PeptideIndexer with the @p IL_equivalent option would
-  report both "Protein1" and "Protein2" as accessions for "PEPTIDE".
-  (This is independent of the error-tolerant search controlled by @p full_tolerant_search and @p aaa_max.)
-
-  Enzyme specificity:
-  Once a peptide sequence is found in a protein sequence, this does <b>not</b> imply that the hit is valid! This is where enzyme specificity comes into play.
-  By default, we demand that the peptide is fully tryptic (i.e. the enzyme parameter is set to "trypsin" and specificity is "full").
-  So unless the peptide coincides with C- and/or N-terminus of the protein, the peptide's cleavage pattern should fulfill the trypsin cleavage rule [KR][^P].
-  We make one exception for peptides starting at the second amino acid of a protein if the first amino acid of that protein is methionine (M),
-  which is usually cleaved off in vivo. For example, the two peptides AAAR and MAAAR would both match a protein starting with MAAAR.
-  You can relax the requirements further by choosing <tt>semi-tryptic</tt> (only one of two "internal" termini must match requirements)
-  or <tt>none</tt> (essentially allowing all hits, no matter their context).
-
   @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
+  @note The tool and its parameters are described in detail in the PeptideIndexing documentation. Please make sure you read and understand it before using the tool to avoid suboptimal results or long runtimes!
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_PeptideIndexer.cli
@@ -163,14 +109,7 @@ protected:
 
     Param temp = PeptideIndexing().getParameters();
     registerFullParam_(temp);
-
-//    registerSubsection_("algorithm", "Algorithm parameters section");
    }
-
-//   Param getSubsectionDefaults_(const String& /*section*/) const
-//   {
-//    return PeptideIndexing().getDefaults();
-//   }
 
   ExitCodes main_(int, const char**)
   {
@@ -184,20 +123,10 @@ protected:
     PeptideIndexing indexer;
 
     Param param = getParam_().copy("", true);
+    Param param_pi = indexer.getParameters();
+    param_pi.update(param);
 
-    // These parameters are not used by the PeptideIndexing class
-    param.remove("in");
-    param.remove("fasta");
-    param.remove("out");
-
-    param.remove("log");
-    param.remove("debug");
-    param.remove("threads");
-    param.remove("no_progress");
-    param.remove("force");
-    param.remove("test");
-
-    indexer.setParameters(param);
+    indexer.setParameters(param_pi);
 
     bool keep_unreferenced_proteins = param.getValue("keep_unreferenced_proteins").toBool();
 
@@ -257,7 +186,13 @@ protected:
     PeptideIndexing::ExitCodes indexer_exit = indexer.run(proteins, prot_ids, pep_ids);
     if ( (indexer_exit != PeptideIndexing::EXECUTION_OK) )
     {
-      return UNKNOWN_ERROR;
+      if (indexer_exit == PeptideIndexing::UNEXPECTED_RESULT)
+      {
+        return UNEXPECTED_RESULT;
+      } else
+      {
+        return UNKNOWN_ERROR;
+      }
     }
 
     //-------------------------------------------------------------
