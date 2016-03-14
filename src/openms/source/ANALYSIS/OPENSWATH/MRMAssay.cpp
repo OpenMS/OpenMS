@@ -131,10 +131,9 @@ namespace OpenMS
 
     std::string peptide_sequence = "";
 
-    size_t pos;
     for (size_t i = 0; i < sequence_size; ++i)
     {
-      pos = (pseudoRNG() % aa_size);
+      size_t pos = (pseudoRNG() % aa_size);
       peptide_sequence += aa[pos];
     }
 

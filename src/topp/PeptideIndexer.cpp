@@ -109,7 +109,6 @@ protected:
 
     Param temp = PeptideIndexing().getParameters();
     registerFullParam_(temp);
-
    }
 
   ExitCodes main_(int, const char**)

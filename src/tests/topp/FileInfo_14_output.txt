@@ -1,0 +1,8 @@
+
+-- General information --
+
+File name: FileInfo_14_input.mzid
+File type: mzid
+
+Validating mzid file against XML schema version 1.1.0
+Success - the file is valid!

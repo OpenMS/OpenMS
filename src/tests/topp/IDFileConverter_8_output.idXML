@@ -13,7 +13,7 @@
 			<ProteinHit id="PH_1" accession="PROT1" score="0" sequence="PRGTEIN" >
 				<UserParam type="string" name="isDecoy" value="false"/>
 			</ProteinHit>
-			<UserParam type="string" name="spectra_data" value="UNKNOWN"/>
+			<UserParam type="stringList" name="spectra_data" value="[UNKNOWN]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="675.9" RT="1234.5" spectrum_reference="17" >
 			<PeptideHit score="0.9" sequence="PEPTIDER" charge="1" aa_before="A A" aa_after="B B" protein_refs="PH_0 PH_1" >

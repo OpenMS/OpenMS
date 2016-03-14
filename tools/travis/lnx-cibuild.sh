@@ -61,7 +61,7 @@ export PATH=${SOURCE_DIRECTORY}/_thirdparty/MSGFPlus:$PATH
 export PATH=${SOURCE_DIRECTORY}/_thirdparty/Fido:$PATH
 
 # if we perform style tests, add cppcheck to path
-if [ $ENABLE_STYLE_TESTING == "ON" ]; then
+if [ "$ENABLE_STYLE_TESTING" = "ON" ]; then
   export PATH=${SOURCE_DIRECTORY}/cppcheck:$PATH
 fi
 
