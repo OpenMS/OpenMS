@@ -127,13 +127,14 @@ public:
       @param fragment_charges the fragment charges to consider for annotation
       @param enable_specific_losses whether specific neutral losses should be considered
       @param enable_unspecific_losses whether unspecific neutral losses (H2O1, H3N1, C1H2N2, C1H2N1O1) should be considered
+      @param enable_ms2_precursors whether MS2 precursors should be considered
       @param mz_threshold the product m/z threshold in Th for annotation
       @param swathes the swath window settings (to exclude fragment ions falling
       @param round_decPow round product m/z values to decimal power (default: -4)
       @param max_num_alternative_localizations maximum number of allowed peptide sequence permutations
       @param shuffle_seed set seed for shuffle (-1: select seed based on time)
     */
-    void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, double mz_threshold, std::vector<std::pair<double, double> > swathes, int round_decPow = -4, size_t max_num_alternative_localizations = 20, int shuffle_seed = -1);
+    void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, bool enable_ms2_precursors, double mz_threshold, std::vector<std::pair<double, double> > swathes, int round_decPow = -4, size_t max_num_alternative_localizations = 20, int shuffle_seed = -1);
 
 protected:
     /**
@@ -248,7 +249,7 @@ protected:
       @details Used internally by MRMAssay::uisTransitions
 
     */
-    void generateTargetInSilicoMap_(OpenMS::TargetedExperiment& exp, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, std::vector<std::pair<double, double> > swathes, int round_decPow, size_t max_num_alternative_localizations, boost::unordered_map<size_t, boost::unordered_map<String, std::set<std::string> > >& TargetSequenceMap, boost::unordered_map<size_t, boost::unordered_map<String, std::vector<std::pair<double, std::string> > > >& TargetIonMap, boost::unordered_map<String, std::vector<std::pair<std::string, double> > >& TargetPeptideMap);
+    void generateTargetInSilicoMap_(OpenMS::TargetedExperiment& exp, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, bool enable_ms2_precursors, std::vector<std::pair<double, double> > swathes, int round_decPow, size_t max_num_alternative_localizations, boost::unordered_map<size_t, boost::unordered_map<String, std::set<std::string> > >& TargetSequenceMap, boost::unordered_map<size_t, boost::unordered_map<String, std::vector<std::pair<double, std::string> > > >& TargetIonMap, boost::unordered_map<String, std::vector<std::pair<std::string, double> > >& TargetPeptideMap);
 
     /**
       @brief Generate decoy sequences
@@ -264,7 +265,7 @@ protected:
       @details Used internally by MRMAssay::uisTransitions
 
     */
-    void generateDecoyInSilicoMap_(OpenMS::TargetedExperiment& exp, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, std::vector<std::pair<double, double> > swathes, int round_decPow, boost::unordered_map<String, TargetedExperiment::Peptide>& TargetDecoyMap, boost::unordered_map<String, std::vector<std::pair<std::string, double> > >& TargetPeptideMap, boost::unordered_map<String, String>& DecoySequenceMap, boost::unordered_map<size_t, boost::unordered_map<String, std::vector<std::pair<double, std::string> > > >& DecoyIonMap, boost::unordered_map<String, std::vector<std::pair<std::string, double> > >& DecoyPeptideMap);
+    void generateDecoyInSilicoMap_(OpenMS::TargetedExperiment& exp, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, bool enable_ms2_precursors, std::vector<std::pair<double, double> > swathes, int round_decPow, boost::unordered_map<String, TargetedExperiment::Peptide>& TargetDecoyMap, boost::unordered_map<String, std::vector<std::pair<std::string, double> > >& TargetPeptideMap, boost::unordered_map<String, String>& DecoySequenceMap, boost::unordered_map<size_t, boost::unordered_map<String, std::vector<std::pair<double, std::string> > > >& DecoyIonMap, boost::unordered_map<String, std::vector<std::pair<std::string, double> > >& DecoyPeptideMap);
 
     /**
       @brief Generate target assays

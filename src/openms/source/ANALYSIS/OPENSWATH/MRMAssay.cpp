@@ -334,7 +334,7 @@ namespace OpenMS
     return decoy_sequences;
   }
 
-  void MRMAssay::generateTargetInSilicoMap_(OpenMS::TargetedExperiment& exp, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, std::vector<std::pair<double, double> > swathes, int round_decPow, size_t max_num_alternative_localizations, boost::unordered_map<size_t, boost::unordered_map<String, std::set<std::string> > >& TargetSequenceMap, boost::unordered_map<size_t, boost::unordered_map<String, std::vector<std::pair<double, std::string> > > >& TargetIonMap, boost::unordered_map<String, std::vector<std::pair<std::string, double> > >& TargetPeptideMap)
+  void MRMAssay::generateTargetInSilicoMap_(OpenMS::TargetedExperiment& exp, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, bool enable_ms2_precursors, std::vector<std::pair<double, double> > swathes, int round_decPow, size_t max_num_alternative_localizations, boost::unordered_map<size_t, boost::unordered_map<String, std::set<std::string> > >& TargetSequenceMap, boost::unordered_map<size_t, boost::unordered_map<String, std::vector<std::pair<double, std::string> > > >& TargetIonMap, boost::unordered_map<String, std::vector<std::pair<std::string, double> > >& TargetPeptideMap)
   {
     OpenMS::MRMIonSeries mrmis;
 
@@ -368,9 +368,12 @@ namespace OpenMS
         // Generate theoretical ion series
         MRMIonSeries::IonSeries ionseries = mrmis.getIonSeries(*alt_aa, peptide.getChargeState(), fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses);
 
-        // Add precursor to theoretical transitions
-        TargetIonMap[precursor_swath][alt_aa->toUnmodifiedString()].push_back(std::make_pair(Math::roundDecimal(precursor_mz, round_decPow), alt_aa->toString()));
-        TargetPeptideMap[peptide.id].push_back(std::make_pair("Precursor_i0", Math::roundDecimal(precursor_mz, round_decPow)));
+        if (enable_ms2_precursors)
+        {
+          // Add precursor to theoretical transitions
+          TargetIonMap[precursor_swath][alt_aa->toUnmodifiedString()].push_back(std::make_pair(Math::roundDecimal(precursor_mz, round_decPow), alt_aa->toString()));
+          TargetPeptideMap[peptide.id].push_back(std::make_pair("Precursor_i0", Math::roundDecimal(precursor_mz, round_decPow)));
+        }
 
         // Iterate over all theoretical transitions
         for (boost::unordered_map<String, double>::iterator im_it = ionseries.begin(); im_it != ionseries.end(); ++im_it)
@@ -446,7 +449,7 @@ namespace OpenMS
     endProgress();
   }
 
-  void MRMAssay::generateDecoyInSilicoMap_(OpenMS::TargetedExperiment& exp, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, std::vector<std::pair<double, double> > swathes, int round_decPow, boost::unordered_map<String, TargetedExperiment::Peptide>& TargetDecoyMap, boost::unordered_map<String, std::vector<std::pair<std::string, double> > >& TargetPeptideMap, boost::unordered_map<String, String>& DecoySequenceMap, boost::unordered_map<size_t, boost::unordered_map<String, std::vector<std::pair<double, std::string> > > >& DecoyIonMap, boost::unordered_map<String, std::vector<std::pair<std::string, double> > >& DecoyPeptideMap)
+  void MRMAssay::generateDecoyInSilicoMap_(OpenMS::TargetedExperiment& exp, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, bool enable_ms2_precursors, std::vector<std::pair<double, double> > swathes, int round_decPow, boost::unordered_map<String, TargetedExperiment::Peptide>& TargetDecoyMap, boost::unordered_map<String, std::vector<std::pair<std::string, double> > >& TargetPeptideMap, boost::unordered_map<String, String>& DecoySequenceMap, boost::unordered_map<size_t, boost::unordered_map<String, std::vector<std::pair<double, std::string> > > >& DecoyIonMap, boost::unordered_map<String, std::vector<std::pair<std::string, double> > >& DecoyPeptideMap)
   {
     MRMIonSeries mrmis;
 
@@ -486,9 +489,12 @@ namespace OpenMS
         // Generate theoretical ion series
         MRMIonSeries::IonSeries ionseries = mrmis.getIonSeries(*alt_aa, decoy_peptide.getChargeState(), fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses);  
 
-        // Add precursor to theoretical transitions
-        DecoyIonMap[precursor_swath][alt_aa->toUnmodifiedString()].push_back(std::make_pair(Math::roundDecimal(precursor_mz, round_decPow), alt_aa->toString()));
-        DecoyPeptideMap[peptide.id].push_back(std::make_pair("Precursor_i0", Math::roundDecimal(precursor_mz, round_decPow)));
+        if (enable_ms2_precursors)
+        {
+          // Add precursor to theoretical transitions
+          DecoyIonMap[precursor_swath][alt_aa->toUnmodifiedString()].push_back(std::make_pair(Math::roundDecimal(precursor_mz, round_decPow), alt_aa->toString()));
+          DecoyPeptideMap[peptide.id].push_back(std::make_pair("Precursor_i0", Math::roundDecimal(precursor_mz, round_decPow)));
+        }
 
         // Iterate over all theoretical transitions
         for (boost::unordered_map<String, double>::iterator im_it = ionseries.begin(); im_it != ionseries.end(); ++im_it)
@@ -854,7 +860,7 @@ namespace OpenMS
     exp.setProteins(proteins);
   }
 
-  void MRMAssay::uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, double mz_threshold, std::vector<std::pair<double, double> > swathes, int round_decPow, size_t max_num_alternative_localizations, int shuffle_seed)
+  void MRMAssay::uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, bool enable_ms2_precursors, double mz_threshold, std::vector<std::pair<double, double> > swathes, int round_decPow, size_t max_num_alternative_localizations, int shuffle_seed)
   {
     OpenMS::MRMIonSeries mrmis;
 
@@ -871,13 +877,13 @@ namespace OpenMS
     boost::unordered_map<String, TargetedExperiment::Peptide> TargetDecoyMap;
 
     // Step 1: Generate target in silico peptide map containing theoretical transitions
-    generateTargetInSilicoMap_(exp, fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, swathes, round_decPow, max_num_alternative_localizations, TargetSequenceMap, TargetIonMap, TargetPeptideMap);
+    generateTargetInSilicoMap_(exp, fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, enable_ms2_precursors, swathes, round_decPow, max_num_alternative_localizations, TargetSequenceMap, TargetIonMap, TargetPeptideMap);
 
     // Step 2a: Generate decoy sequences that share peptidoform properties with targets
     generateDecoySequences_(TargetSequenceMap, DecoySequenceMap, shuffle_seed);
 
     // Step 2b: Generate decoy in silico peptide map containing theoretical transitions
-    generateDecoyInSilicoMap_(exp, fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, swathes, round_decPow, TargetDecoyMap, TargetPeptideMap, DecoySequenceMap, DecoyIonMap, DecoyPeptideMap);
+    generateDecoyInSilicoMap_(exp, fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, enable_ms2_precursors, swathes, round_decPow, TargetDecoyMap, TargetPeptideMap, DecoySequenceMap, DecoyIonMap, DecoyPeptideMap);
 
     // Step 3: Generate target UIS assays
     generateTargetAssays_(exp, transitions, mz_threshold, swathes, round_decPow, TargetPeptideMap, TargetIonMap);

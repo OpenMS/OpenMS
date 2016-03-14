@@ -117,6 +117,7 @@ protected:
     registerFlag_("enable_detection_unspecific_losses", "set this flag if unspecific neutral losses (H2O1, H3N1, C1H2N2, C1H2N1O1) for detection fragment ions should be allowed");
     registerFlag_("enable_identification_specific_losses", "set this flag if specific neutral losses for identification fragment ions should be allowed");
     registerFlag_("enable_identification_unspecific_losses", "set this flag if unspecific neutral losses (H2O1, H3N1, C1H2N2, C1H2N1O1) for identification fragment ions should be allowed");
+    registerFlag_("enable_identification_ms2_precursors", "set this flag if MS2-level precursor ions for identification should be allowed");
     registerFlag_("enable_ms1_uis_scoring", "set this flag if MS1-UIS assays for UIS scoring should be generated");
     registerFlag_("enable_ms2_uis_scoring", "set this flag if MS2-UIS assays for UIS scoring should be generated");
     registerIntOption_("max_num_alternative_localizations", "<int>", 20, "maximum number of site-localization permutations", false);
@@ -144,6 +145,7 @@ protected:
     bool enable_detection_unspecific_losses = getFlag_("enable_detection_unspecific_losses");
     bool enable_identification_specific_losses = getFlag_("enable_identification_specific_losses");
     bool enable_identification_unspecific_losses = getFlag_("enable_identification_unspecific_losses");
+    bool enable_identification_ms2_precursors = getFlag_("enable_identification_ms2_precursors");
     bool enable_ms1_uis_scoring = getFlag_("enable_ms1_uis_scoring");
     bool enable_ms2_uis_scoring = getFlag_("enable_ms2_uis_scoring");
     size_t max_num_alternative_localizations = getIntOption_("max_num_alternative_localizations");
@@ -216,7 +218,7 @@ protected:
       else {uis_swathes = swathes;}
       
       std::cout << "Generating identifying (UIS) transitions" << std::endl;
-      assays.uisTransitions(targeted_exp, allowed_fragment_types, allowed_fragment_charges, enable_identification_specific_losses, enable_identification_unspecific_losses, product_mz_threshold, uis_swathes, -4, max_num_alternative_localizations, -1);
+      assays.uisTransitions(targeted_exp, allowed_fragment_types, allowed_fragment_charges, enable_identification_specific_losses, enable_identification_unspecific_losses, enable_identification_ms2_precursors, product_mz_threshold, uis_swathes, -4, max_num_alternative_localizations, -1);
       std::vector<std::pair<double, double> > empty_swathes;
       assays.restrictTransitions(targeted_exp, product_lower_mz_limit, product_upper_mz_limit, empty_swathes);
     }
