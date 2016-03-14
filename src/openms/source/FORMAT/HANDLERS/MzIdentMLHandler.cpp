@@ -548,13 +548,13 @@ namespace OpenMS
           spectra_data += String("\n\t\t\t</SpectrumIDFormat> \n\t\t</SpectraData>\n");
 
           sdat_ids.insert(make_pair(sdat_file, sdat_id));
+          ph_2_sdat_.insert(make_pair(it->getIdentifier(), sdat_id));
         }
         else
         {
           sdat_id = sdit->second;
         }
         sil_2_sdat_.insert(make_pair(sil_id,  sdat_id));
-
 
         //~ collect SearchDatabase element for each ProteinIdentification
         String sdb_id;
@@ -652,8 +652,20 @@ namespace OpenMS
         }
         String sidres;
         String sir = "SIR_" + String(UniqueIdGenerator::getUniqueId());
+        String sdr = sdat_ids.begin()->second;
+        std::map<String, String>::iterator pfo = ph_2_sdat_.find(it->getIdentifier());
+        if (pfo != ph_2_sdat_.end())
+        {
+          sdr = pfo->second;
+        }
+        else
+        {
+          LOG_WARN << "Falling back to referencing first spectrum file given because file or identifier could not be mapped." << std::endl;
+        }
+
         sidres += String("\t\t\t<SpectrumIdentificationResult spectraData_ref=\"")
-                + String(sdat_ids.begin()->second) + String("\" spectrumID=\"")
+        //multi identification runs lookup from file_origin here
+                + sdr + String("\" spectrumID=\"")
                 + sid + String("\" id=\"") + sir + String("\"> \n");
         //map.begin access ok here because make sure at least one "UNKOWN" element is in the sdats_ids map
 
