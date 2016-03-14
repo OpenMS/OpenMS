@@ -194,7 +194,7 @@ public:
     }
   }
   // TODO: make protected
-  static String getxQuestBase64EncodedSpectrum_(const RichPeakSpectrum& spec, String header)
+  static String getxQuestBase64EncodedSpectrum_(const PeakSpectrum& spec, String header)
   {
     vector<String> in_strings;
     StringList sl;
@@ -222,10 +222,12 @@ public:
       s += String(spec[i].getIntensity()) + "\t";
 
       // add fragment charge if meta value exists (must be present for 'common' and 'xlinker'.
-      if (spec[i].metaValueExists("z"))
-      {
-        s += String(spec[i].getMetaValue("z"));
-      }
+//      if (spec[i].metaValueExists("z"))
+//      {
+//        s += String(spec[i].getMetaValue("z"));
+//      }
+      s += "0";
+
       s += "\n"; 
 
       sl.push_back(s);
@@ -366,7 +368,8 @@ protected:
     spectrum.resize(peakcount);
   }
 
-  void preprocessSpectra_(PeakMap& exp, RichPeakMap& rich_exp)
+//  void preprocessSpectra_(PeakMap& exp, RichPeakMap& rich_exp)
+  void preprocessSpectra_(PeakMap& exp)
   {
     // filter MS2 map
     // remove 0 intensities
@@ -393,24 +396,24 @@ protected:
 #endif
     for (SignedSize exp_index = 0; exp_index < static_cast<SignedSize>(exp.size()); ++exp_index)
     {
-      // sort by mz, for deisotoping and window_mower
-//      exp[exp_index].sortByPosition();
-//      nlargest_filter.filterSpectrum(exp[exp_index]);
+//      // sort by mz, for deisotoping and window_mower
+      exp[exp_index].sortByPosition();
+////      nlargest_filter.filterSpectrum(exp[exp_index]);
 
-      // Deisotope, compute charges here (no 0 intensities, sorted by mz)
-      //rich_exp.addSpectrum(deisotopeAndSingleChargeMSSpectrum(exp[exp_index], 1, 6, 0.3, true));
-      //Params: spectrum, Int min_charge, Int max_charge, double fragment_tolerance, bool fragment_unit_ppm, bool keep_only_deisotoped = false, Size min_isopeaks = 3, Size max_isopeaks = 10, bool make_single_charged = true
+//      // Deisotope, compute charges here (no 0 intensities, sorted by mz)
+//      //rich_exp.addSpectrum(deisotopeAndSingleChargeMSSpectrum(exp[exp_index], 1, 6, 0.3, true));
+//      //Params: spectrum, Int min_charge, Int max_charge, double fragment_tolerance, bool fragment_unit_ppm, bool keep_only_deisotoped = false, Size min_isopeaks = 3, Size max_isopeaks = 10, bool make_single_charged = true
   
-      // remove noise, TODO window_mower not used in xQuest, is it necessary?
-//      window_mower_filter.filterPeakSpectrum(exp[exp_index]);
-      //nlargest_filter_rich(rich_exp[exp_index], 250);
-//      nlargest_filter.filterSpectrum(exp[exp_index]);
+//      // remove noise, TODO window_mower not used in xQuest, is it necessary?
+////      window_mower_filter.filterPeakSpectrum(exp[exp_index]);
+//      //nlargest_filter_rich(rich_exp[exp_index], 250);
+////      nlargest_filter.filterSpectrum(exp[exp_index]);
   
-      // sort (nlargest changes order)
-//      exp[exp_index].sortByPosition();
-      rich_exp.addSpectrum(makeRichPeakSpectrum(exp[exp_index], true));
-//      cout << "WHY? Exp Spec: " << exp[exp_index][50].getMZ() << "\t" << rich_exp[exp_index][50].getMZ() << endl;
-      rich_exp[exp_index].sortByPosition();
+//      // sort (nlargest changes order)
+////      exp[exp_index].sortByPosition();
+//      rich_exp.addSpectrum(makeRichPeakSpectrum(exp[exp_index], true));
+////      cout << "WHY? Exp Spec: " << exp[exp_index][50].getMZ() << "\t" << rich_exp[exp_index][50].getMZ() << endl;
+//      rich_exp[exp_index].sortByPosition();
      }
    }
 
@@ -504,7 +507,7 @@ protected:
   
   //TODO more general spectra types?
   // Cross-correlation, with shifting the second spectrum from -maxshift to +maxshift of tolerance bins (Tolerance in Da, basically a constant binsize)
-  vector< double > xCorrelation(const RichPeakSpectrum & spec1, const RichPeakSpectrum & spec2, Int maxshift, double tolerance)
+  vector< double > xCorrelation(const PeakSpectrum & spec1, const RichPeakSpectrum & spec2, Int maxshift, double tolerance)
   {
     double maxionsize = max(spec1[spec1.size()-1].getMZ(), spec2[spec2.size()-1].getMZ());
     //cout << "xcorr Maxionssize: " << maxionsize << endl;
@@ -607,21 +610,21 @@ protected:
   struct PreprocessedPairSpectra_
   {
     // pre-initialize so we can simply std::swap the spectra (no synchronization in multi-threading context needed as we get no reallocation of the PeakMapreprocessed_pair_spectra. 
-//    RichPeakMap spectra_light_different; // peaks in light spectrum after common peaks have been removed
-//    RichPeakMap spectra_heavy_different; // peaks in heavy spectrum after common peaks have been removed
-//    RichPeakMap spectra_heavy_to_light; // heavy peaks transformed to light ones and after common peaks have been removed
-    RichPeakMap spectra_common_peaks; // merge spectrum of common peaks (present in both spectra)
-    RichPeakMap spectra_xlink_peaks; // Xlink peaks in the light spectrum (common peaks between spectra_light_different and spectra heavy_to_light)
+//    PeakMap spectra_light_different; // peaks in light spectrum after common peaks have been removed
+//    PeakMap spectra_heavy_different; // peaks in heavy spectrum after common peaks have been removed
+//    PeakMap spectra_heavy_to_light; // heavy peaks transformed to light ones and after common peaks have been removed
+    PeakMap spectra_common_peaks; // merge spectrum of common peaks (present in both spectra)
+    PeakMap spectra_xlink_peaks; // Xlink peaks in the light spectrum (common peaks between spectra_light_different and spectra heavy_to_light)
 
     PreprocessedPairSpectra_(Size size)
     {
       for (Size i = 0; i != size; ++i)
       {
-//        spectra_light_different.addSpectrum(RichPeakSpectrum());
-//        spectra_heavy_different.addSpectrum(RichPeakSpectrum());
-//        spectra_heavy_to_light.addSpectrum(RichPeakSpectrum());
-        spectra_common_peaks.addSpectrum(RichPeakSpectrum());
-        spectra_xlink_peaks.addSpectrum(RichPeakSpectrum());
+//        spectra_light_different.addSpectrum(PeakSpectrum());
+//        spectra_heavy_different.addSpectrum(PeakSpectrum());
+//        spectra_heavy_to_light.addSpectrum(PeakSpectrum());
+        spectra_common_peaks.addSpectrum(PeakSpectrum());
+        spectra_xlink_peaks.addSpectrum(PeakSpectrum());
       }
     }  
   };
@@ -643,7 +646,7 @@ protected:
 
 
   // create common / shifted peak spectra for all pairs
-  PreprocessedPairSpectra_ preprocessPairs_(const RichPeakMap& spectra, const vector< pair<Size, Size> >& spectrum_pairs, const double cross_link_mass_iso_shift)
+  PreprocessedPairSpectra_ preprocessPairs_(const PeakMap& spectra, const vector< pair<Size, Size> >& spectrum_pairs, const double cross_link_mass_iso_shift)
   {
     PreprocessedPairSpectra_ preprocessed_pair_spectra(spectrum_pairs.size());
 
@@ -657,7 +660,7 @@ protected:
     {
       // assume that current MS2 corresponds to a light spectrum
       Size scan_index = spectrum_pairs[pair_index].first;
-      const RichPeakSpectrum& spectrum_light = spectra[scan_index];
+      const PeakSpectrum& spectrum_light = spectra[scan_index];
 
       // map light to heavy
 //      map<Size, Size>::const_iterator scan_index_light_it = map_light_to_heavy.find(scan_index);
@@ -665,15 +668,15 @@ protected:
 //      if (scan_index_light_it != map_light_to_heavy.end())
 //      {
         const Size scan_index_heavy = spectrum_pairs[pair_index].second;
-        const RichPeakSpectrum& spectrum_heavy = spectra[scan_index_heavy];
+        const PeakSpectrum& spectrum_heavy = spectra[scan_index_heavy];
          vector< pair< Size, Size > > matched_fragments_without_shift;
         //ms2_aligner.getSpectrumAlignment(matched_fragments_without_shift, spectrum_light, spectrum_heavy);
 //        cout << "Common matching, spectrum: " << scan_index << endl;
         getSpectrumIntensityMatching(matched_fragments_without_shift, spectrum_light, spectrum_heavy, 0.2, false, 0.3);
 
         // different fragments may carry light or heavy cross-linker.             
-        RichPeakSpectrum spectrum_heavy_different;
-        RichPeakSpectrum spectrum_light_different;
+        PeakSpectrum spectrum_heavy_different;
+        PeakSpectrum spectrum_light_different;
 
         // TODO: maybe speed this up - can be done in linear time
         for (Size i = 0; i != spectrum_light.size(); ++i)
@@ -703,8 +706,8 @@ protected:
 
         // transform by m/z difference between unlabeled and labeled cross-link to make heavy and light comparable.
         // assume different charged MS2 fragments
-        RichPeakSpectrum spectrum_heavy_to_light;
-        RichPeakSpectrum xlink_peaks;
+        PeakSpectrum spectrum_heavy_to_light;
+        PeakSpectrum xlink_peaks;
         for (Size charge = 2; charge <= max_charge_xlink; ++charge)
           {
             spectrum_heavy_to_light.clear(false);
@@ -712,7 +715,7 @@ protected:
             // transform heavy spectrum to light spectrum, collect peaks with the current charge into the spectrum
             for (Size i = 0; i != spectrum_heavy_different.size(); ++i)
             {
-              RichPeak1D p = spectrum_heavy_different[i];
+              Peak1D p = spectrum_heavy_different[i];
               p.setMZ(p.getMZ() - mass_shift);
               spectrum_heavy_to_light.push_back(p);
             }
@@ -747,7 +750,7 @@ protected:
         cout << "Matched shifted peaks: " << matched_fragments_with_shift.size() << " unexplained peaks: " << spectrum_light_different.size() - matched_fragments_with_shift.size() << ", " << spectrum_heavy_to_light.size() - matched_fragments_with_shift.size() << endl;
 #endif
         // generate common peaks spectrum TODO: check if only light / only heavy or e.g. mean of both peaks are used here
-        RichPeakSpectrum common_peaks;
+        PeakSpectrum common_peaks;
         for (Size i = 0; i != matched_fragments_without_shift.size(); ++i)
         {
           common_peaks.push_back(spectrum_light[matched_fragments_without_shift[i].first]);
@@ -756,9 +759,12 @@ protected:
         cout << "Peaks to match: " << common_peaks.size() << endl;
 #endif
         // TODO make this a tool parameter
-        Size max_peak_number = 250;
-        nlargest_filter_rich(common_peaks, max_peak_number);
-        nlargest_filter_rich(xlink_peaks, max_peak_number);
+        Size max_peak_number = 100;
+        NLargest nlargest_filter = NLargest(max_peak_number);
+//        nlargest_filter_rich(common_peaks, max_peak_number);
+//        nlargest_filter_rich(xlink_peaks, max_peak_number);
+        nlargest_filter.filterSpectrum(common_peaks);
+        nlargest_filter.filterSpectrum(xlink_peaks);
 //        swap(preprocessed_pair_spectra.spectra_light_different[pair_index], spectrum_light_different);
 //        swap(preprocessed_pair_spectra.spectra_heavy_different[pair_index], spectrum_heavy_different);
 //        swap(preprocessed_pair_spectra.spectra_heavy_to_light[pair_index], spectrum_heavy_to_light);
@@ -912,9 +918,14 @@ protected:
   static multimap<double, pair<const AASequence*, const AASequence*> > enumerateCrossLinksAndMasses_(const multimap<StringView, AASequence>&  peptides, double cross_link_mass_light, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2)
   {
     multimap<double, pair<const AASequence*, const AASequence*> > mass_to_candidates;
+    Size countA = 0;
+//    Size countB = 0;
     for (map<StringView, AASequence>::const_iterator a = peptides.begin(); a != peptides.end(); ++a)
     {
       String seq_first = a->second.toUnmodifiedString();
+
+      countA += 1;
+      cout << "Enumerating pairs with sequence " << countA << " of " << peptides.size() << endl;
 
       //Should be handled at digestion
 //      if (!seq_first.has("K"))
@@ -954,6 +965,8 @@ protected:
       // Generate cross-link between two peptides
       for (map<StringView, AASequence>::const_iterator b = a; b != peptides.end(); ++b)
       {
+//      countB += 1;
+//      cout << "Enumerating second sequence " << countB << " of " << peptides.size() << endl;
 
       // Should be handled at digestion
 //        if (b->second.toUnmodifiedString().has("K"))
@@ -1212,7 +1225,7 @@ protected:
 
     // Spectrum Alignment function adapted from SpectrumAlignment.h, intensity_cutoff: 0 for not considering, 0.3 = lower intentity has to be at least 30% of higher intensity (< 70% difference)
     // TODO Copies spectra, so that nearest peaks with dissimilar intensity can be removed to try with 2. nearest until out of tolerance range, make more efficient?
-    void getSpectrumAlignment(std::vector<std::pair<Size, Size> > & alignment, const RichPeakSpectrum & s1, RichPeakSpectrum s2, double tolerance, bool relative_tolerance, double intensity_cutoff = 0.0) const
+    void getSpectrumAlignment(std::vector<std::pair<Size, Size> > & alignment, const RichPeakSpectrum & s1, PeakSpectrum s2, double tolerance, bool relative_tolerance, double intensity_cutoff = 0.0) const
     {
       if (!s1.isSorted() || !s2.isSorted())
         {
@@ -1390,10 +1403,10 @@ protected:
         }
     }
 
-    RichPeakSpectrum getToleranceWindowPeaks(RichPeakSpectrum spec, double mz, double tolerance, bool relative_tolerance) const
+    PeakSpectrum getToleranceWindowPeaks(PeakSpectrum spec, double mz, double tolerance, bool relative_tolerance) const
     {
-//      RichPeakSpectrum spec = spectrum;
-      RichPeakSpectrum peaks;
+//      PeakSpectrum spec = spectrum;
+      PeakSpectrum peaks;
       double max_dist;
 
       if (relative_tolerance)
@@ -1426,15 +1439,15 @@ protected:
     }
 
     // Spectrum Alignment function adapted from SpectrumAlignment.h, intensity_cutoff: 0 for not considering, 0.3 = lower intentity has to be at least 30% of higher intensity (< 70% difference)
-    void getSpectrumIntensityMatching(std::vector<std::pair<Size, Size> > & alignment, RichPeakSpectrum s1, RichPeakSpectrum s2, double tolerance, bool relative_tolerance, double intensity_cutoff = 0.0) const
+    void getSpectrumIntensityMatching(std::vector<std::pair<Size, Size> > & alignment, PeakSpectrum s1, PeakSpectrum s2, double tolerance, bool relative_tolerance, double intensity_cutoff = 0.0) const
     {
       if (!s2.isSorted())
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Input to SpectrumAlignment is not sorted!");
       }
-//      RichPeakSpectrum s1 = spec1;
-//      RichPeakSpectrum s2 = spec2;
-      RichPeakSpectrum spec1 = s1;
+//      PeakSpectrum s1 = spec1;
+//      PeakSpectrum s2 = spec2;
+      PeakSpectrum spec1 = s1;
 
       // clear result
       alignment.clear();
@@ -1444,7 +1457,7 @@ protected:
       {
         const double& s1_mz = s1[i].getMZ();
 //        cout << "Search peak: " << s1_mz << "\t with Intensity: " << s1[i].getIntensity() << endl;
-        RichPeakSpectrum peaks = getToleranceWindowPeaks(s2, s1_mz, tolerance, relative_tolerance);
+        PeakSpectrum peaks = getToleranceWindowPeaks(s2, s1_mz, tolerance, relative_tolerance);
         if (peaks.size() > 1)
         {
           cout << "SpectrumIntensityMatch: Peaks in tolerance window: " << peaks.size() << endl;
@@ -1490,7 +1503,7 @@ protected:
     }
 
     // Write xQuest.xml output
-    void writeXQuestXML(const String& out_file, const vector< vector< CrossLinkSpectrumMatch > >& all_top_csms, const vector< PeptideIdentification >& peptide_ids, const RichPeakMap& spectra, String spec_xml_name)
+    void writeXQuestXML(const String& out_file, const vector< vector< CrossLinkSpectrumMatch > >& all_top_csms, const vector< PeptideIdentification >& peptide_ids, const PeakMap& spectra, String spec_xml_name)
     {
 
       // TODO Missing Parameters/Information :
@@ -1517,7 +1530,7 @@ protected:
         Size scan_index_light = top_vector[0].scan_index_light;
         Size scan_index_heavy = top_vector[0].scan_index_heavy;
 //        cout << "Scan indices: " << scan_index_light << "\t" << scan_index_heavy << endl;
-        const RichPeakSpectrum& spectrum_light = spectra[scan_index_light];
+        const PeakSpectrum& spectrum_light = spectra[scan_index_light];
         double precursor_charge = spectrum_light.getPrecursors()[0].getCharge();
 
         double precursor_mz = spectrum_light.getPrecursors()[0].getMZ();
@@ -1653,7 +1666,7 @@ protected:
       return;
     }
 
-    void writeXQuestXMLSpec(String spec_xml_filename, const RichPeakMap& spectra, const PreprocessedPairSpectra_& preprocessed_pair_spectra, const vector< pair<Size, Size> >& spectrum_pairs, const vector< vector< CrossLinkSpectrumMatch > >& all_top_csms)
+    void writeXQuestXMLSpec(String spec_xml_filename, const PeakMap& spectra, const PreprocessedPairSpectra_& preprocessed_pair_spectra, const vector< pair<Size, Size> >& spectrum_pairs, const vector< vector< CrossLinkSpectrumMatch > >& all_top_csms)
     {
 
       // XML Header
@@ -1791,8 +1804,8 @@ protected:
     Size max_variable_mods_per_peptide = getIntOption_("modifications:variable_max_per_peptide");
     
     // load MS2 map
-    PeakMap unprocessed_spectra;
-    RichPeakMap spectra;
+//    PeakMap unprocessed_spectra;
+    PeakMap spectra;
     MzMLFile f;
     f.setLogType(log_type_);
 
@@ -1800,12 +1813,15 @@ protected:
     options.clearMSLevels();
     options.addMSLevel(2);
     f.getOptions() = options;
-    f.load(in_mzml, unprocessed_spectra);
-    unprocessed_spectra.sortSpectra(true);
+//    f.load(in_mzml, unprocessed_spectra);
+//    unprocessed_spectra.sortSpectra(true);
+    f.load(in_mzml, spectra);
+    spectra.sortSpectra(true);
 
     // filter noise
     progresslogger.startProgress(0, 1, "Filtering spectra...");
-    preprocessSpectra_(unprocessed_spectra, spectra);
+//    preprocessSpectra_(unprocessed_spectra, spectra);
+    preprocessSpectra_(spectra);
     progresslogger.endProgress();
 
     // load linked features
@@ -1838,7 +1854,7 @@ protected:
     multimap<double, Size> multimap_mass_2_scan_index;
 
     vector<PeptideIdentification> pseudo_ids; // used to map precursor positions to consensus features
-    for (RichPeakMap::ConstIterator s_it = spectra.begin(); s_it != spectra.end(); ++s_it)
+    for (PeakMap::ConstIterator s_it = spectra.begin(); s_it != spectra.end(); ++s_it)
     {
       int scan_index = s_it - spectra.begin();
       vector<Precursor> precursor = s_it->getPrecursors();
@@ -1943,6 +1959,7 @@ protected:
     protein_ids[0].setSearchEngine("OpenMSxQuest");
     protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
     protein_ids[0].setPrimaryMSRunPath(spectra.getPrimaryMSRunPath());
+    protein_ids[0].setMetaValue("is_cross_linking_experiment", true);
 
     vector<PeptideIdentification> peptide_ids;
 
@@ -2194,7 +2211,7 @@ protected:
       Size scan_index = spectrum_pairs[pair_index].first;
       Size scan_index_heavy = spectrum_pairs[pair_index].second;
       cout << "Scan indices: " << scan_index << "\t" << scan_index_heavy << endl;
-      const RichPeakSpectrum& spectrum_light = spectra[scan_index];
+      const PeakSpectrum& spectrum_light = spectra[scan_index];
       const double precursor_charge = spectrum_light.getPrecursors()[0].getCharge();
       const double precursor_mz = spectrum_light.getPrecursors()[0].getMZ();
       const double precursor_mass = precursor_mz * static_cast<double>(precursor_charge) - static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U;
@@ -2211,7 +2228,7 @@ protected:
        for (SignedSize j = 0; j < static_cast<SignedSize>(spectrum_light.size()); ++j) mean_intensity += spectrum_light[j].getIntensity();
        mean_intensity = mean_intensity / spectrum_light.size();
 
-        const RichPeakSpectrum& common_peaks = preprocessed_pair_spectra.spectra_common_peaks[pair_index];
+        const PeakSpectrum& common_peaks = preprocessed_pair_spectra.spectra_common_peaks[pair_index];
 
         vector< CrossLinkSpectrumMatch > top_csms_spectrum;
 
@@ -2224,9 +2241,10 @@ protected:
           if (ion_index_mode)
           {
             // Use 50 most intense common peaks of exp. spectrum, consider all peptides that produce any of these as theor. common ions
-            //NLargest nlargest_filter = NLargest(50);
-            RichPeakSpectrum common_peaks_50 = common_peaks;
-            nlargest_filter_rich(common_peaks_50, 50);
+            NLargest nlargest_filter = NLargest(50);
+            PeakSpectrum common_peaks_50 = common_peaks;
+            nlargest_filter.filterSpectrum(common_peaks_50);
+            common_peaks_50.sortByPosition();
 
 
             vector<AASequence*> ion_tag_candidates;
@@ -2676,7 +2694,7 @@ protected:
                   // xCorr parameters: spec1, spec2, max_shift, binsize
                   vector< double > xcorrx = xCorrelation(spectrum_light, theoretical_spec_xlinks, 5, 0.3);
                   vector< double > xcorrc = xCorrelation(spectrum_light, theoretical_spec_common, 5, 0.2);
-                  vector< double > aucorr = xCorrelation(spectrum_light, spectrum_light, 1, 0.2);
+                  vector< double > aucorr = xCorrelation(spectrum_light, makeRichPeakSpectrum(spectrum_light, false), 1, 0.2);
                   double aucorr_sum = accumulate(aucorr.begin(), aucorr.end(), 0.0);
                   double xcorrx_max = accumulate(xcorrx.begin(), xcorrx.end(), 0.0) / aucorr_sum;
                   double xcorrc_max = accumulate(xcorrc.begin(), xcorrc.end(), 0.0) / aucorr_sum;
@@ -2807,6 +2825,8 @@ protected:
               peptide_id.setMZ(precursor_mz);
               peptide_id.setMetaValue("spec_heavy_RT", spectra[scan_index_heavy].getRT());
               peptide_id.setMetaValue("spec_heavy_MZ", spectra[scan_index_heavy].getPrecursors()[0].getMZ());
+              peptide_id.setMetaValue("spectrum_reference", spectra[scan_index].getNativeID());
+              peptide_id.setMetaValue("spectrum_reference_heavy", spectra[scan_index_heavy].getNativeID());
               peptide_id.setMetaValue("xl_type", xltype); // TODO: needs CV term
               peptide_id.setMetaValue("xl_rank", DataValue(i + 1)); 
 
