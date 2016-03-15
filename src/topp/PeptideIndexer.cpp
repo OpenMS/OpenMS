@@ -165,8 +165,6 @@ protected:
     // calculations
     //-------------------------------------------------------------
 
-
-
     if (proteins.empty()) // we do not allow an empty database
     {
       LOG_ERROR << "Error: An empty FASTA file was provided. Mapping makes no sense. Aborting..." << std::endl;
@@ -194,6 +192,15 @@ protected:
       {
         return UNKNOWN_ERROR;
       }
+    }
+    
+    //-------------------------------------------------------------
+    // calculate protein coverage
+    //-------------------------------------------------------------
+    
+    for (Size i = 0; i < prot_ids.size(); ++i)
+    {
+      prot_ids[i].computeCoverage(pep_ids);
     }
 
     //-------------------------------------------------------------
