@@ -35,24 +35,21 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
+#include <OpenMS/ANALYSIS/SVM/SimpleSVM.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ElutionModelFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
-
-#include <svm.h>
 
 #include <cstdlib> // for "rand"
 #include <ctime> // for "time" (seeding of random number generator)
@@ -78,7 +75,7 @@ using namespace std;
          <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
        </tr>
        <tr>
-         <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
+         <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes (optional) </td>
          <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_ProteinQuantifier</td>
        </tr>
        <tr>
@@ -89,31 +86,47 @@ using namespace std;
 
    This tool detects quantitative features in MS1 data based on information from peptide identifications (derived from MS2 spectra). It uses algorithms for targeted data analysis from the OpenSWATH pipeline.
 
-   @note It is important that only high-confidence peptide identifications and centroided (peak-picked) LC-MS data are used as inputs!
+   The aim is to detect features that enable the quantification of (ideally) all peptides in the identification input. This is based on the following principle: When a high-confidence identification (ID) of a peptide was made based on an MS2 spectrum from a certain (precursor) position in the LC-MS map, this indicates that the particular peptide is present at that position, so a feature for it should be detectable there.
 
-   For every distinct peptide ion (defined by sequence and charge) in the input (parameter @p id), an assay is generated, incorporating the retention time (RT), mass-to-charge ratio (m/z), and isotopic distribution of the peptide. The parameter @p reference_rt controls how the RT of the assay is determined if the peptide has been observed multiple times. The relative intensities of the isotopes together with their m/z values are calculated from the sequence and charge.
+   @note It is important that only high-confidence (i.e. reliable) peptide identifications are used as input!
 
-   The assays are used to perform targeted data analysis on the MS1 level using OpenSWATH algorithms, in several steps:
+   Targeted data analysis on the MS1 level uses OpenSWATH algorithms and follows roughly the steps outlined below.
 
-   <B>1. Ion chromatogram extraction</B>
+   <B>Use of inferred ("external") IDs</B>
 
-   First ion chromatograms (XICs) are extracted from the data (parameter @p in). For every assay, the RT range of the XICs is given by @p extract:rt_window (around the reference RT of the assay) and the m/z ranges by @p extract:mz_window (around the m/z values of all included isotopes). As an exception to this, if @p extract:reference_rt is @p adapt, a more complex procedure is used to find the RT range: A range of size @p rt_window around every relevant peptide ID is considered, overlapping ranges are joined, and the largest resulting range is used for the extraction. In that case, the reference RT for the assay is the median RT of the peptide IDs within the range.
+   The situation becomes more complicated when several LC-MS/MS runs from related samples of a label-free experiment are considered. In order to quantify a larger fraction of the peptides/proteins in the samples, it is desirable to infer peptide identifications across runs. Ideally, all peptides identified in any of the runs should be quantified in each and every run. However, for feature detection of inferred ("external") IDs, the following problems arise: First, retention times may be shifted between the run being quantified and the run that gave rise to the ID. Such shifts can be corrected (see @ref TOPP_MapAlignerIdentification), but only to an extent. Thus, the RT location of the inferred ID may not necessarily lie within the RT range of the correct feature. Second, since the peptide in question was not directly identified in the run being quantified, it may not actually be present in detectable amounts in that sample, e.g. due to differential regulation of the corresponding protein. There is thus a risk of introducing false-positive features.
+
+   FeatureFinderIdentification deals with these challenges by explicitly distinguishing between internal IDs (derived from the LC-MS/MS run being quantified) and external IDs (inferred from related runs). Features derived from internal IDs give rise to a training dataset for an SVM classifier. The SVM is then used to predict whether features derived from external IDs are correct or incorrect (and which of several candidates is the most likely to be correct). See steps 4 and 5 below for more details.
+
+   <B>1. Assay generation</B>
+
+   Feature detection is based on assays for identified peptides, each of which incorporates the retention time (RT), mass-to-charge ratio (m/z), and isotopic distribution (derived from the sequence) of a peptide. Peptides with different modifications are considered different peptides. One assay will be generated for every combination of (modified) peptide sequence, charge state, and RT region that has been identified. The RT regions arise by pooling all identifications of the same peptide, considering a window of size @p extract:rt_window around every RT location that gave rise to an ID, and then merging overlapping windows.
+
+   <B>2. Ion chromatogram extraction</B>
+
+   Ion chromatograms (XICs) are extracted from the LC-MS data (parameter @p in). One XIC per isotope in an assay is generated, with the corresponding m/z value and RT range (variable, depending on the RT region of the assay).
 
    @see @ref TOPP_OpenSwathChromatogramExtractor
 
-   <B>2. Feature detection</B>
+   <B>3. Feature detection</B>
 
-   Next feature candidates are detected in the XICs and scored. The best candidate per assay according to the OpenSWATH scoring is turned into a feature.
+   Next feature candidates - typically several per assay - are detected in the XICs and scored. A variety of scores for different quality aspects are calculated by OpenSWATH.
 
    @see @ref TOPP_OpenSwathAnalyzer
 
-   <B>3. Elution model fitting</B>
+   <B>4. Feature classification</B>
+   
+   Feature candidates derived from assays with "internal" IDs are classed as "false positives" (candidates without matching internal IDs), "true positives" (the single best candidate per assay with matching internal IDs), and "ambiguous" (other candidates with matching internal IDs). If "external" IDs were given as input, features based on them are initially classed as "unknown". Also in this case, a support vector machine (SVM) is trained on the "true positive" and "false positive" candidates, to distinguish between the two classes based on the different OpenSWATH quality scores. After parameter optimization by cross-validation, the resulting SVM is used to classify the "unknown" feature candidates into (presumed) true or false positives.
 
-   Elution models can be fitted to every feature to improve the quantification. For robustness, one model is fitted to all isotopic mass traces of a feature in parallel. A symmetric (Gaussian) and an asymmetric (exponential-Gaussian hybrid) model type are available. The fitted models are checked for plausibility before they are accepted.
+   <B>5. Feature filtering</B>
+
+   Feature candidates are filtered so that at most one feature per assay remains. For assays with internal IDs, only candidates previously classed as "true positive" are kept. For assays based solely on external IDs, out of the feature candidates classified as "true positive" by the SVM, the one with the highest SVM probability is kept.
+
+   <B>6. Elution model fitting</B>
+
+   Elution models can be fitted to the features to improve the quantification. For robustness, one model is fitted to all isotopic mass traces of a feature in parallel. A symmetric (Gaussian) and an asymmetric (exponential-Gaussian hybrid) model type are available. The fitted models are checked for plausibility before they are accepted.
 
    Finally the results (feature maps, parameter @p out) are returned.
-
-   @note This tool aims to report a feature for every distinct peptide ion given in the @p id input. Currently no attempt is made to filter out false-positives (although this may be possible in post-processing based on the OpenSWATH scores). If only high-confidence peptide IDs are used, that come from the same LC-MS/MS run that is being quantified, this should not be a problem. However, if e.g. inferred IDs from different runs (see @ref TOPP_MapAlignerIdentification) are included, false-positive features with arbitrary intensities may result for peptides that cannot be detected in the present data.
 
    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
@@ -180,43 +193,33 @@ protected:
     setMinFloat_("detect:peak_width", 0.0);
     registerDoubleOption_("detect:min_peak_width", "<value>", 0.2, "Minimum elution peak width. Absolute value in seconds if 1 or greater, else relative to 'peak_width'.", false, true);
     setMinFloat_("detect:min_peak_width", 0.0);
-    registerDoubleOption_("detect:signal_to_noise", "<value>", 0.5, "Signal-to-noise threshold for OpenSWATH feature detection", false, true);
+    registerDoubleOption_("detect:signal_to_noise", "<value>", 0.8, "Signal-to-noise threshold for OpenSWATH feature detection", false, true);
     setMinFloat_("detect:signal_to_noise", 0.1);
-    registerDoubleOption_("detect:mapping_tolerance", "<value>", 10.0, "RT tolerance (plus/minus) for mapping peptide IDs to features. Absolute value in seconds if 1 or greater, else relative to the RT span of the feature.", false);
+    registerDoubleOption_("detect:mapping_tolerance", "<value>", 0.0, "RT tolerance (plus/minus) for mapping peptide IDs to features. Absolute value in seconds if 1 or greater, else relative to the RT span of the feature.", false);
     setMinFloat_("detect:mapping_tolerance", 0.0);
 
+    // parameters for SVM classification:
     registerTOPPSubsection_("svm", "Parameters for scoring features using a support vector machine (SVM)");
-    registerIntOption_("svm:xval", "<number>", 5, "Number of partitions for cross-validation", false);
-    setMinInt_("svm:xval", 1);
     registerIntOption_("svm:samples", "<number>", 0, "Number of observations to use for training ('0' for all)", false);
     setMinInt_("svm:samples", 0);
     registerFlag_("svm:unbiased", "Reduce biases by choosing (roughly) the same number of positive and negative observations, with the same intensity distribution, for training. This reduces the number of available samples.");
-    registerStringOption_("svm:kernel", "<choice>", "RBF", "SVM kernel", false);
-    setValidStrings_("svm:kernel", ListUtils::create<String>("RBF,linear"));
-    String values = "-5,-3,-1,1,3,5,7,9,11,13,15";
-    registerDoubleList_("svm:log2_C", "<values>", ListUtils::create<double>(values), "Values to try for the SVM parameter 'C' during parameter optimization. A value 'x' is used as 'C = 2^x'.", false);
-    values = "-15,-13,-11,-9,-7,-5,-3,-1,1,3";
-    registerDoubleList_("svm:log2_gamma", "<values>", ListUtils::create<double>(values), "Values to try for the SVM parameter 'gamma' during parameter optimization (RBF kernel only). A value 'x' is used as 'gamma = 2^x'.", false);
     registerOutputFile_("svm:xval_out", "<file>", "", "Output file: SVM cross-validation (parameter optimization) results", false);
     setValidFormats_("svm:xval_out", ListUtils::create<String>("csv"));
+    Param svm_params;
+    svm_params.insert("svm:", SimpleSVM().getParameters());
+    registerFullParam_(svm_params);
 
+    // parameters for model fitting (via ElutionModelFitter):
     registerTOPPSubsection_("model", "Parameters for fitting elution models to features");
-    StringList models = ListUtils::create<String>("symmetric,asymmetric,none");
+    StringList models = ListUtils::create<String>("none,symmetric,asymmetric");
     registerStringOption_("model:type", "<choice>", models[0], "Type of elution model to fit to features", false);
     setValidStrings_("model:type", models);
-    registerDoubleOption_("model:add_zeros", "<value>", 0.2, "Add zero-intensity points outside the feature range to constrain the model fit. This parameter sets the weight given to these points during model fitting; '0' to disable.", false, true);
-    setMinFloat_("model:add_zeros", 0.0);
-    registerFlag_("model:unweighted_fit", "Suppress weighting of mass traces according to theoretical intensities when fitting elution models", true);
-    registerFlag_("model:no_imputation", "If fitting the elution model fails for a feature, set its intensity to zero instead of imputing a value from the initial intensity estimate", true);
-    registerTOPPSubsection_("model:check", "Parameters for checking the validity of elution models (and rejecting them if necessary)");
-    registerDoubleOption_("model:check:boundaries", "<value>", 0.5, "Time points corresponding to this fraction of the elution model height have to be within the data region used for model fitting", false, true);
-    setMinFloat_("model:check:boundaries", 0.0);
-    setMaxFloat_("model:check:boundaries", 1.0);
-    registerDoubleOption_("model:check:width", "<value>", 10.0, "Upper limit for acceptable widths of elution models (Gaussian or EGH), expressed in terms of modified (median-based) z-scores; '0' to disable", false, true);
-    setMinFloat_("model:check:width", 0.0);
-    registerDoubleOption_("model:check:asymmetry", "<value>", 10.0, "Upper limit for acceptable asymmetry of elution models (EGH only), expressed in terms of modified (median-based) z-scores; '0' to disable", false, true);
-    setMinFloat_("model:check:asymmetry", 0.0);
+    Param emf_params;
+    emf_params.insert("model:", ElutionModelFitter().getParameters());
+    emf_params.remove("model:asymmetric");
+    registerFullParam_(emf_params);
   }
+
 
   typedef MSExperiment<Peak1D> PeakMap;
   typedef FeatureFinderAlgorithmPickedHelperStructs::MassTrace MassTrace;
@@ -235,9 +238,6 @@ protected:
     double start, end;
     set<Int> charges; // charge states for which there are IDs in the region
   };
-
-  // classification performance for different SVM param. combinations (C/gamma):
-  typedef vector<vector<double> > SVMPerformance;
 
   // predicate for filtering features by overall quality:
   struct FeatureFilterQuality
@@ -273,7 +273,6 @@ protected:
   double mapping_tolerance_; // RT tolerance for mapping IDs to features
   Size n_parts_; // number of partitions for SVM cross-validation
   Size n_samples_; // number of samples for SVM training
-  String elution_model_; // choice of elution model
   ChromatogramExtractor extractor_; // OpenSWATH chromatogram extractor
   MRMFeatureFinderScoring feat_finder_; // OpenSWATH feature finder
   ProgressLogger prog_log_;
@@ -333,382 +332,6 @@ protected:
     peptide.rts.push_back(te_rt);
   }
 
-
-  double calculateFitQuality_(const TraceFitter* fitter, 
-                              const MassTraces& traces)
-  {
-    double mre = 0.0;
-    double total_weights = 0.0;
-    double rt_start = max(fitter->getLowerRTBound(), traces[0].peaks[0].first);
-    double rt_end = min(fitter->getUpperRTBound(), 
-                        traces[0].peaks.back().first);
-
-    for (MassTraces::const_iterator tr_it = traces.begin();
-         tr_it != traces.end(); ++tr_it)
-    {
-      for (vector<pair<double, const Peak1D*> >::const_iterator p_it = 
-             tr_it->peaks.begin(); p_it != tr_it->peaks.end(); ++p_it)
-      {
-        double rt = p_it->first;
-        if ((rt >= rt_start) && (rt <= rt_end))
-        {
-          double model_value = fitter->getValue(rt);
-          double diff = fabs(model_value * tr_it->theoretical_int -
-                             p_it->second->getIntensity());
-          mre += diff / model_value;
-          total_weights += tr_it->theoretical_int;
-        }
-      }
-    }
-    return mre / total_weights;
-  }
-
-
-  // fit models of elution profiles to all features:
-  void fitElutionModels_(FeatureMap& features)
-  {
-    // assumptions:
-    // - all features have subordinates (for the mass traces/transitions)
-    // - all subordinates have one convex hull
-    // - all convex hulls in one feature contain the same number (> 0) of points
-    // - the y coordinates of the hull points store the intensities
-
-    bool asymmetric = (elution_model_ == "asymmetric");
-    double add_zeros = getDoubleOption_("model:add_zeros");
-    bool weighted = !getFlag_("model:unweighted_fit");
-    bool impute = !getFlag_("model:no_imputation");
-    double check_boundaries = getDoubleOption_("model:check:boundaries");
-
-    // prepare look-up of transitions by native ID:
-    map<String, const ReactionMonitoringTransition*> trans_ids;
-    for (vector<ReactionMonitoringTransition>::const_iterator trans_it =
-           library_.getTransitions().begin(); trans_it !=
-           library_.getTransitions().end(); ++trans_it)
-    {
-      trans_ids[trans_it->getNativeID()] = &(*trans_it);
-    }
-
-    TraceFitter* fitter;
-    if (asymmetric)
-    {
-      fitter = new EGHTraceFitter();
-    }
-    else fitter = new GaussTraceFitter();
-    if (weighted)
-    {
-      Param params = fitter->getDefaults();
-      params.setValue("weighted", "true");
-      fitter->setParameters(params);
-    }
-
-    // store model parameters to find outliers later:
-    double width_limit = getDoubleOption_("model:check:width");
-    double asym_limit = (asymmetric ?
-                         getDoubleOption_("model:check:asymmetry") : 0.0);
-    // store values redundantly - once aligned with the features in the map,
-    // once only for successful models:
-    vector<double> widths_all, widths_good, asym_all, asym_good;
-    if (width_limit > 0)
-    {
-      widths_all.resize(features.size(),
-                        numeric_limits<double>::quiet_NaN());
-      widths_good.reserve(features.size());
-    }
-    if (asym_limit > 0)
-    {
-      asym_all.resize(features.size(), numeric_limits<double>::quiet_NaN());
-      asym_good.reserve(features.size());
-    }
-
-    // collect peaks that constitute mass traces:
-    LOG_DEBUG << "Fitting elution models to features:" << endl;
-    Size index = 0;
-    for (FeatureMap::Iterator feat_it = features.begin();
-         feat_it != features.end(); ++feat_it, ++index)
-    {
-      LOG_DEBUG << String(feat_it->getMetaValue("PeptideRef")) << endl;
-      double region_start = double(feat_it->getMetaValue("leftWidth"));
-      double region_end = double(feat_it->getMetaValue("rightWidth"));
-
-      vector<Peak1D> peaks;
-      // reserve space once, to avoid copying and invalidating pointers:
-      const Feature& sub = feat_it->getSubordinates()[0];
-      Size points_per_hull = sub.getConvexHulls()[0].getHullPoints().size();
-      peaks.reserve(feat_it->getSubordinates().size() * points_per_hull +
-                    (add_zeros > 0.0)); // don't forget additional zero point
-      MassTraces traces;
-      traces.max_trace = 0;
-      // need a mass trace for every transition, plus maybe one for add. zeros:
-      traces.reserve(feat_it->getSubordinates().size() + (add_zeros > 0.0));
-      for (vector<Feature>::iterator sub_it =
-             feat_it->getSubordinates().begin(); sub_it !=
-             feat_it->getSubordinates().end(); ++sub_it)
-      {
-        MassTrace trace;
-        trace.peaks.reserve(points_per_hull);
-        String native_id = sub_it->getMetaValue("native_id");
-        trace.theoretical_int = trans_ids[native_id]->getLibraryIntensity();
-        sub_it->setMetaValue("isotope_probability", trace.theoretical_int);
-        const ConvexHull2D& hull = sub_it->getConvexHulls()[0];
-        for (ConvexHull2D::PointArrayTypeConstIterator point_it =
-               hull.getHullPoints().begin(); point_it !=
-               hull.getHullPoints().end(); ++point_it)
-        {
-          double intensity = point_it->getY();
-          if (intensity > 0.0) // only use non-zero intensities for fitting
-          {
-            Peak1D peak;
-            peak.setMZ(sub_it->getMZ());
-            peak.setIntensity(intensity);
-            peaks.push_back(peak);
-            trace.peaks.push_back(make_pair(point_it->getX(), &peaks.back()));
-          }
-        }
-        trace.updateMaximum();
-        if (!trace.peaks.empty()) traces.push_back(trace);
-      }
-
-      // find the trace with maximal intensity:
-      Size max_trace = 0;
-      double max_intensity = 0;
-      for (Size i = 0; i < traces.size(); ++i)
-      {
-        if (traces[i].max_peak->getIntensity() > max_intensity)
-        {
-          max_trace = i;
-          max_intensity = traces[i].max_peak->getIntensity();
-        }
-      }
-      traces.max_trace = max_trace;
-      // ??? (from "FeatureFinderAlgorithmPicked.h"):
-      // traces.updateBaseline();
-      // traces.baseline = 0.75 * traces.baseline;
-      traces.baseline = 0.0;
-
-      if (add_zeros > 0.0)
-      {
-        MassTrace trace;
-        trace.peaks.reserve(2);
-        trace.theoretical_int = add_zeros;
-        Peak1D peak;
-        peak.setMZ(feat_it->getSubordinates()[0].getMZ());
-        peak.setIntensity(0.0);
-        peaks.push_back(peak);
-        double offset = 0.2 * (region_start - region_end);
-        trace.peaks.push_back(make_pair(region_start - offset, &peaks.back()));
-        trace.peaks.push_back(make_pair(region_end + offset, &peaks.back()));
-        traces.push_back(trace);
-      }
-
-      // fit the model:
-      bool fit_success = true;
-      try
-      {
-        fitter->fit(traces);
-      }
-      catch (Exception::UnableToFit& except)
-      {
-        LOG_ERROR << "Error fitting model to feature '"
-                  << feat_it->getUniqueId() << "': " << except.getName()
-                  << " - " << except.getMessage() << endl;
-        fit_success = false;
-      }
-
-      // record model parameters:
-      double center = fitter->getCenter(), height = fitter->getHeight();
-      feat_it->setMetaValue("model_height", height);
-      feat_it->setMetaValue("model_FWHM", fitter->getFWHM());
-      feat_it->setMetaValue("model_center", center);
-      feat_it->setMetaValue("model_lower", fitter->getLowerRTBound());
-      feat_it->setMetaValue("model_upper", fitter->getUpperRTBound());
-      if (asymmetric)
-      {
-        EGHTraceFitter* egh =
-          static_cast<EGHTraceFitter*>(fitter);
-        feat_it->setMetaValue("model_EGH_tau", egh->getTau());
-        feat_it->setMetaValue("model_EGH_sigma", egh->getSigma());
-      }
-      else
-      {
-        GaussTraceFitter* gauss =
-          static_cast<GaussTraceFitter*>(fitter);
-        feat_it->setMetaValue("model_Gauss_sigma", gauss->getSigma());
-      }
-
-      // goodness of fit:
-      double mre = -1.0; // mean relative error
-      if (fit_success)
-      {
-        mre = calculateFitQuality_(fitter, traces);
-      }
-      feat_it->setMetaValue("model_error", mre);
-
-      // check model validity:
-      double area = fitter->getArea();
-      feat_it->setMetaValue("model_area", area);
-      if ((area != area) || (area <= 0.0)) // x != x: test for NaN
-      {
-        feat_it->setMetaValue("model_status", "1 (invalid area)");
-      }
-      else if ((center <= region_start) || (center >= region_end))
-      {
-        feat_it->setMetaValue("model_status", "2 (center out of bounds)");
-      }
-      else if (fitter->getValue(region_start) > check_boundaries * height)
-      {
-        feat_it->setMetaValue("model_status", "3 (left side out of bounds)");
-      }
-      else if (fitter->getValue(region_end) > check_boundaries * height)
-      {
-        feat_it->setMetaValue("model_status", "4 (right side out of bounds)");
-      }
-      else
-      {
-        feat_it->setMetaValue("model_status", "0 (valid)");
-        // store model parameters to find outliers later:
-        if (asymmetric)
-        {
-          double sigma = feat_it->getMetaValue("model_EGH_sigma");
-          double abs_tau = fabs(double(feat_it->
-                                       getMetaValue("model_EGH_tau")));
-          if (width_limit > 0)
-          {
-            // see implementation of "EGHTraceFitter::getArea":
-            double width = sigma * 0.6266571 + abs_tau;
-            widths_all[index] = width;
-            widths_good.push_back(width);
-          }
-          if (asym_limit > 0)
-          {
-            double asymmetry = abs_tau / sigma;
-            asym_all[index] = asymmetry;
-            asym_good.push_back(asymmetry);
-          }
-        }
-        else if (width_limit > 0)
-        {
-          double width = feat_it->getMetaValue("model_Gauss_sigma");
-          widths_all[index] = width;
-          widths_good.push_back(width);
-        }
-      }
-    }
-    delete fitter;
-
-    // find outliers in model parameters:
-    if (width_limit > 0)
-    {
-      double median_width = Math::median(widths_good.begin(),
-                                         widths_good.end());
-      vector<double> abs_diffs(widths_good.size());
-      for (Size i = 0; i < widths_good.size(); ++i)
-      {
-        abs_diffs[i] = fabs(widths_good[i] - median_width);
-      }
-      // median absolute deviation (constant factor to approximate std. dev.):
-      double mad_width = 1.4826 * Math::median(abs_diffs.begin(),
-                                               abs_diffs.end());
-
-      for (Size i = 0; i < features.size(); ++i)
-      {
-        double width = widths_all[i];
-        if (width != width) continue; // NaN (failed model)
-        double z_width = (width - median_width) / mad_width; // mod. z-score
-        if (z_width > width_limit)
-        {
-          features[i].setMetaValue("model_status", "5 (width too large)");
-          if (asym_limit > 0) // skip asymmetry check below
-          {
-            asym_all[i] = numeric_limits<double>::quiet_NaN();
-          }
-        }
-        else if (z_width < -width_limit)
-        {
-          features[i].setMetaValue("model_status", "6 (width too small)");
-          if (asym_limit > 0) // skip asymmetry check below
-          {
-            asym_all[i] = numeric_limits<double>::quiet_NaN();
-          }
-        }
-      }
-    }
-    if (asym_limit > 0)
-    {
-      double median_asym = Math::median(asym_good.begin(), asym_good.end());
-      vector<double> abs_diffs(asym_good.size());
-      for (Size i = 0; i < asym_good.size(); ++i)
-      {
-        abs_diffs[i] = fabs(asym_good[i] - median_asym);
-      }
-      // median absolute deviation (constant factor to approximate std. dev.):
-      double mad_asym = 1.4826 * Math::median(abs_diffs.begin(),
-                                              abs_diffs.end());
-
-      for (Size i = 0; i < features.size(); ++i)
-      {
-        double asym = asym_all[i];
-        if (asym != asym) continue; // NaN (failed model)
-        double z_asym = (asym - median_asym) / mad_asym; // mod. z-score
-        if (z_asym > asym_limit)
-        {
-          features[i].setMetaValue("model_status", "7 (asymmetry too high)");
-        }
-        else if (z_asym < -asym_limit) // probably shouldn't happen in practice
-        {
-          features[i].setMetaValue("model_status", "8 (asymmetry too low)");
-        }
-      }
-    }
-
-    // impute approximate results for failed model fits (basically bring the
-    // OpenSWATH intensity estimates to the same scale as the model-based ones):
-    TransformationModel::DataPoints quant_values;
-    vector<FeatureMap::Iterator> failed_models;
-    Size model_successes = 0, model_failures = 0;
-
-    for (FeatureMap::Iterator feat_it = features.begin();
-         feat_it != features.end(); ++feat_it, ++index)
-    {
-      feat_it->setMetaValue("raw_intensity", feat_it->getIntensity());
-      if (String(feat_it->getMetaValue("model_status"))[0] != '0')
-      {
-        if (impute) failed_models.push_back(feat_it);
-        else feat_it->setIntensity(0.0);
-        model_failures++;
-      }
-      else
-      {
-        double area = feat_it->getMetaValue("model_area");
-        if (impute)
-        { // apply log-transform to weight down high outliers:
-          double raw_intensity = feat_it->getIntensity();
-          LOG_DEBUG << "Successful model: x = " << raw_intensity << ", y = "
-                    << area << "; log(x) = " << log(raw_intensity)
-                    << ", log(y) = " << log(area) << endl;
-          quant_values.push_back(make_pair(log(raw_intensity), log(area)));
-        }
-        feat_it->setIntensity(area);
-        model_successes++;
-      }
-    }
-    LOG_INFO << "Model fitting: " << model_successes << " successes, "
-             << model_failures << " failures" << endl;
-
-    if (impute) // impute results for cases where the model fit failed
-    {
-      TransformationModelLinear lm(quant_values, Param());
-      double slope, intercept;
-      lm.getParameters(slope, intercept);
-      LOG_DEBUG << "LM slope: " << slope << ", intercept: " << intercept
-                << endl;
-      for (vector<FeatureMap::Iterator>::iterator it = failed_models.begin();
-           it != failed_models.end(); ++it)
-      {
-        double area = exp(lm.evaluate(log((*it)->getIntensity())));
-        (*it)->setIntensity(area);
-      }
-    }
-  }
 
 
   void getRTRegions_(const ChargeMap& peptide_data, 
@@ -973,7 +596,7 @@ protected:
                                transitions);
           library.setTransitions(transitions);
 
-          if (keep_library_ || (elution_model_ != "none")) library_ += library;
+          if (keep_library_) library_ += library;
 
           // extract chromatograms:
           double rt_window = reg_it->end - reg_it->start;
@@ -1017,6 +640,16 @@ protected:
             // with a warning when writing output, because of missing protein
             // identification with corresponding identifier):
             feat_it->getPeptideIdentifications().clear();
+            // annotate subordinates with theoretical isotope intensities:
+            for (vector<Feature>::iterator sub_it =
+                   feat_it->getSubordinates().begin(); sub_it !=
+                   feat_it->getSubordinates().end(); ++sub_it)
+            {
+              String native_id = sub_it->getMetaValue("native_id");
+              Size index = native_id.suffix('i').toInt() - 1;
+              sub_it->setMetaValue("isotope_probability",
+                                   iso_dist.getContainer()[index].second);
+            }
           }
           // which features are supported by "internal" IDs?
           annotateFeatures_(current_features, cm_it->second);
@@ -1049,68 +682,6 @@ protected:
   }
 
 
-  void scaleSVMData_(vector<vector<double> >& predictor_values,
-                     const vector<String>& predictors)
-  {
-    for (Size i = 0; i < predictors.size(); ++i)
-    {
-      if (predictor_values[i].empty()) continue;
-      vector<double>::iterator pv_begin = predictor_values[i].begin();
-      vector<double>::iterator pv_end = predictor_values[i].end();
-      double vmin = *min_element(pv_begin, pv_end);
-      double vmax = *max_element(pv_begin, pv_end);
-      if (vmin == vmax)
-      {
-        LOG_DEBUG << "Predictor '" + predictors[i] + "' is uninformative." 
-                  << endl;
-        predictor_values[i].clear();
-        continue;
-      }
-      double range = vmax - vmin;
-      for (vector<double>::iterator it = pv_begin; it != pv_end; ++it)
-      {
-        *it = (*it - vmin) / range;
-      }
-    }
-  }
-
-
-  void convertSVMData_(vector<vector<double> >& predictor_values,
-                       vector<vector<struct svm_node> >& svm_nodes)
-  {
-    Size n_obs = predictor_values[0].size();
-    svm_nodes.resize(n_obs);
-    Size skipped_predictors = 0;
-    for (Size pred_index = 0; pred_index < predictor_values.size(); 
-         ++pred_index)
-    {
-      if (predictor_values[pred_index].empty()) // uninformative predictor
-      {
-        skipped_predictors++;
-        continue;
-      }
-      for (Size obs_index = 0; obs_index < n_obs; ++obs_index)
-      {
-        double value = predictor_values[pred_index][obs_index];
-        if (value > 0)
-        {
-          int node_index = pred_index - skipped_predictors;
-          svm_node node = {node_index, value};
-          svm_nodes[obs_index].push_back(node);
-        }
-      }
-    }
-    LOG_DEBUG << "Number of predictors for SVM: "
-              << predictor_values.size() - skipped_predictors << endl;
-    svm_node final = {-1, 0.0};
-    for (vector<vector<struct svm_node> >::iterator it = svm_nodes.begin();
-         it != svm_nodes.end(); ++it)
-    {
-      it->push_back(final);
-    }
-  }
-
-
   void checkNumObservations_(Size n_pos, Size n_neg, const String& note = "")
   {
     if (n_pos < n_parts_)
@@ -1129,393 +700,213 @@ protected:
     }
   }
 
-  
-  void getTrainingSample_(const vector<double>& labels,
-                          const vector<double>& intensities,
-                          vector<vector<struct svm_node> >& svm_nodes,
-                          struct svm_problem& svm_data)
+
+  void getUnbiasedSample_(const multimap<double, pair<Size, bool> >& valid_obs,
+                          map<Size, Int>& training_labels)
   {
-    vector<Size> selection; // indexes of observations selected for training
-    // mapping: intensity -> (index, positive?)
+    // Create an unbiased training sample:
+    // - same number of pos./neg. observations (approx.),
+    // - same intensity distribution of pos./neg. observations.
+    // We use a sliding window over the set of observations, ordered by
+    // intensity. At each step, we examine the proportion of both pos./neg.
+    // observations in the window and select the middle element with according
+    // probability. (We use an even window size, to cover the ideal case where
+    // the two classes are balanced.)
+    const Size window_size = 8;
+    const Size half_win_size = window_size / 2;
+    if (valid_obs.size() < half_win_size + 1)
+    {
+      String msg = "Not enough observations for intensity-bias filtering.";
+      throw Exception::MissingInformation(__FILE__, __LINE__, 
+                                          __PRETTY_FUNCTION__, msg);
+    }
+    srand(time(0)); // seed random number generator
+    Size n_obs[2] = {0, 0}; // counters for neg./pos. observations
+    Size counts[2] = {0, 0}; // pos./neg. counts in current window
+    // iterators to begin, middle and past-the-end of sliding window:
+    multimap<double, pair<Size, bool> >::const_iterator begin, middle, end;
+    begin = middle = end = valid_obs.begin();
+    // initialize ("middle" is at beginning of sequence, so no full window):
+    for (Size i = 0; i <= half_win_size; ++i, ++end)
+    {
+      ++counts[end->second.second]; // increase counter for pos./neg. obs.
+    }
+    // "i" is the index of one of the two middle values of the sliding window:
+    // - in the left half of the sequence, "i" is left-middle,
+    // - in the right half of the sequence, "i" is right-middle.
+    // The counts are updated as "i" and the sliding window move to the right.
+    for (Size i = 0; i < valid_obs.size(); ++i, ++middle)
+    {
+      // if count for either class is zero, we don't select anything:
+      if ((counts[0] > 0) && (counts[1] > 0))
+      {
+        // probability thresholds for neg./pos. observations:
+        double thresholds[2] = {counts[1] / float(counts[0]),
+                                counts[0] / float(counts[1])};
+        // check middle values:
+        double rnd = rand() / double(RAND_MAX); // random num. in range 0-1
+        if (rnd < thresholds[middle->second.second])
+        {
+          training_labels[middle->second.first] = Int(middle->second.second);
+          ++n_obs[middle->second.second];
+        }
+      }
+      // update sliding window and class counts;
+      // when we reach the middle of the sequence, we keep the window in place
+      // for one step, to change from "left-middle" to "right-middle":
+      if (i != valid_obs.size() / 2)
+      {
+        // only move "begin" when "middle" has advanced far enough:
+        if (i > half_win_size)
+        {
+          --counts[begin->second.second];
+          ++begin;
+        }
+        // don't increment "end" beyond the defined range:
+        if (end != valid_obs.end())
+        {
+          ++counts[end->second.second];
+          ++end;
+        }
+      }
+    }
+    checkNumObservations_(n_obs[1], n_obs[0], " after bias filtering");
+  }
+
+
+  void getRandomSample_(map<Size, Int>& training_labels)
+  {
+    // @TODO: can this be done with less copying back and forth of data?
+    // Pick a random subset of size "n_samples_" for training: Shuffle the whole
+    // sequence, then select the first "n_samples_" elements.
+    vector<Size> selection;
+    selection.reserve(training_labels.size());
+    for (map<Size, Int>::iterator it = training_labels.begin();
+         it != training_labels.end(); ++it)
+    {
+      selection.push_back(it->first);
+    }
+    random_shuffle(selection.begin(), selection.end());
+    // However, ensure that at least "n_parts_" pos./neg. observations are
+    // included (for cross-validation) - there must be enough, otherwise
+    // "checkNumObservations_" would have thrown an error. To this end, move
+    // "n_parts_" pos. observations to the beginning of sequence, followed by
+    // "n_parts_" neg. observations (pos. first - see reason below):
+    Size n_obs[2] = {0, 0}; // counters for neg./pos. observations
+    for (Int label = 1; label >= 0; --label)
+    {
+      for (Size i = n_obs[1]; i < selection.size(); ++i)
+      {
+        Size obs_index = selection[i];
+        if (training_labels[obs_index] == label)
+        {
+          swap(selection[i], selection[n_obs[label]]);
+          ++n_obs[label];
+        }
+        if (n_obs[label] == n_parts_) break;
+      }
+    }
+    selection.resize(n_samples_);
+    // copy the selected subset back:
+    map<Size, Int> temp;
+    for (vector<Size>::iterator it = selection.begin(); it != selection.end();
+         ++it)
+    {
+      temp[*it] = training_labels[*it];
+    }
+    training_labels.swap(temp);
+  }
+
+
+  void classifyFeatures_(FeatureMap& features)
+  {
+    // get predictors for SVM:
+    vector<String> predictor_names = 
+      ListUtils::create<String>(score_metavalues_);
+    // values for all featues per predictor (this way around to simplify scaling
+    // of predictors):
+    map<String, vector<double> > predictors;
+    for (vector<String>::iterator pred_it = predictor_names.begin();
+         pred_it != predictor_names.end(); ++pred_it)
+    {
+      predictors[*pred_it].reserve(features.size());
+      for (FeatureMap::Iterator feat_it = features.begin(); 
+           feat_it < features.end(); ++feat_it)
+      {
+        if (!feat_it->metaValueExists(*pred_it))
+        {
+          LOG_ERROR << "Meta value '" << *pred_it << "' missing for feature '"
+                    << feat_it->getUniqueId() << "'" << endl;
+          predictors.erase(*pred_it);
+          break;
+        }
+        predictors[*pred_it].push_back(feat_it->getMetaValue(*pred_it));
+      }
+    }
+
+    // get labels for SVM:
+    map<Size, Int> training_labels;
+    bool unbiased = getFlag_("svm:unbiased");
+    // mapping (for bias correction): intensity -> (index, positive?)
     multimap<double, pair<Size, bool> > valid_obs;
     Size n_obs[2] = {0, 0}; // counters for neg./pos. observations
-    srand(time(0)); // seed random number generator
-    bool unbiased = getFlag_("svm:unbiased");
-
-    // get positive/negative observations for training (no "maybes"/unknowns):
-    for (Size i = 0; i < labels.size(); ++i)
+    for (Size feat_index = 0; feat_index < features.size(); ++feat_index)
     {
-      if ((labels[i] == 0.0) || (labels[i] == 1.0))
+      String feature_class = features[feat_index].getMetaValue("feature_class");
+      Int label = -1;
+      if (feature_class == "true_positive") label = 1;
+      else if (feature_class == "false_positive") label = 0;
+      if (label != -1)
       {
-        Size category = Size(labels[i]);
-        ++n_obs[category];
-        if (unbiased) // fill "valid_obs" first ("selection" is filled later)
+        ++n_obs[label];
+        if (unbiased)
         {
-          valid_obs.insert(make_pair(intensities[i],
-                                     make_pair(i, bool(category))));
+          double intensity = features[feat_index].getIntensity();
+          valid_obs.insert(make_pair(intensity, make_pair(feat_index,
+                                                          bool(label))));
         }
-        else // fill "selection" directly
+        else
         {
-          selection.push_back(i);
+          training_labels[feat_index] = label;
         }
       }
     }
     checkNumObservations_(n_obs[1], n_obs[0]);
 
-    if (unbiased)
-    {
-      // Create an unbiased training sample:
-      // - same number of pos./neg. observations (approx.),
-      // - same intensity distribution of pos./neg. observations.
-      // We use a sliding window over the set of observations, ordered by
-      // intensity. At each step, we examine the proportion of both pos./neg.
-      // observations in the window and select the middle element with according
-      // probability. (We use an even window size, to cover the ideal case where
-      // the two classes are balanced.)
-      const Size window_size = 8;
-      const Size half_win_size = window_size / 2;
-      if (labels.size() < half_win_size + 1)
-      {
-        String msg = "Not enough observations for intensity-bias filtering.";
-        throw Exception::MissingInformation(__FILE__, __LINE__, 
-                                            __PRETTY_FUNCTION__, msg);
-      }
-      Size counts[2] = {0, 0};
-      n_obs[0] = n_obs[1] = 0;
-      // iterators to begin, middle and past-the-end of sliding window:
-      multimap<double, pair<Size, bool> >::iterator begin, middle, end;
-      begin = middle = end = valid_obs.begin();
-      // initialize ("middle" is at beginning of sequence, so no full window):
-      for (Size i = 0; i <= half_win_size; ++i, ++end)
-      {
-        ++counts[end->second.second]; // increase counter for pos./neg. obs.
-      }
-      // "i" is the index of one of the two middle values of the sliding window:
-      // - in the left half of the sequence, "i" is left-middle,
-      // - in the right half of the sequence, "i" is right-middle.
-      // The counts are updated as "i" and the sliding window move to the right.
-      for (Size i = 0; i < valid_obs.size(); ++i, ++middle)
-      {
-        // if count for either class is zero, we don't select anything:
-        if ((counts[0] > 0) && (counts[1] > 0))
-        {
-          // probability thresholds for neg./pos. observations:
-          double thresholds[2] = {counts[1] / float(counts[0]),
-                                  counts[0] / float(counts[1])};
-          // check middle values:
-          double rnd = rand() / double(RAND_MAX); // random num. in range 0-1
-          if (rnd < thresholds[middle->second.second])
-          {
-            selection.push_back(middle->second.first);
-            ++n_obs[middle->second.second];
-          }
-        }
-        // update sliding window and class counts;
-        // when we reach the middle of the sequence, we keep the window in place
-        // for one step, to change from "left-middle" to "right-middle":
-        if (i != valid_obs.size() / 2)
-        {
-          // only move "begin" when "middle" has advanced far enough:
-          if (i > half_win_size)
-          {
-            --counts[begin->second.second];
-            ++begin;
-          }
-          // don't increment "end" beyond the defined range:
-          if (end != valid_obs.end())
-          {
-            ++counts[end->second.second];
-            ++end;
-          }
-        }
-      }
-      checkNumObservations_(n_obs[1], n_obs[0], " after bias filtering");
-    }
+    if (unbiased) getUnbiasedSample_(valid_obs, training_labels);
 
     if (n_samples_ > 0) // limited number of samples for training
     {
-      if (selection.size() < n_samples_)
+      if (training_labels.size() < n_samples_)
       {
-        LOG_WARN << "Warning: There are only " << selection.size()
+        LOG_WARN << "Warning: There are only " << training_labels.size()
                  << " valid observations for training." << endl;
       }
-      else if (selection.size() > n_samples_) // pick random subset for training
+      else if (training_labels.size() > n_samples_)
       {
-        // To get a random subset of size "n_samples_", shuffle the whole
-        // sequence, then select the first "n_samples_" elements.
-        random_shuffle(selection.begin(), selection.end());
-        // However, ensure that at least "n_parts_" pos./neg. observations are
-        // included (for cross-validation) - there must be enough, otherwise
-        // "checkNumObservations_" would have thrown an error. To this end, move
-        // "n_parts_" pos. observations to the beginning of sequence, followed
-        // by "n_parts_" neg. observations (pos. first - see reason below):
-        n_obs[0] = n_obs[1] = 0;        
-        for (Int category = 1; category >= 0; --category)
-        {
-          for (Size i = n_obs[1]; i < selection.size(); ++i)
-          {
-            Size obs_index = selection[i];
-            if (labels[obs_index] == category)
-            {
-              swap(selection[i], selection[n_obs[category]]);
-              ++n_obs[category];
-            }
-            if (n_obs[category] == n_parts_) break;
-          }
-        }
-        selection.resize(n_samples_);
+        getRandomSample_(training_labels);
       }
     }
-    // make sure the first observation is positive, or SVM class labels may be
-    // reversed due to a bug in LIBSVM (before version 3.17; see LIBSVM FAQ:
-    // http://www.csie.ntu.edu.tw/~cjlin/libsvm/faq.html#f430):
-    Size i = 0;
-    while (labels[selection[i]] != 1.0) ++i;
-    swap(selection[0], selection[i]);
 
-    // fill LIBSVM data structure:
-    svm_data.l = selection.size();
-    svm_data.x = new svm_node*[svm_data.l];
-    svm_data.y = new double[svm_data.l];
-    n_obs[0] = n_obs[1] = 0;
-    for (i = 0; i < selection.size(); ++i)
-    {
-      Size obs_index = selection[i];
-      svm_data.x[i] = &(svm_nodes[obs_index][0]);
-      svm_data.y[i] = labels[obs_index];
-      ++n_obs[Size(labels[obs_index])];
-    }
-    LOG_INFO << "Training SVM on " << selection.size() << " observations ("
-             << n_obs[1] << " positive, " << n_obs[0] << " negative)." << endl;
-  }
-
-  
-  void writeXvalResults_(const String& path, const SVMPerformance& performance,
-                         const vector<double>& log2_C, 
-                         const vector<double>& log2_gamma)
-  {
-    ofstream outstr(path.c_str());
-    SVOutStream output(outstr);
-    output.modifyStrings(false);
-    output << "log2_C" << "log2_gamma" << "performance" << nl;
-    for (Size g_index = 0; g_index < log2_gamma.size(); ++g_index)
-    {
-      for (Size c_index = 0; c_index < log2_C.size(); ++c_index)
-      {
-        output << log2_C[c_index] << log2_gamma[g_index] 
-               << performance[g_index][c_index] << nl;
-      }
-    }
-  }
-
-
-  pair<double, double> chooseBestSVMParams_(const SVMPerformance& performance,
-                                            const vector<double>& log2_C, 
-                                            const vector<double>& log2_gamma)
-  {
-    // which parameter set(s) achieved best cross-validation performance?
-    double best_value = 0.0;
-    vector<pair<Size, Size> > best_indexes;
-    for (Size g_index = 0; g_index < log2_gamma.size(); ++g_index)
-    {
-      for (Size c_index = 0; c_index < log2_C.size(); ++c_index)
-      {
-        double value = performance[g_index][c_index];
-        if (value == best_value)
-        {
-          best_indexes.push_back(make_pair(g_index, c_index));
-        }
-        else if (value > best_value)
-        {
-          best_value = value;
-          best_indexes.clear();
-          best_indexes.push_back(make_pair(g_index, c_index));
-        }
-      }
-    }
-    LOG_INFO << "Best cross-validation performance: " 
-             << float(best_value * 100.0) << "% correct" << endl;
-    if (best_indexes.size() == 1)
-    {
-      return make_pair(log2_C[best_indexes[0].second],
-                       log2_gamma[best_indexes[0].first]);
-    }
-    // break ties between parameter sets - look at "neighboring" parameters:
-    multimap<pair<double, Size>, Size> tiebreaker;
-    for (Size i = 0; i < best_indexes.size(); ++i)
-    {
-      const pair<Size, Size>& indexes = best_indexes[i];
-      Size n_neighbors = 0;
-      double neighbor_value = 0.0;
-      if (indexes.first > 0)
-      {
-        neighbor_value += performance[indexes.first - 1][indexes.second];
-        ++n_neighbors;
-      }
-      if (indexes.first + 1 < log2_gamma.size())
-      {
-        neighbor_value += performance[indexes.first + 1][indexes.second];
-        ++n_neighbors;
-      }
-      if (indexes.second > 0)
-      {
-        neighbor_value += performance[indexes.first][indexes.second - 1];
-        ++n_neighbors;
-      }
-      if (indexes.second + 1 < log2_C.size())
-      {
-        neighbor_value += performance[indexes.first][indexes.second + 1];
-        ++n_neighbors;
-      }
-      neighbor_value /= n_neighbors; // avg. performance of neighbors
-      tiebreaker.insert(make_pair(make_pair(neighbor_value, n_neighbors), i));
-    }
-    const pair<Size, Size>& indexes = best_indexes[tiebreaker.rbegin()->second];
-    return make_pair(log2_C[indexes.second], log2_gamma[indexes.first]);
-  }
-
-
-  void optimizeSVMParams_(struct svm_problem& svm_data,
-                          struct svm_parameter& svm_params)
-  {
-    vector<double> log2_C = getDoubleList_("svm:log2_C");
-    vector<double> log2_gamma;
-    if (svm_params.kernel_type == RBF)
-    {
-      log2_gamma = getDoubleList_("svm:log2_gamma");
-    }
-    else
-    {
-      log2_gamma.push_back(0.0);
-    }
-
-    LOG_INFO << "Running cross-validation to find optimal SVM parameters..."
-             << endl;
-    Size prog_counter = 0;
-    prog_log_.startProgress(1, log2_gamma.size() * log2_C.size(),
-                            "testing SVM parameters");
-    // classification performance for different parameter pairs:
-    SVMPerformance performance(log2_gamma.size());
-    // vary "C"s in inner loop to keep results for all "C"s in one vector:
-    for (Size g_index = 0; g_index < log2_gamma.size(); ++g_index)
-    {
-      svm_params.gamma = pow(2.0, log2_gamma[g_index]);
-      performance[g_index].resize(log2_C.size());
-      for (Size c_index = 0; c_index < log2_C.size(); ++c_index)
-      {
-        svm_params.C = pow(2.0, log2_C[c_index]);
-        vector<double> targets(svm_data.l);
-        svm_cross_validation(&svm_data, &svm_params, n_parts_, &(targets[0]));
-        Size n_correct = 0;
-        for (Size i = 0; i < Size(svm_data.l); ++i)
-        {
-          if (targets[i] == svm_data.y[i]) n_correct++;
-        }
-        double ratio = n_correct / double(svm_data.l);
-        performance[g_index][c_index] = ratio;
-        prog_log_.setProgress(++prog_counter);
-        LOG_DEBUG << "Performance (log2_C = " << log2_C[c_index]
-                  << ", log2_gamma = " << log2_gamma[g_index] << "): "
-                  << n_correct << " correct (" << float(ratio * 100.0) << "%)"
-                  << endl;
-      }
-    }
-    prog_log_.endProgress();
-
+    SimpleSVM svm;
+    Param svm_params = getParam_().copy("svm:", true);
+    svm_params.remove("unbiased");
+    svm_params.remove("xval_out");
+    svm.setParameters(svm_params);
+    svm.setup(predictors, training_labels);
     String xval_out = getStringOption_("svm:xval_out");
-    if (!xval_out.empty())
-    {
-      writeXvalResults_(xval_out, performance, log2_C, log2_gamma);
-    }
-    
-    pair<double, double> best_params = chooseBestSVMParams_(performance, log2_C,
-                                                            log2_gamma);
-    LOG_INFO << "Best SVM parameters: log2_C = " << best_params.first
-             << ", log2_gamma = " << best_params.second << endl;
-
-    svm_params.C = pow(2.0, best_params.first);
-    svm_params.gamma = pow(2.0, best_params.second);
-  }
-
-
-  static void printNull_(const char*) {} // to suppress LIBSVM output
-
-
-  void classifyFeatures_(FeatureMap& features)
-  {
-    vector<double> labels(features.size());
-    vector<double> intensities(features.size()); // feature intensities
-    for (Size feat_index = 0; feat_index < features.size(); ++feat_index)
-    {
-      intensities[feat_index] = features[feat_index].getIntensity();
-      String feature_class = features[feat_index].getMetaValue("feature_class");
-      if (feature_class == "true_positive") labels[feat_index] = 1.0;
-      else if (feature_class == "unknown") labels[feat_index] = -1.0;
-      else if (feature_class == "ambiguous") labels[feat_index] = 0.5;
-      // else labels[feat_index] = 0.0; // "false_positive", zero is default
-    }
-
-    vector<String> predictors = ListUtils::create<String>(score_metavalues_);
-    // values for all featues per predictor (this way around to simplify scaling
-    // of predictors):
-    vector<vector<double> > predictor_values(predictors.size());
-    for (Size pred_index = 0; pred_index < predictors.size(); ++pred_index)
-    {
-      const String& metavalue = predictors[pred_index];
-      predictor_values[pred_index].resize(features.size());
-      for (Size feat_index = 0; feat_index < features.size(); ++feat_index)
-      {
-        if (!features[feat_index].metaValueExists(metavalue))
-        {
-          LOG_ERROR << "Metavalue '" << metavalue 
-                    << "' missing for feature '"
-                    << features[feat_index].getUniqueId() << " (index " 
-                    << feat_index << ")" << endl;
-          predictor_values[pred_index].clear();
-          break;
-        }
-        predictor_values[pred_index][feat_index] = 
-          double(features[feat_index].getMetaValue(metavalue));
-      }
-    }
-
-    scaleSVMData_(predictor_values, predictors);
-
-    vector<vector<struct svm_node> > svm_nodes;
-    convertSVMData_(predictor_values, svm_nodes);
-
-    struct svm_problem svm_data;
-    getTrainingSample_(labels, intensities, svm_nodes, svm_data);
-    
-    struct svm_parameter svm_params;
-    svm_params.svm_type = C_SVC;
-    String kernel = getStringOption_("svm:kernel");
-    svm_params.kernel_type = (kernel == "RBF") ? RBF : LINEAR;
-    svm_params.eps = 0.001;
-    svm_params.cache_size = 100.0;
-    svm_params.nr_weight = 0; // use weighting of unbalanced classes?
-    svm_params.shrinking = 1; // use shrinking heuristics?
-    svm_params.probability = 1;
-
-    svm_set_print_string_function(&printNull_); // suppress output of LIBSVM
-    optimizeSVMParams_(svm_data, svm_params);
-
-    // train SVM on the full dataset:
-    struct svm_model* model = svm_train(&svm_data, &svm_params);
-    // obtain predictions for all features (including those used for training):
-    double probs[2];
+    if (!xval_out.empty()) svm.writeXvalResults(xval_out);
+    vector<SimpleSVM::Prediction> predictions;
+    svm.predict(predictions);
+    OPENMS_POSTCONDITION(predictions.size() == features.size(), 
+                         "SVM predictions for all features expected");
     for (Size i = 0; i < features.size(); ++i)
     {
-      Int pred = Int(svm_predict_probability(model, &(svm_nodes[i][0]), probs));
-      features[i].setMetaValue("predicted_class", pred);
-      features[i].setMetaValue("predicted_probability", probs[0]);
-      features[i].setOverallQuality(probs[0]); // @TODO: is this a good idea?
+      features[i].setMetaValue("predicted_class", predictions[i].label);
+      double prob_positive = predictions[i].probabilities[1];
+      features[i].setMetaValue("predicted_probability", prob_positive);
+      features[i].setOverallQuality(prob_positive);
     }
-    
-    svm_free_model_content(model);
-    // free memory reserved in function "getTrainingSample_":
-    delete[] svm_data.y;
-    delete[] svm_data.x;
   }
 
 
@@ -1597,7 +988,7 @@ protected:
     mapping_tolerance_ = getDoubleOption_("detect:mapping_tolerance");
     n_parts_ = getIntOption_("svm:xval");
     n_samples_ = getIntOption_("svm:samples");
-    elution_model_ = getStringOption_("model:type");
+    String elution_model = getStringOption_("model:type");
     prog_log_.setLogType(log_type_);
 
     if ((n_samples_ > 0) && (n_samples_ < 2 * n_parts_))
@@ -1637,7 +1028,7 @@ protected:
     Param params = feat_finder_.getParameters();
     params.setValue("stop_report_after_feature", -1); // return all features
     params.setValue("Scores:use_rt_score", "false"); // RT may not be reliable
-    if (elution_model_ != "none") params.setValue("write_convex_hull", "true");
+    if (elution_model != "none") params.setValue("write_convex_hull", "true");
     if (min_peak_width < 1.0) min_peak_width *= peak_width;
     params.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width",
                     peak_width);
@@ -1743,9 +1134,15 @@ protected:
     filterFeatures_(features, !id_ext.empty());
     LOG_INFO << features.size() << " features left after filtering." << endl;
     
-    if (elution_model_ != "none")
+    if (elution_model != "none")
     {
-      fitElutionModels_(features);
+      ElutionModelFitter emf;
+      Param emf_params = getParam_().copy("model:", true);
+      emf_params.remove("type");
+      emf_params.setValue("asymmetric",
+                          (elution_model == "asymmetric") ? "true" : "false");
+      emf.setParameters(emf_params);
+      emf.fitElutionModels(features);
     }
 
     //-------------------------------------------------------------
