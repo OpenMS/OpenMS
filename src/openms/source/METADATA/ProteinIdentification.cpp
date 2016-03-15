@@ -376,7 +376,7 @@ namespace OpenMS
       {
         int start = sit->getStart();
         int stop = sit->getEnd();
-        std::fill(covered_amino_acids.begin() + start, covered_amino_acids.end() + stop + 1, true);
+        std::fill(covered_amino_acids.begin() + start, covered_amino_acids.begin() + stop + 1, true);
       }
       double coverage = 100.0 * (double) std::accumulate(covered_amino_acids.begin(), covered_amino_acids.end(), 0) / protein_length;
       protein_hits_[i].setCoverage(coverage);

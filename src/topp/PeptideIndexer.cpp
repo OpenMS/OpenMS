@@ -198,10 +198,10 @@ protected:
     // calculate protein coverage
     //-------------------------------------------------------------
     
-    /*for (Size i = 0; i < prot_ids.size(); ++i)
+    for (Size i = 0; i < prot_ids.size(); ++i)
     {
       Size s = prot_ids[i].computeCoverage(pep_ids);
-    }*/
+    }
 
     //-------------------------------------------------------------
     // writing output
