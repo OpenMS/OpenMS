@@ -238,7 +238,7 @@ public:
 protected:
 
     /// Default MS level used when reading the file
-    Size default_ms_level_;
+    UInt default_ms_level_;
 
   };
 } // namespace OpenMS

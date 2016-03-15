@@ -69,6 +69,11 @@ data.push_back(make_pair(0.25, 1.5));
 data.push_back(make_pair(0.5, 2.0));
 data.push_back(make_pair(1.0, 3.0));
 
+TransformationDescription::DataPoints data_nonlinear;
+data_nonlinear.push_back(make_pair(0.0, 1.0));
+data_nonlinear.push_back(make_pair(0.25, 1.0625));
+data_nonlinear.push_back(make_pair(0.5, 1.25));
+data_nonlinear.push_back(make_pair(1.0, 2.0));
 
 
 START_SECTION((TransformationDescription(const DataPoints& data)))
@@ -125,10 +130,11 @@ START_SECTION((static void getModelTypes(StringList& result)))
 {
 	StringList result;
 	TransformationDescription::getModelTypes(result);
-	TEST_EQUAL(result.size(), 3);
+	TEST_EQUAL(result.size(), 4);
 	TEST_EQUAL(result.at(0), "linear");
 	TEST_EQUAL(result.at(1), "b_spline");
 	TEST_EQUAL(result.at(2), "interpolated");
+	TEST_EQUAL(result.at(3), "lowess");
 }
 END_SECTION
 
@@ -143,15 +149,85 @@ START_SECTION((void fitModel(const String& model_type, const Param& params=Param
 	TEST_REAL_SIMILAR(td.apply(0.5), 2.0);
 	TEST_REAL_SIMILAR(td.apply(1.0), 3.0);
 	
+  // non-linear model (b spline)
+	td.fitModel("b_spline", params);
+	TEST_EQUAL(td.getModelType(), "b_spline");
+	TEST_REAL_SIMILAR(td.apply(0.0), 1.064201730);
+	TEST_REAL_SIMILAR(td.apply(0.5), 1.957836652);
+	TEST_REAL_SIMILAR(td.apply(1.0), 2.927541901);
+
+
+  // non-linear model (lowess)
+	td.fitModel("lowess", params);
+	TEST_EQUAL(td.getModelType(), "lowess");
+	TEST_REAL_SIMILAR(td.apply(0.0), 1.0);
+	TEST_REAL_SIMILAR(td.apply(0.5), 2.0);
+	TEST_REAL_SIMILAR(td.apply(1.0), 3.0);
+
   // special model type for reference files:
 	td.fitModel("identity", Param());
 	TEST_EQUAL(td.getModelType(), "identity");
 	TEST_REAL_SIMILAR(td.apply(0.0), 0.0);
 	TEST_REAL_SIMILAR(td.apply(0.5), 0.5);
 	TEST_REAL_SIMILAR(td.apply(1.0), 1.0);
+
 	// can't fit a different model to an "identity" transformation:
 	td.fitModel("linear", params);
 	TEST_EQUAL(td.getModelType(), "identity");
+
+  {
+    // non-linear model (b spline)
+    TransformationDescription td_nl(data_nonlinear);
+    td_nl.fitModel("b_spline", params);
+    TEST_EQUAL(td_nl.getModelType(), "b_spline");
+    TEST_REAL_SIMILAR(td_nl.apply(0.0), 1.01084556836969);
+    TEST_REAL_SIMILAR(td_nl.apply(0.5), 1.26289804387079);
+    TEST_REAL_SIMILAR(td_nl.apply(0.75), 1.53463130131214);
+    TEST_REAL_SIMILAR(td_nl.apply(1.0), 1.94984504419826);
+
+    // non-linear model (lowess)
+    td_nl.fitModel("lowess", params);
+    TEST_EQUAL(td_nl.getModelType(), "lowess");
+    TEST_REAL_SIMILAR(td_nl.apply(0.0), 1.0);
+    TEST_REAL_SIMILAR(td_nl.apply(0.5), 1.25);
+    TEST_REAL_SIMILAR(td_nl.apply(0.75), 1.58423913043478);
+    TEST_REAL_SIMILAR(td_nl.apply(1.0), 2.0);
+  }
+
+}
+END_SECTION
+
+START_SECTION(([EXTRA]void fitModel(const String& model_type, const Param& params=Param())))
+{
+
+  // Check whether we can change the parameters and get different behavior
+	TransformationDescription td(data);
+	Param params;
+
+  // for lowess
+  params.setValue("interpolation_type", "linear");
+
+  // for b spline
+  params.setValue("extrapolate", "b_spline");
+
+  // non-linear model (b spline)
+  TransformationDescription td_nl(data_nonlinear);
+  td_nl.fitModel("b_spline", params);
+  TEST_EQUAL(td_nl.getModelType(), "b_spline");
+  TEST_REAL_SIMILAR(td_nl.apply(0.0), 1.01084556836969);
+  TEST_REAL_SIMILAR(td_nl.apply(0.5), 1.26289804387079);
+  TEST_REAL_SIMILAR(td_nl.apply(0.75), 1.53463130131214);
+  TEST_REAL_SIMILAR(td_nl.apply(1.0), 1.94984504419826);
+  TEST_REAL_SIMILAR(td_nl.apply(2.0), 1.328125); // b-spline extrapolation
+
+  // non-linear model (lowess)
+  td_nl.fitModel("lowess", params);
+  TEST_EQUAL(td_nl.getModelType(), "lowess");
+  TEST_REAL_SIMILAR(td_nl.apply(0.0), 1.0);
+  TEST_REAL_SIMILAR(td_nl.apply(0.5), 1.25);
+  TEST_REAL_SIMILAR(td_nl.apply(0.75), 1.625); // linear interpolation between points
+  TEST_REAL_SIMILAR(td_nl.apply(1.0), 2.0);
+  TEST_REAL_SIMILAR(td_nl.apply(2.0), 3.5);
 }
 END_SECTION
 

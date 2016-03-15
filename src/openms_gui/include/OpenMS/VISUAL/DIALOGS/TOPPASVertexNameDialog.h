@@ -43,7 +43,7 @@
 namespace OpenMS
 {
   /**
-      @brief Dialog which allows to change the name of an input vertex
+      @brief Dialog which allows to change the name of an input/output vertex
 
       @ingroup TOPPAS_elements
       @ingroup Dialogs
@@ -57,7 +57,7 @@ namespace OpenMS
 public:
 
     /// Constructor
-    TOPPASVertexNameDialog(const QString & name);
+    TOPPASVertexNameDialog(const QString& name, const QString& input_regex = QString());
 
     /// Returns the name
     QString getName();

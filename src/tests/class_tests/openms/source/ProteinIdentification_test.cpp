@@ -618,10 +618,12 @@ START_SECTION(([ProteinIdentification::SearchParameters] SearchParameters()))
   TEST_EQUAL(sp.mass_type, 0)
   TEST_EQUAL(sp.fixed_modifications.size(), 0)
   TEST_EQUAL(sp.variable_modifications.size(), 0)
-  TEST_EQUAL(sp.enzyme, ProteinIdentification::UNKNOWN_ENZYME)
+  TEST_EQUAL(sp.digestion_enzyme.getName(), "unknown_enzyme")
   TEST_EQUAL(sp.missed_cleavages, 0)
-  TEST_EQUAL(sp.peak_mass_tolerance, 0.0)
+  TEST_EQUAL(sp.fragment_mass_tolerance, 0.0)
+  TEST_EQUAL(sp.fragment_mass_tolerance_ppm, false)
   TEST_EQUAL(sp.precursor_tolerance, 0.0)
+  TEST_EQUAL(sp.precursor_mass_tolerance_ppm, false)
 
 END_SECTION
 

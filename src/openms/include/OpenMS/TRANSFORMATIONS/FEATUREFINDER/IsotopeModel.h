@@ -109,6 +109,9 @@ public:
     /// set sample/supporting points of interpolation
     virtual void setSamples(const EmpiricalFormula & formula);
 
+    /// set sample/supporting points of interpolation (from base class)
+    using InterpolationModel::setSamples;
+
     /** @brief get the center of the Isotope model
 
          This is a m/z-value not necessarily the monoisotopic mass.

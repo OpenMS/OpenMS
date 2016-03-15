@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.6" id="fm_7478034797829266976" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_6.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<featureMap version="1.8" id="fm_7478034797829266976" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_8.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="1999-12-31T23:59:59">
 		<software name="FileFilter" version="version_string" />
 		<processingAction name="Data filtering" />
-		<userParam type="string" name="parameter: mode" value="test_mode"/>
+		<UserParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
 	<IdentificationRun id="PI_0" date="2011-02-02T13:04:21" search_engine="Mascot" search_engine_version="2.2.04">
-		<SearchParameters db="regulatedPeptides" db_version="regulatedPeptides_appended_20100831.fasta" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="10" peak_mass_tolerance="0.5" >
+		<SearchParameters db="regulatedPeptides" db_version="regulatedPeptides_appended_20100831.fasta" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0.5" peak_mass_tolerance_ppm="false" >
 			<FixedModification name="Carbamidomethyl (C)" />
 			<VariableModification name="Oxidation (M)" />
 		</SearchParameters>
@@ -20,7 +20,7 @@
 		</ProteinIdentification>
 	</IdentificationRun>
 	<IdentificationRun id="PI_1" date="2011-01-10T10:32:51" search_engine="Mascot" search_engine_version="2.2.04">
-		<SearchParameters db="sgd_orf_trans_all" db_version="sgd_orf_trans_all_20100105.fasta" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="10" peak_mass_tolerance="0.5" >
+		<SearchParameters db="sgd_orf_trans_all" db_version="sgd_orf_trans_all_20100105.fasta" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0.5" peak_mass_tolerance_ppm="false" >
 			<FixedModification name="Carbamidomethyl (C)" />
 			<FixedModification name="Label:13C(6)15N(2) (K)" />
 			<FixedModification name="Label:13C(6)15N(4) (R)" />
@@ -51,23 +51,23 @@
 	</IdentificationRun>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="317.699279785156" RT="2869.4172" >
 		<PeptideHit score="32.37" sequence="LNFLK" charge="2" aa_before="R" aa_after="K" protein_refs="PH_0">
-			<userParam type="float" name="homology_threshold" value="0"/>
-			<userParam type="float" name="identity_threshold" value="13"/>
-			<userParam type="float" name="EValue" value="0.00058"/>
+			<UserParam type="float" name="homology_threshold" value="0"/>
+			<UserParam type="float" name="identity_threshold" value="13"/>
+			<UserParam type="float" name="EValue" value="0.00058"/>
 		</PeptideHit>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="437.7255859375" RT="1741.1794" >
 		<PeptideHit score="15.74" sequence="NMAINPSK" charge="2" aa_before="K" aa_after="E" protein_refs="PH_0">
-			<userParam type="float" name="homology_threshold" value="0"/>
-			<userParam type="float" name="identity_threshold" value="13"/>
-			<userParam type="float" name="EValue" value="0.027"/>
+			<UserParam type="float" name="homology_threshold" value="0"/>
+			<UserParam type="float" name="identity_threshold" value="13"/>
+			<UserParam type="float" name="EValue" value="0.027"/>
 		</PeptideHit>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="490.283447265625" RT="3723.2741" >
 		<PeptideHit score="10.49" sequence="FALPQYLK" charge="2" aa_before="K" aa_after="T" protein_refs="PH_0">
-			<userParam type="float" name="homology_threshold" value="0"/>
-			<userParam type="float" name="identity_threshold" value="13"/>
-			<userParam type="float" name="EValue" value="0.089"/>
+			<UserParam type="float" name="homology_threshold" value="0"/>
+			<UserParam type="float" name="identity_threshold" value="13"/>
+			<UserParam type="float" name="EValue" value="0.089"/>
 		</PeptideHit>
 	</UnassignedPeptideIdentification>
 	<featureList count="3">
@@ -217,9 +217,9 @@
 				<pt x="3678.7663" y="487.255898065451" />
 				<pt x="3676.5814" y="487.250871809336" />
 			</convexhull>
-			<userParam type="int" name="label" value="37"/>
-			<userParam type="int" name="spectrum_index" value="2853"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4461"/>
+			<UserParam type="int" name="label" value="37"/>
+			<UserParam type="int" name="spectrum_index" value="2853"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4461"/>
 		</feature>
 		<feature id="f_7616499591581489156">
 			<position dim="0">3598.10682269431</position>
@@ -335,9 +335,9 @@
 				<pt x="3591.9933" y="505.792940201284" />
 				<pt x="3590.5688" y="505.793331712418" />
 			</convexhull>
-			<userParam type="int" name="label" value="185"/>
-			<userParam type="int" name="spectrum_index" value="2778"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4308"/>
+			<UserParam type="int" name="label" value="185"/>
+			<UserParam type="int" name="spectrum_index" value="2778"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4308"/>
 		</feature>
 		<feature id="f_14789163721748406701">
 			<position dim="0">3705.40522955543</position>
@@ -391,9 +391,9 @@
 				<pt x="3703.7876" y="419.695812308719" />
 				<pt x="3702.0573" y="419.696121568813" />
 			</convexhull>
-			<userParam type="int" name="label" value="981"/>
-			<userParam type="int" name="spectrum_index" value="2864"/>
-			<userParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4478"/>
+			<UserParam type="int" name="label" value="981"/>
+			<UserParam type="int" name="spectrum_index" value="2864"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=4478"/>
 		</feature>
 	</featureList>
 </featureMap>

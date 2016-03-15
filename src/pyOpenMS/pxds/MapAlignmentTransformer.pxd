@@ -17,28 +17,12 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>" names
     cdef cppclass MapAlignmentTransformer:
 
         MapAlignmentTransformer() nogil except +
-        # /// Applies the <i>given</i> transformations to peak maps
-        void transformPeakMaps(libcpp_vector[MSExperiment[Peak1D,ChromatogramPeak] ] & maps, libcpp_vector[TransformationDescription] & given_trafos) nogil except +
 
-        # /// Applies the <i>given</i> transformations to feature maps
-        void transformFeatureMaps(libcpp_vector[FeatureMap ] & maps, libcpp_vector[TransformationDescription] & given_trafos) nogil except +
+        void transformRetentionTimes(MSExperiment[Peak1D,ChromatogramPeak]&, TransformationDescription&, bool) nogil except +
 
-        # /// Applies the <i>given</i> transformations to consensus maps
-        void transformConsensusMaps(libcpp_vector[ConsensusMap] & maps, libcpp_vector[TransformationDescription] & given_trafos) nogil except +
+        void transformRetentionTimes(FeatureMap&, TransformationDescription&, bool) nogil except +
 
-        # TODO nested STL
-        # /// Applies the <i>given</i> transformations to peptide identifications
-        void transformPeptideIdentifications(libcpp_vector[libcpp_vector[PeptideIdentification] ] & maps, libcpp_vector[TransformationDescription] & given_trafos) nogil except +
+        void transformRetentionTimes(ConsensusMap&, TransformationDescription&, bool) nogil except +
 
-        # /// Applies the <i>given</i> transformations to a single peak map
-        void transformSinglePeakMap(MSExperiment[Peak1D,ChromatogramPeak] & msexp, TransformationDescription & trafo) nogil except +
-
-        # /// Applies the <i>given</i> transformations to a single feature map
-        void transformSingleFeatureMap(FeatureMap & fmap, TransformationDescription & trafo) nogil except +
-
-        # /// Applies the <i>given</i> transformations to a single consensus map
-        void transformSingleConsensusMap(ConsensusMap & cmap, TransformationDescription & trafo) nogil except +
-
-        # /// Applies the <i>given</i> transformations to a single peptide identification
-        void transformSinglePeptideIdentification(libcpp_vector[PeptideIdentification] & pepids, TransformationDescription & trafo) nogil except +
+        void transformRetentionTimes(libcpp_vector[PeptideIdentification]&, TransformationDescription&, bool) nogil except +
 

@@ -194,7 +194,7 @@ namespace OpenMS
     // iteriert ueber alles msd gruppe
     for (vector<MSDGroup>::iterator group = msd_groups.begin(); group != msd_groups.end(); ++group)
     {
-      DoubleList intensities;
+      std::vector<float> intensities;
       // iterierere ueber peptide entry (peptide identification), intensitaet (summe der einzelintensitaeten)
       for (list<PeptideEntry *>::iterator pep = group->peptides.begin(); pep != group->peptides.end(); ++pep)
       {
@@ -447,7 +447,7 @@ namespace OpenMS
   {
     EnzymaticDigestion digestor;
     String enzyme_name = param_.getValue("resolver:enzyme");
-    digestor.setEnzyme(digestor.getEnzymeByName(enzyme_name));
+    digestor.setEnzyme(enzyme_name);
     UInt min_size = param_.getValue("resolver:min_length");
     UInt missed_cleavages = param_.getValue("resolver:missed_cleavages");
     digestor.setMissedCleavages(missed_cleavages);

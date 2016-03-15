@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Maintainer: Chris Bielow $
+// $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 //
 
@@ -46,12 +46,12 @@ namespace OpenMS
   namespace Math
   {
     /**
-        @brief Implements a fitter for gaussian functions
+        @brief Implements a fitter for Gaussian functions
 
-        This class fits a gaussian distribution to a number of data points.
+        This class fits a Gaussian distribution to a number of data points.
         The results as well as the initial guess are specified using the struct GaussFitResult.
 
-        The complete gaussian formula with the fitted parameters can be transformed into a
+        The complete Gaussian formula with the fitted parameters can be transformed into a
         gnuplot formula using getGnuplotFormula after fitting.
 
         @ingroup Math
@@ -60,7 +60,7 @@ namespace OpenMS
     {
 public:
 
-      /// struct of parameters of a gaussian distribution
+      /// struct of parameters of a Gaussian distribution
       struct GaussFitResult
       {
 public:
@@ -68,13 +68,14 @@ public:
         : A(-1.0), x0(-1.0), sigma(-1.0) {}
         GaussFitResult(double a, double x, double s)
         : A(a), x0(x), sigma(s) {}
-        /// parameter A of gaussian distribution (amplitude)
+
+        /// parameter A of Gaussian distribution (amplitude)
         double A;
 
-        /// parameter x0 of gaussian distribution (left/right shift)
+        /// parameter x0 of Gaussian distribution (center position)
         double x0;
 
-        /// parameter sigma of gaussian distribution (width)
+        /// parameter sigma of Gaussian distribution (width)
         double sigma;
       };
 
@@ -84,17 +85,27 @@ public:
       /// Destructor
       virtual ~GaussFitter();
 
-      /// sets the initial parameters used by the fit method as initial guess for the gaussian
-      void setInitialParameters(const GaussFitResult & result);
+      /// sets the initial parameters used by the fit method as initial guess for the Gaussian
+      void setInitialParameters(const GaussFitResult& result);
 
       /**
-          @brief Fits a gaussian distribution to the given data points
+          @brief Fits a Gaussian distribution to the given data points
 
-          @param points the data points used for the gaussian fitting
+          @param points the data points used for the Gaussian fitting
 
           @exception Exception::UnableToFit is thrown if fitting cannot be performed
       */
-      GaussFitResult fit(std::vector<DPosition<2> > & points);
+      GaussFitResult fit(std::vector<DPosition<2> > & points) const;
+
+      /**
+        @brief Evaluate the current Gaussian model at the specified points.
+
+        Returns the intensities (i.e. probabilities scaled by the factor 'A') of the PDF at the given positions.
+        This function can be called with any set of parameters, e.g. the initial parameters (to get a 'before-fit' status),
+        or after fitting.
+
+      */
+      static std::vector<double> eval(const std::vector<double>& evaluation_points, const GaussFitResult& model);
 
 protected:
 

@@ -58,6 +58,9 @@
 // Kernel and implementations
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessTransforming.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSInMemory.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 
 // Helpers
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
@@ -69,10 +72,18 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/SwathMapMassCorrection.h>
 
 #include <assert.h>
 
+#define OPENSWATH_WORKFLOW_DEBUG
+
 using namespace OpenMS;
+
+static bool SortPairDoubleByFirst(const std::pair<double,double> & left, const std::pair<double,double> & right)
+{
+  return left.first < right.first;
+}
 
 // The workflow class and the TSV writer
 namespace OpenMS
@@ -88,14 +99,16 @@ namespace OpenMS
     String input_filename_;
     bool doWrite_;
     bool use_ms1_traces_;
+    bool enable_uis_scoring_;
 
   public:
 
-    OpenSwathTSVWriter(String output_filename, String input_filename = "inputfile", bool ms1_scores = false) :
+    OpenSwathTSVWriter(String output_filename, String input_filename = "inputfile", bool ms1_scores = false, bool uis_scores = false) :
       ofs(output_filename.c_str()),
       input_filename_(input_filename),
       doWrite_(!output_filename.empty()),
-      use_ms1_traces_(ms1_scores)
+      use_ms1_traces_(ms1_scores),
+      enable_uis_scoring_(uis_scores)
       {}
 
     bool isActive() 
@@ -124,7 +137,29 @@ namespace OpenMS
       {
         ofs << "\taggr_prec_Peak_Area\taggr_prec_Peak_Apex\taggr_prec_Fragment_Annotation";
       }
-      ofs << "\taggr_Peak_Area\taggr_Peak_Apex\taggr_Fragment_Annotation\n";
+      ofs << "\taggr_Peak_Area\taggr_Peak_Apex\taggr_Fragment_Annotation";
+      if (enable_uis_scoring_)
+      {
+        ofs << "\tuis_target_transition_names"
+            << "\tuis_target_var_ind_log_intensity"
+            << "\tuis_target_num_transitions"
+            << "\tuis_target_var_ind_xcorr_coelution"
+            << "\tuis_target_main_var_ind_xcorr_shape"
+            << "\tuis_target_var_ind_log_sn_score"
+            << "\tuis_target_var_ind_massdev_score"
+            << "\tuis_target_var_ind_isotope_correlation"
+            << "\tuis_target_var_ind_isotope_overlap"
+            << "\tuis_decoy_transition_names"
+            << "\tuis_decoy_var_ind_log_intensity"
+            << "\tuis_decoy_num_transitions"
+            << "\tuis_decoy_var_ind_xcorr_coelution"
+            << "\tuis_decoy_main_var_ind_xcorr_shape"
+            << "\tuis_decoy_var_ind_log_sn_score"
+            << "\tuis_decoy_var_ind_massdev_score"
+            << "\tuis_decoy_var_ind_isotope_correlation"
+            << "\tuis_decoy_var_ind_isotope_overlap";
+      }
+      ofs << "\n";
     }
 
     String prepareLine(const OpenSwath::LightPeptide& pep,
@@ -142,6 +177,7 @@ namespace OpenMS
         {
 
           char intensity_char[40];
+          char intensity_apex_char[40];
           String aggr_Peak_Area = "";
           String aggr_Peak_Apex = "";
           String aggr_Fragment_Annotation = "";
@@ -151,16 +187,17 @@ namespace OpenMS
           for (std::vector<Feature>::iterator sub_it = feature_it->getSubordinates().begin(); sub_it != feature_it->getSubordinates().end(); ++sub_it)
           {
             sprintf(intensity_char, "%f", sub_it->getIntensity());
+            sprintf(intensity_apex_char, "%f", (double)sub_it->getMetaValue("peak_apex_int"));
             if (sub_it->metaValueExists("FeatureLevel") && sub_it->getMetaValue("FeatureLevel") == "MS2")
             {
               aggr_Peak_Area += (String)intensity_char + ";";
-              aggr_Peak_Apex +=  "NA;";
+              aggr_Peak_Apex += (String)intensity_apex_char + ";";
               aggr_Fragment_Annotation += (String)sub_it->getMetaValue("native_id") + ";";
             }
             else if (sub_it->metaValueExists("FeatureLevel") && sub_it->getMetaValue("FeatureLevel") == "MS1")
             {
               aggr_prec_Peak_Area += (String)intensity_char + ";";
-              aggr_prec_Peak_Apex +=  "NA;";
+              aggr_Peak_Apex += (String)intensity_apex_char + ";";
               aggr_prec_Fragment_Annotation += (String)sub_it->getMetaValue("native_id") + ";";
             }
           }
@@ -262,8 +299,29 @@ namespace OpenMS
             {
               line += "\t" + aggr_prec_Peak_Area + "\t" + aggr_prec_Peak_Apex + "\t" + aggr_prec_Fragment_Annotation;
             }
-            line += "\t" + aggr_Peak_Area + "\t" + aggr_Peak_Apex + "\t" + aggr_Fragment_Annotation + "\n";
-          result += line;
+            line += "\t" + aggr_Peak_Area + "\t" + aggr_Peak_Apex + "\t" + aggr_Fragment_Annotation;
+            if (enable_uis_scoring_)
+            {
+              line += "\t" + (String)feature_it->getMetaValue("id_target_transition_names")
+              + "\t" + (String)feature_it->getMetaValue("id_target_ind_log_intensity")
+              + "\t" + (String)feature_it->getMetaValue("id_target_num_transitions")
+              + "\t" + (String)feature_it->getMetaValue("id_target_ind_xcorr_coelution")
+              + "\t" + (String)feature_it->getMetaValue("id_target_ind_xcorr_shape")
+              + "\t" + (String)feature_it->getMetaValue("id_target_ind_log_sn_score")
+              + "\t" + (String)feature_it->getMetaValue("id_target_ind_massdev_score")
+              + "\t" + (String)feature_it->getMetaValue("id_target_ind_isotope_correlation")
+              + "\t" + (String)feature_it->getMetaValue("id_target_ind_isotope_overlap")
+              + "\t" + (String)feature_it->getMetaValue("id_decoy_transition_names")
+              + "\t" + (String)feature_it->getMetaValue("id_decoy_ind_log_intensity")
+              + "\t" + (String)feature_it->getMetaValue("id_decoy_num_transitions")
+              + "\t" + (String)feature_it->getMetaValue("id_decoy_ind_xcorr_coelution")
+              + "\t" + (String)feature_it->getMetaValue("id_decoy_ind_xcorr_shape")
+              + "\t" + (String)feature_it->getMetaValue("id_decoy_ind_log_sn_score")
+              + "\t" + (String)feature_it->getMetaValue("id_decoy_ind_massdev_score")
+              + "\t" + (String)feature_it->getMetaValue("id_decoy_ind_isotope_correlation")
+              + "\t" + (String)feature_it->getMetaValue("id_decoy_ind_isotope_overlap");
+            }
+            line += "\n";          result += line;
         } // end of iteration
       return result;
     }
@@ -327,14 +385,15 @@ namespace OpenMS
      * @param min_coverage Minimal coverage of the chromatographic space that needs to be achieved
      * @param feature_finder_param Parameter set for the feature finding in chromatographic dimension 
      * @param cp_irt Parameter set for the chromatogram extraction
-     * @param debug_level Debug level (writes out the RT normalization chromatograms if larger than 1)
-     * @param mz_correction_function If correction in m/z is desired, which function should be used
      * @param irt_detection_param Parameter set for the detection of the iRTs (outlier detection, peptides per bin etc)
+     * @param mz_correction_function If correction in m/z is desired, which function should be used
+     * @param debug_level Debug level (writes out the RT normalization chromatograms if larger than 1)
      *
     */
     TransformationDescription performRTNormalization(const OpenMS::TargetedExperiment & irt_transitions,
-            const std::vector< OpenSwath::SwathMap > & swath_maps, double min_rsq, double min_coverage,
-            const Param & feature_finder_param, const ChromExtractParams & cp_irt, const Param& irt_detection_param, Size debug_level)
+            std::vector< OpenSwath::SwathMap > & swath_maps, double min_rsq, double min_coverage,
+            const Param & feature_finder_param, const ChromExtractParams & cp_irt, const Param& irt_detection_param, 
+            const String & mz_correction_function, Size debug_level)
     {
       LOG_DEBUG << "performRTNormalization method starting" << std::endl;
       std::vector< OpenMS::MSChromatogram<> > irt_chromatograms;
@@ -349,11 +408,11 @@ namespace OpenMS
           exp.setChromatograms(irt_chromatograms);
           MzMLFile().store("debug_irts.mzML", exp);
         }
-        catch (OpenMS::Exception::UnableToCreateFile& e)
+        catch (OpenMS::Exception::UnableToCreateFile& /*e*/)
         {
           LOG_DEBUG << "Error creating file 'debug_irts.mzML', not writing out iRT chromatogram file"  << std::endl;
         }
-        catch (OpenMS::Exception::BaseException& e)
+        catch (OpenMS::Exception::BaseException& /*e*/)
         {
           LOG_DEBUG << "Error writint to file 'debug_irts.mzML', not writing out iRT chromatogram file"  << std::endl;
         }
@@ -361,8 +420,9 @@ namespace OpenMS
       LOG_DEBUG << "Extracted number of chromatograms from iRT files: " << irt_chromatograms.size() <<  std::endl;
 
       // get RT normalization from data
-      return RTNormalization(irt_transitions,
-              irt_chromatograms, min_rsq, min_coverage, feature_finder_param, irt_detection_param);
+      TransformationDescription tr = RTNormalization(irt_transitions,
+              irt_chromatograms, min_rsq, min_coverage, feature_finder_param, irt_detection_param, swath_maps, mz_correction_function);
+      return tr;
     }
 
     /** @brief Execute the OpenSWATH workflow on a set of SwathMaps and transitions.
@@ -392,7 +452,7 @@ namespace OpenMS
       const OpenSwath::LightTargetedExperiment& transition_exp,
       FeatureMap& out_featureFile, bool store_features,
       OpenSwathTSVWriter & tsv_writer, Interfaces::IMSDataConsumer<> * chromConsumer,
-      int batchSize)
+      int batchSize, bool load_into_memory)
     {
       tsv_writer.writeHeader();
 
@@ -413,6 +473,14 @@ namespace OpenMS
           // store reference to MS1 map for later -> note that this is *not* threadsafe!
           ms1_map_ = swath_maps[i].sptr;
 
+          if (load_into_memory)
+          {
+            // This creates an InMemory object that keeps all data in memory
+            // but provides the same access functionality to the raw data as
+            // any object implementing ISpectrumAccess 
+            ms1_map_ = boost::shared_ptr<SpectrumAccessOpenMSInMemory>( new SpectrumAccessOpenMSInMemory(*ms1_map_) );
+          }
+
           std::vector< OpenSwath::ChromatogramPtr > chrom_list;
           std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
           OpenSwath::LightTargetedExperiment transition_exp_used = transition_exp; // copy for const correctness
@@ -420,7 +488,7 @@ namespace OpenMS
 
           // prepare the extraction coordinates & extract chromatogram
           prepare_coordinates_wrap(chrom_list, coordinates, transition_exp_used, true, trafo_inverse, cp);
-          extractor.extractChromatograms(swath_maps[i].sptr, chrom_list, coordinates, cp.mz_extraction_window,
+          extractor.extractChromatograms(ms1_map_, chrom_list, coordinates, cp.mz_extraction_window,
               cp.ppm, cp.extraction_function);
 
           std::vector< OpenMS::MSChromatogram<> > chromatograms;
@@ -428,6 +496,7 @@ namespace OpenMS
 
           for (Size j = 0; j < coordinates.size(); j++)
           {
+            if ( chromatograms[j].empty() ) {continue;} // skip empty chromatograms
             ms1_chromatograms [ coordinates[j].id ] = chrom_list[j];
             // write MS1 chromatograms to disk
             chromConsumer->consumeChromatogram( chromatograms[j] );
@@ -446,6 +515,17 @@ namespace OpenMS
       {
         if (!swath_maps[i].ms1) // skip MS1
         {
+
+          OpenSwath::SpectrumAccessPtr current_swath_map = swath_maps[i].sptr;
+
+          if (load_into_memory)
+          {
+            // This creates an InMemory object that keeps all data in memory
+            // but provides the same access functionality to the raw data as
+            // any object implementing ISpectrumAccess 
+            current_swath_map = boost::shared_ptr<SpectrumAccessOpenMSInMemory>( new SpectrumAccessOpenMSInMemory(*current_swath_map) );
+            std::cout << " loading all data completely into memory !!! " << std::endl;
+          }
 
           // Step 1: select which transitions to extract (proceed in batches)
           OpenSwath::LightTargetedExperiment transition_exp_used_all;
@@ -477,11 +557,11 @@ namespace OpenMS
               "from SWATH " << i << " in batches of " << batch_size << std::endl;
             }
 
-            for (size_t j = 0; j <= (transition_exp_used_all.getPeptides().size() / batch_size); j++)
+            for (size_t pep_idx = 0; pep_idx <= (transition_exp_used_all.getPeptides().size() / batch_size); pep_idx++)
             {
               // Create the new, batch-size transition experiment
               OpenSwath::LightTargetedExperiment transition_exp_used;
-              selectPeptidesForBatch_(transition_exp_used_all, transition_exp_used, batch_size, j);
+              selectPeptidesForBatch_(transition_exp_used_all, transition_exp_used, batch_size, pep_idx);
 
               // Step 2.1: extract these transitions
               ChromatogramExtractor extractor;
@@ -491,7 +571,7 @@ namespace OpenMS
 
               // Step 2.2: prepare the extraction coordinates & extract chromatograms
               prepare_coordinates_wrap(chrom_list, coordinates, transition_exp_used, false, trafo_inverse, cp);
-              extractor.extractChromatograms(swath_maps[i].sptr, chrom_list, coordinates, cp.mz_extraction_window,
+              extractor.extractChromatograms(current_swath_map, chrom_list, coordinates, cp.mz_extraction_window,
                   cp.ppm, cp.extraction_function);
 
               // Step 2.3: convert chromatograms back and write to output
@@ -502,7 +582,7 @@ namespace OpenMS
 
               // Step 3: score these extracted transitions
               FeatureMap featureFile;
-              scoreAllChromatograms(chromatogram_ptr, swath_maps[i].sptr, transition_exp_used,
+              scoreAllChromatograms(chromatogram_ptr, current_swath_map, transition_exp_used,
                   feature_finder_param, trafo, cp.rt_extraction_window, featureFile, tsv_writer, 
                   ms1_chromatograms);
 
@@ -514,9 +594,9 @@ namespace OpenMS
 #endif
               {
                 // write chromatograms to output if so desired
-                for (Size j = 0; j < chromatograms.size(); j++)
+                for (Size chrom_idx = 0; chrom_idx < chromatograms.size(); ++chrom_idx)
                 {
-                  chromConsumer->consumeChromatogram(chromatograms[j]);
+                  chromConsumer->consumeChromatogram(chromatograms[chrom_idx]);
                 }
 
                 // write features to output if so desired
@@ -547,12 +627,18 @@ namespace OpenMS
 
   private:
 
-    /** @brief Select which peptides to analyze in the next batch and copy the corresponding peptides and transitions to transition_exp_used
+    /** @brief Select which peptides to analyze in the next batch (and copy to output)
      *
-     * @param transition_exp_used input (all transitions for this swath)
-     * @param transition_exp_used output (contains only transitions for the next batch)
+     * This function will select which peptides to analyze in the next batch j
+     * and will copy the the corresponding peptides and transitions into the
+     * output structure. The output will contain batch_size peptides.
+     *
+     * @param transition_exp_used_all input (all transitions for this swath)
+     * @param transition_exp_used output (will contain only transitions for the next batch)
      * @param batch_size how many peptides per batch
      * @param j batch number (peptides from j*batch_size to j*batch_size+batch_size will be copied)
+     *
+     * @note The proteins will be copied completely without checking for a match
      *
     */
     void selectPeptidesForBatch_(const OpenSwath::LightTargetedExperiment& transition_exp_used_all,
@@ -573,9 +659,19 @@ namespace OpenMS
       copyBatchTransitions_(transition_exp_used.peptides, transition_exp_used_all.transitions, transition_exp_used.transitions);
     }
 
-    /// Copy the required transitions from all_transitions to output (e.g. those that match a peptide in the used_peptides vector)
+    /** @brief Copy the required transitions to output
+     *
+     * Copy all transitions matching to one of the peptides in the selected
+     * peptide vector from all_transitions to the output.
+     *
+     * @param used_peptides Which peptides to be used
+     * @param all_transitions Transitions vector from which to select transitions
+     * @param output Output vector containing matching transitions (taken from all_transitions)
+     *
+    */
     void copyBatchTransitions_(const std::vector<OpenSwath::LightPeptide>& used_peptides,
-        const std::vector<OpenSwath::LightTransition>& all_transitions, std::vector<OpenSwath::LightTransition>& output)
+      const std::vector<OpenSwath::LightTransition>& all_transitions,
+      std::vector<OpenSwath::LightTransition>& output)
     {
       std::set<std::string> selected_peptides;
       for (Size i = 0; i < used_peptides.size(); i++)
@@ -600,15 +696,15 @@ namespace OpenMS
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-      for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
+      for (SignedSize map_idx = 0; map_idx < boost::numeric_cast<SignedSize>(swath_maps.size()); ++map_idx)
       {
         std::vector< OpenMS::MSChromatogram<> > tmp_chromatograms;
-        if (!swath_maps[i].ms1) // skip MS1
+        if (!swath_maps[map_idx].ms1) // skip MS1
         {
 
           TargetedExperiment transition_exp_used;
           OpenSwathHelper::selectSwathTransitions(irt_transitions, transition_exp_used,
-              cp.min_upper_edge_dist, swath_maps[i].lower, swath_maps[i].upper);
+              cp.min_upper_edge_dist, swath_maps[map_idx].lower, swath_maps[map_idx].upper);
           if (transition_exp_used.getTransitions().size() > 0) // skip if no transitions found
           {
 
@@ -616,7 +712,7 @@ namespace OpenMS
             std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
             ChromatogramExtractor extractor;
             extractor.prepare_coordinates(tmp_out, coordinates, transition_exp_used, cp.rt_extraction_window, false);
-            extractor.extractChromatograms(swath_maps[i].sptr, tmp_out, coordinates, cp.mz_extraction_window,
+            extractor.extractChromatograms(swath_maps[map_idx].sptr, tmp_out, coordinates, cp.mz_extraction_window,
                 cp.ppm, cp.extraction_function);
             extractor.return_chromatogram(tmp_out, coordinates,
                 transition_exp_used, SpectrumSettings(), tmp_chromatograms, false);
@@ -626,31 +722,33 @@ namespace OpenMS
 #endif
             {
               LOG_DEBUG << "Extracted "  << tmp_chromatograms.size() << " chromatograms from SWATH map " <<
-                i << " with m/z " << swath_maps[i].lower << " to " << swath_maps[i].upper << ":" << std::endl;
-              for (Size i = 0; i < tmp_chromatograms.size(); i++)
+                map_idx << " with m/z " << swath_maps[map_idx].lower << " to " << swath_maps[map_idx].upper << ":" << std::endl;
+              for (Size chrom_idx = 0; chrom_idx < tmp_chromatograms.size(); chrom_idx++)
               {
                 // Check TIC and remove empty chromatograms (can happen if the
                 // extraction window is outside the mass spectrometric acquisition
                 // window).
-                double tic = std::accumulate(tmp_out[i]->getIntensityArray()->data.begin(),tmp_out[i]->getIntensityArray()->data.end(),0);
-                LOG_DEBUG << "Chromatogram "  << coordinates[i].id << " with size "
-                  << tmp_out[i]->getIntensityArray()->data.size() << " and TIC " << tic  << std::endl;
+                double tic = std::accumulate(tmp_out[chrom_idx]->getIntensityArray()->data.begin(),
+                                             tmp_out[chrom_idx]->getIntensityArray()->data.end(),0.0);
+                LOG_DEBUG << "Chromatogram "  << coordinates[chrom_idx].id << " with size "
+                  << tmp_out[chrom_idx]->getIntensityArray()->data.size() << " and TIC " << tic  << std::endl;
                 if (tic > 0.0)
                 {
                   // add the chromatogram to the output
-                  chromatograms.push_back(tmp_chromatograms[i]);
+                  chromatograms.push_back(tmp_chromatograms[chrom_idx]);
                 }
                 else
                 {
-                  std::cerr << " - Warning: Empty chromatogram " << coordinates[i].id << " detected. Will skip it!" << std::endl;
+                  std::cerr << " - Warning: Empty chromatogram " << coordinates[chrom_idx].id << 
+                    " detected. Will skip it!" << std::endl;
                 }
               }
             }
           }
           else
           {
-            LOG_DEBUG << "Extracted no transitions from SWATH map " << i << " with m/z " <<
-                swath_maps[i].lower << " to " << swath_maps[i].upper << ":" << std::endl;
+            LOG_DEBUG << "Extracted no transitions from SWATH map " << map_idx << " with m/z " <<
+                swath_maps[map_idx].lower << " to " << swath_maps[map_idx].upper << ":" << std::endl;
           }
         }
       }
@@ -664,13 +762,16 @@ namespace OpenMS
      * @param min_coverage Minimal coverage of the chromatographic space that needs to be achieved
      * @param feature_finder_param Parameter set for the feature finding in chromatographic dimension 
      * @param irt_detection_param Parameter set for the detection of the iRTs (outlier detection, peptides per bin etc)
+     * @param swath_maps The raw data for the m/z correction
+     * @param mz_correction_function If correction in m/z is desired, which function should be used
      *
      * @note: feature_finder_param are copied because they are changed here.
      *
     */
     TransformationDescription RTNormalization(TargetedExperiment transition_exp_,
             std::vector< OpenMS::MSChromatogram<> > chromatograms, double min_rsq, double min_coverage,
-            Param feature_finder_param, const Param& irt_detection_param) 
+            Param feature_finder_param, const Param& irt_detection_param, 
+            std::vector< OpenSwath::SwathMap > & swath_maps, const String & mz_correction_function)
     {
       LOG_DEBUG << "Start of RTNormalization method" << std::endl;
       this->startProgress(0, 1, "Retention time normalization");
@@ -744,7 +845,10 @@ namespace OpenMS
         pairs.push_back(std::make_pair(it->second, PeptideRTMap[it->first])); // pair<exp_rt, theor_rt>
       }
 
-      // 4. Perform the outlier detection
+      // 4. Correct mz deviations using SwathMapMassCorrection
+      SwathMapMassCorrection::correctMZ(transition_group_map, swath_maps, mz_correction_function);
+
+      // 5. Perform the outlier detection
       std::vector<std::pair<double, double> > pairs_corrected;
       String outlier_method = irt_detection_param.getValue("outlierMethod");
       if (outlier_method == "iter_residual" || outlier_method == "iter_jackknife")
@@ -1039,6 +1143,21 @@ namespace OpenMS
         if (ms1)
         {
           pep = transition_exp_used.getPeptides()[i];
+
+          // Catch cases where a peptide has no transitions
+          if (peptide_trans_map.count(pep.id) == 0 )
+          {
+            LOG_INFO << "Warning: no transitions found for peptide " << pep.id << std::endl;
+            coord.rt_start = -1;
+            coord.rt_end = -2; // create negative range
+            coord.id = pep.id;
+            coordinates.push_back(coord);
+            continue;
+          }
+
+          // This is slightly awkward but the m/z of the precursor is *not*
+          // stored in the precursor object but only in the transition object
+          // itself.
           transition = (*peptide_trans_map[pep.id][0]);
           coord.mz = transition.getPrecursorMZ();
           coord.id = pep.id;
@@ -1109,9 +1228,9 @@ namespace OpenMS
 
   @brief Complete workflow to run OpenSWATH
 
-  This implements the OpenSwath workflow as described in Roest and Rosenberger
-  et al. (2013) and provides a complete, integrated analysis tool without the
-  need to run multiple tools consecutively.
+  This implements the OpenSwath workflow as described in Rost and Rosenberger
+  et al. (Nature Biotechnology, 2014) and provides a complete, integrated
+  analysis tool without the need to run multiple tools consecutively.
 
   It executes the following steps in order:
 
@@ -1150,11 +1269,219 @@ namespace OpenMS
   The output of the OpenSwathWorkflow is a feature list, either as FeatureXML
   or as tsv (use -out_features or -out_tsv) while the latter is more memory
   friendly. If you analyze large dataset, it is recommended to only use
-  -out_tsv and not -out_features. For downstream analysis (e.g. using mProphet)
+  -out_tsv and not -out_features. For downstream analysis (e.g. using mProphet or pyProphet)
   also the -out_tsv format is recommended.
+
+  The feature list generated by -out_tsv is a tab-separated file. It can be
+  used directly as input to the mProphet or pyProphet (a Python
+  re-implementation of mProphet) software tool, see Reiter et al (2011, Nature
+  Methods).
 
   In addition, the extracted chromatograms can be written out using the
   -out_chrom parameter.
+
+  <h4> Feature list output format </h4>
+  
+  The tab-separated feature output contains the following information:
+
+<CENTER>
+  <table>
+    <tr>
+      <td ALIGN = "left" BGCOLOR="#EBEBEB"> Header row </td>
+      <td ALIGN = "left" BGCOLOR="#EBEBEB"> Format </td>
+      <td ALIGN = "left" BGCOLOR="#EBEBEB"> Description </td>
+    </tr>
+    <tr>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> transition_group_id </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> String </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> A unique id for the transition group (all chromatographic traces that are analyzed together)</td>
+    </tr>
+
+    <tr>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> peptide_group_label </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> String </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> A unique id for the peptide group (will be the same for each charge state and heavy/light status) </td>
+    </tr>
+
+    <tr>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> run_id </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> String </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> An identifier for the run (currently always 0)</td>
+    </tr>
+
+    <tr>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> filename </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> String </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> The input filename </td>
+    </tr>
+
+    <tr>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> RT </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Float </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Peak group retention time </td>
+    </tr>
+
+    <tr>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> id </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> String </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> A unique identifier for the peak group</td>
+    </tr>
+
+    <tr>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Sequence </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> String </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Peptide sequence (no modifications) </td>
+    </tr>
+
+    <tr>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> FullPeptideName </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> String </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Full peptide sequence including modifications in Unimod format</td>
+    </tr>
+
+    <tr>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Charge </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Int </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Assumed charge state</td>
+    </tr>
+
+    <tr>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> m/z </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Float </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Precursor m/z</td>
+    </tr>
+
+    <tr>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Intensity </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Float </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Peak group intensity (sum of all transitions)</td>
+    </tr>
+
+    <tr>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> ProteinName </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> String </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Name of the associated protein</td>
+    </tr>
+
+    <tr>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> decoy </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> String </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Whether the transition is decoy or not (0 = false, 1 = true) </td>
+    </tr>
+
+    <tr>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> assay_rt </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Float </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> The expected RT in seconds (based on normalized iRT value) </td>
+    </tr>
+
+    <tr>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> delta_rt </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Float </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> The difference between the expected RT and the peak group RT in seconds </td>
+    </tr>
+
+    <tr>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> leftWidth </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Float </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> The start of the peak group (left side) in seconds </td>
+    </tr>
+
+    <tr>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> main_var_xx_swath_prelim_score </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Float </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Initial score </td>
+    </tr>
+
+    <tr>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> norm_RT </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Float </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> The peak group retention time in normalized (iRT) space </td>
+    </tr>
+
+    <tr>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> nr_peaks </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Int </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> The number of transitions used </td>
+    </tr>
+
+    <tr>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> peak_apices_sum </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Float </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> The sum of all peak apices (may be used as alternative intensity) </td>
+    </tr>
+
+    <tr>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> potentialOutlier </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> String </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Potential outlier transitions (or "none" if none was detected)</td>
+    </tr>
+
+    <tr>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> rightWidth </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Float </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> The end of the peak group (left side) in seconds </td>
+    </tr>
+
+    <tr>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> rt_score </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Float </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> The raw RT score (unnormalized) </td>
+    </tr>
+
+    <tr>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> sn_ratio </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Float </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> The raw S/N ratio </td>
+    </tr>
+
+    <tr>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> total_xic </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Float </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> The total XIC of the chromatogram </td>
+    </tr>
+
+    <tr>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> var_... </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Float </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> One of multiple sub-scores used by OpenSWATH to describe the peak group </td>
+    </tr>
+
+    <tr>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> aggr_prec_Peak_Area </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> String </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Intensity (peak area) of MS1 traces separated by semicolon </td>
+    </tr>
+
+    <tr>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> aggr_prec_Peak_Apex </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> String </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Intensity (peak apex) of MS1 traces separated by semicolon </td>
+    </tr>
+    <tr>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> aggr_prec_Fragment_Annotation </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> String </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Annotation of MS1 traces separated by semicolon </td>
+    </tr>
+    <tr>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> aggr_Peak_Area </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> String </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Intensity (peak area) of fragment ion traces separated by semicolon </td>
+    </tr>
+    <tr>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> aggr_Peak_Apex </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> String </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Intensity (peak apex) of fragment ion traces separated by semicolon </td>
+    </tr>
+    <tr>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> aggr_Fragment_Annotation </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> String </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=2> Annotation of fragment ion traces separated by semicolon </td>
+    </tr>
+
+
+  </table>
+</CENTER>
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude UTILS_OpenSwathWorkflow.cli
@@ -1198,6 +1525,7 @@ protected:
     registerFlag_("sort_swath_maps", "Sort of input SWATH files when matching to SWATH windows from swath_windows_file", true);
 
     registerFlag_("use_ms1_traces", "Extract the precursor ion trace(s) and use for scoring", true);
+    registerFlag_("enable_uis_scoring", "Enable additional scoring of identification assays", true);
 
     // one of the following two needs to be set
     registerOutputFile_("out_features", "<file>", "", "output file", false);
@@ -1223,7 +1551,10 @@ protected:
     registerFlag_("use_elution_model_score", "Turn on elution model score (EMG fit to peak)", true);
 
     registerStringOption_("readOptions", "<name>", "normal", "Whether to run OpenSWATH directly on the input data, cache data to disk first or to perform a datareduction step first. If you choose cache, make sure to also set tempDirectory", false, true);
-    setValidStrings_("readOptions", ListUtils::create<String>("normal,cache"));
+    setValidStrings_("readOptions", ListUtils::create<String>("normal,cache,cacheWorkingInMemory"));
+
+    registerStringOption_("mz_correction_function", "<name>", "none", "Use the retention time normalization peptide MS2 masses to perform a mass correction (linear, weighted by intensity linear or quadratic) of all spectra.", false, true);
+    setValidStrings_("mz_correction_function", ListUtils::create<String>("none,unweighted_regression,weighted_regression,quadratic_regression,weighted_quadratic_regression,weighted_quadratic_regression_delta_ppm,quadratic_regression_delta_ppm"));
 
     // TODO terminal slash !
     registerStringOption_("tempDirectory", "<tmp>", "/tmp/", "Temporary directory to store cached files for example", false, true);
@@ -1252,7 +1583,7 @@ protected:
       feature_finder_param.setValue("TransitionGroupPicker:recalculate_peaks", "true");
       feature_finder_param.setValue("TransitionGroupPicker:compute_peak_quality", "true");
       feature_finder_param.setValue("TransitionGroupPicker:minimal_quality", -1.5);
-      feature_finder_param.remove("TransitionGroupPicker:background_subtraction");
+      feature_finder_param.setValue("TransitionGroupPicker:background_subtraction", "none");
       feature_finder_param.remove("TransitionGroupPicker:stop_after_intensity_ratio");
 
       // Peak Picker
@@ -1268,6 +1599,8 @@ protected:
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:method", "corrected");
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:signal_to_noise", 0.1);
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width", 30.0);
+      feature_finder_param.setValue("uis_threshold_sn",-1);
+      feature_finder_param.setValue("uis_threshold_peak_area",0);
       feature_finder_param.remove("TransitionGroupPicker:PeakPickerMRM:sn_win_len");
       feature_finder_param.remove("TransitionGroupPicker:PeakPickerMRM:sn_bin_count");
       feature_finder_param.remove("TransitionGroupPicker:PeakPickerMRM:stop_after_feature");
@@ -1355,10 +1688,25 @@ protected:
    * loading a provided .trafoXML file or determine it from the data itself by
    * extracting the transitions specified in the irt_tr_file TraML file.
    *
+   * @param trafo_in Input trafoXML file (if not empty, transformation will be
+   *                 loaded from this file)
+   * @param irt_tr_file  Input TraML file containing transitions (if trafo_in
+   *                     is empty, this file will be loaded and transitions
+   *                     will be extracted)
+   * @param swath_maps The raw data (swath maps)
+   * @param min_rsq Minimal R^2 value that is expected for the RT regression
+   * @param min_coverage Minimal coverage of the chromatographic space that needs to be achieved
+   * @param feature_finder_param Parameter set for the feature finding in chromatographic dimension 
+   * @param cp_irt Parameter set for the chromatogram extraction
+   * @param irt_detection_param Parameter set for the detection of the iRTs (outlier detection, peptides per bin etc)
+   * @param mz_correction_function If correction in m/z is desired, which function should be used
+   * @param debug_level Debug level (writes out the RT normalization chromatograms if larger than 1)
+   *
    */
   TransformationDescription loadTrafoFile(String trafo_in, String irt_tr_file,
-    const std::vector< OpenSwath::SwathMap > & swath_maps, double min_rsq, double min_coverage,
-    const Param& feature_finder_param, const OpenSwathWorkflow::ChromExtractParams& cp_irt, const Param& irt_detection_param, Size debug_level)
+    std::vector< OpenSwath::SwathMap > & swath_maps, double min_rsq, double min_coverage,
+    const Param& feature_finder_param, const OpenSwathWorkflow::ChromExtractParams& cp_irt,
+    const Param& irt_detection_param, const String & mz_correction_function, Size debug_level)
   {
     TransformationDescription trafo_rtnorm;
     if (!trafo_in.empty())
@@ -1381,7 +1729,7 @@ protected:
       OpenMS::TargetedExperiment irt_transitions;
       traml.load(irt_tr_file, irt_transitions);
       trafo_rtnorm = wf.performRTNormalization(irt_transitions, swath_maps, min_rsq, min_coverage,
-          feature_finder_param, cp_irt, irt_detection_param, debug_level);
+          feature_finder_param, cp_irt, irt_detection_param, mz_correction_function, debug_level);
     }
     return trafo_rtnorm;
   }
@@ -1422,8 +1770,10 @@ protected:
     bool ppm = getFlag_("ppm");
     bool split_file = getFlag_("split_file_input");
     bool use_emg_score = getFlag_("use_elution_model_score");
+    bool force = getFlag_("force");
     bool sort_swath_maps = getFlag_("sort_swath_maps");
     bool use_ms1_traces = getFlag_("use_ms1_traces");
+    bool enable_uis_scoring = getFlag_("enable_uis_scoring");
     double min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
     double mz_extraction_window = getDoubleOption_("mz_extraction_window");
     double rt_extraction_window = getDoubleOption_("rt_extraction_window");
@@ -1437,11 +1787,19 @@ protected:
     double min_coverage = getDoubleOption_("min_coverage");
 
     String readoptions = getStringOption_("readOptions");
+    String mz_correction_function = getStringOption_("mz_correction_function");
     String tmp = getStringOption_("tempDirectory");
 
     ///////////////////////////////////
     // Parameter validation
     ///////////////////////////////////
+
+    bool load_into_memory = false;
+    if (readoptions == "cacheWorkingInMemory")
+    {
+      readoptions = "cache";
+      load_into_memory = true;
+    }
 
     if (trafo_in.empty() && irt_tr_file.empty())
     {
@@ -1494,15 +1852,21 @@ protected:
       feature_finder_param.setValue("Scores:use_ms1_correlation", "true");
       feature_finder_param.setValue("Scores:use_ms1_fullscan", "true");
     }
+    if (enable_uis_scoring)
+    {
+      feature_finder_param.setValue("Scores:use_uis_scores", "true");
+    }
 
     ///////////////////////////////////
     // Load the SWATH files
     ///////////////////////////////////
+
+    // (i) Load files
     boost::shared_ptr<ExperimentalSettings> exp_meta(new ExperimentalSettings);
     std::vector< OpenSwath::SwathMap > swath_maps;
     loadSwathFiles(file_list, split_file, tmp, readoptions, exp_meta, swath_maps);
 
-    // Allow the user to specify the SWATH windows
+    // (ii) Allow the user to specify the SWATH windows
     if (!swath_windows_file.empty())
     {
       SwathWindowLoader::annotateSwathMapsFromFile(swath_windows_file, swath_maps, sort_swath_maps);
@@ -1515,11 +1879,52 @@ protected:
         << " spectra." << std::endl;
     }
 
+    // (iii) Sanity check: there should be no overlap between the windows:
+    std::vector<std::pair<double, double> > sw_windows;
+    for (Size i = 0; i < swath_maps.size(); i++)
+    {
+      if (!swath_maps[i].ms1)
+      {
+        sw_windows.push_back(std::make_pair(swath_maps[i].lower, swath_maps[i].upper));
+      }
+    }
+    std::sort(sw_windows.begin(), sw_windows.end(), SortPairDoubleByFirst);
+
+    for (Size i = 1; i < sw_windows.size(); i++)
+    {
+      double lower_map_end = sw_windows[i-1].second - min_upper_edge_dist;
+      double upper_map_start = sw_windows[i].first;
+      LOG_DEBUG << "Extraction will go up to " << lower_map_end << " and continue at " << upper_map_start << std::endl;
+
+      if (upper_map_start - lower_map_end > 0.01)
+      {
+        LOG_INFO << "Extraction will have a gap between " << lower_map_end << " and " << upper_map_start << std::endl;
+        if (!force)
+        {
+          LOG_INFO << "Will abort (override with -force)" << std::endl;
+          return PARSE_ERROR;
+        }
+      }
+
+      if (lower_map_end - upper_map_start > 0.01)
+      {
+        LOG_INFO << "Extraction will overlap between " << lower_map_end << " and " << upper_map_start << std::endl;
+        LOG_INFO << "This will lead to multiple extraction of the transitions in this region which should be avoided." << std::endl;
+        LOG_INFO << "Please fix this by providing an appropriate extraction file with -swath_windows_file" << std::endl;
+        if (!force)
+        {
+          LOG_INFO << "Will abort (override with -force)" << std::endl;
+          return PARSE_ERROR;
+        }
+      }
+
+    }
+
     ///////////////////////////////////
     // Get the transformation information (using iRT peptides)
     ///////////////////////////////////
     TransformationDescription trafo_rtnorm = loadTrafoFile(trafo_in, irt_tr_file,
-        swath_maps, min_rsq, min_coverage, feature_finder_param, cp_irt, irt_detection_param, debug_level);
+        swath_maps, min_rsq, min_coverage, feature_finder_param, cp_irt, irt_detection_param, mz_correction_function, debug_level);
 
     ///////////////////////////////////
     // Load the transitions
@@ -1564,12 +1969,12 @@ protected:
     ///////////////////////////////////
     FeatureMap out_featureFile;
 
-    OpenSwathTSVWriter tsvwriter(out_tsv, file_list[0], use_ms1_traces);
+    OpenSwathTSVWriter tsvwriter(out_tsv, file_list[0], use_ms1_traces, enable_uis_scoring);
     OpenSwathWorkflow wf(use_ms1_traces);
     wf.setLogType(log_type_);
 
     wf.performExtraction(swath_maps, trafo_rtnorm, cp, feature_finder_param, transition_exp,
-        out_featureFile, !out.empty(), tsvwriter, chromConsumer, batchSize);
+        out_featureFile, !out.empty(), tsvwriter, chromConsumer, batchSize, load_into_memory);
     if (!out.empty())
     {
       addDataProcessing_(out_featureFile, getProcessingInfo_(DataProcessing::QUANTITATION));

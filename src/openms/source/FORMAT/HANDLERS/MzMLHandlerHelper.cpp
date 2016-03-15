@@ -153,14 +153,14 @@ namespace OpenMS
 
   void MzMLHandlerHelper::decodeBase64Arrays(std::vector<BinaryData> & data_, bool skipXMLCheck)
   {
-    /// Decoder/Encoder for Base64-data in MzML
+    // Decoder/Encoder for Base64-data in MzML
     Base64 decoder_;
 
-    //decode all base64 arrays
+    // decode all base64 arrays
     for (Size i = 0; i < data_.size(); i++)
     {
-      //remove whitespaces from binary data
-      //this should not be necessary, but linebreaks inside the base64 data are unfortunately no exception
+      // remove whitespaces from binary data
+      // this should not be necessary, but linebreaks inside the base64 data are unfortunately no exception
       // NOTE: this may take up to 10% of reading time with a single thread,
       //       either omit it or make it more efficient
       if (!skipXMLCheck)
@@ -168,7 +168,19 @@ namespace OpenMS
         data_[i].base64.removeWhitespaces();
       }
 
-      //decode data and check if the length of the decoded data matches the expected length
+      // Catch proteowizard invalid conversion: as numpress arrays are always
+      // 64 bit, this should be safe. However, we cannot generally assume that
+      // DT_NONE means that we are dealing with a 64 bit float type. 
+      if (data_[i].np_compression != MSNumpressCoder::NONE && 
+          data_[i].data_type == BinaryData::DT_NONE)
+      {
+        MzMLHandlerHelper::warning(0, String("Invalid mzML format: Numpress-compressed binary data array '") + 
+            data_[i].meta.getName() + "' has no child term of MS:1000518 (binary data type) set. Assuming 64 bit float data type.");
+        data_[i].data_type = BinaryData::DT_FLOAT;
+        data_[i].precision = BinaryData::PRE_64;
+      }
+
+      // decode data and check if the length of the decoded data matches the expected length
       if (data_[i].data_type == BinaryData::DT_FLOAT)
       {
         if (data_[i].np_compression != MSNumpressCoder::NONE)
@@ -184,7 +196,8 @@ namespace OpenMS
           decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].floats_64, data_[i].compression);
           if (data_[i].size != data_[i].floats_64.size())
           {
-            MzMLHandlerHelper::warning(0, String("Float binary data array '") + data_[i].meta.getName() + /* "' of spectrum '" + spec_.getNativeID() + */ "' has length " + data_[i].floats_64.size() + ", but should have length " + data_[i].size + ".");
+            MzMLHandlerHelper::warning(0, String("Float binary data array '") + data_[i].meta.getName() + 
+                "' has length " + data_[i].floats_64.size() + ", but should have length " + data_[i].size + ".");
             data_[i].size = data_[i].floats_64.size();
           }
         }
@@ -193,7 +206,8 @@ namespace OpenMS
           decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].floats_32, data_[i].compression);
           if (data_[i].size != data_[i].floats_32.size())
           {
-            MzMLHandlerHelper::warning(0, String("Float binary data array '") + data_[i].meta.getName() + /* "' of spectrum '" + spec_.getNativeID() + */ "' has length " + data_[i].floats_32.size() + ", but should have length " + data_[i].size + ".");
+            MzMLHandlerHelper::warning(0, String("Float binary data array '") + data_[i].meta.getName() + 
+                "' has length " + data_[i].floats_32.size() + ", but should have length " + data_[i].size + ".");
             data_[i].size = data_[i].floats_32.size();
           }
         }
@@ -205,7 +219,8 @@ namespace OpenMS
           decoder_.decodeIntegers(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].ints_64, data_[i].compression);
           if (data_[i].size != data_[i].ints_64.size())
           {
-            MzMLHandlerHelper::warning(0, String("Integer binary data array '") + data_[i].meta.getName() + /* "' of spectrum '" + spec_.getNativeID() + */ "' has length " + data_[i].ints_64.size() + ", but should have length " + data_[i].size + ".");
+            MzMLHandlerHelper::warning(0, String("Integer binary data array '") + data_[i].meta.getName() + 
+                "' has length " + data_[i].ints_64.size() + ", but should have length " + data_[i].size + ".");
             data_[i].size = data_[i].ints_64.size();
           }
         }
@@ -214,7 +229,8 @@ namespace OpenMS
           decoder_.decodeIntegers(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].ints_32, data_[i].compression);
           if (data_[i].size != data_[i].ints_32.size())
           {
-            MzMLHandlerHelper::warning(0, String("Integer binary data array '") + data_[i].meta.getName() + /* "' of spectrum '" + spec_.getNativeID() + */ "' has length " + data_[i].ints_32.size() + ", but should have length " + data_[i].size + ".");
+            MzMLHandlerHelper::warning(0, String("Integer binary data array '") + data_[i].meta.getName() + 
+                "' has length " + data_[i].ints_32.size() + ", but should have length " + data_[i].size + ".");
             data_[i].size = data_[i].ints_32.size();
           }
         }
@@ -224,9 +240,16 @@ namespace OpenMS
         decoder_.decodeStrings(data_[i].base64, data_[i].decoded_char, data_[i].compression);
         if (data_[i].size != data_[i].decoded_char.size())
         {
-          MzMLHandlerHelper::warning(0, String("String binary data array '") + data_[i].meta.getName() + /* "' of spectrum '" + spec_.getNativeID() +  */"' has length " + data_[i].decoded_char.size() + ", but should have length " + data_[i].size + ".");
+          MzMLHandlerHelper::warning(0, String("String binary data array '") + data_[i].meta.getName() + 
+              "' has length " + data_[i].decoded_char.size() + ", but should have length " + data_[i].size + ".");
           data_[i].size = data_[i].decoded_char.size();
         }
+      }
+      else 
+      {
+        // TODO throw error?
+        MzMLHandlerHelper::warning(0, String("Invalid mzML format: Binary data array '") + data_[i].meta.getName() + 
+            "' has no child term of MS:1000518 (binary data type) set. Cannot automatically deduce data type.");
       }
     }
 

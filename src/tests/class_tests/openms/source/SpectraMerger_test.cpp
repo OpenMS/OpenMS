@@ -84,6 +84,9 @@ START_SECTION((template < typename MapType > void mergeSpectraBlockWise(MapType 
 
 	SpectraMerger merger;
   Param p;
+  p.setValue("mz_binning_width", 0.0001, "Max m/z distance of two peaks to be merged.", ListUtils::create<String>("advanced"));
+  p.setValue("mz_binning_width_unit", "Da", "Unit in which the distance between two peaks is given.", ListUtils::create<String>("advanced"));
+
   p.setValue("block_method:rt_block_size", 5);
   p.setValue("block_method:ms_levels", ListUtils::create<Int>("1"));
   merger.setParameters(p);

@@ -227,7 +227,7 @@ protected:
     void visualize_(IonSource & meta, QTreeWidgetItem * parent = 0);
     void visualize_(IonDetector & meta, QTreeWidgetItem * parent = 0);
     void visualize_(MassAnalyzer & meta, QTreeWidgetItem * parent = 0);
-    void visualize_(DataProcessing & meta, QTreeWidgetItem * parent = 0);
+    void visualize_(DataProcessingPtr & meta, QTreeWidgetItem * parent = 0);
     void visualize_(ProteinIdentification & meta, QTreeWidgetItem * parent = 0);
     void visualize_(ProteinHit & meta, QTreeWidgetItem * parent = 0);
     void visualize_(PeptideHit & meta, QTreeWidgetItem * parent = 0);

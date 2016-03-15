@@ -1087,8 +1087,8 @@ namespace OpenMS
       {
         for (Size k = 0; k < number_of_partitions; k++)
         {
-          free(training_data_ul[k]->x);
-          free(training_data_ul[k]->y);
+          delete[] training_data_ul[k]->x;
+          delete[] training_data_ul[k]->y;
           delete training_data_ul[k]; // delete individual objects
         }
         delete[] training_data_ul; // delete array of pointers

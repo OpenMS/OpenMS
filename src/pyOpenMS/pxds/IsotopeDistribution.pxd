@@ -38,6 +38,18 @@ cdef extern from "<OpenMS/CHEMISTRY/IsotopeDistribution.h>" namespace "OpenMS":
         #   "Determination of Monoisotopic Masses and Ion Populations for Large Biomolecules from Resolved Isotopic Distributions"
         void estimateFromPeptideWeight(double average_weight) nogil except +
 
+        # Estimate Nucleotide Isotopedistribution from weight
+        void estimateFromRNAWeight(double average_weight) nogil except +
+
+        # Estimate Nucleotide Isotopedistribution from weight
+
+        void estimateFromDNAWeight(double average_weight) nogil except +
+
+        # Estimate Isotopedistribution from weight, average composition, and number of isotopes that should be reported
+
+        void estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P) nogil except +
+
+
         # renormalizes the sum of the probabilities of the isotopes to 1
         void renormalize() nogil except +
 

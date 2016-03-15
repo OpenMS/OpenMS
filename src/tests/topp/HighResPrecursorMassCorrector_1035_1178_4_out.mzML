@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
+<indexedmzML xmlns="http://psi.hupo.org/ms/mzml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0_idx.xsd">
 <mzML xmlns="http://psi.hupo.org/ms/mzml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd" accession="" version="1.1.0">
 	<cvList count="5">
 		<cv id="MS" fullName="Proteomics Standards Initiative Mass Spectrometry Ontology" URI="http://psidev.cvs.sourceforge.net/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo"/>
@@ -1252,3 +1253,35 @@
 		</spectrumList>
 	</run>
 </mzML>
+<indexList count="1">
+	<index name="spectrum">
+		<offset idRef="controllerType=0 controllerNumber=1 scan=4862">20423</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=4878">22469</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=4894">25338</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=4910">28239</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=4926">31168</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=4931">34133</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=4942">43593</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=4958">46640</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=4974">49715</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=4990">52875</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=5006">55967</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=5022">58996</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=5038">62011</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=5054">65039</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=5070">68054</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=5085">71103</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=5101">74129</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=5117">77156</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=5133">80155</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=5147">83155</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=5159">86171</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=5161">89187</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=5175">97583</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=5178">100599</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=5194">103577</offset>
+	</index>
+</indexList>
+<indexListOffset>106557</indexListOffset>
+<fileChecksum>0</fileChecksum>
+</indexedmzML>

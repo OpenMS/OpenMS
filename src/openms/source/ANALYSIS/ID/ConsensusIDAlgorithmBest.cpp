@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmBest.h>
-#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <cmath>
 

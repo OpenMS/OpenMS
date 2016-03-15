@@ -1,26 +1,26 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <?xml-stylesheet type="text/xsl" href="file:////share/usr/luhn/thesis/OpenMS/svn/share/OpenMS/XSL/ConsensusXML.xsl"?>
-<consensusXML version="1.5" id="cm_16120198410702423709" experiment_type="silac" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<consensusXML version="1.6" id="cm_16120198410702423709" experiment_type="silac" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_6.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="2012-03-02T15:44:17">
 		<software name="IDMapper" version="1.10.0" />
 		<processingAction name="Identification mapping" />
-		<userParam type="string" name="parameter: out" value="SILAC_1_1.consensusXML"/>
-		<userParam type="string" name="parameter: in" value="SILAC_1_1.consensusXML"/>
-		<userParam type="string" name="parameter: id" value="SILAC_1_1.idXML"/>
-		<userParam type="string" name="parameter: ini" value="IDMapper.ini"/>
-		<userParam type="float" name="parameter: rt_tolerance" value="60"/>
-		<userParam type="float" name="parameter: mz_tolerance" value="40"/>
-		<userParam type="string" name="parameter: mz_measure" value="ppm"/>
-		<userParam type="string" name="parameter: mz_reference" value="precursor"/>
-		<userParam type="string" name="parameter: ignore_charge" value="true"/>
-		<userParam type="string" name="parameter: use_centroid_rt" value="false"/>
-		<userParam type="string" name="parameter: use_centroid_mz" value="false"/>
-		<userParam type="string" name="parameter: use_subelements" value="false"/>
-		<userParam type="string" name="parameter: log" value=""/>
-		<userParam type="int" name="parameter: debug" value="0"/>
-		<userParam type="int" name="parameter: threads" value="8"/>
-		<userParam type="string" name="parameter: no_progress" value="false"/>
-		<userParam type="string" name="parameter: test" value="false"/>
+		<UserParam type="string" name="parameter: out" value="SILAC_1_1.consensusXML"/>
+		<UserParam type="string" name="parameter: in" value="SILAC_1_1.consensusXML"/>
+		<UserParam type="string" name="parameter: id" value="SILAC_1_1.idXML"/>
+		<UserParam type="string" name="parameter: ini" value="IDMapper.ini"/>
+		<UserParam type="float" name="parameter: rt_tolerance" value="60"/>
+		<UserParam type="float" name="parameter: mz_tolerance" value="40"/>
+		<UserParam type="string" name="parameter: mz_measure" value="ppm"/>
+		<UserParam type="string" name="parameter: mz_reference" value="precursor"/>
+		<UserParam type="string" name="parameter: ignore_charge" value="true"/>
+		<UserParam type="string" name="parameter: use_centroid_rt" value="false"/>
+		<UserParam type="string" name="parameter: use_centroid_mz" value="false"/>
+		<UserParam type="string" name="parameter: use_subelements" value="false"/>
+		<UserParam type="string" name="parameter: log" value=""/>
+		<UserParam type="int" name="parameter: debug" value="0"/>
+		<UserParam type="int" name="parameter: threads" value="8"/>
+		<UserParam type="string" name="parameter: no_progress" value="false"/>
+		<UserParam type="string" name="parameter: test" value="false"/>
 	</dataProcessing>
 	
 	<IdentificationRun id="PI_0" date="2012-02-24T16:27:55" search_engine="OMSSA" search_engine_version="2.1.8">
@@ -30,7 +30,7 @@
 		</SearchParameters>
 		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
 			<ProteinHit id="PH_0" accession="IPI:CON_00009865.2|SWISS-PROT:P13645" score="0.872178077697754" sequence="">
-				<userParam type="float" name="OMSSA_score" value="0"/>
+				<UserParam type="float" name="OMSSA_score" value="0"/>
 			</ProteinHit>
 		</ProteinIdentification>
 	</IdentificationRun>
@@ -44,25 +44,25 @@
 		</SearchParameters>
 		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
 			<ProteinHit id="PH_1" accession="IPI:CON_00694255.1|TREMBL:Q3SX14" score="0.872178077697754" sequence="">
-				<userParam type="float" name="OMSSA_score" value="0"/>
+				<UserParam type="float" name="OMSSA_score" value="0"/>
 			</ProteinHit>
 		</ProteinIdentification>
 	</IdentificationRun>
 		
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="473.579864501953" RT="1722.9376" >
 		<PeptideHit score="0.00125667609173735" sequence="M(Oxidation)YQPEDDNNSDVTSDDDMTR" charge="5" aa_after="N" protein_refs="">
-			<userParam type="float" name="OMSSA_score" value="0.00834062519686263"/>
-			<userParam type="string" name="target_decoy" value="target"/>
-			<userParam type="string" name="protein_references" value="non-unique"/>
+			<UserParam type="float" name="OMSSA_score" value="0.00834062519686263"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="string" name="protein_references" value="non-unique"/>
 		</PeptideHit>
 	</UnassignedPeptideIdentification>
 
 
 	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="949.4091796875" RT="2639.1951" >
 		<PeptideHit score="0" sequence="AADPPAENSSAPEAEQGGAE" charge="2" aa_before="K" protein_refs="">
-			<userParam type="float" name="OMSSA_score" value="1.07270560176463e-08"/>
-			<userParam type="string" name="target_decoy" value="target"/>
-			<userParam type="string" name="protein_references" value="non-unique"/>
+			<UserParam type="float" name="OMSSA_score" value="1.07270560176463e-08"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="string" name="protein_references" value="non-unique"/>
 		</PeptideHit>
 	</UnassignedPeptideIdentification>
 
@@ -90,9 +90,9 @@
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="480.242279052734" RT="2949.0893" >
 				<PeptideHit score="0" sequence="AADAVEDLR" charge="2" aa_before="R" aa_after="W" protein_refs="">
-					<userParam type="float" name="OMSSA_score" value="7.12408738455504e-05"/>
-					<userParam type="string" name="target_decoy" value="target"/>
-					<userParam type="string" name="protein_references" value="non-unique"/>
+					<UserParam type="float" name="OMSSA_score" value="7.12408738455504e-05"/>
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="string" name="protein_references" value="non-unique"/>
 				</PeptideHit>
 			</PeptideIdentification>
 		</consensusElement>

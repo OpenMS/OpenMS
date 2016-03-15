@@ -139,7 +139,7 @@ using namespace std;
 <CENTER>
     <table>
         <tr>
-          <td></td>
+            <td></td>
             <td ALIGN="center" BGCOLOR="#EBEBEB"> sample 1 </td>
             <td ALIGN="center" BGCOLOR="#EBEBEB"> sample 2 </td>
             <td ALIGN="center" BGCOLOR="#EBEBEB"> sample 3 </td>

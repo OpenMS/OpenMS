@@ -15,7 +15,6 @@ FeatureGroupingAlgorithmLabeled.h
 FeatureGroupingAlgorithmQT.h
 FeatureGroupingAlgorithmUnlabeled.h
 LabeledPairFinder.h
-MapAlignmentAlgorithm.h
 MapAlignmentAlgorithmIdentification.h
 MapAlignmentAlgorithmPoseClustering.h
 MapAlignmentAlgorithmSpectrumAlignment.h

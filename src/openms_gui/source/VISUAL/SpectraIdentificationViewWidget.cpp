@@ -35,6 +35,7 @@
 #include <OpenMS/VISUAL/SpectraIdentificationViewWidget.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>
 
 #include <QtGui/QVBoxLayout>
 #include <QtGui/QTreeWidget>
@@ -72,7 +73,7 @@ namespace OpenMS
     defaults_.setValue("x_intensity", 1.0, "Default intensity of x-ions");
     defaults_.setValue("y_intensity", 1.0, "Default intensity of y-ions");
     defaults_.setValue("z_intensity", 1.0, "Default intensity of z-ions");
-    defaults_.setValue("relative_loss_intensity", 0.1, "Relativ loss in percent");
+    defaults_.setValue("relative_loss_intensity", 0.1, "Relative loss in percent");
     defaults_.setValue("max_isotope", 2, "Maximum number of isotopes");
     defaults_.setValue("charge", 1, "Charge state");
     defaults_.setValue("show_a_ions", "false", "Show a-ions");
@@ -85,7 +86,7 @@ namespace OpenMS
     defaults_.setValue("add_losses", "false", "Show neutral losses");
     defaults_.setValue("add_isotopes", "false", "Show isotopes");
     defaults_.setValue("add_abundant_immonium_ions", "false", "Show abundant immonium ions");
-    defaults_.setValue("tolerance", 0.5, "Mass tolerance used in the automatic alignment."); // unfortunatly we don't support alignment with ppm error
+    defaults_.setValue("tolerance", 0.5, "Mass tolerance in Th used in the automatic alignment."); // unfortunately we don't support alignment with ppm error
 
     QVBoxLayout* spectra_widget_layout = new QVBoxLayout(this);
     table_widget_ = new QTableWidget(this);
@@ -283,7 +284,7 @@ namespace OpenMS
     }
 
     set<String> common_keys;
-    // determine metavalues common to all hits
+    // determine meta values common to all hits
     if (create_rows_for_commmon_metavalue_->isChecked())
     {
       for (Size i = 0; i < layer_->getPeakData()->size(); ++i)
@@ -298,27 +299,17 @@ namespace OpenMS
 
         for (vector<PeptideIdentification>::const_iterator pids_it = peptide_ids.begin(); pids_it != peptide_ids.end(); ++pids_it)
         {
-          const vector<PeptideHit> phits = pids_it->getHits();
-          for (vector<PeptideHit>::const_iterator phits_it = phits.begin(); phits_it != phits.end(); ++phits_it)
+          const vector<PeptideHit>& phits = pids_it->getHits();
+          set<String> current_keys = MetaInfoInterfaceUtils::findCommonMetaKeys<vector<PeptideHit>, set<String> >(phits.begin(), phits.end(), 100.0);
+          if (common_keys.empty()) // first MS2 peptide hit found. Now insert keys.
           {
-            // get meta value keys
-            vector<String> keys;
-            phits_it->getKeys(keys);
-            if (common_keys.empty()) // first MS2 peptide hit found. Now insert keys.
-            {
-              for (vector<String>::iterator sit = keys.begin(); sit != keys.end(); ++sit)
-              {
-                common_keys.insert(*sit);
-              }
-            }
-            else // calculate intersection between current keys and common keys -> set as common_keys
-            {
-              set<String> current_keys;
-              current_keys.insert(keys.begin(), keys.end());
-              set<String> new_common_keys;
-              set_intersection(current_keys.begin(), current_keys.end(), common_keys.begin(), common_keys.end(), inserter(new_common_keys, new_common_keys.begin()));
-              swap(new_common_keys, common_keys);
-            }
+            swap(current_keys, common_keys);
+          }
+          else // calculate intersection between current keys and common keys -> set as common_keys
+          {
+            set<String> new_common_keys;
+            set_intersection(current_keys.begin(), current_keys.end(), common_keys.begin(), common_keys.end(), inserter(new_common_keys, new_common_keys.begin()));
+            swap(common_keys, new_common_keys);
           }
         }
       }

@@ -546,13 +546,11 @@ namespace OpenMS
         }
       }
     }
-    //Add 1% margin to RT in order to display all the data
-    double margin = 0.01 * max(1.0, m_max[rt_dim] - m_min[rt_dim]);
-    m_min[rt_dim] -= margin;
-    m_max[rt_dim] += margin;
-
     overall_data_range_.setMin(m_min);
     overall_data_range_.setMax(m_max);
+
+    // add 4% margin (2% left, 2% right) to RT, m/z and intensity
+    overall_data_range_.extend(1.04);
   }
 
   double SpectrumCanvas::getSnapFactor()
@@ -651,11 +649,11 @@ namespace OpenMS
     // Arrow keys => translate
     else if (e->key() == Qt::Key_Left)
     {
-      translateLeft_();
+      translateLeft_(e->modifiers());
     }
     else if (e->key() == Qt::Key_Right)
     {
-      translateRight_();
+      translateRight_(e->modifiers());
     }
     else if (e->key() == Qt::Key_Up)
     {
@@ -679,11 +677,11 @@ namespace OpenMS
     }
   }
 
-  void SpectrumCanvas::translateLeft_()
+  void SpectrumCanvas::translateLeft_(Qt::KeyboardModifiers /*m*/)
   {
   }
 
-  void SpectrumCanvas::translateRight_()
+  void SpectrumCanvas::translateRight_(Qt::KeyboardModifiers /*m*/)
   {
   }
 
@@ -695,12 +693,12 @@ namespace OpenMS
   {
   }
 
-  void SpectrumCanvas::setAdditionalContextMenu(QMenu * menu)
+  void SpectrumCanvas::setAdditionalContextMenu(QMenu* menu)
   {
     context_add_ = menu;
   }
 
-  void SpectrumCanvas::getVisiblePeakData(ExperimentType & map) const
+  void SpectrumCanvas::getVisiblePeakData(ExperimentType& map) const
   {
     //clear output experiment
     map.clear(true);

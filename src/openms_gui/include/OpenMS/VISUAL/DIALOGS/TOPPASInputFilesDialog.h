@@ -55,12 +55,22 @@ namespace OpenMS
     Q_OBJECT
 
 public:
+    /// support drag'n'drop of files from OS window manager
+    void dragEnterEvent(QDragEnterEvent *e);
+    /// support drag'n'drop of files from OS window manager
+    void dropEvent(QDropEvent *e);
 
     /// Constructor
-    TOPPASInputFilesDialog(const QStringList & list);
+    TOPPASInputFilesDialog(const QStringList& list, const QString& cwd);
 
     /// Stores the list of all filenames in the list widget in @p files
-    void getFilenames(QStringList & files);
+    void getFilenames(QStringList& files) const;
+
+    /// get the CWD (according to most recently added file)
+    const QString& getCWD() const;
+
+    /// support Ctrl+C to copy currently selected items to clipboard
+    virtual void keyPressEvent(QKeyEvent *e);
 
 public slots:
 
@@ -74,6 +84,10 @@ public slots:
     void editCurrentItem();
     /// Moves the current item up/downwards
     void moveCurrentItem();
+
+protected:
+    /// current working dir, i.e. the last position a file was added from
+    QString cwd_;
 
   };
 

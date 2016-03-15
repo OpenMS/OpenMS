@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.6" id="fm_7675317259246054802" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_6.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<featureMap version="1.8" id="fm_7675317259246054802" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_8.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<IdentificationRun id="PI_0" date="2008-08-18T14:30:01" search_engine="Mascot" search_engine_version="2.2.03">
-		<SearchParameters db="SwissProt" db_version="SwissProt_54.5.fasta" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+		<SearchParameters db="SwissProt" db_version="SwissProt_54.5.fasta" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 		</SearchParameters>
 		<ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0">
 			<ProteinHit id="PH_0" accession="P02787" score="841" sequence="">
@@ -25,10 +25,10 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<userParam type="string" name="fragmented" value="true"/>
-			<userParam type="string" name="shifted" value="false"/>
-			<userParam type="float" name="msms_score" value="47365"/>
-			<userParam type="float" name="init_msms_score" value="47365"/>
+			<UserParam type="string" name="fragmented" value="true"/>
+			<UserParam type="string" name="shifted" value="false"/>
+			<UserParam type="float" name="msms_score" value="47365"/>
+			<UserParam type="float" name="init_msms_score" value="47365"/>
 		</feature>
 		<feature id="f_9411753618577365283">
 			<position dim="0">1020</position>
@@ -38,10 +38,10 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<userParam type="string" name="fragmented" value="false"/>
-			<userParam type="string" name="shifted" value="false"/>
-			<userParam type="float" name="msms_score" value="46365.5"/>
-			<userParam type="float" name="init_msms_score" value="46365.5"/>
+			<UserParam type="string" name="fragmented" value="false"/>
+			<UserParam type="string" name="shifted" value="false"/>
+			<UserParam type="float" name="msms_score" value="46365.5"/>
+			<UserParam type="float" name="init_msms_score" value="46365.5"/>
 		</feature>
 		<feature id="f_16456877437831362598">
 			<position dim="0">3990</position>
@@ -51,10 +51,10 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<userParam type="string" name="fragmented" value="false"/>
-			<userParam type="string" name="shifted" value="false"/>
-			<userParam type="float" name="msms_score" value="46066"/>
-			<userParam type="float" name="init_msms_score" value="46066"/>
+			<UserParam type="string" name="fragmented" value="false"/>
+			<UserParam type="string" name="shifted" value="false"/>
+			<UserParam type="float" name="msms_score" value="46066"/>
+			<UserParam type="float" name="init_msms_score" value="46066"/>
 		</feature>
 		<feature id="f_6482346894588044329">
 			<position dim="0">2610</position>
@@ -64,10 +64,10 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<userParam type="string" name="fragmented" value="false"/>
-			<userParam type="string" name="shifted" value="false"/>
-			<userParam type="float" name="msms_score" value="45878"/>
-			<userParam type="float" name="init_msms_score" value="45878"/>
+			<UserParam type="string" name="fragmented" value="false"/>
+			<UserParam type="string" name="shifted" value="false"/>
+			<UserParam type="float" name="msms_score" value="45878"/>
+			<UserParam type="float" name="init_msms_score" value="45878"/>
 		</feature>
 		<feature id="f_10245415323614437028">
 			<position dim="0">2490</position>
@@ -77,10 +77,10 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<userParam type="string" name="fragmented" value="false"/>
-			<userParam type="string" name="shifted" value="false"/>
-			<userParam type="float" name="msms_score" value="45491"/>
-			<userParam type="float" name="init_msms_score" value="45491"/>
+			<UserParam type="string" name="fragmented" value="false"/>
+			<UserParam type="string" name="shifted" value="false"/>
+			<UserParam type="float" name="msms_score" value="45491"/>
+			<UserParam type="float" name="init_msms_score" value="45491"/>
 		</feature>
 		<feature id="f_8550613339290383822">
 			<position dim="0">3690</position>
@@ -90,10 +90,10 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<userParam type="string" name="fragmented" value="false"/>
-			<userParam type="string" name="shifted" value="false"/>
-			<userParam type="float" name="msms_score" value="45303"/>
-			<userParam type="float" name="init_msms_score" value="45303"/>
+			<UserParam type="string" name="fragmented" value="false"/>
+			<UserParam type="string" name="shifted" value="false"/>
+			<UserParam type="float" name="msms_score" value="45303"/>
+			<UserParam type="float" name="init_msms_score" value="45303"/>
 		</feature>
 		<feature id="f_6676949538175833299">
 			<position dim="0">2640</position>
@@ -103,10 +103,10 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<userParam type="string" name="fragmented" value="false"/>
-			<userParam type="string" name="shifted" value="false"/>
-			<userParam type="float" name="msms_score" value="45211"/>
-			<userParam type="float" name="init_msms_score" value="45211"/>
+			<UserParam type="string" name="fragmented" value="false"/>
+			<UserParam type="string" name="shifted" value="false"/>
+			<UserParam type="float" name="msms_score" value="45211"/>
+			<UserParam type="float" name="init_msms_score" value="45211"/>
 		</feature>
 		<feature id="f_15455064975625836050">
 			<position dim="0">3180</position>
@@ -116,10 +116,10 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<userParam type="string" name="fragmented" value="false"/>
-			<userParam type="string" name="shifted" value="false"/>
-			<userParam type="float" name="msms_score" value="44916"/>
-			<userParam type="float" name="init_msms_score" value="44916"/>
+			<UserParam type="string" name="fragmented" value="false"/>
+			<UserParam type="string" name="shifted" value="false"/>
+			<UserParam type="float" name="msms_score" value="44916"/>
+			<UserParam type="float" name="init_msms_score" value="44916"/>
 		</feature>
 		<feature id="f_16418729453990380019">
 			<position dim="0">3330</position>
@@ -129,10 +129,10 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<userParam type="string" name="fragmented" value="false"/>
-			<userParam type="string" name="shifted" value="false"/>
-			<userParam type="float" name="msms_score" value="44593"/>
-			<userParam type="float" name="init_msms_score" value="44593"/>
+			<UserParam type="string" name="fragmented" value="false"/>
+			<UserParam type="string" name="shifted" value="false"/>
+			<UserParam type="float" name="msms_score" value="44593"/>
+			<UserParam type="float" name="init_msms_score" value="44593"/>
 		</feature>
 		<feature id="f_10941300047544238531">
 			<position dim="0">1200</position>
@@ -142,10 +142,10 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<userParam type="string" name="fragmented" value="false"/>
-			<userParam type="string" name="shifted" value="false"/>
-			<userParam type="float" name="msms_score" value="44543"/>
-			<userParam type="float" name="init_msms_score" value="44543"/>
+			<UserParam type="string" name="fragmented" value="false"/>
+			<UserParam type="string" name="shifted" value="false"/>
+			<UserParam type="float" name="msms_score" value="44543"/>
+			<UserParam type="float" name="init_msms_score" value="44543"/>
 		</feature>
 		<feature id="f_11001236890672315833">
 			<position dim="0">1080</position>
@@ -155,10 +155,10 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<userParam type="string" name="fragmented" value="false"/>
-			<userParam type="string" name="shifted" value="false"/>
-			<userParam type="float" name="msms_score" value="44526"/>
-			<userParam type="float" name="init_msms_score" value="44526"/>
+			<UserParam type="string" name="fragmented" value="false"/>
+			<UserParam type="string" name="shifted" value="false"/>
+			<UserParam type="float" name="msms_score" value="44526"/>
+			<UserParam type="float" name="init_msms_score" value="44526"/>
 		</feature>
 		<feature id="f_1858924646511752019">
 			<position dim="0">1170</position>
@@ -168,10 +168,10 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<userParam type="string" name="fragmented" value="false"/>
-			<userParam type="string" name="shifted" value="false"/>
-			<userParam type="float" name="msms_score" value="44344"/>
-			<userParam type="float" name="init_msms_score" value="44344"/>
+			<UserParam type="string" name="fragmented" value="false"/>
+			<UserParam type="string" name="shifted" value="false"/>
+			<UserParam type="float" name="msms_score" value="44344"/>
+			<UserParam type="float" name="init_msms_score" value="44344"/>
 		</feature>
 		<feature id="f_13996393867110941279">
 			<position dim="0">3060</position>
@@ -181,10 +181,10 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<userParam type="string" name="fragmented" value="false"/>
-			<userParam type="string" name="shifted" value="false"/>
-			<userParam type="float" name="msms_score" value="44314.5"/>
-			<userParam type="float" name="init_msms_score" value="44314.5"/>
+			<UserParam type="string" name="fragmented" value="false"/>
+			<UserParam type="string" name="shifted" value="false"/>
+			<UserParam type="float" name="msms_score" value="44314.5"/>
+			<UserParam type="float" name="init_msms_score" value="44314.5"/>
 		</feature>
 		<feature id="f_992548252702965773">
 			<position dim="0">3900</position>
@@ -194,10 +194,10 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<userParam type="string" name="fragmented" value="false"/>
-			<userParam type="string" name="shifted" value="false"/>
-			<userParam type="float" name="msms_score" value="44308"/>
-			<userParam type="float" name="init_msms_score" value="44308"/>
+			<UserParam type="string" name="fragmented" value="false"/>
+			<UserParam type="string" name="shifted" value="false"/>
+			<UserParam type="float" name="msms_score" value="44308"/>
+			<UserParam type="float" name="init_msms_score" value="44308"/>
 		</feature>
 		<feature id="f_14309921507754362905">
 			<position dim="0">3900</position>
@@ -207,10 +207,10 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<userParam type="string" name="fragmented" value="false"/>
-			<userParam type="string" name="shifted" value="false"/>
-			<userParam type="float" name="msms_score" value="44259.5"/>
-			<userParam type="float" name="init_msms_score" value="44259.5"/>
+			<UserParam type="string" name="fragmented" value="false"/>
+			<UserParam type="string" name="shifted" value="false"/>
+			<UserParam type="float" name="msms_score" value="44259.5"/>
+			<UserParam type="float" name="init_msms_score" value="44259.5"/>
 		</feature>
 		<feature id="f_12850161359787029926">
 			<position dim="0">1110</position>
@@ -222,14 +222,14 @@
 			<charge>0</charge>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="25" MZ="908.4450073" RT="1110" >
 				<PeptideHit score="50.59999847" sequence="VGEFSGANK" charge="1" aa_before="K" aa_after="E" protein_refs="PH_1">
-					<userParam type="float" name="EValue" value="0.00015"/>
-					<userParam type="int" name="Rank" value="1"/>
+					<UserParam type="float" name="EValue" value="0.00015"/>
+					<UserParam type="int" name="Rank" value="1"/>
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="string" name="fragmented" value="false"/>
-			<userParam type="string" name="shifted" value="up"/>
-			<userParam type="float" name="msms_score" value="36078.9166666667"/>
-			<userParam type="float" name="init_msms_score" value="29375.5"/>
+			<UserParam type="string" name="fragmented" value="false"/>
+			<UserParam type="string" name="shifted" value="up"/>
+			<UserParam type="float" name="msms_score" value="36078.9166666667"/>
+			<UserParam type="float" name="init_msms_score" value="29375.5"/>
 		</feature>
 		<feature id="f_11488446200149710123">
 			<position dim="0">1860</position>
@@ -241,14 +241,14 @@
 			<charge>0</charge>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="25" MZ="1273.660034" RT="1860" >
 				<PeptideHit score="33.20000076" sequence="HSTIFENLANK" charge="1" aa_before="K" aa_after="A" protein_refs="PH_0">
-					<userParam type="float" name="EValue" value="0.0095"/>
-					<userParam type="int" name="Rank" value="1"/>
+					<UserParam type="float" name="EValue" value="0.0095"/>
+					<UserParam type="int" name="Rank" value="1"/>
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="string" name="fragmented" value="false"/>
-			<userParam type="string" name="shifted" value="down"/>
-			<userParam type="float" name="msms_score" value="32990.5"/>
-			<userParam type="float" name="init_msms_score" value="49485.75"/>
+			<UserParam type="string" name="fragmented" value="false"/>
+			<UserParam type="string" name="shifted" value="down"/>
+			<UserParam type="float" name="msms_score" value="32990.5"/>
+			<UserParam type="float" name="init_msms_score" value="49485.75"/>
 		</feature>
 		<feature id="f_2554304082117287350">
 			<position dim="0">1590</position>
@@ -258,10 +258,10 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<userParam type="string" name="fragmented" value="false"/>
-			<userParam type="string" name="shifted" value="false"/>
-			<userParam type="float" name="msms_score" value="32440"/>
-			<userParam type="float" name="init_msms_score" value="32440"/>
+			<UserParam type="string" name="fragmented" value="false"/>
+			<UserParam type="string" name="shifted" value="false"/>
+			<UserParam type="float" name="msms_score" value="32440"/>
+			<UserParam type="float" name="init_msms_score" value="32440"/>
 		</feature>
 		<feature id="f_6017509535385520063">
 			<position dim="0">960</position>
@@ -273,14 +273,14 @@
 			<charge>0</charge>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="15" MZ="1166.599976" RT="960" >
 				<PeptideHit score="37.63999939" sequence="HQTVPQNTGGK" charge="1" aa_before="K" aa_after="N" protein_refs="PH_0">
-					<userParam type="float" name="EValue" value="0.0029"/>
-					<userParam type="int" name="Rank" value="1"/>
+					<UserParam type="float" name="EValue" value="0.0029"/>
+					<UserParam type="int" name="Rank" value="1"/>
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="string" name="fragmented" value="false"/>
-			<userParam type="string" name="shifted" value="down"/>
-			<userParam type="float" name="msms_score" value="29869"/>
-			<userParam type="float" name="init_msms_score" value="44803.5"/>
+			<UserParam type="string" name="fragmented" value="false"/>
+			<UserParam type="string" name="shifted" value="down"/>
+			<UserParam type="float" name="msms_score" value="29869"/>
+			<UserParam type="float" name="init_msms_score" value="44803.5"/>
 		</feature>
 		<feature id="f_4099848638561839373">
 			<position dim="0">1020</position>
@@ -292,14 +292,14 @@
 			<charge>0</charge>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="20" MZ="964.5300293" RT="1020" >
 				<PeptideHit score="53.88999939" sequence="APNHAVVTR" charge="1" aa_before="R" aa_after="K" protein_refs="PH_0">
-					<userParam type="float" name="EValue" value="6.5e-05"/>
-					<userParam type="int" name="Rank" value="1"/>
+					<UserParam type="float" name="EValue" value="6.5e-05"/>
+					<UserParam type="int" name="Rank" value="1"/>
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="string" name="fragmented" value="false"/>
-			<userParam type="string" name="shifted" value="down"/>
-			<userParam type="float" name="msms_score" value="20506.125"/>
-			<userParam type="float" name="init_msms_score" value="41012.25"/>
+			<UserParam type="string" name="fragmented" value="false"/>
+			<UserParam type="string" name="shifted" value="down"/>
+			<UserParam type="float" name="msms_score" value="20506.125"/>
+			<UserParam type="float" name="init_msms_score" value="41012.25"/>
 		</feature>
 		<feature id="f_17670355687637131873">
 			<position dim="0">1530</position>
@@ -311,14 +311,14 @@
 			<charge>0</charge>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="24" MZ="1000.48999" RT="1530" >
 				<PeptideHit score="40.47000122" sequence="YLGEEYVK" charge="1" aa_before="K" aa_after="A" protein_refs="PH_0">
-					<userParam type="float" name="EValue" value="0.0011"/>
-					<userParam type="int" name="Rank" value="1"/>
+					<UserParam type="float" name="EValue" value="0.0011"/>
+					<UserParam type="int" name="Rank" value="1"/>
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="string" name="fragmented" value="false"/>
-			<userParam type="string" name="shifted" value="down"/>
-			<userParam type="float" name="msms_score" value="12023"/>
-			<userParam type="float" name="init_msms_score" value="24046"/>
+			<UserParam type="string" name="fragmented" value="false"/>
+			<UserParam type="string" name="shifted" value="down"/>
+			<UserParam type="float" name="msms_score" value="12023"/>
+			<UserParam type="float" name="init_msms_score" value="24046"/>
 		</feature>
 		<feature id="f_2805647334648720739">
 			<position dim="0">1380</position>
@@ -328,10 +328,10 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<userParam type="string" name="fragmented" value="false"/>
-			<userParam type="string" name="shifted" value="down"/>
-			<userParam type="float" name="msms_score" value="9192.91666666667"/>
-			<userParam type="float" name="init_msms_score" value="11031.5"/>
+			<UserParam type="string" name="fragmented" value="false"/>
+			<UserParam type="string" name="shifted" value="down"/>
+			<UserParam type="float" name="msms_score" value="9192.91666666667"/>
+			<UserParam type="float" name="init_msms_score" value="11031.5"/>
 		</feature>
 	</featureList>
 </featureMap>

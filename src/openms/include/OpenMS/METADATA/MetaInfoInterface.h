@@ -57,14 +57,14 @@ namespace OpenMS
   {
 public:
 
-    ///constructor
+    /// Constructor
     MetaInfoInterface();
-    ///copy constructor
+    /// Copy constructor
     MetaInfoInterface(const MetaInfoInterface& rhs);
-    ///destructor
+    /// Destructor
     ~MetaInfoInterface();
 
-    ///assignment operator
+    /// Assignment operator
     MetaInfoInterface& operator=(const MetaInfoInterface& rhs);
 
     /// Equality operator
@@ -72,19 +72,19 @@ public:
     /// Equality operator
     bool operator!=(const MetaInfoInterface& rhs) const;
 
-    /// returns the value corresponding to a string
+    /// Returns the value corresponding to a string (or DataValue::EMPTY if not found)
     const DataValue& getMetaValue(const String& name) const;
-    /// returns the value corresponding to an index
+    /// Returns the value corresponding to an index (or DataValue::EMPTY if not found)
     const DataValue& getMetaValue(UInt index) const;
 
-    /// returns if this MetaInfo is set
+    /// Returns whether an entry with the given name exists
     bool metaValueExists(const String& name) const;
-    /// returns if this MetaInfo is set
+    /// Returns whether an entry with the given index exists
     bool metaValueExists(UInt index) const;
 
-    /// sets the DataValue corresponding to a name
+    /// Sets the DataValue corresponding to a name
     void setMetaValue(const String& name, const DataValue& value);
-    ///  sets the DataValue corresponding to an index
+    /// Sets the DataValue corresponding to an index
     void setMetaValue(UInt index, const DataValue& value);
 
     /// Removes the DataValue corresponding to @p name if it exists
@@ -92,25 +92,25 @@ public:
     /// Removes the DataValue corresponding to @p index if it exists
     void removeMetaValue(UInt index);
 
-    /// returns a reference to the MetaInfoRegistry
+    /// Returns a reference to the MetaInfoRegistry
     static MetaInfoRegistry& metaRegistry();
 
-    /// fills the given vector with a list of all keys for which a value is set
+    /// Fills the given vector with a list of all keys for which a value is set
     void getKeys(std::vector<String>& keys) const;
 
-    /// fills the given vector with a list of all keys for which a value is set
+    /// Fills the given vector with a list of all keys for which a value is set
     void getKeys(std::vector<UInt>& keys) const;
 
-    /// returns if the MetaInfo is empty
+    /// Returns if the MetaInfo is empty
     bool isMetaEmpty() const;
 
-    /// removes all meta values
+    /// Removes all meta values
     void clearMetaInfo();
 
 protected:
-    /// creates the MetaInfo object if it does not exist
+    /// Creates the MetaInfo object if it does not exist
     inline void createIfNotExists_();
-    /// pointer to the MetaInfo object. 0 by default
+    /// Pointer to the MetaInfo object (0 by default)
     MetaInfo* meta_;
   };
 

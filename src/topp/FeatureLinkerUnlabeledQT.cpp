@@ -71,9 +71,16 @@ using namespace std;
     Reference:\n
 		Weisser <em>et al.</em>: <a href="http://dx.doi.org/10.1021/pr300992u">An automated pipeline for high-throughput label-free quantitative proteomics</a> (J. Proteome Res., 2013, PMID: 23391308).
 
-    This tool provides an algorithm for grouping corresponding features in multiple runs of label-free experiments. For more details and algorithm-specific parameters (set in the ini file) see "Detailed Description" in the @ref OpenMS::FeatureGroupingAlgorithmQT "algorithm documentation".
+    This tool provides an algorithm for grouping corresponding features in
+    multiple runs of label-free experiments. For more details and
+    algorithm-specific parameters (set in the ini file) see "Detailed
+    Description" in the @ref OpenMS::FeatureGroupingAlgorithmQT "algorithm
+    documentation".
 
-    FeatureLinkerUnlabeledQT takes several feature maps (featureXML files) and stores the corresponding features in a consensus map (consensusXML file). Feature maps can be created from MS experiments (peak data) using one of the FeatureFinder TOPP tools.
+    FeatureLinkerUnlabeledQT takes several feature maps (featureXML files) and
+    stores the corresponding features in a consensus map (consensusXML file).
+    Feature maps can be created from MS experiments (peak data) using one of
+    the FeatureFinder TOPP tools.
 
     @see @ref TOPP_FeatureLinkerUnlabeled @ref TOPP_FeatureLinkerLabeled
 

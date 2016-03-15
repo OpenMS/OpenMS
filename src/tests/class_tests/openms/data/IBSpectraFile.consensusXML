@@ -1,133 +1,133 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <?xml-stylesheet type="text/xsl" href="file:///C:/Program Files/OpenMS-1.10/share/OpenMS/XSL/ConsensusXML.xsl"?>
-<consensusXML version="1.5" experiment_type="labeled_MS2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <userParam type="int" name="itraq:scans_noquant" value="557" />
-    <userParam type="int" name="itraq:scans_total" value="14835" />
-    <userParam type="int" name="itraq:quantifyable_ch126" value="13953" />
-    <userParam type="int" name="itraq:quantifyable_ch127" value="13609" />
-    <userParam type="int" name="itraq:quantifyable_ch128" value="13875" />
-    <userParam type="int" name="itraq:quantifyable_ch129" value="13649" />
-    <userParam type="int" name="itraq:quantifyable_ch130" value="13678" />
-    <userParam type="int" name="itraq:quantifyable_ch131" value="14009" />
-    <userParam type="string" name="Program" value="OpenMS::TMTAnalyzer" />
+<consensusXML version="1.6" experiment_type="labeled_MS2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_6.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <UserParam type="int" name="itraq:scans_noquant" value="557" />
+    <UserParam type="int" name="itraq:scans_total" value="14835" />
+    <UserParam type="int" name="itraq:quantifyable_ch126" value="13953" />
+    <UserParam type="int" name="itraq:quantifyable_ch127" value="13609" />
+    <UserParam type="int" name="itraq:quantifyable_ch128" value="13875" />
+    <UserParam type="int" name="itraq:quantifyable_ch129" value="13649" />
+    <UserParam type="int" name="itraq:quantifyable_ch130" value="13678" />
+    <UserParam type="int" name="itraq:quantifyable_ch131" value="14009" />
+    <UserParam type="string" name="Program" value="OpenMS::TMTAnalyzer" />
     <dataProcessing completion_time="2013-10-02T09:53:35">
         <software name="TMTAnalyzer" version="1.10.0" />
         <processingAction name="Quantitation" />
-        <userParam type="string" name="parameter: in" value="C:/Users/kristl/AppData/Local/Temp/2013-10-01_165219_MBIO313_8036_1/TOPPAS_tmp/Workflow_human_TMT/005_FileFilter/out/TK20131001_H2M1_002_SWE_A549_NM104_E4_R1.mzML" />
-        <userParam type="string" name="parameter: out" value="C:\Users\kristl\AppData\Local\Temp\2013-10-01_165219_MBIO313_8036_1\TOPPAS_tmp\Workflow_human_TMT\009_TMTAnalyzer\out\TK20131001_H2M1_002_SWE_A549_NM104_E4_R1.mzML_tmp25" />
-        <userParam type="string" name="parameter: log" value="" />
-        <userParam type="int" name="parameter: debug" value="0" />
-        <userParam type="int" name="parameter: threads" value="1" />
-        <userParam type="string" name="parameter: no_progress" value="true" />
-        <userParam type="string" name="parameter: test" value="false" />
-        <userParam type="string" name="parameter: ini" value="C:\Users\kristl\AppData\Local\Temp\2013-10-01_165219_MBIO313_8036_1\TOPPAS_tmp\Workflow_human_TMT\009_TMTAnalyzer\TMTAnalyzer.ini" />
-        <userParam type="string" name="parameter: out_mzq" value="" />
-        <userParam type="string" name="parameter: out_stats" value="" />
-        <userParam type="string" name="parameter: id_pool" value="" />
-        <userParam type="string" name="parameter: algorithm:Extraction:select_activation" value="High-energy collision-induced dissociation" />
-        <userParam type="float" name="parameter: algorithm:Extraction:reporter_mass_shift" value="0.1" />
-        <userParam type="stringList" name="parameter: algorithm:Extraction:channel_active" value="[126:ch126,127:ch127,128:ch128,129:ch129,130:ch130,131:ch131]" />
-        <userParam type="string" name="parameter: algorithm:Quantification:isotope_correction" value="true" />
-        <userParam type="string" name="parameter: algorithm:Quantification:do_normalization" value="false" />
-        <userParam type="int" name="parameter: algorithm:Quantification:channel_reference" value="126" />
-        <userParam type="stringList" name="parameter: algorithm:Quantification:isotope_correction:tmt-6plex" value="[126:0/0/6.1/0,127:0/0.5/6.7/0,128:0/1.1/4.2/0,129:0/1.7/4.1/0,130:0/2.8/2.5/0,131:0.2/3.2/2.8/0]" />
-        <userParam type="string" name="parameter: algorithm:MetaInformation:Program" value="OpenMS::TMTAnalyzer" />
+        <UserParam type="string" name="parameter: in" value="C:/Users/kristl/AppData/Local/Temp/2013-10-01_165219_MBIO313_8036_1/TOPPAS_tmp/Workflow_human_TMT/005_FileFilter/out/TK20131001_H2M1_002_SWE_A549_NM104_E4_R1.mzML" />
+        <UserParam type="string" name="parameter: out" value="C:\Users\kristl\AppData\Local\Temp\2013-10-01_165219_MBIO313_8036_1\TOPPAS_tmp\Workflow_human_TMT\009_TMTAnalyzer\out\TK20131001_H2M1_002_SWE_A549_NM104_E4_R1.mzML_tmp25" />
+        <UserParam type="string" name="parameter: log" value="" />
+        <UserParam type="int" name="parameter: debug" value="0" />
+        <UserParam type="int" name="parameter: threads" value="1" />
+        <UserParam type="string" name="parameter: no_progress" value="true" />
+        <UserParam type="string" name="parameter: test" value="false" />
+        <UserParam type="string" name="parameter: ini" value="C:\Users\kristl\AppData\Local\Temp\2013-10-01_165219_MBIO313_8036_1\TOPPAS_tmp\Workflow_human_TMT\009_TMTAnalyzer\TMTAnalyzer.ini" />
+        <UserParam type="string" name="parameter: out_mzq" value="" />
+        <UserParam type="string" name="parameter: out_stats" value="" />
+        <UserParam type="string" name="parameter: id_pool" value="" />
+        <UserParam type="string" name="parameter: algorithm:Extraction:select_activation" value="High-energy collision-induced dissociation" />
+        <UserParam type="float" name="parameter: algorithm:Extraction:reporter_mass_shift" value="0.1" />
+        <UserParam type="stringList" name="parameter: algorithm:Extraction:channel_active" value="[126:ch126,127:ch127,128:ch128,129:ch129,130:ch130,131:ch131]" />
+        <UserParam type="string" name="parameter: algorithm:Quantification:isotope_correction" value="true" />
+        <UserParam type="string" name="parameter: algorithm:Quantification:do_normalization" value="false" />
+        <UserParam type="int" name="parameter: algorithm:Quantification:channel_reference" value="126" />
+        <UserParam type="stringList" name="parameter: algorithm:Quantification:isotope_correction:tmt-6plex" value="[126:0/0/6.1/0,127:0/0.5/6.7/0,128:0/1.1/4.2/0,129:0/1.7/4.1/0,130:0/2.8/2.5/0,131:0.2/3.2/2.8/0]" />
+        <UserParam type="string" name="parameter: algorithm:MetaInformation:Program" value="OpenMS::TMTAnalyzer" />
     </dataProcessing>
     <dataProcessing completion_time="2013-10-02T09:55:14">
         <software name="IDMapper" version="1.10.0" />
         <processingAction name="Identification mapping" />
-        <userParam type="string" name="parameter: in" value="C:/Users/kristl/AppData/Local/Temp/2013-10-01_165219_MBIO313_8036_1/TOPPAS_tmp/Workflow_human_TMT/009_TMTAnalyzer/out/TK20131001_H2M1_002_SWE_A549_NM104_E4_R1.consensusXML" />
-        <userParam type="string" name="parameter: out" value="C:\Users\kristl\AppData\Local\Temp\2013-10-01_165219_MBIO313_8036_1\TOPPAS_tmp\Workflow_human_TMT\025_IDMapper\out\TK20131001_H2M1_002_SWE_A549_NM104_E4_R1.idXML_tmp64" />
-        <userParam type="string" name="parameter: log" value="" />
-        <userParam type="int" name="parameter: debug" value="0" />
-        <userParam type="int" name="parameter: threads" value="1" />
-        <userParam type="string" name="parameter: no_progress" value="true" />
-        <userParam type="string" name="parameter: test" value="false" />
-        <userParam type="string" name="parameter: ini" value="C:\Users\kristl\AppData\Local\Temp\2013-10-01_165219_MBIO313_8036_1\TOPPAS_tmp\Workflow_human_TMT\025_IDMapper\IDMapper.ini" />
-        <userParam type="string" name="parameter: id" value="C:/Users/kristl/AppData/Local/Temp/2013-10-01_165219_MBIO313_8036_1/TOPPAS_tmp/Workflow_human_TMT/024_IDFilter/out/TK20131001_H2M1_002_SWE_A549_NM104_E4_R1.idXML" />
-        <userParam type="float" name="parameter: rt_tolerance" value="5" />
-        <userParam type="float" name="parameter: mz_tolerance" value="0.1" />
-        <userParam type="string" name="parameter: mz_measure" value="Da" />
-        <userParam type="string" name="parameter: mz_reference" value="precursor" />
-        <userParam type="string" name="parameter: ignore_charge" value="false" />
-        <userParam type="string" name="parameter: feature:use_centroid_rt" value="false" />
-        <userParam type="string" name="parameter: feature:use_centroid_mz" value="false" />
-        <userParam type="string" name="parameter: consensusfeature:use_subelements" value="false" />
+        <UserParam type="string" name="parameter: in" value="C:/Users/kristl/AppData/Local/Temp/2013-10-01_165219_MBIO313_8036_1/TOPPAS_tmp/Workflow_human_TMT/009_TMTAnalyzer/out/TK20131001_H2M1_002_SWE_A549_NM104_E4_R1.consensusXML" />
+        <UserParam type="string" name="parameter: out" value="C:\Users\kristl\AppData\Local\Temp\2013-10-01_165219_MBIO313_8036_1\TOPPAS_tmp\Workflow_human_TMT\025_IDMapper\out\TK20131001_H2M1_002_SWE_A549_NM104_E4_R1.idXML_tmp64" />
+        <UserParam type="string" name="parameter: log" value="" />
+        <UserParam type="int" name="parameter: debug" value="0" />
+        <UserParam type="int" name="parameter: threads" value="1" />
+        <UserParam type="string" name="parameter: no_progress" value="true" />
+        <UserParam type="string" name="parameter: test" value="false" />
+        <UserParam type="string" name="parameter: ini" value="C:\Users\kristl\AppData\Local\Temp\2013-10-01_165219_MBIO313_8036_1\TOPPAS_tmp\Workflow_human_TMT\025_IDMapper\IDMapper.ini" />
+        <UserParam type="string" name="parameter: id" value="C:/Users/kristl/AppData/Local/Temp/2013-10-01_165219_MBIO313_8036_1/TOPPAS_tmp/Workflow_human_TMT/024_IDFilter/out/TK20131001_H2M1_002_SWE_A549_NM104_E4_R1.idXML" />
+        <UserParam type="float" name="parameter: rt_tolerance" value="5" />
+        <UserParam type="float" name="parameter: mz_tolerance" value="0.1" />
+        <UserParam type="string" name="parameter: mz_measure" value="Da" />
+        <UserParam type="string" name="parameter: mz_reference" value="precursor" />
+        <UserParam type="string" name="parameter: ignore_charge" value="false" />
+        <UserParam type="string" name="parameter: feature:use_centroid_rt" value="false" />
+        <UserParam type="string" name="parameter: feature:use_centroid_mz" value="false" />
+        <UserParam type="string" name="parameter: consensusfeature:use_subelements" value="false" />
     </dataProcessing>
     <IdentificationRun id="PI_0" date="2013-10-02T09:54:15" search_engine="OpenMS/ConsensusID" search_engine_version="1.10.0">
         <SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0"></SearchParameters>
         <ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
             <ProteinHit id="PH_151" accession="sp|P04908|H2A1B_HUMAN" score="0.750620007514954" sequence="">
-                <userParam type="float" name="_score" value="0" />
+                <UserParam type="float" name="_score" value="0" />
             </ProteinHit>
             <ProteinHit id="PH_1037" accession="sp|Q93077|H2A1C_HUMAN" score="0.750620007514954" sequence="">
-                <userParam type="float" name="_score" value="0" />
+                <UserParam type="float" name="_score" value="0" />
             </ProteinHit>
             <ProteinHit id="PH_328" accession="sp|P20671|H2A1D_HUMAN" score="0.750620007514954" sequence="">
-                <userParam type="float" name="_score" value="0" />
+                <UserParam type="float" name="_score" value="0" />
             </ProteinHit>
             <ProteinHit id="PH_1058" accession="sp|Q96KK5|H2A1H_HUMAN" score="0.750620007514954" sequence="">
-                <userParam type="float" name="_score" value="0" />
+                <UserParam type="float" name="_score" value="0" />
             </ProteinHit>
             <ProteinHit id="PH_1094" accession="sp|Q99878|H2A1J_HUMAN" score="0.750620007514954" sequence="">
-                <userParam type="float" name="_score" value="0" />
+                <UserParam type="float" name="_score" value="0" />
             </ProteinHit>
             <ProteinHit id="PH_231" accession="sp|P0C0S8|H2A1_HUMAN" score="0.750620007514954" sequence="">
-                <userParam type="float" name="_score" value="0" />
+                <UserParam type="float" name="_score" value="0" />
             </ProteinHit>
             <ProteinHit id="PH_907" accession="sp|Q6FI13|H2A2A_HUMAN" score="0.750620007514954" sequence="">
-                <userParam type="float" name="_score" value="0" />
+                <UserParam type="float" name="_score" value="0" />
             </ProteinHit>
             <ProteinHit id="PH_939" accession="sp|Q7L7L0|H2A3_HUMAN" score="0.750620007514954" sequence="">
-                <userParam type="float" name="_score" value="0" />
+                <UserParam type="float" name="_score" value="0" />
             </ProteinHit>
             <ProteinHit id="PH_1003" accession="sp|Q8NFH8|REPS2_HUMAN" score="0.750620007514954" sequence="">
-                <userParam type="float" name="_score" value="0" />
+                <UserParam type="float" name="_score" value="0" />
             </ProteinHit>
         </ProteinIdentification>
     </IdentificationRun>
     <mapList count="6">
         <map id="0" name="C:/Users/kristl/AppData/Local/Temp/2013-10-01_165219_MBIO313_8036_1/TOPPAS_tmp/Workflow_human_TMT/005_FileFilter/out/TK20131001_H2M1_002_SWE_A549_NM104_E4_R1.mzML" label="TMT_126_ch126" size="14835">
-            <userParam type="int" name="channel_name" value="126" />
-            <userParam type="int" name="channel_id" value="0" />
-            <userParam type="string" name="channel_description" value="ch126" />
-            <userParam type="float" name="channel_center" value="126.127725" />
-            <userParam type="string" name="channel_active" value="true" />
+            <UserParam type="int" name="channel_name" value="126" />
+            <UserParam type="int" name="channel_id" value="0" />
+            <UserParam type="string" name="channel_description" value="ch126" />
+            <UserParam type="float" name="channel_center" value="126.127725" />
+            <UserParam type="string" name="channel_active" value="true" />
         </map>
         <map id="1" name="C:/Users/kristl/AppData/Local/Temp/2013-10-01_165219_MBIO313_8036_1/TOPPAS_tmp/Workflow_human_TMT/005_FileFilter/out/TK20131001_H2M1_002_SWE_A549_NM104_E4_R1.mzML" label="TMT_127_ch127" size="14835">
-            <userParam type="int" name="channel_name" value="127" />
-            <userParam type="int" name="channel_id" value="1" />
-            <userParam type="string" name="channel_description" value="ch127" />
-            <userParam type="float" name="channel_center" value="127.12476" />
-            <userParam type="string" name="channel_active" value="true" />
+            <UserParam type="int" name="channel_name" value="127" />
+            <UserParam type="int" name="channel_id" value="1" />
+            <UserParam type="string" name="channel_description" value="ch127" />
+            <UserParam type="float" name="channel_center" value="127.12476" />
+            <UserParam type="string" name="channel_active" value="true" />
         </map>
         <map id="2" name="C:/Users/kristl/AppData/Local/Temp/2013-10-01_165219_MBIO313_8036_1/TOPPAS_tmp/Workflow_human_TMT/005_FileFilter/out/TK20131001_H2M1_002_SWE_A549_NM104_E4_R1.mzML" label="TMT_128_ch128" size="14835">
-            <userParam type="int" name="channel_name" value="128" />
-            <userParam type="int" name="channel_id" value="2" />
-            <userParam type="string" name="channel_description" value="ch128" />
-            <userParam type="float" name="channel_center" value="128.134433" />
-            <userParam type="string" name="channel_active" value="true" />
+            <UserParam type="int" name="channel_name" value="128" />
+            <UserParam type="int" name="channel_id" value="2" />
+            <UserParam type="string" name="channel_description" value="ch128" />
+            <UserParam type="float" name="channel_center" value="128.134433" />
+            <UserParam type="string" name="channel_active" value="true" />
         </map>
         <map id="3" name="C:/Users/kristl/AppData/Local/Temp/2013-10-01_165219_MBIO313_8036_1/TOPPAS_tmp/Workflow_human_TMT/005_FileFilter/out/TK20131001_H2M1_002_SWE_A549_NM104_E4_R1.mzML" label="TMT_129_ch129" size="14835">
-            <userParam type="int" name="channel_name" value="129" />
-            <userParam type="int" name="channel_id" value="3" />
-            <userParam type="string" name="channel_description" value="ch129" />
-            <userParam type="float" name="channel_center" value="129.131468" />
-            <userParam type="string" name="channel_active" value="true" />
+            <UserParam type="int" name="channel_name" value="129" />
+            <UserParam type="int" name="channel_id" value="3" />
+            <UserParam type="string" name="channel_description" value="ch129" />
+            <UserParam type="float" name="channel_center" value="129.131468" />
+            <UserParam type="string" name="channel_active" value="true" />
         </map>
         <map id="4" name="C:/Users/kristl/AppData/Local/Temp/2013-10-01_165219_MBIO313_8036_1/TOPPAS_tmp/Workflow_human_TMT/005_FileFilter/out/TK20131001_H2M1_002_SWE_A549_NM104_E4_R1.mzML" label="TMT_130_ch130" size="14835">
-            <userParam type="int" name="channel_name" value="130" />
-            <userParam type="int" name="channel_id" value="4" />
-            <userParam type="string" name="channel_description" value="ch130" />
-            <userParam type="float" name="channel_center" value="130.141141" />
-            <userParam type="string" name="channel_active" value="true" />
+            <UserParam type="int" name="channel_name" value="130" />
+            <UserParam type="int" name="channel_id" value="4" />
+            <UserParam type="string" name="channel_description" value="ch130" />
+            <UserParam type="float" name="channel_center" value="130.141141" />
+            <UserParam type="string" name="channel_active" value="true" />
         </map>
         <map id="5" name="C:/Users/kristl/AppData/Local/Temp/2013-10-01_165219_MBIO313_8036_1/TOPPAS_tmp/Workflow_human_TMT/005_FileFilter/out/TK20131001_H2M1_002_SWE_A549_NM104_E4_R1.mzML" label="TMT_131_ch131" size="14835">
-            <userParam type="int" name="channel_name" value="131" />
-            <userParam type="int" name="channel_id" value="5" />
-            <userParam type="string" name="channel_description" value="ch131" />
-            <userParam type="float" name="channel_center" value="131.138176" />
-            <userParam type="string" name="channel_active" value="true" />
+            <UserParam type="int" name="channel_name" value="131" />
+            <UserParam type="int" name="channel_id" value="5" />
+            <UserParam type="string" name="channel_description" value="ch131" />
+            <UserParam type="float" name="channel_center" value="131.138176" />
+            <UserParam type="string" name="channel_active" value="true" />
         </map>
     </mapList>
     <consensusElementList>
@@ -143,13 +143,13 @@
             </groupedElementList>
             <PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="777.471801757813" RT="600.45400000002">
                 <PeptideHit score="0.00883049752315313" sequence="(TMT6plex)K(TMT6plex)TESHHK(TMT6plex)" charge="2" protein_refs="PH_151 PH_1037 PH_328 PH_1058 PH_1094 PH_231 PH_907 PH_939">
-                    <userParam type="float" name="similarity" value="2" />
-                    <userParam type="float" name="Number of annotations" value="3" />
-                    <userParam type="string" name="target_decoy" value="target" />
-                    <userParam type="string" name="protein_references" value="non-unique" />
-                    <userParam type="float" name="Consensus_PEPMatrix ()_score" value="0.291412533366064" />
+                    <UserParam type="float" name="similarity" value="2" />
+                    <UserParam type="float" name="Number of annotations" value="3" />
+                    <UserParam type="string" name="target_decoy" value="target" />
+                    <UserParam type="string" name="protein_references" value="non-unique" />
+                    <UserParam type="float" name="Consensus_PEPMatrix ()_score" value="0.291412533366064" />
                 </PeptideHit>
-                <userParam type="string" name="file_origin" value="" />
+                <UserParam type="string" name="file_origin" value="" />
             </PeptideIdentification>
         </consensusElement>
         <consensusElement id="e_14724255530486262838" quality="0">
@@ -173,7 +173,7 @@
                 <element map="4" id="196" rt="667.68439999998" mz="130.141141" it="0" />
                 <element map="5" id="196" rt="667.68439999998" mz="131.138176" it="0" />
             </groupedElementList>
-            <userParam type="string" name="all_empty" value="true" />
+            <UserParam type="string" name="all_empty" value="true" />
         </consensusElement>
         <consensusElement id="e_16025161094552090598" quality="0">
             <centroid rt="721.64950000002" mz="723.428894042969" it="104827" />
@@ -187,13 +187,13 @@
             </groupedElementList>
             <PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="723.428894042969" RT="720.3375">
                 <PeptideHit score="0.0362532523850824" sequence="(TMT6plex)VPLSHGYSK(TMT6plex)" charge="2" protein_refs="PH_1003">
-                    <userParam type="float" name="similarity" value="1" />
-                    <userParam type="float" name="Number of annotations" value="1" />
-                    <userParam type="string" name="target_decoy" value="target" />
-                    <userParam type="string" name="protein_references" value="unique" />
-                    <userParam type="float" name="Consensus_PEPMatrix ()_score" value="0.798066589144765" />
+                    <UserParam type="float" name="similarity" value="1" />
+                    <UserParam type="float" name="Number of annotations" value="1" />
+                    <UserParam type="string" name="target_decoy" value="target" />
+                    <UserParam type="string" name="protein_references" value="unique" />
+                    <UserParam type="float" name="Consensus_PEPMatrix ()_score" value="0.798066589144765" />
                 </PeptideHit>
-                <userParam type="string" name="file_origin" value="" />
+                <UserParam type="string" name="file_origin" value="" />
             </PeptideIdentification>
         </consensusElement>
     </consensusElementList>

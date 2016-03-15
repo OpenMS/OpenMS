@@ -13,6 +13,7 @@ ConsensusIDAlgorithmPEPIons.cpp
 ConsensusIDAlgorithmPEPMatrix.cpp
 ConsensusIDAlgorithmRanks.cpp
 ConsensusIDAlgorithmSimilarity.cpp
+ConsensusIDAlgorithmWorst.cpp
 FalseDiscoveryRate.cpp
 HiddenMarkovModel.cpp
 IDMapper.cpp
@@ -27,6 +28,7 @@ PILISNeutralLossModel.cpp
 PILISScoring.cpp
 PILISCrossValidation.cpp
 ProtonDistributionModel.cpp
+PeptideIndexing.cpp
 )
 
 ### add path to the filenames

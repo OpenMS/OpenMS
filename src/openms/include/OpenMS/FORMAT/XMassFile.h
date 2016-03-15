@@ -165,8 +165,8 @@ public:
       data_processing.setProcessingActions(actions);
       data_processing.setCompletionTime(DateTime::now());
 
-      std::vector<DataProcessing> data_processing_vector;
-      data_processing_vector.push_back(data_processing);
+      std::vector< boost::shared_ptr< DataProcessing> > data_processing_vector;
+      data_processing_vector.push_back( boost::shared_ptr< DataProcessing>(new DataProcessing(data_processing)) );
       spectrum.setDataProcessing(data_processing_vector);
     }
 

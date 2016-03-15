@@ -3,20 +3,23 @@ set(directory source/VISUAL)
 
 ### list all filenames of the directory here
 set(sources_list
-AxisTickCalculator.cpp
 AxisPainter.cpp
+AxisTickCalculator.cpp
 AxisWidget.cpp
 ColorSelector.cpp
 EnhancedTabBar.cpp
+EnhancedTabBarWidgetInterface.cpp
+EnhancedWorkspace.cpp
 GUIProgressLoggerImpl.cpp
 HistogramWidget.cpp
 LayerData.cpp
+ListEditor.cpp
 MetaDataBrowser.cpp
 MultiGradient.cpp
 MultiGradientSelector.cpp
 ParamEditor.cpp
-SpectraViewWidget.cpp
 SpectraIdentificationViewWidget.cpp
+SpectraViewWidget.cpp
 Spectrum1DCanvas.cpp
 Spectrum1DWidget.cpp
 Spectrum2DCanvas.cpp
@@ -26,25 +29,23 @@ Spectrum3DOpenGLCanvas.cpp
 Spectrum3DWidget.cpp
 SpectrumCanvas.cpp
 SpectrumWidget.cpp
-ListEditor.cpp
-TOPPASLogWindow.cpp
-TOPPASWidget.cpp
-TOPPASScene.cpp
-TOPPASVertex.cpp
-TOPPASToolVertex.cpp
-TOPPASInputFileListVertex.cpp
-TOPPASOutputFileListVertex.cpp
-TOPPASMergerVertex.cpp
 TOPPASEdge.cpp
-TOPPASTabBar.cpp
-TOPPASTreeView.cpp
+TOPPASInputFileListVertex.cpp
+TOPPASLogWindow.cpp
+TOPPASMergerVertex.cpp
+TOPPASOutputFileListVertex.cpp
 TOPPASResource.cpp
 TOPPASResources.cpp
+TOPPASScene.cpp
+TOPPASSplitterVertex.cpp
+TOPPASTabBar.cpp
+TOPPASToolVertex.cpp
+TOPPASTreeView.cpp
+TOPPASVertex.cpp
+TOPPASWidget.cpp
 TOPPViewBehaviorInterface.cpp
 TOPPViewIdentificationViewBehavior.cpp
 TOPPViewSpectraViewBehavior.cpp
-EnhancedWorkspace.cpp
-EnhancedTabBarWidgetInterface.cpp
 )
 
 ### add path to the filenames

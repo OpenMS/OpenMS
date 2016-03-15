@@ -121,6 +121,16 @@ namespace OpenMS
     whitelist_ = rhs;
   }
 
+  void FuzzyStringComparator::setMatchedWhitelist(const std::vector< std::pair<std::string, std::string> >& rhs)
+  {
+    matched_whitelist_ = rhs;
+  }
+
+  const std::vector< std::pair<std::string, std::string> >& FuzzyStringComparator::getMatchedWhitelist() const
+  {
+    return matched_whitelist_;
+  }
+
   const int& FuzzyStringComparator::getVerboseLevel() const
   {
     return verbose_level_;
@@ -296,6 +306,25 @@ namespace OpenMS
           )
       {
         ++whitelist_cases_[*slit];
+        // *log_dest_ << "whitelist_ case: " << *slit << '\n';
+        return is_status_success_;
+      }
+    }
+
+    // check matched whitelist
+    // If file 1 contains element 1 and file 2 contains element 2, they are skipped over.
+    for (std::vector< std::pair<std::string, std::string> >::const_iterator pair_it = matched_whitelist_.begin(); 
+         pair_it != matched_whitelist_.end(); ++pair_it)
+    {
+      if ((line_str_1.find(pair_it->first) != String::npos &&
+           line_str_2.find(pair_it->second) != String::npos
+          ) ||
+          (line_str_1.find(pair_it->second) != String::npos &&
+           line_str_2.find(pair_it->first) != String::npos
+          )
+         )
+      {
+        // ++whitelist_cases_[*slit];
         // *log_dest_ << "whitelist_ case: " << *slit << '\n';
         return is_status_success_;
       }

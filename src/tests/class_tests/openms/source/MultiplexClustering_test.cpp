@@ -35,6 +35,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultRaw.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultPeak.h>
@@ -78,18 +79,21 @@ double rt_typical = 90;
 double rt_minimum = 5;
 
 // construct list of peak patterns
-std::vector<MultiplexPeakPattern> patterns;
-std::vector<double> shifts1;
-shifts1.push_back(0);
-shifts1.push_back(8.0443702794);
-std::vector<double> shifts2;
-shifts2.push_back(0);
-shifts2.push_back(2*8.0443702794);
+MultiplexDeltaMasses shifts1;
+shifts1.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(0, "no_label"));
+shifts1.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(8.0443702794, "Arg8"));
+MultiplexDeltaMasses shifts2;
+shifts2.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(0, "no_label"));
+MultiplexDeltaMasses::LabelSet label_set;
+label_set.insert("Arg8");
+label_set.insert("Arg8");
+shifts2.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(2*8.0443702794, label_set));
+std::vector<MultiplexIsotopicPeakPattern> patterns;
 for (int c = charge_max; c >= charge_min; --c)
 {
-    MultiplexPeakPattern pattern1(c, peaks_per_peptide_max, shifts1, 0);
+    MultiplexIsotopicPeakPattern pattern1(c, peaks_per_peptide_max, shifts1, 0);
     patterns.push_back(pattern1);
-    MultiplexPeakPattern pattern2(c, peaks_per_peptide_max, shifts2, 1);
+    MultiplexIsotopicPeakPattern pattern2(c, peaks_per_peptide_max, shifts2, 1);
     patterns.push_back(pattern2);
 }
 

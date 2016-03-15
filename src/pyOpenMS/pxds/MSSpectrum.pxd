@@ -44,6 +44,8 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         bool isSorted() nogil except +
 
         int findNearest(double) nogil except+
+        int findNearest(double, double) nogil except+
+        int findNearest(double, double, double) nogil except+
 
         void assign(libcpp_vector[Peak1D].iterator, libcpp_vector[Peak1D].iterator) nogil except + # wrap-ignore
         libcpp_vector[PeakT].iterator begin() nogil except +  # wrap-iter-begin:__iter__(PeakT)

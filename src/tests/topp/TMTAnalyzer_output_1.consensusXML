@@ -1,56 +1,56 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <?xml-stylesheet type="text/xsl" href="file:////Users/aiche/dev/openms/openms-src/share/OpenMS/XSL/ConsensusXML.xsl"?>
-<consensusXML version="1.5" experiment_type="itraq" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<userParam type="int" name="itraq:scans_noquant" value="0"/>
-	<userParam type="int" name="itraq:scans_total" value="6"/>
-	<userParam type="string" name="Program" value="OpenMS::TMTAnalyzer"/>
+<consensusXML version="1.6" experiment_type="itraq" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_6.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<UserParam type="int" name="itraq:scans_noquant" value="0"/>
+	<UserParam type="int" name="itraq:scans_total" value="6"/>
+	<UserParam type="string" name="Program" value="OpenMS::TMTAnalyzer"/>
 	<dataProcessing completion_time="1999-12-31T23:59:59">
 		<software name="TMTAnalyzer" version="version_string" />
 		<processingAction name="Quantitation" />
-		<userParam type="string" name="parameter: mode" value="test_mode"/>
+		<UserParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
 	<mapList count="6">
 		<map id="0" name="micro_subset_0022.mzML" label="TMT_126_channel-1" size="6">
-			<userParam type="int" name="channel_name" value="126"/>
-			<userParam type="int" name="channel_id" value="0"/>
-			<userParam type="string" name="channel_description" value="channel-1"/>
-			<userParam type="float" name="channel_center" value="126.127725"/>
-			<userParam type="string" name="channel_active" value="true"/>
+			<UserParam type="int" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value="channel-1"/>
+			<UserParam type="float" name="channel_center" value="126.127725"/>
+			<UserParam type="string" name="channel_active" value="true"/>
 		</map>
 		<map id="1" name="micro_subset_0022.mzML" label="TMT_127_channel-2" size="6">
-			<userParam type="int" name="channel_name" value="127"/>
-			<userParam type="int" name="channel_id" value="1"/>
-			<userParam type="string" name="channel_description" value="channel-2"/>
-			<userParam type="float" name="channel_center" value="127.12476"/>
-			<userParam type="string" name="channel_active" value="true"/>
+			<UserParam type="int" name="channel_name" value="127"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value="channel-2"/>
+			<UserParam type="float" name="channel_center" value="127.12476"/>
+			<UserParam type="string" name="channel_active" value="true"/>
 		</map>
 		<map id="2" name="micro_subset_0022.mzML" label="TMT_128_channel-3" size="6">
-			<userParam type="int" name="channel_name" value="128"/>
-			<userParam type="int" name="channel_id" value="2"/>
-			<userParam type="string" name="channel_description" value="channel-3"/>
-			<userParam type="float" name="channel_center" value="128.134433"/>
-			<userParam type="string" name="channel_active" value="true"/>
+			<UserParam type="int" name="channel_name" value="128"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value="channel-3"/>
+			<UserParam type="float" name="channel_center" value="128.134433"/>
+			<UserParam type="string" name="channel_active" value="true"/>
 		</map>
 		<map id="3" name="micro_subset_0022.mzML" label="TMT_129_channel-4" size="6">
-			<userParam type="int" name="channel_name" value="129"/>
-			<userParam type="int" name="channel_id" value="3"/>
-			<userParam type="string" name="channel_description" value="channel-4"/>
-			<userParam type="float" name="channel_center" value="129.131468"/>
-			<userParam type="string" name="channel_active" value="true"/>
+			<UserParam type="int" name="channel_name" value="129"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value="channel-4"/>
+			<UserParam type="float" name="channel_center" value="129.131468"/>
+			<UserParam type="string" name="channel_active" value="true"/>
 		</map>
 		<map id="4" name="micro_subset_0022.mzML" label="TMT_130_channel-5" size="6">
-			<userParam type="int" name="channel_name" value="130"/>
-			<userParam type="int" name="channel_id" value="4"/>
-			<userParam type="string" name="channel_description" value="channel-5"/>
-			<userParam type="float" name="channel_center" value="130.141141"/>
-			<userParam type="string" name="channel_active" value="true"/>
+			<UserParam type="int" name="channel_name" value="130"/>
+			<UserParam type="int" name="channel_id" value="4"/>
+			<UserParam type="string" name="channel_description" value="channel-5"/>
+			<UserParam type="float" name="channel_center" value="130.141141"/>
+			<UserParam type="string" name="channel_active" value="true"/>
 		</map>
 		<map id="5" name="micro_subset_0022.mzML" label="TMT_131_channel-6" size="6">
-			<userParam type="int" name="channel_name" value="131"/>
-			<userParam type="int" name="channel_id" value="5"/>
-			<userParam type="string" name="channel_description" value="channel-6"/>
-			<userParam type="float" name="channel_center" value="131.138176"/>
-			<userParam type="string" name="channel_active" value="true"/>
+			<UserParam type="int" name="channel_name" value="131"/>
+			<UserParam type="int" name="channel_id" value="5"/>
+			<UserParam type="string" name="channel_description" value="channel-6"/>
+			<UserParam type="float" name="channel_center" value="131.138176"/>
+			<UserParam type="string" name="channel_active" value="true"/>
 		</map>
 	</mapList>
 	<consensusElementList>

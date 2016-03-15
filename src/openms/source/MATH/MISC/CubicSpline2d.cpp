@@ -144,19 +144,27 @@ namespace OpenMS
 
     std::vector<double> h;
     h.reserve(n);
-    for (unsigned i = 0; i < n; ++i)
-    {
-      h.push_back(x[i + 1] - x[i]);
-    }
+    a_.reserve(n);
+    x_.reserve(n+1);
+    // do the 0'th element manually, since the loop below only starts at 1
+    h.push_back(x[1] - x[0]);
+    x_.push_back(x[0]);
+    a_.push_back(y[0]);
 
     std::vector<double> mu(n, 0.0);
     std::vector<double> z(n, 0.0);
     for (unsigned i = 1; i < n; ++i)
     {
+      h.push_back(x[i + 1] - x[i]);
       const double l = 2 * (x[i + 1] - x[i - 1]) - h[i - 1] * mu[i - 1];
       mu[i] = h[i] / l;
       z[i] = (3 * (y[i + 1] * h[i - 1] - y[i] * (x[i + 1] - x[i - 1]) + y[i - 1] * h[i]) / (h[i - 1] * h[i]) - h[i - 1] * z[i - 1]) / l;
+      // store x,y -- required for evaluation later on
+      x_.push_back(x[i]);
+      a_.push_back(y[i]);
     }
+    // 'x_' needs to be full length (all other member vectors (except c_) are one element shorter)
+    x_.push_back(x[n]);
 
     b_.resize(n); 
     d_.resize(n);
@@ -169,15 +177,6 @@ namespace OpenMS
       d_[j] = (c_[j + 1] - c_[j]) / (3 * h[j]);
     }
 
-    a_.reserve(n);
-    x_.reserve(n+1);
-    for (unsigned i = 0; i < n; ++i)
-    {
-      a_.push_back(y[i]);
-      x_.push_back(x[i]);
-    }
-    // 'x' needs to be full length (all other vectors are one shorter)
-    x_.push_back(x[n]);
   }
 
 }

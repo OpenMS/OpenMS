@@ -189,15 +189,6 @@ namespace OpenMS
     case Residue::CIon:
       return "c" + ion;
 
-    case Residue::CIonMinusOne:
-      return "c-1" + ion;
-
-    case Residue::CIonPlusOne:
-      return "c+1" + ion;
-
-    case Residue::CIonPlusTwo:
-      return "c+2" + ion;
-
     case Residue::XIon:
       return "x" + ion;
 
@@ -206,15 +197,6 @@ namespace OpenMS
 
     case Residue::ZIon:
       return "z" + ion;
-
-    case Residue::ZIonMinusOne:
-      return "z-1" + ion;
-
-    case Residue::ZIonPlusOne:
-      return "z+1" + ion;
-
-    case Residue::ZIonPlusTwo:
-      return "z+2" + ion;
 
     default:
       cerr << "Residue::getResidueTypeName: residue type has no name" << endl;
@@ -397,40 +379,28 @@ namespace OpenMS
       return internal_formula_;
 
     case NTerminal:
-      return formula_ - getNTerminalToFull();
+      return internal_formula_ + getInternalToNTerm();
 
     case CTerminal:
-      return formula_ - getCTerminalToFull();
+      return internal_formula_ + getInternalToCTerm();
 
     case BIon:
-      return formula_ - getBIonToFull();
+      return internal_formula_ + getInternalToBIon();
 
     case AIon:
-      return formula_ - getAIonToFull();
-
-    case CIonMinusOne:
-      return formula_ - getCIonMinusOneToFull();
+      return internal_formula_ + getInternalToAIon();
 
     case CIon:
-      return formula_ - EmpiricalFormula("OH") + EmpiricalFormula("NH");
+      return internal_formula_ + getInternalToCIon();
 
     case XIon:
-      return formula_ + getXIonToFull();
+      return internal_formula_ + getInternalToXIon();
 
     case YIon:
-      return formula_ + getYIonToFull();
-
-    case ZIonMinusOne:
-      return formula_ - getZIonMinusOneToFull();
+      return internal_formula_ + getInternalToYIon();
 
     case ZIon:
-      return formula_ - getZIonToFull();
-
-    case ZIonPlusOne:
-      return formula_ - getZIonPlusOneToFull();
-
-    case ZIonPlusTwo:
-      return formula_ - getZIonPlusTwoToFull();
+      return internal_formula_ + getInternalToZIon();
 
     default:
       cerr << "Residue::getFormula: unknown ResidueType" << endl;
@@ -446,55 +416,38 @@ namespace OpenMS
 
   double Residue::getAverageWeight(ResidueType res_type) const
   {
+
     switch (res_type)
     {
     case Full:
       return average_weight_;
 
     case Internal:
-      return average_weight_ - getInternalToFullAverageWeight();
+      return average_weight_ - getInternalToFull().getAverageWeight();
 
     case NTerminal:
-      return average_weight_ - getNTerminalToFullAverageWeight();
+      return average_weight_ + (getInternalToNTerm() - getInternalToFull()).getAverageWeight();
 
     case CTerminal:
-      return average_weight_ - getCTerminalToFullAverageWeight();
+      return average_weight_ + (getInternalToCTerm() - getInternalToFull()).getAverageWeight();
 
     case BIon:
-      return average_weight_ - getBIonToFullAverageWeight();
+      return average_weight_ + (getInternalToBIon() - getInternalToFull()).getAverageWeight();
 
     case AIon:
-      return average_weight_ - getAIonToFullAverageWeight();
-
-    case CIonMinusOne:
-      return average_weight_ - getCIonMinusOneToFullAverageWeight();
+      return average_weight_ + (getInternalToAIon() - getInternalToFull()).getAverageWeight();
 
     case CIon:
-      return average_weight_ - EmpiricalFormula("OH").getAverageWeight() + EmpiricalFormula("NH").getAverageWeight();
-
-    case CIonPlusOne:
-      return average_weight_ - getCIonPlusOneToFullAverageWeight();
-
-    case CIonPlusTwo:
-      return average_weight_ - getCIonPlusTwoToFullAverageWeight();
+      return average_weight_ + (getInternalToCIon() - getInternalToFull()).getAverageWeight();
 
     case XIon:
-      return average_weight_ + getXIonToFullAverageWeight();
+      return average_weight_ + (getInternalToXIon() - getInternalToFull()).getAverageWeight();
 
     case YIon:
-      return average_weight_ + getYIonToFullAverageWeight();
-
-    case ZIonMinusOne:
-      return average_weight_ - getZIonMinusOneToFullAverageWeight();
+      return average_weight_ + (getInternalToYIon() - getInternalToFull()).getAverageWeight();
 
     case ZIon:
-      return average_weight_ - getZIonToFullAverageWeight();
-
-    case ZIonPlusOne:
-      return average_weight_ - getZIonPlusOneToFullAverageWeight();
-
-    case ZIonPlusTwo:
-      return average_weight_ - getZIonPlusTwoToFullAverageWeight();
+      return average_weight_ + (getInternalToZIon() - getInternalToFull()).getAverageWeight();
 
     default:
       cerr << "Residue::getAverageWeight: unknown ResidueType" << endl;
@@ -516,49 +469,31 @@ namespace OpenMS
       return mono_weight_;
 
     case Internal:
-      return mono_weight_ - getInternalToFullMonoWeight();
+      return mono_weight_ - getInternalToFull().getMonoWeight();
 
     case NTerminal:
-      return mono_weight_ - getNTerminalToFullMonoWeight();
+      return mono_weight_ + (getInternalToNTerm() - getInternalToFull()).getMonoWeight();
 
     case CTerminal:
-      return mono_weight_ - getCTerminalToFullMonoWeight();
+      return mono_weight_ + (getInternalToCTerm() - getInternalToFull()).getMonoWeight();
 
     case BIon:
-      return mono_weight_ - getBIonToFullMonoWeight();
+      return mono_weight_ + (getInternalToBIon() - getInternalToFull()).getMonoWeight();
 
     case AIon:
-      return mono_weight_ - getAIonToFullMonoWeight();
-
-    case CIonMinusOne:
-      return mono_weight_ - getCIonMinusOneToFullMonoWeight();
+      return mono_weight_ + (getInternalToAIon() - getInternalToFull()).getMonoWeight();
 
     case CIon:
-      return mono_weight_ - EmpiricalFormula("OH").getMonoWeight() + EmpiricalFormula("NH").getMonoWeight();
-
-    case CIonPlusOne:
-      return mono_weight_ - getCIonPlusOneToFullMonoWeight();
-
-    case CIonPlusTwo:
-      return mono_weight_ - getCIonPlusTwoToFullMonoWeight();
+      return mono_weight_ + (getInternalToCIon() - getInternalToFull()).getMonoWeight();
 
     case XIon:
-      return mono_weight_ + getXIonToFullMonoWeight();
+      return mono_weight_ + (getInternalToXIon() - getInternalToFull()).getMonoWeight();
 
     case YIon:
-      return mono_weight_ + getYIonToFullMonoWeight();
-
-    case ZIonMinusOne:
-      return mono_weight_ - getZIonMinusOneToFullMonoWeight();
+      return mono_weight_ + (getInternalToYIon() - getInternalToFull()).getMonoWeight();
 
     case ZIon:
-      return mono_weight_ - getZIonToFullMonoWeight();
-
-    case ZIonPlusOne:
-      return mono_weight_ - getZIonPlusOneToFullMonoWeight();
-
-    case ZIonPlusTwo:
-      return mono_weight_ - getZIonPlusTwoToFullMonoWeight();
+      return mono_weight_ + (getInternalToZIon() - getInternalToFull()).getMonoWeight();
 
     default:
       cerr << "Residue::getMonoWeight: unknown ResidueType" << endl;

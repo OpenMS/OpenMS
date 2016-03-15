@@ -94,14 +94,14 @@ public:
     }
 
     /**
-      @brief Only count he number of spectra and chromatograms from a file
+      @brief Only count the number of spectra and chromatograms from a file
     */
     void loadSize(const String & filename, Size& scount, Size& ccount);
 
     /**
-      @brief Stores a map in a MzML file.
+      @brief Stores a map in an MzML file.
 
-      @p map has to be a MSExperiment or have the same interface.
+      @p map has to be an MSExperiment or have the same interface.
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */

@@ -236,8 +236,10 @@ protected:
 
           String raw_data_path = getStringOption_("raw_data");
           MSExperiment<> exp, ms2;
-          FeatureMap out_map;
           MzMLFile().load(raw_data_path, exp);
+          FeatureMap out_map;
+          out_map.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
+
           IntList levels;
           levels.push_back(1);
           exp.getSpectra().erase(remove_if(exp.begin(), exp.end(),

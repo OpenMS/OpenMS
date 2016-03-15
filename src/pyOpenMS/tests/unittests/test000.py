@@ -894,7 +894,7 @@ def testDataValue():
     assert a.toStringList() == [b"1.0"]
     assert a.valueType() == pyopenms.DataType.STRING_LIST
 
-    assert pyopenms.MSSpectrum().getMetaValue("nonexisingkey") is None
+    assert pyopenms.MSSpectrum().getMetaValue(b"nonexisingkey") is None
 
 @report
 def testAdduct():
@@ -1489,23 +1489,24 @@ def testTOFCalibration():
     assert pyopenms.TOFCalibration().calibrate is not None
     assert pyopenms.TOFCalibration().pickAndCalibrate is not None
 
-@report
-def testConsensusID():
-    """
-    @tests:
-     ConsensusID.__init__
-    """
-    ff = pyopenms.ConsensusID()
-    p = ff.getDefaults()
-    _testParam(p)
+# TODO: re-enable as soon as ConsensusIDAlgorithm classes are wrapped
+# @report
+# def testConsensusID():
+#     """
+#     @tests:
+#      ConsensusID.__init__
+#     """
+#     ff = pyopenms.ConsensusID()
+#     p = ff.getDefaults()
+#     _testParam(p)
 
-    assert pyopenms.ConsensusID().apply is not None
+#     assert pyopenms.ConsensusID().apply is not None
 
 @report
 def testFalseDiscoveryRate():
     """
     @tests:
-     ConsensusID.__init__
+     FalseDiscoveryRate.__init__
     """
     ff = pyopenms.FalseDiscoveryRate()
     p = ff.getDefaults()
@@ -1677,10 +1678,10 @@ def testAScore():
     ff = pyopenms.AScore()
 
     hit = pyopenms.PeptideHit()
-    richspectrum = pyopenms.RichMSSpectrum()
+    spectrum = pyopenms.MSSpectrum()
 
-    ff.compute(hit, richspectrum, 5.0, 1)
-    ff.computeCumulativeScore(1,1,0.5)
+    ff.compute(hit, spectrum, 5.0, 1)
+    # ff.computeCumulativeScore(1,1,0.5)
 
 @report
 def testIDRipper():
@@ -1749,44 +1750,41 @@ def testEnzymaticDigestion():
      EnzymaticDigestion.__init__
      EnzymaticDigestion.getMissedCleavages()
      EnzymaticDigestion.setMissedCleavages()
-     EnzymaticDigestion.getEnzyme()
-     EnzymaticDigestion.setEnzyme()
-     EnzymaticDigestion.getEnzymeByName()
      EnzymaticDigestion.digest()
      EnzymaticDigestion.peptideCount()
-     EnzymaticDigestion.isLogModelEnabled()
-     EnzymaticDigestion.setLogModelEnabled()
-     EnzymaticDigestion.getLogThreshold()
-     EnzymaticDigestion.setLogThreshold()
     """
+    # removed due to name clashes
+    # EnzymaticDigestion.getEnzyme()
+    # EnzymaticDigestion.setEnzyme()
+    # EnzymaticDigestion.getEnzymeByName()
+
     ff = pyopenms.EnzymaticDigestion()
-    enz = pyopenms.EnzymaticDigestion().Enzyme()
+    #enz = pyopenms.EnzymaticDigestion().Enzyme()
 
     assert pyopenms.EnzymaticDigestion().getMissedCleavages is not None
     assert pyopenms.EnzymaticDigestion().setMissedCleavages is not None
-    assert pyopenms.EnzymaticDigestion().getEnzyme is not None
-    assert pyopenms.EnzymaticDigestion().setEnzyme is not None
-    assert pyopenms.EnzymaticDigestion().getEnzymeByName is not None
+    #assert pyopenms.EnzymaticDigestion().getEnzyme is not None
+    #assert pyopenms.EnzymaticDigestion().setEnzyme is not None
+    #assert pyopenms.EnzymaticDigestion().getEnzymeByName is not None
 
     assert pyopenms.EnzymaticDigestion().digest is not None
     assert pyopenms.EnzymaticDigestion().peptideCount is not None
 
-    assert pyopenms.EnzymaticDigestion().isLogModelEnabled is not None
-    assert pyopenms.EnzymaticDigestion().setLogModelEnabled is not None
-    assert pyopenms.EnzymaticDigestion().getLogThreshold  is not None
-    assert pyopenms.EnzymaticDigestion().setLogThreshold is not None
+    ff.setMissedCleavages(5)
+    assert ff.getMissedCleavages() == 5
 
-    ff.setLogThreshold(5) 
-    assert ff.getLogThreshold() == 5 
+    #ff.setEnzyme(enz.TRYPSIN)
+    #assert ff.getEnzyme() == enz.TRYPSIN
 
-    ff.setMissedCleavages(5) 
-    assert ff.getMissedCleavages() == 5 
-
-    ff.setEnzyme(enz.TRYPSIN) 
-    assert ff.getEnzyme() == enz.TRYPSIN
-
-    ff.setLogModelEnabled(True) 
-    assert ff.isLogModelEnabled() == True
+@report
+def testEnzymaticDigestion():
+    ff = pyopenms.EnzymaticDigestionLogModel()
+    assert pyopenms.EnzymaticDigestionLogModel().getLogThreshold is not None
+    assert pyopenms.EnzymaticDigestionLogModel().setLogThreshold is not None
+    assert pyopenms.EnzymaticDigestionLogModel().digest is not None
+    assert pyopenms.EnzymaticDigestionLogModel().peptideCount is not None
+    ff.setLogThreshold(0.25)
+    assert ff.getLogThreshold() == 0.25
 
 @report
 def testIDDecoyProbability():
@@ -2891,7 +2889,6 @@ def testMRMDecoy():
     mrmdecoy = pyopenms.MRMDecoy()
     assert mrmdecoy is not None
 
-    assert pyopenms.MRMDecoy().restrictTransitions is not None
     assert pyopenms.MRMDecoy().generateDecoys is not None
 
 @report
@@ -2964,10 +2961,7 @@ def testMapAlignment():
      MapAlignmentAlgorithmPoseClustering.setProgress
      MapAlignmentAlgorithmPoseClustering.startProgress
 
-     MapAlignmentTransformer.transformFeatureMaps
-     MapAlignmentTransformer.transformPeakMaps
-     MapAlignmentTransformer.transformSingleFeatureMap
-     MapAlignmentTransformer.transformSinglePeakMap
+     MapAlignmentTransformer.transformRetentionTimes
      """
     ma = pyopenms.MapAlignmentAlgorithmPoseClustering()
     assert isinstance(ma.getDefaults(), pyopenms.Param)
@@ -2984,11 +2978,7 @@ def testMapAlignment():
     ma.setReference
     ma.align
 
-
-    pyopenms.MapAlignmentTransformer.transformPeakMaps
-    pyopenms.MapAlignmentTransformer.transformFeatureMaps
-    pyopenms.MapAlignmentTransformer.transformSinglePeakMap
-    pyopenms.MapAlignmentTransformer.transformSingleFeatureMap
+    pyopenms.MapAlignmentTransformer.transformRetentionTimes
 
 @report
 def testMapAlignmentIdentification():
@@ -2999,12 +2989,8 @@ def testMapAlignmentIdentification():
      """
     ma = pyopenms.MapAlignmentAlgorithmIdentification()
 
-    assert pyopenms.MapAlignmentAlgorithmIdentification().alignPeakMaps is not None
-    assert pyopenms.MapAlignmentAlgorithmIdentification().alignFeatureMaps is not None
-    assert pyopenms.MapAlignmentAlgorithmIdentification().alignConsensusMaps is not None
-    assert pyopenms.MapAlignmentAlgorithmIdentification().alignPeptideIdentifications is not None
+    assert pyopenms.MapAlignmentAlgorithmIdentification().align is not None
     assert pyopenms.MapAlignmentAlgorithmIdentification().setReference is not None
-    assert pyopenms.MapAlignmentAlgorithmIdentification().fitModel is not None
 
 @report
 def testMapAlignmentTransformer():
@@ -3015,15 +3001,7 @@ def testMapAlignmentTransformer():
      """
     ma = pyopenms.MapAlignmentTransformer()
 
-    assert pyopenms.MapAlignmentTransformer().transformPeakMaps is not None
-    assert pyopenms.MapAlignmentTransformer().transformFeatureMaps is not None
-    assert pyopenms.MapAlignmentTransformer().transformConsensusMaps is not None
-    # assert pyopenms.MapAlignmentTransformer().transformPeptideIdentifications is not None
-    assert pyopenms.MapAlignmentTransformer().transformSinglePeakMap is not None
-    assert pyopenms.MapAlignmentTransformer().transformSingleFeatureMap is not None
-    assert pyopenms.MapAlignmentTransformer().transformSingleConsensusMap is not None
-    assert pyopenms.MapAlignmentTransformer().transformSinglePeptideIdentification is not None
-
+    assert pyopenms.MapAlignmentTransformer().transformRetentionTimes is not None
 
 @report
 def testMxxxFile():
@@ -3308,9 +3286,9 @@ def testPeptideEvidence():
     assert pe.getProteinAccession() == b"B_id"
 
     pe.setAABefore(b'B')
-    assert pe.getAABefore() == b"B"
+    assert pe.getAABefore() == 'B'
     pe.setAAAfter(b'C')
-    assert pe.getAAAfter() == b'C'
+    assert pe.getAAAfter() == 'C'
 
     pe.setStart(5)
     assert pe.getStart() == 5
@@ -3577,7 +3555,6 @@ def testProteinHit():
 def testProteinIdentification():
     """
     @tests:
-     ProteinIdentification.DigestionEnzyme
      ProteinIdentification.PeakMassType
      ProteinIdentification.__init__
      ProteinIdentification.clearMetaInfo
@@ -3614,18 +3591,6 @@ def testProteinIdentification():
 
     assert isinstance(pyopenms.ProteinIdentification.PeakMassType.MONOISOTOPIC, int)
     assert isinstance(pyopenms.ProteinIdentification.PeakMassType.AVERAGE, int)
-
-    assert isinstance(pyopenms.ProteinIdentification.DigestionEnzyme.TRYPSIN,
-            int)
-    assert isinstance(pyopenms.ProteinIdentification.DigestionEnzyme.PEPSIN_A, int)
-    assert isinstance(pyopenms.ProteinIdentification.DigestionEnzyme.PROTEASE_K,
-            int)
-    assert isinstance(pyopenms.ProteinIdentification.DigestionEnzyme.CHYMOTRYPSIN,
-            int)
-    assert isinstance(pyopenms.ProteinIdentification.DigestionEnzyme.NO_ENZYME, int)
-    assert isinstance(pyopenms.ProteinIdentification.DigestionEnzyme.UNKNOWN_ENZYME,
-            int)
-
 
 @report
 def testRichPeak():

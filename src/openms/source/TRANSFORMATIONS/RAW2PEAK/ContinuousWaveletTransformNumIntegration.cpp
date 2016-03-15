@@ -49,23 +49,27 @@ namespace OpenMS
     int offset_data_right = ((index + index_in_data) > (int)processed_input.size() - 1) ? (int)processed_input.size() - 2 : (index + index_in_data);
 
     // integrate from i until offset_data_left
-    int index_w_r = 0;
-    for (int i = index; i > offset_data_left; --i)
     {
-      int index_w_l = (int)Math::round(((index - (i - 1)) * spacing_data) / spacing_);
-      // we could also use:
-      // v += spacing_data / 2. * (...), but this can be factored out (see below) for faster computation
-      v += (processed_input[i] * wavelet_[index_w_r] + processed_input[i - 1] * wavelet_[index_w_l]);
-      index_w_r = index_w_l;
+      int index_w_r = 0;
+      for (int i = index; i > offset_data_left; --i)
+      {
+        int index_w_l = (int)Math::round(((index - (i - 1)) * spacing_data) / spacing_);
+        // we could also use:
+        // v += spacing_data / 2. * (...), but this can be factored out (see below) for faster computation
+        v += (processed_input[i] * wavelet_[index_w_r] + processed_input[i - 1] * wavelet_[index_w_l]);
+        index_w_r = index_w_l;
+      }
     }
 
     // integrate from i+1 until offset_data_right
-    int index_w_l = 0;
-    for (int i = index; i < offset_data_right; ++i)
     {
-      int index_w_r = (int)Math::round((((i + 1) - index) * spacing_data) / spacing_);
-      v += (processed_input[i + 1] * wavelet_[index_w_r] + processed_input[i] * wavelet_[index_w_l]);
-      index_w_l = index_w_r;
+      int index_w_l = 0;
+      for (int i = index; i < offset_data_right; ++i)
+      {
+        int index_w_r = (int)Math::round((((i + 1) - index) * spacing_data) / spacing_);
+        v += (processed_input[i + 1] * wavelet_[index_w_r] + processed_input[i] * wavelet_[index_w_l]);
+        index_w_l = index_w_r;
+      }
     }
 
     // multiply by (spacing_data / 2.), but change order for better numerical stability

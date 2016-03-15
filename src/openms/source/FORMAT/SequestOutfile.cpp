@@ -849,7 +849,7 @@ namespace OpenMS
       else if (line.hasPrefix("display top") && substrings[0].hasPrefix("display top")) // get the number of peptides displayed
       {
         displayed_peptides = strlen("display top ");
-        displayed_peptides = substrings[0].substr(displayed_peptides, substrings[0].find('/', displayed_peptides)).toInt();
+        displayed_peptides = substrings[0].substr(displayed_peptides, substrings[0].find('/', displayed_peptides) - displayed_peptides).toInt();
       }
       else if (line.hasPrefix("#"))
       {

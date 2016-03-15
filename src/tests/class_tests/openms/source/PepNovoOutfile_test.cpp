@@ -184,8 +184,8 @@ START_SECTION(void getSearchEngineAndVersion(const String& pepnovo_output_withou
   file.getSearchEngineAndVersion(OPENMS_GET_TEST_DATA_PATH("PepNovoOutfile.out"), protein_identification);
   TEST_EQUAL(protein_identification.getSearchEngine(), "PepNovo+");
   TEST_EQUAL(protein_identification.getSearchEngineVersion(), "Build 20081230");
-  TEST_EQUAL(protein_identification.getSearchParameters().peak_mass_tolerance, 0.5);
-  TEST_REAL_SIMILAR(protein_identification.getSearchParameters().peak_mass_tolerance, 0.5);
+  TEST_EQUAL(protein_identification.getSearchParameters().fragment_mass_tolerance, 0.5);
+  TEST_REAL_SIMILAR(protein_identification.getSearchParameters().fragment_mass_tolerance, 0.5);
   TEST_REAL_SIMILAR(protein_identification.getSearchParameters().precursor_tolerance, 2.5);
   TEST_EQUAL(protein_identification.getSearchParameters().variable_modifications.size(), 2);
   if(protein_identification.getSearchParameters().variable_modifications.size()== 2)

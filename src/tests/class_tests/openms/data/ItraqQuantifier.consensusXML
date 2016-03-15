@@ -1,38 +1,38 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <?xml-stylesheet type="text/xsl" href="file:///C:/dev/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
-<consensusXML version="1.5" experiment_type="itraq" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<userParam type="int" name="itraq:scans_noquant" value="0"/>
-	<userParam type="int" name="itraq:scans_total" value="31"/>
-	<userParam type="int" name="itraq:quantifyable_ch114" value="29"/>
-	<userParam type="int" name="itraq:quantifyable_ch116" value="24"/>
+<consensusXML version="1.6" experiment_type="itraq" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_6.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<UserParam type="int" name="itraq:scans_noquant" value="0"/>
+	<UserParam type="int" name="itraq:scans_total" value="31"/>
+	<UserParam type="int" name="itraq:quantifyable_ch114" value="29"/>
+	<UserParam type="int" name="itraq:quantifyable_ch116" value="24"/>
 	<mapList count="4">
 		<map id="0" name="" label="iTRAQ_114_ref" size="31">
-			<userParam type="int" name="channel_name" value="114"/>
-			<userParam type="int" name="channel_id" value="0"/>
-			<userParam type="string" name="channel_description" value="ref"/>
-			<userParam type="float" name="channel_center" value="114.1112"/>
-			<userParam type="string" name="channel_active" value="true"/>
+			<UserParam type="int" name="channel_name" value="114"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value="ref"/>
+			<UserParam type="float" name="channel_center" value="114.1112"/>
+			<UserParam type="string" name="channel_active" value="true"/>
 		</map>
 		<map id="1" name="" label="iTRAQ_115_something" size="31">
-			<userParam type="int" name="channel_name" value="115"/>
-			<userParam type="int" name="channel_id" value="1"/>
-			<userParam type="string" name="channel_description" value="something"/>
-			<userParam type="float" name="channel_center" value="115.1082"/>
-			<userParam type="string" name="channel_active" value="true"/>
+			<UserParam type="int" name="channel_name" value="115"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value="something"/>
+			<UserParam type="float" name="channel_center" value="115.1082"/>
+			<UserParam type="string" name="channel_active" value="true"/>
 		</map>
 		<map id="2" name="" label="iTRAQ_116_else" size="31">
-			<userParam type="int" name="channel_name" value="116"/>
-			<userParam type="int" name="channel_id" value="2"/>
-			<userParam type="string" name="channel_description" value="else"/>
-			<userParam type="float" name="channel_center" value="116.1116"/>
-			<userParam type="string" name="channel_active" value="true"/>
+			<UserParam type="int" name="channel_name" value="116"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value="else"/>
+			<UserParam type="float" name="channel_center" value="116.1116"/>
+			<UserParam type="string" name="channel_active" value="true"/>
 		</map>
 		<map id="3" name="" label="iTRAQ_117_" size="31">
-			<userParam type="int" name="channel_name" value="117"/>
-			<userParam type="int" name="channel_id" value="3"/>
-			<userParam type="string" name="channel_description" value=""/>
-			<userParam type="float" name="channel_center" value="117.1149"/>
-			<userParam type="string" name="channel_active" value="false"/>
+			<UserParam type="int" name="channel_name" value="117"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="117.1149"/>
+			<UserParam type="string" name="channel_active" value="false"/>
 		</map>
 	</mapList>
 	<consensusElementList>

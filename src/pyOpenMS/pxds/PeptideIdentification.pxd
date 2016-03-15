@@ -45,6 +45,9 @@ cdef extern from "<OpenMS/METADATA/PeptideIdentification.h>" namespace "OpenMS":
         String     getBaseName() nogil except +
         void       setBaseName(String) nogil except +
 
+        String     getExperimentLabel() nogil except +
+        void       setExperimentLabel(String) nogil except +
+
         void       assignRanks() nogil except +
         void       sort() nogil except +
         bool       empty() nogil except +

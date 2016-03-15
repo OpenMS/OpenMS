@@ -143,7 +143,7 @@
 			The numbers in the bottom-right corner of every tool show how many files have already been processed and
 			the overall number of files to be processed by this tool.
 			When the execution has finished, you can check the generated output files of every node quickly by selecting
-			"@a Open @a files @a in @a TOPPView" or "@a Open @a contaning @a folder" from the context menu (right click on the node).
+			"@a Open @a files @a in @a TOPPView" or "@a Open @a containing @a folder" from the context menu (right click on the node).
 			
 			
 			@section TOPPAS_interface_mk Mouse and keyboard

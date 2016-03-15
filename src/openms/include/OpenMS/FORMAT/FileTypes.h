@@ -99,6 +99,7 @@ namespace OpenMS
       XSD,                ///< XSD schema format
       PSQ,                ///< NCBI binary blast db
       MRM,                ///< SpectraST MRM List
+      PSMS,               ///< Percolator tab-delimited output (PSM level)
       SIZE_OF_TYPE        ///< No file type. Simply stores the number of types
     };
 

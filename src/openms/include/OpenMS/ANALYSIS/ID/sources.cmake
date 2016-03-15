@@ -13,6 +13,7 @@ ConsensusIDAlgorithmPEPIons.h
 ConsensusIDAlgorithmPEPMatrix.h
 ConsensusIDAlgorithmRanks.h
 ConsensusIDAlgorithmSimilarity.h
+ConsensusIDAlgorithmWorst.h
 FalseDiscoveryRate.h
 HiddenMarkovModel.h
 IDDecoyProbability.h
@@ -27,6 +28,7 @@ PILISNeutralLossModel.h
 PILISScoring.h
 PILISCrossValidation.h
 ProtonDistributionModel.h
+PeptideIndexing.h
 )
 
 ### add path to the filenames

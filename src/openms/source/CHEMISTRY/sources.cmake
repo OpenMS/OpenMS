@@ -9,7 +9,10 @@ EdwardsLippertIteratorTryptic.cpp
 Element.cpp
 ElementDB.cpp
 EmpiricalFormula.cpp
+EnzymaticDigestionLogModel.cpp
 EnzymaticDigestion.cpp
+Enzyme.cpp
+EnzymesDB.cpp
 IsotopeDistribution.cpp
 ModificationDefinition.cpp
 ModificationDefinitionsSet.cpp

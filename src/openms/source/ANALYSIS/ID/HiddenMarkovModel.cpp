@@ -1022,8 +1022,8 @@ namespace OpenMS
             //cerr << "Estimating transition of '" << aa1 << pathway << "' -> '" << pathway << "' to " << sum/(double)count << endl;
             if (count != 0)
             {
-              trans_[name_to_state_[aa1 + "_" + pathway]][s2] = sum / (double)count;
-              trans_[name_to_state_[aa1 + "_" + pathway]][end_state] = 1 - sum / (double)count;
+              trans_[name_to_state_[aa1 + "_" + pathway]][s2] = sum / static_cast<double>(count);
+              trans_[name_to_state_[aa1 + "_" + pathway]][end_state] = 1 - sum / static_cast<double>(count);
             }
           }
         }

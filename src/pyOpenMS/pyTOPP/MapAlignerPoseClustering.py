@@ -4,7 +4,7 @@ from common import addDataProcessing, writeParamsIfRequested, updateDefaults
 
 
 def align(in_files, out_files, out_trafos, reference_index,
-        reference_file, params):
+          reference_file, params):
 
     in_types = set(pms.FileHandler.getType(in_) for in_ in in_files)
 
@@ -81,7 +81,7 @@ def align(in_files, out_files, out_trafos, reference_index,
             else:
                 algorithm.align(map_, trafo)
             if out_files:
-                pms.MapAlignmentTransformer.transformSingleFeatureMap(map_, trafo)
+                pms.MapAlignmentTransformer.transformRetentionTimes(map_, trafo)
                 addDataProcessing(map_, params, pms.ProcessingAction.ALIGNMENT)
                 f_fxml_tmp.store(out_files[i], map_)
         else:
@@ -92,7 +92,7 @@ def align(in_files, out_files, out_trafos, reference_index,
             else:
                 algorithm.align(map_, trafo)
             if out_files:
-                pms.MapAlignmentTransformer.transformSinglePeakMap(map_, trafo)
+                pms.MapAlignmentTransformer.transformRetentionTimes(map_, trafo)
                 addDataProcessing(map_, params, pms.ProcessingAction.ALIGNMENT)
                 pms.MzMLFile().store(out_files[i], map_)
         if out_trafos:

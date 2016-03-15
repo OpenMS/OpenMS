@@ -1,20 +1,20 @@
-from Types cimport *
 from libcpp.vector cimport vector as libcpp_vector
-from MapAlignmentAlgorithm cimport *
-# from PeakSpectrumCompareFunctor cimport *
-from String cimport *
+
+from ChromatogramPeak cimport *
+from DefaultParamHandler cimport *
+from MSExperiment cimport *
+from Peak1D cimport *
+from ProgressLogger cimport *
+from TransformationDescription cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment.h>" namespace "OpenMS":
     
-    cdef cppclass MapAlignmentAlgorithmSpectrumAlignment(MapAlignmentAlgorithm) :
+    cdef cppclass MapAlignmentAlgorithmSpectrumAlignment(DefaultParamHandler, ProgressLogger):
         # wrap-inherits:
-        #  MapAlignmentAlgorithm
+        #    DefaultParamHandler
+        #    ProgressLogger
+
         MapAlignmentAlgorithmSpectrumAlignment() nogil except +
-        MapAlignmentAlgorithmSpectrumAlignment(MapAlignmentAlgorithmSpectrumAlignment) nogil except + #wrap-ignore
-
-        # see Base
-        # void alignPeakMaps(libcpp_vector[ MSExperiment[Peak1D, ChromatogramPeak] ] & , libcpp_vector[ TransformationDescription ] & ) nogil except +
-
-        # POINTER # MapAlignmentAlgorithm * create() nogil except +
-        String getProductName() nogil except +
+ 
+        void align(libcpp_vector[MSExperiment[Peak1D, ChromatogramPeak]]&, libcpp_vector[TransformationDescription]&) nogil except +
 

@@ -87,6 +87,8 @@ public:
 
     boost::shared_ptr<OpenSwath::IFeature> getPrecursorFeature(std::string nativeID);
 
+    std::vector<std::string> getNativeIDs() const;
+
     std::vector<std::string> getPrecursorIDs() const;
 
     float getIntensity();

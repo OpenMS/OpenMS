@@ -5,6 +5,8 @@ set(directory include/OpenMS/ANALYSIS/RNPXL)
 set(sources_list_h
 RNPxlModificationsGenerator.h
 ModifiedPeptideGenerator.h
+HyperScore.h
+PScore.h
 )
 
 ### add path to the filenames
