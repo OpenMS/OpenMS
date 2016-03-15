@@ -39,6 +39,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 using namespace std;
 
@@ -351,185 +352,108 @@ namespace OpenMS
     // Does not generate peaks of full peptide (therefore "<").
     // They are added via precursor mass (and neutral losses).
     // Could be changed in the future.
+
+    Size i = add_first_prefix_ion_ ? 1 : 2; 
+
+    double intensity(1);
+
     switch (res_type)
     {
-    case Residue::AIon:
+      case Residue::AIon: intensity = a_intensity_; break;
+      case Residue::BIon: intensity = b_intensity_; break;
+      case Residue::CIon: intensity = c_intensity_; break;
+      case Residue::XIon: intensity = x_intensity_; break;
+      case Residue::YIon: intensity = y_intensity_; break;
+      case Residue::ZIon: intensity = z_intensity_; break;
+      default: break;
+    }
+    
+    double mono_weight(Constants::PROTON_MASS_U * charge);
+
+    if (res_type == Residue::AIon || res_type == Residue::BIon || res_type == Residue::CIon)
     {
-      Size i = 1;
-      if (!add_first_prefix_ion_)
+      if (peptide.hasNTerminalModification())
       {
-        i = 2;
+        mono_weight += peptide.getNTerminalResidueModification()->getDiffMonoMass();
       }
-      for (; i < peptide.size(); ++i)
+
+      if (!add_isotopes_) // add single peak
       {
-        AASequence ion = peptide.getPrefix(i);
+        for (; i < peptide.size(); ++i)
+        {
+          mono_weight += peptide[i].getMonoWeight(Residue::Internal); // standard internal residue including named modifications
+          double pos(mono_weight);
+          switch (res_type)
+          {
+          case Residue::AIon: pos = (pos + Residue::getInternalToAIon().getMonoWeight()) / charge; break;
+          case Residue::BIon: pos = (pos + Residue::getInternalToBIon().getMonoWeight()) / charge; break;
+          case Residue::CIon: pos = (pos + Residue::getInternalToCIon().getMonoWeight()) / charge; break;
+          }
 
-        if (add_isotopes_) // add isotope cluster
-        {
-          addIsotopeCluster_(spectrum, ion, res_type, charge, a_intensity_);
-        }
-        else  // add single peak
-        {
-          double pos = ion.getMonoWeight(Residue::AIon, charge) / static_cast<double>(charge);
-          addPeak_(spectrum, pos, a_intensity_, res_type, i, charge);
-        }
-
-        if (add_losses_)
-        {
-          addLosses_(spectrum, ion, a_intensity_, res_type, charge);
+          addPeak_(spectrum, pos, intensity, res_type, i, charge);
         }
       }
-      break;
+      else // add isotope clusters (slow)
+      {
+        for (; i < peptide.size(); ++i)
+        {
+          const AASequence ion = peptide.getPrefix(i);
+          addIsotopeCluster_(spectrum, ion, res_type, charge, intensity);
+        }
+      }
+
+      if (add_losses_) // add loss peaks (slow)
+      {
+        for (; i < peptide.size(); ++i)
+        {
+          const AASequence ion = peptide.getPrefix(i);
+          addLosses_(spectrum, ion, intensity, res_type, charge);
+        }
+      }    
     }
-
-    case Residue::BIon:
+    else // if (res_type == Residue::XIon || res_type == Residue::YIon || res_type == Residue::ZIon)
     {
-      Size i = 1;
-      if (!add_first_prefix_ion_)
+      if (peptide.hasCTerminalModification())
       {
-        i = 2;
+        mono_weight += peptide.getCTerminalResidueModification()->getDiffMonoMass();
       }
-      for (; i < peptide.size(); ++i)
-      {
-        AASequence ion = peptide.getPrefix(i);
-        if (add_isotopes_)
-        {
-          addIsotopeCluster_(spectrum, ion, res_type, charge, b_intensity_);
-        }
-        else
-        {
-          double pos = ion.getMonoWeight(Residue::BIon, charge) / static_cast<double>(charge);
-          addPeak_(spectrum, pos, b_intensity_, res_type, i, charge);
-        }
 
-        if (add_losses_)
+      if (!add_isotopes_) // add single peak
+      {
+        for (int i = static_cast<int>(peptide.size()) - 1; i >= 0; --i)
         {
-          addLosses_(spectrum, ion, b_intensity_, res_type, charge);
+          mono_weight += peptide[static_cast<Size>(i)].getMonoWeight(Residue::Internal); // standard internal residue including named modifications
+          double pos(mono_weight);
+          switch (res_type)
+          {
+          case Residue::XIon: pos = (pos + Residue::getInternalToCIon().getMonoWeight()) / charge; break;
+          case Residue::YIon: pos = (pos + Residue::getInternalToYIon().getMonoWeight()) / charge; break;
+          case Residue::ZIon: pos = (pos + Residue::getInternalToZIon().getMonoWeight()) / charge; break;
+          }
+
+          addPeak_(spectrum, pos, intensity, res_type, i, charge);
         }
       }
-      break;
+      else // add isotope clusters
+      {
+        for (; i < peptide.size(); ++i)
+        {
+          const AASequence ion = peptide.getSuffix(i);
+          addIsotopeCluster_(spectrum, ion, res_type, charge, intensity);
+        }
+      }
+
+      if (add_losses_) // add loss peaks (slow)
+      {
+        for (; i < peptide.size(); ++i)
+        {
+          const AASequence ion = peptide.getSuffix(i);
+          addLosses_(spectrum, ion, intensity, res_type, charge);
+        }
+      }
     }
 
-    case Residue::CIon:
-    {
-      Size i = 1;
-      if (!add_first_prefix_ion_)
-      {
-        i = 2;
-      }
-      if (peptide.size() < 2)
-      {
-        //"Cannot create c ions of a monomer."
-        throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 1);
-      }
-      for (; i < peptide.size(); ++i)
-      {
-        AASequence ion = peptide.getPrefix(i);
-        if (add_isotopes_)
-        {
-          addIsotopeCluster_(spectrum, ion, res_type, charge, c_intensity_);
-        }
-        else
-        {
-          double pos = ion.getMonoWeight(Residue::CIon, charge) / static_cast<double>(charge);
-          addPeak_(spectrum, pos, c_intensity_, res_type, i, charge);
-        }
-
-        if (add_losses_)
-        {
-          addLosses_(spectrum, ion, c_intensity_, res_type, charge);
-        }
-      }
-      break;
-    }
-
-    case Residue::XIon:
-    {
-      Size i = 1;
-      if (!add_first_prefix_ion_)
-      {
-        i = 2;
-      }
-      if (peptide.size() < 2)
-      {
-        // "Cannot create c ions of a monomer."
-        throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 1);
-      }
-      for (; i < peptide.size(); ++i)
-      {
-        AASequence ion = peptide.getSuffix(i);
-        if (add_isotopes_)
-        {
-          addIsotopeCluster_(spectrum, ion, res_type, charge, x_intensity_);
-        }
-        else
-        {
-          double pos = ion.getMonoWeight(Residue::XIon, charge) / static_cast<double>(charge);
-          addPeak_(spectrum, pos, x_intensity_, res_type, i, charge);
-        }
-
-        if (add_losses_)
-        {
-          addLosses_(spectrum, ion, x_intensity_, res_type, charge);
-        }
-      }
-
-      break;
-    }
-
-    case Residue::YIon:
-    {
-      for (Size i = 1; i < peptide.size(); ++i)
-      {
-        AASequence ion = peptide.getSuffix(i);
-        if (add_isotopes_)
-        {
-          addIsotopeCluster_(spectrum, ion, res_type, charge, y_intensity_);
-        }
-        else
-        {
-          double pos = ion.getMonoWeight(Residue::YIon, charge) / static_cast<double>(charge);
-          addPeak_(spectrum, pos, y_intensity_, res_type, i, charge);
-        }
-
-        if (add_losses_)
-        {
-          addLosses_(spectrum, ion, y_intensity_, res_type, charge);
-        }
-      }
-
-      break;
-    }
-
-    case Residue::ZIon:
-    {
-      for (Size i = 1; i < peptide.size(); ++i)
-      {
-        AASequence ion = peptide.getSuffix(i);
-        if (add_isotopes_)
-        {
-          addIsotopeCluster_(spectrum, ion, res_type, charge, z_intensity_);
-        }
-        else
-        {
-          double pos = ion.getMonoWeight(Residue::ZIon, charge) / static_cast<double>(charge);
-          addPeak_(spectrum, pos, z_intensity_, res_type, i, charge);
-        }
-
-        if (add_losses_)
-        {
-          addLosses_(spectrum, ion, z_intensity_, res_type, charge);
-        }
-      }
-
-      break;
-    }
-
-    default:
-      cerr << "Cannot create peaks of that ion type" << endl;
-    }
-
-    spectrum.sortByPosition();
+    if (add_losses_) spectrum.sortByPosition();  // only need to sort if losses are added
 
     return;
   }

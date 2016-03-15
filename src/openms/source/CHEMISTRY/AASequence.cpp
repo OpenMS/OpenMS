@@ -1007,6 +1007,18 @@ namespace OpenMS
     return n_term_mod_->getId();
   }
 
+  /// returns the N-term modification; nullptr is returned if none was set
+  const ResidueModification * AASequence::getNTerminalResidueModification() const
+  {
+    return n_term_mod_;
+  }
+
+  /// returns the C-term modification; nullptr is returned if none was set
+  const ResidueModification * AASequence::getCTerminalResidueModification() const
+  {
+    return c_term_mod_;
+  }
+
   const String& AASequence::getCTerminalModification() const
   {
     static const String mod = "";
