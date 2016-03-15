@@ -499,6 +499,14 @@ namespace OpenMS
       prot_hit_.setAccession(accession);
       prot_hit_.setScore(attributeAsDouble_(attributes, "score"));
 
+      // coverage
+      double coverage = -std::numeric_limits<double>::max();
+      optionalAttributeAsDouble_(coverage, attributes, "coverage");
+      if (coverage != -std::numeric_limits<double>::max())
+      {
+        prot_hit_.setCoverage(coverage);
+      }
+
       //sequence
       String tmp;
       optionalAttributeAsString_(tmp, attributes, "sequence");
