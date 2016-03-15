@@ -789,7 +789,10 @@ namespace OpenMS
           sp.db_version = db_map_[searchDatabase_ref].version;
           pro_id_->back().setSearchParameters(sp);
 
-          pro_id_->back().setMetaValue("spectra_data", sd_map_[spectra_data_ref]);
+          // internally we store a list of files so convert the mzIdentML file String to a StringList
+          StringList spectra_data_list;
+          spectra_data_list.push_back(sd_map_[spectra_data_ref]);
+          pro_id_->back().setMetaValue("spectra_data", spectra_data_list);
           if (!spectrumIdentification_date.empty())
           {
             pro_id_->back().setDateTime(DateTime::fromString(spectrumIdentification_date.toQString(), "yyyy-MM-ddThh:mm:ss"));

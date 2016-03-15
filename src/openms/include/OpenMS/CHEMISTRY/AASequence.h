@@ -407,9 +407,6 @@ protected:
     double getMonoWeight(Residue::ResidueType type = Residue::Full, Int charge = 0) const;
 
     /// returns a pointer to the residue at given position
-    const Residue& operator[](SignedSize index) const;
-
-    /// returns a pointer to the residue at given position
     const Residue& operator[](Size index) const;
 
     /// adds the residues of the peptide

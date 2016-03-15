@@ -215,7 +215,7 @@ public:
     {
       try
       {
-        c.push_back(boost::lexical_cast<T>(boost::trim_copy(*it)));
+        c.push_back(boost::lexical_cast<T>(boost::trim_copy(*it))); // succeeds only if the whole output can be explained, i.e. "1.3 3" will fail (which is good)
       }
       catch (boost::bad_lexical_cast&)
       {

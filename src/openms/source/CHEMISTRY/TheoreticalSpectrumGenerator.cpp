@@ -353,7 +353,6 @@ namespace OpenMS
     // They are added via precursor mass (and neutral losses).
     // Could be changed in the future.
 
-    Size i = add_first_prefix_ion_ ? 1 : 2; 
 
     double intensity(1);
 
@@ -361,8 +360,8 @@ namespace OpenMS
     {
       case Residue::AIon: intensity = a_intensity_; break;
       case Residue::BIon: intensity = b_intensity_; break;
-      case Residue::CIon: intensity = c_intensity_; break;
-      case Residue::XIon: intensity = x_intensity_; break;
+      case Residue::CIon: if (peptide.size() < 2) throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 1); intensity = c_intensity_; break;
+      case Residue::XIon: if (peptide.size() < 2) throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 1); intensity = x_intensity_; break;
       case Residue::YIon: intensity = y_intensity_; break;
       case Residue::ZIon: intensity = z_intensity_; break;
       default: break;
@@ -379,7 +378,9 @@ namespace OpenMS
 
       if (!add_isotopes_) // add single peak
       {
-        for (; i < peptide.size(); ++i)
+        Size i = add_first_prefix_ion_ ? 0 : 1; 
+        if (i == 1) mono_weight += peptide[0].getMonoWeight(Residue::Internal);
+        for (; i < peptide.size() - 1; ++i)
         {
           mono_weight += peptide[i].getMonoWeight(Residue::Internal); // standard internal residue including named modifications
           double pos(mono_weight);
@@ -388,13 +389,14 @@ namespace OpenMS
           case Residue::AIon: pos = (pos + Residue::getInternalToAIon().getMonoWeight()) / charge; break;
           case Residue::BIon: pos = (pos + Residue::getInternalToBIon().getMonoWeight()) / charge; break;
           case Residue::CIon: pos = (pos + Residue::getInternalToCIon().getMonoWeight()) / charge; break;
+          default: break;
           }
-
-          addPeak_(spectrum, pos, intensity, res_type, i, charge);
+          addPeak_(spectrum, pos, intensity, res_type, i + 1, charge);
         }
       }
       else // add isotope clusters (slow)
       {
+        Size i = add_first_prefix_ion_ ? 1 : 2; 
         for (; i < peptide.size(); ++i)
         {
           const AASequence ion = peptide.getPrefix(i);
@@ -404,6 +406,7 @@ namespace OpenMS
 
       if (add_losses_) // add loss peaks (slow)
       {
+        Size i = add_first_prefix_ion_ ? 1 : 2; 
         for (; i < peptide.size(); ++i)
         {
           const AASequence ion = peptide.getPrefix(i);
@@ -420,23 +423,26 @@ namespace OpenMS
 
       if (!add_isotopes_) // add single peak
       {
-        for (int i = static_cast<int>(peptide.size()) - 1; i >= 0; --i)
+        Size i = peptide.size() - 1;
+
+        for (; i > 0; --i)
         {
-          mono_weight += peptide[static_cast<Size>(i)].getMonoWeight(Residue::Internal); // standard internal residue including named modifications
+          mono_weight += peptide[i].getMonoWeight(Residue::Internal); // standard internal residue including named modifications
           double pos(mono_weight);
           switch (res_type)
           {
-          case Residue::XIon: pos = (pos + Residue::getInternalToCIon().getMonoWeight()) / charge; break;
+          case Residue::XIon: pos = (pos + Residue::getInternalToXIon().getMonoWeight()) / charge; break;
           case Residue::YIon: pos = (pos + Residue::getInternalToYIon().getMonoWeight()) / charge; break;
           case Residue::ZIon: pos = (pos + Residue::getInternalToZIon().getMonoWeight()) / charge; break;
+          default: break;
           }
 
-          addPeak_(spectrum, pos, intensity, res_type, i, charge);
+          addPeak_(spectrum, pos, intensity, res_type, peptide.size() - i, charge);
         }
       }
       else // add isotope clusters
       {
-        for (; i < peptide.size(); ++i)
+        for (Size i = 1; i < peptide.size(); ++i)
         {
           const AASequence ion = peptide.getSuffix(i);
           addIsotopeCluster_(spectrum, ion, res_type, charge, intensity);
@@ -445,7 +451,7 @@ namespace OpenMS
 
       if (add_losses_) // add loss peaks (slow)
       {
-        for (; i < peptide.size(); ++i)
+        for (Size i = 1; i < peptide.size(); ++i)
         {
           const AASequence ion = peptide.getSuffix(i);
           addLosses_(spectrum, ion, intensity, res_type, charge);
@@ -453,7 +459,7 @@ namespace OpenMS
       }
     }
 
-    if (add_losses_) spectrum.sortByPosition();  // only need to sort if losses are added
+    spectrum.sortByPosition(); 
 
     return;
   }

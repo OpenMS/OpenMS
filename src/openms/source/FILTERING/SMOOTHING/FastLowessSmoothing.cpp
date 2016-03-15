@@ -542,9 +542,8 @@ public:
                )
     {
       bool fit_ok;
-      size_t i, last, nleft, nright, ns;
 
-      size_t n = x.size();
+      size_t ns, n(x.size());
       if (n < 2)
       {
         ys[0] = y[0];
@@ -559,12 +558,10 @@ public:
       // robustness iterations
       for (int iter = 1; iter <= nsteps + 1; iter++)
       {
-
         // start of array in C++ at 0 / in FORTRAN at 1
-        nleft = 0;
-        nright = ns - 1;
-        last = -1;          // index of prev estimated point
-        i = 0;              // index of current point
+        // last: index of prev estimated point
+        // i: index of current point
+        size_t i(0), last(-1), nleft(0), nright(ns -1);
 
         // Fit all data points y[i] until the end of the array
         do

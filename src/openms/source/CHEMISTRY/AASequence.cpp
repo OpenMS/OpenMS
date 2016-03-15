@@ -393,22 +393,6 @@ namespace OpenMS
   return losses;
 }*/
 
-  const Residue& AASequence::operator[](SignedSize index) const
-  {
-    if (index < 0)
-    {
-      throw Exception::IndexUnderflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, 0);
-    }
-    else
-    {
-      if (Size(index) >= size())
-      {
-        throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, size());
-      }
-    }
-    return *peptide_[Size(index)];
-  }
-
   const Residue& AASequence::operator[](Size index) const
   {
     if (index >= size())

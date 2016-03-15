@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
+// $Maintainer: Timo Sachsenberg, Petra Gutenbrunner $
 // $Authors: David Wojnar, Timo Sachsenberg, Petra Gutenbrunner $
 // --------------------------------------------------------------------------
 #include <OpenMS/ANALYSIS/ID/AScore.h>
@@ -57,12 +57,12 @@ namespace OpenMS
   {
   }
 
-  PeptideHit AScore::compute(const PeptideHit & hit, PeakSpectrum & real_spectrum, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const
+  PeptideHit AScore::compute(const PeptideHit & hit, PeakSpectrum & real_spectrum, double fragment_mass_tolerance, bool fragment_mass_unit_ppm, Size max_peptide_len, Size max_num_perm)
   {
     PeptideHit phospho = hit;
     
     //reset phospho
-    phospho.setScore(0);
+    phospho.setScore(-1);
     if (real_spectrum.empty())
     {
       return phospho;
@@ -72,24 +72,36 @@ namespace OpenMS
     
     Size number_of_phosphorylation_events = numberOfPhosphoEvents_(sequence_str);
     AASequence seq_without_phospho = removePhosphositesFromSequence_(sequence_str);
-  
+    
+    if (seq_without_phospho.toUnmodifiedString().size() > max_peptide_len)
+    {
+      LOG_DEBUG << "\tcalculation aborted: peptide too long: " << seq_without_phospho.toString() << std::endl;
+      return phospho;
+    }
+    
     // determine all phospho sites
     vector<Size> sites(getSites_(seq_without_phospho));
     Size number_of_STY = sites.size();
     
+    if (number_of_phosphorylation_events == 0 || number_of_STY == 0 || number_of_STY == number_of_phosphorylation_events)
+    {
+      return phospho;
+    }
+    
     vector<vector<Size> > permutations(computePermutations_(sites, (Int)number_of_phosphorylation_events));
     LOG_DEBUG << "\tnumber of permutations: " << permutations.size() << std::endl;
     
-    vector<RichPeakSpectrum> th_spectra;
-    if (permutations.empty())
+    // TODO: using a heuristic to calculate the best phospho sites if the number of permutations are exceeding the maximum.
+    // A heuristic could be to calculate the best site for the first phosphorylation and based on this the best site for the second 
+    // phosphorylation and so on until every site is determined
+    if (permutations.size() > max_num_perm) 
     {
-      th_spectra = createTheoreticalSpectra_(seq_without_phospho);
+      LOG_DEBUG << "\tcalculation aborted: number of permutations exceeded" << std::endl;
+      return phospho;
     }
-    else
-    {
-      th_spectra = createTheoreticalSpectra_(permutations, seq_without_phospho);
-    }
-        
+      
+    vector<RichPeakSpectrum> th_spectra(createTheoreticalSpectra_(permutations, seq_without_phospho));
+    
     // prepare real spectrum windows
     if (!real_spectrum.isSorted())
     {
@@ -103,58 +115,72 @@ namespace OpenMS
     // rank peptide permutations ascending
     multimap<double, Size> ranking(rankWeightedPermutationPeptideScores_(peptide_site_scores));
     
-    phospho.setScore(ranking.rbegin()->first); // initialize score with highest peptide score (aka highest weighted score)
-    phospho.setSequence(AASequence::fromString(th_spectra[ranking.rbegin()->second].getName()));
+    multimap<double, Size>::reverse_iterator rev = ranking.rbegin();
+    String seq1 = th_spectra[rev->second].getName();
+    phospho.setSequence(AASequence::fromString(seq1));
     phospho.setMetaValue("search_engine_sequence", hit.getSequence().toString());
     
-    if (number_of_phosphorylation_events == 0 || number_of_STY == 0 || number_of_STY == number_of_phosphorylation_events)
-    {
-      return phospho;
-    }
+    double peptide1_score = rev->first;
+    phospho.setMetaValue("AScore_pep_score", peptide1_score); // initialize score with highest peptide score (aka highest weighted score)
+    
+    ++rev;
+    String seq2 = th_spectra[rev->second].getName();
+    double peptide2_score = rev->first;
     
     vector<ProbablePhosphoSites> phospho_sites;
     determineHighestScoringPermutations_(peptide_site_scores, phospho_sites, permutations, ranking);
     
     Int rank = 1;
+    double best_Ascore = std::numeric_limits<double>::max(); // the lower the better
     for (vector<ProbablePhosphoSites>::iterator s_it = phospho_sites.begin(); s_it != phospho_sites.end(); ++s_it)
     {
-      vector<RichPeakSpectrum> site_determining_ions;
-      
-      computeSiteDeterminingIons_(th_spectra, *s_it, site_determining_ions, fragment_mass_tolerance, fragment_mass_unit_ppm);
-      Size N = site_determining_ions[0].size(); // all possibilities have the same number so take the first one
-      double p = static_cast<double>(s_it->peak_depth) / 100.0;
-      
-      Size n_first = 0;
-      for (Size depth = 0; depth != windows_top10.size(); ++depth) // for each 100 m/z window
+      double Ascore = 0;
+      if (peptide1_score == peptide2_score) // set Ascore = 0 for each phosphorylation site
       {
-        n_first += numberOfMatchedIons_(site_determining_ions[0], windows_top10[depth], s_it->peak_depth, fragment_mass_tolerance, fragment_mass_unit_ppm);        
+        LOG_DEBUG << "\tscore of best (" << seq1 << ") and second best peptide (" << seq2 << ") are equal (" << peptide1_score << ")" << std::endl;
       }
-      double P_first = computeCumulativeScore_(N, n_first, p);
-      
-      Size n_second = 0;
-      for (Size depth = 0; depth <  windows_top10.size(); ++depth) //each 100 m/z window
+      else
       {
-        n_second += numberOfMatchedIons_(site_determining_ions[1], windows_top10[depth], s_it->peak_depth, fragment_mass_tolerance, fragment_mass_unit_ppm);        
+        vector<RichPeakSpectrum> site_determining_ions;
+        
+        computeSiteDeterminingIons_(th_spectra, *s_it, site_determining_ions, fragment_mass_tolerance, fragment_mass_unit_ppm);
+        Size N = site_determining_ions[0].size(); // all possibilities have the same number so take the first one
+        double p = static_cast<double>(s_it->peak_depth) / 100.0;
+        
+        Size n_first = 0; // number of matching peaks for first peptide
+        for (Size window_idx = 0; window_idx != windows_top10.size(); ++window_idx) // for each 100 m/z window
+        {
+          n_first += numberOfMatchedIons_(site_determining_ions[0], windows_top10[window_idx], s_it->peak_depth, fragment_mass_tolerance, fragment_mass_unit_ppm);        
+        }
+        double P_first = computeCumulativeScore_(N, n_first, p);
+        
+        Size n_second = 0; // number of matching peaks for second peptide
+        for (Size window_idx = 0; window_idx <  windows_top10.size(); ++window_idx) //each 100 m/z window
+        {
+          n_second += numberOfMatchedIons_(site_determining_ions[1], windows_top10[window_idx], s_it->peak_depth, fragment_mass_tolerance, fragment_mass_unit_ppm);        
+        }
+        Size N2 = site_determining_ions[1].size(); // all possibilities have the same number so take the first one
+        double P_second = computeCumulativeScore_(N2, n_second, p);
+        
+        //abs is used to avoid -0 score values
+        double score_first = abs(-10 * log10(P_first));
+        double score_second = abs(-10 * log10(P_second));
+        
+        LOG_DEBUG << "\tfirst - N: " << N << ",p: " << p << ",n: " << n_first << ", score: " << score_first << std::endl;
+        LOG_DEBUG << "\tsecond - N: " << N2 << ",p: " << p << ",n: " << n_second << ", score: " << score_second << std::endl;
+        
+        Ascore = score_first - score_second;
+        LOG_DEBUG << "\tAscore_" << rank << ": " << Ascore << std::endl;
+        
+        if (Ascore < best_Ascore)
+        {
+          best_Ascore = Ascore;
+          phospho.setScore(Ascore);        
+        }
       }
-      double P_second = computeCumulativeScore_(N, n_second, p);
-      
-      
-      
-      //abs is used to avoid -0 score values
-      double score_first = abs(-10 * log10(P_first));
-      double score_second = abs(-10 * log10(P_second));
-      
-      LOG_DEBUG << "\tfirst - N: " << N << ",p: " << p << ",n: " << n_first << ", score: " << score_first << std::endl;
-      LOG_DEBUG << "\tsecond - N: " << N << ",p: " << p << ",n: " << n_second << ", score: " << score_second << std::endl;
-      
-      double AScore_first = score_first - score_second;
-      
-      LOG_DEBUG << "\tAscore: " << AScore_first << std::endl;
-      
-      phospho.setMetaValue("AScore_" + String(rank), AScore_first);
+      phospho.setMetaValue("AScore_" + String(rank), Ascore);
       ++rank;      
     }
-    
     return phospho;
   }
 
@@ -303,27 +329,37 @@ namespace OpenMS
 
   Size AScore::numberOfMatchedIons_(const RichPeakSpectrum & th, const PeakSpectrum & window, Size depth, double fragment_mass_tolerance, bool fragment_mass_tolerance_ppm) const
   {
-    Size n = 0;
-    
-    for (Size i = 0; i < window.size() && i <= depth; ++i)
+    PeakSpectrum window_reduced = window;
+    if (window_reduced.size() > depth)
     {
-      Size nearest_peak = th.findNearest(window[i].getMZ());
-      
-      if (nearest_peak < th.size())
+      window_reduced.resize(depth);
+    }
+    
+    window_reduced.sortByPosition();
+    Size n = 0;
+    for (Size i = 0; i < th.size(); ++i)
+    {
+      Size nearest_peak = -1;
+      try
       {
-        double theo_mz = th[nearest_peak].getMZ();
-        double error = abs(theo_mz - window[i].getMZ());
+        nearest_peak = window_reduced.findNearest(th[i].getMZ());
+      }
+      catch (Exception::Precondition) {}
+      
+      if (nearest_peak < window_reduced.size())
+      {
+        double window_mz = window_reduced[nearest_peak].getMZ();
+        double error = abs(window_mz - th[i].getMZ());
         
         if (fragment_mass_tolerance_ppm)
         {
-          error = error / theo_mz * 1e6;
+          error = error / window_mz * 1e6;
         }
-
         if (error < fragment_mass_tolerance)
         {
           ++n;
         }
-      }
+      }      
     }
     return n;
   }
@@ -465,23 +501,7 @@ namespace OpenMS
     }
     return th_spectra;
   }
-  
-  vector<RichPeakSpectrum> AScore::createTheoreticalSpectra_(const AASequence & seq_without_phospho) const
-  {
-    vector<RichPeakSpectrum> th_spectra;
-    TheoreticalSpectrumGenerator spectrum_generator;
     
-    // we mono-charge spectra
-    th_spectra.resize(1);
-    
-    // Previously, the precursor charge was used here. This is clearly wrong and it is better to use charge 1 here.
-    spectrum_generator.addPeaks(th_spectra[0], seq_without_phospho, Residue::BIon, 1);
-    spectrum_generator.addPeaks(th_spectra[0], seq_without_phospho, Residue::YIon, 1);
-    th_spectra[0].setName(seq_without_phospho.toString());
-    
-    return th_spectra;
-  }
-  
   std::vector<PeakSpectrum> AScore::peakPickingPerWindowsInSpectrum_(PeakSpectrum &real_spectrum) const
   {
     vector<PeakSpectrum> windows_top10;
@@ -555,5 +575,30 @@ namespace OpenMS
     }
     
     return ranking;
+  }
+  
+  int AScore::compareMZ_(double mz1, double mz2, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const
+  {
+    double tolerance = fragment_mass_tolerance;        
+    double error = mz1 - mz2;
+    
+    if (fragment_mass_unit_ppm)
+    {
+      double avg_mass = (mz1 + mz2) / 2;
+      tolerance = fragment_mass_tolerance * avg_mass / 1e6;
+    }
+    
+    if (error < -tolerance)
+    { 
+      return -1;
+    }
+    else if (error > tolerance)
+    {
+      return 1;
+    }
+    else 
+    { 
+      return 0;
+    }
   }
 } // namespace OpenMS
