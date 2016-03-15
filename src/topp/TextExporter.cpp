@@ -566,29 +566,7 @@ protected:
           meta_keys = MetaInfoInterfaceUtils::findCommonMetaKeys<FeatureMap, StringList>(feature_map.begin(), feature_map.end(), add_feature_metavalues);
         }
 
-        // compute protein coverage
         vector<ProteinIdentification> prot_ids = feature_map.getProteinIdentifications();
-        vector<PeptideIdentification> pep_ids;
-        // collect all peptide ids:
-        for (Size i = 0; i < feature_map.size(); ++i)
-        {
-          vector<PeptideIdentification> pep_ids_bf = feature_map[i].getPeptideIdentifications();
-          pep_ids.insert(pep_ids.end(), pep_ids_bf.begin(), pep_ids_bf.end());
-        }
-        pep_ids.insert(pep_ids.end(), feature_map.getUnassignedPeptideIdentifications().begin(), feature_map.getUnassignedPeptideIdentifications().end());
-
-        try // might throw Exception::MissingInformation()
-        {
-          for (Size i = 0; i < prot_ids.size(); ++i)
-          {
-            prot_ids[i].computeCoverage(pep_ids);
-          }
-        }
-        catch (Exception::MissingInformation& e)
-        {
-          LOG_WARN << "Non-critical exception: " << e.what() << "\n";
-        }
-        feature_map.setProteinIdentifications(prot_ids);
 
         // text output
         ofstream outstr(out.c_str());
@@ -695,28 +673,7 @@ protected:
 
         consensus_xml_file.load(in, consensus_map);
 
-        // compute protein coverage
         vector<ProteinIdentification> prot_ids = consensus_map.getProteinIdentifications();
-        vector<PeptideIdentification> pep_ids;
-        for (Size i = 0; i < consensus_map.size(); ++i) // collect all peptide ids
-        {
-          vector<PeptideIdentification> pep_ids_bf = consensus_map[i].getPeptideIdentifications();
-          pep_ids.insert(pep_ids.end(), pep_ids_bf.begin(), pep_ids_bf.end());
-        }
-        pep_ids.insert(pep_ids.end(), consensus_map.getUnassignedPeptideIdentifications().begin(), consensus_map.getUnassignedPeptideIdentifications().end());
-        try // might throw Exception::MissingInformation()
-        {
-          for (Size i = 0; i < prot_ids.size(); ++i)
-          {
-            prot_ids[i].computeCoverage(pep_ids);
-          }
-        }
-        catch (Exception::MissingInformation& e)
-        {
-          LOG_WARN << "Non-critical exception: " << e.what() << "\n";
-        }
-        consensus_map.setProteinIdentifications(prot_ids);
-
 
         if (sorting_method == "none")
         {
@@ -1142,18 +1099,6 @@ protected:
           }
 
           peptide_hit_meta_keys = MetaInfoInterfaceUtils::findCommonMetaKeys<vector<PeptideHit>, StringList>(temp_hits.begin(), temp_hits.end(), add_hit_metavalues);
-        }
-
-        try // might throw Exception::MissingInformation()
-        {
-          for (Size i = 0; i < prot_ids.size(); ++i)
-          {
-            prot_ids[i].computeCoverage(pep_ids);
-          }
-        }
-        catch (Exception::MissingInformation& e)
-        {
-          LOG_WARN << "Non-critical exception: " << e.what() << "\n";
         }
 
         ofstream txt_out(out.c_str());
