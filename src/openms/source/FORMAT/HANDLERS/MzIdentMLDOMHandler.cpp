@@ -1086,7 +1086,7 @@ namespace OpenMS
           else if ((std::string)XMLString::transcode(element_in->getTagName()) == "SourceFile")
           {
             //      <FileFormat> omitted for now, not reflectable by our member structures
-            sr_map_.insert(make_pair(id, location));
+            sf_map_.insert(make_pair(id, location));
           }
           else if ((std::string)XMLString::transcode(element_in->getTagName()) == "SearchDatabase")
           {
@@ -1103,12 +1103,12 @@ namespace OpenMS
                 DOMElement* databasename_param = element_dbn->getFirstElementChild();
                 while (databasename_param)
                 {
-                  if ((std::string)XMLString::transcode(databasename_param->getTagName()) == "userParam")
+                  if ((std::string)XMLString::transcode(databasename_param->getTagName()) == "cvParam")
                   {
                     CVTerm param = parseCvParam_(databasename_param);
                     dbname = param.getValue();
                   }
-                  else if ((std::string)XMLString::transcode(databasename_param->getTagName()) == "cvParam")
+                  else if ((std::string)XMLString::transcode(databasename_param->getTagName()) == "userParam")
                   {
                     pair<String, DataValue> param = parseUserParam_(databasename_param);
                     dbname = param.second.toString();

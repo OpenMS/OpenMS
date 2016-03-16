@@ -176,8 +176,6 @@ private:
       MzIdentMLDOMHandler(const MzIdentMLDOMHandler& rhs);
       MzIdentMLDOMHandler& operator=(const MzIdentMLDOMHandler& rhs);
 
-
-
       struct AnalysisSoftware
       {
         String name;
@@ -247,7 +245,7 @@ private:
       std::map<String, AnalysisSoftware> as_map_; //mapping AnalysisSoftware id -> AnalysisSoftware
 
       //mapping from DataCollection Inputs
-      std::map<String, String> sr_map_; //mapping sourcefile id -> sourcefile location
+      std::map<String, String> sf_map_; //mapping sourcefile id -> sourcefile location
       std::map<String, String> sd_map_; //mapping spectradata id -> spectradata location
       std::map<String, DatabaseInput> db_map_; //mapping database id -> DatabaseInput
 
