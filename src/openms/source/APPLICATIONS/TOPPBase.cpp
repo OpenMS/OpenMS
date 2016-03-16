@@ -474,23 +474,6 @@ namespace OpenMS
 
           QNetworkAccessManager * manager = new QNetworkAccessManager();
           QNetworkReply * reply = manager->get(request);
-          /*
-          StopWatch sw;
-          sw.start();
-          
-          bool time_out = false;
-          while (true)
-          {
-            if (reply->isFinished()) break;
-            if (sw.getClockTime() > 5.0)
-            {
-              sw.stop();
-              reply->abort();
-              time_out = true;
-              break;
-            }
-          } 
-          */
         }
       }
     }
