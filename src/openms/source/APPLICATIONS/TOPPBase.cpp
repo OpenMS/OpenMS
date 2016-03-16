@@ -63,7 +63,14 @@
 
 #include <sys/stat.h>
 #include <time.h>
+
+#ifdef OPENMS_WINDOWSPLATFORM
+#include <sys/utime.h>
+#elif __APPLE__
 #include <utime.h>
+#else
+#include <utime.h>
+#endif
 
 // OpenMP support
 #ifdef _OPENMP
@@ -155,6 +162,12 @@ namespace OpenMS
 
   TOPPBase::ExitCodes TOPPBase::main(int argc, const char** argv)
   {
+    // initialize QCoreApplication object early (needed to process network requests)
+    int ncargc = 1;
+    std::vector<char*> ncargv;
+    ncargv.push_back(NULL);
+    QCoreApplication a(ncargc, &(ncargv[0]));
+
     //----------------------------------------------------------
     //parse command line
     //----------------------------------------------------------
@@ -412,15 +425,16 @@ namespace OpenMS
         platform = "Linux";
       #endif
 
-      String architecture = QSysInfo::WordSize == 32 ? "32bit" : "64bit";
+      String architecture = QSysInfo::WordSize == 32 ? "32" : "64";
 
-      // OpenMS_KNIME_FeatureFinderCentroided_Win_64bit_2.0.0
+      // e.g.: OpenMS_Default_Win_64_FeatureFinderCentroided_2.0.0
       String tool_version_string;
-      tool_version_string =  String("OpenMS") + "_" + "Default_" + tool_name_ + "_" + platform + "_" + architecture + "_"  + version_ + "_" + revision;
+      tool_version_string = String("OpenMS") + "_" + "Default_" + platform + "_" + architecture + "_" + tool_name_ + "_" + version_;
 
       String version_file_name = File::getOpenMSHomePath() + "/.OpenMS/" + tool_name_ + ".ver";
 
       // create version file if it doesn't exist yet
+      bool first_run(false);
       if (!File::exists(version_file_name) || !File::readable(version_file_name))
       {
         Param p = File::getSystemParameters(); // initializes .OpenMS folder
@@ -430,14 +444,16 @@ namespace OpenMS
         f.setFileName(version_file_name.toQString());
         f.open(QIODevice::WriteOnly);
         f.close();
+        first_run = true;
       }
-      else if (File::readable(version_file_name))
+      
+      if (File::readable(version_file_name))
       {
         QDateTime last_modified_dt = QFileInfo(version_file_name.toQString()).lastModified();
         QDateTime current_dt = QDateTime::currentDateTime();
 
         // check if at least one day passed sincle last request
-        if (current_dt > last_modified_dt.addDays(1))
+        if (first_run || current_dt > last_modified_dt.addDays(1))
         {
           // update modification time stamp
           struct stat old_stat;
@@ -449,22 +465,19 @@ namespace OpenMS
           new_times.modtime = time(NULL);  // mod time to current time
           utime(version_file_name.c_str(), &new_times);          
 
-          cerr << "Checking if update is available: " << endl;             
-          int ncargc = 1;
-          std::vector<char*> ncargv;
-          ncargv.push_back(NULL);
-          QCoreApplication a(ncargc, &(ncargv[0]));
+          LOG_INFO << "The OpenMS team is collecting use statistics for quality control and funding purposes." << endl;
+          LOG_INFO << "We will never give out your personal data but you may disable this functionality by setting the environmental variable OPENMS_DISABLE_USEAGE_STATISTICS." << endl;
+
           QNetworkRequest request;
           request.setUrl(QUrl(QString("http://openms-update.informatik.uni-tuebingen.de/check/") + tool_version_string.toQString()));
-          //request.setRawHeader("Authorization", "Basic " + QByteArray(QString("%1:%2").arg("user").arg("asas").toAscii()).toBase64());
           request.setHeader(QNetworkRequest::ContentTypeHeader, "text/plain");
 
           QNetworkAccessManager * manager = new QNetworkAccessManager();
           QNetworkReply * reply = manager->get(request);
-
+          /*
           StopWatch sw;
           sw.start();
-
+          
           bool time_out = false;
           while (true)
           {
@@ -473,19 +486,11 @@ namespace OpenMS
             {
               sw.stop();
               reply->abort();
-              time_out = true;            
+              time_out = true;
               break;
             }
-          }
-          sw.stop();
-
-          if (!time_out && reply->error() == 0) 
-          {
-            QByteArray data = reply->readAll();
-            reply->close();
-            QString response_string = data;
-            cerr << "Response from server: " << response_string.toStdString() << endl;             
-          }
+          } 
+          */
         }
       }
     }
