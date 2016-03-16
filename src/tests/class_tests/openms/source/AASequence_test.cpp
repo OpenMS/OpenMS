@@ -288,16 +288,6 @@ START_SECTION((double getMonoWeight(Residue::ResidueType type = Residue::Full, I
   TEST_REAL_SIMILAR(AASequence::fromString("TYQYS(Phospho)").getFormula().getMonoWeight(), AASequence::fromString("TYQYS(Phospho)").getMonoWeight());
 END_SECTION
 
-START_SECTION(const Residue& operator[](SignedSize index) const)
-  AASequence seq = AASequence::fromString("DFPIANGER");
-  SignedSize index = 0;
-  TEST_EQUAL(seq[index].getOneLetterCode(), "D")
-  index = -1;
-  TEST_EXCEPTION(Exception::IndexUnderflow, seq[index])
-  index = 20;
-  TEST_EXCEPTION(Exception::IndexOverflow, seq[index])
-END_SECTION
-
 START_SECTION(const Residue& operator[](Size index) const)
   AASequence seq = AASequence::fromString("DFPIANGER");
   Size index = 0;
