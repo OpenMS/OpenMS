@@ -489,7 +489,7 @@ namespace OpenMS
         String unitCvRef = XMLString::transcode(param->getAttribute(XMLString::transcode("unitCvRef")));
 
         CVTerm::Unit u; // TODO @mths : make DataValue usage safe!
-        if (!unitAcc.empty() && unitCvRef.empty() && unitName.empty())
+        if (!(unitAcc.empty() && unitCvRef.empty() && unitName.empty()))
         {
           u = CVTerm::Unit(unitAcc, unitCvRef, unitName);
         }
