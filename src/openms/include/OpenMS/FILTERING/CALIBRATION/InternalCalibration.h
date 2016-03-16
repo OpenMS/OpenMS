@@ -35,17 +35,15 @@
 
 #ifndef OPENMS_FILTERING_CALIBRATION_INTERNALCALIBRATION_H
 #define OPENMS_FILTERING_CALIBRATION_INTERNALCALIBRATION_H
-#include <OpenMS/KERNEL/FeatureMap.h>
+
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
-#include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
-// TODO remove dependency from file reader here!
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
 
 namespace OpenMS
 {
+  class FeatureMap;
 
   /**
     @brief A simple calibration method using linear interpolation of given reference masses.
@@ -161,12 +159,10 @@ public:
 
      @param exp The peak map to calibrate
      @param ref_masses The reference m/z values
-     @param trafo_file_name Output file to store the transformation function
     */
     template <typename InputPeakType>
     void calibrateMapGlobally(MSExperiment<InputPeakType>& exp, 
-      const std::vector<double>& ref_masses,
-      const String& trafo_file_name = "")
+      const std::vector<double>& ref_masses)
     {
       if (exp.empty())
       {
@@ -228,11 +224,6 @@ public:
       makeLinearRegression_(corr_masses, found_ref_masses);
 
       applyTransformation_<InputPeakType>(exp);
-
-      if (trafo_file_name != "")
-      {
-        TransformationXMLFile().store(trafo_file_name, trafo_);
-      }
     }
 
     /**
@@ -246,12 +237,10 @@ public:
 
      @param exp The peak map to calibrate
      @param ref_ids The reference peptide identifications
-     @param trafo_file_name Output file to store the transformation function
     */
     template <typename InputPeakType>
     void calibrateMapGlobally(MSExperiment<InputPeakType>& exp,
-      const std::vector<PeptideIdentification>& ref_ids,
-      const String& trafo_file_name = "")
+      const std::vector<PeptideIdentification>& ref_ids)
     {
       bool use_ppm = param_.getValue("mz_tolerance_unit") == "ppm" ? true : false;
       double mz_tolerance = param_.getValue("mz_tolerance");
@@ -335,12 +324,31 @@ public:
       makeLinearRegression_(observed_masses, theoretical_masses);
 
       applyTransformation_<InputPeakType>(exp);
-
-      if (trafo_file_name != "")
-      {
-        TransformationXMLFile().store(trafo_file_name, trafo_);
-      }
     }
+
+    /**
+     @brief ...
+
+     
+     @param exp The peak map
+     @param trafo Input transformation to apply
+    */
+    template <typename InputPeakType>
+    void calibrateMap(MSExperiment<InputPeakType>& exp, const TransformationDescription& trafo)
+    {
+      trafo_ = trafo;
+      applyTransformation_<InputPeakType>(exp);
+    }
+
+
+    /**
+     @brief ...
+
+     
+     @param exp The peak map
+     @param trafo Input transformation to apply
+    */
+    void calibrateMap(FeatureMap& map, const TransformationDescription& trafo);
 
     /**
      @brief Calibrate an annotated feature map with one calibration function for the whole map.
@@ -349,9 +357,8 @@ public:
      The m/z-values of the reference identifications are calculated through the given sequence and charge of the peptide.
     
      @param feature_map The feature map to calibrate (annotated with peptide ids)
-     @param trafo_file_name Output file to store the transformation function
     */
-    void calibrateMapGlobally(FeatureMap& feature_map, const String& trafo_file_name = "");
+    void calibrateMapGlobally(FeatureMap& feature_map);
 
     /**
      @brief Calibrate a feature map using given reference ids with one calibration function for the whole map.
@@ -363,10 +370,30 @@ public:
 
      @param feature_map The feature map to calibrate
      @param ref_ids the reference peptide identifications
-     @param trafo_file_name file where the transformation function of the calibration is stored
     */
-    void calibrateMapGlobally(FeatureMap& feature_map, std::vector<PeptideIdentification>& ref_ids, const String& trafo_file_name = "");
+    void calibrateMapGlobally(FeatureMap& feature_map, std::vector<PeptideIdentification>& ref_ids);
 
+
+    /**
+     @brief Calibrate a peak map using a given external calibration function.
+
+     
+     @param exp The peak map to calibrate
+     @param ref_ids The reference peptide identifications
+     @param trafo_file_name Output file to store the transformation function
+    */
+    template <typename InputPeakType>
+    void calibrateMapGlobally(MSExperiment<InputPeakType>& exp,
+      const TransformationDescription& trafo)
+    {
+      trafo_ = trafo;
+      applyTransformation_(exp);
+    };
+
+    const TransformationDescription& getTrafo() const
+    {
+      return trafo_;
+    }
 
 protected:
 
@@ -386,39 +413,60 @@ protected:
     template <typename InputPeakType>
     void applyTransformation_(typename MSExperiment<InputPeakType>::SpectrumType& spec)
     {
-      // calibrate only MS1 spectra
-      if (spec.getMSLevel() != 1)
-      {
-        return;
-      }
+      typedef MSExperiment<InputPeakType>::SpectrumType::Iterator SpecIt;
 
-      for (unsigned int peak = 0; peak <  spec.size(); ++peak)
+      // calibrate the spectrum itself
+      for (SpecIt it = spec.begin(); it != spec.end(); ++it)
       {
 #ifdef DEBUG_CALIBRATION
-        std::cout << spec[peak].getMZ() << "\t";
+        std::cout << it->getMZ() << "\t";
 #endif
-        double mz = spec[peak].getMZ();
-        mz = trafo_.apply(mz);
-        spec[peak].setMZ(mz);
-
+        it->setMZ(trafo_.apply(it->getMZ()));
 #ifdef DEBUG_CALIBRATION
-        std::cout << spec[peak].getMZ() << std::endl;
+        std::cout << it->getMZ() << std::endl;
 #endif
-
       }
+
+      // calibrate the precursor mass as well
+      if (!spec.getPrecursors().empty())
+      {
+        for (Size i = 0; i < spec.getPrecursors().size(); ++i)
+        {
+          spec.getPrecursors()[i].setMZ(trafo_.apply(spec.getPrecursors()[i].getMZ()));
+        }
+      }
+
     }
 
     template <typename InputPeakType>
     void applyTransformation_(MSExperiment<InputPeakType>& exp)
     {
+      IntList ms_levels = param_.getValue("ms_levels");
+
+      std::map<int, int> stats;
+
       startProgress(0, exp.size(), "applying calibration to data");
       // apply the calibration function to each peak
-      for (Size spec = 0; spec < exp.size(); ++spec)
+      for (MSExperiment<InputPeakType>::Iterator it = exp.begin(); it != exp.end(); ++it)
       {
-        applyTransformation_<InputPeakType>(exp[spec]);
-        setProgress(spec);
+        if (std::find(ms_levels.begin(), ms_levels.end(), it->getMSLevel()) == ms_levels.end())
+        { // this ms level should not be calibrated
+          --stats[it->getMSLevel()];
+          return;
+        }
+        ++stats[it->getMSLevel()];
+        applyTransformation_<InputPeakType>(*it);
+        setProgress(it - exp.begin());
       }  // for(Size spec=0;spec <  exp.size(); ++spec)
       endProgress();
+
+      // print some stats
+      LOG_INFO << "Calibration statistics by MS level:\n";
+      for (std::map<int, int>::const_iterator it = stats.begin(); it != stats.end(); ++it)
+      {
+        LOG_INFO << "  MS level " << it->first << ": " << std::abs(it->second) << " (" << (it->second < 0 ? "NOT " : "") << "calibrated)\n";
+      }
+      LOG_INFO << std::endl;
 
     }
 
