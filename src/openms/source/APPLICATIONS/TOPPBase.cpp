@@ -472,8 +472,7 @@ namespace OpenMS
           char** argv2 = const_cast<char**>(argv);
           QCoreApplication event_loop(argc, argv2);
           NetworkGetRequest* query = new NetworkGetRequest(&event_loop);
-          query->setHost(QString("http://openms-update.informatik.uni-tuebingen.de"));
-          query->setPath("/check/" + tool_version_string.toQString());
+          query->setUrl(QUrl(QString("http://openms-update.informatik.uni-tuebingen.de/check/") + tool_version_string.toQString()));
           QObject::connect(query, SIGNAL(done()), &event_loop, SLOT(quit()));
           QTimer::singleShot(1000, query, SLOT(run()));
           

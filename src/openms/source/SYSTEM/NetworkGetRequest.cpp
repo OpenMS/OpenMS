@@ -37,6 +37,8 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <QtGui/QTextDocument>
+#include <QtNetwork/QNetworkRequest>
+
 #include <iostream>
 
 // #define QUERY_DEBUG
@@ -48,144 +50,38 @@ namespace OpenMS
   NetworkGetRequest::NetworkGetRequest(QObject* parent) :
     QObject(parent)
   {
-    http_ = new QHttp();
     to_ = 5;
     timeout_.setInterval(1000 * to_);
   }
 
   NetworkGetRequest::~NetworkGetRequest()
   {
-    if (http_->state() != QHttp::Unconnected)
-    {
-#ifdef QUERY_DEBUG
-      std::cerr << "Aborting open connection!\n";
-#endif
-      http_->abort(); // hardcore close connection (otherwise server might have too many dangling requests)
-    }
-    delete http_;
   }
 
   void NetworkGetRequest::timedOut()
   {
-    http_->abort();
   }
 
-  void NetworkGetRequest::setHost(QString host)
+  void NetworkGetRequest::setUrl(QUrl url)
   {
-    host_ = host;
-  }
-
-  void NetworkGetRequest::setPath(QString path)
-  {
-    path_ = path;
+    url_ = url;
   }
 
   void NetworkGetRequest::run()
   {
-    // Due to the asynchronous nature of QHttp::request (and the resulting use
-    // of signals and slots), the information flow in this class is not very
-    // clear. After the initial call to "run", the steps are:
-    // 1. send query
-    // 2. read query result, prepare exporting (function "httpDone")
-
-    http_->setHost(host_.c_str(), 80);
-
-    connect(http_, SIGNAL(requestFinished(int, bool)), this, SLOT(httpRequestFinished(int, bool)));
-    //connect(http_, SIGNAL(requestStarted(int)), this, SLOT(httpRequestStarted(int)));
-    connect(http_, SIGNAL(done(bool)), this, SLOT(httpDone(bool)));
-    connect(http_, SIGNAL(stateChanged(int)), this, SLOT(httpStateChanged(int)));
-    connect(http_, SIGNAL(readyRead(const QHttpResponseHeader &)), this, SLOT(readyReadSlot(const QHttpResponseHeader &)));
-    connect(http_, SIGNAL(responseHeaderReceived(const QHttpResponseHeader &)), this, SLOT(readResponseHeader(const QHttpResponseHeader &)));
-    connect(&timeout_, SIGNAL(timeout()), this, SLOT(timedOut()));
-
-    query();
-  }
-
-  void NetworkGetRequest::query()
-  {
-#ifdef QUERY_DEBUG
-    cerr << "void NetworkGetRequest::getResults()" << "\n";
-#endif
-    QHttpRequestHeader header;
-    header.setRequest("GET", path_);
-    header.setRequest("Host", host_);
-    header.setValue("Accept", "text/plain");
-    header.setValue("Keep-Alive", "300");
-    header.setValue("Connection", "keep-alive");
-
-#ifdef QUERY_DEBUG
-    logHeader_(header, "request results");
-#endif
-
-    http_->request(header);
-  }
-
-  void NetworkGetRequest::httpRequestFinished(int requestId, bool error)
-  {
-    if (error)
-    {
-      cerr << "NetworkGetRequest: An error occurred (requestId=" << requestId << "): " << http_->errorString().toStdString() << " (QT Error Code: " << int(http_->error()) << ")\n";
-    }
-#ifdef QUERY_DEBUG
-    cerr << "Request Finished Id: " << requestId << "\n";
-    cerr << "Error: " << error << "(" << http_->errorString().toStdString() << ")" << "\n";
-#endif
+    QNetworkRequest request;
+    request.setUrl(url_);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "text/plain");
+    QNetworkAccessManager* nam = new QNetworkAccessManager();
+    connect(nam, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
+    QNetworkReply* nr = nam->get(request);
 
   }
 
-  void NetworkGetRequest::httpStateChanged(int
-#ifdef QUERY_DEBUG
-    state
-#endif
-    )
+  void NetworkGetRequest::replyFinished(QNetworkReply* reply)
   {
-#ifdef QUERY_DEBUG
-    switch (state)
-    {
-    case QHttp::Closing:
-      cout << "State change to QHttp::Closing\n";
-      break;
-
-    case QHttp::Unconnected:
-      cout << "State change to QHttp::Unconnected\n";
-      break;
-
-    case QHttp::HostLookup:
-      cout << "State change to QHttp::HostLookup\n";
-      break;
-
-    case QHttp::Sending:
-      cout << "State change to QHttp::Sending\n";
-      break;
-
-    case QHttp::Reading:
-      cout << "State change to QHttp::Reading\n";
-      break;
-
-    case QHttp::Connected:
-      cout << "State change to QHttp::Connected\n";
-      break;
-
-    case QHttp::Connecting:
-      cout << "State change to QHttp::Connecting\n";
-      break;
-    }
-#endif
-  }
-
-  void NetworkGetRequest::readyReadSlot(const QHttpResponseHeader& /* resp */)
-  {
-    if (to_ > 0)
-      timeout_.start(); // reset timeout
-  }
-
-  void NetworkGetRequest::readResponseHeader(const QHttpResponseHeader& response_header)
-  {
-    if (response_header.statusCode() >= 400)
-    {
-      error_message_ = String("NetworkGetRequest: The server returned an error status code '") + response_header.statusCode() + "': " + response_header.reasonPhrase() + "\n";
-      endRun_();
-    }
+    response_bytes_ = reply->readAll();
+    emit done();
   }
 
   QString NetworkGetRequest::getResponse() const
@@ -195,47 +91,7 @@ namespace OpenMS
 
   void NetworkGetRequest::endRun_()
   {
-    if (http_->state() != QHttp::Unconnected)
-    {
-      http_->clearPendingRequests();
-      http_->close();
-    }
     emit done();
-  }
-
-  void NetworkGetRequest::httpDone(bool error)
-  {
-#ifdef QUERY_DEBUG
-    cerr << "void NetworkGetRequest::httpDone(bool error): ";
-    if (error)
-    {
-      cerr << "'" << http_->errorString().toStdString() << "'" << "\n";
-    }
-    else
-    {
-      cerr << "\n";
-    }
-#endif
-
-    timeout_.stop();
-
-    if (error)
-    {
-      error_message_ = String("Server replied: '") + String(http_->errorString().toStdString()) + "'";
-      endRun_();
-      return;
-    }
-
-    QByteArray new_bytes = http_->readAll();
-#ifdef QUERY_DEBUG
-    cerr << "Response of query: " << "\n";
-    QTextDocument doc;
-    doc.setHtml(new_bytes.constData());
-    cerr << doc.toPlainText().toStdString() << "\n";
-#endif
-
-    response_bytes_ = new_bytes;
-    endRun_();
   }
 
   bool NetworkGetRequest::hasError() const

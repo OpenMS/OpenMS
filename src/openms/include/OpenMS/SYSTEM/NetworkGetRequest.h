@@ -41,7 +41,7 @@
 #include <QtNetwork/QHttpRequestHeader>
 #include <QtCore/QTimer>
 #include <QtCore/QUrl>
-
+#include <QtNetwork/QNetworkReply>
 
 namespace OpenMS
 {
@@ -64,12 +64,7 @@ namespace OpenMS
     //@}
 
     // set request parameters
-    OPENMS_DLLAPI void setHost(QString host);
-
-    OPENMS_DLLAPI void setPath(QString path);
-
-    // perform get request
-    OPENMS_DLLAPI void query();
+    OPENMS_DLLAPI void setUrl(QUrl url);
 
     /// returns the response
     OPENMS_DLLAPI QString getResponse() const;
@@ -88,27 +83,9 @@ namespace OpenMS
 
     private slots:
 
+    OPENMS_DLLAPI void replyFinished(QNetworkReply*);
+
     OPENMS_DLLAPI void timedOut();
-
-    OPENMS_DLLAPI void readyReadSlot(const QHttpResponseHeader& resp);
-
-    /** slot connected to signal requestFinished of QHttp: "This signal is emitted
-    when processing the request identified by id has finished. error is true
-    if an error occurred during the processing; otherwise error is false"
-    */
-    OPENMS_DLLAPI void httpRequestFinished(int request_id, bool error);
-
-    /** slot connected to signal stateChanged of QHttp, which is emitted if
-    the http state changed. See 'enum QHttp::State' of Qt docu for more
-    info.
-    */
-    OPENMS_DLLAPI void httpStateChanged(int state);
-
-    /// slot connected to signal done of QHttp
-    OPENMS_DLLAPI void httpDone(bool error);
-
-    /// slot connect to responseHeaderRecieved, which indicates that a new response header is available
-    OPENMS_DLLAPI void readResponseHeader(const QHttpResponseHeader& response_header);
 
   signals:
 
@@ -122,9 +99,7 @@ namespace OpenMS
 
     OPENMS_DLLAPI void endRun_();
     QByteArray response_bytes_;
-    QString host_;
-    QString path_;
-    QHttp* http_;
+    QUrl url_;
     String error_message_;
     QTimer timeout_;
     Int to_;
