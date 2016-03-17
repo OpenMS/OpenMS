@@ -6,6 +6,7 @@ set(sources_list
 File.cpp
 FileWatcher.cpp
 JavaInfo.cpp
+NetworkGetRequest.cpp
 StopWatch.cpp
 SysInfo.cpp
 )

@@ -4,6 +4,7 @@ set(directory include/OpenMS/SYSTEM)
 ### list all MOC filenames of the directory here
 set(sources_list
 FileWatcher.h
+NetworkGetRequest.h
 )
 
 ### add path to the filenames
@@ -24,6 +25,7 @@ source_group("Source Files\\OpenMS\\SYSTEM" FILES ${mocced_sources})
 set(sources_list_h
 File.h
 FileWatcher.h
+NetworkGetRequest.h
 JavaInfo.h
 StopWatch.h
 SysInfo.h

@@ -47,6 +47,7 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
+#include <OpenMS/SYSTEM/NetworkGetRequest.h>
 
 #include <OpenMS/APPLICATIONS/ConsoleUtils.h>
 
@@ -57,7 +58,8 @@
 #include <QCoreApplication>
 #include <QNetworkRequest>
 #include <QNetworkReply>
-#include <QNetworkAccessManager>
+#include <QtNetwork/QNetworkAccessManager>
+#include <QtCore/QTimer>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
@@ -162,12 +164,6 @@ namespace OpenMS
 
   TOPPBase::ExitCodes TOPPBase::main(int argc, const char** argv)
   {
-    // initialize QCoreApplication object early (needed to process network requests)
-    int ncargc = 1;
-    std::vector<char*> ncargv;
-    ncargv.push_back(NULL);
-    QCoreApplication a(ncargc, &(ncargv[0]));
-
     //----------------------------------------------------------
     //parse command line
     //----------------------------------------------------------
@@ -427,6 +423,8 @@ namespace OpenMS
 
       String architecture = QSysInfo::WordSize == 32 ? "32" : "64";
 
+      // write to tmp + userid folder
+
       // e.g.: OpenMS_Default_Win_64_FeatureFinderCentroided_2.0.0
       String tool_version_string;
       tool_version_string = String("OpenMS") + "_" + "Default_" + platform + "_" + architecture + "_" + tool_name_ + "_" + version_;
@@ -467,13 +465,28 @@ namespace OpenMS
 
           LOG_INFO << "The OpenMS team is collecting use statistics for quality control and funding purposes." << endl;
           LOG_INFO << "We will never give out your personal data but you may disable this functionality by setting the environmental variable OPENMS_DISABLE_USEAGE_STATISTICS." << endl;
+          
+          // Usage of a QCoreApplication is overkill here (and ugly too), but we just use the
+          // QEventLoop to process the signals and slots and grab the results afterwards from
+          // the MascotRemotQuery instance
+          char** argv2 = const_cast<char**>(argv);
+          QCoreApplication event_loop(argc, argv2);
+          NetworkGetRequest* query = new NetworkGetRequest(&event_loop);
+          query->setHost(QString("http://openms-update.informatik.uni-tuebingen.de"));
+          query->setPath("/check/" + tool_version_string.toQString());
+          QObject::connect(query, SIGNAL(done()), &event_loop, SLOT(quit()));
+          QTimer::singleShot(1000, query, SLOT(run()));
+          
+          event_loop.exec();
 
-          QNetworkRequest request;
-          request.setUrl(QUrl(QString("http://openms-update.informatik.uni-tuebingen.de/check/") + tool_version_string.toQString()));
-          request.setHeader(QNetworkRequest::ContentTypeHeader, "text/plain");
+          if (!query->hasError())
+          {
+            writeLog_("Connecting to REST server successful. ");
+            cout << "Recieved response: " << query->getResponse() << endl;
 
-          QNetworkAccessManager * manager = new QNetworkAccessManager();
-          QNetworkReply * reply = manager->get(request);
+          }
+          delete query;
+
         }
       }
     }
