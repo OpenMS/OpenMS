@@ -191,6 +191,11 @@ if(ADDRESS_SANITIZER)
 endif()
 
 #------------------------------------------------------------------------------
+# Enable usage statistics
+#------------------------------------------------------------------------------
+option(ENABLE_USAGE_STATISTICS "Enable collection of usage statistics" ON)
+
+#------------------------------------------------------------------------------
 # we build shared libraries
 set(BUILD_SHARED_LIBS true)
 

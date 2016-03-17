@@ -403,7 +403,13 @@ namespace OpenMS
       UniqueIdGenerator::setSeed(19991231235959);
     }
 
-    if (!test_mode_)
+#if ENABLE_USAGE_STATISTICS
+     bool collect_usage_statistics = true;
+#else
+     bool collect_usage_statistics = false;
+#endif
+
+    if (!test_mode_ && collect_usage_statistics)
     {
       // if the revision info is meaningful, show it as well
       String revision("UNKNOWN");
@@ -490,7 +496,6 @@ namespace OpenMS
                 writeLog_("Version " + version_ + " of " + tool_name_ + " is available at www.OpenMS.de");
               }
             }
-            //cout << "Recieved response: " << response << endl;
           }
           else
           {
