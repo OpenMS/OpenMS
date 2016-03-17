@@ -414,8 +414,10 @@ namespace OpenMS
       /*
       1st: iterate over proteinidentification vector
       */
+      //TODO read type of crosslink reagens from settings
+      bool is_ppxl = false;
       for (std::vector<ProteinIdentification>::const_iterator it = cpro_id_->begin(); it != cpro_id_->end(); ++it)
-      {     
+      {
         //~ collect analysissoftware in this loop - does not go into inputelement
         String sof_id;
         String sof_name = String(it->getSearchEngine());
@@ -576,6 +578,13 @@ namespace OpenMS
         }
         sil_2_sdb_.insert(make_pair(sil_id, sdb_id));
 
+        if (it->metaValueExists("is_cross_linking_experiment"))
+        {
+          //TODO ppxl set stage for collecting all xl ids for a pair of spectra (1 PeptideIdentification, 2 PeptideHits)
+          // <UserParam type="int" name="is_cross_linking_experiment" value="1"/>
+          is_ppxl = true;
+        }
+
         for (std::vector<ProteinHit>::const_iterator jt = it->getHits().begin(); jt != it->getHits().end(); ++jt)
         {
           String enid;
@@ -618,6 +627,11 @@ namespace OpenMS
       /*
       2nd: iterate over peptideidentification vector
       */
+      //TODO ppxl - write here "MS:1002511" Cross-linked spectrum identification item linking the other spectrum
+      //          PeptideIdentification repräsentiert xl paar.
+      //          PeptideHit score_type ist dann final score von xQuest_cpp.
+      //          top5 ids -> 5 PeptideIdentification für ein (paar) spectra. SIR with 5 entries and ranks
+      std::map<String, String> ppxl_specref_2_element; //where the SII will get added for one spectrum reference
       std::map<String, std::vector<String> > pep_evis; //maps the sequence to the corresponding evidence elements for the next scope
       for (std::vector<PeptideIdentification>::const_iterator it = cpep_id_->begin(); it != cpep_id_->end(); ++it)
       {
@@ -642,17 +656,30 @@ namespace OpenMS
             sid = String("MZ:") + emz + String("@RT:") + ert;
           }
         }
-        String sidres;
         String sir = "SIR_" + String(UniqueIdGenerator::getUniqueId());
+        String sidres;
         sidres += String("\t\t\t<SpectrumIdentificationResult spectraData_ref=\"")
                 + String(sdat_ids.begin()->second) + String("\" spectrumID=\"")
                 + sid + String("\" id=\"") + sir + String("\"> \n");
+
+        if (is_ppxl)
+        {
+          if (ppxl_specref_2_element.find(sid)==ppxl_specref_2_element.end())
+          {
+            ppxl_specref_2_element[sid] = sidres;
+          }
+        }
         //map.begin access ok here because make sure at least one "UNKOWN" element is in the sdats_ids map
 
+        // ppxl - what about registering those in modifications (internally opposed to userparams)
         for (std::vector<PeptideHit>::const_iterator jt = it->getHits().begin(); jt != it->getHits().end(); ++jt)
         {
           String pepid =  "PEP_" + String(UniqueIdGenerator::getUniqueId());
           String pepi = jt->getSequence().toString();
+          if (it->metaValueExists("xl_type"))
+          {
+            pepi += "_xl";
+          }
           std::map<String, String>::iterator pit = pep_ids.find(pepi);
           if (pit == pep_ids.end())
           {
@@ -726,6 +753,18 @@ namespace OpenMS
                 /* <psi-pi:SubstitutionModification originalResidue="A" replacementResidue="A"/> */
               }
             }
+            if (jt->metaValueExists("xl_chain"))
+            {
+              SignedSize i = jt->getMetaValue("xl_pos");
+              p += "\t\t<Modification location=\"" + String(i + 1);
+              p += "\" residues=\"" + jt->getSequence().getResidue(i).getOneLetterCode();
+              p += "\"> \n\t\t\t<cvParam accession=\"" + jt->getMetaValue("xl_chain");
+              p += "\" name=\"" +  cv_.getTerm(jt->getMetaValue("xl_chain")).name;
+              p += "\" cvRef=\"PSI-MS\"/>"; //N.B. longer one is the donor, equals the heavier, equals, the alphabetical first
+              p += "\n\t\t\t<cvParam accession=\"UNIMOD:1020\" cvRef=\"UNIMOD\" name=\"Xlink:DSS\"/>";
+              //TODO ppxl from where to get if other xl was used
+              p += "\n\t\t</Modification> \n";
+            }
             p += "\t</Peptide> \n ";
             sen_set.insert(p);
             pep_ids.insert(std::make_pair(pepi, pepid));
@@ -737,7 +776,7 @@ namespace OpenMS
 
           std::vector<String> pevid_ids;
           if (pit == pep_ids.end())
-          {        
+          {
             std::vector<PeptideEvidence> peptide_evidences = jt->getPeptideEvidences();
             // TODO idXML allows peptide hits without protein references! Fails in that case - run PeptideIndexer first
             for (std::vector<PeptideEvidence>::const_iterator pe = peptide_evidences.begin(); pe != peptide_evidences.end(); ++pe)
@@ -832,7 +871,8 @@ namespace OpenMS
 
           //write SpectrumIdentificationItem elements
           String sii = "SII_" + String(UniqueIdGenerator::getUniqueId());
-          sidres += String("\t\t\t\t<SpectrumIdentificationItem passThreshold=\"")
+          String sii_tmp;
+          sii_tmp += String("\t\t\t\t<SpectrumIdentificationItem passThreshold=\"")
                   + pte + String("\" rank=\"") + r + String("\" peptide_ref=\"")
                   + pepid + String("\" calculatedMassToCharge=\"") + cmz
                   + String("\" experimentalMassToCharge=\"") + emz
@@ -845,7 +885,7 @@ namespace OpenMS
           }
           for (std::vector<String>::const_iterator pevref = pevid_ids.begin(); pevref != pevid_ids.end(); ++pevref)
           {
-            sidres += "\t\t\t\t\t<PeptideEvidenceRef peptideEvidence_ref=\"" +  String(*pevref) + "\"/> \n";
+            sii_tmp += "\t\t\t\t\t<PeptideEvidenceRef peptideEvidence_ref=\"" +  String(*pevref) + "\"/> \n";
           }
 
           std::set<String> peptide_result_details;
@@ -855,85 +895,141 @@ namespace OpenMS
 
           if (cv_.hasTermWithName(st) && peptide_result_details.find(cv_.getTermByName(st).id) != peptide_result_details.end())
           {
-            sidres +=  "\t\t\t\t\t" + cv_.getTermByName(st).toXMLString(cv_ns, sc);
+            sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName(st).toXMLString(cv_ns, sc);
             copy_jt.removeMetaValue(cv_.getTermByName(st).id);
           }
           else if (cv_.exists(st) && peptide_result_details.find(st) != peptide_result_details.end())
           {
-            sidres +=  "\t\t\t\t\t" + cv_.getTerm(st).toXMLString(cv_ns, sc);
+            sii_tmp +=  "\t\t\t\t\t" + cv_.getTerm(st).toXMLString(cv_ns, sc);
             copy_jt.removeMetaValue(cv_.getTerm(st).id);
           }
           else if (st == "q-value" || st == "FDR")
           {
-            sidres +=  "\t\t\t\t\t" + cv_.getTermByName("PSM-level q-value").toXMLString(cv_ns, sc);
+            sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName("PSM-level q-value").toXMLString(cv_ns, sc);
             copy_jt.removeMetaValue(cv_.getTermByName("PSM-level q-value").id);
           }
           else if (st == "Posterior Error Probability")
           {
-            sidres +=  "\t\t\t\t\t" + cv_.getTermByName("percolator:PEP").toXMLString(cv_ns, sc); // 'percolaror' was not a typo in the code but in the cv.
+            sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName("percolator:PEP").toXMLString(cv_ns, sc); // 'percolaror' was not a typo in the code but in the cv.
             copy_jt.removeMetaValue(cv_.getTermByName("percolator:PEP").id);
           }
           else if (st == "OMSSA")
           {
-            sidres +=  "\t\t\t\t\t" + cv_.getTermByName("OMSSA:evalue").toXMLString(cv_ns, sc);
+            sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName("OMSSA:evalue").toXMLString(cv_ns, sc);
             copy_jt.removeMetaValue(cv_.getTermByName("OMSSA:evalue").id);
           }
           else if (st == "Mascot")
           {
-            sidres +=  "\t\t\t\t\t" + cv_.getTermByName("Mascot:score").toXMLString(cv_ns, sc);
+            sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName("Mascot:score").toXMLString(cv_ns, sc);
             copy_jt.removeMetaValue(cv_.getTermByName("Mascot:score").id);
           }
           else if (st == "XTandem")
           {
-            sidres +=  "\t\t\t\t\t" + cv_.getTermByName("X\\!Tandem:hyperscore").toXMLString(cv_ns, sc);
+            sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName("X\\!Tandem:hyperscore").toXMLString(cv_ns, sc);
             copy_jt.removeMetaValue(cv_.getTermByName("X\\!Tandem:hyperscore").id);
           }
           else if (st == "SEQUEST")
           {
-            sidres +=  "\t\t\t\t\t" + cv_.getTermByName("Sequest:xcorr").toXMLString(cv_ns, sc);
+            sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName("Sequest:xcorr").toXMLString(cv_ns, sc);
             copy_jt.removeMetaValue(cv_.getTermByName("Sequest:xcorr").id);
           }
           else if (st == "MS-GF+")
           {
-            sidres +=  "\t\t\t\t\t" + cv_.getTermByName("MS-GF:RawScore").toXMLString(cv_ns, sc);
+            sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName("MS-GF:RawScore").toXMLString(cv_ns, sc);
             copy_jt.removeMetaValue(cv_.getTermByName("MS-GF:RawScore").id);
           }
           else
           {
-            sidres +=  "\t\t\t\t\t" + cv_.getTermByName("search engine specific score for PSMs").toXMLString(cv_ns, sc);
+            sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName("search engine specific score for PSMs").toXMLString(cv_ns, sc);
             LOG_WARN << "Converting unknown score type to search engine specific score from PSI controlled vocabulary." << std::endl;
           }
-          sidres += "\n";
+          sii_tmp += "\n";
 
           copy_jt.removeMetaValue("calcMZ");
           copy_jt.removeMetaValue("target_decoy");
-          writeMetaInfos_(sidres, copy_jt, 5);
 
-          //~ sidres += "<cvParam accession=\"MS:1000796\" cvRef=\"PSI-MS\" value=\"55.835.842.3.dta\" name=\"spectrum title\"/>";
-          sidres += "\t\t\t\t</SpectrumIdentificationItem>\n";
+          if (is_ppxl)
+          {
+            sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName("Cross-linked spectrum identification item.").toXMLString(cv_ns, jt->getMetaValue("xl_rank"));
+            // ppxl - rank equality means pairing in case of several ids!
+
+            copy_jt.removeMetaValue("xl_type");
+            copy_jt.removeMetaValue("xl_rank");
+          }
+          writeMetaInfos_(sii_tmp, copy_jt, 5);
+
+          sii_tmp += "\t\t\t\t</SpectrumIdentificationItem>\n";
+          if (is_ppxl)
+          {
+            ppxl_specref_2_element[sid] += sii_tmp;
+          }
+          else
+          {
+            sidres += sii_tmp;
+          }
         }
+        // TODO ppxl - write these from PeptideIdentification to SIR element
+        //        <UserParam type="float" name="spec_heavy_RT" value="5204.82"/>
+        //        <UserParam type="float" name="spec_heavy_MZ" value="686.88397217"/>
+        //        <UserParam type="string" name="spectrum_reference_heavy" value="scan=11895"/>
+
         if (!ert.empty() && ert != "nan" && ert != "NaN")
         {
           sidres +=  "\t\t\t\t" + cv_.getTermByName("retention time").toXMLString(cv_ns, ert) + "\n";
         }
-        sidres += "\t\t\t</SpectrumIdentificationResult>\n";
-        std::map<String, String>::const_iterator ps_it = pp_identifier_2_sil_.find(it->getIdentifier());
-        if (ps_it != pp_identifier_2_sil_.end())
+
+        if (!is_ppxl)
         {
-          std::map<String, String>::iterator sil_it = sil_map.find(ps_it->second);
-          if (sil_it != sil_map.end())
+          sidres += "\t\t\t</SpectrumIdentificationResult>\n";
+          std::map<String, String>::const_iterator ps_it = pp_identifier_2_sil_.find(it->getIdentifier());
+          if (ps_it != pp_identifier_2_sil_.end())
           {
-            sil_it->second.append(sidres);
+            std::map<String, String>::iterator sil_it = sil_map.find(ps_it->second);
+            if (sil_it != sil_map.end())
+            {
+              sil_it->second.append(sidres);
+            }
+            else
+            {
+              sil_map.insert(make_pair(ps_it->second,sidres));
+            }
           }
           else
           {
-            sil_map.insert(make_pair(ps_it->second,sidres));
+            //encountered a PeptideIdentification which is not linked to any ProteinIdentification
+            LOG_ERROR << "encountered a PeptideIdentification which is not linked to any ProteinIdentification" << std::endl;
           }
         }
-        else
+
+      }
+      // ppxl - write spectrumidentificationresult closing tags!
+      if (is_ppxl)
+      {
+        for (std::map<String, String>::iterator it = ppxl_specref_2_element.begin(); it != ppxl_specref_2_element.end(); ++it)
         {
-          //encountered a PeptideIdentification which is not linked to any ProteinIdentification
-          LOG_ERROR << "encountered a PeptideIdentification which is not linked to any ProteinIdentification" << std::endl;
+          it->second += "\t\t\t</SpectrumIdentificationResult>\n";
+          //TODO ppxl where to get that identifier, needed if peptideidentifications are from several proteinidentifications
+//          std::map<String, String>::const_iterator ps_it = pp_identifier_2_sil_.find(it->getIdentifier());
+          //TODO ppxl for now just append all to first identifier
+          std::map<String, String>::const_iterator ps_it = pp_identifier_2_sil_.begin();
+
+          if (ps_it != pp_identifier_2_sil_.end())
+          {
+            std::map<String, String>::iterator sil_it = sil_map.find(ps_it->second);
+            if (sil_it != sil_map.end())
+            {
+              sil_it->second.append(it->second);
+            }
+            else
+            {
+              sil_map.insert(make_pair(ps_it->second,it->second));
+            }
+          }
+          else
+          {
+            //encountered a PeptideIdentification which is not linked to any ProteinIdentification
+            LOG_ERROR << "encountered a PeptideIdentification which is not linked to any ProteinIdentification" << std::endl;
+          }
         }
       }
 
