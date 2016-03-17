@@ -466,7 +466,7 @@ namespace OpenMS
       frag_mzdelta.setAccession("MS:1000904");
       frag_mzdelta.setName("product ion m/z delta");
       frag_mzdelta.setValue(std::fabs(Math::roundDecimal(tr.getProductMZ() - pos, round_decPow)));
-      interpretation.addCVTerm(frag_mzdelta);
+      interpretation.replaceCVTerm(frag_mzdelta);
       pos = Math::roundDecimal(pos, round_decPow);
       prec_pos = Math::roundDecimal(prec_pos, round_decPow);
       tr.setProductMZ(pos);
