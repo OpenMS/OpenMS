@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Mathias Walzer $
-// $Authors: Mathias Walzer, Andreas Bertsch $
+// $Authors: Mathias Walzer, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/MzIdentMLHandler.h>
@@ -56,28 +56,6 @@ namespace OpenMS
   namespace Internal
   {
 
-    MzIdentMLHandler::MzIdentMLHandler(const Identification& id, const String& filename, const String& version, const ProgressLogger& logger) :
-      XMLHandler(filename, version),
-      logger_(logger),
-      //~ ms_exp_(0),
-      id_(0),
-      cid_(&id)
-    {
-      cv_.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
-      unimod_.loadFromOBO("PSI-MS", File::find("/CV/unimod.obo"));
-    }
-
-    MzIdentMLHandler::MzIdentMLHandler(Identification& id, const String& filename, const String& version, const ProgressLogger& logger) :
-      XMLHandler(filename, version),
-      logger_(logger),
-      //~ ms_exp_(0),
-      id_(&id),
-      cid_(0)
-    {
-      cv_.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
-      unimod_.loadFromOBO("PSI-MS", File::find("/CV/unimod.obo"));
-    }
-
     MzIdentMLHandler::MzIdentMLHandler(const std::vector<ProteinIdentification>& pro_id, const std::vector<PeptideIdentification>& pep_id, const String& filename, const String& version, const ProgressLogger& logger) :
       XMLHandler(filename, version),
       logger_(logger),
@@ -90,6 +68,7 @@ namespace OpenMS
       cv_.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
       unimod_.loadFromOBO("PSI-MS", File::find("/CV/unimod.obo"));
     }
+
 
     MzIdentMLHandler::MzIdentMLHandler(std::vector<ProteinIdentification>& pro_id, std::vector<PeptideIdentification>& pep_id, const String& filename, const String& version, const ProgressLogger& logger) :
       XMLHandler(filename, version),
@@ -118,9 +97,11 @@ namespace OpenMS
     //~ unimod_.loadFromOBO("PSI-MS",File::find("/CV/unimod.obo"));
     //~ }
 
+
     MzIdentMLHandler::~MzIdentMLHandler()
     {
     }
+
 
     void MzIdentMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
     {
@@ -138,31 +119,27 @@ namespace OpenMS
         return;
       }
 
-      //determine parent tag
+      // determine parent tag
       String parent_tag;
       if (open_tags_.size() > 1)
       {
         parent_tag = *(open_tags_.end() - 2);
       }
-      String parent_parent_tag;
+      String grandparent_tag;
       if (open_tags_.size() > 2)
       {
-        parent_parent_tag = *(open_tags_.end() - 3);
+        grandparent_tag = *(open_tags_.end() - 3);
       }
 
       if (tag_ == "cvParam")
       {
-        static const XMLCh* s_value = xercesc::XMLString::transcode("value");
-        static const XMLCh* s_unit_accession = xercesc::XMLString::transcode("unitAccession");
-        static const XMLCh* s_cv_ref = xercesc::XMLString::transcode("cvRef");
-        //~ static const XMLCh* s_name = xercesc::XMLString::transcode("name");
-        static const XMLCh* s_accession = xercesc::XMLString::transcode("accession");
+        handleCVParam_(grandparent_tag, parent_tag, attributes);
+        return;
+      }
 
-        String value, unit_accession, cv_ref;
-        optionalAttributeAsString_(value, attributes, s_value);
-        optionalAttributeAsString_(unit_accession, attributes, s_unit_accession);
-        optionalAttributeAsString_(cv_ref, attributes, s_cv_ref);
-        handleCVParam_(parent_parent_tag, parent_tag, attributeAsString_(attributes, s_accession), /* attributeAsString_(attributes, s_name), value, */ attributes, cv_ref /*,  unit_accession */);
+      if (tag_ == "userParam")
+      {
+        handleUserParam_(grandparent_tag, parent_tag, attributes);
         return;
       }
 
@@ -172,6 +149,122 @@ namespace OpenMS
         return;
       }
 
+      if (tag_ == "AnalysisSoftware")
+      {
+        AnalysisSoftware as;
+        String id = attributeAsString_(attributes, "id");
+        optionalAttributeAsString_(as.name, attributes, "name");
+        optionalAttributeAsString_(as.version, attributes, "version");
+        optionalAttributeAsString_(as.uri, attributes, "uri");
+        as_map_[id] = as;
+        // @TODO: parse "SoftwareName" and other subelements?
+        return;
+      }
+
+      if (tag_ == "SearchDatabase")
+      {
+        DatabaseInput db;
+        String id = attributeAsString_(attributes, "id");
+        db.location = attributeAsString_(attributes, "location");
+        // @TODO: parse release date
+        // String release_date;
+        // optionalAttributeAsString_(release_date, attributes, "releaseDate");
+        optionalAttributeAsString_(db.version, attributes, "version");
+        db_map_[id] = db;
+        previous_id_ = id;
+        return;
+      }
+
+      if (tag_ == "SpectraData")
+      {
+        sd_map_[attributeAsString_(attributes, "id")] =
+          attributeAsString_(attributes, "location");
+        return;
+      }
+
+      if (tag_ == "SourceFile")
+      {
+        sf_map_[attributeAsString_(attributes, "id")] =
+          attributeAsString_(attributes, "location");
+        return;
+      }
+      
+      if (tag_ == "SpectrumIdentification")
+      {
+        SpectrumIdentification si;
+        String id = attributeAsString_(attributes, "id");
+        si.protocol_ref =
+          attributeAsString_(attributes, "spectrumIdentificationProtocol_ref");
+        si.list_ref = attributeAsString_(attributes,
+                                         "spectrumIdentificationList_ref");
+        ProteinIdentification pro;
+        pro.setIdentifier(UniqueIdGenerator::getUniqueId());
+        String date;
+        optionalAttributeAsString_(date, attributes, "activityDate");
+        if (!date.empty())
+        {
+          DateTime dt;
+          dt.set(date);
+          pro.setDateTime(dt);
+        }
+        else
+        {
+          pro.setDateTime(DateTime::now());
+        }
+        pro_id_->push_back(pro);
+        si.pro_index = pro_id_->size() - 1;
+        si_map_[id] = si;
+        previous_id_ = id;
+        return;
+      }
+
+      if (tag_ == "InputSpectra") // parent: SpectrumIdentification
+      {
+        String data_ref = attributeAsString_(attributes, "spectraData_ref");
+        si_map_[previous_id_].spectra_data_refs.push_back(data_ref);
+        return;
+      }
+
+      if (tag_ == "SearchDatabaseRef") // parent: SpectrumIdentification
+      {
+        String db_ref = attributeAsString_(attributes, "searchDatabase_ref");
+        si_map_[previous_id_].search_database_refs.push_back(db_ref);
+        return;
+      }
+
+      if (tag_ == "SpectrumIdentificationProtocol")
+      {
+        SpectrumIdentificationProtocol sp;
+        sp.psm_threshold = sp.protein_threshold = 0;
+        String id = attributeAsString_(attributes, "id");
+        sp.software_ref = attributeAsString_(attributes,
+                                             "analysisSoftware_ref");
+        sp_map_[id] = sp;
+        previous_id_ = id;
+      }
+
+      // parent: ModificationParams, grandparent: SpectrumIdentificationProtocol
+      if (tag_ == "SearchModification")
+      {
+        String fixed = attributeAsString_(attributes, "fixedMod");
+        String residues = attributeAsString_(attributes, "residues");
+        mod_info_ = make_pair(fixed == "true", residues);
+        return;
+      }
+
+      // parent: Enzymes, grandparent: SpectrumIdentificationProtocol
+      if (tag_ == "Enzyme")
+      {
+        // @TODO: what if there are multiple enzymes specified?
+        ProteinIdentification::SearchParameters& search_params =
+          sp_map_[previous_id_].search_params;
+        optionalAttributeAsUInt_(search_params.missed_cleavages, attributes,
+                                 "missedCleavages");
+        // @TODO: store other attributes in meta values?
+      }
+
+      
+      
       if (tag_ == "Peptide")
       {
         // start new peptide
@@ -227,37 +320,37 @@ namespace OpenMS
       {
         //  <SpectrumIdentificationItem id="SII_1_1"  calculatedMassToCharge="670.86261" chargeState="2" experimentalMassToCharge="671.9" Peptide_ref="peptide_1_1" rank="1" passThreshold="true">
         // required attributes
-        current_id_hit_.setId((attributeAsString_(attributes, "id")));
-        current_id_hit_.setPassThreshold(asBool_(attributeAsString_(attributes, "passThreshold")));
-        current_id_hit_.setRank(attributeAsInt_(attributes, "rank"));
+        // current_id_hit_.setId((attributeAsString_(attributes, "id")));
+        // current_id_hit_.setPassThreshold(asBool_(attributeAsString_(attributes, "passThreshold")));
+        // current_id_hit_.setRank(attributeAsInt_(attributes, "rank"));
 
         // optional attributes
         double double_value(0);
         if (optionalAttributeAsDouble_(double_value, attributes, "calculatedMassToCharge"))
         {
-          current_id_hit_.setCalculatedMassToCharge(double_value);
+          // current_id_hit_.setCalculatedMassToCharge(double_value);
         }
 
         Int int_value(0);
         if (optionalAttributeAsInt_(int_value, attributes, "chargeState"))
         {
-          current_id_hit_.setCharge(int_value);
+          // current_id_hit_.setCharge(int_value);
         }
 
         if (optionalAttributeAsDouble_(double_value, attributes, "experimentalMassToCharge"))
         {
-          current_id_hit_.setExperimentalMassToCharge(double_value);
+          // current_id_hit_.setExperimentalMassToCharge(double_value);
         }
 
         if (optionalAttributeAsDouble_(double_value, attributes, "calculatedMassToCharge"))
         {
-          current_id_hit_.setCalculatedMassToCharge(double_value);
+          // current_id_hit_.setCalculatedMassToCharge(double_value);
         }
 
         String string_value("");
         if (optionalAttributeAsString_(string_value, attributes, "name"))
         {
-          current_id_hit_.setName(string_value);
+          // current_id_hit_.setName(string_value);
         }
 
         // TODO PeptideEvidence, pf:cvParam, pf:userParam, Fragmentation
@@ -266,6 +359,7 @@ namespace OpenMS
       }
       error(LOAD, "MzIdentMLHandler::startElement: Unkown element found: '" + tag_ + "' in tag '" + parent_tag + "', ignoring.");
     }
+
 
     void MzIdentMLHandler::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
     {
@@ -293,6 +387,7 @@ namespace OpenMS
       //error(LOAD, "MzIdentMLHandler::characters: Unkown character section found: '" + tag_ + "', ignoring.");
     }
 
+
     void MzIdentMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
     {
       static set<String> to_ignore;
@@ -309,7 +404,7 @@ namespace OpenMS
       {
         return;
       }
-
+      
       if (tag_ == "DataCollection")
       {
         return;
@@ -337,17 +432,20 @@ namespace OpenMS
 
       if (tag_ == "SpectrumIdentificationItem")
       {
-        current_spectrum_id_.addHit(current_id_hit_);
-        current_id_hit_ = IdentificationHit();
+        // current_spectrum_id_.addHit(current_id_hit_);
+        // current_id_hit_ = IdentificationHit();
         return;
       }
       error(LOAD, "MzIdentMLHandler::endElement: Unkown element found: '" + tag_ + "', ignoring.");
     }
 
-    void MzIdentMLHandler::handleCVParam_(const String& /* parent_parent_tag*/, const String& parent_tag, const String& accession, /* const String& name, */ /* const String& value, */ const xercesc::Attributes& attributes, const String& cv_ref /* , const String& unit_accession */)
+
+    void MzIdentMLHandler::handleCVParam_(const String& grandparent_tag, const String& parent_tag, const xercesc::Attributes& attributes)
     {
       if (parent_tag == "Modification")
       {
+        String cv_ref;
+        optionalAttributeAsString_(cv_ref, attributes, "cvRef");
         if (cv_ref == "UNIMOD")
         {
           //void ModificationsDB::searchModifications(set<const ResidueModification*>& mods, const String& origin, const String& name, ResidueModification::Term_Specificity term_spec) const
@@ -355,6 +453,7 @@ namespace OpenMS
           Int loc = numeric_limits<Size>::max();
           if (optionalAttributeAsInt_(loc, attributes, "location"))
           {
+            String accession = attributeAsString_(attributes, "accession");
             String uni_mod_id = accession.suffix(':');
             // TODO handle ambiguous residues
             String residues;
@@ -380,9 +479,257 @@ namespace OpenMS
             warning(LOAD, "location of modification not defined!");
           }
         }
+        return;
+      }
+
+      if (parent_tag == "DatabaseName") // grandparent: SearchDatabase
+      {
+        optionalAttributeAsString_(db_map_[previous_id_].name, attributes,
+                                   "value");
+        return;
+      }
+
+      // information not represented in OpenMS:
+      // if (parent_tag == "SearchType")
+      // {
+      //   return;
+      // }
+
+      if (parent_tag == "AdditionalSearchParameters")
+      {
+        add_search_params_.first.addCVTerm(makeCVTerm_(attributes));
+        return;
+      }
+
+      if (parent_tag == "SearchModification")
+      {
+        String name = attributeAsString_(attributes, "name");
+        // @TODO: does the following work for terminal mods, too?
+        if (mod_info_.second != ".")
+        {
+          name = name + " (" + mod_info_.second + ")";
+        }
+        if (mod_info_.first)
+        {
+          sp_map_[previous_id_].search_params.fixed_modifications.push_back(
+            name);
+        }
+        else
+        {
+          sp_map_[previous_id_].search_params.variable_modifications.push_back(
+            name);
+        }
+        return;
+      }
+
+      if (parent_tag == "Enzyme")
+      {
+        String enzyme_name = attributeAsString_(attributes, "name");
+        enzyme_name.toLower();
+        try
+        {
+          sp_map_[previous_id_].search_params.digestion_enzyme =
+            *(EnzymesDB::getInstance()->getEnzyme(enzyme_name));
+        }
+        catch (Exception::ElementNotFound)
+        {
+          String msg =
+            "Error: No enzyme with name '" + enzyme_name + "' defined";
+          LOG_ERROR << msg << endl;
+        }
+        return;
+      }
+      
+      if (parent_tag == "FragmentTolerance")
+      {
+        double value = attributeAsDouble_(attributes, "value");
+        ProteinIdentification::SearchParameters& search_params =
+          sp_map_[previous_id_].search_params;
+        if (value > search_params.fragment_mass_tolerance)
+        {
+          search_params.fragment_mass_tolerance = value;
+          String unit = attributeAsString_(attributes, "unitName");
+          if (unit == "parts per million")
+          {
+            search_params.fragment_mass_tolerance_ppm = true;
+          }
+          else if (unit == "percent") // is this allowed?
+          {
+            search_params.fragment_mass_tolerance *= 10000;
+            search_params.fragment_mass_tolerance_ppm = true;
+          }
+        }
+        return;
+      }
+
+      if (parent_tag == "ParentTolerance")
+      {
+        double value = attributeAsDouble_(attributes, "value");
+        ProteinIdentification::SearchParameters& search_params =
+          sp_map_[previous_id_].search_params;
+        if (value > search_params.precursor_tolerance)
+        {
+          search_params.precursor_tolerance = value;
+          String unit = attributeAsString_(attributes, "unitName");
+          if (unit == "parts per million")
+          {
+            search_params.precursor_mass_tolerance_ppm = true;
+          }
+          else if (unit == "percent") // is this allowed?
+          {
+            search_params.precursor_tolerance *= 10000;
+            search_params.precursor_mass_tolerance_ppm = true;
+          }
+        }
+        return;
+      }
+
+      if (parent_tag == "Threshold")
+      {
+        String name = attributeAsString_(attributes, "name");
+        if (name == "PSM-level statistical threshold")
+        {
+          sp_map_[previous_id_].psm_threshold = attributeAsDouble_(attributes,
+                                                                   "value");
+        }
+        else if (name == "protein-level statistical threshold")
+        {
+          sp_map_[previous_id_].protein_threshold =
+            attributeAsDouble_(attributes, "value");
+        }
+        // other types of thresholds can't be represented in OpenMS
+        return;
       }
     }
 
+
+    void MzIdentMLHandler::handleUserParam_(const String& grandparent_tag, const String& parent_tag, const xercesc::Attributes& attributes)
+    {
+      if (parent_tag == "DatabaseName")
+      {
+        db_map_[previous_id_].name = attributeAsString_(attributes, "name");
+        return;
+      }
+
+      // information not represented in OpenMS:
+      // if (parent_tag == "SearchType")
+      // {
+      //   return;
+      // }
+
+      if (parent_tag == "AdditionalSearchParameters")
+      {
+        pair<String, DataValue> user_term = makeUserTerm_(attributes);
+        add_search_params_.second[user_term.first] = user_term.second;
+      }
+
+      if (parent_tag == "Enzyme")
+      {
+        String enzyme_name;
+        optionalAttributeAsString_(enzyme_name, attributes, "value");
+        if (enzyme_name.empty())
+        {
+          enzyme_name = attributeAsString_(attributes, "name");
+        }
+        enzyme_name.toLower();
+        try
+        {
+          sp_map_[previous_id_].search_params.digestion_enzyme =
+            *(EnzymesDB::getInstance()->getEnzyme(enzyme_name));
+        }
+        catch (Exception::ElementNotFound)
+        {
+          String msg =
+            "Error: No enzyme with name '" + enzyme_name + "' defined";
+          LOG_ERROR << msg << endl;
+        }
+        return;
+      }
+
+      // can't use thresholds from userParams because we don't know if they
+      // apply to peptides or to proteins:
+      // if (parent_tag == "Threshold")
+      // {
+      //   return;
+      // }
+
+    }
+
+    
+    CVTerm MzIdentMLHandler::makeCVTerm_(const xercesc::Attributes& attributes,
+                                         bool no_unit)
+    {
+      CVTerm cv;
+      cv.setAccession(attributeAsString_(attributes, "accession"));
+      cv.setName(attributeAsString_(attributes, "name"));
+      String value, cv_ref;
+      optionalAttributeAsString_(value, attributes, "value");
+      cv.setValue(value);
+      optionalAttributeAsString_(cv_ref, attributes, "cvRef");
+      cv.setCVIdentifierRef(cv_ref);
+      if (!no_unit)
+      {
+        String unit_acc, unit_name, unit_cv_ref;
+        optionalAttributeAsString_(unit_acc, attributes, "unitAccession");
+        optionalAttributeAsString_(unit_name, attributes, "unitName");
+        optionalAttributeAsString_(unit_cv_ref, attributes, "unitCvRef");
+        // @TODO: is this check necessary?
+        if (!(unit_acc.empty() && unit_cv_ref.empty() && unit_name.empty()))
+        {
+          CVTerm::Unit unit(unit_acc, unit_cv_ref, unit_name);
+          cv.setUnit(unit);
+        }
+      }
+      return cv;
+    }
+
+
+    pair<String, DataValue> MzIdentMLHandler::makeUserTerm_(
+      const xercesc::Attributes& attributes, bool no_unit)
+    {
+      String name = attributeAsString_(attributes, "name");
+      String type, value;
+      optionalAttributeAsString_(type, attributes, "type");
+      optionalAttributeAsString_(value, attributes, "value");
+      DataValue dv = value;
+      try
+      {
+        if ((type == "xsd:float") || (type == "xsd:double"))
+        {
+          dv = value.toDouble();
+        }
+        else if ((type == "xsd:int") || (type == "xsd:unsignedInt"))
+        {
+          dv = value.toInt();
+        }
+      }
+      catch (Exception::ConversionError& ce)
+      {
+        LOG_ERROR << "Error parsing userParam: " + String(ce.getMessage())
+                  << endl;
+      }      
+      if (!no_unit)
+      {
+        String unit_acc, unit_name; // "unitCVRef" is not used
+        optionalAttributeAsString_(unit_acc, attributes, "unitAccession");
+        optionalAttributeAsString_(unit_name, attributes, "unitName");
+        if (!unit_acc.empty() && !unit_name.empty())
+        {
+          dv.setUnit(unit_acc + ":" + unit_name);
+        }
+        else if (!unit_acc.empty())
+        {
+          dv.setUnit(unit_acc);
+        }
+        else if (!unit_name.empty())
+        {
+          dv.setUnit(unit_name);          
+        }
+      }
+      return make_pair(name, dv);
+    }
+    
+    
     void MzIdentMLHandler::writeTo(std::ostream& os)
     {
       String cv_ns = cv_.name();
@@ -946,9 +1293,9 @@ namespace OpenMS
         }
       }
 
-      //--------------------------------------------------------------------------------------------
+      //------------------------------------------------------------------------
       // XML header
-      //--------------------------------------------------------------------------------------------
+      //------------------------------------------------------------------------
       os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
          << "<MzIdentML xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n"
          << "\txsi:schemaLocation=\"http://psidev.info/psi/pi/mzIdentML/1.1 http://psi-pi.googlecode.com/svn/trunk/schema/mzIdentML1.1.0.xsd\"\n"
@@ -957,14 +1304,14 @@ namespace OpenMS
          << "\tid=\"OpenMS_" << String(UniqueIdGenerator::getUniqueId()) << "\"\n"
          << "\tcreationDate=\"" << DateTime::now().getDate() << "T" << DateTime::now().getTime() << "\">\n";
 
-      //--------------------------------------------------------------------------------------------
+      //------------------------------------------------------------------------
       // CV list
-      //--------------------------------------------------------------------------------------------
+      //------------------------------------------------------------------------
       os << "<cvList> \n \t<cv id=\"PSI-MS\" fullName=\"Proteomics Standards Initiative Mass Spectrometry Vocabularies\"  uri=\"http://psidev.cvs.sourceforge.net/viewvc/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo\" version=\"3.15.0\"></cv> \n \t<cv id=\"UNIMOD\" fullName=\"UNIMOD\"        uri=\"http://www.unimod.org/obo/unimod.obo\"></cv> \n \t<cv id=\"UO\"     fullName=\"UNIT-ONTOLOGY\" uri=\"http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/unit.obo\"></cv>\n</cvList>\n";
 
-      //--------------------------------------------------------------------------------------------
+      //------------------------------------------------------------------------
       // AnalysisSoftwareList
-      //--------------------------------------------------------------------------------------------
+      //------------------------------------------------------------------------
       os << "<AnalysisSoftwareList>\n";
       for (std::set<String>::const_iterator sof = sof_set.begin(); sof != sof_set.end(); ++sof)
       {
@@ -979,9 +1326,9 @@ namespace OpenMS
       }
       os << "</AnalysisSoftwareList>\n";
 
-      //--------------------------------------------------------------------------------------------
+      //------------------------------------------------------------------------
       // SequenceCollection
-      //--------------------------------------------------------------------------------------------
+      //------------------------------------------------------------------------
       os << "<SequenceCollection>\n";
       for (std::set<String>::const_iterator sen = sen_set.begin(); sen != sen_set.end(); ++sen)
       {
@@ -989,11 +1336,11 @@ namespace OpenMS
       }
       os << "</SequenceCollection>\n";
 
-      //--------------------------------------------------------------------------------------------
+      //------------------------------------------------------------------------
       // AnalysisCollection:
       // + SpectrumIdentification
       // TODO ProteinDetection
-      //--------------------------------------------------------------------------------------------
+      //------------------------------------------------------------------------
       os << "<AnalysisCollection>\n";
       for (std::map<String,String>::const_iterator pp2sil_it = pp_identifier_2_sil_.begin(); pp2sil_it != pp_identifier_2_sil_.end(); ++pp2sil_it)
       {
@@ -1008,10 +1355,10 @@ namespace OpenMS
       }
       os << "</AnalysisCollection>\n";
 
-      //--------------------------------------------------------------------------------------------
+      //------------------------------------------------------------------------
       // AnalysisProtocolCollection
       //+ SpectrumIdentificationProtocol + SearchType + Threshold
-      //--------------------------------------------------------------------------------------------
+      //------------------------------------------------------------------------
       os << "<AnalysisProtocolCollection>\n";
       for (std::set<String>::const_iterator sip = sip_set.begin(); sip != sip_set.end(); ++sip)
       {
@@ -1019,11 +1366,11 @@ namespace OpenMS
       }
       os << "</AnalysisProtocolCollection>\n";
 
-      //--------------------------------------------------------------------------------------------
+      //------------------------------------------------------------------------
       // DataCollection
       //+Inputs
       //+AnalysisData
-      //--------------------------------------------------------------------------------------------
+      //------------------------------------------------------------------------
       os << "<DataCollection>\n"
          << inputs_element;
       os << "\t<AnalysisData>\n";
@@ -1041,12 +1388,13 @@ namespace OpenMS
       }
       os << "\t</AnalysisData>\n</DataCollection>\n";
 
-      //--------------------------------------------------------------------------------------------
+      //------------------------------------------------------------------------
       // close XML header
-      //--------------------------------------------------------------------------------------------
+      //------------------------------------------------------------------------
       os << "</MzIdentML>";
 
     }
+
 
     void MzIdentMLHandler::writeMetaInfos_(String& s, const MetaInfoInterface& meta, UInt indent) const
     {
@@ -1088,6 +1436,7 @@ namespace OpenMS
       }
     }
 
+
     void MzIdentMLHandler::writeEnzyme_(String& s, Enzyme enzy, UInt miss, UInt indent) const
     {
       String cv_ns = cv_.name();
@@ -1111,6 +1460,7 @@ namespace OpenMS
       s += String(indent, '\t') + '\t' + "</Enzyme>" + "\n";
       s += String(indent, '\t') + "</Enzymes>" + "\n";
     }
+
 
     void MzIdentMLHandler::writeModParam_(String& s, const std::vector<String>& fixed, const std::vector<String>& variable, UInt indent) const
     {

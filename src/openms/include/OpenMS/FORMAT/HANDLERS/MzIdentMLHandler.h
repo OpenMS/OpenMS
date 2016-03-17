@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Mathias Walzer $
-// $Authors: Mathias Walzer, Andreas Bertsch $
+// $Authors: Mathias Walzer, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_HANDLERS_MZIDENTMLHANDLER_H
@@ -39,11 +39,8 @@
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
-#include <OpenMS/METADATA/IdentificationHit.h>
-#include <OpenMS/METADATA/Identification.h>
-#include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/CHEMISTRY/Enzyme.h>
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
@@ -70,16 +67,12 @@ namespace OpenMS
     class OPENMS_DLLAPI MzIdentMLHandler :
       public XMLHandler
     {
-public:
+public:      
       /**@name Constructors and destructor */
       //@{
-      /// Constructor for a write-only handler
-      MzIdentMLHandler(const Identification& id, const String& filename, const String& version, const ProgressLogger& logger);
       /// Constructor for a write-only handler for internal identification structures
       MzIdentMLHandler(const std::vector<ProteinIdentification>& pro_id, const std::vector<PeptideIdentification>& pep_id, const String& filename, const String& version, const ProgressLogger& logger);
 
-      /// Constructor for a read-only handler
-      MzIdentMLHandler(Identification& id, const String& filename, const String& version, const ProgressLogger& logger);
       /// Constructor for a read-only handler for internal identification structures
       MzIdentMLHandler(std::vector<ProteinIdentification>& pro_id, std::vector<PeptideIdentification>& pep_id, const String& filename, const String& version, const ProgressLogger& logger);
 
@@ -114,29 +107,26 @@ protected:
       ///XML tag parse element
       String tag_;
 
-      ///Identification Item
-      Identification* id_;
       ///internal Identification Item for proteins
       std::vector<ProteinIdentification>* pro_id_;
       ///Identification Item for peptides
       std::vector<PeptideIdentification>* pep_id_;
 
-      const Identification* cid_;
       const std::vector<ProteinIdentification>* cpro_id_;
       const std::vector<PeptideIdentification>* cpep_id_;
 
-      ///SpectrumIdentification Item
-      SpectrumIdentification current_spectrum_id_;
-
-      ///IdentificationHit Item
-      IdentificationHit current_id_hit_;
-
       /// Handles CV terms
-      void handleCVParam_(const String& parent_parent_tag, const String& parent_tag, const String& accession, /* const String& name, */ /* const String& value, */ const xercesc::Attributes& attributes, const String& cv_ref /* ,  const String& unit_accession="" */);
+      void handleCVParam_(const String& grandparent_tag, const String& parent_tag, const xercesc::Attributes& attributes);
 
       /// Handles user terms
-      void handleUserParam_(const String& parent_parent_tag, const String& parent_tag, const String& name, const String& type, const String& value);
+      void handleUserParam_(const String& grandparent_tag, const String& parent_tag, const xercesc::Attributes& attributes);
 
+      /// Creates a CV term based on XML attributes
+      CVTerm makeCVTerm_(const xercesc::Attributes& attributes, bool no_unit = false);
+
+      /// Creates a representation of a userParam based on XML attributes
+      std::pair<String, DataValue> makeUserTerm_(const xercesc::Attributes& attributes, bool no_unit = false);
+        
       /// Writes user terms
       void writeMetaInfos_(String& s, const MetaInfoInterface& meta, UInt indent) const;
 
@@ -153,6 +143,49 @@ protected:
       void writeModParam_(String& s, const std::vector<String>& fixed, const std::vector<String>& variable, UInt indent) const;
 
 private:
+      // @TODO: unify structs with MzIdentMLDOMHandler
+      struct AnalysisSoftware
+      {
+        String name;
+        String version;
+        String uri;
+      };
+
+      struct DatabaseInput
+      {
+        String name;
+        String location;
+        String version;
+        DateTime date;
+      };
+
+      struct SpectrumIdentification
+      {
+        String protocol_ref;
+        String list_ref;
+        std::vector<String> spectra_data_refs;
+        std::vector<String> search_database_refs;
+        Size pro_index; // index of corresponding ProteinIdentification
+      };
+      
+      struct SpectrumIdentificationProtocol
+      {
+        String software_ref;
+        // CVTerm search_type; // information not represented in OpenMS
+        ProteinIdentification::SearchParameters search_params;
+        double psm_threshold; // signif. threshold for PeptideIdentification
+        double protein_threshold; // signif. threshold for ProteinIdentification
+        
+
+        CVTermList parameter_cvs;
+        std::map<String, DataValue> parameter_ups;
+        // CVTermList modification_parameter;
+        long double precursor_tolerance;
+        long double fragment_tolerance;
+        CVTermList threshold_cvs;
+        std::map<String, DataValue> threshold_ups;
+      };
+
       MzIdentMLHandler();
       MzIdentMLHandler(const MzIdentMLHandler& rhs);
       MzIdentMLHandler& operator=(const MzIdentMLHandler& rhs);
@@ -164,6 +197,16 @@ private:
       AASequence actual_peptide_;
       Int current_mod_location_;
       ProteinHit actual_protein_;
+      String previous_id_; // ID of the previous element (where applicable)
+
+      std::map<String, AnalysisSoftware> as_map_; //mapping AnalysisSoftware id -> AnalysisSoftware
+      std::map<String, DatabaseInput> db_map_; //mapping database id -> DatabaseInput
+      std::map<String, String> sf_map_; //mapping sourcefile id -> sourcefile location
+      std::map<String, String> sd_map_; //mapping spectradata id -> spectradata location
+      std::map<String, SpectrumIdentification> si_map_; //mapping SpectrumIdentification id -> SpectrumIdentification (id refs)
+      std::map<String, SpectrumIdentificationProtocol> sp_map_; //mapping SpectrumIdentificationProtocol id -> SpectrumIdentificationProtocol
+      std::pair<CVTermList, std::map<String, DataValue> > add_search_params_; // element "AdditionalSearchParams"
+      std::pair<bool, String> mod_info_; // details of last mod: fixed?, residues
 
     };
   } // namespace Internal
