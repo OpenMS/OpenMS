@@ -10,7 +10,7 @@
 				<xs:element name="SearchParameters" type="SearchParametersType" minOccurs="0" maxOccurs="unbounded"/>
 				<xs:element name="IdentificationRun" maxOccurs="unbounded">
 					<xs:annotation>
-						<xs:documentation>One identification run. It can contain peptide and protein identifications</xs:documentation>
+						<xs:documentation>One identification run. It can contain peptide, protein, and compound identifications</xs:documentation>
 					</xs:annotation>
 					<xs:complexType>
 						<xs:sequence>
@@ -100,6 +100,26 @@
 					</xs:attribute>
 				</xs:complexType>
 			</xs:element>
+			<xs:element name="Adducts" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>allowed adducts for the compound search</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:sequence minOccurs="0">
+						<xs:element name="UserParam" type="UserParam" minOccurs="0" maxOccurs="unbounded"/>
+					</xs:sequence>
+					<xs:attribute name="name" use="required">
+						<xs:annotation>
+							<xs:documentation>modification name</xs:documentation>
+						</xs:annotation>
+						<xs:simpleType>
+							<xs:restriction base="xs:string">
+								<xs:minLength value="1"/>
+							</xs:restriction>
+						</xs:simpleType>
+					</xs:attribute>
+				</xs:complexType>
+			</xs:element>
 			<xs:element name="UserParam" type="UserParam" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
 		<xs:attribute name="id" type="xs:ID" use="required">
@@ -109,7 +129,7 @@
 		</xs:attribute>
 		<xs:attribute name="db" type="xs:string" use="required">
 			<xs:annotation>
-				<xs:documentation>protein sequence database name</xs:documentation>
+				<xs:documentation>database name</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
 		<xs:attribute name="db_version" type="xs:string" use="required">
@@ -228,7 +248,7 @@
 			</xs:sequence>
 			<xs:attribute name="score_type" type="xs:string" use="required">
 				<xs:annotation>
-					<xs:documentation>score type of the protein hits, e.g. MOWSE, p-value,...</xs:documentation>
+					<xs:documentation>score type of the compound hits, e.g. MOWSE, p-value,...</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
 			<xs:attribute name="higher_score_better" type="xs:boolean" use="required">
@@ -250,7 +270,7 @@
 					<xs:documentation>'id' of the compound hit. Is referenced by small molecule hits.</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
-			<xs:attribute name="accession" type="xs:string" use="required">
+			<xs:attribute name="identifier" type="xs:string" use="required">
 				<xs:annotation>
 					<xs:documentation>accession of the compound in the database.</xs:documentation>
 				</xs:annotation>
@@ -260,9 +280,9 @@
 					<xs:documentation>score of the hit</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
-			<xs:attribute name="mass" type="xs:float">
+			<xs:attribute name="theoretical_mass" type="xs:float">
 				<xs:annotation>
-					<xs:documentation>(uncharged, theoretical) mass of the compound</xs:documentation>
+					<xs:documentation>uncharged, theoretical mass of the compound</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
 			<xs:attribute name="formula" type="xs:string">
@@ -275,7 +295,7 @@
 					<xs:documentation>smiles notation</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
-			<xs:attribute name="inchi" type="xs:string">
+			<xs:attribute name="inchi_key" type="xs:string">
 				<xs:annotation>
 					<xs:documentation>inchi key</xs:documentation>
 				</xs:annotation>
