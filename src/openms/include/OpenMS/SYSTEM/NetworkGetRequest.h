@@ -73,7 +73,7 @@ namespace OpenMS
     OPENMS_DLLAPI bool hasError() const;
 
     /// returns the error message, if hasError can be used to check whether an error has occurred
-    OPENMS_DLLAPI const String& getErrorMessage() const;
+    OPENMS_DLLAPI QString getErrorString() const;
 
   protected:
 
@@ -85,8 +85,6 @@ namespace OpenMS
 
     OPENMS_DLLAPI void replyFinished(QNetworkReply*);
 
-    OPENMS_DLLAPI void timedOut();
-
   signals:
 
     OPENMS_DLLAPI void done();
@@ -97,12 +95,10 @@ namespace OpenMS
     /// copy constructor
     OPENMS_DLLAPI NetworkGetRequest(const NetworkGetRequest& rhs);
 
-    OPENMS_DLLAPI void endRun_();
     QByteArray response_bytes_;
     QUrl url_;
-    String error_message_;
-    QTimer timeout_;
-    Int to_;
+    QNetworkReply::NetworkError error_;
+    QString error_string_;
   };
 }
 

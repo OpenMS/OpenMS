@@ -41,7 +41,6 @@
 
 #include <iostream>
 
-// #define QUERY_DEBUG
 using namespace std;
 
 namespace OpenMS
@@ -50,15 +49,9 @@ namespace OpenMS
   NetworkGetRequest::NetworkGetRequest(QObject* parent) :
     QObject(parent)
   {
-    to_ = 5;
-    timeout_.setInterval(1000 * to_);
   }
 
   NetworkGetRequest::~NetworkGetRequest()
-  {
-  }
-
-  void NetworkGetRequest::timedOut()
   {
   }
 
@@ -69,18 +62,22 @@ namespace OpenMS
 
   void NetworkGetRequest::run()
   {
+    error_ = QNetworkReply::NoError;
+    error_string_ = "";
     QNetworkRequest request;
     request.setUrl(url_);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "text/plain");
     QNetworkAccessManager* nam = new QNetworkAccessManager();
     connect(nam, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
     QNetworkReply* nr = nam->get(request);
-
   }
 
   void NetworkGetRequest::replyFinished(QNetworkReply* reply)
   {
-    response_bytes_ = reply->readAll();
+    error_ = reply->error();
+    error_string_ = error_ != QNetworkReply::NoError ? reply->errorString() : "";
+    response_bytes_ = reply->readAll(); // in case of error this will just read the error html from the server
+    reply->close();
     emit done();
   }
 
@@ -89,19 +86,14 @@ namespace OpenMS
     return QString(response_bytes_);
   }
 
-  void NetworkGetRequest::endRun_()
-  {
-    emit done();
-  }
-
   bool NetworkGetRequest::hasError() const
   {
-    return error_message_ != "";
+    return error_ != QNetworkReply::NoError;
   }
 
-  const String& NetworkGetRequest::getErrorMessage() const
+  QString NetworkGetRequest::getErrorString() const
   {
-    return error_message_;
+    return error_string_;
   }
 
 }

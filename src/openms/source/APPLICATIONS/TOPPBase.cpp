@@ -481,11 +481,15 @@ namespace OpenMS
           if (!query->hasError())
           {
             writeLog_("Connecting to REST server successful. ");
-            cout << "Recieved response: " << query->getResponse() << endl;
-
+            QString response = query->getResponse();
+            cout << "Recieved response: " << response << endl;
+          }
+          else
+          {
+            writeLog_("Connecting to REST server failed. ");
+            writeLog_("Error: " + query->getErrorString());
           }
           delete query;
-
         }
       }
     }
