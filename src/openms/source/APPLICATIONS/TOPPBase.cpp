@@ -403,7 +403,7 @@ namespace OpenMS
       UniqueIdGenerator::setSeed(19991231235959);
     }
 
-#if ENABLE_USAGE_STATISTICS
+#ifdef ENABLE_USAGE_STATISTICS
      bool collect_usage_statistics = true;
 #else
      bool collect_usage_statistics = false;
