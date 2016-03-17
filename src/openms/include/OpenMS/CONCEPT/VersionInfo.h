@@ -88,6 +88,7 @@ public:
 
       bool operator<(const VersionDetails & rhs) const;
       bool operator==(const VersionDetails & rhs) const;
+      bool operator!=(const VersionDetails & rhs) const;
       bool operator>(const VersionDetails & rhs) const;
 
       static const VersionDetails EMPTY; // 0.0.0 version for comparison

@@ -482,7 +482,15 @@ namespace OpenMS
           {
             writeLog_("Connecting to REST server successful. ");
             QString response = query->getResponse();
-            cout << "Recieved response: " << response << endl;
+            VersionInfo::VersionDetails server_version = VersionInfo::VersionDetails::create(response);
+            if (server_version != VersionInfo::VersionDetails::EMPTY)
+            {
+              if (VersionInfo::getVersionStruct() < server_version)
+              {
+                writeLog_("Version " + version_ + " of " + tool_name_ + " is available at www.OpenMS.de");
+              }
+            }
+            //cout << "Recieved response: " << response << endl;
           }
           else
           {
