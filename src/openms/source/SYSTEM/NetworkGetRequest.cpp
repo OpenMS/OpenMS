@@ -47,8 +47,9 @@ namespace OpenMS
 {
 
   NetworkGetRequest::NetworkGetRequest(QObject* parent) :
-    QObject(parent)
+    QObject(parent), reply_(0)
   {
+    manager_ = new QNetworkAccessManager(this);
   }
 
   NetworkGetRequest::~NetworkGetRequest()
@@ -62,22 +63,41 @@ namespace OpenMS
 
   void NetworkGetRequest::run()
   {
-    error_ = QNetworkReply::NoError;
-    error_string_ = "";
-    QNetworkRequest request;
-    request.setUrl(url_);
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "text/plain");
-    QNetworkAccessManager* nam = new QNetworkAccessManager();
-    connect(nam, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
-    QNetworkReply* nr = nam->get(request);
+    if (reply_ == 0)
+    {
+      error_ = QNetworkReply::NoError;
+      error_string_ = "";
+      QNetworkRequest request;
+      request.setUrl(url_);
+      request.setHeader(QNetworkRequest::ContentTypeHeader, "text/plain");
+      connect(manager_, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
+      reply_ = manager_->get(request);
+    }
   }
 
   void NetworkGetRequest::replyFinished(QNetworkReply* reply)
   {
-    error_ = reply->error();
-    error_string_ = error_ != QNetworkReply::NoError ? reply->errorString() : "";
-    response_bytes_ = reply->readAll(); // in case of error this will just read the error html from the server
-    reply->close();
+    if (reply_ != 0)
+    {
+      error_ = reply->error();
+      error_string_ = error_ != QNetworkReply::NoError ? reply->errorString() : "";
+      response_bytes_ = reply->readAll(); // in case of error this will just read the error html from the server
+      reply->close();
+      reply->deleteLater();;
+    }
+    emit done();
+  }
+
+  void NetworkGetRequest::timeOut()
+  {
+    if (reply_ != 0)
+    {
+      error_ = QNetworkReply::TimeoutError;
+      error_string_ = "TimeoutError: the connection to the remote server timed out";
+      reply_->abort();
+      reply_->close();
+      reply_->deleteLater();
+    }
     emit done();
   }
 

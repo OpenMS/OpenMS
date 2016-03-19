@@ -65,6 +65,8 @@
 
 #include <sys/stat.h>
 #include <time.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #ifdef OPENMS_WINDOWSPLATFORM
 #include <sys/utime.h>
@@ -87,9 +89,12 @@
 #include <cmath>
 
 using namespace std;
+  
+extern char **environ;
 
 namespace OpenMS
 {
+
   using namespace Exception;
 
   String TOPPBase::topp_ini_file_ = String(QDir::homePath()) + "/.TOPP.ini";
@@ -403,11 +408,31 @@ namespace OpenMS
       UniqueIdGenerator::setSeed(19991231235959);
     }
 
+    // enable / disable collection of usage statistics by build variable
 #ifdef ENABLE_USAGE_STATISTICS
      bool collect_usage_statistics = true;
 #else
      bool collect_usage_statistics = false;
 #endif
+
+    // disable collection of usage statistics if environment variable is present
+    char* env_usage = getenv("OPENMS_DISABLE_USAGE_STATISTICS");
+    if (env_usage != 0)
+    {
+      collect_usage_statistics = false;
+    }
+    /* debug code to print all environment variables
+    else
+    {
+      char *s = *environ;
+      int i = 1;
+      for (; s; i++) 
+      {
+        printf("%s\n", s);
+        s = *(environ+i);
+      }
+    }
+    */ 
 
     if (!test_mode_ && collect_usage_statistics)
     {
@@ -470,7 +495,7 @@ namespace OpenMS
           utime(version_file_name.c_str(), &new_times);          
 
           LOG_INFO << "The OpenMS team is collecting use statistics for quality control and funding purposes." << endl;
-          LOG_INFO << "We will never give out your personal data but you may disable this functionality by setting the environmental variable OPENMS_DISABLE_USEAGE_STATISTICS." << endl;
+          LOG_INFO << "We will never give out your personal data but you may disable this functionality by setting the environmental variable OPENMS_DISABLE_USAGE_STATISTICS." << endl;
           
           // Usage of a QCoreApplication is overkill here (and ugly too), but we just use the
           // QEventLoop to process the signals and slots and grab the results afterwards from
@@ -480,8 +505,8 @@ namespace OpenMS
           NetworkGetRequest* query = new NetworkGetRequest(&event_loop);
           query->setUrl(QUrl(QString("http://openms-update.informatik.uni-tuebingen.de/check/") + tool_version_string.toQString()));
           QObject::connect(query, SIGNAL(done()), &event_loop, SLOT(quit()));
-          QTimer::singleShot(1000, query, SLOT(run()));
-          
+          QTimer::singleShot(1000, query, SLOT(run()));          
+          QTimer::singleShot(5000, query, SLOT(timeOut()));
           event_loop.exec();
 
           if (!query->hasError())

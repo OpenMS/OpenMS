@@ -81,6 +81,8 @@ namespace OpenMS
 
     OPENMS_DLLAPI void run();
 
+    OPENMS_DLLAPI void timeOut();
+
     private slots:
 
     OPENMS_DLLAPI void replyFinished(QNetworkReply*);
@@ -97,6 +99,8 @@ namespace OpenMS
 
     QByteArray response_bytes_;
     QUrl url_;
+    QNetworkAccessManager* manager_;
+    QNetworkReply* reply_;
     QNetworkReply::NetworkError error_;
     QString error_string_;
   };
