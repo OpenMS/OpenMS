@@ -35,12 +35,13 @@
 #ifndef OPENMS_SYSTEM_NETWORKGETREQUEST_H
 #define OPENMS_SYSTEM_NETWORKGETREQUEST_H
 
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/config.h>
+
 #include <QtCore/QObject>
 #include <QtCore/QString>
-#include <QtNetwork/QHttpRequestHeader>
 #include <QtCore/QTimer>
 #include <QtCore/QUrl>
+#include <QtNetwork/QNetworkRequest>
 #include <QtNetwork/QNetworkReply>
 
 namespace OpenMS
