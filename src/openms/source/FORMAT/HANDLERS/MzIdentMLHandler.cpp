@@ -706,8 +706,8 @@ namespace OpenMS
           }
         }
         //map.begin access ok here because make sure at least one "UNKOWN" element is in the sdats_ids map
+        // TODO ppxl @enetz what about registering those in modifications (internally opposed to userparams)
 
-        // ppxl - what about registering those in modifications (internally opposed to userparams)
         for (std::vector<PeptideHit>::const_iterator jt = it->getHits().begin(); jt != it->getHits().end(); ++jt)
         {
           String pepid =  "PEP_" + String(UniqueIdGenerator::getUniqueId());
@@ -763,10 +763,10 @@ namespace OpenMS
             }
             if (jt->metaValueExists("xl_chain"))
             {
-              SignedSize i = jt->getMetaValue("xl_pos");
+              SignedSize i = jt->getMetaValue("xl_pos").toString().toInt();
               p += "\t\t<Modification location=\"" + String(i + 1);
               p += "\" residues=\"" + jt->getSequence().getResidue(i).getOneLetterCode();
-              p += "\"> \n\t\t\t<cvParam accession=\"" + jt->getMetaValue("xl_chain");
+              p += "\"> \n\t\t\t<cvParam accession=\"" + jt->getMetaValue("xl_chain").toString();
               p += "\" name=\"" +  cv_.getTerm(jt->getMetaValue("xl_chain")).name;
               p += "\" cvRef=\"PSI-MS\"/>"; //N.B. longer one is the donor, equals the heavier, equals, the alphabetical first
               p += "\n\t\t\t<cvParam accession=\"UNIMOD:1020\" cvRef=\"UNIMOD\" name=\"Xlink:DSS\"/>";
@@ -959,9 +959,8 @@ namespace OpenMS
 
           if (is_ppxl)
           {
-            sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName("Cross-linked spectrum identification item.").toXMLString(cv_ns, jt->getMetaValue("xl_rank"));
+            sii_tmp +=  "\t\t\t\t\t" + cv_.getTerm("MS:1002511").toXMLString(cv_ns, it->getMetaValue("xl_rank")) + "\n"; // cross-linked spectrum identification item
             // ppxl - rank equality means pairing in case of several ids!
-
             copy_jt.removeMetaValue("xl_type");
             copy_jt.removeMetaValue("xl_rank");
           }
@@ -982,7 +981,6 @@ namespace OpenMS
         //        <UserParam type="float" name="spec_heavy_RT" value="5204.82"/>
         //        <UserParam type="float" name="spec_heavy_MZ" value="686.88397217"/>
         //        <UserParam type="string" name="spectrum_reference_heavy" value="scan=11895"/>
-
         if (!ert.empty() && ert != "nan" && ert != "NaN")
         {
           sidres +=  "\t\t\t\t" + cv_.getTermByName("retention time").toXMLString(cv_ns, ert) + "\n";
