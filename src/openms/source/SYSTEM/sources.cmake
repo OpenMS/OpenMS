@@ -9,6 +9,7 @@ JavaInfo.cpp
 NetworkGetRequest.cpp
 StopWatch.cpp
 SysInfo.cpp
+UpdateCheck.cpp
 )
 
 ### add path to the filenames

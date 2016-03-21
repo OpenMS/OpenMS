@@ -29,6 +29,7 @@ JavaInfo.h
 NetworkGetRequest.h
 StopWatch.h
 SysInfo.h
+UpdateCheck.h
 )
 
 ### add path to the filenames

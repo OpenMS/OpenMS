@@ -36,6 +36,7 @@
 
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
+#include <OpenMS/SYSTEM/UpdateCheck.h>
 
 #include <OpenMS/DATASTRUCTURES/Date.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
@@ -47,7 +48,6 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
-#include <OpenMS/SYSTEM/NetworkGetRequest.h>
 
 #include <OpenMS/APPLICATIONS/ConsoleUtils.h>
 
@@ -55,26 +55,12 @@
 
 #include <QDir>
 #include <QFile>
-#include <QCoreApplication>
-#include <QNetworkRequest>
-#include <QNetworkReply>
-#include <QtNetwork/QNetworkAccessManager>
-#include <QtCore/QTimer>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
-#include <sys/stat.h>
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#ifdef OPENMS_WINDOWSPLATFORM
-#include <sys/utime.h>
-#elif __APPLE__
-#include <utime.h>
-#else
-#include <utime.h>
-#endif
 
 // OpenMP support
 #ifdef _OPENMP
@@ -90,8 +76,6 @@
 
 using namespace std;
   
-extern char **environ;
-
 namespace OpenMS
 {
 
@@ -408,127 +392,17 @@ namespace OpenMS
       UniqueIdGenerator::setSeed(19991231235959);
     }
 
+
     // enable / disable collection of usage statistics by build variable
 #ifdef ENABLE_USAGE_STATISTICS
-     bool collect_usage_statistics = true;
-#else
-     bool collect_usage_statistics = false;
-#endif
-
     // disable collection of usage statistics if environment variable is present
-    char* env_usage = getenv("OPENMS_DISABLE_USAGE_STATISTICS");
-    if (env_usage != 0)
-    {
-      collect_usage_statistics = false;
-    }
-    /* debug code to print all environment variables
-    else
-    {
-      char *s = *environ;
-      int i = 1;
-      for (; s; i++) 
-      {
-        printf("%s\n", s);
-        s = *(environ+i);
-      }
-    }
-    */ 
+    char* disable_usage = getenv("OPENMS_DISABLE_USAGE_STATISTICS");
 
-    if (!test_mode_ && collect_usage_statistics)
+    if (!test_mode_ && !disable_usage)
     {
-      // if the revision info is meaningful, show it as well
-      String revision("UNKNOWN");
-      if (!VersionInfo::getRevision().empty() && VersionInfo::getRevision() != "exported")
-      {
-        revision = VersionInfo::getRevision();
-      }
-      String platform;
-
-#ifdef OPENMS_WINDOWSPLATFORM
-        platform = "Win";
-#elif __APPLE__
-        platform = "Mac";
-#else
-        platform = "Linux";
+      UpdateCheck::run(tool_name_, version_);
+    }
 #endif
-
-      String architecture = QSysInfo::WordSize == 32 ? "32" : "64";
-
-      // write to tmp + userid folder
-
-      // e.g.: OpenMS_Default_Win_64_FeatureFinderCentroided_2.0.0
-      String tool_version_string;
-      tool_version_string = String("OpenMS") + "_" + "Default_" + platform + "_" + architecture + "_" + tool_name_ + "_" + version_;
-
-      String version_file_name = File::getOpenMSHomePath() + "/.OpenMS/" + tool_name_ + ".ver";
-
-      // create version file if it doesn't exist yet
-      bool first_run(false);
-      if (!File::exists(version_file_name) || !File::readable(version_file_name))
-      {
-        Param p = File::getSystemParameters(); // initializes .OpenMS folder
-
-        // touch file to create it and set initial modification time stamp
-        QFile f;
-        f.setFileName(version_file_name.toQString());
-        f.open(QIODevice::WriteOnly);
-        f.close();
-        first_run = true;
-      }
-      
-      if (File::readable(version_file_name))
-      {
-        QDateTime last_modified_dt = QFileInfo(version_file_name.toQString()).lastModified();
-        QDateTime current_dt = QDateTime::currentDateTime();
-
-        // check if at least one day passed sincle last request
-        if (first_run || current_dt > last_modified_dt.addDays(1))
-        {
-          // update modification time stamp
-          struct stat old_stat;
-          time_t mtime;
-          struct utimbuf new_times;
-          stat(version_file_name.c_str(), &old_stat);
-          mtime = old_stat.st_mtime; 
-          new_times.actime = old_stat.st_atime; // keep accessuib time unchanged 
-          new_times.modtime = time(NULL);  // mod time to current time
-          utime(version_file_name.c_str(), &new_times);          
-
-          LOG_INFO << "The OpenMS team is collecting use statistics for quality control and funding purposes." << endl;
-          LOG_INFO << "We will never give out your personal data but you may disable this functionality by setting the environmental variable OPENMS_DISABLE_USAGE_STATISTICS." << endl;
-          
-          // We need to use a QCoreApplication to fire up the  QEventLoop to process the signals and slots.
-          char** argv2 = const_cast<char**>(argv);
-          QCoreApplication event_loop(argc, argv2);
-          NetworkGetRequest* query = new NetworkGetRequest(&event_loop);
-          query->setUrl(QUrl(QString("http://openms-update.informatik.uni-tuebingen.de/check/") + tool_version_string.toQString()));
-          QObject::connect(query, SIGNAL(done()), &event_loop, SLOT(quit()));
-          QTimer::singleShot(1000, query, SLOT(run()));          
-          QTimer::singleShot(5000, query, SLOT(timeOut()));
-          event_loop.exec();
-
-          if (!query->hasError())
-          {
-            writeLog_("Connecting to REST server successful. ");
-            QString response = query->getResponse();
-            VersionInfo::VersionDetails server_version = VersionInfo::VersionDetails::create(response);
-            if (server_version != VersionInfo::VersionDetails::EMPTY)
-            {
-              if (VersionInfo::getVersionStruct() < server_version)
-              {
-                writeLog_("Version " + version_ + " of " + tool_name_ + " is available at www.OpenMS.de");
-              }
-            }
-          }
-          else
-          {
-            writeLog_("Connecting to REST server failed. ");
-            writeLog_("Error: " + query->getErrorString());
-          }
-          delete query;
-        }
-      }
-    }
 
     //-------------------------------------------------------------
     // determine and open the real log file
