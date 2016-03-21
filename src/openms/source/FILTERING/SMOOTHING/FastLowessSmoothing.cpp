@@ -191,34 +191,6 @@ namespace c_lowess
     inline ValueType pow2(ValueType x) { return x * x;  }
     inline ValueType pow3(ValueType x) { return x * x * x;  }
 
-    ///Return the median of a sequence of numbers defined by the random
-    ///access iterators begin and end.  The sequence must not be empty
-    ///(median is undefined for an empty set).
-    ///
-    ///The numbers must be convertible to double.
-    template <class RandAccessIter>
-    ValueType median(RandAccessIter begin, RandAccessIter end)
-    {
-      std::size_t size = end - begin;
-      std::size_t middleIdx = size / 2;
-      RandAccessIter target = begin + middleIdx;
-      std::nth_element(begin, target, end);
-
-      if (size % 2 != 0)
-      {
-        //Odd number of elements
-        return *target;
-      }
-      else
-      {
-        //Even number of elements
-        double a = *target;
-        RandAccessIter targetNeighbor = target - 1;
-        targetNeighbor = std::max_element(begin, target);
-        return (a + *targetNeighbor) / 2.0;
-      }
-    }
-
     /// Calculate weights for weighted regression.
     bool calculate_weights(const ContainerType& x,
                            const size_t n,
@@ -542,9 +514,8 @@ public:
                )
     {
       bool fit_ok;
-      size_t i, last, nleft, nright, ns;
 
-      size_t n = x.size();
+      size_t ns, n(x.size());
       if (n < 2)
       {
         ys[0] = y[0];
@@ -559,12 +530,10 @@ public:
       // robustness iterations
       for (int iter = 1; iter <= nsteps + 1; iter++)
       {
-
         // start of array in C++ at 0 / in FORTRAN at 1
-        nleft = 0;
-        nright = ns - 1;
-        last = -1;          // index of prev estimated point
-        i = 0;              // index of current point
+        // last: index of prev estimated point
+        // i: index of current point
+        size_t i(0), last(-1), nleft(0), nright(ns -1);
 
         // Fit all data points y[i] until the end of the array
         do

@@ -147,7 +147,7 @@ protected:
       //void writeSourceFile_(std::ostream& os, const String& id, const SourceFile& software);
 
       /// Helper method that writes the Enzymes
-      void writeEnyzme_(String& s, Enzyme enzy, UInt miss, UInt indent) const;
+      void writeEnzyme_(String& s, Enzyme enzy, UInt miss, UInt indent) const;
 
       /// Helper method that writes the modification search params
       void writeModParam_(String& s, const std::vector<String>& fixed, const std::vector<String>& variable, UInt indent) const;
@@ -160,6 +160,7 @@ private:
       std::map<String, String> pp_identifier_2_sil_; //mapping peptide/proteinidentification identifier_ to spectrumidentificationlist
       std::map<String, String> sil_2_sdb_; //mapping spectrumidentificationlist to the search data bases
       std::map<String, String> sil_2_sdat_; //mapping spectrumidentificationlist to the search input
+      std::map<String, String> ph_2_sdat_; //mapping identification runs (mapping PeptideIdentifications and ProteinIdentifications via .getIdentifier()) to spectra data
       std::map<String, String> sil_2_sip_; //mapping spectrumidentificationlist to the search protocol (where the params are at)
       AASequence actual_peptide_;
       Int current_mod_location_;

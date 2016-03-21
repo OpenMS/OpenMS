@@ -116,7 +116,7 @@ START_SECTION((double train(const RichPeakSpectrum & spec, const AASequence &pep
 		{
 			ion_name.remove('+');
 			ion_name.remove('y');
-			AASequence suffix = AASequence::fromString("DFPIANGER").getSuffix(ion_name.toInt());
+			AASequence suffix = AASequence::fromString("DFPIANGER").getSuffix(ion_name.substr(0, ion_name.find("-")).toInt());
       model.train(spec1, suffix, suffix.getMonoWeight(Residue::YIon), charge, AASequence::fromString("DFPIANGER").getMonoWeight());
 		}
 	}
@@ -129,7 +129,7 @@ START_SECTION((double train(const RichPeakSpectrum & spec, const AASequence &pep
     {
 			ion_name.remove('+');
 			ion_name.remove('y');
-			AASequence suffix = AASequence::fromString("DFPIANGEK").getSuffix(ion_name.toInt());
+			AASequence suffix = AASequence::fromString("DFPIANGEK").getSuffix(ion_name.substr(0, ion_name.find("-")).toInt());
       model.train(spec1, suffix, suffix.getMonoWeight(Residue::YIon), charge, AASequence::fromString("DFPIANGEK").getMonoWeight());
     }
   }
@@ -142,7 +142,7 @@ START_SECTION((double train(const RichPeakSpectrum & spec, const AASequence &pep
     {
 			ion_name.remove('+');
 			ion_name.remove('y');
-			AASequence suffix = AASequence::fromString("DFPIANGEREK").getSuffix(ion_name.toInt());
+			AASequence suffix = AASequence::fromString("DFPIANGEREK").getSuffix(ion_name.substr(0, ion_name.find("-")).toInt());
       model.train(spec1, suffix, suffix.getMonoWeight(Residue::YIon), charge, AASequence::fromString("DFPIANGEREK").getMonoWeight());
     }
   }

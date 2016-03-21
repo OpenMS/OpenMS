@@ -24193,7 +24193,7 @@ M. Zimnicka, et al.  "Tunable Charge Tags for Electron-Based Methods of Peptide 
             <umod:element symbol="N" number="3"/>
          </umod:delta>
       </umod:mod>	  
-      <umod:mod title="RNPXlink2" full_name="U-H20 loss of C5H9O7P" username_of_poster="Timo"
+      <umod:mod title="RNPXlink2" full_name="U-H2O loss of C5H9O7P" username_of_poster="Timo"
                 group_of_poster="admin"
                 date_time_posted="2002-08-19 19:17:11"
                 date_time_modified="2008-02-15 05:20:02"
@@ -24237,7 +24237,7 @@ M. Zimnicka, et al.  "Tunable Charge Tags for Electron-Based Methods of Peptide 
             <umod:element symbol="P" number="1"/>
          </umod:delta>
       </umod:mod>
-      <umod:mod title="RNPXlink3" full_name="U-H20 loss of H2PO3" username_of_poster="Timo"
+      <umod:mod title="RNPXlink3" full_name="U-H2O loss of H2PO3" username_of_poster="Timo"
                 group_of_poster="admin"
                 date_time_posted="2002-08-19 19:17:11"
                 date_time_modified="2008-02-15 05:20:02"
@@ -24261,7 +24261,7 @@ M. Zimnicka, et al.  "Tunable Charge Tags for Electron-Based Methods of Peptide 
             <umod:element symbol="P" number="1"/>
          </umod:delta>
       </umod:mod>	
-      <umod:mod title="RNPXlink4" full_name="U-H20 gain of 152" username_of_poster="Timo"
+      <umod:mod title="RNPXlink4" full_name="U-H2O gain of 152" username_of_poster="Timo"
                 group_of_poster="admin"
                 date_time_posted="2002-08-19 19:17:11"
                 date_time_modified="2008-02-15 05:20:02"
@@ -24301,7 +24301,7 @@ M. Zimnicka, et al.  "Tunable Charge Tags for Electron-Based Methods of Peptide 
             <umod:element symbol="O" number="9"/>
             <umod:element symbol="P" number="1"/>
          </umod:delta>
-      </umod:mod>	
+      </umod:mod>
    </umod:modifications>
    <umod:amino_acids>
       <umod:aa title="-" three_letter="" full_name="" mono_mass="0.0" avge_mass="0.0"/>

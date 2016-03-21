@@ -41,6 +41,8 @@
 
 namespace OpenMS
 {
+  const std::string MSNumpressCoder::NamesOfNumpressCompression[] = {"none", "linear", "pic", "slof"};
+
   using namespace ms; // numpress namespace
 
   void MSNumpressCoder::encodeNP_(const std::vector<double>& in, String& result, const NumpressConfig & config)
@@ -78,6 +80,9 @@ namespace OpenMS
       }
 
       case NONE:
+        break;
+
+      default:
         break;
       }
 
@@ -125,6 +130,9 @@ namespace OpenMS
         // already checked above ...
         break;
       }
+
+      default:
+        break;
       }
 
 #ifdef NUMPRESS_DEBUG
@@ -274,6 +282,9 @@ namespace OpenMS
       {
         return;
       }
+
+      default:
+        break;
       }
 
     }

@@ -492,6 +492,9 @@ namespace OpenMS
         sip += String(3, '\t') + "<userParam name=\"" + "charges" + "\" unitName=\"" + "xsd:string" + "\" value=\"" + it->getSearchParameters().charges + "\"/>" + "\n";
 //        sip += String(3, '\t') + "<userParam name=\"" + "missed_cleavages" + "\" unitName=\"" + "xsd:integer" + "\" value=\"" + String(it->getSearchParameters().missed_cleavages) + "\"/>" + "\n";
         sip += String("\t\t</AdditionalSearchParams>\n");
+        writeModParam_(sip, it->getSearchParameters().fixed_modifications, it->getSearchParameters().variable_modifications, 2);
+        writeEnzyme_(sip, it->getSearchParameters().digestion_enzyme, it->getSearchParameters().missed_cleavages, 2);
+        // TODO MassTable section
         sip += String("\t\t<FragmentTolerance>\n");
         String unit_str = "unitCvRef=\"UO\" unitName=\"dalton\" unitAccession=\"UO:0000221\"";
         if (it->getSearchParameters().fragment_mass_tolerance_ppm)
@@ -512,8 +515,6 @@ namespace OpenMS
         sip += String("\t\t</ParentTolerance>\n");
         sip += String("\t\t<Threshold>\n\t\t\t") + thcv + "\n";
         sip += String("\t\t</Threshold>\n");
-        writeModParam_(sip, it->getSearchParameters().fixed_modifications, it->getSearchParameters().variable_modifications, 2);
-        writeEnyzme_(sip, it->getSearchParameters().digestion_enzyme, it->getSearchParameters().missed_cleavages, 2);
         sip += String("\t</SpectrumIdentificationProtocol>\n");
         sip_set.insert(sip);
         sil_2_date.insert(make_pair(sil_id, String(it->getDateTime().getDate() + "T" + it->getDateTime().getTime())));
@@ -521,11 +522,18 @@ namespace OpenMS
 
         //~ collect SpectraData element for each ProteinIdentification
         String sdat_id;
-        String sdat_file(it->getMetaValue("spectra_data"));
-        if (sdat_file.empty())
+        StringList sdat_files;
+        String sdat_file("UNKNOWN");
+        
+        if (it->metaValueExists("spectra_data"))
         {
-          sdat_file = String("UNKNOWN");
+          sdat_files = it->getMetaValue("spectra_data");
+          if (!sdat_files.empty() && !sdat_files[0].empty())
+          {
+            sdat_file = sdat_files[0];
+          }
         }
+
         std::map<String, String>::iterator sdit = sdat_ids.find(sdat_file); //this part is strongly connected to AnalysisCollection write part
         if (sdit == sdat_ids.end())
         {
@@ -540,13 +548,13 @@ namespace OpenMS
           spectra_data += String("\n\t\t\t</SpectrumIDFormat> \n\t\t</SpectraData>\n");
 
           sdat_ids.insert(make_pair(sdat_file, sdat_id));
+          ph_2_sdat_.insert(make_pair(it->getIdentifier(), sdat_id));
         }
         else
         {
           sdat_id = sdit->second;
         }
         sil_2_sdat_.insert(make_pair(sil_id,  sdat_id));
-
 
         //~ collect SearchDatabase element for each ProteinIdentification
         String sdb_id;
@@ -644,8 +652,20 @@ namespace OpenMS
         }
         String sidres;
         String sir = "SIR_" + String(UniqueIdGenerator::getUniqueId());
+        String sdr = sdat_ids.begin()->second;
+        std::map<String, String>::iterator pfo = ph_2_sdat_.find(it->getIdentifier());
+        if (pfo != ph_2_sdat_.end())
+        {
+          sdr = pfo->second;
+        }
+        else
+        {
+          LOG_WARN << "Falling back to referencing first spectrum file given because file or identifier could not be mapped." << std::endl;
+        }
+
         sidres += String("\t\t\t<SpectrumIdentificationResult spectraData_ref=\"")
-                + String(sdat_ids.begin()->second) + String("\" spectrumID=\"")
+        //multi identification runs lookup from file_origin here
+                + sdr + String("\" spectrumID=\"")
                 + sid + String("\" id=\"") + sir + String("\"> \n");
         //map.begin access ok here because make sure at least one "UNKOWN" element is in the sdats_ids map
 
@@ -751,15 +771,16 @@ namespace OpenMS
               }
 
               String e;
+              String nc_termini = "-";    // character for N- and C-termini as specified in mzIdentML
               e += "\t<PeptideEvidence id=\"" + pevid + "\" peptide_ref=\"" + pepid + "\" dBSequence_ref=\"" + dBSequence_ref + "\"";
 
               if (pe->getAAAfter() != PeptideEvidence::UNKNOWN_AA)
               {
-                e += " post=\"" + String(pe->getAAAfter()) + "\"";
+                e += " post=\"" + (pe->getAAAfter() == PeptideEvidence::C_TERMINAL_AA ? nc_termini : String(pe->getAAAfter())) + "\"";
               }
               if (pe->getAABefore() != PeptideEvidence::UNKNOWN_AA)
               {
-                e += " pre=\"" + String(pe->getAABefore()) + "\"";
+                e += " pre=\"" + (pe->getAABefore() == PeptideEvidence::N_TERMINAL_AA ? nc_termini : String(pe->getAABefore())) + "\"";
               }
               if (pe->getStart() != PeptideEvidence::UNKNOWN_POSITION)
               {
@@ -1022,7 +1043,8 @@ namespace OpenMS
       {
         os << "\t\t<SpectrumIdentificationList id=\"" << sil_it->first << String("\"> \n");
         os << "\t\t\t<FragmentationTable>\n"
-           << "\t\t\t\t<Measure id=\"Measure_MZ\">\n"
+           << "\t\t\t\t<Measure id=\"Measure_" << sil_it->first << "\">\n"
+              // TODO as soon as fragmentation table is reflectable by our internal structures, this has to be mapped separately from spectrumidentificationlist
            << "\t\t\t\t\t<cvParam accession=\"MS:1001225\" cvRef=\"PSI-MS\" unitCvRef=\"PSI-MS\" unitName=\"m/z\" unitAccession=\"MS:1000040\" name=\"product ion m/z\"/>\n"
            << "\t\t\t\t</Measure>\n"
            << "\t\t\t</FragmentationTable>\n";
@@ -1078,7 +1100,7 @@ namespace OpenMS
       }
     }
 
-    void MzIdentMLHandler::writeEnyzme_(String& s, Enzyme enzy, UInt miss, UInt indent) const
+    void MzIdentMLHandler::writeEnzyme_(String& s, Enzyme enzy, UInt miss, UInt indent) const
     {
       String cv_ns = cv_.name();
       s += String(indent, '\t') + "<Enzymes independent=\"false\">" + "\n";

@@ -4,7 +4,7 @@
 	xmlns="http://psidev.info/psi/pi/mzIdentML/1.1"
 	version="1.1.0"
 	id="OpenMS_7276556891837796968"
-	creationDate="2015-10-22T18:14:55">
+	creationDate="2016-02-26T14:58:04">
 <cvList> 
  	<cv id="PSI-MS" fullName="Proteomics Standards Initiative Mass Spectrometry Vocabularies"  uri="http://psidev.cvs.sourceforge.net/viewvc/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo" version="3.15.0"></cv> 
  	<cv id="UNIMOD" fullName="UNIMOD"        uri="http://www.unimod.org/obo/unimod.obo"></cv> 
@@ -49,9 +49,9 @@
  	<Peptide id="PEP_8119044117483804262"> 
 		<PeptideSequence>PEPTIDERRR</PeptideSequence> 
 	</Peptide> 
- 	<PeptideEvidence id="PEV_10306100746905639127" peptide_ref="PEP_2927519776102075938" dBSequence_ref="PROT_15916652588957785155" isDecoy="0"/> 
-	<PeptideEvidence id="PEV_16250062551099875712" peptide_ref="PEP_17716858074023296841" dBSequence_ref="PROT_12999979801269632061" isDecoy="0"/> 
-	<PeptideEvidence id="PEV_16907355690727166316" peptide_ref="PEP_2927519776102075938" dBSequence_ref="PROT_13440783915218733453" post="B" pre="A" isDecoy="0"/> 
+ 	<PeptideEvidence id="PEV_10306100746905639127" peptide_ref="PEP_2927519776102075938" dBSequence_ref="PROT_15916652588957785155"/> 
+	<PeptideEvidence id="PEV_16250062551099875712" peptide_ref="PEP_17716858074023296841" dBSequence_ref="PROT_12999979801269632061"/> 
+	<PeptideEvidence id="PEV_16907355690727166316" peptide_ref="PEP_2927519776102075938" dBSequence_ref="PROT_13440783915218733453" post="B" pre="A"/> 
 </SequenceCollection>
 <AnalysisCollection>
 	<SpectrumIdentification id="SI_Mascot_2006-01-12T12:13:14" spectrumIdentificationProtocol_ref="SIP_17749660155506638460" spectrumIdentificationList_ref="SIL_4835329514588776807" activityDate="2006-01-12T12:13:14">
@@ -71,17 +71,6 @@
 		<AdditionalSearchParams>
 			<userParam name="charges" unitName="xsd:string" value="+1, +2"/>
 		</AdditionalSearchParams>
-		<FragmentTolerance>
-			<cvParam accession="MS:1001412" name="search tolerance plus value" unitCvRef="UO" unitName="dalton" unitAccession="UO:0000221" cvRef="PSI-MS" value="0.3"/>
-			<cvParam accession="MS:1001413" name="search tolerance minus value" unitCvRef="UO" unitName="dalton" unitAccession="UO:0000221" cvRef="PSI-MS" value="0.3"/>
-		</FragmentTolerance>
-		<ParentTolerance>
-			<cvParam accession="MS:1001412" name="search tolerance plus value" unitCvRef="UO" unitName="dalton" unitAccession="UO:0000221" cvRef="PSI-MS" value="1"/>
-			<cvParam accession="MS:1001413" name="search tolerance minus value" unitCvRef="UO" unitName="dalton" unitAccession="UO:0000221" cvRef="PSI-MS" value="1"/>
-		</ParentTolerance>
-		<Threshold>
-			<cvParam accession="MS:1001494" cvRef="PSI-MS" name="no threshold"/>
-		</Threshold>
 		<ModificationParams>
 		</ModificationParams>
 		<Enzymes independent="false">
@@ -91,14 +80,6 @@
 				</EnzymeName>
 			</Enzyme>
 		</Enzymes>
-	</SpectrumIdentificationProtocol>
-	<SpectrumIdentificationProtocol id="SIP_6408859317243173796" analysisSoftware_ref="SOF_5233264595117471314"> 
-		<SearchType>
-			<cvParam accession="MS:1001083" cvRef="PSI-MS" name="ms-ms search"/> 
-		</SearchType>
-		<AdditionalSearchParams>
-			<userParam name="charges" unitName="xsd:string" value="+1, +2, +3"/>
-		</AdditionalSearchParams>
 		<FragmentTolerance>
 			<cvParam accession="MS:1001412" name="search tolerance plus value" unitCvRef="UO" unitName="dalton" unitAccession="UO:0000221" cvRef="PSI-MS" value="0.3"/>
 			<cvParam accession="MS:1001413" name="search tolerance minus value" unitCvRef="UO" unitName="dalton" unitAccession="UO:0000221" cvRef="PSI-MS" value="0.3"/>
@@ -110,6 +91,14 @@
 		<Threshold>
 			<cvParam accession="MS:1001494" cvRef="PSI-MS" name="no threshold"/>
 		</Threshold>
+	</SpectrumIdentificationProtocol>
+	<SpectrumIdentificationProtocol id="SIP_6408859317243173796" analysisSoftware_ref="SOF_5233264595117471314"> 
+		<SearchType>
+			<cvParam accession="MS:1001083" cvRef="PSI-MS" name="ms-ms search"/> 
+		</SearchType>
+		<AdditionalSearchParams>
+			<userParam name="charges" unitName="xsd:string" value="+1, +2, +3"/>
+		</AdditionalSearchParams>
 		<ModificationParams>
 			<SearchModification fixedMod="true" massDelta="0" residues="C">
 				<cvParam accession="UNIMOD:4" cvRef="PSI-MS" name="Carbamidomethyl"/>
@@ -131,6 +120,17 @@
 				</EnzymeName>
 			</Enzyme>
 		</Enzymes>
+		<FragmentTolerance>
+			<cvParam accession="MS:1001412" name="search tolerance plus value" unitCvRef="UO" unitName="dalton" unitAccession="UO:0000221" cvRef="PSI-MS" value="0.3"/>
+			<cvParam accession="MS:1001413" name="search tolerance minus value" unitCvRef="UO" unitName="dalton" unitAccession="UO:0000221" cvRef="PSI-MS" value="0.3"/>
+		</FragmentTolerance>
+		<ParentTolerance>
+			<cvParam accession="MS:1001412" name="search tolerance plus value" unitCvRef="UO" unitName="dalton" unitAccession="UO:0000221" cvRef="PSI-MS" value="1"/>
+			<cvParam accession="MS:1001413" name="search tolerance minus value" unitCvRef="UO" unitName="dalton" unitAccession="UO:0000221" cvRef="PSI-MS" value="1"/>
+		</ParentTolerance>
+		<Threshold>
+			<cvParam accession="MS:1001494" cvRef="PSI-MS" name="no threshold"/>
+		</Threshold>
 	</SpectrumIdentificationProtocol>
 </AnalysisProtocolCollection>
 <DataCollection>

@@ -94,7 +94,7 @@ namespace OpenMS
     size_t second_dot = version.find('.', first_dot + 1);
     try
     {
-      result.version_minor = String(version.substr(first_dot + 1, second_dot)).toInt();
+      result.version_minor = String(version.substr(first_dot + 1, second_dot - (first_dot + 1))).toInt();
     }
     catch (Exception::ConversionError & /*e*/)
     {
@@ -109,7 +109,7 @@ namespace OpenMS
     size_t third_dot = version.find('.', second_dot + 1);
     try
     {
-      result.version_patch = String(version.substr(second_dot + 1, third_dot)).toInt();
+      result.version_patch = String(version.substr(second_dot + 1, third_dot - (second_dot + 1))).toInt();
     }
     catch (Exception::ConversionError & /*e*/)
     {
