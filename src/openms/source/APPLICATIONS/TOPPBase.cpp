@@ -444,13 +444,13 @@ namespace OpenMS
       }
       String platform;
 
-      #ifdef OPENMS_WINDOWSPLATFORM
+#ifdef OPENMS_WINDOWSPLATFORM
         platform = "Win";
-      #elif __APPLE__
+#elif __APPLE__
         platform = "Mac";
-      #else
+#else
         platform = "Linux";
-      #endif
+#endif
 
       String architecture = QSysInfo::WordSize == 32 ? "32" : "64";
 
@@ -497,9 +497,7 @@ namespace OpenMS
           LOG_INFO << "The OpenMS team is collecting use statistics for quality control and funding purposes." << endl;
           LOG_INFO << "We will never give out your personal data but you may disable this functionality by setting the environmental variable OPENMS_DISABLE_USAGE_STATISTICS." << endl;
           
-          // Usage of a QCoreApplication is overkill here (and ugly too), but we just use the
-          // QEventLoop to process the signals and slots and grab the results afterwards from
-          // the MascotRemotQuery instance
+          // We need to use a QCoreApplication to fire up the  QEventLoop to process the signals and slots.
           char** argv2 = const_cast<char**>(argv);
           QCoreApplication event_loop(argc, argv2);
           NetworkGetRequest* query = new NetworkGetRequest(&event_loop);
