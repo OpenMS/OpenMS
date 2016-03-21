@@ -192,12 +192,12 @@ END_SECTION
 
 OpenSwath::LightTransition mock_tr1;
 mock_tr1.product_mz = 500;
-mock_tr1.charge = 1;
+mock_tr1.product_charge = 1;
 mock_tr1.transition_name = "group1";
 
 OpenSwath::LightTransition mock_tr2;
 mock_tr2.product_mz = 600;
-mock_tr2.charge = 1;
+mock_tr2.product_charge = 1;
 mock_tr2.transition_name = "group2";
 
 START_SECTION([EXTRA] forward void dia_isotope_scores(const std::vector<TransitionType> & transitions, SpectrumType  spectrum, OpenSwath::IMRMFeature * mrmfeature, int putative_fragment_charge, double & isotope_corr, double & isotope_overlap))
@@ -439,13 +439,13 @@ START_SECTION( void score_with_isotopes(SpectrumType spectrum, const std::vector
 {
   OpenSwath::LightTransition mock_tr1;
   mock_tr1.product_mz = 500.;
-  mock_tr1.charge = 1;
+  mock_tr1.product_charge = 1;
   mock_tr1.transition_name = "group1";
   mock_tr1.library_intensity = 5.;
 
   OpenSwath::LightTransition mock_tr2;
   mock_tr2.product_mz = 600.;
-  mock_tr2.charge = 1;
+  mock_tr2.product_charge = 1;
   mock_tr2.transition_name = "group2";
   mock_tr2.library_intensity = 5.;
 

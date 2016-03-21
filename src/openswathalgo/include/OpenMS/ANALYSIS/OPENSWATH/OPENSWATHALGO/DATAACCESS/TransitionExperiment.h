@@ -52,7 +52,7 @@ public:
     double library_intensity;
     double product_mz;
     double precursor_mz;
-    int charge;
+    int product_charge;
     bool decoy;
     bool detecting_transition;
     bool quantifying_transition;
@@ -60,7 +60,7 @@ public:
 
     int getProductChargeState() const
     {
-      return charge;
+      return product_charge;
     }
 
     std::string getNativeID() const

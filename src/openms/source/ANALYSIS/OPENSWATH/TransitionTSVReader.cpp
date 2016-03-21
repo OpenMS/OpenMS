@@ -81,6 +81,7 @@ namespace OpenMS
     "Replicates",
     "NrModifications",
     "PrecursorCharge",
+    "ProductCharge",
     "PeptideGroupLabel",
     "LabelType",
     "UniprotID",
@@ -89,7 +90,7 @@ namespace OpenMS
     "quantifying_transition"
   };
 
-  const std::vector<std::string> TransitionTSVReader::header_names_(strarray_, strarray_ + 22);
+  const std::vector<std::string> TransitionTSVReader::header_names_(strarray_, strarray_ + 23);
 
   void TransitionTSVReader::getTSVHeader_(const std::string& line, char& delimiter,
                                           std::vector<std::string> header, std::map<std::string, int>& header_dict)
@@ -180,7 +181,7 @@ namespace OpenMS
       header_dict["ProductMz"] = 5;
       header_dict["LibraryIntensity"] = 6;
       header_dict["SpectraSTAnnotation"] = 7;
-      header_dict["FragmentCharge"] = 8;
+      header_dict["ProductCharge"] = 8;
       header_dict["SpectraSTFullPeptideName"] = 9;
       header_dict["SpectraSTUnknown"] = 10;
       header_dict["SpectraSTNumberOfProteinsMappedTo"] = 11;
@@ -234,7 +235,7 @@ namespace OpenMS
       mytransition.ProteinName                  =                             tmp_line[header_dict["ProteinName"]];
       mytransition.CE                           =  -1.0;
       mytransition.decoy                        =   0;
-      mytransition.fragment_charge              =  -1;
+      mytransition.product_charge              =  -1;
       mytransition.fragment_nr                  =  -1;
       mytransition.fragment_mzdelta             =  -1;
       mytransition.fragment_modification        =   0;
@@ -369,9 +370,9 @@ namespace OpenMS
       {
         mytransition.fragment_type                =                             tmp_line[header_dict["FragmentType"]];
       }
-      if (header_dict.find("FragmentCharge") != header_dict.end())
+      if (header_dict.find("ProductCharge") != header_dict.end())
       {
-        mytransition.fragment_charge              =                      String(tmp_line[header_dict["FragmentCharge"]]).toInt();
+        mytransition.product_charge              =                      String(tmp_line[header_dict["ProductCharge"]]).toInt();
       }
       if (header_dict.find("FragmentSeriesNumber") != header_dict.end())
       {
@@ -412,12 +413,12 @@ namespace OpenMS
           {
             std::vector<String> best_fragment_annotation_charge;
             best_fragment_annotation.split("^", best_fragment_annotation_charge);
-            mytransition.fragment_charge = String(best_fragment_annotation_charge[1]).toInt();
+            mytransition.product_charge = String(best_fragment_annotation_charge[1]).toInt();
             best_fragment_annotation = best_fragment_annotation_charge[0];
           }
           else
           {
-            mytransition.fragment_charge = 1;
+            mytransition.product_charge = 1;
           }
 
           if (best_fragment_annotation.find("-") != std::string::npos)
@@ -467,7 +468,7 @@ namespace OpenMS
       std::cout << mytransition.FullPeptideName << std::endl;
       std::cout << mytransition.precursor_charge << std::endl;
       std::cout << mytransition.peptide_group_label << std::endl;
-      std::cout << mytransition.fragment_charge << std::endl;
+      std::cout << mytransition.product_charge << std::endl;
       std::cout << mytransition.fragment_nr << std::endl;
       std::cout << mytransition.fragment_mzdelta << std::endl;
       std::cout << mytransition.fragment_modification << std::endl;
@@ -597,7 +598,7 @@ namespace OpenMS
       transition.library_intensity  = tr_it->library_intensity;
       transition.precursor_mz  = tr_it->precursor;
       transition.product_mz  = tr_it->product;
-      transition.charge  = tr_it->fragment_charge;
+      transition.product_charge  = tr_it->product_charge;
       if (tr_it->decoy == 0)
       {
         transition.decoy = false;
@@ -712,10 +713,10 @@ namespace OpenMS
     rm_trans.setProductMZ(tr_it->product);
     rm_trans.setPeptideRef(tr_it->group_id);
     rm_trans.setLibraryIntensity(tr_it->library_intensity);
-    if (tr_it->fragment_charge != -1)
+    if (tr_it->product_charge != -1)
     {
       OpenMS::ReactionMonitoringTransition::Product p = rm_trans.getProduct();
-      p.setChargeState(tr_it->fragment_charge);
+      p.setChargeState(tr_it->product_charge);
       rm_trans.setProduct(p);
     }
 
@@ -1203,6 +1204,11 @@ namespace OpenMS
       {
         mytransition.precursor_charge = pep.getChargeState();
       }
+      mytransition.product_charge = -1;
+      if (it->getProductChargeState() > 0)
+      {
+        mytransition.product_charge = it->getProductChargeState();
+      }
       mytransition.peptide_group_label = "NA";
       if (pep.getPeptideGroupLabel() != "")
       {
@@ -1252,6 +1258,7 @@ namespace OpenMS
         + (String)0                            + "\t"
         + (String)0                            + "\t"
         + (String)it->precursor_charge         + "\t"
+        + (String)it->product_charge          + "\t"
         + (String)it->peptide_group_label      + "\t"
         + (String)it->label_type               + "\t"
         + (String)it->uniprot_id               + "\t"

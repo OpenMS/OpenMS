@@ -117,7 +117,7 @@ private:
       int precursor_charge;
       String peptide_group_label;
       String label_type;
-      int fragment_charge;
+      int product_charge;
       int fragment_nr;
       double fragment_mzdelta;
       int fragment_modification;

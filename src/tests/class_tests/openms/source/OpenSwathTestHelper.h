@@ -225,7 +225,7 @@ namespace OpenSWATH_Test
       TransitionType tr;
       tr.library_intensity = 10000;
       tr.product_mz = 618.31;
-      tr.charge = 1;
+      tr.product_charge = 1;
       tr.transition_name = native_id;
       transition_group.addTransition(tr, native_id );
     }
@@ -238,7 +238,7 @@ namespace OpenSWATH_Test
       TransitionType tr;
       tr.library_intensity = 1;
       tr.product_mz = 628.435;
-      tr.charge = 1;
+      tr.product_charge = 1;
       tr.transition_name = native_id;
       transition_group.addTransition(tr, native_id );
     }
@@ -251,7 +251,7 @@ namespace OpenSWATH_Test
       TransitionType tr;
       tr.library_intensity = 2000;
       tr.product_mz = 628.435;
-      tr.charge = 1;
+      tr.product_charge = 1;
       tr.transition_name = native_id;
       transition_group.addTransition(tr, native_id );
     }

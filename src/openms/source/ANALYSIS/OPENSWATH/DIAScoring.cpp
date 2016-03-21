@@ -272,9 +272,9 @@ namespace OpenMS
 
       // If no charge is given, we assume it to be 1
       int putative_fragment_charge = 1;
-      if (transitions[k].charge > 0)
+      if (transitions[k].product_charge > 0)
       {
-        putative_fragment_charge = transitions[k].charge;
+        putative_fragment_charge = transitions[k].product_charge;
       }
 
       // collect the potential isotopes of this peak
