@@ -402,7 +402,6 @@ namespace OpenMS
       //~ extract peptide and proteinid from msexperiment
       //~ genereate spectrum references from msexperiment foreach peptideidentification
       //~ }
-
       /*---------------------------------------------------------------------
       DataCollection:
       +Inputs
@@ -868,7 +867,6 @@ namespace OpenMS
 //            }
             pte = true;
           }
-
           //write SpectrumIdentificationItem elements
           String sii = "SII_" + String(UniqueIdGenerator::getUniqueId());
           String sii_tmp;
