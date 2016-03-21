@@ -150,7 +150,6 @@ class TOPPOpenSwathMzMLFileCacher
         }
       }
 
-      std::vector<MSChromatogram<ChromatogramPeak> > chromatograms = meta_exp.getChromatograms();
       for (Size i=0; i < meta_exp.getNrChromatograms(); ++i)
       {
         for (Size j = 0; j < meta_exp.getChromatogram(i).getDataProcessing().size(); j++)
