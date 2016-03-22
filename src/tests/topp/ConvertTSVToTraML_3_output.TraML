@@ -67,7 +67,6 @@
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="500" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
-        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="628.435"/>
         <InterpretationList>
           <Interpretation>
@@ -90,7 +89,6 @@
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="500" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
-        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="654.38"/>
         <InterpretationList>
           <Interpretation>
@@ -113,7 +111,6 @@
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="501" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
-        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="618.31"/>
         <InterpretationList>
           <Interpretation>
@@ -136,7 +133,6 @@
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="501" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
-        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="628.435"/>
         <InterpretationList>
           <Interpretation>
@@ -159,7 +155,6 @@
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="501" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
-        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="651.3"/>
         <InterpretationList>
           <Interpretation>
@@ -182,7 +177,6 @@
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="722.685" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
-        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="358.179"/>
         <InterpretationList>
           <Interpretation>
