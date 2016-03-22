@@ -221,7 +221,7 @@ namespace OpenMS
               // C-term modification for specific amino acid; e.g. <Modification> (N-term C)
               else if ((mod_split[1] == "(C-term") && (mod_split.size() == 3))
               {
-                if ((temp_aa_sequence.end() - 1)->getOneLetterCode() == mod_split[2].remove(')'))
+                if ((temp_aa_sequence.end() - 1)->getOneLetterCode() == mod_split[2].remove(')')[0])
                 {
                   temp_aa_sequence.setCTerminalModification(mod_split[0]);
                 }
@@ -229,7 +229,7 @@ namespace OpenMS
               // N-term modification for specific amino acid; e.g. <Modification> (N-term C)
               else if ((mod_split[1] == "(N-term") && (mod_split.size() == 3))
               {
-                if (temp_aa_sequence.begin()->getOneLetterCode() == mod_split[2].remove(')'))
+                if (temp_aa_sequence.begin()->getOneLetterCode() == mod_split[2].remove(')')[0])
                 {
                   temp_aa_sequence.setNTerminalModification(mod_split[0]);
                 }
@@ -241,7 +241,7 @@ namespace OpenMS
                 AA.remove('(');
                 for (Size i = 0; i != temp_aa_sequence.size(); ++i)
                 {
-                  if (AA == temp_aa_sequence[i].getOneLetterCode())
+                  if (AA[0] == temp_aa_sequence[i].getOneLetterCode())
                   {
                     temp_aa_sequence.setModification(i, mod_split[0]);
                   }
