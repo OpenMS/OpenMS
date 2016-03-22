@@ -8,6 +8,12 @@ INIFileEditor - graphical parameter editor for INI files
 Parameters - list of algorithm or TOPP tool parameters that changed in this release
 
 ------------------------------------------------------------------------------------------
+----                                OpenMS 2.0.1                                      ----
+------------------------------------------------------------------------------------------
+OpenMS 2.0.1 is a source only release of the core libraries.
+
+
+------------------------------------------------------------------------------------------
 ----                                OpenMS 2.0                                        ----
 ------------------------------------------------------------------------------------------
 Release date: February 2015
