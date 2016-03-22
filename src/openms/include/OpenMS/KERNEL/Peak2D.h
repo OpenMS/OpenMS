@@ -137,6 +137,12 @@ public:
       intensity_(0)
     {}
 
+    /// Member constructor
+    explicit Peak2D(const PositionType& pos, const IntensityType in) :
+      position_(pos),
+      intensity_(in)
+    {}
+
     /// Copy constructor
     Peak2D(const Peak2D & p) :
       position_(p.position_),
@@ -355,7 +361,7 @@ public:
 protected:
 
     /// The data point position
-    PositionType    position_;
+    PositionType position_;
     /// The data point intensity
     IntensityType intensity_;
   };

@@ -67,6 +67,12 @@ public:
       MetaInfoInterface(p)
     {}
 
+    /// construct with position and intensity
+    inline explicit RichPeak1D(PositionType a, IntensityType b) :
+      Peak1D(a, b),
+      MetaInfoInterface()
+    {}
+
     /// Destructor
     ~RichPeak1D()
     {}
