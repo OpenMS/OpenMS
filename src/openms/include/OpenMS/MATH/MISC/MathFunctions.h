@@ -219,6 +219,36 @@ namespace OpenMS
       return u3;
     }
 
+    /*
+      @brief Compute parts-per-million of two (m/z) values.
+
+      The returned ppm value can be either positive (mz_obs > mz_ref) or negative (mz_obs < mz_ref)!
+
+      @param mz_obs Observed (experimental) m/z
+      @param mz_ref Reference (theoretical) m/z
+      @return The ppm value
+    */
+    template <typename T>
+    T getPPM(T mz_obs, T mz_ref)
+    {
+      return (mz_obs - mz_ref) / mz_ref * 1e6;
+    }
+    
+    /*
+      @brief Compute absolute parts-per-million of two (m/z) values.
+      
+      The returned ppm value is always >= 0.
+
+      @param mz_obs Observed (experimental) m/z
+      @param mz_ref Reference (theoretical) m/z
+      @return The absolute ppm value
+    */
+    template <typename T>
+    T getPPMAbs(T mz_obs, T mz_ref)
+    {
+      return std::fabs(getPPM(mz_obs, mz_ref));
+    }
+
   }   // namespace Math
 } // namespace OpenMS
 
