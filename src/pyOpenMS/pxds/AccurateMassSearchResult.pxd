@@ -8,7 +8,7 @@ from String cimport *
 from ProgressLogger cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>" namespace "OpenMS":
-    
+
     cdef cppclass AccurateMassSearchResult "OpenMS::AccurateMassSearchResult":
         AccurateMassSearchResult() nogil except +
         AccurateMassSearchResult(AccurateMassSearchResult) nogil except +
@@ -42,4 +42,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>" namespace "Op
         void setIndividualIntensities(libcpp_vector[double]) nogil except +
         Size getSourceFeatureIndex() nogil except +
         void setSourceFeatureIndex(Size) nogil except +
-
+        # errors when returning references to vector
+        libcpp_vector[ double] getMasstraceIntensities() nogil except +
+        void setMasstraceIntensities(libcpp_vector[ double ] & ) nogil except +

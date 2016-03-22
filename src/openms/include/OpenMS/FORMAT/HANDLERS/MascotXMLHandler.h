@@ -35,15 +35,16 @@
 #ifndef OPENMS_FORMAT_HANDLERS_MASCOTXMLHANDLER_H
 #define OPENMS_FORMAT_HANDLERS_MASCOTXMLHANDLER_H
 
-#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
+#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
 
 #include <vector>
-#include <boost/regex.hpp>
 
 namespace OpenMS
 {
@@ -56,16 +57,12 @@ namespace OpenMS
       public XMLHandler
     {
 public:
-
-      typedef Map<Size, float> RTMapping;
-
       /// Constructor
       MascotXMLHandler(ProteinIdentification& protein_identification,
                        std::vector<PeptideIdentification>& identifications,
                        const String& filename,
                        std::map<String, std::vector<AASequence> >& peptides,
-                       const RTMapping& rt_mapping = RTMapping(),
-                       const String& scan_regex = "");
+                       const SpectrumMetaDataLookup& lookup);
 
       /// Destructor
       virtual ~MascotXMLHandler();
@@ -78,9 +75,9 @@ public:
 
       // Docu in base class
       virtual void characters(const XMLCh* const chars, const XMLSize_t /*length*/);
-
-      // Primary regex used to extract a scan number (for use by PepXMLFile)
-      static const String primary_scan_regex;
+      
+      /// Split modification search parameter if for more than one amino acid specified e.g. Phospho (ST)
+      static std::vector<String> splitModificationBySpecifiedAA(String mod);
 
 private:
 
@@ -103,13 +100,13 @@ private:
       String character_buffer_; ///< filled by MascotXMLHandler::characters
       String major_version_;
       String minor_version_;
+      
+      // list of modifications, which cannot be set as fixed and needs
+      // to be removed, because added from mascot as variable modification
+      std::vector<String> remove_fixed_mods_;
 
-      const RTMapping& rt_mapping_; ///< optional mapping of scan indices to RTs if scan numbers are given;
-                                    ///< without this mapping, other sources of RT information are used (if available);
-                                    ///< if all fails, there will be no RT information for peptide hits
-
-      /// List of possible Perl-style regular expressions used to extract the scan number (named group "SCAN") or retention time (named group "RT"), and possibly precursor m/z (named group "MZ") from the "pep_scan_title" element
-      std::vector<boost::regex> scan_regex_;
+      /// Helper object for looking up RT information
+      const SpectrumMetaDataLookup& lookup_;
 
       /// Error for missing RT information already reported?
       bool no_rt_error_;

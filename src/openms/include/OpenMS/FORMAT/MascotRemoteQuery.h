@@ -84,6 +84,9 @@ public:
     /// returns the error message, if hasError can be used to check whether an error has occurred
     OPENMS_DLLAPI const String& getErrorMessage() const;
 
+	/// returns the search number
+    OPENMS_DLLAPI Int getSearchNumber() const;
+
 protected:
 
     OPENMS_DLLAPI virtual void updateMembers_();
@@ -157,6 +160,8 @@ private:
     */
     void removeHostName_(QString& url);
 
+    OPENMS_DLLAPI Int getSearchNumberFromFilePath_(const String& path) const;
+
     String query_spectra_;
     QByteArray mascot_xml_;
     QHttp* http_;
@@ -164,6 +169,7 @@ private:
     String error_message_;
     QTimer timeout_;
     Int to_;
+    Int search_number_;
 
     /// Path on mascot server
     String server_path_;

@@ -54,6 +54,9 @@ public:
     double precursor_mz;
     int charge;
     bool decoy;
+    bool detecting_transition;
+    bool quantifying_transition;
+    bool identifying_transition;
 
     int getProductChargeState() const
     {
@@ -90,6 +93,35 @@ public:
       return precursor_mz;
     }
 
+    void setDetectingTransition (bool d)
+    {
+      detecting_transition = d;
+    }
+
+    bool isDetectingTransition() const
+    {
+      return detecting_transition;
+    }
+
+    void setQuantifyingTransition (bool q)
+    {
+      quantifying_transition = q;
+    }
+
+    bool isQuantifyingTransition() const
+    {
+      return quantifying_transition;
+    }
+
+    void setIdentifyingTransition (bool i)
+    {
+      identifying_transition = i;
+    }
+
+    bool isIdentifyingTransition() const
+    {
+      return identifying_transition;
+    }
   };
 
   struct OPENSWATHALGO_DLLAPI LightModification

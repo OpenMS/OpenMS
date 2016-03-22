@@ -78,10 +78,11 @@ param.setValue("peak_width", 0.15);
 param.setValue("signal_to_noise", 3.);
 pp.setParameters(param);   
 
-START_SECTION((void pick(const MSSpectrum<> &input, MSSpectrum<> &output)))
+START_SECTION((void pick(const MSSpectrum<> &input, MSSpectrum<> &output) const))
   MSSpectrum<> spec;
   pp.pick(input[0],spec);
-  
+  //updating results: MSExperiment<> sp; sp.addSpectrum(spec); MzMLFile().store(OPENMS_GET_TEST_DATA_PATH("PeakPickerCWT_test_output.mzML"), sp);
+
 // TEST_EQUAL(spec.SpectrumSettings::operator==(output[0]), true)-> are not equal as peak picking step is written to the spectrum settings
   for (Size p=0; p<spec.size(); ++p)
   {

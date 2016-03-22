@@ -94,6 +94,8 @@ public:
 
     boost::shared_ptr<OpenSwath::IFeature> getPrecursorFeature(std::string nativeID);
 
+    std::vector<std::string> getNativeIDs() const;
+
     std::vector<std::string> getPrecursorIDs() const;
 
     float getIntensity();
@@ -162,12 +164,22 @@ private:
 public:
 
     SignalToNoiseOpenMS(OpenMS::MSSpectrum<PeakT>& chromat,
-                        double sn_win_len_, unsigned int sn_bin_count_) :
+                        double sn_win_len_, unsigned int sn_bin_count_, bool write_log_messages) :
       chromatogram_(chromat), sn_()
     {
       OpenMS::Param snt_parameters = sn_.getParameters();
       snt_parameters.setValue("win_len", sn_win_len_);
       snt_parameters.setValue("bin_count", sn_bin_count_);
+
+      if (write_log_messages) 
+      {
+        snt_parameters.setValue("write_log_messages", "true");
+      }
+      else
+      {
+        snt_parameters.setValue("write_log_messages", "false");
+      }
+
       sn_.setParameters(snt_parameters);
       sn_.init(chromatogram_);
     }

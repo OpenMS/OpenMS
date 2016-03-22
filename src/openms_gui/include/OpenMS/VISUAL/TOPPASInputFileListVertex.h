@@ -96,6 +96,9 @@ protected:
     /// The key of this input node (for applying resources from a resource file)
     QString key_;
 
+    /// current working dir, i.e. the last position a file was added from
+    QString cwd_;
+
     ///@name reimplemented Qt events
     //@{
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent * e);

@@ -3,8 +3,8 @@
 	<dataProcessing completion_time="2011-08-08T19:31:37">
 		<software name="FeatureFinder" version="1.9.0" />
 		<processingAction name="Quantitation" />
-		<userParam type="string" name="parameter: out" value="AnnotationConflictResolver_1_input.featureXML"/>
-		<userParam type="string" name="parameter: in" value="AnnotationConflictResolver_1_input.mzML"/>
+		<UserParam type="string" name="parameter: out" value="AnnotationConflictResolver_1_input.featureXML"/>
+		<UserParam type="string" name="parameter: in" value="AnnotationConflictResolver_1_input.mzML"/>
 	</dataProcessing>
 	<IdentificationRun id="PI_0" date="2011-08-08T17:36:22" search_engine="X! Tandem (k-score)" search_engine_version="">
 		<SearchParameters db="test.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
@@ -104,10 +104,10 @@
 				<pt x="1268.27" y="546.277432672679" />
 				<pt x="1267.01" y="546.276562549174" />
 			</convexhull>
-			<userParam type="int" name="label" value="22627"/>
-			<userParam type="float" name="score_fit" value="0.346584907825507"/>
-			<userParam type="float" name="score_correlation" value="0.766506757089576"/>
-			<userParam type="float" name="FWHM" value="18.2675685882568"/>
+			<UserParam type="int" name="label" value="22627"/>
+			<UserParam type="float" name="score_fit" value="0.346584907825507"/>
+			<UserParam type="float" name="score_correlation" value="0.766506757089576"/>
+			<UserParam type="float" name="FWHM" value="18.2675685882568"/>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="InterProphet probability" higher_score_better="true" significance_threshold="0" MZ="545.274231" RT="1264.31" >
 				<PeptideHit score="0.998128" sequence="LENAMEVAGR" charge="2" aa_before="R" aa_after="D" protein_refs="PH_0">
 				</PeptideHit>
@@ -130,12 +130,12 @@
 				<PeptideHit score="0.999999" sequence="LENAMEVAGR" charge="2" aa_before="R" aa_after="D" protein_refs="PH_0">
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="int" name="label" value="170"/>
-			<userParam type="float" name="score_fit" value="0.582182578033577"/>
-			<userParam type="float" name="score_correlation" value="0.923668901794242"/>
-			<userParam type="float" name="FWHM" value="19.4875831604004"/>
-			<userParam type="int" name="spectrum_index" value="1018"/>
-			<userParam type="string" name="spectrum_native_id" value="scan=1805"/>
+			<UserParam type="int" name="label" value="170"/>
+			<UserParam type="float" name="score_fit" value="0.582182578033577"/>
+			<UserParam type="float" name="score_correlation" value="0.923668901794242"/>
+			<UserParam type="float" name="FWHM" value="19.4875831604004"/>
+			<UserParam type="int" name="spectrum_index" value="1018"/>
+			<UserParam type="string" name="spectrum_native_id" value="scan=1805"/>
 		</feature>
 		<feature id="f_10678641590729762751">
 			<position dim="0">2692.51931402675</position>
@@ -181,10 +181,10 @@
 				<pt x="2692.15" y="519.288447782397" />
 				<pt x="2690.89" y="519.282802149653" />
 			</convexhull>
-			<userParam type="int" name="label" value="1047"/>
-			<userParam type="float" name="score_fit" value="0.576864818345495"/>
-			<userParam type="float" name="score_correlation" value="0.880288355718269"/>
-			<userParam type="float" name="FWHM" value="13.376127243042"/>
+			<UserParam type="int" name="label" value="1047"/>
+			<UserParam type="float" name="score_fit" value="0.576864818345495"/>
+			<UserParam type="float" name="score_correlation" value="0.880288355718269"/>
+			<UserParam type="float" name="FWHM" value="13.376127243042"/>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="InterProphet probability" higher_score_better="true" significance_threshold="0" MZ="519.2877808" RT="2653.28" >
 				<PeptideHit score="0.999991" sequence="SIITDVYAR" charge="2" aa_before="M" aa_after="E" protein_refs="PH_1">
 				</PeptideHit>
@@ -209,12 +209,12 @@
 				<PeptideHit score="0.999991" sequence="SIITDVYAR" charge="2" aa_before="M" aa_after="E" protein_refs="PH_1">
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="int" name="label" value="23570"/>
-			<userParam type="float" name="score_fit" value="0.592367816263975"/>
-			<userParam type="float" name="score_correlation" value="0.922234794989678"/>
-			<userParam type="float" name="FWHM" value="34.0471076965332"/>
-			<userParam type="int" name="spectrum_index" value="2288"/>
-			<userParam type="string" name="spectrum_native_id" value="scan=4010"/>
+			<UserParam type="int" name="label" value="23570"/>
+			<UserParam type="float" name="score_fit" value="0.592367816263975"/>
+			<UserParam type="float" name="score_correlation" value="0.922234794989678"/>
+			<UserParam type="float" name="FWHM" value="34.0471076965332"/>
+			<UserParam type="int" name="spectrum_index" value="2288"/>
+			<UserParam type="string" name="spectrum_native_id" value="scan=4010"/>
 		</feature>
 				<feature id="f_12405256131250299722">
 			<position dim="0">529.286707890525</position>
@@ -252,12 +252,12 @@
 				<PeptideHit score="0.999999" sequence="LAQGDVVEGK" charge="2" aa_before="K" aa_after="V" protein_refs="PH_2">
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="int" name="label" value="1195"/>
-			<userParam type="float" name="score_fit" value="0.682223066553369"/>
-			<userParam type="float" name="score_correlation" value="0.989496231786794"/>
-			<userParam type="float" name="FWHM" value="5.8864631652832"/>
-			<userParam type="int" name="spectrum_index" value="377"/>
-			<userParam type="string" name="spectrum_native_id" value="scan=513"/>
+			<UserParam type="int" name="label" value="1195"/>
+			<UserParam type="float" name="score_fit" value="0.682223066553369"/>
+			<UserParam type="float" name="score_correlation" value="0.989496231786794"/>
+			<UserParam type="float" name="FWHM" value="5.8864631652832"/>
+			<UserParam type="int" name="spectrum_index" value="377"/>
+			<UserParam type="string" name="spectrum_native_id" value="scan=513"/>
 		</feature>
 		<feature id="f_8424675462742455963">
 			<position dim="0">804.723909144231</position>
@@ -339,12 +339,12 @@
 				<PeptideHit score="0.999999" sequence="AKFDDLTR" charge="2" aa_before="R" aa_after="D" protein_refs="PH_3">
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="int" name="label" value="2801"/>
-			<userParam type="float" name="score_fit" value="0.682499081560347"/>
-			<userParam type="float" name="score_correlation" value="0.959738455491561"/>
-			<userParam type="float" name="FWHM" value="15.4546928405762"/>
-			<userParam type="int" name="spectrum_index" value="610"/>
-			<userParam type="string" name="spectrum_native_id" value="scan=1005"/>
+			<UserParam type="int" name="label" value="2801"/>
+			<UserParam type="float" name="score_fit" value="0.682499081560347"/>
+			<UserParam type="float" name="score_correlation" value="0.959738455491561"/>
+			<UserParam type="float" name="FWHM" value="15.4546928405762"/>
+			<UserParam type="int" name="spectrum_index" value="610"/>
+			<UserParam type="string" name="spectrum_native_id" value="scan=1005"/>
 		</feature>
 	</featureList>
 </featureMap>

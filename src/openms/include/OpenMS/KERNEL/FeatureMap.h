@@ -38,6 +38,7 @@
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/RangeManager.h>
 #include <OpenMS/METADATA/DocumentIdentifier.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
@@ -92,6 +93,7 @@ namespace OpenMS
   */
   class FeatureMap :
     private std::vector<Feature>,
+    public MetaInfoInterface,
     public RangeManager<2>,
     public DocumentIdentifier,
     public UniqueIdInterface,
@@ -243,6 +245,12 @@ public:
 
     /// sets the description of the applied data processing
     OPENMS_DLLAPI void setDataProcessing(const std::vector<DataProcessing>& processing_method);
+
+    /// set the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)
+    OPENMS_DLLAPI void setPrimaryMSRunPath(const StringList& s);
+
+    /// get the file path to the first MS run
+    OPENMS_DLLAPI StringList getPrimaryMSRunPath() const;
 
     /**
       @brief Clears all data and meta data

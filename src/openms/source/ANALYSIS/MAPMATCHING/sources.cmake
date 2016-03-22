@@ -15,7 +15,6 @@ FeatureGroupingAlgorithmLabeled.cpp
 FeatureGroupingAlgorithmQT.cpp
 FeatureGroupingAlgorithmUnlabeled.cpp
 LabeledPairFinder.cpp
-MapAlignmentAlgorithm.cpp
 MapAlignmentAlgorithmIdentification.cpp
 MapAlignmentAlgorithmPoseClustering.cpp
 MapAlignmentAlgorithmSpectrumAlignment.cpp
@@ -31,6 +30,7 @@ StablePairFinder.cpp
 TransformationDescription.cpp
 TransformationModel.cpp
 TransformationModelBSpline.cpp
+TransformationModelLowess.cpp
 TransformationModelLinear.cpp
 TransformationModelInterpolated.cpp
 )

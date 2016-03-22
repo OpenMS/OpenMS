@@ -65,6 +65,8 @@ namespace OpenMS
   {
   protected:
 
+    bool skip_xml_checks_;
+      
     typedef Internal::MzMLHandlerHelper::BinaryData BinaryData;
 
     /**
@@ -116,6 +118,12 @@ namespace OpenMS
 
   public:
 
+    MzMLSpectrumDecoder() :
+      skip_xml_checks_(false)
+    {}
+
+
+
     /**
       @brief Extract data from a string which contains a full mzML spectrum.
 
@@ -146,6 +154,8 @@ namespace OpenMS
     */
     void domParseChromatogram(const std::string& in, OpenMS::Interfaces::ChromatogramPtr & cptr);
 
+    ///sets whether to skip some XML checks and be fast instead
+    void setSkipXMLChecks(bool only);
   };
 }
 

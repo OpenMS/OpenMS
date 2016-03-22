@@ -114,7 +114,7 @@ namespace OpenMS
       }
     }
 
-    //reimplemented in order to remove the "indexmzML" tag from the front (if present)
+    //reimplemented in order to remove the "indexedmzML" tag from the front (if present)
     String MzMLValidator::getPath_(UInt remove_from_end) const
     {
       String path;

@@ -118,7 +118,7 @@ START_SECTION((void getIdentifications(std::vector<PeptideIdentification>& ids, 
   cni.getIdentifications(ids, exp);
   TEST_EQUAL(ids.size(), 1)
   TEST_EQUAL(ids.begin()->getHits().size() > 0, true)
-  TEST_EQUAL(ids.begin()->getHits().begin()->getSequence() == AASequence::fromString("DFPLANGER"), true)
+  TEST_STRING_EQUAL(ids.begin()->getHits().begin()->getSequence().toString(), "DFPLANGER")
 END_SECTION
 
 START_SECTION((void getIdentification(PeptideIdentification& id, const PeakSpectrum& CID_spec)))

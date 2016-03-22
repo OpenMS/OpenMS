@@ -55,7 +55,7 @@ namespace OpenMS
       static RNPxlModificationMassesResult initModificationMassesRNA(StringList target_nucleotides, StringList mappings, StringList restrictions, StringList modifications, String sequence_restriction, bool cysteine_adduct, Int max_length = 4);
     private:
       static bool notInSeq(String res_seq, String query);
-      static void generateTargetSequences(const String& res_seq, Size pos, const std::map<char, std::vector<char> >& map_source2target, StringList& target_sequences);
+      static void generateTargetSequences(const String& res_seq, Size param_pos, const std::map<char, std::vector<char> >& map_source2target, StringList& target_sequences);
     };
 }
 

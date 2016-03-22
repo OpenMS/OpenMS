@@ -43,8 +43,8 @@
 using namespace OpenMS;
 using namespace std;
 
-#define DEBUG_TEST
-#undef DEBUG_TEST
+// #define DEBUG_TEST
+// #undef  DEBUG_TEST
 
 START_TEST(SignalToNoiseEstimatorMeanIterative, "$Id$")
 

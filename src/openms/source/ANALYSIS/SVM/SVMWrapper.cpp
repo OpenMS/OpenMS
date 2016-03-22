@@ -446,7 +446,7 @@ namespace OpenMS
 
   }
 
-  void SVMWrapper::saveModel(string model_filename) const
+  void SVMWrapper::saveModel(std::string model_filename) const
   {
     Int  status = 0;
 
@@ -464,7 +464,7 @@ namespace OpenMS
     }
   }
 
-  void SVMWrapper::loadModel(string model_filename)
+  void SVMWrapper::loadModel(std::string model_filename)
   {
     TextFile file;
     TextFile::ConstIterator it;
@@ -1087,8 +1087,8 @@ namespace OpenMS
       {
         for (Size k = 0; k < number_of_partitions; k++)
         {
-          free(training_data_ul[k]->x);
-          free(training_data_ul[k]->y);
+          delete[] training_data_ul[k]->x;
+          delete[] training_data_ul[k]->y;
           delete training_data_ul[k]; // delete individual objects
         }
         delete[] training_data_ul; // delete array of pointers

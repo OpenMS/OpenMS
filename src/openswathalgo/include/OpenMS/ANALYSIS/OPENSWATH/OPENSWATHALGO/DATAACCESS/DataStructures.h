@@ -171,6 +171,16 @@ public:
     {
     }
 
+    ///Comparator for the retention time.
+    struct RTLess :
+      public std::binary_function<OSSpectrumMeta, OSSpectrumMeta, bool>
+    {
+      inline bool operator()(const OSSpectrumMeta& a, const OSSpectrumMeta& b) const
+      {
+        return a.RT < b.RT;
+      }
+    };
+
   };
   typedef OSSpectrumMeta SpectrumMeta;
   typedef boost::shared_ptr<SpectrumMeta> SpectrumMetaPtr;

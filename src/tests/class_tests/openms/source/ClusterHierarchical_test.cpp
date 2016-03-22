@@ -50,6 +50,8 @@
 using namespace OpenMS;
 using namespace std;
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunreachable-code"
 
 class LowlevelComparator
 {
@@ -159,6 +161,7 @@ class LowlevelComparator
 	}
 };
 
+#pragma clang diagnostic pop
 
 START_TEST(ClusterHierarchical, "$Id$")
 

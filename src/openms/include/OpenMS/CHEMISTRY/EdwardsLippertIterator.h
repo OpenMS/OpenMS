@@ -164,6 +164,7 @@ public:
     }
 
 protected:
+
     /**
     @brief getting the next candidate
     @return string with next sequence

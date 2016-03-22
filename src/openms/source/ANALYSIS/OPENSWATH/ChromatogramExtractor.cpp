@@ -81,7 +81,7 @@ namespace OpenMS
 
       if (pep.rts.empty() || pep.rts[0].getCVTerms()["MS:1000896"].empty())
       {
-        // we dont have retention times -> this is only a problem if we actually
+        // we don't have retention times -> this is only a problem if we actually
         // wanted to use the RT limit feature.
         if (rt_extraction_window < 0)
         {

@@ -40,7 +40,7 @@ namespace OpenMS
 
   const int PeptideEvidence::UNKNOWN_POSITION = -1;
   const int PeptideEvidence::N_TERMINAL_POSITION = 0;
-  const char PeptideEvidence::UNKNOWN_AA = ' ';
+  const char PeptideEvidence::UNKNOWN_AA = 'X';
   const char PeptideEvidence::N_TERMINAL_AA = '[';
   const char PeptideEvidence::C_TERMINAL_AA = ']';
 

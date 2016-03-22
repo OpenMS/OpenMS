@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
+<indexedmzML xmlns="http://psi.hupo.org/ms/mzml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0_idx.xsd">
 <mzML xmlns="http://psi.hupo.org/ms/mzml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd" accession="" version="1.1.0">
 	<cvList count="5">
 		<cv id="MS" fullName="Proteomics Standards Initiative Mass Spectrometry Ontology" URI="http://psidev.cvs.sourceforge.net/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo"/>
@@ -12,7 +13,7 @@
 			<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
 		</fileContent>
 		<sourceFileList count="1">
-			<sourceFile id="sf_ru_0" name="file://C:/Program Files/pwiz-bin-windows-x86-vc90-release-2_2_2815/../../Documents and Settings/thermo/Desktop/Hannes/weisserh_L110812_004_SW.wiff" location="">
+			<sourceFile id="sf_ru_0" name="weisserh_L110812_004_SW.wiff" location="file://C:/Program Files/pwiz-bin-windows-x86-vc90-release-2_2_2815/../../Documents and Settings/thermo/Desktop/Hannes">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="a577061a82721858070fef755537e7e03e4740db" />
 				<cvParam cvRef="MS" accession="MS:1000564" name="PSI mzData format" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
@@ -365,3 +366,13 @@
 		</chromatogramList>
 	</run>
 </mzML>
+<indexList count="1">
+	<index name="chromatogram">
+		<offset idRef="tr3">17294</offset>
+		<offset idRef="tr1">21055</offset>
+		<offset idRef="tr2">24816</offset>
+	</index>
+</indexList>
+<indexListOffset>28608</indexListOffset>
+<fileChecksum>0</fileChecksum>
+</indexedmzML>

@@ -229,11 +229,11 @@ namespace OpenMS
       String tmp;
       optionalAttributeAsString_(tmp, attributes, "start");
       actual_start_ = tmp.toInt();
-      pe.setStart(actual_start_);
+      pe.setStart(actual_start_ - 1);
       tmp = "";
       optionalAttributeAsString_(tmp, attributes, "end");
       actual_stop_ = tmp.toInt();
-      pe.setEnd(actual_stop_);
+      pe.setEnd(actual_stop_ - 1);
 
       // add the actual protein accession
       pe.setProteinAccession(actual_protein_id_);

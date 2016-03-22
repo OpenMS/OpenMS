@@ -36,6 +36,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -53,6 +54,7 @@
 #include <QtCore/QFile>
 #include <QtCore/QProcess>
 #include <QDir>
+#include <qsignalmapper.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -309,7 +311,11 @@ protected:
     //-no <Integer> minimum size of peptides for no-enzyme and semi-tryptic searches
     //-nox <Integer> maximum size of peptides for no-enzyme and semi-tryptic searches
     registerIntOption_("v", "<Integer>", 1, "number of missed cleavages allowed", false);
-    registerIntOption_("e", "<Integer>", 0, "id number of enzyme to use (0 (i.e. trypsin) is the default, 17 would be no enzyme (i.e. unspecific digestion). Please refer to 'omssacl -el' for a listing.", false);
+    vector<String> all_enzymes;
+    EnzymesDB::getInstance()->getAllOMSSANames(all_enzymes);
+    registerStringOption_("enzyme", "<enzyme>", "Trypsin", "The enzyme used for peptide digestion.", false);
+    setValidStrings_("enzyme", all_enzymes);
+    //registerIntOption_("e", "<Integer>", 0, "id number of enzyme to use (0 (i.e. trypsin) is the default, 17 would be no enzyme (i.e. unspecific digestion). Please refer to 'omssacl -el' for a listing.", false);
     registerIntOption_("no", "<Integer>", 4, "minimum size of peptides for no-enzyme and semi-tryptic searches", false, true);
     registerIntOption_("nox", "<Integer>", 40, "maximum size of peptides for no-enzyme and semi-tryptic searches", false, true);
 
@@ -515,7 +521,7 @@ protected:
     parameters << "-i" << getStringOption_("i");
     parameters << "-z1" << String(getDoubleOption_("z1"));
     parameters << "-v" << String(getIntOption_("v"));
-    parameters << "-e" << String(getIntOption_("e"));
+    parameters << "-e" << String(EnzymesDB::getInstance()->getEnzyme(getStringOption_("enzyme"))->getOMSSAid());
     parameters << "-tez" << String(getIntOption_("tez"));
 
 
@@ -757,22 +763,24 @@ protected:
     // names of temporary files for data chunks
     StringList file_spectra_chunks_in, file_spectra_chunks_out;
     Size ms2_spec_count(0);
+    StringList primary_ms_runs;
     { // local scope to free memory after conversion to MGF format is done
       FileHandler fh;
       FileTypes::Type in_type = fh.getType(inputfile_name);
-      PeakMap map;
+      PeakMap peak_map;
       fh.getOptions().addMSLevel(2);
-      fh.loadExperiment(inputfile_name, map, in_type, log_type_);
-      ms2_spec_count = map.size();
+      fh.loadExperiment(inputfile_name, peak_map, in_type, log_type_, false, false);
+      primary_ms_runs = peak_map.getPrimaryMSRunPath();
+      ms2_spec_count = peak_map.size();
       writeDebug_("Read " + String(ms2_spec_count) + " spectra from file", 5);
 
-      if (map.getSpectra().empty())
+      if (peak_map.getSpectra().empty())
       {
         throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS2 spectra in input file.");
       }
 
       // determine type of spectral data (profile or centroided)
-      SpectrumSettings::SpectrumType spectrum_type = map[0].getType();
+      SpectrumSettings::SpectrumType spectrum_type = peak_map[0].getType();
 
       if (spectrum_type == SpectrumSettings::RAWDATA)
       {
@@ -787,22 +795,23 @@ protected:
       if (chunk_size <= 0)
       {
         writeLog_("Chunk size is <=0; disabling chunking of input! If OMSSA crashes due to memory allocation errors, try setting 'chunk_size' to a value below 30000 (e.g., 10000 is usually ok).");
-        chunk_size = (int)map.getSpectra().size();
+        chunk_size = (int) peak_map.getSpectra().size();
       }
 
-      for (Size i = 0; i < map.size(); i += chunk_size)
+      for (Size i = 0; i < peak_map.size(); i += chunk_size)
       {
         PeakMap map_chunk;
         PeakMap* chunk_ptr = &map_chunk; // points to the current chunk data
         // prepare a chunk
-        if (static_cast<int>(map.size()) <= chunk_size)
+        if (static_cast<int>(peak_map.size()) <= chunk_size)
         { // we have only one chunk; avoid duplicating the whole data (could be a lot)
           // we do not use swap() since someone might want to access 'map' later and would find it empty
-          chunk_ptr = &map;
+          chunk_ptr = &peak_map;
         }
         else
         {
-          map_chunk.getSpectra().insert(map_chunk.getSpectra().begin(), map.getSpectra().begin() + i, map.getSpectra().begin() + std::min(map.size(), i + chunk_size));
+          map_chunk.getSpectra().insert(map_chunk.getSpectra().begin(), peak_map.getSpectra().begin() + i, peak_map.getSpectra().begin() + std::min(
+                  peak_map.size(), i + chunk_size));
         }
         MascotGenericFile omssa_infile;
         String filename_chunk = unique_input_name + String(chunk) + ".mgf";
@@ -818,6 +827,7 @@ protected:
     //-------------------------------------------------------------
 
     ProteinIdentification protein_identification;
+    protein_identification.setPrimaryMSRunPath(primary_ms_runs);
     vector<PeptideIdentification> peptide_ids;
 
     ProgressLogger pl;
@@ -998,19 +1008,13 @@ protected:
     search_parameters.mass_type = mass_type;
     search_parameters.fixed_modifications = getStringList_("fixed_modifications");
     search_parameters.variable_modifications = getStringList_("variable_modifications");
-
-    ProteinIdentification::DigestionEnzyme enzyme = ProteinIdentification::TRYPSIN;
-    UInt e(getIntOption_("e"));
-    if (e != 0)
-    {
-      writeLog_("Warning: cannot handle enzyme: " + String(getIntOption_("e")));
-    }
-
-    search_parameters.enzyme = enzyme;
+    search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(getStringOption_("enzyme"));
     search_parameters.missed_cleavages = getIntOption_("v");
-    search_parameters.peak_mass_tolerance = getDoubleOption_("fragment_mass_tolerance");
+    search_parameters.fragment_mass_tolerance = getDoubleOption_("fragment_mass_tolerance");
     search_parameters.precursor_tolerance = getDoubleOption_("precursor_mass_tolerance");
-
+    search_parameters.precursor_mass_tolerance_ppm = getFlag_("precursor_mass_tolerance_unit_ppm");
+    search_parameters.fragment_mass_tolerance_ppm = false; // OMSSA doesn't support ppm fragment mass tolerance
+    
     protein_identification.setSearchParameters(search_parameters);
     protein_identification.setSearchEngineVersion(omssa_version);
     protein_identification.setSearchEngine("OMSSA");

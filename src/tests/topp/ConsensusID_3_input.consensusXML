@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <?xml-stylesheet type="text/xsl" href="file:////home/groepl/Release1.6/share/OpenMS/XSL/ConsensusXML.xsl"?>
-<consensusXML version="1.4" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<IdentificationRun id="PI_0" date="2005-01-27T17:47:41" search_engine="" search_engine_version="">
+<consensusXML version="1.4" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_6.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<IdentificationRun id="PI_0" date="2005-01-27T17:47:41" search_engine="Mascot" search_engine_version="">
 		<SearchParameters db="Dummy" db_version="1.1" taxonomy="human" mass_type="monoisotopic" charges="+1,+2,+3" enzyme="unknown_enzyme" missed_cleavages="1" precursor_peak_tolerance="0.3" peak_mass_tolerance="0.1" >
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
 		</ProteinIdentification>
 	</IdentificationRun>
-	<IdentificationRun id="PI_1" date="2005-01-27T17:47:42" search_engine="" search_engine_version="">
+	<IdentificationRun id="PI_1" date="2005-01-27T17:48:42" search_engine="Mascot" search_engine_version="">
 		<SearchParameters db="Dummy" db_version="1.1" taxonomy="human" mass_type="monoisotopic" charges="+1,+2,+3" enzyme="unknown_enzyme" missed_cleavages="1" precursor_peak_tolerance="0.3" peak_mass_tolerance="0.1" >
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
@@ -27,19 +27,19 @@
 				<element map="2" id="0" rt="1.55" mz="1.55" it="2.24"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="1.5" RT="1.5" >
-				<PeptideHit score="1" sequence="A" charge="0">
+				<PeptideHit score="1" sequence="A" charge="2">
 				</PeptideHit>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="1.5" RT="1.5" >
-				<PeptideHit score="2" sequence="E" charge="0">
+				<PeptideHit score="2" sequence="E" charge="1">
 				</PeptideHit>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="1.5" RT="1.5" >
-				<PeptideHit score="9" sequence="F" charge="0">
+				<PeptideHit score="9" sequence="F" charge="3">
 				</PeptideHit>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="1.5" RT="1.5" >
-				<PeptideHit score="3" sequence="A" charge="0">
+				<PeptideHit score="3" sequence="A" charge="2">
 				</PeptideHit>
 			</PeptideIdentification>
 		</consensusElement>
@@ -50,19 +50,19 @@
 				<element map="2" id="1" rt="3.55" mz="3.55" it="2.26"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="3.5" RT="3.5" >
-				<PeptideHit score="3" sequence="C" charge="0">
+				<PeptideHit score="3" sequence="C" charge="3">
 				</PeptideHit>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="3.5" RT="3.5" >
-				<PeptideHit score="4" sequence="D" charge="0">
+				<PeptideHit score="4" sequence="D" charge="2">
 				</PeptideHit>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="3.5" RT="3.5" >
-				<PeptideHit score="7" sequence="H" charge="0">
+				<PeptideHit score="7" sequence="H" charge="2">
 				</PeptideHit>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="3.5" RT="3.5" >
-				<PeptideHit score="1" sequence="C" charge="0">
+				<PeptideHit score="1" sequence="C" charge="3">
 				</PeptideHit>
 			</PeptideIdentification>
 		</consensusElement>

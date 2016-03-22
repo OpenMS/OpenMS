@@ -6,6 +6,7 @@ from RichPeak2D cimport *
 from UniqueIdInterface cimport *
 from FeatureMap cimport *
 from BaseFeature cimport *
+from FeatureHandle cimport *
 from PeptideIdentification cimport *
 
 cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS":
@@ -40,6 +41,8 @@ cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS":
 
         Int getCharge() nogil except +
         void setCharge(Int q) nogil except +
+
+        libcpp_vector[FeatureHandle] getFeatureList() nogil except +
 
         Size size() nogil except +
 

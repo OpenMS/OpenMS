@@ -24,21 +24,21 @@ class TestChromatogramExtractorAlgorithm(unittest.TestCase):
         coord.mz = 618.31
         coord.rt_start = 4000 
         coord.rt_end = 5000
-        coord.id = "tr3"
+        coord.id = b"tr3"
         targeted.append(coord)
 
         coord = pyopenms.ExtractionCoordinates()
         coord.mz = 628.45
         coord.rt_start = 4000 
         coord.rt_end = 5000
-        coord.id = "tr1"
+        coord.id = b"tr1"
         targeted.append(coord)
 
         coord = pyopenms.ExtractionCoordinates()
         coord.mz = 654.38
         coord.rt_start = 4000 
         coord.rt_end = 5000
-        coord.id = "tr2"
+        coord.id = b"tr2"
         targeted.append(coord)
 
         trafo = pyopenms.TransformationDescription()

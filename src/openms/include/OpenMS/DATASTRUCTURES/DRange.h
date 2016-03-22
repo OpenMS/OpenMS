@@ -53,7 +53,7 @@ namespace OpenMS
       The two limiting points are accessed as minPosition() and maxPosition().
 
       A range denotes a semi-open interval. A lower coordinate of each
-      dimension is part the range, the higher coordinate is not.
+      dimension is part of the range, the higher coordinate is not.
 
       @ingroup Datastructures
   */
@@ -75,7 +75,7 @@ public:
     typedef typename Base::PositionType PositionType;
     /// Coordinate type of the positions
     typedef typename Base::CoordinateType CoordinateType;
-    ///Types that describe the kind of intersection between two ranges
+    /// Types that describe the kind of intersection between two ranges
     enum DRangeIntersection
     {
       Disjoint, ///< No intersection
@@ -118,7 +118,7 @@ public:
     {
     }
 
-    ///Convenient constructor for DRange<2>
+    /// Convenient constructor for DRange<2>
     DRange(CoordinateType minx, CoordinateType miny, CoordinateType maxx, CoordinateType maxy)
     {
       OPENMS_PRECONDITION(D == 2, "DRange<D>:DRange(minx, miny, maxx, maxy): index overflow!");
@@ -302,6 +302,33 @@ public:
       }
       return false;
     }
+
+    /**
+         @brief Extends the range in all dimensions by a certain multiplier.
+
+         Extends the range, while maintaining the original center position.
+
+         Examples (for D=1):
+           factor = 1.01 extends the range by 1% in total, i.e. 0.5% left and right.
+           factor = 2.00 doubles the total range, e.g. from [0,100] to [-50,150]
+
+         @param factor Multiplier (allowed is [0, inf)).
+    */
+    void extend(double factor)
+    {
+      if (factor < 0)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "DRange::extend(): factor must not be negative!");
+      }
+
+      for (UInt i = 0; i != D; ++i)
+      {
+        Internal::DIntervalBase<1>::CoordinateType extra = (max_[i] - min_[i]) / 2.0 * (factor - 1);
+        min_[i] -= extra;
+        max_[i] += extra;
+      }
+    }
+
 
     //@}
   };

@@ -166,6 +166,7 @@ protected:
     ItraqChannelExtractor itraq_ce(itraq_type, extract_param);
 
     ConsensusMap consensus_map_raw, consensus_map_quant;
+    consensus_map_quant.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
     // extract raw signals
     itraq_ce.run(exp, consensus_map_raw);
 

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="file:////home/samuel/git/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<consensusXML version="1.6" id="cm_5233264595117471314" experiment_type="labeled_MS1" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_6.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<mapList count="1">
+		<map id="0" name="/home/samuel/FeatureFinderMultiplex_7.tmp" label="no_label" size="2">
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_4835329514588776807" quality="1" charge="6">
+			<centroid rt="1854.18708250516" mz="616.76831845264" it="338746"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="1854.18708250516" mz="616.76831845264" it="338746" charge="6"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_17749660155506638460" quality="1" charge="6">
+			<centroid rt="1854.98721624605" mz="611.100619154792" it="1.70833e+07"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="1854.98721624605" mz="611.100619154792" it="1.70833e+07" charge="6"/>
+			</groupedElementList>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>

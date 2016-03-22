@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.6" document_id="lsid" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_6.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<featureMap version="1.8" document_id="lsid" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_8.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="2001-02-03T04:05:07">
 		<software name="Software1" version="0.91a" />
 		<processingAction name="Deisotoping" />
-		<userParam type="string" name="name" value="dataProcessing"/>
+		<UserParam type="string" name="name" value="dataProcessing"/>
 	</dataProcessing>
 	<dataProcessing completion_time="2001-02-03T04:05:06">
 		<software name="Software2" version="0.92a" />
@@ -17,15 +17,16 @@
 			<VariableModification name="E-18.0106" />
 			<VariableModification name="M+15.9949" />
 			<VariableModification name="Q-17.0265" />
+            <UserParam type="string" name="test" value="test"/>
 		</SearchParameters>
 		<ProteinIdentification score_type="score_type" higher_score_better="true" significance_threshold="56.7643013000488">
 			<ProteinHit id="PH_0" accession="urn:lsid:ach0du1schreck2wo3iss4er5denn" score="70.3000030517578" sequence="ABCDEFG">
-				<userParam type="string" name="dadada" value="dududu"/>
+				<UserParam type="string" name="dadada" value="dududu"/>
 			</ProteinHit>
 			<ProteinHit id="PH_1" accession="urn:lsid:rumpelstielzchen" score="140.600006103516" sequence="HIJKLMN">
-				<userParam type="string" name="dadada" value="doppeltsogut"/>
+				<UserParam type="string" name="dadada" value="doppeltsogut"/>
 			</ProteinHit>
-			<userParam type="float" name="pi" value="3.14159"/>
+			<UserParam type="float" name="pi" value="3.14159"/>
 		</ProteinIdentification>
 	</IdentificationRun>
 	<IdentificationRun id="PI_1" date="2008-12-14T11:12:46" search_engine="MaxKotzt" search_engine_version="2.1">
@@ -42,15 +43,15 @@
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="score_type" higher_score_better="false" significance_threshold="42.2999992370605" >
 		<PeptideHit score="4324.433" sequence="F" charge="23" aa_before="X" aa_after="Y" protein_refs="PH_1">
 		</PeptideHit>
-		<userParam type="int" name="label" value="17"/>
+		<UserParam type="int" name="label" value="17"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="score_type" higher_score_better="false" significance_threshold="42.2999992370605" >
 		<PeptideHit score="4324.433" sequence="G" charge="23" aa_before="X" aa_after="Y" protein_refs="PH_2">
-			<userParam type="int" name="label" value="19"/>
+			<UserParam type="int" name="label" value="19"/>
 		</PeptideHit>
 		<PeptideHit score="4324.433" sequence="H" charge="23" aa_before="X" aa_after="Y" protein_refs="PH_2">
 		</PeptideHit>
-		<userParam type="int" name="label" value="18"/>
+		<UserParam type="int" name="label" value="18"/>
 	</UnassignedPeptideIdentification>
 	<featureList count="2">
 		<feature id="f_1000">
@@ -84,22 +85,22 @@
 			<PeptideIdentification identification_run_ref="PI_0" score_type="score_type" higher_score_better="false" significance_threshold="42.2999992370605" >
 				<PeptideHit score="4324.433" sequence="A" charge="23" aa_before="X" aa_after="Y" protein_refs="PH_1">
 				</PeptideHit>
-				<userParam type="int" name="label" value="17"/>
+				<UserParam type="int" name="label" value="17"/>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="score_type" higher_score_better="false" significance_threshold="42.2999992370605" >
 				<PeptideHit score="4324.433" sequence="C" charge="23" aa_before="X" aa_after="Y" protein_refs="PH_2">
-					<userParam type="int" name="label" value="19"/>
+					<UserParam type="int" name="label" value="19"/>
 				</PeptideHit>
 				<PeptideHit score="4324.433" sequence="D" charge="23" aa_before="X" aa_after="Y" protein_refs="PH_2">
 				</PeptideHit>
-				<userParam type="int" name="label" value="18"/>
+				<UserParam type="int" name="label" value="18"/>
 			</PeptideIdentification>
-			<userParam type="string" name="stringparametername" value="stringparametervalue"/>
-			<userParam type="int" name="intparametername" value="4"/>
-			<userParam type="float" name="floatparametername" value="4.551"/>
-			<userParam type="intList" name="myIntList" value="[1, 10, 12]"/>
-			<userParam type="floatList" name="myDoubleList" value="[1.111, 10.999, 12.45]"/>
-			<userParam type="stringList" name="myStringList" value="[myABC1,Stuff,12]"/>
+			<UserParam type="string" name="stringparametername" value="stringparametervalue"/>
+			<UserParam type="int" name="intparametername" value="4"/>
+			<UserParam type="float" name="floatparametername" value="4.551"/>
+			<UserParam type="intList" name="myIntList" value="[1, 10, 12]"/>
+			<UserParam type="floatList" name="myDoubleList" value="[1.111, 10.999, 12.45]"/>
+			<UserParam type="stringList" name="myStringList" value="[myABC1,Stuff,12]"/>
 		</feature>
 		<feature id="f_1001">
 			<position dim="0">0</position>
@@ -117,7 +118,7 @@
 				<PeptideHit score="4324.433" sequence="E" charge="23" aa_before="X" aa_after="Y" protein_refs="PH_1">
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="floatList" name="myDoubleList" value="[6.442]"/>
+			<UserParam type="floatList" name="myDoubleList" value="[6.442]"/>
 		</feature>
 	</featureList>
 </featureMap>

@@ -5,13 +5,22 @@ set(directory include/OpenMS/ANALYSIS/ID)
 set(sources_list_h
 AccurateMassSearchEngine.h
 AScore.h
-ConsensusID.h
+ConsensusIDAlgorithm.h
+ConsensusIDAlgorithmAverage.h
+ConsensusIDAlgorithmBest.h
+ConsensusIDAlgorithmIdentity.h
+ConsensusIDAlgorithmPEPIons.h
+ConsensusIDAlgorithmPEPMatrix.h
+ConsensusIDAlgorithmRanks.h
+ConsensusIDAlgorithmSimilarity.h
+ConsensusIDAlgorithmWorst.h
 FalseDiscoveryRate.h
 HiddenMarkovModel.h
 IDDecoyProbability.h
 IDMapper.h
 IDRipper.h
 MetaboliteSpectralMatching.h
+PeptideProteinResolution.h
 PILISIdentification.h
 PILISModel.h
 PILISModelGenerator.h
@@ -19,6 +28,7 @@ PILISNeutralLossModel.h
 PILISScoring.h
 PILISCrossValidation.h
 ProtonDistributionModel.h
+PeptideIndexing.h
 )
 
 ### add path to the filenames

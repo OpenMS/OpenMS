@@ -78,7 +78,7 @@ protected slots:
 protected:
 
     /// The parent
-    QObject * parent_;
+    QObject* parent_;
   };
 
 }

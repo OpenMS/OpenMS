@@ -122,8 +122,11 @@ public:
     /**
       @brief Simple method to extract the best Feature for each transition group (e.g. for RT alignment)
 
-      @param transition_group_map Input data
-      @param pairs Output (containing pairs of  mapping  data
+      @param transition_group_map Input data containing the picked and scored map
+      @param useQualCutoff Whether to apply a quality cutoff to the data
+      @param qualCutoff When applying a quality cutoff, what it should be
+
+      @return Result of the best scoring peaks (stored as map of peptide id and RT)
 
     */
     static std::map<std::string, double> simpleFindBestFeature(

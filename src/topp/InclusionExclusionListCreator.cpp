@@ -147,8 +147,8 @@ protected:
     Param tmp;
     tmp.insert("InclusionExclusionList:", fdc.getParameters());
     tmp.insert("PrecursorSelection:", ops.getParameters());
-    tmp.remove("PrecursorSelection:selection_window");
-    tmp.remove("PrecursorSelection:min_peak_distance");
+    tmp.remove("PrecursorSelection:mz_isolation_window");
+    tmp.remove("PrecursorSelection:min_mz_peak_distance");
     tmp.insert("PrecursorSelection:", lp.getParameters().copy("feature_based"));
     return tmp;
   }
@@ -236,8 +236,10 @@ protected:
 
           String raw_data_path = getStringOption_("raw_data");
           MSExperiment<> exp, ms2;
-          FeatureMap out_map;
           MzMLFile().load(raw_data_path, exp);
+          FeatureMap out_map;
+          out_map.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
+
           IntList levels;
           levels.push_back(1);
           exp.getSpectra().erase(remove_if(exp.begin(), exp.end(),

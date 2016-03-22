@@ -24,11 +24,5 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMRTNormalizer.h>" namespace "Open
             size_t sampling_size
             ) nogil except + # wrap-attach:MRMRTNormalizer
 
-    libcpp_vector[libcpp_pair[double,double]] ransac(
-            libcpp_vector[libcpp_pair[double,double]] & pairs,
-            size_t n, size_t k, double t, size_t d, bool test
-            ) nogil except + # wrap-attach:MRMRTNormalizer
-
-
     double chauvenet_probability(libcpp_vector[ double ] residuals, int pos) nogil except + # wrap-attach:MRMRTNormalizer
     bool chauvenet(libcpp_vector[ double ] residuals, int pos) nogil except + # wrap-attach:MRMRTNormalizer

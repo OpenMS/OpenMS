@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
+<indexedmzML xmlns="http://psi.hupo.org/ms/mzml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0_idx.xsd">
 <mzML xmlns="http://psi.hupo.org/ms/mzml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd" accession="" version="1.1.0">
 	<cvList count="5">
 		<cv id="MS" fullName="Proteomics Standards Initiative Mass Spectrometry Ontology" URI="http://psidev.cvs.sourceforge.net/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo"/>
@@ -12,9 +13,9 @@
 			<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
 		</fileContent>
 		<sourceFileList count="1">
-			<sourceFile id="sf_ru_0" name="PrecursorMassCorrector_1_input.mzML" location="<TEST_DATA_PATH>">
-				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="db100deeb781b15573b9387244334b3a24a73df6" />
-				<cvParam cvRef="MS" accession="MS:1000584" name="mzML format" />
+			<sourceFile id="sf_ru_0" name="QStar_BSA_500fmol_2.wiff" location="file://U-096-CPC14/E/mzWiff-4.1.1/DeNovo QStar">
+				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="a0193bfb3701b50465b30c167c515d8b184c5e6e" />
+				<cvParam cvRef="MS" accession="MS:1000564" name="PSI mzData format" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
 			</sourceFile>
 		</sourceFileList>
@@ -486,3 +487,17 @@
 		</spectrumList>
 	</run>
 </mzML>
+<indexList count="1">
+	<index name="spectrum">
+		<offset idRef="spectrum=501">12702</offset>
+		<offset idRef="spectrum=502">184958</offset>
+		<offset idRef="spectrum=503">197914</offset>
+		<offset idRef="spectrum=504">429037</offset>
+		<offset idRef="spectrum=505">702277</offset>
+		<offset idRef="spectrum=506">745514</offset>
+		<offset idRef="spectrum=120">774878</offset>
+	</index>
+</indexList>
+<indexListOffset>946517</indexListOffset>
+<fileChecksum>0</fileChecksum>
+</indexedmzML>

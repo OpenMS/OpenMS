@@ -21,11 +21,11 @@ ParentPeakMower.cpp
 PeakMarker.cpp
 #~ PreprocessingFunctor.cpp
 Scaler.cpp
+SpectraMerger.cpp
 SqrtMower.cpp
 TICFilter.cpp
 ThresholdMower.cpp
 WindowMower.cpp
-SpectraMerger.cpp
 )
 
 ### add path to the filenames

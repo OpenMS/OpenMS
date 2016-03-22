@@ -11,7 +11,7 @@
 		<sourceFileList count="1">
 			<sourceFile id="sf_ru_0" name="file://IBT-RABEAM/Data/andersm/B08-08318.RAW" location="">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="8050207fea87c7c97555c6bb83fa50312b24fbbe" />
-				<cvParam cvRef="MS" accession="MS:1000564" name="PSI mzData file" />
+				<cvParam cvRef="MS" accession="MS:1000564" name="PSI mzData format" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
 			</sourceFile>
 		</sourceFileList>

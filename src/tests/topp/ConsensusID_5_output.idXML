@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="http://open-ms.sourceforge.net/XSL/IdXML.xsl" ?>
+<IdXML version="1.3" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+    <VariableModification name="Oxidation (M)" />
+	</SearchParameters>
+	<IdentificationRun date="2015-10-28T13:52:38" search_engine="OpenMS/ConsensusID_PEPIons" search_engine_version="2.0.0" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+		</ProteinIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="695.3646" RT="2233.105" >
+			<PeptideHit score="0.271111111111111" sequence="QRESTATDILQK" charge="2" >
+				<UserParam type="float" name="consensus_support" value="1"/>
+			</PeptideHit>
+			<PeptideHit score="0.37983379501385" sequence="EIEEDSLEGLKK" charge="2" >
+				<UserParam type="float" name="consensus_support" value="0.6875"/>
+			</PeptideHit>
+			<PeptideHit score="0.453686195082581" sequence="EQSATEQDILKK" charge="2" >
+				<UserParam type="float" name="consensus_support" value="0.458333343267441"/>
+			</PeptideHit>
+			<PeptideHit score="0.453686195082581" sequence="GIEDDLMDLIKK" charge="2" >
+				<UserParam type="float" name="consensus_support" value="0.458333343267441"/>
+			</PeptideHit>
+			<PeptideHit score="0.484090906711649" sequence="EDNMAIQSIIKK" charge="2" >
+				<UserParam type="float" name="consensus_support" value="0.41666667163372"/>
+			</PeptideHit>
+			<PeptideHit score="0.502857142857143" sequence="NTNNHNGHILKK" charge="2" >
+				<UserParam type="float" name="consensus_support" value="0.375"/>
+			</PeptideHit>
+			<PeptideHit score="0.617031243373058" sequence="WSVEEEELLKK" charge="2" >
+				<UserParam type="float" name="consensus_support" value="0.227272734045982"/>
+			</PeptideHit>
+			<PeptideHit score="0.633277837548919" sequence="ELM(Oxidation)SNGPGSIIGAK" charge="2" >
+				<UserParam type="float" name="consensus_support" value="0.238095235079527"/>
+			</PeptideHit>
+			<PeptideHit score="0.641636318483666" sequence="AKGDASAQIAAMQK" charge="2" >
+				<UserParam type="float" name="consensus_support" value="0.238095235079527"/>
+			</PeptideHit>
+			<PeptideHit score="0.674666660343276" sequence="IFHDFNIDLQK" charge="2" >
+				<UserParam type="float" name="consensus_support" value="0.181818187236786"/>
+			</PeptideHit>
+			<PeptideHit score="0.69374999390915" sequence="CAACITPVELKK" charge="2" >
+				<UserParam type="float" name="consensus_support" value="0.16666667163372"/>
+			</PeptideHit>
+			<PeptideHit score="0.711851793047398" sequence="ISCAEGALEALKK" charge="2" >
+				<UserParam type="float" name="consensus_support" value="0.153409093618393"/>
+			</PeptideHit>
+			<PeptideHit score="0.7584" sequence="AELASCVVGDLGAK" charge="2" >
+				<UserParam type="float" name="consensus_support" value="0.125"/>
+			</PeptideHit>
+			<PeptideHit score="0.758620091542861" sequence="GSDKALIEVDSQK" charge="2" >
+				<UserParam type="float" name="consensus_support" value="0.118589747697115"/>
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>

@@ -1,0 +1,6 @@
+# comment line: each line represents one or more peptide sequences explaining a single spectrum,
+# i.e. if only the best hit is given, this file has only one entry per line
+# Separation: Tab
+FIRSTSPEC
+SECONDSPEC	SECONDSEQ
+LAST

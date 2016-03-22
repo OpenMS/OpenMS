@@ -41,6 +41,9 @@
 #include <OpenMS/DATASTRUCTURES/ConstRefVector.h>
 ///////////////////////////
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshadow"
+
 using namespace OpenMS;
 using namespace std;
 
@@ -1065,4 +1068,6 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
+
+#pragma clang diagnostic pop
 

@@ -43,9 +43,13 @@
 namespace OpenMS
 {
   /**
-   * @brief cubic spline interpolation
-   * as described in R.L. Burden, J.D. Faires, Numerical Analysis, 4th ed.
-   * PWS-Kent, 1989, ISBN 0-53491-585-X, pp. 126-131.
+    @brief cubic spline interpolation
+    as described in R.L. Burden, J.D. Faires, Numerical Analysis, 4th ed.
+    PWS-Kent, 1989, ISBN 0-53491-585-X, pp. 126-131.
+    
+    Construction of the spline takes by far the most time. Evaluating it is rather fast 
+    (one evaluation is about 50x faster than construction -- depending on number of points etc.).
+   
    */
   class OPENMS_DLLAPI CubicSpline2d
   {
@@ -61,11 +65,12 @@ public:
     /**
      * @brief constructor of spline interpolation
      *
-     * @param x x-coordinates of input data points (knots)
-     * @param y y-coordinates of input data points
      * The coordinates must match by index. Both vectors must be
      * the same size and sorted in x. Sortedness in x is required
      * for @see SplinePackage.
+     *
+     * @param x x-coordinates of input data points (knots)
+     * @param y y-coordinates of input data points
      */
     CubicSpline2d(const std::vector<double>& x, const std::vector<double>& y);
 

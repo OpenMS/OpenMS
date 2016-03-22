@@ -447,9 +447,11 @@ protected:
 
     if (feature_out != "")
     {
+      all_features.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
       FeatureXMLFile().store(feature_out, all_features);
     }
     writeDebug_("Writing output", 1);
+    results_map.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
     ConsensusXMLFile().store(out, results_map);
 
     return EXECUTION_OK;

@@ -275,8 +275,8 @@ namespace OpenMS
 // get a vector with all LC peaks ordered by their score:
   vector<LCElutionPeak *> LCMSCData::get_ALL_peak_ordered()
   {
-    vector<LCElutionPeak *> DATA = get_ALL_peak();
-    return DATA;
+    vector<LCElutionPeak *> tmp_DATA = get_ALL_peak();
+    return tmp_DATA;
   }
 
 }

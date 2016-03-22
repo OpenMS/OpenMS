@@ -70,12 +70,6 @@ namespace OpenMS
 
   void CompNovoIonScoring::scoreSpectra(Map<double, IonScore> & ion_scores, PeakSpectrum & CID_spec, PeakSpectrum & ETD_spec, double precursor_weight, Size charge)
   {
-    for (PeakSpectrum::ConstIterator it = CID_spec.begin(); it != CID_spec.end(); ++it)
-    {
-      double it_pos(it->getPosition()[0]);
-      IonScore ion_score;
-      ion_scores[it_pos] = ion_score;
-    }
 
     // adds single charged variants of putative single charged ions
     //addSingleChargedIons_(ion_scores, CID_spec);

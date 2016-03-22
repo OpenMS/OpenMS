@@ -43,24 +43,41 @@
 #include <list>
 #include <map>
 
-
 namespace OpenMS
 {
   typedef Peak2D PeakType;
+  class string;
 
-/** @brief A container type that gathers peaks similar in m/z and moving along retention time.
+  /** @brief A container type that gathers peaks similar in m/z and moving along retention time.
 
-    Depending on the method of extraction a mass trace could virtually represent a complete extracted ion chromatogram (XIC) or merely a part of it
-    (e.g., a chromatographic peak). The kernel class provides methods for computing mass trace characteristics such
-    as its centroid m/z and retention time. Coeluting mass traces can be further assembled to complete isotope patterns of peptides/metabolites.
+    Depending on the method of extraction a mass trace could virtually
+    represent a complete extracted ion chromatogram (XIC) or merely a part of
+    it (e.g., a chromatographic peak). The kernel class provides methods for
+    computing mass trace characteristics such as its centroid m/z and retention
+    time. Coeluting mass traces can be further assembled to complete isotope
+    patterns of peptides/metabolites.
 
     @ingroup Kernel
- */
+  */
   class OPENMS_DLLAPI MassTrace
   {
 public:
+
+    // must match to names_of_quantmethod[]
+    enum MT_QUANTMETHOD {
+      MT_QUANT_AREA = 0,  //< quantify by area
+      MT_QUANT_MEDIAN,    //< quantify by median of intensities
+      SIZE_OF_MT_QUANTMETHOD
+    };
+    static const std::string names_of_quantmethod[SIZE_OF_MT_QUANTMETHOD];
+
+    /// converts a string to enum value; returns 'SIZE_OF_MT_QUANTMETHOD' upon error
+    static MT_QUANTMETHOD getQuantMethod(const String& val);
+
     /** @name Constructors and Destructor
-        */
+    */
+    ///@{
+
     /// Default constructor
     MassTrace();
 
@@ -83,11 +100,12 @@ public:
     /// Random access operator
     PeakType& operator[](const Size & mt_idx);
     const PeakType& operator[](const Size & mt_idx) const;
-
+    ///@}
 
     /** @name Iterators
-      @brief Enables mutable/immutable access to the mass trace's peaks.
-        */
+        @brief Enables mutable/immutable access to the mass trace's peaks.
+    */
+    ///@{
     typedef std::vector<PeakType>::iterator iterator;
     typedef std::vector<PeakType>::const_iterator const_iterator;
     typedef std::vector<PeakType>::reverse_iterator reverse_iterator;
@@ -132,9 +150,12 @@ public:
     {
       return trace_peaks_.rend();
     }
+    ///@}
 
     /** @name Accessor methods
-        */
+    */
+
+    ///@{
 
     /// Returns the number of peaks contained in the mass trace.
     Size getSize() const
@@ -181,6 +202,7 @@ public:
         return fwhm_;
     }
 
+    /// Returns the length of the trace (as difference in RT)
     double getTraceLength() const
     {
         double length(0.0);
@@ -209,7 +231,8 @@ public:
     {
       if (trace_peaks_.size() != db_vec.size())
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Number of smoothed intensities deviates from mass trace size! Aborting...", String(db_vec.size()));
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+            "Number of smoothed intensities deviates from mass trace size! Aborting...", String(db_vec.size()));
       }
 
       smoothed_intensities_ = db_vec;
@@ -222,9 +245,12 @@ public:
 
       return (trace_peaks_.rbegin()->getRT() - trace_peaks_.begin()->getRT()) / (trace_peaks_.size() - 1);
     }
+    ///@}
 
     /** @name Computational methods
-        */
+    */
+    ///@{
+
     /// Sum all non-negative (smoothed!) intensities  in the mass trace
     double computeSmoothedPeakArea() const;
 
@@ -238,9 +264,11 @@ public:
     /// stores result internally, use getFWHM().
     double estimateFWHM(bool use_smoothed_ints = false);
 
-    /// Instead of estimating a FWHM and LC peak borders, use the whole mass trace, i.e. set borders to the margins of the array.
-    /// Useful for direct injection data.
-    void disableFHWM();
+    /// determine if area or median is used for quantification
+    void setQuantMethod(MT_QUANTMETHOD method);
+
+    /// check if area or median is used for quantification
+    MT_QUANTMETHOD getQuantMethod() const;
 
     /// Compute chromatographic peak area within the FWHM range.
     double computeFwhmAreaSmooth() const;
@@ -253,10 +281,11 @@ public:
 
     /// Return the mass trace's convex hull.
     ConvexHull2D getConvexhull() const;
-
+    ///@}
 
     /** @name Update methods for centroid RT and m/z
-        */
+    */
+    ///@{
 
     void updateSmoothedMaxRT();
 
@@ -277,12 +306,19 @@ public:
     /// Compute & update centroid m/z as weighted mean of m/z values.
     void updateWeightedMeanMZ();
 
-    /// Compute & update m/z standard deviation of mass trace as weighted mean of m/z values.
-    /// Make sure to call update(Weighted)(Mean|Median)MZ() first!
-    /// use getCentroidSD() to get result
+    /** @brief Compute & update m/z standard deviation of mass trace as weighted mean of m/z values.
+    
+      Make sure to call update(Weighted)(Mean|Median)MZ() first! <br>
+      use getCentroidSD() to get result
+    */
     void updateWeightedMZsd();
+    ///@}
 
 private:
+
+    /// median of trace intensities
+    double computeMedianIntensity_() const;
+
     /// Actual MassTrace container for doing centroid calculation, peak width estimation etc.
     std::vector<PeakType> trace_peaks_;
 
@@ -305,8 +341,9 @@ private:
     Size fwhm_start_idx_; // index into 'trace_peaks_' vector (inclusive)
     Size fwhm_end_idx_; // index into 'trace_peaks_' vector (inclusive)
 
-    /// Rough estimate of a chromatographic peak's width (number of scans within the FWHM range).
-    // Size fwhm_num_scans_;
+    /// use area under mass trace or the median of intensities
+    MT_QUANTMETHOD quant_method_;
+    
   };
 
 }

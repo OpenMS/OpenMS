@@ -37,6 +37,8 @@
 
 #include <OpenMS/FORMAT/Base64.h>
 
+#include <string>
+
 namespace OpenMS
 {
   const double BinaryDataEncoder_default_numpressErrorTolerance = .0001; // 1/100th of one percent
@@ -55,7 +57,9 @@ namespace OpenMS
 
 public:
 
-    enum NumpressCompression { NONE, LINEAR, PIC, SLOF };
+    enum NumpressCompression { NONE, LINEAR, PIC, SLOF, SIZE_OF_NUMPRESSCOMPRESSION };
+    /// Names of compression schemes
+    static const std::string NamesOfNumpressCompression[SIZE_OF_NUMPRESSCOMPRESSION];
 
     /**
       @brief Configuration class for MSNumpress
@@ -75,6 +79,25 @@ public:
         np_compression(NONE),
         estimate_fixed_point(false)
       {
+      }
+
+      /**
+        @brief set compression using a string mapping to enum NumpressCompression.
+
+        @param compression A string from NamesOfNumpressCompression[]
+
+        @throws Exception::InvalidParameter if compression is unknown.
+      */
+      void setCompression(const std::string& compression)
+      {
+        const std::string* match = std::find(NamesOfNumpressCompression, NamesOfNumpressCompression + SIZE_OF_NUMPRESSCOMPRESSION, compression);
+        
+        if (match == NamesOfNumpressCompression + SIZE_OF_NUMPRESSCOMPRESSION) // == end()
+        {
+          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Value '" + compression + "' is not a valid Numpress compression scheme.");
+        }
+        
+        np_compression = (NumpressCompression)std::distance(NamesOfNumpressCompression, match);
       }
 
     };

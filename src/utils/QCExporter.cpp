@@ -66,16 +66,14 @@ using namespace std;
       <table>
         <tr>
         <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-        <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ QCEmbedder \f$ \longrightarrow \f$</td>
+        <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ QCExporter \f$ \longrightarrow \f$</td>
         <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
         </tr>
         <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_QCExporter </td>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_QCMerger </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> ? </td>
         </tr>
         <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_XTandemAdapter </td>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_QCShrinker </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_QCEmbedder </td>
         </tr>
       </table>
     </CENTER>

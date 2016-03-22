@@ -54,19 +54,16 @@ class Test: public SampleTreatment
     Test():
     SampleTreatment("Test")
     {
-
-    };
+    }
 
     Test(const Test& source):
     SampleTreatment(source)
     {
-
-    };
+    }
 
     virtual ~Test()
     {
-
-    };
+    }
 
     Test& operator = (const Test& source)
     {
@@ -75,23 +72,23 @@ class Test: public SampleTreatment
         SampleTreatment::operator=(source);
       }
       return *this;
-    };
-
+    }
 
     virtual SampleTreatment* clone() const
     {
       return new Test(*this);
-    };
+    }
 
     virtual bool operator== (const SampleTreatment& rhs) const
     {
-      if (type_!=rhs.getType()) return false;
+      if (type_ != rhs.getType()) 
+      {
+        return false;
+      }
 
       const Test* tmp = dynamic_cast<const Test*>(&rhs);
-      return
-        SampleTreatment::operator==(*tmp)
-        ;
-    };
+      return SampleTreatment::operator==(*tmp);
+    }
 };
 
 

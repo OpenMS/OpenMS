@@ -43,6 +43,7 @@
 #include <iostream>
 #include <fstream>
 #include <limits>
+#include <string>
 
 using namespace std;
 
@@ -72,7 +73,7 @@ namespace OpenMS
 
   void
   PepNovoOutfile::load(
-    const string & result_filename,
+    const std::string & result_filename,
     vector<PeptideIdentification> & peptide_identifications,
     ProteinIdentification & protein_identification,
     const double & score_threshold,
@@ -367,7 +368,7 @@ namespace OpenMS
       if (line.hasPrefix("Fragment"))
       {
         line.split(' ', substrings);
-        search_param.peak_mass_tolerance = substrings.back().toFloat();
+        search_param.fragment_mass_tolerance = substrings.back().toFloat();
       }
       if (line.hasPrefix("PTM"))
       {

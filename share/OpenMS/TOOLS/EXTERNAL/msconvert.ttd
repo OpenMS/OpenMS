@@ -15,9 +15,9 @@
 		  <cloptions>-o "%1" --mzML "%2"</cloptions>
 		  <path>msconvert</path>
 		  <mappings>
-			<mapping id="1" cl="%TMP" />
+			<mapping id="1" cl="%TMP/GenericWrapper_%RND" />
 			<mapping id="2" cl="%%in" />
-			<file_post location="%TMP/%BASENAME[%%in].mzML" target="out" />
+			<file_post location="%1/%BASENAME[%%in].mzML" target="out" />
 		  </mappings>
 		  <ini_param>
 			<ITEM name="in" value="" type="string" description="input file in RAW format(valid formats: &apos;RAW&apos;)" tags="input file" />

@@ -88,14 +88,14 @@ mkdir ~/openms-development/contrib_build
 
 \code
 cd <path_to_contrib_build>
-cmake -D CMAKE_CXX_COMPILER=clang++ -D CMAKE_C_COMPILER=clang <path_to_contrib>
+cmake -DBUILD_TYPE=ALL -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang <path_to_contrib>
 \endcode
 
 Example:
 
 \code
 cd ~/openms-development/contrib_build
-cmake -D CMAKE_CXX_COMPILER=clang++ -D CMAKE_C_COMPILER=clang ~/openms-development/contrib
+cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang ~/openms-development/contrib
 \endcode
     </LI>
   </OL>
@@ -141,9 +141,9 @@ cmake -D CMAKE_CXX_COMPILER=clang++ -D CMAKE_C_COMPILER=clang ~/openms-developme
   git clone https://github.com/OpenMS/contrib.git
   mkdir contrib-build
   cd contrib-build
-  cmake -D CMAKE_CXX_COMPILER=clang++ -D CMAKE_C_COMPILER=clang -D BUILD_TYPE=SEQAN ~/openms-development/contrib
-  cmake -D BUILD_TYPE=COINOR .
-  cmake -D BUILD_TYPE=WILDMAGIC .
+  cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -DBUILD_TYPE=SEQAN ~/openms-development/contrib
+  cmake -DBUILD_TYPE=COINOR .
+  cmake -DBUILD_TYPE=WILDMAGIC .
 \endcode
 
 <HR>
@@ -174,10 +174,10 @@ mkdir ~/openms-development/openms_build
 
 @code
 cd <path_to_OpenMS_build>
-cmake -D CMAKE_PREFIX_PATH=<path_to_contrib_build> <path_to_OpenMS>
+cmake -DCMAKE_PREFIX_PATH=<path_to_contrib_build> <path_to_OpenMS>
 @endcode
 
-  You can set CMake variables using the <code>-D VARIABLE=VALUE</code> option.
+  You can set CMake variables using the <code>-DVARIABLE=VALUE</code> option.
   A full list of the CMake variables is shown when you execute
 
 @code
@@ -200,12 +200,12 @@ ccmake ~/openms-development/openms_build
           If you want to use libraries installed via homebrew or macports you
           need to provide the corresponding paths
 
-          <code>-D CMAKE_PREFIX_PATH=/usr/local</code> for homebrew
-          <code>-D CMAKE_PREFIX_PATH=/opt/local</code> for macports
+          <code>-DCMAKE_PREFIX_PATH=/usr/local</code> for homebrew
+          <code>-DCMAKE_PREFIX_PATH=/opt/local</code> for macports
 
           Please keep in mind that macports does not provide all libraries so
           you need to provide also the path to your self-build contrib.
-          <code>-D CMAKE_PREFIX_PATH="/opt/local;~/openms-development/contrib-build"</code>
+          <code>-DCMAKE_PREFIX_PATH="/opt/local;~/openms-development/contrib-build"</code>
       </td>
     </tr>
     <tr>

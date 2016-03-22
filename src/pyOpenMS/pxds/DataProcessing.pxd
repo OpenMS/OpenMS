@@ -40,6 +40,8 @@ cdef extern from "<OpenMS/METADATA/DataProcessing.h>" namespace "OpenMS":
         void removeMetaValue(String) nogil except +
         void removeMetaValue(unsigned int) nogil except +
 
+    ctypedef shared_ptr[DataProcessing] DataProcessingPtr
+
 
 cdef extern from "<OpenMS/METADATA/DataProcessing.h>" namespace "OpenMS::DataProcessing":
 

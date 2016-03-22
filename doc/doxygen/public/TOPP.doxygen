@@ -57,7 +57,6 @@
   - @subpage TOPP_IDRipper - Splits protein/peptide identifications according their file-origin.
   - @subpage TOPP_IDFileConverter - Converts identification engine file formats.
   - @subpage TOPP_MapStatistics - Extract extended statistics on the features of a map for quality control.
-  - @subpage TOPP_SpectraMerger - Merges spectra from an LC-MS map, either by precursor or by RT blocks
   - @subpage TOPP_TextExporter - Exports various XML formats to a text file.
   - @subpage TOPP_MzTabExporter - Exports various XML formats to an mzTab file
 
@@ -82,6 +81,7 @@
   - @subpage TOPP_SpectraFilterSqrtMower - Applies a filter to peak spectra.
   - @subpage TOPP_SpectraFilterThresholdMower - Applies a filter to peak spectra.
   - @subpage TOPP_SpectraFilterWindowMower - Applies a filter to peak spectra.
+  - @subpage TOPP_SpectraMerger - Merges spectra from an LC-MS map, either by precursor or by RT blocks
   - @subpage TOPP_TOFCalibration - Applies time of flight calibration.
 
   <b>Quantitation</b>
@@ -89,6 +89,7 @@
   - @subpage TOPP_Decharger - Decharges and merges different feature charge variants of the same chemical entity.
   - @subpage TOPP_EICExtractor - Quantifies signals at given positions in (raw or picked) LC-MS maps.
   - @subpage TOPP_FeatureFinderCentroided - Detects two-dimensional features in centroided LC-MS data.
+  - @subpage TOPP_FeatureFinderIdentification - Detects two-dimensional features in MS1 data based on peptide identifications.
   - @subpage TOPP_FeatureFinderIsotopeWavelet - Detects two-dimensional features in uncentroided (=raw) LC-MS data.
   - @subpage TOPP_FeatureFinderMetabo - Detects two-dimensional features in centroided LC-MS data of metabolites.
   - @subpage TOPP_FeatureFinderMRM - Quantifies features LC-MS/MS MRM data.
@@ -132,6 +133,7 @@
   - @subpage TOPP_IDMapper - Assigns protein/peptide identifications to feature or consensus features.
   - @subpage TOPP_IDPosteriorErrorProbability - Estimates posterior error probabilities using a mixture model.
   - @subpage TOPP_IDRTCalibration - Can be used to calibrate RTs of peptide hits linearly to standards.
+  - @subpage TOPP_LuciphorAdapter - Scores potential phosphorylation sites in order to localize the most probable sites.
   - @subpage TOPP_PeptideIndexer - Refreshes the protein references for all peptide hits.
   - @subpage TOPP_PhosphoScoring - Scores potential phosphorylation sites in order to localize the most probable sites.
   - @subpage TOPP_ProteinInference - Infer proteins from a list of (high-confidence) peptides.

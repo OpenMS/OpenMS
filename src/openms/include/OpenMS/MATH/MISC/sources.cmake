@@ -10,6 +10,7 @@ LinearInterpolation.h
 MathFunctions.h
 NonNegativeLeastSquaresSolver.h
 MSNumpress.h
+RANSAC.h
 Spline2d.h
 )
 

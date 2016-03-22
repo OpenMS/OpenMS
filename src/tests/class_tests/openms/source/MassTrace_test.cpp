@@ -606,18 +606,37 @@ START_SECTION((double estimateFWHM(bool use_smoothed_ints = false)))
 END_SECTION
 
 /////
+START_SECTION(static MT_QUANTMETHOD getQuantMethod(const String& val))
+  
+  TEST_EQUAL(MassTrace::getQuantMethod("area"), MassTrace::MT_QUANT_AREA)
+  TEST_EQUAL(MassTrace::getQuantMethod("median"), MassTrace::MT_QUANT_MEDIAN)
+  TEST_EQUAL(MassTrace::getQuantMethod("somethingwrong"), MassTrace::SIZE_OF_MT_QUANTMETHOD)
 
-START_SECTION((void disableFHWM()))
+END_SECTION
+
+START_SECTION((void setQuantMethod(MT_QUANTMETHOD method)))
 {
   MassTrace mt_empty;
-  TEST_EXCEPTION(Exception::InvalidValue, mt_empty.disableFHWM());
+  TEST_EQUAL(mt_empty.getQuantMethod(), MassTrace::MT_QUANT_AREA);
 
   MassTrace raw_mt(peak_vec);
-  raw_mt.disableFHWM();
-  TEST_REAL_SIMILAR(raw_mt.getTraceLength(), raw_mt.getFWHM())
-  TEST_EQUAL(0, raw_mt.getFWHMborders().first)
-  TEST_EQUAL(raw_mt.getSize()-1, raw_mt.getFWHMborders().second)
+  // area (default)
+  raw_mt.estimateFWHM(false);
+  TEST_REAL_SIMILAR(raw_mt.getIntensity(false), 69863097.2125001);
 
+  raw_mt.setQuantMethod(MassTrace::MT_QUANT_MEDIAN);
+  // should return the median of the intensities
+  TEST_REAL_SIMILAR(raw_mt.getIntensity(false), 542293.0);
+  TEST_EQUAL(raw_mt.getQuantMethod(), MassTrace::MT_QUANT_MEDIAN);
+
+  TEST_EXCEPTION(Exception::InvalidValue, raw_mt.setQuantMethod(MassTrace::SIZE_OF_MT_QUANTMETHOD))
+
+}
+END_SECTION
+
+START_SECTION((MT_QUANTMETHOD getQuantMethod() const))
+{
+  NOT_TESTABLE // tested above
 }
 END_SECTION
 /////

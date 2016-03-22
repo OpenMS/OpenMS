@@ -42,9 +42,9 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoring.h>
 
-#define MIN_DOUBLE_MZ 900.0
+// #define MIN_DOUBLE_MZ 900.0
 
-//#define SELECT_PIVOT_DEBUG
+// #define SELECT_PIVOT_DEBUG
 
 using namespace std;
 

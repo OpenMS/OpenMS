@@ -394,7 +394,10 @@ protected:
     /// returns the average weight of the peptide
     double getAverageWeight(Residue::ResidueType type = Residue::Full, Int charge = 0) const;
 
-    /// returns the mono isotopic weight of the peptide
+    /// returns the mono isotopic weight of the peptide in the given ionic form
+    /// @note will not (and cannot) control whether the required ion can exist
+    /// (e.g. x/c ions for monomers) as it does not do framentation but rather
+    /// supplementing/deduction of the sequence to its ionic form.
     double getMonoWeight(Residue::ResidueType type = Residue::Full, Int charge = 0) const;
 
     /// returns a pointer to the residue at given position

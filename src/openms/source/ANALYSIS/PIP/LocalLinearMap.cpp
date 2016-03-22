@@ -37,6 +37,7 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <fstream>
+#include <string>
 
 using namespace std;
 
@@ -48,13 +49,10 @@ namespace OpenMS
   {
     String codefile = "/PIP/codebooks.data";
     String a_file = "/PIP/linearMapping.data";
-    UInt xdim = 1;
-    UInt ydim = 2;
-    double radius = 0.4;
 
-    param_.xdim = xdim;
-    param_.ydim = ydim;
-    param_.radius = radius;
+    param_.xdim = 1;
+    param_.ydim = 2;
+    param_.radius = 0.4;
 
     code_ = Matrix<double>(param_.xdim * param_.ydim, 18);
     A_ = Matrix<double>(param_.xdim * param_.ydim, 18);
@@ -66,16 +64,16 @@ namespace OpenMS
 
     // read in file containing codebook vectors
     ifstream inputstream_c(codefile.c_str());
-    string line;
+    std::string line;
     UInt i = 0, j = 0, k = 0;
-    //open stream
+    // open stream
     if (inputstream_c.good())
     {
       double pos = 0.0;
       while (getline(inputstream_c, line, '\n'))
       {
         istringstream linestream(line);
-        string proto;
+        std::string proto;
         while (getline(linestream, proto, ' '))
         {
           stringstream(proto) >> pos;
@@ -86,7 +84,7 @@ namespace OpenMS
         }
       }
       inputstream_c.close();
-      //reading codefile is done with success
+      // reading codefile is done with success
     }
     else
     {
@@ -106,7 +104,7 @@ namespace OpenMS
       while (getline(inputstream_a, line, '\n'))
       {
         istringstream linestream(line);
-        string map;
+        std::string map;
         while (getline(linestream, map, ' '))
         {
           stringstream(map) >> pos;

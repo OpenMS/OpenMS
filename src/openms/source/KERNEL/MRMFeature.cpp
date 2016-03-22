@@ -32,9 +32,6 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_MRMFEATURE_C
-#define OPENMS_KERNEL_MRMFEATURE_C
-
 #include <OpenMS/KERNEL/MRMFeature.h>
 
 namespace OpenMS
@@ -148,4 +145,3 @@ namespace OpenMS
 
 }
 
-#endif

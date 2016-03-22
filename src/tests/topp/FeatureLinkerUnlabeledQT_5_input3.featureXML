@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.6" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_6.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<IdentificationRun id="PI_0" date="0000-00-00T00:00:00" search_engine="" search_engine_version="">
+		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+		</SearchParameters>
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
+		</ProteinIdentification>
+	</IdentificationRun>
+	<featureList count="3">
+		<feature id="f_0">
+			<position dim="0">320</position>
+			<position dim="1">500.02</position>
+			<intensity>700</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="0" sequence="PEPTIDER" charge="0">
+				</PeptideHit>
+			</PeptideIdentification>
+			<UserParam type="string" name="sequence" value="PEPTIDER"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">420</position>
+			<position dim="1">500.021</position>
+			<intensity>700</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="0" sequence="PEPTIDEA" charge="0">
+				</PeptideHit>
+			</PeptideIdentification>
+			<UserParam type="string" name="sequence" value="PEPTIDEA"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">520</position>
+			<position dim="1">500.022</position>
+			<intensity>700</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="0" sequence="PEPTIDEK" charge="0">
+				</PeptideHit>
+			</PeptideIdentification>
+			<UserParam type="string" name="sequence" value="PEPTIDEK"/>
+		</feature>
+	</featureList>
+</featureMap>

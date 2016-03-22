@@ -173,6 +173,9 @@ public:
 
     /// get all modifications that can be used for identification searches
     void getAllSearchModifications(std::vector<String> & modifications);
+    
+    /// returns true if the modification exists
+    bool has(String modification) const;
 
 protected:
 

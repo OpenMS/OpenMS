@@ -42,6 +42,7 @@ InspectAdapter
 InternalCalibration
 IsobaricAnalyzer
 ITRAQAnalyzer
+LuciphorAdapter
 MapAlignerIdentification
 MapAlignerPoseClustering
 MapAlignerSpectrum
@@ -59,6 +60,7 @@ NoiseFilterGaussian
 NoiseFilterSGolay
 OMSSAAdapter
 OpenSwathAnalyzer
+OpenSwathAssayGenerator
 OpenSwathChromatogramExtractor
 OpenSwathConfidenceScoring
 OpenSwathDecoyGenerator

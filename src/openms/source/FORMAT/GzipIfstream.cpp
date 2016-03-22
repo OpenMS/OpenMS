@@ -31,11 +31,14 @@
 // $Maintainer: David Wojnar $
 // $Authors: David Wojnar $
 // --------------------------------------------------------------------------
+
 #include <iostream>
 #include <OpenMS/FORMAT/GzipIfstream.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <cstdlib>
+
 using namespace std;
+
 namespace OpenMS
 {
   GzipIfstream::GzipIfstream(const char * filename) :

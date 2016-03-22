@@ -83,13 +83,13 @@ namespace OpenMS
     OpenSwath::TransitionHelper::convert(transition_exp_used, transmap);
     // std::cout << "nr peptides : " << transmap.size() << std::endl;
 
-    Mmap::iterator beg = transmap.begin();
-    Mmap::iterator end = transmap.end();
+    Mmap::iterator m_begin = transmap.begin();
+    Mmap::iterator m_end = transmap.end();
     std::vector<std::string> transitionsNames;
 
-    for (; beg != end; ++beg)
+    for (; m_begin != m_end; ++m_begin)
     {
-      transitionsNames.push_back(beg->first);
+      transitionsNames.push_back(m_begin->first);
     }
 
     ivw->colnames(transitionsNames);

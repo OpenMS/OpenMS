@@ -130,7 +130,8 @@ namespace OpenMS
       LOG_INFO << "Number of proteinIdentifications: " << features.getProteinIdentifications().size() << endl;
       ProteinIdentification& proteins = features.getProteinIdentifications()[0];
 
-      quantifier.quantifyPeptides(features);
+      quantifier.readQuantData(features);
+      quantifier.quantifyPeptides();
       quantifier.quantifyProteins(proteins);
     }
     else
@@ -145,7 +146,8 @@ namespace OpenMS
       LOG_INFO << "Number of proteinIdentifications: " << consensus.getProteinIdentifications().size() << endl;
       ProteinIdentification& proteins = consensus.getProteinIdentifications()[0];
 
-      quantifier.quantifyPeptides(consensus);
+      quantifier.readQuantData(consensus);
+      quantifier.quantifyPeptides();
       quantifier.quantifyProteins(proteins);
     }
   }

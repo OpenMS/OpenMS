@@ -66,6 +66,7 @@ namespace OpenMS
   template <typename PeakT = Peak1D, typename ChromatogramPeakT = ChromatogramPeak>
   class OnDiscMSExperiment
   {
+
 public:
 
     OnDiscMSExperiment() {}
@@ -81,19 +82,13 @@ public:
       openFile(filename);
     }
 
-    bool openFile(const String& filename)
+    bool openFile(const String& filename, bool skipMetaData = false)
     {
       filename_ = filename;
       indexed_mzml_file_.openFile(filename);
-      if (filename != "")
+      if (filename != "" && !skipMetaData)
       {
-        meta_ms_experiment_ = boost::shared_ptr<MSExperiment<> >(new MSExperiment<>);
-
-        MzMLFile f;
-        PeakFileOptions options = f.getOptions();
-        options.setFillData(false);
-        f.setOptions(options);
-        f.load(filename, *meta_ms_experiment_.get());
+        loadMetaData_(filename);
       }
       return indexed_mzml_file_.getParsingSuccess();
     }
@@ -239,9 +234,27 @@ public:
       return indexed_mzml_file_.getChromatogramById(id);
     }
 
+    ///sets whether to skip some XML checks and be fast instead
+    void setSkipXMLChecks(bool skip)
+    {
+      indexed_mzml_file_.setSkipXMLChecks(skip);
+    }
+
 private:
     /// Private Assignment operator -> we cannot copy file streams in IndexedMzMLFile
     OnDiscMSExperiment& operator=(const OnDiscMSExperiment& /* source */) {}
+
+    void loadMetaData_(const String& filename)
+    {
+      meta_ms_experiment_ = boost::shared_ptr< MSExperiment<> >(new MSExperiment<>);
+
+      MzMLFile f;
+      PeakFileOptions options = f.getOptions();
+      options.setFillData(false);
+      f.setOptions(options);
+      f.load(filename, *meta_ms_experiment_.get());
+    }
+
 
 protected:
 

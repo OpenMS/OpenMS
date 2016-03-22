@@ -64,7 +64,7 @@ namespace OpenMS
 public:
 
       /// Default constructor
-      XTandemInfileXMLHandler(const String & filename, std::vector<XTandemInfileNote> & notes, XTandemInfile * infile);
+      XTandemInfileXMLHandler(const String & filename, std::vector<XTandemInfileNote> & notes);
 
       /// Destructor
       virtual ~XTandemInfileXMLHandler();
@@ -82,11 +82,9 @@ protected:
 
       std::vector<XTandemInfileNote> & notes_;
 
-      XTandemInfile * infile_;
-
       XTandemInfileNote actual_note_;
 
-      String tag_;
+      StringList tag_;
     };
 
   }   // namespace Internal

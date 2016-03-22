@@ -113,9 +113,9 @@ public:
     template <typename T>
     SVOutStream& operator<<(const T& value)
     {
-      if (!newline_) (std::ostream&) *this << sep_;
+      if (!newline_) static_cast<std::ostream&>(*this) << sep_;
       else newline_ = false;
-      (std::ostream&) *this << value;
+      static_cast<std::ostream&>(*this) << value;
       return *this;
     }
 

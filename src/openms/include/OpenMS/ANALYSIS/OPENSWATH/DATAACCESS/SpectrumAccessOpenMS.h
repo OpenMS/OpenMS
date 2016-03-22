@@ -63,10 +63,24 @@ public:
     /// Destructor
     ~SpectrumAccessOpenMS();
 
-    /// Copy constructor
+    /**
+      @brief Copy constructor
+
+      Performs a light copy operation when another SpectrumAccessOpenMS
+      instance is given: only a copy of the pointer to the underlying
+      MSExperiment is stored, so after this, both instances (rhs and *this)
+      will point to the same MSExperiment.
+
+    */
     SpectrumAccessOpenMS(const SpectrumAccessOpenMS & rhs);
 
-    /// Light clone operator (actual data will not get copied)
+    /**
+      @brief Light clone operator (actual data will not get copied)
+
+      Creates a light clone of the current instance, with the clone pointing to
+      the same underlying MSExperiment.
+
+    */
     boost::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const;
 
     OpenSwath::SpectrumPtr getSpectrumById(int id);

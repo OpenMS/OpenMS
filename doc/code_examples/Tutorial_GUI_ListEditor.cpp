@@ -39,6 +39,5 @@ int main(int argc, char ** argv)
   ListEditor * listeditor = new ListEditor;
   listeditor->show();
   return app.exec();
-
-  return 0;
 }
+

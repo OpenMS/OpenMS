@@ -53,6 +53,7 @@ PepNovoInfile.cpp
 PepNovoOutfile.cpp
 PepXMLFile.cpp
 PepXMLFileMascot.cpp
+PercolatorOutfile.cpp
 ProtXMLFile.cpp
 SequestInfile.cpp
 SequestOutfile.cpp

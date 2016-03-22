@@ -72,180 +72,36 @@ END_SECTION
 
 TOLERANCE_ABSOLUTE(0.001)
 
-START_SECTION((static double getInternalToFullAverageWeight()))
-	TEST_REAL_SIMILAR(e_ptr->getInternalToFullAverageWeight(), h2o.getAverageWeight())
+START_SECTION((static const EmpiricalFormula& getInternalToNTerm()))
+	TEST_EQUAL(e_ptr->getInternalToNTerm(), EmpiricalFormula("H"))
 END_SECTION
 
-START_SECTION((static double getInternalToFullMonoWeight()))
-	TEST_REAL_SIMILAR(e_ptr->getInternalToFullMonoWeight(), 18.0106)
+START_SECTION((static const EmpiricalFormula& getInternalToCTerm()))
+	TEST_EQUAL(e_ptr->getInternalToCTerm(), EmpiricalFormula("OH"))
 END_SECTION
 
-START_SECTION((static const EmpiricalFormula& getNTerminalToFull()))
-	TEST_EQUAL(e_ptr->getNTerminalToFull() == EmpiricalFormula("OH"), true)
+START_SECTION((static const EmpiricalFormula& getInternalToAIon()))
+	TEST_EQUAL(e_ptr->getInternalToAIon(), EmpiricalFormula("")-EmpiricalFormula("CO"))
 END_SECTION
 
-START_SECTION((static double getNTerminalToFullAverageWeight()))
-	TEST_REAL_SIMILAR(e_ptr->getNTerminalToFullAverageWeight(), 17.0073)
+START_SECTION((static const EmpiricalFormula& getInternalToBIon()))
+	TEST_EQUAL(e_ptr->getInternalToBIon(), EmpiricalFormula(""))
 END_SECTION
 
-START_SECTION((static double getNTerminalToFullMonoWeight()))
-	TEST_REAL_SIMILAR(e_ptr->getNTerminalToFullMonoWeight(), 17.0027)
+START_SECTION((static const EmpiricalFormula& getInternalToCIon()))
+	TEST_EQUAL(e_ptr->getInternalToCIon(), EmpiricalFormula("NH3"))
 END_SECTION
 
-START_SECTION((static const EmpiricalFormula& getCTerminalToFull()))
-	TEST_EQUAL(e_ptr->getCTerminalToFull() == EmpiricalFormula("H"), true)
+START_SECTION((static const EmpiricalFormula& getInternalToXIon()))
+	TEST_EQUAL(e_ptr->getInternalToXIon(), EmpiricalFormula("CO2"))
 END_SECTION
 
-START_SECTION((static double getCTerminalToFullAverageWeight()))
-	TEST_REAL_SIMILAR(e_ptr->getCTerminalToFullAverageWeight(), 1.00794)
+START_SECTION((static const EmpiricalFormula& getInternalToYIon()))
+	TEST_EQUAL(e_ptr->getInternalToYIon(), EmpiricalFormula("H2O"))
 END_SECTION
 
-START_SECTION((static double getCTerminalToFullMonoWeight()))
-	TEST_REAL_SIMILAR(e_ptr->getCTerminalToFullMonoWeight(), 1.00783)
-END_SECTION
-
-START_SECTION((static const EmpiricalFormula& getBIonToFull()))
-	TEST_EQUAL(e_ptr->getBIonToFull(), EmpiricalFormula("OH"))
-END_SECTION
-
-START_SECTION((static double getBIonToFullAverageWeight()))
-	TEST_REAL_SIMILAR(e_ptr->getBIonToFullAverageWeight(), 17.0073)
-END_SECTION
-
-START_SECTION((static double getBIonToFullMonoWeight()))
-	TEST_REAL_SIMILAR(e_ptr->getBIonToFullMonoWeight(), 17.0027)
-END_SECTION
-
-START_SECTION((static const EmpiricalFormula& getAIonToFull()))
-	TEST_EQUAL(e_ptr->getAIonToFull(), EmpiricalFormula("O2HC"))
-END_SECTION
-
-START_SECTION((static double getAIonToFullAverageWeight()))
-	TEST_REAL_SIMILAR(e_ptr->getAIonToFullAverageWeight(), 45.0174)
-END_SECTION
-
-START_SECTION((static double getAIonToFullMonoWeight()))
-	TEST_REAL_SIMILAR(e_ptr->getAIonToFullMonoWeight(), 44.9976)
-END_SECTION
-
-START_SECTION((static const EmpiricalFormula& getYIonToFull()))
-	TEST_EQUAL(e_ptr->getYIonToFull(), EmpiricalFormula(""))
-END_SECTION
-
-START_SECTION((static double getYIonToFullAverageWeight()))
-	TEST_REAL_SIMILAR(e_ptr->getYIonToFullAverageWeight(), 0)
-END_SECTION
-
-START_SECTION((static double getYIonToFullMonoWeight()))
-	TEST_REAL_SIMILAR(e_ptr->getYIonToFullMonoWeight(), 0)
-END_SECTION
-
-START_SECTION((static const EmpiricalFormula& getCIonToFull()))
-	TEST_EQUAL(e_ptr->getCIonToFull(), EmpiricalFormula("H-1"))
-END_SECTION
-
-START_SECTION((static double getCIonToFullAverageWeight()))
-	TEST_REAL_SIMILAR(e_ptr->getCIonToFullAverageWeight(), -1.00794)
-END_SECTION
-
-START_SECTION((static double getCIonToFullMonoWeight()))
-	TEST_REAL_SIMILAR(e_ptr->getCIonToFullMonoWeight(), -1.00782503)
-END_SECTION
-
-START_SECTION((static const EmpiricalFormula& getXIonToFull()))
-	TEST_EQUAL(e_ptr->getXIonToFull(), EmpiricalFormula("OCH"))
-END_SECTION
-
-START_SECTION((static double getXIonToFullAverageWeight()))
-	TEST_REAL_SIMILAR(e_ptr->getXIonToFullAverageWeight(), 29.018)
-END_SECTION
-
-START_SECTION((static double getXIonToFullMonoWeight()))
-	TEST_REAL_SIMILAR(e_ptr->getXIonToFullMonoWeight(), 29.0027)
-END_SECTION
-
-START_SECTION((static const EmpiricalFormula& getZIonToFull()))
-	TEST_EQUAL(e_ptr->getZIonToFull(), EmpiricalFormula("NH2"))
-END_SECTION
-
-START_SECTION((static double getZIonToFullAverageWeight()))
-	TEST_REAL_SIMILAR(e_ptr->getZIonToFullAverageWeight(), 16.0226)
-END_SECTION
-
-START_SECTION((static double getZIonToFullMonoWeight()))
-	TEST_REAL_SIMILAR(e_ptr->getZIonToFullMonoWeight(), 16.0187)
-END_SECTION
-
-START_SECTION((static const EmpiricalFormula& getZIonMinusOneToFull()))
-  TEST_EQUAL(e_ptr->getZIonMinusOneToFull(), EmpiricalFormula("N2"))
-END_SECTION
-
-START_SECTION((static double getZIonMinusOneToFullAverageWeight()))
-  TEST_REAL_SIMILAR(e_ptr->getZIonMinusOneToFullAverageWeight(), 28.0134)
-END_SECTION
-
-START_SECTION((static double getZIonMinusOneToFullMonoWeight()))
-  TEST_REAL_SIMILAR(e_ptr->getZIonMinusOneToFullMonoWeight(), 28.0061480148)
-END_SECTION
-
-START_SECTION((static const EmpiricalFormula& getZIonPlusOneToFull()))
-  TEST_EQUAL(e_ptr->getZIonPlusOneToFull(), EmpiricalFormula("H3N"))
-END_SECTION
-
-START_SECTION((static double getZIonPlusOneToFullAverageWeight()))
-  TEST_REAL_SIMILAR(e_ptr->getZIonPlusOneToFullAverageWeight(), 17.03052)
-END_SECTION
-
-START_SECTION((static double getZIonPlusOneToFullMonoWeight()))
-  TEST_REAL_SIMILAR(e_ptr->getZIonPlusOneToFullMonoWeight(), 17.0265491031)
-END_SECTION
-
-START_SECTION((static const EmpiricalFormula& getZIonPlusTwoToFull()))
-  TEST_EQUAL(e_ptr->getZIonPlusTwoToFull(), EmpiricalFormula("H4N"))
-END_SECTION
-
-START_SECTION((static double getZIonPlusTwoToFullAverageWeight()))
-  TEST_REAL_SIMILAR(e_ptr->getZIonPlusTwoToFullAverageWeight(), 18.03846)
-END_SECTION
-
-START_SECTION((static double getZIonPlusTwoToFullMonoWeight()))
-  TEST_REAL_SIMILAR(e_ptr->getZIonPlusTwoToFullMonoWeight(), 18.034374135)
-END_SECTION
-
-START_SECTION((static const EmpiricalFormula& getCIonMinusOneToFull()))
-  TEST_EQUAL(e_ptr->getCIonMinusOneToFull(), EmpiricalFormula("H-2"))
-END_SECTION
-  
-START_SECTION((static double getCIonMinusOneToFullAverageWeight()))
-  TEST_REAL_SIMILAR(e_ptr->getCIonMinusOneToFullAverageWeight(), -2.01588)
-END_SECTION
-
-START_SECTION((static double getCIonMinusOneToFullMonoWeight()))
-  TEST_REAL_SIMILAR(e_ptr->getCIonMinusOneToFullMonoWeight(), -2.0156500638)
-END_SECTION
-
-START_SECTION((static const EmpiricalFormula& getCIonPlusOneToFull()))
-  TEST_EQUAL(e_ptr->getCIonPlusOneToFull(), EmpiricalFormula(""))
-END_SECTION
-
-START_SECTION((static double getCIonPlusOneToFullAverageWeight()))
-  TEST_REAL_SIMILAR(e_ptr->getCIonPlusOneToFullAverageWeight(), 0)
-END_SECTION
-
-START_SECTION((static double getCIonPlusOneToFullMonoWeight()))
-  TEST_REAL_SIMILAR(e_ptr->getCIonPlusOneToFullMonoWeight(), 0)
-END_SECTION
-
-START_SECTION((static const EmpiricalFormula& getCIonPlusTwoToFull()))
-  TEST_EQUAL(e_ptr->getCIonPlusTwoToFull(), EmpiricalFormula("H2"))
-END_SECTION
-
-START_SECTION((static double getCIonPlusTwoToFullAverageWeight()))
-  TEST_REAL_SIMILAR(e_ptr->getCIonPlusTwoToFullAverageWeight(), 2.01588)
-END_SECTION
-
-START_SECTION((static double getCIonPlusTwoToFullMonoWeight()))
-  TEST_REAL_SIMILAR(e_ptr->getCIonPlusTwoToFullMonoWeight(), 2.0156500638)
+START_SECTION((static const EmpiricalFormula& getInternalToZIon()))
+	TEST_EQUAL(e_ptr->getInternalToZIon(), EmpiricalFormula("OH") - EmpiricalFormula("NH2"))
 END_SECTION
 
 START_SECTION(Residue(const Residue &residue))
@@ -798,15 +654,9 @@ START_SECTION((static String getResidueTypeName(const ResidueType res_type)))
   TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::AIon), "a-ion")
   TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::BIon), "b-ion")
   TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::CIon), "c-ion")
-  TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::CIonMinusOne), "c-1-ion")
-  TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::CIonPlusOne), "c+1-ion")
-  TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::CIonPlusTwo), "c+2-ion")
   TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::XIon), "x-ion")
   TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::YIon), "y-ion")
   TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::ZIon), "z-ion")
-  TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::ZIonMinusOne), "z-1-ion")
-  TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::ZIonPlusOne), "z+1-ion")
-  TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::ZIonPlusTwo), "z+2-ion")
 }
 END_SECTION
 

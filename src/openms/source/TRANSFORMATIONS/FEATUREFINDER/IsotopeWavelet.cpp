@@ -48,8 +48,6 @@
 #define TWOPI 6.283185307
 #endif
 
-#ifndef SINETRAINVECS
-#define SINETRAINVECS
 double avec[] =
 {
   1.00729092576906387,
@@ -105,7 +103,6 @@ double dvec[] =
   -1.15609867020231,
   -1.37929313525534
 };
-#endif
 
 namespace OpenMS
 {
