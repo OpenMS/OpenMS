@@ -34,8 +34,9 @@
 # --------------------------------------------------------------------------
 
 ############################################################################
-# Scans the binary folder and outputs tool version string used in the
-# REST update server
+# Scans the binary folder and outputs tool name and version string used in
+# the REST update server. Pipe the output in a versions.txt file and 
+# replace the the corresponding file on the REST server.
 ############################################################################
 
 # check command line arguments
@@ -65,3 +66,4 @@ ls -la ${BIN_DIR}/ \
     do
       echo -e $i '\t' $(${BIN_DIR}/${i} --help 2>&1 | grep "Version" | sed -E "s/Version: //" | sed -E 's/\s.*$/ /')
    done
+
