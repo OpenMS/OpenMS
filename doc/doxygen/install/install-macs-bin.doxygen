@@ -1,15 +1,21 @@
 /**
- 	
-	@page install_mac_bin Installation on MacOS
-  
-	Simply download and install the MacOS drag-and-drop installer for your system from http://www.OpenMS.de .
-  
-  To use TOPP as regular apps in your shell just add the following lines to your <tt>~/.profile</tt> file. 
-  An adapt the first line to point to the folder where you installed %OpenMS (e.g., <tt>/Applications/OpenMS-1.10.0</tt>)
 
-@code
-export OPENMS_TOPP_PATH=&lt;OpenMS-PATH&gt;
-source ${OPENMS_TOPP_PATH}/.TOPP_bash_profile
-@endcode
+ @page install_mac_bin Installation on MacOS
+  
+   Simply download and install the MacOS drag-and-drop installer for your system from http://www.OpenMS.de .
+  
+   To use TOPP as regular apps in your shell just add the following lines to your <tt>~/.profile</tt> file.
+   An adapt the first line to point to the folder where you installed %OpenMS (e.g., <tt>/Applications/OpenMS-2.0.0</tt>)
 
+     \code
+     export OPENMS_TOPP_PATH=&lt;OpenMS-PATH&gt;
+     source ${OPENMS_TOPP_PATH}/.TOPP_bash_profile
+     \endcode
+
+   <H2>Known Issues:</H2><br>
+   There is a known bug with running Java based thirdparty tools (like MSGFPlusAdapter and LuciphorAdapter)
+   from within TOPPAS.app. Please run the TOPPAS.app from within the Terminal.app (e.g. with the <i>open</i> command)
+   to get access to the path where Java is located
+   (which is usually present in the <b><i>PATH</i></b> of your Terminal).
+   Advanced users can set this path in the Info.plist of/inside the TOPPAS.app.
 */

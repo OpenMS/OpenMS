@@ -43,7 +43,7 @@
 
   For the complete feature set to be enabled, %OpenMS needs recent versions of
   Boost (1.46 or higher works), Eigen3, WildMagic5,
-  libSVM (2.91 or higher and 3.x for x <= 14 works), SeqAn (1.4.0 or higher needed),
+  libSVM (2.91 or higher and 3.x for x <= 14 works), SeqAn (>= 1.4.0 but < 2.0 needed),
   glpk (4.45 or higher works), zlib, libbz2, and Xerces-C (3.1.1 or higher works).
 
   Building the documentation from the development version requires doxygen > 1.5.4 and
@@ -118,15 +118,17 @@
   \endcode
 
   From the <i>./contrib-build/</i> folder, execute the following command to show the
-  available build types and then build SeqAn (the other build scripts may be
-  executed if your distribution does not provide a package for the dependency):
-
-  \code
-  cmake -DBUILD_TYPE=LIST ../contrib
-  cmake -DBUILD_TYPE=SEQAN ../contrib
-  cmake -DBUILD_TYPE=WILDMAGIC ../contrib
-  cmake -DBUILD_TYPE=EIGEN ../contrib
-  \endcode
+  available build types
+     \code
+        cmake -DBUILD_TYPE=LIST ../contrib
+     \endcode
+  and then build SeqAn (the other build scripts may or may not be needed to be
+  executed depending on if your distribution does not provide a package for the dependency):
+      \code
+          cmake -DBUILD_TYPE=SEQAN ../contrib
+          cmake -DBUILD_TYPE=WILDMAGIC ../contrib
+          cmake -DBUILD_TYPE=EIGEN ../contrib
+      \endcode
 
   To avoid problems while building the libraries contained in the contrib
   package, the path to your contrib-build directory should not have any spaces
@@ -193,7 +195,7 @@
   \endcode
 
   In order to <i>build</i> the %OpenMS library, the TOPP tools, tests, and this
-  documentation execute the following command:
+  documentation, execute the following command:
 
   \code
   make
@@ -228,8 +230,18 @@
   Apply both changes by executing
 
   \code
-  . ~/.bashrc
+  source ~/.bashrc
   \endcode
+
+    @note When you intend to use thirdparty search- or inference engines like XTandem or Fido, their binaries also
+    need to be in the <b><tt>PATH</tt></b>. Build them or download them from our
+    <a href="https://github.com/OpenMS/THIRDPARTY" target="_blank">thirdparty git repo</a> and adapt
+    the following for every thirdparty tool you want to use (shown for XTandem):
+    \code
+    export PATH=${YOUR_CLONED_THIRDPARTY_GIT_REPO}/${FOLDER_FOR_YOUR_OS_ARCH}/XTandem:${PATH}
+    \endcode
+    If you want to enable the corresponding tests in CMake, this has to happen <b>before</b> you configure and build the
+    project.
 
   @section running_linux_openms Running OpenMS
   If the build from @ref install_linux_openms is ready, you can now run a
@@ -321,8 +333,8 @@
       are located. This directory should have the same structure as the example
       in the search engine repository at
       https://open-ms.svn.sourceforge.net/svnroot/open-ms/THIRDPARTY/SEARCHENGINES/.
-
-      This directory is needed to build the installer for %OpenMS.</td>
+      This directory is only needed to include thirdparty tools in the installer for %OpenMS.
+      For using/running thirdparty tools, see section @ref linux_openms_environment </td>
     </tr>
     <tr>
       <td valign="top">\c PYOPENMS</td>
@@ -338,35 +350,33 @@
 
   This works only after having executed \c cmake once (see @ref install_linux_openms)
 
-<br/>
-<br/>
-
-<hr/>
-
-  @section install_linux_testing_openms Testing your OpenMS/TOPP installation
+ <hr>
+ @section install_linux_testing_openms Testing your OpenMS / TOPP installation
 
   After you have installed %OpenMS and TOPP, you should test your installation by executing the following command:
 
-@code
-make test
-@endcode
+    \code
+    make test
+    \endcode
 
-or
+  or
 
-@code
-ctest
-@endcode
+    \code
+    ctest
+    \endcode
 
-  Using ctest you can also execute only single tests by using the -R switch or run tests in parallel using the -j switch.
+  Using ctest you can also execute only a subset of tests by using the -R [REGEX] option and
+  run tests in parallel using the -j parameter. For more information, consult ctest
+  <a href="http://manpages.ubuntu.com/manpages/hardy/man1/ctest.1.html" target="_new">man page</a>.
 
-@code
-ctest -R TOPP_ -j 4
-@endcode
+    \code
+    ctest -R TOPP_ -j 4
+    \endcode
 
-  Will run all TOPP test using 4 jobs. Make sure that you have build all tests beforehand by executing.
+  Will run all TOPP test using 4 jobs. Make sure that you have build all tests beforehand by executing
 
-@code
-make
-@endcode
+    \code
+    make
+    \endcode
 
 */
