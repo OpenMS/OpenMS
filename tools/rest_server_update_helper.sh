@@ -64,6 +64,6 @@ ls -la ${BIN_DIR}/ \
     | grep -v -e "^$"  \
     | while read i
     do
-      echo -e $i '\t' $(${BIN_DIR}/${i} --help 2>&1 | grep "Version" | sed -E "s/Version: //" | sed -E 's/\s.*$/ /')
+      echo -e $i'\t'$(${BIN_DIR}/${i} --help 2>&1 | grep "Version" | sed -E "s/Version: //" | sed -E 's/\s.*$/ /')
    done
 
