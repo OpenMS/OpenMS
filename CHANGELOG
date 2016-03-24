@@ -12,6 +12,65 @@ Parameters - list of algorithm or TOPP tool parameters that changed in this rele
 ------------------------------------------------------------------------------------------
 OpenMS 2.0.1 is a source only release of the core libraries.
 
+File formats:
+  - Improved mzIdentML support (experimental)
+  - Improved mzTab support (experimental)
+  - Comet pepXML file reading support (experimental) 
+  - Search parameter units are retained through id files
+  - Faster base64 decoding in XML files
+
+Databases:
+  - HMDB has been updated to version 3.6
+
+TOPPView:
+  - Added slight margin around data range (%2) for improved visualization
+  - Added FeatureFinderMultiplex to the tools accessible from TOPPView
+  - Some fixes to the scrollbar behaviour
+
+New tools / utils:
+  - MzMLSplitter: new utility for splitting mzML files (experimental)
+  - IDScoreSwitcher: new utility to change the primary score annotated to a PeptideIdentification
+  - MetaProSIP: quantitative stable isotope probing experiments
+
+Deprecated tools:
+  - RTAnnotator 
+
+Tools with major changes:
+  - OpenSWATH now outputs peak apices
+    - Improved iRT correction
+    - Assay generator
+    - UIS scoring
+  - Deuterium labeling in MetaProSIP (experimental)
+  - XTandemAdapter allows for external config file
+  - TextExporter can optionally export PeptideIdentification and PeptideHits meta-values
+  - FeatureLinkerUnlabeledQT speed improvements
+  - FileMerger allows to concatenate files in RT
+  - MzTabExporter supports protein IDs
+  - PeakPickerWavelet speedup
+  - HiResPrecursorMassCorrector supports correction of precursors to detected features
+
+Library:
+  - PeptideIndexing is now available as internal algorithm
+  - EnzymaticDigestion allows for minimum / maximum length constraints
+  - HyperScore and PScore implementations
+  - Fits allow extrapolation of data values
+  - QT clustering is now order independent
+  - Additional convinience functions to access the nearest spectrum peak in a mass tolerance window
+  - User defined averagine compositions
+  - A fast linear lowess implementation has been added
+  - MetaInfoInterface has been added to FeatureMap to store additional meta-values
+  - Calculation of Median Absolute Deviation
+
+General:
+  - OpenMS writes indexed mzML by default
+  - OpenMS home directory can be configured through OPENMS_HOME_DIR environment variable
+  - Updated GenericWrapper definitions for MS-GF+ and Mascot
+
+Third party software:
+  - LuciphorAdapter (experimental) PTM localization using the LuciPHOr2 algorithm (http://luciphor2.sourceforge.net/)
+
+Changes to the Build System / Package System:
+
 merged pull requests:
 #1876 [FIX,STYLE] cppcheck fixes
 #1871 [BUILD SYSTEM] Disable "old-style cast" warning for clang
