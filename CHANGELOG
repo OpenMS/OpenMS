@@ -72,6 +72,7 @@ General:
 Third party software:
   - LuciphorAdapter (experimental) PTM localization using the LuciPHOr2 algorithm (http://luciphor2.sourceforge.net/)
 
+
 Changed tool parameters:
 
 Tool name	Added/removed	Parameter name	Type	Default value	Restrictions	Supported formats
