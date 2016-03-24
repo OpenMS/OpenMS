@@ -53,6 +53,10 @@
 
 #include <iostream>
 
+#if  defined(__APPLE__)
+  #include <QCoreApplication.h> // needed to disable plugin loading on Mac OSX
+#endif
+
 #include <QDir>
 #include <QFile>
 
