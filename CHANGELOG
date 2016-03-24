@@ -34,7 +34,6 @@ Added tools:
   - MzMLSplitter -- Splits an mzML file into multiple parts (UTIL)
   - OpenSwathAssayGenerator -- Generates assays according to different models for a specific TraML (TOPP)
 
-
 Removed tools:
   - RTAnnotator -- Annotates identification files that are missing the RT field (UTIL)
 
@@ -53,6 +52,7 @@ Tools with major changes:
   - HiResPrecursorMassCorrector supports correction of precursors to detected features
 
 Library:
+  - Support for user definable enzymes available in EnzymesDB.xml
   - PeptideIndexing is now available as internal algorithm
   - EnzymaticDigestion allows for minimum / maximum length constraints
   - HyperScore and PScore implementations
