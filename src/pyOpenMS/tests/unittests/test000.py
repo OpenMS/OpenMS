@@ -1610,7 +1610,6 @@ def testConsensusMapNormalizerAlgorithmMedian():
     """
     ff = pyopenms.ConsensusMapNormalizerAlgorithmMedian()
 
-    assert pyopenms.ConsensusMapNormalizerAlgorithmMedian().computeNormalizationFactors is not None
     assert pyopenms.ConsensusMapNormalizerAlgorithmMedian().normalizeMaps is not None
 
 @report
