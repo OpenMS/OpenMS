@@ -499,6 +499,24 @@ START_SECTION(const String& getNTerminalModification() const)
 
 END_SECTION
 
+START_SECTION(const String& getNTerminalResidueModification() const)
+  AASequence seq1 = AASequence::fromString("(Formyl)DFPIANGER");
+
+  TEST_EQUAL(seq1.getNTerminalResidueModification()->getId(), "Formyl")
+  TEST_EQUAL(seq1.getNTerminalResidueModification()->getFullId(), "Formyl (N-term)")
+
+  AASequence seq2 = AASequence::fromString("DFPIANGER");
+  TEST_EQUAL(seq2.getNTerminalResidueModification(),  0)
+END_SECTION
+
+START_SECTION(const String& getCTerminalResidueModification() const)
+  AASequence seq1 = AASequence::fromString("DFPIANGER");
+  AASequence seq2 = AASequence::fromString("DFPIANGER(Amidated)");
+
+  TEST_EQUAL(seq2.getCTerminalResidueModification()->getId(), "Amidated")
+  TEST_EQUAL(seq2.getCTerminalResidueModification()->getFullId(), "Amidated (C-term)")
+  TEST_EQUAL(seq1.getCTerminalResidueModification(),  0)
+END_SECTION
 
 START_SECTION(void setCTerminalModification(const String &modification))
   AASequence seq1 = AASequence::fromString("DFPIANGER");
