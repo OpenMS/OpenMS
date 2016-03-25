@@ -50,6 +50,7 @@ Tools with major changes:
   - MzTabExporter supports protein IDs
   - PeakPickerWavelet speedup
   - HiResPrecursorMassCorrector supports correction of precursors to detected features
+  - FeatureFinderMultiplex speed improvements
 
 Library:
   - Support for user definable enzymes available in EnzymesDB.xml
