@@ -236,17 +236,19 @@ namespace OpenMS
     double pos = ion.getMonoWeight(res_type, charge) / (double)charge;
     RichPeak1D p;
     IsotopeDistribution dist = ion.getFormula(res_type, charge).getIsotopeDistribution(max_isotope_);
-    UInt j(0);
+
+    if (add_metainfo_)
+    {
+      String ion_name = String(residueTypeToIonLetter_(res_type)) + String(ion.size()) + String(charge, '+');
+      p.setMetaValue("IonName", ion_name);
+    }
+
+    double j(0.0);
     for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
     {
       // TODO: this is usually dominated by 13C-12C mass shift which deviates a bit from neutron mass
-      p.setMZ((double)(pos + (double)j * Constants::NEUTRON_MASS_U) / (double)charge); 
+      p.setMZ((double)(pos + j * Constants::NEUTRON_MASS_U) / (double)charge); 
       p.setIntensity(intensity * it->second);
-      if (add_metainfo_ && j == 0)
-      {
-        String ion_name = String(residueTypeToIonLetter_(res_type)) + String(ion.size()) + String(charge, '+');
-        p.setMetaValue("IonName", ion_name);
-      }
       spectrum.push_back(p);
     }
   }
@@ -310,17 +312,17 @@ namespace OpenMS
       if (add_isotopes_)
       {
         IsotopeDistribution dist = loss_ion.getIsotopeDistribution(max_isotope_);
-        UInt j(0);
-        for (IsotopeDistribution::ConstIterator iso = dist.begin(); iso != dist.end(); ++iso)
+        if (add_metainfo_)
         {
-          p.setMZ((double)(loss_pos + j) / (double)charge);
+          // note: important to construct a string from char. If omitted it will perform pointer arithmetics on the "-" string literal
+          String ion_name = String(residueTypeToIonLetter_(res_type)) + String(ion.size()) + "-" + loss_name + String(charge, '+');
+          p.setMetaValue("IonName", ion_name);
+        }
+        double j(0.0);
+        for (IsotopeDistribution::ConstIterator iso = dist.begin(); iso != dist.end(); ++iso, ++j)
+        {
+          p.setMZ((double)(loss_pos + j * Constants::NEUTRON_MASS_U) / (double)charge);
           p.setIntensity(intensity * rel_loss_intensity_ * iso->second);
-          if (add_metainfo_ && j == 0)
-          {
-            // note: important to construct a string from char. If omitted it will perform pointer arithmetics on the "-" string literal
-            String ion_name = String(residueTypeToIonLetter_(res_type)) + String(ion.size()) + "-" + loss_name + String(charge, '+');
-            p.setMetaValue("IonName", ion_name);
-          }
           spectrum.push_back(p);
         }
       }
@@ -468,25 +470,23 @@ namespace OpenMS
   {
     RichPeak1D p;
 
+    if (add_metainfo_)
+    {
+      String name("[M+H]" + String((Size)charge, '+'));
+      p.setMetaValue("IonName", name);
+    }
+
     // precursor peak
     double mono_pos = peptide.getMonoWeight(Residue::Full, charge) / double(charge);
+
     if (add_isotopes_)
     {
       IsotopeDistribution dist = peptide.getFormula(Residue::Full, charge).getIsotopeDistribution(max_isotope_);
-      UInt j(0);
+      double j(0.0);
       for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
       {
         p.setMZ((double)(mono_pos + j * Constants::NEUTRON_MASS_U) / (double)charge);
         p.setIntensity(pre_int_ *  it->second);
-        if (add_metainfo_)
-        {
-          String name("[M+H]+");
-          if (charge == 2)
-          {
-            name = "[M+2H]++";
-          }
-          p.setMetaValue("IonName", name);
-        }
         spec.push_back(p);
       }
     }
@@ -494,15 +494,6 @@ namespace OpenMS
     {
       p.setMZ(mono_pos);
       p.setIntensity(pre_int_);
-      if (add_metainfo_)
-      {
-        String name("[M+H]+");
-        if (charge == 2)
-        {
-          name = "[M+2H]++";
-        }
-        p.setMetaValue("IonName", name);
-      }
       spec.push_back(p);
     }
     // loss peaks of the precursor
@@ -520,11 +511,7 @@ namespace OpenMS
         p.setIntensity(pre_int_H2O_ *  it->second);
         if (add_metainfo_)
         {
-          String name("[M+H]-H2O+");
-          if (charge == 2)
-          {
-            name = "[M+2H]-H2O++";
-          }
+          String name("[M+H]-H2O" + String((Size)charge, '+'));
           p.setMetaValue("IonName", name);
         }
         spec.push_back(p);
@@ -536,11 +523,7 @@ namespace OpenMS
       p.setIntensity(pre_int_H2O_);
       if (add_metainfo_)
       {
-        String name("[M+H]-H2O+");
-        if (charge == 2)
-        {
-          name = "[M+2H]-H2O++";
-        }
+        String name("[M+H]-H2O" + String((Size)charge, '+'));
         p.setMetaValue("IonName", name);
       }
       spec.push_back(p);
@@ -559,11 +542,7 @@ namespace OpenMS
         p.setIntensity(pre_int_NH3_ *  it->second);
         if (add_metainfo_)
         {
-          String name("[M+H]-NH3+");
-          if (charge == 2)
-          {
-            name = "[M+2H]-NH3++";
-          }
+          String name("[M+H]-NH3" + String((Size)charge, '+'));
           p.setMetaValue("IonName", name);
         }
         spec.push_back(p);
@@ -575,11 +554,7 @@ namespace OpenMS
       p.setIntensity(pre_int_NH3_);
       if (add_metainfo_)
       {
-        String name("[M+H]-NH3+");
-        if (charge == 2)
-        {
-          name = "[M+2H]-NH3++";
-        }
+        String name("[M+H]-NH3" + String((Size)charge, '+'));
         p.setMetaValue("IonName", name);
       }
       spec.push_back(p);
