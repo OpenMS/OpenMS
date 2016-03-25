@@ -179,10 +179,17 @@ do
     done
 done
 
+# sort pseudo ini file
+cat ${TMP_FILE_COMM} | while read t
+do
+    sort ${TMP_DIR}/inis/old/$t.pseudo.ini -o ${TMP_DIR}/inis/old/$t.pseudo.ini
+    sort ${TMP_DIR}/inis/new/$t.pseudo.ini -o ${TMP_DIR}/inis/new/$t.pseudo.ini
+done \
+
 # compute diffs of pseudo ini files and output tab-separated table of changed parameters
 cat ${TMP_FILE_COMM} | while read t
 do
-    diff ${TMP_DIR}/inis/old/$t.pseudo.ini ${TMP_DIR}/inis/new/$t.pseudo.ini
+    diff -d ${TMP_DIR}/inis/old/$t.pseudo.ini ${TMP_DIR}/inis/new/$t.pseudo.ini
 done \
     | grep "<ITEM" \
     | sed -E 's/^<[[:space:]]+/- /' \
