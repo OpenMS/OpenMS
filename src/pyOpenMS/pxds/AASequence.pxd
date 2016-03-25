@@ -37,8 +37,12 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
         # sets the C-terminal modification
         void setCTerminalModification(String modification) nogil except +
 
+        # CONST POINTER # ResidueModification * getNTerminalResidueModification() nogil except +
+
         # returns the Id of the C-term modification nogil except + an empty string is returned if none was set
         String getCTerminalModification() nogil except +
+
+        # CONST POINTER # ResidueModification * getCTerminalResidueModification() nogil except +
 
         # returns a pointer to the residue, which is at position index
         Residue getResidue(SignedSize index) nogil except +
