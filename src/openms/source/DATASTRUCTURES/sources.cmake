@@ -35,11 +35,6 @@ SparseVector.cpp
 String.cpp
 StringListUtils.cpp
 StringUtils.cpp
-SuffixArray.cpp
-SuffixArrayPeptideFinder.cpp
-SuffixArraySeqan.cpp
-SuffixArrayTrypticCompressed.cpp
-SuffixArrayTrypticSeqan.cpp
 ToolDescription.cpp
 LPWrapper.cpp
 )

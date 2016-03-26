@@ -37,11 +37,6 @@ SparseVector.h
 String.h
 StringUtils.h
 StringListUtils.h
-SuffixArray.h
-SuffixArrayPeptideFinder.h
-SuffixArraySeqan.h
-SuffixArrayTrypticCompressed.h
-SuffixArrayTrypticSeqan.h
 ToolDescription.h
 LPWrapper.h
 )

@@ -37,9 +37,7 @@
 #include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/CHEMISTRY/PepIterator.h>
 #include <OpenMS/FORMAT/FastaIterator.h>
-#include <OpenMS/CHEMISTRY/EdwardsLippertIterator.h>
 #include <OpenMS/FORMAT/FastaIteratorIntern.h>
-#include <OpenMS/CHEMISTRY/EdwardsLippertIteratorTryptic.h>
 #include <OpenMS/CHEMISTRY/TrypticIterator.h>
 
 using namespace OpenMS;
@@ -136,15 +134,8 @@ END_SECTION
 
 START_SECTION((void registerChildren()))
 {
-	PepIterator* p1 = Factory<PepIterator>::create("EdwardsLippertIterator");
-  EdwardsLippertIterator* el_nullPointer = 0;
-  TEST_NOT_EQUAL(dynamic_cast<EdwardsLippertIterator*>(p1),el_nullPointer)
+  PepIterator* p1 = Factory<PepIterator>::create("TrypticIterator");
 
-  p1 = Factory<PepIterator>::create("EdwardsLippertIteratorTryptic");
-  EdwardsLippertIteratorTryptic* elt_nullPointer = 0;
-  TEST_NOT_EQUAL(dynamic_cast<EdwardsLippertIteratorTryptic*>(p1),elt_nullPointer)
-
-  p1 = Factory<PepIterator>::create("TrypticIterator");
   TrypticIterator* tryp_nullPointer = 0;
   TEST_NOT_EQUAL(dynamic_cast<TrypticIterator*>(p1),tryp_nullPointer)
 
