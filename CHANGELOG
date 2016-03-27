@@ -10,7 +10,11 @@ Parameters - list of algorithm or TOPP tool parameters that changed in this rele
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 2.0.1                                      ----
 ------------------------------------------------------------------------------------------
-OpenMS 2.0.1 is a source only release of the core libraries.
+OpenMS 2.0.1 is a source only release of the core libraries and tools. 
+With over 300 merged pull requests, it introduces a considerable number of new features, 
+bug fixes and speed improvements.
+
+Notable changes are:
 
 File formats:
   - Improved mzIdentML support (experimental)
