@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -898,7 +898,7 @@ namespace OpenMS
     // output all hypotheses:
     for (Size hypo_idx = 0; hypo_idx < feat_hypos.size(); ++ hypo_idx)
     {
-      bool legal;
+      bool legal(false);
       if (feat_hypos[hypo_idx].getSize() > 1)
       {
         legal = isLegalIsotopePattern_(feat_hypos[hypo_idx]);

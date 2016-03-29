@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -288,16 +288,6 @@ START_SECTION((double getMonoWeight(Residue::ResidueType type = Residue::Full, I
   TEST_REAL_SIMILAR(AASequence::fromString("TYQYS(Phospho)").getFormula().getMonoWeight(), AASequence::fromString("TYQYS(Phospho)").getMonoWeight());
 END_SECTION
 
-START_SECTION(const Residue& operator[](SignedSize index) const)
-  AASequence seq = AASequence::fromString("DFPIANGER");
-  SignedSize index = 0;
-  TEST_EQUAL(seq[index].getOneLetterCode(), "D")
-  index = -1;
-  TEST_EXCEPTION(Exception::IndexUnderflow, seq[index])
-  index = 20;
-  TEST_EXCEPTION(Exception::IndexOverflow, seq[index])
-END_SECTION
-
 START_SECTION(const Residue& operator[](Size index) const)
   AASequence seq = AASequence::fromString("DFPIANGER");
   Size index = 0;
@@ -509,6 +499,24 @@ START_SECTION(const String& getNTerminalModification() const)
 
 END_SECTION
 
+START_SECTION(const String& getNTerminalResidueModification() const)
+  AASequence seq1 = AASequence::fromString("(Formyl)DFPIANGER");
+
+  TEST_EQUAL(seq1.getNTerminalResidueModification()->getId(), "Formyl")
+  TEST_EQUAL(seq1.getNTerminalResidueModification()->getFullId(), "Formyl (N-term)")
+
+  AASequence seq2 = AASequence::fromString("DFPIANGER");
+  TEST_EQUAL(seq2.getNTerminalResidueModification(),  0)
+END_SECTION
+
+START_SECTION(const String& getCTerminalResidueModification() const)
+  AASequence seq1 = AASequence::fromString("DFPIANGER");
+  AASequence seq2 = AASequence::fromString("DFPIANGER(Amidated)");
+
+  TEST_EQUAL(seq2.getCTerminalResidueModification()->getId(), "Amidated")
+  TEST_EQUAL(seq2.getCTerminalResidueModification()->getFullId(), "Amidated (C-term)")
+  TEST_EQUAL(seq1.getCTerminalResidueModification(),  0)
+END_SECTION
 
 START_SECTION(void setCTerminalModification(const String &modification))
   AASequence seq1 = AASequence::fromString("DFPIANGER");
