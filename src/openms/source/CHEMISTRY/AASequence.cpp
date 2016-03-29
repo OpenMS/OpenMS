@@ -393,22 +393,6 @@ namespace OpenMS
   return losses;
 }*/
 
-  const Residue& AASequence::operator[](SignedSize index) const
-  {
-    if (index < 0)
-    {
-      throw Exception::IndexUnderflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, 0);
-    }
-    else
-    {
-      if (Size(index) >= size())
-      {
-        throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, size());
-      }
-    }
-    return *peptide_[Size(index)];
-  }
-
   const Residue& AASequence::operator[](Size index) const
   {
     if (index >= size())
@@ -1005,6 +989,18 @@ namespace OpenMS
       return mod;
     }
     return n_term_mod_->getId();
+  }
+
+  /// returns the N-term modification; nullptr is returned if none was set
+  const ResidueModification * AASequence::getNTerminalResidueModification() const
+  {
+    return n_term_mod_;
+  }
+
+  /// returns the C-term modification; nullptr is returned if none was set
+  const ResidueModification * AASequence::getCTerminalResidueModification() const
+  {
+    return c_term_mod_;
   }
 
   const String& AASequence::getCTerminalModification() const

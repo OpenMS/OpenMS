@@ -137,12 +137,6 @@
   - @subpage TOPP_PeptideIndexer - Refreshes the protein references for all peptide hits.
   - @subpage TOPP_PhosphoScoring - Scores potential phosphorylation sites in order to localize the most probable sites.
   - @subpage TOPP_ProteinInference - Infer proteins from a list of (high-confidence) peptides.
-<!--  %% removed from Docu (still available in TOPP) because of operability
-- @subpage TOPP_PILISIdentification - Trains the PILIS model using a given set of spectra and identifications.
-- @subpage TOPP_PILISModelCV - Perform a cross validation of the PILIS model parameters
-- @subpage TOPP_PILISModelTrainer - Train the PILIS model using a given set of spectra and identifications.
-- @subpage TOPP_PILISSpectraGenerator - Generate spectra given a list of peptides and a PILIS model
--->
 
   <b>Targeted Experiments</b>
   - @subpage TOPP_InclusionExclusionListCreator - Creates inclusion and/or exclusion lists for LC-MS/MS experiments.
