@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -89,6 +89,7 @@ namespace OpenMS
     tools_map["InclusionExclusionListCreator"] = Internal::ToolDescription("InclusionExclusionListCreator", "Targeted Experiments");
     tools_map["InspectAdapter"] = Internal::ToolDescription("InspectAdapter", "Identification");
     tools_map["InternalCalibration"] = Internal::ToolDescription("InternalCalibration", "Signal processing and preprocessing");
+    tools_map["LuciphorAdapter"] = Internal::ToolDescription("LuciphorAdapter", "ID Processing");
     tools_map["MapAlignerIdentification"] = Internal::ToolDescription("MapAlignerIdentification", "Map Alignment");
     tools_map["MapAlignerPoseClustering"] = Internal::ToolDescription("MapAlignerPoseClustering", "Map Alignment");
     tools_map["MapAlignerSpectrum"] = Internal::ToolDescription("MapAlignerSpectrum", "Map Alignment");
@@ -120,10 +121,6 @@ namespace OpenMS
     tools_map["PepNovoAdapter"] = Internal::ToolDescription("PepNovoAdapter", "Identification");
     tools_map["PeptideIndexer"] = Internal::ToolDescription("PeptideIndexer", "ID Processing");
     tools_map["PhosphoScoring"] = Internal::ToolDescription("PhosphoScoring", "ID Processing");
-    tools_map["PILISIdentification"] = Internal::ToolDescription("PILISIdentification", "Identification");
-    tools_map["PILISModelCV"] = Internal::ToolDescription("PILISModelCV", "ID Processing");
-    tools_map["PILISModelTrainer"] = Internal::ToolDescription("PILISModelTrainer", "ID Processing");
-    tools_map["PILISSpectraGenerator"] = Internal::ToolDescription("PILISSpectraGenerator", "ID Processing");
     tools_map["PrecursorIonSelector"] = Internal::ToolDescription("PrecursorIonSelector", "Targeted Experiments");
     tools_map["PrecursorMassCorrector"] = Internal::ToolDescription("PrecursorMassCorrector", "Signal processing and preprocessing");
     tools_map["ProteinInference"] = Internal::ToolDescription("ProteinInference", "Identification");

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -123,7 +123,7 @@ namespace OpenMS
     double peptide1_score = rev->first;
     phospho.setMetaValue("AScore_pep_score", peptide1_score); // initialize score with highest peptide score (aka highest weighted score)
     
-    rev++;
+    ++rev;
     String seq2 = th_spectra[rev->second].getName();
     double peptide2_score = rev->first;
     
