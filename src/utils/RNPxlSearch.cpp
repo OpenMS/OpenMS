@@ -666,6 +666,7 @@ private:
 
   typedef map<String, set<FragmentAdductDefinition_> > PrecursorToFragmentAdductMapType; // map a precursor adduct (e.g. AU-H2O to all possible fragment adducts)
 
+  // calculate all feasible fragment adducts from a precursor adduct
   vector<FragmentAdductDefinition_> getFeasibleFragmentAdducts_(const String& exp_pc_adduct, const String& exp_pc_formula, const PrecursorToFragmentAdductMapType& precursor_to_fragment_adducts)
   {
     // no precursor adduct? no fragment adducts are expected!
@@ -776,7 +777,7 @@ private:
     return ret; 
   }
 
-  // calculate all feasible fragment adducts from precursor adducts
+  // calculate all feasible fragment adducts from all possible precursor adducts
   map<String, vector<FragmentAdductDefinition_> > getAllFeasibleFragmentAdducts_(const RNPxlModificationMassesResult& precursor_adducts, const PrecursorToFragmentAdductMapType& precursor_to_fragment_adducts)
   {
     map<String, vector<FragmentAdductDefinition_> > all_pc_all_feasible_adducts;
