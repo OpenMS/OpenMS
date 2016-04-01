@@ -111,7 +111,8 @@ namespace OpenMS
     f.precision(writtenDigits<double>(0.0));
     String raw_data;
     String base_name;
-    SpectrumLookup lookup;
+    //delete SpectrumLookup lookup;
+    SpectrumMetaDataLookup lookup;
     
     // The mz-File (if given)
     if (!mz_file.empty())
@@ -281,21 +282,24 @@ namespace OpenMS
         AASequence seq = h.getSequence();
         double precursor_neutral_mass = seq.getMonoWeight();
 
-        Int scan_index;
+        int scan_index = count;
+        int scan_nr = 0;
+        
         if (lookup.empty())
         {
           if (it->metaValueExists("RT_index")) // Setting metaValue "RT_index" in XTandemXMLFile in the case of X! Tandem.
           {
-            scan_index = it->getMetaValue("RT_index");
+            scan_index = it->getMetaValue("RT_index");            
           }
-          else
-          {
-            scan_index = count;
-          }
+          scan_nr = scan_index + 1;          
         }
         else
         {
-          scan_index = lookup.findByRT(it->getRT()) + 1;
+          scan_index = lookup.findByRT(it->getRT());
+          
+          SpectrumMetaDataLookup::SpectrumMetaData meta;
+          lookup.getSpectrumMetaData(scan_index, meta);
+          scan_nr = meta.scan_number;          
         }
         // PeptideProphet requires this format for "spectrum" attribute (otherwise TPP parsing error)
         //  - see also the parser code if iProphet at http://sourceforge.net/p/sashimi/code/HEAD/tree/trunk/trans_proteomic_pipeline/src/Validation/InterProphet/InterProphetParser/InterProphetParser.cxx#l180
@@ -307,17 +311,17 @@ namespace OpenMS
         //    - swath_assay
         //    - experiment_label
 
-        String spectrum_name = base_name + "." + scan_index + "." + scan_index + ".";
+        String spectrum_name = base_name + "." + scan_nr + "." + scan_nr + ".";
         if (it->metaValueExists("pepxml_spectrum_name") && keep_native_name_) 
         {
           spectrum_name = it->getMetaValue("pepxml_spectrum_name");
         }
 
         f << "\t<spectrum_query spectrum=\"" << spectrum_name << h.getCharge() << "\""
-          << " start_scan=\"" << scan_index << "\""
-          << " end_scan=\"" << scan_index << "\""
+          << " start_scan=\"" << scan_nr << "\""
+          << " end_scan=\"" << scan_nr << "\""
           << " precursor_neutral_mass=\"" << precisionWrapper(precursor_neutral_mass) << "\""
-          << " assumed_charge=\"" << h.getCharge() << "\" index=\"" << count << "\"";
+          << " assumed_charge=\"" << h.getCharge() << "\" index=\"" << scan_index << "\"";
 
         if (it->hasRT())
         {
