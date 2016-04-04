@@ -178,6 +178,7 @@ public:
   };
 
   //TODO: make protected
+protected:
   static void wrap_(const String& input, Size width, String & output)
   { 
     Size start = 0;
@@ -193,7 +194,9 @@ public:
       output += input.substr(start, input.size() - start) + "\n";
     }
   }
+
   // TODO: make protected
+protected:
   static String getxQuestBase64EncodedSpectrum_(const PeakSpectrum& spec, String header)
   {
     vector<String> in_strings;
@@ -369,6 +372,7 @@ protected:
   }
 
 //  void preprocessSpectra_(PeakMap& exp, RichPeakMap& rich_exp)
+protected:
   void preprocessSpectra_(PeakMap& exp)
   {
     // filter MS2 map
@@ -505,10 +509,18 @@ protected:
     return match_odds;
   }
   
-  //TODO more general spectra types?
   // Cross-correlation, with shifting the second spectrum from -maxshift to +maxshift of tolerance bins (Tolerance in Da, basically a constant binsize)
-  vector< double > xCorrelation(const PeakSpectrum & spec1, const RichPeakSpectrum & spec2, Int maxshift, double tolerance)
+  template <typename SpectrumType1, typename SpectrumType2>
+  vector< double > xCorrelation(const SpectrumType1 & spec1, const SpectrumType2 & spec2, Int maxshift, double tolerance)
   {
+    // generate vector of results, filled with zeroes
+    vector< double > results(maxshift * 2 + 1, 0);
+
+    // return 0 = no correlation, either positive nor negative, when one of the spectra is empty (e.g. when no common ions or xlink ions could be matched between light and heavy spectra)
+    if (spec1.size() == 0 || spec2.size() == 0) {
+      return results;
+    }
+
     double maxionsize = max(spec1[spec1.size()-1].getMZ(), spec2[spec2.size()-1].getMZ());
     //cout << "xcorr Maxionssize: " << maxionsize << endl;
     Int table_size = ceil(maxionsize / tolerance)+1;
@@ -541,7 +553,7 @@ protected:
     }
     //cout << "xcorr Tables done" << endl;
 
-    // Compute means
+    // Compute means for real intensities
     double mean1 = (accumulate(ion_table1.begin(), ion_table1.end(), 0.0)) / table_size;
     double mean2 = (accumulate(ion_table2.begin(), ion_table2.end(), 0.0)) / table_size;
     //cout << "xcorr means: " << mean1 << "\t" << mean2 << endl;
@@ -558,7 +570,6 @@ protected:
     //cout << "xcorr Denominator: " << denom << endl;
 
     // Calculate correlation for each shift
-    vector< double > results(maxshift * 2 + 1, 0);
     for (Int shift = -maxshift; shift <= maxshift; ++shift)
     {
       double s = 0;
@@ -569,7 +580,7 @@ protected:
         if ( (j >= 0) && (j < table_size))
         {
           s += (ion_table1[i] - mean1) * (ion_table2[j] - mean2);
-         // cout << "XCORR S: " << s << endl;
+         //cout << "XCORR S: " << s << endl;
         }
       }
       if (denom > 0)
@@ -582,25 +593,28 @@ protected:
   }
 
   // weigthed TIC score, using standard max- and mindigestlength, TODO remove digestlength from equation after benchmarking scores against xQuest?
-  double weighted_TIC_score(Size alpha_size, Size beta_size, double intsum_alpha, double intsum_beta, double total_current)
+  double weighted_TIC_score(Size alpha_size, Size beta_size, double intsum_alpha, double intsum_beta, double intsum, double total_current, bool type_is_cross_link)
   {
-    double aatotal = alpha_size + beta_size;
-    // TODO from xquest.def. is this the right parameter, should we use something different? not very informative
+    // TODO from xquest.def, but not used in this program aside from this calculation
     double maxdigestlength = 50;
     double mindigestlength = 5;
+    if (!type_is_cross_link) {
+      beta_size = ( maxdigestlength + mindigestlength ) - alpha_size;
+      // this should already be the case
+      intsum_beta = 0;
+      intsum_alpha = intsum;
+    }
+
+    double aatotal = alpha_size + beta_size;
+
     // TODO maybe use this alternative version, based only on the lengths of the sequences
     //double invMax = 1 / (min(alpha_size, beta_size) / aatotal);
     double invMax = 1 / (mindigestlength / (mindigestlength + maxdigestlength));
     double invFrac_alpha = 1 / (alpha_size / aatotal);
+    double invFrac_beta = 1 / (beta_size / aatotal);
     double TIC_weight_alpha = invFrac_alpha / invMax;
+    double TIC_weight_beta = invFrac_beta / invMax;
 
-    double TIC_weight_beta = 0;
-    if (beta_size > 0)
-    {
-      double invFrac_beta = 1 / (beta_size / aatotal);
-      TIC_weight_beta = invFrac_beta / invMax;
-      // (alpha weight * TIC_alpha) + (beta weight * TIC_beta)
-    }
     double wTIC = TIC_weight_alpha * (intsum_alpha / total_current ) + TIC_weight_beta * (intsum_beta / total_current);
 
     return wTIC;
@@ -630,7 +644,7 @@ protected:
   };
 
   // Sum of matched ion intesity, for Intsum score and %TIC score
-  double matched_intensity_score(const vector< pair< Size, Size > >& matched_spec_common, const vector< pair< Size, Size > >& matched_spec_xlinks, const PreprocessedPairSpectra_& preprocessed_pair_spectra, Size pair_index)
+  double matched_current_chain(const vector< pair< Size, Size > >& matched_spec_common, const vector< pair< Size, Size > >& matched_spec_xlinks, const PreprocessedPairSpectra_& preprocessed_pair_spectra, Size pair_index)
   {
     double intsum = 0;
     for (SignedSize j = 0; j < static_cast<SignedSize>(matched_spec_common.size()); ++j)
@@ -639,8 +653,52 @@ protected:
     }
     for (SignedSize j = 0; j < static_cast<SignedSize>(matched_spec_xlinks.size()); ++j)
     {
-    intsum += preprocessed_pair_spectra.spectra_xlink_peaks[pair_index][matched_spec_xlinks[j].second].getIntensity();
+      intsum += preprocessed_pair_spectra.spectra_xlink_peaks[pair_index][matched_spec_xlinks[j].second].getIntensity();
     }
+    return intsum;
+  }
+
+  double total_matched_current(const vector< pair< Size, Size > >& matched_spec_common_alpha, const vector< pair< Size, Size > >& matched_spec_common_beta, const vector< pair< Size, Size > >& matched_spec_xlinks_alpha, const vector< pair< Size, Size > >& matched_spec_xlinks_beta, const PreprocessedPairSpectra_& preprocessed_pair_spectra, Size pair_index)
+  {
+    // make vectors of matched peak indices
+    double intsum = 0;
+    vector< Size > indices_common;
+    vector< Size > indices_xlinks;
+    for (Size j = 0; j < matched_spec_common_alpha.size(); ++j)
+    {
+      indices_common.push_back(matched_spec_common_alpha[j].second);
+    }
+    for (Size j = 0; j < matched_spec_common_beta.size(); ++j)
+    {
+      indices_common.push_back(matched_spec_common_beta[j].second);
+    }
+    for (Size j = 0; j < matched_spec_xlinks_alpha.size(); ++j)
+    {
+      indices_xlinks.push_back(matched_spec_xlinks_alpha[j].second);
+    }
+    for (Size j = 0; j < matched_spec_xlinks_beta.size(); ++j)
+    {
+      indices_xlinks.push_back(matched_spec_xlinks_beta[j].second);
+    }
+
+    // make the indices in the vectors unique
+    sort(indices_common.begin(), indices_common.end());
+    sort(indices_xlinks.begin(), indices_xlinks.end());
+    vector< Size >::iterator last_unique_common = unique(indices_common.begin(), indices_common.end());
+    vector< Size >::iterator last_unique_xlinks = unique(indices_xlinks.begin(), indices_xlinks.end());
+    indices_common.erase(last_unique_common, indices_common.end());
+    indices_xlinks.erase(last_unique_xlinks, indices_xlinks.end());
+
+    // sum over intensities under the unique indices
+    for (Size j = 0; j < indices_common.size(); ++j)
+    {
+      intsum += preprocessed_pair_spectra.spectra_common_peaks[pair_index][indices_common[j]].getIntensity();
+    }
+    for (Size j = 0; j < indices_xlinks.size(); ++j)
+    {
+      intsum += preprocessed_pair_spectra.spectra_xlink_peaks[pair_index][indices_xlinks[j]].getIntensity();
+    }
+
     return intsum;
   }
 
@@ -672,6 +730,7 @@ protected:
          vector< pair< Size, Size > > matched_fragments_without_shift;
         //ms2_aligner.getSpectrumAlignment(matched_fragments_without_shift, spectrum_light, spectrum_heavy);
 //        cout << "Common matching, spectrum: " << scan_index << endl;
+        //getSpectrumAlignment(matched_fragments_without_shift, spectrum_light, spectrum_heavy, 0.2, false, 0.3);
         getSpectrumIntensityMatching(matched_fragments_without_shift, spectrum_light, spectrum_heavy, 0.2, false, 0.3);
 
         // different fragments may carry light or heavy cross-linker.             
@@ -749,7 +808,7 @@ protected:
         cout << "Common peaks: " << matched_fragments_without_shift.size() << " different peaks: " << spectrum_light.size() - matched_fragments_without_shift.size() << ", " << spectrum_heavy.size() - matched_fragments_without_shift.size() << endl;
         cout << "Matched shifted peaks: " << matched_fragments_with_shift.size() << " unexplained peaks: " << spectrum_light_different.size() - matched_fragments_with_shift.size() << ", " << spectrum_heavy_to_light.size() - matched_fragments_with_shift.size() << endl;
 #endif
-        // generate common peaks spectrum TODO: check if only light / only heavy or e.g. mean of both peaks are used here
+        // generate common peaks spectrum
         PeakSpectrum common_peaks;
         for (Size i = 0; i != matched_fragments_without_shift.size(); ++i)
         {
@@ -925,7 +984,10 @@ protected:
       String seq_first = a->second.toUnmodifiedString();
 
       countA += 1;
-      cout << "Enumerating pairs with sequence " << countA << " of " << peptides.size() << endl;
+      if (countA % 50 == 0)
+      {
+        cout << "Enumerating pairs with sequence " << countA << " of " << peptides.size() << ";\t Current pair count: " << mass_to_candidates.size() << endl;
+      }
 
       //Should be handled at digestion
 //      if (!seq_first.has("K"))
@@ -1225,7 +1287,8 @@ protected:
 
     // Spectrum Alignment function adapted from SpectrumAlignment.h, intensity_cutoff: 0 for not considering, 0.3 = lower intentity has to be at least 30% of higher intensity (< 70% difference)
     // TODO Copies spectra, so that nearest peaks with dissimilar intensity can be removed to try with 2. nearest until out of tolerance range, make more efficient?
-    void getSpectrumAlignment(std::vector<std::pair<Size, Size> > & alignment, const RichPeakSpectrum & s1, PeakSpectrum s2, double tolerance, bool relative_tolerance, double intensity_cutoff = 0.0) const
+    template <typename SpectrumType1, typename SpectrumType2>
+    void getSpectrumAlignment(std::vector<std::pair<Size, Size> > & alignment, const SpectrumType1 & s1, SpectrumType2 s2, double tolerance, bool relative_tolerance, double intensity_cutoff = 0.0) const
     {
       if (!s1.isSorted() || !s2.isSorted())
         {
@@ -1839,7 +1902,8 @@ protected:
     
     const Size missed_cleavages = getIntOption_("peptide:missed_cleavages");
     EnzymaticDigestion digestor;
-    digestor.setEnzyme(getStringOption_("peptide:enzyme"));
+    String enzyme_name = getStringOption_("peptide:enzyme");
+    digestor.setEnzyme(enzyme_name);
     digestor.setMissedCleavages(missed_cleavages);
 
 //    progresslogger.startProgress(0, static_cast<Size>(fasta_db.end() - fasta_db.begin()), "Scoring peptide models against spectra...");
@@ -1959,7 +2023,44 @@ protected:
     protein_ids[0].setSearchEngine("OpenMSxQuest");
     protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
     protein_ids[0].setPrimaryMSRunPath(spectra.getPrimaryMSRunPath());
+    protein_ids[0].setMetaValue("SpectrumIdentificationProtocol", DataValue("MS:1002494")); // cross-linking search = MS:1002494
     protein_ids[0].setMetaValue("is_cross_linking_experiment", true);
+
+    // TODO set all kinds of experimental information
+    protein_ids[0].setMetaValue("input_mzML", in_mzml);
+    protein_ids[0].setMetaValue("input_consensusXML", in_consensus);
+    protein_ids[0].setMetaValue("input_database", in_fasta);
+    protein_ids[0].setMetaValue("input_decoys", in_decoy_fasta);
+    protein_ids[0].setMetaValue("decoy_prefix", decoy_prefix);
+    protein_ids[0].setMetaValue("decoy_string", decoy_string);
+
+    protein_ids[0].setMetaValue("precursor:min_charge", min_precursor_charge);
+    protein_ids[0].setMetaValue("precursor:max_charge", max_precursor_charge);
+    protein_ids[0].setMetaValue("precursor:mass_tolerance", precursor_mass_tolerance);
+    protein_ids[0].setMetaValue("precursor:mass_tolerance_unit", precursor_mass_tolerance_unit_ppm ? "ppm" : "Da");
+
+    protein_ids[0].setMetaValue("fragment:mass_tolerance", fragment_mass_tolerance);
+    protein_ids[0].setMetaValue("fragment:mass_tolerance_xlinks", fragment_mass_tolerance_xlinks);
+    protein_ids[0].setMetaValue("fragment:mass_tolerance_unit", fragment_mass_tolerance_unit_ppm ? "ppm" : "Da");
+
+    protein_ids[0].setMetaValue("peptide:min_size", peptide_min_size);
+    protein_ids[0].setMetaValue("peptide:missed_cleavages", missed_cleavages);
+    protein_ids[0].setMetaValue("peptide:enzyme", enzyme_name);
+
+    protein_ids[0].setMetaValue("cross_link:residue1", cross_link_residue1);
+    protein_ids[0].setMetaValue("cross_link:residue2", cross_link_residue2);
+    protein_ids[0].setMetaValue("cross_link:mass", cross_link_mass_light);
+    protein_ids[0].setMetaValue("cross_link:mass_isoshift", cross_link_mass_iso_shift);
+    protein_ids[0].setMetaValue("cross_link:mass_monolink", cross_link_mass_mono_link);
+
+    protein_ids[0].setMetaValue("modifications:fixed", fixedModNames);
+    protein_ids[0].setMetaValue("modifications:variable", varModNames);
+    protein_ids[0].setMetaValue("modifications:variable_max_per_peptide", max_variable_mods_per_peptide);
+
+    protein_ids[0].setMetaValue("algorithm:candidate_search", ion_index_mode ? "ion-tag" : "enumeration");
+
+
+
 
     vector<PeptideIdentification> peptide_ids;
 
@@ -2155,6 +2256,8 @@ protected:
     //TODO remove, adapt to ppm
     HashGrid1D hg(0.0, 20000.0, tolerance_binsize);
 
+    map<AASequence*, MSSpectrum<RichPeak1D> > peptide_spectra;
+
     if (!ion_index_mode)
     {
       progresslogger.startProgress(0, 1, "Enumerating cross-links...");
@@ -2172,7 +2275,8 @@ protected:
         // cout << a->second.toString() << endl;
         AASequence * seq = &(a->second);
         // generate common ions
-        specGen.getCommonIonSpectrum(theo_spectrum, *seq, 3); // TODO check which charge and which ion series are used for ion index
+        spectrum_generator.getSpectrum(theo_spectrum, *seq, 3); // TODO check which charge and which ion series are used for ion index
+        peptide_spectra.insert(make_pair(seq, theo_spectrum));
       
         //sort by mz (is done in getCommonIonSpectrum)
 //        theo_spectrum.sortByPosition();
@@ -2253,9 +2357,43 @@ protected:
               const vector<AASequence*> new_ion_tag_candidates = hg.get(common_peaks_50[i].getMZ(), 5000);
               ion_tag_candidates.insert(ion_tag_candidates.end(), new_ion_tag_candidates.begin(), new_ion_tag_candidates.end());
             }
+            cout << "Ion tag Mode, start uniquifying" << endl;
             sort(ion_tag_candidates.begin(), ion_tag_candidates.end());
             vector<AASequence*>::iterator last_unique = unique(ion_tag_candidates.begin(), ion_tag_candidates.end());
             ion_tag_candidates.erase(last_unique, ion_tag_candidates.end());
+            cout << "Ion tag Mode, end uniquifying" << endl;
+
+            // Pre-Score all candidates
+            cout << "Start pre-scoring peptide candidates...." << endl;
+            map<double, AASequence*> pre_scores;
+            for (Size i = 0; i < ion_tag_candidates.size(); ++i)
+            {
+              vector< pair< Size, Size > > matched_spec;
+              getSpectrumAlignment(matched_spec, peptide_spectra.at(ion_tag_candidates[i]), preprocessed_pair_spectra.spectra_common_peaks[pair_index], fragment_mass_tolerance, false);
+
+              double pre_score = 0;
+              if (matched_spec.size() > 0) {
+                pre_score = preScore(matched_spec.size(), peptide_spectra.at(ion_tag_candidates[i]).size());
+              }
+
+              pre_scores.insert(make_pair(pre_score, ion_tag_candidates[i]));
+            }
+
+            // Clear candidates and add 50 highest scoring
+            ion_tag_candidates.clear();
+            int count = 0;
+            int max_candidates = 50;
+            for(map<double, AASequence*>::iterator score_pair = pre_scores.begin(); score_pair != pre_scores.end(); score_pair++) {
+              count++;
+              if (count > max_candidates)
+              {
+                break;
+              }
+              ion_tag_candidates.push_back(score_pair->second);
+             }
+            cout << "Pre-scoring completed." << endl;
+
+
             cout << "Ion tag candidates before mass filtering: " << ion_tag_candidates.size() << endl;
 
             //vector<pair<AASequence, AASequence> > candidates;
@@ -2271,7 +2409,6 @@ protected:
                 double error_Da = abs(cross_link_mass - precursor_mass);
                 if (error_Da < precursor_mass_tolerance)
                 {
-                  // TODO adapt to new candidates structure
                   candidates.push_back(make_pair(peptide_a, peptide_b));
                 }                
               } 
@@ -2532,27 +2669,27 @@ protected:
 //                  }
 //                  double intsum = intsum_alpha + intsum_beta;
 
-                  // Function version of intsum
-                  double intsum_alpha = matched_intensity_score(matched_spec_common_alpha, matched_spec_xlinks_alpha, preprocessed_pair_spectra, pair_index);
 
-//                   cout << "intsum-alpha" << endl;
-
-                  double intsum_beta = 0;
-                  if (type_is_cross_link)
-                  {
-                    intsum_beta = matched_intensity_score(matched_spec_common_beta, matched_spec_xlinks_beta, preprocessed_pair_spectra, pair_index);
-                  }
 
 //                   cout << "intsum-beta" << endl;
 
-                  double intsum = intsum_alpha + intsum_beta;
+//                  double intsum = intsum_alpha + intsum_beta;
+
+                  // new function version of intsum
+                  double intsum = total_matched_current(matched_spec_common_alpha, matched_spec_common_beta, matched_spec_xlinks_alpha, matched_spec_xlinks_beta, preprocessed_pair_spectra, pair_index);
+
 
                   // Total ion intensity of light spectrum
+                  // sum over common and xlink ion spectra instead of unfiltered
                   double total_current = 0;
-                  for (SignedSize j = 0; j < static_cast<SignedSize>(spectrum_light.size()); ++j)
+                  for (SignedSize j = 0; j < static_cast<SignedSize>(preprocessed_pair_spectra.spectra_common_peaks[pair_index].size()); ++j)
                   {
-                    total_current += spectrum_light[j].getIntensity();
-                   }
+                    total_current += preprocessed_pair_spectra.spectra_common_peaks[pair_index][j].getIntensity();
+                  }
+                  for (SignedSize j = 0; j < static_cast<SignedSize>(preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].size()); ++j)
+                  {
+                    total_current += preprocessed_pair_spectra.spectra_xlink_peaks[pair_index][j].getIntensity();
+                  }
 
 //                    cout << "total current" << endl;
 
@@ -2563,22 +2700,25 @@ protected:
                   //cout << "%TIC: " << TIC << "%";
                   if (TIC > TICMax) TICMax = TIC;
 
-//                  double aatotal = cross_link_candidate.alpha.size() + cross_link_candidate.beta.size();
-//                  // TODO from xquest.def. is this the right parameter, should we use something different? Why digest length, what does it tell us about this specific case?
-//                  double maxdigestlength = 50;
-//                  double mindigestlength = 5;
-////                  double invMax = 1 / (min(cross_link_candidate.alpha.size(), cross_link_candidate.beta.size()) / aatotal);
-//                  double invMax = 1 / (mindigestlength / (mindigestlength + maxdigestlength));
-//                  double invFrac_alpha = 1 / (cross_link_candidate.alpha.size() / aatotal);
-//                  double invFrac_beta = 1 / (cross_link_candidate.beta.size() / aatotal);
-//                  double TIC_weight_alpha = invFrac_alpha / invMax;
-//                  double TIC_weight_beta = invFrac_beta / invMax;
-//                  // (alpha weight * TIC_alpha) + (beta weight * TIC_beta)
-//                  double wTIC = TIC_weight_alpha * (intsum_alpha / total_current ) + TIC_weight_beta * (intsum_beta / total_current);
-//                  //cout << "\t wTIC: " << wTIC;
+                  // TIC_alpha and _beta
+                  double intsum_alpha = matched_current_chain(matched_spec_common_alpha, matched_spec_xlinks_alpha, preprocessed_pair_spectra, pair_index);
+
+//                   cout << "intsum-alpha" << endl;
+
+                  double intsum_beta = 0;
+                  if (type_is_cross_link)
+                  {
+                    intsum_beta = matched_current_chain(matched_spec_common_beta, matched_spec_xlinks_beta, preprocessed_pair_spectra, pair_index);
+                  }
+
+                  // normalize TIC_alpha and  _beta
+                  if ((intsum_alpha + intsum_beta) > 0.0) {
+                    intsum_alpha = intsum_alpha * intsum / (intsum_alpha + intsum_beta);
+                    intsum_beta = intsum_beta *  intsum / (intsum_alpha + intsum_beta);
+                  }
 
                   // Function version of wTIC
-                  double wTIC = weighted_TIC_score(cross_link_candidate.alpha.size(), cross_link_candidate.beta.size(), intsum_alpha, intsum_beta, total_current);
+                  double wTIC = weighted_TIC_score(cross_link_candidate.alpha.size(), cross_link_candidate.beta.size(), intsum_alpha, intsum_beta, intsum, total_current, type_is_cross_link);
 
                   if (wTIC > wTICMax) wTICMax = wTIC;
 
@@ -2643,13 +2783,13 @@ protected:
                   double match_odds = 0;
                   if (type_is_cross_link)
                   {
-                  double match_odds_c_beta = match_odds_score(theoretical_spec_common_beta, matched_spec_common_beta, 3, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
-                  double match_odds_x_beta = match_odds_score(theoretical_spec_xlinks_beta, matched_spec_xlinks_beta, 3, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
-                  match_odds = (match_odds_c_alpha + match_odds_x_alpha + match_odds_c_beta + match_odds_x_beta) / 4;
+                    double match_odds_c_beta = match_odds_score(theoretical_spec_common_beta, matched_spec_common_beta, 3, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
+                    double match_odds_x_beta = match_odds_score(theoretical_spec_xlinks_beta, matched_spec_xlinks_beta, 3, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
+                    match_odds = (match_odds_c_alpha + match_odds_x_alpha + match_odds_c_beta + match_odds_x_beta) / 4;
                   }
                   else
                   {
-                  match_odds = (match_odds_c_alpha + match_odds_x_alpha) / 2;
+                    match_odds = (match_odds_c_alpha + match_odds_x_alpha) / 2;
                   }
 
 //                  cout << "matchodds" << endl;
@@ -2692,12 +2832,19 @@ protected:
 
                   //cout << "Compute xCorr" << endl;
                   // xCorr parameters: spec1, spec2, max_shift, binsize
-                  vector< double > xcorrx = xCorrelation(spectrum_light, theoretical_spec_xlinks, 5, 0.3);
-                  vector< double > xcorrc = xCorrelation(spectrum_light, theoretical_spec_common, 5, 0.2);
-                  vector< double > aucorr = xCorrelation(spectrum_light, makeRichPeakSpectrum(spectrum_light, false), 1, 0.2);
+//                  vector< double > xcorrx = xCorrelation(spectrum_light, theoretical_spec_xlinks, 5, 0.3);
+//                  vector< double > xcorrc = xCorrelation(spectrum_light, theoretical_spec_common, 5, 0.2);
+                  vector< double > xcorrx = xCorrelation(preprocessed_pair_spectra.spectra_xlink_peaks[pair_index], theoretical_spec_xlinks, 5, 0.3);
+                  vector< double > xcorrc = xCorrelation(preprocessed_pair_spectra.spectra_common_peaks[pair_index], theoretical_spec_common, 5, 0.2);
+
+                  // TODO save time: only needs to be done once per light spectrum, here it is repeated for cross-link each candidate
+                  vector< double > aucorr = xCorrelation(spectrum_light, spectrum_light, 1, 0.2);
                   double aucorr_sum = accumulate(aucorr.begin(), aucorr.end(), 0.0);
                   double xcorrx_max = accumulate(xcorrx.begin(), xcorrx.end(), 0.0) / aucorr_sum;
                   double xcorrc_max = accumulate(xcorrc.begin(), xcorrc.end(), 0.0) / aucorr_sum;
+                  cout << "xCorrelation X: " << xcorrx << endl;
+                  cout << "xCorrelation C: " << xcorrc << endl;
+                  cout << "Autocorr: " << aucorr << "\t Autocorr_sum: " << aucorr_sum << "\t xcorrx_max: " << xcorrx_max << "\t xcorrc_max: " << xcorrc_max << endl;
 //                  double xcorrx_max = *max_element(xcorrx.begin(), xcorrx.end());
 //                  double xcorrc_max = *max_element(xcorrc.begin(), xcorrc.end());
                   //cout << "XLink Cross correlation score: " << xcorrx_max << "\t Common Cross correlation score: " << xcorrc_max << endl;
@@ -2712,6 +2859,10 @@ protected:
                   double match_odds_weight = 1.973;
                   double wTIC_weight = 12.829;
                   double intsum_weight = 1.8;
+
+//                  double match_odds_weight = 1;  // 1.973;
+//                  double wTIC_weight = 24;           // 12.829;
+//                  double intsum_weight = 2.8;       // 1.8;
 
                   double score = xcorrx_weight * xcorrx_max + xcorrc_weight * xcorrc_max + match_odds_weight * match_odds + wTIC_weight * wTIC + intsum_weight * intsum;
 
@@ -2778,20 +2929,16 @@ protected:
             {
               PeptideIdentification peptide_id;
 
-              String xltype = "mono-link";
+              String xltype = "cross-link";
 //              String structure = top_csms_spectrum[i].cross_link.alpha.toUnmodifiedString();
 //              String topology = String("K") + (top_csms_spectrum[i].cross_link.cross_link_position.first+1);
 
-              // TODO track or otherwise find out, which kind of mono-link it was (if there are several possibilities for the weigths)
-//              double weight = top_csms_spectrum[i].cross_link.alpha.getMonoWeight() + cross_link_mass_mono_link[1];
-
-//              bool is_monolink = (top_csms_spectrum[i].cross_link.cross_link_position.second == -1);
-              int alpha_pos = top_csms_spectrum[i].cross_link.cross_link_position.first + 1;
-              int beta_pos = top_csms_spectrum[i].cross_link.cross_link_position.second + 1;
+              SignedSize alpha_pos = top_csms_spectrum[i].cross_link.cross_link_position.first;
+              SignedSize beta_pos = top_csms_spectrum[i].cross_link.cross_link_position.second;
 
               if (top_csms_spectrum[i].cross_link.getType() == TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink::MONO)
               {
-                xltype = "cross-link";
+                xltype = "mono-link";
 //                structure = top_csms_spectrum[i].cross_link.alpha.toUnmodifiedString() + "-" + top_csms_spectrum[i].cross_link.beta.toUnmodifiedString();
 //                topology = String("a") +  alpha_pos + String("-b") + beta_pos;
 //                weight = top_csms_spectrum[i].cross_link.alpha.getMonoWeight() + top_csms_spectrum[i].cross_link.beta.getMonoWeight() + cross_link_mass_light;
@@ -2802,24 +2949,64 @@ protected:
               }
 //              String id = structure + "-" + topology;
 
-              vector<PeptideHit> phs;
+
               PeptideHit ph_alpha, ph_beta;
-              ph_alpha.setSequence(top_csms_spectrum[i].cross_link.alpha);
+              // Set monolink as a modification or add MetaValue for cross-link identity and mass
+              // TODO needs to be tested
+              AASequence seq_alpha = top_csms_spectrum[i].cross_link.alpha;
+              if (top_csms_spectrum[i].cross_link.getType() == TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink::MONO)
+              {
+                //AASequence seq_alpha = top_csms_spectrum[i].cross_link.alpha;
+                vector< String > mods;
+                const String residue = seq_alpha[alpha_pos].getOneLetterCode();
+                ModificationsDB::getInstance()->getModificationsByDiffMonoMass(mods, residue, top_csms_spectrum[i].cross_link.cross_linker_mass, 0.01);
+                cout << "number of modifications fitting the mono-link: " << mods.size() << "\t" << mods << endl;
+                if (mods.size() > 0)
+                {
+                  // TODO only valid if there are no alternatives, but we know we searched for a cross-linking reagent
+                  cout << "applied modification: " << mods[0] << endl;
+                  seq_alpha.setModification(alpha_pos, mods[0]);
+                }
+                else
+                {
+                  // TODO hardcoded for DSS, Xlink:DSS-NH2  not found by mass
+                  cout << "applied modification: " << "Xlink:DSS-NH2" << endl;
+                  ph_alpha.setMetaValue("xl_mod",  "Xlink:DSS-NH2");
+                }
+
+              }
+              else
+              {
+                // TODO hardcoded for DSS, make this an input parameter or something, NO UNIMOD ACCESSION AVAILBALE, for now name and mass
+                ph_alpha.setMetaValue("xl_mod", "Xlink:DSS-link");
+                ph_alpha.setMetaValue("xl_mass", DataValue(top_csms_spectrum[i].cross_link.cross_linker_mass));
+              }
+
+              if (top_csms_spectrum[i].cross_link.getType() == TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink::LOOP)
+              {
+                ph_alpha.setMetaValue("xl_pos2", DataValue(beta_pos));
+              }
+
+              vector<PeptideHit> phs;
+
+              ph_alpha.setSequence(seq_alpha);
               ph_alpha.setCharge(precursor_charge);
               ph_alpha.setScore(top_csms_spectrum[i].score);
-              ph_alpha.setMetaValue("xl_chain", "MS:1002510");  // receiver
+              ph_alpha.setMetaValue("xl_chain", "MS:1002509");  // donor (longer, heavier, alphabetically earlier)
               ph_alpha.setMetaValue("xl_pos", DataValue(alpha_pos));
               phs.push_back(ph_alpha);
+
 
               if (top_csms_spectrum[i].cross_link.getType() == TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink::CROSS)
               {
                 ph_beta.setSequence(top_csms_spectrum[i].cross_link.beta);
                 ph_beta.setCharge(precursor_charge);
                 ph_beta.setScore(top_csms_spectrum[i].score);
-                ph_beta.setMetaValue("xl_chain", "MS:1002509"); // donor 
+                ph_beta.setMetaValue("xl_chain", "MS:1002510"); // receiver
                 ph_beta.setMetaValue("xl_pos", DataValue(beta_pos));
                 phs.push_back(ph_beta);
               }
+
 
               peptide_id.setRT(spectrum_light.getRT());
               peptide_id.setMZ(precursor_mz);
@@ -2828,7 +3015,7 @@ protected:
               peptide_id.setMetaValue("spectrum_reference", spectra[scan_index].getNativeID());
               peptide_id.setMetaValue("spectrum_reference_heavy", spectra[scan_index_heavy].getNativeID());
               peptide_id.setMetaValue("xl_type", xltype); // TODO: needs CV term
-              peptide_id.setMetaValue("xl_rank", DataValue(i + 1)); 
+              peptide_id.setMetaValue("xl_rank", DataValue(i + 1));
 
 //            peptide_id.setMetaValue("xl_relation", ); //TODO: needs CV term
               peptide_id.setHits(phs);
