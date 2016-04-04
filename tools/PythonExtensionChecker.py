@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8  -*-
 """
-=========================================================================
-        msproteomicstools -- Mass Spectrometry Proteomics Tools
-=========================================================================
-
-Copyright (c) 2013, ETH Zurich
-For a full list of authors, refer to the file AUTHORS.
+--------------------------------------------------------------------------
+                  OpenMS -- Open-Source Mass Spectrometry
+--------------------------------------------------------------------------
+Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
+ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 
 This software is released under a three-clause BSD license:
  * Redistributions of source code must retain the above copyright
@@ -17,6 +16,7 @@ This software is released under a three-clause BSD license:
  * Neither the name of any author or any participating institution
    may be used to endorse or promote products derived from this software
    without specific prior written permission.
+For a full list of authors, refer to the file AUTHORS.
 --------------------------------------------------------------------------
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
