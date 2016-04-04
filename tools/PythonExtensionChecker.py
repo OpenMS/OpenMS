@@ -1033,6 +1033,8 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
         file_location_key = file_location
         if len(file_location.split("include/")) > 1:
             file_location_key = file_location.split("include/")[1]
+        elif len(file_location.split("OpenMS/")) > 1:
+            file_location_key = "OpenMS/" + file_location.split("OpenMS/")[-1]
 
         if file_location_key in pxd_file_matching:
             pxdfiles = pxd_file_matching[file_location_key]
