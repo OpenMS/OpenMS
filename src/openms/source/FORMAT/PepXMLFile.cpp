@@ -111,7 +111,6 @@ namespace OpenMS
     f.precision(writtenDigits<double>(0.0));
     String raw_data;
     String base_name;
-    //delete SpectrumLookup lookup;
     SpectrumMetaDataLookup lookup;
     
     // The mz-File (if given)
