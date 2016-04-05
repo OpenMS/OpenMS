@@ -510,8 +510,8 @@ namespace OpenMS
         {
           unit_str = "unitCvRef=\"UO\" unitName=\"parts per million\" unitAccession=\"UO:0000169\"";
         }
-        sip += String(3, '\t') + "<cvParam accession=\"MS:1001412\" name=\"search tolerance plus value\" " + unit_str + " cvRef=\"PSI-MS\" value=\"" + String(it->getSearchParameters().precursor_tolerance) + "\"/>" + "\n";
-        sip += String(3, '\t') + "<cvParam accession=\"MS:1001413\" name=\"search tolerance minus value\" " + unit_str + " cvRef=\"PSI-MS\" value=\"" + String(it->getSearchParameters().precursor_tolerance) + "\"/>" + "\n";
+        sip += String(3, '\t') + "<cvParam accession=\"MS:1001412\" name=\"search tolerance plus value\" " + unit_str + " cvRef=\"PSI-MS\" value=\"" + String(it->getSearchParameters().precursor_mass_tolerance) + "\"/>" + "\n";
+        sip += String(3, '\t') + "<cvParam accession=\"MS:1001413\" name=\"search tolerance minus value\" " + unit_str + " cvRef=\"PSI-MS\" value=\"" + String(it->getSearchParameters().precursor_mass_tolerance) + "\"/>" + "\n";
         sip += String("\t\t</ParentTolerance>\n");
         sip += String("\t\t<Threshold>\n\t\t\t") + thcv + "\n";
         sip += String("\t\t</Threshold>\n");

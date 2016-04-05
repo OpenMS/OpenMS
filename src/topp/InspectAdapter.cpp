@@ -858,7 +858,7 @@ protected:
             sp.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(inspect_infile.getEnzyme());
           }
           sp.fragment_mass_tolerance = inspect_infile.getPeakMassTolerance();
-          sp.precursor_tolerance = inspect_infile.getPrecursorMassTolerance();
+          sp.precursor_mass_tolerance = inspect_infile.getPrecursorMassTolerance();
           protein_identification.setSearchParameters(sp);
 
           try

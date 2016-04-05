@@ -314,7 +314,7 @@ namespace OpenMS
     param_line += sp.digestion_enzyme.getName();
     param_line += ", missed_cleavages=" + String(sp.missed_cleavages) +
                   ", peak_mass_tolerance=" + String(sp.fragment_mass_tolerance) +
-                  ", precursor_mass_tolerance=" + String(sp.precursor_tolerance);
+                  ", precursor_mass_tolerance=" + String(sp.precursor_mass_tolerance);
     out << param_line;
     return out;
   }

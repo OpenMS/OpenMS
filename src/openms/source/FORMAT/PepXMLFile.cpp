@@ -1022,7 +1022,7 @@ namespace OpenMS
         if (name == "peptide_mass_tolerance")
         {
           double value = attributeAsDouble_(attributes, "value");
-          params_.precursor_tolerance = value;
+          params_.precursor_mass_tolerance = value;
         }
         // this is quite comet specific, but so is parameter name peptide_mass_units, see comet configuration file documentation
         if (name == "peptide_mass_units")
