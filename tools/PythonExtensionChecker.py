@@ -78,9 +78,9 @@ def handle_member_definition(mdef, pxd_class, cnt):
             comp_name = mdef.parent_doxy_file.compound.get_compoundname()
             file_location = mdef.parent_doxy_file.getCompoundFileLocation()
             if (len(file_location.split("/include/OpenMS")) > 1):
-		 internal_file_name = "OpenMS" + file_location.split("/include/OpenMS")[1]
-	    elif (len(file_location.split("/OpenMS")) > 1):
-		 internal_file_name = "OpenMS" + file_location.split("/OpenMS")[1]
+                internal_file_name = "OpenMS" + file_location.split("/include/OpenMS")[1]
+            elif (len(file_location.split("/OpenMS")) > 1):
+                internal_file_name = "OpenMS" + file_location.split("/OpenMS")[1]
             namespace = comp_name
             true_cppname = '"%s::%s"' % (comp_name, mdef.get_name())
             enumr  = "\n"
