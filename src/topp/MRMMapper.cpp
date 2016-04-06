@@ -112,7 +112,7 @@ protected:
     registerOutputFile_("out", "<file>", "", "Output file containing mapped chromatograms");
     setValidFormats_("out", ListUtils::create<String>("mzML"));
 
-    registerDoubleOption_("precursor_mass_tolerance", "<double>", 0.1, "Precursor tolerance when mapping (in Th)", false);
+    registerDoubleOption_("precursor_tolerance", "<double>", 0.1, "Precursor tolerance when mapping (in Th)", false);
     registerDoubleOption_("product_tolerance", "<double>", 0.1, "Product tolerance when mapping (in Th)", false);
 
     registerFlag_("no-strict", "run in non-strict mode and allow some chromatograms to not be mapped.");
