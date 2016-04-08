@@ -160,7 +160,7 @@ namespace OpenMS
       Size peak_idx = current_layer.getCurrentSpectrum().findNearest(mz);
         
       // m/z fits ?
-      if ( abs(mz - current_layer.getCurrentSpectrum()[peak_idx].getMZ()) / mz * 1e6 > ppm) continue;
+      if (Math::getPPMAbs(mz, current_layer.getCurrentSpectrum()[peak_idx].getMZ()) > ppm) continue;
 
       double peak_int = current_layer.getCurrentSpectrum()[peak_idx].getIntensity();
 
