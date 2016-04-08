@@ -71,10 +71,6 @@ PeakPickerWavelet
 PepNovoAdapter
 PeptideIndexer
 PhosphoScoring
-PILISIdentification
-PILISModelCV
-PILISModelTrainer
-PILISSpectraGenerator
 PrecursorIonSelector
 PrecursorMassCorrector
 ProteinInference

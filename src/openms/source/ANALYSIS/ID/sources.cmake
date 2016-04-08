@@ -21,12 +21,6 @@ IDRipper.cpp
 IDDecoyProbability.cpp
 MetaboliteSpectralMatching.cpp
 PeptideProteinResolution.cpp
-PILISIdentification.cpp
-PILISModel.cpp
-PILISModelGenerator.cpp
-PILISNeutralLossModel.cpp
-PILISScoring.cpp
-PILISCrossValidation.cpp
 ProtonDistributionModel.cpp
 PeptideIndexing.cpp
 )

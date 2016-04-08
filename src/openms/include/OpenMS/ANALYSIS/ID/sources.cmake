@@ -21,12 +21,6 @@ IDMapper.h
 IDRipper.h
 MetaboliteSpectralMatching.h
 PeptideProteinResolution.h
-PILISIdentification.h
-PILISModel.h
-PILISModelGenerator.h
-PILISNeutralLossModel.h
-PILISScoring.h
-PILISCrossValidation.h
 ProtonDistributionModel.h
 PeptideIndexing.h
 )
