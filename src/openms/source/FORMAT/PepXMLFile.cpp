@@ -401,14 +401,14 @@ namespace OpenMS
           {
             const ResidueModification& mod = ModificationsDB::getInstance()->getTerminalModification(seq.getNTerminalModification(), ResidueModification::N_TERM);
             f << " mod_nterm_mass=\"" <<
-              precisionWrapper(mod.getMonoMass() + seq[(Size)0].getMonoWeight(Residue::Internal)) << "\"";
+              precisionWrapper(mod.getDiffMonoMass()) << "\"";
           }
 
           if (seq.hasCTerminalModification())
           {
             const ResidueModification& mod = ModificationsDB::getInstance()->getTerminalModification(seq.getCTerminalModification(), ResidueModification::C_TERM);
             f << " mod_cterm_mass=\"" <<
-              precisionWrapper(mod.getMonoMass() + seq[seq.size() - 1].getMonoWeight(Residue::Internal)) << "\"";
+              precisionWrapper(mod.getDiffMonoMass()) << "\"";
           }
 
           f << ">" << "\n";
