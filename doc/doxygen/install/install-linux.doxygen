@@ -6,9 +6,10 @@
   source. If you do not have root privileges on your system, make sure you 
   read the section @ref build_linux_noroot.
 
-  We are working on adding %OpenMS to the repositories of the most popular
-  distributions, but for now the toolkit needs to be manually compiled on your
-  system.
+  We are working on adding %OpenMS to the <a href=http://pkgs.org/search/openms>repositories</a> of the most popular
+  distributions, but for many platforms the toolkit needs to be manually compiled on your
+  system. The same applies if you want to use the most recent source files
+  from our Git repository.
 
   @section checkout_and_build Checkout OpenMS
 
@@ -17,7 +18,7 @@
   %OpenMS project.
 
   From here on the instructions assume you have an extracted tar.gz of the
-  Release and are inside its root, or checked out the development (git) version
+  Release and are inside its root, or checked out the development (Git) version
   by:
 
   \code
@@ -33,24 +34,31 @@
 
   For the libraries/versions often not found in those repositories, we provide
   sources and build scripts.  The Release tar.gz archive contains the libraries
-  in the contrib/ folder, if you build the Development (git) version, you'll
+  in the contrib/ folder, if you build the Development (Git) version, you'll
   have to check them out separately (see below in @ref build_linux_contrib and in @ref build_linux_noroot).
 
   <b>Required packages and libraries</b>
 
-  Essential are GCC > 4.0 or other ANSI C++ compiler, CMake > 2.8.3, Qt4 > 4.6 (> 4.7 for the GUI),
-  patch, autoconf > 2.60, automake > 1.9, libtool (libtoolize/glibtoolize).
-
-  For the complete feature set to be enabled, %OpenMS needs recent versions of
-  Boost (1.46 or higher works), Eigen3, WildMagic5,
-  libSVM (2.91 or higher and 3.x for x <= 14 works), SeqAn (>= 1.4.0 but < 2.0 needed),
-  glpk (4.45 or higher works), zlib, libbz2, and Xerces-C (3.1.1 or higher works).
-
-  Building the documentation from the development version requires doxygen > 1.5.4 and
-  pdflatex/texlive/texlive-full.
-  
-  Building the Python extensions pyOpenMS requires Python (> 2.6), Cython (>
-  0.19), nose testing and numpy.
+  <ul>
+    <li>
+      Essential are GCC > 4.0 or other ANSI C++ compiler, CMake > 2.8.3, Qt4 > 4.6 (> 4.7 for the GUI),
+      patch, autoconf > 2.60, automake > 1.9, libtool (libtoolize/glibtoolize).
+    </li>
+    <li>
+      For the complete feature set to be enabled, %OpenMS needs recent versions of
+      Boost (1.46 or higher works), Eigen3, WildMagic5,
+      libSVM (2.91 or higher and 3.x for x <= 14 works), SeqAn (>= 1.4.0 but < 2.0 needed),
+      glpk (4.45 or higher works), zlib, libbz2, and Xerces-C (3.1.1 or higher works).
+    </li>
+    <li>
+      Building the documentation from the development version requires doxygen > 1.5.4 and
+      pdflatex/texlive/texlive-full.
+    </li>
+    <li>
+      Building pyOpenMS, the Python bindings for OpenMS, requires Python, Cython and a few Python packages. See
+      \ref pyOpenMS "here" for more detailed pyOpenMS build instructions.
+    </li>
+  </ul>
 
   For the most common distributions, these commands will install most of the libraries:
 
@@ -91,13 +99,13 @@
   instructions.
 
   OpenMS conveniently provides its dependencies for download.  The %OpenMS
-  Release package (https://sourceforge.net/projects/open-ms/files/OpenMS/)
+  <a href="https://sourceforge.net/projects/open-ms/files/OpenMS/">Release package </a>
   contains the sources of all dependencies in the contrib/ folder.  For the
-  Development (git) version, this folder is not included, it has to be checked
+  Development (Git) version, this folder is not included, it has to be checked
   out separately (and referred to later). We generally recommend to keep the
   contrib separate from the OpenMS source code. Assuming you have extracted the
-  the %OpenMS source code in a folder ~/Development (i.e., ~/Development/OpenMS)
-  we suggest to also put the contrib there (i.e., ~/Development/contrib). For the
+  the %OpenMS source code in a folder <tt>~/Development</tt> (i.e., <tt>~/Development/OpenMS</tt>)
+  we suggest to also put the contrib there (i.e., <tt>~/Development/contrib</tt>). For the
   contrib as well as for %OpenMS we suggest to use out-of-source builds.
 
 
@@ -117,7 +125,7 @@
   cd contrib-build
   \endcode
 
-  From the <i>./contrib-build/</i> folder, execute the following command to show the
+  From the <tt>./contrib-build/</tt> folder, execute the following command to show the
   available build types
      \code
         cmake -DBUILD_TYPE=LIST ../contrib
@@ -174,7 +182,7 @@
   a release version or from the most recent development branch).
 
   The next step is to create a build directory beside the %OpenMS root
-  directory e.g., OpenMS-build (see above note on out-of-source builds).
+  directory e.g., <tt>OpenMS-build</tt> (see above note on out-of-source builds).
 
   \code
   # Assuming you are in ~/Development and OpenMS is also located in
@@ -183,9 +191,9 @@
   cd OpenMS-build
   \endcode
 
-  In the %OpenMS build directory we execute %CMake to \a configure %OpenMS. You
-  should substitute \c /PATH/TO/contrib/ with the above path to the build
-  contrib. Make sure you use the \a absolute (and not relative) path for the
+  In the %OpenMS build directory we execute %CMake to <i>configure</i> %OpenMS. You
+  should substitute <tt>/PATH/TO/contrib/</tt> with the above path to the build
+  contrib. Make sure you use the <i>absolute</i> (and not relative) path for the
   contrib to avoid any potential issues. If you encounter problems with
   previously installed system libraries, consider removing the
   <tt>/usr;/usr/local</tt> part of the path:
@@ -206,9 +214,9 @@
   The previous step takes the most time, in the meanwhile you can prepare your
   environment for easy %OpenMS usage:
 
-  Make sure to add <b>/PATH/TO/OpenMS/lib/</b> (e.g.
+  Make sure to add <tt>/PATH/TO/OpenMS/lib/</tt> (e.g.
   <i>/home/smith/OpenMS/lib/</i>) to the environment variable
-  <b>LD_LIBRARY_PATH</b>.  The best way is to edit $HOME/.bashrc and add the
+  <b>LD_LIBRARY_PATH</b>.  The best way is to edit <tt>$HOME/.bashrc</tt> and add the
   following
   \code
   export LD_LIBRARY_PATH="/PATH/TO/OpenMS/lib:$LD_LIBRARY_PATH"
@@ -220,7 +228,7 @@
 
   This is necessary to use the TOPP tools from TOPPView.
 
-  You can do this by appending the following also to your $HOME/.bashrc
+  You can do this by appending the following also to your <tt>$HOME/.bashrc</tt>
   (Do not use the tilde character @em ~ to abbreviate your home folder)
 
   \code
@@ -348,10 +356,10 @@
   ccmake .
   \endcode
 
-  This works only after having executed \c cmake once (see @ref install_linux_openms)
+  This works only after having executed <tt>cmake</tt> once (see @ref install_linux_openms)
 
  <hr>
- @section install_linux_testing_openms Testing your OpenMS / TOPP installation
+ @section install_linux_testing_openms Testing your OpenMS/TOPP installation
 
   After you have installed %OpenMS and TOPP, you should test your installation by executing the following command:
 

@@ -1,9 +1,11 @@
 /**
   @page install_linux_bin Installation on GNU/Linux
 
-  Currently only Debian provides a packaged version of %OpenMS. For other
-  non-debian based GNU/Linux distributions you need to build your own version
-  of %OpenMS.
+  Currently there are packaged versions of %OpenMS (not necessarily the newest) provided for Debian,
+  Fedora and Ubuntu 14.04. For other
+  GNU/Linux distributions you need to build your own version of %OpenMS.
+  However, these packages are not directly maintained by us and we can not guarantee the same behaviour as when
+  building it on your own. Also their availability is subject to change.
 
   Please check http://www.openms.de/downloads/ for details on how to
   obtain the source code @subpage install_linux on how to build %OpenMS.
