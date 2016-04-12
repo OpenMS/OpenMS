@@ -11,6 +11,7 @@ MathFunctions.cpp
 NonNegativeLeastSquaresSolver.cpp
 MSNumpress.cpp
 RANSAC.cpp
+Spline2d.cpp
 )
 
 ### add path to the filenames
