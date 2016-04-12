@@ -224,7 +224,7 @@ protected:
 
     // make file name entries unique
     std::sort(merged_spectra_data.begin(), merged_spectra_data.end());
-    StringList::const_iterator last = std::unique(merged_spectra_data.begin(), merged_spectra_data.end());
+    StringList::iterator last = std::unique(merged_spectra_data.begin(), merged_spectra_data.end());
     merged_spectra_data.erase(last, merged_spectra_data.end());
     prot_ids[0].setPrimaryMSRunPath(merged_spectra_data);
   }
