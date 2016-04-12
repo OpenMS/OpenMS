@@ -143,7 +143,7 @@ namespace OpenMS
       String peak_unit = params[i].fragment_mass_tolerance_ppm ? "true" : "false";
 
       os << "missed_cleavages=\"" << params[i].missed_cleavages << "\" "
-         << "precursor_peak_tolerance=\"" << params[i].precursor_tolerance << "\" ";
+         << "precursor_peak_tolerance=\"" << params[i].precursor_mass_tolerance << "\" ";
       os << "precursor_peak_tolerance_ppm=\"" << precursor_unit << "\" ";
       os << "peak_mass_tolerance=\"" << params[i].fragment_mass_tolerance << "\" ";
       os << "peak_mass_tolerance_ppm=\"" << peak_unit << "\" ";
@@ -416,7 +416,7 @@ namespace OpenMS
       optionalAttributeAsString_(peak_unit, attributes, "peak_mass_tolerance_ppm");
       param_.fragment_mass_tolerance_ppm = peak_unit == "true" ? true : false;
 
-      param_.precursor_tolerance = attributeAsDouble_(attributes, "precursor_peak_tolerance");
+      param_.precursor_mass_tolerance = attributeAsDouble_(attributes, "precursor_peak_tolerance");
       String precursor_unit;
       optionalAttributeAsString_(precursor_unit, attributes, "precursor_peak_tolerance_ppm");
       param_.precursor_mass_tolerance_ppm = precursor_unit == "true" ? true : false;

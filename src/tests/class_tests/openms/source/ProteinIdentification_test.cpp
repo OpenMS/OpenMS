@@ -622,7 +622,7 @@ START_SECTION(([ProteinIdentification::SearchParameters] SearchParameters()))
   TEST_EQUAL(sp.missed_cleavages, 0)
   TEST_EQUAL(sp.fragment_mass_tolerance, 0.0)
   TEST_EQUAL(sp.fragment_mass_tolerance_ppm, false)
-  TEST_EQUAL(sp.precursor_tolerance, 0.0)
+  TEST_EQUAL(sp.precursor_mass_tolerance, 0.0)
   TEST_EQUAL(sp.precursor_mass_tolerance_ppm, false)
 
 END_SECTION
