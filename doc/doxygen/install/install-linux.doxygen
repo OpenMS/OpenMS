@@ -73,7 +73,7 @@
   <tr>
     <td><B>Ubuntu/Debian <br/>(10.04/6.0 or later recommended)</B></td>
     <td><pre>
-    sudo apt-get install cmake g++ autoconf qt4-dev-tools patch libtool make git libqt4-core libqt4-dev libqt4-gui libqt4-opengl-dev
+    sudo apt-get install cmake g++ autoconf qt4-dev-tools patch libtool make git libqt4-core libqt4-dev libqt4-gui libqt4-opengl-dev automake
     sudo apt-get install libboost-regex-dev libboost-iostreams-dev libboost-date-time-dev libboost-math-dev \
       libsvm-dev libglpk-dev libzip-dev zlib1g-dev libxerces-c-dev libbz2-dev
     </pre></td>
