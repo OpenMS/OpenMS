@@ -377,7 +377,7 @@ namespace OpenMS
         int start = sit->getStart();
         int stop = sit->getEnd();
         
-        if (start == PeptideEvidence::UNKNOWN_POSITION || start == PeptideEvidence::UNKNOWN_POSITION)
+        if (start == PeptideEvidence::UNKNOWN_POSITION || stop == PeptideEvidence::UNKNOWN_POSITION)
         {
           throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, " PeptideEvidence does not contain start or end position. Cannot compute coverage!");
         }
