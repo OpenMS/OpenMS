@@ -376,6 +376,12 @@ namespace OpenMS
       {
         int start = sit->getStart();
         int stop = sit->getEnd();
+        
+        if (start == PeptideEvidence::UNKNOWN_POSITION || start == PeptideEvidence::UNKNOWN_POSITION)
+        {
+          throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, " PeptideEvidence does not contain start or end position. Cannot compute coverage!");
+        }
+        
         std::fill(covered_amino_acids.begin() + start, covered_amino_acids.begin() + stop + 1, true);
       }
       double coverage = 100.0 * (double) std::accumulate(covered_amino_acids.begin(), covered_amino_acids.end(), 0) / protein_length;
