@@ -1,8 +1,8 @@
 /**
 
-  @page install_linux Building OpenMS on GNU/Linux
+  @page install_linux Building %OpenMS on GNU/Linux
 
-  This document describes how to build OpenMS on a GNU/Linux system from
+  This document describes how to build %OpenMS on a GNU/Linux system from
   source. If you do not have root privileges on your system, make sure you 
   read the section @ref build_linux_noroot.
 
@@ -60,7 +60,7 @@
       pdflatex/texlive/texlive-full.
     </li>
     <li>
-      Building pyOpenMS, the Python bindings for OpenMS, requires Python, Cython and a few Python packages. See
+      Building pyOpenMS, the Python bindings for %OpenMS, requires Python, Cython and a few Python packages. See
       \ref pyOpenMS "here" for more detailed pyOpenMS build instructions.
     </li>
   </ul>
@@ -86,7 +86,7 @@
     </td>
   </tr>
   <tr>
-    <td><B>OpenSuse 11.1 pakages (list outdated)</B>
+    <td><B>OpenSuse 11.1 (list outdated)</B><br>
     Use package names of other distros listed here as a basis to search native
      <a href="https://software.opensuse.org/findpackages"> packages </a>.</td>
     <td><pre>
@@ -105,7 +105,7 @@
   </tr>
   </table>
 
-  @note Some thirdparty software used via adapter tools in OpenMS might also require an installed JavaVM.
+  @note Some thirdparty software used via adapter tools in %OpenMS might also require an installed JavaVM.
 
   @section build_linux_contrib Building remaining dependencies
 
@@ -116,12 +116,12 @@
   Contact us if you still have trouble with the dependencies after these
   instructions.
 
-  OpenMS conveniently provides its dependencies for download.  The %OpenMS
+  %OpenMS conveniently provides its dependencies for download.  The %OpenMS
   <a href="https://sourceforge.net/projects/open-ms/files/OpenMS/">Release package </a>
   contains the sources of all dependencies in the contrib/ folder.  For the
   Development (Git) version, this folder is not included, it has to be checked
   out separately (and referred to later). We generally recommend to keep the
-  contrib separate from the OpenMS source code. Assuming you have extracted the
+  contrib separate from the %OpenMS source code. Assuming you have extracted the
   the %OpenMS source code in a folder <tt>~/Development</tt> (i.e., <tt>~/Development/OpenMS</tt>)
   we suggest to also put the contrib there (i.e., <tt>~/Development/contrib</tt>). For the
   contrib as well as for %OpenMS we suggest to use out-of-source builds.
@@ -195,8 +195,8 @@
   @section install_linux_openms Configuring and building OpenMS/TOPP
 
   It is assumed that you have successfully built and installed all dependencies
-  and are in the root folder of the OpenMS tree (see above in @ref
-  checkout_and_build for instructions how to obtain OpenMS sources either from
+  and are in the root folder of the %OpenMS tree (see above in @ref
+  checkout_and_build for instructions how to obtain %OpenMS sources either from
   a release version or from the most recent development branch).
 
   The next step is to create a build directory beside the %OpenMS root
@@ -336,26 +336,26 @@
     </tr>
     <tr>
       <td valign="top">\c HAS_XSERVER</td>
-      <td>Defines if a running X Server is available when building OpenMS.
+      <td>Defines if a running X Server is available when building %OpenMS.
       As building parts of the documentation and running certain tests requires
       a running X Server, this flag can be used to disable those parts of the
       documentation and the tests that need an X Server. (Default: On)</td>
     </tr>
     <tr>
       <td valign="top">\c WITH_GUI</td>
-      <td>Defines if the OpenMS GUI tools (TOPPView, TOPPAS) should be built or
+      <td>Defines if the %OpenMS GUI tools (TOPPView, TOPPAS) should be built or
       not. These components need Qt > 4.7 which may not be available on some
       systems (specifically older CentOS / RHEL servers). If you plan to use
-      OpenMS without a GUI, set this flag to "Off" (Default: On)</td>
+      %OpenMS without a GUI, set this flag to "Off" (Default: On)</td>
     </tr>
     <tr>
       <td valign="top">\c ENABLE_TUTORIALS</td>
-      <td>Defines if a OpenMS should build and install the pdf tutorials.
+      <td>Defines if %OpenMS should build and install the pdf tutorials.
       (Default: On)</td>
     </tr>
     <tr>
       <td valign="top">\c SEARCH_ENGINES_DIRECTORY (optional)</td>
-      <td>The location where the ID search engines (X!Tandem, OMMSA, MyriMatch)
+      <td>The location where thirdparty search engines (X!Tandem, OMSSA, MyriMatch, MSGF+, Fido)
       are located. This directory should have the same structure as the example
       in the search engine repository at
       https://open-ms.svn.sourceforge.net/svnroot/open-ms/THIRDPARTY/SEARCHENGINES/.

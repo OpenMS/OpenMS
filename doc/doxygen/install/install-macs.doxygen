@@ -1,6 +1,6 @@
 /**
 
-  @page install_mac Building OpenMS on Mac OS X
+  @page install_mac Building %OpenMS on Mac OS X
 
   @section install_mac_read Introduction
 
@@ -43,7 +43,7 @@
    \endcode
    @note Qt5 is not yet supported by %OpenMS.</li>
    <li>
-    Building pyOpenMS, the Python bindings for OpenMS, requires Python, Cython and a few Python packages. See
+    Building pyOpenMS, the Python bindings for %OpenMS, requires Python, Cython and a few Python packages. See
     \ref pyOpenMS "here" for more detailed pyOpenMS build instructions.
    </li>
   </ul>
@@ -156,7 +156,7 @@
 
   <hr>
 
-  @note Some thirdparty software used via adapter tools in OpenMS might also require an installed JavaVM.
+  @note Some thirdparty software used via adapter tools in %OpenMS might also require an installed JavaVM.
 
   @section install_mac_openms Installing OpenMS
 
@@ -172,7 +172,7 @@
       git clone https://github.com/OpenMS/OpenMS.git
     \endcode
 
-  Then, for building OpenMS, execute the following steps:
+  Then, for building %OpenMS, execute the following steps:
 
   <ol>
     <li>Open a Terminal (<tt>/Applications/Utilities/Terminal.app</tt>)</li>
