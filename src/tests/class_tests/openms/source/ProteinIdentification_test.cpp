@@ -499,12 +499,12 @@ START_SECTION((Size computeCoverage(const std::vector<PeptideIdentification>& pe
   PeptideHit phit(0, 0, 1, AASequence::fromString(""));
   PeptideEvidence pe;
   pe.setProteinAccession("P1");
-  pe.setStart(1);
-  pe.setEnd(60);
+  pe.setStart(0);
+  pe.setEnd(59);
   phit.addPeptideEvidence(pe);
   phit.setSequence(AASequence::fromString("MKQSTIALALLPLLFTPVTKARTPEMPVLENRAAQGDITAPGGARRLTGDQTAALRDSLS"));
   pid.insertHit(phit);
-  /*pe.setStart(60);
+  pe.setStart(60);
   pe.setEnd(119);
   phit.addPeptideEvidence(pe);
   phit.setSequence(AASequence::fromString("DKPAKNIILLIGDGMGDSEITAARNYAEGAGGFFKGIDALPLTGQYTHYALNKKTGKPDY"));
@@ -513,24 +513,24 @@ START_SECTION((Size computeCoverage(const std::vector<PeptideIdentification>& pe
   pe.setEnd(59);
   phit.addPeptideEvidence(pe);
   phit.setSequence(AASequence::fromString("MKQSTIALALLPLLFTPVTKARTPEMPVLENRAAQGDITAPGGARRLTGDQTAALRDSLS")); // should not count
-  pid.insertHit(phit);*/
+  pid.insertHit(phit);
   pep_ids.push_back(pid);
 
-  /*PeptideIdentification pid2;
+  PeptideIdentification pid2;
   PeptideHit phit2(0, 0, 1, AASequence::fromString(""));
   pe.setStart(0);
   pe.setEnd(59);
   phit2.addPeptideEvidence(pe);
   phit2.setSequence(AASequence::fromString("MKQSTIALALLPLLFTPVTKARTPEMPVLENRAAQGDITAPGGARRLTGDQTAALRDSLS"));
   pid2.insertHit(phit2); // should not count
-  pep_ids.push_back(pid2);*/
+  pep_ids.push_back(pid2);
 
   id.computeCoverage(pep_ids);
 
-  /*TEST_REAL_SIMILAR(id.getHits()[0].getCoverage(), 200.0 / 3.0);
+  TEST_REAL_SIMILAR(id.getHits()[0].getCoverage(), 200.0 / 3.0);
   TEST_REAL_SIMILAR(id.getHits()[1].getCoverage(), 0.0);
 
-  phit2.setSequence(AASequence::fromString("VTDSAASATAWSTGVKTYNGALGVDIHEKDHPTILEMAKAAGLATGNVSTAELQDATPAA"));
+  /*phit2.setSequence(AASequence::fromString("VTDSAASATAWSTGVKTYNGALGVDIHEKDHPTILEMAKAAGLATGNVSTAELQDATPAA"));
   pid2.insertHit(phit2); 
   pep_ids.push_back(pid2);
 
