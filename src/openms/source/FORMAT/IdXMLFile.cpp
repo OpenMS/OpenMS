@@ -46,8 +46,8 @@ namespace OpenMS
 {
 
   IdXMLFile::IdXMLFile() :
-    XMLHandler("", "1.3"),
-    XMLFile("/SCHEMAS/IdXML_1_3.xsd", "1.3"),
+    XMLHandler("", "1.4"),
+    XMLFile("/SCHEMAS/IdXML_1_4.xsd", "1.4"),
     last_meta_(0),
     document_id_(),
     prot_id_in_run_(false)
@@ -107,8 +107,7 @@ namespace OpenMS
     {
       os << " id=\"" << document_id << "\"";
     }
-    os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_3.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
-
+    os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_4.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
     //look up different search parameters
     std::vector<ProteinIdentification::SearchParameters> params;
