@@ -11,6 +11,11 @@
   system. The same applies if you want to use the most recent source files
   from our Git repository.
 
+  If you encounter errors during configuring/compiling our software, have a
+  look at our @ref known_dev_bugs section, maybe the error is
+  already known. If not, please write to the mailing list (open-ms-general AT lists.sourceforge.net) or report the error
+  on our <a href="https://github.com/OpenMS/OpenMS/issues">issue tracker</a>.
+
   @section checkout_and_build Checkout OpenMS
 
   You can find the links to the release and development versions on the
@@ -60,20 +65,30 @@
     </li>
   </ul>
 
-  For the most common distributions, these commands will install most of the libraries:
+  For the most common distributions, these commands will install most of the libraries. The most complete list of
+  packages is listed for Ubuntu:
 
   <table style="border-style:solid; border-collapse:collapse; border-color:#c0c0c0;" cellpadding="3px">
   <tr>
     <td><B>Fedora </B>
-    also look <a href="http://koji.fedoraproject.org/koji/packages">here</a>
+    <a href="http://koji.fedoraproject.org/koji/packages">packages</a>
 	</td>
     <td><pre>
-    sudo yum install cmake gcc gcc-g++ autoconf autoconf-2.6 qt-devel
+    sudo yum groupinstall 'Development Tools'
+    sudo yum install git tar
+    sudo yum install epel-release
+    # Update repo list for the thirdparty repository EPEL
+    sudo yum repolist
+    # Get installable contrib libraries
+    sudo yum install qt4 qt4-devel qt4-webkit-devel python-devel boost-devel \
+          libsvm-devel glpk-devel libzip-devel zlib-devel xerces-c-devel bzip2-devel
     </pre>
     </td>
   </tr>
   <tr>
-    <td><B>OpenSuse 11.1</B></td>
+    <td><B>OpenSuse 11.1 pakages (list outdated)</B>
+    Use package names of other distros listed here as a basis to search native
+     <a href="https://software.opensuse.org/findpackages"> packages </a>.</td>
     <td><pre>
     sudo zypper install cmake gcc-g++ autoconf libqt4-devel
     </pre></td>
@@ -81,13 +96,16 @@
   <tr>
     <td><B>Ubuntu/Debian <br/>(10.04/6.0 or later recommended)</B></td>
     <td><pre>
-    sudo apt-get install cmake g++ autoconf qt4-dev-tools patch libtool make git
+    sudo apt-get install cmake g++ autoconf qt4-dev-tools patch libtool make git \
+      libqt4-core libqt4-dev libqt4-gui libqt4-opengl-dev automake libqtwebkit-dev
     sudo apt-get install libboost-regex-dev libboost-iostreams-dev libboost-date-time-dev libboost-math-dev \
       libsvm-dev libglpk-dev libzip-dev zlib1g-dev libxerces-c-dev libbz2-dev
     </pre></td>
 
   </tr>
   </table>
+
+  @note Some thirdparty software used via adapter tools in OpenMS might also require an installed JavaVM.
 
   @section build_linux_contrib Building remaining dependencies
 

@@ -18,10 +18,9 @@
   "contrib-package" (see below).
   <br>
   If you encounter errors during configuring/compiling our software, have a
-  look at our "Known Issues" section (documentation), maybe the error is
-  already known. If not, please write to the
-  <a href="open-ms-general@lists.sourceforge.net" target="_new">mailing list</a> or report the error
-  on our <a href="https://github.com/OpenMS/OpenMS/issues" target="_new">issue tracker</a>.
+  look at our @ref known_dev_bugs section, maybe the error is
+  already known. If not, please write to the mailing list (open-ms-general AT lists.sourceforge.net) or report the error
+  on our <a href="https://github.com/OpenMS/OpenMS/issues">issue tracker</a>.
 
   @subsection hint_package_manager Package Mangers
 
@@ -156,6 +155,9 @@
     \endcode
 
   <hr>
+
+  @note Some thirdparty software used via adapter tools in OpenMS might also require an installed JavaVM.
+
   @section install_mac_openms Installing OpenMS
 
   Assuming you have successfully installed the required libraries, you need to
