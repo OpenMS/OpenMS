@@ -8,6 +8,7 @@ MzMLValidator.h
 MzDataValidator.h
 SemanticValidator.h
 MzIdentMLValidator.h
+MzQuantMLValidator.h
 TraMLValidator.h
 )
 

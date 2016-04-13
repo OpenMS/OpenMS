@@ -4,7 +4,8 @@
 	<SearchParameters id="SP_0" db="p996_silac" db_version="fgcz_ipi_human_v3.68_decoy_contaminants_20120103.fasta" taxonomy="All entries" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="20" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.02" peak_mass_tolerance_ppm="false" >
 		<FixedModification name="Carbamidomethyl (C)" />
 		<VariableModification name="Oxidation (M)" />
-		<VariableModification name="Deamidated (NQ)" />
+		<VariableModification name="Deamidated (N)" />
+		<VariableModification name="Deamidated (Q)" />
 		<VariableModification name="Label:13C(6)15N(2) (K)" />
 		<VariableModification name="Label:13C(6)15N(4) (R)" />
 	</SearchParameters>

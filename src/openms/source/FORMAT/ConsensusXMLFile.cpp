@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -360,7 +360,7 @@ namespace OpenMS
       String peak_unit;
       optionalAttributeAsString_(peak_unit, attributes, "peak_mass_tolerance_ppm");
       search_param_.fragment_mass_tolerance_ppm = peak_unit == "true" ? true : false;
-      search_param_.precursor_tolerance = attributeAsDouble_(attributes, "precursor_peak_tolerance");
+      search_param_.precursor_mass_tolerance = attributeAsDouble_(attributes, "precursor_peak_tolerance");
       String precursor_unit;
       optionalAttributeAsString_(precursor_unit, attributes, "precursor_peak_tolerance_ppm");
       search_param_.precursor_mass_tolerance_ppm = precursor_unit == "true" ? true : false;
@@ -737,7 +737,7 @@ namespace OpenMS
       String peak_unit = search_param.fragment_mass_tolerance_ppm ? "true" : "false";
 
       os << "missed_cleavages=\"" << search_param.missed_cleavages << "\" "
-         << "precursor_peak_tolerance=\"" << search_param.precursor_tolerance << "\" ";
+         << "precursor_peak_tolerance=\"" << search_param.precursor_mass_tolerance << "\" ";
       os << "precursor_peak_tolerance_ppm=\"" << precursor_unit << "\" ";
       os << "peak_mass_tolerance=\"" << search_param.fragment_mass_tolerance << "\" ";
       os << "peak_mass_tolerance_ppm=\"" << peak_unit << "\" ";

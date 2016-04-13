@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,12 +36,12 @@
 #ifndef OPENMS_FILTERING_CALIBRATION_TOFCALIBRATION_H
 #define OPENMS_FILTERING_CALIBRATION_TOFCALIBRATION_H
 
-
+#include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/CONCEPT/ProgressLogger.h>
 
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/MATH/MISC/Spline2d.h>
 
 #include <vector>
@@ -228,7 +228,7 @@ private:
         if (xi < calib_masses[0])
           continue;
         std::cout << exp_masses[p] << "\t"
-                  << (xi - exp_masses[p] - spline(xi)) / exp_masses[p] * 1e6
+                  << Math::getPPM(xi - spline(xi), exp_masses[p])
                   << std::endl;
 
       }

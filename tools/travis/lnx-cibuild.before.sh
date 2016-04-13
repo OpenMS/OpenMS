@@ -32,7 +32,7 @@ build_contrib EIGEN
 popd
 
 # build custom cppcheck if we want to perform style tests
-if [ $ENABLE_STYLE_TESTING == "On" ]; then
+if [ "${ENABLE_STYLE_TESTING}" = "ON" ]; then
   git clone git://github.com/danmar/cppcheck.git
   pushd cppcheck
   git checkout 1.65

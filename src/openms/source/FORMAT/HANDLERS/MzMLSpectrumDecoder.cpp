@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -213,6 +213,7 @@ namespace OpenMS
     //  - binary (1)
     xercesc::DOMNodeList* index_elems = indexListNode->getChildNodes();
     const  XMLSize_t nodeCount_ = index_elems->getLength();
+    bool has_binary_tag = false;
     for (XMLSize_t j = 0; j < nodeCount_; ++j)
     {
       xercesc::DOMNode* currentNode = index_elems->item(j);
@@ -222,7 +223,25 @@ namespace OpenMS
         xercesc::DOMElement* currentElement = dynamic_cast<xercesc::DOMElement*>(currentNode);
         if (xercesc::XMLString::equals(currentElement->getTagName(), TAG_binary))
         {
+          // Found the <binary> tag
+          has_binary_tag = true;
+
+          // Skip any empty <binary></binar> tags
+          if (!currentNode->hasChildNodes())
+          {
+            continue;
+          }
+
+          // Valid mzML does not have any other child nodes except text
+          if (currentNode->getChildNodes()->getLength() != 1)
+          {
+            throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+                "", "Invalid XML: 'binary' element can only have a single, text node child element.");
+          }
+
+          // Now we know that the <binary> node has exactly one single child node, the text that we want!
           xercesc::DOMNode* textNode_ = currentNode->getFirstChild();
+
           if (textNode_->getNodeType() == xercesc::DOMNode::TEXT_NODE)
           {
             xercesc::DOMText* textNode (static_cast<xercesc::DOMText*> (textNode_));
@@ -232,7 +251,7 @@ namespace OpenMS
           else
           {
             throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
-                "", "Binary element can only have a single, text node child element.");
+                "", "Invalid XML: 'binary' element can only have a single, text node child element.");
           }
         }
         else if (xercesc::XMLString::equals(currentElement->getTagName(), TAG_CV))
@@ -257,6 +276,13 @@ namespace OpenMS
           //std::cout << "unhandled" << (string)xercesc::XMLString::transcode(currentNode->getNodeName() << std::endl;
         }
       }
+    }
+
+    // Throw exception upon invalid mzML: the <binary> tag is required inside <binaryDataArray>
+    if (!has_binary_tag)
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+          "", "Invalid XML: 'binary' element needs to be present at least once inside 'binaryDataArray' element.");
     }
   }
 

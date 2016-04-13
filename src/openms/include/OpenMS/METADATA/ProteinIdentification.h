@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -113,7 +113,7 @@ public:
       UInt missed_cleavages; ///< The number of allowed missed cleavages
       double fragment_mass_tolerance; ///< Mass tolerance of fragment ions (Dalton or ppm)
       bool fragment_mass_tolerance_ppm; ///< Mass tolerance unit of fragment ions (true: ppm, false: Dalton)
-      double precursor_tolerance; ///< Mass tolerance of precursor ions (Dalton or ppm)
+      double precursor_mass_tolerance; ///< Mass tolerance of precursor ions (Dalton or ppm)
       bool precursor_mass_tolerance_ppm; ///< Mass tolerance unit of precursor ions (true: ppm, false: Dalton)
       Enzyme digestion_enzyme; ///< The cleavage site information in details (from EnzymesDB)
       

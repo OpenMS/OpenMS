@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -314,7 +314,7 @@ namespace OpenMS
     param_line += sp.digestion_enzyme.getName();
     param_line += ", missed_cleavages=" + String(sp.missed_cleavages) +
                   ", peak_mass_tolerance=" + String(sp.fragment_mass_tolerance) +
-                  ", precursor_mass_tolerance=" + String(sp.precursor_tolerance);
+                  ", precursor_mass_tolerance=" + String(sp.precursor_mass_tolerance);
     out << param_line;
     return out;
   }

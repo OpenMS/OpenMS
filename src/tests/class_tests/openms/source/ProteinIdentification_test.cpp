@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -622,7 +622,7 @@ START_SECTION(([ProteinIdentification::SearchParameters] SearchParameters()))
   TEST_EQUAL(sp.missed_cleavages, 0)
   TEST_EQUAL(sp.fragment_mass_tolerance, 0.0)
   TEST_EQUAL(sp.fragment_mass_tolerance_ppm, false)
-  TEST_EQUAL(sp.precursor_tolerance, 0.0)
+  TEST_EQUAL(sp.precursor_mass_tolerance, 0.0)
   TEST_EQUAL(sp.precursor_mass_tolerance_ppm, false)
 
 END_SECTION

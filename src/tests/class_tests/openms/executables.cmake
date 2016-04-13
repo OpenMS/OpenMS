@@ -458,11 +458,6 @@ set(analysis_executables_list
   ModifiedPeptideGenerator_test
   OfflinePrecursorIonSelection_test
   PeptideAndProteinQuant_test
-  PILISModelGenerator_test
-  PILISModel_test
-  PILISScoring_test
-  PILISCrossValidation_test
-  PILISNeutralLossModel_test
   PeakIntensityPredictor_test
   PScore_test
   HyperScore_test
