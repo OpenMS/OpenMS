@@ -530,7 +530,10 @@ START_SECTION((Size computeCoverage(const std::vector<PeptideIdentification>& pe
   TEST_REAL_SIMILAR(id.getHits()[0].getCoverage(), 200.0 / 3.0);
   TEST_REAL_SIMILAR(id.getHits()[1].getCoverage(), 0.0);
 
-  /*phit2.setSequence(AASequence::fromString("VTDSAASATAWSTGVKTYNGALGVDIHEKDHPTILEMAKAAGLATGNVSTAELQDATPAA"));
+  pe.setStart(120);
+  pe.setEnd(179);
+  phit2.addPeptideEvidence(pe);
+  phit2.setSequence(AASequence::fromString("VTDSAASATAWSTGVKTYNGALGVDIHEKDHPTILEMAKAAGLATGNVSTAELQDATPAA"));
   pid2.insertHit(phit2); 
   pep_ids.push_back(pid2);
 
@@ -544,11 +547,19 @@ START_SECTION((Size computeCoverage(const std::vector<PeptideIdentification>& pe
   PeptideHit phit3(0, 0, 1, AASequence::fromString(""));
   PeptideEvidence pe2;
   pe2.setProteinAccession("P2");
+  pe2.setStart(0);
+  pe2.setEnd(18);
   phit3.addPeptideEvidence(pe2);
   phit3.setSequence(AASequence::fromString("PEMPVLENRAAQGDITAPP")); // 1st half
   pid3.insertHit(phit3); 
+  pe2.setStart(19);
+  pe2.setEnd(37);
+  phit3.addPeptideEvidence(pe2);
   phit3.setSequence(AASequence::fromString("GGARRLTGDQTAALRDSLS")); // 2nd half
   pid3.insertHit(phit3); 
+  pe2.setStart(8);
+  pe2.setEnd(26);
+  phit3.addPeptideEvidence(pe2);
   phit3.setSequence(AASequence::fromString("RAAQGDITAPPGGARRLTG")); // middle half
   pid3.insertHit(phit3); 
   
@@ -557,7 +568,7 @@ START_SECTION((Size computeCoverage(const std::vector<PeptideIdentification>& pe
   id.computeCoverage(pep_ids);
 
   TEST_REAL_SIMILAR(id.getHits()[0].getCoverage(), 0.0);
-  TEST_REAL_SIMILAR(id.getHits()[1].getCoverage(), 150.0);*/
+  TEST_REAL_SIMILAR(id.getHits()[1].getCoverage(), 100.0);
 
 END_SECTION
 
