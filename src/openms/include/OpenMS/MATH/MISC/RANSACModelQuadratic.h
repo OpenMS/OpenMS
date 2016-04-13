@@ -32,14 +32,38 @@
 // $Authors: George Rosenberger, Hannes Roest, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/MATH/MISC/RANSAC.h>
-#include <OpenMS/CONCEPT/LogStream.h> // LOG_DEBUG
+#ifndef OPENMS_MATH_MISC_RANSACMODELQUADRATIC_H
+#define OPENMS_MATH_MISC_RANSACMODELQUADRATIC_H
 
-#include <numeric>
-#include <algorithm>
+#include <OpenMS/config.h>
+#include <OpenMS/MATH/MISC/RANSACModel.h>
 
 namespace OpenMS
 {
- 
-  
+
+  namespace Math
+  {
+    /**
+      @brief Implementation of a quadratic RANSAC model fit.
+      
+      Using generic plug-in template base class 'RansacModel' using 'Curiously recurring template pattern' (CRTP).
+    */
+    class OPENMS_DLLAPI RansacModelQuadratic
+      : public RansacModel<RansacModelQuadratic>
+    {
+    public:
+      static ModelParameters rm_fit_impl(const DVecIt& begin, const DVecIt& end);
+
+      static double rm_rsq_impl(const DVecIt& begin, const DVecIt& end);
+
+      static double rm_rss_impl(const DVecIt& begin, const DVecIt& end, const ModelParameters& coefficients);
+
+      static DVec rm_inliers_impl(const DVecIt& begin, const DVecIt& end, const ModelParameters& coefficients, double max_threshold);
+
+    };
+
+  }
+
+
 }
+#endif // OPENMS_MATH_MISC_RANSACMODELQUADRATIC_H

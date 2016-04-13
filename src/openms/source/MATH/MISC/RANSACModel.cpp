@@ -32,14 +32,19 @@
 // $Authors: George Rosenberger, Hannes Roest, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/MATH/MISC/RANSAC.h>
-#include <OpenMS/CONCEPT/LogStream.h> // LOG_DEBUG
+#include <OpenMS/MATH/MISC/RANSACModel.h>
 
 #include <numeric>
 #include <algorithm>
 
+
 namespace OpenMS
 {
- 
-  
-}
+  namespace Math
+  {
+
+    // template class -- nothing here
+    
+  } // Math
+
+} // OpenMS

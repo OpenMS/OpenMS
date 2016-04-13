@@ -36,7 +36,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/MATH/MISC/RANSAC.h>
+#include <OpenMS/MATH/MISC/RANSACModel.h>
 ///////////////////////////
 
 using namespace std;
@@ -44,21 +44,25 @@ using namespace OpenMS;
 
 ///////////////////////////
 
-START_TEST(RANSAC, "$Id$")
+START_TEST(RANSACModel, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
+START_SECTION((ModelParameters rm_fit(const DVecIt& begin, const DVecIt& end) const))
+  NOT_TESTABLE // since base class; test derived classes
+END_SECTION
 
-START_SECTION((static std::vector<std::pair<double, double> > ransac(const std::vector<std::pair<double, double> >& pairs, 
-                                                                     size_t n, 
-                                                                     size_t k, 
-                                                                     double t, 
-                                                                     size_t d, 
-                                                                     int (*rng)(int) = NULL)))
-{
-  NOT_TESTABLE // tested in the models, e.g. RANSACModelLinear
-}
+START_SECTION((double rm_rsq(const DVecIt& begin, const DVecIt& end) const))
+  NOT_TESTABLE // since base class; test derived classes
+END_SECTION
+
+START_SECTION((double rm_rss(const DVecIt& begin, const DVecIt& end, const ModelParameters& coefficients) const))
+  NOT_TESTABLE // since base class; test derived classes
+END_SECTION
+
+START_SECTION((DVec rm_inliers(const DVecIt& begin, const DVecIt& end, const ModelParameters& coefficients, double max_threshold) const))
+  NOT_TESTABLE // since base class; test derived classes
 END_SECTION
 
 /////////////////////////////////////////////////////////////

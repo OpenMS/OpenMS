@@ -11,6 +11,9 @@ MathFunctions.cpp
 NonNegativeLeastSquaresSolver.cpp
 MSNumpress.cpp
 RANSAC.cpp
+RANSACModel.cpp
+RANSACModelLinear.cpp
+RANSACModelQuadratic.cpp
 Spline2d.cpp
 )
 

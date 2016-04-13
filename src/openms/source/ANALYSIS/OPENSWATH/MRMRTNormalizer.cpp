@@ -36,6 +36,7 @@
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <OpenMS/CONCEPT/LogStream.h> // LOG_DEBUG
 #include <OpenMS/MATH/MISC/RANSAC.h> // RANSAC algorithm
+#include <OpenMS/MATH/MISC/RANSACModelLinear.h> // RANSAC model
 
 #include <numeric>
 #include <boost/math/special_functions/erf.hpp>
@@ -67,8 +68,8 @@ namespace OpenMS
           boost::lexical_cast<std::string>(pairs.size()) + " input RT peptides is below limit of 30 peptides required for the RANSAC outlier detection algorithm.");
     }
 
-    std::vector<std::pair<double, double> > new_pairs = Math::RANSAC::ransac(pairs, n, k, t, d);
-    double bestrsq = Math::RANSAC::llsm_rsq(new_pairs);
+    std::vector<std::pair<double, double> > new_pairs = Math::RANSAC<Math::RansacModelLinear>().ransac(pairs, n, k, t, d);
+    double bestrsq = Math::RansacModelLinear::rm_rsq_impl(new_pairs.begin(), new_pairs.end());
 
     if (bestrsq < rsq_limit)
     {

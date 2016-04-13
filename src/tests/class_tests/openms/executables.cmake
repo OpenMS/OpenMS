@@ -258,6 +258,9 @@ set(math_executables_list
   QuadraticRegression_test
   #RegressionUtils_test
   RANSAC_test
+  RANSACModel_test
+  RANSACModelLinear_test
+  RANSACModelQuadratic_test
   ROCCurve_test
   StatisticFunctions_test
   #Spline2d_test

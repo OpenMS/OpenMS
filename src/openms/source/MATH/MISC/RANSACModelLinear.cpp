@@ -32,14 +32,79 @@
 // $Authors: George Rosenberger, Hannes Roest, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/MATH/MISC/RANSAC.h>
-#include <OpenMS/CONCEPT/LogStream.h> // LOG_DEBUG
+#include <OpenMS/MATH/MISC/RANSACModelLinear.h>
 
+#include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <numeric>
 #include <algorithm>
 
+
 namespace OpenMS
 {
- 
-  
-}
+  namespace Math
+  {
+    RansacModelLinear::ModelParameters RansacModelLinear::rm_fit_impl(const DVecIt& begin, const DVecIt& end)
+    {
+      std::vector<double> x, y;
+
+      for (DVecIt it = begin; it != end; ++it)
+      {
+        x.push_back(it->first);
+        y.push_back(it->second);
+      }
+      LinearRegression lin_reg;
+      lin_reg.computeRegression(0.95, x.begin(), x.end(), y.begin());
+      ModelParameters p;
+      p.push_back(lin_reg.getIntercept());
+      p.push_back(lin_reg.getSlope());
+      return p;
+    }
+
+    double RansacModelLinear::rm_rsq_impl(const DVecIt& begin, const DVecIt& end)
+    {
+      std::vector<double> x, y;
+
+      for (DVecIt it = begin; it != end; ++it)
+      {
+        x.push_back(it->first);
+        y.push_back(it->second);
+      }
+
+      LinearRegression lin_reg;
+      lin_reg.computeRegression(0.95, x.begin(), x.end(), y.begin());
+
+      return lin_reg.getRSquared();
+    }
+
+    double RansacModelLinear::rm_rss_impl(const DVecIt& begin, const DVecIt& end, const ModelParameters& coefficients)
+    {
+      double rss = 0;
+
+      for (DVecIt it = begin; it != end; ++it)
+      {
+        rss += pow(it->second - (coefficients[0] + ( coefficients[1] * it->first)), 2);
+      }
+
+      return rss;
+    }
+
+    RansacModelLinear::DVec RansacModelLinear::rm_inliers_impl(const DVecIt& begin, const DVecIt& end, const ModelParameters& coefficients, double max_threshold)
+    {
+      DVec alsoinliers;
+
+      for (DVecIt it = begin; it != end; ++it)
+      {
+        if (pow(it->second - (coefficients[0] + ( coefficients[1] * it->first)), 2) < max_threshold)
+        {
+          alsoinliers.push_back(*it);
+        }
+      }
+
+      return alsoinliers;
+    }
+
+
+  } // Math
+
+
+} // OpenMS

@@ -11,6 +11,9 @@ MathFunctions.h
 NonNegativeLeastSquaresSolver.h
 MSNumpress.h
 RANSAC.h
+RANSACModel.h
+RANSACModelLinear.h
+RANSACModelQuadratic.h
 Spline2d.h
 )
 
