@@ -39,9 +39,13 @@
 
 #include <OpenMS/MATH/MISC/RANSACModel.h>
 
-#include <cstddef> // for size_t & ptrdiff_t
-#include <vector>
-#include <string>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/MATH/MISC/RANSACModelLinear.h>
+
+#include <algorithm>    // std::random_shuffle
+#include <limits>       // std::numeric_limits
+#include <vector>       // std::vector
 
 namespace OpenMS
 {
@@ -119,7 +123,7 @@ public:
           }
 
           // test 'maybeinliers'
-          TModelType::ModelParameters coeff = model.rm_fit(pairs_shuffled.begin(), pairs_shuffled.begin()+n);
+          typename TModelType::ModelParameters coeff = model.rm_fit(pairs_shuffled.begin(), pairs_shuffled.begin()+n);
           // apply model to remaining data; pick inliers
           alsoinliers = model.rm_inliers(pairs_shuffled.begin()+n, pairs_shuffled.end(), coeff, t);
           // ... and add data
@@ -128,7 +132,7 @@ public:
             betterdata.clear();
             std::copy( pairs_shuffled.begin(), pairs_shuffled.begin()+n, back_inserter(betterdata) );
             betterdata.insert( betterdata.end(), alsoinliers.begin(), alsoinliers.end() );
-            TModelType::ModelParameters bettercoeff = model.rm_fit(betterdata.begin(), betterdata.end());
+            typename TModelType::ModelParameters bettercoeff = model.rm_fit(betterdata.begin(), betterdata.end());
             double bettererror = model.rm_rss(betterdata.begin(), betterdata.end(), bettercoeff);
     #ifdef DEBUG_MRMRTNORMALIZER
             betterrsq = model.rm_rsq(betterdata);
