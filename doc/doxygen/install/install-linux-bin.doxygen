@@ -1,6 +1,7 @@
 /**
   @page install_linux_bin Installation on GNU/Linux
 
+  @section package_managers_linux Install via package managers
   Currently there are packaged versions of %OpenMS provided for Debian,
   Fedora, OpenSUSE, Ubuntu 14.04 available in the corresponding package managers of these distributions
   (they might require a lookup in thirdparty "science" repositories). For other
@@ -10,7 +11,18 @@
   Also their availability is subject to change and support might be limited (due to unforeseen
   or untested behaviour).
 
+  @section build_your_own_linux Build it on your own
   Please check http://www.openms.de/downloads/ for details on how to
   obtain the source code and @subpage install_linux on how to build %OpenMS.
+
+  @section docker_linux Run a (Bio)Docker image
+  We are also providing <a href="https://www.docker.com/">Docker</a>
+  images via the <a href="http://biodocker.org/">Biodocker</a> repositories.
+  Our image can be found <a href="https://hub.docker.com/r/biodckr/openms/">here</a> and pulled via
+  \code
+  docker pull biodckr/openms
+  \endcode
+  once you have successfully installed docker (see Docker
+  <a href="https://docs.docker.com/engine/installation/">documentation</a>)
 
 */
