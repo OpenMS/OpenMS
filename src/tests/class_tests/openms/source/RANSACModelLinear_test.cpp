@@ -49,7 +49,7 @@ using namespace Math;
 // random number generator using srand (used in std::random_shuffle())
 int myRNG(int n) {
   return std::rand() / (1.0 + RAND_MAX) * n;
-};
+}
 
 START_TEST(RANSACModelLinear, "$Id$")
 
