@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <?xml-stylesheet type="text/xsl" href="file:////nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/share/OpenMS/XSL/ConsensusXML.xsl"?>
-<consensusXML version="1.6" id="cm_3332699010107892018" experiment_type="labeled_MS2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_6.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<consensusMap version="1.7" id="cm_3332699010107892018" experiment_type="labeled_MS2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<UserParam type="int" name="isoquant:scans_noquant" value="0"/>
 	<UserParam type="int" name="isoquant:scans_total" value="5"/>
 	<UserParam type="stringList" name="spectra_data" value="[file:///N:/UserData/Werner/20120822--QEx2_Hela - Quant-0_5Da--Id-1_5Da Test/Syntaxtest.raw]"/>
