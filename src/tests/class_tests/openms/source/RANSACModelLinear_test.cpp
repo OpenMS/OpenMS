@@ -435,7 +435,7 @@ if __name__=='__main__':
   TEST_EQUAL( test_pairs_out.size(), 39);
   ABORT_IF(test_pairs_out.size()!=39);
 
-  for (int i = 0; i < test_pairs_out.size(); ++i)
+  for (Size i = 0; i < test_pairs_out.size(); ++i)
   {
     TEST_REAL_SIMILAR( test_pairs_out[i].second, ty_out[i]);
   }
