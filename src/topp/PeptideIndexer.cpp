@@ -198,9 +198,12 @@ protected:
     // calculate protein coverage
     //-------------------------------------------------------------
     
-    for (Size i = 0; i < prot_ids.size(); ++i)
+    if (param.getValue("write_protein_sequence").toBool())
     {
-      Size s = prot_ids[i].computeCoverage(pep_ids);
+      for (Size i = 0; i < prot_ids.size(); ++i)
+      {
+        Size s = prot_ids[i].computeCoverage(pep_ids);
+      }
     }
 
     //-------------------------------------------------------------
