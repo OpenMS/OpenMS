@@ -8,7 +8,7 @@
 			<ProteinHit id="PH_0" accession="test" score="0" coverage="-1" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="test2" score="0" sequence="EDQSCPSERRRAFSRLRFGPS" >
+			<ProteinHit id="PH_1" accession="test2" score="0" coverage="-1" sequence="EDQSCPSERRRAFSRLRFGPS" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
 			<ProteinHit id="PH_2" accession="BSA2" score="3.33299994468689" coverage="-1" sequence="" >
@@ -18,7 +18,7 @@
 			<ProteinHit id="PH_3" accession="BSA3" score="0" coverage="-1" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<ProteinHit id="PH_4" accession="SOMEOTHER" score="0" sequence="AAAeerwefweAAEWATYTC(Carboxymethyl)VLGFHVYVPVR" >
+			<ProteinHit id="PH_4" accession="SOMEOTHER" score="0" coverage="-1" sequence="AAAeerwefweAAEWATYTC(Carboxymethyl)VLGFHVYVPVR" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
 			<ProteinHit id="PH_5" accession="test2_rev" score="0" coverage="-1" sequence="" >
@@ -41,21 +41,21 @@
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
-			<PeptideHit score="40" sequence="STFDFYQRRLVTLAESPRAPSP" charge="2" aa_after="G ]" start="227 4"  end="248 25" protein_refs="PH_0 PH_3" >
+			<PeptideHit score="40" sequence="STFDFYQRRLVTLAESPRAPSP" charge="2" aa_after="G ]" start="227 4" end="248 25" protein_refs="PH_0 PH_3" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 			</PeptideHit>
-			<PeptideHit score="40" sequence="EDQSC(Carboxymethyl)PSERRRAFSRLRFGPS" charge="2" aa_before="[ [ [" aa_after="] ] ]" start="0 0 0"  end="20 20 20" protein_refs="PH_5 PH_6 PH_8" >
+			<PeptideHit score="40" sequence="EDQSC(Carboxymethyl)PSERRRAFSRLRFGPS" charge="2" aa_before="[ [ [" aa_after="] ] ]" start="0 0 0" end="20 20 20" protein_refs="PH_5 PH_6 PH_8" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 			</PeptideHit>
-			<PeptideHit score="40" sequence="EWATYTC(Carboxymethyl)VLGFHVYVPVR" charge="2" aa_before="[ A A" aa_after="] ] ]" start="0 5 5"  end="17 22 22" protein_refs="PH_2 PH_7 PH_9" >
+			<PeptideHit score="40" sequence="EWATYTC(Carboxymethyl)VLGFHVYVPVR" charge="2" aa_before="[ A A" aa_after="] ] ]" start="0 5 5" end="17 22 22" protein_refs="PH_2 PH_7 PH_9" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
-			<PeptideHit score="40" sequence="EWATYTCVLGFHVYVPVR" charge="2" aa_before="[ A A" aa_after="] ] ]" start="0 5 5"  end="17 22 22" protein_refs="PH_2 PH_7 PH_9" >
+			<PeptideHit score="40" sequence="EWATYTCVLGFHVYVPVR" charge="2" aa_before="[ A A" aa_after="] ] ]" start="0 5 5" end="17 22 22" protein_refs="PH_2 PH_7 PH_9" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 			</PeptideHit>
@@ -65,7 +65,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
-			<PeptideHit score="0.0001" sequence="FIAN(Deamidated)GE" charge="2" aa_before="D" aa_after="R" start="1"  end="6" protein_refs="PH_10" >
+			<PeptideHit score="0.0001" sequence="FIAN(Deamidated)GE" charge="2" aa_before="D" aa_after="R" start="1" end="6" protein_refs="PH_10" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
