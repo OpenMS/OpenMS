@@ -35,7 +35,6 @@
 
 #include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
 #include <stdio.h>
 
 namespace OpenMS
@@ -58,15 +57,8 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-
-  void InternalCalibration::calibrateMap(FeatureMap& map, const TransformationDescription& trafo)
-  {
-    trafo_ = trafo;
-    applyTransformation_(map);
-  }
-
-
-  void InternalCalibration::calibrateMapGlobally(FeatureMap& feature_map)
+  void InternalCalibration::calibrateMapGlobally(FeatureMap& feature_map,
+                                                 const String& trafo_file_name)
   {
     // check if the ids
     checkReferenceIds_(feature_map);
@@ -93,9 +85,13 @@ namespace OpenMS
     makeLinearRegression_(observed_masses, theoretical_masses);
     // apply transformation
     applyTransformation_(feature_map);
+    if (!trafo_file_name.empty())
+    {
+      TransformationXMLFile().store(trafo_file_name, trafo_);
+    }
   }
 
-  void InternalCalibration::calibrateMapGlobally(FeatureMap& feature_map, std::vector<PeptideIdentification>& ref_ids)
+  void InternalCalibration::calibrateMapGlobally(FeatureMap& feature_map, std::vector<PeptideIdentification>& ref_ids, const String& trafo_file_name)
   {
     checkReferenceIds_(ref_ids);
 
@@ -117,7 +113,7 @@ namespace OpenMS
     mapper.annotate(calibrated_feature_map, ref_ids, vec);
 
     // calibrate & store calibration function
-    calibrateMapGlobally(calibrated_feature_map);
+    calibrateMapGlobally(calibrated_feature_map, trafo_file_name);
 
     // apply transformation again (which was just used on calibrated_feature_map)
     applyTransformation_(feature_map);

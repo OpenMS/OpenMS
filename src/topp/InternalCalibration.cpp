@@ -32,16 +32,13 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
-
-#include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
-
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
+#include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 using namespace OpenMS;
 using namespace std;
 
@@ -116,21 +113,16 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("mzML,featureXML"));
     registerOutputFile_("out", "<file>", "", "Output file ");
     setValidFormats_("out", ListUtils::create<String>("mzML,featureXML"));
-        
-    addEmptyLine_();
-
+    
     // transformation
     registerInputFile_("ref_peaks", "<file>", "", "Input file containing reference m/z values (either as text file with one m/z per line and no header or as idXML file)", false);
     setValidFormats_("ref_peaks", ListUtils::create<String>("csv,idXML"));
-    registerOutputFile_("in_trafo", "<file>", "", "Input transformation file (alternative to 'ref_peaks')", false);
-    setValidFormats_("in_trafo", ListUtils::create<String>("trafoXML"));
     
-    addEmptyLine_();
-           
+       
     registerStringOption_("scope", "<calibration type>", "spectrum", "The kind of internal calibration that should be applied.", false);
     setValidStrings_("scope", ListUtils::create<String>("spectrum,global"));
 
-    registerOutputFile_("out_trafo", "<file>", "", "Output transformation file (sensible only for global calibration)", false);
+    registerOutputFile_("out_trafo", "<file>", "", "Output transformation file (only for global calibration)", false);
     setValidFormats_("out_trafo", ListUtils::create<String>("trafoXML"));
     addEmptyLine_();
     registerSubsection_("algorithm", "Settings for the internal calibration.");
@@ -151,16 +143,9 @@ protected:
     String in = getStringOption_("in");
     String out = getStringOption_("out");
     String ref = getStringOption_("ref_peaks");
-    String in_trafo = getStringOption_("in_trafo");
     String scope = getStringOption_("scope");
     String out_trafo = getStringOption_("out_trafo");
     
-    if (!in_trafo.empty() && !ref.empty())
-    {
-      LOG_ERROR << "Conflicting input given. Please provide EITHER 'in_trafo' OR 'ref_peaks', but not both." << std::endl;
-      return ILLEGAL_PARAMETERS;
-    }
-
     //-------------------------------------------------------------
     // init InternalCalibration
     //-------------------------------------------------------------
@@ -183,16 +168,10 @@ protected:
       FeatureMap feature_map;
       FeatureXMLFile f_file;
       f_file.load(in, feature_map);
-      if (!in_trafo.empty())
+      if (ref == "")
       {
-        TransformationDescription trafo;
-        TransformationXMLFile().load(in_trafo, trafo);
-        calib.calibrateMap(feature_map, trafo);
-      }
-      else if (ref.empty())
-      { // in_trafo and ref are empty
         std::cout << "Using the peptide identifications stored in the feature map as reference peaks.\n";
-        calib.calibrateMapGlobally(feature_map);
+        calib.calibrateMapGlobally(feature_map, out_trafo);
       }
       else
       {
@@ -207,16 +186,10 @@ protected:
           LOG_ERROR << "Input file -ref_peaks is not of type idXML. Please provide idXML as input!" << std::endl;
           return ILLEGAL_PARAMETERS;
         }
-        calib.calibrateMapGlobally(feature_map, pep_ids);
+        calib.calibrateMapGlobally(feature_map, pep_ids, out_trafo);
       }
       addDataProcessing_(feature_map, getProcessingInfo_(DataProcessing::CALIBRATION));
       f_file.store(out, feature_map);
-
-      if (!out_trafo.empty())
-      {
-        TransformationXMLFile().store(out_trafo, calib.getTrafo());
-      }
-
       return EXECUTION_OK;
     }
 
@@ -226,14 +199,8 @@ protected:
     mz_file.setLogType(log_type_);
     mz_file.load(in, ms_exp_raw);
 
-    if (!in_trafo.empty())
+    if (ref.empty())
     {
-      TransformationDescription trafo;
-      TransformationXMLFile().load(in_trafo, trafo);
-      calib.calibrateMap(ms_exp_raw, trafo);
-    }
-    else if (ref.empty())
-    { // in_trafo and ref are empty
       std::cout << "Need a file containing the reference peaks provided via -ref_peaks input argument!" << std::endl;
       return ILLEGAL_PARAMETERS;
     }
@@ -243,19 +210,19 @@ protected:
       std::vector<PeptideIdentification> pep_ids;
       std::vector<ProteinIdentification> prot_ids;
       IdXMLFile().load(ref, prot_ids, pep_ids);
-      calib.calibrateMapGlobally(ms_exp_raw, pep_ids);
+      calib.calibrateMapGlobally(ms_exp_raw, pep_ids, out_trafo);
     }
     else
     {
       TextFile ref_file;
-      ref_file.load(ref, true, -1, true);
+      ref_file.load(ref, true);
       vector<double> ref_masses;
       for (TextFile::ConstIterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
       {
         ref_masses.push_back(String(iter->c_str()).toDouble());
       }
       if (scope == "spectrum") calib.calibrateMapSpectrumwise(ms_exp_raw, ref_masses);
-      else calib.calibrateMapGlobally(ms_exp_raw, ref_masses);
+      else calib.calibrateMapGlobally(ms_exp_raw, ref_masses, out_trafo);
     }
 
 
@@ -267,12 +234,6 @@ protected:
     addDataProcessing_(ms_exp_raw, getProcessingInfo_(DataProcessing::CALIBRATION));
 
     mz_file.store(out, ms_exp_raw);
-
-    if (!out_trafo.empty())
-    {
-      if (scope == "spectrum") LOG_WARN << "The transformation written to -trafo_out is not sensible since it only represents the model applied to the last spectrum!" << std::endl;
-      TransformationXMLFile().store(out_trafo, calib.getTrafo());
-    }
 
     return EXECUTION_OK;
   }
