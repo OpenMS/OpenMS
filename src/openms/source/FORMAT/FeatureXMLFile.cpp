@@ -46,8 +46,8 @@ using namespace std;
 namespace OpenMS
 {
   FeatureXMLFile::FeatureXMLFile() :
-    Internal::XMLHandler("", "1.8"),
-    Internal::XMLFile("/SCHEMAS/FeatureXML_1_8.xsd", "1.8")
+    Internal::XMLHandler("", "1.9"),
+    Internal::XMLFile("/SCHEMAS/FeatureXML_1_9.xsd", "1.9")
   {
     resetMembers_();
   }
@@ -177,7 +177,7 @@ namespace OpenMS
     {
       os << " id=\"fm_" << feature_map.getUniqueId() << "\"";
     }
-    os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/FeatureXML_1_8.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+    os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/FeatureXML_1_9.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
     // user param
     writeUserParam_("UserParam", os, feature_map, 1);

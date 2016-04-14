@@ -46,8 +46,8 @@ using namespace std;
 namespace OpenMS
 {
   ConsensusXMLFile::ConsensusXMLFile() :
-    XMLHandler("", "1.6"), 
-    XMLFile("/SCHEMAS/ConsensusXML_1_6.xsd", "1.6"), 
+    XMLHandler("", "1.7"), 
+    XMLFile("/SCHEMAS/ConsensusXML_1_7.xsd", "1.7"), 
     ProgressLogger(), 
     consensus_map_(0), 
     act_cons_element_(), 
@@ -683,7 +683,7 @@ namespace OpenMS
       os << " experiment_type=\"" << consensus_map.getExperimentType() << "\"";
     }
     os
-      << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/ConsensusXML_1_6.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+      << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/ConsensusXML_1_7.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
     // user param
     writeUserParam_("UserParam", os, consensus_map, 1);
