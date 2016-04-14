@@ -13,13 +13,13 @@
 	</SearchParameters>
 	<IdentificationRun date="2009-05-22T15:28:32" search_engine="X! Tandem (k-score)" search_engine_version="" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
-			<ProteinHit id="PH_0" accession="gi|1351907|sp|P02769.4|ALBU_BOVIN" score="0" sequence="" >
+			<ProteinHit id="PH_0" accession="gi|1351907|sp|P02769.4|ALBU_BOVIN" score="0" coverage="-1" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="sp|P00883|ALDOA_RABIT" score="0" sequence="" >
+			<ProteinHit id="PH_1" accession="sp|P00883|ALDOA_RABIT" score="0" coverage="-1" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_2" accession="gi|295721|emb|CAA68468.1|" score="0" sequence="" >
+			<ProteinHit id="PH_2" accession="gi|295721|emb|CAA68468.1|" score="0" coverage="-1" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_3" accession="gi|147905534|ref|NP_001079812.1|" score="0" sequence="" >
+			<ProteinHit id="PH_3" accession="gi|147905534|ref|NP_001079812.1|" score="0" coverage="-1" sequence="" >
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="974.5605250319" RT="328.037" >
@@ -49,27 +49,27 @@
 	</IdentificationRun>
 	<IdentificationRun date="2009-05-22T15:28:33" search_engine="X! Tandem (k-score)" search_engine_version="" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
-			<ProteinHit id="PH_4" accession="sp|P00883|ALDOA_RABIT" score="0" sequence="" >
+			<ProteinHit id="PH_4" accession="sp|P00883|ALDOA_RABIT" score="0" coverage="-1" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_5" accession="gi|295721|emb|CAA68468.1|" score="0" sequence="" >
+			<ProteinHit id="PH_5" accession="gi|295721|emb|CAA68468.1|" score="0" coverage="-1" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_6" accession="gi|63428|emb|CAA43320.1|" score="0" sequence="" >
+			<ProteinHit id="PH_6" accession="gi|63428|emb|CAA43320.1|" score="0" coverage="-1" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_7" accession="sp|P00563|KCRM_RABIT" score="0" sequence="" >
+			<ProteinHit id="PH_7" accession="sp|P00563|KCRM_RABIT" score="0" coverage="-1" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_8" accession="sp|P00432|CATA_BOVIN" score="0" sequence="" >
+			<ProteinHit id="PH_8" accession="sp|P00432|CATA_BOVIN" score="0" coverage="-1" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_9" accession="sp|P11974|KPYM_RABIT" score="0" sequence="" >
+			<ProteinHit id="PH_9" accession="sp|P11974|KPYM_RABIT" score="0" coverage="-1" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_10" accession="gi|1351907|sp|P02769.4|ALBU_BOVIN" score="0" sequence="" >
+			<ProteinHit id="PH_10" accession="gi|1351907|sp|P02769.4|ALBU_BOVIN" score="0" coverage="-1" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_11" accession="gi|27805979|ref|NP_776803.1|" score="0" sequence="" >
+			<ProteinHit id="PH_11" accession="gi|27805979|ref|NP_776803.1|" score="0" coverage="-1" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_12" accession="gi|162805|gb|AAA30431.1|" score="0" sequence="" >
+			<ProteinHit id="PH_12" accession="gi|162805|gb|AAA30431.1|" score="0" coverage="-1" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_13" accession="gi|147905534|ref|NP_001079812.1|" score="0" sequence="" >
+			<ProteinHit id="PH_13" accession="gi|147905534|ref|NP_001079812.1|" score="0" coverage="-1" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_14" accession="sp|P24627|TRFL_BOVIN" score="0" sequence="" >
+			<ProteinHit id="PH_14" accession="sp|P24627|TRFL_BOVIN" score="0" coverage="-1" sequence="" >
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="584.6102250319" RT="3843.93" >

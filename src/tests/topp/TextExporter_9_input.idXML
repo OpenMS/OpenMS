@@ -5,19 +5,19 @@
 	</SearchParameters>
 	<IdentificationRun date="2015-09-07T16:15:38" search_engine="RNPxlSearch" search_engine_version="2.0.0" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
-			<ProteinHit id="PH_0" accession="Cse1" score="0" sequence="" >
+			<ProteinHit id="PH_0" accession="Cse1" score="0" coverage="-1" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="Cse2" score="0" sequence="" >
+			<ProteinHit id="PH_1" accession="Cse2" score="0" coverage="-1" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<ProteinHit id="PH_2" accession="Cas7" score="0" sequence="" >
+			<ProteinHit id="PH_2" accession="Cas7" score="0" coverage="-1" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<ProteinHit id="PH_3" accession="Cas5" score="0" sequence="" >
+			<ProteinHit id="PH_3" accession="Cas5" score="0" coverage="-1" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<ProteinHit id="PH_4" accession="Cas6e" score="0" sequence="" >
+			<ProteinHit id="PH_4" accession="Cas6e" score="0" coverage="-1" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
 		</ProteinIdentification>

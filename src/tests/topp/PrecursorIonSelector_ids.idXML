@@ -4,15 +4,15 @@
 	</SearchParameters>
 	<IdentificationRun date="2008-08-18T14:30:01" search_engine="Mascot" search_engine_version="2.2.03" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" >
-			<ProteinHit id="PH_0" accession="P02787" score="841" sequence="" >
+			<ProteinHit id="PH_0" accession="P02787" score="841" coverage="-1" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_17" accession="P10599" score="143" sequence="" >
+			<ProteinHit id="PH_17" accession="P10599" score="143" coverage="-1" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_27" accession="Q8WZ42" score="78" sequence="" >
+			<ProteinHit id="PH_27" accession="Q8WZ42" score="78" coverage="-1" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_37" accession="Q96MT8" score="36" sequence="" >
+			<ProteinHit id="PH_37" accession="Q96MT8" score="36" coverage="-1" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_64" accession="O60258" score="24" sequence="" >
+			<ProteinHit id="PH_64" accession="O60258" score="24" coverage="-1" sequence="" >
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="17" MZ="874.4500122" RT="1320" >

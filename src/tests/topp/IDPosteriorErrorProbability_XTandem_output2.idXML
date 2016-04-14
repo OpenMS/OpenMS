@@ -7,11 +7,11 @@
 	</SearchParameters>
 	<IdentificationRun date="2009-10-06T18:05:57" search_engine="XTandem" search_engine_version="" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="XTandem" higher_score_better="false" significance_threshold="0" >
-			<ProteinHit id="PH_0" accession="Q29443|TRFE_BOVIN" score="-456.600006103516" sequence="" >
+			<ProteinHit id="PH_0" accession="Q29443|TRFE_BOVIN" score="-456.600006103516" coverage="-1" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="P00634|PPB_ECOLI" score="-326.899993896484" sequence="" >
+			<ProteinHit id="PH_1" accession="P00634|PPB_ECOLI" score="-326.899993896484" coverage="-1" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_2" accession="P02769|ALBU_BOVIN" score="-299.399993896484" sequence="" >
+			<ProteinHit id="PH_2" accession="P02769|ALBU_BOVIN" score="-299.399993896484" coverage="-1" sequence="" >
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="309.203125" RT="230.609" >

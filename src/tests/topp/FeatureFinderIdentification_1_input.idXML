@@ -7,49 +7,49 @@
 	</SearchParameters>
 	<IdentificationRun date="2009-11-17T11:11:11" search_engine="OMSSA" search_engine_version="2.1.4" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="FDR" higher_score_better="false" significance_threshold="0" >
-			<ProteinHit id="PH_0" accession="tr|A9FUD7|A9FUD7_SORC5" score="0" sequence="" >
+			<ProteinHit id="PH_0" accession="tr|A9FUD7|A9FUD7_SORC5" score="0" coverage="-1" sequence="" >
 				<UserParam type="float" name="OMSSA_score" value="0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="tr|A9G0B6|A9G0B6_SORC5" score="0" sequence="" >
+			<ProteinHit id="PH_1" accession="tr|A9G0B6|A9G0B6_SORC5" score="0" coverage="-1" sequence="" >
 				<UserParam type="float" name="OMSSA_score" value="0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_2" accession="tr|A9G8G1|A9G8G1_SORC5" score="0" sequence="" >
+			<ProteinHit id="PH_2" accession="tr|A9G8G1|A9G8G1_SORC5" score="0" coverage="-1" sequence="" >
 				<UserParam type="float" name="OMSSA_score" value="0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_3" accession="tr|A9GID7|A9GID7_SORC5" score="0" sequence="" >
+			<ProteinHit id="PH_3" accession="tr|A9GID7|A9GID7_SORC5" score="0" coverage="-1" sequence="" >
 				<UserParam type="float" name="OMSSA_score" value="0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_4" accession="tr|A9GN44|A9GN44_SORC5" score="0" sequence="" >
+			<ProteinHit id="PH_4" accession="tr|A9GN44|A9GN44_SORC5" score="0" coverage="-1" sequence="" >
 				<UserParam type="float" name="OMSSA_score" value="0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_5" accession="tr|A9GV08|A9GV08_SORC5" score="0" sequence="" >
+			<ProteinHit id="PH_5" accession="tr|A9GV08|A9GV08_SORC5" score="0" coverage="-1" sequence="" >
 				<UserParam type="float" name="OMSSA_score" value="0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_6" accession="Q15323|K1H1_HUMAN" score="0" sequence="" >
+			<ProteinHit id="PH_6" accession="Q15323|K1H1_HUMAN" score="0" coverage="-1" sequence="" >
 				<UserParam type="float" name="OMSSA_score" value="0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_7" accession="Q14532|K1H2_HUMAN" score="0" sequence="" >
+			<ProteinHit id="PH_7" accession="Q14532|K1H2_HUMAN" score="0" coverage="-1" sequence="" >
 				<UserParam type="float" name="OMSSA_score" value="0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_8" accession="Q92764|KRT35_HUMAN" score="0" sequence="" >
+			<ProteinHit id="PH_8" accession="Q92764|KRT35_HUMAN" score="0" coverage="-1" sequence="" >
 				<UserParam type="float" name="OMSSA_score" value="0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_9" accession="O76013|KRT36_HUMAN" score="0" sequence="" >
+			<ProteinHit id="PH_9" accession="O76013|KRT36_HUMAN" score="0" coverage="-1" sequence="" >
 				<UserParam type="float" name="OMSSA_score" value="0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_10" accession="O76014|KRT37_HUMAN" score="0" sequence="" >
+			<ProteinHit id="PH_10" accession="O76014|KRT37_HUMAN" score="0" coverage="-1" sequence="" >
 				<UserParam type="float" name="OMSSA_score" value="0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_11" accession="O76015|KRT38_HUMAN" score="0" sequence="" >
+			<ProteinHit id="PH_11" accession="O76015|KRT38_HUMAN" score="0" coverage="-1" sequence="" >
 				<UserParam type="float" name="OMSSA_score" value="0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_12" accession="Q14525|KT33B_HUMAN" score="0" sequence="" >
+			<ProteinHit id="PH_12" accession="Q14525|KT33B_HUMAN" score="0" coverage="-1" sequence="" >
 				<UserParam type="float" name="OMSSA_score" value="0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_13" accession="P00761|TRYP_PIG" score="0" sequence="" >
+			<ProteinHit id="PH_13" accession="P00761|TRYP_PIG" score="0" coverage="-1" sequence="" >
 				<UserParam type="float" name="OMSSA_score" value="0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_14" accession="P02769|ALBU_BOVIN" score="0" sequence="" >
+			<ProteinHit id="PH_14" accession="P02769|ALBU_BOVIN" score="0" coverage="-1" sequence="" >
 				<UserParam type="float" name="OMSSA_score" value="0"/>
 			</ProteinHit>
 		</ProteinIdentification>
