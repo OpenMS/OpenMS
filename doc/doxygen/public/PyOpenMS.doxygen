@@ -36,28 +36,60 @@
 
 @page pyOpenMS pyOpenMS (Python bindings)
 
-<H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Introduction</H1>
-
 PyOpenMS offers Python bindings to a large part of the %OpenMS API. 
+
+<H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Install Instructions</H1>
+
+We offer pre-built packages on <a href="https://pypi.python.org/pypi/pyopenms">PyPI (pyopenms package)</a>,
+which does not require compilation. If you want to use pyopenms in production,
+we recommend to follow the instruction from the linked website and install pyopenms through easy_install: 
+
+@code
+$ easy_install pyopenms
+@endcode
 
 <H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Build Instructions</H1>
 
-In order to configure and build pyOpenMS successfully, you will need to install the following : 
+In order to configure and build pyOpenMS successfully from source, you will
+need to follow these steps. Please note that compiling pyOpenMS requires
+substantial memory resources.
 
 <ol>
-  <li> Install  python (preferably, 2.7 but it may run also run with Python 2.6) </li>
-
-  <li>
-  On windows: you need the 64 bit C++ compiler from Visual Studio 2008.
-   This is important, else you get a different clib than python 2.7 is
-   built with, and pyopenms will crash on import.
+  <li> 
+    Install Python (preferably, 2.7 but it may run also run with Python
+    2.6). Use <a href="https://www.continuum.io/downloads">Anaconda</a> on
+    Microsoft Windows. 
   </li>
 
   <li>
-   Install setuptools, see: https://pypi.python.org/pypi/setuptools
+    On Microsoft Windows: you need the 64 bit C++ compiler from Visual Studio
+    2008.  This is important, else you get a different clib than python 2.7 is
+    built with, and pyopenms will crash on import.
   </li>
 
-  <li> Install pip and using it, install other required Python modules
+  <li>
+    The easiest way to install all necessary Python packages on which pyOpenMS
+    depends is through virtualenv:
+    @code
+    $ virtualenv pyopenms_venv
+    $ source pyopenms_venv/bin/activate
+    $ pip install -U setuptools
+    $ pip install -U pip
+    $ pip install -U autowrap
+    $ pip install -U nose
+    $ pip install -U numpy
+    $ pip install -U wheel
+    @endcode
+    If this worked for you, you can directly skip to the "configure" step. On
+    Microsoft Windows, you will have virtualenv if you install through
+    Anaconda.
+  </li>
+
+  <li>
+   If not using virtualenv, install first setuptools, see: https://pypi.python.org/pypi/setuptools (you will need at least version 0.12)
+  </li>
+
+  <li> If not using virtualenv, install pip and use it to install other required Python modules
 
     @code
     $ easy_install pip
@@ -75,18 +107,24 @@ In order to configure and build pyOpenMS successfully, you will need to install 
   </li>
 
 
-  <li>
-  Install numpy:
-       - on debian/ubuntu, install the package "python-numpy"
-       - on 64 bit win 7: get it from http://www.lfd.uci.edu/~gohlke/pythonlibs/#numpy
+  <li> If not using virtualenv, install numpy next:
+         - on Debian/Ubuntu, install the package "python-numpy"
+         - on 64 bit Windows 7: get it from http://www.lfd.uci.edu/~gohlke/pythonlibs/#numpy
   </li>
 
+
   <li>Configure %OpenMS with pyOpenMS: 
-      execute cmake as usual, but  with parameters "-D PYOPENMS=ON".
+      execute cmake as usual, but with parameters "-DPYOPENMS=ON". Also, if
+      using virtualenv, add "-DPYTHON_EXECUTABLE:FILEPATH=`which python`" to
+      ensure that the correct Python executable is used.
      <p>
      On windows add: "-D CMAKE_BUILD_TYPE=Release" as the standard python27.dll
      is built in release mode.
      </p>
+
+     @code
+     $ cmake -DPYOPENMS=ON
+     @endcode
   </li>
 
   <li> Build pyOpenMS (now there should be pyopenms specific build targets):
