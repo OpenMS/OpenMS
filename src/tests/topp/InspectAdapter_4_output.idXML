@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="http://open-ms.sourceforge.net/XSL/IdXML.xsl" ?>
-<IdXML version="1.4" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="" db_version="" taxonomy="" mass_type="average" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="-1" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="-1" peak_mass_tolerance_ppm="false" >
+<IdXML version="1.3" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="" db_version="" taxonomy="" mass_type="average" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="-1" peak_mass_tolerance="-1" >
 	</SearchParameters>
 	<IdentificationRun date="2009-01-09T00:37:38" search_engine="InsPecT" search_engine_version="" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
-			<ProteinHit id="PH_0" accession="Q9CQV8" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_0" accession="Q9CQV8" score="0" sequence="" >
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Inspect" higher_score_better="true" significance_threshold="0.975" MZ="433.803" RT="21.9494" >

@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="http://open-ms.sourceforge.net/XSL/IdXML.xsl" ?>
-<IdXML version="1.4" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<IdXML version="1.3" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<SearchParameters id="SP_0" db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 	</SearchParameters>
 	<IdentificationRun date="2012-06-14T15:47:34" search_engine="OpenMS/ConsensusID" search_engine_version="1.10.0" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" >
-			<ProteinHit id="PH_0" accession="IPI:CON_00019359.3|SWISS-PROT:P35527" score="0.906822979450226" coverage="-1" sequence="" >
+			<ProteinHit id="PH_0" accession="IPI:CON_00019359.3|SWISS-PROT:P35527" score="0.906822979450226" sequence="" >
 				<UserParam type="float" name="_score" value="0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="IPI:CON_00021304.1|SWISS-PROT:P35908" score="0.906822979450226" coverage="-1" sequence="" >
+			<ProteinHit id="PH_1" accession="IPI:CON_00021304.1|SWISS-PROT:P35908" score="0.906822979450226" sequence="" >
 				<UserParam type="float" name="_score" value="0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_2" accession="IPI:CON_00124499.2|TREMBL:Q8VED5" score="0.906822979450226" coverage="-1" sequence="" >
+			<ProteinHit id="PH_2" accession="IPI:CON_00124499.2|TREMBL:Q8VED5" score="0.906822979450226" sequence="" >
 				<UserParam type="float" name="_score" value="0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_3" accession="IPI:CON_00131368.3|SWISS-PROT:P50446" score="0.906822979450226" coverage="-1" sequence="" >
+			<ProteinHit id="PH_3" accession="IPI:CON_00131368.3|SWISS-PROT:P50446" score="0.906822979450226" sequence="" >
 				<UserParam type="float" name="_score" value="0"/>
 			</ProteinHit>
 		</ProteinIdentification>
