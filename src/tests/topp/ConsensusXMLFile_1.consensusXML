@@ -17,10 +17,10 @@
 		<SearchParameters db="RefSeq" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
 		</SearchParameters>
 		<ProteinIdentification score_type="score_type" higher_score_better="true" significance_threshold="56.7643013000488">
-			<ProteinHit id="PH_0" accession="urn:lsid:ach0du1schreck2wo3iss4er5denn" score="70.3000030517578" sequence="ABCDEFG">
+			<ProteinHit id="PH_0" accession="urn:lsid:ach0du1schreck2wo3iss4er5denn" coverage="-1" score="70.3000030517578" sequence="ABCDEFG">
 				<UserParam type="string" name="dadada" value="dududu"/>
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="urn:lsid:rumpelstielzchen" score="140.600006103516" sequence="HIJKLMN">
+			<ProteinHit id="PH_1" accession="urn:lsid:rumpelstielzchen" coverage="-1" score="140.600006103516" sequence="HIJKLMN">
 				<UserParam type="string" name="dadada" value="doppeltsogut"/>
 			</ProteinHit>
 			<UserParam type="float" name="pi" value="3.14159"/>
@@ -30,7 +30,7 @@
 		<SearchParameters db="RefSeq" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
 		</SearchParameters>
 		<ProteinIdentification score_type="score_type" higher_score_better="true" significance_threshold="56.7643013000488">
-			<ProteinHit id="PH_2" accession="a1" score="70.3000030517578" sequence="OPQREST">
+			<ProteinHit id="PH_2" accession="a1" coverage="-1" score="70.3000030517578" sequence="OPQREST">
 			</ProteinHit>
 		</ProteinIdentification>
 	</IdentificationRun>
