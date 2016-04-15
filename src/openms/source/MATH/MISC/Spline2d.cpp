@@ -34,5 +34,9 @@
 
 #include <OpenMS/MATH/MISC/Spline2d.h>
 
+namespace OpenMS
+{
 
-// dummy cpp for better navigation in IDE
+  // dummy cpp for better navigation in IDE
+
+}
