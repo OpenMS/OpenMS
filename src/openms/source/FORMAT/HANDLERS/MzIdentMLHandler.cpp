@@ -577,11 +577,12 @@ namespace OpenMS
         }
         sil_2_sdb_.insert(make_pair(sil_id, sdb_id));
 
-        if (it->metaValueExists("is_cross_linking_experiment"))
+        if (it->metaValueExists("is_cross_linking_experiment") ||
+                (it->metaValueExists("SpectrumIdentificationProtocol") &&
+                it->getMetaValue("SpectrumIdentificationProtocol") == "MS:1002494"))
         {
-          //TODO ppxl set stage for collecting all xl ids for a pair of spectra (1 PeptideIdentification, 2 PeptideHits)
-          // <UserParam type="int" name="is_cross_linking_experiment" value="1"/>
-          is_ppxl = true;
+          is_ppxl = true;  //needed as incoming data is structured differently and output deviates as well for ppxl
+          // ppxl is like (1PeptideIdentification, 1-2 PeptideHits) but there might be more PeptideIdentifications for one spectrum
         }
 
         for (std::vector<ProteinHit>::const_iterator jt = it->getHits().begin(); jt != it->getHits().end(); ++jt)
@@ -636,6 +637,7 @@ namespace OpenMS
       {
         String emz(it->getMZ());
         String ert(it->getRT());
+
         String sid = it->getMetaValue("spectrum_reference");
         if (sid.empty())
         {
@@ -668,8 +670,8 @@ namespace OpenMS
             ppxl_specref_2_element[sid] = sidres;
           }
         }
+        String ppxl_linkid = UniqueIdGenerator::getUniqueId();
         //map.begin access ok here because make sure at least one "UNKOWN" element is in the sdats_ids map
-        // TODO ppxl @enetz what about registering those in modifications (internally opposed to userparams)
 
         for (std::vector<PeptideHit>::const_iterator jt = it->getHits().begin(); jt != it->getHits().end(); ++jt)
         {
@@ -727,7 +729,7 @@ namespace OpenMS
                   p += "\t\t\t<cvParam accession=\"NA\" name=\"" +  mod_str + "\" cvRef=\"UNIMOD\"/>";
                 }
 
-                p += jt->getSequence().getCTerminalModification(); // "UNIMOD:" prefix??
+                p += jt->getSequence().getCTerminalModification();  // "UNIMOD:" prefix??
                 p += "\n\t\t</Modification> \n";
               }
               for (Size i = 0; i < jt->getSequence().size(); ++i)
@@ -752,18 +754,32 @@ namespace OpenMS
                 /* <psi-pi:SubstitutionModification originalResidue="A" replacementResidue="A"/> */
               }
             }
-            if (jt->metaValueExists("xl_chain"))
+            if (jt->metaValueExists("xl_chain"))  // TODO ppxl metavalue subject to change (location and upgrade to cv)
             {
               SignedSize i = jt->getMetaValue("xl_pos").toString().toInt();
               p += "\t\t<Modification location=\"" + String(i + 1);
               p += "\" residues=\"" + jt->getSequence().getResidue(i).getOneLetterCode();
               p += "\"> \n\t\t\t<cvParam accession=\"" + jt->getMetaValue("xl_chain").toString();
               p += "\" name=\"" +  cv_.getTerm(jt->getMetaValue("xl_chain")).name;
-              p += "\" cvRef=\"PSI-MS\"/>"; //N.B. longer one is the donor, equals the heavier, equals, the alphabetical first
+              p += "\" cvRef=\"PSI-MS\"/>";  // N.B. longer one is the donor, equals the heavier, equals, the alphabetical first
               p += "\n\t\t\t<cvParam accession=\"UNIMOD:1020\" cvRef=\"UNIMOD\" name=\"Xlink:DSS\"/>";
-              //TODO ppxl from where to get if other xl was used
+              //TODO ppxl from where to get if other xl was used ???
               p += "\n\t\t</Modification> \n";
             }
+            if (jt->metaValueExists("xl_pos2"))  // TODO ppxl metavalue subject to change (location and upgrade to cv)
+            {
+              SignedSize i = jt->getMetaValue("xl_pos2").toString().toInt();
+              p += "\t\t<Modification location=\"" + String(i + 1);
+              p += "\" residues=\"" + jt->getSequence().getResidue(i).getOneLetterCode();
+              // ppxl crosslink loop xl_pos2 is always the reciever ("MS:1002510")
+              p += "\"> \n\t\t\t<cvParam accession=\"" + cv_.getTerm("MS:1002510").id;
+              p += "\" name=\"" +  cv_.getTerm("MS:1002510").name;
+              p += "\" cvRef=\"PSI-MS\"/>"; //N.B. longer one is the donor, equals the heavier, equals, the alphabetical first
+              p += "\n\t\t\t<cvParam accession=\"UNIMOD:1020\" cvRef=\"UNIMOD\" name=\"Xlink:DSS\"/>";
+              //TODO ppxl from where to get if other xl was used ???
+              p += "\n\t\t</Modification> \n";
+            }
+
             p += "\t</Peptide> \n ";
             sen_set.insert(p);
             pep_ids.insert(std::make_pair(pepi, pepid));
@@ -841,6 +857,10 @@ namespace OpenMS
           String cmz((jt->getSequence().getMonoWeight() +  jt->getCharge() * Constants::PROTON_MASS_U) / jt->getCharge()); //calculatedMassToCharge
           String r(jt->getRank()); //rank
           String sc(jt->getScore());
+          if (it->metaValueExists("xl_rank"))  // TODO ppxl location subject to change
+          {
+            r = it->getMetaValue("xl_rank").toString();  // ppxl remove xl_rank later (in copy_jt)
+          }
           if (sc.empty())
           {
             sc = "NA";
@@ -948,10 +968,9 @@ namespace OpenMS
 
           if (is_ppxl)
           {
-            sii_tmp +=  "\t\t\t\t\t" + cv_.getTerm("MS:1002511").toXMLString(cv_ns, it->getMetaValue("xl_rank")) + "\n"; // cross-linked spectrum identification item
-            // ppxl - rank equality means pairing in case of several ids!
-            copy_jt.removeMetaValue("xl_type");
-            copy_jt.removeMetaValue("xl_rank");
+            sii_tmp +=  "\t\t\t\t\t" + cv_.getTerm("MS:1002511").toXMLString(cv_ns, ppxl_linkid) + "\n"; // cross-linked spectrum identification item
+//            copy_jt.removeMetaValue("xl_type");
+            copy_jt.removeMetaValue("xl_rank");  // not so sure: it->getMetaValue("xl_rank")
           }
           writeMetaInfos_(sii_tmp, copy_jt, 5);
 
