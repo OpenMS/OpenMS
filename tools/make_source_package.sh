@@ -135,6 +135,6 @@ cp -r $CONTRIBPATH $SOURCEPATH
 echo "####################################################"
 echo "creating archive"
 TARNAME="OpenMS-$RELVERSION"
-FILE="${TARNAME}.tar.gz"
+FILE="${TARNAME}-sources.tar.gz"
 echo "creating archive $PWD/${FILE}"
 tar zcf ${FILE} -C ${SOURCEPATH} ..
