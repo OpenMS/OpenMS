@@ -38,33 +38,46 @@
 
 PyOpenMS offers Python bindings to a large part of the %OpenMS API. 
 
-<H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Install Instructions</H1>
+<ul>
+  <li style="list-style-type: none;"><a href="#install">1. Install Instruction</a></li> 
+  <li style="list-style-type: none;"><a href="#build">2. Build Instructions</a></li> 
+  <li style="list-style-type: none;"><a href="#wrap">3. Wrap new Classes</a></li> 
+  <ul>
+    <li style="list-style-type: none;"><a href="#wrap-py">3.1 General concept</a></li> 
+    <li style="list-style-type: none;"><a href="#wrap-new">3.2 How to wrap a class</a></li> 
+    <li style="list-style-type: none;"><a href="#wrap-addons">3.2 Use ./addons</a></li> 
+  </ul>
+</ul> 
+
+<H1 id="install" style="margin-top:40px; border-top:4px solid grey; text-align:left;">Install Instructions</H1>
 
 We offer pre-built packages on <a href="https://pypi.python.org/pypi/pyopenms">PyPI (pyopenms package)</a>,
-which does not require compilation. If you want to use pyopenms in production,
-we recommend to follow the instruction from the linked website and install pyopenms through easy_install: 
+which does not require compilation. If you want to use pyOpenMS in production,
+we recommend to follow the instruction from the linked website and install pyOpenMS through easy_install: 
 
 @code
 $ easy_install pyopenms
 @endcode
 
-<H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Build Instructions</H1>
+<H1 id="build" style="margin-top:40px; border-top:4px solid grey; text-align:left;">Build Instructions</H1>
 
 In order to configure and build pyOpenMS successfully from source, you will
 need to follow these steps. Please note that compiling pyOpenMS requires
-substantial memory resources.
+substantial memory resources. Currently, Python 2.7 as well as 3.x are
+officially supported.
 
 <ol>
   <li> 
     Install Python (preferably, 2.7 but it may run also run with Python
-    2.6). Use <a href="https://www.continuum.io/downloads">Anaconda</a> on
+    2.6). Alternatively, also Python 3.x will work and the same build instructions apply.
+    Use <a href="https://www.continuum.io/downloads">Anaconda</a> on
     Microsoft Windows. 
   </li>
 
   <li>
     On Microsoft Windows: you need the 64 bit C++ compiler from Visual Studio
     2008.  This is important, else you get a different clib than python 2.7 is
-    built with, and pyopenms will crash on import.
+    built with, and pyOpenMS will crash on import.
   </li>
 
   <li>
@@ -127,13 +140,13 @@ substantial memory resources.
      @endcode
   </li>
 
-  <li> Build pyOpenMS (now there should be pyopenms specific build targets):
+  <li> Build pyOpenMS (now there should be pyOpenMS specific build targets):
 
      @code
      $ make pyopenms
      @endcode
 
-   on linux: ensure that the libOpenMS.so is in your $LD_LIBRARY_PATH (it needs to be accessible for Python) 
+   on Linux, ensure that the libOpenMS.so is in your $LD_LIBRARY_PATH (it needs to be accessible for Python) 
   </li>
 
   <li> Run the Python specific tests to make sure that everything went well 
@@ -152,7 +165,7 @@ substantial memory resources.
 
 
   <li> Optionally:
-   if you want to install locally:
+   If you want to install locally:
 
      @code
      $ python setup.py install
@@ -175,34 +188,35 @@ substantial memory resources.
 </ol>
 
 
-<H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Wrapping Workflow and wrapping new Classes</H1>
+<H1 id="wrap" style="margin-top:40px; border-top:4px solid grey; text-align:left;">Wrapping Workflow and wrapping new Classes</H1>
 
 
-<H2 style="margin-top:40px; border-top:4px solid grey; text-align:left;">How pyOpenMS wraps Python classes</H2>
-General concept of how the wrapping is done: 
+<H2 id="wrap-py" style="margin-top:40px; border-top:4px solid grey; text-align:left;">How pyOpenMS wraps Python classes</H2>
+General concept of how the wrapping is done (all files are in @c src/pyOpenMS/): 
 
 - Step 1: The author declares which classes and which functions of these
   classes s/he wants to wrap (expose to Python). This is done by writing the
-  function declaration in a file in the pxds/ folder.
+  function declaration in a file in the @c pxds/ folder.
 - Step 2: The Python tool "autowrap" (developed for this project) creates the
   wrapping code automatically from the function declaration - see
   https://github.com/uweschmitt/autowrap for an explanation of the autowrap
-  tool. Since not all code can be wrapped automatically, also manual code can
-  be written in the addons/ folder. Autowrap will create an output file at
-  pyopenms/pyopenms.pyx
-- Step 3: Cython translates the pyopenms/pyopenms.pyx to Cpp code at
-  pyopenms/pyopenms.cpp 
-- Step 4: A compiler compiles the Cpp code to a Python module which is then
-  importable in Python with "import pyopenms"
+  tool. 
+  Since not all code can be wrapped automatically, also manual code can be
+  written in the @c addons/ folder. Autowrap will create an output file at
+  @c pyopenms/pyopenms.pyx which can be interpreted by Cython.
+- Step 3: Cython translates the @c pyopenms/pyopenms.pyx to C++ code at
+  @c pyopenms/pyopenms.cpp 
+- Step 4: A compiler compiles the C++ code to a Python module which is then
+  importable in Python with <code>import pyopenms</code>
 
 <p>
 Maintaining existing wrappers: If the C++ API is changed, then pyOpenMS will
-not build any more.  Thus, find the corresponding file in the pyOpenMS/pxds/
+not build any more.  Thus, find the corresponding file in the @c pyOpenMS/pxds/
 folder and adjust the function declaration accordingly.</p>
 
-<H2 style="margin-top:40px; border-top:4px solid grey; text-align:left;">How to wrap new classes</H2>
-To wrap a new %OpenMS class: Create a new "pxd" file in the folder "./pxds". As
-a small example, look at the CVTerm.pxd to get you started. Start with the
+<H2 id="wrap-new" style="margin-top:40px; border-top:4px solid grey; text-align:left;">How to wrap new classes</H2>
+To wrap a new %OpenMS class: Create a new "pxd" file in the folder <code>./pxds</code>. As
+a small example, look at the <code>CVTerm.pxd</code> to get you started. Start with the
 following structure:
 
 @code
@@ -218,31 +232,31 @@ cdef extern from "<OpenMS/path/to/header.h>" namespace "OpenMS":
 
 @endcode
 
-- make sure to use "ClassName:" instead of "ClassName(DefaultParamHandler)" to
+- make sure to use @c ClassName: instead of @c ClassName(DefaultParamHandler) to
   wrap a class that does not inherit from another class and also remove the two
-  comments below that line.
-- always use "cimport" and not Python "import"
+  comments regarding inheritance below that line.
+- always use @c cimport and not Python @c import
 - always add default constructor AND copy constructor to the code (note that the C++
   compiler will add a default copy constructor to any class, so there is always
   one if it is not declared, see http://www.cplusplus.com/articles/y8hv0pDG/ "The
   implicit copy constructor does a member-wise copy of the source object.")
 - to expose a function to Python, copy the signature to your pxd file, e.g.
-  "DataValue getValue()" and make sure you "cimport" all corresponding classes.
-  Replace std::vector with vector from libcpp.vector (see for example PepXMLFile.pxd)
+  @c DataValue @c getValue() and make sure you @c cimport all corresponding classes.
+  Replace @c std::vector with the corresponding vector from @c libcpp.vector (see for example @c PepXMLFile.pxd)
 - Remember to include a copy constructor (even if none was declared in the C++
   header file) since Cython will need it for certain operations. Otherwise you
-  might see error messages like "item0.inst = shared_ptr[_ClassName](new _ClassNAme(deref(it_terms))) Call with wrong number of arguments"
+  might see error messages like <code>item0.inst = shared_ptr[_ClassName](new _ClassName(deref(it_terms))) Call with wrong number of arguments</code> 
 
 Further considerations and limitations:
 
-- Inheritance: there are some limitations, see for example Precursor.pxd
+- Inheritance: there are some limitations, see for example @c Precursor.pxd
 
 - Reference: arguments by reference may be copied under some circumstances. For
   example, if they are in an array then not the original argument is handed
   back, so comparisons might fail. Also, simple Python types like int, float
   etc cannot be passed by reference.
 
-- operator+=: see for example AASequence.iadd in AASequence.pxd
+- operator+=: see for example <code>AASequence.iadd</code> in <code>AASequence.pxd</code>
 
 - operator==, !=, <=, <, >=, > are wrapped automatically
 
@@ -250,23 +264,23 @@ Further considerations and limitations:
 
 - copy-constructor becomes __copy__ in Python
 
-- shared pointers: is handled automatically, check DataAccessHelper using shared_ptr[Spectrum]. Use "from smart_ptr cimport shared_ptr" as import statement
+- shared pointers: is handled automatically, check DataAccessHelper using <code>shared_ptr[Spectrum]</code>. Use <code>from smart_ptr cimport shared_ptr</code> as import statement
 
 These hints can be given to autowrap (also check the autowrap documentation):
 - wrap-ignore: is a hint for autowrap to not wrap the function (but the declaration might still be important for Cython to know about) 
-- wrap-as - see for example AASequence ":"
+- wrap-as: see for example AASequence ":"
 - wrap-iter-begin, wrap-iter-end (see ConsensusMap.pxd)
 - wrap-instances - for templated classes (see MSSpectrum.pxd)
 - wrap-attach: enums, static methods (see for example VersionInfo.pxd)
 - wrap-upper-limit:size or size() (see MSSpectrum.pxd)
 
-<H3 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Wrapping code yourself in ./addons </H3>
+<H3 id="wrap-addons" style="margin-top:40px; border-top:4px solid grey; text-align:left;">Wrapping code yourself in ./addons </H3>
 
 Not all code can be wrapped automatically (yet). Place a file with the same (!)
 name in the addons folder (e.g. myClass.px in pxds/ and myClass.pyx in addons)
 and leave two lines empty on the top (this is important). Start with 4 spaces
 of indent and write your additional wrapper functions, adding a wrap-ignore
-comment to the pxd file. For some examples, look into the addons folder:
+comment to the pxd file. For some examples, look into the src/pyOpenMS/addons/ folder:
 
 
 
@@ -288,8 +302,8 @@ comment to the pxd file. For some examples, look into the addons folder:
   - for an example of a abstract base class (ISpectrumAccess), to see how it is handled please refer to the ./addons folder
 
 Make sure that you _always_ declare your objects (all C++ and all Cython
-objects need to be declared) using cdef Type name. Otherwise you get "Cannot
-convert ... to Python object" errors.
+objects need to be declared) using @c cdef Type name. Otherwise you get <code>Cannot
+convert ... to Python object</code> errors.
 
 
 */
