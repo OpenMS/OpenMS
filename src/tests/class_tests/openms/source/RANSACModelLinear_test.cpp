@@ -49,7 +49,7 @@ using namespace Math;
 // random number generator using srand (used in std::random_shuffle())
 int myRNG(int n) {
   return std::rand() / (1.0 + RAND_MAX) * n;
-};
+}
 
 START_TEST(RANSACModelLinear, "$Id$")
 
@@ -428,14 +428,14 @@ if __name__=='__main__':
   }
   std::sort(test_pairs.begin(), test_pairs.end());
 
-  test_pairs_out = Math::RANSAC<Math::RansacModelLinear>::ransac(test_pairs, 10, 100, 150*150, 10, myRNG);
+  test_pairs_out = Math::RANSAC<Math::RansacModelLinear>::ransac(test_pairs, 10, 1200, 150*150, 10, myRNG);
   std::sort(test_pairs_out.begin(), test_pairs_out.end());
 
   double ty_out[] = {17.820508, 30.9473207, 41.9535249, 123.674095, 86.6527618, 136.793947, 138.532208, 108.213952, 164.411907, 56.2442618, 152.514434, 164.038065, 161.530045, 261.350113, 230.870376, 188.005119, 256.156813, 269.781852, 269.370208, 332.871078, 324.462812, 382.697907, 461.676941, 532.449429, 404.452477, 530.115032, 465.275655, 483.24186, 605.836392, 542.172984, 537.472495, 586.317425, 648.336013, 695.756737, 715.378774, /*841.451166,*/ 767.575677, 859.152499, 841.782838, 857.894838};
   TEST_EQUAL( test_pairs_out.size(), 39);
   ABORT_IF(test_pairs_out.size()!=39);
 
-  for (int i = 0; i < test_pairs_out.size(); ++i)
+  for (Size i = 0; i < test_pairs_out.size(); ++i)
   {
     TEST_REAL_SIMILAR( test_pairs_out[i].second, ty_out[i]);
   }
