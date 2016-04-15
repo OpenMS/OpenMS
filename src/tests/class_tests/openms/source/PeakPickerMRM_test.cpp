@@ -111,7 +111,8 @@ START_SECTION(void pickChromatogram(const RichPeakChromatogram &chromatogram, Ri
   chrom = get_chrom(0);
   PeakPickerMRM picker;
   Param picker_param = picker.getDefaults();
-  picker_param.setValue("method", "legacy");
+  picker_param.setValue("method", "legacy"); // old parameters
+  picker_param.setValue("peak_width", 40.0); // old parameters
   picker.setParameters(picker_param);
   picker.pickChromatogram(chrom, picked_chrom);
 
