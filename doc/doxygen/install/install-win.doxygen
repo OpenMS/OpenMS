@@ -7,15 +7,16 @@
 
   This document addresses %OpenMS users and explains the
   installation procedure for building %OpenMS from its sources. If you only want to use the %OpenMS Proteomics Pipeline (TOPP), you are strongly
-    encouraged to <b>download the windows binary installer</b>
-    (see <a href="http://www.OpenMS.de/download/" target="_blank">here</a>),
-    instead of building %OpenMS from sources.
+  encouraged to <b>download the windows binary installer</b>
+  (see <a href="http://www.OpenMS.de/download/" target="_blank">here</a>),
+  instead of building %OpenMS from sources.
   For more information read the install instructions for the TOPP binaries.
 
-    This document especially considers the installation
-  of several libraries which are required by %OpenMS. Most of these libraries are made available in our "contrib-package" (see below).
+  This document especially considers the installation of several libraries which are required by %OpenMS.
+  Most of these libraries are made available in our "contrib-package" (see below).
   <br>
-  If you encounter errors during configuring/compiling our software, have a look at our "Known Issues" section (documentation), maybe the error is already known. If not, please write to the mailing list.
+  If you encounter errors during configuring/compiling our software, have a look at our "Known Issues" section \ref known_dev_bugs "here",
+  maybe the error is already known. If not, please write to the <a href="open-ms-general@lists.sourceforge.net" target="_new">mailing list</a>.
   <br>
   <br>
 
@@ -24,7 +25,7 @@
      <ul>
         <li>whenever there is a $ this implies entering everything that follows the $ into a command prompt (usually the Visual Studio Command Prompt)
         <li>A string in &lt;&gt; is something the user needs to choose e.g. &lt;path_to_contrib&gt; means that this string should be replaced by the path where the user put the %OpenMS contrib package. Usually all commands where this is necessary come with examples, so don't worry.
-        <li>Whenever you added a path to your Windows PATH Environment variable, the <tt>Command Prompt</tt> which are already open are not refreshed. You will need a to open a new one.
+        <li>Whenever you added a path to your Windows PATH Environment variable, every Command Prompt which is already open will not be refreshed. You will need a to open a new one.
      </ul>
 
 
@@ -40,14 +41,15 @@
             Other compilers which are close to the VS toolchain might work, but are not tested.
       <li>Have CMake 2.8.3 or greater installed (see http://www.cmake.org)<br>
              [VS2012 requires CMake 2.8.10 or later, VS2013 needs CMake 2.8.11.2]
-      <li>If you work with the GIT version of %OpenMS (instead of the Release package), we recommend downloading
-        the git pre-compiled binaries. There are multiple binary distributions out there. Pick the one you like.
+      <li>If you work with the Git (= nightly) version of %OpenMS (instead of the Release package), we recommend downloading
+        the pre-compiled binaries <a href="http://ftp.mi.fu-berlin.de/pub/OpenMS/nightly_binaries/">here</a>. There are multiple binary distributions out there. Pick the one you like.
+        Binaries including "Head" or "head" include the latest updates and fixes but might be unstable.
       <li>To build the contrib-package you will need <tt>7-Zip</tt> (see http://www.7-zip.org/)
         <br>7z.exe is searched in "C:/Program Files/7-Zip/" and "C:/Programme/7-Zip/". Make sure it is in either of these locations or add
         the installation directory to your PATH.
       <li>To build the contrib-package you will need <tt>patch</tt> (see http://gnuwin32.sourceforge.net/packages/patch.htm)
         <br>patch.exe is searched in "C:/Program Files/gnuwin32/bin" and "C:/Program Files/patch/bin". Make sure it is in either of these locations or add
-        the installation directory to your PATH.
+        the installation directory to your PATH. <tt>patch</tt> might be installed with your "Git for Windows" installation if present.
     </ul>
 
 
@@ -78,20 +80,32 @@
                             If you use VS2013 you additionally need to remove three functions from <path-to-tmp-qt>\src\3rdparty\webkit\Source\JavaScriptCore\wtf\MathExtras.h,
                             which are already defined by VS2013 (round(), roundf and signbit()).
           <li>open a Visual Studio Command Line (use x64 version if you want 64bit apps!)
-          <li>$ cd <path-to-tmp-qt>
-                    <li>if you have multiple versions of VS installed you might need to provide the "-platform" param for the next configure command (e.g., -platform win32-msvc2012)
-					<li>[VS2013 only] Qt 4.8.5 does not support VS2013 out of the box. You need to change QMAKE_COMPILER_DEFINES to <tt>+= _MSC_VER=<b>1800</b> WIN32</tt> in &lt;qt&gt;\mkspecs\win32-msvc2012 and call configure.exe with <tt>-platform win32-msvc2012</tt>.
-          <li>$ configure.exe -opensource -nomake demos -nomake examples -no-script -webkit -prefix <path-to-qt>  ...[more options, e.g. -graphicssystem opengl]
-          <li>$ nmake
-          <li>$ nmake install
-                    <li>all Qt files (libs, includes etc) are now in <path-to-qt> and sub-directories. You can delete  <path-to-tmp-qt> (since it will consume quite a lot of disk space)
-                    <li>alternatively to nmake, you can download JOM (http://qt-project.org/wiki/jom) and type "jom" in your Qt build directory to use multiple cores (builds a lot faster usually)
+          <li>
+            \code
+            $ cd <path-to-tmp-qt>
+            \endcode
+          <li>if you have multiple versions of VS installed you might need to provide the <tt>-platform</tt> param for the next configure command (e.g., <tt>-platform win32-msvc2012</tt>)
+		  <li>[VS2013 only] Qt 4.8.5 does not support VS2013 out of the box. You need to change QMAKE_COMPILER_DEFINES to <tt>+= _MSC_VER=<b>1800</b> WIN32</tt> in <tt>&lt;qt&gt;\mkspecs\win32-msvc2012</tt> and call configure.exe with <tt>-platform win32-msvc2012</tt>.
+          <li>
+            \code
+            $ configure.exe -opensource -nomake demos -nomake examples -no-script -webkit -prefix <path-to-qt>  ...[more options, e.g. -graphicssystem opengl]
+            \endcode
+          <li>
+            \code
+            $ nmake
+            \endcode
+          <li>
+          \code
+          $ nmake install
+          \endcode
+          <li>all Qt files (libs, includes etc) are now in <tt><path-to-qt></tt> and sub-directories. You can delete <tt><path-to-tmp-qt></tt> (since it will consume quite a lot of disk space)
+          <li>alternatively to nmake, you can download JOM (http://qt-project.org/wiki/jom) and type "jom" in your Qt build directory to use multiple cores (builds a lot faster usually)
         </ol>
       <li>commercial:
         <ol>
           <li>we have no experience here, but it should be possible to get the DLL's and Link-Libraries here as well.
         </ol>
-      <li>add the &lt;Qt&gt;/bin (!) directory to your PATH Environment Variable
+      <li>add the <tt>&lt;Qt&gt;/bin</tt> (!) directory to your PATH Environment Variable
         </ol>
 
     @subsection install_win_contrib Contrib installation
@@ -111,12 +125,14 @@
     The contrib package is contained in the %OpenMS release package.
 
     If you are using the developer version of %OpenMS, you must check out the contrib from GitHub repository
-    <pre>&gt; git clone https://github.com/OpenMS/contrib</pre>
+    \code
+    &gt; git clone https://github.com/OpenMS/contrib
+    \endcode
     to obtain the latest developer version (potentially unstable).
 
   @b Installation:
 
-    On Vista/Win7/Win8 some programs using during contrib creation (e.g. patch.exe) require elevation, otherwise the contrib will not build.
+    On Vista/Win7/Win8 some programs using during contrib creation (e.g. <tt>patch.exe</tt>) require elevation, otherwise the contrib will not build.
     Thus, you need an admin account with disabled UAC (User Account Control) or alternatively you can start a command line by right-clicking on its link and choosing "Run as administrator", while UAC is still enabled.
 
     After you got the source code for the contrib package open a VisualStudio Command line (see Start-Menu).
@@ -124,7 +140,7 @@
     <ol>
       <li>Open a Visual Studio Command Line (use x64 version if you want 64bit apps!)
       <li>Create a build directory for the %OpenMS contrib <br>
-        -e.g. $ mkdir contrib_win64_build
+        -e.g. <tt>$ mkdir contrib_win64_build</tt>
       <li>Call CMake to build the contrib<br>
         Be aware that you can build 64bit apps even if your operating system is only 32bit (cross-compiling), but you will not be
         able to run 64bit apps in this case.
@@ -134,7 +150,7 @@
         cmake -DBUILD_TYPE=ALL -G "<generator>" "<path_to_contrib>"
         \endcode
 
-        The &lt;generator&gt; you use must be one of the Visual Studio Generators. This is because some contrib libs require Visual Studio to build.
+        The <tt>&lt;generator&gt;</tt> you use must be one of the Visual Studio Generators. This is because some contrib libs require Visual Studio to build.
         Be careful to specify the Generator suffixed with "Win64" if you want a 64bit contrib!
         Type <tt>$ cmake</tt> to see a list of available generators.<br>
 
@@ -147,14 +163,12 @@
       <li>Add the &lt;path_to_contrib_build&gt;/lib directory to your PATH Environment Variable (this is so Windows can find the DLL's when running our executables).
     </ol>
 
-    VS2013 requires SeqAn 1.4.1, which is currently not shipped in the contrib. However, just download the SeqAn source code from www.seqan.de and replace
-    the headers in &lt;path_to_contrib_build&gt;/include/seqan with the headers from the SeqAn source.
-
 @section create_doc Building the documentation (optional)
 
-  This section is voluntary. If you can live with the online documentation, you do not need to build your own.
+  This section is optional. If you can live with the online documentation, you do not need to build your own.
 
-  In order to build the class documentation (doc & doc_internal targets), TOPP tutorials (doc_tutorials target) and more, you will need to install three programs:
+  In order to build the class documentation (<tt>doc</tt> & <tt>doc_internal</tt> targets), TOPP tutorials (<tt>doc_tutorials</tt> target) and more,
+  you will need to install three programs:
 
   <ol>
     <li> Doxygen (version 1.5.8 and 1.8.2 are tested, others might work as well)
@@ -165,7 +179,7 @@
     <li> MikTeX (version 2.7 and 2.9 are tested, others might work as well) - basic version (for DVIPS, LATEX etc).
       <ul>
          <li> Download binaries for Windows (http://miktex.org/)
-         <li> During installation tick "install missing packages on the fly = yes"?!
+         <li> During installation tick "install missing packages on the fly = yes"
          <li> The installer SHOULD add the bin directory of MikTeX automatically to the Windows PATH Environment (please recheck)
       </ul>
     <li> GPL Ghostscript (8.60) for Windows
@@ -195,7 +209,7 @@
     Assuming you have successfully installed the dependent libraries, you need to
     get the %OpenMS source code. The latest stable version of %OpenMS
     can be found in the <a href="http://www.OpenMS.de/download/" target="_blank">download</a> page.
-    For further (e.g. latest developer version from GitHub) info see the <a href="http://www.openms.de/download/" target="_blank">download instructions</a>.
+    For further (e.g. latest developer version from GitHub) info see the <a href="http://www.OpenMs.de/download/" target="_blank">download instructions</a>.
     <br>
     <br>
     After you got the source code open a VisualStudio Command line (see Start-Menu).
@@ -246,12 +260,12 @@
 
   @section install_win_testing_openms Testing your OpenMS/TOPP installation
 
-  Each class in %OpenMS and each TOPP tool have a unit test. The tests will be build with the complete solution. To specifically build and execute the tests,
+  Each class in %OpenMS and each TOPP tool has a unit test. The tests will be build with the complete solution. To specifically build and execute the tests,
   go to your %OpenMS build_tree and further into ./src/tests/class_tests. There you'll find an OpenMS_class_tests.sln file, which you can open.
   For other generators an equivalent file with another suffix will be present. Now, build the 'ALL_BUILD' target and the 'RUN_TESTS' target.
-  You can also run the tests in a command prompt in &lt;OpenMS_build_tree&gt; using $ ctest
+  You can also run the tests in a command prompt in &lt;OpenMS_build_tree&gt; using <tt>ctest</tt>
   Single tests can be run with $ ctest -R &lt;testnameregex&gt;, e.g. $ ctest -R Base64_test
-  For more syntax on ctest look at the online documentation at http://cmake.org/.
+  For more syntax on CTest look at the online documentation at http://cmake.org/.
 
 */
 
