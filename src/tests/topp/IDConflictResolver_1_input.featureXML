@@ -14,9 +14,9 @@
 			<VariableModification name="Q-17.0265" />
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
-			<ProteinHit id="PH_0" accession="ddb000514958" score="0" sequence="">
+			<ProteinHit id="PH_0" accession="ddb000514958" coverage="-1" score="0" sequence="">
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="ddb000325962" score="0" sequence="">
+			<ProteinHit id="PH_1" accession="ddb000325962" coverage="-1" score="0" sequence="">
 			</ProteinHit>
 		</ProteinIdentification>
 	</IdentificationRun>
@@ -25,9 +25,9 @@
 			<FixedModification name="Carbamidomethyl" />
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
-			<ProteinHit id="PH_2" accession="ddb000326506" score="0" sequence="">
+			<ProteinHit id="PH_2" accession="ddb000326506" coverage="-1" score="0" sequence="">
 			</ProteinHit>
-			<ProteinHit id="PH_3" accession="ddb000325188" score="0" sequence="">
+			<ProteinHit id="PH_3" accession="ddb000325188" coverage="-1" score="0" sequence="">
 			</ProteinHit>
 		</ProteinIdentification>
 	</IdentificationRun>
