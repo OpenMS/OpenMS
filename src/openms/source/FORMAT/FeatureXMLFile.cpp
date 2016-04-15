@@ -585,6 +585,7 @@ namespace OpenMS
       String accession = attributeAsString_(attributes, "accession");
       prot_hit_.setAccession(accession);
       prot_hit_.setScore(attributeAsDouble_(attributes, "score"));
+      prot_hit_.setCoverage(attributeAsDouble_(attributes, "coverage"));
 
       //sequence
       String tmp = "";
