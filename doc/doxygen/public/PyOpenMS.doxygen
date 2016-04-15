@@ -76,7 +76,7 @@ officially supported.
 
   <li>
     On Microsoft Windows: you need the 64 bit C++ compiler from Visual Studio
-    2008.  This is important, else you get a different clib than python 2.7 is
+    2008.  This is important, else you get a different clib than Python 2.7 is
     built with, and pyOpenMS will crash on import.
   </li>
 
