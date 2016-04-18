@@ -55,6 +55,7 @@
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecomposition.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecompositionAlgorithm.h>
+#include <OpenMS/FILTERING/SMOOTHING/FastLowessSmoothing.h>
 
 #include <boost/math/distributions/normal.hpp>
 
@@ -186,6 +187,7 @@ struct RIALess :
 class MetaProSIPInterpolation
 {
 public:
+
   ///< Determine score maxima from rate to score distribution using derivatives from spline interpolation
   static vector<RateScorePair> getHighPoints(double threshold, const MapRateToScoreType& rate2score, bool debug = false)
   {
@@ -2031,7 +2033,63 @@ public:
 
     // extract xics
     vector<vector<double> > xics = extractXICVariableMZWindows(seed_rt, xic_mz_windows, rt_tolerance_s, peak_map);
+   
+    // -- deuterium handling
+    MSExperiment<>::ConstIterator seed_rt_minus_20 = peak_map.RTBegin(seed_rt - 20.0);
+    MSExperiment<>::ConstIterator seed_rt_it = peak_map.RTBegin(seed_rt);
+    MSExperiment<>::ConstIterator seed_rt_plus_20 = peak_map.RTBegin(seed_rt + 20.0);
 
+    Size scans_plus_20s = (seed_rt_plus_20 - seed_rt_it) + 1;
+    Size scans_minus_20s = (seed_rt_it - seed_rt_minus_20) + 1;
+
+    // create smoothed xics
+    vector<vector<double> > xics_smoothed = xics;
+    for (Size k = 0; k != xics.size(); ++k)
+    {
+      const vector<double>& current_xic = xics[k];
+      Size n_current = current_xic.size();
+      vector<double> smoothed_xic(n_current, 0);
+
+      for (Size i = 0; i != n_current; ++i)
+      {
+        for (Size j = 0; j != n_current; ++j)
+        {
+          normal s(j, 5.0);
+          double y = current_xic[j];
+          smoothed_xic[i] += y * pdf(s, (double) i);
+        }
+      }
+      xics_smoothed[k].swap(smoothed_xic);
+    }     
+
+    vector<double> slopes;
+
+    // extract potential high points
+    for (Size k = 0; k != xics_smoothed.size(); ++k)
+    {
+      const vector<double>& current_xic = xics_smoothed[k];
+      Size n_current = current_xic.size();
+
+      for (Size i = 1; i < n_current - 1; ++i)
+      {
+        if (current_xic[i] > current_xic[i - 1] && current_xic[i] > current_xic[i + 1]) // local maximum
+        {
+          if (i < n_current / 2 + scans_plus_20s && // only maxima that are not more than 20 s later than seed rt
+              (double)i > (double)n_current / 2.0 - scans_minus_20s - k)  // only maxima that are not too much earlier (but may depend on number of deuterium incorporated)
+          { 
+            int scan_to_apex = i - n_current / 2;  // number of scans between current peak and apex scan
+            //cout << k << ";" << scan_to_apex << ";" << current_xic[i] << endl;
+            double m = k != 0 ? (double)scan_to_apex / k : 0.0; // slope (should be around zero or negative as deuterium rich elute earlier) 
+            slopes.push_back(m);
+          }
+        }
+      }
+    }
+
+    double median_slope = Math::median(slopes.begin(), slopes.end());
+    cout << "Median slope: " << median_slope << endl;
+// ----- end deuterium code
+  
     vector<double> xic_intensities(xics.size(), 0.0);
     if (min_corr_mono > 0)
     {
