@@ -10,7 +10,7 @@
         </SearchParameters>
         <IdentificationRun date="2014-06-03T12:01:03" search_engine="Mascot" search_engine_version="2.3.0" search_parameters_ref="SP_0" >
                 <ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" >
-                        <ProteinHit id="PH_1768" accession="sp|P62841|RS15_HUMAN" score="0.776923060417175" coverage="-1" sequence="" >
+                        <ProteinHit id="PH_1768" accession="sp|P62841|RS15_HUMAN" score="0.776923060417175" sequence="" >
                                 <UserParam type="float" name="Mascot_score" value="0"/>
                         </ProteinHit>
                 </ProteinIdentification>
@@ -27,7 +27,7 @@
         </IdentificationRun>
         <IdentificationRun date="2014-06-03T12:09:06" search_engine="Mascot" search_engine_version="2.3.0" search_parameters_ref="SP_0" >
                 <ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" >
-                        <ProteinHit id="PH_7122" accession="sp|P62736|ACTA_HUMAN" score="0.776923060417175" coverage="-1" sequence="" >
+                        <ProteinHit id="PH_7122" accession="sp|P62736|ACTA_HUMAN" score="0.776923060417175" sequence="" >
                                 <UserParam type="float" name="Mascot_score" value="0"/>
                         </ProteinHit>
                 </ProteinIdentification>

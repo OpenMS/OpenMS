@@ -13,11 +13,11 @@
 			</ProteinHit>
 			<ProteinHit id="PH_3" accession="P01876|IGHA1_HUMAN" score="0.478799998760223" coverage="5" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_4" accession="P01877|IGHA2_HUMAN" score="0.478799998760223" coverage="-1" sequence="" >
+			<ProteinHit id="PH_4" accession="P01877|IGHA2_HUMAN" score="0.478799998760223" sequence="" >
 			</ProteinHit>
 			<ProteinHit id="PH_5" accession="P00738|HPT_HUMAN" score="0.266299992799759" coverage="3.4" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_6" accession="P00739|HPTR_HUMAN" score="0.266299992799759" coverage="-1" sequence="" >
+			<ProteinHit id="PH_6" accession="P00739|HPTR_HUMAN" score="0.266299992799759" sequence="" >
 			</ProteinHit>
 			<ProteinHit id="PH_7" accession="Q96PD5|PGRP2_HUMAN" score="0.205899998545647" coverage="2.6" sequence="" >
 			</ProteinHit>

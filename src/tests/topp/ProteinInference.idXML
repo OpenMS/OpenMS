@@ -7,61 +7,61 @@
 	</SearchParameters>
 	<IdentificationRun date="2009-12-01T10:03:23" search_engine="OMSSA" search_engine_version="2.1.4" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" >
-			<ProteinHit id="PH_0" accession="P01009|A1AT_HUMAN" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_0" accession="P01009|A1AT_HUMAN" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="P04217|A1BG_HUMAN" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_1" accession="P04217|A1BG_HUMAN" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_2" accession="P01023|A2MG_HUMAN" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_2" accession="P01023|A2MG_HUMAN" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_3" accession="P01011|AACT_HUMAN" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_3" accession="P01011|AACT_HUMAN" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_4" accession="P02768|ALBU_HUMAN" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_4" accession="P02768|ALBU_HUMAN" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_5" accession="P02647|APOA1_HUMAN" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_5" accession="P02647|APOA1_HUMAN" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_6" accession="P02656|APOC3_HUMAN" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_6" accession="P02656|APOC3_HUMAN" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_7" accession="P02749|APOH_HUMAN" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_7" accession="P02749|APOH_HUMAN" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_8" accession="Q5JVX7|CA141_HUMAN" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_8" accession="Q5JVX7|CA141_HUMAN" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_9" accession="P00751|CFAB_HUMAN" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_9" accession="P00751|CFAB_HUMAN" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_10" accession="P10909|CLUS_HUMAN" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_10" accession="P10909|CLUS_HUMAN" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_11" accession="P01024|CO3_HUMAN" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_11" accession="P01024|CO3_HUMAN" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_12" accession="P0C0L4|CO4A_HUMAN" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_12" accession="P0C0L4|CO4A_HUMAN" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_13" accession="P0C0L5|CO4B_HUMAN" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_13" accession="P0C0L5|CO4B_HUMAN" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_14" accession="P68871|HBB_HUMAN" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_14" accession="P68871|HBB_HUMAN" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_15" accession="P02790|HEMO_HUMAN" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_15" accession="P02790|HEMO_HUMAN" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_16" accession="P00739|HPTR_HUMAN" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_16" accession="P00739|HPTR_HUMAN" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_17" accession="P00738|HPT_HUMAN" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_17" accession="P00738|HPT_HUMAN" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_18" accession="P01876|IGHA1_HUMAN" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_18" accession="P01876|IGHA1_HUMAN" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_19" accession="P01877|IGHA2_HUMAN" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_19" accession="P01877|IGHA2_HUMAN" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_20" accession="P01859|IGHG2_HUMAN" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_20" accession="P01859|IGHG2_HUMAN" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_21" accession="P01861|IGHG4_HUMAN" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_21" accession="P01861|IGHG4_HUMAN" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_22" accession="P01834|KAC_HUMAN" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_22" accession="P01834|KAC_HUMAN" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_23" accession="P01842|LAC_HUMAN" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_23" accession="P01842|LAC_HUMAN" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_24" accession="Q99832|TCPH_HUMAN" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_24" accession="Q99832|TCPH_HUMAN" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_25" accession="P02787|TRFE_HUMAN" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_25" accession="P02787|TRFE_HUMAN" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_26" accession="P02774|VTDB_HUMAN" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_26" accession="P02774|VTDB_HUMAN" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_27" accession="P04004|VTNC_HUMAN" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_27" accession="P04004|VTNC_HUMAN" score="0" sequence="" >
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="749.77" RT="408" >

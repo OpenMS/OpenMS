@@ -7,29 +7,29 @@
 	</SearchParameters>
 	<IdentificationRun date="2009-10-06T16:17:27" search_engine="Mascot" search_engine_version="2.2.04" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" >
-			<ProteinHit id="PH_0" accession="Q29443|TRFE_BOVIN" score="2177" coverage="-1" sequence="" >
+			<ProteinHit id="PH_0" accession="Q29443|TRFE_BOVIN" score="2177" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="tr|A9GC70|A9GC70_SORC5rev" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_1" accession="tr|A9GC70|A9GC70_SORC5rev" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_2" accession="P00634|PPB_ECOLI" score="1919" coverage="-1" sequence="" >
+			<ProteinHit id="PH_2" accession="P00634|PPB_ECOLI" score="1919" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_3" accession="P02769|ALBU_BOVIN" score="1375" coverage="-1" sequence="" >
+			<ProteinHit id="PH_3" accession="P02769|ALBU_BOVIN" score="1375" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_4" accession="P00722|BGAL_ECOLI" score="1131" coverage="-1" sequence="" >
+			<ProteinHit id="PH_4" accession="P00722|BGAL_ECOLI" score="1131" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_5" accession="P00432|CATA_BOVIN" score="907" coverage="-1" sequence="" >
+			<ProteinHit id="PH_5" accession="P00432|CATA_BOVIN" score="907" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_6" accession="P00489|PYGM_RABIT" score="859" coverage="-1" sequence="" >
+			<ProteinHit id="PH_6" accession="P00489|PYGM_RABIT" score="859" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_7" accession="P06278|AMY_BACLI" score="733" coverage="-1" sequence="" >
+			<ProteinHit id="PH_7" accession="P06278|AMY_BACLI" score="733" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_8" accession="P46406|G3P_RABIT" score="682" coverage="-1" sequence="" >
+			<ProteinHit id="PH_8" accession="P46406|G3P_RABIT" score="682" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_9" accession="P62739|ACTA_BOVIN" score="679" coverage="-1" sequence="" >
+			<ProteinHit id="PH_9" accession="P62739|ACTA_BOVIN" score="679" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_10" accession="tr|A9FZB2|A9FZB2_SORC5rev" score="26" coverage="-1" sequence="" >
+			<ProteinHit id="PH_10" accession="tr|A9FZB2|A9FZB2_SORC5rev" score="26" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_11" accession="P00946|MANA_ECOLI" score="495" coverage="-1" sequence="" >
+			<ProteinHit id="PH_11" accession="P00946|MANA_ECOLI" score="495" sequence="" >
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="15" MZ="300.164093" RT="1437.53" >

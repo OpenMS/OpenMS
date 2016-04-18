@@ -5,7 +5,7 @@
 	</SearchParameters>
 	<IdentificationRun date="2009-01-09T00:37:38" search_engine="InsPecT" search_engine_version="" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
-			<ProteinHit id="PH_0" accession="Q9CQV8" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_0" accession="Q9CQV8" score="0" sequence="" >
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Inspect" higher_score_better="true" significance_threshold="0.975" MZ="433.803" RT="21.9494" >

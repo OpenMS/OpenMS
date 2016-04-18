@@ -5,16 +5,16 @@
 	</SearchParameters>
 	<IdentificationRun date="2012-06-14T15:47:34" search_engine="OpenMS/ConsensusID" search_engine_version="1.10.0" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" >
-			<ProteinHit id="PH_0" accession="IPI:CON_00019359.3|SWISS-PROT:P35527" score="0.906822979450226" coverage="-1" sequence="" >
+			<ProteinHit id="PH_0" accession="IPI:CON_00019359.3|SWISS-PROT:P35527" score="0.906822979450226" sequence="" >
 				<UserParam type="float" name="_score" value="0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="IPI:CON_00021304.1|SWISS-PROT:P35908" score="0.906822979450226" coverage="-1" sequence="" >
+			<ProteinHit id="PH_1" accession="IPI:CON_00021304.1|SWISS-PROT:P35908" score="0.906822979450226" sequence="" >
 				<UserParam type="float" name="_score" value="0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_2" accession="IPI:CON_00124499.2|TREMBL:Q8VED5" score="0.906822979450226" coverage="-1" sequence="" >
+			<ProteinHit id="PH_2" accession="IPI:CON_00124499.2|TREMBL:Q8VED5" score="0.906822979450226" sequence="" >
 				<UserParam type="float" name="_score" value="0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_3" accession="IPI:CON_00131368.3|SWISS-PROT:P50446" score="0.906822979450226" coverage="-1" sequence="" >
+			<ProteinHit id="PH_3" accession="IPI:CON_00131368.3|SWISS-PROT:P50446" score="0.906822979450226" sequence="" >
 				<UserParam type="float" name="_score" value="0"/>
 			</ProteinHit>
 		</ProteinIdentification>

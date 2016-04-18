@@ -9,31 +9,31 @@
 	</SearchParameters>
 	<IdentificationRun date="2013-06-24T09:49:04" search_engine="MASCOT" search_engine_version="" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
-			<ProteinHit id="PH_0" accession="P00489" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_0" accession="P00489" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="sp|P23524|GLXK1_ECOLI" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_1" accession="sp|P23524|GLXK1_ECOLI" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_2" accession="tr|C4ZR36|C4ZR36_ECOBW" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_2" accession="tr|C4ZR36|C4ZR36_ECOBW" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_3" accession="tr|B1XGT7|B1XGT7_ECODH" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_3" accession="tr|B1XGT7|B1XGT7_ECODH" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_4" accession="sp|B1XB85|TPIS_ECODH" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_4" accession="sp|B1XB85|TPIS_ECODH" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_5" accession="sp|P0A858|TPIS_ECOLI" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_5" accession="sp|P0A858|TPIS_ECOLI" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_6" accession="tr|C5A086|C5A086_ECOBW" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_6" accession="tr|C5A086|C5A086_ECOBW" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_7" accession="sp|B1XEA5|LSRF_ECODH" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_7" accession="sp|B1XEA5|LSRF_ECODH" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_8" accession="sp|P76143|LSRF_ECOLI" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_8" accession="sp|P76143|LSRF_ECOLI" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_9" accession="tr|C4ZWT4|C4ZWT4_ECOBW" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_9" accession="tr|C4ZWT4|C4ZWT4_ECOBW" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_10" accession="sp|P0AA93|YPDA_ECOLI" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_10" accession="sp|P0AA93|YPDA_ECOLI" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_11" accession="tr|C4ZVR7|C4ZVR7_ECOBW" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_11" accession="tr|C4ZVR7|C4ZVR7_ECOBW" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_12" accession="tr|B1X9Q2|B1X9Q2_ECODH" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_12" accession="tr|B1X9Q2|B1X9Q2_ECODH" score="0" sequence="" >
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="484.3053890319" RT="673.3959" >

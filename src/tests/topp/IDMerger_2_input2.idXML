@@ -5,25 +5,25 @@
 	</SearchParameters>
 	<IdentificationRun date="2005-05-22T15:28:33" search_engine="proteinprophet" search_engine_version=" Insilicos_LabKey_C++ (TPP v4.0 JETSTREAM rev 2, Build 200810230133 (linux))" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="ProteinProphet probability" higher_score_better="true" significance_threshold="0" >
-			<ProteinHit id="PH_0" accession="gi|295721|emb|CAA68468.1|" score="0.980000019073486" coverage="-1" sequence="" >
+			<ProteinHit id="PH_0" accession="gi|295721|emb|CAA68468.1|" score="0.980000019073486" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="sp|P11974|KPYM_RABIT" score="0.857200026512146" coverage="-1" sequence="" >
+			<ProteinHit id="PH_1" accession="sp|P11974|KPYM_RABIT" score="0.857200026512146" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_2" accession="sp|P00432|CATA_BOVIN" score="0.849900007247925" coverage="-1" sequence="" >
+			<ProteinHit id="PH_2" accession="sp|P00432|CATA_BOVIN" score="0.849900007247925" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_3" accession="gi|147905534|ref|NP_001079812.1|" score="0.845499992370605" coverage="-1" sequence="" >
+			<ProteinHit id="PH_3" accession="gi|147905534|ref|NP_001079812.1|" score="0.845499992370605" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_4" accession="sp|P00883|ALDOA_RABIT" score="0.772899985313416" coverage="-1" sequence="" >
+			<ProteinHit id="PH_4" accession="sp|P00883|ALDOA_RABIT" score="0.772899985313416" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_5" accession="gi|27805979|ref|NP_776803.1|" score="0.745000004768372" coverage="-1" sequence="" >
+			<ProteinHit id="PH_5" accession="gi|27805979|ref|NP_776803.1|" score="0.745000004768372" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_6" accession="gi|63428|emb|CAA43320.1|" score="0.710399985313416" coverage="-1" sequence="" >
+			<ProteinHit id="PH_6" accession="gi|63428|emb|CAA43320.1|" score="0.710399985313416" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_7" accession="gi|1351907|sp|P02769.4|ALBU_BOVIN" score="0.467999994754791" coverage="-1" sequence="" >
+			<ProteinHit id="PH_7" accession="gi|1351907|sp|P02769.4|ALBU_BOVIN" score="0.467999994754791" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_8" accession="gi|162805|gb|AAA30431.1|" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_8" accession="gi|162805|gb|AAA30431.1|" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_9" accession="sp|P00563|KCRM_RABIT" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_9" accession="sp|P00563|KCRM_RABIT" score="0" sequence="" >
 			</ProteinHit>
 			<UserParam type="string" name="protein_group_0" value="0.98,PH_0"/>
 			<UserParam type="string" name="protein_group_1" value="0.8572,PH_1"/>

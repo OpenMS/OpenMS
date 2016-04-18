@@ -5,9 +5,9 @@
 	</SearchParameters>
 	<IdentificationRun date="2005-01-27T17:47:41" search_engine="" search_engine_version="" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="25" >
-			<ProteinHit id="PH_0" accession="Q824A5" score="32.2999992370605" coverage="-1" sequence="" >
+			<ProteinHit id="PH_0" accession="Q824A5" score="32.2999992370605" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="AAD30739" score="28.1000003814697" coverage="-1" sequence="" >
+			<ProteinHit id="PH_1" accession="AAD30739" score="28.1000003814697" sequence="" >
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0.1" >

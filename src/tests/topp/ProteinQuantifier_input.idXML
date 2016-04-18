@@ -15,29 +15,29 @@
 	</SearchParameters>
 	<IdentificationRun date="2009-05-25T12:33:22" search_engine="X! Tandem (k-score)" search_engine_version="" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
-			<ProteinHit id="PH_0" accession="ddb000449223" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_0" accession="ddb000449223" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="ddb000394137" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_1" accession="ddb000394137" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_2" accession="ddb000015734" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_2" accession="ddb000015734" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_3" accession="ddb000014286" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_3" accession="ddb000014286" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_4" accession="ddb000517740" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_4" accession="ddb000517740" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_5" accession="IPI00010790" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_5" accession="IPI00010790" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_6" accession="ddb000626345" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_6" accession="ddb000626345" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_9" accession="rev000025591" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_9" accession="rev000025591" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_10" accession="rev000001143" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_10" accession="rev000001143" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_11" accession="rev000450478" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_11" accession="rev000450478" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_12" accession="IPI00027377" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_12" accession="IPI00027377" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_15" accession="IPI00028030" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_15" accession="IPI00028030" score="0" sequence="" >
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="538.605" RT="0.5927" >
@@ -79,21 +79,21 @@
 	</IdentificationRun>
 	<IdentificationRun date="2009-05-25T12:33:22" search_engine="SEQUEST" search_engine_version="" search_parameters_ref="SP_1" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
-			<ProteinHit id="PH_20" accession="IPI00010790" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_20" accession="IPI00010790" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_21" accession="IPI00294556" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_21" accession="IPI00294556" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_22" accession="IPI00480049" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_22" accession="IPI00480049" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_23" accession="IPI00020987" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_23" accession="IPI00020987" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_24" accession="IPI00006803" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_24" accession="IPI00006803" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_25" accession="IPI00014592" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_25" accession="IPI00014592" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_26" accession="IPI00028030" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_26" accession="IPI00028030" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_27" accession="IPI00027377" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_27" accession="IPI00027377" score="0" sequence="" >
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="xcorr" higher_score_better="true" significance_threshold="0" MZ="1143.5905250319" RT="3.1" >

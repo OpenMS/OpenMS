@@ -5,61 +5,61 @@
 	</SearchParameters>
 	<IdentificationRun date="2006-10-07T06:31:08" search_engine="Mascot" search_engine_version="2.1.03" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" >
-			<ProteinHit id="PH_0" accession="LGBO" score="38" coverage="-1" sequence="" >
+			<ProteinHit id="PH_0" accession="LGBO" score="38" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="LGBUI" score="38" coverage="-1" sequence="" >
+			<ProteinHit id="PH_1" accession="LGBUI" score="38" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_2" accession="1B0O" score="38" coverage="-1" sequence="" >
+			<ProteinHit id="PH_2" accession="1B0O" score="38" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_3" accession="1BEBA" score="38" coverage="-1" sequence="" >
+			<ProteinHit id="PH_3" accession="1BEBA" score="38" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_4" accession="1BSOA" score="38" coverage="-1" sequence="" >
+			<ProteinHit id="PH_4" accession="1BSOA" score="38" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_5" accession="1BSQA" score="38" coverage="-1" sequence="" >
+			<ProteinHit id="PH_5" accession="1BSQA" score="38" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_6" accession="1DV9A" score="38" coverage="-1" sequence="" >
+			<ProteinHit id="PH_6" accession="1DV9A" score="38" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_7" accession="CAA06532" score="38" coverage="-1" sequence="" >
+			<ProteinHit id="PH_7" accession="CAA06532" score="38" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_8" accession="AAA30411" score="38" coverage="-1" sequence="" >
+			<ProteinHit id="PH_8" accession="AAA30411" score="38" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_9" accession="AAA30412" score="38" coverage="-1" sequence="" >
+			<ProteinHit id="PH_9" accession="AAA30412" score="38" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_10" accession="CAA32835" score="38" coverage="-1" sequence="" >
+			<ProteinHit id="PH_10" accession="CAA32835" score="38" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_11" accession="LGSH" score="9" coverage="-1" sequence="" >
+			<ProteinHit id="PH_11" accession="LGSH" score="9" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_12" accession="S00132" score="9" coverage="-1" sequence="" >
+			<ProteinHit id="PH_12" accession="S00132" score="9" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_13" accession="AAA31510" score="9" coverage="-1" sequence="" >
+			<ProteinHit id="PH_13" accession="AAA31510" score="9" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_14" accession="CAD32664" score="7" coverage="-1" sequence="" >
+			<ProteinHit id="PH_14" accession="CAD32664" score="7" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_15" accession="Q6NT31_HUMAN" score="7" coverage="-1" sequence="" >
+			<ProteinHit id="PH_15" accession="Q6NT31_HUMAN" score="7" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_16" accession="Q6NT47_HUMAN" score="7" coverage="-1" sequence="" >
+			<ProteinHit id="PH_16" accession="Q6NT47_HUMAN" score="7" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_17" accession="Q6NT53_HUMAN" score="7" coverage="-1" sequence="" >
+			<ProteinHit id="PH_17" accession="Q6NT53_HUMAN" score="7" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_18" accession="AAL47008" score="7" coverage="-1" sequence="" >
+			<ProteinHit id="PH_18" accession="AAL47008" score="7" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_19" accession="AAK57558" score="7" coverage="-1" sequence="" >
+			<ProteinHit id="PH_19" accession="AAK57558" score="7" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_20" accession="AAK76362" score="7" coverage="-1" sequence="" >
+			<ProteinHit id="PH_20" accession="AAK76362" score="7" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_21" accession="A43800" score="6" coverage="-1" sequence="" >
+			<ProteinHit id="PH_21" accession="A43800" score="6" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_22" accession="Q6NRU0_XENLA" score="5" coverage="-1" sequence="" >
+			<ProteinHit id="PH_22" accession="Q6NRU0_XENLA" score="5" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_23" accession="Q6P408_MOUSE" score="5" coverage="-1" sequence="" >
+			<ProteinHit id="PH_23" accession="Q6P408_MOUSE" score="5" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_24" accession="AAF28968" score="4" coverage="-1" sequence="" >
+			<ProteinHit id="PH_24" accession="AAF28968" score="4" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_25" accession="Q6P3L3_BRARE" score="4" coverage="-1" sequence="" >
+			<ProteinHit id="PH_25" accession="Q6P3L3_BRARE" score="4" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_26" accession="Q7SZD3_BRARE" score="4" coverage="-1" sequence="" >
+			<ProteinHit id="PH_26" accession="Q7SZD3_BRARE" score="4" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_27" accession="Q9DGC5_ORENI" score="4" coverage="-1" sequence="" >
+			<ProteinHit id="PH_27" accession="Q9DGC5_ORENI" score="4" sequence="" >
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="623.52" RT="230.45" >

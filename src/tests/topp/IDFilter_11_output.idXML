@@ -12,22 +12,22 @@
 	</SearchParameters>
 	<IdentificationRun date="2015-01-21T18:28:17" search_engine="X! Tandem" search_engine_version="" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
-			<ProteinHit id="PH_0" accession="sp|Q96QS3|ARX_HUMAN" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_0" accession="sp|Q96QS3|ARX_HUMAN" score="0" sequence="" >
 				<UserParam type="string" name="isDecoy" value="false"/>
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="sp|Q96NH3|BROMI_HUMAN" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_1" accession="sp|Q96NH3|BROMI_HUMAN" score="0" sequence="" >
 				<UserParam type="string" name="isDecoy" value="false"/>
 			</ProteinHit>
-			<ProteinHit id="PH_2" accession="sp|Q8TE49|OTU7A_HUMAN" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_2" accession="sp|Q8TE49|OTU7A_HUMAN" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<ProteinHit id="PH_3" accession="sp|Q2PPJ7|RGPA2_HUMAN" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_3" accession="sp|Q2PPJ7|RGPA2_HUMAN" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<ProteinHit id="PH_4" accession="sp|Q07020|RL18_HUMAN" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_4" accession="sp|Q07020|RL18_HUMAN" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<ProteinHit id="PH_5" accession="sp|P23588|IF4B_HUMAN" score="0" coverage="-1" sequence="" >
+			<ProteinHit id="PH_5" accession="sp|P23588|IF4B_HUMAN" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
 			<UserParam type="float" name="Fido_prob_protein" value="0.7"/>
