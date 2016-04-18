@@ -28,30 +28,83 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Christian Ehrlich $
-// $Authors: Christian Ehrlich, Chris Bielow $
+// $Maintainer: George Rosenberger $
+// $Authors: George Rosenberger, Hannes Roest, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/MATH/STATISTICS/QuadraticRegression.h>
+#include <OpenMS/MATH/MISC/RANSACModelLinear.h>
+
+#include <OpenMS/MATH/STATISTICS/LinearRegression.h>
+#include <numeric>
+#include <algorithm>
+
 
 namespace OpenMS
 {
   namespace Math
   {
+    RansacModelLinear::ModelParameters RansacModelLinear::rm_fit_impl(const DVecIt& begin, const DVecIt& end)
+    {
+      std::vector<double> x, y;
 
-    QuadraticRegression::QuadraticRegression() :
-      a_(0), b_(0), c_(0), chi_squared_(0) {}
+      for (DVecIt it = begin; it != end; ++it)
+      {
+        x.push_back(it->first);
+        y.push_back(it->second);
+      }
+      LinearRegression lin_reg;
+      lin_reg.computeRegression(0.95, x.begin(), x.end(), y.begin());
+      ModelParameters p;
+      p.push_back(lin_reg.getIntercept());
+      p.push_back(lin_reg.getSlope());
+      return p;
+    }
 
-    double QuadraticRegression::eval(double x) const {return a_ + b_*x + c_*x*x;}
+    double RansacModelLinear::rm_rsq_impl(const DVecIt& begin, const DVecIt& end)
+    {
+      std::vector<double> x, y;
 
-    double QuadraticRegression::eval(double A, double B, double C, double x) {return A + B*x + C*x*x;}
+      for (DVecIt it = begin; it != end; ++it)
+      {
+        x.push_back(it->first);
+        y.push_back(it->second);
+      }
 
-    double QuadraticRegression::getA() const {return a_;}
-    double QuadraticRegression::getB() const {return b_;}
-    double QuadraticRegression::getC() const {return c_;}
-    double QuadraticRegression::getChiSquared() const {return chi_squared_;}
+      LinearRegression lin_reg;
+      lin_reg.computeRegression(0.95, x.begin(), x.end(), y.begin());
+
+      return lin_reg.getRSquared();
+    }
+
+    double RansacModelLinear::rm_rss_impl(const DVecIt& begin, const DVecIt& end, const ModelParameters& coefficients)
+    {
+      double rss = 0;
+
+      for (DVecIt it = begin; it != end; ++it)
+      {
+        rss += pow(it->second - (coefficients[0] + ( coefficients[1] * it->first)), 2);
+      }
+
+      return rss;
+    }
+
+    RansacModelLinear::DVec RansacModelLinear::rm_inliers_impl(const DVecIt& begin, const DVecIt& end, const ModelParameters& coefficients, double max_threshold)
+    {
+      DVec alsoinliers;
+
+      for (DVecIt it = begin; it != end; ++it)
+      {
+        if (pow(it->second - (coefficients[0] + ( coefficients[1] * it->first)), 2) < max_threshold)
+        {
+          alsoinliers.push_back(*it);
+        }
+      }
+
+      return alsoinliers;
+    }
 
 
-  }
-}
+  } // Math
 
+
+} // OpenMS

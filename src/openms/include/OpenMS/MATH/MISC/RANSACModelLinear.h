@@ -27,31 +27,45 @@
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
+// --------------------------------------------------------------------------
+// $Maintainer: George Rosenberger $
+// $Authors: George Rosenberger, Hannes Roest, Chris Bielow $
+// --------------------------------------------------------------------------
 
-#include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <iostream>
+#ifndef OPENMS_MATH_MISC_RANSACMODELLINEAR_H
+#define OPENMS_MATH_MISC_RANSACMODELLINEAR_H
 
-using namespace OpenMS;
-using namespace std;
+#include <OpenMS/config.h>
+#include <OpenMS/MATH/MISC/RANSACModel.h>
 
-int main(int argc, const char** argv)
+namespace OpenMS
 {
-  if (argc < 2) return 1;
-  // the path to the data should be given on the command line
-  String tutorial_data_path(argv[1]);
 
-  InternalCalibration ic;
-  PeakMap exp;
-  MzMLFile mzml_file;
-  mzml_file.load(tutorial_data_path + "/data/Tutorial_InternalCalibration.mzML", exp);
+  namespace Math
+  {
 
-  std::vector<double> ref_masses;
-  ref_masses.push_back(1296.68476942);
-  ref_masses.push_back(2465.19833942);
+    /**
+      @brief Implementation of a linear RANSAC model fit.
+      
+      Using generic plug-in template base class 'RansacModel' using 'Curiously recurring template pattern' (CRTP).
+    */
+    class OPENMS_DLLAPI RansacModelLinear
+      : public RansacModel<RansacModelLinear>
+    {
+    public:
+      static ModelParameters rm_fit_impl(const DVecIt& begin, const DVecIt& end);
+      
+      static double rm_rsq_impl(const DVecIt& begin, const DVecIt& end);
 
-  ic.calibrateMapSpectrumwise(exp, ref_masses);
+      static double rm_rss_impl(const DVecIt& begin, const DVecIt& end, const ModelParameters& coefficients);
 
-  return 0;
-} //end of main
+      static DVec rm_inliers_impl(const DVecIt& begin, const DVecIt& end, const ModelParameters& coefficients, double max_threshold);
+
+    };
+
+
+  }
+
+
+}
+#endif // OPENMS_MATH_MISC_RANSACMODELLINEAR_H

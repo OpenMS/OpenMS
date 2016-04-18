@@ -27,31 +27,16 @@
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
+// --------------------------------------------------------------------------
+// $Maintainer: Christian Ehrlich $
+// $Authors: Christian Ehrlich $
+// --------------------------------------------------------------------------
 
-#include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <iostream>
+#include <OpenMS/MATH/MISC/Spline2d.h>
 
-using namespace OpenMS;
-using namespace std;
-
-int main(int argc, const char** argv)
+namespace OpenMS
 {
-  if (argc < 2) return 1;
-  // the path to the data should be given on the command line
-  String tutorial_data_path(argv[1]);
 
-  InternalCalibration ic;
-  PeakMap exp;
-  MzMLFile mzml_file;
-  mzml_file.load(tutorial_data_path + "/data/Tutorial_InternalCalibration.mzML", exp);
+  // dummy cpp for better navigation in IDE
 
-  std::vector<double> ref_masses;
-  ref_masses.push_back(1296.68476942);
-  ref_masses.push_back(2465.19833942);
-
-  ic.calibrateMapSpectrumwise(exp, ref_masses);
-
-  return 0;
-} //end of main
+}

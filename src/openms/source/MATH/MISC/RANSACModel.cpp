@@ -27,31 +27,24 @@
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
+// --------------------------------------------------------------------------
+// $Maintainer: George Rosenberger $
+// $Authors: George Rosenberger, Hannes Roest, Chris Bielow $
+// --------------------------------------------------------------------------
 
-#include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <iostream>
+#include <OpenMS/MATH/MISC/RANSACModel.h>
 
-using namespace OpenMS;
-using namespace std;
+#include <numeric>
+#include <algorithm>
 
-int main(int argc, const char** argv)
+
+namespace OpenMS
 {
-  if (argc < 2) return 1;
-  // the path to the data should be given on the command line
-  String tutorial_data_path(argv[1]);
+  namespace Math
+  {
 
-  InternalCalibration ic;
-  PeakMap exp;
-  MzMLFile mzml_file;
-  mzml_file.load(tutorial_data_path + "/data/Tutorial_InternalCalibration.mzML", exp);
+    // template class -- nothing here
+    
+  } // Math
 
-  std::vector<double> ref_masses;
-  ref_masses.push_back(1296.68476942);
-  ref_masses.push_back(2465.19833942);
-
-  ic.calibrateMapSpectrumwise(exp, ref_masses);
-
-  return 0;
-} //end of main
+} // OpenMS
