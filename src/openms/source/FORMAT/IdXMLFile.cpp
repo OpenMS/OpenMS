@@ -219,7 +219,7 @@ namespace OpenMS
         double coverage = protein_ids[i].getHits()[j].getCoverage();
         if (coverage != ProteinHit::COVERAGE_UNKNOWN)
         {
-          os << " coverage=\"" << coverage << "\"";
+          os << "coverage=\"" << coverage << "\" ";
         }
 
         os << "sequence=\"" << writeXMLEscape(protein_ids[i].getHits()[j].getSequence()) << "\" >\n";
