@@ -785,7 +785,6 @@ namespace OpenMS
 
         os << " accession=\"" << current_prot_id.getHits()[j].getAccession() << "\"";
         os << " score=\"" << current_prot_id.getHits()[j].getScore() << "\"";
-        os << " coverage=\"" << current_prot_id.getHits()[j].getCoverage() << "\"";
         
         double coverage = current_prot_id.getHits()[j].getCoverage();
         if (coverage != ProteinHit::COVERAGE_UNKNOWN)
