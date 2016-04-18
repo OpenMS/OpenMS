@@ -38,6 +38,8 @@ using namespace std;
 
 namespace OpenMS
 {
+  const double ProteinHit::COVERAGE_UNKNOWN = -1;
+  
   // default constructor
   ProteinHit::ProteinHit() :
     MetaInfoInterface(),
@@ -45,7 +47,7 @@ namespace OpenMS
     rank_(0),
     accession_(""),
     sequence_(""),
-    coverage_(-1)
+    coverage_(COVERAGE_UNKNOWN)
   {
   }
 
@@ -56,7 +58,7 @@ namespace OpenMS
     rank_(rank),
     accession_(accession.trim()),
     sequence_(sequence.trim()),
-    coverage_(-1)
+    coverage_(COVERAGE_UNKNOWN)
   {
   }
 
