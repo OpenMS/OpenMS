@@ -63,37 +63,37 @@
 		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
 		</SearchParameters>
 		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
-			<ProteinHit id="PH_0" accession="dec_sp|Q9D0D5|T2EA_MOUSE" coverage="-1" score="0.934704005718231" sequence="YAAFCCVENIPVTDTSESPTRIRSAGEIVIRYAVEMPPDAAEMPRLDFYEDSYEVGRNREAIPNQRAESFVLVDRDLPRGMKTANTNAVVEETYNTRLRARAADIYVNKPPEKADLSSYPCHTMLLIAGLGEVAEDTEEEIEHADQDMKTMAPRDVDYFCDPSRQDEFSKSYATWIILDAGRKQEESHETDLRNFETPDALALDEATKYKFHSEGASKDSKLKKTQERIARLAFPWVCKNNEVDRGLEDELTIFVREYILEGKELLGRLVVELDEPRPAAQAVQPAEPVRGTEKDDLGSASMEMEFSLVNYVRATVVAANEATDHQAIKTHSDKLRHRPNEADSMFHFKTFGHSEKDFNIGCMPVRNAGEESLKSTEEQKLFTTTSAGPPELCMADMGIQLGECRIMPLKEAAQAELGKTLHNGADVREEPVHEVDDDYR">
+			<ProteinHit id="PH_0" accession="dec_sp|Q9D0D5|T2EA_MOUSE" score="0.934704005718231" sequence="YAAFCCVENIPVTDTSESPTRIRSAGEIVIRYAVEMPPDAAEMPRLDFYEDSYEVGRNREAIPNQRAESFVLVDRDLPRGMKTANTNAVVEETYNTRLRARAADIYVNKPPEKADLSSYPCHTMLLIAGLGEVAEDTEEEIEHADQDMKTMAPRDVDYFCDPSRQDEFSKSYATWIILDAGRKQEESHETDLRNFETPDALALDEATKYKFHSEGASKDSKLKKTQERIARLAFPWVCKNNEVDRGLEDELTIFVREYILEGKELLGRLVVELDEPRPAAQAVQPAEPVRGTEKDDLGSASMEMEFSLVNYVRATVVAANEATDHQAIKTHSDKLRHRPNEADSMFHFKTFGHSEKDFNIGCMPVRNAGEESLKSTEEQKLFTTTSAGPPELCMADMGIQLGECRIMPLKEAAQAELGKTLHNGADVREEPVHEVDDDYR">
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="Description" value="General transcription factor IIE subunit 1 OS=Mus musculus GN=Gtf2e1 PE=2 SV=1"/>
 				<UserParam type="float" name="_score" value="0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="sp|A2AJ76|HMCN2_MOUSE" coverage="-1" score="0.934704005718231" sequence="MTPGAQLLPLLVAISTAVAAVVTSDAPTK">
+			<ProteinHit id="PH_1" accession="sp|A2AJ76|HMCN2_MOUSE" score="0.934704005718231" sequence="MTPGAQLLPLLVAISTAVAAVVTSDAPTK">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="Description" value="Hemicentin-2 OS=Mus musculus GN=Hmcn2 PE=2 SV=1"/>
 				<UserParam type="float" name="_score" value="0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_2" accession="sp|A2ATU0|DHTK1_MOUSE" coverage="-1" score="0.934704005718231" sequence="MASAATVAAAGRALRRAVLLLRRGYQTER">
+			<ProteinHit id="PH_2" accession="sp|A2ATU0|DHTK1_MOUSE" score="0.934704005718231" sequence="MASAATVAAAGRALRRAVLLLRRGYQTER">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="Description" value="Probable 2-oxoglutarate dehydrogenase E1 component DHKTD1, mitochondrial OS=Mus musculus GN=Dhtkd1 PE=2 SV=1"/>
 				<UserParam type="float" name="_score" value="0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_3" accession="sp|B5X0G2|MUP17_MOUSE" coverage="-1" score="0.934704005718231" sequence="MKMLLLLCLGLTLVCVHAEEASSTGRNFNVEKINGEWHTIILASDKREKIEEHGNFRLFLEQIHVLENSLVLKVHTVRDEECSELSMVADKTEKAGEYSVTYDGFNTFTIPKTDYDNFLMAHLINEKDGETFQLMGLYGREPDLSSDIKERFAQLCEEHGILRENIIDLSNANRCLQARE">
+			<ProteinHit id="PH_3" accession="sp|B5X0G2|MUP17_MOUSE" score="0.934704005718231" sequence="MKMLLLLCLGLTLVCVHAEEASSTGRNFNVEKINGEWHTIILASDKREKIEEHGNFRLFLEQIHVLENSLVLKVHTVRDEECSELSMVADKTEKAGEYSVTYDGFNTFTIPKTDYDNFLMAHLINEKDGETFQLMGLYGREPDLSSDIKERFAQLCEEHGILRENIIDLSNANRCLQARE">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="Description" value="Major urinary protein 17 OS=Mus musculus GN=Mup17 PE=2 SV=2"/>
 				<UserParam type="float" name="_score" value="0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_4" accession="sp|O08573|LEG9_MOUSE" coverage="-1" score="0.934704005718231" sequence="MALFSAQSPYINPIIPFTGPIQGGLQEGLQ">
+			<ProteinHit id="PH_4" accession="sp|O08573|LEG9_MOUSE" score="0.934704005718231" sequence="MALFSAQSPYINPIIPFTGPIQGGLQEGLQ">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="Description" value="Galectin-9 OS=Mus musculus GN=Lgals9 PE=1 SV=1"/>
 				<UserParam type="float" name="_score" value="0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_5" accession="sp|O08600|NUCG_MOUSE" coverage="-1" score="0.934704005718231" sequence="MRALRAGLTLALGAGLGAAAEHWRRREGKA">
+			<ProteinHit id="PH_5" accession="sp|O08600|NUCG_MOUSE" score="0.934704005718231" sequence="MRALRAGLTLALGAGLGAAAEHWRRREGKA">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="Description" value="Endonuclease G, mitochondrial OS=Mus musculus GN=Endog PE=2 SV=1"/>
 				<UserParam type="float" name="_score" value="0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_6" accession="sp|O08601|MTP_MOUSE" coverage="-1" score="0.934704005718231" sequence="MILLAVLFLCFFSSYSASVKGHTTGLSLNNE">
+			<ProteinHit id="PH_6" accession="sp|O08601|MTP_MOUSE" score="0.934704005718231" sequence="MILLAVLFLCFFSSYSASVKGHTTGLSLNNE">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="Description" value="Microsomal triglyceride transfer protein large subunit OS=Mus musculus GN=Mttp PE=2 SV=2"/>
 				<UserParam type="float" name="_score" value="0"/>

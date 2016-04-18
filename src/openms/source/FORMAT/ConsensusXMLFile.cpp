@@ -419,7 +419,6 @@ namespace OpenMS
       String accession = attributeAsString_(attributes, "accession");
       prot_hit_.setAccession(accession);
       prot_hit_.setScore(attributeAsDouble_(attributes, "score"));
-      prot_hit_.setCoverage(attributeAsDouble_(attributes, "coverage"));
 
       //sequence
       String tmp = "";
@@ -778,7 +777,6 @@ namespace OpenMS
 
         os << " accession=\"" << current_prot_id.getHits()[j].getAccession() << "\"";
         os << " score=\"" << current_prot_id.getHits()[j].getScore() << "\"";
-        os << " coverage=\"" << current_prot_id.getHits()[j].getCoverage() << "\"";
         os << " sequence=\"" << current_prot_id.getHits()[j].getSequence() << "\">\n";
 
         writeUserParam_("UserParam", os, current_prot_id.getHits()[j], 4);

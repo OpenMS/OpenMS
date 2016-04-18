@@ -33,15 +33,15 @@
 			<FixedModification name="C+57.0215" />
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
-			<ProteinHit id="PH_0" accession="P38934" coverage="-1" score="0" sequence="">
+			<ProteinHit id="PH_0" accession="P38934" score="0" sequence="">
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="P32644" coverage="-1" score="0" sequence="">
+			<ProteinHit id="PH_1" accession="P32644" score="0" sequence="">
 			</ProteinHit>
-			<ProteinHit id="PH_2" accession="P02994" coverage="-1" score="0" sequence="">
+			<ProteinHit id="PH_2" accession="P02994" score="0" sequence="">
 			</ProteinHit>
-			<ProteinHit id="PH_3" accession="P11484" coverage="-1" score="0" sequence="">
+			<ProteinHit id="PH_3" accession="P11484" score="0" sequence="">
 			</ProteinHit>
-			<ProteinHit id="PH_4" accession="P11485" coverage="-1" score="0" sequence="">
+			<ProteinHit id="PH_4" accession="P11485" score="0" sequence="">
 			</ProteinHit>
 		</ProteinIdentification>
 	</IdentificationRun>
@@ -50,11 +50,11 @@
 			<FixedModification name="C+57.0215" />
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
-			<ProteinHit id="PH_5" accession="P21734" coverage="-1" score="0" sequence="">
+			<ProteinHit id="PH_5" accession="P21734" score="0" sequence="">
 			</ProteinHit>
-			<ProteinHit id="PH_6" accession="P47166" coverage="-1" score="0" sequence="">
+			<ProteinHit id="PH_6" accession="P47166" score="0" sequence="">
 			</ProteinHit>
-			<ProteinHit id="PH_7" accession="P21538" coverage="-1" score="0" sequence="">
+			<ProteinHit id="PH_7" accession="P21538" score="0" sequence="">
 			</ProteinHit>
 		</ProteinIdentification>
 	</IdentificationRun>

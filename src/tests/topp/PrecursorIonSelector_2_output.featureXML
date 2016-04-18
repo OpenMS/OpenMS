@@ -4,15 +4,15 @@
 		<SearchParameters db="SwissProt" db_version="SwissProt_54.5.fasta" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 		</SearchParameters>
 		<ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0">
-			<ProteinHit id="PH_0" accession="P02787" coverage="-1" score="841" sequence="">
+			<ProteinHit id="PH_0" accession="P02787" score="841" sequence="">
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="P10599" coverage="-1" score="143" sequence="">
+			<ProteinHit id="PH_1" accession="P10599" score="143" sequence="">
 			</ProteinHit>
-			<ProteinHit id="PH_2" accession="Q8WZ42" coverage="-1" score="78" sequence="">
+			<ProteinHit id="PH_2" accession="Q8WZ42" score="78" sequence="">
 			</ProteinHit>
-			<ProteinHit id="PH_3" accession="Q96MT8" coverage="-1" score="36" sequence="">
+			<ProteinHit id="PH_3" accession="Q96MT8" score="36" sequence="">
 			</ProteinHit>
-			<ProteinHit id="PH_4" accession="O60258" coverage="-1" score="24" sequence="">
+			<ProteinHit id="PH_4" accession="O60258" score="24" sequence="">
 			</ProteinHit>
 		</ProteinIdentification>
 	</IdentificationRun>

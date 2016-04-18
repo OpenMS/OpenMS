@@ -11,11 +11,11 @@
 			<VariableModification name="Oxidation (M)" />
 		</SearchParameters>
 		<ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0">
-			<ProteinHit id="PH_0" accession="sp|P02663|CASA2_BOVIN" coverage="-1" score="520" sequence="">
+			<ProteinHit id="PH_0" accession="sp|P02663|CASA2_BOVIN" score="520" sequence="">
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="sp|P02662|CASA1_BOVIN" coverage="-1" score="520" sequence="">
+			<ProteinHit id="PH_1" accession="sp|P02662|CASA1_BOVIN" score="520" sequence="">
 			</ProteinHit>
-			<ProteinHit id="PH_2" accession="sp|P02663|CASA2_BOVIN_rev" coverage="-1" score="0" sequence="">
+			<ProteinHit id="PH_2" accession="sp|P02663|CASA2_BOVIN_rev" score="0" sequence="">
 			</ProteinHit>
 		</ProteinIdentification>
 	</IdentificationRun>
@@ -27,25 +27,25 @@
 			<VariableModification name="Oxidation (M)" />
 		</SearchParameters>
 		<ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0">
-			<ProteinHit id="PH_3" accession="YDL217C" coverage="-1" score="2922" sequence="">
+			<ProteinHit id="PH_3" accession="YDL217C" score="2922" sequence="">
 			</ProteinHit>
-			<ProteinHit id="PH_4" accession="YEL020W-A" coverage="-1" score="1586" sequence="">
+			<ProteinHit id="PH_4" accession="YEL020W-A" score="1586" sequence="">
 			</ProteinHit>
-			<ProteinHit id="PH_5" accession="YBR091C" coverage="-1" score="1214" sequence="">
+			<ProteinHit id="PH_5" accession="YBR091C" score="1214" sequence="">
 			</ProteinHit>
-			<ProteinHit id="PH_6" accession="YJL054W" coverage="-1" score="877" sequence="">
+			<ProteinHit id="PH_6" accession="YJL054W" score="877" sequence="">
 			</ProteinHit>
-			<ProteinHit id="PH_7" accession="YOR297C" coverage="-1" score="369" sequence="">
+			<ProteinHit id="PH_7" accession="YOR297C" score="369" sequence="">
 			</ProteinHit>
-			<ProteinHit id="PH_8" accession="YJL180C" coverage="-1" score="36" sequence="">
+			<ProteinHit id="PH_8" accession="YJL180C" score="36" sequence="">
 			</ProteinHit>
-			<ProteinHit id="PH_9" accession="YNL243W" coverage="-1" score="32" sequence="">
+			<ProteinHit id="PH_9" accession="YNL243W" score="32" sequence="">
 			</ProteinHit>
-			<ProteinHit id="PH_10" accession="YPR068C" coverage="-1" score="30" sequence="">
+			<ProteinHit id="PH_10" accession="YPR068C" score="30" sequence="">
 			</ProteinHit>
-			<ProteinHit id="PH_11" accession="YNL294C" coverage="-1" score="20" sequence="">
+			<ProteinHit id="PH_11" accession="YNL294C" score="20" sequence="">
 			</ProteinHit>
-			<ProteinHit id="PH_12" accession="YNR051C" coverage="-1" score="16" sequence="">
+			<ProteinHit id="PH_12" accession="YNR051C" score="16" sequence="">
 			</ProteinHit>
 		</ProteinIdentification>
 	</IdentificationRun>

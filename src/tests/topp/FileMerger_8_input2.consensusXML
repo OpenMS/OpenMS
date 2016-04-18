@@ -28,7 +28,7 @@
 			<VariableModification name="Oxidation (M)" />
 		</SearchParameters>
 		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
-			<ProteinHit id="PH_0" accession="IPI:CON_00009867.3|SWISS-PROT:P13647" coverage="-1" score="0.871177971363068" sequence="">
+			<ProteinHit id="PH_0" accession="IPI:CON_00009867.3|SWISS-PROT:P13647" score="0.871177971363068" sequence="">
 				<UserParam type="float" name="OMSSA_score" value="0"/>
 			</ProteinHit>
 		</ProteinIdentification>
@@ -42,7 +42,7 @@
 			<VariableModification name="Oxidation (M)" />
 		</SearchParameters>
 		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
-			<ProteinHit id="PH_1" accession="IPI:CON_00698900.1|SWISS-PROT:P60712" coverage="-1" score="0.871177971363068" sequence="">
+			<ProteinHit id="PH_1" accession="IPI:CON_00698900.1|SWISS-PROT:P60712" score="0.871177971363068" sequence="">
 				<UserParam type="float" name="OMSSA_score" value="0"/>
 			</ProteinHit>
 		</ProteinIdentification>

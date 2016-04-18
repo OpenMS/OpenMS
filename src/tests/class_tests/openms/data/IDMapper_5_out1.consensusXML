@@ -88,9 +88,9 @@
 			<VariableModification name="+42.0106" />
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
-			<ProteinHit id="PH_0" accession="sp|Q12905|ILF2_HUMAN" coverage="-1" score="0" sequence="">
+			<ProteinHit id="PH_0" accession="sp|Q12905|ILF2_HUMAN" score="0" sequence="">
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="sp|Q9NZI8|IF2B1_HUMAN" coverage="-1" score="0" sequence="">
+			<ProteinHit id="PH_1" accession="sp|Q9NZI8|IF2B1_HUMAN" score="0" sequence="">
 			</ProteinHit>
 		</ProteinIdentification>
 	</IdentificationRun>
@@ -106,21 +106,21 @@
 			<VariableModification name="+42.0106" />
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
-			<ProteinHit id="PH_2" accession="sp|P21333|FLNA_HUMAN" coverage="-1" score="0" sequence="">
+			<ProteinHit id="PH_2" accession="sp|P21333|FLNA_HUMAN" score="0" sequence="">
 			</ProteinHit>
-			<ProteinHit id="PH_3" accession="sp|Q12905|ILF2_HUMAN" coverage="-1" score="0" sequence="">
+			<ProteinHit id="PH_3" accession="sp|Q12905|ILF2_HUMAN" score="0" sequence="">
 			</ProteinHit>
-			<ProteinHit id="PH_4" accession="sp|Q9NYF8|BCLF1_HUMAN" coverage="-1" score="0" sequence="">
+			<ProteinHit id="PH_4" accession="sp|Q9NYF8|BCLF1_HUMAN" score="0" sequence="">
 			</ProteinHit>
-			<ProteinHit id="PH_5" accession="sp|Q9UHB9|SRP68_HUMAN" coverage="-1" score="0" sequence="">
+			<ProteinHit id="PH_5" accession="sp|Q9UHB9|SRP68_HUMAN" score="0" sequence="">
 			</ProteinHit>
-			<ProteinHit id="PH_6" accession="sp|Q9NZI8|IF2B1_HUMAN" coverage="-1" score="0" sequence="">
+			<ProteinHit id="PH_6" accession="sp|Q9NZI8|IF2B1_HUMAN" score="0" sequence="">
 			</ProteinHit>
-			<ProteinHit id="PH_7" accession="sp|O43765|SGTA_HUMAN" coverage="-1" score="0" sequence="">
+			<ProteinHit id="PH_7" accession="sp|O43765|SGTA_HUMAN" score="0" sequence="">
 			</ProteinHit>
-			<ProteinHit id="PH_8" accession="sp|P29692|EF1D_HUMAN" coverage="-1" score="0" sequence="">
+			<ProteinHit id="PH_8" accession="sp|P29692|EF1D_HUMAN" score="0" sequence="">
 			</ProteinHit>
-			<ProteinHit id="PH_9" accession="sp|Q9Y237|PIN4_HUMAN" coverage="-1" score="0" sequence="">
+			<ProteinHit id="PH_9" accession="sp|Q9Y237|PIN4_HUMAN" score="0" sequence="">
 			</ProteinHit>
 		</ProteinIdentification>
 	</IdentificationRun>

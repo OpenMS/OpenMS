@@ -57,31 +57,31 @@
     <IdentificationRun id="PI_0" date="2013-10-02T09:54:15" search_engine="OpenMS/ConsensusID" search_engine_version="1.10.0">
         <SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0"></SearchParameters>
         <ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
-            <ProteinHit id="PH_151" accession="sp|P04908|H2A1B_HUMAN" coverage="-1" score="0.750620007514954" sequence="">
+            <ProteinHit id="PH_151" accession="sp|P04908|H2A1B_HUMAN" score="0.750620007514954" sequence="">
                 <UserParam type="float" name="_score" value="0" />
             </ProteinHit>
-            <ProteinHit id="PH_1037" accession="sp|Q93077|H2A1C_HUMAN" coverage="-1" score="0.750620007514954" sequence="">
+            <ProteinHit id="PH_1037" accession="sp|Q93077|H2A1C_HUMAN" score="0.750620007514954" sequence="">
                 <UserParam type="float" name="_score" value="0" />
             </ProteinHit>
-            <ProteinHit id="PH_328" accession="sp|P20671|H2A1D_HUMAN" coverage="-1" score="0.750620007514954" sequence="">
+            <ProteinHit id="PH_328" accession="sp|P20671|H2A1D_HUMAN" score="0.750620007514954" sequence="">
                 <UserParam type="float" name="_score" value="0" />
             </ProteinHit>
-            <ProteinHit id="PH_1058" accession="sp|Q96KK5|H2A1H_HUMAN" coverage="-1" score="0.750620007514954" sequence="">
+            <ProteinHit id="PH_1058" accession="sp|Q96KK5|H2A1H_HUMAN" score="0.750620007514954" sequence="">
                 <UserParam type="float" name="_score" value="0" />
             </ProteinHit>
-            <ProteinHit id="PH_1094" accession="sp|Q99878|H2A1J_HUMAN" coverage="-1" score="0.750620007514954" sequence="">
+            <ProteinHit id="PH_1094" accession="sp|Q99878|H2A1J_HUMAN" score="0.750620007514954" sequence="">
                 <UserParam type="float" name="_score" value="0" />
             </ProteinHit>
-            <ProteinHit id="PH_231" accession="sp|P0C0S8|H2A1_HUMAN" coverage="-1" score="0.750620007514954" sequence="">
+            <ProteinHit id="PH_231" accession="sp|P0C0S8|H2A1_HUMAN" score="0.750620007514954" sequence="">
                 <UserParam type="float" name="_score" value="0" />
             </ProteinHit>
-            <ProteinHit id="PH_907" accession="sp|Q6FI13|H2A2A_HUMAN" coverage="-1" score="0.750620007514954" sequence="">
+            <ProteinHit id="PH_907" accession="sp|Q6FI13|H2A2A_HUMAN" score="0.750620007514954" sequence="">
                 <UserParam type="float" name="_score" value="0" />
             </ProteinHit>
-            <ProteinHit id="PH_939" accession="sp|Q7L7L0|H2A3_HUMAN" coverage="-1" score="0.750620007514954" sequence="">
+            <ProteinHit id="PH_939" accession="sp|Q7L7L0|H2A3_HUMAN" score="0.750620007514954" sequence="">
                 <UserParam type="float" name="_score" value="0" />
             </ProteinHit>
-            <ProteinHit id="PH_1003" accession="sp|Q8NFH8|REPS2_HUMAN" coverage="-1" score="0.750620007514954" sequence="">
+            <ProteinHit id="PH_1003" accession="sp|Q8NFH8|REPS2_HUMAN" score="0.750620007514954" sequence="">
                 <UserParam type="float" name="_score" value="0" />
             </ProteinHit>
         </ProteinIdentification>

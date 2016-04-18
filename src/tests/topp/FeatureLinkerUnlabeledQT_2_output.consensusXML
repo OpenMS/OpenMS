@@ -10,9 +10,9 @@
 		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
-			<ProteinHit id="PH_0" accession="ABCDEAA" coverage="-1" score="0" sequence="">
+			<ProteinHit id="PH_0" accession="ABCDEAA" score="0" sequence="">
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="FGHIJAA" coverage="-1" score="0" sequence="">
+			<ProteinHit id="PH_1" accession="FGHIJAA" score="0" sequence="">
 			</ProteinHit>
 		</ProteinIdentification>
 	</IdentificationRun>
@@ -20,9 +20,9 @@
 		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
-			<ProteinHit id="PH_2" accession="ABCDEDD" coverage="-1" score="0" sequence="">
+			<ProteinHit id="PH_2" accession="ABCDEDD" score="0" sequence="">
 			</ProteinHit>
-			<ProteinHit id="PH_3" accession="FGHIJDD" coverage="-1" score="0" sequence="">
+			<ProteinHit id="PH_3" accession="FGHIJDD" score="0" sequence="">
 			</ProteinHit>
 		</ProteinIdentification>
 	</IdentificationRun>
@@ -30,9 +30,9 @@
 		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
-			<ProteinHit id="PH_4" accession="ABCDECC" coverage="-1" score="0" sequence="">
+			<ProteinHit id="PH_4" accession="ABCDECC" score="0" sequence="">
 			</ProteinHit>
-			<ProteinHit id="PH_5" accession="FGHIJCC" coverage="-1" score="0" sequence="">
+			<ProteinHit id="PH_5" accession="FGHIJCC" score="0" sequence="">
 			</ProteinHit>
 		</ProteinIdentification>
 	</IdentificationRun>
@@ -40,9 +40,9 @@
 		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
-			<ProteinHit id="PH_6" accession="ABCDEAA" coverage="-1" score="0" sequence="">
+			<ProteinHit id="PH_6" accession="ABCDEAA" score="0" sequence="">
 			</ProteinHit>
-			<ProteinHit id="PH_7" accession="FGHIJAA" coverage="-1" score="0" sequence="">
+			<ProteinHit id="PH_7" accession="FGHIJAA" score="0" sequence="">
 			</ProteinHit>
 		</ProteinIdentification>
 	</IdentificationRun>
@@ -50,9 +50,9 @@
 		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
-			<ProteinHit id="PH_8" accession="ABCDEDD" coverage="-1" score="0" sequence="">
+			<ProteinHit id="PH_8" accession="ABCDEDD" score="0" sequence="">
 			</ProteinHit>
-			<ProteinHit id="PH_9" accession="FGHIJDD" coverage="-1" score="0" sequence="">
+			<ProteinHit id="PH_9" accession="FGHIJDD" score="0" sequence="">
 			</ProteinHit>
 		</ProteinIdentification>
 	</IdentificationRun>
@@ -60,9 +60,9 @@
 		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
-			<ProteinHit id="PH_10" accession="ABCDECC" coverage="-1" score="0" sequence="">
+			<ProteinHit id="PH_10" accession="ABCDECC" score="0" sequence="">
 			</ProteinHit>
-			<ProteinHit id="PH_11" accession="FGHIJCC" coverage="-1" score="0" sequence="">
+			<ProteinHit id="PH_11" accession="FGHIJCC" score="0" sequence="">
 			</ProteinHit>
 		</ProteinIdentification>
 	</IdentificationRun>
