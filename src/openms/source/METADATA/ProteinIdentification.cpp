@@ -338,7 +338,7 @@ namespace OpenMS
     }
   }
 
-  Size ProteinIdentification::computeCoverage(const std::vector<PeptideIdentification>& pep_ids)
+  void ProteinIdentification::computeCoverage(const std::vector<PeptideIdentification>& pep_ids)
   {
     // map protein accession to the corresponding peptide evidence
     map<String, set<PeptideEvidence> > map_acc_2_evidence;
@@ -391,8 +391,6 @@ namespace OpenMS
       }
       protein_hits_[i].setCoverage(coverage);
     }
-
-    return 0;
   }
 
   bool ProteinIdentification::isHigherScoreBetter() const
