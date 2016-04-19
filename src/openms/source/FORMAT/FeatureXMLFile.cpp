@@ -46,8 +46,8 @@ using namespace std;
 namespace OpenMS
 {
   FeatureXMLFile::FeatureXMLFile() :
-    Internal::XMLHandler("", "1.8"),
-    Internal::XMLFile("/SCHEMAS/FeatureXML_1_8.xsd", "1.8")
+    Internal::XMLHandler("", "1.9"),
+    Internal::XMLFile("/SCHEMAS/FeatureXML_1_9.xsd", "1.9")
   {
     resetMembers_();
   }
@@ -177,7 +177,7 @@ namespace OpenMS
     {
       os << " id=\"fm_" << feature_map.getUniqueId() << "\"";
     }
-    os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/FeatureXML_1_8.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+    os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/FeatureXML_1_9.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
     // user param
     writeUserParam_("UserParam", os, feature_map, 1);
@@ -270,6 +270,13 @@ namespace OpenMS
 
         os << " accession=\"" << current_prot_id.getHits()[j].getAccession() << "\"";
         os << " score=\"" << current_prot_id.getHits()[j].getScore() << "\"";
+        
+        double coverage = current_prot_id.getHits()[j].getCoverage();
+        if (coverage != ProteinHit::COVERAGE_UNKNOWN)
+        {
+          os << " coverage=\"" << coverage << "\"";
+        }
+        
         os << " sequence=\"" << current_prot_id.getHits()[j].getSequence() << "\">\n";
 
         writeUserParam_("UserParam", os, current_prot_id.getHits()[j], 4);
@@ -585,6 +592,14 @@ namespace OpenMS
       String accession = attributeAsString_(attributes, "accession");
       prot_hit_.setAccession(accession);
       prot_hit_.setScore(attributeAsDouble_(attributes, "score"));
+
+      // coverage
+      double coverage = -std::numeric_limits<double>::max();
+      optionalAttributeAsDouble_(coverage, attributes, "coverage");
+      if (coverage != -std::numeric_limits<double>::max())
+      {
+        prot_hit_.setCoverage(coverage);
+      }
 
       //sequence
       String tmp = "";

@@ -55,6 +55,7 @@ namespace OpenMS
     public MetaInfoInterface
   {
 public:
+    static const double COVERAGE_UNKNOWN; // == -1
 
     /// @name Comparators ProteinHit
     //@{

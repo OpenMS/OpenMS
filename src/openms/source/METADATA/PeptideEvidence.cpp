@@ -81,6 +81,17 @@ namespace OpenMS
            aa_after_ == rhs.aa_after_;
   }
 
+  bool PeptideEvidence::operator<(const PeptideEvidence& rhs) const
+  {
+    if (accession_ != rhs.accession_) return accession_ < rhs.accession_;
+    if (start_ != rhs.start_) return start_ < rhs.start_;
+    if (end_ != rhs.end_) return end_ < rhs.end_;
+    if (aa_before_ != rhs.aa_before_) return aa_before_ < rhs.aa_before_;
+    if (aa_after_ != rhs.aa_after_) return aa_after_ < rhs.aa_after_;
+    return false;
+  }
+
+  
   bool PeptideEvidence::operator!=(const PeptideEvidence& rhs) const
   {
     return !operator==(rhs);
