@@ -673,8 +673,6 @@ protected:
 
         consensus_xml_file.load(in, consensus_map);
 
-        vector<ProteinIdentification> prot_ids = consensus_map.getProteinIdentifications();
-
         if (sorting_method == "none")
         {
           // don't sort in this case
