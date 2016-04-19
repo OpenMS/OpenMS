@@ -11,19 +11,19 @@
 	</SearchParameters>
 	<IdentificationRun date="2012-03-15T14:20:09" search_engine="Mascot" search_engine_version="2.3.02" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" >
-			<ProteinHit id="PH_0" accession="IPI:IPI00021812.2" score="2133" coverage="-1" sequence="" >
+			<ProteinHit id="PH_0" accession="IPI:IPI00021812.2" score="2133" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="IPI:IPI00026781.3" score="1985" coverage="-1" sequence="" >
+			<ProteinHit id="PH_1" accession="IPI:IPI00026781.3" score="1985" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_2" accession="IPI:IPI00302592.2" score="1979" coverage="-1" sequence="" >
+			<ProteinHit id="PH_2" accession="IPI:IPI00302592.2" score="1979" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_3" accession="IPI:IPI00333541.6" score="1979" coverage="-1" sequence="" >
+			<ProteinHit id="PH_3" accession="IPI:IPI00333541.6" score="1979" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_4" accession="IPI:IPI00382470.3" score="1934" coverage="-1" sequence="" >
+			<ProteinHit id="PH_4" accession="IPI:IPI00382470.3" score="1934" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_5" accession="IPI:IPI00784295.2" score="1934" coverage="-1" sequence="" >
+			<ProteinHit id="PH_5" accession="IPI:IPI00784295.2" score="1934" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_6" accession="IPI:IPI00414676.6" score="1841" coverage="-1" sequence="" >
+			<ProteinHit id="PH_6" accession="IPI:IPI00414676.6" score="1841" sequence="" >
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="309.1806" >

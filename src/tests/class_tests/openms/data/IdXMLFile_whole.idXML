@@ -11,10 +11,10 @@
 	</SearchParameters>
 	<IdentificationRun date="2006-01-12T12:13:14" search_engine="Mascot" search_engine_version="2.1.0" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="MOWSE" higher_score_better="true" significance_threshold="0" >
-			<ProteinHit id="PH_0" accession="PROT1" score="34.4000015258789" coverage="-1" sequence="ABCDEFG" >
+			<ProteinHit id="PH_0" accession="PROT1" score="34.4000015258789" sequence="ABCDEFG" >
 				<UserParam type="string" name="name" value="ProteinHit"/>
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="PROT2" score="24.3999996185303" coverage="-1" sequence="ABCDEFG" >
+			<ProteinHit id="PH_1" accession="PROT2" score="24.3999996185303" sequence="ABCDEFG" >
 			</ProteinHit>
 			<UserParam type="string" name="name" value="ProteinIdentification"/>
 			<UserParam type="string" name="protein_group_0" value="0.88,PH_0,PH_1"/>
@@ -37,7 +37,7 @@
 	</IdentificationRun>
 	<IdentificationRun date="2007-01-12T12:13:14" search_engine="Mascot" search_engine_version="2.1.1" search_parameters_ref="SP_1" >
 		<ProteinIdentification score_type="MOWSE" higher_score_better="true" significance_threshold="0" >
-			<ProteinHit id="PH_2" accession="PROT3" score="100" coverage="-1" sequence="" >
+			<ProteinHit id="PH_2" accession="PROT3" score="100" sequence="" >
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="MOWSE" higher_score_better="true" significance_threshold="0" >
