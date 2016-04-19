@@ -189,7 +189,7 @@
 							<xs:documentation>score of the hit</xs:documentation>
 						</xs:annotation>
 					</xs:attribute>
-					<xs:attribute name="coverage" type="xs:float" use="required">
+					<xs:attribute name="coverage" type="xs:float">
 						<xs:annotation>
 							<xs:documentation>protein coverage</xs:documentation>
 						</xs:annotation>
