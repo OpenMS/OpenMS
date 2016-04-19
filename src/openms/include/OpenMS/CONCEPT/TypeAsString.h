@@ -90,7 +90,7 @@ namespace OpenMS
   std::string typeAsString(const Type & /* unused */ = Type())
   {
 #ifndef OPENMS_COMPILER_GXX
-    return "[ Sorry, OpenMS::typeAsString() relies upon GNU extension __PRETTY_FUNCTION__ ]";
+    return "[ Sorry, OpenMS::typeAsString() relies upon GCC extension __PRETTY_FUNCTION__ ]";
 #else
     std::string pretty(__PRETTY_FUNCTION__);
     static char const context_left[] = "with Type =";
@@ -98,8 +98,8 @@ namespace OpenMS
     size_t left = pretty.find(context_left);
     left += sizeof(context_left);
     size_t right = pretty.rfind(context_right);
-    if (right <= left)
-      return pretty;                      // oops!
+    if (right <= left || right == std::string::npos || left == std::string::npos)
+      return pretty;                      // different format as expected
 
     return pretty.substr(left, right - left);
 
