@@ -60,7 +60,7 @@
 #cmakedefine OPENMS_COMPILER_GXX
 
 // __PRETTY_FUNCTION__ is a GNU G++ extension.  It is used in exceptions to indicate their origin.
-#if defined(OPENMS_COMPILER_GXX) && ! defined(__PRETTY_FUNCTION__) 
+#if ! defined(OPENMS_COMPILER_GXX) && ! defined(__PRETTY_FUNCTION__) 
 #define __PRETTY_FUNCTION__ "<unknown>"
 #endif
 
