@@ -277,7 +277,7 @@ private:
       std::vector<Wm5::Vector2d> points = iteratorRange2Wm5Vectors(x_begin, x_end, y_begin);
       // Compute sums for linear system. copy&paste from GeometricTools Wm5ApprLineFit2.cpp
       // and modified to allow weights
-      int numPoints = points.size();
+      int numPoints = static_cast<int>(points.size());
       double sumX = 0, sumY = 0;
       double sumXX = 0, sumXY = 0;
       double sumW = 0;
