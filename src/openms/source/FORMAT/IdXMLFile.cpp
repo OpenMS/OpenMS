@@ -46,8 +46,8 @@ namespace OpenMS
 {
 
   IdXMLFile::IdXMLFile() :
-    XMLHandler("", "1.3"),
-    XMLFile("/SCHEMAS/IdXML_1_3.xsd", "1.3"),
+    XMLHandler("", "1.4"),
+    XMLFile("/SCHEMAS/IdXML_1_4.xsd", "1.4"),
     last_meta_(0),
     document_id_(),
     prot_id_in_run_(false)
@@ -107,8 +107,7 @@ namespace OpenMS
     {
       os << " id=\"" << document_id << "\"";
     }
-    os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_3.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
-
+    os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_4.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
     //look up different search parameters
     std::vector<ProteinIdentification::SearchParameters> params;
@@ -216,8 +215,13 @@ namespace OpenMS
         accession_to_id[protein_ids[i].getHits()[j].getAccession()] = prot_count++;
         os << "accession=\"" << writeXMLEscape(protein_ids[i].getHits()[j].getAccession()) << "\" ";
         os << "score=\"" << protein_ids[i].getHits()[j].getScore() << "\" ";
-        // os << "coverage=\"" << protein_ids[i].getHits()[j].getCoverage()
-        //   << "\" ";
+        
+        double coverage = protein_ids[i].getHits()[j].getCoverage();
+        if (coverage != ProteinHit::COVERAGE_UNKNOWN)
+        {
+          os << "coverage=\"" << coverage << "\" ";
+        }
+
         os << "sequence=\"" << writeXMLEscape(protein_ids[i].getHits()[j].getSequence()) << "\" >\n";
         writeUserParam_("UserParam", os, protein_ids[i].getHits()[j], 4);
         os << "\t\t\t</ProteinHit>\n";
@@ -499,6 +503,14 @@ namespace OpenMS
       String accession = attributeAsString_(attributes, "accession");
       prot_hit_.setAccession(accession);
       prot_hit_.setScore(attributeAsDouble_(attributes, "score"));
+
+      // coverage
+      double coverage = -std::numeric_limits<double>::max();
+      optionalAttributeAsDouble_(coverage, attributes, "coverage");
+      if (coverage != -std::numeric_limits<double>::max())
+      {
+        prot_hit_.setCoverage(coverage);
+      }
 
       //sequence
       String tmp;

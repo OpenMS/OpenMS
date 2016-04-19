@@ -198,7 +198,7 @@ public:
 
                @return The number of Proteins referenced by the @p pep_ids that are not contained in this ProteinIdentification set (should be 0)
           */
-    Size computeCoverage(const std::vector<PeptideIdentification> & pep_ids);
+    void computeCoverage(const std::vector<PeptideIdentification> & pep_ids);
     //@}
 
     ///@name General information
