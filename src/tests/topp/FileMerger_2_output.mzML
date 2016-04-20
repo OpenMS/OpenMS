@@ -19,7 +19,7 @@
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
 			</sourceFile>
 			<sourceFile id="sf_sp_1" name="FileMerger_2_input2.dta" location="<TEST_DATA_PATH>">
-				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="6c80377370fab3d3b85d94f3259feb533f9206ac" />
+				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="9511ec9360d174cc93f68d1939bc9682f7574ca3" />
 				<cvParam cvRef="MS" accession="MS:1000613" name="DTA format" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
 			</sourceFile>
