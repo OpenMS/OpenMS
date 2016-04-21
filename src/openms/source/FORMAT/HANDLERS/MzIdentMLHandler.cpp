@@ -466,6 +466,14 @@ namespace OpenMS
           sof_id = soit->second;
         }
 
+        if (it->metaValueExists("is_cross_linking_experiment") ||
+                (it->metaValueExists("SpectrumIdentificationProtocol") &&
+                it->getMetaValue("SpectrumIdentificationProtocol") == "MS:1002494"))
+        {
+          is_ppxl = true;  //needed as incoming data is structured differently and output deviates as well for ppxl
+          // ppxl is like (1PeptideIdentification, 1-2 PeptideHits) but there might be more PeptideIdentifications for one spectrum
+        }
+
         String thcv;
         pp_identifier_2_thresh.insert(make_pair(it->getIdentifier(),it->getSignificanceThreshold()));
         if (it->getSignificanceThreshold() != 0.0)
@@ -488,6 +496,10 @@ namespace OpenMS
 
         String sip = String("\t<SpectrumIdentificationProtocol id=\"") + String(sip_id) + String("\" analysisSoftware_ref=\"") + String(sof_id) + String("\">");
         sip += String(" \n\t\t<SearchType>\n\t\t\t") + cv_.getTermByName("ms-ms search").toXMLString(cv_ns) + String(" \n\t\t</SearchType>");
+        if (is_ppxl)
+        {
+          sip += "\n\t\t\t" + cv_.getTermByName("cross-linking search").toXMLString(cv_ns);
+        }
         sip += String("\n\t\t<AdditionalSearchParams>\n");
         writeMetaInfos_(sip, it->getSearchParameters(), 3);
         sip += String(3, '\t') + "<userParam name=\"" + "charges" + "\" unitName=\"" + "xsd:string" + "\" value=\"" + it->getSearchParameters().charges + "\"/>" + "\n";
@@ -577,13 +589,6 @@ namespace OpenMS
         }
         sil_2_sdb_.insert(make_pair(sil_id, sdb_id));
 
-        if (it->metaValueExists("is_cross_linking_experiment") ||
-                (it->metaValueExists("SpectrumIdentificationProtocol") &&
-                it->getMetaValue("SpectrumIdentificationProtocol") == "MS:1002494"))
-        {
-          is_ppxl = true;  //needed as incoming data is structured differently and output deviates as well for ppxl
-          // ppxl is like (1PeptideIdentification, 1-2 PeptideHits) but there might be more PeptideIdentifications for one spectrum
-        }
 
         for (std::vector<ProteinHit>::const_iterator jt = it->getHits().begin(); jt != it->getHits().end(); ++jt)
         {
@@ -754,16 +759,22 @@ namespace OpenMS
                 /* <psi-pi:SubstitutionModification originalResidue="A" replacementResidue="A"/> */
               }
             }
-            if (jt->metaValueExists("xl_chain"))  // TODO ppxl metavalue subject to change (location and upgrade to cv)
+            if (jt->metaValueExists("xl_chain") && jt->getMetaValue("xl_type") != "mono-link")  // TODO ppxl metavalue subject to change (location and upgrade to cv)
             {
               SignedSize i = jt->getMetaValue("xl_pos").toString().toInt();
               p += "\t\t<Modification location=\"" + String(i + 1);
               p += "\" residues=\"" + jt->getSequence().getResidue(i).getOneLetterCode();
-              p += "\"> \n\t\t\t<cvParam accession=\"" + jt->getMetaValue("xl_chain").toString();
-              p += "\" name=\"" +  cv_.getTerm(jt->getMetaValue("xl_chain")).name;
-              p += "\" cvRef=\"PSI-MS\"/>";  // N.B. longer one is the donor, equals the heavier, equals, the alphabetical first
+              if (jt->getMetaValue("xl_chain") == "MS:1002509")  // N.B. longer one is the donor, equals the heavier, equals, the alphabetical first
+              {
+                p += "\" monoisotopicMassDelta=\"" + jt->getMetaValue("xl_mass").toString();
+              }
+              else
+              {
+                p += "\" monoisotopicMassDelta=\"0";
+              }
+              p += "\"> \n\t\t\t" + cv_.getTerm(jt->getMetaValue("xl_chain").toString()).toXMLString(cv_ns, DataValue(ppxl_linkid));
               p += "\n\t\t\t<cvParam accession=\"UNIMOD:1020\" cvRef=\"UNIMOD\" name=\"Xlink:DSS\"/>";
-              //TODO ppxl from where to get if other xl was used ???
+              //TODO ppxl from where to get if other crosslink agent was used ???
               p += "\n\t\t</Modification> \n";
             }
             if (jt->metaValueExists("xl_pos2"))  // TODO ppxl metavalue subject to change (location and upgrade to cv)
@@ -771,15 +782,13 @@ namespace OpenMS
               SignedSize i = jt->getMetaValue("xl_pos2").toString().toInt();
               p += "\t\t<Modification location=\"" + String(i + 1);
               p += "\" residues=\"" + jt->getSequence().getResidue(i).getOneLetterCode();
+              p += "\" monoisotopicMassDelta=\"0";
               // ppxl crosslink loop xl_pos2 is always the reciever ("MS:1002510")
-              p += "\"> \n\t\t\t<cvParam accession=\"" + cv_.getTerm("MS:1002510").id;
-              p += "\" name=\"" +  cv_.getTerm("MS:1002510").name;
-              p += "\" cvRef=\"PSI-MS\"/>"; //N.B. longer one is the donor, equals the heavier, equals, the alphabetical first
+              p += "\"> \n\t\t\t" + cv_.getTerm("MS:1002510").toXMLString(cv_ns, DataValue(ppxl_linkid));
               p += "\n\t\t\t<cvParam accession=\"UNIMOD:1020\" cvRef=\"UNIMOD\" name=\"Xlink:DSS\"/>";
-              //TODO ppxl from where to get if other xl was used ???
+              //TODO ppxl from where to get if other crosslink agent was used ???
               p += "\n\t\t</Modification> \n";
             }
-
             p += "\t</Peptide> \n ";
             sen_set.insert(p);
             pep_ids.insert(std::make_pair(pepi, pepid));
@@ -984,10 +993,6 @@ namespace OpenMS
             sidres += sii_tmp;
           }
         }
-        // TODO ppxl - write these from PeptideIdentification to SIR element
-        //        <UserParam type="float" name="spec_heavy_RT" value="5204.82"/>
-        //        <UserParam type="float" name="spec_heavy_MZ" value="686.88397217"/>
-        //        <UserParam type="string" name="spectrum_reference_heavy" value="scan=11895"/>
         if (!ert.empty() && ert != "nan" && ert != "NaN")
         {
           sidres +=  "\t\t\t\t" + cv_.getTermByName("retention time").toXMLString(cv_ns, ert) + "\n";
@@ -1023,9 +1028,6 @@ namespace OpenMS
         for (std::map<String, String>::iterator it = ppxl_specref_2_element.begin(); it != ppxl_specref_2_element.end(); ++it)
         {
           it->second += "\t\t\t</SpectrumIdentificationResult>\n";
-          //TODO ppxl where to get that identifier, needed if peptideidentifications are from several proteinidentifications
-//          std::map<String, String>::const_iterator ps_it = pp_identifier_2_sil_.find(it->getIdentifier());
-          //TODO ppxl for now just append all to first identifier
           std::map<String, String>::const_iterator ps_it = pp_identifier_2_sil_.begin();
 
           if (ps_it != pp_identifier_2_sil_.end())
@@ -1043,7 +1045,7 @@ namespace OpenMS
           else
           {
             //encountered a PeptideIdentification which is not linked to any ProteinIdentification
-            LOG_ERROR << "encountered a PeptideIdentification which is not linked to any ProteinIdentification" << std::endl;
+            LOG_ERROR << "encountered a PeptideIdentification crosslink information which is not linked to any ProteinIdentification" << std::endl;
           }
         }
       }
@@ -1103,6 +1105,7 @@ namespace OpenMS
                            + sil_2_sip_[pp2sil_it->second] + String("\" spectrumIdentificationList_ref=\"") + pp2sil_it->second
                            + String("\" activityDate=\"") + sil_2_date[pp2sil_it->second]
                            + String("\">\n")
+                            //if crosslink +cvparam crosslink search performed
                            + "\t\t<InputSpectra spectraData_ref=\"" + sil_2_sdat_[pp2sil_it->second] + "\"/>\n" // spd_ids.insert(std::pair<String, UInt64>(sdst, sdid));
                            + "\t\t<SearchDatabaseRef searchDatabase_ref=\"" + sil_2_sdb_[pp2sil_it->second] + "\"/>\n"
                            + "\t</SpectrumIdentification>\n";
