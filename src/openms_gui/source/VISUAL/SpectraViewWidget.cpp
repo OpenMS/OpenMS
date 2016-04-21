@@ -78,7 +78,7 @@ namespace OpenMS
     spectra_treewidget_->header()->setContextMenuPolicy(Qt::CustomContextMenu);
 
     connect(spectra_treewidget_, SIGNAL(currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)), this, SLOT(spectrumSelectionChange_(QTreeWidgetItem *, QTreeWidgetItem *)));
-    connect(spectra_treewidget_, SIGNAL(itemDoubleClicked(QTreeWidgetItem *, int)), this, SLOT(spectrumDoubleClicked_(QTreeWidgetItem *, int)));
+    connect(spectra_treewidget_, SIGNAL(itemDoubleClicked(QTreeWidgetItem *, int)), this, SLOT(spectrumDoubleClicked_(QTreeWidgetItem *)));
     connect(spectra_treewidget_, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(spectrumContextMenu_(const QPoint &)));
     connect(spectra_treewidget_->header(), SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(spectrumBrowserHeaderContextMenu_(const QPoint &)));
 
@@ -87,11 +87,16 @@ namespace OpenMS
     QHBoxLayout * tmp_hbox_layout = new QHBoxLayout();
 
     spectra_search_box_ = new QLineEdit("<search text>", this);
+    spectra_search_box_->setWhatsThis("Search in a certain column. Hits are shown as you type. Press <Enter> to display the first hit.");
 
     spectra_combo_box_ = new QComboBox(this);
     spectra_combo_box_->addItems(qsl);
+    spectra_combo_box_->setWhatsThis("Sets the column in which to search.");
 
-    connect(spectra_search_box_, SIGNAL(textEdited(const QString &)), this, SLOT(spectrumSearchText_(const QString &)));
+    // search whenever text is typed (and highlight the hits)
+    connect(spectra_search_box_, SIGNAL(textEdited(const QString &)), this, SLOT(spectrumSearchText_()));
+    // .. show hit upon pressing Enter (internally we search again, since the user could have activated another layer with different selections after last search)
+    connect(spectra_search_box_, SIGNAL(returnPressed()), this, SLOT(searchAndShow_()));
 
     tmp_hbox_layout->addWidget(spectra_search_box_);
     tmp_hbox_layout->addWidget(spectra_combo_box_);
@@ -108,12 +113,13 @@ namespace OpenMS
     return spectra_combo_box_;
   }
 
-  void SpectraViewWidget::spectrumSearchText_(const QString & text)
+  void SpectraViewWidget::spectrumSearchText_()
   {
-    QTreeWidget * spectra_view_treewidget = spectra_treewidget_;
-    QComboBox * spectra_view_combobox = spectra_combo_box_;
+    QString& text = spectra_search_box_->text(); // get text from QLineEdit
     if (text.size() > 0)
     {
+      QTreeWidget * spectra_view_treewidget = spectra_treewidget_;
+      QComboBox * spectra_view_combobox = spectra_combo_box_;
       int col(spectra_view_combobox->currentIndex() + 1);
       if (col > 5)
       {
@@ -141,7 +147,7 @@ namespace OpenMS
         searched.first()->setSelected(true);
         spectra_view_treewidget->update();
         spectra_view_treewidget->scrollToItem(searched.first());
-        spectrumSelectionChange_(searched.first(), olditem);
+        // spectrumSelectionChange_(searched.first(), olditem); // updates the plot
       }
     }
   }
@@ -176,7 +182,15 @@ namespace OpenMS
 
   }
 
-  void SpectraViewWidget::spectrumDoubleClicked_(QTreeWidgetItem * current, int)
+  void SpectraViewWidget::searchAndShow_()
+  {
+    //QTreeWidgetItem* current = spectra_treewidget_->currentItem();
+    spectrumSearchText_(); // update selection first (we might be in a new layer)
+    QList<QTreeWidgetItem *> selected = spectra_treewidget_->selectedItems();
+    if (selected.size() > 0) spectrumSelectionChange_(selected.first(), selected.first());
+  }
+
+  void SpectraViewWidget::spectrumDoubleClicked_(QTreeWidgetItem * current)
   {
     if (current == 0)
     {
