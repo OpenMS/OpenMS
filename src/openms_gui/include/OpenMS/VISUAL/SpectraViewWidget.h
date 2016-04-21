@@ -73,10 +73,10 @@ private:
     QLineEdit * spectra_search_box_;
     QComboBox * spectra_combo_box_;
     QTreeWidget * spectra_treewidget_;
-    // cache to store mapping of chromatogram precursors to chromatogram indices
+    /// cache to store mapping of chromatogram precursors to chromatogram indices
     std::map<size_t, std::map<Precursor, std::vector<Size>, Precursor::MZLess> > map_precursor_to_chrom_idx_cache_;
 private slots:
-    void spectrumSelected_(const QString & text);
+    void spectrumSearchText_(const QString & text); //< searches for rows containing a search text; called when text search box is used
     void spectrumBrowserHeaderContextMenu_(const QPoint &);
     void spectrumSelectionChange_(QTreeWidgetItem *, QTreeWidgetItem *);
     void spectrumDoubleClicked_(QTreeWidgetItem *, int);

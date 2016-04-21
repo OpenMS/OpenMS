@@ -65,14 +65,12 @@ namespace OpenMS
 
     ///@improvement write the visibility-status of the columns in toppview.ini and read at start
 
+    QStringList qsl; // names of searchable columns
+    qsl << "index" << "RT" << "PC m/z" << "dissociation" << "scan" << "zoom";
+
     QStringList header_labels; /// @improvement make this global to change only once (otherwise changes must be applied in several slots too!)
     header_labels.append(QString("MS level"));
-    header_labels.append(QString("index"));
-    header_labels.append(QString("RT"));
-    header_labels.append(QString("precursor m/z"));
-    header_labels.append(QString("dissociation"));
-    header_labels.append(QString("scan type"));
-    header_labels.append(QString("zoom"));
+    header_labels.append(qsl); // all searchable columns
     spectra_treewidget_->setHeaderLabels(header_labels);
 
     spectra_treewidget_->setDragEnabled(true);
@@ -88,19 +86,12 @@ namespace OpenMS
 
     QHBoxLayout * tmp_hbox_layout = new QHBoxLayout();
 
-    spectra_search_box_ = new QLineEdit("", this);
+    spectra_search_box_ = new QLineEdit("<search text>", this);
 
-    QStringList qsl;
-    qsl.push_back("index");
-    qsl.push_back("RT");
-    qsl.push_back("MZ");
-    qsl.push_back("dissociation");
-    qsl.push_back("scan");
-    qsl.push_back("zoom");
     spectra_combo_box_ = new QComboBox(this);
     spectra_combo_box_->addItems(qsl);
 
-    connect(spectra_search_box_, SIGNAL(textEdited(const QString &)), this, SLOT(spectrumSelected_(const QString &)));
+    connect(spectra_search_box_, SIGNAL(textEdited(const QString &)), this, SLOT(spectrumSearchText_(const QString &)));
 
     tmp_hbox_layout->addWidget(spectra_search_box_);
     tmp_hbox_layout->addWidget(spectra_combo_box_);
@@ -117,7 +108,7 @@ namespace OpenMS
     return spectra_combo_box_;
   }
 
-  void SpectraViewWidget::spectrumSelected_(const QString & text)
+  void SpectraViewWidget::spectrumSearchText_(const QString & text)
   {
     QTreeWidget * spectra_view_treewidget = spectra_treewidget_;
     QComboBox * spectra_view_combobox = spectra_combo_box_;
@@ -130,17 +121,17 @@ namespace OpenMS
       }
 
       Qt::MatchFlags matchflags = Qt::MatchFixedString;
-      //matchflags = matchflags | Qt::MatchRecursive; // whether we also want to match subitems
+      matchflags |=  Qt::MatchRecursive; // match subitems (below top-level)
       if (col != 1)
       {
         // only the index has to be matched exactly
         matchflags = matchflags | Qt::MatchStartsWith;
       }
       QList<QTreeWidgetItem *> searched = spectra_view_treewidget->findItems(text, matchflags, col);
-      QList<QTreeWidgetItem *> selected = spectra_view_treewidget->selectedItems();
 
       if (searched.size() > 0)
       {
+        QList<QTreeWidgetItem *> selected = spectra_view_treewidget->selectedItems();
         QTreeWidgetItem * olditem = spectra_view_treewidget->currentItem();
         for (int i = 0; i < selected.size(); ++i)
         {

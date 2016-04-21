@@ -78,7 +78,7 @@ namespace OpenMS
     QFile fh(filename.toQString());
     fh.open(QFile::ReadOnly);
     QString style_string = QLatin1String(fh.readAll());
-    std::cerr << "Content: " << style_string.toStdString() << "\n\n\n";
+    //std::cerr << "Stylesheet content: " << style_string.toStdString() << "\n\n\n";
     this->setStyleSheet(style_string);
   }
 
