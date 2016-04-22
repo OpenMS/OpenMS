@@ -2125,6 +2125,7 @@ namespace OpenMS
     catch (ParseError& e)
     {
       LOG_WARN << "Warning, could not parse systems parameters from OpenMS.ini and I will skip reading it." << std::endl;
+      if (!test_mode_) throw e; // re-throw exception
     }
     // this currently writes to the wrong part of the ini-file (revise) or remove altogether:
     //   there should be no section which already contains these params (-> thus a lot of warnings are emitted)
