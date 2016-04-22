@@ -2118,7 +2118,14 @@ namespace OpenMS
     tmp.update(tool_user_defaults);
 
     // 3rd stage, use OpenMS.ini from library to override settings
-    Param system_defaults(File::getSystemParameters());
+    try
+    {
+      Param system_defaults(File::getSystemParameters());
+    }
+    catch (ParseError& e)
+    {
+      LOG_WARN << "Warning, could not parse systems parameters from OpenMS.ini and I will skip reading it." << std::endl;
+    }
     // this currently writes to the wrong part of the ini-file (revise) or remove altogether:
     //   there should be no section which already contains these params (-> thus a lot of warnings are emitted)
     //   furthermore, entering those params will not allow us to change settings in OpenMS.ini and expect them to be effective, as they will be overridden by the tools' ini file
