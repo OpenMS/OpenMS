@@ -400,15 +400,13 @@ namespace OpenMS
           if (seq.hasNTerminalModification())
           {
             const ResidueModification& mod = ModificationsDB::getInstance()->getTerminalModification(seq.getNTerminalModification(), ResidueModification::N_TERM);
-            f << " mod_nterm_mass=\"" <<
-              precisionWrapper(mod.getDiffMonoMass()) << "\"";
+            f << " mod_nterm_mass=\"" << precisionWrapper(mod.getDiffMonoMass()) << "\"";
           }
 
           if (seq.hasCTerminalModification())
           {
             const ResidueModification& mod = ModificationsDB::getInstance()->getTerminalModification(seq.getCTerminalModification(), ResidueModification::C_TERM);
-            f << " mod_cterm_mass=\"" <<
-              precisionWrapper(mod.getDiffMonoMass()) << "\"";
+            f << " mod_cterm_mass=\"" << precisionWrapper(mod.getDiffMonoMass()) << "\"";
           }
 
           f << ">" << "\n";
