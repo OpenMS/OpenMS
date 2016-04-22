@@ -1082,7 +1082,7 @@ protected:
     keep_library_ = !lib_out.empty();
     keep_chromatograms_ = !chrom_out.empty();
     Size prog_counter = 0;
-    prog_log_.startProgress(1, peptide_map.size(), "running feature detection");
+    prog_log_.startProgress(0, peptide_map.size(), "running feature detection");
     for (PeptideMap::iterator pm_it = peptide_map.begin();
          pm_it != peptide_map.end(); ++pm_it)
     {
