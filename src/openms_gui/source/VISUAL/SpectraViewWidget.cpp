@@ -115,7 +115,7 @@ namespace OpenMS
 
   void SpectraViewWidget::spectrumSearchText_()
   {
-    QString& text = spectra_search_box_->text(); // get text from QLineEdit
+    const QString text = spectra_search_box_->text(); // get text from QLineEdit
     if (text.size() > 0)
     {
       QTreeWidget * spectra_view_treewidget = spectra_treewidget_;
