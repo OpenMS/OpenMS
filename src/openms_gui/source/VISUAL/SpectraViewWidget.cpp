@@ -137,17 +137,12 @@ namespace OpenMS
 
       if (searched.size() > 0)
       {
-        QList<QTreeWidgetItem *> selected = spectra_view_treewidget->selectedItems();
-        QTreeWidgetItem * olditem = spectra_view_treewidget->currentItem();
-        for (int i = 0; i < selected.size(); ++i)
-        {
-          selected[i]->setSelected(false);
-        }
-        spectra_view_treewidget->update();
+        //QTreeWidgetItem * olditem = spectra_view_treewidget->currentItem();
+        spectra_view_treewidget->clearSelection();
         searched.first()->setSelected(true);
         spectra_view_treewidget->update();
         spectra_view_treewidget->scrollToItem(searched.first());
-        // spectrumSelectionChange_(searched.first(), olditem); // updates the plot
+        //spectrumSelectionChange_(searched.first(), olditem); // updates the plot
       }
     }
   }
