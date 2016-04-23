@@ -525,8 +525,9 @@ protected:
 
     const ResidueModification* c_term_mod_;
 
+    // parses mods in round brackets, if dot notation is used it resolves cterm ambiguity based on the presence of the dot
     static String::ConstIterator parseModRoundBrackets_(
-      const String::ConstIterator str_it, const String& str, AASequence& aas);
+      const String::ConstIterator str_it, const String& str, AASequence& aas, bool dot_notation, bool dot_terminal);
 
     static String::ConstIterator parseModSquareBrackets_(
       const String::ConstIterator str_it, const String& str, AASequence& aas);
