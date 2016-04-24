@@ -127,11 +127,11 @@ START_SECTION(void load(const String& filename, ProteinIdentification& proteins,
   TEST_REAL_SIMILAR(peptides[1].getHits()[0].getScore(), 6.57945);
   TEST_REAL_SIMILAR(peptides[2].getHits()[0].getScore(), 6.50586);
   TEST_STRING_EQUAL(peptides[0].getHits()[0].getSequence().toString(),
-                    "VDNALQSGNSQESVTEQDSKDSTYSLSSTLTLSK");
+                    ".VDNALQSGNSQESVTEQDSKDSTYSLSSTLTLSK.");
   TEST_STRING_EQUAL(peptides[1].getHits()[0].getSequence().toString(),
-                    "VDNALQSGNSQESVTEQDSKDSTYSLSSTLTLSK");
+                    ".VDNALQSGNSQESVTEQDSKDSTYSLSSTLTLSK.");
   TEST_STRING_EQUAL(peptides[2].getHits()[0].getSequence().toString(),
-                    "VTLSC(Carbamidomethyl)TGSSSNLGAGYDVHWYQQLPGTAPK");
+                    ".VTLSC(Carbamidomethyl)TGSSSNLGAGYDVHWYQQLPGTAPK.");
   TEST_REAL_SIMILAR(peptides[0].getHits()[0].getMetaValue("Percolator_score"),
                     6.77991);
   TEST_REAL_SIMILAR(peptides[1].getHits()[0].getMetaValue("Percolator_qvalue"),
