@@ -22,13 +22,13 @@
 				<pt x="0.5" y="2.5" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="9" sequence="F" charge="3">
+				<PeptideHit score="9" sequence=".F." charge="3">
 					<UserParam type="float" name="consensus_support" value="0"/>
 				</PeptideHit>
-				<PeptideHit score="2" sequence="A" charge="2">
+				<PeptideHit score="2" sequence=".A." charge="2">
 					<UserParam type="float" name="consensus_support" value="0.333333333333333"/>
 				</PeptideHit>
-				<PeptideHit score="2" sequence="E" charge="1">
+				<PeptideHit score="2" sequence=".E." charge="1">
 					<UserParam type="float" name="consensus_support" value="0"/>
 				</PeptideHit>
 			</PeptideIdentification>
@@ -48,13 +48,13 @@
 				<pt x="2.6" y="4.5" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="7" sequence="H" charge="2">
+				<PeptideHit score="7" sequence=".H." charge="2">
 					<UserParam type="float" name="consensus_support" value="0"/>
 				</PeptideHit>
-				<PeptideHit score="4" sequence="D" charge="2">
+				<PeptideHit score="4" sequence=".D." charge="2">
 					<UserParam type="float" name="consensus_support" value="0"/>
 				</PeptideHit>
-				<PeptideHit score="2" sequence="C" charge="3">
+				<PeptideHit score="2" sequence=".C." charge="3">
 					<UserParam type="float" name="consensus_support" value="0.333333333333333"/>
 				</PeptideHit>
 			</PeptideIdentification>

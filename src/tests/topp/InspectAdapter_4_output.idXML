@@ -9,7 +9,7 @@
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Inspect" higher_score_better="true" significance_threshold="0.975" MZ="433.803" RT="21.9494" >
-			<PeptideHit score="-12.839" sequence="NQGD" charge="1" aa_before="E" aa_after="E" protein_refs="PH_0" >
+			<PeptideHit score="-12.839" sequence=".NQGD." charge="1" aa_before="E" aa_after="E" protein_refs="PH_0" >
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>

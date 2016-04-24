@@ -110,7 +110,7 @@
 				<pt x="1267.01" y="546.276562549174" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="InterProphet probability" higher_score_better="true" significance_threshold="0" MZ="545.2717285" RT="1275.01" >
-				<PeptideHit score="0.999999" sequence="LENAMEVAGR" charge="2" aa_before="R" aa_after="D" protein_refs="PH_0">
+				<PeptideHit score="0.999999" sequence=".LENAMEVAGR." charge="2" aa_before="R" aa_after="D" protein_refs="PH_0">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="int" name="label" value="170"/>
@@ -165,7 +165,7 @@
 				<pt x="2690.89" y="519.282802149653" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="InterProphet probability" higher_score_better="true" significance_threshold="0" MZ="519.2877808" RT="2653.28" >
-				<PeptideHit score="0.999991" sequence="SIITDVYAR" charge="2" aa_before="M" aa_after="E" protein_refs="PH_1">
+				<PeptideHit score="0.999991" sequence=".SIITDVYAR." charge="2" aa_before="M" aa_after="E" protein_refs="PH_1">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="int" name="label" value="23570"/>
@@ -204,7 +204,7 @@
 				<pt x="524.168" y="508.276730235666" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="InterProphet probability" higher_score_better="true" significance_threshold="0" MZ="508.2728271" RT="520.801" >
-				<PeptideHit score="0.999999" sequence="LAQGDVVEGK" charge="2" aa_before="K" aa_after="V" protein_refs="PH_2">
+				<PeptideHit score="0.999999" sequence=".LAQGDVVEGK." charge="2" aa_before="K" aa_after="V" protein_refs="PH_2">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="int" name="label" value="1195"/>
@@ -279,7 +279,7 @@
 				<pt x="787.983" y="483.259511426091" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="InterProphet probability" higher_score_better="true" significance_threshold="0" MZ="483.2566528" RT="787.983" >
-				<PeptideHit score="0.999999" sequence="AKFDDLTR" charge="2" aa_before="R" aa_after="D" protein_refs="PH_3">
+				<PeptideHit score="0.999999" sequence=".AKFDDLTR." charge="2" aa_before="R" aa_after="D" protein_refs="PH_3">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="int" name="label" value="2801"/>

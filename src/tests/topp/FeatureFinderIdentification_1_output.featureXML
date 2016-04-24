@@ -245,7 +245,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="7.33294200725712" sequence="AEFVEVTK" charge="2" protein_refs="PH_4">
+				<PeptideHit score="7.33294200725712" sequence=".AEFVEVTK." charge="2" protein_refs="PH_4">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -528,7 +528,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="7.13936986602252" sequence="AGAFSLPK" charge="2" protein_refs="PH_10">
+				<PeptideHit score="7.13936986602252" sequence=".AGAFSLPK." charge="2" protein_refs="PH_10">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -808,7 +808,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="6.88451496560776" sequence="AGDLLFFK" charge="2" protein_refs="PH_9">
+				<PeptideHit score="6.88451496560776" sequence=".AGDLLFFK." charge="2" protein_refs="PH_9">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -1159,7 +1159,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="7.28213541750318" sequence="C(Carbamidomethyl)C(Carbamidomethyl)TESLVNR" charge="2" protein_refs="PH_4">
+				<PeptideHit score="7.28213541750318" sequence=".C(Carbamidomethyl)C(Carbamidomethyl)TESLVNR." charge="2" protein_refs="PH_4">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -1439,7 +1439,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="7.33387145951801" sequence="DDSPDLPK" charge="2" protein_refs="PH_4">
+				<PeptideHit score="7.33387145951801" sequence=".DDSPDLPK." charge="2" protein_refs="PH_4">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -1803,7 +1803,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="6.46656424867894" sequence="DLGEEHFK" charge="2" protein_refs="PH_4">
+				<PeptideHit score="6.46656424867894" sequence=".DLGEEHFK." charge="2" protein_refs="PH_4">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -2170,7 +2170,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="7.02054841597734" sequence="DLGEEHFK" charge="3" protein_refs="PH_4">
+				<PeptideHit score="7.02054841597734" sequence=".DLGEEHFK." charge="3" protein_refs="PH_4">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -2501,7 +2501,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="7.33993033045089" sequence="EAC(Carbamidomethyl)FAVEGPK" charge="2" protein_refs="PH_4">
+				<PeptideHit score="7.33993033045089" sequence=".EAC(Carbamidomethyl)FAVEGPK." charge="2" protein_refs="PH_4">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -2856,7 +2856,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="6.64533920231675" sequence="EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK" charge="2" protein_refs="PH_4">
+				<PeptideHit score="6.64533920231675" sequence=".EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK." charge="2" protein_refs="PH_4">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -3251,7 +3251,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="5.98468084530345" sequence="EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK" charge="3" protein_refs="PH_4">
+				<PeptideHit score="5.98468084530345" sequence=".EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK." charge="3" protein_refs="PH_4">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -3516,7 +3516,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="7.0881619333098" sequence="GAC(Carbamidomethyl)LLPK" charge="2" protein_refs="PH_4">
+				<PeptideHit score="7.0881619333098" sequence=".GAC(Carbamidomethyl)LLPK." charge="2" protein_refs="PH_4">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -3775,7 +3775,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="1.27074706717956" sequence="GM(Oxidation)LWAVFEQK" charge="3" protein_refs="PH_14">
+				<PeptideHit score="1.27074706717956" sequence=".GM(Oxidation)LWAVFEQK." charge="3" protein_refs="PH_14">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -4040,7 +4040,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="6.68722838943651" sequence="KSDDGGEVEK" charge="2" protein_refs="PH_11">
+				<PeptideHit score="6.68722838943651" sequence=".KSDDGGEVEK." charge="2" protein_refs="PH_11">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="KSDDGGEVEK/2_i2"/>
@@ -4248,7 +4248,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="4.07715914226926" sequence="LAADDFR" charge="2" protein_refs="PH_0 PH_1 PH_2 PH_5 PH_6 PH_7 PH_8">
+				<PeptideHit score="4.07715914226926" sequence=".LAADDFR." charge="2" protein_refs="PH_0 PH_1 PH_2 PH_5 PH_6 PH_7 PH_8">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="LAADDFR/2_i2"/>
@@ -4522,7 +4522,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="6.81441604688176" sequence="LALDLVVR" charge="3" protein_refs="PH_13">
+				<PeptideHit score="6.81441604688176" sequence=".LALDLVVR." charge="3" protein_refs="PH_13">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -4885,7 +4885,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="6.17091315370938" sequence="LAMTLAEAER" charge="3" protein_refs="PH_12">
+				<PeptideHit score="6.17091315370938" sequence=".LAMTLAEAER." charge="3" protein_refs="PH_12">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -5156,7 +5156,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="6.69196718419306" sequence="LC(Carbamidomethyl)VLHEK" charge="2" protein_refs="PH_4">
+				<PeptideHit score="6.69196718419306" sequence=".LC(Carbamidomethyl)VLHEK." charge="2" protein_refs="PH_4">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -5448,7 +5448,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="5.31714975969967" sequence="LC(Carbamidomethyl)VLHEK" charge="3" protein_refs="PH_4">
+				<PeptideHit score="5.31714975969967" sequence=".LC(Carbamidomethyl)VLHEK." charge="3" protein_refs="PH_4">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -5695,7 +5695,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="7.41330428449249" sequence="LVTDLTK" charge="2" protein_refs="PH_4">
+				<PeptideHit score="7.41330428449249" sequence=".LVTDLTK." charge="2" protein_refs="PH_4">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -5954,7 +5954,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="7.28706664819948" sequence="LVVSTQTALA" charge="2" protein_refs="PH_4">
+				<PeptideHit score="7.28706664819948" sequence=".LVVSTQTALA." charge="2" protein_refs="PH_4">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -6305,7 +6305,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="6.25805438476322" sequence="SHC(Carbamidomethyl)IAEVEK" charge="3" protein_refs="PH_4">
+				<PeptideHit score="6.25805438476322" sequence=".SHC(Carbamidomethyl)IAEVEK." charge="3" protein_refs="PH_4">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="SHC(Carbamidomethyl)IAEVEK/3_i3"/>
@@ -6570,7 +6570,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="6.89855302416926" sequence="VATVSLPR" charge="2" protein_refs="PH_3">
+				<PeptideHit score="6.89855302416926" sequence=".VATVSLPR." charge="2" protein_refs="PH_3">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -6913,7 +6913,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="7.40103234266733" sequence="YIC(Carbamidomethyl)DNQDTISSK" charge="2" protein_refs="PH_4">
+				<PeptideHit score="7.40103234266733" sequence=".YIC(Carbamidomethyl)DNQDTISSK." charge="2" protein_refs="PH_4">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -7247,7 +7247,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="6.92656362382569" sequence="YLYEIAR" charge="2" protein_refs="PH_4">
+				<PeptideHit score="6.92656362382569" sequence=".YLYEIAR." charge="2" protein_refs="PH_4">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>

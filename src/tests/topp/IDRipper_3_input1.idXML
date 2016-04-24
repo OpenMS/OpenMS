@@ -17,7 +17,7 @@
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="396.980987548828" RT="62.2773" >
-			<PeptideHit score="7273.0141432265" sequence="SISALPVNPHSIPPR" charge="4" aa_before="K" aa_after="G" protein_refs="PH_0" >
+			<PeptideHit score="7273.0141432265" sequence=".SISALPVNPHSIPPR." charge="4" aa_before="K" aa_after="G" protein_refs="PH_0" >
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>
@@ -27,7 +27,7 @@
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="512.879028320312" RT="8337.3972" >
-			<PeptideHit score="5401.19724528319" sequence="GHGSEDTEDSAEHR(Label:13C(6)15N(4))" charge="3" aa_before="R" aa_after="H" protein_refs="PH_1" >
+			<PeptideHit score="5401.19724528319" sequence=".GHGSEDTEDSAEHR(Label:13C(6)15N(4))." charge="3" aa_before="R" aa_after="H" protein_refs="PH_1" >
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>

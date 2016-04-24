@@ -50,21 +50,21 @@
 		</ProteinIdentification>
 	</IdentificationRun>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="317.699279785156" RT="2869.4172" >
-		<PeptideHit score="32.37" sequence="LNFLK" charge="2" aa_before="R" aa_after="K" protein_refs="PH_0">
+		<PeptideHit score="32.37" sequence=".LNFLK." charge="2" aa_before="R" aa_after="K" protein_refs="PH_0">
 			<UserParam type="float" name="homology_threshold" value="0"/>
 			<UserParam type="float" name="identity_threshold" value="13"/>
 			<UserParam type="float" name="EValue" value="0.00058"/>
 		</PeptideHit>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="437.7255859375" RT="1741.1794" >
-		<PeptideHit score="15.74" sequence="NMAINPSK" charge="2" aa_before="K" aa_after="E" protein_refs="PH_0">
+		<PeptideHit score="15.74" sequence=".NMAINPSK." charge="2" aa_before="K" aa_after="E" protein_refs="PH_0">
 			<UserParam type="float" name="homology_threshold" value="0"/>
 			<UserParam type="float" name="identity_threshold" value="13"/>
 			<UserParam type="float" name="EValue" value="0.027"/>
 		</PeptideHit>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="490.283447265625" RT="3723.2741" >
-		<PeptideHit score="10.49" sequence="FALPQYLK" charge="2" aa_before="K" aa_after="T" protein_refs="PH_0">
+		<PeptideHit score="10.49" sequence=".FALPQYLK." charge="2" aa_before="K" aa_after="T" protein_refs="PH_0">
 			<UserParam type="float" name="homology_threshold" value="0"/>
 			<UserParam type="float" name="identity_threshold" value="13"/>
 			<UserParam type="float" name="EValue" value="0.089"/>

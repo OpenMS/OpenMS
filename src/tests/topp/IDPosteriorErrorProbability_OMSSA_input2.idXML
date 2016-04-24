@@ -15,89 +15,89 @@
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="380.6954346" RT="778.61" >
-			<PeptideHit score="0.79432823472" sequence="AEDAKAR" charge="2" aa_before="R" aa_after="V" protein_refs="PH_1" >
+			<PeptideHit score="0.79432823472" sequence=".AEDAKAR." charge="2" aa_before="R" aa_after="V" protein_refs="PH_1" >
 			</PeptideHit>
-			<PeptideHit score="0.79432823472" sequence="AEDAKAR" charge="3" aa_before="R" aa_after="V" protein_refs="PH_1" >
+			<PeptideHit score="0.79432823472" sequence=".AEDAKAR." charge="3" aa_before="R" aa_after="V" protein_refs="PH_1" >
 			</PeptideHit>			
-			<PeptideHit score="0.34673685045" sequence="TVDGVNR" charge="2" aa_before="R" aa_after="E" protein_refs="PH_0" >
+			<PeptideHit score="0.34673685045" sequence=".TVDGVNR." charge="2" aa_before="R" aa_after="E" protein_refs="PH_0" >
 			</PeptideHit>
-			<PeptideHit score="0.34673685045" sequence="TVDGVNR" charge="3" aa_before="R" aa_after="E" protein_refs="PH_0" >
+			<PeptideHit score="0.34673685045" sequence=".TVDGVNR." charge="3" aa_before="R" aa_after="E" protein_refs="PH_0" >
 			</PeptideHit>			
-			<PeptideHit score="0.30199517204" sequence="TVDGPSGK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_1" >
+			<PeptideHit score="0.30199517204" sequence=".TVDGPSGK." charge="2" aa_before="K" aa_after="L" protein_refs="PH_1" >
 			</PeptideHit>
-			<PeptideHit score="0.30199517204" sequence="TVDGPSGK" charge="3" aa_before="K" aa_after="L" protein_refs="PH_1" >
+			<PeptideHit score="0.30199517204" sequence=".TVDGPSGK." charge="3" aa_before="K" aa_after="L" protein_refs="PH_1" >
 			</PeptideHit>			
-			<PeptideHit score="0.13182567386" sequence="AEQAVSR" charge="2" aa_before="R" aa_after="L" protein_refs="PH_2" >
+			<PeptideHit score="0.13182567386" sequence=".AEQAVSR." charge="2" aa_before="R" aa_after="L" protein_refs="PH_2" >
 			</PeptideHit>
-			<PeptideHit score="0.13182567386" sequence="AEQAVSR" charge="3" aa_before="R" aa_after="L" protein_refs="PH_2" >
+			<PeptideHit score="0.13182567386" sequence=".AEQAVSR." charge="3" aa_before="R" aa_after="L" protein_refs="PH_2" >
 			</PeptideHit>			
-			<PeptideHit score="0.0457088189615" sequence="EAAAVGSR" charge="2" aa_before="R" aa_after="V" protein_refs="PH_0" >
+			<PeptideHit score="0.0457088189615" sequence=".EAAAVGSR." charge="2" aa_before="R" aa_after="V" protein_refs="PH_0" >
 			</PeptideHit>
-			<PeptideHit score="0.0457088189615" sequence="EAAAVGSR" charge="3" aa_before="R" aa_after="V" protein_refs="PH_0" >
+			<PeptideHit score="0.0457088189615" sequence=".EAAAVGSR." charge="3" aa_before="R" aa_after="V" protein_refs="PH_0" >
 			</PeptideHit>			
-			<PeptideHit score="0.0389045144994" sequence="EAEGRAK" charge="2" aa_before="R" aa_after="E" protein_refs="PH_1" >
+			<PeptideHit score="0.0389045144994" sequence=".EAEGRAK." charge="2" aa_before="R" aa_after="E" protein_refs="PH_1" >
 			</PeptideHit>
-			<PeptideHit score="0.0389045144994" sequence="EAEGRAK" charge="3" aa_before="R" aa_after="E" protein_refs="PH_1" >
+			<PeptideHit score="0.0389045144994" sequence=".EAEGRAK." charge="3" aa_before="R" aa_after="E" protein_refs="PH_1" >
 			</PeptideHit>			
-			<PeptideHit score="0.00851138038202" sequence="EAEGARK" charge="2" aa_before="K" aa_after="A" protein_refs="PH_1" >
+			<PeptideHit score="0.00851138038202" sequence=".EAEGARK." charge="2" aa_before="K" aa_after="A" protein_refs="PH_1" >
 			</PeptideHit>
-			<PeptideHit score="0.00851138038202" sequence="EAEGARK" charge="3" aa_before="K" aa_after="A" protein_refs="PH_1" >
+			<PeptideHit score="0.00851138038202" sequence=".EAEGARK." charge="3" aa_before="K" aa_after="A" protein_refs="PH_1" >
 			</PeptideHit>			
-			<PeptideHit score="0.00831763771103" sequence="LSNEAAR" charge="2" aa_before="R" aa_after="R" protein_refs="PH_1" >
+			<PeptideHit score="0.00831763771103" sequence=".LSNEAAR." charge="2" aa_before="R" aa_after="R" protein_refs="PH_1" >
 			</PeptideHit>
-			<PeptideHit score="0.00831763771103" sequence="LSNEAAR" charge="3" aa_before="R" aa_after="R" protein_refs="PH_1" >
+			<PeptideHit score="0.00831763771103" sequence=".LSNEAAR." charge="3" aa_before="R" aa_after="R" protein_refs="PH_1" >
 			</PeptideHit>		
-			<PeptideHit score="0.00691830970919" sequence="AEASVAGR" charge="2" aa_before="R" aa_after="A" protein_refs="PH_1" >
+			<PeptideHit score="0.00691830970919" sequence=".AEASVAGR." charge="2" aa_before="R" aa_after="A" protein_refs="PH_1" >
 			</PeptideHit>
-			<PeptideHit score="0.00691830970919" sequence="AEASVAGR" charge="3" aa_before="R" aa_after="A" protein_refs="PH_1" >
+			<PeptideHit score="0.00691830970919" sequence=".AEASVAGR." charge="3" aa_before="R" aa_after="A" protein_refs="PH_1" >
 			</PeptideHit>			
-			<PeptideHit score="0.0063095734448" sequence="GDRADAR" charge="2" aa_before="R" aa_after="S" protein_refs="PH_1" >
+			<PeptideHit score="0.0063095734448" sequence=".GDRADAR." charge="2" aa_before="R" aa_after="S" protein_refs="PH_1" >
 			</PeptideHit>
-			<PeptideHit score="0.0063095734448" sequence="GDRADAR" charge="3" aa_before="R" aa_after="S" protein_refs="PH_1" >
+			<PeptideHit score="0.0063095734448" sequence=".GDRADAR." charge="3" aa_before="R" aa_after="S" protein_refs="PH_1" >
 			</PeptideHit>			
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="309.2268982" RT="958.267" >
-			<PeptideHit score="0.00144543977075" sequence="LLKLIVAR" charge="2" aa_before="R" aa_after="G" protein_refs="PH_0" >
+			<PeptideHit score="0.00144543977075" sequence=".LLKLIVAR." charge="2" aa_before="R" aa_after="G" protein_refs="PH_0" >
 			</PeptideHit>
-			<PeptideHit score="0.00144543977075" sequence="LLKLIVAR" charge="3" aa_before="R" aa_after="G" protein_refs="PH_0" >
+			<PeptideHit score="0.00144543977075" sequence=".LLKLIVAR." charge="3" aa_before="R" aa_after="G" protein_refs="PH_0" >
 			</PeptideHit>			
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="375.6966248" RT="998.481" >
-			<PeptideHit score="0.000223872113857" sequence="VANYQR" charge="2" aa_before="R" aa_after="D" protein_refs="PH_1" >
+			<PeptideHit score="0.000223872113857" sequence=".VANYQR." charge="2" aa_before="R" aa_after="D" protein_refs="PH_1" >
 			</PeptideHit>
-			<PeptideHit score="0.000223872113857" sequence="VANYQR" charge="3" aa_before="R" aa_after="D" protein_refs="PH_1" >
+			<PeptideHit score="0.000223872113857" sequence=".VANYQR." charge="3" aa_before="R" aa_after="D" protein_refs="PH_1" >
 			</PeptideHit>			
-			<PeptideHit score="7.58577575029e-05" sequence="RQYQR" charge="2" aa_before="R" aa_after="A" protein_refs="PH_2" >
+			<PeptideHit score="7.58577575029e-05" sequence=".RQYQR." charge="2" aa_before="R" aa_after="A" protein_refs="PH_2" >
 			</PeptideHit>
-			<PeptideHit score="7.58577575029e-05" sequence="RQYQR" charge="3" aa_before="R" aa_after="A" protein_refs="PH_2" >
+			<PeptideHit score="7.58577575029e-05" sequence=".RQYQR." charge="3" aa_before="R" aa_after="A" protein_refs="PH_2" >
 			</PeptideHit>			
-			<PeptideHit score="3.0199517204e-5" sequence="QGVYQR" charge="2" aa_before="K" aa_after="V" protein_refs="PH_2" >
+			<PeptideHit score="3.0199517204e-5" sequence=".QGVYQR." charge="2" aa_before="K" aa_after="V" protein_refs="PH_2" >
 			</PeptideHit>
-			<PeptideHit score="3.0199517204e-5" sequence="QGVYQR" charge="3" aa_before="K" aa_after="V" protein_refs="PH_2" >
+			<PeptideHit score="3.0199517204e-5" sequence=".QGVYQR." charge="3" aa_before="K" aa_after="V" protein_refs="PH_2" >
 			</PeptideHit>			
-			<PeptideHit score="2.08929613085e-5" sequence="VYEPSR" charge="2" aa_before="R" aa_after="F" protein_refs="PH_2" >
+			<PeptideHit score="2.08929613085e-5" sequence=".VYEPSR." charge="2" aa_before="R" aa_after="F" protein_refs="PH_2" >
 			</PeptideHit>
-			<PeptideHit score="2.08929613085e-5" sequence="VYEPSR" charge="3" aa_before="R" aa_after="F" protein_refs="PH_2" >
+			<PeptideHit score="2.08929613085e-5" sequence=".VYEPSR." charge="3" aa_before="R" aa_after="F" protein_refs="PH_2" >
 			</PeptideHit>			
-			<PeptideHit score="1e-5" sequence="MQATTAK" charge="2" aa_after="R" protein_refs="PH_2" >
+			<PeptideHit score="1e-5" sequence=".MQATTAK." charge="2" aa_after="R" protein_refs="PH_2" >
 			</PeptideHit>
-			<PeptideHit score="1e-5" sequence="MQATTAK" charge="3" aa_after="R" protein_refs="PH_2" >
+			<PeptideHit score="1e-5" sequence=".MQATTAK." charge="3" aa_after="R" protein_refs="PH_2" >
 			</PeptideHit>			
-			<PeptideHit score="4.78630092323e-6" sequence="DFEAIR" charge="2" aa_before="R" aa_after="A" protein_refs="PH_1" >
+			<PeptideHit score="4.78630092323e-6" sequence=".DFEAIR." charge="2" aa_before="R" aa_after="A" protein_refs="PH_1" >
 			</PeptideHit>
-			<PeptideHit score="4.78630092323e-6" sequence="DFEAIR" charge="3" aa_before="R" aa_after="A" protein_refs="PH_1" >
+			<PeptideHit score="4.78630092323e-6" sequence=".DFEAIR." charge="3" aa_before="R" aa_after="A" protein_refs="PH_1" >
 			</PeptideHit>			
-			<PeptideHit score="2.08929613085e-6" sequence="FDELAR" charge="2" aa_before="R" aa_after="A" protein_refs="PH_2" >
+			<PeptideHit score="2.08929613085e-6" sequence=".FDELAR." charge="2" aa_before="R" aa_after="A" protein_refs="PH_2" >
 			</PeptideHit>
-			<PeptideHit score="2.08929613085e-6" sequence="FDELAR" charge="3" aa_before="R" aa_after="A" protein_refs="PH_2" >
+			<PeptideHit score="2.08929613085e-6" sequence=".FDELAR." charge="3" aa_before="R" aa_after="A" protein_refs="PH_2" >
 			</PeptideHit>			
-			<PeptideHit score="1.17489755494e-6" sequence="VEEFAR" charge="2" aa_before="R" aa_after="A" protein_refs="PH_1" >
+			<PeptideHit score="1.17489755494e-6" sequence=".VEEFAR." charge="2" aa_before="R" aa_after="A" protein_refs="PH_1" >
 			</PeptideHit>
-			<PeptideHit score="1.17489755494e-6" sequence="VEEFAR" charge="3" aa_before="R" aa_after="A" protein_refs="PH_1" >
+			<PeptideHit score="1.17489755494e-6" sequence=".VEEFAR." charge="3" aa_before="R" aa_after="A" protein_refs="PH_1" >
 			</PeptideHit>			
-			<PeptideHit score="2.39883291902e-07" sequence="VEFFAR" charge="2" aa_before="R" aa_after="A" protein_refs="PH_1" >
+			<PeptideHit score="2.39883291902e-07" sequence=".VEFFAR." charge="2" aa_before="R" aa_after="A" protein_refs="PH_1" >
 			</PeptideHit>
-			<PeptideHit score="2.39883291902e-07" sequence="VEFFAR" charge="3" aa_before="R" aa_after="A" protein_refs="PH_1" >
+			<PeptideHit score="2.39883291902e-07" sequence=".VEFFAR." charge="3" aa_before="R" aa_after="A" protein_refs="PH_1" >
 			</PeptideHit>			
 		</PeptideIdentification>
 	</IdentificationRun>

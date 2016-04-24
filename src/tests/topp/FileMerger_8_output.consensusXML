@@ -97,28 +97,28 @@
 		</ProteinIdentification>
 	</IdentificationRun>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="473.579864501953" RT="1722.9376" >
-		<PeptideHit score="0.00125667609173735" sequence="M(Oxidation)YQPEDDNNSDVTSDDDMTR" charge="5" aa_after="N">
+		<PeptideHit score="0.00125667609173735" sequence=".M(Oxidation)YQPEDDNNSDVTSDDDMTR." charge="5" aa_after="N">
 			<UserParam type="float" name="OMSSA_score" value="0.00834062519686263"/>
 			<UserParam type="string" name="target_decoy" value="target"/>
 			<UserParam type="string" name="protein_references" value="non-unique"/>
 		</PeptideHit>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="949.4091796875" RT="2639.1951" >
-		<PeptideHit score="0" sequence="AADPPAENSSAPEAEQGGAE" charge="2" aa_before="K">
+		<PeptideHit score="0" sequence=".AADPPAENSSAPEAEQGGAE." charge="2" aa_before="K">
 			<UserParam type="float" name="OMSSA_score" value="1.07270560176463e-08"/>
 			<UserParam type="string" name="target_decoy" value="target"/>
 			<UserParam type="string" name="protein_references" value="non-unique"/>
 		</PeptideHit>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_2" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="918.903930664062" RT="3100.6127" >
-		<PeptideHit score="0.00185332274291766" sequence="DGQVINETSQHHDDLE" charge="2" aa_before="R">
+		<PeptideHit score="0.00185332274291766" sequence=".DGQVINETSQHHDDLE." charge="2" aa_before="R">
 			<UserParam type="float" name="OMSSA_score" value="0.011764468876267"/>
 			<UserParam type="string" name="target_decoy" value="target"/>
 			<UserParam type="string" name="protein_references" value="unique"/>
 		</PeptideHit>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_3" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="572.333068847656" RT="2716.5246" >
-		<PeptideHit score="0.00724976613657624" sequence="R(Label:13C(6))VLVQVSYAIGVAEPLSISIFTYGTSQK(Label:2H(4))TER(Label:13C(6))" charge="6" aa_before="R" aa_after="E">
+		<PeptideHit score="0.00724976613657624" sequence=".R(Label:13C(6))VLVQVSYAIGVAEPLSISIFTYGTSQK(Label:2H(4))TER(Label:13C(6))." charge="6" aa_before="R" aa_after="E">
 			<UserParam type="float" name="OMSSA_score" value="0.0948453963407573"/>
 			<UserParam type="string" name="target_decoy" value="target"/>
 			<UserParam type="string" name="protein_references" value="unique"/>
@@ -145,7 +145,7 @@
 				<element map="1" id="0" rt="2951.47603138247" mz="483.253183155651" it="2.06348e+08" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="480.242279052734" RT="2949.0893" >
-				<PeptideHit score="0" sequence="AADAVEDLR" charge="2" aa_before="R" aa_after="W">
+				<PeptideHit score="0" sequence=".AADAVEDLR." charge="2" aa_before="R" aa_after="W">
 					<UserParam type="float" name="OMSSA_score" value="7.12408738455504e-05"/>
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="string" name="protein_references" value="non-unique"/>
@@ -180,7 +180,7 @@
 				<element map="1" id="0" rt="3263.79050858983" mz="834.923652221355" it="2.64167e+07" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_2" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="832.910949707031" RT="3258.1378" >
-				<PeptideHit score="0" sequence="PGLVDSNPAPPESQEK" charge="2" aa_before="M" aa_after="K">
+				<PeptideHit score="0" sequence=".PGLVDSNPAPPESQEK." charge="2" aa_before="M" aa_after="K">
 					<UserParam type="float" name="OMSSA_score" value="4.66252566585733e-07"/>
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="string" name="protein_references" value="non-unique"/>

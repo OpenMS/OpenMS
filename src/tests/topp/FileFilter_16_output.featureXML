@@ -211,28 +211,28 @@
 				<pt x="3599.5098" y="491.288220758917" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="490.284729003906" RT="3598.1666" >
-				<PeptideHit score="27.57" sequence="FALPQYLK" charge="2" aa_before="K" aa_after="T" protein_refs="PH_0">
+				<PeptideHit score="27.57" sequence=".FALPQYLK." charge="2" aa_before="K" aa_after="T" protein_refs="PH_0">
 					<UserParam type="float" name="homology_threshold" value="0"/>
 					<UserParam type="float" name="identity_threshold" value="13"/>
 					<UserParam type="float" name="EValue" value="0.0017"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="490.284759521484" RT="3623.1091" >
-				<PeptideHit score="41.94" sequence="FALPQYLK" charge="2" aa_before="K" aa_after="T" protein_refs="PH_0">
+				<PeptideHit score="41.94" sequence=".FALPQYLK." charge="2" aa_before="K" aa_after="T" protein_refs="PH_0">
 					<UserParam type="float" name="homology_threshold" value="0"/>
 					<UserParam type="float" name="identity_threshold" value="13"/>
 					<UserParam type="float" name="EValue" value="6.4e-05"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="18" MZ="490.284729003906" RT="3598.1666" >
-				<PeptideHit score="3.42" sequence="M(Oxidation)EK(Label:13C(6)15N(2))WLLK(Label:13C(6)15N(2))" charge="2">
+				<PeptideHit score="3.42" sequence=".M(Oxidation)EK(Label:13C(6)15N(2))WLLK(Label:13C(6)15N(2))." charge="2">
 					<UserParam type="float" name="homology_threshold" value="0"/>
 					<UserParam type="float" name="identity_threshold" value="18"/>
 					<UserParam type="float" name="EValue" value="1.5"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="18" MZ="490.284759521484" RT="3623.1091" >
-				<PeptideHit score="4.7" sequence="M(Oxidation)EK(Label:13C(6)15N(2))WLLK(Label:13C(6)15N(2))" charge="2">
+				<PeptideHit score="4.7" sequence=".M(Oxidation)EK(Label:13C(6)15N(2))WLLK(Label:13C(6)15N(2))." charge="2">
 					<UserParam type="float" name="homology_threshold" value="0"/>
 					<UserParam type="float" name="identity_threshold" value="18"/>
 					<UserParam type="float" name="EValue" value="1.1"/>
@@ -373,7 +373,7 @@
 				<pt x="3326.8567" y="506.795017845592" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="16" MZ="505.791015625" RT="3327.3795" >
-				<PeptideHit score="3.3" sequence="ALPM(Oxidation)NLSIK(Label:13C(6)15N(2))" charge="2">
+				<PeptideHit score="3.3" sequence=".ALPM(Oxidation)NLSIK(Label:13C(6)15N(2))." charge="2">
 					<UserParam type="float" name="homology_threshold" value="0"/>
 					<UserParam type="float" name="identity_threshold" value="16"/>
 					<UserParam type="float" name="EValue" value="1.1"/>
@@ -462,7 +462,7 @@
 				<pt x="3128.8319" y="490.754370273715" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="16" MZ="490.250885009766" RT="3132.1286" >
-				<PeptideHit score="5.25" sequence="M(Oxidation)SNITYVK(Label:13C(6)15N(2))" charge="2">
+				<PeptideHit score="5.25" sequence=".M(Oxidation)SNITYVK(Label:13C(6)15N(2))." charge="2">
 					<UserParam type="float" name="homology_threshold" value="0"/>
 					<UserParam type="float" name="identity_threshold" value="16"/>
 					<UserParam type="float" name="EValue" value="0.67"/>

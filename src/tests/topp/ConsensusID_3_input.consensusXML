@@ -27,19 +27,19 @@
 				<element map="2" id="0" rt="1.55" mz="1.55" it="2.24"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="1.5" RT="1.5" >
-				<PeptideHit score="1" sequence="A" charge="2">
+				<PeptideHit score="1" sequence=".A." charge="2">
 				</PeptideHit>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="1.5" RT="1.5" >
-				<PeptideHit score="2" sequence="E" charge="1">
+				<PeptideHit score="2" sequence=".E." charge="1">
 				</PeptideHit>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="1.5" RT="1.5" >
-				<PeptideHit score="9" sequence="F" charge="3">
+				<PeptideHit score="9" sequence=".F." charge="3">
 				</PeptideHit>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="1.5" RT="1.5" >
-				<PeptideHit score="3" sequence="A" charge="2">
+				<PeptideHit score="3" sequence=".A." charge="2">
 				</PeptideHit>
 			</PeptideIdentification>
 		</consensusElement>
@@ -50,19 +50,19 @@
 				<element map="2" id="1" rt="3.55" mz="3.55" it="2.26"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="3.5" RT="3.5" >
-				<PeptideHit score="3" sequence="C" charge="3">
+				<PeptideHit score="3" sequence=".C." charge="3">
 				</PeptideHit>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="3.5" RT="3.5" >
-				<PeptideHit score="4" sequence="D" charge="2">
+				<PeptideHit score="4" sequence=".D." charge="2">
 				</PeptideHit>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="3.5" RT="3.5" >
-				<PeptideHit score="7" sequence="H" charge="2">
+				<PeptideHit score="7" sequence=".H." charge="2">
 				</PeptideHit>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="3.5" RT="3.5" >
-				<PeptideHit score="1" sequence="C" charge="3">
+				<PeptideHit score="1" sequence=".C." charge="3">
 				</PeptideHit>
 			</PeptideIdentification>
 		</consensusElement>

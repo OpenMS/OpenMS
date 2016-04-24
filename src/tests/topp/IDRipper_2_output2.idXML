@@ -15,9 +15,9 @@
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="675.96923828125" RT="8118.3068" >
-			<PeptideHit score="1368.03422161504" sequence="AK(Label:2H(4))SVNIALHAVMIFSAAGTLLVFGYEK(Label:2H(4))SLVAM(Oxidation)" charge="5" aa_before="R" protein_refs="PH_0" >
+			<PeptideHit score="1368.03422161504" sequence=".AK(Label:2H(4))SVNIALHAVMIFSAAGTLLVFGYEK(Label:2H(4))SLVAM(Oxidation)." charge="5" aa_before="R" protein_refs="PH_0" >
 			</PeptideHit>
-			<PeptideHit score="2735.56927192931" sequence="MVLFQQQPGIVLGPR(Label:13C(6))C(Carbamidomethyl)IR(Label:13C(6))VWAITEAATM(Oxidation)R(Label:13C(6))" charge="5" aa_before="K" aa_after="Y" protein_refs="PH_1" >
+			<PeptideHit score="2735.56927192931" sequence=".MVLFQQQPGIVLGPR(Label:13C(6))C(Carbamidomethyl)IR(Label:13C(6))VWAITEAATM(Oxidation)R(Label:13C(6))." charge="5" aa_before="K" aa_after="Y" protein_refs="PH_1" >
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>

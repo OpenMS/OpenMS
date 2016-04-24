@@ -50,7 +50,7 @@
 	</IdentificationRun>
 		
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="473.579864501953" RT="1722.9376" >
-		<PeptideHit score="0.00125667609173735" sequence="M(Oxidation)YQPEDDNNSDVTSDDDMTR" charge="5" aa_after="N" protein_refs="">
+		<PeptideHit score="0.00125667609173735" sequence=".M(Oxidation)YQPEDDNNSDVTSDDDMTR." charge="5" aa_after="N" protein_refs="">
 			<UserParam type="float" name="OMSSA_score" value="0.00834062519686263"/>
 			<UserParam type="string" name="target_decoy" value="target"/>
 			<UserParam type="string" name="protein_references" value="non-unique"/>
@@ -59,7 +59,7 @@
 
 
 	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="949.4091796875" RT="2639.1951" >
-		<PeptideHit score="0" sequence="AADPPAENSSAPEAEQGGAE" charge="2" aa_before="K" protein_refs="">
+		<PeptideHit score="0" sequence=".AADPPAENSSAPEAEQGGAE." charge="2" aa_before="K" protein_refs="">
 			<UserParam type="float" name="OMSSA_score" value="1.07270560176463e-08"/>
 			<UserParam type="string" name="target_decoy" value="target"/>
 			<UserParam type="string" name="protein_references" value="non-unique"/>
@@ -89,7 +89,7 @@
 				<element map="1" id="0" rt="2951.47603138247" mz="483.253183155651" it="2.06348e+08" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="480.242279052734" RT="2949.0893" >
-				<PeptideHit score="0" sequence="AADAVEDLR" charge="2" aa_before="R" aa_after="W" protein_refs="">
+				<PeptideHit score="0" sequence=".AADAVEDLR." charge="2" aa_before="R" aa_after="W" protein_refs="">
 					<UserParam type="float" name="OMSSA_score" value="7.12408738455504e-05"/>
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="string" name="protein_references" value="non-unique"/>
