@@ -144,7 +144,7 @@ START_SECTION(std::vector< Size > load(const String& result_filename, std::vecto
 		if( peptide_identifications[0].getHits().size() == 1)
 		{
 			TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[0].getScore(), -257)
-			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[0].getSequence().toString(), "KKLE")
+			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[0].getSequence().toString(), ".KKLE.")
             vector<PeptideEvidence> pes = peptide_identifications[0].getHits()[0].getPeptideEvidences();
             TEST_EQUAL(pes[0].getAABefore(), 'E')
             TEST_EQUAL(pes[0].getAAAfter(), 'K')
@@ -167,7 +167,7 @@ START_SECTION(std::vector< Size > load(const String& result_filename, std::vecto
 		if( peptide_identifications[0].getHits().size() == 2 )
 		{
 			TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[0].getScore(), -257)
-			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[0].getSequence().toString(), "KKLE")
+			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[0].getSequence().toString(), ".KKLE.")
             vector<PeptideEvidence> pes = peptide_identifications[0].getHits()[0].getPeptideEvidences();
             TEST_EQUAL(pes[0].getAABefore(), 'E')
             TEST_EQUAL(pes[0].getAAAfter(), 'K')
@@ -176,7 +176,7 @@ START_SECTION(std::vector< Size > load(const String& result_filename, std::vecto
             TEST_EQUAL(pes.size(), 1)
             TEST_STRING_EQUAL(pes[0].getProteinAccession(), "P68509")
 			TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[1].getScore(), -1456)
-			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[1].getSequence().toString(), "EKIE")
+			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[1].getSequence().toString(), ".EKIE.")
             vector<PeptideEvidence> pes1 = peptide_identifications[0].getHits()[1].getPeptideEvidences();
             TEST_EQUAL(pes1[0].getAABefore(), 'R')
             TEST_EQUAL(pes1[0].getAAAfter(), 'K')

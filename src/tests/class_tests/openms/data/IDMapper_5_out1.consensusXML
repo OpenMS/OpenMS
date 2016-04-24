@@ -125,15 +125,15 @@
 		</ProteinIdentification>
 	</IdentificationRun>
 	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="738.365691698567" RT="1522.23" >
-		<PeptideHit score="1" sequence="SLAGSSGPGASSGTSGDHGELVVR" charge="3" aa_before="K" aa_after="L" protein_refs="PH_8">
+		<PeptideHit score="1" sequence=".SLAGSSGPGASSGTSGDHGELVVR." charge="3" aa_before="K" aa_after="L" protein_refs="PH_8">
 		</PeptideHit>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="721.3519250319" RT="1551.13" >
-		<PeptideHit score="0.9873" sequence="YANEVNSDAGAFK(Dimethyl)" charge="2" aa_before="K" aa_after="N" protein_refs="PH_5">
+		<PeptideHit score="0.9873" sequence=".YANEVNSDAGAFK(Dimethyl)." charge="2" aa_before="K" aa_after="N" protein_refs="PH_5">
 		</PeptideHit>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="740.8456750319" RT="1570.45" >
-		<PeptideHit score="0.8376" sequence="LGNYAGAVQDC(Carbamidomethyl)ER" charge="2" aa_before="K" aa_after="A" protein_refs="PH_7">
+		<PeptideHit score="0.8376" sequence=".LGNYAGAVQDC(Carbamidomethyl)ER." charge="2" aa_before="K" aa_after="A" protein_refs="PH_7">
 		</PeptideHit>
 	</UnassignedPeptideIdentification>
 	<mapList count="2">
@@ -150,7 +150,7 @@
 				<element map="1" id="0" rt="1508.87896019122" mz="785.389299846218" it="1.77782e+07" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="779.3593750319" RT="1502.92" >
-				<PeptideHit score="0.9941" sequence="SSFYPDGGDQETAK(Dimethyl)" charge="2" aa_before="R" aa_after="T" protein_refs="PH_4">
+				<PeptideHit score="0.9941" sequence=".SSFYPDGGDQETAK(Dimethyl)." charge="2" aa_before="R" aa_after="T" protein_refs="PH_4">
 				</PeptideHit>
 				<UserParam type="int" name="map index" value="0"/>
 			</PeptideIdentification>
@@ -169,17 +169,17 @@
 				<element map="1" id="0" rt="1538.02703195531" mz="784.925983557153" it="2.13929e+08" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="784.9271250319" RT="1533.15" >
-				<PeptideHit score="0.9854" sequence="DQTPDENDQVIVK(Dimethyl:2H(4)13C(2))" charge="2" aa_before="R" aa_after="L" protein_refs="PH_1">
+				<PeptideHit score="0.9854" sequence=".DQTPDENDQVIVK(Dimethyl:2H(4)13C(2))." charge="2" aa_before="R" aa_after="L" protein_refs="PH_1">
 				</PeptideHit>
 				<UserParam type="int" name="map index" value="1"/>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="778.8943750319" RT="1529.25" >
-				<PeptideHit score="0.9422" sequence="DQTPDENDQVIVK(Dimethyl)" charge="2" aa_before="R" aa_after="L" protein_refs="PH_6">
+				<PeptideHit score="0.9422" sequence=".DQTPDENDQVIVK(Dimethyl)." charge="2" aa_before="R" aa_after="L" protein_refs="PH_6">
 				</PeptideHit>
 				<UserParam type="int" name="map index" value="0"/>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="778.8943250319" RT="1532.24" >
-				<PeptideHit score="0.9988" sequence="DQTPDENDQVIVK(Dimethyl)" charge="2" aa_before="R" aa_after="L" protein_refs="PH_6">
+				<PeptideHit score="0.9988" sequence=".DQTPDENDQVIVK(Dimethyl)." charge="2" aa_before="R" aa_after="L" protein_refs="PH_6">
 				</PeptideHit>
 				<UserParam type="int" name="map index" value="0"/>
 			</PeptideIdentification>
@@ -191,7 +191,7 @@
 				<element map="1" id="0" rt="1541.25668031408" mz="734.88296219236" it="3.24422e+07" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="728.8516750319" RT="1542.08" >
-				<PeptideHit score="1" sequence="FNEVAAQYSEDK(Dimethyl)" charge="2" aa_before="R" aa_after="A" protein_refs="PH_9">
+				<PeptideHit score="1" sequence=".FNEVAAQYSEDK(Dimethyl)." charge="2" aa_before="R" aa_after="A" protein_refs="PH_9">
 				</PeptideHit>
 				<UserParam type="int" name="map index" value="0"/>
 			</PeptideIdentification>
@@ -203,12 +203,12 @@
 				<element map="1" id="0" rt="1551.91710055025" mz="747.399296441175" it="4.78339e+07" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="747.4003250319" RT="1550.46" >
-				<PeptideHit score="1" sequence="WFEENASQSTVK(Dimethyl:2H(4)13C(2))" charge="2" aa_before="R" aa_after="V" protein_refs="PH_0">
+				<PeptideHit score="1" sequence=".WFEENASQSTVK(Dimethyl:2H(4)13C(2))." charge="2" aa_before="R" aa_after="V" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="map index" value="1"/>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="741.3662250319" RT="1547.15" >
-				<PeptideHit score="1" sequence="WFEENASQSTVK(Dimethyl)" charge="2" aa_before="R" aa_after="V" protein_refs="PH_3">
+				<PeptideHit score="1" sequence=".WFEENASQSTVK(Dimethyl)." charge="2" aa_before="R" aa_after="V" protein_refs="PH_3">
 				</PeptideHit>
 				<UserParam type="int" name="map index" value="0"/>
 			</PeptideIdentification>
@@ -220,7 +220,7 @@
 				<element map="1" id="0" rt="1569.1908713663" mz="732.393484772786" it="7.60812e+06" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="729.3791250319" RT="1566.06" >
-				<PeptideHit score="1" sequence="AFGPGLQGGSAGSPAR" charge="2" aa_before="K" aa_after="F" protein_refs="PH_2">
+				<PeptideHit score="1" sequence=".AFGPGLQGGSAGSPAR." charge="2" aa_before="K" aa_after="F" protein_refs="PH_2">
 				</PeptideHit>
 				<UserParam type="int" name="map index" value="0"/>
 			</PeptideIdentification>

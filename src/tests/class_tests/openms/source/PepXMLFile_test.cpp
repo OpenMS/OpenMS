@@ -114,7 +114,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_REAL_SIMILAR(first.getMZ(), 538.605); // recomputed
   TEST_EQUAL(first.getHits().size(), 1);
   PeptideHit pep_hit = first.getHits()[0];
-  TEST_EQUAL(pep_hit.getSequence().toString(), "(Glu->pyro-Glu)ELNKEMAAEKAKAAAG");
+  TEST_EQUAL(pep_hit.getSequence().toString(), ".(Glu->pyro-Glu)ELNKEMAAEKAKAAAG.");
   TEST_EQUAL(pep_hit.getSequence().toUnmodifiedString(), "ELNKEMAAEKAKAAAG");
   TEST_EQUAL(pep_hit.getRank(), 1);
 
@@ -140,7 +140,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
 
   // cursory check of a peptide ID from the second search run:
   pep_hit = last.getHits()[0];
-  TEST_EQUAL(pep_hit.getSequence().toString(), "EISPDTTLLDLQNNDISELR");
+  TEST_EQUAL(pep_hit.getSequence().toString(), ".EISPDTTLLDLQNNDISELR.");
 
   // protein ID:
   TEST_EQUAL(proteins.size(), 2);
@@ -221,7 +221,7 @@ START_SECTION([EXTRA] void load(const String& filename, std::vector<ProteinIdent
   TEST_EQUAL(last.getExperimentLabel(), "urine");
 
   PeptideHit pep_hit = last.getHits()[0];
-  TEST_EQUAL(pep_hit.getSequence().toString(), "VVITAPGGNDVK");
+  TEST_EQUAL(pep_hit.getSequence().toString(), ".VVITAPGGNDVK.");
   TEST_EQUAL(pep_hit.getSequence().toUnmodifiedString(), "VVITAPGGNDVK");
   TEST_EQUAL(pep_hit.getRank(), 1);
   TEST_EQUAL(pep_hit.getCharge(), 2);
@@ -364,7 +364,7 @@ START_SECTION([EXTRA] void store(const String& filename, std::vector<ProteinIden
     TEST_REAL_SIMILAR(last.getMZ(), 585.3304219355);   // recomputed
     TEST_EQUAL(last.getHits().size(), 1);
     PeptideHit pep_hit = last.getHits()[0];
-    TEST_EQUAL(pep_hit.getSequence().toString(), "VVITAPGGNDVK");
+    TEST_EQUAL(pep_hit.getSequence().toString(), ".VVITAPGGNDVK.");
     TEST_EQUAL(pep_hit.getSequence().toUnmodifiedString(), "VVITAPGGNDVK");
     TEST_EQUAL(pep_hit.getRank(), 1);
     TEST_EQUAL(pep_hit.getCharge(), 2);
