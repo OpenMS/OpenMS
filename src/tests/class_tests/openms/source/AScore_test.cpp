@@ -675,7 +675,7 @@ END_SECTION
 START_SECTION(AASequence removePhosphositesFromSequenceTest_(const String sequence))
 {
   String sequence = "QSSVTQVTEQS(Phospho)PK";
-  TEST_EQUAL(ptr_test->removePhosphositesFromSequenceTest_(sequence).toString(),"QSSVTQVTEQSPK");
+  TEST_EQUAL(ptr_test->removePhosphositesFromSequenceTest_(sequence).toString(),".QSSVTQVTEQSPK.");
 }
 END_SECTION
 
@@ -755,8 +755,8 @@ START_SECTION(std::vector<RichPeakSpectrum> createTheoreticalSpectraTest_(const 
   // create theoretical based on permutations
   vector<RichPeakSpectrum> th_spectra(ptr_test->createTheoreticalSpectraTest_(permutations, seq_without_phospho));
   TEST_EQUAL(th_spectra.size(),5);
-  TEST_EQUAL(th_spectra[0].getName(),"QS(Phospho)SVTQVTEQSPK");
-  TEST_EQUAL(th_spectra[4].getName(),"QSSVTQVTEQS(Phospho)PK");
+  TEST_EQUAL(th_spectra[0].getName(),".QS(Phospho)SVTQVTEQSPK.");
+  TEST_EQUAL(th_spectra[4].getName(),".QSSVTQVTEQS(Phospho)PK.");
   TEST_REAL_SIMILAR(th_spectra[4][0].getMZ(), 147.11340);
   TEST_REAL_SIMILAR(th_spectra[4][2].getMZ(), 244.166);
   TEST_REAL_SIMILAR(th_spectra[4][21].getMZ(), 1352.57723);
@@ -788,7 +788,7 @@ START_SECTION(PeptideHit AScore::compute(const PeptideHit & hit, PeakSpectrum & 
   
   // http://ascore.med.harvard.edu/ascore.html result=3.51, sequence=QSSVT*QSK
   TEST_REAL_SIMILAR(static_cast<double>(hit1.getMetaValue("AScore_1")), 9.40409359086883);
-  TEST_EQUAL(hit1.getSequence().toString(),"QSS(Phospho)VTQSK");
+  TEST_EQUAL(hit1.getSequence().toString(),".QSS(Phospho)VTQSK.");
   
   // ===========================================================================
   
@@ -798,7 +798,7 @@ START_SECTION(PeptideHit AScore::compute(const PeptideHit & hit, PeakSpectrum & 
   
   // http://ascore.med.harvard.edu/ascore.html result=21.3
   TEST_REAL_SIMILAR(static_cast<double>(hit2.getMetaValue("AScore_1")), 20.4116482719882);
-  TEST_EQUAL(hit2.getSequence().toString(),"RIRLT(Phospho)ATTR");
+  TEST_EQUAL(hit2.getSequence().toString(),".RIRLT(Phospho)ATTR.");
   
   // ===========================================================================
   
@@ -808,7 +808,7 @@ START_SECTION(PeptideHit AScore::compute(const PeptideHit & hit, PeakSpectrum & 
   
   // http://ascore.med.harvard.edu/ascore.html result=88.3
   TEST_REAL_SIMILAR(static_cast<double>(hit3.getMetaValue("AScore_1")), 92.2548303427145);
-  TEST_EQUAL(hit3.getSequence().toString(),"QSSVTQVTEQS(Phospho)PK"); 
+  TEST_EQUAL(hit3.getSequence().toString(),".QSSVTQVTEQS(Phospho)PK."); 
   
   // ===========================================================================
   
@@ -822,7 +822,7 @@ START_SECTION(PeptideHit AScore::compute(const PeptideHit & hit, PeakSpectrum & 
   
   // http://ascore.med.harvard.edu/ascore.html result=88.3
   TEST_REAL_SIMILAR(static_cast<double>(hit4.getMetaValue("AScore_1")), 20.1669211754322);
-  TEST_EQUAL(hit4.getSequence().toString(),"ATPGNLGSSVLHS(Phospho)K");
+  TEST_EQUAL(hit4.getSequence().toString(),".ATPGNLGSSVLHS(Phospho)K.");
   
   // ===========================================================================
   // PPM UNIT TEST
@@ -837,7 +837,7 @@ START_SECTION(PeptideHit AScore::compute(const PeptideHit & hit, PeakSpectrum & 
   
   // http://ascore.med.harvard.edu/ascore.html result=3.51, sequence=QSSVT*QSK
   TEST_REAL_SIMILAR(static_cast<double>(hit5.getMetaValue("AScore_1")), 9.40409359086883);
-  TEST_EQUAL(hit5.getSequence().toString(),"QSS(Phospho)VTQSK");
+  TEST_EQUAL(hit5.getSequence().toString(),".QSS(Phospho)VTQSK.");
   
   fragment_mass_tolerance = 70; // 0.05 Da were converted to ppm based on a small peptide
   fragment_mass_unit_ppm = true; 
@@ -849,7 +849,7 @@ START_SECTION(PeptideHit AScore::compute(const PeptideHit & hit, PeakSpectrum & 
   
   // http://ascore.med.harvard.edu/ascore.html result=88.3
   TEST_REAL_SIMILAR(static_cast<double>(hit6.getMetaValue("AScore_1")), 20.1669211754322);
-  TEST_EQUAL(hit6.getSequence().toString(),"ATPGNLGSSVLHS(Phospho)K");  
+  TEST_EQUAL(hit6.getSequence().toString(),".ATPGNLGSSVLHS(Phospho)K.");  
 }
 END_SECTION 
 

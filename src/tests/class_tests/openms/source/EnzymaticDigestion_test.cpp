@@ -175,83 +175,83 @@ START_SECTION((void digest(const AASequence &protein, std::vector<AASequence>&ou
     
     ed.digest(AASequence::fromString("ACDE"), out);
     TEST_EQUAL(out.size(), 1)
-    TEST_EQUAL(out[0].toString(), "ACDE")
+    TEST_EQUAL(out[0].toString(), ".ACDE.")
     
     ed.digest(AASequence::fromString("ACKDE"), out);
     TEST_EQUAL(out.size(), 2)
-    TEST_EQUAL(out[0].toString(), "ACK")
-    TEST_EQUAL(out[1].toString(), "DE")
+    TEST_EQUAL(out[0].toString(), ".ACK.")
+    TEST_EQUAL(out[1].toString(), ".DE.")
     
     ed.digest(AASequence::fromString("ACRDE"), out);
     TEST_EQUAL(out.size(), 2)
-    TEST_EQUAL(out[0].toString(), "ACR")
-    TEST_EQUAL(out[1].toString(), "DE")
+    TEST_EQUAL(out[0].toString(), ".ACR.")
+    TEST_EQUAL(out[1].toString(), ".DE.")
     
     ed.digest(AASequence::fromString("ACKPDE"), out);
     TEST_EQUAL(out.size(), 1)
-    TEST_EQUAL(out[0].toString(), "ACKPDE")
+    TEST_EQUAL(out[0].toString(), ".ACKPDE.")
     
     ed.digest(AASequence::fromString("ACRPDE"), out);
     TEST_EQUAL(out.size(), 1)
-    TEST_EQUAL(out[0].toString(), "ACRPDE")
+    TEST_EQUAL(out[0].toString(), ".ACRPDE.")
     
     ed.digest(AASequence::fromString("ARCRDRE"), out);
     TEST_EQUAL(out.size(), 4)
-    TEST_EQUAL(out[0].toString(), "AR")
-    TEST_EQUAL(out[1].toString(), "CR")
-    TEST_EQUAL(out[2].toString(), "DR")
-    TEST_EQUAL(out[3].toString(), "E")
+    TEST_EQUAL(out[0].toString(), ".AR.")
+    TEST_EQUAL(out[1].toString(), ".CR.")
+    TEST_EQUAL(out[2].toString(), ".DR.")
+    TEST_EQUAL(out[3].toString(), ".E.")
     
     ed.digest(AASequence::fromString("RKR"), out);
     TEST_EQUAL(out.size(), 3)
-    TEST_EQUAL(out[0].toString(), "R")
-    TEST_EQUAL(out[1].toString(), "K")
-    TEST_EQUAL(out[2].toString(), "R")
+    TEST_EQUAL(out[0].toString(), ".R.")
+    TEST_EQUAL(out[1].toString(), ".K.")
+    TEST_EQUAL(out[2].toString(), ".R.")
     
     ed.setMissedCleavages(1);
     
     ed.digest(AASequence::fromString("ACDE"), out);
     TEST_EQUAL(out.size(), 1)
-    TEST_EQUAL(out[0].toString(), "ACDE")
+    TEST_EQUAL(out[0].toString(), ".ACDE.")
     
     ed.digest(AASequence::fromString("ACRDE"), out);
     TEST_EQUAL(out.size(), 3)
-    TEST_EQUAL(out[0].toString(), "ACR")
-    TEST_EQUAL(out[1].toString(), "DE")
-    TEST_EQUAL(out[2].toString(), "ACRDE")
+    TEST_EQUAL(out[0].toString(), ".ACR.")
+    TEST_EQUAL(out[1].toString(), ".DE.")
+    TEST_EQUAL(out[2].toString(), ".ACRDE.")
     
     ed.digest(AASequence::fromString("ARCDRE"), out);
     TEST_EQUAL(out.size(), 5)
-    TEST_EQUAL(out[0].toString(), "AR")
-    TEST_EQUAL(out[1].toString(), "CDR")
-    TEST_EQUAL(out[2].toString(), "E")
-    TEST_EQUAL(out[3].toString(), "ARCDR")
-    TEST_EQUAL(out[4].toString(), "CDRE")
+    TEST_EQUAL(out[0].toString(), ".AR.")
+    TEST_EQUAL(out[1].toString(), ".CDR.")
+    TEST_EQUAL(out[2].toString(), ".E.")
+    TEST_EQUAL(out[3].toString(), ".ARCDR.")
+    TEST_EQUAL(out[4].toString(), ".CDRE.")
     
     ed.digest(AASequence::fromString("RKR"), out);
     TEST_EQUAL(out.size(), 5)
-    TEST_EQUAL(out[0].toString(), "R")
-    TEST_EQUAL(out[1].toString(), "K")
-    TEST_EQUAL(out[2].toString(), "R")
-    TEST_EQUAL(out[3].toString(), "RK")
-    TEST_EQUAL(out[4].toString(), "KR")
+    TEST_EQUAL(out[0].toString(), ".R.")
+    TEST_EQUAL(out[1].toString(), ".K.")
+    TEST_EQUAL(out[2].toString(), ".R.")
+    TEST_EQUAL(out[3].toString(), ".RK.")
+    TEST_EQUAL(out[4].toString(), ".KR.")
     
     
     ed.digest(AASequence::fromString("(ICPL:2H(4))ARCDRE"), out);
     TEST_EQUAL(out.size(), 5)
-    TEST_EQUAL(out[0].toString(), "(ICPL:2H(4))AR")
-    TEST_EQUAL(out[1].toString(), "CDR")
-    TEST_EQUAL(out[2].toString(), "E")
-    TEST_EQUAL(out[3].toString(), "(ICPL:2H(4))ARCDR")
-    TEST_EQUAL(out[4].toString(), "CDRE")
+    TEST_EQUAL(out[0].toString(), ".(ICPL:2H(4))AR.")
+    TEST_EQUAL(out[1].toString(), ".CDR.")
+    TEST_EQUAL(out[2].toString(), ".E.")
+    TEST_EQUAL(out[3].toString(), ".(ICPL:2H(4))ARCDR.")
+    TEST_EQUAL(out[4].toString(), ".CDRE.")
     
     ed.digest(AASequence::fromString("ARCDRE(Amidated)"), out);
     TEST_EQUAL(out.size(), 5)
-    TEST_EQUAL(out[0].toString(), "AR")
-    TEST_EQUAL(out[1].toString(), "CDR")
-    TEST_EQUAL(out[2].toString(), "E(Amidated)")
-    TEST_EQUAL(out[3].toString(), "ARCDR")
-    TEST_EQUAL(out[4].toString(), "CDRE(Amidated)")
+    TEST_EQUAL(out[0].toString(), ".AR.")
+    TEST_EQUAL(out[1].toString(), ".CDR.")
+    TEST_EQUAL(out[2].toString(), ".E.(Amidated)")
+    TEST_EQUAL(out[3].toString(), ".ARCDR.")
+    TEST_EQUAL(out[4].toString(), ".CDRE.(Amidated)")
     
     // ------------------------
     // Trypsin/P
@@ -260,13 +260,13 @@ START_SECTION((void digest(const AASequence &protein, std::vector<AASequence>&ou
     ed.setEnzyme("Trypsin/P");
     ed.digest(AASequence::fromString("ACKPDE"), out);
     TEST_EQUAL(out.size(), 2)
-    TEST_EQUAL(out[0].toString(), "ACK")
-    TEST_EQUAL(out[1].toString(), "PDE")
+    TEST_EQUAL(out[0].toString(), ".ACK.")
+    TEST_EQUAL(out[1].toString(), ".PDE.")
     
     ed.digest(AASequence::fromString("ACRPDE"), out);
     TEST_EQUAL(out.size(), 2)
-    TEST_EQUAL(out[0].toString(), "ACR")
-    TEST_EQUAL(out[1].toString(), "PDE")
+    TEST_EQUAL(out[0].toString(), ".ACR.")
+    TEST_EQUAL(out[1].toString(), ".PDE.")
 END_SECTION
 
 START_SECTION((bool digestUnmodifiedString(const StringView sequence, std::vector<StringView>& output, Size min_length)))

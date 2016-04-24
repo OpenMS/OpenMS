@@ -265,24 +265,24 @@ START_SECTION((SimTypes::FeatureMapSim const& getSimulatedFeatures() const ))
   TEST_EQUAL(mssim.getSimulatedFeatures().size(), 18)
 
   // check if all features are contained as expected
-  TEST_EQUAL(find_if(mssim.getSimulatedFeatures().begin(), mssim.getSimulatedFeatures().end(), FindFeature("AKLAEQAER", 3)) !=  mssim.getSimulatedFeatures().end(), true)
-  TEST_EQUAL(find_if(mssim.getSimulatedFeatures().begin(), mssim.getSimulatedFeatures().end(), FindFeature("AKLAEQAER", 2)) !=  mssim.getSimulatedFeatures().end(), true)
-  TEST_EQUAL(find_if(mssim.getSimulatedFeatures().begin(), mssim.getSimulatedFeatures().end(), FindFeature("AKLAEQAER", 1)) !=  mssim.getSimulatedFeatures().end(), true)
-  TEST_EQUAL(find_if(mssim.getSimulatedFeatures().begin(), mssim.getSimulatedFeatures().end(), FindFeature("MTMDK", 2)) !=  mssim.getSimulatedFeatures().end(), true)
-  TEST_EQUAL(find_if(mssim.getSimulatedFeatures().begin(), mssim.getSimulatedFeatures().end(), FindFeature("MTMDK", 1)) !=  mssim.getSimulatedFeatures().end(), true)
-  TEST_EQUAL(find_if(mssim.getSimulatedFeatures().begin(), mssim.getSimulatedFeatures().end(), FindFeature("SELVQKAK", 3)) !=  mssim.getSimulatedFeatures().end(), true)
-  TEST_EQUAL(find_if(mssim.getSimulatedFeatures().begin(), mssim.getSimulatedFeatures().end(), FindFeature("SELVQKAK", 2)) !=  mssim.getSimulatedFeatures().end(), true)
-  TEST_EQUAL(find_if(mssim.getSimulatedFeatures().begin(), mssim.getSimulatedFeatures().end(), FindFeature("SELVQKAK", 1)) !=  mssim.getSimulatedFeatures().end(), true)
-  TEST_EQUAL(find_if(mssim.getSimulatedFeatures().begin(), mssim.getSimulatedFeatures().end(), FindFeature("SEVLQKAK", 3)) !=  mssim.getSimulatedFeatures().end(), true)
-  TEST_EQUAL(find_if(mssim.getSimulatedFeatures().begin(), mssim.getSimulatedFeatures().end(), FindFeature("SEVLQKAK", 2)) !=  mssim.getSimulatedFeatures().end(), true)
-  TEST_EQUAL(find_if(mssim.getSimulatedFeatures().begin(), mssim.getSimulatedFeatures().end(), FindFeature("SEVLQKAK", 1)) !=  mssim.getSimulatedFeatures().end(), true)
-  TEST_EQUAL(find_if(mssim.getSimulatedFeatures().begin(), mssim.getSimulatedFeatures().end(), FindFeature("SEVLQK", 2)) !=  mssim.getSimulatedFeatures().end(), true)
-  TEST_EQUAL(find_if(mssim.getSimulatedFeatures().begin(), mssim.getSimulatedFeatures().end(), FindFeature("SEVLQK", 1)) !=  mssim.getSimulatedFeatures().end(), true)
-  TEST_EQUAL(find_if(mssim.getSimulatedFeatures().begin(), mssim.getSimulatedFeatures().end(), FindFeature("SELVQK", 2)) !=  mssim.getSimulatedFeatures().end(), true)
-  TEST_EQUAL(find_if(mssim.getSimulatedFeatures().begin(), mssim.getSimulatedFeatures().end(), FindFeature("SELVQK", 1)) !=  mssim.getSimulatedFeatures().end(), true)
-  TEST_EQUAL(find_if(mssim.getSimulatedFeatures().begin(), mssim.getSimulatedFeatures().end(), FindFeature("MTMDKSEVLQK", 3)) !=  mssim.getSimulatedFeatures().end(), true)
-  TEST_EQUAL(find_if(mssim.getSimulatedFeatures().begin(), mssim.getSimulatedFeatures().end(), FindFeature("MTMDKSEVLQK", 2)) !=  mssim.getSimulatedFeatures().end(), true)
-  TEST_EQUAL(find_if(mssim.getSimulatedFeatures().begin(), mssim.getSimulatedFeatures().end(), FindFeature("MTMDKSEVLQK", 1)) !=  mssim.getSimulatedFeatures().end(), true)
+  TEST_EQUAL(find_if(mssim.getSimulatedFeatures().begin(), mssim.getSimulatedFeatures().end(), FindFeature(".AKLAEQAER.", 3)) !=  mssim.getSimulatedFeatures().end(), true)
+  TEST_EQUAL(find_if(mssim.getSimulatedFeatures().begin(), mssim.getSimulatedFeatures().end(), FindFeature(".AKLAEQAER.", 2)) !=  mssim.getSimulatedFeatures().end(), true)
+  TEST_EQUAL(find_if(mssim.getSimulatedFeatures().begin(), mssim.getSimulatedFeatures().end(), FindFeature(".AKLAEQAER.", 1)) !=  mssim.getSimulatedFeatures().end(), true)
+  TEST_EQUAL(find_if(mssim.getSimulatedFeatures().begin(), mssim.getSimulatedFeatures().end(), FindFeature(".MTMDK.", 2)) !=  mssim.getSimulatedFeatures().end(), true)
+  TEST_EQUAL(find_if(mssim.getSimulatedFeatures().begin(), mssim.getSimulatedFeatures().end(), FindFeature(".MTMDK.", 1)) !=  mssim.getSimulatedFeatures().end(), true)
+  TEST_EQUAL(find_if(mssim.getSimulatedFeatures().begin(), mssim.getSimulatedFeatures().end(), FindFeature(".SELVQKAK.", 3)) !=  mssim.getSimulatedFeatures().end(), true)
+  TEST_EQUAL(find_if(mssim.getSimulatedFeatures().begin(), mssim.getSimulatedFeatures().end(), FindFeature(".SELVQKAK.", 2)) !=  mssim.getSimulatedFeatures().end(), true)
+  TEST_EQUAL(find_if(mssim.getSimulatedFeatures().begin(), mssim.getSimulatedFeatures().end(), FindFeature(".SELVQKAK.", 1)) !=  mssim.getSimulatedFeatures().end(), true)
+  TEST_EQUAL(find_if(mssim.getSimulatedFeatures().begin(), mssim.getSimulatedFeatures().end(), FindFeature(".SEVLQKAK.", 3)) !=  mssim.getSimulatedFeatures().end(), true)
+  TEST_EQUAL(find_if(mssim.getSimulatedFeatures().begin(), mssim.getSimulatedFeatures().end(), FindFeature(".SEVLQKAK.", 2)) !=  mssim.getSimulatedFeatures().end(), true)
+  TEST_EQUAL(find_if(mssim.getSimulatedFeatures().begin(), mssim.getSimulatedFeatures().end(), FindFeature(".SEVLQKAK.", 1)) !=  mssim.getSimulatedFeatures().end(), true)
+  TEST_EQUAL(find_if(mssim.getSimulatedFeatures().begin(), mssim.getSimulatedFeatures().end(), FindFeature(".SEVLQK.", 2)) !=  mssim.getSimulatedFeatures().end(), true)
+  TEST_EQUAL(find_if(mssim.getSimulatedFeatures().begin(), mssim.getSimulatedFeatures().end(), FindFeature(".SEVLQK.", 1)) !=  mssim.getSimulatedFeatures().end(), true)
+  TEST_EQUAL(find_if(mssim.getSimulatedFeatures().begin(), mssim.getSimulatedFeatures().end(), FindFeature(".SELVQK.", 2)) !=  mssim.getSimulatedFeatures().end(), true)
+  TEST_EQUAL(find_if(mssim.getSimulatedFeatures().begin(), mssim.getSimulatedFeatures().end(), FindFeature(".SELVQK.", 1)) !=  mssim.getSimulatedFeatures().end(), true)
+  TEST_EQUAL(find_if(mssim.getSimulatedFeatures().begin(), mssim.getSimulatedFeatures().end(), FindFeature(".MTMDKSEVLQK.", 3)) !=  mssim.getSimulatedFeatures().end(), true)
+  TEST_EQUAL(find_if(mssim.getSimulatedFeatures().begin(), mssim.getSimulatedFeatures().end(), FindFeature(".MTMDKSEVLQK.", 2)) !=  mssim.getSimulatedFeatures().end(), true)
+  TEST_EQUAL(find_if(mssim.getSimulatedFeatures().begin(), mssim.getSimulatedFeatures().end(), FindFeature(".MTMDKSEVLQK.", 1)) !=  mssim.getSimulatedFeatures().end(), true)
 }
 END_SECTION
 
@@ -293,43 +293,43 @@ START_SECTION((ConsensusMap& getChargeConsensus() ))
   ConsensusMap::iterator cm_it;
 
   // AKLAEQAER -> 3 different charge states
-  cm_it = find_if(mssim.getChargeConsensus().begin(), mssim.getChargeConsensus().end(), FindConsensusFeature("AKLAEQAER"));
+  cm_it = find_if(mssim.getChargeConsensus().begin(), mssim.getChargeConsensus().end(), FindConsensusFeature(".AKLAEQAER."));
   TEST_EQUAL(cm_it != mssim.getChargeConsensus().end(), true)
   ABORT_IF(cm_it == mssim.getChargeConsensus().end())
   TEST_EQUAL(cm_it->getFeatures().size(), 3)
 
   // MTMDK -> 2 different charge states
-  cm_it = find_if(mssim.getChargeConsensus().begin(), mssim.getChargeConsensus().end(), FindConsensusFeature("MTMDK"));
+  cm_it = find_if(mssim.getChargeConsensus().begin(), mssim.getChargeConsensus().end(), FindConsensusFeature(".MTMDK."));
   TEST_EQUAL(cm_it != mssim.getChargeConsensus().end(), true)
   ABORT_IF(cm_it == mssim.getChargeConsensus().end())
   TEST_EQUAL(cm_it->getFeatures().size(), 2)
 
   // MTMDKSEVLQK -> 3 different charge states
-  cm_it = find_if(mssim.getChargeConsensus().begin(), mssim.getChargeConsensus().end(), FindConsensusFeature("MTMDKSEVLQK"));
+  cm_it = find_if(mssim.getChargeConsensus().begin(), mssim.getChargeConsensus().end(), FindConsensusFeature(".MTMDKSEVLQK."));
   TEST_EQUAL(cm_it != mssim.getChargeConsensus().end(), true)
   ABORT_IF(cm_it == mssim.getChargeConsensus().end())
   TEST_EQUAL(cm_it->getFeatures().size(), 3)
 
   // SELVQK -> 2 different charge states
-  cm_it = find_if(mssim.getChargeConsensus().begin(), mssim.getChargeConsensus().end(), FindConsensusFeature("SELVQK"));
+  cm_it = find_if(mssim.getChargeConsensus().begin(), mssim.getChargeConsensus().end(), FindConsensusFeature(".SELVQK."));
   TEST_EQUAL(cm_it != mssim.getChargeConsensus().end(), true)
   ABORT_IF(cm_it == mssim.getChargeConsensus().end())
   TEST_EQUAL(cm_it->getFeatures().size(), 2)
 
   // SELVQKAK -> 3 different charge states
-  cm_it = find_if(mssim.getChargeConsensus().begin(), mssim.getChargeConsensus().end(), FindConsensusFeature("SELVQKAK"));
+  cm_it = find_if(mssim.getChargeConsensus().begin(), mssim.getChargeConsensus().end(), FindConsensusFeature(".SELVQKAK."));
   TEST_EQUAL(cm_it != mssim.getChargeConsensus().end(), true)
   ABORT_IF(cm_it == mssim.getChargeConsensus().end())
   TEST_EQUAL(cm_it->getFeatures().size(), 3)
 
   // SEVLQK -> 3 different charge states
-  cm_it = find_if(mssim.getChargeConsensus().begin(), mssim.getChargeConsensus().end(), FindConsensusFeature("SEVLQK"));
+  cm_it = find_if(mssim.getChargeConsensus().begin(), mssim.getChargeConsensus().end(), FindConsensusFeature(".SEVLQK."));
   TEST_EQUAL(cm_it != mssim.getChargeConsensus().end(), true)
   ABORT_IF(cm_it == mssim.getChargeConsensus().end())
   TEST_EQUAL(cm_it->getFeatures().size(), 2)
 
   // SEVLQKAK -> 3 different charge states
-  cm_it = find_if(mssim.getChargeConsensus().begin(), mssim.getChargeConsensus().end(), FindConsensusFeature("SEVLQKAK"));
+  cm_it = find_if(mssim.getChargeConsensus().begin(), mssim.getChargeConsensus().end(), FindConsensusFeature(".SEVLQKAK."));
   TEST_EQUAL(cm_it != mssim.getChargeConsensus().end(), true)
   ABORT_IF(cm_it == mssim.getChargeConsensus().end())
   TEST_EQUAL(cm_it->getFeatures().size(), 3)
