@@ -184,7 +184,9 @@ END_SECTION
 START_SECTION(static String getUserDirectory())
   TEST_NOT_EQUAL(File::getUserDirectory(), String())
   TEST_EQUAL(File::exists(File::getUserDirectory()), true)
-  // set user directory to a path set by environmental variable
+
+  // set user directory to a path set by environmental variable and test that
+  // it is correctly set (no changes on the file system occur)
   QDir d;
   String dirname = File::getTempDirectory() + "/" + File::getUniqueName() + "/";
   TEST_EQUAL(d.mkpath(dirname.toQString()), TRUE);
