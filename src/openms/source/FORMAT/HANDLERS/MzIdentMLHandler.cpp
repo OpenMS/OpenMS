@@ -925,6 +925,9 @@ namespace OpenMS
             sii_tmp += "\t\t\t\t\t<PeptideEvidenceRef peptideEvidence_ref=\"" +  String(*pevref) + "\"/> \n";
           }
 
+          // TODO ppxl write Fragmentation annotation ion types as given addition with cv alpha or beta
+          // string coding example: alpha:y3++
+
           std::set<String> peptide_result_details;
           cv_.getAllChildTerms(peptide_result_details, "MS:1001143"); // search engine specific score for PSMs
           MetaInfoInterface copy_jt = *jt;
