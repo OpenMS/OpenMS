@@ -119,14 +119,10 @@ protected:
     String in = getStringOption_("in");
     String out = getStringOption_("out");
 
-
     PeptideIndexing indexer;
-
     Param param = getParam_().copy("", true);
-
     Param param_pi = indexer.getParameters();
-    param_pi.update(param);
-
+    param_pi.update(param, false, Log_debug); // suppress param. update message
     indexer.setParameters(param_pi);
 
     bool keep_unreferenced_proteins = param.getValue("keep_unreferenced_proteins").toBool();
