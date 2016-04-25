@@ -319,7 +319,7 @@ START_SECTION(std::vector<OpenMS::AASequence> MRMAssay::addModificationsSequence
 {
   MRMAssay_test mrma;
 
-  AASequence sequence = AASequence::fromString("PEPTDIEK");
+  AASequence sequence = AASequence::fromString(".PEPTDIEK.");
   std::vector<OpenMS::AASequence> sequences;
   sequences.push_back(sequence);
 
@@ -366,11 +366,11 @@ START_SECTION(std::vector<OpenMS::AASequence> MRMAssay::combineModifications_(Op
   TEST_EQUAL(sequences.size(), 7)
   TEST_EQUAL(sequences[0], AASequence::fromString(".(Acetyl)PEPT(Phospho)DIEK."));
   TEST_EQUAL(sequences[1], AASequence::fromString(".(Acetyl)PEPTD(Phospho)IEK."));
-  TEST_EQUAL(sequences[2], AASequence::fromString(".(Acetyl)PEPTDIEK.(Phospho)"));
+  TEST_EQUAL(sequences[2], AASequence::fromString(".(Acetyl)PEPTDIEK(Phospho)."));
   TEST_EQUAL(sequences[3], AASequence::fromString(".PEPT(Acetyl)D(Phospho)IEK."));
-  TEST_EQUAL(sequences[4], AASequence::fromString(".PEPT(Acetyl)DIEK.(Phospho)"));
-  TEST_EQUAL(sequences[5], AASequence::fromString(".PEPT(Phospho)DIEK.(Acetyl)"));
-  TEST_EQUAL(sequences[6], AASequence::fromString(".PEPTD(Phospho)IEK.(Acetyl)"));
+  TEST_EQUAL(sequences[4], AASequence::fromString(".PEPT(Acetyl)DIEK(Phospho)."));
+  TEST_EQUAL(sequences[5], AASequence::fromString(".PEPT(Phospho)DIEK(Acetyl)."));
+  TEST_EQUAL(sequences[6], AASequence::fromString(".PEPTD(Phospho)IEK(Acetyl)."));
 }
 
 END_SECTION
@@ -387,13 +387,13 @@ START_SECTION(std::vector<OpenMS::AASequence> MRMAssay::combineDecoyModification
   TEST_EQUAL(sequences[2], AASequence::fromString(".(Acetyl)PESTDIEK.(Phospho)"));
   TEST_EQUAL(sequences[3], AASequence::fromString(".PEST(Acetyl)D(Phospho)IEK."));
   TEST_EQUAL(sequences[4], AASequence::fromString(".PEST(Acetyl)DIEK.(Phospho)"));
-  TEST_EQUAL(sequences[5], AASequence::fromString(".PEST(Phospho)DIEK.(Acetyl)"));
-  TEST_EQUAL(sequences[6], AASequence::fromString(".PESTD(Phospho)IEK.(Acetyl)"));
+  TEST_EQUAL(sequences[5], AASequence::fromString(".PEST(Phospho)DIEK.(Phospho)"));
+  TEST_EQUAL(sequences[6], AASequence::fromString(".PESTD(Phospho)IEK.(Phospho)"));
 }
 
 END_SECTION
 
-/*START_SECTION(void reannotateTransitions(OpenMS::TargetedExperiment& exp, double precursor_mz_threshold, double product_mz_threshold, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_reannotation, bool enable_specific_losses, bool enable_specific_losses))
+START_SECTION(void reannotateTransitions(OpenMS::TargetedExperiment& exp, double precursor_mz_threshold, double product_mz_threshold, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_reannotation, bool enable_specific_losses, bool enable_specific_losses))
 {
   TraMLFile traml;
   TargetedExperiment targeted_exp;
@@ -727,6 +727,6 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
 
 }
 
-END_SECTION*/
+END_SECTION
 
 END_TEST

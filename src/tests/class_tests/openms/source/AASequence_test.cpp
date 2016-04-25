@@ -895,6 +895,22 @@ START_SECTION([EXTRA] Tag in peptides)
 }
 END_SECTION
 
+START_SECTION([EXTRA] testing terminal modifications)
+{
+  AASequence aaNoMod = AASequence::fromString(".DFPIANGER.");
+  AASequence aaNtermMod = AASequence::fromString(".(Dimethyl)DFPIANGER.");
+  AASequence aaCtermMod = AASequence::fromString(".DFPIANGER.(Label:18O(2))");
+  TEST_EQUAL(aaNoMod.isModified(), false)
+  TEST_EQUAL(aaNtermMod.isModified(), true)
+  TEST_EQUAL(aaCtermMod.isModified(), true)
+  TEST_EQUAL(aaNoMod.getNTerminalModification(), "")
+  TEST_EQUAL(aaNtermMod.getNTerminalModification(), "Dimethyl")
+  TEST_EQUAL(aaCtermMod.getNTerminalModification(), "")
+  TEST_EQUAL(aaNoMod.getCTerminalModification(), "")
+  TEST_EQUAL(aaNtermMod.getCTerminalModification(), "")
+  TEST_EQUAL(aaCtermMod.getCTerminalModification(), "Label:18O(2)")
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
