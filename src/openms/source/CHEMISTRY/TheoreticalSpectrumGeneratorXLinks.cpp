@@ -270,8 +270,8 @@ namespace OpenMS
         double pos2 = (ion.getMonoWeight(Residue::BIon, charge) + (cross_link_mass + peptideB_mass) + Constants::NEUTRON_MASS_U) / static_cast<double>(charge);
         ions_alpha[pos] = ion;
         ions_alpha[pos2] = ion;
-        names[pos] = "b(alpha)" + String(i) + "X" + String(charge, '+');
-        names[pos2] = "b(alpha)" + String(i) + "X" + String(charge, '+');
+        names[pos] = "alpha:b" + String(i); // + "X" + String(charge, '+');
+        names[pos2] = "alpha:b" + String(i); // + "X" + String(charge, '+');
 //        cout << "XLink PepA, b-ion: " << ion.toString() << "\t Charge: " << charge << "\t Mono: " << (ion.getMonoWeight(Residue::BIon, charge) + (cross_link_mass + peptideB_mass)) << "\t MZ: " << pos << endl;
       }
 
@@ -285,11 +285,19 @@ namespace OpenMS
           double pos2 = (ion.getMonoWeight(Residue::BIon, charge) + (cross_link_mass + peptideA_mass) + Constants::NEUTRON_MASS_U) / static_cast<double>(charge);
           ions_beta[pos] = ion;
           ions_beta[pos2] = ion;
-          names[pos] = "b(beta)" + String(i) + "X" + String(charge, '+');
-          names[pos2] = "b(beta)" + String(i) + "X" + String(charge, '+');
+          names[pos] = "beta:b" + String(i); // + "X" + String(charge, '+');
+          names[pos2] = "beta:b" + String(i); // + "X" + String(charge, '+');
   //        cout << "XLink PepB, b-ion: " << ion.toString() << "\t Charge: " << charge << "\t Mono: " << (ion.getMonoWeight(Residue::BIon, charge) + (cross_link_mass + peptideA_mass)) << "\t MZ: " << pos << endl;
         }
       }
+
+      // Precursor, unfragmented, with charge higher than fragments by one:
+//      double pos = (peptideA_mass + peptideB_mass + Constants::PROTON_MASS_U * (charge+1)) / static_cast<double>(charge+1);
+//      double pos2 = (peptideA_mass + peptideB_mass + Constants::NEUTRON_MASS_U + Constants::PROTON_MASS_U * (charge+1)) / static_cast<double>(charge+1);
+//      ions_alpha[pos] = peptideA;
+//      ions_alpha[pos2] = peptideA;
+//      names[pos] = "[M+H]";
+//      names[pos2] = "[M+H]";
 
       intensity = (double)param_.getValue("b_intensity");
       break;
@@ -305,8 +313,8 @@ namespace OpenMS
         double pos2 = (ion.getMonoWeight(Residue::BIon, charge) + (cross_link_mass + peptideB_mass) + Constants::NEUTRON_MASS_U) / static_cast<double>(charge);
         ions_alpha[pos] = ion;
         ions_alpha[pos2] = ion;
-        names[pos] = "y(alpha)" + String(i) + "X" + String(charge, '+');
-        names[pos2] = "y(alpha)" + String(i) + "X" + String(charge, '+');
+        names[pos] = "alpha:y" + String(i); // + "X" + String(charge, '+');
+        names[pos2] = "alpha:y" + String(i); // + "X" + String(charge, '+');
 //        cout << "XLink PepA, y-ion: " << ion.toString() << "\t Charge: " << charge << "\t Mono: " << (ion.getMonoWeight(Residue::BIon, charge) + (cross_link_mass + peptideB_mass)) << "\t MZ: " << pos << endl;
       }
 
@@ -320,8 +328,8 @@ namespace OpenMS
           double pos2 = (ion.getMonoWeight(Residue::BIon, charge) + (cross_link_mass + peptideA_mass) + Constants::NEUTRON_MASS_U) / static_cast<double>(charge);
           ions_beta[pos] = ion;
           ions_beta[pos2] = ion;
-          names[pos] = "y(beta)" + String(i) + "X" + String(charge, '+');
-          names[pos2] = "y(beta)" + String(i) + "X" + String(charge, '+');
+          names[pos] = "beta:y" + String(i); // + "X" + String(charge, '+');
+          names[pos2] = "beta:y" + String(i); // + "X" + String(charge, '+');
   //        cout << "XLink PepB, y-ion: " << ion.toString() << "\t Charge: " << charge << "\t Mono: " << (ion.getMonoWeight(Residue::BIon, charge) + (cross_link_mass + peptideA_mass)) << "\t MZ: " << pos << endl;
         }
       }
@@ -636,7 +644,7 @@ namespace OpenMS
         double pos2 = (ion.getMonoWeight(Residue::BIon, charge) + cross_link_mass + Constants::NEUTRON_MASS_U) / static_cast<double>(charge);
         ions_alpha[pos] = ion;
         ions_alpha[pos2] = ion;
-        names[pos] = "b(alpha)" + String(i) + "X" + String(charge, '+');
+        names[pos] = "alpha:b" + String(i); // + "X" + String(charge, '+');
         names[pos2] = names[pos];
 //        cout << "XLink PepA, b-ion: " << ion.toString() << "\t Charge: " << charge << "\t Mono: " << (ion.getMonoWeight(Residue::BIon, charge) + (cross_link_mass + peptideB_mass)) << "\t MZ: " << pos << endl;
       }
@@ -655,7 +663,7 @@ namespace OpenMS
         double pos2 = (ion.getMonoWeight(Residue::BIon, charge) + cross_link_mass + Constants::NEUTRON_MASS_U) / static_cast<double>(charge);
         ions_alpha[pos] = ion;
         ions_alpha[pos2] = ion;
-        names[pos] = "y(alpha)" + String(i) + "X" + String(charge, '+');
+        names[pos] = "alpha:y" + String(i); // + "X" + String(charge, '+');
         names[pos2] = names[pos];
 //        cout << "XLink PepA, y-ion: " << ion.toString() << "\t Charge: " << charge << "\t Mono: " << (ion.getMonoWeight(Residue::BIon, charge) + (cross_link_mass + peptideB_mass)) << "\t MZ: " << pos << endl;
       }
@@ -1206,7 +1214,15 @@ namespace OpenMS
         ion = peptide.getPrefix(i);
         double pos = ion.getMonoWeight(Residue::BIon, charge) / static_cast<double>(charge);
         ions[pos] = ion;
-        names[pos] = "b" + String(i) + String(charge, '+');
+        if (fragment_alpha_chain)
+        {
+          names[pos] = "alpha:b" + String(i); // + String(charge, '+');
+        }
+        else
+        {
+          names[pos] = "beta:b" + String(i); // + String(charge, '+');
+        }
+
 //        cout << "CommonIons, b-ion: " << ion.toString() << "\t Charge: " << charge << "\t Mono: " << ion.getMonoWeight(Residue::BIon, charge) << "\t MZ: " << pos << endl;
       }
       intensity = static_cast<double>(param_.getValue("b_intensity"));
@@ -1220,7 +1236,14 @@ namespace OpenMS
         ion = peptide.getSuffix(i);
         double pos = ion.getMonoWeight(Residue::YIon, charge) / static_cast<double>(charge);
         ions[pos] = ion;
-        names[pos] = "y" + String(i) + String(charge, '+');
+        if (fragment_alpha_chain)
+        {
+          names[pos] = "alpha:y" + String(i); // + String(charge, '+');
+        }
+        else
+        {
+          names[pos] = "beta:y" + String(i); // + String(charge, '+');
+        }
 //        cout << "CommonIons, y-ion: " << ion.toString() << "\t Charge: " << charge << "\t Mono: " << ion.getMonoWeight(Residue::YIon, charge) << "\t MZ: " << pos << endl;
       }
       intensity =static_cast<double>(param_.getValue("y_intensity"));

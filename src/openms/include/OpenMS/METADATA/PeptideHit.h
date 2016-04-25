@@ -52,9 +52,61 @@ namespace OpenMS
 
         @ingroup Metadata
   */
+
   class OPENMS_DLLAPI PeptideHit :
     public MetaInfoInterface
   {
+
+public:
+  struct FragmentAnnotation
+  {
+    String annotation;
+    int charge;
+    double mz;
+    double intensity;
+
+    bool operator<(const PeptideHit::FragmentAnnotation& other) const
+    {
+      if (charge < other.charge)
+      {
+        return true;
+      }
+      else if (charge > other.charge)
+      {
+        return false;
+      }
+
+      if (annotation< other.annotation)
+      {
+        return true;
+      }
+      else if (annotation> other.annotation)
+      {
+        return false;
+      }
+
+      if (mz < other.mz)
+      {
+        return true;
+      }
+      else if (mz > other.mz)
+      {
+        return false;
+      }
+
+      if (intensity < other.intensity)
+      {
+        return true;
+      }
+      else if (intensity > other.intensity)
+      {
+        return false;
+      }
+
+      return false;
+    }
+};
+
 public:
 
     /// @name Comparators for PeptideHit and ProteinHit
@@ -196,6 +248,14 @@ public:
 
     /// sets the PSM rank
     void setRank(UInt newrank);
+
+    /// returns the fragment annotations
+    std::vector<PeptideHit::FragmentAnnotation> getFragmentAnnotations() const;
+
+    /// sets the fragment annotations
+    void setFragmentAnnotations(std::vector<PeptideHit::FragmentAnnotation> frag_annotations);
+
+
     //@}
 
     /// extracts the set of non-empty protein accessions from peptide evidences
@@ -218,6 +278,9 @@ protected:
 
     /// information on the potential peptides observed through this PSM.
     std::vector<PeptideEvidence> peptide_evidences_;
+
+    /// annotations of fragments in the corresponding spectrum
+    std::vector<PeptideHit::FragmentAnnotation> fragment_annotations_;
   };
 
 } // namespace OpenMS

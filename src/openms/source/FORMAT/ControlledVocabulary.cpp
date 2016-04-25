@@ -159,7 +159,7 @@ namespace OpenMS
     String s =  "<cvParam accession=\"" + id + "\" cvRef=\"" + ref + "\" name=\"" + name;
     if (!value.isEmpty())
     {
-      s += "\" value=\"" + (String)value;
+      s += "\" value=\"" + value.toString();
     }
     if (value.hasUnit())
     {
