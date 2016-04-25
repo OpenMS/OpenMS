@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -520,8 +520,8 @@ namespace OpenMS
         {
           unit_str = "unitCvRef=\"UO\" unitName=\"parts per million\" unitAccession=\"UO:0000169\"";
         }
-        sip += String(3, '\t') + "<cvParam accession=\"MS:1001412\" name=\"search tolerance plus value\" " + unit_str + " cvRef=\"PSI-MS\" value=\"" + String(it->getSearchParameters().precursor_tolerance) + "\"/>" + "\n";
-        sip += String(3, '\t') + "<cvParam accession=\"MS:1001413\" name=\"search tolerance minus value\" " + unit_str + " cvRef=\"PSI-MS\" value=\"" + String(it->getSearchParameters().precursor_tolerance) + "\"/>" + "\n";
+        sip += String(3, '\t') + "<cvParam accession=\"MS:1001412\" name=\"search tolerance plus value\" " + unit_str + " cvRef=\"PSI-MS\" value=\"" + String(it->getSearchParameters().precursor_mass_tolerance) + "\"/>" + "\n";
+        sip += String(3, '\t') + "<cvParam accession=\"MS:1001413\" name=\"search tolerance minus value\" " + unit_str + " cvRef=\"PSI-MS\" value=\"" + String(it->getSearchParameters().precursor_mass_tolerance) + "\"/>" + "\n";
         sip += String("\t\t</ParentTolerance>\n");
         sip += String("\t\t<Threshold>\n\t\t\t") + thcv + "\n";
         sip += String("\t\t</Threshold>\n");

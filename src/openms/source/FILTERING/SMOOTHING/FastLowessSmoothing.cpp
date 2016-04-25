@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -190,34 +190,6 @@ namespace c_lowess
 
     inline ValueType pow2(ValueType x) { return x * x;  }
     inline ValueType pow3(ValueType x) { return x * x * x;  }
-
-    ///Return the median of a sequence of numbers defined by the random
-    ///access iterators begin and end.  The sequence must not be empty
-    ///(median is undefined for an empty set).
-    ///
-    ///The numbers must be convertible to double.
-    template <class RandAccessIter>
-    ValueType median(RandAccessIter begin, RandAccessIter end)
-    {
-      std::size_t size = end - begin;
-      std::size_t middleIdx = size / 2;
-      RandAccessIter target = begin + middleIdx;
-      std::nth_element(begin, target, end);
-
-      if (size % 2 != 0)
-      {
-        //Odd number of elements
-        return *target;
-      }
-      else
-      {
-        //Even number of elements
-        double a = *target;
-        RandAccessIter targetNeighbor = target - 1;
-        targetNeighbor = std::max_element(begin, target);
-        return (a + *targetNeighbor) / 2.0;
-      }
-    }
 
     /// Calculate weights for weighted regression.
     bool calculate_weights(const ContainerType& x,

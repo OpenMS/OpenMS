@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -78,7 +78,7 @@ namespace OpenMS
     QFile fh(filename.toQString());
     fh.open(QFile::ReadOnly);
     QString style_string = QLatin1String(fh.readAll());
-    std::cerr << "Content: " << style_string.toStdString() << "\n\n\n";
+    //std::cerr << "Stylesheet content: " << style_string.toStdString() << "\n\n\n";
     this->setStyleSheet(style_string);
   }
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -280,6 +280,46 @@ public:
       set2DData<false, Container>(container);
     }
 
+    /**
+      @brief Assignment of a data container with RT and MZ to an MSExperiment
+
+      Fill MSExperiment with data.
+      Note that all data present (including meta-data) will be deleted prior to adding new data!
+
+      @param container An iterable type whose elements support getRT(), getMZ() and getIntensity()
+      @param store_metadata_names [MetaInfoInterface input only] Names of metadata arrays which should be created;
+                                  data is filled from the metainfointerface of each element of the input container.
+                                  Currently, only float data is supported!
+
+      @exception Exception::Precondition is thrown if the container is not sorted according to
+      retention time (in debug AND release mode)
+    */
+    template <class Container>
+    void set2DData(const Container& container, const StringList& store_metadata_names)
+    {
+      // clean up the container first
+      clear(true);
+      SpectrumType* spectrum = 0;
+      typename PeakType::CoordinateType current_rt = -std::numeric_limits<typename PeakType::CoordinateType>::max();
+      for (typename Container::const_iterator iter = container.begin(); iter != container.end(); ++iter)
+      {
+        // check if the retention time has changed
+        if (current_rt != iter->getRT() || spectrum == 0)
+        {
+          // append new spectrum
+          if (current_rt > iter->getRT())
+          {
+            throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Input container is not sorted!");
+          }
+          current_rt =  iter->getRT();
+          spectrum = createSpec_(current_rt, store_metadata_names);
+        }
+
+        // add either data point or mass traces (depending on template argument value)
+        ContainerAdd_<typename Container::value_type, false>::addData_(spectrum, &(*iter), store_metadata_names);
+      }
+    }
+
      /**
       @brief Assignment of a data container with RT and MZ to an MSExperiment
 
@@ -302,11 +342,8 @@ public:
     {
       // clean up the container first
       clear(true);
-
       SpectrumType* spectrum = 0;
-
       typename PeakType::CoordinateType current_rt = -std::numeric_limits<typename PeakType::CoordinateType>::max();
-
       for (typename Container::const_iterator iter = container.begin(); iter != container.end(); ++iter)
       {
         // check if the retention time has changed
@@ -318,14 +355,11 @@ public:
             throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Input container is not sorted!");
           }
           current_rt =  iter->getRT();
-          spectra_.insert(spectra_.end(), SpectrumType());
-          spectrum = &(spectra_.back());
-          spectrum->setRT(current_rt);
-          spectrum->setMSLevel(1);
+          spectrum = createSpec_(current_rt);
         }
 
         // add either data point or mass traces (depending on template argument value)
-        ContainerAdd_<typename Container::const_iterator, add_mass_traces>::addData_(spectrum, iter);
+        ContainerAdd_<typename Container::value_type, add_mass_traces>::addData_(spectrum, &(*iter));
       }
     }
 
@@ -912,50 +946,100 @@ protected:
 private:
    
     /// Helper class to add either general data points in set2DData or use mass traces from meta values
-    template<typename ContainerIterator, bool addMassTraces>
+    template<typename ContainerValueType, bool addMassTraces>
     struct ContainerAdd_
     {
-      static void addData_(SpectrumType* spectrum, ContainerIterator& iter);      
+      static void addData_(SpectrumType* spectrum, const ContainerValueType* item);
+      static void addData_(SpectrumType* spectrum, const ContainerValueType* item, const StringList& store_metadata_names);      
     };
 
-    template<typename ContainerIterator>
-    struct ContainerAdd_<ContainerIterator, false>
+    template<typename ContainerValueType>
+    struct ContainerAdd_<ContainerValueType, false>
     {
-      /// general method for adding data points (no mass traces desired or found)
-      static void addData_(SpectrumType* spectrum, ContainerIterator& iter)
+      /// general method for adding data points
+      static void addData_(SpectrumType* spectrum, const ContainerValueType* item)
       {
         // create temporary peak and insert it into spectrum
         spectrum->insert(spectrum->end(), PeakType());
-        spectrum->back().setIntensity(iter->getIntensity());
-        spectrum->back().setPosition(iter->getMZ());
+        spectrum->back().setIntensity(item->getIntensity());
+        spectrum->back().setPosition(item->getMZ());
+      }
+      /// general method for adding data points, including metadata arrays (populated from metainfointerface)
+      static void addData_(SpectrumType* spectrum, const ContainerValueType* item, const StringList& store_metadata_names)
+      {
+        addData_(spectrum, item);
+        for (StringList::const_iterator itm = store_metadata_names.begin(); itm != store_metadata_names.end(); ++itm)
+        {
+          float val = std::numeric_limits<float>::quiet_NaN();
+          if (item->metaValueExists(*itm)) val = item->getMetaValue(*itm);
+          spectrum->getFloatDataArrays()[itm - store_metadata_names.begin()].push_back(val);
+        }
       }
     };
 
-    template<typename ContainerIterator>
-    struct ContainerAdd_<ContainerIterator, true>
+    template<typename ContainerValueType>
+    struct ContainerAdd_<ContainerValueType, true>
     {
-      /// specialization for adding feature mass traces
-      static void addData_(SpectrumType* spectrum, ContainerIterator& iter)
+      /// specialization for adding feature mass traces (does not support metadata_names currently)
+      static void addData_(SpectrumType* spectrum, const ContainerValueType* item)
       {
-        if (iter->metaValueExists("num_of_masstraces"))
+        if (item->metaValueExists("num_of_masstraces"))
         {
-          Size mts = iter->getMetaValue("num_of_masstraces");
-          int charge = (iter->getCharge()==0 ? 1 : iter->getCharge()); // set to 1 if charge is 0, otherwise div/0 below
+          Size mts = item->getMetaValue("num_of_masstraces");
+          int charge = (item->getCharge()==0 ? 1 : item->getCharge()); // set to 1 if charge is 0, otherwise div/0 below
           for (Size i = 0; i < mts; ++i)
           {
             String meta_name = String("masstrace_intensity_") + i;
-            if (!iter->metaValueExists(meta_name))
+            if (!item->metaValueExists(meta_name))
             {
               throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Meta value '") + meta_name + "' expected but not found in container.");
             }
-            spectrum->insert(spectrum->end(), PeakType());
-            spectrum->back().setIntensity(iter->getMetaValue(meta_name));
-            spectrum->back().setPosition(iter->getMZ() + Constants::C13C12_MASSDIFF_U / charge * i);
+            ContainerValueType p;
+            p.setIntensity(item->getMetaValue(meta_name));
+            p.setPosition(item->getMZ() + Constants::C13C12_MASSDIFF_U / charge * i);
+            ContainerAdd_<ContainerValueType, false>::addData_(spectrum, &p);
           }
         }
-        else ContainerAdd_<ContainerIterator, false>::addData_(spectrum, iter);
+        else ContainerAdd_<ContainerValueType, false>::addData_(spectrum, item);
       }
     };
+
+        /*
+      @brief Append a spectrum to current MSExperiment 
+
+      @param rt RT of new spectrum
+      @return Pointer to newly created spectrum
+    */
+    SpectrumType* createSpec_(typename PeakType::CoordinateType rt)
+    {
+      SpectrumType* spectrum = 0;
+      spectra_.insert(spectra_.end(), SpectrumType());
+      spectrum = &(spectra_.back());
+      spectrum->setRT(rt);
+      spectrum->setMSLevel(1);
+      return spectrum;
+    }
+
+    /*
+      @brief Append a spectrum including floatdata arrays to current MSExperiment 
+
+      @param rt RT of new spectrum
+      @param metadata_names Names of floatdata arrays attached to this spectrum
+      @return Pointer to newly created spectrum
+    */
+    SpectrumType* createSpec_(typename PeakType::CoordinateType rt, const StringList& metadata_names)
+    {
+      SpectrumType* spectrum = createSpec_(rt);
+      // create metadata arrays
+      spectrum->getFloatDataArrays().reserve(metadata_names.size());
+      StringList::const_iterator itm = metadata_names.begin();
+      for (; itm != metadata_names.end(); ++itm)
+      {
+        spectrum->getFloatDataArrays().push_back(MSSpectrum<>::FloatDataArray());
+        spectrum->getFloatDataArrays().back().setName(*itm);
+      }
+      return spectrum;
+    }
 
   };
 

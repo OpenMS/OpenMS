@@ -255,9 +255,12 @@ set(math_executables_list
   NNLS_test
   NonNegativeLeastSquaresSolver_test
   PosteriorErrorProbabilityModel_test
-  #QuadraticRegression_test
+  QuadraticRegression_test
   #RegressionUtils_test
   RANSAC_test
+  RANSACModel_test
+  RANSACModelLinear_test
+  RANSACModelQuadratic_test
   ROCCurve_test
   StatisticFunctions_test
   #Spline2d_test
@@ -455,11 +458,6 @@ set(analysis_executables_list
   ModifiedPeptideGenerator_test
   OfflinePrecursorIonSelection_test
   PeptideAndProteinQuant_test
-  PILISModelGenerator_test
-  PILISModel_test
-  PILISScoring_test
-  PILISCrossValidation_test
-  PILISNeutralLossModel_test
   PeakIntensityPredictor_test
   PScore_test
   HyperScore_test

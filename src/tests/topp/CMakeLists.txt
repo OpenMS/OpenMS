@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -986,16 +986,16 @@ if(NOT DISABLE_OPENSWATH)
   set_tests_properties("TOPP_OpenSwathConfidenceScoring_1_out1" PROPERTIES DEPENDS "TOPP_OpenSwathConfidenceScoring_1")
 
   ### OpenSwath with FileCacher tests
-  add_test("TOPP_OpenSwathMzMLFileCacher_test_1_step1" ${TOPP_BIN_PATH}/OpenSwathMzMLFileCacher -in ${DATA_DIR_TOPP}/OpenSwathMzMLFileCacher_1_input.mzML -out OpenSwathMzMLFileCacher_1_input.cached.tmp.mzML)
-  add_test("TOPP_OpenSwathMzMLFileCacher_test_1_step2" ${TOPP_BIN_PATH}/OpenSwathMzMLFileCacher -in OpenSwathMzMLFileCacher_1_input.cached.tmp.mzML -out OpenSwathMzMLFileCacher_1_output.tmp.mzML -convert_back)
+  add_test("TOPP_OpenSwathMzMLFileCacher_test_1_step1" ${TOPP_BIN_PATH}/OpenSwathMzMLFileCacher -in ${DATA_DIR_TOPP}/OpenSwathMzMLFileCacher_1_input.mzML -out OpenSwathMzMLFileCacher_1_input.cached.tmp.mzML -test)
+  add_test("TOPP_OpenSwathMzMLFileCacher_test_1_step2" ${TOPP_BIN_PATH}/OpenSwathMzMLFileCacher -in OpenSwathMzMLFileCacher_1_input.cached.tmp.mzML -out OpenSwathMzMLFileCacher_1_output.tmp.mzML -convert_back -test)
   add_test("TOPP_OpenSwathMzMLFileCacher_test_1_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 OpenSwathMzMLFileCacher_1_input.cached.tmp.mzML -in2 ${DATA_DIR_TOPP}/OpenSwathMzMLFileCacher_1_output_1.mzML)
   add_test("TOPP_OpenSwathMzMLFileCacher_test_1_out2" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 OpenSwathMzMLFileCacher_1_output.tmp.mzML -in2 ${DATA_DIR_TOPP}/OpenSwathMzMLFileCacher_1_output_2.mzML)
   set_tests_properties("TOPP_OpenSwathMzMLFileCacher_test_1_step2" PROPERTIES DEPENDS "TOPP_OpenSwathMzMLFileCacher_test_1_step1")
   set_tests_properties("TOPP_OpenSwathMzMLFileCacher_test_1_out1" PROPERTIES DEPENDS "TOPP_OpenSwathMzMLFileCacher_test_1_step1")
   set_tests_properties("TOPP_OpenSwathMzMLFileCacher_test_1_out2" PROPERTIES DEPENDS "TOPP_OpenSwathMzMLFileCacher_test_1_step2")
 
-  add_test("TOPP_OpenSwathMzMLFileCacher_test_2_step1" ${TOPP_BIN_PATH}/OpenSwathMzMLFileCacher -in ${DATA_DIR_TOPP}/OpenSwathMzMLFileCacher_2_input.chrom.mzML -out OpenSwathMzMLFileCacher_2_input.chrom.cached.tmp.mzML)
-  add_test("TOPP_OpenSwathMzMLFileCacher_test_2_step2" ${TOPP_BIN_PATH}/OpenSwathMzMLFileCacher -in OpenSwathMzMLFileCacher_2_input.chrom.cached.tmp.mzML -out OpenSwathMzMLFileCacher_2_output.chrom.tmp.mzML -convert_back)
+  add_test("TOPP_OpenSwathMzMLFileCacher_test_2_step1" ${TOPP_BIN_PATH}/OpenSwathMzMLFileCacher -in ${DATA_DIR_TOPP}/OpenSwathMzMLFileCacher_2_input.chrom.mzML -out OpenSwathMzMLFileCacher_2_input.chrom.cached.tmp.mzML -test)
+  add_test("TOPP_OpenSwathMzMLFileCacher_test_2_step2" ${TOPP_BIN_PATH}/OpenSwathMzMLFileCacher -in OpenSwathMzMLFileCacher_2_input.chrom.cached.tmp.mzML -out OpenSwathMzMLFileCacher_2_output.chrom.tmp.mzML -convert_back -test)
   add_test("TOPP_OpenSwathMzMLFileCacher_test_2_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 OpenSwathMzMLFileCacher_2_input.chrom.cached.tmp.mzML -in2 ${DATA_DIR_TOPP}/OpenSwathMzMLFileCacher_2_output_1.chrom.mzML)
   add_test("TOPP_OpenSwathMzMLFileCacher_test_2_out2" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 OpenSwathMzMLFileCacher_2_output.chrom.tmp.mzML -in2 ${DATA_DIR_TOPP}/OpenSwathMzMLFileCacher_2_output_2.chrom.mzML)
   set_tests_properties("TOPP_OpenSwathMzMLFileCacher_test_2_step2" PROPERTIES DEPENDS "TOPP_OpenSwathMzMLFileCacher_test_2_step1")
@@ -1003,18 +1003,17 @@ if(NOT DISABLE_OPENSWATH)
   set_tests_properties("TOPP_OpenSwathMzMLFileCacher_test_2_out2" PROPERTIES DEPENDS "TOPP_OpenSwathMzMLFileCacher_test_2_step2")
 
   # Testing the OpenSwathAnalyzer together with the FileCacher (for spectra and chromatograms)
-  add_test("TOPP_OpenSwathAnalyzer_test_3_prepare" ${TOPP_BIN_PATH}/OpenSwathMzMLFileCacher -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_2_swathfile.mzML -out OpenSwathAnalyzer_3_swathfile.mzML.cached.tmp)
+  add_test("TOPP_OpenSwathAnalyzer_test_3_prepare" ${TOPP_BIN_PATH}/OpenSwathMzMLFileCacher -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_2_swathfile.mzML -out OpenSwathAnalyzer_3_swathfile.mzML.cached.tmp -test)
   add_test("TOPP_OpenSwathAnalyzer_test_3" ${TOPP_BIN_PATH}/OpenSwathAnalyzer -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input_chrom.mzML -tr ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input.TraML -out MRMFeatureFinderScore_output_3.featureXML.tmp -swath_files OpenSwathAnalyzer_3_swathfile.mzML.cached.tmp -test)
   add_test("TOPP_OpenSwathAnalyzer_test_3_out1" ${DIFF} -whitelist "id=" -in1 MRMFeatureFinderScore_output_3.featureXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathAnalyzer_2_output.featureXML)
   set_tests_properties("TOPP_OpenSwathAnalyzer_test_3" PROPERTIES DEPENDS "TOPP_OpenSwathAnalyzer_test_3_prepare")
   set_tests_properties("TOPP_OpenSwathAnalyzer_test_3_out1" PROPERTIES DEPENDS "TOPP_OpenSwathAnalyzer_test_3")
-  add_test("TOPP_OpenSwathAnalyzer_test_4_prepare1" ${TOPP_BIN_PATH}/OpenSwathMzMLFileCacher -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_2_swathfile.mzML -out OpenSwathAnalyzer_4_swathfile.mzML.cached.tmp)
-  add_test("TOPP_OpenSwathAnalyzer_test_4_prepare2" ${TOPP_BIN_PATH}/OpenSwathMzMLFileCacher -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input_chrom.mzML -out OpenSwathAnalyzer_4_input_chrom.mzML.cached.tmp)
+  add_test("TOPP_OpenSwathAnalyzer_test_4_prepare1" ${TOPP_BIN_PATH}/OpenSwathMzMLFileCacher -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_2_swathfile.mzML -out OpenSwathAnalyzer_4_swathfile.mzML.cached.tmp -test)
+  add_test("TOPP_OpenSwathAnalyzer_test_4_prepare2" ${TOPP_BIN_PATH}/OpenSwathMzMLFileCacher -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input_chrom.mzML -out OpenSwathAnalyzer_4_input_chrom.mzML.cached.tmp -test)
   add_test("TOPP_OpenSwathAnalyzer_test_4" ${TOPP_BIN_PATH}/OpenSwathAnalyzer -in OpenSwathAnalyzer_4_input_chrom.mzML.cached.tmp -tr ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input.TraML -out MRMFeatureFinderScore_output_4.featureXML.tmp -swath_files OpenSwathAnalyzer_4_swathfile.mzML.cached.tmp -test)
   add_test("TOPP_OpenSwathAnalyzer_test_4_out1" ${DIFF} -whitelist "id=" -in1 MRMFeatureFinderScore_output_4.featureXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathAnalyzer_2_output.featureXML)
   set_tests_properties("TOPP_OpenSwathAnalyzer_test_4" PROPERTIES DEPENDS "TOPP_OpenSwathAnalyzer_test_4_prepare1;TOPP_OpenSwathAnalyzer_test_4_prepare2")
   set_tests_properties("TOPP_OpenSwathAnalyzer_test_4_out1" PROPERTIES DEPENDS "TOPP_OpenSwathAnalyzer_test_4")
-
 
   add_test("UTILS_MRMTransitionGroupPicker_test_1" ${TOPP_BIN_PATH}/MRMTransitionGroupPicker -in ${DATA_DIR_TOPP}/MRMTransitionGroupPicker_1_input.mzML -tr ${DATA_DIR_TOPP}/MRMTransitionGroupPicker_1_input.TraML -out MRMTransitionGroupPicker_test_1.featureXML.tmp -test -algorithm:PeakPickerMRM:remove_overlapping_peaks true -algorithm:PeakPickerMRM:method legacy)
   add_test("UTILS_MRMTransitionGroupPicker_test_1_out" ${DIFF} -whitelist "id=" -in1 MRMTransitionGroupPicker_test_1.featureXML.tmp -in2 ${DATA_DIR_TOPP}/MRMTransitionGroupPicker_1_output.featureXML)
@@ -1069,12 +1068,12 @@ if(NOT DISABLE_OPENSWATH)
   set_tests_properties("TOPP_OpenSwathWorkflow_7_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_7")
 
   # Test with faulty swath windows file
-  add_test("TOPP_OpenSwathWorkflow_8" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_7.chrom.mzML.tmp -out_features OpenSwathWorkflow_7.featureXML.tmp -test -use_ms1_traces -swath_windows_file ${DATA_DIR_TOPP}/swath_windows_overlap.txt)
+  add_test("TOPP_OpenSwathWorkflow_8" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_8.chrom.mzML.tmp -out_features OpenSwathWorkflow_8.featureXML.tmp -test -use_ms1_traces -swath_windows_file ${DATA_DIR_TOPP}/swath_windows_overlap.txt)
   set_tests_properties("TOPP_OpenSwathWorkflow_8" PROPERTIES WILL_FAIL 1) # file contains overlaps
-  add_test("TOPP_OpenSwathWorkflow_9" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_7.chrom.mzML.tmp -out_features OpenSwathWorkflow_7.featureXML.tmp -test -use_ms1_traces -swath_windows_file ${DATA_DIR_TOPP}/swath_windows_tooshort.txt)
+  add_test("TOPP_OpenSwathWorkflow_9" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_9.chrom.mzML.tmp -out_features OpenSwathWorkflow_9.featureXML.tmp -test -use_ms1_traces -swath_windows_file ${DATA_DIR_TOPP}/swath_windows_tooshort.txt)
   set_tests_properties("TOPP_OpenSwathWorkflow_9" PROPERTIES WILL_FAIL 1) # file does not have enough entries
-  # works with force
-  add_test("TOPP_OpenSwathWorkflow_10" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_7.chrom.mzML.tmp -out_features OpenSwathWorkflow_7.featureXML.tmp -test -use_ms1_traces -swath_windows_file ${DATA_DIR_TOPP}/swath_windows_overlap.txt -force)
+  # works with force (does not check for overlaps and missing swath windows any more)
+  add_test("TOPP_OpenSwathWorkflow_10" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_10.chrom.mzML.tmp -out_features OpenSwathWorkflow_10.featureXML.tmp -test -use_ms1_traces -swath_windows_file ${DATA_DIR_TOPP}/swath_windows_overlap.txt -force)
 
 
 endif(NOT DISABLE_OPENSWATH)
@@ -1284,7 +1283,7 @@ set_tests_properties("TOPP_SpectraFilterWindowMower_2_out1" PROPERTIES DEPENDS "
 
 #------------------------------------------------------------------------------
 # InternalCalibration tests
-add_test("TOPP_InternalCalibration_1" ${TOPP_BIN_PATH}/InternalCalibration -test -in ${DATA_DIR_TOPP}/InternalCalibration_2_input.mzML -out InternalCalibration.tmp -ref_peaks ${DATA_DIR_TOPP}/InternalCalibration_ref_masses -type spectrumwise)
+add_test("TOPP_InternalCalibration_1" ${TOPP_BIN_PATH}/InternalCalibration -test -in ${DATA_DIR_TOPP}/InternalCalibration_2_input.mzML -out InternalCalibration.tmp -ref_peaks ${DATA_DIR_TOPP}/InternalCalibration_ref_masses -scope spectrum)
 #add_test("TOPP_InternalCalibration_1_out1" ${DIFF} -in1 InternalCalibration.tmp -in2 ${DATA_DIR_TOPP}/InternalCalibration_2_output.mzML )
 #set_tests_properties("TOPP_InternalCalibration_1_out1" PROPERTIES DEPENDS "TOPP_InternalCalibration_1")
 

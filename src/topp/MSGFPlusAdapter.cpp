@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -590,11 +590,11 @@ protected:
         search_parameters.mass_type = ProteinIdentification::MONOISOTOPIC;
         search_parameters.fixed_modifications = fixed_mods;
         search_parameters.variable_modifications = variable_mods;
-        search_parameters.precursor_tolerance = precursor_mass_tol;
+        search_parameters.precursor_mass_tolerance = precursor_mass_tol;
         search_parameters.precursor_mass_tolerance_ppm = false;
         if (precursor_error_units == "ppm") // convert to Da (at m/z 666: 0.01 Da ~ 15 ppm)
         {
-          search_parameters.precursor_tolerance *= 2.0 / 3000.0;
+          search_parameters.precursor_mass_tolerance *= 2.0 / 3000.0;
           search_parameters.precursor_mass_tolerance_ppm = true;
         }
     

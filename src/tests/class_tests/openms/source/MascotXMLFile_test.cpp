@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -99,7 +99,7 @@ START_SECTION((void load(const String& filename, ProteinIdentification& protein_
     TEST_EQUAL(search_parameters.db, "MSDB_chordata");
     TEST_EQUAL(search_parameters.db_version, "MSDB_chordata_20070910.fasta");
     TEST_EQUAL(search_parameters.fragment_mass_tolerance, 0.2);
-    TEST_EQUAL(search_parameters.precursor_tolerance, 1.4);
+    TEST_EQUAL(search_parameters.precursor_mass_tolerance, 1.4);
     TEST_EQUAL(search_parameters.fragment_mass_tolerance_ppm, false);
     TEST_EQUAL(search_parameters.precursor_mass_tolerance_ppm, false);
     TEST_EQUAL(search_parameters.charges, "1+, 2+ and 3+");
@@ -177,7 +177,7 @@ START_SECTION((void load(const String& filename, ProteinIdentification& protein_
     TEST_EQUAL(search_parameters.db, "IPI_human");
     TEST_EQUAL(search_parameters.db_version, "ipi.HUMAN.v3.61.fasta");
     TEST_EQUAL(search_parameters.fragment_mass_tolerance, 0.3);
-    TEST_EQUAL(search_parameters.precursor_tolerance, 3);
+    TEST_EQUAL(search_parameters.precursor_mass_tolerance, 3);
     TEST_EQUAL(search_parameters.fragment_mass_tolerance_ppm, false);
     TEST_EQUAL(search_parameters.precursor_mass_tolerance_ppm, false);
     TEST_EQUAL(search_parameters.charges, "");

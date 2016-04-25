@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -166,9 +166,6 @@ protected:
     registerIntOption_("max_num_perm", "<num>", 16384, "Maximum number of permutations a sequence can have", false);
     setMinInt_("max_num_perm", 1);
 
-    registerStringOption_("selection_method", "<choice>", score_selection_method_[0], "Score selection method", false);
-    setValidStrings_("selection_method", score_selection_method_);
-
     registerDoubleOption_("modeling_score_threshold", "<value>", 0.95, "Minimum score a PSM needs to be considered for modeling", false);
     setMinFloat_("modeling_score_threshold", 0.0);
     
@@ -193,7 +190,8 @@ protected:
     return String(residue +  " " + mod.getDiffMonoMass());    
   }
  
-  ExitCodes parseParameters_(map<String, vector<String> >& config_map, const String& id, const String& in, const String& out, const vector<String>& target_mods)
+  ExitCodes parseParameters_(map<String, vector<String> >& config_map, const String& id, const String& in,
+    const String& out, const vector<String>& target_mods, String selection_method)
   {
     FileHandler fh;
     
@@ -213,7 +211,7 @@ protected:
     config_map["MAX_CHARGE_STATE"].push_back(getIntOption_("max_charge_state"));
     config_map["MAX_PEP_LEN"].push_back(getIntOption_("max_peptide_length"));
     config_map["MAX_NUM_PERM"].push_back(getIntOption_("max_num_perm"));
-    config_map["SELECTION_METHOD"].push_back(ListUtils::getIndex<String>(score_selection_method_, getStringOption_("selection_method")));
+    config_map["SELECTION_METHOD"].push_back(ListUtils::getIndex<String>(score_selection_method_, selection_method));    
     config_map["MODELING_SCORE_THRESHOLD"].push_back(getDoubleOption_("modeling_score_threshold"));
     config_map["SCORING_THRESHOLD"].push_back(getDoubleOption_("scoring_threshold"));
     config_map["MIN_NUM_PSMS_MODEL"].push_back(getIntOption_("min_num_psms_model"));
@@ -456,6 +454,29 @@ protected:
     }
   }
   
+  String getSelectionMethod_(const PeptideIdentification& pep_id, String search_engine)
+  {
+    String selection_method = "";
+    if (pep_id.getScoreType() == "Posterior Error Probability" || search_engine == "Percolator")
+    {
+      selection_method = score_selection_method_[0];
+    }
+    else if (search_engine == "Mascot")
+    {
+      selection_method = score_selection_method_[1];
+    }
+    else if (search_engine == "XTandem")
+    {
+      selection_method = score_selection_method_[3];
+    }
+    else
+    {
+      String msg = "SELECTION_METHOD parameter could not be set. Only Mascot, X! Tandem, or Posterior Error Probability score types are supported.";
+      throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, msg);
+    }
+    return selection_method;
+  }
+  
   ExitCodes main_(int, const char**)
   {
     vector<PeptideIdentification> pep_ids;
@@ -519,7 +540,9 @@ protected:
     
     // initialize map
     map<String, vector<String> > config_map;
-    ExitCodes ret = parseParameters_(config_map, id, in, out, target_mods);
+    String selection_method = getSelectionMethod_(pep_ids[0], prot_ids.begin()->getSearchEngine());
+    
+    ExitCodes ret = parseParameters_(config_map, id, in, out, target_mods, selection_method);
     if (ret != EXECUTION_OK)
     {
       return ret;

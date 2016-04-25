@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -304,7 +304,7 @@ protected:
       prot_id.setDateTime(DateTime::now());
       prot_id.setScoreType(compare_function);
       ProteinIdentification::SearchParameters searchparam;
-      searchparam.precursor_tolerance = precursor_mass_tolerance;
+      searchparam.precursor_mass_tolerance = precursor_mass_tolerance;
       prot_id.setSearchParameters(searchparam);
       /***********SEARCH**********/
       for (UInt j = 0; j < query.size(); ++j)
