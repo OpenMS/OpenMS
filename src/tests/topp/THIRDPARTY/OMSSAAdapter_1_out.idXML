@@ -14,15 +14,15 @@
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="520.262817382812" RT="2655.095703125" >
-			<PeptideHit score="1.36414648811099e-016" sequence="DFASSGGYVLHLHR" charge="3" aa_after="E" protein_refs="PH_2" >
+			<PeptideHit score="1.36414648811099e-016" sequence=".DFASSGGYVLHLHR." charge="3" aa_after="E" protein_refs="PH_2" >
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="1063.20983886719" RT="4587.6689453125" >
-			<PeptideHit score="2.3157988088133e-021" sequence="IALSRPNVEVVALNDPFITNDYAAYM(Oxidation)FK" charge="3" aa_after="E" protein_refs="PH_0" >
+			<PeptideHit score="2.3157988088133e-021" sequence=".IALSRPNVEVVALNDPFITNDYAAYM(Oxidation)FK." charge="3" aa_after="E" protein_refs="PH_0" >
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="775.38720703125" RT="4923.77734375" >
-			<PeptideHit score="4.06291222839537e-022" sequence="RPGADSDIGGFGGLFDLAQAGFR" charge="3" aa_after="A" protein_refs="PH_1" >
+			<PeptideHit score="4.06291222839537e-022" sequence=".RPGADSDIGGFGGLFDLAQAGFR." charge="3" aa_after="A" protein_refs="PH_1" >
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>
