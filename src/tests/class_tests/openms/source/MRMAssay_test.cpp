@@ -319,7 +319,7 @@ START_SECTION(std::vector<OpenMS::AASequence> MRMAssay::addModificationsSequence
 {
   MRMAssay_test mrma;
 
-  AASequence sequence = AASequence::fromString(".PEPTDIEK.");
+  AASequence sequence = AASequence::fromString("PEPTDIEK");
   std::vector<OpenMS::AASequence> sequences;
   sequences.push_back(sequence);
 
@@ -384,11 +384,11 @@ START_SECTION(std::vector<OpenMS::AASequence> MRMAssay::combineDecoyModification
   TEST_EQUAL(sequences.size(), 7)
   TEST_EQUAL(sequences[0], AASequence::fromString(".(Acetyl)PEST(Phospho)DIEK."));
   TEST_EQUAL(sequences[1], AASequence::fromString(".(Acetyl)PESTD(Phospho)IEK."));
-  TEST_EQUAL(sequences[2], AASequence::fromString(".(Acetyl)PESTDIEK.(Phospho)"));
+  TEST_EQUAL(sequences[2], AASequence::fromString(".(Acetyl)PESTDIEK(Phospho)."));
   TEST_EQUAL(sequences[3], AASequence::fromString(".PEST(Acetyl)D(Phospho)IEK."));
-  TEST_EQUAL(sequences[4], AASequence::fromString(".PEST(Acetyl)DIEK.(Phospho)"));
-  TEST_EQUAL(sequences[5], AASequence::fromString(".PEST(Phospho)DIEK.(Phospho)"));
-  TEST_EQUAL(sequences[6], AASequence::fromString(".PESTD(Phospho)IEK.(Phospho)"));
+  TEST_EQUAL(sequences[4], AASequence::fromString(".PEST(Acetyl)DIEK(Phospho)."));
+  TEST_EQUAL(sequences[5], AASequence::fromString(".PEST(Phospho)DIEK(Acetyl)."));
+  TEST_EQUAL(sequences[6], AASequence::fromString(".PESTD(Phospho)IEK(Acetyl)."));
 }
 
 END_SECTION

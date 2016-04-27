@@ -25,7 +25,7 @@
     </Protein>
   </ProteinList>
   <CompoundList>
-    <Peptide id="1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01" sequence="AAAAAAVSGSAAAEAK">
+    <Peptide id="1_sp|O75882|ATRN_HUMAN_.AAAAAAVSGSAAAEAK._2_50.01" sequence="AAAAAAVSGSAAAEAK">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
       <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="NA"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AAAAAAVSGSAAAEAK"/>
@@ -37,7 +37,7 @@
         </RetentionTime>
       </RetentionTimeList>
     </Peptide>
-    <Peptide id="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74" sequence="AAAATGTIFTFR">
+    <Peptide id="1_sp|P05154|IPSP_HUMAN_.AAAATGTIFTFR._2_54.74" sequence="AAAATGTIFTFR">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
       <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AAAATGTIFTFR"/>
@@ -49,7 +49,7 @@
         </RetentionTime>
       </RetentionTimeList>
     </Peptide>
-    <Peptide id="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57" sequence="AAADPHECYAK">
+    <Peptide id="1_sp|P02768|ALBU_HUMAN_.AAADPHEC(Carbamidomethyl)YAK._2_-24.57" sequence="AAADPHECYAK">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
       <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AAADPHEC(UniMod:4)YAK"/>
@@ -64,7 +64,7 @@
         </RetentionTime>
       </RetentionTimeList>
     </Peptide>
-    <Peptide id="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57" sequence="AAADPHECYAK">
+    <Peptide id="1_sp|P02768|ALBU_HUMAN_.AAADPHEC(Carbamidomethyl)YAK._3_-24.57" sequence="AAADPHECYAK">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
       <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AAADPHEC(UniMod:4)YAK"/>
@@ -79,7 +79,7 @@
         </RetentionTime>
       </RetentionTimeList>
     </Peptide>
-    <Peptide id="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29" sequence="AAAITAYALTLTK">
+    <Peptide id="1_sp|P0C0L4|CO4A_HUMAN_.AAAITAYALTLTK._2_66.29" sequence="AAAITAYALTLTK">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
       <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="1_sp|P0C0L4|CO4A_HUMAN,_AAAITAYALTLTK_2"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AAAITAYALTLTK"/>
@@ -91,7 +91,7 @@
         </RetentionTime>
       </RetentionTimeList>
     </Peptide>
-    <Peptide id="1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36" sequence="AAAITSDILEALGR">
+    <Peptide id="1_sp|Q15063|POSTN_HUMAN_.AAAITSDILEALGR._2_100.36" sequence="AAAITSDILEALGR">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
       <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AAAITSDILEALGR"/>
@@ -103,7 +103,7 @@
         </RetentionTime>
       </RetentionTimeList>
     </Peptide>
-    <Peptide id="1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85" sequence="AAANQMR">
+    <Peptide id="1_sp|P0C0L4|CO4A_HUMAN_.AAANQMR._2_-41.85" sequence="AAANQMR">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
       <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="1_sp|P0C0L4|CO4A_HUMAN,_AAANQMR_2"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AAANQMR"/>
@@ -115,7 +115,7 @@
         </RetentionTime>
       </RetentionTimeList>
     </Peptide>
-    <Peptide id="1_sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95" sequence="AAANQMR">
+    <Peptide id="1_sp|P0C0L4|CO4A_HUMAN_.AAAN(Deamidated)QMR._2_-39.95" sequence="AAANQMR">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
       <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="1_sp|P0C0L4|CO4A_HUMAN,_AAAN(Deamidated)QMR_2"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AAAN(UniMod:7)QMR"/>
@@ -130,7 +130,7 @@
         </RetentionTime>
       </RetentionTimeList>
     </Peptide>
-    <Peptide id="1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92" sequence="AAAPNTPK">
+    <Peptide id="1_sp|Q92954|PRG4_HUMAN_.AAAPNTPK._2_-35.92" sequence="AAAPNTPK">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
       <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_2"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AAAPNTPK"/>
@@ -144,7 +144,7 @@
     </Peptide>
   </CompoundList>
   <TransitionList>
-    <Transition id="0_1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_658.8439_280.6556" peptideRef="1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
+    <Transition id="0_1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_658.8439_280.6556" peptideRef="1_sp|O75882|ATRN_HUMAN_.AAAAAAVSGSAAAEAK._2_50.01">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="658.8439" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -167,7 +167,7 @@
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="1_1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_658.8439_481.2511" peptideRef="1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
+    <Transition id="1_1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_658.8439_481.2511" peptideRef="1_sp|O75882|ATRN_HUMAN_.AAAAAAVSGSAAAEAK._2_50.01">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="658.8439" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -190,7 +190,7 @@
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="2_1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_613.83_285.6554" peptideRef="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
+    <Transition id="2_1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_613.83_285.6554" peptideRef="1_sp|P05154|IPSP_HUMAN_.AAAATGTIFTFR._2_54.74">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="613.83" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -213,7 +213,7 @@
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="3_1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_613.83_507.2744" peptideRef="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
+    <Transition id="3_1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_613.83_507.2744" peptideRef="1_sp|P05154|IPSP_HUMAN_.AAAATGTIFTFR._2_54.74">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="613.83" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -236,7 +236,7 @@
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="4_1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_613.83_542.7929" peptideRef="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
+    <Transition id="4_1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_613.83_542.7929" peptideRef="1_sp|P05154|IPSP_HUMAN_.AAAATGTIFTFR._2_54.74">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="613.83" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -259,7 +259,7 @@
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="5_1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_613.83_471.7558" peptideRef="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
+    <Transition id="5_1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_613.83_471.7558" peptideRef="1_sp|P05154|IPSP_HUMAN_.AAAATGTIFTFR._2_54.74">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="613.83" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -282,7 +282,7 @@
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="6_1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_613.83_212.1212" peptideRef="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
+    <Transition id="6_1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_613.83_212.1212" peptideRef="1_sp|P05154|IPSP_HUMAN_.AAAATGTIFTFR._2_54.74">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="613.83" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -305,7 +305,7 @@
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="7_1_sp|P02768|ALBU_HUMAN_AAADPHECYAK_616.7719_271.1256" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="7_1_sp|P02768|ALBU_HUMAN_AAADPHECYAK_616.7719_271.1256" peptideRef="1_sp|P02768|ALBU_HUMAN_.AAADPHEC(Carbamidomethyl)YAK._2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -328,7 +328,7 @@
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="8_1_sp|P02768|ALBU_HUMAN_AAADPHECYAK_411.517_452.7027" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="8_1_sp|P02768|ALBU_HUMAN_AAADPHECYAK_411.517_452.7027" peptideRef="1_sp|P02768|ALBU_HUMAN_.AAADPHEC(Carbamidomethyl)YAK._3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -351,7 +351,7 @@
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="9_1_sp|P02768|ALBU_HUMAN_AAADPHECYAK_411.517_545.7348" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="9_1_sp|P02768|ALBU_HUMAN_AAADPHECYAK_411.517_545.7348" peptideRef="1_sp|P02768|ALBU_HUMAN_.AAADPHEC(Carbamidomethyl)YAK._3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -374,7 +374,7 @@
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="10_1_sp|P02768|ALBU_HUMAN_AAADPHECYAK_411.517_581.2533" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="10_1_sp|P02768|ALBU_HUMAN_AAADPHECYAK_411.517_581.2533" peptideRef="1_sp|P02768|ALBU_HUMAN_.AAADPHEC(Carbamidomethyl)YAK._3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -397,7 +397,7 @@
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="11_1_sp|P02768|ALBU_HUMAN_AAADPHECYAK_411.517_404.1763" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="11_1_sp|P02768|ALBU_HUMAN_AAADPHECYAK_411.517_404.1763" peptideRef="1_sp|P02768|ALBU_HUMAN_.AAADPHEC(Carbamidomethyl)YAK._3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -420,7 +420,7 @@
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="12_1_sp|P02768|ALBU_HUMAN_AAADPHECYAK_411.517_109.5786" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="12_1_sp|P02768|ALBU_HUMAN_AAADPHECYAK_411.517_109.5786" peptideRef="1_sp|P02768|ALBU_HUMAN_.AAADPHEC(Carbamidomethyl)YAK._3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -443,7 +443,7 @@
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="13_1_sp|P02768|ALBU_HUMAN_AAADPHECYAK_411.517_510.2162" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="13_1_sp|P02768|ALBU_HUMAN_AAADPHECYAK_411.517_510.2162" peptideRef="1_sp|P02768|ALBU_HUMAN_.AAADPHEC(Carbamidomethyl)YAK._3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -466,7 +466,7 @@
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="14_1_sp|P02768|ALBU_HUMAN_AAADPHECYAK_411.517_271.1256" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="14_1_sp|P02768|ALBU_HUMAN_AAADPHECYAK_411.517_271.1256" peptideRef="1_sp|P02768|ALBU_HUMAN_.AAADPHEC(Carbamidomethyl)YAK._3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -489,7 +489,7 @@
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="15_1_sp|P02768|ALBU_HUMAN_AAADPHECYAK_411.517_335.6469" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="15_1_sp|P02768|ALBU_HUMAN_AAADPHECYAK_411.517_335.6469" peptideRef="1_sp|P02768|ALBU_HUMAN_.AAADPHEC(Carbamidomethyl)YAK._3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -512,7 +512,7 @@
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="16_1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_654.3821_618.8635" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
+    <Transition id="16_1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_654.3821_618.8635" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_.AAAITAYALTLTK._2_66.29">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="654.3821" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -535,7 +535,7 @@
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="17_1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_654.3821_491.2844" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
+    <Transition id="17_1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_654.3821_491.2844" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_.AAAITAYALTLTK._2_66.29">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="654.3821" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -558,7 +558,7 @@
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="18_1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_654.3821_405.242" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
+    <Transition id="18_1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_654.3821_405.242" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_.AAAITAYALTLTK._2_66.29">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="654.3821" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -581,7 +581,7 @@
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="19_1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_700.8908_208.6344" peptideRef="1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
+    <Transition id="19_1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_700.8908_208.6344" peptideRef="1_sp|Q15063|POSTN_HUMAN_.AAAITSDILEALGR._2_100.36">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="700.8908" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -604,7 +604,7 @@
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="20_1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_700.8908_173.1159" peptideRef="1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
+    <Transition id="20_1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_700.8908_173.1159" peptideRef="1_sp|Q15063|POSTN_HUMAN_.AAAITSDILEALGR._2_100.36">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="700.8908" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -627,7 +627,7 @@
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="21_1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_381.1898_310.1527" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85">
+    <Transition id="21_1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_381.1898_310.1527" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_.AAANQMR._2_-41.85">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="381.1898" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -650,7 +650,7 @@
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="22_1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_381.1898_345.6712" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85">
+    <Transition id="22_1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_381.1898_345.6712" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_.AAANQMR._2_-41.85">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="381.1898" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -673,7 +673,7 @@
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="23_1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_381.1898_88.0631" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85">
+    <Transition id="23_1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_381.1898_88.0631" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_.AAANQMR._2_-41.85">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="381.1898" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -696,7 +696,7 @@
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="24_1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_381.1898_274.6341" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85">
+    <Transition id="24_1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_381.1898_274.6341" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_.AAANQMR._2_-41.85">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="381.1898" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -719,7 +719,7 @@
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="25_1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_381.1898_274.6341" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85">
+    <Transition id="25_1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_381.1898_274.6341" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_.AAANQMR._2_-41.85">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="381.1898" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -742,7 +742,7 @@
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="26_1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_381.6818_346.1632" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
+    <Transition id="26_1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_381.6818_346.1632" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_.AAAN(Deamidated)QMR._2_-39.95">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="381.6818" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -765,7 +765,7 @@
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="27_1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_381.6818_310.6447" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
+    <Transition id="27_1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_381.6818_310.6447" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_.AAAN(Deamidated)QMR._2_-39.95">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="381.6818" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -788,7 +788,7 @@
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="28_1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_381.6818_346.1632" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
+    <Transition id="28_1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_381.6818_346.1632" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_.AAAN(Deamidated)QMR._2_-39.95">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="381.6818" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -811,7 +811,7 @@
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="29_1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_381.6818_88.0631" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
+    <Transition id="29_1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_381.6818_88.0631" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_.AAAN(Deamidated)QMR._2_-39.95">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="381.6818" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -834,7 +834,7 @@
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="30_1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_381.6818_275.1261" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
+    <Transition id="30_1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_381.6818_275.1261" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_.AAAN(Deamidated)QMR._2_-39.95">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="381.6818" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -857,7 +857,7 @@
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="31_1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_381.6818_310.6447" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
+    <Transition id="31_1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_381.6818_310.6447" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_.AAAN(Deamidated)QMR._2_-39.95">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="381.6818" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -880,7 +880,7 @@
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="32_1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_385.2138_314.1767" peptideRef="1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
+    <Transition id="32_1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_385.2138_314.1767" peptideRef="1_sp|Q92954|PRG4_HUMAN_.AAAPNTPK._2_-35.92">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="385.2138" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -903,7 +903,7 @@
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="33_1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_385.2138_278.6581" peptideRef="1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
+    <Transition id="33_1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_385.2138_278.6581" peptideRef="1_sp|Q92954|PRG4_HUMAN_.AAAPNTPK._2_-35.92">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="385.2138" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -926,7 +926,7 @@
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="34_1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_385.2138_230.1317" peptideRef="1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
+    <Transition id="34_1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_385.2138_230.1317" peptideRef="1_sp|Q92954|PRG4_HUMAN_.AAAPNTPK._2_-35.92">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="385.2138" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -949,7 +949,7 @@
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="35_1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_385.2138_314.1767" peptideRef="1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
+    <Transition id="35_1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_385.2138_314.1767" peptideRef="1_sp|Q92954|PRG4_HUMAN_.AAAPNTPK._2_-35.92">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="385.2138" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -972,7 +972,7 @@
       <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="36_1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_385.2138_349.6952" peptideRef="1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
+    <Transition id="36_1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_385.2138_349.6952" peptideRef="1_sp|Q92954|PRG4_HUMAN_.AAAPNTPK._2_-35.92">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="385.2138" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
