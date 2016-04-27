@@ -1,3 +1,4 @@
+#!/bin/bash
 # --------------------------------------------------------------------------
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
@@ -28,16 +29,41 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # --------------------------------------------------------------------------
-# $Maintainer: Stephan Aiche $
-# $Authors: Stephan Aiche $
+# $Maintainer: Timo Sachsenberg $
+# $Authors: Timo Sachsenberg $
 # --------------------------------------------------------------------------
 
-CMAKE_MINIMUM_REQUIRED (VERSION 2.8)
+############################################################################
+# Scans the binary folder and outputs tool name and version string used in
+# the REST update server. Pipe the output in a versions.txt file and 
+# replace the the corresponding file on the REST server.
+############################################################################
 
-# include helper functions 
-include ( ${SCRIPT_DIR}common.cmake )
+# check command line arguments
+if [[ $# != 1 ]]
+then 
+    echo "Usage: $0 <new-release-bin-dir>"
+    exit 1
+fi
 
-set(required_variables "ARCH;PLATFORM;TARGET_DIR;TEMPLATE_FOLDER")
-check_variables(required_variables)
+# directories containing TOPP/UTILS binaries
+BIN_DIR=$1
 
-configure_file(${TEMPLATE_FOLDER}/binaries_${PLATFORM}.ini ${TARGET_DIR}/binaries.ini COPYONLY)
+# tmp filesV
+SYSTEM_TMP_DIR=/tmp
+TMP_DIR=${SYSTEM_TMP_DIR}/OpenMS_REST_update
+mkdir ${TMP_DIR}
+TMP_FILE_NEW=${TMP_DIR}/tool_list.txt
+
+# store relevant tool names in tmp files
+ls -la ${BIN_DIR}/ \
+    | awk '{print $9}' \
+    | sort \
+    | grep -v -e "Tutorial\|TOPPAS\|TOPPView\|INIFileEditor\|SEARCHENGINES\|OpenMSInfo\|GenericWrapper" \
+    | grep -v -e "\.$" \
+    | grep -v -e "^$"  \
+    | while read i
+    do
+      echo -e $i'\t'$(${BIN_DIR}/${i} --help 2>&1 | grep "Version" | sed -E "s/Version: //" | sed -E 's/\s.*$/ /')
+   done
+
