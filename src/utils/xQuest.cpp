@@ -2952,11 +2952,12 @@ protected:
 //    int charge;
 //    double mz;
 //    double intensity;
+                  cout << "Start writing annotations" << endl;
                   vector<PeptideHit::FragmentAnnotation> frag_annotations;
                   for (Size i = 0; i < matched_spec_common_alpha.size(); --i)
                   {
                     PeptideHit::FragmentAnnotation frag_anno;
-                    frag_anno.charge = theoretical_spec_common_alpha[matched_spec_common_alpha[i].first].getMetaValue("z");
+                    frag_anno.charge = static_cast<int>(theoretical_spec_common_alpha[matched_spec_common_alpha[i].first].getMetaValue("z"));
                     frag_anno.mz = spectrum_light[matched_spec_common_alpha[i].second].getMZ();
                     frag_anno.intensity = spectrum_light[matched_spec_common_alpha[i].second].getIntensity();
                     frag_anno.annotation = theoretical_spec_common_alpha[matched_spec_common_alpha[i].first].getMetaValue("IonName");
@@ -2965,7 +2966,7 @@ protected:
                   for (Size i = 0; i < matched_spec_common_beta.size(); --i)
                   {
                     PeptideHit::FragmentAnnotation frag_anno;
-                    frag_anno.charge = theoretical_spec_common_beta[matched_spec_common_beta[i].first].getMetaValue("z");
+                    frag_anno.charge = static_cast<int>(theoretical_spec_common_beta[matched_spec_common_beta[i].first].getMetaValue("z"));
                     frag_anno.mz = spectrum_light[matched_spec_common_beta[i].second].getMZ();
                     frag_anno.intensity = spectrum_light[matched_spec_common_beta[i].second].getIntensity();
                     frag_anno.annotation = theoretical_spec_common_beta[matched_spec_common_beta[i].first].getMetaValue("IonName");
@@ -2974,7 +2975,7 @@ protected:
                   for (Size i = 0; i < matched_spec_xlinks_alpha.size(); --i)
                   {
                     PeptideHit::FragmentAnnotation frag_anno;
-                    frag_anno.charge = theoretical_spec_xlinks_alpha[matched_spec_xlinks_alpha[i].first].getMetaValue("z");
+                    frag_anno.charge = static_cast<int>(theoretical_spec_xlinks_alpha[matched_spec_xlinks_alpha[i].first].getMetaValue("z"));
                     frag_anno.mz = spectrum_light[matched_spec_xlinks_alpha[i].second].getMZ();
                     frag_anno.intensity = spectrum_light[matched_spec_xlinks_alpha[i].second].getIntensity();
                     frag_anno.annotation = theoretical_spec_xlinks_alpha[matched_spec_xlinks_alpha[i].first].getMetaValue("IonName");
@@ -2983,12 +2984,13 @@ protected:
                   for (Size i = 0; i < matched_spec_xlinks_beta.size(); --i)
                   {
                     PeptideHit::FragmentAnnotation frag_anno;
-                    frag_anno.charge = theoretical_spec_xlinks_beta[matched_spec_xlinks_beta[i].first].getMetaValue("z");
+                    frag_anno.charge = static_cast<int>(theoretical_spec_xlinks_beta[matched_spec_xlinks_beta[i].first].getMetaValue("z"));
                     frag_anno.mz = spectrum_light[matched_spec_xlinks_beta[i].second].getMZ();
                     frag_anno.intensity = spectrum_light[matched_spec_xlinks_beta[i].second].getIntensity();
                     frag_anno.annotation = theoretical_spec_xlinks_beta[matched_spec_xlinks_beta[i].first].getMetaValue("IonName");
                     frag_annotations.push_back(frag_anno);
                   }
+                  cout << "End writing annotations" << endl;
                   csm.frag_annotations = frag_annotations;
 
                   all_csms_spectrum.push_back(csm);

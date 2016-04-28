@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -761,9 +761,9 @@ namespace OpenMS
             }
             if (jt->metaValueExists("xl_chain") && jt->getMetaValue("xl_type") != "mono-link")  // TODO ppxl metavalue subject to change (location and upgrade to cv)
             {
-              SignedSize i = jt->getMetaValue("xl_pos").toString().toInt();
+              int i = jt->getMetaValue("xl_pos").toString().toInt();
               p += "\t\t<Modification location=\"" + String(i + 1);
-              p += "\" residues=\"" + jt->getSequence().getResidue(i).getOneLetterCode();
+              p += "\" residues=\"" + jt->getSequence().getResidue(static_cast<SignedSize>(i)).getOneLetterCode();
               if (jt->getMetaValue("xl_chain") == "MS:1002509")  // N.B. longer one is the donor, equals the heavier, equals, the alphabetical first
               {
                 p += "\" monoisotopicMassDelta=\"" + jt->getMetaValue("xl_mass").toString();
@@ -779,9 +779,9 @@ namespace OpenMS
             }
             if (jt->metaValueExists("xl_pos2"))  // TODO ppxl metavalue subject to change (location and upgrade to cv)
             {
-              SignedSize i = jt->getMetaValue("xl_pos2").toString().toInt();
+              int i = jt->getMetaValue("xl_pos2").toString().toInt();
               p += "\t\t<Modification location=\"" + String(i + 1);
-              p += "\" residues=\"" + jt->getSequence().getResidue(i).getOneLetterCode();
+              p += "\" residues=\"" + jt->getSequence().getResidue(static_cast<SignedSize>(i)).getOneLetterCode();
               p += "\" monoisotopicMassDelta=\"0";
               // ppxl crosslink loop xl_pos2 is always the reciever ("MS:1002510")
               p += "\"> \n\t\t\t" + cv_.getTerm("MS:1002510").toXMLString(cv_ns, DataValue(ppxl_linkid));
@@ -1269,5 +1269,3 @@ namespace OpenMS
     }
   } //namespace Internal
 } // namespace OpenMS
-
-

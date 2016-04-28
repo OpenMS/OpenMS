@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -60,10 +60,8 @@ namespace OpenMS
 
     /**
         @brief XML STREAM handler for MzIdentMLFile
-
         In read-mode, this class will parse an MzIdentML XML file and append the input
         identifications to the provided PeptideIdentifications and ProteinIdentifications.
-
         @note Do not use this class. It is only needed in MzIdentMLFile.
         @note DOM and STREAM handler for MzIdentML have the same interface for legacy id structures.
     */
@@ -160,7 +158,6 @@ private:
       std::map<String, String> pp_identifier_2_sil_; //mapping peptide/proteinidentification identifier_ to spectrumidentificationlist
       std::map<String, String> sil_2_sdb_; //mapping spectrumidentificationlist to the search data bases
       std::map<String, String> sil_2_sdat_; //mapping spectrumidentificationlist to the search input
-      std::map<String, String> ph_2_sdat_; //mapping identification runs (mapping PeptideIdentifications and ProteinIdentifications via .getIdentifier()) to spectra data
       std::map<String, String> sil_2_sip_; //mapping spectrumidentificationlist to the search protocol (where the params are at)
       AASequence actual_peptide_;
       Int current_mod_location_;
