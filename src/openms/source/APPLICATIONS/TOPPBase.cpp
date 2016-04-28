@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -920,6 +920,13 @@ namespace OpenMS
 
     //parameter not found
     throw UnregisteredParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+  }
+
+  void TOPPBase::setValidStrings_(const String& name, const std::string vstrings[], int count)
+  {
+    std::vector<String> vec;
+    vec.assign(vstrings, vstrings + count);
+    setValidStrings_(name, vec);
   }
 
   void TOPPBase::setValidStrings_(const String& name, const std::vector<String>& strings)
@@ -1894,21 +1901,23 @@ namespace OpenMS
     subsections_TOPP_[name] = description;
   }
 
-  void TOPPBase::parseRange_(const String& text, double& low, double& high) const
+  bool TOPPBase::parseRange_(const String& text, double& low, double& high) const
   {
+    bool any_set = false;
     try
     {
       String tmp = text.prefix(':');
-      if (tmp != "")
+      if (!tmp.empty())
       {
         low = tmp.toDouble();
+        any_set = true;
       }
 
       tmp = text.suffix(':');
-
-      if (tmp != "")
+      if (!tmp.empty())
       {
         high = tmp.toDouble();
+        any_set = true;
       }
     }
     catch (Exception::ConversionError&)
@@ -1917,23 +1926,26 @@ namespace OpenMS
                                        "Could not convert string '" + text +
                                        "' to a range of floating point values");
     }
+    return any_set;
   }
 
-  void TOPPBase::parseRange_(const String& text, Int& low, Int& high) const
+  bool TOPPBase::parseRange_(const String& text, Int& low, Int& high) const
   {
+    bool any_set = false;
     try
     {
       String tmp = text.prefix(':');
-      if (tmp != "")
+      if (!tmp.empty())
       {
         low = tmp.toInt();
+        any_set = true;
       }
 
       tmp = text.suffix(':');
-
-      if (tmp != "")
+      if (!tmp.empty())
       {
         high = tmp.toInt();
+        any_set = true;
       }
     }
     catch (Exception::ConversionError&)
@@ -1942,6 +1954,7 @@ namespace OpenMS
                                        "Could not convert string '" + text +
                                        "' to a range of integer values");
     }
+    return any_set;
   }
 
   Param TOPPBase::getSubsectionDefaults_(const String& /*section*/) const

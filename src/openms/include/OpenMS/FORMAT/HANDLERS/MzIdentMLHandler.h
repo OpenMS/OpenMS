@@ -60,10 +60,8 @@ namespace OpenMS
 
     /**
         @brief XML STREAM handler for MzIdentMLFile
-
         In read-mode, this class will parse an MzIdentML XML file and append the input
         identifications to the provided PeptideIdentifications and ProteinIdentifications.
-
         @note Do not use this class. It is only needed in MzIdentMLFile.
         @note DOM and STREAM handler for MzIdentML have the same interface for legacy id structures.
     */
@@ -147,7 +145,7 @@ protected:
       //void writeSourceFile_(std::ostream& os, const String& id, const SourceFile& software);
 
       /// Helper method that writes the Enzymes
-      void writeEnyzme_(String& s, Enzyme enzy, UInt miss, UInt indent) const;
+      void writeEnzyme_(String& s, Enzyme enzy, UInt miss, UInt indent) const;
 
       /// Helper method that writes the modification search params
       void writeModParam_(String& s, const std::vector<String>& fixed, const std::vector<String>& variable, UInt indent) const;

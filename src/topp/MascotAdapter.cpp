@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -360,55 +360,54 @@ protected:
       writeLog_("Both Mascot flags set. Aborting! Only one of the two flags [-mascot_in|-mascot_out] can be set!");
       return ILLEGAL_PARAMETERS;
     }
-    else
+    
+    db = getStringOption_("db");
+    hits = getStringOption_("hits");
+    cleavage = getStringOption_("cleavage");
+    missed_cleavages = getIntOption_("missed_cleavages");
+    mass_type = getStringOption_("mass_type");
+
+    sigthreshold = getDoubleOption_("sig_threshold");
+    pep_homol = getDoubleOption_("pep_homol");
+    pep_ident = getDoubleOption_("pep_ident");
+    pep_rank = getIntOption_("pep_rank");
+    pep_exp_z = getIntOption_("pep_exp_z");
+    show_unassigned = getIntOption_("show_unassigned");
+    prot_score = getDoubleOption_("prot_score");
+    pep_score = getDoubleOption_("pep_score");
+
+    instrument = getStringOption_("instrument");
+    precursor_mass_tolerance = getDoubleOption_("precursor_mass_tolerance");
+    peak_mass_tolerance = getDoubleOption_("peak_mass_tolerance");
+    taxonomy = getStringOption_("taxonomy");
+
+    /// fixed modifications
+    mods = getStringList_("modifications");
+
+    /// variable modifications
+    variable_mods = getStringList_("variable_modifications");
+
+    /// charges
+    parts = getStringList_("charges");
+
+    for (Size i = 0; i < parts.size(); i++)
     {
-      db = getStringOption_("db");
-      hits = getStringOption_("hits");
-      cleavage = getStringOption_("cleavage");
-      missed_cleavages = getIntOption_("missed_cleavages");
-      mass_type = getStringOption_("mass_type");
-
-      sigthreshold = getDoubleOption_("sig_threshold");
-      pep_homol = getDoubleOption_("pep_homol");
-      pep_ident = getDoubleOption_("pep_ident");
-      pep_rank = getIntOption_("pep_rank");
-      pep_exp_z = getIntOption_("pep_exp_z");
-      show_unassigned = getIntOption_("show_unassigned");
-      prot_score = getDoubleOption_("prot_score");
-      pep_score = getDoubleOption_("pep_score");
-
-      instrument = getStringOption_("instrument");
-      precursor_mass_tolerance = getDoubleOption_("precursor_mass_tolerance");
-      peak_mass_tolerance = getDoubleOption_("peak_mass_tolerance");
-      taxonomy = getStringOption_("taxonomy");
-
-      /// fixed modifications
-      mods = getStringList_("modifications");
-
-      /// variable modifications
-      variable_mods = getStringList_("variable_modifications");
-
-      ///charges
-      parts = getStringList_("charges");
-
-      for (Size i = 0; i < parts.size(); i++)
+      temp_charge = parts[i];
+      if (temp_charge[temp_charge.size() - 1] == '-' || temp_charge[0] == '-')
       {
-        temp_charge = parts[i];
-        if (temp_charge[temp_charge.size() - 1] == '-' || temp_charge[0] == '-')
-        {
-          charges.push_back(-1 * (temp_charge.toInt()));
-        }
-        else
-        {
-          charges.push_back(temp_charge.toInt());
-        }
+        charges.push_back(-1 * (parts[i].remove('-').toInt()));
       }
-      if (charges.empty())
+      else
       {
-        writeLog_("No charge states specified for Mascot search. Aborting!");
-        return ILLEGAL_PARAMETERS;
+        charges.push_back(parts[i].remove('+').toInt());
       }
     }
+    if (charges.empty())
+    {
+      writeLog_("No charge states specified for Mascot search. Aborting!");
+      return ILLEGAL_PARAMETERS;
+    }
+
 
     if (mascot_in)
     {

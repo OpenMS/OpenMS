@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -57,7 +57,6 @@
   - @subpage TOPP_IDRipper - Splits protein/peptide identifications according their file-origin.
   - @subpage TOPP_IDFileConverter - Converts identification engine file formats.
   - @subpage TOPP_MapStatistics - Extract extended statistics on the features of a map for quality control.
-  - @subpage TOPP_SpectraMerger - Merges spectra from an LC-MS map, either by precursor or by RT blocks
   - @subpage TOPP_TextExporter - Exports various XML formats to a text file.
   - @subpage TOPP_MzTabExporter - Exports various XML formats to an mzTab file
 
@@ -82,6 +81,7 @@
   - @subpage TOPP_SpectraFilterSqrtMower - Applies a filter to peak spectra.
   - @subpage TOPP_SpectraFilterThresholdMower - Applies a filter to peak spectra.
   - @subpage TOPP_SpectraFilterWindowMower - Applies a filter to peak spectra.
+  - @subpage TOPP_SpectraMerger - Merges spectra from an LC-MS map, either by precursor or by RT blocks
   - @subpage TOPP_TOFCalibration - Applies time of flight calibration.
 
   <b>Quantitation</b>
@@ -133,15 +133,10 @@
   - @subpage TOPP_IDMapper - Assigns protein/peptide identifications to feature or consensus features.
   - @subpage TOPP_IDPosteriorErrorProbability - Estimates posterior error probabilities using a mixture model.
   - @subpage TOPP_IDRTCalibration - Can be used to calibrate RTs of peptide hits linearly to standards.
+  - @subpage TOPP_LuciphorAdapter - Scores potential phosphorylation sites in order to localize the most probable sites.
   - @subpage TOPP_PeptideIndexer - Refreshes the protein references for all peptide hits.
   - @subpage TOPP_PhosphoScoring - Scores potential phosphorylation sites in order to localize the most probable sites.
   - @subpage TOPP_ProteinInference - Infer proteins from a list of (high-confidence) peptides.
-<!--  %% removed from Docu (still available in TOPP) because of operability
-- @subpage TOPP_PILISIdentification - Trains the PILIS model using a given set of spectra and identifications.
-- @subpage TOPP_PILISModelCV - Perform a cross validation of the PILIS model parameters
-- @subpage TOPP_PILISModelTrainer - Train the PILIS model using a given set of spectra and identifications.
-- @subpage TOPP_PILISSpectraGenerator - Generate spectra given a list of peptides and a PILIS model
--->
 
   <b>Targeted Experiments</b>
   - @subpage TOPP_InclusionExclusionListCreator - Creates inclusion and/or exclusion lists for LC-MS/MS experiments.

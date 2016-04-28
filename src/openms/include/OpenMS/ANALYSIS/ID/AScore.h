@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
+// $Maintainer: Petra Gutenbrunner $
 // $Authors: David Wojnar, Timo Sachsenberg, Petra Gutenbrunner $
 // --------------------------------------------------------------------------
 
@@ -38,6 +38,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/ANALYSIS/RNPXL/PScore.h>
+#include <limits>
 #include <vector>
 
 namespace OpenMS
@@ -62,7 +63,7 @@ struct ProbablePhosphoSites
   */
 class OPENMS_DLLAPI AScore
 {
-  friend class PScore;
+  friend struct PScore;
   public:
     ///Default constructor
     AScore();
@@ -80,10 +81,11 @@ class OPENMS_DLLAPI AScore
 
         @note the original sequence is saved in the PeptideHits as MetaValue Search_engine_sequence.
     */
-    PeptideHit compute(const PeptideHit & hit, PeakSpectrum &real_spectrum, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const;
+    PeptideHit compute(const PeptideHit & hit, PeakSpectrum &real_spectrum, double fragment_mass_tolerance, bool fragment_mass_unit_ppm, Size max_peptide_len = 60, Size max_num_perm = 16384);
 
   protected:
-  
+    int compareMZ_(double mz1, double mz2, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const;
+    
     /// getSpectrumDifference_ works similar as the method std::set_difference (http://en.cppreference.com/w/cpp/algorithm/set_difference). 
     /// set_difference was reimplemented, because it was necessary to overwrite the compare operator to be able to compare the m/z values.
     /// not implemented as "operator<", because using tolerances for comparison does not imply total ordering    
@@ -93,28 +95,45 @@ class OPENMS_DLLAPI AScore
     {
       while (first1 != last1 && first2 != last2)
       {
-        double tolerance = fragment_mass_tolerance;        
-        double error = first1->getMZ() - first2->getMZ();
-        if (fragment_mass_unit_ppm)
-        {
-          double avg_mass = (first1->getMZ() + first2->getMZ()) / 2;
-          tolerance = fragment_mass_tolerance * avg_mass / 1e6;
-        }
+        double mz1 = first1->getMZ();
+        double mz2 = first2->getMZ();
+        int val = compareMZ_(mz1, mz2, fragment_mass_tolerance, fragment_mass_unit_ppm);
         
-        if (error < -tolerance)
+        if (val == -1)
         { 
           *result = *first1; 
           ++result; 
           ++first1; 
         }
-        else if (error > tolerance)
+        else if (val == 1)
         {
           ++first2;
         }
-        else 
-        { 
-          ++first1; 
-          ++first2; 
+        else // check if more ions are within the same tolerance. If so, these can not be site determining ions
+        {
+          //check mz2 until no match
+          ++first2;
+          if (first2 != last2)
+          {
+            int ret = compareMZ_(mz1, first2->getMZ(), fragment_mass_tolerance, fragment_mass_unit_ppm);
+            while (ret == 0 && first2 != last2)
+            {
+              ++first2;
+              ret = compareMZ_(mz1, first2->getMZ(), fragment_mass_tolerance, fragment_mass_unit_ppm);
+            }
+          }
+          
+          //check mz1 until no match
+          ++first1;
+          if (first1 != last1)
+          {
+            int ret = compareMZ_(first1->getMZ(), mz2, fragment_mass_tolerance, fragment_mass_unit_ppm);
+            while (ret == 0 && first1 != last1)
+            {
+              ++first1;
+              ret = compareMZ_(first1->getMZ(), mz2, fragment_mass_tolerance, fragment_mass_unit_ppm);
+            }
+          }
         }
       }
       return std::copy(first1, last1, result);
@@ -152,9 +171,6 @@ class OPENMS_DLLAPI AScore
     
     /// Create theoretical spectra with all combinations with the number of phosphorylation events
     std::vector<RichPeakSpectrum> createTheoreticalSpectra_(const std::vector<std::vector<Size> > & permutations, const AASequence & seq_without_phospho) const;
-    
-    /// Create theoretical spectrum for sequence without phospho event
-    std::vector<RichPeakSpectrum> createTheoreticalSpectra_(const AASequence & seq_without_phospho) const;
     
     /// Pick top 10 intensity peaks for each 100 Da windows
     std::vector<PeakSpectrum> peakPickingPerWindowsInSpectrum_(PeakSpectrum & real_spectrum) const;

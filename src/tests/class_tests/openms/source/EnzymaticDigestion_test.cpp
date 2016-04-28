@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -413,6 +413,12 @@ START_SECTION((bool digestUnmodifiedString(const StringView sequence, std::vecto
     ed.digestUnmodifiedString(StringView(s), out, 3);
     TEST_EQUAL(out.size(), 1)
     TEST_EQUAL(out[0].getString(), "RKR")
+
+    // max size
+    ed.digestUnmodifiedString(s, out, 2,2);
+    TEST_EQUAL(out.size(), 2)
+    TEST_EQUAL(out[0].getString(), "RK")
+    TEST_EQUAL(out[1].getString(), "KR")
 
     // ------------------------
     // Trypsin/P

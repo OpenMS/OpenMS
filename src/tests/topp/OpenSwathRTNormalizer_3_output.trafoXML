@@ -2,6 +2,8 @@
 <TrafoXML version="1.0" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/TrafoXML_1_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<Transformation name="linear">
 		<Param  type="string" name="symmetric_regression" value="false"/>
+		<Param  type="float" name="slope" value="0.984288241320521"/>
+		<Param  type="float" name="intercept" value="396.375778384148"/>
 		<Pairs count="8">
 			<Pair from="612.98318753916" to="990"/>
 			<Pair from="2045.97763074637" to="2409"/>

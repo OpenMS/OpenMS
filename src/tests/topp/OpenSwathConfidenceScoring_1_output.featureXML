@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.8" id="fm_5545122449014130491" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_8.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<featureMap version="1.9" id="fm_5545122449014130491" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="1999-12-31T23:59:59">
 		<software name="OpenSwathConfidenceScoring" version="version_string" />
 		<processingAction name="Data processing action" />
@@ -103,6 +103,7 @@
 					<charge>0</charge>
 					<UserParam type="float" name="MZ" value="628.435"/>
 					<UserParam type="string" name="native_id" value="tr4"/>
+					<UserParam type="float" name="peak_apex_int" value="506.435"/>
 				</feature>
 				<feature id="f_7884611628099393896_9966137807867549783">
 					<position dim="0">3119.06301134765</position>

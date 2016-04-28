@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,6 +65,12 @@ public:
     inline RichPeak1D(const RichPeak1D & p) :
       Peak1D(p),
       MetaInfoInterface(p)
+    {}
+
+    /// construct with position and intensity
+    inline explicit RichPeak1D(PositionType a, IntensityType b) :
+      Peak1D(a, b),
+      MetaInfoInterface()
     {}
 
     /// Destructor

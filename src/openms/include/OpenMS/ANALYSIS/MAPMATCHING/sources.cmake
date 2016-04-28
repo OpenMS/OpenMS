@@ -31,6 +31,7 @@ TransformationDescription.h
 TransformationModel.h
 TransformationModelBSpline.h
 TransformationModelLinear.h
+TransformationModelLowess.h
 TransformationModelInterpolated.h
 )
 

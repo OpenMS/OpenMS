@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -238,6 +238,17 @@ namespace OpenMS
       }
     }
     return accessions;
+  }
+
+  std::vector<PeptideHit::FragmentAnnotation> PeptideHit::getFragmentAnnotations() const
+  {
+    static std::vector<PeptideHit::FragmentAnnotation> empty;
+    return fragment_annotations_;
+  }
+
+  void PeptideHit::setFragmentAnnotations(std::vector<PeptideHit::FragmentAnnotation> frag_annotations)
+  {
+    fragment_annotations_ = frag_annotations;
   }
 
 } // namespace OpenMS

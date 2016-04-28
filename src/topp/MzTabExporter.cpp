@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -782,8 +782,7 @@ protected:
         db_version = sp.db_version.empty() ? MzTabString() : MzTabString(sp.db_version);
       }
 
-      // currently we don't save how many channels we saved in a consensus feature so we scan the file
-      // for the maximum map index in a consensus feature and take this as number of study variables
+      // determine number of channels
       Size n_study_variables = consensus_map.getFileDescriptions().size();
 
       MzTabMetaData meta_data;
@@ -802,7 +801,7 @@ protected:
       meta_data.psm_search_engine_score[1] = MzTabParameter(); // TODO insert search engine information
       MzTabMSRunMetaData ms_run;
       StringList ms_runs = consensus_map.getPrimaryMSRunPath();
-      for (Size i = 0; i != !ms_runs.size(); ++i)
+      for (Size i = 0; i != ms_runs.size(); ++i)
       {
         ms_run.location = MzTabString(ms_runs[i]);
         meta_data.ms_run[i + 1] = ms_run;
@@ -877,6 +876,7 @@ protected:
         MzTabDoubleList rt_window;
         row.retention_time_window = rt_window;
         row.charge = MzTabInteger(c.getCharge());
+        row.best_search_engine_score[1] = MzTabDouble();
 
         // initialize columns
         for (Size study_variable = 1; study_variable <= n_study_variables; ++study_variable)
@@ -884,6 +884,11 @@ protected:
           row.peptide_abundance_stdev_study_variable[study_variable] = MzTabDouble();
           row.peptide_abundance_std_error_study_variable[study_variable] = MzTabDouble();
           row.peptide_abundance_study_variable[study_variable] = MzTabDouble();
+        }
+
+        for (Size ms_run = 1; ms_run <= ms_runs.size(); ++ms_run)
+        {
+          row.search_engine_score_ms_run[1][ms_run] = MzTabDouble();
         }
 
         ConsensusFeature::HandleSetType fs = c.getFeatures();
@@ -894,9 +899,6 @@ protected:
           row.peptide_abundance_std_error_study_variable[study_variable];
           row.peptide_abundance_study_variable[study_variable] = MzTabDouble(fit->getIntensity());
         }
-
-        row.best_search_engine_score[1] = MzTabDouble();
-        row.search_engine_score_ms_run[1][1] = MzTabDouble();
 
         vector<PeptideIdentification> pep_ids = c.getPeptideIdentifications();
         if (!pep_ids.empty())
@@ -921,6 +923,12 @@ protected:
           row.accession = peptide_evidences.empty() ? MzTabString("null") : MzTabString(peptide_evidences[0].getProteinAccession());
 
           row.best_search_engine_score[1] = MzTabDouble(best_ph.getScore());
+
+          // TODO: support run level scores - for now we assume we got the same score from every ms run
+          for (Size ms_run = 1; ms_run <= ms_runs.size(); ++ms_run)
+          {
+            row.search_engine_score_ms_run[1][ms_run] = MzTabDouble(best_ph.getScore());
+          }
 
           // fill opt_ columns
 

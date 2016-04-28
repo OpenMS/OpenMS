@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -789,7 +789,10 @@ namespace OpenMS
           sp.db_version = db_map_[searchDatabase_ref].version;
           pro_id_->back().setSearchParameters(sp);
 
-          pro_id_->back().setMetaValue("spectra_data", sd_map_[spectra_data_ref]);
+          // internally we store a list of files so convert the mzIdentML file String to a StringList
+          StringList spectra_data_list;
+          spectra_data_list.push_back(sd_map_[spectra_data_ref]);
+          pro_id_->back().setMetaValue("spectra_data", spectra_data_list);
           if (!spectrumIdentification_date.empty())
           {
             pro_id_->back().setDateTime(DateTime::fromString(spectrumIdentification_date.toQString(), "yyyy-MM-ddThh:mm:ss"));
@@ -989,7 +992,7 @@ namespace OpenMS
               for (map<String, vector<CVTerm> >::const_iterator it = params.first.getCVTerms().begin(); it != params.first.getCVTerms().end(); ++it)
               {
                 p_tol = max(p_tol, boost::lexical_cast<double>(it->second.front().getValue().toString()));
-                sp.precursor_tolerance = p_tol;
+                sp.precursor_mass_tolerance = p_tol;
                 if (it->second.front().getUnit().name == "parts per million" )
                 {
                   sp.precursor_mass_tolerance_ppm = true;
@@ -1297,7 +1300,7 @@ namespace OpenMS
         {
           for (vector<CVTerm>::const_iterator cv = cvs->second.begin(); cv != cvs->second.end(); ++cv)
           {
-            hit.setMetaValue(cvs->first, cv->getValue());
+            hit.setMetaValue(cvs->first, cv->getValue().toString().toDouble());
           }
         }
         for (map<String, DataValue>::const_iterator up = params.second.begin(); up != params.second.end(); ++up)

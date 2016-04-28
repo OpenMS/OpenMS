@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -1420,7 +1420,7 @@ namespace OpenMS
         else if (result->text() == "Add peak annotation mz")
         {
           QString label = String::number(near_peak.getPeak(*getCurrentLayer().getPeakData()).getMZ(), 4).toQString();
-          addPeakAnnotation(near_peak, label, Qt::black);
+          addPeakAnnotation(near_peak, label, getCurrentLayer_().param.getValue("peak_color").toQString());
         }
         else if (result->text() == "Reset alignment")
         {
@@ -1466,11 +1466,11 @@ namespace OpenMS
     QString text = QInputDialog::getText(this, "Add peak annotation", "Enter text:", QLineEdit::Normal, "", &ok);
     if (ok && !text.isEmpty())
     {
-      addPeakAnnotation(near_peak, text, Qt::blue);
+      addPeakAnnotation(near_peak, text, QColor(getCurrentLayer_().param.getValue("peak_color").toQString()));
     }
   }
 
-  Annotation1DItem * Spectrum1DCanvas::addPeakAnnotation(PeakIndex peak_index, QString text, QColor color)
+  Annotation1DItem * Spectrum1DCanvas::addPeakAnnotation(const PeakIndex& peak_index, const QString& text, const QColor& color)
   {
     PeakType peak = peak_index.getPeak(*getCurrentLayer().getPeakData());
     PointType position(peak.getMZ(), peak.getIntensity());

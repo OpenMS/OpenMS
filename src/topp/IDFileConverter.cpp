@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -423,9 +423,9 @@ protected:
           PercolatorOutfile::getScoreType(score_type);
         String mz_file = getStringOption_("mz_file");
         SpectrumMetaDataLookup lookup;
-        MSExperiment<> experiment;
         if (!mz_file.empty())
         {
+          MSExperiment<> experiment;
           fh.loadExperiment(mz_file, experiment, FileTypes::UNKNOWN, log_type_, false, false);
           lookup.readSpectra(experiment.getSpectra());
         }

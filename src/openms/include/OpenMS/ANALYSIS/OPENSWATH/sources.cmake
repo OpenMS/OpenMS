@@ -5,6 +5,7 @@ set(directory include/OpenMS/ANALYSIS/OPENSWATH)
 set(sources_list_h
   PeakPickerMRM.h
   ChromatogramExtractor.h
+  ChromatogramExtractorAlgorithm.h
   ConfidenceScoring.h
   DIAHelper.h
   DIAPrescoring.h
@@ -18,6 +19,8 @@ set(sources_list_h
   OpenSwathHelper.h
   OpenSwathScoring.h
   SpectrumAddition.h
+  SwathMapMassCorrection.h
+  SwathWindowLoader.h
   TransitionTSVReader.h
 )
 

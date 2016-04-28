@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -454,6 +454,17 @@ protected:
     void setValidStrings_(const String& name, const std::vector<String>& strings);
 
     /**
+      @brief Sets the valid strings for a string option or a whole string list
+
+      This overload should be used for options which are 1:1 with Enums + their static string representations.
+      E.g. MSNumpressCoder::NamesOfNumpressCompression[]
+
+      @exception Exception::ElementNotFound is thrown if the parameter is unset or not a string parameter
+      @exception Exception::InvalidParameter is thrown if the valid strings contain comma characters
+    */
+    void setValidStrings_(const String& name, const std::string vstrings[], int count);
+
+    /**
       @brief Registers an input file option.
 
       Input files behave like string options, but are automatically checked with inputFileReadable_()
@@ -805,11 +816,23 @@ protected:
     void outputFileWritable_(const String& filename, const String& param_name) const;
     //@}
 
-    /// Helper function that parses a range string ([a]:[b]) into two variables
-    void parseRange_(const String& text, double& low, double& high) const;
+    /**
+       @brief Parses a range string ([a]:[b]) into two variables (doubles)
 
-    /// Helper function that parses a range string ([a]:[b]) into two variables
-    void parseRange_(const String& text, Int& low, Int& high) const;
+       The variables are only overwritten if a value is set for the respective boundary.
+
+       @return True if a value was set for either of the two boundaries
+    */
+    bool parseRange_(const String& text, double& low, double& high) const;
+
+    /**
+       @brief Parses a range string ([a]:[b]) into two variables (integers)
+
+       The variables are only overwritten if a value is set for the respective boundary.
+
+       @return True if a value was set for either of the two boundaries
+    */
+    bool parseRange_(const String& text, Int& low, Int& high) const;
 
     ///Type of progress logging
     ProgressLogger::LogType log_type_;

@@ -216,6 +216,7 @@ set(format_executables_list
   SequestInfile_test
   SequestOutfile_test
   SpecArrayFile_test
+  SwathMapMassCorrection_test
   SwathFile_test
   SwathFileConsumer_test
   SwathWindowLoader_test
@@ -233,6 +234,7 @@ set(format_executables_list
   MSDataCachedConsumer_test
   MSDataTransformingConsumer_test
   MSDataChainingConsumer_test
+  SpectrumAccessQuadMZTransforming_test
 )
 
 set(math_executables_list
@@ -253,9 +255,12 @@ set(math_executables_list
   NNLS_test
   NonNegativeLeastSquaresSolver_test
   PosteriorErrorProbabilityModel_test
-  #QuadraticRegression_test
+  QuadraticRegression_test
   #RegressionUtils_test
   RANSAC_test
+  RANSACModel_test
+  RANSACModelLinear_test
+  RANSACModelQuadratic_test
   ROCCurve_test
   StatisticFunctions_test
   #Spline2d_test
@@ -453,11 +458,6 @@ set(analysis_executables_list
   ModifiedPeptideGenerator_test
   OfflinePrecursorIonSelection_test
   PeptideAndProteinQuant_test
-  PILISModelGenerator_test
-  PILISModel_test
-  PILISScoring_test
-  PILISCrossValidation_test
-  PILISNeutralLossModel_test
   PeakIntensityPredictor_test
   PScore_test
   HyperScore_test
@@ -537,9 +537,16 @@ set(transformations_executables_list
   PeakShape_test
   ProductModel_test
   SeedListGenerator_test
-  TwoDOptimization_test
   TraceFitter_test
 )
+
+if(NOT DISABLE_WAVELET2DTEST)
+set(transformations_executables_list
+  ${transformations_executables_list}
+  TwoDOptimization_test
+)
+endif(NOT DISABLE_WAVELET2DTEST)
+
 
 if(NOT DISABLE_OPENSWATH)
 set(transformations_executables_list

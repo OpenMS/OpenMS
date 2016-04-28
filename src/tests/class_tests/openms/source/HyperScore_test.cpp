@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -98,7 +98,7 @@ START_SECTION((static double compute(double fragment_mass_tolerance, bool fragme
   // full match if ppm tolerance and partial match for Da tolerance
   for (Size i = 1; i <= 10; ++i)
   {
-    double mz = pow(10.0, i);
+    double mz = pow(10.0, static_cast<int>(i));
     p.setMZ(mz);
     rp.setMZ(mz + 9 * 1e-6 * mz); // +9 ppm error
     exp_spectrum.push_back(p);

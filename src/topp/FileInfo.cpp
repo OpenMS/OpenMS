@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,6 +43,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
+#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/IndexedMzMLFile.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
@@ -242,6 +243,11 @@ protected:
       case FileTypes::IDXML:
         os << " against XML schema version " << IdXMLFile().getVersion() << "\n";
         valid = IdXMLFile().isValid(in, os);
+        break;
+
+      case FileTypes::MZIDENTML:
+        os << " against XML schema version " << MzIdentMLFile().getVersion() << "\n";
+        valid = MzIdentMLFile().isValid(in, os);
         break;
 
       case FileTypes::CONSENSUSXML:

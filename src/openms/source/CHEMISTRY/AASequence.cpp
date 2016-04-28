@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -182,13 +182,6 @@ namespace OpenMS
 
     if (peptide_.size() >= 1)
     {
-      // x/c-ion for a single residue is not defined
-      if ((peptide_.size() == 1) && (type == Residue::XIon ||
-       type == Residue::CIon))
-      {
-        LOG_ERROR << "AASequence::getFormula: Mass for ResidueType " << type << " not defined for sequences of length 1." << std::endl;
-      }
-
       // Initialize with the missing/additional protons
       EmpiricalFormula ef; // = EmpiricalFormula("H") * charge; ??
       ef.setCharge(charge);
@@ -282,13 +275,6 @@ namespace OpenMS
     
     if (peptide_.size() >= 1)
     {
-      // x/c-ion for a single residue is not defined
-      if ((peptide_.size() == 1) && (type == Residue::XIon ||
-                                     type == Residue::CIon))
-      {
-        LOG_ERROR << "AASequence::getMonoWeight: Mass for ResidueType " << type << " not defined for sequences of length 1." << std::endl;
-      }
-
       double mono_weight(Constants::PROTON_MASS_U * charge);
 
       // terminal modifications
@@ -406,22 +392,6 @@ namespace OpenMS
   }
   return losses;
 }*/
-
-  const Residue& AASequence::operator[](SignedSize index) const
-  {
-    if (index < 0)
-    {
-      throw Exception::IndexUnderflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, 0);
-    }
-    else
-    {
-      if (Size(index) >= size())
-      {
-        throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, size());
-      }
-    }
-    return *peptide_[Size(index)];
-  }
 
   const Residue& AASequence::operator[](Size index) const
   {
@@ -1019,6 +989,18 @@ namespace OpenMS
       return mod;
     }
     return n_term_mod_->getId();
+  }
+
+  /// returns the N-term modification; nullptr is returned if none was set
+  const ResidueModification * AASequence::getNTerminalResidueModification() const
+  {
+    return n_term_mod_;
+  }
+
+  /// returns the C-term modification; nullptr is returned if none was set
+  const ResidueModification * AASequence::getCTerminalResidueModification() const
+  {
+    return c_term_mod_;
   }
 
   const String& AASequence::getCTerminalModification() const

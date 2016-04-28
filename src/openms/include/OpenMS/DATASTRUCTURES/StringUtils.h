@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
-// $Authors: Marc Sturm $
+// $Maintainer: Stephan Aiche, Chris Bielow $
+// $Authors: Marc Sturm, Stephan Aiche, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_DATASTRUCTURES_STRINGUTILS_H
@@ -674,52 +674,60 @@ public:
 
     static Int toInt(const String & this_s)
     {
-      namespace qi = boost::spirit::qi;
-      namespace ascii = boost::spirit::ascii;
-
       Int ret;
 
       // boost::spirit::qi was found to be vastly superior to boost::lexical_cast or stringstream extraction (especially for VisualStudio),
       // so don't change this unless you have benchmarks for all platforms!
-      if (!qi::phrase_parse(this_s.begin(), this_s.end(),
-          qi::int_, ascii::space, ret))
+      String::ConstIterator it = this_s.begin();
+      if (!boost::spirit::qi::phrase_parse(it, this_s.end(), boost::spirit::qi::int_, boost::spirit::ascii::space, ret))
       {
         throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert string '") + this_s + "' to an integer value");
+      }
+      // was the string parsed (white spaces are skipped automatically!) completely? If not, we have a problem because a previous split might have used the wrong split char
+      if (it != this_s.end())
+      {
+        throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Prefix of string '") + this_s + "' successfully converted to an integer value. Additional characters found at position " + (int)(distance(this_s.begin(), it) + 1));
       }
       return ret;
     }
 
-    static float toFloat(const String & this_s)
+    static float toFloat(const String& this_s)
     {
-      namespace qi = boost::spirit::qi;
-      namespace ascii = boost::spirit::ascii;
-
       float ret;
 
       // boost::spirit::qi was found to be vastly superior to boost::lexical_cast or stringstream extraction (especially for VisualStudio),
       // so don't change this unless you have benchmarks for all platforms!
-      if (!qi::phrase_parse(this_s.begin(), this_s.end(),
-          qi::float_, ascii::space, ret))
+      String::ConstIterator it = this_s.begin();
+      if (!boost::spirit::qi::phrase_parse(it, this_s.end(), parse_float_, boost::spirit::ascii::space, ret))
       {
         throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert string '") + this_s + "' to a float value");
       }
-      return ret;
-    }
-
-    static double toDouble(const String & this_s)
-    {
-      namespace qi = boost::spirit::qi;
-      namespace ascii = boost::spirit::ascii;
-
-      double ret;
-      // boost::spirit::qi was found to be vastly superior to boost::lexical_cast or stringstream extraction (especially for VisualStudio),
-      // so don't change this unless you have benchmarks for all platforms!
-      if (!qi::phrase_parse(this_s.begin(), this_s.end(), qi::double_, ascii::space, ret))
+      // was the string parsed (white spaces are skipped automatically!) completely? If not, we have a problem because a previous split might have used the wrong split char
+      if (it != this_s.end())
       {
-        throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert string '") + this_s + "' to a double value");
+        throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Prefix of string '") + this_s + "' successfully converted to a float value. Additional characters found at position " + (int)(distance(this_s.begin(), it) + 1));
       }
       return ret;
     }
+
+    static double toDouble(const String& this_s)
+    {
+      double ret;
+      // boost::spirit::qi was found to be vastly superior to boost::lexical_cast or stringstream extraction (especially for VisualStudio),
+      // so don't change this unless you have benchmarks for all platforms!
+      String::ConstIterator it = this_s.begin();
+      if (!boost::spirit::qi::phrase_parse(it, this_s.end(), parse_double_, boost::spirit::ascii::space, ret))
+      {
+        throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert string '") + this_s + "' to a double value");
+      }
+      // was the string parsed (white spaces are skipped automatically!) completely? If not, we have a problem because a previous split might have used the wrong split char
+      if (it != this_s.end())
+      {
+        throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Prefix of string '") + this_s + "' successfully converted to a double value. Additional characters found at position " + (int)(distance(this_s.begin(), it) + 1));
+      }
+      return ret;
+    }
+
 
     static String& toUpper(String & this_s)
     {
@@ -800,6 +808,55 @@ public:
 
     return this_s;
   }
+
+  private:
+
+  /*
+    @brief A fixed Boost:pi real parser policy, capable of dealing with 'nan' without crashing
+
+    The original Boost implementation has a bug, see https://svn.boost.org/trac/boost/ticket/6955.
+    Can be removed if Boost 1.60 or above is required
+    
+  */
+  template <typename T>
+  struct real_policies_NANfixed_ : boost::spirit::qi::real_policies<T>
+  {
+    template <typename Iterator, typename Attribute>
+    static bool
+      parse_nan(Iterator& first, Iterator const& last, Attribute& attr_)
+    {
+      if (first == last)
+        return false;   // end of input reached
+
+      if (*first != 'n' && *first != 'N')
+        return false;   // not "nan"
+
+      // nan[(...)] ?
+      if (boost::spirit::qi::detail::string_parse("nan", "NAN", first, last, boost::spirit::qi::unused))
+      {
+        if (first != last && *first == '(')  /* this check is broken in boost 1.49 - (at least) 1.54; fixed in 1.60 */
+        {
+          // skip trailing (...) part
+          Iterator i = first;
+
+          while (++i != last && *i != ')')
+            ;
+          if (i == last)
+            return false;     // no trailing ')' found, give up
+
+          first = ++i;
+        }
+        attr_ = std::numeric_limits<T>::quiet_NaN();
+        return true;
+      }
+      return false;
+    }
+  };
+  
+  // Qi parsers using the 'real_policies_NANfixed_' template which allows for 'nan'
+  // (the original Boost implementation has a bug, see https://svn.boost.org/trac/boost/ticket/6955)
+  static boost::spirit::qi::real_parser<double, real_policies_NANfixed_<double> > parse_double_;
+  static boost::spirit::qi::real_parser<float, real_policies_NANfixed_<float> > parse_float_;
 
   };
 

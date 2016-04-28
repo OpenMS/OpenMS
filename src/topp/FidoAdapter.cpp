@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -532,13 +532,7 @@ protected:
     }
     
     // remove protein hits that shouldn't be there:
-    for (vector<ProteinIdentification>::iterator prot_it = proteins.begin();
-         prot_it != proteins.end(); ++prot_it)
-    {
-      ProteinIdentification filtered;
-      IDFilter::removeUnreferencedProteinHits(*prot_it, peptides, filtered);
-      *prot_it = filtered;
-    }
+    IDFilter::removeUnreferencedProteins(proteins, peptides);
 
     // sanitize protein accessions:
     set<String> accessions;

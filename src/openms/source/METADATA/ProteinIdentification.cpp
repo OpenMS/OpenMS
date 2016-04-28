@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,8 @@
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <sstream>
 #include <algorithm>
+#include <numeric>
+
 
 using namespace std;
 
@@ -78,7 +80,7 @@ namespace OpenMS
     missed_cleavages(0),
     fragment_mass_tolerance(0.0),
     fragment_mass_tolerance_ppm(false),
-    precursor_tolerance(0.0),
+    precursor_mass_tolerance(0.0),
     precursor_mass_tolerance_ppm(false),
     digestion_enzyme("unknown_enzyme","")
   {
@@ -96,7 +98,7 @@ namespace OpenMS
            missed_cleavages == rhs.missed_cleavages &&
            fragment_mass_tolerance == rhs.fragment_mass_tolerance &&
            fragment_mass_tolerance_ppm == rhs.fragment_mass_tolerance_ppm &&
-           precursor_tolerance == rhs.precursor_tolerance &&
+           precursor_mass_tolerance == rhs.precursor_mass_tolerance &&
            precursor_mass_tolerance_ppm == rhs.precursor_mass_tolerance_ppm &&
            digestion_enzyme == rhs.digestion_enzyme;
   }
@@ -243,7 +245,7 @@ namespace OpenMS
   {
     if (!s.empty())
     {
-      this->setMetaValue("ms_run-location", DataValue(s));
+      this->setMetaValue("spectra_data", DataValue(s));
     }
   }
 
@@ -251,9 +253,9 @@ namespace OpenMS
   StringList ProteinIdentification::getPrimaryMSRunPath() const
   {
     StringList ret;
-    if (this->metaValueExists("ms_run-location"))
+    if (this->metaValueExists("spectra_data"))
     {
-      ret = this->getMetaValue("ms_run-location");
+      ret = this->getMetaValue("spectra_data");
     }
     return ret;
   }
@@ -336,71 +338,59 @@ namespace OpenMS
     }
   }
 
-  Size ProteinIdentification::computeCoverage(const std::vector<PeptideIdentification>& pep_ids)
+  void ProteinIdentification::computeCoverage(const std::vector<PeptideIdentification>& pep_ids)
   {
-    // TODO: we currently ignore overlapping peptides, i.e. the coverage could be > 100%
-
-    Size no_seq_count(0);
-    // index the proteins by accession
-    // Accession -> set of pep sequences
-    // (use set to discard multi-pep matches)
-    Map<String, std::set<String> > protein_index;
-    for (Size i = 0; i < protein_hits_.size(); ++i)
-    {
-      std::set<String> empty;
-      protein_index[protein_hits_[i].getAccession()] = empty;
-      if (protein_hits_[i].getSequence().length() == 0)
-        ++no_seq_count;
-    }
-
-    if (no_seq_count > 0)
-    {
-      throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, String(no_seq_count) + " of " + protein_hits_.size() + " ProteinHits do not contain a protein sequence. Cannot compute coverage! Use PeptideIndexer to annotate proteins with sequence information.");
-    }
-
-    // go through peptides and add length to proteinHit
-    Size protein_not_found_counter(0);
-    for (vector<PeptideIdentification>::const_iterator it1 = pep_ids.begin(); it1 != pep_ids.end(); ++it1)
+    // map protein accession to the corresponding peptide evidence
+    map<String, set<PeptideEvidence> > map_acc_2_evidence;
+    for (Size pep_i = 0; pep_i != pep_ids.size(); ++pep_i)
     {
       // peptide hits
-      vector<PeptideHit> peptide_hits = it1->getHits();
-      for (vector<PeptideHit>::iterator it2 = peptide_hits.begin(); it2 != peptide_hits.end(); ++it2)
+      const PeptideIdentification & peptide_id = pep_ids[pep_i];
+      const vector<PeptideHit> peptide_hits = peptide_id.getHits();
+      for (Size ph_i = 0; ph_i != peptide_hits.size(); ++ph_i)
       {
-        set<String> protein_accessions = it2->extractProteinAccessions();
+        const PeptideHit & peptide_hit = peptide_hits[ph_i];
+        const std::vector<PeptideEvidence>& ph_evidences = peptide_hit.getPeptideEvidences();
+
         // matched proteins for hit
-        for (set<String>::const_iterator it3 = protein_accessions.begin(); it3 != protein_accessions.end(); ++it3)
+        for (Size pep_ev_i = 0; pep_ev_i != ph_evidences.size(); ++pep_ev_i)
         {
-          if (protein_index.has(*it3))
-          {
-            protein_index[*it3].insert(it2->getSequence().toUnmodifiedString());
-          }
-          else
-          {
-            ++protein_not_found_counter;
-          }
+          const PeptideEvidence & evidence = ph_evidences[pep_ev_i];
+          map_acc_2_evidence[evidence.getProteinAccession()].insert(evidence);
         }
       }
     }
-
-    if (protein_not_found_counter > 0)
-      LOG_WARN << "ProteinIdentification::computeCoverage() was given PeptideIdentifications where " << protein_not_found_counter << " did not match a known Protein!" << std::endl;
-
-    // store coverage
+    
     for (Size i = 0; i < protein_hits_.size(); ++i)
     {
-      // add up peptide sizes
-      Size covered_length(0);
-      for (std::set<String>::const_iterator it = protein_index[protein_hits_[i].getAccession()].begin();
-           it != protein_index[protein_hits_[i].getAccession()].end();
-           ++it)
+      const Size protein_length = protein_hits_[i].getSequence().length();
+      if (protein_length == 0)
       {
-        covered_length += it->size();
+        throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, " ProteinHits do not contain a protein sequence. Cannot compute coverage! Use PeptideIndexer to annotate proteins with sequence information.");
       }
-      // set coverage
-      protein_hits_[i].setCoverage(double(covered_length) / (double)protein_hits_[i].getSequence().length() * 100.0);
+      vector<bool> covered_amino_acids(protein_length, false);
+      
+      const String & accession = protein_hits_[i].getAccession();
+      double coverage = 0.0;
+      if (map_acc_2_evidence.find(accession) != map_acc_2_evidence.end())
+      {
+        const set<PeptideEvidence> & evidences = map_acc_2_evidence.at(accession);
+        for (set<PeptideEvidence>::const_iterator sit = evidences.begin(); sit != evidences.end(); ++sit)
+        {
+          int start = sit->getStart();
+          int stop = sit->getEnd();
+          
+          if (start == PeptideEvidence::UNKNOWN_POSITION || stop == PeptideEvidence::UNKNOWN_POSITION)
+          {
+            throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, " PeptideEvidence does not contain start or end position. Cannot compute coverage!");
+          }
+          
+          std::fill(covered_amino_acids.begin() + start, covered_amino_acids.begin() + stop + 1, true);
+        }
+        coverage = 100.0 * (double) std::accumulate(covered_amino_acids.begin(), covered_amino_acids.end(), 0) / protein_length;
+      }
+      protein_hits_[i].setCoverage(coverage);
     }
-
-    return protein_not_found_counter;
   }
 
   bool ProteinIdentification::isHigherScoreBetter() const

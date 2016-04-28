@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -415,6 +415,10 @@ private:
     if (in.size() < 4)
     {
       return;
+    }
+    if (in.size() % 4 != 0)
+    {
+      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Malformed base64 input, length is not a multiple of 4.");
     }
 
     Size src_size = in.size();

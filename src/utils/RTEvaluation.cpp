@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,11 +53,10 @@ using namespace std;
 
     @brief Application that evaluates TPs (true positives), TNs, FPs, and FNs for an idXML file with predicted RTs.
 
-    The method needs an idXML file with IDs and predicted RTs. The second input file is a file containing
-    the protein sequences which are considered as positive hits. This tool then evaluates the tps, fps, tns,
-    and fns for the unfiltered IDs, for the IDs filtered in first RT dimension, for the IDs filtered in
-    the second RT dimension as well as for the IDs filtered in both dimensions. The output is a table with
-    either csv format (can be imported by Excel) or latex format (to include in tables in your latex manuscripts).
+    The method needs an idXML file with IDs and predicted RTs.
+    The idXML must have been annotated with protein sequences (for the positive hits) using @ref TOPP_PeptideIndexer.
+    This tool then evaluates the true positives, false positives, true negatives, and false negatives for the unfiltered IDs, for the IDs filtered in first RT dimension, for the IDs filtered in the second RT dimension as well as for the IDs filtered in both dimensions.
+    The output is a table with either CSV format (can be imported by Excel) or LaTeX format (to include in your LaTeX manuscripts).
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
@@ -85,14 +84,11 @@ public:
 protected:
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "input file");
+    registerInputFile_("in", "<file>", "", "Input file");
     setValidFormats_("in", ListUtils::create<String>("idXML"));
-    registerOutputFile_("out", "<file>", "", "output file ");
+    registerOutputFile_("out", "<file>", "", "Output file ");
     setValidFormats_("out", ListUtils::create<String>("csv"));
-    registerInputFile_("sequences_file", "<file>", "", "Filename of a FASTA file containing protein sequences.\n"
-                                                       "All peptides that are not a substring of a sequence in this file are considered as false", false);
-    setValidFormats_("sequences_file", ListUtils::create<String>("fasta"));
-    registerFlag_("latex", "indicates whether the output file format of the table should be latex or csv");
+    registerFlag_("latex", "Indicates whether the output file format of the table should be LaTeX or CSV (default)");
     registerDoubleOption_("p_value_dim_1", "<float>", 0.01, "Significance level of first dimension RT filter", false);
     setMinFloat_("p_value_dim_1", 0);
     setMaxFloat_("p_value_dim_1", 1);
@@ -103,26 +99,19 @@ protected:
 
   ExitCodes main_(int, const char**)
   {
-    IdXMLFile idXML_file;
     vector<ProteinIdentification> protein_identifications;
     vector<PeptideIdentification> identifications;
     vector<FASTAFile::FASTAEntry> sequences;
 
     bool latex = getFlag_("latex");
-    bool strict = true;
-    PeptideIdentification filtered_identification;
-    PeptideIdentification filtered_identification_rt1;
-    PeptideIdentification filtered_identification_rt2;
-    PeptideIdentification filtered_identification_both;
-    IDFilter filter;
-    bool no_protein_identifiers = true;
+    bool strict = true; // @TODO: would things even work with "strict = false"?
     double p_value_dim_1 = getDoubleOption_("p_value_dim_1");
     double p_value_dim_2 = getDoubleOption_("p_value_dim_2");
     State state = TP;
     State state_rt1 = TP;
     State state_rt2 = TP;
     vector<double> fdrs;
-    fdrs.push_back(0.);
+    fdrs.push_back(0.0);
     fdrs.push_back(0.01);
     fdrs.push_back(0.02);
     fdrs.push_back(0.03);
@@ -153,8 +142,7 @@ protected:
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
-    String document_id;
-    idXML_file.load(inputfile_name, protein_identifications, identifications, document_id);
+    IdXMLFile().load(inputfile_name, protein_identifications, identifications);
     if (sequences_file_name != "")
     {
       FASTAFile().load(sequences_file_name, sequences);
@@ -162,6 +150,9 @@ protected:
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
+
+    if (strict) IDFilter::keepBestPeptideHits(identifications, strict);
+
     for (SignedSize j = fdrs.size() - 1; j >= 0; --j)
     {
       Size tps = 0;
@@ -185,52 +176,46 @@ protected:
 
       temp_performances.clear();
       temp_performances.resize(20, 0);
-      for (Size i = 0; i < identifications.size(); i++)
+
+      // @TODO: could save copying data if we started with the highest FDR
+      // cut-off and filtered sequentially towards the lowest
+      vector<PeptideIdentification> filtered_ids = identifications;
+      IDFilter::filterHitsByScore(filtered_ids, fdrs[j]);
+
+      vector<PeptideIdentification> filtered_ids_rt1 = filtered_ids,
+        filtered_ids_rt2 = filtered_ids, filtered_ids_both = filtered_ids;
+
+      if (p_value_dim_1 > 0)
       {
-        PeptideIdentification temp_identification_2 = identifications[i];
-        PeptideIdentification temp_identification_3;
-        filter.filterIdentificationsByScore(temp_identification_2, fdrs[j], temp_identification_3);
-
-        filtered_identification = temp_identification_3;
-        filtered_identification_rt1 = temp_identification_3;
-        filtered_identification_rt2 = temp_identification_3;
-
+        IDFilter::filterPeptidesByRTPredictPValue(
+          filtered_ids_rt1, "predicted_RT_p_value_first_dim", p_value_dim_1);
+        filtered_ids_both = filtered_ids_rt1;
+      }
+      if (p_value_dim_2 > 0)
+      {
+        IDFilter::filterPeptidesByRTPredictPValue(
+          filtered_ids_rt2, "predicted_RT_p_value", p_value_dim_2);
         if (p_value_dim_1 > 0)
         {
-          PeptideIdentification temp_identification = filtered_identification_rt1;
-          filter.filterIdentificationsByRTFirstDimPValues(temp_identification, filtered_identification_rt1, p_value_dim_1);
+          IDFilter::filterPeptidesByRTPredictPValue(
+          filtered_ids_both, "predicted_RT_p_value", p_value_dim_2);
         }
+      }
 
-        if (p_value_dim_2 > 0)
-        {
-          PeptideIdentification temp_identification = filtered_identification_rt2;
-          filter.filterIdentificationsByRTPValues(temp_identification, filtered_identification_rt2, p_value_dim_2);
-        }
-        if (p_value_dim_1 > 0 && p_value_dim_2 > 0)
-        {
-          PeptideIdentification temp_identification = filtered_identification_rt1;
-          filter.filterIdentificationsByRTPValues(temp_identification, filtered_identification_both, p_value_dim_2);
-        }
+      // remove decoy hits:
+      vector<PeptideIdentification> no_decoys = filtered_ids,
+        no_decoys_rt1 = filtered_ids_rt1, no_decoys_rt2 = filtered_ids_rt2,
+        no_decoys_both = filtered_ids_both;
+      IDFilter::removeDecoyHits(no_decoys);
+      IDFilter::removeDecoyHits(no_decoys_rt1);
+      IDFilter::removeDecoyHits(no_decoys_rt2);
+      IDFilter::removeDecoyHits(no_decoys_both);
 
-        if (strict)
+      for (Size i = 0; i < identifications.size(); i++)
+      {
+        if (!filtered_ids[i].getHits().empty())
         {
-          PeptideIdentification temp_identification = filtered_identification;
-          filter.filterIdentificationsByBestHits(temp_identification, filtered_identification, strict);
-          temp_identification = filtered_identification_rt1;
-          filter.filterIdentificationsByBestHits(temp_identification, filtered_identification_rt1, strict);
-          temp_identification = filtered_identification_rt2;
-          filter.filterIdentificationsByBestHits(temp_identification, filtered_identification_rt2, strict);
-          temp_identification = filtered_identification_both;
-          filter.filterIdentificationsByBestHits(temp_identification, filtered_identification_both, strict);
-        }
-        if (!filtered_identification.getHits().empty())
-        {
-          if (sequences_file_name != "")
-          {
-            PeptideIdentification temp_identification = filtered_identification;
-            filter.filterIdentificationsByProteins(temp_identification, sequences, filtered_identification, no_protein_identifiers);
-          }
-          if (filtered_identification.getHits().empty())
+          if (no_decoys[i].getHits().empty()) // decoy hit
           {
             ++fps;
             state = FP;
@@ -240,7 +225,6 @@ protected:
             ++tps;
             state = TP;
           }
-
         }
         else
         {
@@ -248,14 +232,9 @@ protected:
           state = NE;
         }
 
-        if (!filtered_identification_rt1.getHits().empty())
+        if (!filtered_ids_rt1[i].getHits().empty())
         {
-          if (sequences_file_name != "")
-          {
-            PeptideIdentification temp_identification = filtered_identification_rt1;
-            filter.filterIdentificationsByProteins(temp_identification, sequences, filtered_identification_rt1, no_protein_identifiers);
-          }
-          if (filtered_identification_rt1.getHits().empty())
+          if (no_decoys_rt1[i].getHits().empty()) // decoy hit
           {
             ++fps_rt1;
             state_rt1 = FP;
@@ -283,14 +262,9 @@ protected:
           state_rt1 = NE;
         }
 
-        if (!filtered_identification_rt2.getHits().empty())
+        if (!filtered_ids_rt2[2].getHits().empty())
         {
-          if (sequences_file_name != "")
-          {
-            PeptideIdentification temp_identification = filtered_identification_rt2;
-            filter.filterIdentificationsByProteins(temp_identification, sequences, filtered_identification_rt2, no_protein_identifiers);
-          }
-          if (filtered_identification_rt2.getHits().empty())
+          if (no_decoys_rt2[i].getHits().empty()) // decoy hit
           {
             ++fps_rt2;
             state_rt2 = FP;
@@ -317,14 +291,6 @@ protected:
           state_rt2 = NE;
         }
 
-        if (!filtered_identification_both.getHits().empty())
-        {
-          if (sequences_file_name != "")
-          {
-            PeptideIdentification temp_identification = filtered_identification_both;
-            filter.filterIdentificationsByProteins(temp_identification, sequences, filtered_identification_both, no_protein_identifiers);
-          }
-        }
         if (state_rt1 == TP && state_rt2 == TP)
         {
           ++tps_both;
@@ -350,8 +316,9 @@ protected:
         {
           ++nes_both;
         }
-        else if (((state_rt1 == TP && state_rt2 == FP) || (state_rt1 == FP && state_rt2 == TP))
-                && (!filtered_identification_both.getHits().empty()))
+        else if (((state_rt1 == TP && state_rt2 == FP) ||
+                  (state_rt1 == FP && state_rt2 == TP)) &&
+                 !no_decoys_both[i].getHits().empty())
         {
           ++tps_both;
         }
@@ -365,17 +332,17 @@ protected:
       cout << "Unfiltered:: True positives: " << tps << " false positives: "
            << fps << " not evaluated: " << nes
            << " total: " << (tps + fps + nes) << endl;
-      cout << "Filtered RT1:: TPss: " << tps_rt1 << " FPs: "
+      cout << "Filtered RT1:: TPs: " << tps_rt1 << " FPs: "
            << fps_rt1 << " TNs: " << tns_rt1 << " FNs: " << fns_rt1
            << " not evaluated: "   << nes_rt1
            << " total: " << (tps_rt1 + fps_rt1 + tns_rt1 + fns_rt1 + nes_rt1)
            << endl;
-      cout << "Filtered RT2:: TPss: " << tps_rt2 << " FPs: "
+      cout << "Filtered RT2:: TPs: " << tps_rt2 << " FPs: "
            << fps_rt2 << " TNs: " << tns_rt2 << " FNs: " << fns_rt2
            << " not evaluated: " << nes_rt2
            << " total: " << (tps_rt2 + fps_rt2 + tns_rt2 + fns_rt2 + nes_rt2)
            << endl;
-      cout << "Filtered both dimensions:: TPss: " << tps_both << " FPs: "
+      cout << "Filtered both dimensions:: TPs: " << tps_both << " FPs: "
            << fps_both << " TNs: " << tns_both << " FNs: " << fns_both
            << " not evaluated: " << nes_both
            << " total: " << (tps_both + fps_both + tns_both + fns_both + nes_both)

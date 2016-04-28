@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -233,6 +233,9 @@ private:
     /// Are we currently in an "search_score_summary" element (should be skipped)?
     bool search_score_summary_;
 
+    /// Are we currently in an "search_summary" element (should be skipped)?
+    bool search_summary_;
+
     /// Do current entries belong to the experiment of interest (for pepXML files that bundle results from different experiments)?
     bool wrong_experiment_;
 
@@ -295,6 +298,8 @@ private:
 
     //@}
 
+    static const double mod_tol_;
+    static const double xtandem_artificial_mod_tol_;
   };
 
 } // namespace OpenMS

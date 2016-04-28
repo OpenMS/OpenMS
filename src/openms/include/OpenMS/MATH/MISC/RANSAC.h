@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: George Rosenberger $
-// $Authors: George Rosenberger, Hannes Roest $
+// $Authors: George Rosenberger, Hannes Roest, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_MATH_MISC_RANSAC_H
@@ -37,9 +37,15 @@
 
 #include <OpenMS/config.h>
 
-#include <cstddef> // for size_t & ptrdiff_t
-#include <vector>
-#include <string>
+#include <OpenMS/MATH/MISC/RANSACModel.h>
+
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/MATH/MISC/RANSACModelLinear.h>
+
+#include <algorithm>    // std::random_shuffle
+#include <limits>       // std::numeric_limits
+#include <vector>       // std::vector
 
 namespace OpenMS
 {
@@ -52,54 +58,115 @@ namespace OpenMS
        outlier detection algorithm. Is implemented and tested after the
        SciPy reference: http://wiki.scipy.org/Cookbook/RANSAC
     */
-    class OPENMS_DLLAPI RANSAC
+    template<typename TModelType = RansacModelLinear>
+    class RANSAC
     {
-
-protected:
-
-    static std::pair<double, double > llsm_fit_(std::vector<std::pair<double, double> >& pairs);
-  
-    /// interface for GSL or OpenMS::MATH linear regression implementation
-    /// calculates the residual sum of squares of the input points and the linear fit with coefficients c0 & c1.
-    static double llsm_rss_(std::vector<std::pair<double, double> >& pairs, std::pair<double, double >& coefficients);
-  
-    /// calculates the residual sum of squares of the input points and the linear fit with coefficients c0 & c1.
-    /// further removes all points that have an error larger or equal than max_threshold.
-    static std::vector<std::pair<double, double> > llsm_rss_inliers_(std::vector<std::pair<double, double> >& pairs,
-        std::pair<double, double >& coefficients, double max_threshold);
-
 public:
 
-    /**
-      @brief This function provides a generic implementation of the RANSAC
-       outlier detection algorithm. Is implemented and tested after the
-       SciPy reference: http://wiki.scipy.org/Cookbook/RANSAC
+      /**
+        @brief This function provides a generic implementation of the RANSAC
+         outlier detection algorithm. Is implemented and tested after the
+         SciPy reference: http://wiki.scipy.org/Cookbook/RANSAC
 
-      @param pairs Input data (paired data of type <dim1, dim2>)
-      @param n the minimum number of data points required to fit the model
-      @param k the maximum number of iterations allowed in the algorithm 
-      @param t a threshold value for determining when a data point fits a
-       model. Corresponds to the maximal squared deviation in units of the
-       _second_ dimension (dim2).
-      @param d the number of close data values required to assert that a model fits well to data
-      @param test disables the random component of the algorithm
+        @param pairs Input data (paired data of type <dim1, dim2>)
+        @param n The minimum number of data points required to fit the model
+        @param k The maximum number of iterations allowed in the algorithm 
+        @param t Threshold value for determining when a data point fits a
+         model. Corresponds to the maximal squared deviation in units of the
+         _second_ dimension (dim2).
+        @param d The number of close data values (according to 't') required to assert that a model fits well to data
+        @param rng Custom RNG function (useful for testing with fixed seeds)
 
-      @return A vector of pairs
-    */
-    static std::vector<std::pair<double, double> > ransac(std::vector<std::pair<double, double> >& pairs, size_t n, size_t k, double t, size_t d, bool test = false);
+        @return A vector of pairs fitting the model well; data will be unsorted
+      */
+  
+      static std::vector<std::pair<double, double> > ransac(
+          const std::vector<std::pair<double, double> >& pairs, 
+          size_t n, 
+          size_t k, 
+          double t, 
+          size_t d, 
+          int (*rng)(int) = NULL)
+      {
+        TModelType model;
 
-    /**
-      @brief Interface for GSL or OpenMS::MATH linear regression implementation
-      standard least-squares fit to a straight line takes as input a standard
-      vector of a standard pair of points in a 2D space and returns the
-      R-squared value for the corresponding linear regression Y(c,x) = c0 + c1 * x
-    */
-    static double llsm_rsq(std::vector<std::pair<double, double> >& pairs);
+        // implementation of the RANSAC algorithm according to http://wiki.scipy.org/Cookbook/RANSAC.
 
-    };
+        if (pairs.size() <= n)
+        {
+          throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+                                        String("RANSAC: Number of pairs (") + String(pairs.size()) + ") must be larger than number of initial points (n=" + String(n) + ").");
+        }
 
-  }
+        std::vector< std::pair<double, double> > alsoinliers, betterdata, bestdata;
+
+        double besterror = std::numeric_limits<double>::max();
+    #ifdef DEBUG_MRMRTNORMALIZER
+        std::pair<double, double > bestcoeff;
+        double betterrsq = 0;
+        double bestrsq = 0;
+    #endif
+
+        // mutable data. will be shuffled in every iteration
+        std::vector<std::pair<double, double> > pairs_shuffled = pairs;
+
+        for (size_t ransac_int=0; ransac_int<k; ransac_int++)
+        {
+          // check if the model already includes all points
+          if (bestdata.size() == pairs.size()) break;
+
+          if (rng != NULL)
+          { // use portable RNG in test mode
+            std::random_shuffle(pairs_shuffled.begin(), pairs_shuffled.end(), rng);
+          } else {
+            std::random_shuffle(pairs_shuffled.begin(), pairs_shuffled.end());
+          }
+
+          // test 'maybeinliers'
+          typename TModelType::ModelParameters coeff = model.rm_fit(pairs_shuffled.begin(), pairs_shuffled.begin()+n);
+          // apply model to remaining data; pick inliers
+          alsoinliers = model.rm_inliers(pairs_shuffled.begin()+n, pairs_shuffled.end(), coeff, t);
+          // ... and add data
+          if (alsoinliers.size() > d)
+          {
+            betterdata.clear();
+            std::copy( pairs_shuffled.begin(), pairs_shuffled.begin()+n, back_inserter(betterdata) );
+            betterdata.insert( betterdata.end(), alsoinliers.begin(), alsoinliers.end() );
+            typename TModelType::ModelParameters bettercoeff = model.rm_fit(betterdata.begin(), betterdata.end());
+            double bettererror = model.rm_rss(betterdata.begin(), betterdata.end(), bettercoeff);
+    #ifdef DEBUG_MRMRTNORMALIZER
+            betterrsq = model.rm_rsq(betterdata);
+    #endif
+
+            if (bettererror < besterror)
+            {
+              besterror = bettererror;
+              bestdata = betterdata;
+    #ifdef DEBUG_MRMRTNORMALIZER
+              bestcoeff = bettercoeff;
+              bestrsq = betterrsq;
+              std::cout << "RANSAC " << ransac_int << ": Points: " << betterdata.size() << " RSQ: " << bestrsq << " Error: " << besterror << " c0: " << bestcoeff.first << " c1: " << bestcoeff.second << std::endl;
+    #endif
+            }
+          }
+        }
+
+    #ifdef DEBUG_MRMRTNORMALIZER
+        std::cout << "=======STARTPOINTS=======" << std::endl;
+        for (std::vector<std::pair<double, double> >::iterator it = bestdata.begin(); it != bestdata.end(); ++it)
+        {
+          std::cout << it->first << "\t" << it->second << std::endl;
+        }
+        std::cout << "=======ENDPOINTS=======" << std::endl;
+    #endif
+
+        return(bestdata);
+      } // ransac()
+
+    }; // class
+  
+  } // namespace Math
 
 
-}
+} // namespace OpenMS
 #endif // OPENMS_MATH_MISC_RANSAC_H
