@@ -43,14 +43,47 @@ using namespace std;
 namespace OpenMS
 {
 
+  SVOutStream::SVOutStream(const String& file_out,
+                           const String& sep,
+                           const String& replacement,
+                           String::QuotingMethod quoting)
+    :
+    ostream(NULL), ofs_(NULL), sep_(sep), replacement_(replacement), nan_("nan"),
+    inf_("inf"), quoting_(quoting), modify_strings_(true), newline_(true)
+  {
+    ofs_ = new std::ofstream;
+    ofs_->open(file_out);
+
+    if (!ofs_->is_open())
+    {
+      throw Exception::FileNotWritable(__FILE__, __LINE__, __PRETTY_FUNCTION__, file_out);
+    }
+
+    // bind to filestream
+    this->rdbuf(ofs_->rdbuf());
+
+    // use high decimal precision (appropriate for double):
+    precision(std::numeric_limits<double>::digits10);
+  }
+
   SVOutStream::SVOutStream(ostream& out, const String& sep,
                            const String& replacement,
                            String::QuotingMethod quoting) :
-    ostream(out.rdbuf()), sep_(sep), replacement_(replacement), nan_("nan"),
+    ostream(out.rdbuf()), ofs_(NULL), sep_(sep), replacement_(replacement), nan_("nan"),
     inf_("inf"), quoting_(quoting), modify_strings_(true), newline_(true)
   {
     // use high decimal precision (appropriate for double):
     precision(std::numeric_limits<double>::digits10);
+  }
+
+
+  SVOutStream::~SVOutStream()
+  {
+    if (ofs_)
+    {
+      ofs_->close();
+      delete ofs_;
+    }
   }
 
   SVOutStream& SVOutStream::operator<<(String str)
