@@ -76,7 +76,7 @@ for (int i=0; i < 10; ++i)
 
 LinearRegression lin_reg, lin_reg2;
 
-START_SECTION((template < typename Iterator > void computeRegression(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin)))
+START_SECTION((template < typename Iterator > void computeRegression(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin, bool compute_goodness = true)))
   lin_reg.computeRegression(0.95,x_axis.begin(),x_axis.end(),y_axis.begin());
   TEST_REAL_SIMILAR(lin_reg.getSlope(),2.0)
   TEST_REAL_SIMILAR(lin_reg.getIntercept(),4.0)
@@ -88,13 +88,16 @@ START_SECTION((template < typename Iterator > void computeRegression(double conf
   TEST_REAL_SIMILAR(lin_reg2.getChiSquared(), 0.0)
 END_SECTION
 
-START_SECTION((template < typename Iterator > void computeRegressionWeighted(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin, Iterator w_begin)))
-  lin_reg.computeRegressionWeighted(0.95,x_axis.begin(),x_axis.end(),y_axis.begin(),weight.begin());
+START_SECTION((template < typename Iterator > void computeRegressionWeighted(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin, Iterator w_begin, bool compute_goodness = true)))
+  lin_reg.computeRegressionWeighted(0.95,x_axis.begin(),x_axis.end(),y_axis.begin(),weight.begin(), false);
   TEST_REAL_SIMILAR(lin_reg.getSlope(), 2.0)
   TEST_REAL_SIMILAR(lin_reg.getIntercept(), 4.0)
-  lin_reg2.computeRegressionWeighted(0.95,x_axis.begin(),x_axis.end(),y_axis0.begin(),weight.begin());
+  lin_reg2.computeRegressionWeighted(0.95,x_axis.begin(),x_axis.end(),y_axis0.begin(),weight.begin(), false);
   TEST_REAL_SIMILAR(lin_reg2.getSlope(), 2.0)
   TEST_REAL_SIMILAR(lin_reg2.getIntercept(), 0.0)
+
+
+  lin_reg.computeRegressionWeighted(0.95,x_axis.begin(),x_axis.end(),y_axis.begin(),weight.begin(), true); // to get meta stats (tested below)
 END_SECTION
 
 START_SECTION((double getChiSquared() const))
