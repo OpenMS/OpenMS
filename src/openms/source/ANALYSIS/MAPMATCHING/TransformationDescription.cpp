@@ -46,14 +46,16 @@ using namespace std;
 namespace OpenMS
 {
   TransformationDescription::TransformationDescription() :
-    data_(TransformationDescription::DataPoints()), model_type_("none"),
+    data_(TransformationDescription::DataPoints()), 
+    model_type_("none"),
     model_(new TransformationModel())
   {
   }
 
   TransformationDescription::TransformationDescription(
     const TransformationDescription::DataPoints& data) :
-    data_(data), model_type_("none"), model_(new TransformationModel())
+    data_(data), model_type_("none"),
+    model_(new TransformationModel())
   {
   }
 

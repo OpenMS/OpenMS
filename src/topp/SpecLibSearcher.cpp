@@ -304,7 +304,7 @@ protected:
       prot_id.setDateTime(DateTime::now());
       prot_id.setScoreType(compare_function);
       ProteinIdentification::SearchParameters searchparam;
-      searchparam.precursor_tolerance = precursor_mass_tolerance;
+      searchparam.precursor_mass_tolerance = precursor_mass_tolerance;
       prot_id.setSearchParameters(searchparam);
       /***********SEARCH**********/
       for (UInt j = 0; j < query.size(); ++j)

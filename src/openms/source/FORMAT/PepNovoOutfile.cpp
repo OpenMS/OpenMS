@@ -363,7 +363,7 @@ namespace OpenMS
       if (line.hasPrefix("PM"))
       {
         line.split(' ', substrings);
-        search_param.precursor_tolerance = substrings.back().toFloat();
+        search_param.precursor_mass_tolerance = substrings.back().toFloat();
       }
       if (line.hasPrefix("Fragment"))
       {

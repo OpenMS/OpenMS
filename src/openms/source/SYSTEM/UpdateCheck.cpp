@@ -108,7 +108,7 @@ namespace OpenMS
       QDateTime last_modified_dt = QFileInfo(version_file_name.toQString()).lastModified();
       QDateTime current_dt = QDateTime::currentDateTime();
 
-      // check if at least one day passed sincle last request
+      // check if at least one day passed since last request
       if (first_run || current_dt > last_modified_dt.addDays(1))
       {
         // update modification time stamp
@@ -117,7 +117,7 @@ namespace OpenMS
         struct utimbuf new_times;
         stat(version_file_name.c_str(), &old_stat);
         mtime = old_stat.st_mtime; 
-        new_times.actime = old_stat.st_atime; // keep accessuib time unchanged 
+        new_times.actime = old_stat.st_atime; // keep accession time unchanged 
         new_times.modtime = time(NULL);  // mod time to current time
         utime(version_file_name.c_str(), &new_times);          
 

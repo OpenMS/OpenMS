@@ -3,6 +3,7 @@ set(directory include/OpenMS/FILTERING/SMOOTHING)
 
 ### list all header files of the directory here
 set(sources_list_h
+FastLowessSmoothing.h
 GaussFilter.h
 GaussFilterAlgorithm.h
 LowessSmoothing.h
