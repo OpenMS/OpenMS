@@ -53,7 +53,7 @@ namespace OpenMS
         y.push_back(it->second);
       }
       LinearRegression lin_reg;
-      lin_reg.computeRegression(0.95, x.begin(), x.end(), y.begin());
+      lin_reg.computeRegression(0.95, x.begin(), x.end(), y.begin(), false); // no goodness of fit computation
       ModelParameters p;
       p.push_back(lin_reg.getIntercept());
       p.push_back(lin_reg.getSlope());
@@ -71,7 +71,7 @@ namespace OpenMS
       }
 
       LinearRegression lin_reg;
-      lin_reg.computeRegression(0.95, x.begin(), x.end(), y.begin());
+      lin_reg.computeRegression(0.95, x.begin(), x.end(), y.begin(), false);
 
       return lin_reg.getRSquared();
     }
