@@ -125,7 +125,7 @@ namespace OpenMS
         LOG_INFO << "We will never give out your personal data but you may disable this functionality by setting the environmental variable OPENMS_DISABLE_USAGE_STATISTICS." << endl;
         
         // We need to use a QCoreApplication to fire up the  QEventLoop to process the signals and slots.
-        char* argv2[] = { "dummyname", NULL };
+        char const * argv2[] = { "dummyname", NULL };
         int argc = 1;
         QCoreApplication event_loop(argc, const_cast<char**>(argv2));
         NetworkGetRequest* query = new NetworkGetRequest(&event_loop);
