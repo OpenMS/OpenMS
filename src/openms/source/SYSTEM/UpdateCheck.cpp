@@ -113,10 +113,8 @@ namespace OpenMS
       {
         // update modification time stamp
         struct stat old_stat;
-        time_t mtime;
         struct utimbuf new_times;
         stat(version_file_name.c_str(), &old_stat);
-        mtime = old_stat.st_mtime; 
         new_times.actime = old_stat.st_atime; // keep accession time unchanged 
         new_times.modtime = time(NULL);  // mod time to current time
         utime(version_file_name.c_str(), &new_times);          
