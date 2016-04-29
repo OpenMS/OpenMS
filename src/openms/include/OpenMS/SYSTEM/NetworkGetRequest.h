@@ -65,7 +65,7 @@ namespace OpenMS
     //@}
 
     // set request parameters
-    OPENMS_DLLAPI void setUrl(QUrl url);
+    OPENMS_DLLAPI void setUrl(const QUrl& url);
 
     /// returns the response
     OPENMS_DLLAPI QString getResponse() const;
