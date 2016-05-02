@@ -42,7 +42,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-21994.8526298809" sequence="PEPTIDEA" charge="0" protein_refs="PH_0">
+				<PeptideHit score="-21994.8526298809" sequence=".PEPTIDEA." charge="0" protein_refs="PH_0">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="PeptideRef" value="tr_gr1"/>
@@ -111,7 +111,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-22000.3232536088" sequence="PEPTIDEB" charge="0" protein_refs="PH_0">
+				<PeptideHit score="-22000.3232536088" sequence=".PEPTIDEB." charge="0" protein_refs="PH_0">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="PeptideRef" value="tr_gr2"/>
@@ -179,7 +179,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-21551.916238951" sequence="PEPTIDEB" charge="0" protein_refs="PH_0">
+				<PeptideHit score="-21551.916238951" sequence=".PEPTIDEB." charge="0" protein_refs="PH_0">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="PeptideRef" value="tr_gr2"/>
@@ -247,7 +247,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-21822.7123758505" sequence="PEPTIDEB" charge="0" protein_refs="PH_0">
+				<PeptideHit score="-21822.7123758505" sequence=".PEPTIDEB." charge="0" protein_refs="PH_0">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="PeptideRef" value="tr_gr2"/>
@@ -315,7 +315,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-22208.0561597968" sequence="PEPTIDEB" charge="0" protein_refs="PH_0">
+				<PeptideHit score="-22208.0561597968" sequence=".PEPTIDEB." charge="0" protein_refs="PH_0">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="PeptideRef" value="tr_gr2"/>

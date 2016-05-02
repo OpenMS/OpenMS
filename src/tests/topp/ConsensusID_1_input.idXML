@@ -12,34 +12,34 @@
 	</SearchParameters>
 	<IdentificationRun date="2010-05-04T15:18:29" search_engine="Mascot" search_engine_version="2.2.04" search_parameters_ref="SP_2" >
         <PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="695.3646" RT="2233.105" >
-            <PeptideHit score="0.92" sequence="QRESTATDILQK" charge="2" >
+            <PeptideHit score="0.92" sequence=".QRESTATDILQK." charge="2" >
 				<UserParam type="float" name="E-Value" value="5.4"/>
 			</PeptideHit>
-            <PeptideHit score="0.96" sequence="WSVEEEELLKK" charge="2" >
+            <PeptideHit score="0.96" sequence=".WSVEEEELLKK." charge="2" >
 				<UserParam type="float" name="E-Value" value="11"/>
 			</PeptideHit>
-            <PeptideHit score="0.96" sequence="EIEEDSLEGLKK" charge="2" >
+            <PeptideHit score="0.96" sequence=".EIEEDSLEGLKK." charge="2" >
 				<UserParam type="float" name="E-Value" value="14"/>
 			</PeptideHit>
-            <PeptideHit score="0.97" sequence="EQSATEQDILKK" charge="2" >
+            <PeptideHit score="0.97" sequence=".EQSATEQDILKK." charge="2" >
 				<UserParam type="float" name="E-Value" value="16"/>
 			</PeptideHit>
-            <PeptideHit score="0.97" sequence="NTNNHNGHILKK" charge="2" >
+            <PeptideHit score="0.97" sequence=".NTNNHNGHILKK." charge="2" >
 				<UserParam type="float" name="E-Value" value="19"/>
 			</PeptideHit>
-            <PeptideHit score="0.97" sequence="GSDKALIEVDSQK" charge="2" >
+            <PeptideHit score="0.97" sequence=".GSDKALIEVDSQK." charge="2" >
 				<UserParam type="float" name="E-Value" value="22"/>
 			</PeptideHit>
-            <PeptideHit score="0.97" sequence="GIEDDLMDLIKK" charge="2" >
+            <PeptideHit score="0.97" sequence=".GIEDDLMDLIKK." charge="2" >
 				<UserParam type="float" name="E-Value" value="22"/>
 			</PeptideHit>
-            <PeptideHit score="0.98" sequence="IFHDFNIDLQK" charge="2" >
+            <PeptideHit score="0.98" sequence=".IFHDFNIDLQK." charge="2" >
 				<UserParam type="float" name="E-Value" value="32"/>
 			</PeptideHit>
-            <PeptideHit score="0.98" sequence="CAACITPVELKK" charge="2" >
+            <PeptideHit score="0.98" sequence=".CAACITPVELKK." charge="2" >
 				<UserParam type="float" name="E-Value" value="34"/>
 			</PeptideHit>
-            <PeptideHit score="0.98" sequence="AKGDASAQIAAMQK" charge="2" >
+            <PeptideHit score="0.98" sequence=".AKGDASAQIAAMQK." charge="2" >
 				<UserParam type="float" name="E-Value" value="35"/>
 			</PeptideHit>
         </PeptideIdentification>
@@ -48,29 +48,29 @@
 		<ProteinIdentification score_type="" higher_score_better="false" significance_threshold="0" >
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="695.3646" RT="2233.105" >
-			<PeptideHit score="0.94" sequence="AELASCVVGDLGAK" charge="2" aa_before="K" aa_after="V" >
+			<PeptideHit score="0.94" sequence=".AELASCVVGDLGAK." charge="2" aa_before="K" aa_after="V" >
 				<UserParam type="float" name="E-Value" value="61.4"/>
 			</PeptideHit>
-			<PeptideHit score="0.95" sequence="ELM(Oxidation)SNGPGSIIGAK" charge="2" aa_before="R" aa_after="E" >
+			<PeptideHit score="0.95" sequence=".ELM(Oxidation)SNGPGSIIGAK." charge="2" aa_before="R" aa_after="E" >
 				<UserParam type="float" name="E-Value" value="144.2"/>
 			</PeptideHit>
-			<PeptideHit score="0.97" sequence="ISCAEGALEALKK" charge="2" aa_before="R" aa_after="T" >
+			<PeptideHit score="0.97" sequence=".ISCAEGALEALKK." charge="2" aa_before="R" aa_after="T" >
 				<UserParam type="float" name="E-Value" value="301.2"/>
 			</PeptideHit>
-			<PeptideHit score="0.98" sequence="QRESTATDILQK" charge="2" aa_before="K" aa_after="N" >
+			<PeptideHit score="0.98" sequence=".QRESTATDILQK." charge="2" aa_before="K" aa_after="N" >
 				<UserParam type="float" name="E-Value" value="809.0"/>
 			</PeptideHit>
-			<PeptideHit score="0.98" sequence="EDNMAIQSIIKK" charge="2" aa_before="R" aa_after="E" >
+			<PeptideHit score="0.98" sequence=".EDNMAIQSIIKK." charge="2" aa_before="R" aa_after="E" >
 				<UserParam type="float" name="E-Value" value="828.5"/>
 			</PeptideHit>
-			<PeptideHit score="0.98" sequence="EIEEDSLEGLKK" charge="2" aa_before="K" aa_after="L" >
+			<PeptideHit score="0.98" sequence=".EIEEDSLEGLKK." charge="2" aa_before="K" aa_after="L" >
 				<UserParam type="float" name="E-Value" value="1038"/>
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>
 	<IdentificationRun date="2010-05-03T19:50:18" search_engine="XTandem" search_engine_version="" search_parameters_ref="SP_1" >
 	<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="695.3646" RT="2233.105" >
-			<PeptideHit score="0.54" sequence="QRESTATDILQK" charge="2" aa_before="R" aa_after="G" >
+			<PeptideHit score="0.54" sequence=".QRESTATDILQK." charge="2" aa_before="R" aa_after="G" >
 				<UserParam type="float" name="E-Value" value="0.5"/>
 			</PeptideHit>
 		</PeptideIdentification>

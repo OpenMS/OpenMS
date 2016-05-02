@@ -142,16 +142,16 @@ START_SECTION(([EXTRA] Prediction Test - HPLC with relative RTs))
   TEST_EQUAL(svm_rt_features.size(), 4)
 
   TEST_REAL_SIMILAR(svm_rt_features[0].getRT(), 234.247)
-  TEST_EQUAL(svm_rt_features[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "TVQMENQFVAFVDK")
+  TEST_EQUAL(svm_rt_features[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".TVQMENQFVAFVDK.")
 
   TEST_REAL_SIMILAR(svm_rt_features[1].getRT(), 471.292)
-  TEST_EQUAL(svm_rt_features[1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "RYCNHKTUIKL")
+  TEST_EQUAL(svm_rt_features[1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".RYCNHKTUIKL.")
 
   TEST_REAL_SIMILAR(svm_rt_features[2].getRT(), 934.046)
-  TEST_EQUAL(svm_rt_features[2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAHTKLRTTIPPEFG")
+  TEST_EQUAL(svm_rt_features[2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".AAAAHTKLRTTIPPEFG.")
 
   TEST_REAL_SIMILAR(svm_rt_features[3].getRT(), 946.127)
-  TEST_EQUAL(svm_rt_features[3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "ACHKKKKHHACAC")
+  TEST_EQUAL(svm_rt_features[3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".ACHKKKKHHACAC.")
 
 }
 END_SECTION
@@ -293,15 +293,15 @@ START_SECTION(([EXTRA] Prediction Test - HPLC with absolute RTs))
 
   // KGHHEAEIKPLAQSHATK 1560.7
   TEST_REAL_SIMILAR(features[0].getRT(), 1560.7)
-  TEST_EQUAL(features[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "KGHHEAEIKPLAQSHATK")
+  TEST_EQUAL(features[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".KGHHEAEIKPLAQSHATK.")
 
   // QEFEVMEDHAGTYGLGDR 2160.7
   TEST_REAL_SIMILAR(features[1].getRT(), 2160.7)
-  TEST_EQUAL(features[1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "QEFEVMEDHAGTYGLGDR")
+  TEST_EQUAL(features[1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".QEFEVMEDHAGTYGLGDR.")
 
   // STPTAEDVTAPLVDEGAPGK 2400.69
   TEST_REAL_SIMILAR(features[2].getRT(), 2400.69)
-  TEST_EQUAL(features[2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "STPTAEDVTAPLVDEGAPGK")
+  TEST_EQUAL(features[2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".STPTAEDVTAPLVDEGAPGK.")
 }
 END_SECTION
 

@@ -41,37 +41,37 @@
 			<UserParam type="string" name="indistinguishable_proteins_5" value="0.999643163,PH_0"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="486.4753250319" RT="358.38" >
-			<PeptideHit score="0.0486" sequence="(Dimethyl:2H(4)13C(2))NTIMEC(Carbamidomethyl)QVC(Carbamidomethyl)GFHEQR" charge="4" aa_before="R" aa_after="S" protein_refs="PH_4" >
+			<PeptideHit score="0.0486" sequence=".(Dimethyl:2H(4)13C(2))NTIMEC(Carbamidomethyl)QVC(Carbamidomethyl)GFHEQR." charge="4" aa_before="R" aa_after="S" protein_refs="PH_4" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="323.9933450319" RT="377.21" >
-			<PeptideHit score="0" sequence="(Dimethyl:2H(4)13C(2))APGTPHSHTK(Dimethyl:2H(4)13C(2))PYVR" charge="5" aa_before="K" aa_after="S" protein_refs="PH_3" >
+			<PeptideHit score="0" sequence=".(Dimethyl:2H(4)13C(2))APGTPHSHTK(Dimethyl:2H(4)13C(2))PYVR." charge="5" aa_before="K" aa_after="S" protein_refs="PH_3" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="345.1932250319" RT="377.29" >
-			<PeptideHit score="0" sequence="(Dimethyl:2H(4)13C(2))NPSFLISSWHR" charge="4" aa_before="R" aa_after="D" protein_refs="PH_2" >
+			<PeptideHit score="0" sequence=".(Dimethyl:2H(4)13C(2))NPSFLISSWHR." charge="4" aa_before="R" aa_after="D" protein_refs="PH_2" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="350.7008750319" RT="378.29" >
-			<PeptideHit score="0" sequence="(Dimethyl:2H(4)13C(2))RPETEGVPVPER" charge="4" protein_refs="PH_5" >
+			<PeptideHit score="0" sequence=".(Dimethyl:2H(4)13C(2))RPETEGVPVPER." charge="4" protein_refs="PH_5" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="804.3831750319" RT="383.88" >
-			<PeptideHit score="0" sequence="(Dimethyl:2H(4)13C(2))TGSESSQTGTSTTSSR" charge="2" aa_before="R" aa_after="N" protein_refs="PH_0" >
+			<PeptideHit score="0" sequence=".(Dimethyl:2H(4)13C(2))TGSESSQTGTSTTSSR." charge="2" aa_before="R" aa_after="N" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="383.2173500319" RT="391" >
-			<PeptideHit score="0" sequence="(Glu->pyro-Glu)EELLLHPEDAEGK(Dimethyl:2H(4)13C(2))" charge="4" aa_before="K" aa_after="D" protein_refs="PH_1" >
+			<PeptideHit score="0" sequence=".(Glu->pyro-Glu)EELLLHPEDAEGK(Dimethyl:2H(4)13C(2))." charge="4" aa_before="K" aa_after="D" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>

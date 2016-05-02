@@ -55,14 +55,14 @@ namespace OpenMS
 
       This class represents amino acid sequences in %OpenMS. An AASequence instance primarily contains a sequence of residues. The residues are represented as instances of Residue. Each amino acid has only one instance, which is accessible using the ResidueDB instance (singleton).
 
-      To create an AASequence instance for a specific amino acid sequence, use the AASequence::fromString function. For example, <tt>AASequence::fromString("DFPIANGER")</tt> produces an instance of AASequence for the peptide "DFPIANGER".
+      To create an AASequence instance for a specific amino acid sequence, use the AASequence::fromString function. For example, <tt>AASequence::fromString(".DFPIANGER.")</tt> produces an instance of AASequence for the peptide "DFPIANGER". Please note that both the N- and the C-terminal are explicitly represented by dots.
 
       A critical property of amino acid sequences is that they can be modified. Which means that one or more amino acids are chemically modified, e.g. oxidized. This is represented via Residue instances which carry a ResidueModification object. This is also handled in the ResidueDB.
 
-      Modifications are specified using a unique string identifier present in the ModificationsDB in brackets after the modified amino acid or by providing the mass of the residue in square brackets. For example <tt>AASequence::fromString("DFPIAM(Oxidation)GER")</tt> creates an instance of the peptide "DFPIAMGER" with an oxidized methionine (<tt>AASequence::fromString("DFPIAM[+16]GER")</tt> and <tt>AASequence::fromString("DFPIAM[147]GER")</tt> are equivalent). N-terminal modifications are specified by writing the modification as prefix to the sequence. C-terminal modifications are specified by writing the modification as suffix. C-terminal modifications are distinguished from modifications of the last amino acid by considering the specificity of the modification as stored in ModificationsDB.
+      Modifications are specified using a unique string identifier present in the ModificationsDB in brackets after the modified amino acid or by providing the mass of the residue in square brackets. For example <tt>AASequence::fromString(".DFPIAM(Oxidation)GER.")</tt> creates an instance of the peptide "DFPIAMGER" with an oxidized methionine (<tt>AASequence::fromString(".DFPIAM[+16]GER.")</tt> and <tt>AASequence::fromString(".DFPIAM[147]GER.")</tt> are equivalent). N- and C-terminal modifications are represented by brackets to the right of the dots. For example, <tt>".(Dimethyl)DFPIAMGER."</tt> and <tt>".DFPIAMGER.(Label:18O(2))"</tt> represent the labelling of the N- and C-terminus respectively, but <tt>".DFPIAMGER(Phospho)."</tt> the phosphorylation of the last arginine at its side chain. 
 
-      Note there is a subtle difference between <tt>AASequence::fromString("DFPIAM[+16]GER")</tt> and <tt>AASequence::fromString("DFPIAM[+15.9949]GER")</tt> -- while the former will try to find the @e first modification matching to a mass difference of 16 +/- 0.5, the latter will try to find the @e closest matching modification to the exact mass. This usually gives the intended results.
-
+      Note there is a subtle difference between <tt>AASequence::fromString(".DFPIAM[+16]GER.")</tt> and <tt>AASequence::fromString(".DFPIAM[+15.9949]GER.")</tt> -- while the former will try to find the @e first modification matching to a mass difference of 16 +/- 0.5, the latter will try to find the @e closest matching modification to the exact mass. This usually gives the intended results.
+      
       Arbitrary/unknown amino acids (usually due to an unknown modification) can be specified using tags preceded by X: "X[weight]". This indicates a new amino acid ("X") with the specified weight, e.g. "RX[148.5]T"". Note that this tag does not alter the amino acids to the left (R) or right (T).  Rather, X represents an amino acid on its own. Be careful when converting AASequence to an EmpiricalFormula using getFormula(), as tags will not be considered in this case (there exists no formula for them). However, they have an influence on getMonoWeight() and getAverageWeight()!
 
       @ingroup Chemistry
@@ -525,8 +525,9 @@ protected:
 
     const ResidueModification* c_term_mod_;
 
+    // parses mods in round brackets, if dot notation is used it resolves cterm ambiguity based on the presence of the dot
     static String::ConstIterator parseModRoundBrackets_(
-      const String::ConstIterator str_it, const String& str, AASequence& aas);
+      const String::ConstIterator str_it, const String& str, AASequence& aas, bool dot_notation, bool dot_terminal);
 
     static String::ConstIterator parseModSquareBrackets_(
       const String::ConstIterator str_it, const String& str, AASequence& aas);

@@ -7,7 +7,7 @@
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 		</ProteinIdentification>
 		<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" MZ="509.751" RT="-1" >
-			<PeptideHit score="1.77919503181063" sequence="DFPLANGER" charge="2" >
+			<PeptideHit score="1.77919503181063" sequence=".DFPLANGER." charge="2" >
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>

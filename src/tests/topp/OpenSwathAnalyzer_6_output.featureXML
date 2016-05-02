@@ -51,7 +51,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0" sequence="PEPTIDEA" charge="0">
+				<PeptideHit score="0" sequence=".PEPTIDEA." charge="0">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="PeptideRef" value="tr_gr1"/>
@@ -142,7 +142,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0" sequence="PEPTIDEB" charge="0">
+				<PeptideHit score="0" sequence=".PEPTIDEB." charge="0">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="PeptideRef" value="tr_gr2"/>
@@ -233,7 +233,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0" sequence="PEPTIDEB" charge="0">
+				<PeptideHit score="0" sequence=".PEPTIDEB." charge="0">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="PeptideRef" value="tr_gr2"/>

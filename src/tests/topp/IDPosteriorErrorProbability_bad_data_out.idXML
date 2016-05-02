@@ -33,13 +33,13 @@
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="15" MZ="300.164093" RT="1437.53" >
-			<PeptideHit score="1" sequence="LC(Carbamidomethyl)VLHEK" charge="3" aa_before="R" aa_after="T" protein_refs="PH_3" >
+			<PeptideHit score="1" sequence=".LC(Carbamidomethyl)VLHEK." charge="3" aa_before="R" aa_after="T" protein_refs="PH_3" >
 				<UserParam type="float" name="homology_threshold" value="15"/>
 				<UserParam type="float" name="identity_threshold" value="22"/>
 				<UserParam type="float" name="EValue" value="0.79432823472"/>
 				<UserParam type="float" name="Mascot_score" value="14.45"/>
 			</PeptideHit>
-			<PeptideHit score="1" sequence="WSDLHLK" charge="3" >
+			<PeptideHit score="1" sequence=".WSDLHLK." charge="3" >
 				<UserParam type="float" name="homology_threshold" value="15"/>
 				<UserParam type="float" name="identity_threshold" value="22"/>
 				<UserParam type="float" name="EValue" value="0.34673685045"/>
@@ -47,7 +47,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="13" MZ="301.8590088" RT="1754.8" >
-			<PeptideHit score="0.999999989205678" sequence="TKIPAVFK" charge="3" >
+			<PeptideHit score="0.999999989205678" sequence=".TKIPAVFK." charge="3" >
 				<UserParam type="float" name="homology_threshold" value="0"/>
 				<UserParam type="float" name="identity_threshold" value="13"/>
 				<UserParam type="float" name="EValue" value="0.0063095734448"/>
@@ -55,19 +55,19 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="13" MZ="308.5265198" RT="1374.39" >
-			<PeptideHit score="0.023318180228925" sequence="IIAPPERK" charge="3" aa_before="K" aa_after="Y" protein_refs="PH_9" >
+			<PeptideHit score="0.023318180228925" sequence=".IIAPPERK." charge="3" aa_before="K" aa_after="Y" protein_refs="PH_9" >
 				<UserParam type="float" name="homology_threshold" value="0"/>
 				<UserParam type="float" name="identity_threshold" value="13"/>
 				<UserParam type="float" name="EValue" value="1e-05"/>
 				<UserParam type="float" name="Mascot_score" value="21.2"/>
 			</PeptideHit>
-			<PeptideHit score="0.00943138704557063" sequence="LPSAPLAVR" charge="3" >
+			<PeptideHit score="0.00943138704557063" sequence=".LPSAPLAVR." charge="3" >
 				<UserParam type="float" name="homology_threshold" value="13"/>
 				<UserParam type="float" name="identity_threshold" value="13"/>
 				<UserParam type="float" name="EValue" value="4.78630092323e-06"/>
 				<UserParam type="float" name="Mascot_score" value="5.7"/>
 			</PeptideHit>
-			<PeptideHit score="0.0050135161219787" sequence="ISPPAALVR" charge="3" >
+			<PeptideHit score="0.0050135161219787" sequence=".ISPPAALVR." charge="3" >
 				<UserParam type="float" name="homology_threshold" value="13"/>
 				<UserParam type="float" name="identity_threshold" value="13"/>
 				<UserParam type="float" name="EValue" value="2.08929613085e-06"/>
@@ -75,13 +75,13 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="15" MZ="309.1685791" RT="3449.33" >
-			<PeptideHit score="0.00382131550089286" sequence="LHQSDVAR" charge="3" >
+			<PeptideHit score="0.00382131550089286" sequence=".LHQSDVAR." charge="3" >
 				<UserParam type="float" name="homology_threshold" value="15"/>
 				<UserParam type="float" name="identity_threshold" value="26"/>
 				<UserParam type="float" name="EValue" value="1.17489755494e-06"/>
 				<UserParam type="float" name="Mascot_score" value="17.01"/>
 			</PeptideHit>
-			<PeptideHit score="0.00180845954222027" sequence="AAGHAKGSAR" charge="3" >
+			<PeptideHit score="0.00180845954222027" sequence=".AAGHAKGSAR." charge="3" >
 				<UserParam type="float" name="homology_threshold" value="15"/>
 				<UserParam type="float" name="identity_threshold" value="26"/>
 				<UserParam type="float" name="EValue" value="2.39883291902e-07"/>

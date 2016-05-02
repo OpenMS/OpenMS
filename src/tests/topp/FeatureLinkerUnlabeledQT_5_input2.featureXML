@@ -16,7 +16,7 @@
 			<overallquality>0</overallquality>
 			<charge>0</charge>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0" sequence="PEPTIDEK" charge="0">
+				<PeptideHit score="0" sequence=".PEPTIDEK." charge="0">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="sequence" value="PEPTIDEK"/>
@@ -30,7 +30,7 @@
 			<overallquality>0</overallquality>
 			<charge>0</charge>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0" sequence="PEPTIDER" charge="0">
+				<PeptideHit score="0" sequence=".PEPTIDER." charge="0">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="sequence" value="PEPTIDER"/>
@@ -44,7 +44,7 @@
 			<overallquality>0</overallquality>
 			<charge>0</charge>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0" sequence="PEPTIDEA" charge="0">
+				<PeptideHit score="0" sequence=".PEPTIDEA." charge="0">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="sequence" value="PEPTIDEA"/>

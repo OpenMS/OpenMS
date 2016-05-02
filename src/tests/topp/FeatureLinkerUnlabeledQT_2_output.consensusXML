@@ -67,27 +67,27 @@
 		</ProteinIdentification>
 	</IdentificationRun>
 	<UnassignedPeptideIdentification identification_run_ref="PI_3" score_type="score_type" higher_score_better="false" significance_threshold="42.2999992370605" >
-		<PeptideHit score="4324.433" sequence="FAA" charge="23" aa_after="Y" protein_refs="PH_7">
+		<PeptideHit score="4324.433" sequence=".FAA." charge="23" aa_after="Y" protein_refs="PH_7">
 		</PeptideHit>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_4" score_type="score_type" higher_score_better="false" significance_threshold="42.2999992370605" >
-		<PeptideHit score="4324.433" sequence="FDD" charge="23" aa_after="Y" protein_refs="PH_9">
+		<PeptideHit score="4324.433" sequence=".FDD." charge="23" aa_after="Y" protein_refs="PH_9">
 		</PeptideHit>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_5" score_type="score_type" higher_score_better="false" significance_threshold="42.2999992370605" >
-		<PeptideHit score="4324.433" sequence="FCC" charge="23" aa_after="Y" protein_refs="PH_11">
+		<PeptideHit score="4324.433" sequence=".FCC." charge="23" aa_after="Y" protein_refs="PH_11">
 		</PeptideHit>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_3" score_type="score_type" higher_score_better="false" significance_threshold="42.2999992370605" >
-		<PeptideHit score="4324.433" sequence="FAA" charge="23" aa_after="Y" protein_refs="PH_7">
+		<PeptideHit score="4324.433" sequence=".FAA." charge="23" aa_after="Y" protein_refs="PH_7">
 		</PeptideHit>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_4" score_type="score_type" higher_score_better="false" significance_threshold="42.2999992370605" >
-		<PeptideHit score="4324.433" sequence="FDD" charge="23" aa_after="Y" protein_refs="PH_9">
+		<PeptideHit score="4324.433" sequence=".FDD." charge="23" aa_after="Y" protein_refs="PH_9">
 		</PeptideHit>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_5" score_type="score_type" higher_score_better="false" significance_threshold="42.2999992370605" >
-		<PeptideHit score="4324.433" sequence="FCC" charge="23" aa_after="Y" protein_refs="PH_11">
+		<PeptideHit score="4324.433" sequence=".FCC." charge="23" aa_after="Y" protein_refs="PH_11">
 		</PeptideHit>
 	</UnassignedPeptideIdentification>
 	<mapList count="6">
@@ -193,11 +193,11 @@
 				<element map="5" id="10410627859860728742" rt="771.616" mz="1444.62" it="3.93811e+08" charge="1"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_5" score_type="" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
-				<PeptideHit score="35" sequence="XCC" charge="3" protein_refs="PH_10">
+				<PeptideHit score="35" sequence=".XCC." charge="3" protein_refs="PH_10">
 				</PeptideHit>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_5" score_type="" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
-				<PeptideHit score="35" sequence="XCC" charge="3" protein_refs="PH_10">
+				<PeptideHit score="35" sequence=".XCC." charge="3" protein_refs="PH_10">
 				</PeptideHit>
 			</PeptideIdentification>
 		</consensusElement>
@@ -208,11 +208,11 @@
 				<element map="4" id="757269036628510515" rt="640.822" mz="537.243" it="3.46578e+08" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_4" score_type="" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
-				<PeptideHit score="35" sequence="ADD" charge="3" protein_refs="PH_8">
+				<PeptideHit score="35" sequence=".ADD." charge="3" protein_refs="PH_8">
 				</PeptideHit>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_4" score_type="" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
-				<PeptideHit score="35" sequence="ADD" charge="3" protein_refs="PH_8">
+				<PeptideHit score="35" sequence=".ADD." charge="3" protein_refs="PH_8">
 				</PeptideHit>
 			</PeptideIdentification>
 		</consensusElement>
@@ -323,11 +323,11 @@
 				<element map="5" id="1966557505224183820" rt="656.405" mz="537.243" it="1.32679e+08" charge="3"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_5" score_type="" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
-				<PeptideHit score="35" sequence="ACC" charge="3" protein_refs="PH_10">
+				<PeptideHit score="35" sequence=".ACC." charge="3" protein_refs="PH_10">
 				</PeptideHit>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_5" score_type="" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
-				<PeptideHit score="35" sequence="ACC" charge="3" protein_refs="PH_10">
+				<PeptideHit score="35" sequence=".ACC." charge="3" protein_refs="PH_10">
 				</PeptideHit>
 			</PeptideIdentification>
 		</consensusElement>
@@ -358,11 +358,11 @@
 				<element map="3" id="9201749952666825017" rt="786.15" mz="1555.63" it="1.86424e+08" charge="1"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_3" score_type="" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
-				<PeptideHit score="35" sequence="XAA" charge="3" protein_refs="PH_6">
+				<PeptideHit score="35" sequence=".XAA." charge="3" protein_refs="PH_6">
 				</PeptideHit>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_3" score_type="" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
-				<PeptideHit score="35" sequence="XAA" charge="3" protein_refs="PH_6">
+				<PeptideHit score="35" sequence=".XAA." charge="3" protein_refs="PH_6">
 				</PeptideHit>
 			</PeptideIdentification>
 		</consensusElement>
@@ -434,11 +434,11 @@
 				<element map="4" id="340792039157394434" rt="1033.52" mz="1163.62" it="2.93257e+08" charge="1"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_4" score_type="" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
-				<PeptideHit score="35" sequence="XDD" charge="3" protein_refs="PH_8">
+				<PeptideHit score="35" sequence=".XDD." charge="3" protein_refs="PH_8">
 				</PeptideHit>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_4" score_type="" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
-				<PeptideHit score="35" sequence="XDD" charge="3" protein_refs="PH_8">
+				<PeptideHit score="35" sequence=".XDD." charge="3" protein_refs="PH_8">
 				</PeptideHit>
 			</PeptideIdentification>
 		</consensusElement>
@@ -449,11 +449,11 @@
 				<element map="3" id="12975660629189576601" rt="638.468" mz="537.243" it="2.10227e+08" charge="1"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_3" score_type="" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
-				<PeptideHit score="35" sequence="AAA" charge="3" protein_refs="PH_6">
+				<PeptideHit score="35" sequence=".AAA." charge="3" protein_refs="PH_6">
 				</PeptideHit>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_3" score_type="" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
-				<PeptideHit score="35" sequence="AAA" charge="3" protein_refs="PH_6">
+				<PeptideHit score="35" sequence=".AAA." charge="3" protein_refs="PH_6">
 				</PeptideHit>
 			</PeptideIdentification>
 		</consensusElement>

@@ -41,15 +41,15 @@
 				<element map="2" id="0" rt="420" mz="500.021" it="700"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_2" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0" sequence="PEPTIDEA" charge="0">
+				<PeptideHit score="0" sequence=".PEPTIDEA." charge="0">
 				</PeptideHit>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_2" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0" sequence="PEPTIDEA" charge="0">
+				<PeptideHit score="0" sequence=".PEPTIDEA." charge="0">
 				</PeptideHit>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_2" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0" sequence="PEPTIDEA" charge="0">
+				<PeptideHit score="0" sequence=".PEPTIDEA." charge="0">
 				</PeptideHit>
 			</PeptideIdentification>
 		</consensusElement>
@@ -61,15 +61,15 @@
 				<element map="2" id="0" rt="520" mz="500.022" it="700"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_2" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0" sequence="PEPTIDEK" charge="0">
+				<PeptideHit score="0" sequence=".PEPTIDEK." charge="0">
 				</PeptideHit>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_2" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0" sequence="PEPTIDEK" charge="0">
+				<PeptideHit score="0" sequence=".PEPTIDEK." charge="0">
 				</PeptideHit>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_2" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0" sequence="PEPTIDEK" charge="0">
+				<PeptideHit score="0" sequence=".PEPTIDEK." charge="0">
 				</PeptideHit>
 			</PeptideIdentification>
 		</consensusElement>
@@ -81,15 +81,15 @@
 				<element map="2" id="0" rt="320" mz="500.02" it="700"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_2" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0" sequence="PEPTIDER" charge="0">
+				<PeptideHit score="0" sequence=".PEPTIDER." charge="0">
 				</PeptideHit>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_2" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0" sequence="PEPTIDER" charge="0">
+				<PeptideHit score="0" sequence=".PEPTIDER." charge="0">
 				</PeptideHit>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_2" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0" sequence="PEPTIDER" charge="0">
+				<PeptideHit score="0" sequence=".PEPTIDER." charge="0">
 				</PeptideHit>
 			</PeptideIdentification>
 		</consensusElement>

@@ -2323,847 +2323,847 @@
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="1093.0258" RT="2187.96" >
-			<PeptideHit score="1.48741e-12" sequence="SLAGSSGPGASSGTSGDHGELVVR" charge="2" protein_refs="PH_82 PH_83 PH_84 PH_88 PH_92 PH_95 PH_96 PH_98 PH_139 PH_314 PH_315 PH_644 PH_785 PH_829 PH_838 PH_859 PH_937 PH_950 PH_951 PH_954 PH_955 PH_956 PH_959 PH_962 PH_964 PH_965 PH_966 PH_970 PH_1110" >
+			<PeptideHit score="1.48741e-12" sequence=".SLAGSSGPGASSGTSGDHGELVVR." charge="2" protein_refs="PH_82 PH_83 PH_84 PH_88 PH_92 PH_95 PH_96 PH_98 PH_139 PH_314 PH_315 PH_644 PH_785 PH_829 PH_838 PH_859 PH_937 PH_950 PH_951 PH_954 PH_955 PH_956 PH_959 PH_962 PH_964 PH_965 PH_966 PH_970 PH_1110" >
 				<UserParam type="float" name="Percolator_score" value="11.0472"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="1.48741e-12"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="832.40479" RT="2605.29" >
-			<PeptideHit score="7.2763e-11" sequence="AAAFEEQENETVVVK" charge="2" protein_refs="PH_425 PH_482 PH_641" >
+			<PeptideHit score="7.2763e-11" sequence=".AAAFEEQENETVVVK." charge="2" protein_refs="PH_425 PH_482 PH_641" >
 				<UserParam type="float" name="Percolator_score" value="9.36298"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="7.2763e-11"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="769.39142" RT="3320.48" >
-			<PeptideHit score="3.19783e-10" sequence="FALQDLSVEETSAK" charge="2" protein_refs="PH_27 PH_117 PH_118 PH_119 PH_120 PH_124 PH_178 PH_210 PH_281 PH_282 PH_283 PH_284 PH_325 PH_375 PH_583 PH_596 PH_726 PH_757 PH_782 PH_853 PH_902 PH_919 PH_975 PH_981 PH_997 PH_1001 PH_1005 PH_1008 PH_1009" >
+			<PeptideHit score="3.19783e-10" sequence=".FALQDLSVEETSAK." charge="2" protein_refs="PH_27 PH_117 PH_118 PH_119 PH_120 PH_124 PH_178 PH_210 PH_281 PH_282 PH_283 PH_284 PH_325 PH_375 PH_583 PH_596 PH_726 PH_757 PH_782 PH_853 PH_902 PH_919 PH_975 PH_981 PH_997 PH_1001 PH_1005 PH_1008 PH_1009" >
 				<UserParam type="float" name="Percolator_score" value="8.72204"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="3.19783e-10"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="715.89587" RT="3127.2" >
-			<PeptideHit score="4.35755e-10" sequence="LDSLSAQLSQLQK" charge="2" protein_refs="PH_234 PH_235 PH_236 PH_237 PH_238 PH_239 PH_423 PH_684 PH_718 PH_729 PH_730 PH_731 PH_732 PH_867 PH_886" >
+			<PeptideHit score="4.35755e-10" sequence=".LDSLSAQLSQLQK." charge="2" protein_refs="PH_234 PH_235 PH_236 PH_237 PH_238 PH_239 PH_423 PH_684 PH_718 PH_729 PH_730 PH_731 PH_732 PH_867 PH_886" >
 				<UserParam type="float" name="Percolator_score" value="8.58807"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="4.35755e-10"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="776.86639" RT="1943.52" >
-			<PeptideHit score="8.09508e-10" sequence="TSTTSSMVASAEQPR" charge="2" protein_refs="PH_58 PH_69 PH_332 PH_434 PH_824 PH_852 PH_1112" >
+			<PeptideHit score="8.09508e-10" sequence=".TSTTSSMVASAEQPR." charge="2" protein_refs="PH_58 PH_69 PH_332 PH_434 PH_824 PH_852 PH_1112" >
 				<UserParam type="float" name="Percolator_score" value="8.31993"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="8.09508e-10"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="661.3443" RT="2685.51" >
-			<PeptideHit score="2.43037e-09" sequence="STSGGTAALGCLVK" charge="2" protein_refs="PH_230 PH_231 PH_768 PH_769 PH_770 PH_771 PH_1099 PH_1100 PH_1106 PH_1107 PH_1111 PH_1114 PH_1115 PH_1119" >
+			<PeptideHit score="2.43037e-09" sequence=".STSGGTAALGCLVK." charge="2" protein_refs="PH_230 PH_231 PH_768 PH_769 PH_770 PH_771 PH_1099 PH_1100 PH_1106 PH_1107 PH_1111 PH_1114 PH_1115 PH_1119" >
 				<UserParam type="float" name="Percolator_score" value="7.84396"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="2.43037e-09"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="813.40948" RT="2244.71" >
-			<PeptideHit score="7.03248e-09" sequence="DALQNPNDLQLQEK" charge="2" protein_refs="PH_41 PH_46 PH_473 PH_765 PH_815 PH_863 PH_875" >
+			<PeptideHit score="7.03248e-09" sequence=".DALQNPNDLQLQEK." charge="2" protein_refs="PH_41 PH_46 PH_473 PH_765 PH_815 PH_863 PH_875" >
 				<UserParam type="float" name="Percolator_score" value="7.38397"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="7.03248e-09"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="893.9129" RT="2874.06" >
-			<PeptideHit score="1.30952e-08" sequence="NKDQGTYEDYVEGLR" charge="2" protein_refs="PH_4 PH_38 PH_108 PH_109 PH_110 PH_111 PH_114 PH_115 PH_127 PH_181 PH_342 PH_343 PH_619 PH_685 PH_971 PH_987 PH_988 PH_989 PH_990 PH_991 PH_992 PH_993 PH_995 PH_996" >
+			<PeptideHit score="1.30952e-08" sequence=".NKDQGTYEDYVEGLR." charge="2" protein_refs="PH_4 PH_38 PH_108 PH_109 PH_110 PH_111 PH_114 PH_115 PH_127 PH_181 PH_342 PH_343 PH_619 PH_685 PH_971 PH_987 PH_988 PH_989 PH_990 PH_991 PH_992 PH_993 PH_995 PH_996" >
 				<UserParam type="float" name="Percolator_score" value="7.1148"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="1.30952e-08"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="404.21942" RT="2506.81" >
-			<PeptideHit score="1.55822e-08" sequence="TANDAVELHLK" charge="3" protein_refs="PH_476 PH_780" >
+			<PeptideHit score="1.55822e-08" sequence=".TANDAVELHLK." charge="3" protein_refs="PH_476 PH_780" >
 				<UserParam type="float" name="Percolator_score" value="7.03952"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="1.55822e-08"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="817.40759" RT="3010.12" >
-			<PeptideHit score="1.5992e-08" sequence="EGCTVSPETLSLNVK" charge="2" protein_refs="PH_52 PH_53 PH_54 PH_55 PH_211 PH_212 PH_717 PH_719 PH_722 PH_723 PH_725 PH_774" >
+			<PeptideHit score="1.5992e-08" sequence=".EGCTVSPETLSLNVK." charge="2" protein_refs="PH_52 PH_53 PH_54 PH_55 PH_211 PH_212 PH_717 PH_719 PH_722 PH_723 PH_725 PH_774" >
 				<UserParam type="float" name="Percolator_score" value="7.02828"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="1.5992e-08"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="627.82471" RT="1646.41" >
-			<PeptideHit score="2.70985e-08" sequence="LEPGGGAEAQAVR" charge="2" protein_refs="PH_385 PH_386 PH_653 PH_682" >
+			<PeptideHit score="2.70985e-08" sequence=".LEPGGGAEAQAVR." charge="2" protein_refs="PH_385 PH_386 PH_653 PH_682" >
 				<UserParam type="float" name="Percolator_score" value="6.79995"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="2.70985e-08"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="721.87775" RT="2878.99" >
-			<PeptideHit score="5.01392e-08" sequence="EAGAGGLSLAVEGPSK" charge="2" protein_refs="PH_59 PH_214 PH_215 PH_216 PH_217 PH_218 PH_219 PH_220 PH_385 PH_386 PH_622 PH_653 PH_682 PH_708 PH_842 PH_897 PH_898" >
+			<PeptideHit score="5.01392e-08" sequence=".EAGAGGLSLAVEGPSK." charge="2" protein_refs="PH_59 PH_214 PH_215 PH_216 PH_217 PH_218 PH_219 PH_220 PH_385 PH_386 PH_622 PH_653 PH_682 PH_708 PH_842 PH_897 PH_898" >
 				<UserParam type="float" name="Percolator_score" value="6.53355"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="5.01392e-08"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="619.28918" RT="2152.13" >
-			<PeptideHit score="1.26226e-07" sequence="SEETKENEGFTVTAEGK" charge="3" protein_refs="PH_196 PH_228 PH_592 PH_1086" >
+			<PeptideHit score="1.26226e-07" sequence=".SEETKENEGFTVTAEGK." charge="3" protein_refs="PH_196 PH_228 PH_592 PH_1086" >
 				<UserParam type="float" name="Percolator_score" value="6.13383"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="1.26226e-07"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="871.76086" RT="2726.33" >
-			<PeptideHit score="1.75446e-07" sequence="SEAEEALTSFN(Deamidated)GHKPPGSSEPLTVK" charge="3" protein_refs="PH_31 PH_405 PH_689 PH_816 PH_1085" >
+			<PeptideHit score="1.75446e-07" sequence=".SEAEEALTSFN(Deamidated)GHKPPGSSEPLTVK." charge="3" protein_refs="PH_31 PH_405 PH_689 PH_816 PH_1085" >
 				<UserParam type="float" name="Percolator_score" value="5.99128"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="1.75446e-07"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="716.36646" RT="2072.32" >
-			<PeptideHit score="2.51791e-07" sequence="VASSPVM(Oxidation)VSNPATR" charge="2" protein_refs="PH_23 PH_336 PH_337 PH_338 PH_638 PH_747" >
+			<PeptideHit score="2.51791e-07" sequence=".VASSPVM(Oxidation)VSNPATR." charge="2" protein_refs="PH_23 PH_336 PH_337 PH_338 PH_638 PH_747" >
 				<UserParam type="float" name="Percolator_score" value="5.83486"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="2.51791e-07"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="657.87396" RT="3407.52" >
-			<PeptideHit score="3.00493e-07" sequence="EHALLAYTLGVK" charge="2" protein_refs="PH_2 PH_353 PH_363 PH_427 PH_567 PH_573 PH_576 PH_577 PH_580 PH_584 PH_624 PH_634 PH_642 PH_659 PH_1103 PH_1136 PH_1138 PH_1141 PH_1144 PH_1146 PH_1150 PH_1153 PH_1155 PH_1156" >
+			<PeptideHit score="3.00493e-07" sequence=".EHALLAYTLGVK." charge="2" protein_refs="PH_2 PH_353 PH_363 PH_427 PH_567 PH_573 PH_576 PH_577 PH_580 PH_584 PH_624 PH_634 PH_642 PH_659 PH_1103 PH_1136 PH_1138 PH_1141 PH_1144 PH_1146 PH_1150 PH_1153 PH_1155 PH_1156" >
 				<UserParam type="float" name="Percolator_score" value="5.75831"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="3.00493e-07"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="772.3432" RT="1845.25" >
-			<PeptideHit score="4.41859e-07" sequence="FYEQM(Oxidation)N(Deamidated)GPVAGASR" charge="2" protein_refs="PH_82 PH_83 PH_84 PH_85 PH_86 PH_87 PH_88 PH_89 PH_92 PH_93 PH_95 PH_96 PH_97 PH_98 PH_139 PH_314 PH_315 PH_316 PH_317 PH_644 PH_785 PH_829 PH_838 PH_859 PH_937 PH_938 PH_939 PH_942 PH_943 PH_947 PH_950 PH_951 PH_952 PH_954 PH_955 PH_956 PH_959 PH_960 PH_961 PH_962 PH_964 PH_965 PH_966 PH_967 PH_969 PH_970 PH_1110 PH_1139 PH_1152" >
+			<PeptideHit score="4.41859e-07" sequence=".FYEQM(Oxidation)N(Deamidated)GPVAGASR." charge="2" protein_refs="PH_82 PH_83 PH_84 PH_85 PH_86 PH_87 PH_88 PH_89 PH_92 PH_93 PH_95 PH_96 PH_97 PH_98 PH_139 PH_314 PH_315 PH_316 PH_317 PH_644 PH_785 PH_829 PH_838 PH_859 PH_937 PH_938 PH_939 PH_942 PH_943 PH_947 PH_950 PH_951 PH_952 PH_954 PH_955 PH_956 PH_959 PH_960 PH_961 PH_962 PH_964 PH_965 PH_966 PH_967 PH_969 PH_970 PH_1110 PH_1139 PH_1152" >
 				<UserParam type="float" name="Percolator_score" value="5.59137"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="4.41859e-07"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="640.32916" RT="1950.76" >
-			<PeptideHit score="6.3732e-07" sequence="YLAEVAAGDDKK" charge="2" protein_refs="PH_26 PH_35 PH_72 PH_138 PH_349 PH_350 PH_691 PH_793 PH_794 PH_795 PH_796 PH_797 PH_798 PH_831 PH_881 PH_929 PH_930 PH_932 PH_933 PH_936 PH_1137" >
+			<PeptideHit score="6.3732e-07" sequence=".YLAEVAAGDDKK." charge="2" protein_refs="PH_26 PH_35 PH_72 PH_138 PH_349 PH_350 PH_691 PH_793 PH_794 PH_795 PH_796 PH_797 PH_798 PH_831 PH_881 PH_929 PH_930 PH_932 PH_933 PH_936 PH_1137" >
 				<UserParam type="float" name="Percolator_score" value="5.43278"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="6.3732e-07"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="602.85034" RT="3098.02" >
-			<PeptideHit score="7.92901e-07" sequence="TLMALGSLAVTK" charge="2" protein_refs="PH_140 PH_358 PH_610 PH_776 PH_941 PH_953 PH_957 PH_963" >
+			<PeptideHit score="7.92901e-07" sequence=".TLMALGSLAVTK." charge="2" protein_refs="PH_140 PH_358 PH_610 PH_776 PH_941 PH_953 PH_957 PH_963" >
 				<UserParam type="float" name="Percolator_score" value="5.3382"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="7.92901e-07"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="725.35535" RT="3439.5" >
-			<PeptideHit score="9.48615e-07" sequence="LEWLESHQDADLEDFKAK" charge="3" protein_refs="PH_279 PH_652" >
+			<PeptideHit score="9.48615e-07" sequence=".LEWLESHQDADLEDFKAK." charge="3" protein_refs="PH_279 PH_652" >
 				<UserParam type="float" name="Percolator_score" value="5.26056"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="9.48615e-07"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="578.83197" RT="2603.98" >
-			<PeptideHit score="1.00471e-06" sequence="VKGDVDVSLPK" charge="2" protein_refs="PH_376 PH_759" >
+			<PeptideHit score="1.00471e-06" sequence=".VKGDVDVSLPK." charge="2" protein_refs="PH_376 PH_759" >
 				<UserParam type="float" name="Percolator_score" value="5.23568"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="1.00471e-06"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="776.46204" RT="3500.05" >
-			<PeptideHit score="2.49494e-06" sequence="LVQVALNGLENLLR" charge="2" protein_refs="PH_99 PH_102 PH_131 PH_207 PH_213 PH_340 PH_676 PH_702 PH_736 PH_756 PH_775" >
+			<PeptideHit score="2.49494e-06" sequence=".LVQVALNGLENLLR." charge="2" protein_refs="PH_99 PH_102 PH_131 PH_207 PH_213 PH_340 PH_676 PH_702 PH_736 PH_756 PH_775" >
 				<UserParam type="float" name="Percolator_score" value="4.84174"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="2.49494e-06"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="671.32318" RT="2044.34" >
-			<PeptideHit score="3.66237e-06" sequence="YELEETETVTK" charge="2" protein_refs="PH_43 PH_73 PH_79 PH_101 PH_364 PH_365 PH_366 PH_367 PH_368 PH_369 PH_720 PH_724 PH_779 PH_826 PH_836 PH_840 PH_846 PH_861 PH_899" >
+			<PeptideHit score="3.66237e-06" sequence=".YELEETETVTK." charge="2" protein_refs="PH_43 PH_73 PH_79 PH_101 PH_364 PH_365 PH_366 PH_367 PH_368 PH_369 PH_720 PH_724 PH_779 PH_826 PH_836 PH_840 PH_846 PH_861 PH_899" >
 				<UserParam type="float" name="Percolator_score" value="4.67543"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="3.66237e-06"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="363.20432" RT="2784.99" >
-			<PeptideHit score="4.70247e-06" sequence="VVAGVANALAHKYH" charge="4" protein_refs="PH_232 PH_354 PH_666 PH_763" >
+			<PeptideHit score="4.70247e-06" sequence=".VVAGVANALAHKYH." charge="4" protein_refs="PH_232 PH_354 PH_666 PH_763" >
 				<UserParam type="float" name="Percolator_score" value="4.56709"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="4.70247e-06"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="701.8067" RT="912.458" >
-			<PeptideHit score="4.75611e-06" sequence="SDESDQQESLHK" charge="2" protein_refs="PH_123 PH_146 PH_335 PH_603 PH_999 PH_1007" >
+			<PeptideHit score="4.75611e-06" sequence=".SDESDQQESLHK." charge="2" protein_refs="PH_123 PH_146 PH_335 PH_603 PH_999 PH_1007" >
 				<UserParam type="float" name="Percolator_score" value="4.56217"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="4.75611e-06"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="522.80469" RT="1137.9" >
-			<PeptideHit score="4.8195e-06" sequence="TSTGAPAALKK" charge="2" protein_refs="PH_39 PH_60 PH_330 PH_331 PH_602 PH_817 PH_819 PH_820 PH_821 PH_854 PH_865 PH_869" >
+			<PeptideHit score="4.8195e-06" sequence=".TSTGAPAALKK." charge="2" protein_refs="PH_39 PH_60 PH_330 PH_331 PH_602 PH_817 PH_819 PH_820 PH_821 PH_854 PH_865 PH_869" >
 				<UserParam type="float" name="Percolator_score" value="4.55643"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="4.8195e-06"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="596.77612" RT="2303.32" >
-			<PeptideHit score="8.73504e-06" sequence="(Acetyl)EAESSPFVER" charge="2" protein_refs="PH_289 PH_627" >
+			<PeptideHit score="8.73504e-06" sequence=".(Acetyl)EAESSPFVER." charge="2" protein_refs="PH_289 PH_627" >
 				<UserParam type="float" name="Percolator_score" value="4.29846"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="8.73504e-06"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="745.88556" RT="2835.91" >
-			<PeptideHit score="9.82097e-06" sequence="NQYVTLHDM(Oxidation)LLK" charge="2" protein_refs="PH_28 PH_195 PH_346 PH_347 PH_618 PH_858 PH_979 PH_985 PH_1078 PH_1081 PH_1123" >
+			<PeptideHit score="9.82097e-06" sequence=".NQYVTLHDM(Oxidation)LLK." charge="2" protein_refs="PH_28 PH_195 PH_346 PH_347 PH_618 PH_858 PH_979 PH_985 PH_1078 PH_1081 PH_1123" >
 				<UserParam type="float" name="Percolator_score" value="4.24758"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="9.82097e-06"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="532.63049" RT="2532.44" >
-			<PeptideHit score="1.01462e-05" sequence="GLHQSTLDLKNELK" charge="3" protein_refs="PH_384 PH_643 PH_972" >
+			<PeptideHit score="1.01462e-05" sequence=".GLHQSTLDLKNELK." charge="3" protein_refs="PH_384 PH_643 PH_972" >
 				<UserParam type="float" name="Percolator_score" value="4.23343"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="1.01462e-05"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="1143.5902" RT="3304.6" >
-			<PeptideHit score="1.07591e-05" sequence="YTPVQQGPVGVNVTYGGDPLPK" charge="2" protein_refs="PH_291 PH_292 PH_420 PH_677 PH_714 PH_745 PH_746 PH_835 PH_1095" >
+			<PeptideHit score="1.07591e-05" sequence=".YTPVQQGPVGVNVTYGGDPLPK." charge="2" protein_refs="PH_291 PH_292 PH_420 PH_677 PH_714 PH_745 PH_746 PH_835 PH_1095" >
 				<UserParam type="float" name="Percolator_score" value="4.20795"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="1.07591e-05"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="586.2818" RT="2698.67" >
-			<PeptideHit score="2.34555e-05" sequence="SPFEVYVDKSQGDASK" charge="3" protein_refs="PH_113 PH_291 PH_292 PH_420 PH_677 PH_714 PH_745 PH_746 PH_833 PH_835 PH_1095" >
+			<PeptideHit score="2.34555e-05" sequence=".SPFEVYVDKSQGDASK." charge="3" protein_refs="PH_113 PH_291 PH_292 PH_420 PH_677 PH_714 PH_745 PH_746 PH_833 PH_835 PH_1095" >
 				<UserParam type="float" name="Percolator_score" value="3.86858"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="2.34555e-05"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="453.24112" RT="1930.62" >
-			<PeptideHit score="3.16384e-05" sequence="ATDVMLAGK" charge="2" protein_refs="PH_294 PH_295 PH_585 PH_974" >
+			<PeptideHit score="3.16384e-05" sequence=".ATDVMLAGK." charge="2" protein_refs="PH_294 PH_295 PH_585 PH_974" >
 				<UserParam type="float" name="Percolator_score" value="3.73764"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="3.16384e-05"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="422.55518" RT="3442.78" >
-			<PeptideHit score="3.20907e-05" sequence="TEFSLLHYAGK" charge="3" protein_refs="PH_326 PH_327 PH_328 PH_329 PH_628 PH_803 PH_876 PH_1068 PH_1096 PH_1108" >
+			<PeptideHit score="3.20907e-05" sequence=".TEFSLLHYAGK." charge="3" protein_refs="PH_326 PH_327 PH_328 PH_329 PH_628 PH_803 PH_876 PH_1068 PH_1096 PH_1108" >
 				<UserParam type="float" name="Percolator_score" value="3.73141"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="3.20907e-05"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="505.94232" RT="2944.82" >
-			<PeptideHit score="3.51185e-05" sequence="TLRDLEVVEGSAAR" charge="3" protein_refs="PH_406 PH_407 PH_408 PH_409 PH_410 PH_411 PH_412 PH_413 PH_414 PH_415 PH_416 PH_683 PH_697 PH_710 PH_713 PH_715 PH_828 PH_890 PH_1069 PH_1070" >
+			<PeptideHit score="3.51185e-05" sequence=".TLRDLEVVEGSAAR." charge="3" protein_refs="PH_406 PH_407 PH_408 PH_409 PH_410 PH_411 PH_412 PH_413 PH_414 PH_415 PH_416 PH_683 PH_697 PH_710 PH_713 PH_715 PH_828 PH_890 PH_1069 PH_1070" >
 				<UserParam type="float" name="Percolator_score" value="3.69185"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="3.51185e-05"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="598.2746" RT="1630.22" >
-			<PeptideHit score="4.09639e-05" sequence="WCALSHHER" charge="2" protein_refs="PH_179 PH_242 PH_809" >
+			<PeptideHit score="4.09639e-05" sequence=".WCALSHHER." charge="2" protein_refs="PH_179 PH_242 PH_809" >
 				<UserParam type="float" name="Percolator_score" value="3.62415"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="4.09639e-05"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="614.34271" RT="3247.74" >
-			<PeptideHit score="6.07926e-05" sequence="EVM(Oxidation)LLLTGAHK" charge="2" protein_refs="PH_36 PH_49 PH_50 PH_70 PH_333 PH_444 PH_445 PH_446 PH_447 PH_448 PH_484 PH_620 PH_639 PH_901 PH_904 PH_906 PH_908 PH_910 PH_911 PH_914 PH_920 PH_1094" >
+			<PeptideHit score="6.07926e-05" sequence=".EVM(Oxidation)LLLTGAHK." charge="2" protein_refs="PH_36 PH_49 PH_50 PH_70 PH_333 PH_444 PH_445 PH_446 PH_447 PH_448 PH_484 PH_620 PH_639 PH_901 PH_904 PH_906 PH_908 PH_910 PH_911 PH_914 PH_920 PH_1094" >
 				<UserParam type="float" name="Percolator_score" value="3.44948"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="6.07926e-05"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="480.78506" RT="3493.94" >
-			<PeptideHit score="6.3855e-05" sequence="FQNALLVR" charge="2" protein_refs="PH_9 PH_34 PH_45 PH_51 PH_136 PH_240 PH_241 PH_621 PH_807 PH_825 PH_903 PH_912 PH_916 PH_1118 PH_1120" >
+			<PeptideHit score="6.3855e-05" sequence=".FQNALLVR." charge="2" protein_refs="PH_9 PH_34 PH_45 PH_51 PH_136 PH_240 PH_241 PH_621 PH_807 PH_825 PH_903 PH_912 PH_916 PH_1118 PH_1120" >
 				<UserParam type="float" name="Percolator_score" value="3.4276"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="6.3855e-05"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="473.23645" RT="1715.59" >
-			<PeptideHit score="6.62984e-05" sequence="DLSTNYYASQKK" charge="3" protein_refs="PH_144 PH_289 PH_627 PH_994" >
+			<PeptideHit score="6.62984e-05" sequence=".DLSTNYYASQKK." charge="3" protein_refs="PH_144 PH_289 PH_627 PH_994" >
 				<UserParam type="float" name="Percolator_score" value="3.41086"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="6.62984e-05"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="961.95966" RT="2525.59" >
-			<PeptideHit score="7.52191e-05" sequence="DLQM(Oxidation)TQSPSSLSVSVGDR" charge="2" protein_refs="PH_229" >
+			<PeptideHit score="7.52191e-05" sequence=".DLQM(Oxidation)TQSPSSLSVSVGDR." charge="2" protein_refs="PH_229" >
 				<UserParam type="float" name="Percolator_score" value="3.3544"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="7.52191e-05"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="525.26251" RT="2586.03" >
-			<PeptideHit score="9.5912e-05" sequence="HTNFVEFR" charge="2" protein_refs="PH_197 PH_198 PH_199 PH_341 PH_601 PH_1087 PH_1090 PH_1091" >
+			<PeptideHit score="9.5912e-05" sequence=".HTNFVEFR." charge="2" protein_refs="PH_197 PH_198 PH_199 PH_341 PH_601 PH_1087 PH_1090 PH_1091" >
 				<UserParam type="float" name="Percolator_score" value="3.24482"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="9.5912e-05"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="633.38092" RT="3300.56" >
-			<PeptideHit score="0.000121753" sequence="VVLAPQDVVVAR" charge="2" protein_refs="PH_378 PH_379 PH_380 PH_381 PH_382 PH_383 PH_440 PH_588 PH_589 PH_680 PH_686 PH_690 PH_885 PH_892" >
+			<PeptideHit score="0.000121753" sequence=".VVLAPQDVVVAR." charge="2" protein_refs="PH_378 PH_379 PH_380 PH_381 PH_382 PH_383 PH_440 PH_588 PH_589 PH_680 PH_686 PH_690 PH_885 PH_892" >
 				<UserParam type="float" name="Percolator_score" value="3.13577"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.000121753"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="673.72321" RT="3106.63" >
-			<PeptideHit score="0.00013089" sequence="LKPEDLTQLQPQQLVLR" charge="3" protein_refs="PH_47 PH_62 PH_65 PH_68 PH_91 PH_247 PH_248 PH_249 PH_250 PH_251 PH_422 PH_630 PH_800 PH_837 PH_849 PH_888 PH_889 PH_891 PH_894 PH_968" >
+			<PeptideHit score="0.00013089" sequence=".LKPEDLTQLQPQQLVLR." charge="3" protein_refs="PH_47 PH_62 PH_65 PH_68 PH_91 PH_247 PH_248 PH_249 PH_250 PH_251 PH_422 PH_630 PH_800 PH_837 PH_849 PH_888 PH_889 PH_891 PH_894 PH_968" >
 				<UserParam type="float" name="Percolator_score" value="3.10231"/>
 				<UserParam type="float" name="Percolator_qvalue" value="2.28599e-05"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.00013089"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="465.2739" RT="1931.52" >
-			<PeptideHit score="0.000176679" sequence="QVNLTVQK" charge="2" protein_refs="PH_165 PH_170 PH_475 PH_599 PH_1047 PH_1060" >
+			<PeptideHit score="0.000176679" sequence=".QVNLTVQK." charge="2" protein_refs="PH_165 PH_170 PH_475 PH_599 PH_1047 PH_1060" >
 				<UserParam type="float" name="Percolator_score" value="2.96175"/>
 				<UserParam type="float" name="Percolator_qvalue" value="4.11168e-05"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.000176679"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="744.89307" RT="1335.79" >
-			<PeptideHit score="0.000184873" sequence="RKPDTLEVQQM(Oxidation)K" charge="2" protein_refs="PH_0 PH_61 PH_290 PH_298 PH_321 PH_322 PH_323 PH_574 PH_575 PH_579 PH_669 PH_674 PH_712 PH_727 PH_773 PH_813 PH_946 PH_958 PH_984 PH_1133 PH_1143 PH_1151" >
+			<PeptideHit score="0.000184873" sequence=".RKPDTLEVQQM(Oxidation)K." charge="2" protein_refs="PH_0 PH_61 PH_290 PH_298 PH_321 PH_322 PH_323 PH_574 PH_575 PH_579 PH_669 PH_674 PH_712 PH_727 PH_773 PH_813 PH_946 PH_958 PH_984 PH_1133 PH_1143 PH_1151" >
 				<UserParam type="float" name="Percolator_score" value="2.94029"/>
 				<UserParam type="float" name="Percolator_qvalue" value="4.11168e-05"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.000184873"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="655.29285" RT="1964.03" >
-			<PeptideHit score="0.000185547" sequence="EVEVEVESM(Oxidation)DK" charge="2" protein_refs="PH_436 PH_696" >
+			<PeptideHit score="0.000185547" sequence=".EVEVEVESM(Oxidation)DK." charge="2" protein_refs="PH_436 PH_696" >
 				<UserParam type="float" name="Percolator_score" value="2.93857"/>
 				<UserParam type="float" name="Percolator_qvalue" value="4.11168e-05"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.000185547"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="646.33569" RT="2494.06" >
-			<PeptideHit score="0.000212455" sequence="AQSLEPYGTGLR" charge="2" protein_refs="PH_194 PH_431 PH_432 PH_433 PH_1072 PH_1076 PH_1077 PH_1082" >
+			<PeptideHit score="0.000212455" sequence=".AQSLEPYGTGLR." charge="2" protein_refs="PH_194 PH_431 PH_432 PH_433 PH_1072 PH_1076 PH_1077 PH_1082" >
 				<UserParam type="float" name="Percolator_score" value="2.87421"/>
 				<UserParam type="float" name="Percolator_qvalue" value="4.11168e-05"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.000212455"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="660.26282" RT="1490.8" >
-			<PeptideHit score="0.000213763" sequence="YTM(Oxidation)GDAPDYDR" charge="2" protein_refs="PH_40 PH_71 PH_80 PH_81 PH_90 PH_107 PH_168 PH_266 PH_267 PH_299 PH_300 PH_359 PH_360 PH_361 PH_590 PH_637 PH_654 PH_667 PH_687 PH_739 PH_740 PH_741 PH_742 PH_743 PH_744 PH_860 PH_882 PH_884 PH_893" >
+			<PeptideHit score="0.000213763" sequence=".YTM(Oxidation)GDAPDYDR." charge="2" protein_refs="PH_40 PH_71 PH_80 PH_81 PH_90 PH_107 PH_168 PH_266 PH_267 PH_299 PH_300 PH_359 PH_360 PH_361 PH_590 PH_637 PH_654 PH_667 PH_687 PH_739 PH_740 PH_741 PH_742 PH_743 PH_744 PH_860 PH_882 PH_884 PH_893" >
 				<UserParam type="float" name="Percolator_score" value="2.87129"/>
 				<UserParam type="float" name="Percolator_qvalue" value="4.11168e-05"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.000213763"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="813.32916" RT="1266.09" >
-			<PeptideHit score="0.000262028" sequence="LECDDKGDGSCDVR" charge="2" protein_refs="PH_291 PH_292 PH_385 PH_386 PH_420 PH_653 PH_677 PH_682 PH_714 PH_745 PH_746 PH_835 PH_1095" >
+			<PeptideHit score="0.000262028" sequence=".LECDDKGDGSCDVR." charge="2" protein_refs="PH_291 PH_292 PH_385 PH_386 PH_420 PH_653 PH_677 PH_682 PH_714 PH_745 PH_746 PH_835 PH_1095" >
 				<UserParam type="float" name="Percolator_score" value="2.77394"/>
 				<UserParam type="float" name="Percolator_qvalue" value="5.68587e-05"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.000262028"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="663.6684" RT="2273.32" >
-			<PeptideHit score="0.000277701" sequence="VNPFRPGDSEPPPAPGAQR" charge="3" protein_refs="PH_42 PH_128 PH_417 PH_649 PH_693 PH_880" >
+			<PeptideHit score="0.000277701" sequence=".VNPFRPGDSEPPPAPGAQR." charge="3" protein_refs="PH_42 PH_128 PH_417 PH_649 PH_693 PH_880" >
 				<UserParam type="float" name="Percolator_score" value="2.74607"/>
 				<UserParam type="float" name="Percolator_qvalue" value="5.68587e-05"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.000277701"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="572.59875" RT="1543.09" >
-			<PeptideHit score="0.000322851" sequence="QEPERN(Deamidated)ECFLQHK" charge="3" protein_refs="PH_9 PH_176 PH_240 PH_621 PH_857 PH_912 PH_1118 PH_1120" >
+			<PeptideHit score="0.000322851" sequence=".QEPERN(Deamidated)ECFLQHK." charge="3" protein_refs="PH_9 PH_176 PH_240 PH_621 PH_857 PH_912 PH_1118 PH_1120" >
 				<UserParam type="float" name="Percolator_score" value="2.67373"/>
 				<UserParam type="float" name="Percolator_qvalue" value="5.68587e-05"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.000322851"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="717.35742" RT="2615.44" >
-			<PeptideHit score="0.00034272" sequence="AYGPGLEPTGNMVK" charge="2" protein_refs="PH_113 PH_291 PH_292 PH_420 PH_677 PH_714 PH_745 PH_746 PH_833 PH_835 PH_1095" >
+			<PeptideHit score="0.00034272" sequence=".AYGPGLEPTGNMVK." charge="2" protein_refs="PH_113 PH_291 PH_292 PH_420 PH_677 PH_714 PH_745 PH_746 PH_833 PH_835 PH_1095" >
 				<UserParam type="float" name="Percolator_score" value="2.64505"/>
 				<UserParam type="float" name="Percolator_qvalue" value="5.68587e-05"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.00034272"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="425.48462" RT="2830.36" >
-			<PeptideHit score="0.000344529" sequence="TGVELGKPTHFTVNAK" charge="4" protein_refs="PH_291 PH_292 PH_420 PH_677 PH_714 PH_745 PH_746 PH_835 PH_1095" >
+			<PeptideHit score="0.000344529" sequence=".TGVELGKPTHFTVNAK." charge="4" protein_refs="PH_291 PH_292 PH_420 PH_677 PH_714 PH_745 PH_746 PH_835 PH_1095" >
 				<UserParam type="float" name="Percolator_score" value="2.64252"/>
 				<UserParam type="float" name="Percolator_qvalue" value="5.68587e-05"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.000344529"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="558.92828" RT="2461.58" >
-			<PeptideHit score="0.000437424" sequence="LSPQFPNEEDSFHK" charge="3" protein_refs="PH_335 PH_603" >
+			<PeptideHit score="0.000437424" sequence=".LSPQFPNEEDSFHK." charge="3" protein_refs="PH_335 PH_603" >
 				<UserParam type="float" name="Percolator_score" value="2.52804"/>
 				<UserParam type="float" name="Percolator_qvalue" value="6.99035e-05"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.000437424"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="585.95319" RT="3414.38" >
-			<PeptideHit score="0.000481293" sequence="VFDKDGN(Deamidated)GYLSAAELR" charge="3" protein_refs="PH_57 PH_67 PH_121 PH_133 PH_348 PH_467 PH_609 PH_616 PH_703 PH_772 PH_818 PH_866 PH_879 PH_983 PH_1000 PH_1011 PH_1083 PH_1084 PH_1088 PH_1089" >
+			<PeptideHit score="0.000481293" sequence=".VFDKDGN(Deamidated)GYLSAAELR." charge="3" protein_refs="PH_57 PH_67 PH_121 PH_133 PH_348 PH_467 PH_609 PH_616 PH_703 PH_772 PH_818 PH_866 PH_879 PH_983 PH_1000 PH_1011 PH_1083 PH_1084 PH_1088 PH_1089" >
 				<UserParam type="float" name="Percolator_score" value="2.48232"/>
 				<UserParam type="float" name="Percolator_qvalue" value="6.99035e-05"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.000481293"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="411.56995" RT="2371.79" >
-			<PeptideHit score="0.000498166" sequence="SNFKPSLLAQK" charge="3" protein_refs="PH_44 PH_76 PH_461 PH_462 PH_617 PH_766 PH_822 PH_844 PH_855 PH_1121" >
+			<PeptideHit score="0.000498166" sequence=".SNFKPSLLAQK." charge="3" protein_refs="PH_44 PH_76 PH_461 PH_462 PH_617 PH_766 PH_822 PH_844 PH_855 PH_1121" >
 				<UserParam type="float" name="Percolator_score" value="2.46586"/>
 				<UserParam type="float" name="Percolator_qvalue" value="6.99035e-05"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.000498166"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="430.2381" RT="2030.02" >
-			<PeptideHit score="0.000531473" sequence="LQLPNM(Oxidation)K" charge="2" protein_refs="PH_116 PH_125 PH_145 PH_458 PH_459 PH_460 PH_672 PH_675 PH_792 PH_806 PH_998 PH_1002 PH_1003 PH_1006" >
+			<PeptideHit score="0.000531473" sequence=".LQLPNM(Oxidation)K." charge="2" protein_refs="PH_116 PH_125 PH_145 PH_458 PH_459 PH_460 PH_672 PH_675 PH_792 PH_806 PH_998 PH_1002 PH_1003 PH_1006" >
 				<UserParam type="float" name="Percolator_score" value="2.43497"/>
 				<UserParam type="float" name="Percolator_qvalue" value="6.99035e-05"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.000531473"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="463.27121" RT="2707.23" >
-			<PeptideHit score="0.000603366" sequence="VPSGLPDLK" charge="2" protein_refs="PH_293 PH_660" >
+			<PeptideHit score="0.000603366" sequence=".VPSGLPDLK." charge="2" protein_refs="PH_293 PH_660" >
 				<UserParam type="float" name="Percolator_score" value="2.37455"/>
 				<UserParam type="float" name="Percolator_qvalue" value="6.99035e-05"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.000603366"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="503.7821" RT="2660.72" >
-			<PeptideHit score="0.000613454" sequence="LVLEYVDR" charge="2" protein_refs="PH_66 PH_126 PH_246 PH_783 PH_784 PH_917" >
+			<PeptideHit score="0.000613454" sequence=".LVLEYVDR." charge="2" protein_refs="PH_66 PH_126 PH_246 PH_783 PH_784 PH_917" >
 				<UserParam type="float" name="Percolator_score" value="2.36667"/>
 				<UserParam type="float" name="Percolator_qvalue" value="6.99035e-05"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.000613454"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="365.2341" RT="2550.23" >
-			<PeptideHit score="0.000698664" sequence="ATVGLLR" charge="2" protein_refs="PH_30 PH_320 PH_541 PH_542 PH_543 PH_544 PH_545 PH_688 PH_801 PH_802 PH_814 PH_877" >
+			<PeptideHit score="0.000698664" sequence=".ATVGLLR." charge="2" protein_refs="PH_30 PH_320 PH_541 PH_542 PH_543 PH_544 PH_545 PH_688 PH_801 PH_802 PH_814 PH_877" >
 				<UserParam type="float" name="Percolator_score" value="2.30486"/>
 				<UserParam type="float" name="Percolator_qvalue" value="8.72312e-05"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.000698664"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="447.25858" RT="2796.88" >
-			<PeptideHit score="0.000718741" sequence="TLLFSGQK" charge="2" protein_refs="PH_373 PH_591" >
+			<PeptideHit score="0.000718741" sequence=".TLLFSGQK." charge="2" protein_refs="PH_373 PH_591" >
 				<UserParam type="float" name="Percolator_score" value="2.29139"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.000102579"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.000718741"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="440.72366" RT="1790.49" >
-			<PeptideHit score="0.00076526" sequence="AEFAEVSK" charge="2" protein_refs="PH_9 PH_34 PH_45 PH_51 PH_136 PH_240 PH_241 PH_621 PH_807 PH_825 PH_903 PH_912 PH_916" >
+			<PeptideHit score="0.00076526" sequence=".AEFAEVSK." charge="2" protein_refs="PH_9 PH_34 PH_45 PH_51 PH_136 PH_240 PH_241 PH_621 PH_807 PH_825 PH_903 PH_912 PH_916" >
 				<UserParam type="float" name="Percolator_score" value="2.26159"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.000102579"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.00076526"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="614.65961" RT="2560.2" >
-			<PeptideHit score="0.00088215" sequence="HVVPAQVHVN(Deamidated)GGALASER" charge="3" protein_refs="PH_63 PH_75 PH_77 PH_474 PH_582 PH_832 PH_843 PH_864 PH_1097 PH_1102" >
+			<PeptideHit score="0.00088215" sequence=".HVVPAQVHVN(Deamidated)GGALASER." charge="3" protein_refs="PH_63 PH_75 PH_77 PH_474 PH_582 PH_832 PH_843 PH_864 PH_1097 PH_1102" >
 				<UserParam type="float" name="Percolator_score" value="2.19403"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.000116791"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.00088215"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="519.25708" RT="2498.24" >
-			<PeptideHit score="0.00096205" sequence="(Acetyl)VNFAM(Oxidation)NVGK" charge="2" protein_refs="PH_286 PH_287 PH_288 PH_419 PH_647 PH_665 PH_767 PH_872 PH_1044 PH_1045 PH_1059 PH_1061" >
+			<PeptideHit score="0.00096205" sequence=".(Acetyl)VNFAM(Oxidation)NVGK." charge="2" protein_refs="PH_286 PH_287 PH_288 PH_419 PH_647 PH_665 PH_767 PH_872 PH_1044 PH_1045 PH_1059 PH_1061" >
 				<UserParam type="float" name="Percolator_score" value="2.15281"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.000132074"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.00096205"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="465.91821" RT="2796" >
-			<PeptideHit score="0.000965824" sequence="VEHGSVALPALM(Oxidation)R" charge="3" protein_refs="PH_425 PH_482 PH_641" >
+			<PeptideHit score="0.000965824" sequence=".VEHGSVALPALM(Oxidation)R." charge="3" protein_refs="PH_425 PH_482 PH_641" >
 				<UserParam type="float" name="Percolator_score" value="2.15095"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.000132074"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.000965824"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="589.34381" RT="3432.2" >
-			<PeptideHit score="0.00097655" sequence="EKGDYLLLVK" charge="2" protein_refs="PH_385 PH_386 PH_653 PH_682" >
+			<PeptideHit score="0.00097655" sequence=".EKGDYLLLVK." charge="2" protein_refs="PH_385 PH_386 PH_653 PH_682" >
 				<UserParam type="float" name="Percolator_score" value="2.1457"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.000132074"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.00097655"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="492.8963" RT="1268.73" >
-			<PeptideHit score="0.00097782" sequence="LEEAEKAADESER" charge="3" protein_refs="PH_5 PH_19 PH_37 PH_48 PH_104 PH_147 PH_148 PH_150 PH_152 PH_153 PH_161 PH_175 PH_180 PH_190 PH_191 PH_193 PH_252 PH_253 PH_254 PH_255 PH_256 PH_261 PH_262 PH_263 PH_268 PH_269 PH_270 PH_271 PH_272 PH_273 PH_274 PH_275 PH_276 PH_277 PH_351 PH_352 PH_424 PH_426 PH_428 PH_429 PH_435 PH_605 PH_608 PH_613 PH_629 PH_645 PH_651 PH_655 PH_656 PH_657 PH_664 PH_671 PH_678 PH_706 PH_707 PH_716 PH_733 PH_734 PH_735 PH_760 PH_761 PH_810 PH_811 PH_913 PH_1015 PH_1020 PH_1021 PH_1022 PH_1024 PH_1030 PH_1031 PH_1033 PH_1034 PH_1071 PH_1073 PH_1074 PH_1098 PH_1132 PH_1134 PH_1147 PH_1154" >
+			<PeptideHit score="0.00097782" sequence=".LEEAEKAADESER." charge="3" protein_refs="PH_5 PH_19 PH_37 PH_48 PH_104 PH_147 PH_148 PH_150 PH_152 PH_153 PH_161 PH_175 PH_180 PH_190 PH_191 PH_193 PH_252 PH_253 PH_254 PH_255 PH_256 PH_261 PH_262 PH_263 PH_268 PH_269 PH_270 PH_271 PH_272 PH_273 PH_274 PH_275 PH_276 PH_277 PH_351 PH_352 PH_424 PH_426 PH_428 PH_429 PH_435 PH_605 PH_608 PH_613 PH_629 PH_645 PH_651 PH_655 PH_656 PH_657 PH_664 PH_671 PH_678 PH_706 PH_707 PH_716 PH_733 PH_734 PH_735 PH_760 PH_761 PH_810 PH_811 PH_913 PH_1015 PH_1020 PH_1021 PH_1022 PH_1024 PH_1030 PH_1031 PH_1033 PH_1034 PH_1071 PH_1073 PH_1074 PH_1098 PH_1132 PH_1134 PH_1147 PH_1154" >
 				<UserParam type="float" name="Percolator_score" value="2.14508"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.000132074"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.00097782"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="361.85358" RT="1714.94" >
-			<PeptideHit score="0.00101867" sequence="VYLYHSSSK" charge="3" protein_refs="PH_29 PH_135 PH_189 PH_296 PH_297 PH_581 PH_648 PH_915 PH_918" >
+			<PeptideHit score="0.00101867" sequence=".VYLYHSSSK." charge="3" protein_refs="PH_29 PH_135 PH_189 PH_296 PH_297 PH_581 PH_648 PH_915 PH_918" >
 				<UserParam type="float" name="Percolator_score" value="2.12562"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.000132074"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.00101867"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="483.24051" RT="2183.66" >
-			<PeptideHit score="0.00114547" sequence="VDFNVPM(Oxidation)K" charge="2" protein_refs="PH_64 PH_221 PH_257 PH_633 PH_755" >
+			<PeptideHit score="0.00114547" sequence=".VDFNVPM(Oxidation)K." charge="2" protein_refs="PH_64 PH_221 PH_257 PH_633 PH_755" >
 				<UserParam type="float" name="Percolator_score" value="2.06983"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.000144798"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.00114547"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="504.74222" RT="1377.49" >
-			<PeptideHit score="0.00125862" sequence="SLM(Oxidation)SADNVR" charge="2" protein_refs="PH_209 PH_668" >
+			<PeptideHit score="0.00125862" sequence=".SLM(Oxidation)SADNVR." charge="2" protein_refs="PH_209 PH_668" >
 				<UserParam type="float" name="Percolator_score" value="2.02503"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.000173319"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.00125862"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="525.58398" RT="2676.85" >
-			<PeptideHit score="0.00132883" sequence="QVDVTSFAGHPCTR" charge="3" protein_refs="PH_132 PH_200 PH_201 PH_202 PH_203 PH_204 PH_205 PH_206 PH_762 PH_830 PH_1116" >
+			<PeptideHit score="0.00132883" sequence=".QVDVTSFAGHPCTR." charge="3" protein_refs="PH_132 PH_200 PH_201 PH_202 PH_203 PH_204 PH_205 PH_206 PH_762 PH_830 PH_1116" >
 				<UserParam type="float" name="Percolator_score" value="1.99921"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.000173319"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.00132883"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="575.31378" RT="2777.5" >
-			<PeptideHit score="0.00143597" sequence="LVNEVTEFAK" charge="2" protein_refs="PH_9 PH_176 PH_240 PH_621 PH_857 PH_912 PH_1118 PH_1120" >
+			<PeptideHit score="0.00143597" sequence=".LVNEVTEFAK." charge="2" protein_refs="PH_9 PH_176 PH_240 PH_621 PH_857 PH_912 PH_1118 PH_1120" >
 				<UserParam type="float" name="Percolator_score" value="1.9623"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.000173319"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.00143597"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="464.21664" RT="1155.55" >
-			<PeptideHit score="0.00172556" sequence="CQYVTEK" charge="2" protein_refs="PH_164 PH_167 PH_183 PH_243 PH_244 PH_278 PH_587 PH_670 PH_788 PH_789 PH_790 PH_823 PH_1036 PH_1037 PH_1042 PH_1043 PH_1053 PH_1064 PH_1065" >
+			<PeptideHit score="0.00172556" sequence=".CQYVTEK." charge="2" protein_refs="PH_164 PH_167 PH_183 PH_243 PH_244 PH_278 PH_587 PH_670 PH_788 PH_789 PH_790 PH_823 PH_1036 PH_1037 PH_1042 PH_1043 PH_1053 PH_1064 PH_1065" >
 				<UserParam type="float" name="Percolator_score" value="1.87479"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.000198798"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.00172556"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="379.21075" RT="3171.84" >
-			<PeptideHit score="0.00182324" sequence="FKM(Oxidation)PELNLK" charge="3" protein_refs="PH_376 PH_759" >
+			<PeptideHit score="0.00182324" sequence=".FKM(Oxidation)PELNLK." charge="3" protein_refs="PH_376 PH_759" >
 				<UserParam type="float" name="Percolator_score" value="1.8485"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.000212479"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.00182324"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="442.76447" RT="2988.18" >
-			<PeptideHit score="0.00207556" sequence="(Acetyl)VATVSLPR" charge="2" protein_refs="PH_7" >
+			<PeptideHit score="0.00207556" sequence=".(Acetyl)VATVSLPR." charge="2" protein_refs="PH_7" >
 				<UserParam type="float" name="Percolator_score" value="1.7864"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.000268723"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.00207556"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="431.55176" RT="762.55" >
-			<PeptideHit score="0.00253864" sequence="HM(Oxidation)QANPEPPKK" charge="3" protein_refs="PH_402 PH_403 PH_681 PH_758 PH_1092" >
+			<PeptideHit score="0.00253864" sequence=".HM(Oxidation)QANPEPPKK." charge="3" protein_refs="PH_402 PH_403 PH_681 PH_758 PH_1092" >
 				<UserParam type="float" name="Percolator_score" value="1.68922"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.000320239"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.00253864"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="395.23944" RT="2103.35" >
-			<PeptideHit score="0.00284701" sequence="LVTDLTK" charge="2" protein_refs="PH_9 PH_10 PH_34 PH_45 PH_51 PH_136 PH_240 PH_241 PH_621 PH_807 PH_825 PH_903 PH_912 PH_916" >
+			<PeptideHit score="0.00284701" sequence=".LVTDLTK." charge="2" protein_refs="PH_9 PH_10 PH_34 PH_45 PH_51 PH_136 PH_240 PH_241 PH_621 PH_807 PH_825 PH_903 PH_912 PH_916" >
 				<UserParam type="float" name="Percolator_score" value="1.63365"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.000371014"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.00284701"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="450.9129" RT="2783.38" >
-			<PeptideHit score="0.00289274" sequence="TAAENEFVTLKK" charge="3" protein_refs="PH_8 PH_11 PH_12 PH_13 PH_14 PH_188 PH_233 PH_245 PH_280 PH_334 PH_594 PH_595 PH_658 PH_827" >
+			<PeptideHit score="0.00289274" sequence=".TAAENEFVTLKK." charge="3" protein_refs="PH_8 PH_11 PH_12 PH_13 PH_14 PH_188 PH_233 PH_245 PH_280 PH_334 PH_594 PH_595 PH_658 PH_827" >
 				<UserParam type="float" name="Percolator_score" value="1.62591"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.000371014"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.00289274"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="439.74139" RT="3590.06" >
-			<PeptideHit score="0.00292163" sequence="FVADLWK" charge="2" protein_refs="PH_326 PH_327 PH_328 PH_329 PH_628 PH_803 PH_876 PH_1068 PH_1096 PH_1108" >
+			<PeptideHit score="0.00292163" sequence=".FVADLWK." charge="2" protein_refs="PH_326 PH_327 PH_328 PH_329 PH_628 PH_803 PH_876 PH_1068 PH_1096 PH_1108" >
 				<UserParam type="float" name="Percolator_score" value="1.62109"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.000371014"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.00292163"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="452.58298" RT="2886.61" >
-			<PeptideHit score="0.00299626" sequence="VTGEVHLGGVM(Oxidation)LK" charge="3" protein_refs="PH_116 PH_122 PH_458 PH_459 PH_460 PH_672 PH_675 PH_792 PH_806 PH_998 PH_1003 PH_1012" >
+			<PeptideHit score="0.00299626" sequence=".VTGEVHLGGVM(Oxidation)LK." charge="3" protein_refs="PH_116 PH_122 PH_458 PH_459 PH_460 PH_672 PH_675 PH_792 PH_806 PH_998 PH_1003 PH_1012" >
 				<UserParam type="float" name="Percolator_score" value="1.60885"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.000371014"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.00299626"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="360.18124" RT="1413.26" >
-			<PeptideHit score="0.00383368" sequence="FLENEDRR" charge="3" protein_refs="PH_225 PH_226 PH_227 PH_699 PH_777 PH_778 PH_808 PH_812 PH_850 PH_856 PH_868 PH_871 PH_896" >
+			<PeptideHit score="0.00383368" sequence=".FLENEDRR." charge="3" protein_refs="PH_225 PH_226 PH_227 PH_699 PH_777 PH_778 PH_808 PH_812 PH_850 PH_856 PH_868 PH_871 PH_896" >
 				<UserParam type="float" name="Percolator_score" value="1.48919"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.000510326"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.00383368"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="489.31235" RT="2716.22" >
-			<PeptideHit score="0.0050008" sequence="KLELHLPK" charge="2" protein_refs="PH_313 PH_625 PH_1004 PH_1010" >
+			<PeptideHit score="0.0050008" sequence=".KLELHLPK." charge="2" protein_refs="PH_313 PH_625 PH_1004 PH_1010" >
 				<UserParam type="float" name="Percolator_score" value="1.36197"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.000578424"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.0050008"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="546.57996" RT="1004.75" >
-			<PeptideHit score="0.005938" sequence="LGREEPAM(Oxidation)SM(Oxidation)DANGK" charge="3" protein_refs="PH_32 PH_324 PH_663 PH_909" >
+			<PeptideHit score="0.005938" sequence=".LGREEPAM(Oxidation)SM(Oxidation)DANGK." charge="3" protein_refs="PH_32 PH_324 PH_663 PH_909" >
 				<UserParam type="float" name="Percolator_score" value="1.28237"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.000726094"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.005938"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="517.28729" RT="2307.21" >
-			<PeptideHit score="0.00633558" sequence="YVPGVGNVTK" charge="2" protein_refs="PH_441 PH_442 PH_615 PH_986 PH_1062" >
+			<PeptideHit score="0.00633558" sequence=".YVPGVGNVTK." charge="2" protein_refs="PH_441 PH_442 PH_615 PH_986 PH_1062" >
 				<UserParam type="float" name="Percolator_score" value="1.25301"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.000760157"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.00633558"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="451.27832" RT="3344.97" >
-			<PeptideHit score="0.00646756" sequence="GPFLVALGK" charge="2" protein_refs="PH_105 PH_134 PH_463 PH_464 PH_465 PH_466 PH_646 PH_851 PH_905 PH_907 PH_921 PH_980 PH_1104" >
+			<PeptideHit score="0.00646756" sequence=".GPFLVALGK." charge="2" protein_refs="PH_105 PH_134 PH_463 PH_464 PH_465 PH_466 PH_646 PH_851 PH_905 PH_907 PH_921 PH_980 PH_1104" >
 				<UserParam type="float" name="Percolator_score" value="1.24376"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.000772162"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.00646756"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="469.26465" RT="1783.6" >
-			<PeptideHit score="0.00671406" sequence="LLHTYYK" charge="2" protein_refs="PH_33 PH_169 PH_472 PH_661 PH_764 PH_791 PH_805 PH_1039 PH_1051 PH_1052" >
+			<PeptideHit score="0.00671406" sequence=".LLHTYYK." charge="2" protein_refs="PH_33 PH_169 PH_472 PH_661 PH_764 PH_791 PH_805 PH_1039 PH_1051 PH_1052" >
 				<UserParam type="float" name="Percolator_score" value="1.2271"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.000782926"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.00671406"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="429.48587" RT="1838.93" >
-			<PeptideHit score="0.00767686" sequence="LDSEDKDKEGKPLLK" charge="4" protein_refs="PH_285 PH_635" >
+			<PeptideHit score="0.00767686" sequence=".LDSEDKDKEGKPLLK." charge="4" protein_refs="PH_285 PH_635" >
 				<UserParam type="float" name="Percolator_score" value="1.16869"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.000861273"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.00767686"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="423.73737" RT="1581.19" >
-			<PeptideHit score="0.00788465" sequence="ATEVTVAR" charge="2" protein_refs="PH_100 PH_112 PH_130 PH_163 PH_166 PH_477 PH_478 PH_479 PH_480 PH_481 PH_614 PH_721 PH_753 PH_754 PH_1040 PH_1058" >
+			<PeptideHit score="0.00788465" sequence=".ATEVTVAR." charge="2" protein_refs="PH_100 PH_112 PH_130 PH_163 PH_166 PH_477 PH_478 PH_479 PH_480 PH_481 PH_614 PH_721 PH_753 PH_754 PH_1040 PH_1058" >
 				<UserParam type="float" name="Percolator_score" value="1.15731"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.00087327"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.00788465"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="368.20523" RT="2167.57" >
-			<PeptideHit score="0.00806222" sequence="GDVAFVK" charge="2" protein_refs="PH_16 PH_17 PH_18 PH_177 PH_179 PH_242 PH_809 PH_883" >
+			<PeptideHit score="0.00806222" sequence=".GDVAFVK." charge="2" protein_refs="PH_16 PH_17 PH_18 PH_177 PH_179 PH_242 PH_809 PH_883" >
 				<UserParam type="float" name="Percolator_score" value="1.14788"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.000884565"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.00806222"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="450.21964" RT="926.016" >
-			<PeptideHit score="0.00808068" sequence="SDDNRESLEKR" charge="3" protein_refs="PH_318 PH_319 PH_752 PH_873" >
+			<PeptideHit score="0.00808068" sequence=".SDDNRESLEKR." charge="3" protein_refs="PH_318 PH_319 PH_752 PH_873" >
 				<UserParam type="float" name="Percolator_score" value="1.14691"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.000884565"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.00808068"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="625.27612" RT="1963.17" >
-			<PeptideHit score="0.0086392" sequence="DNVDDPTGNFR" charge="2" protein_refs="PH_377 PH_632" >
+			<PeptideHit score="0.0086392" sequence=".DNVDDPTGNFR." charge="2" protein_refs="PH_377 PH_632" >
 				<UserParam type="float" name="Percolator_score" value="1.11901"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.000928303"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.0086392"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="493.74869" RT="1021.76" >
-			<PeptideHit score="0.00879018" sequence="ASPEAASTPR" charge="2" protein_refs="PH_171 PH_172 PH_173 PH_174 PH_301 PH_302 PH_303 PH_304 PH_305 PH_306 PH_307 PH_308 PH_309 PH_310 PH_311 PH_312 PH_606 PH_607 PH_692 PH_711 PH_786 PH_787 PH_845 PH_848 PH_1038 PH_1041 PH_1046 PH_1049 PH_1050 PH_1055 PH_1056 PH_1063 PH_1066" >
+			<PeptideHit score="0.00879018" sequence=".ASPEAASTPR." charge="2" protein_refs="PH_171 PH_172 PH_173 PH_174 PH_301 PH_302 PH_303 PH_304 PH_305 PH_306 PH_307 PH_308 PH_309 PH_310 PH_311 PH_312 PH_606 PH_607 PH_692 PH_711 PH_786 PH_787 PH_845 PH_848 PH_1038 PH_1041 PH_1046 PH_1049 PH_1050 PH_1055 PH_1056 PH_1063 PH_1066" >
 				<UserParam type="float" name="Percolator_score" value="1.11186"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.000928303"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.00879018"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="511.28668" RT="2167.71" >
-			<PeptideHit score="0.0106727" sequence="DLPEHAVLK" charge="2" protein_refs="PH_355 PH_356 PH_611 PH_862" >
+			<PeptideHit score="0.0106727" sequence=".DLPEHAVLK." charge="2" protein_refs="PH_355 PH_356 PH_611 PH_862" >
 				<UserParam type="float" name="Percolator_score" value="1.03421"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.00103826"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.0106727"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="1114.509" RT="3262.17" >
-			<PeptideHit score="0.0109563" sequence="AM(Oxidation)LSGPGQ(Deamidated)FAENETNEVNFR" charge="2" protein_refs="PH_56 PH_400 PH_401 PH_554 PH_612 PH_922 PH_924 PH_925 PH_927 PH_928 PH_931 PH_935 PH_1122" >
+			<PeptideHit score="0.0109563" sequence=".AM(Oxidation)LSGPGQ(Deamidated)FAENETNEVNFR." charge="2" protein_refs="PH_56 PH_400 PH_401 PH_554 PH_612 PH_922 PH_924 PH_925 PH_927 PH_928 PH_931 PH_935 PH_1122" >
 				<UserParam type="float" name="Percolator_score" value="1.02402"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.00105016"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.0109563"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="364.2103" RT="2722.7" >
-			<PeptideHit score="0.011293" sequence="YLYLR" charge="2" protein_refs="PH_15 PH_20 PH_21 PH_74 PH_137 PH_339 PH_443 PH_485 PH_486 PH_487 PH_488 PH_489 PH_490 PH_491 PH_492 PH_493 PH_494 PH_495 PH_496 PH_499 PH_500 PH_501 PH_502 PH_503 PH_504 PH_505 PH_506 PH_507 PH_513 PH_515 PH_516 PH_517 PH_518 PH_519 PH_521 PH_522 PH_523 PH_530 PH_531 PH_532 PH_533 PH_534 PH_535 PH_536 PH_538 PH_539 PH_540 PH_546 PH_547 PH_548 PH_549 PH_550 PH_551 PH_552 PH_553 PH_561 PH_563 PH_564 PH_565 PH_566 PH_570 PH_571 PH_572 PH_600 PH_604 PH_728 PH_839 PH_923 PH_926 PH_1126 PH_1128 PH_1130" >
+			<PeptideHit score="0.011293" sequence=".YLYLR." charge="2" protein_refs="PH_15 PH_20 PH_21 PH_74 PH_137 PH_339 PH_443 PH_485 PH_486 PH_487 PH_488 PH_489 PH_490 PH_491 PH_492 PH_493 PH_494 PH_495 PH_496 PH_499 PH_500 PH_501 PH_502 PH_503 PH_504 PH_505 PH_506 PH_507 PH_513 PH_515 PH_516 PH_517 PH_518 PH_519 PH_521 PH_522 PH_523 PH_530 PH_531 PH_532 PH_533 PH_534 PH_535 PH_536 PH_538 PH_539 PH_540 PH_546 PH_547 PH_548 PH_549 PH_550 PH_551 PH_552 PH_553 PH_561 PH_563 PH_564 PH_565 PH_566 PH_570 PH_571 PH_572 PH_600 PH_604 PH_728 PH_839 PH_923 PH_926 PH_1126 PH_1128 PH_1130" >
 				<UserParam type="float" name="Percolator_score" value="1.01234"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.00107207"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.011293"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="659.81531" RT="2195.32" >
-			<PeptideHit score="0.0168505" sequence="QEPERNECFLQHKDDNPNLPR" charge="4" protein_refs="PH_9 PH_176 PH_240 PH_621 PH_857 PH_912 PH_1118 PH_1120" >
+			<PeptideHit score="0.0168505" sequence=".QEPERNECFLQHKDDNPNLPR." charge="4" protein_refs="PH_9 PH_176 PH_240 PH_621 PH_857 PH_912 PH_1118 PH_1120" >
 				<UserParam type="float" name="Percolator_score" value="0.865178"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.00138098"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.0168505"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="381.23285" RT="2666.74" >
-			<PeptideHit score="0.0455454" sequence="LM(Oxidation)VALAK" charge="2" protein_refs="PH_3 PH_24 PH_149 PH_151 PH_154 PH_155 PH_156 PH_157 PH_158 PH_159 PH_160 PH_162 PH_258 PH_259 PH_662 PH_799 PH_834 PH_874 PH_1013 PH_1014 PH_1016 PH_1017 PH_1018 PH_1019 PH_1023 PH_1025 PH_1026 PH_1027 PH_1028 PH_1029 PH_1140" >
+			<PeptideHit score="0.0455454" sequence=".LM(Oxidation)VALAK." charge="2" protein_refs="PH_3 PH_24 PH_149 PH_151 PH_154 PH_155 PH_156 PH_157 PH_158 PH_159 PH_160 PH_162 PH_258 PH_259 PH_662 PH_799 PH_834 PH_874 PH_1013 PH_1014 PH_1016 PH_1017 PH_1018 PH_1019 PH_1023 PH_1025 PH_1026 PH_1027 PH_1028 PH_1029 PH_1140" >
 				<UserParam type="float" name="Percolator_score" value="0.532423"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.00282806"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.0455454"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="431.7608" RT="3415" >
-			<PeptideHit score="0.0531809" sequence="FLLSNLR" charge="2" protein_refs="PH_78 PH_362 PH_508 PH_841 PH_895" >
+			<PeptideHit score="0.0531809" sequence=".FLLSNLR." charge="2" protein_refs="PH_78 PH_362 PH_508 PH_841 PH_895" >
 				<UserParam type="float" name="Percolator_score" value="0.482234"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.0031261"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.0531809"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="474.24692" RT="2020.57" >
-			<PeptideHit score="0.0731188" sequence="CLLVEEGK" charge="2" protein_refs="PH_6 PH_106 PH_344 PH_345 PH_593 PH_870 PH_887 PH_1135 PH_1145 PH_1157" >
+			<PeptideHit score="0.0731188" sequence=".CLLVEEGK." charge="2" protein_refs="PH_6 PH_106 PH_344 PH_345 PH_593 PH_870 PH_887 PH_1135 PH_1145 PH_1157" >
 				<UserParam type="float" name="Percolator_score" value="0.378973"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.00408"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.0731188"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="470.24841" RT="1903.97" >
-			<PeptideHit score="0.0740455" sequence="VSSYGGTLR" charge="2" protein_refs="PH_208 PH_597" >
+			<PeptideHit score="0.0740455" sequence=".VSSYGGTLR." charge="2" protein_refs="PH_208 PH_597" >
 				<UserParam type="float" name="Percolator_score" value="0.374892"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.00415655"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.0740455"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="433.73349" RT="2095.35" >
-			<PeptideHit score="0.0830843" sequence="(Carbamidomethyl)YLSALN(Deamidated)K" charge="2" protein_refs="PH_1125" >
+			<PeptideHit score="0.0830843" sequence=".(Carbamidomethyl)YLSALN(Deamidated)K." charge="2" protein_refs="PH_1125" >
 				<UserParam type="float" name="Percolator_score" value="0.337635"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.00458149"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.0830843"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="574.29547" RT="1290.25" >
-			<PeptideHit score="0.121453" sequence="ESKPAQGQFR" charge="2" protein_refs="PH_370 PH_371 PH_372 PH_418 PH_623 PH_636 PH_900 PH_973" >
+			<PeptideHit score="0.121453" sequence=".ESKPAQGQFR." charge="2" protein_refs="PH_370 PH_371 PH_372 PH_418 PH_623 PH_636 PH_900 PH_973" >
 				<UserParam type="float" name="Percolator_score" value="0.216141"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.00585082"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.121453"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="584.30249" RT="2663.68" >
-			<PeptideHit score="0.127366" sequence="(Acetyl)LRTEGDGVYTLNDKK" charge="3" protein_refs="PH_1 PH_129 PH_184 PH_185 PH_186 PH_187 PH_222 PH_223 PH_224 PH_700 PH_705 PH_977 PH_1035 PH_1048 PH_1054 PH_1057 PH_1067" >
+			<PeptideHit score="0.127366" sequence=".(Acetyl)LRTEGDGVYTLNDKK." charge="3" protein_refs="PH_1 PH_129 PH_184 PH_185 PH_186 PH_187 PH_222 PH_223 PH_224 PH_700 PH_705 PH_977 PH_1035 PH_1048 PH_1054 PH_1057 PH_1067" >
 				<UserParam type="float" name="Percolator_score" value="0.201002"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.00605916"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.127366"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="520.79297" RT="2617.01" >
-			<PeptideHit score="0.137133" sequence="SVPM(Oxidation)VPPGLK" charge="2" protein_refs="PH_15 PH_339 PH_604" >
+			<PeptideHit score="0.137133" sequence=".SVPM(Oxidation)VPPGLK." charge="2" protein_refs="PH_15 PH_339 PH_604" >
 				<UserParam type="float" name="Percolator_score" value="0.17738"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.00651168"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.137133"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="537.77405" RT="1721.6" >
-			<PeptideHit score="0.169915" sequence="LDELRDEGK" charge="2" protein_refs="PH_9 PH_34 PH_51 PH_136 PH_240 PH_621 PH_807 PH_903 PH_912 PH_916" >
+			<PeptideHit score="0.169915" sequence=".LDELRDEGK." charge="2" protein_refs="PH_9 PH_34 PH_51 PH_136 PH_240 PH_621 PH_807 PH_903 PH_912 PH_916" >
 				<UserParam type="float" name="Percolator_score" value="0.107507"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.00780292"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.169915"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="602.77112" RT="906.603" >
-			<PeptideHit score="0.173457" sequence="QQQQMEQER" charge="2" protein_refs="PH_141 PH_391 PH_392 PH_393 PH_394 PH_395 PH_396 PH_397 PH_398 PH_399 PH_650 PH_679 PH_695 PH_698 PH_701 PH_704 PH_804 PH_847 PH_944 PH_945" >
+			<PeptideHit score="0.173457" sequence=".QQQQMEQER." charge="2" protein_refs="PH_141 PH_391 PH_392 PH_393 PH_394 PH_395 PH_396 PH_397 PH_398 PH_399 PH_650 PH_679 PH_695 PH_698 PH_701 PH_704 PH_804 PH_847 PH_944 PH_945" >
 				<UserParam type="float" name="Percolator_score" value="0.100629"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.00788342"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.173457"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="571.82373" RT="3329.4" >
-			<PeptideHit score="0.276689" sequence="VKGDVDVSVPK" charge="2" protein_refs="PH_376 PH_759" >
+			<PeptideHit score="0.276689" sequence=".VKGDVDVSVPK." charge="2" protein_refs="PH_376 PH_759" >
 				<UserParam type="float" name="Percolator_score" value="-0.0664699"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.0118764"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.276689"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="388.21448" RT="1441.57" >
-			<PeptideHit score="0.291726" sequence="LASLDEK" charge="2" protein_refs="PH_94 PH_142 PH_374 PH_640 PH_940 PH_949" >
+			<PeptideHit score="0.291726" sequence=".LASLDEK." charge="2" protein_refs="PH_94 PH_142 PH_374 PH_640 PH_940 PH_949" >
 				<UserParam type="float" name="Percolator_score" value="-0.0871283"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.0123296"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.291726"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="366.20657" RT="1827.57" >
-			<PeptideHit score="0.438278" sequence="DNTLLR" charge="2" protein_refs="PH_25 PH_143 PH_182 PH_264 PH_265 PH_449 PH_450 PH_451 PH_452 PH_453 PH_454 PH_455 PH_456 PH_457 PH_470 PH_471 PH_483 PH_509 PH_510 PH_511 PH_512 PH_514 PH_525 PH_526 PH_527 PH_528 PH_529 PH_631 PH_673 PH_694 PH_934 PH_976 PH_978 PH_1075 PH_1079 PH_1093 PH_1105" >
+			<PeptideHit score="0.438278" sequence=".DNTLLR." charge="2" protein_refs="PH_25 PH_143 PH_182 PH_264 PH_265 PH_449 PH_450 PH_451 PH_452 PH_453 PH_454 PH_455 PH_456 PH_457 PH_470 PH_471 PH_483 PH_509 PH_510 PH_511 PH_512 PH_514 PH_525 PH_526 PH_527 PH_528 PH_529 PH_631 PH_673 PH_694 PH_934 PH_976 PH_978 PH_1075 PH_1079 PH_1093 PH_1105" >
 				<UserParam type="float" name="Percolator_score" value="-0.266624"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.0180136"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.438278"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="494.77515" RT="1390.27" >
-			<PeptideHit score="0.545281" sequence="KQVENKN(Deamidated)K" charge="2" protein_refs="PH_404 PH_430 PH_737 PH_738 PH_878 PH_1101 PH_1113" >
+			<PeptideHit score="0.545281" sequence=".KQVENKN(Deamidated)K." charge="2" protein_refs="PH_404 PH_430 PH_737 PH_738 PH_878 PH_1101 PH_1113" >
 				<UserParam type="float" name="Percolator_score" value="-0.390915"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.0229485"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.545281"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="438.23367" RT="2620.9" >
-			<PeptideHit score="0.671862" sequence="QGGPEFLK" charge="2" protein_refs="PH_555 PH_556 PH_557 PH_558 PH_559 PH_578 PH_1129 PH_1131 PH_1148 PH_1149" >
+			<PeptideHit score="0.671862" sequence=".QGGPEFLK." charge="2" protein_refs="PH_555 PH_556 PH_557 PH_558 PH_559 PH_578 PH_1129 PH_1131 PH_1148 PH_1149" >
 				<UserParam type="float" name="Percolator_score" value="-0.554281"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.0308507"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.671862"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="951.48413" RT="3058.62" >
-			<PeptideHit score="0.722362" sequence="(Acetyl)KPGAAGQHPAPFDPQSVR" charge="2" protein_refs="PH_1127" >
+			<PeptideHit score="0.722362" sequence=".(Acetyl)KPGAAGQHPAPFDPQSVR." charge="2" protein_refs="PH_1127" >
 				<UserParam type="float" name="Percolator_score" value="-0.634256"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.0352042"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.722362"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="720.35449" RT="2699.4" >
-			<PeptideHit score="0.814517" sequence="STDNVFLACWVK" charge="2" protein_refs="PH_560" >
+			<PeptideHit score="0.814517" sequence=".STDNVFLACWVK." charge="2" protein_refs="PH_560" >
 				<UserParam type="float" name="Percolator_score" value="-0.816145"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.0457039"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.814517"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="531.28" RT="2604.3" >
-			<PeptideHit score="0.881893" sequence="KQ(Deamidated)WERTGR" charge="2" protein_refs="PH_568 PH_569" >
+			<PeptideHit score="0.881893" sequence=".KQ(Deamidated)WERTGR." charge="2" protein_refs="PH_568 PH_569" >
 				<UserParam type="float" name="Percolator_score" value="-0.98233"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.0555745"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.881893"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="374.22897" RT="2891.89" >
-			<PeptideHit score="0.912796" sequence="FLLQAR" charge="2" protein_refs="PH_260 PH_421 PH_497 PH_498 PH_520 PH_524 PH_562 PH_586 PH_751" >
+			<PeptideHit score="0.912796" sequence=".FLLQAR." charge="2" protein_refs="PH_260 PH_421 PH_497 PH_498 PH_520 PH_524 PH_562 PH_586 PH_751" >
 				<UserParam type="float" name="Percolator_score" value="-1.04589"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.0593188"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.912796"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="664.31238" RT="3596.01" >
-			<PeptideHit score="0.94086" sequence="(Acetyl)SKCFASN(Deamidated)SQ(Deamidated)LLYSQGEK" charge="3" protein_refs="PH_1124" >
+			<PeptideHit score="0.94086" sequence=".(Acetyl)SKCFASN(Deamidated)SQ(Deamidated)LLYSQGEK." charge="3" protein_refs="PH_1124" >
 				<UserParam type="float" name="Percolator_score" value="-1.09757"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.0622534"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.94086"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="730.34552" RT="2652.62" >
-			<PeptideHit score="0.964364" sequence="(Carbamidomethyl)NN(Deamidated)PVMSLQDQ(Deamidated)VR" charge="2" protein_refs="PH_22 PH_192 PH_437 PH_438 PH_439 PH_748 PH_749 PH_750 PH_1080" >
+			<PeptideHit score="0.964364" sequence=".(Carbamidomethyl)NN(Deamidated)PVMSLQDQ(Deamidated)VR." charge="2" protein_refs="PH_22 PH_192 PH_437 PH_438 PH_439 PH_748 PH_749 PH_750 PH_1080" >
 				<UserParam type="float" name="Percolator_score" value="-1.13897"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.0647164"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.964364"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="419.25119" RT="2212.53" >
-			<PeptideHit score="1" sequence="KSRFTAK" charge="2" protein_refs="PH_537" >
+			<PeptideHit score="1" sequence=".KSRFTAK." charge="2" protein_refs="PH_537" >
 				<UserParam type="float" name="Percolator_score" value="-1.35549"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.0765402"/>
 				<UserParam type="float" name="Percolator_PEP" value="1"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="634.33673" RT="1983.63" >
-			<PeptideHit score="1" sequence="(Acetyl)KGLDVAEPGPSR" charge="2" protein_refs="PH_357 PH_598 PH_948" >
+			<PeptideHit score="1" sequence=".(Acetyl)KGLDVAEPGPSR." charge="2" protein_refs="PH_357 PH_598 PH_948" >
 				<UserParam type="float" name="Percolator_score" value="-1.63897"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.0885601"/>
 				<UserParam type="float" name="Percolator_PEP" value="1"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="572.7724" RT="1350.11" >
-			<PeptideHit score="1" sequence="LGGQ(Deamidated)M(Oxidation)Q(Deamidated)VHQ(Deamidated)K" charge="2" protein_refs="PH_1142" >
+			<PeptideHit score="1" sequence=".LGGQ(Deamidated)M(Oxidation)Q(Deamidated)VHQ(Deamidated)K." charge="2" protein_refs="PH_1142" >
 				<UserParam type="float" name="Percolator_score" value="-1.85044"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.0949322"/>
 				<UserParam type="float" name="Percolator_PEP" value="1"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="943.40503" RT="1694.59" >
-			<PeptideHit score="1" sequence="(Acetyl)YEDSQQ(Deamidated)EEAQ(Deamidated)YGAMFQ(Deamidated)EQLM(Oxidation)TLK" charge="3" protein_refs="PH_103 PH_387 PH_388 PH_389 PH_390 PH_709 PH_781 PH_982 PH_1109 PH_1117" >
+			<PeptideHit score="1" sequence=".(Acetyl)YEDSQQ(Deamidated)EEAQ(Deamidated)YGAMFQ(Deamidated)EQLM(Oxidation)TLK." charge="3" protein_refs="PH_103 PH_387 PH_388 PH_389 PH_390 PH_709 PH_781 PH_982 PH_1109 PH_1117" >
 				<UserParam type="float" name="Percolator_score" value="-2.1027"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.100208"/>
 				<UserParam type="float" name="Percolator_PEP" value="1"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="660.8255" RT="2297.68" >
-			<PeptideHit score="1" sequence="(Carbamidomethyl)AHN(Deamidated)FDERVFK" charge="2" protein_refs="PH_468 PH_469 PH_626 PH_1032" >
+			<PeptideHit score="1" sequence=".(Carbamidomethyl)AHN(Deamidated)FDERVFK." charge="2" protein_refs="PH_468 PH_469 PH_626 PH_1032" >
 				<UserParam type="float" name="Percolator_score" value="-2.46345"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.104155"/>
 				<UserParam type="float" name="Percolator_PEP" value="1"/>

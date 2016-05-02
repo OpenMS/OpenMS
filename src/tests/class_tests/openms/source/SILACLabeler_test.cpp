@@ -50,22 +50,22 @@ void createTestFeatureMapSimVector_(SimTypes::FeatureMapSimVector& feature_maps,
   ProteinHit prothit1,prothit2,prothit3,prothit4,prothit5,prothit6,prothit7,prothit8,prothit9,prothit10, prothit11, prothit12;
 
   // create first map
-  prothit1.setSequence("AAAAAAAKAAAAA"); // 2 Fragmente AAAAAAAK und AAAAA und kommt in allen Channels vor
+  prothit1.setSequence(".AAAAAAAKAAAAA."); // 2 Fragmente AAAAAAAK und AAAAA und kommt in allen Channels vor
   prothit1.setMetaValue("description", "test sequence 1");
   prothit1.setAccession("ACC1");
   prothit1.setMetaValue("intensity", 200.0);
 
-  prothit2.setSequence("CNARCNCNCN"); // 2 Fragmente CNAR und CNCNCN und kommt in allen Channels vor
+  prothit2.setSequence(".CNARCNCNCN."); // 2 Fragmente CNAR und CNCNCN und kommt in allen Channels vor
   prothit2.setMetaValue("description", "test sequence 2");
   prothit2.setAccession("ACC2");
   prothit2.setMetaValue("intensity", 80.0);
 
-  prothit3.setSequence("CNHAADDAAAAA"); // ungelabelt, einzelnes Fragment
+  prothit3.setSequence(".CNHAADDAAAAA."); // ungelabelt, einzelnes Fragment
   prothit3.setMetaValue("description", "test sequence 3");
   prothit3.setAccession("ACC3");
   prothit3.setMetaValue("intensity", 100.0);
 
-  prothit12.setSequence("VNAAAAAARVNCNCNAAAA"); // Ergebniss: CNAAAAAAR(Label Medium_R) , CNCNCNAAAA (einmal kommt in allen Channels vor)
+  prothit12.setSequence(".VNAAAAAARVNCNCNAAAA."); // Ergebniss: CNAAAAAAR(Label Medium_R) , CNCNCNAAAA (einmal kommt in allen Channels vor)
   prothit12.setMetaValue("description", "test sequence 12");
   prothit12.setAccession("ACC5");
   prothit12.setMetaValue("intensity", 115.0);
@@ -80,22 +80,22 @@ void createTestFeatureMapSimVector_(SimTypes::FeatureMapSimVector& feature_maps,
   fm1.setProteinIdentifications(protIdents_vec1);
 
   // create labeled map
-  prothit4.setSequence("AAAAAAAKAAAAA"); // Ergbeniss: AAAAAAAK(Label Medium_K) , AAAAA ( einmal kommt in allen Channels vor)
+  prothit4.setSequence(".AAAAAAAKAAAAA."); // Ergbeniss: AAAAAAAK(Label Medium_K) , AAAAA ( einmal kommt in allen Channels vor)
   prothit4.setMetaValue("description", "test sequence 4");
   prothit4.setAccession("ACC4");
   prothit4.setMetaValue("intensity", 50.0);
 
-  prothit5.setSequence("CNARCNCNCN"); // Ergebniss: CNAR(Label Medium_R) , CNCNCN (einmal kommt in allen Channels vor)
+  prothit5.setSequence(".CNARCNCNCN."); // Ergebniss: CNAR(Label Medium_R) , CNCNCN (einmal kommt in allen Channels vor)
   prothit5.setMetaValue("description", "test sequence 5");
   prothit5.setAccession("ACC5");
   prothit5.setMetaValue("intensity", 100.0);
 
-  prothit6.setSequence("LDRCEL"); // Ergbeniss : LDR(label Medium_R) , CEL (einmal kommt in channel 2 und 3 vor)
+  prothit6.setSequence(".LDRCEL."); // Ergbeniss : LDR(label Medium_R) , CEL (einmal kommt in channel 2 und 3 vor)
   prothit6.setMetaValue("description", "test sequence 6");
   prothit6.setAccession("ACC6");
   prothit6.setMetaValue("intensity", 120.0);
 
-  prothit11.setSequence("VNAAAAAARVNCNCNAAAA"); // Ergebniss: CNAAAAAAR(Label Medium_R) , CNCNCNAAAA (einmal kommt in allen Channels vor)
+  prothit11.setSequence(".VNAAAAAARVNCNCNAAAA."); // Ergebniss: CNAAAAAAR(Label Medium_R) , CNCNCNAAAA (einmal kommt in allen Channels vor)
   prothit11.setMetaValue("description", "test sequence 11");
   prothit11.setAccession("ACC5");
   prothit11.setMetaValue("intensity", 110.0);
@@ -116,22 +116,22 @@ void createTestFeatureMapSimVector_(SimTypes::FeatureMapSimVector& feature_maps,
 
   if (add3rd)
   {
-    prothit7.setSequence("AAAAAAAKAAAAA"); // Ergebniss : AAAAAAAK(Label Heavy_K) , AAAAA ( einmal kommt in allen Channels vor )
+    prothit7.setSequence(".AAAAAAAKAAAAA."); // Ergebniss : AAAAAAAK(Label Heavy_K) , AAAAA ( einmal kommt in allen Channels vor )
     prothit7.setMetaValue("description", "test sequence 7");
     prothit7.setAccession("ACC7");
     prothit7.setMetaValue("intensity", 30.0);
 
-    prothit8.setSequence("CNARCNCNCN"); // Ergebniss: CNAR(Label Heavy_R) , CNCNCN (einmal kommt in allen Channels vor)
+    prothit8.setSequence(".CNARCNCNCN."); // Ergebniss: CNAR(Label Heavy_R) , CNCNCN (einmal kommt in allen Channels vor)
     prothit8.setMetaValue("description", "test sequence 8");
     prothit8.setAccession("ACC8");
     prothit8.setMetaValue("intensity", 130.0);
 
-    prothit9.setSequence("LDRCEL"); //Ergebniss: LDR(label Heavy_R) , CEL (einmal kommt in channel 2 und 3 vor)
+    prothit9.setSequence(".LDRCEL."); //Ergebniss: LDR(label Heavy_R) , CEL (einmal kommt in channel 2 und 3 vor)
     prothit9.setMetaValue("description", "test sequence 9");
     prothit9.setAccession("ACC9");
     prothit9.setMetaValue("intensity", 70.0);
 
-    prothit10.setSequence("YCYCY"); //Ergebniss: YCYCY kommt nur in diesem Channel vor
+    prothit10.setSequence(".YCYCY."); //Ergebniss: YCYCY kommt nur in diesem Channel vor
     prothit10.setMetaValue("description", "test sequence 10");
     prothit10.setAccession("ACC10");
     prothit10.setMetaValue("intensity", 80.0);
@@ -228,45 +228,45 @@ START_SECTION((void postDigestHook(SimTypes::FeatureMapSimVector & )))
   TEST_EQUAL(feature_maps.size(), 1)
   ABORT_IF(feature_maps.size() != 1)
 
-  TEST_EQUAL(feature_maps[0].size(), 12)
-  ABORT_IF(feature_maps[0].size() != 12)
+  TEST_EQUAL(feature_maps[0].size(), 15)
+  ABORT_IF(feature_maps[0].size() != 15)
 
 
   TEST_EQUAL(feature_maps[0][0].getIntensity(), 120)
-  TEST_EQUAL(feature_maps[0][0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CEL")
+  TEST_EQUAL(feature_maps[0][0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".CEL.")
 
   TEST_EQUAL(feature_maps[0][1].getIntensity(), 120)
-  TEST_EQUAL(feature_maps[0][1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "LDR(Label:13C(6))")
+  TEST_EQUAL(feature_maps[0][1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".LDR(Label:13C(6)).")
 
   TEST_EQUAL(feature_maps[0][2].getIntensity(), 100)
-  TEST_EQUAL(feature_maps[0][2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNAR(Label:13C(6))")
+  TEST_EQUAL(feature_maps[0][2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".CNAR(Label:13C(6)).")
 
-  TEST_EQUAL(feature_maps[0][3].getIntensity(), 80)
-  TEST_EQUAL(feature_maps[0][3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNAR")
+  TEST_EQUAL(feature_maps[0][3].getIntensity(), 50)
+  TEST_EQUAL(feature_maps[0][3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".AAAAA.")
 
-  TEST_EQUAL(feature_maps[0][4].getIntensity(), 250)
-  TEST_EQUAL(feature_maps[0][4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAA")
+  TEST_EQUAL(feature_maps[0][4].getIntensity(), 100)
+  TEST_EQUAL(feature_maps[0][4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".CNCNCN.")
 
-  TEST_EQUAL(feature_maps[0][5].getIntensity(), 180)
-  TEST_EQUAL(feature_maps[0][5].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNCNCN")
+  TEST_EQUAL(feature_maps[0][5].getIntensity(), 50)
+  TEST_EQUAL(feature_maps[0][5].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".AAAAAAAK(Label:2H(4)).")
 
-  TEST_EQUAL(feature_maps[0][6].getIntensity(), 50)
-  TEST_EQUAL(feature_maps[0][6].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK(Label:2H(4))")
+  TEST_EQUAL(feature_maps[0][6].getIntensity(), 110)
+  TEST_EQUAL(feature_maps[0][6].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".VNAAAAAAR(Label:13C(6)).")
 
-  TEST_EQUAL(feature_maps[0][7].getIntensity(), 200)
-  TEST_EQUAL(feature_maps[0][7].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK")
+  TEST_EQUAL(feature_maps[0][7].getIntensity(), 110)
+  TEST_EQUAL(feature_maps[0][7].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".VNCNCNAAAA.")
 
-  TEST_EQUAL(feature_maps[0][8].getIntensity(), 110)
-  TEST_EQUAL(feature_maps[0][8].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "VNAAAAAAR(Label:13C(6))")
+  TEST_EQUAL(feature_maps[0][8].getIntensity(), 200)
+  TEST_EQUAL(feature_maps[0][8].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".AAAAA.")
 
-  TEST_EQUAL(feature_maps[0][9].getIntensity(), 115)
-  TEST_EQUAL(feature_maps[0][9].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "VNAAAAAAR")
+  TEST_EQUAL(feature_maps[0][9].getIntensity(), 200)
+  TEST_EQUAL(feature_maps[0][9].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".AAAAAAAK.")
 
-  TEST_EQUAL(feature_maps[0][10].getIntensity(), 225)
-  TEST_EQUAL(feature_maps[0][10].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "VNCNCNAAAA")
+  TEST_EQUAL(feature_maps[0][10].getIntensity(), 80)
+  TEST_EQUAL(feature_maps[0][10].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".CNAR.")
 
-  TEST_EQUAL(feature_maps[0][11].getIntensity(), 100)
-  TEST_EQUAL(feature_maps[0][11].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNHAADDAAAAA")
+  TEST_EQUAL(feature_maps[0][11].getIntensity(), 80)
+  TEST_EQUAL(feature_maps[0][11].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".CNCNCN.")
 
   createTestFeatureMapSimVector_(feature_maps, true);
 
@@ -280,56 +280,56 @@ START_SECTION((void postDigestHook(SimTypes::FeatureMapSimVector & )))
   TEST_EQUAL(feature_maps.size(), 1)
   ABORT_IF(feature_maps.size() != 1)
 
-  TEST_EQUAL(feature_maps[0].size(), 16)
-  ABORT_IF(feature_maps[0].size() != 16)
+  TEST_EQUAL(feature_maps[0].size(), 22)
+  ABORT_IF(feature_maps[0].size() != 22)
 
-  TEST_EQUAL(feature_maps[0][0].getIntensity(), 190)
-  TEST_EQUAL(feature_maps[0][0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CEL")
+  TEST_EQUAL(feature_maps[0][0].getIntensity(), 70)
+  TEST_EQUAL(feature_maps[0][0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".CEL.")
 
-  TEST_EQUAL(feature_maps[0][1].getIntensity(), 70)
-  TEST_EQUAL(feature_maps[0][1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "LDR(Label:13C(6)15N(4))")
+  TEST_EQUAL(feature_maps[0][1].getIntensity(), 120)
+  TEST_EQUAL(feature_maps[0][1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".CEL.")
 
-  TEST_EQUAL(feature_maps[0][2].getIntensity(), 120)
-  TEST_EQUAL(feature_maps[0][2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "LDR(Label:13C(6))")
+  TEST_EQUAL(feature_maps[0][2].getIntensity(), 70)
+  TEST_EQUAL(feature_maps[0][2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".LDR(Label:13C(6)15N(4)).")
 
-  TEST_EQUAL(feature_maps[0][3].getIntensity(), 130)
-  TEST_EQUAL(feature_maps[0][3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNAR(Label:13C(6)15N(4))")
+  TEST_EQUAL(feature_maps[0][3].getIntensity(), 120)
+  TEST_EQUAL(feature_maps[0][3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".LDR(Label:13C(6)).")
 
-  TEST_EQUAL(feature_maps[0][4].getIntensity(), 100)
-  TEST_EQUAL(feature_maps[0][4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNAR(Label:13C(6))")
+  TEST_EQUAL(feature_maps[0][4].getIntensity(), 130)
+  TEST_EQUAL(feature_maps[0][4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".CNAR(Label:13C(6)15N(4)).")
 
-  TEST_EQUAL(feature_maps[0][5].getIntensity(), 80)
-  TEST_EQUAL(feature_maps[0][5].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNAR")
+  TEST_EQUAL(feature_maps[0][5].getIntensity(), 100)
+  TEST_EQUAL(feature_maps[0][5].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".CNAR(Label:13C(6)).")
 
-  TEST_EQUAL(feature_maps[0][6].getIntensity(), 280)
-  TEST_EQUAL(feature_maps[0][6].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAA")
+  TEST_EQUAL(feature_maps[0][6].getIntensity(), 30)
+  TEST_EQUAL(feature_maps[0][6].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".AAAAA.")
 
-  TEST_EQUAL(feature_maps[0][7].getIntensity(), 80)
-  TEST_EQUAL(feature_maps[0][7].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "YCYCY")
+  TEST_EQUAL(feature_maps[0][7].getIntensity(), 50)
+  TEST_EQUAL(feature_maps[0][7].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".AAAAA.")
 
-  TEST_EQUAL(feature_maps[0][8].getIntensity(), 310)
-  TEST_EQUAL(feature_maps[0][8].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNCNCN")
+  TEST_EQUAL(feature_maps[0][8].getIntensity(), 80)
+  TEST_EQUAL(feature_maps[0][8].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".YCYCY.")
 
-  TEST_EQUAL(feature_maps[0][9].getIntensity(), 30)
-  TEST_EQUAL(feature_maps[0][9].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK(Label:13C(6)15N(2))")
+  TEST_EQUAL(feature_maps[0][9].getIntensity(), 130)
+  TEST_EQUAL(feature_maps[0][9].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".CNCNCN.")
 
-  TEST_EQUAL(feature_maps[0][10].getIntensity(), 50)
-  TEST_EQUAL(feature_maps[0][10].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK(Label:2H(4))")
+  TEST_EQUAL(feature_maps[0][10].getIntensity(), 100)
+  TEST_EQUAL(feature_maps[0][10].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".CNCNCN.")
 
-  TEST_EQUAL(feature_maps[0][11].getIntensity(), 200)
-  TEST_EQUAL(feature_maps[0][11].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK")
+  TEST_EQUAL(feature_maps[0][11].getIntensity(), 30)
+  TEST_EQUAL(feature_maps[0][11].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".AAAAAAAK(Label:13C(6)15N(2)).")
 
-  TEST_EQUAL(feature_maps[0][12].getIntensity(), 110)
-  TEST_EQUAL(feature_maps[0][12].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "VNAAAAAAR(Label:13C(6))")
+  TEST_EQUAL(feature_maps[0][12].getIntensity(), 50)
+  TEST_EQUAL(feature_maps[0][12].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".AAAAAAAK(Label:2H(4)).")
 
-  TEST_EQUAL(feature_maps[0][13].getIntensity(), 115)
-  TEST_EQUAL(feature_maps[0][13].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "VNAAAAAAR")
+  TEST_EQUAL(feature_maps[0][13].getIntensity(), 110)
+  TEST_EQUAL(feature_maps[0][13].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".VNAAAAAAR(Label:13C(6)).")
 
-  TEST_EQUAL(feature_maps[0][14].getIntensity(), 225)
-  TEST_EQUAL(feature_maps[0][14].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "VNCNCNAAAA")
+  TEST_EQUAL(feature_maps[0][14].getIntensity(), 110)
+  TEST_EQUAL(feature_maps[0][14].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".VNCNCNAAAA.")
 
-  TEST_EQUAL(feature_maps[0][15].getIntensity(), 100)
-  TEST_EQUAL(feature_maps[0][15].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNHAADDAAAAA")
+  TEST_EQUAL(feature_maps[0][15].getIntensity(), 200)
+  TEST_EQUAL(feature_maps[0][15].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".AAAAA.")
 
 }
 END_SECTION

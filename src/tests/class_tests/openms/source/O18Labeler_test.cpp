@@ -189,22 +189,22 @@ START_SECTION((void postDigestHook(SimTypes::FeatureMapSimVector &)))
   TEST_EQUAL(feature_maps[0].size(), 6)
   ABORT_IF(feature_maps[0].size() != 6)
   TEST_EQUAL(feature_maps[0][0].getIntensity(), 50)
-  TEST_EQUAL(feature_maps[0][0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK(Label:18O(2))")
+  TEST_EQUAL(feature_maps[0][0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".AAAAAAAK.(Label:18O(2))")
 
   TEST_EQUAL(feature_maps[0][1].getIntensity(), 200)
-  TEST_EQUAL(feature_maps[0][1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK")
+  TEST_EQUAL(feature_maps[0][1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".AAAAAAAK.")
 
   TEST_EQUAL(feature_maps[0][2].getIntensity(), 250)
-  TEST_EQUAL(feature_maps[0][2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "HHHHHHHHHHH")
+  TEST_EQUAL(feature_maps[0][2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".HHHHHHHHHHH.")
 
   TEST_EQUAL(feature_maps[0][3].getIntensity(), 200)
-  TEST_EQUAL(feature_maps[0][3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNHAAAAAAAAA")
+  TEST_EQUAL(feature_maps[0][3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".CNHAAAAAAAAA.")
 
   TEST_EQUAL(feature_maps[0][4].getIntensity(), 120)
-  TEST_EQUAL(feature_maps[0][4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNHAADDAAAAA")
+  TEST_EQUAL(feature_maps[0][4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".CNHAADDAAAAA.")
 
   TEST_EQUAL(feature_maps[0][5].getIntensity(), 100)
-  TEST_EQUAL(feature_maps[0][5].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "LDCELR")
+  TEST_EQUAL(feature_maps[0][5].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".LDCELR.")
 
   // Test ConsensusMap association
   ConsensusMap cm = labeler.getConsensus();
@@ -235,25 +235,25 @@ START_SECTION((void postDigestHook(SimTypes::FeatureMapSimVector &)))
   ABORT_IF(feature_maps[0].size() != 7)
 
   TEST_EQUAL(feature_maps[0][0].getIntensity(), 24.5)
-  TEST_EQUAL(feature_maps[0][0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK(Label:18O(2))")
+  TEST_EQUAL(feature_maps[0][0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".AAAAAAAK.(Label:18O(2))")
 
   TEST_EQUAL(feature_maps[0][1].getIntensity(), 21)
-  TEST_EQUAL(feature_maps[0][1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK(Label:18O(1))")
+  TEST_EQUAL(feature_maps[0][1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".AAAAAAAK.(Label:18O(1))")
 
   TEST_EQUAL(feature_maps[0][2].getIntensity(), 204.5)
-  TEST_EQUAL(feature_maps[0][2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK")
+  TEST_EQUAL(feature_maps[0][2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".AAAAAAAK.")
 
   TEST_EQUAL(feature_maps[0][3].getIntensity(), 250)
-  TEST_EQUAL(feature_maps[0][3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "HHHHHHHHHHH")
+  TEST_EQUAL(feature_maps[0][3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".HHHHHHHHHHH.")
 
   TEST_EQUAL(feature_maps[0][4].getIntensity(), 200)
-  TEST_EQUAL(feature_maps[0][4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNHAAAAAAAAA")
+  TEST_EQUAL(feature_maps[0][4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".CNHAAAAAAAAA.")
 
   TEST_EQUAL(feature_maps[0][5].getIntensity(), 120)
-  TEST_EQUAL(feature_maps[0][5].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNHAADDAAAAA")
+  TEST_EQUAL(feature_maps[0][5].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".CNHAADDAAAAA.")
 
   TEST_EQUAL(feature_maps[0][6].getIntensity(), 100)
-  TEST_EQUAL(feature_maps[0][6].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "LDCELR")
+  TEST_EQUAL(feature_maps[0][6].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), ".LDCELR.")
 
   // Test ConsensusMap association
   ConsensusMap incomplete_cm = incomplete_labeler.getConsensus();

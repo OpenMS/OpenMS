@@ -161,7 +161,7 @@ START_SECTION(AASequence fromString(const String& s, bool permissive = true))
   // test "permissive" option:
   AASequence seq18 = AASequence::fromString("PEP T*I#D+E", true);
   TEST_EQUAL(seq18.size(), 10);
-  TEST_EQUAL(seq18.toString(), "PEPTXIXDXE");
+  TEST_EQUAL(seq18.toString(), ".PEPTXIXDXE.");
 
   TEST_EXCEPTION(Exception::ParseError,
                  AASequence::fromString("PEP T*I#D+E", false));
@@ -452,9 +452,9 @@ START_SECTION(String toString() const)
   AASequence seq2 = AASequence::fromString("(MOD:00051)DFPIANGER");
   AASequence seq3 = AASequence::fromString("DFPIAN(Deamidated)GER");
 
-  TEST_STRING_EQUAL(seq1.toString(), "DFPIANGER")
-  TEST_STRING_EQUAL(seq2.toString(), "(MOD:00051)DFPIANGER")
-  TEST_STRING_EQUAL(seq3.toString(), "DFPIAN(Deamidated)GER")
+  TEST_STRING_EQUAL(seq1.toString(), ".DFPIANGER.")
+  TEST_STRING_EQUAL(seq2.toString(), ".(MOD:00051)DFPIANGER.")
+  TEST_STRING_EQUAL(seq3.toString(), ".DFPIAN(Deamidated)GER.")
 END_SECTION
 
 START_SECTION(String toUnmodifiedString() const)
@@ -895,6 +895,22 @@ START_SECTION([EXTRA] Tag in peptides)
 }
 END_SECTION
 
+START_SECTION([EXTRA] testing terminal modifications)
+{
+  AASequence aaNoMod = AASequence::fromString(".DFPIANGER.");
+  AASequence aaNtermMod = AASequence::fromString(".(Dimethyl)DFPIANGER.");
+  AASequence aaCtermMod = AASequence::fromString(".DFPIANGER.(Label:18O(2))");
+  TEST_EQUAL(aaNoMod.isModified(), false)
+  TEST_EQUAL(aaNtermMod.isModified(), true)
+  TEST_EQUAL(aaCtermMod.isModified(), true)
+  TEST_EQUAL(aaNoMod.getNTerminalModification(), "")
+  TEST_EQUAL(aaNtermMod.getNTerminalModification(), "Dimethyl")
+  TEST_EQUAL(aaCtermMod.getNTerminalModification(), "")
+  TEST_EQUAL(aaNoMod.getCTerminalModification(), "")
+  TEST_EQUAL(aaNtermMod.getCTerminalModification(), "")
+  TEST_EQUAL(aaCtermMod.getCTerminalModification(), "Label:18O(2)")
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

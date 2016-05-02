@@ -89,11 +89,11 @@ START_SECTION((static void applyFixedModifications(const std::vector< ResidueMod
   ModifiedPeptideGenerator::applyFixedModifications(fixed_mods.begin(), fixed_mods.end(), seq3);
   ModifiedPeptideGenerator::applyFixedModifications(fixed_mods.begin(), fixed_mods.end(), seq4);
 
-  TEST_EQUAL(seq0.toString(), "AAAAC(Carbamidomethyl)AAAA");
-  TEST_EQUAL(seq1.toString(), "AAAAAAAAA");
-  TEST_EQUAL(seq2.toString(), "C(Carbamidomethyl)C(Carbamidomethyl)C(Carbamidomethyl)C(Carbamidomethyl)C(Carbamidomethyl)C(Carbamidomethyl)C(Carbamidomethyl)C(Carbamidomethyl)C(Carbamidomethyl)");
-  TEST_EQUAL(seq3.toString(), "AAAAC(Carbamidomethyl)AAC(Carbamidomethyl)AAA");
-  TEST_EQUAL(seq4.toString(), "AAAAC(Carbamidomethyl)AAC(Oxidation)AAA");
+  TEST_EQUAL(seq0.toString(), ".AAAAC(Carbamidomethyl)AAAA.");
+  TEST_EQUAL(seq1.toString(), ".AAAAAAAAA.");
+  TEST_EQUAL(seq2.toString(), ".C(Carbamidomethyl)C(Carbamidomethyl)C(Carbamidomethyl)C(Carbamidomethyl)C(Carbamidomethyl)C(Carbamidomethyl)C(Carbamidomethyl)C(Carbamidomethyl)C(Carbamidomethyl).");
+  TEST_EQUAL(seq3.toString(), ".AAAAC(Carbamidomethyl)AAC(Carbamidomethyl)AAA.");
+  TEST_EQUAL(seq4.toString(), ".AAAAC(Carbamidomethyl)AAC(Oxidation)AAA.");
 }
 END_SECTION
 
@@ -147,17 +147,17 @@ START_SECTION((static void applyVariableModifications(const std::vector< Residue
   modified_peptides.clear();
   ModifiedPeptideGenerator::applyVariableModifications(fixed_mods.begin(), fixed_mods.end(), seq, 1, modified_peptides, false);
   TEST_EQUAL(modified_peptides.size(), 1); // one generated peptide
-  TEST_EQUAL(modified_peptides[0].toString(), "AAAAM(Oxidation)AAAA");
+  TEST_EQUAL(modified_peptides[0].toString(), ".AAAAM(Oxidation)AAAA.");
   modified_peptides.clear();
   ModifiedPeptideGenerator::applyVariableModifications(fixed_mods.begin(), fixed_mods.end(), seq, 2, modified_peptides, false);
   TEST_EQUAL(modified_peptides.size(), 1); // also only one generated peptide as there is only one target site
-  TEST_EQUAL(modified_peptides[0].toString(), "AAAAM(Oxidation)AAAA");
+  TEST_EQUAL(modified_peptides[0].toString(), ".AAAAM(Oxidation)AAAA.");
   modified_peptides.clear();
   // test again keeping of the original peptides
   ModifiedPeptideGenerator::applyVariableModifications(fixed_mods.begin(), fixed_mods.end(), seq, 1, modified_peptides, true);
   TEST_EQUAL(modified_peptides.size(), 2); // original and modified peptide
-  TEST_EQUAL(modified_peptides[0].toString(), "AAAAMAAAA");
-  TEST_EQUAL(modified_peptides[1].toString(), "AAAAM(Oxidation)AAAA");
+  TEST_EQUAL(modified_peptides[0].toString(), ".AAAAMAAAA.");
+  TEST_EQUAL(modified_peptides[1].toString(), ".AAAAM(Oxidation)AAAA.");
   modified_peptides.clear();
 
   // test behavior if two target sites are in peptide and we need some combinatorics
@@ -165,16 +165,16 @@ START_SECTION((static void applyVariableModifications(const std::vector< Residue
   seq = AASequence::fromString("AAMAAAMAA"); // two target site
   ModifiedPeptideGenerator::applyVariableModifications(fixed_mods.begin(), fixed_mods.end(), seq, 1, modified_peptides, false);
   TEST_EQUAL(modified_peptides.size(), 2); // two modified peptides each modified at a different site
-  TEST_EQUAL(modified_peptides[0].toString(), "AAMAAAM(Oxidation)AA");
-  TEST_EQUAL(modified_peptides[1].toString(), "AAM(Oxidation)AAAMAA");
+  TEST_EQUAL(modified_peptides[0].toString(), ".AAMAAAM(Oxidation)AA.");
+  TEST_EQUAL(modified_peptides[1].toString(), ".AAM(Oxidation)AAAMAA.");
   modified_peptides.clear();
 
   // up to two variable modifications per petide
   ModifiedPeptideGenerator::applyVariableModifications(fixed_mods.begin(), fixed_mods.end(), seq, 2, modified_peptides, false);
   TEST_EQUAL(modified_peptides.size(), 3); // three modified peptides, 1 modifed at first M, 1 modifed at second M and both M modified
-  TEST_EQUAL(modified_peptides[0].toString(), "AAMAAAM(Oxidation)AA");
-  TEST_EQUAL(modified_peptides[1].toString(), "AAM(Oxidation)AAAMAA");
-  TEST_EQUAL(modified_peptides[2].toString(), "AAM(Oxidation)AAAM(Oxidation)AA");
+  TEST_EQUAL(modified_peptides[0].toString(), ".AAMAAAM(Oxidation)AA.");
+  TEST_EQUAL(modified_peptides[1].toString(), ".AAM(Oxidation)AAAMAA.");
+  TEST_EQUAL(modified_peptides[2].toString(), ".AAM(Oxidation)AAAM(Oxidation)AA.");
   modified_peptides.clear();
 
   // two different modifications with same target site
@@ -190,12 +190,12 @@ START_SECTION((static void applyVariableModifications(const std::vector< Residue
   seq = AASequence::fromString("ACAACAACA"); // three target sites
   ModifiedPeptideGenerator::applyVariableModifications(fixed_mods.begin(), fixed_mods.end(), seq, 1, modified_peptides, false);
   TEST_EQUAL(modified_peptides.size(), 6); // six modified peptides, as both C modifications can occur at all 3 sites
-  TEST_EQUAL(modified_peptides[0].toString(), "ACAACAAC(Glutathione)A");
-  TEST_EQUAL(modified_peptides[1].toString(), "ACAACAAC(Carbamidomethyl)A");
-  TEST_EQUAL(modified_peptides[2].toString(), "ACAAC(Glutathione)AACA");
-  TEST_EQUAL(modified_peptides[3].toString(), "ACAAC(Carbamidomethyl)AACA");
-  TEST_EQUAL(modified_peptides[4].toString(), "AC(Glutathione)AACAACA");
-  TEST_EQUAL(modified_peptides[5].toString(), "AC(Carbamidomethyl)AACAACA");
+  TEST_EQUAL(modified_peptides[0].toString(), ".ACAACAAC(Glutathione)A.");
+  TEST_EQUAL(modified_peptides[1].toString(), ".ACAACAAC(Carbamidomethyl)A.");
+  TEST_EQUAL(modified_peptides[2].toString(), ".ACAAC(Glutathione)AACA.");
+  TEST_EQUAL(modified_peptides[3].toString(), ".ACAAC(Carbamidomethyl)AACA.");
+  TEST_EQUAL(modified_peptides[4].toString(), ".AC(Glutathione)AACAACA.");
+  TEST_EQUAL(modified_peptides[5].toString(), ".AC(Carbamidomethyl)AACAACA.");
   modified_peptides.clear();
   ModifiedPeptideGenerator::applyVariableModifications(fixed_mods.begin(), fixed_mods.end(), seq, 1, modified_peptides, true);
   TEST_EQUAL(modified_peptides.size(), 7); // same as above but +1 unmodified peptide

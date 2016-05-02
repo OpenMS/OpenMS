@@ -16,7 +16,7 @@
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="708.320251464844" RT="4636.2805" >
-			<PeptideHit score="0.00149860843502462" sequence="FTDEEVDELYR" charge="2" protein_refs="PH_0 PH_1" >
+			<PeptideHit score="0.00149860843502462" sequence=".FTDEEVDELYR." charge="2" protein_refs="PH_0 PH_1" >
 				<UserParam type="float" name="similarity" value="1"/>
 				<UserParam type="float" name="Number of annotations" value="1"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -25,7 +25,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="744.881164550781" RT="4636.7642" >
-			<PeptideHit score="0" sequence="TVLDPVTGDLSDTR" charge="2" protein_refs="PH_2" >
+			<PeptideHit score="0" sequence=".TVLDPVTGDLSDTR." charge="2" protein_refs="PH_2" >
 				<UserParam type="float" name="similarity" value="1"/>
 				<UserParam type="float" name="Number of annotations" value="1"/>
 				<UserParam type="string" name="target_decoy" value="target"/>

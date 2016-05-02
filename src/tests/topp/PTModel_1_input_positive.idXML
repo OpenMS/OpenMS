@@ -8,23 +8,23 @@
       </ProteinHit>
     </ProteinIdentification>
     <PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="19" MZ="982.58" RT="160" >
-      <PeptideHit score="7.87" sequence="AWTHFHFPGR" charge="2" >
+      <PeptideHit score="7.87" sequence=".AWTHFHFPGR." charge="2" >
       </PeptideHit>
     </PeptideIdentification>
     <PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="19" MZ="982.58" RT="160" >
-      <PeptideHit score="7.87" sequence="HIATNAVLFFGR" charge="2" >
+      <PeptideHit score="7.87" sequence=".HIATNAVLFFGR." charge="2" >
       </PeptideHit>
     </PeptideIdentification>
     <PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="19" MZ="982.58" RT="160" >
-      <PeptideHit score="7.87" sequence="LTEWTSSNVMEER" charge="2" >
+      <PeptideHit score="7.87" sequence=".LTEWTSSNVMEER." charge="2" >
       </PeptideHit>
     </PeptideIdentification>
     <PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="19" MZ="982.58" RT="160" >
-      <PeptideHit score="7.87" sequence="VTEQESKPVQMMYQIGLFR" charge="2" >
+      <PeptideHit score="7.87" sequence=".VTEQESKPVQMMYQIGLFR." charge="2" >
       </PeptideHit>
     </PeptideIdentification>
     <PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="19" MZ="982.58" RT="160" >
-      <PeptideHit score="7.87" sequence="VHHANENIFYCPIAIMSALAMVYLGAK" charge="2" >
+      <PeptideHit score="7.87" sequence=".VHHANENIFYCPIAIMSALAMVYLGAK." charge="2" >
       </PeptideHit>
     </PeptideIdentification>
   </IdentificationRun>

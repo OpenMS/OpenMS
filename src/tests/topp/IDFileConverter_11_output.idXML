@@ -7,17 +7,17 @@
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 		</ProteinIdentification>
 		<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" >
-			<PeptideHit score="0" sequence="FIRSTSPEC" charge="0" >
+			<PeptideHit score="0" sequence=".FIRSTSPEC." charge="0" >
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" >
-			<PeptideHit score="0" sequence="SECONDSPEC" charge="0" >
+			<PeptideHit score="0" sequence=".SECONDSPEC." charge="0" >
 			</PeptideHit>
-			<PeptideHit score="0" sequence="SECONDSEQ" charge="0" >
+			<PeptideHit score="0" sequence=".SECONDSEQ." charge="0" >
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" >
-			<PeptideHit score="0" sequence="LAST" charge="0" >
+			<PeptideHit score="0" sequence=".LAST." charge="0" >
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>

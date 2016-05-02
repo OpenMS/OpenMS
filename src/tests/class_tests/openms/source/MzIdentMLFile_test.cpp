@@ -104,19 +104,19 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   //peptide id s
   TEST_EQUAL(peptide_ids[0].getScoreType(),"MS-GF:RawScore")
   TEST_REAL_SIMILAR(peptide_ids[0].getHits()[0].getScore(),195)
-  TEST_EQUAL(peptide_ids[0].getHits()[0].getSequence().toString(),"LATEFSGNVPVLNAGDGSNQHPTQTLLDLFTIQETQGR")
+  TEST_EQUAL(peptide_ids[0].getHits()[0].getSequence().toString(),".LATEFSGNVPVLNAGDGSNQHPTQTLLDLFTIQETQGR.")
   TEST_EQUAL(peptide_ids[0].getMetaValue("spectrum_reference"),"controllerType=0 controllerNumber=1 scan=32805")
   TEST_EQUAL(peptide_ids[1].getScoreType(),"MS-GF:RawScore")
   TEST_REAL_SIMILAR(peptide_ids[1].getHits()[0].getScore(),182)
-  TEST_EQUAL(peptide_ids[1].getHits()[0].getSequence().toString(),"FLAETDQGPVPVEITAVEDDHVVVDGNHMLAGQNLK")
+  TEST_EQUAL(peptide_ids[1].getHits()[0].getSequence().toString(),".FLAETDQGPVPVEITAVEDDHVVVDGNHMLAGQNLK.")
   TEST_EQUAL(peptide_ids[1].getMetaValue("spectrum_reference"),"controllerType=0 controllerNumber=1 scan=26090")
   TEST_EQUAL(peptide_ids[2].getScoreType(),"MS-GF:RawScore")
   TEST_REAL_SIMILAR(peptide_ids[2].getHits()[0].getScore(),191)
-  TEST_EQUAL(peptide_ids[2].getHits()[0].getSequence().toString(),"FLAETDQGPVPVEITAVEDDHVVVDGNHMLAGQNLK")
+  TEST_EQUAL(peptide_ids[2].getHits()[0].getSequence().toString(),".FLAETDQGPVPVEITAVEDDHVVVDGNHMLAGQNLK.")
   TEST_EQUAL(peptide_ids[2].getMetaValue("spectrum_reference"),"controllerType=0 controllerNumber=1 scan=26157")
   TEST_EQUAL(peptide_ids[3].getScoreType(),"MS-GF:RawScore")
   TEST_REAL_SIMILAR(peptide_ids[3].getHits()[0].getScore(),211)
-  TEST_EQUAL(peptide_ids[3].getHits()[0].getSequence().toString(),"VGAGPFPTELFDETGEFLC(Carbamidomethyl)K")
+  TEST_EQUAL(peptide_ids[3].getHits()[0].getSequence().toString(),".VGAGPFPTELFDETGEFLC(Carbamidomethyl)K.")
   TEST_EQUAL(peptide_ids[3].getMetaValue("spectrum_reference"),"controllerType=0 controllerNumber=1 scan=15094")
 
 END_SECTION

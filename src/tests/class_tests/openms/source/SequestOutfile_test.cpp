@@ -114,7 +114,7 @@ START_SECTION(void load(const String& result_filename, std::vector< PeptideIdent
 		if ( peptide_identifications[0].getHits().size() == 4 )
 		{
 			TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[0].getScore(), 0.05)
-			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[0].getSequence().toString(), "ETQAWSIATILETLYDL")
+			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[0].getSequence().toString(), ".ETQAWSIATILETLYDL.")
             vector<PeptideEvidence> pes = peptide_identifications[0].getHits()[0].getPeptideEvidences();
             TEST_EQUAL(pes[0].getAABefore(), 'C')
             TEST_EQUAL(pes[0].getAAAfter(), '-')
@@ -138,7 +138,7 @@ START_SECTION(void load(const String& result_filename, std::vector< PeptideIdent
                 TEST_STRING_EQUAL(*s_it++, "P35574")
 			}
 			TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[1].getScore(), 0.04)
-			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[1].getSequence().toString(), "QVLNPLLVLIFIPLFDL")
+			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[1].getSequence().toString(), ".QVLNPLLVLIFIPLFDL.")
             PeptideEvidence pe = peptide_identifications[0].getHits()[1].getPeptideEvidences()[0];
             TEST_EQUAL(pe.getAABefore(), 'M')
             TEST_EQUAL(pe.getAAAfter(), 'V')
@@ -159,7 +159,7 @@ START_SECTION(void load(const String& result_filename, std::vector< PeptideIdent
                 TEST_STRING_EQUAL(peptide_identifications[0].getHits()[1].getPeptideEvidences()[1].getProteinAccession(), "U32507")
 			}
 			TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[2].getScore(), 0.02)
-			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[2].getSequence().toString(), "WVELGPSVLAGVGVMVLLI")
+			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[2].getSequence().toString(), ".WVELGPSVLAGVGVMVLLI.")
             pes = peptide_identifications[0].getHits()[2].getPeptideEvidences();
             TEST_EQUAL(pes[0].getAABefore(), 'L')
             TEST_EQUAL(pes[0].getAAAfter(), 'P')
@@ -179,7 +179,7 @@ START_SECTION(void load(const String& result_filename, std::vector< PeptideIdent
                 TEST_STRING_EQUAL(pes[0].getProteinAccession(), "e148876")
 			}
 			TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[3].getScore(), 0.14)
-			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[3].getSequence().toString(), "FDEITAMTGDGVNDAPALK")
+			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[3].getSequence().toString(), ".FDEITAMTGDGVNDAPALK.")
             pes = peptide_identifications[0].getHits()[3].getPeptideEvidences();
             TEST_EQUAL(pes[0].getAABefore(), 'S')
             TEST_EQUAL(pes[0].getAAAfter(), 'K')
@@ -225,7 +225,7 @@ START_SECTION(void load(const String& result_filename, std::vector< PeptideIdent
 		if ( peptide_identifications[0].getHits().size() == 2 )
 		{
 			TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[0].getScore(), 0.05)
-			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[0].getSequence().toString(), "ETQAWSIATILETLYDL")
+			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[0].getSequence().toString(), ".ETQAWSIATILETLYDL.")
             vector<PeptideEvidence> pes = peptide_identifications[0].getHits()[0].getPeptideEvidences();
             TEST_EQUAL(pes[0].getAABefore(), 'C')
             TEST_EQUAL(pes[0].getAAAfter(), '-')
@@ -247,7 +247,7 @@ START_SECTION(void load(const String& result_filename, std::vector< PeptideIdent
                 TEST_STRING_EQUAL(pes[2].getProteinAccession(), "L10605")
 			}
 			TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[1].getScore(), 0.04)
-			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[1].getSequence().toString(), "QVLNPLLVLIFIPLFDL")
+			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[1].getSequence().toString(), ".QVLNPLLVLIFIPLFDL.")
             pes = peptide_identifications[0].getHits()[1].getPeptideEvidences();
             TEST_EQUAL(pes[0].getAABefore(), 'M')
             TEST_EQUAL(pes[0].getAAAfter(), 'V')

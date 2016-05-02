@@ -95,7 +95,7 @@
 				<pt x="5196.5591" y="657.859433596416" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="16" MZ="657.359497070312" RT="5209.7721" >
-				<PeptideHit score="38.62" sequence="TVQQISDLPFR(Label:13C(6)15N(4))" charge="2" aa_before="R" aa_after="Q" protein_refs="PH_3">
+				<PeptideHit score="38.62" sequence=".TVQQISDLPFR(Label:13C(6)15N(4))." charge="2" aa_before="R" aa_after="Q" protein_refs="PH_3">
 					<UserParam type="float" name="homology_threshold" value="0"/>
 					<UserParam type="float" name="identity_threshold" value="16"/>
 					<UserParam type="float" name="EValue" value="0.00034"/>

@@ -40,19 +40,19 @@
 				</hullpoint>
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="1" RT="1" >
-				<PeptideHit score="1" sequence="A" charge="2">
+				<PeptideHit score="1" sequence=".A." charge="2">
 				</PeptideHit>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="2" RT="2" >
-				<PeptideHit score="2" sequence="E" charge="1">
+				<PeptideHit score="2" sequence=".E." charge="1">
 				</PeptideHit>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="1" RT="1" >
-				<PeptideHit score="9" sequence="F" charge="3">
+				<PeptideHit score="9" sequence=".F." charge="3">
 				</PeptideHit>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="2" RT="2" >
-				<PeptideHit score="3" sequence="A" charge="2">
+				<PeptideHit score="3" sequence=".A." charge="2">
 				</PeptideHit>
 			</PeptideIdentification>
 		</feature>
@@ -83,19 +83,19 @@
 				</hullpoint>
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="3" RT="3" >
-				<PeptideHit score="3" sequence="C" charge="3">
+				<PeptideHit score="3" sequence=".C." charge="3">
 				</PeptideHit>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="4" RT="4" >
-				<PeptideHit score="4" sequence="D" charge="2">
+				<PeptideHit score="4" sequence=".D." charge="2">
 				</PeptideHit>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="3" RT="3" >
-				<PeptideHit score="7" sequence="H" charge="2">
+				<PeptideHit score="7" sequence=".H." charge="2">
 				</PeptideHit>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="4" RT="4" >
-				<PeptideHit score="1" sequence="C" charge="3">
+				<PeptideHit score="1" sequence=".C." charge="3">
 				</PeptideHit>
 			</PeptideIdentification>
 		</feature>

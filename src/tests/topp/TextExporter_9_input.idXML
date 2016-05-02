@@ -22,7 +22,7 @@
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="712.782836914063" RT="17.7875061035156" >
-			<PeptideHit score="2.33490416097798" sequence="AEADNLDDKK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_2" >
+			<PeptideHit score="2.33490416097798" sequence=".AEADNLDDKK." charge="2" aa_before="K" aa_after="L" protein_refs="PH_2" >
 				<UserParam type="string" name="RNPxl:RNA" value="U-H2O1"/>
 				<UserParam type="float" name="RNPxl:RNA_MASS_z0" value="306.0253048409"/>
 				<UserParam type="float" name="RNPxl:best_localization_score" value="1.87158872621755"/>
@@ -49,7 +49,7 @@
 			<UserParam type="int" name="scan_index" value="0"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="590.766052246094" RT="18.3059501647949" >
-			<PeptideHit score="2.00579096477783" sequence="LDSKGNIK" charge="2" aa_before="R" aa_after="R" protein_refs="PH_4" >
+			<PeptideHit score="2.00579096477783" sequence=".LDSKGNIK." charge="2" aa_before="R" aa_after="R" protein_refs="PH_4" >
 				<UserParam type="string" name="RNPxl:RNA" value="U-H2O1"/>
 				<UserParam type="float" name="RNPxl:RNA_MASS_z0" value="306.0253048409"/>
 				<UserParam type="float" name="RNPxl:best_localization_score" value="2.17606346362403"/>
@@ -76,7 +76,7 @@
 			<UserParam type="int" name="scan_index" value="1"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="678.284423828125" RT="26.2365341186523" >
-			<PeptideHit score="3.01672363684849" sequence="DYHTVLGAR" charge="2" aa_before="R" aa_after="E" protein_refs="PH_3" >
+			<PeptideHit score="3.01672363684849" sequence=".DYHTVLGAR." charge="2" aa_before="R" aa_after="E" protein_refs="PH_3" >
 				<UserParam type="string" name="RNPxl:RNA" value="U"/>
 				<UserParam type="float" name="RNPxl:RNA_MASS_z0" value="324.0358699047"/>
 				<UserParam type="float" name="RNPxl:best_localization_score" value="0.88477588747628"/>
@@ -103,7 +103,7 @@
 			<UserParam type="int" name="scan_index" value="3"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="791.859008789063" RT="26.4131374359131" >
-			<PeptideHit score="2.10516378468165" sequence="KSEQTTGISLGR" charge="2" aa_before="K" aa_after="A" protein_refs="PH_1" >
+			<PeptideHit score="2.10516378468165" sequence=".KSEQTTGISLGR." charge="2" aa_before="K" aa_after="A" protein_refs="PH_1" >
 				<UserParam type="string" name="RNPxl:RNA" value="U-H2O1"/>
 				<UserParam type="float" name="RNPxl:RNA_MASS_z0" value="306.0253048409"/>
 				<UserParam type="float" name="RNPxl:best_localization_score" value="0.149626377165656"/>
@@ -130,7 +130,7 @@
 			<UserParam type="int" name="scan_index" value="4"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="828.696105957031" RT="28.4869823455811" >
-			<PeptideHit score="3.12100769461214" sequence="VEDVHPISERPQYFSGDGK" charge="3" aa_before="R" aa_after="S" protein_refs="PH_4" >
+			<PeptideHit score="3.12100769461214" sequence=".VEDVHPISERPQYFSGDGK." charge="3" aa_before="R" aa_after="S" protein_refs="PH_4" >
 				<UserParam type="string" name="RNPxl:RNA" value="U"/>
 				<UserParam type="float" name="RNPxl:RNA_MASS_z0" value="324.0358699047"/>
 				<UserParam type="float" name="RNPxl:best_localization_score" value="2.01849083954261"/>
@@ -157,7 +157,7 @@
 			<UserParam type="int" name="scan_index" value="5"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="656.794921875" RT="28.67844581604" >
-			<PeptideHit score="1.75247453675492" sequence="FDQKIIDK" charge="2" aa_before="R" aa_after="T" protein_refs="PH_2" >
+			<PeptideHit score="1.75247453675492" sequence=".FDQKIIDK." charge="2" aa_before="R" aa_after="T" protein_refs="PH_2" >
 				<UserParam type="string" name="RNPxl:RNA" value="U-H2O1"/>
 				<UserParam type="float" name="RNPxl:RNA_MASS_z0" value="306.0253048409"/>
 				<UserParam type="float" name="RNPxl:best_localization_score" value="0.680211805073278"/>

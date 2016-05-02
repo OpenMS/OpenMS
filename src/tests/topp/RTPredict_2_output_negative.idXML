@@ -9,37 +9,37 @@
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="19" MZ="982.58" RT="160" >
-			<PeptideHit score="5.41" sequence="LLNGTVVSK" charge="2" >
+			<PeptideHit score="5.41" sequence=".LLNGTVVSK." charge="2" >
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="19" MZ="982.58" RT="160" >
-			<PeptideHit score="7.87" sequence="QNAGETWHDITGNR" charge="2" >
+			<PeptideHit score="7.87" sequence=".QNAGETWHDITGNR." charge="2" >
 			</PeptideHit>
-			<PeptideHit score="7.87" sequence="WHWYHFDGTDWDESR" charge="2" >
+			<PeptideHit score="7.87" sequence=".WHWYHFDGTDWDESR." charge="2" >
 			</PeptideHit>
-			<PeptideHit score="7.87" sequence="EGDSSVANSGLAALITDGPGGAK" charge="2" >
+			<PeptideHit score="7.87" sequence=".EGDSSVANSGLAALITDGPGGAK." charge="2" >
 			</PeptideHit>
-			<PeptideHit score="7.87" sequence="LQNDSAYLAEHGITAVWIPPAYK" charge="2" >
+			<PeptideHit score="7.87" sequence=".LQNDSAYLAEHGITAVWIPPAYK." charge="2" >
 			</PeptideHit>
-			<PeptideHit score="7.87" sequence="QYAYGAQHDYFDHHDIVGWTR" charge="2" >
+			<PeptideHit score="7.87" sequence=".QYAYGAQHDYFDHHDIVGWTR." charge="2" >
 			</PeptideHit>
-			<PeptideHit score="7.87" sequence="YPILPEYLQCVK" charge="2" >
+			<PeptideHit score="7.87" sequence=".YPILPEYLQCVK." charge="2" >
 			</PeptideHit>
-			<PeptideHit score="7.87" sequence="AFKDEDTQAMPFR" charge="2" >
+			<PeptideHit score="7.87" sequence=".AFKDEDTQAMPFR." charge="2" >
 			</PeptideHit>
-			<PeptideHit score="7.87" sequence="GGLEPINFQTAADQAR" charge="2" >
+			<PeptideHit score="7.87" sequence=".GGLEPINFQTAADQAR." charge="2" >
 			</PeptideHit>
-			<PeptideHit score="7.87" sequence="EVVGSAEAGVDAASVSEEFR" charge="2" >
+			<PeptideHit score="7.87" sequence=".EVVGSAEAGVDAASVSEEFR." charge="2" >
 			</PeptideHit>
-			<PeptideHit score="7.87" sequence="FDKLPGFGDSIEAQCGTSVNVHSSLR" charge="2" >
+			<PeptideHit score="7.87" sequence=".FDKLPGFGDSIEAQCGTSVNVHSSLR." charge="2" >
 			</PeptideHit>
-			<PeptideHit score="7.87" sequence="EVVGSAEAGVDAASVSEEFRADHPFLFCIK" charge="2" >
+			<PeptideHit score="7.87" sequence=".EVVGSAEAGVDAASVSEEFRADHPFLFCIK." charge="2" >
 			</PeptideHit>
-			<PeptideHit score="7.87" sequence="ILELPFASGTMSMLVLLPDEVSGLEQLESIINFEK" charge="2" >
+			<PeptideHit score="7.87" sequence=".ILELPFASGTMSMLVLLPDEVSGLEQLESIINFEK." charge="2" >
 			</PeptideHit>
-			<PeptideHit score="7.87" sequence="VLDALDSIK" charge="2" >
+			<PeptideHit score="7.87" sequence=".VLDALDSIK." charge="2" >
 			</PeptideHit>
-			<PeptideHit score="7.87" sequence="MVNNGHSFNVEYDDSQDK" charge="2" >
+			<PeptideHit score="7.87" sequence=".MVNNGHSFNVEYDDSQDK." charge="2" >
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>

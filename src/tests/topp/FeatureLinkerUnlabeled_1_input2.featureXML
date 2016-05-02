@@ -11,7 +11,7 @@
 		</ProteinIdentification>
 	</IdentificationRun>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="score_type" higher_score_better="false" significance_threshold="42.2999992370605" >
-		<PeptideHit score="4324.433" sequence="FDD" charge="23" aa_before="X" aa_after="Y" protein_refs="PH_1">
+		<PeptideHit score="4324.433" sequence=".FDD." charge="23" aa_before="X" aa_after="Y" protein_refs="PH_1">
 		</PeptideHit>
 	</UnassignedPeptideIdentification>
 	<featureList count="20">
@@ -118,7 +118,7 @@
 				</hullpoint>
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
-				<PeptideHit score="35" sequence="ADD" charge="3" protein_refs="PH_0">
+				<PeptideHit score="35" sequence=".ADD." charge="3" protein_refs="PH_0">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="sequence" value="SHCIAEVEK"/>
@@ -654,7 +654,7 @@
 				</hullpoint>
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
-				<PeptideHit score="35" sequence="XDD" charge="3" protein_refs="PH_0">
+				<PeptideHit score="35" sequence=".XDD." charge="3" protein_refs="PH_0">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="sequence" value="LVNELTEFAK"/>

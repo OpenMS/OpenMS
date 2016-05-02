@@ -13,7 +13,7 @@
 	</IdentificationRun>
 
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="false" significance_threshold="42.2999992370605" >
-		<PeptideHit score="4324.433" sequence="F" charge="23" aa_before="X" aa_after="Y" protein_refs="PH_1">
+		<PeptideHit score="4324.433" sequence=".F." charge="23" aa_before="X" aa_after="Y" protein_refs="PH_1">
 		</PeptideHit>
 	</UnassignedPeptideIdentification>
 
@@ -70,7 +70,7 @@
 				</hullpoint>
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="bla" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
-				<PeptideHit score="35" sequence="A" charge="3" protein_refs="PH_0">
+				<PeptideHit score="35" sequence=".A." charge="3" protein_refs="PH_0">
 				</PeptideHit>
 			</PeptideIdentification>
 		</feature>	
@@ -114,7 +114,7 @@
 			<overallquality>6</overallquality>
 			<charge>1</charge>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="bla" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
-				<PeptideHit score="35" sequence="E" charge="3" protein_refs="PH_0">
+				<PeptideHit score="35" sequence=".E." charge="3" protein_refs="PH_0">
 				</PeptideHit>
 			</PeptideIdentification>
 		</feature>		
@@ -140,7 +140,7 @@
 			<overallquality>8</overallquality>
 			<charge>2</charge>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="bla" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
-				<PeptideHit score="35" sequence="C" charge="3" protein_refs="PH_0">
+				<PeptideHit score="35" sequence=".C." charge="3" protein_refs="PH_0">
 				</PeptideHit>
 			</PeptideIdentification>
 		</feature>	
@@ -164,7 +164,7 @@
 			<overallquality>10</overallquality>
 			<charge>2</charge>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="bla" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
-				<PeptideHit score="35" sequence="D" charge="3" protein_refs="PH_0">
+				<PeptideHit score="35" sequence=".D." charge="3" protein_refs="PH_0">
 				</PeptideHit>
 			</PeptideIdentification>
 		</feature>		

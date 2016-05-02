@@ -122,7 +122,7 @@
 						<pt x="2084.91577148438" y="53780.8515625" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="461.747653035421"/>
-					<UserParam type="string" name="native_id" value="AEFVEVTK/2_i0"/>
+					<UserParam type="string" name="native_id" value=".AEFVEVTK./2_i0"/>
 					<UserParam type="float" name="peak_apex_int" value="6132016.37304688"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.605303691981383"/>
@@ -180,7 +180,7 @@
 						<pt x="2084.91577148438" y="23117.837890625" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="462.249330454321"/>
-					<UserParam type="string" name="native_id" value="AEFVEVTK/2_i1"/>
+					<UserParam type="string" name="native_id" value=".AEFVEVTK./2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="3055499.92285156"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.302979778553123"/>
@@ -238,19 +238,19 @@
 						<pt x="2084.91577148438" y="5564.43896484375" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="462.751007873221"/>
-					<UserParam type="string" name="native_id" value="AEFVEVTK/2_i2"/>
+					<UserParam type="string" name="native_id" value=".AEFVEVTK./2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="913238.75"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.0917165294654937"/>
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="7.33294200725712" sequence="AEFVEVTK" charge="2" protein_refs="PH_4">
+				<PeptideHit score="7.33294200725712" sequence=".AEFVEVTK." charge="2" protein_refs="PH_4">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.24984329916941"/>
-			<UserParam type="string" name="PeptideRef" value="AEFVEVTK/2"/>
+			<UserParam type="string" name="PeptideRef" value=".AEFVEVTK./2"/>
 			<UserParam type="float" name="leftWidth" value="1986.94934082031"/>
 			<UserParam type="float" name="rightWidth" value="2087.48876953125"/>
 			<UserParam type="float" name="total_xic" value="86629336.1901245"/>
@@ -381,7 +381,7 @@
 						<pt x="2144.091796875" y="20735.4453125" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="395.726522907821"/>
-					<UserParam type="string" name="native_id" value="AGAFSLPK/2_i0"/>
+					<UserParam type="string" name="native_id" value=".AGAFSLPK./2_i0"/>
 					<UserParam type="float" name="peak_apex_int" value="1755528.77734375"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.640648155154611"/>
@@ -451,7 +451,7 @@
 						<pt x="2144.091796875" y="5831.30859375" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="396.228200326721"/>
-					<UserParam type="string" name="native_id" value="AGAFSLPK/2_i1"/>
+					<UserParam type="string" name="native_id" value=".AGAFSLPK./2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="726626.662597656"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.284460155308912"/>
@@ -521,19 +521,19 @@
 						<pt x="2144.091796875" y="0" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="396.729877745621"/>
-					<UserParam type="string" name="native_id" value="AGAFSLPK/2_i2"/>
+					<UserParam type="string" name="native_id" value=".AGAFSLPK./2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="215172.046875"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.0748916895364773"/>
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="7.13936986602252" sequence="AGAFSLPK" charge="2" protein_refs="PH_10">
+				<PeptideHit score="7.13936986602252" sequence=".AGAFSLPK." charge="2" protein_refs="PH_10">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.24018995367207"/>
-			<UserParam type="string" name="PeptideRef" value="AGAFSLPK/2"/>
+			<UserParam type="string" name="PeptideRef" value=".AGAFSLPK./2"/>
 			<UserParam type="float" name="leftWidth" value="2033.83422851562"/>
 			<UserParam type="float" name="rightWidth" value="2145.97802734375"/>
 			<UserParam type="float" name="total_xic" value="26634264.5513916"/>
@@ -663,7 +663,7 @@
 						<pt x="2182.01147460938" y="8368.3076171875" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="455.755280535421"/>
-					<UserParam type="string" name="native_id" value="AGDLLFFK/2_i0"/>
+					<UserParam type="string" name="native_id" value=".AGDLLFFK./2_i0"/>
 					<UserParam type="float" name="peak_apex_int" value="265472.375"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.590602360032125"/>
@@ -732,7 +732,7 @@
 						<pt x="2182.01147460938" y="3749.33911132812" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="456.256957954321"/>
-					<UserParam type="string" name="native_id" value="AGDLLFFK/2_i1"/>
+					<UserParam type="string" name="native_id" value=".AGDLLFFK./2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="128980.703125"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.314109605109337"/>
@@ -801,19 +801,19 @@
 						<pt x="2182.01147460938" y="2897.51989746094" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="456.758635373221"/>
-					<UserParam type="string" name="native_id" value="AGDLLFFK/2_i2"/>
+					<UserParam type="string" name="native_id" value=".AGDLLFFK./2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="37636.46875"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.0952880348585381"/>
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="6.88451496560776" sequence="AGDLLFFK" charge="2" protein_refs="PH_9">
+				<PeptideHit score="6.88451496560776" sequence=".AGDLLFFK." charge="2" protein_refs="PH_9">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.24288347289379"/>
-			<UserParam type="string" name="PeptideRef" value="AGDLLFFK/2"/>
+			<UserParam type="string" name="PeptideRef" value=".AGDLLFFK./2"/>
 			<UserParam type="float" name="leftWidth" value="2090.21142578125"/>
 			<UserParam type="float" name="rightWidth" value="2183.32666015625"/>
 			<UserParam type="float" name="total_xic" value="6642318.61328125"/>
@@ -948,7 +948,7 @@
 						<pt x="1807.84582519531" y="6072.09912109375" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="569.752618393021"/>
-					<UserParam type="string" name="native_id" value="C(Carbamidomethyl)C(Carbamidomethyl)TESLVNR/2_i0"/>
+					<UserParam type="string" name="native_id" value=".C(Carbamidomethyl)C(Carbamidomethyl)TESLVNR./2_i0"/>
 					<UserParam type="float" name="peak_apex_int" value="1162693.41821289"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.520493780493655"/>
@@ -1016,7 +1016,7 @@
 						<pt x="1807.84582519531" y="2404.35375976562" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="570.254295811921"/>
-					<UserParam type="string" name="native_id" value="C(Carbamidomethyl)C(Carbamidomethyl)TESLVNR/2_i1"/>
+					<UserParam type="string" name="native_id" value=".C(Carbamidomethyl)C(Carbamidomethyl)TESLVNR./2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="627629.3125"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.287101105347419"/>
@@ -1084,7 +1084,7 @@
 						<pt x="1807.84582519531" y="0" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="570.755973230821"/>
-					<UserParam type="string" name="native_id" value="C(Carbamidomethyl)C(Carbamidomethyl)TESLVNR/2_i2"/>
+					<UserParam type="string" name="native_id" value=".C(Carbamidomethyl)C(Carbamidomethyl)TESLVNR./2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="310047.375"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.14301185314801"/>
@@ -1152,19 +1152,19 @@
 						<pt x="1807.84582519531" y="0" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="571.257650649721"/>
-					<UserParam type="string" name="native_id" value="C(Carbamidomethyl)C(Carbamidomethyl)TESLVNR/2_i3"/>
+					<UserParam type="string" name="native_id" value=".C(Carbamidomethyl)C(Carbamidomethyl)TESLVNR./2_i3"/>
 					<UserParam type="float" name="peak_apex_int" value="50677.73828125"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.0493932610109153"/>
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="7.28213541750318" sequence="C(Carbamidomethyl)C(Carbamidomethyl)TESLVNR" charge="2" protein_refs="PH_4">
+				<PeptideHit score="7.28213541750318" sequence=".C(Carbamidomethyl)C(Carbamidomethyl)TESLVNR." charge="2" protein_refs="PH_4">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.23952257441296"/>
-			<UserParam type="string" name="PeptideRef" value="C(Carbamidomethyl)C(Carbamidomethyl)TESLVNR/2"/>
+			<UserParam type="string" name="PeptideRef" value=".C(Carbamidomethyl)C(Carbamidomethyl)TESLVNR./2"/>
 			<UserParam type="float" name="leftWidth" value="1723.66687011719"/>
 			<UserParam type="float" name="rightWidth" value="1807.84582519531"/>
 			<UserParam type="float" name="total_xic" value="16925831.8427734"/>
@@ -1294,7 +1294,7 @@
 						<pt x="1791.29907226562" y="37911.421875" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="443.711267907821"/>
-					<UserParam type="string" name="native_id" value="DDSPDLPK/2_i0"/>
+					<UserParam type="string" name="native_id" value=".DDSPDLPK./2_i0"/>
 					<UserParam type="float" name="peak_apex_int" value="2805595.68164062"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.634295717415709"/>
@@ -1363,7 +1363,7 @@
 						<pt x="1791.29907226562" y="14751.7978515625" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="444.212945326721"/>
-					<UserParam type="string" name="native_id" value="DDSPDLPK/2_i1"/>
+					<UserParam type="string" name="native_id" value=".DDSPDLPK./2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="1242968.625"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.283089267300653"/>
@@ -1432,19 +1432,19 @@
 						<pt x="1791.29907226562" y="2526.7041015625" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="444.714622745621"/>
-					<UserParam type="string" name="native_id" value="DDSPDLPK/2_i2"/>
+					<UserParam type="string" name="native_id" value=".DDSPDLPK./2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="369229.5"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.0826150152836374"/>
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="7.33387145951801" sequence="DDSPDLPK" charge="2" protein_refs="PH_4">
+				<PeptideHit score="7.33387145951801" sequence=".DDSPDLPK." charge="2" protein_refs="PH_4">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.2496497683647"/>
-			<UserParam type="string" name="PeptideRef" value="DDSPDLPK/2"/>
+			<UserParam type="string" name="PeptideRef" value=".DDSPDLPK./2"/>
 			<UserParam type="float" name="leftWidth" value="1707.67224121094"/>
 			<UserParam type="float" name="rightWidth" value="1792.96655273438"/>
 			<UserParam type="float" name="total_xic" value="40082917.2974854"/>
@@ -1602,7 +1602,7 @@
 						<pt x="1986.94934082031" y="100457.8046875" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="487.732534471621"/>
-					<UserParam type="string" name="native_id" value="DLGEEHFK/2_i0"/>
+					<UserParam type="string" name="native_id" value=".DLGEEHFK./2_i0"/>
 					<UserParam type="float" name="peak_apex_int" value="2737511.75"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.594740416525812"/>
@@ -1699,7 +1699,7 @@
 						<pt x="1986.94934082031" y="56928.0009765625" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="488.234211890521"/>
-					<UserParam type="string" name="native_id" value="DLGEEHFK/2_i1"/>
+					<UserParam type="string" name="native_id" value=".DLGEEHFK./2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="1443478.75"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.308471365969814"/>
@@ -1796,19 +1796,19 @@
 						<pt x="1986.94934082031" y="11058.4405517578" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="488.735889309421"/>
-					<UserParam type="string" name="native_id" value="DLGEEHFK/2_i2"/>
+					<UserParam type="string" name="native_id" value=".DLGEEHFK./2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="437271.59375"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.0967882175043745"/>
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="6.46656424867894" sequence="DLGEEHFK" charge="2" protein_refs="PH_4">
+				<PeptideHit score="6.46656424867894" sequence=".DLGEEHFK." charge="2" protein_refs="PH_4">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.24970213279474"/>
-			<UserParam type="string" name="PeptideRef" value="DLGEEHFK/2"/>
+			<UserParam type="string" name="PeptideRef" value=".DLGEEHFK./2"/>
 			<UserParam type="float" name="leftWidth" value="1819.56494140625"/>
 			<UserParam type="float" name="rightWidth" value="1986.94934082031"/>
 			<UserParam type="float" name="total_xic" value="98420973.3638306"/>
@@ -1967,7 +1967,7 @@
 						<pt x="1989.31274414062" y="77219.6640625" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="325.490781803338"/>
-					<UserParam type="string" name="native_id" value="DLGEEHFK/3_i0"/>
+					<UserParam type="string" name="native_id" value=".DLGEEHFK./3_i0"/>
 					<UserParam type="float" name="peak_apex_int" value="2447449.4375"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.594740416525812"/>
@@ -2065,7 +2065,7 @@
 						<pt x="1989.31274414062" y="33034.32421875" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="325.825233415938"/>
-					<UserParam type="string" name="native_id" value="DLGEEHFK/3_i1"/>
+					<UserParam type="string" name="native_id" value=".DLGEEHFK./3_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="1270640.28735352"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.308471365969814"/>
@@ -2163,19 +2163,19 @@
 						<pt x="1989.31274414062" y="13588.9223632812" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="326.159685028538"/>
-					<UserParam type="string" name="native_id" value="DLGEEHFK/3_i2"/>
+					<UserParam type="string" name="native_id" value=".DLGEEHFK./3_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="410889.125"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.0967882175043745"/>
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="7.02054841597734" sequence="DLGEEHFK" charge="3" protein_refs="PH_4">
+				<PeptideHit score="7.02054841597734" sequence=".DLGEEHFK." charge="3" protein_refs="PH_4">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.24879624930991"/>
-			<UserParam type="string" name="PeptideRef" value="DLGEEHFK/3"/>
+			<UserParam type="string" name="PeptideRef" value=".DLGEEHFK./3"/>
 			<UserParam type="float" name="leftWidth" value="1819.56494140625"/>
 			<UserParam type="float" name="rightWidth" value="1991.31884765625"/>
 			<UserParam type="float" name="total_xic" value="72078542.8691406"/>
@@ -2305,7 +2305,7 @@
 						<pt x="2133.37890625" y="7221.056640625" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="554.260602012071"/>
-					<UserParam type="string" name="native_id" value="EAC(Carbamidomethyl)FAVEGPK/2_i0"/>
+					<UserParam type="string" name="native_id" value=".EAC(Carbamidomethyl)FAVEGPK./2_i0"/>
 					<UserParam type="float" name="peak_apex_int" value="1201289.75"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.523496646958388"/>
@@ -2368,7 +2368,7 @@
 						<pt x="2133.37890625" y="5457.3447265625" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="554.762279430971"/>
-					<UserParam type="string" name="native_id" value="EAC(Carbamidomethyl)FAVEGPK/2_i1"/>
+					<UserParam type="string" name="native_id" value=".EAC(Carbamidomethyl)FAVEGPK./2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="715651.9375"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.306816021730743"/>
@@ -2431,7 +2431,7 @@
 						<pt x="2133.37890625" y="3426.07800292969" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="555.263956849871"/>
-					<UserParam type="string" name="native_id" value="EAC(Carbamidomethyl)FAVEGPK/2_i2"/>
+					<UserParam type="string" name="native_id" value=".EAC(Carbamidomethyl)FAVEGPK./2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="240445.375"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.129250599497847"/>
@@ -2494,19 +2494,19 @@
 						<pt x="2133.37890625" y="0" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="555.765634268771"/>
-					<UserParam type="string" name="native_id" value="EAC(Carbamidomethyl)FAVEGPK/2_i3"/>
+					<UserParam type="string" name="native_id" value=".EAC(Carbamidomethyl)FAVEGPK./2_i3"/>
 					<UserParam type="float" name="peak_apex_int" value="38680.71875"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.0404367318130209"/>
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="7.33993033045089" sequence="EAC(Carbamidomethyl)FAVEGPK" charge="2" protein_refs="PH_4">
+				<PeptideHit score="7.33993033045089" sequence=".EAC(Carbamidomethyl)FAVEGPK." charge="2" protein_refs="PH_4">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.24248422785551"/>
-			<UserParam type="string" name="PeptideRef" value="EAC(Carbamidomethyl)FAVEGPK/2"/>
+			<UserParam type="string" name="PeptideRef" value=".EAC(Carbamidomethyl)FAVEGPK./2"/>
 			<UserParam type="float" name="leftWidth" value="2036.53295898438"/>
 			<UserParam type="float" name="rightWidth" value="2135.35791015625"/>
 			<UserParam type="float" name="total_xic" value="18875001.3235474"/>
@@ -2642,7 +2642,7 @@
 						<pt x="1828.62902832031" y="3581.37622070312" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="646.304684132271"/>
-					<UserParam type="string" name="native_id" value="EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK/2_i0"/>
+					<UserParam type="string" name="native_id" value=".EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK./2_i0"/>
 					<UserParam type="float" name="peak_apex_int" value="38886.83203125"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.469148666265311"/>
@@ -2711,7 +2711,7 @@
 						<pt x="1828.62902832031" y="0" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="646.806361551171"/>
-					<UserParam type="string" name="native_id" value="EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK/2_i1"/>
+					<UserParam type="string" name="native_id" value=".EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK./2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="20847.99609375"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.308955259442621"/>
@@ -2780,7 +2780,7 @@
 						<pt x="1828.62902832031" y="0" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="647.308038970071"/>
-					<UserParam type="string" name="native_id" value="EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK/2_i2"/>
+					<UserParam type="string" name="native_id" value=".EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK./2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="7590.19482421875"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.160920872686267"/>
@@ -2849,19 +2849,19 @@
 						<pt x="1828.62902832031" y="0" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="647.809716388971"/>
-					<UserParam type="string" name="native_id" value="EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK/2_i3"/>
+					<UserParam type="string" name="native_id" value=".EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK./2_i3"/>
 					<UserParam type="float" name="peak_apex_int" value="1577.71240234375"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.0609752016058012"/>
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="6.64533920231675" sequence="EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK" charge="2" protein_refs="PH_4">
+				<PeptideHit score="6.64533920231675" sequence=".EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK." charge="2" protein_refs="PH_4">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.19266318517679"/>
-			<UserParam type="string" name="PeptideRef" value="EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK/2"/>
+			<UserParam type="string" name="PeptideRef" value=".EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK./2"/>
 			<UserParam type="float" name="leftWidth" value="1738.2958984375"/>
 			<UserParam type="float" name="rightWidth" value="1828.62902832031"/>
 			<UserParam type="float" name="total_xic" value="1353989.84680176"/>
@@ -3007,7 +3007,7 @@
 						<pt x="1847.20849609375" y="38154.3046875" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="431.205548243771"/>
-					<UserParam type="string" name="native_id" value="EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK/3_i0"/>
+					<UserParam type="string" name="native_id" value=".EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK./3_i0"/>
 					<UserParam type="float" name="peak_apex_int" value="391838.75"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.469148666265311"/>
@@ -3086,7 +3086,7 @@
 						<pt x="1847.20849609375" y="20379.953125" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="431.539999856371"/>
-					<UserParam type="string" name="native_id" value="EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK/3_i1"/>
+					<UserParam type="string" name="native_id" value=".EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK./3_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="246120.03125"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.308955259442621"/>
@@ -3165,7 +3165,7 @@
 						<pt x="1847.20849609375" y="0" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="431.874451468971"/>
-					<UserParam type="string" name="native_id" value="EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK/3_i2"/>
+					<UserParam type="string" name="native_id" value=".EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK./3_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="127595.15625"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.160920872686267"/>
@@ -3244,19 +3244,19 @@
 						<pt x="1847.20849609375" y="0" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="432.208903081571"/>
-					<UserParam type="string" name="native_id" value="EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK/3_i3"/>
+					<UserParam type="string" name="native_id" value=".EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK./3_i3"/>
 					<UserParam type="float" name="peak_apex_int" value="24739.587890625"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.0609752016058012"/>
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="5.98468084530345" sequence="EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK" charge="3" protein_refs="PH_4">
+				<PeptideHit score="5.98468084530345" sequence=".EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK." charge="3" protein_refs="PH_4">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.2371615508957"/>
-			<UserParam type="string" name="PeptideRef" value="EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK/3"/>
+			<UserParam type="string" name="PeptideRef" value=".EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK./3"/>
 			<UserParam type="float" name="leftWidth" value="1740.13562011719"/>
 			<UserParam type="float" name="rightWidth" value="1848.68237304688"/>
 			<UserParam type="float" name="total_xic" value="16507963.5396118"/>
@@ -3381,7 +3381,7 @@
 						<pt x="2072.11108398438" y="24341.630859375" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="379.715100772821"/>
-					<UserParam type="string" name="native_id" value="GAC(Carbamidomethyl)LLPK/2_i0"/>
+					<UserParam type="string" name="native_id" value=".GAC(Carbamidomethyl)LLPK./2_i0"/>
 					<UserParam type="float" name="peak_apex_int" value="2254385.11621094"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.643736541827821"/>
@@ -3445,7 +3445,7 @@
 						<pt x="2072.11108398438" y="6984.0244140625" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="380.216778191721"/>
-					<UserParam type="string" name="native_id" value="GAC(Carbamidomethyl)LLPK/2_i1"/>
+					<UserParam type="string" name="native_id" value=".GAC(Carbamidomethyl)LLPK./2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="911381.791015625"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.262890014561472"/>
@@ -3509,19 +3509,19 @@
 						<pt x="2072.11108398438" y="0" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="380.718455610621"/>
-					<UserParam type="string" name="native_id" value="GAC(Carbamidomethyl)LLPK/2_i2"/>
+					<UserParam type="string" name="native_id" value=".GAC(Carbamidomethyl)LLPK./2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="172558.984375"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.0933734436107066"/>
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="7.0881619333098" sequence="GAC(Carbamidomethyl)LLPK" charge="2" protein_refs="PH_4">
+				<PeptideHit score="7.0881619333098" sequence=".GAC(Carbamidomethyl)LLPK." charge="2" protein_refs="PH_4">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.24291051129269"/>
-			<UserParam type="string" name="PeptideRef" value="GAC(Carbamidomethyl)LLPK/2"/>
+			<UserParam type="string" name="PeptideRef" value=".GAC(Carbamidomethyl)LLPK./2"/>
 			<UserParam type="float" name="leftWidth" value="1966.54650878906"/>
 			<UserParam type="float" name="rightWidth" value="2074.3701171875"/>
 			<UserParam type="float" name="total_xic" value="33680496.1832275"/>
@@ -3633,7 +3633,7 @@
 						<pt x="1869.03576660156" y="17559.25" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="408.874238280604"/>
-					<UserParam type="string" name="native_id" value="GM(Oxidation)LWAVFEQK/3_i0"/>
+					<UserParam type="string" name="native_id" value=".GM(Oxidation)LWAVFEQK./3_i0"/>
 					<UserParam type="float" name="peak_apex_int" value="14512.7333984375"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.475941440767829"/>
@@ -3678,7 +3678,7 @@
 						<pt x="1869.03576660156" y="6546.6787109375" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="409.208689893204"/>
-					<UserParam type="string" name="native_id" value="GM(Oxidation)LWAVFEQK/3_i1"/>
+					<UserParam type="string" name="native_id" value=".GM(Oxidation)LWAVFEQK./3_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="18881.10546875"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.327452052893108"/>
@@ -3723,7 +3723,7 @@
 						<pt x="1869.03576660156" y="3982.71740722656" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="409.543141505804"/>
-					<UserParam type="string" name="native_id" value="GM(Oxidation)LWAVFEQK/3_i2"/>
+					<UserParam type="string" name="native_id" value=".GM(Oxidation)LWAVFEQK./3_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="0"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.147179212589015"/>
@@ -3768,19 +3768,19 @@
 						<pt x="1869.03576660156" y="0" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="409.877593118404"/>
-					<UserParam type="string" name="native_id" value="GM(Oxidation)LWAVFEQK/3_i3"/>
+					<UserParam type="string" name="native_id" value=".GM(Oxidation)LWAVFEQK./3_i3"/>
 					<UserParam type="float" name="peak_apex_int" value="0"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.049427293750048"/>
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="1.27074706717956" sequence="GM(Oxidation)LWAVFEQK" charge="3" protein_refs="PH_14">
+				<PeptideHit score="1.27074706717956" sequence=".GM(Oxidation)LWAVFEQK." charge="3" protein_refs="PH_14">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="-2.20106484443186"/>
-			<UserParam type="string" name="PeptideRef" value="GM(Oxidation)LWAVFEQK/3"/>
+			<UserParam type="string" name="PeptideRef" value=".GM(Oxidation)LWAVFEQK./3"/>
 			<UserParam type="float" name="leftWidth" value="1816.15393066406"/>
 			<UserParam type="float" name="rightWidth" value="1871.33630371094"/>
 			<UserParam type="float" name="total_xic" value="2160402.40258789"/>
@@ -3905,7 +3905,7 @@
 						<pt x="1697.08410644531" y="0" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="532.248746583271"/>
-					<UserParam type="string" name="native_id" value="KSDDGGEVEK/2_i0"/>
+					<UserParam type="string" name="native_id" value=".KSDDGGEVEK./2_i0"/>
 					<UserParam type="float" name="peak_apex_int" value="15971.271484375"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.593457439057031"/>
@@ -3969,7 +3969,7 @@
 						<pt x="1697.08410644531" y="0" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="532.750424002171"/>
-					<UserParam type="string" name="native_id" value="KSDDGGEVEK/2_i1"/>
+					<UserParam type="string" name="native_id" value=".KSDDGGEVEK./2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="8075.73193359375"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.305187349223869"/>
@@ -4033,19 +4033,19 @@
 						<pt x="1697.08410644531" y="0" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="533.252101421071"/>
-					<UserParam type="string" name="native_id" value="KSDDGGEVEK/2_i2"/>
+					<UserParam type="string" name="native_id" value=".KSDDGGEVEK./2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="1458.31713867188"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.1013552117191"/>
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="6.68722838943651" sequence="KSDDGGEVEK" charge="2" protein_refs="PH_11">
+				<PeptideHit score="6.68722838943651" sequence=".KSDDGGEVEK." charge="2" protein_refs="PH_11">
 				</PeptideHit>
 			</PeptideIdentification>
-			<UserParam type="string" name="potentialOutlier" value="KSDDGGEVEK/2_i2"/>
+			<UserParam type="string" name="potentialOutlier" value=".KSDDGGEVEK./2_i2"/>
 			<UserParam type="float" name="initialPeakQuality" value="-4.39998434558748"/>
-			<UserParam type="string" name="PeptideRef" value="KSDDGGEVEK/2"/>
+			<UserParam type="string" name="PeptideRef" value=".KSDDGGEVEK./2"/>
 			<UserParam type="float" name="leftWidth" value="1622.54174804688"/>
 			<UserParam type="float" name="rightWidth" value="1698.99609375"/>
 			<UserParam type="float" name="total_xic" value="245794.677734375"/>
@@ -4151,7 +4151,7 @@
 						<pt x="2028.66284179688" y="6514.8212890625" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="404.203412328071"/>
-					<UserParam type="string" name="native_id" value="LAADDFR/2_i0"/>
+					<UserParam type="string" name="native_id" value=".LAADDFR./2_i0"/>
 					<UserParam type="float" name="peak_apex_int" value="24527.0495605469"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.649492409813947"/>
@@ -4196,7 +4196,7 @@
 						<pt x="2028.66284179688" y="0" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="404.705089746971"/>
-					<UserParam type="string" name="native_id" value="LAADDFR/2_i1"/>
+					<UserParam type="string" name="native_id" value=".LAADDFR./2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="4520.375"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.276857984132535"/>
@@ -4241,19 +4241,19 @@
 						<pt x="2028.66284179688" y="0" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="405.206767165871"/>
-					<UserParam type="string" name="native_id" value="LAADDFR/2_i2"/>
+					<UserParam type="string" name="native_id" value=".LAADDFR./2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="0"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.073649606053518"/>
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="4.07715914226926" sequence="LAADDFR" charge="2" protein_refs="PH_0 PH_1 PH_2 PH_5 PH_6 PH_7 PH_8">
+				<PeptideHit score="4.07715914226926" sequence=".LAADDFR." charge="2" protein_refs="PH_0 PH_1 PH_2 PH_5 PH_6 PH_7 PH_8">
 				</PeptideHit>
 			</PeptideIdentification>
-			<UserParam type="string" name="potentialOutlier" value="LAADDFR/2_i2"/>
+			<UserParam type="string" name="potentialOutlier" value=".LAADDFR./2_i2"/>
 			<UserParam type="float" name="initialPeakQuality" value="-3.03758200151719"/>
-			<UserParam type="string" name="PeptideRef" value="LAADDFR/2"/>
+			<UserParam type="string" name="PeptideRef" value=".LAADDFR./2"/>
 			<UserParam type="float" name="leftWidth" value="1969.21594238281"/>
 			<UserParam type="float" name="rightWidth" value="2031.287109375"/>
 			<UserParam type="float" name="total_xic" value="903071.164916992"/>
@@ -4381,7 +4381,7 @@
 						<pt x="1843.86376953125" y="58065.73828125" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="300.195528597604"/>
-					<UserParam type="string" name="native_id" value="LALDLVVR/3_i0"/>
+					<UserParam type="string" name="native_id" value=".LALDLVVR./3_i0"/>
 					<UserParam type="float" name="peak_apex_int" value="493805.241699219"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.609580964828108"/>
@@ -4448,7 +4448,7 @@
 						<pt x="1843.86376953125" y="11407.8388671875" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="300.529980210204"/>
-					<UserParam type="string" name="native_id" value="LALDLVVR/3_i1"/>
+					<UserParam type="string" name="native_id" value=".LALDLVVR./3_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="224585"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.302895021343125"/>
@@ -4515,19 +4515,19 @@
 						<pt x="1843.86376953125" y="2549.23095703125" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="300.864431822804"/>
-					<UserParam type="string" name="native_id" value="LALDLVVR/3_i2"/>
+					<UserParam type="string" name="native_id" value=".LALDLVVR./3_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="56299.984375"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.0875240138287668"/>
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="6.81441604688176" sequence="LALDLVVR" charge="3" protein_refs="PH_13">
+				<PeptideHit score="6.81441604688176" sequence=".LALDLVVR." charge="3" protein_refs="PH_13">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.24247622071308"/>
-			<UserParam type="string" name="PeptideRef" value="LALDLVVR/3"/>
+			<UserParam type="string" name="PeptideRef" value=".LALDLVVR./3"/>
 			<UserParam type="float" name="leftWidth" value="1756.63635253906"/>
 			<UserParam type="float" name="rightWidth" value="1846.10339355469"/>
 			<UserParam type="float" name="total_xic" value="14629910.1287842"/>
@@ -4665,7 +4665,7 @@
 						<pt x="1675.19165039062" y="30318.212890625" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="368.862109904738"/>
-					<UserParam type="string" name="native_id" value="LAMTLAEAER/3_i0"/>
+					<UserParam type="string" name="native_id" value=".LAMTLAEAER./3_i0"/>
 					<UserParam type="float" name="peak_apex_int" value="256573.993286133"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.532132382941392"/>
@@ -4736,7 +4736,7 @@
 						<pt x="1675.19165039062" y="14991.24609375" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="369.196561517338"/>
-					<UserParam type="string" name="native_id" value="LAMTLAEAER/3_i1"/>
+					<UserParam type="string" name="native_id" value=".LAMTLAEAER./3_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="133660.696044922"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.302760435552995"/>
@@ -4807,7 +4807,7 @@
 						<pt x="1675.19165039062" y="4496.02893066406" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="369.531013129938"/>
-					<UserParam type="string" name="native_id" value="LAMTLAEAER/3_i2"/>
+					<UserParam type="string" name="native_id" value=".LAMTLAEAER./3_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="31153.146484375"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.126176120857663"/>
@@ -4878,19 +4878,19 @@
 						<pt x="1675.19165039062" y="2284.55883789062" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="369.865464742538"/>
-					<UserParam type="string" name="native_id" value="LAMTLAEAER/3_i3"/>
+					<UserParam type="string" name="native_id" value=".LAMTLAEAER./3_i3"/>
 					<UserParam type="float" name="peak_apex_int" value="14013.0791015625"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.0389310606479509"/>
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="6.17091315370938" sequence="LAMTLAEAER" charge="3" protein_refs="PH_12">
+				<PeptideHit score="6.17091315370938" sequence=".LAMTLAEAER." charge="3" protein_refs="PH_12">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.21189668047068"/>
-			<UserParam type="string" name="PeptideRef" value="LAMTLAEAER/3"/>
+			<UserParam type="string" name="PeptideRef" value=".LAMTLAEAER./3"/>
 			<UserParam type="float" name="leftWidth" value="1590.55505371094"/>
 			<UserParam type="float" name="rightWidth" value="1675.19165039062"/>
 			<UserParam type="float" name="total_xic" value="11516529.5819702"/>
@@ -5017,7 +5017,7 @@
 						<pt x="1843.86376953125" y="9674.85986328125" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="449.744389900421"/>
-					<UserParam type="string" name="native_id" value="LC(Carbamidomethyl)VLHEK/2_i0"/>
+					<UserParam type="string" name="native_id" value=".LC(Carbamidomethyl)VLHEK./2_i0"/>
 					<UserParam type="float" name="peak_apex_int" value="77221.625"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.600932693074637"/>
@@ -5083,7 +5083,7 @@
 						<pt x="1843.86376953125" y="0" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="450.246067319321"/>
-					<UserParam type="string" name="native_id" value="LC(Carbamidomethyl)VLHEK/2_i1"/>
+					<UserParam type="string" name="native_id" value=".LC(Carbamidomethyl)VLHEK./2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="26178.119140625"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.289856812200568"/>
@@ -5149,19 +5149,19 @@
 						<pt x="1843.86376953125" y="0" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="450.747744738221"/>
-					<UserParam type="string" name="native_id" value="LC(Carbamidomethyl)VLHEK/2_i2"/>
+					<UserParam type="string" name="native_id" value=".LC(Carbamidomethyl)VLHEK./2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="7136.67333984375"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.109210494724795"/>
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="6.69196718419306" sequence="LC(Carbamidomethyl)VLHEK" charge="2" protein_refs="PH_4">
+				<PeptideHit score="6.69196718419306" sequence=".LC(Carbamidomethyl)VLHEK." charge="2" protein_refs="PH_4">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.22729757702864"/>
-			<UserParam type="string" name="PeptideRef" value="LC(Carbamidomethyl)VLHEK/2"/>
+			<UserParam type="string" name="PeptideRef" value=".LC(Carbamidomethyl)VLHEK./2"/>
 			<UserParam type="float" name="leftWidth" value="1758.22473144531"/>
 			<UserParam type="float" name="rightWidth" value="1846.10339355469"/>
 			<UserParam type="float" name="total_xic" value="1802090.61633301"/>
@@ -5295,7 +5295,7 @@
 						<pt x="1853.71057128906" y="51311.5458984375" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="300.165352089204"/>
-					<UserParam type="string" name="native_id" value="LC(Carbamidomethyl)VLHEK/3_i0"/>
+					<UserParam type="string" name="native_id" value=".LC(Carbamidomethyl)VLHEK./3_i0"/>
 					<UserParam type="float" name="peak_apex_int" value="493805.241699219"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.600932693074637"/>
@@ -5368,7 +5368,7 @@
 						<pt x="1853.71057128906" y="16291.1474609375" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="300.499803701804"/>
-					<UserParam type="string" name="native_id" value="LC(Carbamidomethyl)VLHEK/3_i1"/>
+					<UserParam type="string" name="native_id" value=".LC(Carbamidomethyl)VLHEK./3_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="224585"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.289856812200568"/>
@@ -5441,19 +5441,19 @@
 						<pt x="1853.71057128906" y="0" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="300.834255314404"/>
-					<UserParam type="string" name="native_id" value="LC(Carbamidomethyl)VLHEK/3_i2"/>
+					<UserParam type="string" name="native_id" value=".LC(Carbamidomethyl)VLHEK./3_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="56299.984375"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.109210494724795"/>
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="5.31714975969967" sequence="LC(Carbamidomethyl)VLHEK" charge="3" protein_refs="PH_4">
+				<PeptideHit score="5.31714975969967" sequence=".LC(Carbamidomethyl)VLHEK." charge="3" protein_refs="PH_4">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.24335516534079"/>
-			<UserParam type="string" name="PeptideRef" value="LC(Carbamidomethyl)VLHEK/3"/>
+			<UserParam type="string" name="PeptideRef" value=".LC(Carbamidomethyl)VLHEK./3"/>
 			<UserParam type="float" name="leftWidth" value="1756.63635253906"/>
 			<UserParam type="float" name="rightWidth" value="1853.71057128906"/>
 			<UserParam type="float" name="total_xic" value="19882701.9503174"/>
@@ -5572,7 +5572,7 @@
 						<pt x="1997.05432128906" y="75538.9014892578" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="395.239463487571"/>
-					<UserParam type="string" name="native_id" value="LVTDLTK/2_i0"/>
+					<UserParam type="string" name="native_id" value=".LVTDLTK./2_i0"/>
 					<UserParam type="float" name="peak_apex_int" value="11353591.1308594"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.653252692614897"/>
@@ -5630,7 +5630,7 @@
 						<pt x="1997.05432128906" y="9990.9580078125" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="395.741140906471"/>
-					<UserParam type="string" name="native_id" value="LVTDLTK/2_i1"/>
+					<UserParam type="string" name="native_id" value=".LVTDLTK./2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="4777608.1171875"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.274386501862127"/>
@@ -5688,19 +5688,19 @@
 						<pt x="1997.05432128906" y="6770.56884765625" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="396.242818325371"/>
-					<UserParam type="string" name="native_id" value="LVTDLTK/2_i2"/>
+					<UserParam type="string" name="native_id" value=".LVTDLTK./2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="1238076"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.0723608055229762"/>
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="7.41330428449249" sequence="LVTDLTK" charge="2" protein_refs="PH_4">
+				<PeptideHit score="7.41330428449249" sequence=".LVTDLTK." charge="2" protein_refs="PH_4">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.249420938695"/>
-			<UserParam type="string" name="PeptideRef" value="LVTDLTK/2"/>
+			<UserParam type="string" name="PeptideRef" value=".LVTDLTK./2"/>
 			<UserParam type="float" name="leftWidth" value="1906.11572265625"/>
 			<UserParam type="float" name="rightWidth" value="1997.05432128906"/>
 			<UserParam type="float" name="total_xic" value="96529507.8292847"/>
@@ -5823,7 +5823,7 @@
 						<pt x="2442.61108398438" y="36277.6986694336" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="501.795134726821"/>
-					<UserParam type="string" name="native_id" value="LVVSTQTALA/2_i0"/>
+					<UserParam type="string" name="native_id" value=".LVVSTQTALA./2_i0"/>
 					<UserParam type="float" name="peak_apex_int" value="5217008.28320312"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.588011346754728"/>
@@ -5885,7 +5885,7 @@
 						<pt x="2442.61108398438" y="14411.8955078125" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="502.296812145721"/>
-					<UserParam type="string" name="native_id" value="LVVSTQTALA/2_i1"/>
+					<UserParam type="string" name="native_id" value=".LVVSTQTALA./2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="2826096.25"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.312423065562883"/>
@@ -5947,19 +5947,19 @@
 						<pt x="2442.61108398438" y="3755.19311523438" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="502.798489564621"/>
-					<UserParam type="string" name="native_id" value="LVVSTQTALA/2_i2"/>
+					<UserParam type="string" name="native_id" value=".LVVSTQTALA./2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="902844.3125"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.0995655876823886"/>
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="7.28706664819948" sequence="LVVSTQTALA" charge="2" protein_refs="PH_4">
+				<PeptideHit score="7.28706664819948" sequence=".LVVSTQTALA." charge="2" protein_refs="PH_4">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.24969236721146"/>
-			<UserParam type="string" name="PeptideRef" value="LVVSTQTALA/2"/>
+			<UserParam type="string" name="PeptideRef" value=".LVVSTQTALA./2"/>
 			<UserParam type="float" name="leftWidth" value="2356.2490234375"/>
 			<UserParam type="float" name="rightWidth" value="2445.39599609375"/>
 			<UserParam type="float" name="total_xic" value="41567064.6710815"/>
@@ -6094,7 +6094,7 @@
 						<pt x="1614.45471191406" y="4368.63427734375" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="358.174576486338"/>
-					<UserParam type="string" name="native_id" value="SHC(Carbamidomethyl)IAEVEK/3_i0"/>
+					<UserParam type="string" name="native_id" value=".SHC(Carbamidomethyl)IAEVEK./3_i0"/>
 					<UserParam type="float" name="peak_apex_int" value="61414.8527832031"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.543750406840155"/>
@@ -6162,7 +6162,7 @@
 						<pt x="1614.45471191406" y="2080.60668945312" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="358.509028098938"/>
-					<UserParam type="string" name="native_id" value="SHC(Carbamidomethyl)IAEVEK/3_i1"/>
+					<UserParam type="string" name="native_id" value=".SHC(Carbamidomethyl)IAEVEK./3_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="22726.515625"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.297108170158954"/>
@@ -6230,7 +6230,7 @@
 						<pt x="1614.45471191406" y="0" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="358.843479711538"/>
-					<UserParam type="string" name="native_id" value="SHC(Carbamidomethyl)IAEVEK/3_i2"/>
+					<UserParam type="string" name="native_id" value=".SHC(Carbamidomethyl)IAEVEK./3_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="7133.78930664062"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.122156033653712"/>
@@ -6298,19 +6298,19 @@
 						<pt x="1614.45471191406" y="0" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="359.177931324138"/>
-					<UserParam type="string" name="native_id" value="SHC(Carbamidomethyl)IAEVEK/3_i3"/>
+					<UserParam type="string" name="native_id" value=".SHC(Carbamidomethyl)IAEVEK./3_i3"/>
 					<UserParam type="float" name="peak_apex_int" value="2665.31787109375"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.0369853893471796"/>
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="6.25805438476322" sequence="SHC(Carbamidomethyl)IAEVEK" charge="3" protein_refs="PH_4">
+				<PeptideHit score="6.25805438476322" sequence=".SHC(Carbamidomethyl)IAEVEK." charge="3" protein_refs="PH_4">
 				</PeptideHit>
 			</PeptideIdentification>
-			<UserParam type="string" name="potentialOutlier" value="SHC(Carbamidomethyl)IAEVEK/3_i3"/>
+			<UserParam type="string" name="potentialOutlier" value=".SHC(Carbamidomethyl)IAEVEK./3_i3"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.01905423912289"/>
-			<UserParam type="string" name="PeptideRef" value="SHC(Carbamidomethyl)IAEVEK/3"/>
+			<UserParam type="string" name="PeptideRef" value=".SHC(Carbamidomethyl)IAEVEK./3"/>
 			<UserParam type="float" name="leftWidth" value="1533.1142578125"/>
 			<UserParam type="float" name="rightWidth" value="1614.45471191406"/>
 			<UserParam type="float" name="total_xic" value="1499115.30975342"/>
@@ -6435,7 +6435,7 @@
 						<pt x="2148.6103515625" y="30655.23828125" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="421.758354535421"/>
-					<UserParam type="string" name="native_id" value="VATVSLPR/2_i0"/>
+					<UserParam type="string" name="native_id" value=".VATVSLPR./2_i0"/>
 					<UserParam type="float" name="peak_apex_int" value="467830.03527832"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.634701366287781"/>
@@ -6499,7 +6499,7 @@
 						<pt x="2148.6103515625" y="11046.7958984375" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="422.260031954321"/>
-					<UserParam type="string" name="native_id" value="VATVSLPR/2_i1"/>
+					<UserParam type="string" name="native_id" value=".VATVSLPR./2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="211785.796875"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.287334088944315"/>
@@ -6563,19 +6563,19 @@
 						<pt x="2148.6103515625" y="0" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="422.761709373221"/>
-					<UserParam type="string" name="native_id" value="VATVSLPR/2_i2"/>
+					<UserParam type="string" name="native_id" value=".VATVSLPR./2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="38869.01953125"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.0779645447679042"/>
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="6.89855302416926" sequence="VATVSLPR" charge="2" protein_refs="PH_3">
+				<PeptideHit score="6.89855302416926" sequence=".VATVSLPR." charge="2" protein_refs="PH_3">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.24022168641605"/>
-			<UserParam type="string" name="PeptideRef" value="VATVSLPR/2"/>
+			<UserParam type="string" name="PeptideRef" value=".VATVSLPR./2"/>
 			<UserParam type="float" name="leftWidth" value="2056.00952148438"/>
 			<UserParam type="float" name="rightWidth" value="2151.267578125"/>
 			<UserParam type="float" name="total_xic" value="12364026.9359741"/>
@@ -6708,7 +6708,7 @@
 						<pt x="1832.62158203125" y="5035.07470703125" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="722.324660331071"/>
-					<UserParam type="string" name="native_id" value="YIC(Carbamidomethyl)DNQDTISSK/2_i0"/>
+					<UserParam type="string" name="native_id" value=".YIC(Carbamidomethyl)DNQDTISSK./2_i0"/>
 					<UserParam type="float" name="peak_apex_int" value="2002565.83691406"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.452860493969415"/>
@@ -6774,7 +6774,7 @@
 						<pt x="1832.62158203125" y="7361.06225585938" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="722.826337749971"/>
-					<UserParam type="string" name="native_id" value="YIC(Carbamidomethyl)DNQDTISSK/2_i1"/>
+					<UserParam type="string" name="native_id" value=".YIC(Carbamidomethyl)DNQDTISSK./2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="1488536.58886719"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.328407549443117"/>
@@ -6840,7 +6840,7 @@
 						<pt x="1832.62158203125" y="2294.57080078125" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="723.328015168871"/>
-					<UserParam type="string" name="native_id" value="YIC(Carbamidomethyl)DNQDTISSK/2_i2"/>
+					<UserParam type="string" name="native_id" value=".YIC(Carbamidomethyl)DNQDTISSK./2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="699620.0625"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.160250609924902"/>
@@ -6906,19 +6906,19 @@
 						<pt x="1832.62158203125" y="0" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="723.829692587771"/>
-					<UserParam type="string" name="native_id" value="YIC(Carbamidomethyl)DNQDTISSK/2_i3"/>
+					<UserParam type="string" name="native_id" value=".YIC(Carbamidomethyl)DNQDTISSK./2_i3"/>
 					<UserParam type="float" name="peak_apex_int" value="250320.640625"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.0584813466625662"/>
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="7.40103234266733" sequence="YIC(Carbamidomethyl)DNQDTISSK" charge="2" protein_refs="PH_4">
+				<PeptideHit score="7.40103234266733" sequence=".YIC(Carbamidomethyl)DNQDTISSK." charge="2" protein_refs="PH_4">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.24858366103298"/>
-			<UserParam type="string" name="PeptideRef" value="YIC(Carbamidomethyl)DNQDTISSK/2"/>
+			<UserParam type="string" name="PeptideRef" value=".YIC(Carbamidomethyl)DNQDTISSK./2"/>
 			<UserParam type="float" name="leftWidth" value="1751.63122558594"/>
 			<UserParam type="float" name="rightWidth" value="1834.48815917969"/>
 			<UserParam type="float" name="total_xic" value="30466596.7107544"/>
@@ -7066,7 +7066,7 @@
 						<pt x="2426.22387695312" y="33926.74609375" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="464.250362519471"/>
-					<UserParam type="string" name="native_id" value="YLYEIAR/2_i0"/>
+					<UserParam type="string" name="native_id" value=".YLYEIAR./2_i0"/>
 					<UserParam type="float" name="peak_apex_int" value="2964764.16357422"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.593537322046574"/>
@@ -7153,7 +7153,7 @@
 						<pt x="2426.22387695312" y="10583.259765625" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="464.752039938371"/>
-					<UserParam type="string" name="native_id" value="YLYEIAR/2_i1"/>
+					<UserParam type="string" name="native_id" value=".YLYEIAR./2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="1601953.04370117"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.311601128919666"/>
@@ -7240,19 +7240,19 @@
 						<pt x="2426.22387695312" y="2867.22192382812" />
 					</convexhull>
 					<UserParam type="float" name="MZ" value="465.253717357271"/>
-					<UserParam type="string" name="native_id" value="YLYEIAR/2_i2"/>
+					<UserParam type="string" name="native_id" value=".YLYEIAR./2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="480816.608886719"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.09486154903376"/>
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="6.92656362382569" sequence="YLYEIAR" charge="2" protein_refs="PH_4">
+				<PeptideHit score="6.92656362382569" sequence=".YLYEIAR." charge="2" protein_refs="PH_4">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.24951199076263"/>
-			<UserParam type="string" name="PeptideRef" value="YLYEIAR/2"/>
+			<UserParam type="string" name="PeptideRef" value=".YLYEIAR./2"/>
 			<UserParam type="float" name="leftWidth" value="2297.37475585938"/>
 			<UserParam type="float" name="rightWidth" value="2426.22387695312"/>
 			<UserParam type="float" name="total_xic" value="141168654.104309"/>

@@ -9,7 +9,7 @@
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="ZhangSimilarityScore" higher_score_better="true" significance_threshold="0" >
-			<PeptideHit score="0.999999997016446" sequence="AADDKEAC(MOD:01214)FAVEGPK" charge="2" protein_refs="PH_0" >
+			<PeptideHit score="0.999999997016446" sequence=".AADDKEAC(MOD:01214)FAVEGPK." charge="2" protein_refs="PH_0" >
 				<UserParam type="float" name="RT" value="-1"/>
 				<UserParam type="float" name="MZ" value="805.37978"/>
 			</PeptideHit>
