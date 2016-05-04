@@ -2547,7 +2547,7 @@ protected:
               }
             } else
             {
-              // Second position defining a mono-link and the second positions on the same peptide for loop links (only one of these two is actually valid)
+              // Second position defining a mono-link and the second positions on the same peptide for loop links (only one of these two is valid for any specific precursor)
               if (!is_loop)
               {
                 link_pos_second.push_back(-1);
@@ -2581,8 +2581,8 @@ protected:
               for (Size y = 0; y < link_pos_second.size(); ++y)
               {
                 TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink cross_link_candidate;
-                // if loop link, and the positions are the same, then it is linking the same residue with itself,  skip this combination (pos_second != -1 test not neccessary because of pos equality)
-                if ((seq_second.size() == 0) && (link_pos_first[x] == link_pos_second[y]))
+                // if loop link, and the positions are the same, then it is linking the same residue with itself,  skip this combination, also pos1 > pos2 would be the same link as pos1 < pos2
+                if (((seq_second.size() == 0) && (link_pos_first[x] >= link_pos_second[y])) && (link_pos_second[y] != -1))
                 {
                   continue;
                 }
