@@ -119,14 +119,10 @@ protected:
     String in = getStringOption_("in");
     String out = getStringOption_("out");
 
-
     PeptideIndexing indexer;
-
     Param param = getParam_().copy("", true);
-
     Param param_pi = indexer.getParameters();
-    param_pi.update(param);
-
+    param_pi.update(param, false, Log_debug); // suppress param. update message
     indexer.setParameters(param_pi);
 
     bool keep_unreferenced_proteins = param.getValue("keep_unreferenced_proteins").toBool();
@@ -165,8 +161,6 @@ protected:
     // calculations
     //-------------------------------------------------------------
 
-
-
     if (proteins.empty()) // we do not allow an empty database
     {
       LOG_ERROR << "Error: An empty FASTA file was provided. Mapping makes no sense. Aborting..." << std::endl;
@@ -193,6 +187,18 @@ protected:
       } else
       {
         return UNKNOWN_ERROR;
+      }
+    }
+    
+    //-------------------------------------------------------------
+    // calculate protein coverage
+    //-------------------------------------------------------------
+    
+    if (param.getValue("write_protein_sequence").toBool())
+    {
+      for (Size i = 0; i < prot_ids.size(); ++i)
+      {
+        prot_ids[i].computeCoverage(pep_ids);
       }
     }
 

@@ -71,8 +71,6 @@ PyOpenMSChecker:
         - getProductName
     OpenMS::PeakPickerIterative:
         - updateMembers_
-    OpenMS::InternalCalibration:
-        - calibrateMapList
     OpenMS::QTCluster:
         - add
         - getElements

@@ -171,16 +171,15 @@ namespace OpenMS
         
         Ascore = score_first - score_second;
         LOG_DEBUG << "\tAscore_" << rank << ": " << Ascore << std::endl;
-        
-        if (Ascore < best_Ascore)
-        {
-          best_Ascore = Ascore;
-          phospho.setScore(Ascore);        
-        }
+      }
+      if (Ascore < best_Ascore)
+      {
+        best_Ascore = Ascore;
       }
       phospho.setMetaValue("AScore_" + String(rank), Ascore);
       ++rank;      
     }
+    phospho.setScore(best_Ascore);
     return phospho;
   }
 
