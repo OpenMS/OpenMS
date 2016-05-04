@@ -1996,7 +1996,7 @@ public:
   // If non-carbon labeling elements are used we need to make sure that peaks are collected at the correct position by changing the mass difference to the labeling element.
   // In addition we need to change the m/z tolerance window so we collect all isotopic peaks if these are resolved by the mass spectrometer.
   // To do so we need to consider the fractional mass of 13C (=0.0033548) and the fractional mass of the labeling element (frac(mass_diff) e.g. for 15N-14N = 0.9970349 = 1-0.0029651)
-  //   Consider that up 1 to 5 mass shifts might stem from 13C incorporation (higher than the 5th natural isotopic 13C peaks is of very low intensity and doesn't contribute to the signal)
+  //   Consider that 1 to 5 mass shifts might stem from 13C incorporation (higher than the 5th natural isotopic 13C peaks is of very low intensity and doesn't contribute to the signal)
   //   but also from 1 to 5 heavy labeling isotopes.
   //   Then, the extraction windows for the n-th isotopic trace (with n>=5) must range from: seed_mz + n*mass_diff/charge to seed_mz + (n-5)*mass_diff/charge + 5 * (13C-12C)/charge
   //   For n < 5: seed_mz + n * mass_diff/charge to seed_mz + n * (13C-12C)/charge
@@ -2035,12 +2035,6 @@ public:
     vector<vector<double> > xics = extractXICVariableMZWindows(seed_rt, xic_mz_windows, rt_tolerance_s, peak_map);
    
     // -- deuterium handling
-    MSExperiment<>::ConstIterator seed_rt_minus_20 = peak_map.RTBegin(seed_rt - 20.0);
-    MSExperiment<>::ConstIterator seed_rt_it = peak_map.RTBegin(seed_rt);
-    MSExperiment<>::ConstIterator seed_rt_plus_20 = peak_map.RTBegin(seed_rt + 20.0);
-
-    Size scans_plus_20s = (seed_rt_plus_20 - seed_rt_it) + 1;
-    Size scans_minus_20s = (seed_rt_it - seed_rt_minus_20) + 1;
 
     // create smoothed xics
     vector<vector<double> > xics_smoothed = xics;
@@ -2062,25 +2056,36 @@ public:
       xics_smoothed[k].swap(smoothed_xic);
     }     
 
+    // determine rt window of 20s around seed
+    MSExperiment<>::ConstIterator seed_rt_minus_20 = peak_map.RTBegin(seed_rt - 20.0);
+    MSExperiment<>::ConstIterator seed_rt_it = peak_map.RTBegin(seed_rt);
+    MSExperiment<>::ConstIterator seed_rt_plus_20 = peak_map.RTBegin(seed_rt + 20.0);
+
+    // index offset (nummber of scans) required to reach +/- 20s in XIC double vector
+    Size scans_plus_20s = (seed_rt_plus_20 - seed_rt_it) + 1;
+    Size scans_minus_20s = (seed_rt_it - seed_rt_minus_20) + 1;
+
     vector<double> slopes;
 
     // extract potential high points
-    for (Size k = 0; k != xics_smoothed.size(); ++k)
+    for (Size k = 1; k < xics_smoothed.size(); ++k)
     {
       const vector<double>& current_xic = xics_smoothed[k];
       Size n_current = current_xic.size();
+      Size apex_idx = n_current / 2;
 
       for (Size i = 1; i < n_current - 1; ++i)
       {
-        if (current_xic[i] > current_xic[i - 1] && current_xic[i] > current_xic[i + 1]) // local maximum
+        bool is_local_maximum = current_xic[i] > current_xic[i - 1] && current_xic[i] > current_xic[i + 1];
+        if (is_local_maximum)
         {
-          if (i < n_current / 2 + scans_plus_20s && // only maxima that are not more than 20 s later than seed rt
-              (double)i > (double)n_current / 2.0 - scans_minus_20s - k)  // only maxima that are not too much earlier (but may depend on number of deuterium incorporated)
+          // index of current maximum is expected at the same index as the current apex (+- 20s) except for deuterium
+          // here we also allow the maximum to come earlier depending on the number of incorporated deuterium
+          if (i < apex_idx + scans_plus_20s && (double)i > static_cast<double>(apex_idx) - scans_minus_20s - k)  // only maxima that are not too much earlier (but may depend on number of deuterium incorporated)
           { 
-            int scan_to_apex = i - n_current / 2;  // number of scans between current peak and apex scan
+            double scan_to_apex = i - apex_idx;  // number of scans between current peak and apex scan
             //cout << k << ";" << scan_to_apex << ";" << current_xic[i] << endl;
-            double m = k != 0 ? (double)scan_to_apex / k : 0.0; // slope (should be around zero or negative as deuterium rich elute earlier) 
-            slopes.push_back(m);
+            slopes.push_back(scan_to_apex / k); // slope (Note: should be around zero or negative as deuterium rich elute earlier)
           }
         }
       }
