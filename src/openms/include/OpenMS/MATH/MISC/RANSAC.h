@@ -60,13 +60,17 @@ namespace OpenMS
     {
       /// Default constructor
       RANSACParam()
-        : n(0), k(0), t(0), d(0), rng(NULL)
+        : n(0), k(0), t(0), d(0), relative(false), rng(NULL)
         {
         }
       /// Full constructor
-      RANSACParam(size_t p_n, size_t p_k, double p_t, size_t p_d, int (*p_rng)(int) = NULL)
-        : n(p_n), k(p_k), t(p_t), d(p_d), rng(p_rng)
+      RANSACParam(size_t p_n, size_t p_k, double p_t, size_t p_d, bool p_relative = false, int (*p_rng)(int) = NULL)
+        : n(p_n), k(p_k), t(p_t), d(p_d), relative(p_relative), rng(p_rng)
       {
+        if (relative)
+        {
+          if (d >= 100) throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("RANSAC: Relative 'd' >= 100% given. Use a lower value; the more outliers you expect, the lower it should be."));
+        }
       }
 
       std::string toString() const
@@ -80,6 +84,7 @@ namespace OpenMS
       size_t k; //< iterations: The maximum number of iterations allowed in the algorithm 
       double t; //< Threshold value: for determining when a data point fits a model. Corresponds to the maximal squared deviation in units of the _second_ dimension (dim2).
       size_t d; //< The number of close data values (according to 't') required to assert that a model fits well to data
+      bool relative; //< Should 'n' and 'd' be interpreted as percentages (0-100) of data input size.
       int (*rng)(int); //< Optional RNG function (useful for testing with fixed seeds)
     };
 
@@ -92,14 +97,13 @@ namespace OpenMS
     class RANSAC
     {
 public:
-      
 
       /// alias for ransac() with full params
       static std::vector<std::pair<double, double> > ransac(
         const std::vector<std::pair<double, double> >& pairs, 
         const RANSACParam& p)
       {
-        return ransac(pairs, p.n, p.k, p.t, p.d, p.rng);
+        return ransac(pairs, p.n, p.k, p.t, p.d, p.relative, p.rng);
       }
 
       /**
@@ -114,6 +118,7 @@ public:
          model. Corresponds to the maximal squared deviation in units of the
          _second_ dimension (dim2).
         @param d The number of close data values (according to 't') required to assert that a model fits well to data
+        @param relative_d Should 'd' be interpreted as percentages (0-100) of data input size
         @param rng Custom RNG function (useful for testing with fixed seeds)
 
         @return A vector of pairs fitting the model well; data will be unsorted
@@ -125,29 +130,35 @@ public:
           size_t k, 
           double t, 
           size_t d, 
+          bool relative_d = false,
           int (*rng)(int) = NULL)
       {
-        TModelType model;
+        // translate relative percentages into actual numbers
+        if (relative_d)
+        {
+          if (d >= 100) throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("RANSAC: Relative 'd' >= 100% given. Use a lower value; the more outliers you expect, the lower it should be."));
+          d = pairs.size() * d / 100;
+        }
 
         // implementation of the RANSAC algorithm according to http://wiki.scipy.org/Cookbook/RANSAC.
 
         if (pairs.size() <= n)
         {
           throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-                                        String("RANSAC: Number of pairs (") + String(pairs.size()) + ") must be larger than number of initial points (n=" + String(n) + ").");
+                                        String("RANSAC: Number of total data points (") + String(pairs.size()) + ") must be larger than number of initial points (n=" + String(n) + ").");
         }
 
-        std::vector< std::pair<double, double> > alsoinliers, betterdata, bestdata;
+        TModelType model;
 
+        std::vector< std::pair<double, double> > alsoinliers, betterdata, bestdata;
+        std::vector<std::pair<double, double> > pairs_shuffled = pairs;  // mutable data. will be shuffled in every iteration
         double besterror = std::numeric_limits<double>::max();
-    #ifdef DEBUG_MRMRTNORMALIZER
+        typename TModelType::ModelParameters coeff;
+    #ifdef DEBUG_RANSAC
         std::pair<double, double > bestcoeff;
         double betterrsq = 0;
         double bestrsq = 0;
     #endif
-
-        // mutable data. will be shuffled in every iteration
-        std::vector<std::pair<double, double> > pairs_shuffled = pairs;
 
         for (size_t ransac_int=0; ransac_int<k; ransac_int++)
         {
@@ -162,26 +173,39 @@ public:
           }
 
           // test 'maybeinliers'
-          typename TModelType::ModelParameters coeff = model.rm_fit(pairs_shuffled.begin(), pairs_shuffled.begin()+n);
+          try
+          { // fitting might throw UnableToFit if points are 'unfortunate'
+            coeff = model.rm_fit(pairs_shuffled.begin(), pairs_shuffled.begin()+n);
+          }
+          catch (...)
+          {
+            continue;
+          }
           // apply model to remaining data; pick inliers
           alsoinliers = model.rm_inliers(pairs_shuffled.begin()+n, pairs_shuffled.end(), coeff, t);
           // ... and add data
-          if (alsoinliers.size() > d)
+          if (alsoinliers.size() > d 
+              || alsoinliers.size() >= (pairs_shuffled.size()-n)) // maximum number of inliers we can possibly have (i.e. remaining data)
           {
             betterdata.clear();
             std::copy( pairs_shuffled.begin(), pairs_shuffled.begin()+n, back_inserter(betterdata) );
             betterdata.insert( betterdata.end(), alsoinliers.begin(), alsoinliers.end() );
             typename TModelType::ModelParameters bettercoeff = model.rm_fit(betterdata.begin(), betterdata.end());
             double bettererror = model.rm_rss(betterdata.begin(), betterdata.end(), bettercoeff);
-    #ifdef DEBUG_MRMRTNORMALIZER
+    #ifdef DEBUG_RANSAC
             betterrsq = model.rm_rsq(betterdata);
     #endif
 
-            if (bettererror < besterror)
+            // If the current model explains more points, we assume its better; if the number of points is equal, we trust rss.
+            // E.g. imagine gaining a zillion more points (which pass the threshold!), at the cost of slightly worse rss.
+            // Alternative: use only rss (or similar), but the problem with rss is that
+            //              it will not accept a model with more points (usually at either end of the x-axis), if the fit gets even slightly worse
+            //
+            if (betterdata.size() > bestdata.size() || (betterdata.size() == bestdata.size() && (bettererror < besterror)))
             {
               besterror = bettererror;
               bestdata = betterdata;
-    #ifdef DEBUG_MRMRTNORMALIZER
+    #ifdef DEBUG_RANSAC
               bestcoeff = bettercoeff;
               bestrsq = betterrsq;
               std::cout << "RANSAC " << ransac_int << ": Points: " << betterdata.size() << " RSQ: " << bestrsq << " Error: " << besterror << " c0: " << bestcoeff.first << " c1: " << bestcoeff.second << std::endl;
@@ -190,7 +214,7 @@ public:
           }
         }
 
-    #ifdef DEBUG_MRMRTNORMALIZER
+    #ifdef DEBUG_RANSAC
         std::cout << "=======STARTPOINTS=======" << std::endl;
         for (std::vector<std::pair<double, double> >::iterator it = bestdata.begin(); it != bestdata.end(); ++it)
         {

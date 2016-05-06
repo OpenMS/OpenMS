@@ -91,14 +91,17 @@ namespace OpenMS
     RansacModelLinear::DVec RansacModelLinear::rm_inliers_impl(const DVecIt& begin, const DVecIt& end, const ModelParameters& coefficients, double max_threshold)
     {
       DVec alsoinliers;
-
+      //std::cerr << "\n\nRANSAC dists: ";
       for (DVecIt it = begin; it != end; ++it)
       {
-        if (pow(it->second - (coefficients[0] + ( coefficients[1] * it->first)), 2) < max_threshold)
+        double dist = pow(it->second - (coefficients[0] + ( coefficients[1] * it->first)), 2);
+        //std::cerr << dist << ", ";
+        if (dist < max_threshold)
         {
           alsoinliers.push_back(*it);
         }
       }
+      //std::cerr << "\n\n";
 
       return alsoinliers;
     }
