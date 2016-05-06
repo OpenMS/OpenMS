@@ -20,6 +20,7 @@ set(concept_executables_list
 set(datastructures_executables_list
   Adduct_test
   #BinaryTreeNode_test
+  CalibrationData_test
   ClusteringGrid_test
   CVMappingRule_test
   CVMappingTerm_test
