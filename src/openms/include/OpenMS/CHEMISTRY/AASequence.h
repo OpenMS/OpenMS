@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -376,6 +376,12 @@ protected:
     /// returns the Id of the N-term modification; an empty string is returned if none was set
     const String& getNTerminalModification() const;
 
+    /// returns the N-term modification; nullptr is returned if none was set
+    const ResidueModification * getNTerminalResidueModification() const;
+
+    /// returns the C-term modification; nullptr is returned if none was set
+    const ResidueModification * getCTerminalResidueModification() const;
+
     /// sets the C-terminal modification
     void setCTerminalModification(const String& modification);
 
@@ -399,9 +405,6 @@ protected:
     /// (e.g. x/c ions for monomers) as it does not do framentation but rather
     /// supplementing/deduction of the sequence to its ionic form.
     double getMonoWeight(Residue::ResidueType type = Residue::Full, Int charge = 0) const;
-
-    /// returns a pointer to the residue at given position
-    const Residue& operator[](SignedSize index) const;
 
     /// returns a pointer to the residue at given position
     const Residue& operator[](Size index) const;

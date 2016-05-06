@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2012.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -126,6 +126,7 @@ elseif ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
                   -Wno-undef
                   -Wno-documentation
                   -Wno-source-uses-openmp
+                  -Wno-old-style-cast
                   # These are warnings of moderate severity, which are disabled
                   # for now until we are down to a reasonable size of warnings.
                   -Wno-conversion

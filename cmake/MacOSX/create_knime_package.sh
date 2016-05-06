@@ -4,7 +4,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2012.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -74,10 +74,6 @@ rm -r ${PAYLOAD}/bin/OpenMSInfo
 rm -r ${PAYLOAD}/bin/FuzzyDiff 
 rm -r ${PAYLOAD}/bin/GenericWrapper
 
-rm -r ${PAYLOAD}/bin/PILISIdentification
-rm -r ${PAYLOAD}/bin/PILISModelCV
-rm -r ${PAYLOAD}/bin/PILISModelTrainer
-rm -r ${PAYLOAD}/bin/PILISSpectraGenerator
 rm -r ${PAYLOAD}/bin/SvmTheoreticalSpectrumGeneratorTrainer
 rm -r ${PAYLOAD}/bin/InspectAdapter 
 rm -r ${PAYLOAD}/bin/MascotAdapter

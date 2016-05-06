@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -194,7 +194,7 @@ protected:
 
     search_parameters.missed_cleavages = (UInt)algorithm_param.getValue("missed_cleavages");
     search_parameters.fragment_mass_tolerance = (double)algorithm_param.getValue("fragment_mass_tolerance");
-    search_parameters.precursor_tolerance = (double)algorithm_param.getValue("precursor_mass_tolerance");
+    search_parameters.precursor_mass_tolerance = (double)algorithm_param.getValue("precursor_mass_tolerance");
     search_parameters.fragment_mass_tolerance_ppm = false;    
     search_parameters.precursor_mass_tolerance_ppm = false;
     prot_id.setSearchParameters(search_parameters);

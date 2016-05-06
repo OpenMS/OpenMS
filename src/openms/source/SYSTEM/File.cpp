@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -462,10 +462,10 @@ namespace OpenMS
     return full_db_name;
   }
 
-  Param File::getSystemParameters()
+  String File::getOpenMSHomePath()
   {
-    // set path where OpenMS.ini is found from environment or use default
     String home_path;
+    // set path where OpenMS.ini is found from environment or use default
     if (getenv("OPENMS_HOME_PATH") != 0)
     {
       home_path = getenv("OPENMS_HOME_PATH");
@@ -474,6 +474,12 @@ namespace OpenMS
     {
       home_path = String(QDir::homePath());
     }
+    return home_path;
+  }
+
+  Param File::getSystemParameters()
+  {
+    String home_path = File::getOpenMSHomePath();
 
     String filename = home_path + "/.OpenMS/OpenMS.ini";
 

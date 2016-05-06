@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,6 +36,7 @@
 #define OPENMS_FORMAT_HANDLERS_MASCOTXMLHANDLER_H
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -74,6 +75,9 @@ public:
 
       // Docu in base class
       virtual void characters(const XMLCh* const chars, const XMLSize_t /*length*/);
+      
+      /// Split modification search parameter if for more than one amino acid specified e.g. Phospho (ST)
+      static std::vector<String> splitModificationBySpecifiedAA(String mod);
 
 private:
 
@@ -96,6 +100,10 @@ private:
       String character_buffer_; ///< filled by MascotXMLHandler::characters
       String major_version_;
       String minor_version_;
+      
+      // list of modifications, which cannot be set as fixed and needs
+      // to be removed, because added from mascot as variable modification
+      std::vector<String> remove_fixed_mods_;
 
       /// Helper object for looking up RT information
       const SpectrumMetaDataLookup& lookup_;

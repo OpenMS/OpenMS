@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,6 +44,7 @@
 
 namespace OpenMS
 {
+  
   /**
      @brief Class for reading Percolator tab-delimited output files.
 
@@ -73,10 +74,9 @@ namespace OpenMS
               enum ScoreType output_score = QVALUE);
 
   private:
-
     /// Converts the peptide string to an 'AASequence' instance
     void getPeptideSequence_(String peptide, AASequence& seq) const;
-
+    
   };
 
 } // namespace OpenMS

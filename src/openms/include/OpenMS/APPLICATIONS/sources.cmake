@@ -21,11 +21,12 @@ source_group("Source Files\\OpenMS\\APPLICATIONS" FILES ${mocced_sources})
 
 ### list all header files of the directory here
 set(sources_list_h
+ConsoleUtils.h
 INIUpdater.h
+MapAlignerBase.h
+ParameterInformation.h
 ToolHandler.h
 TOPPBase.h
-ParameterInformation.h
-ConsoleUtils.h
 )
 
 ### add path to the filenames

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -180,9 +180,17 @@ START_SECTION((template < typename ToType > void decode(const String &in, ByteOr
   b64.decode(src, Base64::BYTEORDER_BIGENDIAN, res);
   TEST_EQUAL(res.size(), 0)
 
+  // corrupted data
+  src = "whoPutMeHere:somecrazyperson,obviously!WhatifIcontaininvalidcharacterslikethese";
+  TEST_EXCEPTION(Exception::ConversionError, b64.decode(src, Base64::BYTEORDER_BIGENDIAN, res) );
+
+  // TODO : some error checking and handling
+  // currently there is no "safe" Base64 decoding that checks that all
+  // characters are actually valid and the string is actually encoding to
+  // floats.
+  // 
   // src = "Q A..A=="; // spaces and dots are not allowed
   // b64.decode(src, Base64::BYTEORDER_BIGENDIAN, res);
-  // TODO : some error checking and handling
   // TEST_EQUAL(res.size(), 0)
 }
 END_SECTION

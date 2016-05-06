@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -149,6 +149,9 @@ public:
 
     /// Returns the OpenMS data path (environment variable overwrites the default installation path)
     static String getOpenMSDataPath();
+
+    /// Returns the OpenMS home path (environment variable overwrites the default home path)
+    static String getOpenMSHomePath();
 
     /// The current OpenMS temporary data path (for temporary files)
     static String getTempDirectory();

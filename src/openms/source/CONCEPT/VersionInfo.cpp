@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -60,6 +60,11 @@ namespace OpenMS
     return this->version_major == rhs.version_major &&
       this->version_minor == rhs.version_minor &&
       this->version_patch == rhs.version_patch;
+  }
+
+  bool VersionInfo::VersionDetails::operator!=(const VersionInfo::VersionDetails & rhs) const
+  {
+    return !(this->operator==(rhs));
   }
 
   bool VersionInfo::VersionDetails::operator>(const VersionInfo::VersionDetails & rhs) const

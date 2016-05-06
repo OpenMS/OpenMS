@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,6 +45,7 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 #include <QtGui/QMessageBox>
 #include <QtCore/QString>
@@ -160,7 +161,7 @@ namespace OpenMS
       Size peak_idx = current_layer.getCurrentSpectrum().findNearest(mz);
         
       // m/z fits ?
-      if ( abs(mz - current_layer.getCurrentSpectrum()[peak_idx].getMZ()) / mz * 1e6 > ppm) continue;
+      if (Math::getPPMAbs(mz, current_layer.getCurrentSpectrum()[peak_idx].getMZ()) > ppm) continue;
 
       double peak_int = current_layer.getCurrentSpectrum()[peak_idx].getIntensity();
 

@@ -47,7 +47,7 @@ namespace OpenMS
 {
 
   InternalCalibration::InternalCalibration()
-   : ProgressLogger()
+    : ProgressLogger()
   {
   }
 
@@ -165,7 +165,7 @@ namespace OpenMS
       if (tol_ppm < Math::getPPMAbs(it->getMZ(), mz_ref)) continue;
       cal_data_.insertCalibrationPoint(it->getRT(), it->getMZ(), it->getIntensity(), mz_ref, log(it->getIntensity()));
     }
-    
+
     // unassigned peptide IDs
     fillIDs_(fm.getUnassignedPeptideIdentifications(), tol_ppm);
 

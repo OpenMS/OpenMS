@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -112,7 +112,7 @@ namespace OpenMS
       OpenSwath::SpectrumPtr sp = OpenSwathScoring().getAddedSpectra_(swath_maps[res].sptr, bestRT, 1);
       for (std::vector< OpenMS::MRMFeatureFinderScoring::TransitionType >::const_iterator 
           tr = transition_group->getTransitions().begin(); 
-          tr != transition_group->getTransitions().end(); tr++)
+          tr != transition_group->getTransitions().end(); ++tr)
       {
         double mz, intensity;
         double left = tr->product_mz - mz_extr_window / 2.0;
@@ -221,7 +221,7 @@ namespace OpenMS
     os.close();
     double s_ppm_before = 0;
     double s_ppm_after = 0;
-    for (TransformationDescription::DataPoints::iterator d = data_all.begin(); d != data_all.end(); d++)
+    for (TransformationDescription::DataPoints::iterator d = data_all.begin(); d != data_all.end(); ++d)
     {
       double ppm_before = (d->first - d->second) * 1000000 / d->first;
       double predict = d->first*d->first*regression_params[2] + d->first*regression_params[1]+regression_params[0];
