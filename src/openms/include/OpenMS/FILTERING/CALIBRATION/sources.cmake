@@ -5,6 +5,7 @@ set(directory include/OpenMS/FILTERING/CALIBRATION)
 set(sources_list_h
 InternalCalibration.h
 TOFCalibration.h
+TrafoModel.h
 )
 
 ### add path to the filenames

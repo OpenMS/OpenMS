@@ -318,6 +318,7 @@ set(filtering_executables_list
   SqrtMower_test
   TICFilter_test
   TOFCalibration_test
+  TrafoModel_test
   ThresholdMower_test
   WindowMower_test
   SpectraMerger_test
