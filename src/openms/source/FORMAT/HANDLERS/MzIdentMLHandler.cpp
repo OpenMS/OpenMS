@@ -748,7 +748,7 @@ namespace OpenMS
                   {
                     //~ p += jt->getSequence()[i].getModification() + "\t" +  jt->getSequence()[i].getOneLetterCode()  + "\t" +  x +   "\n" ;
                     p += "\t\t<Modification location=\"" + String(i + 1);
-                    p += "\" residues=\"" + jt->getSequence()[i].getOneLetterCode();
+                    p += "\" residues=\"" + String(jt->getSequence()[i].getOneLetterCode());
                     String acc = (*mods.begin())->getUniModAccession();
                     p += "\"> \n\t\t\t<cvParam accession=\"UNIMOD:" + acc.suffix(':'); //TODO @all: do not exclusively use unimod ...
                     p += "\" name=\"" +  mod_str;
@@ -763,7 +763,7 @@ namespace OpenMS
             {
               int i = jt->getMetaValue("xl_pos").toString().toInt();
               p += "\t\t<Modification location=\"" + String(i + 1);
-              p += "\" residues=\"" + jt->getSequence().getResidue(static_cast<SignedSize>(i)).getOneLetterCode();
+              p += "\" residues=\"" + String(jt->getSequence()[i].getOneLetterCode());
               if (jt->getMetaValue("xl_chain") == "MS:1002509")  // N.B. longer one is the donor, equals the heavier, equals, the alphabetical first
               {
                 p += "\" monoisotopicMassDelta=\"" + jt->getMetaValue("xl_mass").toString();
@@ -781,7 +781,7 @@ namespace OpenMS
             {
               int i = jt->getMetaValue("xl_pos2").toString().toInt();
               p += "\t\t<Modification location=\"" + String(i + 1);
-              p += "\" residues=\"" + jt->getSequence().getResidue(static_cast<SignedSize>(i)).getOneLetterCode();
+              p += "\" residues=\"" + String(jt->getSequence()[i].getOneLetterCode());
               p += "\" monoisotopicMassDelta=\"0";
               // ppxl crosslink loop xl_pos2 is always the reciever ("MS:1002510")
               p += "\"> \n\t\t\t" + cv_.getTerm("MS:1002510").toXMLString(cv_ns, DataValue(ppxl_linkid));

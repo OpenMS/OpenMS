@@ -1672,7 +1672,7 @@ protected:
            int beta_pos = top_csm->cross_link.cross_link_position.second + 1;
 
            String topology = String("a") + alpha_pos;
-           String id = structure + String("-") + letter_first + String("-") + alpha_pos + String("-") + static_cast<int>(top_csm->cross_link.cross_linker_mass);
+           String id = structure + String("-") + letter_first + alpha_pos + String("-") + static_cast<int>(top_csm->cross_link.cross_linker_mass);
 
            if (top_csm->cross_link.getType() == TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink::CROSS)
            {
@@ -1687,7 +1687,7 @@ protected:
             xltype = "intralink";
             topology += String("-b") + beta_pos;
             String letter_second = structure.substr(top_csm->cross_link.cross_link_position.second, 1);
-            id = structure + String("-") + letter_first + String("-") + alpha_pos + String("-") + letter_second + String("-") + beta_pos;
+            id = structure + String("-") + letter_first + alpha_pos + String("-") + letter_second + beta_pos;
            }
 
 
@@ -2059,28 +2059,43 @@ protected:
     protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
     protein_ids[0].setPrimaryMSRunPath(spectra.getPrimaryMSRunPath());
     protein_ids[0].setMetaValue("SpectrumIdentificationProtocol", DataValue("MS:1002494")); // cross-linking search = MS:1002494
-    protein_ids[0].setMetaValue("is_cross_linking_experiment", true);
+    //protein_ids[0].setMetaValue("is_cross_linking_experiment", true);
 
     // TODO set all kinds of experimental information
-    protein_ids[0].setMetaValue("input_mzML", in_mzml);
+    ProteinIdentification::SearchParameters search_params;
+    search_params.charges = "2,3,4,5,6";
+    search_params.db = in_fasta;
+    search_params.digestion_enzyme = (*EnzymesDB::getInstance()->getEnzyme(enzyme_name));
+    search_params.fixed_modifications = fixedModNames;
+    search_params.variable_modifications = varModNames;
+    search_params.mass_type = ProteinIdentification::MONOISOTOPIC;
+    search_params.missed_cleavages = missed_cleavages;
+    search_params.fragment_mass_tolerance = fragment_mass_tolerance;
+    search_params.fragment_mass_tolerance_ppm =  fragment_mass_tolerance_unit_ppm ? "ppm" : "Da";
+    search_params.precursor_mass_tolerance = precursor_mass_tolerance;
+    search_params.precursor_mass_tolerance_ppm = precursor_mass_tolerance_unit_ppm ? "ppm" : "Da";
+    protein_ids[0].setSearchParameters(search_params);
+
+    // As MetaValues
+    //protein_ids[0].setMetaValue("input_mzML", in_mzml);
     protein_ids[0].setMetaValue("input_consensusXML", in_consensus);
-    protein_ids[0].setMetaValue("input_database", in_fasta);
+    //protein_ids[0].setMetaValue("input_database", in_fasta);
     protein_ids[0].setMetaValue("input_decoys", in_decoy_fasta);
     protein_ids[0].setMetaValue("decoy_prefix", decoy_prefix);
     protein_ids[0].setMetaValue("decoy_string", decoy_string);
 
     protein_ids[0].setMetaValue("precursor:min_charge", min_precursor_charge);
     protein_ids[0].setMetaValue("precursor:max_charge", max_precursor_charge);
-    protein_ids[0].setMetaValue("precursor:mass_tolerance", precursor_mass_tolerance);
-    protein_ids[0].setMetaValue("precursor:mass_tolerance_unit", precursor_mass_tolerance_unit_ppm ? "ppm" : "Da");
+    //protein_ids[0].setMetaValue("precursor:mass_tolerance", precursor_mass_tolerance);
+    //protein_ids[0].setMetaValue("precursor:mass_tolerance_unit", precursor_mass_tolerance_unit_ppm ? "ppm" : "Da");
 
-    protein_ids[0].setMetaValue("fragment:mass_tolerance", fragment_mass_tolerance);
+    //protein_ids[0].setMetaValue("fragment:mass_tolerance", fragment_mass_tolerance);
     protein_ids[0].setMetaValue("fragment:mass_tolerance_xlinks", fragment_mass_tolerance_xlinks);
-    protein_ids[0].setMetaValue("fragment:mass_tolerance_unit", fragment_mass_tolerance_unit_ppm ? "ppm" : "Da");
+    //protein_ids[0].setMetaValue("fragment:mass_tolerance_unit", fragment_mass_tolerance_unit_ppm ? "ppm" : "Da");
 
     protein_ids[0].setMetaValue("peptide:min_size", peptide_min_size);
-    protein_ids[0].setMetaValue("peptide:missed_cleavages", missed_cleavages);
-    protein_ids[0].setMetaValue("peptide:enzyme", enzyme_name);
+    //protein_ids[0].setMetaValue("peptide:missed_cleavages", missed_cleavages);
+    //protein_ids[0].setMetaValue("peptide:enzyme", enzyme_name);
 
     protein_ids[0].setMetaValue("cross_link:residue1", cross_link_residue1);
     protein_ids[0].setMetaValue("cross_link:residue2", cross_link_residue2);
@@ -2088,8 +2103,8 @@ protected:
     protein_ids[0].setMetaValue("cross_link:mass_isoshift", cross_link_mass_iso_shift);
     protein_ids[0].setMetaValue("cross_link:mass_monolink", cross_link_mass_mono_link);
 
-    protein_ids[0].setMetaValue("modifications:fixed", fixedModNames);
-    protein_ids[0].setMetaValue("modifications:variable", varModNames);
+    //protein_ids[0].setMetaValue("modifications:fixed", fixedModNames);
+    //protein_ids[0].setMetaValue("modifications:variable", varModNames);
     protein_ids[0].setMetaValue("modifications:variable_max_per_peptide", max_variable_mods_per_peptide);
 
     protein_ids[0].setMetaValue("algorithm:candidate_search", ion_index_mode ? "ion-tag" : "enumeration");
@@ -2532,7 +2547,7 @@ protected:
               }
             } else
             {
-              // Second position defining a mono-link and the second positions on the same peptide for loop links (only one of these two is actually valid)
+              // Second position defining a mono-link and the second positions on the same peptide for loop links (only one of these two is valid for any specific precursor)
               if (!is_loop)
               {
                 link_pos_second.push_back(-1);
@@ -2566,8 +2581,8 @@ protected:
               for (Size y = 0; y < link_pos_second.size(); ++y)
               {
                 TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink cross_link_candidate;
-                // if loop link, and the positions are the same, then it is linking the same residue with itself,  skip this combination (pos_second != -1 test not neccessary because of pos equality)
-                if ((seq_second.size() == 0) && (link_pos_first[x] == link_pos_second[y]))
+                // if loop link, and the positions are the same, then it is linking the same residue with itself,  skip this combination, also pos1 > pos2 would be the same link as pos1 < pos2
+                if (((seq_second.size() == 0) && (link_pos_first[x] >= link_pos_second[y])) && (link_pos_second[y] != -1))
                 {
                   continue;
                 }
@@ -2954,40 +2969,40 @@ protected:
 //    double intensity;
                   cout << "Start writing annotations" << endl;
                   vector<PeptideHit::FragmentAnnotation> frag_annotations;
-                  for (Size i = 0; i < matched_spec_common_alpha.size(); --i)
+                  for (Size k = 0; k < matched_spec_common_alpha.size(); --k)
                   {
                     PeptideHit::FragmentAnnotation frag_anno;
-                    frag_anno.charge = static_cast<int>(theoretical_spec_common_alpha[matched_spec_common_alpha[i].first].getMetaValue("z"));
-                    frag_anno.mz = spectrum_light[matched_spec_common_alpha[i].second].getMZ();
-                    frag_anno.intensity = spectrum_light[matched_spec_common_alpha[i].second].getIntensity();
-                    frag_anno.annotation = theoretical_spec_common_alpha[matched_spec_common_alpha[i].first].getMetaValue("IonName");
+                    frag_anno.charge = static_cast<int>(theoretical_spec_common_alpha[matched_spec_common_alpha[k].first].getMetaValue("z"));
+                    frag_anno.mz = spectrum_light[matched_spec_common_alpha[k].second].getMZ();
+                    frag_anno.intensity = spectrum_light[matched_spec_common_alpha[k].second].getIntensity();
+                    frag_anno.annotation = theoretical_spec_common_alpha[matched_spec_common_alpha[k].first].getMetaValue("IonName");
                     frag_annotations.push_back(frag_anno);
                   }
-                  for (Size i = 0; i < matched_spec_common_beta.size(); --i)
+                  for (Size k = 0; k < matched_spec_common_beta.size(); --k)
                   {
                     PeptideHit::FragmentAnnotation frag_anno;
-                    frag_anno.charge = static_cast<int>(theoretical_spec_common_beta[matched_spec_common_beta[i].first].getMetaValue("z"));
-                    frag_anno.mz = spectrum_light[matched_spec_common_beta[i].second].getMZ();
-                    frag_anno.intensity = spectrum_light[matched_spec_common_beta[i].second].getIntensity();
-                    frag_anno.annotation = theoretical_spec_common_beta[matched_spec_common_beta[i].first].getMetaValue("IonName");
+                    frag_anno.charge = static_cast<int>(theoretical_spec_common_beta[matched_spec_common_beta[k].first].getMetaValue("z"));
+                    frag_anno.mz = spectrum_light[matched_spec_common_beta[k].second].getMZ();
+                    frag_anno.intensity = spectrum_light[matched_spec_common_beta[k].second].getIntensity();
+                    frag_anno.annotation = theoretical_spec_common_beta[matched_spec_common_beta[k].first].getMetaValue("IonName");
                     frag_annotations.push_back(frag_anno);
                   }
-                  for (Size i = 0; i < matched_spec_xlinks_alpha.size(); --i)
+                  for (Size k = 0; k < matched_spec_xlinks_alpha.size(); --k)
                   {
                     PeptideHit::FragmentAnnotation frag_anno;
-                    frag_anno.charge = static_cast<int>(theoretical_spec_xlinks_alpha[matched_spec_xlinks_alpha[i].first].getMetaValue("z"));
-                    frag_anno.mz = spectrum_light[matched_spec_xlinks_alpha[i].second].getMZ();
-                    frag_anno.intensity = spectrum_light[matched_spec_xlinks_alpha[i].second].getIntensity();
-                    frag_anno.annotation = theoretical_spec_xlinks_alpha[matched_spec_xlinks_alpha[i].first].getMetaValue("IonName");
+                    frag_anno.charge = static_cast<int>(theoretical_spec_xlinks_alpha[matched_spec_xlinks_alpha[k].first].getMetaValue("z"));
+                    frag_anno.mz = spectrum_light[matched_spec_xlinks_alpha[k].second].getMZ();
+                    frag_anno.intensity = spectrum_light[matched_spec_xlinks_alpha[k].second].getIntensity();
+                    frag_anno.annotation = theoretical_spec_xlinks_alpha[matched_spec_xlinks_alpha[k].first].getMetaValue("IonName");
                     frag_annotations.push_back(frag_anno);
                   }
-                  for (Size i = 0; i < matched_spec_xlinks_beta.size(); --i)
+                  for (Size k = 0; k < matched_spec_xlinks_beta.size(); --k)
                   {
                     PeptideHit::FragmentAnnotation frag_anno;
-                    frag_anno.charge = static_cast<int>(theoretical_spec_xlinks_beta[matched_spec_xlinks_beta[i].first].getMetaValue("z"));
-                    frag_anno.mz = spectrum_light[matched_spec_xlinks_beta[i].second].getMZ();
-                    frag_anno.intensity = spectrum_light[matched_spec_xlinks_beta[i].second].getIntensity();
-                    frag_anno.annotation = theoretical_spec_xlinks_beta[matched_spec_xlinks_beta[i].first].getMetaValue("IonName");
+                    frag_anno.charge = static_cast<int>(theoretical_spec_xlinks_beta[matched_spec_xlinks_beta[k].first].getMetaValue("z"));
+                    frag_anno.mz = spectrum_light[matched_spec_xlinks_beta[k].second].getMZ();
+                    frag_anno.intensity = spectrum_light[matched_spec_xlinks_beta[k].second].getIntensity();
+                    frag_anno.annotation = theoretical_spec_xlinks_beta[matched_spec_xlinks_beta[k].first].getMetaValue("IonName");
                     frag_annotations.push_back(frag_anno);
                   }
                   cout << "End writing annotations" << endl;
