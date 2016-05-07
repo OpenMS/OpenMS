@@ -37,7 +37,7 @@
 #define OPENMS_FILTERING_CALIBRATION_TRAFOMODEL_H
 
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/DataStructures/CalibrationData.h>
+#include <OpenMS/DATASTRUCTURES/CalibrationData.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <OpenMS/MATH/STATISTICS/QuadraticRegression.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>

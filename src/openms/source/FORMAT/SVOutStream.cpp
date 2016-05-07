@@ -52,7 +52,7 @@ namespace OpenMS
     inf_("inf"), quoting_(quoting), modify_strings_(true), newline_(true)
   {
     ofs_ = new std::ofstream;
-    ofs_->open(file_out);
+    ofs_->open(file_out.c_str());
 
     if (!ofs_->is_open())
     {

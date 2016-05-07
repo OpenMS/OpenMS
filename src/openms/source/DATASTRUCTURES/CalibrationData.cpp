@@ -158,7 +158,6 @@ namespace OpenMS
     if (i==ie) return cd;
 
     double rt = (rt_left + rt_right) / 2;
-    double mz_ref = getRefMZ(i);
 
     for (std::set<int>::const_iterator it_group = groups_.begin(); it_group!= groups_.end(); ++it_group)
     { 
