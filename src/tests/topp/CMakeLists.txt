@@ -1289,7 +1289,7 @@ add_test("TOPP_InternalCalibration_1" ${TOPP_BIN_PATH}/InternalCalibration -test
 add_test("TOPP_InternalCalibration_1_out1" ${DIFF} -in1 InternalCalibration_1_models.csv.tmp -in2 ${DATA_DIR_TOPP}/InternalCalibration_1_models.csv)
 set_tests_properties("TOPP_InternalCalibration_1_out1" PROPERTIES DEPENDS "TOPP_InternalCalibration_1")
 add_test("TOPP_InternalCalibration_1_out2" ${DIFF} -in1 InternalCalibration_1_residuals.csv.tmp -in2 ${DATA_DIR_TOPP}/InternalCalibration_1_residuals.csv)
-set_tests_properties("TOPP_InternalCalibration_1_out1" PROPERTIES DEPENDS "TOPP_InternalCalibration_1")
+set_tests_properties("TOPP_InternalCalibration_1_out2" PROPERTIES DEPENDS "TOPP_InternalCalibration_1")
 
 ## lock masses as calibrants
 add_test("TOPP_InternalCalibration_2" ${TOPP_BIN_PATH}/InternalCalibration -test -in ${DATA_DIR_TOPP}/InternalCalibration_2_lockmass.mzML.gz -cal:lock_in ${DATA_DIR_TOPP}/InternalCalibration_2_lock.csv -out InternalCalibration_2_lockmass.mzML.tmp -cal:lock_require_mono -cal:model_type linear -RT_chunking 60 -quality_control:models InternalCalibration_2_models.csv.tmp -quality_control:residuals InternalCalibration_2_residuals.csv.tmp)
