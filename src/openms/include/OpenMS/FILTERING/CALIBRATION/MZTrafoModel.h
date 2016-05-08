@@ -72,7 +72,7 @@ namespace OpenMS
     Outlier detection before model building via the RANSAC algorithm is supported for LINEAR and QUADRATIC models.
 
   */
-  class OPENMS_DLLAPI TrafoModel
+  class OPENMS_DLLAPI MZTrafoModel
   {
   
   private:
@@ -90,7 +90,7 @@ namespace OpenMS
     /**
       @brief Default constructor
     */
-    TrafoModel();
+    MZTrafoModel();
 
     /**
       @brief Default constructor
@@ -102,7 +102,7 @@ namespace OpenMS
 
       @param ppm_model Are the coefficients derived from ppm calibration data, or from absolute deltas?
     */
-    TrafoModel(bool ppm_model);
+    MZTrafoModel(bool ppm_model);
 
     enum MODELTYPE { LINEAR, LINEAR_WEIGHTED, QUADRATIC, QUADRATIC_WEIGHTED, SIZE_OF_MODELTYPE };
     static const std::string names_of_modeltype[]; //< strings corresponding to enum MODELTYPE
@@ -127,7 +127,7 @@ namespace OpenMS
       @brief Set the global (program wide) parameters for RANSAC.
 
       This is not done via member, to keep a small memory footprint since hundreds of
-      TrafoModels are expected to be build at the same time and the RANSAC params
+      MZTrafoModels are expected to be build at the same time and the RANSAC params
       should be identical for all of them.
       
       @param p RANSAC params
@@ -153,7 +153,7 @@ namespace OpenMS
       acceptable boundaries (if boundaries were given via setCoeffientLimits()).
 
     */
-    static bool isValidModel(const TrafoModel& trafo);
+    static bool isValidModel(const MZTrafoModel& trafo);
 
     /**
       @brief Does the model have coefficients (i.e. was trained successfully).
@@ -193,22 +193,22 @@ namespace OpenMS
 
       @exception Exception::Precondition is thrown if the vector is empty (not only in debug mode)
     */
-    static Size findNearest(const std::vector<TrafoModel>& tms, double rt);
+    static Size findNearest(const std::vector<MZTrafoModel>& tms, double rt);
 
 
     /// Comparator by position. As this class has dimension 1, this is basically an alias for MZLess.
     struct RTLess :
-      public std::binary_function<TrafoModel, TrafoModel, bool>
+      public std::binary_function<MZTrafoModel, MZTrafoModel, bool>
     {
-      inline bool operator()(const double& left, const TrafoModel& right) const
+      inline bool operator()(const double& left, const MZTrafoModel& right) const
       {
         return left < right.rt_;
       }
-      inline bool operator()(const TrafoModel& left, const double& right) const
+      inline bool operator()(const MZTrafoModel& left, const double& right) const
       {
         return left.rt_ < right;
       }
-      inline bool operator()(const TrafoModel& left, const TrafoModel& right) const
+      inline bool operator()(const MZTrafoModel& left, const MZTrafoModel& right) const
       {
         return left.rt_ < right.rt_;
       }
@@ -246,7 +246,7 @@ namespace OpenMS
       a model (linear, quadratic, ...) is build.
       Outlier removal is applied before.
       The 'obs_mz' can be either given as absolute masses in [Th] or relative deviations in [ppm].
-      The TrafoModel must be constructed accordingly (see constructor). This has no influence on the model building itself, but
+      The MZTrafoModel must be constructed accordingly (see constructor). This has no influence on the model building itself, but
       rather on how 'predict()' works internally.
 
       Outlier detection before model building via the RANSAC algorithm is supported for LINEAR and QUADRATIC models.
@@ -285,7 +285,7 @@ namespace OpenMS
     /**
       @brief Copy model coefficients from another model.
     */
-    void setCoefficients(const TrafoModel& rhs);
+    void setCoefficients(const MZTrafoModel& rhs);
 
     /**
       @brief Manually set model coefficients
@@ -308,7 +308,7 @@ namespace OpenMS
     */
     String toString() const;
 
-  }; // TrafoModel
+  }; // MZTrafoModel
 
 } // namespace OpenMS
 

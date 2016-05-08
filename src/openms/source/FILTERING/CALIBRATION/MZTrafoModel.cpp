@@ -33,35 +33,35 @@
 // --------------------------------------------------------------------------
 
 
-#include <OpenMS/FILTERING/CALIBRATION/TrafoModel.h>
+#include <OpenMS/FILTERING/CALIBRATION/MZTrafoModel.h>
 
 #include <algorithm>
 
 namespace OpenMS
 {
 
-  TrafoModel::TrafoModel()
+  MZTrafoModel::MZTrafoModel()
    : coeff_(),
      use_ppm_(true),
      rt_(std::numeric_limits<double>::quiet_NaN())
   {
   }
 
-  TrafoModel::TrafoModel(bool ppm_model)
+  MZTrafoModel::MZTrafoModel(bool ppm_model)
     : coeff_(),
       use_ppm_(ppm_model),
       rt_(std::numeric_limits<double>::quiet_NaN())
   {
   }
 
-  const std::string TrafoModel::names_of_modeltype[] = {"linear", "linear_weighted", "quadratic", "quadratic_weighted", "size_of_modeltype"};
+  const std::string MZTrafoModel::names_of_modeltype[] = {"linear", "linear_weighted", "quadratic", "quadratic_weighted", "size_of_modeltype"};
 
-  Math::RANSACParam* TrafoModel::ransac_params_ = NULL;
-  double TrafoModel::limit_offset_ = std::numeric_limits<double>::max(); // no limit by default
-  double TrafoModel::limit_scale_ = std::numeric_limits<double>::max(); // no limit by default
-  double TrafoModel::limit_power_ = std::numeric_limits<double>::max(); // no limit by default
+  Math::RANSACParam* MZTrafoModel::ransac_params_ = NULL;
+  double MZTrafoModel::limit_offset_ = std::numeric_limits<double>::max(); // no limit by default
+  double MZTrafoModel::limit_scale_ = std::numeric_limits<double>::max(); // no limit by default
+  double MZTrafoModel::limit_power_ = std::numeric_limits<double>::max(); // no limit by default
 
-  TrafoModel::MODELTYPE TrafoModel::nameToEnum(const std::string& name)
+  MZTrafoModel::MODELTYPE MZTrafoModel::nameToEnum(const std::string& name)
   {
     const std::string* qb = names_of_modeltype;
     const std::string* qe = qb + (int)SIZE_OF_MODELTYPE;
@@ -69,26 +69,26 @@ namespace OpenMS
     return (MODELTYPE)std::distance(qb, qm);
   }
 
-  const std::string& TrafoModel::enumToName(TrafoModel::MODELTYPE mt)
+  const std::string& MZTrafoModel::enumToName(MZTrafoModel::MODELTYPE mt)
   {
     return names_of_modeltype[mt];
   }
 
-  void TrafoModel::setRANSACParams( const Math::RANSACParam& p )
+  void MZTrafoModel::setRANSACParams( const Math::RANSACParam& p )
   {
     if (ransac_params_ != NULL) delete ransac_params_;
     ransac_params_ = new Math::RANSACParam(p);
     //std::cerr << p.toString();
   }
 
-  void TrafoModel::setCoefficientLimits( double offset, double scale, double power )
+  void MZTrafoModel::setCoefficientLimits( double offset, double scale, double power )
   {
     limit_offset_ = fabs(offset);
     limit_scale_ = fabs(scale);
     limit_power_ = fabs(power);
   }
 
-  bool TrafoModel::isValidModel( const TrafoModel& trafo )
+  bool MZTrafoModel::isValidModel( const MZTrafoModel& trafo )
   {
     if (trafo.coeff_.empty()) return false;
 
@@ -100,17 +100,17 @@ namespace OpenMS
     return (true);
   }
 
-  bool TrafoModel::isTrained() const
+  bool MZTrafoModel::isTrained() const
   {
     return !coeff_.empty();
   }
 
-  double TrafoModel::getRT() const
+  double MZTrafoModel::getRT() const
   {
     return rt_;
   }
 
-  double TrafoModel::predict( double mz ) const
+  double MZTrafoModel::predict( double mz ) const
   {
     // mz = a + b * mz + c * mz^2
     double predict =
@@ -127,7 +127,7 @@ namespace OpenMS
     return(predict);
   }
 
-  bool TrafoModel::train( const CalibrationData& cd, MODELTYPE md, bool use_RANSAC, double rt_left /*= -std::numeric_limits<double>::max()*/, double rt_right /*= std::numeric_limits<double>::max() */ )
+  bool MZTrafoModel::train( const CalibrationData& cd, MODELTYPE md, bool use_RANSAC, double rt_left /*= -std::numeric_limits<double>::max()*/, double rt_right /*= std::numeric_limits<double>::max() */ )
   {
     std::vector<double> obs_mz;
     std::vector<double> theo_mz;
@@ -160,7 +160,7 @@ namespace OpenMS
     return (train(obs_mz, theo_mz, weights, md, use_RANSAC));
   }
 
-  bool TrafoModel::train( std::vector<double> obs_mz, std::vector<double> theo_mz, std::vector<double> weights, MODELTYPE md, bool use_RANSAC )
+  bool MZTrafoModel::train( std::vector<double> obs_mz, std::vector<double> theo_mz, std::vector<double> weights, MODELTYPE md, bool use_RANSAC )
   {
     coeff_.clear();
 
@@ -308,13 +308,13 @@ namespace OpenMS
     }
   }
 
-  Size TrafoModel::findNearest( const std::vector<TrafoModel>& tms, double rt )
+  Size MZTrafoModel::findNearest( const std::vector<MZTrafoModel>& tms, double rt )
   {
     // no peak => no search
     if (tms.size() == 0) throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "There must be at least one model to determine the nearest model!");
 
     // search for position for inserting
-    std::vector<TrafoModel>::const_iterator it = lower_bound(tms.begin(), tms.end(), rt, TrafoModel::RTLess());
+    std::vector<MZTrafoModel>::const_iterator it = lower_bound(tms.begin(), tms.end(), rt, MZTrafoModel::RTLess());
 
     // border cases
     if (it == tms.begin()) return 0;
@@ -322,7 +322,7 @@ namespace OpenMS
     if (it == tms.end()) return tms.size() - 1;
 
     // the model before or the current model are closest
-    std::vector<TrafoModel>::const_iterator it2 = it;
+    std::vector<MZTrafoModel>::const_iterator it2 = it;
     --it2;
     if (std::fabs(it->rt_ - rt) < std::fabs(it2->rt_ - rt))
     {
@@ -334,12 +334,12 @@ namespace OpenMS
     }
   }
 
-  void TrafoModel::setCoefficients( const TrafoModel& rhs )
+  void MZTrafoModel::setCoefficients( const MZTrafoModel& rhs )
   {
     coeff_ = rhs.coeff_;
   }
 
-  void TrafoModel::setCoefficients( double intercept, double slope, double power )
+  void MZTrafoModel::setCoefficients( double intercept, double slope, double power )
   {
     coeff_.clear();
     coeff_.push_back(intercept);
@@ -347,7 +347,7 @@ namespace OpenMS
     coeff_.push_back(power);
   }
 
-  OpenMS::String TrafoModel::toString() const
+  OpenMS::String MZTrafoModel::toString() const
   {
     String s;
     if (coeff_.empty()) s = "nan, nan, nan";
@@ -356,7 +356,7 @@ namespace OpenMS
     return s;
   }
 
-  void TrafoModel::getCoefficients( double& intercept, double& slope, double& power )
+  void MZTrafoModel::getCoefficients( double& intercept, double& slope, double& power )
   {
     if (!isTrained()) throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Model is not trained yet.");
 

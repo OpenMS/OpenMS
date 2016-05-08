@@ -35,7 +35,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/CalibrationData.h>
 #include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
-#include <OpenMS/FILTERING/CALIBRATION/TrafoModel.h>
+#include <OpenMS/FILTERING/CALIBRATION/MZTrafoModel.h>
 
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -189,10 +189,10 @@ protected:
     registerFlag_("cal:lock_require_iso", "Require all lock masses to have at least the +1 isotope. Peaks without isotope pattern are not used.");
     registerStringOption_("cal:model_type", 
                           "<model>",
-                          TrafoModel::enumToName(TrafoModel::LINEAR_WEIGHTED),
+                          MZTrafoModel::enumToName(MZTrafoModel::LINEAR_WEIGHTED),
                           "Type of function to be fitted to the calibration points.",
                           false);
-    setValidStrings_("cal:model_type", TrafoModel::names_of_modeltype, TrafoModel::SIZE_OF_MODELTYPE);
+    setValidStrings_("cal:model_type", MZTrafoModel::names_of_modeltype, MZTrafoModel::SIZE_OF_MODELTYPE);
 
     addEmptyLine_();
     
@@ -326,12 +326,12 @@ protected:
     // create models and calibrate
     //
     String model_type = getStringOption_("cal:model_type");
-    TrafoModel::MODELTYPE md = TrafoModel::nameToEnum(model_type);
+    MZTrafoModel::MODELTYPE md = MZTrafoModel::nameToEnum(model_type);
     Size RANSAC_initial_points = model_type.hasSubstring("linear") ? 2 : 3;
     Math::RANSACParam p(RANSAC_initial_points, getIntOption_("RANSAC:iter"), getDoubleOption_("RANSAC:thresh"), getIntOption_("RANSAC:pc_inliers"), true);
-    TrafoModel::setRANSACParams(p);
+    MZTrafoModel::setRANSACParams(p);
     // these limits are a little loose, but should prevent grossly wrong models without burdening the user with yet another parameter.
-    TrafoModel::setCoefficientLimits(tol_ppm, tol_ppm, 0.5); 
+    MZTrafoModel::setCoefficientLimits(tol_ppm, tol_ppm, 0.5); 
 
     if (!ic.calibrate(exp, target_mslvl, md, rt_chunk, use_RANSAC, 
                       getDoubleOption_("goodness:median"), getDoubleOption_("goodness:MAD"), 

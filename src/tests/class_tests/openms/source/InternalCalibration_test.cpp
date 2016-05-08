@@ -116,13 +116,13 @@ START_SECTION(const CalibrationData& getCalibrationPoints() const)
   NOT_TESTABLE // tested above
 END_SECTION
 
-START_SECTION(bool calibrate(MSExperiment<>& exp, const IntList& target_mslvl, TrafoModel::MODELTYPE model_type, double rt_chunk, bool use_RANSAC, double post_ppm_median, double post_ppm_MAD, const String& file_models, const String& file_residuals))
+START_SECTION(bool calibrate(MSExperiment<>& exp, const IntList& target_mslvl, MZTrafoModel::MODELTYPE model_type, double rt_chunk, bool use_RANSAC, double post_ppm_median, double post_ppm_MAD, const String& file_models, const String& file_residuals))
   InternalCalibration ic;
   ic.fillCalibrants(peps, 3.0);
   MSExperiment<> exp;
   MzMLFile().load(File::find("./examples/BSA/BSA1.mzML"), exp);
-  TrafoModel::setRANSACParams(Math::RANSACParam(2, 1000, 1.0, 30, true));
-  bool success = ic.calibrate(exp, std::vector<Int>(1, 1), TrafoModel::LINEAR, -1, true, 1.0, 1.0);
+  MZTrafoModel::setRANSACParams(Math::RANSACParam(2, 1000, 1.0, 30, true));
+  bool success = ic.calibrate(exp, std::vector<Int>(1, 1), MZTrafoModel::LINEAR, -1, true, 1.0, 1.0);
   TEST_EQUAL(success, true)
 END_SECTION
 
@@ -132,8 +132,8 @@ spec.push_back(Peak1D(500.0, 1000.0));
 spec.push_back(Peak1D(750.0, 1000.0));
 spec.push_back(Peak1D(1000.0, 1000.0));
 
-START_SECTION(static void applyTransformation(MSExperiment<>::SpectrumType& spec, const TrafoModel& trafo))
-  TrafoModel trafo;
+START_SECTION(static void applyTransformation(MSExperiment<>::SpectrumType& spec, const MZTrafoModel& trafo))
+  MZTrafoModel trafo;
   trafo.setCoefficients(-100.0, 0.0, 0.0);
   MSExperiment<>::SpectrumType spec2 = spec;
   TEST_EQUAL(spec, spec2);
@@ -143,8 +143,8 @@ START_SECTION(static void applyTransformation(MSExperiment<>::SpectrumType& spec
   TEST_REAL_SIMILAR(spec2[1].getMZ(), spec[1].getMZ() + Math::ppmToMass(-100.0, 500.0));
 END_SECTION
 
-START_SECTION(static void applyTransformation(MSExperiment<>& exp, const IntList& target_mslvl, const TrafoModel& trafo))
-  TrafoModel trafo;
+START_SECTION(static void applyTransformation(MSExperiment<>& exp, const IntList& target_mslvl, const MZTrafoModel& trafo))
+  MZTrafoModel trafo;
   trafo.setCoefficients(-100.0, 0.0, 0.0); // observed m/z are 100ppm lower than reference
   MSExperiment<>::SpectrumType spec2 = spec;
   spec2.setMSLevel(2);      // will not be calibrated

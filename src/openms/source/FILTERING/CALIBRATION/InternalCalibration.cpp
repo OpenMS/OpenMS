@@ -51,7 +51,7 @@ namespace OpenMS
   {
   }
 
-  void InternalCalibration::applyTransformation(MSExperiment<>::SpectrumType& spec, const TrafoModel& trafo)
+  void InternalCalibration::applyTransformation(MSExperiment<>::SpectrumType& spec, const MZTrafoModel& trafo)
   {
     typedef MSExperiment<>::SpectrumType::Iterator SpecIt;
 
@@ -71,7 +71,7 @@ namespace OpenMS
     }
   }
 
-  void InternalCalibration::applyTransformation(MSExperiment<>& exp, const IntList& target_mslvl, const TrafoModel& trafo)
+  void InternalCalibration::applyTransformation(MSExperiment<>& exp, const IntList& target_mslvl, const MZTrafoModel& trafo)
   {
     for (MSExperiment<>::Iterator it = exp.begin(); it != exp.end(); ++it)
     {
@@ -103,7 +103,7 @@ namespace OpenMS
       for (std::vector<InternalCalibration::LockMass>::const_iterator itl = ref_masses.begin(); itl != ref_masses.end(); ++itl)
       {
         // calibrant meant for this MS level?
-        if (it->getMSLevel() != itl->lvl) continue;
+        if (it->getMSLevel() != itl->ms_level) continue;
 
         Size s = it->findNearest(itl->mz);
         const double mz_obs = (*it)[s].getMZ();
@@ -112,7 +112,7 @@ namespace OpenMS
           if (lock_require_mono)
           {
             // check if its the monoisotopic .. discard otherwise
-            const double mz_iso_left = mz_obs - (Constants::C13C12_MASSDIFF_U / itl->q);
+            const double mz_iso_left = mz_obs - (Constants::C13C12_MASSDIFF_U / itl->charge);
             Size s_left = it->findNearest(mz_iso_left);
             if (Math::getPPMAbs(mz_iso_left, (*it)[s_left].getMZ()) < 0.5) // intra-scan ppm should be very good!
             { // peak nearby lock mass was not the monoisotopic
@@ -123,7 +123,7 @@ namespace OpenMS
           if (lock_require_iso)
           {
             // require it to have a +1 isotope?!
-            const double mz_iso_right = mz_obs + Constants::C13C12_MASSDIFF_U / itl->q;
+            const double mz_iso_right = mz_obs + Constants::C13C12_MASSDIFF_U / itl->charge;
             Size s_right = it->findNearest(mz_iso_right);
             if (!(Math::getPPMAbs(mz_iso_right, (*it)[s_right].getMZ()) < 0.5)) // intra-scan ppm should be very good!
             { // peak has no +1iso.. weird
@@ -225,7 +225,7 @@ namespace OpenMS
     return cal_data_;
   }
 
-  bool InternalCalibration::calibrate( MSExperiment<>& exp, const IntList& target_mslvl, TrafoModel::MODELTYPE model_type, double rt_chunk, bool use_RANSAC, double post_ppm_median, double post_ppm_MAD, const String& file_models, const String& file_residuals )
+  bool InternalCalibration::calibrate( MSExperiment<>& exp, const IntList& target_mslvl, MZTrafoModel::MODELTYPE model_type, double rt_chunk, bool use_RANSAC, double post_ppm_median, double post_ppm_MAD, const String& file_models, const String& file_residuals )
   {
     // ensure sorting; required for finding RT ranges and lock masses
     if (!exp.isSorted(true))
@@ -235,16 +235,16 @@ namespace OpenMS
 
     startProgress(0, exp.size(), "Applying calibration to data");
 
-    std::vector<TrafoModel> tms; // each spectrum gets its own model (params are cheap to store)
+    std::vector<MZTrafoModel> tms; // each spectrum gets its own model (params are cheap to store)
     std::map<Size, Size> invalid_models; // indices from tms[] -> exp[]; where model creation failed (e..g, not enough calibration points)
     bool hasValidModels(false); // was at least one model valid?
     bool global_model = (rt_chunk < 0);
     if (global_model)
     { // build one global modal
       LOG_INFO << "Building a global model..." << std::endl;
-      tms.push_back(TrafoModel());
+      tms.push_back(MZTrafoModel());
       tms[0].train(cal_data_, model_type, use_RANSAC);
-      if (TrafoModel::isValidModel(tms[0]))
+      if (MZTrafoModel::isValidModel(tms[0]))
       {
         applyTransformation(exp, target_mslvl, tms[0]);
         hasValidModels = true;
@@ -264,9 +264,9 @@ namespace OpenMS
         //
         // build model
         //
-        tms.push_back(TrafoModel());
+        tms.push_back(MZTrafoModel());
         tms.back().train(cal_data_, model_type, use_RANSAC, it->getRT() - rt_chunk, it->getRT() + rt_chunk);
-        if (!TrafoModel::isValidModel(tms.back())) // model not trained or coefficients are too extreme
+        if (!MZTrafoModel::isValidModel(tms.back())) // model not trained or coefficients are too extreme
         {
           invalid_models[i_mslvl] = i;
         }
@@ -281,7 +281,7 @@ namespace OpenMS
       // CHECK Models -- use neighbors if needed
       //////////////////////////////////////////////////////////////////////////
 
-      hasValidModels = (std::find_if(tms.begin(), tms.end(), TrafoModel::isValidModel) != tms.end());
+      hasValidModels = (std::find_if(tms.begin(), tms.end(), MZTrafoModel::isValidModel) != tms.end());
       // did we build any model at all?
       if (hasValidModels && !invalid_models.empty())
       {
@@ -290,15 +290,15 @@ namespace OpenMS
         LOG_INFO << "\nCalibration failed on " << invalid_models.size() << "/" << tms.size() << " [" <<  invalid_models.size() * 100 / tms.size() << " %] spectra. "
           << "Using the closest successful model on these." << std::endl;
 
-        std::vector<TrafoModel> tms_new = tms; // will contain corrected models (this wastes a bit of memory)
+        std::vector<MZTrafoModel> tms_new = tms; // will contain corrected models (this wastes a bit of memory)
         for (std::map<Size, Size>::const_iterator it = invalid_models.begin(); it != invalid_models.end(); ++it)
         {
           Size p = it->first;
           // find model closest valid model to p'th model
-          std::vector<TrafoModel>::iterator it_center_r = tms.begin() + p; // points to 'p'
-          std::vector<TrafoModel>::iterator it_right = std::find_if(it_center_r, tms.end(), TrafoModel::isValidModel);
-          std::vector<TrafoModel>::reverse_iterator it_center_l = tms.rbegin() + (tms.size() - p - 1); // points to 'p'
-          std::vector<TrafoModel>::reverse_iterator it_left = std::find_if(it_center_l, tms.rend(), TrafoModel::isValidModel);
+          std::vector<MZTrafoModel>::iterator it_center_r = tms.begin() + p; // points to 'p'
+          std::vector<MZTrafoModel>::iterator it_right = std::find_if(it_center_r, tms.end(), MZTrafoModel::isValidModel);
+          std::vector<MZTrafoModel>::reverse_iterator it_center_l = tms.rbegin() + (tms.size() - p - 1); // points to 'p'
+          std::vector<MZTrafoModel>::reverse_iterator it_left = std::find_if(it_center_l, tms.rend(), MZTrafoModel::isValidModel);
           Size dist_right(0), dist_left(0);
           if (it_right != tms.end()) dist_right = std::distance(it_center_r, it_right);
           if (it_left != tms.rend()) dist_left  = std::distance(it_center_l, it_left);
@@ -316,7 +316,7 @@ namespace OpenMS
         }
         tms_new.swap(tms);
         // consistency check: all models must be valid at this point
-        for (Size i = 0; i < tms.size(); ++i) if (!TrafoModel::isValidModel(tms[i])) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "InternalCalibration::calibrate(): Internal error. Not all models are valid!", String(i));
+        for (Size i = 0; i < tms.size(); ++i) if (!MZTrafoModel::isValidModel(tms[i])) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "InternalCalibration::calibrate(): Internal error. Not all models are valid!", String(i));
       }
     }
     endProgress();
@@ -334,7 +334,7 @@ namespace OpenMS
       for (Size i = 0; i < tms.size(); ++i)
       {
         sv << tms[i].getRT() << tms[i].toString();
-        if (!TrafoModel::isValidModel(tms[i])) sv << "invalid"; // this only happens if ALL models are invalid (since otherwise they would use 'neighbour')
+        if (!MZTrafoModel::isValidModel(tms[i])) sv << "invalid"; // this only happens if ALL models are invalid (since otherwise they would use 'neighbour')
         else if (invalid_models.count(i) > 0) sv << "neighbor";
         else sv << "local";
         sv << nl;
@@ -361,10 +361,10 @@ namespace OpenMS
     {
       double rt = itc->getRT();
       // find closest model in RT
-      Size idx = (global_model ? 0 : TrafoModel::findNearest(tms, rt));
+      Size idx = (global_model ? 0 : MZTrafoModel::findNearest(tms, rt));
 
       double mz_corrected = std::numeric_limits<double>::quiet_NaN();
-      if (TrafoModel::isValidModel(tms[idx])) mz_corrected = tms[idx].predict(itc->getMZ());
+      if (MZTrafoModel::isValidModel(tms[idx])) mz_corrected = tms[idx].predict(itc->getMZ());
       double mz_ref = cal_data_.getRefMZ(ii);
       double ppm_before = Math::getPPM(itc->getMZ(), mz_ref);
       double ppm_after = Math::getPPM(mz_corrected, mz_ref);

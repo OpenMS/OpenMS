@@ -301,6 +301,7 @@ set(filtering_executables_list
   MultiplexFilterResultPeak_test
   MultiplexFilterResultRaw_test
   MultiplexIsotopicPeakPattern_test
+  MZTrafoModel_test
   NLargest_test
   NeutralLossDiffFilter_test
   NeutralLossMarker_test
@@ -318,7 +319,6 @@ set(filtering_executables_list
   SqrtMower_test
   TICFilter_test
   TOFCalibration_test
-  TrafoModel_test
   ThresholdMower_test
   WindowMower_test
   SpectraMerger_test

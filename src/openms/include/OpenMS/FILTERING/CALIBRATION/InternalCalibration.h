@@ -39,7 +39,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/CalibrationData.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/FILTERING/CALIBRATION/TrafoModel.h>
+#include <OpenMS/FILTERING/CALIBRATION/MZTrafoModel.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <vector>
@@ -74,13 +74,13 @@ namespace OpenMS
     struct LockMass
     {
       double mz; //< m/z of the lock mass (incl. adducts)
-      int lvl;   //< MS level where it occurs
-      int q;     //< charge of the ion (to find isotopes)
+      unsigned int ms_level;   //< MS level where it occurs
+      int charge;     //< charge of the ion (to find isotopes)
 
-      LockMass(double mz_, int lvl_, int q_)
+      LockMass(double mz_, int lvl_, int charge_)
         : mz(mz_),
-         lvl(lvl_),
-         q(q_)
+         ms_level(lvl_),
+         charge(charge_)
       {}
     };
 
@@ -181,7 +181,7 @@ namespace OpenMS
     */
     bool calibrate(MSExperiment<>& exp, 
                    const IntList& target_mslvl,
-                   TrafoModel::MODELTYPE model_type,
+                   MZTrafoModel::MODELTYPE model_type,
                    double rt_chunk,
                    bool use_RANSAC,
                    double post_ppm_median,
@@ -197,7 +197,7 @@ namespace OpenMS
       @param spec Uncalibrated MSSpectrum
       @param trafo The calibration function to apply
     */
-    static void applyTransformation(MSExperiment<>::SpectrumType& spec, const TrafoModel& trafo);
+    static void applyTransformation(MSExperiment<>::SpectrumType& spec, const MZTrafoModel& trafo);
 
     /*
       @brief Transform spectra from a whole map (data+precursor)
@@ -211,7 +211,7 @@ namespace OpenMS
       @param target_mslvl List (can be unsorted) of MS levels to calibrate
       @param trafo The calibration function to apply
     */
-    static void applyTransformation(MSExperiment<>& exp, const IntList& target_mslvl, const TrafoModel& trafo);
+    static void applyTransformation(MSExperiment<>& exp, const IntList& target_mslvl, const MZTrafoModel& trafo);
   
   protected:
     /**

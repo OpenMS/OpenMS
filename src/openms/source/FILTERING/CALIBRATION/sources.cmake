@@ -4,8 +4,8 @@ set(directory source/FILTERING/CALIBRATION)
 ### list all filenames of the directory here
 set(sources_list
 InternalCalibration.cpp
+MZTrafoModel.cpp
 TOFCalibration.cpp
-TrafoModel.cpp
 )
 
 ### add path to the filenames
