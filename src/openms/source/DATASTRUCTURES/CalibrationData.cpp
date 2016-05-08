@@ -140,7 +140,7 @@ namespace OpenMS
 
   int CalibrationData::getGroup( Size i ) const
   {
-    if (!data_[i].metaValueExists("peakgroup")) throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "getGroup() received invalid point without meta data!");
+    if (!data_[i].metaValueExists("peakgroup")) return -1;
     return data_[i].getMetaValue("peakgroup");
   }
 
@@ -151,10 +151,11 @@ namespace OpenMS
 
   OpenMS::CalibrationData CalibrationData::median( double rt_left, double rt_right ) const
   {
+    CalibrationData cd;
+    cd.setUsePPM(this->usePPM());
+
     Size i = std::distance(data_.begin(), lower_bound(data_.begin(), data_.end(), rt_left, RichPeak2D::RTLess()));
     Size ie = std::distance(data_.begin(), upper_bound(data_.begin(), data_.end(), rt_right, RichPeak2D::RTLess()));
-
-    CalibrationData cd;
     if (i==ie) return cd;
 
     double rt = (rt_left + rt_right) / 2;
