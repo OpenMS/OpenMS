@@ -154,8 +154,8 @@ namespace OpenMS
     CalibrationData cd;
     cd.setUsePPM(this->usePPM());
 
-    Size i = std::distance(data_.begin(), lower_bound(data_.begin(), data_.end(), rt_left, RichPeak2D::RTLess()));
-    Size ie = std::distance(data_.begin(), upper_bound(data_.begin(), data_.end(), rt_right, RichPeak2D::RTLess()));
+    Size i = std::distance(data_.begin(), lower_bound(data_.begin(), data_.end(), rt_left, RichPeak2D::PositionLess()));
+    Size ie = std::distance(data_.begin(), upper_bound(data_.begin(), data_.end(), rt_right, RichPeak2D::PositionLess()));
     if (i==ie) return cd;
 
     double rt = (rt_left + rt_right) / 2;
@@ -182,7 +182,7 @@ namespace OpenMS
 
   void CalibrationData::sortByRT()
   {
-    std::sort(data_.begin(), data_.end(), RichPeak2D::RTLess());
+    std::sort(data_.begin(), data_.end(), RichPeak2D::PositionLess());
   }
 
 } // namespace OpenMS
