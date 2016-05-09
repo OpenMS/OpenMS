@@ -39,6 +39,8 @@
 #include <OpenMS/FILTERING/CALIBRATION/MZTrafoModel.h>
 ///////////////////////////
 
+#include <OpenMS/MATH/MISC/MathFunctions.h>
+
 using namespace OpenMS;
 using namespace std;
 
