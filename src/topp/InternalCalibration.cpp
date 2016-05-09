@@ -78,7 +78,7 @@ using namespace std;
   Given reference masses (as either peptide identifications or as list of fixed masses) an MS experiment
   can be recalibrated using a linear or quadratic regression fitted to the observed vs. the theoretical masses.
 
-  Chose one of three optional input files:
+  Chose one of two optional input files:
    1) peptide identifications (from featureXML or idXML) using 'id_in'
    2) lock masses using 'lock_in'
   
@@ -92,7 +92,7 @@ using namespace std;
   Usually, the RT range should provide about 3x more calibrants than required, i.e. 6(=3x2) for linear, and 9(=3x3) for quadratic models.
   If the calibrant data is too sparse for a certain scan, the closest neighboring model will be used automatically.
   If no model can be calculated anywhere, the tool will fail.
-  Optional output files allow to judge the success of calibration. It is strongly advised to inspect them.
+  Optional quality control output files allow to judge the success of calibration. It is strongly advised to inspect them.
 
   Outlier detection is supported using the RANSAC algorithm. However, usually it's better to provide high-confidence calibrants instead of
   relying on automatic removal of outliers.
@@ -107,7 +107,7 @@ using namespace std;
      The data might benefit from a precursor mass correction (e.g. using @ref TOPP_HighResPrecursorMassCorrector), before an MS/MS search is done.
      The list of calibrants is derived solely from the idXML/featureXML and only the resulting model is applied to the mzML.
   
-  2) Calibration can be performed using specific lock masses which occur in most spectra. The structure of the cal:lock_in CSV file is as follows:
+  2) [lock_in] Calibration can be performed using specific lock masses which occur in most spectra. The structure of the cal:lock_in CSV file is as follows:
     Each line represents one lock mass in the format: <m/z>, <ms-level>, <charge>
     Lines starting with # are treated as comments and ignored. The ms-level is usually '1', but you can also use '2' if there are fragment ions commonly occurring.
 
@@ -123,7 +123,7 @@ using namespace std;
 
     The calibration function will use all lock masses (i.e. from all ms-levels) within the defined RT range to calibrate a spectrum. Thus, care should be taken that
     spectra from ms-levels specified here, are recorded using the same mass analyzer (MA). This is no issue for a Q-Exactive (which only has one MA),
-    but depends on the setup for others (e.g. for Orbitrap Velos, MS/MS spectra are commonly acquired in the ion trap and should not be used during calibration of MS1).
+    but depends on the acquisition scheme for instruments with two/three MAs (e.g. for Orbitrap Velos, MS/MS spectra are commonly acquired in the ion trap and should not be used during calibration of MS1).
 
   General remarks:
   The user can select what MS levels are subjected to calibration. Calibration must be done once for each mass analyzer.
@@ -172,19 +172,13 @@ protected:
     registerDoubleOption_("ppm_match_tolerance", "<delta m/z in [ppm]>", 25, "Finding calibrants in raw data uses this tolerance (for lock masses and ID's).", false);
 
     // transformation
-    registerTOPPSubsection_("cal", "Chose one of three optional input files ('id_in' or 'lock_in') to define the calibration masses/function");
+    registerTOPPSubsection_("cal", "Chose one of two optional input files ('id_in' or 'lock_in') to define the calibration masses/function");
     registerInputFile_("cal:id_in", "<file>", "", "Identifications or features whose peptide ID's serve as calibration masses.", false);
     setValidFormats_("cal:id_in", ListUtils::create<String>("idXML,featureXML"));
-
-    addEmptyLine_();
-    
     registerInputFile_("cal:lock_in", "<file>", "", "Input file containing reference m/z values (text file with each line as: m/z ms-level charge) which occur in all scans.", false);
     setValidFormats_("cal:lock_in", ListUtils::create<String>("csv"));
     registerOutputFile_("cal:lock_out", "<file>", "", "Optional output file containing peaks from 'in' which were matched to reference m/z values. Useful to see which peaks were used for calibration.", false);
     setValidFormats_("cal:lock_out", ListUtils::create<String>("mzXML"));
-
-    addEmptyLine_();
-
     registerFlag_("cal:lock_require_mono", "Require all lock masses to be monoisotopic, i.e. not the iso1, iso2 etc ('charge' column is used to determine the spacing). Peaks which are not mono-isotopic are not used.");
     registerFlag_("cal:lock_require_iso", "Require all lock masses to have at least the +1 isotope. Peaks without isotope pattern are not used.");
     registerStringOption_("cal:model_type", 
@@ -196,11 +190,11 @@ protected:
 
     addEmptyLine_();
     
-    registerIntList_("target_mslvl", "i j ...", ListUtils::create<int>("1,2,3"), "MS levels to apply the transformation onto.", false);
+    registerIntList_("ms_level", "i j ...", ListUtils::create<int>("1,2,3"), "Target MS levels to apply the transformation onto. Does not affect calibrant collection.", false);
     
     registerDoubleOption_("RT_chunking", "<RT window in [sec]>", 90, "RT window (one-sided, i.e. left->center, or center->right) around an MS scan in which calibrants are collected to build a model. Set to -1 to use ALL calibrants for all scans, i.e. a global model.", false);
     
-    registerTOPPSubsection_("RANSAC", "Robust outlier removal using RANSAC.");
+    registerTOPPSubsection_("RANSAC", "Robust outlier removal using RANSAC");
     registerFlag_("RANSAC:enabled", "Apply RANSAC to calibration points to remove outliers before fitting a model.");
     // RANSAC:n is automatically taken from the input model (i.e. n=2 for linear, n=3 for quadratic)
     //registerIntOption_("RANSAC:pc_n", "<# points>", 20, "Percentage (1-99) of initial model points from available data.", false);
@@ -237,7 +231,7 @@ protected:
     String file_cal_lock_out = getStringOption_("cal:lock_out");
     double rt_chunk = getDoubleOption_("RT_chunking");
     
-    IntList target_mslvl = getIntList_("target_mslvl");
+    IntList ms_level = getIntList_("ms_level");
 
     if (((int)!cal_lock.empty() + (int)!cal_id.empty()) != 1)
     {
@@ -333,7 +327,7 @@ protected:
     // these limits are a little loose, but should prevent grossly wrong models without burdening the user with yet another parameter.
     MZTrafoModel::setCoefficientLimits(tol_ppm, tol_ppm, 0.5); 
 
-    if (!ic.calibrate(exp, target_mslvl, md, rt_chunk, use_RANSAC, 
+    if (!ic.calibrate(exp, ms_level, md, rt_chunk, use_RANSAC, 
                       getDoubleOption_("goodness:median"), getDoubleOption_("goodness:MAD"), 
                       getStringOption_("quality_control:models"), getStringOption_("quality_control:residuals")))
     {
