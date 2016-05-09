@@ -56,6 +56,8 @@
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecomposition.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecompositionAlgorithm.h>
 #include <OpenMS/FILTERING/SMOOTHING/FastLowessSmoothing.h>
+#include <OpenMS/MATH/MISC/RANSAC.h>
+#include <OpenMS/MATH/MISC/RANSACModelLinear.h>
 
 #include <boost/math/distributions/normal.hpp>
 
@@ -1992,6 +1994,9 @@ public:
     return xic_intensities;
   }
 
+#pragma GCC push_options
+#pragma GCC optimize ("O0")
+
   // For unlabeled peptides, distances between isotopic peaks are dominated by the 13C-12C m/z difference
   // If non-carbon labeling elements are used we need to make sure that peaks are collected at the correct position by changing the mass difference to the labeling element.
   // In addition we need to change the m/z tolerance window so we collect all isotopic peaks if these are resolved by the mass spectrometer.
@@ -2065,14 +2070,18 @@ public:
     Size scans_plus_20s = (seed_rt_plus_20 - seed_rt_it) + 1;
     Size scans_minus_20s = (seed_rt_it - seed_rt_minus_20) + 1;
 
-    vector<double> slopes;
+//    vector<double> slopes;
+    std::vector<std::pair<double, double> > xy;
 
     // extract potential high points
-    for (Size k = 1; k < xics_smoothed.size(); ++k)
+    Size n_current = xics_smoothed[0].size();
+    Size apex_idx = n_current / 2;
+
+    for (Size k = 0; k < xics_smoothed.size(); ++k)
     {
       const vector<double>& current_xic = xics_smoothed[k];
-      Size n_current = current_xic.size();
-      Size apex_idx = n_current / 2;
+      if (n_current != current_xic.size())
+        throw -1;
 
       for (Size i = 1; i < n_current - 1; ++i)
       {
@@ -2083,19 +2092,60 @@ public:
           // here we also allow the maximum to come earlier depending on the number of incorporated deuterium
           if (i < apex_idx + scans_plus_20s && (double)i > static_cast<double>(apex_idx) - scans_minus_20s - k)  // only maxima that are not too much earlier (but may depend on number of deuterium incorporated)
           { 
-            double scan_to_apex = i - apex_idx;  // number of scans between current peak and apex scan
+//            double scan_to_apex = i - apex_idx;  // number of scans between current peak and apex scan
             //cout << k << ";" << scan_to_apex << ";" << current_xic[i] << endl;
-            slopes.push_back(scan_to_apex / k); // slope (Note: should be around zero or negative as deuterium rich elute earlier)
+            //slopes.push_back(scan_to_apex / k); // slope (Note: should be around zero or negative as deuterium rich elute earlier)
+            xy.push_back(make_pair(k, i)); // add isotope number and index in mass trace
           }
         }
       }
     }
 
-    double median_slope = Math::median(slopes.begin(), slopes.end());
-    cout << "Median slope: " << median_slope << endl;
+   // Theil–Sen estimator (or variant)
+   vector<double> slopes, intercepts;
+   for (Size i = 0; i != xy.size(); ++i)
+   {
+     for (Size j = i + 1; j < xy.size(); ++j)
+     {
+       double dx = xy[i].first - xy[j].first;
+       double dy = xy[i].second - xy[j].second;
+       double slope = dy/dx;
+       double intercept = xy[i].second - slope * xy[i].first;
+
+       // discard improbable models (if intercept lies outside of monoisotopic peak apex (+- 20s) or if RT shift larger than 5s per isotopic position
+       const double avg_scans_per_second = (scans_minus_20s + scans_plus_20s) / 40.0;
+       if (intercept < apex_idx - scans_minus_20s || intercept > apex_idx + scans_plus_20s || fabs(slope) > 5.0 * avg_scans_per_second ) continue;
+        
+       // cout << intercept << "\t" << slope << endl;
+       slopes.push_back(slope);
+       intercepts.push_back(intercept);
+     }
+   }
+
+    if (!slopes.empty())
+    {
+      double median_slope = Math::median(slopes.begin(), slopes.end());
+      double median_intercept = Math::median(intercepts.begin(), intercepts.end());
+
+      cout << "Median slope: " << median_slope << endl;
+      cout << "Median intercept (offset from apex): " << (median_intercept - apex_idx)  << endl;
+
+
+      // remove all XIC intensities that are too far from the k-th isotopic apex (as determined by the regression)
+      for (Size k = 0; k != xics.size(); ++k)
+      {
+        double new_apex_index = median_intercept + k * median_slope;
+        vector<double>& cx = xics[k];
+        for (Size j = 0; j != cx.size(); ++j)
+        {
+          if (j < new_apex_index - scans_minus_20s || j > new_apex_index + scans_plus_20s) cx[j] = 0;
+        }      
+      } 
+    }
 // ----- end deuterium code
   
     vector<double> xic_intensities(xics.size(), 0.0);
+
     if (min_corr_mono > 0)
     {
       // calculate correlation to mono-isotopic peak
@@ -2120,6 +2170,8 @@ public:
   }
 
 };
+
+#pragma GCC pop_options
 
 class RIntegration
 {
