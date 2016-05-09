@@ -39,6 +39,9 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/SYSTEM/RWrapper.h>
+
+#include <QtCore/QStringList>
 
 #include <stdio.h>
 
@@ -224,7 +227,17 @@ namespace OpenMS
     return cal_data_;
   }
 
-  bool InternalCalibration::calibrate( MSExperiment<>& exp, const IntList& target_mslvl, MZTrafoModel::MODELTYPE model_type, double rt_chunk, bool use_RANSAC, double post_ppm_median, double post_ppm_MAD, const String& file_models, const String& file_residuals )
+  bool InternalCalibration::calibrate(MSExperiment<>& exp, 
+                                      const IntList& target_mslvl,
+                                      MZTrafoModel::MODELTYPE model_type,
+                                      double rt_chunk,
+                                      bool use_RANSAC,
+                                      double post_ppm_median,
+                                      double post_ppm_MAD,
+                                      const String& file_models,
+                                      const String& file_models_plot,
+                                      const String& file_residuals,
+                                      const String& file_residuals_plot)
   {
     // ensure sorting; required for finding RT ranges and lock masses
     if (!exp.isSorted(true))
@@ -323,21 +336,33 @@ namespace OpenMS
     //
     // show the model parameters
     //
-    // todo: use R plotting function
-    if (!file_models.empty())
+    if (!file_models.empty() || !file_models_plot.empty())
     {
-      SVOutStream sv(file_models, ", ", ", ", String::NONE);
+      String out_table = File::getTemporaryFile(file_models);
+      { // we need this scope, to ensure that SVOutStream writes it cache, before we call RWrapper!
+        SVOutStream sv(out_table, ", ", ", ", String::NONE);
 
-      sv << "# model parameters (for all successfully trained models)" << nl
-        << "RT" << "A (offset)" << "B (slope)" << "C (power)" << "source" << nl;
-      for (Size i = 0; i < tms.size(); ++i)
-      {
-        sv << tms[i].getRT() << tms[i].toString();
-        if (!MZTrafoModel::isValidModel(tms[i])) sv << "invalid"; // this only happens if ALL models are invalid (since otherwise they would use 'neighbour')
-        else if (invalid_models.count(i) > 0) sv << "neighbor";
-        else sv << "local";
-        sv << nl;
+        sv << "# model parameters (for all successfully trained models)" << nl
+          << "RT" << "A (offset)" << "B (slope)" << "C (power)" << "source" << nl;
+        for (Size i = 0; i < tms.size(); ++i)
+        {
+          sv << tms[i].getRT() << tms[i].toString();
+          if (!MZTrafoModel::isValidModel(tms[i])) sv << "invalid"; // this only happens if ALL models are invalid (since otherwise they would use 'neighbour')
+          else if (invalid_models.count(i) > 0) sv << "neighbor";
+          else sv << "local";
+          sv << nl;
+        }
       }
+      
+      // plot it
+      if (!file_models_plot.empty())
+      {
+        if (!RWrapper::runScript("InternalCalibration_Models.R", QStringList() << out_table.toQString() << file_models_plot.toQString()))
+        {
+          return false;
+        }
+      }
+
     }
 
     //
@@ -345,16 +370,18 @@ namespace OpenMS
     // go through Calibration data points
     //
     SVOutStream* sv = NULL;      
-    if (!file_residuals.empty())
+    String out_table_residuals;
+    if (!file_residuals.empty() || !file_residuals_plot.empty())
     {
-      sv = new SVOutStream(file_residuals, ", ", ", ", String::NONE);
+      out_table_residuals = File::getTemporaryFile(file_residuals);
+      sv = new SVOutStream(out_table_residuals, ", ", ", ", String::NONE);
     }
 
     std::vector<double> vec_ppm_before, vec_ppm_after;
     vec_ppm_before.reserve(cal_data_.size());
     vec_ppm_after.reserve(cal_data_.size());
     if (sv != NULL) *sv << "# residual error after calibration" << nl
-      << "RT" << "mz ref" << "mz before" << "mz after" << "ppm before" << "ppm after" << nl;
+                        << "RT" << "mz ref" << "mz before" << "mz after" << "ppm before" << "ppm after" << nl;
     Size ii(0);
     for (CalibrationData::const_iterator itc = cal_data_.begin(); itc != cal_data_.end(); ++itc, ++ii)
     {
@@ -372,6 +399,16 @@ namespace OpenMS
       if (sv != NULL) *sv << rt << mz_ref << itc->getMZ() << mz_corrected << ppm_before << ppm_after << nl;
     }
     delete sv;
+
+    // plot it
+    if (!file_residuals_plot.empty())
+    {
+      if (!RWrapper::runScript("InternalCalibration_Residuals.R", QStringList() << out_table_residuals.toQString() << file_residuals_plot.toQString()))
+      {
+        return false;
+      }
+    }
+
 
     if (!hasValidModels)
     { // QC tables are done; quit

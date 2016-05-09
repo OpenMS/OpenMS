@@ -28,6 +28,7 @@ FileWatcher.h
 JavaInfo.h
 NetworkGetRequest.h
 StopWatch.h
+RWrapper.h
 SysInfo.h
 UpdateCheck.h
 )

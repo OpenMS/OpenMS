@@ -92,7 +92,9 @@ using namespace std;
   Usually, the RT range should provide about 3x more calibrants than required, i.e. 6(=3x2) for linear, and 9(=3x3) for quadratic models.
   If the calibrant data is too sparse for a certain scan, the closest neighboring model will be used automatically.
   If no model can be calculated anywhere, the tool will fail.
+  
   Optional quality control output files allow to judge the success of calibration. It is strongly advised to inspect them.
+  If PNG images are requested, 'R' (statistical programming language) needs to be installed and available on the system path!
 
   Outlier detection is supported using the RANSAC algorithm. However, usually it's better to provide high-confidence calibrants instead of
   relying on automatic removal of outliers.
@@ -103,7 +105,8 @@ using namespace std;
 
   Detailed description for each calibration method:
   1) [id_in] The peptide identifications should be derived from the very same mzML file using a wide precursor window (e.g. 25 ppm), which captures
-     the possible decalibration. Subsequently, the IDs should be filtered for high confidence (e.g. low FDR) and given as input to this tool.
+     the possible decalibration. Subsequently, the IDs should be filtered for high confidence (e.g. low FDR, ideally FDR=0.0) and given as input to this tool.
+     Remaining outliers can be removed by using RANSAC.
      The data might benefit from a precursor mass correction (e.g. using @ref TOPP_HighResPrecursorMassCorrector), before an MS/MS search is done.
      The list of calibrants is derived solely from the idXML/featureXML and only the resulting model is applied to the mzML.
   
@@ -200,7 +203,7 @@ protected:
     //registerIntOption_("RANSAC:pc_n", "<# points>", 20, "Percentage (1-99) of initial model points from available data.", false);
     //setMinInt_("RANSAC:pc_n", 1);
     //setMaxInt_("RANSAC:pc_n", 99);
-    registerDoubleOption_("RANSAC:thresh", "<threshold>", 10.0, "Threshold for accepting inliers (ppm^2 distance)", false);
+    registerDoubleOption_("RANSAC:thresh", "<threshold>", 10.0, "Threshold for accepting inliers (instrument precision (not accuracy!) as ppm^2 distance)", false);
     registerIntOption_("RANSAC:pc_inliers", "<# inliers>", 30, "Minimum percentage (of available data) of inliers (<threshold away from model) to accept the model.", false);
     setMinInt_("RANSAC:pc_inliers", 1);
     setMaxInt_("RANSAC:pc_inliers", 99);
@@ -211,10 +214,14 @@ protected:
     registerDoubleOption_("goodness:MAD", "<threshold>", 1.0, "The median absolute deviation of the ppm error of calibrated masses must be smaller than this threshold.", false);
 
     registerTOPPSubsection_("quality_control", "Tables and plots to verify calibration performance");
-    registerOutputFile_("quality_control:models", "<file>", "", "Table of model parameters for each spectrum.", false);
+    registerOutputFile_("quality_control:models", "<table>", "", "Table of model parameters for each spectrum.", false);
     setValidFormats_("quality_control:models", ListUtils::create<String>("csv"));
-    registerOutputFile_("quality_control:residuals", "<file>", "", "Table of pre- and post calibration errors.", false);
+    registerOutputFile_("quality_control:models_plot", "<image>", "", "Plot image of model parameters for each spectrum.", false);
+    setValidFormats_("quality_control:models_plot", ListUtils::create<String>("png"));
+    registerOutputFile_("quality_control:residuals", "<table>", "", "Table of pre- and post calibration errors.", false);
     setValidFormats_("quality_control:residuals", ListUtils::create<String>("csv"));
+    registerOutputFile_("quality_control:residuals_plot", "<image>", "", "Plot image of pre- and post calibration errors.", false);
+    setValidFormats_("quality_control:residuals_plot", ListUtils::create<String>("png"));
 
 
   }
@@ -328,8 +335,12 @@ protected:
     MZTrafoModel::setCoefficientLimits(tol_ppm, tol_ppm, 0.5); 
 
     if (!ic.calibrate(exp, ms_level, md, rt_chunk, use_RANSAC, 
-                      getDoubleOption_("goodness:median"), getDoubleOption_("goodness:MAD"), 
-                      getStringOption_("quality_control:models"), getStringOption_("quality_control:residuals")))
+                      getDoubleOption_("goodness:median"),
+                      getDoubleOption_("goodness:MAD"), 
+                      getStringOption_("quality_control:models"),
+                      getStringOption_("quality_control:models_plot"),
+                      getStringOption_("quality_control:residuals"),
+                      getStringOption_("quality_control:residuals_plot")))
     {
       LOG_ERROR << "\nCalibration failed. See error message above!" << std::endl;
       return UNEXPECTED_RESULT;

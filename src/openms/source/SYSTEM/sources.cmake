@@ -7,6 +7,7 @@ File.cpp
 FileWatcher.cpp
 JavaInfo.cpp
 NetworkGetRequest.cpp
+RWrapper.cpp
 StopWatch.cpp
 SysInfo.cpp
 UpdateCheck.cpp

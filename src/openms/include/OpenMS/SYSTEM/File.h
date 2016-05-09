@@ -142,8 +142,7 @@ public:
       @exception FileNotFound is thrown, if the file is not found
     */
     static String findDoc(const String& filename);
-
-
+    
     /// Returns a string, consisting of date, time, hostname, process id, and a incrementing number.  This can be used for temporary files.
     static String getUniqueName();
 
@@ -183,6 +182,24 @@ public:
     */
     static String findExecutable(const String& toolName);
 
+    /**
+      @brief Obtain a temporary filename, ensuring automatic deletion upon exit
+
+      The file is not actually created and only deleted at exit if it exists.
+      
+      However, if 'alternative_file' is given and not empty, no temporary filename
+      is created and 'alternative_file' is returned (and not destroyed upon exit).
+      This is useful if you have an optional
+      output file, which may, or may not be requested, but you need its content regardless,
+      e.g. for intermediate plotting with R.
+      Thus you can just call this function to get a file which can be used and gets automatically
+      destroyed if needed.
+
+      @param alternative_file If this string is not empty, no action is taken and it is used as return value
+      @return Full path to a temporary file
+    */
+    static const String& getTemporaryFile(const String& alternative_file = "");
+
 private:
 
     /// get defaults for the system's Temp-path, user home directory etc.
@@ -190,6 +207,28 @@ private:
 
     /// Check if the given path is a valid OPENMS_DATA_PATH
     static bool isOpenMSDataPath_(const String& path);
+
+
+    /**
+      @brief Internal helper class, which holds temporary filenames and deletes these file at program exit
+    */
+    class TemporaryFiles_
+    {
+      public:
+        TemporaryFiles_();
+        /// create a new filename and queue internally for deletion
+        const String& newFile();
+
+        ~TemporaryFiles_();
+      private:
+        TemporaryFiles_(const TemporaryFiles_&); // copy is forbidden
+        StringList filenames_;
+    };
+
+
+    /// private list of temporary filenames, which are deleted upon program exit
+    static TemporaryFiles_ temporary_files_;
+
   };
 
 }
