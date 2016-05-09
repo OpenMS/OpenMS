@@ -29,401 +29,212 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Alexandra Zerck, Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 
 #ifndef OPENMS_FILTERING_CALIBRATION_INTERNALCALIBRATION_H
 #define OPENMS_FILTERING_CALIBRATION_INTERNALCALIBRATION_H
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
+
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
-// TODO remove dependency from file reader here!
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
+#include <OpenMS/DATASTRUCTURES/CalibrationData.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/FILTERING/CALIBRATION/MZTrafoModel.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+
+#include <vector>
 
 namespace OpenMS
 {
-
+  
+  class FeatureMap;
+    
   /**
-    @brief A simple calibration method using linear interpolation of given reference masses.
+    @brief A mass recalibration method using linear/quadratic interpolation (robust/weighted) of given reference masses.
 
-    This class implements a simple calibration method: given a list of reference masses,
-    the relative errors of the peaks in the data are approximated by linear interpolation and
-    subtracted from the data.
+    ...
 
     @htmlinclude OpenMS_InternalCalibration.parameters
 
     @ingroup SignalProcessing
   */
-  class OPENMS_DLLAPI InternalCalibration :
-    public DefaultParamHandler,
-    public ProgressLogger
+ 
+  class OPENMS_DLLAPI InternalCalibration
+    : public ProgressLogger
   {
-public:
+  public:
+
     /// Default constructor
     InternalCalibration();
 
     /// Destructor
     ~InternalCalibration(){}
 
-    /**
-      @brief Calibrate a peak map using given reference masses with a separate calibration function for each spectrum.
-
-      The calibration function is calculated for each spectrum
-      separately. If not enough reference masses are found for a spectrum it is left uncalibrated.
-      For the matching of the reference masses and the peaks, the parameter mz_tolerance is used to
-      calculate a window around the reference masses. If more than one peak is found within this window the
-      closest peak is taken.
-
-      @param exp The peak map to calibrate
-      @param ref_masses The reference m/z values
-    */
-    template <typename InputPeakType>
-    void calibrateMapSpectrumwise(MSExperiment<InputPeakType>& exp, std::vector<double>& ref_masses)
+    /// helper class, describing a lock mass
+    struct LockMass
     {
-#ifdef DEBUG_CALIBRATION
-      std::cout.precision(writtenDigits<double>(0.0));
-#endif
-      if (exp.empty())
-      {
-        std::cout << "Input is empty." << std::endl;
-        return;
-      }
+      double mz; //< m/z of the lock mass (incl. adducts)
+      unsigned int ms_level;   //< MS level where it occurs
+      int charge;     //< charge of the ion (to find isotopes)
 
-      if (exp[0].getType() != SpectrumSettings::PEAKS)
-      {
-        std::cout << "Attention: this function is assuming peak data." << std::endl;
-      }
+      LockMass(double mz_, int lvl_, int charge_)
+        : mz(mz_),
+         ms_level(lvl_),
+         charge(charge_)
+      {}
+    };
 
-      Size num_ref_peaks = ref_masses.size();
-      bool use_ppm = (param_.getValue("mz_tolerance_unit") == "ppm") ? true : false;
-      double mz_tol = param_.getValue("mz_tolerance");
-      startProgress(0, exp.size(), "calibrate spectra");
-      // for each spectrum
-      for (Size spec = 0; spec < exp.size(); ++spec)
-      {
-        // calibrate only MS1 spectra
-        if (exp[spec].getMSLevel() != 1)
-        {
-          continue;
-        }
+  
 
+    /** 
+      @brief Extract calibrants from Raw data (mzML)
 
-        std::vector<double> corr_masses, found_ref_masses;
-        UInt corr_peaks = 0;
-        for (Size peak = 0; peak <  exp[spec].size(); ++peak)
-        {
-          for (Size ref_peak = 0; ref_peak < num_ref_peaks; ++ref_peak)
-          {
-            if (!use_ppm && fabs(exp[spec][peak].getMZ() - ref_masses[ref_peak]) <  mz_tol)
-            {
-              found_ref_masses.push_back(ref_masses[ref_peak]);
-              corr_masses.push_back(exp[spec][peak].getMZ());
-              ++corr_peaks;
-              break;
-            }
-            else if (use_ppm && fabs(exp[spec][peak].getMZ() - ref_masses[ref_peak]) / ref_masses[ref_peak] * 1e6 <  mz_tol)
-            {
-              found_ref_masses.push_back(ref_masses[ref_peak]);
-              corr_masses.push_back(exp[spec][peak].getMZ());
-              ++corr_peaks;
-              break;
-            }
-          }
-        }
-        if (corr_peaks < 2)
-        {
-          std::cout << "spec: " << spec
-            << " less than 2 reference masses were detected within a reasonable error range\n";
-          std::cout << "This spectrum cannot be calibrated!\n";
-          continue;
-        }
+      Lock masses are searched in each spectrum,
+      using 
 
-        makeLinearRegression_(corr_masses, found_ref_masses);
+      @param exp Peak map containing the lock masses
+      @param ref_masses List of lock masses
+      @param tol_ppm Search window for lock masses in 'exp'
+      @param lock_require_mono Require that a lock mass is the monoisotopic peak (i.e. not an isotope peak) -- lock mass is rejected otherwise
+      @param lock_require_iso Require that a lock mass has isotope peaks to its right -- lock mass is rejected otherwise
+      @param verbose Print information on 'lock_require_XXX' matches during search
+      @return Number of calibration masses found
 
-        // now calibrate the whole spectrum
-        applyTransformation_<InputPeakType>(exp[spec]);
-        setProgress(spec);
-      }  // for(Size spec=0;spec <  exp.size(); ++spec)
-      endProgress();
-    }
+    */
+    Size fillCalibrants(const MSExperiment<> exp,
+                        const std::vector<InternalCalibration::LockMass>& ref_masses,
+                        double tol_ppm,
+                        bool lock_require_mono,
+                        bool lock_require_iso,
+                        bool verbose = true);
+
+    /** 
+      @brief Extract calibrants from identifications
+
+      Extracts only the first hit from the first peptide identification of each feature.
+      Hits are sorted beforehand.
+      Ambiguities should be resolved before, e.g. using IDFilter.
+      RT and m/z are taken from the features, not from the identifications (for an exception see below)!
+
+      Unassigned peptide identifications are also taken into account!
+      RT and m/z are naturally taken from the IDs, since to feature is assigned.
+      If you do not want these IDs, remove them from the feature map before calling this function.
+
+      A filtering step is done in the m/z dimension using @p tol_ppm.
+      Since precursor masses could be annotated wrongly (e.g. isotope peak instead of mono),
+      larger outliers are removed before accepting an ID as calibrant.
+
+      @param fm FeatureMap with peptide identifications
+      @param tol_ppm Only accept ID's whose theoretical mass deviates at most this much from annotated
+      @return Number of calibration masses found
+
+    */
+    Size fillCalibrants(const FeatureMap& fm, double tol_ppm);
+
+    /** 
+      @brief Extract calibrants from identifications
+
+      Extracts only the first hit from each peptide identification.
+      Hits are sorted beforehand.
+      Ambiguities should be resolved before, e.g. using IDFilter.
+
+      A filtering step is done in the m/z dimension using @p tol_ppm.
+      Since precursor masses could be annotated wrongly (e.g. isotope peak instead of mono),
+      larger outliers are removed before accepting an ID as calibrant.
+
+      @param pep_ids Peptide ids (e.g. from an idXML file)
+      @param tol_ppm Only accept ID's whose theoretical mass deviates at most this much from annotated
+      @return Number of calibration masses found
+    */
+    Size fillCalibrants(const std::vector<PeptideIdentification>& pep_ids, double tol_ppm);
 
     /**
-     @brief Calibrate a peak map using given reference masses with one calibration function for the whole map.
+      @brief Get container of calibration points
 
-     The calibration function is calculated for the whole map.
-     For the matching of the reference masses and the peaks the parameter mz_tolerance is used to
-     calculate a window around the reference masses. If more than one peak is found within this window the
-     closest peak is taken.
+      Filled using fillCalibrants() methods.
 
-     @param exp The peak map to calibrate
-     @param ref_masses The reference m/z values
-     @param trafo_file_name Output file to store the transformation function
+      @return Container of calibration points
+
     */
-    template <typename InputPeakType>
-    void calibrateMapGlobally(MSExperiment<InputPeakType>& exp, 
-      const std::vector<double>& ref_masses,
-      const String& trafo_file_name = "")
-    {
-      if (exp.empty())
-      {
-        std::cout << "Input is empty." << std::endl;
-        return;
-      }
-
-      if (exp[0].getType() != SpectrumSettings::PEAKS)
-      {
-        std::cout << "Attention: this function is assuming peak data." << std::endl;
-      }
-
-      Size num_ref_peaks = ref_masses.size();
-      bool use_ppm = (param_.getValue("mz_tolerance_unit") == "ppm") ? true : false;
-      double mz_tol = param_.getValue("mz_tolerance");
-      startProgress(0, exp.size(), "finding calibration masses");
-      std::vector<double> corr_masses, found_ref_masses;
-      UInt corr_peaks = 0;
-      // for each spectrum
-      for (Size spec = 0; spec < exp.size(); ++spec)
-      {
-        // obtain calibration points only from MS1 spectra
-        if (exp[spec].getMSLevel() != 1)
-        {
-          continue;
-        }
-        for (Size peak = 0; peak < exp[spec].size(); ++peak)
-        {
-          for (Size ref_peak = 0; ref_peak < num_ref_peaks; ++ref_peak)
-          {
-            if (!use_ppm &&  fabs(exp[spec][peak].getMZ() - ref_masses[ref_peak]) <  mz_tol)
-            {
-              found_ref_masses.push_back(ref_masses[ref_peak]);
-              corr_masses.push_back(exp[spec][peak].getMZ());
-              ++corr_peaks;
-              break;
-            }
-            else if (use_ppm &&  fabs(exp[spec][peak].getMZ() - ref_masses[ref_peak]) / ref_masses[ref_peak] * 1e6 <  mz_tol)
-            {
-              found_ref_masses.push_back(ref_masses[ref_peak]);
-              corr_masses.push_back(exp[spec][peak].getMZ());
-              ++corr_peaks;
-              break;
-            }
-          }
-        }
-        setProgress(spec);
-      }
-      endProgress();
-
-      if (corr_peaks < 2)
-      {
-        std::cout << "Less than 2 reference masses were detected within a reasonable error range\n";
-        std::cout << "This spectrum cannot be calibrated!\n";
-        return;
-      }
-
-      // calculate the (linear) calibration function
-      makeLinearRegression_(corr_masses, found_ref_masses);
-
-      applyTransformation_<InputPeakType>(exp);
-
-      if (trafo_file_name != "")
-      {
-        TransformationXMLFile().store(trafo_file_name, trafo_);
-      }
-    }
+    const CalibrationData& getCalibrationPoints() const;
 
     /**
-     @brief Calibrate a peak map using given reference ids with one calibration function for the whole map.
+      @brief Apply calibration to data
 
-     Calibrate a map using given peptide identifications. The calibration function is calculated for the whole map.
-     The m/z-values of the reference identifications are calculated through the given sequence and charge of the peptide.
-     For the matching of the reference masses and the peaks the parameter mz_tolerance is used to
-     calculate a window around the reference masses. If more than one peak is found within this window the
-     closest peak is taken.
+      For each spectrum, a calibration model will be computed and applied.
+      Make sure to call fillCalibrants() before, so a model can be created.
 
-     @param exp The peak map to calibrate
-     @param ref_ids The reference peptide identifications
-     @param trafo_file_name Output file to store the transformation function
+      The MSExperiment will be sorted by RT and m/z if unsorted.
+
+      @param exp MSExperiment holding the Raw data to calibrate
+      @param target_mslvl MS-levels where calibration should be applied to
+      @param model_type Linear or quadratic model; select based on your instrument
+      @param rt_chunk RT-window size (one-sided) of calibration points to collect around each spectrum. 
+             Set to negative values, to build one global model instead.
+      @param use_RANSAC Remove outliers before fitting a model?!
+      @param post_ppm_median The median ppm error of the calibrants must be at least this good after calibration; otherwise this method returns false(fail)
+      @param post_ppm_MAD The median absolute deviation of the calibrants must be at least this good after calibration; otherwise this method returns false(fail)
+      @param file_models Output CSV filename, where model parameters are written to (pass empty string to skip)
+      @param file_residuals Output CSV filename, where ppm errors of calibrants before and after model fitting parameters are written to (pass empty string to skip)
+      @return true upon successful calibration
+
     */
-    template <typename InputPeakType>
-    void calibrateMapGlobally(MSExperiment<InputPeakType>& exp,
-      const std::vector<PeptideIdentification>& ref_ids,
-      const String& trafo_file_name = "")
-    {
-      bool use_ppm = param_.getValue("mz_tolerance_unit") == "ppm" ? true : false;
-      double mz_tolerance = param_.getValue("mz_tolerance");
-      if (exp.empty())
-      {
-        std::cout << "Input is empty." << std::endl;
-        return;
-      }
+    bool calibrate(MSExperiment<>& exp, 
+                   const IntList& target_mslvl,
+                   MZTrafoModel::MODELTYPE model_type,
+                   double rt_chunk,
+                   bool use_RANSAC,
+                   double post_ppm_median,
+                   double post_ppm_MAD,
+                   const String& file_models = "",
+                   const String& file_residuals = "");
 
-      if (exp[0].getType() != SpectrumSettings::PEAKS)
-      {
-        std::cout << "Attention: this function is assuming peak data." << std::endl;
-      }
-      // check if the ids contain meta information about the peak positions
-      checkReferenceIds_(ref_ids);
+    /*
+      @brief Transform a spectrum (data+precursor)
 
-      std::vector<double> theoretical_masses, observed_masses;
-      for (Size p_id = 0; p_id < ref_ids.size(); ++p_id)
-      {
-        for (Size p_h = 0; p_h < ref_ids[p_id].getHits().size(); ++p_h)
-        {
-          Int charge = ref_ids[p_id].getHits()[p_h].getCharge();
-          double theo_mass = ref_ids[p_id].getHits()[p_h].getSequence().getMonoWeight(Residue::Full, charge) / (double)charge;
-          // first find corresponding ms1-spectrum
-          typename MSExperiment<InputPeakType>::ConstIterator rt_iter = exp.RTBegin(ref_ids[p_id].getRT());
-          while (rt_iter != exp.begin() && rt_iter->getMSLevel() != 1)
-          {
-            --rt_iter;
-          }
-          // now find closest peak
-          typename MSSpectrum<InputPeakType>::ConstIterator mz_iter = rt_iter->MZBegin(ref_ids[p_id].getMZ());
-          //std::cout << mz_iter->getMZ() <<" "<<(double)ref_ids[p_id].getMZ()<<"\t";
-          double dist = ref_ids[p_id].getMZ() - mz_iter->getMZ();
-          //std::cout << dist << "\t";
-          if ((mz_iter + 1) != rt_iter->end()
-            && fabs((mz_iter + 1)->getMZ() - ref_ids[p_id].getMZ()) < fabs(dist)
-            && mz_iter != rt_iter->begin()
-            && fabs((mz_iter - 1)->getMZ() - ref_ids[p_id].getMZ()) < fabs((mz_iter + 1)->getMZ() - ref_ids[p_id].getMZ()))  // if mz_iter +1 has smaller dist than mz_iter and mz_iter-1
-          {
-            if ((use_ppm &&
-              fabs((mz_iter + 1)->getMZ() - ref_ids[p_id].getMZ()) / ref_ids[p_id].getMZ() * 1e06 < mz_tolerance) ||
-              (!use_ppm && fabs((mz_iter + 1)->getMZ() - ref_ids[p_id].getMZ()) < mz_tolerance))
-            {
-              //std::cout <<(mz_iter +1)->getMZ() - ref_ids[p_id].getMZ()<<"\t";
-              observed_masses.push_back((mz_iter + 1)->getMZ());
-              theoretical_masses.push_back(theo_mass);
-              //std::cout << (mz_iter +1)->getMZ() << " ~ "<<theo_mass << " charge: "<<ref_ids[p_id].getHits()[p_h].getCharge()
-              //<< "\tplus 1"<< std::endl;
-            }
-          }
-          else if (mz_iter != rt_iter->begin()
-            && fabs((mz_iter - 1)->getMZ() - ref_ids[p_id].getMZ()) < fabs(dist))                        // if mz_iter-1 has smaller dist than mz_iter
-          {
-            if ((use_ppm &&
-              fabs((mz_iter - 1)->getMZ() - ref_ids[p_id].getMZ()) / ref_ids[p_id].getMZ() * 1e06 < mz_tolerance) ||
-              (!use_ppm && fabs((mz_iter - 1)->getMZ() - ref_ids[p_id].getMZ()) < mz_tolerance))
-            {
-              //std::cout <<(mz_iter -1)->getMZ() - ref_ids[p_id].getMZ()<<"\t";
-              observed_masses.push_back((mz_iter - 1)->getMZ());
-              theoretical_masses.push_back(theo_mass);
-              //std::cout << (mz_iter -1)->getMZ() << " ~ "<<theo_mass << " charge: "<<ref_ids[p_id].getHits()[p_h].getCharge()
-              //<< "\tminus 1"<< std::endl;
-            }
-          }
-          else
-          {
-            if ((use_ppm &&
-              fabs((mz_iter)->getMZ() - ref_ids[p_id].getMZ()) / ref_ids[p_id].getMZ() * 1e06 < mz_tolerance) ||
-              (!use_ppm && fabs((mz_iter)->getMZ() - ref_ids[p_id].getMZ()) < mz_tolerance))
-            {
+      All peaks are calibrated in m/z, and also all precursor m/z attached to this spectrum (if present).
 
-              observed_masses.push_back(mz_iter->getMZ());
-              theoretical_masses.push_back(theo_mass);
-              //                                      std::cout <<"\t"<< mz_iter->getMZ() << " ~ "<<theo_mass<< " charge: "<<ref_ids[p_id].getHits()[p_h].getCharge()
-              //                                                          << "\tat mz_iter"<< std::endl;
-            }
-          }
-        }
-      }
+      @param spec Uncalibrated MSSpectrum
+      @param trafo The calibration function to apply
+    */
+    static void applyTransformation(MSExperiment<>::SpectrumType& spec, const MZTrafoModel& trafo);
 
-      makeLinearRegression_(observed_masses, theoretical_masses);
+    /*
+      @brief Transform spectra from a whole map (data+precursor)
 
-      applyTransformation_<InputPeakType>(exp);
+      Only spectra whose MS-level is contained in 'target_mslvl' are calibrated.
+      Other spectra remain untouched.
 
-      if (trafo_file_name != "")
-      {
-        TransformationXMLFile().store(trafo_file_name, trafo_);
-      }
-    }
+      All peaks are calibrated in m/z, and also all precursor m/z attached to this spectrum (if present).
 
+      @param exp Uncalibrated peak map
+      @param target_mslvl List (can be unsorted) of MS levels to calibrate
+      @param trafo The calibration function to apply
+    */
+    static void applyTransformation(MSExperiment<>& exp, const IntList& target_mslvl, const MZTrafoModel& trafo);
+  
+  protected:
     /**
-     @brief Calibrate an annotated feature map with one calibration function for the whole map.
+      @brief Add(no prior clear) calibrants to internal list.
+      
+      Extracts only the first hit from each peptide identification.
+      Hits are sorted beforehand.
+      Ambiguities should be resolved before, e.g. using IDFilter.
 
-     Calibrate an annotated (!) feature map using the features' identifications. The calibration function is calculated for the whole map.
-     The m/z-values of the reference identifications are calculated through the given sequence and charge of the peptide.
-    
-     @param feature_map The feature map to calibrate (annotated with peptide ids)
-     @param trafo_file_name Output file to store the transformation function
+      A filtering step is done in the m/z dimension using @p tol_ppm.
+      Since precursor masses could be annotated wrongly (e.g. isotope peak instead of mono),
+      larger outliers are removed before accepting an ID as calibrant.
+
+      @param pep_ids Peptide ids (e.g. from an idXML file)
+      @param tol_ppm Only accept ID's whose theoretical mass deviates at most this much from annotated
+
     */
-    void calibrateMapGlobally(FeatureMap& feature_map, const String& trafo_file_name = "");
+    void fillIDs_( const std::vector<PeptideIdentification>& pep_ids, double tol_ppm );
 
-    /**
-     @brief Calibrate a feature map using given reference ids with one calibration function for the whole map.
-
-     Calibrate a feature map using given peptide identifications. The calibration function is calculated for the whole map.
-     Even if the features are already annotated with peptide ids these annotations are ignored for the calibration, only the reference ids are used.
-     The m/z-values of the reference identifications are calculated through the given sequence and charge of the peptide.
-     The reference ids are mapped onto the FeatureMap using IDMapper with the mz_tolerance and rt_tolerance parameters.
-
-     @param feature_map The feature map to calibrate
-     @param ref_ids the reference peptide identifications
-     @param trafo_file_name file where the transformation function of the calibration is stored
-    */
-    void calibrateMapGlobally(FeatureMap& feature_map, std::vector<PeptideIdentification>& ref_ids, const String& trafo_file_name = "");
+  private:
+    CalibrationData cal_data_;
 
 
-protected:
-
-    /// the actual calibration function
-    void makeLinearRegression_(const std::vector<double>& observed_masses, const std::vector<double>& theoretical_masses);
-
-    /// check if reference ids contain RT and MZ information as meta values
-    void checkReferenceIds_(const std::vector<PeptideIdentification>& pep_ids);
-
-    /// check if reference ids contain RT and MZ information as meta values
-    void checkReferenceIds_(const FeatureMap& feature_map);
-
-    /// apply transformation to all features (including subordinates and convex hulls)
-    void applyTransformation_(FeatureMap& feature_map);
-
-
-    template <typename InputPeakType>
-    void applyTransformation_(typename MSExperiment<InputPeakType>::SpectrumType& spec)
-    {
-      // calibrate only MS1 spectra
-      if (spec.getMSLevel() != 1)
-      {
-        return;
-      }
-
-      for (unsigned int peak = 0; peak <  spec.size(); ++peak)
-      {
-#ifdef DEBUG_CALIBRATION
-        std::cout << spec[peak].getMZ() << "\t";
-#endif
-        double mz = spec[peak].getMZ();
-        mz = trafo_.apply(mz);
-        spec[peak].setMZ(mz);
-
-#ifdef DEBUG_CALIBRATION
-        std::cout << spec[peak].getMZ() << std::endl;
-#endif
-
-      }
-    }
-
-    template <typename InputPeakType>
-    void applyTransformation_(MSExperiment<InputPeakType>& exp)
-    {
-      startProgress(0, exp.size(), "applying calibration to data");
-      // apply the calibration function to each peak
-      for (Size spec = 0; spec < exp.size(); ++spec)
-      {
-        applyTransformation_<InputPeakType>(exp[spec]);
-        setProgress(spec);
-      }  // for(Size spec=0;spec <  exp.size(); ++spec)
-      endProgress();
-
-    }
-
-    /// here the transformation is stored
-    TransformationDescription trafo_;
   }; // class InternalCalibration
   
 } // namespace OpenMS
