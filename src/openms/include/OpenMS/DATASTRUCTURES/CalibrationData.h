@@ -39,10 +39,8 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/RichPeak2D.h>
 
-#include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-
-#include <algorithm>
+#include <vector>
+#include <set>
 
 namespace OpenMS
 {
@@ -109,11 +107,13 @@ namespace OpenMS
 
       /**
         @brief Do we have any calibration points
-      */bool empty() const;
+      */
+      bool empty() const;
 
       /**
         @brief Remove all calibration points
-      */void clear();
+      */
+      void clear();
 
       /**
         @brief When calling getError(), should ppm error or m/z error be returned?

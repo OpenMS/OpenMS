@@ -34,12 +34,11 @@
 
 
 #include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-
-//#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-//#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 #include <OpenMS/FORMAT/SVOutStream.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 #include <stdio.h>
 

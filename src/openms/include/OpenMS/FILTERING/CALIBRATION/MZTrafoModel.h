@@ -38,16 +38,8 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/CalibrationData.h>
-#include <OpenMS/MATH/STATISTICS/LinearRegression.h>
-#include <OpenMS/MATH/STATISTICS/QuadraticRegression.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/MATH/MISC/RANSAC.h>
-#include <OpenMS/MATH/MISC/RANSACModelLinear.h>
-#include <OpenMS/MATH/MISC/RANSACModelQuadratic.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
 
-#include <iterator>
-#include <map>
 #include <vector>
 
 namespace OpenMS
