@@ -175,7 +175,9 @@ namespace OpenMS
       @param post_ppm_median The median ppm error of the calibrants must be at least this good after calibration; otherwise this method returns false(fail)
       @param post_ppm_MAD The median absolute deviation of the calibrants must be at least this good after calibration; otherwise this method returns false(fail)
       @param file_models Output CSV filename, where model parameters are written to (pass empty string to skip)
+      @param file_models_plot Output PNG image model parameters (pass empty string to skip)
       @param file_residuals Output CSV filename, where ppm errors of calibrants before and after model fitting parameters are written to (pass empty string to skip)
+      @param file_residuals_plot Output PNG image of the ppm errors of calibrants (pass empty string to skip)
       @return true upon successful calibration
 
     */
@@ -187,7 +189,9 @@ namespace OpenMS
                    double post_ppm_median,
                    double post_ppm_MAD,
                    const String& file_models = "",
-                   const String& file_residuals = "");
+                   const String& file_models_plot = "",
+                   const String& file_residuals = "",
+                   const String& file_residuals_plot = "");
 
     /*
       @brief Transform a spectrum (data+precursor)
