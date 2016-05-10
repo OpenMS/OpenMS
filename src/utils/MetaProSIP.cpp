@@ -2039,7 +2039,14 @@ public:
     // extract xics
     vector<vector<double> > xics = extractXICVariableMZWindows(seed_rt, xic_mz_windows, rt_tolerance_s, peak_map);
    
-    // -- deuterium handling
+    // incorporation of deuterium imposes retention time shifts of mass traces which must be treated accordingly
+    // the current approach:
+    // 1. detects all apices in each mass trace
+    // 2. use a Theil–Sen estimator to fit a robust line through the apices. This regression line has a slope that corresponds to the RT shift
+    // 3. The XIC intensities are filtered if they fall out of the regression line +- some RT tolerance
+    // 4. XIC intensities are aligned according to the regression model so apices line up and can be correlated to detected (RT corrected) co-elution
+    // For the sake of a simpler treatment we calculate mainly with indices in the XIC vectors instead of the true RTs. This should be no problem
+    // as the filtering only affects strongly deviating elution profiles.
 
     // create smoothed xics
     vector<vector<double> > xics_smoothed = xics;
@@ -2070,10 +2077,9 @@ public:
     Size scans_plus_20s = (seed_rt_plus_20 - seed_rt_it) + 1;
     Size scans_minus_20s = (seed_rt_it - seed_rt_minus_20) + 1;
 
-//    vector<double> slopes;
     std::vector<std::pair<double, double> > xy;
 
-    // extract potential high points
+    // extract potential apices as high points in the smoothed XICs
     Size n_current = xics_smoothed[0].size();
     Size apex_idx = n_current / 2;
 
@@ -2101,7 +2107,7 @@ public:
       }
     }
 
-   // Theil–Sen estimator (or variant)
+   // Theil–Sen estimator (with slope and intercept determination by median)
    vector<double> slopes, intercepts;
    for (Size i = 0; i != xy.size(); ++i)
    {
@@ -2116,7 +2122,6 @@ public:
        const double avg_scans_per_second = (scans_minus_20s + scans_plus_20s) / 40.0;
        if (intercept < apex_idx - scans_minus_20s || intercept > apex_idx + scans_plus_20s || fabs(slope) > 5.0 * avg_scans_per_second ) continue;
         
-       // cout << intercept << "\t" << slope << endl;
        slopes.push_back(slope);
        intercepts.push_back(intercept);
      }
@@ -2130,22 +2135,42 @@ public:
       cout << "Median slope: " << median_slope << endl;
       cout << "Median intercept (offset from apex): " << (median_intercept - apex_idx)  << endl;
 
-
-      // remove all XIC intensities that are too far from the k-th isotopic apex (as determined by the regression)
       for (Size k = 0; k != xics.size(); ++k)
       {
         double new_apex_index = median_intercept + k * median_slope;
         vector<double>& cx = xics[k];
+
+        // remove all XIC intensities that are too far from the k-th isotopic apex (as determined by the regression)
         for (Size j = 0; j != cx.size(); ++j)
         {
           if (j < new_apex_index - scans_minus_20s || j > new_apex_index + scans_plus_20s) cx[j] = 0;
-        }      
-      } 
+        }
+
+        // offset (in index) of current mass trace apex
+        int offset = static_cast<int>(new_apex_index - median_intercept); 
+
+        // line up mass traces according to regression model 
+        // if apices exhibit a shift e.g. 20,21,22,23 according to the regression, rearrange all xic entries so apices line up: 20,20,20,20 again
+        if (offset > 0)
+        {
+          for (Size j = offset; j < cx.size(); ++j)
+          {
+            cx[j - offset] = cx[j];
+          }
+        } else if (offset < 0)
+        {
+          for (int j = cx.size() + offset - 1; j >= 0; --j)
+          {
+            cx[j - offset] = cx[j];
+          }
+        }
+      }
     }
 // ----- end deuterium code
   
     vector<double> xic_intensities(xics.size(), 0.0);
 
+    // filtering of mass traces with bad correlation to mono-isotopic peak
     if (min_corr_mono > 0)
     {
       // calculate correlation to mono-isotopic peak
