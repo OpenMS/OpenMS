@@ -231,7 +231,7 @@ public:
 
       if (debug)
       {
-        cout << x[0] << " " << x[n - 1] << " " << xi << " " << yi << endl;
+        LOG_DEBUG << x[0] << " " << x[n - 1] << " " << xi << " " << yi << endl;
       }
 
       if (last_dxdy > 0.0 && dxdy <= 0 && yi > threshold)
@@ -771,35 +771,61 @@ public:
   static void createQualityReport(String tmp_path, String qc_output_directory, String file_suffix, const String& file_extension, const vector<vector<SIPPeptide> >& sip_peptide_cluster, Size n_heatmap_bins, double score_plot_y_axis_min, bool report_natural_peptides)
   {
     vector<SIPPeptide> sip_peptides;
-    for (vector<vector<SIPPeptide> >::const_iterator cit = sip_peptide_cluster.begin(); cit != sip_peptide_cluster.end(); ++cit)
+    vector<vector<SIPPeptide> > new_sip_cluster; // filtered (clustered) SIP peptides
+    
+    // for all clusters
+    int old_cluster_index(-1);
+    for (Size i = 0; i != sip_peptide_cluster.size(); ++i)
     {
-      for (vector<SIPPeptide>::const_iterator sit = cit->begin(); sit != cit->end(); ++sit)
+      const vector<SIPPeptide>& current_cluster = sip_peptide_cluster[i];
+      for (vector<SIPPeptide>::const_iterator sit = current_cluster.begin(); sit != current_cluster.end(); ++sit)
       {
-        // skip non natural peptides for repoting if flag is set
-        if (!report_natural_peptides && sit->incorporations.size() == 1 && sit->incorporations[0].rate < 5.0)
+        // skip natural peptides for repoting if flag is set
+        if (report_natural_peptides || sit->incorporations.back().rate >= 5.0)
         {
-          continue;
+          // cout << report_natural_peptides << sit->incorporations.size() << "\t" << sit->incorporations.back().rate << endl;
+
+          // adding a sip peptide from a different cluster (potentially with much higher index)? then also add a new cluster to the vector
+          if (old_cluster_index != i) 
+          {
+            new_sip_cluster.push_back(vector<SIPPeptide>());
+            old_cluster_index = i;
+          }
+
+          sip_peptides.push_back(*sit);
+          new_sip_cluster.back().push_back(*sit);
         }
-        sip_peptides.push_back(*sit);
       }
     }
 
-    // heat map based on peptide RIAs
-    LOG_INFO << "Plotting peptide heat map of " << sip_peptides.size() << endl;
-    vector<vector<double> > binned_peptide_ria;
-    vector<String> class_labels;
-    createBinnedPeptideRIAData_(n_heatmap_bins, sip_peptide_cluster, binned_peptide_ria, class_labels);
-    plotHeatMap(qc_output_directory, tmp_path, "_peptide" + file_suffix, file_extension, binned_peptide_ria, class_labels);
-
-    LOG_INFO << "Plotting filtered spectra for quality report" << endl;
-    plotFilteredSpectra(qc_output_directory, tmp_path, file_suffix, file_extension, sip_peptides);
-
-    LOG_INFO << "Plotting correlation score and weight distribution" << endl;
-    plotScoresAndWeights(qc_output_directory, tmp_path, file_suffix, file_extension, sip_peptides, score_plot_y_axis_min);
-
-    if (file_extension != "pdf") // html doesn't support pdf as image
+    if (!sip_peptides.empty())
     {
-      writeHTML(qc_output_directory, file_suffix, file_extension, sip_peptides);
+      // heat map based on peptide RIAs
+      LOG_INFO << "Plotting peptide heat map of " << sip_peptides.size() << endl;
+      vector<vector<double> > binned_peptide_ria;
+      vector<String> class_labels;
+
+      createBinnedPeptideRIAData_(n_heatmap_bins, new_sip_cluster, binned_peptide_ria, class_labels);
+      plotHeatMap(qc_output_directory, tmp_path, "_peptide" + file_suffix, file_extension, binned_peptide_ria, class_labels);
+
+      LOG_INFO << "Plotting filtered spectra for quality report" << endl;
+      plotFilteredSpectra(qc_output_directory, tmp_path, file_suffix, file_extension, sip_peptides);
+
+      LOG_INFO << "Plotting correlation score and weight distribution" << endl;
+      plotScoresAndWeights(qc_output_directory, tmp_path, file_suffix, file_extension, sip_peptides, score_plot_y_axis_min);
+
+      if (file_extension != "pdf") // html doesn't support pdf as image
+      {
+        writeHTML(qc_output_directory, file_suffix, file_extension, sip_peptides);
+      }
+    }
+    else
+    {
+      LOG_INFO << "No SIP labeled peptides found. No plots generated." << endl;
+      if (!report_natural_peptides)
+      {
+        LOG_INFO << "You might still generate plots for the unlabeled peptides by enabling reporting of natural (unlabeled) peptides." << endl;
+      }
     }
   }
 
@@ -2132,8 +2158,8 @@ public:
       double median_slope = Math::median(slopes.begin(), slopes.end());
       double median_intercept = Math::median(intercepts.begin(), intercepts.end());
 
-      cout << "Median slope: " << median_slope << endl;
-      cout << "Median intercept (offset from apex): " << (median_intercept - apex_idx)  << endl;
+      LOG_DEBUG << "Median slope: " << median_slope << endl;
+      LOG_DEBUG << "Median intercept (offset from apex): " << (median_intercept - apex_idx)  << endl;
 
       for (Size k = 0; k != xics.size(); ++k)
       {
