@@ -203,7 +203,7 @@ protected:
     //registerIntOption_("RANSAC:pc_n", "<# points>", 20, "Percentage (1-99) of initial model points from available data.", false);
     //setMinInt_("RANSAC:pc_n", 1);
     //setMaxInt_("RANSAC:pc_n", 99);
-    registerDoubleOption_("RANSAC:thresh", "<threshold>", 10.0, "Threshold for accepting inliers (instrument precision (not accuracy!) as ppm^2 distance)", false);
+    registerDoubleOption_("RANSAC:threshold", "<threshold>", 10.0, "Threshold for accepting inliers (instrument precision (not accuracy!) as ppm^2 distance)", false);
     registerIntOption_("RANSAC:pc_inliers", "<# inliers>", 30, "Minimum percentage (of available data) of inliers (<threshold away from model) to accept the model.", false);
     setMinInt_("RANSAC:pc_inliers", 1);
     setMaxInt_("RANSAC:pc_inliers", 99);
@@ -329,7 +329,7 @@ protected:
     String model_type = getStringOption_("cal:model_type");
     MZTrafoModel::MODELTYPE md = MZTrafoModel::nameToEnum(model_type);
     Size RANSAC_initial_points = model_type.hasSubstring("linear") ? 2 : 3;
-    Math::RANSACParam p(RANSAC_initial_points, getIntOption_("RANSAC:iter"), getDoubleOption_("RANSAC:thresh"), getIntOption_("RANSAC:pc_inliers"), true);
+    Math::RANSACParam p(RANSAC_initial_points, getIntOption_("RANSAC:iter"), getDoubleOption_("RANSAC:threshold"), getIntOption_("RANSAC:pc_inliers"), true);
     MZTrafoModel::setRANSACParams(p);
     // these limits are a little loose, but should prevent grossly wrong models without burdening the user with yet another parameter.
     MZTrafoModel::setCoefficientLimits(tol_ppm, tol_ppm, 0.5); 

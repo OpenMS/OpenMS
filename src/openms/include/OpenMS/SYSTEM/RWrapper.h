@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Marc Sturm, Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_SYSTEM_RWRAPPER_H
@@ -60,11 +60,14 @@ public:
     /**
       @brief Look for an R script in the share/OpenMS/SCRIPT folder
       
-      The script filename can be an absolute filename (in which case nothing happens),
+      The script filename can be an absolute filename (in which case the filename is returned unchanged),
       or a relative filename or just a filename. In the latter cases, the script will be searched
       in the OpenMS 'SCRIPTS' path (share/OpenMS/SCRIPTS) and the full filename will be returned.
 
+      An exception will be thrown if the file cannot be found.
+
       @param script_file Name of the R script
+      @param verbose Print error message to LOG_ERROR upon FileNotFound
       @return Full filename with absolute path
       @throw Exception::FileNotFound
     */

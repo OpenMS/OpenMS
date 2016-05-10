@@ -78,9 +78,9 @@ namespace OpenMS
     {
       LOG_INFO << " failed" << std::endl;
       LOG_ERROR << "\n--- ERROR MESSAGES ---\n";
-      LOG_ERROR << QString(p.readAllStandardError()) << std::endl;
+      LOG_ERROR << QString(p.readAllStandardError()).toStdString() << std::endl;
       LOG_ERROR << "\n--- OTHER MESSAGES ---\n";
-      LOG_ERROR << QString(p.readAllStandardOutput()) << std::endl;
+      LOG_ERROR << QString(p.readAllStandardOutput()).toStdString() << std::endl;
       LOG_ERROR << "\n\nScript failed. See above for an error description. " << std::endl;
       return false;
     }
