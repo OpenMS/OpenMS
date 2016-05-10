@@ -580,4 +580,39 @@ namespace OpenMS
     throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, toolName);
   }
 
+  const String& File::getTemporaryFile(const String& alternative_file)
+  {
+    // take no action
+    if (!alternative_file.empty()) return alternative_file;
+
+    // create temporary (and schedule for deletion)
+    return temporary_files_.newFile();
+  }
+
+
+  File::TemporaryFiles_::TemporaryFiles_()
+    : filenames_()
+  {
+  }
+
+  const String& File::TemporaryFiles_::newFile()
+  {
+    String s = getTempDirectory().ensureLastChar('/') + getUniqueName();
+    filenames_.push_back(s);
+    return filenames_.back();
+  }
+
+  File::TemporaryFiles_::~TemporaryFiles_()
+  {
+    for (Size i = 0; i < filenames_.size(); ++i)
+    {
+      if (File::exists(filenames_[i]) && !File::remove(filenames_[i])) 
+      {
+        std::cerr << "Warning: unable to remove temporary file '" << filenames_[i] << "'" << std::endl;
+      }
+    }
+  }
+
+  File::TemporaryFiles_ File::temporary_files_;
+
 } // namespace OpenMS
