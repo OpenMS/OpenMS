@@ -125,8 +125,6 @@ protected:
     param_pi.update(param, false, Log_debug); // suppress param. update message
     indexer.setParameters(param_pi);
 
-    bool keep_unreferenced_proteins = param.getValue("keep_unreferenced_proteins").toBool();
-
     String db_name = getStringOption_("fasta");
     if (!File::readable(db_name))
     {
