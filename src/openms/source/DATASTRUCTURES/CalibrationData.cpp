@@ -167,7 +167,7 @@ namespace OpenMS
     for (std::set<int>::const_iterator it_group = groups_.begin(); it_group!= groups_.end(); ++it_group)
     { 
       std::vector<double> mzs, ints;
-      double mz_ref;
+      double mz_ref(0);
       for (Size j = i; j < ie; ++j)
       {
         if (getGroup(j) == *it_group)
