@@ -370,7 +370,7 @@ namespace OpenMS
       const vector<PeptideIdentification>& pi = (*layer_->getPeakData())[i].getPeptideIdentifications();
       Size id_count = pi.size();
 
-      // allow only MS2    OR  MS1 with peptideIDs (from Mass Fingerprinting)
+      // allow only MS2 OR MS1 with peptideIDs (from Mass Fingerprinting)
       if (ms_level != 2 && id_count == 0)
       {
         continue;
@@ -397,52 +397,28 @@ namespace OpenMS
         table_widget_->insertRow(table_widget_->rowCount());
 
         // ms level
-        item = table_widget_->itemPrototype()->clone();
-        item->setText(QString::number(ms_level));
-        item->setBackgroundColor(c);
-        table_widget_->setItem(table_widget_->rowCount() - 1, 0, item);
+        addTextItemToBottomRow_(QString::number(ms_level), 0, c);
 
         // index
-        item = table_widget_->itemPrototype()->clone();
-        item->setData(Qt::DisplayRole, Int(i));
-        item->setBackgroundColor(c);
-        table_widget_->setItem(table_widget_->rowCount() - 1, 1, item);
+        addIntItemToBottomRow_(static_cast<Int>(i), 1, c);
 
         // rt
-        item = table_widget_->itemPrototype()->clone();
-        item->setData(Qt::DisplayRole, (*layer_->getPeakData())[i].getRT());
-        item->setBackgroundColor(c);
-        table_widget_->setItem(table_widget_->rowCount() - 1, 2, item);
+        addDoubleItemToBottomRow_((*layer_->getPeakData())[i].getRT(), 2, c);
 
         // score
-        item = table_widget_->itemPrototype()->clone();
-        item->setText("-");
-        item->setBackgroundColor(c);
-        table_widget_->setItem(table_widget_->rowCount() - 1, 7, item);
+        addTextItemToBottomRow_("-", 7, c);
 
         // rank
-        item = table_widget_->itemPrototype()->clone();
-        item->setText("-");
-        item->setBackgroundColor(c);
-        table_widget_->setItem(table_widget_->rowCount() - 1, 8, item);
+        addTextItemToBottomRow_("-", 8, c);
 
         // charge
-        item = table_widget_->itemPrototype()->clone();
-        item->setText("-");
-        item->setBackgroundColor(c);
-        table_widget_->setItem(table_widget_->rowCount() - 1, 9, item);
+        addTextItemToBottomRow_("-", 9, c);
 
         //sequence
-        item = table_widget_->itemPrototype()->clone();
-        item->setText("-");
-        item->setBackgroundColor(c);
-        table_widget_->setItem(table_widget_->rowCount() - 1, 10, item);
+        addTextItemToBottomRow_("-", 10, c);
 
         //accession
-        item = table_widget_->itemPrototype()->clone();
-        item->setText("-");
-        item->setBackgroundColor(c);
-        table_widget_->setItem(table_widget_->rowCount() - 1, 11, item);
+        addTextItemToBottomRow_("-", 11, c);
 
         // add additional meta value columns
         if (create_rows_for_commmon_metavalue_->isChecked())
@@ -490,42 +466,33 @@ namespace OpenMS
         }
         else // has no precursor (leave fields 3 and 4 empty)
         {
-          item = table_widget_->itemPrototype()->clone();
-          item->setText("-");
-          item->setBackgroundColor(c);
-          table_widget_->setItem(table_widget_->rowCount() - 1, 3, item);
-
-          item = table_widget_->itemPrototype()->clone();
-          item->setText("-");
-          item->setBackgroundColor(c);
-          table_widget_->setItem(table_widget_->rowCount() - 1, 4, item);
+          addTextItemToBottomRow_("-", 3, c);
+          addTextItemToBottomRow_("-", 4, c);
         }
 
         // scan mode
-        item = table_widget_->itemPrototype()->clone();
+        QString scan_mode;
         if ((*layer_->getPeakData())[i].getInstrumentSettings().getScanMode() > 0)
         {
-          item->setText(QString::fromStdString((*layer_->getPeakData())[i].getInstrumentSettings().NamesOfScanMode[(*layer_->getPeakData())[i].getInstrumentSettings().getScanMode()]));
+          scan_mode = QString::fromStdString((*layer_->getPeakData())[i].getInstrumentSettings().NamesOfScanMode[(*layer_->getPeakData())[i].getInstrumentSettings().getScanMode()]);
         }
         else
         {
-          item->setText("-");
+          scan_mode = "-";
         }
-        item->setBackgroundColor(c);
-        table_widget_->setItem(table_widget_->rowCount() - 1, 5, item);
+        addTextItemToBottomRow_(scan_mode, 5, c);
 
         // zoom scan
-        item = table_widget_->itemPrototype()->clone();
+        QString is_zoom;
         if ((*layer_->getPeakData())[i].getInstrumentSettings().getZoomScan())
         {
-          item->setText("yes");
+          is_zoom = "yes";
         }
         else
         {
-         item->setText("no");
+          is_zoom = "no";
         }
-        item->setBackgroundColor(c);
-        table_widget_->setItem(table_widget_->rowCount() - 1, 6, item);
+        addTextItemToBottomRow_(is_zoom, 6, c);
       }
       else
       {
@@ -542,46 +509,25 @@ namespace OpenMS
             table_widget_->insertRow(table_widget_->rowCount());
 
             // ms level
-            item = table_widget_->itemPrototype()->clone();
-            item->setText(QString::number(ms_level));
-            item->setBackgroundColor(c);
-            table_widget_->setItem(table_widget_->rowCount() - 1, 0, item);
+            addTextItemToBottomRow_(QString::number(ms_level), 0, c);
 
             // index
-            item = table_widget_->itemPrototype()->clone();
-            item->setData(Qt::DisplayRole, Int(i));
-            item->setBackgroundColor(c);
-            table_widget_->setItem(table_widget_->rowCount() - 1, 1, item);
-
+            addIntItemToBottomRow_(static_cast<Int>(i), 1, c);
+   
             // rt
-            item = table_widget_->itemPrototype()->clone();
-            item->setData(Qt::DisplayRole, (*layer_->getPeakData())[i].getRT());
-            item->setBackgroundColor(c);
-            table_widget_->setItem(table_widget_->rowCount() - 1, 2, item);
+            addDoubleItemToBottomRow_((*layer_->getPeakData())[i].getRT(), 2, c);
 
             // score
-            item = table_widget_->itemPrototype()->clone();
-            item->setData(Qt::DisplayRole, best_ph.getScore());
-            item->setBackgroundColor(c);
-            table_widget_->setItem(table_widget_->rowCount() - 1, 7, item);
+            addDoubleItemToBottomRow_(best_ph.getScore(), 7, c);
 
             // rank
-            item = table_widget_->itemPrototype()->clone();
-            item->setData(Qt::DisplayRole, best_ph.getRank());
-            item->setBackgroundColor(c);
-            table_widget_->setItem(table_widget_->rowCount() - 1, 8, item);
+            addDoubleItemToBottomRow_(best_ph.getRank(), 8, c);
 
             // charge
-            item = table_widget_->itemPrototype()->clone();
-            item->setData(Qt::DisplayRole, best_ph.getCharge());
-            item->setBackgroundColor(c);
-            table_widget_->setItem(table_widget_->rowCount() - 1, 9, item);
+            addDoubleItemToBottomRow_(best_ph.getCharge(), 9, c);
 
             //sequence
-            item = table_widget_->itemPrototype()->clone();
-            item->setText(best_ph.getSequence().toString().toQString());
-            item->setBackgroundColor(c);
-            table_widget_->setItem(table_widget_->rowCount() - 1, 10, item);
+            addTextItemToBottomRow_(best_ph.getSequence().toString().toQString(), 10, c);
 
             //Accession
             item = table_widget_->itemPrototype()->clone();
@@ -589,9 +535,7 @@ namespace OpenMS
 
             set<String> protein_accessions = best_ph.extractProteinAccessions();
             String accessions = ListUtils::concatenate(vector<String>(protein_accessions.begin(), protein_accessions.end()), ", ");
-            item->setText(accessions.toQString());
-            item->setBackgroundColor(c);
-            table_widget_->setItem(table_widget_->rowCount() - 1, 11, item);
+            addTextItemToBottomRow_(accessions.toQString(), 11, c);
 
             // add additional meta value columns
             if (create_rows_for_commmon_metavalue_->isChecked())
@@ -648,42 +592,33 @@ namespace OpenMS
           }
           else // has no precursor (leave fields 3 and 4 empty)
           {
-            item = table_widget_->itemPrototype()->clone();
-            item->setText("-");
-            item->setBackgroundColor(c);
-            table_widget_->setItem(table_widget_->rowCount() - 1, 3, item);
-
-            item = table_widget_->itemPrototype()->clone();
-            item->setText("-");
-            item->setBackgroundColor(c);
-            table_widget_->setItem(table_widget_->rowCount() - 1, 4, item);
+            addTextItemToBottomRow_("-", 3, c);
+            addTextItemToBottomRow_("-", 4, c);
           }
 
           // scan mode
-          item = table_widget_->itemPrototype()->clone();
+          QString scan_mode;
           if ((*layer_->getPeakData())[i].getInstrumentSettings().getScanMode() > 0)
           {
-            item->setText(QString::fromStdString((*layer_->getPeakData())[i].getInstrumentSettings().NamesOfScanMode[(*layer_->getPeakData())[i].getInstrumentSettings().getScanMode()]));
+            scan_mode = QString::fromStdString((*layer_->getPeakData())[i].getInstrumentSettings().NamesOfScanMode[(*layer_->getPeakData())[i].getInstrumentSettings().getScanMode()]);
           }
           else
           {
-            item->setText("-");
+            scan_mode = "-";
           }
-          item->setBackgroundColor(c);
-          table_widget_->setItem(table_widget_->rowCount() - 1, 5, item);
+          addTextItemToBottomRow_(scan_mode, 5, c);
 
           // zoom scan
-          item = table_widget_->itemPrototype()->clone();
+          QString is_zoom;
           if ((*layer_->getPeakData())[i].getInstrumentSettings().getZoomScan())
           {
-            item->setText("yes");
+            is_zoom = "yes";
           }
           else
           {
-           item->setText("no");
+            is_zoom = "no";
           }
-          item->setBackgroundColor(c);
-          table_widget_->setItem(table_widget_->rowCount() - 1, 6, item);
+          addTextItemToBottomRow_(is_zoom, 6, c);
         }
       }
 
@@ -794,6 +729,29 @@ namespace OpenMS
       }
       f.close();
     }
+  }
+  void SpectraIdentificationViewWidget::addTextItemToBottomRow_(const QString& text, Size column_index, const QColor& c)
+  {
+    QTableWidgetItem * item = table_widget_->itemPrototype()->clone();
+    item->setText(text);
+    item->setBackgroundColor(c);
+    table_widget_->setItem(table_widget_->rowCount() - 1, column_index, item);
+  }
+
+  void SpectraIdentificationViewWidget::addIntItemToBottomRow_(const Int i, Size column_index, const QColor& c)
+  {
+    QTableWidgetItem * item = table_widget_->itemPrototype()->clone();
+    item->setData(Qt::DisplayRole, i);
+    item->setBackgroundColor(c);
+    table_widget_->setItem(table_widget_->rowCount() - 1, column_index, item);
+  }
+
+  void SpectraIdentificationViewWidget::addDoubleItemToBottomRow_(const double d, Size column_index, const QColor& c)
+  {
+    QTableWidgetItem * item = table_widget_->itemPrototype()->clone();
+    item->setData(Qt::DisplayRole, d);
+    item->setBackgroundColor(c);
+    table_widget_->setItem(table_widget_->rowCount() - 1, column_index, item);
   }
 
   void SpectraIdentificationViewWidget::saveIdXML_()
