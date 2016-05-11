@@ -59,7 +59,7 @@ public:
 
   struct FragmentAnnotation
   {
-    String annotation;
+    String annotation;  // e.g. [alpha|ci$y3-H2O-NH3]5+
     int charge;
     double mz;
     double intensity;
