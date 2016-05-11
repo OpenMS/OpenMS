@@ -662,6 +662,10 @@ namespace OpenMS
             sid = String("MZ:") + emz + String("@RT:") + ert;
           }
         }
+        if (is_ppxl && it->metaValueExists("spectrum_reference_heavy"))
+        {
+          sid.append("," + it->getMetaValue("spectrum_reference_heavy"));
+        }
         String sir = "SIR_" + String(UniqueIdGenerator::getUniqueId());
         String sidres;
         sidres += String("\t\t\t<SpectrumIdentificationResult spectraData_ref=\"")
@@ -865,11 +869,11 @@ namespace OpenMS
 
           String cmz((jt->getSequence().getMonoWeight() +  jt->getCharge() * Constants::PROTON_MASS_U) / jt->getCharge()); //calculatedMassToCharge
           String r(jt->getRank()); //rank
-          String sc(jt->getScore());
           if (it->metaValueExists("xl_rank"))  // TODO ppxl location subject to change
           {
             r = it->getMetaValue("xl_rank").toString();  // ppxl remove xl_rank later (in copy_jt)
           }
+          String sc(jt->getScore());
           if (sc.empty())
           {
             sc = "NA";
@@ -916,7 +920,8 @@ namespace OpenMS
           }
 
           // TODO ppxl write Fragmentation annotation ion types as given addition with cv alpha or beta
-          // string coding example: alpha:y3++
+          // string coding example: [alpha|ci$y3-H2O-NH3]5+
+          // TODO ppxl where to read https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/cv/XLMOD-1.0.0.csv
 
           std::set<String> peptide_result_details;
           cv_.getAllChildTerms(peptide_result_details, "MS:1001143"); // search engine specific score for PSMs
@@ -981,26 +986,46 @@ namespace OpenMS
           if (is_ppxl)
           {
             sii_tmp +=  "\t\t\t\t\t" + cv_.getTerm("MS:1002511").toXMLString(cv_ns, ppxl_linkid) + "\n"; // cross-linked spectrum identification item
-//            copy_jt.removeMetaValue("xl_type");
             copy_jt.removeMetaValue("xl_rank");  // not so sure: it->getMetaValue("xl_rank")
+            copy_jt.removeMetaValue("xl_type");
+            copy_jt.removeMetaValue("xl_pos");
+            copy_jt.removeMetaValue("xl_mod");
+            copy_jt.removeMetaValue("xl_chain");
+            copy_jt.removeMetaValue("xl_mass");
+            copy_jt.removeMetaValue("protein_references");
+            copy_jt.removeMetaValue("spectrum_reference_heavy");
+            copy_jt.removeMetaValue("spectrum_reference");
+            copy_jt.removeMetaValue("spec_heavy_MZ");
+            copy_jt.removeMetaValue("spec_heavy_RT");
           }
           writeMetaInfos_(sii_tmp, copy_jt, 5);
 
           sii_tmp += "\t\t\t\t</SpectrumIdentificationItem>\n";
           if (is_ppxl)
           {
+            sii_tmp = sii_tmp.substitute("</SpectrumIdentificationItem>",
+                                         "\t" + cv_.getTermByName("retention time").toXMLString(cv_ns, ert) + "\n\t\t\t\t</SpectrumIdentificationItem>\n");
             ppxl_specref_2_element[sid] += sii_tmp;
+            if (jt->metaValueExists("spec_heavy_RT") && jt->metaValueExists("spec_heavy_MZ"))
+            //TODO betas have no spec_heavy_... meta values - this makes the number of SII  wrong
+            {
+              sii_tmp = sii_tmp.substitute(String("experimentalMassToCharge=\"") + String(emz),
+                                           String("experimentalMassToCharge=\"") + String(jt->getMetaValue("spec_heavy_MZ"))); // mz
+              sii_tmp = sii_tmp.substitute(sii, String("SII_") + String(UniqueIdGenerator::getUniqueId())); // uid
+              sii_tmp = sii_tmp.substitute("value=\"" + ert, "value=\"" + String(jt->getMetaValue("spec_heavy_MZ")));
+
+              ppxl_specref_2_element[sid] += sii_tmp;
+            }
           }
           else
           {
             sidres += sii_tmp;
           }
         }
-        if (!ert.empty() && ert != "nan" && ert != "NaN")
+        if (!ert.empty() && ert != "nan" && ert != "NaN" && !is_ppxl)
         {
           sidres +=  "\t\t\t\t" + cv_.getTermByName("retention time").toXMLString(cv_ns, ert) + "\n";
         }
-
         if (!is_ppxl)
         {
           sidres += "\t\t\t</SpectrumIdentificationResult>\n";
@@ -1059,9 +1084,16 @@ namespace OpenMS
       os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
          << "<MzIdentML xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n"
          << "\txsi:schemaLocation=\"http://psidev.info/psi/pi/mzIdentML/1.1 http://psi-pi.googlecode.com/svn/trunk/schema/mzIdentML1.1.0.xsd\"\n"
-         << "\txmlns=\"http://psidev.info/psi/pi/mzIdentML/1.1\"\n"
-         << "\tversion=\"1.1.0\"\n"
-         << "\tid=\"OpenMS_" << String(UniqueIdGenerator::getUniqueId()) << "\"\n"
+         << "\txmlns=\"http://psidev.info/psi/pi/mzIdentML/1.1\"\n";
+      if (is_ppxl)
+      {
+         os << "\tversion=\"1.2.0\"\n";
+      }
+      else
+      {
+         os << "\tversion=\"1.1.0\"\n";
+      }
+      os << "\tid=\"OpenMS_" << String(UniqueIdGenerator::getUniqueId()) << "\"\n"
          << "\tcreationDate=\"" << DateTime::now().getDate() << "T" << DateTime::now().getTime() << "\">\n";
 
       //--------------------------------------------------------------------------------------------
