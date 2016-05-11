@@ -488,18 +488,23 @@ DefaultParamHandler("PeptideIndexing")
     // calculations
     //-------------------------------------------------------------
 
-    if (proteins.size() == 0) // we do not allow an empty database
+    if (proteins.empty()) // we do not allow an empty database
     {
       LOG_ERROR << "Error: An empty database was provided. Mapping makes no sense. Aborting..." << std::endl;
       return DATABASE_EMPTY;
     }
 
-    if (pep_ids.size() == 0) // Aho-Corasick requires non-empty input
+    if (pep_ids.empty()) // Aho-Corasick requires non-empty input
     {
-      LOG_WARN << "Warning: An empty pep_ids was provided. Output will be empty as well." << std::endl;
-      if (!param_.getValue("keep_unreferenced_proteins").toBool())
+      LOG_WARN << "Warning: An empty set of peptide identifications was provided. Output will be empty as well." << std::endl;
+      if (!keep_unreferenced_proteins_)
       {
-        prot_ids.clear();
+        // delete only protein hits, not whole ID runs incl. meta data:
+        for (vector<ProteinIdentification>::iterator it = prot_ids.begin();
+             it != prot_ids.end(); ++it)
+        {
+          it->getHits().clear();
+        }
       }
       return PEPTIDE_IDS_EMPTY;
     }
@@ -525,7 +530,6 @@ DefaultParamHandler("PeptideIndexing")
         {
           seq.substitute('L', 'I');
         }
-
 
         String acc = proteins[i].identifier;
         // check for duplicate proteins
@@ -802,8 +806,7 @@ DefaultParamHandler("PeptideIndexing")
 
         // add new protein references
         for (set<PeptideProteinMatchInformation>::const_iterator it_i = func.pep_to_prot[pep_idx].begin();
-             it_i != func.pep_to_prot[pep_idx].end();
-             ++it_i)
+             it_i != func.pep_to_prot[pep_idx].end(); ++it_i)
         {
           const String& accession = proteins[it_i->protein_index].identifier;
           PeptideEvidence pe;
@@ -929,7 +932,7 @@ DefaultParamHandler("PeptideIndexing")
       {
         const String& acc = p_hit->getAccession();
         if (acc_to_prot.has(acc) // accession needs to exist in new FASTA file
-           && masterset.find(acc_to_prot[acc]) != masterset.end())
+            && masterset.find(acc_to_prot[acc]) != masterset.end())
         { // this accession was there already
           String seq;
           if (write_protein_sequence_)
@@ -957,8 +960,7 @@ DefaultParamHandler("PeptideIndexing")
 
       // add remaining new hits
       for (set<Size>::const_iterator it = masterset.begin();
-           it != masterset.end();
-           ++it)
+           it != masterset.end(); ++it)
       {
         ProteinHit hit;
         hit.setAccession(proteins[*it].identifier);
