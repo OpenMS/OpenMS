@@ -29,203 +29,418 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Alexandra Zerck, Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 
 #include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
-#include <OpenMS/ANALYSIS/ID/IDMapper.h>
+
+#include <OpenMS/FORMAT/SVOutStream.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/SYSTEM/RWrapper.h>
+
+#include <QtCore/QStringList>
+
 #include <stdio.h>
 
 namespace OpenMS
 {
 
-  InternalCalibration::InternalCalibration() :
-    DefaultParamHandler("InternalCalibration"),
-    ProgressLogger(),
-    trafo_(TransformationDescription::DataPoints())
+  InternalCalibration::InternalCalibration()
+    : ProgressLogger()
   {
-    defaults_.setValue("mz_tolerance", 1., "Allowed tolerance between peak and reference m/z.");
-    defaults_.setMinFloat("mz_tolerance", 0.);
-    defaults_.setValue("mz_tolerance_unit", "Da", "Unit for mz_tolerance.");
-    defaults_.setValidStrings("mz_tolerance_unit", ListUtils::create<String>("Da,ppm"));
-    defaults_.setValue("rt_tolerance", 10, "Allowed tolerance between peak and reference rt.");
-
-    defaults_.setValue("ms_levels", ListUtils::create<Int>("1,2,3"), "MS level for which to apply the calibration. Make sure to get this correct since it depends on your instrument and the number of mass analyzers it has!");
-
-
-    defaultsToParam_();
   }
 
-  void InternalCalibration::calibrateMapGlobally(FeatureMap& feature_map,
-                                                 const String& trafo_file_name)
+  void InternalCalibration::applyTransformation(MSExperiment<>::SpectrumType& spec, const MZTrafoModel& trafo)
   {
-    // check if the ids
-    checkReferenceIds_(feature_map);
-    // first collect theoretical and observed m/z values
-    std::vector<double> observed_masses;
-    std::vector<double> theoretical_masses;
-    for (Size f = 0; f < feature_map.size(); ++f)
-    {
-      // if more than one peptide id exists for this feature we can't use it as reference
-      if (feature_map[f].getPeptideIdentifications().size() != 1) continue;
+    typedef MSExperiment<>::SpectrumType::Iterator SpecIt;
 
-      Int charge = feature_map[f].getPeptideIdentifications()[0].getHits()[0].getCharge();
-      double theo_mass = feature_map[f].getPeptideIdentifications()[0].getHits()[0].getSequence().getMonoWeight(Residue::Full, charge) / (double)charge;
-      theoretical_masses.push_back(theo_mass);
-      observed_masses.push_back(feature_map[f].getMZ());
-#ifdef DEBUG_CALIBRATION
-      std::cout << feature_map[f].getRT() << " " << feature_map[f].getMZ() << " " << theo_mass << std::endl;
-      std::cout << feature_map[f].getPeptideIdentifications()[0].getHits().size() << std::endl;
-      std::cout << feature_map[f].getPeptideIdentifications()[0].getHits()[0].getSequence() << std::endl;
-      std::cout << feature_map[f].getPeptideIdentifications()[0].getHits()[0].getCharge() << std::endl;
-#endif
-    }
-    // then make the linear regression
-    makeLinearRegression_(observed_masses, theoretical_masses);
-    // apply transformation
-    applyTransformation_(feature_map);
-    if (!trafo_file_name.empty())
+    // calibrate the spectrum itself
+    for (SpecIt it = spec.begin(); it != spec.end(); ++it)
     {
-      TransformationXMLFile().store(trafo_file_name, trafo_);
-    }
-  }
-
-  void InternalCalibration::calibrateMapGlobally(FeatureMap& feature_map, std::vector<PeptideIdentification>& ref_ids, const String& trafo_file_name)
-  {
-    checkReferenceIds_(ref_ids);
-
-    FeatureMap calibrated_feature_map = feature_map;
-    // clear the ids
-    for (Size f = 0; f < calibrated_feature_map.size(); ++f)
-    {
-      calibrated_feature_map[f].getPeptideIdentifications().clear();
+      it->setMZ(trafo.predict(it->getMZ()));
     }
 
-    // map the reference ids onto the features
-    IDMapper mapper;
-    Param param;
-    param.setValue("rt_tolerance", (double)param_.getValue("rt_tolerance"));
-    param.setValue("mz_tolerance", param_.getValue("mz_tolerance"));
-    param.setValue("mz_measure", param_.getValue("mz_tolerance_unit"));
-    mapper.setParameters(param);
-    std::vector<ProteinIdentification> vec;
-    mapper.annotate(calibrated_feature_map, ref_ids, vec);
-
-    // calibrate & store calibration function
-    calibrateMapGlobally(calibrated_feature_map, trafo_file_name);
-
-    // apply transformation again (which was just used on calibrated_feature_map)
-    applyTransformation_(feature_map);
-  }
-
-  void InternalCalibration::applyTransformation_(FeatureMap& feature_map)
-  {
-    for (Size f = 0; f < feature_map.size(); ++f)
+    // calibrate the precursor mass as well
+    if (!spec.getPrecursors().empty())
     {
-      double f_mz = feature_map[f].getMZ();
-      feature_map[f].setMZ(trafo_.apply(f_mz));
-
-      // apply transformation to convex hulls and subordinates
-      for (Size s = 0; s < feature_map[f].getSubordinates().size(); ++s)
+      for (Size i = 0; i < spec.getPrecursors().size(); ++i)
       {
-        // subordinates
-        double mz = feature_map[f].getSubordinates()[s].getMZ();
-        mz = trafo_.apply(mz);
-        feature_map[f].getSubordinates()[s].setMZ(mz);
+        spec.getPrecursors()[i].setMZ(trafo.predict(spec.getPrecursors()[i].getMZ()));
       }
-      for (Size s = 0; s < feature_map[f].getConvexHulls().size(); ++s)
+    }
+  }
+
+  void InternalCalibration::applyTransformation(MSExperiment<>& exp, const IntList& target_mslvl, const MZTrafoModel& trafo)
+  {
+    for (MSExperiment<>::Iterator it = exp.begin(); it != exp.end(); ++it)
+    {
+      // skip this MS level?
+      if (!ListUtils::contains(target_mslvl, it->getMSLevel())) continue;
+      applyTransformation(*it, trafo);
+    }
+  }
+
+  Size InternalCalibration::fillCalibrants( const MSExperiment<> exp, const std::vector<InternalCalibration::LockMass>& ref_masses, double tol_ppm, bool lock_require_mono, bool lock_require_iso, bool verbose /*= true*/ )
+  {
+    cal_data_.clear();
+
+    //
+    // find lock masses in data and build calibrant table
+    //
+    std::map<Size, Size> stats_cal_per_spectrum;
+    typedef MSExperiment<>::ConstIterator ExpCIt;
+    for (ExpCIt it = exp.begin(); it != exp.end(); ++it)
+    {
+      // empty spectrum
+      if (it->empty()) {
+        ++stats_cal_per_spectrum[0];
+        continue;
+      }
+
+      Size cnt_cd = cal_data_.size();
+      // iterate over calibrants
+      for (std::vector<InternalCalibration::LockMass>::const_iterator itl = ref_masses.begin(); itl != ref_masses.end(); ++itl)
       {
-        // convex hulls
-        std::vector<DPosition<2> > point_vec = feature_map[f].getConvexHulls()[s].getHullPoints();
-        feature_map[f].getConvexHulls()[s].clear();
-        for (Size p = 0; p < point_vec.size(); ++p)
+        // calibrant meant for this MS level?
+        if (it->getMSLevel() != itl->ms_level) continue;
+
+        Size s = it->findNearest(itl->mz);
+        const double mz_obs = (*it)[s].getMZ();
+        if (Math::getPPMAbs(mz_obs, itl->mz) < tol_ppm)
         {
-          double mz = point_vec[p][1];
-          mz = trafo_.apply(mz);
-          point_vec[p][1] = mz;
+          if (lock_require_mono)
+          {
+            // check if its the monoisotopic .. discard otherwise
+            const double mz_iso_left = mz_obs - (Constants::C13C12_MASSDIFF_U / itl->charge);
+            Size s_left = it->findNearest(mz_iso_left);
+            if (Math::getPPMAbs(mz_iso_left, (*it)[s_left].getMZ()) < 0.5) // intra-scan ppm should be very good!
+            { // peak nearby lock mass was not the monoisotopic
+              if (verbose) LOG_INFO << "peak at [RT, m/z] " << it->getRT() << ", " << (*it)[s].getMZ() << " is NOT monoisotopic. Skipping it!\n";
+              continue;
+            }
+          }
+          if (lock_require_iso)
+          {
+            // require it to have a +1 isotope?!
+            const double mz_iso_right = mz_obs + Constants::C13C12_MASSDIFF_U / itl->charge;
+            Size s_right = it->findNearest(mz_iso_right);
+            if (!(Math::getPPMAbs(mz_iso_right, (*it)[s_right].getMZ()) < 0.5)) // intra-scan ppm should be very good!
+            { // peak has no +1iso.. weird
+              if (verbose) LOG_INFO << "peak at [RT, m/z] " << it->getRT() << ", " << (*it)[s].getMZ() << " has no +1 isotope (ppm diff: " << Math::getPPM(mz_iso_right, (*it)[s_right].getMZ()) << ")... Skipping it!\n";
+              continue;
+            }
+          }
+          cal_data_.insertCalibrationPoint(it->getRT(), mz_obs, (*it)[s].getIntensity(), itl->mz, std::log((*it)[s].getIntensity()), std::distance(ref_masses.begin(), itl));
         }
-        feature_map[f].getConvexHulls()[s].setHullPoints(point_vec);
       }
+      // how many locks found in this spectrum?!
+      ++stats_cal_per_spectrum[cal_data_.size()-cnt_cd];
     }
+
+    LOG_INFO << "Lock masses found across viable spectra:\n";
+    for (std::map<Size, Size>::const_iterator its = stats_cal_per_spectrum.begin(); its != stats_cal_per_spectrum.end(); ++its)
+    {
+      LOG_INFO << "  " << its->first << " [of " << ref_masses.size() << "] lock masses: " << its->second << "x\n";
+    }
+    LOG_INFO << std::endl;
+
+    // sort CalData by RT
+    cal_data_.sortByRT();
+
+    return cal_data_.size();
   }
 
-  void InternalCalibration::checkReferenceIds_(const FeatureMap& feature_map)
+  Size InternalCalibration::fillCalibrants( const FeatureMap& fm, double tol_ppm )
   {
-    Size num_ids = 0;
-    for (Size f = 0; f < feature_map.size(); ++f)
+    cal_data_.clear();
+    for (FeatureMap::ConstIterator it = fm.begin(); it != fm.end(); ++it)
     {
-      if (!feature_map[f].getPeptideIdentifications().empty() && feature_map[f].getPeptideIdentifications()[0].getHits().size() > 1)
-      {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "InternalCalibration: Your feature map contains PeptideIdentifications with more than one hit, use the IDFilter to select only the best hits before you map the ids to the feature map.");
-      }
-      else if (!feature_map[f].getPeptideIdentifications().empty())
-        ++num_ids;
+      const std::vector<PeptideIdentification>& ids = it->getPeptideIdentifications();
+      if (ids.empty() || ids[0].empty()) continue;
+
+      PeptideIdentification pid = ids[0];
+      pid.sort();
+      double mz_ref = pid.getHits()[0].getSequence().getMonoWeight(OpenMS::Residue::Full, pid.getHits()[0].getCharge());
+      if (tol_ppm < Math::getPPMAbs(it->getMZ(), mz_ref)) continue;
+      cal_data_.insertCalibrationPoint(it->getRT(), it->getMZ(), it->getIntensity(), mz_ref, log(it->getIntensity()));
     }
-    if (num_ids < 2)
-    {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "InternalCalibration: Your feature map contains less than two PeptideIdentifications, can't perform a linear regression on your data.");
-    }
+
+    // unassigned peptide IDs
+    fillIDs_(fm.getUnassignedPeptideIdentifications(), tol_ppm);
+
+    LOG_INFO << "Found " << cal_data_.size() << " calibrants (incl. unassigned) in FeatureMap." << std::endl;
+
+    // sort CalData by RT
+    cal_data_.sortByRT();
+
+    return cal_data_.size();
   }
 
-  void InternalCalibration::checkReferenceIds_(const std::vector<PeptideIdentification>& pep_ids)
+  void InternalCalibration::fillIDs_( const std::vector<PeptideIdentification>& pep_ids, double tol_ppm )
   {
-    for (Size p_id = 0; p_id < pep_ids.size(); ++p_id)
+    Size cnt_nomz(0);
+    Size cnt_nort(0);
+
+    for (std::vector<PeptideIdentification>::const_iterator it = pep_ids.begin(); it != pep_ids.end(); ++it)
     {
-      if (pep_ids[p_id].getHits().size() > 1)
+      if (it->empty()) continue;
+      if (!it->hasMZ())
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "InternalCalibration: Your Id-file contains PeptideIdentifications with more than one hit, use the IDFilter to select only the best hits.");
+        ++cnt_nomz;
+        continue;
       }
-      if (!pep_ids[p_id].hasRT())
+      if (!it->hasRT())
       {
-        throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "InternalCalibration: meta data value 'RT' missing for peptide identification!");
+        ++cnt_nort;
+        continue;
       }
-      if (!pep_ids[p_id].hasMZ())
-      {
-        throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "InternalCalibration: meta data value 'MZ' missing for peptide identification!");
-      }
+      PeptideIdentification pid = *it;
+      pid.sort();
+      int q = pid.getHits()[0].getCharge();
+      double mz_ref = pid.getHits()[0].getSequence().getMonoWeight(OpenMS::Residue::Full, q) / q;
+      if (tol_ppm < Math::getPPMAbs(it->getMZ(), mz_ref)) continue;
+
+      const double weight = 1.0;
+      const double intensity = 1.0;
+      cal_data_.insertCalibrationPoint(it->getRT(), it->getMZ(), intensity, mz_ref, weight);
     }
+    LOG_INFO << "Found " << cal_data_.size() << " calibrants in peptide IDs." << std::endl;
+    if (cnt_nomz > 0) LOG_WARN << "Warning: " << cnt_nomz << "/" << pep_ids.size() << " were skipped, since they have no m/z value set! They cannot be used as calibration point." << std::endl;
+    if (cnt_nort > 0) LOG_WARN << "Warning: " << cnt_nort << "/" << pep_ids.size() << " were skipped, since they have no RT value set! They cannot be used as calibration point." << std::endl;
   }
 
-  void InternalCalibration::makeLinearRegression_(const std::vector<double>& observed_masses, const std::vector<double>& theoretical_masses)
+  Size InternalCalibration::fillCalibrants( const std::vector<PeptideIdentification>& pep_ids, double tol_ppm )
   {
-    if (observed_masses.size() != theoretical_masses.size())
+    cal_data_.clear();
+    fillIDs_(pep_ids, tol_ppm);
+    // sort CalData by RT
+    cal_data_.sortByRT();
+
+    return cal_data_.size();
+  }
+
+  const CalibrationData& InternalCalibration::getCalibrationPoints() const
+  {
+    return cal_data_;
+  }
+
+  bool InternalCalibration::calibrate(MSExperiment<>& exp, 
+                                      const IntList& target_mslvl,
+                                      MZTrafoModel::MODELTYPE model_type,
+                                      double rt_chunk,
+                                      bool use_RANSAC,
+                                      double post_ppm_median,
+                                      double post_ppm_MAD,
+                                      const String& file_models,
+                                      const String& file_models_plot,
+                                      const String& file_residuals,
+                                      const String& file_residuals_plot)
+  {
+    // ensure sorting; required for finding RT ranges and lock masses
+    if (!exp.isSorted(true))
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Number of observed and theoretical masses must agree.");
+      exp.sortSpectra(true);
     }
-#ifdef DEBUG_CALIBRATION
-    std::ofstream out("calibration_regression.txt");
-    std::vector<double> rel_errors(observed_masses.size(), 0.);
-    // determine rel error in ppm for the two reference masses
-    for (Size ref_peak = 0; ref_peak < observed_masses.size(); ++ref_peak)
+
+    startProgress(0, exp.size(), "Applying calibration to data");
+
+    std::vector<MZTrafoModel> tms; // each spectrum gets its own model (params are cheap to store)
+    std::map<Size, Size> invalid_models; // indices from tms[] -> exp[]; where model creation failed (e..g, not enough calibration points)
+    bool hasValidModels(false); // was at least one model valid?
+    bool global_model = (rt_chunk < 0);
+    if (global_model)
+    { // build one global modal
+      LOG_INFO << "Building a global model..." << std::endl;
+      tms.push_back(MZTrafoModel());
+      tms[0].train(cal_data_, model_type, use_RANSAC);
+      if (MZTrafoModel::isValidModel(tms[0]))
+      {
+        applyTransformation(exp, target_mslvl, tms[0]);
+        hasValidModels = true;
+      }
+    } else
+    { // one model per spectrum (not all might be needed, if certain MS levels are excluded from calibration)
+      tms.reserve(exp.size());
+      // go through spectra and calibrate
+      Size i(0), i_mslvl(0);
+      for (MSExperiment<>::Iterator it = exp.begin(); it != exp.end(); ++it, ++i)
+      {
+        setProgress(i);
+
+        // skip this MS level?
+        if (!ListUtils::contains(target_mslvl, it->getMSLevel())) continue;
+
+        //
+        // build model
+        //
+        tms.push_back(MZTrafoModel());
+        tms.back().train(cal_data_, model_type, use_RANSAC, it->getRT() - rt_chunk, it->getRT() + rt_chunk);
+        if (!MZTrafoModel::isValidModel(tms.back())) // model not trained or coefficients are too extreme
+        {
+          invalid_models[i_mslvl] = i;
+        }
+        else
+        {
+          applyTransformation(*it, tms.back());
+        }
+        ++i_mslvl;
+      } // MSExp::iter
+
+      //////////////////////////////////////////////////////////////////////////
+      // CHECK Models -- use neighbors if needed
+      //////////////////////////////////////////////////////////////////////////
+
+      hasValidModels = (std::find_if(tms.begin(), tms.end(), MZTrafoModel::isValidModel) != tms.end());
+      // did we build any model at all?
+      if (hasValidModels && !invalid_models.empty())
+      {
+        // 2nd attempt to calibrate spectra using neighboring models
+        // (will not be entered for global model since could_not_cal is empty)
+        LOG_INFO << "\nCalibration failed on " << invalid_models.size() << "/" << tms.size() << " [" <<  invalid_models.size() * 100 / tms.size() << " %] spectra. "
+          << "Using the closest successful model on these." << std::endl;
+
+        std::vector<MZTrafoModel> tms_new = tms; // will contain corrected models (this wastes a bit of memory)
+        for (std::map<Size, Size>::const_iterator it = invalid_models.begin(); it != invalid_models.end(); ++it)
+        {
+          Size p = it->first;
+          // find model closest valid model to p'th model
+          std::vector<MZTrafoModel>::iterator it_center_r = tms.begin() + p; // points to 'p'
+          std::vector<MZTrafoModel>::iterator it_right = std::find_if(it_center_r, tms.end(), MZTrafoModel::isValidModel);
+          std::vector<MZTrafoModel>::reverse_iterator it_center_l = tms.rbegin() + (tms.size() - p - 1); // points to 'p'
+          std::vector<MZTrafoModel>::reverse_iterator it_left = std::find_if(it_center_l, tms.rend(), MZTrafoModel::isValidModel);
+          Size dist_right(0), dist_left(0);
+          if (it_right != tms.end()) dist_right = std::distance(it_center_r, it_right);
+          if (it_left != tms.rend()) dist_left  = std::distance(it_center_l, it_left);
+          Size model_index;
+          if (((dist_left <= dist_right) || dist_right == 0) && dist_left != 0) // left is closer in #spectra, i.e. time; or is the only valid direction
+          {
+            model_index = p - dist_left;
+          } 
+          else
+          {
+            model_index = p + dist_right;
+          }
+          applyTransformation(exp[it->second], tms[model_index]);
+          tms_new[p].setCoefficients(tms[model_index]); // overwrite invalid model
+        }
+        tms_new.swap(tms);
+        // consistency check: all models must be valid at this point
+        for (Size i = 0; i < tms.size(); ++i) if (!MZTrafoModel::isValidModel(tms[i])) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "InternalCalibration::calibrate(): Internal error. Not all models are valid!", String(i));
+      }
+    }
+    endProgress();
+
+    //
+    // show the model parameters
+    //
+    if (!file_models.empty() || !file_models_plot.empty())
     {
-      rel_errors[ref_peak] = (theoretical_masses[ref_peak] - observed_masses[ref_peak]) / theoretical_masses[ref_peak] * 1e6;
+      String out_table = File::getTemporaryFile(file_models);
+      { // we need this scope, to ensure that SVOutStream writes it cache, before we call RWrapper!
+        SVOutStream sv(out_table, ", ", ", ", String::NONE);
 
-      out << observed_masses[ref_peak] << "\t" << rel_errors[ref_peak] << "\n";
-      std::cout << observed_masses[ref_peak] << " " << theoretical_masses[ref_peak] << std::endl;
-      // std::cout << observed_masses[ref_peak]<<"\t"<<rel_errors[ref_peak]<<std::endl;
+        sv << "# model parameters (for all successfully trained models)" << nl
+          << "RT" << "A (offset)" << "B (slope)" << "C (power)" << "source" << nl;
+        for (Size i = 0; i < tms.size(); ++i)
+        {
+          sv << tms[i].getRT() << tms[i].toString();
+          if (!MZTrafoModel::isValidModel(tms[i])) sv << "invalid"; // this only happens if ALL models are invalid (since otherwise they would use 'neighbour')
+          else if (invalid_models.count(i) > 0) sv << "neighbor";
+          else sv << "local";
+          sv << nl;
+        }
+      }
+      
+      // plot it
+      if (!file_models_plot.empty())
+      {
+        if (!RWrapper::runScript("InternalCalibration_Models.R", QStringList() << out_table.toQString() << file_models_plot.toQString()))
+        {
+          return false;
+        }
+      }
+
     }
-#endif
 
-    TransformationDescription::DataPoints data;
-    for (Size i = 0; i < observed_masses.size(); ++i)
+    //
+    // plot the residual error (after calibration)
+    // go through Calibration data points
+    //
+    SVOutStream* sv = NULL;      
+    String out_table_residuals;
+    if (!file_residuals.empty() || !file_residuals_plot.empty())
     {
-      data.push_back(std::make_pair(observed_masses[i], theoretical_masses[i]));
+      out_table_residuals = File::getTemporaryFile(file_residuals);
+      sv = new SVOutStream(out_table_residuals, ", ", ", ", String::NONE);
     }
 
-    trafo_ = TransformationDescription(data);
-    trafo_.fitModel("linear", Param());
-
-#ifdef DEBUG_CALIBRATION
-    //          std::cout <<"\n\n---------------------------------\n\n"<< "after calibration "<<std::endl;
-    for (Size i = 0; i < observed_masses.size(); ++i)
+    std::vector<double> vec_ppm_before, vec_ppm_after;
+    vec_ppm_before.reserve(cal_data_.size());
+    vec_ppm_after.reserve(cal_data_.size());
+    if (sv != NULL) *sv << "# residual error after calibration" << nl
+                        << "RT" << "mz ref" << "mz before" << "mz after" << "ppm before" << "ppm after" << nl;
+    Size ii(0);
+    for (CalibrationData::const_iterator itc = cal_data_.begin(); itc != cal_data_.end(); ++itc, ++ii)
     {
-      double new_mass = trafo_.apply(observed_masses[i]);
+      double rt = itc->getRT();
+      // find closest model in RT
+      Size idx = (global_model ? 0 : MZTrafoModel::findNearest(tms, rt));
 
-      double rel_error = (theoretical_masses[i] - (new_mass)) / theoretical_masses[i] * 1e6;
-      std::cout << observed_masses[i] << "\t" << rel_error << std::endl;
+      double mz_corrected = std::numeric_limits<double>::quiet_NaN();
+      if (MZTrafoModel::isValidModel(tms[idx])) mz_corrected = tms[idx].predict(itc->getMZ());
+      double mz_ref = cal_data_.getRefMZ(ii);
+      double ppm_before = Math::getPPM(itc->getMZ(), mz_ref);
+      double ppm_after = Math::getPPM(mz_corrected, mz_ref);
+      vec_ppm_before.push_back(ppm_before);
+      vec_ppm_after.push_back(ppm_after);
+      if (sv != NULL) *sv << rt << mz_ref << itc->getMZ() << mz_corrected << ppm_before << ppm_after << nl;
     }
-#endif
+    delete sv;
+
+    // plot it
+    if (!file_residuals_plot.empty())
+    {
+      if (!RWrapper::runScript("InternalCalibration_Residuals.R", QStringList() << out_table_residuals.toQString() << file_residuals_plot.toQString()))
+      {
+        return false;
+      }
+    }
+
+
+    if (!hasValidModels)
+    { // QC tables are done; quit
+      LOG_ERROR << "Error: Could not build a single local calibration model! Check your calibrants!" << std::endl;
+      if (use_RANSAC) LOG_ERROR << "       Since you are using RANSAC, check the parameters as well and test different setups." << std::endl;
+
+      return false;
+    }
+
+    // use median and MAD to ignore outliers
+    double median_ppm_before = Math::median(vec_ppm_before.begin(), vec_ppm_before.end());
+    double MAD_ppm_before =  Math::MAD(vec_ppm_before.begin(), vec_ppm_before.end(), median_ppm_before);
+    LOG_INFO << "\n-----\n" <<
+      "ppm stats before calibration: median = " << median_ppm_before << "  MAD = " << MAD_ppm_before << "\n";
+    double median_ppm_after = Math::median(vec_ppm_after.begin(), vec_ppm_after.end());
+    double MAD_ppm_after =  Math::MAD(vec_ppm_after.begin(), vec_ppm_after.end(), median_ppm_after);
+    LOG_INFO << "ppm stats after calibration: median = " << median_ppm_after << "  MAD = " << MAD_ppm_after << "\n";
+
+    // check desired limits
+    if (post_ppm_median < fabs(median_ppm_after))
+    {
+      LOG_INFO << "Post calibration median threshold (" << post_ppm_median << ") not reached (median = |" << median_ppm_after << "|). Failed to calibrate!" << std::endl;
+      return false;
+    }
+    if (post_ppm_MAD < fabs(MAD_ppm_after))
+    {
+      LOG_INFO << "Post calibration median threshold (" << post_ppm_MAD << ") not reached (median = |" << MAD_ppm_after << "|). Failed to calibrate!" << std::endl;
+      return false;
+    }
+
+
+    return true; // success
   }
 
 }

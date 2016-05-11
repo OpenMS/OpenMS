@@ -6,6 +6,7 @@ set(sources_list
 Adduct.cpp
 BigString.cpp
 BinaryTreeNode.cpp
+CalibrationData.cpp
 ChargePair.cpp
 Compomer.cpp
 ConstRefVector.cpp
