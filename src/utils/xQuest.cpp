@@ -3205,6 +3205,9 @@ protected:
     // TODO introduce flags for the different formats, with xQuest.xml as standard?
     progresslogger.startProgress(0, 1, "Writing output...");
     IdXMLFile().store(out_idxml, protein_ids, peptide_ids);
+    }
+    if (out_mzIdentML.size() > 0)
+    {
     MzIdentMLFile().store("mzid_test.mzid", protein_ids, peptide_ids);
 
     writeXQuestXML(out_xquest, all_top_csms, peptide_ids, spectra, spec_xml_name);
