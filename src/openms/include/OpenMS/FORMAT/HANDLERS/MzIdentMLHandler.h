@@ -152,6 +152,9 @@ protected:
       /// Helper method that writes the modification search params (fixed or variable)
       void writeModParam_(String& s, const std::vector<String>& mod_names, bool fixed, UInt indent) const;
 
+      /// Helper method that writes the FragmentAnnotations section of a spectrum identification
+      void writeFragmentAnnotations_(String& s, const std::vector<PeptideHit::FragmentAnnotation>& annotations, UInt indent) const;
+
 private:
       MzIdentMLHandler();
       MzIdentMLHandler(const MzIdentMLHandler& rhs);

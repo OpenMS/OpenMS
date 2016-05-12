@@ -48,7 +48,7 @@
 #include <set>
 
 #include <boost/lexical_cast.hpp>
-
+#include <boost/regex.hpp>
 
 using namespace std;
 
@@ -930,7 +930,7 @@ namespace OpenMS
           }
 
           // TODO ppxl write Fragmentation annotation ion types as given addition with cv alpha or beta
-          // string coding example: [alpha|ci$y3-H2O-NH3]5+
+          //writeFragmentAnnotations(String s, jt->getFragmentAnnotations());
           // TODO ppxl where to read https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/cv/XLMOD-1.0.0.csv
 
           std::set<String> peptide_result_details;
@@ -1299,6 +1299,84 @@ namespace OpenMS
           LOG_WARN << String("Registered ") + (fixed ? "fixed" : "variable") + " modification not writable, unknown or unable to convert to cv parameter." << std::endl;
         }
       }
+    }
+
+    void MzIdentMLHandler::writeFragmentAnnotations_(String& s, const std::vector<PeptideHit::FragmentAnnotation>& annotations, UInt indent) const
+    {
+      std::map<UInt,std::map<String,std::vector<StringList> > > annotation_map;
+      for (std::vector<PeptideHit::FragmentAnnotation>::const_iterator kt = annotations.begin();
+             kt != annotations.end(); ++kt)
+      {// string coding example: [alpha|ci$y3-H2O-NH3]5+
+        // static const boost::regex frag_regex("\\[(?:([\\|\\w]+)\\$)*([abcxyz])(\\d+)((?:[\\+\\-\\w])*)\\](\\d+)\\+"); // this will fetch the complete loss/gain part as one
+        static const boost::regex frag_regex_tweak("\\[(?:([\\|\\w]+)\\$)*([abcxyz])(\\d+)(?:-(H2O|NH3))*\\](\\d+)\\+"); // this will only fetch the last loss - and is preferred for now, as only these extra cv params are present
+        String ionseries_index;
+        String iontype;
+        //String loss_gain;
+        String loss;
+        StringList extra;
+        boost::smatch str_matches;
+        if (boost::regex_match(kt->annotation, str_matches, frag_regex_tweak))
+        {
+          String(str_matches[1]).split("|",extra);
+          iontype = std::string(str_matches[2]);
+          ionseries_index = std::string(str_matches[3]);
+          //loss_gain = str_matches[4];
+          loss = std::string(str_matches[4]);
+        }
+        else
+        {
+          LOG_WARN << "Well, fudge you very much, there is no matching annotation.\n";
+          continue;
+        }
+        String lt = "frag: " + iontype;
+        if (!loss.empty())
+            lt += " ion - "+loss;
+        if (annotation_map.find(kt->charge) == annotation_map.end())
+        {
+          annotation_map[kt->charge] = std::map<String, std::vector<StringList> >();
+        }
+        if (annotation_map[kt->charge].find(lt) == annotation_map[kt->charge].end())
+        {
+          annotation_map[kt->charge][lt] = std::vector<StringList> (3);
+        }
+        annotation_map[kt->charge][lt][0].push_back(ionseries_index);
+        annotation_map[kt->charge][lt][1].push_back(String(kt->mz));
+        annotation_map[kt->charge][lt][2].push_back(String(kt->intensity));
+      }
+
+      //double map: charge + ion type; collect in StringList: index + annotations; write:
+      s += String(indent, '\t') + "<Fragmentation>\n";
+      for (std::map<UInt,std::map<String,std::vector<StringList> > >::iterator i=annotation_map.begin();
+           i!=annotation_map.end(); ++i)
+      {
+        for (std::map<String,std::vector<StringList> >::iterator j=i->second.begin();
+             j!= i->second.end(); ++j)
+        {
+          s += String(indent+1, '\t') + "<IonType charge=\"" + String(i->first) +"\""
+                    + " index=\"" + ListUtils::concatenate(j->second[0], " ") + "\">\n";
+          s += String(indent+2, '\t') + "<FragmentArray measure_ref=\"Measure_MZ\""
+                    + " values=\"" + ListUtils::concatenate(j->second[1], " ") + "\"/>\n";
+          s += String(indent+2, '\t') + "<FragmentArray measure_ref=\"Measure_Int\""
+                    + " values=\"" + ListUtils::concatenate(j->second[2], " ") + "\"/>\n";
+          s += String(indent+2, '\t') + cv_.getTermByName(j->first).toXMLString("PSI-MS") + "\n";
+          s += String(indent+1, '\t') + "</IonType>\n";
+        }
+      }
+      s += String(indent, '\t') + "</Fragmentation>\n";
+//<Fragmentation>
+//    <IonType charge="1" index="2 3 5 6 5 6 10">
+//        <FragmentArray measure_ref="Measure_MZ" values="363.908 511.557 754.418 853.489 377.941 427.477 633.674"/>
+//        <FragmentArray measure_ref="Measure_Int" values="208.52 2034.9 1098.44 239.26 3325.34 3028.33 335.63"/>
+//        <FragmentArray measure_ref="Measure_Error" values="-0.255 0.326 0.101 0.104 0.285 0.287 0.369"/>
+//        <cvParam accession="MS:1001118" cvRef="PSI-MS" name="param: b ion"/>
+//    </IonType>
+//    <IonType charge="1" index="0 1 3 4 5 6 4 10">
+//        <FragmentArray measure_ref="Measure_MZ" values="175.202 246.812 474.82 587.465 686.52 814.542 294.235 652.206"/>
+//        <FragmentArray measure_ref="Measure_Int" values="84.44999 90.26999 143.95 3096.84 815.34 1.15999 612.52 18.79999"/>
+//        <FragmentArray measure_ref="Measure_Error" values="0.083 0.656 0.553 0.114 0.101 0.064 0.061 0.375"/>
+//        <cvParam accession="MS:1001262" cvRef="PSI-MS" name="param: y ion"/>
+//    </IonType>
+//</Fragmentation>
     }
   } //namespace Internal
 } // namespace OpenMS
