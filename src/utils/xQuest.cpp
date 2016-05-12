@@ -83,7 +83,7 @@ using namespace OpenMS;
 /**
     @page UTILS_xQuest xQuest
 
-    @brief Perform protein-protein cross-linking experiments.
+    @brief Perform protein-protein cross-linking experiment search.
 
     <CENTER>
     <table>
@@ -98,8 +98,6 @@ using namespace OpenMS;
         </tr>
     </table>
 </CENTER>
-
-    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_xQuest.cli
@@ -325,11 +323,14 @@ protected:
     setValidStrings_("algorithm:candidate_search", candidate_search_modes_strings);
 
     // output file
-    registerOutputFile_("out", "<file>", "", "Result file\n");
-    setValidFormats_("out", ListUtils::create<String>("xml"));
+    registerOutputFile_("out_xquestxml", "<file>", "", "Results in the original xquest.xml format");
+    setValidFormats_("out_xquestxml", ListUtils::create<String>("xml"));
 
-    registerOutputFile_("out_idXML", "<file>", "", "output file ");
+    registerOutputFile_("out_idXML", "<file>", "", "Results in idXML format");
     setValidFormats_("out_idXML", ListUtils::create<String>("idXML"));
+
+    registerOutputFile_("out_mzIdentML", "<file>","", "Results in mzIdentML (.mzid) format");
+    setValidFormats_("out_mzIdentML", ListUtils::create<String>("mzid"));
   }
 
   vector<ResidueModification> getModifications_(StringList modNames)
@@ -1842,8 +1843,9 @@ protected:
     const string in_fasta(getStringOption_("database"));
     const string in_decoy_fasta(getStringOption_("decoy_database"));
     const string in_consensus(getStringOption_("consensus"));
-    const string out_idxml(getStringOption_("out_idXML"));
-    const string out_xquest = getStringOption_("out");
+    const string out_idXML(getStringOption_("out_idXML"));
+    const string out_xquest = getStringOption_("out_xquestxml");
+    const string out_mzIdentML = getStringOption_("out_mzIdentML");
 
     const bool decoy_prefix(getFlag_("decoy_prefix"));
     const string decoy_string(getStringOption_("decoy_string"));
@@ -3130,12 +3132,15 @@ protected:
               ph_alpha.setFragmentAnnotations(top_csms_spectrum[i].frag_annotations);
               phs.push_back(ph_alpha);
 
+              // TODO FragmentAnnotation, common ions / cross-link ions
+
 
               if (top_csms_spectrum[i].cross_link.getType() == TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink::CROSS)
               {
                 ph_beta.setSequence(top_csms_spectrum[i].cross_link.beta);
                 ph_beta.setCharge(precursor_charge);
                 ph_beta.setScore(top_csms_spectrum[i].score);
+                ph_beta.setRank(i+1);
                 ph_beta.setMetaValue("xl_chain", "MS:1002510"); // receiver
                 ph_beta.setMetaValue("xl_pos", DataValue(beta_pos));
                 phs.push_back(ph_beta);
@@ -3144,6 +3149,8 @@ protected:
 
               peptide_id.setRT(spectrum_light.getRT());
               peptide_id.setMZ(precursor_mz);
+              String specIDs = spectra[scan_index].getNativeID() + "," + spectra[scan_index].getNativeID();
+              peptide_id.setMetaValue("spectrum_reference", specIDs);
 //              peptide_id.setMetaValue("spec_heavy_RT", spectra[scan_index_heavy].getRT());
 //              peptide_id.setMetaValue("spec_heavy_MZ", spectra[scan_index_heavy].getPrecursors()[0].getMZ());
 //              peptide_id.setMetaValue("spectrum_reference", spectra[scan_index].getNativeID());
@@ -3199,19 +3206,25 @@ protected:
 
 
     // write cross-links to IdXML and xquest.xml, write spectra for xquest visualization
-    String spec_xml_name = getStringOption_("in").prefix(getStringOption_("in").size()-7) + "_matched";
-    String spec_xml_filename = spec_xml_name + ".spec.xml";
+
 
     // TODO introduce flags for the different formats, with xQuest.xml as standard?
     progresslogger.startProgress(0, 1, "Writing output...");
-    IdXMLFile().store(out_idxml, protein_ids, peptide_ids);
+    if (out_idXML.size() > 0)
+    {
+      IdXMLFile().store(out_idxml, protein_ids, peptide_ids);
     }
     if (out_mzIdentML.size() > 0)
     {
-    MzIdentMLFile().store("mzid_test.mzid", protein_ids, peptide_ids);
-
-    writeXQuestXML(out_xquest, all_top_csms, peptide_ids, spectra, spec_xml_name);
-    writeXQuestXMLSpec(spec_xml_filename, spectra, preprocessed_pair_spectra, spectrum_pairs, all_top_csms);
+      MzIdentMLFile().store(out_mzIdentML, protein_ids, peptide_ids);
+    }
+    if (out_xquest.size() > 0)
+    {
+      writeXQuestXML(out_xquest, all_top_csms, peptide_ids, spectra, spec_xml_name);
+      String spec_xml_name = getStringOption_("in").prefix(getStringOption_("in").size()-7) + "_matched";
+      String spec_xml_filename = spec_xml_name + ".spec.xml";
+      writeXQuestXMLSpec(spec_xml_filename, spectra, preprocessed_pair_spectra, spectrum_pairs, all_top_csms);
+    }
     progresslogger.endProgress();
 
  
