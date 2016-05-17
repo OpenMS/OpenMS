@@ -68,7 +68,7 @@ START_SECTION(~InternalCalibration())
 END_SECTION
 
 
-START_SECTION(Size fillCalibrants(const MSExperiment<> exp, const std::vector<InternalCalibration::LockMass>& ref_masses, double tol_ppm, bool lock_require_mono, bool lock_require_iso, bool verbose = true))
+START_SECTION(Size fillCalibrants(const MSExperiment<> exp, const std::vector<InternalCalibration::LockMass>& ref_masses, double tol_ppm, bool lock_require_mono, bool lock_require_iso, CalibrationData& failed_lock_masses, bool verbose = true))
   MSExperiment<> exp;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("InternalCalibration_2_lockmass.mzML.gz"), exp);
   std::vector<InternalCalibration::LockMass> ref_masses;
@@ -78,7 +78,8 @@ START_SECTION(Size fillCalibrants(const MSExperiment<> exp, const std::vector<In
   ref_masses.push_back(InternalCalibration::LockMass(680.48022, 1, 1));
 
   InternalCalibration ic;
-  Size cal_count = ic.fillCalibrants(exp, ref_masses, 25.0, true, false, true); // no 'require_iso', since the example data has really high C13 mass error (up to 7ppm to +1 iso)
+  CalibrationData failed_locks;
+  Size cal_count = ic.fillCalibrants(exp, ref_masses, 25.0, true, false, failed_locks, true); // no 'require_iso', since the example data has really high C13 mass error (up to 7ppm to +1 iso)
 
   TEST_EQUAL(cal_count, 21 * 3); // 21 MS1 scans, 3 calibrants each
 
