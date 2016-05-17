@@ -46,9 +46,9 @@ namespace OpenMS
   class AASequence;
 
   /**
-      @brief Generates theoretical spectra with various options
+      @brief Generates theoretical spectra for cross-linked peptides with various options
 
-  @htmlinclude OpenMS_TheoreticalSpectrumGenerator.parameters
+  @htmlinclude OpenMS_TheoreticalSpectrumGeneratorXLinks.parameters
 
       @ingroup Chemistry
   */
@@ -76,6 +76,7 @@ public:
       AASequence beta; // shorter peptide (empty for mono-link), tie bracker: mass then lexicographical
       std::pair<SignedSize, SignedSize> cross_link_position; // index in alpha, beta or between alpha, alpha in loop-links
       double cross_linker_mass;
+      String cross_linker_name;
 
       ProteinProteinCrossLinkType getType() const
       {
@@ -122,16 +123,16 @@ public:
      */
     //@{
     /// returns a spectrum with b and y peaks
-    virtual void getSpectrum(RichPeakSpectrum & spec, const ProteinProteinCrossLink & cross_link, Int charge = 1) const;
+    //virtual void getSpectrum(RichPeakSpectrum & spec, const ProteinProteinCrossLink & cross_link, Int charge = 1) const;
     virtual void getCommonIonSpectrum(RichPeakSpectrum & spec, const ProteinProteinCrossLink & cross_link, Int charge = 1, bool fragment_alpha_chain = true) const;
-    virtual void getCommonIonSpectrum(RichPeakSpectrum & spec, const AASequence & peptide, Int charge = 1) const;
+    //virtual void getCommonIonSpectrum(RichPeakSpectrum & spec, const AASequence & peptide, Int charge = 1) const;
     virtual void getXLinkIonSpectrum(RichPeakSpectrum & spec_alpha, RichPeakSpectrum & spec_beta, const ProteinProteinCrossLink& cross_link, Int mincharge, Int maxcharge) const;
     virtual void getXLinkIonSpectrum(RichPeakSpectrum & spec_alpha, const ProteinProteinCrossLink& cross_link, Int mincharge, Int maxcharge) const;
 
 
     /// adds peaks to a spectrum of the given ion-type, peptide, charge, and intensity
-    virtual void addPeaks(RichPeakSpectrum & spectrum, const ProteinProteinCrossLink & cross_link, Residue::ResidueType res_type, Int charge = 1) const;
-    virtual void addCommonPeaks(RichPeakSpectrum & spectrum, const AASequence & peptide, Residue::ResidueType res_type, Int charge = 1) const;
+    //virtual void addPeaks(RichPeakSpectrum & spectrum, const ProteinProteinCrossLink & cross_link, Residue::ResidueType res_type, Int charge = 1) const;
+    //virtual void addCommonPeaks(RichPeakSpectrum & spectrum, const AASequence & peptide, Residue::ResidueType res_type, Int charge = 1) const;
     virtual void addCommonPeaks(RichPeakSpectrum & spectrum, const ProteinProteinCrossLink & cross_link, Residue::ResidueType res_type, Int charge = 1, bool fragment_alpha_chain = true) const;
     virtual void addXLinkIonPeaks(RichPeakSpectrum & spec_alpha, RichPeakSpectrum & spec_beta, const ProteinProteinCrossLink & cross_link, Residue::ResidueType res_type, Int charge) const;
     virtual void addXLinkIonPeaks(RichPeakSpectrum & spec_alpha, const ProteinProteinCrossLink & cross_link, Residue::ResidueType res_type, Int charge) const;
@@ -141,7 +142,49 @@ public:
 
     /// Adds the common, most abundant immonium ions to the theoretical spectra if the residue is contained in the peptide sequence
     void addAbundantImmoniumIons(RichPeakSpectrum & spec, const AASequence& peptide) const;
+
+    /// overwrite
+    void updateMembers_();
+
     //@}
+
+    protected:
+      /// helper to add an isotope cluster to a spectrum
+      // TODO generate isotope patterns for cross-linked peptides
+      //void addIsotopeCluster_(RichPeakSpectrum & spectrum, const AASequence & ion, Residue::ResidueType res_type, Int charge, double intensity) const;
+
+      /// helper to add a single peak to a spectrum
+      //void addPeak_(RichPeakSpectrum & spectrum, double pos, double intensity, Residue::ResidueType res_type, Size ion_index, int charge) const;
+
+      /// helper for mapping residue type to letter
+      //char residueTypeToIonLetter_(Residue::ResidueType res_type) const;
+
+      /// helper to add full neutral loss ladders
+      //void addLosses_(RichPeakSpectrum & spectrum, const AASequence & ion, double intensity, Residue::ResidueType res_type, int charge) const;
+
+      bool add_b_ions_;
+      bool add_y_ions_;
+      bool add_a_ions_;
+      bool add_c_ions_;
+      bool add_x_ions_;
+      bool add_z_ions_;
+      bool add_first_prefix_ion_;
+      bool add_losses_;
+      bool add_metainfo_;
+      bool add_isotopes_;
+      bool add_precursor_peaks;
+      bool add_abundant_immonium_ions;
+      double a_intensity_;
+      double b_intensity_;
+      double c_intensity_;
+      double x_intensity_;
+      double y_intensity_;
+      double z_intensity_;
+      Int max_isotope_;
+      double rel_loss_intensity_;
+      double pre_int_;
+      double pre_int_H2O_;
+      double pre_int_NH3_;
   };
 }
 
