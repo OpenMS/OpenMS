@@ -314,6 +314,7 @@ protected:
     registerDoubleOption_("cross_linker:mass_light", "<mass>", 138.0680796, "Mass of the light cross-linker, linking two residues on one or two peptides", false);
     registerDoubleOption_("cross_linker:mass_iso_shift", "<mass>", 12.075321, "Mass of the isotopic shift between the light and heavy linkers", false);
     registerDoubleList_("cross_linker:mass_mono_link", "<mass>", ListUtils::create<double>("156.0786442, 155.0964278"), "Possible masses of the linker, when attached to only one peptide", false);
+    registerStringList_("cross_linker:names", "<list of strings>", ListUtils::create<String>("Xlink:DSS, Xlink:DSS!Hydrolyzed, Xlink:DSS!Amidated"), "Names of the searched cross-links, first the cross-link and then the mono-links in the same order as their masses", false);
 
     registerTOPPSubsection_("algorithm", "Algorithm Options");
     registerStringOption_("algorithm:candidate_search", "<param>", "index", "Mode used to generate candidate peptides.", false, false);
@@ -322,14 +323,16 @@ protected:
     candidate_search_modes_strings.push_back("enumeration");
     setValidStrings_("algorithm:candidate_search", candidate_search_modes_strings);
 
+    registerIntOption_("algorithm:number_top_hits", "<num>", 5, "Number of top hits reported for each spectrum pair", false, true);
+
     // output file
-    registerOutputFile_("out_xquestxml", "<file>", "", "Results in the original xquest.xml format");
+    registerOutputFile_("out_xquestxml", "<file>", "", "Results in the original xquest.xml format", false);
     setValidFormats_("out_xquestxml", ListUtils::create<String>("xml"));
 
-    registerOutputFile_("out_idXML", "<file>", "", "Results in idXML format");
+    registerOutputFile_("out_idXML", "<file>", "", "Results in idXML format", false);
     setValidFormats_("out_idXML", ListUtils::create<String>("idXML"));
 
-    registerOutputFile_("out_mzIdentML", "<file>","", "Results in mzIdentML (.mzid) format");
+    registerOutputFile_("out_mzIdentML", "<file>","", "Results in mzIdentML (.mzid) format", false);
     setValidFormats_("out_mzIdentML", ListUtils::create<String>("mzid"));
   }
 
@@ -1521,8 +1524,6 @@ protected:
     void writeXQuestXML(const String& out_file, const vector< vector< CrossLinkSpectrumMatch > >& all_top_csms, const vector< PeptideIdentification >& peptide_ids, const PeakMap& spectra, String spec_xml_name)
     {
 
-      // TODO Missing Parameters/Information :
-
       ofstream xml_file;
       xml_file.open(out_file.c_str(), ios::trunc);
       // XML Header
@@ -1530,7 +1531,57 @@ protected:
       xml_file << "<?xml-stylesheet type=\"text/xsl\" href=\"\"?>" << endl;
 
       // TODO!!! write actual experiment data
-      xml_file << "<xquest_results xquest_version=\"openxquest 1.0\" date=\"Fri Dec 18 12:28:23 2015\" author=\"Thomas Walzthoeni,Oliver Rinner\" homepage=\"http://proteomics.ethz.ch\" deffile=\"xquest.def\" tolerancemeasure_ms2=\"Da\" crosslinkername=\"DSS\" commonlossxcorrweigth=\"3\" poolisotopes=\"0\" xcorr_tolerance_window=\"0\" redundant_peps=\"0\" picktolerance=\"500\" monolinkmw=\"156.0786442,155.0964278\" search_maxcandidate_peps=\"250\" requiredmissed_cleavages=\"0\" picktolerance_measure=\"ppm\" database=\"/home/eugen/MSData/26S_testdataset/db/26Syeast.fasta\" fragmentresiduals=\"HASH(0x37998e0)\" xlinktypes=\"1111\" maxiontaghits=\"0\" AArequired=\"K\" miniontaghits=\"1\" cp_minpeaknumber=\"25\" cp_isotopediff=\"12.075321\" xkinkerID=\"DSS\" maxdigestlength=\"50\" y_ion=\"19.0183888\" cp_nhighest=\"100\" uselossionsformatching=\"0\" mindigestlength=\"5\" indexcharges_common=\"ARRAY(0x378c600)\" enzyme_num=\"1\" testionspick=\"intensity\" xlink_ms2tolerance=\"0.3\" waterloss=\"0\" database_dc=\"/home/eugen/MSData/26S_testdataset/db/26Syeast_decoy.fasta\" iontag_match_xlinkions=\"1\" averageMS2=\"0\" wTICweight=\"12.829\" minionsize=\"200\" x_ion=\"44.9976546\" commonxcorrweigth=\"10\" a_ion=\"-26.9870904\" drawlogscale=\"0\" fwd_ions=\"a|b|c\" experiment=\"BSAtest\" matchoddsweight=\"1.973\" nh3loss=\"0\" verbose=\"0\" enumeration_index_mode=\"smarthash\" maxionsize=\"2000\" outputpath=\"" << spec_xml_name << "\" search_intercrosslinks=\"1\" cp_tolerancemeasure=\"ppm\" reportnbesthits=\"5\" cp_dynamic_range=\"1000\" xlinkermw=\"138.0680796\" ms1tol_maxborder=\"10\" enumerate=\"0\" ionindexintprecision=\"10\" writetodiskaftern=\"100000000\" intsumweight=\"0.018\" xlinkxcorrweigth=\"10\" search_monolinks=\"1\" cp_peakratio=\"0.3\" rev_ions=\"x|y|z\" xcorrprecision=\"0.2\" RuntimeDecoys=\"1\" intprecision=\"10\" Iontag_charges_for_index=\"1\" Iontag_writeaftern=\"1200\" z_ion=\"2.9998388\" tryptic_termini=\"2\" cp_tolerance=\"400\" printpeptides=\"1\" ntestions=\"100\" b_ion=\"1.0078246\" normxcorr=\"1\" ioncharge_xlink=\"ARRAY(0x378c8d0)\" ionseries_array=\"ARRAY(0x378cd68)\" cp_scaleby=\"max\" printdigestpeps=\"0\" cp_tolerancexl=\"500\" search_intralinks=\"1\" minionintensity=\"1\" nvariable_mod=\"1\" missed_cleavages=\"2\" ntermxlinkable=\"0\" cp_threshold=\"1\" tolerancemeasure=\"ppm\" CID_match2ndisotope=\"1\" variable_mod=\"M,15.99491\" nocutatxlink=\"1\" minpepmr=\"550\" realintensities4xcorr=\"0\" printcandidatepeps=\"0\" xcorrdelay=\"5\" xcorrxweight=\"2.488\" minhits=\"1\" ms1tol_minborder=\"-10\" drawspectra=\"0\" cp_scaleintensity=\"1\" ms2tolerance=\"0.2\" maxpepmr=\"5500\" printtables=\"0\" ionseries=\"HASH(0x378cc00)\" usenprescores=\"100\" search_intracrosslinks=\"1\" Iontagmode=\"1\" ms1tolerance=\"10\" ioncharge_common=\"ARRAY(0x378c720)\" xcorrbweight=\"21.279\" c_ion=\"18.0343724\" copydb2resdir=\"1\" Hatom=\"1.007825032\" >" << endl;
+      // original date/time: Fri Dec 18 12:28:23 2015
+      DateTime time= DateTime::now();
+      String timestring = time.getDate() + " " + time.getTime();
+
+      String precursor_mass_tolerance_unit = getStringOption_("precursor:mass_tolerance_unit");
+      String fragment_mass_tolerance_unit = getStringOption_("fragment:mass_tolerance_unit");
+      double precursor_mass_tolerance = getDoubleOption_("precursor:mass_tolerance");
+      double fragment_mass_tolerance = getDoubleOption_("fragment:mass_tolerance");
+      double fragment_mass_tolerance_xlinks = getDoubleOption_("fragment:mass_tolerance_xlinks");
+
+      StringList cross_link_names = getStringList_("cross_linker:names");
+      double cross_link_mass_light = getDoubleOption_("cross_linker:mass_light");
+      DoubleList cross_link_mass_mono_link = getDoubleList_("cross_linker:mass_mono_link");
+      String mono_masses;
+      for (Size k = 0; k < cross_link_mass_mono_link.size()-1; ++k)
+      {
+        mono_masses += String(cross_link_mass_mono_link[k]) + ", ";
+      }
+      mono_masses += cross_link_mass_mono_link[cross_link_mass_mono_link.size()-1];
+
+      const string in_fasta(getStringOption_("database"));
+      const string in_decoy_fasta(getStringOption_("decoy_database"));
+      StringList cross_link_residue1 = getStringList_("cross_linker:residue1");
+      StringList cross_link_residue2 = getStringList_("cross_linker:residue2");
+      String aarequired1, aarequired2;
+      for (Size k= 0; k < cross_link_residue1.size()-1; ++k)
+      {
+        aarequired1 += cross_link_residue1[k] + ",";
+      }
+      aarequired1 += cross_link_residue1[cross_link_residue1.size()-1];
+      for (Size k= 0; k < cross_link_residue2.size()-1; ++k)
+      {
+        aarequired2 += cross_link_residue2[k] + ",";
+      }
+      aarequired2 += cross_link_residue2[cross_link_residue2.size()-1];
+
+      double cross_link_mass_iso_shift = getDoubleOption_("cross_linker:mass_iso_shift");
+      String enzyme_name = getStringOption_("peptide:enzyme");
+      Size missed_cleavages = getIntOption_("peptide:missed_cleavages");
+
+      xml_file << "<xquest_results xquest_version=\"openxquest 1.0\" date=\"" << timestring <<
+             "\" author=\"Eugen Netz, Timo Sachsenberg\" tolerancemeasure_ms1=\"" << precursor_mass_tolerance_unit  <<
+             "\" tolerancemeasure_ms2=\"" << fragment_mass_tolerance_unit << "\" ms1tolerance=\"" << precursor_mass_tolerance <<
+             "\" ms2tolerance=\"" << fragment_mass_tolerance << "\" xlink_ms2tolerance=\"" << fragment_mass_tolerance_xlinks <<
+             "\" crosslinkername=\"" << cross_link_names[0] << "\" xlinkermw=\"" << cross_link_mass_light <<
+             "\" monolinkmw=\"" << mono_masses << "\" database=\"" << in_fasta << "\" database_dc=\"" << in_decoy_fasta <<
+             "\" xlinktypes=\"1111\" AArequired1=\"" << aarequired1 << "\" AArequired2=\"" << aarequired2 <<  "\" cp_isotopediff=\"" << cross_link_mass_iso_shift <<
+             "\" enzyme_name=\"" << enzyme_name << "\" outputpath=\"" << spec_xml_name <<
+             "\" Iontag_charges_for_index=\"1\" missed_cleavages=\"" << missed_cleavages <<
+             "\" ntermxlinkable=\"0\" CID_match2ndisotope=\"1" <<
+             "\" variable_mod=\"TODO\" nocutatxlink=\"1\" xcorrdelay=\"5\" >" << endl;
 
 
 
@@ -1748,6 +1799,7 @@ protected:
     double cross_link_mass_light = getDoubleOption_("cross_linker:mass_light");
     double cross_link_mass_iso_shift = getDoubleOption_("cross_linker:mass_iso_shift");
     DoubleList cross_link_mass_mono_link = getDoubleList_("cross_linker:mass_mono_link");
+    StringList cross_link_names = getStringList_("cross_linker:names");
 
     StringList fixedModNames = getStringList_("modifications:fixed");
     set<String> fixed_unique(fixedModNames.begin(), fixedModNames.end());
@@ -1755,6 +1807,7 @@ protected:
     Size peptide_min_size = getIntOption_("peptide:min_size");
 
     bool ion_index_mode = (getStringOption_("algorithm:candidate_search") == "index");
+    Int number_top_hits = getIntOption_("algorithm:number_top_hits");
 
     if (fixed_unique.size() != fixedModNames.size())
     {
@@ -2441,6 +2494,7 @@ protected:
               if (link_pos_second[y] != -1)
               {
                 cross_link_candidate.cross_linker_mass = cross_link_mass_light;
+                cross_link_candidate.cross_linker_name = cross_link_names[0];
                 cross_link_candidates.push_back(cross_link_candidate);
               }
               else
@@ -2448,6 +2502,7 @@ protected:
                 for (Size k = 0; k < cross_link_mass_mono_link.size(); ++k)
                 {
                   cross_link_candidate.cross_linker_mass = cross_link_mass_mono_link[k];
+                  cross_link_candidate.cross_linker_name = cross_link_names[k+1];
                   cross_link_candidates.push_back(cross_link_candidate);
                 }
               }
@@ -2717,7 +2772,7 @@ protected:
             Int top = 0;
 
             // collect top 5 matches to spectrum
-            while(!all_csms_spectrum.empty() && top < 5)
+            while(!all_csms_spectrum.empty() && top < number_top_hits)
             {
               top++;
 
@@ -2786,9 +2841,10 @@ protected:
               else
               {
                 // TODO hardcoded for DSS, make this an input parameter or something, NO UNIMOD ACCESSION AVAILBALE, for now name and mass
-                ph_alpha.setMetaValue("xl_mod", "Xlink:DSS-linked");
-                ph_alpha.setMetaValue("xl_mass", DataValue(top_csms_spectrum[i].cross_link.cross_linker_mass));
+              ph_alpha.setMetaValue("xl_mod", top_csms_spectrum[i].cross_link.cross_linker_name);
+              ph_alpha.setMetaValue("xl_mass", DataValue(top_csms_spectrum[i].cross_link.cross_linker_mass));
               }
+
 
               if (top_csms_spectrum[i].cross_link.getType() == TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink::LOOP)
               {
@@ -2866,7 +2922,7 @@ protected:
     progresslogger.startProgress(0, 1, "Writing output...");
     if (out_idXML.size() > 0)
     {
-      IdXMLFile().store(out_idxml, protein_ids, peptide_ids);
+      IdXMLFile().store(out_idXML, protein_ids, peptide_ids);
     }
     if (out_mzIdentML.size() > 0)
     {
@@ -2874,9 +2930,9 @@ protected:
     }
     if (out_xquest.size() > 0)
     {
-      writeXQuestXML(out_xquest, all_top_csms, peptide_ids, spectra, spec_xml_name);
       String spec_xml_name = getStringOption_("in").prefix(getStringOption_("in").size()-7) + "_matched";
       String spec_xml_filename = spec_xml_name + ".spec.xml";
+      writeXQuestXML(out_xquest, all_top_csms, peptide_ids, spectra, spec_xml_name);
       writeXQuestXMLSpec(spec_xml_filename, spectra, preprocessed_pair_spectra, spectrum_pairs, all_top_csms);
     }
     progresslogger.endProgress();
