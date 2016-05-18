@@ -128,14 +128,12 @@ namespace OpenMS
 
   void TheoreticalSpectrumGeneratorXLinks::getCommonIonSpectrum(RichPeakSpectrum & spec, const ProteinProteinCrossLink& cross_link, Int charge, bool fragment_alpha_chain) const
   {
-    bool add_b_ions(param_.getValue("add_b_ions").toBool());
-    bool add_y_ions(param_.getValue("add_y_ions").toBool());
 
     for (Int z = 1; z <= charge; ++z)
     {
-      if (add_b_ions)
+      if (add_b_ions_)
         addCommonPeaks(spec, cross_link, Residue::BIon, z, fragment_alpha_chain);
-      if (add_y_ions)
+      if (add_y_ions_)
         addCommonPeaks(spec, cross_link, Residue::YIon, z, fragment_alpha_chain);
     }
 
@@ -145,14 +143,11 @@ namespace OpenMS
   void TheoreticalSpectrumGeneratorXLinks::getXLinkIonSpectrum(RichPeakSpectrum & spec_alpha, RichPeakSpectrum & spec_beta, const ProteinProteinCrossLink& cross_link, Int mincharge, Int maxcharge) const
   {
 
-    bool add_b_ions(param_.getValue("add_b_ions").toBool());
-    bool add_y_ions(param_.getValue("add_y_ions").toBool());
-
     for (Int z = mincharge; z <= maxcharge; ++z)
     {
-      if (add_b_ions)
+      if (add_b_ions_)
         addXLinkIonPeaks(spec_alpha, spec_beta, cross_link, Residue::BIon, z);
-      if (add_y_ions)
+      if (add_y_ions_)
         addXLinkIonPeaks(spec_alpha, spec_beta, cross_link, Residue::YIon, z);
     }
 
@@ -165,14 +160,11 @@ namespace OpenMS
   void TheoreticalSpectrumGeneratorXLinks::getXLinkIonSpectrum(RichPeakSpectrum & spec_alpha, const ProteinProteinCrossLink& cross_link, Int mincharge, Int maxcharge) const
   {
 
-    bool add_b_ions(param_.getValue("add_b_ions").toBool());
-    bool add_y_ions(param_.getValue("add_y_ions").toBool());
-
     for (Int z = mincharge; z <= maxcharge; ++z)
     {
-      if (add_b_ions)
+      if (add_b_ions_)
         addXLinkIonPeaks(spec_alpha, cross_link, Residue::BIon, z);
-      if (add_y_ions)
+      if (add_y_ions_)
         addXLinkIonPeaks(spec_alpha, cross_link, Residue::YIon, z);
     }
 
@@ -200,7 +192,7 @@ namespace OpenMS
     Map<double, String> names;
     AASequence ion;
     double intensity(1.0);
-    bool add_first_prefix_ion(param_.getValue("add_first_prefix_ion").toBool());
+    //bool add_first_prefix_ion(param_.getValue("add_first_prefix_ion").toBool());
 
 //    double xlink_mass = param_.getValue("cross_link_type2_mass");
     double peptideA_mass(peptideA.getMonoWeight());
@@ -258,7 +250,7 @@ namespace OpenMS
       }
 
 
-      intensity = (double)param_.getValue("b_intensity");
+      intensity = b_intensity_;
       break;
     }
 
@@ -293,20 +285,13 @@ namespace OpenMS
         }
       }
 
-      intensity = (double)param_.getValue("y_intensity");
+      intensity = y_intensity_;
       break;
     }
 
     default:
       cerr << "Cannot create peaks of that ion type" << endl;
     }
-
-    // get the params
-    bool add_losses(param_.getValue("add_losses").toBool());
-    bool add_metainfo(param_.getValue("add_metainfo").toBool());
-    bool add_isotopes(param_.getValue("add_isotopes").toBool());
-    Int max_isotope((Int)param_.getValue("max_isotope"));
-    double rel_loss_intensity((double)param_.getValue("relative_loss_intensity"));
 
     RichPeak1D p;
     for (Map<double, AASequence>::ConstIterator cit = ions_alpha.begin(); cit != ions_alpha.end(); ++cit)
@@ -317,15 +302,14 @@ namespace OpenMS
 
         p.setMZ(pos);
         p.setIntensity(intensity);
-        if (add_metainfo)
+        if (add_metainfo_)
         {
           p.setMetaValue("IonName", ion_name);
           p.setMetaValue("z", charge);
         }
         spec_alpha.push_back(p);
-//      }
 
-      if (add_losses)
+      if (add_losses_)
       {
         set<String> losses;
         for (AASequence::ConstIterator it = cit->second.begin(); it != cit->second.end(); ++it)
@@ -341,9 +325,9 @@ namespace OpenMS
         }
 
 
-        if (!add_isotopes)
+        if (!add_isotopes_)
         {
-          p.setIntensity(intensity * rel_loss_intensity);
+          p.setIntensity(intensity * rel_loss_intensity_);
         }
 
         for (set<String>::const_iterator it = losses.begin(); it != losses.end(); ++it)
@@ -368,7 +352,7 @@ namespace OpenMS
           String loss_name = *it;
 
             p.setMZ(loss_pos);
-            if (add_metainfo)
+            if (add_metainfo_)
             {
               p.setMetaValue("IonName", ion_name + "-" + loss_name);
               p.setMetaValue("z", charge);
@@ -387,7 +371,7 @@ namespace OpenMS
 
         p.setMZ(pos);
         p.setIntensity(intensity);
-        if (add_metainfo)
+        if (add_metainfo_)
         {
           p.setMetaValue("IonName", ion_name);
           p.setMetaValue("z", charge);
@@ -395,7 +379,7 @@ namespace OpenMS
         spec_beta.push_back(p);
 
 
-      if (add_losses)
+      if (add_losses_)
       {
         set<String> losses;
         for (AASequence::ConstIterator it = cit->second.begin(); it != cit->second.end(); ++it)
@@ -411,9 +395,9 @@ namespace OpenMS
         }
 
 
-        if (!add_isotopes)
+        if (!add_isotopes_)
         {
-          p.setIntensity(intensity * rel_loss_intensity);
+          p.setIntensity(intensity * rel_loss_intensity_);
         }
 
         for (set<String>::const_iterator it = losses.begin(); it != losses.end(); ++it)
@@ -437,15 +421,15 @@ namespace OpenMS
           double loss_pos = (loss_ion.getMonoWeight() + (cross_link_mass + peptideB_mass))/ (double)charge;
           String loss_name = *it;
 
-          if (add_isotopes)
+          if (add_isotopes_)
           {
-            IsotopeDistribution dist = loss_ion.getIsotopeDistribution(max_isotope);
+            IsotopeDistribution dist = loss_ion.getIsotopeDistribution(max_isotope_);
             UInt j(0);
             for (IsotopeDistribution::ConstIterator iso = dist.begin(); iso != dist.end(); ++iso)
             {
               p.setMZ((double)(loss_pos + j) / (double)charge);
-              p.setIntensity(intensity * rel_loss_intensity * iso->second);
-              if (add_metainfo && j == 0)
+              p.setIntensity(intensity * rel_loss_intensity_ * iso->second);
+              if (add_metainfo_ && j == 0)
               {
                 p.setMetaValue("IonName", ion_name + "-" + loss_name);
               }
@@ -455,7 +439,7 @@ namespace OpenMS
           else
           {
             p.setMZ(loss_pos);
-            if (add_metainfo)
+            if (add_metainfo_)
             {
               p.setMetaValue("IonName", ion_name + "-" + loss_name);
               p.setMetaValue("z", charge);
@@ -466,7 +450,7 @@ namespace OpenMS
       }
     }
 
-    if (add_metainfo)
+    if (add_metainfo_)
     {
       p.setMetaValue("IonName", String(""));
     }
@@ -517,7 +501,7 @@ namespace OpenMS
     Map<double, String> names;
     AASequence ion;
     double intensity(1.0);
-    bool add_first_prefix_ion(param_.getValue("add_first_prefix_ion").toBool());
+    //bool add_first_prefix_ion(param_.getValue("add_first_prefix_ion").toBool());
 
     // Debug support output
     /*
@@ -550,7 +534,7 @@ namespace OpenMS
 //        cout << "XLink PepA, b-ion: " << ion.toString() << "\t Charge: " << charge << "\t Mono: " << (ion.getMonoWeight(Residue::BIon, charge) + (cross_link_mass + peptideB_mass)) << "\t MZ: " << pos << endl;
       }
 
-      intensity = (double)param_.getValue("b_intensity");
+      intensity = b_intensity_;
       break;
     }
 
@@ -569,20 +553,13 @@ namespace OpenMS
 //        cout << "XLink PepA, y-ion: " << ion.toString() << "\t Charge: " << charge << "\t Mono: " << (ion.getMonoWeight(Residue::BIon, charge) + (cross_link_mass + peptideB_mass)) << "\t MZ: " << pos << endl;
       }
 
-      intensity = (double)param_.getValue("y_intensity");
+      intensity = y_intensity_;
       break;
     }
 
     default:
       cerr << "Cannot create peaks of that ion type" << endl;
     }
-
-    // get the params
-    bool add_losses(param_.getValue("add_losses").toBool());
-    bool add_metainfo(param_.getValue("add_metainfo").toBool());
-    bool add_isotopes(param_.getValue("add_isotopes").toBool());
-    Int max_isotope((Int)param_.getValue("max_isotope"));
-    double rel_loss_intensity((double)param_.getValue("relative_loss_intensity"));
 
     RichPeak1D p;
     for (Map<double, AASequence>::ConstIterator cit = ions_alpha.begin(); cit != ions_alpha.end(); ++cit)
@@ -593,7 +570,7 @@ namespace OpenMS
 
         p.setMZ(pos);
         p.setIntensity(intensity);
-        if (add_metainfo)
+        if (add_metainfo_)
         {
           p.setMetaValue("IonName", ion_name);
           p.setMetaValue("z", charge);
@@ -601,7 +578,7 @@ namespace OpenMS
         spec_alpha.push_back(p);
 
 
-      if (add_losses)
+      if (add_losses_)
       {
         set<String> losses;
         for (AASequence::ConstIterator it = cit->second.begin(); it != cit->second.end(); ++it)
@@ -617,9 +594,9 @@ namespace OpenMS
         }
 
 
-        if (!add_isotopes)
+        if (!add_isotopes_)
         {
-          p.setIntensity(intensity * rel_loss_intensity);
+          p.setIntensity(intensity * rel_loss_intensity_);
         }
 
         for (set<String>::const_iterator it = losses.begin(); it != losses.end(); ++it)
@@ -644,7 +621,7 @@ namespace OpenMS
           String loss_name = *it;
 
             p.setMZ(loss_pos);
-            if (add_metainfo)
+            if (add_metainfo_)
             {
               p.setMetaValue("IonName", ion_name + "-" + loss_name);
               p.setMetaValue("z", charge);
@@ -655,7 +632,7 @@ namespace OpenMS
       }
     }
 
-    if (add_metainfo)
+    if (add_metainfo_)
     {
       p.setMetaValue("IonName", String(""));
     }
@@ -667,7 +644,7 @@ namespace OpenMS
 
   void TheoreticalSpectrumGeneratorXLinks::addAbundantImmoniumIons(RichPeakSpectrum & spec, const AASequence& peptide) const
   {
-    bool add_metainfo(param_.getValue("add_metainfo").toBool());
+    //bool add_metainfo(param_.getValue("add_metainfo").toBool());
 
     RichPeak1D p;
 
@@ -679,7 +656,7 @@ namespace OpenMS
     {
       p.setMZ(110.0718);
       p.setIntensity(1.0);
-      if (add_metainfo)
+      if (add_metainfo_)
       {
         String name("iH");
         p.setMetaValue("IonName", name);
@@ -692,7 +669,7 @@ namespace OpenMS
     {
       p.setMZ(120.0813);
       p.setIntensity(1.0);
-      if (add_metainfo)
+      if (add_metainfo_)
       {
         String name("iF");
         p.setMetaValue("IonName", name);
@@ -705,7 +682,7 @@ namespace OpenMS
     {
       p.setMZ(136.0762);
       p.setIntensity(1.0);
-      if (add_metainfo)
+      if (add_metainfo_)
       {
         String name("iY");
         p.setMetaValue("IonName", name);
@@ -718,7 +695,7 @@ namespace OpenMS
     {
       p.setMZ(86.09698);
       p.setIntensity(1.0);
-      if (add_metainfo)
+      if (add_metainfo_)
       {
         String name("iL/I");
         p.setMetaValue("IonName", name);
@@ -731,7 +708,7 @@ namespace OpenMS
     {
       p.setMZ(159.0922);
       p.setIntensity(1.0);
-      if (add_metainfo)
+      if (add_metainfo_)
       {
         String name("iW");
         p.setMetaValue("IonName", name);
@@ -744,7 +721,7 @@ namespace OpenMS
     {
       p.setMZ(76.0221);
       p.setIntensity(1.0);
-      if (add_metainfo)
+      if (add_metainfo_)
       {
         String name("iC");
         p.setMetaValue("IonName", name);
@@ -757,7 +734,7 @@ namespace OpenMS
     {
       p.setMZ(70.0656);
       p.setIntensity(1.0);
-      if (add_metainfo)
+      if (add_metainfo_)
       {
         String name("iP");
         p.setMetaValue("IonName", name);
@@ -822,7 +799,7 @@ namespace OpenMS
     Map<double, String> names;
     AASequence ion;
     double intensity(1.0);
-    bool add_first_prefix_ion(param_.getValue("add_first_prefix_ion").toBool());
+    //bool add_first_prefix_ion(param_.getValue("add_first_prefix_ion").toBool());
 
     //cout << "CommonIons, peptide: " << peptide.toString() << endl;
 
@@ -835,7 +812,7 @@ namespace OpenMS
     case Residue::BIon:
     {
       Size i = 1;
-      if (!add_first_prefix_ion)
+      if (!add_first_prefix_ion_)
       {
         i = 2;
       }
@@ -855,7 +832,7 @@ namespace OpenMS
 
 //        cout << "CommonIons, b-ion: " << ion.toString() << "\t Charge: " << charge << "\t Mono: " << ion.getMonoWeight(Residue::BIon, charge) << "\t MZ: " << pos << endl;
       }
-      intensity = static_cast<double>(param_.getValue("b_intensity"));
+      intensity = b_intensity_;
       break;
     }
 
@@ -876,7 +853,7 @@ namespace OpenMS
         }
 //        cout << "CommonIons, y-ion: " << ion.toString() << "\t Charge: " << charge << "\t Mono: " << ion.getMonoWeight(Residue::YIon, charge) << "\t MZ: " << pos << endl;
       }
-      intensity =static_cast<double>(param_.getValue("y_intensity"));
+      intensity = y_intensity_;
       break;
     }
 
@@ -884,28 +861,21 @@ namespace OpenMS
       cerr << "Cannot create peaks of that ion type" << endl;
     }
 
-    // get the params
-    bool add_losses(param_.getValue("add_losses").toBool());
-    bool add_metainfo(param_.getValue("add_metainfo").toBool());
-    bool add_isotopes(param_.getValue("add_isotopes").toBool());
-    Int max_isotope((Int)param_.getValue("max_isotope"));
-    double rel_loss_intensity((double)param_.getValue("relative_loss_intensity"));
-
     RichPeak1D p;
     for (Map<double, AASequence>::ConstIterator cit = ions.begin(); cit != ions.end(); ++cit)
     {
       ion = cit->second;
       double pos = cit->first;
       String ion_name = names[pos];
-      if (add_isotopes)
+      if (add_isotopes_)
       {
-        IsotopeDistribution dist = ion.getFormula(res_type, charge).getIsotopeDistribution(max_isotope);
+        IsotopeDistribution dist = ion.getFormula(res_type, charge).getIsotopeDistribution(max_isotope_);
         UInt j(0);
         for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
         {
           p.setMZ((double)(pos + (double)j * Constants::NEUTRON_MASS_U) / (double)charge);
           p.setIntensity(intensity * it->second);
-          if (add_metainfo && j == 0)
+          if (add_metainfo_ && j == 0)
           {
             p.setMetaValue("IonName", ion_name);
             p.setMetaValue("z", charge);
@@ -917,7 +887,7 @@ namespace OpenMS
       {
         p.setMZ(pos);
         p.setIntensity(intensity);
-        if (add_metainfo)
+        if (add_metainfo_)
         {
           p.setMetaValue("IonName", ion_name);
           p.setMetaValue("z", charge);
@@ -925,7 +895,7 @@ namespace OpenMS
         spectrum.push_back(p);
       }
 
-      if (add_losses)
+      if (add_losses_)
       {
         set<String> losses;
         for (AASequence::ConstIterator it = cit->second.begin(); it != cit->second.end(); ++it)
@@ -941,9 +911,9 @@ namespace OpenMS
         }
 
 
-        if (!add_isotopes)
+        if (!add_isotopes_)
         {
-          p.setIntensity(intensity * rel_loss_intensity);
+          p.setIntensity(intensity * rel_loss_intensity_);
         }
 
         for (set<String>::const_iterator it = losses.begin(); it != losses.end(); ++it)
@@ -967,15 +937,15 @@ namespace OpenMS
           double loss_pos = loss_ion.getMonoWeight() / (double)charge;
           String loss_name = *it;
 
-          if (add_isotopes)
+          if (add_isotopes_)
           {
-            IsotopeDistribution dist = loss_ion.getIsotopeDistribution(max_isotope);
+            IsotopeDistribution dist = loss_ion.getIsotopeDistribution(max_isotope_);
             UInt j(0);
             for (IsotopeDistribution::ConstIterator iso = dist.begin(); iso != dist.end(); ++iso)
             {
               p.setMZ((double)(loss_pos + j) / (double)charge);
-              p.setIntensity(intensity * rel_loss_intensity * iso->second);
-              if (add_metainfo && j == 0)
+              p.setIntensity(intensity * rel_loss_intensity_ * iso->second);
+              if (add_metainfo_ && j == 0)
               {
                 p.setMetaValue("IonName", ion_name + "-" + loss_name);
               }
@@ -985,7 +955,7 @@ namespace OpenMS
           else
           {
             p.setMZ(loss_pos);
-            if (add_metainfo)
+            if (add_metainfo_)
             {
               p.setMetaValue("IonName", ion_name + "-" + loss_name);
             }
@@ -995,7 +965,7 @@ namespace OpenMS
       }
     }
 
-    if (add_metainfo)
+    if (add_metainfo_)
     {
       p.setMetaValue("IonName", String(""));
     }
@@ -1007,26 +977,20 @@ namespace OpenMS
 
   void TheoreticalSpectrumGeneratorXLinks::addPrecursorPeaks(RichPeakSpectrum & spec, const AASequence & peptide, Int charge) const
   {
-    bool add_metainfo(param_.getValue("add_metainfo").toBool());
-    double pre_int((double)param_.getValue("precursor_intensity"));
-    double pre_int_H2O((double)param_.getValue("precursor_H2O_intensity"));
-    double pre_int_NH3((double)param_.getValue("precursor_NH3_intensity"));
-    bool add_isotopes(param_.getValue("add_isotopes").toBool());
-    int max_isotope((int)param_.getValue("max_isotope"));
 
     RichPeak1D p;
 
     // precursor peak
     double mono_pos = peptide.getMonoWeight(Residue::Full, charge) / double(charge);
-    if (add_isotopes)
+    if (add_isotopes_)
     {
-      IsotopeDistribution dist = peptide.getFormula(Residue::Full, charge).getIsotopeDistribution(max_isotope);
+      IsotopeDistribution dist = peptide.getFormula(Residue::Full, charge).getIsotopeDistribution(max_isotope_);
       UInt j(0);
       for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
       {
         p.setMZ((double)(mono_pos + j * Constants::NEUTRON_MASS_U) / (double)charge);
-        p.setIntensity(pre_int *  it->second);
-        if (add_metainfo)
+        p.setIntensity(pre_int_ *  it->second);
+        if (add_metainfo_)
         {
           String name("[M+H]+");
           if (charge == 2)
@@ -1041,8 +1005,8 @@ namespace OpenMS
     else
     {
       p.setMZ(mono_pos);
-      p.setIntensity(pre_int);
-      if (add_metainfo)
+      p.setIntensity(pre_int_);
+      if (add_metainfo_)
       {
         String name("[M+H]+");
         if (charge == 2)
@@ -1058,15 +1022,15 @@ namespace OpenMS
     //loss of water
     EmpiricalFormula ion = peptide.getFormula(Residue::Full, charge) - EmpiricalFormula("H2O");
     mono_pos = ion.getMonoWeight() / double(charge);
-    if (add_isotopes)
+    if (add_isotopes_)
     {
-      IsotopeDistribution dist = ion.getIsotopeDistribution(max_isotope);
+      IsotopeDistribution dist = ion.getIsotopeDistribution(max_isotope_);
       UInt j(0);
       for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
       {
         p.setMZ((double)(mono_pos + j * Constants::NEUTRON_MASS_U) / (double)charge);
-        p.setIntensity(pre_int_H2O *  it->second);
-        if (add_metainfo)
+        p.setIntensity(pre_int_H2O_ *  it->second);
+        if (add_metainfo_)
         {
           String name("[M+H]-H2O+");
           if (charge == 2)
@@ -1081,8 +1045,8 @@ namespace OpenMS
     else
     {
       p.setMZ(mono_pos);
-      p.setIntensity(pre_int_H2O);
-      if (add_metainfo)
+      p.setIntensity(pre_int_H2O_);
+      if (add_metainfo_)
       {
         String name("[M+H]-H2O+");
         if (charge == 2)
@@ -1097,15 +1061,15 @@ namespace OpenMS
     //loss of ammonia
     ion = peptide.getFormula(Residue::Full, charge) - EmpiricalFormula("NH3");
     mono_pos = ion.getMonoWeight() / double(charge);
-    if (add_isotopes)
+    if (add_isotopes_)
     {
-      IsotopeDistribution dist = ion.getIsotopeDistribution(max_isotope);
+      IsotopeDistribution dist = ion.getIsotopeDistribution(max_isotope_);
       UInt j(0);
       for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
       {
         p.setMZ((double)(mono_pos + j * Constants::NEUTRON_MASS_U) / (double)charge);
-        p.setIntensity(pre_int_NH3 *  it->second);
-        if (add_metainfo)
+        p.setIntensity(pre_int_NH3_ *  it->second);
+        if (add_metainfo_)
         {
           String name("[M+H]-NH3+");
           if (charge == 2)
@@ -1120,8 +1084,8 @@ namespace OpenMS
     else
     {
       p.setMZ(mono_pos);
-      p.setIntensity(pre_int_NH3);
-      if (add_metainfo)
+      p.setIntensity(pre_int_NH3_);
+      if (add_metainfo_)
       {
         String name("[M+H]-NH3+");
         if (charge == 2)
@@ -1148,19 +1112,19 @@ namespace OpenMS
     add_losses_ = param_.getValue("add_losses").toBool();
     add_metainfo_ = param_.getValue("add_metainfo").toBool();
     add_isotopes_ = param_.getValue("add_isotopes").toBool();
-    add_precursor_peaks = param_.getValue("add_precursor_peaks").toBool();
-    add_abundant_immonium_ions = param_.getValue("add_abundant_immonium_ions").toBool();
-    a_intensity_ = (double)param_.getValue("a_intensity");
-    b_intensity_ = (double)param_.getValue("b_intensity");
-    c_intensity_ = (double)param_.getValue("c_intensity");
-    x_intensity_ = (double)param_.getValue("x_intensity");
-    y_intensity_ = (double)param_.getValue("y_intensity");
-    z_intensity_ = (double)param_.getValue("z_intensity");
-    max_isotope_ = (Int)param_.getValue("max_isotope");
-    rel_loss_intensity_ = (double)param_.getValue("relative_loss_intensity");
-    pre_int_ = (double)param_.getValue("precursor_intensity");
-    pre_int_H2O_ = (double)param_.getValue("precursor_H2O_intensity");
-    pre_int_NH3_ = (double)param_.getValue("precursor_NH3_intensity");
+    add_precursor_peaks_ = param_.getValue("add_precursor_peaks").toBool();
+    add_abundant_immonium_ions_ = param_.getValue("add_abundant_immonium_ions").toBool();
+    a_intensity_ = static_cast<double>(param_.getValue("a_intensity"));
+    b_intensity_ = static_cast<double>(param_.getValue("b_intensity"));
+    c_intensity_ = static_cast<double>(param_.getValue("c_intensity"));
+    x_intensity_ = static_cast<double>(param_.getValue("x_intensity"));
+    y_intensity_ = static_cast<double>(param_.getValue("y_intensity"));
+    z_intensity_ = static_cast<double>(param_.getValue("z_intensity"));
+    max_isotope_ = static_cast<Int>(param_.getValue("max_isotope"));
+    rel_loss_intensity_ = static_cast<double>(param_.getValue("relative_loss_intensity"));
+    pre_int_ = static_cast<double>(param_.getValue("precursor_intensity"));
+    pre_int_H2O_ = static_cast<double>(param_.getValue("precursor_H2O_intensity"));
+    pre_int_NH3_ = static_cast<double>(param_.getValue("precursor_NH3_intensity"));
   }
 
 }
