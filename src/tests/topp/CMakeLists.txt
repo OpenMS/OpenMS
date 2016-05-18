@@ -1283,9 +1283,34 @@ set_tests_properties("TOPP_SpectraFilterWindowMower_2_out1" PROPERTIES DEPENDS "
 
 #------------------------------------------------------------------------------
 # InternalCalibration tests
-add_test("TOPP_InternalCalibration_1" ${TOPP_BIN_PATH}/InternalCalibration -test -in ${DATA_DIR_TOPP}/InternalCalibration_2_input.mzML -out InternalCalibration.tmp -ref_peaks ${DATA_DIR_TOPP}/InternalCalibration_ref_masses -scope spectrum)
-#add_test("TOPP_InternalCalibration_1_out1" ${DIFF} -in1 InternalCalibration.tmp -in2 ${DATA_DIR_TOPP}/InternalCalibration_2_output.mzML )
-#set_tests_properties("TOPP_InternalCalibration_1_out1" PROPERTIES DEPENDS "TOPP_InternalCalibration_1")
+
+## idXML file as calibrants
+add_test("TOPP_InternalCalibration_1" ${TOPP_BIN_PATH}/InternalCalibration -test -in ${DATA_DIR_TOPP}/InternalCalibration_1_BSA1.mzML -cal:id_in ${DATA_DIR_TOPP}/InternalCalibration_1_BSA1_OMSSA.idXML -out InternalCalibration_1_BSA1_out.mzML.tmp -cal:model_type linear -RANSAC:enabled -RANSAC:iter 500 -RANSAC:threshold 1 -RT_chunking -1 -quality_control:models InternalCalibration_1_models.csv.tmp -quality_control:residuals InternalCalibration_1_residuals.csv.tmp -ms_level 1)
+add_test("TOPP_InternalCalibration_1_out1" ${DIFF} -in1 InternalCalibration_1_models.csv.tmp -in2 ${DATA_DIR_TOPP}/InternalCalibration_1_models.csv)
+set_tests_properties("TOPP_InternalCalibration_1_out1" PROPERTIES DEPENDS "TOPP_InternalCalibration_1")
+add_test("TOPP_InternalCalibration_1_out2" ${DIFF} -in1 InternalCalibration_1_residuals.csv.tmp -in2 ${DATA_DIR_TOPP}/InternalCalibration_1_residuals.csv)
+set_tests_properties("TOPP_InternalCalibration_1_out2" PROPERTIES DEPENDS "TOPP_InternalCalibration_1")
+
+## lock masses as calibrants
+add_test("TOPP_InternalCalibration_2" ${TOPP_BIN_PATH}/InternalCalibration -test -in ${DATA_DIR_TOPP}/InternalCalibration_2_lockmass.mzML.gz -cal:lock_in ${DATA_DIR_TOPP}/InternalCalibration_2_lock.csv -out InternalCalibration_2_lockmass.mzML.tmp -cal:lock_require_mono -cal:model_type linear -RT_chunking 60 -quality_control:models InternalCalibration_2_models.csv.tmp -quality_control:residuals InternalCalibration_2_residuals.csv.tmp)
+add_test("TOPP_InternalCalibration_2_out1" ${DIFF} -in1 InternalCalibration_2_models.csv.tmp -in2 ${DATA_DIR_TOPP}/InternalCalibration_2_models.csv)
+set_tests_properties("TOPP_InternalCalibration_2_out1" PROPERTIES DEPENDS "TOPP_InternalCalibration_2")
+add_test("TOPP_InternalCalibration_2_out2" ${DIFF} -in1 InternalCalibration_2_residuals.csv.tmp -in2 ${DATA_DIR_TOPP}/InternalCalibration_2_residuals.csv)
+set_tests_properties("TOPP_InternalCalibration_2_out2" PROPERTIES DEPENDS "TOPP_InternalCalibration_2")
+add_test("TOPP_InternalCalibration_2_convert" ${TOPP_BIN_PATH}/FileConverter -test -in InternalCalibration_2_lockmass.mzML.tmp -no_progress -out InternalCalibration_2_out_lockmass.dta2d.tmp -out_type dta2d)
+set_tests_properties("TOPP_InternalCalibration_2_convert" PROPERTIES DEPENDS "TOPP_InternalCalibration_2")
+add_test("TOPP_InternalCalibration_2_out3" ${DIFF} -in1 InternalCalibration_2_out_lockmass.dta2d.tmp -in2 ${DATA_DIR_TOPP}/InternalCalibration_2_out_lockmass.dta2d)
+set_tests_properties("TOPP_InternalCalibration_2_out3" PROPERTIES DEPENDS "TOPP_InternalCalibration_2_convert")
+
+#------------------------------------------------------------------------------
+## ExternalCalibration
+add_test("TOPP_ExternalCalibration_1_MS1" ${TOPP_BIN_PATH}/ExternalCalibration -test -in ${DATA_DIR_TOPP}/ExternalCalibration_1_input.mzML -out ExternalCalibration_1_MS1_out.mzML.tmp -offset -5.5 -slope 0.0001 -ms_level 1)
+add_test("TOPP_ExternalCalibration_1_out1" ${DIFF} -in1 ExternalCalibration_1_MS1_out.mzML.tmp -in2 ${DATA_DIR_TOPP}/ExternalCalibration_1_MS1_out.mzML)
+set_tests_properties("TOPP_ExternalCalibration_1_out1" PROPERTIES DEPENDS "TOPP_ExternalCalibration_1_MS1")
+
+add_test("TOPP_ExternalCalibration_2_MS2" ${TOPP_BIN_PATH}/ExternalCalibration -test -in ${DATA_DIR_TOPP}/ExternalCalibration_1_input.mzML -out ExternalCalibration_2_MS2_out.mzML.tmp -offset -5.5 -slope 0.0001 -ms_level 2)
+add_test("TOPP_ExternalCalibration_2_out1" ${DIFF} -in1 ExternalCalibration_2_MS2_out.mzML.tmp -in2 ${DATA_DIR_TOPP}/ExternalCalibration_2_MS2_out.mzML)
+set_tests_properties("TOPP_ExternalCalibration_2_out1" PROPERTIES DEPENDS "TOPP_ExternalCalibration_2_MS2")
 
 #------------------------------------------------------------------------------
 # TMTAnalyzer

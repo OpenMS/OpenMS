@@ -150,8 +150,8 @@ START_SECTION([EXTRA](static Math::RANSAC<Math::RANSACModelQuadratic>::ransac(co
                                                                            size_t k, 
                                                                            double t, 
                                                                            size_t d, 
-                                                                           bool test = false,
-                                                                           TModelType model = TModelType())))
+                                                                           bool relative_d = false,
+                                                                           int (*rng)(int) = NULL)))
 {
   // full RANSAC with outliers
   /*@param n The minimum number of data points required to fit the model
@@ -162,9 +162,10 @@ START_SECTION([EXTRA](static Math::RANSAC<Math::RANSACModelQuadratic>::ransac(co
     @param d The number of close data values (according to 't') required to assert that a model fits well to data
     @param rng Custom RNG function (useful for testing with fixed seeds)
   */
-  std::vector<std::pair<double, double> > test_pairs_out = RANSAC<RansacModelQuadratic>::ransac(test_pairs_o, 5, 5, 2.0, 3, myRNG);
+  std::vector<std::pair<double, double> > test_pairs_out = RANSAC<RansacModelQuadratic>::ransac(test_pairs_o, 5, 5, 2.0, 3, false, myRNG);
 
-  TEST_EQUAL( test_pairs_out.size(), 15);
+  TEST_EQUAL( test_pairs_out.size(), 15)
+  ABORT_IF(test_pairs_out.size() != 15)
   // just test the gaps
   std::sort(test_pairs_out.begin(), test_pairs_out.end());
   TEST_REAL_SIMILAR( test_pairs_out[2].first, 450.0);

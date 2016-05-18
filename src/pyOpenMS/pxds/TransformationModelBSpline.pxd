@@ -17,5 +17,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelBSpline.h>" na
 
         # TODO put them in again
         # double evaluate(double value) nogil except +
-        # void getDefaultParameters(Param & params) nogil except +
 
+cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelBSpline.h>" namespace "OpenMS::TransformationModelBSpline":
+
+    void getDefaultParameters(Param & params) nogil except +  # wrap-attach:TransformationModelBSpline
