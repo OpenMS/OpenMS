@@ -197,7 +197,7 @@ protected:
     
     registerIntList_("ms_level", "i j ...", ListUtils::create<int>("1,2,3"), "Target MS levels to apply the transformation onto. Does not affect calibrant collection.", false);
     
-    registerDoubleOption_("RT_chunking", "<RT window in [sec]>", 90, "RT window (one-sided, i.e. left->center, or center->right) around an MS scan in which calibrants are collected to build a model. Set to -1 to use ALL calibrants for all scans, i.e. a global model.", false);
+    registerDoubleOption_("RT_chunking", "<RT window in [sec]>", 300, "RT window (one-sided, i.e. left->center, or center->right) around an MS scan in which calibrants are collected to build a model. Set to -1 to use ALL calibrants for all scans, i.e. a global model.", false);
     
     registerTOPPSubsection_("RANSAC", "Robust outlier removal using RANSAC");
     registerFlag_("RANSAC:enabled", "Apply RANSAC to calibration points to remove outliers before fitting a model.");
@@ -209,7 +209,7 @@ protected:
     registerIntOption_("RANSAC:pc_inliers", "<# inliers>", 30, "Minimum percentage (of available data) of inliers (<threshold away from model) to accept the model.", false);
     setMinInt_("RANSAC:pc_inliers", 1);
     setMaxInt_("RANSAC:pc_inliers", 99);
-    registerIntOption_("RANSAC:iter", "<# iterations>", 40, "Maximal # iterations.", false);
+    registerIntOption_("RANSAC:iter", "<# iterations>", 70, "Maximal # iterations.", false);
     
     registerTOPPSubsection_("goodness", "Thresholds for accepting calibration success");
     registerDoubleOption_("goodness:median", "<threshold>", 4.0, "The median ppm error of calibrated masses must be smaller than this threshold.", false);
@@ -319,7 +319,7 @@ protected:
       }
       if (!file_cal_lock_fail_out.empty())
       {
-        LOG_INFO << "\nWriting UNmatched lock masses to mzML file '" << file_cal_lock_fail_out << "'." << std::endl;
+        LOG_INFO << "\nWriting unmatched lock masses to mzML file '" << file_cal_lock_fail_out << "'." << std::endl;
         MSExperiment<> exp_out;
         exp_out.set2DData(failed_points, CalibrationData::getMetaValues());
         mz_file.store(file_cal_lock_fail_out, exp_out);
