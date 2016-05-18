@@ -233,7 +233,7 @@ namespace OpenMS
       the precursor (not the spectrum itself) is also subjected to calibration.
       E.g., If we only have MS and MS/MS spectra: for 'target_mslvl' = {1} then all MS1 spectra and MS2 precursors are calibrated.
       If 'target_mslvl' = {2}, only MS2 spectra (not their precursors) are calibrated.
-      If 'target_mslvl' = {2,3} all spectra and precursors are calibrated.
+      If 'target_mslvl' = {1,2} all spectra and precursors are calibrated.
             
 
       @param exp Uncalibrated peak map
