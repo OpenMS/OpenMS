@@ -16013,6 +16013,23 @@ antiserum and mass spectrometric analysis</umod:text>
             <umod:url>http://dx.doi.org/10.1007/s00726-014-1879-8</umod:url>
          </umod:xref>
       </umod:mod>
+      <umod:mod title="Label:13C(8)15N(2)" full_name="13C(8) 15N(2) Silac label"
+                username_of_poster="nedamoc"
+                group_of_poster=""
+                date_time_posted="2008-06-30 20:11:08"
+                date_time_modified="2008-07-04 19:07:25"
+                approved="0"
+                record_id="854">
+         <umod:specificity hidden="1" site="R" position="Anywhere" classification="Isotopic label"
+                           spec_group="1"/>
+         <umod:delta mono_mass="10.020909" avge_mass="9.9281"
+                     composition="C(-8) 13C(8) N(-2) 15N(2)">
+            <umod:element symbol="C" number="-8"/>
+            <umod:element symbol="13C" number="8"/>
+            <umod:element symbol="N" number="-2"/>
+            <umod:element symbol="15N" number="2"/>
+         </umod:delta>
+      </umod:mod>
       <umod:mod title="Label:13C(1)2H(3)" full_name="SILAC" username_of_poster="msalek"
                 group_of_poster=""
                 date_time_posted="2008-08-11 13:43:25"
@@ -17853,6 +17870,29 @@ Efficient incorporation of unsaturated methionine analogues into proteins in viv
             <umod:element symbol="N" number="1"/>
          </umod:delta>
          <umod:misc_notes>sometimes observed after elution of phosphopeptides from TiO2 with ammonium hydroxide</umod:misc_notes>
+      </umod:mod>
+      <umod:mod title="BHAc" full_name="N-biotinyl-6-aminohexanoyl"
+                username_of_poster="natfre08"
+                group_of_poster=""
+                date_time_posted="2010-07-13 14:38:17"
+                date_time_modified="2010-08-02 17:37:08"
+                approved="0"
+                record_id="998">
+         <umod:specificity hidden="1" site="K" position="Anywhere" classification="Chemical derivative"
+                           spec_group="1"/>
+         <umod:delta mono_mass="339.161662" avge_mass="339.4530"
+                     composition="H(25) C(16) N(3) O(3) S">
+            <umod:element symbol="H" number="25"/>
+            <umod:element symbol="C" number="16"/>
+            <umod:element symbol="N" number="3"/>
+            <umod:element symbol="O" number="3"/>
+            <umod:element symbol="S" number="1"/>
+         </umod:delta>
+         <umod:xref>
+            <umod:text>Patricelli et al. (2007). Functional Interrogation of the Kinome Using Nucleotide Acyl Phosphates. Biochemistry, 46, 350-358.</umod:text>
+            <umod:source>Journal</umod:source>
+            <umod:url>http://pubs.acs.org/doi/abs/10.1021/bi062142x</umod:url>
+         </umod:xref>
       </umod:mod>
       <umod:mod title="Biotin:Sigma-B1267" full_name="was Biotin-maleimide"
                 username_of_poster="mpcusack"
