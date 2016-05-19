@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="http://open-ms.sourceforge.net/XSL/IdXML.xsl" ?>
 <IdXML version="1.4" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-<SearchParameters charges="+0, +0" id="ID_1" db_version="0" mass_type="monoisotopic" peak_mass_tolerance="0.0" precursor_peak_tolerance="0.0" db="Unknown"/>
-<IdentificationRun date="1900-01-01T01:01:01.0Z" search_engine="Unknown" search_parameters_ref="ID_1" search_engine_version="0"/>
+	<SearchParameters id="SP_0" db="Unknown" db_version="0" taxonomy="" mass_type="monoisotopic" charges="+0, +0" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+	</SearchParameters>
+	<IdentificationRun date="0000-00-00T00:00:00" search_engine="Unknown" search_engine_version="0" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+		</ProteinIdentification>
+	</IdentificationRun>
 </IdXML>
