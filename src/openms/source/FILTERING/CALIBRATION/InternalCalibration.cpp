@@ -418,7 +418,17 @@ namespace OpenMS
       double ppm_after = Math::getPPM(mz_corrected, mz_ref);
       vec_ppm_before.push_back(ppm_before);
       vec_ppm_after.push_back(ppm_after);
-      if (sv != NULL) *sv << rt << itc->getIntensity() << mz_ref << itc->getMZ() << mz_corrected << ppm_before << ppm_after << nl;
+      if (sv != NULL)
+      {
+        *sv << rt 
+            << itc->getIntensity()
+            << mz_ref
+            << itc->getMZ();
+        sv->writeValueOrNan(mz_corrected)
+            << ppm_before;
+        sv->writeValueOrNan(ppm_after)
+            << nl;
+      }
     }
     delete sv;
 
@@ -434,7 +444,7 @@ namespace OpenMS
 
     if (!hasValidModels)
     { // QC tables are done; quit
-      LOG_ERROR << "Error: Could not build a single local calibration model! Check your calibrants!" << std::endl;
+      LOG_ERROR << "Error: Could not build a single local calibration model! Check your calibrants and/or extend the search window!" << std::endl;
       if (use_RANSAC) LOG_ERROR << "       Since you are using RANSAC, check the parameters as well and test different setups." << std::endl;
 
       return false;
@@ -452,12 +462,12 @@ namespace OpenMS
     // check desired limits
     if (post_ppm_median < fabs(median_ppm_after))
     {
-      LOG_INFO << "Post calibration median threshold (" << post_ppm_median << ") not reached (median = |" << median_ppm_after << "|). Failed to calibrate!" << std::endl;
+      LOG_INFO << "Post calibration median threshold (" << post_ppm_median << " ppm) not reached (median = |" << median_ppm_after << "| ppm). Failed to calibrate!" << std::endl;
       return false;
     }
     if (post_ppm_MAD < fabs(MAD_ppm_after))
     {
-      LOG_INFO << "Post calibration median threshold (" << post_ppm_MAD << ") not reached (median = |" << MAD_ppm_after << "|). Failed to calibrate!" << std::endl;
+      LOG_INFO << "Post calibration median threshold (" << post_ppm_MAD << " ppm) not reached (median = |" << MAD_ppm_after << "| ppm). Failed to calibrate!" << std::endl;
       return false;
     }
 
