@@ -10,9 +10,15 @@ model_count = sum(d$source == "local")
 dm = melt(d, id.vars = c("RT", "source"))
 head(dm)
 
+## for linear models: remove 'power' graph (it's all 0)
+if (all(dm$value[grep("power", dm$variable)] == 0))
+{
+  dm = dm[grep("power", dm$variable, invert=TRUE), ]
+}
+
 #options(device = "pdf")
 #dev.new(filename = file.plot.out, file = file.plot.out)
-png(filename = file.plot.out)
+png(filename = file.plot.out, width=1920)
 
 pl = ggplot(dm) + 
       geom_point(aes(x = RT, y=value, col=source)) +
