@@ -47,7 +47,6 @@
 #include <OpenMS/VISUAL/SpectraViewWidget.h>
 #include <OpenMS/VISUAL/SpectraIdentificationViewWidget.h>
 
-#include <OpenMS/VISUAL/TOPPViewBehaviorInterface.h>
 #include <OpenMS/VISUAL/TOPPViewSpectraViewBehavior.h>
 #include <OpenMS/VISUAL/TOPPViewIdentificationViewBehavior.h>
 
@@ -241,12 +240,6 @@ public slots:
     void linkZoom();
     /// gets called if a layer got deactivated
     void layerDeactivated();
-    /// Activation of 1D spectrum
-    void activate1DSpectrum(int index);
-    /// Activation of 1D with multiple entries (e.g. chromatograms)
-    void activate1DSpectrum(std::vector<int, std::allocator<int> > indices);
-    /// Deactivation of 1D spectrum
-    void deactivate1DSpectrum(int index);
     /// closes the active window
     void closeFile();
     /// updates the toolbar
@@ -538,8 +531,7 @@ protected:
 
     /// Tabwidget that hold the different views on the loaded data
     QTabWidget* views_tabwidget_;
-    /// The current TOPPView view behavior
-    TOPPViewBehaviorInterface* view_behavior_;
+
     /// TOPPView behavior for the identification view
     TOPPViewIdentificationViewBehavior* identificationview_behavior_;
     /// TOPPView behavior for the spectra view
