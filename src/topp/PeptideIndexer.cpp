@@ -33,15 +33,16 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+
+#include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
-#include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace OpenMS;
 
@@ -68,9 +69,11 @@ using namespace OpenMS;
     </table>
 </CENTER>
 
+  A detailed description of the parameters and functionality is given in PeptideIndexing.
+
   All peptide and protein hits are annotated with target/decoy information, using the meta value "target_decoy". For proteins the possible values are "target" and "decoy", depending on whether the protein accession contains the decoy pattern (parameter @p decoy_string) as a suffix or prefix, respectively (see parameter @p prefix). For peptides, the possible values are "target", "decoy" and "target+decoy", depending on whether the peptide sequence is found only in target proteins, only in decoy proteins, or in both. The target/decoy information is crucial for the @ref TOPP_FalseDiscoveryRate tool. (For FDR calculations, "target+decoy" peptide hits count as target hits.)
 
-   PeptideIndexer supports relative database filenames, which (when not found in the current working directory) are looked up in the directories specified
+  PeptideIndexer supports relative database filenames, which (when not found in the current working directory) are looked up in the directories specified
   by @p OpenMS.ini:id_db_dir (see @subpage TOPP_advanced).
 
   @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.

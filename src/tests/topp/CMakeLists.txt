@@ -1713,6 +1713,14 @@ set_tests_properties("TOPP_PeptideIndexer_16_out" PROPERTIES DEPENDS "TOPP_Pepti
 add_test("TOPP_PeptideIndexer_17" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_14.idXML -out PeptideIndexer_17_out.tmp.idXML -mismatches_max 3 -full_tolerant_search)
 add_test("TOPP_PeptideIndexer_17_out" ${DIFF} -in1 PeptideIndexer_17_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PeptideIndexer_17_out.idXML )
 set_tests_properties("TOPP_PeptideIndexer_17_out" PROPERTIES DEPENDS "TOPP_PeptideIndexer_17")
+## -- test correct DB index handling of partial results from AC vs SA
+add_test("TOPP_PeptideIndexer_18" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_2.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_18.idXML -out PeptideIndexer_18_out.tmp.idXML -missing_decoy_action warn -filter_aaa_proteins)
+add_test("TOPP_PeptideIndexer_18_out" ${DIFF} -in1 PeptideIndexer_18_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PeptideIndexer_18_out.idXML )
+set_tests_properties("TOPP_PeptideIndexer_18_out" PROPERTIES DEPENDS "TOPP_PeptideIndexer_18")
+## -- same as 18, but using SA all the way -- results should be identical
+add_test("TOPP_PeptideIndexer_19" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_2.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_18.idXML -out PeptideIndexer_19_out.tmp.idXML  -missing_decoy_action warn -filter_aaa_proteins -full_tolerant_search)
+add_test("TOPP_PeptideIndexer_19_out" ${DIFF} -in1 PeptideIndexer_19_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PeptideIndexer_18_out.idXML )
+set_tests_properties("TOPP_PeptideIndexer_19_out" PROPERTIES DEPENDS "TOPP_PeptideIndexer_19")
 
 if(WITH_GUI)
   #------------------------------------------------------------------------------
