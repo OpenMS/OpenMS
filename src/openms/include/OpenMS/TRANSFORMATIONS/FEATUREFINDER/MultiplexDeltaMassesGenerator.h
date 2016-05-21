@@ -36,6 +36,7 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXDELTAMASSESGENERATOR_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
 
@@ -48,11 +49,12 @@ namespace OpenMS
   /**
    * @brief generates complete list of all possible mass shifts due to isotopic labelling
    * 
-   * Isotopic labelling results in the shift of peptide masses. For example
-   * in a Lys8/Arg10 SILAC labelled sample, some peptides (the ones with one
-   * Arg in their sequence) will show a relative mass shift between light and
-   * heavy partners of 10 Da. This class constructs the complete list of all
-   * possible mass shifts that arise from isotopic labelling.
+   * Isotopic labelling results in the shift of peptide masses.
+   * 
+   * For example in a Lys8/Arg10 SILAC labelled sample, some peptides (the ones with one
+   * Arg in their sequence) will show a relative mass shift between light and heavy
+   * partners of 10 Da. This class constructs the complete list of all possible mass
+   * shifts that arise from isotopic labelling.
    */
   class OPENMS_DLLAPI MultiplexDeltaMassesGenerator
   {
@@ -63,6 +65,7 @@ namespace OpenMS
      * 
      * @param labels    isotopic labels
      * @param missed_cleavages    maximum number of missed cleavages due to incomplete digestion
+     * @param label_mass_shift    name of labels and their corresponding mass shifts
      * For example due to knock-outs in one of the samples.
      */
     MultiplexDeltaMassesGenerator(String labels, int missed_cleavages, std::map<String,double> label_mass_shift);
@@ -74,19 +77,55 @@ namespace OpenMS
     void generateKnockoutDeltaMasses();
 
     /**
-     * @brief write the list of labels for each sample
+     * @brief write the list of labels for each of the sample
      */
-    void printLabelsList() const;
+    void printSamplesLabelsList() const;
     
     /**
      * @brief write the list of all mass patterns
      */
-    void printMassPatternList() const;
+    void printDeltaMassesList() const;
     
     /**
      * @brief returns the list of mass shift patterns
      */
-    std::vector<MultiplexDeltaMasses> getMassPatternList() const;
+    std::vector<MultiplexDeltaMasses> getDeltaMassesList();
+    
+    /**
+     * @brief returns the list of mass shift patterns
+     */
+    const std::vector<MultiplexDeltaMasses>& getDeltaMassesList() const;
+    
+    /**
+     * @brief returns the list of samples with their corresponding labels
+     */
+    std::vector<std::vector<String> > getSamplesLabelsList();
+    
+    /**
+     * @brief returns the list of samples with their corresponding labels
+     */
+    const std::vector<std::vector<String> >& getSamplesLabelsList() const;
+    
+    /**
+     * @brief returns the short label string
+     * 
+     * @param label    long label, e.g. "Label:13C(6)15N(4)"
+     */
+    String getLabelShort(String label);
+    
+    /**
+     * @brief returns the long label string
+     * 
+     * @param label    short label, e.g. "Arg10"
+     */
+    String getLabelLong(String label);
+    
+    /**
+     * @brief extract the label set from the sequence
+     *
+     * @param sequence    amino acid sequence
+     */
+    MultiplexDeltaMasses::LabelSet extractLabelSet(AASequence sequence);
     
     private:
    
@@ -94,6 +133,11 @@ namespace OpenMS
      * @brief isotopic labels
      */
     String labels_;
+    
+    /**
+     * @brief flat list of all occuring isotopic labels
+     */
+    std::vector<String> labels_list_;
     
     /**
      * @brief list of samples with their corresponding labels
@@ -108,13 +152,25 @@ namespace OpenMS
     /**
      * @brief list of all possible mass shift patterns
      */
-    std::vector<MultiplexDeltaMasses> mass_pattern_list_;
+    std::vector<MultiplexDeltaMasses> delta_masses_list_;
       
     /**
-     * @brief mapping from single label to mass shift
+     * @brief mapping from single label to delta mass
      * e.g. "Arg10" -> 10.0082686
      */
-    std::map<String,double> label_mass_shift_;
+    std::map<String,double> label_delta_mass_;
+    
+    /**
+     * @brief mapping from a short label (as in the user params) to a long label (as in PSI-MS name)
+     * e.g. "Arg10" -> "Label:13C(6)15N(4)"
+     */
+    std::map<String,String> label_short_long_;
+    
+    /**
+     * @brief mapping from a long label (as in PSI-MS name) to a short label (as in the user params)
+     * e.g. "Label:13C(6)15N(4)" -> "Arg10"
+     */
+    std::map<String,String> label_long_short_;
     
  };
   

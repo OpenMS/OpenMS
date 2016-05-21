@@ -49,9 +49,29 @@ using namespace std;
 namespace OpenMS
 {
 
-  MultiplexDeltaMassesGenerator::MultiplexDeltaMassesGenerator(String labels, int missed_cleavages, std::map<String,double> label_mass_shift) :
-    labels_(labels), samples_labels_(), missed_cleavages_(missed_cleavages), label_mass_shift_(label_mass_shift)
+  MultiplexDeltaMassesGenerator::MultiplexDeltaMassesGenerator(String labels, int missed_cleavages, std::map<String,double> label_delta_mass) :
+    labels_(labels), labels_list_(), samples_labels_(), missed_cleavages_(missed_cleavages), label_delta_mass_(label_delta_mass)
   {
+    // generate short label to long label mappings
+    label_short_long_.insert(make_pair("Lys4", "Label:2H(4)"));
+    label_short_long_.insert(make_pair("Lys8", "Label:13C(6)15N(2)"));
+    label_short_long_.insert(make_pair("Arg6", "Label:13C(6)"));
+    label_short_long_.insert(make_pair("Arg10", "Label:13C(6)15N(4)"));
+    label_short_long_.insert(make_pair("Dimethyl0", "Dimethyl"));
+    label_short_long_.insert(make_pair("Dimethyl4", "Dimethyl:2H(4)"));
+    label_short_long_.insert(make_pair("Dimethyl6", "Dimethyl:2H(4)13C(2)"));
+    label_short_long_.insert(make_pair("Dimethyl8", "Dimethyl:2H(6)13C(2)"));
+
+    // generate long label to short label mappings
+    label_long_short_.insert(make_pair("Label:2H(4)", "Lys4"));
+    label_long_short_.insert(make_pair("Label:13C(6)15N(2)", "Lys8"));
+    label_long_short_.insert(make_pair("Label:13C(6)", "Arg6"));
+    label_long_short_.insert(make_pair("Label:13C(6)15N(4)", "Arg10"));
+    label_long_short_.insert(make_pair("Dimethyl", "Dimethyl0"));
+    label_long_short_.insert(make_pair("Dimethyl:2H(4)", "Dimethyl4"));
+    label_long_short_.insert(make_pair("Dimethyl:2H(4)13C(2)", "Dimethyl6"));
+    label_long_short_.insert(make_pair("Dimethyl:2H(6)13C(2)", "Dimethyl8"));
+
     // split the labels_ string
     String temp_labels(labels_);
     std::vector<String> temp_samples;
@@ -173,7 +193,7 @@ namespace OpenMS
                   label_set.insert("Lys8");
                 }
 
-                mass_shift = mass_shift + ArgPerPeptide * (Arg6There * label_mass_shift_["Arg6"] + Arg10There * label_mass_shift_["Arg10"]) + LysPerPeptide * (Lys4There * label_mass_shift_["Lys4"] + Lys6There * label_mass_shift_["Lys6"] + Lys8There * label_mass_shift_["Lys8"]);
+                mass_shift = mass_shift + ArgPerPeptide * (Arg6There * label_delta_mass_["Arg6"] + Arg10There * label_delta_mass_["Arg10"]) + LysPerPeptide * (Lys4There * label_delta_mass_["Lys4"] + Lys6There * label_delta_mass_["Lys6"] + Lys8There * label_delta_mass_["Lys8"]);
 
                 goAhead_Arg = goAhead_Arg || !(ArgPerPeptide != 0 && !Arg6There && !Arg10There);
                 goAhead_Lys = goAhead_Lys || !(LysPerPeptide != 0 && !Lys4There && !Lys6There && !Lys8There);
@@ -187,7 +207,7 @@ namespace OpenMS
 
             if (delta_masses_temp.getDeltaMasses().size() > 1)
             {
-              mass_pattern_list_.push_back(delta_masses_temp);
+              delta_masses_list_.push_back(delta_masses_temp);
             }
           }
         }
@@ -204,7 +224,7 @@ namespace OpenMS
         MultiplexDeltaMasses delta_masses_temp;    // single mass shift pattern
         for (unsigned i = 0; i < samples_labels_.size(); i++)
         {
-          double mass_shift = (mc + 1) * (label_mass_shift_[samples_labels_[i][0]] - label_mass_shift_[samples_labels_[0][0]]);
+          double mass_shift = (mc + 1) * (label_delta_mass_[samples_labels_[i][0]] - label_delta_mass_[samples_labels_[0][0]]);
           MultiplexDeltaMasses::LabelSet label_set;
           // construct label set
           for (unsigned k = 1; k < (mc + 2); ++k)
@@ -214,7 +234,7 @@ namespace OpenMS
 
          delta_masses_temp.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(mass_shift, label_set));
         }
-        mass_pattern_list_.push_back(delta_masses_temp);
+        delta_masses_list_.push_back(delta_masses_temp);
       }
 
     }
@@ -223,25 +243,37 @@ namespace OpenMS
       // none (singlet detection)
       MultiplexDeltaMasses delta_masses_temp;
       delta_masses_temp.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(0, "no_label"));
-      mass_pattern_list_.push_back(delta_masses_temp);
+      delta_masses_list_.push_back(delta_masses_temp);
     }
     
     // sort mass patterns
     // (from small mass shifts to larger ones, i.e. few miscleavages = simple explanation first)
-    std::sort(mass_pattern_list_.begin(), mass_pattern_list_.end());
+    std::sort(delta_masses_list_.begin(), delta_masses_list_.end());
+
+    // generate flat list of all occuring isotopic labels
+    for (unsigned i = 0; i < samples_labels_.size(); ++i)
+    {
+      for (unsigned j = 0; j < samples_labels_[i].size(); ++j)
+      {
+        if (samples_labels_[i][j] != "no_label")
+        {
+          labels_list_.push_back(samples_labels_[i][j]);
+        }
+      }
+    }
 
   }
 
   void MultiplexDeltaMassesGenerator::generateKnockoutDeltaMasses()
   {
-    if (mass_pattern_list_.empty())
+    if (delta_masses_list_.empty())
     {
       // Even in the case of a singlet search, there should be one mass shift (zero mass shift) in the list.
       throw OpenMS::Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 0);
     }
     
-    unsigned n = mass_pattern_list_[0].getDeltaMasses().size();    // n=1 for singlets, n=2 for doublets, n=3 for triplets, n=4 for quadruplets
-    unsigned m = mass_pattern_list_.size();    // number of mass shift patterns before extension of the list
+    unsigned n = delta_masses_list_[0].getDeltaMasses().size();    // n=1 for singlets, n=2 for doublets, n=3 for triplets, n=4 for quadruplets
+    unsigned m = delta_masses_list_.size();    // number of mass shift patterns before extension of the list
     if (n == 1)
     {
       throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Knock-outs for singlet detection not relevant.");
@@ -251,7 +283,7 @@ namespace OpenMS
       // add singlets
       MultiplexDeltaMasses dm;
       dm.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(0,"any_label_set"));    // There are two singlets with different label sets. But only a single singlet with "any_label_set" is added.
-      mass_pattern_list_.push_back(dm);
+      delta_masses_list_.push_back(dm);
     }
     else if (n == 3)
     {
@@ -259,25 +291,25 @@ namespace OpenMS
       {
         // add doublets
         MultiplexDeltaMasses doublet1;
-        doublet1.getDeltaMasses().push_back(mass_pattern_list_[i].getDeltaMasses()[0]);
-        doublet1.getDeltaMasses().push_back(mass_pattern_list_[i].getDeltaMasses()[1]);
-        mass_pattern_list_.push_back(doublet1);
+        doublet1.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[0]);
+        doublet1.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[1]);
+        delta_masses_list_.push_back(doublet1);
 
         MultiplexDeltaMasses doublet2;
-        doublet2.getDeltaMasses().push_back(mass_pattern_list_[i].getDeltaMasses()[1]);
-        doublet2.getDeltaMasses().push_back(mass_pattern_list_[i].getDeltaMasses()[2]);
-        mass_pattern_list_.push_back(doublet2);
+        doublet2.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[1]);
+        doublet2.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[2]);
+        delta_masses_list_.push_back(doublet2);
 
         MultiplexDeltaMasses doublet3;
-        doublet3.getDeltaMasses().push_back(mass_pattern_list_[i].getDeltaMasses()[0]);
-        doublet3.getDeltaMasses().push_back(mass_pattern_list_[i].getDeltaMasses()[2]);
-        mass_pattern_list_.push_back(doublet3);
+        doublet3.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[0]);
+        doublet3.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[2]);
+        delta_masses_list_.push_back(doublet3);
       }
       
       // add singlets
       MultiplexDeltaMasses dm;
       dm.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(0, "any_label_set"));    // There are three singlets with different label sets. But only a single singlet with "any_label_set" is added.
-      mass_pattern_list_.push_back(dm);
+      delta_masses_list_.push_back(dm);
     }
     else if (n == 4)
     {
@@ -285,67 +317,67 @@ namespace OpenMS
       {
         // add triplets
         MultiplexDeltaMasses triplet1;
-        triplet1.getDeltaMasses().push_back(mass_pattern_list_[i].getDeltaMasses()[1]);
-        triplet1.getDeltaMasses().push_back(mass_pattern_list_[i].getDeltaMasses()[2]);
-        triplet1.getDeltaMasses().push_back(mass_pattern_list_[i].getDeltaMasses()[3]);
-        mass_pattern_list_.push_back(triplet1);
+        triplet1.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[1]);
+        triplet1.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[2]);
+        triplet1.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[3]);
+        delta_masses_list_.push_back(triplet1);
         
         MultiplexDeltaMasses triplet2;
-        triplet2.getDeltaMasses().push_back(mass_pattern_list_[i].getDeltaMasses()[0]);
-        triplet2.getDeltaMasses().push_back(mass_pattern_list_[i].getDeltaMasses()[2]);
-        triplet2.getDeltaMasses().push_back(mass_pattern_list_[i].getDeltaMasses()[3]);
-        mass_pattern_list_.push_back(triplet2);
+        triplet2.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[0]);
+        triplet2.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[2]);
+        triplet2.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[3]);
+        delta_masses_list_.push_back(triplet2);
         
         // Knockout combination previously forgotten. Will be un-commented in final FFM/MultiplexResolver version.
         /*MultiplexDeltaMasses triplet3;
-        triplet3.getDeltaMasses().push_back(mass_pattern_list_[i].getDeltaMasses()[0]);
-        triplet3.getDeltaMasses().push_back(mass_pattern_list_[i].getDeltaMasses()[1]);
-        triplet3.getDeltaMasses().push_back(mass_pattern_list_[i].getDeltaMasses()[3]);
-        mass_pattern_list_.push_back(triplet3);*/
+        triplet3.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[0]);
+        triplet3.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[1]);
+        triplet3.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[3]);
+        delta_masses_list_.push_back(triplet3);*/
         
         MultiplexDeltaMasses triplet4;
-        triplet4.getDeltaMasses().push_back(mass_pattern_list_[i].getDeltaMasses()[0]);
-        triplet4.getDeltaMasses().push_back(mass_pattern_list_[i].getDeltaMasses()[1]);
-        triplet4.getDeltaMasses().push_back(mass_pattern_list_[i].getDeltaMasses()[2]);
-        mass_pattern_list_.push_back(triplet4);
+        triplet4.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[0]);
+        triplet4.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[1]);
+        triplet4.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[2]);
+        delta_masses_list_.push_back(triplet4);
 
 
         // add doublets
         MultiplexDeltaMasses doublet1;
-        doublet1.getDeltaMasses().push_back(mass_pattern_list_[i].getDeltaMasses()[0]);
-        doublet1.getDeltaMasses().push_back(mass_pattern_list_[i].getDeltaMasses()[1]);
-        mass_pattern_list_.push_back(doublet1);
+        doublet1.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[0]);
+        doublet1.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[1]);
+        delta_masses_list_.push_back(doublet1);
 
         MultiplexDeltaMasses doublet2;
-        doublet2.getDeltaMasses().push_back(mass_pattern_list_[i].getDeltaMasses()[0]);
-        doublet2.getDeltaMasses().push_back(mass_pattern_list_[i].getDeltaMasses()[2]);
-        mass_pattern_list_.push_back(doublet2);
+        doublet2.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[0]);
+        doublet2.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[2]);
+        delta_masses_list_.push_back(doublet2);
 
         MultiplexDeltaMasses doublet3;
-        doublet3.getDeltaMasses().push_back(mass_pattern_list_[i].getDeltaMasses()[0]);
-        doublet3.getDeltaMasses().push_back(mass_pattern_list_[i].getDeltaMasses()[3]);
-        mass_pattern_list_.push_back(doublet3);
+        doublet3.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[0]);
+        doublet3.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[3]);
+        delta_masses_list_.push_back(doublet3);
 
         MultiplexDeltaMasses doublet4;
-        doublet4.getDeltaMasses().push_back(mass_pattern_list_[i].getDeltaMasses()[1]);
-        doublet4.getDeltaMasses().push_back(mass_pattern_list_[i].getDeltaMasses()[2]);
-        mass_pattern_list_.push_back(doublet4);
+        doublet4.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[1]);
+        doublet4.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[2]);
+        delta_masses_list_.push_back(doublet4);
 
         MultiplexDeltaMasses doublet5;
-        doublet5.getDeltaMasses().push_back(mass_pattern_list_[i].getDeltaMasses()[1]);
-        doublet5.getDeltaMasses().push_back(mass_pattern_list_[i].getDeltaMasses()[3]);
-        mass_pattern_list_.push_back(doublet5);
+        doublet5.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[1]);
+        doublet5.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[3]);
+        delta_masses_list_.push_back(doublet5);
 
         MultiplexDeltaMasses doublet6;
-        doublet6.getDeltaMasses().push_back(mass_pattern_list_[i].getDeltaMasses()[2]);
-        doublet6.getDeltaMasses().push_back(mass_pattern_list_[i].getDeltaMasses()[3]);
-        mass_pattern_list_.push_back(doublet6);
+        doublet6.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[2]);
+        doublet6.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[3]);
+        delta_masses_list_.push_back(doublet6);
       }
 
       // add singlets
       MultiplexDeltaMasses dm;
       dm.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(0,"any_label_set"));
-      mass_pattern_list_.push_back(dm);
+      delta_masses_list_.push_back(dm);
     }
     else if (n > 4)
     {
@@ -354,11 +386,11 @@ namespace OpenMS
     
     // sort mass patterns
     // (from small mass shifts to larger ones, i.e. few miscleavages = simple explanation first)
-    std::sort(mass_pattern_list_.begin(), mass_pattern_list_.end());
+    std::sort(delta_masses_list_.begin(), delta_masses_list_.end());
 
   }
   
-  void MultiplexDeltaMassesGenerator::printLabelsList() const
+  void MultiplexDeltaMassesGenerator::printSamplesLabelsList() const
   {
     cout << "\n";
     for (unsigned i = 0; i < samples_labels_.size(); ++i)
@@ -372,16 +404,16 @@ namespace OpenMS
     }
   }
   
-  void MultiplexDeltaMassesGenerator::printMassPatternList() const
+  void MultiplexDeltaMassesGenerator::printDeltaMassesList() const
   {
     cout << "\n";
-    for (unsigned i = 0; i < mass_pattern_list_.size(); ++i)
+    for (unsigned i = 0; i < delta_masses_list_.size(); ++i)
     {
       std::cout << "mass shift " << (i + 1) << ":    ";
-      for (unsigned j = 0; j < mass_pattern_list_[i].getDeltaMasses().size(); ++j)
+      for (unsigned j = 0; j < delta_masses_list_[i].getDeltaMasses().size(); ++j)
       {
-        double mass_shift = mass_pattern_list_[i].getDeltaMasses()[j].delta_mass;
-        MultiplexDeltaMasses::LabelSet label_set = mass_pattern_list_[i].getDeltaMasses()[j].label_set;
+        double mass_shift = delta_masses_list_[i].getDeltaMasses()[j].delta_mass;
+        MultiplexDeltaMasses::LabelSet label_set = delta_masses_list_[i].getDeltaMasses()[j].label_set;
         
         std::cout << mass_shift << " (";
         for (std::multiset<String>::iterator it = label_set.begin(); it != label_set.end(); ++it)
@@ -399,9 +431,68 @@ namespace OpenMS
     std::cout << "\n";
   }
   
-  std::vector<MultiplexDeltaMasses> MultiplexDeltaMassesGenerator::getMassPatternList() const
+  std::vector<MultiplexDeltaMasses> MultiplexDeltaMassesGenerator::getDeltaMassesList()
   {
-    return mass_pattern_list_;
+    return delta_masses_list_;
+  }
+
+  const std::vector<MultiplexDeltaMasses>& MultiplexDeltaMassesGenerator::getDeltaMassesList() const
+  {
+    return delta_masses_list_;
+  }
+  
+  std::vector<std::vector<String> > MultiplexDeltaMassesGenerator::getSamplesLabelsList()
+  {
+    return samples_labels_;
+  }
+
+  const std::vector<std::vector<String> >& MultiplexDeltaMassesGenerator::getSamplesLabelsList() const
+  {
+    return samples_labels_;
+  }
+
+  String MultiplexDeltaMassesGenerator::getLabelShort(String label)
+  {
+    return label_long_short_[label];
+  }
+
+  String MultiplexDeltaMassesGenerator::getLabelLong(String label)
+  {
+    return label_short_long_[label];
+  }
+  
+  MultiplexDeltaMasses::LabelSet MultiplexDeltaMassesGenerator::extractLabelSet(AASequence sequence)
+  {
+    String s(sequence.toString());
+
+    MultiplexDeltaMasses::LabelSet label_set;
+    for (unsigned i = 0; i < labels_list_.size(); ++i)
+    {    
+      String label("(" + getLabelLong(labels_list_[i]) + ")");
+      unsigned length_label = label.size();
+      
+      if (s.hasSubstring(label))
+      {
+        unsigned length_before = s.size();
+        s.substitute(label, "");
+        unsigned length_after = s.size();
+        unsigned multiple = (length_before - length_after)/length_label;
+        
+        for (unsigned j = 0; j < multiple; ++j)
+        {
+          label_set.insert(labels_list_[i]);
+        }
+      }
+    }
+
+    // add no_label if nothing was found
+    // (either way if no_label is in the theoretical list or not)
+    if (label_set.empty())
+    {
+      label_set.insert("no_label");
+    }    
+    
+    return label_set;
   }
 
 }

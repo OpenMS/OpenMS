@@ -74,6 +74,22 @@ namespace OpenMS
   {
     return delta_masses_;
   }
+  
+  String MultiplexDeltaMasses::LabelSetToString(const MultiplexDeltaMasses::LabelSet ls)
+  {
+    std::stringstream ss;
+    
+    for (MultiplexDeltaMasses::LabelSet::iterator it = ls.begin(); it != ls.end(); ++it)
+    {
+      if (it != ls.begin())
+      {
+        ss << " ";
+      }
+      ss << (*it);
+    }
+
+    return String(ss.str());
+  }
 
   bool operator<(const MultiplexDeltaMasses &dm1, const MultiplexDeltaMasses &dm2)
   {
