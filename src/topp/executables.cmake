@@ -12,7 +12,6 @@ ConsensusMapNormalizer
 Decharger
 DTAExtractor
 EICExtractor
-ExternalCalibration
 FalseDiscoveryRate
 FeatureFinderCentroided
 FeatureFinderIdentification
@@ -55,6 +54,7 @@ MascotAdapterOnline
 MassTraceExtractor
 MRMMapper
 MSGFPlusAdapter
+MultiplexResolver
 MyriMatchAdapter
 MzTabExporter
 NoiseFilterGaussian

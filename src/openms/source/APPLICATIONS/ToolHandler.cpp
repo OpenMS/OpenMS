@@ -59,7 +59,6 @@ namespace OpenMS
     tools_map["Decharger"] = Internal::ToolDescription("Decharger", "Quantitation");
     tools_map["DTAExtractor"] = Internal::ToolDescription("DTAExtractor", "File Handling");
     tools_map["EICExtractor"] = Internal::ToolDescription("EICExtractor", "Quantitation");
-    tools_map["ExternalCalibration"] = Internal::ToolDescription("ExternalCalibration", "Signal processing and preprocessing");
     tools_map["FalseDiscoveryRate"] = Internal::ToolDescription("FalseDiscoveryRate", "ID Processing");
     tools_map["FeatureFinderCentroided"] = Internal::ToolDescription("FeatureFinderCentroided", "Quantitation");
     tools_map["FeatureFinderIdentification"] = Internal::ToolDescription("FeatureFinderIdentification", "Quantitation");
@@ -102,6 +101,7 @@ namespace OpenMS
     tools_map["MassTraceExtractor"] = Internal::ToolDescription("MassTraceExtractor", "Signal processing and preprocessing");
     tools_map["MRMMapper"] = Internal::ToolDescription("MRMMapper", "Targeted Experiments");
     tools_map["MSGFPlusAdapter"] = Internal::ToolDescription("MSGFPlusAdapter", "Identification");
+    tools_map["MultiplexResolver"] = Internal::ToolDescription("MultiplexResolver", "Quantitation");
     tools_map["MyriMatchAdapter"] = Internal::ToolDescription("MyriMatchAdapter", "Identification");
     tools_map["MzTabExporter"] = Internal::ToolDescription("MzTabExporter", "File Handling");
     tools_map["NoiseFilterGaussian"] = Internal::ToolDescription("NoiseFilterGaussian", "Signal processing and preprocessing");
