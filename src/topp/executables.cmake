@@ -12,6 +12,7 @@ ConsensusMapNormalizer
 Decharger
 DTAExtractor
 EICExtractor
+ExternalCalibration
 FalseDiscoveryRate
 FeatureFinderCentroided
 FeatureFinderIdentification
