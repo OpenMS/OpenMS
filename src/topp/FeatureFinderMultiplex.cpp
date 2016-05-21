@@ -1010,10 +1010,10 @@ private:
     {
       generator.generateKnockoutDeltaMasses();
     }
-    generator.printLabelsList();
-    generator.printMassPatternList();
+    generator.printSamplesLabelsList();
+    generator.printDeltaMassesList();
     
-    std::vector<MultiplexDeltaMasses> masses = generator.getMassPatternList();
+    std::vector<MultiplexDeltaMasses> masses = generator.getDeltaMassesList();
     std::vector<MultiplexIsotopicPeakPattern> patterns = generatePeakPatterns_(charge_min_, charge_max_, isotopes_per_peptide_max_, masses);
 
     bool missing_peaks_ = false;
