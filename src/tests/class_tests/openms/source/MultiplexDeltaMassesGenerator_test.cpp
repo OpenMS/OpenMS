@@ -56,7 +56,7 @@ MultiplexDeltaMassesGenerator* ptr;
 
 START_SECTION(MultiplexDeltaMassesGenerator(String labels, int missed_cleavages, std::map<String,double> label_mass_shift))
     MultiplexDeltaMassesGenerator list(labels, missed_cleavages, label_mass_shift);
-    TEST_EQUAL(list.getMassPatternList().size(), 5);
+    TEST_EQUAL(list.getDeltaMassesList().size(), 5);
     ptr = new MultiplexDeltaMassesGenerator(labels, missed_cleavages, label_mass_shift);
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;
@@ -64,16 +64,23 @@ END_SECTION
 
 MultiplexDeltaMassesGenerator list(labels, missed_cleavages, label_mass_shift);
 
-START_SECTION(std::vector<MultiplexDeltaMasses> getMassPatternList() const)
-  std::vector<MultiplexDeltaMasses> masses = list.getMassPatternList();
+START_SECTION(std::vector<MultiplexDeltaMasses> getDeltaMassesList())
+  std::vector<MultiplexDeltaMasses> masses = list.getDeltaMassesList();
   TEST_EQUAL(masses.size(), 5);
   TEST_REAL_SIMILAR(masses[2].getDeltaMasses()[1].delta_mass, 8.0502139672);
   TEST_REAL_SIMILAR(masses[4].getDeltaMasses()[2].delta_mass, 20.0165372);
 END_SECTION
 
+START_SECTION(std::vector<std::vector<String> > MultiplexDeltaMassesGenerator::getSamplesLabelsList())
+  std::vector<std::vector<String> > samples_labels = list.getSamplesLabelsList();
+  TEST_EQUAL(samples_labels.size(), 3);
+  TEST_EQUAL(samples_labels[1][0], "Lys4");
+  TEST_EQUAL(samples_labels[2][1], "Arg10");
+END_SECTION
+
 START_SECTION(void generateKnockoutDeltaMasses())
   list.generateKnockoutDeltaMasses();
-  std::vector<MultiplexDeltaMasses> masses_knockout = list.getMassPatternList();
+  std::vector<MultiplexDeltaMasses> masses_knockout = list.getDeltaMassesList();
   TEST_EQUAL(masses_knockout.size(), 21);
   TEST_REAL_SIMILAR(masses_knockout[6].getDeltaMasses()[1].delta_mass, 8.0141988132);
   TEST_REAL_SIMILAR(masses_knockout[19].getDeltaMasses()[1].delta_mass, 20.0165372);
