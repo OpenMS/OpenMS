@@ -1662,7 +1662,7 @@
 				<element map="2" id="0" rt="1746.87657581059" mz="521.82004387096" it="2.50951e+08" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="521.820434570313" RT="1741.1178" >
-				<PeptideHit score="0.0262345679012346" sequence=".(Dimethyl:2H(6)13C(2))IVIEEFTR." charge="2" aa_before="D" aa_after="K" start="362" end="369" protein_refs="PH_164">
+				<PeptideHit score="0.0262345679012346" sequence="(Dimethyl:2H(6)13C(2))IVIEEFTR" charge="2" aa_before="D" aa_after="K" start="362" end="369" protein_refs="PH_164">
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="unique"/>

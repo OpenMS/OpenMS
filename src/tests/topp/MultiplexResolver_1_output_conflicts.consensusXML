@@ -5381,7 +5381,7 @@
 				<element map="2" id="0" rt="3921.55806929815" mz="637.006058813141" it="1.2169e+08" charge="3"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="634.346252441406" RT="3935.67553710938" >
-				<PeptideHit score="0.0491175845205188" sequence=".STVREIDPQNDLTFLR." charge="3" aa_before="R X" aa_after="I X" protein_refs="PH_1104 PH_623">
+				<PeptideHit score="0.0491175845205188" sequence="STVREIDPQNDLTFLR" charge="3" aa_before="R X" aa_after="I X" protein_refs="PH_1104 PH_623">
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="non-unique"/>
@@ -5398,7 +5398,7 @@
 				<element map="2" id="0" rt="3922.72834795447" mz="762.405476274356" it="8.09567e+07" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="757.401000976563" RT="3923.15502929688" >
-				<PeptideHit score="0.00259571706683971" sequence=".LINIDFTDPDESK(Label:13C(6)15N(2))." charge="2" aa_before="R" aa_after="W" protein_refs="PH_709">
+				<PeptideHit score="0.00259571706683971" sequence="LINIDFTDPDESK(Label:13C(6)15N(2))" charge="2" aa_before="R" aa_after="W" protein_refs="PH_709">
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="unique"/>
