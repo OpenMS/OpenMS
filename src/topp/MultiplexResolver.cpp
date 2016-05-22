@@ -603,9 +603,6 @@ public:
     // find m/z of the new complete consensus
     double mz_complete = findNewMZ(mz, charge, pattern, delta_mass_matched);
     
-    //std::cout << "  old m/z = " << mz << "\n";
-    //std::cout << "  new m/z = " << mz_complete << "\n";
-    
     consensus_complete.setMZ(mz_complete);
     consensus_complete.setRT(consensus.getRT());
     consensus_complete.setCharge(consensus.getCharge());
@@ -625,8 +622,6 @@ public:
       //std::cout << "    index = " << (it_mass_shift - pattern.begin()) << "    shift = " << it_mass_shift->delta_mass;
       if (*it_delta_mass_matched)
       {
-        //std::cout << " (*)";
-        
         // copy feature from incomplete consensus
         FeatureHandle feature_handle(*it_feature);
         feature_handle.setMapIndex(it_mass_shift - pattern.begin());
@@ -648,7 +643,6 @@ public:
         feature_handle.setMapIndex(it_mass_shift - pattern.begin());
         consensus_complete.insert(feature_handle);
       }
-      //std::cout << "\n";
       
     }
     
