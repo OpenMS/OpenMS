@@ -473,7 +473,7 @@ public:
   {
     double first_mass = consensus->getFeatures().begin()->getMZ() * consensus->getFeatures().begin()->getCharge();
     double detected_delta_mass_at_label_set = DeltaMassFromMapIndex(consensus->getFeatures(), consensus->getPeptideIdentifications()[0].getMetaValue("map index"));
-    if (isnan(detected_delta_mass_at_label_set))
+    if (boost::math::isnan(detected_delta_mass_at_label_set))
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No delta mass with this map index could be found.", "");
     }
@@ -527,7 +527,7 @@ public:
       std::vector<MultiplexDeltaMasses::DeltaMass> pattern = it_pattern->getDeltaMasses();
       
       double shift = matchLabelSet(pattern, label_set, index_label_set);
-      if (!isnan(shift))
+      if (!boost::math::isnan(shift))
       {        
         // reset boolean vector
         unsigned i = delta_mass_matched.size();
