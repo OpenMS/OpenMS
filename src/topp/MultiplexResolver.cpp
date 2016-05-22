@@ -599,10 +599,11 @@ public:
     int charge = consensus.getCharge();
     double RT = consensus.getRT();
     double mz = consensus.getMZ();
-    //std::cout << "  old m/z = " << mz << "\n";
     
     // find m/z of the new complete consensus
     double mz_complete = findNewMZ(mz, charge, pattern, delta_mass_matched);
+    
+    //std::cout << "  old m/z = " << mz << "\n";
     //std::cout << "  new m/z = " << mz_complete << "\n";
     
     consensus_complete.setMZ(mz_complete);
@@ -610,6 +611,7 @@ public:
     consensus_complete.setCharge(consensus.getCharge());
     consensus_complete.setIntensity(consensus.getIntensity());    // Alternatively, reduce intensity due to new zero-intensity dummy features.
     consensus_complete.setQuality(consensus.getQuality());
+    consensus_complete.setPeptideIdentifications(consensus.getPeptideIdentifications());
     
     // loop over delta masses in theoretical pattern
     std::vector<MultiplexDeltaMasses::DeltaMass>::const_iterator it_mass_shift;
