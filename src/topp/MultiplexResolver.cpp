@@ -439,15 +439,17 @@ public:
    *
    * @param pattern    theoretical pattern
    * @param label_set    label set of the detected pettern
+   * @param index_label_set    index within the pattern at which the label sets were matched
    * 
    * @return mass shift in the theoretical pattern where both label sets match
    */
-  double matchLabelSet(const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern, const MultiplexDeltaMasses::LabelSet& label_set)
+  double matchLabelSet(const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern, const MultiplexDeltaMasses::LabelSet& label_set, int& index_label_set)
   {
     for (std::vector<MultiplexDeltaMasses::DeltaMass>::const_iterator it_mass_shift = pattern.begin(); it_mass_shift != pattern.end(); ++it_mass_shift)
     {
       if (it_mass_shift->label_set == label_set)
       {
+        index_label_set = it_mass_shift - pattern.begin();
         return it_mass_shift->delta_mass;
       }
     }
@@ -513,17 +515,18 @@ public:
    * @param label set    label set extracted from the detected pattern
    * @param theoretical_patterns    list of theoretical delta mass patterns
    * @param delta_mass_matched    Was this delta mass in the theoretical pattern matched?
+   * @param index_label_set    index within the pattern at which the label sets were matched
    * 
    * @return index of matching pattern
    */
-  int findMatchingPattern(const ConsensusMap::ConstIterator consensus, const MultiplexDeltaMasses::LabelSet& label_set, const std::vector<MultiplexDeltaMasses>& theoretical_patterns, std::vector<bool>& delta_mass_matched)
+  int findMatchingPattern(const ConsensusMap::ConstIterator consensus, const MultiplexDeltaMasses::LabelSet& label_set, const std::vector<MultiplexDeltaMasses>& theoretical_patterns, std::vector<bool>& delta_mass_matched, int& index_label_set)
   {
     // loop over theoretical patterns
     for (std::vector<MultiplexDeltaMasses>::const_iterator it_pattern = theoretical_patterns.begin(); it_pattern != theoretical_patterns.end(); ++it_pattern)
     {
       std::vector<MultiplexDeltaMasses::DeltaMass> pattern = it_pattern->getDeltaMasses();
       
-      double shift = matchLabelSet(pattern, label_set);
+      double shift = matchLabelSet(pattern, label_set, index_label_set);
       if (!isnan(shift))
       {        
         // reset boolean vector
@@ -577,10 +580,11 @@ public:
    * @param consensus    (possibly) incomplete consensus
    * @param pattern    matching theoretical delta mass pattern
    * @param delta_mass_matched    Was this delta mass in the theoretical pattern matched?
+   * @param index_label_set    index within the pattern at which the label sets were matched
    * 
    * @return completed consensus
    */
-  ConsensusFeature completeConsensus(const ConsensusFeature& consensus, const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern, const std::vector<bool>& delta_mass_matched)
+  ConsensusFeature completeConsensus(const ConsensusFeature& consensus, const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern, const std::vector<bool>& delta_mass_matched, int index_label_set)
   {
     // Nothing to do. Detected consensus is already complete.
     if (consensus.size() == pattern.size())
@@ -609,6 +613,7 @@ public:
     consensus_complete.setIntensity(consensus.getIntensity());    // Alternatively, reduce intensity due to new zero-intensity dummy features.
     consensus_complete.setQuality(consensus.getQuality());
     consensus_complete.setPeptideIdentifications(consensus.getPeptideIdentifications());
+    consensus_complete.getPeptideIdentifications()[0].getHits()[0].setMetaValue("map index", index_label_set);
     
     // loop over delta masses in theoretical pattern
     std::vector<MultiplexDeltaMasses::DeltaMass>::const_iterator it_mass_shift;
@@ -671,8 +676,9 @@ public:
       AASequence sequence = cit->getPeptideIdentifications()[0].getHits()[0].getSequence();      
       MultiplexDeltaMasses::LabelSet label_set = generator.extractLabelSet(sequence);
       std::vector<bool> delta_mass_matched(multiplicity, false);
+      int index_label_set = -1;
       
-      int index = findMatchingPattern(cit, label_set, theoretical_masses, delta_mass_matched);
+      int index = findMatchingPattern(cit, label_set, theoretical_masses, delta_mass_matched, index_label_set);
       
       /*std::cout << "consensus = " << (cit - map_in.begin());
       std::cout << "    RT = " << cit->getRT();
@@ -684,7 +690,7 @@ public:
         
         ++found_pattern_count;
         
-        ConsensusFeature consensus = completeConsensus(*cit, theoretical_masses[index].getDeltaMasses(), delta_mass_matched);
+        ConsensusFeature consensus = completeConsensus(*cit, theoretical_masses[index].getDeltaMasses(), delta_mass_matched, index_label_set);
         map_out.push_back(consensus);
       }
       else

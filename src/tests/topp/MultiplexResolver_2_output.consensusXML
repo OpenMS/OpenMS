@@ -1587,6 +1587,7 @@
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="SpecEValue_score" value="1.2037656e-23"/>
+					<UserParam type="int" name="map index" value="0"/>
 				</PeptideHit>
 				<UserParam type="int" name="map index" value="0"/>
 			</PeptideIdentification>
@@ -1613,6 +1614,7 @@
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="SpecEValue_score" value="1.9102004e-17"/>
+					<UserParam type="int" name="map index" value="0"/>
 				</PeptideHit>
 				<UserParam type="int" name="map index" value="0"/>
 			</PeptideIdentification>
@@ -1648,6 +1650,7 @@
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="SpecEValue_score" value="1.1851003e-13"/>
+					<UserParam type="int" name="map index" value="0"/>
 				</PeptideHit>
 				<UserParam type="int" name="map index" value="0"/>
 			</PeptideIdentification>
@@ -1665,6 +1668,7 @@
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="SpecEValue_score" value="2.6061828e-12"/>
+					<UserParam type="int" name="map index" value="0"/>
 				</PeptideHit>
 				<UserParam type="int" name="map index" value="0"/>
 			</PeptideIdentification>
@@ -1682,6 +1686,7 @@
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="SpecEValue_score" value="3.0973535e-12"/>
+					<UserParam type="int" name="map index" value="0"/>
 				</PeptideHit>
 				<UserParam type="int" name="map index" value="0"/>
 			</PeptideIdentification>
@@ -1699,6 +1704,7 @@
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="SpecEValue_score" value="3.9907965e-20"/>
+					<UserParam type="int" name="map index" value="0"/>
 				</PeptideHit>
 				<UserParam type="int" name="map index" value="0"/>
 			</PeptideIdentification>
@@ -1716,6 +1722,7 @@
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="non-unique"/>
 					<UserParam type="float" name="SpecEValue_score" value="2.7060346e-10"/>
+					<UserParam type="int" name="map index" value="2"/>
 				</PeptideHit>
 				<UserParam type="int" name="map index" value="0"/>
 			</PeptideIdentification>
@@ -1733,6 +1740,7 @@
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="SpecEValue_score" value="1.1541805e-10"/>
+					<UserParam type="int" name="map index" value="0"/>
 				</PeptideHit>
 				<UserParam type="int" name="map index" value="0"/>
 			</PeptideIdentification>
@@ -1750,6 +1758,7 @@
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="SpecEValue_score" value="1.0922148e-18"/>
+					<UserParam type="int" name="map index" value="0"/>
 				</PeptideHit>
 				<UserParam type="int" name="map index" value="0"/>
 			</PeptideIdentification>
@@ -1776,6 +1785,7 @@
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="SpecEValue_score" value="5.2011364e-14"/>
+					<UserParam type="int" name="map index" value="2"/>
 				</PeptideHit>
 				<UserParam type="int" name="map index" value="0"/>
 			</PeptideIdentification>
@@ -1810,6 +1820,7 @@
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="SpecEValue_score" value="1.0900906e-13"/>
+					<UserParam type="int" name="map index" value="2"/>
 				</PeptideHit>
 				<UserParam type="int" name="map index" value="0"/>
 			</PeptideIdentification>

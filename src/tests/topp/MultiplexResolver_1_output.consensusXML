@@ -5456,6 +5456,7 @@
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.120974853453987"/>
+					<UserParam type="int" name="map index" value="0"/>
 				</PeptideHit>
 				<UserParam type="int" name="map index" value="0"/>
 			</PeptideIdentification>
@@ -5473,6 +5474,7 @@
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="2.19903799821167e-05"/>
+					<UserParam type="int" name="map index" value="2"/>
 				</PeptideHit>
 				<UserParam type="int" name="map index" value="1"/>
 			</PeptideIdentification>
@@ -5559,6 +5561,7 @@
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.121271304168165"/>
+					<UserParam type="int" name="map index" value="2"/>
 				</PeptideHit>
 				<UserParam type="int" name="map index" value="1"/>
 			</PeptideIdentification>
@@ -5619,6 +5622,7 @@
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="non-unique"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.014524186654142"/>
+					<UserParam type="int" name="map index" value="1"/>
 				</PeptideHit>
 				<UserParam type="int" name="map index" value="0"/>
 			</PeptideIdentification>
@@ -5731,6 +5735,7 @@
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="non-unique"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.00298908233984607"/>
+					<UserParam type="int" name="map index" value="0"/>
 				</PeptideHit>
 				<UserParam type="int" name="map index" value="0"/>
 			</PeptideIdentification>
