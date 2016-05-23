@@ -125,8 +125,6 @@ protected:
     param_pi.update(param, false, Log_debug); // suppress param. update message
     indexer.setParameters(param_pi);
 
-    bool keep_unreferenced_proteins = param.getValue("keep_unreferenced_proteins").toBool();
-
     String db_name = getStringOption_("fasta");
     if (!File::readable(db_name))
     {
@@ -161,30 +159,20 @@ protected:
     // calculations
     //-------------------------------------------------------------
 
-    if (proteins.empty()) // we do not allow an empty database
+    PeptideIndexing::ExitCodes indexer_exit = indexer.run(proteins, prot_ids,
+                                                          pep_ids);
+    if ((indexer_exit != PeptideIndexing::EXECUTION_OK) &&
+        (indexer_exit != PeptideIndexing::PEPTIDE_IDS_EMPTY))
     {
-      LOG_ERROR << "Error: An empty FASTA file was provided. Mapping makes no sense. Aborting..." << std::endl;
-      return INPUT_FILE_EMPTY;
-    }
-
-    if (pep_ids.empty()) // Aho-Corasick requires non-empty input
-    {
-      LOG_WARN << "Warning: An empty idXML file was provided. Output will be empty as well." << std::endl;
-      if (!keep_unreferenced_proteins)
+      if (indexer_exit == PeptideIndexing::DATABASE_EMPTY)
       {
-        prot_ids.clear();
+        return INPUT_FILE_EMPTY;       
       }
-      IdXMLFile().store(out, prot_ids, pep_ids);
-      return EXECUTION_OK;
-    }
-
-    PeptideIndexing::ExitCodes indexer_exit = indexer.run(proteins, prot_ids, pep_ids);
-    if ( (indexer_exit != PeptideIndexing::EXECUTION_OK) )
-    {
-      if (indexer_exit == PeptideIndexing::UNEXPECTED_RESULT)
+      else if (indexer_exit == PeptideIndexing::UNEXPECTED_RESULT)
       {
         return UNEXPECTED_RESULT;
-      } else
+      }
+      else
       {
         return UNKNOWN_ERROR;
       }

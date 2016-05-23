@@ -402,7 +402,7 @@ namespace OpenMS
     // disable collection of usage statistics if environment variable is present
     char* disable_usage = getenv("OPENMS_DISABLE_USAGE_STATISTICS");
 
-    if (!test_mode_ && disable_usage != NULL)
+    if (!test_mode_ && disable_usage == NULL)
     {
       UpdateCheck::run(tool_name_, version_);
     }

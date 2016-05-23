@@ -183,7 +183,14 @@ protected:
   {
     do
     {
-      date_time = date_time.addSecs(1);
+      if (date_time.isValid())
+      {
+        date_time = date_time.addSecs(1);
+      }
+      else
+      {
+        date_time = DateTime::now();
+      }
       new_id = search_engine + "_" + date_time.toString(Qt::ISODate);
     }
     while (used_ids.find(new_id) != used_ids.end());
