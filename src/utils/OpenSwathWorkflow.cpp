@@ -1048,7 +1048,7 @@ namespace OpenMS
         if (tsv_writer.isActive()) { output.clear(); }
 
         // Set the MS1 chromatogram if available
-        if (!ms1_chromatograms.empty())
+        if (!ms1_chromatograms.empty() && ms1_chromatograms.find(transition_group.getTransitionGroupID()) != ms1_chromatograms.end())
         {
           OpenSwath::ChromatogramPtr cptr = ms1_chromatograms[ transition_group.getTransitionGroupID() ];
           MSChromatogram<ChromatogramPeak> chromatogram_old;

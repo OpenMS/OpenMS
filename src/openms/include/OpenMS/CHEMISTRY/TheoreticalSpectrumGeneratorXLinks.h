@@ -172,8 +172,8 @@ public:
       bool add_losses_;
       bool add_metainfo_;
       bool add_isotopes_;
-      bool add_precursor_peaks;
-      bool add_abundant_immonium_ions;
+      bool add_precursor_peaks_;
+      bool add_abundant_immonium_ions_;
       double a_intensity_;
       double b_intensity_;
       double c_intensity_;

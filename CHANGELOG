@@ -8,6 +8,315 @@ INIFileEditor - graphical parameter editor for INI files
 Parameters - list of algorithm or TOPP tool parameters that changed in this release
 
 ------------------------------------------------------------------------------------------
+----                                OpenMS 2.1                                        ----
+------------------------------------------------------------------------------------------
+OpenMS 2.1 is the first release that provides an update notification functionality which 
+is also used to track usage statistics of OpenMS tools. 
+How it works:
+At most once a day - on tool execution - a REST request to our update server is sent. 
+The REST server returns the most current version of the tool. 
+If the returned version is newer than the local one, the tool notifies the user that a software
+update is available. By collecting this information we hope to improve the quality of OpenMS, 
+helps us to distribute development resources to e.g. heavily used tools
+and is needed to calculate metrics required by our funding agency.
+We will keep this information as confidential as possible and only provide summary 
+statistics to e.g. our funding agencies.
+If you feel uncomfortable with this you can disable the update/usage tracking by:
+1. disabling it in the build script (switch ENABLE_USAGE_STATISTICS to "OFF" ), or
+2. setting the environment variable (OPENMS_DISABLE_USAGE_STATISTICS)
+
+
+------------------------------------------------------------------------------------------
+----                                OpenMS 2.0.1                                      ----
+------------------------------------------------------------------------------------------
+OpenMS 2.0.1 is a source only release of the core libraries and tools. 
+With over 300 merged pull requests, it introduces a considerable number of new features, 
+bug fixes and speed improvements.
+
+Notable changes are:
+
+File formats:
+  - Improved mzIdentML support (experimental)
+  - Improved mzTab support (experimental)
+  - Comet pepXML file reading support (experimental) 
+  - Search parameter units are retained through id files
+  - Faster base64 decoding in XML files
+
+Databases:
+  - HMDB has been updated to version 3.6
+
+TOPPView:
+  - Added slight margin around data range (%2) for improved visualization
+  - Added FeatureFinderMultiplex to the tools accessible from TOPPView
+  - Some fixes to the scrollbar behaviour
+
+Added tools:
+  - IDScoreSwitcher -- Switches between different scores of peptide or protein hits in identification data (UTIL)
+  - LuciphorAdapter -- Modification site localisation using LuciPHOr2 (TOPP)
+  - MetaProSIP -- Performs proteinSIP on peptide features for elemental flux analysis (UTIL)
+  - MzMLSplitter -- Splits an mzML file into multiple parts (UTIL)
+  - OpenSwathAssayGenerator -- Generates assays according to different models for a specific TraML (TOPP)
+
+Removed tools:
+  - RTAnnotator -- Annotates identification files that are missing the RT field (UTIL)
+
+Tools with major changes:
+  - OpenSWATH now outputs peak apices
+    - Improved iRT correction
+    - Assay generator
+    - UIS scoring
+  - Deuterium labeling in MetaProSIP (experimental)
+  - XTandemAdapter allows for external config file
+  - TextExporter can optionally export PeptideIdentification and PeptideHits meta-values
+  - FeatureLinkerUnlabeledQT speed improvements
+  - FileMerger allows to concatenate files in RT
+  - MzTabExporter supports protein IDs
+  - PeakPickerWavelet speedup
+  - HiResPrecursorMassCorrector supports correction of precursors to detected features
+  - FeatureFinderMultiplex speed improvements
+
+Library:
+  - Support for user definable enzymes available in EnzymesDB.xml
+  - PeptideIndexing is now available as internal algorithm
+  - EnzymaticDigestion allows for minimum / maximum length constraints
+  - HyperScore and PScore implementations
+  - Fits allow extrapolation of data values
+  - QT clustering is now order independent
+  - Additional convinience functions to access the nearest spectrum peak in a mass tolerance window
+  - User defined averagine compositions
+  - A fast linear lowess implementation has been added
+  - MetaInfoInterface has been added to FeatureMap to store additional meta-values
+  - Calculation of Median Absolute Deviation
+
+General:
+  - OpenMS writes indexed mzML by default
+  - OpenMS home directory can be configured through OPENMS_HOME_DIR environment variable
+  - Updated GenericWrapper definitions for MS-GF+ and Mascot
+
+Third party software:
+  - LuciphorAdapter (experimental) PTM localization using the LuciPHOr2 algorithm (http://luciphor2.sourceforge.net/)
+
+
+Changed tool parameters:
+
+Tool name	Added/removed	Parameter name	Type	Default value	Restrictions	Supported formats
+AccurateMassSearch	+	algorithm:mzTab:exportIsotopeIntensities	int	0	0:	
+AccurateMassSearch	-	algorithm:report_mode	string	all	all,top3,best	
+ConsensusID	+	algorithm	string	PEPMatrix	PEPMatrix,PEPIons,best,worst,average,ranks	
+ConsensusID	-	algorithm:algorithm	string	PEPMatrix	ranked,average,PEPMatrix,PEPIons,Minimum	
+ConsensusID	+	PEPIons:mass_tolerance	double	0.5	0:	
+ConsensusID	+	PEPIons:min_shared	int	2	1:	
+ConsensusID	+	PEPMatrix:matrix	string	identity	identity,PAM30MS	
+ConsensusID	+	PEPMatrix:penalty	int	5	1:	
+ConsensusID	+	filter:considered_hits	int	0	0:	
+ConsensusID	+	filter:count_empty	string	false	true,false	
+ConsensusID	+	filter:min_support	double	0	0:1	
+ConsensusID	-	algorithm:PEPIons:MinNumberOfFragments	int	2	0:	
+ConsensusID	-	algorithm:PEPIons:common	double	1.1	0:1.1	
+ConsensusID	-	algorithm:PEPMatrix:common	double	1.1	0:1.1	
+ConsensusID	-	algorithm:PEPMatrix:penalty	int	5		
+ConsensusID	-	algorithm:considered_hits	int	10	1:	
+ConsensusID	-	algorithm:number_of_runs	int	0	0:	
+ConsensusID	-	min_length	int	6	1:	
+ConsensusID	-	use_all_hits	string	false	true,false	
+ConsensusMapNormalizer	+	accession_filter	string			
+ConsensusMapNormalizer	+	algorithm_type	string	robust_regression	robust_regression,median,median_shift,quantile	
+ConsensusMapNormalizer	+	description_filter	string			
+ConsensusMapNormalizer	-	algorithm_type	string	robust_regression	robust_regression,median,quantile	
+Digestor	+	enzyme	string	Trypsin	V8-DE,V8-E,2-iodobenzoate,leukocyte elastase,proline endopeptidase,glutamyl endopeptidase,no cleavage,unspecific cleavage,Arg-C,Lys-C/P,PepsinA,TrypChymo,Trypsin/P,CNBr,Formic_acid,Lys-C,Asp-N_ambic,Chymotrypsin,Asp-N,Trypsin	
+Digestor	-	enzyme	string	Trypsin	Trypsin,none	
+DigestorMotif	+	enzyme	string	Trypsin	Lys-C/P,PepsinA,TrypChymo,Trypsin/P,V8-DE,V8-E,Formic_acid,Lys-C,Trypsin,Chymotrypsin,CNBr,leukocyte elastase,proline endopeptidase,2-iodobenzoate,glutamyl endopeptidase,no cleavage,unspecific cleavage,Arg-C,Asp-N_ambic,Asp-N	
+DigestorMotif	-	enzyme	string	Trypsin		
+FalseDiscoveryRate	+	algorithm:no_qvalues	string	false	true,false	
+FalseDiscoveryRate	+	in_decoy	input-file			*.idXML
+FalseDiscoveryRate	+	in_target	input-file			*.idXML
+FalseDiscoveryRate	-	algorithm:decoy_string	string	_rev		
+FalseDiscoveryRate	-	algorithm:q_value	string	true	true,false	
+FalseDiscoveryRate	-	fwd_in	input-file			*.idXML
+FalseDiscoveryRate	-	rev_in	input-file			*.idXML
+FeatureFinderMetabo	+	algorithm:ffm:enable_RT_filtering	string	true	false,true	
+FeatureFinderMetabo	+	algorithm:ffm:quant_method	string	area	area,median	
+FeatureFinderMetabo	+	algorithm:mtd:max_trace_length	double	-1		
+FeatureFinderMetabo	-	algorithm:mtd:max_trace_length	double	300		
+FeatureFinderMultiplex	+	algorithm:averagine_type	string	peptide	peptide,RNA,DNA	
+FeatureLinkerUnlabeledQT	+	algorithm:nr_partitions	int	1	1:	
+FidoAdapter	+	greedy_group_resolution	string	false	true,false	
+FidoAdapter	-	prob_param	string	Posterior Probability_score		
+FileFilter	+	algorithm:SignalToNoise:write_log_messages	string	true	true,false	
+FileFilter	+	peak_options:pc_mz_list	double			
+FileFilter	+	peak_options:pc_mz_range	string	:		
+FileFilter	-	pc_mz	string	:		
+FileMerger	+	raw:ms_level	int	0		
+FileMerger	+	rt_concat:gap	double	0		
+FileMerger	+	rt_concat:trafo_out	output-file			*.trafoXML
+FileMerger	-	raw:ms_level	int	2		
+FileMerger	-	raw:user_ms_level	string	false	true,false	
+FuzzyDiff	+	matched_whitelist	string			
+HighResPrecursorMassCorrector	+	feature:assign_all_matching	string	false	true,false	
+HighResPrecursorMassCorrector	+	feature:believe_charge	string	false	true,false	
+HighResPrecursorMassCorrector	+	feature:in	input-file			*.featureXML
+HighResPrecursorMassCorrector	+	feature:keep_original	string	false	true,false	
+HighResPrecursorMassCorrector	+	feature:max_trace	int	2		
+HighResPrecursorMassCorrector	+	feature:mz_tolerance	double	5		
+HighResPrecursorMassCorrector	+	feature:mz_tolerance_unit	string	ppm	Da,ppm	
+HighResPrecursorMassCorrector	+	feature:rt_tolerance	double	0		
+HighResPrecursorMassCorrector	+	nearest_peak:mz_tolerance	double	0		
+HighResPrecursorMassCorrector	+	nearest_peak:mz_tolerance_unit	string	ppm	Da,ppm	
+IDFileConverter	+	in	input-file			*.pepXML,*.protXML,*.mascotXML,*.omssaXML,*.xml,*.psms,*.tsv,*.idXML,*.mzid
+IDFileConverter	+	score_type	string	qvalue	qvalue,PEP,score	
+IDFileConverter	-	in	input-file			*.pepXML,*.protXML,*.mascotXML,*.omssaXML,*.xml,*.idXML,*.mzid
+IDFileConverter	-	use_precursor_data	string	false	true,false	
+IDFilter	+	blacklist:modifications	string		...	
+IDFilter	+	blacklist:protein_accessions	string			
+IDFilter	+	blacklist:proteins	input-file			*.fasta
+IDFilter	+	charge	string	:		
+IDFilter	+	length	string	:		
+IDFilter	+	whitelist:ignore_modifications	string	false	true,false	
+IDFilter	+	whitelist:modifications	string		...	
+IDFilter	+	whitelist:peptides	input-file			*.idXML
+IDFilter	+	whitelist:protein_accessions	string			
+IDFilter	-	max_length	int	0	0:	
+IDFilter	-	min_charge	int	1	1:	
+IDFilter	-	min_length	int	0	0:	
+IDFilter	-	precursor:allow_missing	string	false	true,false	
+IDFilter	-	whitelist:by_seq_only	string	false	true,false	
+IDPosteriorErrorProbability	+	fit_algorithm:max_nr_iterations	int	1000		
+IDPosteriorErrorProbability	-	smallest_e_value	double	1e-19		
+LowMemPeakPickerHiRes	+	algorithm:SignalToNoise:write_log_messages	string	true	true,false	
+LowMemPeakPickerHiRes_RandomAccess	+	algorithm:SignalToNoise:write_log_messages	string	true	true,false	
+MRMTransitionGroupPicker	+	algorithm:PeakPickerMRM:use_gauss	string	true	false,true	
+MRMTransitionGroupPicker	+	algorithm:PeakPickerMRM:write_sn_log_messages	string	true	true,false	
+MRMTransitionGroupPicker	-	algorithm:PeakPickerMRM:use_gauss	string	true		
+MSGFPlusAdapter	+	legacy_conversion	string	false	true,false	
+MSSimulator	+	algorithm:MSSim:Digestion:enzyme	string	Trypsin	leukocyte elastase,proline endopeptidase,2-iodobenzoate,glutamyl endopeptidase,no cleavage,unspecific cleavage,Arg-C,Formic_acid,Lys-C,Lys-C/P,PepsinA,TrypChymo,Trypsin/P,V8-DE,V8-E,Chymotrypsin,CNBr,Asp-N,Asp-N_ambic,Trypsin	
+MSSimulator	+	algorithm:MSSim:RawTandemSignal:Precursor:min_mz_peak_distance	double	2	0.0001:	
+MSSimulator	+	algorithm:MSSim:RawTandemSignal:Precursor:mz_isolation_window	double	2	0:	
+MSSimulator	-	algorithm:MSSim:Digestion:enzyme	string	Trypsin	Trypsin,none	
+MSSimulator	-	algorithm:MSSim:RawTandemSignal:Precursor:min_peak_distance	double	3	0:	
+MSSimulator	-	algorithm:MSSim:RawTandemSignal:Precursor:selection_window	double	2	0:	
+MapAlignerIdentification	+	model:interpolated:extrapolation_type	string	two-point-linear	two-point-linear,four-point-linear,global-linear	
+MapAlignerSpectrum	+	model:interpolated:extrapolation_type	string	two-point-linear	two-point-linear,four-point-linear,global-linear	
+MapRTTransformer	+	in	input-file			*.mzML,*.featureXML,*.consensusXML,*.idXML
+MapRTTransformer	+	model:interpolated:extrapolation_type	string	two-point-linear	two-point-linear,four-point-linear,global-linear	
+MapRTTransformer	+	out	output-file			*.mzML,*.featureXML,*.consensusXML,*.idXML
+MapRTTransformer	+	store_original_rt	string	false	true,false	
+MapRTTransformer	+	trafo_in	input-file			*.trafoXML
+MapRTTransformer	+	trafo_out	output-file			*.trafoXML
+MapRTTransformer	-	in	input-file			*.mzML,*.featureXML,*.consensusXML,*.idXML
+MapRTTransformer	-	out	output-file			*.mzML,*.featureXML,*.consensusXML,*.idXML
+MapRTTransformer	-	trafo_in	input-file			*.trafoXML
+MapRTTransformer	-	trafo_out	output-file			*.trafoXML
+MascotAdapterOnline	+	Mascot_server:skip_export	string	false	true,false	
+MassTraceExtractor	+	algorithm:mtd:max_trace_length	double	-1		
+MassTraceExtractor	-	algorithm:mtd:max_trace_length	double	300		
+MyriMatchAdapter	+	SpectrumListFilters	string			
+MyriMatchAdapter	+	ignoreConfigErrors	string	false	true,false	
+MyriMatchAdapter	-	max_precursor_charge	int	3		
+MyriMatchAdapter	-	min_precursor_charge	int	1		
+MzTabExporter	+	in	input-file			*.featureXML,*.consensusXML,*.idXML,*.mzid
+MzTabExporter	+	out	output-file			*.tsv
+MzTabExporter	-	in_consensus	input-file			*.consensusXML
+MzTabExporter	-	in_feature	input-file			*.featureXML
+MzTabExporter	-	in_id	input-file			*.idXML
+MzTabExporter	-	out	output-file			*.csv
+OMSSAAdapter	+	enzyme	string	Trypsin	Trypsin,TrypChymo,Trypsin/P,Lys-C/P,PepsinA,Asp-N_ambic,Formic_acid,Arg-C,unspecific cleavage,CNBr,no cleavage,glutamyl endopeptidase,Lys-C,Chymotrypsin,Asp-N	
+OMSSAAdapter	-	e	int	0		
+OpenSwathAnalyzer	+	algorithm:Scores:use_uis_scores	string	false	true,false	
+OpenSwathAnalyzer	+	algorithm:TransitionGroupPicker:PeakPickerMRM:use_gauss	string	true	false,true	
+OpenSwathAnalyzer	+	algorithm:TransitionGroupPicker:PeakPickerMRM:write_sn_log_messages	string	true	true,false	
+OpenSwathAnalyzer	+	algorithm:uis_threshold_peak_area	int	0		
+OpenSwathAnalyzer	+	algorithm:uis_threshold_sn	int	-1		
+OpenSwathAnalyzer	+	model:type	string	linear	linear,b_spline,interpolated,lowess	
+OpenSwathAnalyzer	-	algorithm:TransitionGroupPicker:PeakPickerMRM:use_gauss	string	true		
+OpenSwathAnalyzer	-	model:type	string	linear	linear,b_spline,interpolated	
+OpenSwathChromatogramExtractor	+	model:type	string	linear	linear,b_spline,interpolated,lowess	
+OpenSwathChromatogramExtractor	-	model:type	string	linear	linear,b_spline,interpolated	
+OpenSwathDecoyGenerator	+	allowed_fragment_charges	string	1,2,3,4		
+OpenSwathDecoyGenerator	+	allowed_fragment_types	string	b,y		
+OpenSwathDecoyGenerator	+	enable_detection_specific_losses	string	false	true,false	
+OpenSwathDecoyGenerator	+	enable_detection_unspecific_losses	string	false	true,false	
+OpenSwathDecoyGenerator	-	enable_losses	string	false	true,false	
+OpenSwathDecoyGenerator	-	theoretical	string	false	true,false	
+OpenSwathRTNormalizer	+	algorithm:Scores:use_uis_scores	string	false	true,false	
+OpenSwathRTNormalizer	+	algorithm:TransitionGroupPicker:PeakPickerMRM:use_gauss	string	true	false,true	
+OpenSwathRTNormalizer	+	algorithm:TransitionGroupPicker:PeakPickerMRM:write_sn_log_messages	string	true	true,false	
+OpenSwathRTNormalizer	+	algorithm:uis_threshold_peak_area	int	0		
+OpenSwathRTNormalizer	+	algorithm:uis_threshold_sn	int	-1		
+OpenSwathRTNormalizer	+	outlierDetection:outlierMethod	string	iter_residual	iter_residual,iter_jackknife,ransac,none	
+OpenSwathRTNormalizer	+	outlierDetection:useIterativeChauvenet	string	false	true,false	
+OpenSwathRTNormalizer	-	algorithm:TransitionGroupPicker:PeakPickerMRM:use_gauss	string	true		
+OpenSwathRTNormalizer	-	outlierDetection:outlierMethod	string	iter_residual		
+OpenSwathRTNormalizer	-	outlierDetection:useIterativeChauvenet	string	false		
+OpenSwathWorkflow	+	Scoring:Scores:use_uis_scores	string	false	true,false	
+OpenSwathWorkflow	+	Scoring:TransitionGroupPicker:PeakPickerMRM:use_gauss	string	false	false,true	
+OpenSwathWorkflow	+	Scoring:TransitionGroupPicker:PeakPickerMRM:write_sn_log_messages	string	false	true,false	
+OpenSwathWorkflow	+	Scoring:TransitionGroupPicker:background_subtraction	string	none	none,smoothed,original	
+OpenSwathWorkflow	+	Scoring:uis_threshold_peak_area	int	0		
+OpenSwathWorkflow	+	Scoring:uis_threshold_sn	int	-1		
+OpenSwathWorkflow	+	enable_uis_scoring	string	false	true,false	
+OpenSwathWorkflow	+	mz_correction_function	string	none	none,unweighted_regression,weighted_regression,quadratic_regression,weighted_quadratic_regression,weighted_quadratic_regression_delta_ppm,quadratic_regression_delta_ppm	
+OpenSwathWorkflow	+	outlierDetection:InitialQualityCutoff	double	0.5		
+OpenSwathWorkflow	+	outlierDetection:MinBinsFilled	int	8		
+OpenSwathWorkflow	+	outlierDetection:MinPeptidesPerBin	int	1		
+OpenSwathWorkflow	+	outlierDetection:NrRTBins	int	10		
+OpenSwathWorkflow	+	outlierDetection:OverallQualityCutoff	double	5.5		
+OpenSwathWorkflow	+	outlierDetection:RANSACMaxIterations	int	1000		
+OpenSwathWorkflow	+	outlierDetection:RANSACMaxPercentRTThreshold	int	3		
+OpenSwathWorkflow	+	outlierDetection:RANSACSamplingSize	int	10		
+OpenSwathWorkflow	+	outlierDetection:estimateBestPeptides	string	false	true,false	
+OpenSwathWorkflow	+	outlierDetection:outlierMethod	string	iter_residual	iter_residual,iter_jackknife,ransac,none	
+OpenSwathWorkflow	+	outlierDetection:useIterativeChauvenet	string	false	true,false	
+OpenSwathWorkflow	+	readOptions	string	normal	normal,cache,cacheWorkingInMemory	
+OpenSwathWorkflow	-	Scoring:EMGScoring:deltaRelError	double	0.1		
+OpenSwathWorkflow	-	Scoring:TransitionGroupPicker:PeakPickerMRM:use_gauss	string	false		
+OpenSwathWorkflow	-	readOptions	string	normal	normal,cache	
+PeakPickerHiRes	+	algorithm:SignalToNoise:write_log_messages	string	true	true,false	
+PeptideIndexer	+	enzyme:name	string	Trypsin	Chymotrypsin,CNBr,Formic_acid,Lys-C,Lys-C/P,PepsinA,TrypChymo,Trypsin/P,V8-DE,V8-E,2-iodobenzoate,leukocyte elastase,proline endopeptidase,glutamyl endopeptidase,no cleavage,unspecific cleavage,Trypsin,Arg-C,Asp-N,Asp-N_ambic	
+PeptideIndexer	+	filter_aaa_proteins	string	false	true,false	
+PeptideIndexer	+	mismatches_max	int	0	0:	
+PeptideIndexer	+	write_protein_description	string	false	true,false	
+PeptideIndexer	-	annotate_proteins	string	false	true,false	
+PeptideIndexer	-	enzyme:name	string	Trypsin	Trypsin	
+PhosphoScoring	+	max_num_perm	int	16384	1:	
+PhosphoScoring	+	max_peptide_length	int	40	1:	
+RTEvaluation	-	sequences_file	input-file			*.fasta
+Resampler	+	align_sampling	string	false	true,false	
+Resampler	+	min_int_cutoff	double	-1		
+Resampler	+	ppm	string	false	true,false	
+SimpleSearchEngine	+	enzyme	string	Trypsin	Asp-N_ambic,Trypsin,PepsinA,TrypChymo,Arg-C,Trypsin/P,V8-DE,V8-E,leukocyte elastase,proline endopeptidase,2-iodobenzoate,glutamyl endopeptidase,no cleavage,Lys-C/P,Asp-N,CNBr,Formic_acid,Lys-C,unspecific cleavage,Chymotrypsin	
+SimpleSearchEngine	+	peptide:max_size	int	40		
+SpectraMerger	+	algorithm:average_gaussian:cutoff	double	0.01	0:1	
+SpectraMerger	+	algorithm:average_gaussian:ms_level	int	1	1:	
+SpectraMerger	+	algorithm:average_gaussian:rt_FWHM	double	5	0:100000000000	
+SpectraMerger	+	algorithm:average_gaussian:spectrum_type	string	automatic	profile,centroid,automatic	
+SpectraMerger	+	algorithm:average_tophat:ms_level	int	1	1:	
+SpectraMerger	+	algorithm:average_tophat:rt_range	double	5	0:100000000000	
+SpectraMerger	+	algorithm:average_tophat:rt_unit	string	scans	scans,seconds	
+SpectraMerger	+	algorithm:average_tophat:spectrum_type	string	automatic	profile,centroid,automatic	
+SpectraMerger	+	algorithm:mz_binning_width	double	5	0:	
+SpectraMerger	+	algorithm:mz_binning_width_unit	string	ppm	Da,ppm	
+SpectraMerger	+	merging_method	string	average_gaussian	average_gaussian,average_tophat,precursor_method,block_method	
+SpectraMerger	-	algorithm:mz_binning_width	double	0.0001	0:	
+SpectraMerger	-	algorithm:mz_binning_width_unit	string	Da	Da,ppm	
+SpectraMerger	-	merging_method	string	block_method	precursor_method,block_method	
+TextExporter	+	feature:add_metavalues	int	-1	-1:100	
+TextExporter	+	id:add_hit_metavalues	int	-1	-1:100	
+TextExporter	+	id:add_metavalues	int	-1	-1:100	
+XTandemAdapter	+	cleavage_site	string	Trypsin	Trypsin,Asp-N_ambic,Lys-C/P,PepsinA,V8-E,unspecific cleavage,Asp-N,TrypChymo,leukocyte elastase,Formic_acid,Trypsin/P,V8-DE,CNBr,2-iodobenzoate,glutamyl endopeptidase,Lys-C,Chymotrypsin,Arg-C	
+XTandemAdapter	+	default_config_file	input-file	CHEMISTRY/XTandem_default_input.xml		
+XTandemAdapter	+	ignore_adapter_param	string	false	true,false	
+XTandemAdapter	+	min_precursor_charge	int	2		
+XTandemAdapter	+	precursor_mass_tolerance	double	10		
+XTandemAdapter	+	use_noise_suppression	string	false	true,false	
+XTandemAdapter	-	cleavage_site	string	[RK]|{P}		
+XTandemAdapter	-	default_input_file	input-file			
+XTandemAdapter	-	min_precursor_charge	int	1		
+XTandemAdapter	-	precursor_mass_tolerance	double	1.5		
+
+Note: If you are interested in details on the number of merged pull requests or the state of individual issues. 
+      You can simple query this information from our github repository (see e.g. https://help.github.com/articles/searching-issues/). 
+
+------------------------------------------------------------------------------------------
 ----                                OpenMS 2.0                                        ----
 ------------------------------------------------------------------------------------------
 Release date: February 2015

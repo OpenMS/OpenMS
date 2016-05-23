@@ -33,10 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/MATH/MISC/RANSAC.h>
-#include <OpenMS/CONCEPT/LogStream.h> // LOG_DEBUG
-
-#include <numeric>
-#include <algorithm>
 
 namespace OpenMS
 {

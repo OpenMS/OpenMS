@@ -2040,7 +2040,7 @@ protected:
 
       for (vector<StringView>::iterator cit = current_digest.begin(); cit != current_digest.end(); ++cit)
       {
-        // skip peptides with invalid AAs
+        // skip peptides with invalid AAs // TODO is this necessary?
         if (cit->getString().has('B') || cit->getString().has('O') || cit->getString().has('U') || cit->getString().has('X') || cit->getString().has('Z')) continue;
 
         // skip if no cross-linked residue

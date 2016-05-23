@@ -46,10 +46,11 @@
 #include <string>
 #include <vector>
 
-class String;
 
 namespace OpenMS
 {
+  class String;
+
   namespace StringConversions
   {
 
