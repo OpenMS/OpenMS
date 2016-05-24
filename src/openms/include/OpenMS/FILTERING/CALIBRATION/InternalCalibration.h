@@ -89,14 +89,21 @@ namespace OpenMS
     /** 
       @brief Extract calibrants from Raw data (mzML)
 
-      Lock masses are searched in each spectrum,
-      using 
+      Lock masses are searched in each spectrum and added to the internal calibrant database.
+
+      Filters can be used to exclude spurious peaks, i.e. require the calibrant peak to be monoisotopic or
+      to have a +1 isotope (should not be used for very low abundant calibrants).
+      If a calibrant is not found, it is added to a 'failed_lock_masses' database which is returned and not stored internally.
+      The intensity of the peaks describe the reason for failed detection: 0.0 - peak not found with the given ppm tolerance;
+      1.0 - peak is not monoisotopic (can only occur if 'lock_require_mono' is true)
+      2.0 - peak has no +1 isotope (can only occur if 'lock_require_iso' is true)
 
       @param exp Peak map containing the lock masses
       @param ref_masses List of lock masses
       @param tol_ppm Search window for lock masses in 'exp'
       @param lock_require_mono Require that a lock mass is the monoisotopic peak (i.e. not an isotope peak) -- lock mass is rejected otherwise
       @param lock_require_iso Require that a lock mass has isotope peaks to its right -- lock mass is rejected otherwise
+      @param failed_lock_masses Set of calibration masses which were not found, i.e. their expected m/z and RT positions;
       @param verbose Print information on 'lock_require_XXX' matches during search
       @return Number of calibration masses found
 
@@ -106,6 +113,7 @@ namespace OpenMS
                         double tol_ppm,
                         bool lock_require_mono,
                         bool lock_require_iso,
+                        CalibrationData& failed_lock_masses,
                         bool verbose = true);
 
     /** 
@@ -196,7 +204,19 @@ namespace OpenMS
     /*
       @brief Transform a spectrum (data+precursor)
 
-      All peaks are calibrated in m/z, and also all precursor m/z attached to this spectrum (if present).
+      All peaks are calibrated in m/z.
+      Precursor m/z remains untouched (if present).
+
+      @param spec Uncalibrated MSSpectrum
+      @param trafo The calibration function to apply
+    */
+    static void applyTransformation(std::vector<Precursor>& pcs, const MZTrafoModel& trafo);
+
+    /*
+      @brief Transform a spectrum (data+precursor)
+
+      All peaks are calibrated in m/z.
+      Precursor m/z remains untouched (if present).
 
       @param spec Uncalibrated MSSpectrum
       @param trafo The calibration function to apply
@@ -206,10 +226,15 @@ namespace OpenMS
     /*
       @brief Transform spectra from a whole map (data+precursor)
 
-      Only spectra whose MS-level is contained in 'target_mslvl' are calibrated.
-      Other spectra remain untouched.
+      All data peaks and precursor information (if present) are calibrated in m/z.
 
-      All peaks are calibrated in m/z, and also all precursor m/z attached to this spectrum (if present).
+      Only spectra whose MS-level is contained in 'target_mslvl' are calibrated.
+      If a fragmentation spectrum's precursor information originates from an MS level in 'target_mslvl',
+      the precursor (not the spectrum itself) is also subjected to calibration.
+      E.g., If we only have MS and MS/MS spectra: for 'target_mslvl' = {1} then all MS1 spectra and MS2 precursors are calibrated.
+      If 'target_mslvl' = {2}, only MS2 spectra (not their precursors) are calibrated.
+      If 'target_mslvl' = {1,2} all spectra and precursors are calibrated.
+            
 
       @param exp Uncalibrated peak map
       @param target_mslvl List (can be unsorted) of MS levels to calibrate

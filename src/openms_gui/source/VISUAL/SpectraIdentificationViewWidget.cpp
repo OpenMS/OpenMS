@@ -370,7 +370,7 @@ namespace OpenMS
       const vector<PeptideIdentification>& pi = (*layer_->getPeakData())[i].getPeptideIdentifications();
       Size id_count = pi.size();
 
-      // allow only MS2    OR  MS1 with peptideIDs (from Mass Fingerprinting)
+      // allow only MS2 OR MS1 with peptideIDs (from Mass Fingerprinting)
       if (ms_level != 2 && id_count == 0)
       {
         continue;
@@ -385,139 +385,40 @@ namespace OpenMS
       // coloring
       QColor c;
 
-      // get peptide identifications of current spectrum
-      if (id_count != 0)
-      {
-        c = Qt::green; // with identification
-      }
-      else
-      {
-        c = Qt::white; // without identification
-      }
-
-      // add new row at the end of the table
-      table_widget_->insertRow(table_widget_->rowCount());
-
-      // ms level
-      item = table_widget_->itemPrototype()->clone();
-      item->setText(QString::number(ms_level));
-      item->setBackgroundColor(c);
-      table_widget_->setItem(table_widget_->rowCount() - 1, 0, item);
-
-      // index
-      item = table_widget_->itemPrototype()->clone();
-      item->setData(Qt::DisplayRole, Int(i));
-      item->setBackgroundColor(c);
-      table_widget_->setItem(table_widget_->rowCount() - 1, 1, item);
-
-      // rt
-      item = table_widget_->itemPrototype()->clone();
-      item->setData(Qt::DisplayRole, (*layer_->getPeakData())[i].getRT());
-      item->setBackgroundColor(c);
-      table_widget_->setItem(table_widget_->rowCount() - 1, 2, item);
-
 #ifdef DEBUG_IDENTIFICATION_VIEW
       cout << "peptide identifications found:  " << id_count << endl;
 #endif
-
-      if (id_count != 0)
+      // get peptide identifications of current spectrum
+      if (id_count == 0)
       {
-#ifdef DEBUG_IDENTIFICATION_VIEW
-        cout << "  peptide hits found: " << ph.size() << endl;
-#endif
+        c = Qt::white; // no identification
 
-        PeptideHit best_ph;
-        if (IDFilter().getBestHit(pi, false, best_ph))
-        {
-          // score
-          item = table_widget_->itemPrototype()->clone();
-          item->setData(Qt::DisplayRole, best_ph.getScore());
-          item->setBackgroundColor(c);
-          table_widget_->setItem(table_widget_->rowCount() - 1, 7, item);
+        // add new row at the end of the table
+        table_widget_->insertRow(table_widget_->rowCount());
 
-          // rank
-          item = table_widget_->itemPrototype()->clone();
-          item->setData(Qt::DisplayRole, best_ph.getRank());
-          item->setBackgroundColor(c);
-          table_widget_->setItem(table_widget_->rowCount() - 1, 8, item);
+        // ms level
+        addTextItemToBottomRow_(QString::number(ms_level), 0, c);
 
-          // charge
-          item = table_widget_->itemPrototype()->clone();
-          item->setData(Qt::DisplayRole, best_ph.getCharge());
-          item->setBackgroundColor(c);
-          table_widget_->setItem(table_widget_->rowCount() - 1, 9, item);
+        // index
+        addIntItemToBottomRow_(static_cast<Int>(i), 1, c);
 
-          //sequence
-          item = table_widget_->itemPrototype()->clone();
-          item->setText(best_ph.getSequence().toString().toQString());
-          item->setBackgroundColor(c);
-          table_widget_->setItem(table_widget_->rowCount() - 1, 10, item);
+        // rt
+        addDoubleItemToBottomRow_((*layer_->getPeakData())[i].getRT(), 2, c);
 
-          //Accession
-          item = table_widget_->itemPrototype()->clone();
-          item->setTextAlignment(Qt::AlignLeft);
-
-          set<String> protein_accessions = best_ph.extractProteinAccessions();
-          String accessions = ListUtils::concatenate(vector<String>(protein_accessions.begin(), protein_accessions.end()), ", ");
-          item->setText(accessions.toQString());
-          item->setBackgroundColor(c);
-          table_widget_->setItem(table_widget_->rowCount() - 1, 11, item);
-
-          // add additional meta value columns
-          if (create_rows_for_commmon_metavalue_->isChecked())
-          {
-            Int current_col = 12;
-            for (set<String>::iterator sit = common_keys.begin(); sit != common_keys.end(); ++sit)
-            {
-              DataValue dv = best_ph.getMetaValue(*sit);
-              item = table_widget_->itemPrototype()->clone();
-              item->setTextAlignment(Qt::AlignLeft);
-              if (dv.valueType() == DataValue::DOUBLE_VALUE)
-              {
-                item->setData(Qt::DisplayRole, (double)dv);
-              }
-              else
-              {
-                item->setText(dv.toQString());
-              }
-              item->setBackgroundColor(c);
-              table_widget_->setItem(table_widget_->rowCount() - 1, current_col, item);
-              ++current_col;
-            }
-          }
-        }
-      }
-      else // no identification
-      {
         // score
-        item = table_widget_->itemPrototype()->clone();
-        item->setText("-");
-        item->setBackgroundColor(c);
-        table_widget_->setItem(table_widget_->rowCount() - 1, 7, item);
+        addTextItemToBottomRow_("-", 7, c);
 
         // rank
-        item = table_widget_->itemPrototype()->clone();
-        item->setText("-");
-        item->setBackgroundColor(c);
-        table_widget_->setItem(table_widget_->rowCount() - 1, 8, item);
+        addTextItemToBottomRow_("-", 8, c);
 
         // charge
-        item = table_widget_->itemPrototype()->clone();
-        item->setText("-");
-        item->setBackgroundColor(c);
-        table_widget_->setItem(table_widget_->rowCount() - 1, 9, item);
+        addTextItemToBottomRow_("-", 9, c);
 
         //sequence
-        item = table_widget_->itemPrototype()->clone();
-        item->setText("-");
-        item->setBackgroundColor(c);
-        table_widget_->setItem(table_widget_->rowCount() - 1, 10, item);
+        addTextItemToBottomRow_("-", 10, c);
 
         //accession
-        item = table_widget_->itemPrototype()->clone();
-        item->setText("-");
-        item->setBackgroundColor(c);
-        table_widget_->setItem(table_widget_->rowCount() - 1, 11, item);
+        addTextItemToBottomRow_("-", 11, c);
 
         // add additional meta value columns
         if (create_rows_for_commmon_metavalue_->isChecked())
@@ -533,75 +434,193 @@ namespace OpenMS
             ++current_col;
           }
         }
-      }
 
-      if (!(*layer_->getPeakData())[i].getPrecursors().empty()) // has precursor
-      {
-        item = table_widget_->itemPrototype()->clone();
-        item->setData(Qt::DisplayRole, (*layer_->getPeakData())[i].getPrecursors()[0].getMZ());
-        item->setBackgroundColor(c);
-        item->setTextColor(Qt::blue);
-        table_widget_->setItem(table_widget_->rowCount() - 1, 3, item);
-
-        item = table_widget_->itemPrototype()->clone();
-        if (!(*layer_->getPeakData())[i].getPrecursors().front().getActivationMethods().empty())
+        if (!(*layer_->getPeakData())[i].getPrecursors().empty()) // has precursor
         {
-          QString t;
-          for (std::set<Precursor::ActivationMethod>::const_iterator it = (*layer_->getPeakData())[i].getPrecursors().front().getActivationMethods().begin(); it != (*layer_->getPeakData())[i].getPrecursors().front().getActivationMethods().end(); ++it)
+          item = table_widget_->itemPrototype()->clone();
+          item->setData(Qt::DisplayRole, (*layer_->getPeakData())[i].getPrecursors()[0].getMZ());
+          item->setBackgroundColor(c);
+          item->setTextColor(Qt::blue);
+          table_widget_->setItem(table_widget_->rowCount() - 1, 3, item);
+
+          item = table_widget_->itemPrototype()->clone();
+          if (!(*layer_->getPeakData())[i].getPrecursors().front().getActivationMethods().empty())
           {
-            if (!t.isEmpty())
+            QString t;
+            for (std::set<Precursor::ActivationMethod>::const_iterator it = (*layer_->getPeakData())[i].getPrecursors().front().getActivationMethods().begin(); it != (*layer_->getPeakData())[i].getPrecursors().front().getActivationMethods().end(); ++it)
             {
-              t.append(",");
+              if (!t.isEmpty())
+              {
+                t.append(",");
+              }
+              t.append(QString::fromStdString((*layer_->getPeakData())[i].getPrecursors().front().NamesOfActivationMethod[*((*layer_->getPeakData())[i].getPrecursors().front().getActivationMethods().begin())]));
             }
-            t.append(QString::fromStdString((*layer_->getPeakData())[i].getPrecursors().front().NamesOfActivationMethod[*((*layer_->getPeakData())[i].getPrecursors().front().getActivationMethods().begin())]));
+            item->setText(t);
           }
-          item->setText(t);
+          else
+          {
+            item->setText("-");
+          }
+          item->setBackgroundColor(c);
+          table_widget_->setItem(table_widget_->rowCount() - 1, 4, item);
+        }
+        else // has no precursor (leave fields 3 and 4 empty)
+        {
+          addTextItemToBottomRow_("-", 3, c);
+          addTextItemToBottomRow_("-", 4, c);
+        }
+
+        // scan mode
+        QString scan_mode;
+        if ((*layer_->getPeakData())[i].getInstrumentSettings().getScanMode() > 0)
+        {
+          scan_mode = QString::fromStdString((*layer_->getPeakData())[i].getInstrumentSettings().NamesOfScanMode[(*layer_->getPeakData())[i].getInstrumentSettings().getScanMode()]);
         }
         else
         {
-          item->setText("-");
+          scan_mode = "-";
         }
-        item->setBackgroundColor(c);
-        table_widget_->setItem(table_widget_->rowCount() - 1, 4, item);
-      }
-      else // has no precursor (leave fields 3 and 4 empty)
-      {
-        item = table_widget_->itemPrototype()->clone();
-        item->setText("-");
-        item->setBackgroundColor(c);
-        table_widget_->setItem(table_widget_->rowCount() - 1, 3, item);
+        addTextItemToBottomRow_(scan_mode, 5, c);
 
-        item = table_widget_->itemPrototype()->clone();
-        item->setText("-");
-        item->setBackgroundColor(c);
-        table_widget_->setItem(table_widget_->rowCount() - 1, 4, item);
-      }
-
-      // scan mode
-      item = table_widget_->itemPrototype()->clone();
-      if ((*layer_->getPeakData())[i].getInstrumentSettings().getScanMode() > 0)
-      {
-        item->setText(QString::fromStdString((*layer_->getPeakData())[i].getInstrumentSettings().NamesOfScanMode[(*layer_->getPeakData())[i].getInstrumentSettings().getScanMode()]));
+        // zoom scan
+        QString is_zoom;
+        if ((*layer_->getPeakData())[i].getInstrumentSettings().getZoomScan())
+        {
+          is_zoom = "yes";
+        }
+        else
+        {
+          is_zoom = "no";
+        }
+        addTextItemToBottomRow_(is_zoom, 6, c);
       }
       else
       {
-        item->setText("-");
-      }
-      item->setBackgroundColor(c);
-      table_widget_->setItem(table_widget_->rowCount() - 1, 5, item);
+        c = Qt::green; // with identification
+        for (Size k = 0; k != id_count; ++k)
+        {
+           vector<PeptideIdentification> current_pi;
+           current_pi.push_back(pi[k]);
+           PeptideHit best_ph;            
 
-      // zoom scan
-      item = table_widget_->itemPrototype()->clone();
-      if ((*layer_->getPeakData())[i].getInstrumentSettings().getZoomScan())
-      {
-        item->setText("yes");
+          if (IDFilter().getBestHit(current_pi, false, best_ph))
+          {
+            // add new row at the end of the table
+            table_widget_->insertRow(table_widget_->rowCount());
+
+            // ms level
+            addTextItemToBottomRow_(QString::number(ms_level), 0, c);
+
+            // index
+            addIntItemToBottomRow_(static_cast<Int>(i), 1, c);
+   
+            // rt
+            addDoubleItemToBottomRow_((*layer_->getPeakData())[i].getRT(), 2, c);
+
+            // score
+            addDoubleItemToBottomRow_(best_ph.getScore(), 7, c);
+
+            // rank
+            addDoubleItemToBottomRow_(best_ph.getRank(), 8, c);
+
+            // charge
+            addDoubleItemToBottomRow_(best_ph.getCharge(), 9, c);
+
+            //sequence
+            addTextItemToBottomRow_(best_ph.getSequence().toString().toQString(), 10, c);
+
+            //Accession
+            item = table_widget_->itemPrototype()->clone();
+            item->setTextAlignment(Qt::AlignLeft);
+
+            set<String> protein_accessions = best_ph.extractProteinAccessions();
+            String accessions = ListUtils::concatenate(vector<String>(protein_accessions.begin(), protein_accessions.end()), ", ");
+            addTextItemToBottomRow_(accessions.toQString(), 11, c);
+
+            // add additional meta value columns
+            if (create_rows_for_commmon_metavalue_->isChecked())
+            {
+              Int current_col = 12;
+              for (set<String>::iterator sit = common_keys.begin(); sit != common_keys.end(); ++sit)
+              {
+                DataValue dv = best_ph.getMetaValue(*sit);
+                item = table_widget_->itemPrototype()->clone();
+                item->setTextAlignment(Qt::AlignLeft);
+                if (dv.valueType() == DataValue::DOUBLE_VALUE)
+                {
+                  item->setData(Qt::DisplayRole, (double)dv);
+                }
+                else
+                {
+                  item->setText(dv.toQString());
+                }
+                item->setBackgroundColor(c);
+                table_widget_->setItem(table_widget_->rowCount() - 1, current_col, item);
+                ++current_col;
+              }
+            }
+          }
+
+          if (!(*layer_->getPeakData())[i].getPrecursors().empty()) // has precursor
+          {
+            item = table_widget_->itemPrototype()->clone();
+            item->setData(Qt::DisplayRole, (*layer_->getPeakData())[i].getPrecursors()[0].getMZ());
+            item->setBackgroundColor(c);
+            item->setTextColor(Qt::blue);
+            table_widget_->setItem(table_widget_->rowCount() - 1, 3, item);
+
+            item = table_widget_->itemPrototype()->clone();
+            if (!(*layer_->getPeakData())[i].getPrecursors().front().getActivationMethods().empty())
+            {
+              QString t;
+              for (std::set<Precursor::ActivationMethod>::const_iterator it = (*layer_->getPeakData())[i].getPrecursors().front().getActivationMethods().begin(); it != (*layer_->getPeakData())[i].getPrecursors().front().getActivationMethods().end(); ++it)
+              {
+                if (!t.isEmpty())
+                {
+                  t.append(",");
+                }
+                t.append(QString::fromStdString((*layer_->getPeakData())[i].getPrecursors().front().NamesOfActivationMethod[*((*layer_->getPeakData())[i].getPrecursors().front().getActivationMethods().begin())]));
+              }
+              item->setText(t);
+            }
+            else
+            {
+              item->setText("-");
+            }
+            item->setBackgroundColor(c);
+            table_widget_->setItem(table_widget_->rowCount() - 1, 4, item);
+          }
+          else // has no precursor (leave fields 3 and 4 empty)
+          {
+            addTextItemToBottomRow_("-", 3, c);
+            addTextItemToBottomRow_("-", 4, c);
+          }
+
+          // scan mode
+          QString scan_mode;
+          if ((*layer_->getPeakData())[i].getInstrumentSettings().getScanMode() > 0)
+          {
+            scan_mode = QString::fromStdString((*layer_->getPeakData())[i].getInstrumentSettings().NamesOfScanMode[(*layer_->getPeakData())[i].getInstrumentSettings().getScanMode()]);
+          }
+          else
+          {
+            scan_mode = "-";
+          }
+          addTextItemToBottomRow_(scan_mode, 5, c);
+
+          // zoom scan
+          QString is_zoom;
+          if ((*layer_->getPeakData())[i].getInstrumentSettings().getZoomScan())
+          {
+            is_zoom = "yes";
+          }
+          else
+          {
+            is_zoom = "no";
+          }
+          addTextItemToBottomRow_(is_zoom, 6, c);
+        }
       }
-      else
-      {
-        item->setText("no");
-      }
-      item->setBackgroundColor(c);
-      table_widget_->setItem(table_widget_->rowCount() - 1, 6, item);
 
       if (i == layer_->getCurrentSpectrumIndex())
       {
@@ -710,6 +729,29 @@ namespace OpenMS
       }
       f.close();
     }
+  }
+  void SpectraIdentificationViewWidget::addTextItemToBottomRow_(const QString& text, Size column_index, const QColor& c)
+  {
+    QTableWidgetItem * item = table_widget_->itemPrototype()->clone();
+    item->setText(text);
+    item->setBackgroundColor(c);
+    table_widget_->setItem(table_widget_->rowCount() - 1, column_index, item);
+  }
+
+  void SpectraIdentificationViewWidget::addIntItemToBottomRow_(const Int i, Size column_index, const QColor& c)
+  {
+    QTableWidgetItem * item = table_widget_->itemPrototype()->clone();
+    item->setData(Qt::DisplayRole, i);
+    item->setBackgroundColor(c);
+    table_widget_->setItem(table_widget_->rowCount() - 1, column_index, item);
+  }
+
+  void SpectraIdentificationViewWidget::addDoubleItemToBottomRow_(const double d, Size column_index, const QColor& c)
+  {
+    QTableWidgetItem * item = table_widget_->itemPrototype()->clone();
+    item->setData(Qt::DisplayRole, d);
+    item->setBackgroundColor(c);
+    table_widget_->setItem(table_widget_->rowCount() - 1, column_index, item);
   }
 
   void SpectraIdentificationViewWidget::saveIdXML_()
