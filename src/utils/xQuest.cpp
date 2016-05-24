@@ -1821,6 +1821,7 @@ protected:
       LOG_DEBUG << "duplicate variable modification provided." << endl;
       return ILLEGAL_PARAMETERS;
     }
+    //TODO add crosslinker
 
     vector<ResidueModification> fixed_modifications = getModifications_(fixedModNames);
     vector<ResidueModification> variable_modifications = getModifications_(varModNames);
@@ -2813,9 +2814,12 @@ protected:
               {
                 xltype = "loop-link";
               }
+//              String id = structure + "-" + topology;
 
+              // TODO set the right ppxl-mod.csv entry  here!
               PeptideHit ph_alpha, ph_beta;
               // Set monolink as a modification or add MetaValue for cross-link identity and mass
+              // TODO needs to be tested
               AASequence seq_alpha = top_csms_spectrum[i].cross_link.alpha;
               if (top_csms_spectrum[i].cross_link.getType() == TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink::MONO)
               {
@@ -2840,8 +2844,8 @@ protected:
               else
               {
                 // TODO hardcoded for DSS, make this an input parameter or something, NO UNIMOD ACCESSION AVAILBALE, for now name and mass
-              ph_alpha.setMetaValue("xl_mod", top_csms_spectrum[i].cross_link.cross_linker_name);
-              ph_alpha.setMetaValue("xl_mass", DataValue(top_csms_spectrum[i].cross_link.cross_linker_mass));
+                ph_alpha.setMetaValue("xl_mod", "Xlink:DSS-linked");
+                ph_alpha.setMetaValue("xl_mass", DataValue(top_csms_spectrum[i].cross_link.cross_linker_mass));
               }
 
 
@@ -2875,6 +2879,10 @@ protected:
                 ph_beta.setRank(DataValue(i+1));
                 ph_beta.setMetaValue("xl_chain", "MS:1002510"); // receiver
                 ph_beta.setMetaValue("xl_pos", DataValue(beta_pos));
+                ph_beta.setMetaValue("spec_heavy_RT", spectra[scan_index_heavy].getRT());
+                ph_beta.setMetaValue("spec_heavy_MZ", spectra[scan_index_heavy].getPrecursors()[0].getMZ());
+                ph_beta.setMetaValue("spectrum_reference", spectra[scan_index].getNativeID());
+                ph_beta.setMetaValue("spectrum_reference_heavy", spectra[scan_index_heavy].getNativeID());
                 phs.push_back(ph_beta);
               }
 
@@ -2884,12 +2892,14 @@ protected:
               peptide_id.setMetaValue("spectrum_reference", specIDs);
 //              peptide_id.setMetaValue("spec_heavy_RT", spectra[scan_index_heavy].getRT());
 //              peptide_id.setMetaValue("spec_heavy_MZ", spectra[scan_index_heavy].getPrecursors()[0].getMZ());
-//              peptide_id.setMetaValue("spectrum_reference", spectra[scan_index].getNativeID());
-//              peptide_id.setMetaValue("spectrum_reference_heavy", spectra[scan_index_heavy].getNativeID());
+              peptide_id.setMetaValue("spectrum_reference", spectra[scan_index].getNativeID());
+              peptide_id.setMetaValue("spectrum_reference_heavy", spectra[scan_index_heavy].getNativeID());
 //              peptide_id.setMetaValue("xl_type", xltype); // TODO: needs CV term
 //              peptide_id.setMetaValue("xl_rank", DataValue(i + 1));
 
+//            peptide_id.setMetaValue("xl_relation", ); //TODO: needs CV term
               peptide_id.setHits(phs);
+//              LOG_DEBUG << "peptide_ids number: " << peptide_ids.size() << endl;
               peptide_ids.push_back(peptide_id);
               all_top_csms[all_top_csms.size()-1][i].peptide_id_index = peptide_ids.size()-1;
             }
