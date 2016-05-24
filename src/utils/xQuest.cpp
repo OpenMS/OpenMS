@@ -1896,6 +1896,7 @@ protected:
       LOG_DEBUG << "duplicate variable modification provided." << endl;
       return ILLEGAL_PARAMETERS;
     }
+    //TODO add crosslinker
 
     vector<ResidueModification> fixed_modifications = getModifications_(fixedModNames);
     vector<ResidueModification> variable_modifications = getModifications_(varModNames);
@@ -3075,7 +3076,7 @@ protected:
               }
 //              String id = structure + "-" + topology;
 
-
+              // TODO set the right ppxl-mod.csv entry  here!
               PeptideHit ph_alpha, ph_beta;
               // Set monolink as a modification or add MetaValue for cross-link identity and mass
               // TODO needs to be tested
@@ -3138,6 +3139,10 @@ protected:
                 ph_beta.setScore(top_csms_spectrum[i].score);
                 ph_beta.setMetaValue("xl_chain", "MS:1002510"); // receiver
                 ph_beta.setMetaValue("xl_pos", DataValue(beta_pos));
+                ph_beta.setMetaValue("spec_heavy_RT", spectra[scan_index_heavy].getRT());
+                ph_beta.setMetaValue("spec_heavy_MZ", spectra[scan_index_heavy].getPrecursors()[0].getMZ());
+                ph_beta.setMetaValue("spectrum_reference", spectra[scan_index].getNativeID());
+                ph_beta.setMetaValue("spectrum_reference_heavy", spectra[scan_index_heavy].getNativeID());
                 phs.push_back(ph_beta);
               }
 
