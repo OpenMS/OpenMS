@@ -718,6 +718,22 @@ namespace OpenMS
         String ppxl_linkid = UniqueIdGenerator::getUniqueId();
         //map.begin access ok here because make sure at least one "UNKOWN" element is in the sdats_ids map
 
+        double calc_ppxl_mass = 0.0;  // for this PeptideIdentification (1PI comprises one ident. ppxl complex of pot. several ident. to one spectrum)
+        if (is_ppxl)  // precalculate the masses for each SpectrumIdentificationItem
+        {
+          for (std::vector<PeptideHit>::const_iterator jt = it->getHits().begin(); jt != it->getHits().end(); ++jt)
+          {
+            if (jt->metaValueExists("xl_chain"))
+            {
+              calc_ppxl_mass += jt->getSequence().getMonoWeight();
+              if (jt->metaValueExists("xl_mass"))
+              {
+                jt->getMetaValue("xl_mass");
+              }
+            }
+          }
+        }
+
         for (std::vector<PeptideHit>::const_iterator jt = it->getHits().begin(); jt != it->getHits().end(); ++jt)
         {
           String pepid =  "PEP_" + String(UniqueIdGenerator::getUniqueId());
@@ -880,6 +896,12 @@ namespace OpenMS
           if (it->metaValueExists("xl_rank"))  // TODO ppxl location subject to change
           {
             r = it->getMetaValue("xl_rank").toString();  // ppxl remove xl_rank later (in copy_jt)
+          }
+          if (jt->metaValueExists("xl_type"))
+          {
+            //Calculated mass to charge for cross-linked is both peptides + linker
+            // sequence pair not available here - precalculated in
+            cmz = String((calc_ppxl_mass +  jt->getCharge() * Constants::PROTON_MASS_U) / jt->getCharge()); //calculatedMassToCharge
           }
           if (sc.empty())
           {
