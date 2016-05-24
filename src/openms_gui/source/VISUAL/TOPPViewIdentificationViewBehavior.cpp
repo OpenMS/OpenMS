@@ -62,6 +62,12 @@ namespace OpenMS
 
   void TOPPViewIdentificationViewBehavior::showSpectrumAs1D(int index)
   {
+    // call without selecting an identification
+    showSpectrumAs1D(spectrum_index, -1, -1);
+  }
+
+  void TOPPViewIdentificationViewBehavior::showSpectrumAs1D(int spectrum_index, int peptide_id_index, int peptide_hit_index)
+  {
     // basic behavior 1
     const LayerData & layer = tv_->getActiveCanvas()->getCurrentLayer();
     ExperimentSharedPtrType exp_sptr = layer.getPeakData();
@@ -71,12 +77,12 @@ namespace OpenMS
       // open new 1D widget with the current default parameters
       Spectrum1DWidget* w = new Spectrum1DWidget(tv_->getSpectrumParameters(1), (QWidget *)tv_->getWorkspace());
       // add data
-      if (!w->canvas()->addLayer(exp_sptr, layer.filename) || (Size)index >= w->canvas()->getCurrentLayer().getPeakData()->size())
+      if (!w->canvas()->addLayer(exp_sptr, layer.filename) || (Size)spectrum_index >= w->canvas()->getCurrentLayer().getPeakData()->size())
       {
         return;
       }
 
-      w->canvas()->activateSpectrum(index);
+      w->canvas()->activateSpectrum(spectrum_index);
 
       // set relative (%) view of visible area
       w->canvas()->setIntensityMode(SpectrumCanvas::IM_SNAP);
@@ -96,19 +102,34 @@ namespace OpenMS
       tv_->showSpectrumWidgetInWindow(w, caption);
 
       // special behavior
-      const vector<PeptideIdentification>& pi = w->canvas()->getCurrentLayer().getCurrentSpectrum().getPeptideIdentifications();
-      if (!pi.empty())
+      const vector<PeptideIdentification>& pis = w->canvas()->getCurrentLayer().getCurrentSpectrum().getPeptideIdentifications();
+      if (!pis.empty())
       {
-        // mass fingerprint annotation of name etc 
-        if (ms_level == 1) addPeakAnnotations_(pi);
-        PeptideHit hit;
-        if (IDFilter().getBestHit(pi, false, hit))
+        switch (ms_level)
         {
-          addTheoreticalSpectrumLayer_(hit);
-        }
-        else
-        {
-          LOG_ERROR << "Spectrum has no hits" << std::endl;
+          // mass fingerprint annotation of name etc 
+          case 1: { addPeakAnnotations_(pis); break; }
+          // annotation with stored fragments or synthesized theoretical spectrum 
+          case 2: 
+          {
+            PeptideHit ph;
+            if (IDFilter().getBestHit(pis, false, ph))
+            {
+              if (ph.getFragmentAnnotations().empty())
+              {
+                // if no fragment annotations are stored, create a theoretical spectrum
+                addTheoreticalSpectrumLayer_(ph);
+              }
+              else
+              {
+                // otherwise, use stored fragment annotations
+                addFragmentAnnotations_(ph);
+              }
+            }
+            break;
+          }
+          default:
+            LOG_WARN << "Annotation of MS level > 2 not supported.!" << std::endl;
         }
       }
 
@@ -117,11 +138,48 @@ namespace OpenMS
       tv_->updateFilterBar();
       tv_->updateMenu();
     }
-    else if (layer.type == LayerData::DT_CHROMATOGRAM)
-    {
+    // else if (layer.type == LayerData::DT_CHROMATOGRAM)
+  }
 
+  void TOPPViewIdentificationViewBehavior::addFragmentAnnotations_(const PeptideHit& ph)
+  {
+    // called anew for every click on a spectrum
+    LayerData & current_layer = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
+
+    if (current_layer.getCurrentSpectrum().empty())
+    {
+      LOG_WARN << "Spectrum is empty! Nothing to annotate!" << std::endl;
     }
 
+    if (!current_layer.getCurrentSpectrum().isSorted())
+    {
+      QMessageBox::warning(tv_, "Error", "The spectrum is not sorted! Aborting!");
+      return;
+    }
+
+    typedef std::vector<PeptideHit::FragmentAnnotation> FragmentAnnotations;
+
+    const FragmentAnnotations & fa = ph.getFragmentAnnotations();
+
+    for (FragmentAnnotations::const_iterator it = fa.begin(); it!= fa.end(); ++it)
+    {
+      // query closest peak to expected position
+      int peak_idx = current_layer.getCurrentSpectrum().findNearest(it->mz, 1e-2);
+        
+      // check if m/z fits
+      if (peak_idx == -1) 
+      {
+        LOG_WARN << "Annotation present for missing peak.  m/z: " << it->mz << std::endl;
+        continue;
+      }
+
+      const double peak_int = current_layer.getCurrentSpectrum()[peak_idx].getIntensity();
+      DPosition<2> position = DPosition<2>(it->mz, peak_int);
+      Annotation1DItem * item = new Annotation1DPeakItem(position, it->annotation.toQString(), Qt::darkRed);
+      item->setSelected(false);
+      temporary_annotations_.push_back(item); // for removal (no ownership)
+      current_layer.getCurrentAnnotations().push_front(item); // for visualization (ownership)
+    }
   }
 
   void TOPPViewIdentificationViewBehavior::addPeakAnnotations_(const std::vector<PeptideIdentification>& ph)
@@ -243,57 +301,72 @@ namespace OpenMS
 
   void TOPPViewIdentificationViewBehavior::activate1DSpectrum(int index)
   {
+    activate1DSpectrum(spectrum_index, -1, -1);
+  }
+  
+  void TOPPViewIdentificationViewBehavior::activate1DSpectrum(int spectrum_index, int peptide_id_index, int peptide_hit_index)
+  {
     Spectrum1DWidget * widget_1D = tv_->getActive1DWidget();
 
     // return if no active 1D widget is present
     if (widget_1D == 0) return;
 
-    widget_1D->canvas()->activateSpectrum(index);
+    widget_1D->canvas()->activateSpectrum(spectrum_index);
     const LayerData & current_layer = widget_1D->canvas()->getCurrentLayer();
 
     if (current_layer.type == LayerData::DT_PEAK)
     {
       UInt ms_level = current_layer.getCurrentSpectrum().getMSLevel();
 
-      if (ms_level == 2) // show theoretical spectrum with automatic alignment
+      const vector<PeptideIdentification> & pis = current_layer.getCurrentSpectrum().getPeptideIdentifications();
+      switch (ms_level)
       {
-        vector<PeptideIdentification> pi = current_layer.getCurrentSpectrum().getPeptideIdentifications();
-        if (!pi.empty())
-        {
-          PeptideHit hit;
-          if (IDFilter().getBestHit(pi, false, hit)) addTheoreticalSpectrumLayer_(hit);
-          else LOG_ERROR << "Spectrum has no hits\n";
-        }
-      }
-      else if (ms_level == 1)   // show precursor locations
-      {
-        const vector<PeptideIdentification>& pi = current_layer.getCurrentSpectrum().getPeptideIdentifications();
-        addPeakAnnotations_(pi);
+        case 1: // mass fingerprint annotation of name etc and precursor labels
+        { 
+          addPeakAnnotations_(pis); 
+          vector<Precursor> precursors;
 
-        vector<Precursor> precursors;
-        // collect all MS2 spectra precursor till next MS1 spectrum is encountered
-        for (Size i = index + 1; i < current_layer.getPeakData()->size(); ++i)
-        {
-          if ((*current_layer.getPeakData())[i].getMSLevel() == 1)
+          // collect all MS2 spectra precursor till next MS1 spectrum is encountered
+          for (Size i = spectrum_index + 1; i < current_layer.getPeakData()->size(); ++i)
           {
-            break;
+            if ((*current_layer.getPeakData())[i].getMSLevel() == 1) break;
+
+            // skip MS2 without precursor
+            if ((*current_layer.getPeakData())[i].getPrecursors().empty()) continue;
+
+            // there should be only one precursor per MS2 spectrum.
+            vector<Precursor> pcs = (*current_layer.getPeakData())[i].getPrecursors();
+            copy(pcs.begin(), pcs.end(), back_inserter(precursors));
           }
-          // skip MS2 without precursor
-          if ((*current_layer.getPeakData())[i].getPrecursors().empty())
-          {
-            continue;
-          }
-          // there should be only one precursor per MS2 spectrum.
-          vector<Precursor> pcs = (*current_layer.getPeakData())[i].getPrecursors();
-          copy(pcs.begin(), pcs.end(), back_inserter(precursors));
+          addPrecursorLabels1D_(precursors);
+          break;
         }
-        addPrecursorLabels1D_(precursors);
+        case 2: // annotation with stored fragments or synthesized theoretical spectrum 
+        {
+          if (!pis.empty())
+          {
+            PeptideHit ph;
+            if (IDFilter().getBestHit(pis, false, ph))
+            {
+              if (ph.getFragmentAnnotations().empty())
+              {
+                // if no fragment annotations are stored, create a theoretical spectrum
+                addTheoreticalSpectrumLayer_(ph);
+              }
+              else
+              {
+                // otherwise, use stored fragment annotations
+                addFragmentAnnotations_(ph);
+              }
+            }
+          }
+          break;
+        }
+        default:
+          LOG_WARN << "Annotation of MS level > 2 not supported.!" << std::endl;
       }
     } // end DT_PEAK
-    else if (current_layer.type == LayerData::DT_CHROMATOGRAM)
-    {
-
-    }
+    // else if (current_layer.type == LayerData::DT_CHROMATOGRAM)
   }
 
   void TOPPViewIdentificationViewBehavior::addPrecursorLabels1D_(const vector<Precursor> & pcs)

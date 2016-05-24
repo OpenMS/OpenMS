@@ -210,7 +210,7 @@ namespace OpenMS
 #ifdef DEBUG_IDENTIFICATION_VIEW
           cout << "cellClicked_ select MS1: " << ms1_spectrum_index << endl;
 #endif
-          emit spectrumSelected(ms1_spectrum_index);
+          emit spectrumSelected(ms1_spectrum_index, -1, -1); // no identification or hit selected (-1)
           is_ms1_shown_ = true;
           emit requestVisibleArea1D(isolation_window_lower_mz - 50.0, isolation_window_upper_mz +  50.0);
         }
@@ -230,6 +230,7 @@ namespace OpenMS
 
     int previous_spectrum_index = table_widget_->item(previous->row(), 1)->data(Qt::DisplayRole).toInt();
     int current_spectrum_index = table_widget_->item(current->row(), 1)->data(Qt::DisplayRole).toInt();
+    int current_identification_index = 0; // TODO
 
     if (is_ms1_shown_)
     {
@@ -255,7 +256,7 @@ namespace OpenMS
 #ifdef DEBUG_IDENTIFICATION_VIEW
       cout << "selection Change MS2 select " << current_spectrum_index << endl;
 #endif
-      emit spectrumSelected(current_spectrum_index);
+      emit spectrumSelected(current_spectrum_index, current_identification_index, 0);
     }
   }
 

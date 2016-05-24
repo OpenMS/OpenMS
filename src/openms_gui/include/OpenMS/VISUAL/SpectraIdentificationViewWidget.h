@@ -66,13 +66,13 @@ public:
     /// Helper function to block outgoing signals
     bool ignore_update;
 
-    // access the table widget
+    /// Access the table widget
     QTableWidget* getTableWidget();
 public slots:
     /// Rebuild table entries
     void updateEntries();
 signals:
-    void spectrumSelected(int);
+    void spectrumSelected(int, int, int);
     void spectrumDeselected(int);
     void spectrumDoubleClicked(int);
     void showSpectrumAs1D(int);
