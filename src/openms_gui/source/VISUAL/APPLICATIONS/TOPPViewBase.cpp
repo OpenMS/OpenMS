@@ -496,18 +496,15 @@ namespace OpenMS
       // Hook-up controller and views for spectra inspection
     spectra_view_widget_ = new SpectraViewWidget();
     connect(spectra_view_widget_, SIGNAL(showSpectrumMetaData(int)), this, SLOT(showSpectrumMetaData(int)));
-    connect(spectra_view_widget_, SIGNAL(showSpectrumAs1D(int)), this, SLOT(showSpectrumAs1D(int)));
-    connect(spectra_view_widget_, SIGNAL(showSpectrumAs1D(std::vector<int, std::allocator<int> >)), this, SLOT(showSpectrumAs1D(std::vector<int, std::allocator<int> >)));
+    connect(spectra_view_widget_, SIGNAL(showSpectrumAs1D(int)), spectraview_behavior_, SLOT(showSpectrumAs1D(int)));
     connect(spectra_view_widget_, SIGNAL(spectrumSelected(int)), spectraview_behavior_, SLOT(activate1DSpectrum(int)));
     connect(spectra_view_widget_, SIGNAL(spectrumSelected(std::vector<int, std::allocator<int> >)), spectraview_behavior_, SLOT(activate1DSpectrum(std::vector<int, std::allocator<int> >)));
-    connect(spectra_view_widget_, SIGNAL(spectrumDoubleClicked(int)), this, SLOT(showSpectrumAs1D(int)));
-    connect(spectra_view_widget_, SIGNAL(spectrumDoubleClicked(std::vector<int, std::allocator<int> >)), this, SLOT(showSpectrumAs1D(std::vector<int, std::allocator<int> >)));
+    connect(spectra_view_widget_, SIGNAL(spectrumDoubleClicked(int)), spectraview_behavior_, SLOT(showSpectrumAs1D(int)));
 
     // Hook-up controller and views for identification inspection
-    spectra_identification_view_widget_ = new SpectraIdentificationViewWidget(Param());
+    spectra_identification_view_widget_ = new SpectraIdentificationViewWidget();
     connect(spectra_identification_view_widget_, SIGNAL(spectrumDeselected(int)), identificationview_behavior_, SLOT(deactivate1DSpectrum(int)));
-    connect(spectra_identification_view_widget_, SIGNAL(showSpectrumAs1D(int)), this, SLOT(showSpectrumAs1D(int)));
-    connect(spectra_identification_view_widget_, SIGNAL(spectrumSelected(int)), identificationview_behavior_, SLOT(activate1DSpectrum(int)));
+    connect(spectra_identification_view_widget_, SIGNAL(spectrumSelected(int, int, int)), identificationview_behavior_, SLOT(activate1DSpectrum(int, int, int)));
     connect(spectra_identification_view_widget_, SIGNAL(requestVisibleArea1D(double, double)), identificationview_behavior_, SLOT(setVisibleArea1D(double, double)));
 
     views_tabwidget_->addTab(spectra_view_widget_, "Scan view");
@@ -612,7 +609,7 @@ namespace OpenMS
     delete def3;
     defaults_.setSectionDescription("preferences:3d", "Settings for 3D map view.");
     // identification view
-    SpectraIdentificationViewWidget* def4 = new SpectraIdentificationViewWidget(Param(), 0);
+    SpectraIdentificationViewWidget* def4 = new SpectraIdentificationViewWidget(0);
     defaults_.insert("preferences:idview:", def4->getDefaults());
     delete def4;
     defaults_.setSectionDescription("preferences:idview", "Settings for identification view.");
@@ -1908,10 +1905,6 @@ namespace OpenMS
       spectraview_behavior_->deactivateBehavior();
       layer_dock_widget_->show();
       filter_dock_widget_->show();
-      if (getActive2DWidget()) // currently 2D window is open
-      {
-        showSpectrumAs1D(0);
-      }
       identificationview_behavior_->activateBehavior();
     }
     else
@@ -2409,8 +2402,9 @@ namespace OpenMS
     {
       connect(sw2->getHorizontalProjection(), SIGNAL(sendCursorStatus(double, double)), this, SLOT(showCursorStatus(double, double)));
       connect(sw2->getVerticalProjection(), SIGNAL(sendCursorStatus(double, double)), this, SLOT(showCursorStatusInvert(double, double)));
-      connect(sw2, SIGNAL(showSpectrumAs1D(int)), this, SLOT(showSpectrumAs1D(int)));
-      connect(sw2, SIGNAL(showSpectrumAs1D(std::vector<int, std::allocator<int> >)), this, SLOT(showSpectrumAs1D(std::vector<int, std::allocator<int> >)));
+      connect(sw2, SIGNAL(showSpectrumAs1D(int)), spectraview_behavior_, SLOT(showSpectrumAs1D(int)));
+      connect(sw2, SIGNAL(showSpectrumAs1D(int)), identificationview_behavior_, SLOT(showSpectrumAs1D(int)));
+//      connect(sw2, SIGNAL(showSpectrumAs1D(std::vector<int, std::allocator<int> >)), this, SLOT(showSpectrumAs1D(std::vector<int, std::allocator<int> >)));
       connect(sw2, SIGNAL(showCurrentPeaksAs3D()), this, SLOT(showCurrentPeaksAs3D()));
     }
 
@@ -3193,61 +3187,6 @@ namespace OpenMS
 
       QMessageBox::information(this, "Alignment performed", QString("Aligned %1 pairs of peaks (Score: %2).").arg(al_size).arg(al_score));
     }
-  }
-
-  void TOPPViewBase::showSpectrumAs1D(int index)
-  {
-    Spectrum1DWidget* widget_1d = getActive1DWidget();
-    Spectrum2DWidget* widget_2d = getActive2DWidget();
-
-    if (widget_1d)
-    {
-      if (spectra_view_widget_->isVisible())
-      {
-        spectraview_behavior_->showSpectrumAs1D(index);
-      }
-
-      if (spectra_identification_view_widget_->isVisible())
-      {
-        identificationview_behavior_->showSpectrumAs1D(index);
-      }
-    }
-    else if (widget_2d)
-    {
-      if (spectra_view_widget_->isVisible())
-      {
-        spectraview_behavior_->showSpectrumAs1D(index);
-      }
-
-      if (spectra_identification_view_widget_->isVisible())
-      {
-        identificationview_behavior_->showSpectrumAs1D(index);
-      }
-    }
-
-  }
-
-  void TOPPViewBase::showSpectrumAs1D(std::vector<int, std::allocator<int> > indices)
-  {
-    Spectrum1DWidget* widget_1d = getActive1DWidget();
-    Spectrum2DWidget* widget_2d = getActive2DWidget();
-
-    if (widget_1d)
-    {
-      if (spectra_view_widget_->isVisible())
-      {
-        spectraview_behavior_->showSpectrumAs1D(indices);
-      }
-    }
-    else if (widget_2d)
-    {
-      if (spectra_view_widget_->isVisible())
-      {
-        spectraview_behavior_->showSpectrumAs1D(indices);
-      }
-
-    }
-
   }
 
   void TOPPViewBase::showCurrentPeaksAs2D()

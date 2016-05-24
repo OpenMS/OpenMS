@@ -76,19 +76,25 @@ public:
 
 public slots:
     /// Behavior for showSpectrumAs1D
-    virtual void showSpectrumAs1D(int index);
+    void showSpectrumAs1D(int spectrum_index, int peptide_id_index, int peptide_hit_index);
+
+    /// Show spectrum without selecting an identification
+    void showSpectrumAs1D(int spectrum_index);
 
     /// Behavior for activate1DSpectrum
-    virtual void activate1DSpectrum(int index);
+    void activate1DSpectrum(int spectrum_index, int peptide_id_index, int peptide_hit_index);
+
+    /// select spectrum without selecting an identification
+    void activate1DSpectrum(int spectrum_index);
 
     /// Behavior for deactivate1DSpectrum
-    virtual void deactivate1DSpectrum(int index);
+    void deactivate1DSpectrum(int spectrum_index);
 
     /// Slot for behavior activation
-    virtual void activateBehavior();
+    void activateBehavior();
 
     /// Slot for behavior deactivation
-    virtual void deactivateBehavior();
+    void deactivateBehavior();
 
     void setVisibleArea1D(double l, double h);
 
@@ -108,6 +114,8 @@ private:
     /// Adds annotation (compound name, adducts, ppm error) to a peak in 1D spectra
     void addPeakAnnotations_(const std::vector<PeptideIdentification> & ph);
 
+    /// Adds fragment annotations to peaks in 1D spectra
+    void addFragmentAnnotations_(const PeptideHit & ph);
 private:
     TOPPViewBase * tv_;
     /// Used to check which annotation handles have been added automatically by the identification view. Ownership
