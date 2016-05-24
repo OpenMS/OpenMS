@@ -797,8 +797,6 @@ namespace OpenMS
               p += "\" monoisotopicMassDelta=\"0";
               // ppxl crosslink loop xl_pos2 is always the reciever ("MS:1002510")
               p += "\"> \n\t\t\t" + cv_.getTerm("MS:1002510").toXMLString(cv_ns, DataValue(ppxl_linkid));
-              p += "\n\t\t\t<cvParam accession=\"UNIMOD:1020\" cvRef=\"UNIMOD\" name=\"Xlink:DSS\"/>";
-              //TODO ppxl from where to get if other crosslink agent was used ???
               p += "\n\t\t</Modification> \n";
             }
             p += "\t</Peptide> \n ";
