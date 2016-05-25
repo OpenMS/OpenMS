@@ -1,0 +1,3 @@
+# model parameters (for all successfully trained models)
+RT, A (offset), B (slope), C (power), source
+0, -1.05281918390288, 0.00167226980858603, 0, local

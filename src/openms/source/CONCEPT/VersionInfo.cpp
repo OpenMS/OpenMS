@@ -62,6 +62,11 @@ namespace OpenMS
       this->version_patch == rhs.version_patch;
   }
 
+  bool VersionInfo::VersionDetails::operator!=(const VersionInfo::VersionDetails & rhs) const
+  {
+    return !(this->operator==(rhs));
+  }
+
   bool VersionInfo::VersionDetails::operator>(const VersionInfo::VersionDetails & rhs) const
   {
     return !(*this < rhs || *this == rhs);
