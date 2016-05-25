@@ -728,7 +728,7 @@ namespace OpenMS
               calc_ppxl_mass += jt->getSequence().getMonoWeight();
               if (jt->metaValueExists("xl_mass"))
               {
-                jt->getMetaValue("xl_mass");
+               calc_ppxl_mass += (double) jt->getMetaValue("xl_mass");
               }
             }
           }
@@ -897,7 +897,7 @@ namespace OpenMS
           {
             r = it->getMetaValue("xl_rank").toString();  // ppxl remove xl_rank later (in copy_jt)
           }
-          if (jt->metaValueExists("xl_type"))
+          if (jt->metaValueExists("xl_chain"))
           {
             //Calculated mass to charge for cross-linked is both peptides + linker
             // sequence pair not available here - precalculated in
@@ -1048,7 +1048,7 @@ namespace OpenMS
               const vector<ProteinIdentification> temp_prot = *cpro_id_;
               ProteinIdentification::SearchParameters search_params = temp_prot[0].getSearchParameters();
               double iso_shift = (double) search_params.getMetaValue("cross_link:mass_isoshift");
-              String cmz_heavy = cmz + ((iso_shift +  jt->getCharge() * Constants::PROTON_MASS_U) / jt->getCharge());
+              double cmz_heavy = atof(cmz.c_str()) + (iso_shift / jt->getCharge());
 
               sii_tmp = sii_tmp.substitute(String("calculatedMassToCharge=\"") + String(cmz),
                                             String("calculatedMassToCharge=\"") + String(cmz_heavy));
