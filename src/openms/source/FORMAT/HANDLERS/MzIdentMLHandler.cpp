@@ -498,7 +498,7 @@ namespace OpenMS
         sip += String(" \n\t\t<SearchType>\n\t\t\t") + cv_.getTermByName("ms-ms search").toXMLString(cv_ns) + String(" \n\t\t</SearchType>");
         if (is_ppxl)
         {
-          sip += "\n\t\t\t" + cv_.getTermByName("cross-linking search").toXMLString(cv_ns);
+          sip += "\n\t\t" + cv_.getTermByName("cross-linking search").toXMLString(cv_ns);
         }
         sip += String("\n\t\t<AdditionalSearchParams>\n");
         writeMetaInfos_(sip, it->getSearchParameters(), 3);
@@ -786,14 +786,15 @@ namespace OpenMS
               p += "\" residues=\"" + String(jt->getSequence()[i].getOneLetterCode());
               if (jt->getMetaValue("xl_chain") == "MS:1002509")  // N.B. longer one is the donor, equals the heavier, equals, the alphabetical first
               {
-                p += "\" monoisotopicMassDelta=\"" + jt->getMetaValue("xl_mass").toString();
+                p += "\" monoisotopicMassDelta=\"" + jt->getMetaValue("xl_mass").toString() + "\"> \n";
+                p += "\t\t\t<cvParam accession=\"XL:00002\" cvRef=\"XLMOD\" name=\"Xlink:DSS\"/>\n";
               }
               else
               {
-                p += "\" monoisotopicMassDelta=\"0";
+                p += "\" monoisotopicMassDelta=\"0\"> \n";
               }
-              p += "\"> \n\t\t\t" + cv_.getTerm(jt->getMetaValue("xl_chain").toString()).toXMLString(cv_ns, DataValue(ppxl_linkid));
-              p += "\n\t\t\t<cvParam accession=\"XL:00002\" cvRef=\"XLMOD\" name=\"Xlink:DSS\"/>";
+              p += "\t\t\t" + cv_.getTerm(jt->getMetaValue("xl_chain").toString()).toXMLString(cv_ns, DataValue(ppxl_linkid));
+
               //TODO ppxl from where to get if other crosslink agent was used ???
               p += "\n\t\t</Modification> \n";
             }
@@ -937,6 +938,11 @@ namespace OpenMS
           for (std::vector<String>::const_iterator pevref = pevid_ids.begin(); pevref != pevid_ids.end(); ++pevref)
           {
             sii_tmp += "\t\t\t\t\t<PeptideEvidenceRef peptideEvidence_ref=\"" +  String(*pevref) + "\"/> \n";
+          }
+
+          if (! jt->getFragmentAnnotations().empty())
+          {
+            writeFragmentAnnotations_(sii_tmp, jt->getFragmentAnnotations(), 5);
           }
 
           // TODO ppxl write Fragmentation annotation ion types as given addition with cv alpha or beta
@@ -1112,7 +1118,7 @@ namespace OpenMS
          << "https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/schema/mzIdentML"<< v_s <<".xsd\"\n"
          << "\txmlns=\"http://psidev.info/psi/pi/mzIdentML/"<< v_s <<"\"\n"
          << "\tversion=\"" << v_s << "\"\n";
-      os << "\tid=\"OpenMS_" << String(UniqueIdGenerator::getUniqueId()) << "\"\n"
+       os << "\tid=\"OpenMS_" << String(UniqueIdGenerator::getUniqueId()) << "\"\n"
          << "\tcreationDate=\"" << DateTime::now().getDate() << "T" << DateTime::now().getTime() << "\">\n";
 
       //--------------------------------------------------------------------------------------------

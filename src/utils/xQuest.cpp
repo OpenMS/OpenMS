@@ -2867,6 +2867,7 @@ protected:
               ph_alpha.setMetaValue("xl_type", xltype);
               ph_alpha.setMetaValue("xl_rank", DataValue(i + 1));
               ph_alpha.setFragmentAnnotations(top_csms_spectrum[i].frag_annotations);
+              LOG_DEBUG << "Annotations of size " << ph_alpha.getFragmentAnnotations().size() << "\n";
               phs.push_back(ph_alpha);
 
               if (top_csms_spectrum[i].cross_link.getType() == TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink::CROSS)
