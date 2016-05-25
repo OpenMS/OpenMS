@@ -110,9 +110,10 @@ namespace OpenMS
     table_widget_->setColumnWidth(9, 45);
     table_widget_->setColumnWidth(10, 400);
     table_widget_->setColumnWidth(11, 45);
+    table_widget_->setColumnWidth(12, 45);
 
     QStringList header_labels;
-    header_labels << "MS" << "index" << "RT" << "precursor m/z" << "dissociation" << "scan type" << "zoom" << "score" << "rank" << "charge" << "sequence" << "accessions";
+    header_labels << "MS" << "index" << "RT" << "precursor m/z" << "dissociation" << "scan type" << "zoom" << "score" << "rank" << "charge" << "sequence" << "accessions" << "#ID";
     table_widget_->setHorizontalHeaderLabels(header_labels);
     table_widget_->setColumnCount(header_labels.size());
 
@@ -230,7 +231,7 @@ namespace OpenMS
 
     int previous_spectrum_index = table_widget_->item(previous->row(), 1)->data(Qt::DisplayRole).toInt();
     int current_spectrum_index = table_widget_->item(current->row(), 1)->data(Qt::DisplayRole).toInt();
-    int current_identification_index = 0; // TODO
+    int current_identification_index = table_widget_->item(current->row(), 12)->data(Qt::DisplayRole).toInt();  // peptide id. index
 
     if (is_ms1_shown_)
     {
@@ -318,7 +319,7 @@ namespace OpenMS
 
     // create header labels (setting header labels must occur after fill)
     QStringList header_labels;
-    header_labels << "MS" << "index" << "RT" << "precursor m/z" << "dissociation" << "scan type" << "zoom" << "score" << "rank" << "charge" << "sequence" << "accession";
+    header_labels << "MS" << "index" << "RT" << "precursor m/z" << "dissociation" << "scan type" << "zoom" << "score" << "rank" << "charge" << "sequence" << "accession" << "#ID";
     for (set<String>::iterator sit = common_keys.begin(); sit != common_keys.end(); ++sit)
     {
       header_labels << sit->toQString();
@@ -345,6 +346,7 @@ namespace OpenMS
     table_widget_->setColumnWidth(9, 45);
     table_widget_->setColumnWidth(10, 400);
     table_widget_->setColumnWidth(11, 45);
+    table_widget_->setColumnWidth(12, 45);
 
     QTableWidgetItem* proto_item = new QTableWidgetItem();
     proto_item->setTextAlignment(Qt::AlignCenter);
@@ -415,16 +417,19 @@ namespace OpenMS
         // charge
         addTextItemToBottomRow_("-", 9, c);
 
-        //sequence
+        // sequence
         addTextItemToBottomRow_("-", 10, c);
 
-        //accession
+        // accession
         addTextItemToBottomRow_("-", 11, c);
+
+        // peptide identification index
+        addTextItemToBottomRow_("-", 12, c);
 
         // add additional meta value columns
         if (create_rows_for_commmon_metavalue_->isChecked())
         {
-          Int current_col = 12;
+          Int current_col = 13;
           for (set<String>::iterator sit = common_keys.begin(); sit != common_keys.end(); ++sit)
           {
             item = table_widget_->itemPrototype()->clone();
@@ -498,13 +503,13 @@ namespace OpenMS
       else
       {
         c = Qt::green; // with identification
-        for (Size k = 0; k != id_count; ++k)
+        for (Size pi_idx = 0; pi_idx != id_count; ++pi_idx)
         {
-           vector<PeptideIdentification> current_pi;
-           current_pi.push_back(pi[k]);
-           PeptideHit best_ph;            
+          vector<PeptideIdentification> current_pi;
+          current_pi.push_back(pi[pi_idx]);
+          PeptideHit best_ph;            
 
-          if (IDFilter().getBestHit(current_pi, false, best_ph))
+          if (IDFilter::getBestHit(current_pi, false, best_ph))
           {
             // add new row at the end of the table
             table_widget_->insertRow(table_widget_->rowCount());
@@ -538,10 +543,13 @@ namespace OpenMS
             String accessions = ListUtils::concatenate(vector<String>(protein_accessions.begin(), protein_accessions.end()), ", ");
             addTextItemToBottomRow_(accessions.toQString(), 11, c);
 
+            // peptide identification index
+            addIntItemToBottomRow_(static_cast<Int>(pi_idx), 12, c);
+
             // add additional meta value columns
             if (create_rows_for_commmon_metavalue_->isChecked())
             {
-              Int current_col = 12;
+              Int current_col = 13;
               for (set<String>::iterator sit = common_keys.begin(); sit != common_keys.end(); ++sit)
               {
                 DataValue dv = best_ph.getMetaValue(*sit);

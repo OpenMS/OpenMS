@@ -102,7 +102,7 @@ namespace OpenMS
       tv_->showSpectrumWidgetInWindow(w, caption);
 
       // special behavior
-      const vector<PeptideIdentification>& pis = w->canvas()->getCurrentLayer().getCurrentSpectrum().getPeptideIdentifications();
+      vector<PeptideIdentification> pis = w->canvas()->getCurrentLayer().getCurrentSpectrum().getPeptideIdentifications();
       if (!pis.empty())
       {
         switch (ms_level)
@@ -112,9 +112,12 @@ namespace OpenMS
           // annotation with stored fragments or synthesized theoretical spectrum 
           case 2: 
           {
-            PeptideHit ph;
-            if (IDFilter().getBestHit(pis, false, ph))
+            // check if index in bounds and hits are present
+            if (static_cast<int>(pis.size()) > peptide_id_index && !pis[peptide_id_index].getHits().empty())
             {
+              // get best hit
+              pis[peptide_id_index].assignRanks();
+              PeptideHit ph = pis[peptide_id_index].getHits()[0];
               if (ph.getFragmentAnnotations().empty())
               {
                 // if no fragment annotations are stored, create a theoretical spectrum
@@ -315,7 +318,7 @@ namespace OpenMS
     {
       UInt ms_level = current_layer.getCurrentSpectrum().getMSLevel();
 
-      const vector<PeptideIdentification> & pis = current_layer.getCurrentSpectrum().getPeptideIdentifications();
+      vector<PeptideIdentification> pis = current_layer.getCurrentSpectrum().getPeptideIdentifications();
       switch (ms_level)
       {
         case 1: // mass fingerprint annotation of name etc and precursor labels
@@ -340,21 +343,21 @@ namespace OpenMS
         }
         case 2: // annotation with stored fragments or synthesized theoretical spectrum 
         {
-          if (!pis.empty())
+          // check if index in bounds and hits are present
+          if (static_cast<int>(pis.size()) > peptide_id_index && !pis[peptide_id_index].getHits().empty())
           {
-            PeptideHit ph;
-            if (IDFilter().getBestHit(pis, false, ph))
+            // get best hit
+            pis[peptide_id_index].assignRanks();
+            PeptideHit ph = pis[peptide_id_index].getHits()[0];
+            if (ph.getFragmentAnnotations().empty())
             {
-              if (ph.getFragmentAnnotations().empty())
-              {
-                // if no fragment annotations are stored, create a theoretical spectrum
-                addTheoreticalSpectrumLayer_(ph);
-              }
-              else
-              {
-                // otherwise, use stored fragment annotations
-                addFragmentAnnotations_(ph);
-              }
+              // if no fragment annotations are stored, create a theoretical spectrum
+              addTheoreticalSpectrumLayer_(ph);
+            }
+            else
+            {
+              // otherwise, use stored fragment annotations
+              addFragmentAnnotations_(ph);
             }
           }
           break;
