@@ -2843,8 +2843,8 @@ protected:
               else
               {
                 // TODO hardcoded for DSS, make this an input parameter or something, NO UNIMOD ACCESSION AVAILBALE, for now name and mass
-                ph_alpha.setMetaValue("xl_mod", "Xlink:DSS-linked");
-                ph_alpha.setMetaValue("xl_mass", DataValue(top_csms_spectrum[i].cross_link.cross_linker_mass));
+              ph_alpha.setMetaValue("xl_mod", top_csms_spectrum[i].cross_link.cross_linker_name);
+              ph_alpha.setMetaValue("xl_mass", DataValue(top_csms_spectrum[i].cross_link.cross_linker_mass));
               }
 
 
@@ -2868,6 +2868,7 @@ protected:
               ph_alpha.setMetaValue("xl_type", xltype);
               ph_alpha.setMetaValue("xl_rank", DataValue(i + 1));
               ph_alpha.setFragmentAnnotations(top_csms_spectrum[i].frag_annotations);
+              LOG_DEBUG << "Annotations of size " << ph_alpha.getFragmentAnnotations().size() << "\n";
               phs.push_back(ph_alpha);
 
               if (top_csms_spectrum[i].cross_link.getType() == TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink::CROSS)
@@ -2891,14 +2892,12 @@ protected:
               peptide_id.setMetaValue("spectrum_reference", specIDs);
 //              peptide_id.setMetaValue("spec_heavy_RT", spectra[scan_index_heavy].getRT());
 //              peptide_id.setMetaValue("spec_heavy_MZ", spectra[scan_index_heavy].getPrecursors()[0].getMZ());
-              peptide_id.setMetaValue("spectrum_reference", spectra[scan_index].getNativeID());
-              peptide_id.setMetaValue("spectrum_reference_heavy", spectra[scan_index_heavy].getNativeID());
+//              peptide_id.setMetaValue("spectrum_reference", spectra[scan_index].getNativeID());
+//              peptide_id.setMetaValue("spectrum_reference_heavy", spectra[scan_index_heavy].getNativeID());
 //              peptide_id.setMetaValue("xl_type", xltype); // TODO: needs CV term
 //              peptide_id.setMetaValue("xl_rank", DataValue(i + 1));
 
-//            peptide_id.setMetaValue("xl_relation", ); //TODO: needs CV term
               peptide_id.setHits(phs);
-//              LOG_DEBUG << "peptide_ids number: " << peptide_ids.size() << endl;
               peptide_ids.push_back(peptide_id);
               all_top_csms[all_top_csms.size()-1][i].peptide_id_index = peptide_ids.size()-1;
             }
