@@ -1045,6 +1045,14 @@ namespace OpenMS
               sii_tmp = sii_tmp.substitute(sii, String("SII_") + String(UniqueIdGenerator::getUniqueId())); // uid
               sii_tmp = sii_tmp.substitute("value=\"" + ert, "value=\"" + String(jt->getMetaValue("spec_heavy_RT")));
 
+              const vector<ProteinIdentification> temp_prot = *cpro_id_;
+              ProteinIdentification::SearchParameters search_params = temp_prot[0].getSearchParameters();
+              double iso_shift = (double) search_params.getMetaValue("cross_link:mass_isoshift");
+              String cmz_heavy = cmz + ((iso_shift +  jt->getCharge() * Constants::PROTON_MASS_U) / jt->getCharge());
+
+              sii_tmp = sii_tmp.substitute(String("calculatedMassToCharge=\"") + String(cmz),
+                                            String("calculatedMassToCharge=\"") + String(cmz_heavy));
+
               ppxl_specref_2_element[sid] += sii_tmp;
             }
           }
