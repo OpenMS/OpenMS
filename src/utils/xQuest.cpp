@@ -2882,6 +2882,7 @@ protected:
                 ph_beta.setMetaValue("spec_heavy_MZ", spectra[scan_index_heavy].getPrecursors()[0].getMZ());
                 ph_beta.setMetaValue("spectrum_reference", spectra[scan_index].getNativeID());
                 ph_beta.setMetaValue("spectrum_reference_heavy", spectra[scan_index_heavy].getNativeID());
+
                 phs.push_back(ph_beta);
               }
 

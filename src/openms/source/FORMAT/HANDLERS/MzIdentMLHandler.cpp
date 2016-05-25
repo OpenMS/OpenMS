@@ -692,7 +692,7 @@ namespace OpenMS
               calc_ppxl_mass += jt->getSequence().getMonoWeight();
               if (jt->metaValueExists("xl_mass"))
               {
-                jt->getMetaValue("xl_mass");
+               calc_ppxl_mass += (double) jt->getMetaValue("xl_mass");
               }
             }
           }
@@ -888,7 +888,7 @@ namespace OpenMS
           {
             r = it->getMetaValue("xl_rank").toString();  // ppxl remove xl_rank later (in copy_jt)
           }
-          if (jt->metaValueExists("xl_type"))
+          if (jt->metaValueExists("xl_chain"))
           {
             //Calculated mass to charge for cross-linked is both peptides + linker
             // sequence pair not available here - precalculated in
@@ -1039,6 +1039,14 @@ namespace OpenMS
                                            String("experimentalMassToCharge=\"") + String(jt->getMetaValue("spec_heavy_MZ"))); // mz
               sii_tmp = sii_tmp.substitute(sii, String("SII_") + String(UniqueIdGenerator::getUniqueId())); // uid
               sii_tmp = sii_tmp.substitute("value=\"" + ert, "value=\"" + String(jt->getMetaValue("spec_heavy_RT")));
+
+              const vector<ProteinIdentification> temp_prot = *cpro_id_;
+              ProteinIdentification::SearchParameters search_params = temp_prot[0].getSearchParameters();
+              double iso_shift = (double) search_params.getMetaValue("cross_link:mass_isoshift");
+              double cmz_heavy = atof(cmz.c_str()) + (iso_shift / jt->getCharge());
+
+              sii_tmp = sii_tmp.substitute(String("calculatedMassToCharge=\"") + String(cmz),
+                                            String("calculatedMassToCharge=\"") + String(cmz_heavy));
 
               ppxl_specref_2_element[sid] += sii_tmp;
             }
