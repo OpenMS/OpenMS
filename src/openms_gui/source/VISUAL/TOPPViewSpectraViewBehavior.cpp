@@ -55,7 +55,6 @@ namespace OpenMS
 
   void TOPPViewSpectraViewBehavior::showSpectrumAs1D(int index)
   {
-
     // basic behavior 1
     const LayerData & layer = tv_->getActiveCanvas()->getCurrentLayer();
     ExperimentSharedPtrType exp_sptr = layer.getPeakData();
@@ -226,6 +225,10 @@ namespace OpenMS
   void TOPPViewSpectraViewBehavior::activate1DSpectrum(int index)
   {
     Spectrum1DWidget * widget_1d = tv_->getActive1DWidget();
+
+    // return if no active 1D widget is present
+    if (widget_1d == 0) return;
+
     widget_1d->canvas()->activateSpectrum(index);
     const LayerData & layer = tv_->getActiveCanvas()->getCurrentLayer();
 
@@ -286,6 +289,9 @@ namespace OpenMS
   void TOPPViewSpectraViewBehavior::activate1DSpectrum(std::vector<int, std::allocator<int> > indices)
   {
     Spectrum1DWidget * widget_1d = tv_->getActive1DWidget();
+
+    // return if no active 1D widget is present
+    if (widget_1d == 0) return;
 
     // If we have a chromatogram, we cannot just simply activate this spectrum.
     // we have to do much more work, e.g. creating a new experiment with the

@@ -38,7 +38,6 @@
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/VISUAL/LayerData.h>
 #include <vector>
-#include <OpenMS/VISUAL/TOPPViewBehaviorInterface.h>
 
 namespace OpenMS
 {
@@ -47,8 +46,8 @@ namespace OpenMS
   /**
   @brief Behavior of TOPPView in spectra view mode.
   */
-  class TOPPViewSpectraViewBehavior :
-    public TOPPViewBehaviorInterface
+  class TOPPViewSpectraViewBehavior
+    : public QObject
   {
     Q_OBJECT
     ///@name Type definitions

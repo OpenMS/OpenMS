@@ -53,6 +53,18 @@ namespace OpenMS
   {
   }
 
+  void InternalCalibration::applyTransformation(std::vector<Precursor>& pcs, const MZTrafoModel& trafo)
+  {
+    // calibrate the precursor mass
+    if (!pcs.empty())
+    {
+      for (Size i = 0; i < pcs.size(); ++i)
+      {
+        pcs[i].setMZ(trafo.predict(pcs[i].getMZ()));
+      }
+    }
+  }
+
   void InternalCalibration::applyTransformation(MSExperiment<>::SpectrumType& spec, const MZTrafoModel& trafo)
   {
     typedef MSExperiment<>::SpectrumType::Iterator SpecIt;
@@ -62,28 +74,32 @@ namespace OpenMS
     {
       it->setMZ(trafo.predict(it->getMZ()));
     }
-
-    // calibrate the precursor mass as well
-    if (!spec.getPrecursors().empty())
-    {
-      for (Size i = 0; i < spec.getPrecursors().size(); ++i)
-      {
-        spec.getPrecursors()[i].setMZ(trafo.predict(spec.getPrecursors()[i].getMZ()));
-      }
-    }
   }
 
   void InternalCalibration::applyTransformation(MSExperiment<>& exp, const IntList& target_mslvl, const MZTrafoModel& trafo)
   {
     for (MSExperiment<>::Iterator it = exp.begin(); it != exp.end(); ++it)
     {
-      // skip this MS level?
-      if (!ListUtils::contains(target_mslvl, it->getMSLevel())) continue;
-      applyTransformation(*it, trafo);
+      // calibrate the peaks?
+      if (ListUtils::contains(target_mslvl, it->getMSLevel()))
+      {
+        applyTransformation(*it, trafo);
+      }
+      // apply PC correction (only if target is MS1, and current spec is MS2; or target is MS2 and cs is MS3,...)
+      if (ListUtils::contains(target_mslvl, it->getMSLevel() - 1))
+      {
+        applyTransformation(it->getPrecursors(), trafo);
+      }     
     }
   }
 
-  Size InternalCalibration::fillCalibrants( const MSExperiment<> exp, const std::vector<InternalCalibration::LockMass>& ref_masses, double tol_ppm, bool lock_require_mono, bool lock_require_iso, bool verbose /*= true*/ )
+  Size InternalCalibration::fillCalibrants(const MSExperiment<> exp,
+                                           const std::vector<InternalCalibration::LockMass>& ref_masses,
+                                           double tol_ppm,
+                                           bool lock_require_mono,
+                                           bool lock_require_iso,
+                                           CalibrationData& failed_lock_masses,
+                                           bool verbose /*= true*/)
   {
     cal_data_.clear();
 
@@ -109,7 +125,11 @@ namespace OpenMS
 
         Size s = it->findNearest(itl->mz);
         const double mz_obs = (*it)[s].getMZ();
-        if (Math::getPPMAbs(mz_obs, itl->mz) < tol_ppm)
+        if (Math::getPPMAbs(mz_obs, itl->mz) > tol_ppm)
+        {
+          failed_lock_masses.insertCalibrationPoint(it->getRT(), itl->mz, 0.0, itl->mz, 0.0, std::distance(ref_masses.begin(), itl));
+        }
+        else
         {
           if (lock_require_mono)
           {
@@ -119,6 +139,7 @@ namespace OpenMS
             if (Math::getPPMAbs(mz_iso_left, (*it)[s_left].getMZ()) < 0.5) // intra-scan ppm should be very good!
             { // peak nearby lock mass was not the monoisotopic
               if (verbose) LOG_INFO << "peak at [RT, m/z] " << it->getRT() << ", " << (*it)[s].getMZ() << " is NOT monoisotopic. Skipping it!\n";
+              failed_lock_masses.insertCalibrationPoint(it->getRT(), itl->mz, 1.0, itl->mz, 0.0, std::distance(ref_masses.begin(), itl));
               continue;
             }
           }
@@ -129,7 +150,8 @@ namespace OpenMS
             Size s_right = it->findNearest(mz_iso_right);
             if (!(Math::getPPMAbs(mz_iso_right, (*it)[s_right].getMZ()) < 0.5)) // intra-scan ppm should be very good!
             { // peak has no +1iso.. weird
-              if (verbose) LOG_INFO << "peak at [RT, m/z] " << it->getRT() << ", " << (*it)[s].getMZ() << " has no +1 isotope (ppm diff: " << Math::getPPM(mz_iso_right, (*it)[s_right].getMZ()) << ")... Skipping it!\n";
+              if (verbose) LOG_INFO << "peak at [RT, m/z] " << it->getRT() << ", " << (*it)[s].getMZ() << " has no +1 isotope (ppm to closest: " << Math::getPPM(mz_iso_right, (*it)[s_right].getMZ()) << ")... Skipping it!\n";
+              failed_lock_masses.insertCalibrationPoint(it->getRT(), itl->mz, 2.0, itl->mz, 0.0, std::distance(ref_masses.begin(), itl));
               continue;
             }
           }
@@ -339,7 +361,7 @@ namespace OpenMS
     if (!file_models.empty() || !file_models_plot.empty())
     {
       String out_table = File::getTemporaryFile(file_models);
-      { // we need this scope, to ensure that SVOutStream writes it cache, before we call RWrapper!
+      { // we need this scope, to ensure that SVOutStream writes its cache, before we call RWrapper!
         SVOutStream sv(out_table, ", ", ", ", String::NONE);
 
         sv << "# model parameters (for all successfully trained models)" << nl
@@ -381,7 +403,7 @@ namespace OpenMS
     vec_ppm_before.reserve(cal_data_.size());
     vec_ppm_after.reserve(cal_data_.size());
     if (sv != NULL) *sv << "# residual error after calibration" << nl
-                        << "RT" << "mz ref" << "mz before" << "mz after" << "ppm before" << "ppm after" << nl;
+                        << "RT" << "intensity" << "mz ref" << "mz before" << "mz after" << "ppm before" << "ppm after" << nl;
     Size ii(0);
     for (CalibrationData::const_iterator itc = cal_data_.begin(); itc != cal_data_.end(); ++itc, ++ii)
     {
@@ -396,7 +418,17 @@ namespace OpenMS
       double ppm_after = Math::getPPM(mz_corrected, mz_ref);
       vec_ppm_before.push_back(ppm_before);
       vec_ppm_after.push_back(ppm_after);
-      if (sv != NULL) *sv << rt << mz_ref << itc->getMZ() << mz_corrected << ppm_before << ppm_after << nl;
+      if (sv != NULL)
+      {
+        *sv << rt 
+            << itc->getIntensity()
+            << mz_ref
+            << itc->getMZ();
+        sv->writeValueOrNan(mz_corrected)
+            << ppm_before;
+        sv->writeValueOrNan(ppm_after)
+            << nl;
+      }
     }
     delete sv;
 
@@ -412,7 +444,7 @@ namespace OpenMS
 
     if (!hasValidModels)
     { // QC tables are done; quit
-      LOG_ERROR << "Error: Could not build a single local calibration model! Check your calibrants!" << std::endl;
+      LOG_ERROR << "Error: Could not build a single local calibration model! Check your calibrants and/or extend the search window!" << std::endl;
       if (use_RANSAC) LOG_ERROR << "       Since you are using RANSAC, check the parameters as well and test different setups." << std::endl;
 
       return false;
@@ -430,12 +462,12 @@ namespace OpenMS
     // check desired limits
     if (post_ppm_median < fabs(median_ppm_after))
     {
-      LOG_INFO << "Post calibration median threshold (" << post_ppm_median << ") not reached (median = |" << median_ppm_after << "|). Failed to calibrate!" << std::endl;
+      LOG_INFO << "Post calibration median threshold (" << post_ppm_median << " ppm) not reached (median = |" << median_ppm_after << "| ppm). Failed to calibrate!" << std::endl;
       return false;
     }
     if (post_ppm_MAD < fabs(MAD_ppm_after))
     {
-      LOG_INFO << "Post calibration median threshold (" << post_ppm_MAD << ") not reached (median = |" << MAD_ppm_after << "|). Failed to calibrate!" << std::endl;
+      LOG_INFO << "Post calibration median threshold (" << post_ppm_MAD << " ppm) not reached (median = |" << MAD_ppm_after << "| ppm). Failed to calibrate!" << std::endl;
       return false;
     }
 
