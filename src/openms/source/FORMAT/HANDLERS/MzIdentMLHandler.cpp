@@ -1012,7 +1012,7 @@ namespace OpenMS
               sii_tmp = sii_tmp.substitute(String("experimentalMassToCharge=\"") + String(emz),
                                            String("experimentalMassToCharge=\"") + String(jt->getMetaValue("spec_heavy_MZ"))); // mz
               sii_tmp = sii_tmp.substitute(sii, String("SII_") + String(UniqueIdGenerator::getUniqueId())); // uid
-              sii_tmp = sii_tmp.substitute("value=\"" + ert, "value=\"" + String(jt->getMetaValue("spec_heavy_MZ")));
+              sii_tmp = sii_tmp.substitute("value=\"" + ert, "value=\"" + String(jt->getMetaValue("spec_heavy_RT")));
 
               ppxl_specref_2_element[sid] += sii_tmp;
             }
