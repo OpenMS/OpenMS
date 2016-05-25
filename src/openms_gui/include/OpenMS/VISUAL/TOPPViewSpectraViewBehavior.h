@@ -76,22 +76,22 @@ public:
 
 public slots:
     /// Behavior for showSpectrumAs1D
-    virtual void showSpectrumAs1D(int index);
+    void showSpectrumAs1D(int index);
 
     /// Behavior for showSpectrumAs1D
-    virtual void showSpectrumAs1D(std::vector<int, std::allocator<int> > indices);
+    void showSpectrumAs1D(std::vector<int, std::allocator<int> > indices);
 
     /// Behavior for activate1DSpectrum
-    virtual void activate1DSpectrum(int index);
+    void activate1DSpectrum(int index);
 
     /// Behavior for activate1DSpectrum
-    virtual void activate1DSpectrum(std::vector<int, std::allocator<int> > indices);
+    void activate1DSpectrum(std::vector<int, std::allocator<int> > indices);
 
     /// Behavior for deactivate1DSpectrum
-    virtual void deactivate1DSpectrum(int index);
+    void deactivate1DSpectrum(int index);
 
     /// Slot for behavior activation
-    virtual void activateBehavior();
+    void activateBehavior();
 
     /// Slot for behavior deactivation
     virtual void deactivateBehavior();

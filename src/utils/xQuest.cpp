@@ -1821,6 +1821,7 @@ protected:
       LOG_DEBUG << "duplicate variable modification provided." << endl;
       return ILLEGAL_PARAMETERS;
     }
+    //TODO add crosslinker
 
     vector<ResidueModification> fixed_modifications = getModifications_(fixedModNames);
     vector<ResidueModification> variable_modifications = getModifications_(varModNames);
@@ -1979,11 +1980,11 @@ protected:
     search_params.precursor_mass_tolerance = precursor_mass_tolerance;
     search_params.precursor_mass_tolerance_ppm = precursor_mass_tolerance_unit_ppm ? "ppm" : "Da";
 
-
     // As MetaValues
-    //protein_ids[0].setMetaValue("input_mzML", in_mzml);
     search_params.setMetaValue("input_consensusXML", in_consensus);
+    //protein_ids[0].setMetaValue("input_mzML", in_mzml);
     //protein_ids[0].setMetaValue("input_database", in_fasta);
+
     search_params.setMetaValue("input_decoys", in_decoy_fasta);
     search_params.setMetaValue("decoy_prefix", decoy_prefix);
     search_params.setMetaValue("decoy_string", decoy_string);
@@ -1993,8 +1994,8 @@ protected:
     //protein_ids[0].setMetaValue("precursor:mass_tolerance", precursor_mass_tolerance);
     //protein_ids[0].setMetaValue("precursor:mass_tolerance_unit", precursor_mass_tolerance_unit_ppm ? "ppm" : "Da");
 
-    //protein_ids[0].setMetaValue("fragment:mass_tolerance", fragment_mass_tolerance);
     search_params.setMetaValue("fragment:mass_tolerance_xlinks", fragment_mass_tolerance_xlinks);
+    //protein_ids[0].setMetaValue("fragment:mass_tolerance", fragment_mass_tolerance);
     //protein_ids[0].setMetaValue("fragment:mass_tolerance_unit", fragment_mass_tolerance_unit_ppm ? "ppm" : "Da");
 
     search_params.setMetaValue("peptide:min_size", peptide_min_size);
@@ -2014,7 +2015,6 @@ protected:
     search_params.setMetaValue("algorithm:candidate_search", ion_index_mode ? "ion-tag" : "enumeration");
 
     protein_ids[0].setSearchParameters(search_params);
-
 
     vector<PeptideIdentification> peptide_ids;
 
@@ -2814,6 +2814,8 @@ protected:
                 xltype = "loop-link";
               }
 
+              // TODO set the right ppxl-mod.csv entry  here!
+
               PeptideHit ph_alpha, ph_beta;
               // Set monolink as a modification or add MetaValue for cross-link identity and mass
               AASequence seq_alpha = top_csms_spectrum[i].cross_link.alpha;
@@ -2865,6 +2867,7 @@ protected:
               ph_alpha.setMetaValue("xl_type", xltype);
               ph_alpha.setMetaValue("xl_rank", DataValue(i + 1));
               ph_alpha.setFragmentAnnotations(top_csms_spectrum[i].frag_annotations);
+              LOG_DEBUG << "Annotations of size " << ph_alpha.getFragmentAnnotations().size() << "\n";
               phs.push_back(ph_alpha);
 
               if (top_csms_spectrum[i].cross_link.getType() == TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink::CROSS)
@@ -2877,8 +2880,9 @@ protected:
                 ph_beta.setMetaValue("xl_pos", DataValue(beta_pos));
                 ph_beta.setMetaValue("spec_heavy_RT", spectra[scan_index_heavy].getRT());
                 ph_beta.setMetaValue("spec_heavy_MZ", spectra[scan_index_heavy].getPrecursors()[0].getMZ());
-                //ph_beta.setMetaValue("spectrum_reference", spectra[scan_index].getNativeID());
-                //ph_beta.setMetaValue("spectrum_reference_heavy", spectra[scan_index_heavy].getNativeID());
+                ph_beta.setMetaValue("spectrum_reference", spectra[scan_index].getNativeID());
+                ph_beta.setMetaValue("spectrum_reference_heavy", spectra[scan_index_heavy].getNativeID());
+
                 phs.push_back(ph_beta);
               }
 

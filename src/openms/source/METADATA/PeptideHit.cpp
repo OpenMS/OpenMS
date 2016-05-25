@@ -48,7 +48,8 @@ namespace OpenMS
     analysis_results_(NULL),
     rank_(0),
     charge_(0),
-    peptide_evidences_()
+    peptide_evidences_(),
+    fragment_annotations_()
   {
   }
 
@@ -60,7 +61,8 @@ namespace OpenMS
     analysis_results_(NULL),
     rank_(rank),
     charge_(charge),
-    peptide_evidences_()
+    peptide_evidences_(),
+    fragment_annotations_()
   {
   }
 
@@ -72,7 +74,8 @@ namespace OpenMS
     analysis_results_(NULL),
     rank_(source.rank_),
     charge_(source.charge_),
-    peptide_evidences_(source.peptide_evidences_)
+    peptide_evidences_(source.peptide_evidences_),
+    fragment_annotations_(source.fragment_annotations_)
   {
     if (source.analysis_results_ != NULL)
     {
@@ -113,6 +116,7 @@ namespace OpenMS
     charge_ = source.charge_;
     rank_  = source.rank_;
     peptide_evidences_ = source.peptide_evidences_;
+    fragment_annotations_ = source.fragment_annotations_;
     return *this;
   }
 
@@ -132,7 +136,8 @@ namespace OpenMS
            && ar_equal
            && rank_ == rhs.rank_
            && charge_ == rhs.charge_
-           && peptide_evidences_ == rhs.peptide_evidences_;
+           && peptide_evidences_ == rhs.peptide_evidences_
+           && fragment_annotations_ == rhs.fragment_annotations_;
   }
 
   bool PeptideHit::operator!=(const PeptideHit& rhs) const

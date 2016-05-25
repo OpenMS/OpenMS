@@ -16447,8 +16447,8 @@ is_a: MS:1002508 ! cross-linking attribute
 
 [Term]
 id: MS:1002510
-name: cross-link receiver
-def: "Cross-linking receiver, assigned according to the following rules: the export software SHOULD use the following rules to choose the cross-link donor as the: longer peptide, then higher peptide neutral mass, then alphabetical order." [PSI:PI]
+name: cross-link acceptor
+def: "Cross-linking acceptor, assigned according to the following rules: the export software SHOULD use the following rules to choose the cross-link donor as the: longer peptide, then higher peptide neutral mass, then alphabetical order." [PSI:PI]
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
 is_a: MS:1002508 ! cross-linking attribute
 

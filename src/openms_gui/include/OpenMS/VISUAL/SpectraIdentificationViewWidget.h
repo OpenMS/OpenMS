@@ -49,7 +49,6 @@ namespace OpenMS
   /**
     @brief Tabular visualization / selection of identified spectra.
 
-    @htmlinclude OpenMS_DigestSimulation.parameters
   */
   class SpectraIdentificationViewWidget :
     public QWidget,
@@ -58,24 +57,26 @@ namespace OpenMS
     Q_OBJECT
 public:
     /// Constructor
-    SpectraIdentificationViewWidget(const Param& preferences, QWidget* parent = 0);
+    SpectraIdentificationViewWidget(QWidget* parent = 0);
+
     /// Destructor
     virtual ~SpectraIdentificationViewWidget();
+
     /// Attach model
     void attachLayer(LayerData* model);
+
     /// Helper function to block outgoing signals
     bool ignore_update;
 
-    // access the table widget
+    /// Access the table widget
     QTableWidget* getTableWidget();
 public slots:
     /// Rebuild table entries
     void updateEntries();
 signals:
-    void spectrumSelected(int);
+    void spectrumSelected(int, int, int);
     void spectrumDeselected(int);
     void spectrumDoubleClicked(int);
-    void showSpectrumAs1D(int);
     void showSpectrumMetaData(int);
     void requestVisibleArea1D(double, double);
 private:
@@ -90,12 +91,16 @@ private:
 private slots:
     /// Emits spectrumSelected with the current spectrum index
     void spectrumSelectionChange_(QTableWidgetItem*, QTableWidgetItem*);
+
     /// Export table entries as csv
     void exportEntries_();
+
     /// Saves the (potentially filtered) idXML
     void saveIdXML_();
+
     /// Display header context menu
     void headerContextMenu_(const QPoint&);
+
     /// Cell clicked in table_widget
     void cellClicked_(int row, int column);
   };
