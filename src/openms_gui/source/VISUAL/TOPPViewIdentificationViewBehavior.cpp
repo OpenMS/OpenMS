@@ -112,9 +112,11 @@ namespace OpenMS
           // annotation with stored fragments or synthesized theoretical spectrum 
           case 2: 
           {
-            PeptideHit ph;
-            if (IDFilter().getBestHit(pis, false, ph))
+            // check if index in bounds and hits are present
+            if (peptide_id_index < static_cast<int>(pis.size()) && peptide_hit_index < static_cast<int>(pis[peptide_id_index].getHits().size()))
             {
+              // get hit
+              PeptideHit ph = pis[peptide_id_index].getHits()[peptide_hit_index];
               if (ph.getFragmentAnnotations().empty())
               {
                 // if no fragment annotations are stored, create a theoretical spectrum
@@ -303,7 +305,7 @@ namespace OpenMS
   {
     activate1DSpectrum(spectrum_index, -1, -1);
   }
-  
+
   void TOPPViewIdentificationViewBehavior::activate1DSpectrum(int spectrum_index, int peptide_id_index, int peptide_hit_index)
   {
     Spectrum1DWidget * widget_1D = tv_->getActive1DWidget();
@@ -343,21 +345,22 @@ namespace OpenMS
         }
         case 2: // annotation with stored fragments or synthesized theoretical spectrum 
         {
-          if (!pis.empty())
+          // check if index in bounds and hits are present
+          if (peptide_id_index < static_cast<int>(pis.size()) && peptide_hit_index < static_cast<int>(pis[peptide_id_index].getHits().size()))
           {
-            PeptideHit ph;
-            if (IDFilter().getBestHit(pis, false, ph))
+            // get first hit
+            PeptideHit ph = pis[peptide_id_index].getHits()[peptide_hit_index];
+
+//              cout << peptide_id_index << " has hits: " << pis[peptide_id_index].getHits().size() << " selected hit: " << peptide_hit_index << " with frament annotations: " << ph.getFragmentAnnotations().size() << endl;
+            if (ph.getFragmentAnnotations().empty())
             {
-              if (ph.getFragmentAnnotations().empty())
-              {
-                // if no fragment annotations are stored, create a theoretical spectrum
-                addTheoreticalSpectrumLayer_(ph);
-              }
-              else
-              {
-                // otherwise, use stored fragment annotations
-                addFragmentAnnotations_(ph);
-              }
+              // if no fragment annotations are stored, create a theoretical spectrum
+              addTheoreticalSpectrumLayer_(ph);
+            }
+            else
+            {
+              // otherwise, use stored fragment annotations
+              addFragmentAnnotations_(ph);
             }
           }
           break;
