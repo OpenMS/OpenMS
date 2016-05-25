@@ -1978,42 +1978,42 @@ protected:
     search_params.fragment_mass_tolerance_ppm =  fragment_mass_tolerance_unit_ppm ? "ppm" : "Da";
     search_params.precursor_mass_tolerance = precursor_mass_tolerance;
     search_params.precursor_mass_tolerance_ppm = precursor_mass_tolerance_unit_ppm ? "ppm" : "Da";
-    protein_ids[0].setSearchParameters(search_params);
+
 
     // As MetaValues
     //protein_ids[0].setMetaValue("input_mzML", in_mzml);
-    protein_ids[0].setMetaValue("input_consensusXML", in_consensus);
+    search_params.setMetaValue("input_consensusXML", in_consensus);
     //protein_ids[0].setMetaValue("input_database", in_fasta);
-    protein_ids[0].setMetaValue("input_decoys", in_decoy_fasta);
-    protein_ids[0].setMetaValue("decoy_prefix", decoy_prefix);
-    protein_ids[0].setMetaValue("decoy_string", decoy_string);
+    search_params.setMetaValue("input_decoys", in_decoy_fasta);
+    search_params.setMetaValue("decoy_prefix", decoy_prefix);
+    search_params.setMetaValue("decoy_string", decoy_string);
 
-    protein_ids[0].setMetaValue("precursor:min_charge", min_precursor_charge);
-    protein_ids[0].setMetaValue("precursor:max_charge", max_precursor_charge);
+    search_params.setMetaValue("precursor:min_charge", min_precursor_charge);
+    search_params.setMetaValue("precursor:max_charge", max_precursor_charge);
     //protein_ids[0].setMetaValue("precursor:mass_tolerance", precursor_mass_tolerance);
     //protein_ids[0].setMetaValue("precursor:mass_tolerance_unit", precursor_mass_tolerance_unit_ppm ? "ppm" : "Da");
 
     //protein_ids[0].setMetaValue("fragment:mass_tolerance", fragment_mass_tolerance);
-    protein_ids[0].setMetaValue("fragment:mass_tolerance_xlinks", fragment_mass_tolerance_xlinks);
+    search_params.setMetaValue("fragment:mass_tolerance_xlinks", fragment_mass_tolerance_xlinks);
     //protein_ids[0].setMetaValue("fragment:mass_tolerance_unit", fragment_mass_tolerance_unit_ppm ? "ppm" : "Da");
 
-    protein_ids[0].setMetaValue("peptide:min_size", peptide_min_size);
+    search_params.setMetaValue("peptide:min_size", peptide_min_size);
     //protein_ids[0].setMetaValue("peptide:missed_cleavages", missed_cleavages);
     //protein_ids[0].setMetaValue("peptide:enzyme", enzyme_name);
 
-    protein_ids[0].setMetaValue("cross_link:residue1", cross_link_residue1);
-    protein_ids[0].setMetaValue("cross_link:residue2", cross_link_residue2);
-    protein_ids[0].setMetaValue("cross_link:mass", cross_link_mass_light);
-    protein_ids[0].setMetaValue("cross_link:mass_isoshift", cross_link_mass_iso_shift);
-    protein_ids[0].setMetaValue("cross_link:mass_monolink", cross_link_mass_mono_link);
+    search_params.setMetaValue("cross_link:residue1", cross_link_residue1);
+    search_params.setMetaValue("cross_link:residue2", cross_link_residue2);
+    search_params.setMetaValue("cross_link:mass", cross_link_mass_light);
+    search_params.setMetaValue("cross_link:mass_isoshift", cross_link_mass_iso_shift);
+    search_params.setMetaValue("cross_link:mass_monolink", cross_link_mass_mono_link);
 
     //protein_ids[0].setMetaValue("modifications:fixed", fixedModNames);
     //protein_ids[0].setMetaValue("modifications:variable", varModNames);
-    protein_ids[0].setMetaValue("modifications:variable_max_per_peptide", max_variable_mods_per_peptide);
+    search_params.setMetaValue("modifications:variable_max_per_peptide", max_variable_mods_per_peptide);
 
-    protein_ids[0].setMetaValue("algorithm:candidate_search", ion_index_mode ? "ion-tag" : "enumeration");
+    search_params.setMetaValue("algorithm:candidate_search", ion_index_mode ? "ion-tag" : "enumeration");
 
-
+    protein_ids[0].setSearchParameters(search_params);
 
 
     vector<PeptideIdentification> peptide_ids;
@@ -2875,6 +2875,10 @@ protected:
                 ph_beta.setRank(DataValue(i+1));
                 ph_beta.setMetaValue("xl_chain", "MS:1002510"); // receiver
                 ph_beta.setMetaValue("xl_pos", DataValue(beta_pos));
+                ph_beta.setMetaValue("spec_heavy_RT", spectra[scan_index_heavy].getRT());
+                ph_beta.setMetaValue("spec_heavy_MZ", spectra[scan_index_heavy].getPrecursors()[0].getMZ());
+                //ph_beta.setMetaValue("spectrum_reference", spectra[scan_index].getNativeID());
+                //ph_beta.setMetaValue("spectrum_reference_heavy", spectra[scan_index_heavy].getNativeID());
                 phs.push_back(ph_beta);
               }
 
