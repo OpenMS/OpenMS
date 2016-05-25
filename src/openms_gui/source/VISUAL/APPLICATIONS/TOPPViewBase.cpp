@@ -2997,6 +2997,92 @@ namespace OpenMS
         return;
       }
 
+    // TODO REMOVE ----
+vector<PeptideHit::FragmentAnnotation> frag_annotations;
+PeptideHit::FragmentAnnotation frag_anno;
+
+frag_anno.annotation = "[alpha$b5]";
+frag_anno.charge = 1;
+frag_anno.mz = 265.048;
+frag_anno.intensity = 0.00388978;
+
+frag_annotations.push_back(frag_anno);
+
+frag_anno.annotation = "[alpha$y6]";
+frag_anno.charge = 3;
+frag_anno.mz = 209.067;
+frag_anno.intensity = 0.0040404;
+
+frag_annotations.push_back(frag_anno);
+
+frag_anno.annotation = "[beta$y5]";
+frag_anno.charge = 3;
+frag_anno.mz = 209.067;
+frag_anno.intensity = 0.0040404;
+
+frag_annotations.push_back(frag_anno);
+
+frag_anno.annotation = "[beta$b3]";
+frag_anno.charge = 3;
+frag_anno.mz = 629.46209717;
+frag_anno.intensity = 765.96;
+
+frag_annotations.push_back(frag_anno);
+
+frag_anno.annotation = "[alpha$b3]";
+frag_anno.charge = 3;
+frag_anno.mz = 658.19104004;
+frag_anno.intensity = 730.05;
+
+frag_annotations.push_back(frag_anno);
+
+// Peptide Hits, most info including fragment annotations contained in ph_alpha (first of at most two PeptideHits)
+vector<PeptideHit> phs;
+PeptideHit ph_alpha, ph_beta;
+
+ph_alpha.setSequence(AASequence::fromString("KANWC(Carbamidomethyl)DKR"));
+ph_alpha.setCharge(5);
+ph_alpha.setScore(20);
+ph_alpha.setRank(1);
+ph_alpha.setMetaValue("xl_chain", "MS:1002509");  // donor (longer, heavier, alphabetically earlier)
+ph_alpha.setMetaValue("xl_pos", 9);
+ph_alpha.setMetaValue("spectrum_reference", "scan=1");
+ph_alpha.setMetaValue("spectrum_reference_heavy", "scan=2");
+ph_alpha.setMetaValue("xl_type", "cross-link");
+ph_alpha.setMetaValue("xl_rank", 1);
+ph_alpha.setFragmentAnnotations(frag_annotations);
+
+phs.push_back(ph_alpha);
+
+// Additional information about second peptide
+ph_beta.setSequence(AASequence::fromString("AAKASR"));
+ph_beta.setCharge(5);
+ph_beta.setScore(20);
+ph_beta.setRank(1);
+ph_beta.setMetaValue("xl_chain", "MS:1002510"); // receiver
+ph_beta.setMetaValue("xl_pos", 2);
+phs.push_back(ph_beta);
+
+// Peptide ID
+PeptideIdentification peptide_id;
+
+peptide_id.setRT(5468.0193);
+peptide_id.setMZ(672.374450683594);
+String specIDs = "scan=1,scan=2";
+peptide_id.setMetaValue("spectrum_reference", specIDs);
+peptide_id.setHits(phs);
+identifications.push_back(peptide_id);
+/*
+   // Protein ID
+   vector<ProteinIdentification> protein_ids(1);
+   protein_ids[0].setDateTime(DateTime::now());
+   protein_ids[0].setSearchEngine("OpenMSxQuest");
+   // If this is present, you know these IDs contain cross-linking info / peak annotations!!!! PSI CV For Cross-Linking Search
+   protein_ids[0].setMetaValue("SpectrumIdentificationProtocol", DataValue("MS:1002494"));
+*/
+    // -----
+
+
       IDMapper mapper;
       if (layer.type == LayerData::DT_PEAK)
       {
@@ -3022,7 +3108,6 @@ namespace OpenMS
       QMessageBox::warning(this, "Error", QString("Unknown file type. No annotation performed."));
       return;
     }
-
     showLogMessage_(LS_NOTICE, "Done", "Annotation of spectra finished. Open identification view to see results!");
     updateViewBar();
   }

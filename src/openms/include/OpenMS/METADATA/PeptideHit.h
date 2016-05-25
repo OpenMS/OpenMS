@@ -105,6 +105,13 @@ public:
 
       return false;
     }
+
+    bool operator==(const PeptideHit::FragmentAnnotation& other) const
+    {
+      if (charge != other.charge || mz != other.mz || 
+          intensity != other.intensity || annotation != other.annotation) return false;
+      return true;
+    }
 };
 
 public:
@@ -254,7 +261,6 @@ public:
 
     /// sets the fragment annotations
     void setFragmentAnnotations(std::vector<PeptideHit::FragmentAnnotation> frag_annotations);
-
 
     //@}
 

@@ -113,11 +113,10 @@ namespace OpenMS
           case 2: 
           {
             // check if index in bounds and hits are present
-            if (static_cast<int>(pis.size()) > peptide_id_index && !pis[peptide_id_index].getHits().empty())
+            if (peptide_id_index < static_cast<int>(pis.size()) && peptide_hit_index < static_cast<int>(pis[peptide_id_index].getHits().size()))
             {
-              // get best hit
-              pis[peptide_id_index].assignRanks();
-              PeptideHit ph = pis[peptide_id_index].getHits()[0];
+              // get hit
+              PeptideHit ph = pis[peptide_id_index].getHits()[peptide_hit_index];
               if (ph.getFragmentAnnotations().empty())
               {
                 // if no fragment annotations are stored, create a theoretical spectrum
@@ -303,7 +302,7 @@ namespace OpenMS
   {
     activate1DSpectrum(spectrum_index, -1, -1);
   }
-  
+
   void TOPPViewIdentificationViewBehavior::activate1DSpectrum(int spectrum_index, int peptide_id_index, int peptide_hit_index)
   {
     Spectrum1DWidget * widget_1D = tv_->getActive1DWidget();
@@ -344,11 +343,12 @@ namespace OpenMS
         case 2: // annotation with stored fragments or synthesized theoretical spectrum 
         {
           // check if index in bounds and hits are present
-          if (static_cast<int>(pis.size()) > peptide_id_index && !pis[peptide_id_index].getHits().empty())
+          if (peptide_id_index < static_cast<int>(pis.size()) && peptide_hit_index < static_cast<int>(pis[peptide_id_index].getHits().size()))
           {
-            // get best hit
-            pis[peptide_id_index].assignRanks();
-            PeptideHit ph = pis[peptide_id_index].getHits()[0];
+            // get first hit
+            PeptideHit ph = pis[peptide_id_index].getHits()[peptide_hit_index];
+
+//              cout << peptide_id_index << " has hits: " << pis[peptide_id_index].getHits().size() << " selected hit: " << peptide_hit_index << " with frament annotations: " << ph.getFragmentAnnotations().size() << endl;
             if (ph.getFragmentAnnotations().empty())
             {
               // if no fragment annotations are stored, create a theoretical spectrum
