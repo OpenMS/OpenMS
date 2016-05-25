@@ -801,7 +801,7 @@ namespace OpenMS
                 p += "\" monoisotopicMassDelta=\"0";
               }
               p += "\"> \n\t\t\t" + cv_.getTerm(jt->getMetaValue("xl_chain").toString()).toXMLString(cv_ns, DataValue(ppxl_linkid));
-              p += "\n\t\t\t<cvParam accession=\"UNIMOD:1020\" cvRef=\"UNIMOD\" name=\"Xlink:DSS\"/>";
+              p += "\n\t\t\t<cvParam accession=\"XL:00002\" cvRef=\"XLMOD\" name=\"Xlink:DSS\"/>";
               //TODO ppxl from where to get if other crosslink agent was used ???
               p += "\n\t\t</Modification> \n";
             }
@@ -1129,7 +1129,19 @@ namespace OpenMS
       //--------------------------------------------------------------------------------------------
       // CV list
       //--------------------------------------------------------------------------------------------
-      os << "<cvList>\n\t<cv id=\"PSI-MS\" fullName=\"Proteomics Standards Initiative Mass Spectrometry Vocabularies\" uri=\"http://psidev.cvs.sourceforge.net/viewvc/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo\" version=\"3.15.0\"></cv>\n\t<cv id=\"UNIMOD\" fullName=\"UNIMOD\" uri=\"http://www.unimod.org/obo/unimod.obo\"></cv>\n\t<cv id=\"UO\" fullName=\"UNIT-ONTOLOGY\" uri=\"http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/unit.obo\"></cv>\n</cvList>\n";
+      os << "<cvList> \n "
+         << "\t<cv id=\"PSI-MS\" fullName=\"Proteomics Standards Initiative Mass Spectrometry Vocabularies\" "
+         << "uri=\"http://psidev.cvs.sourceforge.net/viewvc/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo\" "
+         << "version=\"3.15.0\"></cv> \n "
+         << "\t<cv id=\"UNIMOD\" fullName=\"UNIMOD\" uri=\"http://www.unimod.org/obo/unimod.obo\"></cv> \n"
+         << "\t<cv id=\"UO\"     fullName=\"UNIT-ONTOLOGY\" "
+         << "uri=\"http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/unit.obo\"></cv>\n";
+      if (is_ppxl)
+      {
+          os << "\t<cv id=\"XLMOD\" fullName=\"PSI cross-link modifications\" "
+             << "uri=\"https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/cv/XLMOD-1.0.0.csv\"></cv> \n";
+      }
+      os << "</cvList>\n";
 
       //--------------------------------------------------------------------------------------------
       // AnalysisSoftwareList
