@@ -1110,8 +1110,8 @@ namespace OpenMS
          << "<MzIdentML xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n"
          << "\txsi:schemaLocation=\"http://psidev.info/psi/pi/mzIdentML/"<< v_s <<" "
          << "https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/schema/mzIdentML"<< v_s <<".xsd\"\n"
-         << "\txmlns=\"http://psidev.info/psi/pi/mzIdentML/"<< v_s <<"\"\n";
-         << "\tversion=\""<< v_s << "\"\n";
+         << "\txmlns=\"http://psidev.info/psi/pi/mzIdentML/"<< v_s <<"\"\n"
+         << "\tversion=\"" << v_s << "\"\n";
       os << "\tid=\"OpenMS_" << String(UniqueIdGenerator::getUniqueId()) << "\"\n"
          << "\tcreationDate=\"" << DateTime::now().getDate() << "T" << DateTime::now().getTime() << "\">\n";
 
