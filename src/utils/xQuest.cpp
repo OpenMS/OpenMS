@@ -2834,9 +2834,9 @@ protected:
                 }
                 else
                 {
-                  // TODO hardcoded for DSS, Xlink:DSS-NH2  not found by mass
-                  LOG_DEBUG << "applied modification: " << "Xlink:DSS-NH2" << endl;
-                  ph_alpha.setMetaValue("xl_mod",  "Xlink:DSS-NH2");
+//                  // TODO hardcoded for DSS, Xlink:DSS-NH2  not found by mass
+//                  LOG_DEBUG << "applied modification: " << "Xlink:DSS-NH2" << endl;
+//                  ph_alpha.setMetaValue("xl_mod",  "Xlink:DSS-NH2");
                 }
               }
               else
@@ -2867,7 +2867,7 @@ protected:
               ph_alpha.setMetaValue("xl_type", xltype);
               ph_alpha.setMetaValue("xl_rank", DataValue(i + 1));
               ph_alpha.setFragmentAnnotations(top_csms_spectrum[i].frag_annotations);
-              LOG_DEBUG << "Annotations of size " << ph_alpha.getFragmentAnnotations().size() << "\n";
+              LOG_DEBUG << "Annotations of size " << ph_alpha.getFragmentAnnotations().size() << endl;
               phs.push_back(ph_alpha);
 
               if (top_csms_spectrum[i].cross_link.getType() == TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink::CROSS)
