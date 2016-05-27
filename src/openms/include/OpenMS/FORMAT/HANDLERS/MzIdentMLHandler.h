@@ -153,7 +153,7 @@ protected:
       void writeModParam_(String& s, const std::vector<String>& mod_names, bool fixed, UInt indent) const;
 
       /// Helper method that writes the FragmentAnnotations section of a spectrum identification
-      void writeFragmentAnnotations_(String& s, const std::vector<PeptideHit::FragmentAnnotation>& annotations, UInt indent) const;
+      void writeFragmentAnnotations_(String& s, const std::vector<PeptideHit::FragmentAnnotation>& annotations, UInt indent, bool is_ppxl) const;
 
 private:
       MzIdentMLHandler();
