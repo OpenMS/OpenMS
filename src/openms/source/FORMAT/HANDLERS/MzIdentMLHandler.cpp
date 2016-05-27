@@ -43,6 +43,7 @@
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <set>
 
@@ -943,7 +944,7 @@ namespace OpenMS
 
           if (! jt->getFragmentAnnotations().empty())
           {
-            writeFragmentAnnotations_(sii_tmp, jt->getFragmentAnnotations(), 5);
+            writeFragmentAnnotations_(sii_tmp, jt->getFragmentAnnotations(), 5, is_ppxl);
           }
 
           // TODO ppxl where to read https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/cv/XLMOD-1.0.0.csv
@@ -1213,10 +1214,27 @@ namespace OpenMS
       {
         os << "\t\t<SpectrumIdentificationList id=\"" << sil_it->first << String("\"> \n");
         os << "\t\t\t<FragmentationTable>\n"
-           << "\t\t\t\t<Measure id=\"Measure_MZ\">\n"
+           << "\t\t\t\t<Measure id=\"Measure_mz\">\n"
            << "\t\t\t\t\t<cvParam accession=\"MS:1001225\" cvRef=\"PSI-MS\" unitCvRef=\"PSI-MS\" unitName=\"m/z\" unitAccession=\"MS:1000040\" name=\"product ion m/z\"/>\n"
            << "\t\t\t\t</Measure>\n"
-           << "\t\t\t</FragmentationTable>\n";
+           << "\t\t\t\t<Measure id=\"Measure_int\">\n"
+           << "\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001226\" name=\"product ion intensity\" unitAccession=\"MS:1000131\" unitCvRef=\"UO\" unitName=\"number of counts\"/>\n"
+           << "\t\t\t\t</Measure>\n"
+           << "\t\t\t\t<Measure id=\"Measure_error\">\n"
+           << "\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001227\" name=\"product ion m/z error\" unitAccession=\"MS:1000040\" unitCvRef=\"PSI-MS\" unitName=\"m/z\"/>\n"
+           << "\t\t\t\t</Measure>\n";
+        if (is_ppxl)
+        {
+          os << "\t\t\t\t<Measure id=\"crosslink_chain\">\n"
+             << "\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1002508\" name=\"cross-linking attribute\"/>\n"
+             // TODO: this needs proper cv
+             << "\t\t\t\t</Measure>\n"
+             << "\t\t\t\t<Measure id=\"crosslink_ioncategory\">\n"
+             << "\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:100xxxx\" name=\"crosslink ion category\"/>\n"
+             // TODO: this needs proper cv
+             << "\t\t\t\t</Measure>\n";
+        }
+        os << "\t\t\t</FragmentationTable>\n";
         os << sil_it->second;
         os << "\t\t</SpectrumIdentificationList>\n";
       }
@@ -1342,7 +1360,7 @@ namespace OpenMS
       s += String(indent, '\t') + "</ModificationParams>" + "\n";
     }
 
-    void MzIdentMLHandler::writeFragmentAnnotations_(String& s, const std::vector<PeptideHit::FragmentAnnotation>& annotations, UInt indent) const
+    void MzIdentMLHandler::writeFragmentAnnotations_(String& s, const std::vector<PeptideHit::FragmentAnnotation>& annotations, UInt indent, bool is_ppxl) const
     {
       std::map<UInt,std::map<String,std::vector<StringList> > > annotation_map;
       for (std::vector<PeptideHit::FragmentAnnotation>::const_iterator kt = annotations.begin();
@@ -1361,7 +1379,6 @@ namespace OpenMS
           String(str_matches[1]).split("|",extra);
           iontype = std::string(str_matches[2]);
           ionseries_index = std::string(str_matches[3]);
-          //loss_gain = str_matches[4];
           loss = std::string(str_matches[4]);
         }
         else
@@ -1380,10 +1397,22 @@ namespace OpenMS
         if (annotation_map[kt->charge].find(lt) == annotation_map[kt->charge].end())
         {
           annotation_map[kt->charge][lt] = std::vector<StringList> (3);
+          if (is_ppxl)
+          {
+            annotation_map[kt->charge][lt].push_back(StringList());  // alpha|beta
+            annotation_map[kt->charge][lt].push_back(StringList());  // ci|xi
+          }
         }
         annotation_map[kt->charge][lt][0].push_back(ionseries_index);
         annotation_map[kt->charge][lt][1].push_back(String(kt->mz));
         annotation_map[kt->charge][lt][2].push_back(String(kt->intensity));
+        if (is_ppxl)
+        {
+          String ab = ListUtils::contains<String>(extra ,String("alpha")) ? String("alpha"):String("beta");
+          String cx = ListUtils::contains<String>(extra ,String("ci")) ? String("ci"):String("xi");
+          annotation_map[kt->charge][lt][3].push_back(ab);
+          annotation_map[kt->charge][lt][4].push_back(cx);
+        }
       }
 
       //double map: charge + ion type; collect in StringList: index + annotations; write:
@@ -1400,6 +1429,13 @@ namespace OpenMS
                     + " values=\"" + ListUtils::concatenate(j->second[1], " ") + "\"/>\n";
           s += String(indent+2, '\t') + "<FragmentArray measure_ref=\"Measure_Int\""
                     + " values=\"" + ListUtils::concatenate(j->second[2], " ") + "\"/>\n";
+          if (is_ppxl)
+          {
+              s += String(indent+2, '\t') + "<FragmentArray measure_ref=\"crosslink_chain\""
+                        + " values=\"" + ListUtils::concatenate(j->second[3], " ") + "\"/>\n";
+              s += String(indent+2, '\t') + "<FragmentArray measure_ref=\"crosslink_ioncategory\""
+                        + " values=\"" + ListUtils::concatenate(j->second[4], " ") + "\"/>\n";
+          }
           s += String(indent+2, '\t') + cv_.getTermByName(j->first).toXMLString("PSI-MS") + "\n";
           s += String(indent+1, '\t') + "</IonType>\n";
         }
