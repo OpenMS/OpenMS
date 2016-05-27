@@ -155,6 +155,9 @@ protected:
       /// Helper method that writes the FragmentAnnotations section of a spectrum identification
       void writeFragmentAnnotations_(String& s, const std::vector<PeptideHit::FragmentAnnotation>& annotations, UInt indent, bool is_ppxl) const;
 
+      /// Convenience method to remove the [] from OpenMS internal file uri representation
+      String trimOpenMSfileURI(const String file) const;
+
 private:
       MzIdentMLHandler();
       MzIdentMLHandler(const MzIdentMLHandler& rhs);

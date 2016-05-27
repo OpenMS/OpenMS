@@ -505,11 +505,11 @@ namespace OpenMS
 
         String sip = "\t<SpectrumIdentificationProtocol id=\"" + String(sip_id) + "\" analysisSoftware_ref=\"" + String(sof_id) + "\">\n";
         sip += "\t\t<SearchType>\n\t\t\t" + cv_.getTermByName("ms-ms search").toXMLString(cv_ns) + "\n\t\t</SearchType>\n";
+        sip += "\t\t<AdditionalSearchParams>\n";
         if (is_ppxl)
         {
           sip += "\n\t\t\t" + cv_.getTermByName("cross-linking search").toXMLString(cv_ns) + "\n";
         }
-        sip += "\t\t<AdditionalSearchParams>\n";
         writeMetaInfos_(sip, it->getSearchParameters(), 3);
         sip += String(3, '\t') + "<userParam name=\"charges\" unitName=\"xsd:string\" value=\"" + it->getSearchParameters().charges + "\"/>\n";
 //        sip += String(3, '\t') + "<userParam name=\"" + "missed_cleavages" + "\" unitName=\"" + "xsd:integer" + "\" value=\"" + String(it->getSearchParameters().missed_cleavages) + "\"/>" + "\n";
@@ -549,17 +549,16 @@ namespace OpenMS
         //~ collect SpectraData element for each ProteinIdentification
         String sdat_id;
         StringList sdat_files;
-        String sdat_file("UNKNOWN");
+        String sdat_file(it->getMetaValue("spectra_data"));
 
-        if (it->metaValueExists("spectra_data"))
+        if (sdat_file.empty())
         {
-          sdat_files = it->getMetaValue("spectra_data");
-          if (!sdat_files.empty() && !sdat_files[0].empty())
-          {
-            sdat_file = sdat_files[0];
-          }
+          sdat_file = String("UNKNOWN");
         }
-
+        else
+        {
+          sdat_file = trimOpenMSfileURI(sdat_file);
+        }
         std::map<String, String>::iterator sdit = sdat_ids.find(sdat_file); //this part is strongly connected to AnalysisCollection write part
         if (sdit == sdat_ids.end())
         {
@@ -1424,7 +1423,7 @@ namespace OpenMS
         {
           s += String(indent+1, '\t') + "<IonType charge=\"" + String(i->first) +"\""
                     + " index=\"" + ListUtils::concatenate(j->second[0], " ") + "\">\n";
-          s += String(indent+2, '\t') + "<FragmentArray measure_ref=\"Measure_MZ\""
+          s += String(indent+2, '\t') + "<FragmentArray measure_ref=\"Measure_mz\""
                     + " values=\"" + ListUtils::concatenate(j->second[1], " ") + "\"/>\n";
           s += String(indent+2, '\t') + "<FragmentArray measure_ref=\"Measure_Int\""
                     + " values=\"" + ListUtils::concatenate(j->second[2], " ") + "\"/>\n";
@@ -1454,6 +1453,16 @@ namespace OpenMS
 //        <cvParam accession="MS:1001262" cvRef="PSI-MS" name="param: y ion"/>
 //    </IonType>
 //</Fragmentation>
+    }
+
+    String MzIdentMLHandler::trimOpenMSfileURI(const String file) const
+    {
+      String r = file;
+      if (r.hasPrefix("["))
+        r = r.substr(1);
+      if (r.hasPrefix("["))
+        r = r.substr(0,r.size()-1);
+      return r;
     }
   } //namespace Internal
 } // namespace OpenMS
