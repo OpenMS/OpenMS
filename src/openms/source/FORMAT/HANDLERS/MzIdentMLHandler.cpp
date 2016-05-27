@@ -726,9 +726,10 @@ namespace OpenMS
             if (jt->metaValueExists("xl_chain"))
             {
               calc_ppxl_mass += jt->getSequence().getMonoWeight();
-              if (jt->metaValueExists("xl_mass"))
+              if (jt->getMetaValue("xl_chain") == "MS:1002509")
               {
-               calc_ppxl_mass += (double) jt->getMetaValue("xl_mass");
+                ProteinIdentification::SearchParameters search_params = cpro_id_->front().getSearchParameters();
+                calc_ppxl_mass += (double) search_params.getMetaValue("cross_link:mass");
               }
             }
           }
@@ -900,7 +901,7 @@ namespace OpenMS
           if (jt->metaValueExists("xl_chain"))
           {
             //Calculated mass to charge for cross-linked is both peptides + linker
-            // sequence pair not available here - precalculated in
+            // sequence pair not available here - precalculated before
             cmz = String((calc_ppxl_mass +  jt->getCharge() * Constants::PROTON_MASS_U) / jt->getCharge()); //calculatedMassToCharge
           }
           if (sc.empty())
@@ -949,8 +950,11 @@ namespace OpenMS
             sii_tmp += "\t\t\t\t\t<PeptideEvidenceRef peptideEvidence_ref=\"" +  String(*pevref) + "\"/> \n";
           }
 
-          // TODO ppxl write Fragmentation annotation ion types as given addition with cv alpha or beta
-          //writeFragmentAnnotations(String s, jt->getFragmentAnnotations());
+          if (! jt->getFragmentAnnotations().empty())
+          {
+            writeFragmentAnnotations_(sii_tmp, jt->getFragmentAnnotations(), 5);
+          }
+
           // TODO ppxl where to read https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/cv/XLMOD-1.0.0.csv
 
           std::set<String> peptide_result_details;
@@ -1038,15 +1042,13 @@ namespace OpenMS
                                          "\t" + cv_.getTermByName("retention time").toXMLString(cv_ns, ert) + "\n\t\t\t\t</SpectrumIdentificationItem>\n");
             ppxl_specref_2_element[sid] += sii_tmp;
             if (jt->metaValueExists("spec_heavy_RT") && jt->metaValueExists("spec_heavy_MZ"))
-            //TODO betas have no spec_heavy_... meta values - this makes the number of SII  wrong
             {
               sii_tmp = sii_tmp.substitute(String("experimentalMassToCharge=\"") + String(emz),
                                            String("experimentalMassToCharge=\"") + String(jt->getMetaValue("spec_heavy_MZ"))); // mz
               sii_tmp = sii_tmp.substitute(sii, String("SII_") + String(UniqueIdGenerator::getUniqueId())); // uid
               sii_tmp = sii_tmp.substitute("value=\"" + ert, "value=\"" + String(jt->getMetaValue("spec_heavy_RT")));
 
-              const vector<ProteinIdentification> temp_prot = *cpro_id_;
-              ProteinIdentification::SearchParameters search_params = temp_prot[0].getSearchParameters();
+              ProteinIdentification::SearchParameters search_params = cpro_id_->front().getSearchParameters();
               double iso_shift = (double) search_params.getMetaValue("cross_link:mass_isoshift");
               double cmz_heavy = atof(cmz.c_str()) + (iso_shift / jt->getCharge());
 
@@ -1347,7 +1349,7 @@ namespace OpenMS
              kt != annotations.end(); ++kt)
       {// string coding example: [alpha|ci$y3-H2O-NH3]5+
         // static const boost::regex frag_regex("\\[(?:([\\|\\w]+)\\$)*([abcxyz])(\\d+)((?:[\\+\\-\\w])*)\\](\\d+)\\+"); // this will fetch the complete loss/gain part as one
-        static const boost::regex frag_regex_tweak("\\[(?:([\\|\\w]+)\\$)*([abcxyz])(\\d+)(?:-(H2O|NH3))*\\](\\d+)\\+"); // this will only fetch the last loss - and is preferred for now, as only these extra cv params are present
+        static const boost::regex frag_regex_tweak("\\[(?:([\\|\\w]+)\\$)*([abcxyz])(\\d+)(?:-(H2O|NH3))*\\][(\\d+)\\+]*"); // this will only fetch the last loss - and is preferred for now, as only these extra cv params are present
         String ionseries_index;
         String iontype;
         //String loss_gain;
@@ -1364,12 +1366,13 @@ namespace OpenMS
         }
         else
         {
-          LOG_WARN << "Well, fudge you very much, there is no matching annotation.\n";
+          LOG_WARN << "Well, fudge you very much, there is no matching annotation. ";
+          LOG_WARN << kt->annotation << std::endl;
           continue;
         }
-        String lt = "frag: " + iontype;
+        String lt = "frag: " + iontype + " ion";
         if (!loss.empty())
-            lt += " ion - "+loss;
+            lt += " - "+loss;
         if (annotation_map.find(kt->charge) == annotation_map.end())
         {
           annotation_map[kt->charge] = std::map<String, std::vector<StringList> >();
