@@ -1116,7 +1116,7 @@ namespace OpenMS
       String v_s = "1.1.0";
       if (is_ppxl)
       {
-         v_s = "1.2.0-candidate";
+         v_s = "1.2.0";
       }
       os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
          << "<MzIdentML xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n"
