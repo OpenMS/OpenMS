@@ -39,6 +39,10 @@ using namespace std;
 
 namespace OpenMS
 {
+    //TODO for all prepare* PSMId as written in PeptideIdentification::spectrum_reference
+    //  and pre/post AA as - if begin/end of protein ([/] in PeptideEvidence)
+    //id <tab> label <tab> scannr <tab> feature1 <tab> ... <tab> featureN <tab> peptide <tab> proteinId1 <tab> .. <tab> proteinIdM
+
     void TopPerc::prepareCUSTOMpin(vector<PeptideIdentification>& peptide_ids, TextFile& txt, vector<String>& user_param_features, char out_sep)
     {
       // Create header for the features
@@ -80,12 +84,12 @@ namespace OpenMS
       }
     }
 
-    void TopPerc::prepareMSGFpin(vector<PeptideIdentification>& peptide_ids, string& enz, TextFile& txt, int minCharge, int maxCharge, bool addMHC, char out_sep)
+    void TopPerc::prepareMSGFpin(vector<PeptideIdentification>& peptide_ids, string& enz, TextFile& txt, int min_charge, int max_charge, bool addMHC, char out_sep)
     {
       // Create String of the charges for the header of the tab file
       stringstream ss;
-      ss << "Charge" << minCharge << ", ";
-      for (int j = minCharge + 1; j < maxCharge + 1; j++)
+      ss << "Charge" << min_charge << ", ";
+      for (int j = min_charge + 1; j < max_charge + 1; j++)
       {
         ss << "Charge" << j << ",";
       }
@@ -184,8 +188,8 @@ namespace OpenMS
               // write 1 for the correct charge, 0 for other charges
               // i.e.: charge 3 for charges from 2-5: 0 1 0 0
               stringstream ss;
-              int i = minCharge;
-              while (i <= maxCharge)
+              int i = min_charge;
+              while (i <= max_charge)
               {
                 if (charge != i)
                 {
@@ -249,12 +253,12 @@ namespace OpenMS
       }
     }
 
-    void TopPerc::prepareXTANDEMpin(vector<PeptideIdentification>& peptide_ids, string& enz, TextFile& txt, int minCharge, int maxCharge, char out_sep)
+    void TopPerc::prepareXTANDEMpin(vector<PeptideIdentification>& peptide_ids, string& enz, TextFile& txt, int min_charge, int max_charge, char out_sep)
     {
       // Create String of the charges for the header of the tab file
       stringstream ss;
-      ss << "Charge" << minCharge << ", ";
-      for (int j = minCharge + 1; j < maxCharge + 1; j++)
+      ss << "Charge" << min_charge << ", ";
+      for (int j = min_charge + 1; j < max_charge + 1; j++)
       {
 
         ss << "Charge" << j << ",";
@@ -356,8 +360,8 @@ namespace OpenMS
           // write 1 for the correct charge, 0 for other charges
           // i.e.: charge 3 for charges from 2-5: 0 1 0 0
           stringstream ss;
-          int i = minCharge;
-          while (i <= maxCharge)
+          int i = min_charge;
+          while (i <= max_charge)
           {
             if (charge != i)
             {
@@ -443,8 +447,8 @@ namespace OpenMS
           // write 1 for the correct charge, 0 for other charges
           // i.e: charge 3 for charges from 2-5: 0 1 0 0
           stringstream ss;
-          int i = minCharge;
-          while (i <= maxCharge)
+          int i = min_charge;
+          while (i <= max_charge)
           {
             if (charge != i)
             {
@@ -478,7 +482,7 @@ namespace OpenMS
       }
     }
 
-    void TopPerc::prepareCOMETpin(vector<PeptideIdentification>& peptide_ids, string& enz, TextFile& txt, int minCharge, int maxCharge, char out_sep)
+    void TopPerc::prepareCOMETpin(vector<PeptideIdentification>& peptide_ids, string& enz, TextFile& txt, int min_charge, int max_charge, char out_sep)
     {
       /** -with decoy comet search
 id	label	ScanNr	lnrSp	deltLCn	deltCn	lnExpect	Xcorr	Sp	IonFrac	Mass	PepLen	Charge1	Charge2	Charge3	Charge4	Charge5	Charge6	enzN	enzC	enzInt	lnNumSP	dM	absdM	peptide	proteinId1
@@ -490,8 +494,8 @@ id	label	ScanNr	lnrSp	deltLCn	deltCn	lnExpect	Xcorr	Sp	IonFrac	Mass	PepLen	Charg
 
       // Create String of the charges for the header of the tab file
       stringstream ss;
-      ss << "Charge" << minCharge << ", ";
-      for (int j = minCharge+1; j <= maxCharge; j++)
+      ss << "Charge" << min_charge << ", ";
+      for (int j = min_charge+1; j <= max_charge; j++)
       {
         ss << "Charge" << j << ",";
       }
@@ -548,7 +552,7 @@ id	label	ScanNr	lnrSp	deltLCn	deltCn	lnExpect	Xcorr	Sp	IonFrac	Mass	PepLen	Charg
           //Chargen
           StringList chargen;
           // write 1 for the correct charge, 0 for other charges
-          for (int i = minCharge; i <= maxCharge; ++i)
+          for (int i = min_charge; i <= max_charge; ++i)
           {
              if (charge != i)
              {
@@ -614,7 +618,7 @@ id	label	ScanNr	lnrSp	deltLCn	deltCn	lnExpect	Xcorr	Sp	IonFrac	Mass	PepLen	Charg
       }
     }
 
-    void TopPerc::prepareMASCOTpin(vector<PeptideIdentification>& peptide_ids, string& enz, TextFile& txt, int minCharge, int maxCharge, char out_sep)
+    void TopPerc::prepareMASCOTpin(vector<PeptideIdentification>& peptide_ids, string& enz, TextFile& txt, int min_charge, int max_charge, char out_sep)
     {
       /**
 Features 1-9 Represent the Basic Feature Set and Features 10-18 Represent the Extended Feature Set As Used in Mascot Percolator
@@ -641,8 +645,8 @@ feature abbreviation	feature description
       */
       // Create String of the charges for the header of the tab file
       stringstream ss;
-      ss << "Charge" << minCharge << ", ";
-      for (int j = minCharge+1; j <= maxCharge; j++)
+      ss << "Charge" << min_charge << ", ";
+      for (int j = min_charge+1; j <= max_charge; j++)
       {
         ss << "Charge" << j << ",";
       }
@@ -687,7 +691,7 @@ feature abbreviation	feature description
           //Chargen
           StringList chargen;
           // write 1 for the correct charge, 0 for other charges
-          for (int i = minCharge; i <= maxCharge; ++i)
+          for (int i = min_charge; i <= max_charge; ++i)
           {
              if (charge != i)
              {
@@ -857,6 +861,7 @@ feature abbreviation	feature description
           LOG_WARN << "no known spectrum identifiers, using index [1,n] - use at own risk." << endl;
         }
       }
+      return scannumber;
     }
 
     void TopPerc::assignDeltaScore(vector<PeptideHit>& hits, String score_ref)

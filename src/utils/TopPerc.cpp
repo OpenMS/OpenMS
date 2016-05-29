@@ -108,14 +108,13 @@ public:
 protected:
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("percolator_executable", "<executable>", "", "Path to the percolator binary", true, false, ListUtils::create<String>("skipexists"));
     registerInputFile_("in", "<file>", "", "Input target file", true);
     setValidFormats_("in", ListUtils::create<String>("mzid"));
     registerInputFile_("in_decoy", "<file>", "", "Input decoy file", false);
     setValidFormats_("in_decoy", ListUtils::create<String>("mzid"));
     registerOutputFile_("out", "<file>", "", "Output file", true);
     std::string enzs = "no_enzyme,elastase,pepsin,proteinasek,thermolysin,chymotrypsin,lys-n,lys-c,arg-c,asp-n,glu-c,trypsin";
-    registerStringOption_("enzyme", "<enzyme>", "trypsin", "Type of enzyme: "+enzs , false, true);
+    registerStringOption_("enzyme", "<enzyme>", "trypsin", "Type of enzyme: "+enzs , false);
     setValidStrings_("enzyme", ListUtils::create<String>(enzs));
     registerInputFile_("percolator_executable", "<executable>",
         // choose the default value according to the platform where it will be executed
@@ -246,7 +245,6 @@ protected:
     //-------------------------------------------------------------
     // read more input if necessary
     //-------------------------------------------------------------
-    //TODO check if this comes from the same search engine!
     if (!in_decoy.empty())
     {
       vector<PeptideIdentification> decoy_peptide_ids;
@@ -261,6 +259,48 @@ protected:
         LOG_WARN << "Converting from mzid: you might experience loss of information depending on the capabilities of the target format." << endl;
         MzIdentMLFile().load(in_decoy, decoy_protein_ids, decoy_peptide_ids);
       }
+
+      //paranoia check if this comes from the same search engine!
+      {
+        if (decoy_protein_ids.front().getSearchEngine()                             != protein_ids.front().getSearchEngine()                             )
+        {
+          LOG_WARN << "Warning about differing SearchEngine between target and decoy run" << endl;
+        }
+        if (decoy_protein_ids.front().getScoreType()                                != protein_ids.front().getScoreType()                                )
+        {
+          LOG_WARN << "Warning about differing SoreType between target and decoy run" << endl;
+        }
+        if (decoy_protein_ids.front().getPrimaryMSRunPath()                         != protein_ids.front().getPrimaryMSRunPath()                         )
+        {
+          LOG_WARN << "Warning about differing SearchInput between target and decoy run" << endl;
+        }
+        if (decoy_protein_ids.front().getSearchParameters().digestion_enzyme        != protein_ids.front().getSearchParameters().digestion_enzyme        )
+        {
+          LOG_WARN << "Warning about differing DigestionEnzyme between target and decoy run" << endl;
+        }
+        if (decoy_protein_ids.front().getSearchParameters().variable_modifications  != protein_ids.front().getSearchParameters().variable_modifications  )
+        {
+          LOG_WARN << "Warning about differing VarMods between target and decoy run" << endl;
+        }
+        if (decoy_protein_ids.front().getSearchParameters().fixed_modifications     != protein_ids.front().getSearchParameters().fixed_modifications     )
+        {
+          LOG_WARN << "Warning about differing FixMods between target and decoy run" << endl;
+        }
+        if (decoy_protein_ids.front().getSearchParameters().charges                 != protein_ids.front().getSearchParameters().charges                 )
+        {
+          LOG_WARN << "Warning about differing SearchCharges between target and decoy run" << endl;
+        }
+        if (decoy_protein_ids.front().getSearchParameters().fragment_mass_tolerance != protein_ids.front().getSearchParameters().fragment_mass_tolerance )
+        {
+          LOG_WARN << "Warning about differing FragTol between target and decoy run" << endl;
+        }
+        if (decoy_protein_ids.front().getSearchParameters().precursor_tolerance     != protein_ids.front().getSearchParameters().precursor_tolerance     )
+        {
+          LOG_WARN << "Warning about differing PrecTol between target and decoy run" << endl;
+        }
+      }
+
+      //being paranoid about the presence of target decoy denominations, which are crucial to the percolator process
       for (std::vector<PeptideIdentification>::iterator pit = decoy_peptide_ids.begin(); pit != decoy_peptide_ids.end(); ++pit)
       {
         for (std::vector<PeptideHit>::iterator pht = pit->getHits().begin(); pht != pit->getHits().end(); ++pht)
@@ -269,7 +309,7 @@ protected:
           //TODO what about proteins - internal target decoy handling is shitty - rework pls
         }
       }
-      //TODO this is going to fail with specrum_reference clashes if not handled _REALLY_ carefully
+      //TODO check overlap of ids in terms of spectrum id/reference
       peptide_ids.insert( peptide_ids.end(), decoy_peptide_ids.begin(), decoy_peptide_ids.end() );
       protein_ids.insert( protein_ids.end(), decoy_protein_ids.begin(), decoy_protein_ids.end() );
       writeLog_("Using decoy hits from separate file.");
@@ -277,8 +317,6 @@ protected:
     else
     {
       writeLog_("Using decoy hits from input id file. You did you use a target decoy search, did you?");
-//        printUsage_();
-//        return ILLEGAL_PARAMETERS;
     }
 
 
@@ -286,33 +324,34 @@ protected:
     // extract search engine and prepare pin
     //-------------------------------------------------------------
     String se = protein_ids.front().getSearchEngine();
+    LOG_DEBUG << "Registered search engine: " << se << endl;
     TextFile txt;
 
     //TODO introduce min/max charge to parameters for now take available range
-    int maxCharge = 0;
-    int minCharge = 10;
+    int max_charge = 0;
+    int min_charge = 10;
     for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
     {
       for (vector<PeptideHit>::const_iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
       {
-        if (hit->getCharge() > maxCharge)
+        if (hit->getCharge() > max_charge)
         {
-          maxCharge = hit->getCharge();
+          max_charge = hit->getCharge();
         }
-        if (hit->getCharge() < minCharge)
+        if (hit->getCharge() < min_charge)
         {
-          minCharge = hit->getCharge();
+          min_charge = hit->getCharge();
         }
       }
     }
+    LOG_DEBUG << "Using min/max charges of " << min_charge << "/" << max_charge << endl;
 
-    std::string enz_str = getStringOption_("enzyme");
-    writeDebug_("Detected search engine: " + se , 2);
-    if (se == "MS-GF+") TopPerc::prepareMSGFpin(peptide_ids, enz_str, txt, minCharge, maxCharge, getFlag_("MHC"));
-//    if (se == "Mascot") prepareMASCOTpin(peptide_ids, txt, minCharge, maxCharge);
-    if (se == "XTandem") TopPerc::prepareXTANDEMpin(peptide_ids, enz_str, txt, minCharge, maxCharge);
+    string enz_str = getStringOption_("enzyme");
 
-    writeLog_( "Executing percolator!");
+    //TODO introduce custom feature selection from TopPerc::prepareCUSTOMpin to parameters
+    if (se == "MS-GF+") TopPerc::prepareMSGFpin(peptide_ids, enz_str, txt, min_charge, max_charge, getFlag_("MHC"));
+    if (se == "Mascot") TopPerc::prepareMASCOTpin(peptide_ids, enz_str, txt, min_charge, max_charge);
+    if (se == "XTandem") TopPerc::prepareXTANDEMpin(peptide_ids, enz_str, txt, min_charge, max_charge);
 
     // create temp directory to store percolator in file pin.tab temporarily
     String temp_directory_body = QDir::toNativeSeparators((File::getTempDirectory() + "/" + File::getUniqueName() + "/").toQString()); // body for the tmp files
@@ -320,61 +359,64 @@ protected:
       QDir d;
       d.mkpath(temp_directory_body.toQString());
     }
-
     String txt_designator = File::getUniqueName();
     String pin_file(temp_directory_body + txt_designator + "_pin.tab");
     String pout_file(temp_directory_body + txt_designator + "_pout.tab");
-
-    // File is stored in temp directory
     txt.store(pin_file);
 
     QStringList arguments;
     // Check all set parameters and get them into arguments StringList
-    arguments << "-r" << pout_file.toQString();
-    if (getFlag_("e")) arguments << "-e";
-    if (getFlag_("Z")) arguments << "-Z";
-    if (getDoubleOption_("p") != 0.0) arguments << "-p" << String(getDoubleOption_("p")).toQString();
-    if (getDoubleOption_("n") != 0.0) arguments << "-n" << String(getDoubleOption_("n")).toQString();
-    if (getDoubleOption_("F") != 0.01) arguments << "-F" << String(getDoubleOption_("F")).toQString();
-    if (getDoubleOption_("t") != 0.01) arguments << "-t" << String(getDoubleOption_("t")).toQString();
-    if (getIntOption_("i") != 0) arguments << "-i" << String(getIntOption_("i")).toQString();
-    if (getFlag_("x")) arguments << "-x";
-    if (getDoubleOption_("f") != 0.6) arguments << "-f" << String(getDoubleOption_("f")).toQString();
-    if (getStringOption_("J") != "") arguments << "-J" << getStringOption_("J").toQString();
-    if (getStringOption_("k") != "") arguments << "-k" << getStringOption_("k").toQString();
-    if (getStringOption_("w") != "") arguments << "-w" << getStringOption_("w").toQString();
-    if (getStringOption_("W") != "") arguments << "-W" << getStringOption_("W").toQString();
-    if (getStringOption_("V") != "") arguments << "-V" << getStringOption_("V").toQString();
-    if (getIntOption_("v") != 2) arguments << "-v" << String(getIntOption_("v")).toQString();
-    if (getFlag_("u")) arguments << "-u";
-    if (getFlag_("R")) arguments << "-R";
-    if (getFlag_("O")) arguments << "-O";
-    if (getIntOption_("S") != 1) arguments << "-S" << String(getDoubleOption_("S")).toQString();
-    if (getFlag_("K")) arguments << "-K";
-    if (getFlag_("D")) arguments << "-D";
-    if (getStringOption_("B") != "") arguments << "-B" << getStringOption_("B").toQString();
-    if (getFlag_("U")) arguments << "-U";
-    if (getFlag_("s")) arguments << "-s";
-    if (getFlag_("A")) arguments << "-A";
-    if (getDoubleOption_("a") != 0.0) arguments << "-a" << String(getDoubleOption_("a")).toQString();
-    if (getDoubleOption_("b") != 0.0) arguments << "-b" << String(getDoubleOption_("b")).toQString();
-    if (getDoubleOption_("G") != 0.0) arguments << "-G" << String(getDoubleOption_("G")).toQString();
-    if (getFlag_("g")) arguments << "-g";
-    if (getFlag_("I")) arguments << "-I";
-    if (getFlag_("q")) arguments << "-q";
-    if (getFlag_("N")) arguments << "-N";
-    if (getFlag_("E")) arguments << "-E";
-    if (getFlag_("C")) arguments << "-C";
-    if (getIntOption_("d") != 0) arguments << "-d" << String(getIntOption_("d")).toQString();
-    if (getStringOption_("P") != "random") arguments << "-P" << getStringOption_("P").toQString();
-    if (getFlag_("T")) arguments << "-T";
-    if (getFlag_("Y")) arguments << "-Y";
-    if (getFlag_("H")) arguments << "-H";
-    if (getFlag_("fido-truncation")) arguments << "--fido-truncation";
-    if (getFlag_("Q")) arguments << "-Q";
-    arguments << "-U";
-    arguments << pin_file.toQString();
+    {
+      arguments << "-r" << pout_file.toQString();
+      if (getFlag_("e")) arguments << "-e";
+      if (getFlag_("Z")) arguments << "-Z";
+      if (getDoubleOption_("p") != 0.0) arguments << "-p" << String(getDoubleOption_("p")).toQString();
+      if (getDoubleOption_("n") != 0.0) arguments << "-n" << String(getDoubleOption_("n")).toQString();
+      if (getDoubleOption_("F") != 0.01) arguments << "-F" << String(getDoubleOption_("F")).toQString();
+      if (getDoubleOption_("t") != 0.01) arguments << "-t" << String(getDoubleOption_("t")).toQString();
+      if (getIntOption_("i") != 0) arguments << "-i" << String(getIntOption_("i")).toQString();
+      if (getFlag_("x")) arguments << "-x";
+      if (getDoubleOption_("f") != 0.6) arguments << "-f" << String(getDoubleOption_("f")).toQString();
+      if (getStringOption_("J") != "") arguments << "-J" << getStringOption_("J").toQString();
+      if (getStringOption_("k") != "") arguments << "-k" << getStringOption_("k").toQString();
+      if (getStringOption_("w") != "") arguments << "-w" << getStringOption_("w").toQString();
+      if (getStringOption_("W") != "") arguments << "-W" << getStringOption_("W").toQString();
+      if (getStringOption_("V") != "") arguments << "-V" << getStringOption_("V").toQString();
+      if (getIntOption_("v") != 2) arguments << "-v" << String(getIntOption_("v")).toQString();
+      if (getFlag_("u")) arguments << "-u";
+      if (getFlag_("R")) arguments << "-R";
+      if (getFlag_("O")) arguments << "-O";
+      if (getIntOption_("S") != 1) arguments << "-S" << String(getDoubleOption_("S")).toQString();
+      if (getFlag_("K")) arguments << "-K";
+      if (getFlag_("D")) arguments << "-D";
+      if (getStringOption_("B") != "") arguments << "-B" << getStringOption_("B").toQString();
+      if (getFlag_("U")) arguments << "-U";
+      if (getFlag_("s")) arguments << "-s";
+      if (getFlag_("A")) arguments << "-A";
+      if (getDoubleOption_("a") != 0.0) arguments << "-a" << String(getDoubleOption_("a")).toQString();
+      if (getDoubleOption_("b") != 0.0) arguments << "-b" << String(getDoubleOption_("b")).toQString();
+      if (getDoubleOption_("G") != 0.0) arguments << "-G" << String(getDoubleOption_("G")).toQString();
+      if (getFlag_("g")) arguments << "-g";
+      if (getFlag_("I")) arguments << "-I";
+      if (getFlag_("q")) arguments << "-q";
+      if (getFlag_("N")) arguments << "-N";
+      if (getFlag_("E")) arguments << "-E";
+      if (getFlag_("C")) arguments << "-C";
+      if (getIntOption_("d") != 0) arguments << "-d" << String(getIntOption_("d")).toQString();
+      if (getStringOption_("P") != "random") arguments << "-P" << getStringOption_("P").toQString();
+      if (getFlag_("T")) arguments << "-T";
+      if (getFlag_("Y")) arguments << "-Y";
+      if (getFlag_("H")) arguments << "-H";
+      if (getFlag_("fido-truncation")) arguments << "--fido-truncation";
+      if (getFlag_("Q")) arguments << "-Q";
+      arguments << "-U";
+      arguments << pin_file.toQString();
+    }
+    writeLog_("Prepared percolator input.");
 
+    //-------------------------------------------------------------
+    // run percolator
+    //-------------------------------------------------------------
     // Percolator execution with the executable ant the arguments StringList
     int status = QProcess::execute(percolator_executable.toQString(), arguments); // does automatic escaping etc...
     if (status != 0)
@@ -392,31 +434,27 @@ protected:
       }
       return EXTERNAL_PROGRAM_ERROR;
     }
+    writeLog_("Executed percolator!");
 
+
+    //-------------------------------------------------------------
+    // reintegrate pout results
+    //-------------------------------------------------------------
     // when percolator finished calculation, it stores the results -r option (with or without -U) or -m (which seems to be not working)
     CsvFile csv_file(pout_file, '\t');
 
-    map<String, vector<String> > pep_map;
+    map<String, vector<TopPerc::PercolatorResult> > pep_map;
     StringList row;
 
     for (size_t i = 1; i < csv_file.rowCount(); ++i)
     {
       csv_file.getRow(i, row);
-      vector<String> row_values;
-      // peptide
-      row_values.push_back(row[4].chop(2).reverse().chop(2).reverse());
-//      writeDebug_("sequence: " + row[4].chop(2).reverse().chop(2).reverse(), 99);
-      // SVM-score
-      row_values.push_back(row[1]);
-      // q-Value
-      row_values.push_back(row[2]);
-      // PEP
-      row_values.push_back(row[3]);
-
-      vector<String> substr;
-      row[0].split('_', substr);
-//      writeDebug_("Mapping input to key: " + substr[2] , 2);
-      pep_map[substr[2]] = row_values; // scannr. as written in preparePIN
+      TopPerc::PercolatorResult res(row);
+      if (pep_map.find(res.PSMId) == pep_map.end())
+      {
+        pep_map[res.PSMId] = vector<TopPerc::PercolatorResult>();
+      }
+      pep_map[res.PSMId].push_back(res);
     }
 
     // As the percolator output file is not needed anymore, the temporary directory is going to be deleted
@@ -436,56 +474,57 @@ protected:
       String sid = it->getMetaValue("spectrum_reference");
       if (pep_map.find(sid) == pep_map.end())
       {
-        //writeDebug_("No suitable PeptideIdentification entry 1st found for " + sid  , 2);
+        LOG_DEBUG << "No suitable PeptideIdentification entry found for .pout entry " << sid;
         vector<String> sr;
         sid.split('=', sr);
         sid = sr.back();
+        LOG_DEBUG << " - retry with " << sid << endl;
         if (pep_map.find(sid) == pep_map.end())
         {
-          //writeDebug_("No suitable PeptideIdentification entry 2nd found for " + sid + " - emulate percolator scores with exisiting scores?", 111);
           ++c_debug;
-          writeDebug_("No suitable PeptideIdentification entry for " + sid, 3);
+          LOG_DEBUG << "Also none found" << endl;
           continue;
         }
       }
 
-      it->setScoreType("q-value");
-      it->setHigherScoreBetter(false);
-      AASequence aat;
-//      writeDebug_("sequence: " + pep_map[sid][0], 99);
-      aat = AASequence::fromString(pep_map[sid][0]);
-//      writeDebug_("sequence: " + aat.toString(), 99);
-
+      //check each PeptideHit for compliance with one of the PercolatorResults (by sequence)
       for (vector<PeptideHit>::iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
       {
-        if (hit->getSequence() == aat)
+        String pis = hit->getSequence().toUnmodifiedString();
+        for (vector<TopPerc::PercolatorResult>::iterator pr = pep_map.find(sid)->second.begin(); pr != pep_map.find(sid)->second.end(); ++pr)
         {
-          //get aa before/after/charge and metainfo
-          hit->setMetaValue("MS:1001492", pep_map[sid][1].toDouble());        //svm score
-          double qv = pep_map[sid][2].toDouble();        // q-value
-          hit->setMetaValue("MS:1001491", qv);
-          hit->setMetaValue("prepercolatorscore", hit->getScore());
-          writeDebug_("found peptide and wrote percolator scoring from "+String(hit->getScore())+" to "+String(qv), 99);
-          hit->setScore(qv);
-          hit->setMetaValue("MS:1001493", pep_map[sid][3].toDouble());        //pep
-          //writeDebug_("found peptide and wrote percolator scoring", 99);
+          if (pis == pr->peptide &&
+                    pr->preAA == hit->getPeptideEvidences().front().getAABefore() &&
+                    pr->postAA == hit->getPeptideEvidences().front().getAAAfter())
+          {
+            hit->setMetaValue("MS:1001492", pr->score);  // svm score
+            hit->setMetaValue("MS:1001491", pr->qvalue);  // percolator q value
+            hit->setMetaValue("MS:1001493", pr->posterior_error_prob);  // percolator pep
+          }
         }
-        else writeDebug_(aat.toString()+" - found nothing and wrote no percolator scoring", 99);
       }
     }
-    writeDebug_("No suitable PeptideIdentification for " + String(c_debug) + " out of " + String(peptide_ids.size()), 2);
+
+    LOG_DEBUG << "No suitable PeptideIdentification for " << c_debug << " out of " << peptide_ids.size() << endl;
 
     for (vector<ProteinIdentification>::iterator it = protein_ids.begin(); it != protein_ids.end(); ++it)
     {
-      it->setSearchEngine("Percolator");
+      //will not be set because ALL decoy hits got no new score
+      //it->setSearchEngine("Percolator");
+      //it->setScoreType("q-value");
+      //it->setHigherScoreBetter(false);
+
       //TODO add software percolator and topperc
+      it->setMetaValue("percolator", "TopPerc");
+      ProteinIdentification::SearchParameters sp = it->getSearchParameters();
+      //TODO write all percolator parameters as set here in sp
+      it->setSearchParameters(sp);
     }
 
     // Storing the PeptideHits with calculated q-value, pep and svm score
     MzIdentMLFile().store(getStringOption_("out").toQString().toStdString(), protein_ids, peptide_ids);
 
-    LOG_INFO << "TopPerc finished successfully!" << endl;
-
+    writeLog_("TopPerc finished successfully!");
     return EXECUTION_OK;
   }
 

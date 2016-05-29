@@ -49,12 +49,71 @@ namespace OpenMS
     class OPENMS_DLLAPI TopPerc
     {
     public:
+      struct PercolatorResult
+      {
+        String PSMId;
+        double score;
+        double qvalue;
+        double posterior_error_prob;
+        String peptide;
+        char preAA;
+        char postAA;
+        StringList proteinIds;
+
+        PercolatorResult(const String& pid, const double s, const double q, const String& p, const char pre, const char pos, const StringList& pl):
+            PSMId (pid),
+            score (s),
+            qvalue (q),
+            peptide (p),
+            preAA (pre),
+            postAA (pos),
+            proteinIds (pl)
+        {
+        }
+
+        PercolatorResult(StringList& row):
+        proteinIds()
+        {
+          // peptide sequence
+          StringList pep;
+          row[4].split(".", pep);
+          //TODO test pep size 3
+          peptide = pep[1];
+          preAA = pep[0]=="-"?'[':pep[0].c_str()[0];  // const char PeptideEvidence::N_TERMINAL_AA = '[';
+          postAA = pep[2]=="-"?']':pep[2].c_str()[0]; // const char PeptideEvidence::C_TERMINAL_AA = ']';
+          // SVM-score
+          score = row[1].toDouble();
+          // q-Value
+          qvalue = row[2].toDouble();
+          // PEP
+          posterior_error_prob = row[3].toDouble();
+          // scannr. as written in preparePIN
+          PSMId = row[0];
+          proteinIds = std::vector<String>(row.begin()+5,row.end());
+        }
+
+        bool operator!=(const TopPerc::PercolatorResult& rhs) const
+        {
+          if (PSMId != rhs.PSMId || score != rhs.score || qvalue != rhs.qvalue ||
+              posterior_error_prob != rhs.posterior_error_prob || peptide != rhs.peptide ||
+              proteinIds != rhs.proteinIds)
+            return true;
+          return false;
+        }
+
+        bool operator==(const TopPerc::PercolatorResult& rhs) const
+        {
+          return !(operator !=(rhs));
+        }
+    };
+
+    public:
         static bool isEnz(const char& n, const char& c, std::string& enz);
         static void prepareCUSTOMpin(std::vector<PeptideIdentification>& peptide_ids, TextFile& txt, std::vector<String>& user_param_features, char out_sep='\t');
-        static void prepareMSGFpin(std::vector<PeptideIdentification>& peptide_ids, std::string& enz, TextFile& txt, int minCharge, int maxCharge, bool addMHC = false, char out_sep='\t');
-        static void prepareXTANDEMpin(std::vector<PeptideIdentification>& peptide_ids, std::string& enz, TextFile& txt, int minCharge, int maxCharge, char out_sep='\t');
-        static void prepareCOMETpin(std::vector<PeptideIdentification>& peptide_ids, std::string& enz, TextFile& txt, int minCharge, int maxCharge, char out_sep='\t');
-        static void prepareMASCOTpin(std::vector<PeptideIdentification>& peptide_ids, std::string& enz, TextFile& txt, int minCharge, int maxCharge, char out_sep='\t');
+        static void prepareMSGFpin(std::vector<PeptideIdentification>& peptide_ids, std::string& enz, TextFile& txt, int min_charge, int max_charge, bool addMHC = false, char out_sep='\t');
+        static void prepareXTANDEMpin(std::vector<PeptideIdentification>& peptide_ids, std::string& enz, TextFile& txt, int min_charge, int max_charge, char out_sep='\t');
+        static void prepareCOMETpin(std::vector<PeptideIdentification>& peptide_ids, std::string& enz, TextFile& txt, int min_charge, int max_charge, char out_sep='\t');
+        static void prepareMASCOTpin(std::vector<PeptideIdentification>& peptide_ids, std::string& enz, TextFile& txt, int min_charge, int max_charge, char out_sep='\t');
         static size_t countEnzymatic(String peptide, std::string& enz);
         static double rescaleFragmentFeature(double featureValue, int NumMatchedMainIons);
         static String getScanIdentifier(std::vector<PeptideIdentification>::iterator it, std::vector<PeptideIdentification>::iterator start);
