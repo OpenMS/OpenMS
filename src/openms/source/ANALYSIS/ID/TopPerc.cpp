@@ -881,5 +881,144 @@ feature abbreviation	feature description
       }
     }
 
+    void TopPerc::mergeMULTIids(vector<vector<ProteinIdentification> >& protein_ids_list, vector<vector<PeptideIdentification> >& peptide_ids_list)
+    {
+      //both input parameters must correspond
+      if (peptide_ids_list.size() != protein_ids_list.size())
+      {
+        throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Protein and Peptide Identification mismatch");
+      }
+      //search parameters of all runs must correspond (considering front() of each only)
+      for (size_t i=1; i < protein_ids_list.size(); ++i)
+      {
+        if( protein_ids_list[i-1].front().getSearchParameters().db != protein_ids_list[i].front().getSearchParameters().db )
+        {
+          throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, protein_ids_list[i-1].front().getSearchParameters().db+"!="+protein_ids_list[i].front().getSearchParameters().db);
+        }
+      }
+
+      //setup map of merge characteristics per spectrum
+      std::map<String,PeptideIdentification> unified;
+
+      string common = "q-value_score, expect_score";
+      StringList commonMetaValues = ListUtils::create<String>(common);
+      for (vector<vector<PeptideIdentification> >::iterator pilit = peptide_ids_list.begin(); pilit != peptide_ids_list.end(); ++pilit)
+      {
+        String SE = protein_ids_list[distance(peptide_ids_list.begin(), pilit)].front().getSearchEngine();
+        for (vector<PeptideIdentification>::iterator pit = pilit->begin(); pit != pilit->end(); ++pit)
+        {
+          PeptideIdentification ins = *pit;
+          //prepare for merge
+          for (vector<PeptideHit>::iterator hit = ins.getHits().begin(); hit != ins.getHits().end(); ++hit)
+          {
+            //move score from each hit to meta value
+            hit->setMetaValue(SE + ":" + ins.getScoreType(), hit->getScore());
+            //set score in each hit to #SE hits
+            hit->setScore(1);
+            //rename common meta values (to SE:commonmetavaluename)
+            for (size_t i = 0; i < commonMetaValues.size(); ++i)
+            {
+              if (hit->metaValueExists(commonMetaValues[i]))
+              {
+                DataValue val = hit->getMetaValue(commonMetaValues[i]);
+                hit->setMetaValue(SE+":"+commonMetaValues[i],val);
+                hit->removeMetaValue(commonMetaValues[i]);
+              }
+            }
+          }
+          ins.setScoreType("multiple");
+          String spectrum_reference = ins.getMetaValue("spectrum_reference");
+          //merge in unified map
+          if (unified.find(spectrum_reference) == unified.end())
+          {
+            unified[spectrum_reference] = ins;
+          }
+          else
+          {
+            //find corresponding hit
+            for (vector<PeptideHit>::iterator hit = ins.getHits().begin(); hit != ins.getHits().end(); ++hit)
+            {
+              for (vector<PeptideHit>::iterator merger = unified[spectrum_reference].getHits().begin(); merger != unified[spectrum_reference].getHits().end(); ++merger)
+              {
+                if (hit->getSequence()==merger->getSequence())
+                {
+                  //care for peptide evidences!! set would be okay if checked for same search db in parameters,
+//                  vector<PeptideEvidence> pev;
+//                  pev.reserve(max(hit->getPeptideEvidences().size(),merger->getPeptideEvidences().size()));
+//                  std::vector<ProteinHit>::iterator uni;
+//                  std::sort(merger->getPeptideEvidences().begin(),merger->getPeptideEvidences().end(), TopPerc::lq_PeptideEvidence);
+//                  std::sort(hit->getPeptideEvidences().begin(),hit->getPeptideEvidences().end(), TopPerc::lq_PeptideEvidence);
+//                  uni = std::set_union(swop.front().getHits().begin(), swop.front().getHits().end(),
+//                                       it->front().getHits().begin(),it->front().getHits().end(), pev.begin(),
+//                                       TopPerc::lq_PeptideEvidence);
+//                  pev.resize(uni-pev.begin());
+//                  merger->setPeptideEvidences(pev);
+                  //There is no mutable getPeptideEvidences() accessor in PeptideHit - above will not werk, but so long:
+                  //Implying PeptideIndexer was applied (with the same search db each) will care for that all PeptideEvidences from two hits with equal AASequence are the same
+
+                  //merge meta values
+                  vector< String > keys;
+                  hit->getKeys(keys);
+                  for (vector<String>::const_iterator kt = keys.begin(); kt != keys.end(); ++kt)
+                  {
+                    if (!merger->metaValueExists(*kt))
+                    {
+                      merger->setMetaValue(*kt, hit->getMetaValue(*kt));
+                    }
+                  }
+                  merger->setScore(merger->getScore() + hit->getScore());
+                  break;
+                }
+              }
+            }
+          }
+        }
+      }
+      vector<PeptideIdentification> swip;
+      swip.reserve(unified.size());
+      for (std::map<String,PeptideIdentification>::iterator it = unified.begin(); it != unified.end(); ++it)
+      {
+        swip.push_back(it->second);
+      }
+      peptide_ids_list.front().swap(swip);
+      peptide_ids_list.resize(1);
+
+      //care for search parameters!!
+      vector<ProteinIdentification> swop;
+      swop.push_back(ProteinIdentification());
+      for (vector<vector<ProteinIdentification> >::iterator it = protein_ids_list.begin(); it != protein_ids_list.end(); ++it)
+      {
+        std::vector<ProteinHit> v;
+        v.reserve(max(swop.front().getHits().size(), it->front().getHits().size()));
+        std::vector<ProteinHit>::iterator uni;
+        std::sort(it->front().getHits().begin(),it->front().getHits().end(), TopPerc::lq_ProteinHit());
+        uni = std::set_union(swop.front().getHits().begin(), swop.front().getHits().end(),
+                             it->front().getHits().begin(),it->front().getHits().end(), v.begin(),
+                             TopPerc::lq_ProteinHit());
+        v.resize(uni-v.begin());
+        swap(swop.front().getHits(),v);
+        ProteinIdentification::SearchParameters sp = it->front().getSearchParameters();
+        String SE = it->front().getSearchEngine();
+        {//insert into MetaInfo as SE:param
+          swop.front().setMetaValue(SE+":db",sp.db);
+          swop.front().setMetaValue(SE+":db_version",sp.db_version);
+          swop.front().setMetaValue(SE+":taxonomy",sp.taxonomy);
+          swop.front().setMetaValue(SE+":charges",sp.charges);
+          swop.front().setMetaValue(SE+":fixed_modifications",ListUtils::concatenate(sp.fixed_modifications, ","));
+          swop.front().setMetaValue(SE+":variable_modifications",ListUtils::concatenate(sp.variable_modifications, ","));
+          swop.front().setMetaValue(SE+":missed_cleavages",sp.missed_cleavages);
+          swop.front().setMetaValue(SE+":fragment_mass_tolerance",sp.fragment_mass_tolerance);
+          swop.front().setMetaValue(SE+":fragment_mass_tolerance_ppm",sp.fragment_mass_tolerance_ppm);
+          swop.front().setMetaValue(SE+":precursor_tolerance",sp.precursor_tolerance);
+          swop.front().setMetaValue(SE+":precursor_mass_tolerance_ppm",sp.precursor_mass_tolerance_ppm);
+          swop.front().setMetaValue(SE+":digestion_enzyme",sp.digestion_enzyme.getName());
+        }
+        swop.front().setPrimaryMSRunPath(it->front().getPrimaryMSRunPath());
+        swop.front().setSearchEngine("multiple");
+      }
+      protein_ids_list.front().swap(swop);
+      protein_ids_list.resize(1);
+
+    }
 
 }

@@ -118,10 +118,30 @@ namespace OpenMS
         static double rescaleFragmentFeature(double featureValue, int NumMatchedMainIons);
         static String getScanIdentifier(std::vector<PeptideIdentification>::iterator it, std::vector<PeptideIdentification>::iterator start);
         static void assignDeltaScore(std::vector<PeptideHit>& hits, String score_ref);
+        static void mergeMULTIids(std::vector<std::vector<ProteinIdentification> >& protein_ids_list, std::vector<std::vector<PeptideIdentification> >& peptide_ids_list);
+
+        struct lq_ProteinHit
+        {
+          inline bool operator() (const ProteinHit& h1, const ProteinHit& h2)
+          {
+            return (h1.getAccession() < h2.getAccession());
+          }
+        };
+
+        struct lq_PeptideEvidence
+        {
+          inline bool operator() (const PeptideEvidence& h1, const PeptideEvidence& h2)
+          {
+            return (h1.getProteinAccession() < h2.getProteinAccession());
+          }
+        };
 
     private:
         TopPerc();
         virtual ~TopPerc();
+
+
+
     };
 
 } //namespace OpenMS

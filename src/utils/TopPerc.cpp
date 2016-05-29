@@ -31,7 +31,7 @@
 // $Maintainer: Mathias Walzer $
 // $Authors: Andreas Simon, Mathias Walzer $
 // --------------------------------------------------------------------------
-
+#include <OpenMS/ANALYSIS/ID/TopPerc.h>
 #include <OpenMS/config.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -108,8 +108,8 @@ public:
 protected:
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "Input target file", true);
-    setValidFormats_("in", ListUtils::create<String>("mzid"));
+    registerInputFileList_("in", "<files>", StringList(), "Input file(s)", true);
+    setValidFormats_("in", ListUtils::create<String>("mzid,idXML"));
     registerInputFile_("in_decoy", "<file>", "", "Input decoy file", false);
     setValidFormats_("in_decoy", ListUtils::create<String>("mzid"));
     registerOutputFile_("out", "<file>", "", "Output file", true);
@@ -184,9 +184,9 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    const String in = getStringOption_("in");
+    const StringList in_list = getStringList_("in");
     const String in_decoy = getStringOption_("in_decoy");
-    writeDebug_(String("Input file of target: ") + in + " " + in_decoy, 2);
+    LOG_DEBUG << "Input file (of target?): " << ListUtils::concatenate(in_list, ",") << " & " << in_decoy << " (decoy)" << endl;
 
     const String percolator_executable(getStringOption_("percolator_executable"));
     writeDebug_(String("Path to the percolator: ") + percolator_executable, 2);
@@ -200,55 +200,64 @@ protected:
     //-------------------------------------------------------------
     // read input
     //-------------------------------------------------------------
-    FileHandler fh;
-    FileTypes::Type in_type = fh.getType(in);
-    if (in_type == FileTypes::IDXML)
+    vector<vector<PeptideIdentification> > peptide_ids_list;
+    vector<vector<ProteinIdentification> > protein_ids_list;
+    for (size_t i = 0; i < in_list.size(); ++i)
     {
-      IdXMLFile().load(in, protein_ids, peptide_ids);
-    }
-    else if (in_type == FileTypes::MZIDENTML)
-    {
-      LOG_WARN << "Converting from mzid: you might experience loss of information depending on the capabilities of the target format." << endl;
-      MzIdentMLFile().load(in, protein_ids, peptide_ids);
-    }
-    //else catched by TOPPBase:registerInput being mandatory mzid or idxml
-
-    if (peptide_ids.empty())
-    {
-      writeLog_("No or empty input file specified. Aborting!");
-      printUsage_();
-      return ILLEGAL_PARAMETERS;
-    }
-
-    //being paranoid about the presence of target decoy denominations, which are crucial to the percolator process
-    for (std::vector<PeptideIdentification>::iterator pit = peptide_ids.begin(); pit != peptide_ids.end(); ++pit)
-    {
-      for (vector<PeptideHit>::iterator pht = pit->getHits().begin(); pht != pit->getHits().end(); ++pht)
+      String in = in_list[i];
+      FileHandler fh;
+      FileTypes::Type in_type = fh.getType(in);
+      if (in_type == FileTypes::IDXML)
       {
-        // Some Hits have no NumMatchedMainIons, and MeanError, etc. values. Have to ignore them!
-        if (!pht->metaValueExists("target_decoy"))
+        IdXMLFile().load(in, protein_ids, peptide_ids);
+      }
+      else if (in_type == FileTypes::MZIDENTML)
+      {
+        LOG_WARN << "Converting from mzid: you might experience loss of information depending on the capabilities of the target format." << endl;
+        MzIdentMLFile().load(in, protein_ids, peptide_ids);
+      }
+      //else catched by TOPPBase:registerInput being mandatory mzid or idxml
+
+      if (peptide_ids.empty())
+      {
+        writeLog_("No or empty input file specified. Aborting!");
+        printUsage_();
+        return ILLEGAL_PARAMETERS;
+      }
+
+      //being paranoid about the presence of target decoy denominations, which are crucial to the percolator process
+      for (std::vector<PeptideIdentification>::iterator pit = peptide_ids.begin(); pit != peptide_ids.end(); ++pit)
+      {
+        for (vector<PeptideHit>::iterator pht = pit->getHits().begin(); pht != pit->getHits().end(); ++pht)
         {
-          if (!in_decoy.empty())
+          // Some Hits have no NumMatchedMainIons, and MeanError, etc. values. Have to ignore them!
+          if (!pht->metaValueExists("target_decoy"))
           {
-            pht->setMetaValue("target_decoy", "target");
-          }
-          else
-          {
-            writeLog_("No target decoy search results discrimination possible. Aborting!");
-            printUsage_();
-            return ILLEGAL_PARAMETERS;
+            if (!in_decoy.empty())
+            {
+              pht->setMetaValue("target_decoy", "target");
+            }
+            else
+            {
+              writeLog_("No target decoy search results discrimination possible. Aborting!");
+              printUsage_();
+              return ILLEGAL_PARAMETERS;
+            }
           }
         }
       }
+      peptide_ids_list.push_back(peptide_ids);
+      protein_ids_list.push_back(protein_ids);
     }
 
     //-------------------------------------------------------------
     // read more input if necessary
     //-------------------------------------------------------------
-    if (!in_decoy.empty())
+    if (!in_decoy.empty() && in_list.size() == 1)
     {
       vector<PeptideIdentification> decoy_peptide_ids;
       vector<ProteinIdentification> decoy_protein_ids;
+      FileHandler fh;
       FileTypes::Type in_decoy_type = fh.getType(in_decoy);
       if (in_decoy_type == FileTypes::IDXML)
       {
@@ -260,41 +269,41 @@ protected:
         MzIdentMLFile().load(in_decoy, decoy_protein_ids, decoy_peptide_ids);
       }
 
-      //paranoia check if this comes from the same search engine!
+      //paranoia check if this comes from the same search engine! (only in the first proteinidentification of the first proteinidentifications vector vector)
       {
-        if (decoy_protein_ids.front().getSearchEngine()                             != protein_ids.front().getSearchEngine()                             )
+        if (decoy_protein_ids.front().getSearchEngine()                             != protein_ids_list.front().front().getSearchEngine()                             )
         {
           LOG_WARN << "Warning about differing SearchEngine between target and decoy run" << endl;
         }
-        if (decoy_protein_ids.front().getScoreType()                                != protein_ids.front().getScoreType()                                )
+        if (decoy_protein_ids.front().getScoreType()                                != protein_ids_list.front().front().getScoreType()                                )
         {
           LOG_WARN << "Warning about differing SoreType between target and decoy run" << endl;
         }
-        if (decoy_protein_ids.front().getPrimaryMSRunPath()                         != protein_ids.front().getPrimaryMSRunPath()                         )
+        if (decoy_protein_ids.front().getPrimaryMSRunPath()                         != protein_ids_list.front().front().getPrimaryMSRunPath()                         )
         {
           LOG_WARN << "Warning about differing SearchInput between target and decoy run" << endl;
         }
-        if (decoy_protein_ids.front().getSearchParameters().digestion_enzyme        != protein_ids.front().getSearchParameters().digestion_enzyme        )
+        if (decoy_protein_ids.front().getSearchParameters().digestion_enzyme        != protein_ids_list.front().front().getSearchParameters().digestion_enzyme        )
         {
           LOG_WARN << "Warning about differing DigestionEnzyme between target and decoy run" << endl;
         }
-        if (decoy_protein_ids.front().getSearchParameters().variable_modifications  != protein_ids.front().getSearchParameters().variable_modifications  )
+        if (decoy_protein_ids.front().getSearchParameters().variable_modifications  != protein_ids_list.front().front().getSearchParameters().variable_modifications  )
         {
           LOG_WARN << "Warning about differing VarMods between target and decoy run" << endl;
         }
-        if (decoy_protein_ids.front().getSearchParameters().fixed_modifications     != protein_ids.front().getSearchParameters().fixed_modifications     )
+        if (decoy_protein_ids.front().getSearchParameters().fixed_modifications     != protein_ids_list.front().front().getSearchParameters().fixed_modifications     )
         {
           LOG_WARN << "Warning about differing FixMods between target and decoy run" << endl;
         }
-        if (decoy_protein_ids.front().getSearchParameters().charges                 != protein_ids.front().getSearchParameters().charges                 )
+        if (decoy_protein_ids.front().getSearchParameters().charges                 != protein_ids_list.front().front().getSearchParameters().charges                 )
         {
           LOG_WARN << "Warning about differing SearchCharges between target and decoy run" << endl;
         }
-        if (decoy_protein_ids.front().getSearchParameters().fragment_mass_tolerance != protein_ids.front().getSearchParameters().fragment_mass_tolerance )
+        if (decoy_protein_ids.front().getSearchParameters().fragment_mass_tolerance != protein_ids_list.front().front().getSearchParameters().fragment_mass_tolerance )
         {
           LOG_WARN << "Warning about differing FragTol between target and decoy run" << endl;
         }
-        if (decoy_protein_ids.front().getSearchParameters().precursor_tolerance     != protein_ids.front().getSearchParameters().precursor_tolerance     )
+        if (decoy_protein_ids.front().getSearchParameters().precursor_tolerance     != protein_ids_list.front().front().getSearchParameters().precursor_tolerance     )
         {
           LOG_WARN << "Warning about differing PrecTol between target and decoy run" << endl;
         }
@@ -310,8 +319,8 @@ protected:
         }
       }
       //TODO check overlap of ids in terms of spectrum id/reference
-      peptide_ids.insert( peptide_ids.end(), decoy_peptide_ids.begin(), decoy_peptide_ids.end() );
-      protein_ids.insert( protein_ids.end(), decoy_protein_ids.begin(), decoy_protein_ids.end() );
+      peptide_ids_list.front().insert( peptide_ids.end(), decoy_peptide_ids.begin(), decoy_peptide_ids.end() );
+      protein_ids_list.front().insert( protein_ids.end(), decoy_protein_ids.begin(), decoy_protein_ids.end() );
       writeLog_("Using decoy hits from separate file.");
     }
     else
@@ -323,24 +332,35 @@ protected:
     //-------------------------------------------------------------
     // extract search engine and prepare pin
     //-------------------------------------------------------------
-    String se = protein_ids.front().getSearchEngine();
+    String se = protein_ids_list.front().front().getSearchEngine();
+    for (vector<vector<ProteinIdentification> >::iterator pilit = protein_ids_list.begin(); pilit != protein_ids_list.end(); ++pilit)
+    {
+      if (se != protein_ids_list.front().front().getSearchEngine())
+      {
+        se = "multiple";
+        break;
+      }
+    }
     LOG_DEBUG << "Registered search engine: " << se << endl;
     TextFile txt;
 
     //TODO introduce min/max charge to parameters for now take available range
     int max_charge = 0;
     int min_charge = 10;
-    for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
+    for (vector<vector<PeptideIdentification> >::iterator pilit = peptide_ids_list.begin(); pilit != peptide_ids_list.end(); ++pilit)
     {
-      for (vector<PeptideHit>::const_iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
+      for (vector<PeptideIdentification>::iterator it = pilit->begin(); it != pilit->end(); ++it)
       {
-        if (hit->getCharge() > max_charge)
+        for (vector<PeptideHit>::const_iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
         {
-          max_charge = hit->getCharge();
-        }
-        if (hit->getCharge() < min_charge)
-        {
-          min_charge = hit->getCharge();
+          if (hit->getCharge() > max_charge)
+          {
+            max_charge = hit->getCharge();
+          }
+          if (hit->getCharge() < min_charge)
+          {
+            min_charge = hit->getCharge();
+          }
         }
       }
     }
@@ -348,10 +368,21 @@ protected:
 
     string enz_str = getStringOption_("enzyme");
 
+    //ignore all but first input if NOT multiple for now
+    if (se == "multiple")
+    {
+      TopPerc::mergeMULTIids(protein_ids_list,peptide_ids_list);  // will collapse the list (reference)
+      //TopPerc::prepareMULTIpin(peptide_ids_list.front(), enz_str, txt, min_charge, max_charge);
+    }
     //TODO introduce custom feature selection from TopPerc::prepareCUSTOMpin to parameters
-    if (se == "MS-GF+") TopPerc::prepareMSGFpin(peptide_ids, enz_str, txt, min_charge, max_charge, getFlag_("MHC"));
-    if (se == "Mascot") TopPerc::prepareMASCOTpin(peptide_ids, enz_str, txt, min_charge, max_charge);
-    if (se == "XTandem") TopPerc::prepareXTANDEMpin(peptide_ids, enz_str, txt, min_charge, max_charge);
+    else if (se == "MS-GF+") TopPerc::prepareMSGFpin(peptide_ids_list.front(), enz_str, txt, min_charge, max_charge, getFlag_("MHC"));
+    else if (se == "Mascot") TopPerc::prepareMASCOTpin(peptide_ids_list.front(), enz_str, txt, min_charge, max_charge);
+    else if (se == "XTandem") TopPerc::prepareXTANDEMpin(peptide_ids_list.front(), enz_str, txt, min_charge, max_charge);
+    else
+    {
+      writeLog_("No known input to create percolator features from. Aborting");
+      return INCOMPATIBLE_INPUT_DATA;
+    }
 
     // create temp directory to store percolator in file pin.tab temporarily
     String temp_directory_body = QDir::toNativeSeparators((File::getTempDirectory() + "/" + File::getUniqueName() + "/").toQString()); // body for the tmp files
@@ -469,7 +500,7 @@ protected:
 
     // Add the percolator results to the peptide vector of the original input file
     size_t c_debug = 0;
-    for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
+    for (vector<PeptideIdentification>::iterator it = peptide_ids_list.front().begin(); it != peptide_ids_list.front().end(); ++it)
     {
       String sid = it->getMetaValue("spectrum_reference");
       if (pep_map.find(sid) == pep_map.end())
@@ -505,9 +536,9 @@ protected:
       }
     }
 
-    LOG_DEBUG << "No suitable PeptideIdentification for " << c_debug << " out of " << peptide_ids.size() << endl;
+    LOG_DEBUG << "No suitable PeptideIdentification for " << c_debug << " out of " << peptide_ids_list.front().size() << endl;
 
-    for (vector<ProteinIdentification>::iterator it = protein_ids.begin(); it != protein_ids.end(); ++it)
+    for (vector<ProteinIdentification>::iterator it = protein_ids_list.front().begin(); it != protein_ids_list.front().end(); ++it)
     {
       //will not be set because ALL decoy hits got no new score
       //it->setSearchEngine("Percolator");
@@ -522,7 +553,7 @@ protected:
     }
 
     // Storing the PeptideHits with calculated q-value, pep and svm score
-    MzIdentMLFile().store(getStringOption_("out").toQString().toStdString(), protein_ids, peptide_ids);
+    MzIdentMLFile().store(getStringOption_("out").toQString().toStdString(), protein_ids_list.front(), peptide_ids_list.front());
 
     writeLog_("TopPerc finished successfully!");
     return EXECUTION_OK;
