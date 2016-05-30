@@ -864,6 +864,8 @@ namespace OpenMS
       removeTheoreticalSpectrumLayer_();
     }
 
+    widget_1D->canvas()->setTextBox(QString());
+
     // the next line is meant to be disabled to allow switching between spectra without loosing the current view range (to compare across spectra)
     // tv_->getActive1DWidget()->canvas()->resetZoom();
   }
@@ -926,6 +928,8 @@ namespace OpenMS
 
     // return if no active 1D widget is present
     if (widget_1D == 0) return;
+
+    widget_1D->canvas()->setTextBox(QString());
 
     // remove precusor labels, theoretical spectra and trigger repaint
     removeTemporaryAnnotations_(tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentSpectrumIndex());
