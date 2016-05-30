@@ -86,10 +86,11 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("fasta"));
     registerOutputFile_("out", "<file>", "", "Output FASTA file where the decoy database will be written to.");
     setValidFormats_("out", ListUtils::create<String>("fasta"));
-    registerStringOption_("decoy_string", "<string>", "_rev", "String that is appended to the accession of the protein database to indicate a decoy protein.", false);
-    registerStringOption_("decoy_string_position", "<enum>", "suffix", "Should the 'decoy_string' be prepended (prefix) or appended (suffix) to the protein accession?", false);
+    registerStringOption_("decoy_string", "<string>", "dec_", "String that is appended to the accession of the protein database to indicate a decoy protein.", false);
+    registerStringOption_("decoy_string_position", "<enum>", "prefix", "Should the 'decoy_string' be prepended (prefix) or appended (suffix) to the protein accession?", false);
     setValidStrings_("decoy_string_position", ListUtils::create<String>("prefix,suffix"));
-    registerFlag_("append", "If this flag is used, the decoy database is appended to the target database, allowing combined target decoy searches.");
+    registerStringOption_("append", "<enum>", "true", "If this flag is used, the decoy database is appended to the target database, allowing combined target decoy searches.", false);
+    setValidStrings_("append", ListUtils::create<String>("true,false"));
     registerFlag_("shuffle", "If 'true' then the decoy hit are shuffled from the target sequences, otherwise they are reversed");
   }
 
@@ -106,7 +107,7 @@ protected:
     //-------------------------------------------------------------
     StringList in(getStringList_("in"));
     String out(getStringOption_("out"));
-    bool append = getFlag_("append");
+    bool append = (getParam_().getValue("append") == "true");
     bool shuffle = getFlag_("shuffle");
 
     //-------------------------------------------------------------
