@@ -12,16 +12,16 @@
 				<UserParam type="string" name="my_user_param" value="veryimportant"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<ProteinHit id="PH_2" accession="test2_rev" score="0" coverage="100" sequence="EDQSCPSERRRAFSRLRFGPS" >
+			<ProteinHit id="PH_2" accession="dec_test2" score="0" coverage="100" sequence="EDQSCPSERRRAFSRLRFGPS" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 			</ProteinHit>
 			<ProteinHit id="PH_3" accession="Thyroglo" score="0" coverage="78.2608695652174" sequence="AAAAAEWATYTCVLGFHVYVPVR" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<ProteinHit id="PH_4" accession="Thyroglo_rev" score="0" coverage="78.2608695652174" sequence="AAAAAEWATYTCVLGFHVYVPVR" >
+			<ProteinHit id="PH_4" accession="dec_Thyroglo" score="0" coverage="78.2608695652174" sequence="AAAAAEWATYTCVLGFHVYVPVR" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 			</ProteinHit>
-			<ProteinHit id="PH_5" accession="revonly_rev" score="0" coverage="75" sequence="DFIANGER" >
+			<ProteinHit id="PH_5" accession="dec_revonly" score="0" coverage="75" sequence="DFIANGER" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 			</ProteinHit>
 		</ProteinIdentification>
