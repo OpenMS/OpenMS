@@ -372,7 +372,7 @@ protected:
     if (se == "multiple")
     {
       TopPerc::mergeMULTIids(protein_ids_list,peptide_ids_list);  // will collapse the list (reference)
-      //TopPerc::prepareMULTIpin(peptide_ids_list.front(), enz_str, txt, min_charge, max_charge);
+      TopPerc::prepareMULTIpin(peptide_ids_list.front(), protein_ids_list.front().front(), enz_str, txt, min_charge, max_charge);
     }
     //TODO introduce custom feature selection from TopPerc::prepareCUSTOMpin to parameters
     else if (se == "MS-GF+") TopPerc::prepareMSGFpin(peptide_ids_list.front(), enz_str, txt, min_charge, max_charge, getFlag_("MHC"));
