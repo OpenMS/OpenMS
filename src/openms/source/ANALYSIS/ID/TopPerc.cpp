@@ -861,7 +861,7 @@ feature abbreviation	feature description
           LOG_WARN << "no known spectrum identifiers, using index [1,n] - use at own risk." << endl;
         }
       }
-      return scannumber;
+      return scannumber.removeWhitespaces();
     }
 
     void TopPerc::assignDeltaScore(vector<PeptideHit>& hits, String score_ref)
@@ -881,28 +881,34 @@ feature abbreviation	feature description
       }
     }
 
-    void TopPerc::mergeMULTIids(vector<vector<ProteinIdentification> >& protein_ids_list, vector<vector<PeptideIdentification> >& peptide_ids_list)
+    void TopPerc::mergeMULTIids(vector<vector<ProteinIdentification> >& protein_ids_list, vector<vector<PeptideIdentification> >& peptide_ids_list, bool skip_checks)
     {
       //both input parameters must correspond
       if (peptide_ids_list.size() != protein_ids_list.size())
       {
         throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Protein and Peptide Identification mismatch");
       }
+
       //search parameters of all runs must correspond (considering front() of each only)
-      for (size_t i=1; i < protein_ids_list.size(); ++i)
+      if (!skip_checks)
       {
-        if( protein_ids_list[i-1].front().getSearchParameters().db != protein_ids_list[i].front().getSearchParameters().db )
+        for (size_t i=1; i < protein_ids_list.size(); ++i)
         {
-          throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, protein_ids_list[i-1].front().getSearchParameters().db+"!="+protein_ids_list[i].front().getSearchParameters().db);
+          if( protein_ids_list[i-1].front().getSearchParameters().db != protein_ids_list[i].front().getSearchParameters().db )
+          {
+            throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, protein_ids_list[i-1].front().getSearchParameters().db+"!="+protein_ids_list[i].front().getSearchParameters().db);
+          }
         }
       }
+
+      LOG_DEBUG << "creating spectrum map" << endl;
 
       //setup map of merge characteristics per spectrum
       std::map<String,PeptideIdentification> unified;
 
-      string common = "q-value_score, expect_score";
+      std::string common = "q-value_score, expect_score";
       StringList commonMetaValues = ListUtils::create<String>(common);
-      for (vector<vector<PeptideIdentification> >::iterator pilit = peptide_ids_list.begin(); pilit != peptide_ids_list.end(); ++pilit)
+      for (std::vector<std::vector<PeptideIdentification> >::iterator pilit = peptide_ids_list.begin(); pilit != peptide_ids_list.end(); ++pilit)
       {
         String SE = protein_ids_list[distance(peptide_ids_list.begin(), pilit)].front().getSearchEngine();
         for (vector<PeptideIdentification>::iterator pit = pilit->begin(); pit != pilit->end(); ++pit)
@@ -927,6 +933,7 @@ feature abbreviation	feature description
             }
           }
           ins.setScoreType("multiple");
+          ins.setIdentifier("TopPerc_multiple_SE_input");
           String spectrum_reference = ins.getMetaValue("spectrum_reference");
           //merge in unified map
           if (unified.find(spectrum_reference) == unified.end())
@@ -974,31 +981,53 @@ feature abbreviation	feature description
           }
         }
       }
-      vector<PeptideIdentification> swip;
+      LOG_DEBUG << "filled spectrum map" << endl;
+      std::vector<PeptideIdentification> swip;
       swip.reserve(unified.size());
+      LOG_DEBUG << "merging spectrum map" << endl;
       for (std::map<String,PeptideIdentification>::iterator it = unified.begin(); it != unified.end(); ++it)
       {
         swip.push_back(it->second);
       }
       peptide_ids_list.front().swap(swip);
       peptide_ids_list.resize(1);
+      LOG_DEBUG << "Now containing " << peptide_ids_list.front().size() << " spectra identifications."<< endl;
 
+      LOG_DEBUG << "merging search parameters" << endl;
       //care for search parameters!!
-      vector<ProteinIdentification> swop;
+
+      std::vector<ProteinIdentification> swop;
       swop.push_back(ProteinIdentification());
-      for (vector<vector<ProteinIdentification> >::iterator it = protein_ids_list.begin(); it != protein_ids_list.end(); ++it)
+      swop.back().setIdentifier("TopPerc_multiple_SE_input");
+      swop.back().setDateTime(DateTime::currentDateTime());
+      swop.back().setSearchParameters(protein_ids_list.front().front().getSearchParameters());
+      for (std::vector<std::vector<ProteinIdentification> >::iterator it = protein_ids_list.begin(); it != protein_ids_list.end(); ++it)
       {
         std::vector<ProteinHit> v;
-        v.reserve(max(swop.front().getHits().size(), it->front().getHits().size()));
+        v.resize(swop.front().getHits().size() + it->front().getHits().size());
         std::vector<ProteinHit>::iterator uni;
         std::sort(it->front().getHits().begin(),it->front().getHits().end(), TopPerc::lq_ProteinHit());
-        uni = std::set_union(swop.front().getHits().begin(), swop.front().getHits().end(),
+        LOG_DEBUG << "Sorted next part of the ProteinHits." << endl;
+        LOG_DEBUG << "Melting with that many previous ProteinHits. " << swop.front().getHits().size() << endl;
+        if (swop.front().getHits().empty())
+        {
+          v.swap(it->front().getHits());
+        }
+        else
+        {
+          uni = std::set_union(swop.front().getHits().begin(), swop.front().getHits().end(),
                              it->front().getHits().begin(),it->front().getHits().end(), v.begin(),
                              TopPerc::lq_ProteinHit());
-        v.resize(uni-v.begin());
+          v.resize(uni-v.begin());
+        }
+        LOG_DEBUG << "Melting ProteinHits." << endl;
+
         swap(swop.front().getHits(),v);
+        LOG_DEBUG << "Done with next ProteinHits." << endl;
+
         ProteinIdentification::SearchParameters sp = it->front().getSearchParameters();
         String SE = it->front().getSearchEngine();
+        LOG_DEBUG << "Melting Parameters from " << SE << " into MetaInfo." << endl;
         {//insert into MetaInfo as SE:param
           swop.front().setMetaValue("SE:"+SE,it->front().getSearchEngineVersion());
           swop.front().setMetaValue(SE+":db",sp.db);
@@ -1016,9 +1045,11 @@ feature abbreviation	feature description
         }
         swop.front().setPrimaryMSRunPath(it->front().getPrimaryMSRunPath());
         swop.front().setSearchEngine("multiple");
+        LOG_DEBUG << "Done with next Parameters." << endl;
       }
       protein_ids_list.front().swap(swop);
       protein_ids_list.resize(1);
+      LOG_DEBUG << "All merging finished." << endl;
 
     }
 
@@ -1040,25 +1071,25 @@ feature abbreviation	feature description
       StringList keys;
       protein_id.getKeys(keys);
 
-      if (ListUtils::contains(keys, "MS-GF+"))
+      if (ListUtils::contains(keys, "SE:MS-GF+"))
       {
         ses_used.push_back("MS-GF+");
         se_specifics.push_back("MS:1002049");  // rawscore
         se_specifics.push_back("MS:1002053");  // evalue
       }
-      if (ListUtils::contains(keys, "Mascot"))
+      if (ListUtils::contains(keys, "SE:Mascot"))
       {
         ses_used.push_back("Mascot");
         se_specifics.push_back("Mascot_score");
         se_specifics.push_back("EValue");
       }
-      if (ListUtils::contains(keys, "Comet"))
+      if (ListUtils::contains(keys, "SE:Comet"))
       {
         ses_used.push_back("Comet");
         se_specifics.push_back("MS:1002252");  //xcorr
         se_specifics.push_back("MS:1002257");  //evalue
       }
-      if (ListUtils::contains(keys, "XTandem"))
+      if (ListUtils::contains(keys, "SE:XTandem"))
       {
         ses_used.push_back("XTandem");
         se_specifics.push_back("XTandem_score");
@@ -1068,7 +1099,7 @@ feature abbreviation	feature description
       LOG_INFO << "Using " << ListUtils::concatenate(ses_used, ", ") << " as source for search engine specific features." << endl;
 
       String featureset = "id,label,ScanNr,"
-              + ListUtils::concatenate(se_specifics, ",")
+              + ListUtils::concatenate(se_specifics, ",") + ","
               + ss.str()
               + "ionfrac,mass,enzN,enzC,enzInt,numHits,dM,absdM,PepLen,peptide,proteinId1";
       StringList txt_header = ListUtils::create<String>(featureset);
@@ -1083,15 +1114,13 @@ feature abbreviation	feature description
       {
         it->sort();
         it->assignRanks();
-        String scannumber = getScanIdentifier(it, peptide_ids.begin());
+        String scanidentifier = getScanIdentifier(it, peptide_ids.begin());
+        StringList idents;
+        scanidentifier.split("=",idents);
+        String scannr = idents.back();
         std::vector<PeptideHit> hits = it->getHits();
         for (vector<PeptideHit>::iterator jt = hits.begin(); jt != hits.end(); ++jt)
         {
-          StringList idents;
-          idents.push_back(it->getBaseName());
-          idents.push_back(scannumber);
-          idents.push_back(String(jt->getRank()));
-          String sid = ListUtils::concatenate(idents, "_");
           int charge = jt->getCharge();
           int label = 1;
           if (jt->metaValueExists("target_decoy") && String(jt->getMetaValue("target_decoy")).hasSubstring("decoy"))
@@ -1102,7 +1131,10 @@ feature abbreviation	feature description
           StringList sesp;
           for (StringList::iterator s = se_specifics.begin(); s != se_specifics.end(); ++s)
           {
-            sesp.push_back(String(jt->getMetaValue(*s)));
+            if (jt->metaValueExists(*s))
+              sesp.push_back(String(jt->getMetaValue(*s)));
+            else
+              sesp.push_back("-1");
           }
 
           StringList chargen;
@@ -1141,10 +1173,10 @@ feature abbreviation	feature description
           String sequence = "";
           //replace flanking aa if [ or ] with -
           char pb = jt->getPeptideEvidences().front().getAABefore();
-          sequence += pb=='['?"-.":String(pb); // just first peptide evidence
+          sequence += pb=='['?"-.":String(pb)+"."; // just first peptide evidence
           sequence += jt->getSequence().toString();
           char pa = jt->getPeptideEvidences().front().getAAAfter();
-          sequence += pa==']'?".-":String(pa); // just first peptide evidence
+          sequence += pa==']'?".-":"."+String(pa); // just first peptide evidence
           //proteinId1
           StringList pepevid;
           for (vector<PeptideEvidence>::const_iterator kt = jt->getPeptideEvidences().begin(); kt != jt->getPeptideEvidences().end(); ++kt)
@@ -1153,9 +1185,9 @@ feature abbreviation	feature description
           }
 
           StringList row;
-          row.push_back(sid);
+          row.push_back(scanidentifier+"_"+String(std::distance(hits.begin(),jt)));
           row.push_back(label);
-          row.push_back(scannumber);
+          row.push_back(scannr);
           row.push_back(ListUtils::concatenate(sesp, out_sep));
           row.push_back(ListUtils::concatenate(chargen, out_sep));
           row.push_back(ionfrac);

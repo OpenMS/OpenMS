@@ -119,7 +119,7 @@ namespace OpenMS
         static double rescaleFragmentFeature(double featureValue, int NumMatchedMainIons);
         static String getScanIdentifier(std::vector<PeptideIdentification>::iterator it, std::vector<PeptideIdentification>::iterator start);
         static void assignDeltaScore(std::vector<PeptideHit>& hits, String score_ref);
-        static void mergeMULTIids(std::vector<std::vector<ProteinIdentification> >& protein_ids_list, std::vector<std::vector<PeptideIdentification> >& peptide_ids_list);
+        static void mergeMULTIids(std::vector<std::vector<ProteinIdentification> >& protein_ids_list, std::vector<std::vector<PeptideIdentification> >& peptide_ids_list, bool skip_checks=false);
 
         struct lq_ProteinHit
         {

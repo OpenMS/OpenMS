@@ -171,6 +171,7 @@ protected:
     registerFlag_("fido-truncation", "Proteins with a very low score (< 0.001) will be truncated (assigned 0.0 probability).(Only valid if option -A is active)", true);
     registerFlag_("Q", "Uses protein group level inference, each cluster of proteins is either present or not, therefore when grouping proteins discard all possible combinations for each group.(Only valid if option -A is active and -N is inactive).", true);
     registerFlag_("MHC", "Add a feature for MHC ligand properties to the specific PSM.", true);
+    registerFlag_("same_search_db", "Manual override to ckeck if same settings for multiple search engines were applied.", true);
   }
 
   ExitCodes main_(int, const char**)
@@ -335,7 +336,7 @@ protected:
     String se = protein_ids_list.front().front().getSearchEngine();
     for (vector<vector<ProteinIdentification> >::iterator pilit = protein_ids_list.begin(); pilit != protein_ids_list.end(); ++pilit)
     {
-      if (se != protein_ids_list.front().front().getSearchEngine())
+      if (se != pilit->front().getSearchEngine())
       {
         se = "multiple";
         break;
@@ -371,7 +372,8 @@ protected:
     //ignore all but first input if NOT multiple for now
     if (se == "multiple")
     {
-      TopPerc::mergeMULTIids(protein_ids_list,peptide_ids_list);  // will collapse the list (reference)
+      TopPerc::mergeMULTIids(protein_ids_list,peptide_ids_list, getFlag_("same_search_db"));  // will collapse the list (reference)
+      LOG_DEBUG << "Merged to sizes " << protein_ids_list.size() << " and " << protein_ids_list.size() << endl;
       TopPerc::prepareMULTIpin(peptide_ids_list.front(), protein_ids_list.front().front(), enz_str, txt, min_charge, max_charge);
     }
     //TODO introduce custom feature selection from TopPerc::prepareCUSTOMpin to parameters
@@ -472,6 +474,8 @@ protected:
     // reintegrate pout results
     //-------------------------------------------------------------
     // when percolator finished calculation, it stores the results -r option (with or without -U) or -m (which seems to be not working)
+    //  WARNING: The -r option cannot be used in conjunction with -U: no peptide level statistics are calculated, redirecting PSM level statistics to provided file instead.
+
     CsvFile csv_file(pout_file, '\t');
 
     map<String, vector<TopPerc::PercolatorResult> > pep_map;
@@ -481,11 +485,14 @@ protected:
     {
       csv_file.getRow(i, row);
       TopPerc::PercolatorResult res(row);
-      if (pep_map.find(res.PSMId) == pep_map.end())
+      StringList spl;
+      res.PSMId.split("_",spl);
+      String spec_ref = spl.front();
+      if (pep_map.find(spec_ref) == pep_map.end())
       {
-        pep_map[res.PSMId] = vector<TopPerc::PercolatorResult>();
+        pep_map[spec_ref] = vector<TopPerc::PercolatorResult>();
       }
-      pep_map[res.PSMId].push_back(res);
+      pep_map[spec_ref].push_back(res);
     }
 
     // As the percolator output file is not needed anymore, the temporary directory is going to be deleted
@@ -500,20 +507,21 @@ protected:
 
     // Add the percolator results to the peptide vector of the original input file
     size_t c_debug = 0;
+    size_t cnt = 0;
     for (vector<PeptideIdentification>::iterator it = peptide_ids_list.front().begin(); it != peptide_ids_list.front().end(); ++it)
     {
       String sid = it->getMetaValue("spectrum_reference");
+      sid = sid.removeWhitespaces();
       if (pep_map.find(sid) == pep_map.end())
       {
-        LOG_DEBUG << "No suitable PeptideIdentification entry found for .pout entry " << sid;
+        String sid_ = sid;
         vector<String> sr;
         sid.split('=', sr);
         sid = sr.back();
-        LOG_DEBUG << " - retry with " << sid << endl;
         if (pep_map.find(sid) == pep_map.end())
         {
           ++c_debug;
-          LOG_DEBUG << "Also none found" << endl;
+          LOG_DEBUG << "No suitable PeptideIdentification entry found for .pout entry " << sid << " or " << sid_ << endl;
           continue;
         }
       }
@@ -531,12 +539,13 @@ protected:
             hit->setMetaValue("MS:1001492", pr->score);  // svm score
             hit->setMetaValue("MS:1001491", pr->qvalue);  // percolator q value
             hit->setMetaValue("MS:1001493", pr->posterior_error_prob);  // percolator pep
+            ++cnt;
           }
         }
       }
     }
-
-    LOG_DEBUG << "No suitable PeptideIdentification for " << c_debug << " out of " << peptide_ids_list.front().size() << endl;
+    LOG_INFO << "No suitable PeptideIdentification for " << c_debug << " out of " << peptide_ids_list.front().size() << endl;
+    LOG_INFO << "No suitable PeptideHits for " << cnt << " found." << endl;
 
     for (vector<ProteinIdentification>::iterator it = protein_ids_list.front().begin(); it != protein_ids_list.front().end(); ++it)
     {
