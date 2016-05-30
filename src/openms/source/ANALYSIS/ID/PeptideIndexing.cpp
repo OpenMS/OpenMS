@@ -370,8 +370,10 @@ DefaultParamHandler("PeptideIndexing")
 
     defaults_.setValue("decoy_string", "dec_", "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.");
 
-    defaults_.setValue("prefix", "true", "If set, protein accessions in the database contain 'decoy_string' as prefix.");
-    defaults_.setValidStrings("prefix", ListUtils::create<String>("true,false"));
+    defaults_.setValue("decoy_string_position", "prefix", "Should the 'decoy_string' be prepended (prefix) or appended (suffix) to the protein accession?");
+    //defaults_.registerStringOption("decoy_string_position", "<enum>", "prefix", "Should the 'decoy_string' be prepended (prefix) or appended (suffix) to the protein accession?", false);
+    defaults_.setValidStrings("decoy_string_position", ListUtils::create<String>("prefix,suffix"));
+    //defaults_.setValidStrings("decoy_string_position", ListUtils::create<String>("prefix,suffix"));
 
     defaults_.setValue("missing_decoy_action", "error", "Action to take if NO peptide was assigned to a decoy protein (which indicates wrong database or decoy string): 'error' (exit with error, no output), 'warn' (exit with success, warning message)");
     defaults_.setValidStrings("missing_decoy_action", ListUtils::create<String>("error,warn"));
@@ -449,7 +451,7 @@ DefaultParamHandler("PeptideIndexing")
   void PeptideIndexing::updateMembers_()
   {
     decoy_string_ = static_cast<String>(param_.getValue("decoy_string"));
-    prefix_ = param_.getValue("prefix").toBool();
+    prefix_ = (param_.getValue("decoy_string_position") == "prefix" ? true : false);
     missing_decoy_action_ = static_cast<String>(param_.getValue("missing_decoy_action"));
     enzyme_name_ = static_cast<String>(param_.getValue("enzyme:name"));
     enzyme_specificity_ = static_cast<String>(param_.getValue("enzyme:specificity"));
