@@ -368,9 +368,9 @@ PeptideIndexing::PeptideIndexing() :
 DefaultParamHandler("PeptideIndexing")
   {
 
-    defaults_.setValue("decoy_string", "_rev", "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.");
+    defaults_.setValue("decoy_string", "dec_", "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.");
 
-    defaults_.setValue("prefix", "false", "If set, protein accessions in the database contain 'decoy_string' as prefix.");
+    defaults_.setValue("prefix", "true", "If set, protein accessions in the database contain 'decoy_string' as prefix.");
     defaults_.setValidStrings("prefix", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("missing_decoy_action", "error", "Action to take if NO peptide was assigned to a decoy protein (which indicates wrong database or decoy string): 'error' (exit with error, no output), 'warn' (exit with success, warning message)");
