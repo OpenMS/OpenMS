@@ -86,7 +86,7 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("fasta"));
     registerOutputFile_("out", "<file>", "", "Output FASTA file where the decoy database will be written to.");
     setValidFormats_("out", ListUtils::create<String>("fasta"));
-    registerStringOption_("decoy_string", "<string>", "dec_", "String that is appended to the accession of the protein database to indicate a decoy protein.", false);
+    registerStringOption_("decoy_string", "<string>", "dec_", "String that is combined with the accession of the protein identifier to indicate a decoy protein.", false);
     registerStringOption_("decoy_string_position", "<enum>", "prefix", "Should the 'decoy_string' be prepended (prefix) or appended (suffix) to the protein accession?", false);
     setValidStrings_("decoy_string_position", ListUtils::create<String>("prefix,suffix"));
     registerStringOption_("append", "<enum>", "true", "If this flag is used, the decoy database is appended to the target database, allowing combined target decoy searches.", false);
@@ -107,7 +107,7 @@ protected:
     //-------------------------------------------------------------
     StringList in(getStringList_("in"));
     String out(getStringOption_("out"));
-    bool append = (getParam_().getValue("append") == "true");
+    bool append = (getStringOption_("append") == "true");
     bool shuffle = getFlag_("shuffle");
 
     //-------------------------------------------------------------
