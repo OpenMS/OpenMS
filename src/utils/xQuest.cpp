@@ -144,7 +144,8 @@ public:
     Size matched_xlink_alpha;
     Size matched_xlink_beta;
 
-    vector<PeptideHit::FragmentAnnotation> frag_annotations;
+    vector<PeptideHit::FragmentAnnotation> frag_annotations_alpha;
+    vector<PeptideHit::FragmentAnnotation> frag_annotations_beta;
 
     Size peptide_id_index;
 //    PeptideIdentification *peptide_id = NULL;
@@ -2750,7 +2751,8 @@ protected:
 
                 // write fragment annotations
                 LOG_DEBUG << "Start writing annotations" << endl;
-                vector<PeptideHit::FragmentAnnotation> frag_annotations;
+                vector<PeptideHit::FragmentAnnotation> frag_annotations_alpha;
+                vector<PeptideHit::FragmentAnnotation> frag_annotations_beta;
                 for (Size k = 0; k < matched_spec_common_alpha.size(); --k)
                 {
                   PeptideHit::FragmentAnnotation frag_anno;
@@ -2758,7 +2760,7 @@ protected:
                   frag_anno.mz = spectrum_light[matched_spec_common_alpha[k].second].getMZ();
                   frag_anno.intensity = spectrum_light[matched_spec_common_alpha[k].second].getIntensity();
                   frag_anno.annotation = theoretical_spec_common_alpha[matched_spec_common_alpha[k].first].getMetaValue("IonName");
-                  frag_annotations.push_back(frag_anno);
+                  frag_annotations_alpha.push_back(frag_anno);
                 }
                 for (Size k = 0; k < matched_spec_common_beta.size(); --k)
                 {
@@ -2767,7 +2769,7 @@ protected:
                   frag_anno.mz = spectrum_light[matched_spec_common_beta[k].second].getMZ();
                   frag_anno.intensity = spectrum_light[matched_spec_common_beta[k].second].getIntensity();
                   frag_anno.annotation = theoretical_spec_common_beta[matched_spec_common_beta[k].first].getMetaValue("IonName");
-                  frag_annotations.push_back(frag_anno);
+                  frag_annotations_beta.push_back(frag_anno);
                 }
                 for (Size k = 0; k < matched_spec_xlinks_alpha.size(); --k)
                 {
@@ -2776,7 +2778,7 @@ protected:
                   frag_anno.mz = spectrum_light[matched_spec_xlinks_alpha[k].second].getMZ();
                   frag_anno.intensity = spectrum_light[matched_spec_xlinks_alpha[k].second].getIntensity();
                   frag_anno.annotation = theoretical_spec_xlinks_alpha[matched_spec_xlinks_alpha[k].first].getMetaValue("IonName");
-                  frag_annotations.push_back(frag_anno);
+                  frag_annotations_alpha.push_back(frag_anno);
                 }
                 for (Size k = 0; k < matched_spec_xlinks_beta.size(); --k)
                 {
@@ -2785,10 +2787,11 @@ protected:
                   frag_anno.mz = spectrum_light[matched_spec_xlinks_beta[k].second].getMZ();
                   frag_anno.intensity = spectrum_light[matched_spec_xlinks_beta[k].second].getIntensity();
                   frag_anno.annotation = theoretical_spec_xlinks_beta[matched_spec_xlinks_beta[k].first].getMetaValue("IonName");
-                  frag_annotations.push_back(frag_anno);
+                  frag_annotations_beta.push_back(frag_anno);
                 }
                 LOG_DEBUG << "End writing annotations" << endl;
-                csm.frag_annotations = frag_annotations;
+                csm.frag_annotations_alpha = frag_annotations_alpha;
+                csm.frag_annotation_beta = frag_annotations_beta;
 
                 all_csms_spectrum.push_back(csm);
               }
@@ -2893,7 +2896,7 @@ protected:
               ph_alpha.setMetaValue("spectrum_reference_heavy", spectra[scan_index_heavy].getNativeID());
               ph_alpha.setMetaValue("xl_type", xltype);
               ph_alpha.setMetaValue("xl_rank", DataValue(i + 1));
-              ph_alpha.setFragmentAnnotations(top_csms_spectrum[i].frag_annotations);
+              ph_alpha.setFragmentAnnotations(top_csms_spectrum[i].frag_annotations_alpha);
               LOG_DEBUG << "Annotations of size " << ph_alpha.getFragmentAnnotations().size() << endl;
               phs.push_back(ph_alpha);
 
@@ -2909,6 +2912,8 @@ protected:
                 ph_beta.setMetaValue("spec_heavy_MZ", spectra[scan_index_heavy].getPrecursors()[0].getMZ());
                 ph_beta.setMetaValue("spectrum_reference", spectra[scan_index].getNativeID());
                 ph_beta.setMetaValue("spectrum_reference_heavy", spectra[scan_index_heavy].getNativeID());
+                ph_beta.setFragmentAnnotations(top_csms_spectrum[i].frag_annotations_beta);
+
                 phs.push_back(ph_beta);
               }
 
