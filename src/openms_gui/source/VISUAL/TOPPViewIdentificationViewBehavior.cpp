@@ -125,6 +125,7 @@ namespace OpenMS
               else
               {
                 // otherwise, use stored fragment annotations
+                w->canvas()->setTextBox(ph.getSequence().toString().toQString());
                 addFragmentAnnotations_(ph);
               }
             }
@@ -345,7 +346,7 @@ namespace OpenMS
           // check if index in bounds and hits are present
           if (peptide_id_index < static_cast<int>(pis.size()) && peptide_hit_index < static_cast<int>(pis[peptide_id_index].getHits().size()))
           {
-            // get first hit
+            // get selected hit
             PeptideHit ph = pis[peptide_id_index].getHits()[peptide_hit_index];
 
 //              cout << peptide_id_index << " has hits: " << pis[peptide_id_index].getHits().size() << " selected hit: " << peptide_hit_index << " with frament annotations: " << ph.getFragmentAnnotations().size() << endl;
@@ -358,6 +359,7 @@ namespace OpenMS
             {
               // otherwise, use stored fragment annotations
               addFragmentAnnotations_(ph);
+              widget_1D->canvas()->setTextBox(ph.getSequence().toString().toQString());
             }
           }
           break;
@@ -671,6 +673,8 @@ namespace OpenMS
       removeTheoreticalSpectrumLayer_();
     }
 
+    widget_1D->canvas()->setTextBox(QString());
+
     // the next line is meant to be disabled to allow switching between spectra without loosing the current view range (to compare across spectra)
     // tv_->getActive1DWidget()->canvas()->resetZoom();
   }
@@ -733,6 +737,8 @@ namespace OpenMS
 
     // return if no active 1D widget is present
     if (widget_1D == 0) return;
+
+    widget_1D->canvas()->setTextBox(QString());
 
     // remove precusor labels, theoretical spectra and trigger repaint
     removeTemporaryAnnotations_(tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentSpectrumIndex());
