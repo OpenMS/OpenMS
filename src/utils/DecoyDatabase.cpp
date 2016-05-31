@@ -91,7 +91,8 @@ protected:
     setValidStrings_("decoy_string_position", ListUtils::create<String>("prefix,suffix"));
     registerStringOption_("append", "<enum>", "true", "If this flag is used, the decoy database is appended to the target database, allowing combined target decoy searches.", false);
     setValidStrings_("append", ListUtils::create<String>("true,false"));
-    registerFlag_("shuffle", "If 'true' then the decoy hit are shuffled from the target sequences, otherwise they are reversed");
+    registerStringOption_("method", "<enum>", "reverse", "Method by which decoy sequences are generated from target sequences.", false);
+    setValidStrings_("method", ListUtils::create<String>("reverse,shuffle"));
   }
 
   String getIdentifier_(const String & identifier, const String & decoy_string, const bool as_prefix)
@@ -108,7 +109,7 @@ protected:
     StringList in(getStringList_("in"));
     String out(getStringOption_("out"));
     bool append = (getStringOption_("append") == "true");
-    bool shuffle = getFlag_("shuffle");
+    bool shuffle = (getStringOption_("method") == "shuffle");
 
     //-------------------------------------------------------------
     // reading input
