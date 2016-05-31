@@ -43,6 +43,7 @@
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <set>
 
@@ -496,11 +497,11 @@ namespace OpenMS
 
         String sip = String("\t<SpectrumIdentificationProtocol id=\"") + String(sip_id) + String("\" analysisSoftware_ref=\"") + String(sof_id) + String("\">");
         sip += String(" \n\t\t<SearchType>\n\t\t\t") + cv_.getTermByName("ms-ms search").toXMLString(cv_ns) + String(" \n\t\t</SearchType>");
+        sip += String("\n\t\t<AdditionalSearchParams>\n");
         if (is_ppxl)
         {
-          sip += "\n\t\t" + cv_.getTermByName("cross-linking search").toXMLString(cv_ns);
+          sip += "\t\t\t" + cv_.getTermByName("cross-linking search").toXMLString(cv_ns) + "\n";
         }
-        sip += String("\n\t\t<AdditionalSearchParams>\n");
         writeMetaInfos_(sip, it->getSearchParameters(), 3);
         sip += String(3, '\t') + "<userParam name=\"" + "charges" + "\" unitName=\"" + "xsd:string" + "\" value=\"" + it->getSearchParameters().charges + "\"/>" + "\n";
 //        sip += String(3, '\t') + "<userParam name=\"" + "missed_cleavages" + "\" unitName=\"" + "xsd:integer" + "\" value=\"" + String(it->getSearchParameters().missed_cleavages) + "\"/>" + "\n";
@@ -538,6 +539,10 @@ namespace OpenMS
         if (sdat_file.empty())
         {
           sdat_file = String("UNKNOWN");
+        }
+        else
+        {
+          sdat_file = trimOpenMSfileURI(sdat_file);
         }
         std::map<String, String>::iterator sdit = sdat_ids.find(sdat_file); //this part is strongly connected to AnalysisCollection write part
         if (sdit == sdat_ids.end())
@@ -690,9 +695,10 @@ namespace OpenMS
             if (jt->metaValueExists("xl_chain"))
             {
               calc_ppxl_mass += jt->getSequence().getMonoWeight();
-              if (jt->metaValueExists("xl_mass"))
+              if (jt->getMetaValue("xl_chain") == "MS:1002509")
               {
-               calc_ppxl_mass += (double) jt->getMetaValue("xl_mass");
+                ProteinIdentification::SearchParameters search_params = cpro_id_->front().getSearchParameters();
+                calc_ppxl_mass += (double) search_params.getMetaValue("cross_link:mass");
               }
             }
           }
@@ -891,7 +897,7 @@ namespace OpenMS
           if (jt->metaValueExists("xl_chain"))
           {
             //Calculated mass to charge for cross-linked is both peptides + linker
-            // sequence pair not available here - precalculated in
+            // sequence pair not available here - precalculated before
             cmz = String((calc_ppxl_mass +  jt->getCharge() * Constants::PROTON_MASS_U) / jt->getCharge()); //calculatedMassToCharge
           }
           String sc(jt->getScore());
@@ -942,11 +948,9 @@ namespace OpenMS
 
           if (! jt->getFragmentAnnotations().empty())
           {
-            writeFragmentAnnotations_(sii_tmp, jt->getFragmentAnnotations(), 5);
+            writeFragmentAnnotations_(sii_tmp, jt->getFragmentAnnotations(), 5, is_ppxl);
           }
 
-          // TODO ppxl write Fragmentation annotation ion types as given addition with cv alpha or beta
-          //writeFragmentAnnotations(String s, jt->getFragmentAnnotations());
           // TODO ppxl where to read https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/cv/XLMOD-1.0.0.csv
 
           std::set<String> peptide_result_details;
@@ -1033,15 +1037,13 @@ namespace OpenMS
                                          "\t" + cv_.getTermByName("retention time").toXMLString(cv_ns, ert) + "\n\t\t\t\t</SpectrumIdentificationItem>\n");
             ppxl_specref_2_element[sid] += sii_tmp;
             if (jt->metaValueExists("spec_heavy_RT") && jt->metaValueExists("spec_heavy_MZ"))
-            //TODO betas have no spec_heavy_... meta values - this makes the number of SII  wrong
             {
               sii_tmp = sii_tmp.substitute(String("experimentalMassToCharge=\"") + String(emz),
                                            String("experimentalMassToCharge=\"") + String(jt->getMetaValue("spec_heavy_MZ"))); // mz
               sii_tmp = sii_tmp.substitute(sii, String("SII_") + String(UniqueIdGenerator::getUniqueId())); // uid
               sii_tmp = sii_tmp.substitute("value=\"" + ert, "value=\"" + String(jt->getMetaValue("spec_heavy_RT")));
 
-              const vector<ProteinIdentification> temp_prot = *cpro_id_;
-              ProteinIdentification::SearchParameters search_params = temp_prot[0].getSearchParameters();
+              ProteinIdentification::SearchParameters search_params = cpro_id_->front().getSearchParameters();
               double iso_shift = (double) search_params.getMetaValue("cross_link:mass_isoshift");
               double cmz_heavy = atof(cmz.c_str()) + (iso_shift / jt->getCharge());
 
@@ -1118,7 +1120,7 @@ namespace OpenMS
       String v_s = "1.1.0";
       if (is_ppxl)
       {
-         v_s = "1.2.0-candidate";
+         v_s = "1.2.0";
       }
       os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
          << "<MzIdentML xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n"
@@ -1216,10 +1218,27 @@ namespace OpenMS
       {
         os << "\t\t<SpectrumIdentificationList id=\"" << sil_it->first << String("\"> \n");
         os << "\t\t\t<FragmentationTable>\n"
-           << "\t\t\t\t<Measure id=\"Measure_MZ\">\n"
+           << "\t\t\t\t<Measure id=\"Measure_mz\">\n"
            << "\t\t\t\t\t<cvParam accession=\"MS:1001225\" cvRef=\"PSI-MS\" unitCvRef=\"PSI-MS\" unitName=\"m/z\" unitAccession=\"MS:1000040\" name=\"product ion m/z\"/>\n"
            << "\t\t\t\t</Measure>\n"
-           << "\t\t\t</FragmentationTable>\n";
+           << "\t\t\t\t<Measure id=\"Measure_int\">\n"
+           << "\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001226\" name=\"product ion intensity\" unitAccession=\"MS:1000131\" unitCvRef=\"UO\" unitName=\"number of counts\"/>\n"
+           << "\t\t\t\t</Measure>\n"
+           << "\t\t\t\t<Measure id=\"Measure_error\">\n"
+           << "\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001227\" name=\"product ion m/z error\" unitAccession=\"MS:1000040\" unitCvRef=\"PSI-MS\" unitName=\"m/z\"/>\n"
+           << "\t\t\t\t</Measure>\n";
+        if (is_ppxl)
+        {
+          os << "\t\t\t\t<Measure id=\"crosslink_chain\">\n"
+             << "\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1002508\" name=\"cross-linking attribute\"/>\n"
+             // TODO: this needs proper cv
+             << "\t\t\t\t</Measure>\n"
+             << "\t\t\t\t<Measure id=\"crosslink_ioncategory\">\n"
+             << "\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:100xxxx\" name=\"crosslink ion category\"/>\n"
+             // TODO: this needs proper cv
+             << "\t\t\t\t</Measure>\n";
+        }
+        os << "\t\t\t</FragmentationTable>\n";
         os << sil_it->second;
         os << "\t\t</SpectrumIdentificationList>\n";
       }
@@ -1345,14 +1364,14 @@ namespace OpenMS
       s += String(indent, '\t') + "</ModificationParams>" + "\n";
     }
 
-    void MzIdentMLHandler::writeFragmentAnnotations_(String& s, const std::vector<PeptideHit::FragmentAnnotation>& annotations, UInt indent) const
+    void MzIdentMLHandler::writeFragmentAnnotations_(String& s, const std::vector<PeptideHit::FragmentAnnotation>& annotations, UInt indent, bool is_ppxl) const
     {
       std::map<UInt,std::map<String,std::vector<StringList> > > annotation_map;
       for (std::vector<PeptideHit::FragmentAnnotation>::const_iterator kt = annotations.begin();
              kt != annotations.end(); ++kt)
       {// string coding example: [alpha|ci$y3-H2O-NH3]5+
         // static const boost::regex frag_regex("\\[(?:([\\|\\w]+)\\$)*([abcxyz])(\\d+)((?:[\\+\\-\\w])*)\\](\\d+)\\+"); // this will fetch the complete loss/gain part as one
-        static const boost::regex frag_regex_tweak("\\[(?:([\\|\\w]+)\\$)*([abcxyz])(\\d+)(?:-(H2O|NH3))*\\](\\d+)\\+"); // this will only fetch the last loss - and is preferred for now, as only these extra cv params are present
+        static const boost::regex frag_regex_tweak("\\[(?:([\\|\\w]+)\\$)*([abcxyz])(\\d+)(?:-(H2O|NH3))*\\][(\\d+)\\+]*"); // this will only fetch the last loss - and is preferred for now, as only these extra cv params are present
         String ionseries_index;
         String iontype;
         //String loss_gain;
@@ -1364,17 +1383,17 @@ namespace OpenMS
           String(str_matches[1]).split("|",extra);
           iontype = std::string(str_matches[2]);
           ionseries_index = std::string(str_matches[3]);
-          //loss_gain = str_matches[4];
           loss = std::string(str_matches[4]);
         }
         else
         {
-          LOG_WARN << "Well, fudge you very much, there is no matching annotation.\n";
+          LOG_WARN << "Well, fudge you very much, there is no matching annotation. ";
+          LOG_WARN << kt->annotation << std::endl;
           continue;
         }
-        String lt = "frag: " + iontype;
+        String lt = "frag: " + iontype + " ion";
         if (!loss.empty())
-            lt += " ion - "+loss;
+            lt += " - "+loss;
         if (annotation_map.find(kt->charge) == annotation_map.end())
         {
           annotation_map[kt->charge] = std::map<String, std::vector<StringList> >();
@@ -1382,10 +1401,22 @@ namespace OpenMS
         if (annotation_map[kt->charge].find(lt) == annotation_map[kt->charge].end())
         {
           annotation_map[kt->charge][lt] = std::vector<StringList> (3);
+          if (is_ppxl)
+          {
+            annotation_map[kt->charge][lt].push_back(StringList());  // alpha|beta
+            annotation_map[kt->charge][lt].push_back(StringList());  // ci|xi
+          }
         }
         annotation_map[kt->charge][lt][0].push_back(ionseries_index);
         annotation_map[kt->charge][lt][1].push_back(String(kt->mz));
         annotation_map[kt->charge][lt][2].push_back(String(kt->intensity));
+        if (is_ppxl)
+        {
+          String ab = ListUtils::contains<String>(extra ,String("alpha")) ? String("alpha"):String("beta");
+          String cx = ListUtils::contains<String>(extra ,String("ci")) ? String("ci"):String("xi");
+          annotation_map[kt->charge][lt][3].push_back(ab);
+          annotation_map[kt->charge][lt][4].push_back(cx);
+        }
       }
 
       //double map: charge + ion type; collect in StringList: index + annotations; write:
@@ -1398,10 +1429,17 @@ namespace OpenMS
         {
           s += String(indent+1, '\t') + "<IonType charge=\"" + String(i->first) +"\""
                     + " index=\"" + ListUtils::concatenate(j->second[0], " ") + "\">\n";
-          s += String(indent+2, '\t') + "<FragmentArray measure_ref=\"Measure_MZ\""
+          s += String(indent+2, '\t') + "<FragmentArray measure_ref=\"Measure_mz\""
                     + " values=\"" + ListUtils::concatenate(j->second[1], " ") + "\"/>\n";
           s += String(indent+2, '\t') + "<FragmentArray measure_ref=\"Measure_Int\""
                     + " values=\"" + ListUtils::concatenate(j->second[2], " ") + "\"/>\n";
+          if (is_ppxl)
+          {
+              s += String(indent+2, '\t') + "<FragmentArray measure_ref=\"crosslink_chain\""
+                        + " values=\"" + ListUtils::concatenate(j->second[3], " ") + "\"/>\n";
+              s += String(indent+2, '\t') + "<FragmentArray measure_ref=\"crosslink_ioncategory\""
+                        + " values=\"" + ListUtils::concatenate(j->second[4], " ") + "\"/>\n";
+          }
           s += String(indent+2, '\t') + cv_.getTermByName(j->first).toXMLString("PSI-MS") + "\n";
           s += String(indent+1, '\t') + "</IonType>\n";
         }
@@ -1421,6 +1459,16 @@ namespace OpenMS
 //        <cvParam accession="MS:1001262" cvRef="PSI-MS" name="param: y ion"/>
 //    </IonType>
 //</Fragmentation>
+    }
+
+    String MzIdentMLHandler::trimOpenMSfileURI(const String file) const
+    {
+      String r = file;
+      if (r.hasPrefix("["))
+        r = r.substr(1);
+      if (r.hasPrefix("["))
+        r = r.substr(0,r.size()-1);
+      return r;
     }
   } //namespace Internal
 } // namespace OpenMS
