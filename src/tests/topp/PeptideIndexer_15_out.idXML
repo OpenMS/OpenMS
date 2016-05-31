@@ -11,7 +11,7 @@
 			<ProteinHit id="PH_1" accession="BSA4" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<ProteinHit id="PH_2" accession="dec_BSA4" score="0" sequence="" >
+			<ProteinHit id="PH_2" accession="DECOY_BSA4" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 			</ProteinHit>
 			<ProteinHit id="PH_3" accession="MismatchProt0" score="0" sequence="" >

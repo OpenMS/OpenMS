@@ -368,7 +368,7 @@ PeptideIndexing::PeptideIndexing() :
 DefaultParamHandler("PeptideIndexing")
   {
 
-    defaults_.setValue("decoy_string", "dec_", "String that was appended (or prefixed - see 'decoy_string_position' flag below) to the accessions in the protein database to indicate decoy proteins.");
+    defaults_.setValue("decoy_string", "DECOY_", "String that was appended (or prefixed - see 'decoy_string_position' flag below) to the accessions in the protein database to indicate decoy proteins.");
 
     defaults_.setValue("decoy_string_position", "prefix", "Should the 'decoy_string' be prepended (prefix) or appended (suffix) to the protein accession?");
     defaults_.setValidStrings("decoy_string_position", ListUtils::create<String>("prefix,suffix"));

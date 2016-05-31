@@ -8,7 +8,7 @@
 			<ProteinHit id="PH_0" accession="Protein1" score="0" coverage="100" sequence="PEPTIDEXXX" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="dec_Protein2" score="0" coverage="100" sequence="PEPTLDEXXX" >
+			<ProteinHit id="PH_1" accession="DECOY_Protein2" score="0" coverage="100" sequence="PEPTLDEXXX" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 			</ProteinHit>
 		</ProteinIdentification>

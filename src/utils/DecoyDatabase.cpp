@@ -86,7 +86,7 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("fasta"));
     registerOutputFile_("out", "<file>", "", "Output FASTA file where the decoy database will be written to.");
     setValidFormats_("out", ListUtils::create<String>("fasta"));
-    registerStringOption_("decoy_string", "<string>", "dec_", "String that is combined with the accession of the protein identifier to indicate a decoy protein.", false);
+    registerStringOption_("decoy_string", "<string>", "DECOY_", "String that is combined with the accession of the protein identifier to indicate a decoy protein.", false);
     registerStringOption_("decoy_string_position", "<enum>", "prefix", "Should the 'decoy_string' be prepended (prefix) or appended (suffix) to the protein accession?", false);
     setValidStrings_("decoy_string_position", ListUtils::create<String>("prefix,suffix"));
     registerStringOption_("append", "<enum>", "true", "If this flag is used, the decoy database is appended to the target database, allowing combined target decoy searches.", false);

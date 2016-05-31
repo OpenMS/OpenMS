@@ -12,16 +12,16 @@
 				<UserParam type="string" name="my_user_param" value="veryimportant"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<ProteinHit id="PH_2" accession="dec_test2" score="0" sequence="" >
+			<ProteinHit id="PH_2" accession="DECOY_test2" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 			</ProteinHit>
 			<ProteinHit id="PH_3" accession="Thyroglo" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<ProteinHit id="PH_4" accession="dec_Thyroglo" score="0" sequence="" >
+			<ProteinHit id="PH_4" accession="DECOY_Thyroglo" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 			</ProteinHit>
-			<ProteinHit id="PH_5" accession="dec_revonly" score="0" sequence="" >
+			<ProteinHit id="PH_5" accession="DECOY_revonly" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 			</ProteinHit>
 		</ProteinIdentification>
