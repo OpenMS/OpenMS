@@ -928,7 +928,7 @@ DefaultParamHandler("PeptideIndexing")
     /// exit if no peptides were matched to decoy
     if ((stats_count_m_d + stats_count_m_td) == 0)
     {
-      String msg("No peptides were matched to the decoy portion of the database! Did you provide the correct concatenated database? Are your 'decoy_string' (=" + String(decoy_string_) + ") and 'prefix' (=" + String(param_.getValue("prefix")) + ") settings correct?");
+      String msg("No peptides were matched to the decoy portion of the database! Did you provide the correct concatenated database? Are your 'decoy_string' (=" + String(decoy_string_) + ") and 'decoy_string_position' (=" + String(param_.getValue("decoy_string_position")) + ") settings correct?");
       if (missing_decoy_action_== "error")
       {
         LOG_ERROR << "Error: " << msg << "\nSet 'missing_decoy_action' to 'warn' if you are sure this is ok!\nAborting ..." << std::endl;
