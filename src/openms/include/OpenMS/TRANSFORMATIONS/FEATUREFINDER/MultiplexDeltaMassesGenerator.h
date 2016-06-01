@@ -63,7 +63,8 @@ namespace OpenMS
     /**
      * @brief constructor
      * 
-     * @param labels    isotopic labels
+     * @param labels    isotopic labels, e.g. '[][Lys8,Arg10]' for SILAC labelling. For a detailed description and
+     * further examples see the algorithm::labels parameter in the FeatureFinderMultiplex und MultiplexResolver tools.
      * @param missed_cleavages    maximum number of missed cleavages due to incomplete digestion
      * @param label_mass_shift    name of labels and their corresponding mass shifts
      * For example due to knock-outs in one of the samples.
