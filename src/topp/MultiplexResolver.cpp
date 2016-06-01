@@ -147,11 +147,7 @@ private:
   // section "algorithm"
   String labels_;
   std::vector<std::vector<String> > samples_labels_;
-  unsigned charge_min_;
-  unsigned charge_max_;
   unsigned missed_cleavages_;
-  unsigned isotopes_per_peptide_min_;
-  unsigned isotopes_per_peptide_max_;
   double mass_tolerance_;
 
   // section "labels"
@@ -160,7 +156,7 @@ private:
 public:
   TOPPMultiplexResolver() :
     TOPPBase("MultiplexResolver", "Completes peptide multiplets and resolves conflicts within them.", true),
-    charge_min_(1), charge_max_(1), missed_cleavages_(0), isotopes_per_peptide_min_(1), isotopes_per_peptide_max_(1), mass_tolerance_(0.1)
+    missed_cleavages_(0), mass_tolerance_(0.1)
   {
   }
   
@@ -186,11 +182,9 @@ public:
     if (section == "algorithm")
     {
       defaults.setValue("labels", "[][Lys8,Arg10]", "Labels used for labelling the samples. [...] specifies the labels for a single sample. For example\n\n[][Lys8,Arg10]        ... SILAC\n[][Lys4,Arg6][Lys8,Arg10]        ... triple-SILAC\n[Dimethyl0][Dimethyl6]        ... Dimethyl\n[Dimethyl0][Dimethyl4][Dimethyl8]        ... triple Dimethyl\n[ICPL0][ICPL4][ICPL6][ICPL10]        ... ICPL");
-      defaults.setValue("charge", "1:4", "Range of charge states in the sample, i.e. min charge : max charge.");
-      defaults.setValue("isotopes_per_peptide", "3:6", "Range of isotopes per peptide in the sample. For example 3:6, if isotopic peptide patterns in the sample consist of either three, four, five or six isotopic peaks. ", ListUtils::create<String>("advanced"));
       defaults.setValue("missed_cleavages", 0, "Maximum number of missed cleavages due to incomplete digestion.");
       defaults.setMinInt("missed_cleavages", 0);
-      defaults.setValue("mass_tolerance", 0.1, "Mass tolerance for matching the detected to the theoretical mass shifts.", ListUtils::create<String>("advanced"));
+      defaults.setValue("mass_tolerance", 0.01, "Mass tolerance in Da for matching the detected to the theoretical mass shifts.", ListUtils::create<String>("advanced"));
     }
 
     if (section == "labels")
@@ -247,28 +241,6 @@ public:
     // get selected labels
     labels_ = getParam_().getValue("algorithm:labels");
     samples_labels_ = splitLabelString_();
-
-    // get selected charge range
-    String charge_string = getParam_().getValue("algorithm:charge");
-    double charge_min_temp, charge_max_temp;
-    parseRange_(charge_string, charge_min_temp, charge_max_temp);
-    charge_min_ = charge_min_temp;
-    charge_max_ = charge_max_temp;
-    if (charge_min_ > charge_max_)
-    {
-      swap(charge_min_, charge_max_);
-    }
-
-    // get isotopes per peptide range
-    String isotopes_per_peptide_string = getParam_().getValue("algorithm:isotopes_per_peptide");
-    double isotopes_per_peptide_min_temp, isotopes_per_peptide_max_temp;
-    parseRange_(isotopes_per_peptide_string, isotopes_per_peptide_min_temp, isotopes_per_peptide_max_temp);
-    isotopes_per_peptide_min_ = isotopes_per_peptide_min_temp;
-    isotopes_per_peptide_max_ = isotopes_per_peptide_max_temp;
-    if (isotopes_per_peptide_min_ > isotopes_per_peptide_max_)
-    {
-      swap(isotopes_per_peptide_min_, isotopes_per_peptide_max_);
-    }
 
     missed_cleavages_ = getParam_().getValue("algorithm:missed_cleavages");
     
@@ -341,75 +313,6 @@ public:
     return samples_labels;
   }
 
-  /**
-   * @brief comparator of peak patterns
-   *
-   * @param pattern1    first peak pattern
-   * @param pattern2    second peak pattern
-   *
-   * @return true if pattern1 should be searched before pattern2
-   */
-  static bool less_pattern(const MultiplexIsotopicPeakPattern& pattern1, const MultiplexIsotopicPeakPattern& pattern2)
-  {
-    if (pattern1.getMassShiftCount() == pattern2.getMassShiftCount())
-    {
-      if (pattern1.getCharge() == pattern2.getCharge())
-      {
-        // The first mass shift is by definition always zero.
-        if ((pattern1.getMassShiftCount() > 1) && (pattern2.getMassShiftCount() > 1))
-        {
-          // 4Da before 8Da etc. (larger miss cleavages last)
-          return pattern1.getMassShiftAt(1) < pattern2.getMassShiftAt(1);
-        }
-        else
-        {
-          // Should never happen.
-          return true;
-        }
-      }
-      else
-      {
-        // 5+ before 4+ before 3+ etc.
-        return pattern1.getCharge() > pattern2.getCharge();
-      }
-    }
-    else
-    {
-      // triplets before doublets before singlets
-      return pattern1.getMassShiftCount() > pattern2.getMassShiftCount();
-    }
-  }
-
-  /**
-   * @brief generate list of m/z shifts
-   *
-   * @param charge_min    minimum charge
-   * @param charge_max    maximum charge
-   * @param peaks_per_peptide_max    maximum number of isotopes in peptide
-   * @param mass_pattern_list    mass shifts due to labelling
-   *
-   * @return list of m/z shifts
-   */
-  std::vector<MultiplexIsotopicPeakPattern> generatePeakPatterns_(int charge_min, int charge_max, int peaks_per_peptide_max, std::vector<MultiplexDeltaMasses> mass_pattern_list)
-  {
-    std::vector<MultiplexIsotopicPeakPattern> list;
-
-    // iterate over all charge states
-    for (int c = charge_max; c >= charge_min; --c)
-    {
-      // iterate over all mass shifts
-      for (unsigned i = 0; i < mass_pattern_list.size(); ++i)
-      {
-        MultiplexIsotopicPeakPattern pattern(c, peaks_per_peptide_max, mass_pattern_list[i], i);
-        list.push_back(pattern);
-      }
-    }
-    
-    sort(list.begin(),list.end(),less_pattern);
-    
-    return list;
-  }
-  
   /**
    * @brief returns the relative delta mass between the first feature
    * and the feature with the map index idx
