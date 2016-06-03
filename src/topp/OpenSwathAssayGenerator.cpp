@@ -117,7 +117,7 @@ protected:
     registerFlag_("enable_detection_unspecific_losses", "set this flag if unspecific neutral losses (H2O1, H3N1, C1H2N2, C1H2N1O1) for detection fragment ions should be allowed");
     registerFlag_("enable_identification_specific_losses", "set this flag if specific neutral losses for identification fragment ions should be allowed");
     registerFlag_("enable_identification_unspecific_losses", "set this flag if unspecific neutral losses (H2O1, H3N1, C1H2N2, C1H2N1O1) for identification fragment ions should be allowed");
-    registerFlag_("enable_identification_ms2_precursors", "set this flag if MS2-level precursor ions for identification should be allowed");
+    registerFlag_("enable_identification_ms2_precursors", "set this flag if MS2-level precursor ions for identification should be allowed to enable extraction of the precursor signal from the fragment ion data (MS2-level). This may help in identification if the MS1 signal is weak.");
     registerFlag_("enable_ms1_uis_scoring", "set this flag if MS1-UIS assays for UIS scoring should be generated");
     registerFlag_("enable_ms2_uis_scoring", "set this flag if MS2-UIS assays for UIS scoring should be generated");
     registerIntOption_("max_num_alternative_localizations", "<int>", 20, "maximum number of site-localization permutations", false);
