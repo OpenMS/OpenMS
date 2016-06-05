@@ -63,15 +63,11 @@ namespace OpenMS
     /**
      * @brief constructor
      * 
-     * @param labels    labels used for labelling the samples. [...] specifies the labels for a single sample. For example
-     * [][Lys8,Arg10]        ... SILAC
-     * [][Lys4,Arg6][Lys8,Arg10]        ... triple-SILAC
-     * [Dimethyl0][Dimethyl6]        ... Dimethyl
-     * [Dimethyl0][Dimethyl4][Dimethyl8]        ... triple Dimethyl
-     * [ICPL0][ICPL4][ICPL6][ICPL10]        ... ICPL
+     * @param labels    string describing the labels used in each sample. [...] specifies the labels for a single sample. For example
+     * For example, [][Lys8,Arg10] describes a standard SILAC experiment. In the "light" sample, none of the amino acids are labelled [].
+     * In the "heavy" sample, lysines and arginines are isotopically labelled [Lys8,Arg10].
      * @param missed_cleavages    maximum number of missed cleavages due to incomplete digestion
-     * @param label_mass_shift    name of labels and their corresponding mass shifts
-     * For example due to knock-outs in one of the samples.
+     * @param label_mass_shift    name of labels (e.g. Lys8) and their corresponding mass shifts (e.g. 8.0141988132)
      */
     MultiplexDeltaMassesGenerator(String labels, int missed_cleavages, std::map<String,double> label_mass_shift);
         
