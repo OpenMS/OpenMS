@@ -406,29 +406,29 @@ namespace OpenMS
   
   void MultiplexDeltaMassesGenerator::printDeltaMassesList() const
   {
-    LOG_DEBUG << "\n";
+    cout << "\n";
     for (unsigned i = 0; i < delta_masses_list_.size(); ++i)
     {
-      LOG_DEBUG << "mass shift " << (i + 1) << ":    ";
+      std::cout << "mass shift " << (i + 1) << ":    ";
       for (unsigned j = 0; j < delta_masses_list_[i].getDeltaMasses().size(); ++j)
       {
         double mass_shift = delta_masses_list_[i].getDeltaMasses()[j].delta_mass;
         MultiplexDeltaMasses::LabelSet label_set = delta_masses_list_[i].getDeltaMasses()[j].label_set;
         
-        LOG_DEBUG << mass_shift << " (";
+        std::cout << mass_shift << " (";
         for (std::multiset<String>::iterator it = label_set.begin(); it != label_set.end(); ++it)
         {
           if (it != label_set.begin())
           {
-            LOG_DEBUG << ",";
+            std::cout << ",";
           }
-          LOG_DEBUG << *it;
+          std::cout << *it;
         }
-        LOG_DEBUG << ")    ";
+        std::cout << ")    ";
       }
-      LOG_DEBUG << "\n";
+      std::cout << "\n";
     }
-    LOG_DEBUG << "\n";
+    std::cout << "\n";
   }
   
   std::vector<MultiplexDeltaMasses> MultiplexDeltaMassesGenerator::getDeltaMassesList()

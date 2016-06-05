@@ -184,7 +184,7 @@ public:
       defaults.setValue("labels", "[][Lys8,Arg10]", "Labels used for labelling the samples. [...] specifies the labels for a single sample. For example\n\n[][Lys8,Arg10]        ... SILAC\n[][Lys4,Arg6][Lys8,Arg10]        ... triple-SILAC\n[Dimethyl0][Dimethyl6]        ... Dimethyl\n[Dimethyl0][Dimethyl4][Dimethyl8]        ... triple Dimethyl\n[ICPL0][ICPL4][ICPL6][ICPL10]        ... ICPL");
       defaults.setValue("missed_cleavages", 0, "Maximum number of missed cleavages due to incomplete digestion.");
       defaults.setMinInt("missed_cleavages", 0);
-      defaults.setValue("mass_tolerance", 0.01, "Mass tolerance in Da for matching the detected to the theoretical mass shifts.", ListUtils::create<String>("advanced"));
+      defaults.setValue("mass_tolerance", 0.1, "Mass tolerance in Da for matching the detected to the theoretical mass shifts.", ListUtils::create<String>("advanced"));
     }
 
     if (section == "labels")
@@ -527,7 +527,7 @@ public:
          ++it_mass_shift, ++it_delta_mass_matched)
     {
       
-      //std::cout << "    index = " << (it_mass_shift - pattern.begin()) << "    shift = " << it_mass_shift->delta_mass;
+      //LOG_DEBUG << "    index = " << (it_mass_shift - pattern.begin()) << "    shift = " << it_mass_shift->delta_mass;
       if (*it_delta_mass_matched)
       {
         // copy feature from incomplete consensus
@@ -583,13 +583,13 @@ public:
       
       int index = findMatchingPattern(cit, label_set, theoretical_masses, delta_mass_matched, index_label_set);
       
-      /*std::cout << "consensus = " << (cit - map_in.begin());
-      std::cout << "    RT = " << cit->getRT();
-      std::cout << "    sequence = " << sequence;*/
+      /*LOG_DEBUG << "consensus = " << (cit - map_in.begin());
+      LOG_DEBUG << "    RT = " << cit->getRT();
+      LOG_DEBUG << "    sequence = " << sequence;*/
       
       if (index >= 0)
       {
-        //std::cout << "  (Ok)\n\n";
+        //LOG_DEBUG << "  (Ok)\n\n";
         
         ++found_pattern_count;
         
@@ -598,7 +598,7 @@ public:
       }
       else
       {
-        //std::cout << "  (Conflict)\n\n";
+        //LOG_DEBUG << "  (Conflict)\n\n";
         
         ConsensusFeature consensus(*cit);
         map_conflicts.push_back(consensus);
@@ -614,10 +614,10 @@ public:
     map_out.applyMemberFunction(&UniqueIdInterface::setUniqueId);
     map_conflicts.applyMemberFunction(&UniqueIdInterface::setUniqueId);
     
-    /*std::cout << "\n";
-    std::cout << "number of consensuses                   = " << map_in.size() << "\n";
-    std::cout << "number of consensuses without conflicts = " << found_pattern_count << "\n";
-    std::cout << "\n";*/
+    /*LOG_DEBUG << "\n";
+    LOG_DEBUG << "number of consensuses                   = " << map_in.size() << "\n";
+    LOG_DEBUG << "number of consensuses without conflicts = " << found_pattern_count << "\n";
+    LOG_DEBUG << "\n";*/
   }
   
   ExitCodes main_(int, const char**)
