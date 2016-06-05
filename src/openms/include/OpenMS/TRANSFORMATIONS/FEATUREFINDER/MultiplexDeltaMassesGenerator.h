@@ -79,11 +79,22 @@ namespace OpenMS
 
     /**
      * @brief write the list of labels for each of the sample
+     * 
+     * For example in a standard SILAC experiment, sample 1 (light) is unlabelled and sample 2 (heavy) contains Lys8 and Arg 10 labels.
+     * sample 1:    no_label    
+     * sample 2:    Lys8    Arg10
      */
     void printSamplesLabelsList() const;
     
     /**
      * @brief write the list of all mass patterns
+     * 
+     * For example in a standard SILAC experiment allowing for one missed cleavage, five mass shift patterns are possible.
+     * mass shift 1:    0 (no_label)    8.0142 (Lys8)    
+     * mass shift 2:    0 (no_label)    10.0083 (Arg10)    
+     * mass shift 3:    0 (no_label)    16.0284 (Lys8,Lys8)    
+     * mass shift 4:    0 (no_label)    18.0225 (Arg10,Lys8)    
+     * mass shift 5:    0 (no_label)    20.0165 (Arg10,Arg10)    
      */
     void printDeltaMassesList() const;
     
