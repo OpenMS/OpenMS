@@ -129,14 +129,14 @@ namespace OpenMS
     /**
      * @brief returns the short label string
      * 
-     * @param label    long label, e.g. "Label:13C(6)15N(4)"
+     * @param label    long label, UniMod name as it appears in peptide sequences, e.g. "Label:13C(6)15N(4)"
      */
     String getLabelShort(String label);
     
     /**
      * @brief returns the long label string
      * 
-     * @param label    short label, e.g. "Arg10"
+     * @param label    short label, as it appears in the "labels" parameter, e.g. "Arg10"
      */
     String getLabelLong(String label);
     
