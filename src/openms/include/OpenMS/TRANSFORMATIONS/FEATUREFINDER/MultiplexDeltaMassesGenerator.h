@@ -110,12 +110,20 @@ namespace OpenMS
     
     /**
      * @brief returns the list of samples with their corresponding labels
+     * 
+     * For example in a standard SILAC experiment:
+     * sample 1:    no_label    
+     * sample 2:    Lys8    Arg10
      */
     std::vector<std::vector<String> > getSamplesLabelsList();
     
     /**
      * @brief returns the list of samples with their corresponding labels
-     */
+     * 
+     * For example in a standard SILAC experiment:
+     * sample 1:    no_label    
+     * sample 2:    Lys8    Arg10
+    */
     const std::vector<std::vector<String> >& getSamplesLabelsList() const;
     
     /**
@@ -136,6 +144,9 @@ namespace OpenMS
      * @brief extract the label set from the sequence
      *
      * @param sequence    amino acid sequence
+     * 
+     * For example, the sequence VLSEEEIDDNFK(Label:13C(6)15N(2))AQR(Label:13C(6)15N(4))
+     * contains a set of two labels, Lys8 and Arg10.
      */
     MultiplexDeltaMasses::LabelSet extractLabelSet(AASequence sequence);
     
@@ -170,19 +181,19 @@ namespace OpenMS
      * @brief mapping from single label to delta mass
      * e.g. "Arg10" -> 10.0082686
      */
-    std::map<String,double> label_delta_mass_;
+    std::map<String, double> label_delta_mass_;
     
     /**
      * @brief mapping from a short label (as in the user params) to a long label (as in PSI-MS name)
      * e.g. "Arg10" -> "Label:13C(6)15N(4)"
      */
-    std::map<String,String> label_short_long_;
+    std::map<String, String> label_short_long_;
     
     /**
      * @brief mapping from a long label (as in PSI-MS name) to a short label (as in the user params)
      * e.g. "Label:13C(6)15N(4)" -> "Arg10"
      */
-    std::map<String,String> label_long_short_;
+    std::map<String, String> label_long_short_;
     
  };
   
