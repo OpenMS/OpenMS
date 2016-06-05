@@ -107,7 +107,7 @@ namespace OpenMS
     /**
      * @brief converts a label set to a string
      */
-    static String LabelSetToString(const LabelSet ls);
+    static String labelSetToString(const LabelSet ls);
     
     private:
    
