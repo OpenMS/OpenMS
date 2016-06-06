@@ -113,13 +113,6 @@ private:
   // section "labels"
   map<String, double> label_mass_shift_;
   
-public:
-  TOPPMultiplexResolver() :
-    TOPPBase("MultiplexResolver", "Completes peptide multiplets and resolves conflicts within them.", true),
-    missed_cleavages_(0), mass_tolerance_(0.1)
-  {
-  }
-  
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "Peptide multiplets with assigned sequence information");
@@ -131,9 +124,8 @@ public:
 
     registerSubsection_("algorithm", "Parameters for the algorithm.");
     registerSubsection_("labels", "Isotopic labels that can be specified in section \'algorithm:labels\'.");
-
   }
-
+  
   // create parameters for sections (set default values and restrictions)
   Param getSubsectionDefaults_(const String& section) const
   {
@@ -231,7 +223,7 @@ public:
    * @param feature_handles    feature handles of a consensus feature
    * @param idx    map index of interest
    */
-  double DeltaMassFromMapIndex(const ConsensusFeature::HandleSetType& feature_handles, unsigned idx)
+  double deltaMassFromMapIndex_(const ConsensusFeature::HandleSetType& feature_handles, unsigned idx)
   {
     double first_mass = feature_handles.begin()->getMZ() * feature_handles.begin()->getCharge();
     
@@ -257,7 +249,7 @@ public:
    * 
    * @return mass shift in the theoretical pattern where both label sets match
    */
-  double matchLabelSet(const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern, const MultiplexDeltaMasses::LabelSet& label_set, int& index_label_set)
+  double matchLabelSet_(const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern, const MultiplexDeltaMasses::LabelSet& label_set, int& index_label_set)
   {
     for (std::vector<MultiplexDeltaMasses::DeltaMass>::const_iterator it_mass_shift = pattern.begin(); it_mass_shift != pattern.end(); ++it_mass_shift)
     {
@@ -283,10 +275,10 @@ public:
    * 
    * @return All delta masses matching?
    */
-  bool matchDeltaMasses(const ConsensusMap::ConstIterator consensus, const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern, double theoretical_delta_mass_at_label_set, std::vector<bool>& delta_mass_matched)
+  bool matchDeltaMasses_(const ConsensusMap::ConstIterator consensus, const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern, double theoretical_delta_mass_at_label_set, std::vector<bool>& delta_mass_matched)
   {
     double first_mass = consensus->getFeatures().begin()->getMZ() * consensus->getFeatures().begin()->getCharge();
-    double detected_delta_mass_at_label_set = DeltaMassFromMapIndex(consensus->getFeatures(), consensus->getPeptideIdentifications()[0].getMetaValue("map index"));
+    double detected_delta_mass_at_label_set = deltaMassFromMapIndex_(consensus->getFeatures(), consensus->getPeptideIdentifications()[0].getMetaValue("map index"));
     if (boost::math::isnan(detected_delta_mass_at_label_set))
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No delta mass with this map index could be found.", "");
@@ -333,21 +325,21 @@ public:
    * 
    * @return index of matching pattern
    */
-  int findMatchingPattern(const ConsensusMap::ConstIterator consensus, const MultiplexDeltaMasses::LabelSet& label_set, const std::vector<MultiplexDeltaMasses>& theoretical_patterns, std::vector<bool>& delta_mass_matched, int& index_label_set)
+  int findMatchingPattern_(const ConsensusMap::ConstIterator consensus, const MultiplexDeltaMasses::LabelSet& label_set, const std::vector<MultiplexDeltaMasses>& theoretical_patterns, std::vector<bool>& delta_mass_matched, int& index_label_set)
   {
     // loop over theoretical patterns
     for (std::vector<MultiplexDeltaMasses>::const_iterator it_pattern = theoretical_patterns.begin(); it_pattern != theoretical_patterns.end(); ++it_pattern)
     {
       std::vector<MultiplexDeltaMasses::DeltaMass> pattern = it_pattern->getDeltaMasses();
       
-      double shift = matchLabelSet(pattern, label_set, index_label_set);
+      double shift = matchLabelSet_(pattern, label_set, index_label_set);
       if (!boost::math::isnan(shift))
       {        
         // reset boolean vector
         unsigned i = delta_mass_matched.size();
         delta_mass_matched.assign(i,false);
         
-        bool match = matchDeltaMasses(consensus, pattern, shift, delta_mass_matched);
+        bool match = matchDeltaMasses_(consensus, pattern, shift, delta_mass_matched);
         if (match)
         {
           return (it_pattern - theoretical_patterns.begin());
@@ -368,7 +360,7 @@ public:
    * 
    * @return m/z for the complete consensus
    */
-  double findNewMZ(double mz, int charge, const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern, const std::vector<bool>& delta_mass_matched)
+  double findNewMZ_(double mz, int charge, const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern, const std::vector<bool>& delta_mass_matched)
   {
     // loop over delta masses in theoretical pattern
     std::vector<MultiplexDeltaMasses::DeltaMass>::const_iterator it_mass_shift;
@@ -398,7 +390,7 @@ public:
    * 
    * @return completed consensus
    */
-  ConsensusFeature completeConsensus(const ConsensusFeature& consensus, const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern, const std::vector<bool>& delta_mass_matched, int index_label_set)
+  ConsensusFeature completeConsensus_(const ConsensusFeature& consensus, const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern, const std::vector<bool>& delta_mass_matched, int index_label_set)
   {
     // Nothing to do. Detected consensus is already complete.
     if (consensus.size() == pattern.size())
@@ -419,7 +411,7 @@ public:
     double mz = consensus.getMZ();
     
     // find m/z of the new complete consensus
-    double mz_complete = findNewMZ(mz, charge, pattern, delta_mass_matched);
+    double mz_complete = findNewMZ_(mz, charge, pattern, delta_mass_matched);
     
     consensus_complete.setMZ(mz_complete);
     consensus_complete.setRT(consensus.getRT());
@@ -492,7 +484,7 @@ public:
       std::vector<bool> delta_mass_matched(multiplicity, false);
       int index_label_set = -1;
       
-      int index = findMatchingPattern(cit, label_set, theoretical_masses, delta_mass_matched, index_label_set);
+      int index = findMatchingPattern_(cit, label_set, theoretical_masses, delta_mass_matched, index_label_set);
       
       /*LOG_DEBUG << "consensus = " << (cit - map_in.begin());
       LOG_DEBUG << "    RT = " << cit->getRT();
@@ -504,7 +496,7 @@ public:
         
         ++found_pattern_count;
         
-        ConsensusFeature consensus = completeConsensus(*cit, theoretical_masses[index].getDeltaMasses(), delta_mass_matched, index_label_set);
+        ConsensusFeature consensus = completeConsensus_(*cit, theoretical_masses[index].getDeltaMasses(), delta_mass_matched, index_label_set);
         map_out.push_back(consensus);
       }
       else
@@ -531,6 +523,13 @@ public:
     LOG_DEBUG << "\n";*/
   }
   
+public:
+  TOPPMultiplexResolver() :
+    TOPPBase("MultiplexResolver", "Completes peptide multiplets and resolves conflicts within them.", true),
+    missed_cleavages_(0), mass_tolerance_(0.1)
+  {
+  }
+
   ExitCodes main_(int, const char**)
   {
     /**
