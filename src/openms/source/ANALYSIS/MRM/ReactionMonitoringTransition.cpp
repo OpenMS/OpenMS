@@ -207,18 +207,7 @@ namespace OpenMS
 
   int ReactionMonitoringTransition::getProductChargeState() const
   { 
-    try
-    { 
-      if (!product_.getChargeState() > 0)
-      { 
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Product charge has never been set");
-      }
-      return product_.getChargeState();
-    }
-    catch (char * /*str*/)
-    { 
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Product charge has never been set");
-    }
+    return product_.getChargeState();
   }
 
   void ReactionMonitoringTransition::addProductCVTerm(const CVTerm & cv_term)
