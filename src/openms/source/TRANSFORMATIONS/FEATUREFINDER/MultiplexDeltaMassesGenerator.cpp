@@ -72,26 +72,13 @@ namespace OpenMS
     label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("ICPL6", "ICPL:13C(6)", "ICPL:13C(6)  |  H(3) 13C(6) N O  |  unimod #364", 111.041593));
     label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("ICPL10", "ICPL:13C(6)2H(4)", "ICPL:13C(6)2H(4)  |  H(-1) 2H(4) 13C(6) N O  |  unimod #866", 115.066700));
     
-    // generate short label to long label mappings
-    label_short_long_.insert(make_pair("Lys4", "Label:2H(4)"));
-    label_short_long_.insert(make_pair("Lys8", "Label:13C(6)15N(2)"));
-    label_short_long_.insert(make_pair("Arg6", "Label:13C(6)"));
-    label_short_long_.insert(make_pair("Arg10", "Label:13C(6)15N(4)"));
-    label_short_long_.insert(make_pair("Dimethyl0", "Dimethyl"));
-    label_short_long_.insert(make_pair("Dimethyl4", "Dimethyl:2H(4)"));
-    label_short_long_.insert(make_pair("Dimethyl6", "Dimethyl:2H(4)13C(2)"));
-    label_short_long_.insert(make_pair("Dimethyl8", "Dimethyl:2H(6)13C(2)"));
-
-    // generate long label to short label mappings
-    label_long_short_.insert(make_pair("Label:2H(4)", "Lys4"));
-    label_long_short_.insert(make_pair("Label:13C(6)15N(2)", "Lys8"));
-    label_long_short_.insert(make_pair("Label:13C(6)", "Arg6"));
-    label_long_short_.insert(make_pair("Label:13C(6)15N(4)", "Arg10"));
-    label_long_short_.insert(make_pair("Dimethyl", "Dimethyl0"));
-    label_long_short_.insert(make_pair("Dimethyl:2H(4)", "Dimethyl4"));
-    label_long_short_.insert(make_pair("Dimethyl:2H(4)13C(2)", "Dimethyl6"));
-    label_long_short_.insert(make_pair("Dimethyl:2H(6)13C(2)", "Dimethyl8"));
-
+    // generate short/long label mappings
+    for (std::vector<MultiplexDeltaMassesGenerator::Label>::const_iterator it = label_master_list_.begin(); it != label_master_list_.end(); ++it)
+    {
+      label_short_long_.insert(make_pair(it->short_name, it->long_name));
+      label_long_short_.insert(make_pair(it->long_name, it->short_name));
+    }
+    
     // split the labels_ string
     String temp_labels(labels_);
     std::vector<String> temp_samples;
