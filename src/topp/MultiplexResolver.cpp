@@ -34,56 +34,18 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/FeatureHandle.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/MATH/STATISTICS/LinearRegression.h>
-#include <OpenMS/KERNEL/RangeUtils.h>
-#include <OpenMS/KERNEL/ChromatogramTools.h>
-#include <OpenMS/FORMAT/MzQuantMLFile.h>
-#include <OpenMS/FORMAT/PeakTypeEstimator.h>
-
-#include <OpenMS/METADATA/MSQuantifications.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
-#include <OpenMS/MATH/STATISTICS/LinearRegression.h>
-
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/MzQuantMLFile.h>
-
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringCentroided.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringProfile.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexClustering.h>
-#include <OpenMS/DATASTRUCTURES/DPosition.h>
-#include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
 
 //Contrib includes
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/replace.hpp>
-#include <boost/algorithm/string/classification.hpp>
-
-#include <QDir>
-
-//std includes
-#include <cmath>
-#include <vector>
-#include <algorithm>
-#include <fstream>
-#include <limits>
-#include <locale>
-#include <iomanip>
 
 using namespace std;
 using namespace OpenMS;
