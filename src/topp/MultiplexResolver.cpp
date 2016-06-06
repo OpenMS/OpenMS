@@ -107,7 +107,6 @@ private:
 
   // section "algorithm"
   String labels_;
-  std::vector<std::vector<String> > samples_labels_;
   unsigned missed_cleavages_;
   double mass_tolerance_;
 
@@ -199,12 +198,8 @@ public:
    */
   void getParameters_algorithm_()
   {
-    // get selected labels
     labels_ = getParam_().getValue("algorithm:labels");
-    samples_labels_ = splitLabelString_();
-
     missed_cleavages_ = getParam_().getValue("algorithm:missed_cleavages");
-    
     mass_tolerance_ = getParam_().getValue("algorithm:mass_tolerance");
   }
 
@@ -227,51 +222,6 @@ public:
     label_mass_shift_.insert(make_pair("ICPL4", getParam_().getValue("labels:ICPL4")));
     label_mass_shift_.insert(make_pair("ICPL6", getParam_().getValue("labels:ICPL6")));
     label_mass_shift_.insert(make_pair("ICPL10", getParam_().getValue("labels:ICPL10")));
-  }
-
-  /**
-   * @brief split labels string
-   *
-   * @return list of samples containing lists of corresponding labels
-   */
-  std::vector<std::vector<String> > splitLabelString_()
-  {
-    std::vector<std::vector<String> > samples_labels;
-    std::vector<String> temp_samples;
-    
-    String labels(labels_);
-    boost::replace_all(labels, "[]", "no_label");
-    boost::replace_all(labels, "()", "no_label");
-    boost::replace_all(labels, "{}", "no_label");
-    boost::split(temp_samples, labels, boost::is_any_of("[](){}")); // any bracket allowed to separate samples
-    
-    for (unsigned i = 0; i < temp_samples.size(); ++i)
-    {
-      if (!temp_samples[i].empty())
-      {
-        if (temp_samples[i]=="no_label")
-        {
-          vector<String> temp_labels;
-          temp_labels.push_back("no_label");
-          samples_labels.push_back(temp_labels);
-        }
-        else
-        {
-          vector<String> temp_labels;
-          boost::split(temp_labels, temp_samples[i], boost::is_any_of(",;: ")); // various separators allowed to separate labels
-          samples_labels.push_back(temp_labels);
-        }
-      }
-    }
-    
-    if (samples_labels.empty())
-    {
-      vector<String> temp_labels;
-      temp_labels.push_back("no_label");
-      samples_labels.push_back(temp_labels);
-    }
-
-    return samples_labels;
   }
 
   /**
