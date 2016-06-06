@@ -43,7 +43,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
 
-//Contrib includes
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/replace.hpp>
 
@@ -144,7 +143,7 @@ public:
     if (section == "algorithm")
     {
       defaults.setValue("labels", "[][Lys8,Arg10]", "Labels used for labelling the samples. [...] specifies the labels for a single sample. For example\n\n[][Lys8,Arg10]        ... SILAC\n[][Lys4,Arg6][Lys8,Arg10]        ... triple-SILAC\n[Dimethyl0][Dimethyl6]        ... Dimethyl\n[Dimethyl0][Dimethyl4][Dimethyl8]        ... triple Dimethyl\n[ICPL0][ICPL4][ICPL6][ICPL10]        ... ICPL");
-      defaults.setValue("missed_cleavages", 0, "Maximum number of missed cleavages due to incomplete digestion.");
+      defaults.setValue("missed_cleavages", 0, "Maximum number of missed cleavages due to incomplete digestion. (Only relevant if enzymatic cutting site coincides with labelling site. For example, Arg/Lys in the case of trypsin digestion and SILAC labelling.)");
       defaults.setMinInt("missed_cleavages", 0);
       defaults.setValue("mass_tolerance", 0.1, "Mass tolerance in Da for matching the detected to the theoretical mass shifts.", ListUtils::create<String>("advanced"));
     }
