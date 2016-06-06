@@ -168,8 +168,6 @@ private:
       defaults.setMinFloat("ICPL6", 0.0);
       defaults.setValue("ICPL10", 115.066700, "ICPL:13C(6)2H(4)  |  H(-1) 2H(4) 13C(6) N O  |  unimod #866", ListUtils::create<String>("advanced"));
       defaults.setMinFloat("ICPL10", 0.0);
-      //defaults.setValue("18O", 2.004246, "Label:18O(1)  |  O(-1) 18O  |  unimod #258", ListUtils::create<String>("advanced"));
-      //defaults.setMinFloat("18O", 0.0);
     }
 
     return defaults;

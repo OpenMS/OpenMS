@@ -48,10 +48,30 @@ using namespace std;
 
 namespace OpenMS
 {
+  MultiplexDeltaMassesGenerator::Label::Label(String sn, String ln, String d, double dm) :
+    short_name(sn), long_name(ln), description(d), delta_mass(dm)
+  {
+  }
+
 
   MultiplexDeltaMassesGenerator::MultiplexDeltaMassesGenerator(String labels, int missed_cleavages, std::map<String,double> label_delta_mass) :
     labels_(labels), labels_list_(), samples_labels_(), missed_cleavages_(missed_cleavages), label_delta_mass_(label_delta_mass)
   {
+    // fill label master list
+    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("Arg6", "Label:13C(6)", "Label:13C(6)  |  C(-6) 13C(6)  |  unimod #188", 6.0201290268));
+    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("Arg10", "Label:13C(6)15N(4)", "Label:13C(6)15N(4)  |  C(-6) 13C(6) N(-4) 15N(4)  |  unimod #267", 10.008268600));
+    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("Lys4", "Label:2H(4)", "Label:2H(4)  |  H(-4) 2H(4)  |  unimod #481", 4.0251069836));
+    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("Lys6", "Label:13C(6)", "Label:13C(6)  |  C(-6) 13C(6)  |  unimod #188", 6.0201290268));
+    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("Lys8", "Label:13C(6)15N(2)", "Label:13C(6)15N(2)  |  C(-6) 13C(6) N(-2) 15N(2)  |  unimod #259", 8.0141988132));
+    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("Dimethyl0", "Dimethyl", "Dimethyl  |  H(4) C(2)  |  unimod #36", 28.031300));
+    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("Dimethyl4", "Dimethyl:2H(4)", "Dimethyl:2H(4)  |  2H(4) C(2)  |  unimod #199", 32.056407));
+    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("Dimethyl6", "Dimethyl:2H(4)13C(2)", "Dimethyl:2H(4)13C(2)  |  2H(4) 13C(2)  |  unimod #510", 34.063117));
+    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("Dimethyl8", "Dimethyl:2H(6)13C(2)", "Dimethyl:2H(6)13C(2)  |  H(-2) 2H(6) 13C(2)  |  unimod #330", 36.075670));
+    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("ICPL0", "ICPL", "ICPL  |  H(3) C(6) N O  |  unimod #365", 105.021464));
+    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("ICPL4", "ICPL:2H(4)", "ICPL:2H(4)  |  H(-1) 2H(4) C(6) N O  |  unimod #687", 109.046571));
+    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("ICPL6", "ICPL:13C(6)", "ICPL:13C(6)  |  H(3) 13C(6) N O  |  unimod #364", 111.041593));
+    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("ICPL10", "ICPL:13C(6)2H(4)", "ICPL:13C(6)2H(4)  |  H(-1) 2H(4) 13C(6) N O  |  unimod #866", 115.066700));
+    
     // generate short label to long label mappings
     label_short_long_.insert(make_pair("Lys4", "Label:2H(4)"));
     label_short_long_.insert(make_pair("Lys8", "Label:13C(6)15N(2)"));

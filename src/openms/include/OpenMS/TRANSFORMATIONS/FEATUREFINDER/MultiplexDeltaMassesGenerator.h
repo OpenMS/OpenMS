@@ -61,6 +61,19 @@ namespace OpenMS
     public:
 
     /**
+     * @brief complete label information
+     */
+    struct OPENMS_DLLAPI Label
+    {
+      String short_name;
+      String long_name;
+      String description;
+      double delta_mass;
+      
+      Label(String sn, String ln, String d, double dm);
+    };
+   
+    /**
      * @brief constructor
      * 
      * @param labels    string describing the labels used in each sample. [...] specifies the labels for a single sample. For example
@@ -70,7 +83,7 @@ namespace OpenMS
      * @param label_mass_shift    name of labels (e.g. Lys8) and their corresponding mass shifts (e.g. 8.0141988132)
      */
     MultiplexDeltaMassesGenerator(String labels, int missed_cleavages, std::map<String,double> label_mass_shift);
-        
+     
     /**
      * @brief generate all mass shifts that can occur due to the absence of one or multiple peptides
      * (e.g. for a triplet experiment generate the doublets and singlets that might be present)
@@ -177,6 +190,11 @@ namespace OpenMS
      */
     std::vector<MultiplexDeltaMasses> delta_masses_list_;
       
+    /**
+     * @brief master list of all labels
+     */
+    std::vector<Label> label_master_list_;
+    
     /**
      * @brief mapping from single label to delta mass
      * e.g. "Arg10" -> 10.0082686
