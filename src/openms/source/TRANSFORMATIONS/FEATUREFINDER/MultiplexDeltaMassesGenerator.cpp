@@ -81,7 +81,7 @@ namespace OpenMS
     boost::replace_all(temp_labels, "{}", "no_label");
     boost::split(temp_samples, temp_labels, boost::is_any_of("[](){}")); // any bracket allowed to separate samples
     
-    for (unsigned i = 0; i < temp_samples.size(); ++i)
+    for (String::size_type i = 0; i < temp_samples.size(); ++i)
     {
       if (!temp_samples[i].empty())
       {
@@ -128,9 +128,9 @@ namespace OpenMS
     
     // check if the labels are included in advanced section "labels"
     String all_labels = "Arg6 Arg10 Lys4 Lys6 Lys8 Dimethyl0 Dimethyl4 Dimethyl6 Dimethyl8 ICPL0 ICPL4 ICPL6 ICPL10 no_label";
-    for (unsigned i = 0; i < samples_labels_.size(); i++)
+    for (std::vector<std::vector<String> >::size_type i = 0; i < samples_labels_.size(); i++)
     {
-      for (unsigned j = 0; j < samples_labels_[i].size(); ++j)
+      for (std::vector<String>::size_type j = 0; j < samples_labels_[i].size(); ++j)
       {
         if (all_labels.find(samples_labels_[i][j]) == std::string::npos)
         {
@@ -466,19 +466,19 @@ namespace OpenMS
     String s(sequence.toString());
 
     MultiplexDeltaMasses::LabelSet label_set;
-    for (unsigned i = 0; i < labels_list_.size(); ++i)
+    for (std::vector<String>::size_type i = 0; i < labels_list_.size(); ++i)
     {    
       String label("(" + getLabelLong(labels_list_[i]) + ")");
-      unsigned length_label = label.size();
+      String::size_type length_label = label.size();
       
       if (s.hasSubstring(label))
       {
-        unsigned length_before = s.size();
+        String::size_type length_before = s.size();
         s.substitute(label, "");
-        unsigned length_after = s.size();
-        unsigned multiple = (length_before - length_after)/length_label;
+        String::size_type length_after = s.size();
+        String::size_type multiple = (length_before - length_after)/length_label;
         
-        for (unsigned j = 0; j < multiple; ++j)
+        for (String::size_type j = 0; j < multiple; ++j)
         {
           label_set.insert(labels_list_[i]);
         }
