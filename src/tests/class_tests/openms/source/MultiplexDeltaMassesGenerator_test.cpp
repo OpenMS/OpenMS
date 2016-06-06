@@ -87,4 +87,21 @@ START_SECTION(void generateKnockoutDeltaMasses())
   TEST_EQUAL(masses_knockout[20].getDeltaMasses().size(), 1);
 END_SECTION
 
+START_SECTION(String MultiplexDeltaMassesGenerator::getLabelShort(String label))
+  TEST_EQUAL(list.getLabelShort("Label:13C(6)15N(2)"), "Lys8");
+  TEST_EQUAL(list.getLabelShort("Dimethyl:2H(6)13C(2)"), "Dimethyl8");
+END_SECTION
+
+START_SECTION(String MultiplexDeltaMassesGenerator::getLabelLong(String label))
+  TEST_EQUAL(list.getLabelLong("Lys8"), "Label:13C(6)15N(2)");
+  TEST_EQUAL(list.getLabelLong("Dimethyl8"), "Dimethyl:2H(6)13C(2)");
+END_SECTION
+
+START_SECTION(MultiplexDeltaMasses::LabelSet MultiplexDeltaMassesGenerator::extractLabelSet(AASequence sequence))
+  AASequence sequence = AASequence::fromString("LAPITSDPTEAAAVGAVEASFK(Label:13C(6)15N(2))");
+  MultiplexDeltaMasses::LabelSet label_set = list.extractLabelSet(sequence);
+  TEST_EQUAL(label_set.size(), 1);
+  TEST_EQUAL(*(label_set.begin()), "Lys8");
+END_SECTION
+
 END_TEST
