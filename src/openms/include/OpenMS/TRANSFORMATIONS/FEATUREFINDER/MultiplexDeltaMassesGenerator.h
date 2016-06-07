@@ -38,6 +38,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
 
 #include <vector>
@@ -56,7 +57,8 @@ namespace OpenMS
    * partners of 10 Da. This class constructs the complete list of all possible mass
    * shifts that arise from isotopic labelling.
    */
-  class OPENMS_DLLAPI MultiplexDeltaMassesGenerator
+  class OPENMS_DLLAPI MultiplexDeltaMassesGenerator :
+    public DefaultParamHandler
   {
     public:
 
@@ -73,6 +75,11 @@ namespace OpenMS
       Label(String sn, String ln, String d, double dm);
     };
    
+    /**
+     * @brief constructor
+     */
+    MultiplexDeltaMassesGenerator();
+    
     /**
      * @brief constructor
      * 
@@ -212,7 +219,7 @@ namespace OpenMS
      * e.g. "Label:13C(6)15N(4)" -> "Arg10"
      */
     std::map<String, String> label_long_short_;
-    
+        
  };
   
 }

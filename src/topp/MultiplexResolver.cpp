@@ -124,6 +124,7 @@ private:
 
     registerSubsection_("algorithm", "Parameters for the algorithm.");
     registerSubsection_("labels", "Isotopic labels that can be specified in section \'algorithm:labels\'.");
+    
   }
   
   // create parameters for sections (set default values and restrictions)
@@ -140,34 +141,15 @@ private:
     }
 
     if (section == "labels")
-    {
-      // create labels that can be chosen in section "algorithm/labels"
-      defaults.setValue("Arg6", 6.0201290268, "Label:13C(6)  |  C(-6) 13C(6)  |  unimod #188", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Arg6", 0.0);
-      defaults.setValue("Arg10", 10.008268600, "Label:13C(6)15N(4)  |  C(-6) 13C(6) N(-4) 15N(4)  |  unimod #267", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Arg10", 0.0);
-      defaults.setValue("Lys4", 4.0251069836, "Label:2H(4)  |  H(-4) 2H(4)  |  unimod #481", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Lys4", 0.0);
-      defaults.setValue("Lys6", 6.0201290268, "Label:13C(6)  |  C(-6) 13C(6)  |  unimod #188", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Lys6", 0.0);
-      defaults.setValue("Lys8", 8.0141988132, "Label:13C(6)15N(2)  |  C(-6) 13C(6) N(-2) 15N(2)  |  unimod #259", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Lys8", 0.0);
-      defaults.setValue("Dimethyl0", 28.031300, "Dimethyl  |  H(4) C(2)  |  unimod #36", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Dimethyl0", 0.0);
-      defaults.setValue("Dimethyl4", 32.056407, "Dimethyl:2H(4)  |  2H(4) C(2)  |  unimod #199", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Dimethyl4", 0.0);
-      defaults.setValue("Dimethyl6", 34.063117, "Dimethyl:2H(4)13C(2)  |  2H(4) 13C(2)  |  unimod #510", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Dimethyl6", 0.0);
-      defaults.setValue("Dimethyl8", 36.075670, "Dimethyl:2H(6)13C(2)  |  H(-2) 2H(6) 13C(2)  |  unimod #330", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Dimethyl8", 0.0);
-      defaults.setValue("ICPL0", 105.021464, "ICPL  |  H(3) C(6) N O  |  unimod #365", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("ICPL0", 0.0);
-      defaults.setValue("ICPL4", 109.046571, "ICPL:2H(4)  |  H(-1) 2H(4) C(6) N O  |  unimod #687", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("ICPL4", 0.0);
-      defaults.setValue("ICPL6", 111.041593, "ICPL:13C(6)  |  H(3) 13C(6) N O  |  unimod #364", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("ICPL6", 0.0);
-      defaults.setValue("ICPL10", 115.066700, "ICPL:13C(6)2H(4)  |  H(-1) 2H(4) 13C(6) N O  |  unimod #866", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("ICPL10", 0.0);
+    {     
+      MultiplexDeltaMassesGenerator generator;
+      Param p = generator.getParameters();
+      
+      for (Param::ParamIterator it2 = p.begin(); it2 != p.end(); ++it2)
+      {
+        defaults.setValue(it2->name, it2->value, it2->description, ListUtils::create<String>("advanced"));
+        defaults.setMinFloat(it2->name, 0.0);
+      }
     }
 
     return defaults;
