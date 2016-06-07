@@ -219,7 +219,11 @@ namespace OpenMS
      * e.g. "Label:13C(6)15N(4)" -> "Arg10"
      */
     std::map<String, String> label_long_short_;
-        
+    
+    /**
+     * @brief fill label master list
+     */
+    void fillLabelMasterList_();
  };
   
 }

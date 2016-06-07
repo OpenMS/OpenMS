@@ -145,10 +145,10 @@ private:
       MultiplexDeltaMassesGenerator generator;
       Param p = generator.getParameters();
       
-      for (Param::ParamIterator it2 = p.begin(); it2 != p.end(); ++it2)
+      for (Param::ParamIterator it = p.begin(); it != p.end(); ++it)
       {
-        defaults.setValue(it2->name, it2->value, it2->description, ListUtils::create<String>("advanced"));
-        defaults.setMinFloat(it2->name, 0.0);
+        defaults.setValue(it->name, it->value, it->description, ListUtils::create<String>("advanced"));
+        defaults.setMinFloat(it->name, 0.0);
       }
     }
 
@@ -180,20 +180,13 @@ private:
    */
   void getParameters_labels_()
   {
+    Param p = getParam_();
+    
     // create map of pairs (label as string, mass shift as double)
-    label_mass_shift_.insert(make_pair("Arg6", getParam_().getValue("labels:Arg6")));
-    label_mass_shift_.insert(make_pair("Arg10", getParam_().getValue("labels:Arg10")));
-    label_mass_shift_.insert(make_pair("Lys4", getParam_().getValue("labels:Lys4")));
-    label_mass_shift_.insert(make_pair("Lys6", getParam_().getValue("labels:Lys6")));
-    label_mass_shift_.insert(make_pair("Lys8", getParam_().getValue("labels:Lys8")));
-    label_mass_shift_.insert(make_pair("Dimethyl0", getParam_().getValue("labels:Dimethyl0")));
-    label_mass_shift_.insert(make_pair("Dimethyl4", getParam_().getValue("labels:Dimethyl4")));
-    label_mass_shift_.insert(make_pair("Dimethyl6", getParam_().getValue("labels:Dimethyl6")));
-    label_mass_shift_.insert(make_pair("Dimethyl8", getParam_().getValue("labels:Dimethyl8")));
-    label_mass_shift_.insert(make_pair("ICPL0", getParam_().getValue("labels:ICPL0")));
-    label_mass_shift_.insert(make_pair("ICPL4", getParam_().getValue("labels:ICPL4")));
-    label_mass_shift_.insert(make_pair("ICPL6", getParam_().getValue("labels:ICPL6")));
-    label_mass_shift_.insert(make_pair("ICPL10", getParam_().getValue("labels:ICPL10")));
+    for (Param::ParamIterator it = p.begin(); it != p.end(); ++it)
+    {
+      label_mass_shift_.insert(make_pair(it->name, it->value));
+    }
   }
 
   /**
