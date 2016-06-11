@@ -1014,7 +1014,7 @@ namespace OpenMS
             String score_name_placeholder = st.empty()?"search engine specific score for PSMs":st;
             sii_tmp += String(5, '\t') + cv_.getTermByName("search engine specific score for PSMs").toXMLString(cv_ns);
             sii_tmp += "\n" + String(5, '\t') + "<userParam name=\"" + score_name_placeholder
-                         + "\" unitName=\"" + "xsd:double" + "\" value=\"" + sc + "\"/>" + "\n";
+                         + "\" unitName=\"" + "xsd:double" + "\" value=\"" + sc + "\"/>";
             LOG_WARN << "Converting unknown score type to search engine specific score from PSI controlled vocabulary." << std::endl;
           }
           sii_tmp += "\n";
@@ -1242,14 +1242,8 @@ namespace OpenMS
            << "\t\t\t\t</Measure>\n";
         if (is_ppxl)
         {
-          os << "\t\t\t\t<Measure id=\"crosslink_chain\">\n"
-             << "\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1002508\" name=\"cross-linking attribute\"/>\n"
-             // TODO: this needs proper cv
-             << "\t\t\t\t</Measure>\n"
-             << "\t\t\t\t<Measure id=\"crosslink_ioncategory\">\n"
-             << "\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:100xxxx\" name=\"crosslink ion category\"/>\n"
-             // TODO: this needs proper cv
-             << "\t\t\t\t</Measure>\n";
+            os << "<!-- userParam cross-link_chain will contain a list of chain type corresponding to the indexed ion [alpha|beta] -->\n";
+            os << "<!-- userParam cross-link_ioncategory will contain a list of ion category corresponding to the indexed ion [xi|ci] -->\n";
         }
         os << "\t\t\t</FragmentationTable>\n";
         os << sil_it->second;
@@ -1448,9 +1442,9 @@ namespace OpenMS
                     + " values=\"" + ListUtils::concatenate(j->second[2], " ") + "\"/>\n";
           if (is_ppxl)
           {
-              s += String(indent+2, '\t') + "<FragmentArray measure_ref=\"crosslink_chain\""
+              s += String(indent+2, '\t') + "<userParam name=\"cross-link_chain\"" + " unitName=\"xsd:string\""
                         + " values=\"" + ListUtils::concatenate(j->second[3], " ") + "\"/>\n";
-              s += String(indent+2, '\t') + "<FragmentArray measure_ref=\"crosslink_ioncategory\""
+              s += String(indent+2, '\t') + "<userParam name=\"cross-link_ioncategory\"" + " unitName=\"xsd:string\""
                         + " values=\"" + ListUtils::concatenate(j->second[4], " ") + "\"/>\n";
           }
           s += String(indent+2, '\t') + cv_.getTermByName(j->first).toXMLString("PSI-MS") + "\n";
