@@ -2929,6 +2929,7 @@ protected:
 //              peptide_id.setMetaValue("xl_rank", DataValue(i + 1));
 
               peptide_id.setHits(phs);
+              peptide_id.setScoreType("OpenXQuest:cross-link score");
               peptide_ids.push_back(peptide_id);
               all_top_csms[all_top_csms.size()-1][i].peptide_id_index = peptide_ids.size()-1;
             }
