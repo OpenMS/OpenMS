@@ -40,7 +40,7 @@ using namespace std;
 namespace OpenMS
 {
     //TODO for all prepare* PSMId as written in PeptideIdentification::spectrum_reference
-    //  and pre/post AA as - if begin/end of protein ([/] in PeptideEvidence)
+    //  and pre/post AA as - if begin/end of protein ([/] in PeptideEvidence) - see prepareMULTIpin
     //id <tab> label <tab> scannr <tab> feature1 <tab> ... <tab> featureN <tab> peptide <tab> proteinId1 <tab> .. <tab> proteinIdM
 
     void TopPerc::prepareCUSTOMpin(vector<PeptideIdentification>& peptide_ids, TextFile& txt, vector<String>& user_param_features, char out_sep)
@@ -1203,6 +1203,164 @@ feature abbreviation	feature description
           row.push_back(ListUtils::concatenate(pepevid, out_sep));
 
           txt.addLine(ListUtils::concatenate(row, out_sep));
+        }
+      }
+    }
+
+    void TopPerc::prepareCONCATpin(vector<vector<PeptideIdentification> >& peptide_id_list, vector<vector<ProteinIdentification> >& protein_id_list, string& enz, TextFile& txt, int min_charge, int max_charge, char out_sep)
+    {
+      //-------------------------------------------------------------
+      // header
+      //-------------------------------------------------------------
+      // Create String of the charges for the header of the tab file
+      stringstream ss;
+      ss << "Charge" << min_charge << ", ";
+      for (int j = min_charge+1; j <= max_charge; j++)
+      {
+        ss << "Charge" << j << ",";
+      }
+
+      StringList ses_used;
+      for (vector<vector<ProteinIdentification> >::iterator it = protein_id_list.begin(); it != protein_id_list.end(); ++it)
+      {
+        ses_used.push_back(it->front().getSearchEngine());
+      }
+
+      LOG_INFO << "Using " << ListUtils::concatenate(ses_used, ", ") << " as source for search engine specific features." << endl;
+
+      String featureset = "id,label,ScanNr,"
+              + ListUtils::concatenate(ses_used, ",") + ","
+              + ss.str()
+              + "Evalue,ionfrac,mass,enzN,enzC,enzInt,numHits,dM,absdM,PepLen,peptide,proteinId1";
+      StringList txt_header = ListUtils::create<String>(featureset);
+      // Insert the header with the features names to the file
+      txt.addLine(ListUtils::concatenate(txt_header, out_sep));
+
+      //-------------------------------------------------------------
+      // values
+      //-------------------------------------------------------------
+      // get all the feature values
+      for (vector<vector<PeptideIdentification> >::iterator pit = peptide_id_list.begin(); pit != peptide_id_list.end(); ++pit)
+      {
+          size_t i = std::distance(peptide_id_list.begin(),pit);
+          String se = protein_id_list[i].front().getSearchEngine();
+          for (vector<PeptideIdentification>::iterator it = pit->begin(); it != pit->end(); ++it)
+          {
+            it->sort();
+            it->assignRanks();
+            String scanidentifier = getScanIdentifier(it, pit->begin());
+            StringList idents;
+            scanidentifier.split("=",idents);
+            String scannr = idents.back();
+            std::vector<PeptideHit> hits = it->getHits();
+            for (vector<PeptideHit>::iterator jt = hits.begin(); jt != hits.end(); ++jt)
+            {
+              int charge = jt->getCharge();
+              int label = 1;
+              if (jt->metaValueExists("target_decoy") && String(jt->getMetaValue("target_decoy")).hasSubstring("decoy"))
+              {
+                label = -1;
+              }
+
+              StringList sesp;
+              String ev;
+              for (StringList::iterator s = ses_used.begin(); s != ses_used.end(); ++s)
+              {
+                if ((*s) == se)
+                {
+                  if (se == "MS-GF+")
+                  {
+                    sesp.push_back(jt->getMetaValue("MS:1002049"));  // rawscore
+                    ev = jt->getMetaValue("MS:1002053");  // evalue
+                  }
+                  if (se == "Mascot")
+                  {
+                    sesp.push_back(jt->getMetaValue("Mascot_score"));
+                    ev = jt->getMetaValue("EValue");
+                  }
+                  if (se == "Comet")
+                  {
+                    sesp.push_back(jt->getMetaValue("MS:1002252"));  //xcorr
+                    ev = jt->getMetaValue("MS:1002257");  //evalue
+                  }
+                  if (se == "XTandem")
+                  {
+                    sesp.push_back(jt->getMetaValue("XTandem_score"));
+                    ev = jt->getMetaValue("E-Value");
+                  }
+                }
+                else
+                  sesp.push_back("-1");
+              }
+
+              StringList chargen;
+              // write 1 for the correct charge, 0 for other charges
+              for (int i = min_charge; i <= max_charge; ++i)
+              {
+                 if (charge != i)
+                 {
+                   chargen.push_back("0");
+                 }
+                 else
+                 {
+                   chargen.push_back("1");
+                 }
+              }
+
+              //IonFrac
+              String ionfrac = String(double(jt->getMetaValue("matched_intensity"))/double(jt->getMetaValue("sum_intensity")));  // also consider "matched_ion_number"/"peak_number"
+              //Mass
+              double mass = jt->getSequence().getMonoWeight(Residue::Full, charge)/charge;
+              //enzN
+              bool enzN = isEnz(jt->getPeptideEvidences().front().getAABefore(), jt->getSequence().getPrefix(1).toString().c_str()[0], enz);
+              //enzC
+              bool enzC = isEnz(jt->getSequence().getSuffix(1).toString().c_str()[0], jt->getPeptideEvidences().front().getAAAfter(), enz);
+              //enzInt
+              int enzInt = countEnzymatic(jt->getSequence().toUnmodifiedString(), enz);
+              //numHits
+              int numHits = jt->getScore();
+              //dM
+              double dm = it->getMZ() - mass;
+              //absdM
+              double absdm = abs(dm);
+              //PepLen
+              int peplen = jt->getSequence().size();
+              //peptide
+              String sequence = "";
+              //replace flanking aa if [ or ] with -
+              char pb = jt->getPeptideEvidences().front().getAABefore();
+              sequence += pb=='['?"-.":String(pb)+"."; // just first peptide evidence
+              sequence += jt->getSequence().toString();
+              char pa = jt->getPeptideEvidences().front().getAAAfter();
+              sequence += pa==']'?".-":"."+String(pa); // just first peptide evidence
+              //proteinId1
+              StringList pepevid;
+              for (vector<PeptideEvidence>::const_iterator kt = jt->getPeptideEvidences().begin(); kt != jt->getPeptideEvidences().end(); ++kt)
+              {
+                pepevid.push_back(kt->getProteinAccession());
+              }
+
+              StringList row;
+              row.push_back(scanidentifier+"_"+String(std::distance(hits.begin(),jt)));
+              row.push_back(label);
+              row.push_back(scannr);
+              row.push_back(ListUtils::concatenate(sesp, out_sep));
+              row.push_back(ListUtils::concatenate(chargen, out_sep));
+              row.push_back(ev);
+              row.push_back(ionfrac);
+              row.push_back(String(mass));
+              row.push_back(String(enzN));
+              row.push_back(String(enzC));
+              row.push_back(String(enzInt));
+              row.push_back(String(numHits));
+              row.push_back(String(dm));
+              row.push_back(String(absdm));
+              row.push_back(String(peplen));
+              row.push_back(sequence);
+              row.push_back(ListUtils::concatenate(pepevid, out_sep));
+
+              txt.addLine(ListUtils::concatenate(row, out_sep));
+          }
         }
       }
     }

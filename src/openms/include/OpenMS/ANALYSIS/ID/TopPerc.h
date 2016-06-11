@@ -115,6 +115,7 @@ namespace OpenMS
         static void prepareCOMETpin(std::vector<PeptideIdentification>& peptide_ids, std::string& enz, TextFile& txt, int min_charge, int max_charge, char out_sep='\t');
         static void prepareMASCOTpin(std::vector<PeptideIdentification>& peptide_ids, std::string& enz, TextFile& txt, int min_charge, int max_charge, char out_sep='\t');
         static void prepareMULTIpin(std::vector<PeptideIdentification>& peptide_ids, ProteinIdentification& protein_id, std::string& enz, TextFile& txt, int min_charge, int max_charge, char out_sep='\t');
+        static void prepareCONCATpin(std::vector<std::vector<PeptideIdentification> >& peptide_id_list, std::vector<std::vector<ProteinIdentification> >& protein_id_list, std::string& enz, TextFile& txt, int min_charge, int max_charge, char out_sep='\t');
         static size_t countEnzymatic(String peptide, std::string& enz);
         static double rescaleFragmentFeature(double featureValue, int NumMatchedMainIons);
         static String getScanIdentifier(std::vector<PeptideIdentification>::iterator it, std::vector<PeptideIdentification>::iterator start);

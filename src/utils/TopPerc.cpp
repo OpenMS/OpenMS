@@ -172,6 +172,7 @@ protected:
     registerFlag_("Q", "Uses protein group level inference, each cluster of proteins is either present or not, therefore when grouping proteins discard all possible combinations for each group.(Only valid if option -A is active and -N is inactive).", true);
     registerFlag_("MHC", "Add a feature for MHC ligand properties to the specific PSM.", true);
     registerFlag_("same_search_db", "Manual override to ckeck if same settings for multiple search engines were applied.", true);
+    registerFlag_("concat", "Manual override to concatenate multiple search results instead of merging on scan level.", true);
   }
 
   ExitCodes main_(int, const char**)
@@ -372,9 +373,17 @@ protected:
     //ignore all but first input if NOT multiple for now
     if (se == "multiple")
     {
-      TopPerc::mergeMULTIids(protein_ids_list,peptide_ids_list, getFlag_("same_search_db"));  // will collapse the list (reference)
-      LOG_DEBUG << "Merged to sizes " << protein_ids_list.size() << " and " << protein_ids_list.size() << endl;
-      TopPerc::prepareMULTIpin(peptide_ids_list.front(), protein_ids_list.front().front(), enz_str, txt, min_charge, max_charge);
+      if (getFlag_("concat"))
+      {
+        LOG_DEBUG << "Concatenating " << protein_ids_list.size() << " and " << peptide_ids_list.size() << endl;
+        TopPerc::prepareCONCATpin(peptide_ids_list, protein_ids_list, enz_str, txt, min_charge, max_charge);
+      }
+      else
+      {
+        TopPerc::mergeMULTIids(protein_ids_list,peptide_ids_list, getFlag_("same_search_db"));  // will collapse the list (reference)
+        LOG_DEBUG << "Merged to sizes " << protein_ids_list.size() << " and " << peptide_ids_list.size() << endl;
+        TopPerc::prepareMULTIpin(peptide_ids_list.front(), protein_ids_list.front().front(), enz_str, txt, min_charge, max_charge);
+      }
     }
     //TODO introduce custom feature selection from TopPerc::prepareCUSTOMpin to parameters
     else if (se == "MS-GF+") TopPerc::prepareMSGFpin(peptide_ids_list.front(), enz_str, txt, min_charge, max_charge, getFlag_("MHC"));
