@@ -1007,9 +1007,18 @@ namespace OpenMS
             sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName("MS-GF:RawScore").toXMLString(cv_ns, sc);
             copy_jt.removeMetaValue(cv_.getTermByName("MS-GF:RawScore").id);
           }
+          //TODO promote to CV as soon as it is registered in PSI-MS.obo
+//          else if (st == "OpenXQuest:cross-link score")
+//          {
+//            sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName(st).toXMLString(cv_ns, sc);
+//            copy_jt.removeMetaValue(cv_.getTermByName(st).id);
+//          }
           else
           {
-            sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName("search engine specific score for PSMs").toXMLString(cv_ns, sc);
+            String score_name_placeholder = st.empty()?"search engine specific score for PSMs":st;
+            sii_tmp += String(5, '\t') + cv_.getTermByName("search engine specific score for PSMs").toXMLString(cv_ns);
+            sii_tmp += "\n" + String(5, '\t') + "<userParam name=\"" + score_name_placeholder
+                         + "\" unitName=\"" + "xsd:double" + "\" value=\"" + sc + "\"/>" + "\n";
             LOG_WARN << "Converting unknown score type to search engine specific score from PSI controlled vocabulary." << std::endl;
           }
           sii_tmp += "\n";
@@ -1038,8 +1047,10 @@ namespace OpenMS
           sii_tmp += "\t\t\t\t</SpectrumIdentificationItem>\n";
           if (is_ppxl)
           {
+            DataValue rtcv(ert);
+            rtcv.setUnit("second");
             sii_tmp = sii_tmp.substitute("</SpectrumIdentificationItem>",
-                                         "\t" + cv_.getTermByName("retention time").toXMLString(cv_ns, ert) + "\n\t\t\t\t</SpectrumIdentificationItem>\n");
+                                         "\t" + cv_.getTermByName("retention time").toXMLString(cv_ns, rtcv) + "\n\t\t\t\t</SpectrumIdentificationItem>\n");
             ppxl_specref_2_element[sid] += sii_tmp;
             if (jt->metaValueExists("spec_heavy_RT") && jt->metaValueExists("spec_heavy_MZ"))
             {
@@ -1065,7 +1076,9 @@ namespace OpenMS
         }
         if (!ert.empty() && ert != "nan" && ert != "NaN" && !is_ppxl)
         {
-          sidres +=  "\t\t\t\t" + cv_.getTermByName("retention time").toXMLString(cv_ns, ert) + "\n";
+          DataValue rtcv(ert);
+          rtcv.setUnit("second");
+          sidres +=  "\t\t\t\t" + cv_.getTermByName("retention time").toXMLString(cv_ns, rtcv) + "\n";
         }
         if (!is_ppxl)
         {
@@ -1227,7 +1240,7 @@ namespace OpenMS
            << "\t\t\t\t\t<cvParam accession=\"MS:1001225\" cvRef=\"PSI-MS\" unitCvRef=\"PSI-MS\" unitName=\"m/z\" unitAccession=\"MS:1000040\" name=\"product ion m/z\"/>\n"
            << "\t\t\t\t</Measure>\n"
            << "\t\t\t\t<Measure id=\"Measure_int\">\n"
-           << "\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001226\" name=\"product ion intensity\" unitAccession=\"MS:1000131\" unitCvRef=\"UO\" unitName=\"number of counts\"/>\n"
+           << "\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001226\" name=\"product ion intensity\" unitAccession=\"MS:1000131\" unitCvRef=\"UO\" unitName=\"number of detector counts\"/>\n"
            << "\t\t\t\t</Measure>\n"
            << "\t\t\t\t<Measure id=\"Measure_error\">\n"
            << "\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001227\" name=\"product ion m/z error\" unitAccession=\"MS:1000040\" unitCvRef=\"PSI-MS\" unitName=\"m/z\"/>\n"
@@ -1460,7 +1473,7 @@ namespace OpenMS
       String r = file;
       if (r.hasPrefix("["))
         r = r.substr(1);
-      if (r.hasPrefix("["))
+      if (r.hasSuffix("]"))
         r = r.substr(0,r.size()-1);
       return r;
     }
