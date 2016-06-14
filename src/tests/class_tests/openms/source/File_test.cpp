@@ -215,7 +215,6 @@ START_SECTION(static String findDatabase(const String &db_name))
 
 END_SECTION
 
-
 START_SECTION(static String findExecutable(const OpenMS::String& toolName))
 {
 	TEST_EXCEPTION(Exception::FileNotFound, File::findExecutable("executable_does_not_exist"))
