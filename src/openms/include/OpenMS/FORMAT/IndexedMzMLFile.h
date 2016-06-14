@@ -50,14 +50,20 @@ namespace OpenMS
 {
 
   /**
-    @brief A class to read an indexedmzML file.
+    @brief A low-level class to read an indexedmzML file.
+
+    This class provides low-level access to the underlying data structures, if
+    you simply want to read an indexed mzML file you probably want to use
+    IndexedMzMLFileLoader instead.
 
     This class implements access to an indexedmzML file and the contained spectra
     and chromatogram data through the getSpectrumById and getChromatogramById
     functions. It thus allows random access to spectra and chromatograms data
-    without having to read the whole file into memory.
+    without having to read the whole file into memory. It does not provide the
+    same interface as MSExperiment, if this is desired, please use
+    IndexedMzMLFileLoader and OnDiscMSExperiment.
 
-    Internally it uses the IndexedMzMLDecoder for initial parsing and
+    Internally, it uses the IndexedMzMLDecoder for initial parsing and
     extracting all the offsets of the <chromatogram> and <spectrum> tags. These
     offsets are stored as members of this class as well as the offset to the <indexList> element
 
