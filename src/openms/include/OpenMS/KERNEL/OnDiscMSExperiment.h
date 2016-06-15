@@ -69,19 +69,22 @@ namespace OpenMS
 
 public:
 
-    OnDiscMSExperiment() {}
-
     /**
       @brief Constructor
 
-      This initializes the object and attempts to read the indexed mzML by
-      parsing the index and then reading the meta information into memory.
+      This initializes the object, use openFile to open a file.
     */
-    OnDiscMSExperiment(const String& filename)
-    {
-      openFile(filename);
-    }
+    OnDiscMSExperiment() {}
 
+    /**
+      @brief Open a specific file on disk.
+
+      This tries to read the indexed mzML by parsing the index and then reading
+      the meta information into memory.
+
+      @return Whether the parsing of the file was successful (if false, the
+      file most likely was not an indexed mzML file)
+    */
     bool openFile(const String& filename, bool skipMetaData = false)
     {
       filename_ = filename;
