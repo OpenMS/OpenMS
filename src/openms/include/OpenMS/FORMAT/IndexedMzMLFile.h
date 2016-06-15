@@ -97,6 +97,8 @@ namespace OpenMS
 
       Upon success, the chromatogram and spectra offsets will be populated and
       parsing_success_ will be set to true.
+
+      @note You *need* to check getParsingSuccess after calling this!
     */
     void parseFooter_(String filename);
 
