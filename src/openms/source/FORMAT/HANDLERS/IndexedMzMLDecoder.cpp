@@ -196,8 +196,7 @@ namespace OpenMS
         // free resources and re-throw
         delete[] buffer;
         f.close();
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename, 
-            "Corrupted / unreadable value in <indexListOffset> : " + thismatch);
+        throw;  // re-throw conversion error
       }
     }
     else

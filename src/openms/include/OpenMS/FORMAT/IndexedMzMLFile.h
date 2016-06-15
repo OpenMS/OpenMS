@@ -107,7 +107,7 @@ namespace OpenMS
     /**
       @brief Constructor
     */
-    IndexedMzMLFile() {}
+    IndexedMzMLFile() : parsing_success_(false), skip_xml_checks_(false) {}
 
     /**
       @brief Constructor
