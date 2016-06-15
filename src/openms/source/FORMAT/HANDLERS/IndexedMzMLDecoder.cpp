@@ -143,7 +143,7 @@ namespace OpenMS
 
     if (!f.is_open())
     {
-      return indexoffset;
+      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
     }
 
     // Read the last few bytes and hope our offset is there to be found
@@ -177,7 +177,8 @@ namespace OpenMS
         // free resources and re-throw
         delete[] buffer;
         f.close();
-        throw;
+        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename, 
+            "Corrupted / unreadable value in <indexListOffset> : " + thismatch);
       }
     }
     else
