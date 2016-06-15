@@ -98,6 +98,11 @@ namespace OpenMS
     // Open file, jump to end and read last indexoffset bytes into buffer.
     //-------------------------------------------------------------
     std::ifstream f(filename.c_str());
+    if (!f.is_open())
+    {
+      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+    }
+
     // get length of file:
     f.seekg(0, f.end);
     std::streampos length = f.tellg();
