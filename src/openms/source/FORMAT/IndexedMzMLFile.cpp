@@ -47,6 +47,11 @@ namespace OpenMS
     //-------------------------------------------------------------
 
     index_offset_ = IndexedMzMLDecoder().findIndexListOffset(filename);
+    if (index_offset_ == -1)
+    {
+      parsing_success_ = false;
+      return;
+    }
     int res = IndexedMzMLDecoder().parseOffsets(filename, index_offset_, spectra_offsets_, chromatograms_offsets_);
 
     spectra_before_chroms_ = true;
@@ -160,7 +165,7 @@ namespace OpenMS
 
     OpenMS::Interfaces::SpectrumPtr sptr(new OpenMS::Interfaces::Spectrum);
     MzMLSpectrumDecoder d;
-    d.setSkipXMLChecks(skip_xml_checks_ );
+    d.setSkipXMLChecks(skip_xml_checks_);
     d.domParseSpectrum(text, sptr);
 
 #ifdef DEBUG_READER
@@ -223,7 +228,7 @@ namespace OpenMS
 
     OpenMS::Interfaces::ChromatogramPtr sptr(new OpenMS::Interfaces::Chromatogram);
     MzMLSpectrumDecoder d;
-    d.setSkipXMLChecks(skip_xml_checks_ );
+    d.setSkipXMLChecks(skip_xml_checks_);
     d.domParseChromatogram(text, sptr);
 
 #ifdef DEBUG_READER
