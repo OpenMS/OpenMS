@@ -39,6 +39,7 @@
 #include <fstream>
 #include <string>
 #include <iostream>
+#include <new> // std::nothrow
 
 #include <xercesc/framework/MemBufInputSource.hpp>
 #include <xercesc/parsers/XercesDOMParser.hpp>
@@ -111,10 +112,23 @@ namespace OpenMS
     //-------------------------------------------------------------
     // Read full end of file to parse offsets for spectra and chroms
     //-------------------------------------------------------------
-    // read data as a block:
-    // allocate memory:
+    // read data as a block into a buffer
+
+    // allocate enough memory in buffer (+1 for string termination)
     std::streampos readl = length - indexoffset;
-    char* buffer = new char[ readl + std::streampos(1)];
+    char* buffer = new(std::nothrow) char[readl + std::streampos(1)];
+
+    // catch case where not enough memory is available
+    if (buffer == NULL)
+    {
+      // Warning: Index takes up more than 10 % of the whole file, please check your input file." << std::endl;
+      std::cerr << "IndexedMzMLDecoder::parseOffsets Could not allocate enough memory to read in index of indexedMzML" << std::endl; 
+      std::cerr << "IndexedMzMLDecoder::parseOffsets calculated index offset " << indexoffset << " and file length " << length << 
+        ", consequently tried to read into memory " << readl << " bytes." << std::endl;
+      return -1;
+    }
+
+    // read into memory
     f.seekg(-readl, f.end);
     f.read(buffer, readl);
     buffer[readl] = '\0';
