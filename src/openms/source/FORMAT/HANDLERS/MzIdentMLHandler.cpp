@@ -1007,12 +1007,11 @@ namespace OpenMS
             sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName("MS-GF:RawScore").toXMLString(cv_ns, sc);
             copy_jt.removeMetaValue(cv_.getTermByName("MS-GF:RawScore").id);
           }
-          //TODO promote to CV as soon as it is registered in PSI-MS.obo
-//          else if (st == "OpenXQuest:cross-link score")
-//          {
-//            sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName(st).toXMLString(cv_ns, sc);
-//            copy_jt.removeMetaValue(cv_.getTermByName(st).id);
-//          }
+          else if (st == "OpenXQuest:combined score")
+          {
+            sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName(st).toXMLString(cv_ns, sc);
+            copy_jt.removeMetaValue(cv_.getTermByName(st).id);
+          }
           else
           {
             String score_name_placeholder = st.empty()?"search engine specific score for PSMs":st;
@@ -1154,15 +1153,15 @@ namespace OpenMS
       //--------------------------------------------------------------------------------------------
       os << "<cvList> \n "
          << "\t<cv id=\"PSI-MS\" fullName=\"Proteomics Standards Initiative Mass Spectrometry Vocabularies\" "
-         << "uri=\"http://psidev.cvs.sourceforge.net/viewvc/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo\" "
+         << "uri=\"https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo\" "
          << "version=\"3.15.0\"></cv> \n "
          << "\t<cv id=\"UNIMOD\" fullName=\"UNIMOD\" uri=\"http://www.unimod.org/obo/unimod.obo\"></cv> \n"
          << "\t<cv id=\"UO\"     fullName=\"UNIT-ONTOLOGY\" "
-         << "uri=\"http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/unit.obo\"></cv>\n";
+         << "uri=\"https://raw.githubusercontent.com/bio-ontology-research-group/unit-ontology/master/unit.obo\"></cv>\n";
       if (is_ppxl)
       {
           os << "\t<cv id=\"XLMOD\" fullName=\"PSI cross-link modifications\" "
-             << "uri=\"https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/cv/XLMOD-1.0.0.csv\"></cv> \n";
+             << "uri=\"https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/cv/XLMOD-1.0.0.obo\"></cv> \n";
       }
       os << "</cvList>\n";
 
