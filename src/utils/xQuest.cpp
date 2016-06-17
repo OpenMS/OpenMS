@@ -178,7 +178,6 @@ public:
 
   };
 
-  //TODO: make protected
 protected:
   static void wrap_(const String& input, Size width, String & output)
   { 
@@ -196,7 +195,6 @@ protected:
     }
   }
 
-  // TODO: make protected
 protected:
   static String getxQuestBase64EncodedSpectrum_(const PeakSpectrum& spec, String header)
   {
@@ -240,6 +238,7 @@ protected:
     String out;
     out.concatenate(sl.begin(), sl.end(), "");
     in_strings.push_back(out);
+
     String out_encoded;
     Base64().encodeStrings(in_strings, out_encoded, false, false);   
     String out_wrapped;
@@ -1521,9 +1520,9 @@ protected:
     }
 
     // Write xQuest.xml output
-    void writeXQuestXML(const String& out_file, const vector< vector< CrossLinkSpectrumMatch > >& all_top_csms, const vector< PeptideIdentification >& peptide_ids, const PeakMap& spectra, String spec_xml_name)
+    void writeXQuestXML(const String& out_file, String base_name, const vector< PeptideIdentification >& peptide_ids, const vector< vector< CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra)
     {
-
+      String spec_xml_name = base_name + "_matched";
       ofstream xml_file;
       xml_file.open(out_file.c_str(), ios::trunc);
       // XML Header
@@ -1605,8 +1604,10 @@ protected:
           double precursor_rt_heavy = spectra[scan_index_heavy].getRT();
 
           // print information about new peak to file (starts with <spectrum_search..., ends with </spectrum_search>
-          String spectrum_light_name = String("spectrumlight") + scan_index_light;
-          String spectrum_heavy_name = String("spectrumheavy") + scan_index_heavy;
+          String spectrum_light_name = base_name + ".light." + scan_index_light;
+          String spectrum_heavy_name = base_name + ".heavy." + scan_index_heavy;
+//          String spectrum_light_name = String("spectrumlight") + scan_index_light;
+//          String spectrum_heavy_name = String("spectrumheavy") + scan_index_heavy;
           String spectrum_name = spectrum_light_name + String("_") + spectrum_heavy_name;
           String rt_scans = String(precursor_rt) + ":" + String(precursor_rt_heavy);
           String mz_scans = String(precursor_mz) + ":" + String(precursor_mz_heavy);
@@ -1655,9 +1656,12 @@ protected:
             }
 
             // Error calculation
-            double cl_mz = (weight + static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U) / static_cast<double>(precursor_charge);
-            double error = abs(cl_mz - precursor_mz);
-            double rel_error = error / precursor_mz / 1e-6;
+            double cl_mz = (weight + (static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U)) / static_cast<double>(precursor_charge);
+
+            double error = precursor_mz - cl_mz;
+            //double rel_error = (error / precursor_mz) / 1e-6;
+            double rel_error = (error / cl_mz) / 1e-6;
+            cout << "rel_error[ppm]: " << rel_error << "\terror: " << error << "\tcl_mz: " << cl_mz << "\tweight: " << weight << endl;
 
             PeptideIdentification pep_id = peptide_ids[top_csm->peptide_id_index];
             vector< PeptideHit > pep_hits = pep_id.getHits();
@@ -1709,9 +1713,9 @@ protected:
       return;
     }
 
-    void writeXQuestXMLSpec(String spec_xml_filename, const PeakMap& spectra, const PreprocessedPairSpectra_& preprocessed_pair_spectra, const vector< pair<Size, Size> >& spectrum_pairs, const vector< vector< CrossLinkSpectrumMatch > >& all_top_csms)
+    void writeXQuestXMLSpec(String base_name, const PreprocessedPairSpectra_& preprocessed_pair_spectra, const vector< pair<Size, Size> >& spectrum_pairs, const vector< vector< CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra)
     {
-
+      String spec_xml_filename = base_name + "_matched.spec.xml";
       // XML Header
       ofstream spec_xml_file;
       spec_xml_file.open(spec_xml_filename.c_str(), ios::trunc); // ios::app = append to file, ios::trunc = overwrites file
@@ -1724,8 +1728,11 @@ protected:
         {
           Size scan_index_light = spectrum_pairs[i].first;
           Size scan_index_heavy = spectrum_pairs[i].second;
-          String spectrum_light_name = String("spectrumlight") + scan_index_light;
-          String spectrum_heavy_name = String("spectrumheavy") + scan_index_heavy;
+          // TODO more correct alternative
+          String spectrum_light_name = base_name + ".light." + scan_index_light;
+          String spectrum_heavy_name = base_name + ".heavy." + scan_index_heavy;
+//          String spectrum_light_name = String("spectrumlight") + scan_index_light;
+//          String spectrum_heavy_name = String("spectrumheavy") + scan_index_heavy;
           String spectrum_name = spectrum_light_name + String("_") + spectrum_heavy_name;
 
           // 4 Spectra resulting from a light/heavy spectra pair.  Write for each spectrum, that is written to xquest.xml (should be all considered pairs, or better only those with at least one sensible Hit, meaning a score was computed)
@@ -1982,7 +1989,7 @@ protected:
 
     // As MetaValues
     search_params.setMetaValue("input_consensusXML", in_consensus);
-    //protein_ids[0].setMetaValue("input_mzML", in_mzml);
+    protein_ids[0].setMetaValue("input_mzML", in_mzml);
     //protein_ids[0].setMetaValue("input_database", in_fasta);
 
     search_params.setMetaValue("input_decoys", in_decoy_fasta);
@@ -2535,15 +2542,32 @@ protected:
 
 	  bool type_is_cross_link = cross_link_candidate.getType() == TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink::CROSS;
 
-          specGen.getCommonIonSpectrum(theoretical_spec_common_alpha, cross_link_candidate, 3, true);
+          Param specGenParams = specGen.getParameters();
+          specGenParams.setValue("add_isotopes", "true", "If set to 1 isotope peaks of the product ion peaks are added");
+          specGenParams.setValue("max_isotope", 2, "Defines the maximal isotopic peak which is added, add_isotopes must be set to 1");
+          specGenParams.setValue("add_losses", "false", "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
+          specGenParams.setValue("add_precursor_peaks", "false", "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
+          specGenParams.setValue("add_abundant_immonium_ions", "false", "Add most abundant immonium ions");
+          specGenParams.setValue("add_first_prefix_ion", "true", "If set to true e.g. b1 ions are added");
+          specGenParams.setValue("add_y_ions", "true", "Add peaks of y-ions to the spectrum");
+          specGenParams.setValue("add_b_ions", "true", "Add peaks of b-ions to the spectrum");
+          specGenParams.setValue("add_a_ions", "false", "Add peaks of a-ions to the spectrum");
+          specGenParams.setValue("add_c_ions", "false", "Add peaks of c-ions to the spectrum");
+          specGenParams.setValue("add_x_ions", "false", "Add peaks of  x-ions to the spectrum");
+          specGenParams.setValue("add_z_ions", "false", "Add peaks of z-ions to the spectrum");
+          // TODO does nothing yet
+          specGenParams.setValue("multiple_fragmentation_mode" , "false", "If set to true, multiple fragmentation events on the same cross-linked peptide pair are considered (HCD fragmentation)");
+          specGen.setParameters(specGenParams);
+
+          specGen.getCommonIonSpectrum(theoretical_spec_common_alpha, cross_link_candidate, 2, true);
           if (type_is_cross_link)
           {
-            specGen.getCommonIonSpectrum(theoretical_spec_common_beta, cross_link_candidate, 3, false);
-            specGen.getXLinkIonSpectrum(theoretical_spec_xlinks_alpha, theoretical_spec_xlinks_beta, cross_link_candidate, 2, 5);
+            specGen.getCommonIonSpectrum(theoretical_spec_common_beta, cross_link_candidate, 2, false);
+            specGen.getXLinkIonSpectrum(theoretical_spec_xlinks_alpha, theoretical_spec_xlinks_beta, cross_link_candidate, 2, precursor_charge);
           } else
           {
             // Function for mono-links or loop-links
-            specGen.getXLinkIonSpectrum(theoretical_spec_xlinks_alpha, cross_link_candidate, 2, 5);
+            specGen.getXLinkIonSpectrum(theoretical_spec_xlinks_alpha, cross_link_candidate, 2, precursor_charge);
           }
 
           vector< pair< Size, Size > > matched_spec_common_alpha;
@@ -2680,10 +2704,12 @@ protected:
                vector< double > xcorrc = xCorrelation(preprocessed_pair_spectra.spectra_common_peaks[pair_index], theoretical_spec_common, 5, 0.2);
 
                 // TODO save time: only needs to be done once per light spectrum, here it is repeated for cross-link each candidate
-                vector< double > aucorr = xCorrelation(spectrum_light, spectrum_light, 1, 0.2);
-                double aucorr_sum = accumulate(aucorr.begin(), aucorr.end(), 0.0);
-                double xcorrx_max = accumulate(xcorrx.begin(), xcorrx.end(), 0.0) / aucorr_sum;
-                double xcorrc_max = accumulate(xcorrc.begin(), xcorrc.end(), 0.0) / aucorr_sum;
+                vector< double > aucorrx = xCorrelation(spectrum_light, spectrum_light, 5, 0.3);
+                vector< double > aucorrc = xCorrelation(spectrum_light, spectrum_light, 5, 0.2);
+                double aucorr_sumx = accumulate(aucorrx.begin(), aucorrx.end(), 0.0);
+                double aucorr_sumc = accumulate(aucorrc.begin(), aucorrc.end(), 0.0);
+                double xcorrx_max = accumulate(xcorrx.begin(), xcorrx.end(), 0.0) / aucorr_sumx;
+                double xcorrc_max = accumulate(xcorrc.begin(), xcorrc.end(), 0.0) / aucorr_sumc;
 //                LOG_DEBUG << "xCorrelation X: " << xcorrx << endl;
 //                LOG_DEBUG << "xCorrelation C: " << xcorrc << endl;
 //                LOG_DEBUG << "Autocorr: " << aucorr << "\t Autocorr_sum: " << aucorr_sum << "\t xcorrx_max: " << xcorrx_max << "\t xcorrc_max: " << xcorrc_max << endl;
@@ -2796,7 +2822,7 @@ protected:
             }
             all_top_csms.push_back(top_csms_spectrum);
 
-            // Write top n hits to file
+            // Write PeptideIdentifications and PeptideHits for n top hits
             for (Size i = 0; i < top_csms_spectrum.size(); ++i)
             {
               PeptideIdentification peptide_id;
@@ -2937,10 +2963,14 @@ protected:
     }
     if (out_xquest.size() > 0)
     {
-      String spec_xml_name = getStringOption_("in").prefix(getStringOption_("in").size()-7) + "_matched";
-      String spec_xml_filename = spec_xml_name + ".spec.xml";
-      writeXQuestXML(out_xquest, all_top_csms, peptide_ids, spectra, spec_xml_name);
-      writeXQuestXMLSpec(spec_xml_filename, spectra, preprocessed_pair_spectra, spectrum_pairs, all_top_csms);
+      vector<String> input_split_dir;
+      vector<String> input_split;
+      getStringOption_("in").split(String("/"), input_split_dir);
+      input_split_dir[input_split_dir.size()-1].split(String("."), input_split);
+      String base_name = input_split[0];
+      //String spec_xml_filename = spec_xml_name + ".spec.xml";
+      writeXQuestXML(out_xquest, base_name, peptide_ids, all_top_csms, spectra);
+      writeXQuestXMLSpec(base_name, preprocessed_pair_spectra, spectrum_pairs, all_top_csms, spectra);
     }
     progresslogger.endProgress();
 
