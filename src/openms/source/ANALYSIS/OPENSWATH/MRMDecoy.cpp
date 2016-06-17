@@ -195,8 +195,7 @@ namespace OpenMS
           size_t pos_trials = 0;
           while (pep_pos < 0 && pos_trials < shuffled_sequence.size())
           {
-            pseudoRNG(); // TODO: remove debug code
-            pep_pos = 5; //TODO: remove debug code
+            pep_pos = (pseudoRNG() % shuffled_sequence.size());
             if (shuffled_sequence.isModified(pep_pos) || (shuffled_sequence.hasNTerminalModification() && pep_pos == 0) || (shuffled_sequence.hasNTerminalModification() && pep_pos == (int)(shuffled_sequence.size() - 1)))
             {
               pep_pos = -1;
@@ -463,22 +462,15 @@ namespace OpenMS
     } // end loop over peptides
     endProgress();
 
-    if (exclude_similar)
+    MRMDecoy::TransitionVectorType filtered_decoy_transitions;
+    for (MRMDecoy::TransitionVectorType::iterator tr_it = decoy_transitions.begin(); tr_it != decoy_transitions.end(); ++tr_it)
     {
-      MRMDecoy::TransitionVectorType filtered_decoy_transitions;
-      for (MRMDecoy::TransitionVectorType::iterator tr_it = decoy_transitions.begin(); tr_it != decoy_transitions.end(); ++tr_it)
+      if (std::find(exclusion_peptides.begin(), exclusion_peptides.end(), tr_it->getPeptideRef()) == exclusion_peptides.end())
       {
-        if (std::find(exclusion_peptides.begin(), exclusion_peptides.end(), tr_it->getPeptideRef()) == exclusion_peptides.end())
-        {
-          filtered_decoy_transitions.push_back(*tr_it);
-        }
+        filtered_decoy_transitions.push_back(*tr_it);
       }
-      dec.setTransitions(filtered_decoy_transitions);
     }
-    else
-    {
-      dec.setTransitions(decoy_transitions);
-    }
+    dec.setTransitions(filtered_decoy_transitions);
 
     std::vector<String> protein_ids;
     for (Size i = 0; i < peptides.size(); ++i)
