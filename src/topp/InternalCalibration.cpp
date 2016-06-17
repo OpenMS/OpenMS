@@ -181,7 +181,9 @@ protected:
     registerInputFile_("cal:lock_in", "<file>", "", "Input file containing reference m/z values (text file with each line as: m/z ms-level charge) which occur in all scans.", false);
     setValidFormats_("cal:lock_in", ListUtils::create<String>("csv"));
     registerOutputFile_("cal:lock_out", "<file>", "", "Optional output file containing peaks from 'in' which were matched to reference m/z values. Useful to see which peaks were used for calibration.", false);
-    setValidFormats_("cal:lock_out", ListUtils::create<String>("mzXML"));
+    setValidFormats_("cal:lock_out", ListUtils::create<String>("mzML"));
+    registerOutputFile_("cal:lock_fail_out", "<file>", "", "Optional output file containing lock masses which were NOT found or accepted(!) in data from 'in'. Useful to see which peaks were used for calibration.", false);
+    setValidFormats_("cal:lock_fail_out", ListUtils::create<String>("mzML"));
     registerFlag_("cal:lock_require_mono", "Require all lock masses to be monoisotopic, i.e. not the iso1, iso2 etc ('charge' column is used to determine the spacing). Peaks which are not mono-isotopic are not used.");
     registerFlag_("cal:lock_require_iso", "Require all lock masses to have at least the +1 isotope. Peaks without isotope pattern are not used.");
     registerStringOption_("cal:model_type", 
@@ -195,7 +197,7 @@ protected:
     
     registerIntList_("ms_level", "i j ...", ListUtils::create<int>("1,2,3"), "Target MS levels to apply the transformation onto. Does not affect calibrant collection.", false);
     
-    registerDoubleOption_("RT_chunking", "<RT window in [sec]>", 90, "RT window (one-sided, i.e. left->center, or center->right) around an MS scan in which calibrants are collected to build a model. Set to -1 to use ALL calibrants for all scans, i.e. a global model.", false);
+    registerDoubleOption_("RT_chunking", "<RT window in [sec]>", 300, "RT window (one-sided, i.e. left->center, or center->right) around an MS scan in which calibrants are collected to build a model. Set to -1 to use ALL calibrants for all scans, i.e. a global model.", false);
     
     registerTOPPSubsection_("RANSAC", "Robust outlier removal using RANSAC");
     registerFlag_("RANSAC:enabled", "Apply RANSAC to calibration points to remove outliers before fitting a model.");
@@ -207,7 +209,7 @@ protected:
     registerIntOption_("RANSAC:pc_inliers", "<# inliers>", 30, "Minimum percentage (of available data) of inliers (<threshold away from model) to accept the model.", false);
     setMinInt_("RANSAC:pc_inliers", 1);
     setMaxInt_("RANSAC:pc_inliers", 99);
-    registerIntOption_("RANSAC:iter", "<# iterations>", 40, "Maximal # iterations.", false);
+    registerIntOption_("RANSAC:iter", "<# iterations>", 70, "Maximal # iterations.", false);
     
     registerTOPPSubsection_("goodness", "Thresholds for accepting calibration success");
     registerDoubleOption_("goodness:median", "<threshold>", 4.0, "The median ppm error of calibrated masses must be smaller than this threshold.", false);
@@ -236,6 +238,7 @@ protected:
     String cal_id = getStringOption_("cal:id_in");
     String cal_lock = getStringOption_("cal:lock_in");
     String file_cal_lock_out = getStringOption_("cal:lock_out");
+    String file_cal_lock_fail_out = getStringOption_("cal:lock_fail_out");
     double rt_chunk = getDoubleOption_("RT_chunking");
     
     IntList ms_level = getIntList_("ms_level");
@@ -303,7 +306,8 @@ protected:
       bool lock_require_iso = getFlag_("cal:lock_require_iso");
 
       // match calibrants to data
-      ic.fillCalibrants(exp, ref_masses, tol_ppm, lock_require_mono, lock_require_iso, debug_level_ > 0);
+      CalibrationData failed_points;
+      ic.fillCalibrants(exp, ref_masses, tol_ppm, lock_require_mono, lock_require_iso, failed_points, debug_level_ > 0);
       
       // write matched lock mass peaks
       if (!file_cal_lock_out.empty())
@@ -312,6 +316,13 @@ protected:
         MSExperiment<> exp_out;
         exp_out.set2DData(ic.getCalibrationPoints(), CalibrationData::getMetaValues());
         mz_file.store(file_cal_lock_out, exp_out);
+      }
+      if (!file_cal_lock_fail_out.empty())
+      {
+        LOG_INFO << "\nWriting unmatched lock masses to mzML file '" << file_cal_lock_fail_out << "'." << std::endl;
+        MSExperiment<> exp_out;
+        exp_out.set2DData(failed_points, CalibrationData::getMetaValues());
+        mz_file.store(file_cal_lock_fail_out, exp_out);
       }
     }
     
