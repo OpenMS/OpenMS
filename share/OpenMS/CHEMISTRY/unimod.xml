@@ -11239,8 +11239,10 @@ corrected by subtraction of a further -O at 8.6.2010</umod:misc_notes>
                            spec_group="4">
             <umod:misc_notes>When dimethyl labelling is pre-digest</umod:misc_notes>
          </umod:specificity>
+         <!--
          <umod:specificity hidden="1" site="R" position="Anywhere" classification="Isotopic label"
                            spec_group="3"/>
+         -->
          <umod:specificity hidden="1" site="K" position="Anywhere" classification="Isotopic label"
                            spec_group="1"/>
          <umod:specificity hidden="1" site="N-term" position="Any N-term" classification="Isotopic label"
@@ -16013,6 +16015,23 @@ antiserum and mass spectrometric analysis</umod:text>
             <umod:url>http://dx.doi.org/10.1007/s00726-014-1879-8</umod:url>
          </umod:xref>
       </umod:mod>
+      <umod:mod title="Label:13C(8)15N(2)" full_name="13C(8) 15N(2) Silac label"
+                username_of_poster="nedamoc"
+                group_of_poster=""
+                date_time_posted="2008-06-30 20:11:08"
+                date_time_modified="2008-07-04 19:07:25"
+                approved="0"
+                record_id="854">
+         <umod:specificity hidden="1" site="R" position="Anywhere" classification="Isotopic label"
+                           spec_group="1"/>
+         <umod:delta mono_mass="10.020909" avge_mass="9.9281"
+                     composition="C(-8) 13C(8) N(-2) 15N(2)">
+            <umod:element symbol="C" number="-8"/>
+            <umod:element symbol="13C" number="8"/>
+            <umod:element symbol="N" number="-2"/>
+            <umod:element symbol="15N" number="2"/>
+         </umod:delta>
+      </umod:mod>
       <umod:mod title="Label:13C(1)2H(3)" full_name="SILAC" username_of_poster="msalek"
                 group_of_poster=""
                 date_time_posted="2008-08-11 13:43:25"
@@ -17853,6 +17872,29 @@ Efficient incorporation of unsaturated methionine analogues into proteins in viv
             <umod:element symbol="N" number="1"/>
          </umod:delta>
          <umod:misc_notes>sometimes observed after elution of phosphopeptides from TiO2 with ammonium hydroxide</umod:misc_notes>
+      </umod:mod>
+      <umod:mod title="BHAc" full_name="N-biotinyl-6-aminohexanoyl"
+                username_of_poster="natfre08"
+                group_of_poster=""
+                date_time_posted="2010-07-13 14:38:17"
+                date_time_modified="2010-08-02 17:37:08"
+                approved="0"
+                record_id="998">
+         <umod:specificity hidden="1" site="K" position="Anywhere" classification="Chemical derivative"
+                           spec_group="1"/>
+         <umod:delta mono_mass="339.161662" avge_mass="339.4530"
+                     composition="H(25) C(16) N(3) O(3) S">
+            <umod:element symbol="H" number="25"/>
+            <umod:element symbol="C" number="16"/>
+            <umod:element symbol="N" number="3"/>
+            <umod:element symbol="O" number="3"/>
+            <umod:element symbol="S" number="1"/>
+         </umod:delta>
+         <umod:xref>
+            <umod:text>Patricelli et al. (2007). Functional Interrogation of the Kinome Using Nucleotide Acyl Phosphates. Biochemistry, 46, 350-358.</umod:text>
+            <umod:source>Journal</umod:source>
+            <umod:url>http://pubs.acs.org/doi/abs/10.1021/bi062142x</umod:url>
+         </umod:xref>
       </umod:mod>
       <umod:mod title="Biotin:Sigma-B1267" full_name="was Biotin-maleimide"
                 username_of_poster="mpcusack"
@@ -37600,6 +37642,211 @@ Gu X1, Meer SG, Miyagi M, Rayborn ME, Hollyfield JG, Crabb JW, Salomon RG. ...ba
             <umod:source>PubMed PMID</umod:source>
             <umod:url>http://www.ncbi.nlm.nih.gov/pubmed/12923198</umod:url>
          </umod:xref>
+      </umod:mod>
+      <umod:mod title="Methyl:2H(2)13C"
+        full_name="Mono-methylation 2H(2)13C"
+        username_of_poster="Weng"
+        group_of_poster="admin"
+        date_time_posted="2015-07-10 12:00:00"
+        date_time_modified="2015-07-10 12:00:00"
+        approved="0"
+        record_id="99987">
+        <umod:specificity hidden="1" site="T" position="Anywhere" classification="Post-translational" spec_group="14"/>
+        <umod:specificity hidden="1" site="S" position="Anywhere" classification="Post-translational" spec_group="13"/>
+        <umod:specificity hidden="1" site="N-term" position="Protein N-term" classification="Chemical
+derivative" spec_group="10"/>
+        <umod:specificity hidden="0" site="E" position="Anywhere" classification="Post-translational" spec_group="12"/>
+        <umod:specificity hidden="0" site="D" position="Anywhere" classification="Post-translational" spec_group="15"/>
+        <umod:specificity hidden="0" site="C-term" position="Any C-term" classification="Multiple" spec_group="11"/>
+        <umod:specificity hidden="1" site="L" position="Anywhere" classification="Post-translational" spec_group="9"/>
+        <umod:specificity hidden="1" site="I" position="Anywhere" classification="Post-translational" spec_group="8"/>
+        <umod:specificity hidden="1" site="R" position="Anywhere" classification="Post-translational" spec_group="7"/>
+        <umod:specificity hidden="1" site="N-term" position="Any N-term" classification="Chemical
+derivative" spec_group="5"/>
+        <umod:specificity hidden="1" site="Q" position="Anywhere" classification="Post-translational" spec_group="6"/>
+        <umod:specificity hidden="1" site="N" position="Anywhere" classification="Post-translational" spec_group="4"/>
+        <umod:specificity hidden="1" site="K" position="Anywhere" classification="Chemical derivative" spec_group="3"/>
+        <umod:specificity hidden="1" site="H" position="Anywhere" classification="Post-translational" spec_group="2"/>
+        <umod:specificity hidden="1" site="C" position="Anywhere" classification="Post-translational" spec_group="1"/>
+        <umod:delta mono_mass="17.031558" avge_mass="17.0344805" composition="2H(2) 13C">
+          <umod:element symbol="2H" number="2"/>
+          <umod:element symbol="13C" number="1"/>
+        </umod:delta>
+      </umod:mod>
+      <umod:mod title="Glu->pyro-Glu+Methyl"
+        full_name="Pyro-gly from E + Mono-Methylation"
+        username_of_poster="Weng"
+        group_of_poster="admin"
+        date_time_posted="2015-07-06 12:00:00"
+        date_time_modified="2015-07-06 12:00:00"
+        approved="0"
+        record_id="99988">
+        <umod:specificity hidden="1" site="E" position="Any N-term" classification="Artefact"
+        spec_group="1"/>
+        <umod:delta mono_mass="-3.9949149358" avge_mass="-3.98872" composition="O(-1) C(1)">
+          <umod:element symbol="O" number="-1"/>
+          <umod:element symbol="C" number="1"/>
+        </umod:delta>
+      </umod:mod>
+      <umod:mod title="Glu->pyro-Glu+Methyl:2H(2)13C"
+        full_name="Pyro-gly from E + Mono-Methylation-Medium"
+        username_of_poster="Weng"
+        group_of_poster="admin"
+        date_time_posted="2015-07-06 12:00:00"
+        date_time_modified="2015-07-06 12:00:00"
+        approved="0"
+        record_id="99989">
+        <umod:specificity hidden="1" site="E" position="Any N-term" classification="Artefact"
+        spec_group="1"/>
+        <umod:delta mono_mass="-0.979005" avge_mass="-0.983746" composition="H(-2) O(-1) 2H(2) 13C(1)">
+          <umod:element symbol="H" number="-2"/>
+          <umod:element symbol="O" number="-1"/>
+          <umod:element symbol="2H" number="2"/>
+          <umod:element symbol="13C" number="1"/>
+        </umod:delta>
+      </umod:mod>
+      <umod:mod title="Dimethyl:2H(2)13C"
+        full_name="Dimethyl-Mono-Medium" username_of_poster="Lars"
+        group_of_poster="admin"
+        date_time_posted="2015-07-06 12:00:00"
+        date_time_modified="2015-07-06 12:00:00"
+        approved="0"
+        record_id="99990">
+        <umod:specificity hidden="1" site="N" position="Anywhere" classification="Post-translational" spec_group="4"/>
+        <umod:specificity hidden="1" site="N-term" position="Any N-term" classification="Chemical derivative" spec_group="3"/>
+        <umod:specificity hidden="1" site="R" position="Anywhere" classification="Post-translational" spec_group="2"/>
+        <umod:specificity hidden="1" site="K" position="Anywhere" classification="Post-translational" spec_group="1"/>
+        <umod:specificity hidden="1" site="P" position="Protein N-term" classification="Post-translational" spec_group="5"/>
+        <umod:delta mono_mass="31.047208" avge_mass="31.05814" composition="H(2) 2H(2) C(1) 13C(1)">
+          <umod:element symbol="H" number="2"/>
+          <umod:element symbol="2H" number="2"/>
+          <umod:element symbol="C" number="1"/>
+          <umod:element symbol="13C" number="1"/>
+        </umod:delta>
+      </umod:mod>
+      <umod:mod title="RNPXlink1" full_name="Cysteine Adduct" username_of_poster="Timo"
+                group_of_poster="admin"
+                date_time_posted="2002-08-19 19:17:11"
+                date_time_modified="2008-02-15 05:20:02"
+                approved="0"
+		record_id="99991">
+         <umod:specificity hidden="0" site="C" position="Anywhere" classification="Post-translational"
+		 spec_group="1"/>
+         <umod:delta mono_mass="151.99436" avge_mass="152.043276" composition="H(2) C(1) O(6) N(3)">
+            <umod:element symbol="H" number="2"/>
+            <umod:element symbol="C" number="1"/>
+            <umod:element symbol="O" number="6"/>
+            <umod:element symbol="N" number="3"/>
+         </umod:delta>
+      </umod:mod>	  
+      <umod:mod title="RNPXlink2" full_name="U-H2O loss of C5H9O7P" username_of_poster="Timo"
+                group_of_poster="admin"
+                date_time_posted="2002-08-19 19:17:11"
+                date_time_modified="2008-02-15 05:20:02"
+                approved="0"
+		record_id="99992">
+         <umod:specificity hidden="0" site="F" position="Anywhere" classification="Post-translational"
+		 spec_group="1">
+            <umod:NeutralLoss mono_mass="0.000000" avge_mass="0.0000" flag="false" composition="0"/>
+            <umod:NeutralLoss mono_mass="212.0085891536" avge_mass="212.094742" flag="false" composition="C(5) H(9) O(7) P(1)">
+              <umod:element symbol="C" number="5"/>
+              <umod:element symbol="H" number="9"/>
+              <umod:element symbol="O" number="7"/>
+              <umod:element symbol="P" number="1"/>
+            </umod:NeutralLoss>
+         </umod:specificity>
+         <umod:specificity hidden="0" site="L" position="Anywhere" classification="Post-translational"
+		 spec_group="2">
+            <umod:NeutralLoss mono_mass="0.000000" avge_mass="0.0000" flag="false" composition="0"/>
+            <umod:NeutralLoss mono_mass="212.0085891536" avge_mass="212.094742" flag="false" composition="C(5) H(9) O(7) P(1)">
+              <umod:element symbol="C" number="5"/>
+              <umod:element symbol="H" number="9"/>
+              <umod:element symbol="O" number="7"/>
+              <umod:element symbol="P" number="1"/>
+            </umod:NeutralLoss>
+         </umod:specificity>
+         <umod:specificity hidden="0" site="K" position="Anywhere" classification="Post-translational"
+		 spec_group="3">
+            <umod:NeutralLoss mono_mass="0.000000" avge_mass="0.0000" flag="false" composition="0"/>
+            <umod:NeutralLoss mono_mass="212.0085891536" avge_mass="212.094742" flag="false" composition="C(5) H(9) O(7) P(1)">
+              <umod:element symbol="C" number="5"/>
+              <umod:element symbol="H" number="9"/>
+              <umod:element symbol="O" number="7"/>
+              <umod:element symbol="P" number="1"/>
+            </umod:NeutralLoss>
+         </umod:specificity>
+         <umod:delta mono_mass="306.0253018503" avge_mass="306.166458" composition="C(9) H(11) N(2) O(8) P(1)">
+            <umod:element symbol="C" number="9"/>
+            <umod:element symbol="H" number="11"/>
+            <umod:element symbol="N" number="2"/>
+            <umod:element symbol="O" number="8"/>
+            <umod:element symbol="P" number="1"/>
+         </umod:delta>
+      </umod:mod>
+      <umod:mod title="RNPXlink3" full_name="U-H2O loss of H2PO3" username_of_poster="Timo"
+                group_of_poster="admin"
+                date_time_posted="2002-08-19 19:17:11"
+                date_time_modified="2008-02-15 05:20:02"
+                approved="0"
+		record_id="99993">
+         <umod:specificity hidden="0" site="F" position="Anywhere" classification="Post-translational" spec_group="1">
+            <umod:NeutralLoss mono_mass="0.000000" avge_mass="0.0000" flag="false" composition="0"/>
+            <umod:NeutralLoss mono_mass="80.97415" avge_mass="80.98784" flag="false" composition="H(2) P(1) O(3)">
+              <umod:element symbol="H" number="2"/>
+              <umod:element symbol="O" number="3"/>
+              <umod:element symbol="P" number="1"/>
+            </umod:NeutralLoss>
+         </umod:specificity>
+         <umod:specificity hidden="0" site="C" position="Anywhere" classification="Post-translational" spec_group="2">
+         </umod:specificity>
+         <umod:delta mono_mass="306.0253018503" avge_mass="306.166458" composition="C(9) H(11) N(2) O(8) P(1)">
+            <umod:element symbol="C" number="9"/>
+            <umod:element symbol="H" number="11"/>
+            <umod:element symbol="N" number="2"/>
+            <umod:element symbol="O" number="8"/>
+            <umod:element symbol="P" number="1"/>
+         </umod:delta>
+      </umod:mod>	
+      <umod:mod title="RNPXlink4" full_name="U-H2O gain of 152" username_of_poster="Timo"
+                group_of_poster="admin"
+                date_time_posted="2002-08-19 19:17:11"
+                date_time_modified="2008-02-15 05:20:02"
+                approved="0"
+		record_id="99994">
+         <umod:specificity hidden="0" site="C" position="Anywhere" classification="Post-translational" spec_group="1">
+         </umod:specificity>
+         <umod:delta mono_mass="458.02186" avge_mass="458.40709" composition="C(13) H(19) N(2) O(10) P(1) S(2)">
+            <umod:element symbol="C" number="13"/>
+            <umod:element symbol="H" number="19"/>
+            <umod:element symbol="N" number="2"/>
+            <umod:element symbol="O" number="10"/>
+            <umod:element symbol="P" number="1"/>
+            <umod:element symbol="S" number="2"/>
+         </umod:delta>
+      </umod:mod>	  	  
+	<umod:mod title="RNPXlink5" full_name="U potential loss of H3PO4" username_of_poster="Timo"
+		group_of_poster="admin"
+		date_time_posted="2002-08-19 19:17:11"
+		date_time_modified="2008-02-15 05:20:02"
+		approved="0"
+		record_id="99995">
+         <umod:specificity hidden="0" site="F" position="Anywhere" classification="Post-translational" spec_group="1">
+            <umod:NeutralLoss mono_mass="0.000000" avge_mass="0.0000" flag="false" composition="0"/>
+            <umod:NeutralLoss mono_mass="97.9768950947" avge_mass="97.995203" flag="false" composition="H(3) P(1) O(4)">
+              <umod:element symbol="H" number="3"/>
+              <umod:element symbol="O" number="4"/>
+              <umod:element symbol="P" number="1"/>
+            </umod:NeutralLoss>
+         </umod:specificity>
+         <umod:specificity hidden="0" site="Y" position="Anywhere" classification="Post-translational" spec_group="2">
+         </umod:specificity>
+         <umod:delta mono_mass="324.03585" avge_mass="324.18405" composition="C(9) H(13) N(2) O(9) P(1)">
+            <umod:element symbol="C" number="9"/>
+            <umod:element symbol="H" number="13"/>
+            <umod:element symbol="N" number="2"/>
+            <umod:element symbol="O" number="9"/>
+            <umod:element symbol="P" number="1"/>
+         </umod:delta>
       </umod:mod>
    </umod:modifications>
    <umod:amino_acids>
