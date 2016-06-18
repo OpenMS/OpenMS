@@ -251,6 +251,10 @@ private:
   bool matchDeltaMasses_(const ConsensusMap::ConstIterator consensus, const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern, double theoretical_delta_mass_at_label_set, std::vector<bool>& delta_mass_matched)
   {
     double first_mass = consensus->getFeatures().begin()->getMZ() * consensus->getFeatures().begin()->getCharge();
+    if (consensus->getPeptideIdentifications()[0].metaValueExists("map index"))
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Meta value 'map index' missing. In the IDMapper tool, please set the advanced parameter consensus:annotate_ids_with_subelements = true.");
+    }
     double detected_delta_mass_at_label_set = deltaMassFromMapIndex_(consensus->getFeatures(), consensus->getPeptideIdentifications()[0].getMetaValue("map index"));
     if (boost::math::isnan(detected_delta_mass_at_label_set))
     {
