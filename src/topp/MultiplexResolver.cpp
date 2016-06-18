@@ -117,9 +117,9 @@ private:
   {
     registerInputFile_("in", "<file>", "", "Peptide multiplets with assigned sequence information");
     setValidFormats_("in", ListUtils::create<String>("consensusXML"));
-    registerOutputFile_("out", "<file>", "", "Complete peptide multiplets.", false);
+    registerOutputFile_("out", "<file>", "", "Complete peptide multiplets.");
     setValidFormats_("out", ListUtils::create<String>("consensusXML"));
-    registerOutputFile_("out_conflicts", "<file>", "", "Optional output containing peptide multiplets with conflicting quant/ID information.", false, true);
+    registerOutputFile_("out_conflicts", "<file>", "", "Optional output containing peptide multiplets with conflicting quant/ID information.", false);
     setValidFormats_("out_conflicts", ListUtils::create<String>("consensusXML"));
 
     registerSubsection_("algorithm", "Parameters for the algorithm.");
@@ -541,7 +541,10 @@ public:
     ConsensusXMLFile file_out;
     ConsensusXMLFile file_out_conflicts;
     file_out.store(out_, map_out);
-    file_out_conflicts.store(out_conflicts_, map_conflicts);
+    if (!out_conflicts_.empty())
+    {
+      file_out_conflicts.store(out_conflicts_, map_conflicts);
+    }
    
     return EXECUTION_OK;
   }
