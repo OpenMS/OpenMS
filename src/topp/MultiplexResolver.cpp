@@ -310,7 +310,7 @@ private:
       {        
         // reset boolean vector
         unsigned i = delta_mass_matched.size();
-        delta_mass_matched.assign(i,false);
+        delta_mass_matched.assign(i, false);
         
         bool match = matchDeltaMasses_(consensus, pattern, shift, delta_mass_matched);
         if (match)
@@ -345,7 +345,7 @@ private:
       // find the first match
       if (*it_delta_mass_matched)
       {
-        return (mz * charge - it_mass_shift->delta_mass)/charge;
+        return (mz * charge - it_mass_shift->delta_mass) / charge;
       }
     }
     
@@ -420,7 +420,7 @@ private:
       {
         // construct dummy feature
         FeatureHandle feature_handle;
-        feature_handle.setMZ(mz_complete + it_mass_shift->delta_mass/charge);
+        feature_handle.setMZ(mz_complete + it_mass_shift->delta_mass / charge);
         feature_handle.setRT(RT);
         feature_handle.setIntensity(0.0);
         feature_handle.setCharge(charge);
