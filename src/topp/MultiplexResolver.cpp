@@ -119,7 +119,7 @@ private:
     setValidFormats_("in", ListUtils::create<String>("consensusXML"));
     registerOutputFile_("out", "<file>", "", "Complete peptide multiplets.");
     setValidFormats_("out", ListUtils::create<String>("consensusXML"));
-    registerOutputFile_("out_conflicts", "<file>", "", "Optional output containing peptide multiplets with conflicting quant/ID information.", false);
+    registerOutputFile_("out_conflicts", "<file>", "", "Optional output containing peptide multiplets without ID annotation or with conflicting quant/ID information.", false);
     setValidFormats_("out_conflicts", ListUtils::create<String>("consensusXML"));
 
     registerSubsection_("algorithm", "Parameters for the algorithm.");
@@ -455,6 +455,21 @@ private:
     
     for (ConsensusMap::ConstIterator cit = map_in.begin(); cit != map_in.end(); ++cit)
     {
+      //LOG_DEBUG << "consensus = " << (cit - map_in.begin());
+      //LOG_DEBUG << "       RT = " << cit->getRT();
+      //LOG_DEBUG << "       mz = " << cit->getMZ();
+      
+      // Consensus features without sequence annotations are written unchanged to the conflict output.
+      if (cit->getPeptideIdentifications().size() == 0)
+      {
+        //LOG_DEBUG << "  (no ID)\n\n";
+        
+        ConsensusFeature consensus(*cit);
+        map_conflicts.push_back(consensus);
+        
+        continue;
+      }
+      
       // extract the label set from the attached peptide sequence (There should be only one, since IDConflictResolver was run first.)
       AASequence sequence = cit->getPeptideIdentifications()[0].getHits()[0].getSequence();      
       MultiplexDeltaMasses::LabelSet label_set = generator.extractLabelSet(sequence);
@@ -462,11 +477,7 @@ private:
       int index_label_set = -1;
       
       int index = findMatchingPattern_(cit, label_set, theoretical_masses, delta_mass_matched, index_label_set);
-      
-      /*LOG_DEBUG << "consensus = " << (cit - map_in.begin());
-      LOG_DEBUG << "    RT = " << cit->getRT();
-      LOG_DEBUG << "    sequence = " << sequence;*/
-      
+            
       if (index >= 0)
       {
         //LOG_DEBUG << "  (Ok)\n\n";
