@@ -904,6 +904,11 @@ add_test("TOPP_MultiplexResolver_2_out1" ${DIFF} -whitelist "id=" "href=" -in1 M
 set_tests_properties("TOPP_MultiplexResolver_2_out1" PROPERTIES DEPENDS "TOPP_MultiplexResolver_2")
 add_test("TOPP_MultiplexResolver_2_out2" ${DIFF} -whitelist "id=" "href=" -in1 MultiplexResolver_2_conflicts.tmp -in2 ${DATA_DIR_TOPP}/MultiplexResolver_2_output_conflicts.consensusXML )
 set_tests_properties("TOPP_MultiplexResolver_2_out2" PROPERTIES DEPENDS "TOPP_MultiplexResolver_2")
+add_test("TOPP_MultiplexResolver_3" ${TOPP_BIN_PATH}/MultiplexResolver -test -in ${DATA_DIR_TOPP}/MultiplexResolver_3_input.consensusXML -ini ${DATA_DIR_TOPP}/MultiplexResolver_3_parameters.ini -out MultiplexResolver_3.tmp -out_conflicts MultiplexResolver_3_conflicts.tmp)
+add_test("TOPP_MultiplexResolver_3_out1" ${DIFF} -whitelist "id=" "href=" -in1 MultiplexResolver_3.tmp -in2 ${DATA_DIR_TOPP}/MultiplexResolver_3_output.consensusXML )
+set_tests_properties("TOPP_MultiplexResolver_3_out1" PROPERTIES DEPENDS "TOPP_MultiplexResolver_3")
+add_test("TOPP_MultiplexResolver_3_out3" ${DIFF} -whitelist "id=" "href=" -in1 MultiplexResolver_3_conflicts.tmp -in2 ${DATA_DIR_TOPP}/MultiplexResolver_3_output_conflicts.consensusXML )
+set_tests_properties("TOPP_MultiplexResolver_3_out3" PROPERTIES DEPENDS "TOPP_MultiplexResolver_3")
 
 if(NOT DISABLE_OPENSWATH)
   #------------------------------------------------------------------------------
