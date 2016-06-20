@@ -460,7 +460,7 @@ private:
       //LOG_DEBUG << "       mz = " << cit->getMZ();
       
       // Consensus features without sequence annotations are written unchanged to the conflict output.
-      if (cit->getPeptideIdentifications().size() == 0)
+      if (cit->getPeptideIdentifications().empty())
       {
         //LOG_DEBUG << "  (no ID)\n\n";
         
