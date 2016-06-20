@@ -55,7 +55,6 @@ MascotAdapterOnline
 MassTraceExtractor
 MRMMapper
 MSGFPlusAdapter
-MultiplexResolver
 MyriMatchAdapter
 MzTabExporter
 NoiseFilterGaussian
