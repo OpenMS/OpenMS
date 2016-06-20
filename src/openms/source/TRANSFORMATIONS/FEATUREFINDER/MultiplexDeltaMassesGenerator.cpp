@@ -241,6 +241,8 @@ namespace OpenMS
     {
       // Leu
       // We assume each sample to be labelled only once. Hence, we only consider samples_labels_[...][0] below.
+      // Unlike in classical SILAC where two labels with two different specificities are available, in Leu labelling
+      // there is only one specificity Leu. Hence, [Lys8,Arg10] but [Leu3].
       
       for (unsigned mc = 0; mc <= (unsigned) missed_cleavages_; ++mc)
       {
@@ -265,6 +267,10 @@ namespace OpenMS
     {
       // Dimethyl or ICPL
       // We assume each sample to be labelled only once. Hence, we only consider samples_labels_[...][0] below.
+      // Unlike in classical SILAC where two labels with two different specificities are available, in Dimethyl labelling
+      // there is only one specificity (Lys and N-term). Two labels [Lys8,Arg10] in a SILAC sample are fine, since
+      // both have different specificities. But two labels [Dimethyl4,Dimethyl8] make no sense, since both have the same
+      // specificity. With only one specificity in Dimethyl labelling available, each sample can have only one label.
 
       for (unsigned mc = 0; mc <= (unsigned) missed_cleavages_; ++mc)
       {
