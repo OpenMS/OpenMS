@@ -2844,7 +2844,7 @@ protected:
               }
 //              String id = structure + "-" + topology;
 
-              // TODO set the right ppxl-mod.csv entry  here!
+
               PeptideHit ph_alpha, ph_beta;
               // Set monolink as a modification or add MetaValue for cross-link identity and mass
               // TODO needs to be tested
@@ -2896,7 +2896,14 @@ protected:
               ph_alpha.setMetaValue("spectrum_reference_heavy", spectra[scan_index_heavy].getNativeID());
               ph_alpha.setMetaValue("xl_type", xltype);
               ph_alpha.setMetaValue("xl_rank", DataValue(i + 1));
-              ph_alpha.setFragmentAnnotations(top_csms_spectrum[i].frag_annotations_alpha);
+
+              ph_alpha.setMetaValue("OpenXQuest:xcorr xlink", top_csms_spectrum[i].xcorrx_max);
+              ph_alpha.setMetaValue("OpenXQuest:xcorr common", top_csms_spectrum[i].xcorrc_max);
+              ph_alpha.setMetaValue("OpenXQuest:match-odds", top_csms_spectrum[i].match_odds);
+              ph_alpha.setMetaValue("OpenXQuest:intsum", top_csms_spectrum[i].int_sum);
+              ph_alpha.setMetaValue("OpenXQuest:wTIC", top_csms_spectrum[i].wTIC);
+
+              ph_alpha.setFragmentAnnotations(top_csms_spectrum[i].frag_annotations);
               LOG_DEBUG << "Annotations of size " << ph_alpha.getFragmentAnnotations().size() << endl;
               phs.push_back(ph_alpha);
 
@@ -2913,6 +2920,12 @@ protected:
                 ph_beta.setMetaValue("spectrum_reference", spectra[scan_index].getNativeID());
                 ph_beta.setMetaValue("spectrum_reference_heavy", spectra[scan_index_heavy].getNativeID());
                 ph_beta.setFragmentAnnotations(top_csms_spectrum[i].frag_annotations_beta);
+
+                ph_beta.setMetaValue("OpenXQuest:xcorr xlink", top_csms_spectrum[i].xcorrx_max);
+                ph_beta.setMetaValue("OpenXQuest:xcorr common", top_csms_spectrum[i].xcorrc_max);
+                ph_beta.setMetaValue("OpenXQuest:match-odds", top_csms_spectrum[i].match_odds);
+                ph_beta.setMetaValue("OpenXQuest:intsum", top_csms_spectrum[i].int_sum);
+                ph_beta.setMetaValue("OpenXQuest:wTIC", top_csms_spectrum[i].wTIC);
 
                 phs.push_back(ph_beta);
               }
