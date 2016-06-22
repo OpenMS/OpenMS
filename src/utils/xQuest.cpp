@@ -2840,12 +2840,9 @@ protected:
               {
                 xltype = "loop-link";
               }
-//              String id = structure + "-" + topology;
-
 
               PeptideHit ph_alpha, ph_beta;
               // Set monolink as a modification or add MetaValue for cross-link identity and mass
-              // TODO needs to be tested
               AASequence seq_alpha = top_csms_spectrum[i].cross_link.alpha;
               if (top_csms_spectrum[i].cross_link.getType() == TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink::MONO)
               {
