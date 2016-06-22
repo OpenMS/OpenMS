@@ -145,7 +145,6 @@ public:
     Size matched_xlink_beta;
 
     vector<PeptideHit::FragmentAnnotation> frag_annotations_alpha;
-    vector<PeptideHit::FragmentAnnotation> frag_annotations_beta;
 
     Size peptide_id_index;
 //    PeptideIdentification *peptide_id = NULL;
@@ -2308,26 +2307,27 @@ protected:
 
         if (ion_index_mode)
         {
+          LOG_DEBUG << "Ion tag Mode, start collecting candidate peptides" << endl;
           // Use 50 most intense common peaks of exp. spectrum, consider all peptides that produce any of these as theor. common ions
           NLargest nlargest_filter = NLargest(50);
           PeakSpectrum common_peaks_50 = common_peaks;
           nlargest_filter.filterSpectrum(common_peaks_50);
           common_peaks_50.sortByPosition();
 
-          vector<AASequence*> ion_tag_candidates;
+          set<AASequence*> ion_tag_candidates;
           for (Size i = 0; i != common_peaks_50.size(); ++i)
           {
             const vector<AASequence*> new_ion_tag_candidates = hg.get(common_peaks_50[i].getMZ(), 5000);
             ion_tag_candidates.insert(ion_tag_candidates.end(), new_ion_tag_candidates.begin(), new_ion_tag_candidates.end());
           }
-          LOG_DEBUG << "Ion tag Mode, start uniquifying" << endl;
-          sort(ion_tag_candidates.begin(), ion_tag_candidates.end());
-          vector<AASequence*>::iterator last_unique = unique(ion_tag_candidates.begin(), ion_tag_candidates.end());
-          ion_tag_candidates.erase(last_unique, ion_tag_candidates.end());
-          LOG_DEBUG << "Ion tag Mode, end uniquifying" << endl;
+          //LOG_DEBUG << "Ion tag Mode, start uniquifying" << endl;
+          //sort(ion_tag_candidates.begin(), ion_tag_candidates.end());
+          //vector<AASequence*>::iterator last_unique = unique(ion_tag_candidates.begin(), ion_tag_candidates.end());
+          //ion_tag_candidates.erase(last_unique, ion_tag_candidates.end());
+          //LOG_DEBUG << "Ion tag Mode, end uniquifying" << endl;
 
           // Pre-Score all candidates
-          LOG_DEBUG << "Start pre-scoring peptide candidates...." << endl;
+          LOG_DEBUG << "Start pre-scoring candidate peptides...." << endl;
           vector<pair<double, AASequence*> > pre_scores;
           for (Size i = 0; i < ion_tag_candidates.size(); ++i)
           {
@@ -2752,7 +2752,6 @@ protected:
                 // write fragment annotations
                 LOG_DEBUG << "Start writing annotations" << endl;
                 vector<PeptideHit::FragmentAnnotation> frag_annotations_alpha;
-                vector<PeptideHit::FragmentAnnotation> frag_annotations_beta;
                 for (Size k = 0; k < matched_spec_common_alpha.size(); --k)
                 {
                   PeptideHit::FragmentAnnotation frag_anno;
@@ -2769,7 +2768,7 @@ protected:
                   frag_anno.mz = spectrum_light[matched_spec_common_beta[k].second].getMZ();
                   frag_anno.intensity = spectrum_light[matched_spec_common_beta[k].second].getIntensity();
                   frag_anno.annotation = theoretical_spec_common_beta[matched_spec_common_beta[k].first].getMetaValue("IonName");
-                  frag_annotations_beta.push_back(frag_anno);
+                  frag_annotations_alpha.push_back(frag_anno);
                 }
                 for (Size k = 0; k < matched_spec_xlinks_alpha.size(); --k)
                 {
@@ -2787,11 +2786,10 @@ protected:
                   frag_anno.mz = spectrum_light[matched_spec_xlinks_beta[k].second].getMZ();
                   frag_anno.intensity = spectrum_light[matched_spec_xlinks_beta[k].second].getIntensity();
                   frag_anno.annotation = theoretical_spec_xlinks_beta[matched_spec_xlinks_beta[k].first].getMetaValue("IonName");
-                  frag_annotations_beta.push_back(frag_anno);
+                  frag_annotations_alpha.push_back(frag_anno);
                 }
                 LOG_DEBUG << "End writing annotations" << endl;
                 csm.frag_annotations_alpha = frag_annotations_alpha;
-                csm.frag_annotation_beta = frag_annotations_beta;
 
                 all_csms_spectrum.push_back(csm);
               }
@@ -2911,7 +2909,6 @@ protected:
                 ph_beta.setMetaValue("spec_heavy_MZ", spectra[scan_index_heavy].getPrecursors()[0].getMZ());
                 ph_beta.setMetaValue("spectrum_reference", spectra[scan_index].getNativeID());
                 ph_beta.setMetaValue("spectrum_reference_heavy", spectra[scan_index_heavy].getNativeID());
-                ph_beta.setFragmentAnnotations(top_csms_spectrum[i].frag_annotations_beta);
 
                 phs.push_back(ph_beta);
               }
