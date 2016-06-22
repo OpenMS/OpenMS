@@ -506,6 +506,8 @@ namespace OpenMS
         sip += String(3, '\t') + "<userParam name=\"" + "charges" + "\" unitName=\"" + "xsd:string" + "\" value=\"" + it->getSearchParameters().charges + "\"/>" + "\n";
 //        sip += String(3, '\t') + "<userParam name=\"" + "missed_cleavages" + "\" unitName=\"" + "xsd:integer" + "\" value=\"" + String(it->getSearchParameters().missed_cleavages) + "\"/>" + "\n";
         sip += String("\t\t</AdditionalSearchParams>\n");
+        writeModParam_(sip, it->getSearchParameters().fixed_modifications, it->getSearchParameters().variable_modifications, 2);
+        writeEnzyme_(sip, it->getSearchParameters().digestion_enzyme, it->getSearchParameters().missed_cleavages, 2);
         sip += String("\t\t<FragmentTolerance>\n");
         String unit_str = "unitCvRef=\"UO\" unitName=\"dalton\" unitAccession=\"UO:0000221\"";
         if (it->getSearchParameters().fragment_mass_tolerance_ppm)
@@ -526,8 +528,6 @@ namespace OpenMS
         sip += String("\t\t</ParentTolerance>\n");
         sip += String("\t\t<Threshold>\n\t\t\t") + thcv + "\n";
         sip += String("\t\t</Threshold>\n");
-        writeModParam_(sip, it->getSearchParameters().fixed_modifications, it->getSearchParameters().variable_modifications, 2);
-        writeEnzyme_(sip, it->getSearchParameters().digestion_enzyme, it->getSearchParameters().missed_cleavages, 2);
         sip += String("\t</SpectrumIdentificationProtocol>\n");
         sip_set.insert(sip);
         sil_2_date.insert(make_pair(sil_id, String(it->getDateTime().getDate() + "T" + it->getDateTime().getTime())));
@@ -1003,9 +1003,17 @@ namespace OpenMS
             sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName("MS-GF:RawScore").toXMLString(cv_ns, sc);
             copy_jt.removeMetaValue(cv_.getTermByName("MS-GF:RawScore").id);
           }
+          else if (st == "OpenXQuest:combined score")
+          {
+            sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName(st).toXMLString(cv_ns, sc);
+            copy_jt.removeMetaValue(cv_.getTermByName(st).id);
+          }
           else
           {
-            sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName("search engine specific score for PSMs").toXMLString(cv_ns, sc);
+            String score_name_placeholder = st.empty()?"search engine specific score for PSMs":st;
+            sii_tmp += String(5, '\t') + cv_.getTermByName("search engine specific score for PSMs").toXMLString(cv_ns);
+            sii_tmp += "\n" + String(5, '\t') + "<userParam name=\"" + score_name_placeholder
+                         + "\" unitName=\"" + "xsd:double" + "\" value=\"" + sc + "\"/>";
             LOG_WARN << "Converting unknown score type to search engine specific score from PSI controlled vocabulary." << std::endl;
           }
           sii_tmp += "\n";
@@ -1033,8 +1041,10 @@ namespace OpenMS
           sii_tmp += "\t\t\t\t</SpectrumIdentificationItem>\n";
           if (is_ppxl)
           {
+            DataValue rtcv(ert);
+            rtcv.setUnit("second");
             sii_tmp = sii_tmp.substitute("</SpectrumIdentificationItem>",
-                                         "\t" + cv_.getTermByName("retention time").toXMLString(cv_ns, ert) + "\n\t\t\t\t</SpectrumIdentificationItem>\n");
+                                         "\t" + cv_.getTermByName("retention time").toXMLString(cv_ns, rtcv) + "\n\t\t\t\t</SpectrumIdentificationItem>\n");
             ppxl_specref_2_element[sid] += sii_tmp;
             if (jt->metaValueExists("spec_heavy_RT") && jt->metaValueExists("spec_heavy_MZ"))
             {
@@ -1060,7 +1070,9 @@ namespace OpenMS
         }
         if (!ert.empty() && ert != "nan" && ert != "NaN" && !is_ppxl)
         {
-          sidres +=  "\t\t\t\t" + cv_.getTermByName("retention time").toXMLString(cv_ns, ert) + "\n";
+          DataValue rtcv(ert);
+          rtcv.setUnit("second");
+          sidres +=  "\t\t\t\t" + cv_.getTermByName("retention time").toXMLString(cv_ns, rtcv) + "\n";
         }
         if (!is_ppxl)
         {
@@ -1136,15 +1148,15 @@ namespace OpenMS
       //--------------------------------------------------------------------------------------------
       os << "<cvList> \n "
          << "\t<cv id=\"PSI-MS\" fullName=\"Proteomics Standards Initiative Mass Spectrometry Vocabularies\" "
-         << "uri=\"http://psidev.cvs.sourceforge.net/viewvc/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo\" "
+         << "uri=\"https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo\" "
          << "version=\"3.15.0\"></cv> \n "
          << "\t<cv id=\"UNIMOD\" fullName=\"UNIMOD\" uri=\"http://www.unimod.org/obo/unimod.obo\"></cv> \n"
          << "\t<cv id=\"UO\"     fullName=\"UNIT-ONTOLOGY\" "
-         << "uri=\"http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/unit.obo\"></cv>\n";
+         << "uri=\"https://raw.githubusercontent.com/bio-ontology-research-group/unit-ontology/master/unit.obo\"></cv>\n";
       if (is_ppxl)
       {
           os << "\t<cv id=\"XLMOD\" fullName=\"PSI cross-link modifications\" "
-             << "uri=\"https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/cv/XLMOD-1.0.0.csv\"></cv> \n";
+             << "uri=\"https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/cv/XLMOD-1.0.0.obo\"></cv> \n";
       }
       os << "</cvList>\n";
 
@@ -1222,21 +1234,15 @@ namespace OpenMS
            << "\t\t\t\t\t<cvParam accession=\"MS:1001225\" cvRef=\"PSI-MS\" unitCvRef=\"PSI-MS\" unitName=\"m/z\" unitAccession=\"MS:1000040\" name=\"product ion m/z\"/>\n"
            << "\t\t\t\t</Measure>\n"
            << "\t\t\t\t<Measure id=\"Measure_int\">\n"
-           << "\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001226\" name=\"product ion intensity\" unitAccession=\"MS:1000131\" unitCvRef=\"UO\" unitName=\"number of counts\"/>\n"
+           << "\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001226\" name=\"product ion intensity\" unitAccession=\"MS:1000131\" unitCvRef=\"UO\" unitName=\"number of detector counts\"/>\n"
            << "\t\t\t\t</Measure>\n"
            << "\t\t\t\t<Measure id=\"Measure_error\">\n"
            << "\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001227\" name=\"product ion m/z error\" unitAccession=\"MS:1000040\" unitCvRef=\"PSI-MS\" unitName=\"m/z\"/>\n"
            << "\t\t\t\t</Measure>\n";
         if (is_ppxl)
         {
-          os << "\t\t\t\t<Measure id=\"crosslink_chain\">\n"
-             << "\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1002508\" name=\"cross-linking attribute\"/>\n"
-             // TODO: this needs proper cv
-             << "\t\t\t\t</Measure>\n"
-             << "\t\t\t\t<Measure id=\"crosslink_ioncategory\">\n"
-             << "\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:100xxxx\" name=\"crosslink ion category\"/>\n"
-             // TODO: this needs proper cv
-             << "\t\t\t\t</Measure>\n";
+            os << "<!-- userParam cross-link_chain will contain a list of chain type corresponding to the indexed ion [alpha|beta] -->\n";
+            os << "<!-- userParam cross-link_ioncategory will contain a list of ion category corresponding to the indexed ion [xi|ci] -->\n";
         }
         os << "\t\t\t</FragmentationTable>\n";
         os << sil_it->second;
@@ -1435,9 +1441,9 @@ namespace OpenMS
                     + " values=\"" + ListUtils::concatenate(j->second[2], " ") + "\"/>\n";
           if (is_ppxl)
           {
-              s += String(indent+2, '\t') + "<FragmentArray measure_ref=\"crosslink_chain\""
+              s += String(indent+2, '\t') + "<userParam name=\"cross-link_chain\"" + " unitName=\"xsd:string\""
                         + " values=\"" + ListUtils::concatenate(j->second[3], " ") + "\"/>\n";
-              s += String(indent+2, '\t') + "<FragmentArray measure_ref=\"crosslink_ioncategory\""
+              s += String(indent+2, '\t') + "<userParam name=\"cross-link_ioncategory\"" + " unitName=\"xsd:string\""
                         + " values=\"" + ListUtils::concatenate(j->second[4], " ") + "\"/>\n";
           }
           s += String(indent+2, '\t') + cv_.getTermByName(j->first).toXMLString("PSI-MS") + "\n";
@@ -1466,7 +1472,7 @@ namespace OpenMS
       String r = file;
       if (r.hasPrefix("["))
         r = r.substr(1);
-      if (r.hasPrefix("["))
+      if (r.hasSuffix("]"))
         r = r.substr(0,r.size()-1);
       return r;
     }
