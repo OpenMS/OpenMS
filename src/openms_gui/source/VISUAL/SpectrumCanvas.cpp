@@ -967,7 +967,7 @@ namespace OpenMS
       width = max(width, 4 + metrics.width(text[i]));
     }
 
-    //draw backgrond for text
+    //draw background for text
     painter.fillRect(2, 3, width, height, QColor(255, 255, 255, 200));
 
     //draw text
@@ -976,7 +976,6 @@ namespace OpenMS
     {
       painter.drawText(3, 3 + (i + 1) * line_spacing, text[i]);
     }
-
     painter.restore();
   }
 
