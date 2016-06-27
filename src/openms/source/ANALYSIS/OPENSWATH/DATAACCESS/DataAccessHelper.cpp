@@ -109,7 +109,7 @@ namespace OpenMS
       t.precursor_mz = transition_exp_.getTransitions()[i].getPrecursorMZ();
       t.library_intensity = transition_exp_.getTransitions()[i].getLibraryIntensity();
       t.peptide_ref = transition_exp_.getTransitions()[i].getPeptideRef();
-      t.product_charge = transition_exp_.getTransitions()[i].getProduct().getChargeState();
+      t.fragment_charge = transition_exp_.getTransitions()[i].getProduct().getChargeState();
       t.decoy = false;
 
       // legacy
