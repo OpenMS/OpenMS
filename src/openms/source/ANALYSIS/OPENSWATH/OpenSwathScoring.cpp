@@ -70,7 +70,7 @@ namespace OpenMS
 
   void OpenSwathScoring::calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature, const std::vector<TransitionType> & transitions,
       OpenSwath::SpectrumAccessPtr swath_map, OpenSwath::SpectrumAccessPtr ms1_map, OpenMS::DIAScoring & diascoring,
-      const PeptideType& pep, OpenSwath_Scores & scores)
+      const CompoundType& pep, OpenSwath_Scores & scores)
   {
     OPENMS_PRECONDITION(transitions.size() > 0, "There needs to be at least one transition.");
 
@@ -209,7 +209,7 @@ namespace OpenMS
   void OpenSwathScoring::calculateLibraryScores(
         OpenSwath::IMRMFeature* imrmfeature,
         const std::vector<TransitionType> & transitions,
-        const PeptideType& pep,
+        const CompoundType& pep,
         const double normalized_feature_rt,
         OpenSwath_Scores & scores)
   {

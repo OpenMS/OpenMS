@@ -88,8 +88,6 @@ namespace OpenMS
     typedef OpenSwath::SpectrumPtr SpectrumPtrType;
     /// Transition interface (Transition, Peptide, Protein)
     typedef OpenSwath::LightTransition TransitionType;
-    typedef OpenSwath::LightPeptide PeptideType;
-    typedef OpenSwath::LightProtein ProteinType;
     //@}
 
 public:

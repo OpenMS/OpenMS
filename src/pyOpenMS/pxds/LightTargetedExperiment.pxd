@@ -29,15 +29,18 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/Transition
         int location
         libcpp_string unimod_id
 
-    cdef cppclass LightPeptide:
-        LightPeptide() nogil except +
-        LightPeptide(LightPeptide) nogil except +
+    cdef cppclass LightCompound:
+        LightCompound() nogil except +
+        LightCompound(LightCompound) nogil except +
         double rt
         int charge
         libcpp_string sequence
         libcpp_vector[libcpp_string] protein_refs
         libcpp_string peptide_group_label
         libcpp_string id
+        libcpp_string sum_formula
+        libcpp_string compound_name
+
         libcpp_vector[LightModification] modifications
 
         int getChargeState() nogil except +
@@ -54,12 +57,12 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/Transition
         LightTargetedExperiment(LightTargetedExperiment &) nogil except +
 
         libcpp_vector[LightTransition] transitions
-        libcpp_vector[LightPeptide] peptides
+        libcpp_vector[LightCompound] compounds
         libcpp_vector[LightProtein] proteins
         libcpp_vector[LightTransition] getTransitions()  nogil except +
 
-        libcpp_vector[ LightPeptide ]  getPeptides() nogil except +
+        libcpp_vector[ LightCompound ]  getCompounds() nogil except +
         libcpp_vector[ LightProtein ]  getProteins() nogil except +
 
-        LightPeptide getPeptideByRef(libcpp_string & ref) nogil except +
+        LightCompound getCompoundByRef(libcpp_string & ref) nogil except +
 

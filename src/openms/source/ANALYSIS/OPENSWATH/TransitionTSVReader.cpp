@@ -135,6 +135,7 @@ namespace OpenMS
     /*
      * required fields:
      *
+     * TODO: PeptideSequence and ProteinName dont make sense with metabolites ... 
 
       "PrecursorMz",
       "ProductMz",
@@ -595,7 +596,7 @@ namespace OpenMS
 
   void TransitionTSVReader::TSVToTargetedExperiment_(std::vector<TSVTransition>& transition_list, OpenSwath::LightTargetedExperiment& exp)
   {
-    std::map<String, int> peptide_map;
+    std::map<String, int> compound_map;
     std::map<String, int> protein_map;
 
     resolveMixedSequenceGroups_(transition_list);
@@ -628,14 +629,14 @@ namespace OpenMS
 
       exp.transitions.push_back(transition);
 
-      // check whether we need a new peptide
-      if (peptide_map.find(tr_it->group_id) == peptide_map.end())
+      // check whether we need a new compound
+      if (compound_map.find(tr_it->group_id) == compound_map.end())
       {
-        OpenSwath::LightPeptide peptide;
+        OpenSwath::LightCompound compound;
         createPeptide_(tr_it, tramlpeptide);
-        OpenSwathDataAccessHelper::convertTargetedPeptide(tramlpeptide, peptide);
-        exp.peptides.push_back(peptide);
-        peptide_map[peptide.id] = 0;
+        OpenSwathDataAccessHelper::convertTargetedCompound(tramlpeptide, compound);
+        exp.compounds.push_back(compound);
+        compound_map[compound.id] = 0;
       }
 
       // check whether we need a new protein
@@ -936,8 +937,14 @@ namespace OpenMS
     peptide.sequence = tr_it->PeptideSequence;
 
     // TODO not really a peptide ... 
-    peptide.setMetaValue("SumFormula", tr_it->SumFormula);
-    peptide.setMetaValue("CompoundName", tr_it->CompoundName);
+    if (!tr_it->SumFormula.empty())
+    {
+      peptide.setMetaValue("SumFormula", tr_it->SumFormula);
+    }
+    if (!tr_it->CompoundName.empty())
+    {
+      peptide.setMetaValue("CompoundName", tr_it->CompoundName);
+    }
 
     // per peptide user params
     peptide.setMetaValue("full_peptide_name", tr_it->FullPeptideName);
@@ -1205,8 +1212,8 @@ namespace OpenMS
       mytransition.FullPeptideName = "";
       {
         // Instead of relying on the full_peptide_name, rather look at the actual modifications!
-        OpenSwath::LightPeptide lightpep;
-        OpenSwathDataAccessHelper::convertTargetedPeptide(pep, lightpep);
+        OpenSwath::LightCompound lightpep;
+        OpenSwathDataAccessHelper::convertTargetedCompound(pep, lightpep);
         for (int loc = -1; loc <= (int)lightpep.sequence.size(); loc++)
         {
           if (loc > -1 && loc < (int)lightpep.sequence.size())

@@ -231,9 +231,9 @@ namespace OpenMS
 
   void MRMFeatureFinderScoring::prepareProteinPeptideMaps_(OpenSwath::LightTargetedExperiment& transition_exp)
   {
-    for (Size i = 0; i < transition_exp.getPeptides().size(); i++)
+    for (Size i = 0; i < transition_exp.getCompounds().size(); i++)
     {
-      PeptideRefMap_[transition_exp.getPeptides()[i].id] = &transition_exp.getPeptides()[i];
+      PeptideRefMap_[transition_exp.getCompounds()[i].id] = &transition_exp.getCompounds()[i];
     }
   }
 
@@ -388,7 +388,7 @@ namespace OpenMS
       signal_noise_estimators.push_back(snptr);
     }
 
-    // get the expected rt value for this peptide
+    // get the expected rt value for this compound
     const PeptideType* pep = PeptideRefMap_[transition_group_detection.getTransitionGroupID()];
     double expected_rt = pep->rt;
     TransformationDescription newtr = trafo;

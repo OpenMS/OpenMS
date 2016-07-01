@@ -92,13 +92,15 @@ namespace OpenMS
       transition_exp.proteins.push_back(p);
     }
 
-    //copy peptides
+    //copy peptides and store as compounds
     for (Size i = 0; i < transition_exp_.getPeptides().size(); i++)
     {
-      OpenSwath::LightPeptide p;
-      OpenSwathDataAccessHelper::convertTargetedPeptide(transition_exp_.getPeptides()[i], p);
-      transition_exp.peptides.push_back(p);
+      OpenSwath::LightCompound p;
+      OpenSwathDataAccessHelper::convertTargetedCompound(transition_exp_.getPeptides()[i], p);
+      transition_exp.compounds.push_back(p);
     }
+
+    // TODO handle metabolites
 
     //mapping of transitions
     for (Size i = 0; i < transition_exp_.getTransitions().size(); i++)
@@ -196,7 +198,7 @@ namespace OpenMS
     }
   }
 
-  void OpenSwathDataAccessHelper::convertTargetedPeptide(const TargetedExperiment::Peptide& pep, OpenSwath::LightPeptide & p)
+  void OpenSwathDataAccessHelper::convertTargetedCompound(const TargetedExperiment::Peptide& pep, OpenSwath::LightCompound & p)
   {
     OpenSwath::LightModification m;
     OpenMS::ModificationsDB* mod_db = OpenMS::ModificationsDB::getInstance();
@@ -262,13 +264,15 @@ namespace OpenMS
     // transition_exp.peptides.push_back(p);
   }
 
-  void OpenSwathDataAccessHelper::convertPeptideToAASequence(const OpenSwath::LightPeptide & peptide, AASequence & aa_sequence)
+  void OpenSwathDataAccessHelper::convertPeptideToAASequence(const OpenSwath::LightCompound & peptide, AASequence & aa_sequence)
   {
-      aa_sequence = AASequence::fromString(peptide.sequence);
-      for (std::vector<OpenSwath::LightModification>::const_iterator it = peptide.modifications.begin(); it != peptide.modifications.end(); ++it)
-      {
-        TargetedExperimentHelper::setModification(it->location, boost::numeric_cast<int>(peptide.sequence.size()), it->unimod_id, aa_sequence);
-      }
+    OPENMS_PRECONDITION(peptide.isPeptide(), "Function needs peptide, not metabolite")
+
+    aa_sequence = AASequence::fromString(peptide.sequence);
+    for (std::vector<OpenSwath::LightModification>::const_iterator it = peptide.modifications.begin(); it != peptide.modifications.end(); ++it)
+    {
+      TargetedExperimentHelper::setModification(it->location, boost::numeric_cast<int>(peptide.sequence.size()), it->unimod_id, aa_sequence);
+    }
   }
 
 

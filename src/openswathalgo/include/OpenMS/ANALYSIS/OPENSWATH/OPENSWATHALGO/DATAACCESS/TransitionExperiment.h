@@ -130,7 +130,8 @@ public:
     std::string unimod_id;
   };
 
-  struct OPENSWATHALGO_DLLAPI LightPeptide
+  // A compound is either a peptide or a metabolite
+  struct OPENSWATHALGO_DLLAPI LightCompound
   {
     double rt;
     int charge;
@@ -166,23 +167,23 @@ public:
 
   struct OPENSWATHALGO_DLLAPI LightTargetedExperiment
   {
-    LightTargetedExperiment() : peptide_reference_map_dirty_(true) {}
+    LightTargetedExperiment() : compound_reference_map_dirty_(true) {}
 
     typedef LightTransition Transition;
-    typedef LightPeptide Peptide;
+    typedef LightCompound Peptide;
     typedef LightProtein Protein;
 
     std::vector<LightTransition> transitions;
-    std::vector<LightPeptide> peptides;
+    std::vector<LightCompound> compounds;
     std::vector<LightProtein> proteins;
     std::vector<LightTransition> & getTransitions()
     {
       return transitions;
     }
 
-    std::vector<LightPeptide> & getPeptides()
+    std::vector<LightCompound> & getCompounds()
     {
-      return peptides;
+      return compounds;
     }
 
     std::vector<LightProtein> & getProteins()
@@ -190,28 +191,35 @@ public:
       return proteins;
     }
 
-    const LightPeptide& getPeptideByRef(const std::string& ref)
+    // legacy
+    const LightCompound& getPeptideByRef(const std::string& ref)
     {
-      if (peptide_reference_map_dirty_)
+      return getCompoundByRef(ref);
+    }
+
+    const LightCompound& getCompoundByRef(const std::string& ref)
+    {
+      if (compound_reference_map_dirty_)
       {
         createPeptideReferenceMap_();
       }
-      return *(peptide_reference_map_[ref]);
+      return *(compound_reference_map_[ref]);
     }
 
   private:
 
     void createPeptideReferenceMap_()
     {
-      for (size_t i = 0; i < getPeptides().size(); i++)
+      for (size_t i = 0; i < getCompounds().size(); i++)
       {
-        peptide_reference_map_[getPeptides()[i].id] = &getPeptides()[i];
+        compound_reference_map_[getCompounds()[i].id] = &getCompounds()[i];
       }
-      peptide_reference_map_dirty_ = false;
+      compound_reference_map_dirty_ = false;
     }
 
-    bool peptide_reference_map_dirty_;
-    std::map<std::string, LightPeptide*> peptide_reference_map_;
+    // Map of compounds (peptides or metabolites)
+    bool compound_reference_map_dirty_;
+    std::map<std::string, LightCompound*> compound_reference_map_;
 
   };
 

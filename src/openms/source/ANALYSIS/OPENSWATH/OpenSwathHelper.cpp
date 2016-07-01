@@ -92,7 +92,7 @@ namespace OpenMS
                                                OpenSwath::LightTargetedExperiment& transition_exp_used, double min_upper_edge_dist,
                                                double lower, double upper)
   {
-    std::set<std::string> matching_peptides;
+    std::set<std::string> matching_compounds;
     for (Size i = 0; i < targeted_exp.transitions.size(); i++)
     {
       const OpenSwath::LightTransition& tr = targeted_exp.transitions[i];
@@ -100,18 +100,18 @@ namespace OpenMS
           std::fabs(upper - tr.getPrecursorMZ()) >= min_upper_edge_dist)
       {
         transition_exp_used.transitions.push_back(tr);
-        matching_peptides.insert(tr.getPeptideRef());
+        matching_compounds.insert(tr.getPeptideRef());
       }
     }
     std::set<std::string> matching_proteins;
-    for (Size i = 0; i < targeted_exp.peptides.size(); i++)
+    for (Size i = 0; i < targeted_exp.compounds.size(); i++)
     {
-      if (matching_peptides.find(targeted_exp.peptides[i].id) != matching_peptides.end())
+      if (matching_compounds.find(targeted_exp.compounds[i].id) != matching_compounds.end())
       {
-        transition_exp_used.peptides.push_back( targeted_exp.peptides[i] );
-        for (Size j = 0; j < targeted_exp.peptides[i].protein_refs.size(); j++)
+        transition_exp_used.compounds.push_back( targeted_exp.compounds[i] );
+        for (Size j = 0; j < targeted_exp.compounds[i].protein_refs.size(); j++)
         {
-          matching_proteins.insert(targeted_exp.peptides[i].protein_refs[j]);
+          matching_proteins.insert(targeted_exp.compounds[i].protein_refs[j]);
         }
       }
     }
@@ -126,17 +126,17 @@ namespace OpenMS
 
   std::pair<double,double> OpenSwathHelper::estimateRTRange(OpenSwath::LightTargetedExperiment & exp)
   {
-    if (exp.getPeptides().empty()) 
+    if (exp.getCompounds().empty()) 
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
         "Input list of targets is empty.");
     }
-    double max = exp.getPeptides()[0].rt;
-    double min = exp.getPeptides()[0].rt;
-    for (Size i = 0; i < exp.getPeptides().size(); i++)
+    double max = exp.getCompounds()[0].rt;
+    double min = exp.getCompounds()[0].rt;
+    for (Size i = 0; i < exp.getCompounds().size(); i++)
     {
-      if (exp.getPeptides()[i].rt < min) min = exp.getPeptides()[i].rt;
-      if (exp.getPeptides()[i].rt > max) max = exp.getPeptides()[i].rt;
+      if (exp.getCompounds()[i].rt < min) min = exp.getCompounds()[i].rt;
+      if (exp.getCompounds()[i].rt > max) max = exp.getCompounds()[i].rt;
     }
     return std::make_pair(min,max);
   }
