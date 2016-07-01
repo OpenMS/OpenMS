@@ -234,6 +234,13 @@ namespace OpenMS
           if (group_label.empty()) group_label = id;
           if (group_label == "light") group_label = id; // legacy fix since there are many TraMLs floating around which have "light" in there
 
+          // If a protein is present, take the first one
+          String protein_name = "";
+          if (!pep.protein_refs.empty() )
+          {
+            protein_name = pep.protein_refs[0];
+          }
+
           String line = "";
           line += id + "_run0"
             + "\t" + group_label
@@ -241,12 +248,12 @@ namespace OpenMS
             + "\t" + input_filename_
             + "\t" + (String)feature_it->getRT()
             + "\t" + "f_" + feature_it->getUniqueId()  // TODO might not be unique!!!
-            + "\t" + pep.sequence
+            + "\t" + (String)pep.sequence
             + "\t" + full_peptide_name
             + "\t" + (String)pep.charge
             + "\t" + (String)transition->precursor_mz
             + "\t" + (String)feature_it->getIntensity()
-            + "\t" + pep.protein_refs[0] // TODO what about other proteins?
+            + "\t" + protein_name 
             + "\t" + decoy
             // Note: missing MetaValues will just produce a DataValue::EMPTY which lead to an empty column
             + "\t" + (String)feature_it->getMetaValue("assay_rt")
@@ -1858,6 +1865,7 @@ protected:
     {
       feature_finder_param.setValue("Scores:use_uis_scores", "true");
     }
+
 
     ///////////////////////////////////
     // Load the SWATH files
