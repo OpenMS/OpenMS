@@ -447,6 +447,14 @@ namespace OpenMS
         {
           osecv = "Percolator";
         }
+        else if (sof_name == "OpenMSxQuest")
+        {
+          osecv = "OpenXQuest";
+        }
+        else if (cv_.hasTermWithName(sof_name))
+        {
+          osecv = sof_name;
+        }
         else
         {
           osecv = "analysis software";
@@ -793,7 +801,7 @@ namespace OpenMS
               if (jt->getMetaValue("xl_chain") == "MS:1002509")  // N.B. longer one is the donor, equals the heavier, equals, the alphabetical first
               {
                 p += "\" monoisotopicMassDelta=\"" + jt->getMetaValue("xl_mass").toString() + "\"> \n";
-                p += "\t\t\t<cvParam accession=\"XL:00002\" cvRef=\"XLMOD\" name=\"Xlink:DSS\"/>\n";
+                p += "\t\t\t<cvParam accession=\"XL:00002\" cvRef=\"XLMOD\" name=\"DSS\"/>\n";
               }
               else
               {
@@ -1136,11 +1144,11 @@ namespace OpenMS
       }
       os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
          << "<MzIdentML xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n"
-         << "\txsi:schemaLocation=\"http://psidev.info/psi/pi/mzIdentML/"<< v_s <<" "
+         << "\txsi:schemaLocation=\"http://psidev.info/psi/pi/mzIdentML/"<< v_s.substr(0,v_s.size()-2) <<" "
          << "https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/schema/mzIdentML"<< v_s <<".xsd\"\n"
-         << "\txmlns=\"http://psidev.info/psi/pi/mzIdentML/"<< v_s <<"\"\n"
+         << "\txmlns=\"http://psidev.info/psi/pi/mzIdentML/"<< v_s.substr(0,v_s.size()-2) <<"\"\n"
          << "\tversion=\"" << v_s << "\"\n";
-       os << "\tid=\"OpenMS_" << String(UniqueIdGenerator::getUniqueId()) << "\"\n"
+      os << "\tid=\"OpenMS_" << String(UniqueIdGenerator::getUniqueId()) << "\"\n"
          << "\tcreationDate=\"" << DateTime::now().getDate() << "T" << DateTime::now().getTime() << "\">\n";
 
       //--------------------------------------------------------------------------------------------
@@ -1474,6 +1482,7 @@ namespace OpenMS
         r = r.substr(1);
       if (r.hasSuffix("]"))
         r = r.substr(0,r.size()-1);
+      r.substitute("\\","/");
       return r;
     }
   } //namespace Internal
