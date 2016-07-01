@@ -115,6 +115,7 @@ private:
       String Annotation;
       String FullPeptideName;
       String CompoundName;
+      String SMILES;
       String SumFormula;
       int precursor_charge;
       String peptide_group_label;
@@ -128,6 +129,9 @@ private:
       bool detecting_transition;
       bool identifying_transition;
       bool quantifying_transition;
+
+      // By convention, if there is no (metabolic) compound name, it is a peptide 
+      bool isPeptide() {return CompoundName.empty();};
     };
 
     static const char* strarray_[];
@@ -199,11 +203,20 @@ private:
      */
     void resolveMixedSequenceGroups_(std::vector<TSVTransition>& transition_list);
 
+    /// Populate a new ReactionMonitoringTransition object from a row in the csv
     void createTransition_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::ReactionMonitoringTransition& rm_trans);
 
+    /// Populate a new TargetedExperiment::Protein object from a row in the csv
     void createProtein_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Protein& protein);
 
+    /// Helper function to assign retention times to compounds and peptides
+    void interpretRetentionTime_(std::vector<TargetedExperiment::RetentionTime>& retentiont_times, const OpenMS::DataValue rt_value);
+
+    /// Populate a new TargetedExperiment::Peptide object from a row in the csv
     void createPeptide_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Peptide& peptide);
+
+    /// Populate a new TargetedExperiment::Compound object (a metabolite) from a row in the csv
+    void createCompound_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Compound& compound);
 
     void addModification_(std::vector<TargetedExperiment::Peptide::Modification>& mods,
                           int location, ResidueModification& rmod, const String& name);
