@@ -464,7 +464,7 @@ namespace OpenMS
       int progress = 0;
       this->startProgress(0, swath_maps.size(), "Extracting and scoring transitions");
 
-      // (i) Obtain precursor chromatograms if precursor extraction is enabled
+      // (i) Obtain precursor chromatograms (MS1) if precursor extraction is enabled
       std::map< std::string, OpenSwath::ChromatogramPtr > ms1_chromatograms;
       for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
       {
@@ -504,7 +504,7 @@ namespace OpenMS
         }
       }
 
-      // (ii) Perform extraction and scoring of fragment ion chromatograms
+      // (ii) Perform extraction and scoring of fragment ion chromatograms (MS2)
       // We set dynamic scheduling such that the maps are worked on in the order
       // in which they were given to the program / acquired. This gives much
       // better load balancing than static allocation.
@@ -1126,7 +1126,9 @@ namespace OpenMS
         trans_peptide_map[transition_exp_used.getPeptides()[i].id] = &transition_exp_used.getPeptides()[i];
       }
 
-      // Determine iteration size (nr peptides or nr transitions)
+      // Determine iteration size: 
+      // When extracting MS1/precursor transitions, we iterate over peptides.
+      // Otherwise (for SWATH/fragment ions), we iterate over the transitions.
       Size itersize;
       if (ms1) {itersize = transition_exp_used.getPeptides().size();}
       else     {itersize = transition_exp_used.getTransitions().size();}
@@ -1157,7 +1159,7 @@ namespace OpenMS
 
           // This is slightly awkward but the m/z of the precursor is *not*
           // stored in the precursor object but only in the transition object
-          // itself.
+          // itself. So we have to get the first transition to look it up.
           transition = (*peptide_trans_map[pep.id][0]);
           coord.mz = transition.getPrecursorMZ();
           coord.id = pep.id;
@@ -1521,7 +1523,7 @@ protected:
     registerInputFile_("rt_norm", "<file>", "", "RT normalization file (how to map the RTs of this run to the ones stored in the library). If set, tr_irt may be omitted.", false, true);
     setValidFormats_("rt_norm", ListUtils::create<String>("trafoXML"));
 
-    registerInputFile_("swath_windows_file", "<file>", "", "Optional, tab separated file containing the SWATH windows: lower_offset upper_offset \\newline 400 425 \\newline ... Note that the first line is a header and will be skipped.", false, true);
+    registerInputFile_("swath_windows_file", "<file>", "", "Optional, tab separated file containing the SWATH windows for extraction: lower_offset upper_offset \\newline 400 425 \\newline ... Note that the first line is a header and will be skipped.", false, true);
     registerFlag_("sort_swath_maps", "Sort of input SWATH files when matching to SWATH windows from swath_windows_file", true);
 
     registerFlag_("use_ms1_traces", "Extract the precursor ion trace(s) and use for scoring", true);
@@ -1898,22 +1900,23 @@ protected:
 
       if (upper_map_start - lower_map_end > 0.01)
       {
-        LOG_INFO << "Extraction will have a gap between " << lower_map_end << " and " << upper_map_start << std::endl;
+        LOG_WARN << "Extraction will have a gap between " << lower_map_end << " and " << upper_map_start << std::endl;
         if (!force)
         {
-          LOG_INFO << "Will abort (override with -force)" << std::endl;
+          LOG_ERROR << "Extraction windows have a gap. Will abort (override with -force)" << std::endl;
           return PARSE_ERROR;
         }
       }
 
       if (lower_map_end - upper_map_start > 0.01)
       {
-        LOG_INFO << "Extraction will overlap between " << lower_map_end << " and " << upper_map_start << std::endl;
-        LOG_INFO << "This will lead to multiple extraction of the transitions in this region which should be avoided." << std::endl;
-        LOG_INFO << "Please fix this by providing an appropriate extraction file with -swath_windows_file" << std::endl;
+        LOG_WARN << "Extraction will overlap between " << lower_map_end << " and " << upper_map_start << std::endl;
+        LOG_WARN << "This will lead to multiple extraction of the transitions in the overlapping region" << 
+                    "which will lead to duplicated output. It is very unlikely that you want this." << std::endl;
+        LOG_WARN << "Please fix this by providing an appropriate extraction file with -swath_windows_file" << std::endl;
         if (!force)
         {
-          LOG_INFO << "Will abort (override with -force)" << std::endl;
+          LOG_ERROR << "Extraction windows overlap. Will abort (override with -force)" << std::endl;
           return PARSE_ERROR;
         }
       }
