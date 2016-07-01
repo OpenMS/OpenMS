@@ -140,6 +140,16 @@ public:
     std::string peptide_group_label;
     std::string id;
 
+    // for metabolites
+    std::string sum_formula;
+    std::string compound_name;
+
+    // By convention, if there is no (metabolic) compound name, it is a peptide 
+    bool isPeptide() const
+    {
+      return compound_name.empty();
+    }
+
     int getChargeState() const
     {
       return charge;

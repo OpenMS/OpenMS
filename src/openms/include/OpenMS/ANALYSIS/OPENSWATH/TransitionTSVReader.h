@@ -114,6 +114,8 @@ private:
       String ProteinName;
       String Annotation;
       String FullPeptideName;
+      String CompoundName;
+      String SumFormula;
       int precursor_charge;
       String peptide_group_label;
       String label_type;

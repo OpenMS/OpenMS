@@ -210,13 +210,24 @@ namespace OpenMS
     p.sequence = pep.sequence;
     p.peptide_group_label = pep.getPeptideGroupLabel();
 
+    // Is it potentially a metabolomics compound
+    if (pep.metaValueExists("SumFormula"))
+    {
+      p.sum_formula = (std::string)pep.getMetaValue("SumFormula");
+    }
+    if (pep.metaValueExists("CompoundName"))
+    {
+      p.compound_name = (std::string)pep.getMetaValue("CompoundName");
+    }
+
     p.protein_refs.clear();
     if (!pep.protein_refs.empty())
     {
       p.protein_refs.insert( p.protein_refs.begin(), pep.protein_refs.begin(), pep.protein_refs.end() ); 
     }
 
-    // Mapping of peptide modifications
+    // Mapping of peptide modifications (don't do this for metabolites...)
+    if (p.isPeptide()) 
     {
       OpenMS::AASequence aa_sequence = TargetedExperimentHelper::getAASequence(pep);
       if ( !aa_sequence.getNTerminalModification().empty())

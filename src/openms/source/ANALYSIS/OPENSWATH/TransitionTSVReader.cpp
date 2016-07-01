@@ -299,6 +299,15 @@ namespace OpenMS
                                          "Expected a header named RetentionTime, Tr_recalibrated or SpectraSTRetentionTime but found none");
       }
 
+      if (header_dict.find("CompoundName") != header_dict.end())
+      {
+        mytransition.CompoundName = tmp_line[header_dict["CompoundName"]];
+      }
+      if (header_dict.find("SumFormula") != header_dict.end())
+      {
+        mytransition.SumFormula = tmp_line[header_dict["SumFormula"]];
+      }
+
       if (header_dict.find("Annotation") != header_dict.end())
       {
         mytransition.Annotation = tmp_line[header_dict["Annotation"]];
@@ -502,6 +511,12 @@ namespace OpenMS
 
     mytransition.FullPeptideName = mytransition.FullPeptideName.remove('"');
     mytransition.FullPeptideName = mytransition.FullPeptideName.remove('\'');
+
+    mytransition.CompoundName = mytransition.CompoundName.remove('"');
+    mytransition.CompoundName = mytransition.CompoundName.remove('\'');
+
+    mytransition.SumFormula = mytransition.SumFormula.remove('"');
+    mytransition.SumFormula = mytransition.SumFormula.remove('\'');
 
     mytransition.group_id  = mytransition.group_id.remove('"');
     mytransition.group_id  = mytransition.group_id.remove('\'');
@@ -920,6 +935,10 @@ namespace OpenMS
     peptide.id = tr_it->group_id;
     peptide.sequence = tr_it->PeptideSequence;
 
+    // TODO not really a peptide ... 
+    peptide.setMetaValue("SumFormula", tr_it->SumFormula);
+    peptide.setMetaValue("CompoundName", tr_it->CompoundName);
+
     // per peptide user params
     peptide.setMetaValue("full_peptide_name", tr_it->FullPeptideName);
     if (!tr_it->label_type.empty())
@@ -993,6 +1012,12 @@ namespace OpenMS
       retention_times.push_back(retention_time);
     }
     peptide.rts = retention_times;
+
+    // Skip the final steps if we have a metabolite ... 
+    if (!tr_it->CompoundName.empty())
+    {
+      return;
+    }
 
     // try to parse it and get modifications out
     // TODO: at this point we could check whether the modification is actually valid
@@ -1326,3 +1351,4 @@ namespace OpenMS
   }
 
 }
+

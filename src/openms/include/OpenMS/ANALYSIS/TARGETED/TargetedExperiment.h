@@ -265,7 +265,6 @@ protected:
 
   };
 
-
   namespace TargetedExperimentHelper
   {
   } // namespace TargetedExperimentHelper
