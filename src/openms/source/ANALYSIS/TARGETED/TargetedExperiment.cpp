@@ -57,7 +57,8 @@ namespace OpenMS
     exclude_targets_(rhs.exclude_targets_),
     source_files_(rhs.source_files_),
     protein_reference_map_dirty_(true),
-    peptide_reference_map_dirty_(true)
+    peptide_reference_map_dirty_(true),
+    compound_reference_map_dirty_(true)
   {
   }
 
@@ -84,6 +85,7 @@ namespace OpenMS
       source_files_ = rhs.source_files_;
       protein_reference_map_dirty_ = true;
       peptide_reference_map_dirty_ = true;
+      compound_reference_map_dirty_ = true;
     }
     return *this;
   }
@@ -99,6 +101,7 @@ namespace OpenMS
   {
     protein_reference_map_dirty_ = true;
     peptide_reference_map_dirty_ = true;
+    compound_reference_map_dirty_ = true;
 
     // merge these:
     cvs_.insert(cvs_.end(), rhs.cvs_.begin(), rhs.cvs_.end());
@@ -171,9 +174,11 @@ namespace OpenMS
       source_files_.clear();
       protein_reference_map_.clear();
       peptide_reference_map_.clear();
+      compound_reference_map_.clear();
 
       protein_reference_map_dirty_ = true;
       peptide_reference_map_dirty_ = true;
+      compound_reference_map_dirty_ = true;
     }
   }
 
@@ -333,6 +338,15 @@ namespace OpenMS
     return *(peptide_reference_map_[ref]);
   }
 
+  const TargetedExperiment::Compound & TargetedExperiment::getCompoundByRef(const String & ref)
+  {
+    if (compound_reference_map_dirty_)
+    {
+      createCompoundReferenceMap_();
+    }
+    return *(compound_reference_map_[ref]);
+  }
+
   void TargetedExperiment::addPeptide(const Peptide & rhs)
   {
     peptide_reference_map_dirty_ = true;
@@ -420,6 +434,15 @@ namespace OpenMS
       peptide_reference_map_[getPeptides()[i].id] = &getPeptides()[i];
     }
     peptide_reference_map_dirty_ = false;
+  }
+
+  void TargetedExperiment::createCompoundReferenceMap_()
+  {
+    for (Size i = 0; i < getCompounds().size(); i++)
+    {
+      compound_reference_map_[getCompounds()[i].id] = &getCompounds()[i];
+    }
+    compound_reference_map_dirty_ = false;
   }
 
 } // namespace OpenMS

@@ -67,6 +67,7 @@ public:
 
     typedef std::map<String, const Protein *> ProteinReferenceMapType;
     typedef std::map<String, const Peptide *> PeptideReferenceMapType;
+    typedef std::map<String, const Compound *> CompoundReferenceMapType;
 
     /** @name Constructors and destructors
     */
@@ -182,6 +183,8 @@ public:
 
     const Peptide & getPeptideByRef(const String & ref);
 
+    const Compound & getCompoundByRef(const String & ref);
+
     void addPeptide(const Peptide & rhs);
 
     /// set transition list
@@ -229,6 +232,8 @@ protected:
 
     void createPeptideReferenceMap_();
 
+    void createCompoundReferenceMap_();
+
     std::vector<CV> cvs_;
 
     std::vector<Contact> contacts_;
@@ -262,6 +267,10 @@ protected:
     PeptideReferenceMapType peptide_reference_map_;
 
     bool peptide_reference_map_dirty_;
+
+    CompoundReferenceMapType compound_reference_map_;
+
+    bool compound_reference_map_dirty_;
 
   };
 
