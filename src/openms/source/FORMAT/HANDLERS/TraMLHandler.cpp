@@ -673,8 +673,26 @@ namespace OpenMS
         for (std::vector<TargetedExperiment::Compound>::const_iterator it = exp.getCompounds().begin(); it != exp.getCompounds().end(); ++it)
         {
           os << "    <Compound id=\"" << it->id << "\">" << "\n";
+
+          if (it->theoretical_mass > 0.0)
+          {
+            os << "      <cvParam cvRef=\"MS\" accession=\"MS:1001117\" name=\"theoretical mass\" value=\"" << 
+              it->theoretical_mass << "\" unitCvRef=\"UO\" unitAccession=\"UO:0000221\" unitName=\"dalton\"/>\n";
+          }
+          if (!it->molecular_formula.empty())
+          {
+            os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000866\" name=\"molecular formula\" value=\"" << 
+              it->molecular_formula << "\"/>\n";
+          }
+          if (!it->smiles_string.empty())
+          {
+            os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000868\" name=\"SMILES string\" value=\"" << 
+              it->smiles_string << "\"/>\n";
+          }
+
           writeCVParams_(os, (CVTermList) * it, 3);
           writeUserParam_(os, (MetaInfoInterface) * it, 3);
+
 
           if (it->rts.size() > 0)
           {
@@ -1111,7 +1129,22 @@ namespace OpenMS
       }
       else if (parent_tag == "Compound")
       {
-        actual_compound_.addCVTerm(cv_term);
+        if (cv_term.getAccession() == "MS:1001117")
+        {
+          actual_compound_.theoretical_mass = cv_term.getValue().toString().toDouble();
+        }
+        else if (cv_term.getAccession() == "MS:1000866")
+        {
+          actual_compound_.molecular_formula = cv_term.getValue().toString();
+        }
+        else if (cv_term.getAccession() == "MS:1000868")
+        {
+          actual_compound_.smiles_string = cv_term.getValue().toString();
+        }
+        else
+        {
+          actual_compound_.addCVTerm(cv_term);
+        }
       }
       else if (parent_tag == "Protein")
       {
