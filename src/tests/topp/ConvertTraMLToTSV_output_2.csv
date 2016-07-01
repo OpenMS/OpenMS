@@ -1,0 +1,13 @@
+PrecursorMz	ProductMz	Tr_recalibrated	transition_name	CE	LibraryIntensity	transition_group_id	decoy	PeptideSequence	ProteinName	Annotation	FullUniModPeptideName	CompoundName	SumFormula	SMILES	MissedCleavages	Replicates	NrModifications	PrecursorCharge	PeptideGroupLabel	LabelType	UniprotID	detecting_transition	identifying_transition	quantifying_transition
+278.1245	89.02496338	-1	tr5	1	0.0628155785	compound_1	0			NA		N-(1-Deoxy-1-fructosyl)valine	C11H21NO7		0	0	0	0				1	0	1
+278.1245	96.08149719	-1	tr6	1	0.5492898082	compound_1	0			NA		N-(1-Deoxy-1-fructosyl)valine	C11H21NO7		0	0	0	0				1	0	1
+278.1245	101.0606232	-1	tr7	1	0.0987432789	compound_1	0			NA		N-(1-Deoxy-1-fructosyl)valine	C11H21NO7		0	0	0	0				1	0	1
+278.1245	109.0291519	-1	tr8	1	0.0861687031	compound_1	0			NA		N-(1-Deoxy-1-fructosyl)valine	C11H21NO7		0	0	0	0				1	0	1
+278.1245	116.0711136	-1	tr9	1	0.2576379826	compound_1	0			NA		N-(1-Deoxy-1-fructosyl)valine	C11H21NO7		0	0	0	0				1	0	1
+278.1245	120.0812531	-1	tr10	1	0.0653417551	compound_1	0			NA		N-(1-Deoxy-1-fructosyl)valine	C11H21NO7		0	0	0	0				1	0	1
+278.1245	126.0915756	-1	tr11	1	0.1081274607	compound_1	0			NA		N-(1-Deoxy-1-fructosyl)valine	C11H21NO7		0	0	0	0				1	0	1
+278.1245	138.0920258	-1	tr12	1	0.2081801254	compound_1	0			NA		N-(1-Deoxy-1-fructosyl)valine	C11H21NO7		0	0	0	0				1	0	1
+278.1245	156.1025848	-1	tr13	1	0.1051499068	compound_1	0			NA		N-(1-Deoxy-1-fructosyl)valine	C11H21NO7		0	0	0	0				1	0	1
+278.1245	158.0813293	-1	tr14	1	1	compound_1	0			NA		N-(1-Deoxy-1-fructosyl)valine	C11H21NO7		0	0	0	0				1	0	1
+278.1245	180.10165405	-1	tr15	1	0.0612758683	compound_1	0			NA		N-(1-Deoxy-1-fructosyl)valine	C11H21NO7		0	0	0	0				1	0	1
+278.1245	234.133316	-1	tr16	1	0.0515150041	compound_1	0			NA		N-(1-Deoxy-1-fructosyl)valine	C11H21NO7		0	0	0	0				1	0	1
