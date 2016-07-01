@@ -573,7 +573,11 @@ namespace OpenMS
       {
         pep_hit_.setScore(mrmfeature->getScore("xx_swath_prelim_score"));
       }
-      pep_hit_.setSequence(AASequence::fromString(pep->sequence));
+
+      if (pep->isPeptide())
+      {
+        pep_hit_.setSequence(AASequence::fromString(pep->sequence));
+      }
 
       // set protein accession numbers 
       for (Size k = 0; k < pep->protein_refs.size(); k++)
