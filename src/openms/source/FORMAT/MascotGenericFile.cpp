@@ -68,7 +68,7 @@ namespace OpenMS
     defaults_.setMinFloat("fragment_mass_tolerance", 0.0);
     defaults_.setValue("fragment_error_units", "Da", "Units of the fragment peaks tolerance");
     defaults_.setValidStrings("fragment_error_units", ListUtils::create<String>("mmu,Da"));
-    defaults_.setValue("charges", "1,2,3", "Allowed charge states, given as a comma separated list of integers");
+    defaults_.setValue("charges", "1,2,3", "Charge states to consider, given as a comma separated list of integers (only used for spectra without precursor charge information)");
     defaults_.setValue("taxonomy", "All entries", "Taxonomy specification of the sequences");
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
