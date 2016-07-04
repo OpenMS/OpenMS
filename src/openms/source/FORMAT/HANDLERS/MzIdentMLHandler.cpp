@@ -518,7 +518,10 @@ namespace OpenMS
         {
           sip += "\n\t\t\t" + cv_.getTermByName("cross-linking search").toXMLString(cv_ns) + "\n";
         }
-        writeMetaInfos_(sip, it->getSearchParameters(), 3);
+        //remove MS:1001029 written if present in <SearchDatabase> as of SearchDatabase_may rule
+        ProteinIdentification::SearchParameters p = it->getSearchParameters();
+        p.removeMetaValue("MS:1001029");
+        writeMetaInfos_(sip, p, 3);
         sip += String(3, '\t') + "<userParam name=\"charges\" unitName=\"xsd:string\" value=\"" + it->getSearchParameters().charges + "\"/>\n";
 //        sip += String(3, '\t') + "<userParam name=\"" + "missed_cleavages" + "\" unitName=\"" + "xsd:integer" + "\" value=\"" + String(it->getSearchParameters().missed_cleavages) + "\"/>" + "\n";
         sip += "\t\t</AdditionalSearchParams>\n";
@@ -610,6 +613,10 @@ namespace OpenMS
           //TODO Searchdb file format type cvParam handling
           search_database += String(4, '\t') + cv_.getTermByName("FASTA format").toXMLString(cv_ns);
           search_database += String("\n\t\t\t</FileFormat>\n\t\t\t<DatabaseName>\n\t\t\t\t<userParam name=\"") + sdb_file + String("\"/>\n\t\t\t</DatabaseName>\n");
+          if (it->getSearchParameters().metaValueExists("MS:1001029"))
+          {
+            search_database += String(3, '\t') + cv_.getTerm("MS:1001029").toXMLString(cv_ns, it->getSearchParameters().getMetaValue("MS:1001029")) + String(" \n");
+          }
           search_database += "\t\t</SearchDatabase>\n";
 
           sdb_ids.insert(make_pair(sdb_file, sdb_id));
@@ -1445,9 +1452,9 @@ namespace OpenMS
           if (is_ppxl)
           {
               s += String(indent+2, '\t') + "<userParam name=\"cross-link_chain\"" + " unitName=\"xsd:string\""
-                        + " values=\"" + ListUtils::concatenate(j->second[3], " ") + "\"/>\n";
+                        + " value=\"" + ListUtils::concatenate(j->second[3], " ") + "\"/>\n";
               s += String(indent+2, '\t') + "<userParam name=\"cross-link_ioncategory\"" + " unitName=\"xsd:string\""
-                        + " values=\"" + ListUtils::concatenate(j->second[4], " ") + "\"/>\n";
+                        + " value=\"" + ListUtils::concatenate(j->second[4], " ") + "\"/>\n";
           }
           s += String(indent+2, '\t') + cv_.getTermByName(j->first).toXMLString("PSI-MS") + "\n";
           s += String(indent+1, '\t') + "</IonType>\n";
