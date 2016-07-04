@@ -2209,6 +2209,9 @@ protected:
     double tolerance_binsize = 0.2;
 
     LOG_DEBUG << "Peptide candidates: " << processed_peptides.size() << endl;
+    search_params = protein_ids[0].getSearchParameters();
+    search_params.setMetaValue("MS:1001029", processed_peptides.size()); // number of sequences searched = MS:1001029
+    protein_ids[0].setSearchParameters(search_params);
 
     //TODO refactor, so that only the used mode is initialized and the pre-scoring code only appears once
     // Initialize enumeration mode
@@ -2249,10 +2252,6 @@ protected:
       }
       LOG_DEBUG << " finished."  << endl;
     }
-
-    // TODO collect peptide Hits and stuff to write out to mzIdentML
-    ProteinIdentification prot_id_run;
-
 
     // TODO test variables, can be removed, or set to be used in debug mode?
     double pScoreMax = 0;
