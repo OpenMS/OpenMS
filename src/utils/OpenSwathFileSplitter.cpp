@@ -87,7 +87,7 @@ protected:
     registerStringOption_("outputDirectory", "<output>", "./", "Output path to store the split files", false, true);
   }
 
-  void loadSwathFiles(StringList& file_list, bool split_file, String tmp, String readoptions,
+  void loadSwathFiles(StringList& file_list, String tmp, String readoptions,
     boost::shared_ptr<ExperimentalSettings > & exp_meta,
     std::vector< OpenSwath::SwathMap > & swath_maps)
   {
@@ -127,7 +127,7 @@ protected:
     ///////////////////////////////////
     boost::shared_ptr<ExperimentalSettings> exp_meta(new ExperimentalSettings);
     std::vector< OpenSwath::SwathMap > swath_maps;
-    loadSwathFiles(file_list, false, tmp, "split", exp_meta, swath_maps);
+    loadSwathFiles(file_list, tmp, "split", exp_meta, swath_maps);
     return EXECUTION_OK;
   }
 
