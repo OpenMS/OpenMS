@@ -1242,7 +1242,7 @@ namespace OpenMS
           }
         }
         mytransition.precursor_charge = "NA";
-        if (pep.getChargeState() > 0)
+        if (pep.hasCharge())
         {
           mytransition.precursor_charge = String(pep.getChargeState());
         }

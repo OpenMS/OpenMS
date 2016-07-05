@@ -111,7 +111,15 @@ namespace OpenMS
       t.precursor_mz = transition_exp_.getTransitions()[i].getPrecursorMZ();
       t.library_intensity = transition_exp_.getTransitions()[i].getLibraryIntensity();
       t.peptide_ref = transition_exp_.getTransitions()[i].getPeptideRef();
-      t.fragment_charge = transition_exp_.getTransitions()[i].getProduct().getChargeState();
+      // try compound ref
+      if (t.peptide_ref.empty())
+      {
+        t.peptide_ref = transition_exp_.getTransitions()[i].getCompoundRef();
+      }
+      if (transition_exp_.getTransitions()[i].isProductChargeStateSet())
+      {
+        t.fragment_charge = transition_exp_.getTransitions()[i].getProductChargeState();
+      }
       t.decoy = false;
 
       // legacy
@@ -208,7 +216,11 @@ namespace OpenMS
     {
       p.rt = pep.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
     }
-    p.charge = pep.getChargeState();
+    if (pep.hasCharge())
+    {
+      p.charge = pep.getChargeState();
+    }
+
     p.sequence = pep.sequence;
     p.peptide_group_label = pep.getPeptideGroupLabel();
 

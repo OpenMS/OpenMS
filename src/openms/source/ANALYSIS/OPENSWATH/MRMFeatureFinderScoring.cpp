@@ -564,7 +564,7 @@ namespace OpenMS
       PeptideIdentification pep_id_ = PeptideIdentification();
       PeptideHit pep_hit_ = PeptideHit();
 
-      if (pep->getChargeState() != -1)
+      if (pep->getChargeState() != 0)
       {
         pep_hit_.setCharge(pep->getChargeState());
       }
