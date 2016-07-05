@@ -86,11 +86,13 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("fasta"));
     registerOutputFile_("out", "<file>", "", "Output FASTA file where the decoy database will be written to.");
     setValidFormats_("out", ListUtils::create<String>("fasta"));
-    registerStringOption_("decoy_string", "<string>", "_rev", "String that is appended to the accession of the protein database to indicate a decoy protein.", false);
-    registerStringOption_("decoy_string_position", "<enum>", "suffix", "Should the 'decoy_string' be prepended (prefix) or appended (suffix) to the protein accession?", false);
+    registerStringOption_("decoy_string", "<string>", "DECOY_", "String that is combined with the accession of the protein identifier to indicate a decoy protein.", false);
+    registerStringOption_("decoy_string_position", "<enum>", "prefix", "Should the 'decoy_string' be prepended (prefix) or appended (suffix) to the protein accession?", false);
     setValidStrings_("decoy_string_position", ListUtils::create<String>("prefix,suffix"));
-    registerFlag_("append", "If this flag is used, the decoy database is appended to the target database, allowing combined target decoy searches.");
-    registerFlag_("shuffle", "If 'true' then the decoy hit are shuffled from the target sequences, otherwise they are reversed");
+    registerStringOption_("append", "<enum>", "true", "If this flag is used, the decoy database is appended to the target database, allowing combined target decoy searches.", false);
+    setValidStrings_("append", ListUtils::create<String>("true,false"));
+    registerStringOption_("method", "<enum>", "reverse", "Method by which decoy sequences are generated from target sequences.", false);
+    setValidStrings_("method", ListUtils::create<String>("reverse,shuffle"));
   }
 
   String getIdentifier_(const String & identifier, const String & decoy_string, const bool as_prefix)
@@ -106,8 +108,8 @@ protected:
     //-------------------------------------------------------------
     StringList in(getStringList_("in"));
     String out(getStringOption_("out"));
-    bool append = getFlag_("append");
-    bool shuffle = getFlag_("shuffle");
+    bool append = (getStringOption_("append") == "true");
+    bool shuffle = (getStringOption_("method") == "shuffle");
 
     //-------------------------------------------------------------
     // reading input

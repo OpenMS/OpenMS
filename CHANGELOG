@@ -25,6 +25,10 @@ If you feel uncomfortable with this you can disable the update/usage tracking by
 1. disabling it in the build script (switch ENABLE_USAGE_STATISTICS to "OFF" ), or
 2. setting the environment variable (OPENMS_DISABLE_USAGE_STATISTICS)
 
+Notable changes are:
+
+Databases:
+  - By default, decoy sequences are now denoted by a prefix 'DECOY_'.
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 2.0.1                                      ----
