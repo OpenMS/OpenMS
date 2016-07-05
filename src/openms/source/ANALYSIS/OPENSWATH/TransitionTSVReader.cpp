@@ -239,7 +239,7 @@ namespace OpenMS
       mytransition.library_intensity            = String(tmp_line[header_dict["LibraryIntensity"]]).toDouble();
       mytransition.CE                           = -1.0;
       mytransition.decoy                        = 0;
-      mytransition.fragment_charge              = -1;
+      mytransition.fragment_charge              = "NA";
       mytransition.fragment_nr                  = -1;
       mytransition.fragment_mzdelta             = -1;
       mytransition.fragment_modification        = 0;
@@ -255,16 +255,20 @@ namespace OpenMS
 
         mytransition.FullPeptideName = peptide.toString();
         mytransition.PeptideSequence = peptide.toUnmodifiedString();
-        mytransition.precursor_charge = substrings[1].toInt();
+        mytransition.precursor_charge = substrings[1];
 
-        mytransition.transition_name = String(cnt) + ("_") + String(tmp_line[header_dict["ProteinName"]]) + String("_") + mytransition.FullPeptideName + String("_") + String(tmp_line[header_dict["PrecursorMz"]]) + "_" + String(tmp_line[header_dict["ProductMz"]]);
-        mytransition.group_id = String(tmp_line[header_dict["ProteinName"]]) + String("_") + mytransition.FullPeptideName + String("_") + String(mytransition.precursor_charge);
+        mytransition.transition_name = String(cnt) + ("_") + String(tmp_line[header_dict["ProteinName"]]) +
+                                       String("_") + mytransition.FullPeptideName + String("_") + 
+                                       String(tmp_line[header_dict["PrecursorMz"]]) + "_" + String(tmp_line[header_dict["ProductMz"]]);
+
+        mytransition.group_id = String(tmp_line[header_dict["ProteinName"]]) + 
+                                String("_") + mytransition.FullPeptideName + String("_") + String(mytransition.precursor_charge);
       }
       else
       {
         mytransition.transition_name = tmp_line[header_dict["transition_name"]];
         mytransition.group_id = tmp_line[header_dict["transition_group_id"]];
-        mytransition.precursor_charge = -1;
+        mytransition.precursor_charge = "NA";
       }
 
       if (header_dict.find("RetentionTime") != header_dict.end())
@@ -367,12 +371,12 @@ namespace OpenMS
       }
       if (header_dict.find("PrecursorCharge") != header_dict.end())
       {
-        mytransition.precursor_charge             =                      String(tmp_line[header_dict["PrecursorCharge"]]).toInt();
+        mytransition.precursor_charge = String(tmp_line[header_dict["PrecursorCharge"]]);
       }
       else if (header_dict.find("Charge") != header_dict.end())
       {
         // charge is assumed to be the charge of the precursor
-        mytransition.precursor_charge             =                      String(tmp_line[header_dict["Charge"]]).toInt();
+        mytransition.precursor_charge = String(tmp_line[header_dict["Charge"]]);
       }
 
       if (header_dict.find("PeptideGroupLabel") != header_dict.end()) 
@@ -396,7 +400,7 @@ namespace OpenMS
       }
       if (header_dict.find("FragmentCharge") != header_dict.end())
       {
-        mytransition.fragment_charge              =                      String(tmp_line[header_dict["FragmentCharge"]]).toInt();
+        mytransition.fragment_charge = String(tmp_line[header_dict["FragmentCharge"]]);
       }
       if (header_dict.find("FragmentSeriesNumber") != header_dict.end())
       {
@@ -437,12 +441,12 @@ namespace OpenMS
           {
             std::vector<String> best_fragment_annotation_charge;
             best_fragment_annotation.split("^", best_fragment_annotation_charge);
-            mytransition.fragment_charge = String(best_fragment_annotation_charge[1]).toInt();
+            mytransition.fragment_charge = String(best_fragment_annotation_charge[1]);
             best_fragment_annotation = best_fragment_annotation_charge[0];
           }
           else
           {
-            mytransition.fragment_charge = 1;
+            mytransition.fragment_charge = 1; // assume 1 (most frequent charge state)
           }
 
           if (best_fragment_annotation.find("-") != std::string::npos)
@@ -558,7 +562,7 @@ namespace OpenMS
     if (substrings.size() == 2)
     {
       mytransition.FullPeptideName = substrings[0];
-      mytransition.precursor_charge = substrings[1].toInt();
+      mytransition.precursor_charge = substrings[1];
     }
   }
 
@@ -646,7 +650,12 @@ namespace OpenMS
       transition.library_intensity  = tr_it->library_intensity;
       transition.precursor_mz  = tr_it->precursor;
       transition.product_mz  = tr_it->product;
-      transition.fragment_charge  = tr_it->fragment_charge;
+      transition.fragment_charge = 0; // use zero for charge that is not set
+      if (!tr_it->fragment_charge.empty() && tr_it->fragment_charge != "NA")
+      {
+        transition.fragment_charge = tr_it->fragment_charge.toInt();
+      }
+
       if (tr_it->decoy == 0)
       {
         transition.decoy = false;
@@ -769,10 +778,10 @@ namespace OpenMS
     }
 
     rm_trans.setLibraryIntensity(tr_it->library_intensity);
-    if (tr_it->fragment_charge != -1)
+    if (!tr_it->fragment_charge.empty() && tr_it->fragment_charge != "NA")
     {
       OpenMS::ReactionMonitoringTransition::Product p = rm_trans.getProduct();
-      p.setChargeState(tr_it->fragment_charge);
+      p.setChargeState(tr_it->fragment_charge.toInt());
       rm_trans.setProduct(p);
     }
 
@@ -1044,9 +1053,9 @@ namespace OpenMS
 
     // per peptide CV terms
     peptide.setPeptideGroupLabel(tr_it->peptide_group_label);
-    if (tr_it->precursor_charge != -1)
+    if (!tr_it->precursor_charge.empty() && tr_it->precursor_charge != "NA")
     {
-      peptide.setChargeState(tr_it->precursor_charge);
+      peptide.setChargeState(tr_it->precursor_charge.toInt());
     }
 
     // add retention time for the peptide
@@ -1134,9 +1143,9 @@ namespace OpenMS
       compound.setMetaValue("LabelType", tr_it->label_type);
     }
 
-    if (tr_it->precursor_charge != -1)
+    if (!tr_it->precursor_charge.empty() && tr_it->precursor_charge != "NA")
     {
-      compound.setChargeState(tr_it->precursor_charge);
+      compound.setChargeState(tr_it->precursor_charge.toInt());
     }
 
     // add retention time for the compound
@@ -1232,15 +1241,10 @@ namespace OpenMS
             }
           }
         }
-        mytransition.precursor_charge = -1;
+        mytransition.precursor_charge = "NA";
         if (pep.getChargeState() > 0)
         {
-          mytransition.precursor_charge = pep.getChargeState();
-        }
-        mytransition.fragment_charge = -1;
-        if (it->getProductChargeState() > 0)
-        {
-          mytransition.fragment_charge = it->getProductChargeState();
+          mytransition.precursor_charge = String(pep.getChargeState());
         }
         mytransition.peptide_group_label = "NA";
         if (pep.getPeptideGroupLabel() != "")
@@ -1267,9 +1271,10 @@ namespace OpenMS
           mytransition.rt_calibrated = compound.rts[0].getCVTerms()["MS:1002005"][0].getValue().toString().toDouble();
         }
 
+        mytransition.precursor_charge = "NA";
         if (compound.hasCharge())
         {
-          mytransition.precursor_charge = compound.getChargeState();
+          mytransition.precursor_charge = String(compound.getChargeState());
         }
 
         // get metabolomics specific terms
@@ -1285,6 +1290,11 @@ namespace OpenMS
         // Error? 
       }
 
+      mytransition.fragment_charge = "NA";
+      if (it->isProductChargeStateSet())
+      {
+        mytransition.fragment_charge = String(it->getProductChargeState());
+      }
 
       mytransition.transition_name = it->getNativeID();
       mytransition.CE = -1;
