@@ -1452,7 +1452,7 @@ namespace OpenMS
                     + " index=\"" + ListUtils::concatenate(j->second[0], " ") + "\">\n";
           s += String(indent+2, '\t') + "<FragmentArray measure_ref=\"Measure_mz\""
                     + " values=\"" + ListUtils::concatenate(j->second[1], " ") + "\"/>\n";
-          s += String(indent+2, '\t') + "<FragmentArray measure_ref=\"Measure_Int\""
+          s += String(indent+2, '\t') + "<FragmentArray measure_ref=\"Measure_int\""
                     + " values=\"" + ListUtils::concatenate(j->second[2], " ") + "\"/>\n";
           if (is_ppxl)
           {
