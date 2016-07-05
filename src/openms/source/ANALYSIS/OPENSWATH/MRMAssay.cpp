@@ -595,7 +595,7 @@ namespace OpenMS
       int precursor_charge = 1;
       if (target_peptide.hasCharge()) 
       {
-        precursor_charge = peptide.getChargeState();
+        precursor_charge = target_peptide.getChargeState();
       }
       OpenMS::AASequence target_peptide_sequence = TargetedExperimentHelper::getAASequence(target_peptide);
       int target_precursor_swath = getSwath_(swathes, target_peptide_sequence.getMonoWeight(Residue::Full, precursor_charge) / precursor_charge);
