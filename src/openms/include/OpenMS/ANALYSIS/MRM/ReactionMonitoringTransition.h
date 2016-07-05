@@ -120,6 +120,8 @@ public:
 
     double getProductMZ() const;
 
+    int getProductChargeState() const;
+
     //void setProductCVTermList(const CVTermList& list);
 
     void addProductCVTerm(const CVTerm & cv_term);

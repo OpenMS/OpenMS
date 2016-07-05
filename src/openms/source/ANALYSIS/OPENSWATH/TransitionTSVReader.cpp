@@ -81,6 +81,7 @@ namespace OpenMS
     "Replicates",
     "NrModifications",
     "PrecursorCharge",
+    "FragmentCharge",
     "PeptideGroupLabel",
     "LabelType",
     "UniprotID",
@@ -89,7 +90,7 @@ namespace OpenMS
     "quantifying_transition"
   };
 
-  const std::vector<std::string> TransitionTSVReader::header_names_(strarray_, strarray_ + 22);
+  const std::vector<std::string> TransitionTSVReader::header_names_(strarray_, strarray_ + 23);
 
   void TransitionTSVReader::getTSVHeader_(const std::string& line, char& delimiter,
                                           std::vector<std::string> header, std::map<std::string, int>& header_dict)
@@ -597,7 +598,7 @@ namespace OpenMS
       transition.library_intensity  = tr_it->library_intensity;
       transition.precursor_mz  = tr_it->precursor;
       transition.product_mz  = tr_it->product;
-      transition.charge  = tr_it->fragment_charge;
+      transition.fragment_charge  = tr_it->fragment_charge;
       if (tr_it->decoy == 0)
       {
         transition.decoy = false;
@@ -1203,6 +1204,11 @@ namespace OpenMS
       {
         mytransition.precursor_charge = pep.getChargeState();
       }
+      mytransition.fragment_charge = -1;
+      if (it->getProductChargeState() > 0)
+      {
+        mytransition.fragment_charge = it->getProductChargeState();
+      }
       mytransition.peptide_group_label = "NA";
       if (pep.getPeptideGroupLabel() != "")
       {
@@ -1252,6 +1258,7 @@ namespace OpenMS
         + (String)0                            + "\t"
         + (String)0                            + "\t"
         + (String)it->precursor_charge         + "\t"
+        + (String)it->fragment_charge          + "\t"
         + (String)it->peptide_group_label      + "\t"
         + (String)it->label_type               + "\t"
         + (String)it->uniprot_id               + "\t"
