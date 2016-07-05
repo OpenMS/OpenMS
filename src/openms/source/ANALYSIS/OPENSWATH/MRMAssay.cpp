@@ -347,7 +347,12 @@ namespace OpenMS
 
       TargetedExperiment::Peptide peptide = exp.getPeptides()[i];
       OpenMS::AASequence peptide_sequence = TargetedExperimentHelper::getAASequence(peptide);
-      double precursor_mz = peptide_sequence.getMonoWeight(Residue::Full, peptide.getChargeState()) / peptide.getChargeState();
+      int precursor_charge = 1;
+      if (peptide.hasCharge()) 
+      {
+        precursor_charge = peptide.getChargeState();
+      }
+      double precursor_mz = peptide_sequence.getMonoWeight(Residue::Full, precursor_charge) / precursor_charge;
       int precursor_swath = getSwath_(swathes, precursor_mz);
 
       // Compute all alternative peptidoforms compatible with ModificationsDB
@@ -366,7 +371,7 @@ namespace OpenMS
         // Append peptidoform to index
         TargetSequenceMap[precursor_swath][alt_aa->toUnmodifiedString()].insert(alt_aa->toString());
         // Generate theoretical ion series
-        MRMIonSeries::IonSeries ionseries = mrmis.getIonSeries(*alt_aa, peptide.getChargeState(), fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses);
+        MRMIonSeries::IonSeries ionseries = mrmis.getIonSeries(*alt_aa, precursor_charge, fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses);
 
         if (enable_ms2_precursors)
         {
@@ -461,6 +466,11 @@ namespace OpenMS
       setProgress(progress++);
 
       TargetedExperiment::Peptide peptide = exp.getPeptides()[i];
+      int precursor_charge = 1;
+      if (peptide.hasCharge()) 
+      {
+        precursor_charge = peptide.getChargeState();
+      }
 
       // Skip if target peptide is not in map, e.g. permutation threshold was reached
       if (TargetPeptideMap.find(peptide.id) == TargetPeptideMap.end())
@@ -469,7 +479,7 @@ namespace OpenMS
       }
 
       OpenMS::AASequence peptide_sequence = TargetedExperimentHelper::getAASequence(peptide);
-      double precursor_mz = peptide_sequence.getMonoWeight(Residue::Full, peptide.getChargeState()) / peptide.getChargeState();
+      double precursor_mz = peptide_sequence.getMonoWeight(Residue::Full, precursor_charge) / precursor_charge;
       int precursor_swath = getSwath_(swathes, precursor_mz);
 
       // Copy properties of target peptide to decoy and get sequence from map
@@ -487,7 +497,8 @@ namespace OpenMS
       for (std::vector<OpenMS::AASequence>::iterator alt_aa = alternative_decoy_peptide_sequences.begin(); alt_aa != alternative_decoy_peptide_sequences.end(); ++alt_aa)
       {
         // Generate theoretical ion series
-        MRMIonSeries::IonSeries ionseries = mrmis.getIonSeries(*alt_aa, decoy_peptide.getChargeState(), fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses);  
+        MRMIonSeries::IonSeries ionseries = mrmis.getIonSeries(*alt_aa, precursor_charge, // use same charge state as target
+                                                               fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses);  
 
         if (enable_ms2_precursors)
         {
@@ -522,8 +533,13 @@ namespace OpenMS
       setProgress(progress++);
 
       TargetedExperiment::Peptide peptide = exp.getPeptideByRef(pep_it->first);
+      int precursor_charge = 1;
+      if (peptide.hasCharge()) 
+      {
+        precursor_charge = peptide.getChargeState();
+      }
       OpenMS::AASequence peptide_sequence = TargetedExperimentHelper::getAASequence(peptide);
-      int target_precursor_swath = getSwath_(swathes, peptide_sequence.getMonoWeight(Residue::Full, peptide.getChargeState()) / peptide.getChargeState());
+      int target_precursor_swath = getSwath_(swathes, peptide_sequence.getMonoWeight(Residue::Full, precursor_charge) / precursor_charge);
 
       // Sort all transitions and make them unique
       std::vector<std::pair<std::string, double> > tr_vec = pep_it->second;
@@ -542,7 +558,7 @@ namespace OpenMS
           ReactionMonitoringTransition trn;
           trn.setMetaValue("detecting_transition", "false");
           trn.setMetaValue("insilico_transition", "true");
-          trn.setPrecursorMZ(Math::roundDecimal(peptide_sequence.getMonoWeight(Residue::Full, peptide.getChargeState()) / peptide.getChargeState(), round_decPow));
+          trn.setPrecursorMZ(Math::roundDecimal(peptide_sequence.getMonoWeight(Residue::Full, precursor_charge) / precursor_charge, round_decPow));
           trn.setProductMZ(tr_it->second);
           trn.setPeptideRef(peptide.id);
           mrmis.annotateTransitionCV(trn, tr_it->first);
@@ -576,8 +592,13 @@ namespace OpenMS
     {
       setProgress(progress++);
       TargetedExperiment::Peptide target_peptide = exp.getPeptideByRef(decoy_pep_it->first);
+      int precursor_charge = 1;
+      if (target_peptide.hasCharge()) 
+      {
+        precursor_charge = peptide.getChargeState();
+      }
       OpenMS::AASequence target_peptide_sequence = TargetedExperimentHelper::getAASequence(target_peptide);
-      int target_precursor_swath = getSwath_(swathes, target_peptide_sequence.getMonoWeight(Residue::Full, target_peptide.getChargeState()) / target_peptide.getChargeState());
+      int target_precursor_swath = getSwath_(swathes, target_peptide_sequence.getMonoWeight(Residue::Full, precursor_charge) / precursor_charge);
 
       TargetedExperiment::Peptide decoy_peptide = TargetDecoyMap[decoy_pep_it->first];
       OpenMS::AASequence decoy_peptide_sequence = TargetedExperimentHelper::getAASequence(decoy_peptide);
@@ -600,7 +621,7 @@ namespace OpenMS
           trn.setDecoyTransitionType(ReactionMonitoringTransition::DECOY);
           trn.setMetaValue("detecting_transition", "false");
           trn.setMetaValue("insilico_transition", "true");
-          trn.setPrecursorMZ(Math::roundDecimal(target_peptide_sequence.getMonoWeight(Residue::Full, target_peptide.getChargeState()) / target_peptide.getChargeState(), round_decPow));
+          trn.setPrecursorMZ(Math::roundDecimal(target_peptide_sequence.getMonoWeight(Residue::Full, precursor_charge) / precursor_charge, round_decPow));
           trn.setProductMZ(decoy_tr_it->second);
           trn.setPeptideRef(decoy_peptide.id);
           mrmis.annotateTransitionCV(trn, decoy_tr_it->first);
@@ -649,10 +670,16 @@ namespace OpenMS
       ReactionMonitoringTransition tr = exp.getTransitions()[i];
 
       TargetedExperiment::Peptide target_peptide = exp.getPeptideByRef(tr.getPeptideRef());
+      int precursor_charge = 1;
+      if (target_peptide.hasCharge()) 
+      {
+        precursor_charge = target_peptide.getChargeState();
+      }
       OpenMS::AASequence target_peptide_sequence = TargetedExperimentHelper::getAASequence(target_peptide);
 
       // Generate new ID (transition_group_id) for target peptide
-      target_peptide.id = String(target_peptide.protein_refs[0]) + String("_") + TargetedExperimentHelper::getAASequence(target_peptide).toString() + String("_") + String(target_peptide.getChargeState()) + "_" + target_peptide.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString();
+      target_peptide.id = String(target_peptide.protein_refs[0]) + String("_") + TargetedExperimentHelper::getAASequence(target_peptide).toString() + 
+          String("_") + String(precursor_charge) + "_" + target_peptide.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString();
 
       // Annotate transition: Either set correct CV terms from annotation or (if enable_reannotation == true) do annotation using theoretical ion series
       // Parameters set allowed fragment charges, tolerance, etc. All unannoted transitions are discarded
