@@ -100,7 +100,13 @@ namespace OpenMS
       transition_exp.compounds.push_back(p);
     }
 
-    // TODO handle metabolites
+    //copy compounds and store as compounds 
+    for (Size i = 0; i < transition_exp_.getCompounds().size(); i++)
+    {
+      OpenSwath::LightCompound c;
+      OpenSwathDataAccessHelper::convertTargetedCompound(transition_exp_.getCompounds()[i], c);
+      transition_exp.compounds.push_back(c);
+    }
 
     //mapping of transitions
     for (Size i = 0; i < transition_exp_.getTransitions().size(); i++)
@@ -273,7 +279,25 @@ namespace OpenMS
       }
 
     }
-    // transition_exp.peptides.push_back(p);
+  }
+
+  void OpenSwathDataAccessHelper::convertTargetedCompound(const TargetedExperiment::Compound& compound, OpenSwath::LightCompound & comp)
+  {
+    comp.id = compound.id;
+    if (!compound.rts.empty())
+    {
+      comp.rt = compound.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
+    }
+    if (compound.hasCharge())
+    {
+      comp.charge = compound.getChargeState();
+    }
+
+    comp.sum_formula = (std::string)compound.molecular_formula;
+    if (compound.metaValueExists("CompoundName"))
+    {
+      comp.compound_name = (std::string)compound.getMetaValue("CompoundName");
+    }
   }
 
   void OpenSwathDataAccessHelper::convertPeptideToAASequence(const OpenSwath::LightCompound & peptide, AASequence & aa_sequence)
