@@ -114,9 +114,9 @@
       </RetentionTimeList>
     </Peptide>
     <Compound id="glyoxylate">
+      <cvParam cvRef="MS" accession="MS:1001117" name="theoretical mass" value="423.39" unitCvRef="UO" unitAccession="UO:0000221" unitName="dalton"/>
       <cvParam cvRef="MS" accession="MS:1000866" name="molecular formula" value="C2HO3"/>
       <cvParam cvRef="MS" accession="MS:1000868" name="SMILES string" value="[CH](=[O])[C](=[O])[O-]"/>
-      <cvParam cvRef="MS" accession="MS:1001117" name="theoretical mass" value="423.39" unitCvRef="UO" unitAccession="UO:0000221" unitName="dalton"/>
       <RetentionTimeList>
         <RetentionTime>
           <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="22.34" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>

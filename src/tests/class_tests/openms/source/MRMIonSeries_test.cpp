@@ -295,7 +295,7 @@ START_SECTION((void MRMIonSeries::annotateTransition(ReactionMonitoringTransitio
   mrmis.annotateTransition(tr3, peptide, 0.05, 0.05, false, fragment_types, fragment_charges, false, false);
 
   TEST_REAL_SIMILAR(tr3.getProductMZ(), 202.44)
-  TEST_EQUAL(tr3.getProduct().getChargeState(), -1)
+  TEST_EQUAL(tr3.getProduct().hasCharge(), false)
   TEST_EQUAL(tr3.getProduct().getInterpretationList()[0].hasCVTerm("MS:1001220"), false)
   TEST_EQUAL(tr3.getProduct().getInterpretationList()[0].hasCVTerm("MS:1001524"), false)
 }
