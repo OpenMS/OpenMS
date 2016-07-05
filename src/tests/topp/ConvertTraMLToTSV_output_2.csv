@@ -11,3 +11,6 @@ PrecursorMz	ProductMz	Tr_recalibrated	transition_name	CE	LibraryIntensity	transi
 278.1245	158.0813293	-1	tr14	1	1	compound_1	0			NA		N-(1-Deoxy-1-fructosyl)valine	C11H21NO7		0	0	0	-1	NA				1	0	1
 278.1245	180.10165405	-1	tr15	1	0.0612758683	compound_1	0			NA		N-(1-Deoxy-1-fructosyl)valine	C11H21NO7		0	0	0	-1	NA				1	0	1
 278.1245	234.133316	-1	tr16	1	0.0515150041	compound_1	0			NA		N-(1-Deoxy-1-fructosyl)valine	C11H21NO7		0	0	0	-1	NA				1	0	1
+244.123	158.0813293	-1	tr17	1	0.25	compound_2	0			NA		valine	C5H11NO2		0	0	0	NA	-1				1	0	1
+244.123	180.10165405	-1	tr18	1	1	compound_2	0			NA		valine	C5H11NO2		0	0	0	NA	-1				1	0	1
+244.123	234.133316	-1	tr19	1	0.3	compound_2	0			NA		valine	C5H11NO2		0	0	0	NA	-1				1	0	1
