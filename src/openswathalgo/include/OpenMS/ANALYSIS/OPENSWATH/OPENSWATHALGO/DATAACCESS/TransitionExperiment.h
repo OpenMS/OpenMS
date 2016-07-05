@@ -47,6 +47,12 @@ namespace OpenSwath
   struct OPENSWATHALGO_DLLAPI LightTransition
   {
 public:
+
+    LightTransition() :
+      fragment_charge(0)
+    {
+    }
+
     std::string transition_name;
     std::string peptide_ref;
     double library_intensity;
@@ -61,6 +67,11 @@ public:
     int getProductChargeState() const
     {
       return fragment_charge;
+    }
+
+    bool isProductChargeStateSet() const
+    {
+      return !(fragment_charge == 0);
     }
 
     std::string getNativeID() const
@@ -133,6 +144,12 @@ public:
   // A compound is either a peptide or a metabolite
   struct OPENSWATHALGO_DLLAPI LightCompound
   {
+
+    LightCompound() :
+      charge(0)
+    {
+    }
+
     double rt;
     int charge;
     std::string sequence;
@@ -149,6 +166,11 @@ public:
     bool isPeptide() const
     {
       return compound_name.empty();
+    }
+
+    void setChargeState(int ch)
+    {
+      charge = ch;
     }
 
     int getChargeState() const
