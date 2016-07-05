@@ -120,16 +120,19 @@ namespace OpenMS
       OpenSwath::SpectrumPtr ms1_spectrum = getAddedSpectra_(ms1_map, imrmfeature->getRT(), add_up_spectra_);
       diascoring.dia_ms1_massdiff_score(precursor_mz, ms1_spectrum, scores.ms1_ppm_score);
 
+      int precursor_charge = 1;
+      if (compound.getChargeState() != 0) {precursor_charge = compound.getChargeState();}
+
       if (compound.isPeptide())
       {
         diascoring.dia_ms1_isotope_scores(precursor_mz, ms1_spectrum,
-                                          compound.getChargeState(), scores.ms1_isotope_correlation,
+                                          precursor_charge, scores.ms1_isotope_correlation,
                                           scores.ms1_isotope_overlap);
       }
       else
       {
         diascoring.dia_ms1_isotope_scores(precursor_mz, ms1_spectrum,
-                                          compound.getChargeState(), scores.ms1_isotope_correlation,
+                                          precursor_charge, scores.ms1_isotope_correlation,
                                           scores.ms1_isotope_overlap, compound.sum_formula);
       }
     }

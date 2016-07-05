@@ -608,7 +608,10 @@ namespace OpenMS
       for (std::vector<String>::iterator id_it = precursors_ids.begin(); id_it != precursors_ids.end(); ++id_it)
       {
         Feature curr_feature = mrmfeature->getPrecursorFeature(*id_it);
-        curr_feature.setCharge(pep->getChargeState());
+        if (pep->getChargeState() != 0)
+        {
+          curr_feature.setCharge(pep->getChargeState());
+        }
         processFeatureForOutput(curr_feature, write_convex_hull_, quantification_cutoff_, total_intensity, total_peak_apices, "MS1");
         allFeatures.push_back(curr_feature);
       }
