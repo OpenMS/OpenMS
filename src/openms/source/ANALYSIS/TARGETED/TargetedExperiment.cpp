@@ -486,8 +486,7 @@ namespace OpenMS
     // Check that each peptide has only valid proteins
     for (Size i = 0; i < getPeptides().size(); i++)
     {
-      std::vector<String> protein_refs;
-      for (std::vector<String>::const_iterator prot_it = getPeptides()[i].protein_refs.begin(); prot_it != getPeptides()[i].protein_refs.end(); prot_it++)
+      for (std::vector<String>::const_iterator prot_it = getPeptides()[i].protein_refs.begin(); prot_it != getPeptides()[i].protein_refs.end(); ++prot_it)
       {
         if (unique_protein_map.find(*prot_it) == unique_protein_map.end()) 
         {
@@ -500,8 +499,6 @@ namespace OpenMS
     // Check that each peptide has only valid references to peptides and compounds
     for (Size i = 0; i < getTransitions().size(); i++)
     {
-      std::vector<String> protein_refs;
-
       const ReactionMonitoringTransition& tr = getTransitions()[i];
       if (!tr.getPeptideRef().empty())
       {
