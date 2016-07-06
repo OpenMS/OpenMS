@@ -178,7 +178,7 @@ namespace OpenMS
     String labels_;
     
     /**
-     * @brief flat list of all occuring isotopic labels
+     * @brief flat list of all occurring isotopic labels
      */
     std::vector<String> labels_list_;
     

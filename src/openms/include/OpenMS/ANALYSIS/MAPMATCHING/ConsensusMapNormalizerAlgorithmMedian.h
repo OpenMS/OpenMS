@@ -93,7 +93,7 @@ public:
      * @brief returns whether consensus feature passes filters
      * returns whether consensus feature @p cf_it in @p map passes accession
      * regexp @p acc_filter and description regexp @p desc_filter
-     * @param cf_it consenus feature
+     * @param cf_it consensus feature
      * @param map consensus map
      * @param acc_filter string describing the regular expression for filtering accessions
      * @param desc_filter string describing the regular expression for filtering descriptions

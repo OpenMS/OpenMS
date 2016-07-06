@@ -869,7 +869,7 @@ namespace OpenMS
     // Different maps to store temporary data for fast access
     // TargetIonMap & DecoyIonMap: Store product m/z of all peptidoforms to find interfering transitions
     boost::unordered_map<size_t, boost::unordered_map<String, std::vector<std::pair<double, std::string> > > > TargetIonMap, DecoyIonMap;
-    // TargetPeptideMap & DecoyPeptideMap: Store theoretical transitons of all peptidoforms
+    // TargetPeptideMap & DecoyPeptideMap: Store theoretical transitions of all peptidoforms
     boost::unordered_map<String, std::vector<std::pair<std::string, double> > > TargetPeptideMap, DecoyPeptideMap;
     // TargetSequenceMap, DecoySequenceMap & TargetDecoyMap: Link targets and UIS decoys
     boost::unordered_map<size_t, boost::unordered_map<String, std::set<std::string> > > TargetSequenceMap;
