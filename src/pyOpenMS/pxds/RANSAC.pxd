@@ -1,12 +1,19 @@
 from Types cimport *
-# from RANSACModelLinear cimport *
+from RANSACModelLinear cimport *
 
 cdef extern from "<OpenMS/MATH/MISC/RANSAC.h>" namespace "OpenMS::Math":
+
+    cdef cppclass RANSAC[TModelType]:
+        # wrap-instances:
+        #   RANSAC := RANSAC[RansacModelLinear]
+
+        RANSAC() nogil except +
+        RANSAC(RANSAC[TModelType] &) nogil except + # wrap-ignore
 
     cdef cppclass RANSACParam:
 
         RANSACParam() nogil except +
-        RANSACParam(RANSACParam) nogil except + #wrap-ignore
+        RANSACParam(RANSACParam) nogil except + # wrap-ignore
         RANSACParam(size_t p_n, size_t p_k, double p_t, size_t p_d, bool p_relative_d) nogil except +
 
         libcpp_string toString() nogil except +
