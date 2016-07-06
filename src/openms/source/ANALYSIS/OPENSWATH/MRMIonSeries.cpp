@@ -258,7 +258,8 @@ namespace OpenMS
   void MRMIonSeries::annotateTransition(ReactionMonitoringTransition& tr, const TargetedExperiment::Peptide peptide, const double precursor_mz_threshold, double product_mz_threshold, bool enable_reannotation, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, int round_decPow)
   {
     OPENMS_PRECONDITION(peptide.hasCharge(), "Cannot annotate transition without a peptide charge state")
-    OPENMS_PRECONDITION(tr.isProductChargeStateSet(), "Cannot annotate transition without a charge state")
+    // TODO: we should not have transitions without charge states
+    // OPENMS_PRECONDITION(tr.isProductChargeStateSet(), "Cannot annotate transition without a charge state")
 
     CVTermList interpretation;
     OpenMS::AASequence sequence = TargetedExperimentHelper::getAASequence(peptide);
