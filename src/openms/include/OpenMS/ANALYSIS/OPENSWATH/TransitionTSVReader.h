@@ -131,7 +131,7 @@ private:
       bool quantifying_transition;
 
       // By convention, if there is no (metabolic) compound name, it is a peptide 
-      bool isPeptide() {return CompoundName.empty();};
+      bool isPeptide() {return CompoundName.empty();}
     };
 
     static const char* strarray_[];
@@ -277,4 +277,4 @@ public:
   };
 }
 
-#endif
+#endif // OPENMS_ANALYSIS_OPENSWATH_TRANSITIONTSVREADER_H

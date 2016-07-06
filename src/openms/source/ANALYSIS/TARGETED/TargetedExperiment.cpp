@@ -38,7 +38,10 @@
 
 namespace OpenMS
 {
-  TargetedExperiment::TargetedExperiment()
+  TargetedExperiment::TargetedExperiment() :
+    protein_reference_map_dirty_(true),
+    peptide_reference_map_dirty_(true),
+    compound_reference_map_dirty_(true)
   {
   }
 

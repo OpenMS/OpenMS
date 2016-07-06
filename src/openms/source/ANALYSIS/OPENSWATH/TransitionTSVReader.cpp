@@ -132,7 +132,10 @@ namespace OpenMS
     // could not determine the delimiter correctly
     if (header.size() < min_header_size)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Determined your csv/tsv file to have delimiter '" + (String)txt_delimiter + "', but the parsed header has only " + (String)header.size() + " fields instead of the minimal " + (String)min_header_size + ". Please check your input file.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+          "Determined your csv/tsv file to have delimiter '" + (String)txt_delimiter + 
+          "', but the parsed header has only " + (String)header.size() + " fields instead of the minimal " + 
+          (String)min_header_size + ". Please check your input file.");
     }
 
     int requiredFields[5] = { 0, 1, 3, 5, 6};
