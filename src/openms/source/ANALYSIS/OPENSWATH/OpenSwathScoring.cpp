@@ -77,10 +77,6 @@ namespace OpenMS
     std::vector<double> normalized_library_intensity;
     getNormalized_library_intensities_(transitions, normalized_library_intensity);
 
-    // parameters
-    int by_charge_state = 1; // for which charge states should we check b/y series
-    double precursor_mz = transitions[0].precursor_mz;
-
     // find spectrum that is closest to the apex of the peak using binary search
     OpenSwath::SpectrumPtr spectrum_ = getAddedSpectra_(swath_map, imrmfeature->getRT(), add_up_spectra_);
     OpenSwath::SpectrumPtr* spectrum = &spectrum_;
@@ -105,6 +101,7 @@ namespace OpenMS
     {
       // Presence of b/y series score
       OpenMS::AASequence aas;
+      int by_charge_state = 1; // for which charge states should we check b/y series
       OpenSwathDataAccessHelper::convertPeptideToAASequence(compound, aas);
       diascoring.dia_by_ion_score((*spectrum), aas, by_charge_state, scores.bseries_score, scores.yseries_score);
     }
@@ -117,6 +114,7 @@ namespace OpenMS
     // - compute isotopic pattern score
     if (ms1_map && ms1_map->getNrSpectra() > 0) 
     {
+      double precursor_mz = transitions[0].precursor_mz;
       OpenSwath::SpectrumPtr ms1_spectrum = getAddedSpectra_(ms1_map, imrmfeature->getRT(), add_up_spectra_);
       diascoring.dia_ms1_massdiff_score(precursor_mz, ms1_spectrum, scores.ms1_ppm_score);
 
