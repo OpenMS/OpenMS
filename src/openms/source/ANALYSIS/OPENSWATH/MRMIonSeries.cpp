@@ -91,7 +91,11 @@ namespace OpenMS
     std::vector<String> best_annotation;
     annotation.split("/", best_annotation);
 
-    if (best_annotation[0].find("-") != std::string::npos)
+    if (best_annotation[0] == "Precursor_i0")
+    {
+      return interpretation;
+    }
+    else if (best_annotation[0].find("-") != std::string::npos)
     {
       std::vector<String> best_annotation_loss;
       best_annotation[0].split("-", best_annotation_loss);
@@ -462,7 +466,7 @@ namespace OpenMS
       frag_mzdelta.setAccession("MS:1000904");
       frag_mzdelta.setName("product ion m/z delta");
       frag_mzdelta.setValue(std::fabs(Math::roundDecimal(tr.getProductMZ() - pos, round_decPow)));
-      interpretation.addCVTerm(frag_mzdelta);
+      interpretation.replaceCVTerm(frag_mzdelta);
       pos = Math::roundDecimal(pos, round_decPow);
       prec_pos = Math::roundDecimal(prec_pos, round_decPow);
       tr.setProductMZ(pos);

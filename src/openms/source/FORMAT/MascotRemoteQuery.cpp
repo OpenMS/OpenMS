@@ -81,7 +81,7 @@ namespace OpenMS
     defaults_.setValidStrings("use_ssl", ListUtils::create<String>("true,false"));
 
     // Mascot export options
-    defaults_.setValue("export_params", "_sigthreshold=0.99&_showsubsets=1&show_same_sets=1&report=0&percolate=0&query_master=0", "Adjustable export parameters (passed to Mascot's 'export_dat_2.pl' script). Generally only parameters that control which hits to export are safe to adjust/add. Many settings that govern what types of information to include are required by OpenMS and cannot be changed. Note that setting 'query_master' to 1 may lead to incorrect protein references for peptides.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("export_params", "_ignoreionsscorebelow=0&_sigthreshold=0.99&_showsubsets=1&show_same_sets=1&report=0&percolate=0&query_master=0", "Adjustable export parameters (passed to Mascot's 'export_dat_2.pl' script). Generally only parameters that control which hits to export are safe to adjust/add. Many settings that govern what types of information to include are required by OpenMS and cannot be changed. Note that setting 'query_master' to 1 may lead to incorrect protein references for peptides.", ListUtils::create<String>("advanced"));
     defaults_.setValue("skip_export", "false", "For use with an external Mascot Percolator (via GenericWrapper): Run the Mascot search, but do not export the results. The output file produced by MascotAdapterOnline will contain only the Mascot search number.", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("skip_export", ListUtils::create<String>("true,false"));
     defaultsToParam_();
@@ -598,8 +598,8 @@ namespace OpenMS
         if (mascot_error_regex.cap() == "[M00380]")
         {
           // we know this error, so we give a much shorter and readable error message for the user
-          LOG_ERROR << "You must enter an email address and user name when using the Matrix Science public web site [M00380]." << std::endl;
           error_message_ = "You must enter an email address and user name when using the Matrix Science public web site [M00380].";
+          LOG_ERROR << error_message_ << std::endl;
         }
         else
         {
@@ -726,7 +726,7 @@ namespace OpenMS
     String tmp = path.substr(pos + 1);
     pos = tmp.find_last_of(".");
     tmp = tmp.substr(1, pos - 1);
-   
+
     return tmp.toInt();
   }
 }

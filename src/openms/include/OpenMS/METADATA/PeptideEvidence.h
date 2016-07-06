@@ -76,6 +76,9 @@ public:
 
     /// Equality operator
     bool operator==(const PeptideEvidence& rhs) const;
+    
+    /// Less operator
+    bool operator<(const PeptideEvidence& rhs) const;
 
     /// not equal
     bool operator!=(const PeptideEvidence& rhs) const;

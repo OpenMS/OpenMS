@@ -205,6 +205,11 @@ namespace OpenMS
     }
   }
 
+  int ReactionMonitoringTransition::getProductChargeState() const
+  { 
+    return product_.getChargeState();
+  }
+
   void ReactionMonitoringTransition::addProductCVTerm(const CVTerm & cv_term)
   {
     product_.addCVTerm(cv_term);

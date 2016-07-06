@@ -6,6 +6,7 @@ set(sources_list_h
 Adduct.h
 BigString.h
 BinaryTreeNode.h
+CalibrationData.h
 ChargePair.h
 Compomer.h
 ConstRefVector.h
