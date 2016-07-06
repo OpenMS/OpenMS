@@ -1429,6 +1429,11 @@ namespace OpenMS
   // public methods
   void TransitionTSVReader::convertTargetedExperimentToTSV(const char* filename, OpenMS::TargetedExperiment& targeted_exp)
   {
+    if (targeted_exp.containsInvalidReferences())
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+          "Your input file contains invalid references, cannot process file.");
+    }
     writeTSVOutput_(filename, targeted_exp);
   }
 
@@ -1448,40 +1453,10 @@ namespace OpenMS
 
   void TransitionTSVReader::validateTargetedExperiment(OpenMS::TargetedExperiment& targeted_exp)
   {
-    // check that all proteins ids are unique
-    std::map<String, int> unique_protein_map;
-    for (ProteinVectorType::const_iterator prot_it = targeted_exp.getProteins().begin(); prot_it != targeted_exp.getProteins().end(); ++prot_it)
+    if (targeted_exp.containsInvalidReferences())
     {
-      // Create new transition group if it does not yet exist
-      if (unique_protein_map.find(prot_it->id) != unique_protein_map.end())
-      {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Found duplicate protein id (must be unique): " + String(prot_it->id));
-      }
-      unique_protein_map[prot_it->id] = 0;
-    }
-
-    // check that all peptide ids are unique
-    std::map<String, int> unique_peptide_map;
-    for (PeptideVectorType::const_iterator pep_it = targeted_exp.getPeptides().begin(); pep_it != targeted_exp.getPeptides().end(); ++pep_it)
-    {
-      // Create new transition group if it does not yet exist
-      if (unique_peptide_map.find(pep_it->id) != unique_peptide_map.end())
-      {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Found duplicate peptide id (must be unique): " + String(pep_it->id));
-      }
-      unique_peptide_map[pep_it->id] = 0;
-    }
-
-    // check that all transition ids are unique
-    std::map<String, int> unique_transition_map;
-    for (TransitionVectorType::const_iterator tr_it = targeted_exp.getTransitions().begin(); tr_it != targeted_exp.getTransitions().end(); ++tr_it)
-    {
-      // Create new transition group if it does not yet exist
-      if (unique_transition_map.find(tr_it->getNativeID()) != unique_transition_map.end())
-      {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Found duplicate transition id (must be unique): " + String(tr_it->getNativeID()));
-      }
-      unique_transition_map[tr_it->getNativeID()] = 0;
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+          "Invalid input, contains duplicate or invalid references");
     }
   }
 
