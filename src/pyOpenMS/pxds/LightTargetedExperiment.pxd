@@ -7,8 +7,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/Transition
     cdef cppclass LightTransition:
         LightTransition() nogil except +
         LightTransition(LightTransition) nogil except +
-        int getProductChargeState() nogil except +
-        int charge
+        int fragment_charge
         bool decoy 
         libcpp_string transition_name
         libcpp_string peptide_ref
@@ -16,6 +15,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/Transition
         double product_mz
         double precursor_mz
 
+        int getProductChargeState() nogil except +
+        bool isProductChargeStateSet() nogil except +
         libcpp_string getNativeID() nogil except +
         libcpp_string getPeptideRef() nogil except +
         double getLibraryIntensity() nogil except +
@@ -23,15 +24,25 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/Transition
         double getProductMZ() nogil except +
         double getPrecursorMZ() nogil except +
 
+        # Detecting / quantifying / identifying transitions
+        void setDetectingTransition (bool d) nogil except +
+        bool isDetectingTransition() nogil except +
+        void setQuantifyingTransition (bool q) nogil except +
+        bool isQuantifyingTransition() nogil except +
+        void setIdentifyingTransition (bool i) nogil except +
+        bool isIdentifyingTransition() nogil except +
+
     cdef cppclass LightModification:
         LightModification() nogil except +
         LightModification(LightModification) nogil except +
+
         int location
         libcpp_string unimod_id
 
     cdef cppclass LightCompound:
         LightCompound() nogil except +
         LightCompound(LightCompound) nogil except +
+
         double rt
         int charge
         libcpp_string sequence
@@ -44,6 +55,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/Transition
         libcpp_vector[LightModification] modifications
 
         int getChargeState() nogil except +
+        bool isPeptide() nogil except +
+        void setChargeState(int ch) nogil except +
 
     cdef cppclass LightProtein:
         LightProtein() nogil except +
@@ -61,8 +74,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/Transition
         libcpp_vector[LightProtein] proteins
         libcpp_vector[LightTransition] getTransitions()  nogil except +
 
-        libcpp_vector[ LightCompound ]  getCompounds() nogil except +
-        libcpp_vector[ LightProtein ]  getProteins() nogil except +
+        libcpp_vector[LightCompound] getCompounds() nogil except +
+        libcpp_vector[LightProtein] getProteins() nogil except +
 
         LightCompound getCompoundByRef(libcpp_string & ref) nogil except +
 
