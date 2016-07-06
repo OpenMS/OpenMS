@@ -47,7 +47,7 @@ namespace OpenMS
     //-------------------------------------------------------------
 
     index_offset_ = IndexedMzMLDecoder().findIndexListOffset(filename);
-    if (index_offset_ == -1)
+    if (index_offset_ == (std::streampos)-1)
     {
       parsing_success_ = false;
       return;
