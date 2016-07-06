@@ -297,6 +297,7 @@ namespace OpenMS
     {
       createProteinReferenceMap_();
     }
+    OPENMS_PRECONDITION(protein_reference_map_.find(ref) != protein_reference_map_.end(), "Could not find protein in map")
     return *(protein_reference_map_[ref]);
   }
 
@@ -338,6 +339,7 @@ namespace OpenMS
     {
       createPeptideReferenceMap_();
     }
+    OPENMS_PRECONDITION(peptide_reference_map_.find(ref) != peptide_reference_map_.end(), "Could not find peptide in map")
     return *(peptide_reference_map_[ref]);
   }
 
@@ -347,6 +349,7 @@ namespace OpenMS
     {
       createCompoundReferenceMap_();
     }
+    OPENMS_PRECONDITION(compound_reference_map_.find(ref) != compound_reference_map_.end(), "Could not find compound in map")
     return *(compound_reference_map_[ref]);
   }
 
@@ -419,6 +422,111 @@ namespace OpenMS
   void TargetedExperiment::sortTransitionsByProductMZ()
   {
     std::sort(transitions_.begin(), transitions_.end(), ReactionMonitoringTransition::ProductMZLess());
+  }
+
+  bool TargetedExperiment::containsInvalidReferences()
+  {
+    typedef std::vector<OpenMS::TargetedExperiment::Protein> ProteinVectorType;
+    typedef std::vector<OpenMS::TargetedExperiment::Peptide> PeptideVectorType;
+    typedef std::vector<OpenMS::TargetedExperiment::Compound> CompoundVectorType;
+    typedef std::vector<OpenMS::ReactionMonitoringTransition> TransitionVectorType;
+
+    // check that all proteins ids are unique
+    std::map<String, int> unique_protein_map;
+    for (ProteinVectorType::const_iterator prot_it = getProteins().begin(); prot_it != getProteins().end(); ++prot_it)
+    {
+      // Create new transition group if it does not yet exist
+      if (unique_protein_map.find(prot_it->id) != unique_protein_map.end())
+      {
+        LOG_ERROR << "Found duplicate protein id (must be unique): " + String(prot_it->id) << std::endl;
+        return true;
+      }
+      unique_protein_map[prot_it->id] = 0;
+    }
+
+    // check that all peptide ids are unique
+    std::map<String, int> unique_peptide_map;
+    for (PeptideVectorType::const_iterator pep_it = getPeptides().begin(); pep_it != getPeptides().end(); ++pep_it)
+    {
+      // Create new transition group if it does not yet exist
+      if (unique_peptide_map.find(pep_it->id) != unique_peptide_map.end())
+      {
+        LOG_ERROR << "Found duplicate peptide id (must be unique): " + String(pep_it->id) << std::endl;
+        return true;
+      }
+      unique_peptide_map[pep_it->id] = 0;
+    }
+
+    // check that all compound ids are unique
+    std::map<String, int> unique_compounds_map;
+    for (CompoundVectorType::const_iterator comp_it = getCompounds().begin(); comp_it != getCompounds().end(); ++comp_it)
+    {
+      // Create new transition group if it does not yet exist
+      if (unique_compounds_map.find(comp_it->id) != unique_compounds_map.end())
+      {
+        LOG_ERROR << "Found duplicate compound id (must be unique): " + String(comp_it->id) << std::endl;
+        return true;
+      }
+      unique_compounds_map[comp_it->id] = 0;
+    }
+
+    // check that all transition ids are unique
+    std::map<String, int> unique_transition_map;
+    for (TransitionVectorType::const_iterator tr_it = getTransitions().begin(); tr_it != getTransitions().end(); ++tr_it)
+    {
+      // Create new transition group if it does not yet exist
+      if (unique_transition_map.find(tr_it->getNativeID()) != unique_transition_map.end())
+      {
+        LOG_ERROR << "Found duplicate transition id (must be unique): " + String(tr_it->getNativeID()) << std::endl;
+        return true;
+      }
+      unique_transition_map[tr_it->getNativeID()] = 0;
+    }
+
+    // Check that each peptide has only valid proteins
+    for (Size i = 0; i < getPeptides().size(); i++)
+    {
+      std::vector<String> protein_refs;
+      for (std::vector<String>::const_iterator prot_it = getPeptides()[i].protein_refs.begin(); prot_it != getPeptides()[i].protein_refs.end(); prot_it++)
+      {
+        if (unique_protein_map.find(*prot_it) == unique_protein_map.end()) 
+        {
+          LOG_ERROR << "Protein " << *prot_it << " is not present in the provided data structure." << std::endl;
+          return true;
+        }
+      }
+    }
+
+    // Check that each peptide has only valid references to peptides and compounds
+    for (Size i = 0; i < getTransitions().size(); i++)
+    {
+      std::vector<String> protein_refs;
+
+      const ReactionMonitoringTransition& tr = getTransitions()[i];
+      if (!tr.getPeptideRef().empty())
+      {
+        if (unique_peptide_map.find(tr.getPeptideRef()) == unique_peptide_map.end()) 
+        {
+          LOG_ERROR << "Peptide " << tr.getPeptideRef() << " is not present in the provided data structure." << std::endl;
+          return true;
+        }
+      }
+      else if (!tr.getCompoundRef().empty())
+      {
+        if (unique_compounds_map.find(tr.getCompoundRef()) == unique_compounds_map.end()) 
+        {
+          LOG_ERROR << "Compound " << tr.getPeptideRef() << " is not present in the provided data structure." << std::endl;
+          return true;
+        }
+      }
+      else
+      {
+        // It seems that having no associated compound or peptide is valid as both attributes are optional.
+        LOG_WARN << "Transition " << tr.getNativeID() << " does not have a compound or peptide associated with it." << std::endl;
+        // return true;
+      }
+    }
+    return false;
   }
 
   void TargetedExperiment::createProteinReferenceMap_()
